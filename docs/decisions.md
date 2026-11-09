@@ -20,3 +20,33 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: Composer's download cache is kept with `actions/cache` keyed on `composer.lock`; npm
   uses `setup-node`'s `cache: npm`. The first run after a lock change refills them.
 - 2026-11-10: Build and e2e (M2.1) take the `app` group and join the gate's `needs`.
+- 2026-11-10: Conventions from Stella, JIT-Pack and glissando are consolidated in
+  `conventions.md` (every language) beside `03-coding-standards.md` (stack idioms), so neither
+  repeats the other.
+- 2026-11-10: Source files have at most 300 lines (glissando) rather than 800 with a ratchet
+  (JIT-Pack) or no limit (Stella). One script covers PHP, TypeScript, Vue and shell alike,
+  which ESLint's `max-lines` cannot.
+- 2026-11-10: No Prettier, which all three use: `@nextcloud/eslint-config` already formats
+  TypeScript and Vue with its stylistic rules, and the two would fight.
+- 2026-11-10: No `no-magic-numbers` lint rule (JIT-Pack rejected it for firing on one-off
+  geometry); the named-constant rule is checked in review.
+- 2026-11-10: Doc comments on exports are required (Stella, JIT-Pack; glissando has no rule), one
+  line each; `jsdoc/require-param` is off because the types carry the parameters.
+- 2026-11-10: Type-aware linting through `typescript-eslint` as a direct dev dependency, pinned to
+  the version `@nextcloud/eslint-config` already pulls in; it adds `no-floating-promises` and
+  `no-misused-promises` (glissando).
+- 2026-11-10: `tsconfig.json` adds glissando's `noImplicitOverride` and
+  `noFallthroughCasesInSwitch`, plus `noImplicitReturns`.
+- 2026-11-10: Hand-written fakes in TypeScript (all three), but PHPUnit test doubles for `OCP`
+  interfaces: they are Nextcloud's convention and the interfaces too wide to fake by hand.
+- 2026-11-10: The coverage gate stays at 95 % lines and 90 % branches for `src/logic/`, stricter
+  than JIT-Pack's 75 % and the others' none; no mutation tool, a fix is reverted once by hand.
+- 2026-11-10: PHPUnit runs in random order and prints the seed; Vitest restores mocks, globals
+  and env after each test instead of shuffling, so a failure stays reproducible.
+- 2026-11-10: psalm checks `tests/php/` too and forbids file-system, shell, clock, randomness and
+  debug-output functions, so CLAUDE.md rule 1 and the injected seams are checked, not only read.
+- 2026-11-10: `scripts/pins.sh` checks exact versions, Action SHAs and image digests (glissando
+  `pins.sh`); the composer image in `scripts/php.sh` is pinned by digest. `nextcloud/ocp` stays on
+  `dev-stable35`, the branch Nextcloud publishes, locked by `composer.lock`.
+- 2026-11-10: The convention gates run in their own always-on CI job; they need no setup and take
+  seconds.

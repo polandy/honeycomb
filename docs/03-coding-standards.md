@@ -5,15 +5,8 @@ that brings the first file of their kind ([`plan.md`](plan.md#milestones)).
 
 ## 3.1 General
 
-- Small units; each function does one thing and its name says what.
-- Comments say *why*, one line at most, only where something non-obvious would be missed.
-  Rationale and cross-references go into this folder or an ADR.
-- Comments describe the current state, never history ("used to", "no longer", dates).
-- No magic strings or numbers; constants with names.
-- Use the words of the [glossary](04-glossary.md).
-- New dependency: a one-line justification in the pull request and an ADR when it is large or
-  runs at request time. Exact versions, lock files committed (`composer.lock`,
-  `package-lock.json`), frozen installs (`composer install`, `npm ci`).
+The rules for every language — design, names, constants, comments, errors, logging, tests,
+dependencies — are in [`conventions.md`](conventions.md). This file adds the stack's idioms.
 
 ## 3.2 PHP
 
@@ -26,9 +19,13 @@ that brings the first file of their kind ([`plan.md`](plan.md#milestones)).
   serve previews. Every path or file id from the client is rechecked — owned by the user, still
   exists, unchanged since the client read it — before anything is touched.
 - Database access through `QBMapper`/`Entity` and migrations in `lib/Migration/`.
-- Errors: domain exceptions per service; controllers map them to HTTP status codes.
-- Tools: `nextcloud/coding-standard` through php-cs-fixer, psalm (with the `nextcloud/ocp` stubs
-  of Nextcloud 35) at the level set in `psalm.xml`, PHPUnit for tests under `tests/php/`.
+- Errors: domain exceptions per service; controllers map them to HTTP status codes. Logging
+  through the injected `Psr\Log\LoggerInterface` ([`conventions.md`](conventions.md) §3).
+- Classes `final`, properties `private`, constructor property promotion, `#[\Override]` on
+  overrides.
+- Tools: `nextcloud/coding-standard` (PSR-12 plus Nextcloud's rules) through php-cs-fixer, psalm
+  (with the `nextcloud/ocp` stubs of Nextcloud 35 and `forbiddenFunctions`) at the level set in
+  `psalm.xml`, PHPUnit for tests under `tests/php/`.
   `scripts/php.sh` runs them with the local PHP, or in the pinned composer Docker image.
 
 ## 3.3 TypeScript and Vue
@@ -55,7 +52,8 @@ that brings the first file of their kind ([`plan.md`](plan.md#milestones)).
   indicator.
 - A tap must not change the page between `touchstart` and its `click`: iOS Safari then treats the
   tap as a hover and drops the click. Re-render in the `click` handler, not in `touchend`.
-- Tools: `@nextcloud/eslint-config` through eslint, `tsc --noEmit`, Vitest with coverage and
+- Tools: `@nextcloud/eslint-config` plus type-aware `typescript-eslint` rules and the bans of
+  [`conventions.md`](conventions.md) through eslint, `tsc --noEmit`, Vitest with coverage and
   `@vue/test-utils` for tests under `tests/js/`, Playwright under `tests/e2e/`.
 
 ## 3.4 Formatting
