@@ -171,8 +171,12 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    settings and the help for the open-question markers live in a **⋯ more menu** (arrow keys,
    one separator per group). The scope (*Not rejected* / *Undecided* / *All*) and the progress
    share one slim row below. Every control keeps a 44 px hit target.
-2. **The header follows the scroll.** It slides away while scrolling down and returns on
-   scrolling up. A menu entry collapses it completely, leaving a small handle. The rules are
+2. **The header collapses to the slim row while scrolling** (owner, 2026-11-09). It does not
+   hide completely: the slim row (~44 px, so every target keeps 44 px) stays and holds the most
+   used actions: the scope as three icon buttons, the *decided* count with its progress bar,
+   *Review rejects* with its badge and the ⋯ menu. Breadcrumbs, *Select*, *Compare series* and
+   *Filters* sit in the upper part, which slides away and returns on scrolling up. The ⋯ entry
+   *Hide header* still hides everything, leaving a small handle. The rules are
    ported from Stella's top bar (`followScroll`) and the mockup keeps the decision as a pure
    function of the same shape:
    - Only after 24 px of travel in one direction does the bar follow; a nudge is not a scroll.
@@ -186,7 +190,12 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    - The shell is `100dvh` and the document never scrolls; only the grid's scroller does.
    - Focus entering the bar shows it, and selection mode keeps it shown.
    - Opening a folder starts with the bar shown.
-3. **Series viewer.** Tapping a photo of a series opens it fullscreen at once, the whole series
+3. **Flag icons as in Lightroom and digiKam** (owner, 2026-11-09). *Rejected* is a flag with an
+   x, *Picked* a filled white flag and *Undecided* an empty flag outline. The scope buttons use
+   a crossed reject flag for *Not rejected*, the empty flag for *Undecided* and a grid for *All*.
+   The same icons mark the tiles, the loupe, the bulk actions, the flag filter and the series
+   viewer. The words stay as `title` and `aria-label`; targets stay 44 px.
+4. **Series viewer.** Tapping a photo of a series opens it fullscreen at once, the whole series
    preloaded. Swipe pages between the photos (arrow buttons and keys also work, also while
    zoomed). *Keep this, reject the rest* is in the viewer, one undo step. The controls fade out
    when idle; a tap on the photo brings them back or hides them.
@@ -202,7 +211,7 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
      that restores the flag only; *Compare series* finds the series again on its next opening.
    - No *Pick* or *Unreject* button in the viewer: a third button crowds the bottom bar on a
      phone (44 px targets), and undo covers the unreject.
-4. **Synchronised zoom.** Zooming one photo to 100 % (button, double-tap, pinch or `Z`) zooms
+5. **Synchronised zoom.** Zooming one photo to 100 % (button, double-tap, pinch or `Z`) zooms
    every photo of the series to the same spot, and panning moves them together, so paging
    compares the same detail for sharpness. While zoomed, a swipe pans instead of paging.
 
