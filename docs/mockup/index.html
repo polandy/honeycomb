@@ -78,9 +78,10 @@ body.noq .q{display:none}
 
 /* layout */
 .body{flex:1;display:flex;min-height:0;position:relative}
-nav#nav{width:248px;flex:none;background:var(--bg-nav);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:8px 8px calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));
+nav#nav{width:var(--navw,248px);flex:none;background:var(--bg-nav);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:8px 8px calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));
   transition:margin-left .2s,transform .2s;z-index:20}
-#frame[data-nav="closed"] nav#nav{margin-left:-249px}
+#frame[data-nav="closed"] nav#nav{margin-left:calc(-1px - var(--navw,248px))}
+#frame[data-nav="closed"] #navDiv{display:none}
 nav a{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:inherit;text-decoration:none;border:0;background:none;width:100%;text-align:left}
 nav a.active{background:var(--honey-soft);font-weight:600}
 nav .sp{flex:1}
@@ -121,6 +122,24 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .count{font-weight:700;font-variant-numeric:tabular-nums}
 .dotc{display:inline-block;width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,.85);box-shadow:0 0 0 1px rgba(0,0,0,.35)}
 
+/* resizable areas */
+.divider{flex:none;width:10px;margin:0 -5px;cursor:col-resize;touch-action:none;position:relative;z-index:21;background:transparent}
+.divider::after{content:"";position:absolute;left:4px;top:0;bottom:0;width:2px;background:var(--border)}
+.divider:hover::after,.divider.drag::after,.divider:focus-visible::after{background:var(--honey);width:4px;left:3px}
+.divider:focus-visible{outline:none}
+@container app (max-width:999px){#navDiv{display:none}}
+.tsr{display:inline-flex;align-items:center;gap:6px}
+.tsr input[type=range]{width:140px;min-height:44px;accent-color:var(--honey);touch-action:none}
+.tsr svg.ic{width:16px;height:16px}
+#loupe .l-main{flex:1;display:flex;min-height:0}
+#loupe .l-main #stage{flex:1;min-width:0}
+#infoPanel{flex:none;width:var(--infow,300px);background:#151310;border-left:1px solid #ffffff1a;overflow:auto;padding:12px 14px;font-size:14px}
+#infoPanel h4{margin:0 0 8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+#infoPanel dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px}
+#infoPanel dt{color:var(--muted)}#infoPanel dd{margin:0;overflow-wrap:anywhere}
+#loupe .l-main .divider::after{background:#ffffff2a}
+#loupe.immersive .l-top,#loupe.immersive .film,#loupe.immersive .l-ctrl,#loupe.immersive #infoPanel,#loupe.immersive #infoDiv,#loupe.immersive .navbtn{display:none}
+#loupe.immersive #stage{cursor:none}
 /* grid */
 .grid-wrap{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:4px 12px 16px calc(12px + env(safe-area-inset-left));min-height:0;position:relative}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--ts,160px),1fr));gap:8px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -299,6 +318,7 @@ table.sc{border-collapse:collapse;width:100%}table.sc td{padding:6px 4px;border-
       <a href="#" data-act="settings" id="navSettings"></a>
     </nav>
     <div id="navScrim" data-act="nav"></div>
+    <div class="divider" id="navDiv" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" tabindex="0"></div>
     <main>
       <div class="toolbar" id="toolbar"></div>
       <div class="filters" id="filters" hidden></div>
@@ -375,10 +395,15 @@ const FOLDERS = {
 const DEF_SETTINGS = () => ({rawExt:['NEF','CR3','ARW','RAF','DNG'], renderedExt:['JPG','JPEG'], folderMode:'same', rawFolder:'RAW', jpgFolder:'JPG',
   showSingles:true, swipeUp:'pick', swipeDown:'reject', autoAdvance:true, storage:'both'});
 const DEF_FILTERS = () => ({ratingOp:'gte', rating:null, labels:new Set(), flags:new Set(), pairs:new Set()});
+const PREF_KEY = 'honeycomb.mockup.layout';
+const PREF_DEF = {ts:160, navW:248, navOpen:null, infoOpen:false, infoW:300};
+function loadPrefs(){ try { return {...PREF_DEF, ...JSON.parse(localStorage.getItem(PREF_KEY) || '{}')}; } catch (e) { return {...PREF_DEF}; } }
+function savePrefs(){ try { localStorage.setItem(PREF_KEY, JSON.stringify(P0)); } catch (e) { /* storage blocked: remember nothing */ } }
+const P0 = loadPrefs();
 let S;
 function freshState(){
   return {folderPath:null, folders:{}, items:[], view:[], byId:new Map(), filters:DEF_FILTERS(), filtersOpen:null, sel:new Set(), selMode:false, anchor:null, focusId:null,
-    sort:'name', ts:160, undo:[], redo:[], settings:DEF_SETTINGS(), loupe:null, dlg:null, navOpen:null,
+    sort:'name', ts:P0.ts, undo:[], redo:[], settings:DEF_SETTINGS(), loupe:null, dlg:null, navOpen:null,
     mock:{theme:S ? S.mock.theme : 'auto', frame:S ? S.mock.frame : 'off', fail:false, showQ:true, open:S ? S.mock.open : false}, scale:1};
 }
 S = freshState();
@@ -562,7 +587,6 @@ function renderToolbar(){
   if (!S.folderPath){ tb.innerHTML = `<div class="row"><div class="crumbs"><button data-act="picker">Choose a folder…</button></div></div>`; return; }
   const segs = S.folderPath.split('/').filter(Boolean), nRej = rejectedItems().length;
   const crumbs = `<button data-act="picker" aria-label="Change folder">Home</button>` + segs.map((s, i) => `<span class="sep">/</span><button data-act="picker" data-path="/${esc(segs.slice(0, i + 1).join('/'))}">${esc(s)}</button>`).join('');
-  const sizeId = S.ts < 130 ? 'S' : S.ts < 200 ? 'M' : 'L';
   tb.classList.toggle('selmode', S.selMode);
   tb.innerHTML = `<div class="row"><div class="crumbs" role="navigation" aria-label="Breadcrumb">${crumbs}</div>
     <button class="btn ${S.selMode ? 'primary' : ''}" data-act="selmode" aria-pressed="${S.selMode}">${ic('select')}Select</button>${qm('Q10')}
@@ -573,7 +597,7 @@ function renderToolbar(){
       <span class="grow"></span>
       <label class="row" style="gap:4px;flex-wrap:nowrap"><span class="sr" style="position:absolute;left:-9999px">Sort order</span>${ic('sort')}<select class="sel-input" data-chg="sort" aria-label="Sort order">
         <option value="name" ${S.sort === 'name' ? 'selected' : ''}>File name</option><option value="time" ${S.sort === 'time' ? 'selected' : ''}>Capture time</option></select></label>${qm('Q18')}
-      <div class="seg" role="group" aria-label="Tile size">${['S', 'M', 'L'].map(s => `<button data-act="size" data-s="${s}" aria-pressed="${s === sizeId}" aria-label="Tile size ${s}">${s}</button>`).join('')}</div>${qm('Q13')}
+      <label class="tsr"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg><input type="range" id="tsRange" min="90" max="340" step="1" value="${Math.round(S.ts)}" data-chg="tsize" aria-label="Thumbnail size"><svg class="ic" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></label>${qm('Q13')}
     </div>
     ${S.selMode ? `<div class="row selrow"><b>${S.sel.size} selected</b>
       <button class="btn" data-act="selAll">Select all (filtered)</button><button class="btn" data-act="selNone">None</button><button class="btn primary" data-act="selmode">Done</button></div>` : ''}`;
@@ -685,7 +709,10 @@ function bindGrid(){
   w.addEventListener('touchend', e => { if (e.touches.length < 2) d0 = 0; renderToolbar(); });
   w.addEventListener('wheel', e => { if (e.ctrlKey){ e.preventDefault(); setTileSize(clamp(S.ts * Math.exp(-e.deltaY * .01), 90, 340), true); } }, {passive:false});
 }
-function setTileSize(v, live){ S.ts = v; $('grid').style.setProperty('--ts', v + 'px'); if (!live) renderToolbar(); }
+function setTileSize(v, live){
+  S.ts = P0.ts = v; $('grid').style.setProperty('--ts', v + 'px'); savePrefs();
+  const r = $('tsRange'); if (r) r.value = Math.round(v); if (!live) renderToolbar();
+}
 
 /* ---------- action bar ---------- */
 function renderActionBar(){
@@ -819,7 +846,7 @@ function dlgSettings(){
 function dlgKeys(){
   const rows = [['0 – 5', 'Set rating'], ['P', 'Pick'], ['X', 'Reject'], ['U', 'Unflag'], ['6 7 8 9', 'Label red / yellow / green / blue (toggle)'], ['Ctrl/⌘ + Z', 'Undo'], ['Shift + Ctrl/⌘ + Z', 'Redo'],
     ['Delete', 'Delete summary for the selection or focused tile'], ['Ctrl/⌘ + A', 'Select all (filtered)'], ['Shift + click', 'Select a range'], ['Arrow keys', 'Move focus in the grid, previous / next in the loupe'],
-    ['Enter', 'Open the loupe'], ['Esc', 'Close loupe / dialog / selection'], ['?', 'This sheet']];
+    ['Enter', 'Open the loupe'], ['F', 'Loupe without chrome (also double-tap)'], ['I', 'Loupe info panel'], ['Space', 'Loupe: fit / 100 %'], ['Ctrl + wheel, pinch', 'Grid: thumbnail size'], ['Esc', 'Close loupe / dialog / selection'], ['?', 'This sheet']];
   return dlgShell('Keyboard shortcuts', `<p style="margin-top:0;color:var(--muted)">In the grid they apply to the selection, or to the focused tile. In the loupe they apply to the current photo.</p><table class="sc">${rows.map(r => `<tr><td>${r[0].split(' ').map(k => k.length > 1 || /[A-Z0-9?]/.test(k) ? `<span class="kbd">${esc(k)}</span>` : esc(k)).join(' ')}</td><td>${esc(r[1])}</td></tr>`).join('')}</table>`, `<button class="btn primary" data-act="closeDlg">Close</button>`);
 }
 function openDelete(ids){
@@ -835,15 +862,20 @@ function buildLoupe(){
     <div class="l-title"><b id="lName"></b><span id="lPair"></span><span class="gest" id="lGest"></span></div>
     <span class="l-count" id="lCount"></span>
     <button class="btn" data-act="zoomToggle" id="lZoomBtn" aria-label="Toggle fit and 100 percent">Fit</button>
+    <button class="btn" data-act="infoToggle" id="lInfoBtn" aria-label="Toggle info panel" aria-pressed="${P0.infoOpen}">Info</button>
     <button class="icon-btn" data-act="filmToggle" id="lFilmBtn" aria-label="Toggle filmstrip" aria-pressed="true">${ic('film')}</button></div>
-  <div id="stage"><div id="track"><div class="slide"></div><div class="slide"></div><div class="slide"></div></div>
+  <div class="l-main"><div id="stage"><div id="track"><div class="slide"></div><div class="slide"></div><div class="slide"></div></div>
     <div class="hint up" id="hintUp"></div><div class="hint down" id="hintDown"></div>
     <button class="navbtn l" data-act="prev" aria-label="Previous photo">${ic('chevL')}</button><button class="navbtn r" data-act="next" aria-label="Next photo">${ic('chevR')}</button>
     <div class="prefetch" id="lPre" aria-live="off"></div></div>
+  <div class="divider" id="infoDiv" role="separator" aria-orientation="vertical" aria-label="Resize info panel" tabindex="0"></div>
+  <aside id="infoPanel" aria-label="Photo info"></aside></div>
   <div class="film" id="lFilm"></div>
   <div class="l-ctrl"><div class="big"><button class="bigbtn reject" data-act="flag" data-v="reject" id="bReject" aria-label="Reject">${ic('close')}Reject</button><button class="bigbtn pick" data-act="flag" data-v="pick" id="bPick" aria-label="Pick">${ic('check')}Pick</button></div>
     <div class="small" id="lSmall"></div></div>`;
   L.slides = [...document.querySelectorAll('#track .slide')];
+  bindDivider($('infoDiv'), {get:() => P0.infoW, set:setInfoW, min:220, max:480, sign:-1});
+  $('loupe').classList.toggle('immersive', !!L.immersive);
 }
 function openLoupe(id){
   const ids = S.view.map(i => i.id), idx = ids.indexOf(id); if (idx < 0) return;
@@ -851,7 +883,7 @@ function openLoupe(id){
   $('loupe').hidden = false; buildLoupe(); measure(); showLoupe(); bindStage();
 }
 function closeLoupe(){
-  if (!S.loupe) return;
+  if (!S.loupe) return; L.immersive = false; $('loupe').classList.remove('immersive');
   const id = S.loupe.ids[S.loupe.idx]; S.loupe = null; L.timers.forEach(clearTimeout); $('loupe').hidden = true; $('loupe').replaceChildren();
   if (filtersActive()) refreshView(); else { renderToolbar(); }
   setFocus(S.byId.has(id) ? id : S.focusId); const el = tileEls.get(S.focusId); if (el){ el.scrollIntoView({block:'nearest'}); }
@@ -883,6 +915,9 @@ function renderLoupeChrome(){
     <span class="vsep"></span><button class="sq" data-act="flag" data-v="none" aria-pressed="${it.flag === 'none'}" aria-label="Unflag">Unflag</button>${qm('Q4')}`;
   $('lZoomBtn').textContent = L.z.s > 1.02 ? Math.round(L.z.s * it.nativeW / (fitSize(it)[0] * (devicePixelRatio || 1)) * 100 / (it.nativeW / (fitSize(it)[0] * (devicePixelRatio || 1))) / 1 * 1) + '%' : 'Fit';
   $('lZoomBtn').textContent = L.z.s > 1.02 ? Math.round(L.z.s * fitSize(it)[0] * (devicePixelRatio || 1) / it.nativeW * 100) + '%' : 'Fit';
+  const ip = $('infoPanel'); ip.hidden = $('infoDiv').hidden = !P0.infoOpen; $('lInfoBtn').setAttribute('aria-pressed', P0.infoOpen);
+  ip.innerHTML = `<h4>File</h4><dl><dt>Name</dt><dd>${esc(stem(it))}</dd>${it.jpg ? `<dt>JPEG</dt><dd>${fmtSize(it.jpg.size)}</dd>` : ''}${it.raw ? `<dt>RAW</dt><dd>${esc(it.raw.name.split('.').pop())} · ${fmtSize(it.raw.size)}</dd>` : ''}<dt>Sidecar</dt><dd>${it.xmp ? 'XMP' : 'none'}</dd><dt>Size</dt><dd>${it.nativeW} px wide</dd></dl>
+    <h4 style="margin-top:16px">Decision</h4><dl><dt>Rating</dt><dd>${it.rating ? it.rating + ' ★' : 'none'}</dd><dt>Label</dt><dd>${it.label || 'none'}</dd><dt>Flag</dt><dd>${it.flag}</dd></dl>`;
   const f = $('lFilm'); f.hidden = !L.film; $('lFilmBtn').setAttribute('aria-pressed', L.film);
   if (L.film){
     const a = Math.max(0, lp.idx - 8), b = Math.min(lp.ids.length, lp.idx + 9);
@@ -979,7 +1014,7 @@ function bindStage(){
     const tr = $('track');
     if (gg.mode === 'undecided'){
       const now = performance.now(), pos = rel(e);
-      if (e.type === 'pointerup' && now - lastTap < 320 && lastTapPos && Math.hypot(pos[0] - lastTapPos[0], pos[1] - lastTapPos[1]) < 40){ lastTap = 0; toggleZoom(pos[0], pos[1]); } else { lastTap = now; lastTapPos = pos; }
+      if (e.type === 'pointerup' && now - lastTap < 320 && lastTapPos && Math.hypot(pos[0] - lastTapPos[0], pos[1] - lastTapPos[1]) < 40){ lastTap = 0; setImmersive(!L.immersive); } else { lastTap = now; lastTapPos = pos; }
       return;
     }
     if (gg.mode === 'h'){
@@ -1021,7 +1056,7 @@ function layoutFrame(){
 }
 function onFrameResize(){
   const w = $('frame').clientWidth;
-  if (S.navOpen === null){ S.navOpen = w >= 1000; }
+  if (S.navOpen === null){ S.navOpen = w >= 1000 && P0.navOpen !== false; }
   if (S.filtersOpen === null) S.filtersOpen = w >= 1000;
   $('frame').dataset.nav = S.navOpen ? 'open' : 'closed';
   if (S.loupe){ measure(); showLoupe(); }
@@ -1030,7 +1065,7 @@ function onFrameResize(){
 
 /* ---------- actions (event delegation) ---------- */
 const A = {
-  nav(){ S.navOpen = !S.navOpen; $('frame').dataset.nav = S.navOpen ? 'open' : 'closed'; },
+  nav(){ S.navOpen = !S.navOpen; $('frame').dataset.nav = S.navOpen ? 'open' : 'closed'; if ($('frame').clientWidth >= 1000){ P0.navOpen = S.navOpen; savePrefs(); } },
   picker(el){ const p = el.dataset.path; if (!S.navOpen || $('frame').clientWidth < 1000) { S.navOpen = $('frame').clientWidth >= 1000 ? S.navOpen : false; $('frame').dataset.nav = S.navOpen ? 'open' : 'closed'; }
     const cwd = p && TREE[p] ? p : S.folderPath ? S.folderPath.split('/').slice(0, -1).join('/') || '/' : '/Photos/2026'; openDlg({type:'picker', cwd:p && TREE[p] ? p : cwd, sel:S.folderPath}); },
   closeAll(){ if (S.loupe) closeLoupe(); closeDlg(); if ($('frame').clientWidth < 1000){ S.navOpen = false; $('frame').dataset.nav = 'closed'; } },
@@ -1048,7 +1083,6 @@ const A = {
   fFlag(el){ toggleSet(S.filters.flags, el.dataset.v); refreshView(); },
   fPair(el){ toggleSet(S.filters.pairs, el.dataset.v); refreshView(); },
   fClear(){ S.filters = DEF_FILTERS(); refreshView(); },
-  size(el){ setTileSize({S:110, M:160, L:240}[el.dataset.s]); },
   bulkRate(el){ change([...S.sel], 'rating', +el.dataset.v); },
   bulkFlag(el){ change([...S.sel], 'flag', el.dataset.v); },
   palette(el){ showPalette(el, el.dataset.for); },
@@ -1060,7 +1094,7 @@ const A = {
   undo(){ undo(); }, redo(){ redo(); },
   closeLoupe(){ closeLoupe(); }, prev(){ step(-1); }, next(){ step(1); }, goto(el){ goTo(+el.dataset.i, false); },
   flag(el){ loupeDecide(el.dataset.v); }, rate(el){ change(targetIds(), 'rating', +el.dataset.v); },
-  zoomToggle(){ toggleZoom(); }, filmToggle(){ L.film = !L.film; renderLoupeChrome(); measure(); showLoupe(); },
+  zoomToggle(){ toggleZoom(); }, infoToggle(){ P0.infoOpen = !P0.infoOpen; savePrefs(); renderLoupeChrome(); measure(); showLoupe(); }, filmToggle(){ L.film = !L.film; renderLoupeChrome(); measure(); showLoupe(); },
   setBool(el){ S.settings[el.dataset.k] = !S.settings[el.dataset.k]; if (el.dataset.k === 'showSingles') refreshView(); renderDlg(); },
   setFolderMode(el){ S.settings.folderMode = el.dataset.v; renderDlg(); }, setStorage(el){ S.settings.storage = el.dataset.v; renderDlg(); },
   extDel(el){ const a = S.settings[el.dataset.k]; a.splice(a.indexOf(el.dataset.e), 1); renderDlg(); },
@@ -1081,9 +1115,11 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('li[data-act]')){ e.preventDefault(); e.target.click(); }
 });
+document.addEventListener('input', e => { if (e.target.dataset && e.target.dataset.chg === 'tsize') setTileSize(+e.target.value, true); });
 document.addEventListener('change', e => {
   const k = e.target.dataset && e.target.dataset.chg; if (!k) return;
   if (k === 'sort'){ S.sort = e.target.value; refreshView(); }
+  else if (k === 'tsize') setTileSize(+e.target.value);
   else if (k === 'swipeUp' || k === 'swipeDown'){ S.settings[k] = e.target.value; if (S.loupe) renderLoupeChrome(); }
   else if (k === 'rawFolder' || k === 'jpgFolder') S.settings[k] = e.target.value.trim() || (k === 'rawFolder' ? 'RAW' : 'JPG');
   else if (k === 'mockFail') S.mock.fail = e.target.checked;
@@ -1100,7 +1136,7 @@ document.addEventListener('keydown', e => {
   if (k === 'Escape'){
     if ($('popRoot').firstChild){ closePop(); return; }
     if (S.dlg){ if (S.folderPath || S.dlg.type !== 'picker') closeDlg(); return; }
-    if (S.loupe){ closeLoupe(); return; }
+    if (S.loupe){ if (L.immersive) setImmersive(false); else closeLoupe(); return; }
     if (S.selMode){ setSelMode(false); return; } return;
   }
   if (k === '?' ){ e.preventDefault(); S.dlg && S.dlg.type === 'keys' ? closeDlg() : openDlg({type:'keys'}); return; }
@@ -1114,6 +1150,8 @@ document.addEventListener('keydown', e => {
   if (S.loupe){
     if (k === 'ArrowLeft'){ e.preventDefault(); step(-1); return; } if (k === 'ArrowRight'){ e.preventDefault(); step(1); return; }
     if (k === ' '){ e.preventDefault(); toggleZoom(); return; }
+    if (k.toLowerCase() === 'f'){ e.preventDefault(); setImmersive(!L.immersive); return; }
+    if (k.toLowerCase() === 'i'){ e.preventDefault(); A.infoToggle(); return; }
   } else if (k.startsWith('Arrow')){
     const ids2 = S.view.map(i => i.id); if (!ids2.length) return; e.preventDefault();
     let i = Math.max(0, ids2.indexOf(S.focusId)); const first = tileEls.get(ids2[0]), cols = Math.max(1, Math.round($('grid').clientWidth / (first ? first.offsetWidth + 8 : 168)));
@@ -1135,7 +1173,25 @@ function loadFolder(path){
   S.sel.clear(); S.selMode = false; S.filters = DEF_FILTERS(); S.focusId = null; S.undo = []; S.redo = [];
   closeDlg(); $('gridWrap').scrollTop = 0; refreshView(); renderHeader();
 }
+/* ---------- resizable panels ---------- */
+function bindDivider(el, {get, set, min, max, sign}){
+  let x0 = 0, w0 = 0;
+  const move = e => { set(clamp(w0 + sign * (e.clientX - x0) / (S.scale || 1), min, max), true); };
+  el.addEventListener('pointerdown', e => { x0 = e.clientX; w0 = get(); el.setPointerCapture(e.pointerId); el.classList.add('drag'); el.addEventListener('pointermove', move); e.preventDefault(); });
+  const end = () => { el.classList.remove('drag'); el.removeEventListener('pointermove', move); savePrefs(); if (S.loupe){ measure(); showLoupe(); } };
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+  el.addEventListener('keydown', e => { const d = e.key === 'ArrowLeft' ? -16 : e.key === 'ArrowRight' ? 16 : 0; if (!d) return; e.preventDefault(); set(clamp(get() + sign * d, min, max), false); });
+}
+function setNavW(v){ P0.navW = v; $('frame').style.setProperty('--navw', v + 'px'); savePrefs(); }
+function setInfoW(v, live){ P0.infoW = v; $('loupe').style.setProperty('--infow', v + 'px'); if (!live){ savePrefs(); if (S.loupe){ measure(); showLoupe(); } } }
+function setImmersive(on){
+  const lo = $('loupe'); if (lo.hidden) return; L.immersive = on; lo.classList.toggle('immersive', on);
+  if (on) toast('Chrome hidden · double-tap or F to show');
+  measure(); showLoupe();
+}
 function boot(){
+  $('frame').style.setProperty('--navw', P0.navW + 'px'); $('loupe').style.setProperty('--infow', P0.infoW + 'px');
+  bindDivider($('navDiv'), {get:() => P0.navW, set:setNavW, min:180, max:420, sign:1});
   applyTheme(); $('logo').innerHTML = logoSVG() + '<span>honeycomb</span>'; document.body.classList.toggle('noq', !S.mock.showQ);
   renderNav(); renderHeader(); renderMock(); layoutFrame(); $('grid').style.setProperty('--ts', S.ts + 'px');
   refreshView(); openDlg({type:'picker', cwd:'/Photos/2026', sel:null});

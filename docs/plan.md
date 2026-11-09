@@ -31,14 +31,15 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    lists (Q15).
 3. **Folder API:** `GET /api/v1/folders/{path}/pictures?offset&limit&filter…` lists the
    pictures of a folder through `IRootFolder` with the user's permissions, paginated so 2,000+
-   pairs load without stalls. Tests with `OCP\Files` mocks.
+   pairs load without stalls; each picture carries its file id and mtime for the cache-keyed
+   image URLs. Tests with `OCP\Files` mocks.
 
 ### M2 – Grid view
 
 1. **Frontend skeleton:** Vue, `@nextcloud/vue`, Vite through `@nextcloud/vite-config`, eslint,
    Vitest, the JS jobs in CI and `scripts/verify.sh`.
 2. **Folder picker and grid:** `@nextcloud/dialogs` file picker, a virtual-scrolling grid with
-   preview-API thumbnails and pair badges, light and dark.
+   srcset thumbnails (256/512 px, stepless size) and pair badges, light and dark.
 3. **Decision storage:** the table(s) and API for rating, colour label and flag per picture and
    user (Q2), so culling can stop and resume.
 4. **Filter bar:** rating, colour label, flag and pairing filters, applied on the server for
@@ -49,7 +50,8 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 ### M3 – Full-screen review (loupe)
 
 1. **Loupe:** the JPEG (or the RAW's embedded preview) full screen, swipe to page, pinch zoom,
-   double-tap 100 %, preloading of the next pictures (Q19).
+   100 % zoom, prefetching of the neighbours, chrome-free mode, resizable info panel (see
+   [Image delivery & performance](#image-delivery--performance)).
 2. **Decisions in the loupe:** large pick and reject buttons, vertical swipe (Q6), rating and
    colour label controls, auto-advance (Q7).
 3. **Keyboard shortcuts and undo:** 0–5, P/X/U, colour keys (Q5), undo and redo (Q12), the
@@ -64,13 +66,50 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    from "delete rejected" (Q11).
 3. **Settings:** per user — RAW and rendered extensions, folder mode, show singles, gesture
    mapping, auto-advance.
-4. **README:** installation, features, screenshot placeholders; `camerarawpreviews` as a
-   recommended app.
+4. **README:** installation, features, screenshot placeholders; `camerarawpreviews` and Preview
+   Generator as recommended apps.
 
 ### M5 – XMP sidecars (if Q2 says so)
 
 Read existing sidecars when a folder is listed and write ratings, colour labels and flags to
 them in digiKam's fields, so digiKam on the desktop sees the decisions.
+
+## Image delivery & performance
+
+Decided by the owner on 2026-11-09 (answers Q19). Culling 2,000+ 24 MP pairs lives or dies by how
+fast the right pixels reach the screen.
+
+**Size tiers.** Grid tiles 256 px and 512 px, loupe 2048 px on the long edge, 100 % zoom the
+original file. The browser picks the tier through `srcset` from tile size × `devicePixelRatio`;
+the thumbnail size is stepless (mockup: slider, Ctrl + wheel, pinch).
+
+**Progressive display.** The small preview shows first; the sharp one is swapped in after
+`img.decode()` resolves, so the tile never blanks or jumps.
+
+**Prefetch.** The loupe prefetches 2–3 neighbours in each direction.
+
+**Virtualised grid.** Only the visible rows are rendered, images load lazily.
+
+**Sources.** The browser never decodes RAW. A RAW+JPEG pair shows the JPEG; a RAW-only picture
+shows the embedded JPEG preview, extracted and cached on the server.
+
+**Caching.** Image URLs are immutable and keyed by file id and mtime, with a long
+`Cache-Control` and an `ETag`; an edited file gets a new URL.
+
+**Pre-generation.** Previews are generated in the background on upload and when a folder is
+opened, by the Preview Generator app or an own background job. Imaginary is optional.
+
+**Budgets**, measured with real 24 MP files:
+
+| What | Budget |
+|---|---|
+| Prefetched next loupe image | < 100 ms |
+| First sharp image in a newly opened folder | < 500 ms |
+| Grid scroll at 2,000+ items | no jank |
+
+Where the work lands: M1.3 (cache-keyed URLs), M2.2 (tiers, virtualised grid), M3.1 (prefetch,
+`decode()` swap), M4.4 (README recommendation), and a new item for the background generation
+and the RAW preview extraction.
 
 ## Project structure
 
@@ -255,10 +294,7 @@ first**, (b) later — capture time needs reading every file's EXIF, which is sl
 
 ### Q19 – Fast image loading
 
-**Recommendation:** Nextcloud's preview API (`/core/preview?fileId=…&x=…&y=…`) with a small size
-for the grid and a screen-sized one for the loupe; full resolution only on zoom to 100 %. The
-loupe preloads the next three pictures and the previous one. The README recommends the Preview
-Generator app (pre-generated previews) and `camerarawpreviews` (RAW previews).
+Answered 2026-11-09: see [Image delivery & performance](#image-delivery--performance).
 
 ### Q20 – Shared folders
 
