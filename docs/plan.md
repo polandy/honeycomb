@@ -108,6 +108,7 @@ pictures, a rejected picture disappears from view, and at the end delete all rej
 4. **Series compare** (milestone M6). Pictures taken within a short interval (mockup: 3 seconds
    by capture time, at most 4 per series) form a series, shown 2–4 side by side. Tapping the best
    one means "keep this, reject the rest": it is picked, the others rejected, as one undo step.
+   The owner's 2026-11-09 feedback changes how: see [Compact header and series viewer](#compact-header-and-series-viewer).
 5. **Auto-advance.** After each pick or reject the view moves to the next undecided picture
    (the setting stays, Q7 is answered). Rating and colour label do not advance.
 6. **Progress and resume.** The toolbar shows "x of y decided" per folder. The last position per
@@ -156,6 +157,44 @@ opened, by the Preview Generator app or an own background job. Imaginary is opti
 Where the work lands: M1.3 (cache-keyed URLs), M2.2 (tiers, virtualised grid), M3.1 (prefetch,
 `decode()` swap), M4.4 (README recommendation), and a new item for the background generation
 and the RAW preview extraction.
+
+## Compact header and series viewer
+
+Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
+`docs/mockup/index.html`. Goal on a phone: the photo grid starts in the upper ~20 % of the screen.
+
+1. **One bar, one slim row.** The bar is ~56 px. The breadcrumb shows only the root and the
+   current folder when the toolbar is at most 720 px wide (container query); a tap on the folder
+   shows the full path. *Select*, *Review rejects*, *Compare series* and *Filters* are icon
+   buttons with count badges; their labels appear beside the icons only when the toolbar is at
+   least 1000 px wide. Sort, the tile size slider, *Move picks*, *Resume*, hiding the header,
+   settings and the help for the open-question markers live in a **⋯ more menu** (arrow keys,
+   one separator per group). The scope (*Not rejected* / *Undecided* / *All*) and the progress
+   share one slim row below. Every control keeps a 44 px hit target.
+2. **The header follows the scroll.** It slides away while scrolling down and returns on
+   scrolling up. A menu entry collapses it completely, leaving a small handle. The rules are
+   ported from Stella's top bar (`followScroll`) and the mockup keeps the decision as a pure
+   function of the same shape:
+   - Only after 24 px of travel in one direction does the bar follow; a nudge is not a scroll.
+   - Within the bar's height of the top, including a negative position from iOS rubber-band
+     overscroll, it is always shown.
+   - Within the bar's height of the bottom it keeps its state: hiding makes the scroller taller,
+     the clamp pulls the scroll back, that reads as scrolling up, the bar returns, and it
+     bounces forever.
+   - It slides by a negative `margin-top` in the flow (not `position: fixed` or a transform),
+     about 350 ms, and not at all under `prefers-reduced-motion`.
+   - The shell is `100dvh` and the document never scrolls; only the grid's scroller does.
+   - Focus entering the bar shows it, and selection mode keeps it shown.
+   - Opening a folder starts with the bar shown.
+3. **Series viewer.** Tapping a photo of a series opens it fullscreen at once, the whole series
+   preloaded. Swipe pages between the photos (arrow buttons and keys also work, also while
+   zoomed). *Keep this, reject the rest* is in the viewer, one undo step. The controls fade out
+   when idle; a tap on the photo brings them back or hides them.
+4. **Synchronised zoom.** Zooming one photo to 100 % (button, double-tap, pinch or `Z`) zooms
+   every photo of the series to the same spot, and panning moves them together, so paging
+   compares the same detail for sharpness. While zoomed, a swipe pans instead of paging.
+
+Where the work lands: M2.2 (header, bar, scroll behaviour), M6 (series viewer).
 
 ## Moving pictures
 
