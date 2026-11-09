@@ -18,7 +18,9 @@ quick to go through on an iPad.
 
 **Status:** planning. Nothing is installable yet. The interactive mockup in
 [`docs/mockup/index.html`](docs/mockup/index.html) shows how the app is meant to work; the plan,
-milestones and open questions are in [`docs/plan.md`](docs/plan.md).
+milestones and open questions are in [`docs/plan.md`](docs/plan.md). How ratings, flags and
+colour labels appear in digiKam, darktable and Lightroom:
+[`docs/user/ratings-flags-colours.md`](docs/user/ratings-flags-colours.md).
 
 ## Sister project
 
