@@ -400,6 +400,38 @@ under `src/components/`. A new screen composes these; a variant is a prop, not a
 | `UndoToast` (`toast`) | the change in words, *Undo*, an optional action | every undoable change | `undo`: entries and their text |
 | `ConfirmDialog` (`confirmDialog`) | title, body, footer *Back* · *Cancel* · confirm; a bottom sheet on a phone | delete summary, reject review, move summary, folder picker, delete report | — |
 | `PhotoTile` (`tileInner`, `updateTile`) | thumbnail, pair and series badges (a complete pair quiet, a single highlighted), stars once rated, colour dot, flag mark, selection check | grid | `pairing` |
+| `Tooltip` (`tip`, `tipShow`, `bindTips`) | the bubble tooltip of a control: its label in glossary words and its key from `HOTKEY`, e.g. "Pick `P`" | every icon and icon-only control on every screen | `hotkeys` |
+
+### Tooltip
+
+The owner asked for a bubble tooltip on every icon (2026-11-09). One `#tip` element serves the
+whole app; a control opts in with `data-tip` (and `data-tip-key`), written by `tip(label, key)`.
+The key comes from the one key map `HOTKEY`, which also feeds the keyboard shortcuts sheet and
+the key handlers, so a tooltip never names a key the app does not use. The native `title` is not
+used.
+
+- **Show.** Mouse: after 400 ms of hover, at once when moving on from a tooltip shown less than
+  300 ms ago. Keyboard: on focus when the focus ring shows (`:focus-visible`). Touch and pen: a
+  long-press of 500 ms; the release hides it and the click that follows is swallowed, so the
+  long-press never triggers the action.
+- **Hide.** Leaving the control (the bubble itself can be hovered, WCAG 1.4.13), blur, a click or
+  tap, scrolling the control's container, the control leaving the page, the series viewer's
+  controls fading out, and *Escape*.
+- **Escape.** While a tooltip shows, the first *Escape* only hides it; the next one closes the
+  popover, dialog, series viewer or loupe as before.
+- **Placement.** The arrow points at the control. Below for a control in the top half of the
+  frame, above in the bottom half, then the other side, right, left: the first side that stays
+  8 px inside the frame and its safe areas and clears the middle third of the photo in the loupe
+  and the series viewer wins.
+- **Gestures.** The long-press timer stops when the finger moves more than 10 px, a second finger
+  lands (pinch) or the browser takes the pointer (scroll in the filmstrip, the series track).
+  Inside a grid tile the long-press stays selection (Q10), so tile badges show their tooltip on
+  mouse hover only; the tile's `aria-label` carries the same words. A disabled control shows
+  its tooltip only where the browser sends hover to it.
+- **Accessibility.** While shown, the control has `aria-describedby="tip"`; the bubble
+  (`role="tooltip"`) never takes focus. Every icon-only control keeps its `aria-label`. Colours
+  come from `--tip-bg` and `--tip-fg`, at least 15:1 in both themes. Reduced motion shows it
+  without the fade.
 
 ## Visual design and first run
 
