@@ -299,7 +299,7 @@ table.sc{border-collapse:collapse;width:100%}table.sc td{padding:6px 4px;border-
 #mock .panel>div{display:flex;flex-direction:column;gap:4px}
 @container app (max-width:520px){
   .hdr{padding-right:calc(60px + env(safe-area-inset-right))}
-  .l-top{padding-right:calc(60px + env(safe-area-inset-right))}
+  .l-top,.sv-top{padding-right:calc(60px + env(safe-area-inset-right))}
   .logo span{display:none}
   .l-top .btn{min-width:44px;padding:0 8px}
   .bigbtn{min-height:56px;font-size:17px}
@@ -324,6 +324,68 @@ table.sc{border-collapse:collapse;width:100%}table.sc td{padding:6px 4px;border-
 .cm[aria-pressed="true"]{border-color:var(--honey)}
 .cm-n{font-weight:700;font-size:13px}.cm-s{font-size:12px;color:var(--muted)}
 .later{display:inline-block;border:1px solid var(--border);border-radius:10px;padding:1px 8px;font-size:12px;font-weight:700;color:var(--muted)}
+
+/* compact header */
+main{overflow:hidden}
+.toolbar{container:tb/inline-size;gap:0;padding:0 calc(8px + env(safe-area-inset-right)) 0 calc(8px + env(safe-area-inset-left));margin-top:0;transition:margin-top .35s ease-in-out}
+.toolbar.bar-hidden{margin-top:calc(-1 * var(--tb-h,0px))}
+.bar{display:flex;align-items:center;gap:2px;height:56px}
+.bar .crumbs{flex-wrap:nowrap;overflow:hidden}
+.crumbs.short,.crumbs .cur-only{display:none}
+.crumbs button.cur{overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+.ib{min-width:44px;padding:0 10px;position:relative;justify-content:center}
+.ib.ghost{border-color:transparent}
+.ib .lb{display:none}
+.ib .badge-n{position:absolute;top:1px;right:1px;min-width:18px;height:18px;font-size:11px;padding:0 4px;border-radius:9px}
+.slim{position:relative;display:flex;align-items:center;gap:10px;min-height:48px;padding-bottom:4px}
+.slim .seg button{padding:0 9px;white-space:nowrap}
+.slim .count{margin-left:auto;font-size:14px;white-space:nowrap}
+.slim .prog{position:absolute;left:0;right:0;bottom:0;height:4px;border:0;border-radius:2px}
+.tb-sel{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 0}
+@container tb (max-width:720px){
+  .crumbs.full{display:none}.crumbs.short{display:flex}
+}
+@container tb (min-width:1000px){
+  .ib .lb{display:inline}
+  .ib .badge-n{position:static}
+  .slim .count .lb{display:inline}
+}
+.slim .count .lb{display:none}
+.bar-handle{position:absolute;z-index:25;top:0;left:50%;transform:translateX(-50%);width:52px;height:22px;border:1px solid var(--border);border-top:0;border-radius:0 0 12px 12px;background:var(--card);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;padding:0}
+.bar-handle::before{content:"";width:22px;height:4px;border-radius:2px;background:var(--muted)}
+.bar-handle::after{content:"";position:absolute;inset:0 -4px -22px}
+.pop.menu{padding:6px;width:min(300px,calc(100% - 16px))}
+.menu .mi{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:0 10px;border:0;border-radius:8px;background:none;text-align:left}
+.menu .mi:hover,.menu .mi:focus-visible{background:var(--card-2)}
+.menu .mi[aria-checked="true"]{background:var(--honey-soft);font-weight:600}
+.menu .mi[disabled]{opacity:.45}
+.menu .mi .k{margin-left:auto;color:var(--muted);font-size:13px}
+.menu .msep{height:1px;background:var(--border);margin:4px 2px}
+.menu .minfo{padding:6px 10px;color:var(--muted);font-size:13px}
+.menu .mrow{cursor:default}.menu .mrow input[type=range]{flex:1;min-width:0;min-height:44px;accent-color:var(--honey);touch-action:none}
+.menu .mrow svg.ic{width:16px;height:16px}
+.menu .qchip{min-width:34px;height:22px;border:1.5px dashed var(--q);border-radius:11px;color:var(--q);font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+body.noq .menu .mq,body.noq .menu .mq-sep{display:none}
+/* series viewer */
+#serie{position:absolute;inset:0;z-index:70;background:#0b0a07;color:#f4efe2;--muted:#b3ac99;touch-action:pan-x}
+.sv-track{display:flex;height:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior:contain}
+.sv-track::-webkit-scrollbar{display:none}
+.sv-slide{flex:0 0 100%;height:100%;scroll-snap-align:center;scroll-snap-stop:always;position:relative;overflow:hidden;touch-action:pan-x}
+.sv-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform-origin:0 0;user-select:none;-webkit-user-drag:none}
+#serie.zoomed .sv-track{overflow-x:hidden;scroll-snap-type:none}
+#serie.zoomed .sv-slide{touch-action:none}
+.sv-ctl{position:absolute;left:0;right:0;display:flex;align-items:center;gap:8px;padding:8px calc(10px + env(safe-area-inset-right)) 8px calc(10px + env(safe-area-inset-left));transition:opacity .3s;background:linear-gradient(rgba(0,0,0,.6),transparent)}
+.sv-top{top:0;padding-top:calc(8px + env(safe-area-inset-top));padding-right:calc(204px + env(safe-area-inset-right))}
+.sv-bot{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.7));justify-content:flex-end}
+.sv-ctl .icon-btn{color:#f4efe2}
+.sv-ctl .btn{background:#ffffff14;border-color:#ffffff26;color:#f4efe2}
+.sv-ctl .btn.primary{background:var(--honey);border-color:var(--honey);color:var(--on-honey)}
+.sv-title{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.sv-title span{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#svSync{margin-right:auto;font-size:13px;color:var(--honey)}
+.sv-nav{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:64px;color:#f4efe2;background:#00000066;transition:opacity .3s}
+.sv-nav.prev{left:calc(4px + env(safe-area-inset-left))}.sv-nav.next{right:calc(4px + env(safe-area-inset-right))}
+#serie.idle .sv-ctl,#serie.idle .sv-nav{opacity:0;pointer-events:none}
 </style>
 </head>
 <body>
@@ -350,12 +412,14 @@ table.sc{border-collapse:collapse;width:100%}table.sc td{padding:6px 4px;border-
     <div class="divider" id="navDiv" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" tabindex="0"></div>
     <main>
       <div class="toolbar" id="toolbar"></div>
+      <button class="bar-handle" id="barHandle" data-act="barOn" aria-label="Show the header" hidden></button>
       <div class="filters" id="filters" hidden></div>
       <div class="grid-wrap" id="gridWrap"><div class="grid" id="grid"></div></div>
       <div class="actionbar" id="actionbar" hidden></div>
     </main>
   </div>
   <section id="loupe" hidden aria-label="Loupe"></section>
+  <section id="serie" hidden aria-label="Series viewer"></section>
   <div id="dlgRoot"></div>
   <div id="popRoot"></div>
   <div id="toasts" aria-live="polite"></div>
@@ -377,7 +441,8 @@ const IC = {
   folder:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', chevR:'M9 6l6 6-6 6', chevL:'M15 6l-6 6 6 6', chevD:'M6 9l6 6 6-6',
   filter:'M3 5h18l-7 8v6l-4-2v-4z', select:'M4 4h16v16H4zM8 12l3 3 5-6', film:'M3 6h18v12H3zM8 6v12M16 6v12', sort:'M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3',
   help:'M9 9a3 3 0 1 1 4.5 2.6c-1 .6-1.5 1.2-1.5 2.4M12 18v.5', grid:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z', up:'M6 15l6-6 6 6', down:'M6 9l6 6 6-6',
-  flagoff:'M5 3v18M5 4h11l-2 4 2 4H5', move:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 13h7M13 10l3 3-3 3'
+  flagoff:'M5 3v18M5 4h11l-2 4 2 4H5', move:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 13h7M13 10l3 3-3 3',
+  more:'M5 12h.01M12 12h.01M19 12h.01', home:'M4 11l8-7 8 7v9H4zM10 20v-6h4v6', compare:'M3 5h8v14H3zM13 5h8v14h-8z', zoom:'M10 10m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0M15 15l5 5M10 7v6M7 10h6'
 };
 const ic = (n, extra='') => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" ${extra}><path d="${IC[n]}"/></svg>`;
 const fmtSize = mb => mb >= 1024 ? (mb / 1024).toFixed(2) + ' GB' : (mb >= 1 ? mb.toFixed(1) : mb.toFixed(2)) + ' MB';
@@ -674,30 +739,73 @@ function renderNav(){
 /* ---------- toolbar ---------- */
 function renderToolbar(){
   const tb = $('toolbar');
-  if (!S.folderPath){ tb.innerHTML = `<div class="row"><div class="crumbs"><button data-act="picker">Choose a folder…</button></div></div>`; return; }
-  const segs = S.folderPath.split('/').filter(Boolean), nRej = rejectedItems().length, nDec = decidedCount(), nTot = S.items.length, nSer = getBursts().groups.length, rid = S.server.resume[S.folderPath], rit = rid && S.byId.get(rid), nMove = filtersActive() ? S.view.length : S.items.filter(i => i.flag === 'pick').length;
-  const crumbs = `<button data-act="picker" aria-label="Change folder">Home</button>` + segs.map((s, i) => `<span class="sep">/</span><button data-act="picker" data-path="/${esc(segs.slice(0, i + 1).join('/'))}">${esc(s)}</button>`).join('');
+  if (!S.folderPath){ tb.innerHTML = `<div class="bar"><div class="crumbs"><button data-act="picker">Choose a folder…</button></div></div>`; return; }
+  const segs = S.folderPath.split('/').filter(Boolean), nRej = rejectedItems().length, nDec = decidedCount(), nTot = S.items.length, nSer = getBursts().groups.length, nFil = activeFilterCount();
+  const full = `<button data-act="picker" aria-label="Change folder">Home</button>` + segs.map((s, i) => `<span class="sep">/</span><button data-act="picker" data-path="/${esc(segs.slice(0, i + 1).join('/'))}">${esc(s)}</button>`).join('');
+  const short = `<button data-act="picker" aria-label="Change folder">${ic('home')}</button><span class="sep">/</span><button class="cur" data-act="path" aria-haspopup="menu" aria-label="Show the full path of ${esc(segs[segs.length - 1] || '')}">${esc(segs[segs.length - 1] || '')}</button>`;
+  const ib = (act, icon, label, n, extra = '') => `<button class="btn ghost ib" data-act="${act}" ${extra} aria-label="${label}${n ? ' (' + n + ')' : ''}" title="${label}">${ic(icon)}<span class="lb">${label}</span>${n ? `<span class="badge-n" aria-hidden="true">${n}</span>` : ''}</button>`;
   tb.classList.toggle('selmode', S.selMode);
-  tb.innerHTML = `<div class="row"><div class="crumbs" role="navigation" aria-label="Breadcrumb">${crumbs}</div>
-    <button class="btn ${S.selMode ? 'primary' : ''}" data-act="selmode" aria-pressed="${S.selMode}">${ic('select')}Select</button>${qm('Q10')}
-    <button class="btn" data-act="delRejected" ${nRej ? '' : 'disabled'}>${ic('trash')}Review rejects (${nRej})</button>
-    <button class="btn" data-act="moveView" ${nMove ? '' : 'disabled'} title="Move the picks, or with a filter on, the filtered photos">${ic('move')}${filtersActive() ? 'Move filtered' : 'Move picks'} (${nMove})</button></div>
-    <div class="row cullrow">
-      <div class="seg" role="group" aria-label="Show">${[['notrej', 'Not rejected'], ['undecided', 'Undecided'], ['all', 'All']].map(([v, l]) => `<button data-act="scope" data-v="${v}" aria-pressed="${S.filters.scope === v}" ${S.filters.flags.size ? 'disabled title="The flag filter overrides this"' : ''}>${l}</button>`).join('')}</div>
-      <div class="prog-w"><span class="count" aria-live="polite">${nDec} of ${nTot} decided</span><div class="prog" role="progressbar" aria-label="Decided" aria-valuemin="0" aria-valuemax="${nTot}" aria-valuenow="${nDec}"><i style="width:${nTot ? Math.round(100 * nDec / nTot) : 0}%"></i></div></div>
-      ${rit ? `<button class="btn" data-act="resume" title="Position saved on the server, so another device continues here">Resume at ${esc(stem(rit))}</button>` : ''}
-      <button class="btn" data-act="burst" ${nSer ? '' : 'disabled'}>Compare series (${nSer})</button>
-    </div>
-    <div class="row">
-      <button class="btn" data-act="filters" aria-pressed="${!!S.filtersOpen}" aria-expanded="${!!S.filtersOpen}">${ic('filter')}Filters${activeFilterCount() ? `<span class="badge-n">${activeFilterCount()}</span>` : ''}</button>
-      <span class="count" id="countTop" aria-live="polite">${S.view.length} of ${S.items.length}</span>
-      <span class="grow"></span>
-      <label class="row" style="gap:4px;flex-wrap:nowrap"><span class="sr" style="position:absolute;left:-9999px">Sort order</span>${ic('sort')}<select class="sel-input" data-chg="sort" aria-label="Sort order">
-        <option value="name" ${S.sort === 'name' ? 'selected' : ''}>File name</option><option value="time" ${S.sort === 'time' ? 'selected' : ''}>Capture time</option></select></label>${qm('Q18')}
-      <label class="tsr"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg><input type="range" id="tsRange" min="90" max="340" step="1" value="${Math.round(S.ts)}" data-chg="tsize" aria-label="Thumbnail size"><svg class="ic" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></label>${qm('Q13')}
-    </div>
-    ${S.selMode ? `<div class="row selrow"><b>${S.sel.size} selected</b>
+  tb.innerHTML = `<div class="bar"><div class="crumbs full" role="navigation" aria-label="Breadcrumb">${full}</div><div class="crumbs short" role="navigation" aria-label="Breadcrumb">${short}</div>
+    ${ib('selmode', 'select', 'Select', S.selMode ? S.sel.size : 0, `aria-pressed="${S.selMode}"`)}
+    ${ib('delRejected', 'trash', 'Review rejects', nRej, nRej ? '' : 'disabled')}
+    ${ib('burst', 'compare', 'Compare series', nSer, nSer ? '' : 'disabled')}
+    ${ib('filters', 'filter', 'Filters', nFil, `aria-pressed="${!!S.filtersOpen}" aria-expanded="${!!S.filtersOpen}"`)}
+    <button class="btn ghost ib" data-act="more" aria-haspopup="menu" aria-label="More" title="More">${ic('more')}</button></div>
+    <div class="slim"><div class="seg" role="group" aria-label="Show">${[['notrej', 'Not rejected'], ['undecided', 'Undecided'], ['all', 'All']].map(([v, l]) => `<button data-act="scope" data-v="${v}" aria-pressed="${S.filters.scope === v}" ${S.filters.flags.size ? 'disabled title="The flag filter overrides this"' : ''}>${l}</button>`).join('')}</div>
+      <span class="count" aria-live="polite">${nDec} / ${nTot}<span class="lb"> decided</span></span>
+      <div class="prog" role="progressbar" aria-label="Decided" aria-valuemin="0" aria-valuemax="${nTot}" aria-valuenow="${nDec}"><i style="width:${nTot ? Math.round(100 * nDec / nTot) : 0}%"></i></div></div>
+    ${S.selMode ? `<div class="tb-sel"><b>${S.sel.size} selected</b>
       <button class="btn" data-act="selAll">Select all (filtered)</button><button class="btn" data-act="selNone">None</button><button class="btn primary" data-act="selmode">Done</button></div>` : ''}`;
+  applyBar();
+}
+/* ---------- header: hide on scroll, ⋯ menu ---------- */
+const TOP_BAR_TRAVEL_PX = 24;
+const SHOWN_BAR = {hidden:false, y:0, travel:0};
+function followScroll(state, y, barHeight, maxY){
+  const step = y - state.y, sameDirection = Math.sign(step) === Math.sign(state.travel), travel = sameDirection ? state.travel + step : step;
+  let hidden = state.hidden;
+  if (y <= barHeight) hidden = false;
+  else if (y >= maxY - barHeight){ /* near the bottom the bar stays as it is */ }
+  else if (travel >= TOP_BAR_TRAVEL_PX) hidden = true;
+  else if (travel <= -TOP_BAR_TRAVEL_PX) hidden = false;
+  return {hidden, y, travel};
+}
+function applyBar(){
+  const tb = $('toolbar'), off = !!P0.barOff && !!S.folderPath, hide = off || (!!S.bar && S.bar.hidden && !S.selMode);
+  tb.style.setProperty('--tb-h', tb.offsetHeight + 'px'); tb.classList.toggle('bar-hidden', hide); $('barHandle').hidden = !off;
+}
+function resetBar(){ S.bar = {...SHOWN_BAR, y:$('gridWrap').scrollTop}; applyBar(); }
+function menuItem(act, icon, label, attrs = '', extra = ''){ return `<button class="mi" role="menuitem" data-act="${act}" ${attrs}>${icon ? ic(icon) : ''}<span>${label}</span>${extra}</button>`; }
+function openMenu(pop, anchor){
+  S.menuAnchor = anchor; pop.className = 'pop menu'; pop.setAttribute('role', 'menu'); closePop(); placePop(pop, anchor);
+  pop.addEventListener('keydown', e => {
+    const items = [...pop.querySelectorAll('.mi:not([disabled]), input[type=range]')], i = items.indexOf(document.activeElement), k = e.key;
+    e.stopPropagation();
+    if (k === 'Escape'){ closeMenu(); return; }
+    const to = k === 'ArrowDown' ? (i + 1) % items.length : k === 'ArrowUp' ? (i - 1 + items.length) % items.length : k === 'Home' ? 0 : k === 'End' ? items.length - 1 : -1;
+    if (to >= 0){ e.preventDefault(); items[to].focus(); }
+  });
+  const first = pop.querySelector('.mi:not([disabled])'); first && first.focus();
+}
+function closeMenu(){ const a = S.menuAnchor; closePop(); S.menuAnchor = null; a && a.isConnected && a.focus(); }
+function openMore(anchor){
+  const rit = S.server.resume[S.folderPath] && S.byId.get(S.server.resume[S.folderPath]), nMove = filtersActive() ? S.view.length : S.items.filter(i => i.flag === 'pick').length;
+  const pop = document.createElement('div'), sep = '<div class="msep" role="separator"></div>';
+  pop.setAttribute('aria-label', 'More');
+  pop.innerHTML = `<div class="minfo" aria-live="polite">Showing ${S.view.length} of ${S.items.length}</div>
+    ${[['name', 'File name'], ['time', 'Capture time']].map(([v, l]) => `<button class="mi" role="menuitemradio" aria-checked="${S.sort === v}" data-act="sortSet" data-v="${v}">${ic('sort')}<span>Sort by ${l.toLowerCase()}</span></button>`).join('')}${sep}
+    <div class="mi mrow" role="group" aria-label="Thumbnail size"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg><input type="range" id="tsRange" min="90" max="340" step="1" value="${Math.round(S.ts)}" data-chg="tsize" aria-label="Thumbnail size"><svg class="ic" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></div>${sep}
+    ${menuItem('moveView', 'move', filtersActive() ? 'Move filtered' : 'Move picks', nMove ? '' : 'disabled', `<span class="k">${nMove}</span>`)}
+    ${rit ? menuItem('resume', 'folder', `Resume at ${esc(stem(rit))}`) : ''}${sep}
+    ${menuItem('barOff', 'up', 'Hide header')}${menuItem('settings', 'settings', 'Settings')}
+    <div class="msep mq-sep" role="separator"></div>
+    ${['Q10', 'Q13', 'Q18'].map(id => `<button class="mi mq" role="menuitem" data-act="mq" data-q="${id}"><span class="qchip">${id}</span><span>${esc(QS[id].t)}</span></button>`).join('')}`;
+  openMenu(pop, anchor);
+}
+function openPath(anchor){
+  const segs = S.folderPath.split('/').filter(Boolean), pop = document.createElement('div'); pop.setAttribute('aria-label', 'Full path');
+  pop.innerHTML = menuItem('picker', 'home', 'Home') + segs.map((s, i) => menuItem('picker', 'folder', esc(s), `data-path="/${esc(segs.slice(0, i + 1).join('/'))}" style="padding-left:${10 + 14 * (i + 1)}px"`)).join('');
+  openMenu(pop, anchor);
 }
 
 /* ---------- filter bar ---------- */
@@ -807,11 +915,13 @@ function bindGrid(){
   w.addEventListener('touchstart', e => { if (e.touches.length === 2){ d0 = dist(e.touches); ts0 = S.ts; } }, {passive:true});
   w.addEventListener('touchmove', e => { if (e.touches.length === 2 && d0){ e.preventDefault(); setTileSize(clamp(ts0 * dist(e.touches) / d0, 90, 340), true); } }, {passive:false});
   w.addEventListener('touchend', e => { if (e.touches.length < 2) d0 = 0; renderToolbar(); });
+  w.addEventListener('scroll', () => { if (!S.bar || P0.barOff || !S.folderPath) return; S.bar = followScroll(S.bar, w.scrollTop, $('toolbar').offsetHeight, w.scrollHeight - w.clientHeight); applyBar(); }, {passive:true});
+  $('toolbar').addEventListener('focusin', () => { if (S.bar && S.bar.hidden){ S.bar = {...S.bar, hidden:false}; applyBar(); } });
   w.addEventListener('wheel', e => { if (e.ctrlKey){ e.preventDefault(); setTileSize(clamp(S.ts * Math.exp(-e.deltaY * .01), 90, 340), true); } }, {passive:false});
 }
 function setTileSize(v, live){
   S.ts = P0.ts = v; $('grid').style.setProperty('--ts', v + 'px'); savePrefs();
-  const r = $('tsRange'); if (r) r.value = Math.round(v); if (!live) renderToolbar();
+  const r = $('tsRange'); if (r) r.value = Math.round(v); if (!live && !$('popRoot').firstChild) renderToolbar();
 }
 
 /* ---------- action bar ---------- */
@@ -893,11 +1003,87 @@ function dlgReview(){
 function dlgBurst(d){
   const m = burstCurrent(d);
   if (!m) return dlgShell('Compare series', `<div class="empty"><div class="big">All series compared</div>No more photos taken within ${BURST_GAP_MS / 1000} seconds of each other are left to decide.</div>`, `<button class="btn primary" data-act="closeDlg">Close</button>`, true);
-  const sel = d.sel && m.some(i => i.id === d.sel) ? d.sel : null;
   return dlgShell(`Compare series ${d.i + 1} of ${d.gids.length}`,
-    `<p class="row" style="margin-top:0;color:var(--muted)">Photos taken within ${BURST_GAP_MS / 1000} seconds of each other. Tap the best one (or press 1 – ${m.length}). <span class="later">Later milestone M6</span></p>
-    <div class="cmp n${m.length}">${m.map((it, k) => `<button class="cm" data-act="cmpSel" data-id="${esc(it.id)}" aria-pressed="${sel === it.id}" aria-label="Photo ${k + 1}: ${esc(stem(it))}"><img alt="" src="${cmpURL(it)}"><span class="cm-n">${k + 1} · ${esc(stem(it))}</span><span class="cm-s">${pairLabel(it)}${it.rating ? ' · ' + it.rating + '★' : ''}${it.flag === 'pick' ? ' · picked' : ''}</span></button>`).join('')}</div>`,
-    `<button class="btn ghost" data-act="closeDlg">Close</button><button class="btn" data-act="cmpSkip">Skip</button><button class="btn primary" data-act="cmpKeep" ${sel ? '' : 'disabled'}>Keep this, reject the other ${m.length - 1}</button>`, true);
+    `<p class="row" style="margin-top:0;color:var(--muted)">Photos taken within ${BURST_GAP_MS / 1000} seconds of each other. Tap a photo to open the series fullscreen (or press 1 – ${m.length}). <span class="later">Later milestone M6</span></p>
+    <div class="cmp n${m.length}">${m.map((it, k) => `<button class="cm" data-act="cmpOpen" data-id="${esc(it.id)}" aria-label="Open photo ${k + 1}: ${esc(stem(it))}"><img alt="" src="${cmpURL(it)}"><span class="cm-n">${k + 1} · ${esc(stem(it))}</span><span class="cm-s">${pairLabel(it)}${it.rating ? ' · ' + it.rating + '★' : ''}${it.flag === 'pick' ? ' · picked' : ''}</span></button>`).join('')}</div>`,
+    `<button class="btn ghost" data-act="closeDlg">Close</button><button class="btn" data-act="cmpSkip">Skip</button>`, true);
+}
+/* series viewer: fullscreen, swipe, zoom synchronised across the series */
+const SV_ZOOM = 3, SV_IDLE_MS = 2500;
+const SV = {ids:[], idx:0, k:1, cx:.5, cy:.5, timer:0, ptr:new Map(), pinch:null, moved:false, lastTap:0};
+function openSerie(id){
+  const m = S.dlg && S.dlg.type === 'burst' && burstCurrent(S.dlg); if (!m) return;
+  Object.assign(SV, {ids:m.map(i => i.id), idx:Math.max(0, m.findIndex(i => i.id === id)), k:1, cx:.5, cy:.5, ptr:new Map(), pinch:null}); S.serie = true;
+  const el = $('serie'); el.hidden = false; el.classList.remove('zoomed', 'idle');
+  el.innerHTML = `<div class="sv-track" id="svTrack">${m.map((it, k) => `<div class="sv-slide" role="group" aria-roledescription="slide" aria-label="Photo ${k + 1} of ${m.length}: ${esc(stem(it))}"><img class="sv-img" alt="" draggable="false" src="${cmpURL(it)}"></div>`).join('')}</div>
+    <div class="sv-ctl sv-top"><button class="icon-btn" data-act="svClose" aria-label="Close series viewer">${ic('close')}</button><div class="sv-title"><b id="svName"></b><span id="svSub"></span></div><button class="btn" data-act="svZoom" id="svZoom" aria-pressed="false">${ic('zoom')}<span>100 %</span></button></div>
+    <button class="sv-nav prev icon-btn" data-act="svStep" data-v="-1" aria-label="Previous photo">${ic('chevL')}</button><button class="sv-nav next icon-btn" data-act="svStep" data-v="1" aria-label="Next photo">${ic('chevR')}</button>
+    <div class="sv-ctl sv-bot"><span id="svSync" aria-live="polite"></span><button class="btn primary" data-act="svKeep">Keep this, reject the rest</button></div>`;
+  const tr = $('svTrack'); tr.scrollLeft = SV.idx * tr.clientWidth;
+  tr.addEventListener('scroll', () => { const i = clamp(Math.round(tr.scrollLeft / tr.clientWidth), 0, SV.ids.length - 1); if (i !== SV.idx){ SV.idx = i; serieChrome(); } }, {passive:true});
+  tr.addEventListener('pointerdown', svDown); tr.addEventListener('pointermove', svMove); tr.addEventListener('pointerup', svUp); tr.addEventListener('pointercancel', svUp);
+  tr.addEventListener('wheel', e => { e.preventDefault(); const r = e.currentTarget.getBoundingClientRect(); serieZoomAt(clamp(SV.k * Math.exp(-e.deltaY * .01), 1, SV_ZOOM), (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height); }, {passive:false});
+  el.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') serieWake(); });
+  serieChrome(); serieWake();
+  el.querySelector('.sv-top .icon-btn').focus({preventScroll:true});
+}
+function closeSerie(){
+  if (!S.serie) return; S.serie = false; clearTimeout(SV.timer); const el = $('serie'); el.hidden = true; el.replaceChildren(); if (S.dlg) renderDlg();
+}
+function serieWake(){
+  const el = $('serie'); el.classList.remove('idle'); clearTimeout(SV.timer);
+  SV.timer = setTimeout(() => { if (!el.querySelector('.sv-ctl:has(:focus-visible), .sv-nav:focus-visible')) el.classList.add('idle'); }, SV_IDLE_MS);
+}
+function serieChrome(){
+  const it = S.byId.get(SV.ids[SV.idx]); if (!it) return;
+  $('svName').textContent = stem(it);
+  $('svSub').textContent = `Series ${S.dlg ? S.dlg.i + 1 : 1} of ${S.dlg ? S.dlg.gids.length : 1} · photo ${SV.idx + 1} of ${SV.ids.length} · ${pairLabel(it)}${it.rating ? ' · ' + it.rating + '★' : ''}${it.flag === 'pick' ? ' · picked' : ''}`;
+  document.querySelector('#serie .sv-nav.prev').hidden = SV.idx === 0; document.querySelector('#serie .sv-nav.next').hidden = SV.idx === SV.ids.length - 1;
+}
+function serieApply(){
+  const tr = $('svTrack'), w = tr.clientWidth, h = tr.clientHeight, k = SV.k;
+  SV.cx = clamp(SV.cx, .5 / k, 1 - .5 / k); SV.cy = clamp(SV.cy, .5 / k, 1 - .5 / k);
+  const t = k === 1 ? 'none' : `translate(${w / 2 - SV.cx * w * k}px,${h / 2 - SV.cy * h * k}px) scale(${k})`;
+  tr.querySelectorAll('.sv-img').forEach(img => { img.style.transform = t; });
+  const z = $('serie'), zoomed = k > 1; z.classList.toggle('zoomed', zoomed);
+  if (zoomed) tr.scrollLeft = SV.idx * w;
+  const b = $('svZoom'); b.setAttribute('aria-pressed', zoomed); b.querySelector('span').textContent = zoomed ? 'Fit' : '100 %';
+  $('svSync').textContent = zoomed ? `Zoom synced on all ${SV.ids.length} photos` : '';
+}
+function serieZoomAt(k, fx, fy){ if (SV.k === 1 && k > 1){ SV.cx = fx; SV.cy = fy; } SV.k = k; if (k === 1){ SV.cx = SV.cy = .5; } serieApply(); }
+function serieZoom(){ SV.k > 1 ? serieZoomAt(1) : serieZoomAt(SV_ZOOM, SV.cx, SV.cy); }
+function serieStep(d){ const tr = $('svTrack'); SV.idx = clamp(SV.idx + d, 0, SV.ids.length - 1); tr.scrollTo({left:SV.idx * tr.clientWidth, behavior:'smooth'}); serieChrome(); serieWake(); }
+function serieKeep(){
+  const id = SV.ids[SV.idx]; if (!id) return; decideBurst(id, SV.ids.filter(i => i !== id && S.byId.get(i) && S.byId.get(i).flag !== 'reject')); closeSerie();
+}
+function serieKey(e){
+  const k = e.key; serieWake();
+  if (k === 'ArrowLeft' || k === 'ArrowRight'){ e.preventDefault(); serieStep(k === 'ArrowLeft' ? -1 : 1); }
+  else if (k === 'z' || k === 'Z'){ e.preventDefault(); serieZoom(); }
+  else if (k === 'k' || k === 'K'){ e.preventDefault(); serieKeep(); }
+  else if (/^[1-4]$/.test(k) && +k <= SV.ids.length){ e.preventDefault(); serieStep(+k - 1 - SV.idx); }
+}
+function svDown(e){
+  SV.ptr.set(e.pointerId, {x:e.clientX, y:e.clientY}); if (SV.ptr.size === 1) SV.moved = false;
+  if (SV.ptr.size === 2){ const [a, b] = [...SV.ptr.values()]; SV.pinch = {d:Math.hypot(a.x - b.x, a.y - b.y), k:SV.k}; SV.moved = true; }
+  if (SV.k > 1 || SV.ptr.size === 2) e.currentTarget.setPointerCapture(e.pointerId);
+}
+function svMove(e){
+  const p = SV.ptr.get(e.pointerId); if (!p) return; const dx = e.clientX - p.x, dy = e.clientY - p.y, r = e.currentTarget.getBoundingClientRect();
+  if (SV.pinch && SV.ptr.size === 2){
+    SV.ptr.set(e.pointerId, {x:e.clientX, y:e.clientY}); const [a, b] = [...SV.ptr.values()];
+    serieZoomAt(clamp(SV.pinch.k * Math.hypot(a.x - b.x, a.y - b.y) / SV.pinch.d, 1, SV_ZOOM), ((a.x + b.x) / 2 - r.left) / r.width, ((a.y + b.y) / 2 - r.top) / r.height); return;
+  }
+  if (Math.hypot(dx, dy) > 6) SV.moved = true;
+  if (SV.k > 1){ SV.cx -= dx / (r.width * SV.k); SV.cy -= dy / (r.height * SV.k); SV.ptr.set(e.pointerId, {x:e.clientX, y:e.clientY}); serieApply(); }
+}
+function svUp(e){
+  const had = SV.ptr.delete(e.pointerId); if (SV.ptr.size < 2) SV.pinch = null;
+  if (!had || SV.moved || e.type === 'pointercancel') return;
+  const r = e.currentTarget.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+  if (e.timeStamp - SV.lastTap < 300){ SV.lastTap = 0; SV.k > 1 ? serieZoomAt(1) : serieZoomAt(SV_ZOOM, fx, fy); return; }
+  SV.lastTap = e.timeStamp;
+  const el = $('serie'); if (el.classList.contains('idle')) serieWake(); else { clearTimeout(SV.timer); el.classList.add('idle'); }
 }
 function dlgDelete(d){
   const its = d.ids.map(i => S.byId.get(i)).filter(Boolean), files = its.flatMap(filesOf);
@@ -1400,10 +1586,13 @@ const A = {
   delSel(){ openDelete([...S.sel]); }, delRejected(){ if (S.loupe) closeLoupe(); rejectedItems().length ? openDlg({type:'review'}) : toast('No rejected photos'); },
   rescue(el){ change([el.dataset.id], 'flag', 'none'); renderDlg(); }, reviewNext(){ openDlg({type:'del', ids:rejectedItems().map(i => i.id), from:'review'}); }, reviewBack(){ openDlg({type:'review'}); },
   scope(el){ S.filters.scope = el.dataset.v; refreshView(); },
+  more(el){ if ($('popRoot').firstChild && S.menuAnchor === el) closeMenu(); else openMore(el); }, path(el){ if ($('popRoot').firstChild && S.menuAnchor === el) closeMenu(); else openPath(el); },
+  sortSet(el){ S.sort = el.dataset.v; refreshView(); }, mq(el){ const a = S.menuAnchor; S.menuAnchor = null; closePop(); showQ(el.dataset.q, a || el); },
+  barOff(){ P0.barOff = true; savePrefs(); applyBar(); toast('Header hidden · tap the handle at the top to bring it back'); }, barOn(){ P0.barOff = false; savePrefs(); resetBar(); },
   resume(){ const id = S.server.resume[S.folderPath], hit = S.view.find(i => i.id === id) || S.view.find(i => i.flag === 'none') || S.view[0]; if (hit) openLoupe(hit.id); },
-  burst(){ const gids = getBursts().groups.map(g => g.map(i => i.id)); if (gids.length) openDlg({type:'burst', gids, i:0, sel:null}); },
-  cmpSel(el){ S.dlg.sel = el.dataset.id; renderDlg(); }, cmpSkip(){ S.dlg.i++; S.dlg.sel = null; renderDlg(); },
-  cmpKeep(){ const d = S.dlg, m = burstCurrent(d); if (!m || !d.sel) return; decideBurst(d.sel, m.filter(i => i.id !== d.sel).map(i => i.id)); d.sel = null; renderDlg(); },
+  burst(){ const gids = getBursts().groups.map(g => g.map(i => i.id)); if (gids.length) openDlg({type:'burst', gids, i:0}); },
+  cmpOpen(el){ openSerie(el.dataset.id); }, cmpSkip(){ S.dlg.i++; renderDlg(); },
+  svClose(){ closeSerie(); }, svZoom(){ serieZoom(); }, svStep(el){ serieStep(+el.dataset.v); }, svKeep(){ serieKeep(); },
   mockDevice(){ closeDlg(); if (S.loupe) closeLoupe(); S.folderPath = null; S.items = []; S.byId = new Map(); S.sel.clear(); S.selMode = false; S.focusId = null; S.undo = []; S.redo = []; S.filters = DEF_FILTERS(); S.bursts = null;
     refreshView(); openDlg({type:'picker', cwd:'/Photos/2026', sel:null}); toast('New device: no local state. Decisions and position come from the server'); },
   delConfirm(){ const ids = S.dlg.ids; const res = doDelete(ids, S.mock.fail); S.lastFailed = res.failed; finishDelete(res); },
@@ -1419,16 +1608,17 @@ const A = {
   mockToggle(){ S.mock.open = !S.mock.open; renderMock(); },
   mockTheme(el){ S.mock.theme = el.dataset.v; applyTheme(); renderMock(); },
   mockFrame(el){ S.mock.frame = el.dataset.v; renderMock(); layoutFrame(); },
-  mockReset(){ const m = S.mock; closeDlg(); if (S.loupe) closeLoupe(); S = freshState(); S.mock = {...S.mock, ...{theme:m.theme, frame:m.frame, open:true, showQ:m.showQ, fail:false}}; document.body.classList.toggle('noq', !S.mock.showQ); thumbs.clear(); bigCache.clear(); boot(); }
+  mockReset(){ const m = S.mock; closeDlg(); closeSerie(); if (S.loupe) closeLoupe(); S = freshState(); S.mock = {...S.mock, ...{theme:m.theme, frame:m.frame, open:true, showQ:m.showQ, fail:false}}; document.body.classList.toggle('noq', !S.mock.showQ); thumbs.clear(); bigCache.clear(); boot(); }
 };
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-act]');
   const inPop = e.target.closest('.pop'), act = t && t.dataset.act;
-  if (!inPop && act !== 'q' && act !== 'palette') closePop();
+  if (!inPop && act !== 'q' && act !== 'palette' && act !== 'more' && act !== 'path') closePop();
   if (e.target.dataset && e.target.dataset.scrim && S.dlg && S.folderPath) closeDlg();
   if (!t) return; if (t.tagName === 'A') e.preventDefault();
   if (act === 'q' && inPop){ closePop(); return; }
   A[t.dataset.act] && A[t.dataset.act](t, e);
+  if (inPop && inPop.classList.contains('menu') && act && act !== 'mq' && inPop.isConnected) closePop();
 });
 document.addEventListener('keydown', e => {
   if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('li[data-act]')){ e.preventDefault(); e.target.click(); }
@@ -1457,13 +1647,15 @@ document.addEventListener('keydown', e => {
   const tg = e.target; if (tg.matches && tg.matches('input,select,textarea')) return;
   const mod = e.ctrlKey || e.metaKey, k = e.key;
   if (k === 'Escape'){
-    if ($('popRoot').firstChild){ closePop(); return; }
+    if ($('popRoot').firstChild){ closeMenu(); return; }
+    if (S.serie){ closeSerie(); return; }
     if (S.dlg){ if (S.folderPath || S.dlg.type !== 'picker') closeDlg(); return; }
     if (S.loupe){ if (L.immersive) setImmersive(false); else closeLoupe(); return; }
     if (S.selMode){ setSelMode(false); return; } return;
   }
   if (k === '?' ){ e.preventDefault(); S.dlg && S.dlg.type === 'keys' ? closeDlg() : openDlg({type:'keys'}); return; }
-  if (S.dlg && S.dlg.type === 'burst'){ if (/^[1-4]$/.test(k)){ const m = burstCurrent(S.dlg), it = m && m[+k - 1]; if (it){ e.preventDefault(); S.dlg.sel = it.id; renderDlg(); } } return; }
+  if (S.serie){ serieKey(e); return; }
+  if (S.dlg && S.dlg.type === 'burst'){ if (/^[1-4]$/.test(k)){ const m = burstCurrent(S.dlg), it = m && m[+k - 1]; if (it){ e.preventDefault(); openSerie(it.id); } } return; }
   if (S.dlg && S.dlg.type === 'move'){
     if (/^[1-9]$/.test(k)){ const t = moveTargets()[+k - 1]; if (t){ e.preventDefault(); S.dlg.target = t.p; renderDlg(); } }
     else if (k === 'Enter' && tg.tagName !== 'BUTTON' && S.dlg.target){ e.preventDefault(); doMove(S.dlg); } return;
@@ -1500,7 +1692,7 @@ document.addEventListener('keydown', e => {
 function loadFolder(path){
   S.folderPath = path; S.items = S.folders[path] || (S.folders[path] = genFolder(path)); S.byId = new Map(S.items.map(i => [i.id, i]));
   S.sel.clear(); S.selMode = false; S.filters = DEF_FILTERS(); S.focusId = null; S.undo = []; S.redo = [];
-  closeDlg(); $('gridWrap').scrollTop = 0; refreshView(); renderHeader();
+  closeDlg(); $('gridWrap').scrollTop = 0; resetBar(); refreshView(); renderHeader();
   if (S.server.resume[path] && S.byId.has(S.server.resume[path])) toast('Continue where you left off', false, {act:'resume', label:'Resume'});
 }
 /* ---------- resizable panels ---------- */
@@ -1527,6 +1719,7 @@ function boot(){
   refreshView(); openDlg({type:'picker', cwd:'/Photos/2026', sel:null});
 }
 bindGrid();
+new ResizeObserver(() => applyBar()).observe($('toolbar'));
 new ResizeObserver(() => { if (S.loupe) { measure(); showLoupe(); } onFrameResize(); }).observe($('frame'));
 addEventListener('resize', () => { if (S.mock.frame !== 'off') layoutFrame(); });
 boot();
