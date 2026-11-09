@@ -16,14 +16,15 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **rating** | 0 to 5 stars. 0 means unrated. |
 | **colour label** | One of a fixed set of colours, or none (Q5). |
 | **flag** | *Picked*, *rejected* or *unflagged*; digiKam calls it a pick label (Q4). |
-| **cull** | Going through a folder and rating, labelling, flagging and deleting pictures. |
+| **cull** | Going through a folder set and rating, labelling, flagging and deleting pictures. |
+| **folder set** | The folders one cull covers: the ticked folders and, with *Include subfolders*, every folder below them. Not a *selection*. |
 | **undecided** | A picture whose flag is unflagged; picked and rejected pictures are *decided*. |
 | **reject review** | The grid of all rejected pictures, where single ones can be rescued before the delete summary. |
 | **series** | Pictures taken within a short interval, compared side by side to pick the best. |
-| **grid** | The thumbnail view of a folder. |
+| **grid** | The thumbnail view of a folder set. |
 | **loupe** | The full-screen view of one picture, with swipe, zoom and the decision buttons. |
 | **gesture guide** | The card on the first loupe opening that lists the swipes, pinch, double-tap and keys. |
-| **filter** | A condition on rating, colour label, flag or pairing that narrows the grid and loupe. |
+| **filter** | A condition on rating, colour label, flag, pairing or folder that narrows the grid and loupe. |
 | **selection** | The set of pictures marked in selection mode for a bulk action. |
 | **bulk action** | Rate, label, flag, move or delete applied to the whole selection at once. |
 | **move** | Moving whole pictures (all members and sidecars) into a target folder, renamed by the name template. The files leave the source folder. |
