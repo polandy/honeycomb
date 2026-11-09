@@ -109,6 +109,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .seg button{min-width:44px;min-height:44px;border:0;background:transparent;padding:0 12px;border-right:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .seg button:last-child{border-right:0}
 .seg .cmp{font-size:20px;font-weight:700;min-width:44px}
+.seg .cmp:disabled{opacity:.4}
 .seg button[aria-pressed="true"],.seg button[aria-checked="true"]{background:var(--honey);color:var(--on-honey);font-weight:700}
 .sel-input{min-height:44px;border-radius:10px;border:1px solid var(--border);background:var(--card);padding:0 10px}
 .grow{flex:1}
@@ -732,6 +733,9 @@ const DE = {
   'RAW only': 'Nur RAW',
   '{shown} of {total}': '{shown} von {total}',
   'Clear filters': 'Filter zurücksetzen',
+  'Any': 'Alle',
+  'Any rating': 'Jede Bewertung',
+  'Rating comparison: pick a star count first': 'Vergleich: zuerst eine Sternzahl wählen',
   'JPG only': 'Nur JPG',
   'Pair: JPEG and RAW': 'Paar: JPEG und RAW',
   'Single: {name}': 'Einzeldatei: {name}',
@@ -1478,12 +1482,13 @@ function renderFilters(){
   const el = $('filters'), f = S.filters;
   el.hidden = !S.filtersOpen || !S.folderPath; if (el.hidden) return;
   const op = RATING_OPS[f.ratingOp], ratingText = k => n(op.one, op.many, k);
-  const cmpText = t('Rating comparison: {now}. Tap for: {next}', {now:t(op.name), next:t(RATING_OPS[op.next].name)});
+  const anyRating = f.rating === null;
+  const cmpText = anyRating ? t('Rating comparison: pick a star count first') : t('Rating comparison: {now}. Tap for: {next}', {now:t(op.name), next:t(RATING_OPS[op.next].name)});
   const ch = (act, val, label, on, extra = '') => `<button class="chip" data-act="${act}" data-v="${val}" aria-pressed="${on}" ${extra}>${label}</button>`;
   el.innerHTML = `
   <div class="fgroup"><span class="lbl">${t('Rating')}</span><div class="chips">
-    <div class="seg"><button class="cmp" data-act="fOp" aria-label="${cmpText}" ${tip(cmpText)}>${op.sym}</button></div>
-    ${[0, 1, 2, 3, 4, 5].map(k => ch('fRating', k, nf(k) + '★', f.rating === k, `aria-label="${ratingText(k)}" ${tip(ratingText(k))}`)).join('')}</div></div>
+    <div class="seg"><button class="cmp" data-act="fOp" aria-label="${cmpText}" ${tip(cmpText)} ${anyRating ? 'disabled' : ''}>${op.sym}</button></div>
+    ${ch('fRating', 'any', t('Any'), anyRating, `${tip(t('Any rating'))}`)}${[0, 1, 2, 3, 4, 5].map(k => ch('fRating', k, nf(k) + '★', f.rating === k, `aria-label="${ratingText(k)}" ${tip(ratingText(k))}`)).join('')}</div></div>
   <div class="fgroup"><span class="lbl">${t('Colour')}</span><div class="chips">
     ${LABELS.map(l => `<button class="chip sw" data-act="fLabel" data-v="${l.id}" aria-pressed="${f.labels.has(l.id)}" aria-label="${labelText(l.id)}" ${tip(labelText(l.id))}><span class="dotx" style="background:${l.hex}"></span></button>`).join('')}</div></div>
   <div class="fgroup"><span class="lbl">${t('Flag')}</span><div class="chips">
@@ -2398,7 +2403,7 @@ const A = {
   selmode(){ setSelMode(!S.selMode); }, selAll(){ S.view.forEach(i => S.sel.add(i.id)); selChanged(); }, selNone(){ S.sel.clear(); selChanged(); },
   filters(){ S.filtersOpen = !S.filtersOpen; renderFilters(); renderToolbar(); },
   fOp(){ S.filters.ratingOp = RATING_OPS[S.filters.ratingOp].next; refreshView(); },
-  fRating(el){ const v = +el.dataset.v; S.filters.rating = S.filters.rating === v ? null : v; refreshView(); },
+  fRating(el){ if (el.dataset.v === 'any'){ S.filters.rating = null; refreshView(); return; } const v = +el.dataset.v; S.filters.rating = S.filters.rating === v ? null : v; refreshView(); },
   fLabel(el){ toggleSet(S.filters.labels, el.dataset.v); refreshView(); },
   fFlag(el){ toggleSet(S.filters.flags, el.dataset.v); refreshView(); },
   fPair(el){ toggleSet(S.filters.pairs, el.dataset.v); refreshView(); },

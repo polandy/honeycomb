@@ -621,7 +621,8 @@ Where the work lands: M1.3 (pairing), M4.3 (settings).
 
 Answered by the owner on 2026-11-09 (Q8, Q9, Q10, Q13, Q18).
 
-1. **Rating filter.** One 44 px button beside the 0–5 chips. Each tap cycles the comparison
+1. **Rating filter.** An *Any* chip ("Alle" in German) first, then the 0–5 chips, and one 44 px
+   comparison button beside them. Each tap cycles the comparison
    *≥ → ≤ → = → ≥* ("at least", "at most", "exactly"); the default is *≥*, "at least N" (owner,
    2026-11-09, mockup v15). The button shows the current symbol; its label and tooltip name the
    current and the next comparison, and it is a plain button, so Enter and Space work. Every
@@ -629,6 +630,13 @@ Answered by the owner on 2026-11-09 (Q8, Q9, Q10, Q13, Q18).
    narrower than the old three-way segment, so it fits every reference device, and the group
    still wraps inside the filter panel on the Pixel 9 Pro. The panel keeps an 8 px gap below the
    bar above it.
+   *Any* is selected while no rating filter is active, so the state is always visible, and
+   tapping it turns the filter off, as in any chip group (owner question on mockup v16, "how do
+   I switch the ≥ → ≤ → = filter off?"). It was chosen over a small × because it needs no new
+   control and reads the same in every language. The comparison button is dimmed and disabled
+   while *Any* is selected, since there is nothing to compare. The other groups (colour, flag,
+   pairing, folder) select several chips, none selected means no filter, and *Clear filters*
+   resets all; they have no single-choice problem, so they get no *Any* chip.
 2. **Combining filters.** OR within a group, AND across groups, e.g. *red or green* and *at
    least 3 stars*. The filter bar is a collapsible bar on top of the grid; a side panel would
    cost too much width in iPad portrait.
