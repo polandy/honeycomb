@@ -580,7 +580,7 @@ whole set and leaves the loupe with `Esc`.
 | `/` | open the filter bar and focus its first control | — |
 | `Esc` | — | back to the grid, as always |
 
-`Home` and `End` do the same as `g g` and `Shift+G` with the option off. A `g` waits for the
+`Home` and `End` do the same as `g g` and `Shift+G`, with the option on or off. A `g` waits for the
 next key without a timeout; any other key drops it and acts as usual, so `g` `p` picks.
 
 **Clashes, checked against the key map above:**
@@ -679,6 +679,7 @@ takes its sizes from the pointer type ([Control sizes](#control-sizes)), not fro
 | `StarRating` (`starRating`, `stars`) | 0–5 buttons, or read-only stars | action bar, `PhotoTile`, series compare card | `decisions` |
 | `ColourLabels` (`colourLabel`, `showPalette`) | the label button and the nine-colour palette | action bar, filter bar | `decisions`, `hotkeys` |
 | `ActionBar` (`actionBar`) | rating, colour label, *Keep RAW* and flags; flags in a large row of their own (portrait) or at the side edges (landscape, [Loupe layout](#loupe-layout)), plus a slot | grid selection, loupe, series viewer | `decisions`, `hotkeys` |
+| `FlagButtonsToggle` (`flagBtnsToggle`) | the title-row icon button that shows or hides the large flag buttons ([Flag buttons and vi keys](#flag-buttons-and-vi-keys)) | loupe, series viewer | — |
 | `PickRestButton` (`pickRestBtn`) | *Pick this, reject the rest* | series compare card, series viewer | `series` |
 | `UndoToast` (`toast`) | the change in words, *Undo*, an optional action | every undoable change | `undo`: entries and their text |
 | `ConfirmDialog` (`confirmDialog`) | title, body, footer *Back* · *Cancel* · confirm; a bottom sheet on a phone | delete summary, reject review, move summary, folder picker, delete report | — |
