@@ -91,6 +91,9 @@ nav a.active{background:var(--honey-soft);font-weight:600}
 nav .sp{flex:1}
 nav .sect{font-size:12px;color:var(--muted);padding:14px 12px 4px;text-transform:uppercase;letter-spacing:.6px}
 #navScrim{display:none}
+nav a.rc{flex-direction:column;align-items:flex-start;justify-content:center;gap:0;padding:4px 12px;min-height:48px}
+nav a.rc.cur{background:var(--honey-soft)}
+.rc-n{font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rc-m{font-size:12px;color:var(--muted)}
 @container app (max-width:999px){
   nav#nav{position:absolute;left:0;top:0;bottom:0;box-shadow:var(--shadow);margin-left:0!important;transform:translateX(0)}
   #frame[data-nav="closed"] nav#nav{transform:translateX(-110%);box-shadow:none}
@@ -219,6 +222,12 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .plist li .meta{font-size:12px;color:var(--muted)}
 .plist li.dis{color:var(--muted)}
 .plist .nm{flex:1;min-width:0}
+.pk-box{width:24px;height:24px;flex:none;border:2px solid var(--muted);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.plist li[aria-selected="true"] .pk-box{background:var(--honey);border-color:var(--honey);color:var(--on-honey)}.pk-box svg{width:16px;height:16px;stroke-width:3}
+.pk-sub{margin-top:8px}.pk-count{margin:8px 0 0;font-size:13px;font-variant-numeric:tabular-nums}
+.note.warn{background:var(--warn-bg);color:var(--warn-text)}
+.ghead{grid-column:1/-1;position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;min-height:40px;padding:0 4px;background:var(--bg);font-weight:600;font-size:14px}
+.ghead small{color:var(--muted);font-weight:400}
 .plist .go{width:44px;height:44px;margin-right:-8px;border:0;background:none;display:flex;align-items:center;justify-content:center;border-radius:10px}
 .tgt{display:inline-flex;align-items:center;gap:8px;min-height:44px;border-radius:22px;background:var(--card-2);border:1px solid var(--border);padding:0 14px;font-weight:600;color:var(--text)}
 .tgt[aria-pressed="true"]{background:var(--honey);color:var(--on-honey);border-color:var(--honey)}
@@ -334,7 +343,7 @@ table.sc{border-collapse:collapse;width:100%}table.sc td{padding:6px 4px;border-
 .rv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;max-height:min(340px,42vh);overflow:auto}
 .rv{position:relative;aspect-ratio:1;border:0;padding:0;border-radius:10px;overflow:hidden;background:var(--tile-bg);cursor:pointer;min-height:44px}
 .rv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.rv-n,.rv-f{position:absolute;left:6px;font-size:11px;font-weight:700;color:#fff;background:rgba(0,0,0,.62);border-radius:6px;padding:2px 6px}.rv-n{top:6px}.rv-f{top:28px}
+.rv-n,.rv-f{position:absolute;left:6px;font-size:11px;font-weight:700;color:#fff;background:rgba(0,0,0,.62);border-radius:6px;padding:2px 6px}.rv-n{top:6px}.rv-f{top:28px;max-width:calc(100% - 12px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rv-r{position:absolute;left:0;right:0;bottom:0;padding:10px 6px 6px;background:linear-gradient(transparent,rgba(0,0,0,.75));color:var(--honey);font-weight:800;font-size:13px;text-align:center}
 .cmp{display:grid;gap:8px;grid-template-columns:repeat(2,1fr)}.cmp.n3{grid-template-columns:repeat(3,1fr)}.cmp.n4{grid-template-columns:repeat(4,1fr)}
 @media (max-width:700px){.cmp.n3,.cmp.n4{grid-template-columns:repeat(2,1fr)}}
@@ -445,7 +454,7 @@ body.noq .menu .mq,body.noq .menu .mq-sep{display:none}
     <nav id="nav" aria-label="Main navigation">
       <a href="#" data-act="picker" id="navFolder"></a>
       <a href="#" data-act="closeAll" class="active" id="navGrid"></a>
-      <div class="sect">Mockup folders</div>
+      <div class="sect">Recent</div>
       <div id="navRecent"></div>
       <div class="sp"></div>
       <a href="#" data-act="settings" id="navSettings"></a>
@@ -505,7 +514,7 @@ const QS = {
   Q9:{t:'Filter combination and placement', o:['OR within a group, AND across groups, collapsible bar on top.', 'Side panel like digiKam\'s right sidebar.'], r:'(a)'},
   Q10:{t:'Entering multi-select by touch', o:['"Select" button and long-press.', '"Select" button only.'], r:'(a)'},
   Q13:{t:'Grid tile overlays', o:['Stars, colour and flag always visible on every tile.', 'Only on the focused tile / in loupe.'], r:'(a)'},
-  Q18:{t:'Sort order', o:['File name.', 'Capture time from EXIF.', 'Both, user choice.'], r:'(a) first, (b) later.'},
+  Q18:{t:'Sort order of one folder', o:['File name.', 'Capture time from EXIF.', 'Both, user choice.'], r:'(a) first, (b) later, for one folder. Several folders start by capture time (decided).'},
 };
 const qm = id => `<button class="q" data-act="q" data-q="${id}" aria-label="Open question ${id}: ${esc(QS[id].t)}">${id}</button>`;
 
@@ -543,17 +552,48 @@ const TREE = {
   '/': ['Documents', 'Music', 'Photos'],
   '/Photos': ['2026', 'Archive', 'Phone', 'Portfolio'],
   '/Photos/Portfolio': ['Landscape', 'People'],
-  '/Photos/2026': ['2026-10-12 Dolomites (paired)', '2026-11-01 Wedding (separate)'],
-  '/Photos/2026/2026-11-01 Wedding (separate)': ['RAW', 'JPG']
+  '/Photos/2026': ['2026-09-20 Lisbon', '2026-10-12 Dolomites (paired)', '2026-11-01 Wedding (separate)'],
+  '/Photos/2026/2026-09-20 Lisbon': ['.thumbnails', 'Day 1', 'Day 2'],
+  '/Photos/2026/2026-11-01 Wedding (separate)': ['RAW', 'JPG'],
+  '/Photos/Phone': ['Backup 2015-2025']
 };
+const PHOTO_CAP = 20000;
+const isHidden = p => p.split('/').some(s => s.startsWith('.'));
 const FOLDERS = {
   '/Photos/2026/2026-10-12 Dolomites (paired)': {seed:4121, count:120, date:'2026-10-12', pPair:.78, pJpg:.11, pPortrait:.25, kinds:[0,0,0,1,2], mode:'same',
     cams:[['NEF','DSC_',.55],['ARW','DSC0',.15],['RAF','DSCF',.15],['DNG','IMG_',.15]], info:'120 items, RAW and JPEG side by side'},
   '/Photos/2026/2026-11-01 Wedding (separate)': {seed:77123, count:64, date:'2026-11-01', pPair:.84, pJpg:.08, pPortrait:.4, kinds:[3,3,3,1,0], mode:'sub',
     cams:[['CR3','IMG_',.8],['NEF','DSC_',.2]], info:'64 items, RAW/ and JPG/ subfolders'},
   '/Photos/Phone': {seed:991, count:28, date:'2026-10-30', pPair:.12, pJpg:.74, pPortrait:.55, kinds:[0,1,2,3], mode:'same', phone:true,
-    cams:[['DNG','IMG_',1]], info:'28 items, mostly JPEG only'}
+    cams:[['DNG','IMG_',1]], info:'28 items, mostly JPEG only'},
+  '/Photos/2026/2026-09-20 Lisbon/Day 1': {seed:5150, count:46, date:'2026-09-20', pPair:.7, pJpg:.2, pPortrait:.3, kinds:[0,1,2], mode:'same',
+    cams:[['RAF','DSCF',.6],['DNG','IMG_',.4]], info:'46 items, a camera and a phone'},
+  '/Photos/2026/2026-09-20 Lisbon/Day 2': {seed:5151, count:38, date:'2026-09-21', pPair:.74, pJpg:.16, pPortrait:.3, kinds:[0,1,3], mode:'same',
+    cams:[['RAF','DSCF',.7],['DNG','IMG_',.3]], info:'38 items, a camera and a phone'},
+  '/Photos/Phone/Backup 2015-2025': {big:21400, info:'21,400 items (mockup: not generated)'}
 };
+const photoCount = p => FOLDERS[p].big || FOLDERS[p].count;
+/* the folders a cull covers: the ticked ones and, with Include subfolders, every photo folder below them */
+function resolveSet(paths, sub){
+  const out = new Set();
+  for (const p of paths){
+    if (FOLDERS[p]) out.add(p);
+    if (sub) Object.keys(FOLDERS).forEach(k => { if (k.startsWith(p + '/') && !isHidden(k)) out.add(k); });
+  }
+  return [...out].sort();
+}
+const setKey = (paths, sub) => paths.length === 1 && !sub ? paths[0] : [...paths].sort().join('\n') + (sub ? '\n**' : '');
+function setName(set){
+  if (set.paths.length === 1) return set.paths[0].split('/').pop() + (set.sub ? ' + subfolders' : '');
+  return set.paths.length + ' folders' + (set.sub ? ' + subfolders' : '');
+}
+function setCount(paths, sub){ const fs = resolveSet(paths, sub); return {folders:fs.length, photos:fs.reduce((a, p) => a + photoCount(p), 0)}; }
+function folderName(p){
+  const root = S.set && S.set.paths.length === 1 && S.set.sub ? S.set.paths[0] : null;
+  return root && p.startsWith(root + '/') ? p.slice(root.length + 1) : p.split('/').pop();
+}
+const multiFolder = () => !!S.set && S.set.folders.length > 1;
+const nf = n => n.toLocaleString('en-US');
 const MODELS = {NEF:'NIKON Z 6_2', ARW:'ILCE-7M4', RAF:'X-T5', DNG:'iPhone 15 Pro', CR3:'Canon EOS R5'};
 const MAKES = {NEF:'NIKON CORPORATION', ARW:'SONY', RAF:'FUJIFILM', DNG:'Apple', CR3:'Canon'};
 const TPL_PRESETS = [
@@ -573,7 +613,7 @@ const TPL_SAMPLES = [
 /* ---------- state ---------- */
 const DEF_SETTINGS = () => ({rawExt:['NEF','CR3','ARW','RAF','DNG'], renderedExt:['JPG','JPEG'], folderMode:'same', rawFolder:'RAW', jpgFolder:'JPG',
   showSingles:true, swipeUp:'pick', swipeDown:'reject', autoAdvance:true, storage:'both', moveTemplate:TPL_PRESETS[0][1]});
-const DEF_FILTERS = () => ({scope:'notrej', ratingOp:'gte', rating:null, labels:new Set(), flags:new Set(), pairs:new Set()});
+const DEF_FILTERS = () => ({scope:'notrej', ratingOp:'gte', rating:null, labels:new Set(), flags:new Set(), pairs:new Set(), folders:new Set()});
 const PREF_KEY = 'honeycomb.mockup.layout';
 const PREF_DEF = {ts:160, navW:248, navOpen:null, infoOpen:false, infoW:300, coachSeen:false};
 function loadPrefs(){ try { return {...PREF_DEF, ...JSON.parse(localStorage.getItem(PREF_KEY) || '{}')}; } catch (e) { return {...PREF_DEF}; } }
@@ -581,7 +621,8 @@ function savePrefs(){ try { localStorage.setItem(PREF_KEY, JSON.stringify(P0)); 
 const P0 = loadPrefs();
 let S;
 function freshState(){
-  return {folderPath:null, folders:{}, items:[], view:[], byId:new Map(), filters:DEF_FILTERS(), filtersOpen:null, sel:new Set(), selMode:false, anchor:null, focusId:null,
+  return {folderPath:null, set:null, groupFolder:false, recent:[{paths:['/Photos/2026'], sub:true}, {paths:['/Photos/2026/2026-10-12 Dolomites (paired)'], sub:false},
+      {paths:['/Photos/2026/2026-11-01 Wedding (separate)'], sub:false}, {paths:['/Photos/Phone'], sub:false}], folders:{}, items:[], view:[], byId:new Map(), filters:DEF_FILTERS(), filtersOpen:null, sel:new Set(), selMode:false, anchor:null, focusId:null,
     sort:'name', ts:P0.ts, bursts:null, server:{resume:{}}, undo:[], redo:[], settings:DEF_SETTINGS(), loupe:null, dlg:null, navOpen:null,
     moveFav:['/Photos/Portfolio/Landscape', '/Photos/Archive'], moveRecent:['/Photos/Archive', '/Photos/Portfolio/People'], tfiles:{}, tplDraft:null,
     mock:{theme:S ? S.mock.theme : 'auto', frame:S ? S.mock.frame : 'off', fail:false, conflict:true, showQ:true, open:S ? S.mock.open : false}, scale:1};
@@ -602,7 +643,7 @@ function genFolder(path){
     const st = cam[1] + String(n).padStart(4, '0'), roll = r();
     const type = roll < cfg.pPair ? 'pair' : roll < cfg.pPair + cfg.pJpg ? 'jpg' : 'raw';
     const portrait = r() < cfg.pPortrait, ratio = cfg.phone ? 4/3 : 3/2;
-    const it = {id:path + '#' + i, base:st, jpg:null, raw:null, xmp:null, aw:portrait ? 1 : ratio, ah:portrait ? ratio : 1, nativeW:portrait ? 4000 : 6000,
+    const it = {id:path + '#' + i, folder:path, base:st, jpg:null, raw:null, xmp:null, aw:portrait ? 1 : ratio, ah:portrait ? ratio : 1, nativeW:portrait ? 4000 : 6000,
       seed:Math.floor(r() * 1e9), hue:Math.floor(r() * 360), kind:cfg.kinds[Math.floor(r() * cfg.kinds.length)], time:t, rating:0, label:null, flag:'none'};
     const jdir = cfg.mode === 'sub' ? base + 'JPG/' : base, rdir = cfg.mode === 'sub' ? base + 'RAW/' : base;
     if (type !== 'raw') it.jpg = {name:st + '.JPG', dir:jdir, size:+(6 + r() * 8).toFixed(1)};
@@ -688,8 +729,8 @@ function logoSVG(){
 }
 
 /* ---------- derived data ---------- */
-function filtersActive(){ const f = S.filters; return f.rating !== null || f.labels.size || f.flags.size || f.pairs.size; }
-function activeFilterCount(){ const f = S.filters; return (f.rating !== null) + (f.labels.size > 0) + (f.flags.size > 0) + (f.pairs.size > 0); }
+function filtersActive(){ const f = S.filters; return f.rating !== null || f.labels.size || f.flags.size || f.pairs.size || f.folders.size; }
+function activeFilterCount(){ const f = S.filters; return (f.rating !== null) + (f.labels.size > 0) + (f.flags.size > 0) + (f.pairs.size > 0) + (f.folders.size > 0); }
 function passes(it){
   const f = S.filters;
   if (!S.settings.showSingles && pairType(it) !== 'pair') return false;
@@ -698,13 +739,16 @@ function passes(it){
   if (f.labels.size && !f.labels.has(it.label)) return false;
   if (f.flags.size && !f.flags.has(it.flag)) return false;
   if (f.pairs.size && !f.pairs.has(pairType(it))) return false;
+  if (f.folders.size && !f.folders.has(it.folder)) return false;
   return true;
 }
 function computeView(){
-  const v = S.items.filter(passes);
-  v.sort(S.sort === 'time' ? (a, b) => a.time - b.time : (a, b) => (a.jpg || a.raw).name.localeCompare((b.jpg || b.raw).name));
+  const v = S.items.filter(passes), byFolder = S.groupFolder && multiFolder();
+  const by = S.sort === 'time' ? (a, b) => a.time - b.time : (a, b) => (a.jpg || a.raw).name.localeCompare((b.jpg || b.raw).name);
+  v.sort(byFolder ? (a, b) => a.folder.localeCompare(b.folder) || by(a, b) : by);
   S.view = v;
 }
+function storeItems(){ for (const p of S.set.folders) if (!FOLDERS[p].big) S.folders[p] = S.items.filter(i => i.folder === p); }
 const rejectedItems = () => S.items.filter(i => i.flag === 'reject');
 function targetIds(){
   if (S.loupe) return [S.loupe.ids[S.loupe.idx]].filter(Boolean);
@@ -715,9 +759,10 @@ function targetIds(){
 /* ---------- series (bursts) ---------- */
 const BURST_GAP_MS = 3000, BURST_MAX = 4;
 function burstGroups(){
-  const its = S.items.filter(i => i.flag !== 'reject').sort((a, b) => a.time - b.time), out = []; let cur = [];
+  const cam = i => i.model || '', its = S.items.filter(i => i.flag !== 'reject').sort((a, b) => cam(a).localeCompare(cam(b)) || a.time - b.time), out = []; let cur = [];
   const flush = () => { for (let k = 0; k < cur.length; k += BURST_MAX){ const g = cur.slice(k, k + BURST_MAX); if (g.length > 1 && g.some(i => i.flag === 'none')) out.push(g); } cur = []; };
-  for (const it of its){ if (cur.length && it.time - cur[cur.length - 1].time > BURST_GAP_MS) flush(); cur.push(it); }
+  for (const it of its){ const last = cur[cur.length - 1]; if (last && (cam(it) !== cam(last) || it.time - last.time > BURST_GAP_MS)) flush(); cur.push(it); }
+  out.sort((a, b) => a[0].time - b[0].time);
   flush(); return out;
 }
 function getBursts(){
@@ -788,7 +833,7 @@ function redo(){ const e = S.redo.pop(); if (!e) return; S.undo.push(e); applyEn
 function afterChange(ids){
   S.bursts = null;
   if (!S.loupe && viewChanged()) refreshView(); else ids.forEach(updateTile);
-  renderToolbar(); renderActionBar(); renderHeader(); if (S.loupe) renderLoupeChrome();
+  renderToolbar(); renderActionBar(); renderHeader(); renderNav(); if (S.loupe) renderLoupeChrome();
   if (S.serie) serieSync(); else if (S.dlg && S.dlg.type === 'burst') renderDlg();
 }
 function viewChanged(){ const was = S.view.map(i => i.id).join('|'); computeView(); return was !== S.view.map(i => i.id).join('|'); }
@@ -810,16 +855,25 @@ function renderHeader(){
 function renderNav(){
   $('navFolder').innerHTML = ic('folder') + 'Folder'; $('navGrid').innerHTML = ic('grid') + 'Cull';
   $('navSettings').innerHTML = ic('settings') + 'Settings';
-  $('navRecent').innerHTML = Object.keys(FOLDERS).map(p => `<a href="#" data-act="openFolder" data-path="${esc(p)}"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px">${esc(p.split('/').pop())}</span></a>`).join('');
+  $('navRecent').innerHTML = S.recent.map((r, n) => {
+    const its = resolveSet(r.paths, r.sub).flatMap(getItems), dec = its.filter(i => i.flag !== 'none').length, cur = S.folderPath === setKey(r.paths, r.sub);
+    return `<a href="#" data-act="openRecent" data-i="${n}" class="rc${cur ? ' cur' : ''}" title="${esc(r.paths.join(', '))}"><span class="rc-n">${esc(setName(r))}</span><span class="rc-m">${dec} / ${its.length} decided</span></a>`;
+  }).join('');
 }
+function getItems(p){ return FOLDERS[p].big ? [] : S.folders[p] || (S.folders[p] = genFolder(p)); }
 
 /* ---------- toolbar ---------- */
 function renderToolbar(){
   const tb = $('toolbar');
   if (!S.folderPath){ $('hKeys').innerHTML = ''; tb.innerHTML = `<div class="bar"><div class="crumbs"><button data-act="picker">Choose a folder…</button></div></div>`; return; }
   const segs = S.folderPath.split('/').filter(Boolean), nRej = rejectedItems().length, nDec = decidedCount(), nTot = S.items.length, nSer = getBursts().groups.length, nFil = activeFilterCount();
-  const full = `<button data-act="picker" aria-label="Change folder">Home</button>` + segs.map((s, i) => `<span class="sep">/</span><button data-act="picker" data-path="/${esc(segs.slice(0, i + 1).join('/'))}">${esc(s)}</button>`).join('');
-  const short = `<button data-act="picker" aria-label="Change folder">${ic('home')}</button><span class="sep">/</span><button class="cur" data-act="path" aria-haspopup="menu" aria-label="Show the full path of ${esc(segs[segs.length - 1] || '')}">${esc(segs[segs.length - 1] || '')}</button>`;
+  let full = `<button data-act="picker" aria-label="Change folder">Home</button>` + segs.map((s, i) => `<span class="sep">/</span><button data-act="picker" data-path="/${esc(segs.slice(0, i + 1).join('/'))}">${esc(s)}</button>`).join('');
+  let short = `<button data-act="picker" aria-label="Change folder">${ic('home')}</button><span class="sep">/</span><button class="cur" data-act="path" aria-haspopup="menu" aria-label="Show the full path of ${esc(segs[segs.length - 1] || '')}">${esc(segs[segs.length - 1] || '')}</button>`;
+  if (S.folderPath !== S.set.paths[0]){
+    const nm = `<button class="cur" data-act="picker" aria-label="Change folders: ${esc(S.set.paths.join(', '))}" title="${esc(S.set.paths.join(', '))}">${esc(setName(S.set))} · ${S.set.folders.length} folders</button>`;
+    full = `<button data-act="picker" aria-label="Change folders">Home</button><span class="sep">/</span>${nm}`;
+    short = `<button data-act="picker" aria-label="Change folders">${ic('home')}</button><span class="sep">/</span>${nm}`;
+  }
   const ib = (act, icon, label, n, extra = '') => `<button class="btn ghost ib" data-act="${act}" ${extra} aria-label="${label}${n ? ' (' + n + ')' : ''}" title="${label}">${ic(icon)}<span class="lb">${label}</span>${n ? `<span class="badge-n" aria-hidden="true">${n}</span>` : ''}</button>`;
   tb.classList.toggle('selmode', S.selMode);
   const scopes = [['notrej', 'Not rejected', 'flagCross'], ['undecided', 'Undecided', 'flag'], ['all', 'All', 'grid']];
@@ -874,7 +928,8 @@ function openMore(anchor){
   const pop = document.createElement('div'), sep = '<div class="msep" role="separator"></div>';
   pop.setAttribute('aria-label', 'More');
   pop.innerHTML = `<div class="minfo" aria-live="polite">Showing ${S.view.length} of ${S.items.length}</div>
-    ${[['name', 'File name'], ['time', 'Capture time']].map(([v, l]) => `<button class="mi" role="menuitemradio" aria-checked="${S.sort === v}" data-act="sortSet" data-v="${v}">${ic('sort')}<span>Sort by ${l.toLowerCase()}</span></button>`).join('')}${sep}
+    ${[['name', 'File name'], ['time', 'Capture time']].map(([v, l]) => `<button class="mi" role="menuitemradio" aria-checked="${S.sort === v}" data-act="sortSet" data-v="${v}">${ic('sort')}<span>Sort by ${l.toLowerCase()}</span></button>`).join('')}
+    ${multiFolder() ? `<button class="mi" role="menuitemcheckbox" aria-checked="${S.groupFolder}" data-act="groupFolder">${ic('folder')}<span>Group by folder</span></button>` : ''}${sep}
     <div class="mi mrow" role="group" aria-label="Thumbnail size"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg><input type="range" id="tsRange" min="90" max="340" step="1" value="${Math.round(S.ts)}" data-chg="tsize" aria-label="Thumbnail size"><svg class="ic" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></div>${sep}
     ${menuItem('moveView', 'move', filtersActive() ? 'Move filtered' : 'Move picks', nMove ? '' : 'disabled', `<span class="k">${nMove}</span>`)}
     ${rit ? menuItem('resume', 'folder', `Resume at ${esc(stem(rit))}`) : ''}${sep}
@@ -904,6 +959,8 @@ function renderFilters(){
     ${ch('fFlag', 'pick', ic('flagPick') + 'Picked', f.flags.has('pick'))}${ch('fFlag', 'reject', ic('flagX') + 'Rejected', f.flags.has('reject'))}${ch('fFlag', 'none', ic('flag') + 'Unflagged', f.flags.has('none'))}</div></div>
   <div class="fgroup"><span class="lbl">Pairing</span><div class="chips">
     ${ch('fPair', 'pair', 'Pairs', f.pairs.has('pair'))}${ch('fPair', 'jpg', 'JPEG only', f.pairs.has('jpg'))}${ch('fPair', 'raw', 'RAW only', f.pairs.has('raw'))}</div></div>
+  ${multiFolder() ? `<div class="fgroup"><span class="lbl">Folder</span><div class="chips">
+    ${S.set.folders.filter(p => !FOLDERS[p].big).map(p => `<button class="chip" data-act="fFolder" data-path="${esc(p)}" aria-pressed="${f.folders.has(p)}" title="${esc(p)}">${esc(folderName(p))}</button>`).join('')}</div></div>` : ''}
   <div class="fright">${qm('Q9')}<span class="count" id="countF">${S.view.length} of ${S.items.length}</span><button class="btn" data-act="fClear" ${filtersActive() ? '' : 'disabled'}>Clear filters</button></div>`;
 }
 function toggleSet(set, v){ set.has(v) ? set.delete(v) : set.add(v); }
@@ -934,10 +991,15 @@ function renderGrid(){
   $('gridWrap').classList.toggle('selmode', S.selMode); g.classList.toggle('selmode', S.selMode);
   if (!S.folderPath){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">No folder chosen</div>Pick a folder to start culling.</div>`; return; }
   if (!S.view.length && S.items.length && !filtersActive() && S.filters.scope !== 'all'){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">${S.filters.scope === 'undecided' ? 'Every photo is decided' : 'No photos left to cull'}</div>${nRejText()}<br><br><button class="btn primary" data-act="delRejected" ${rejectedItems().length ? '' : 'hidden'}>Review rejects</button> <button class="btn" data-act="scope" data-v="all">Show all</button></div>`; return; }
-  if (!S.view.length){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">Nothing matches these filters</div>${S.items.length} items in this folder.<br><br><button class="btn" data-act="fClear">Clear filters</button></div>`; return; }
+  if (!S.view.length){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">Nothing matches these filters</div>${S.items.length} items in ${multiFolder() ? S.set.folders.length + ' folders' : 'this folder'}.<br><br><button class="btn" data-act="fClear">Clear filters</button></div>`; return; }
   const frag = document.createDocumentFragment();
   io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting){ io.unobserve(e.target); thumbQueue.push(e.target); } pumpThumbs(); }, {root:$('gridWrap'), rootMargin:'500px 0px'});
+  const heads = S.groupFolder && multiFolder(); let last = null;
   for (const it of S.view){
+    if (heads && it.folder !== last){
+      last = it.folder; const h = document.createElement('div'); h.className = 'ghead'; h.setAttribute('role', 'heading'); h.setAttribute('aria-level', '2');
+      h.innerHTML = `${ic('folder')}<span>${esc(folderName(it.folder))}</span><small>${S.view.filter(i => i.folder === it.folder).length}</small>`; frag.appendChild(h);
+    }
     const el = document.createElement('div'); el.className = 'tile'; el.dataset.id = it.id; el.setAttribute('role', 'button'); el.tabIndex = -1; el.innerHTML = tileInner(it);
     tileEls.set(it.id, el); updateTile(it.id); frag.appendChild(el); io.observe(el);
   }
@@ -953,7 +1015,7 @@ function pumpThumbs(){
   });
 }
 function refreshView(){
-  S.bursts = null; computeView(); renderGrid(); renderFilters(); renderToolbar(); renderActionBar();
+  S.bursts = null; computeView(); renderGrid(); renderFilters(); renderToolbar(); renderActionBar(); renderNav();
 }
 const nRejText = () => rejectedItems().length + ' rejected, ready to review and delete.';
 function setFocus(id){
@@ -1056,19 +1118,32 @@ function renderDlg(){
 function dlgPicker(d){
   const kids = TREE[d.cwd] || [], parts = d.cwd.split('/').filter(Boolean);
   const crumbs = `<div class="crumbs"><button data-act="pkGo" data-path="/">Home</button>${parts.map((p, i) => `<span class="sep">/</span><button data-act="pkGo" data-path="/${esc(parts.slice(0, i + 1).join('/'))}">${esc(p)}</button>`).join('')}</div>`;
+  if (!d.forMove && !d.ticks){ d.ticks = new Set(S.set ? S.set.paths : []); d.sub = S.set ? S.set.sub : false; }
   const rows = kids.map(k => {
-    const p = (d.cwd === '/' ? '' : d.cwd) + '/' + k, ok = d.forMove ? p !== S.folderPath : !!FOLDERS[p], sub = !!TREE[p];
-    const meta = d.forMove ? (p === S.folderPath ? 'The current folder' : 'Folder') : ok ? FOLDERS[p].info : /^(RAW|JPG)$/.test(k) ? 'Choose the parent folder to see the pairs' : 'Folder';
-    return `<li role="option" tabindex="0" data-act="pkSel" data-path="${esc(p)}" aria-selected="${d.sel === p}" class="${ok ? '' : 'dis'}">${ic('folder')}<span class="nm">${esc(k)}<div class="meta">${esc(meta)}</div></span>${sub ? `<button class="go" data-act="pkGo" data-path="${esc(p)}" aria-label="Open ${esc(k)}">${ic('chevR')}</button>` : ''}</li>`;
+    const p = (d.cwd === '/' ? '' : d.cwd) + '/' + k, sub = !!TREE[p], below = !d.forMove && d.sub ? setCount([p], true) : null;
+    const ok = d.forMove ? p !== S.folderPath : !isHidden(p) && (!!FOLDERS[p] || !!(below && below.photos));
+    const meta = d.forMove ? (p === S.folderPath ? 'The current folder' : 'Folder') : isHidden(p) ? 'Hidden folder, always skipped' : /^(RAW|JPG)$/.test(k) ? 'Part of its parent folder: tick the parent to see the pairs'
+      : below && below.folders > 1 ? `${nf(below.photos)} photos in ${below.folders} folders` : FOLDERS[p] ? FOLDERS[p].info : 'Folder';
+    const on = d.forMove ? d.sel === p : d.ticks.has(p);
+    const box = d.forMove ? '' : `<span class="pk-box" aria-hidden="true">${on ? ic('check') : ''}</span>`;
+    return `<li role="option" tabindex="0" data-act="${d.forMove ? 'pkSel' : 'pkTick'}" data-path="${esc(p)}" aria-selected="${on}" class="${ok ? '' : 'dis'}" ${ok ? '' : 'aria-disabled="true"'}>${box}${ic('folder')}<span class="nm">${esc(k)}<div class="meta">${esc(meta)}</div></span>${sub ? `<button class="go" data-act="pkGo" data-path="${esc(p)}" aria-label="Open ${esc(k)}">${ic('chevR')}</button>` : ''}</li>`;
   }).join('') || '<li class="dis">This folder has no subfolders.</li>';
-  const can = d.sel && (d.forMove ? d.sel !== S.folderPath : FOLDERS[d.sel]);
-  if (d.forMove) return confirmDialog('Move to folder', `${crumbs}<ul class="plist" role="listbox" aria-label="Folders" style="margin-top:8px">${rows}</ul>
+  if (d.forMove){
+    const can = d.sel && d.sel !== S.folderPath;
+    return confirmDialog('Move to folder', `${crumbs}<ul class="plist" role="listbox" aria-label="Folders" style="margin-top:8px">${rows}</ul>
     <p class="hint">Tap a folder to select it, the arrow to open it. Any folder you can write to is a target.</p>`,
     {back:{act:'mvBack', label:'Back'}, cancel:null, confirm:{act:'pkChoose', label:'Move to ' + (can ? d.sel.split('/').pop() : '…'), dis:!can}});
-  const intro = S.folderPath ? '' : '<p class="intro">Choose a folder of photos to start culling. Decisions save as you go and can be undone; deleting only moves files to the Nextcloud trash bin.</p>';
-  return confirmDialog('Choose a folder', `${intro}${crumbs}<ul class="plist" role="listbox" aria-label="Folders" style="margin-top:8px">${rows}</ul>
-    <p class="hint">Tap a folder to select it, the arrow to open it. Mockup: only the three photo folders can be loaded.</p>`,
-    {cancel:S.folderPath ? 'Cancel' : null, confirm:{act:'pkChoose', label:can ? 'Choose ' + d.sel.split('/').pop() : 'Choose', dis:!can}, canClose:!!S.folderPath});
+  }
+  const ticks = [...d.ticks], cnt = setCount(ticks, d.sub), can = cnt.photos > 0;
+  const label = !can ? 'Choose' : cnt.folders === 1 ? 'Cull ' + resolveSet(ticks, d.sub)[0].split('/').pop() : `Cull ${cnt.folders} folders`;
+  const intro = S.folderPath ? '' : '<p class="intro">Choose one or more folders of photos to start culling. Decisions save as you go and can be undone; deleting only moves files to the Nextcloud trash bin.</p>';
+  const subRow = `<div class="setrow pk-sub"><div><div>Include subfolders</div><div class="hint" style="margin:0">Any depth. Hidden folders, the trash bin and preview folders are skipped.</div></div><button class="sw-btn" role="switch" aria-checked="${d.sub}" aria-label="Include subfolders" data-act="pkSub"></button></div>`;
+  const sum = !ticks.length ? 'Tick one or more folders.' : cnt.photos ? `<b>${nf(cnt.photos)} photos in ${cnt.folders} ${cnt.folders === 1 ? 'folder' : 'folders'}</b>` + (ticks.length > 1 || d.sub ? ` · ${ticks.map(p => esc(p.split('/').pop())).join(', ')}` : '') : 'No photos in the ticked folders.';
+  const cap = cnt.photos > PHOTO_CAP ? `<div class="note warn"><span>More than ${nf(PHOTO_CAP)} photos. honeycomb shows the first ${nf(PHOTO_CAP)} by capture time; untick folders to see the rest.</span></div>` : '';
+  return confirmDialog('Choose folders', `${intro}${crumbs}<ul class="plist" role="listbox" aria-multiselectable="true" aria-label="Folders" style="margin-top:8px">${rows}</ul>
+    ${subRow}<p class="pk-count" aria-live="polite">${sum}</p>${cap}
+    <p class="hint">Tap folders to tick them, the arrow to open one. A cull of several folders is listed under Recent with its own progress.</p>`,
+    {cancel:S.folderPath ? 'Cancel' : null, confirm:{act:'pkChoose', label, dis:!can}, canClose:!!S.folderPath});
 }
 /* delete summary */
 function filesOf(it){ return [it.jpg && {...it.jpg, kind:'JPEG', it}, it.raw && {...it.raw, kind:'RAW', it}, it.xmp && {...it.xmp, kind:'XMP', it}].filter(Boolean); }
@@ -1076,7 +1151,7 @@ function dlgReview(){
   const its = rejectedItems(), files = its.flatMap(filesOf), total = files.reduce((a, f) => a + f.size, 0);
   const body = its.length ? `<p style="margin-top:0;color:var(--muted)">Tap a photo to rescue it. A rescued photo becomes undecided again.</p>
     <div class="sumrow"><div class="stat"><b>${its.length}</b>photos</div><div class="stat"><b>${files.length}</b>files</div><div class="stat"><b>${fmtSize(total)}</b>to free</div></div>
-    <div class="rv-grid">${its.map(it => `<button class="rv" data-act="rescue" data-id="${esc(it.id)}" aria-label="Rescue ${esc(stem(it))}"><img alt="" src="${thumbURL(it)}"><span class="rv-n">${esc(stem(it))}</span><span class="rv-f">${filesOf(it).map(f => f.kind).join(' + ')}</span><span class="rv-r">Rescue</span></button>`).join('')}</div>`
+    <div class="rv-grid">${its.map(it => `<button class="rv" data-act="rescue" data-id="${esc(it.id)}" aria-label="Rescue ${esc(stem(it))}"><img alt="" src="${thumbURL(it)}"><span class="rv-n">${esc(stem(it))}</span><span class="rv-f">${multiFolder() ? esc(folderName(it.folder)) + ' · ' : ''}${filesOf(it).map(f => f.kind).join(' + ')}</span><span class="rv-r">Rescue</span></button>`).join('')}</div>`
     : `<div class="empty"><div class="big">No rejected photos</div>Nothing to delete.</div>`;
   return confirmDialog('Review rejects', body, {cancel:'Cancel', confirm:{act:'reviewNext', label:`Continue: delete ${its.length}`, icon:'trash', kind:'danger', dis:!its.length}, wide:true});
 }
@@ -1190,7 +1265,7 @@ function dlgDelete(d){
   const pairs = its.filter(i => pairType(i) === 'pair').length, singles = its.length - pairs, total = files.reduce((a, f) => a + f.size, 0);
   return confirmDialog('Delete ' + its.length + (its.length === 1 ? ' photo' : ' photos'),
     `<div class="sumrow"><div class="stat"><b>${its.length}</b>photos</div><div class="stat"><b>${files.length}</b>files</div><div class="stat"><b>${fmtSize(total)}</b>freed</div></div>
-    <p style="margin:0 0 10px;color:var(--muted);font-size:13px">${pairs} pairs · ${singles} singles. Every photo goes with all of its files, sidecars included.</p>
+    <p style="margin:0 0 10px;color:var(--muted);font-size:13px">${pairs} pairs · ${singles} singles. Every photo goes with all of its files, sidecars included.${multiFolder() ? ' From ' + [...new Set(its.map(i => i.folder))].map(p => `${esc(folderName(p))} (${its.filter(i => i.folder === p).length})`).join(', ') + '.' : ''}</p>
     <div class="fl-list" tabindex="0" aria-label="Files that will be deleted">${files.map(f => `<div><span class="k">${f.kind}</span><span class="n"><i>${esc(f.dir.replace('/Photos/', '…/'))}</i>${esc(f.name)}</span><span>${fmtSize(f.size)}</span></div>`).join('')}</div>
     <div class="note">${ic('trash')}<span>Files move to the Nextcloud trash bin and can be restored from there. Nothing is deleted for good; the space returns when the trash bin is emptied.</span></div>`,
     {back:d.from === 'review' ? {act:'reviewBack', label:'Back to review'} : null, confirm:{act:'delConfirm', label:`Move ${files.length} files to trash`, icon:'trash', kind:'danger'}});
@@ -1207,7 +1282,7 @@ function doDelete(ids, failFirst){
     if (!it.jpg && !it.raw){ removedIds.push(id); S.items = S.items.filter(i => i !== it); S.byId.delete(id); S.sel.delete(id); }
     else if (!it.raw && !it.jpg) it.xmp = null;
   });
-  S.folders[S.folderPath] = S.items;
+  storeItems();
   return {done, failed, removed:removedIds.length};
 }
 function dlgReport(d){
@@ -1366,7 +1441,7 @@ function planNames(pics, tpl, taken, res = {}){
 /* ---------- moving: dialog ---------- */
 const moveTargets = () => [...S.moveFav.map(p => ({p, fav:true})), ...S.moveRecent.filter(p => !S.moveFav.includes(p)).map(p => ({p, fav:false}))].slice(0, 9);
 function picOf(it){
-  const sub = FOLDERS[S.folderPath] && FOLDERS[S.folderPath].mode === 'sub';
+  const sub = FOLDERS[it.folder].mode === 'sub';
   return {key:it.id, it, base:it.base, model:it.model, make:it.make, time:it.exifTime, mtime:it.mtime,
     files:filesOf(it).map(f => ({kind:f.kind, from:f, ext:f.name.slice(it.base.length + 1), sub:sub ? f.dir.split('/').slice(-2, -1)[0] : null}))};
 }
@@ -1428,7 +1503,7 @@ function applyMove(m, dir){
   } else {
     [...m.pics].sort((a, b) => a.idx - b.idx).forEach(x => { S.items.splice(x.idx, 0, x.it); S.byId.set(x.it.id, x.it); }); m.added.forEach(x => t.delete(x));
   }
-  S.folders[S.folderPath] = S.items; S.bursts = null;
+  storeItems(); S.bursts = null;
   if (S.loupe){ S.loupe.ids = S.loupe.ids.filter(i => S.byId.has(i)); if (!S.loupe.ids.length) closeLoupe(); else { S.loupe.idx = clamp(S.loupe.idx, 0, S.loupe.ids.length - 1); showLoupe(); } }
   refreshView(); renderActionBar();
 }
@@ -1509,7 +1584,7 @@ function renderLoupeChrome(){
   $('lCtrl').innerHTML = actionBar(it, 'loupe', {big:true});
   $('lZoomBtn').textContent = L.z.s > 1.02 ? Math.round(L.z.s * fitSize(it)[0] * (devicePixelRatio || 1) / it.nativeW * 100) + '%' : 'Fit';
   const ip = $('infoPanel'); ip.hidden = $('infoDiv').hidden = !P0.infoOpen; $('lInfoBtn').setAttribute('aria-pressed', P0.infoOpen);
-  ip.innerHTML = `<h4>File</h4><dl><dt>Name</dt><dd>${esc(stem(it))}</dd>${it.jpg ? `<dt>JPEG</dt><dd>${fmtSize(it.jpg.size)}</dd>` : ''}${it.raw ? `<dt>RAW</dt><dd>${esc(it.raw.name.split('.').pop())} · ${fmtSize(it.raw.size)}</dd>` : ''}<dt>Sidecar</dt><dd>${it.xmp ? 'XMP' : 'none'}</dd><dt>Size</dt><dd>${it.nativeW} px wide</dd></dl>
+  ip.innerHTML = `<h4>File</h4><dl><dt>Name</dt><dd>${esc(stem(it))}</dd><dt>Folder</dt><dd title="${esc(it.folder)}">${esc(folderName(it.folder))}</dd>${it.jpg ? `<dt>JPEG</dt><dd>${fmtSize(it.jpg.size)}</dd>` : ''}${it.raw ? `<dt>RAW</dt><dd>${esc(it.raw.name.split('.').pop())} · ${fmtSize(it.raw.size)}</dd>` : ''}<dt>Sidecar</dt><dd>${it.xmp ? 'XMP' : 'none'}</dd><dt>Size</dt><dd>${it.nativeW} px wide</dd></dl>
     <h4 style="margin-top:16px">Decision</h4><dl><dt>Rating</dt><dd>${it.rating ? it.rating + ' ★' : 'none'}</dd><dt>Label</dt><dd>${it.label || 'none'}</dd><dt>Flag</dt><dd>${FLAG_TXT[it.flag]}</dd></dl>
     <h4 style="margin-top:16px">Gestures</h4><p class="gest" id="lGest"></p><h4>Preloading</h4><div class="prefetch" id="lPre" aria-live="off"></div>`;
   $('lGest').innerHTML = `Swipe ↑ ${nm(up)} · ↓ ${nm(dn)} ${qm('Q6')} · auto-advance ${S.settings.autoAdvance ? 'on' : 'off'}`;
@@ -1668,13 +1743,15 @@ function onFrameResize(){
 const A = {
   nav(){ S.navOpen = !S.navOpen; $('frame').dataset.nav = S.navOpen ? 'open' : 'closed'; if ($('frame').clientWidth >= 1000){ P0.navOpen = S.navOpen; savePrefs(); } },
   picker(el){ const p = el.dataset.path; if (!S.navOpen || $('frame').clientWidth < 1000) { S.navOpen = $('frame').clientWidth >= 1000 ? S.navOpen : false; $('frame').dataset.nav = S.navOpen ? 'open' : 'closed'; }
-    const cwd = p && TREE[p] ? p : S.folderPath ? S.folderPath.split('/').slice(0, -1).join('/') || '/' : '/Photos/2026'; openDlg({type:'picker', cwd:p && TREE[p] ? p : cwd, sel:S.folderPath}); },
+    const cwd = p && TREE[p] ? p : S.set ? S.set.paths[0].split('/').slice(0, -1).join('/') || '/' : '/Photos/2026'; openDlg({type:'picker', cwd:p && TREE[p] ? p : cwd, sel:null}); },
   closeAll(){ if (S.loupe) closeLoupe(); closeDlg(); if ($('frame').clientWidth < 1000){ S.navOpen = false; $('frame').dataset.nav = 'closed'; } },
-  openFolder(el){ loadFolder(el.dataset.path); if ($('frame').clientWidth < 1000){ S.navOpen = false; $('frame').dataset.nav = 'closed'; } },
+  openRecent(el){ const r = S.recent[+el.dataset.i]; loadSet(r.paths, r.sub); if ($('frame').clientWidth < 1000){ S.navOpen = false; $('frame').dataset.nav = 'closed'; } },
   settings(){ if ($('frame').clientWidth < 1000){ S.navOpen = false; $('frame').dataset.nav = 'closed'; } openDlg({type:'settings'}); },
   pkGo(el){ S.dlg.cwd = el.dataset.path; S.dlg.sel = null; renderDlg(); },
   pkSel(el){ S.dlg.sel = el.dataset.path; renderDlg(); },
-  pkChoose(){ const p = S.dlg.sel; if (S.dlg.forMove){ if (p && p !== S.folderPath) openDlg({...S.dlg.forMove, target:p}); return; } if (p && FOLDERS[p]) loadFolder(p); },
+  pkTick(el){ if (el.getAttribute('aria-disabled')) return; toggleSet(S.dlg.ticks, el.dataset.path); S.dlg.refocus = `[data-path="${CSS.escape(el.dataset.path)}"]`; renderDlg(); },
+  pkSub(){ S.dlg.sub = !S.dlg.sub; S.dlg.refocus = '[data-act="pkSub"]'; renderDlg(); },
+  pkChoose(){ const p = S.dlg.sel; if (S.dlg.forMove){ if (p && p !== S.folderPath) openDlg({...S.dlg.forMove, target:p}); return; } const t = [...S.dlg.ticks]; if (setCount(t, S.dlg.sub).photos) loadSet(t, S.dlg.sub); },
   moveSel(){ openMove([...S.sel]); }, moveCur(){ openMove(targetIds()); },
   moveView(){ openMove((filtersActive() ? S.view : S.items.filter(i => i.flag === 'pick')).map(i => i.id)); },
   mvTarget(el){ S.dlg.target = el.dataset.path; renderDlg(); }, mvBack(){ openDlg(S.dlg.forMove); },
@@ -1692,6 +1769,7 @@ const A = {
   fLabel(el){ toggleSet(S.filters.labels, el.dataset.v); refreshView(); },
   fFlag(el){ toggleSet(S.filters.flags, el.dataset.v); refreshView(); },
   fPair(el){ toggleSet(S.filters.pairs, el.dataset.v); refreshView(); },
+  fFolder(el){ toggleSet(S.filters.folders, el.dataset.path); refreshView(); }, groupFolder(){ S.groupFolder = !S.groupFolder; closeMenu(); refreshView(); },
   fClear(){ S.filters = {...DEF_FILTERS(), scope:S.filters.scope}; refreshView(); },
   palette(el){ showPalette(el, el.dataset.for); },
   setLabel(el){ const ids = idsForKey(el.dataset.for), v = el.dataset.v; closePop(); if (v) toggleLabel(ids, v); else change(ids, 'label', null); },
@@ -1705,11 +1783,11 @@ const A = {
   burst(){ const gids = getBursts().groups.map(g => g.map(i => i.id)); if (gids.length) openDlg({type:'burst', gids, i:0}); },
   cmpOpen(el){ openSerie(el.dataset.id); }, pickRest(el){ if (el.dataset.for === 'serie') seriePickRest(); else { const m = burstCurrent(S.dlg), id = el.dataset.id; m && decideBurst(id, m.filter(i => i.id !== id).map(i => i.id)); } }, cmpSkip(){ S.dlg.i++; renderDlg(); },
   svClose(){ closeSerie(); }, svZoom(){ serieZoom(); }, svStep(el){ serieStep(+el.dataset.v); },
-  mockDevice(){ closeDlg(); closeSerie(); if (S.loupe) closeLoupe(); S.folderPath = null; S.items = []; S.byId = new Map(); S.sel.clear(); S.selMode = false; S.focusId = null; S.undo = []; S.redo = []; S.filters = DEF_FILTERS(); S.bursts = null;
+  mockDevice(){ closeDlg(); closeSerie(); if (S.loupe) closeLoupe(); S.folderPath = null; S.set = null; S.items = []; S.byId = new Map(); S.sel.clear(); S.selMode = false; S.focusId = null; S.undo = []; S.redo = []; S.filters = DEF_FILTERS(); S.bursts = null;
     refreshView(); openDlg({type:'picker', cwd:'/Photos/2026', sel:null}); toast('New device: no local state. Decisions and position come from the server'); },
   delConfirm(){ const ids = S.dlg.ids; const res = doDelete(ids, S.mock.fail); S.lastFailed = res.failed; finishDelete(res); },
   retryFailed(){ const f = S.lastFailed || []; f.forEach(x => { const it = S.byId.get(x.it.id); if (!it) return; it[x.kind === 'JPEG' ? 'jpg' : 'raw'] = null; if (!it.jpg && !it.raw){ S.items = S.items.filter(i => i !== it); S.byId.delete(it.id); } });
-    S.folders[S.folderPath] = S.items; closeDlg(); refreshView(); toast(`Moved ${f.length} remaining file(s) to the Nextcloud trash bin`); S.lastFailed = []; },
+    storeItems(); closeDlg(); refreshView(); toast(`Moved ${f.length} remaining file(s) to the Nextcloud trash bin`); S.lastFailed = []; },
   undo(){ undo(); }, redo(){ redo(); },
   coachOk(){ P0.coachSeen = true; savePrefs(); $('lCoach').hidden = true; },
   closeLoupe(){ closeLoupe(); }, prev(){ step(-1); }, next(){ step(1); }, goto(el){ goTo(+el.dataset.i, false); },
@@ -1840,11 +1918,15 @@ function filtersOffOn(){
 }
 
 /* ---------- folder loading / boot ---------- */
-function loadFolder(path){
-  S.folderPath = path; S.items = S.folders[path] || (S.folders[path] = genFolder(path)); S.byId = new Map(S.items.map(i => [i.id, i]));
+function loadSet(paths, sub){
+  const folders = resolveSet(paths, sub), path = setKey(paths, sub), big = folders.filter(p => FOLDERS[p].big);
+  S.set = {paths:[...paths].sort(), sub, folders}; S.folderPath = path; S.items = folders.flatMap(getItems); S.byId = new Map(S.items.map(i => [i.id, i]));
+  S.recent = [{paths:S.set.paths, sub}, ...S.recent.filter(r => setKey(r.paths, r.sub) !== path)].slice(0, 8);
+  if (folders.length > 1) S.sort = 'time';
   S.sel.clear(); S.selMode = false; S.filters = DEF_FILTERS(); S.focusId = null; S.undo = []; S.redo = [];
   closeDlg(); $('gridWrap').scrollTop = 0; resetBar(); refreshView(); renderHeader();
   if (S.server.resume[path] && S.byId.has(S.server.resume[path])) toast('Continue where you left off', false, {act:'resume', label:'Resume'});
+  else if (big.length) toast(`Mockup: the ${nf(big.reduce((a, p) => a + FOLDERS[p].big, 0))} photos of ${big.map(p => p.split('/').pop()).join(', ')} are not generated`);
 }
 /* ---------- resizable panels ---------- */
 function bindDivider(el, {get, set, min, max, sign}){

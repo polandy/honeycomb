@@ -31,9 +31,11 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 2. **Listing backend:** `GET /api/v1/folders/{path}/entries` returns the folder's files as flat
    entries — file id, path, size, mtime, ETag, mime type and EXIF basics (capture time,
    orientation, dimensions) where Nextcloud's file metadata has them — from one file-cache query
-   by path prefix and mime type, for the user's folder only. No pairing on the server. PHPUnit
-   first, with the failure paths: a foreign path, a vanished folder, no permission; 2,000+ pairs
-   in one response without stalls.
+   by path prefix and mime type, for the user's folder only. No pairing on the server. With
+   `?subfolders=1` the same query covers every folder below, minus the skipped ones
+   ([Multiple folders](#multiple-folders)), capped at 20,000 pictures. PHPUnit first, with the
+   failure paths: a foreign path, a vanished folder, no permission; 2,000+ pairs in one response
+   without stalls.
 3. **Pairing module:** pure TypeScript that groups the entries into pictures. Vitest first, on
    test vectors shared with Framehive (LIBRARY-001) and the brief's cases: names differing only
    in case, several dots in a file name, singles (JPEG only, RAW only), sidecars, ambiguous
@@ -45,12 +47,13 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    build and the Playwright job against a Nextcloud container in CI and `scripts/verify.sh`.
 2. **Image endpoint:** serves Nextcloud previews under immutable URLs keyed by file id and mtime
    (see [Image delivery & performance](#image-delivery--performance)).
-3. **Folder picker and grid:** `@nextcloud/dialogs` file picker, a virtual-scrolling grid with
-   srcset thumbnails (256/512 px, stepless size) and pair badges, light and dark.
+3. **Folder picker and grid:** a folder picker with a checkbox per folder and the *Include
+   subfolders* switch, a virtual-scrolling grid with srcset thumbnails (256/512 px, stepless
+   size), pair badges and folder headers, light and dark ([Multiple folders](#multiple-folders)).
 4. **Decision storage:** the table(s) and API for rating, colour label and flag per picture and
-   user (Q2), and the resume position per folder and user, so culling can stop and continue on
-   another device (an ADR first: new table).
-5. **Filter bar:** rating, colour label, flag and pairing filters and the sort, as pure
+   user (Q2), and the resume position per folder set and user, so culling can stop and continue
+   on another device (an ADR first: new table).
+5. **Filter bar:** rating, colour label, flag, pairing and folder filters and the sort, as pure
    TypeScript modules over the listed pictures (Q8, Q9, Q18), and the scope *not rejected* /
    *undecided* / *all* of the culling workflow with the "x of y decided" progress.
 6. **Selection and bulk actions:** selection mode, select all filtered, bulk rate, label and flag
@@ -120,15 +123,43 @@ pictures, a rejected picture disappears from view, and at the end delete all rej
    The owner's 2026-11-09 feedback changes how: see [Compact header and series viewer](#compact-header-and-series-viewer).
 5. **Auto-advance.** After each pick or reject the view moves to the next undecided picture
    (the setting stays, Q7 is answered). Rating and colour label do not advance.
-6. **Progress and resume.** The toolbar shows "x of y decided" per folder. The last position per
-   folder and user is stored on the server (with the decisions, M2.4), so another device offers
-   to continue there.
+6. **Progress and resume.** The toolbar shows "x of y decided" per folder set. The last position
+   per folder set and user is stored on the server (with the decisions, M2.4), so another device
+   offers to continue there. *Recent* in the navigation lists the last folder sets with their
+   progress.
 7. **Multi-pass.** The scope filter has *not rejected* (default), *undecided* and *all*, so a
    second pass over the picks or a pass over what is left is one tap. An explicit flag filter
    overrides the scope.
 
 Where the work lands: M2.4 (resume position), M2.5 (scope, progress), M3.2 (auto-advance, toast),
 M4.1 and M4.2 (delete, review, summary), M6 (series).
+
+## Multiple folders
+
+Decided by the owner on 2026-11-09 (answers Q17): one cull can cover several folders, or a
+folder with all its subfolders. That set of folders is the *folder set*.
+
+1. **Picker.** The folder picker has a checkbox per folder and an *Include subfolders* switch
+   (any depth). Before opening it shows the count, e.g. "1,840 photos in 23 folders"; the button
+   reads "Cull 23 folders".
+2. **Skipped folders.** Hidden folders (name starts with `.`), the trash bin and Nextcloud's
+   preview folders are never part of a folder set.
+3. **Grid.** Sorted by capture time across folders by default (Q18 stays for one folder). The
+   *More* menu offers *Group by folder*, with a sticky header per folder; the filter bar gets a
+   *Folder* filter. The loupe's info panel shows the folder.
+4. **Pairing stays within one folder.** RAW and rendered members pair only within one folder; the
+   `RAW/` + `JPG/` layout of the separate-subfolders mode (Q16) counts as one folder.
+5. **Series may cross folders**, but only within one camera (EXIF make and model).
+6. **Review and delete** work across the folder set; the review tiles and the delete summary
+   show each picture's folder.
+7. **Moving.** Moving pictures into a folder of the folder set still removes them from the view.
+8. **Recent.** A folder set is listed under *Recent* with its own resume position and progress.
+9. **Performance.** The server lists the whole folder set with one file-cache query by path
+   prefix and mime type, never a WebDAV walk. The grid is virtualised. Above 20,000 pictures the
+   picker shows a notice and the grid shows the first 20,000 by capture time.
+
+Where the work lands: M1.2 (listing with subfolders), M2.3 (picker, grid headers), M2.4 (resume
+per folder set), M2.5 (folder filter), M6 (series per camera).
 
 ## Image delivery & performance
 
@@ -338,7 +369,7 @@ honeycomb is a classic PHP Nextcloud app, not an AppAPI ExApp (ADR 0006).
 
 | Backend (PHP, thin) | Frontend (pure TypeScript modules in `src/logic/`) |
 |---|---|
-| List a folder: one file-cache query by path prefix and mime type, flat entries with EXIF basics | Pairing, series |
+| List a folder set: one file-cache query by path prefix and mime type, flat entries with EXIF basics | Pairing, series |
 | Move and trash files through `OCP\Files` | Filters, sort, the culling scope and progress |
 | Write the XMP bytes the client produced, with the checked save | XMP read and write mapping, serialized form |
 | Store per-user decisions, resume position and settings | Name templates and move conflicts |
@@ -560,13 +591,16 @@ chosen folder, and the grid shows the chosen folder as one.
 
 ### Q17 – Subfolders when a folder is picked
 
-(a) the picked folder only; (b) recursive. **Recommendation: (a)**; recursion only in the
-separate-subfolders mode.
+(a) the picked folder only; (b) recursive. **Answered by the owner on 2026-11-09:** both —
+several folders can be ticked, and *Include subfolders* adds every folder below. See
+[Multiple folders](#multiple-folders).
 
 ### Q18 – Sort order (mockup)
 
 (a) file name; (b) capture time from EXIF; (c) both, user's choice. **Recommendation: (a)
 first**, (b) later — capture time needs reading every file's EXIF, which is slow for 2,000 pairs.
+A folder set of several folders starts sorted by capture time (decided, see
+[Multiple folders](#multiple-folders)).
 
 ### Q19 – Fast image loading
 
