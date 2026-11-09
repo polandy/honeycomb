@@ -621,7 +621,10 @@ Where the work lands: M1.3 (pairing), M4.3 (settings).
 
 Answered by the owner on 2026-11-09 (Q8, Q9, Q10, Q13, Q18).
 
-1. **Rating filter.** "At least N" by default, with a toggle to "exactly N".
+1. **Rating filter.** "At least N" by default, with a three-way toggle *≥ / ≤ / =* for "at least",
+   "at most" (to find weak 1–2 star shots) and "exactly N" (owner, 2026-11-09, mockup v14). The
+   toggle is one 44 px segment beside the 0–5 chips, so the group wraps inside the filter panel
+   on the Pixel 9 Pro. The panel keeps an 8 px gap below the bar above it.
 2. **Combining filters.** OR within a group, AND across groups, e.g. *red or green* and *at
    least 3 stars*. The filter bar is a collapsible bar on top of the grid; a side panel would
    cost too much width in iPad portrait.
@@ -834,6 +837,8 @@ Answered 2026-11-09: (a), to the next undecided picture, with a setting. See
 
 (a) "at least N", with a toggle to "exactly N"; (b) exactly N only. **Answered by the owner on
 2026-11-09:** (a). See [Grid, filters and sort](#grid-filters-and-sort).
+**Extended by the owner on 2026-11-09 (mockup v14):** also "at most N", so the toggle is
+*≥ / ≤ / =*.
 
 ### Q9 – Filter combination and placement
 
