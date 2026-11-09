@@ -146,7 +146,7 @@ an ADR or a line in this plan.
 33, which reaches end of life before a first release is likely). CI tests PHP 8.2 and 8.5;
 `max-version` moves to 36 when it ships.
 
-### Q2 – Where ratings, colour labels and flags are stored
+### Q2 – Where ratings, colour labels and flags are stored (mockup)
 
 digiKam compatibility matters, so the options are judged by whether digiKam on the desktop sees
 the decisions.
