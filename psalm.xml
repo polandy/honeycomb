@@ -17,7 +17,27 @@
 		<directory name="lib"/>
 		<directory name="templates"/>
 	</projectFiles>
-	<extraFiles>
-		<directory name="vendor/nextcloud/ocp"/>
-	</extraFiles>
+	<!-- Psalm reports the closures of the inherited OCP Controller constructor. -->
+	<issueHandlers>
+		<InvalidTemplateParam>
+			<errorLevel type="suppress">
+				<directory name="vendor"/>
+			</errorLevel>
+		</InvalidTemplateParam>
+		<MissingClosureParamType>
+			<errorLevel type="suppress">
+				<directory name="vendor"/>
+			</errorLevel>
+		</MissingClosureParamType>
+		<MissingClosureReturnType>
+			<errorLevel type="suppress">
+				<directory name="vendor"/>
+			</errorLevel>
+		</MissingClosureReturnType>
+		<MixedArgument>
+			<errorLevel type="suppress">
+				<directory name="vendor"/>
+			</errorLevel>
+		</MixedArgument>
+	</issueHandlers>
 </psalm>
