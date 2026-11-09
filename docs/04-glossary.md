@@ -22,6 +22,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **series** | Pictures taken within a short interval, compared side by side to pick the best. |
 | **grid** | The thumbnail view of a folder. |
 | **loupe** | The full-screen view of one picture, with swipe, zoom and the decision buttons. |
+| **gesture guide** | The card on the first loupe opening that lists the swipes, pinch, double-tap and keys. |
 | **filter** | A condition on rating, colour label, flag or pairing that narrows the grid and loupe. |
 | **selection** | The set of pictures marked in selection mode for a bulk action. |
 | **bulk action** | Rate, label, flag, move or delete applied to the whole selection at once. |
