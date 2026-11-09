@@ -10,7 +10,7 @@ Add items with `/todo`.
 ## Milestones
 
 - [ ] M0: Owner signs off the mockup — owner; the open questions are answered, what remains is listed in `docs/plan.md` M0 (ADR 0003) (2026-11-09)
-- [ ] M1.1: App skeleton — `appinfo/info.xml` (Nextcloud 35 only, PHP 8.3+), `composer.json` with php-cs-fixer, psalm, PHPUnit; `Application`; empty page; `package.json` with TypeScript, eslint, Vitest and the coverage gate (logic 95 % lines / 90 % branches); PHP jobs on PHP 8.3 and 8.5 against Nextcloud 35 and TypeScript jobs in CI and `scripts/verify.sh`; `info.xml` and `package.json` in release-please extra files; `.tx/config`, `l10n/.gitkeep`, `.l10nignore` (ADR 0007); composer and npm in Dependabot (2026-11-09)
+- [ ] M1.1: App skeleton — `appinfo/info.xml` (Nextcloud 35 only, PHP 8.3+), `composer.json` with php-cs-fixer, psalm, PHPUnit; `Application`; empty page; `package.json` with TypeScript, eslint, Vitest and the coverage gate (logic 95 % lines / 90 % branches); PHP jobs on PHP 8.3 and 8.5 against Nextcloud 35 and TypeScript jobs in CI and `scripts/verify.sh`; `info.xml` and `package.json` in release-please extra files; composer and npm in Dependabot (2026-11-09)
 - [ ] M1.2: Listing backend — one file-cache query by path prefix and mime type, flat entries (file id, path, size, mtime, ETag, mime type, EXIF basics) of the user's folder set — `?subfolders=1` skips hidden, trash and preview folders, cap 20,000 (`docs/plan.md` Multiple folders) — no pairing on the server; PHPUnit incl. foreign path, vanished folder, no permission; 2,000+ pairs without stalls (ADR 0006) (2026-11-09)
 - [ ] M1.3: Pairing module in TypeScript — case, several dots, singles, sidecars, ambiguity (Q14), separate subfolders (Q16), extension lists (Q15); Vitest on test vectors shared with Framehive (LIBRARY-001) (2026-11-09)
 - [ ] M2.1: Frontend skeleton — Vue, `@nextcloud/vue`, `@nextcloud/vite-config` build; `@nextcloud/l10n` and the checks that no user-visible string bypasses `t()` (ADR 0007); Playwright e2e against a real Nextcloud container (no timing waits); build and e2e jobs in CI and `scripts/verify.sh` (2026-11-09)
@@ -35,7 +35,6 @@ Add items with `/todo`.
 
 ## Later
 
-- [ ] Join Nextcloud's Transifex sync — owner; steps and the ruleset question in issue #17 (ADR 0007) (2026-11-09)
 - [ ] Mockup: specify the grid's loading state (skeleton tiles while the listing and thumbnails arrive) — UX review L1 (`docs/ux-review.md`) (2026-11-09)
 - [ ] Mockup: give the scope switch a readable label at phone width, where it stays icon-only — UX review L2 (2026-11-09)
 - [ ] Mockup: shorten or widen *Pick this, reject the rest* in the phone series compare, where it wraps to three lines — UX review L3 (2026-11-09)
@@ -46,4 +45,5 @@ Add items with `/todo`.
 - [ ] Mockup: a light app bar for the light theme instead of the near-black bar — UX review L8 (2026-11-09)
 - [ ] Create the public repository `polandy/honeycomb-assets` for PR screenshots — owner (`docs/02-workflow.md` §2.7) (2026-11-09)
 - [ ] Add a `main` ruleset (pull requests only, CI required), with a bypass for `nextcloud-bot` if issue #17 says so, and the `RELEASE_PLEASE_TOKEN` secret — owner (2026-11-09)
+- [ ] Set up Nextcloud's Transifex sync before the first App Store release: `.tx/config`, `l10n/.gitkeep`, `.l10nignore`, `REUSE.toml` for `l10n/**`; owner's steps and the `main` ruleset question in issue #17 (ADR 0007) (2026-11-09)
 - [ ] Publish to the Nextcloud app store: signing certificate, release workflow that builds and uploads the tarball (2026-11-09)

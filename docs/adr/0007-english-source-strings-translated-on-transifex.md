@@ -8,7 +8,8 @@
 honeycomb is used in more languages than English; the owner works in German. Translations could
 be kept in the repository by hand, or come from the translation community that Nextcloud runs on
 Transifex for its own apps and for third-party apps that ask to join. On 2026-11-09 the owner
-decided for Transifex from the start, not a German translation kept here.
+decided for Transifex, not a German translation kept here, and later the same day to set it up
+only before the first App Store release: the app ships English only until then.
 
 ## Decision
 
@@ -16,7 +17,8 @@ decided for Transifex from the start, not a German translation kept here.
   every user-visible string goes through `@nextcloud/l10n`: `t('honeycomb', …)`, and
   `n('honeycomb', '%n picture', '%n pictures', count)` for every string that contains a count.
   Placeholders are named (`{folder}`), never concatenated.
-- **Translations come from Nextcloud's Transifex**, project `nextcloud`, resource `honeycomb`.
+- **Translations come from Nextcloud's Transifex** once it is set up (see *Setup*): project
+  `nextcloud`, resource `honeycomb`.
   Nextcloud's translation bot extracts the strings, uploads them, and commits the translations to
   `main` every night as `l10n/<lang>.js` and `l10n/<lang>.json`. These files are never edited by
   hand, like the lock files.
@@ -32,7 +34,9 @@ decided for Transifex from the start, not a German translation kept here.
 
 ## Setup
 
-Done in the repository, in M1.1:
+Deferred until before the first App Store release (`TODO.md`, `docs/plan.md` release
+milestone). Until then the app ships English only, and `t()`, `n()`, `Intl` and the checks below
+are mandatory from M1 all the same. In the repository then:
 
 - `.tx/config` from Nextcloud's template: `[o:nextcloud:p:nextcloud:r:honeycomb]` with
   `file_filter = translationfiles/<lang>/honeycomb.po`,
@@ -44,7 +48,7 @@ Done in the repository, in M1.1:
   `t()` are not extracted.
 - `REUSE.toml` covers `l10n/**` once the first translations arrive.
 
-Done by the owner (issue #17): check the setup with `validateSyncSetup.sh` from
+Done by the owner then (issue #17): check the setup with `validateSyncSetup.sh` from
 `nextcloud/docker-ci`, give `nextcloud-bot` write access, and open a *Request translations*
 ticket in `nextcloud/docker-ci`. The bot commits to `main` directly, which clashes with the
 planned pull-request-only ruleset; issue #17 also decides how to resolve that.
@@ -67,8 +71,8 @@ From M2.1, in CI and `scripts/verify.sh`:
 
 ## Consequences
 
-- Each language arrives when volunteers translate it. A missing string falls back to English, so
-  a new feature ships in English first.
+- Until the setup, only English exists; each language arrives afterwards when volunteers
+  translate it. A missing string falls back to English, so a new feature ships in English first.
 - The bot's nightly commits land on `main` without a pull request. release-please sees them as
   `fix(l10n)` commits.
 - `@nextcloud/l10n` is a dependency of the frontend from M2.1 (CLAUDE.md rule 6: this ADR).
