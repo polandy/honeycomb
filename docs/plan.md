@@ -13,7 +13,8 @@ backend pairing, grid, full-screen review, deleting and settings.
 
 The interactive mockup [`mockup/index.html`](mockup/index.html) (ADR 0003) shows the whole flow:
 folder picker, grid with pair badges, filter bar, multi-select with bulk actions, loupe with
-swipe and zoom, keyboard shortcuts, undo, delete summary and settings. The owner tries it on the
+swipe and zoom, keyboard shortcuts, undo, the culling workflow below (reject toast, reject review,
+delete summary, progress and resume, series compare) and settings. The owner tries it on the
 iPad, answers the open questions below, and the mockup is updated until the owner signs it off.
 The answers go into ADRs and into this file; the question markers disappear from the mockup.
 
@@ -41,9 +42,11 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 2. **Folder picker and grid:** `@nextcloud/dialogs` file picker, a virtual-scrolling grid with
    srcset thumbnails (256/512 px, stepless size) and pair badges, light and dark.
 3. **Decision storage:** the table(s) and API for rating, colour label and flag per picture and
-   user (Q2), so culling can stop and resume.
+   user (Q2), and the resume position per folder and user, so culling can stop and continue on
+   another device (an ADR first: new table).
 4. **Filter bar:** rating, colour label, flag and pairing filters, applied on the server for
-   large folders (Q8, Q9).
+   large folders (Q8, Q9), and the scope *not rejected* / *undecided* / *all* of the culling
+   workflow with the "x of y decided" progress.
 5. **Selection and bulk actions:** selection mode, select all filtered, bulk rate, label and flag
    (Q10).
 
@@ -53,7 +56,8 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    100 % zoom, prefetching of the neighbours, chrome-free mode, resizable info panel (see
    [Image delivery & performance](#image-delivery--performance)).
 2. **Decisions in the loupe:** large pick and reject buttons, vertical swipe (Q6), rating and
-   colour label controls, auto-advance (Q7).
+   colour label controls, auto-advance to the next undecided picture, the "Rejected · Undo"
+   toast.
 3. **Keyboard shortcuts and undo:** 0–5, P/X/U, colour keys (Q5), undo and redo (Q12), the
    shortcut sheet.
 
@@ -62,8 +66,9 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 1. **Delete service:** deletes the members and sidecars of each picture through `OCP\Files` into
    the trash bin; a failure is reported per file and leaves a traceable state. An ADR first on
    what "atomic" means for a pair. Tests for every failure path.
-2. **Delete summary:** the dialog with files, size and the trash-bin note, from the selection and
-   from "delete rejected" (Q11).
+2. **Reject review and delete summary:** the review grid of all rejected pictures with rescue,
+   then the summary with pictures, files and bytes freed and the trash-bin note; also reachable
+   from the selection (Q11).
 3. **Settings:** per user — RAW and rendered extensions, folder mode, show singles, gesture
    mapping, auto-advance.
 4. **README:** installation, features, screenshot placeholders; `camerarawpreviews` and Preview
@@ -73,6 +78,41 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 
 Read existing sidecars when a folder is listed and write ratings, colour labels and flags to
 them in digiKam's fields, so digiKam on the desktop sees the decisions.
+
+### M6 – Series compare
+
+Groups pictures taken within a short interval and lets the owner pick the best of each (see
+[Culling workflow](#culling-workflow), point 4). Own milestone after the core flow works; the
+mockup already shows it.
+
+## Culling workflow
+
+Decided by the owner on 2026-11-09 (answers Q7, Q11 and Q12). It is the owner's Lightroom Mobile
+routine on the iPad, adopted as the default *Cull* mode: filter to *not rejected*, go through all
+pictures, a rejected picture disappears from view, and at the end delete all rejects. A picture is
+*undecided* while its flag is unflagged; picked and rejected are decided.
+
+1. **Reject and review.** Each reject shows the toast "Rejected · Undo". Before anything is
+   deleted, a review step shows a grid of all rejects; a single picture can be rescued (it
+   becomes undecided), then the owner confirms.
+2. **Delete is the trash bin.** Deleting moves files to the Nextcloud trash bin, restorable;
+   there is no hard delete. Space returns only when the trash bin is emptied.
+3. **Whole pair.** Reject and delete always act on the whole picture: JPEG, RAW and sidecar. The
+   delete summary shows pictures · files · bytes freed.
+4. **Series compare** (milestone M6). Pictures taken within a short interval (mockup: 3 seconds
+   by capture time, at most 4 per series) form a series, shown 2–4 side by side. Tapping the best
+   one means "keep this, reject the rest": it is picked, the others rejected, as one undo step.
+5. **Auto-advance.** After each pick or reject the view moves to the next undecided picture
+   (the setting stays, Q7 is answered). Rating and colour label do not advance.
+6. **Progress and resume.** The toolbar shows "x of y decided" per folder. The last position per
+   folder and user is stored on the server (with the decisions, M2.3), so another device offers
+   to continue there.
+7. **Multi-pass.** The scope filter has *not rejected* (default), *undecided* and *all*, so a
+   second pass over the picks or a pass over what is left is one tap. An explicit flag filter
+   overrides the scope.
+
+Where the work lands: M2.3 (resume position), M2.4 (scope, progress), M3.2 (auto-advance, toast),
+M4.1 and M4.2 (delete, review, summary), M6 (series).
 
 ## Image delivery & performance
 
@@ -229,10 +269,10 @@ five only. **Recommendation: (a).**
 (a) up = pick, down = reject; (b) up = reject, down = pick; (c) off by default.
 **Recommendation: (a)**, configurable in the settings as the brief asks.
 
-### Q7 – Advance after a decision (mockup)
+### Q7 – Advance after a decision
 
-(a) auto-advance after pick or reject, not after rating or label; (b) never; (c) always.
-**Recommendation: (a)**, with a setting.
+Answered 2026-11-09: (a), to the next undecided picture, with a setting. See
+[Culling workflow](#culling-workflow).
 
 ### Q8 – Rating filter (mockup)
 
@@ -248,16 +288,15 @@ portrait.
 
 (a) a "Select" button and long-press on a tile; (b) the button only. **Recommendation: (a).**
 
-### Q11 – What can be deleted (mockup)
+### Q11 – What can be deleted
 
-(a) the current selection, and a "Delete rejected" shortcut, both through the same delete
-summary; (b) only rejected pictures. **Recommendation: (a).**
+Answered 2026-11-09: (a). "Delete rejected" starts with the reject review, then the delete
+summary; the selection goes straight to the summary. See [Culling workflow](#culling-workflow).
 
-### Q12 – Undo scope (mockup)
+### Q12 – Undo scope
 
-(a) ratings, colour labels and flags are undoable in the session (last 50 steps); deleting is
-not undone in the app but restored from the Nextcloud trash bin, which the result message links
-to; (b) also an in-app "restore" after deleting. **Recommendation: (a).**
+Answered 2026-11-09: (a). Ratings, colour labels and flags are undoable in the session (last 50
+steps, the reject toast offers it); deleting is restored from the Nextcloud trash bin.
 
 ### Q13 – Grid tile overlays (mockup)
 

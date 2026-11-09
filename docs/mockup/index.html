@@ -295,6 +295,23 @@ table.sc{border-collapse:collapse;width:100%}table.sc td{padding:6px 4px;border-
 }
 @media (max-width:520px){#mock .head span{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.cullrow{align-items:center;gap:10px}
+.prog-w{display:flex;flex-direction:column;gap:4px;min-width:150px;flex:1;max-width:320px}
+.prog{height:8px;border-radius:4px;background:var(--card-2);border:1px solid var(--border);overflow:hidden}.prog i{display:block;height:100%;background:var(--honey)}
+.tile .burst{position:absolute;left:6px;top:32px;font-size:11px;font-weight:700;border-radius:6px;padding:2px 6px;line-height:1.3;background:rgba(0,0,0,.62);color:#fff;pointer-events:none}
+.film .gone{opacity:.25}
+.rv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;max-height:min(340px,42vh);overflow:auto}
+.rv{position:relative;aspect-ratio:1;border:0;padding:0;border-radius:10px;overflow:hidden;background:var(--tile-bg);cursor:pointer;min-height:44px}
+.rv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.rv-n,.rv-f{position:absolute;left:6px;font-size:11px;font-weight:700;color:#fff;background:rgba(0,0,0,.62);border-radius:6px;padding:2px 6px}.rv-n{top:6px}.rv-f{top:28px}
+.rv-r{position:absolute;left:0;right:0;bottom:0;padding:10px 6px 6px;background:linear-gradient(transparent,rgba(0,0,0,.75));color:var(--honey);font-weight:800;font-size:13px;text-align:center}
+.cmp{display:grid;gap:8px;grid-template-columns:repeat(2,1fr)}.cmp.n3{grid-template-columns:repeat(3,1fr)}.cmp.n4{grid-template-columns:repeat(4,1fr)}
+@media (max-width:700px){.cmp.n3,.cmp.n4{grid-template-columns:repeat(2,1fr)}}
+.cm{display:flex;flex-direction:column;gap:2px;border:3px solid transparent;border-radius:12px;padding:4px;background:var(--card-2);text-align:left;cursor:pointer}
+.cm img{width:100%;aspect-ratio:3/2;object-fit:contain;background:var(--tile-bg);border-radius:8px}
+.cm[aria-pressed="true"]{border-color:var(--honey)}
+.cm-n{font-weight:700;font-size:13px}.cm-s{font-size:12px;color:var(--muted)}
+.later{display:inline-block;border:1px solid var(--border);border-radius:10px;padding:1px 8px;font-size:12px;font-weight:700;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -364,12 +381,9 @@ const QS = {
   Q4:{t:'Flag model', o:['Three states pick / reject / unflagged, mapped to digiKam\'s pick label Accepted / Rejected / None.', 'digiKam\'s four states incl. Pending.', 'The brief\'s binary keep / discard.'], r:'(a)'},
   Q5:{t:'Colour labels and keys', o:['digiKam\'s full set (red, orange, yellow, green, blue, magenta, gray, black, white) in a palette, keys 6–9 for red/yellow/green/blue.', 'Lightroom\'s five (red, yellow, green, blue, purple) only.'], r:'(a). This mockup implements (a).'},
   Q6:{t:'Vertical swipe in the loupe', o:['Up = pick, down = reject.', 'Up = reject (throw away), down = pick.', 'Off by default.'], r:'(a), configurable in settings.'},
-  Q7:{t:'Advance after a decision', o:['Auto-advance after pick/reject, not after rating or label.', 'Never.', 'Always.'], r:'(a), with a setting.'},
   Q8:{t:'Rating filter', o:['"At least N" with a toggle to "exactly N".', 'Exactly N only.'], r:'(a)'},
   Q9:{t:'Filter combination and placement', o:['OR within a group, AND across groups, collapsible bar on top.', 'Side panel like digiKam\'s right sidebar.'], r:'(a)'},
   Q10:{t:'Entering multi-select by touch', o:['"Select" button and long-press.', '"Select" button only.'], r:'(a)'},
-  Q11:{t:'What can be deleted', o:['The current selection and a "Delete rejected" shortcut, both through the same summary.', 'Only rejected items.'], r:'(a)'},
-  Q12:{t:'Undo scope', o:['Ratings, labels and flags undoable in the session (last 50 steps); deletion not undoable in the app, restore from the Nextcloud trash bin.', 'Also an in-app "restore" after delete.'], r:'(a)'},
   Q13:{t:'Grid tile overlays', o:['Stars, colour and flag always visible on every tile.', 'Only on the focused tile / in loupe.'], r:'(a)'},
   Q18:{t:'Sort order', o:['File name.', 'Capture time from EXIF.', 'Both, user choice.'], r:'(a) first, (b) later.'},
   Q2:{t:'Where decisions are stored', o:['App database only.', 'XMP sidecars only (digiKam-compatible).', 'Both: database as the fast working state, written through to XMP sidecars.'], r:'(c)'}
@@ -394,7 +408,7 @@ const FOLDERS = {
 /* ---------- state ---------- */
 const DEF_SETTINGS = () => ({rawExt:['NEF','CR3','ARW','RAF','DNG'], renderedExt:['JPG','JPEG'], folderMode:'same', rawFolder:'RAW', jpgFolder:'JPG',
   showSingles:true, swipeUp:'pick', swipeDown:'reject', autoAdvance:true, storage:'both'});
-const DEF_FILTERS = () => ({ratingOp:'gte', rating:null, labels:new Set(), flags:new Set(), pairs:new Set()});
+const DEF_FILTERS = () => ({scope:'notrej', ratingOp:'gte', rating:null, labels:new Set(), flags:new Set(), pairs:new Set()});
 const PREF_KEY = 'honeycomb.mockup.layout';
 const PREF_DEF = {ts:160, navW:248, navOpen:null, infoOpen:false, infoW:300};
 function loadPrefs(){ try { return {...PREF_DEF, ...JSON.parse(localStorage.getItem(PREF_KEY) || '{}')}; } catch (e) { return {...PREF_DEF}; } }
@@ -403,7 +417,7 @@ const P0 = loadPrefs();
 let S;
 function freshState(){
   return {folderPath:null, folders:{}, items:[], view:[], byId:new Map(), filters:DEF_FILTERS(), filtersOpen:null, sel:new Set(), selMode:false, anchor:null, focusId:null,
-    sort:'name', ts:P0.ts, undo:[], redo:[], settings:DEF_SETTINGS(), loupe:null, dlg:null, navOpen:null,
+    sort:'name', ts:P0.ts, bursts:null, server:{resume:{}}, undo:[], redo:[], settings:DEF_SETTINGS(), loupe:null, dlg:null, navOpen:null,
     mock:{theme:S ? S.mock.theme : 'auto', frame:S ? S.mock.frame : 'off', fail:false, showQ:true, open:S ? S.mock.open : false}, scale:1};
 }
 S = freshState();
@@ -416,7 +430,7 @@ function genFolder(path){
   let n = 100 + Math.floor(r() * 300), t = Date.parse(cfg.date + 'T08:00:00Z');
   const base = path + '/';
   for (let i = 0; i < cfg.count; i++){
-    n += 1 + Math.floor(r() * 3); t += (20 + r() * 900) * 1000;
+    n += 1 + Math.floor(r() * 3); const gap = r(); t += (gap < .22 ? .3 + gap * 12 : 20 + (gap - .22) * 1150) * 1000;
     let x = r(), cam = cfg.cams[0];
     for (const c of cfg.cams){ if (x < c[2]){ cam = c; break; } x -= c[2]; }
     const st = cam[1] + String(n).padStart(4, '0'), roll = r();
@@ -511,6 +525,7 @@ function activeFilterCount(){ const f = S.filters; return (f.rating !== null) + 
 function passes(it){
   const f = S.filters;
   if (!S.settings.showSingles && pairType(it) !== 'pair') return false;
+  if (!f.flags.size && ((f.scope === 'notrej' && it.flag === 'reject') || (f.scope === 'undecided' && it.flag !== 'none'))) return false;
   if (f.rating !== null && (f.ratingOp === 'gte' ? it.rating < f.rating : it.rating !== f.rating)) return false;
   if (f.labels.size && !f.labels.has(it.label)) return false;
   if (f.flags.size && !f.flags.has(it.flag)) return false;
@@ -529,6 +544,37 @@ function targetIds(){
   return S.focusId && S.byId.has(S.focusId) ? [S.focusId] : [];
 }
 
+/* ---------- series (bursts) ---------- */
+const BURST_GAP_MS = 3000, BURST_MAX = 4;
+function burstGroups(){
+  const its = S.items.filter(i => i.flag !== 'reject').sort((a, b) => a.time - b.time), out = []; let cur = [];
+  const flush = () => { for (let k = 0; k < cur.length; k += BURST_MAX){ const g = cur.slice(k, k + BURST_MAX); if (g.length > 1 && g.some(i => i.flag === 'none')) out.push(g); } cur = []; };
+  for (const it of its){ if (cur.length && it.time - cur[cur.length - 1].time > BURST_GAP_MS) flush(); cur.push(it); }
+  flush(); return out;
+}
+function getBursts(){
+  if (!S.bursts){ const map = new Map(), groups = burstGroups(); groups.forEach(g => g.forEach(i => map.set(i.id, g))); S.bursts = {groups, map}; }
+  return S.bursts;
+}
+const cmpCache = new Map();
+function cmpURL(it){ let u = cmpCache.get(it.id); if (!u){ u = getBig(it).toDataURL('image/jpeg', .8); cmpCache.set(it.id, u); } return u; }
+function burstCurrent(d){
+  while (d.gids.length){
+    if (d.i >= d.gids.length) d.i = 0;
+    const m = d.gids[d.i].map(id => S.byId.get(id)).filter(it => it && it.flag !== 'reject');
+    if (m.length > 1) return m;
+    d.gids.splice(d.i, 1);
+  }
+  return null;
+}
+function decideBurst(keepId, others){
+  const changes = [], set = (id, to) => { const it = S.byId.get(id); if (it && it.flag !== to){ changes.push({id, key:'flag', from:it.flag, to}); it.flag = to; } };
+  set(keepId, 'pick'); others.forEach(id => set(id, 'reject'));
+  if (!changes.length) return;
+  pushUndo(`Kept ${stem(S.byId.get(keepId))}, rejected ${others.length}`, changes);
+  toast(`Kept 1 · rejected ${others.length}`, true);
+}
+
 /* ---------- mutations / undo ---------- */
 const FLAG_TXT = {pick:'Picked', reject:'Rejected', none:'Unflagged'};
 function change(ids, key, value, opts = {}){
@@ -540,10 +586,22 @@ function change(ids, key, value, opts = {}){
   if (key === 'flag') desc = `${FLAG_TXT[value]} ${one}`;
   else if (key === 'rating') desc = value ? `Rated ${one} ${'★'.repeat(value)}` : `Cleared rating of ${one}`;
   else desc = value ? `Label ${value} on ${one}` : `Removed label from ${one}`;
-  S.undo.push({desc, changes}); if (S.undo.length > 50) S.undo.shift(); S.redo.length = 0;
-  afterChange(changes.map(c => c.id)); toast(desc, true);
+  const adv = key === 'flag' && value !== 'none' && ids.length === 1 && !S.loupe && S.settings.autoAdvance ? nextUndecided(ids[0]) : null;
+  pushUndo(desc, changes);
+  toast(key === 'flag' && value === 'reject' ? (ids.length > 1 ? `Rejected ${ids.length} photos` : 'Rejected') : desc, true);
+  if (adv){ setFocus(adv); const el = tileEls.get(adv); if (el){ el.focus(); el.scrollIntoView({block:'nearest'}); } }
   return true;
 }
+function pushUndo(desc, changes){
+  S.undo.push({desc, changes}); if (S.undo.length > 50) S.undo.shift(); S.redo.length = 0;
+  afterChange(changes.map(c => c.id));
+}
+function nextUndecided(id){
+  const i = S.view.findIndex(x => x.id === id), hit = S.view.slice(i + 1).find(x => x.flag === 'none');
+  return hit ? hit.id : null;
+}
+function loupeNextIdx(){ const lp = S.loupe; for (let j = lp.idx + 1; j < lp.ids.length; j++) if (S.byId.get(lp.ids[j]).flag === 'none') return j; return -1; }
+const decidedCount = () => S.items.filter(i => i.flag !== 'none').length;
 function toggleLabel(ids, lab){
   const its = ids.map(i => S.byId.get(i)).filter(Boolean);
   change(ids, 'label', its.length && its.every(i => i.label === lab) ? null : lab);
@@ -555,16 +613,17 @@ function applyEntry(e, dir){
 function undo(){ const e = S.undo.pop(); if (!e) return; S.redo.push(e); applyEntry(e, 0); toast('Undid: ' + e.desc); }
 function redo(){ const e = S.redo.pop(); if (!e) return; S.undo.push(e); applyEntry(e, 1); toast('Redid: ' + e.desc); }
 function afterChange(ids){
-  if (filtersActive() && !S.loupe) refreshView(); else { computeViewKeepGrid(); ids.forEach(updateTile); }
+  S.bursts = null;
+  if (!S.loupe && viewChanged()) refreshView(); else ids.forEach(updateTile);
   renderToolbar(); renderActionBar(); renderHeader(); if (S.loupe) renderLoupeChrome();
 }
-function computeViewKeepGrid(){ /* filters may be active under a loupe; the grid refreshes on close */ }
+function viewChanged(){ const was = S.view.map(i => i.id).join('|'); computeView(); return was !== S.view.map(i => i.id).join('|'); }
 
 /* ---------- toast ---------- */
 let toastTimer;
 function toast(msg, withUndo, extra){
   const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status');
-  el.innerHTML = `<span>${esc(msg)}</span>` + (withUndo ? `<button data-act="undo">Undo</button>` : '') + (extra ? `<button data-act="${extra.act}">${esc(extra.label)}</button>` : '');
+  el.innerHTML = `<span>${esc(msg)}</span>` + (withUndo ? `<span aria-hidden="true">·</span>` : '') + (withUndo ? `<button data-act="undo">Undo</button>` : '') + (extra ? `<button data-act="${extra.act}">${esc(extra.label)}</button>` : '');
   $('toasts').replaceChildren(el); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.remove(), 5200);
 }
 
@@ -573,7 +632,6 @@ function renderHeader(){
   $('hUndo').innerHTML = ic('undo'); $('hRedo').innerHTML = ic('redo');
   $('hUndo').disabled = !S.undo.length; $('hRedo').disabled = !S.redo.length;
   $('hUndo').title = S.undo.length ? 'Undo: ' + S.undo[S.undo.length - 1].desc : 'Nothing to undo';
-  $('hq').innerHTML = qm('Q12');
 }
 function renderNav(){
   $('navFolder').innerHTML = ic('folder') + 'Folder'; $('navGrid').innerHTML = ic('grid') + 'Cull';
@@ -585,12 +643,18 @@ function renderNav(){
 function renderToolbar(){
   const tb = $('toolbar');
   if (!S.folderPath){ tb.innerHTML = `<div class="row"><div class="crumbs"><button data-act="picker">Choose a folder…</button></div></div>`; return; }
-  const segs = S.folderPath.split('/').filter(Boolean), nRej = rejectedItems().length;
+  const segs = S.folderPath.split('/').filter(Boolean), nRej = rejectedItems().length, nDec = decidedCount(), nTot = S.items.length, nSer = getBursts().groups.length, rid = S.server.resume[S.folderPath], rit = rid && S.byId.get(rid);
   const crumbs = `<button data-act="picker" aria-label="Change folder">Home</button>` + segs.map((s, i) => `<span class="sep">/</span><button data-act="picker" data-path="/${esc(segs.slice(0, i + 1).join('/'))}">${esc(s)}</button>`).join('');
   tb.classList.toggle('selmode', S.selMode);
   tb.innerHTML = `<div class="row"><div class="crumbs" role="navigation" aria-label="Breadcrumb">${crumbs}</div>
     <button class="btn ${S.selMode ? 'primary' : ''}" data-act="selmode" aria-pressed="${S.selMode}">${ic('select')}Select</button>${qm('Q10')}
-    <button class="btn" data-act="delRejected" ${nRej ? '' : 'disabled'}>${ic('trash')}Delete rejected (${nRej})</button>${qm('Q11')}</div>
+    <button class="btn" data-act="delRejected" ${nRej ? '' : 'disabled'}>${ic('trash')}Review rejects (${nRej})</button></div>
+    <div class="row cullrow">
+      <div class="seg" role="group" aria-label="Show">${[['notrej', 'Not rejected'], ['undecided', 'Undecided'], ['all', 'All']].map(([v, l]) => `<button data-act="scope" data-v="${v}" aria-pressed="${S.filters.scope === v}" ${S.filters.flags.size ? 'disabled title="The flag filter overrides this"' : ''}>${l}</button>`).join('')}</div>
+      <div class="prog-w"><span class="count" aria-live="polite">${nDec} of ${nTot} decided</span><div class="prog" role="progressbar" aria-label="Decided" aria-valuemin="0" aria-valuemax="${nTot}" aria-valuenow="${nDec}"><i style="width:${nTot ? Math.round(100 * nDec / nTot) : 0}%"></i></div></div>
+      ${rit ? `<button class="btn" data-act="resume" title="Position saved on the server, so another device continues here">Resume at ${esc(stem(rit))}</button>` : ''}
+      <button class="btn" data-act="burst" ${nSer ? '' : 'disabled'}>Compare series (${nSer})</button>
+    </div>
     <div class="row">
       <button class="btn" data-act="filters" aria-pressed="${!!S.filtersOpen}" aria-expanded="${!!S.filtersOpen}">${ic('filter')}Filters${activeFilterCount() ? `<span class="badge-n">${activeFilterCount()}</span>` : ''}</button>
       <span class="count" id="countTop" aria-live="polite">${S.view.length} of ${S.items.length}</span>
@@ -628,7 +692,7 @@ const tileEls = new Map();
 function pairLabel(it){ return pairType(it) === 'pair' ? 'JPG+' + it.raw.name.split('.').pop() : pairType(it) === 'jpg' ? 'JPG only' : 'RAW only'; }
 function tileInner(it){
   return `<img class="th" alt="" draggable="false"><span class="pair ${pairType(it) === 'pair' ? 'p' : 's'}">${pairLabel(it)}</span>
-  <span class="chk">${ic('check')}</span><span class="rejx" aria-hidden="true">✕</span><div class="ov"><span class="stars" aria-hidden="true"></span><span class="dotc" hidden></span><span class="fl" hidden></span></div>`;
+  <span class="burst" hidden></span><span class="chk">${ic('check')}</span><span class="rejx" aria-hidden="true">✕</span><div class="ov"><span class="stars" aria-hidden="true"></span><span class="dotc" hidden></span><span class="fl" hidden></span></div>`;
 }
 function tileLabel(it){
   const bits = [stem(it), pairLabel(it)]; if (it.rating) bits.push(it.rating + ' stars'); if (it.label) bits.push(it.label + ' label'); if (it.flag !== 'none') bits.push(FLAG_TXT[it.flag].toLowerCase());
@@ -638,6 +702,7 @@ function updateTile(id){
   const el = tileEls.get(id), it = S.byId.get(id); if (!el || !it) return;
   el.classList.toggle('rej', it.flag === 'reject'); el.classList.toggle('sel', S.sel.has(id));
   el.setAttribute('aria-label', tileLabel(it)); el.setAttribute('aria-selected', S.sel.has(id));
+  const bg = getBursts().map.get(id), bs = el.querySelector('.burst'); bs.hidden = !bg; if (bg) bs.textContent = '⧉ ' + bg.length;
   el.querySelector('.stars').innerHTML = stars(it.rating);
   const dot = el.querySelector('.dotc'); dot.hidden = !it.label; if (it.label) dot.style.background = LBL[it.label].hex;
   const fl = el.querySelector('.fl'); fl.hidden = it.flag === 'none'; fl.className = 'fl ' + it.flag; fl.textContent = it.flag === 'pick' ? '✓' : it.flag === 'reject' ? '✕' : '';
@@ -646,6 +711,7 @@ function renderGrid(){
   const g = $('grid'); io && io.disconnect(); tileEls.clear(); g.replaceChildren();
   $('gridWrap').classList.toggle('selmode', S.selMode); g.classList.toggle('selmode', S.selMode);
   if (!S.folderPath){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">No folder chosen</div>Pick a folder to start culling.</div>`; return; }
+  if (!S.view.length && S.items.length && !filtersActive() && S.filters.scope !== 'all'){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">${S.filters.scope === 'undecided' ? 'Every photo is decided' : 'No photos left to cull'}</div>${nRejText()}<br><br><button class="btn primary" data-act="delRejected" ${rejectedItems().length ? '' : 'hidden'}>Review rejects</button> <button class="btn" data-act="scope" data-v="all">Show all</button></div>`; return; }
   if (!S.view.length){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">Nothing matches these filters</div>${S.items.length} items in this folder.<br><br><button class="btn" data-act="fClear">Clear filters</button></div>`; return; }
   const frag = document.createDocumentFragment();
   io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting){ io.unobserve(e.target); thumbQueue.push(e.target); } pumpThumbs(); }, {root:$('gridWrap'), rootMargin:'500px 0px'});
@@ -665,10 +731,11 @@ function pumpThumbs(){
   });
 }
 function refreshView(){
-  computeView(); renderGrid(); renderFilters(); renderToolbar(); renderActionBar();
+  S.bursts = null; computeView(); renderGrid(); renderFilters(); renderToolbar(); renderActionBar();
 }
+const nRejText = () => rejectedItems().length + ' rejected, ready to review and delete.';
 function setFocus(id){
-  S.focusId = id; tileEls.forEach(e => e.tabIndex = -1); const el = tileEls.get(id); if (el){ el.tabIndex = 0; }
+  S.focusId = id; if (id && S.folderPath) S.server.resume[S.folderPath] = id; tileEls.forEach(e => e.tabIndex = -1); const el = tileEls.get(id); if (el){ el.tabIndex = 0; }
 }
 
 /* ---------- selection ---------- */
@@ -758,7 +825,7 @@ function dlgShell(title, body, foot, wide, canClose = true){
 function renderDlg(){
   const d = S.dlg, root = $('dlgRoot'); if (!d){ root.replaceChildren(); return; }
   const old = root.querySelector('.dlg-b'), top = old ? old.scrollTop : 0;
-  const map = {picker:dlgPicker, del:dlgDelete, settings:dlgSettings, keys:dlgKeys, report:dlgReport};
+  const map = {picker:dlgPicker, del:dlgDelete, settings:dlgSettings, keys:dlgKeys, report:dlgReport, review:dlgReview, burst:dlgBurst};
   root.innerHTML = map[d.type](d);
   const nb = root.querySelector('.dlg-b'); if (nb) nb.scrollTop = top;
   if (d.refocus){ const i = root.querySelector(d.refocus); i && i.focus(); d.refocus = null; }
@@ -779,15 +846,32 @@ function dlgPicker(d){
 }
 /* delete summary */
 function filesOf(it){ return [it.jpg && {...it.jpg, kind:'JPEG', it}, it.raw && {...it.raw, kind:'RAW', it}, it.xmp && {...it.xmp, kind:'XMP', it}].filter(Boolean); }
+function dlgReview(){
+  const its = rejectedItems(), files = its.flatMap(filesOf), total = files.reduce((a, f) => a + f.size, 0);
+  const body = its.length ? `<p style="margin-top:0;color:var(--muted)">Tap a photo to rescue it. A rescued photo becomes undecided again.</p>
+    <div class="sumrow"><div class="stat"><b>${its.length}</b>photos</div><div class="stat"><b>${files.length}</b>files</div><div class="stat"><b>${fmtSize(total)}</b>to free</div></div>
+    <div class="rv-grid">${its.map(it => `<button class="rv" data-act="rescue" data-id="${esc(it.id)}" aria-label="Rescue ${esc(stem(it))}"><img alt="" src="${thumbURL(it)}"><span class="rv-n">${esc(stem(it))}</span><span class="rv-f">${filesOf(it).map(f => f.kind).join(' + ')}</span><span class="rv-r">Rescue</span></button>`).join('')}</div>`
+    : `<div class="empty"><div class="big">No rejected photos</div>Nothing to delete.</div>`;
+  return dlgShell('Review rejects', body, `<button class="btn ghost" data-act="closeDlg">Close</button><button class="btn danger" data-act="reviewNext" ${its.length ? '' : 'disabled'}>${ic('trash')}Continue: delete ${its.length}</button>`, true);
+}
+function dlgBurst(d){
+  const m = burstCurrent(d);
+  if (!m) return dlgShell('Compare series', `<div class="empty"><div class="big">All series compared</div>No more photos taken within ${BURST_GAP_MS / 1000} seconds of each other are left to decide.</div>`, `<button class="btn primary" data-act="closeDlg">Close</button>`, true);
+  const sel = d.sel && m.some(i => i.id === d.sel) ? d.sel : null;
+  return dlgShell(`Compare series ${d.i + 1} of ${d.gids.length}`,
+    `<p class="row" style="margin-top:0;color:var(--muted)">Photos taken within ${BURST_GAP_MS / 1000} seconds of each other. Tap the best one (or press 1 – ${m.length}). <span class="later">Later milestone M6</span></p>
+    <div class="cmp n${m.length}">${m.map((it, k) => `<button class="cm" data-act="cmpSel" data-id="${esc(it.id)}" aria-pressed="${sel === it.id}" aria-label="Photo ${k + 1}: ${esc(stem(it))}"><img alt="" src="${cmpURL(it)}"><span class="cm-n">${k + 1} · ${esc(stem(it))}</span><span class="cm-s">${pairLabel(it)}${it.rating ? ' · ' + it.rating + '★' : ''}${it.flag === 'pick' ? ' · picked' : ''}</span></button>`).join('')}</div>`,
+    `<button class="btn ghost" data-act="closeDlg">Close</button><button class="btn" data-act="cmpSkip">Skip</button><button class="btn primary" data-act="cmpKeep" ${sel ? '' : 'disabled'}>Keep this, reject the other ${m.length - 1}</button>`, true);
+}
 function dlgDelete(d){
   const its = d.ids.map(i => S.byId.get(i)).filter(Boolean), files = its.flatMap(filesOf);
   const pairs = its.filter(i => pairType(i) === 'pair').length, singles = its.length - pairs, total = files.reduce((a, f) => a + f.size, 0);
-  return dlgShell('Delete ' + its.length + (its.length === 1 ? ' item' : ' items'),
-    `<div class="sumrow"><div class="stat"><b>${pairs}</b>pairs</div><div class="stat"><b>${singles}</b>singles</div><div class="stat"><b>${files.length}</b>files</div><div class="stat"><b>${fmtSize(total)}</b>total</div></div>
+  return dlgShell('Delete ' + its.length + (its.length === 1 ? ' photo' : ' photos'),
+    `<div class="sumrow"><div class="stat"><b>${its.length}</b>photos</div><div class="stat"><b>${files.length}</b>files</div><div class="stat"><b>${fmtSize(total)}</b>freed</div></div>
+    <p style="margin:0 0 10px;color:var(--muted);font-size:13px">${pairs} pairs · ${singles} singles. Every photo goes with all of its files, sidecars included.</p>
     <div class="fl-list" tabindex="0" aria-label="Files that will be deleted">${files.map(f => `<div><span class="k">${f.kind}</span><span class="n"><i>${esc(f.dir.replace('/Photos/', '…/'))}</i>${esc(f.name)}</span><span>${fmtSize(f.size)}</span></div>`).join('')}</div>
-    <div class="note">${ic('trash')}<span>Files go to the Nextcloud trash bin and can be restored from there.</span></div>
-    <p class="row" style="color:var(--muted);font-size:13px;margin:10px 0 0">Deletion cannot be undone inside the app. ${qm('Q12')} ${qm('Q11')}</p>`,
-    `<button class="btn ghost" data-act="closeDlg">Cancel</button><button class="btn danger" data-act="delConfirm">${ic('trash')}Move ${files.length} files to trash</button>`);
+    <div class="note">${ic('trash')}<span>Files move to the Nextcloud trash bin and can be restored from there. Nothing is deleted for good; the space returns when the trash bin is emptied.</span></div>`,
+    `${d.from === 'review' ? `<button class="btn ghost" data-act="reviewBack">Back to review</button>` : ''}<button class="btn ghost" data-act="closeDlg">Cancel</button><button class="btn danger" data-act="delConfirm">${ic('trash')}Move ${files.length} files to trash</button>`);
 }
 function doDelete(ids, failFirst){
   const done = [], failed = [], removedIds = [];
@@ -818,7 +902,7 @@ function finishDelete(res, count){
   if (S.selMode && !S.sel.size) { /* stay in selection mode */ }
   refreshView(); renderHeader();
   if (res.failed.length){ openDlg({type:'report', res}); toast(`Moved ${res.done.length} files to trash · ${res.failed.length} failed`); }
-  else toast(`Moved ${res.done.length} files (${res.removed} items) to the Nextcloud trash bin`);
+  else toast(`Moved ${res.removed} photos · ${res.done.length} files · ${fmtSize(res.done.reduce((a, f) => a + f.size, 0))} freed to the Nextcloud trash bin`);
 }
 /* settings */
 function dlgSettings(){
@@ -835,16 +919,16 @@ function dlgSettings(){
     <div class="seg" role="radiogroup" aria-label="Folder mode"><button role="radio" aria-checked="${s.folderMode === 'same'}" data-act="setFolderMode" data-v="same">Same folder</button><button role="radio" aria-checked="${s.folderMode === 'sub'}" data-act="setFolderMode" data-v="sub">Separate subfolders</button></div>
     ${s.folderMode === 'sub' ? `<div class="chiprow" style="margin-top:10px"><label>RAW folder <input class="inp" data-chg="rawFolder" value="${esc(s.rawFolder)}" style="width:100px"></label><label>JPEG folder <input class="inp" data-chg="jpgFolder" value="${esc(s.jpgFolder)}" style="width:100px"></label></div>` : ''}
     ${sw('showSingles', 'Show singles', 'JPEG-only and RAW-only files stay in the grid')}</div>
-  <div class="sec"><h3>Loupe gestures ${qm('Q6')}${qm('Q7')}</h3>
+  <div class="sec"><h3>Loupe gestures ${qm('Q6')}</h3>
     <div class="setrow"><span>Swipe up</span>${act('swipeUp')}</div><div class="setrow"><span>Swipe down</span>${act('swipeDown')}</div>
-    ${sw('autoAdvance', 'Auto-advance after pick/reject', 'Not after rating or colour label')}</div>
+    ${sw('autoAdvance', 'Auto-advance to the next undecided photo', 'After pick or reject, not after rating or colour label')}</div>
   <div class="sec"><h3>Where decisions are stored ${qm('Q2')}</h3>
     <div class="seg" role="radiogroup" aria-label="Storage" style="flex-wrap:wrap">${[['db', 'App database'], ['xmp', 'XMP sidecars'], ['both', 'Both (recommended)']].map(([v, l]) => `<button role="radio" aria-checked="${s.storage === v}" data-act="setStorage" data-v="${v}">${l}</button>`).join('')}</div>
     <p class="hint" style="margin-top:8px">${s.storage === 'both' ? 'Database is the fast working state; every change is written through to XMP sidecars next to the RAW.' : s.storage === 'xmp' ? 'Sidecars are the only source of truth, so digiKam sees every change. Slower grid.' : 'Nothing is written next to your files.'}</p></div>`,
     `<button class="btn primary" data-act="closeDlg">Done</button>`, true);
 }
 function dlgKeys(){
-  const rows = [['0 – 5', 'Set rating'], ['P', 'Pick'], ['X', 'Reject'], ['U', 'Unflag'], ['6 7 8 9', 'Label red / yellow / green / blue (toggle)'], ['Ctrl/⌘ + Z', 'Undo'], ['Shift + Ctrl/⌘ + Z', 'Redo'],
+  const rows = [['0 – 5', 'Set rating'], ['P', 'Pick'], ['X', 'Reject'], ['U', 'Unflag'], ['6 7 8 9', 'Label red / yellow / green / blue (toggle)'], ['1 – 4', 'Choose the best photo when comparing a series'], ['Ctrl/⌘ + Z', 'Undo'], ['Shift + Ctrl/⌘ + Z', 'Redo'],
     ['Delete', 'Delete summary for the selection or focused tile'], ['Ctrl/⌘ + A', 'Select all (filtered)'], ['Shift + click', 'Select a range'], ['Arrow keys', 'Move focus in the grid, previous / next in the loupe'],
     ['Enter', 'Open the loupe'], ['F', 'Loupe without chrome (also double-tap)'], ['I', 'Loupe info panel'], ['Space', 'Loupe: fit / 100 %'], ['Ctrl + wheel, pinch', 'Grid: thumbnail size'], ['Esc', 'Close loupe / dialog / selection'], ['?', 'This sheet']];
   return dlgShell('Keyboard shortcuts', `<p style="margin-top:0;color:var(--muted)">In the grid they apply to the selection, or to the focused tile. In the loupe they apply to the current photo.</p><table class="sc">${rows.map(r => `<tr><td>${r[0].split(' ').map(k => k.length > 1 || /[A-Z0-9?]/.test(k) ? `<span class="kbd">${esc(k)}</span>` : esc(k)).join(' ')}</td><td>${esc(r[1])}</td></tr>`).join('')}</table>`, `<button class="btn primary" data-act="closeDlg">Close</button>`);
@@ -885,8 +969,8 @@ function openLoupe(id){
 function closeLoupe(){
   if (!S.loupe) return; L.immersive = false; $('loupe').classList.remove('immersive');
   const id = S.loupe.ids[S.loupe.idx]; S.loupe = null; L.timers.forEach(clearTimeout); $('loupe').hidden = true; $('loupe').replaceChildren();
-  if (filtersActive()) refreshView(); else { renderToolbar(); }
-  setFocus(S.byId.has(id) ? id : S.focusId); const el = tileEls.get(S.focusId); if (el){ el.scrollIntoView({block:'nearest'}); }
+  const nx = nextUndecided(id); refreshView();
+  setFocus(S.view.some(i => i.id === id) ? id : nx || S.focusId); const el = tileEls.get(S.focusId); if (el){ el.scrollIntoView({block:'nearest'}); }
 }
 function measure(){ const st = $('stage'); if (!st) return; L.W = st.clientWidth; L.H = st.clientHeight; }
 const curItem = () => S.loupe && S.byId.get(S.loupe.ids[S.loupe.idx]);
@@ -903,11 +987,12 @@ function showLoupe(){
 }
 function renderLoupeChrome(){
   const lp = S.loupe, it = curItem(); if (!lp || !it) return;
+  S.server.resume[S.folderPath] = it.id;
   $('lName').textContent = (it.jpg || it.raw).name;
   const parts = [it.jpg && `${it.jpg.name} ${fmtSize(it.jpg.size)}`, it.raw && `${it.raw.name} ${fmtSize(it.raw.size)}`, it.xmp && '+ XMP sidecar'].filter(Boolean);
-  $('lPair').textContent = parts.join('  ·  ') + (!it.jpg ? '  ·  RAW only: showing embedded preview' : !it.raw ? '  ·  JPEG only' : '');
+  $('lPair').textContent = parts.join('  ·  ') + (!it.jpg ? '  ·  RAW only: showing embedded preview' : !it.raw ? '  ·  JPEG only' : '') + (parts.length > 1 ? `  ·  Reject covers all ${parts.length} files` : '');
   const up = S.settings.swipeUp, dn = S.settings.swipeDown, nm = a => a === 'none' ? 'off' : a;
-  $('lGest').innerHTML = `Swipe ↑ ${nm(up)} · ↓ ${nm(dn)} ${qm('Q6')} · auto-advance ${S.settings.autoAdvance ? 'on' : 'off'} ${qm('Q7')}`;
+  $('lGest').innerHTML = `Swipe ↑ ${nm(up)} · ↓ ${nm(dn)} ${qm('Q6')} · auto-advance ${S.settings.autoAdvance ? 'on' : 'off'}`;
   $('lCount').textContent = `${lp.idx + 1} / ${lp.ids.length}`;
   $('bPick').setAttribute('aria-pressed', it.flag === 'pick'); $('bReject').setAttribute('aria-pressed', it.flag === 'reject');
   $('lSmall').innerHTML = `<span class="gl">Rating</span>${[0, 1, 2, 3, 4, 5].map(n => `<button class="sq" data-act="rate" data-v="${n}" aria-pressed="${it.rating === n}" aria-label="${n ? 'Rate ' + n + ' stars' : 'Clear rating'}">${n ? n + '★' : '0'}</button>`).join('')}
@@ -921,7 +1006,7 @@ function renderLoupeChrome(){
   const f = $('lFilm'); f.hidden = !L.film; $('lFilmBtn').setAttribute('aria-pressed', L.film);
   if (L.film){
     const a = Math.max(0, lp.idx - 8), b = Math.min(lp.ids.length, lp.idx + 9);
-    f.innerHTML = lp.ids.slice(a, b).map((id, k) => { const x = S.byId.get(id); return `<button data-act="goto" data-i="${a + k}" class="${a + k === lp.idx ? 'cur' : ''}" aria-label="${esc(stem(x))}"><img alt="" src="${thumbURL(x)}">${x.flag !== 'none' ? `<span class="mk ${x.flag}">${x.flag === 'pick' ? '✓' : '✕'}</span>` : ''}</button>`; }).join('');
+    f.innerHTML = lp.ids.slice(a, b).map((id, k) => { const x = S.byId.get(id); return `<button data-act="goto" data-i="${a + k}" class="${a + k === lp.idx ? 'cur' : ''}${x.flag === 'reject' && S.filters.scope === 'notrej' && a + k !== lp.idx ? ' gone' : ''}" aria-label="${esc(stem(x))}"><img alt="" src="${thumbURL(x)}">${x.flag !== 'none' ? `<span class="mk ${x.flag}">${x.flag === 'pick' ? '✓' : '✕'}</span>` : ''}</button>`; }).join('');
     const c = f.querySelector('.cur'); if (c) f.scrollLeft = c.offsetLeft - f.clientWidth / 2 + c.offsetWidth / 2;
   }
   renderPrefetch(); measure();
@@ -947,7 +1032,11 @@ const step = d => { if (S.loupe && !L.anim) goTo(S.loupe.idx + d, true); };
 function loupeDecide(flag, fromSwipe){
   const it = curItem(); if (!it) return;
   change([it.id], 'flag', it.flag === flag && flag !== 'none' ? 'none' : flag);
-  if (S.settings.autoAdvance && flag !== 'none' && S.loupe && S.loupe.idx < S.loupe.ids.length - 1) setTimeout(() => step(1), fromSwipe ? 0 : 90);
+  if (S.settings.autoAdvance && flag !== 'none' && S.loupe){
+    const j = loupeNextIdx();
+    if (j >= 0) setTimeout(() => { if (S.loupe && !L.anim) goTo(j, true); }, fromSwipe ? 0 : 90);
+    else if (decidedCount() === S.items.length) setTimeout(() => toast('All photos decided', false, {act:'delRejected', label:'Review rejects'}), 1600);
+  }
 }
 /* zoom helpers */
 function applyZoom(anim){
@@ -1025,7 +1114,7 @@ function bindStage(){
     } else if (gg.mode === 'v'){
       if (gg.act && Math.abs(gg.dy || 0) > 110 && e.type === 'pointerup'){
         const up = gg.dy < 0; L.anim = true; tr.style.transition = 'transform .16s ease-in'; tr.style.transform = `translate3d(0,${up ? -L.H * .5 : L.H * .5}px,0)`;
-        setTimeout(() => { L.anim = false; const adv = S.settings.autoAdvance && S.loupe.idx < S.loupe.ids.length - 1; loupeDecide(gg.act, true); if (!adv){ tr.style.transition = 'none'; tr.style.transform = `translate3d(0,${up ? L.H * .3 : -L.H * .3}px,0)`; requestAnimationFrame(() => { tr.style.transition = 'transform .2s ease-out'; tr.style.transform = ''; }); } }, 160);
+        setTimeout(() => { L.anim = false; const adv = S.settings.autoAdvance && loupeNextIdx() >= 0; loupeDecide(gg.act, true); if (!adv){ tr.style.transition = 'none'; tr.style.transform = `translate3d(0,${up ? L.H * .3 : -L.H * .3}px,0)`; requestAnimationFrame(() => { tr.style.transition = 'transform .2s ease-out'; tr.style.transform = ''; }); } }, 160);
       } else { tr.style.transition = 'transform .2s ease-out'; tr.style.transform = ''; }
     }
   };
@@ -1042,6 +1131,7 @@ function renderMock(){
     <div><b>Device frame</b><div class="seg" role="radiogroup" aria-label="Device frame">${[['off', 'Off'], ['land', 'iPad landscape'], ['port', 'iPad portrait']].map(([v, l]) => `<button role="radio" aria-checked="${m.frame === v}" data-act="mockFrame" data-v="${v}">${l}</button>`).join('')}</div></div>
     <label class="chk"><input type="checkbox" data-chg="mockFail" ${m.fail ? 'checked' : ''}> Simulate a failed file on delete</label>
     <label class="chk"><input type="checkbox" data-chg="mockQ" ${m.showQ ? 'checked' : ''}> Show open questions</label>
+    <button class="btn" data-act="mockDevice">Continue on another device</button>
     <button class="btn" data-act="mockReset">Reset mockup</button></div>` : ''}`;
 }
 function applyTheme(){ document.documentElement.dataset.theme = S.mock.theme; }
@@ -1082,12 +1172,20 @@ const A = {
   fLabel(el){ toggleSet(S.filters.labels, el.dataset.v); refreshView(); },
   fFlag(el){ toggleSet(S.filters.flags, el.dataset.v); refreshView(); },
   fPair(el){ toggleSet(S.filters.pairs, el.dataset.v); refreshView(); },
-  fClear(){ S.filters = DEF_FILTERS(); refreshView(); },
+  fClear(){ S.filters = {...DEF_FILTERS(), scope:S.filters.scope}; refreshView(); },
   bulkRate(el){ change([...S.sel], 'rating', +el.dataset.v); },
   bulkFlag(el){ change([...S.sel], 'flag', el.dataset.v); },
   palette(el){ showPalette(el, el.dataset.for); },
   setLabel(el){ const ids = el.dataset.for === 'bulk' ? [...S.sel] : targetIds(), v = el.dataset.v; closePop(); if (v) toggleLabel(ids, v); else change(ids, 'label', null); },
-  delSel(){ openDelete([...S.sel]); }, delRejected(){ openDelete(rejectedItems().map(i => i.id)); },
+  delSel(){ openDelete([...S.sel]); }, delRejected(){ if (S.loupe) closeLoupe(); rejectedItems().length ? openDlg({type:'review'}) : toast('No rejected photos'); },
+  rescue(el){ change([el.dataset.id], 'flag', 'none'); renderDlg(); }, reviewNext(){ openDlg({type:'del', ids:rejectedItems().map(i => i.id), from:'review'}); }, reviewBack(){ openDlg({type:'review'}); },
+  scope(el){ S.filters.scope = el.dataset.v; refreshView(); },
+  resume(){ const id = S.server.resume[S.folderPath], hit = S.view.find(i => i.id === id) || S.view.find(i => i.flag === 'none') || S.view[0]; if (hit) openLoupe(hit.id); },
+  burst(){ const gids = getBursts().groups.map(g => g.map(i => i.id)); if (gids.length) openDlg({type:'burst', gids, i:0, sel:null}); },
+  cmpSel(el){ S.dlg.sel = el.dataset.id; renderDlg(); }, cmpSkip(){ S.dlg.i++; S.dlg.sel = null; renderDlg(); },
+  cmpKeep(){ const d = S.dlg, m = burstCurrent(d); if (!m || !d.sel) return; decideBurst(d.sel, m.filter(i => i.id !== d.sel).map(i => i.id)); d.sel = null; renderDlg(); },
+  mockDevice(){ closeDlg(); if (S.loupe) closeLoupe(); S.folderPath = null; S.items = []; S.byId = new Map(); S.sel.clear(); S.selMode = false; S.focusId = null; S.undo = []; S.redo = []; S.filters = DEF_FILTERS(); S.bursts = null;
+    refreshView(); openDlg({type:'picker', cwd:'/Photos/2026', sel:null}); toast('New device: no local state. Decisions and position come from the server'); },
   delConfirm(){ const ids = S.dlg.ids; const res = doDelete(ids, S.mock.fail); S.lastFailed = res.failed; finishDelete(res); },
   retryFailed(){ const f = S.lastFailed || []; f.forEach(x => { const it = S.byId.get(x.it.id); if (!it) return; it[x.kind === 'JPEG' ? 'jpg' : 'raw'] = null; if (!it.jpg && !it.raw){ S.items = S.items.filter(i => i !== it); S.byId.delete(it.id); } });
     S.folders[S.folderPath] = S.items; closeDlg(); refreshView(); toast(`Moved ${f.length} remaining file(s) to the Nextcloud trash bin`); S.lastFailed = []; },
@@ -1140,6 +1238,7 @@ document.addEventListener('keydown', e => {
     if (S.selMode){ setSelMode(false); return; } return;
   }
   if (k === '?' ){ e.preventDefault(); S.dlg && S.dlg.type === 'keys' ? closeDlg() : openDlg({type:'keys'}); return; }
+  if (S.dlg && S.dlg.type === 'burst'){ if (/^[1-4]$/.test(k)){ const m = burstCurrent(S.dlg), it = m && m[+k - 1]; if (it){ e.preventDefault(); S.dlg.sel = it.id; renderDlg(); } } return; }
   if (S.dlg) return;
   if (mod && k.toLowerCase() === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (mod && k.toLowerCase() === 'y'){ e.preventDefault(); redo(); return; }
@@ -1172,6 +1271,7 @@ function loadFolder(path){
   S.folderPath = path; S.items = S.folders[path] || (S.folders[path] = genFolder(path)); S.byId = new Map(S.items.map(i => [i.id, i]));
   S.sel.clear(); S.selMode = false; S.filters = DEF_FILTERS(); S.focusId = null; S.undo = []; S.redo = [];
   closeDlg(); $('gridWrap').scrollTop = 0; refreshView(); renderHeader();
+  if (S.server.resume[path] && S.byId.has(S.server.resume[path])) toast('Continue where you left off', false, {act:'resume', label:'Resume'});
 }
 /* ---------- resizable panels ---------- */
 function bindDivider(el, {get, set, min, max, sign}){
