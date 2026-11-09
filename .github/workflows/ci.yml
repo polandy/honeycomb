@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# One job per tool, same versions as scripts/verify.sh; build and e2e join with M2.
+# One job per toolchain, same tools and versions as scripts/verify.sh; build and e2e join with M2.
 name: CI
 
 on:
@@ -11,14 +11,40 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  changes:
+    name: changed paths
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      markdown: ${{ steps.groups.outputs.markdown }}
+      php: ${{ steps.groups.outputs.php }}
+      ts: ${{ steps.groups.outputs.ts }}
+      app: ${{ steps.groups.outputs.app }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts
+      - id: groups
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -n "$PR" ]; then
+            gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[].filename'
+          fi | scripts/ci-changes.sh >> "$GITHUB_OUTPUT"
+
   markdown:
     name: markdownlint
+    needs: changes
+    if: needs.changes.outputs.markdown == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -39,27 +65,10 @@ jobs:
           persist-credentials: false
       - uses: fsfe/reuse-action@676e2d560c9a403aa252096d99fcab3e1132b0f5 # v6.0.0
 
-  php-cs-fixer:
-    name: php-cs-fixer
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    strategy:
-      matrix:
-        php: ['8.3']
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
-        with:
-          php-version: ${{ matrix.php }}
-          coverage: none
-          tools: none
-      - run: composer install --no-interaction --no-progress
-      - run: vendor/bin/php-cs-fixer fix --dry-run --diff
-
-  psalm:
-    name: psalm (PHP ${{ matrix.php }})
+  php:
+    name: PHP ${{ matrix.php }}
+    needs: changes
+    if: needs.changes.outputs.php == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     strategy:
@@ -74,30 +83,23 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
           tools: none
+      - id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ matrix.php }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ matrix.php }}-
       - run: composer install --no-interaction --no-progress
+      - if: matrix.php == '8.3'
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
       - run: vendor/bin/psalm --no-cache --threads=1 --no-progress
-
-  phpunit:
-    name: PHPUnit (PHP ${{ matrix.php }})
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    strategy:
-      matrix:
-        php: ['8.3', '8.5']
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
-        with:
-          php-version: ${{ matrix.php }}
-          coverage: none
-          tools: none
-      - run: composer install --no-interaction --no-progress
       - run: vendor/bin/phpunit
 
-  eslint:
-    name: eslint
+  typescript:
+    name: TypeScript
+    needs: changes
+    if: needs.changes.outputs.ts == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -110,33 +112,18 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx eslint
-
-  tsc:
-    name: tsc
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
       - run: npx tsc
-
-  vitest:
-    name: Vitest
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
       - run: npx vitest run --coverage
+
+  gate:
+    name: CI gate
+    needs: [changes, markdown, reuse, php, typescript]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "results: $RESULTS"
+          case " $RESULTS " in *" failure "* | *" cancelled "*) exit 1 ;; esac
