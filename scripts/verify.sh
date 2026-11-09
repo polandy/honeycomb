@@ -26,5 +26,13 @@ step() {
 
 step markdownlint npx --yes "markdownlint-cli2@$MARKDOWNLINT_CLI2_VERSION"
 step reuse uvx --from "reuse==$REUSE_VERSION" reuse lint
+step "composer install" scripts/php.sh composer install --no-interaction --no-progress
+step php-cs-fixer scripts/php.sh vendor/bin/php-cs-fixer fix --dry-run --diff
+step psalm scripts/php.sh vendor/bin/psalm --no-cache --threads=1 --no-progress
+step phpunit scripts/php.sh vendor/bin/phpunit
+step "npm ci" npm ci
+step eslint npx eslint
+step tsc npx tsc
+step vitest npx vitest run --coverage
 
 exit $failed

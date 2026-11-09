@@ -22,7 +22,10 @@ path = [
     ".claude/agents/**",
     "docs/**",
     "tests/fixtures/**",
+    "composer.json",
     "composer.lock",
+    "package.json",
+    "tsconfig.json",
     "package-lock.json",
 ]
 precedence = "aggregate"
