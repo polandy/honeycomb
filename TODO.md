@@ -19,7 +19,7 @@ Add items with `/todo`.
 - [ ] M2.4: Decision storage — tables and API for rating, colour label and flag per picture and user (Q2, Q20), plus the resume position per folder set and user so culling continues on another device; ADR first (2026-11-09)
 - [ ] M2.5: Filter bar — rating, colour label, flag, pairing, folder and sort as pure TypeScript modules (Q8, Q9, Q18; sort by file name or capture time with the fallback in `docs/plan.md` Sort order); scope not rejected (default) / undecided / all and "x of y decided" progress (2026-11-09)
 - [ ] M2.6: Selection mode and bulk rate, label and flag (Q10) (2026-11-09)
-- [ ] M3.1: Loupe — full screen, swipe, pinch zoom to 100 %, prefetch 2–3 neighbours each way (next image <100 ms), chrome-free mode (F, double-tap), collapsible info panel with draggable divider, collapsible sidebar (2026-11-09)
+- [ ] M3.1: Loupe — full screen, swipe, pinch zoom to 100 %, prefetch 2–3 neighbours each way (next image <100 ms), chrome-free mode (F, double-tap), tap zones for previous and next (`docs/plan.md` Tap zones), collapsible info panel with draggable divider, collapsible sidebar (2026-11-09)
 - [ ] M3.2: Decisions in the loupe — pick/reject buttons, vertical swipe (Q6), rating and label controls, auto-advance to the next undecided picture, "Rejected IMG_0001 · Undo" toast; built from the shared components (`docs/plan.md` Shared UI components) (2026-11-09)
 - [ ] M3.3: Keyboard shortcuts per the shared key map (`docs/plan.md` Keyboard shortcuts), undo and redo, shortcut sheet (Q5) (2026-11-09)
 - [ ] M4.1: Delete service — members and sidecars into the trash bin through `OCP\Files`, per-file failure report; ADR on pair atomicity first; tests for every failure path (2026-11-09)
