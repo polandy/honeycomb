@@ -24,7 +24,7 @@ step() {
   rm -f "$log"
 }
 
-step ci-changes scripts/ci-changes.test.sh
+step ci-changes scripts/test-ci-changes.sh
 step markdownlint npx --yes "markdownlint-cli2@$MARKDOWNLINT_CLI2_VERSION"
 step reuse uvx --from "reuse==$REUSE_VERSION" reuse lint
 step "composer install" scripts/php.sh composer install --no-interaction --no-progress
