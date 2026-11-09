@@ -115,7 +115,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .selrow b{margin-right:auto}
 
 /* filter bar */
-.filters{flex:none;margin:0 calc(12px + var(--sa-r)) 6px calc(12px + var(--sa-l));background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:flex-start}
+.filters{flex:none;margin:8px calc(12px + var(--sa-r)) 6px calc(12px + var(--sa-l));background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:flex-start}
 .fgroup{display:flex;flex-direction:column;gap:2px}
 .fgroup>.lbl{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
 .fgroup>.chips{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
@@ -720,7 +720,9 @@ const DE = {
   'At least %n star': ['Mindestens %n Stern', 'Mindestens %n Sterne'],
   'Exactly %n star': ['Genau %n Stern', 'Genau %n Sterne'],
   'Rating comparison': 'Bewertungsvergleich',
+  'At most %n star': ['Höchstens %n Stern', 'Höchstens %n Sterne'],
   'At least': 'Mindestens',
+  'At most': 'Höchstens',
   'Exactly': 'Genau',
   'Colour': 'Farbe',
   'Pairing': 'Paarung',
@@ -1251,7 +1253,7 @@ function passes(it){
   const f = S.filters;
   if (!S.settings.showSingles && pairType(it) !== 'pair') return false;
   if (!f.flags.size && ((f.scope === 'notrej' && it.flag === 'reject') || (f.scope === 'undecided' && it.flag !== 'none'))) return false;
-  if (f.rating !== null && (f.ratingOp === 'gte' ? it.rating < f.rating : it.rating !== f.rating)) return false;
+  if (f.rating !== null && (f.ratingOp === 'gte' ? it.rating < f.rating : f.ratingOp === 'lte' ? it.rating > f.rating : it.rating !== f.rating)) return false;
   if (f.labels.size && !f.labels.has(it.label)) return false;
   if (f.flags.size && !f.flags.has(it.flag)) return false;
   if (f.pairs.size && !f.pairs.has(pairType(it))) return false;
@@ -1468,11 +1470,11 @@ function openPath(anchor){
 function renderFilters(){
   const el = $('filters'), f = S.filters;
   el.hidden = !S.filtersOpen || !S.folderPath; if (el.hidden) return;
-  const ratingText = k => f.ratingOp === 'gte' ? n('At least %n star', 'At least %n stars', k) : n('Exactly %n star', 'Exactly %n stars', k);
+  const ratingText = k => f.ratingOp === 'gte' ? n('At least %n star', 'At least %n stars', k) : f.ratingOp === 'lte' ? n('At most %n star', 'At most %n stars', k) : n('Exactly %n star', 'Exactly %n stars', k);
   const ch = (act, val, label, on, extra = '') => `<button class="chip" data-act="${act}" data-v="${val}" aria-pressed="${on}" ${extra}>${label}</button>`;
   el.innerHTML = `
   <div class="fgroup"><span class="lbl">${t('Rating')}</span><div class="chips">
-    <div class="seg" role="group" aria-label="${t('Rating comparison')}"><button data-act="fOp" data-v="gte" aria-pressed="${f.ratingOp === 'gte'}" aria-label="${t('At least')}" ${tip(t('At least'))}>≥</button><button data-act="fOp" data-v="eq" aria-pressed="${f.ratingOp === 'eq'}" aria-label="${t('Exactly')}" ${tip(t('Exactly'))}>=</button></div>
+    <div class="seg" role="group" aria-label="${t('Rating comparison')}"><button data-act="fOp" data-v="gte" aria-pressed="${f.ratingOp === 'gte'}" aria-label="${t('At least')}" ${tip(t('At least'))}>≥</button><button data-act="fOp" data-v="lte" aria-pressed="${f.ratingOp === 'lte'}" aria-label="${t('At most')}" ${tip(t('At most'))}>≤</button><button data-act="fOp" data-v="eq" aria-pressed="${f.ratingOp === 'eq'}" aria-label="${t('Exactly')}" ${tip(t('Exactly'))}>=</button></div>
     ${[0, 1, 2, 3, 4, 5].map(k => ch('fRating', k, nf(k) + '★', f.rating === k, `aria-label="${ratingText(k)}" ${tip(ratingText(k))}`)).join('')}</div></div>
   <div class="fgroup"><span class="lbl">${t('Colour')}</span><div class="chips">
     ${LABELS.map(l => `<button class="chip sw" data-act="fLabel" data-v="${l.id}" aria-pressed="${f.labels.has(l.id)}" aria-label="${labelText(l.id)}" ${tip(labelText(l.id))}><span class="dotx" style="background:${l.hex}"></span></button>`).join('')}</div></div>
