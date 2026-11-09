@@ -20,3 +20,4 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: Composer's download cache is kept with `actions/cache` keyed on `composer.lock`; npm
   uses `setup-node`'s `cache: npm`. The first run after a lock change refills them.
 - 2026-11-10: Build and e2e (M2.1) take the `app` group and join the gate's `needs`.
+- 2026-11-10: (measurement only, not merged)
