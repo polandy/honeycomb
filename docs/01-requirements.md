@@ -58,8 +58,8 @@ singles are shown.
 - Frontend: Vue with `@nextcloud/vue` and `@nextcloud/axios`, Nextcloud look, light and dark mode.
 - Thumbnails and previews through the Nextcloud preview API. Document the app
   `camerarawpreviews` as a recommended dependency for RAW previews.
-- Touch-first: large hit targets, no hover-only interaction, tested in iPad landscape and
-  portrait.
+- Touch-first: large hit targets, no hover-only interaction, tested in portrait and landscape on the
+  [reference devices](plan.md#reference-devices) (a Pixel phone and three iPads).
 - Decisions are stored on the server, so a review can be interrupted and resumed later.
 - Performance: folders with 2,000+ pairs load without stalls (pagination or virtual scrolling).
 - PHPUnit tests for pairing, including: names differing only in case, several dots in a file

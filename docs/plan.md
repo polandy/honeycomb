@@ -78,7 +78,8 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 1. **Loupe:** the JPEG (or the RAW's embedded preview) full screen, swipe to page, pinch zoom,
    100 % zoom, prefetching of the neighbours, chrome-free mode, resizable info panel (see
    [Image delivery & performance](#image-delivery--performance)).
-2. **Decisions in the loupe:** large pick and reject buttons, vertical swipe (Q6), rating and
+2. **Decisions in the loupe:** large pick and reject buttons (at the side edges in landscape,
+   [Loupe layout](#loupe-layout)), vertical swipe (Q6), rating and
    colour label controls, auto-advance to the next undecided picture, the "Rejected IMG_0001 · Undo"
    toast.
 3. **Keyboard shortcuts and undo:** the one shared key map ([Keyboard
@@ -281,13 +282,83 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    - **Same controls as the loupe** (owner, 2026-11-09: "keep/reject is not consistent with the
      normal pick/reject"). The bottom bar is the loupe's action bar — *Pick*, *Reject*, *Unflag*,
      rating and colour label for the shown photo, keys `P`, `X`, `U` — plus *Pick this, reject
-     the rest* (`K`). On a phone it wraps to two rows. The series compare dialog shows the
+     the rest* (`K`). On a phone it wraps to two rows; in landscape the flags sit at the side
+     edges ([Loupe layout](#loupe-layout)). The series compare dialog shows the
      same flag buttons and *Pick this, reject the rest* under each photo.
 5. **Synchronised zoom.** Zooming one photo to 100 % (button, double-tap, pinch or `Z`) zooms
    every photo of the series to the same spot, and panning moves them together, so paging
    compares the same detail for sharpness. While zoomed, a swipe pans instead of paging.
 
 Where the work lands: M2.3 (header, bar, scroll behaviour), M6 (series viewer).
+
+## Loupe layout
+
+The owner on 2026-11-09, after testing the mockup on the iPad: in landscape the photo was too
+small and the controls at the bottom took too much room; the photo, *Pick* and *Reject* matter
+most. The rule for the loupe and the series viewer, measured on the
+[reference devices](#reference-devices) in [ux-review.md](ux-review.md#landscape-loupe):
+
+1. **Landscape (wider than tall): the photo fills the screen.** Nothing takes a strip of its
+   own; the photo is fitted to the whole loupe.
+2. **Pick and Reject float at the side edges**, where the hands hold a tablet: *Pick* at the
+   left edge, *Reject* at the right with *Unflag* below it, so the glossary order holds from
+   left to right. They are 84 px wide and 120–240 px tall (68 px wide on a phone), vertically
+   centred, on a dark translucent fill, always visible, and never reach the middle half of the
+   screen. *Previous* and *Next* sit just inside them.
+3. **Everything else overlays the photo and hides when idle:** the title row (name, pair,
+   count, *Fit*, *Move…*, *Info*, filmstrip toggle) at the top, the filmstrip and the rating
+   and colour label row at the bottom (plus *Pick this, reject the rest* in the series viewer).
+   They hide 2.5 s after the last touch, as the series viewer's controls already did; a tap on
+   the photo shows or hides them, a mouse move shows them, and a control with keyboard focus
+   keeps them shown. The info panel opens beside the photo, inside the *Reject* edge.
+4. **Portrait keeps the bottom bar:** title row, photo, filmstrip, then the large flag row and
+   the rating row below, as before. The layout switches with the orientation, on rotation too.
+5. **Unchanged:** every keyboard shortcut, the swipe gestures, the tooltips, double-tap or `Tab`
+   for the chrome-free mode (which also hides the edge buttons), and the shared `ActionBar`:
+   one component, laid out by orientation, not a second copy.
+
+Where the work lands: M3.1 and M3.2 (loupe), M6 (series viewer).
+
+## Reference devices
+
+The owner on 2026-11-09: every screen must work on these devices, in portrait and landscape.
+They are the viewports for every render check (mockup, screenshots, Playwright), replacing the
+earlier ad-hoc sizes; 1440 × 900 stays as the desktop check.
+
+| Device | CSS viewport, portrait | DPR | Display | Front camera | Safe areas portrait (top, right, bottom, left) | Safe areas landscape |
+|---|---|---|---|---|---|---|
+| Pixel 9 Pro | 427 × 952 [^dt] | 3 [^dt] | 1280 × 2856, 495 ppi, 6.3″ [^px] | punch hole, centre of the short edge | 68, 0, 36, 0 [^dt] [^e2e] | 0, 68, 36, 0 |
+| iPad mini (A17 Pro, 2024), the smallest tablet that must fit | 744 × 1133 [^c] | 2 [^c] | 2266 × 1488, 326 ppi, 8.3″ [^m24] | in the bezel, short edge [^m24] | 24, 0, 20, 0 [^ios] | 24, 0, 20, 0 [^ios] |
+| iPad mini (A20 Pro, 2026) | 756 × 1158 [^c] | 2 [^c] | 2316 × 1512, 326 ppi, 8.5″ OLED [^m26] | in the bezel, long edge (top in landscape) [^m26] | 24, 0, 20, 0 [^ios] | 24, 0, 20, 0 [^ios] |
+| iPad Pro 11″ (M5) | 834 × 1210 [^c] | 2 [^c] | 2420 × 1668, 264 ppi [^pro] | in the bezel, long edge (top in landscape) [^pro] | 24, 0, 20, 0 [^ios] | 24, 0, 20, 0 [^ios] |
+| Desktop | 1440 × 900 (landscape only) | 1 | – | – | none | none |
+
+[^dt]: Chrome DevTools device list, entry *Pixel 9 Pro*, with its cutout insets:
+    <https://github.com/ChromeDevTools/devtools-frontend/blob/main/front_end/models/emulation/EmulatedDevices.ts>
+[^px]: Google, Pixel phone hardware tech specs: <https://support.google.com/pixelphone/answer/7158570>
+[^e2e]: The bottom inset (gesture bar) is dynamic on Android; 36 px is Chrome's
+    `safe-area-max-inset-bottom` fallback: <https://developer.chrome.com/docs/css-ui/edge-to-edge>
+[^m24]: Apple, iPad mini (A17 Pro) tech specs: <https://support.apple.com/en-us/121456>
+[^m26]: Apple, iPad mini tech specs (*Landscape 12MP Center Stage camera*):
+    <https://www.apple.com/ipad-mini/specs/>
+[^pro]: Apple, iPad Pro tech specs, 11-inch model: <https://www.apple.com/ipad-pro/specs/>
+[^c]: Computed: Apple publishes pixels, not points; every Retina iPad renders at 2 device
+    pixels per CSS pixel, so the viewport is the pixel size halved.
+[^ios]: Measured empirically, no primary source: the status bar (top) and the home indicator
+    (bottom) in Safari full screen. A bezel camera adds no inset. Re-measure on a device.
+
+Rules for every screen on every reference device:
+
+1. **Fits:** nothing clipped and no horizontal scroll, in both orientations and after a rotation.
+2. **Safe areas:** the page uses `viewport-fit=cover` and pads its edges with
+   `env(safe-area-inset-*)`; no control lies under the camera, the status bar or the home
+   indicator. Backgrounds and the photo may run underneath.
+3. **Thumbs:** *Pick* and *Reject* stay large and reachable without moving the grip
+   ([Loupe layout](#loupe-layout)); every touch target is at least 44 × 44 px.
+
+The mockup has a device preview (*Mockup controls* → *Device frame*): it frames the page at
+the chosen device's CSS viewport, portrait or landscape, sets the safe areas from this table and
+marks the camera, so each device can be checked on a desktop browser.
 
 ## Keyboard shortcuts
 
@@ -417,7 +488,7 @@ under `src/components/`. A new screen composes these; a variant is a prop, not a
 | `FlagMark` (`flagMark`) | the read-only flag icon | `PhotoTile`, loupe filmstrip, series compare card | — |
 | `StarRating` (`starRating`, `stars`) | 0–5 buttons, or read-only stars | action bar, `PhotoTile`, series compare card | `decisions` |
 | `ColourLabels` (`colourLabel`, `showPalette`) | the label button and the nine-colour palette | action bar, filter bar | `decisions`, `hotkeys` |
-| `ActionBar` (`actionBar`) | rating, colour label and flags; flags in a large row of their own, plus a slot | grid selection, loupe, series viewer | `decisions`, `hotkeys` |
+| `ActionBar` (`actionBar`) | rating, colour label and flags; flags in a large row of their own (portrait) or at the side edges (landscape, [Loupe layout](#loupe-layout)), plus a slot | grid selection, loupe, series viewer | `decisions`, `hotkeys` |
 | `PickRestButton` (`pickRestBtn`) | *Pick this, reject the rest* | series compare card, series viewer | `series` |
 | `UndoToast` (`toast`) | the change in words, *Undo*, an optional action | every undoable change | `undo`: entries and their text |
 | `ConfirmDialog` (`confirmDialog`) | title, body, footer *Back* · *Cancel* · confirm; a bottom sheet on a phone | delete summary, reject review, move summary, folder picker, delete report | — |

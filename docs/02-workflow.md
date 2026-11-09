@@ -79,7 +79,8 @@ commit body, word for word. So:
 ## 2.7 Screenshots for UI changes
 
 A pull request that changes the UI adds a `## Screenshots` comment before it is reviewed: 2–3
-PNGs cropped to the change, at most 1200 px wide, iPad landscape and portrait, light and dark when
+PNGs cropped to the change, at most 1200 px wide, on the
+[reference devices](plan.md#reference-devices) in landscape and portrait, light and dark when
 colours change. The images live in a separate public repository `polandy/honeycomb-assets` under
 `pr-<n>/`, never in this one, and never in the description (it becomes the squash commit, and the
 links would break once the images are pruned). A new revision replaces the files and edits the
