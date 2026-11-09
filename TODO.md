@@ -28,6 +28,10 @@ Add items with `/todo`.
 - [ ] M4.4: README for users — installation, features, screenshot placeholders, recommended apps `camerarawpreviews` and Preview Generator (2026-11-09)
 - [ ] M5: XMP sidecars — read on listing, write digiKam's fields (Q2, Q3) (2026-11-09)
 - [ ] M6: Series compare — group pictures taken within a short interval, show 2–4 side by side, "keep this, reject the rest" as one undo step (`docs/plan.md` Culling workflow) (2026-11-09)
+- [ ] M7.1: Name template service — parse, validate with column, render, sanitise to `[A-Za-z0-9._-]`, fallbacks, collision suffix; tests from `docs/05-name-templates.md` (2026-11-09)
+- [ ] M7.2: Move service — ADR on the move API and pair atomicity first; whole picture through `OCP\Files`, conflicts (suffix, skip, replace into the trash bin), undo, per-file failure report (2026-11-09)
+- [ ] M7.3: Move dialog and move summary — target picker, favourite and recent targets, conflict choices, undo toast, key `M`, from the selection, the loupe and the filter result (2026-11-09)
+- [ ] M7.4: Name template setting with presets and a live preview on 5 sample pictures (2026-11-09)
 
 ## Later
 

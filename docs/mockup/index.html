@@ -205,6 +205,18 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .plist li.dis{color:var(--muted)}
 .plist .nm{flex:1;min-width:0}
 .plist .go{width:44px;height:44px;margin-right:-8px;border:0;background:none;display:flex;align-items:center;justify-content:center;border-radius:10px}
+.tgt{display:inline-flex;align-items:center;gap:8px;min-height:44px;border-radius:22px;background:var(--card-2);border:1px solid var(--border);padding:0 14px;font-weight:600;color:var(--text)}
+.tgt[aria-pressed="true"]{background:var(--honey);color:var(--on-honey);border-color:var(--honey)}
+.tgt small{font-weight:400;opacity:.75}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-all}
+.inp.tpl{width:100%;font:13px ui-monospace,Menlo,Consolas,monospace;margin:10px 0 8px}
+.tpl-err{white-space:pre;overflow:auto;font:13px ui-monospace,Menlo,Consolas,monospace;color:var(--warn-text);background:var(--warn-bg);border-radius:10px;padding:8px 10px;margin:0}
+.pv{border:1px solid var(--border);border-radius:10px;font-size:13px}
+.pv>div{padding:6px 10px;border-bottom:1px solid var(--border)}.pv>div:last-child{border:0}
+.tagn{display:inline-block;font-size:11px;border-radius:6px;padding:0 6px;margin-left:6px;background:var(--honey-soft);color:var(--honey-text)}
+.tagn.warn{background:var(--warn-bg);color:var(--warn-text)}
+.fl-list .conf{background:var(--warn-bg);flex-wrap:wrap;align-items:center}
+.fl-list .conf .seg button{min-height:36px}
 .fl-list{max-height:min(280px,34vh);overflow:auto;border:1px solid var(--border);border-radius:10px;font-size:13px;font-variant-numeric:tabular-nums}
 .fl-list div{display:flex;gap:8px;padding:5px 10px;border-bottom:1px solid var(--border)}
 .fl-list div:last-child{border:0}
@@ -365,7 +377,7 @@ const IC = {
   folder:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', chevR:'M9 6l6 6-6 6', chevL:'M15 6l-6 6 6 6', chevD:'M6 9l6 6 6-6',
   filter:'M3 5h18l-7 8v6l-4-2v-4z', select:'M4 4h16v16H4zM8 12l3 3 5-6', film:'M3 6h18v12H3zM8 6v12M16 6v12', sort:'M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3',
   help:'M9 9a3 3 0 1 1 4.5 2.6c-1 .6-1.5 1.2-1.5 2.4M12 18v.5', grid:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z', up:'M6 15l6-6 6 6', down:'M6 9l6 6 6-6',
-  flagoff:'M5 3v18M5 4h11l-2 4 2 4H5'
+  flagoff:'M5 3v18M5 4h11l-2 4 2 4H5', move:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 13h7M13 10l3 3-3 3'
 };
 const ic = (n, extra='') => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" ${extra}><path d="${IC[n]}"/></svg>`;
 const fmtSize = mb => mb >= 1024 ? (mb / 1024).toFixed(2) + ' GB' : (mb >= 1 ? mb.toFixed(1) : mb.toFixed(2)) + ' MB';
@@ -392,7 +404,8 @@ const qm = id => `<button class="q" data-act="q" data-q="${id}" aria-label="Open
 
 const TREE = {
   '/': ['Documents', 'Music', 'Photos'],
-  '/Photos': ['2026', 'Phone'],
+  '/Photos': ['2026', 'Archive', 'Phone', 'Portfolio'],
+  '/Photos/Portfolio': ['Landscape', 'People'],
   '/Photos/2026': ['2026-10-12 Dolomites (paired)', '2026-11-01 Wedding (separate)'],
   '/Photos/2026/2026-11-01 Wedding (separate)': ['RAW', 'JPG']
 };
@@ -404,10 +417,25 @@ const FOLDERS = {
   '/Photos/Phone': {seed:991, count:28, date:'2026-10-30', pPair:.12, pJpg:.74, pPortrait:.55, kinds:[0,1,2,3], mode:'same', phone:true,
     cams:[['DNG','IMG_',1]], info:'28 items, mostly JPEG only'}
 };
+const MODELS = {NEF:'NIKON Z 6_2', ARW:'ILCE-7M4', RAF:'X-T5', DNG:'iPhone 15 Pro', CR3:'Canon EOS R5'};
+const MAKES = {NEF:'NIKON CORPORATION', ARW:'SONY', RAF:'FUJIFILM', DNG:'Apple', CR3:'Canon'};
+const TPL_PRESETS = [
+  ['By day', '{date:%Y}/{date:%Y-%m-%d}/{date:%H%M%S}_{camera}_{name}.{ext}'],
+  ['By day, full date in the name', '{date:%Y}/{date:%Y-%m-%d}/{date:%Y%m%d-%H%M%S}_{camera}_{name}.{ext}'],
+  ['Keep names', '{name}.{ext}']
+];
+/* two cameras at the same second with the same original name, a phone, a sidecar, and a file without EXIF */
+const TPL_SAMPLES = [
+  {base:'DSCF1234', exts:['JPG', 'RAF'], model:'X-T5', make:'FUJIFILM', time:'2026-11-09T14:32:05'},
+  {base:'DSCF1234', exts:['JPG', 'RAF'], model:'X-H2', make:'FUJIFILM', time:'2026-11-09T14:32:05'},
+  {base:'IMG_0042', exts:['JPG', 'DNG'], model:'iPhone 15 Pro', make:'Apple', time:'2026-11-09T14:32:05'},
+  {base:'DSC_0815', exts:['NEF', 'NEF.xmp'], model:'NIKON Z 6_2', make:'NIKON CORPORATION', time:'2026-11-09T09:15:00'},
+  {base:'Übersicht März', exts:['jpg'], model:null, make:null, time:null, mtime:'2026-11-09T18:02:41'}
+].map(s => ({...s, time:s.time && Date.parse(s.time + 'Z'), mtime:s.mtime && Date.parse(s.mtime + 'Z')}));
 
 /* ---------- state ---------- */
 const DEF_SETTINGS = () => ({rawExt:['NEF','CR3','ARW','RAF','DNG'], renderedExt:['JPG','JPEG'], folderMode:'same', rawFolder:'RAW', jpgFolder:'JPG',
-  showSingles:true, swipeUp:'pick', swipeDown:'reject', autoAdvance:true, storage:'both'});
+  showSingles:true, swipeUp:'pick', swipeDown:'reject', autoAdvance:true, storage:'both', moveTemplate:TPL_PRESETS[0][1]});
 const DEF_FILTERS = () => ({scope:'notrej', ratingOp:'gte', rating:null, labels:new Set(), flags:new Set(), pairs:new Set()});
 const PREF_KEY = 'honeycomb.mockup.layout';
 const PREF_DEF = {ts:160, navW:248, navOpen:null, infoOpen:false, infoW:300};
@@ -418,7 +446,8 @@ let S;
 function freshState(){
   return {folderPath:null, folders:{}, items:[], view:[], byId:new Map(), filters:DEF_FILTERS(), filtersOpen:null, sel:new Set(), selMode:false, anchor:null, focusId:null,
     sort:'name', ts:P0.ts, bursts:null, server:{resume:{}}, undo:[], redo:[], settings:DEF_SETTINGS(), loupe:null, dlg:null, navOpen:null,
-    mock:{theme:S ? S.mock.theme : 'auto', frame:S ? S.mock.frame : 'off', fail:false, showQ:true, open:S ? S.mock.open : false}, scale:1};
+    moveFav:['/Photos/Portfolio/Landscape', '/Photos/Archive'], moveRecent:['/Photos/Archive', '/Photos/Portfolio/People'], tfiles:{}, tplDraft:null,
+    mock:{theme:S ? S.mock.theme : 'auto', frame:S ? S.mock.frame : 'off', fail:false, conflict:true, showQ:true, open:S ? S.mock.open : false}, scale:1};
 }
 S = freshState();
 const pairType = it => it.jpg && it.raw ? 'pair' : it.jpg ? 'jpg' : 'raw';
@@ -446,6 +475,8 @@ function genFolder(path){
     if (r() < .35) it.rating = 1 + Math.floor(r() * 5);
     if (r() < .14) it.label = LABELS[Math.floor(r() * LABELS.length)].id;
     const f = r(); it.flag = f < .12 ? 'pick' : f < .22 ? 'reject' : 'none';
+    const noExif = type === 'jpg' && i % 7 === 3;
+    it.model = noExif ? null : MODELS[cam[0]]; it.make = noExif ? null : MAKES[cam[0]]; it.exifTime = noExif ? null : t; it.mtime = t + 3725000;
     items.push(it);
   }
   return items;
@@ -607,6 +638,7 @@ function toggleLabel(ids, lab){
   change(ids, 'label', its.length && its.every(i => i.label === lab) ? null : lab);
 }
 function applyEntry(e, dir){
+  if (e.move){ applyMove(e.move, dir); renderHeader(); return; }
   for (const c of e.changes){ const it = S.byId.get(c.id); if (it) it[c.key] = dir ? c.to : c.from; }
   afterChange(e.changes.map(c => c.id));
 }
@@ -643,12 +675,13 @@ function renderNav(){
 function renderToolbar(){
   const tb = $('toolbar');
   if (!S.folderPath){ tb.innerHTML = `<div class="row"><div class="crumbs"><button data-act="picker">Choose a folder…</button></div></div>`; return; }
-  const segs = S.folderPath.split('/').filter(Boolean), nRej = rejectedItems().length, nDec = decidedCount(), nTot = S.items.length, nSer = getBursts().groups.length, rid = S.server.resume[S.folderPath], rit = rid && S.byId.get(rid);
+  const segs = S.folderPath.split('/').filter(Boolean), nRej = rejectedItems().length, nDec = decidedCount(), nTot = S.items.length, nSer = getBursts().groups.length, rid = S.server.resume[S.folderPath], rit = rid && S.byId.get(rid), nMove = filtersActive() ? S.view.length : S.items.filter(i => i.flag === 'pick').length;
   const crumbs = `<button data-act="picker" aria-label="Change folder">Home</button>` + segs.map((s, i) => `<span class="sep">/</span><button data-act="picker" data-path="/${esc(segs.slice(0, i + 1).join('/'))}">${esc(s)}</button>`).join('');
   tb.classList.toggle('selmode', S.selMode);
   tb.innerHTML = `<div class="row"><div class="crumbs" role="navigation" aria-label="Breadcrumb">${crumbs}</div>
     <button class="btn ${S.selMode ? 'primary' : ''}" data-act="selmode" aria-pressed="${S.selMode}">${ic('select')}Select</button>${qm('Q10')}
-    <button class="btn" data-act="delRejected" ${nRej ? '' : 'disabled'}>${ic('trash')}Review rejects (${nRej})</button></div>
+    <button class="btn" data-act="delRejected" ${nRej ? '' : 'disabled'}>${ic('trash')}Review rejects (${nRej})</button>
+    <button class="btn" data-act="moveView" ${nMove ? '' : 'disabled'} title="Move the picks, or with a filter on, the filtered photos">${ic('move')}${filtersActive() ? 'Move filtered' : 'Move picks'} (${nMove})</button></div>
     <div class="row cullrow">
       <div class="seg" role="group" aria-label="Show">${[['notrej', 'Not rejected'], ['undecided', 'Undecided'], ['all', 'All']].map(([v, l]) => `<button data-act="scope" data-v="${v}" aria-pressed="${S.filters.scope === v}" ${S.filters.flags.size ? 'disabled title="The flag filter overrides this"' : ''}>${l}</button>`).join('')}</div>
       <div class="prog-w"><span class="count" aria-live="polite">${nDec} of ${nTot} decided</span><div class="prog" role="progressbar" aria-label="Decided" aria-valuemin="0" aria-valuemax="${nTot}" aria-valuenow="${nDec}"><i style="width:${nTot ? Math.round(100 * nDec / nTot) : 0}%"></i></div></div>
@@ -789,7 +822,7 @@ function renderActionBar(){
   <div class="grp"><button class="sq" data-act="palette" data-for="bulk" ${dis} aria-label="Colour label" style="padding:0 14px"><span class="dotc" style="background:conic-gradient(#e5484d,#f2c94c,#3fb26b,#3b82f6,#d946ef,#e5484d);width:18px;height:18px"></span>Label</button>${qm('Q5')}</div>
   <div class="grp" role="group" aria-label="Flag selection"><button class="sq" data-act="bulkFlag" data-v="pick" ${dis} aria-label="Pick">✓ Pick</button><button class="sq" data-act="bulkFlag" data-v="reject" ${dis} aria-label="Reject">✕ Reject</button><button class="sq" data-act="bulkFlag" data-v="none" ${dis} aria-label="Unflag">Unflag</button>${qm('Q4')}</div>
   <span class="grow"></span><span class="count">${S.sel.size} selected</span>
-  <button class="btn danger" data-act="delSel" ${dis}>${ic('trash')}Delete…</button>`;
+  <button class="btn" data-act="moveSel" ${dis}>${ic('move')}Move…</button><button class="btn danger" data-act="delSel" ${dis}>${ic('trash')}Delete…</button>`;
 }
 
 /* ---------- popovers ---------- */
@@ -825,7 +858,7 @@ function dlgShell(title, body, foot, wide, canClose = true){
 function renderDlg(){
   const d = S.dlg, root = $('dlgRoot'); if (!d){ root.replaceChildren(); return; }
   const old = root.querySelector('.dlg-b'), top = old ? old.scrollTop : 0;
-  const map = {picker:dlgPicker, del:dlgDelete, settings:dlgSettings, keys:dlgKeys, report:dlgReport, review:dlgReview, burst:dlgBurst};
+  const map = {picker:dlgPicker, del:dlgDelete, settings:dlgSettings, keys:dlgKeys, report:dlgReport, review:dlgReview, burst:dlgBurst, move:dlgMove};
   root.innerHTML = map[d.type](d);
   const nb = root.querySelector('.dlg-b'); if (nb) nb.scrollTop = top;
   if (d.refocus){ const i = root.querySelector(d.refocus); i && i.focus(); d.refocus = null; }
@@ -835,11 +868,14 @@ function dlgPicker(d){
   const kids = TREE[d.cwd] || [], parts = d.cwd.split('/').filter(Boolean);
   const crumbs = `<div class="crumbs"><button data-act="pkGo" data-path="/">Home</button>${parts.map((p, i) => `<span class="sep">/</span><button data-act="pkGo" data-path="/${esc(parts.slice(0, i + 1).join('/'))}">${esc(p)}</button>`).join('')}</div>`;
   const rows = kids.map(k => {
-    const p = (d.cwd === '/' ? '' : d.cwd) + '/' + k, ok = !!FOLDERS[p], sub = !!TREE[p];
-    const meta = ok ? FOLDERS[p].info : /^(RAW|JPG)$/.test(k) ? 'Choose the parent folder to see the pairs' : 'Folder';
+    const p = (d.cwd === '/' ? '' : d.cwd) + '/' + k, ok = d.forMove ? p !== S.folderPath : !!FOLDERS[p], sub = !!TREE[p];
+    const meta = d.forMove ? (p === S.folderPath ? 'The current folder' : 'Folder') : ok ? FOLDERS[p].info : /^(RAW|JPG)$/.test(k) ? 'Choose the parent folder to see the pairs' : 'Folder';
     return `<li role="option" tabindex="0" data-act="pkSel" data-path="${esc(p)}" aria-selected="${d.sel === p}" class="${ok ? '' : 'dis'}">${ic('folder')}<span class="nm">${esc(k)}<div class="meta">${esc(meta)}</div></span>${sub ? `<button class="go" data-act="pkGo" data-path="${esc(p)}" aria-label="Open ${esc(k)}">${ic('chevR')}</button>` : ''}</li>`;
   }).join('') || '<li class="dis">This folder has no subfolders.</li>';
-  const can = d.sel && FOLDERS[d.sel];
+  const can = d.sel && (d.forMove ? d.sel !== S.folderPath : FOLDERS[d.sel]);
+  if (d.forMove) return dlgShell('Move to folder', `${crumbs}<ul class="plist" role="listbox" aria-label="Folders" style="margin-top:8px">${rows}</ul>
+    <p class="hint" style="color:var(--muted);font-size:13px">Tap a folder to select it, the arrow to open it. Any folder you can write to is a target.</p>`,
+    `<button class="btn ghost" data-act="mvBack">Back</button><button class="btn primary" data-act="pkChoose" ${can ? '' : 'disabled'}>Move to ${can ? esc(d.sel.split('/').pop()) : '…'}</button>`);
   return dlgShell('Choose a folder', `${crumbs}<ul class="plist" role="listbox" aria-label="Folders" style="margin-top:8px">${rows}</ul>
     <p class="hint" style="color:var(--muted);font-size:13px">Tap a folder to select it, the arrow to open it. Mockup: only the three photo folders can be loaded.</p>`,
     `<button class="btn ghost" data-act="closeDlg" ${S.folderPath ? '' : 'hidden'}>Cancel</button><button class="btn primary" data-act="pkChoose" ${can ? '' : 'disabled'}>Choose ${can ? esc(d.sel.split('/').pop()) : ''}</button>`, false, !!S.folderPath);
@@ -906,7 +942,7 @@ function finishDelete(res, count){
 }
 /* settings */
 function dlgSettings(){
-  const s = S.settings;
+  const s = S.settings, tplCur = S.tplDraft ?? s.moveTemplate;
   const sw = (key, label, sub) => `<div class="setrow"><div><div>${label}</div>${sub ? `<div style="font-size:12px;color:var(--muted)">${sub}</div>` : ''}</div><button class="sw-btn" role="switch" aria-checked="${s[key]}" aria-label="${esc(label)}" data-act="setBool" data-k="${key}"></button></div>`;
   const chips = (k) => `<div class="chiprow">${s[k].map(e => `<span class="ext">.${esc(e)}<button data-act="extDel" data-k="${k}" data-e="${esc(e)}" aria-label="Remove ${esc(e)}">✕</button></span>`).join('')}
     <form data-form="ext" data-k="${k}" class="chiprow" style="gap:4px"><input class="inp" name="e" placeholder="add…" aria-label="Add extension" autocapitalize="characters" maxlength="6"><button class="btn" type="submit">Add</button></form></div>`;
@@ -922,13 +958,19 @@ function dlgSettings(){
   <div class="sec"><h3>Loupe gestures ${qm('Q6')}</h3>
     <div class="setrow"><span>Swipe up</span>${act('swipeUp')}</div><div class="setrow"><span>Swipe down</span>${act('swipeDown')}</div>
     ${sw('autoAdvance', 'Auto-advance to the next undecided photo', 'After pick or reject, not after rating or colour label')}</div>
+  <div class="sec"><h3>Moving photos</h3><p class="hint">Name template for moved photos, relative to the chosen folder. All files of a photo, sidecars included, get the same new name.</p>
+    <div class="seg" role="radiogroup" aria-label="Template preset" style="flex-wrap:wrap">${TPL_PRESETS.map(([l, t], i) => `<button role="radio" aria-checked="${tplCur === t}" data-act="tplPreset" data-i="${i}">${esc(l)}</button>`).join('')}</div>
+    <input class="inp tpl" data-chg="tpl" value="${esc(tplCur)}" aria-label="Name template" spellcheck="false" autocapitalize="off" autocomplete="off">
+    <div id="tplPv">${tplPreview(tplCur)}</div>
+    <p class="hint" style="margin-top:8px">Tokens: <span class="mono">{date:%Y %m %d %j %H %M %S}</span>, <span class="mono">{camera}</span>, <span class="mono">{make}</span>, <span class="mono">{name}</span>, <span class="mono">{number:N}</span>, <span class="mono">{ext}</span>; <span class="mono">:lower</span> and <span class="mono">:upper</span> on text tokens. Only letters, digits, <span class="mono">. _ -</span> and <span class="mono">/</span>, never spaces.</p>
+    <div style="margin:10px 0 8px"><b style="font-size:13px">Favourite folders</b></div><div class="chiprow">${S.moveFav.map(p => `<span class="ext">★ ${esc(p.split('/').pop())}<button data-act="favDel" data-path="${esc(p)}" aria-label="Remove favourite ${esc(p)}">✕</button></span>`).join('') || '<span class="hint">None yet: add one in the move dialog.</span>'}</div></div>
   <div class="sec"><h3>Where decisions are stored ${qm('Q2')}</h3>
     <div class="seg" role="radiogroup" aria-label="Storage" style="flex-wrap:wrap">${[['db', 'App database'], ['xmp', 'XMP sidecars'], ['both', 'Both (recommended)']].map(([v, l]) => `<button role="radio" aria-checked="${s.storage === v}" data-act="setStorage" data-v="${v}">${l}</button>`).join('')}</div>
     <p class="hint" style="margin-top:8px">${s.storage === 'both' ? 'Database is the fast working state; every change is written through to XMP sidecars next to the RAW.' : s.storage === 'xmp' ? 'Sidecars are the only source of truth, so digiKam sees every change. Slower grid.' : 'Nothing is written next to your files.'}</p></div>`,
     `<button class="btn primary" data-act="closeDlg">Done</button>`, true);
 }
 function dlgKeys(){
-  const rows = [['0 – 5', 'Set rating'], ['P', 'Pick'], ['X', 'Reject'], ['U', 'Unflag'], ['6 7 8 9', 'Label red / yellow / green / blue (toggle)'], ['1 – 4', 'Choose the best photo when comparing a series'], ['Ctrl/⌘ + Z', 'Undo'], ['Shift + Ctrl/⌘ + Z', 'Redo'],
+  const rows = [['0 – 5', 'Set rating'], ['P', 'Pick'], ['X', 'Reject'], ['U', 'Unflag'], ['6 7 8 9', 'Label red / yellow / green / blue (toggle)'], ['1 – 4', 'Choose the best photo when comparing a series'], ['M', 'Move the selection, focused tile or current photo'], ['1 – 9', 'Move dialog: choose a favourite or recent folder'], ['Ctrl/⌘ + Z', 'Undo'], ['Shift + Ctrl/⌘ + Z', 'Redo'],
     ['Delete', 'Delete summary for the selection or focused tile'], ['Ctrl/⌘ + A', 'Select all (filtered)'], ['Shift + click', 'Select a range'], ['Arrow keys', 'Move focus in the grid, previous / next in the loupe'],
     ['Enter', 'Open the loupe'], ['F', 'Loupe without chrome (also double-tap)'], ['I', 'Loupe info panel'], ['Space', 'Loupe: fit / 100 %'], ['Ctrl + wheel, pinch', 'Grid: thumbnail size'], ['Esc', 'Close loupe / dialog / selection'], ['?', 'This sheet']];
   return dlgShell('Keyboard shortcuts', `<p style="margin-top:0;color:var(--muted)">In the grid they apply to the selection, or to the focused tile. In the loupe they apply to the current photo.</p><table class="sc">${rows.map(r => `<tr><td>${r[0].split(' ').map(k => k.length > 1 || /[A-Z0-9?]/.test(k) ? `<span class="kbd">${esc(k)}</span>` : esc(k)).join(' ')}</td><td>${esc(r[1])}</td></tr>`).join('')}</table>`, `<button class="btn primary" data-act="closeDlg">Close</button>`);
@@ -936,6 +978,173 @@ function dlgKeys(){
 function openDelete(ids){
   ids = ids.filter(i => S.byId.has(i)); if (!ids.length){ toast('Nothing to delete'); return; }
   openDlg({type:'del', ids});
+}
+
+/* ---------- moving: name templates ---------- */
+const TPL_TOKENS = {date:'fmt', name:'case', ext:'case', camera:'case', make:'case', number:'digits'};
+const SAFE = /^[A-Za-z0-9._-]$/, EXT = '\u0001';
+const charMsg = ch => /\s/.test(ch) ? 'Whitespace is not allowed; use - or _' : `"${ch}" is not allowed; use letters, digits, . _ - and /`;
+function parseTpl(t){
+  const parts = [], err = (i, msg) => ({err:msg, col:i + 1});
+  let lit = '';
+  const flush = () => { if (lit){ parts.push({lit}); lit = ''; } };
+  for (let i = 0; i < t.length;){
+    const c = t[i];
+    if (c === '{'){
+      if (t[i + 1] === '{') return err(i, 'Braces cannot be part of a file name');
+      const j = t.indexOf('}', i); if (j < 0) return err(i, 'This { is not closed');
+      const body = t.slice(i + 1, j), k = body.indexOf(':'), name = k < 0 ? body : body.slice(0, k), opt = k < 0 ? null : body.slice(k + 1), kind = TPL_TOKENS[name];
+      if (!kind) return err(i, `Unknown token {${body}}`);
+      if (kind === 'fmt'){
+        if (!opt) return err(i, '{date} needs a format, such as {date:%Y-%m-%d}');
+        for (let p = 0; p < opt.length; p++){
+          const at = i + 2 + k + p;
+          if (opt[p] === '%'){ if (!/[YymdjHMS]/.test(opt[p + 1] || '')) return err(at, `Unknown date code %${opt[p + 1] || ''}`); p++; }
+          else if (!SAFE.test(opt[p])) return err(at, opt[p] === '/' ? 'A date format cannot contain /; use a separate folder' : charMsg(opt[p]));
+        }
+      } else if (kind === 'case' ? opt !== null && opt !== 'lower' && opt !== 'upper' : opt !== null && !/^[1-6]$/.test(opt)) return err(i, `Unknown option in {${body}}`);
+      flush(); parts.push({tok:name, opt}); i = j + 1; continue;
+    }
+    if (c === '}') return err(i, 'This } has no matching {');
+    if (c === '/'){
+      if (i === 0) return err(i, 'A template cannot start with /');
+      flush(); const prev = parts[parts.length - 1];
+      if (!prev || prev.sep) return err(i, 'Empty folder name between two /');
+      parts.push({sep:true}); i++; continue;
+    }
+    if (!SAFE.test(c)) return err(i, charMsg(c));
+    lit += c; i++;
+  }
+  flush();
+  const segs = [[]]; parts.forEach(p => p.sep ? segs.push([]) : segs[segs.length - 1].push(p));
+  if (segs.some(s => s.length === 1 && (s[0].lit === '.' || s[0].lit === '..'))) return err(0, 'A folder cannot be . or ..');
+  const last = segs[segs.length - 1], e = last[last.length - 1], dot = last[last.length - 2];
+  if (!e || e.tok !== 'ext' || !dot || !dot.lit || !dot.lit.endsWith('.')) return err(t.length - 1, 'The name must end with .{ext}, so the files of a photo keep distinct names');
+  return {parts};
+}
+const TRANS = {ä:'ae', ö:'oe', ü:'ue', Ä:'Ae', Ö:'Oe', Ü:'Ue', ß:'ss'};
+function sanitize(v){
+  const s = String(v).replace(/[äöüÄÖÜß]/g, c => TRANS[c]).normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/\s+/g, '-').replace(/[^A-Za-z0-9._-]/g, '-').replace(/-{2,}/g, '-').replace(/^[-.]+|[-.]+$/g, '');
+  return s || 'unknown';
+}
+const pad = (n, w = 2) => String(n).padStart(w, '0');
+function fmtDate(ms, f){
+  const d = new Date(ms), y = d.getUTCFullYear(), doy = Math.floor((Date.UTC(y, d.getUTCMonth(), d.getUTCDate()) - Date.UTC(y, 0, 1)) / 864e5) + 1;
+  const v = {Y:y, y:pad(y % 100), m:pad(d.getUTCMonth() + 1), d:pad(d.getUTCDate()), j:pad(doy, 3), H:pad(d.getUTCHours()), M:pad(d.getUTCMinutes()), S:pad(d.getUTCSeconds())};
+  return f.replace(/%([YymdjHMS])/g, (_, c) => v[c]);
+}
+const caseIt = (s, o) => o === 'lower' ? s.toLowerCase() : o === 'upper' ? s.toUpperCase() : s;
+/* one string for all files of a photo; EXT marks where each file's extension goes */
+function renderPic(parts, p){
+  let out = '';
+  for (const x of parts){
+    if (x.sep) out += '/'; else if (x.lit) out += x.lit;
+    else if (x.tok === 'date') out += fmtDate(p.time ?? p.mtime, x.opt);
+    else if (x.tok === 'ext') out += EXT + (x.opt || '');
+    else if (x.tok === 'number'){
+      const m = p.base.match(/(\d+)$/); if (!m) return {err:'{number}: the original name does not end in a digit'};
+      out += x.opt ? m[1].slice(-x.opt).padStart(+x.opt, '0') : m[1];
+    } else out += caseIt(sanitize(x.tok === 'name' ? p.base : x.tok === 'camera' ? p.model || 'unknown' : p.make || 'unknown'), x.opt);
+  }
+  return {s:out};
+}
+const withExt = (s, ext) => s.replace(/\u0001(lower|upper)?/g, (_, o) => caseIt(sanitize(ext), o));
+const withSuffix = (s, n) => n > 1 ? s.replace(/\.(\u0001(?:lower|upper)?)$/, `-${n}.$1`) : s;
+/* pics: [{key, base, model, make, time, mtime, files:[{kind, ext, sub}]}]; taken: lower-case paths already in the target */
+function planNames(pics, tpl, taken, res = {}){
+  const parsed = parseTpl(tpl); if (parsed.err) return {err:parsed};
+  const used = new Set(), out = [];
+  const pathsOf = (s, files) => files.map(f => { const full = withExt(s, f.ext), cut = full.lastIndexOf('/'); return f.sub ? (cut < 0 ? '' : full.slice(0, cut + 1)) + f.sub + '/' + full.slice(cut + 1) : full; });
+  for (const p of pics){
+    const r = renderPic(parsed.parts, p);
+    if (r.err){ out.push({p, err:r.err}); continue; }
+    let n = 1; while (used.has(withSuffix(r.s, n).toLowerCase())) n++;
+    const dup = n > 1, clash = pathsOf(withSuffix(r.s, n), p.files).some(x => taken.has(x.toLowerCase()));
+    const how = clash ? res[p.key] || 'suffix' : null;
+    if (how === 'suffix') while (used.has(withSuffix(r.s, n).toLowerCase()) || pathsOf(withSuffix(r.s, n), p.files).some(x => taken.has(x.toLowerCase()))) n++;
+    const s = withSuffix(r.s, n); if (how !== 'skip') used.add(s.toLowerCase());
+    out.push({p, to:pathsOf(s, p.files), dup, clash, how, n, fromFile:p.time == null, noModel:!p.model});
+  }
+  return {rows:out};
+}
+
+/* ---------- moving: dialog ---------- */
+const moveTargets = () => [...S.moveFav.map(p => ({p, fav:true})), ...S.moveRecent.filter(p => !S.moveFav.includes(p)).map(p => ({p, fav:false}))].slice(0, 9);
+function picOf(it){
+  const sub = FOLDERS[S.folderPath] && FOLDERS[S.folderPath].mode === 'sub';
+  return {key:it.id, it, base:it.base, model:it.model, make:it.make, time:it.exifTime, mtime:it.mtime,
+    files:filesOf(it).map(f => ({kind:f.kind, from:f, ext:f.name.slice(it.base.length + 1), sub:sub ? f.dir.split('/').slice(-2, -1)[0] : null}))};
+}
+function movePlan(d){
+  const order = new Map(S.view.map((i, n) => [i.id, n]));
+  const pics = d.ids.map(i => S.byId.get(i)).filter(Boolean).sort((a, b) => (order.get(a.id) ?? 1e9) - (order.get(b.id) ?? 1e9)).map(picOf);
+  const taken = new Set(S.tfiles[d.target] || []);
+  if (S.mock.conflict && d.target === '/Photos/Archive' && pics.length){
+    const first = planNames(pics.slice(0, 1), S.settings.moveTemplate, new Set());
+    if (first.rows && first.rows[0].to) first.rows[0].to.forEach(x => taken.add(x.toLowerCase()));
+  }
+  return planNames(pics, S.settings.moveTemplate, taken, d.res);
+}
+function openMove(ids){
+  ids = ids.filter(i => S.byId.has(i)); if (!ids.length){ toast('Nothing to move'); return; }
+  closePop(); openDlg({type:'move', ids, target:null, res:{}});
+}
+function dlgMove(d){
+  const short = p => esc(p.split('/').pop()), parent = p => esc(p.split('/').slice(0, -1).join('/').replace('/Photos', '…') || '/');
+  const chips = moveTargets().map((t, n) => `<button class="tgt" data-act="mvTarget" data-path="${esc(t.p)}" aria-pressed="${d.target === t.p}" aria-label="${(t.fav ? 'Favourite ' : 'Recent ') + esc(t.p)} (key ${n + 1})"><span class="kbd">${n + 1}</span>${t.fav ? '★ ' : ''}${short(t.p)}<small>${parent(t.p)}</small></button>`).join('');
+  const nPics = d.ids.filter(i => S.byId.has(i)).length;
+  let body = `<div class="sec"><h3>To</h3><div class="chiprow">${chips}<button class="btn" data-act="mvBrowse">${ic('folder')}Browse…</button></div>
+    <p class="hint" style="margin-top:8px">${d.target ? `Moving to <b>${esc(d.target)}</b> <button class="btn ghost" data-act="mvFav" aria-pressed="${S.moveFav.includes(d.target)}">${S.moveFav.includes(d.target) ? '★ Favourite' : '☆ Add to favourites'}</button>` : 'Tap a folder or press 1–9. Favourites (★) first, then recent folders.'}</p></div>`;
+  let files = 0;
+  if (d.target){
+    const plan = movePlan(d), rows = plan.rows || [], conf = rows.filter(r => r.clash), moving = rows.filter(r => r.to && r.how !== 'skip');
+    files = moving.reduce((a, r) => a + r.to.length, 0);
+    const tag = (txt, warn) => `<span class="tagn ${warn ? 'warn' : ''}">${esc(txt)}</span>`;
+    const resSeg = (key, cur) => `<span class="seg" role="radiogroup" aria-label="On conflict">${[['suffix', 'Add suffix'], ['skip', 'Skip'], ['replace', 'Replace']].map(([v, l]) => `<button role="radio" aria-checked="${cur === v}" data-act="mvRes" data-id="${esc(key)}" data-v="${v}">${l}</button>`).join('')}</span>`;
+    body += `<div class="sumrow"><div class="stat"><b>${nPics}</b>photos</div><div class="stat"><b>${files}</b>files</div><div class="stat" ${conf.length ? 'style="background:var(--warn-bg)"' : ''}><b>${conf.length}</b>conflicts</div></div>
+    <p class="hint" style="margin:0 0 8px">Name template <span class="mono">${esc(S.settings.moveTemplate)}</span> · change it in Settings</p>
+    ${conf.length > 1 ? `<div class="row" style="margin:0 0 8px;gap:8px"><span>All conflicts:</span>${resSeg('*', conf.every(r => r.how === conf[0].how) ? conf[0].how : null)}</div>` : ''}
+    <div class="fl-list" tabindex="0" aria-label="Files that will be moved">${rows.map(r => {
+      const head = r.clash ? `<div class="conf"><span class="n"><b>${esc(r.p.base)}</b>: a file with this name is already in ${short(d.target)}</span>${resSeg(r.p.key, r.how)}</div>` : '';
+      if (r.err) return `<div><span class="k">—</span><span class="n">${esc(r.p.base)}<span class="bad"> cannot be named: ${esc(r.err)}</span></span></div>`;
+      const notes = (r.dup ? tag('-' + r.n + ': same name as another photo') : '') + (r.clash && r.how === 'suffix' ? tag('-' + r.n + ' added') : '') + (r.how === 'replace' ? tag('replaces the existing file', true) : '') + (r.fromFile ? tag('no EXIF time: file time') : '') + (r.noModel ? tag('no camera model: unknown') : '');
+      return head + r.p.files.map((f, k) => `<div style="${r.how === 'skip' ? 'opacity:.45' : ''}"><span class="k">${f.kind}</span><span class="n"><i>${esc(f.from.dir.replace('/Photos/', '…/'))}</i>${esc(f.from.name)}<br>${r.how === 'skip' ? 'skipped' : '→ <span class="mono">' + esc(r.to[k]) + '</span>'}${k === 0 ? notes : ''}</span><span>${fmtSize(f.from.size)}</span></div>`).join('');
+    }).join('')}</div>
+    <div class="note">${ic('move')}<span>Moved on the server: shares, tags, comments and decisions stay with the files. Undo moves them back${rows.some(r => r.how === 'replace') ? ', and replaced files come back from the trash bin' : ''}.</span></div>`;
+  }
+  return dlgShell(`Move ${nPics} ${nPics === 1 ? 'photo' : 'photos'}`, body,
+    `<button class="btn ghost" data-act="closeDlg">Cancel</button><button class="btn primary" data-act="mvConfirm" ${d.target && files ? '' : 'disabled'}>${ic('move')}Move ${files} files</button>`, true);
+}
+function doMove(d){
+  const rows = (movePlan(d).rows || []).filter(r => r.to && r.how !== 'skip');
+  if (!rows.length) return;
+  const m = {target:d.target, pics:rows.map(r => ({it:r.p.it, idx:S.items.indexOf(r.p.it)})), added:rows.flatMap(r => r.to.map(x => x.toLowerCase()))};
+  applyMove(m, 1);
+  S.moveRecent = [d.target, ...S.moveRecent.filter(p => p !== d.target)].slice(0, 5);
+  const desc = `Moved ${rows.length === 1 ? stem(rows[0].p.it) : rows.length + ' photos'} to ${d.target.split('/').pop()}`;
+  S.undo.push({desc, changes:[], move:m}); if (S.undo.length > 50) S.undo.shift(); S.redo.length = 0;
+  closeDlg(); renderHeader(); toast(desc, true);
+}
+function applyMove(m, dir){
+  const t = S.tfiles[m.target] || (S.tfiles[m.target] = new Set());
+  if (dir){
+    const gone = new Set(m.pics.map(x => x.it));
+    S.items = S.items.filter(i => !gone.has(i)); m.pics.forEach(x => { S.byId.delete(x.it.id); S.sel.delete(x.it.id); }); m.added.forEach(x => t.add(x));
+  } else {
+    [...m.pics].sort((a, b) => a.idx - b.idx).forEach(x => { S.items.splice(x.idx, 0, x.it); S.byId.set(x.it.id, x.it); }); m.added.forEach(x => t.delete(x));
+  }
+  S.folders[S.folderPath] = S.items; S.bursts = null;
+  if (S.loupe){ S.loupe.ids = S.loupe.ids.filter(i => S.byId.has(i)); if (!S.loupe.ids.length) closeLoupe(); else { S.loupe.idx = clamp(S.loupe.idx, 0, S.loupe.ids.length - 1); showLoupe(); } }
+  refreshView(); renderActionBar();
+}
+function tplPreview(t){
+  const p = planNames(TPL_SAMPLES.map((s, n) => ({...s, key:'s' + n, files:s.exts.map(ext => ({ext}))})), t, new Set());
+  if (p.err) return `<pre class="tpl-err" role="alert">${esc(t)}\n${' '.repeat(p.err.col - 1)}^ ${esc(p.err.err)}</pre><p class="hint" style="margin-top:6px">Not saved: moving keeps using the last valid template.</p>`;
+  const dups = p.rows.filter(r => r.dup).length;
+  return `<div class="pv" aria-label="Preview with five sample photos">${p.rows.map(r => `<div><span style="color:var(--muted)">${esc(r.p.base)}.${r.p.exts.join(' + .')} · ${esc(r.p.model || 'no EXIF')}</span><br>${r.err ? `<span class="bad">${esc(r.err)}</span>` : r.to.map(x => `<span class="mono">${esc(x)}</span>`).join('<br>')}
+    ${r.dup ? `<span class="tagn warn">collision: -${r.n} added</span>` : ''}${r.fromFile ? '<span class="tagn">no EXIF time: file time</span>' : ''}${r.noModel ? '<span class="tagn">no camera model: unknown</span>' : ''}</div>`).join('')}</div>
+    <p class="hint" style="margin-top:6px;color:${dups ? 'var(--warn-text)' : 'var(--ok)'}">${dups ? `${dups} of 5 sample photos collide with another one and get a -2, -3 suffix. Add {camera} and the time to the name to keep names unique.` : 'All 5 sample photos get unique names, even the two cameras that shot at the same second.'}</p>`;
 }
 
 /* ---------- loupe ---------- */
@@ -946,6 +1155,7 @@ function buildLoupe(){
     <div class="l-title"><b id="lName"></b><span id="lPair"></span><span class="gest" id="lGest"></span></div>
     <span class="l-count" id="lCount"></span>
     <button class="btn" data-act="zoomToggle" id="lZoomBtn" aria-label="Toggle fit and 100 percent">Fit</button>
+    <button class="btn" data-act="moveCur" aria-label="Move this photo">Move…</button>
     <button class="btn" data-act="infoToggle" id="lInfoBtn" aria-label="Toggle info panel" aria-pressed="${P0.infoOpen}">Info</button>
     <button class="icon-btn" data-act="filmToggle" id="lFilmBtn" aria-label="Toggle filmstrip" aria-pressed="true">${ic('film')}</button></div>
   <div class="l-main"><div id="stage"><div id="track"><div class="slide"></div><div class="slide"></div><div class="slide"></div></div>
@@ -1130,6 +1340,7 @@ function renderMock(){
     <div><b>Theme</b><div class="seg" role="radiogroup" aria-label="Theme">${['light', 'dark', 'auto'].map(t => `<button role="radio" aria-checked="${m.theme === t}" data-act="mockTheme" data-v="${t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('')}</div></div>
     <div><b>Device frame</b><div class="seg" role="radiogroup" aria-label="Device frame">${[['off', 'Off'], ['land', 'iPad landscape'], ['port', 'iPad portrait']].map(([v, l]) => `<button role="radio" aria-checked="${m.frame === v}" data-act="mockFrame" data-v="${v}">${l}</button>`).join('')}</div></div>
     <label class="chk"><input type="checkbox" data-chg="mockFail" ${m.fail ? 'checked' : ''}> Simulate a failed file on delete</label>
+    <label class="chk"><input type="checkbox" data-chg="mockConflict" ${m.conflict ? 'checked' : ''}> Simulate a name conflict when moving to Archive</label>
     <label class="chk"><input type="checkbox" data-chg="mockQ" ${m.showQ ? 'checked' : ''}> Show open questions</label>
     <button class="btn" data-act="mockDevice">Continue on another device</button>
     <button class="btn" data-act="mockReset">Reset mockup</button></div>` : ''}`;
@@ -1163,7 +1374,16 @@ const A = {
   settings(){ if ($('frame').clientWidth < 1000){ S.navOpen = false; $('frame').dataset.nav = 'closed'; } openDlg({type:'settings'}); },
   pkGo(el){ S.dlg.cwd = el.dataset.path; S.dlg.sel = null; renderDlg(); },
   pkSel(el){ S.dlg.sel = el.dataset.path; renderDlg(); },
-  pkChoose(){ const p = S.dlg.sel; if (p && FOLDERS[p]) loadFolder(p); },
+  pkChoose(){ const p = S.dlg.sel; if (S.dlg.forMove){ if (p && p !== S.folderPath) openDlg({...S.dlg.forMove, target:p}); return; } if (p && FOLDERS[p]) loadFolder(p); },
+  moveSel(){ openMove([...S.sel]); }, moveCur(){ openMove(targetIds()); },
+  moveView(){ openMove((filtersActive() ? S.view : S.items.filter(i => i.flag === 'pick')).map(i => i.id)); },
+  mvTarget(el){ S.dlg.target = el.dataset.path; renderDlg(); }, mvBack(){ openDlg(S.dlg.forMove); },
+  mvBrowse(){ const d = S.dlg; openDlg({type:'picker', cwd:d.target ? d.target.split('/').slice(0, -1).join('/') || '/' : '/Photos', sel:d.target, forMove:d}); },
+  mvFav(){ const t = S.dlg.target; S.moveFav = S.moveFav.includes(t) ? S.moveFav.filter(p => p !== t) : [...S.moveFav, t]; renderDlg(); },
+  mvRes(el){ const d = S.dlg, v = el.dataset.v; if (el.dataset.id === '*') (movePlan(d).rows || []).filter(r => r.clash).forEach(r => { d.res[r.p.key] = v; }); else d.res[el.dataset.id] = v; renderDlg(); },
+  mvConfirm(){ doMove(S.dlg); },
+  tplPreset(el){ const t = TPL_PRESETS[+el.dataset.i][1]; S.settings.moveTemplate = t; S.tplDraft = null; renderDlg(); },
+  favDel(el){ S.moveFav = S.moveFav.filter(p => p !== el.dataset.path); renderDlg(); },
   closeDlg(){ closeDlg(); }, q(el){ showQ(el.dataset.q, el); },
   selmode(){ setSelMode(!S.selMode); }, selAll(){ S.view.forEach(i => S.sel.add(i.id)); selChanged(); }, selNone(){ S.sel.clear(); selChanged(); },
   filters(){ S.filtersOpen = !S.filtersOpen; renderFilters(); renderToolbar(); },
@@ -1213,7 +1433,11 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('li[data-act]')){ e.preventDefault(); e.target.click(); }
 });
-document.addEventListener('input', e => { if (e.target.dataset && e.target.dataset.chg === 'tsize') setTileSize(+e.target.value, true); });
+document.addEventListener('input', e => {
+  const k = e.target.dataset && e.target.dataset.chg;
+  if (k === 'tsize') setTileSize(+e.target.value, true);
+  else if (k === 'tpl'){ const v = e.target.value; S.tplDraft = v; if (!parseTpl(v).err) S.settings.moveTemplate = v; $('tplPv').innerHTML = tplPreview(v); }
+});
 document.addEventListener('change', e => {
   const k = e.target.dataset && e.target.dataset.chg; if (!k) return;
   if (k === 'sort'){ S.sort = e.target.value; refreshView(); }
@@ -1221,6 +1445,7 @@ document.addEventListener('change', e => {
   else if (k === 'swipeUp' || k === 'swipeDown'){ S.settings[k] = e.target.value; if (S.loupe) renderLoupeChrome(); }
   else if (k === 'rawFolder' || k === 'jpgFolder') S.settings[k] = e.target.value.trim() || (k === 'rawFolder' ? 'RAW' : 'JPG');
   else if (k === 'mockFail') S.mock.fail = e.target.checked;
+  else if (k === 'mockConflict'){ S.mock.conflict = e.target.checked; if (S.dlg && S.dlg.type === 'move') renderDlg(); }
   else if (k === 'mockQ'){ S.mock.showQ = e.target.checked; document.body.classList.toggle('noq', !S.mock.showQ); closePop(); }
 });
 document.addEventListener('submit', e => {
@@ -1239,6 +1464,10 @@ document.addEventListener('keydown', e => {
   }
   if (k === '?' ){ e.preventDefault(); S.dlg && S.dlg.type === 'keys' ? closeDlg() : openDlg({type:'keys'}); return; }
   if (S.dlg && S.dlg.type === 'burst'){ if (/^[1-4]$/.test(k)){ const m = burstCurrent(S.dlg), it = m && m[+k - 1]; if (it){ e.preventDefault(); S.dlg.sel = it.id; renderDlg(); } } return; }
+  if (S.dlg && S.dlg.type === 'move'){
+    if (/^[1-9]$/.test(k)){ const t = moveTargets()[+k - 1]; if (t){ e.preventDefault(); S.dlg.target = t.p; renderDlg(); } }
+    else if (k === 'Enter' && tg.tagName !== 'BUTTON' && S.dlg.target){ e.preventDefault(); doMove(S.dlg); } return;
+  }
   if (S.dlg) return;
   if (mod && k.toLowerCase() === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (mod && k.toLowerCase() === 'y'){ e.preventDefault(); redo(); return; }
@@ -1262,6 +1491,7 @@ document.addEventListener('keydown', e => {
   if (lk === 'p'){ S.loupe ? loupeDecide('pick') : ids.length && change(ids, 'flag', 'pick'); return; }
   if (lk === 'x'){ S.loupe ? loupeDecide('reject') : ids.length && change(ids, 'flag', 'reject'); return; }
   if (lk === 'u'){ ids.length && change(ids, 'flag', 'none'); return; }
+  if (lk === 'm'){ e.preventDefault(); openMove(ids); return; }
   const lab = LABELS.find(l => l.key === k); if (lab){ ids.length && toggleLabel(ids, lab.id); return; }
   if (k === 'Delete' || k === 'Backspace'){ e.preventDefault(); openDelete(ids); }
 });

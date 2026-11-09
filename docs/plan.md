@@ -85,6 +85,12 @@ Groups pictures taken within a short interval and lets the owner pick the best o
 [Culling workflow](#culling-workflow), point 4). Own milestone after the core flow works; the
 mockup already shows it.
 
+### M7 – Moving pictures
+
+Moves one picture, the selection or a filter result into another Nextcloud folder, renamed by a
+name template (see [Moving pictures](#moving-pictures)). Decided by the owner on 2026-11-09; the
+mockup shows it.
+
 ## Culling workflow
 
 Decided by the owner on 2026-11-09 (answers Q7, Q11 and Q12). It is the owner's Lightroom Mobile
@@ -150,6 +156,49 @@ opened, by the Preview Generator app or an own background job. Imaginary is opti
 Where the work lands: M1.3 (cache-keyed URLs), M2.2 (tiers, virtualised grid), M3.1 (prefetch,
 `decode()` swap), M4.4 (README recommendation), and a new item for the background generation
 and the RAW preview extraction.
+
+## Moving pictures
+
+Decided by the owner on 2026-11-09. A *Move to…* action in the action bar, the toolbar and the
+loupe, on the key `M`.
+
+1. **What moves.** One picture, the selection, or a filter result (the toolbar's *Move picks*, or
+   *Move filtered* while a filter is on). Always the whole picture: RAW member, rendered member
+   and sidecars. All files of a picture get the same new base name.
+2. **Where to.** A target folder chosen with a folder picker. Favourite targets (★, set by the
+   user) and the 5 most recent targets are one-tap chips, and keys `1`–`9` in the dialog.
+3. **On the server.** The move runs through `OCP\Files` (`Node::move()`). On the same storage it
+   is a rename, so file ids, shares, tags, comments and decisions are kept. Across storages it
+   becomes copy and delete with new file ids; the move summary warns about it.
+4. **Move summary.** Before anything moves, the dialog lists every file with its new path, and
+   counts pictures, files and conflicts. A conflict (the target name already exists) is resolved
+   per picture or for all at once: *Add suffix* (default), *Skip* or *Replace*. *Replace* sends
+   the existing file to the trash bin.
+5. **Undo.** One undo step moves the files back to their old names; replaced files come back from
+   the trash bin.
+6. **Failures.** If one file of a picture fails, the picture's files already moved go back, and
+   the summary reports each file (as in M4.1). An ADR on the move API and pair atomicity comes
+   before M7.2.
+
+**Name template.** The rules are in [`05-name-templates.md`](05-name-templates.md). They use
+Framehive's template language (ADR 0004), so Framehive can adopt the same default. The default
+is
+
+```text
+{date:%Y}/{date:%Y-%m-%d}/{date:%H%M%S}_{camera}_{name}.{ext}
+→ 2026/2026-11-09/143205_X-T5_DSCF1234.RAF
+```
+
+The day is in the folders, so the file name does not repeat it; time to the second, camera
+model and original name keep it unique within its day folder. The template is a per-user
+setting with a live preview on 5 sample pictures. The preset *By day, full date in the name*
+(`…/{date:%Y%m%d-%H%M%S}_{camera}_{name}.{ext}`) is for people who move files out of the
+folder structure later, so each name still carries its date. A third preset keeps the names.
+
+**Follow-ups for Framehive** (not this repository): add the tokens `{camera}` and `{make}`
+(today an unknown token, IMPORT-001.10), the character rule (only `[A-Za-z0-9._-]`, no
+whitespace), the same default template, and one suffix numbering (honeycomb starts at `-2`,
+Framehive's IMPORT-003 at `-1`).
 
 ## Project structure
 
