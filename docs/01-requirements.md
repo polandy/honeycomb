@@ -27,8 +27,8 @@ The user picks a folder in their Nextcloud files; the app shows its images.
 ## 1.4 Review
 
 - A grid of thumbnails, each with a badge that shows whether the pair is complete.
-- A full-screen view: swipe to go to the next or previous picture, pinch to zoom, double-tap
-  for 100 %.
+- A full-screen view: swipe to go to the next or previous picture, pinch to zoom, a button or
+  Space for 100 %, double-tap or F for the view without chrome (2026-11-09).
 - Per picture, a decision by large button and by swipe gesture (for example up/down).
 - The JPEG is shown; only when there is no JPEG, the RAW's embedded preview.
 - Undo for the last decisions.
