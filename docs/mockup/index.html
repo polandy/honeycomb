@@ -108,6 +108,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .seg{display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--card)}
 .seg button{min-width:44px;min-height:44px;border:0;background:transparent;padding:0 12px;border-right:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .seg button:last-child{border-right:0}
+.seg .cmp{font-size:20px;font-weight:700;min-width:44px}
 .seg button[aria-pressed="true"],.seg button[aria-checked="true"]{background:var(--honey);color:var(--on-honey);font-weight:700}
 .sel-input{min-height:44px;border-radius:10px;border:1px solid var(--border);background:var(--card);padding:0 10px}
 .grow{flex:1}
@@ -719,11 +720,18 @@ const DE = {
   'Full path': 'Vollständiger Pfad',
   'At least %n star': ['Mindestens %n Stern', 'Mindestens %n Sterne'],
   'Exactly %n star': ['Genau %n Stern', 'Genau %n Sterne'],
+  'More than %n star': ['Mehr als %n Stern', 'Mehr als %n Sterne'],
+  'Fewer than %n star': ['Weniger als %n Stern', 'Weniger als %n Sterne'],
   'Rating comparison': 'Bewertungsvergleich',
   'At most %n star': ['Höchstens %n Stern', 'Höchstens %n Sterne'],
-  'At least': 'Mindestens',
-  'At most': 'Höchstens',
+  'More than': 'Mehr als',
   'Exactly': 'Genau',
+  'At least': 'Mindestens',
+  'Fewer than': 'Weniger als',
+  'At most': 'Höchstens',
+  'Rating comparison: {now}. Tap for: {next}': 'Bewertungsvergleich: {now}. Tippen für: {next}',
+  'No photo has more than 5 stars': 'Kein Foto hat mehr als 5 Sterne',
+  'No photo has fewer than 0 stars': 'Kein Foto hat weniger als 0 Sterne',
   'Colour': 'Farbe',
   'Pairing': 'Paarung',
   'Pairs': 'Paare',
@@ -1247,13 +1255,21 @@ function logoSVG(){
 }
 
 /* ---------- derived data ---------- */
+const RATING_OPS = {
+  gt:{sym:'>', test:(r, k) => r > k, one:'More than %n star', many:'More than %n stars', name:'More than', next:'gte'},
+  gte:{sym:'≥', test:(r, k) => r >= k, one:'At least %n star', many:'At least %n stars', name:'At least', next:'eq'},
+  eq:{sym:'=', test:(r, k) => r === k, one:'Exactly %n star', many:'Exactly %n stars', name:'Exactly', next:'lt'},
+  lt:{sym:'<', test:(r, k) => r < k, one:'Fewer than %n star', many:'Fewer than %n stars', name:'Fewer than', next:'lte'},
+  lte:{sym:'≤', test:(r, k) => r <= k, one:'At most %n star', many:'At most %n stars', name:'At most', next:'gt'},
+};
+function ratingImpossible(f){ return (f.rating === 5 && f.ratingOp === 'gt') ? t('No photo has more than 5 stars') : (f.rating === 0 && f.ratingOp === 'lt') ? t('No photo has fewer than 0 stars') : ''; }
 function filtersActive(){ const f = S.filters; return f.rating !== null || f.labels.size || f.flags.size || f.pairs.size || f.folders.size; }
 function activeFilterCount(){ const f = S.filters; return (f.rating !== null) + (f.labels.size > 0) + (f.flags.size > 0) + (f.pairs.size > 0) + (f.folders.size > 0); }
 function passes(it){
   const f = S.filters;
   if (!S.settings.showSingles && pairType(it) !== 'pair') return false;
   if (!f.flags.size && ((f.scope === 'notrej' && it.flag === 'reject') || (f.scope === 'undecided' && it.flag !== 'none'))) return false;
-  if (f.rating !== null && (f.ratingOp === 'gte' ? it.rating < f.rating : f.ratingOp === 'lte' ? it.rating > f.rating : it.rating !== f.rating)) return false;
+  if (f.rating !== null && !RATING_OPS[f.ratingOp].test(it.rating, f.rating)) return false;
   if (f.labels.size && !f.labels.has(it.label)) return false;
   if (f.flags.size && !f.flags.has(it.flag)) return false;
   if (f.pairs.size && !f.pairs.has(pairType(it))) return false;
@@ -1470,11 +1486,12 @@ function openPath(anchor){
 function renderFilters(){
   const el = $('filters'), f = S.filters;
   el.hidden = !S.filtersOpen || !S.folderPath; if (el.hidden) return;
-  const ratingText = k => f.ratingOp === 'gte' ? n('At least %n star', 'At least %n stars', k) : f.ratingOp === 'lte' ? n('At most %n star', 'At most %n stars', k) : n('Exactly %n star', 'Exactly %n stars', k);
+  const op = RATING_OPS[f.ratingOp], ratingText = k => n(op.one, op.many, k);
+  const cmpText = t('Rating comparison: {now}. Tap for: {next}', {now:t(op.name), next:t(RATING_OPS[op.next].name)});
   const ch = (act, val, label, on, extra = '') => `<button class="chip" data-act="${act}" data-v="${val}" aria-pressed="${on}" ${extra}>${label}</button>`;
   el.innerHTML = `
   <div class="fgroup"><span class="lbl">${t('Rating')}</span><div class="chips">
-    <div class="seg" role="group" aria-label="${t('Rating comparison')}"><button data-act="fOp" data-v="gte" aria-pressed="${f.ratingOp === 'gte'}" aria-label="${t('At least')}" ${tip(t('At least'))}>≥</button><button data-act="fOp" data-v="lte" aria-pressed="${f.ratingOp === 'lte'}" aria-label="${t('At most')}" ${tip(t('At most'))}>≤</button><button data-act="fOp" data-v="eq" aria-pressed="${f.ratingOp === 'eq'}" aria-label="${t('Exactly')}" ${tip(t('Exactly'))}>=</button></div>
+    <div class="seg"><button class="cmp" data-act="fOp" aria-label="${cmpText}" ${tip(cmpText)}>${op.sym}</button></div>
     ${[0, 1, 2, 3, 4, 5].map(k => ch('fRating', k, nf(k) + '★', f.rating === k, `aria-label="${ratingText(k)}" ${tip(ratingText(k))}`)).join('')}</div></div>
   <div class="fgroup"><span class="lbl">${t('Colour')}</span><div class="chips">
     ${LABELS.map(l => `<button class="chip sw" data-act="fLabel" data-v="${l.id}" aria-pressed="${f.labels.has(l.id)}" aria-label="${labelText(l.id)}" ${tip(labelText(l.id))}><span class="dotx" style="background:${l.hex}"></span></button>`).join('')}</div></div>
@@ -1514,7 +1531,7 @@ function renderGrid(){
   $('gridWrap').classList.toggle('selmode', S.selMode); g.classList.toggle('selmode', S.selMode);
   if (!S.folderPath){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">${t('No folder chosen')}</div>${t('Pick a folder to start culling.')}</div>`; return; }
   if (!S.view.length && S.items.length && !filtersActive() && S.filters.scope !== 'all'){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">${S.filters.scope === 'undecided' ? t('Every photo is decided') : t('No photos left to cull')}</div>${nRejText()}<br><br><button class="btn primary" data-act="delRejected" ${rejectedItems().length ? '' : 'hidden'}>${t('Review rejects')}</button> <button class="btn" data-act="scope" data-v="all">${t('Show all')}</button></div>`; return; }
-  if (!S.view.length){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">${t('Nothing matches these filters')}</div>${multiFolder() ? t('{items} in {folders}.', {items:n('%n item', '%n items', S.items.length), folders:n('%n folder', '%n folders', S.set.folders.length)}) : t('{items} in this folder.', {items:n('%n item', '%n items', S.items.length)})}<br><br><button class="btn" data-act="fClear">${t('Clear filters')}</button></div>`; return; }
+  if (!S.view.length){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">${t('Nothing matches these filters')}</div>${ratingImpossible(S.filters) ? ratingImpossible(S.filters) + '.<br>' : ''}${multiFolder() ? t('{items} in {folders}.', {items:n('%n item', '%n items', S.items.length), folders:n('%n folder', '%n folders', S.set.folders.length)}) : t('{items} in this folder.', {items:n('%n item', '%n items', S.items.length)})}<br><br><button class="btn" data-act="fClear">${t('Clear filters')}</button></div>`; return; }
   const frag = document.createDocumentFragment();
   io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting){ io.unobserve(e.target); thumbQueue.push(e.target); } pumpThumbs(); }, {root:$('gridWrap'), rootMargin:'500px 0px'});
   const heads = S.groupFolder && multiFolder(); let last = null;
@@ -2389,7 +2406,7 @@ const A = {
   closeDlg(){ closeDlg(); },
   selmode(){ setSelMode(!S.selMode); }, selAll(){ S.view.forEach(i => S.sel.add(i.id)); selChanged(); }, selNone(){ S.sel.clear(); selChanged(); },
   filters(){ S.filtersOpen = !S.filtersOpen; renderFilters(); renderToolbar(); },
-  fOp(el){ S.filters.ratingOp = el.dataset.v; refreshView(); },
+  fOp(){ S.filters.ratingOp = RATING_OPS[S.filters.ratingOp].next; refreshView(); },
   fRating(el){ const v = +el.dataset.v; S.filters.rating = S.filters.rating === v ? null : v; refreshView(); },
   fLabel(el){ toggleSet(S.filters.labels, el.dataset.v); refreshView(); },
   fFlag(el){ toggleSet(S.filters.flags, el.dataset.v); refreshView(); },

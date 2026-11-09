@@ -621,10 +621,15 @@ Where the work lands: M1.3 (pairing), M4.3 (settings).
 
 Answered by the owner on 2026-11-09 (Q8, Q9, Q10, Q13, Q18).
 
-1. **Rating filter.** "At least N" by default, with a three-way toggle *≥ / ≤ / =* for "at least",
-   "at most" (to find weak 1–2 star shots) and "exactly N" (owner, 2026-11-09, mockup v14). The
-   toggle is one 44 px segment beside the 0–5 chips, so the group wraps inside the filter panel
-   on the Pixel 9 Pro. The panel keeps an 8 px gap below the bar above it.
+1. **Rating filter.** One 44 px button beside the 0–5 chips. Each tap cycles the comparison
+   *> → ≥ → = → < → ≤ → >* ("more than", "at least", "exactly", "fewer than", "at most"); the
+   default is *≥*, "at least N" (owner, 2026-11-09, mockup v15). The button shows the current
+   symbol; its label and tooltip name the current and the next comparison, and it is a plain
+   button, so Enter and Space work. *More than 5* and *fewer than 0* match nothing: the grid
+   shows the empty state with the reason ("No photo has more than 5 stars"), not a disabled
+   chip. One button is narrower than the old three-way segment, so it fits every reference
+   device, and the group still wraps inside the filter panel on the Pixel 9 Pro. The panel keeps
+   an 8 px gap below the bar above it.
 2. **Combining filters.** OR within a group, AND across groups, e.g. *red or green* and *at
    least 3 stars*. The filter bar is a collapsible bar on top of the grid; a side panel would
    cost too much width in iPad portrait.
@@ -837,8 +842,8 @@ Answered 2026-11-09: (a), to the next undecided picture, with a setting. See
 
 (a) "at least N", with a toggle to "exactly N"; (b) exactly N only. **Answered by the owner on
 2026-11-09:** (a). See [Grid, filters and sort](#grid-filters-and-sort).
-**Extended by the owner on 2026-11-09 (mockup v14):** also "at most N", so the toggle is
-*≥ / ≤ / =*.
+**Extended by the owner on 2026-11-09 (mockup v15):** one button cycles *> → ≥ → = → < → ≤*, default
+*≥*. The owner may still drop *>* and *<*, which are redundant with *≥* and *≤* for whole stars.
 
 ### Q9 – Filter combination and placement
 
