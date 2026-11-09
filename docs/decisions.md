@@ -25,3 +25,28 @@ choices get an ADR in [`adr/`](adr/) instead.
   it is a dev tool on our own files, and the only fix npm offers is a downgrade to ESLint 9.
 - 2026-11-10 (M1.1): The empty main page loads no script yet; the Vue build and its script tag
   come with M2.1.
+- 2026-11-10 (pr-review): The skill adopts what the review skills of Stella, JIT-Pack and
+  framehive share — tier first, diff before files, the test table against the diff, findings as
+  ✅ ⚠️ 🔧, merge `main` in rather than rebase, one `## 🤖 PR quality review` comment replaced with
+  `--edit-last` — because three projects converged on it.
+- 2026-11-10 (pr-review): Three tiers, Light, Standard and Full, with the Full depth in
+  `references/full-tier.md` (Stella), so a contained change does not pay for the deep checks.
+  Stella's *None* tier for docs-only changes is dropped: the orchestrator's merge gate needs a
+  verdict on every pull request.
+- 2026-11-10 (pr-review): The review runs in a forked context (JIT-Pack), so it does not grade
+  the author's intentions and does not pay for the author's context.
+- 2026-11-10 (pr-review): The verdict lists four gates — CI, e2e, test first, failure paths —
+  before *Merge readiness*, and `ready` needs each green or `n/a`, because the owner's merge rule
+  names them. e2e is `n/a` until `tests/e2e/` exists; from then on a spec CI does not run blocks.
+- 2026-11-10 (pr-review): Test-first evidence is the commit order in Standard and Full, plus a
+  mutation proof of the headline case in Full (JIT-Pack, Stella): the order shows intent, only a
+  red run proves the test can fail.
+- 2026-11-10 (pr-review): Stella's delivery loop (e2e only after the owner's manual check) is not
+  adopted: the signed-off mockup is the UX spec, the owner reviews by screenshots, and the merge
+  rule wants e2e in CI as soon as it exists.
+- 2026-11-10 (pr-review): JIT-Pack's breaking-change check stays, aimed at what honeycomb leaves
+  behind: stored rows (additive migrations) and XMP sidecars that other programs read.
+- 2026-11-10 (pr-review): Dropped as specific to the source projects: Stella's access layer,
+  Drizzle and journal rules; JIT-Pack's package-boundary test, run modes, sync API and autoformat
+  job; framehive's spec markers and `xtask`. No `ci-failures` script yet: `gh run view
+  --log-failed` through a subagent until reading red logs repeats often enough to earn one.
