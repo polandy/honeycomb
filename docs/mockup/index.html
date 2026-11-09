@@ -102,7 +102,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .crumbs button:last-of-type{font-weight:700}
 .crumbs .sep{color:var(--muted)}
 .seg{display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--card)}
-.seg button{min-width:44px;min-height:44px;border:0;background:transparent;padding:0 12px;border-right:1px solid var(--border)}
+.seg button{min-width:44px;min-height:44px;border:0;background:transparent;padding:0 12px;border-right:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .seg button:last-child{border-right:0}
 .seg button[aria-pressed="true"],.seg button[aria-checked="true"]{background:var(--honey);color:var(--on-honey);font-weight:700}
 .sel-input{min-height:44px;border-radius:10px;border:1px solid var(--border);background:var(--card);padding:0 10px}
@@ -383,7 +383,6 @@ main{overflow:hidden}
 .ib .badge-n{position:absolute;top:1px;right:1px;min-width:18px;height:18px;font-size:11px;padding:0 4px;border-radius:9px}
 .slim{position:relative;display:flex;align-items:center;gap:4px;min-height:44px}
 .slim .seg button{padding:0 9px;white-space:nowrap}
-.seg .sl{margin-left:6px}
 @container app (max-width:520px){.seg .sl{display:none}}
 .chip svg.ic{width:16px;height:16px;margin-right:4px;vertical-align:-3px}
 .swipe-hint svg.ic{width:20px;height:20px;vertical-align:-5px;margin-right:4px}
@@ -1532,7 +1531,7 @@ function bindGrid(){
   const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
   w.addEventListener('touchstart', e => { if (e.touches.length === 2){ d0 = dist(e.touches); ts0 = S.ts; } }, {passive:true});
   w.addEventListener('touchmove', e => { if (e.touches.length === 2 && d0){ e.preventDefault(); setTileSize(clamp(ts0 * dist(e.touches) / d0, 90, 340), true); } }, {passive:false});
-  w.addEventListener('touchend', e => { if (e.touches.length < 2) d0 = 0; renderToolbar(); });
+  w.addEventListener('touchend', e => { if (d0 && e.touches.length < 2){ d0 = 0; renderToolbar(); } });
   w.addEventListener('scroll', () => { if (!S.bar || P0.barOff || !S.folderPath) return; S.bar = followScroll(S.bar, w.scrollTop, barHeight(), w.scrollHeight - w.clientHeight); applyBar(); }, {passive:true});
   $('toolbar').addEventListener('focusin', () => { if (S.bar && S.bar.hidden){ S.bar = {...S.bar, hidden:false}; applyBar(); } });
   w.addEventListener('wheel', e => { if (e.ctrlKey){ e.preventDefault(); setTileSize(clamp(S.ts * Math.exp(-e.deltaY * .01), 90, 340), true); } }, {passive:false});
