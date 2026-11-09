@@ -473,8 +473,9 @@ too large. Controls are sized by input type, not one touch size everywhere:
 
 - The fine sizes follow Nextcloud's own web UI (`--default-clickable-area` 34 px, header 50 px),
   so honeycomb sits in it without standing out.
-- The primary pointer decides: an iPad with a trackpad keeps touch sizes, because a finger can
-  still reach for the screen. A change of pointer (a tablet docked to a mouse) re-sizes at once.
+- The primary pointer decides (`pointer` and `hover`, not `any-pointer`), so a touch screen keeps
+  touch sizes while touch is its primary input. What iPadOS Safari reports with a trackpad
+  attached is to be checked on a device. When the media query changes, the sizes follow at once.
 - Every size comes from the two tokens or from the one fine-pointer block; a component never
   hard-codes 44 px. The Vue app maps them to Nextcloud's CSS variables.
 - Coarse targets stay at least 44 × 44 px ([Reference devices](#reference-devices), rule 3).
