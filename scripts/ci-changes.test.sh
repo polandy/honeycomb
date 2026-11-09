@@ -23,7 +23,7 @@ expect composer-lock "markdown=false php=true ts=false app=true" composer.lock
 expect ts-only "markdown=false php=false ts=true app=true" src/logic/pairing.ts
 expect npm-lock "markdown=false php=false ts=true app=true" package-lock.json
 expect e2e-only "markdown=false php=false ts=false app=true" tests/e2e/grid.spec.ts
-expect info-xml "markdown=false php=false ts=false app=true" appinfo/info.xml
+expect info-xml "markdown=false php=true ts=false app=true" appinfo/info.xml
 expect workflow "markdown=true php=true ts=true app=true" .github/workflows/ci.yml
 expect verify-script "markdown=true php=true ts=true app=true" scripts/verify.sh
 expect markdownlint-config "markdown=true php=false ts=false app=false" .markdownlint-cli2.jsonc

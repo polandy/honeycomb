@@ -69,6 +69,8 @@ commit body, word for word. So:
 
 ## 2.6 CI and review
 
+- Jobs whose paths a pull request does not touch are skipped (`scripts/ci-changes.sh`); the
+  required check is `CI gate`, which treats a skip as passed. Decisions: `decisions.md`.
 - Wait for CI with one `gh pr checks <n> --watch` in the background, never by polling.
 - When CI is red, read only the failed steps (`gh run view <run> --log-failed`), fix the cause on
   the branch and push again. Never re-run a red job unchanged.
