@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!--
+  - SPDX-FileCopyrightText: 2026 honeycomb contributors
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<psalm
+	errorLevel="1"
+	findUnusedBaselineEntry="true"
+	findUnusedCode="true"
+	phpVersion="8.3"
+	resolveFromConfigFile="true"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="https://getpsalm.org/schema/config"
+	xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+>
+	<projectFiles>
+		<directory name="lib"/>
+		<directory name="templates"/>
+	</projectFiles>
+	<!-- Psalm reports the closures of the inherited OCP Controller constructor. -->
+	<issueHandlers>
+		<InvalidTemplateParam>
+			<errorLevel type="suppress">
+				<directory name="vendor"/>
+			</errorLevel>
+		</InvalidTemplateParam>
+		<MissingClosureParamType>
+			<errorLevel type="suppress">
+				<directory name="vendor"/>
+			</errorLevel>
+		</MissingClosureParamType>
+		<MissingClosureReturnType>
+			<errorLevel type="suppress">
+				<directory name="vendor"/>
+			</errorLevel>
+		</MissingClosureReturnType>
+		<MixedArgument>
+			<errorLevel type="suppress">
+				<directory name="vendor"/>
+			</errorLevel>
+		</MixedArgument>
+	</issueHandlers>
+</psalm>

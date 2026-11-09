@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] M1.1: App skeleton — `appinfo/info.xml` (Nextcloud 35 only, PHP 8.3+), `composer.json` with php-cs-fixer, psalm, PHPUnit; `Application`; empty page; `package.json` with TypeScript, eslint, Vitest and the coverage gate (logic 95 % lines / 90 % branches); PHP jobs on PHP 8.3 and 8.5 against Nextcloud 35 and TypeScript jobs in CI and `scripts/verify.sh`; `info.xml` and `package.json` in release-please extra files; composer and npm in Dependabot (2026-11-09)
 - [ ] M1.2: Listing backend — one file-cache query by path prefix and mime type, flat entries (file id, path, size, mtime, ETag, mime type, EXIF basics) of the user's folder set — `?subfolders=1` skips hidden, trash and preview folders, cap 20,000 (`docs/plan.md` Multiple folders) — no pairing on the server; PHPUnit incl. foreign path, vanished folder, no permission; 2,000+ pairs without stalls (ADR 0006) (2026-11-09)
 - [ ] M1.3: Pairing module in TypeScript — case, several dots, singles, sidecars, ambiguity (Q14), separate subfolders (Q16), extension lists (Q15); Vitest on test vectors shared with Framehive (LIBRARY-001) (2026-11-09)
 - [ ] M2.1: Frontend skeleton — Vue, `@nextcloud/vue`, `@nextcloud/vite-config` build; `@nextcloud/l10n` and the checks that no user-visible string bypasses `t()` (ADR 0007); Playwright e2e against a real Nextcloud container (no timing waits); build and e2e jobs in CI and `scripts/verify.sh` (2026-11-09)

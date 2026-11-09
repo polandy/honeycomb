@@ -101,5 +101,5 @@ Agents never merge. The owner, or the orchestrator acting for them, squash-merge
 
 release-please opens a release pull request from the Conventional Commits on `main` and keeps
 `CHANGELOG.md`. `feat` bumps the minor and `fix` the patch version while the version is below
-1.0. Once `appinfo/info.xml` and `package.json` exist, they join `release-please-config.json` as
-extra files so their versions move with the release.
+1.0. `appinfo/info.xml` and `package.json` are extra files in `release-please-config.json`, so
+their versions move with the release; a PHPUnit test keeps the two equal.
