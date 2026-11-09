@@ -242,7 +242,7 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    x, *Picked* a filled white flag and *Unflagged* an empty flag outline. The scope buttons use
    a crossed reject flag for *Not rejected*, the empty flag for *Undecided* and a grid for *All*.
    The same icons mark the tiles, the loupe, the bulk actions, the flag filter and the series
-   viewer. The words stay as `title` and `aria-label`; targets stay 44 px.
+   viewer. The words stay as `aria-label` and a [tooltip](#tooltip); targets stay 44 px.
 4. **Series viewer.** Tapping a photo of a series opens it fullscreen at once, the whole series
    preloaded. Swipe pages between the photos (arrow buttons and keys also work, also while
    zoomed). *Pick this, reject the rest* is in the viewer, one undo step. The controls fade out
