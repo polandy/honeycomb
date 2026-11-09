@@ -1,0 +1,267 @@
+# Implementation plan
+
+The plan the brief asks for ([`01-requirements.md`](01-requirements.md) §1.7): milestones,
+project structure, target versions and open questions. `TODO.md` lists the milestones as
+PR-sized items in this order. As of 2026-11-09.
+
+## Milestones
+
+Each milestone ends with a usable state on `main`. Milestones M1–M4 follow the brief's order:
+backend pairing, grid, full-screen review, deleting and settings.
+
+### M0 – Mockup sign-off
+
+The interactive mockup [`mockup/index.html`](mockup/index.html) (ADR 0003) shows the whole flow:
+folder picker, grid with pair badges, filter bar, multi-select with bulk actions, loupe with
+swipe and zoom, keyboard shortcuts, undo, delete summary and settings. The owner tries it on the
+iPad, answers the open questions below, and the mockup is updated until the owner signs it off.
+The answers go into ADRs and into this file; the question markers disappear from the mockup.
+
+Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs the app icon.
+
+### M1 – App skeleton and backend pairing
+
+1. **Skeleton:** `appinfo/info.xml` with the versions from Q1, `composer.json` with
+   php-cs-fixer, psalm and PHPUnit, the `Application` class, an empty main page, the PHP jobs in
+   CI and `scripts/verify.sh`, `info.xml` in release-please's extra files.
+2. **Pairing service:** pure PHP that groups a list of file entries (path, size, mtime) into
+   pictures. PHPUnit tests first, ported as test cases from Framehive's LIBRARY-001 and the
+   brief: names differing only in case, several dots in a file name, singles (JPEG only, RAW
+   only), sidecars, ambiguous members (Q14), separate subfolders (Q16), configurable extension
+   lists (Q15).
+3. **Folder API:** `GET /api/v1/folders/{path}/pictures?offset&limit&filter…` lists the
+   pictures of a folder through `IRootFolder` with the user's permissions, paginated so 2,000+
+   pairs load without stalls. Tests with `OCP\Files` mocks.
+
+### M2 – Grid view
+
+1. **Frontend skeleton:** Vue, `@nextcloud/vue`, Vite through `@nextcloud/vite-config`, eslint,
+   Vitest, the JS jobs in CI and `scripts/verify.sh`.
+2. **Folder picker and grid:** `@nextcloud/dialogs` file picker, a virtual-scrolling grid with
+   preview-API thumbnails and pair badges, light and dark.
+3. **Decision storage:** the table(s) and API for rating, colour label and flag per picture and
+   user (Q2), so culling can stop and resume.
+4. **Filter bar:** rating, colour label, flag and pairing filters, applied on the server for
+   large folders (Q8, Q9).
+5. **Selection and bulk actions:** selection mode, select all filtered, bulk rate, label and flag
+   (Q10).
+
+### M3 – Full-screen review (loupe)
+
+1. **Loupe:** the JPEG (or the RAW's embedded preview) full screen, swipe to page, pinch zoom,
+   double-tap 100 %, preloading of the next pictures (Q19).
+2. **Decisions in the loupe:** large pick and reject buttons, vertical swipe (Q6), rating and
+   colour label controls, auto-advance (Q7).
+3. **Keyboard shortcuts and undo:** 0–5, P/X/U, colour keys (Q5), undo and redo (Q12), the
+   shortcut sheet.
+
+### M4 – Deleting and settings
+
+1. **Delete service:** deletes the members and sidecars of each picture through `OCP\Files` into
+   the trash bin; a failure is reported per file and leaves a traceable state. An ADR first on
+   what "atomic" means for a pair. Tests for every failure path.
+2. **Delete summary:** the dialog with files, size and the trash-bin note, from the selection and
+   from "delete rejected" (Q11).
+3. **Settings:** per user — RAW and rendered extensions, folder mode, show singles, gesture
+   mapping, auto-advance.
+4. **README:** installation, features, screenshot placeholders; `camerarawpreviews` as a
+   recommended app.
+
+### M5 – XMP sidecars (if Q2 says so)
+
+Read existing sidecars when a folder is listed and write ratings, colour labels and flags to
+them in digiKam's fields, so digiKam on the desktop sees the decisions.
+
+## Project structure
+
+The standard Nextcloud app layout; folders appear with the milestone that needs them.
+
+```text
+honeycomb/
+├── appinfo/info.xml            app id `honeycomb`, versions (Q1), navigation entry
+├── lib/
+│   ├── AppInfo/Application.php
+│   ├── Controller/             PageController, PictureController, DecisionController,
+│   │                           DeleteController, SettingsController (thin)
+│   ├── Service/
+│   │   ├── Pairing/            pure pairing logic, no OCP dependency
+│   │   ├── FolderService.php   lists a folder through IRootFolder
+│   │   ├── DecisionService.php rating, colour label, flag per user
+│   │   ├── DeleteService.php   members + sidecars into the trash bin
+│   │   └── SettingsService.php per-user settings (IConfig user values)
+│   ├── Db/                     entities and QBMapper classes
+│   ├── Migration/              database migrations
+│   └── Xmp/                    sidecar reader/writer (M5)
+├── src/                        Vue: main.js, App.vue, views/, components/, store/ (Pinia)
+├── templates/main.php          mounts the Vue app
+├── tests/php/Unit/, tests/js/  PHPUnit, Vitest
+├── img/app.svg, img/app-dark.svg
+├── l10n/                       translations (Transifex later)
+├── docs/                       this documentation, the mockup, ADRs
+├── assets/brand/               logo sources and generate.py
+├── scripts/verify.sh           every CI check locally
+├── composer.json, package.json, psalm.xml, .php-cs-fixer.dist.php, phpunit.xml, vite.config.js
+└── CLAUDE.md, TODO.md, REUSE.toml, LICENSES/
+```
+
+## Target versions
+
+Checked on 2026-11-09 against the sources below.
+
+| Nextcloud | Released | End of life | PHP supported | PHP recommended |
+|---|---|---|---|---|
+| 35 (Hub 26 Summer), latest 35.0.2 | 2026-09-16 | 2027-09 | 8.3 – 8.5 | 8.5 |
+| 34 (Hub 26 Spring), latest 34.0.5 | 2026-06-09 | 2027-06 | 8.2 – 8.5 | — |
+| 33 (Hub 26 Winter), latest 33.0.10 | 2026-02-18 | 2027-02 | 8.2 – 8.5 | — |
+| 36 (Hub 27 Winter), in development | planned 2027-02-17 | — | 8.3 – 8.5 (master today) | — |
+
+Sources:
+
+- Release dates, end of life and current point releases: the [Maintenance and Release
+  Schedule](https://github.com/nextcloud/server/wiki/Maintenance-and-Release-Schedule) and the
+  [server releases](https://github.com/nextcloud/server/releases) (35.0.2, 34.0.5 and 33.0.10
+  on 2026-10-15; 35.0.3 RC1 on 2026-11-05).
+- Supported PHP range: the `PHP_VERSION_ID` checks in `lib/versioncheck.php` of
+  [stable33](https://github.com/nextcloud/server/blob/stable33/lib/versioncheck.php),
+  [stable34](https://github.com/nextcloud/server/blob/stable34/lib/versioncheck.php),
+  [stable35](https://github.com/nextcloud/server/blob/stable35/lib/versioncheck.php) and
+  [master](https://github.com/nextcloud/server/blob/master/lib/versioncheck.php): minimum
+  8.2.0 (33, 34) or 8.3.0 (35, master), refused from 8.6.0.
+- Recommended PHP: the [system requirements of the stable35 admin
+  manual](https://github.com/nextcloud/documentation/blob/stable35/admin_manual/installation/system_requirements.rst)
+  list 8.3, 8.4 and **8.5 (recommended)**.
+
+Which of them honeycomb supports is Q1.
+
+## Open questions
+
+Each has a recommendation. Questions marked **(mockup)** have a numbered marker in the mockup
+that shows them in place. The owner answers here or in a `needs-owner` issue; an answer becomes
+an ADR or a line in this plan.
+
+### Q1 – Which Nextcloud versions to support
+
+(a) only 35, PHP 8.3+; (b) 34 and 35, PHP 8.2+; (c) 33 to 35, PHP 8.2+.
+**Recommendation: (b)** — covers a server one major behind at no extra cost (same PHP floor as
+33, which reaches end of life before a first release is likely). CI tests PHP 8.2 and 8.5;
+`max-version` moves to 36 when it ships.
+
+### Q2 – Where ratings, colour labels and flags are stored
+
+digiKam compatibility matters, so the options are judged by whether digiKam on the desktop sees
+the decisions.
+
+- (a) **App database only** — fast, per user, resumable; digiKam sees nothing.
+- (b) **XMP sidecars only** — digiKam reads them (with "read from sidecar" enabled); every
+  decision is a file write through `OCP\Files`, slow for bulk actions on 2,000 pictures, and
+  shared folders share one set of decisions.
+- (c) **Both:** the database is the fast working state; decisions are written through to the
+  sidecars of each member in the background or on an explicit "write to sidecars", and existing
+  sidecars are read when a folder is first listed.
+- Nextcloud's collaborative tags are not an option: they are visible to every user and are not
+  read by digiKam.
+
+**Recommendation: (c)**, database first (M2), sidecars as M5. digiKam's fields, from its source
+(`DMetadata` in `core/libs/metadataengine/dmetadata/`): rating `xmp:Rating` (0–5), colour label
+`digiKam:ColorLabel` (0 none, 1 red, 2 orange, 3 yellow, 4 green, 5 blue, 6 magenta, 7 gray,
+8 black, 9 white) and `xmp:Label` as text, pick label `digiKam:PickLabel` (0 none, 1 rejected,
+2 pending, 3 accepted). Unknown XMP fields are kept when a sidecar is rewritten.
+
+### Q3 – Sidecar file names
+
+digiKam writes `DSC_0412.NEF.xmp` by default and `DSC_0412.xmp` with its "compatible file name"
+option (the Adobe convention; Framehive's default). **Recommendation:** read both; write the
+name that already exists, else digiKam's default `<file>.xmp` per member. Deleting removes both
+forms.
+
+### Q4 – Flag model (mockup)
+
+(a) three states: picked, rejected, unflagged, mapped to digiKam's Accepted, Rejected, None;
+(b) digiKam's four states including Pending; (c) the brief's binary keep/discard.
+**Recommendation: (a).**
+
+### Q5 – Colour labels and keys (mockup)
+
+(a) digiKam's nine colours in a palette, keys 6–9 for red, yellow, green, blue; (b) Lightroom's
+five only. **Recommendation: (a).**
+
+### Q6 – Vertical swipe in the loupe (mockup)
+
+(a) up = pick, down = reject; (b) up = reject, down = pick; (c) off by default.
+**Recommendation: (a)**, configurable in the settings as the brief asks.
+
+### Q7 – Advance after a decision (mockup)
+
+(a) auto-advance after pick or reject, not after rating or label; (b) never; (c) always.
+**Recommendation: (a)**, with a setting.
+
+### Q8 – Rating filter (mockup)
+
+(a) "at least N", with a toggle to "exactly N"; (b) exactly N only. **Recommendation: (a).**
+
+### Q9 – Filter combination and placement (mockup)
+
+(a) OR within a group, AND across groups, a collapsible bar on top; (b) a side panel like
+digiKam's right sidebar. **Recommendation: (a)** — a side panel costs too much width in iPad
+portrait.
+
+### Q10 – Entering multi-select by touch (mockup)
+
+(a) a "Select" button and long-press on a tile; (b) the button only. **Recommendation: (a).**
+
+### Q11 – What can be deleted (mockup)
+
+(a) the current selection, and a "Delete rejected" shortcut, both through the same delete
+summary; (b) only rejected pictures. **Recommendation: (a).**
+
+### Q12 – Undo scope (mockup)
+
+(a) ratings, colour labels and flags are undoable in the session (last 50 steps); deleting is
+not undone in the app but restored from the Nextcloud trash bin, which the result message links
+to; (b) also an in-app "restore" after deleting. **Recommendation: (a).**
+
+### Q13 – Grid tile overlays (mockup)
+
+(a) stars, colour label and flag always visible on every tile; (b) only on the focused tile and
+in the loupe. **Recommendation: (a)** — without hover, (b) hides the state on touch.
+
+### Q14 – Pairing case and ambiguity
+
+The brief compares base names case-insensitively (Framehive: case-sensitively). With
+`A.JPG`, `A.jpg` and `A.NEF` there is no unique partner. **Recommendation:** case-insensitive as
+the brief says; an ambiguous base name makes every file a single and shows a warning.
+
+### Q15 – Rendered file types
+
+(a) JPEG only (`jpg`, `jpeg`); (b) also HEIF (`heic`, `heif`, `hif`) and TIFF.
+**Recommendation: (b)** as a configurable list like the RAW extensions, default `jpg, jpeg, heic,
+heif, hif`; HEIF previews depend on the server's preview providers.
+
+### Q16 – Separate subfolders
+
+**Recommendation:** off by default. When on, the user names the RAW and the rendered subfolder
+(default `RAW` and `JPG`, case-insensitive); pictures pair across the two subfolders of the
+chosen folder, and the grid shows the chosen folder as one.
+
+### Q17 – Subfolders when a folder is picked
+
+(a) the picked folder only; (b) recursive. **Recommendation: (a)**; recursion only in the
+separate-subfolders mode.
+
+### Q18 – Sort order (mockup)
+
+(a) file name; (b) capture time from EXIF; (c) both, user's choice. **Recommendation: (a)
+first**, (b) later — capture time needs reading every file's EXIF, which is slow for 2,000 pairs.
+
+### Q19 – Fast image loading
+
+**Recommendation:** Nextcloud's preview API (`/core/preview?fileId=…&x=…&y=…`) with a small size
+for the grid and a screen-sized one for the loupe; full resolution only on zoom to 100 %. The
+loupe preloads the next three pictures and the previous one. The README recommends the Preview
+Generator app (pre-generated previews) and `camerarawpreviews` (RAW previews).
+
+### Q20 – Shared folders
+
+When two users cull the same shared folder: (a) decisions per user; (b) shared decisions.
+**Recommendation: (a)** in the database. Sidecars (Q2) are shared by nature, so writing them is
+an explicit action in shared folders.

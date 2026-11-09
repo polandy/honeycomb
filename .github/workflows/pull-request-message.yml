@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 honeycomb contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The title becomes the squash commit subject; `edited` reruns this check without restarting CI.
+name: Pull request message
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pull-request-message-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  title:
+    name: conventional title
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: scripts/check-pr-title.sh
+        # Passed as a variable, never interpolated into the script, so the title cannot inject commands.
+        env:
+          PULL_REQUEST_TITLE: ${{ github.event.pull_request.title }}
+        run: scripts/check-pr-title.sh

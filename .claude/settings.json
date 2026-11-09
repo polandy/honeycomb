@@ -1,0 +1,54 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
+  "permissions": {
+    "allow": [
+      "Bash(scripts/verify.sh:*)",
+      "Bash(composer run:*)",
+      "Bash(composer test:*)",
+      "Bash(composer install)",
+      "Bash(vendor/bin/phpunit:*)",
+      "Bash(vendor/bin/psalm:*)",
+      "Bash(vendor/bin/php-cs-fixer:*)",
+      "Bash(npm ci)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx vitest run:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git worktree list)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh pr checks:*)"
+    ],
+    "deny": [
+      "Edit(composer.lock)",
+      "Edit(package-lock.json)",
+      "Edit(vendor/**)",
+      "Edit(node_modules/**)",
+      "Edit(CHANGELOG.md)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/format-file.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
