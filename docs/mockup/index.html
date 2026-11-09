@@ -52,6 +52,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;strok
 /* header */
 .hdr{flex:none;background:var(--ink);color:var(--paper);display:flex;align-items:center;gap:4px;
   height:calc(52px + env(safe-area-inset-top));padding:env(safe-area-inset-top) calc(204px + env(safe-area-inset-right)) 0 calc(6px + env(safe-area-inset-left));z-index:30}
+.nohdr .hdr{display:none}
 .hdr .icon-btn{color:var(--paper)}
 .hdr .icon-btn:disabled{opacity:.35}
 .logo{display:flex;align-items:center;gap:8px;font-weight:600;font-size:19px;letter-spacing:.2px;padding:0 8px}
@@ -338,6 +339,7 @@ table.sc{border-collapse:collapse;width:100%}table.sc td{padding:6px 4px;border-
 .cmp{display:grid;gap:8px;grid-template-columns:repeat(2,1fr)}.cmp.n3{grid-template-columns:repeat(3,1fr)}.cmp.n4{grid-template-columns:repeat(4,1fr)}
 @media (max-width:700px){.cmp.n3,.cmp.n4{grid-template-columns:repeat(2,1fr)}}
 .cm{display:flex;flex-direction:column;gap:6px;border-radius:12px;padding:4px 4px 6px;background:var(--card-2)}
+.cm.active{outline:2px solid var(--honey);outline-offset:1px}
 .cm-open{display:flex;flex-direction:column;gap:2px;border:0;padding:0;background:none;text-align:left;cursor:pointer;color:inherit}
 .cm .grp{flex-wrap:wrap}.cm .btn{white-space:normal;line-height:1.2;justify-content:center}
 .cm-s{display:flex;align-items:center;gap:6px}.cm-s .stars{letter-spacing:-1px}.cm-s .stars .off{color:var(--muted);opacity:.5}
@@ -515,7 +517,7 @@ function flagButtons(cur, forKey, {id = '', dis = '', big = false} = {}){
   return `<div class="grp flags" role="group" aria-label="Flag">${FLAGS.map(f => `<button class="${big ? 'bigbtn' : 'sq'} fb ${f.v}" data-act="flag" data-v="${f.v}" ${forAttrs(forKey, id)} ${dis} aria-pressed="${cur === f.v}" aria-label="${f.label}" title="${f.label} (${f.key})">${ic(f.icon)}${big ? `<span>${f.label}</span>` : ''}</button>`).join('')}${qm('Q4')}</div>`;
 }
 function starRating(cur, forKey, {id = '', dis = ''} = {}){
-  return `<div class="grp" role="group" aria-label="Rating"><span class="gl">Rating</span>${[0, 1, 2, 3, 4, 5].map(n => `<button class="sq" data-act="rate" data-v="${n}" ${forAttrs(forKey, id)} ${dis} aria-pressed="${cur === n}" aria-label="${n ? 'Rate ' + n + ' stars' : 'Clear rating'}">${n ? n + '★' : '0'}</button>`).join('')}</div>`;
+  return `<div class="grp" role="group" aria-label="Rating"><span class="gl">Rating</span>${[0, 1, 2, 3, 4, 5].map(n => `<button class="sq" data-act="rate" data-v="${n}" ${forAttrs(forKey, id)} ${dis} aria-pressed="${cur === n}" aria-label="${n ? 'Rate ' + n + ' stars' : 'Clear rating'}" title="${n ? 'Rate ' + n + ' stars' : 'Clear rating'} (${n})">${n ? n + '★' : '0'}</button>`).join('')}</div>`;
 }
 function colourLabel(cur, forKey, {dis = ''} = {}){
   const bg = cur ? LBL[cur].hex : 'conic-gradient(#e5484d,#f2c94c,#3fb26b,#3b82f6,#d946ef,#e5484d)';
@@ -526,7 +528,7 @@ function actionBar(d, forKey, opts = {}){
   const rest = starRating(d.rating, forKey, opts) + colourLabel(d.label, forKey, opts) + (opts.tail || '');
   return opts.big ? `<div class="ab-big">${flagButtons(d.flag, forKey, opts)}</div><div class="ab-small">${rest}</div>` : rest + flagButtons(d.flag, forKey, opts);
 }
-const pickRestBtn = (forKey, id = '') => `<button class="btn primary" data-act="pickRest" ${forAttrs(forKey, id)} title="Pick this, reject the rest (Shift+P)">${ic('flagPick')}Pick this, reject the rest</button>`;
+const pickRestBtn = (forKey, id = '') => `<button class="btn primary" data-act="pickRest" ${forAttrs(forKey, id)} title="Pick this, reject the rest (K)">${ic('flagPick')}Pick this, reject the rest</button>`;
 /* footer order everywhere: back, cancel, then the confirming action on the right */
 function confirmDialog(title, body, {back = null, cancel = 'Cancel', confirm = null, wide = false, canClose = true} = {}){
   const foot = (back ? `<button class="btn ghost" data-act="${back.act}">${esc(back.label)}</button>` : '')
@@ -1082,8 +1084,8 @@ function dlgBurst(d){
   const m = burstCurrent(d);
   if (!m) return dlgShell('Compare series', `<div class="empty"><div class="big">All series compared</div>No more photos taken within ${BURST_GAP_MS / 1000} seconds of each other are left to decide.</div>`, `<button class="btn primary" data-act="closeDlg">Close</button>`, true);
   return dlgShell(`Compare series ${d.i + 1} of ${d.gids.length}`,
-    `<p class="row" style="margin-top:0;color:var(--muted)">Photos taken within ${BURST_GAP_MS / 1000} seconds of each other. Tap a photo to open the series fullscreen (or press 1 – ${m.length}), or decide right here. <span class="later">Later milestone M6</span></p>
-    <div class="cmp n${m.length}">${m.map((it, k) => `<div class="cm"><button class="cm-open" data-act="cmpOpen" data-id="${esc(it.id)}" aria-label="Open photo ${k + 1}: ${esc(stem(it))}"><img alt="" src="${cmpURL(it)}"><span class="cm-n">${k + 1} · ${esc(stem(it))}</span><span class="cm-s">${pairLabel(it)}<span class="stars" aria-hidden="true">${stars(it.rating)}</span>${flagMark(it.flag)}</span></button>
+    `<p class="row" style="margin-top:0;color:var(--muted)">Photos taken within ${BURST_GAP_MS / 1000} seconds of each other. Tap a photo to open the series fullscreen, or decide right here. The arrow keys switch the active photo (outlined); P, X, U and 0 – 5 decide it, K picks it and rejects the rest. <span class="later">Later milestone M6</span></p>
+    <div class="cmp n${m.length}">${m.map((it, k) => `<div class="cm${k === (d.a = clamp(d.a || 0, 0, m.length - 1)) ? ' active' : ''}"><button class="cm-open" data-act="cmpOpen" data-id="${esc(it.id)}" aria-label="Open photo ${k + 1}: ${esc(stem(it))}"><img alt="" src="${cmpURL(it)}"><span class="cm-n">${k + 1} · ${esc(stem(it))}</span><span class="cm-s">${pairLabel(it)}<span class="stars" aria-hidden="true">${stars(it.rating)}</span>${flagMark(it.flag)}</span></button>
       ${flagButtons(it.flag, 'id', {id:it.id})}${pickRestBtn('id', it.id)}</div>`).join('')}</div>`,
     `<button class="btn ghost" data-act="closeDlg">Close</button><button class="btn" data-act="cmpSkip">Skip</button>`, true);
 }
@@ -1150,13 +1152,7 @@ function seriePickRest(){
   const id = SV.ids[SV.idx]; if (!id) return; decideBurst(id, SV.ids.filter(i => i !== id && S.byId.get(i) && S.byId.get(i).flag !== 'reject')); closeSerie();
 }
 function serieKey(e){
-  const k = e.key; serieWake();
-  if (k === 'ArrowLeft' || k === 'ArrowRight'){ e.preventDefault(); serieStep(k === 'ArrowLeft' ? -1 : 1); }
-  else if ((k === 'z' || k === 'Z') && !e.ctrlKey && !e.metaKey){ e.preventDefault(); serieZoom(); }
-  else if (k === 'P'){ e.preventDefault(); seriePickRest(); }
-  else if (/^[pxu]$/i.test(k) && !e.ctrlKey && !e.metaKey){ e.preventDefault(); decideFlag(idsForKey('serie'), {p:'pick', x:'reject', u:'none'}[k.toLowerCase()]); }
-  else if ((e.ctrlKey || e.metaKey) && (k === 'z' || k === 'Z')){ e.preventDefault(); e.shiftKey ? redo() : undo(); }
-  else if (/^[1-4]$/.test(k) && +k <= SV.ids.length){ e.preventDefault(); serieStep(+k - 1 - SV.idx); }
+  serieWake(); if (cullKey(e, {ids:() => idsForKey('serie'), step:serieStep, advance:() => serieStep(1), zoom:serieZoom, pickRest:seriePickRest})) return;
 }
 function svDown(e){
   SV.ptr.set(e.pointerId, {x:e.clientX, y:e.clientY}); if (SV.ptr.size === 1){ SV.moved = false; SV.vert = null; SV.dy = 0; }
@@ -1259,11 +1255,19 @@ function dlgSettings(){
     <p class="hint" style="margin-top:8px">${s.storage === 'both' ? 'Database is the fast working state; every change is written through to the XMP sidecars of each file.' : s.storage === 'xmp' ? 'Sidecars are the only source of truth, so digiKam sees every change. Slower grid.' : 'Nothing is written next to your files.'}</p></div>`,
     `<button class="btn primary" data-act="closeDlg">Done</button>`, true);
 }
+const KEYS = [
+  ['Flags', [['P', 'Pick (again: unflag)'], ['X', 'Reject (again: unflag)'], ['U', 'Unflag'], ['Shift + P', 'Pick and go to the next photo'], ['Shift + X', 'Reject and go to the next photo'], ['Shift + U', 'Unflag and go to the next photo'],
+    ['Caps Lock', 'Auto-advance: every decision goes to the next photo'], ['`', 'Toggle pick'], ['K', 'Series: pick this, reject the rest']]],
+  ['Rating and colour label', [['0 – 5', 'Set rating'], ['Shift + 0 – 5', 'Set rating and go to the next photo'], ['[', 'One star down'], [']', 'One star up'], ['6 7 8 9', 'Label red / yellow / green / blue (toggle)']]],
+  ['Views and photos', [['Arrow keys', 'Grid: move focus. Loupe, series compare, series viewer: switch photo'], ['Enter', 'Open the loupe'], ['G', 'Grid'], ['E', 'Loupe'], ['N', 'Series compare'], ['Space', 'Loupe: fit / 100 %'], ['Z', 'Loupe and series viewer: fit / 100 %'],
+    ['Ctrl/⌘ + =', 'Zoom in'], ['Ctrl/⌘ + -', 'Zoom out'], ['F', 'Fullscreen'], ['Tab', 'Show or hide the header (loupe: the controls)'], ['I', 'Cycle the info overlay'], ['Esc', 'Close loupe / dialog / selection']]],
+  ['Filter and selection', [['\\', 'Show or hide the filter bar'], ['Ctrl/⌘ + L', 'Filters off / on'], ['Ctrl/⌘ + A', 'Select all (filtered)'], ['Ctrl/⌘ + D', 'Select none'], ['Shift + click', 'Select a range']]],
+  ['Undo, delete, move, help', [['Ctrl/⌘ + Z', 'Undo'], ['Ctrl/⌘ + Shift + Z', 'Redo'], ['Delete', 'Delete summary for the selection or focused tile'], ['Ctrl/⌘ + Backspace', 'Review rejects'], ['M', 'Move the selection, focused tile or current photo'],
+    ['1 – 9', 'Move dialog: choose a favourite or recent folder'], ['Ctrl/⌘ + /', 'This sheet (also ?)'], ['Ctrl + wheel, pinch', 'Grid: thumbnail size']]]];
 function dlgKeys(){
-  const rows = [['0 – 5', 'Set rating'], ['P', 'Pick (again: unflag)'], ['X', 'Reject (again: unflag)'], ['U', 'Unflag'], ['Shift + P', 'Series viewer: pick this, reject the rest'], ['6 7 8 9', 'Label red / yellow / green / blue (toggle)'], ['1 – 4', 'Series compare and viewer: go to photo 1 – 4'], ['M', 'Move the selection, focused tile or current photo'], ['1 – 9', 'Move dialog: choose a favourite or recent folder'], ['Ctrl/⌘ + Z', 'Undo'], ['Shift + Ctrl/⌘ + Z', 'Redo'],
-    ['Delete', 'Delete summary for the selection or focused tile'], ['Ctrl/⌘ + A', 'Select all (filtered)'], ['Shift + click', 'Select a range'], ['Arrow keys', 'Move focus in the grid, previous / next in the loupe'],
-    ['Enter', 'Open the loupe'], ['F', 'Loupe without chrome (also double-tap)'], ['I', 'Loupe info panel'], ['Space', 'Loupe: fit / 100 %'], ['Ctrl + wheel, pinch', 'Grid: thumbnail size'], ['Esc', 'Close loupe / dialog / selection'], ['?', 'This sheet']];
-  return dlgShell('Keyboard shortcuts', `<p style="margin-top:0;color:var(--muted)">In the grid they apply to the selection, or to the focused tile. In the loupe they apply to the current photo.</p><table class="sc">${rows.map(r => `<tr><td>${r[0].split(' ').map(k => k.length > 1 || /[A-Z0-9?]/.test(k) ? `<span class="kbd">${esc(k)}</span>` : esc(k)).join(' ')}</td><td>${esc(r[1])}</td></tr>`).join('')}</table>`, `<button class="btn primary" data-act="closeDlg">Close</button>`);
+  const kbd = t => t.split(' ').map(k => k === '+' || k === '–' ? esc(k) : `<span class="kbd">${esc(k)}</span>`).join(' ');
+  return dlgShell('Keyboard shortcuts', `<p style="margin-top:0;color:var(--muted)">The Lightroom Classic keys, the same on every screen. They act on the selection or focused tile in the grid, and on the active photo in the loupe, the series compare and the series viewer.</p>
+    ${KEYS.map(([h, rows]) => `<h4 style="margin:14px 0 4px">${h}</h4><table class="sc">${rows.map(r => `<tr><td>${kbd(r[0])}</td><td>${esc(r[1])}</td></tr>`).join('')}</table>`).join('')}`, `<button class="btn primary" data-act="closeDlg">Close</button>`);
 }
 function openDelete(ids){
   ids = ids.filter(i => S.byId.has(i)); if (!ids.length){ toast('Nothing to delete'); return; }
@@ -1471,7 +1475,7 @@ function showCoach(){
   const nm = a => a === 'none' ? 'nothing' : a, k = t => `<span class="kbd">${t}</span>`;
   c.innerHTML = `<div class="coach-card" role="dialog" aria-label="How to cull"><h3>How to cull</h3><ul>
     <li><b>Swipe up</b> to ${nm(S.settings.swipeUp)}, <b>down</b> to ${nm(S.settings.swipeDown)}</li><li><b>Swipe sideways</b> for the next or previous photo</li>
-    <li><b>Pinch</b> to zoom, <b>double-tap</b> to hide the controls</li><li>Keys: ${k('P')} Pick ${k('X')} Reject ${k('U')} Unflag ${k('Space')} zoom ${k('?')} all keys</li></ul>
+    <li><b>Pinch</b> to zoom, <b>double-tap</b> to hide the controls</li><li>Keys: ${k('P')} Pick ${k('X')} Reject ${k('U')} Unflag ${k('Space')} zoom ${k('Ctrl/⌘ + /')} all keys</li></ul>
     <button class="btn primary" data-act="coachOk">Got it</button></div>`;
   c.hidden = false; c.querySelector('button').focus();
 }
@@ -1762,40 +1766,78 @@ document.addEventListener('keydown', e => {
     if (S.loupe){ if (L.immersive) setImmersive(false); else closeLoupe(); return; }
     if (S.selMode){ setSelMode(false); return; } return;
   }
-  if (k === '?' ){ e.preventDefault(); S.dlg && S.dlg.type === 'keys' ? closeDlg() : openDlg({type:'keys'}); return; }
+  if (k === '?' || (mod && k === '/')){ e.preventDefault(); S.dlg && S.dlg.type === 'keys' ? closeDlg() : openDlg({type:'keys'}); return; }
   if (S.serie){ serieKey(e); return; }
-  if (S.dlg && S.dlg.type === 'burst'){ if (mod && k.toLowerCase() === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; } if (/^[1-4]$/.test(k)){ const m = burstCurrent(S.dlg), it = m && m[+k - 1]; if (it){ e.preventDefault(); openSerie(it.id); } } return; }
+  if (S.dlg && S.dlg.type === 'burst'){
+    const m = burstCurrent(S.dlg), c = {ids:() => m ? [m[clamp(S.dlg.a || 0, 0, m.length - 1)].id] : [], step:d => { S.dlg.a = clamp((S.dlg.a || 0) + d, 0, m.length - 1); renderDlg(); },
+      pickRest:() => { const id = c.ids()[0]; id && decideBurst(id, m.filter(i => i.id !== id).map(i => i.id)); }};
+    if (!mod && k === 'Enter' && tg.tagName !== 'BUTTON' && m){ e.preventDefault(); openSerie(c.ids()[0]); return; }
+    if (m) cullKey(e, c); return;
+  }
   if (S.dlg && S.dlg.type === 'move'){
     if (/^[1-9]$/.test(k)){ const t = moveTargets()[+k - 1]; if (t){ e.preventDefault(); S.dlg.target = t.p; renderDlg(); } }
     else if (k === 'Enter' && tg.tagName !== 'BUTTON' && S.dlg.target){ e.preventDefault(); doMove(S.dlg); } return;
   }
   if (S.dlg) return;
-  if (mod && k.toLowerCase() === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
-  if (mod && k.toLowerCase() === 'y'){ e.preventDefault(); redo(); return; }
+  if (mod && k.toLowerCase() === 'z' || mod && k.toLowerCase() === 'y'){ cullKey(e, {ids:() => []}); return; }
   if (!S.folderPath) return;
   if (mod && k.toLowerCase() === 'a' && !S.loupe){ e.preventDefault(); if (!S.selMode){ S.selMode = true; } S.view.forEach(i => S.sel.add(i.id)); $('grid').classList.add('selmode'); selChanged(); return; }
+  if (mod && k.toLowerCase() === 'd' && !S.loupe){ e.preventDefault(); S.sel.clear(); selChanged(); return; }
+  if (mod && k === 'Backspace'){ e.preventDefault(); A.delRejected(); return; }
+  if (mod && k.toLowerCase() === 'l'){ e.preventDefault(); filtersOffOn(); return; }
+  if (mod && (k === '=' || k === '+' || k === '-') && S.loupe){ e.preventDefault(); if ((k === '-') === (L.z.s > 1.02)) toggleZoom(); return; }
   if (mod) return;
+  if (k === '\\'){ e.preventDefault(); A.filters(); return; }
+  if (k.toLowerCase() === 'f'){ e.preventDefault(); document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => toast('Fullscreen is not available here')); return; }
+  if (k === 'Tab' && (tg === document.body || tg === document.documentElement)){ e.preventDefault(); S.loupe ? setImmersive(!L.immersive) : document.body.classList.toggle('nohdr'); return; }
+  if (k.toLowerCase() === 'n'){ e.preventDefault(); A.burst(); return; }
   const ids = targetIds();
   if (S.loupe){
-    if (k === 'ArrowLeft'){ e.preventDefault(); step(-1); return; } if (k === 'ArrowRight'){ e.preventDefault(); step(1); return; }
     if (k === ' '){ e.preventDefault(); toggleZoom(); return; }
-    if (k.toLowerCase() === 'f'){ e.preventDefault(); setImmersive(!L.immersive); return; }
     if (k.toLowerCase() === 'i'){ e.preventDefault(); A.infoToggle(); return; }
-  } else if (k.startsWith('Arrow')){
-    const ids2 = S.view.map(i => i.id); if (!ids2.length) return; e.preventDefault();
-    let i = Math.max(0, ids2.indexOf(S.focusId)); const first = tileEls.get(ids2[0]), cols = Math.max(1, Math.round($('grid').clientWidth / (first ? first.offsetWidth + 8 : 168)));
-    i = clamp(i + (k === 'ArrowLeft' ? -1 : k === 'ArrowRight' ? 1 : k === 'ArrowUp' ? -cols : cols), 0, ids2.length - 1);
-    setFocus(ids2[i]); const el = tileEls.get(ids2[i]); if (el){ el.focus(); el.scrollIntoView({block:'nearest'}); } return;
-  } else if (k === 'Enter' && !(tg.classList && tg.classList.contains('tile')) && S.focusId){ openLoupe(S.focusId); return; }
-  if (/^[0-5]$/.test(k)){ if (ids.length) change(ids, 'rating', +k); return; }
-  const lk = k.toLowerCase();
-  if (lk === 'p'){ S.loupe ? loupeDecide('pick') : ids.length && decideFlag(ids, 'pick'); return; }
-  if (lk === 'x'){ S.loupe ? loupeDecide('reject') : ids.length && decideFlag(ids, 'reject'); return; }
-  if (lk === 'u'){ ids.length && change(ids, 'flag', 'none'); return; }
-  if (lk === 'm'){ e.preventDefault(); openMove(ids); return; }
-  const lab = LABELS.find(l => l.key === k); if (lab){ ids.length && toggleLabel(ids, lab.id); return; }
+    if (k.toLowerCase() === 'g'){ e.preventDefault(); closeLoupe(); return; }
+    const c = {ids:() => ids, step, zoom:toggleZoom, flag:f => { loupeDecide(f); return S.settings.autoAdvance && f !== 'none'; }, advance:() => S.loupe.idx < S.loupe.ids.length - 1 && goTo(S.loupe.idx + 1, true)};
+    if (cullKey(e, c)) return;
+  } else {
+    if (k.toLowerCase() === 'e' && S.view.length){ e.preventDefault(); openLoupe(S.focusId || S.view[0].id); return; }
+    if (k.startsWith('Arrow')){
+      const ids2 = S.view.map(i => i.id); if (!ids2.length) return; e.preventDefault();
+      let i = Math.max(0, ids2.indexOf(S.focusId)); const first = tileEls.get(ids2[0]), cols = Math.max(1, Math.round($('grid').clientWidth / (first ? first.offsetWidth + 8 : 168)));
+      i = clamp(i + (k === 'ArrowLeft' ? -1 : k === 'ArrowRight' ? 1 : k === 'ArrowUp' ? -cols : cols), 0, ids2.length - 1);
+      setFocus(ids2[i]); const el = tileEls.get(ids2[i]); if (el){ el.focus(); el.scrollIntoView({block:'nearest'}); } return;
+    }
+    if (k === 'Enter' && !(tg.classList && tg.classList.contains('tile')) && S.focusId){ openLoupe(S.focusId); return; }
+    const adv = () => { const ids2 = S.view.map(i => i.id), j = ids2.indexOf(S.focusId); if (j >= 0 && j < ids2.length - 1){ setFocus(ids2[j + 1]); const el = tileEls.get(ids2[j + 1]); if (el){ el.focus(); el.scrollIntoView({block:'nearest'}); } } };
+    if (cullKey(e, {ids:() => ids, advance:adv})) return;
+  }
+  if (k.toLowerCase() === 'm'){ e.preventDefault(); openMove(ids); return; }
   if (k === 'Delete' || k === 'Backspace'){ e.preventDefault(); openDelete(ids); }
 });
+/* one key map for every screen: c supplies ids, and step, advance, flag, zoom or pickRest where the screen has them */
+function cullKey(e, c){
+  const k = e.key, lk = k.toLowerCase(), mod = e.ctrlKey || e.metaKey;
+  if (mod){
+    if (lk === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return true; }
+    if (lk === 'y'){ e.preventDefault(); redo(); return true; } return false;
+  }
+  const ids = c.ids(), adv = e.shiftKey || e.getModifierState('CapsLock'), flag = f => { const did = c.flag ? c.flag(f) : (decideFlag(ids, f), false); if (adv && !did && c.advance) c.advance(); };
+  if ((k === 'ArrowLeft' || k === 'ArrowRight') && c.step){ e.preventDefault(); c.step(k === 'ArrowLeft' ? -1 : 1); return true; }
+  if (lk === 'z' && c.zoom){ e.preventDefault(); c.zoom(); return true; }
+  if (lk === 'k' && c.pickRest){ e.preventDefault(); c.pickRest(); return true; }
+  if (!ids.length) return false;
+  const n = /^[0-5]$/.test(k) ? +k : e.shiftKey && /^Digit[0-5]$/.test(e.code) ? +e.code[5] : -1;
+  if (n >= 0){ e.preventDefault(); change(ids, 'rating', n); if (adv && c.advance) c.advance(); return true; }
+  if (k === '[' || k === ']'){ e.preventDefault(); const it = S.byId.get(ids[0]); change(ids, 'rating', clamp((it ? it.rating : 0) + (k === ']' ? 1 : -1), 0, 5)); return true; }
+  const f = {p:'pick', x:'reject', u:'none'}[lk]; if (f){ e.preventDefault(); flag(f); return true; }
+  if (k === '`'){ e.preventDefault(); flag('pick'); return true; }
+  const lab = LABELS.find(l => l.key === k); if (lab){ e.preventDefault(); toggleLabel(ids, lab.id); return true; }
+  return false;
+}
+function filtersOffOn(){
+  if (filtersActive()){ S.filterStash = S.filters; S.filters = {...DEF_FILTERS(), scope:S.filters.scope}; toast('Filters off'); }
+  else if (S.filterStash){ S.filters = {...S.filterStash, scope:S.filters.scope}; S.filterStash = null; toast('Filters on'); } else return;
+  refreshView();
+}
 
 /* ---------- folder loading / boot ---------- */
 function loadFolder(path){

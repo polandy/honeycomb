@@ -64,8 +64,8 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 2. **Decisions in the loupe:** large pick and reject buttons, vertical swipe (Q6), rating and
    colour label controls, auto-advance to the next undecided picture, the "Rejected IMG_0001 · Undo"
    toast.
-3. **Keyboard shortcuts and undo:** 0–5, P/X/U, colour keys (Q5), undo and redo (Q12), the
-   shortcut sheet.
+3. **Keyboard shortcuts and undo:** the one shared key map ([Keyboard shortcuts](#keyboard-shortcuts)),
+   undo and redo (Q12), the shortcut sheet.
 
 ### M4 – Deleting and settings
 
@@ -229,13 +229,65 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    - **Same controls as the loupe** (owner, 2026-11-09: "keep/reject is not consistent with the
      normal pick/reject"). The bottom bar is the loupe's action bar — *Pick*, *Reject*, *Unflag*,
      rating and colour label for the shown photo, keys `P`, `X`, `U` — plus *Pick this, reject
-     the rest* (`Shift+P`). On a phone it wraps to two rows. The series compare dialog shows the
+     the rest* (`K`). On a phone it wraps to two rows. The series compare dialog shows the
      same flag buttons and *Pick this, reject the rest* under each photo.
 5. **Synchronised zoom.** Zooming one photo to 100 % (button, double-tap, pinch or `Z`) zooms
    every photo of the series to the same spot, and panning moves them together, so paging
    compares the same detail for sharpness. While zoomed, a swipe pans instead of paging.
 
 Where the work lands: M2.3 (header, bar, scroll behaviour), M6 (series viewer).
+
+## Keyboard shortcuts
+
+Decided by the owner on 2026-11-09: honeycomb uses the Lightroom Classic Library keys wherever it
+has the function, so the hands of a Lightroom user already know them. **One key map** (`keymap`
+in the shared `hotkeys` module) serves the grid, the loupe, the series compare and the series
+viewer; a screen supplies only what its keys act on. The help sheet, the tooltips and the user
+doc ([`user/keyboard-shortcuts.md`](user/keyboard-shortcuts.md)) are generated from or checked
+against it. `Ctrl` on Windows and Linux is `⌘` on a Mac.
+
+| Keys | Action | Lightroom Classic |
+|---|---|---|
+| `P` `X` `U` | *Pick*, *Reject*, *Unflag*; pressing the flag a picture has unflags it | same keys |
+| `Shift+P` `Shift+X` `Shift+U` | the same, then go to the next photo | same keys |
+| `Caps Lock` | auto-advance: every decision goes to the next photo | listed as Auto Advance; not confirmed in the Adobe text read |
+| `` ` `` | toggle *Picked* | differs: Lightroom cycles pick, reject, unflagged |
+| `0`–`5` | set the rating | same keys |
+| `Shift+0`–`Shift+5` | set the rating, then go to the next photo | same keys |
+| `[` `]` | one star down, one star up | same keys |
+| `6` `7` `8` `9` | colour label red, yellow, green, blue (toggle) | same keys |
+| Arrow keys | grid: move focus; loupe, series compare, series viewer: switch photo | same idea |
+| `G` `E` `N` | grid, loupe, series compare | `G` and `E` as in Lightroom; `N` is Survey there, series compare here |
+| `Space` | loupe: fit / 100 % | differs: Lightroom's `Space` leaves the grid for the loupe; `Z` zooms there |
+| `Z` | loupe and series viewer: fit / 100 % | not confirmed in the Adobe text read |
+| `Ctrl+=` `Ctrl+-` | zoom in, zoom out | same keys |
+| `F` | fullscreen | not confirmed in the Adobe text read |
+| `Tab` | show or hide the header (loupe: the controls) | differs: Lightroom hides the side panels, `Shift+Tab` all panels |
+| `I` | cycle the info overlay | same key |
+| `\` | show or hide the filter bar | not confirmed in the Adobe text read |
+| `Ctrl+L` | filters off / on | same keys |
+| `Ctrl+A` `Ctrl+D` | select all, select none | same keys |
+| `Ctrl+Z` `Ctrl+Shift+Z` | undo, redo | same keys |
+| `Ctrl+Backspace` | review rejects (*Delete rejected photos* in Lightroom; here the summary opens first) | same keys; `⌘+Delete` on a Mac keyboard is `⌘+Backspace` in a browser |
+| `Ctrl+/` | shortcut help (`?` also works, for a touch keyboard) | same keys |
+| `Delete` | delete summary for the selection or focused picture | |
+| `M` | *Move to…* (honeycomb only) | |
+| `K` | *Pick this, reject the rest* in the series compare and viewer (honeycomb only) | |
+| `1`–`9` | move dialog: choose a favourite or recent folder (honeycomb only) | |
+
+- **Series compare and series viewer** act like Lightroom's Survey: `P`, `X`, `U` and `0`–`5`
+  decide the *active* photo, and the arrow keys switch it. The keys `1`–`4` no longer choose the
+  best photo; `K` does, as one undo step. The series compare dialog outlines the active photo.
+- **Where a key has no function** on a screen (`Z` in the grid, `K` outside a series) it does
+  nothing, and `Tab` keeps moving focus while a control has it.
+- **Verification.** Each key was checked against Adobe's
+  [Keyboard shortcuts for Lightroom Classic](https://helpx.adobe.com/lightroom-classic/desktop/introduction-to-lightroom-classic/keyboard-shortcuts.html)
+  and [How to flag, label, and rate photos](https://helpx.adobe.com/lightroom-classic/help/flag-label-rate-photos.html),
+  Windows and Mac. Adobe's server refused direct downloads (HTTP 403), so the check ran on search
+  excerpts of those pages; keys marked *not confirmed* did not appear in them and need a look at
+  Lightroom's own list (`Ctrl+/` in the Library module) before M3.3 builds them.
+
+Where the work lands: M3.3, with the mockup (`KEYS` in `docs/mockup/index.html`) as the reference.
 
 ## Moving pictures
 
