@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  - SPDX-FileCopyrightText: 2026 honeycomb contributors
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<phpunit
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+	bootstrap="vendor/autoload.php"
+	cacheDirectory=".phpunit.cache"
+	colors="true"
+	failOnRisky="true"
+	failOnWarning="true"
+	failOnDeprecation="true"
+	failOnNotice="true"
+>
+	<testsuites>
+		<testsuite name="unit">
+			<directory>tests/php</directory>
+		</testsuite>
+	</testsuites>
+	<source>
+		<include>
+			<directory>lib</directory>
+		</include>
+	</source>
+</phpunit>

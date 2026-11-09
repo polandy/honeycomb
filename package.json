@@ -1,0 +1,24 @@
+{
+	"name": "honeycomb",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Cull RAW+JPEG photo pairs in Nextcloud, touch-first for the iPad",
+	"license": "AGPL-3.0-or-later",
+	"type": "module",
+	"scripts": {
+		"lint": "eslint",
+		"lint:fix": "eslint --fix",
+		"test": "vitest run --coverage",
+		"typecheck": "tsc"
+	},
+	"devDependencies": {
+		"@nextcloud/eslint-config": "9.0.1",
+		"@vitest/coverage-v8": "5.1.0",
+		"eslint": "10.14.0",
+		"typescript": "6.0.3",
+		"vitest": "5.1.0"
+	},
+	"engines": {
+		"node": "^22.14.0 || ^24.0.0"
+	}
+}
