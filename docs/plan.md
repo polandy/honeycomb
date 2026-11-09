@@ -62,7 +62,7 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    100 % zoom, prefetching of the neighbours, chrome-free mode, resizable info panel (see
    [Image delivery & performance](#image-delivery--performance)).
 2. **Decisions in the loupe:** large pick and reject buttons, vertical swipe (Q6), rating and
-   colour label controls, auto-advance to the next undecided picture, the "Rejected · Undo"
+   colour label controls, auto-advance to the next undecided picture, the "Rejected IMG_0001 · Undo"
    toast.
 3. **Keyboard shortcuts and undo:** 0–5, P/X/U, colour keys (Q5), undo and redo (Q12), the
    shortcut sheet.
@@ -107,7 +107,7 @@ routine on the iPad, adopted as the default *Cull* mode: filter to *not rejected
 pictures, a rejected picture disappears from view, and at the end delete all rejects. A picture is
 *undecided* while its flag is unflagged; picked and rejected are decided.
 
-1. **Reject and review.** Each reject shows the toast "Rejected · Undo". Before anything is
+1. **Reject and review.** Each reject shows the toast "Rejected IMG_0001 · Undo". Before anything is
    deleted, a review step shows a grid of all rejects; a single picture can be rescued (it
    becomes undecided), then the owner confirms.
 2. **Delete is the trash bin.** Deleting moves files to the Nextcloud trash bin, restorable;
@@ -116,7 +116,7 @@ pictures, a rejected picture disappears from view, and at the end delete all rej
    delete summary shows pictures · files · bytes freed.
 4. **Series compare** (milestone M6). Pictures taken within a short interval (mockup: 3 seconds
    by capture time, at most 4 per series) form a series, shown 2–4 side by side. Tapping the best
-   one means "keep this, reject the rest": it is picked, the others rejected, as one undo step.
+   one means *Pick this, reject the rest*: it is picked, the others rejected, as one undo step.
    The owner's 2026-11-09 feedback changes how: see [Compact header and series viewer](#compact-header-and-series-viewer).
 5. **Auto-advance.** After each pick or reject the view moves to the next undecided picture
    (the setting stays, Q7 is answered). Rating and colour label do not advance.
@@ -206,16 +206,16 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    - Focus entering the bar shows it, and selection mode keeps it shown.
    - Opening a folder starts with the bar shown.
 3. **Flag icons as in Lightroom and digiKam** (owner, 2026-11-09). *Rejected* is a flag with an
-   x, *Picked* a filled white flag and *Undecided* an empty flag outline. The scope buttons use
+   x, *Picked* a filled white flag and *Unflagged* an empty flag outline. The scope buttons use
    a crossed reject flag for *Not rejected*, the empty flag for *Undecided* and a grid for *All*.
    The same icons mark the tiles, the loupe, the bulk actions, the flag filter and the series
    viewer. The words stay as `title` and `aria-label`; targets stay 44 px.
 4. **Series viewer.** Tapping a photo of a series opens it fullscreen at once, the whole series
    preloaded. Swipe pages between the photos (arrow buttons and keys also work, also while
-   zoomed). *Keep this, reject the rest* is in the viewer, one undo step. The controls fade out
+   zoomed). *Pick this, reject the rest* is in the viewer, one undo step. The controls fade out
    when idle; a tap on the photo brings them back or hides them.
    - **Reject a single photo** without leaving fullscreen (owner, 2026-11-09): the *Reject*
-     button in the bottom bar next to *Keep this, reject the rest*, the `X` key, or a swipe down
+     button in the bottom bar, the `X` key, or a swipe down
      on the photo following the *Swipe down* setting (a horizontal swipe still pages; no
      gesture while zoomed). If that setting is *Pick*, the swipe picks the photo and keeps it
      in the series.
@@ -224,8 +224,11 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
      undo toast, `Undo` or Ctrl+Z puts the photo back in its place and shows it.
    - Once one photo is left the viewer closes and the series counts as decided. Undo after
      that restores the flag only; *Compare series* finds the series again on its next opening.
-   - No *Pick* or *Unreject* button in the viewer: a third button crowds the bottom bar on a
-     phone (44 px targets), and undo covers the unreject.
+   - **Same controls as the loupe** (owner, 2026-11-09: "keep/reject is not consistent with the
+     normal pick/reject"). The bottom bar is the loupe's action bar — *Pick*, *Reject*, *Unflag*,
+     rating and colour label for the shown photo, keys `P`, `X`, `U` — plus *Pick this, reject
+     the rest* (`Shift+P`). On a phone it wraps to two rows. The series compare dialog shows the
+     same flag buttons and *Pick this, reject the rest* under each photo.
 5. **Synchronised zoom.** Zooming one photo to 100 % (button, double-tap, pinch or `Z`) zooms
    every photo of the series to the same spot, and panning moves them together, so paging
    compares the same detail for sharpness. While zoomed, a swipe pans instead of paging.
@@ -285,12 +288,33 @@ honeycomb is a classic PHP Nextcloud app, not an AppAPI ExApp (ADR 0006).
 | Move and trash files through `OCP\Files` | Filters, sort, the culling scope and progress |
 | Write the XMP bytes the client produced, with the checked save | XMP read and write mapping, serialized form |
 | Store per-user decisions, resume position and settings | Name templates and move conflicts |
-| Serve Nextcloud previews | Undo, gestures, hotkeys, header scroll logic |
+| Serve Nextcloud previews | Decisions (flag toggle, common values), undo, gestures, hotkeys, header scroll logic |
 
 The backend validates every path or file id it gets — owned by the user, still there, unchanged
 since the client listed it — and never trusts the client's pairing, names or counts. Vue
 components wire the modules to the DOM and the API and hold no rules of their own. How tests are
 written for each side: [`02-workflow.md`](02-workflow.md) §2.3.
+
+## Shared UI components
+
+The owner asked for consistency across the project and for reusable components (2026-11-09):
+every screen builds a decision from the same parts, so a pick looks, reads and behaves the same
+in the grid, the loupe, the series compare and the series viewer. The words, icons, colours,
+order and keys are in the [glossary](04-glossary.md#words-and-conventions-in-the-ui). The mockup
+renders each part from one function (named in brackets), and the Vue app gets one component each
+under `src/components/`. A new screen composes these; a variant is a prop, not a copy.
+
+| Component (mockup function) | Renders | Used by | Pure modules (`src/logic/`) |
+|---|---|---|---|
+| `FlagButtons` (`flagButtons`) | *Pick*, *Reject*, *Unflag* with pressed state; small or large | action bar, series compare card | `decisions`: flag toggle, a selection's common value |
+| `FlagMark` (`flagMark`) | the read-only flag icon | `PhotoTile`, loupe filmstrip, series compare card | — |
+| `StarRating` (`starRating`, `stars`) | 0–5 buttons, or read-only stars | action bar, `PhotoTile`, series compare card | `decisions` |
+| `ColourLabels` (`colourLabel`, `showPalette`) | the label button and the nine-colour palette | action bar, filter bar | `decisions`, `hotkeys` |
+| `ActionBar` (`actionBar`) | rating, colour label and flags; flags in a large row of their own, plus a slot | grid selection, loupe, series viewer | `decisions`, `hotkeys` |
+| `PickRestButton` (`pickRestBtn`) | *Pick this, reject the rest* | series compare card, series viewer | `series` |
+| `UndoToast` (`toast`) | the change in words, *Undo*, an optional action | every undoable change | `undo`: entries and their text |
+| `ConfirmDialog` (`confirmDialog`) | title, body, footer *Back* · *Cancel* · confirm | delete summary, reject review, move summary, folder picker, delete report | — |
+| `PhotoTile` (`tileInner`, `updateTile`) | thumbnail, pair and series badges, stars, colour dot, flag mark, selection check | grid | `pairing` |
 
 ## Project structure
 
@@ -313,8 +337,8 @@ honeycomb/
 │   └── Migration/              database migrations
 ├── src/
 │   ├── logic/                  pure TypeScript, no DOM or network: pairing, series, filter,
-│   │                           sort, name templates, conflicts, xmp, undo, gestures, hotkeys,
-│   │                           header scroll
+│   │                           sort, name templates, conflicts, xmp, decisions, undo,
+│   │                           gestures, hotkeys, header scroll
 │   └── main.ts, App.vue, views/, components/, store/ (Pinia)
 ├── templates/main.php          mounts the Vue app
 ├── tests/php/, tests/js/       PHPUnit, Vitest

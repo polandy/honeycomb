@@ -17,7 +17,8 @@ Decide from `gh pr diff <PR> --name-only`, and name the tier in the verdict.
 - **Light:** only `*.md`, `docs/` (the mockup included), `.claude/`, `.github/`, `assets/` or
   `LICENSES/`. Check that the text is correct, English, consistent with the files it describes,
   and that no doc contradicts another one. For a mockup change, open it and check that it still
-  loads without console errors. Skip the test table.
+  loads without console errors and builds its controls from the shared renderers
+  (`docs/plan.md` Shared UI components). Skip the test table.
 - **Full:** anything else. Every step below.
 
 ## Rules for both tiers

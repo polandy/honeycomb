@@ -20,7 +20,9 @@ quick to go through on an iPad.
 [`docs/mockup/index.html`](docs/mockup/index.html) shows how the app is meant to work; the plan,
 milestones and open questions are in [`docs/plan.md`](docs/plan.md). How ratings, flags and
 colour labels appear in digiKam, darktable and Lightroom:
-[`docs/user/ratings-flags-colours.md`](docs/user/ratings-flags-colours.md).
+[`docs/user/ratings-flags-colours.md`](docs/user/ratings-flags-colours.md). The words the app
+uses (Pick, Reject, Unflag, series and more) are in the
+[glossary](docs/04-glossary.md).
 
 ## Installation
 

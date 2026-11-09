@@ -60,7 +60,8 @@ Every tool result is re-read, and paid for, on each later turn.
    by hand; Actions are pinned by full commit SHA.
 6. **Write an ADR before an architectural choice:** storage format, new dependency, new table,
    public API shape (ADR 0001).
-7. **Use the glossary's words** (`docs/04-glossary.md`); no synonyms.
+7. **Use the glossary's words** (`docs/04-glossary.md`); no synonyms. New UI uses its UI words
+   and the shared components (`docs/plan.md` Shared UI components) before adding new ones.
 8. **Everything in the repository is English** — code, docs, UI strings, commits, PRs, issues —
    even when the owner writes in another language.
 9. **REUSE compliant.** A new file carries an SPDX header or is covered by `REUSE.toml`.
