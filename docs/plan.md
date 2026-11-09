@@ -296,8 +296,8 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    the ⋯ menu and *Undo* stays in the bar (owner, 2026-11-10; Ctrl+Shift+Z and Ctrl+Y are
    unchanged). Checked in the mockup at 360 and 412 px: the mark, the three scope icons, *Review
    rejects*, ⋯ and *Undo* fit with 44 px targets beside the reserved 60 px on the right.
-   Breadcrumbs, *Select*, *Compare series* and *Filters* sit in the toolbar, which returns on scrolling up. The ⋯ entry *Hide header* still hides everything,
-   leaving a small handle. The rules are ported from Stella's top bar (`followScroll`) and the
+   Breadcrumbs, *Select*, *Compare series* and *Filters* sit in the toolbar, which returns on
+   scrolling up. The ⋯ entry *Hide header* still hides everything, leaving a small handle. The rules are ported from Stella's top bar (`followScroll`) and the
    mockup keeps the decision as a pure function of the same shape:
    - Only after 24 px of travel in one direction does the bar follow; a nudge is not a scroll.
    - Within the toolbar's height of the top, including a negative position from iOS rubber-band
