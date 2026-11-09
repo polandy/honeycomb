@@ -1593,7 +1593,7 @@ const A = {
   burst(){ const gids = getBursts().groups.map(g => g.map(i => i.id)); if (gids.length) openDlg({type:'burst', gids, i:0}); },
   cmpOpen(el){ openSerie(el.dataset.id); }, cmpSkip(){ S.dlg.i++; renderDlg(); },
   svClose(){ closeSerie(); }, svZoom(){ serieZoom(); }, svStep(el){ serieStep(+el.dataset.v); }, svKeep(){ serieKeep(); },
-  mockDevice(){ closeDlg(); if (S.loupe) closeLoupe(); S.folderPath = null; S.items = []; S.byId = new Map(); S.sel.clear(); S.selMode = false; S.focusId = null; S.undo = []; S.redo = []; S.filters = DEF_FILTERS(); S.bursts = null;
+  mockDevice(){ closeDlg(); closeSerie(); if (S.loupe) closeLoupe(); S.folderPath = null; S.items = []; S.byId = new Map(); S.sel.clear(); S.selMode = false; S.focusId = null; S.undo = []; S.redo = []; S.filters = DEF_FILTERS(); S.bursts = null;
     refreshView(); openDlg({type:'picker', cwd:'/Photos/2026', sel:null}); toast('New device: no local state. Decisions and position come from the server'); },
   delConfirm(){ const ids = S.dlg.ids; const res = doDelete(ids, S.mock.fail); S.lastFailed = res.failed; finishDelete(res); },
   retryFailed(){ const f = S.lastFailed || []; f.forEach(x => { const it = S.byId.get(x.it.id); if (!it) return; it[x.kind === 'JPEG' ? 'jpg' : 'raw'] = null; if (!it.jpg && !it.raw){ S.items = S.items.filter(i => i !== it); S.byId.delete(it.id); } });
