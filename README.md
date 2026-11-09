@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/logo-horizontal-dark.svg">
+    <img src="assets/brand/logo-horizontal-light.svg" alt="honeycomb" width="360">
+  </picture>
+</p>
+
 # honeycomb
 
 Cull RAW+JPEG photo pairs in Nextcloud, touch-first for the iPad.

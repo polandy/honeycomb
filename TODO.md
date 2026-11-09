@@ -10,7 +10,6 @@ Add items with `/todo`.
 ## Milestones
 
 - [ ] M0: Owner signs off the mockup and answers the open questions — owner; record each answer as an ADR or in `docs/plan.md`, remove its marker from `docs/mockup/index.html` (ADR 0003) (2026-11-09)
-- [ ] Brand assets, proposal B "Gerahmtes Paar" — `assets/brand/generate.py` modelled on Framehive's: Framehive's six viewfinder corners (same path as its `logo-mark.svg`) around two pointy-top hex cells side by side, left filled Honey `#F4A51C`, right an outline in Ink/Paper; wordmark "honeycomb" in Sora SemiBold, lower case, −0.03 em, outlined; mark, horizontal logos (light/dark), app icon, a heavier favicon cut for 16 px, `img/app.svg` and `img/app-dark.svg` for Nextcloud; `assets/brand/README.md` with the brand rules (2026-11-09)
 - [ ] M1.1: App skeleton — `appinfo/info.xml` (versions per Q1), `composer.json` with php-cs-fixer, psalm, PHPUnit; `Application`; empty page; PHP jobs in CI and `scripts/verify.sh`; `info.xml` in release-please extra files; composer in Dependabot (2026-11-09)
 - [ ] M1.2: Pairing service with PHPUnit tests — case, several dots, singles, sidecars, ambiguity (Q14), separate subfolders (Q16), extension lists (Q15); Framehive LIBRARY-001 as test-case reference (2026-11-09)
 - [ ] M1.3: Folder API — paginated picture list of a folder through `IRootFolder`, user permissions respected, 2,000+ pairs without stalls (2026-11-09)
