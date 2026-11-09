@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Files that cannot carry their own SPDX header: agent files start with front matter, JSON has no
-# comments, and docs, lock files and release-please outputs are covered here instead.
+# comments, test fixtures must stay byte-exact, and docs, lock files and release-please outputs
+# are covered here instead.
 version = 1
 
 [[annotations]]
@@ -20,6 +21,7 @@ path = [
     ".claude/skills/**",
     ".claude/agents/**",
     "docs/**",
+    "tests/fixtures/**",
     "composer.lock",
     "package-lock.json",
 ]

@@ -74,10 +74,11 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 4. **README:** installation, features, screenshot placeholders; `camerarawpreviews` and Preview
    Generator as recommended apps.
 
-### M5 – XMP sidecars (if Q2 says so)
+### M5 – XMP sidecars
 
 Read existing sidecars when a folder is listed and write ratings, colour labels and flags to
-them in digiKam's fields, so digiKam on the desktop sees the decisions.
+them, so digiKam, darktable and Lightroom Classic on the desktop see the decisions. Fields,
+precedence, write rules and test vectors: [`06-xmp-interop.md`](06-xmp-interop.md).
 
 ### M6 – Series compare
 
@@ -349,18 +350,16 @@ the decisions.
 - Nextcloud's collaborative tags are not an option: they are visible to every user and are not
   read by digiKam.
 
-**Recommendation: (c)**, database first (M2), sidecars as M5. digiKam's fields, from its source
-(`DMetadata` in `core/libs/metadataengine/dmetadata/`): rating `xmp:Rating` (0–5), colour label
-`digiKam:ColorLabel` (0 none, 1 red, 2 orange, 3 yellow, 4 green, 5 blue, 6 magenta, 7 gray,
-8 black, 9 white) and `xmp:Label` as text, pick label `digiKam:PickLabel` (0 none, 1 rejected,
-2 pending, 3 accepted). Unknown XMP fields are kept when a sidecar is rewritten.
+**Answer (owner, 2026-11-09): (c)**, database first (M2), sidecars as M5, read and written in
+digiKam's, darktable's and Lightroom's fields. The mapping is
+[`06-xmp-interop.md`](06-xmp-interop.md).
 
 ### Q3 – Sidecar file names
 
-digiKam writes `DSC_0412.NEF.xmp` by default and `DSC_0412.xmp` with its "compatible file name"
-option (the Adobe convention; Framehive's default). **Recommendation:** read both; write the
-name that already exists, else digiKam's default `<file>.xmp` per member. Deleting removes both
-forms.
+digiKam, darktable and Framehive write `DSC_0412.NEF.xmp` by default; digiKam writes
+`DSC_0412.xmp` with its "compatible file name" option (the Adobe convention). **Recommendation:**
+read both; write every one that exists, else `<file>.xmp` per member
+([`06-xmp-interop.md`](06-xmp-interop.md#sidecar-names)). Deleting removes both forms.
 
 ### Q4 – Flag model (mockup)
 

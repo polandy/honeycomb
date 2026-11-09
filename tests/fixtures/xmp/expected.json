@@ -1,0 +1,9 @@
+{
+  "digikam.xmp": { "rating": 3, "flag": "picked", "colourLabel": "blue" },
+  "digikam-pending.xmp": { "rating": 0, "flag": "unflagged", "colourLabel": "magenta" },
+  "darktable.xmp": { "rating": 0, "flag": "rejected", "colourLabel": "red" },
+  "darktable-label-precedence.xmp": { "rating": 2, "flag": "unflagged", "colourLabel": "green" },
+  "lightroom.xmp": { "rating": 4, "flag": "rejected", "colourLabel": "yellow" },
+  "lightroom-no-flag.xmp": { "rating": 2, "flag": "unflagged", "colourLabel": null },
+  "conflict.xmp": { "error": "conflicting values for xmp:Rating" }
+}

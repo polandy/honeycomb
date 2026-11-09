@@ -9,6 +9,8 @@ Open only the file, or the section, a change touches.
 | [`03-coding-standards.md`](03-coding-standards.md) | PHP and Vue conventions, tools, formatting |
 | [`04-glossary.md`](04-glossary.md) | The words we use for pairs, flags, labels and actions |
 | [`05-name-templates.md`](05-name-templates.md) | Name templates for moved pictures: syntax, tokens, sanitising, collisions |
+| [`06-xmp-interop.md`](06-xmp-interop.md) | XMP sidecars: digiKam, darktable and Lightroom fields, precedence, write rules, test vectors |
+| [`user/`](user/) | Documentation for users, e.g. [ratings, flags and colours in other programs](user/ratings-flags-colours.md) |
 | [`plan.md`](plan.md) | Milestones, project structure, target versions, open questions |
 | [`mockup/index.html`](mockup/index.html) | The interactive mockup (milestone M0); open it in a browser |
 | [`adr/`](adr/) | Architecture decision records, one file each |

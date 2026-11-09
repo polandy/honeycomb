@@ -472,7 +472,6 @@ const QS = {
   Q10:{t:'Entering multi-select by touch', o:['"Select" button and long-press.', '"Select" button only.'], r:'(a)'},
   Q13:{t:'Grid tile overlays', o:['Stars, colour and flag always visible on every tile.', 'Only on the focused tile / in loupe.'], r:'(a)'},
   Q18:{t:'Sort order', o:['File name.', 'Capture time from EXIF.', 'Both, user choice.'], r:'(a) first, (b) later.'},
-  Q2:{t:'Where decisions are stored', o:['App database only.', 'XMP sidecars only (digiKam-compatible).', 'Both: database as the fast working state, written through to XMP sidecars.'], r:'(c)'}
 };
 const qm = id => `<button class="q" data-act="q" data-q="${id}" aria-label="Open question ${id}: ${esc(QS[id].t)}">${id}</button>`;
 
@@ -1187,7 +1186,7 @@ function dlgSettings(){
     <div id="tplPv">${tplPreview(tplCur)}</div>
     <p class="hint" style="margin-top:8px">Tokens: <span class="mono">{date:%Y %m %d %j %H %M %S}</span>, <span class="mono">{camera}</span>, <span class="mono">{make}</span>, <span class="mono">{name}</span>, <span class="mono">{number:N}</span>, <span class="mono">{ext}</span>; <span class="mono">:lower</span> and <span class="mono">:upper</span> on text tokens. Only letters, digits, <span class="mono">. _ -</span> and <span class="mono">/</span>, never spaces.</p>
     <div style="margin:10px 0 8px"><b style="font-size:13px">Favourite folders</b></div><div class="chiprow">${S.moveFav.map(p => `<span class="ext">★ ${esc(p.split('/').pop())}<button data-act="favDel" data-path="${esc(p)}" aria-label="Remove favourite ${esc(p)}">✕</button></span>`).join('') || '<span class="hint">None yet: add one in the move dialog.</span>'}</div></div>
-  <div class="sec"><h3>Where decisions are stored ${qm('Q2')}</h3>
+  <div class="sec"><h3>Where decisions are stored</h3>
     <div class="seg" role="radiogroup" aria-label="Storage" style="flex-wrap:wrap">${[['db', 'App database'], ['xmp', 'XMP sidecars'], ['both', 'Both (recommended)']].map(([v, l]) => `<button role="radio" aria-checked="${s.storage === v}" data-act="setStorage" data-v="${v}">${l}</button>`).join('')}</div>
     <p class="hint" style="margin-top:8px">${s.storage === 'both' ? 'Database is the fast working state; every change is written through to XMP sidecars next to the RAW.' : s.storage === 'xmp' ? 'Sidecars are the only source of truth, so digiKam sees every change. Slower grid.' : 'Nothing is written next to your files.'}</p></div>`,
     `<button class="btn primary" data-act="closeDlg">Done</button>`, true);
