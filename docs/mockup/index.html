@@ -16,6 +16,7 @@
   --ok:#1f8a4c; --ok-soft:#dff3e6; --warn-bg:#ffe3dc; --warn-text:#a52f14; --focus:#1a62d6; --scrim:rgba(0,0,0,.5);
   --shadow:0 4px 18px rgba(0,0,0,.14); --q:#9a5c00; --tile-bg:#e6e6e6;
   --stage:#111111; --stage-2:#1a1a1a; --stage-text:#f2f2f2; --stage-muted:#b0b0b0; --pick-fill:#1f7a46; --reject-fill:#b3302c;
+  --tip-bg:#1b1b1b; --tip-fg:#ffffff; --tip-edge:#ffffff40;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){
@@ -23,14 +24,14 @@
     --bg:#161616; --bg-nav:#1c1c1c; --card:#222222; --card-2:#2c2c2c; --text:#f2f2f2; --muted:#a6a6a6;
     --border:#3a3a3a; --honey-soft:#3d2e0e; --honey-text:#f7b94a; --danger:#ef6b66; --danger-soft:#43201e;
     --ok:#5fcf8a; --ok-soft:#1c3a28; --warn-bg:#4a2018; --warn-text:#ffb4a2; --focus:#8ab4ff; --scrim:rgba(0,0,0,.65);
-    --shadow:0 4px 22px rgba(0,0,0,.5); --q:#f7b94a; --tile-bg:#2c2c2c; color-scheme:dark;
+    --shadow:0 4px 22px rgba(0,0,0,.5); --q:#f7b94a; --tile-bg:#2c2c2c; --tip-bg:#f2f2f2; --tip-fg:#1b1b1b; --tip-edge:#00000040; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#161616; --bg-nav:#1c1c1c; --card:#222222; --card-2:#2c2c2c; --text:#f2f2f2; --muted:#a6a6a6;
   --border:#3a3a3a; --honey-soft:#3d2e0e; --honey-text:#f7b94a; --danger:#ef6b66; --danger-soft:#43201e;
   --ok:#5fcf8a; --ok-soft:#1c3a28; --warn-bg:#4a2018; --warn-text:#ffb4a2; --focus:#8ab4ff; --scrim:rgba(0,0,0,.65);
-  --shadow:0 4px 22px rgba(0,0,0,.5); --q:#f7b94a; --tile-bg:#2c2c2c; color-scheme:dark;
+  --shadow:0 4px 22px rgba(0,0,0,.5); --q:#f7b94a; --tile-bg:#2c2c2c; --tip-bg:#f2f2f2; --tip-fg:#1b1b1b; --tip-edge:#00000040; color-scheme:dark;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
@@ -191,6 +192,16 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .toast{pointer-events:auto;background:var(--ink);color:var(--paper);border-radius:12px;padding:4px 6px 4px 16px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);max-width:92%;min-height:48px;animation:tin .18s ease-out}
 .toast button{min-height:44px;padding:0 14px;border:0;background:transparent;color:var(--honey);font-weight:700;border-radius:8px}
 @keyframes tin{from{transform:translateY(12px);opacity:0}}
+#tip{position:absolute;z-index:120;max-width:min(280px,calc(100% - 16px));display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:var(--tip-bg);color:var(--tip-fg);box-shadow:0 0 0 1px var(--tip-edge),var(--shadow);font-size:13px;line-height:1.3;font-weight:600}
+#tip[hidden]{display:none}
+#tip .kbd{min-width:22px;padding:0 5px;background:transparent;color:inherit;border-color:var(--tip-edge)}
+#tip>i{position:absolute;width:10px;height:10px;background:inherit;transform:rotate(45deg)}
+#tip[data-side="bottom"]>i{top:-5px;margin-left:-5px}#tip[data-side="top"]>i{bottom:-5px;margin-left:-5px}
+#tip[data-side="right"]>i{left:-5px;margin-top:-5px}#tip[data-side="left"]>i{right:-5px;margin-top:-5px}
+@media (prefers-reduced-motion:no-preference){#tip{animation:tipin .12s ease-out}}
+@keyframes tipin{from{opacity:0}}
+[data-tip]{-webkit-touch-callout:none}
+#safe{position:absolute;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .pop{position:absolute;z-index:95;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:12px 14px;width:min(360px,calc(100% - 20px))}
 .pop h4{margin:0 0 6px;font-size:15px}
 .pop ol{margin:6px 0;padding-left:20px}.pop li{margin:3px 0}
@@ -442,7 +453,7 @@ body.noq .menu .mq,body.noq .menu .mq-sep{display:none}
 <div id="host">
 <div id="frame" data-nav="open">
   <header class="hdr">
-    <button class="icon-btn" data-act="nav" aria-label="Toggle navigation"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <button class="icon-btn" id="hNav" data-act="nav" aria-label="Toggle navigation"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     <div class="logo" id="logo"></div>
     <div class="hkeys" id="hKeys" hidden></div>
     <div class="sp"></div>
@@ -460,7 +471,7 @@ body.noq .menu .mq,body.noq .menu .mq-sep{display:none}
       <a href="#" data-act="settings" id="navSettings"></a>
     </nav>
     <div id="navScrim" data-act="nav"></div>
-    <div class="divider" id="navDiv" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" tabindex="0"></div>
+    <div class="divider" id="navDiv" role="separator" aria-orientation="vertical" aria-label="Resize sidebar" data-tip="Resize sidebar" tabindex="0"></div>
     <main>
       <div class="toolbar" id="toolbar"></div>
       <button class="bar-handle" id="barHandle" data-act="barOn" aria-label="Show the header" hidden></button>
@@ -473,6 +484,8 @@ body.noq .menu .mq,body.noq .menu .mq-sep{display:none}
   <section id="serie" hidden aria-label="Series viewer"></section>
   <div id="dlgRoot"></div>
   <div id="popRoot"></div>
+  <div id="tip" role="tooltip" hidden></div>
+  <div id="safe" aria-hidden="true"></div>
   <div id="toasts" aria-live="polite"></div>
 </div>
 </div>
@@ -518,26 +531,35 @@ const QS = {
 };
 const qm = id => `<button class="q" data-act="q" data-q="${id}" aria-label="Open question ${id}: ${esc(QS[id].t)}">${id}</button>`;
 
+/* one key map: the shortcuts sheet, the tooltips and the key handlers read it */
+const HOTKEY = {pick:'P', reject:'X', unflag:'U', togglePick:'`', pickRest:'K', starDown:'[', starUp:']', grid:'G', loupe:'E', compare:'N', fit:'Space', zoom:'Z',
+  fullscreen:'F', header:'Tab', info:'I', close:'Esc', filters:'\\', filtersOff:'Ctrl/⌘ + L', undo:'Ctrl/⌘ + Z', redo:'Ctrl/⌘ + Shift + Z', reviewRejects:'Ctrl/⌘ + Backspace',
+  move:'M', keys:'Ctrl/⌘ + /', prev:'←', next:'→'};
+const isKey = (k, id) => k.toLowerCase() === HOTKEY[id].toLowerCase();
+const kbd = t => t.split(' ').map(k => k === '+' || k === '–' ? esc(k) : `<span class="kbd">${esc(k)}</span>`).join(' ');
+/* the bubble tooltip of a control: a label in glossary words and, where one exists, its HOTKEY */
+const tip = (label, key = '') => `data-tip="${esc(label)}"${key ? ` data-tip-key="${esc(key)}"` : ''}`;
+
 /* ---------- shared components: one renderer each, used by grid, loupe, series compare and series viewer ---------- */
-const FLAGS = [{v:'pick', icon:'flagPick', label:'Pick', key:'P'}, {v:'reject', icon:'flagX', label:'Reject', key:'X'}, {v:'none', icon:'flag', label:'Unflag', key:'U'}];
+const FLAGS = [{v:'pick', icon:'flagPick', label:'Pick', key:HOTKEY.pick}, {v:'reject', icon:'flagX', label:'Reject', key:HOTKEY.reject}, {v:'none', icon:'flag', label:'Unflag', key:HOTKEY.unflag}];
 const forAttrs = (forKey, id) => `data-for="${forKey}"${id ? ` data-id="${esc(id)}"` : ''}`;
-const flagMark = flag => flag === 'none' ? '' : `<span class="fl ${flag}" title="${FLAG_TXT[flag]}">${ic(flag === 'pick' ? 'flagPick' : 'flagX')}</span>`;
+const flagMark = flag => flag === 'none' ? '' : `<span class="fl ${flag}" ${tip(FLAG_TXT[flag])}>${ic(flag === 'pick' ? 'flagPick' : 'flagX')}</span>`;
 function flagButtons(cur, forKey, {id = '', dis = '', big = false} = {}){
-  return `<div class="grp flags" role="group" aria-label="Flag">${FLAGS.map(f => `<button class="${big ? 'bigbtn' : 'sq'} fb ${f.v}" data-act="flag" data-v="${f.v}" ${forAttrs(forKey, id)} ${dis} aria-pressed="${cur === f.v}" aria-label="${f.label}" title="${f.label} (${f.key})">${ic(f.icon)}${big ? `<span>${f.label}</span>` : ''}</button>`).join('')}${qm('Q4')}</div>`;
+  return `<div class="grp flags" role="group" aria-label="Flag">${FLAGS.map(f => `<button class="${big ? 'bigbtn' : 'sq'} fb ${f.v}" data-act="flag" data-v="${f.v}" ${forAttrs(forKey, id)} ${dis} aria-pressed="${cur === f.v}" aria-label="${f.label}" ${tip(f.label, f.key)}>${ic(f.icon)}${big ? `<span>${f.label}</span>` : ''}</button>`).join('')}${qm('Q4')}</div>`;
 }
 function starRating(cur, forKey, {id = '', dis = ''} = {}){
-  return `<div class="grp" role="group" aria-label="Rating"><span class="gl">Rating</span>${[0, 1, 2, 3, 4, 5].map(n => `<button class="sq" data-act="rate" data-v="${n}" ${forAttrs(forKey, id)} ${dis} aria-pressed="${cur === n}" aria-label="${n ? 'Rate ' + n + ' stars' : 'Clear rating'}" title="${n ? 'Rate ' + n + ' stars' : 'Clear rating'} (${n})">${n ? n + '★' : '0'}</button>`).join('')}</div>`;
+  return `<div class="grp" role="group" aria-label="Rating"><span class="gl">Rating</span>${[0, 1, 2, 3, 4, 5].map(n => `<button class="sq" data-act="rate" data-v="${n}" ${forAttrs(forKey, id)} ${dis} aria-pressed="${cur === n}" aria-label="${n ? 'Rate ' + n + ' stars' : 'Clear rating'}" ${tip(n ? 'Rate ' + n + ' stars' : 'Clear rating', String(n))}>${n ? n + '★' : '0'}</button>`).join('')}</div>`;
 }
 function colourLabel(cur, forKey, {dis = ''} = {}){
   const bg = cur ? LBL[cur].hex : 'conic-gradient(#e5484d,#f2c94c,#3fb26b,#3b82f6,#d946ef,#e5484d)';
-  return `<div class="grp"><button class="sq" data-act="palette" data-for="${forKey}" ${dis} aria-label="Colour label${cur ? ': ' + cur : ''}" style="padding:0 14px"><span class="dotc" style="background:${bg};width:18px;height:18px"></span>${cur || 'Label'}</button>${qm('Q5')}</div>`;
+  return `<div class="grp"><button class="sq" data-act="palette" data-for="${forKey}" ${dis} aria-label="Colour label${cur ? ': ' + cur : ''}" ${tip('Colour label', LABELS.filter(l => l.key).map(l => l.key).join(' '))} style="padding:0 14px"><span class="dotc" style="background:${bg};width:18px;height:18px"></span>${cur || 'Label'}</button>${qm('Q5')}</div>`;
 }
 /* d holds rating, label and flag; big puts the flags in a row of their own, tail ends the small row */
 function actionBar(d, forKey, opts = {}){
   const rest = starRating(d.rating, forKey, opts) + colourLabel(d.label, forKey, opts) + (opts.tail || '');
   return opts.big ? `<div class="ab-big">${flagButtons(d.flag, forKey, opts)}</div><div class="ab-small">${rest}</div>` : rest + flagButtons(d.flag, forKey, opts);
 }
-const pickRestBtn = (forKey, id = '') => `<button class="btn primary" data-act="pickRest" ${forAttrs(forKey, id)} title="Pick this, reject the rest (K)">${ic('flagPick')}Pick this, reject the rest</button>`;
+const pickRestBtn = (forKey, id = '') => `<button class="btn primary" data-act="pickRest" ${forAttrs(forKey, id)} ${tip('Pick this, reject the rest', HOTKEY.pickRest)}>${ic('flagPick')}Pick this, reject the rest</button>`;
 /* footer order everywhere: back, cancel, then the confirming action on the right */
 function confirmDialog(title, body, {back = null, cancel = 'Cancel', confirm = null, wide = false, canClose = true} = {}){
   const foot = (back ? `<button class="btn ghost" data-act="${back.act}">${esc(back.label)}</button>` : '')
@@ -850,14 +872,17 @@ function toast(msg, withUndo, extra){
 function renderHeader(){
   $('hUndo').innerHTML = ic('undo'); $('hRedo').innerHTML = ic('redo');
   $('hUndo').disabled = !S.undo.length; $('hRedo').disabled = !S.redo.length;
-  $('hUndo').title = S.undo.length ? 'Undo: ' + S.undo[S.undo.length - 1].desc : 'Nothing to undo';
+  const tipAt = (el, label, key = '') => { el.dataset.tip = label; if (key) el.dataset.tipKey = key; };
+  tipAt($('hUndo'), S.undo.length ? 'Undo: ' + S.undo[S.undo.length - 1].desc : 'Nothing to undo', HOTKEY.undo);
+  tipAt($('hRedo'), S.redo.length ? 'Redo: ' + S.redo[S.redo.length - 1].desc : 'Nothing to redo', HOTKEY.redo);
+  tipAt($('hNav'), 'Navigation'); tipAt($('barHandle'), 'Show the header', HOTKEY.header);
 }
 function renderNav(){
   $('navFolder').innerHTML = ic('folder') + 'Folder'; $('navGrid').innerHTML = ic('grid') + 'Cull';
   $('navSettings').innerHTML = ic('settings') + 'Settings';
   $('navRecent').innerHTML = S.recent.map((r, n) => {
     const its = resolveSet(r.paths, r.sub).flatMap(getItems), dec = its.filter(i => i.flag !== 'none').length, cur = S.folderPath === setKey(r.paths, r.sub);
-    return `<a href="#" data-act="openRecent" data-i="${n}" class="rc${cur ? ' cur' : ''}" title="${esc(r.paths.join(', '))}"><span class="rc-n">${esc(setName(r))}</span><span class="rc-m">${dec} / ${its.length} decided</span></a>`;
+    return `<a href="#" data-act="openRecent" data-i="${n}" class="rc${cur ? ' cur' : ''}" ${tip(r.paths.join(', '))}><span class="rc-n">${esc(setName(r))}</span><span class="rc-m">${dec} / ${its.length} decided</span></a>`;
   }).join('');
 }
 function getItems(p){ return FOLDERS[p].big ? [] : S.folders[p] || (S.folders[p] = genFolder(p)); }
@@ -868,25 +893,25 @@ function renderToolbar(){
   if (!S.folderPath){ $('hKeys').innerHTML = ''; tb.innerHTML = `<div class="bar"><div class="crumbs"><button data-act="picker">Choose a folder…</button></div></div>`; return; }
   const segs = S.folderPath.split('/').filter(Boolean), nRej = rejectedItems().length, nDec = decidedCount(), nTot = S.items.length, nSer = getBursts().groups.length, nFil = activeFilterCount();
   let full = `<button data-act="picker" aria-label="Change folder">Home</button>` + segs.map((s, i) => `<span class="sep">/</span><button data-act="picker" data-path="/${esc(segs.slice(0, i + 1).join('/'))}">${esc(s)}</button>`).join('');
-  let short = `<button data-act="picker" aria-label="Change folder">${ic('home')}</button><span class="sep">/</span><button class="cur" data-act="path" aria-haspopup="menu" aria-label="Show the full path of ${esc(segs[segs.length - 1] || '')}">${esc(segs[segs.length - 1] || '')}</button>`;
+  let short = `<button data-act="picker" aria-label="Change folder" ${tip('Change folder')}>${ic('home')}</button><span class="sep">/</span><button class="cur" data-act="path" aria-haspopup="menu" aria-label="Show the full path of ${esc(segs[segs.length - 1] || '')}">${esc(segs[segs.length - 1] || '')}</button>`;
   if (S.folderPath !== S.set.paths[0]){
-    const nm = `<button class="cur" data-act="picker" aria-label="Change folders: ${esc(S.set.paths.join(', '))}" title="${esc(S.set.paths.join(', '))}">${esc(setName(S.set))} · ${S.set.folders.length} folders</button>`;
+    const nm = `<button class="cur" data-act="picker" aria-label="Change folders: ${esc(S.set.paths.join(', '))}" ${tip(S.set.paths.join(', '))}>${esc(setName(S.set))} · ${S.set.folders.length} folders</button>`;
     full = `<button data-act="picker" aria-label="Change folders">Home</button><span class="sep">/</span>${nm}`;
-    short = `<button data-act="picker" aria-label="Change folders">${ic('home')}</button><span class="sep">/</span>${nm}`;
+    short = `<button data-act="picker" aria-label="Change folders" ${tip('Change folders')}>${ic('home')}</button><span class="sep">/</span>${nm}`;
   }
-  const ib = (act, icon, label, n, extra = '') => `<button class="btn ghost ib" data-act="${act}" ${extra} aria-label="${label}${n ? ' (' + n + ')' : ''}" title="${label}">${ic(icon)}<span class="lb">${label}</span>${n ? `<span class="badge-n" aria-hidden="true">${n}</span>` : ''}</button>`;
+  const ib = (act, icon, label, n, extra = '', key = '') => `<button class="btn ghost ib" data-act="${act}" ${extra} aria-label="${label}${n ? ' (' + n + ')' : ''}" ${tip(label, key)}>${ic(icon)}<span class="lb">${label}</span>${n ? `<span class="badge-n" aria-hidden="true">${n}</span>` : ''}</button>`;
   tb.classList.toggle('selmode', S.selMode);
   const scopes = [['notrej', 'Not rejected', 'flagCross'], ['undecided', 'Undecided', 'flag'], ['all', 'All', 'grid']];
-  const keys = `<div class="seg" role="group" aria-label="Show">${scopes.map(([v, l, i]) => `<button data-act="scope" data-v="${v}" aria-pressed="${S.filters.scope === v}" aria-label="${l}" title="${S.filters.flags.size ? 'The flag filter overrides this' : l}" ${S.filters.flags.size ? 'disabled' : ''}>${ic(i)}${S.filters.scope === v ? `<span class="sl">${l}</span>` : ''}</button>`).join('')}</div>
+  const keys = `<div class="seg" role="group" aria-label="Show">${scopes.map(([v, l, i]) => `<button data-act="scope" data-v="${v}" aria-pressed="${S.filters.scope === v}" aria-label="${l}" ${tip(S.filters.flags.size ? 'The flag filter overrides this' : l)} ${S.filters.flags.size ? 'disabled' : ''}>${ic(i)}${S.filters.scope === v ? `<span class="sl">${l}</span>` : ''}</button>`).join('')}</div>
       <span class="count" aria-live="polite">${nDec} / ${nTot}<span class="lb"> decided</span></span>
-      ${ib('delRejected', 'trash', 'Review rejects', nRej, nRej ? '' : 'disabled')}
-      <button class="btn ghost ib" data-act="more" aria-haspopup="menu" aria-label="More" title="More">${ic('more')}</button>
+      ${ib('delRejected', 'trash', 'Review rejects', nRej, nRej ? '' : 'disabled', HOTKEY.reviewRejects)}
+      <button class="btn ghost ib" data-act="more" aria-haspopup="menu" aria-label="More" ${tip('More')}>${ic('more')}</button>
       <div class="prog" role="progressbar" aria-label="Decided" aria-valuemin="0" aria-valuemax="${nTot}" aria-valuenow="${nDec}"><i style="width:${nTot ? Math.round(100 * nDec / nTot) : 0}%"></i></div>`;
   $('hKeys').innerHTML = keys;
   tb.innerHTML = `<div class="tb-top"><div class="bar"><div class="crumbs full" role="navigation" aria-label="Breadcrumb">${full}</div><div class="crumbs short" role="navigation" aria-label="Breadcrumb">${short}</div>
     ${ib('selmode', 'select', 'Select', S.selMode ? S.sel.size : 0, `aria-pressed="${S.selMode}"`)}
-    ${ib('burst', 'compare', 'Compare series', nSer, nSer ? '' : 'disabled')}
-    ${ib('filters', 'filter', 'Filters', nFil, `aria-pressed="${!!S.filtersOpen}" aria-expanded="${!!S.filtersOpen}"`)}</div></div>
+    ${ib('burst', 'compare', 'Compare series', nSer, nSer ? '' : 'disabled', HOTKEY.compare)}
+    ${ib('filters', 'filter', 'Filters', nFil, `aria-pressed="${!!S.filtersOpen}" aria-expanded="${!!S.filtersOpen}"`, HOTKEY.filters)}</div></div>
     <div class="slim">${keys}</div>
     ${S.selMode ? `<div class="tb-sel"><b>${S.sel.size} selected</b>
       <button class="btn" data-act="selAll">Select all (filtered)</button><button class="btn" data-act="selNone">None</button><button class="btn primary" data-act="selmode">Done</button></div>` : ''}`;
@@ -951,16 +976,16 @@ function renderFilters(){
   const ch = (act, val, label, on, extra = '') => `<button class="chip" data-act="${act}" data-v="${val}" aria-pressed="${on}" ${extra}>${label}</button>`;
   el.innerHTML = `
   <div class="fgroup"><span class="lbl">Rating ${qm('Q8')}</span><div class="chips">
-    <div class="seg" role="group" aria-label="Rating comparison"><button data-act="fOp" data-v="gte" aria-pressed="${f.ratingOp === 'gte'}" aria-label="At least">≥</button><button data-act="fOp" data-v="eq" aria-pressed="${f.ratingOp === 'eq'}" aria-label="Exactly">=</button></div>
-    ${[0, 1, 2, 3, 4, 5].map(n => ch('fRating', n, n + '★', f.rating === n, `aria-label="${f.ratingOp === 'gte' ? 'At least' : 'Exactly'} ${n} stars"`)).join('')}</div></div>
+    <div class="seg" role="group" aria-label="Rating comparison"><button data-act="fOp" data-v="gte" aria-pressed="${f.ratingOp === 'gte'}" aria-label="At least" ${tip('At least')}>≥</button><button data-act="fOp" data-v="eq" aria-pressed="${f.ratingOp === 'eq'}" aria-label="Exactly" ${tip('Exactly')}>=</button></div>
+    ${[0, 1, 2, 3, 4, 5].map(n => ch('fRating', n, n + '★', f.rating === n, `aria-label="${f.ratingOp === 'gte' ? 'At least' : 'Exactly'} ${n} stars" ${tip((f.ratingOp === 'gte' ? 'At least ' : 'Exactly ') + n + ' stars')}`)).join('')}</div></div>
   <div class="fgroup"><span class="lbl">Colour ${qm('Q5')}</span><div class="chips">
-    ${LABELS.map(l => `<button class="chip sw" data-act="fLabel" data-v="${l.id}" aria-pressed="${f.labels.has(l.id)}" aria-label="Label ${l.id}"><span class="dotx" style="background:${l.hex}"></span></button>`).join('')}</div></div>
+    ${LABELS.map(l => `<button class="chip sw" data-act="fLabel" data-v="${l.id}" aria-pressed="${f.labels.has(l.id)}" aria-label="Label ${l.id}" ${tip('Label ' + l.id)}><span class="dotx" style="background:${l.hex}"></span></button>`).join('')}</div></div>
   <div class="fgroup"><span class="lbl">Flag ${qm('Q4')}</span><div class="chips">
     ${ch('fFlag', 'pick', ic('flagPick') + 'Picked', f.flags.has('pick'))}${ch('fFlag', 'reject', ic('flagX') + 'Rejected', f.flags.has('reject'))}${ch('fFlag', 'none', ic('flag') + 'Unflagged', f.flags.has('none'))}</div></div>
   <div class="fgroup"><span class="lbl">Pairing</span><div class="chips">
     ${ch('fPair', 'pair', 'Pairs', f.pairs.has('pair'))}${ch('fPair', 'jpg', 'JPEG only', f.pairs.has('jpg'))}${ch('fPair', 'raw', 'RAW only', f.pairs.has('raw'))}</div></div>
   ${multiFolder() ? `<div class="fgroup"><span class="lbl">Folder</span><div class="chips">
-    ${S.set.folders.filter(p => !FOLDERS[p].big).map(p => `<button class="chip" data-act="fFolder" data-path="${esc(p)}" aria-pressed="${f.folders.has(p)}" title="${esc(p)}">${esc(folderName(p))}</button>`).join('')}</div></div>` : ''}
+    ${S.set.folders.filter(p => !FOLDERS[p].big).map(p => `<button class="chip" data-act="fFolder" data-path="${esc(p)}" aria-pressed="${f.folders.has(p)}" ${tip(p)}>${esc(folderName(p))}</button>`).join('')}</div></div>` : ''}
   <div class="fright">${qm('Q9')}<span class="count" id="countF">${S.view.length} of ${S.items.length}</span><button class="btn" data-act="fClear" ${filtersActive() ? '' : 'disabled'}>Clear filters</button></div>`;
 }
 function toggleSet(set, v){ set.has(v) ? set.delete(v) : set.add(v); }
@@ -970,8 +995,8 @@ let io, thumbQueue = [], thumbBusy = false;
 const tileEls = new Map();
 function pairLabel(it){ return pairType(it) === 'pair' ? 'JPG+' + it.raw.name.split('.').pop() : pairType(it) === 'jpg' ? 'JPG only' : 'RAW only'; }
 function tileInner(it){
-  return `<img class="th" alt="" draggable="false"><span class="pair ${pairType(it) === 'pair' ? 'p' : 's'}">${pairLabel(it)}</span>
-  <span class="burst" hidden></span><span class="chk">${ic('check')}</span><span class="rejx" aria-hidden="true">${ic('flagX')}</span><div class="ov"><span class="stars" aria-hidden="true"></span><span class="dotc" hidden></span><span class="flw"></span></div>`;
+  return `<img class="th" alt="" draggable="false"><span class="pair ${pairType(it) === 'pair' ? 'p' : 's'}" ${tip(pairType(it) === 'pair' ? 'Pair: JPEG and RAW' : 'Single: ' + pairLabel(it))}>${pairLabel(it)}</span>
+  <span class="burst" hidden></span><span class="chk" ${tip('Selected')}>${ic('check')}</span><span class="rejx" aria-hidden="true" ${tip('Rejected')}>${ic('flagX')}</span><div class="ov"><span class="stars" aria-hidden="true"></span><span class="dotc" hidden></span><span class="flw"></span></div>`;
 }
 function tileLabel(it){
   const bits = [stem(it), pairLabel(it)]; if (it.rating) bits.push(it.rating + ' stars'); if (it.label) bits.push(it.label + ' label'); if (it.flag !== 'none') bits.push(FLAG_TXT[it.flag].toLowerCase());
@@ -981,9 +1006,9 @@ function updateTile(id){
   const el = tileEls.get(id), it = S.byId.get(id); if (!el || !it) return;
   el.classList.toggle('rej', it.flag === 'reject'); el.classList.toggle('sel', S.sel.has(id));
   el.setAttribute('aria-label', tileLabel(it)); el.setAttribute('aria-selected', S.sel.has(id));
-  const bg = getBursts().map.get(id), bs = el.querySelector('.burst'); bs.hidden = !bg; if (bg) bs.textContent = '⧉ ' + bg.length;
-  el.querySelector('.stars').innerHTML = it.rating ? stars(it.rating) : '';
-  const dot = el.querySelector('.dotc'); dot.hidden = !it.label; if (it.label) dot.style.background = LBL[it.label].hex;
+  const bg = getBursts().map.get(id), bs = el.querySelector('.burst'); bs.hidden = !bg; if (bg){ bs.textContent = '⧉ ' + bg.length; bs.dataset.tip = `Series of ${bg.length}`; }
+  const st = el.querySelector('.stars'); st.innerHTML = it.rating ? stars(it.rating) : ''; if (it.rating) st.dataset.tip = `Rating: ${it.rating} stars`; else delete st.dataset.tip;
+  const dot = el.querySelector('.dotc'); dot.hidden = !it.label; if (it.label){ dot.style.background = LBL[it.label].hex; dot.dataset.tip = `Label ${it.label}`; }
   el.querySelector('.flw').innerHTML = flagMark(it.flag);
 }
 function renderGrid(){
@@ -1086,6 +1111,67 @@ function placePop(pop, anchor){
   pop.style.left = clamp(x, 8, Math.max(8, FW - w - 8)) + 'px'; pop.style.top = clamp(y, 8, Math.max(8, FH - h - 8)) + 'px'; pop.style.visibility = '';
 }
 function closePop(){ $('popRoot').replaceChildren(); }
+
+/* ---------- tooltip: one bubble for every [data-tip] control, rules in docs/plan.md "Tooltip" ---------- */
+const TIP = {anchor:null, timer:0, warm:0, press:null, swallow:false, DELAY:400, PRESS:500, WARM:300, GAP:10};
+function tipShow(a){
+  const el = $('tip'), key = a.dataset.tipKey; clearTimeout(TIP.timer);
+  if (TIP.anchor && TIP.anchor !== a) TIP.anchor.removeAttribute('aria-describedby');
+  TIP.anchor = a; a.setAttribute('aria-describedby', 'tip');
+  el.innerHTML = `<span>${esc(a.dataset.tip)}</span>${key ? `<span>${kbd(key)}</span>` : ''}<i></i>`; el.hidden = false; tipPlace(el, a);
+}
+function tipHide(){
+  clearTimeout(TIP.timer); if (!TIP.anchor) return;
+  TIP.anchor.removeAttribute('aria-describedby'); TIP.anchor = null; $('tip').hidden = true; TIP.warm = performance.now() + TIP.WARM;
+}
+const tipHideIn = scope => { if (TIP.anchor && scope.contains(TIP.anchor)) tipHide(); };
+/* frame coordinates; sides in order of preference, the first that fits the safe frame and clears the photo centre wins */
+function tipPlace(el, a){
+  const fr = $('frame').getBoundingClientRect(), sc = S.scale || 1, rel = r => ({l:(r.left - fr.left) / sc, t:(r.top - fr.top) / sc, r:(r.right - fr.left) / sc, b:(r.bottom - fr.top) / sc});
+  el.style.left = el.style.top = '0px';
+  const ar = rel(a.getBoundingClientRect()), w = el.offsetWidth, h = el.offsetHeight, sa = getComputedStyle($('safe')), G = TIP.GAP;
+  const box = {l:8 + parseFloat(sa.paddingLeft), t:8 + parseFloat(sa.paddingTop), r:fr.width / sc - 8 - parseFloat(sa.paddingRight), b:fr.height / sc - 8 - parseFloat(sa.paddingBottom)};
+  const st = [$('serie').hidden ? null : $('svTrack'), $('loupe').hidden ? null : $('stage')].find(Boolean), sr = st && rel(st.getBoundingClientRect());
+  const mid = sr && {l:sr.l + (sr.r - sr.l) / 3, r:sr.r - (sr.r - sr.l) / 3, t:sr.t + (sr.b - sr.t) / 3, b:sr.b - (sr.b - sr.t) / 3};
+  const cx = (ar.l + ar.r) / 2, cy = (ar.t + ar.b) / 2, hx = x => clamp(x, box.l, Math.max(box.l, box.r - w)), vy = y => clamp(y, box.t, Math.max(box.t, box.b - h));
+  const at = {bottom:[hx(cx - w / 2), ar.b + G], top:[hx(cx - w / 2), ar.t - h - G], right:[ar.r + G, vy(cy - h / 2)], left:[ar.l - w - G, vy(cy - h / 2)]};
+  const fits = ([x, y]) => x >= box.l && y >= box.t && x + w <= box.r && y + h <= box.b && !(mid && x < mid.r && x + w > mid.l && y < mid.b && y + h > mid.t);
+  const order = cy < (box.t + box.b) / 2 ? ['bottom', 'top', 'right', 'left'] : ['top', 'bottom', 'right', 'left'];
+  const side = order.find(sd => fits(at[sd])) || order[0], [x, y] = side === order[0] && !fits(at[side]) ? [at[side][0], vy(at[side][1])] : at[side];
+  el.dataset.side = side; el.style.left = x + 'px'; el.style.top = y + 'px';
+  const arrow = el.lastChild; arrow.style.left = arrow.style.top = '';
+  if (side === 'top' || side === 'bottom') arrow.style.left = clamp(cx - x, 12, w - 12) + 'px'; else arrow.style.top = clamp(cy - y, 10, h - 10) + 'px';
+}
+function bindTips(){
+  const f = $('frame'), tipOf = e => e.target.closest && e.target.closest('[data-tip]');
+  const endPress = () => { if (TIP.press){ clearTimeout(TIP.press.t); TIP.press = null; } };
+  f.addEventListener('pointerover', e => {
+    if (e.pointerType !== 'mouse' || e.target.closest('#tip')) return; const a = tipOf(e); if (!a || a === TIP.anchor) return;
+    clearTimeout(TIP.timer);
+    if (TIP.anchor || performance.now() < TIP.warm) tipShow(a); else TIP.timer = setTimeout(() => a.isConnected && tipShow(a), TIP.DELAY);
+  });
+  f.addEventListener('pointerout', e => {
+    if (e.pointerType !== 'mouse') return; const to = e.relatedTarget;
+    if (to && (to.closest('#tip') || (TIP.anchor && TIP.anchor.contains(to)))) return;
+    clearTimeout(TIP.timer); if (!(to && to.closest('[data-tip]'))) tipHide();
+  });
+  f.addEventListener('focusin', e => { const a = tipOf(e); if (a && a.matches(':focus-visible')) tipShow(a); else tipHide(); });
+  f.addEventListener('focusout', e => { if (e.target === TIP.anchor) tipHide(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && TIP.anchor){ e.preventDefault(); e.stopImmediatePropagation(); tipHide(); } }, true);
+  /* touch and pen: a long-press shows the tooltip, the click that follows is swallowed; tiles keep their long-press for selection */
+  f.addEventListener('pointerdown', e => {
+    TIP.swallow = false; endPress(); tipHide(); if (e.pointerType === 'mouse' || !e.isPrimary) return;
+    const a = tipOf(e); if (!a || a.closest('.tile')) return;
+    TIP.press = {x:e.clientX, y:e.clientY, t:setTimeout(() => { TIP.press = null; TIP.swallow = true; tipShow(a); }, TIP.PRESS)};
+  }, true);
+  f.addEventListener('pointermove', e => { if (TIP.press && Math.hypot(e.clientX - TIP.press.x, e.clientY - TIP.press.y) > 10) endPress(); }, true);
+  f.addEventListener('pointerup', e => { if (e.pointerType !== 'mouse'){ endPress(); tipHide(); } }, true);
+  f.addEventListener('pointercancel', () => { endPress(); tipHide(); }, true);
+  f.addEventListener('click', e => { if (TIP.swallow){ TIP.swallow = false; e.preventDefault(); e.stopPropagation(); } }, true);
+  f.addEventListener('contextmenu', e => { if (tipOf(e)) e.preventDefault(); });
+  f.addEventListener('scroll', e => { if (TIP.anchor && e.target.contains && e.target.contains(TIP.anchor)) tipHide(); }, true);
+  new MutationObserver(() => { if (TIP.anchor && !TIP.anchor.isConnected) tipHide(); }).observe(f, {childList:true, subtree:true});
+}
 function showQ(id, anchor){
   const q = QS[id], pop = document.createElement('div'); pop.className = 'pop'; pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', id + ' ' + q.t);
   pop.innerHTML = `<div class="tag">OPEN QUESTION ${id}</div><h4>${esc(q.t)}</h4><ol type="a">${q.o.map(o => `<li>${esc(o)}</li>`).join('')}</ol><div class="rec"><b>Recommendation:</b> ${esc(q.r)}</div>`;
@@ -1094,9 +1180,9 @@ function showQ(id, anchor){
 function showPalette(anchor, forKey){
   const ids = idsForKey(forKey), its = ids.map(i => S.byId.get(i)).filter(Boolean);
   const pop = document.createElement('div'); pop.className = 'pop pal'; pop.dataset.pal = '1'; pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', 'Colour label');
-  pop.innerHTML = LABELS.map(l => `<button data-act="setLabel" data-v="${l.id}" data-for="${forKey}" aria-label="${l.id}${l.key ? ' (key ' + l.key + ')' : ''}" aria-pressed="${its.length > 0 && its.every(i => i.label === l.id)}"><span class="dotx" style="background:${l.hex}"></span></button>`).join('')
-    + `<button data-act="setLabel" data-v="" data-for="${forKey}" aria-label="No label"><span class="dotx" style="display:flex;align-items:center;justify-content:center;font-size:14px">∅</span></button>
-    <div class="row2"><span>Keys 6 red · 7 yellow · 8 green · 9 blue</span>${qm('Q5')}</div>`;
+  pop.innerHTML = LABELS.map(l => `<button data-act="setLabel" data-v="${l.id}" data-for="${forKey}" aria-label="${l.id}${l.key ? ' (key ' + l.key + ')' : ''}" ${tip('Label ' + l.id, l.key)} aria-pressed="${its.length > 0 && its.every(i => i.label === l.id)}"><span class="dotx" style="background:${l.hex}"></span></button>`).join('')
+    + `<button data-act="setLabel" data-v="" data-for="${forKey}" aria-label="No label" ${tip('No label')}><span class="dotx" style="display:flex;align-items:center;justify-content:center;font-size:14px">∅</span></button>
+    <div class="row2"><span>Keys ${LABELS.filter(l => l.key).map(l => l.key + ' ' + l.id).join(' · ')}</span>${qm('Q5')}</div>`;
   closePop(); placePop(pop, anchor);
 }
 
@@ -1104,7 +1190,7 @@ function showPalette(anchor, forKey){
 function openDlg(d){ S.dlg = d; renderDlg(); }
 function closeDlg(){ S.dlg = null; $('dlgRoot').replaceChildren(); }
 function dlgShell(title, body, foot, wide, canClose = true){
-  return `<div class="scrim" data-scrim="1"><div class="dlg ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="dlg-h"><h2>${esc(title)}</h2>${canClose ? `<button class="icon-btn" data-act="closeDlg" aria-label="Close">${ic('close')}</button>` : ''}</div><div class="dlg-b">${body}</div>${foot ? `<div class="dlg-f">${foot}</div>` : ''}</div></div>`;
+  return `<div class="scrim" data-scrim="1"><div class="dlg ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="dlg-h"><h2>${esc(title)}</h2>${canClose ? `<button class="icon-btn" data-act="closeDlg" aria-label="Close" ${tip('Close', HOTKEY.close)}>${ic('close')}</button>` : ''}</div><div class="dlg-b">${body}</div>${foot ? `<div class="dlg-f">${foot}</div>` : ''}</div></div>`;
 }
 function renderDlg(){
   const d = S.dlg, root = $('dlgRoot'); if (!d){ root.replaceChildren(); return; }
@@ -1126,7 +1212,7 @@ function dlgPicker(d){
       : below && below.folders > 1 ? `${nf(below.photos)} photos in ${below.folders} folders` : FOLDERS[p] ? FOLDERS[p].info : 'Folder';
     const on = d.forMove ? d.sel === p : d.ticks.has(p);
     const box = d.forMove ? '' : `<span class="pk-box" aria-hidden="true">${on ? ic('check') : ''}</span>`;
-    return `<li role="option" tabindex="0" data-act="${d.forMove ? 'pkSel' : 'pkTick'}" data-path="${esc(p)}" aria-selected="${on}" class="${ok ? '' : 'dis'}" ${ok ? '' : 'aria-disabled="true"'}>${box}${ic('folder')}<span class="nm">${esc(k)}<div class="meta">${esc(meta)}</div></span>${sub ? `<button class="go" data-act="pkGo" data-path="${esc(p)}" aria-label="Open ${esc(k)}">${ic('chevR')}</button>` : ''}</li>`;
+    return `<li role="option" tabindex="0" data-act="${d.forMove ? 'pkSel' : 'pkTick'}" data-path="${esc(p)}" aria-selected="${on}" class="${ok ? '' : 'dis'}" ${ok ? '' : 'aria-disabled="true"'}>${box}${ic('folder')}<span class="nm">${esc(k)}<div class="meta">${esc(meta)}</div></span>${sub ? `<button class="go" data-act="pkGo" data-path="${esc(p)}" aria-label="Open ${esc(k)}" ${tip('Open ' + k)}>${ic('chevR')}</button>` : ''}</li>`;
   }).join('') || '<li class="dis">This folder has no subfolders.</li>';
   if (d.forMove){
     const can = d.sel && d.sel !== S.folderPath;
@@ -1137,7 +1223,7 @@ function dlgPicker(d){
   const ticks = [...d.ticks], cnt = setCount(ticks, d.sub), can = cnt.photos > 0;
   const label = !can ? 'Choose' : cnt.folders === 1 ? 'Cull ' + resolveSet(ticks, d.sub)[0].split('/').pop() : `Cull ${cnt.folders} folders`;
   const intro = S.folderPath ? '' : '<p class="intro">Choose one or more folders of photos to start culling. Decisions save as you go and can be undone; deleting only moves files to the Nextcloud trash bin.</p>';
-  const subRow = `<div class="setrow pk-sub"><div><div>Include subfolders</div><div class="hint" style="margin:0">Any depth. Hidden folders, the trash bin and preview folders are skipped.</div></div><button class="sw-btn" role="switch" aria-checked="${d.sub}" aria-label="Include subfolders" data-act="pkSub"></button></div>`;
+  const subRow = `<div class="setrow pk-sub"><div><div>Include subfolders</div><div class="hint" style="margin:0">Any depth. Hidden folders, the trash bin and preview folders are skipped.</div></div><button class="sw-btn" role="switch" aria-checked="${d.sub}" aria-label="Include subfolders" ${tip('Include subfolders')} data-act="pkSub"></button></div>`;
   const sum = !ticks.length ? 'Tick one or more folders.' : cnt.photos ? `<b>${nf(cnt.photos)} photos in ${cnt.folders} ${cnt.folders === 1 ? 'folder' : 'folders'}</b>` + (ticks.length > 1 || d.sub ? ` · ${ticks.map(p => esc(p.split('/').pop())).join(', ')}` : '') : 'No photos in the ticked folders.';
   const cap = cnt.photos > PHOTO_CAP ? `<div class="note warn"><span>More than ${nf(PHOTO_CAP)} photos. honeycomb shows the first ${nf(PHOTO_CAP)} by capture time; untick folders to see the rest.</span></div>` : '';
   return confirmDialog('Choose folders', `${intro}${crumbs}<ul class="plist" role="listbox" aria-multiselectable="true" aria-label="Folders" style="margin-top:8px">${rows}</ul>
@@ -1160,7 +1246,7 @@ function dlgBurst(d){
   if (!m) return dlgShell('Compare series', `<div class="empty"><div class="big">All series compared</div>No more photos taken within ${BURST_GAP_MS / 1000} seconds of each other are left to decide.</div>`, `<button class="btn primary" data-act="closeDlg">Close</button>`, true);
   return dlgShell(`Compare series ${d.i + 1} of ${d.gids.length}`,
     `<p class="row" style="margin-top:0;color:var(--muted)">Photos taken within ${BURST_GAP_MS / 1000} seconds of each other. Tap a photo to open the series fullscreen, or decide right here. The arrow keys switch the active photo (outlined); P, X, U and 0 – 5 decide it, K picks it and rejects the rest. <span class="later">Later milestone M6</span></p>
-    <div class="cmp n${m.length}">${m.map((it, k) => `<div class="cm${k === (d.a = clamp(d.a || 0, 0, m.length - 1)) ? ' active' : ''}"><button class="cm-open" data-act="cmpOpen" data-id="${esc(it.id)}" aria-label="Open photo ${k + 1}: ${esc(stem(it))}"><img alt="" src="${cmpURL(it)}"><span class="cm-n">${k + 1} · ${esc(stem(it))}</span><span class="cm-s">${pairLabel(it)}<span class="stars" aria-hidden="true">${stars(it.rating)}</span>${flagMark(it.flag)}</span></button>
+    <div class="cmp n${m.length}">${m.map((it, k) => `<div class="cm${k === (d.a = clamp(d.a || 0, 0, m.length - 1)) ? ' active' : ''}"><button class="cm-open" data-act="cmpOpen" data-id="${esc(it.id)}" aria-label="Open photo ${k + 1}: ${esc(stem(it))}" ${tip('Open in the series viewer')}><img alt="" src="${cmpURL(it)}"><span class="cm-n">${k + 1} · ${esc(stem(it))}</span><span class="cm-s">${pairLabel(it)}<span class="stars" aria-hidden="true">${stars(it.rating)}</span>${flagMark(it.flag)}</span></button>
       ${flagButtons(it.flag, 'id', {id:it.id})}${pickRestBtn('id', it.id)}</div>`).join('')}</div>`,
     `<button class="btn ghost" data-act="closeDlg">Close</button><button class="btn" data-act="cmpSkip">Skip</button>`, true);
 }
@@ -1172,8 +1258,8 @@ function openSerie(id){
   Object.assign(SV, {all:m.map(i => i.id), ids:m.map(i => i.id), dy:0, vert:null, idx:Math.max(0, m.findIndex(i => i.id === id)), k:1, cx:.5, cy:.5, ptr:new Map(), pinch:null}); S.serie = true;
   const el = $('serie'); el.hidden = false; el.classList.remove('zoomed', 'idle');
   el.innerHTML = `<div class="sv-track" id="svTrack">${serieSlides(m)}</div>
-    <div class="sv-ctl sv-top"><button class="icon-btn" data-act="svClose" aria-label="Close series viewer">${ic('close')}</button><div class="sv-title"><b id="svName"></b><span id="svSub"></span></div><button class="btn" data-act="svZoom" id="svZoom" aria-pressed="false">${ic('zoom')}<span>100 %</span></button></div>
-    <button class="sv-nav prev icon-btn" data-act="svStep" data-v="-1" aria-label="Previous photo">${ic('chevL')}</button><button class="sv-nav next icon-btn" data-act="svStep" data-v="1" aria-label="Next photo">${ic('chevR')}</button>
+    <div class="sv-ctl sv-top"><button class="icon-btn" data-act="svClose" aria-label="Close series viewer" ${tip('Close series viewer', HOTKEY.close)}>${ic('close')}</button><div class="sv-title"><b id="svName"></b><span id="svSub"></span></div><button class="btn" data-act="svZoom" id="svZoom" aria-pressed="false" ${tip('Fit / 100 %', HOTKEY.zoom)}>${ic('zoom')}<span>100 %</span></button></div>
+    <button class="sv-nav prev icon-btn" data-act="svStep" data-v="-1" aria-label="Previous photo" ${tip('Previous photo', HOTKEY.prev)}>${ic('chevL')}</button><button class="sv-nav next icon-btn" data-act="svStep" data-v="1" aria-label="Next photo" ${tip('Next photo', HOTKEY.next)}>${ic('chevR')}</button>
     <div class="sv-ctl sv-bot"><span id="svSync" aria-live="polite"></span><div class="sv-bar" id="svBar"></div></div>`;
   const tr = $('svTrack'); tr.scrollLeft = SV.idx * tr.clientWidth;
   tr.addEventListener('scroll', () => { const i = clamp(Math.round(tr.scrollLeft / tr.clientWidth), 0, SV.ids.length - 1); if (i !== SV.idx){ SV.idx = i; serieChrome(); } }, {passive:true});
@@ -1191,7 +1277,7 @@ function closeSerie(){
 }
 function serieWake(){
   const el = $('serie'); el.classList.remove('idle'); clearTimeout(SV.timer);
-  SV.timer = setTimeout(() => { if (!el.querySelector('.sv-ctl:has(:focus-visible), .sv-nav:focus-visible')) el.classList.add('idle'); }, SV_IDLE_MS);
+  SV.timer = setTimeout(() => { if (!el.querySelector('.sv-ctl:has(:focus-visible), .sv-nav:focus-visible')){ el.classList.add('idle'); tipHideIn(el); } }, SV_IDLE_MS);
 }
 function serieChrome(){
   const it = S.byId.get(SV.ids[SV.idx]); if (!it) return;
@@ -1258,7 +1344,7 @@ function svUp(e){
   const r = e.currentTarget.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
   if (e.timeStamp - SV.lastTap < 300){ SV.lastTap = 0; SV.k > 1 ? serieZoomAt(1) : serieZoomAt(SV_ZOOM, fx, fy); return; }
   SV.lastTap = e.timeStamp;
-  const el = $('serie'); if (el.classList.contains('idle')) serieWake(); else { clearTimeout(SV.timer); el.classList.add('idle'); }
+  const el = $('serie'); if (el.classList.contains('idle')) serieWake(); else { clearTimeout(SV.timer); el.classList.add('idle'); tipHideIn(el); }
 }
 function dlgDelete(d){
   const its = d.ids.map(i => S.byId.get(i)).filter(Boolean), files = its.flatMap(filesOf);
@@ -1304,8 +1390,8 @@ function finishDelete(res, count){
 /* settings */
 function dlgSettings(){
   const s = S.settings, tplCur = S.tplDraft ?? s.moveTemplate;
-  const sw = (key, label, sub) => `<div class="setrow"><div><div>${label}</div>${sub ? `<div style="font-size:12px;color:var(--muted)">${sub}</div>` : ''}</div><button class="sw-btn" role="switch" aria-checked="${s[key]}" aria-label="${esc(label)}" data-act="setBool" data-k="${key}"></button></div>`;
-  const chips = (k) => `<div class="chiprow">${s[k].map(e => `<span class="ext">.${esc(e)}<button data-act="extDel" data-k="${k}" data-e="${esc(e)}" aria-label="Remove ${esc(e)}">✕</button></span>`).join('')}
+  const sw = (key, label, sub) => `<div class="setrow"><div><div>${label}</div>${sub ? `<div style="font-size:12px;color:var(--muted)">${sub}</div>` : ''}</div><button class="sw-btn" role="switch" aria-checked="${s[key]}" aria-label="${esc(label)}" ${tip(label)} data-act="setBool" data-k="${key}"></button></div>`;
+  const chips = (k) => `<div class="chiprow">${s[k].map(e => `<span class="ext">.${esc(e)}<button data-act="extDel" data-k="${k}" data-e="${esc(e)}" aria-label="Remove ${esc(e)}" ${tip('Remove .' + e)}>✕</button></span>`).join('')}
     <form data-form="ext" data-k="${k}" class="chiprow" style="gap:4px"><input class="inp" name="e" placeholder="add…" aria-label="Add extension" autocapitalize="characters" maxlength="6"><button class="btn" type="submit">Add</button></form></div>`;
   const act = (k) => `<select class="sel-input" data-chg="${k}" aria-label="${k === 'swipeUp' ? 'Swipe up' : 'Swipe down'}">${[['pick', 'Pick'], ['reject', 'Reject'], ['none', 'Nothing']].map(([v, l]) => `<option value="${v}" ${s[k] === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
   return dlgShell('Settings', `
@@ -1324,23 +1410,22 @@ function dlgSettings(){
     <input class="inp tpl" data-chg="tpl" value="${esc(tplCur)}" aria-label="Name template" spellcheck="false" autocapitalize="off" autocomplete="off">
     <div id="tplPv">${tplPreview(tplCur)}</div>
     <p class="hint" style="margin-top:8px">Tokens: <span class="mono">{date:%Y %m %d %j %H %M %S}</span>, <span class="mono">{camera}</span>, <span class="mono">{make}</span>, <span class="mono">{name}</span>, <span class="mono">{number:N}</span>, <span class="mono">{ext}</span>; <span class="mono">:lower</span> and <span class="mono">:upper</span> on text tokens. Only letters, digits, <span class="mono">. _ -</span> and <span class="mono">/</span>, never spaces.</p>
-    <div style="margin:10px 0 8px"><b style="font-size:13px">Favourite folders</b></div><div class="chiprow">${S.moveFav.map(p => `<span class="ext">★ ${esc(p.split('/').pop())}<button data-act="favDel" data-path="${esc(p)}" aria-label="Remove favourite ${esc(p)}">✕</button></span>`).join('') || '<span class="hint">None yet: add one in the move dialog.</span>'}</div></div>
+    <div style="margin:10px 0 8px"><b style="font-size:13px">Favourite folders</b></div><div class="chiprow">${S.moveFav.map(p => `<span class="ext">★ ${esc(p.split('/').pop())}<button data-act="favDel" data-path="${esc(p)}" aria-label="Remove favourite ${esc(p)}" ${tip('Remove favourite ' + p)}>✕</button></span>`).join('') || '<span class="hint">None yet: add one in the move dialog.</span>'}</div></div>
   <div class="sec"><h3>Where decisions are stored</h3>
     <div class="seg" role="radiogroup" aria-label="Storage" style="flex-wrap:wrap">${[['db', 'App database'], ['xmp', 'XMP sidecars'], ['both', 'Both (recommended)']].map(([v, l]) => `<button role="radio" aria-checked="${s.storage === v}" data-act="setStorage" data-v="${v}">${l}</button>`).join('')}</div>
     <p class="hint" style="margin-top:8px">${s.storage === 'both' ? 'Database is the fast working state; every change is written through to the XMP sidecars of each file.' : s.storage === 'xmp' ? 'Sidecars are the only source of truth, so digiKam sees every change. Slower grid.' : 'Nothing is written next to your files.'}</p></div>`,
     `<button class="btn primary" data-act="closeDlg">Done</button>`, true);
 }
 const KEYS = [
-  ['Flags', [['P', 'Pick (again: unflag)'], ['X', 'Reject (again: unflag)'], ['U', 'Unflag'], ['Shift + P', 'Pick and go to the next photo'], ['Shift + X', 'Reject and go to the next photo'], ['Shift + U', 'Unflag and go to the next photo'],
-    ['Caps Lock', 'Auto-advance: every decision goes to the next photo'], ['`', 'Toggle pick'], ['K', 'Series: pick this, reject the rest']]],
-  ['Rating and colour label', [['0 – 5', 'Set rating'], ['Shift + 0 – 5', 'Set rating and go to the next photo'], ['[', 'One star down'], [']', 'One star up'], ['6 7 8 9', 'Label red / yellow / green / blue (toggle)']]],
-  ['Views and photos', [['Arrow keys', 'Grid: move focus. Loupe, series compare, series viewer: switch photo'], ['Enter', 'Open the loupe'], ['G', 'Grid'], ['E', 'Loupe'], ['N', 'Series compare'], ['Space', 'Loupe: fit / 100 %'], ['Z', 'Loupe and series viewer: fit / 100 %'],
-    ['Ctrl/⌘ + =', 'Zoom in'], ['Ctrl/⌘ + -', 'Zoom out'], ['F', 'Fullscreen'], ['Tab', 'Show or hide the header (loupe: the controls)'], ['I', 'Cycle the info overlay'], ['Esc', 'Close loupe / dialog / selection']]],
-  ['Filter and selection', [['\\', 'Show or hide the filter bar'], ['Ctrl/⌘ + L', 'Filters off / on'], ['Ctrl/⌘ + A', 'Select all (filtered)'], ['Ctrl/⌘ + D', 'Select none'], ['Shift + click', 'Select a range']]],
-  ['Undo, delete, move, help', [['Ctrl/⌘ + Z', 'Undo'], ['Ctrl/⌘ + Shift + Z', 'Redo'], ['Delete', 'Delete summary for the selection or focused tile'], ['Ctrl/⌘ + Backspace', 'Review rejects'], ['M', 'Move the selection, focused tile or current photo'],
-    ['1 – 9', 'Move dialog: choose a favourite or recent folder'], ['Ctrl/⌘ + /', 'This sheet (also ?)'], ['Ctrl + wheel, pinch', 'Grid: thumbnail size']]]];
+  ['Flags', [[HOTKEY.pick, 'Pick (again: unflag)'], [HOTKEY.reject, 'Reject (again: unflag)'], [HOTKEY.unflag, 'Unflag'], ['Shift + P', 'Pick and go to the next photo'], ['Shift + X', 'Reject and go to the next photo'], ['Shift + U', 'Unflag and go to the next photo'],
+    ['Caps Lock', 'Auto-advance: every decision goes to the next photo'], [HOTKEY.togglePick, 'Toggle pick'], [HOTKEY.pickRest, 'Series: pick this, reject the rest']]],
+  ['Rating and colour label', [['0 – 5', 'Set rating'], ['Shift + 0 – 5', 'Set rating and go to the next photo'], [HOTKEY.starDown, 'One star down'], [HOTKEY.starUp, 'One star up'], [LABELS.filter(l => l.key).map(l => l.key).join(' '), 'Label red / yellow / green / blue (toggle)']]],
+  ['Views and photos', [['Arrow keys', 'Grid: move focus. Loupe, series compare, series viewer: switch photo'], ['Enter', 'Open the loupe'], [HOTKEY.grid, 'Grid'], [HOTKEY.loupe, 'Loupe'], [HOTKEY.compare, 'Series compare'], [HOTKEY.fit, 'Loupe: fit / 100 %'], [HOTKEY.zoom, 'Loupe and series viewer: fit / 100 %'],
+    ['Ctrl/⌘ + =', 'Zoom in'], ['Ctrl/⌘ + -', 'Zoom out'], [HOTKEY.fullscreen, 'Fullscreen'], [HOTKEY.header, 'Show or hide the header (loupe: the controls)'], [HOTKEY.info, 'Cycle the info overlay'], [HOTKEY.close, 'Close loupe / dialog / selection']]],
+  ['Filter and selection', [[HOTKEY.filters, 'Show or hide the filter bar'], [HOTKEY.filtersOff, 'Filters off / on'], ['Ctrl/⌘ + A', 'Select all (filtered)'], ['Ctrl/⌘ + D', 'Select none'], ['Shift + click', 'Select a range']]],
+  ['Undo, delete, move, help', [[HOTKEY.undo, 'Undo'], [HOTKEY.redo, 'Redo'], ['Delete', 'Delete summary for the selection or focused tile'], [HOTKEY.reviewRejects, 'Review rejects'], [HOTKEY.move, 'Move the selection, focused tile or current photo'],
+    ['1 – 9', 'Move dialog: choose a favourite or recent folder'], [HOTKEY.keys, 'This sheet (also ?)'], ['Ctrl + wheel, pinch', 'Grid: thumbnail size']]]];
 function dlgKeys(){
-  const kbd = t => t.split(' ').map(k => k === '+' || k === '–' ? esc(k) : `<span class="kbd">${esc(k)}</span>`).join(' ');
   return dlgShell('Keyboard shortcuts', `<p style="margin-top:0;color:var(--muted)">The Lightroom Classic keys, the same on every screen. They act on the selection or focused tile in the grid, and on the active photo in the loupe, the series compare and the series viewer.</p>
     ${KEYS.map(([h, rows]) => `<h4 style="margin:14px 0 4px">${h}</h4><table class="sc">${rows.map(r => `<tr><td>${kbd(r[0])}</td><td>${esc(r[1])}</td></tr>`).join('')}</table>`).join('')}`, `<button class="btn primary" data-act="closeDlg">Close</button>`);
 }
@@ -1520,18 +1605,18 @@ function tplPreview(t){
 const L = {W:0, H:0, z:{s:1, tx:0, ty:0}, anim:false, film:true, slides:[], cvs:[null, null, null], pre:[], timers:[]};
 function buildLoupe(){
   $('loupe').innerHTML = `
-  <div class="l-top"><button class="icon-btn" data-act="closeLoupe" aria-label="Close loupe">${ic('close')}</button>
+  <div class="l-top"><button class="icon-btn" data-act="closeLoupe" aria-label="Close loupe" ${tip('Close loupe', HOTKEY.close)}>${ic('close')}</button>
     <div class="l-title"><b id="lName"></b><span id="lPair"></span></div>
     <span class="l-count" id="lCount"></span>
-    <button class="btn" data-act="zoomToggle" id="lZoomBtn" aria-label="Toggle fit and 100 percent">Fit</button>
-    <button class="btn" data-act="moveCur" aria-label="Move this photo">Move…</button>
-    <button class="btn" data-act="infoToggle" id="lInfoBtn" aria-label="Toggle info panel" aria-pressed="${P0.infoOpen}">Info</button>
-    <button class="icon-btn" data-act="filmToggle" id="lFilmBtn" aria-label="Toggle filmstrip" aria-pressed="true">${ic('film')}</button></div>
+    <button class="btn" data-act="zoomToggle" id="lZoomBtn" aria-label="Toggle fit and 100 percent" ${tip('Fit / 100 %', HOTKEY.fit)}>Fit</button>
+    <button class="btn" data-act="moveCur" aria-label="Move this photo" ${tip('Move this photo', HOTKEY.move)}>Move…</button>
+    <button class="btn" data-act="infoToggle" id="lInfoBtn" aria-label="Toggle info panel" ${tip('Info panel', HOTKEY.info)} aria-pressed="${P0.infoOpen}">Info</button>
+    <button class="icon-btn" data-act="filmToggle" id="lFilmBtn" aria-label="Toggle filmstrip" ${tip('Filmstrip')} aria-pressed="true">${ic('film')}</button></div>
   <div class="l-main"><div id="stage"><div id="track"><div class="slide"></div><div class="slide"></div><div class="slide"></div></div>
     <div class="swipe-hint up" id="hintUp"></div><div class="swipe-hint down" id="hintDown"></div>
-    <button class="navbtn l" data-act="prev" aria-label="Previous photo">${ic('chevL')}</button><button class="navbtn r" data-act="next" aria-label="Next photo">${ic('chevR')}</button>
+    <button class="navbtn l" data-act="prev" aria-label="Previous photo" ${tip('Previous photo', HOTKEY.prev)}>${ic('chevL')}</button><button class="navbtn r" data-act="next" aria-label="Next photo" ${tip('Next photo', HOTKEY.next)}>${ic('chevR')}</button>
     <div class="coach" id="lCoach" hidden></div></div>
-  <div class="divider" id="infoDiv" role="separator" aria-orientation="vertical" aria-label="Resize info panel" tabindex="0"></div>
+  <div class="divider" id="infoDiv" role="separator" aria-orientation="vertical" aria-label="Resize info panel" ${tip('Resize info panel')} tabindex="0"></div>
   <aside id="infoPanel" aria-label="Photo info"></aside></div>
   <div class="film" id="lFilm"></div>
   <div class="l-ctrl" id="lCtrl"></div>`;
@@ -1550,7 +1635,7 @@ function showCoach(){
   const nm = a => a === 'none' ? 'nothing' : a, k = t => `<span class="kbd">${t}</span>`;
   c.innerHTML = `<div class="coach-card" role="dialog" aria-label="How to cull"><h3>How to cull</h3><ul>
     <li><b>Swipe up</b> to ${nm(S.settings.swipeUp)}, <b>down</b> to ${nm(S.settings.swipeDown)}</li><li><b>Swipe sideways</b> for the next or previous photo</li>
-    <li><b>Pinch</b> to zoom, <b>double-tap</b> to hide the controls</li><li>Keys: ${k('P')} Pick ${k('X')} Reject ${k('U')} Unflag ${k('Space')} zoom ${k('Ctrl/⌘ + /')} all keys</li></ul>
+    <li><b>Pinch</b> to zoom, <b>double-tap</b> to hide the controls</li><li>Keys: ${k(HOTKEY.pick)} Pick ${k(HOTKEY.reject)} Reject ${k(HOTKEY.unflag)} Unflag ${k(HOTKEY.fit)} zoom ${k(HOTKEY.keys)} all keys</li></ul>
     <button class="btn primary" data-act="coachOk">Got it</button></div>`;
   c.hidden = false; c.querySelector('button').focus();
 }
@@ -1584,14 +1669,14 @@ function renderLoupeChrome(){
   $('lCtrl').innerHTML = actionBar(it, 'loupe', {big:true});
   $('lZoomBtn').textContent = L.z.s > 1.02 ? Math.round(L.z.s * fitSize(it)[0] * (devicePixelRatio || 1) / it.nativeW * 100) + '%' : 'Fit';
   const ip = $('infoPanel'); ip.hidden = $('infoDiv').hidden = !P0.infoOpen; $('lInfoBtn').setAttribute('aria-pressed', P0.infoOpen);
-  ip.innerHTML = `<h4>File</h4><dl><dt>Name</dt><dd>${esc(stem(it))}</dd><dt>Folder</dt><dd title="${esc(it.folder)}">${esc(folderName(it.folder))}</dd>${it.jpg ? `<dt>JPEG</dt><dd>${fmtSize(it.jpg.size)}</dd>` : ''}${it.raw ? `<dt>RAW</dt><dd>${esc(it.raw.name.split('.').pop())} · ${fmtSize(it.raw.size)}</dd>` : ''}<dt>Sidecar</dt><dd>${it.xmp ? 'XMP' : 'none'}</dd><dt>Size</dt><dd>${it.nativeW} px wide</dd></dl>
+  ip.innerHTML = `<h4>File</h4><dl><dt>Name</dt><dd>${esc(stem(it))}</dd><dt>Folder</dt><dd ${tip(it.folder)}>${esc(folderName(it.folder))}</dd>${it.jpg ? `<dt>JPEG</dt><dd>${fmtSize(it.jpg.size)}</dd>` : ''}${it.raw ? `<dt>RAW</dt><dd>${esc(it.raw.name.split('.').pop())} · ${fmtSize(it.raw.size)}</dd>` : ''}<dt>Sidecar</dt><dd>${it.xmp ? 'XMP' : 'none'}</dd><dt>Size</dt><dd>${it.nativeW} px wide</dd></dl>
     <h4 style="margin-top:16px">Decision</h4><dl><dt>Rating</dt><dd>${it.rating ? it.rating + ' ★' : 'none'}</dd><dt>Label</dt><dd>${it.label || 'none'}</dd><dt>Flag</dt><dd>${FLAG_TXT[it.flag]}</dd></dl>
     <h4 style="margin-top:16px">Gestures</h4><p class="gest" id="lGest"></p><h4>Preloading</h4><div class="prefetch" id="lPre" aria-live="off"></div>`;
   $('lGest').innerHTML = `Swipe ↑ ${nm(up)} · ↓ ${nm(dn)} ${qm('Q6')} · auto-advance ${S.settings.autoAdvance ? 'on' : 'off'}`;
   const f = $('lFilm'); f.hidden = !L.film; $('lFilmBtn').setAttribute('aria-pressed', L.film);
   if (L.film){
     const a = Math.max(0, lp.idx - 8), b = Math.min(lp.ids.length, lp.idx + 9);
-    f.innerHTML = lp.ids.slice(a, b).map((id, k) => { const x = S.byId.get(id); return `<button data-act="goto" data-i="${a + k}" class="${a + k === lp.idx ? 'cur' : ''}${x.flag === 'reject' && S.filters.scope === 'notrej' && a + k !== lp.idx ? ' gone' : ''}" aria-label="${esc(stem(x))}"><img alt="" src="${thumbURL(x)}">${flagMark(x.flag)}</button>`; }).join('');
+    f.innerHTML = lp.ids.slice(a, b).map((id, k) => { const x = S.byId.get(id); return `<button data-act="goto" data-i="${a + k}" class="${a + k === lp.idx ? 'cur' : ''}${x.flag === 'reject' && S.filters.scope === 'notrej' && a + k !== lp.idx ? ' gone' : ''}" aria-label="${esc(stem(x))}" ${tip(stem(x))}><img alt="" src="${thumbURL(x)}">${flagMark(x.flag)}</button>`; }).join('');
     const c = f.querySelector('.cur'); if (c) f.scrollLeft = c.offsetLeft - f.clientWidth / 2 + c.offsetWidth / 2;
   }
   renderPrefetch(); measure();
@@ -1599,7 +1684,7 @@ function renderLoupeChrome(){
 function nextIds(n = 3){ const lp = S.loupe; return lp ? lp.ids.slice(lp.idx + 1, lp.idx + 1 + n) : []; }
 function renderPrefetch(){
   const ids = nextIds(); const el = $('lPre'); if (!el) return;
-  el.innerHTML = `preloaded: next ${ids.length} ${ids.map(id => `<i class="${bigCache.has(id) ? 'ok' : ''}" title="${esc(id)}"></i>`).join('')}`;
+  el.innerHTML = `preloaded: next ${ids.length} ${ids.map(id => `<i class="${bigCache.has(id) ? 'ok' : ''}" ${tip(id)}></i>`).join('')}`;
 }
 function schedulePrefetch(){
   L.timers.forEach(clearTimeout); L.timers = [];
@@ -1865,19 +1950,19 @@ document.addEventListener('keydown', e => {
   if (mod && k.toLowerCase() === 'l'){ e.preventDefault(); filtersOffOn(); return; }
   if (mod && (k === '=' || k === '+' || k === '-') && S.loupe){ e.preventDefault(); if ((k === '-') === (L.z.s > 1.02)) toggleZoom(); return; }
   if (mod) return;
-  if (k === '\\'){ e.preventDefault(); A.filters(); return; }
-  if (k.toLowerCase() === 'f'){ e.preventDefault(); document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => toast('Fullscreen is not available here')); return; }
+  if (k === HOTKEY.filters){ e.preventDefault(); A.filters(); return; }
+  if (isKey(k, 'fullscreen')){ e.preventDefault(); document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => toast('Fullscreen is not available here')); return; }
   if (k === 'Tab' && (tg === document.body || tg === document.documentElement)){ e.preventDefault(); S.loupe ? setImmersive(!L.immersive) : document.body.classList.toggle('nohdr'); return; }
-  if (k.toLowerCase() === 'n'){ e.preventDefault(); A.burst(); return; }
+  if (isKey(k, 'compare')){ e.preventDefault(); A.burst(); return; }
   const ids = targetIds();
   if (S.loupe){
     if (k === ' '){ e.preventDefault(); toggleZoom(); return; }
-    if (k.toLowerCase() === 'i'){ e.preventDefault(); A.infoToggle(); return; }
-    if (k.toLowerCase() === 'g'){ e.preventDefault(); closeLoupe(); return; }
+    if (isKey(k, 'info')){ e.preventDefault(); A.infoToggle(); return; }
+    if (isKey(k, 'grid')){ e.preventDefault(); closeLoupe(); return; }
     const c = {ids:() => ids, step, zoom:toggleZoom, flag:f => { loupeDecide(f); return S.settings.autoAdvance && f !== 'none'; }, advance:() => S.loupe.idx < S.loupe.ids.length - 1 && goTo(S.loupe.idx + 1, true)};
     if (cullKey(e, c)) return;
   } else {
-    if (k.toLowerCase() === 'e' && S.view.length){ e.preventDefault(); openLoupe(S.focusId || S.view[0].id); return; }
+    if (isKey(k, 'loupe') && S.view.length){ e.preventDefault(); openLoupe(S.focusId || S.view[0].id); return; }
     if (k.startsWith('Arrow')){
       const ids2 = S.view.map(i => i.id); if (!ids2.length) return; e.preventDefault();
       let i = Math.max(0, ids2.indexOf(S.focusId)); const first = tileEls.get(ids2[0]), cols = Math.max(1, Math.round($('grid').clientWidth / (first ? first.offsetWidth + 8 : 168)));
@@ -1888,7 +1973,7 @@ document.addEventListener('keydown', e => {
     const adv = () => { const ids2 = S.view.map(i => i.id), j = ids2.indexOf(S.focusId); if (j >= 0 && j < ids2.length - 1){ setFocus(ids2[j + 1]); const el = tileEls.get(ids2[j + 1]); if (el){ el.focus(); el.scrollIntoView({block:'nearest'}); } } };
     if (cullKey(e, {ids:() => ids, advance:adv})) return;
   }
-  if (k.toLowerCase() === 'm'){ e.preventDefault(); openMove(ids); return; }
+  if (isKey(k, 'move')){ e.preventDefault(); openMove(ids); return; }
   if (k === 'Delete' || k === 'Backspace'){ e.preventDefault(); openDelete(ids); }
 });
 /* one key map for every screen: c supplies ids, and step, advance, flag, zoom or pickRest where the screen has them */
@@ -1900,14 +1985,14 @@ function cullKey(e, c){
   }
   const ids = c.ids(), adv = e.shiftKey || e.getModifierState('CapsLock'), flag = f => { const did = c.flag ? c.flag(f) : (decideFlag(ids, f), false); if (adv && !did && c.advance) c.advance(); };
   if ((k === 'ArrowLeft' || k === 'ArrowRight') && c.step){ e.preventDefault(); c.step(k === 'ArrowLeft' ? -1 : 1); return true; }
-  if (lk === 'z' && c.zoom){ e.preventDefault(); c.zoom(); return true; }
-  if (lk === 'k' && c.pickRest){ e.preventDefault(); c.pickRest(); return true; }
+  if (isKey(k, 'zoom') && c.zoom){ e.preventDefault(); c.zoom(); return true; }
+  if (isKey(k, 'pickRest') && c.pickRest){ e.preventDefault(); c.pickRest(); return true; }
   if (!ids.length) return false;
   const n = /^[0-5]$/.test(k) ? +k : e.shiftKey && /^Digit[0-5]$/.test(e.code) ? +e.code[5] : -1;
   if (n >= 0){ e.preventDefault(); change(ids, 'rating', n); if (adv && c.advance) c.advance(); return true; }
-  if (k === '[' || k === ']'){ e.preventDefault(); const it = S.byId.get(ids[0]); change(ids, 'rating', clamp((it ? it.rating : 0) + (k === ']' ? 1 : -1), 0, 5)); return true; }
-  const f = {p:'pick', x:'reject', u:'none'}[lk]; if (f){ e.preventDefault(); flag(f); return true; }
-  if (k === '`'){ e.preventDefault(); flag('pick'); return true; }
+  if (k === HOTKEY.starDown || k === HOTKEY.starUp){ e.preventDefault(); const it = S.byId.get(ids[0]); change(ids, 'rating', clamp((it ? it.rating : 0) + (k === HOTKEY.starUp ? 1 : -1), 0, 5)); return true; }
+  const f = FLAGS.find(fl => lk === fl.key.toLowerCase()); if (f){ e.preventDefault(); flag(f.v); return true; }
+  if (k === HOTKEY.togglePick){ e.preventDefault(); flag('pick'); return true; }
   const lab = LABELS.find(l => l.key === k); if (lab){ e.preventDefault(); toggleLabel(ids, lab.id); return true; }
   return false;
 }
@@ -1951,7 +2036,7 @@ function boot(){
   renderNav(); renderHeader(); renderMock(); layoutFrame(); $('grid').style.setProperty('--ts', S.ts + 'px');
   refreshView(); openDlg({type:'picker', cwd:'/Photos/2026', sel:null});
 }
-bindGrid();
+bindGrid(); bindTips();
 new ResizeObserver(() => applyBar()).observe($('toolbar'));
 new ResizeObserver(() => { if (S.loupe) { measure(); showLoupe(); } onFrameResize(); }).observe($('frame'));
 addEventListener('resize', () => { if (S.mock.frame !== 'off') layoutFrame(); });

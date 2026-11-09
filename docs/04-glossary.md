@@ -24,6 +24,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **grid** | The thumbnail view of a folder set. |
 | **loupe** | The full-screen view of one picture, with swipe, zoom and the decision buttons. |
 | **gesture guide** | The card on the first loupe opening that lists the swipes, pinch, double-tap and keys. |
+| **tooltip** | The bubble that names a control and its key, on hover, keyboard focus or long-press. One for the whole app; not the browser's `title`. |
 | **filter** | A condition on rating, colour label, flag, pairing or folder that narrows the grid and loupe. |
 | **selection** | The set of pictures marked in selection mode for a bulk action. |
 | **bulk action** | Rate, label, flag, move or delete applied to the whole selection at once. |
@@ -66,4 +67,5 @@ loupe, series compare, series viewer). The controls come from the shared compone
   something), then the confirming action on the right: primary, or red for deleting. Its label
   says what happens, e.g. "Move 12 files to trash".
 - **Touch.** Every control is at least 44 × 44 px and works without hover; icons carry their word
-  as `title` and `aria-label`.
+  as `aria-label` and as a tooltip with the key, e.g. "Pick `P`" (see
+  [`plan.md`](plan.md#tooltip)).
