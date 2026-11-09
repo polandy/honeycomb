@@ -54,7 +54,7 @@ loupe, series compare, series viewer). The controls come from the shared compone
 | **Pick** | *Picked* | `flagPick`, a filled flag | green | `P` |
 | **Reject** | *Rejected* | `flagX`, a flag with an x | red | `X` |
 | **Unflag** | *Unflagged* | `flag`, an empty flag outline | neutral | `U` |
-| **Pick this, reject the rest** | one *Picked*, the rest of the series *Rejected* | `flagPick` | honey (primary) | `K` in the series compare and viewer |
+| **Pick this, reject the rest** | one *Picked*, the rest of the series *Rejected* | `flagPick` | honey (primary) | `Shift+K` in the series compare and viewer |
 | **Rating** 0–5 ★ (0 clears it) | *n stars* | ★ | honey | `0`–`5` |
 | **Label** (colour label) | the colour's name | a colour dot | the label's colour | `6`–`9` |
 | **Keep RAW** (toggle) | *Keep RAW* | the text "Keep RAW" | honey when pressed | `R` |
@@ -62,7 +62,8 @@ loupe, series compare, series viewer). The controls come from the shared compone
 - **Order.** The flag buttons are always *Pick*, *Reject*, *Unflag*. An action bar shows rating,
   colour label and flags; where flags are the main action (loupe, series viewer) they get a row
   of large buttons of their own, or in landscape *Pick* at the left edge and *Reject* above
-  *Unflag* at the right edge.
+  *Unflag* at the right edge. *Show flag buttons* (setting) and *Flag buttons* (toggle, `B`)
+  hide them there.
 - **Toggle.** Pressing the flag a picture already has, by button or key, unflags it.
 - **Photo.** The UI and the user docs say *photo* for a picture; code and specs say *picture*.
 - **Avoid** *keep*, *discard*, *accept*, *unreject* and *clear flag*: they are *Pick*, *Reject*

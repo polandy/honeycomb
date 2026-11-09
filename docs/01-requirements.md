@@ -47,7 +47,7 @@ The user picks a folder in their Nextcloud files; the app shows its images.
 ## 1.6 Settings (per user)
 
 RAW extensions, folder mode (same folder or separate subfolders), gesture mapping, whether
-singles are shown.
+singles are shown, whether the flag buttons are shown, and the vi keys (section 1.9).
 
 ## 1.7 Technology and quality
 
@@ -80,6 +80,18 @@ together on the mockup ([`mockup/index.html`](mockup/index.html), ADR 0003).
 
 This widens the brief's binary keep/discard decision to digiKam's ratings, colour labels and
 pick labels; [`plan.md`](plan.md#open-questions) Q2 and Q4 settled how.
+
+## 1.9 Owner request 2026-11-09: keyboard-only culling
+
+- The *Pick* and *Reject* buttons can be hidden, for example by someone who works with the
+  keyboard only: a per-user setting and a quick toggle with its own key. Hidden, the photo gets
+  their room, and the keys, gestures and tooltips keep working. On a touch screen without a
+  keyboard there is always a way back.
+- The standard vi keys can be used: `h` and `l` for the previous and next photo, `j` and `k` a
+  row down and up in the grid, `g g` and `G` for the first and last photo, and what else is
+  standard and useful. Clashes with the Lightroom key map are resolved explicitly.
+
+How: [`plan.md`](plan.md#flag-buttons-and-vi-keys).
 
 ## 1.9 Owner update 2026-11-09 (Keep RAW)
 

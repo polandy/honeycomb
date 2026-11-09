@@ -99,7 +99,8 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    RAWs](#keep-raw-and-remove-raws)), built on the delete service of M4.1 and its ADR on pair
    atomicity, with tests for every failure path.
 4. **Settings:** per user — RAW and rendered extensions, folder mode, show singles, gesture
-   mapping, auto-advance.
+   mapping, auto-advance, show flag buttons ([Flag buttons and vi keys](#flag-buttons-and-vi-keys))
+   and vi keys.
 5. **README:** features, screenshot placeholders, the installation section brought up to date;
    `camerarawpreviews` and Preview Generator as recommended apps.
 
@@ -334,7 +335,7 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    - **Same controls as the loupe** (owner, 2026-11-09: "keep/reject is not consistent with the
      normal pick/reject"). The bottom bar is the loupe's action bar — *Pick*, *Reject*, *Unflag*,
      rating and colour label for the shown photo, keys `P`, `X`, `U` — plus *Pick this, reject
-     the rest* (`K`). On a phone it wraps to two rows; in landscape the flags sit at the side
+     the rest* (`Shift+K`). On a phone it wraps to two rows; in landscape the flags sit at the side
      edges ([Loupe layout](#loupe-layout)). The series compare dialog shows the
      same flag buttons and *Pick this, reject the rest* under each photo.
 5. **Synchronised zoom.** Zooming one photo to 100 % (button, double-tap, pinch or `Z`) zooms
@@ -369,6 +370,8 @@ most. The rule for the loupe and the series viewer, measured on the
 5. **Unchanged:** every keyboard shortcut, the swipe gestures, the tooltips, double-tap or `Tab`
    for the chrome-free mode (which also hides the edge buttons), and the shared `ActionBar`:
    one component, laid out by orientation, not a second copy.
+6. **The flag buttons can be hidden** for good, by a setting and the key `B`
+   ([Flag buttons and vi keys](#flag-buttons-and-vi-keys)); the photo then gets their room.
 
 Where the work lands: M3.1 and M3.2 (loupe), M6 (series viewer).
 
@@ -501,6 +504,7 @@ against it. `Ctrl` on Windows and Linux is `⌘` on a Mac.
 | `6` `7` `8` `9` | colour label red, yellow, green, blue (toggle) | same keys |
 | `R` | *Keep RAW* (toggle; honeycomb only) | differs: `R` is Crop in Lightroom, which honeycomb does not have |
 | Arrow keys | grid: move focus; loupe, series compare, series viewer: switch photo | same idea |
+| `Home` `End` | first photo, last photo | not in the Adobe text read; the browser's usual meaning |
 | `G` `E` `N` | grid, loupe, series compare | `G` and `E` as in Lightroom; `N` is Survey there, series compare here |
 | `Space` | loupe: fit / 100 % | differs: Lightroom's `Space` leaves the grid for the loupe; `Z` zooms there |
 | `Z` | loupe and series viewer: fit / 100 % | not confirmed in the Adobe text read |
@@ -516,13 +520,14 @@ against it. `Ctrl` on Windows and Linux is `⌘` on a Mac.
 | `Ctrl+/` | shortcut help (`?` also works, for a touch keyboard) | same keys |
 | `Delete` | delete summary for the selection or focused picture | |
 | `M` | *Move to…* (honeycomb only) | |
-| `K` | *Pick this, reject the rest* in the series compare and viewer (honeycomb only) | |
+| `Shift+K` | *Pick this, reject the rest* in the series compare and viewer (honeycomb only; was `K`, which the vi keys need) | |
+| `B` | show or hide the flag buttons in the loupe and the series viewer (honeycomb only) | differs: `B` adds to the Quick Collection in Lightroom, which honeycomb does not have |
 | `1`–`9` | move dialog: choose a favourite or recent folder (honeycomb only) | |
 
 - **Series compare and series viewer** act like Lightroom's Survey: `P`, `X`, `U` and `0`–`5`
   decide the *active* photo, and the arrow keys switch it. The keys `1`–`4` no longer choose the
-  best photo; `K` does, as one undo step. The series compare dialog outlines the active photo.
-- **Where a key has no function** on a screen (`Z` in the grid, `K` outside a series) it does
+  best photo; `Shift+K` does, as one undo step. The series compare dialog outlines the active photo.
+- **Where a key has no function** on a screen (`Z` in the grid, `Shift+K` outside a series) it does
   nothing, and `Tab` keeps moving focus while a control has it.
 - **Verification.** Each key was checked against Adobe's [Keyboard shortcuts for Lightroom
   Classic](https://helpx.adobe.com/lightroom-classic/desktop/introduction-to-lightroom-classic/keyboard-shortcuts.html)
@@ -533,6 +538,69 @@ against it. `Ctrl` on Windows and Linux is `⌘` on a Mac.
   list (`Ctrl+/` in the Library module) before M3.3 builds them.
 
 Where the work lands: M3.3, with the mockup (`KEYS` in `docs/mockup/index.html`) as the reference.
+
+## Flag buttons and vi keys
+
+The owner on 2026-11-09: someone who culls with the keyboard alone wants the photo to have the
+room of *Pick* and *Reject*, and the standard vi keys should move around.
+
+### Flag buttons
+
+1. **Setting and toggle.** *Settings › Loupe gestures › Show flag buttons* (per user, stored with
+   the other settings, on by default) shows or hides *Pick*, *Reject* and *Unflag* in the loupe
+   and the series viewer. The same setting flips from the title row, with a flag icon button
+   (*Flag buttons*, `aria-pressed`, a crossed flag while they are hidden), and with the key `B`.
+2. **Hidden, the photo gets the room.** Portrait drops the large flag row; landscape drops the
+   edge buttons, and the title row, filmstrip, rating row and *Previous* and *Next* move out to
+   the screen edges. The keys, the swipes, the tap zones and every other tooltip keep working.
+   The grid's selection action bar and the series compare cards keep their flag buttons: there
+   they are the only way to flag by touch.
+3. **A way back on touch.** The title-row toggle never hides with the flags, and a tap on the
+   middle of the photo brings the title row back, so a touch screen without a keyboard is never
+   stuck. Hiding them shows a toast with *Show*: with a mouse "Flag buttons hidden · `B` shows
+   them"; on touch "… swipe to decide, the flag at the top shows them", or, when *Settings ›
+   Loupe gestures* has both swipes on *Nothing*, "Flag buttons hidden, and no swipe decides: …".
+4. **Chrome-free mode** (`Tab`, double-tap) still hides everything for a moment; this setting is
+   the lasting choice.
+
+### Vi keys
+
+**An option, off by default** (*Settings › Keyboard › Vi keys*, per user). `h`, `j`, `k`, `l`
+clash with nothing once *Pick this, reject the rest* moves to `Shift+K`, but `g g` makes `g` a
+prefix, and `g` is Lightroom's key for the grid, which the owner put first. Off by default, a
+Lightroom user keeps `G` as before and no prefix waits for a second key; on, a vi user gets the
+whole set and leaves the loupe with `Esc`.
+
+| Keys (vi keys on) | Grid | Loupe, series compare, series viewer |
+|---|---|---|
+| `h` `l` | focus left, right | previous photo, next photo |
+| `j` `k` | focus one row down, up | next photo, previous photo, the order the grid reads in |
+| `g g` | first photo | first photo |
+| `Shift+G` | last photo | last photo |
+| `/` | open the filter bar and focus its first control | — |
+| `Esc` | — | back to the grid, as always |
+
+`Home` and `End` do the same as `g g` and `Shift+G`, with the option on or off. A `g` waits for the
+next key without a timeout; any other key drops it and acts as usual, so `g` `p` picks.
+
+**Clashes, checked against the key map above:**
+
+| vi key | vi meaning | honeycomb | Resolution |
+|---|---|---|---|
+| `k` | up | `K` *Pick this, reject the rest* | moved to `Shift+K` for everyone, so one key map serves both modes and a multi-photo decision needs a deliberate chord |
+| `g`, `G` | prefix (`g g` first), last | `G` grid | `G` grid with the option off; with it on, `g g` first, `Shift+G` last, `Esc` the grid |
+| `x` | delete a character | `X` *Reject* | unchanged; the meanings agree |
+| `u`, `Ctrl+R` | undo, redo | `U` *Unflag*; `Ctrl+R` reloads the page | not mapped; undo stays `Ctrl+Z`, redo `Ctrl+Shift+Z` |
+| `p` | paste | `P` *Pick* | not mapped |
+| `0`, `$`, counts like `5j` | line start, line end, repeat | `0`–`5` set the rating | not mapped; the digits stay ratings |
+| `n`, `N`, `?` | next, previous match, search back | `N` series compare, `?` help | not mapped; there is no text search to repeat |
+| `H`, `M`, `L` | screen top, middle, bottom | `M` *Move to…* | not mapped |
+| `z` prefix (`z z`) | scroll | `Z` fit / 100 % | not mapped |
+| `Ctrl+D`, `Ctrl+U`, `Ctrl+F`, `Ctrl+B` | half page, page | `Ctrl+D` select none; the browser's find and bookmarks | not mapped |
+| `b`, `w` | word back, forward | `B` flag buttons | not mapped |
+
+Where the work lands: M3.2 and M6 (flag buttons), M3.3 (keys, vi keys, shortcut sheet), M4.4
+(settings).
 
 ## Moving pictures
 
@@ -611,6 +679,7 @@ takes its sizes from the pointer type ([Control sizes](#control-sizes)), not fro
 | `StarRating` (`starRating`, `stars`) | 0–5 buttons, or read-only stars | action bar, `PhotoTile`, series compare card | `decisions` |
 | `ColourLabels` (`colourLabel`, `showPalette`) | the label button and the nine-colour palette | action bar, filter bar | `decisions`, `hotkeys` |
 | `ActionBar` (`actionBar`) | rating, colour label, *Keep RAW* and flags; flags in a large row of their own (portrait) or at the side edges (landscape, [Loupe layout](#loupe-layout)), plus a slot | grid selection, loupe, series viewer | `decisions`, `hotkeys` |
+| `FlagButtonsToggle` (`flagBtnsToggle`) | the title-row icon button that shows or hides the large flag buttons ([Flag buttons and vi keys](#flag-buttons-and-vi-keys)) | loupe, series viewer | — |
 | `PickRestButton` (`pickRestBtn`) | *Pick this, reject the rest* | series compare card, series viewer | `series` |
 | `UndoToast` (`toast`) | the change in words, *Undo*, an optional action | every undoable change | `undo`: entries and their text |
 | `ConfirmDialog` (`confirmDialog`) | title, body, footer *Back* · *Cancel* · confirm; a bottom sheet on a phone | delete summary, reject review, move summary, folder picker, delete report | — |

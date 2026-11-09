@@ -29,6 +29,7 @@ in the series compare). Press `Ctrl+/` at any time to see this list in the app.
 | Keys | What it does |
 |---|---|
 | Arrow keys | Grid: move the focus. Loupe, series compare and series viewer: switch to the previous or next photo. |
+| `Home` and `End` | Go to the first or last photo. |
 | `Enter` | Open the focused photo in the loupe. |
 | `G` | Back to the grid. |
 | `E` | Open the loupe. |
@@ -40,6 +41,7 @@ in the series compare). Press `Ctrl+/` at any time to see this list in the app.
 | `Tab` | Show or hide the header; in the loupe, the controls. |
 | `I` | Cycle the info overlay. |
 | `Esc` | Close the loupe, dialog or selection mode. |
+| `B` | Show or hide the flag buttons in the loupe and the series viewer. The keys and swipes keep working. |
 
 ## Filter and select
 
@@ -59,7 +61,7 @@ it, as in Lightroom's Survey view.
 
 | Keys | What it does |
 |---|---|
-| `K` | **Pick this, reject the rest** of the series, as one undo step. |
+| `Shift+K` | **Pick this, reject the rest** of the series, as one undo step. |
 
 ## Undo, delete and more
 
@@ -74,10 +76,28 @@ it, as in Lightroom's Survey view.
 
 Deleted photos always go to the Nextcloud trash bin, where you can restore them.
 
+## Vi keys
+
+Turn on *Settings › Keyboard › Vi keys* to move around as in vi. They are off by default,
+because `g` then starts `g g` instead of opening the grid; with them on, `Esc` leads back to
+the grid.
+
+| Keys | What it does |
+|---|---|
+| `h` and `l` | Previous and next photo; in the grid, move the focus left and right. |
+| `j` and `k` | Grid: one row down and up. Elsewhere: next and previous photo. |
+| `g g` | Go to the first photo. |
+| `Shift+G` | Go to the last photo. |
+| `/` | Open the filter bar. |
+
+The other vi keys keep their honeycomb meaning: `x` rejects, `u` unflags, `p` picks and the
+digits set the rating. Undo is `Ctrl+Z`.
+
 ## Where honeycomb differs from Lightroom
 
 - `` ` `` toggles **Picked**; Lightroom cycles through pick, reject and unflagged.
 - `Space` switches between fit and 100 % in the loupe; Lightroom uses it to leave the grid.
 - `Tab` shows or hides the header, not Lightroom's side panels.
 - `N` opens the series compare; in Lightroom it opens Survey.
-- `M`, `K` and `R` exist only in honeycomb; in Lightroom `R` is Crop, which honeycomb does not have.
+- `M`, `Shift+K`, `B` and `R` exist only in honeycomb; in Lightroom `R` is Crop, which honeycomb
+  does not have.
