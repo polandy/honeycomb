@@ -73,6 +73,7 @@ loupe, series compare, series viewer). The controls come from the shared compone
 - **Dialogs.** The footer reads *Back*, then *Cancel* (or *Close* when the dialog only shows
   something), then the confirming action on the right: primary, or red for deleting. Its label
   says what happens, e.g. "Move 12 files to trash".
-- **Touch.** Every control is at least 44 × 44 px and works without hover; icons carry their word
+- **Touch.** Every control is at least 44 × 44 px on a touch screen, 34 px with a mouse or
+  trackpad ([Control sizes](plan.md#control-sizes)), and works without hover; icons carry their word
   as `aria-label` and as a tooltip with the key, e.g. "Pick `P`" (see
   [`plan.md`](plan.md#tooltip)).

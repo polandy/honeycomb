@@ -44,12 +44,14 @@ that brings the first file of their kind ([`plan.md`](plan.md#milestones)).
 - Colours, spacing and radii from Nextcloud's CSS variables (`--color-primary-element`,
   `--color-main-background`, …), so light, dark and custom themes work. The brand colours appear
   only in the app icon and logo.
-- Touch-first: hit targets at least 44 × 44 px, nothing reachable only by hover, pointer events
+- Touch-first: hit targets at least 44 × 44 px on a coarse pointer and compact (34 px) on a fine
+  one ([Control sizes](plan.md#control-sizes)), nothing reachable only by hover, pointer events
   for gestures, every action also reachable by keyboard.
 - Render checks run on the [reference devices](plan.md#reference-devices) (Pixel 9 Pro, iPad
   mini A17 Pro and A20 Pro, iPad Pro 11″, each in portrait and landscape, plus desktop
-  1440 × 900), not on ad-hoc sizes. `viewport-fit=cover` with `env(safe-area-inset-*)` padding:
-  no control under the camera, the status bar or the home indicator.
+  1440 × 900 and laptop 1470 × 956), not on ad-hoc sizes. `viewport-fit=cover` with
+  `env(safe-area-inset-*)` padding: no control under the camera, the status bar or the home
+  indicator.
 - A tap must not change the page between `touchstart` and its `click`: iOS Safari then treats the
   tap as a hover and drops the click. Re-render in the `click` handler, not in `touchend`.
 - Tools: `@nextcloud/eslint-config` through eslint, `tsc --noEmit`, Vitest with coverage and
