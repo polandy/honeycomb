@@ -1,7 +1,7 @@
 # 6. XMP interop
 
 How honeycomb reads and writes ratings, flags and colour labels in the XMP sidecars that digiKam,
-darktable and Lightroom Classic use (Q2, Q3, milestone M5). The file rules are Framehive's
+darktable and Lightroom Classic use (Q2, Q3, milestone M5, ADR 0005). The file rules are Framehive's
 (CORE-009, LIBRARY-001), so a sidecar means the same in both apps; what honeycomb adds is marked.
 The user-facing summary is [`user/ratings-flags-colours.md`](user/ratings-flags-colours.md).
 
@@ -123,12 +123,13 @@ UTF-8, has a `<!DOCTYPE>`, or gives one property two values (CORE-009.11–.15).
 
 | Value | Order |
 |---|---|
-| flag | `digiKam:PickLabel` 0–3 (2 pending → *unflagged*) · `xmpDM:pick` 1/−1/0 · `xmpDM:good` `True`/`False` · `xmp:Rating` −1 → *rejected* · else *unflagged* |
+| flag | `digiKam:PickLabel` 0–3 (2 pending → *unflagged*) · `xmpDM:pick` 1/−1 (0 is skipped, as in digiKam) · `xmpDM:good` `True`/`False` · `xmp:Rating` −1 → *rejected* · else *unflagged* |
 | rating | `xmp:Rating` 0–5, a real rounded down; −1 or out of range → 0 |
 | colour label | `digiKam:ColorLabel` 0–9 · `xmp:Label` (digiKam's ten texts, exact case; `NoColor` → none) · `darktable:colorlabels` → the lowest index · else none |
 
-The order is digiKam's for flags and colour labels, so honeycomb never shows a picture as
-rejected that digiKam shows as not rejected, which matters before "delete rejected". An
+The order is digiKam's for flags and colour labels, so where digiKam has a pick label honeycomb
+never shows a picture as rejected that digiKam does not, which matters before "delete
+rejected". `xmp:Rating` −1 is added at the end for darktable, which digiKam reads as no rating. An
 `xmp:Label` text honeycomb does not know (a custom Lightroom label set) is skipped like an absent
 one. *Added:* digiKam would fall through to `photoshop:Urgency`, which honeycomb ignores.
 

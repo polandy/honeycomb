@@ -1188,7 +1188,7 @@ function dlgSettings(){
     <div style="margin:10px 0 8px"><b style="font-size:13px">Favourite folders</b></div><div class="chiprow">${S.moveFav.map(p => `<span class="ext">★ ${esc(p.split('/').pop())}<button data-act="favDel" data-path="${esc(p)}" aria-label="Remove favourite ${esc(p)}">✕</button></span>`).join('') || '<span class="hint">None yet: add one in the move dialog.</span>'}</div></div>
   <div class="sec"><h3>Where decisions are stored</h3>
     <div class="seg" role="radiogroup" aria-label="Storage" style="flex-wrap:wrap">${[['db', 'App database'], ['xmp', 'XMP sidecars'], ['both', 'Both (recommended)']].map(([v, l]) => `<button role="radio" aria-checked="${s.storage === v}" data-act="setStorage" data-v="${v}">${l}</button>`).join('')}</div>
-    <p class="hint" style="margin-top:8px">${s.storage === 'both' ? 'Database is the fast working state; every change is written through to XMP sidecars next to the RAW.' : s.storage === 'xmp' ? 'Sidecars are the only source of truth, so digiKam sees every change. Slower grid.' : 'Nothing is written next to your files.'}</p></div>`,
+    <p class="hint" style="margin-top:8px">${s.storage === 'both' ? 'Database is the fast working state; every change is written through to the XMP sidecars of each file.' : s.storage === 'xmp' ? 'Sidecars are the only source of truth, so digiKam sees every change. Slower grid.' : 'Nothing is written next to your files.'}</p></div>`,
     `<button class="btn primary" data-act="closeDlg">Done</button>`, true);
 }
 function dlgKeys(){

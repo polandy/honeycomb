@@ -32,9 +32,9 @@ white. Magenta is called "Purple" in darktable and Lightroom.
   documented the field.
 - **Colours darktable does not have.** Orange, gray, black and white show as no colour in
   darktable.
-- **Lightroom and JPEG files.** Lightroom keeps a JPEG's metadata inside the JPEG and reads only
-  `IMG_0001.xmp` next to a RAW file, so it may not see decisions made in honeycomb for JPEG-only
-  photos.
+- **Lightroom and JPEG files.** As far as we know, Lightroom keeps a JPEG's metadata inside the
+  JPEG and reads only `IMG_0001.xmp` next to a RAW file, so it may not see decisions made in
+  honeycomb for JPEG-only photos.
 - **digiKam's "Pending".** honeycomb shows a pending photo as unflagged and keeps it pending in
   the sidecar until you pick or reject it.
 - **Tags** are not shown in honeycomb, and it never changes them.

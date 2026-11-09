@@ -351,7 +351,7 @@ the decisions.
   read by digiKam.
 
 **Answer (owner, 2026-11-09): (c)**, database first (M2), sidecars as M5, read and written in
-digiKam's, darktable's and Lightroom's fields. The mapping is
+digiKam's, darktable's and Lightroom's fields (ADR 0005). The mapping is
 [`06-xmp-interop.md`](06-xmp-interop.md).
 
 ### Q3 – Sidecar file names
