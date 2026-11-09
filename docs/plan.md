@@ -430,6 +430,7 @@ earlier ad-hoc sizes; 1440 × 900 stays as the desktop check.
 | iPad mini (A20 Pro, 2026) | 756 × 1158 [^c] | 2 [^c] | 2316 × 1512, 326 ppi, 8.5″ OLED [^m26] | in the bezel, long edge (top in landscape) [^m26] | 24, 0, 20, 0 [^ios] | 24, 0, 20, 0 [^ios] |
 | iPad Pro 11″ (M5) | 834 × 1210 [^c] | 2 [^c] | 2420 × 1668, 264 ppi [^pro] | in the bezel, long edge (top in landscape) [^pro] | 24, 0, 20, 0 [^ios] | 24, 0, 20, 0 [^ios] |
 | Desktop | 1440 × 900 (landscape only) | 1 | – | – | none | none |
+| Laptop (MacBook Air 15″) | 1470 × 956 (landscape only); also checked at 1280 × 800 | 2 | – | – | none | none |
 
 [^dt]: Chrome DevTools device list, entry *Pixel 9 Pro*, with its cutout insets:
     <https://github.com/ChromeDevTools/devtools-frontend/blob/main/front_end/models/emulation/EmulatedDevices.ts>
@@ -452,11 +453,31 @@ Rules for every screen on every reference device:
    `env(safe-area-inset-*)`; no control lies under the camera, the status bar or the home
    indicator. Backgrounds and the photo may run underneath.
 3. **Thumbs:** *Pick* and *Reject* stay large and reachable without moving the grip
-   ([Loupe layout](#loupe-layout)); every touch target is at least 44 × 44 px.
+   ([Loupe layout](#loupe-layout)); every touch target is at least 44 × 44 px on a coarse
+   pointer ([Control sizes](#control-sizes)).
 
 The mockup has a device preview (*Mockup controls* → *Device frame*): it frames the page at
 the chosen device's CSS viewport, portrait or landscape, sets the safe areas from this table and
-marks the camera, so each device can be checked on a desktop browser.
+marks the camera, so each device can be checked on a desktop browser. The phones and tablets
+render with touch sizes, *Desktop* and *Laptop* with compact sizes, whatever the browser's pointer.
+
+## Control sizes
+
+The owner on 2026-11-09 (feedback on mockup v19): on a laptop the touch-sized controls look far
+too large. Controls are sized by input type, not one touch size everywhere:
+
+| Pointer | Media query | Control (`--hit`) | Icon (`--ic`) | Type | Examples |
+|---|---|---|---|---|---|
+| Coarse (phone, tablet, touch) | anything that is not fine | 44 px | 22 px | 15 px | app bar 52 px, *Pick* and *Reject* 64 px high, landscape rails 96 px |
+| Fine (mouse, trackpad) | `(pointer: fine) and (hover: hover)` | 34 px | 18 px | 14 px | app bar 50 px, toolbar 44 px, *Pick* and *Reject* 40 px high, landscape rails 64 px |
+
+- The fine sizes follow Nextcloud's own web UI (`--default-clickable-area` 34 px, header 50 px),
+  so honeycomb sits in it without standing out.
+- The primary pointer decides: an iPad with a trackpad keeps touch sizes, because a finger can
+  still reach for the screen. A change of pointer (a tablet docked to a mouse) re-sizes at once.
+- Every size comes from the two tokens or from the one fine-pointer block; a component never
+  hard-codes 44 px. The Vue app maps them to Nextcloud's CSS variables.
+- Coarse targets stay at least 44 × 44 px ([Reference devices](#reference-devices), rule 3).
 
 ## Keyboard shortcuts
 
@@ -579,7 +600,8 @@ every screen builds a decision from the same parts, so a pick looks, reads and b
 in the grid, the loupe, the series compare and the series viewer. The words, icons, colours,
 order and keys are in the [glossary](04-glossary.md#words-and-conventions-in-the-ui). The mockup
 renders each part from one function (named in brackets), and the Vue app gets one component each
-under `src/components/`. A new screen composes these; a variant is a prop, not a copy.
+under `src/components/`. A new screen composes these; a variant is a prop, not a copy. Each
+takes its sizes from the pointer type ([Control sizes](#control-sizes)), not from a prop.
 
 | Component (mockup function) | Renders | Used by | Pure modules (`src/logic/`) |
 |---|---|---|---|
