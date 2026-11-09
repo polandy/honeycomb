@@ -25,7 +25,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **filter** | A condition on rating, colour label, flag or pairing that narrows the grid and loupe. |
 | **selection** | The set of pictures marked in selection mode for a bulk action. |
 | **bulk action** | Rate, label, flag, move or delete applied to the whole selection at once. |
-| **move** | Moving whole pictures (all members and sidecars) into a target folder, renamed by the name template. Never a copy. |
+| **move** | Moving whole pictures (all members and sidecars) into a target folder, renamed by the name template. The files leave the source folder. |
 | **target folder** | The Nextcloud folder pictures are moved into. |
 | **favourite target** | A target folder the user starred; offered first in the move dialog. |
 | **recent target** | One of the last 5 target folders, offered after the favourite targets. |
