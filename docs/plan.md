@@ -187,8 +187,13 @@ for most, so the RAWs of the rest can go once a cull is done.
    sidecar** to the Nextcloud trash bin. The JPEG, its `<jpeg>.xmp` and a shared `<base>.xmp`
    stay, and the picture keeps every decision; it becomes a *JPEG only* single.
 5. **Summary.** Before anything moves, a summary like the delete summary: pictures · files · bytes
-   freed, the list of files, how many pictures were skipped and why ("Skipped: 7 marked Keep RAW ·
-   6 rejected · 30 singles"), and the trash-bin note. The confirming button reads "Move 88 files
+   freed, how many pictures were skipped and why ("Skipped: 7 marked Keep RAW · 6 rejected · 30
+   singles") and the trash-bin note. Below the numbers are two thumbnail groups of the view, each
+   heading with its count: "RAW will be removed" (every picture whose RAW goes) and "RAW stays
+   (Keep RAW)" (the marked pairs). Each group scrolls, so a large selection stays usable. Tapping
+   a thumbnail toggles *Keep RAW* on that picture, one undoable change as elsewhere, and moves it
+   to the other group before anything is confirmed; the numbers and the button follow. The list
+   of files sits in a collapsed section. The confirming button reads "Move 88 files
    to trash", red. No single-key shortcut. Like deleting, it is not undone by `Ctrl+Z`; the trash
    bin restores.
 6. **Failures.** The RAW and its own sidecar are one unit: when the RAW fails, its sidecar is not

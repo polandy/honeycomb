@@ -357,6 +357,7 @@ table.sc{border-collapse:collapse;width:100%}table.sc td{padding:6px 4px;border-
 .rv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .rv-n,.rv-f{position:absolute;left:6px;font-size:11px;font-weight:700;color:#fff;background:rgba(0,0,0,.62);border-radius:6px;padding:2px 6px}.rv-n{top:6px}.rv-f{top:28px;max-width:calc(100% - 12px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rv-r{position:absolute;left:0;right:0;bottom:0;padding:10px 6px 6px;background:linear-gradient(transparent,rgba(0,0,0,.75));color:var(--honey);font-weight:800;font-size:13px;text-align:center}
+.rv-grp{margin:0 0 12px}.rv-grp h3{margin:0 0 4px;font-size:14px}.rv-grp .hint{margin:0 0 8px;color:var(--muted);font-size:13px}.rv-keep .rv-r{color:#fff}.rv-files{margin:0 0 12px}.rv-files summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:13px}
 .cmp{display:grid;gap:8px;grid-template-columns:repeat(2,1fr)}.cmp.n3{grid-template-columns:repeat(3,1fr)}.cmp.n4{grid-template-columns:repeat(4,1fr)}
 @media (max-width:700px){.cmp.n3,.cmp.n4{grid-template-columns:repeat(2,1fr)}}
 .cm{display:flex;flex-direction:column;gap:6px;border-radius:12px;padding:4px 4px 6px;background:var(--card-2)}
@@ -979,6 +980,7 @@ const DE = {
   'Remove RAWs…': 'RAWs entfernen…',
   'Remove the RAW of %n photo': ['RAW von %n Foto entfernen', 'RAWs von %n Fotos entfernen'],
   'Only the RAW file and its own sidecar go. The JPEG, its sidecar and a shared sidecar stay, and every photo keeps its rating, label and flag.': 'Nur die RAW-Datei und ihre eigene Sidecar-Datei gehen. Das JPEG, seine Sidecar-Datei und eine gemeinsame Sidecar-Datei bleiben, und jedes Foto behält Bewertung, Etikett und Markierung.',
+  'RAW will be removed': 'RAW wird entfernt', 'RAW stays (Keep RAW)': 'RAW bleibt (Keep RAW)', 'Tap a photo to keep its RAW instead.': 'Tippe auf ein Foto, um stattdessen sein RAW zu behalten.', 'Tap a photo to remove its RAW after all.': 'Tippe auf ein Foto, um sein RAW doch zu entfernen.', 'Remove RAW': 'RAW entfernen',
   'Skipped: {kept} · {rej} · {singles}.': 'Übersprungen: {kept} · {rej} · {singles}.',
   '%n marked Keep RAW': ['%n mit RAW behalten', '%n mit RAW behalten'],
   '%n rejected': ['%n abgelehnt', '%n abgelehnt'],
@@ -1932,16 +1934,19 @@ function doDelete(ids, failFirst){
 }
 /* Remove RAWs: pairs in the view, not marked Keep RAW, not rejected; the RAW and its own sidecar go */
 const rawRemovable = its => its.filter(i => pairType(i) === 'pair' && !i.keepRaw && i.flag !== 'reject');
+const rawGroup = (title, its, hint, act, cls) => `<section class="rv-grp ${cls}"><h3>${title} · ${nf(its.length)}</h3>${its.length ? `<p class="hint">${hint}</p><div class="rv-grid">${its.map(it => `<button class="rv" data-act="rawToggle" data-id="${esc(it.id)}" aria-label="${esc(act + ': ' + stem(it))}"><img alt="" src="${thumbURL(it)}" loading="lazy"><span class="rv-n">${esc(stem(it))}</span><span class="rv-r">${act}</span></button>`).join('')}</div>` : `<p class="hint">${t('None')}</p>`}</section>`;
 const rawFilesOf = it => [{...it.raw, kind:'RAW', it}, it.xmp && !it.xmp.shared && {...it.xmp, kind:'XMP', it}].filter(Boolean);
 function dlgRawRm(d){
   const view = d.ids.map(i => S.byId.get(i)).filter(Boolean), its = rawRemovable(view), files = its.flatMap(rawFilesOf), total = files.reduce((a, f) => a + f.size, 0);
-  const kept = view.filter(i => pairType(i) === 'pair' && i.keepRaw).length, rej = view.filter(i => pairType(i) === 'pair' && !i.keepRaw && i.flag === 'reject').length, singles = view.length - its.length - kept - rej;
+  const keptIts = view.filter(i => pairType(i) === 'pair' && i.keepRaw), kept = keptIts.length, rej = view.filter(i => pairType(i) === 'pair' && !i.keepRaw && i.flag === 'reject').length, singles = view.length - its.length - kept - rej;
   return confirmDialog(n('Remove the RAW of %n photo', 'Remove the RAWs of %n photos', its.length),
     `<div class="sumrow"><div class="stat"><b>${nf(its.length)}</b>${n('photo', 'photos', its.length)}</div><div class="stat"><b>${nf(files.length)}</b>${n('file', 'files', files.length)}</div><div class="stat"><b>${fmtSize(total)}</b>${t('freed')}</div></div>
     <p style="margin:0 0 10px;color:var(--muted);font-size:13px">${t('Only the RAW file and its own sidecar go. The JPEG, its sidecar and a shared sidecar stay, and every photo keeps its rating, label and flag.')} ${t('Skipped: {kept} · {rej} · {singles}.', {kept:n('%n marked Keep RAW', '%n marked Keep RAW', kept), rej:n('%n rejected', '%n rejected', rej), singles:n('%n single', '%n singles', singles)})}</p>
-    <div class="fl-list" tabindex="0" aria-label="${esc(t('Files that will be deleted'))}">${files.map(f => `<div><span class="k">${f.kind}</span><span class="n"><i>${esc(f.dir.replace('/Photos/', '…/'))}</i>${esc(f.name)}</span><span>${fmtSize(f.size)}</span></div>`).join('')}</div>
+    ${rawGroup(t('RAW will be removed'), its, t('Tap a photo to keep its RAW instead.'), t('Keep RAW'), 'rv-rm')}
+    ${rawGroup(t('RAW stays (Keep RAW)'), keptIts, t('Tap a photo to remove its RAW after all.'), t('Remove RAW'), 'rv-keep')}
+    <details class="rv-files"><summary>${t('Files that will be deleted')}</summary><div class="fl-list" tabindex="0">${files.map(f => `<div><span class="k">${f.kind}</span><span class="n"><i>${esc(f.dir.replace('/Photos/', '…/'))}</i>${esc(f.name)}</span><span>${fmtSize(f.size)}</span></div>`).join('')}</div></details>
     <div class="note">${ic('trash')}<span>${t('Files move to the Nextcloud trash bin and can be restored from there. Nothing is deleted for good; the space returns when the trash bin is emptied.')}</span></div>`,
-    {cancel:t('Cancel'), confirm:{act:'rawRmConfirm', label:n('Move %n file to trash', 'Move %n files to trash', files.length), icon:'trash', kind:'danger', dis:!files.length}});
+    {cancel:t('Cancel'), confirm:{act:'rawRmConfirm', label:n('Move %n file to trash', 'Move %n files to trash', files.length), icon:'trash', kind:'danger', dis:!files.length}, wide:true});
 }
 function doRemoveRaws(ids, failFirst){
   const done = [], failed = [], its = rawRemovable(ids.map(i => S.byId.get(i)).filter(Boolean));
@@ -2479,6 +2484,7 @@ const A = {
   palette(el){ showPalette(el, el.dataset.for); },
   setLabel(el){ const ids = idsForKey(el.dataset.for), v = el.dataset.v; closePop(); if (v) toggleLabel(ids, v); else change(ids, 'label', null); },
   delSel(){ openDelete([...S.sel]); }, delRejected(){ if (S.loupe) closeLoupe(); rejectedItems().length ? openDlg({type:'review'}) : toast(t('No rejected photos')); },
+  rawToggle(el){ toggleKeepRaw([el.dataset.id]); renderDlg(); },
   rescue(el){ change([el.dataset.id], 'flag', 'none'); renderDlg(); }, reviewNext(){ openDlg({type:'del', ids:rejectedItems().map(i => i.id), from:'review'}); }, reviewBack(){ openDlg({type:'review'}); },
   scope(el){ S.filters.scope = el.dataset.v; refreshView(); },
   more(el){ if ($('popRoot').firstChild && S.menuAnchor === el) closeMenu(); else openMore(el); }, path(el){ if ($('popRoot').firstChild && S.menuAnchor === el) closeMenu(); else openPath(el); },

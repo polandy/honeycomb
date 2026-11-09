@@ -91,7 +91,9 @@ The owner keeps the RAW for a few pictures and only the JPEG for most.
 - The bulk action **Remove RAWs** covers every pair in the current view that is not marked Keep
   RAW and not rejected. It moves only the RAW member and its own sidecar to the Nextcloud trash
   bin; the JPEG, its sidecar, a shared sidecar and all decisions stay. A summary with pictures ·
-  files · bytes freed comes first; singles are skipped.
+  files · bytes freed comes first, with thumbnails of the pictures whose RAW goes and of those whose
+  RAW stays (marked Keep RAW); a tap on a thumbnail moves it to the other group; singles are
+  skipped.
 - Deleting a whole picture removes every member and every sidecar form; a shared sidecar is
   removed only when no member remains.
 
