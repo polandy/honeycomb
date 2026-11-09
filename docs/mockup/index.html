@@ -154,7 +154,8 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .tile .ov{position:absolute;left:0;right:0;bottom:0;padding:16px 6px 5px;background:linear-gradient(transparent,rgba(0,0,0,.7));display:flex;align-items:center;gap:6px;color:#fff;font-size:12px}
 .tile .stars{letter-spacing:-1px;font-size:12px;white-space:nowrap}
 .stars .on{color:#ffc93c}.stars .off{color:rgba(255,255,255,.35)}
-.tile .fl{margin-left:auto;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center}
+.tile .flw{margin-left:auto;display:inline-flex}
+.fl{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center}
 .tile .fl svg{width:20px;height:20px;stroke-width:2.2}.fl.pick{color:#fff}.fl.reject{color:#ff8f87}
 .tile.rej img.th{opacity:.35}.tile.rej .rejx{display:flex}
 .rejx{display:none;position:absolute;inset:0;align-items:center;justify-content:center;color:#fff;filter:drop-shadow(0 1px 6px rgba(0,0,0,.6));pointer-events:none}
@@ -170,8 +171,11 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 
 /* action bar */
 .actionbar{flex:none;background:var(--card);border-top:1px solid var(--border);padding:8px 12px calc(8px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;box-shadow:0 -4px 14px rgba(0,0,0,.08)}
-.actionbar .grp{display:flex;align-items:center;gap:4px}
-.actionbar .gl{font-size:12px;color:var(--muted);margin-right:2px}
+.grp{display:flex;align-items:center;gap:4px}
+.gl{font-size:12px;color:var(--muted);margin-right:2px}
+.sq.fb.pick svg{color:var(--ok)}.sq.fb.reject svg{color:var(--danger)}
+.sq.fb.pick[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#fff}.sq.fb.reject[aria-pressed="true"]{background:var(--danger);border-color:var(--danger);color:#fff}
+.sq.fb[aria-pressed="true"] svg{color:inherit}
 .sq{min-width:44px;height:44px;border-radius:10px;border:1px solid var(--border);background:var(--card-2);padding:0 8px;display:inline-flex;align-items:center;justify-content:center;gap:4px}
 .sq[aria-pressed="true"]{background:var(--honey);border-color:var(--honey);color:var(--on-honey)}
 .sq:disabled,.btn:disabled{opacity:.4}
@@ -219,7 +223,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .tagn{display:inline-block;font-size:11px;border-radius:6px;padding:0 6px;margin-left:6px;background:var(--honey-soft);color:var(--honey-text)}
 .tagn.warn{background:var(--warn-bg);color:var(--warn-text)}
 .fl-list .conf{background:var(--warn-bg);flex-wrap:wrap;align-items:center}
-.fl-list .conf .seg button{min-height:36px}
+.fl-list .conf .seg button{min-height:44px}
 .fl-list{max-height:min(280px,34vh);overflow:auto;border:1px solid var(--border);border-radius:10px;font-size:13px;font-variant-numeric:tabular-nums}
 .fl-list div{display:flex;gap:8px;padding:5px 10px;border-bottom:1px solid var(--border)}
 .fl-list div:last-child{border:0}
@@ -272,21 +276,20 @@ table.sc{border-collapse:collapse;width:100%}table.sc td{padding:6px 4px;border-
 .film button{flex:none;width:72px;height:54px;border-radius:6px;border:0;padding:0;overflow:hidden;position:relative;background:#222;opacity:.6}
 .film button.cur{opacity:1;box-shadow:0 0 0 3px var(--honey)}
 .film img{width:100%;height:100%;object-fit:cover;display:block}
-.film .mk{position:absolute;right:2px;top:2px;width:14px;height:14px;border-radius:50%;font-size:10px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center}
-.film .mk.pick{background:var(--ok)}.film .mk.reject{background:var(--danger)}
+.film .fl{position:absolute;right:2px;top:2px}
+.film .fl,.cm .fl{width:20px;height:20px;border-radius:50%;background:#000a}.film .fl svg,.cm .fl svg{width:14px;height:14px;stroke-width:2.4}
 .l-ctrl{flex:none;background:#151310;border-top:1px solid #ffffff1a;padding:8px calc(10px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));display:flex;flex-direction:column;gap:8px}
-.l-ctrl .big{display:flex;gap:10px}
+.ab-big,.ab-big .grp{display:flex;gap:10px}.ab-big .grp{flex:1}
 .bigbtn{flex:1;min-height:64px;border-radius:14px;border:2px solid transparent;font-size:20px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:10px;color:#fff}
-.bigbtn.pick{background:#1f6f43}.bigbtn.reject{background:#8e2724}
+.bigbtn.pick{background:#1f6f43}.bigbtn.reject{background:#8e2724}.bigbtn.none{flex:0 0 auto;padding:0 20px;background:#ffffff14;border-color:#ffffff26}
 .bigbtn[aria-pressed="true"].pick{background:var(--ok);border-color:#fff}
 .bigbtn[aria-pressed="true"].reject{background:var(--danger);border-color:#fff}
+.bigbtn[aria-pressed="true"].none{border-color:#fff}
 .bigbtn svg{width:28px;height:28px;stroke-width:3}
-.l-ctrl .small{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center}
-.l-ctrl .sq{background:#ffffff14;border-color:#ffffff26;color:#f4efe2}
-.l-ctrl .sq[aria-pressed="true"]{background:var(--honey);color:var(--on-honey)}
-.l-ctrl .gl{font-size:12px;color:var(--muted)}
-.l-ctrl .vsep{width:1px;height:28px;background:#ffffff2a;margin:0 4px}
-.l-ctrl .q{color:var(--honey);border-color:var(--honey)}
+.ab-small{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;justify-content:center}
+.l-ctrl .sq,.sv-ctl .sq{background:#ffffff14;border-color:#ffffff26;color:#f4efe2}
+.l-ctrl .sq[aria-pressed="true"],.sv-ctl .sq[aria-pressed="true"]{background:var(--honey);color:var(--on-honey)}
+.l-ctrl .q,.sv-ctl .q{color:var(--honey);border-color:var(--honey)}
 .l-top .q{color:var(--honey);border-color:var(--honey)}
 #loupe .pop{color:var(--text)}
 
@@ -306,7 +309,6 @@ table.sc{border-collapse:collapse;width:100%}table.sc td{padding:6px 4px;border-
   .logo span{display:none}
   .l-top .btn{min-width:44px;padding:0 8px}
   .bigbtn{min-height:56px;font-size:17px}
-  .sq{min-width:40px}
 }
 @media (max-width:520px){#mock .head span{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -322,9 +324,11 @@ table.sc{border-collapse:collapse;width:100%}table.sc td{padding:6px 4px;border-
 .rv-r{position:absolute;left:0;right:0;bottom:0;padding:10px 6px 6px;background:linear-gradient(transparent,rgba(0,0,0,.75));color:var(--honey);font-weight:800;font-size:13px;text-align:center}
 .cmp{display:grid;gap:8px;grid-template-columns:repeat(2,1fr)}.cmp.n3{grid-template-columns:repeat(3,1fr)}.cmp.n4{grid-template-columns:repeat(4,1fr)}
 @media (max-width:700px){.cmp.n3,.cmp.n4{grid-template-columns:repeat(2,1fr)}}
-.cm{display:flex;flex-direction:column;gap:2px;border:3px solid transparent;border-radius:12px;padding:4px;background:var(--card-2);text-align:left;cursor:pointer}
+.cm{display:flex;flex-direction:column;gap:6px;border-radius:12px;padding:4px 4px 6px;background:var(--card-2)}
+.cm-open{display:flex;flex-direction:column;gap:2px;border:0;padding:0;background:none;text-align:left;cursor:pointer;color:inherit}
+.cm .grp{flex-wrap:wrap}.cm .btn{white-space:normal;line-height:1.2;justify-content:center}
+.cm-s{display:flex;align-items:center;gap:6px}.cm-s .stars{letter-spacing:-1px}.cm-s .stars .off{color:var(--muted);opacity:.5}
 .cm img{width:100%;aspect-ratio:3/2;object-fit:contain;background:var(--tile-bg);border-radius:8px}
-.cm[aria-pressed="true"]{border-color:var(--honey)}
 .cm-n{font-weight:700;font-size:13px}.cm-s{font-size:12px;color:var(--muted)}
 .later{display:inline-block;border:1px solid var(--border);border-radius:10px;padding:1px 8px;font-size:12px;font-weight:700;color:var(--muted)}
 
@@ -394,6 +398,7 @@ body.noq .menu .mq,body.noq .menu .mq-sep{display:none}
 .sv-ctl{position:absolute;left:0;right:0;display:flex;align-items:center;gap:8px;padding:8px calc(10px + env(safe-area-inset-right)) 8px calc(10px + env(safe-area-inset-left));transition:opacity .3s;background:linear-gradient(rgba(0,0,0,.6),transparent)}
 .sv-top{top:0;padding-top:calc(8px + env(safe-area-inset-top));padding-right:calc(204px + env(safe-area-inset-right))}
 .sv-bot{bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.7));justify-content:flex-end}
+.sv-bar{flex:1;max-width:820px;margin-left:auto;display:flex;flex-direction:column;gap:8px}
 .sv-ctl .icon-btn{color:#f4efe2}
 .sv-ctl .btn{background:#ffffff14;border-color:#ffffff26;color:#f4efe2}
 .sv-ctl .btn.primary{background:var(--honey);border-color:var(--honey);color:var(--on-honey)}
@@ -486,6 +491,36 @@ const QS = {
   Q18:{t:'Sort order', o:['File name.', 'Capture time from EXIF.', 'Both, user choice.'], r:'(a) first, (b) later.'},
 };
 const qm = id => `<button class="q" data-act="q" data-q="${id}" aria-label="Open question ${id}: ${esc(QS[id].t)}">${id}</button>`;
+
+/* ---------- shared components: one renderer each, used by grid, loupe, series compare and series viewer ---------- */
+const FLAGS = [{v:'pick', icon:'flagPick', label:'Pick', key:'P'}, {v:'reject', icon:'flagX', label:'Reject', key:'X'}, {v:'none', icon:'flag', label:'Unflag', key:'U'}];
+const forAttrs = (forKey, id) => `data-for="${forKey}"${id ? ` data-id="${esc(id)}"` : ''}`;
+const flagMark = flag => flag === 'none' ? '' : `<span class="fl ${flag}" title="${FLAG_TXT[flag]}">${ic(flag === 'pick' ? 'flagPick' : 'flagX')}</span>`;
+function flagButtons(cur, forKey, {id = '', dis = '', big = false} = {}){
+  return `<div class="grp flags" role="group" aria-label="Flag">${FLAGS.map(f => `<button class="${big ? 'bigbtn' : 'sq'} fb ${f.v}" data-act="flag" data-v="${f.v}" ${forAttrs(forKey, id)} ${dis} aria-pressed="${cur === f.v}" aria-label="${f.label}" title="${f.label} (${f.key})">${ic(f.icon)}${big ? `<span>${f.label}</span>` : ''}</button>`).join('')}${qm('Q4')}</div>`;
+}
+function starRating(cur, forKey, {id = '', dis = ''} = {}){
+  return `<div class="grp" role="group" aria-label="Rating"><span class="gl">Rating</span>${[0, 1, 2, 3, 4, 5].map(n => `<button class="sq" data-act="rate" data-v="${n}" ${forAttrs(forKey, id)} ${dis} aria-pressed="${cur === n}" aria-label="${n ? 'Rate ' + n + ' stars' : 'Clear rating'}">${n ? n + '★' : '0'}</button>`).join('')}</div>`;
+}
+function colourLabel(cur, forKey, {dis = ''} = {}){
+  const bg = cur ? LBL[cur].hex : 'conic-gradient(#e5484d,#f2c94c,#3fb26b,#3b82f6,#d946ef,#e5484d)';
+  return `<div class="grp"><button class="sq" data-act="palette" data-for="${forKey}" ${dis} aria-label="Colour label${cur ? ': ' + cur : ''}" style="padding:0 14px"><span class="dotc" style="background:${bg};width:18px;height:18px"></span>${cur || 'Label'}</button>${qm('Q5')}</div>`;
+}
+/* d holds rating, label and flag; big puts the flags in a row of their own, tail ends the small row */
+function actionBar(d, forKey, opts = {}){
+  const rest = starRating(d.rating, forKey, opts) + colourLabel(d.label, forKey, opts) + (opts.tail || '');
+  return opts.big ? `<div class="ab-big">${flagButtons(d.flag, forKey, opts)}</div><div class="ab-small">${rest}</div>` : rest + flagButtons(d.flag, forKey, opts);
+}
+const pickRestBtn = (forKey, id = '') => `<button class="btn primary" data-act="pickRest" ${forAttrs(forKey, id)} title="Pick this, reject the rest (Shift+P)">${ic('flagPick')}Pick this, reject the rest</button>`;
+/* footer order everywhere: back, cancel, then the confirming action on the right */
+function confirmDialog(title, body, {back = null, cancel = 'Cancel', confirm = null, wide = false, canClose = true} = {}){
+  const foot = (back ? `<button class="btn ghost" data-act="${back.act}">${esc(back.label)}</button>` : '')
+    + (cancel ? `<button class="btn ghost" data-act="closeDlg">${esc(cancel)}</button>` : '')
+    + (confirm ? `<button class="btn ${confirm.kind || 'primary'}" data-act="${confirm.act}" ${confirm.dis ? 'disabled' : ''}>${confirm.icon ? ic(confirm.icon) : ''}${esc(confirm.label)}</button>` : '');
+  return dlgShell(title, body, foot, wide, canClose);
+}
+const common = (its, k) => its.length && its.every(i => i[k] === its[0][k]) ? its[0][k] : undefined;
+const idsForKey = (forKey, id) => forKey === 'bulk' ? [...S.sel] : forKey === 'serie' ? [SV.ids[SV.idx]].filter(Boolean) : forKey === 'id' ? [id] : targetIds();
 
 const TREE = {
   '/': ['Documents', 'Music', 'Photos'],
@@ -683,12 +718,12 @@ function burstCurrent(d){
   }
   return null;
 }
-function decideBurst(keepId, others){
+function decideBurst(pickId, others){
   const changes = [], set = (id, to) => { const it = S.byId.get(id); if (it && it.flag !== to){ changes.push({id, key:'flag', from:it.flag, to}); it.flag = to; } };
-  set(keepId, 'pick'); others.forEach(id => set(id, 'reject'));
+  set(pickId, 'pick'); others.forEach(id => set(id, 'reject'));
   if (!changes.length) return;
-  pushUndo(`Kept ${stem(S.byId.get(keepId))}, rejected ${others.length}`, changes);
-  toast(`Kept 1 · rejected ${others.length}`, true);
+  const desc = `Picked ${stem(S.byId.get(pickId))} · rejected ${others.length}`;
+  pushUndo(desc, changes); toast(desc, true);
 }
 
 /* ---------- mutations / undo ---------- */
@@ -697,20 +732,24 @@ function change(ids, key, value, opts = {}){
   const changes = [];
   for (const id of ids){ const it = S.byId.get(id); if (it && it[key] !== value){ changes.push({id, key, from:it[key], to:value}); it[key] = value; } }
   if (!changes.length) return false;
-  const one = ids.length === 1 ? stem(S.byId.get(ids[0])) : ids.length + ' items';
+  const one = ids.length === 1 ? stem(S.byId.get(ids[0])) : ids.length + ' photos';
   let desc;
   if (key === 'flag') desc = `${FLAG_TXT[value]} ${one}`;
   else if (key === 'rating') desc = value ? `Rated ${one} ${'★'.repeat(value)}` : `Cleared rating of ${one}`;
-  else desc = value ? `Label ${value} on ${one}` : `Removed label from ${one}`;
+  else desc = value ? `Labelled ${one} ${value}` : `Removed label from ${one}`;
   const adv = key === 'flag' && value !== 'none' && ids.length === 1 && !S.loupe && S.settings.autoAdvance ? nextUndecided(ids[0]) : null;
   pushUndo(desc, changes);
-  toast(key === 'flag' && value === 'reject' ? (ids.length > 1 ? `Rejected ${ids.length} photos` : 'Rejected') : desc, true);
+  toast(desc, true);
   if (adv){ setFocus(adv); const el = tileEls.get(adv); if (el){ el.focus(); el.scrollIntoView({block:'nearest'}); } }
   return true;
 }
 function pushUndo(desc, changes){
   S.undo.push({desc, changes}); if (S.undo.length > 50) S.undo.shift(); S.redo.length = 0;
   afterChange(changes.map(c => c.id));
+}
+function decideFlag(ids, v){
+  const its = ids.map(i => S.byId.get(i)).filter(Boolean);
+  return change(ids, 'flag', v !== 'none' && its.length && its.every(i => i.flag === v) ? 'none' : v);
 }
 function nextUndecided(id){
   const i = S.view.findIndex(x => x.id === id), hit = S.view.slice(i + 1).find(x => x.flag === 'none');
@@ -733,7 +772,7 @@ function afterChange(ids){
   S.bursts = null;
   if (!S.loupe && viewChanged()) refreshView(); else ids.forEach(updateTile);
   renderToolbar(); renderActionBar(); renderHeader(); if (S.loupe) renderLoupeChrome();
-  if (S.serie) serieSync();
+  if (S.serie) serieSync(); else if (S.dlg && S.dlg.type === 'burst') renderDlg();
 }
 function viewChanged(){ const was = S.view.map(i => i.id).join('|'); computeView(); return was !== S.view.map(i => i.id).join('|'); }
 
@@ -858,7 +897,7 @@ const tileEls = new Map();
 function pairLabel(it){ return pairType(it) === 'pair' ? 'JPG+' + it.raw.name.split('.').pop() : pairType(it) === 'jpg' ? 'JPG only' : 'RAW only'; }
 function tileInner(it){
   return `<img class="th" alt="" draggable="false"><span class="pair ${pairType(it) === 'pair' ? 'p' : 's'}">${pairLabel(it)}</span>
-  <span class="burst" hidden></span><span class="chk">${ic('check')}</span><span class="rejx" aria-hidden="true">${ic('flagX')}</span><div class="ov"><span class="stars" aria-hidden="true"></span><span class="dotc" hidden></span><span class="fl" hidden></span></div>`;
+  <span class="burst" hidden></span><span class="chk">${ic('check')}</span><span class="rejx" aria-hidden="true">${ic('flagX')}</span><div class="ov"><span class="stars" aria-hidden="true"></span><span class="dotc" hidden></span><span class="flw"></span></div>`;
 }
 function tileLabel(it){
   const bits = [stem(it), pairLabel(it)]; if (it.rating) bits.push(it.rating + ' stars'); if (it.label) bits.push(it.label + ' label'); if (it.flag !== 'none') bits.push(FLAG_TXT[it.flag].toLowerCase());
@@ -871,7 +910,7 @@ function updateTile(id){
   const bg = getBursts().map.get(id), bs = el.querySelector('.burst'); bs.hidden = !bg; if (bg) bs.textContent = '⧉ ' + bg.length;
   el.querySelector('.stars').innerHTML = stars(it.rating);
   const dot = el.querySelector('.dotc'); dot.hidden = !it.label; if (it.label) dot.style.background = LBL[it.label].hex;
-  const fl = el.querySelector('.fl'); fl.hidden = it.flag === 'none'; fl.className = 'fl ' + it.flag; fl.title = FLAG_TXT[it.flag]; fl.innerHTML = it.flag === 'pick' ? ic('flagPick') : it.flag === 'reject' ? ic('flagX') : '';
+  el.querySelector('.flw').innerHTML = flagMark(it.flag);
 }
 function renderGrid(){
   const g = $('grid'); io && io.disconnect(); tileEls.clear(); g.replaceChildren();
@@ -952,10 +991,8 @@ function setTileSize(v, live){
 /* ---------- action bar ---------- */
 function renderActionBar(){
   const el = $('actionbar'); el.hidden = !S.selMode; if (!S.selMode) return;
-  const dis = S.sel.size ? '' : 'disabled';
-  el.innerHTML = `<div class="grp" role="group" aria-label="Rate selection"><span class="gl">Rate</span>${[0, 1, 2, 3, 4, 5].map(n => `<button class="sq" data-act="bulkRate" data-v="${n}" ${dis} aria-label="${n ? 'Rate ' + n + ' stars' : 'Clear rating'}">${n ? n + '★' : '0'}</button>`).join('')}</div>
-  <div class="grp"><button class="sq" data-act="palette" data-for="bulk" ${dis} aria-label="Colour label" style="padding:0 14px"><span class="dotc" style="background:conic-gradient(#e5484d,#f2c94c,#3fb26b,#3b82f6,#d946ef,#e5484d);width:18px;height:18px"></span>Label</button>${qm('Q5')}</div>
-  <div class="grp" role="group" aria-label="Flag selection"><button class="sq" data-act="bulkFlag" data-v="pick" ${dis} aria-label="Pick" title="Pick">${ic('flagPick')}</button><button class="sq" data-act="bulkFlag" data-v="reject" ${dis} aria-label="Reject" title="Reject">${ic('flagX')}</button><button class="sq" data-act="bulkFlag" data-v="none" ${dis} aria-label="Unflag" title="Unflag">${ic('flag')}</button>${qm('Q4')}</div>
+  const dis = S.sel.size ? '' : 'disabled', its = [...S.sel].map(i => S.byId.get(i)).filter(Boolean);
+  el.innerHTML = `${actionBar({rating:common(its, 'rating'), label:common(its, 'label'), flag:common(its, 'flag')}, 'bulk', {dis})}
   <span class="grow"></span><span class="count">${S.sel.size} selected</span>
   <button class="btn" data-act="moveSel" ${dis}>${ic('move')}Move…</button><button class="btn danger" data-act="delSel" ${dis}>${ic('trash')}Delete…</button>`;
 }
@@ -976,7 +1013,7 @@ function showQ(id, anchor){
   closePop(); placePop(pop, anchor);
 }
 function showPalette(anchor, forKey){
-  const ids = forKey === 'bulk' ? [...S.sel] : targetIds(), its = ids.map(i => S.byId.get(i)).filter(Boolean);
+  const ids = idsForKey(forKey), its = ids.map(i => S.byId.get(i)).filter(Boolean);
   const pop = document.createElement('div'); pop.className = 'pop pal'; pop.dataset.pal = '1'; pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', 'Colour label');
   pop.innerHTML = LABELS.map(l => `<button data-act="setLabel" data-v="${l.id}" data-for="${forKey}" aria-label="${l.id}${l.key ? ' (key ' + l.key + ')' : ''}" aria-pressed="${its.length > 0 && its.every(i => i.label === l.id)}"><span class="dotx" style="background:${l.hex}"></span></button>`).join('')
     + `<button data-act="setLabel" data-v="" data-for="${forKey}" aria-label="No label"><span class="dotx" style="display:flex;align-items:center;justify-content:center;font-size:14px">∅</span></button>
@@ -1008,12 +1045,12 @@ function dlgPicker(d){
     return `<li role="option" tabindex="0" data-act="pkSel" data-path="${esc(p)}" aria-selected="${d.sel === p}" class="${ok ? '' : 'dis'}">${ic('folder')}<span class="nm">${esc(k)}<div class="meta">${esc(meta)}</div></span>${sub ? `<button class="go" data-act="pkGo" data-path="${esc(p)}" aria-label="Open ${esc(k)}">${ic('chevR')}</button>` : ''}</li>`;
   }).join('') || '<li class="dis">This folder has no subfolders.</li>';
   const can = d.sel && (d.forMove ? d.sel !== S.folderPath : FOLDERS[d.sel]);
-  if (d.forMove) return dlgShell('Move to folder', `${crumbs}<ul class="plist" role="listbox" aria-label="Folders" style="margin-top:8px">${rows}</ul>
+  if (d.forMove) return confirmDialog('Move to folder', `${crumbs}<ul class="plist" role="listbox" aria-label="Folders" style="margin-top:8px">${rows}</ul>
     <p class="hint" style="color:var(--muted);font-size:13px">Tap a folder to select it, the arrow to open it. Any folder you can write to is a target.</p>`,
-    `<button class="btn ghost" data-act="mvBack">Back</button><button class="btn primary" data-act="pkChoose" ${can ? '' : 'disabled'}>Move to ${can ? esc(d.sel.split('/').pop()) : '…'}</button>`);
-  return dlgShell('Choose a folder', `${crumbs}<ul class="plist" role="listbox" aria-label="Folders" style="margin-top:8px">${rows}</ul>
+    {back:{act:'mvBack', label:'Back'}, cancel:null, confirm:{act:'pkChoose', label:'Move to ' + (can ? d.sel.split('/').pop() : '…'), dis:!can}});
+  return confirmDialog('Choose a folder', `${crumbs}<ul class="plist" role="listbox" aria-label="Folders" style="margin-top:8px">${rows}</ul>
     <p class="hint" style="color:var(--muted);font-size:13px">Tap a folder to select it, the arrow to open it. Mockup: only the three photo folders can be loaded.</p>`,
-    `<button class="btn ghost" data-act="closeDlg" ${S.folderPath ? '' : 'hidden'}>Cancel</button><button class="btn primary" data-act="pkChoose" ${can ? '' : 'disabled'}>Choose ${can ? esc(d.sel.split('/').pop()) : ''}</button>`, false, !!S.folderPath);
+    {cancel:S.folderPath ? 'Cancel' : null, confirm:{act:'pkChoose', label:'Choose ' + (can ? d.sel.split('/').pop() : ''), dis:!can}, canClose:!!S.folderPath});
 }
 /* delete summary */
 function filesOf(it){ return [it.jpg && {...it.jpg, kind:'JPEG', it}, it.raw && {...it.raw, kind:'RAW', it}, it.xmp && {...it.xmp, kind:'XMP', it}].filter(Boolean); }
@@ -1023,14 +1060,15 @@ function dlgReview(){
     <div class="sumrow"><div class="stat"><b>${its.length}</b>photos</div><div class="stat"><b>${files.length}</b>files</div><div class="stat"><b>${fmtSize(total)}</b>to free</div></div>
     <div class="rv-grid">${its.map(it => `<button class="rv" data-act="rescue" data-id="${esc(it.id)}" aria-label="Rescue ${esc(stem(it))}"><img alt="" src="${thumbURL(it)}"><span class="rv-n">${esc(stem(it))}</span><span class="rv-f">${filesOf(it).map(f => f.kind).join(' + ')}</span><span class="rv-r">Rescue</span></button>`).join('')}</div>`
     : `<div class="empty"><div class="big">No rejected photos</div>Nothing to delete.</div>`;
-  return dlgShell('Review rejects', body, `<button class="btn ghost" data-act="closeDlg">Close</button><button class="btn danger" data-act="reviewNext" ${its.length ? '' : 'disabled'}>${ic('trash')}Continue: delete ${its.length}</button>`, true);
+  return confirmDialog('Review rejects', body, {cancel:'Cancel', confirm:{act:'reviewNext', label:`Continue: delete ${its.length}`, icon:'trash', kind:'danger', dis:!its.length}, wide:true});
 }
 function dlgBurst(d){
   const m = burstCurrent(d);
   if (!m) return dlgShell('Compare series', `<div class="empty"><div class="big">All series compared</div>No more photos taken within ${BURST_GAP_MS / 1000} seconds of each other are left to decide.</div>`, `<button class="btn primary" data-act="closeDlg">Close</button>`, true);
   return dlgShell(`Compare series ${d.i + 1} of ${d.gids.length}`,
-    `<p class="row" style="margin-top:0;color:var(--muted)">Photos taken within ${BURST_GAP_MS / 1000} seconds of each other. Tap a photo to open the series fullscreen (or press 1 – ${m.length}). <span class="later">Later milestone M6</span></p>
-    <div class="cmp n${m.length}">${m.map((it, k) => `<button class="cm" data-act="cmpOpen" data-id="${esc(it.id)}" aria-label="Open photo ${k + 1}: ${esc(stem(it))}"><img alt="" src="${cmpURL(it)}"><span class="cm-n">${k + 1} · ${esc(stem(it))}</span><span class="cm-s">${pairLabel(it)}${it.rating ? ' · ' + it.rating + '★' : ''}${it.flag === 'pick' ? ' · picked' : ''}</span></button>`).join('')}</div>`,
+    `<p class="row" style="margin-top:0;color:var(--muted)">Photos taken within ${BURST_GAP_MS / 1000} seconds of each other. Tap a photo to open the series fullscreen (or press 1 – ${m.length}), or decide right here. <span class="later">Later milestone M6</span></p>
+    <div class="cmp n${m.length}">${m.map((it, k) => `<div class="cm"><button class="cm-open" data-act="cmpOpen" data-id="${esc(it.id)}" aria-label="Open photo ${k + 1}: ${esc(stem(it))}"><img alt="" src="${cmpURL(it)}"><span class="cm-n">${k + 1} · ${esc(stem(it))}</span><span class="cm-s">${pairLabel(it)}<span class="stars" aria-hidden="true">${stars(it.rating)}</span>${flagMark(it.flag)}</span></button>
+      ${flagButtons(it.flag, 'id', {id:it.id})}${pickRestBtn('id', it.id)}</div>`).join('')}</div>`,
     `<button class="btn ghost" data-act="closeDlg">Close</button><button class="btn" data-act="cmpSkip">Skip</button>`, true);
 }
 /* series viewer: fullscreen, swipe, zoom synchronised across the series */
@@ -1043,7 +1081,7 @@ function openSerie(id){
   el.innerHTML = `<div class="sv-track" id="svTrack">${serieSlides(m)}</div>
     <div class="sv-ctl sv-top"><button class="icon-btn" data-act="svClose" aria-label="Close series viewer">${ic('close')}</button><div class="sv-title"><b id="svName"></b><span id="svSub"></span></div><button class="btn" data-act="svZoom" id="svZoom" aria-pressed="false">${ic('zoom')}<span>100 %</span></button></div>
     <button class="sv-nav prev icon-btn" data-act="svStep" data-v="-1" aria-label="Previous photo">${ic('chevL')}</button><button class="sv-nav next icon-btn" data-act="svStep" data-v="1" aria-label="Next photo">${ic('chevR')}</button>
-    <div class="sv-ctl sv-bot"><span id="svSync" aria-live="polite"></span><button class="btn" data-act="svReject" title="Reject">${ic('flagX')}Reject</button><button class="btn primary" data-act="svKeep">Keep this, reject the rest</button></div>`;
+    <div class="sv-ctl sv-bot"><span id="svSync" aria-live="polite"></span><div class="sv-bar" id="svBar"></div></div>`;
   const tr = $('svTrack'); tr.scrollLeft = SV.idx * tr.clientWidth;
   tr.addEventListener('scroll', () => { const i = clamp(Math.round(tr.scrollLeft / tr.clientWidth), 0, SV.ids.length - 1); if (i !== SV.idx){ SV.idx = i; serieChrome(); } }, {passive:true});
   tr.addEventListener('pointerdown', svDown); tr.addEventListener('pointermove', svMove); tr.addEventListener('pointerup', svUp); tr.addEventListener('pointercancel', svUp);
@@ -1065,7 +1103,8 @@ function serieWake(){
 function serieChrome(){
   const it = S.byId.get(SV.ids[SV.idx]); if (!it) return;
   $('svName').textContent = stem(it);
-  $('svSub').textContent = `Series ${S.dlg ? S.dlg.i + 1 : 1} of ${S.dlg ? S.dlg.gids.length : 1} · photo ${SV.idx + 1} of ${SV.ids.length} · ${pairLabel(it)}${it.rating ? ' · ' + it.rating + '★' : ''}${it.flag === 'pick' ? ' · picked' : ''}`;
+  $('svSub').textContent = `Series ${S.dlg ? S.dlg.i + 1 : 1} of ${S.dlg ? S.dlg.gids.length : 1} · photo ${SV.idx + 1} of ${SV.ids.length} · ${pairLabel(it)}${it.rating ? ' · ' + it.rating + '★' : ''}${it.flag !== 'none' ? ' · ' + FLAG_TXT[it.flag] : ''}`;
+  $('svBar').innerHTML = actionBar(it, 'serie', {big:true, tail:pickRestBtn('serie')});
   document.querySelector('#serie .sv-nav.prev').hidden = SV.idx === 0; document.querySelector('#serie .sv-nav.next').hidden = SV.idx === SV.ids.length - 1;
 }
 function serieApply(){
@@ -1091,16 +1130,15 @@ function serieSync(){
   serieApply(); serieChrome();
 }
 function serieDecide(flag){ const id = SV.ids[SV.idx]; if (id) change([id], 'flag', flag); }
-function serieReject(){ serieDecide('reject'); }
-function serieKeep(){
+function seriePickRest(){
   const id = SV.ids[SV.idx]; if (!id) return; decideBurst(id, SV.ids.filter(i => i !== id && S.byId.get(i) && S.byId.get(i).flag !== 'reject')); closeSerie();
 }
 function serieKey(e){
   const k = e.key; serieWake();
   if (k === 'ArrowLeft' || k === 'ArrowRight'){ e.preventDefault(); serieStep(k === 'ArrowLeft' ? -1 : 1); }
   else if ((k === 'z' || k === 'Z') && !e.ctrlKey && !e.metaKey){ e.preventDefault(); serieZoom(); }
-  else if (k === 'k' || k === 'K'){ e.preventDefault(); serieKeep(); }
-  else if (k === 'x' || k === 'X'){ e.preventDefault(); serieReject(); }
+  else if (k === 'P'){ e.preventDefault(); seriePickRest(); }
+  else if (/^[pxu]$/i.test(k) && !e.ctrlKey && !e.metaKey){ e.preventDefault(); decideFlag(idsForKey('serie'), {p:'pick', x:'reject', u:'none'}[k.toLowerCase()]); }
   else if ((e.ctrlKey || e.metaKey) && (k === 'z' || k === 'Z')){ e.preventDefault(); e.shiftKey ? redo() : undo(); }
   else if (/^[1-4]$/.test(k) && +k <= SV.ids.length){ e.preventDefault(); serieStep(+k - 1 - SV.idx); }
 }
@@ -1138,12 +1176,12 @@ function svUp(e){
 function dlgDelete(d){
   const its = d.ids.map(i => S.byId.get(i)).filter(Boolean), files = its.flatMap(filesOf);
   const pairs = its.filter(i => pairType(i) === 'pair').length, singles = its.length - pairs, total = files.reduce((a, f) => a + f.size, 0);
-  return dlgShell('Delete ' + its.length + (its.length === 1 ? ' photo' : ' photos'),
+  return confirmDialog('Delete ' + its.length + (its.length === 1 ? ' photo' : ' photos'),
     `<div class="sumrow"><div class="stat"><b>${its.length}</b>photos</div><div class="stat"><b>${files.length}</b>files</div><div class="stat"><b>${fmtSize(total)}</b>freed</div></div>
     <p style="margin:0 0 10px;color:var(--muted);font-size:13px">${pairs} pairs · ${singles} singles. Every photo goes with all of its files, sidecars included.</p>
     <div class="fl-list" tabindex="0" aria-label="Files that will be deleted">${files.map(f => `<div><span class="k">${f.kind}</span><span class="n"><i>${esc(f.dir.replace('/Photos/', '…/'))}</i>${esc(f.name)}</span><span>${fmtSize(f.size)}</span></div>`).join('')}</div>
     <div class="note">${ic('trash')}<span>Files move to the Nextcloud trash bin and can be restored from there. Nothing is deleted for good; the space returns when the trash bin is emptied.</span></div>`,
-    `${d.from === 'review' ? `<button class="btn ghost" data-act="reviewBack">Back to review</button>` : ''}<button class="btn ghost" data-act="closeDlg">Cancel</button><button class="btn danger" data-act="delConfirm">${ic('trash')}Move ${files.length} files to trash</button>`);
+    {back:d.from === 'review' ? {act:'reviewBack', label:'Back to review'} : null, confirm:{act:'delConfirm', label:`Move ${files.length} files to trash`, icon:'trash', kind:'danger'}});
 }
 function doDelete(ids, failFirst){
   const done = [], failed = [], removedIds = [];
@@ -1162,11 +1200,11 @@ function doDelete(ids, failFirst){
 }
 function dlgReport(d){
   const r = d.res;
-  return dlgShell('Deletion finished with errors',
+  return confirmDialog('Deletion finished with errors',
     `<div class="sumrow"><div class="stat"><b>${r.done.length}</b>files moved to trash</div><div class="stat" style="background:var(--danger-soft)"><b style="color:var(--danger)">${r.failed.length}</b>failed</div></div>
     <div class="fl-list">${r.failed.map(f => `<div><span class="k">${f.kind}</span><span class="n"><i>${esc(f.dir.replace('/Photos/', '…/'))}</i>${esc(f.name)}<div class="bad">${esc(f.why)}</div></span><span>${fmtSize(f.size)}</span></div>`).join('')}</div>
     <p style="color:var(--muted);font-size:13px">The failed files stay in the grid (the item now shows as a single). Everything else is in the Nextcloud trash bin and can be restored from there.</p>`,
-    `<button class="btn ghost" data-act="closeDlg">Close</button><button class="btn primary" data-act="retryFailed">Retry failed files</button>`);
+    {cancel:'Close', confirm:{act:'retryFailed', label:'Retry failed files'}});
 }
 function finishDelete(res, count){
   closeDlg();
@@ -1206,7 +1244,7 @@ function dlgSettings(){
     `<button class="btn primary" data-act="closeDlg">Done</button>`, true);
 }
 function dlgKeys(){
-  const rows = [['0 – 5', 'Set rating'], ['P', 'Pick'], ['X', 'Reject'], ['U', 'Unflag'], ['6 7 8 9', 'Label red / yellow / green / blue (toggle)'], ['1 – 4', 'Choose the best photo when comparing a series'], ['M', 'Move the selection, focused tile or current photo'], ['1 – 9', 'Move dialog: choose a favourite or recent folder'], ['Ctrl/⌘ + Z', 'Undo'], ['Shift + Ctrl/⌘ + Z', 'Redo'],
+  const rows = [['0 – 5', 'Set rating'], ['P', 'Pick (again: unflag)'], ['X', 'Reject (again: unflag)'], ['U', 'Unflag'], ['Shift + P', 'Series viewer: pick this, reject the rest'], ['6 7 8 9', 'Label red / yellow / green / blue (toggle)'], ['1 – 4', 'Series compare and viewer: go to photo 1 – 4'], ['M', 'Move the selection, focused tile or current photo'], ['1 – 9', 'Move dialog: choose a favourite or recent folder'], ['Ctrl/⌘ + Z', 'Undo'], ['Shift + Ctrl/⌘ + Z', 'Redo'],
     ['Delete', 'Delete summary for the selection or focused tile'], ['Ctrl/⌘ + A', 'Select all (filtered)'], ['Shift + click', 'Select a range'], ['Arrow keys', 'Move focus in the grid, previous / next in the loupe'],
     ['Enter', 'Open the loupe'], ['F', 'Loupe without chrome (also double-tap)'], ['I', 'Loupe info panel'], ['Space', 'Loupe: fit / 100 %'], ['Ctrl + wheel, pinch', 'Grid: thumbnail size'], ['Esc', 'Close loupe / dialog / selection'], ['?', 'This sheet']];
   return dlgShell('Keyboard shortcuts', `<p style="margin-top:0;color:var(--muted)">In the grid they apply to the selection, or to the focused tile. In the loupe they apply to the current photo.</p><table class="sc">${rows.map(r => `<tr><td>${r[0].split(' ').map(k => k.length > 1 || /[A-Z0-9?]/.test(k) ? `<span class="kbd">${esc(k)}</span>` : esc(k)).join(' ')}</td><td>${esc(r[1])}</td></tr>`).join('')}</table>`, `<button class="btn primary" data-act="closeDlg">Close</button>`);
@@ -1349,8 +1387,8 @@ function dlgMove(d){
     }).join('')}</div>
     <div class="note">${ic('move')}<span>Moved on the server: shares, tags, comments and decisions stay with the files. Undo moves them back${rows.some(r => r.how === 'replace') ? ', and replaced files come back from the trash bin' : ''}.</span></div>`;
   }
-  return dlgShell(`Move ${nPics} ${nPics === 1 ? 'photo' : 'photos'}`, body,
-    `<button class="btn ghost" data-act="closeDlg">Cancel</button><button class="btn primary" data-act="mvConfirm" ${d.target && files ? '' : 'disabled'}>${ic('move')}Move ${files} files</button>`, true);
+  return confirmDialog(`Move ${nPics} ${nPics === 1 ? 'photo' : 'photos'}`, body,
+    {confirm:{act:'mvConfirm', label:`Move ${files} files`, icon:'move', dis:!(d.target && files)}, wide:true});
 }
 function doMove(d){
   const rows = (movePlan(d).rows || []).filter(r => r.to && r.how !== 'skip');
@@ -1401,8 +1439,7 @@ function buildLoupe(){
   <div class="divider" id="infoDiv" role="separator" aria-orientation="vertical" aria-label="Resize info panel" tabindex="0"></div>
   <aside id="infoPanel" aria-label="Photo info"></aside></div>
   <div class="film" id="lFilm"></div>
-  <div class="l-ctrl"><div class="big"><button class="bigbtn reject" data-act="flag" data-v="reject" id="bReject" aria-label="Reject" title="Reject">${ic('flagX')}Reject</button><button class="bigbtn pick" data-act="flag" data-v="pick" id="bPick" aria-label="Pick" title="Pick">${ic('flagPick')}Pick</button></div>
-    <div class="small" id="lSmall"></div></div>`;
+  <div class="l-ctrl" id="lCtrl"></div>`;
   L.slides = [...document.querySelectorAll('#track .slide')];
   bindDivider($('infoDiv'), {get:() => P0.infoW, set:setInfoW, min:220, max:480, sign:-1});
   $('loupe').classList.toggle('immersive', !!L.immersive);
@@ -1440,19 +1477,16 @@ function renderLoupeChrome(){
   const up = S.settings.swipeUp, dn = S.settings.swipeDown, nm = a => a === 'none' ? 'off' : a;
   $('lGest').innerHTML = `Swipe ↑ ${nm(up)} · ↓ ${nm(dn)} ${qm('Q6')} · auto-advance ${S.settings.autoAdvance ? 'on' : 'off'}`;
   $('lCount').textContent = `${lp.idx + 1} / ${lp.ids.length}`;
-  $('bPick').setAttribute('aria-pressed', it.flag === 'pick'); $('bReject').setAttribute('aria-pressed', it.flag === 'reject');
-  $('lSmall').innerHTML = `<span class="gl">Rating</span>${[0, 1, 2, 3, 4, 5].map(n => `<button class="sq" data-act="rate" data-v="${n}" aria-pressed="${it.rating === n}" aria-label="${n ? 'Rate ' + n + ' stars' : 'Clear rating'}">${n ? n + '★' : '0'}</button>`).join('')}
-    <span class="vsep"></span><button class="sq" data-act="palette" data-for="loupe" aria-label="Colour label" style="padding:0 14px"><span class="dotc" style="background:${it.label ? LBL[it.label].hex : 'transparent'};width:18px;height:18px"></span>${it.label || 'Label'}</button>${qm('Q5')}
-    <span class="vsep"></span><button class="sq" data-act="flag" data-v="none" aria-pressed="${it.flag === 'none'}" aria-label="Unflag" title="Unflag">${ic('flag')}</button>${qm('Q4')}`;
+  $('lCtrl').innerHTML = actionBar(it, 'loupe', {big:true});
   $('lZoomBtn').textContent = L.z.s > 1.02 ? Math.round(L.z.s * it.nativeW / (fitSize(it)[0] * (devicePixelRatio || 1)) * 100 / (it.nativeW / (fitSize(it)[0] * (devicePixelRatio || 1))) / 1 * 1) + '%' : 'Fit';
   $('lZoomBtn').textContent = L.z.s > 1.02 ? Math.round(L.z.s * fitSize(it)[0] * (devicePixelRatio || 1) / it.nativeW * 100) + '%' : 'Fit';
   const ip = $('infoPanel'); ip.hidden = $('infoDiv').hidden = !P0.infoOpen; $('lInfoBtn').setAttribute('aria-pressed', P0.infoOpen);
   ip.innerHTML = `<h4>File</h4><dl><dt>Name</dt><dd>${esc(stem(it))}</dd>${it.jpg ? `<dt>JPEG</dt><dd>${fmtSize(it.jpg.size)}</dd>` : ''}${it.raw ? `<dt>RAW</dt><dd>${esc(it.raw.name.split('.').pop())} · ${fmtSize(it.raw.size)}</dd>` : ''}<dt>Sidecar</dt><dd>${it.xmp ? 'XMP' : 'none'}</dd><dt>Size</dt><dd>${it.nativeW} px wide</dd></dl>
-    <h4 style="margin-top:16px">Decision</h4><dl><dt>Rating</dt><dd>${it.rating ? it.rating + ' ★' : 'none'}</dd><dt>Label</dt><dd>${it.label || 'none'}</dd><dt>Flag</dt><dd>${it.flag}</dd></dl>`;
+    <h4 style="margin-top:16px">Decision</h4><dl><dt>Rating</dt><dd>${it.rating ? it.rating + ' ★' : 'none'}</dd><dt>Label</dt><dd>${it.label || 'none'}</dd><dt>Flag</dt><dd>${FLAG_TXT[it.flag]}</dd></dl>`;
   const f = $('lFilm'); f.hidden = !L.film; $('lFilmBtn').setAttribute('aria-pressed', L.film);
   if (L.film){
     const a = Math.max(0, lp.idx - 8), b = Math.min(lp.ids.length, lp.idx + 9);
-    f.innerHTML = lp.ids.slice(a, b).map((id, k) => { const x = S.byId.get(id); return `<button data-act="goto" data-i="${a + k}" class="${a + k === lp.idx ? 'cur' : ''}${x.flag === 'reject' && S.filters.scope === 'notrej' && a + k !== lp.idx ? ' gone' : ''}" aria-label="${esc(stem(x))}"><img alt="" src="${thumbURL(x)}">${x.flag !== 'none' ? `<span class="mk ${x.flag}">${x.flag === 'pick' ? '✓' : '✕'}</span>` : ''}</button>`; }).join('');
+    f.innerHTML = lp.ids.slice(a, b).map((id, k) => { const x = S.byId.get(id); return `<button data-act="goto" data-i="${a + k}" class="${a + k === lp.idx ? 'cur' : ''}${x.flag === 'reject' && S.filters.scope === 'notrej' && a + k !== lp.idx ? ' gone' : ''}" aria-label="${esc(stem(x))}"><img alt="" src="${thumbURL(x)}">${flagMark(x.flag)}</button>`; }).join('');
     const c = f.querySelector('.cur'); if (c) f.scrollLeft = c.offsetLeft - f.clientWidth / 2 + c.offsetWidth / 2;
   }
   renderPrefetch(); measure();
@@ -1477,7 +1511,7 @@ function goTo(i, animate, dir){
 const step = d => { if (S.loupe && !L.anim) goTo(S.loupe.idx + d, true); };
 function loupeDecide(flag, fromSwipe){
   const it = curItem(); if (!it) return;
-  change([it.id], 'flag', it.flag === flag && flag !== 'none' ? 'none' : flag);
+  decideFlag([it.id], flag);
   if (S.settings.autoAdvance && flag !== 'none' && S.loupe){
     const j = loupeNextIdx();
     if (j >= 0) setTimeout(() => { if (S.loupe && !L.anim) goTo(j, true); }, fromSwipe ? 0 : 90);
@@ -1629,10 +1663,8 @@ const A = {
   fFlag(el){ toggleSet(S.filters.flags, el.dataset.v); refreshView(); },
   fPair(el){ toggleSet(S.filters.pairs, el.dataset.v); refreshView(); },
   fClear(){ S.filters = {...DEF_FILTERS(), scope:S.filters.scope}; refreshView(); },
-  bulkRate(el){ change([...S.sel], 'rating', +el.dataset.v); },
-  bulkFlag(el){ change([...S.sel], 'flag', el.dataset.v); },
   palette(el){ showPalette(el, el.dataset.for); },
-  setLabel(el){ const ids = el.dataset.for === 'bulk' ? [...S.sel] : targetIds(), v = el.dataset.v; closePop(); if (v) toggleLabel(ids, v); else change(ids, 'label', null); },
+  setLabel(el){ const ids = idsForKey(el.dataset.for), v = el.dataset.v; closePop(); if (v) toggleLabel(ids, v); else change(ids, 'label', null); },
   delSel(){ openDelete([...S.sel]); }, delRejected(){ if (S.loupe) closeLoupe(); rejectedItems().length ? openDlg({type:'review'}) : toast('No rejected photos'); },
   rescue(el){ change([el.dataset.id], 'flag', 'none'); renderDlg(); }, reviewNext(){ openDlg({type:'del', ids:rejectedItems().map(i => i.id), from:'review'}); }, reviewBack(){ openDlg({type:'review'}); },
   scope(el){ S.filters.scope = el.dataset.v; refreshView(); },
@@ -1641,8 +1673,8 @@ const A = {
   barOff(){ P0.barOff = true; savePrefs(); applyBar(); toast('Header hidden · tap the handle at the top to bring it back'); }, barOn(){ P0.barOff = false; savePrefs(); resetBar(); },
   resume(){ const id = S.server.resume[S.folderPath], hit = S.view.find(i => i.id === id) || S.view.find(i => i.flag === 'none') || S.view[0]; if (hit) openLoupe(hit.id); },
   burst(){ const gids = getBursts().groups.map(g => g.map(i => i.id)); if (gids.length) openDlg({type:'burst', gids, i:0}); },
-  cmpOpen(el){ openSerie(el.dataset.id); }, cmpSkip(){ S.dlg.i++; renderDlg(); },
-  svClose(){ closeSerie(); }, svZoom(){ serieZoom(); }, svStep(el){ serieStep(+el.dataset.v); }, svKeep(){ serieKeep(); }, svReject(){ serieReject(); },
+  cmpOpen(el){ openSerie(el.dataset.id); }, pickRest(el){ if (el.dataset.for === 'serie') seriePickRest(); else { const m = burstCurrent(S.dlg), id = el.dataset.id; m && decideBurst(id, m.filter(i => i.id !== id).map(i => i.id)); } }, cmpSkip(){ S.dlg.i++; renderDlg(); },
+  svClose(){ closeSerie(); }, svZoom(){ serieZoom(); }, svStep(el){ serieStep(+el.dataset.v); },
   mockDevice(){ closeDlg(); closeSerie(); if (S.loupe) closeLoupe(); S.folderPath = null; S.items = []; S.byId = new Map(); S.sel.clear(); S.selMode = false; S.focusId = null; S.undo = []; S.redo = []; S.filters = DEF_FILTERS(); S.bursts = null;
     refreshView(); openDlg({type:'picker', cwd:'/Photos/2026', sel:null}); toast('New device: no local state. Decisions and position come from the server'); },
   delConfirm(){ const ids = S.dlg.ids; const res = doDelete(ids, S.mock.fail); S.lastFailed = res.failed; finishDelete(res); },
@@ -1650,7 +1682,7 @@ const A = {
     S.folders[S.folderPath] = S.items; closeDlg(); refreshView(); toast(`Moved ${f.length} remaining file(s) to the Nextcloud trash bin`); S.lastFailed = []; },
   undo(){ undo(); }, redo(){ redo(); },
   closeLoupe(){ closeLoupe(); }, prev(){ step(-1); }, next(){ step(1); }, goto(el){ goTo(+el.dataset.i, false); },
-  flag(el){ loupeDecide(el.dataset.v); }, rate(el){ change(targetIds(), 'rating', +el.dataset.v); },
+  flag(el){ el.dataset.for === 'loupe' ? loupeDecide(el.dataset.v) : decideFlag(idsForKey(el.dataset.for, el.dataset.id), el.dataset.v); }, rate(el){ change(idsForKey(el.dataset.for, el.dataset.id), 'rating', +el.dataset.v); },
   zoomToggle(){ toggleZoom(); }, infoToggle(){ P0.infoOpen = !P0.infoOpen; savePrefs(); renderLoupeChrome(); measure(); showLoupe(); }, filmToggle(){ L.film = !L.film; renderLoupeChrome(); measure(); showLoupe(); },
   setBool(el){ S.settings[el.dataset.k] = !S.settings[el.dataset.k]; if (el.dataset.k === 'showSingles') refreshView(); renderDlg(); },
   setFolderMode(el){ S.settings.folderMode = el.dataset.v; renderDlg(); }, setStorage(el){ S.settings.storage = el.dataset.v; renderDlg(); },
@@ -1705,7 +1737,7 @@ document.addEventListener('keydown', e => {
   }
   if (k === '?' ){ e.preventDefault(); S.dlg && S.dlg.type === 'keys' ? closeDlg() : openDlg({type:'keys'}); return; }
   if (S.serie){ serieKey(e); return; }
-  if (S.dlg && S.dlg.type === 'burst'){ if (/^[1-4]$/.test(k)){ const m = burstCurrent(S.dlg), it = m && m[+k - 1]; if (it){ e.preventDefault(); openSerie(it.id); } } return; }
+  if (S.dlg && S.dlg.type === 'burst'){ if (mod && k.toLowerCase() === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; } if (/^[1-4]$/.test(k)){ const m = burstCurrent(S.dlg), it = m && m[+k - 1]; if (it){ e.preventDefault(); openSerie(it.id); } } return; }
   if (S.dlg && S.dlg.type === 'move'){
     if (/^[1-9]$/.test(k)){ const t = moveTargets()[+k - 1]; if (t){ e.preventDefault(); S.dlg.target = t.p; renderDlg(); } }
     else if (k === 'Enter' && tg.tagName !== 'BUTTON' && S.dlg.target){ e.preventDefault(); doMove(S.dlg); } return;
@@ -1730,8 +1762,8 @@ document.addEventListener('keydown', e => {
   } else if (k === 'Enter' && !(tg.classList && tg.classList.contains('tile')) && S.focusId){ openLoupe(S.focusId); return; }
   if (/^[0-5]$/.test(k)){ if (ids.length) change(ids, 'rating', +k); return; }
   const lk = k.toLowerCase();
-  if (lk === 'p'){ S.loupe ? loupeDecide('pick') : ids.length && change(ids, 'flag', 'pick'); return; }
-  if (lk === 'x'){ S.loupe ? loupeDecide('reject') : ids.length && change(ids, 'flag', 'reject'); return; }
+  if (lk === 'p'){ S.loupe ? loupeDecide('pick') : ids.length && decideFlag(ids, 'pick'); return; }
+  if (lk === 'x'){ S.loupe ? loupeDecide('reject') : ids.length && decideFlag(ids, 'reject'); return; }
   if (lk === 'u'){ ids.length && change(ids, 'flag', 'none'); return; }
   if (lk === 'm'){ e.preventDefault(); openMove(ids); return; }
   const lab = LABELS.find(l => l.key === k); if (lab){ ids.length && toggleLabel(ids, lab.id); return; }

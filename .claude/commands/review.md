@@ -9,6 +9,8 @@ Review uncommitted or recently committed changes against the project's standards
    - Does every new behaviour have a test whose name says which rule would break?
    - Do file operations go through `OCP\Files` only, and does deleting reach the trash bin?
    - Are glossary terms used (`docs/04-glossary.md`), with no new synonyms?
+   - Does UI (Vue or mockup) follow the glossary's UI conventions and reuse the shared components
+     (`docs/plan.md` Shared UI components) instead of a near-copy?
    - Does an architectural choice come with an ADR (CLAUDE.md rule 6)?
    - Are comments one line at most and about *why*?
    - Is a UI change backed by the signed-off mockup, and does it work without hover?
