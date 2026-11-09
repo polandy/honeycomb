@@ -46,6 +46,8 @@ that brings the first file of their kind ([`plan.md`](plan.md#milestones)).
   only in the app icon and logo.
 - Touch-first: hit targets at least 44 × 44 px, nothing reachable only by hover, pointer events
   for gestures, every action also reachable by keyboard.
+- A tap must not change the page between `touchstart` and its `click`: iOS Safari then treats the
+  tap as a hover and drops the click. Re-render in the `click` handler, not in `touchend`.
 - Tools: `@nextcloud/eslint-config` through eslint, `tsc --noEmit`, Vitest with coverage and
   `@vue/test-utils` for tests under `tests/js/`, Playwright under `tests/e2e/`.
 
