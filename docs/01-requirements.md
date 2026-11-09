@@ -79,4 +79,4 @@ several images and then deleting them, and other bulk actions. The details are w
 together on the mockup ([`mockup/index.html`](mockup/index.html), ADR 0003).
 
 This widens the brief's binary keep/discard decision to digiKam's ratings, colour labels and
-pick labels; [`plan.md`](plan.md#open-questions) Q2 and Q4 settle how.
+pick labels; [`plan.md`](plan.md#open-questions) Q2 and Q4 settled how.

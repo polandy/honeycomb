@@ -8,13 +8,14 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **pair** | A RAW file and a rendered file with the same base name that belong together. |
 | **single** | A picture with only one image file: *JPEG only* or *RAW only*. |
 | **member** | One image file of a picture (the RAW member or the rendered member). |
-| **rendered file** | A camera-rendered image file (JPEG; HEIF/TIFF if Q15 says so). Shown in the app. |
+| **rendered file** | A camera-rendered image file (JPEG or HEIF; the extensions are a setting, Q15). Shown in the app. |
 | **RAW file** | A camera RAW file, recognised by its extension (configurable list). |
 | **sidecar** | An `.xmp` file that holds metadata for a member; deleted together with its picture. |
 | **base name** | The file name up to the last `.`, compared case-insensitively. |
 | **folder mode** | *Same folder* (pairs side by side) or *separate subfolders* (e.g. `RAW/`, `JPG/`). |
 | **rating** | 0 to 5 stars. 0 means unrated. |
-| **colour label** | One of a fixed set of colours, or none (Q5). |
+| **capture time** | When a picture was taken: the RAW member's EXIF capture time, else the rendered member's, else the file's modification time. |
+| **colour label** | One of digiKam's nine colours, or none (Q5). |
 | **flag** | *Picked*, *rejected* or *unflagged*; digiKam calls it a pick label (Q4). |
 | **cull** | Going through a folder set and rating, labelling, flagging and deleting pictures. |
 | **folder set** | The folders one cull covers: the ticked folders and, with *Include subfolders*, every folder below them. Not a *selection*. |

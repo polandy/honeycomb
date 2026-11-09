@@ -37,7 +37,8 @@ that brings the first file of their kind ([`plan.md`](plan.md#milestones)).
   imports, time and randomness injected. Components and stores call them and only wire the
   result to the DOM and the API (ADR 0006).
 - Vue with `@nextcloud/vue` components, `@nextcloud/axios` for requests, `@nextcloud/router` for
-  URLs, `@nextcloud/l10n` (`t('honeycomb', …)`) for every user-visible string,
+  URLs, `@nextcloud/l10n` (`t('honeycomb', …)`, `n()` for counts) for every user-visible string,
+  `Intl` on the user's locale for numbers and dates (ADR 0007),
   `@nextcloud/dialogs` for the file picker.
 - Build with `@nextcloud/vite-config`; output in `js/` (not committed).
 - Colours, spacing and radii from Nextcloud's CSS variables (`--color-primary-element`,
