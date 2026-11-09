@@ -55,6 +55,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;strok
 .hdr .icon-btn:disabled{opacity:.35}
 .logo{display:flex;align-items:center;gap:8px;font-weight:600;font-size:19px;letter-spacing:.2px;padding:0 8px}
 .logo svg{width:32px;height:32px}
+.hdr{position:relative}
 .hdr .sp{flex:1}
 .hdr .q{color:var(--honey);border-color:var(--honey)}
 
@@ -331,8 +332,18 @@ table.sc{border-collapse:collapse;width:100%}table.sc td{padding:6px 4px;border-
 main{overflow:hidden}
 .toolbar{container:tb/inline-size;display:flow-root;gap:0;padding:0 calc(8px + env(safe-area-inset-right)) 0 calc(8px + env(safe-area-inset-left));margin-top:0;transition:margin-top .35s ease-in-out}
 .tb-top{transition:margin-top .35s ease-in-out}
-.toolbar.bar-hidden .tb-top{margin-top:calc(-1 * var(--tb-h,0px))}
-.toolbar.bar-off{margin-top:calc(-1 * var(--tb-all,0px))}
+.toolbar.bar-hidden,.toolbar.bar-off{margin-top:calc(-1 * var(--tb-all,0px))}
+.hkeys{display:flex;align-items:center;gap:4px;margin-left:8px}
+.hkeys>*{flex:none}
+.hkeys[hidden]{display:none}
+.hkeys .seg{background:transparent;border-color:rgba(255,255,255,.3)}
+.hkeys .seg button{color:var(--paper);padding:0 9px;border-right-color:rgba(255,255,255,.3)}
+.hkeys .btn.ghost{color:var(--paper);border-color:transparent}
+.hkeys .count{font-size:14px;white-space:nowrap;margin:0 4px}
+.hkeys .count .lb{display:none}
+.hkeys .prog{position:absolute;left:0;right:0;bottom:0;height:3px;border:0;border-radius:0;background:rgba(255,255,255,.2)}
+@container app (min-width:1000px){.hkeys .count .lb{display:inline}.hkeys .ib .lb{display:inline}.hkeys .ib .badge-n{position:static}}
+@container app (max-width:520px){.hkeys{margin-left:0;gap:0}.hkeys .count,.hdr.keys [data-act="nav"],.hdr.keys #hRedo{display:none}}
 .bar{display:flex;align-items:center;gap:2px;height:56px}
 .bar .crumbs{flex-wrap:nowrap;overflow:hidden}
 .crumbs.short,.crumbs .cur-only{display:none}
@@ -402,6 +413,7 @@ body.noq .menu .mq,body.noq .menu .mq-sep{display:none}
   <header class="hdr">
     <button class="icon-btn" data-act="nav" aria-label="Toggle navigation"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     <div class="logo" id="logo"></div>
+    <div class="hkeys" id="hKeys" hidden></div>
     <div class="sp"></div>
     <button class="icon-btn" id="hUndo" data-act="undo" aria-label="Undo"></button>
     <button class="icon-btn" id="hRedo" data-act="redo" aria-label="Redo"></button>
@@ -748,22 +760,24 @@ function renderNav(){
 /* ---------- toolbar ---------- */
 function renderToolbar(){
   const tb = $('toolbar');
-  if (!S.folderPath){ tb.innerHTML = `<div class="bar"><div class="crumbs"><button data-act="picker">Choose a folder…</button></div></div>`; return; }
+  if (!S.folderPath){ $('hKeys').innerHTML = ''; tb.innerHTML = `<div class="bar"><div class="crumbs"><button data-act="picker">Choose a folder…</button></div></div>`; return; }
   const segs = S.folderPath.split('/').filter(Boolean), nRej = rejectedItems().length, nDec = decidedCount(), nTot = S.items.length, nSer = getBursts().groups.length, nFil = activeFilterCount();
   const full = `<button data-act="picker" aria-label="Change folder">Home</button>` + segs.map((s, i) => `<span class="sep">/</span><button data-act="picker" data-path="/${esc(segs.slice(0, i + 1).join('/'))}">${esc(s)}</button>`).join('');
   const short = `<button data-act="picker" aria-label="Change folder">${ic('home')}</button><span class="sep">/</span><button class="cur" data-act="path" aria-haspopup="menu" aria-label="Show the full path of ${esc(segs[segs.length - 1] || '')}">${esc(segs[segs.length - 1] || '')}</button>`;
   const ib = (act, icon, label, n, extra = '') => `<button class="btn ghost ib" data-act="${act}" ${extra} aria-label="${label}${n ? ' (' + n + ')' : ''}" title="${label}">${ic(icon)}<span class="lb">${label}</span>${n ? `<span class="badge-n" aria-hidden="true">${n}</span>` : ''}</button>`;
   tb.classList.toggle('selmode', S.selMode);
   const scopes = [['notrej', 'Not rejected', 'flagCross'], ['undecided', 'Undecided', 'flag'], ['all', 'All', 'grid']];
+  const keys = `<div class="seg" role="group" aria-label="Show">${scopes.map(([v, l, i]) => `<button data-act="scope" data-v="${v}" aria-pressed="${S.filters.scope === v}" aria-label="${l}" title="${S.filters.flags.size ? 'The flag filter overrides this' : l}" ${S.filters.flags.size ? 'disabled' : ''}>${ic(i)}</button>`).join('')}</div>
+      <span class="count" aria-live="polite">${nDec} / ${nTot}<span class="lb"> decided</span></span>
+      ${ib('delRejected', 'trash', 'Review rejects', nRej, nRej ? '' : 'disabled')}
+      <button class="btn ghost ib" data-act="more" aria-haspopup="menu" aria-label="More" title="More">${ic('more')}</button>
+      <div class="prog" role="progressbar" aria-label="Decided" aria-valuemin="0" aria-valuemax="${nTot}" aria-valuenow="${nDec}"><i style="width:${nTot ? Math.round(100 * nDec / nTot) : 0}%"></i></div>`;
+  $('hKeys').innerHTML = keys;
   tb.innerHTML = `<div class="tb-top"><div class="bar"><div class="crumbs full" role="navigation" aria-label="Breadcrumb">${full}</div><div class="crumbs short" role="navigation" aria-label="Breadcrumb">${short}</div>
     ${ib('selmode', 'select', 'Select', S.selMode ? S.sel.size : 0, `aria-pressed="${S.selMode}"`)}
     ${ib('burst', 'compare', 'Compare series', nSer, nSer ? '' : 'disabled')}
     ${ib('filters', 'filter', 'Filters', nFil, `aria-pressed="${!!S.filtersOpen}" aria-expanded="${!!S.filtersOpen}"`)}</div></div>
-    <div class="slim"><div class="seg" role="group" aria-label="Show">${scopes.map(([v, l, i]) => `<button data-act="scope" data-v="${v}" aria-pressed="${S.filters.scope === v}" aria-label="${l}" title="${S.filters.flags.size ? 'The flag filter overrides this' : l}" ${S.filters.flags.size ? 'disabled' : ''}>${ic(i)}</button>`).join('')}</div>
-      <span class="count" aria-live="polite">${nDec} / ${nTot}<span class="lb"> decided</span></span>
-      ${ib('delRejected', 'trash', 'Review rejects', nRej, nRej ? '' : 'disabled')}
-      <button class="btn ghost ib" data-act="more" aria-haspopup="menu" aria-label="More" title="More">${ic('more')}</button>
-      <div class="prog" role="progressbar" aria-label="Decided" aria-valuemin="0" aria-valuemax="${nTot}" aria-valuenow="${nDec}"><i style="width:${nTot ? Math.round(100 * nDec / nTot) : 0}%"></i></div></div>
+    <div class="slim">${keys}</div>
     ${S.selMode ? `<div class="tb-sel"><b>${S.sel.size} selected</b>
       <button class="btn" data-act="selAll">Select all (filtered)</button><button class="btn" data-act="selNone">None</button><button class="btn primary" data-act="selmode">Done</button></div>` : ''}`;
   applyBar();
@@ -780,10 +794,10 @@ function followScroll(state, y, barHeight, maxY){
   else if (travel <= -TOP_BAR_TRAVEL_PX) hidden = false;
   return {hidden, y, travel};
 }
-const barHeight = () => { const t = document.querySelector('#toolbar .tb-top'); return t ? t.offsetHeight : 0; };
+const barHeight = () => [...$('toolbar').children].reduce((h, c) => h + c.offsetHeight, 0);
 function applyBar(){
   const tb = $('toolbar'), off = !!P0.barOff && !!S.folderPath, hide = !off && !!S.bar && S.bar.hidden && !S.selMode;
-  tb.style.setProperty('--tb-h', barHeight() + 'px'); tb.style.setProperty('--tb-all', [...tb.children].reduce((h, c) => h + c.offsetHeight, 0) + 'px'); tb.classList.toggle('bar-hidden', hide); tb.classList.toggle('bar-off', off); $('barHandle').hidden = !off;
+  tb.style.setProperty('--tb-all', [...tb.children].reduce((h, c) => h + c.offsetHeight, 0) + 'px'); tb.classList.toggle('bar-hidden', hide); tb.inert = hide || off; $('hKeys').hidden = !hide; document.querySelector('.hdr').classList.toggle('keys', hide); tb.classList.toggle('bar-off', off); $('barHandle').hidden = !off;
 }
 function resetBar(){ S.bar = {...SHOWN_BAR, y:$('gridWrap').scrollTop}; applyBar(); }
 function menuItem(act, icon, label, attrs = '', extra = ''){ return `<button class="mi" role="menuitem" data-act="${act}" ${attrs}>${icon ? ic(icon) : ''}<span>${label}</span>${extra}</button>`; }

@@ -179,17 +179,23 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    least 1000 px wide. Sort, the tile size slider, *Move picks*, *Resume*, hiding the header,
    settings and the help for the open-question markers live in a **⋯ more menu** (arrow keys,
    one separator per group). The scope (*Not rejected* / *Undecided* / *All*) and the progress
-   share one slim row below. Every control keeps a 44 px hit target.
-2. **The header collapses to the slim row while scrolling** (owner, 2026-11-09). It does not
-   hide completely: the slim row (~44 px, so every target keeps 44 px) stays and holds the most
-   used actions: the scope as three icon buttons, the *decided* count with its progress bar,
-   *Review rejects* with its badge and the ⋯ menu. Breadcrumbs, *Select*, *Compare series* and
-   *Filters* sit in the upper part, which slides away and returns on scrolling up. The ⋯ entry
-   *Hide header* still hides everything, leaving a small handle. The rules are
-   ported from Stella's top bar (`followScroll`) and the mockup keeps the decision as a pure
-   function of the same shape:
+   share one slim row below (it moves into the app bar while scrolling, item 2). Every control
+   keeps a 44 px hit target.
+2. **The key actions move into the app bar while scrolling** (owner, 2026-11-09, correcting the
+   slim-row version). Nothing stays below the app bar: when the toolbar hides, all of it, the
+   slim row included, slides away, and the most used actions appear in the top app bar
+   (`.hdr`, where *Undo* and *Redo* are), between the logo and *Undo*: the scope as three icon
+   buttons, the *decided* count with a thin progress line on the bar's bottom edge, *Review
+   rejects* with its badge and the ⋯ menu. When the toolbar returns they leave the app bar again;
+   there are never two copies at once (the hidden toolbar is inert). Every target keeps 44 px.
+   On a phone the logo shrinks to the mark, and to make room the navigation toggle, *Redo* and
+   the count figures give way while the actions are in the app bar (the line stays); an open
+   question for the owner. Breadcrumbs, *Select*, *Compare series* and *Filters* sit in the
+   toolbar, which returns on scrolling up. The ⋯ entry *Hide header* still hides everything,
+   leaving a small handle. The rules are ported from Stella's top bar (`followScroll`) and the
+   mockup keeps the decision as a pure function of the same shape:
    - Only after 24 px of travel in one direction does the bar follow; a nudge is not a scroll.
-   - Within the bar's height of the top, including a negative position from iOS rubber-band
+   - Within the toolbar's height of the top, including a negative position from iOS rubber-band
      overscroll, it is always shown.
    - Within the bar's height of the bottom it keeps its state: hiding makes the scroller taller,
      the clamp pulls the scroll back, that reads as scrolling up, the bar returns, and it
