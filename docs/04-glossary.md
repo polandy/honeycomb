@@ -24,6 +24,13 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **loupe** | The full-screen view of one picture, with swipe, zoom and the decision buttons. |
 | **filter** | A condition on rating, colour label, flag or pairing that narrows the grid and loupe. |
 | **selection** | The set of pictures marked in selection mode for a bulk action. |
-| **bulk action** | Rate, label, flag or delete applied to the whole selection at once. |
+| **bulk action** | Rate, label, flag, move or delete applied to the whole selection at once. |
+| **move** | Moving whole pictures (all members and sidecars) into a target folder, renamed by the name template. Never a copy. |
+| **target folder** | The Nextcloud folder pictures are moved into. |
+| **favourite target** | A target folder the user starred; offered first in the move dialog. |
+| **recent target** | One of the last 5 target folders, offered after the favourite targets. |
+| **move summary** | The list of every file and its new path, with conflicts, shown before a move. |
+| **conflict** | A new path that already exists in the target folder; resolved by suffix, skip or replace. |
+| **name template** | The pattern that builds a moved picture's path, e.g. `{date:%Y}/{name}.{ext}` (`docs/05-name-templates.md`). |
 | **delete summary** | The dialog that lists pictures, files, bytes freed and the trash-bin note before deleting. |
 | **trash bin** | Nextcloud's trash bin (`files_trashbin`), where deleted files can be restored from. |
