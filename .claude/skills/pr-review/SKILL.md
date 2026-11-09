@@ -136,7 +136,8 @@ a `TODO.md` item finished twice.
 5. **Blockers:** what must change before the merge that you could not fix.
 6. **Merge readiness:** `ready` or `not ready` — exactly one of these words on that line, which the
    orchestrator's merge gate reads. `ready` only when every gate is ✅ or `n/a` and nothing blocks.
-   Never merge: the owner or the orchestrator decides.
+   The words `not ready` appear nowhere else in the comment, not even quoted: the gate scans the
+   whole body. Never merge: the owner or the orchestrator decides.
 
 ## 9. Post it
 
