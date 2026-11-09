@@ -13,6 +13,7 @@ Open only the file, or the section, a change touches.
 | [`user/`](user/) | Documentation for users, e.g. [ratings, flags and colours in other programs](user/ratings-flags-colours.md) |
 | [`plan.md`](plan.md) | Milestones, project structure, target versions, open questions |
 | [`mockup/index.html`](mockup/index.html) | The interactive mockup (milestone M0); open it in a browser |
+| [`ux-review.md`](ux-review.md) | UX review of the mockup: findings, fixes, design direction; screenshots in [`ux/`](ux/) |
 | [`adr/`](adr/) | Architecture decision records, one file each |
 
 Only the current version of each document is kept; Git holds the history.

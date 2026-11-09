@@ -142,7 +142,8 @@ the thumbnail size is stepless (mockup: slider, Ctrl + wheel, pinch).
 **Progressive display.** The small preview shows first; the sharp one is swapped in after
 `img.decode()` resolves, so the tile never blanks or jumps.
 
-**Prefetch.** The loupe prefetches 2–3 neighbours in each direction.
+**Prefetch.** The loupe prefetches 2–3 neighbours in each direction. The mockup shows the
+preload state in the loupe's info panel, not over the photo.
 
 **Virtualised grid.** Only the visible rows are rendered, images load lazily.
 
@@ -179,8 +180,9 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    least 1000 px wide. Sort, the tile size slider, *Move picks*, *Resume*, hiding the header,
    settings and the help for the open-question markers live in a **⋯ more menu** (arrow keys,
    one separator per group). The scope (*Not rejected* / *Undecided* / *All*) and the progress
-   share one slim row below (it moves into the app bar while scrolling, item 2). Every control
-   keeps a 44 px hit target.
+   share one slim row below (it moves into the app bar while scrolling, item 2). The active
+   scope shows its name beside the icon when the app is wider than 520 px. Every control keeps
+   a 44 px hit target.
 2. **The key actions move into the app bar while scrolling** (owner, 2026-11-09, correcting the
    slim-row version). Nothing stays below the app bar: when the toolbar hides, all of it, the
    slim row included, slides away, and the most used actions appear in the top app bar
@@ -306,15 +308,29 @@ under `src/components/`. A new screen composes these; a variant is a prop, not a
 
 | Component (mockup function) | Renders | Used by | Pure modules (`src/logic/`) |
 |---|---|---|---|
-| `FlagButtons` (`flagButtons`) | *Pick*, *Reject*, *Unflag* with pressed state; small or large | action bar, series compare card | `decisions`: flag toggle, a selection's common value |
+| `FlagButtons` (`flagButtons`) | *Pick*, *Reject*, *Unflag*, neutral until pressed: a pressed *Pick* or *Reject* fills its colour, a pressed *Unflag* gets an outline; small or large | action bar, series compare card | `decisions`: flag toggle, a selection's common value |
 | `FlagMark` (`flagMark`) | the read-only flag icon | `PhotoTile`, loupe filmstrip, series compare card | — |
 | `StarRating` (`starRating`, `stars`) | 0–5 buttons, or read-only stars | action bar, `PhotoTile`, series compare card | `decisions` |
 | `ColourLabels` (`colourLabel`, `showPalette`) | the label button and the nine-colour palette | action bar, filter bar | `decisions`, `hotkeys` |
 | `ActionBar` (`actionBar`) | rating, colour label and flags; flags in a large row of their own, plus a slot | grid selection, loupe, series viewer | `decisions`, `hotkeys` |
 | `PickRestButton` (`pickRestBtn`) | *Pick this, reject the rest* | series compare card, series viewer | `series` |
 | `UndoToast` (`toast`) | the change in words, *Undo*, an optional action | every undoable change | `undo`: entries and their text |
-| `ConfirmDialog` (`confirmDialog`) | title, body, footer *Back* · *Cancel* · confirm | delete summary, reject review, move summary, folder picker, delete report | — |
-| `PhotoTile` (`tileInner`, `updateTile`) | thumbnail, pair and series badges, stars, colour dot, flag mark, selection check | grid | `pairing` |
+| `ConfirmDialog` (`confirmDialog`) | title, body, footer *Back* · *Cancel* · confirm; a bottom sheet on a phone | delete summary, reject review, move summary, folder picker, delete report | — |
+| `PhotoTile` (`tileInner`, `updateTile`) | thumbnail, pair and series badges (a complete pair quiet, a single highlighted), stars once rated, colour dot, flag mark, selection check | grid | `pairing` |
+
+## Visual design and first run
+
+The UX review of 2026-11-09 ([ux-review.md](ux-review.md)) set the visual rules the mockup now
+follows; its design direction lists the tokens.
+
+- **Neutral, photo-first colours.** Greys without a colour cast in both themes, a near-black
+  stage behind the loupe and the series viewer; honey is the accent only. Pressed *Pick* and
+  *Reject* use fixed dark fills, so white text keeps its contrast in both themes.
+- **First run.** The folder picker opens with one sentence on what honeycomb does and that
+  deleting goes to the trash bin. The first loupe opening shows a gesture guide (swipes from
+  the settings, pinch, double-tap, the main keys) until it is dismissed once.
+- **Calm loupe chrome.** The title row shows the name and the pair; the gesture mapping and the
+  preload state sit in the info panel.
 
 ## Project structure
 
