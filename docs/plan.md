@@ -313,7 +313,7 @@ most. The rule for the loupe and the series viewer, measured in
    keeps them shown. The info panel opens beside the photo, inside the *Reject* edge.
 4. **Portrait keeps the bottom bar:** title row, photo, filmstrip, then the large flag row and
    the rating row below, as before. The layout switches with the orientation, on rotation too.
-5. **Unchanged:** every keyboard shortcut, the swipe gestures, the tooltips, double-tap or `F`
+5. **Unchanged:** every keyboard shortcut, the swipe gestures, the tooltips, double-tap or `Tab`
    for the chrome-free mode (which also hides the edge buttons), and the shared `ActionBar`:
    one component, laid out by orientation, not a second copy.
 
