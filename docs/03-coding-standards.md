@@ -46,6 +46,10 @@ that brings the first file of their kind ([`plan.md`](plan.md#milestones)).
   only in the app icon and logo.
 - Touch-first: hit targets at least 44 × 44 px, nothing reachable only by hover, pointer events
   for gestures, every action also reachable by keyboard.
+- Render checks run on the [reference devices](plan.md#reference-devices) (Pixel 9 Pro, iPad
+  mini A17 Pro and A20 Pro, iPad Pro 11″, each in portrait and landscape, plus desktop
+  1440 × 900), not on ad-hoc sizes. `viewport-fit=cover` with `env(safe-area-inset-*)` padding:
+  no control under the camera, the status bar or the home indicator.
 - A tap must not change the page between `touchstart` and its `click`: iOS Safari then treats the
   tap as a hover and drops the click. Re-render in the `click` handler, not in `touchend`.
 - Tools: `@nextcloud/eslint-config` through eslint, `tsc --noEmit`, Vitest with coverage and

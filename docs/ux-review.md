@@ -96,43 +96,61 @@ the controls at the bottom took too much room. The fix is the rule in
 [plan.md](plan.md#loupe-layout): the photo fills the screen, *Pick* and *Reject* float at the
 side edges, everything else overlays the photo and hides when idle.
 
-**Measured** with Playwright 1.63.0 (Chromium) in the dark theme, on photo 4 of the
-*Dolomites* folder (3:2) and the first series. *Photo* is the fitted photo's area as a share of
-the screen. *Controls* are the strips across the full width that the photo has to share:
-before, the title row, the filmstrip and the bottom bar, all always shown; after, only the
-overlays, which hide when idle. The flag buttons after are two 84 × 240 px buttons at the edges
-(68 × 140 px on a phone) plus *Unflag*, outside the middle half of the screen.
+**Measured** with Playwright 1.63.0 (Chromium) in the dark theme on the
+[reference devices](plan.md#reference-devices), on photo 4 of the *Dolomites* folder (3:2) and
+the first series. *Before* is `main` before this change. *Photo* is the fitted photo's area as a
+share of the screen. *Controls* are the strips across the full width that the photo has to
+share: before, the title row, the filmstrip and the bottom bar, all always shown; after, in
+landscape, only the overlays, which hide when idle. Both are measured at the bare viewport; the
+safe areas add their insets on top. In landscape the flag buttons after are two 84 × 240 px
+buttons at the edges (68 × 154 px on the Pixel) plus *Unflag*, outside the middle half of the
+screen.
 
-| Screen | Loupe photo before → after | Loupe controls before → after | Series viewer photo before → after | Series viewer controls before → after |
+| Device, orientation, viewport | Loupe photo before → after | Loupe controls before → after | Series viewer photo before → after | Series viewer controls before → after |
 |---|---|---|---|---|
-| iPad 11″ landscape 1180 × 820 | 47 % → 92 % | 259 px always → 182 px, hidden when idle | 96 % → 96 % | 194 px, Pick and Reject hidden when idle → 116 px, Pick and Reject always shown |
-| iPad 13″ landscape 1366 × 1024 | 60 % → 85 % | 259 px always → 182 px, hidden when idle | 89 % → 89 % | same as above |
-| Phone landscape 844 × 390 | 8 % → 67 % | 259 px always → 182 px, hidden when idle | 69 % → 69 % | 194 px → 166 px (the row wraps), Pick and Reject always shown |
-| Desktop 1440 × 900 | 46 % → 90 % | 259 px always → 182 px, hidden when idle | 94 % → 94 % | as on the iPad |
-| iPad 11″ portrait 820 × 1180 | 45 % → 45 % | 259 px, unchanged | 46 % → 46 % | unchanged |
-| Phone portrait 390 × 844 | 30 % → 30 % | 301 px, unchanged | 31 % → 31 % | unchanged |
+| Pixel 9 Pro landscape 952 × 427 | 10 % → 65 % | 259 px always → 182 px, hidden when idle | 67 % → 67 % | 194 px → 116 px, Pick and Reject always shown |
+| iPad mini A17 Pro landscape 1133 × 744 | 40 % → 95 % | 259 px always → 182 px, hidden when idle | 99 % → 99 % | 194 px → 116 px, Pick and Reject always shown |
+| iPad mini A20 Pro landscape 1158 × 756 | 41 % → 94 % | 259 px always → 182 px, hidden when idle | 98 % → 98 % | 194 px → 116 px, Pick and Reject always shown |
+| iPad Pro 11″ landscape 1210 × 834 | 47 % → 93 % | 259 px always → 182 px, hidden when idle | 97 % → 97 % | 194 px → 116 px, Pick and Reject always shown |
+| Desktop 1440 × 900 | 46 % → 90 % | 259 px always → 182 px, hidden when idle | 94 % → 94 % | 194 px → 116 px, Pick and Reject always shown |
+| Pixel 9 Pro portrait 427 × 952 | 29 %, unchanged | 301 px, unchanged | 30 %, unchanged | 236 px, unchanged |
+| iPad mini A17 Pro portrait 744 × 1133 | 42 %, unchanged | 259 px, unchanged | 44 %, unchanged | 194 px, unchanged |
+| iPad mini A20 Pro portrait 756 × 1158 | 42 %, unchanged | 259 px, unchanged | 44 %, unchanged | 194 px, unchanged |
+| iPad Pro 11″ portrait 834 × 1210 | 44 %, unchanged | 259 px, unchanged | 46 %, unchanged | 194 px, unchanged |
 
-The series viewer already showed its photo full screen with controls that hide; it now keeps
-*Pick* and *Reject* in view while the rest hides, and its bottom row shrinks from 134 px to
-56 px.
+Before, on the Pixel in landscape, the flag row covered the middle of the photo; after, no
+control reaches it on any device.
 
-### Loupe on an iPad in landscape
+**Every screen on every device.** The mockup's device preview framed each reference device in
+both orientations with its safe areas set, and a Playwright check opened eleven screens on each
+(grid, selection, filter bar, loupe, series viewer, burst, *Move…*, *Delete…*, folder picker,
+settings, keyboard shortcuts): 99 screens. It flags a control that is clipped, lies in a safe
+area or is smaller than 44 × 44 px. It found two defects, now fixed: the bottom sheets' buttons
+sat under the Pixel's gesture bar, and *Clear filters* under its camera in landscape. All 99
+screens now pass, with no console errors.
 
-| Before | After, controls shown | After, idle |
+### Loupe in landscape, per device
+
+Before is the bare viewport; after is framed with the safe areas, the dot marks the camera.
+
+| Device | Before | After |
 |---|---|---|
-| ![Loupe before, 1180 dark](ux/before-loupe-1180-dark.png) | ![Loupe after, 1180 dark](ux/after-loupe-1180-dark.png) | ![Loupe after, idle, 1180 dark](ux/after-loupe-1180-dark-idle.png) |
+| Pixel 9 Pro | ![Loupe before, Pixel 9 Pro landscape](ux/before-loupe-pixel9pro-land.png) | ![Loupe after, Pixel 9 Pro landscape](ux/after-loupe-pixel9pro-land.png) |
+| iPad mini A17 Pro | ![Loupe before, iPad mini A17 Pro landscape](ux/before-loupe-ipadmini24-land.png) | ![Loupe after, iPad mini A17 Pro landscape](ux/after-loupe-ipadmini24-land.png) |
+| iPad mini A20 Pro | ![Loupe before, iPad mini A20 Pro landscape](ux/before-loupe-ipadmini26-land.png) | ![Loupe after, iPad mini A20 Pro landscape](ux/after-loupe-ipadmini26-land.png) |
+| iPad Pro 11″ | ![Loupe before, iPad Pro 11″ landscape](ux/before-loupe-ipadpro11-land.png) | ![Loupe after, iPad Pro 11″ landscape](ux/after-loupe-ipadpro11-land.png) |
 
-### Loupe on a phone in landscape
+### Loupe in portrait, per device
 
-| Before | After, idle |
+| Pixel 9 Pro | iPad mini A17 Pro | iPad mini A20 Pro | iPad Pro 11″ |
+|---|---|---|---|
+| ![Loupe, Pixel 9 Pro portrait](ux/after-loupe-pixel9pro-port.png) | ![Loupe, iPad mini A17 Pro portrait](ux/after-loupe-ipadmini24-port.png) | ![Loupe, iPad mini A20 Pro portrait](ux/after-loupe-ipadmini26-port.png) | ![Loupe, iPad Pro 11″ portrait](ux/after-loupe-ipadpro11-port.png) |
+
+### Series viewer in landscape
+
+| Pixel 9 Pro | iPad mini A17 Pro |
 |---|---|
-| ![Loupe before, 844 dark](ux/before-loupe-844-dark.png) | ![Loupe after, idle, 844 dark](ux/after-loupe-844-dark-idle.png) |
-
-### Series viewer on an iPad in landscape
-
-| Before | After, idle |
-|---|---|
-| ![Series viewer before, 1180 dark](ux/before-serie-1180-dark.png) | ![Series viewer after, idle, 1180 dark](ux/after-serie-1180-dark-idle.png) |
+| ![Series viewer, Pixel 9 Pro landscape](ux/after-serie-pixel9pro-land.png) | ![Series viewer, iPad mini A17 Pro landscape](ux/after-serie-ipadmini24-land.png) |
 
 ## What already works
 

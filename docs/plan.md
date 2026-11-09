@@ -295,8 +295,8 @@ Where the work lands: M2.3 (header, bar, scroll behaviour), M6 (series viewer).
 
 The owner on 2026-11-09, after testing the mockup on the iPad: in landscape the photo was too
 small and the controls at the bottom took too much room; the photo, *Pick* and *Reject* matter
-most. The rule for the loupe and the series viewer, measured in
-[ux-review.md](ux-review.md#landscape-loupe):
+most. The rule for the loupe and the series viewer, measured on the
+[reference devices](#reference-devices) in [ux-review.md](ux-review.md#landscape-loupe):
 
 1. **Landscape (wider than tall): the photo fills the screen.** Nothing takes a strip of its
    own; the photo is fitted to the whole loupe.
@@ -318,6 +318,47 @@ most. The rule for the loupe and the series viewer, measured in
    one component, laid out by orientation, not a second copy.
 
 Where the work lands: M3.1 and M3.2 (loupe), M6 (series viewer).
+
+## Reference devices
+
+The owner on 2026-11-09: every screen must work on these devices, in portrait and landscape.
+They are the viewports for every render check (mockup, screenshots, Playwright), replacing the
+earlier ad-hoc sizes; 1440 × 900 stays as the desktop check.
+
+| Device | CSS viewport, portrait | DPR | Display | Front camera | Safe areas portrait (top, right, bottom, left) | Safe areas landscape |
+|---|---|---|---|---|---|---|
+| Pixel 9 Pro | 427 × 952 [^dt] | 3 [^dt] | 1280 × 2856, 495 ppi, 6.3″ [^px] | punch hole, centre of the short edge | 68, 0, 36, 0 [^dt] [^e2e] | 0, 68, 36, 0 |
+| iPad mini (A17 Pro, 2024), the smallest tablet that must fit | 744 × 1133 [^c] | 2 [^c] | 2266 × 1488, 326 ppi, 8.3″ [^m24] | in the bezel, short edge [^m24] | 24, 0, 20, 0 [^ios] | 24, 0, 20, 0 [^ios] |
+| iPad mini (A20 Pro, 2026) | 756 × 1158 [^c] | 2 [^c] | 2316 × 1512, 326 ppi, 8.5″ OLED [^m26] | in the bezel, long edge (top in landscape) [^m26] | 24, 0, 20, 0 [^ios] | 24, 0, 20, 0 [^ios] |
+| iPad Pro 11″ (M5) | 834 × 1210 [^c] | 2 [^c] | 2420 × 1668, 264 ppi [^pro] | in the bezel, long edge (top in landscape) [^pro] | 24, 0, 20, 0 [^ios] | 24, 0, 20, 0 [^ios] |
+| Desktop | 1440 × 900 (landscape only) | 1 | – | – | none | none |
+
+[^dt]: Chrome DevTools device list, entry *Pixel 9 Pro*, with its cutout insets:
+    <https://github.com/ChromeDevTools/devtools-frontend/blob/main/front_end/models/emulation/EmulatedDevices.ts>
+[^px]: Google, Pixel phone hardware tech specs: <https://support.google.com/pixelphone/answer/7158570>
+[^e2e]: The bottom inset (gesture bar) is dynamic on Android; 36 px is Chrome's
+    `safe-area-max-inset-bottom` fallback: <https://developer.chrome.com/docs/css-ui/edge-to-edge>
+[^m24]: Apple, iPad mini (A17 Pro) tech specs: <https://support.apple.com/en-us/121456>
+[^m26]: Apple, iPad mini tech specs (*Landscape 12MP Center Stage camera*):
+    <https://www.apple.com/ipad-mini/specs/>
+[^pro]: Apple, iPad Pro tech specs, 11-inch model: <https://www.apple.com/ipad-pro/specs/>
+[^c]: Computed: Apple publishes pixels, not points; every Retina iPad renders at 2 device
+    pixels per CSS pixel, so the viewport is the pixel size halved.
+[^ios]: Measured empirically, no primary source: the status bar (top) and the home indicator
+    (bottom) in Safari full screen. A bezel camera adds no inset. Re-measure on a device.
+
+Rules for every screen on every reference device:
+
+1. **Fits:** nothing clipped and no horizontal scroll, in both orientations and after a rotation.
+2. **Safe areas:** the page uses `viewport-fit=cover` and pads its edges with
+   `env(safe-area-inset-*)`; no control lies under the camera, the status bar or the home
+   indicator. Backgrounds and the photo may run underneath.
+3. **Thumbs:** *Pick* and *Reject* stay large and reachable without moving the grip
+   ([Loupe layout](#loupe-layout)); every touch target is at least 44 × 44 px.
+
+The mockup has a device preview (*Mockup controls* → *Device frame*): it frames the page at
+the chosen device's CSS viewport, portrait or landscape, sets the safe areas from this table and
+marks the camera, so each device can be checked on a desktop browser.
 
 ## Keyboard shortcuts
 
