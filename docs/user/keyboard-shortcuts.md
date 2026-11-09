@@ -22,6 +22,7 @@ in the series compare). Press `Ctrl+/` at any time to see this list in the app.
 | `Shift+0`–`Shift+5` | Set the rating, then go to the next photo. |
 | `[` and `]` | One star down, one star up. |
 | `6` `7` `8` `9` | Colour label red, yellow, green, blue. Press again to remove it. |
+| `R` | Toggle **Keep RAW** on a pair. |
 
 ## Move around and look
 
@@ -79,4 +80,4 @@ Deleted photos always go to the Nextcloud trash bin, where you can restore them.
 - `Space` switches between fit and 100 % in the loupe; Lightroom uses it to leave the grid.
 - `Tab` shows or hides the header, not Lightroom's side panels.
 - `N` opens the series compare; in Lightroom it opens Survey.
-- `M` and `K` exist only in honeycomb.
+- `M`, `K` and `R` exist only in honeycomb; in Lightroom `R` is Crop, which honeycomb does not have.

@@ -38,6 +38,8 @@ white. Magenta is called "Purple" in darktable and Lightroom.
 - **digiKam's "Pending".** honeycomb shows a pending photo as unflagged and keeps it pending in
   the sidecar until you pick or reject it.
 - **Tags** are not shown in honeycomb, and it never changes them.
+- **Keep RAW** is honeycomb's own marker. It is kept in the sidecar, but no other program shows
+  it.
 
 ## Several colour labels from darktable
 

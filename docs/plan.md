@@ -64,14 +64,15 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 3. **Folder picker and grid:** a folder picker with a checkbox per folder and the *Include
    subfolders* switch, a virtual-scrolling grid with srcset thumbnails (256/512 px, stepless
    size), pair badges and folder headers, light and dark ([Multiple folders](#multiple-folders)).
-4. **Decision storage:** the table(s) and API for rating, colour label and flag per picture and
-   user (Q2), and the resume position per folder set and user, so culling can stop and continue
-   on another device (an ADR first: new table).
-5. **Filter bar:** rating, colour label, flag, pairing and folder filters and the sort, as pure
-   TypeScript modules over the listed pictures (Q8, Q9, Q18), and the scope *not rejected* /
-   *undecided* / *all* of the culling workflow with the "x of y decided" progress.
-6. **Selection and bulk actions:** selection mode, select all filtered, bulk rate, label and flag
-   (Q10).
+4. **Decision storage:** the table(s) and API for rating, colour label, flag and *Keep RAW* per
+   picture and user (Q2, [Keep RAW and Remove RAWs](#keep-raw-and-remove-raws)), and the resume
+   position per folder set and user, so culling can stop and continue on another device (an ADR
+   first: new table).
+5. **Filter bar:** rating, colour label, flag, pairing, *Keep RAW* and folder filters and the
+   sort, as pure TypeScript modules over the listed pictures (Q8, Q9, Q18), and the scope *not
+   rejected* / *undecided* / *all* of the culling workflow with the "x of y decided" progress.
+6. **Selection and bulk actions:** selection mode, select all filtered, bulk rate, label, flag
+   and *Keep RAW* (Q10).
 
 ### M3 – Full-screen review (loupe)
 
@@ -80,9 +81,9 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    resizable info panel (see
    [Image delivery & performance](#image-delivery--performance)).
 2. **Decisions in the loupe:** large pick and reject buttons (at the side edges in landscape,
-   [Loupe layout](#loupe-layout)), vertical swipe (Q6), rating and
-   colour label controls, auto-advance to the next undecided picture, the "Rejected IMG_0001 · Undo"
-   toast.
+   [Loupe layout](#loupe-layout)), vertical swipe (Q6), rating, colour
+   label and *Keep RAW* controls, auto-advance to the next undecided picture, the "Rejected
+   IMG_0001 · Undo" toast.
 3. **Keyboard shortcuts and undo:** the one shared key map ([Keyboard
    shortcuts](#keyboard-shortcuts)), undo and redo (Q12), the shortcut sheet.
 
@@ -94,18 +95,21 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 2. **Reject review and delete summary:** the review grid of all rejected pictures with rescue,
    then the summary with pictures, files and bytes freed and the trash-bin note; also reachable
    from the selection (Q11).
-3. **Settings:** per user — RAW and rendered extensions, folder mode, show singles, gesture
+3. **Remove RAWs:** the bulk action and its summary ([Keep RAW and Remove
+   RAWs](#keep-raw-and-remove-raws)), built on the delete service of M4.1 and its ADR on pair
+   atomicity, with tests for every failure path.
+4. **Settings:** per user — RAW and rendered extensions, folder mode, show singles, gesture
    mapping, auto-advance.
-4. **README:** features, screenshot placeholders, the installation section brought up to date;
+5. **README:** features, screenshot placeholders, the installation section brought up to date;
    `camerarawpreviews` and Preview Generator as recommended apps.
 
 ### M5 – XMP sidecars
 
-Read existing sidecars when a folder is listed and write ratings, colour labels and flags to
-them, so digiKam, darktable and Lightroom Classic on the desktop see the decisions. Fields,
-precedence, write rules and test vectors: [`06-xmp-interop.md`](06-xmp-interop.md). The
-mapping and the serialized form are a TypeScript module; the backend writes the bytes it gets
-with the checked save (ADR 0006).
+Read existing sidecars when a folder is listed and write ratings, colour labels, flags and
+*Keep RAW* to them, so digiKam, darktable and Lightroom Classic on the desktop see the
+decisions. Fields, precedence, write rules and test vectors:
+[`06-xmp-interop.md`](06-xmp-interop.md). The mapping and the serialized form are a TypeScript
+module; the backend writes the bytes it gets with the checked save (ADR 0006).
 
 ### M6 – Series compare
 
@@ -136,8 +140,10 @@ pictures, a rejected picture disappears from view, and at the end delete all rej
    becomes undecided), then the owner confirms.
 2. **Delete is the trash bin.** Deleting moves files to the Nextcloud trash bin, restorable;
    there is no hard delete. Space returns only when the trash bin is emptied.
-3. **Whole pair.** Reject and delete always act on the whole picture: JPEG, RAW and sidecar. The
-   delete summary shows pictures · files · bytes freed.
+3. **Whole pair.** Reject and delete always act on the whole picture: every member and every
+   sidecar form, `<file>.xmp` of each member and a shared `<base>.xmp` alike. The delete summary
+   shows pictures · files · bytes freed. *Remove RAWs* is the one action that takes a member
+   away from a picture ([Keep RAW and Remove RAWs](#keep-raw-and-remove-raws)).
 4. **Series compare** (milestone M6). Pictures taken within a short interval (mockup: 3 seconds by
    capture time, at most 4 per series) form a series, shown 2–4 side by side. Tapping the best one
    means *Pick this, reject the rest*: it is picked, the others rejected, as one undo step. The
@@ -155,6 +161,45 @@ pictures, a rejected picture disappears from view, and at the end delete all rej
 
 Where the work lands: M2.4 (resume position), M2.5 (scope, progress), M3.2 (auto-advance, toast),
 M4.1 and M4.2 (delete, review, summary), M6 (series).
+
+## Keep RAW and Remove RAWs
+
+Decided by the owner on 2026-11-09. The owner keeps the RAW for a few pictures and only the JPEG
+for most, so the RAWs of the rest can go once a cull is done.
+
+1. **Keep RAW.** A marker per picture and user, its own toggle, independent of rating, colour
+   label and flag. Only a pair can carry it; for a single the toggle is disabled ("Keep RAW: only
+   for pairs"). It is stored like the other decisions: in the database (M2.4) and in the XMP
+   sidecars as `honeycomb:KeepRaw` (M5, [`06-xmp-interop.md`](06-xmp-interop.md), ADR 0008).
+   Changing it is one undoable change with a toast: "Marked IMG_0001 Keep RAW · Undo",
+   "Removed Keep RAW from IMG_0001 · Undo". It does not advance.
+2. **Where the toggle sits.** In the shared action bar, after the colour label, so it is the same
+   control in the loupe (the small row below the flag buttons), the series viewer and the
+   selection bar; pressed, it is honey like the other pressed controls. On a grid tile a marked
+   pair's badge turns honey with a check, `JPG+NEF ✓`, and the tile's label says "Keep RAW".
+   Key `R` toggles it ([Keyboard shortcuts](#keyboard-shortcuts)).
+3. **Filter.** The filter bar has a *Keep RAW* group after *Pairing*, with the chips *Marked* and
+   *Not marked*; like the other chip groups it selects several, none selected means no filter.
+4. **Remove RAWs.** A bulk action in the ⋯ menu, "Remove RAWs…" with a count, that acts on the
+   current view (scope and filters). It takes every picture in the view that is a pair, is not
+   marked *Keep RAW* and is not rejected; singles (JPEG only or RAW only), marked and rejected
+   pictures are skipped. For each it moves **only the RAW member and its own `<raw>.xmp`
+   sidecar** to the Nextcloud trash bin. The JPEG, its `<jpeg>.xmp` and a shared `<base>.xmp`
+   stay, and the picture keeps every decision; it becomes a *JPEG only* single.
+5. **Summary.** Before anything moves, a summary like the delete summary: pictures · files · bytes
+   freed, the list of files, how many pictures were skipped and why ("Skipped: 7 marked Keep RAW ·
+   6 rejected · 30 singles"), and the trash-bin note. The confirming button reads "Move 88 files
+   to trash", red. No single-key shortcut. Like deleting, it is not undone by `Ctrl+Z`; the trash
+   bin restores.
+6. **Failures.** The RAW and its own sidecar are one unit: when the RAW fails, its sidecar is not
+   touched and the picture stays a pair. The report lists each failed file, as for deleting.
+7. **Deleting a whole picture** stays as it was: every member and every sidecar form goes. A
+   shared `<base>.xmp` is removed only when no member of the picture remains, so *Remove RAWs*
+   never removes it.
+
+Where the work lands: M2.4 (storage), M2.5 (filter), M2.6 (bulk toggle), M3.2 (loupe toggle),
+M3.3 (`R`), M4.3 (Remove RAWs and its summary, extending the M4.1 delete service under its ADR on
+pair atomicity), M5 (sidecar property).
 
 ## Multiple folders
 
@@ -219,7 +264,7 @@ opened, by the Preview Generator app or an own background job. Imaginary is opti
 | Grid scroll at 2,000+ items | no jank |
 
 Where the work lands: M1.2 (file id and mtime per entry), M2.2 (cache-keyed URLs), M2.3
-(tiers, virtualised grid), M3.1 (prefetch, `decode()` swap), M4.4 (README recommendation), and
+(tiers, virtualised grid), M3.1 (prefetch, `decode()` swap), M4.5 (README recommendation), and
 a new item for the background generation and the RAW preview extraction.
 
 ## Compact header and series viewer
@@ -427,6 +472,7 @@ against it. `Ctrl` on Windows and Linux is `⌘` on a Mac.
 | `Shift+0`–`Shift+5` | set the rating, then go to the next photo | same keys |
 | `[` `]` | one star down, one star up | same keys |
 | `6` `7` `8` `9` | colour label red, yellow, green, blue (toggle) | same keys |
+| `R` | *Keep RAW* (toggle; honeycomb only) | differs: `R` is Crop in Lightroom, which honeycomb does not have |
 | Arrow keys | grid: move focus; loupe, series compare, series viewer: switch photo | same idea |
 | `G` `E` `N` | grid, loupe, series compare | `G` and `E` as in Lightroom; `N` is Survey there, series compare here |
 | `Space` | loupe: fit / 100 % | differs: Lightroom's `Space` leaves the grid for the loupe; `Z` zooms there |
@@ -536,7 +582,7 @@ under `src/components/`. A new screen composes these; a variant is a prop, not a
 | `FlagMark` (`flagMark`) | the read-only flag icon | `PhotoTile`, loupe filmstrip, series compare card | — |
 | `StarRating` (`starRating`, `stars`) | 0–5 buttons, or read-only stars | action bar, `PhotoTile`, series compare card | `decisions` |
 | `ColourLabels` (`colourLabel`, `showPalette`) | the label button and the nine-colour palette | action bar, filter bar | `decisions`, `hotkeys` |
-| `ActionBar` (`actionBar`) | rating, colour label and flags; flags in a large row of their own (portrait) or at the side edges (landscape, [Loupe layout](#loupe-layout)), plus a slot | grid selection, loupe, series viewer | `decisions`, `hotkeys` |
+| `ActionBar` (`actionBar`) | rating, colour label, *Keep RAW* and flags; flags in a large row of their own (portrait) or at the side edges (landscape, [Loupe layout](#loupe-layout)), plus a slot | grid selection, loupe, series viewer | `decisions`, `hotkeys` |
 | `PickRestButton` (`pickRestBtn`) | *Pick this, reject the rest* | series compare card, series viewer | `series` |
 | `UndoToast` (`toast`) | the change in words, *Undo*, an optional action | every undoable change | `undo`: entries and their text |
 | `ConfirmDialog` (`confirmDialog`) | title, body, footer *Back* · *Cancel* · confirm; a bottom sheet on a phone | delete summary, reject review, move summary, folder picker, delete report | — |
@@ -609,13 +655,13 @@ Answered by the owner on 2026-11-09 (Q14, Q15, Q16).
    a single, its tile shows a warning, and the grid shows one notice for the folder.
 3. **Rendered file types.** A per-user list like the RAW extensions, default `jpg, jpeg, heic,
    heif, hif`; TIFF can be added. HEIF previews depend on the server's preview providers, which
-   the README names (M4.4).
+   the README names (M4.5).
 4. **Separate subfolders.** The folder mode is *Same folder* by default. In *Separate
    subfolders* the user names the RAW and the rendered subfolder (default `RAW` and `JPG`,
    matched ignoring case). Pictures pair across the two subfolders of the chosen folder, and the
    grid shows the chosen folder as one.
 
-Where the work lands: M1.3 (pairing), M4.3 (settings).
+Where the work lands: M1.3 (pairing), M4.4 (settings).
 
 ## Grid, filters and sort
 
@@ -680,15 +726,15 @@ Answered by the owner on 2026-11-09 (Q3, Q4, Q5, Q6, Q20).
    gestures* sets each direction to *Pick*, *Reject* or *Nothing*, so either swipe can be
    turned off; the series viewer's swipe down follows the same setting.
 4. **Sidecar names.** Both `<file>.xmp` and `<base>.xmp` are read; every one that exists is
-   written, else `<file>.xmp` per member; deleting removes both
-   ([`06-xmp-interop.md`](06-xmp-interop.md#sidecar-names)).
+   written, else `<file>.xmp` per member; deleting a picture removes both, *Remove RAWs* only the
+   RAW's own `<file>.xmp` ([`06-xmp-interop.md`](06-xmp-interop.md#sidecar-names)).
 5. **Shared folders.** Decisions are per user, in the database. Sidecars are shared by every
    user of the folder, so in a shared folder nothing is written through on its own: the ⋯ menu
    offers *Write decisions to sidecars…*, which asks first (ADR 0005). The listing (M1.2) says
    per folder whether it is shared.
 
 Where the work lands: M1.2 (shared per folder), M2.4 (per-user decisions), M3.2 (swipe), M3.3
-(colour keys), M4.3 (gesture setting), M5 (sidecars).
+(colour keys), M4.4 (gesture setting), M5 (sidecars).
 
 ## Translations
 

@@ -17,6 +17,8 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **capture time** | When a picture was taken: the RAW member's EXIF capture time, else the rendered member's, else the file's modification time. |
 | **colour label** | One of digiKam's nine colours, or none (Q5). |
 | **flag** | *Picked*, *rejected* or *unflagged*; digiKam calls it a pick label (Q4). |
+| **Keep RAW** | A marker on a pair, independent of rating, colour label and flag: its RAW member stays when *Remove RAWs* runs. |
+| **Remove RAWs** | The bulk action that moves the RAW member and its own sidecar of every unmarked, not rejected pair in the view to the trash bin; the JPEG and the decisions stay. |
 | **cull** | Going through a folder set and rating, labelling, flagging and deleting pictures. |
 | **folder set** | The folders one cull covers: the ticked folders and, with *Include subfolders*, every folder below them. Not a *selection*. |
 | **undecided** | A picture whose flag is unflagged; picked and rejected pictures are *decided*. |
@@ -27,7 +29,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **gesture guide** | The card on the first loupe opening that lists the swipes, tap zones, pinch, double-tap and keys. |
 | **tap zone** | The left or right 30 % of the whole photo area in the loupe and series viewer, margins beside, above and below the photo included; a tap there goes to the previous or next photo. The middle shows or hides the overlays (`plan.md`, *Tap zones*). |
 | **tooltip** | The bubble that names a control and its key, on hover, keyboard focus or long-press. One for the whole app; not the browser's `title`. |
-| **filter** | A condition on rating, colour label, flag, pairing or folder that narrows the grid and loupe. |
+| **filter** | A condition on rating, colour label, flag, pairing, *Keep RAW* or folder that narrows the grid and loupe. |
 | **selection** | The set of pictures marked in selection mode for a bulk action. |
 | **bulk action** | Rate, label, flag, move or delete applied to the whole selection at once. |
 | **move** | Moving whole pictures (all members and sidecars) into a target folder, renamed by the name template. The files leave the source folder. |
@@ -38,6 +40,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **conflict** | A new path that already exists in the target folder; resolved by suffix, skip or replace. |
 | **name template** | The pattern that builds a moved picture's path, e.g. `{date:%Y}/{name}.{ext}` (`docs/05-name-templates.md`). |
 | **delete summary** | The dialog that lists pictures, files, bytes freed and the trash-bin note before deleting. |
+| **remove RAWs summary** | The same dialog before *Remove RAWs*, which also says how many pictures were skipped and why. |
 | **trash bin** | Nextcloud's trash bin (`files_trashbin`), where deleted files can be restored from. |
 
 ## Words and conventions in the UI
@@ -54,6 +57,7 @@ loupe, series compare, series viewer). The controls come from the shared compone
 | **Pick this, reject the rest** | one *Picked*, the rest of the series *Rejected* | `flagPick` | honey (primary) | `K` in the series compare and viewer |
 | **Rating** 0–5 ★ (0 clears it) | *n stars* | ★ | honey | `0`–`5` |
 | **Label** (colour label) | the colour's name | a colour dot | the label's colour | `6`–`9` |
+| **Keep RAW** (toggle) | *Keep RAW* | the text "Keep RAW" | honey when pressed | `R` |
 
 - **Order.** The flag buttons are always *Pick*, *Reject*, *Unflag*. An action bar shows rating,
   colour label and flags; where flags are the main action (loupe, series viewer) they get a row
@@ -62,7 +66,7 @@ loupe, series compare, series viewer). The controls come from the shared compone
 - **Toggle.** Pressing the flag a picture already has, by button or key, unflags it.
 - **Photo.** The UI and the user docs say *photo* for a picture; code and specs say *picture*.
 - **Avoid** *keep*, *discard*, *accept*, *unreject* and *clear flag*: they are *Pick*, *Reject*
-  and *Unflag*.
+  and *Unflag*. *Keep RAW* is the one exception: it names the RAW marker, never a flag.
 - **Toasts.** One undoable change, one toast: the change in the past tense, the photo's name or
   "n photos", then *Undo* — "Rejected IMG_0001 · Undo", "Picked IMG_0001 · rejected 2 · Undo",
   "Rated 3 photos ★★★ · Undo". Undo and redo answer "Undid: …" and "Redid: …".
