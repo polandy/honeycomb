@@ -51,6 +51,10 @@ Build a table with one row per changed source file under `lib/` or `src/`: the t
 says. A pull request often carries a second change, and that one ships without tests. Deleting
 and pairing need their failure paths covered (CLAUDE.md rules 1–2).
 
+Check the order with `gh pr view <PR> --json commits`: each new behaviour's test lands in its own
+commit before the one that changes the source under test (`docs/02-workflow.md` §2.3). A source
+change with no earlier test commit is a finding. Coverage below the gate in CI is a blocker.
+
 ## 4. UI changes (Full)
 
 - The change matches the signed-off mockup (`docs/mockup/`) or a closed `needs-owner` issue. A UI

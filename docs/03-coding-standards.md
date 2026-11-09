@@ -22,15 +22,20 @@ that brings the first file of their kind ([`plan.md`](plan.md#milestones)).
   the DI container, no static state, no `\OC\` (private) classes — only `OCP\`.
 - Files only through `OCP\Files\IRootFolder` and the user's folder (`CLAUDE.md` rule 1); deleting
   with `Node::delete()`, which moves to the trash bin when the `files_trashbin` app is enabled.
-- Pairing is pure logic over file names and sizes, with no `OCP` dependency, so it is unit-tested
-  without a server.
+- The backend stays thin (ADR 0006): list, move, trash, write XMP bytes, store per-user data,
+  serve previews. Every path or file id from the client is rechecked — owned by the user, still
+  exists, unchanged since the client read it — before anything is touched.
 - Database access through `QBMapper`/`Entity` and migrations in `lib/Migration/`.
 - Errors: domain exceptions per service; controllers map them to HTTP status codes.
 - Tools: `nextcloud/coding-standard` through php-cs-fixer, psalm (with `nextcloud/ocp` stubs) at
   the level set in `psalm.xml`, PHPUnit for tests under `tests/php/`.
 
-## 3.3 Vue and JavaScript
+## 3.3 TypeScript and Vue
 
+- TypeScript in strict mode; no plain `.js` sources.
+- The rules live in pure modules under `src/logic/`: no DOM, no network, no `@nextcloud/*`
+  imports, time and randomness injected. Components and stores call them and only wire the
+  result to the DOM and the API (ADR 0006).
 - Vue with `@nextcloud/vue` components, `@nextcloud/axios` for requests, `@nextcloud/router` for
   URLs, `@nextcloud/l10n` (`t('honeycomb', …)`) for every user-visible string,
   `@nextcloud/dialogs` for the file picker.
@@ -40,8 +45,8 @@ that brings the first file of their kind ([`plan.md`](plan.md#milestones)).
   only in the app icon and logo.
 - Touch-first: hit targets at least 44 × 44 px, nothing reachable only by hover, pointer events
   for gestures, every action also reachable by keyboard.
-- Tools: `@nextcloud/eslint-config` through eslint, Vitest with `@vue/test-utils` for tests under
-  `tests/js/`.
+- Tools: `@nextcloud/eslint-config` through eslint, `tsc --noEmit`, Vitest with coverage and
+  `@vue/test-utils` for tests under `tests/js/`, Playwright under `tests/e2e/`.
 
 ## 3.4 Formatting
 
