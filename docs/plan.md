@@ -76,7 +76,8 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 ### M3 – Full-screen review (loupe)
 
 1. **Loupe:** the JPEG (or the RAW's embedded preview) full screen, swipe to page, pinch zoom,
-   100 % zoom, prefetching of the neighbours, chrome-free mode, resizable info panel (see
+   100 % zoom, [tap zones](#tap-zones), prefetching of the neighbours, chrome-free mode,
+   resizable info panel (see
    [Image delivery & performance](#image-delivery--performance)).
 2. **Decisions in the loupe:** large pick and reject buttons (at the side edges in landscape,
    [Loupe layout](#loupe-layout)), vertical swipe (Q6), rating and
@@ -268,7 +269,8 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
 4. **Series viewer.** Tapping a photo of a series opens it fullscreen at once, the whole series
    preloaded. Swipe pages between the photos (arrow buttons and keys also work, also while
    zoomed). *Pick this, reject the rest* is in the viewer, one undo step. The controls fade out
-   when idle; a tap on the photo brings them back or hides them.
+   when idle; a tap on the middle of the photo brings them back or hides them, a tap on its left
+   or right side pages ([Tap zones](#tap-zones)).
    - **Reject a single photo** without leaving fullscreen (owner, 2026-11-09): the *Reject*
      button in the bottom bar, the `X` key, or a swipe down
      on the photo following the *Swipe down* setting (a horizontal swipe still pages; no
@@ -309,8 +311,9 @@ most. The rule for the loupe and the series viewer, measured on the
    count, *Fit*, *Move…*, *Info*, filmstrip toggle) at the top, the filmstrip and the rating
    and colour label row at the bottom (plus *Pick this, reject the rest* in the series viewer).
    They hide 2.5 s after the last touch, as the series viewer's controls already did; a tap on
-   the photo shows or hides them, a mouse move shows them, and a control with keyboard focus
-   keeps them shown. The info panel opens beside the photo, inside the *Reject* edge.
+   the middle of the photo shows or hides them ([Tap zones](#tap-zones)), a mouse move shows
+   them, and a control with keyboard focus keeps them shown. The info panel opens beside the
+   photo, inside the *Reject* edge.
 4. **Portrait keeps the bottom bar:** title row, photo, filmstrip, then the large flag row and
    the rating row below, as before. The layout switches with the orientation, on rotation too.
 5. **Unchanged:** every keyboard shortcut, the swipe gestures, the tooltips, double-tap or `Tab`
@@ -318,6 +321,48 @@ most. The rule for the loupe and the series viewer, measured on the
    one component, laid out by orientation, not a second copy.
 
 Where the work lands: M3.1 and M3.2 (loupe), M6 (series viewer).
+
+## Tap zones
+
+The owner on 2026-11-09, on the iPad: in landscape a tap on the right or left
+of the photo should go to the next or previous photo, as in an e-reader. The rule for the loupe
+and the series viewer, checked on every [reference device](#reference-devices) with Playwright
+touch taps (numbers in the pull request):
+
+1. **Three zones across the photo area.** A tap on the left 30 % goes to the previous photo, on
+   the right 30 % to the next, on the middle 40 % it shows or hides the overlays as before. The
+   zones span the full height and are measured on the photo area, not the photo, so a tap on the
+   dark margin beside a portrait photo counts too. On the first or last photo the outer zone
+   does nothing. The overlays keep their state: paging by tap does not bring them back.
+2. **Buttons win.** *Pick*, *Reject*, *Unflag* and every overlay control lie above the zones; a
+   tap on one decides or acts, a tap beside one pages. The edge buttons stay as they are
+   (84 × 240 px, 68 × 154 px on the Pixel), so they cover 8–9 % of an outer zone and a thumb
+   has the strip above, below and inside them to page. In Chromium a tap 3 px outside a button
+   still hits it (touch adjustment; re-check in Safari), so a near miss decides; the undo toast
+   takes it back.
+3. **Only a short, still touch is a tap:** under 8 px of movement and under 500 ms, the
+   tooltip's long-press time. A longer press does nothing, so resting a thumb never pages.
+   Every swipe (Q6 vertical, horizontal paging) is unchanged.
+4. **Zoomed in, the zones are off.** While a photo is zoomed, a tap anywhere acts as the middle
+   (overlays, double-tap) and a drag pans, so inspecting a detail never pages by accident.
+5. **Double-tap only in the middle.** An outer zone pages at once, without waiting for a second
+   tap, so two quick taps page twice; double-tap keeps its meaning (chrome-free mode in the
+   loupe, 100 % in the series viewer) in the middle zone, and the middle's single tap is not
+   delayed either, as before.
+6. **Touch and pen only.** A mouse click on the photo shows or hides the overlays as before;
+   the mouse has *Previous* and *Next* and the arrow keys.
+7. ***Previous* and *Next* stay** for the mouse, the keyboard focus order and screen readers
+   (the zones have no accessible name); on touch they sit inside the zones and do the same.
+   The zones carry no tooltip, being no control; the gesture guide explains them.
+8. **Portrait gets the same zones.** One rule in both orientations keeps the habit across a
+   rotation, portrait has no edge buttons to conflict with (its flags are in the bottom bar),
+   and a single tap on the photo had no visible effect in portrait before.
+9. **Reduced motion.** Paging by tap uses the same transition as the buttons and keys, and
+   none under `prefers-reduced-motion`; the series viewer then jumps instead of scrolling.
+10. **Gesture guide.** It gains one line with a three-cell sketch of the zones (‹ · controls · ›)
+    and now lies above the landscape overlays, which covered its *Got it* on the Pixel.
+
+Where the work lands: M3.1 (loupe), M6 (series viewer).
 
 ## Reference devices
 
@@ -545,7 +590,8 @@ follows; its design direction lists the tokens.
   *Reject* use fixed dark fills, so white text keeps its contrast in both themes.
 - **First run.** The folder picker opens with one sentence on what honeycomb does and that
   deleting goes to the trash bin. The first loupe opening shows a gesture guide (swipes from
-  the settings, pinch, double-tap, the main keys) until it is dismissed once.
+  the settings, [tap zones](#tap-zones), pinch, double-tap, the main keys) until it is
+  dismissed once.
 - **Calm loupe chrome.** The title row shows the name and the pair; the gesture mapping and the
   preload state sit in the info panel.
 

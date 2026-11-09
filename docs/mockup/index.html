@@ -295,8 +295,11 @@ table.sc{border-collapse:collapse;width:100%}table.sc td{padding:6px 4px;border-
 .navbtn{position:absolute;top:50%;margin-top:-28px;width:56px;height:56px;border-radius:50%;border:0;background:#0009;color:#fff;display:flex;align-items:center;justify-content:center;z-index:2}
 .navbtn.l{left:calc(10px + var(--sa-l))}.navbtn.r{right:calc(10px + var(--sa-r))}
 .navbtn:disabled{opacity:.25}
-.coach{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;padding:16px;background:#0009}
-.coach-card{background:var(--stage-2);color:var(--stage-text);border:1px solid #ffffff26;border-radius:14px;padding:16px 20px;max-width:380px;box-shadow:var(--shadow)}
+.coach{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:16px;background:#0009}
+.coach-card{background:var(--stage-2);color:var(--stage-text);border:1px solid #ffffff26;border-radius:14px;padding:16px 20px;max-width:380px;max-height:100%;overflow:auto;box-shadow:var(--shadow)}
+.coach-zones{display:grid;grid-template-columns:3fr 4fr 3fr;gap:3px;margin:4px 0 2px;font-size:12px;line-height:1;text-align:center}
+.coach-zones span{display:flex;align-items:center;justify-content:center;height:26px;border:1px dashed #ffffff59;border-radius:6px}
+.coach-zones svg.ic{width:16px;height:16px}
 .coach-card h3{margin:0 0 8px;font-size:17px}.coach-card ul{margin:0 0 16px;padding-left:18px;line-height:1.8}.coach-card .kbd{color:var(--text)}
 .prefetch{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--stage-muted)}
 .prefetch i{width:8px;height:8px;border-radius:50%;background:#555;display:inline-block}.prefetch i.ok{background:var(--honey)}
@@ -573,6 +576,8 @@ const DE = {
   'Photo info': 'Fotoinformationen',
   'How to cull': 'So sortierst du aus',
   'Got it': 'Verstanden',
+  'Controls': 'Bedienelemente',
+  '<b>Tap</b> the left or right side for the previous or next photo, the middle for the controls': '<b>Tippen</b> links oder rechts für das vorherige oder nächste Foto, in der Mitte für die Bedienelemente',
   '<b>Swipe up</b> to {up}, <b>down</b> to {down}': '<b>Nach oben wischen</b>: {up}, <b>nach unten</b>: {down}',
   '<b>Swipe sideways</b> for the next or previous photo': '<b>Seitlich wischen</b> für das nächste oder vorherige Foto',
   '<b>Pinch</b> to zoom, <b>double-tap</b> to hide the controls': '<b>Zusammenziehen</b> zum Zoomen, <b>Doppeltippen</b> blendet die Bedienelemente aus',
@@ -1748,7 +1753,11 @@ function dlgBurst(d){
 }
 /* series viewer: fullscreen, swipe, zoom synchronised across the series */
 const SV_ZOOM = 3, SV_IDLE_MS = 2500;
-const SV = {all:[], ids:[], idx:0, dy:0, vert:null, k:1, cx:.5, cy:.5, timer:0, ptr:new Map(), pinch:null, moved:false, lastTap:0};
+const SV = {all:[], ids:[], idx:0, dy:0, vert:null, k:1, cx:.5, cy:.5, timer:0, ptr:new Map(), pinch:null, moved:false, lastTap:0, t0:0};
+/* tap zones on the photo: -1 previous, 1 next, 0 the middle (docs/plan.md Tap zones) */
+const TAP_ZONE = .3, TAP_MAX_MS = 500;
+const tapZone = (fx, zoomed, pointerType) => zoomed || pointerType === 'mouse' ? 0 : fx < TAP_ZONE ? -1 : fx > 1 - TAP_ZONE ? 1 : 0;
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 function openSerie(id){
   const m = S.dlg && S.dlg.type === 'burst' && burstCurrent(S.dlg); if (!m) return;
   Object.assign(SV, {all:m.map(i => i.id), ids:m.map(i => i.id), dy:0, vert:null, idx:Math.max(0, m.findIndex(i => i.id === id)), k:1, cx:.5, cy:.5, ptr:new Map(), pinch:null}); S.serie = true;
@@ -1795,7 +1804,7 @@ function serieApply(){
 }
 function serieZoomAt(k, fx, fy){ if (SV.k === 1 && k > 1){ SV.cx = fx; SV.cy = fy; } SV.k = k; if (k === 1){ SV.cx = SV.cy = .5; } serieApply(); }
 function serieZoom(){ SV.k > 1 ? serieZoomAt(1) : serieZoomAt(SV_ZOOM, SV.cx, SV.cy); }
-function serieStep(d){ const tr = $('svTrack'); SV.idx = clamp(SV.idx + d, 0, SV.ids.length - 1); tr.scrollTo({left:SV.idx * tr.clientWidth, behavior:'smooth'}); serieChrome(); serieWake(); }
+function serieStep(d, wake = true){ const tr = $('svTrack'); SV.idx = clamp(SV.idx + d, 0, SV.ids.length - 1); tr.scrollTo({left:SV.idx * tr.clientWidth, behavior:reducedMotion() ? 'auto' : 'smooth'}); serieChrome(); if (wake) serieWake(); }
 function serieSync(){
   const ids = SV.all.filter(i => S.byId.get(i).flag !== 'reject'), cur = SV.ids[SV.idx];
   if (ids.length < 2){ closeSerie(); return; }
@@ -1813,7 +1822,7 @@ function serieKey(e){
   serieWake(); if (cullKey(e, {ids:() => idsForKey('serie'), step:serieStep, advance:() => serieStep(1), zoom:serieZoom, pickRest:seriePickRest})) return;
 }
 function svDown(e){
-  SV.ptr.set(e.pointerId, {x:e.clientX, y:e.clientY}); if (SV.ptr.size === 1){ SV.moved = false; SV.vert = null; SV.dy = 0; }
+  SV.ptr.set(e.pointerId, {x:e.clientX, y:e.clientY}); if (SV.ptr.size === 1){ SV.moved = false; SV.vert = null; SV.dy = 0; SV.t0 = e.timeStamp; }
   if (SV.ptr.size === 2){ const [a, b] = [...SV.ptr.values()]; SV.pinch = {d:Math.hypot(a.x - b.x, a.y - b.y), k:SV.k}; SV.moved = true; }
   if (SV.k > 1 || SV.ptr.size === 2) e.currentTarget.setPointerCapture(e.pointerId);
 }
@@ -1837,8 +1846,9 @@ function svUp(e){
     if (had && e.type === 'pointerup' && SV.dy > 90) serieDecide(S.settings.swipeDown);
     return;
   }
-  if (!had || SV.moved || e.type === 'pointercancel') return;
+  if (!had || SV.moved || e.type === 'pointercancel' || e.timeStamp - SV.t0 > TAP_MAX_MS) return;
   const r = e.currentTarget.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+  const zone = tapZone(fx, SV.k > 1, e.pointerType); if (zone){ SV.lastTap = 0; serieStep(zone, false); return; }
   if (e.timeStamp - SV.lastTap < 300){ SV.lastTap = 0; SV.k > 1 ? serieZoomAt(1) : serieZoomAt(SV_ZOOM, fx, fy); return; }
   SV.lastTap = e.timeStamp;
   const el = $('serie'); if (el.classList.contains('idle')) serieWake(); else { clearTimeout(SV.timer); el.classList.add('idle'); tipHideIn(el); }
@@ -2140,6 +2150,7 @@ function showCoach(){
   const k = s => `<span class="kbd">${s}</span>`;
   c.innerHTML = `<div class="coach-card" role="dialog" aria-label="${esc(t('How to cull'))}"><h3>${t('How to cull')}</h3><ul>
     <li>${t('<b>Swipe up</b> to {up}, <b>down</b> to {down}', {up:swipeWord(S.settings.swipeUp), down:swipeWord(S.settings.swipeDown)})}</li><li>${t('<b>Swipe sideways</b> for the next or previous photo')}</li>
+    <li>${t('<b>Tap</b> the left or right side for the previous or next photo, the middle for the controls')}<div class="coach-zones" aria-hidden="true"><span>${ic('chevL')}</span><span>${t('Controls')}</span><span>${ic('chevR')}</span></div></li>
     <li>${t('<b>Pinch</b> to zoom, <b>double-tap</b> to hide the controls')}</li><li>${t('Keys: {pick} Pick {reject} Reject {unflag} Unflag {fit} zoom {keys} all keys', {pick:k(HOTKEY.pick), reject:k(HOTKEY.reject), unflag:k(HOTKEY.unflag), fit:k(HOTKEY.fit), keys:k(HOTKEY.keys)})}</li></ul>
     <button class="btn primary" data-act="coachOk">${t('Got it')}</button></div>`;
   c.hidden = false; c.querySelector('button').focus();
@@ -2236,7 +2247,7 @@ function bindStage(){
   const rel = e => { const r = st.getBoundingClientRect(), sc = S.scale || 1; return [(e.clientX - r.left) / sc - L.W / 2, (e.clientY - r.top) / sc - L.H / 2]; };
   const hintOf = a => a === 'none' ? null : a;
   st.onpointerdown = e => {
-    if (e.target.closest('.navbtn')) return; if (L.anim) return;
+    if (e.target.closest('.navbtn, .coach')) return; if (L.anim) return;
     st.setPointerCapture(e.pointerId); P.set(e.pointerId, {x:e.clientX, y:e.clientY}); const z = L.z;
     if (P.size === 2){
       const [a, b] = [...P.values()]; g = {mode:'pinch', d0:Math.hypot(a.x - b.x, a.y - b.y) || 1, s0:z.s, tx0:z.tx, ty0:z.ty, m0:[(a.x + b.x) / 2, (a.y + b.y) / 2]};
@@ -2277,8 +2288,10 @@ function bindStage(){
     if (gg.mode === 'pan2') return;
     const tr = $('track');
     if (gg.mode === 'undecided'){
-      const now = performance.now(), pos = rel(e);
-      if (e.type === 'pointerup' && now - lastTap < 320 && lastTapPos && Math.hypot(pos[0] - lastTapPos[0], pos[1] - lastTapPos[1]) < 40){ lastTap = 0; setImmersive(!L.immersive); } else if (e.type === 'pointerup'){ lastTap = now; lastTapPos = pos; loupeIdleToggle(); }
+      const now = performance.now(), pos = rel(e), zone = tapZone(pos[0] / L.W + .5, L.z.s > 1.02, e.pointerType);
+      if (e.type !== 'pointerup' || now - gg.t0 > TAP_MAX_MS) return;
+      if (zone){ lastTap = 0; step(zone); return; }
+      if ( now - lastTap < 320 && lastTapPos && Math.hypot(pos[0] - lastTapPos[0], pos[1] - lastTapPos[1]) < 40){ lastTap = 0; setImmersive(!L.immersive); } else { lastTap = now; lastTapPos = pos; loupeIdleToggle(); }
       return;
     }
     if (gg.mode === 'h'){
