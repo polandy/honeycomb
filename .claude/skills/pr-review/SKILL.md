@@ -50,8 +50,8 @@ higher one.
 
 ## 0. Context
 
-- `gh pr view <PR> --json title,body,headRefOid,mergeStateStatus,statusCheckRollup,commits` and
-  `gh pr diff <PR>` in one call. Review the change against the intent the description states,
+- `gh pr view <PR> --json title,body,headRefName,headRefOid,mergeStateStatus,statusCheckRollup`
+  (add `commits` from Standard on) and `gh pr diff <PR>` in one call. Review the change against the intent the description states,
   and the `TODO.md` item or issue it names.
 - The title must be a Conventional Commit subject, and the description pure commit-body text,
   because both become the squash commit (`docs/02-workflow.md` §2.5). The type follows
