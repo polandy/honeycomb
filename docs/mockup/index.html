@@ -383,6 +383,8 @@ body.noq .menu .mq,body.noq .menu .mq-sep{display:none}
 .sv-title{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
 .sv-title span{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #svSync{margin-right:auto;font-size:13px;color:var(--honey)}
+#serie:not([hidden]) ~ #toasts{bottom:calc(80px + env(safe-area-inset-bottom))}
+.sv-img.dragging{transition:none}
 .sv-nav{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:64px;color:#f4efe2;background:#00000066;transition:opacity .3s}
 .sv-nav.prev{left:calc(4px + env(safe-area-inset-left))}.sv-nav.next{right:calc(4px + env(safe-area-inset-right))}
 #serie.idle .sv-ctl,#serie.idle .sv-nav{opacity:0;pointer-events:none}
@@ -713,6 +715,7 @@ function afterChange(ids){
   S.bursts = null;
   if (!S.loupe && viewChanged()) refreshView(); else ids.forEach(updateTile);
   renderToolbar(); renderActionBar(); renderHeader(); if (S.loupe) renderLoupeChrome();
+  if (S.serie) serieSync();
 }
 function viewChanged(){ const was = S.view.map(i => i.id).join('|'); computeView(); return was !== S.view.map(i => i.id).join('|'); }
 
@@ -1010,15 +1013,15 @@ function dlgBurst(d){
 }
 /* series viewer: fullscreen, swipe, zoom synchronised across the series */
 const SV_ZOOM = 3, SV_IDLE_MS = 2500;
-const SV = {ids:[], idx:0, k:1, cx:.5, cy:.5, timer:0, ptr:new Map(), pinch:null, moved:false, lastTap:0};
+const SV = {all:[], ids:[], idx:0, dy:0, vert:null, k:1, cx:.5, cy:.5, timer:0, ptr:new Map(), pinch:null, moved:false, lastTap:0};
 function openSerie(id){
   const m = S.dlg && S.dlg.type === 'burst' && burstCurrent(S.dlg); if (!m) return;
-  Object.assign(SV, {ids:m.map(i => i.id), idx:Math.max(0, m.findIndex(i => i.id === id)), k:1, cx:.5, cy:.5, ptr:new Map(), pinch:null}); S.serie = true;
+  Object.assign(SV, {all:m.map(i => i.id), ids:m.map(i => i.id), dy:0, vert:null, idx:Math.max(0, m.findIndex(i => i.id === id)), k:1, cx:.5, cy:.5, ptr:new Map(), pinch:null}); S.serie = true;
   const el = $('serie'); el.hidden = false; el.classList.remove('zoomed', 'idle');
-  el.innerHTML = `<div class="sv-track" id="svTrack">${m.map((it, k) => `<div class="sv-slide" role="group" aria-roledescription="slide" aria-label="Photo ${k + 1} of ${m.length}: ${esc(stem(it))}"><img class="sv-img" alt="" draggable="false" src="${cmpURL(it)}"></div>`).join('')}</div>
+  el.innerHTML = `<div class="sv-track" id="svTrack">${serieSlides(m)}</div>
     <div class="sv-ctl sv-top"><button class="icon-btn" data-act="svClose" aria-label="Close series viewer">${ic('close')}</button><div class="sv-title"><b id="svName"></b><span id="svSub"></span></div><button class="btn" data-act="svZoom" id="svZoom" aria-pressed="false">${ic('zoom')}<span>100 %</span></button></div>
     <button class="sv-nav prev icon-btn" data-act="svStep" data-v="-1" aria-label="Previous photo">${ic('chevL')}</button><button class="sv-nav next icon-btn" data-act="svStep" data-v="1" aria-label="Next photo">${ic('chevR')}</button>
-    <div class="sv-ctl sv-bot"><span id="svSync" aria-live="polite"></span><button class="btn primary" data-act="svKeep">Keep this, reject the rest</button></div>`;
+    <div class="sv-ctl sv-bot"><span id="svSync" aria-live="polite"></span><button class="btn" data-act="svReject">${ic('close')}Reject</button><button class="btn primary" data-act="svKeep">Keep this, reject the rest</button></div>`;
   const tr = $('svTrack'); tr.scrollLeft = SV.idx * tr.clientWidth;
   tr.addEventListener('scroll', () => { const i = clamp(Math.round(tr.scrollLeft / tr.clientWidth), 0, SV.ids.length - 1); if (i !== SV.idx){ SV.idx = i; serieChrome(); } }, {passive:true});
   tr.addEventListener('pointerdown', svDown); tr.addEventListener('pointermove', svMove); tr.addEventListener('pointerup', svUp); tr.addEventListener('pointercancel', svUp);
@@ -1026,6 +1029,9 @@ function openSerie(id){
   el.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') serieWake(); });
   serieChrome(); serieWake();
   el.querySelector('.sv-top .icon-btn').focus({preventScroll:true});
+}
+function serieSlides(m){
+  return m.map((it, k) => `<div class="sv-slide" role="group" aria-roledescription="slide" aria-label="Photo ${k + 1} of ${m.length}: ${esc(stem(it))}"><img class="sv-img" alt="" draggable="false" src="${cmpURL(it)}"></div>`).join('');
 }
 function closeSerie(){
   if (!S.serie) return; S.serie = false; clearTimeout(SV.timer); const el = $('serie'); el.hidden = true; el.replaceChildren(); if (S.dlg) renderDlg();
@@ -1053,18 +1059,31 @@ function serieApply(){
 function serieZoomAt(k, fx, fy){ if (SV.k === 1 && k > 1){ SV.cx = fx; SV.cy = fy; } SV.k = k; if (k === 1){ SV.cx = SV.cy = .5; } serieApply(); }
 function serieZoom(){ SV.k > 1 ? serieZoomAt(1) : serieZoomAt(SV_ZOOM, SV.cx, SV.cy); }
 function serieStep(d){ const tr = $('svTrack'); SV.idx = clamp(SV.idx + d, 0, SV.ids.length - 1); tr.scrollTo({left:SV.idx * tr.clientWidth, behavior:'smooth'}); serieChrome(); serieWake(); }
+function serieSync(){
+  const ids = SV.all.filter(i => S.byId.get(i).flag !== 'reject'), cur = SV.ids[SV.idx];
+  if (ids.length < 2){ closeSerie(); return; }
+  if (ids.join() === SV.ids.join()){ serieChrome(); return; }
+  const back = ids.find(i => !SV.ids.includes(i));
+  SV.idx = back ? ids.indexOf(back) : ids.includes(cur) ? ids.indexOf(cur) : Math.min(SV.idx, ids.length - 1); SV.ids = ids;
+  const tr = $('svTrack'); tr.innerHTML = serieSlides(ids.map(i => S.byId.get(i))); tr.scrollLeft = SV.idx * tr.clientWidth;
+  serieApply(); serieChrome();
+}
+function serieDecide(flag){ const id = SV.ids[SV.idx]; if (id) change([id], 'flag', flag); }
+function serieReject(){ serieDecide('reject'); }
 function serieKeep(){
   const id = SV.ids[SV.idx]; if (!id) return; decideBurst(id, SV.ids.filter(i => i !== id && S.byId.get(i) && S.byId.get(i).flag !== 'reject')); closeSerie();
 }
 function serieKey(e){
   const k = e.key; serieWake();
   if (k === 'ArrowLeft' || k === 'ArrowRight'){ e.preventDefault(); serieStep(k === 'ArrowLeft' ? -1 : 1); }
-  else if (k === 'z' || k === 'Z'){ e.preventDefault(); serieZoom(); }
+  else if ((k === 'z' || k === 'Z') && !e.ctrlKey && !e.metaKey){ e.preventDefault(); serieZoom(); }
   else if (k === 'k' || k === 'K'){ e.preventDefault(); serieKeep(); }
+  else if (k === 'x' || k === 'X'){ e.preventDefault(); serieReject(); }
+  else if ((e.ctrlKey || e.metaKey) && (k === 'z' || k === 'Z')){ e.preventDefault(); e.shiftKey ? redo() : undo(); }
   else if (/^[1-4]$/.test(k) && +k <= SV.ids.length){ e.preventDefault(); serieStep(+k - 1 - SV.idx); }
 }
 function svDown(e){
-  SV.ptr.set(e.pointerId, {x:e.clientX, y:e.clientY}); if (SV.ptr.size === 1) SV.moved = false;
+  SV.ptr.set(e.pointerId, {x:e.clientX, y:e.clientY}); if (SV.ptr.size === 1){ SV.moved = false; SV.vert = null; SV.dy = 0; }
   if (SV.ptr.size === 2){ const [a, b] = [...SV.ptr.values()]; SV.pinch = {d:Math.hypot(a.x - b.x, a.y - b.y), k:SV.k}; SV.moved = true; }
   if (SV.k > 1 || SV.ptr.size === 2) e.currentTarget.setPointerCapture(e.pointerId);
 }
@@ -1075,10 +1094,19 @@ function svMove(e){
     serieZoomAt(clamp(SV.pinch.k * Math.hypot(a.x - b.x, a.y - b.y) / SV.pinch.d, 1, SV_ZOOM), ((a.x + b.x) / 2 - r.left) / r.width, ((a.y + b.y) / 2 - r.top) / r.height); return;
   }
   if (Math.hypot(dx, dy) > 6) SV.moved = true;
+  if (SV.k === 1 && S.settings.swipeDown !== 'none'){
+    if (SV.vert === null && Math.hypot(dx, dy) > 12) SV.vert = dy > 0 && dy > Math.abs(dx) * 1.5;
+    if (SV.vert){ SV.dy = dy; const img = $('svTrack').children[SV.idx].firstChild; img.classList.add('dragging'); img.style.transform = `translateY(${dy * .6}px)`; img.style.opacity = 1 - Math.min(dy, 200) / 400; return; }
+  }
   if (SV.k > 1){ SV.cx -= dx / (r.width * SV.k); SV.cy -= dy / (r.height * SV.k); SV.ptr.set(e.pointerId, {x:e.clientX, y:e.clientY}); serieApply(); }
 }
 function svUp(e){
   const had = SV.ptr.delete(e.pointerId); if (SV.ptr.size < 2) SV.pinch = null;
+  if (SV.vert){
+    SV.vert = null; const img = $('svTrack').children[SV.idx].firstChild; img.classList.remove('dragging'); img.style.transform = img.style.opacity = '';
+    if (had && e.type === 'pointerup' && SV.dy > 90) serieDecide(S.settings.swipeDown);
+    return;
+  }
   if (!had || SV.moved || e.type === 'pointercancel') return;
   const r = e.currentTarget.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
   if (e.timeStamp - SV.lastTap < 300){ SV.lastTap = 0; SV.k > 1 ? serieZoomAt(1) : serieZoomAt(SV_ZOOM, fx, fy); return; }
@@ -1592,7 +1620,7 @@ const A = {
   resume(){ const id = S.server.resume[S.folderPath], hit = S.view.find(i => i.id === id) || S.view.find(i => i.flag === 'none') || S.view[0]; if (hit) openLoupe(hit.id); },
   burst(){ const gids = getBursts().groups.map(g => g.map(i => i.id)); if (gids.length) openDlg({type:'burst', gids, i:0}); },
   cmpOpen(el){ openSerie(el.dataset.id); }, cmpSkip(){ S.dlg.i++; renderDlg(); },
-  svClose(){ closeSerie(); }, svZoom(){ serieZoom(); }, svStep(el){ serieStep(+el.dataset.v); }, svKeep(){ serieKeep(); },
+  svClose(){ closeSerie(); }, svZoom(){ serieZoom(); }, svStep(el){ serieStep(+el.dataset.v); }, svKeep(){ serieKeep(); }, svReject(){ serieReject(); },
   mockDevice(){ closeDlg(); closeSerie(); if (S.loupe) closeLoupe(); S.folderPath = null; S.items = []; S.byId = new Map(); S.sel.clear(); S.selMode = false; S.focusId = null; S.undo = []; S.redo = []; S.filters = DEF_FILTERS(); S.bursts = null;
     refreshView(); openDlg({type:'picker', cwd:'/Photos/2026', sel:null}); toast('New device: no local state. Decisions and position come from the server'); },
   delConfirm(){ const ids = S.dlg.ids; const res = doDelete(ids, S.mock.fail); S.lastFailed = res.failed; finishDelete(res); },

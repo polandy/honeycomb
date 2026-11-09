@@ -190,6 +190,18 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    preloaded. Swipe pages between the photos (arrow buttons and keys also work, also while
    zoomed). *Keep this, reject the rest* is in the viewer, one undo step. The controls fade out
    when idle; a tap on the photo brings them back or hides them.
+   - **Reject a single photo** without leaving fullscreen (owner, 2026-11-09): the *Reject*
+     button in the bottom bar next to *Keep this, reject the rest*, the `X` key, or a swipe down
+     on the photo following the *Swipe down* setting (a horizontal swipe still pages; no
+     gesture while zoomed). If that setting is *Pick*, the swipe picks the photo and keeps it
+     in the series.
+   - It follows the *Cull* mode: the rejected photo leaves the series and the viewer moves on
+     to the next photo (the previous one after the last) with the synchronised zoom kept. The
+     undo toast, `Undo` or Ctrl+Z puts the photo back in its place and shows it.
+   - Once one photo is left the viewer closes and the series counts as decided. Undo after
+     that restores the flag only; *Compare series* finds the series again on its next opening.
+   - No *Pick* or *Unreject* button in the viewer: a third button crowds the bottom bar on a
+     phone (44 px targets), and undo covers the unreject.
 4. **Synchronised zoom.** Zooming one photo to 100 % (button, double-tap, pinch or `Z`) zooms
    every photo of the series to the same spot, and panning moves them together, so paging
    compares the same detail for sharpness. While zoomed, a swipe pans instead of paging.
