@@ -35,6 +35,14 @@ Add items with `/todo`.
 
 ## Later
 
+- [ ] Mockup: specify the grid's loading state (skeleton tiles while the listing and thumbnails arrive) — UX review L1 (`docs/ux-review.md`) (2026-11-09)
+- [ ] Mockup: give the scope switch a readable label at phone width, where it stays icon-only — UX review L2 (2026-11-09)
+- [ ] Mockup: shorten or widen *Pick this, reject the rest* in the phone series compare, where it wraps to three lines — UX review L3 (2026-11-09)
+- [ ] Mockup: pause the undo toast's timer while it has focus or is pressed (WCAG 2.2.1) — UX review L4 (2026-11-09)
+- [ ] Mockup: mark filmstrip and tile states without dimming the photo (filmstrip opacity .6, the tile's bottom gradient without stars or flag) — UX review L5 (2026-11-09)
+- [ ] Mockup: settings entry to show the loupe gesture guide again — UX review L6 (2026-11-09)
+- [ ] Mockup: quieter toolbar count badges (neutral, honey only for the active state) — UX review L7 (2026-11-09)
+- [ ] Mockup: a light app bar for the light theme instead of the near-black bar — UX review L8 (2026-11-09)
 - [ ] Create the public repository `polandy/honeycomb-assets` for PR screenshots — owner (`docs/02-workflow.md` §2.7) (2026-11-09)
 - [ ] Add a `main` ruleset (pull requests only, CI required) and the `RELEASE_PLEASE_TOKEN` secret — owner (2026-11-09)
 - [ ] Publish to the Nextcloud app store: signing certificate, release workflow that builds and uploads the tarball (2026-11-09)
