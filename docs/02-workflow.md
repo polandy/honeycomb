@@ -73,8 +73,9 @@ commit body, word for word. So:
 - When CI is red, read only the failed steps (`gh run view <run> --log-failed`), fix the cause on
   the branch and push again. Never re-run a red job unchanged.
 - Once CI is green, the author runs the `pr-review` skill on their own pull request. It posts one
-  `## 🤖 PR quality review` comment ending in `ready` or `not ready`; fix what it finds until CI
-  is green and the verdict says `ready`.
+  `## 🤖 PR quality review` comment with its gates — CI, e2e once `tests/e2e/` exists, test first,
+  failure paths — ending in `ready` or `not ready`; fix what it finds until CI is green and the
+  verdict says `ready`.
 
 ## 2.7 Screenshots for UI changes
 
