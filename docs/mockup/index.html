@@ -459,6 +459,7 @@ main{overflow:hidden}
   #serie .sv-bar{flex:none;max-width:none;margin:0}
   #serie #svSync{position:absolute;left:var(--railL);bottom:62px;padding:0 10px}
   #loupe .ab-big,#serie .ab-big{position:absolute;inset:0;max-width:none;width:auto}
+  #loupe.noflags,#serie.noflags{--railL:var(--sa-l);--railR:var(--sa-r)}
   .ab-big .grp.flags{flex:1;display:grid;grid-template-columns:var(--railL) 1fr var(--railR);grid-template-rows:1fr auto auto 1fr;gap:10px 0;padding:8px 0 calc(8px + var(--sa-b))}
   .ab-big .bigbtn{pointer-events:auto;flex-direction:column;gap:6px;width:calc(var(--rail) - 12px);height:clamp(120px,36cqh,240px);min-height:0;padding:0 4px;margin:0 6px;font-size:14px}
   .ab-big .bigbtn.pick{grid-area:2/1;justify-self:end}
@@ -1009,6 +1010,16 @@ const DE = {
   '%n marked Keep RAW': ['%n mit RAW behalten', '%n mit RAW behalten'],
   '%n rejected': ['%n abgelehnt', '%n abgelehnt'],
   'Removed the RAWs of {photos} · {files} · {size} freed to the Nextcloud trash bin': 'RAWs von {photos} entfernt · {files} · {size} frei im Nextcloud-Papierkorb',
+  'Flag buttons': 'Markierungsknöpfe', 'Show flag buttons': 'Markierungsknöpfe zeigen', 'Show or hide the flag buttons': 'Markierungsknöpfe ein- oder ausblenden',
+  'Pick, Reject and Unflag in the loupe and the series viewer. Hidden, the photo gets their room; keys, swipes and tooltips keep working, and the flag in the title row shows them again.': 'Markieren, Ablehnen und Markierung aufheben in der Lupe und im Serienbetrachter. Ausgeblendet bekommt das Foto ihren Platz; Tasten, Wischgesten und Tooltips funktionieren weiter, und die Fahne in der Titelzeile zeigt sie wieder.',
+  'Flag buttons shown': 'Markierungsknöpfe eingeblendet', 'Flag buttons hidden · {key} shows them': 'Markierungsknöpfe ausgeblendet · {key} zeigt sie wieder',
+  'Flag buttons hidden, and no swipe decides: the flag at the top shows them': 'Markierungsknöpfe ausgeblendet, und keine Wischgeste entscheidet: die Fahne oben zeigt sie wieder',
+  'Flag buttons hidden · swipe to decide, the flag at the top shows them': 'Markierungsknöpfe ausgeblendet · per Wischen entscheiden, die Fahne oben zeigt sie wieder',
+  'Keyboard': 'Tastatur', 'Vi keys': 'Vi-Tasten',
+  'h j k l switch photos, g g and Shift + G go to the first and last, / opens the filters. g no longer opens the grid: Esc does.': 'h j k l wechseln das Foto, g g und Umschalt + G springen zum ersten und letzten, / öffnet die Filter. g öffnet dann nicht mehr das Raster, sondern Esc.',
+  'First photo, last photo': 'Erstes Foto, letztes Foto', 'First photo': 'Erstes Foto', 'Last photo': 'Letztes Foto', 'Previous photo, next photo': 'Vorheriges Foto, nächstes Foto',
+  'Vi keys (Settings › Keyboard)': 'Vi-Tasten (Einstellungen › Tastatur)', 'Open the filter bar': 'Filterleiste öffnen', 'Back to the grid (g starts g g)': 'Zurück zum Raster (g beginnt g g)',
+  'Grid: one row down, one row up. Elsewhere: next photo, previous photo': 'Raster: eine Reihe nach unten, nach oben. Sonst: nächstes Foto, vorheriges Foto',
   /* DE:end */
 };
 const missingDE = new Set();
@@ -1058,9 +1069,11 @@ const labelName = id => t(LABEL_NAMES[id]);
 const labelText = id => t('Label {name}', {name:labelName(id)});
 
 /* one key map: the shortcuts sheet, the tooltips and the key handlers read it */
-const HOTKEY = {pick:'P', reject:'X', unflag:'U', togglePick:'`', pickRest:'K', starDown:'[', starUp:']', grid:'G', loupe:'E', compare:'N', fit:'Space', zoom:'Z',
+const HOTKEY = {pick:'P', reject:'X', unflag:'U', togglePick:'`', pickRest:'Shift + K', starDown:'[', starUp:']', grid:'G', loupe:'E', compare:'N', fit:'Space', zoom:'Z',
   fullscreen:'F', header:'Tab', info:'I', close:'Esc', filters:'\\', filtersOff:'Ctrl/⌘ + L', undo:'Ctrl/⌘ + Z', redo:'Ctrl/⌘ + Shift + Z', reviewRejects:'Ctrl/⌘ + Backspace',
-  move:'M', keepRaw:'R', keys:'Ctrl/⌘ + /', prev:'←', next:'→'};
+  move:'M', keepRaw:'R', keys:'Ctrl/⌘ + /', prev:'←', next:'→', first:'Home', last:'End', flagButtons:'B'};
+/* vi keys, on with Settings › Keyboard; g becomes a prefix, so Esc then leads back to the grid */
+const VI = {prev:'h', next:'l', down:'j', up:'k', first:'g g', last:'Shift + G', filters:'/'};
 const isKey = (k, id) => k.toLowerCase() === HOTKEY[id].toLowerCase();
 const kbd = t => t.split(' ').map(k => k === '+' || k === '–' ? esc(k) : `<span class="kbd">${esc(k)}</span>`).join(' ');
 /* the bubble tooltip of a control: a label in glossary words and, where one exists, its HOTKEY */
@@ -1089,8 +1102,9 @@ function keepRawToggle(d, forKey, {id = '', dis = ''} = {}){
 /* d holds rating, label, flag and Keep RAW; big puts the flags in a row of their own, tail ends the small row */
 function actionBar(d, forKey, opts = {}){
   const rest = starRating(d.rating, forKey, opts) + colourLabel(d.label, forKey, opts) + keepRawToggle(d, forKey, opts) + (opts.tail || '');
-  return opts.big ? `<div class="ab-big">${flagButtons(d.flag, forKey, opts)}</div><div class="ab-small">${rest}</div>` : rest + flagButtons(d.flag, forKey, opts);
+  return opts.big ? (S.settings.flagButtons ? `<div class="ab-big">${flagButtons(d.flag, forKey, opts)}</div>` : '') + `<div class="ab-small">${rest}</div>` : rest + flagButtons(d.flag, forKey, opts);
 }
+const flagBtnsToggle = id => `<button class="icon-btn" data-act="flagBtns" id="${id}" aria-label="${esc(t('Flag buttons'))}" ${tip(t('Flag buttons'), HOTKEY.flagButtons)} aria-pressed="${S.settings.flagButtons}">${ic(S.settings.flagButtons ? 'flag' : 'flagCross')}</button>`;
 const pickRestBtn = (forKey, id = '') => `<button class="btn primary" data-act="pickRest" ${forAttrs(forKey, id)} ${tip(t('Pick this, reject the rest'), HOTKEY.pickRest)}>${ic('flagPick')}${t('Pick this, reject the rest')}</button>`;
 /* footer order everywhere: back, cancel, then the confirming action on the right */
 function confirmDialog(title, body, {back = null, cancel = t('Cancel'), confirm = null, wide = false, canClose = true} = {}){
@@ -1167,7 +1181,7 @@ const TPL_SAMPLES = [
 
 /* ---------- state ---------- */
 const DEF_SETTINGS = () => ({rawExt:['NEF','CR3','ARW','RAF','DNG'], renderedExt:['JPG','JPEG','HEIC','HEIF','HIF'], folderMode:'same', rawFolder:'RAW', jpgFolder:'JPG',
-  showSingles:true, swipeUp:'pick', swipeDown:'reject', autoAdvance:true, storage:'both', moveTemplate:TPL_PRESETS[0][1]});
+  showSingles:true, swipeUp:'pick', swipeDown:'reject', autoAdvance:true, flagButtons:true, viKeys:false, storage:'both', moveTemplate:TPL_PRESETS[0][1]});
 const DEF_FILTERS = () => ({scope:'notrej', ratingOp:'gte', rating:null, labels:new Set(), flags:new Set(), pairs:new Set(), keepRaw:new Set(), folders:new Set()});
 const PREF_KEY = 'honeycomb.mockup.layout';
 const PREF_DEF = {ts:160, navW:248, navOpen:null, infoOpen:false, infoW:300, coachSeen:false};
@@ -1842,7 +1856,7 @@ function openSerie(id){
   Object.assign(SV, {all:m.map(i => i.id), ids:m.map(i => i.id), dy:0, vert:null, idx:Math.max(0, m.findIndex(i => i.id === id)), k:1, cx:.5, cy:.5, ptr:new Map(), pinch:null}); S.serie = true;
   const el = $('serie'); el.hidden = false; el.classList.remove('zoomed', 'idle');
   el.innerHTML = `<div class="sv-track" id="svTrack">${serieSlides(m)}</div>
-    <div class="sv-ctl sv-top"><button class="icon-btn" data-act="svClose" aria-label="${esc(t('Close series viewer'))}" ${tip(t('Close series viewer'), HOTKEY.close)}>${ic('close')}</button><div class="sv-title"><b id="svName"></b><span id="svSub"></span></div><button class="btn" data-act="svZoom" id="svZoom" aria-pressed="false" ${tip(t('Fit / 100 %'), HOTKEY.zoom)}>${ic('zoom')}<span>100 %</span></button></div>
+    <div class="sv-ctl sv-top"><button class="icon-btn" data-act="svClose" aria-label="${esc(t('Close series viewer'))}" ${tip(t('Close series viewer'), HOTKEY.close)}>${ic('close')}</button><div class="sv-title"><b id="svName"></b><span id="svSub"></span></div>${flagBtnsToggle('svFlagBtn')}<button class="btn" data-act="svZoom" id="svZoom" aria-pressed="false" ${tip(t('Fit / 100 %'), HOTKEY.zoom)}>${ic('zoom')}<span>100 %</span></button></div>
     <button class="sv-nav prev icon-btn" data-act="svStep" data-v="-1" aria-label="${esc(t('Previous photo'))}" ${tip(t('Previous photo'), HOTKEY.prev)}>${ic('chevL')}</button><button class="sv-nav next icon-btn" data-act="svStep" data-v="1" aria-label="${esc(t('Next photo'))}" ${tip(t('Next photo'), HOTKEY.next)}>${ic('chevR')}</button>
     <div class="sv-ctl sv-bot"><span id="svSync" aria-live="polite"></span><div class="sv-bar" id="svBar"></div></div>`;
   const tr = $('svTrack'); tr.scrollLeft = SV.idx * tr.clientWidth;
@@ -1868,7 +1882,7 @@ function serieChrome(){
   $('svName').textContent = stem(it);
   $('svSub').textContent = [t('Series {i} of {count}', {i:nf(S.dlg ? S.dlg.i + 1 : 1), count:nf(S.dlg ? S.dlg.gids.length : 1)}), t('photo {i} of {count}', {i:nf(SV.idx + 1), count:nf(SV.ids.length)}), pairLabel(it),
     it.rating ? nf(it.rating) + '★' : '', it.flag !== 'none' ? flagName(it.flag) : ''].filter(Boolean).join(' · ');
-  $('svBar').innerHTML = actionBar(it, 'serie', {big:true, tail:pickRestBtn('serie')});
+  $('svBar').innerHTML = actionBar(it, 'serie', {big:true, tail:pickRestBtn('serie')}); syncFlagBtns();
   document.querySelector('#serie .sv-nav.prev').hidden = SV.idx === 0; document.querySelector('#serie .sv-nav.next').hidden = SV.idx === SV.ids.length - 1;
 }
 function serieApply(){
@@ -1897,8 +1911,8 @@ function serieDecide(flag){ const id = SV.ids[SV.idx]; if (id) change([id], 'fla
 function seriePickRest(){
   const id = SV.ids[SV.idx]; if (!id) return; decideBurst(id, SV.ids.filter(i => i !== id && S.byId.get(i) && S.byId.get(i).flag !== 'reject')); closeSerie();
 }
-function serieKey(e){
-  serieWake(); if (cullKey(e, {ids:() => idsForKey('serie'), step:serieStep, advance:() => serieStep(1), zoom:serieZoom, pickRest:seriePickRest})) return;
+function serieKey(e, k = e.key){
+  serieWake(); if (cullKey(e, k, {ids:() => idsForKey('serie'), step:serieStep, advance:() => serieStep(1), zoom:serieZoom, pickRest:seriePickRest})) return;
 }
 function svDown(e){
   SV.ptr.set(e.pointerId, {x:e.clientX, y:e.clientY}); if (SV.ptr.size === 1){ SV.moved = false; SV.vert = null; SV.dy = 0; SV.t0 = e.timeStamp; }
@@ -2022,7 +2036,10 @@ function dlgSettings(){
     ${sw('showSingles', 'Show singles', 'JPEG-only and RAW-only files stay in the grid')}</div>
   <div class="sec"><h3>${t('Loupe gestures')}</h3><p class="hint">${t('A direction set to Nothing turns that swipe off.')}</p>
     <div class="setrow"><span>${t('Swipe up')}</span>${act('swipeUp')}</div><div class="setrow"><span>${t('Swipe down')}</span>${act('swipeDown')}</div>
-    ${sw('autoAdvance', 'Auto-advance to the next undecided photo', 'After pick or reject, not after rating or colour label')}</div>
+    ${sw('autoAdvance', 'Auto-advance to the next undecided photo', 'After pick or reject, not after rating or colour label')}
+    ${sw('flagButtons', 'Show flag buttons', 'Pick, Reject and Unflag in the loupe and the series viewer. Hidden, the photo gets their room; keys, swipes and tooltips keep working, and the flag in the title row shows them again.')}</div>
+  <div class="sec"><h3>${t('Keyboard')}</h3>
+    ${sw('viKeys', 'Vi keys', 'h j k l switch photos, g g and Shift + G go to the first and last, / opens the filters. g no longer opens the grid: Esc does.')}</div>
   <div class="sec"><h3>${t('Moving photos')}</h3><p class="hint">${t('Name template for moved photos, relative to the chosen folder. All files of a photo, sidecars included, get the same new name.')}</p>
     <div class="seg" role="radiogroup" aria-label="${esc(t('Template preset'))}" style="flex-wrap:wrap">${TPL_PRESETS.map(([l, tpl], i) => `<button role="radio" aria-checked="${tplCur === tpl}" data-act="tplPreset" data-i="${i}">${esc(t(l))}</button>`).join('')}</div>
     <input class="inp tpl" data-chg="tpl" value="${esc(tplCur)}" aria-label="${esc(t('Name template'))}" spellcheck="false" autocapitalize="off" autocomplete="off">
@@ -2036,13 +2053,15 @@ function dlgSettings(){
 }
 const KEYS = [
   ['Flags', [[HOTKEY.pick, 'Pick (again: unflag)'], [HOTKEY.reject, 'Reject (again: unflag)'], [HOTKEY.unflag, 'Unflag'], ['Shift + P', 'Pick and go to the next photo'], ['Shift + X', 'Reject and go to the next photo'], ['Shift + U', 'Unflag and go to the next photo'],
-    ['Caps Lock', 'Auto-advance: every decision goes to the next photo'], [HOTKEY.togglePick, 'Toggle pick'], [HOTKEY.pickRest, 'Series: pick this, reject the rest']]],
+    ['Caps Lock', 'Auto-advance: every decision goes to the next photo'], [HOTKEY.togglePick, 'Toggle pick'], [HOTKEY.pickRest, 'Series: pick this, reject the rest'], [HOTKEY.flagButtons, 'Show or hide the flag buttons']]],
   ['Rating, colour label, Keep RAW', [['0 – 5', 'Set rating'], ['Shift + 0 – 5', 'Set rating and go to the next photo'], [HOTKEY.starDown, 'One star down'], [HOTKEY.starUp, 'One star up'], [LABELS.filter(l => l.key).map(l => l.key).join(' '), 'Label red / yellow / green / blue (toggle)'], [HOTKEY.keepRaw, 'Keep RAW (toggle)']]],
-  ['Views and photos', [['Arrow keys', 'Grid: move focus. Loupe, series compare, series viewer: switch photo'], ['Enter', 'Open the loupe'], [HOTKEY.grid, 'Grid'], [HOTKEY.loupe, 'Loupe'], [HOTKEY.compare, 'Series compare'], [HOTKEY.fit, 'Loupe: fit / 100 %'], [HOTKEY.zoom, 'Loupe and series viewer: fit / 100 %'],
+  ['Views and photos', [['Arrow keys', 'Grid: move focus. Loupe, series compare, series viewer: switch photo'], [`${HOTKEY.first} ${HOTKEY.last}`, 'First photo, last photo'], ['Enter', 'Open the loupe'], [HOTKEY.grid, 'Grid'], [HOTKEY.loupe, 'Loupe'], [HOTKEY.compare, 'Series compare'], [HOTKEY.fit, 'Loupe: fit / 100 %'], [HOTKEY.zoom, 'Loupe and series viewer: fit / 100 %'],
     ['Ctrl/⌘ + =', 'Zoom in'], ['Ctrl/⌘ + -', 'Zoom out'], [HOTKEY.fullscreen, 'Fullscreen'], [HOTKEY.header, 'Show or hide the header (loupe: the controls)'], [HOTKEY.info, 'Cycle the info overlay'], [HOTKEY.close, 'Close loupe / dialog / selection']]],
   ['Filter and selection', [[HOTKEY.filters, 'Show or hide the filter bar'], [HOTKEY.filtersOff, 'Filters off / on'], ['Ctrl/⌘ + A', 'Select all (filtered)'], ['Ctrl/⌘ + D', 'Select none'], ['Shift + click', 'Select a range']]],
   ['Undo, delete, move, help', [[HOTKEY.undo, 'Undo'], [HOTKEY.redo, 'Redo'], ['Delete', 'Delete summary for the selection or focused tile'], [HOTKEY.reviewRejects, 'Review rejects'], [HOTKEY.move, 'Move the selection, focused tile or current photo'],
-    ['1 – 9', 'Move dialog: choose a favourite or recent folder'], [HOTKEY.keys, 'This sheet (also ?)'], ['Ctrl + wheel, pinch', 'Grid: thumbnail size']]]];
+    ['1 – 9', 'Move dialog: choose a favourite or recent folder'], [HOTKEY.keys, 'This sheet (also ?)'], ['Ctrl + wheel, pinch', 'Grid: thumbnail size']]],
+  ['Vi keys (Settings › Keyboard)', [[`${VI.prev} ${VI.next}`, 'Previous photo, next photo'], [`${VI.down} ${VI.up}`, 'Grid: one row down, one row up. Elsewhere: next photo, previous photo'],
+    [VI.first, 'First photo'], [VI.last, 'Last photo'], [VI.filters, 'Open the filter bar'], [HOTKEY.close, 'Back to the grid (g starts g g)']]]];
 function dlgKeys(){
   return dlgShell(t('Keyboard shortcuts'), `<p style="margin-top:0;color:var(--muted)">${t('The Lightroom Classic keys, the same on every screen. They act on the selection or focused tile in the grid, and on the active photo in the loupe, the series compare and the series viewer.')}</p>
     ${KEYS.map(([h, rows]) => `<h4 style="margin:14px 0 4px">${t(h)}</h4><table class="sc">${rows.map(r => `<tr><td>${kbd(r[0])}</td><td>${esc(t(r[1]))}</td></tr>`).join('')}</table>`).join('')}`, `<button class="btn primary" data-act="closeDlg">${t('Close')}</button>`);
@@ -2230,6 +2249,7 @@ function buildLoupe(){
     <button class="btn" data-act="zoomToggle" id="lZoomBtn" aria-label="${esc(t('Toggle fit and 100 percent'))}" ${tip(t('Fit / 100 %'), HOTKEY.fit)}>${t('Fit')}</button>
     <button class="btn" data-act="moveCur" aria-label="${esc(t('Move this photo'))}" ${tip(t('Move this photo'), HOTKEY.move)}>${t('Move…')}</button>
     <button class="btn" data-act="infoToggle" id="lInfoBtn" aria-label="${esc(t('Toggle info panel'))}" ${tip(t('Info panel'), HOTKEY.info)} aria-pressed="${P0.infoOpen}">${t('Info')}</button>
+    ${flagBtnsToggle('lFlagBtn')}
     <button class="icon-btn" data-act="filmToggle" id="lFilmBtn" aria-label="${esc(t('Toggle filmstrip'))}" ${tip(t('Filmstrip'))} aria-pressed="true">${ic('film')}</button></div>
   <div class="l-main"><div id="stage"><div id="track"><div class="slide"></div><div class="slide"></div><div class="slide"></div></div>
     <div class="swipe-hint up" id="hintUp"></div><div class="swipe-hint down" id="hintDown"></div>
@@ -2253,6 +2273,20 @@ function openLoupe(id){
 function loupeWake(){
   const el = $('loupe'); el.classList.remove('idle'); clearTimeout(L.idle);
   L.idle = setTimeout(() => { if (!el.querySelector('.l-top :focus-visible, .ab-small :focus-visible, .film :focus-visible')){ el.classList.add('idle'); tipHideIn(el); } }, SV_IDLE_MS);
+}
+/* Settings › Show flag buttons; the title-row toggle stays as the way back */
+function syncFlagBtns(){
+  const on = S.settings.flagButtons;
+  ['loupe', 'serie'].forEach(id => $(id).classList.toggle('noflags', !on));
+  ['lFlagBtn', 'svFlagBtn'].forEach(id => { const b = $(id); if (b){ b.setAttribute('aria-pressed', on); b.innerHTML = ic(on ? 'flag' : 'flagCross'); } });
+}
+function flagBtnsChanged(){ if (S.loupe) showLoupe(); if (S.serie) serieChrome(); }
+function toggleFlagBtns(){
+  const on = S.settings.flagButtons = !S.settings.flagButtons; flagBtnsChanged();
+  const touch = $('frame').dataset.input !== 'fine', noSwipe = S.settings.swipeUp === 'none' && S.settings.swipeDown === 'none';
+  toast(on ? t('Flag buttons shown') : !touch ? t('Flag buttons hidden · {key} shows them', {key:HOTKEY.flagButtons})
+    : noSwipe ? t('Flag buttons hidden, and no swipe decides: the flag at the top shows them') : t('Flag buttons hidden · swipe to decide, the flag at the top shows them'),
+    false, on ? null : {act:'flagBtns', label:t('Show')});
 }
 function loupeIdleToggle(){ const el = $('loupe'); if (el.classList.contains('idle')) loupeWake(); else { clearTimeout(L.idle); el.classList.add('idle'); tipHideIn(el); } }
 /* one-time gesture guide on the first loupe open */
@@ -2293,7 +2327,7 @@ function renderLoupeChrome(){
   $('lPair').textContent = parts.join('  ·  ') + (!it.jpg ? '  ·  ' + t('RAW only: showing embedded preview') : !it.raw ? '  ·  ' + t('JPEG only') : '') + (parts.length > 1 ? '  ·  ' + n('Reject covers the %n file', 'Reject covers all %n files', parts.length) : '');
   const up = S.settings.swipeUp, dn = S.settings.swipeDown, nm = a => swipeWord(a, 'off');
   $('lCount').textContent = `${nf(lp.idx + 1)} / ${nf(lp.ids.length)}`;
-  $('lCtrl').innerHTML = actionBar(it, 'loupe', {big:true});
+  $('lCtrl').innerHTML = actionBar(it, 'loupe', {big:true}); syncFlagBtns();
   $('lZoomBtn').textContent = L.z.s > 1.02 ? Math.round(L.z.s * fitSize(it)[0] * (devicePixelRatio || 1) / it.nativeW * 100) + '%' : t('Fit');
   const ip = $('infoPanel'); ip.hidden = $('infoDiv').hidden = !P0.infoOpen; $('lInfoBtn').setAttribute('aria-pressed', P0.infoOpen);
   ip.innerHTML = `<h4>${t('File')}</h4><dl><dt>${t('Name')}</dt><dd>${esc(stem(it))}</dd><dt>${t('Folder')}</dt><dd ${tip(it.folder)}>${esc(folderName(it.folder))}</dd>${it.jpg ? `<dt>JPEG</dt><dd>${fmtSize(it.jpg.size)}</dd>` : ''}${it.raw ? `<dt>RAW</dt><dd>${esc(it.raw.name.split('.').pop())} · ${fmtSize(it.raw.size)}</dd>` : ''}<dt>${t('Sidecar')}</dt><dd>${it.xmp ? 'XMP' : t('none')}</dd><dt>${t('Size')}</dt><dd>${t('{px} px wide', {px:nf(it.nativeW)})}</dd><dt>${t('Captured')}</dt><dd>${it.exifTime != null ? esc(fmtWhen(it.exifTime)) : esc(t('Modified {date} (no capture time)', {date:fmtWhen(it.mtime)}))}</dd></dl>
@@ -2535,7 +2569,8 @@ const A = {
   closeLoupe(){ closeLoupe(); }, prev(){ step(-1); }, next(){ step(1); }, goto(el){ goTo(+el.dataset.i, false); },
   flag(el){ el.dataset.for === 'loupe' ? loupeDecide(el.dataset.v) : decideFlag(idsForKey(el.dataset.for, el.dataset.id), el.dataset.v); }, rate(el){ change(idsForKey(el.dataset.for, el.dataset.id), 'rating', +el.dataset.v); },
   zoomToggle(){ toggleZoom(); }, infoToggle(){ P0.infoOpen = !P0.infoOpen; savePrefs(); renderLoupeChrome(); measure(); showLoupe(); }, filmToggle(){ L.film = !L.film; renderLoupeChrome(); measure(); showLoupe(); },
-  setBool(el){ S.settings[el.dataset.k] = !S.settings[el.dataset.k]; if (el.dataset.k === 'showSingles') refreshView(); renderDlg(); },
+  setBool(el){ S.settings[el.dataset.k] = !S.settings[el.dataset.k]; if (el.dataset.k === 'showSingles') refreshView(); if (el.dataset.k === 'flagButtons') flagBtnsChanged(); renderDlg(); },
+  flagBtns(){ toggleFlagBtns(); },
   setFolderMode(el){ S.settings.folderMode = el.dataset.v; renderDlg(); }, setStorage(el){ S.settings.storage = el.dataset.v; renderDlg(); },
   extDel(el){ const a = S.settings[el.dataset.k]; a.splice(a.indexOf(el.dataset.e), 1); renderDlg(); },
   mockToggle(){ S.mock.open = !S.mock.open; renderMock(); },
@@ -2577,8 +2612,9 @@ document.addEventListener('submit', e => {
 });
 document.addEventListener('keydown', e => {
   const tg = e.target; if (tg.matches && tg.matches('input,select,textarea')) return;
-  const mod = e.ctrlKey || e.metaKey, k = e.key;
+  const mod = e.ctrlKey || e.metaKey; let k = e.key;
   if (k === 'Escape'){
+    S.viG = false;
     if ($('popRoot').firstChild){ closeMenu(); return; }
     if (S.serie){ closeSerie(); return; }
     if (S.dlg){ if (S.folderPath || S.dlg.type !== 'picker') closeDlg(); return; }
@@ -2586,19 +2622,21 @@ document.addEventListener('keydown', e => {
     if (S.selMode){ setSelMode(false); return; } return;
   }
   if (k === '?' || (mod && k === '/')){ e.preventDefault(); S.dlg && S.dlg.type === 'keys' ? closeDlg() : openDlg({type:'keys'}); return; }
-  if (S.serie){ serieKey(e); return; }
+  if (S.settings.viKeys && !mod && !e.altKey){ k = viKey(e); if (!k) return; }
+  if (!mod && isKey(k, 'flagButtons') && (S.serie || !S.dlg)){ e.preventDefault(); toggleFlagBtns(); return; }
+  if (S.serie){ serieKey(e, k); return; }
   if (S.dlg && S.dlg.type === 'burst'){
     const m = burstCurrent(S.dlg), c = {ids:() => m ? [m[clamp(S.dlg.a || 0, 0, m.length - 1)].id] : [], step:d => { S.dlg.a = clamp((S.dlg.a || 0) + d, 0, m.length - 1); renderDlg(); },
       pickRest:() => { const id = c.ids()[0]; id && decideBurst(id, m.filter(i => i.id !== id).map(i => i.id)); }};
     if (!mod && k === 'Enter' && tg.tagName !== 'BUTTON' && m){ e.preventDefault(); openSerie(c.ids()[0]); return; }
-    if (m) cullKey(e, c); return;
+    if (m) cullKey(e, k, c); return;
   }
   if (S.dlg && S.dlg.type === 'move'){
     if (/^[1-9]$/.test(k)){ const t = moveTargets()[+k - 1]; if (t){ e.preventDefault(); S.dlg.target = t.p; renderDlg(); } }
     else if (k === 'Enter' && tg.tagName !== 'BUTTON' && S.dlg.target){ e.preventDefault(); doMove(S.dlg); } return;
   }
   if (S.dlg) return;
-  if (mod && k.toLowerCase() === 'z' || mod && k.toLowerCase() === 'y'){ cullKey(e, {ids:() => []}); return; }
+  if (mod && k.toLowerCase() === 'z' || mod && k.toLowerCase() === 'y'){ cullKey(e, k, {ids:() => []}); return; }
   if (!S.folderPath) return;
   if (mod && k.toLowerCase() === 'a' && !S.loupe){ e.preventDefault(); if (!S.selMode){ S.selMode = true; } S.view.forEach(i => S.sel.add(i.id)); $('grid').classList.add('selmode'); selChanged(); return; }
   if (mod && k.toLowerCase() === 'd' && !S.loupe){ e.preventDefault(); S.sel.clear(); selChanged(); return; }
@@ -2607,6 +2645,7 @@ document.addEventListener('keydown', e => {
   if (mod && (k === '=' || k === '+' || k === '-') && S.loupe){ e.preventDefault(); if ((k === '-') === (L.z.s > 1.02)) toggleZoom(); return; }
   if (mod) return;
   if (k === HOTKEY.filters){ e.preventDefault(); A.filters(); return; }
+  if (k === VI.filters && S.settings.viKeys && !S.loupe){ e.preventDefault(); S.filtersOpen = true; renderFilters(); renderToolbar(); const b = $('filters').querySelector('button:not(:disabled)'); if (b) b.focus(); return; }
   if (isKey(k, 'fullscreen')){ e.preventDefault(); document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => toast(t('Fullscreen is not available here'))); return; }
   if (k === 'Tab' && (tg === document.body || tg === document.documentElement)){ e.preventDefault(); S.loupe ? setImmersive(!L.immersive) : document.body.classList.toggle('nohdr'); return; }
   if (isKey(k, 'compare')){ e.preventDefault(); A.burst(); return; }
@@ -2616,33 +2655,34 @@ document.addEventListener('keydown', e => {
     if (isKey(k, 'info')){ e.preventDefault(); A.infoToggle(); return; }
     if (isKey(k, 'grid')){ e.preventDefault(); closeLoupe(); return; }
     const c = {ids:() => ids, step, zoom:toggleZoom, flag:f => { loupeDecide(f); return S.settings.autoAdvance && f !== 'none'; }, advance:() => S.loupe.idx < S.loupe.ids.length - 1 && goTo(S.loupe.idx + 1, true)};
-    if (cullKey(e, c)) return;
+    if (cullKey(e, k, c)) return;
   } else {
     if (isKey(k, 'loupe') && S.view.length){ e.preventDefault(); openLoupe(S.focusId || S.view[0].id); return; }
-    if (k.startsWith('Arrow')){
+    if (k.startsWith('Arrow') || k === 'Home' || k === 'End'){
       const ids2 = S.view.map(i => i.id); if (!ids2.length) return; e.preventDefault();
       let i = Math.max(0, ids2.indexOf(S.focusId)); const first = tileEls.get(ids2[0]), cols = Math.max(1, Math.round($('grid').clientWidth / (first ? first.offsetWidth + 8 : 168)));
-      i = clamp(i + (k === 'ArrowLeft' ? -1 : k === 'ArrowRight' ? 1 : k === 'ArrowUp' ? -cols : cols), 0, ids2.length - 1);
+      i = k === 'Home' ? 0 : k === 'End' ? ids2.length - 1 : clamp(i + (k === 'ArrowLeft' ? -1 : k === 'ArrowRight' ? 1 : k === 'ArrowUp' ? -cols : cols), 0, ids2.length - 1);
       setFocus(ids2[i]); const el = tileEls.get(ids2[i]); if (el){ el.focus(); el.scrollIntoView({block:'nearest'}); } return;
     }
     if (k === 'Enter' && !(tg.classList && tg.classList.contains('tile')) && S.focusId){ openLoupe(S.focusId); return; }
     const adv = () => { const ids2 = S.view.map(i => i.id), j = ids2.indexOf(S.focusId); if (j >= 0 && j < ids2.length - 1){ setFocus(ids2[j + 1]); const el = tileEls.get(ids2[j + 1]); if (el){ el.focus(); el.scrollIntoView({block:'nearest'}); } } };
-    if (cullKey(e, {ids:() => ids, advance:adv})) return;
+    if (cullKey(e, k, {ids:() => ids, advance:adv})) return;
   }
   if (isKey(k, 'move')){ e.preventDefault(); openMove(ids); return; }
   if (k === 'Delete' || k === 'Backspace'){ e.preventDefault(); openDelete(ids); }
 });
 /* one key map for every screen: c supplies ids, and step, advance, flag, zoom or pickRest where the screen has them */
-function cullKey(e, c){
-  const k = e.key, lk = k.toLowerCase(), mod = e.ctrlKey || e.metaKey;
+function cullKey(e, k, c){
+  const lk = k.toLowerCase(), mod = e.ctrlKey || e.metaKey;
   if (mod){
     if (lk === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return true; }
     if (lk === 'y'){ e.preventDefault(); redo(); return true; } return false;
   }
   const ids = c.ids(), adv = e.shiftKey || e.getModifierState('CapsLock'), flag = f => { const did = c.flag ? c.flag(f) : (decideFlag(ids, f), false); if (adv && !did && c.advance) c.advance(); };
   if ((k === 'ArrowLeft' || k === 'ArrowRight') && c.step){ e.preventDefault(); c.step(k === 'ArrowLeft' ? -1 : 1); return true; }
+  if ((k === 'Home' || k === 'End') && c.step){ e.preventDefault(); c.step(k === 'Home' ? -1e6 : 1e6); return true; }
   if (isKey(k, 'zoom') && c.zoom){ e.preventDefault(); c.zoom(); return true; }
-  if (isKey(k, 'pickRest') && c.pickRest){ e.preventDefault(); c.pickRest(); return true; }
+  if (e.shiftKey && lk === 'k' && c.pickRest){ e.preventDefault(); c.pickRest(); return true; }
   if (!ids.length) return false;
   const n = /^[0-5]$/.test(k) ? +k : e.shiftKey && /^Digit[0-5]$/.test(e.code) ? +e.code[5] : -1;
   if (n >= 0){ e.preventDefault(); change(ids, 'rating', n); if (adv && c.advance) c.advance(); return true; }
@@ -2652,6 +2692,15 @@ function cullKey(e, c){
   const lab = LABELS.find(l => l.key === k); if (lab){ e.preventDefault(); toggleLabel(ids, lab.id); return true; }
   if (isKey(k, 'keepRaw')){ e.preventDefault(); toggleKeepRaw(ids); return true; }
   return false;
+}
+/* vi keys: the key each stands for on this screen; '' while a first g waits for the second */
+function viKey(e){
+  const lk = e.key.toLowerCase(), g = S.viG, grid = !S.loupe && !S.serie && !S.dlg; S.viG = false;
+  if (lk === 'g') return e.shiftKey ? HOTKEY.last : g ? HOTKEY.first : (S.viG = true, '');
+  if (lk === 'h') return 'ArrowLeft'; if (lk === 'l') return 'ArrowRight';
+  if (lk === 'j') return grid ? 'ArrowDown' : 'ArrowRight';
+  if (lk === 'k' && !e.shiftKey) return grid ? 'ArrowUp' : 'ArrowLeft';
+  return e.key;
 }
 function filtersOffOn(){
   if (filtersActive()){ S.filterStash = S.filters; S.filters = {...DEF_FILTERS(), scope:S.filters.scope}; toast(t('Filters off')); }
