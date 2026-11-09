@@ -22,5 +22,7 @@ Framehive's CORE-009 and LIBRARY-001, so both apps write the same sidecars.
 
 - digiKam, darktable and Lightroom see honeycomb's decisions without an export step; what each
   cannot hold is listed in `docs/user/ratings-flags-colours.md`.
-- Sidecars are shared by every user of a folder while the database is per user (Q20).
+- Sidecars are shared by every user of a folder while the database is per user (Q20). In a
+  shared folder honeycomb therefore never writes through on its own: writing the decisions to
+  the sidecars is an explicit action (owner, 2026-11-09).
 - M5 needs a PHP XML library that keeps every RDF form and unknown property: an ADR of its own.

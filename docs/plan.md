@@ -19,18 +19,33 @@ delete summary, progress and resume, series compare) and settings. The owner tri
 iPad, answers the open questions below, and the mockup is updated until the owner signs it off.
 The answers go into ADRs and into this file; the question markers disappear from the mockup.
 
+All twenty open questions were answered by the owner on 2026-11-09, and the mockup follows the
+answers. What remains for sign-off:
+
+1. **The owner tries the mockup on the iPad and signs it off**, in English and in German (the
+   mockup's language switch, see [Translations](#translations)), so long German labels are seen
+   in place.
+2. **Phone app bar:** which controls give way while the key actions are in the app bar
+   ([Compact header and series viewer](#compact-header-and-series-viewer), item 2).
+3. **Transifex access** (issue #17): the owner's setup steps and how the bot's direct commits
+   fit the planned `main` ruleset. It blocks only the translation sync, not M1.
+
 Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs the app icon.
 
 ### M1 – App skeleton, thin listing backend, pairing in TypeScript
 
-1. **Skeleton:** `appinfo/info.xml` with the versions from Q1, `composer.json` with
+1. **Skeleton:** `appinfo/info.xml` for Nextcloud 35 only (`min-version` and `max-version`
+   35) and PHP 8.3+ ([Target versions](#target-versions)), `composer.json` with
    php-cs-fixer, psalm and PHPUnit, the `Application` class, an empty main page;
    `package.json` with TypeScript, eslint and Vitest with the coverage gate
-   ([`02-workflow.md`](02-workflow.md) §2.3); the PHP and TypeScript jobs in CI and
-   `scripts/verify.sh`; `info.xml` and `package.json` in release-please's extra files.
+   ([`02-workflow.md`](02-workflow.md) §2.3); the PHP jobs on PHP 8.3 and 8.5 against
+   Nextcloud 35 and the TypeScript jobs in CI and `scripts/verify.sh`; `info.xml` and
+   `package.json` in release-please's extra files; `.tx/config`, `l10n/.gitkeep` and
+   `.l10nignore` ([Translations](#translations)).
 2. **Listing backend:** `GET /api/v1/folders/{path}/entries` returns the folder's files as flat
    entries — file id, path, size, mtime, ETag, mime type and EXIF basics (capture time,
-   orientation, dimensions) where Nextcloud's file metadata has them — from one file-cache query
+   orientation, dimensions) where Nextcloud's file metadata has them ([Sort order](#sort-order))
+   — from one file-cache query
    by path prefix and mime type, for the user's folder only. No pairing on the server. With
    `?subfolders=1` the same query covers every folder below, minus the skipped ones
    ([Multiple folders](#multiple-folders)), capped at 20,000 pictures. PHPUnit first, with the
@@ -43,8 +58,10 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 
 ### M2 – Grid view
 
-1. **Frontend skeleton:** Vue, `@nextcloud/vue`, Vite through `@nextcloud/vite-config`, the
-   build and the Playwright job against a Nextcloud container in CI and `scripts/verify.sh`.
+1. **Frontend skeleton:** Vue, `@nextcloud/vue`, Vite through `@nextcloud/vite-config`,
+   `@nextcloud/l10n` and the checks that no user-visible string bypasses `t()`
+   ([Translations](#translations)), the build and the Playwright job against a Nextcloud
+   container in CI and `scripts/verify.sh`.
 2. **Image endpoint:** serves Nextcloud previews under immutable URLs keyed by file id and mtime
    (see [Image delivery & performance](#image-delivery--performance)).
 3. **Folder picker and grid:** a folder picker with a checkbox per folder and the *Include
@@ -67,8 +84,8 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 2. **Decisions in the loupe:** large pick and reject buttons, vertical swipe (Q6), rating and
    colour label controls, auto-advance to the next undecided picture, the "Rejected IMG_0001 · Undo"
    toast.
-3. **Keyboard shortcuts and undo:** the one shared key map ([Keyboard shortcuts](#keyboard-shortcuts)),
-   undo and redo (Q12), the shortcut sheet.
+3. **Keyboard shortcuts and undo:** the one shared key map ([Keyboard
+   shortcuts](#keyboard-shortcuts)), undo and redo (Q12), the shortcut sheet.
 
 ### M4 – Deleting and settings
 
@@ -117,10 +134,11 @@ pictures, a rejected picture disappears from view, and at the end delete all rej
    there is no hard delete. Space returns only when the trash bin is emptied.
 3. **Whole pair.** Reject and delete always act on the whole picture: JPEG, RAW and sidecar. The
    delete summary shows pictures · files · bytes freed.
-4. **Series compare** (milestone M6). Pictures taken within a short interval (mockup: 3 seconds
-   by capture time, at most 4 per series) form a series, shown 2–4 side by side. Tapping the best
-   one means *Pick this, reject the rest*: it is picked, the others rejected, as one undo step.
-   The owner's 2026-11-09 feedback changes how: see [Compact header and series viewer](#compact-header-and-series-viewer).
+4. **Series compare** (milestone M6). Pictures taken within a short interval (mockup: 3 seconds by
+   capture time, at most 4 per series) form a series, shown 2–4 side by side. Tapping the best one
+   means *Pick this, reject the rest*: it is picked, the others rejected, as one undo step. The
+   owner's 2026-11-09 feedback changes how: see [Compact header and series
+   viewer](#compact-header-and-series-viewer).
 5. **Auto-advance.** After each pick or reject the view moves to the next undecided picture
    (the setting stays, Q7 is answered). Rating and colour label do not advance.
 6. **Progress and resume.** The toolbar shows "x of y decided" per folder set. The last position
@@ -144,7 +162,8 @@ folder with all its subfolders. That set of folders is the *folder set*.
    reads "Cull 23 folders".
 2. **Skipped folders.** Hidden folders (name starts with `.`), the trash bin and Nextcloud's
    preview folders are never part of a folder set.
-3. **Grid.** Sorted by capture time across folders by default (Q18 stays for one folder). The
+3. **Grid.** Sorted by capture time across folders by default; one folder starts by file
+   name, and the user can switch either ([Sort order](#sort-order)). The
    *More* menu offers *Group by folder*, with a sticky header per folder; the filter bar gets a
    *Folder* filter. The loupe's info panel shows the folder.
 4. **Pairing stays within one folder.** RAW and rendered members pair only within one folder; the
@@ -209,7 +228,7 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    shows the full path. *Select*, *Review rejects*, *Compare series* and *Filters* are icon
    buttons with count badges; their labels appear beside the icons only when the toolbar is at
    least 1000 px wide. Sort, the tile size slider, *Move picks*, *Resume*, hiding the header,
-   settings and the help for the open-question markers live in a **⋯ more menu** (arrow keys,
+   settings and the mockup's language switch live in a **⋯ more menu** (arrow keys,
    one separator per group). The scope (*Not rejected* / *Undecided* / *All*) and the progress
    share one slim row below (it moves into the app bar while scrolling, item 2). The active
    scope shows its name beside the icon when the app is wider than 520 px. Every control keeps
@@ -311,12 +330,13 @@ against it. `Ctrl` on Windows and Linux is `⌘` on a Mac.
   best photo; `K` does, as one undo step. The series compare dialog outlines the active photo.
 - **Where a key has no function** on a screen (`Z` in the grid, `K` outside a series) it does
   nothing, and `Tab` keeps moving focus while a control has it.
-- **Verification.** Each key was checked against Adobe's
-  [Keyboard shortcuts for Lightroom Classic](https://helpx.adobe.com/lightroom-classic/desktop/introduction-to-lightroom-classic/keyboard-shortcuts.html)
-  and [How to flag, label, and rate photos](https://helpx.adobe.com/lightroom-classic/help/flag-label-rate-photos.html),
-  Windows and Mac. Adobe's server refused direct downloads (HTTP 403), so the check ran on search
-  excerpts of those pages; keys marked *not confirmed* did not appear in them and need a look at
-  Lightroom's own list (`Ctrl+/` in the Library module) before M3.3 builds them.
+- **Verification.** Each key was checked against Adobe's [Keyboard shortcuts for Lightroom
+  Classic](https://helpx.adobe.com/lightroom-classic/desktop/introduction-to-lightroom-classic/keyboard-shortcuts.html)
+  and [How to flag, label, and rate
+  photos](https://helpx.adobe.com/lightroom-classic/help/flag-label-rate-photos.html), Windows and
+  Mac. Adobe's server refused direct downloads (HTTP 403), so the check ran on search excerpts of
+  those pages; keys marked *not confirmed* did not appear in them and need a look at Lightroom's own
+  list (`Ctrl+/` in the Library module) before M3.3 builds them.
 
 Where the work lands: M3.3, with the mockup (`KEYS` in `docs/mockup/index.html`) as the reference.
 
@@ -425,9 +445,18 @@ used.
   and the series viewer wins.
 - **Gestures.** The long-press timer stops when the finger moves more than 10 px, a second finger
   lands (pinch) or the browser takes the pointer (scroll in the filmstrip, the series track).
-  Inside a grid tile the long-press stays selection (Q10), so tile badges show their tooltip on
-  mouse hover only; the tile's `aria-label` carries the same words. A disabled control shows
-  its tooltip only where the browser sends hover to it.
+  Inside a grid tile the long-press stays selection (Q10, answered by the owner on 2026-11-09),
+  and one gesture never triggers the other:
+  - The tooltip's long-press does not start inside a tile: its handler ignores a target within
+    a tile, so on a tile and its badges no tooltip timer runs and no click is swallowed by it.
+  - The tile's own long-press (480 ms, cancelled like the tooltip's by 10 px of movement, the
+    finger lifting or the browser taking the pointer) enters selection mode and adds the tile;
+    a second long-press never removes it. The click that follows is swallowed by the grid, so
+    the loupe does not open and the tile is not toggled again.
+  - Tile badges show their tooltip on mouse hover only; keyboard focus is on the tile, whose
+    `aria-label` carries the same words.
+
+  A disabled control shows its tooltip only where the browser sends hover to it.
 - **Accessibility.** While shown, the control has `aria-describedby="tip"`; the bubble
   (`role="tooltip"`) never takes focus. Every icon-only control keeps its `aria-label`. Colours
   come from `--tip-bg` and `--tip-fg`, at least 15:1 in both themes. Reduced motion shows it
@@ -446,6 +475,102 @@ follows; its design direction lists the tokens.
   the settings, pinch, double-tap, the main keys) until it is dismissed once.
 - **Calm loupe chrome.** The title row shows the name and the pair; the gesture mapping and the
   preload state sit in the info panel.
+
+## Pairing and file types
+
+Answered by the owner on 2026-11-09 (Q14, Q15, Q16).
+
+1. **Case.** Base names are compared ignoring case, as the brief says (Framehive compares them
+   case-sensitively).
+2. **Ambiguity.** When a base name has more than one RAW file or more than one rendered file,
+   such as `A.JPG`, `A.jpg` and `A.NEF`, no pair is formed. Every file of that base name becomes
+   a single, its tile shows a warning, and the grid shows one notice for the folder.
+3. **Rendered file types.** A per-user list like the RAW extensions, default `jpg, jpeg, heic,
+   heif, hif`; TIFF can be added. HEIF previews depend on the server's preview providers, which
+   the README names (M4.4).
+4. **Separate subfolders.** The folder mode is *Same folder* by default. In *Separate
+   subfolders* the user names the RAW and the rendered subfolder (default `RAW` and `JPG`,
+   matched ignoring case). Pictures pair across the two subfolders of the chosen folder, and the
+   grid shows the chosen folder as one.
+
+Where the work lands: M1.3 (pairing), M4.3 (settings).
+
+## Grid, filters and sort
+
+Answered by the owner on 2026-11-09 (Q8, Q9, Q10, Q13, Q18).
+
+1. **Rating filter.** "At least N" by default, with a toggle to "exactly N".
+2. **Combining filters.** OR within a group, AND across groups, e.g. *red or green* and *at
+   least 3 stars*. The filter bar is a collapsible bar on top of the grid; a side panel would
+   cost too much width in iPad portrait.
+3. **Tile overlays.** Stars (once rated), colour label and flag are always visible on every
+   tile. There is no setting: without hover, hiding them would hide the state on touch.
+4. **Selection mode.** The *Select* button and a long-press on a tile both enter selection mode;
+   the long-press also selects that tile. How this long-press and the tooltip's long-press are
+   kept apart: [Tooltip](#tooltip), *Gestures*.
+
+### Sort order
+
+The user chooses *File name* or *Capture time* in the ⋯ menu, from the first version (M2.5). One
+folder starts by file name; a folder set of several folders starts by capture time
+([Multiple folders](#multiple-folders)).
+
+- **Where capture time comes from.** The listing (M1.2) returns each file's EXIF capture time
+  from Nextcloud's file metadata (`IFilesMetadataManager`), which Nextcloud extracts on upload
+  and with `occ files:scan --generate-metadata`. No file is read to sort, so 2,000 pairs cost
+  no more than sorting by name; the metadata key is confirmed in M1.2.
+- **A picture's capture time** is the RAW member's, else the rendered member's, the same rule as
+  the name templates ([`05-name-templates.md`](05-name-templates.md)).
+- **Without a capture time** (no EXIF, or the metadata not extracted yet) a picture sorts by its
+  file's modification time, and the loupe's info panel shows "Modified … (no capture time)".
+  Such a picture never joins a series (M6), because a copy can give many files the same
+  modification time.
+- **Ties** are broken by file name. File names compare with `Intl.Collator` on the user's
+  locale with numeric order, so `IMG_2` comes before `IMG_10`.
+
+Where the work lands: M1.2 (capture time per entry), M2.3 (overlays), M2.5 (filters, sort),
+M2.6 (selection).
+
+## Decisions, gestures and shared folders
+
+Answered by the owner on 2026-11-09 (Q3, Q4, Q5, Q6, Q20).
+
+1. **Flags.** Three states: picked, rejected, unflagged, written as digiKam's Accepted,
+   Rejected and None ([`06-xmp-interop.md`](06-xmp-interop.md) has the mapping).
+2. **Colour labels.** digiKam's nine colours in a palette; keys `6`–`9` set red, yellow, green
+   and blue ([Keyboard shortcuts](#keyboard-shortcuts)).
+3. **Vertical swipe.** In the loupe, swipe up picks and swipe down rejects. *Settings › Loupe
+   gestures* sets each direction to *Pick*, *Reject* or *Nothing*, so either swipe can be
+   turned off; the series viewer's swipe down follows the same setting.
+4. **Sidecar names.** Both `<file>.xmp` and `<base>.xmp` are read; every one that exists is
+   written, else `<file>.xmp` per member; deleting removes both
+   ([`06-xmp-interop.md`](06-xmp-interop.md#sidecar-names)).
+5. **Shared folders.** Decisions are per user, in the database. Sidecars are shared by every
+   user of the folder, so in a shared folder nothing is written through on its own: the ⋯ menu
+   offers *Write decisions to sidecars…*, which asks first (ADR 0005). The listing (M1.2) says
+   per folder whether it is shared.
+
+Where the work lands: M1.2 (shared per folder), M2.4 (per-user decisions), M3.2 (swipe), M3.3
+(colour keys), M4.3 (gesture setting), M5 (sidecars).
+
+## Translations
+
+Decided by the owner on 2026-11-09 (ADR 0007). The source strings are English and go through
+`@nextcloud/l10n`'s `t()` and, for every string with a count, `n()`. Translations come from
+Nextcloud's Transifex from the start; Nextcloud's translation bot commits them to `l10n/` every
+night. The language is the user's Nextcloud language. Numbers and dates use `Intl` on the user's
+Nextcloud locale, and name templates stay the same in every language (ADR 0004).
+
+- **Setup.** `.tx/config`, `l10n/.gitkeep` and `.l10nignore` in M1.1; the steps only the owner
+  can do, and how the bot's direct commits fit the planned `main` ruleset, are issue #17.
+- **Checks.** From M2.1, eslint and a Vitest pass with a stub catalogue fail on a user-visible
+  string that bypasses `t()` (ADR 0007, *Checks*).
+- **Mockup.** The ⋯ menu switches the mockup between English and German, to see long German
+  labels in place on the iPad. Its German strings are not a translation source and do not go to
+  Transifex.
+
+Where the work lands: M1.1 (Transifex files), M2.1 (`@nextcloud/l10n`, checks), every UI item
+after that (strings through `t()`).
 
 ## Project structure
 
@@ -476,7 +601,7 @@ honeycomb/
 ├── tests/e2e/                  Playwright against a Nextcloud container
 ├── tests/fixtures/             test vectors, shared with Framehive where they overlap
 ├── img/app.svg, img/app-dark.svg
-├── l10n/                       translations (Transifex later)
+├── l10n/                       translations, committed by Nextcloud's bot (ADR 0007)
 ├── docs/                       this documentation, the mockup, ADRs
 ├── assets/brand/               logo sources and generate.py
 ├── scripts/verify.sh           every CI check locally
@@ -512,22 +637,26 @@ Sources:
   manual](https://github.com/nextcloud/documentation/blob/stable35/admin_manual/installation/system_requirements.rst)
   list 8.3, 8.4 and **8.5 (recommended)**.
 
-Which of them honeycomb supports is Q1.
+**Supported: Nextcloud 35 only, PHP 8.3 and later** (Q1, answered by the owner on 2026-11-09,
+against the recommendation of 34 and 35). `appinfo/info.xml` sets `min-version` and `max-version`
+to 35 and requires PHP 8.3. CI runs the PHP jobs on PHP 8.3, the floor, and 8.5, the version
+Nextcloud recommends, against Nextcloud 35. Supporting 36 once it ships is a new decision for the
+owner.
 
 ## Open questions
 
-Each has a recommendation. Questions marked **(mockup)** have a numbered marker in the mockup
-that shows them in place. The owner answers here or in a `needs-owner` issue; an answer becomes
-an ADR or a line in this plan.
+The questions the plan started with, each with the options it offered. The owner answered all of
+them by 2026-11-09; each answer names the section or ADR that now holds the decision, and the
+mockup has no question markers left. A question that comes up during a task becomes a
+`needs-owner` issue ([`02-workflow.md`](02-workflow.md) §2.2).
 
 ### Q1 – Which Nextcloud versions to support
 
-(a) only 35, PHP 8.3+; (b) 34 and 35, PHP 8.2+; (c) 33 to 35, PHP 8.2+.
-**Recommendation: (b)** — covers a server one major behind at no extra cost (same PHP floor as
-33, which reaches end of life before a first release is likely). CI tests PHP 8.2 and 8.5;
-`max-version` moves to 36 when it ships.
+(a) only 35, PHP 8.3+; (b) 34 and 35, PHP 8.2+; (c) 33 to 35, PHP 8.2+. The recommendation was (b).
+**Answered by the owner on 2026-11-09:** (a), Nextcloud 35 only, PHP 8.3+. See [Target
+versions](#target-versions).
 
-### Q2 – Where ratings, colour labels and flags are stored (mockup)
+### Q2 – Where ratings, colour labels and flags are stored
 
 digiKam compatibility matters, so the options are judged by whether digiKam on the desktop sees
 the decisions.
@@ -548,45 +677,53 @@ digiKam's, darktable's and Lightroom's fields (ADR 0005). The mapping is
 
 ### Q3 – Sidecar file names
 
-digiKam, darktable and Framehive write `DSC_0412.NEF.xmp` by default; digiKam writes
-`DSC_0412.xmp` with its "compatible file name" option (the Adobe convention). **Recommendation:**
-read both; write every one that exists, else `<file>.xmp` per member
-([`06-xmp-interop.md`](06-xmp-interop.md#sidecar-names)). Deleting removes both forms.
+digiKam, darktable and Framehive write `DSC_0412.NEF.xmp` by default; digiKam writes `DSC_0412.xmp`
+with its "compatible file name" option (the Adobe convention). **Recommendation:** read both; write
+every one that exists, else `<file>.xmp` per member
+([`06-xmp-interop.md`](06-xmp-interop.md#sidecar-names)). Deleting removes both forms. **Answered by
+the owner on 2026-11-09:** as recommended. See [Decisions, gestures and shared
+folders](#decisions-gestures-and-shared-folders).
 
-### Q4 – Flag model (mockup)
+### Q4 – Flag model
 
-(a) three states: picked, rejected, unflagged, mapped to digiKam's Accepted, Rejected, None;
-(b) digiKam's four states including Pending; (c) the brief's binary keep/discard.
-**Recommendation: (a).**
+(a) three states: picked, rejected, unflagged, mapped to digiKam's Accepted, Rejected, None; (b)
+digiKam's four states including Pending; (c) the brief's binary keep/discard. **Answered by the
+owner on 2026-11-09:** (a), three states. See [Decisions, gestures and shared
+folders](#decisions-gestures-and-shared-folders).
 
-### Q5 – Colour labels and keys (mockup)
+### Q5 – Colour labels and keys
 
-(a) digiKam's nine colours in a palette, keys 6–9 for red, yellow, green, blue; (b) Lightroom's
-five only. **Recommendation: (a).**
+(a) digiKam's nine colours in a palette, keys 6–9 for red, yellow, green, blue; (b) Lightroom's five
+only. **Answered by the owner on 2026-11-09:** (a), digiKam's nine colours, keys 6–9. See
+[Decisions, gestures and shared folders](#decisions-gestures-and-shared-folders).
 
-### Q6 – Vertical swipe in the loupe (mockup)
+### Q6 – Vertical swipe in the loupe
 
-(a) up = pick, down = reject; (b) up = reject, down = pick; (c) off by default.
-**Recommendation: (a)**, configurable in the settings as the brief asks.
+(a) up = pick, down = reject; (b) up = reject, down = pick; (c) off by default. **Answered by the
+owner on 2026-11-09:** (a), up = pick, down = reject; each direction can be changed or turned off in
+the settings. See [Decisions, gestures and shared folders](#decisions-gestures-and-shared-folders).
 
 ### Q7 – Advance after a decision
 
 Answered 2026-11-09: (a), to the next undecided picture, with a setting. See
 [Culling workflow](#culling-workflow).
 
-### Q8 – Rating filter (mockup)
+### Q8 – Rating filter
 
-(a) "at least N", with a toggle to "exactly N"; (b) exactly N only. **Recommendation: (a).**
+(a) "at least N", with a toggle to "exactly N"; (b) exactly N only. **Answered by the owner on
+2026-11-09:** (a). See [Grid, filters and sort](#grid-filters-and-sort).
 
-### Q9 – Filter combination and placement (mockup)
+### Q9 – Filter combination and placement
 
-(a) OR within a group, AND across groups, a collapsible bar on top; (b) a side panel like
-digiKam's right sidebar. **Recommendation: (a)** — a side panel costs too much width in iPad
-portrait.
+(a) OR within a group, AND across groups, a collapsible bar on top; (b) a side panel like digiKam's
+right sidebar. **Answered by the owner on 2026-11-09:** (a). See [Grid, filters and
+sort](#grid-filters-and-sort).
 
-### Q10 – Entering multi-select by touch (mockup)
+### Q10 – Entering multi-select by touch
 
-(a) a "Select" button and long-press on a tile; (b) the button only. **Recommendation: (a).**
+(a) a "Select" button and long-press on a tile; (b) the button only. **Answered by the owner on
+2026-11-09:** (a); the long-press does not show a tooltip on a tile ([Tooltip](#tooltip)). See
+[Grid, filters and sort](#grid-filters-and-sort).
 
 ### Q11 – What can be deleted
 
@@ -598,28 +735,32 @@ summary; the selection goes straight to the summary. See [Culling workflow](#cul
 Answered 2026-11-09: (a). Ratings, colour labels and flags are undoable in the session (last 50
 steps, the reject toast offers it); deleting is restored from the Nextcloud trash bin.
 
-### Q13 – Grid tile overlays (mockup)
+### Q13 – Grid tile overlays
 
-(a) stars, colour label and flag always visible on every tile; (b) only on the focused tile and
-in the loupe. **Recommendation: (a)** — without hover, (b) hides the state on touch.
+(a) stars, colour label and flag always visible on every tile; (b) only on the focused tile and in
+the loupe. **Answered by the owner on 2026-11-09:** (a), always visible. See [Grid, filters and
+sort](#grid-filters-and-sort).
 
 ### Q14 – Pairing case and ambiguity
 
-The brief compares base names case-insensitively (Framehive: case-sensitively). With
-`A.JPG`, `A.jpg` and `A.NEF` there is no unique partner. **Recommendation:** case-insensitive as
-the brief says; an ambiguous base name makes every file a single and shows a warning.
+The brief compares base names case-insensitively (Framehive: case-sensitively). With `A.JPG`,
+`A.jpg` and `A.NEF` there is no unique partner. **Recommendation:** case-insensitive as the brief
+says; an ambiguous base name makes every file a single and shows a warning. **Answered by the owner
+on 2026-11-09:** as recommended. See [Pairing and file types](#pairing-and-file-types).
 
 ### Q15 – Rendered file types
 
-(a) JPEG only (`jpg`, `jpeg`); (b) also HEIF (`heic`, `heif`, `hif`) and TIFF.
-**Recommendation: (b)** as a configurable list like the RAW extensions, default `jpg, jpeg, heic,
-heif, hif`; HEIF previews depend on the server's preview providers.
+(a) JPEG only (`jpg`, `jpeg`); (b) also HEIF (`heic`, `heif`, `hif`) and TIFF. **Recommendation:
+(b)** as a configurable list like the RAW extensions, default `jpg, jpeg, heic, heif, hif`; HEIF
+previews depend on the server's preview providers. **Answered by the owner on 2026-11-09:** (b), the
+configurable list with that default. See [Pairing and file types](#pairing-and-file-types).
 
 ### Q16 – Separate subfolders
 
 **Recommendation:** off by default. When on, the user names the RAW and the rendered subfolder
-(default `RAW` and `JPG`, case-insensitive); pictures pair across the two subfolders of the
-chosen folder, and the grid shows the chosen folder as one.
+(default `RAW` and `JPG`, case-insensitive); pictures pair across the two subfolders of the chosen
+folder, and the grid shows the chosen folder as one. **Answered by the owner on 2026-11-09:** as
+recommended. See [Pairing and file types](#pairing-and-file-types).
 
 ### Q17 – Subfolders when a folder is picked
 
@@ -627,12 +768,13 @@ chosen folder, and the grid shows the chosen folder as one.
 several folders can be ticked, and *Include subfolders* adds every folder below. See
 [Multiple folders](#multiple-folders).
 
-### Q18 – Sort order (mockup)
+### Q18 – Sort order
 
-(a) file name; (b) capture time from EXIF; (c) both, user's choice. **Recommendation: (a)
-first**, (b) later — capture time needs reading every file's EXIF, which is slow for 2,000 pairs.
-A folder set of several folders starts sorted by capture time (decided, see
-[Multiple folders](#multiple-folders)).
+(a) file name; (b) capture time from EXIF; (c) both, user's choice. The recommendation was (a) first
+and (b) later, for fear of reading every file's EXIF. **Answered by the owner on 2026-11-09:** (c),
+both from the first version. The listing already returns the capture time from Nextcloud's file
+metadata, so no file is read; see [Sort order](#sort-order) for the source and for pictures without
+one.
 
 ### Q19 – Fast image loading
 
@@ -641,5 +783,6 @@ Answered 2026-11-09: see [Image delivery & performance](#image-delivery--perform
 ### Q20 – Shared folders
 
 When two users cull the same shared folder: (a) decisions per user; (b) shared decisions.
-**Recommendation: (a)** in the database. Sidecars (Q2) are shared by nature, so writing them is
-an explicit action in shared folders.
+**Recommendation: (a)** in the database. Sidecars (Q2) are shared by nature, so writing them is an
+explicit action in shared folders. **Answered by the owner on 2026-11-09:** (a). See [Decisions,
+gestures and shared folders](#decisions-gestures-and-shared-folders).
