@@ -720,18 +720,12 @@ const DE = {
   'Full path': 'Vollständiger Pfad',
   'At least %n star': ['Mindestens %n Stern', 'Mindestens %n Sterne'],
   'Exactly %n star': ['Genau %n Stern', 'Genau %n Sterne'],
-  'More than %n star': ['Mehr als %n Stern', 'Mehr als %n Sterne'],
-  'Fewer than %n star': ['Weniger als %n Stern', 'Weniger als %n Sterne'],
   'Rating comparison': 'Bewertungsvergleich',
   'At most %n star': ['Höchstens %n Stern', 'Höchstens %n Sterne'],
-  'More than': 'Mehr als',
   'Exactly': 'Genau',
   'At least': 'Mindestens',
-  'Fewer than': 'Weniger als',
   'At most': 'Höchstens',
   'Rating comparison: {now}. Tap for: {next}': 'Bewertungsvergleich: {now}. Tippen für: {next}',
-  'No photo has more than 5 stars': 'Kein Foto hat mehr als 5 Sterne',
-  'No photo has fewer than 0 stars': 'Kein Foto hat weniger als 0 Sterne',
   'Colour': 'Farbe',
   'Pairing': 'Paarung',
   'Pairs': 'Paare',
@@ -1256,13 +1250,10 @@ function logoSVG(){
 
 /* ---------- derived data ---------- */
 const RATING_OPS = {
-  gt:{sym:'>', test:(r, k) => r > k, one:'More than %n star', many:'More than %n stars', name:'More than', next:'gte'},
-  gte:{sym:'≥', test:(r, k) => r >= k, one:'At least %n star', many:'At least %n stars', name:'At least', next:'eq'},
-  eq:{sym:'=', test:(r, k) => r === k, one:'Exactly %n star', many:'Exactly %n stars', name:'Exactly', next:'lt'},
-  lt:{sym:'<', test:(r, k) => r < k, one:'Fewer than %n star', many:'Fewer than %n stars', name:'Fewer than', next:'lte'},
-  lte:{sym:'≤', test:(r, k) => r <= k, one:'At most %n star', many:'At most %n stars', name:'At most', next:'gt'},
+  gte:{sym:'≥', test:(r, k) => r >= k, one:'At least %n star', many:'At least %n stars', name:'At least', next:'lte'},
+  lte:{sym:'≤', test:(r, k) => r <= k, one:'At most %n star', many:'At most %n stars', name:'At most', next:'eq'},
+  eq:{sym:'=', test:(r, k) => r === k, one:'Exactly %n star', many:'Exactly %n stars', name:'Exactly', next:'gte'},
 };
-function ratingImpossible(f){ return (f.rating === 5 && f.ratingOp === 'gt') ? t('No photo has more than 5 stars') : (f.rating === 0 && f.ratingOp === 'lt') ? t('No photo has fewer than 0 stars') : ''; }
 function filtersActive(){ const f = S.filters; return f.rating !== null || f.labels.size || f.flags.size || f.pairs.size || f.folders.size; }
 function activeFilterCount(){ const f = S.filters; return (f.rating !== null) + (f.labels.size > 0) + (f.flags.size > 0) + (f.pairs.size > 0) + (f.folders.size > 0); }
 function passes(it){
@@ -1531,7 +1522,7 @@ function renderGrid(){
   $('gridWrap').classList.toggle('selmode', S.selMode); g.classList.toggle('selmode', S.selMode);
   if (!S.folderPath){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">${t('No folder chosen')}</div>${t('Pick a folder to start culling.')}</div>`; return; }
   if (!S.view.length && S.items.length && !filtersActive() && S.filters.scope !== 'all'){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">${S.filters.scope === 'undecided' ? t('Every photo is decided') : t('No photos left to cull')}</div>${nRejText()}<br><br><button class="btn primary" data-act="delRejected" ${rejectedItems().length ? '' : 'hidden'}>${t('Review rejects')}</button> <button class="btn" data-act="scope" data-v="all">${t('Show all')}</button></div>`; return; }
-  if (!S.view.length){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">${t('Nothing matches these filters')}</div>${ratingImpossible(S.filters) ? ratingImpossible(S.filters) + '.<br>' : ''}${multiFolder() ? t('{items} in {folders}.', {items:n('%n item', '%n items', S.items.length), folders:n('%n folder', '%n folders', S.set.folders.length)}) : t('{items} in this folder.', {items:n('%n item', '%n items', S.items.length)})}<br><br><button class="btn" data-act="fClear">${t('Clear filters')}</button></div>`; return; }
+  if (!S.view.length){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">${t('Nothing matches these filters')}</div>${multiFolder() ? t('{items} in {folders}.', {items:n('%n item', '%n items', S.items.length), folders:n('%n folder', '%n folders', S.set.folders.length)}) : t('{items} in this folder.', {items:n('%n item', '%n items', S.items.length)})}<br><br><button class="btn" data-act="fClear">${t('Clear filters')}</button></div>`; return; }
   const frag = document.createDocumentFragment();
   io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting){ io.unobserve(e.target); thumbQueue.push(e.target); } pumpThumbs(); }, {root:$('gridWrap'), rootMargin:'500px 0px'});
   const heads = S.groupFolder && multiFolder(); let last = null;
