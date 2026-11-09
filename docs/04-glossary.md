@@ -25,7 +25,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **grid** | The thumbnail view of a folder set. |
 | **loupe** | The full-screen view of one picture, with swipe, zoom and the decision buttons. |
 | **gesture guide** | The card on the first loupe opening that lists the swipes, tap zones, pinch, double-tap and keys. |
-| **tap zone** | The left or right 30 % of the photo area in the loupe and series viewer; a tap there goes to the previous or next photo. The middle shows or hides the overlays (`plan.md`, *Tap zones*). |
+| **tap zone** | The left or right 30 % of the whole photo area in the loupe and series viewer, margins beside, above and below the photo included; a tap there goes to the previous or next photo. The middle shows or hides the overlays (`plan.md`, *Tap zones*). |
 | **tooltip** | The bubble that names a control and its key, on hover, keyboard focus or long-press. One for the whole app; not the browser's `title`. |
 | **filter** | A condition on rating, colour label, flag, pairing or folder that narrows the grid and loupe. |
 | **selection** | The set of pictures marked in selection mode for a bulk action. |

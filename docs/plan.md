@@ -331,9 +331,12 @@ touch taps (numbers in the pull request):
 
 1. **Three zones across the photo area.** A tap on the left 30 % goes to the previous photo, on
    the right 30 % to the next, on the middle 40 % it shows or hides the overlays as before. The
-   zones span the full height and are measured on the photo area, not the photo, so a tap on the
-   dark margin beside a portrait photo counts too. On the first or last photo the outer zone
-   does nothing. The overlays keep their state: paging by tap does not bring them back.
+   zones span the whole width and height of the photo area, not the photo (owner, same day):
+   the dark margin beside a portrait photo in landscape, and above or below a landscape photo,
+   counts like the photo under it. The middle 40 % stays the middle wherever the photo lies, so
+   on the Pixel in landscape the inner 51 px of each 337 px margin toggle the overlays. On the
+   first or last photo the outer zone does nothing. The overlays keep their state: paging by tap
+   does not bring them back.
 2. **Buttons win.** *Pick*, *Reject*, *Unflag* and every overlay control lie above the zones; a
    tap on one decides or acts, a tap beside one pages. The edge buttons stay as they are
    (84 × 240 px, 68 × 154 px on the Pixel), so they cover 8–9 % of an outer zone and a thumb
