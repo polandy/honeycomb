@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 honeycomb contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Keeps the SHA-pinned Actions current; composer and npm join when their manifests exist.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
