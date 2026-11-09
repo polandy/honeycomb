@@ -27,8 +27,9 @@ that brings the first file of their kind ([`plan.md`](plan.md#milestones)).
   exists, unchanged since the client read it — before anything is touched.
 - Database access through `QBMapper`/`Entity` and migrations in `lib/Migration/`.
 - Errors: domain exceptions per service; controllers map them to HTTP status codes.
-- Tools: `nextcloud/coding-standard` through php-cs-fixer, psalm (with `nextcloud/ocp` stubs) at
-  the level set in `psalm.xml`, PHPUnit for tests under `tests/php/`.
+- Tools: `nextcloud/coding-standard` through php-cs-fixer, psalm (with the `nextcloud/ocp` stubs
+  of Nextcloud 35) at the level set in `psalm.xml`, PHPUnit for tests under `tests/php/`.
+  `scripts/php.sh` runs them with the local PHP, or in the pinned composer Docker image.
 
 ## 3.3 TypeScript and Vue
 
