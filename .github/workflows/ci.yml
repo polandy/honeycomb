@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# One job per tool, same versions as scripts/verify.sh; PHP and JS jobs join with M1 and M2.
+# One job per tool, same versions as scripts/verify.sh; PHP and TS jobs join with M1, e2e with M2.
 name: CI
 
 on:

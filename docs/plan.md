@@ -7,7 +7,8 @@ PR-sized items in this order. As of 2026-11-09.
 ## Milestones
 
 Each milestone ends with a usable state on `main`. Milestones M1–M4 follow the brief's order:
-backend pairing, grid, full-screen review, deleting and settings.
+pairing, grid, full-screen review, deleting and settings. The split between the thin PHP backend
+and the TypeScript logic is in [Backend and frontend](#backend-and-frontend) (ADR 0006).
 
 ### M0 – Mockup sign-off
 
@@ -20,34 +21,39 @@ The answers go into ADRs and into this file; the question markers disappear from
 
 Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs the app icon.
 
-### M1 – App skeleton and backend pairing
+### M1 – App skeleton, thin listing backend, pairing in TypeScript
 
 1. **Skeleton:** `appinfo/info.xml` with the versions from Q1, `composer.json` with
-   php-cs-fixer, psalm and PHPUnit, the `Application` class, an empty main page, the PHP jobs in
-   CI and `scripts/verify.sh`, `info.xml` in release-please's extra files.
-2. **Pairing service:** pure PHP that groups a list of file entries (path, size, mtime) into
-   pictures. PHPUnit tests first, ported as test cases from Framehive's LIBRARY-001 and the
-   brief: names differing only in case, several dots in a file name, singles (JPEG only, RAW
-   only), sidecars, ambiguous members (Q14), separate subfolders (Q16), configurable extension
-   lists (Q15).
-3. **Folder API:** `GET /api/v1/folders/{path}/pictures?offset&limit&filter…` lists the
-   pictures of a folder through `IRootFolder` with the user's permissions, paginated so 2,000+
-   pairs load without stalls; each picture carries its file id and mtime for the cache-keyed
-   image URLs. Tests with `OCP\Files` mocks.
+   php-cs-fixer, psalm and PHPUnit, the `Application` class, an empty main page;
+   `package.json` with TypeScript, eslint and Vitest with the coverage gate
+   ([`02-workflow.md`](02-workflow.md) §2.3); the PHP and TypeScript jobs in CI and
+   `scripts/verify.sh`; `info.xml` and `package.json` in release-please's extra files.
+2. **Listing backend:** `GET /api/v1/folders/{path}/entries` returns the folder's files as flat
+   entries — file id, path, size, mtime, ETag, mime type and EXIF basics (capture time,
+   orientation, dimensions) where Nextcloud's file metadata has them — from one file-cache query
+   by path prefix and mime type, for the user's folder only. No pairing on the server. PHPUnit
+   first, with the failure paths: a foreign path, a vanished folder, no permission; 2,000+ pairs
+   in one response without stalls.
+3. **Pairing module:** pure TypeScript that groups the entries into pictures. Vitest first, on
+   test vectors shared with Framehive (LIBRARY-001) and the brief's cases: names differing only
+   in case, several dots in a file name, singles (JPEG only, RAW only), sidecars, ambiguous
+   members (Q14), separate subfolders (Q16), configurable extension lists (Q15).
 
 ### M2 – Grid view
 
-1. **Frontend skeleton:** Vue, `@nextcloud/vue`, Vite through `@nextcloud/vite-config`, eslint,
-   Vitest, the JS jobs in CI and `scripts/verify.sh`.
-2. **Folder picker and grid:** `@nextcloud/dialogs` file picker, a virtual-scrolling grid with
+1. **Frontend skeleton:** Vue, `@nextcloud/vue`, Vite through `@nextcloud/vite-config`, the
+   build and the Playwright job against a Nextcloud container in CI and `scripts/verify.sh`.
+2. **Image endpoint:** serves Nextcloud previews under immutable URLs keyed by file id and mtime
+   (see [Image delivery & performance](#image-delivery--performance)).
+3. **Folder picker and grid:** `@nextcloud/dialogs` file picker, a virtual-scrolling grid with
    srcset thumbnails (256/512 px, stepless size) and pair badges, light and dark.
-3. **Decision storage:** the table(s) and API for rating, colour label and flag per picture and
+4. **Decision storage:** the table(s) and API for rating, colour label and flag per picture and
    user (Q2), and the resume position per folder and user, so culling can stop and continue on
    another device (an ADR first: new table).
-4. **Filter bar:** rating, colour label, flag and pairing filters, applied on the server for
-   large folders (Q8, Q9), and the scope *not rejected* / *undecided* / *all* of the culling
-   workflow with the "x of y decided" progress.
-5. **Selection and bulk actions:** selection mode, select all filtered, bulk rate, label and flag
+5. **Filter bar:** rating, colour label, flag and pairing filters and the sort, as pure
+   TypeScript modules over the listed pictures (Q8, Q9, Q18), and the scope *not rejected* /
+   *undecided* / *all* of the culling workflow with the "x of y decided" progress.
+6. **Selection and bulk actions:** selection mode, select all filtered, bulk rate, label and flag
    (Q10).
 
 ### M3 – Full-screen review (loupe)
@@ -71,14 +77,16 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    from the selection (Q11).
 3. **Settings:** per user — RAW and rendered extensions, folder mode, show singles, gesture
    mapping, auto-advance.
-4. **README:** installation, features, screenshot placeholders; `camerarawpreviews` and Preview
-   Generator as recommended apps.
+4. **README:** features, screenshot placeholders, the installation section brought up to date;
+   `camerarawpreviews` and Preview Generator as recommended apps.
 
 ### M5 – XMP sidecars
 
 Read existing sidecars when a folder is listed and write ratings, colour labels and flags to
 them, so digiKam, darktable and Lightroom Classic on the desktop see the decisions. Fields,
-precedence, write rules and test vectors: [`06-xmp-interop.md`](06-xmp-interop.md).
+precedence, write rules and test vectors: [`06-xmp-interop.md`](06-xmp-interop.md). The
+mapping and the serialized form are a TypeScript module; the backend writes the bytes it gets
+with the checked save (ADR 0006).
 
 ### M6 – Series compare
 
@@ -113,13 +121,13 @@ pictures, a rejected picture disappears from view, and at the end delete all rej
 5. **Auto-advance.** After each pick or reject the view moves to the next undecided picture
    (the setting stays, Q7 is answered). Rating and colour label do not advance.
 6. **Progress and resume.** The toolbar shows "x of y decided" per folder. The last position per
-   folder and user is stored on the server (with the decisions, M2.3), so another device offers
+   folder and user is stored on the server (with the decisions, M2.4), so another device offers
    to continue there.
 7. **Multi-pass.** The scope filter has *not rejected* (default), *undecided* and *all*, so a
    second pass over the picks or a pass over what is left is one tap. An explicit flag filter
    overrides the scope.
 
-Where the work lands: M2.3 (resume position), M2.4 (scope, progress), M3.2 (auto-advance, toast),
+Where the work lands: M2.4 (resume position), M2.5 (scope, progress), M3.2 (auto-advance, toast),
 M4.1 and M4.2 (delete, review, summary), M6 (series).
 
 ## Image delivery & performance
@@ -155,9 +163,9 @@ opened, by the Preview Generator app or an own background job. Imaginary is opti
 | First sharp image in a newly opened folder | < 500 ms |
 | Grid scroll at 2,000+ items | no jank |
 
-Where the work lands: M1.3 (cache-keyed URLs), M2.2 (tiers, virtualised grid), M3.1 (prefetch,
-`decode()` swap), M4.4 (README recommendation), and a new item for the background generation
-and the RAW preview extraction.
+Where the work lands: M1.2 (file id and mtime per entry), M2.2 (cache-keyed URLs), M2.3
+(tiers, virtualised grid), M3.1 (prefetch, `decode()` swap), M4.4 (README recommendation), and
+a new item for the background generation and the RAW preview extraction.
 
 ## Compact header and series viewer
 
@@ -216,7 +224,7 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    every photo of the series to the same spot, and panning moves them together, so paging
    compares the same detail for sharpness. While zoomed, a swipe pans instead of paging.
 
-Where the work lands: M2.2 (header, bar, scroll behaviour), M6 (series viewer).
+Where the work lands: M2.3 (header, bar, scroll behaviour), M6 (series viewer).
 
 ## Moving pictures
 
@@ -261,6 +269,23 @@ folder structure later, so each name still carries its date. A third preset keep
 whitespace), the same default template, and one suffix numbering (honeycomb starts at `-2`,
 Framehive's IMPORT-003 at `-1`).
 
+## Backend and frontend
+
+honeycomb is a classic PHP Nextcloud app, not an AppAPI ExApp (ADR 0006).
+
+| Backend (PHP, thin) | Frontend (pure TypeScript modules in `src/logic/`) |
+|---|---|
+| List a folder: one file-cache query by path prefix and mime type, flat entries with EXIF basics | Pairing, series |
+| Move and trash files through `OCP\Files` | Filters, sort, the culling scope and progress |
+| Write the XMP bytes the client produced, with the checked save | XMP read and write mapping, serialized form |
+| Store per-user decisions, resume position and settings | Name templates and move conflicts |
+| Serve Nextcloud previews | Undo, gestures, hotkeys, header scroll logic |
+
+The backend validates every path or file id it gets — owned by the user, still there, unchanged
+since the client listed it — and never trusts the client's pairing, names or counts. Vue
+components wire the modules to the DOM and the API and hold no rules of their own. How tests are
+written for each side: [`02-workflow.md`](02-workflow.md) §2.3.
+
 ## Project structure
 
 The standard Nextcloud app layout; folders appear with the milestone that needs them.
@@ -270,26 +295,32 @@ honeycomb/
 ├── appinfo/info.xml            app id `honeycomb`, versions (Q1), navigation entry
 ├── lib/
 │   ├── AppInfo/Application.php
-│   ├── Controller/             PageController, PictureController, DecisionController,
-│   │                           DeleteController, SettingsController (thin)
+│   ├── Controller/             PageController, EntryController, DecisionController,
+│   │                           FileController, SettingsController (thin)
 │   ├── Service/
-│   │   ├── Pairing/            pure pairing logic, no OCP dependency
-│   │   ├── FolderService.php   lists a folder through IRootFolder
-│   │   ├── DecisionService.php rating, colour label, flag per user
-│   │   ├── DeleteService.php   members + sidecars into the trash bin
+│   │   ├── ListingService.php  one file-cache query: flat entries of a folder
+│   │   ├── PathGuard.php       rechecks every client path: owned, exists, unchanged
+│   │   ├── FileService.php     move, trash, write XMP bytes through OCP\Files
+│   │   ├── DecisionService.php rating, colour label, flag and resume position per user
 │   │   └── SettingsService.php per-user settings (IConfig user values)
 │   ├── Db/                     entities and QBMapper classes
-│   ├── Migration/              database migrations
-│   └── Xmp/                    sidecar reader/writer (M5)
-├── src/                        Vue: main.js, App.vue, views/, components/, store/ (Pinia)
+│   └── Migration/              database migrations
+├── src/
+│   ├── logic/                  pure TypeScript, no DOM or network: pairing, series, filter,
+│   │                           sort, name templates, conflicts, xmp, undo, gestures, hotkeys,
+│   │                           header scroll
+│   └── main.ts, App.vue, views/, components/, store/ (Pinia)
 ├── templates/main.php          mounts the Vue app
-├── tests/php/Unit/, tests/js/  PHPUnit, Vitest
+├── tests/php/, tests/js/       PHPUnit, Vitest
+├── tests/e2e/                  Playwright against a Nextcloud container
+├── tests/fixtures/             test vectors, shared with Framehive where they overlap
 ├── img/app.svg, img/app-dark.svg
 ├── l10n/                       translations (Transifex later)
 ├── docs/                       this documentation, the mockup, ADRs
 ├── assets/brand/               logo sources and generate.py
 ├── scripts/verify.sh           every CI check locally
-├── composer.json, package.json, psalm.xml, .php-cs-fixer.dist.php, phpunit.xml, vite.config.js
+├── composer.json, package.json, psalm.xml, .php-cs-fixer.dist.php, phpunit.xml,
+│   tsconfig.json, vite.config.ts, playwright.config.ts
 └── CLAUDE.md, TODO.md, REUSE.toml, LICENSES/
 ```
 

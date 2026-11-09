@@ -22,6 +22,33 @@ milestones and open questions are in [`docs/plan.md`](docs/plan.md). How ratings
 colour labels appear in digiKam, darktable and Lightroom:
 [`docs/user/ratings-flags-colours.md`](docs/user/ratings-flags-colours.md).
 
+## Installation
+
+Nothing is released yet; this is how honeycomb will be installed. It needs a Nextcloud version
+from [`docs/plan.md`](docs/plan.md#target-versions) (Q1). The apps `camerarawpreviews` (RAW
+previews) and Preview Generator (pre-generated previews) are recommended.
+
+**From the App Store.** As an admin, open *Apps*, search for honeycomb and click *Download and
+enable*, or run `occ app:install honeycomb`. Updates arrive the same way.
+
+**Manually.** Download the release tarball `honeycomb-<version>.tar.gz` from the [GitHub
+releases](https://github.com/polandy/honeycomb/releases), unpack it into the server's
+`custom_apps/` folder (or another app folder listed in `apps_paths` in `config.php`), make it
+owned by the web server user and enable it:
+
+```sh
+tar -xzf honeycomb-<version>.tar.gz -C /var/www/nextcloud/custom_apps/
+chown -R www-data:www-data /var/www/nextcloud/custom_apps/honeycomb
+sudo -u www-data php /var/www/nextcloud/occ app:enable honeycomb
+```
+
+A Git checkout needs a build first (`composer install --no-dev`, `npm ci`, `npm run build`).
+
+**Signing.** Release tarballs carry `appinfo/signature.json`, made with the app's App Store
+certificate (`occ integrity:sign-app`). Nextcloud's code integrity check verifies it and warns
+in *Administration settings → Overview* when a file was changed, added or removed; do not edit
+an installed release. A Git checkout has no signature and is not checked.
+
 ## Sister project
 
 [Framehive](https://github.com/polandy/framehive) is a desktop photo library written in Rust by

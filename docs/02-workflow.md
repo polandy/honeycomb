@@ -29,12 +29,23 @@ during a task becomes an issue as above.
 
 ## 2.3 Tests
 
-- Test first. Watch each new test fail once before you make it pass.
-- Test at the lowest layer that can express the behaviour: PHPUnit for services, controllers and
-  file operations (with `OCP\Files` mocks or the Nextcloud test server), Vitest for components and
-  stores.
-- Tests are deterministic: no sleep, no wall clock, no network, no shared state between tests.
-  Never skip, ignore or retry a failing test; fix the cause.
+- Test first. The failing test is committed on its own (`test: …`) before the commit that makes
+  it pass; watch it fail once. The `pr-review` skill checks the order.
+- Test at the lowest layer that can express the behaviour (ADR 0006):
+  - **Vitest** for the pure TypeScript modules (pairing, series, filters, sort, name templates,
+    conflicts, XMP mapping, undo, gestures, hotkeys, header scroll) and, with `@vue/test-utils`,
+    for components.
+  - **PHPUnit** for every endpoint and service, with `OCP\Files` mocks or the Nextcloud test
+    server, including the failure paths: a foreign path, a vanished file, a conflict, no
+    permission.
+  - **Playwright** end to end against a real Nextcloud container, for the flows across both.
+- Coverage gate in CI: logic modules (`src/logic/`) at least 95 % lines and 90 % branches; Vue
+  components at least 80 % lines. A pull request does not lower either.
+- Test vectors shared with Framehive (pairing, XMP, name templates) are data files under
+  `tests/fixtures/`, read by the tests rather than copied into them.
+- Tests are deterministic: no sleep, no timing waits, no wall clock (inject a clock), no
+  network, no shared state between tests. Playwright waits on a visible state, never on a
+  timeout. Never skip, ignore or retry a failing test; fix the cause.
 - Pairing and deleting cover their edge and failure cases (CLAUDE.md rules 1–2).
 
 ## 2.4 Before opening

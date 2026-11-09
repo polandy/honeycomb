@@ -10,8 +10,8 @@ only. **Don't grow it**: move detail into `docs/` and keep a pointer here.
 ## Commands
 
 - **Before finishing:** `scripts/verify.sh`. It mirrors CI, prints one line per step and the
-  failing step in full. PHP steps (php-cs-fixer, psalm, phpunit) and JS steps (eslint, vitest,
-  build) join it with milestones M1 and M2 (`docs/plan.md`).
+  failing step in full. PHP steps (php-cs-fixer, psalm, phpunit) and TypeScript steps (eslint,
+  tsc, vitest with coverage) join it with M1, build and Playwright with M2 (`docs/plan.md`).
 - Open work: `TODO.md`. `/todo` adds, `/next` plans, `/status` and `/review` check, skill
   `pr-review` reviews a PR. Subagents: `honeycomb-implementer` (one task),
   `honeycomb-reviewer` (one change). Red CI: `gh run view <run> --log-failed`.
@@ -52,8 +52,10 @@ Every tool result is re-read, and paid for, on each later turn.
 2. **Deleting moves to the Nextcloud trash bin** and acts on a whole pair (JPEG, RAW, sidecars).
    A partial failure is reported per file and leaves a traceable state (milestone M4.1).
 3. **No production code before the owner signs off the mockup** (ADR 0003, milestone M0).
-4. **Test first.** Tests are deterministic: no sleep, no wall clock, no network. Never skip or
-   retry a failing test; fix the cause.
+4. **Test first.** The failing test is its own commit before the implementation. Tests are
+   deterministic: no sleep, no timing waits, no wall clock, no network. Never skip or retry a
+   failing test; fix the cause. Vitest coverage gate: logic modules 95 % lines and 90 % branches
+   (ADR 0006, `docs/02-workflow.md` §2.3).
 5. **Pinned and locked.** `composer.lock` and `package-lock.json` are committed and never edited
    by hand; Actions are pinned by full commit SHA.
 6. **Write an ADR before an architectural choice:** storage format, new dependency, new table,
@@ -69,6 +71,8 @@ Every tool result is re-read, and paid for, on each later turn.
   or an ADR, not into comments.
 - PHP: strict types, constructor injection, no static state; Nextcloud coding standard via
   php-cs-fixer; psalm clean.
+- Thin backend: PHP lists, moves, trashes, writes and stores, and rechecks every path. Logic
+  lives in pure TypeScript modules without DOM or network (ADR 0006).
 - Vue: `@nextcloud/vue` components, `@nextcloud/axios`, no hover-only interaction, colours from
   Nextcloud CSS variables.
 
