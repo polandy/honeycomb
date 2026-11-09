@@ -27,8 +27,6 @@ answers. What remains for sign-off:
    in place.
 2. **Phone app bar:** which controls give way while the key actions are in the app bar
    ([Compact header and series viewer](#compact-header-and-series-viewer), item 2).
-3. **Transifex access** (issue #17): the owner's setup steps and how the bot's direct commits
-   fit the planned `main` ruleset. It blocks only the translation sync, not M1.
 
 Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs the app icon.
 
@@ -40,8 +38,7 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    `package.json` with TypeScript, eslint and Vitest with the coverage gate
    ([`02-workflow.md`](02-workflow.md) §2.3); the PHP jobs on PHP 8.3 and 8.5 against
    Nextcloud 35 and the TypeScript jobs in CI and `scripts/verify.sh`; `info.xml` and
-   `package.json` in release-please's extra files; `.tx/config`, `l10n/.gitkeep` and
-   `.l10nignore` ([Translations](#translations)).
+   `package.json` in release-please's extra files.
 2. **Listing backend:** `GET /api/v1/folders/{path}/entries` returns the folder's files as flat
    entries — file id, path, size, mtime, ETag, mime type and EXIF basics (capture time,
    orientation, dimensions) where Nextcloud's file metadata has them ([Sort order](#sort-order))
@@ -119,6 +116,11 @@ mockup already shows it.
 Moves one picture, the selection or a filter result into another Nextcloud folder, renamed by a
 name template (see [Moving pictures](#moving-pictures)). Decided by the owner on 2026-11-09; the
 mockup shows it.
+
+### Release – first App Store release
+
+Before it: Transifex setup ([Translations](#translations)), the signing certificate and the
+release workflow that uploads the tarball.
 
 ## Culling workflow
 
@@ -555,22 +557,22 @@ Where the work lands: M1.2 (shared per folder), M2.4 (per-user decisions), M3.2 
 
 ## Translations
 
-Decided by the owner on 2026-11-09 (ADR 0007). The source strings are English and go through
-`@nextcloud/l10n`'s `t()` and, for every string with a count, `n()`. Translations come from
-Nextcloud's Transifex from the start; Nextcloud's translation bot commits them to `l10n/` every
-night. The language is the user's Nextcloud language. Numbers and dates use `Intl` on the user's
-Nextcloud locale, and name templates stay the same in every language (ADR 0004).
+Decided by the owner on 2026-11-09 and revised the same day (ADR 0007). The source strings are
+English and go through `@nextcloud/l10n`'s `t()` and, for every string with a count, `n()`, from
+M1. The app ships English only for now. Transifex is deferred until before the first App Store
+release. The language is the user's Nextcloud language. Numbers and dates use `Intl` on the
+user's Nextcloud locale, and name templates stay the same in every language (ADR 0004).
 
-- **Setup.** `.tx/config`, `l10n/.gitkeep` and `.l10nignore` in M1.1; the steps only the owner
-  can do, and how the bot's direct commits fit the planned `main` ruleset, are issue #17.
+- **Transifex.** Set up before the first App Store release (`.tx/config`, `l10n/.gitkeep`,
+  `.l10nignore`, the owner's steps and the `main` ruleset question of issue #17); see the release
+  milestone and `TODO.md`.
 - **Checks.** From M2.1, eslint and a Vitest pass with a stub catalogue fail on a user-visible
   string that bypasses `t()` (ADR 0007, *Checks*).
 - **Mockup.** The ⋯ menu switches the mockup between English and German, to see long German
-  labels in place on the iPad. Its German strings are not a translation source and do not go to
-  Transifex.
+  labels in place on the iPad. Its German strings are not a translation source.
 
-Where the work lands: M1.1 (Transifex files), M2.1 (`@nextcloud/l10n`, checks), every UI item
-after that (strings through `t()`).
+Where the work lands: M2.1 (`@nextcloud/l10n`, checks), every UI item after that (strings
+through `t()`).
 
 ## Project structure
 
@@ -601,7 +603,7 @@ honeycomb/
 ├── tests/e2e/                  Playwright against a Nextcloud container
 ├── tests/fixtures/             test vectors, shared with Framehive where they overlap
 ├── img/app.svg, img/app-dark.svg
-├── l10n/                       translations, committed by Nextcloud's bot (ADR 0007)
+├── l10n/                       translations, once Transifex is set up (ADR 0007)
 ├── docs/                       this documentation, the mockup, ADRs
 ├── assets/brand/               logo sources and generate.py
 ├── scripts/verify.sh           every CI check locally
