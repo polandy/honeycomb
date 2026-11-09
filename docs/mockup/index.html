@@ -385,7 +385,8 @@ main{overflow:hidden}
 .hkeys .count .lb{display:none}
 .hkeys .prog{position:absolute;left:0;right:0;bottom:0;height:3px;border:0;border-radius:0;background:rgba(255,255,255,.2)}
 @container app (min-width:1000px){.hkeys .count .lb{display:inline}.hkeys .ib .lb{display:inline}.hkeys .ib .badge-n{position:static}}
-@container app (max-width:520px){.hkeys{margin-left:0;gap:0}.hkeys .count,.hdr.keys [data-act="nav"],.hdr.keys #hRedo{display:none}}
+@container app (max-width:520px){.hkeys{margin-left:0;gap:0}.hkeys .count,.hdr.keys [data-act="nav"],.hdr.keys #hRedo{display:none}
+  .hdr.keys{gap:0;padding-left:calc(2px + var(--sa-l))}.hdr.keys .logo{padding:0}}
 .bar{display:flex;align-items:center;gap:2px;height:56px}
 .bar .crumbs{flex-wrap:nowrap;overflow:hidden}
 .crumbs.short,.crumbs .cur-only{display:none}
@@ -1541,6 +1542,7 @@ function openMore(anchor){
     ${menuItem('rawRm', 'trash', t('Remove RAWs…'), rawRemovable(S.view).length ? '' : 'disabled', `<span class="k">${nf(rawRemovable(S.view).length)}</span>`)}
     ${rit ? menuItem('resume', 'folder', esc(t('Resume at {name}', {name:stem(rit)}))) : ''}${sep}
     ${sharedItems().length ? menuItem('writeSidecars', 'check', t('Write decisions to sidecars…')) + sep : ''}
+    ${$('hRedo').offsetParent ? '' : menuItem('redo', 'redo', t('Redo'), S.redo.length ? '' : 'disabled', `<span class="k">${HOTKEY.redo}</span>`)}
     ${menuItem('barOff', 'up', t('Hide header'))}${menuItem('settings', 'settings', t('Settings'))}${sep}
     <div class="minfo" id="langLbl">${t('Language (mockup)')}</div><div role="group" aria-labelledby="langLbl">${[['en', 'English'], ['de', 'Deutsch']].map(([v, l]) => `<button class="mi" role="menuitemradio" aria-checked="${LANG === v}" data-act="langSet" data-v="${v}" lang="${v}"><span>${l}</span></button>`).join('')}</div>`;
   openMenu(pop, anchor);

@@ -19,14 +19,10 @@ delete summary, progress and resume, series compare) and settings. The owner tri
 iPad, answers the open questions below, and the mockup is updated until the owner signs it off.
 The answers go into ADRs and into this file; the question markers disappear from the mockup.
 
-All twenty open questions were answered by the owner on 2026-11-09, and the mockup follows the
-answers. What remains for sign-off:
-
-1. **The owner tries the mockup on the iPad and signs it off**, in English and in German (the
-   mockup's language switch, see [Translations](#translations)), so long German labels are seen
-   in place.
-2. **Phone app bar:** which controls give way while the key actions are in the app bar
-   ([Compact header and series viewer](#compact-header-and-series-viewer), item 2).
+**Done (signed off by the owner, 2026-11-10).** All twenty open questions were answered on
+2026-11-09, the last two (the phone app bar and the Lightroom Mobile gesture split) on
+2026-11-10, and the mockup follows the answers. From here the mockup is frozen (ADR 0003); a UI
+change that departs from it needs an owner decision.
 
 Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs the app icon.
 
@@ -295,10 +291,12 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    buttons, the *decided* count with a thin progress line on the bar's bottom edge, *Review
    rejects* with its badge and the ⋯ menu. When the toolbar returns they leave the app bar again;
    there are never two copies at once (the hidden toolbar is inert). Every target keeps 44 px.
-   On a phone the logo shrinks to the mark, and to make room the navigation toggle, *Redo* and
-   the count figures give way while the actions are in the app bar (the line stays); an open
-   question for the owner. Breadcrumbs, *Select*, *Compare series* and *Filters* sit in the
-   toolbar, which returns on scrolling up. The ⋯ entry *Hide header* still hides everything,
+   On a phone the logo shrinks to the mark, and to make room the navigation toggle and the count
+   figures give way while the actions are in the app bar (the thin line stays), *Redo* moves into
+   the ⋯ menu and *Undo* stays in the bar (owner, 2026-11-10; Ctrl+Shift+Z and Ctrl+Y are
+   unchanged). Checked in the mockup at 360 and 412 px: the mark, the three scope icons, *Review
+   rejects*, ⋯ and *Undo* fit with 44 px targets beside the reserved 60 px on the right.
+   Breadcrumbs, *Select*, *Compare series* and *Filters* sit in the toolbar, which returns on scrolling up. The ⋯ entry *Hide header* still hides everything,
    leaving a small handle. The rules are ported from Stella's top bar (`followScroll`) and the
    mockup keeps the decision as a pure function of the same shape:
    - Only after 24 px of travel in one direction does the bar follow; a nudge is not a scroll.
@@ -982,6 +980,8 @@ only. **Answered by the owner on 2026-11-09:** (a), digiKam's nine colours, keys
 (a) up = pick, down = reject; (b) up = reject, down = pick; (c) off by default. **Answered by the
 owner on 2026-11-09:** (a), up = pick, down = reject; each direction can be changed or turned off in
 the settings. See [Decisions, gestures and shared folders](#decisions-gestures-and-shared-folders).
+**Rejected alternative (owner, 2026-11-10):** the Lightroom Mobile split, swipe left = flag and
+swipe right = stars. The vertical swipe stays.
 
 ### Q7 – Advance after a decision
 

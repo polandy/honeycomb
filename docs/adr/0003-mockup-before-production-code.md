@@ -22,5 +22,6 @@ that names the question in `docs/plan.md`. Milestone M0 is the owner's sign-off 
 - The mockup is the reference for UI work; a UI pull request that departs from it needs an owner
   decision first.
 - The mockup is kept current while requirements are refined, then frozen once M0 is signed off.
+  The owner signed it off on 2026-11-10 (milestone M0); it is frozen from then on.
 - It is not production code: its JavaScript is not linted or tested, and nothing is copied from
   it into `src/`.
