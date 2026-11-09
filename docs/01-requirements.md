@@ -80,3 +80,19 @@ together on the mockup ([`mockup/index.html`](mockup/index.html), ADR 0003).
 
 This widens the brief's binary keep/discard decision to digiKam's ratings, colour labels and
 pick labels; [`plan.md`](plan.md#open-questions) Q2 and Q4 settled how.
+
+## 1.9 Owner update 2026-11-09 (Keep RAW)
+
+The owner keeps the RAW for a few pictures and only the JPEG for most.
+
+- A picture can be marked **Keep RAW**: a toggle of its own, independent of rating, colour label
+  and flag, stored like the other decisions (database and XMP sidecar), with the key `R` and a
+  filter.
+- The bulk action **Remove RAWs** covers every pair in the current view that is not marked Keep
+  RAW and not rejected. It moves only the RAW member and its own sidecar to the Nextcloud trash
+  bin; the JPEG, its sidecar, a shared sidecar and all decisions stay. A summary with pictures ·
+  files · bytes freed comes first; singles are skipped.
+- Deleting a whole picture removes every member and every sidecar form; a shared sidecar is
+  removed only when no member remains.
+
+Details: [`plan.md`](plan.md#keep-raw-and-remove-raws).

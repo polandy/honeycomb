@@ -186,6 +186,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .sq.fb[aria-pressed="true"] svg{color:inherit}
 .sq{min-width:44px;height:44px;border-radius:10px;border:1px solid var(--border);background:var(--card-2);padding:0 8px;display:inline-flex;align-items:center;justify-content:center;gap:4px}
 .sq[aria-pressed="true"]{background:var(--honey);border-color:var(--honey);color:var(--on-honey)}
+.pair.p.k{background:var(--honey);color:var(--on-honey)}
 .sq.fb.none[aria-pressed="true"]{background:var(--card);border:2px solid var(--text);color:var(--text)}.l-ctrl .sq.fb.none[aria-pressed="true"],.sv-ctl .sq.fb.none[aria-pressed="true"]{background:#ffffff14;border-color:var(--stage-text);color:var(--stage-text)}
 .sq:disabled,.btn:disabled{opacity:.4}
 
@@ -964,6 +965,24 @@ const DE = {
   '%n of 5 sample photo collides with another one and gets a -2, -3 suffix. Add {camera} and the time to the name to keep names unique.': ['%n von 5 Beispielfotos kollidiert mit einem anderen und erhält ein Suffix -2, -3. Nimm {camera} und die Zeit in den Namen auf, damit Namen eindeutig bleiben.', '%n von 5 Beispielfotos kollidieren mit einem anderen und erhalten ein Suffix -2, -3. Nimm {camera} und die Zeit in den Namen auf, damit Namen eindeutig bleiben.'],
   'All 5 sample photos get unique names, even the two cameras that shot at the same second.': 'Alle 5 Beispielfotos erhalten eindeutige Namen, sogar die beiden Kameras, die in derselben Sekunde ausgelöst haben.',
   'Series compare': 'Serienvergleich',
+  'Keep RAW': 'RAW behalten',
+  'Keep RAW: only for pairs': 'RAW behalten: nur für Paare',
+  'Keep RAW (toggle)': 'RAW behalten (umschalten)',
+  'Rating, colour label, Keep RAW': 'Bewertung, Farbetikett, RAW behalten',
+  'Marked': 'Markiert',
+  'Not marked': 'Nicht markiert',
+  'Pairs marked Keep RAW': 'Paare mit RAW behalten',
+  'Photos without Keep RAW': 'Fotos ohne RAW behalten',
+  'Pair: JPEG and RAW · Keep RAW': 'Paar: JPEG und RAW · RAW behalten',
+  'Marked {name} Keep RAW': '{name}: RAW behalten',
+  'Removed Keep RAW from {name}': '{name}: RAW behalten aufgehoben',
+  'Remove RAWs…': 'RAWs entfernen…',
+  'Remove the RAW of %n photo': ['RAW von %n Foto entfernen', 'RAWs von %n Fotos entfernen'],
+  'Only the RAW file and its own sidecar go. The JPEG, its sidecar and a shared sidecar stay, and every photo keeps its rating, label and flag.': 'Nur die RAW-Datei und ihre eigene Sidecar-Datei gehen. Das JPEG, seine Sidecar-Datei und eine gemeinsame Sidecar-Datei bleiben, und jedes Foto behält Bewertung, Etikett und Markierung.',
+  'Skipped: {kept} · {rej} · {singles}.': 'Übersprungen: {kept} · {rej} · {singles}.',
+  '%n marked Keep RAW': ['%n mit RAW behalten', '%n mit RAW behalten'],
+  '%n rejected': ['%n abgelehnt', '%n abgelehnt'],
+  'Removed the RAWs of {photos} · {files} · {size} freed to the Nextcloud trash bin': 'RAWs von {photos} entfernt · {files} · {size} frei im Nextcloud-Papierkorb',
   /* DE:end */
 };
 const missingDE = new Set();
@@ -1015,7 +1034,7 @@ const labelText = id => t('Label {name}', {name:labelName(id)});
 /* one key map: the shortcuts sheet, the tooltips and the key handlers read it */
 const HOTKEY = {pick:'P', reject:'X', unflag:'U', togglePick:'`', pickRest:'K', starDown:'[', starUp:']', grid:'G', loupe:'E', compare:'N', fit:'Space', zoom:'Z',
   fullscreen:'F', header:'Tab', info:'I', close:'Esc', filters:'\\', filtersOff:'Ctrl/⌘ + L', undo:'Ctrl/⌘ + Z', redo:'Ctrl/⌘ + Shift + Z', reviewRejects:'Ctrl/⌘ + Backspace',
-  move:'M', keys:'Ctrl/⌘ + /', prev:'←', next:'→'};
+  move:'M', keepRaw:'R', keys:'Ctrl/⌘ + /', prev:'←', next:'→'};
 const isKey = (k, id) => k.toLowerCase() === HOTKEY[id].toLowerCase();
 const kbd = t => t.split(' ').map(k => k === '+' || k === '–' ? esc(k) : `<span class="kbd">${esc(k)}</span>`).join(' ');
 /* the bubble tooltip of a control: a label in glossary words and, where one exists, its HOTKEY */
@@ -1036,9 +1055,14 @@ function colourLabel(cur, forKey, {dis = ''} = {}){
   const bg = cur ? LBL[cur].hex : 'conic-gradient(#e5484d,#f2c94c,#3fb26b,#3b82f6,#d946ef,#e5484d)';
   return `<div class="grp"><button class="sq" data-act="palette" data-for="${forKey}" ${dis} aria-label="${cur ? t('Colour label: {name}', {name:labelName(cur)}) : t('Colour label')}" ${tip(t('Colour label'), LABELS.filter(l => l.key).map(l => l.key).join(' '))} style="padding:0 14px"><span class="dotc" style="background:${bg};width:18px;height:18px"></span>${cur ? labelName(cur) : t('Label')}</button></div>`;
 }
-/* d holds rating, label and flag; big puts the flags in a row of their own, tail ends the small row */
+/* only a pair can keep its RAW; d.pair is set for a selection, else d is one picture */
+function keepRawToggle(d, forKey, {id = '', dis = ''} = {}){
+  const can = 'pair' in d ? d.pair : pairType(d) === 'pair', label = can ? t('Keep RAW') : t('Keep RAW: only for pairs');
+  return `<div class="grp"><button class="sq" data-act="keepRaw" ${forAttrs(forKey, id)} ${dis || (can ? '' : 'disabled')} aria-pressed="${!!d.keepRaw}" aria-label="${esc(label)}" ${tip(label, HOTKEY.keepRaw)} style="padding:0 12px">${t('Keep RAW')}</button></div>`;
+}
+/* d holds rating, label, flag and Keep RAW; big puts the flags in a row of their own, tail ends the small row */
 function actionBar(d, forKey, opts = {}){
-  const rest = starRating(d.rating, forKey, opts) + colourLabel(d.label, forKey, opts) + (opts.tail || '');
+  const rest = starRating(d.rating, forKey, opts) + colourLabel(d.label, forKey, opts) + keepRawToggle(d, forKey, opts) + (opts.tail || '');
   return opts.big ? `<div class="ab-big">${flagButtons(d.flag, forKey, opts)}</div><div class="ab-small">${rest}</div>` : rest + flagButtons(d.flag, forKey, opts);
 }
 const pickRestBtn = (forKey, id = '') => `<button class="btn primary" data-act="pickRest" ${forAttrs(forKey, id)} ${tip(t('Pick this, reject the rest'), HOTKEY.pickRest)}>${ic('flagPick')}${t('Pick this, reject the rest')}</button>`;
@@ -1118,7 +1142,7 @@ const TPL_SAMPLES = [
 /* ---------- state ---------- */
 const DEF_SETTINGS = () => ({rawExt:['NEF','CR3','ARW','RAF','DNG'], renderedExt:['JPG','JPEG','HEIC','HEIF','HIF'], folderMode:'same', rawFolder:'RAW', jpgFolder:'JPG',
   showSingles:true, swipeUp:'pick', swipeDown:'reject', autoAdvance:true, storage:'both', moveTemplate:TPL_PRESETS[0][1]});
-const DEF_FILTERS = () => ({scope:'notrej', ratingOp:'gte', rating:null, labels:new Set(), flags:new Set(), pairs:new Set(), folders:new Set()});
+const DEF_FILTERS = () => ({scope:'notrej', ratingOp:'gte', rating:null, labels:new Set(), flags:new Set(), pairs:new Set(), keepRaw:new Set(), folders:new Set()});
 const PREF_KEY = 'honeycomb.mockup.layout';
 const PREF_DEF = {ts:160, navW:248, navOpen:null, infoOpen:false, infoW:300, coachSeen:false};
 function loadPrefs(){ try { return {...PREF_DEF, ...JSON.parse(localStorage.getItem(PREF_KEY) || '{}')}; } catch (e) { return {...PREF_DEF}; } }
@@ -1156,16 +1180,17 @@ function genFolder(path){
     const st = cam[1] + String(n).padStart(4, '0'), roll = r();
     const type = roll < cfg.pPair ? 'pair' : roll < cfg.pPair + cfg.pJpg ? 'jpg' : 'raw';
     const portrait = r() < cfg.pPortrait, ratio = cfg.phone ? 4/3 : 3/2;
-    const it = {id:path + '#' + i, folder:path, base:st, jpg:null, raw:null, xmp:null, aw:portrait ? 1 : ratio, ah:portrait ? ratio : 1, nativeW:portrait ? 4000 : 6000,
+    const it = {id:path + '#' + i, folder:path, base:st, jpg:null, raw:null, xmp:null, keepRaw:false, aw:portrait ? 1 : ratio, ah:portrait ? ratio : 1, nativeW:portrait ? 4000 : 6000,
       seed:Math.floor(r() * 1e9), hue:Math.floor(r() * 360), kind:cfg.kinds[Math.floor(r() * cfg.kinds.length)], time:t, rating:0, label:null, flag:'none'};
     const jdir = cfg.mode === 'sub' ? base + 'JPG/' : base, rdir = cfg.mode === 'sub' ? base + 'RAW/' : base;
     if (type !== 'raw') it.jpg = {name:st + '.JPG', dir:jdir, size:+(6 + r() * 8).toFixed(1)};
     if (type !== 'jpg') it.raw = {name:st + '.' + cam[0], dir:rdir, size:+(20 + r() * 40).toFixed(1)};
-    if (it.raw && r() < .15) it.xmp = {name:it.raw.name + '.xmp', dir:rdir, size:.01};
+    if (it.raw && r() < .15) it.xmp = it.jpg && i % 2 ? {name:st + '.xmp', dir:rdir, size:.01, shared:true} : {name:it.raw.name + '.xmp', dir:rdir, size:.01};
     else if (!it.raw && r() < .06) it.xmp = {name:it.jpg.name + '.xmp', dir:jdir, size:.01};
     if (r() < .35) it.rating = 1 + Math.floor(r() * 5);
     if (r() < .14) it.label = LABELS[Math.floor(r() * LABELS.length)].id;
     const f = r(); it.flag = f < .12 ? 'pick' : f < .22 ? 'reject' : 'none';
+    it.keepRaw = !!(it.jpg && it.raw && it.rating >= 4 && i % 3 === 0);
     const noExif = type === 'jpg' && i % 7 === 3;
     it.model = noExif ? null : MODELS[cam[0]]; it.make = noExif ? null : MAKES[cam[0]]; it.exifTime = noExif ? null : t; it.mtime = t + 3725000; it.time = it.exifTime ?? it.mtime;
     items.push(it);
@@ -1178,7 +1203,7 @@ function ambiguousItems(path, cfg, r){
   const t0 = Date.parse(cfg.date + 'T12:00:00Z');
   return cfg.ambiguous.map((ext, k) => {
     const raw = ext.toUpperCase() === 'NEF', file = {name:'IMG_0042.' + ext, dir:path + '/', size:raw ? 24.6 : 7.2 + k};
-    return {id:path + '#amb' + k, folder:path, base:'IMG_0042', jpg:raw ? null : file, raw:raw ? file : null, xmp:null, aw:1.5, ah:1, nativeW:6000,
+    return {id:path + '#amb' + k, folder:path, base:'IMG_0042', jpg:raw ? null : file, raw:raw ? file : null, xmp:null, keepRaw:false, aw:1.5, ah:1, nativeW:6000,
       seed:Math.floor(r() * 1e9), hue:Math.floor(r() * 360), kind:0, time:t0 + k * 60000, exifTime:t0 + k * 60000, mtime:t0 + 3725000,
       model:MODELS.NEF, make:MAKES.NEF, rating:0, label:null, flag:'none', ambiguous:cfg.ambiguous.length};
   });
@@ -1258,8 +1283,8 @@ const RATING_OPS = {
   lte:{sym:'≤', test:(r, k) => r <= k, one:'At most %n star', many:'At most %n stars', name:'At most', next:'eq'},
   eq:{sym:'=', test:(r, k) => r === k, one:'Exactly %n star', many:'Exactly %n stars', name:'Exactly', next:'gte'},
 };
-function filtersActive(){ const f = S.filters; return f.rating !== null || f.labels.size || f.flags.size || f.pairs.size || f.folders.size; }
-function activeFilterCount(){ const f = S.filters; return (f.rating !== null) + (f.labels.size > 0) + (f.flags.size > 0) + (f.pairs.size > 0) + (f.folders.size > 0); }
+function filtersActive(){ const f = S.filters; return f.rating !== null || f.labels.size || f.flags.size || f.pairs.size || f.keepRaw.size || f.folders.size; }
+function activeFilterCount(){ const f = S.filters; return (f.rating !== null) + (f.labels.size > 0) + (f.flags.size > 0) + (f.pairs.size > 0) + (f.keepRaw.size > 0) + (f.folders.size > 0); }
 function passes(it){
   const f = S.filters;
   if (!S.settings.showSingles && pairType(it) !== 'pair') return false;
@@ -1268,6 +1293,7 @@ function passes(it){
   if (f.labels.size && !f.labels.has(it.label)) return false;
   if (f.flags.size && !f.flags.has(it.flag)) return false;
   if (f.pairs.size && !f.pairs.has(pairType(it))) return false;
+  if (f.keepRaw.size && !f.keepRaw.has(it.keepRaw ? 'yes' : 'no')) return false;
   if (f.folders.size && !f.folders.has(it.folder)) return false;
   return true;
 }
@@ -1328,6 +1354,7 @@ function change(ids, key, value, opts = {}){
   let desc;
   if (key === 'flag') desc = t('{flag} {name}', {flag:flagName(value), name:one});
   else if (key === 'rating') desc = value ? t('Rated {name} {stars}', {name:one, stars:'★'.repeat(value)}) : t('Cleared rating of {name}', {name:one});
+  else if (key === 'keepRaw') desc = value ? t('Marked {name} Keep RAW', {name:one}) : t('Removed Keep RAW from {name}', {name:one});
   else desc = value ? t('Labelled {name} {label}', {name:one, label:labelName(value)}) : t('Removed label from {name}', {name:one});
   const adv = key === 'flag' && value !== 'none' && ids.length === 1 && !S.loupe && S.settings.autoAdvance ? nextUndecided(ids[0]) : null;
   pushUndo(desc, changes);
@@ -1352,6 +1379,11 @@ const decidedCount = () => S.items.filter(i => i.flag !== 'none').length;
 function toggleLabel(ids, lab){
   const its = ids.map(i => S.byId.get(i)).filter(Boolean);
   change(ids, 'label', its.length && its.every(i => i.label === lab) ? null : lab);
+}
+function toggleKeepRaw(ids){
+  const pairs = ids.map(i => S.byId.get(i)).filter(i => i && pairType(i) === 'pair');
+  if (!pairs.length){ toast(t('Keep RAW: only for pairs')); return; }
+  change(pairs.map(i => i.id), 'keepRaw', !pairs.every(i => i.keepRaw));
 }
 function applyEntry(e, dir){
   if (e.move){ applyMove(e.move, dir); renderHeader(); return; }
@@ -1465,6 +1497,7 @@ function openMore(anchor){
     ${multiFolder() ? `<button class="mi" role="menuitemcheckbox" aria-checked="${S.groupFolder}" data-act="groupFolder">${ic('folder')}<span>${t('Group by folder')}</span></button>` : ''}${sep}
     <div class="mi mrow" role="group" aria-label="${t('Thumbnail size')}"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg><input type="range" id="tsRange" min="90" max="340" step="1" value="${Math.round(S.ts)}" data-chg="tsize" aria-label="${t('Thumbnail size')}"><svg class="ic" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></div>${sep}
     ${menuItem('moveView', 'move', filtersActive() ? t('Move filtered') : t('Move picks'), nMove ? '' : 'disabled', `<span class="k">${nf(nMove)}</span>`)}
+    ${menuItem('rawRm', 'trash', t('Remove RAWs…'), rawRemovable(S.view).length ? '' : 'disabled', `<span class="k">${nf(rawRemovable(S.view).length)}</span>`)}
     ${rit ? menuItem('resume', 'folder', esc(t('Resume at {name}', {name:stem(rit)}))) : ''}${sep}
     ${sharedItems().length ? menuItem('writeSidecars', 'check', t('Write decisions to sidecars…')) + sep : ''}
     ${menuItem('barOff', 'up', t('Hide header'))}${menuItem('settings', 'settings', t('Settings'))}${sep}
@@ -1495,6 +1528,8 @@ function renderFilters(){
     ${ch('fFlag', 'pick', ic('flagPick') + flagName('pick'), f.flags.has('pick'))}${ch('fFlag', 'reject', ic('flagX') + flagName('reject'), f.flags.has('reject'))}${ch('fFlag', 'none', ic('flag') + flagName('none'), f.flags.has('none'))}</div></div>
   <div class="fgroup"><span class="lbl">${t('Pairing')}</span><div class="chips">
     ${ch('fPair', 'pair', t('Pairs'), f.pairs.has('pair'))}${ch('fPair', 'jpg', t('JPEG only'), f.pairs.has('jpg'))}${ch('fPair', 'raw', t('RAW only'), f.pairs.has('raw'))}</div></div>
+  <div class="fgroup"><span class="lbl">${t('Keep RAW')}</span><div class="chips">
+    ${ch('fKeepRaw', 'yes', t('Marked'), f.keepRaw.has('yes'), tip(t('Pairs marked Keep RAW')))}${ch('fKeepRaw', 'no', t('Not marked'), f.keepRaw.has('no'), tip(t('Photos without Keep RAW')))}</div></div>
   ${multiFolder() ? `<div class="fgroup"><span class="lbl">${t('Folder')}</span><div class="chips">
     ${S.set.folders.filter(p => !FOLDERS[p].big).map(p => `<button class="chip" data-act="fFolder" data-path="${esc(p)}" aria-pressed="${f.folders.has(p)}" ${tip(p)}>${esc(folderName(p))}</button>`).join('')}</div></div>` : ''}
   <div class="fright"><span class="hint">${t('Within a group: any. Across groups: all.')}</span><span class="count" id="countF">${t('{shown} of {total}', {shown:nf(S.view.length), total:nf(S.items.length)})}</span><button class="btn" data-act="fClear" ${filtersActive() ? '' : 'disabled'}>${t('Clear filters')}</button></div>`;
@@ -1510,7 +1545,7 @@ function tileInner(it){
   ${it.ambiguous ? `<span class="amb" ${tip(t('Ambiguous name: {count} files are called {name}, ignoring case, so none is paired', {count:nf(it.ambiguous), name:it.base}))}>!</span>` : ''}<span class="burst" hidden></span><span class="chk" ${tip(t('Selected'))}>${ic('check')}</span><span class="rejx" aria-hidden="true" ${tip(flagName('reject'))}>${ic('flagX')}</span><div class="ov"><span class="stars" aria-hidden="true"></span><span class="dotc" hidden></span><span class="flw"></span></div>`;
 }
 function tileLabel(it){
-  const bits = [stem(it), pairLabel(it)]; if (it.rating) bits.push(n('%n star', '%n stars', it.rating)); if (it.label) bits.push(t('{name} label', {name:labelName(it.label)})); if (it.flag !== 'none') bits.push(flagName(it.flag).toLowerCase()); if (it.ambiguous) bits.push(t('ambiguous name'));
+  const bits = [stem(it), pairLabel(it)]; if (it.rating) bits.push(n('%n star', '%n stars', it.rating)); if (it.label) bits.push(t('{name} label', {name:labelName(it.label)})); if (it.flag !== 'none') bits.push(flagName(it.flag).toLowerCase()); if (it.keepRaw) bits.push(t('Keep RAW')); if (it.ambiguous) bits.push(t('ambiguous name'));
   return bits.join(', ');
 }
 function updateTile(id){
@@ -1521,6 +1556,8 @@ function updateTile(id){
   const st = el.querySelector('.stars'); st.innerHTML = it.rating ? stars(it.rating) : ''; if (it.rating) st.dataset.tip = n('Rating: %n star', 'Rating: %n stars', it.rating); else delete st.dataset.tip;
   const dot = el.querySelector('.dotc'); dot.hidden = !it.label; if (it.label){ dot.style.background = LBL[it.label].hex; dot.dataset.tip = labelText(it.label); }
   el.querySelector('.flw').innerHTML = flagMark(it.flag);
+  const pb = el.querySelector('.pair'); pb.classList.toggle('k', !!it.keepRaw); pb.textContent = pairLabel(it) + (it.keepRaw ? ' ✓' : '');
+  pb.dataset.tip = pairType(it) === 'pair' ? (it.keepRaw ? t('Pair: JPEG and RAW · Keep RAW') : t('Pair: JPEG and RAW')) : t('Single: {name}', {name:pairLabel(it)});
 }
 function renderGrid(){
   const g = $('grid'); io && io.disconnect(); tileEls.clear(); g.replaceChildren();
@@ -1610,7 +1647,7 @@ function setTileSize(v, live){
 function renderActionBar(){
   const el = $('actionbar'); el.hidden = !S.selMode; if (!S.selMode) return;
   const dis = S.sel.size ? '' : 'disabled', its = [...S.sel].map(i => S.byId.get(i)).filter(Boolean);
-  el.innerHTML = `${actionBar({rating:common(its, 'rating'), label:common(its, 'label'), flag:common(its, 'flag')}, 'bulk', {dis})}
+  el.innerHTML = `${actionBar({rating:common(its, 'rating'), label:common(its, 'label'), flag:common(its, 'flag'), keepRaw:common(its, 'keepRaw'), pair:its.some(i => pairType(i) === 'pair')}, 'bulk', {dis})}
   <span class="grow"></span><span class="count">${n('%n selected', '%n selected', S.sel.size)}</span>
   <button class="btn" data-act="moveSel" ${dis}>${ic('move')}${t('Move…')}</button><button class="btn danger" data-act="delSel" ${dis}>${ic('trash')}${t('Delete…')}</button>`;
 }
@@ -1704,7 +1741,7 @@ function dlgShell(title, body, foot, wide, canClose = true){
 function renderDlg(){
   const d = S.dlg, root = $('dlgRoot'); if (!d){ root.replaceChildren(); return; }
   const old = root.querySelector('.dlg-b'), top = old ? old.scrollTop : 0;
-  const map = {picker:dlgPicker, del:dlgDelete, settings:dlgSettings, keys:dlgKeys, report:dlgReport, review:dlgReview, burst:dlgBurst, move:dlgMove, sidecars:dlgSidecars};
+  const map = {picker:dlgPicker, del:dlgDelete, settings:dlgSettings, keys:dlgKeys, report:dlgReport, review:dlgReview, rawrm:dlgRawRm, burst:dlgBurst, move:dlgMove, sidecars:dlgSidecars};
   root.innerHTML = map[d.type](d);
   const nb = root.querySelector('.dlg-b'); if (nb) nb.scrollTop = top;
   if (d.refocus){ const i = root.querySelector(d.refocus); i && i.focus(); d.refocus = null; }
@@ -1893,6 +1930,35 @@ function doDelete(ids, failFirst){
   storeItems();
   return {done, failed, removed:removedIds.length};
 }
+/* Remove RAWs: pairs in the view, not marked Keep RAW, not rejected; the RAW and its own sidecar go */
+const rawRemovable = its => its.filter(i => pairType(i) === 'pair' && !i.keepRaw && i.flag !== 'reject');
+const rawFilesOf = it => [{...it.raw, kind:'RAW', it}, it.xmp && !it.xmp.shared && {...it.xmp, kind:'XMP', it}].filter(Boolean);
+function dlgRawRm(d){
+  const view = d.ids.map(i => S.byId.get(i)).filter(Boolean), its = rawRemovable(view), files = its.flatMap(rawFilesOf), total = files.reduce((a, f) => a + f.size, 0);
+  const kept = view.filter(i => pairType(i) === 'pair' && i.keepRaw).length, rej = view.filter(i => pairType(i) === 'pair' && !i.keepRaw && i.flag === 'reject').length, singles = view.length - its.length - kept - rej;
+  return confirmDialog(n('Remove the RAW of %n photo', 'Remove the RAWs of %n photos', its.length),
+    `<div class="sumrow"><div class="stat"><b>${nf(its.length)}</b>${n('photo', 'photos', its.length)}</div><div class="stat"><b>${nf(files.length)}</b>${n('file', 'files', files.length)}</div><div class="stat"><b>${fmtSize(total)}</b>${t('freed')}</div></div>
+    <p style="margin:0 0 10px;color:var(--muted);font-size:13px">${t('Only the RAW file and its own sidecar go. The JPEG, its sidecar and a shared sidecar stay, and every photo keeps its rating, label and flag.')} ${t('Skipped: {kept} · {rej} · {singles}.', {kept:n('%n marked Keep RAW', '%n marked Keep RAW', kept), rej:n('%n rejected', '%n rejected', rej), singles:n('%n single', '%n singles', singles)})}</p>
+    <div class="fl-list" tabindex="0" aria-label="${esc(t('Files that will be deleted'))}">${files.map(f => `<div><span class="k">${f.kind}</span><span class="n"><i>${esc(f.dir.replace('/Photos/', '…/'))}</i>${esc(f.name)}</span><span>${fmtSize(f.size)}</span></div>`).join('')}</div>
+    <div class="note">${ic('trash')}<span>${t('Files move to the Nextcloud trash bin and can be restored from there. Nothing is deleted for good; the space returns when the trash bin is emptied.')}</span></div>`,
+    {cancel:t('Cancel'), confirm:{act:'rawRmConfirm', label:n('Move %n file to trash', 'Move %n files to trash', files.length), icon:'trash', kind:'danger', dis:!files.length}});
+}
+function doRemoveRaws(ids, failFirst){
+  const done = [], failed = [], its = rawRemovable(ids.map(i => S.byId.get(i)).filter(Boolean));
+  its.forEach((it, k) => {
+    for (const f of rawFilesOf(it)){
+      if (failFirst && k === 0 && f.kind === 'RAW'){ failed.push({...f, why:'File is locked (another process is writing to it)'}); break; }
+      done.push(f); f.kind === 'RAW' ? it.raw = null : it.xmp = null;
+    }
+  });
+  storeItems();
+  return {done, failed, removed:its.filter(i => !i.raw).length};
+}
+function finishRawRm(res){
+  closeDlg(); refreshView(); renderHeader(); if (S.loupe) showLoupe();
+  if (res.failed.length){ openDlg({type:'report', res}); toast(`${n('Moved %n file to trash', 'Moved %n files to trash', res.done.length)} · ${n('%n failed', '%n failed', res.failed.length)}`); }
+  else toast(t('Removed the RAWs of {photos} · {files} · {size} freed to the Nextcloud trash bin', {photos:n('%n photo', '%n photos', res.removed), files:n('%n file', '%n files', res.done.length), size:fmtSize(res.done.reduce((a, f) => a + f.size, 0))}));
+}
 function dlgReport(d){
   const r = d.res;
   return confirmDialog(t('Deletion finished with errors'),
@@ -1941,7 +2007,7 @@ function dlgSettings(){
 const KEYS = [
   ['Flags', [[HOTKEY.pick, 'Pick (again: unflag)'], [HOTKEY.reject, 'Reject (again: unflag)'], [HOTKEY.unflag, 'Unflag'], ['Shift + P', 'Pick and go to the next photo'], ['Shift + X', 'Reject and go to the next photo'], ['Shift + U', 'Unflag and go to the next photo'],
     ['Caps Lock', 'Auto-advance: every decision goes to the next photo'], [HOTKEY.togglePick, 'Toggle pick'], [HOTKEY.pickRest, 'Series: pick this, reject the rest']]],
-  ['Rating and colour label', [['0 – 5', 'Set rating'], ['Shift + 0 – 5', 'Set rating and go to the next photo'], [HOTKEY.starDown, 'One star down'], [HOTKEY.starUp, 'One star up'], [LABELS.filter(l => l.key).map(l => l.key).join(' '), 'Label red / yellow / green / blue (toggle)']]],
+  ['Rating, colour label, Keep RAW', [['0 – 5', 'Set rating'], ['Shift + 0 – 5', 'Set rating and go to the next photo'], [HOTKEY.starDown, 'One star down'], [HOTKEY.starUp, 'One star up'], [LABELS.filter(l => l.key).map(l => l.key).join(' '), 'Label red / yellow / green / blue (toggle)'], [HOTKEY.keepRaw, 'Keep RAW (toggle)']]],
   ['Views and photos', [['Arrow keys', 'Grid: move focus. Loupe, series compare, series viewer: switch photo'], ['Enter', 'Open the loupe'], [HOTKEY.grid, 'Grid'], [HOTKEY.loupe, 'Loupe'], [HOTKEY.compare, 'Series compare'], [HOTKEY.fit, 'Loupe: fit / 100 %'], [HOTKEY.zoom, 'Loupe and series viewer: fit / 100 %'],
     ['Ctrl/⌘ + =', 'Zoom in'], ['Ctrl/⌘ + -', 'Zoom out'], [HOTKEY.fullscreen, 'Fullscreen'], [HOTKEY.header, 'Show or hide the header (loupe: the controls)'], [HOTKEY.info, 'Cycle the info overlay'], [HOTKEY.close, 'Close loupe / dialog / selection']]],
   ['Filter and selection', [[HOTKEY.filters, 'Show or hide the filter bar'], [HOTKEY.filtersOff, 'Filters off / on'], ['Ctrl/⌘ + A', 'Select all (filtered)'], ['Ctrl/⌘ + D', 'Select none'], ['Shift + click', 'Select a range']]],
@@ -2407,6 +2473,7 @@ const A = {
   fLabel(el){ toggleSet(S.filters.labels, el.dataset.v); refreshView(); },
   fFlag(el){ toggleSet(S.filters.flags, el.dataset.v); refreshView(); },
   fPair(el){ toggleSet(S.filters.pairs, el.dataset.v); refreshView(); },
+  fKeepRaw(el){ toggleSet(S.filters.keepRaw, el.dataset.v); refreshView(); },
   fFolder(el){ toggleSet(S.filters.folders, el.dataset.path); refreshView(); }, groupFolder(){ S.groupFolder = !S.groupFolder; closeMenu(); refreshView(); },
   fClear(){ S.filters = {...DEF_FILTERS(), scope:S.filters.scope}; refreshView(); },
   palette(el){ showPalette(el, el.dataset.for); },
@@ -2417,6 +2484,8 @@ const A = {
   more(el){ if ($('popRoot').firstChild && S.menuAnchor === el) closeMenu(); else openMore(el); }, path(el){ if ($('popRoot').firstChild && S.menuAnchor === el) closeMenu(); else openPath(el); },
   sortSet(el){ S.sort = el.dataset.v; refreshView(); }, langSet(el){ setLang(el.dataset.v); },
   writeSidecars(){ openDlg({type:'sidecars'}); },
+  rawRm(){ openDlg({type:'rawrm', ids:S.view.map(i => i.id)}); }, rawRmConfirm(){ const res = doRemoveRaws(S.dlg.ids, S.mock.fail); S.lastFailed = res.failed; finishRawRm(res); },
+  keepRaw(el){ toggleKeepRaw(idsForKey(el.dataset.for, el.dataset.id)); },
   sidecarsConfirm(){ const its = sharedItems(); closeDlg(); toast(n('Wrote the decisions of %n photo to sidecars', 'Wrote the decisions of %n photos to sidecars', its.length)); },
   barOff(){ P0.barOff = true; savePrefs(); applyBar(); toast(t('Header hidden · tap the handle at the top to bring it back')); }, barOn(){ P0.barOff = false; savePrefs(); resetBar(); },
   resume(){ const id = S.server.resume[S.folderPath], hit = S.view.find(i => i.id === id) || S.view.find(i => i.flag === 'none') || S.view[0]; if (hit) openLoupe(hit.id); },
@@ -2548,6 +2617,7 @@ function cullKey(e, c){
   const f = FLAGS.find(fl => lk === fl.key.toLowerCase()); if (f){ e.preventDefault(); flag(f.v); return true; }
   if (k === HOTKEY.togglePick){ e.preventDefault(); flag('pick'); return true; }
   const lab = LABELS.find(l => l.key === k); if (lab){ e.preventDefault(); toggleLabel(ids, lab.id); return true; }
+  if (isKey(k, 'keepRaw')){ e.preventDefault(); toggleKeepRaw(ids); return true; }
   return false;
 }
 function filtersOffOn(){

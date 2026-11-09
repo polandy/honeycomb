@@ -29,6 +29,7 @@ Properties are matched by namespace URI, never by prefix (CORE-009.6).
 | `darktable` | `http://darktable.sf.net/` | darktable `exif.cc:6788` |
 | `lr` | `http://ns.adobe.com/lightroom/1.0/` | ExifTool `XMP.pm:158` |
 | `dc` | `http://purl.org/dc/elements/1.1/` | ExifTool, CORE-009.6 |
+| `honeycomb` | `https://github.com/polandy/honeycomb/xmp/1.0/` | honeycomb's own (ADR 0008) |
 
 ## Field mapping
 
@@ -40,6 +41,7 @@ Properties are matched by namespace URI, never by prefix (CORE-009.6).
 | flag *unflagged* | `digiKam:PickLabel` 0 or absent | rating ≥ 0 | `xmpDM:pick` 0 or absent |
 | (digiKam's *pending*) | `digiKam:PickLabel` 2 | – | – |
 | colour label | `digiKam:ColorLabel` 0–9 and `xmp:Label` text | `darktable:colorlabels`, a `rdf:Seq` of 0–4, several allowed | `xmp:Label` text |
+| *Keep RAW* | – | – | – |
 | (tags) | `digiKam:TagsList` `a/b/c` | `lr:hierarchicalSubject` `a\|b\|c`, `dc:subject` | `lr:hierarchicalSubject` `a\|b\|c`, `dc:subject` |
 
 Evidence, one line per claim:
@@ -106,6 +108,11 @@ Same as Framehive (CORE-009 "Sidecar names", LIBRARY-001 "Metadata"):
 - darktable's duplicates (`IMG_0001_01.NEF.xmp`, `image.c:930`) belong to darktable versions,
   not to members: honeycomb neither reads nor writes them, and deletes them with the picture.
   *Added; Framehive does not mention them.*
+- **Deleting a picture** removes every member and every sidecar form: each `<member file>.xmp`,
+  the darktable duplicates and the shared `<base>.xmp`. A shared `<base>.xmp` is removed only when
+  no member of the picture remains. **Remove RAWs** removes the RAW member and only its own
+  `<raw file>.xmp`; the JPEG's `<file>.xmp` and a shared `<base>.xmp` stay
+  ([`plan.md`](plan.md#keep-raw-and-remove-raws)).
 
 ## Reading
 
@@ -126,6 +133,7 @@ UTF-8, has a `<!DOCTYPE>`, or gives one property two values (CORE-009.11–.15).
 | flag | `digiKam:PickLabel` 0–3 (2 pending → *unflagged*) · `xmpDM:pick` 1/−1 (0 is skipped, as in digiKam) · `xmpDM:good` `True`/`False` · `xmp:Rating` −1 → *rejected* · else *unflagged* |
 | rating | `xmp:Rating` 0–5, a real rounded down; −1 or out of range → 0 |
 | colour label | `digiKam:ColorLabel` 0–9 · `xmp:Label` (digiKam's ten texts, exact case; `NoColor` → none) · `darktable:colorlabels` → the lowest index · else none |
+| *Keep RAW* | `honeycomb:KeepRaw` `True` (any case) → marked · else not marked; ignored for a single |
 
 The order is digiKam's for flags and colour labels, so where digiKam has a pick label honeycomb
 never shows a picture as rejected that digiKam does not, which matters before "delete
@@ -158,6 +166,7 @@ Camera Raw settings and unknown namespaces (CORE-009.3, .23).
 | `digiKam:ColorLabel` | always | 0–9; 0 for none, so digiKam does not fall through to `photoshop:Urgency` |
 | `xmp:Label` | always, except in a darktable sidecar that lacks it | digiKam's text (`Purple` for magenta); removed for none |
 | `darktable:colorlabels` | only in a darktable sidecar, only when the colour label changed | a `rdf:Seq` with the one darktable index; removed for none and for orange, gray, black and white |
+| `honeycomb:KeepRaw` | always, for a pair | `True` when marked *Keep RAW*; removed when not marked |
 | tags | never | – |
 
 A **darktable sidecar** is one with `darktable:xmp_version`. digiKam's fields are written always
