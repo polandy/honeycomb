@@ -434,6 +434,37 @@ main{overflow:hidden}
 .sv-nav{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:64px;color:var(--stage-text);background:#00000066;transition:opacity .3s}
 .sv-nav.prev{left:calc(4px + env(safe-area-inset-left))}.sv-nav.next{right:calc(4px + env(safe-area-inset-right))}
 #serie.idle .sv-ctl,#serie.idle .sv-nav{opacity:0;pointer-events:none}
+/* landscape: the photo fills the screen, Pick and Reject float at its side edges, the rest hides when idle (docs/plan.md Loupe layout) */
+@container app (orientation:landscape){
+  #loupe,#serie{--rail:96px;--railL:calc(var(--rail) + env(safe-area-inset-left));--railR:calc(var(--rail) + env(safe-area-inset-right))}
+  #loupe .l-top{position:absolute;top:0;left:0;right:0;z-index:4;padding-left:calc(var(--railL) + 6px)}
+  #loupe #infoPanel{padding-top:68px;margin-right:var(--railR)}
+  #loupe .l-top,#loupe .film{transition:opacity .3s}
+  #loupe .film{position:absolute;left:var(--railL);right:var(--railR);bottom:56px;z-index:4;background:#0009}
+  #loupe .l-ctrl,#serie .sv-bot{position:absolute;inset:0;z-index:4;padding:0;background:none;border:0;pointer-events:none}
+  #loupe .ab-small,#serie .ab-small{position:absolute;left:var(--railL);right:var(--railR);bottom:0;min-height:56px;padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:linear-gradient(transparent,#000c);pointer-events:auto;transition:opacity .3s}
+  #serie .sv-bar{flex:none;max-width:none;margin:0}
+  #serie #svSync{position:absolute;left:var(--railL);bottom:62px;padding:0 10px}
+  #loupe .ab-big,#serie .ab-big{position:absolute;inset:0;max-width:none;width:auto}
+  .ab-big .grp.flags{flex:1;display:grid;grid-template-columns:var(--railL) 1fr var(--railR);grid-template-rows:1fr auto auto 1fr;gap:10px 0;padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
+  .ab-big .bigbtn{pointer-events:auto;flex-direction:column;gap:6px;width:calc(var(--rail) - 12px);height:clamp(120px,36cqh,240px);min-height:0;padding:0 4px;margin:0 6px;font-size:14px}
+  .ab-big .bigbtn.pick{grid-area:2/1;justify-self:end}
+  .ab-big .bigbtn.reject{grid-area:2/3;justify-self:start}
+  .ab-big .bigbtn.none{grid-area:3/3;justify-self:start;height:56px;flex:none}
+  .ab-big .bigbtn.none span{display:none}
+  .ab-big .bigbtn:not([aria-pressed="true"]){background:#000000a6;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  #loupe .navbtn{transition:opacity .3s}
+  #loupe .navbtn.l{left:calc(var(--railL) + 4px)}#loupe .navbtn.r{right:calc(var(--railR) + 4px)}
+  #loupe.idle .l-top,#loupe.idle .film,#loupe.idle .ab-small,#loupe.idle .navbtn,#serie.idle .ab-small,#serie.idle #svSync{opacity:0;pointer-events:none}
+  #serie.idle .sv-bot{opacity:1}
+  #serie .sv-top{padding-left:calc(var(--railL) + 10px)}
+  #serie .sv-nav.prev{left:calc(var(--railL) + 4px)}#serie .sv-nav.next{right:calc(var(--railR) + 4px)}
+  #serie:not([hidden]) ~ #toasts{bottom:calc(64px + env(safe-area-inset-bottom))}
+}
+@container app (orientation:landscape) and (max-height:520px){
+  #loupe,#serie{--rail:80px}
+  .ab-big .bigbtn{font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -2055,7 +2086,7 @@ function tplPreview(tpl){
 
 /* ---------- loupe ---------- */
 const swipeWord = (a, off = 'nothing') => a === 'none' ? t(off) : t(a === 'pick' ? 'pick' : 'reject');
-const L = {W:0, H:0, z:{s:1, tx:0, ty:0}, anim:false, film:true, slides:[], cvs:[null, null, null], pre:[], timers:[]};
+const L = {W:0, H:0, z:{s:1, tx:0, ty:0}, anim:false, film:true, slides:[], cvs:[null, null, null], pre:[], timers:[], idle:0};
 function buildLoupe(){
   $('loupe').innerHTML = `
   <div class="l-top"><button class="icon-btn" data-act="closeLoupe" aria-label="${esc(t('Close loupe'))}" ${tip(t('Close loupe'), HOTKEY.close)}>${ic('close')}</button>
@@ -2080,8 +2111,15 @@ function buildLoupe(){
 function openLoupe(id){
   const ids = S.view.map(i => i.id), idx = ids.indexOf(id); if (idx < 0) return;
   S.loupe = {ids, idx}; closePop(); document.body.classList.add('in-loupe');
-  $('loupe').hidden = false; buildLoupe(); measure(); showLoupe(); bindStage(); showCoach();
+  $('loupe').hidden = false; buildLoupe(); measure(); showLoupe(); bindStage(); showCoach(); loupeWake();
+  $('loupe').onpointermove = e => { if (e.pointerType === 'mouse') loupeWake(); };
 }
+/* landscape: the overlays hide after a pause, a tap brings them back */
+function loupeWake(){
+  const el = $('loupe'); el.classList.remove('idle'); clearTimeout(L.idle);
+  L.idle = setTimeout(() => { if (!el.querySelector('.l-top :focus-visible, .ab-small :focus-visible, .film :focus-visible')){ el.classList.add('idle'); tipHideIn(el); } }, SV_IDLE_MS);
+}
+function loupeIdleToggle(){ const el = $('loupe'); if (el.classList.contains('idle')) loupeWake(); else { clearTimeout(L.idle); el.classList.add('idle'); tipHideIn(el); } }
 /* one-time gesture guide on the first loupe open */
 function showCoach(){
   const c = $('lCoach'); if (!c || P0.coachSeen) return;
@@ -2094,7 +2132,7 @@ function showCoach(){
 }
 function closeLoupe(){
   if (!S.loupe) return; L.immersive = false; $('loupe').classList.remove('immersive');
-  const id = S.loupe.ids[S.loupe.idx]; S.loupe = null; L.timers.forEach(clearTimeout); $('loupe').hidden = true; $('loupe').replaceChildren();
+  const id = S.loupe.ids[S.loupe.idx]; S.loupe = null; L.timers.forEach(clearTimeout); clearTimeout(L.idle); $('loupe').classList.remove('idle'); $('loupe').hidden = true; $('loupe').replaceChildren();
   const nx = nextUndecided(id); refreshView();
   setFocus(S.view.some(i => i.id === id) ? id : nx || S.focusId); const el = tileEls.get(S.focusId); if (el){ el.scrollIntoView({block:'nearest'}); }
 }
@@ -2226,7 +2264,7 @@ function bindStage(){
     const tr = $('track');
     if (gg.mode === 'undecided'){
       const now = performance.now(), pos = rel(e);
-      if (e.type === 'pointerup' && now - lastTap < 320 && lastTapPos && Math.hypot(pos[0] - lastTapPos[0], pos[1] - lastTapPos[1]) < 40){ lastTap = 0; setImmersive(!L.immersive); } else { lastTap = now; lastTapPos = pos; }
+      if (e.type === 'pointerup' && now - lastTap < 320 && lastTapPos && Math.hypot(pos[0] - lastTapPos[0], pos[1] - lastTapPos[1]) < 40){ lastTap = 0; setImmersive(!L.immersive); } else if (e.type === 'pointerup'){ lastTap = now; lastTapPos = pos; loupeIdleToggle(); }
       return;
     }
     if (gg.mode === 'h'){

@@ -89,6 +89,51 @@ Severity: **high** breaks a task or misleads, **medium** slows or confuses, **lo
 |---|---|
 | ![Move before, 390 dark](ux/before-move-390-dark.png) | ![Move after, 390 dark](ux/after-move-390-dark.png) |
 
+## Landscape loupe
+
+The owner tested the mockup on the iPad (2026-11-09): in landscape the photo was too small and
+the controls at the bottom took too much room. The fix is the rule in
+[plan.md](plan.md#loupe-layout): the photo fills the screen, *Pick* and *Reject* float at the
+side edges, everything else overlays the photo and hides when idle.
+
+**Measured** with Playwright 1.63.0 (Chromium) in the dark theme, on photo 4 of the
+*Dolomites* folder (3:2) and the first series. *Photo* is the fitted photo's area as a share of
+the screen. *Controls* are the strips across the full width that the photo has to share:
+before, the title row, the filmstrip and the bottom bar, all always shown; after, only the
+overlays, which hide when idle. The flag buttons after are two 84 × 240 px buttons at the edges
+(68 × 140 px on a phone) plus *Unflag*, outside the middle half of the screen.
+
+| Screen | Loupe photo before → after | Loupe controls before → after | Series viewer photo before → after | Series viewer controls before → after |
+|---|---|---|---|---|
+| iPad 11″ landscape 1180 × 820 | 47 % → 92 % | 259 px always → 182 px, hidden when idle | 96 % → 96 % | 194 px, Pick and Reject hidden when idle → 116 px, Pick and Reject always shown |
+| iPad 13″ landscape 1366 × 1024 | 60 % → 85 % | 259 px always → 182 px, hidden when idle | 89 % → 89 % | same as above |
+| Phone landscape 844 × 390 | 8 % → 67 % | 259 px always → 182 px, hidden when idle | 69 % → 69 % | 194 px → 166 px (the row wraps), Pick and Reject always shown |
+| Desktop 1440 × 900 | 46 % → 90 % | 259 px always → 182 px, hidden when idle | 94 % → 94 % | as on the iPad |
+| iPad 11″ portrait 820 × 1180 | 45 % → 45 % | 259 px, unchanged | 46 % → 46 % | unchanged |
+| Phone portrait 390 × 844 | 30 % → 30 % | 301 px, unchanged | 31 % → 31 % | unchanged |
+
+The series viewer already showed its photo full screen with controls that hide; it now keeps
+*Pick* and *Reject* in view while the rest hides, and its bottom row shrinks from 134 px to
+56 px.
+
+### Loupe on an iPad in landscape
+
+| Before | After, controls shown | After, idle |
+|---|---|---|
+| ![Loupe before, 1180 dark](ux/before-loupe-1180-dark.png) | ![Loupe after, 1180 dark](ux/after-loupe-1180-dark.png) | ![Loupe after, idle, 1180 dark](ux/after-loupe-1180-dark-idle.png) |
+
+### Loupe on a phone in landscape
+
+| Before | After, idle |
+|---|---|
+| ![Loupe before, 844 dark](ux/before-loupe-844-dark.png) | ![Loupe after, idle, 844 dark](ux/after-loupe-844-dark-idle.png) |
+
+### Series viewer on an iPad in landscape
+
+| Before | After, idle |
+|---|---|
+| ![Series viewer before, 1180 dark](ux/before-serie-1180-dark.png) | ![Series viewer after, idle, 1180 dark](ux/after-serie-1180-dark-idle.png) |
+
 ## What already works
 
 - Every icon button has an accessible name.

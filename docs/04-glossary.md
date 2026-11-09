@@ -56,7 +56,8 @@ loupe, series compare, series viewer). The controls come from the shared compone
 
 - **Order.** The flag buttons are always *Pick*, *Reject*, *Unflag*. An action bar shows rating,
   colour label and flags; where flags are the main action (loupe, series viewer) they get a row
-  of large buttons of their own.
+  of large buttons of their own, or in landscape *Pick* at the left edge and *Reject* above
+  *Unflag* at the right edge.
 - **Toggle.** Pressing the flag a picture already has, by button or key, unflags it.
 - **Photo.** The UI and the user docs say *photo* for a picture; code and specs say *picture*.
 - **Avoid** *keep*, *discard*, *accept*, *unreject* and *clear flag*: they are *Pick*, *Reject*

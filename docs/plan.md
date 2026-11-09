@@ -78,7 +78,8 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 1. **Loupe:** the JPEG (or the RAW's embedded preview) full screen, swipe to page, pinch zoom,
    100 % zoom, prefetching of the neighbours, chrome-free mode, resizable info panel (see
    [Image delivery & performance](#image-delivery--performance)).
-2. **Decisions in the loupe:** large pick and reject buttons, vertical swipe (Q6), rating and
+2. **Decisions in the loupe:** large pick and reject buttons (at the side edges in landscape,
+   [Loupe layout](#loupe-layout)), vertical swipe (Q6), rating and
    colour label controls, auto-advance to the next undecided picture, the "Rejected IMG_0001 · Undo"
    toast.
 3. **Keyboard shortcuts and undo:** the one shared key map ([Keyboard
@@ -281,13 +282,42 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    - **Same controls as the loupe** (owner, 2026-11-09: "keep/reject is not consistent with the
      normal pick/reject"). The bottom bar is the loupe's action bar — *Pick*, *Reject*, *Unflag*,
      rating and colour label for the shown photo, keys `P`, `X`, `U` — plus *Pick this, reject
-     the rest* (`K`). On a phone it wraps to two rows. The series compare dialog shows the
+     the rest* (`K`). On a phone it wraps to two rows; in landscape the flags sit at the side
+     edges ([Loupe layout](#loupe-layout)). The series compare dialog shows the
      same flag buttons and *Pick this, reject the rest* under each photo.
 5. **Synchronised zoom.** Zooming one photo to 100 % (button, double-tap, pinch or `Z`) zooms
    every photo of the series to the same spot, and panning moves them together, so paging
    compares the same detail for sharpness. While zoomed, a swipe pans instead of paging.
 
 Where the work lands: M2.3 (header, bar, scroll behaviour), M6 (series viewer).
+
+## Loupe layout
+
+The owner on 2026-11-09, after testing the mockup on the iPad: in landscape the photo was too
+small and the controls at the bottom took too much room; the photo, *Pick* and *Reject* matter
+most. The rule for the loupe and the series viewer, measured in
+[ux-review.md](ux-review.md#landscape-loupe):
+
+1. **Landscape (wider than tall): the photo fills the screen.** Nothing takes a strip of its
+   own; the photo is fitted to the whole loupe.
+2. **Pick and Reject float at the side edges**, where the hands hold a tablet: *Pick* at the
+   left edge, *Reject* at the right with *Unflag* below it, so the glossary order holds from
+   left to right. They are 84 px wide and 120–240 px tall (68 px wide on a phone), vertically
+   centred, on a dark translucent fill, always visible, and never reach the middle half of the
+   screen. *Previous* and *Next* sit just inside them.
+3. **Everything else overlays the photo and hides when idle:** the title row (name, pair,
+   count, *Fit*, *Move…*, *Info*, filmstrip toggle) at the top, the filmstrip and the rating
+   and colour label row at the bottom (plus *Pick this, reject the rest* in the series viewer).
+   They hide 2.5 s after the last touch, as the series viewer's controls already did; a tap on
+   the photo shows or hides them, a mouse move shows them, and a control with keyboard focus
+   keeps them shown. The info panel opens beside the photo, inside the *Reject* edge.
+4. **Portrait keeps the bottom bar:** title row, photo, filmstrip, then the large flag row and
+   the rating row below, as before. The layout switches with the orientation, on rotation too.
+5. **Unchanged:** every keyboard shortcut, the swipe gestures, the tooltips, double-tap or `F`
+   for the chrome-free mode (which also hides the edge buttons), and the shared `ActionBar`:
+   one component, laid out by orientation, not a second copy.
+
+Where the work lands: M3.1 and M3.2 (loupe), M6 (series viewer).
 
 ## Keyboard shortcuts
 
@@ -417,7 +447,7 @@ under `src/components/`. A new screen composes these; a variant is a prop, not a
 | `FlagMark` (`flagMark`) | the read-only flag icon | `PhotoTile`, loupe filmstrip, series compare card | — |
 | `StarRating` (`starRating`, `stars`) | 0–5 buttons, or read-only stars | action bar, `PhotoTile`, series compare card | `decisions` |
 | `ColourLabels` (`colourLabel`, `showPalette`) | the label button and the nine-colour palette | action bar, filter bar | `decisions`, `hotkeys` |
-| `ActionBar` (`actionBar`) | rating, colour label and flags; flags in a large row of their own, plus a slot | grid selection, loupe, series viewer | `decisions`, `hotkeys` |
+| `ActionBar` (`actionBar`) | rating, colour label and flags; flags in a large row of their own (portrait) or at the side edges (landscape, [Loupe layout](#loupe-layout)), plus a slot | grid selection, loupe, series viewer | `decisions`, `hotkeys` |
 | `PickRestButton` (`pickRestBtn`) | *Pick this, reject the rest* | series compare card, series viewer | `series` |
 | `UndoToast` (`toast`) | the change in words, *Undo*, an optional action | every undoable change | `undo`: entries and their text |
 | `ConfirmDialog` (`confirmDialog`) | title, body, footer *Back* · *Cancel* · confirm; a bottom sheet on a phone | delete summary, reject review, move summary, folder picker, delete report | — |
