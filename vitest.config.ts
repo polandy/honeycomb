@@ -6,6 +6,9 @@ export default defineConfig({
 	test: {
 		include: ['tests/js/**/*.test.ts'],
 		passWithNoTests: true,
+		restoreMocks: true,
+		unstubGlobals: true,
+		unstubEnvs: true,
 		coverage: {
 			provider: 'v8',
 			include: ['src/logic/**/*.ts'],

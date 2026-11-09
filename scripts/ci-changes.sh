@@ -19,7 +19,7 @@ while IFS= read -r path; do
     release-please-config.json | .release-please-manifest.json | .gitignore) ;;
     tests/e2e/* | playwright* | img/* | l10n/* | css/*) app=true ;;
     *.php | composer.* | appinfo/* | templates/* | lib/* | tests/php/* | psalm* | .php-cs-fixer* | phpunit*) php=true app=true ;;
-    *.ts | *.vue | src/* | package*.json | tsconfig* | vite* | vitest* | eslint* | .eslintrc*)
+    *.ts | *.vue | src/* | package*.json | .npmrc | tsconfig* | vite* | vitest* | eslint* | .eslintrc*)
       ts=true app=true ;;
     *) all ;;
   esac
