@@ -8,6 +8,7 @@ import type { Toast } from './toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
+import { keyCap } from './hotkeys.ts'
 import { commonDecision } from './logic/decision-change.ts'
 import { isDecided, nextUndecided } from './logic/decision.ts'
 import { swipeFlag } from './logic/loupe-gesture.ts'
@@ -29,14 +30,15 @@ export function useLoupeDecisions<P extends Picture<{ readonly fileId: number }>
 	const shown = () => context.pictures()[context.index()]!
 	const common = computed(() => commonDecision([{ picture: shown(), decision: context.decisionOf(shown()) }]))
 
-	/** Decides the shown picture, then advances when it set a flag. */
-	function decide(intent: DecisionIntent) {
+	/** Decides the shown picture, then advances when it set a flag; returns whether it moved. */
+	function decide(intent: DecisionIntent): boolean {
 		const picture = shown()
 		context.decide(intent, picture)
 		const next = intent.kind === 'flag' && isDecided(context.decisionOf(picture)) ? nextUndecided(context.pictures(), context.index(), context.decisionOf) : null
 		if (next !== null) {
 			context.go(next)
 		}
+		return next !== null
 	}
 
 	/** Sets the flag the swipe stands for, if any. */
@@ -47,13 +49,15 @@ export function useLoupeDecisions<P extends Picture<{ readonly fileId: number }>
 		}
 	}
 
-	/** Shows or hides the large flag buttons and says how to get them back. */
-	function setFlagButtonsShown(flagButtonsShown: boolean) {
+	/** Shows or hides the large flag buttons and says how to get them back, by the key when `byKey`. */
+	function setFlagButtonsShown(flagButtonsShown: boolean, byKey = false) {
 		context.setFlagButtonsShown(flagButtonsShown)
 		context.toast(flagButtonsShown
 			? { message: t('honeycomb', 'Flag buttons shown'), action: null }
 			: {
-					message: t('honeycomb', 'Flag buttons hidden · swipe to decide, the flag at the top shows them'),
+					message: byKey
+						? t('honeycomb', 'Flag buttons hidden · {key} shows them', { key: keyCap('flag-buttons') })
+						: t('honeycomb', 'Flag buttons hidden · swipe to decide, the flag at the top shows them'),
 					action: { label: t('honeycomb', 'Show'), run: () => setFlagButtonsShown(true) },
 				})
 	}
