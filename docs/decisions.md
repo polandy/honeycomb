@@ -441,3 +441,10 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   mark, as the bottom end holds the selection check.
 - 2026-11-10: No Playwright test for the series viewer yet: the e2e fixtures have no capture times,
   so they form no series; the viewer is covered by Vitest component and App tests.
+- 2026-11-10: The name template module formats the capture time as stored, which is the camera's
+  clock (Nextcloud reads EXIF without a zone, as UTC); the modification time fallback is shifted
+  by the UTC offset the caller passes, so it shows the user's local time.
+- 2026-11-10: `{name}` falls back to `unknown` like `{camera}` and `{make}` when the base name is
+  empty after sanitising (`写真.jpg`), so no rendered folder or file name is ever empty.
+- 2026-11-10: Template problems are codes with a column (from 1), worded by the settings in M7.4;
+  problems in the text are reported left to right before problems in the folder structure.

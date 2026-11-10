@@ -63,7 +63,7 @@
     { "value": "Übersicht März", "sanitised": "Uebersicht-Maerz" },
     { "value": "Größe ÄÖÜ äöü", "sanitised": "Groesse-AeOeUe-aeoeue" },
     { "value": "Übersicht", "sanitised": "Uebersicht" },
-    { "value": "Café Señor Ångström", "sanitised": "Cafe-Senor-Angstrom" },
+    { "value": "Café Señor Ångström", "sanitised": "Cafe-Senor-Angstroem" },
     { "value": "a  /\\:*b", "sanitised": "a-b" },
     { "value": "--.Name.--", "sanitised": "Name" },
     { "value": "x - y", "sanitised": "x-y" },
