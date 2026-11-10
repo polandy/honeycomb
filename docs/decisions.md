@@ -362,3 +362,13 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: The fixtures for CORE-009's forms are written for honeycomb, not copied from
   Framehive (GPL-3.0-or-later); `canonical.xmp` states the same model as Framehive's, so equal
   bytes show both write the same form.
+- 2026-11-10: A sidecar holding NUL characters is refused as not UTF-8, so UTF-16 without a byte
+  order mark, which fatal UTF-8 decoding accepts, is caught too (XMP-001.5).
+- 2026-11-10: A refused sidecar is reported by throwing a typed `XmpError` with its reason and,
+  where the parser gives one, line and column, rather than returning a result union.
+- 2026-11-10: The `honeycomb` namespace is added to the preferred prefixes, so `honeycomb:KeepRaw`
+  is always written with that prefix.
+- 2026-11-10: Setting a property honeycomb writes keeps that property's existing qualifiers; only
+  the value text changes (CORE-009.23).
+- 2026-11-10: A sidecar honeycomb creates goes next to its member, `<member path>.xmp`, also when
+  the members of a pair sit in different folders.

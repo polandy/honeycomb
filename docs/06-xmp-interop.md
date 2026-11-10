@@ -190,6 +190,9 @@ target has not appeared or changed since it was read, rename (CORE-009.16–.19)
 check uses the Nextcloud ETag and size in place of BLAKE3. Reading, the mapping and serializing
 are a pure TypeScript module, `src/logic/xmp/` (XMP-001); the backend only does the checked save
 of the bytes (ADR 0006). `@xmldom/xmldom` turns the bytes into an element tree (ADR 0016).
+In it, `parse.ts` (the only importer of xmldom) and `rdf.ts` read, `decision.ts` maps a packet to
+a decision and picks the deciding sidecar, `merge.ts` merges and writes, `serialize.ts` writes the
+canonical form and `targets.ts` names the sidecars a write goes to.
 
 ## Test vectors
 
