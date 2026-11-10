@@ -28,6 +28,7 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 		toastChange(cull.pickRest(picked, rest))
 	}
 
+	/** Toasts a recorded step with Undo. */
 	function toastChange(entry: UndoEntry | null) {
 		if (entry !== null) {
 			show(changeText(entry), { label: t('honeycomb', 'Undo'), run: undo })

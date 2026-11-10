@@ -9,6 +9,7 @@ const PATHS = {
 	chevronLeft: 'M15 6l-6 6 6 6',
 	chevronRight: 'M9 6l6 6-6 6',
 	close: 'M6 6l12 12M18 6 6 18',
+	compare: 'M3 5h8v14H3zM13 5h8v14h-8z',
 	film: 'M3 6h18v12H3zM8 6v12M16 6v12',
 	filter: 'M3 5h18l-7 8v6l-4-2v-4z',
 	flag: 'M5 3v18M5 4h11l-2 4 2 4H5',

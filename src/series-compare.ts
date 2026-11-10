@@ -35,21 +35,25 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	})
 	const activePicture = () => current.value?.[active.value] ?? null
 
+	/** Makes the picture at `at` of the shown series active, clamped. */
 	function setActive(at: number) {
 		anchor.value = current.value ?? []
 		activeIndex.value = Math.max(0, Math.min(at, anchor.value.length - 1))
 	}
 
+	/** Shows the series at `at` with its first picture active. */
 	function show(at: number) {
 		index.value = at
 		setActive(0)
 	}
 
+	/** Opens the compare on the first series. */
 	function start() {
 		open.value = true
 		show(0)
 	}
 
+	/** Closes the compare. */
 	function close() {
 		open.value = false
 	}
@@ -96,3 +100,5 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 
 	return { open, current, position, count, active, setActive, start, close, skip, decide, pickRest, hotkeys }
 }
+
+export type SeriesCompareFlow<P> = ReturnType<typeof useSeriesCompare<P>>

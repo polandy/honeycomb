@@ -30,6 +30,7 @@ export function pickRestEntry(picked: Decided, rest: readonly Decided[]): UndoEn
 	return entryOf(changes, { pickRest: picked.picture.baseName })
 }
 
+/** The undo step of the changes that altered something, or null when none did. */
 function entryOf(changes: readonly { decided: Decided, change: DecisionChange }[], change: UndoChange): UndoEntry | null {
 	const altered = changes.map(({ decided, change }) => ({ decided, rows: changedRows([decided], change) })).filter(({ rows }) => rows.length > 0)
 	if (altered.length === 0) {

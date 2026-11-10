@@ -140,6 +140,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		return record(pickRestEntry(decided([picked])[0]!, decided(rest)))
 	}
 
+	/** Records a step in the history and stores its result. */
 	function record(entry: UndoEntry | null): UndoEntry | null {
 		if (entry !== null) {
 			history = recordStep(history, entry)

@@ -37,6 +37,8 @@ const props = defineProps<{
 	selected: number
 	/** How many pictures are rejected. */
 	rejected: number
+	/** How many series are left to compare. */
+	series: number
 	rawRemovable: number
 	sidecarsShared: boolean
 }>()
@@ -52,6 +54,7 @@ const emit = defineEmits<{
 	selectAll: []
 	selectNone: []
 	reviewRejects: []
+	compareSeries: []
 	removeRaws: []
 	writeSidecars: []
 	openSettings: []
@@ -128,6 +131,17 @@ const setName = computed(() => {
 				<AppIcon name="trash" />
 			</template>
 			<span v-if="props.rejected > 0" class="grid-toolbar__badge" aria-hidden="true">{{ formatNumber(props.rejected) }}</span>
+		</NcButton>
+		<NcButton
+			variant="tertiary"
+			:ariaLabel="props.series > 0 ? t('honeycomb', 'Compare series ({count})', { count: formatNumber(props.series) }) : t('honeycomb', 'Compare series')"
+			:title="t('honeycomb', 'Compare series ({key})', { key: keyCap('compare') })"
+			:disabled="props.series === 0"
+			@click="emit('compareSeries')">
+			<template #icon>
+				<AppIcon name="compare" />
+			</template>
+			<span v-if="props.series > 0" class="grid-toolbar__badge" aria-hidden="true">{{ formatNumber(props.series) }}</span>
 		</NcButton>
 		<NcPopover>
 			<template #trigger>

@@ -33,6 +33,7 @@ async function press(key: string, fields: KeyboardEventInit = {}) {
 }
 
 const compare = (wrapper: AppWrapper) => wrapper.findComponent(SeriesCompare)
+const pictures = (wrapper: AppWrapper) => compare(wrapper).props('series')!
 const shown = (wrapper: AppWrapper) => compare(wrapper).props('series')?.map((picture: { baseName: string }) => picture.baseName) ?? null
 const toastText = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast).text()
 
@@ -78,12 +79,12 @@ describe('App: series compare', () => {
 
 		expect(toastText(wrapper)).toContain('Rejected IMG_1')
 		expect(shown(wrapper)).toEqual(['IMG_2', 'IMG_3'])
-		compare(wrapper).vm.$emit('decide', { kind: 'flag', flag: 'picked' }, compare(wrapper).props('series')[1])
-		compare(wrapper).vm.$emit('pickRest', compare(wrapper).props('series')[0])
+		compare(wrapper).vm.$emit('decide', { kind: 'flag', flag: 'picked' }, pictures(wrapper)[1])
+		compare(wrapper).vm.$emit('pickRest', pictures(wrapper)[0])
 		compare(wrapper).vm.$emit('activate', 1)
 		await flushPromises()
 		expect(shown(wrapper)).toEqual(['IMG_4', 'IMG_5'])
-		expect(compare(wrapper).props('active')).toBe(0)
+		expect(compare(wrapper).props('active')).toBe(1)
 	})
 
 	// spec: SERIES-001.11, SERIES-001.12

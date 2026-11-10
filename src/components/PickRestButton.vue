@@ -1,0 +1,26 @@
+<!--
+  - SPDX-FileCopyrightText: 2026 honeycomb contributors
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<script setup lang="ts">
+import { t } from '@nextcloud/l10n'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import AppIcon from './AppIcon.vue'
+import { keyCap } from '../hotkeys.ts'
+
+const emit = defineEmits<{ pick: [] }>()
+</script>
+
+<template>
+	<NcButton
+		class="pick-rest-button"
+		variant="primary"
+		wide
+		:title="t('honeycomb', 'Pick this, reject the rest ({key})', { key: keyCap('pick-rest') })"
+		@click="emit('pick')">
+		<template #icon>
+			<AppIcon name="flagPick" />
+		</template>
+		{{ t('honeycomb', 'Pick this, reject the rest') }}
+	</NcButton>
+</template>

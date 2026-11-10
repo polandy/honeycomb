@@ -19,7 +19,6 @@ import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcContent from '@nextcloud/vue/components/NcContent'
-import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import ActionBar from './components/ActionBar.vue'
 import CullEmptyState from './components/CullEmptyState.vue'
@@ -27,8 +26,10 @@ import DeleteDialogs from './components/DeleteDialogs.vue'
 import FilterBar from './components/FilterBar.vue'
 import FolderPicker from './components/FolderPicker.vue'
 import GridToolbar from './components/GridToolbar.vue'
+import NoFolderState from './components/NoFolderState.vue'
 import PhotoGrid from './components/PhotoGrid.vue'
 import PhotoLoupe from './components/PhotoLoupe.vue'
+import SeriesCompareFlow from './components/SeriesCompareFlow.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutSheet from './components/ShortcutSheet.vue'
 import SidecarDialogs from './components/SidecarDialogs.vue'
@@ -41,6 +42,7 @@ import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
 import { clearFilters } from './logic/picture-filter.ts'
 import { useSelectionMode } from './selection-mode.ts'
+import { useSeriesCompare } from './series-compare.ts'
 import { useSettings } from './settings.ts'
 import { browserNow, useSidecarFlow } from './sidecar-flow.ts'
 import { browserSchedule } from './tile-selection.ts'
@@ -92,7 +94,8 @@ const { selecting, selected } = selection
 const common = computed(() => cull.common(selected.value))
 watch(cull.pairing, selection.selectNone)
 
-const { decide, undo, redo } = useToastedDecisions(cull, toast.show)
+const { decide, pickRest, undo, redo } = useToastedDecisions(cull, toast.show)
+const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: (intent, picture) => decide(intent, [picture]), pickRest })
 const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
 const { dialog: deleteDialog, busy: deleteBusy, rejected, rawRemovable, rawRemoval } = deleting
 
@@ -124,7 +127,10 @@ useHotkeys(() => {
 	if (shortcutsOpen.value || folderSet.value === null) {
 		return { shortcuts: toggleShortcuts }
 	}
-	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: () => deleting.summariseShown(selected.value, () => grid.value?.focusedIndex() ?? 0), ...(loupe.value === null ? gridKeys : loupeView.value?.hotkeys) }
+	if (seriesCompare.open.value) {
+		return { undo, redo, shortcuts: toggleShortcuts, ...seriesCompare.hotkeys }
+	}
+	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: () => deleting.summariseShown(selected.value, () => grid.value?.focusedIndex() ?? 0), ...(loupe.value === null ? { ...gridKeys, compare: seriesCompare.start } : loupeView.value?.hotkeys) }
 }, () => settings.value.viKeys)
 
 /** Closes the loupe and focuses its last picture in the grid. */
@@ -156,6 +162,7 @@ async function closeLoupe() {
 					:selecting="selecting"
 					:selected="selected.length"
 					:rejected="rejected.length"
+					:series="cull.series.value.length"
 					:rawRemovable="rawRemovable"
 					:sidecarsShared="cull.sharedPictures.value.length > 0"
 					@changeFolders="pickerOpen = true"
@@ -168,6 +175,7 @@ async function closeLoupe() {
 					@selectAll="selection.selectAll"
 					@selectNone="selection.selectNone"
 					@reviewRejects="deleting.review"
+					@compareSeries="seriesCompare.start"
 					@removeRaws="deleting.removeRaws"
 					@writeSidecars="sidecarFlow.ask(cull.sharedDecided())"
 					@openSettings="settingsOpen = true" />
@@ -215,16 +223,7 @@ async function closeLoupe() {
 					</template>
 				</ActionBar>
 			</template>
-			<NcEmptyContent
-				v-else
-				:name="t('honeycomb', 'No folder chosen')"
-				:description="t('honeycomb', 'Pick a folder to start culling.')">
-				<template #action>
-					<NcButton variant="primary" @click="pickerOpen = true">
-						{{ t('honeycomb', 'Choose a folder…') }}
-					</NcButton>
-				</template>
-			</NcEmptyContent>
+			<NoFolderState v-else @chooseFolder="pickerOpen = true" />
 			<FolderPicker
 				v-if="pickerOpen"
 				:current="folderSet"
@@ -254,6 +253,7 @@ async function closeLoupe() {
 				:flow="sidecarFlow"
 				:folderSet="folderSet"
 				:decisionOf="cull.decisionOf" />
+			<SeriesCompareFlow :flow="seriesCompare" :decisionOf="cull.decisionOf" />
 			<SettingsDialog v-model:open="settingsOpen" :settings="settings" @update="updateSettings" />
 			<Teleport to="body">
 				<PhotoLoupe
