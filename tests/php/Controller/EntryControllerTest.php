@@ -11,6 +11,7 @@ use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\EntryController;
 use OCA\Honeycomb\Service\EntryFactory;
 use OCA\Honeycomb\Service\ListingService;
+use OCA\Honeycomb\Service\SharedFolders;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Tests\Service\FakeFiles;
 use OCP\AppFramework\Http;
@@ -22,6 +23,7 @@ use OCP\FilesMetadata\IFilesMetadataManager;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
+use OCP\Share\IManager as IShareManager;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
@@ -31,7 +33,7 @@ final class EntryControllerTest extends TestCase {
 	private function controller(IRootFolder $root, ?IUser $user): EntryController {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($user);
-		$listing = new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class)));
+		$listing = new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class)), new SharedFolders($this->createStub(IShareManager::class)));
 		return new EntryController(Application::APP_ID, $this->createStub(IRequest::class), $session, $listing);
 	}
 

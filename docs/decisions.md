@@ -372,3 +372,13 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   the value text changes (CORE-009.23).
 - 2026-11-10: A sidecar honeycomb creates goes next to its member, `<member path>.xmp`, also when
   the members of a pair sit in different folders.
+- 2026-11-10: Sidecar bytes travel as base64 in JSON, so a sidecar that is not UTF-8 reaches the
+  pure module whole and it reports it (ADR 0017).
+- 2026-11-10: A sidecar request carries at most 1,000 sidecars of at most 1 MiB each; a larger
+  sidecar answers `tooLarge` (ADR 0017).
+- 2026-11-10: Public links and mail shares do not make a folder shared; only other users, federated
+  users and group folders do, since only they edit the sidecars (ADR 0017).
+- 2026-11-10: External storage mounted for several users is not detected as shared; Nextcloud
+  offers no reliable signal for it (ADR 0017).
+- 2026-11-10: The client wrappers for the sidecar endpoints come with M5.3, which first uses them,
+  so M5.2 adds no unused TypeScript.
