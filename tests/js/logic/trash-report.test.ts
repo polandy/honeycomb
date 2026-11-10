@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import { filesOf } from '../../../src/logic/delete-summary.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../../../src/logic/pairing.ts'
-import { retryBatch, trashReport, trashRequest, wholePictures, withoutFiles } from '../../../src/logic/trash-report.ts'
+import { followReplaced, retryBatch, trashReport, trashRequest, wholePictures, withoutFiles } from '../../../src/logic/trash-report.ts'
 import { listingEntry, pictureOf, picturesOf } from './listing-entries.ts'
 
 const ENTRIES = [
@@ -94,5 +94,20 @@ describe('withoutFiles', () => {
 		const { pictures } = withoutFiles([PAIR], new Set(filesOf(PAIR).filter((file) => file.role !== 'sidecar').map((file) => file.entry.fileId)), DEFAULT_PAIRING_SETTINGS)
 
 		expect(pictures).toEqual([])
+	})
+})
+
+describe('followReplaced', () => {
+	const PAIRED_AGAIN = pictureOf(ENTRIES[0]!)
+
+	it('keeps the shown picture, or shows what replaced it', () => {
+		expect(followReplaced([PAIR, SINGLE, OTHER], 2, new Map([[SINGLE, null]]))).toEqual({ pictures: [PAIR, OTHER], index: 1 })
+		expect(followReplaced([PAIR, SINGLE], 0, new Map([[PAIR, PAIRED_AGAIN]]))).toEqual({ pictures: [PAIRED_AGAIN, SINGLE], index: 0 })
+	})
+
+	it('shows the next picture when the shown one went, the previous at the end, and nothing when none is left', () => {
+		expect(followReplaced([PAIR, SINGLE, OTHER], 1, new Map([[SINGLE, null]]))).toEqual({ pictures: [PAIR, OTHER], index: 1 })
+		expect(followReplaced([PAIR, SINGLE], 1, new Map([[SINGLE, null]]))).toEqual({ pictures: [PAIR], index: 0 })
+		expect(followReplaced([SINGLE], 0, new Map([[SINGLE, null]]))).toBeNull()
 	})
 })
