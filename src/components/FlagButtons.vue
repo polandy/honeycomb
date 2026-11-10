@@ -13,7 +13,9 @@ const props = withDefaults(defineProps<{
 	/** The flag, or undefined where a selection's flags differ. */
 	flag: Flag | undefined
 	disabled?: boolean
-}>(), { disabled: false })
+	/** Large buttons carry their label: a row of their own in portrait, the side edges in landscape. */
+	size?: 'small' | 'large'
+}>(), { disabled: false, size: 'small' })
 
 const emit = defineEmits<{ flag: [flag: Flag] }>()
 
@@ -25,7 +27,11 @@ const FLAGS: readonly { flag: Flag, icon: IconName, label: () => string }[] = [
 </script>
 
 <template>
-	<div class="flag-buttons" role="group" :aria-label="t('honeycomb', 'Flag')">
+	<div
+		class="flag-buttons"
+		:class="{ 'flag-buttons--large': props.size === 'large' }"
+		role="group"
+		:aria-label="t('honeycomb', 'Flag')">
 		<button
 			v-for="button in FLAGS"
 			:key="button.flag"
@@ -37,6 +43,7 @@ const FLAGS: readonly { flag: Flag, icon: IconName, label: () => string }[] = [
 			:aria-label="button.label()"
 			@click="emit('flag', button.flag)">
 			<AppIcon :name="button.icon" />
+			<span v-if="props.size === 'large'" class="flag-buttons__label">{{ button.label() }}</span>
 		</button>
 	</div>
 </template>
@@ -86,6 +93,68 @@ const FLAGS: readonly { flag: Flag, icon: IconName, label: () => string }[] = [
 	.flag-buttons__button {
 		min-width: 44px;
 		min-height: 44px;
+	}
+}
+
+.flag-buttons--large {
+	gap: calc(2.5 * var(--default-grid-baseline));
+}
+
+.flag-buttons--large .flag-buttons__button {
+	flex: 1;
+	gap: calc(2 * var(--default-grid-baseline));
+	min-height: 56px;
+	font-size: 16px;
+	font-weight: bold;
+}
+
+@media (orientation: landscape) {
+	.flag-buttons--large {
+		position: absolute;
+		inset: 0 var(--photo-loupe-panel, 0px) 0 0;
+		display: grid;
+		grid-template-columns: var(--flag-buttons-rail) 1fr var(--flag-buttons-rail);
+		grid-template-rows: 1fr auto auto 1fr;
+		gap: calc(2.5 * var(--default-grid-baseline)) 0;
+		pointer-events: none;
+		--flag-buttons-rail: 96px;
+	}
+
+	.flag-buttons--large .flag-buttons__button {
+		flex-direction: column;
+		width: calc(var(--flag-buttons-rail) - 12px);
+		height: clamp(120px, 36vh, 240px);
+		margin: 0 6px;
+		font-size: 14px;
+		pointer-events: auto;
+	}
+
+	.flag-buttons--large .flag-buttons__button--picked {
+		grid-area: 2 / 1;
+	}
+
+	.flag-buttons--large .flag-buttons__button--rejected {
+		grid-area: 2 / 3;
+	}
+
+	.flag-buttons--large .flag-buttons__button--unflagged {
+		grid-area: 3 / 3;
+		height: 56px;
+	}
+
+	.flag-buttons--large .flag-buttons__button--unflagged .flag-buttons__label {
+		display: none;
+	}
+}
+
+@media (orientation: landscape) and (pointer: fine) {
+	.flag-buttons--large .flag-buttons__button {
+		height: clamp(88px, 20vh, 140px);
+		font-size: 13px;
+	}
+
+	.flag-buttons--large .flag-buttons__button--unflagged {
+		height: 40px;
 	}
 }
 </style>

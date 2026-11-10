@@ -43,3 +43,9 @@ export function pictureDecision(picture: Picture<{ readonly fileId: number }>, b
 export function isDecided(decision: Decision): boolean {
 	return decision.flag !== 'unflagged'
 }
+
+/** The index of the first undecided item after `from`, or null when every later item is decided. */
+export function nextUndecided<T>(items: readonly T[], from: number, decisionOf: (item: T) => Decision): number | null {
+	const found = items.findIndex((item, index) => index > from && !isDecided(decisionOf(item)))
+	return found === -1 ? null : found
+}

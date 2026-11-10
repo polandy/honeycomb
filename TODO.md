@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] M3.2: Decisions in the loupe — pick/reject buttons and the *Flag buttons* toggle (`docs/plan.md` Flag buttons and vi keys), vertical swipe (Q6), rating, label and Keep RAW controls, auto-advance to the next undecided picture, "Rejected IMG_0001 · Undo" toast, the swipe up and down line of the gesture guide; built from the shared components (`docs/plan.md` Shared UI components) (2026-11-09)
 - [ ] M3.3: Keyboard shortcuts per the shared key map (`docs/plan.md` Keyboard shortcuts) incl. `R` for Keep RAW, `B`, `Home`/`End`, `Shift+K`, the optional vi keys (`docs/plan.md` Flag buttons and vi keys), undo and redo, shortcut sheet (Q5), the gesture guide's keys line as in the mockup (`P`, `X`, `U`, `Z`, `?`) (2026-11-09)
 - [ ] M4.1: Delete service — members and sidecars into the trash bin through `OCP\Files`, per-file failure report; ADR on pair atomicity first; tests for every failure path (2026-11-09)
 - [ ] M4.2: Reject review (grid of rejects, rescue single pictures) and delete summary with pictures · files · bytes freed, from "delete rejected" and from the selection (Q11) (2026-11-09)

@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { ListingEntry } from '../logic/listing.ts'
-import type { GestureAction, GesturePointer } from '../logic/loupe-gesture.ts'
+import type { GestureAction, GesturePointer, SwipeDirection } from '../logic/loupe-gesture.ts'
 import type { PinchCentre, Size, Zoom } from '../logic/loupe-zoom.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { ObserveSize } from '../observe-size.ts'
@@ -31,6 +31,7 @@ const emit = defineEmits<{
 	page: [step: -1 | 1]
 	overlays: []
 	chromeFree: []
+	swipe: [direction: SwipeDirection]
 	/** The zoom in percent of the full image, null when fitted. */
 	'update:zoom': [percent: number | null]
 }>()
@@ -42,6 +43,7 @@ const stage = useTemplateRef<HTMLElement>('stage')
 const size = ref<Size>({ width: 0, height: 0 })
 const zoom = ref<Zoom>(FIT)
 const dragX = ref(0)
+const liftY = ref(0)
 /** Aspects learnt from loaded images whose listing had no size, by file id. */
 const aspects = reactive(new Map<number, number>())
 
@@ -75,6 +77,7 @@ function sourceOf(shown: ListingEntry, current: boolean): string {
 watch(() => props.index, () => {
 	zoom.value = FIT
 	dragX.value = 0
+	liftY.value = 0
 })
 watch(() => (zoomed.value ? zoomPercent(zoom.value, maxScale.value) : null), (percent) => emit('update:zoom', percent), { immediate: true })
 watch(() => zoomed.value && sources.value.full, (full) => {
@@ -83,7 +86,7 @@ watch(() => zoomed.value && sources.value.full, (full) => {
 	}
 })
 
-const gestures = loupeGestures(() => ({ width: size.value.width, zoomed: zoomed.value }))
+const gestures = loupeGestures(() => ({ ...size.value, zoomed: zoomed.value }))
 let panFrom: Zoom = FIT
 let pinchFrom: { zoom: Zoom, centre: PinchCentre } = { zoom: FIT, centre: { x: 0, y: 0, distance: 0 } }
 
@@ -104,6 +107,14 @@ function act(action: GestureAction | null) {
 			break
 		case 'settle':
 			dragX.value = 0
+			liftY.value = 0
+			break
+		case 'lift':
+			liftY.value = action.dy
+			break
+		case 'swipe':
+			liftY.value = 0
+			emit('swipe', action.direction)
 			break
 		case 'overlays':
 			emit('overlays')
@@ -175,7 +186,7 @@ defineExpose({
 		@pointerup="act(gestures.up(pointerOf($event)))"
 		@pointercancel="act(gestures.cancel(pointerOf($event)))"
 		@contextmenu.prevent>
-		<div class="loupe-stage__track" :style="{ transform: `translateX(${dragX}px)` }">
+		<div class="loupe-stage__track" :style="{ transform: `translateX(${dragX}px) translateY(${liftY}px)` }">
 			<div
 				v-for="slide in slides"
 				:key="slide.member.fileId"
