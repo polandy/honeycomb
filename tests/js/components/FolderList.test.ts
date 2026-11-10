@@ -84,6 +84,8 @@ describe('FolderList', () => {
 	it('opens a folder with subfolders by its arrow, without ticking it, and goes back by the breadcrumbs', async () => {
 		const { wrapper, pending } = await mountList()
 		const open = wrapper.find(`[aria-label="${MARK}Open Photos"]`)
+		// spec: APP-002.9
+		expect(open.attributes('data-tip')).toBe(`${MARK}Open Photos`)
 
 		await open.trigger('click')
 		pending.shift()!.settle()

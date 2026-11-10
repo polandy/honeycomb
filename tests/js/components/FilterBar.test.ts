@@ -36,6 +36,8 @@ describe('FilterBar', () => {
 		expect(comparison(wrapper).attributes('disabled')).toBeDefined()
 		expect(comparison(wrapper).text()).toBe('≥')
 		expect(comparison(wrapper).attributes('aria-label')).toBe(`${MARK}Rating comparison: pick a star count first`)
+		// spec: APP-002.9
+		expect(comparison(wrapper).attributes('data-tip')).toBe(`${MARK}Rating comparison: pick a star count first`)
 	})
 
 	// spec: GRID-002.3
@@ -106,6 +108,8 @@ describe('FilterBar', () => {
 		const names = ['Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Magenta', 'Gray', 'Black', 'White']
 
 		expect(swatches.map((swatch) => swatch.attributes('aria-label'))).toEqual(names.map((name) => `${MARK}${name}`))
+		// spec: APP-002.9
+		expect(swatches.map((swatch) => swatch.attributes('data-tip'))).toEqual(names.map((name) => `${MARK}${name}`))
 	})
 
 	// spec: GRID-002.4

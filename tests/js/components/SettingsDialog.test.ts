@@ -60,6 +60,8 @@ describe('SettingsDialog', () => {
 		const wrapper = mountDialog({ rawExtensions: ['nef', 'cr3', 'dng'] })
 		expect(chips(wrapper, 'RAW extensions')).toEqual(['.NEF', '.CR3', '.DNG'])
 
+		// spec: APP-002.9
+		expect(wrapper.find(`button[aria-label="${MARK}Remove CR3"]`).attributes('data-tip')).toBe(`${MARK}Remove CR3`)
 		await wrapper.find(`button[aria-label="${MARK}Remove CR3"]`).trigger('click')
 
 		expect(wrapper.emitted('update')).toEqual([[{ rawExtensions: ['nef', 'dng'] }]])
