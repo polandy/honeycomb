@@ -6,7 +6,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { findSeries, SERIES_GAP_SECONDS, seriesCandidates } from '../../../src/logic/series.ts'
+import { findSeries, SERIES_GAP_SECONDS, seriesCandidates, seriesSizes } from '../../../src/logic/series.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
 /** Pictures named `/<folder>/<name>.JPG`, shot at `time` by `camera`. */
@@ -86,5 +86,14 @@ describe('findSeries', () => {
 		])
 
 		expect(seriesOf(pictures)).toEqual([['A', 'B']])
+	})
+})
+
+describe('seriesSizes', () => {
+	// spec: SERIES-002.10
+	it('maps each picture of a series to the size of its series', () => {
+		const sizes = seriesSizes([['A', 'B', 'C'], ['D', 'E']])
+
+		expect([...sizes]).toEqual([['A', 3], ['B', 3], ['C', 3], ['D', 2], ['E', 2]])
 	})
 })

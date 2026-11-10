@@ -160,6 +160,21 @@ describe('LoupeStage', () => {
 		expect(wrapper.emitted('update:zoom')!.at(-1)).toEqual([null])
 	})
 
+	// spec: SERIES-002.3
+	it('keeps the zoom and the spot on another picture with keepZoom', async () => {
+		const { wrapper, stage } = await mountStage({ keepZoom: true })
+		;(wrapper.vm as unknown as { toggleZoom: () => void }).toggleZoom()
+		await wrapper.vm.$nextTick()
+		await pointer(stage, 'pointerdown', { x: 500, time: 0 })
+		await pointer(stage, 'pointermove', { x: 300, y: 250, time: 100 })
+		await pointer(stage, 'pointerup', { x: 300, y: 250, time: 200 })
+
+		await wrapper.setProps({ index: 2 })
+
+		expect(wrapper.emitted('update:zoom')!.at(-1)).toEqual([100])
+		expect(wrapper.find('img[alt="IMG_3"]').attributes('style')).toContain('translate(-200px, -50px)')
+	})
+
 	// spec: LOUPE-001.7
 	it('zooms with two fingers and snaps back to fit below the threshold', async () => {
 		const { wrapper, stage } = await mountStage()
