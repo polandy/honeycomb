@@ -78,9 +78,9 @@ Deleted photos always go to the Nextcloud trash bin, where you can restore them.
 
 ## Vi keys
 
-Turn on *Settings › Keyboard › Vi keys* to move around as in vi (until that setting arrives, set the browser storage key `honeycomb.viKeys` to `true`). They are off by default,
+Turn on *Settings › Keyboard › Vi keys* to move around as in vi. They are off by default,
 because `g` then starts `g g` instead of opening the grid; with them on, `Esc` leads back to
-the grid.
+the grid. Until that setting arrives, set the browser storage key `honeycomb.viKeys` to `true`.
 
 | Keys | What it does |
 |---|---|
