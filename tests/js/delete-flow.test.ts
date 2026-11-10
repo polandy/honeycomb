@@ -34,6 +34,7 @@ function flow(answer: (request: { fileId: number }[][]) => Promise<TrashResponse
 	const loupe = ref<{ pictures: readonly Picture<ListingEntry>[], index: number } | null>({ pictures: [PAIR!, SINGLE!], index: 0 })
 	const deleting = useDeleteFlow({
 		pictures: () => pictures.value,
+		view: () => pictures.value,
 		decisionOf: (picture) => ({ ...UNDECIDED, flag: flags.get(picture) ?? 'unflagged' } as Decision),
 		decide: (intent, chosen) => decided.push([intent, chosen]),
 		trash: async (request) => {
@@ -176,11 +177,12 @@ describe('useDeleteFlow: Remove RAWs', () => {
 	/** A flow over KEEP (marked Keep RAW), DROP and SHARED, where `decide` toggles Keep RAW. */
 	function rawFlow(answer: (request: { fileId: number }[][]) => Promise<TrashResponseFile[][]>) {
 		const pictures = shallowRef<readonly Picture<ListingEntry>[]>([KEEP!, DROP!, SHARED!])
-		const marked = ref(new Set([KEEP!]))
+		const marked = shallowRef(new Set([KEEP!]))
 		const toasts: string[] = []
 		const sent: { fileId: number }[][][] = []
 		const deleting = useDeleteFlow({
 			pictures: () => pictures.value,
+			view: () => pictures.value,
 			decisionOf: (picture) => ({ ...UNDECIDED, keepRaw: marked.value.has(picture) }),
 			decide: (intent, chosen) => {
 				expect(intent).toEqual({ kind: 'keepRaw' })
@@ -206,11 +208,13 @@ describe('useDeleteFlow: Remove RAWs', () => {
 	it('opens on the view, follows a Keep RAW toggle and moves only each RAW with its own sidecar', async () => {
 		const { deleting, pictures, toasts, sent } = rawFlow(allTrashed)
 
-		deleting.removeRaws([KEEP!, DROP!, SHARED!])
+		expect(deleting.rawRemovable.value).toBe(2)
+		deleting.removeRaws()
 		expect(deleting.rawRemoval.value).toMatchObject({ removed: [DROP, SHARED], kept: [KEEP] })
 
 		deleting.toggleKeepRaw(SHARED!)
 		expect(deleting.rawRemoval.value).toMatchObject({ removed: [DROP], kept: [KEEP, SHARED] })
+		expect(deleting.rawRemovable.value).toBe(1)
 
 		await deleting.confirm()
 
@@ -223,7 +227,7 @@ describe('useDeleteFlow: Remove RAWs', () => {
 	it('keeps the pair whose RAW failed and reports it', async () => {
 		const { deleting, pictures, toasts } = rawFlow(async () => [[{ fileId: 21, result: 'locked' }, { fileId: 23, result: 'skipped' }], [{ fileId: 31, result: 'trashed' }]])
 
-		deleting.removeRaws([KEEP!, DROP!, SHARED!])
+		deleting.removeRaws()
 		await deleting.confirm()
 
 		expect(pictures.value[1]).toBe(DROP)

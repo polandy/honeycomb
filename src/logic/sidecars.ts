@@ -41,6 +41,12 @@ export function sidecarOwnerFinder(owners: readonly SidecarOwner[]): (sidecar: F
 	}
 }
 
+/** Whether the sidecar is the member's own, `<member>.xmp` or a darktable duplicate's, ignoring case. */
+export function isOwnSidecar(sidecar: FileName, memberName: string): boolean {
+	const name = memberName.toLowerCase()
+	return sidecar.baseName.toLowerCase() === name || sidecar.baseName.replace(DARKTABLE_DUPLICATE, '$1$2').toLowerCase() === name
+}
+
 /** Adds an owner index under a key. */
 function append(index: Map<string, number[]>, key: string, owner: number): void {
 	index.set(key, [...(index.get(key) ?? []), owner])

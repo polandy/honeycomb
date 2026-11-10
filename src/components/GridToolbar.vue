@@ -10,13 +10,12 @@ import type { SortOrder } from '../logic/picture-order.ts'
 import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcPopover from '@nextcloud/vue/components/NcPopover'
 import AppIcon from './AppIcon.vue'
+import GridMoreMenu from './GridMoreMenu.vue'
 import ScopeProgress from './ScopeProgress.vue'
 import { keyCap } from '../hotkeys.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
-import { MAX_TILE_SIZE, MIN_TILE_SIZE } from '../logic/tile-size.ts'
 
 const props = defineProps<{
 	folderSet: FolderSet
@@ -38,6 +37,7 @@ const props = defineProps<{
 	selected: number
 	/** How many pictures are rejected. */
 	rejected: number
+	rawRemovable: number
 }>()
 
 const emit = defineEmits<{
@@ -51,6 +51,7 @@ const emit = defineEmits<{
 	selectAll: []
 	selectNone: []
 	reviewRejects: []
+	removeRaws: []
 }>()
 
 const filtersLabel = computed(() => (props.activeFilters > 0
@@ -133,44 +134,16 @@ const setName = computed(() => {
 					</template>
 				</NcButton>
 			</template>
-			<div class="grid-toolbar__menu">
-				<label class="grid-toolbar__size">
-					<span>{{ t('honeycomb', 'Thumbnail size') }}</span>
-					<input
-						type="range"
-						:min="MIN_TILE_SIZE"
-						:max="MAX_TILE_SIZE"
-						step="1"
-						:value="Math.round(props.tileSize)"
-						:aria-label="t('honeycomb', 'Thumbnail size')"
-						@input="emit('update:tileSize', Number(($event.target as HTMLInputElement).value))">
-				</label>
-				<NcCheckboxRadioSwitch
-					v-if="props.folders > 1"
-					:modelValue="props.groupByFolder"
-					@update:modelValue="emit('update:groupByFolder', $event)">
-					{{ t('honeycomb', 'Group by folder') }}
-				</NcCheckboxRadioSwitch>
-				<fieldset class="grid-toolbar__sort">
-					<legend>{{ t('honeycomb', 'Sort by') }}</legend>
-					<NcCheckboxRadioSwitch
-						type="radio"
-						name="sort-order"
-						value="file-name"
-						:modelValue="props.sortOrder"
-						@update:modelValue="emit('update:sortOrder', $event)">
-						{{ t('honeycomb', 'File name') }}
-					</NcCheckboxRadioSwitch>
-					<NcCheckboxRadioSwitch
-						type="radio"
-						name="sort-order"
-						value="capture-time"
-						:modelValue="props.sortOrder"
-						@update:modelValue="emit('update:sortOrder', $event)">
-						{{ t('honeycomb', 'Capture time') }}
-					</NcCheckboxRadioSwitch>
-				</fieldset>
-			</div>
+			<GridMoreMenu
+				:folders="props.folders"
+				:tileSize="props.tileSize"
+				:groupByFolder="props.groupByFolder"
+				:sortOrder="props.sortOrder"
+				:rawRemovable="props.rawRemovable"
+				@update:tileSize="emit('update:tileSize', $event)"
+				@update:groupByFolder="emit('update:groupByFolder', $event)"
+				@update:sortOrder="emit('update:sortOrder', $event)"
+				@removeRaws="emit('removeRaws')" />
 		</NcPopover>
 		<div v-if="props.selecting" class="grid-toolbar__selection">
 			<span class="grid-toolbar__count">{{ n('honeycomb', '{count} selected', '{count} selected', props.selected, { count: formatNumber(props.selected) }) }}</span>
@@ -226,13 +199,6 @@ const setName = computed(() => {
 	outline: 2px solid var(--color-primary-element);
 }
 
-.grid-toolbar__menu {
-	display: flex;
-	flex-direction: column;
-	gap: calc(2 * var(--default-grid-baseline));
-	padding: calc(2 * var(--default-grid-baseline));
-}
-
 .grid-toolbar__badge {
 	min-width: 18px;
 	padding: 0 4px;
@@ -258,30 +224,8 @@ const setName = computed(() => {
 	font-weight: bold;
 }
 
-.grid-toolbar__sort {
-	margin: 0;
-	padding: 0;
-	border: none;
-}
-
-.grid-toolbar__sort legend {
-	font-weight: bold;
-}
-
-.grid-toolbar__size {
-	display: flex;
-	flex-direction: column;
-	gap: var(--default-grid-baseline);
-}
-
-.grid-toolbar__size input {
-	min-height: 34px;
-	accent-color: var(--color-primary-element);
-}
-
 @media (pointer: coarse) {
-	.grid-toolbar__set,
-	.grid-toolbar__size input {
+	.grid-toolbar__set {
 		min-height: 44px;
 	}
 }

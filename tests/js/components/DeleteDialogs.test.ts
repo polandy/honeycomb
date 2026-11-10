@@ -129,7 +129,7 @@ describe('RawRemovalSummary', () => {
 		expect(wrapper.find('details').attributes('open')).toBeUndefined()
 		expect(wrapper.findAll('details .trash-files__row').map((row) => row.text())).toEqual(['NEFA/IMG_3.NEF2 kB', 'XMPA/IMG_3.NEF.xmp1 kB'])
 		expect(wrapper.text()).toContain('Files move to the Nextcloud trash bin and can be restored from there.')
-		expect(buttons(wrapper)).toEqual(['Cancel', 'Move 2 files to trash'])
+		expect(buttons(wrapper).slice(-2)).toEqual(['Cancel', 'Move 2 files to trash'])
 	})
 
 	it('shows both thumbnail groups with their counts, and toggles Keep RAW on the photo tapped', async () => {

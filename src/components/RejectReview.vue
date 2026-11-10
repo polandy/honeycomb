@@ -13,11 +13,11 @@ import { computed } from 'vue'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import ConfirmDialog from './ConfirmDialog.vue'
 import DeleteStats from './DeleteStats.vue'
+import PictureThumbs from './PictureThumbs.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
 import { formatFileSize, formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { deleteSummary, filesOf } from '../logic/delete-summary.ts'
-import { imageMember, smallSource } from '../logic/image-tiers.ts'
 import { badgeExtension } from '../logic/pair-badge.ts'
 
 const props = withDefaults(defineProps<{
@@ -66,66 +66,14 @@ function caption(picture: Picture<ListingEntry>): string {
 		<template v-else>
 			<DeleteStats :stats="stats" />
 			<p>{{ t('honeycomb', 'Tap a photo to rescue it. A rescued photo becomes undecided again.') }}</p>
-			<ul class="reject-review__grid">
-				<li v-for="picture in props.pictures" :key="imageMember(picture).fileId">
-					<button
-						type="button"
-						class="reject-review__tile"
-						:aria-label="t('honeycomb', 'Rescue {name}', { name: picture.baseName }, undefined, PLAIN_TEXT)"
-						@click="emit('rescue', picture)">
-						<img :src="smallSource(imageMember(picture), props.imageUrl)" alt="" loading="lazy">
-						<span class="reject-review__name">{{ picture.baseName }}</span>
-						<span class="reject-review__caption">{{ caption(picture) }}</span>
-						<span class="reject-review__rescue">{{ t('honeycomb', 'Rescue') }}</span>
-					</button>
-				</li>
-			</ul>
+			<PictureThumbs
+				:pictures="props.pictures"
+				:action="t('honeycomb', 'Rescue')"
+				:label="(picture) => t('honeycomb', 'Rescue {name}', { name: picture.baseName }, undefined, PLAIN_TEXT)"
+				:caption="caption"
+				tone="error"
+				:imageUrl="props.imageUrl"
+				@tap="emit('rescue', $event)" />
 		</template>
 	</ConfirmDialog>
 </template>
-
-<style scoped>
-.reject-review__grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-	gap: calc(var(--default-grid-baseline) * 2);
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-
-.reject-review__tile {
-	display: flex;
-	flex-direction: column;
-	width: 100%;
-	min-height: 44px;
-	margin: 0;
-	padding: calc(var(--default-grid-baseline) * 1);
-	border: 2px solid var(--color-error);
-	border-radius: var(--border-radius-large);
-	background: var(--color-main-background);
-	text-align: start;
-}
-
-.reject-review__tile img {
-	width: 100%;
-	aspect-ratio: 1;
-	object-fit: cover;
-}
-
-.reject-review__name {
-	font-weight: bold;
-	overflow-wrap: anywhere;
-}
-
-.reject-review__caption {
-	color: var(--color-text-maxcontrast);
-}
-
-.reject-review__rescue {
-	align-self: flex-start;
-	margin-top: calc(var(--default-grid-baseline) * 1);
-	color: var(--color-primary-element);
-	font-weight: bold;
-}
-</style>

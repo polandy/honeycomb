@@ -70,7 +70,7 @@ describe('GridToolbar', () => {
 		const wrapper = mountToolbar(set, 1, { rawRemovable: 88 })
 
 		expect(none.attributes('disabled')).toBeDefined()
-		expect(item(wrapper).text().replaceAll(MARK, '')).toBe('Remove RAWs…88')
+		expect(item(wrapper).text().replaceAll(MARK, '')).toBe('Remove RAWs… 88')
 		await item(wrapper).trigger('click')
 		expect(wrapper.emitted('removeRaws')).toHaveLength(1)
 	})
