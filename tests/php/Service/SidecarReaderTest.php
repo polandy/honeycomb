@@ -15,8 +15,11 @@ use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
+use OCP\Files\NotFoundException;
+use OCP\Files\NotPermittedException;
 use OCP\IUser;
 use OCP\Lock\LockedException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -100,6 +103,23 @@ final class SidecarReaderTest extends TestCase {
 		$reader = $this->reader([4 => $this->sidecar(4, content: str_repeat('x', SidecarLimits::MAX_BYTES + 1), size: 10)]);
 
 		$this->assertSame([['fileId' => 4, 'result' => SidecarResult::TooLarge]], $reader->lookup($this->user(), [4]));
+	}
+
+	/** @return array<string, array{\Exception, SidecarResult}> */
+	public static function readFailures(): array {
+		return [
+			'not permitted' => [new NotPermittedException('IMG_0001.NEF.xmp'), SidecarResult::NotPermitted],
+			'vanished' => [new NotFoundException('IMG_0001.NEF.xmp'), SidecarResult::NotFound],
+			'locked' => [new LockedException('IMG_0001.NEF.xmp'), SidecarResult::Locked],
+		];
+	}
+
+	// spec: XMP-002.2
+	#[DataProvider('readFailures')]
+	public function testAFailureWhileReadingIsReportedWithoutBytes(\Exception $failure, SidecarResult $expected): void {
+		$reader = $this->reader([9 => $this->sidecar(9, failure: $failure)]);
+
+		$this->assertSame([['fileId' => 9, 'result' => $expected]], $reader->lookup($this->user(), [9]));
 	}
 
 	// spec: XMP-002.7
