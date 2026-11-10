@@ -15,6 +15,8 @@ export interface TileSelectionState {
 	readonly order: () => readonly number[]
 	readonly select: (selection: Selection) => void
 	readonly enterSelecting: () => void
+	/** Opens the picture in the loupe. */
+	readonly open: (id: number) => void
 }
 
 /** Runs `run` after `ms` on the browser's timer. */
@@ -23,7 +25,7 @@ export const browserSchedule: Schedule = (run, ms) => {
 	return () => window.clearTimeout(timer)
 }
 
-/** A tile's clicks, keys and long-press as selection changes (`docs/plan.md` Selection mode). */
+/** A tile's clicks, keys and long-press as selection changes or opening (`docs/plan.md` Selection mode). */
 export function useTileSelection(state: TileSelectionState, schedule: Schedule) {
 	const press = longPress(schedule)
 	onBeforeUnmount(press.stop)
@@ -43,13 +45,16 @@ export function useTileSelection(state: TileSelectionState, schedule: Schedule) 
 
 	return {
 		onClick(id: number, event: MouseEvent) {
-			if (!press.takeClick()) {
-				toggle(id, event.shiftKey, event.ctrlKey || event.metaKey)
+			if (!press.takeClick() && !toggle(id, event.shiftKey, event.ctrlKey || event.metaKey)) {
+				state.open(id)
 			}
 		},
 		onKeydown(id: number, event: KeyboardEvent) {
-			if ((event.key === 'Enter' || event.key === ' ') && toggle(id, event.shiftKey, event.ctrlKey || event.metaKey)) {
+			if (event.key === 'Enter' || event.key === ' ') {
 				event.preventDefault()
+				if (!toggle(id, event.shiftKey, event.ctrlKey || event.metaKey)) {
+					state.open(id)
+				}
 			}
 		},
 		onPointerDown(id: number, event: PointerEvent) {

@@ -9,6 +9,9 @@ export const GRID_TIERS = [256, 512] as const
 /** The preview tier of the loupe (ADR 0010). */
 export const LOUPE_TIER = 2048
 
+/** The tier of the full image, the loupe's 100 % zoom (ADR 0010). */
+export const FULL_TIER = 0
+
 /** One of the grid's preview tiers. */
 export type GridTier = typeof GRID_TIERS[number]
 
@@ -34,4 +37,18 @@ export function smallSource(member: ListingEntry, urlFor: ImageUrlFor): string {
 export function sharpTier(tileCssPx: number, devicePixelRatio: number): GridTier {
 	const pixels = tileCssPx * devicePixelRatio
 	return GRID_TIERS.find((tier) => tier >= pixels) ?? GRID_TIERS.at(-1)!
+}
+
+/** The loupe's sources of a member: the grid's large tier at once, the loupe tier, the full image. */
+export function loupeSources(member: ListingEntry, urlFor: ImageUrlFor) {
+	return {
+		preview: urlFor(member.fileId, GRID_TIERS.at(-1)!, member.mtime),
+		loupe: urlFor(member.fileId, LOUPE_TIER, member.mtime),
+		full: urlFor(member.fileId, FULL_TIER, member.mtime),
+	}
+}
+
+/** The long edge of the full image in pixels, from the listing, else the loupe tier's. */
+export function fullLongEdge(member: ListingEntry): number {
+	return member.width !== null && member.height !== null ? Math.max(member.width, member.height) : LOUPE_TIER
 }

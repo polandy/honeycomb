@@ -6,7 +6,10 @@
 /** The mockup's stroke icons (docs/mockup/index.html, IC), drawn in the current text colour. */
 const PATHS = {
 	check: 'M5 12l5 5 9-10',
+	chevronLeft: 'M15 6l-6 6 6 6',
 	chevronRight: 'M9 6l6 6-6 6',
+	close: 'M6 6l12 12M18 6 6 18',
+	film: 'M3 6h18v12H3zM8 6v12M16 6v12',
 	filter: 'M3 5h18l-7 8v6l-4-2v-4z',
 	flag: 'M5 3v18M5 4h11l-2 4 2 4H5',
 	flagPick: 'M5 3v18M5 4h11l-2 4 2 4H5z',

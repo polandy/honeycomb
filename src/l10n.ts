@@ -14,3 +14,15 @@ export function formatNumber(value: number): string {
 export function nameComparer(): (a: string, b: string) => number {
 	return new Intl.Collator(getCanonicalLocale(), { numeric: true }).compare
 }
+
+/** A file size in the user's locale, in MB below one GB, e.g. "24.5 MB". */
+export function formatFileSize(bytes: number): string {
+	const megabytes = bytes / 1024 / 1024
+	const [value, unit] = megabytes >= 1024 ? [megabytes / 1024, 'gigabyte'] : [megabytes, 'megabyte']
+	return new Intl.NumberFormat(getCanonicalLocale(), { style: 'unit', unit, maximumFractionDigits: 1 }).format(value)
+}
+
+/** A Unix time in seconds as a date and time in the user's locale. */
+export function formatDateTime(seconds: number): string {
+	return new Intl.DateTimeFormat(getCanonicalLocale(), { dateStyle: 'medium', timeStyle: 'short' }).format(seconds * 1000)
+}

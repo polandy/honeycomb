@@ -2,15 +2,6 @@
   - SPDX-FileCopyrightText: 2026 honeycomb contributors
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
-<script lang="ts">
-/** Calls `onSize` with the element's content size now and on every change; returns the stop function. */
-function observeElementSize(element: Element, onSize: (width: number, height: number) => void): () => void {
-	const observer = new ResizeObserver(([entry]) => entry && onSize(entry.contentRect.width, entry.contentRect.height))
-	observer.observe(element)
-	return () => observer.disconnect()
-}
-</script>
-
 <script setup lang="ts">
 import type { Decision } from '../logic/decision.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
@@ -19,18 +10,20 @@ import type { ListingEntry } from '../logic/listing.ts'
 import type { Schedule } from '../logic/long-press.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Selection } from '../logic/selection.ts'
+import type { ObserveSize } from '../observe-size.ts'
 
 import { t } from '@nextcloud/l10n'
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
 import PhotoTile from './PhotoTile.vue'
 import { formatNumber } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { UNDECIDED } from '../logic/decision.ts'
-import { gridLayout, stickyHeader, visibleRows } from '../logic/grid-layout.ts'
+import { gridLayout, rowOfItem, stickyHeader, visibleRows } from '../logic/grid-layout.ts'
 import { imageMember } from '../logic/image-tiers.ts'
 import { groupByFolder as folderGroups } from '../logic/picture-order.ts'
 import { NO_SELECTION } from '../logic/selection.ts'
 import { pinchTileSize, wheelTileSize } from '../logic/tile-size.ts'
+import { observeElementSize } from '../observe-size.ts'
 import { browserSchedule, useTileSelection } from '../tile-selection.ts'
 
 const props = withDefaults(defineProps<{
@@ -40,7 +33,7 @@ const props = withDefaults(defineProps<{
 	groupByFolder: boolean
 	/** The target tile size in CSS pixels. */
 	tileSize: number
-	observeSize?: (element: Element, onSize: (width: number, height: number) => void) => () => void
+	observeSize?: ObserveSize
 	imageUrl?: ImageUrlFor
 	loadImage?: (srcset: string, sizes: string) => Promise<void>
 	selecting?: boolean
@@ -61,6 +54,7 @@ const emit = defineEmits<{
 	'update:tileSize': [size: number]
 	'update:selecting': [selecting: boolean]
 	'update:selection': [selection: Selection]
+	open: [index: number]
 }>()
 
 const GAP = 8
@@ -96,6 +90,7 @@ const tiles = useTileSelection({
 	order: () => order.value,
 	select: (selection) => emit('update:selection', selection),
 	enterSelecting: () => emit('update:selecting', true),
+	open: (id) => emit('open', order.value.indexOf(id)),
 }, props.schedule)
 
 watch(() => props.pictures, () => {
@@ -114,16 +109,12 @@ function rowPictures(first: number, count: number) {
 	return props.pictures.slice(first, first + count).map((picture, column) => ({ picture, index: first + column, column }))
 }
 
-/**
- *
- */
+/** Follows the scroll position for the rendered rows. */
 function onScroll(event: Event) {
 	scrollTop.value = (event.target as HTMLElement).scrollTop
 }
 
-/**
- *
- */
+/** Resizes the tiles on a trackpad pinch, which arrives as a wheel event with Ctrl. */
 function onWheel(event: WheelEvent) {
 	if (event.ctrlKey) {
 		event.preventDefault()
@@ -134,18 +125,14 @@ function onWheel(event: WheelEvent) {
 let pinch: { size: number, distance: number } | null = null
 const fingerDistance = (touches: TouchList) => Math.hypot(touches[0]!.clientX - touches[1]!.clientX, touches[0]!.clientY - touches[1]!.clientY)
 
-/**
- *
- */
+/** Starts a two-finger pinch that resizes the tiles. */
 function onTouchStart(event: TouchEvent) {
 	if (event.touches.length === 2) {
 		pinch = { size: props.tileSize, distance: fingerDistance(event.touches) }
 	}
 }
 
-/**
- *
- */
+/** Resizes the tiles while the pinch lasts. */
 function onTouchMove(event: TouchEvent) {
 	if (pinch !== null && event.touches.length === 2) {
 		event.preventDefault()
@@ -153,9 +140,7 @@ function onTouchMove(event: TouchEvent) {
 	}
 }
 
-/**
- *
- */
+/** Ends the pinch when fewer than two fingers remain. */
 function onTouchEnd(event: TouchEvent) {
 	if (event.touches.length < 2) {
 		pinch = null
@@ -173,6 +158,19 @@ onMounted(() => {
 	element.addEventListener('touchmove', onTouchMove, { passive: false })
 })
 onBeforeUnmount(() => stopObserving())
+
+defineExpose({
+	/** Scrolls the tile at `index` into view and focuses it, as after closing the loupe. */
+	async reveal(index: number) {
+		const row = layout.value.rows[rowOfItem(layout.value, index)]!
+		if (row.top < scrollTop.value || row.top + row.height > scrollTop.value + height.value) {
+			scroller.value!.scrollTop = scrollTop.value = Math.max(0, row.top - (height.value - row.height) / 2)
+		}
+		focused.value = index
+		await nextTick()
+		scroller.value!.querySelector<HTMLElement>('[tabindex="0"]')!.focus()
+	},
+})
 </script>
 
 <template>

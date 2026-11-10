@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { BrowserStorage } from './browser-storage.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
 import type { Decision, StoredDecision } from './logic/decision.ts'
 import type { FolderSet } from './logic/folder-set.ts'
@@ -9,6 +10,7 @@ import type { Filters } from './logic/picture-filter.ts'
 import type { SortOrder } from './logic/picture-order.ts'
 
 import { computed, ref, shallowRef } from 'vue'
+import { readStored, writeStored } from './browser-storage.ts'
 import { nameComparer } from './l10n.ts'
 import { logger } from './logger.ts'
 import { prepareCull, warmFileIds } from './logic/cull.ts'
@@ -20,9 +22,6 @@ import { parseTileSize } from './logic/tile-size.ts'
 
 /** The browser storage key of the thumbnail size. */
 export const TILE_SIZE_KEY = 'honeycomb.tileSize'
-
-/** The browser's storage; reaching it throws where site data is blocked. */
-export type BrowserStorage = () => Pick<Storage, 'getItem' | 'setItem'>
 
 /** The server calls the cull makes. */
 export interface CullApi {
@@ -42,7 +41,7 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 	const filtersOpen = ref(false)
 	const pickerOpen = ref(true)
 	const groupByFolder = ref(false)
-	const tileSize = ref(parseTileSize(readStored(storage)))
+	const tileSize = ref(parseTileSize(readStored(storage, TILE_SIZE_KEY)))
 	const saveFailed = ref(false)
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
 	const folders = computed(() => folderPaths.value.length)
@@ -109,11 +108,7 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 	/** Sets the thumbnail size and keeps it for the next visit. */
 	function setTileSize(size: number) {
 		tileSize.value = size
-		try {
-			storage().setItem(TILE_SIZE_KEY, String(size))
-		} catch {
-			// Without site data the size lasts for this visit only.
-		}
+		writeStored(storage, TILE_SIZE_KEY, String(size))
 	}
 
 	return {
@@ -139,14 +134,5 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 		open,
 		setScope,
 		setTileSize,
-	}
-}
-
-/** The stored thumbnail size, or null when there is none or no storage. */
-function readStored(storage: BrowserStorage): string | null {
-	try {
-		return storage().getItem(TILE_SIZE_KEY)
-	} catch {
-		return null
 	}
 }
