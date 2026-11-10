@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] M4.4: Per-user settings — extensions, folder mode, singles, gestures, auto-advance, show flag buttons, vi keys (2026-11-09)
 - [ ] M4.5: README for users — features, installation brought up to date, screenshot placeholders, recommended apps `camerarawpreviews` and Preview Generator (2026-11-09)
 - [ ] M5: XMP sidecars — read on listing, write per `docs/06-xmp-interop.md` incl. `honeycomb:KeepRaw` (ADR 0008); the listing says per folder whether it is shared, deferred from M1.2 (`docs/plan.md` Decisions, gestures and shared folders); mapping in TypeScript, backend writes the bytes; ADR on the TypeScript XML library first (Q3) (2026-11-09)
 - [ ] M6: Series compare — group pictures taken within a short interval, show 2–4 side by side, Pick / Reject / Unflag per photo and "Pick this, reject the rest" as one undo step, from the shared components (`docs/plan.md` Culling workflow) (2026-11-09)

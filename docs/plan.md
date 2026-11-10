@@ -106,7 +106,10 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    the first failure — keeps the sidecar when the RAW fails; the endpoint is unchanged.
 4. **Settings:** per user — RAW and rendered extensions, folder mode, show singles, gesture
    mapping, auto-advance, show flag buttons ([Flag buttons and vi keys](#flag-buttons-and-vi-keys))
-   and vi keys.
+   and vi keys. Stored as one JSON object per user behind `GET`/`PUT /api/v1/settings` (ADR 0014),
+   checked field by field in `src/logic/settings.ts`; the dialog opens from *Settings* in the
+   grid's ⋯ menu and applies each change at once. A change of the extensions or the folder mode
+   re-pairs the open cull and clears the selection.
 5. **README:** features, screenshot placeholders, the installation section brought up to date;
    `camerarawpreviews` and Preview Generator as recommended apps.
 
