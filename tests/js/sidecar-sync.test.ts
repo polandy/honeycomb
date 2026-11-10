@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// @vitest-environment happy-dom
 import type { Decision } from '../../src/logic/decision.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
@@ -80,7 +81,7 @@ describe('useSidecarSync: write', () => {
 		expect(result.failed).toEqual([])
 		expect(lookups).toEqual([[11], [11]])
 		expect(saves.map((items) => items.length)).toEqual([2, 1])
-		expect(saves[1]![0]).toMatchObject({ fileId: 11, etag: 'etag-1' })
+		expect(saves[1]![0]).toMatchObject({ fileId: 11, etag: 'etag-2' })
 		expect(textOf(readXmp(saves[1]![0]!.bytes), 'xmp:Rating')).toBe('2')
 	})
 

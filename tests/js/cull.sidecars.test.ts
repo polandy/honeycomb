@@ -65,7 +65,11 @@ describe('useCull: taking over the sidecars\' decision', () => {
 	// spec: XMP-003.3
 	it('keeps a decision the user made while the sidecars were looked up', async () => {
 		let answer!: (decisions: Map<string, Decision>) => void
-		const { cull, saved, picture } = cullWith({ takenOver: new Promise((resolve) => { answer = resolve }) })
+		const { cull, saved, picture } = cullWith({
+			takenOver: new Promise((resolve) => {
+				answer = resolve
+			}),
+		})
 		cull.open(SET, ENTRIES, [])
 		await flushPromises()
 
