@@ -9,11 +9,12 @@ import { installMarkedCatalogue, uninstallMarkedCatalogue, untranslatedText } fr
 enableAutoUnmount(afterEach)
 
 describe('GestureGuide', () => {
-	it('lists the paging gestures, the tap zones with their sketch, pinch, double-tap and the keys', () => {
+	it('lists the decision swipes, the paging gestures, the tap zones with their sketch, pinch, double-tap and the keys', () => {
 		const wrapper = mount(GestureGuide)
 
 		expect(wrapper.find('[role="dialog"]').attributes('aria-label')).toBe('How to cull')
 		expect(wrapper.findAll('li').map((line) => line.text())).toEqual([
+			'Swipe up to pick, down to reject',
 			'Swipe sideways for the next or previous photo',
 			'Tap the left or right side for the previous or next photo, the middle for the controls Controls',
 			'Pinch to zoom, double-tap to hide the controls',

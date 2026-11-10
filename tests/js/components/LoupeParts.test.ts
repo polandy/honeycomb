@@ -128,7 +128,7 @@ describe('LoupeFilmstrip', () => {
 
 describe('LoupeTitleRow', () => {
 	const mountRow = (zoom: number | null) => mount(LoupeTitleRow, {
-		props: { name: 'IMG_7', index: 6, count: 120, zoom, infoOpen: false, filmstripOpen: true, navigationShown: false },
+		props: { name: 'IMG_7', index: 6, count: 120, zoom, infoOpen: false, filmstripOpen: true, navigationShown: false, flagButtonsShown: true },
 	})
 	const button = (wrapper: ReturnType<typeof mountRow>, label: string) => wrapper.find(`button[aria-label="${label}"]`)
 
@@ -144,10 +144,12 @@ describe('LoupeTitleRow', () => {
 		await button(wrapper, 'Toggle info panel').trigger('click')
 		await button(wrapper, 'Toggle filmstrip').trigger('click')
 		await button(wrapper, 'Toggle Nextcloud navigation').trigger('click')
+		await button(wrapper, 'Flag buttons').trigger('click')
 		expect(wrapper.emitted('close')).toHaveLength(1)
 		expect(wrapper.emitted('toggleZoom')).toHaveLength(1)
 		expect(wrapper.emitted('update:infoOpen')).toEqual([[true]])
 		expect(wrapper.emitted('update:filmstripOpen')).toEqual([[false]])
 		expect(wrapper.emitted('update:navigationShown')).toEqual([[true]])
+		expect(wrapper.emitted('update:flagButtonsShown')).toEqual([[false]])
 	})
 })

@@ -86,6 +86,32 @@ describe('ActionBar', () => {
 		expect(wrapper.find('.extra').text()).toBe('3 selected')
 	})
 
+	it('in the loupe, puts the large flag buttons in a row of their own before the other controls', () => {
+		const wrapper = mount(ActionBar, { props: { common: { ...MIXED, flag: 'picked' }, layout: 'loupe' } })
+
+		expect(wrapper.classes()).toContain('action-bar--loupe')
+		const parts = wrapper.findAll(':scope > *').map((part) => part.classes()[0])
+		expect(parts).toEqual(['action-bar__flags', 'action-bar__row'])
+		expect(wrapper.find('.action-bar__flags .flag-buttons').classes()).toContain('flag-buttons--large')
+		expect(wrapper.find('.action-bar__row').findAll('button').map((found) => found.attributes('aria-label')!.replaceAll(MARK, ''))).toContain('Keep RAW')
+		expect(pressed(wrapper)).toEqual(['Pick'])
+	})
+
+	it('in the loupe, leaves the flag buttons out when they are hidden and fades the row while idle', () => {
+		const wrapper = mount(ActionBar, { props: { common: MIXED, layout: 'loupe', flags: false, idle: true } })
+
+		expect(wrapper.find('.flag-buttons').exists()).toBe(false)
+		expect(wrapper.find('.action-bar__row').exists()).toBe(true)
+		expect(wrapper.classes()).toContain('action-bar--idle')
+	})
+
+	it('in a bar, keeps the small flag buttons last', () => {
+		const wrapper = mountBar()
+
+		expect(wrapper.find('.flag-buttons').classes()).not.toContain('flag-buttons--large')
+		expect(wrapper.element.lastElementChild!.classList).toContain('flag-buttons')
+	})
+
 	it('translates every text it shows', async () => {
 		const wrapper = mountBar({ colourLabel: 'red' })
 		await button(wrapper, 'Colour label: Red').trigger('click')
