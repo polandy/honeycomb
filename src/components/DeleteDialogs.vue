@@ -20,6 +20,8 @@ const props = defineProps<{
 	/** How many folders the cull shows. */
 	folders: number
 	busy: boolean
+	/** Where the dialogs open, e.g. inside the loupe; the page body by default. */
+	container?: string | undefined
 }>()
 
 const emit = defineEmits<{
@@ -38,6 +40,7 @@ const emit = defineEmits<{
 		:pictures="props.rejected"
 		:folderSet="props.folderSet"
 		:folders="props.folders"
+		:container="props.container"
 		@rescue="emit('rescue', $event)"
 		@cancel="emit('close')"
 		@confirm="emit('continue')" />
@@ -47,6 +50,7 @@ const emit = defineEmits<{
 		:folderSet="props.folderSet"
 		:fromReview="props.dialog.fromReview"
 		:busy="props.busy"
+		:container="props.container"
 		@back="emit('back')"
 		@cancel="emit('close')"
 		@confirm="emit('confirm')" />
@@ -55,6 +59,7 @@ const emit = defineEmits<{
 		:report="props.dialog.report"
 		:folderSet="props.folderSet"
 		:busy="props.busy"
+		:container="props.container"
 		@close="emit('close')"
 		@retry="emit('retry')" />
 </template>

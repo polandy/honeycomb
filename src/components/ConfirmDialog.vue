@@ -25,6 +25,8 @@ const props = defineProps<{
 	wide?: boolean
 	/** The confirm button warns, for an action that removes files. */
 	danger?: boolean
+	/** Where the dialog opens, e.g. inside the loupe; the page body by default. */
+	container?: string | undefined
 }>()
 
 const emit = defineEmits<{
@@ -45,6 +47,7 @@ function onOpen(open: boolean) {
 	<NcDialog
 		:name="props.title"
 		:noClose="!props.cancel"
+		:container="props.container ?? 'body'"
 		:size="props.wide ? 'large' : 'normal'"
 		@update:open="onOpen">
 		<slot />

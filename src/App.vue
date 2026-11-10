@@ -111,11 +111,6 @@ function deleteShown() {
 	deleting.summarise(loupe.value === null && selected.value.length > 0 ? selected.value : [shown].filter((each) => each !== undefined))
 }
 
-/** Says the loupe left nothing undecided, and offers the reject review. */
-function allDecided() {
-	toast.show(t('honeycomb', 'All photos decided'), rejected.value.length > 0 ? { label: t('honeycomb', 'Review rejects'), run: deleting.review } : null)
-}
-
 const gridKeys = gridHotkeys({
 	grid: () => grid.value,
 	view: () => view.value,
@@ -254,6 +249,7 @@ async function closeLoupe() {
 				:folderSet="folderSet"
 				:folders="folders"
 				:busy="deleteBusy"
+				:container="loupe !== null ? '.photo-loupe' : undefined"
 				@rescue="deleting.rescue"
 				@continue="deleting.continueToSummary"
 				@back="deleting.backToReview"
@@ -271,7 +267,7 @@ async function closeLoupe() {
 					:storage="props.storage"
 					@decide="(intent, picture) => decide(intent, [picture])"
 					@toast="toast.show($event.message, $event.action)"
-					@allDecided="allDecided"
+					@allDecided="deleting.allDecided"
 					@close="closeLoupe" />
 				<ShortcutSheet
 					v-if="shortcutsOpen"

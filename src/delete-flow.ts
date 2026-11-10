@@ -103,6 +103,11 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 		return open?.kind === 'report' && !busy.value ? send(retryBatch(open.report), true) : Promise.resolve()
 	}
 
+	/** Says the loupe left nothing undecided, and offers the reject review. */
+	function allDecided() {
+		context.toast(t('honeycomb', 'All photos decided'), rejected.value.length > 0 ? { label: t('honeycomb', 'Review rejects'), run: review } : null)
+	}
+
 	return {
 		dialog,
 		busy,
@@ -119,5 +124,6 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 		rescue,
 		confirm,
 		retry,
+		allDecided,
 	}
 }
