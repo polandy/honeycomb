@@ -3,6 +3,7 @@
 import type { Settings } from '../../../src/logic/settings.ts'
 
 import { describe, expect, it } from 'vitest'
+import { DEFAULT_NAME_TEMPLATE } from '../../../src/logic/name-template/presets.ts'
 import { DEFAULT_SWIPES } from '../../../src/logic/loupe-gesture.ts'
 import { DEFAULT_PAIRING_SETTINGS, pairPictures } from '../../../src/logic/pairing.ts'
 import { addExtension, DEFAULT_SETTINGS, DEFAULT_SUBFOLDERS, folderMode, pairingSettings, parseSettings, removeExtension } from '../../../src/logic/settings.ts'
@@ -30,6 +31,7 @@ describe('parseSettings', () => {
 			viKeys: true,
 			moveFavourites: ['/Archive'],
 			moveRecent: ['/Archive', '/Best'],
+			moveTemplate: '{name:lower}.{ext}',
 		}
 
 		expect(parseSettings(JSON.parse(JSON.stringify(settings)))).toEqual(settings)
@@ -143,5 +145,18 @@ describe('move targets', () => {
 	it.each([undefined, '/A', { 0: '/A' }])('reads %j as no targets', (value) => {
 		expect(parseSettings({ moveFavourites: value, moveRecent: value })).toMatchObject({ moveFavourites: [], moveRecent: [] })
 		expect(DEFAULT_SETTINGS).toMatchObject({ moveFavourites: [], moveRecent: [] })
+	})
+})
+
+describe('name template', () => {
+	// spec: SETTINGS-001.16
+	it.each([undefined, 3, '{name}', '{name} .{ext}', ''])('reads %j as the default', (value) => {
+		expect(parseSettings({ moveTemplate: value }).moveTemplate).toBe(DEFAULT_NAME_TEMPLATE)
+		expect(DEFAULT_SETTINGS.moveTemplate).toBe(DEFAULT_NAME_TEMPLATE)
+	})
+
+	// spec: SETTINGS-001.16
+	it('keeps a valid template', () => {
+		expect(parseSettings({ moveTemplate: '{date:%Y}/{name}.{ext}' }).moveTemplate).toBe('{date:%Y}/{name}.{ext}')
 	})
 })
