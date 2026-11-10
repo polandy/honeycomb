@@ -101,7 +101,9 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    go straight to the summary. Failed files end in the delete report with *Retry failed files*.
 3. **Remove RAWs:** the bulk action and its summary ([Keep RAW and Remove
    RAWs](#keep-raw-and-remove-raws)), built on the delete service of M4.1 and its ADR on pair
-   atomicity, with tests for every failure path.
+   atomicity, with tests for every failure path. The client sends each RAW with its own
+   sidecars as one picture to the trash endpoint (ADR 0013), so its order — member first, stop at
+   the first failure — keeps the sidecar when the RAW fails; the endpoint is unchanged.
 4. **Settings:** per user — RAW and rendered extensions, folder mode, show singles, gesture
    mapping, auto-advance, show flag buttons ([Flag buttons and vi keys](#flag-buttons-and-vi-keys))
    and vi keys.

@@ -31,7 +31,7 @@ export interface FailedFile {
 	readonly result: TrashFailure
 }
 
-/** What a delete did: the files in the trash bin, the failed ones, the pictures gone and the bytes freed. */
+/** What a delete did: the files in the trash bin, the failed ones, the pictures whose sent members all went and the bytes freed. */
 export interface TrashReport {
 	readonly trashed: readonly PictureFile[]
 	readonly failed: readonly FailedFile[]
@@ -65,7 +65,7 @@ export function trashReport(batch: TrashBatch, response: readonly (readonly Tras
 		}
 	}
 	const gone = new Set(trashed.map((file) => file.entry))
-	const removed = batch.filter((files) => files.length > 0 && filesOf(files[0]!.picture).every((file) => file.role === 'sidecar' || gone.has(file.entry))).length
+	const removed = batch.filter((files) => files.some((file) => file.role !== 'sidecar') && files.every((file) => file.role === 'sidecar' || gone.has(file.entry))).length
 	return { trashed, failed, removed, bytes: trashed.reduce((sum, file) => sum + file.entry.size, 0) }
 }
 

@@ -7,15 +7,19 @@ import type { DeleteDialog } from '../delete-flow.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { RawRemoval } from '../logic/raw-removal.ts'
 
 import DeleteReport from './DeleteReport.vue'
 import DeleteSummary from './DeleteSummary.vue'
+import RawRemovalSummary from './RawRemovalSummary.vue'
 import RejectReview from './RejectReview.vue'
 
 const props = defineProps<{
 	/** The open step of the delete, if any. */
 	dialog: DeleteDialog | null
 	rejected: readonly Picture<ListingEntry>[]
+	/** What *Remove RAWs* does while its summary is open. */
+	rawRemoval: RawRemoval | null
 	folderSet: FolderSet
 	/** How many folders the cull shows. */
 	folders: number
@@ -26,6 +30,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
 	rescue: [picture: Picture<ListingEntry>]
+	toggleKeepRaw: [picture: Picture<ListingEntry>]
 	continue: []
 	back: []
 	close: []
@@ -52,6 +57,15 @@ const emit = defineEmits<{
 		:busy="props.busy"
 		:container="props.container"
 		@back="emit('back')"
+		@cancel="emit('close')"
+		@confirm="emit('confirm')" />
+	<RawRemovalSummary
+		v-else-if="props.dialog?.kind === 'raws' && props.rawRemoval !== null"
+		:removal="props.rawRemoval"
+		:folderSet="props.folderSet"
+		:busy="props.busy"
+		:container="props.container"
+		@toggle="emit('toggleKeepRaw', $event)"
 		@cancel="emit('close')"
 		@confirm="emit('confirm')" />
 	<DeleteReport

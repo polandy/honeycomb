@@ -13,6 +13,7 @@ import DeleteSummary from '../../src/components/DeleteSummary.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
+import RawRemovalSummary from '../../src/components/RawRemovalSummary.vue'
 import RejectReview from '../../src/components/RejectReview.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { mountApp, openCull, shownNames, stored } from './app-cull.ts'
@@ -151,5 +152,34 @@ describe('App: the Delete key and Delete…', () => {
 
 		expect(sent).toEqual([[[{ fileId: 4, etag: 'etag-4' }]]])
 		expect(wrapper.findComponent(PhotoLoupe).exists()).toBe(false)
+	})
+})
+
+describe('App: removing RAWs', () => {
+	it('removes the RAWs of the view from the More menu, after a Keep RAW toggled there and back', async () => {
+		const { wrapper, sent } = await openApp([])
+		const toolbar = wrapper.findComponent(GridToolbar)
+		expect(toolbar.props('rawRemovable')).toBe(1)
+
+		toolbar.vm.$emit('removeRaws')
+		await flushPromises()
+		const summary = wrapper.findComponent(RawRemovalSummary)
+		const [pair] = summary.props('removal').removed
+		summary.vm.$emit('toggle', pair)
+		await flushPromises()
+		expect(names(summary.props('removal').kept)).toEqual(['IMG_10'])
+		expect(toolbar.props('rawRemovable')).toBe(0)
+		expect(toastText(wrapper)).toContain('Marked IMG_10 Keep RAW')
+		summary.vm.$emit('toggle', pair)
+		await flushPromises()
+
+		summary.vm.$emit('confirm')
+		await flushPromises()
+
+		expect(sent).toEqual([[[{ fileId: 3, etag: 'etag-3' }]]])
+		expect(wrapper.findComponent(RawRemovalSummary).exists()).toBe(false)
+		expect(toolbar.props('rawRemovable')).toBe(0)
+		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
+		expect(toastText(wrapper)).toContain('Removed the RAWs of 1 photo · 1 file')
 	})
 })

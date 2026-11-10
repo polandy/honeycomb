@@ -13,9 +13,10 @@ import { PopoverStub } from './stubs.ts'
 
 const MARK = TRANSLATED_MARK
 
-const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number } = {
+const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number, rawRemovable: number } = {
 	selecting: false,
 	rejected: 0,
+	rawRemovable: 0,
 	selected: 0,
 	scope: 'not-rejected',
 	scopeLocked: false,
@@ -60,6 +61,18 @@ describe('GridToolbar', () => {
 		expect(button.find('.grid-toolbar__badge').text()).toBe('12')
 		await button.trigger('click')
 		expect(wrapper.emitted('reviewRejects')).toHaveLength(1)
+	})
+
+	it('removes RAWs from the More menu with their count, held while there are none', async () => {
+		const set = { paths: ['/Trip'], subfolders: false }
+		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('button').find((button) => button.text().includes('Remove RAWs'))!
+		const none = item(mountToolbar(set))
+		const wrapper = mountToolbar(set, 1, { rawRemovable: 88 })
+
+		expect(none.attributes('disabled')).toBeDefined()
+		expect(item(wrapper).text().replaceAll(MARK, '')).toBe('Remove RAWs… 88')
+		await item(wrapper).trigger('click')
+		expect(wrapper.emitted('removeRaws')).toHaveLength(1)
 	})
 
 	it('opens the folder picker from Home and from the set name', async () => {

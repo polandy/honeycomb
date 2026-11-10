@@ -301,3 +301,17 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   bin being off (`409`) by name, anything else as "reload the folder to see what changed".
 - 2026-11-10: The shortcut sheet's group is "Undo, delete and help" (the mockup's "move" waits
   for M5); the reject review's confirm is the danger button, as in the mockup.
+- 2026-11-10: *Remove RAWs* reuses the trash endpoint unchanged: each RAW and its own sidecars go
+  as one picture, whose member-first order keeps the sidecar when the RAW fails (ADR 0013).
+- 2026-11-10: A RAW's own sidecars are `<raw>.xmp` and darktable's duplicates `<raw-base>_NN.<ext>.xmp`,
+  matched ignoring case, as pairing assigns them; `<jpeg>.xmp` and the shared `<base>.xmp` stay.
+- 2026-11-10: A pair both marked *Keep RAW* and rejected counts as "marked Keep RAW" in the skipped
+  line and shows in *RAW stays*, as in the mockup, so the marked group is complete.
+- 2026-11-10: The *Remove RAWs* summary keeps the view as it was opened, so a Keep RAW toggle moves
+  a photo between its groups even when a *Keep RAW* filter would hide it from the grid.
+- 2026-11-10: The reject review and the *Remove RAWs* summary share one thumbnail grid component
+  (`PictureThumbs`); red frames mark photos whose files go, honey frames photos that stay.
+- 2026-11-10: *Remove RAWs…* sits only in the grid's ⋯ menu, as in the mockup; the loupe has no ⋯
+  menu, and like deleting it has no single-key shortcut.
+- 2026-11-10: The delete report's `removed` count is now per sent picture — every member it sent
+  went — so a RAW unit counts once its RAW is gone; for whole pictures the count is unchanged.

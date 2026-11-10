@@ -102,8 +102,8 @@ function redo() {
 	}
 }
 
-const deleting = useDeleteFlow({ pictures: () => pictures.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
-const { dialog: deleteDialog, busy: deleteBusy, rejected } = deleting
+const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
+const { dialog: deleteDialog, busy: deleteBusy, rejected, rawRemovable, rawRemoval } = deleting
 
 /** Opens the delete summary of the loupe's photo, else of the selection, else of the focused tile. */
 function deleteShown() {
@@ -171,6 +171,7 @@ async function closeLoupe() {
 					:selecting="selecting"
 					:selected="selected.length"
 					:rejected="rejected.length"
+					:rawRemovable="rawRemovable"
 					@changeFolders="pickerOpen = true"
 					@update:tileSize="cull.setTileSize"
 					@update:groupByFolder="groupByFolder = $event"
@@ -180,7 +181,8 @@ async function closeLoupe() {
 					@update:selecting="selection.setSelecting"
 					@selectAll="selection.selectAll"
 					@selectNone="selection.selectNone"
-					@reviewRejects="deleting.review" />
+					@reviewRejects="deleting.review"
+					@removeRaws="deleting.removeRaws" />
 				<FilterBar
 					v-if="filtersOpen && headerShown"
 					ref="filterBar"
@@ -246,11 +248,13 @@ async function closeLoupe() {
 				v-if="folderSet !== null"
 				:dialog="deleteDialog"
 				:rejected="rejected"
+				:rawRemoval="rawRemoval"
 				:folderSet="folderSet"
 				:folders="folders"
 				:busy="deleteBusy"
 				:container="loupe !== null ? '.photo-loupe' : undefined"
 				@rescue="deleting.rescue"
+				@toggleKeepRaw="deleting.toggleKeepRaw"
 				@continue="deleting.continueToSummary"
 				@back="deleting.backToReview"
 				@close="deleting.close"
