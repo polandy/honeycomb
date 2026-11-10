@@ -26,6 +26,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **reject review** | The grid of all rejected pictures, where single ones can be rescued before the delete summary. |
 | **series** | Pictures taken within a short interval, compared side by side to pick the best. |
 | **grid** | The thumbnail view of a folder set. |
+| **skeleton tile** | A tile drawn before its photo is there: its empty face pulses while the listing or the tile's thumbnail is on its way. |
 | **loupe** | The full-screen view of one picture, with swipe, zoom and the decision buttons. |
 | **chrome-free mode** | The loupe showing only the photo, every overlay and panel hidden; `Tab` or a double-tap toggles it. |
 | **filmstrip** | The row of small thumbnails of the neighbouring pictures along the loupe's bottom edge. |

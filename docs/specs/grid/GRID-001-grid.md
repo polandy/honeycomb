@@ -18,6 +18,10 @@ a glance, at any size, without waiting for a sharp image of every tile.
 - A tile shows the image member's 256 px preview first and swaps in the sharp tier (256 or
   512 px by tile size × device pixel ratio) once it has decoded; a failed decode keeps the small
   one.
+- Until its small preview has loaded, a tile is a skeleton tile: its empty face pulses (still with
+  reduced motion); a preview that fails to load stops the pulse.
+- While a folder set from *Recent* is listed, skeleton tiles fill the content area and a status
+  tells screen readers *Loading photos…*.
 - A pair carries a quiet badge with both extensions (`JPG+CR3`); a single a highlighted one
   (`JPG only`, `NEF only`). A picture with an ambiguous name shows `!`.
 - Rating (once rated), colour label, flag and *Keep RAW* are always visible on a tile; an
@@ -116,3 +120,16 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged M2.3 (#41) |
+
+### GRID-001.12 – A tile is a skeleton until its preview loads
+
+- **Given** a tile whose small preview has not loaded yet
+- **When** it renders
+- **Then** it is a skeleton tile, and it stops being one once the preview loaded or failed to load
+
+### GRID-001.13 – Skeleton tiles while a folder set lists
+
+- **Given** a folder set opened from *Recent*
+- **When** its listing has not arrived yet
+- **Then** skeleton tiles take the place of the grid and a status says *Loading photos…*, until
+  the cull opens or the listing fails
