@@ -13,20 +13,21 @@ import { computed } from 'vue'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import ConfirmDialog from './ConfirmDialog.vue'
 import DeleteStats from './DeleteStats.vue'
+import { imageUrl as apiImageUrl } from '../api.ts'
 import { formatFileSize, formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { deleteSummary, filesOf } from '../logic/delete-summary.ts'
 import { imageMember, smallSource } from '../logic/image-tiers.ts'
 import { badgeExtension } from '../logic/pair-badge.ts'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	/** The rejected pictures. */
 	pictures: readonly Picture<ListingEntry>[]
 	folderSet: FolderSet
 	/** How many folders the cull shows; a tile names its folder when there is more than one. */
 	folders: number
-	imageUrl: ImageUrlFor
-}>()
+	imageUrl?: ImageUrlFor
+}>(), { imageUrl: apiImageUrl })
 
 const emit = defineEmits<{
 	rescue: [picture: Picture<ListingEntry>]

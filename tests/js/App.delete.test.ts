@@ -43,7 +43,7 @@ async function openLoupe(wrapper: AppWrapper) {
 	return wrapper.findComponent(PhotoLoupe)
 }
 
-const names = (pictures: { baseName: string }[]) => pictures.map((picture) => picture.baseName)
+const names = (pictures: readonly { baseName: string }[]) => pictures.map((picture) => picture.baseName)
 const toastText = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast).text()
 const summaryOf = (wrapper: AppWrapper) => wrapper.findComponent(DeleteSummary)
 
