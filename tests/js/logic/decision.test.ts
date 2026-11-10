@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Decision } from '../../../src/logic/decision.ts'
+
 import { describe, expect, it } from 'vitest'
 import { decisionsByFileId, isDecided, pictureDecision, UNDECIDED } from '../../../src/logic/decision.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
@@ -28,7 +30,7 @@ describe('pictureDecision', () => {
 		['the RAW member\'s row without the rendered member\'s', [[1, rejected]], rejected],
 		['the rendered member\'s row when the members differ', [[1, rejected], [2, picked]], picked],
 	] as const)('of a pair is %s', (_case, rows, expected) => {
-		expect(pictureDecision(pair, new Map(rows))).toEqual(expected)
+		expect(pictureDecision(pair, new Map<number, Decision>(rows))).toEqual(expected)
 	})
 
 	it('of a RAW-only single is its row', () => {
