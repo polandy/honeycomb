@@ -5,5 +5,7 @@
 
 declare(strict_types=1);
 
+\OCP\Util::addScript('honeycomb', 'honeycomb-main');
+
 ?>
 <div id="honeycomb"></div>

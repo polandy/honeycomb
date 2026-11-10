@@ -53,8 +53,16 @@ dependencies — are in [`conventions.md`](conventions.md). This file adds the s
 - A tap must not change the page between `touchstart` and its `click`: iOS Safari then treats the
   tap as a hover and drops the click. Re-render in the `click` handler, not in `touchend`.
 - Tools: `@nextcloud/eslint-config` plus type-aware `typescript-eslint` rules and the bans of
-  [`conventions.md`](conventions.md) through eslint, `tsc --noEmit`, Vitest with coverage and
+  [`conventions.md`](conventions.md) through eslint, `vue-tsc`, Vitest with coverage and
   `@vue/test-utils` for tests under `tests/js/`, Playwright under `tests/e2e/`.
+- Playwright runs against a fresh Nextcloud 35 container (`scripts/e2e-server.sh`, image pinned
+  by digest) with this checkout mounted as the app; a setup project logs in once through the
+  login form and shares the session. Cases use `reducedMotion: 'reduce'` and wait on a visible
+  state. Each run starts its own container on `HONEYCOMB_E2E_PORT` (default 8180), so parallel
+  worktrees pick different ports.
+- Every Vue component is checked with the marked stub catalogue of
+  `tests/js/l10n/marked-catalogue.ts`: shallow-mount it with `renderStubDefaultSlot`, and expect
+  `untranslatedText()` to return nothing (ADR 0007, *Checks*).
 
 ## 3.4 Formatting
 

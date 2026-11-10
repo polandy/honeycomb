@@ -11,8 +11,8 @@ only. **Don't grow it**: move detail into `docs/` and keep a pointer here.
 
 - **Before finishing:** `scripts/verify.sh`. It mirrors CI, prints one line per step and the
   failing step in full: convention gates (file size, pins), markdownlint, REUSE, php-cs-fixer,
-  psalm, PHPUnit, eslint, tsc, Vitest with coverage; build and Playwright join with M2
-  (`docs/plan.md`). Without PHP it uses Docker.
+  psalm, PHPUnit, eslint, vue-tsc, Vitest with coverage, the build and Playwright against a
+  Nextcloud container (Docker). Without PHP it uses Docker.
 - Open work: `TODO.md`. `/todo` adds, `/next` plans, `/status` and `/review` check, skill
   `pr-review` reviews a PR. Subagents: `honeycomb-implementer` (one task),
   `honeycomb-reviewer` (one change). Red CI: `gh run view <run> --log-failed`.

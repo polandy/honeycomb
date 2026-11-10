@@ -36,7 +36,9 @@ step psalm scripts/php.sh vendor/bin/psalm --no-cache --threads=1 --no-progress
 step phpunit scripts/php.sh vendor/bin/phpunit
 step "npm ci" npm ci
 step eslint npx eslint
-step tsc npx tsc
+step vue-tsc npx vue-tsc
 step vitest npx vitest run --coverage
+step build npx vite build
+step e2e npx playwright test
 
 exit $failed

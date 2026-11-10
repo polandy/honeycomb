@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 const LOGIC_FILE = 'src/logic/example.ts'
 const COMPONENT_HELPER_FILE = 'src/components/example.ts'
 const TEST_FILE = 'tests/js/example.test.ts'
+const COMPONENT_FILE = 'src/components/ExampleView.vue'
 
 const eslint = new ESLint()
 
@@ -14,7 +15,7 @@ async function ruleIds(code: string, filePath: string): Promise<string[]> {
 	return (result?.messages ?? []).map((message) => message.ruleId ?? message.message)
 }
 
-describe('eslint conventions', () => {
+describe('eslint conventions', { timeout: 30_000 }, () => {
 	it('accepts a documented pure logic module', async () => {
 		const code = '/** Counts the pictures that are decided. */\n'
 			+ 'export function countDecided(flags: readonly string[]): number {\n'
@@ -74,6 +75,51 @@ describe('eslint conventions', () => {
 		const code = '/** Tries it. */\nexport function attempt(run: () => void): void {\n\ttry {\n\t\trun()\n\t} catch {\n\t}\n}\n'
 
 		expect(await ruleIds(code, COMPONENT_HELPER_FILE)).toContain('no-empty')
+	})
+
+	it('accepts a translated template', async () => {
+		const code = '<script setup lang="ts">\nimport { t } from \'@nextcloud/l10n\'\n</script>\n\n'
+			+ '<template>\n\t<p :title="t(\'honeycomb\', \'Pictures\')">\n\t\t{{ t(\'honeycomb\', \'No folder chosen\') }}\n\t</p>\n</template>\n'
+
+		expect(await ruleIds(code, COMPONENT_FILE)).toEqual([])
+	})
+
+	it('lints a component\'s script with type information', async () => {
+		const code = '<script setup lang="ts">\ndeclare function save(): Promise<void>\nsave()\n</script>\n'
+
+		expect(await ruleIds(code, COMPONENT_FILE)).toContain('@typescript-eslint/no-floating-promises')
+	})
+
+	it.each([
+		['text', '<p>No folder chosen</p>'],
+		['an aria-label', '<button aria-label="Close" />'],
+	])('forbids a bare string as %s in a template', async (_name, element) => {
+		const code = `<template>\n\t${element}\n</template>\n`
+
+		expect(await ruleIds(code, COMPONENT_FILE)).toContain('vue/no-bare-strings-in-template')
+	})
+
+	it.each([
+		['t() with an app id other than honeycomb', 't(\'files\', \'Pictures\')'],
+		['t() with a string the extractor cannot read', 't(\'honeycomb\', _label)'],
+		['n() with a plural the extractor cannot read', 'n(\'honeycomb\', \'%n picture\', _label, 2)'],
+		['a literal message in a toast', 'showError(\'Could not save\')'],
+	])('forbids %s', async (_name, call) => {
+		const code = 'import { n, t } from \'@nextcloud/l10n\'\n\n'
+			+ 'declare function showError(message: string): void\n'
+			+ `/** Shows it. */\nexport function show(_label: string): unknown {\n\treturn [${call}, n, t, showError]\n}\n`
+
+		expect(await ruleIds(code, COMPONENT_HELPER_FILE)).toContain('no-restricted-syntax')
+	})
+
+	it('accepts a translated message in a toast', async () => {
+		const code = 'import { n, t } from \'@nextcloud/l10n\'\n\n'
+			+ 'declare function showError(message: string): void\n'
+			+ '/** Shows it. */\nexport function show(count: number): void {\n'
+			+ '\tshowError(t(\'honeycomb\', \'Could not save\'))\n'
+			+ '\tshowError(n(\'honeycomb\', \'%n picture\', \'%n pictures\', count))\n}\n'
+
+		expect(await ruleIds(code, COMPONENT_HELPER_FILE)).toEqual([])
 	})
 
 	it('requires a doc comment on an exported function', async () => {
