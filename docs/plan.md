@@ -521,7 +521,7 @@ against it. `Ctrl` on Windows and Linux is `⌘` on a Mac.
 | `Ctrl+=` `Ctrl+-` | zoom in, zoom out | same keys |
 | `F` | fullscreen | not confirmed in the Adobe text read |
 | `Tab` | show or hide the header (loupe: the controls) | differs: Lightroom hides the side panels, `Shift+Tab` all panels |
-| `I` | cycle the info overlay | same key |
+| `I` | loupe: show or hide the info panel | same key |
 | `\` | show or hide the filter bar | not confirmed in the Adobe text read |
 | `Ctrl+L` | filters off / on | same keys |
 | `Ctrl+A` `Ctrl+D` | select all, select none | same keys |
@@ -545,7 +545,8 @@ against it. `Ctrl` on Windows and Linux is `⌘` on a Mac.
   photos](https://helpx.adobe.com/lightroom-classic/help/flag-label-rate-photos.html), Windows and
   Mac. Adobe's server refused direct downloads (HTTP 403), so the check ran on search excerpts of
   those pages; keys marked *not confirmed* did not appear in them and need a look at Lightroom's own
-  list (`Ctrl+/` in the Library module) before M3.3 builds them.
+  list (`Ctrl+/` in the Library module); M3.3 built them as this table says
+  (`docs/decisions.md`, 2026-11-10).
 
 Where the work lands: M3.3, with the mockup (`KEYS` in `docs/mockup/index.html`) as the reference.
 

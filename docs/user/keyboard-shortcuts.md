@@ -39,7 +39,7 @@ in the series compare). Press `Ctrl+/` at any time to see this list in the app.
 | `Ctrl+=` and `Ctrl+-` | Zoom in and out. |
 | `F` | Fullscreen. |
 | `Tab` | Show or hide the header; in the loupe, the controls. |
-| `I` | Cycle the info overlay. |
+| `I` | Loupe: show or hide the info panel. |
 | `Esc` | Close the loupe, dialog or selection mode. |
 | `B` | Show or hide the flag buttons in the loupe and the series viewer. The keys and swipes keep working. |
 
