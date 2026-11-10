@@ -45,6 +45,7 @@ function onOpen(open: boolean) {
 
 <template>
 	<NcDialog
+		class="confirm-dialog"
 		:name="props.title"
 		:noClose="!props.cancel"
 		:container="props.container ?? 'body'"
@@ -64,3 +65,26 @@ function onOpen(open: boolean) {
 		</template>
 	</NcDialog>
 </template>
+
+<style>
+/* Unscoped: NcModal teleports the dialog out of this component; the mockup's phone breakpoint. */
+@media only screen and (max-width: 520px) {
+	.confirm-dialog.modal-mask .modal-wrapper {
+		align-items: flex-end;
+	}
+
+	.confirm-dialog.modal-mask .modal-wrapper .modal-container {
+		position: absolute;
+		top: auto;
+		bottom: 0;
+		width: 100%;
+		height: auto;
+		max-height: calc(100% - 24px - env(safe-area-inset-top, 0px));
+		border-radius: 16px 16px 0 0;
+	}
+
+	.confirm-dialog.modal-mask .dialog__actions {
+		padding-bottom: env(safe-area-inset-bottom, 0px);
+	}
+}
+</style>

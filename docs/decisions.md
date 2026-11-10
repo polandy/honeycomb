@@ -571,3 +571,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   picture. Positions are bounded at 20 per user; a deleted user's positions go with the user.
 - 2026-11-10: A deleted user's rows are removed on `UserDeletedEvent`, not by the job checking
   whether users exist: a user backend that is briefly unreachable must not wipe a user's cull.
+- 2026-11-10: The TODO item's grid arrow keys were already built (KEYS-001.5); only `ConfirmDialog`'s
+  phone bottom sheet was left. It takes the mockup's 520 px breakpoint, not NcModal's 512 px, and
+  is restyled from NcModal's classes, since `NcDialog` offers no sheet layout.
