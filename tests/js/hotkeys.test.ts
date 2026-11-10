@@ -30,7 +30,9 @@ describe('hotkeyListener', () => {
 
 	it('reads Caps Lock as auto-advance', () => {
 		const decide = vi.fn()
-		press(hotkeyListener(() => ({ decide }), () => false), 'P', { modifierCapsLock: true } as KeyboardEventInit)
+		const event = new KeyboardEvent('keydown', { key: 'P', cancelable: true })
+		event.getModifierState = (key: string) => key === 'CapsLock'
+		hotkeyListener(() => ({ decide }), () => false)(event)
 		expect(decide).toHaveBeenCalledWith({ kind: 'flag', flag: 'picked' }, true)
 	})
 
