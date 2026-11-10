@@ -254,3 +254,23 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   (`honeycomb.flagButtonsShown`) until the M4.3 per-user setting; the hide toast names the
   swipe and the flag toggle for every pointer until the `B` key exists (M3.3).
 - 2026-11-10: The undo toast stays 5.2 s, as in the mockup; the landscape flag rail is 96 px wide.
+- 2026-11-10: The key map (`src/logic/hotkeys.ts`) holds only keys that work; `N`, `Shift+K`, `M`,
+  `Delete`, `Ctrl+Backspace` and the move dialog's `1`–`9` join it with M4, M6 and M7, and the
+  user doc marks them *Coming in a later version*.
+- 2026-11-10: `Caps Lock`, `Home`, `End`, `Z`, `F` and `\` are built as the plan's key table and
+  the signed-off mockup say, though Lightroom's own list has not confirmed them yet.
+- 2026-11-10: The gesture guide's keys line teaches `P`, `X`, `U`, `Z` and `?`, as in the mockup.
+- 2026-11-10: The vi keys option lives in browser storage (`honeycomb.viKeys`) until the M4.4
+  setting.
+- 2026-11-10: `Shift+` decisions and `Caps Lock` go to the next photo unless the decision already
+  moved (loupe auto-advance) or, in the grid, the photo left the filtered view; `Caps Lock` also
+  advances `[` and `]`. On a selection with mixed ratings, `[` and `]` step from 0.
+- 2026-11-10: `↑` and `↓` switch photo in the loupe, as `←` and `→` do.
+- 2026-11-10: The shortcut sheet opens inside the loupe while it is open, so it lies above it.
+- 2026-11-10: Hiding the flag buttons by `B` says "Flag buttons hidden · B shows them"; by a tap
+  the toast still names the swipe and the flag at the top.
+- 2026-11-10: `I` shows or hides the loupe's info panel instead of cycling an overlay, as the glossary's
+  info panel is a panel; the plan, user doc and sheet say so.
+- 2026-11-10: The shortcut sheet drops the mockup's rows without a key-map key (`Shift+click`,
+  `Ctrl+wheel`) and the "(Settings › Keyboard)" suffix of *Vi keys* until the M4.4 setting; the
+  gesture guide labels its keys *Pick*, *Reject*, *Unflag*, *Zoom* and *All keys*.

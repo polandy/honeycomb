@@ -170,9 +170,13 @@ onMounted(() => {
 onBeforeUnmount(() => stopObserving())
 
 defineExpose({
-	/** Toggles between fit and 100 % around the stage's middle. */
-	toggleZoom() {
+	/** Toggles between fit and 100 % around the stage's middle; with `from`, only when zoomed is `from`, saying whether it did. */
+	toggleZoom(from = zoomed.value): boolean {
+		if (from !== zoomed.value) {
+			return false
+		}
 		zoom.value = toggleZoom(zoom.value, { x: 0, y: 0 }, maxScale.value, fitted.value, size.value)
+		return true
 	},
 })
 </script>

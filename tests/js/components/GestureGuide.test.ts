@@ -22,9 +22,11 @@ describe('GestureGuide', () => {
 		])
 		const keys = wrapper.findAll('.gesture-guide__key')
 		expect(keys.map((key) => [key.findAll('kbd').map((cap) => cap.text()), key.text()])).toEqual([
-			[['←', '→'], '←→ Previous or next photo'],
+			[['P'], 'P Pick'],
+			[['X'], 'X Reject'],
+			[['U'], 'U Unflag'],
 			[['Z'], 'Z Zoom'],
-			[['Esc'], 'Esc Close'],
+			[['?'], '? All keys'],
 		])
 		const sketch = wrapper.find('.gesture-guide__zones')
 		expect(sketch.attributes('aria-hidden')).toBe('true')
@@ -48,6 +50,8 @@ describe('GestureGuide', () => {
 
 		it('renders no text that bypasses the catalogue', () => {
 			const wrapper = mount(GestureGuide)
+			// Key caps come from the key map, which names keys rather than words.
+			wrapper.findAll('kbd').forEach((cap) => cap.element.remove())
 
 			expect(untranslatedText(wrapper.element as Element)).toEqual([])
 		})

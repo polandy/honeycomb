@@ -99,9 +99,63 @@ describe('PhotoLoupe: decisions', () => {
 		expect(wrapper.emitted('toast')).toEqual([[{ message: 'Flag buttons shown', action: null }]])
 	})
 
+	it('hides the flag buttons by B and names the key that shows them', async () => {
+		const { wrapper, root } = await mountDeciding(4)
+		await root.trigger('keydown', { key: 'b' })
+		expect(wrapper.find('.flag-buttons').exists()).toBe(false)
+		expect((wrapper.emitted('toast') as [Toast][])[0]![0].message).toBe('Flag buttons hidden · B shows them')
+		await root.trigger('keydown', { key: 'b' })
+		expect(wrapper.find('.flag-buttons').exists()).toBe(true)
+	})
+
 	it('hides its decision controls in chrome-free mode', async () => {
 		const { wrapper, root } = await mountDeciding(4)
 		await root.trigger('keydown', { key: 'Tab' })
 		expect(wrapper.find('.action-bar').exists()).toBe(false)
+	})
+})
+
+describe('PhotoLoupe: decision keys', () => {
+	it('flags by P, X and U and moves on as a flag button does', async () => {
+		const { wrapper, root, decided } = await mountDeciding(4)
+		await root.trigger('keydown', { key: 'u' })
+		await root.trigger('keydown', { key: 'x' })
+		expect(decided).toEqual([[{ kind: 'flag', flag: 'unflagged' }, 'IMG_5'], [{ kind: 'flag', flag: 'rejected' }, 'IMG_5']])
+		expect(indices(wrapper)).toEqual([5])
+	})
+
+	it('goes to the next photo after Shift and a flag only when the flag did not move already', async () => {
+		const { wrapper, root, decided } = await mountDeciding(4, { 6: 'picked' })
+		await root.trigger('keydown', { key: 'P', shiftKey: true })
+		await root.trigger('keydown', { key: 'U', shiftKey: true })
+		expect(decided).toEqual([[{ kind: 'flag', flag: 'picked' }, 'IMG_5'], [{ kind: 'flag', flag: 'unflagged' }, 'IMG_7']])
+		expect(indices(wrapper)).toEqual([6, 7])
+	})
+
+	it('rates by a digit with Caps Lock on and goes to the next photo', async () => {
+		const { wrapper, root, decided } = await mountDeciding(4)
+		const event = new KeyboardEvent('keydown', { key: '3', bubbles: true, cancelable: true })
+		event.getModifierState = (key: string) => key === 'CapsLock'
+		root.element.dispatchEvent(event)
+		expect(decided).toEqual([[{ kind: 'rating', rating: 3 }, 'IMG_5']])
+		expect(indices(wrapper)).toEqual([5])
+	})
+
+	it('rates by Shift and a digit on the last photo and stays there', async () => {
+		const { wrapper, root, decided } = await mountDeciding(9)
+		await root.trigger('keydown', { key: '#', code: 'Digit3', shiftKey: true })
+		expect(decided).toEqual([[{ kind: 'rating', rating: 3 }, 'IMG_10']])
+		expect(indices(wrapper)).toBeUndefined()
+	})
+
+	it('steps the shown rating by ] and [', async () => {
+		const decided: DecisionIntent[] = []
+		const { root } = await mountLoupe(4, {}, false, {
+			decisionOf: () => ({ ...UNDECIDED, rating: 2 }),
+			onDecide: (intent: DecisionIntent) => decided.push(intent),
+		})
+		await root.trigger('keydown', { key: ']' })
+		await root.trigger('keydown', { key: '[' })
+		expect(decided).toEqual([{ kind: 'rating', rating: 3 }, { kind: 'rating', rating: 1 }])
 	})
 })

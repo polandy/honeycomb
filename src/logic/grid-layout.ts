@@ -80,6 +80,13 @@ export function rowOfItem(layout: GridLayout, index: number): number {
 	return after - 1
 }
 
+/** The scroll offset that shows the picture at `index`: unchanged while its row is in view, else the row centred. */
+export function revealScrollTop(layout: GridLayout, index: number, scrollTop: number, viewportHeight: number): number {
+	const row = layout.rows[rowOfItem(layout, index)]!
+	const inView = row.top >= scrollTop && row.top + row.height <= scrollTop + viewportHeight
+	return inView ? scrollTop : Math.max(0, row.top - (viewportHeight - row.height) / 2)
+}
+
 /** The first picture of a row; a header's is that of the tile row below it. */
 function firstItem(rows: readonly GridRow[], row: GridRow, at: number): number {
 	return row.kind === 'tiles' ? row.first : firstItem(rows, rows[at + 1]!, at + 1)
@@ -98,4 +105,27 @@ function firstRowWhere(rows: readonly GridRow[], meets: (row: GridRow, at: numbe
 		}
 	}
 	return low
+}
+
+/** Where the grid's focus goes from the picture at `index`: up and down keep the column, clamped to a shorter row. */
+export type FocusMove = 'previous' | 'next' | 'up' | 'down' | 'first' | 'last'
+
+/** The picture the focus moves to; it stays at either end. */
+export function focusStep(layout: GridLayout, index: number, move: FocusMove): number {
+	const tiles = layout.rows.filter((row) => row.kind === 'tiles')
+	const last = tiles.at(-1)!
+	const count = last.first + last.count
+	switch (move) {
+		case 'first':
+			return 0
+		case 'last':
+			return count - 1
+		case 'previous':
+			return Math.max(0, index - 1)
+		case 'next':
+			return Math.min(count - 1, index + 1)
+	}
+	const at = tiles.findIndex((row) => index < row.first + row.count)
+	const target = tiles[at + (move === 'down' ? 1 : -1)]
+	return target === undefined ? index : target.first + Math.min(index - tiles[at]!.first, target.count - 1)
 }

@@ -8,7 +8,7 @@ import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { Filters } from './logic/picture-filter.ts'
 import type { SortOrder } from './logic/picture-order.ts'
-import type { UndoEntry } from './logic/undo.ts'
+import type { UndoEntry, UndoHistory } from './logic/undo.ts'
 
 import { computed, ref, shallowRef } from 'vue'
 import { readStored, writeStored } from './browser-storage.ts'
@@ -17,10 +17,10 @@ import { logger } from './logger.ts'
 import { prepareCull, warmFileIds } from './logic/cull.ts'
 import { commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
 import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
-import { activeFilterCount, DEFAULT_FILTERS, emptyReason, filterPictures, pictureFolders, progress } from './logic/picture-filter.ts'
+import { activeFilterCount, clearFilters, DEFAULT_FILTERS, emptyReason, filterPictures, pictureFolders, progress } from './logic/picture-filter.ts'
 import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
 import { parseTileSize } from './logic/tile-size.ts'
-import { pushUndo, undoEntry } from './logic/undo.ts'
+import { NO_HISTORY, recordStep, redoStep, undoEntry, undoStep } from './logic/undo.ts'
 
 /** The browser storage key of the thumbnail size. */
 export const TILE_SIZE_KEY = 'honeycomb.tileSize'
@@ -45,7 +45,8 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 	const groupByFolder = ref(false)
 	const tileSize = ref(parseTileSize(readStored(storage, TILE_SIZE_KEY)))
 	const saveFailed = ref(false)
-	let history: readonly UndoEntry[] = []
+	let history: UndoHistory = NO_HISTORY
+	let filtersOff: Filters | null = null
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
 	const folders = computed(() => folderPaths.value.length)
 	const grouped = computed(() => groupByFolder.value && folders.value > 1)
@@ -60,7 +61,8 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 		folderSet.value = set
 		pictures.value = prepareCull(entries).pictures
 		decisions.value = new Map()
-		history = []
+		history = NO_HISTORY
+		filtersOff = null
 		saveFailed.value = false
 		filters.value = DEFAULT_FILTERS
 		sortOrder.value = defaultSortOrder(folders.value)
@@ -89,7 +91,7 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]): UndoEntry | null {
 		const entry = undoEntry(decided(chosen), resolveChange(intent, decided(chosen)))
 		if (entry !== null) {
-			history = pushUndo(history, entry)
+			history = recordStep(history, entry)
 			store(entry.after)
 		}
 		return entry
@@ -97,12 +99,24 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 
 	/** Puts back what the latest step replaced and returns it, or null when there is none. */
 	function undo(): UndoEntry | null {
-		const entry = history.at(-1) ?? null
-		if (entry !== null) {
-			history = history.slice(0, -1)
-			store(entry.before)
+		const step = undoStep(history)
+		if (step === null) {
+			return null
 		}
-		return entry
+		history = step.history
+		store(step.entry.before)
+		return step.entry
+	}
+
+	/** Writes again what the latest undo took back and returns it, or null when there is none. */
+	function redo(): UndoEntry | null {
+		const step = redoStep(history)
+		if (step === null) {
+			return null
+		}
+		history = step.history
+		store(step.entry.after)
+		return step.entry
 	}
 
 	/** Shows the rows at once and stores them; a failed save puts back what they replaced. */
@@ -123,6 +137,17 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 	/** Switches the scope and keeps the filters. */
 	function setScope(scope: Filters['scope']) {
 		filters.value = { ...filters.value, scope }
+	}
+
+	/** Turns the filters off, keeping the scope; the next press turns them back on unless others were set meanwhile. */
+	function toggleFiltersOff() {
+		if (filtersOff !== null && activeFilters.value === 0) {
+			filters.value = { ...filtersOff, scope: filters.value.scope }
+			filtersOff = null
+		} else {
+			filtersOff = filters.value
+			filters.value = clearFilters(filters.value)
+		}
 	}
 
 	/** Sets the thumbnail size and keeps it for the next visit. */
@@ -152,8 +177,10 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 		common,
 		decide,
 		undo,
+		redo,
 		open,
 		setScope,
+		toggleFiltersOff,
 		setTileSize,
 	}
 }

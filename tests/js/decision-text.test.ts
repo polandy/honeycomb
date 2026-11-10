@@ -3,7 +3,7 @@
 import type { DecisionChange } from '../../src/logic/decision-change.ts'
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { changeText, undoneText } from '../../src/decision-text.ts'
+import { changeText, redoneText, undoneText } from '../../src/decision-text.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue } from './l10n/marked-catalogue.ts'
 
 const escapeMark = TRANSLATED_MARK.replace(/[[\]]/g, '\\$&')
@@ -29,6 +29,10 @@ describe('changeText', () => {
 
 	it('answers an undo with the change it took back', () => {
 		expect(undoneText({ change: { flag: 'rejected' }, names: ['IMG_1'] })).toBe('Undid: Rejected IMG_1')
+	})
+
+	it('answers a redo with the change it put again', () => {
+		expect(redoneText({ change: { rating: 2 }, names: ['A', 'B'] })).toBe('Redid: Rated 2 photos ★★')
 	})
 
 	describe('with the marked catalogue', () => {

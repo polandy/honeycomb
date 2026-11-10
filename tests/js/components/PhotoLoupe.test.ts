@@ -3,6 +3,7 @@
 // @vitest-environment happy-dom
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
+import { VI_KEYS_KEY } from '../../../src/hotkeys.ts'
 import { GESTURE_GUIDE_SEEN_KEY, INFO_OPEN_KEY, INFO_WIDTH_KEY, NAVIGATION_SHOWN_KEY } from '../../../src/loupe-panels.ts'
 import { tap } from './loupe-pointer.ts'
 import { button, indices, mountLoupe } from './mount-loupe.ts'
@@ -43,6 +44,14 @@ describe('PhotoLoupe', () => {
 		expect(indices(wrapper)).toEqual([1, 9, 0])
 	})
 
+	it('pages by ArrowUp and ArrowDown, and by h and l with the vi keys on', async () => {
+		const { wrapper, root } = await mountLoupe(4, { [VI_KEYS_KEY]: 'true' })
+		for (const key of ['ArrowDown', 'ArrowUp', 'l', 'h']) {
+			await root.trigger('keydown', { key })
+		}
+		expect(indices(wrapper)).toEqual([5, 4, 5, 4])
+	})
+
 	it('pages by the navigation buttons, shown only where there is a neighbour', async () => {
 		const { wrapper } = await mountLoupe(0)
 		expect(button(wrapper, 'Previous photo').exists()).toBe(false)
@@ -59,11 +68,17 @@ describe('PhotoLoupe', () => {
 		expect(indices(wrapper)).toEqual([5, 0])
 	})
 
-	it('closes by Escape and by the close button', async () => {
+	it('closes by Escape, by G and by the close button', async () => {
 		const { wrapper, root } = await mountLoupe()
 		await root.trigger('keydown', { key: 'Escape' })
+		await root.trigger('keydown', { key: 'g' })
 		await button(wrapper, 'Close loupe').trigger('click')
-		expect(wrapper.emitted('close')).toHaveLength(2)
+		expect(wrapper.emitted('close')).toHaveLength(3)
+	})
+
+	it('is the screen its keys belong to', async () => {
+		const { root } = await mountLoupe()
+		expect(root.attributes('data-hotkeys-screen')).toBeDefined()
 	})
 
 	it('toggles chrome-free by Tab on itself and by a double tap, but not by Tab on a control', async () => {
@@ -102,6 +117,25 @@ describe('PhotoLoupe', () => {
 		expect(zoomButton.text()).toBe('100 %')
 		expect(decoded).toContain('/img/5/0')
 		await zoomButton.trigger('click')
+		expect(zoomButton.text()).toBe('Fit')
+	})
+
+	it('zooms in by Ctrl+= only when fitted and out by Ctrl+- only when zoomed, leaving other presses to the browser', async () => {
+		const { wrapper, root } = await mountLoupe()
+		const zoomButton = button(wrapper, 'Toggle fit and 100 percent')
+		const press = async (key: string) => {
+			const event = new KeyboardEvent('keydown', { key, ctrlKey: true, bubbles: true, cancelable: true })
+			root.element.dispatchEvent(event)
+			await flushPromises()
+			return event.defaultPrevented
+		}
+		expect(await press('-')).toBe(false)
+		expect(zoomButton.text()).toBe('Fit')
+		expect(await press('=')).toBe(true)
+		expect(zoomButton.text()).toBe('100 %')
+		expect(await press('=')).toBe(false)
+		expect(zoomButton.text()).toBe('100 %')
+		expect(await press('-')).toBe(true)
 		expect(zoomButton.text()).toBe('Fit')
 	})
 

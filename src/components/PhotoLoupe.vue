@@ -4,13 +4,13 @@
 -->
 <script setup lang="ts">
 import type { BrowserStorage } from '../browser-storage.ts'
+import type { HotkeyHandlers } from '../hotkeys.ts'
 import type { DecisionIntent } from '../logic/decision-change.ts'
 import type { Decision } from '../logic/decision.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Schedule } from '../logic/long-press.ts'
-import type { LoupeKeyAction } from '../logic/loupe-keys.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { ObserveSize } from '../observe-size.ts'
 import type { Toast } from '../toast.ts'
@@ -29,7 +29,6 @@ import { imageUrl as apiImageUrl } from '../api.ts'
 import { toggleBrowserFullscreen } from '../fullscreen.ts'
 import { LOUPE_IDLE_MS, useIdle } from '../idle.ts'
 import { imageMember, loupeSources } from '../logic/image-tiers.ts'
-import { loupeKey } from '../logic/loupe-keys.ts'
 import { INFO_PANEL } from '../logic/panel-width.ts'
 import { prefetchOrder } from '../logic/prefetch.ts'
 import { useLoupeDecisions } from '../loupe-decisions.ts'
@@ -108,29 +107,29 @@ function go(index: number) {
 	}
 }
 
-const KEY_ACTIONS: Record<LoupeKeyAction, () => void> = {
+/** The loupe's keys (`docs/plan.md` Keyboard shortcuts); the app's dispatcher runs them. */
+const hotkeys: HotkeyHandlers = {
 	previous: () => go(props.index - 1),
 	next: () => go(props.index + 1),
+	up: () => go(props.index - 1),
+	down: () => go(props.index + 1),
 	first: () => go(0),
 	last: () => go(props.pictures.length - 1),
 	close: () => emit('close'),
-	'chrome-free': () => {
+	grid: () => emit('close'),
+	header: () => {
 		chromeFree.value = !chromeFree.value
 	},
 	fullscreen: () => props.toggleFullscreen(root.value!),
 	zoom: () => stage.value!.toggleZoom(),
+	'zoom-in': () => stage.value!.toggleZoom(false),
+	'zoom-out': () => stage.value!.toggleZoom(true),
 	info: () => panels.setInfoOpen(!infoOpen.value),
+	'flag-buttons': () => decisions.setFlagButtonsShown(!flagButtonsShown.value, true),
+	decide: decisions.decideByKey,
 }
 
-/** Runs a loupe key; Tab and Space keep their meaning on a focused control. */
-function onKeydown(event: KeyboardEvent) {
-	const onControl = event.target !== root.value && (event.key === 'Tab' || event.key === ' ')
-	const action = event.defaultPrevented || onControl ? null : loupeKey(event)
-	if (action !== null) {
-		event.preventDefault()
-		KEY_ACTIONS[action]()
-	}
-}
+defineExpose({ hotkeys })
 
 /** Remembers the gesture guide as seen and gives the keys back to the loupe. */
 function dismissGestureGuide() {
@@ -151,7 +150,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 		:aria-modal="!navigationShown"
 		:aria-label="t('honeycomb', 'Loupe')"
 		tabindex="-1"
-		@keydown="onKeydown"
+		data-hotkeys-screen
 		@pointermove="$event.pointerType === 'mouse' && overlays.wake()">
 		<LoupeTitleRow
 			class="photo-loupe__top photo-loupe__overlay"

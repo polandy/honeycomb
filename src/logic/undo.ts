@@ -34,3 +34,29 @@ export function undoEntry(pictures: readonly Decided[], change: DecisionChange):
 export function pushUndo(history: readonly UndoEntry[], entry: UndoEntry): UndoEntry[] {
 	return [...history, entry].slice(-UNDO_LIMIT)
 }
+
+/** The steps undo can take back and the steps redo can put again, latest last. */
+export interface UndoHistory {
+	readonly done: readonly UndoEntry[]
+	readonly undone: readonly UndoEntry[]
+}
+
+/** Nothing to undo or redo. */
+export const NO_HISTORY: UndoHistory = { done: [], undone: [] }
+
+/** The history after a new step; it clears what redo could put again. */
+export function recordStep(history: UndoHistory, entry: UndoEntry): UndoHistory {
+	return { done: pushUndo(history.done, entry), undone: [] }
+}
+
+/** The latest step and the history with it moved to redo, or null when there is none. */
+export function undoStep(history: UndoHistory): { entry: UndoEntry, history: UndoHistory } | null {
+	const entry = history.done.at(-1)
+	return entry === undefined ? null : { entry, history: { done: history.done.slice(0, -1), undone: [...history.undone, entry] } }
+}
+
+/** The latest undone step and the history with it back on the undo side, or null when there is none. */
+export function redoStep(history: UndoHistory): { entry: UndoEntry, history: UndoHistory } | null {
+	const entry = history.undone.at(-1)
+	return entry === undefined ? null : { entry, history: { done: pushUndo(history.done, entry), undone: history.undone.slice(0, -1) } }
+}

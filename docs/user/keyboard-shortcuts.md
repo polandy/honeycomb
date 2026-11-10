@@ -28,18 +28,18 @@ in the series compare). Press `Ctrl+/` at any time to see this list in the app.
 
 | Keys | What it does |
 |---|---|
-| Arrow keys | Grid: move the focus. Loupe, series compare and series viewer: switch to the previous or next photo. |
+| `←` `→` `↑` `↓` | Grid: move the focus. Loupe, series compare and series viewer: switch to the previous or next photo. |
 | `Home` and `End` | Go to the first or last photo. |
 | `Enter` | Open the focused photo in the loupe. |
 | `G` | Back to the grid. |
 | `E` | Open the loupe. |
-| `N` | Compare the next series. |
+| `N` | Compare the next series. *Coming in a later version.* |
 | `Space` | Loupe: switch between fit and 100 %. |
 | `Z` | Loupe and series viewer: switch between fit and 100 %. |
 | `Ctrl+=` and `Ctrl+-` | Zoom in and out. |
 | `F` | Fullscreen. |
 | `Tab` | Show or hide the header; in the loupe, the controls. |
-| `I` | Cycle the info overlay. |
+| `I` | Loupe: show or hide the info panel. |
 | `Esc` | Close the loupe, dialog or selection mode. |
 | `B` | Show or hide the flag buttons in the loupe and the series viewer. The keys and swipes keep working. |
 
@@ -61,7 +61,7 @@ it, as in Lightroom's Survey view.
 
 | Keys | What it does |
 |---|---|
-| `Shift+K` | **Pick this, reject the rest** of the series, as one undo step. |
+| `Shift+K` | **Pick this, reject the rest** of the series, as one undo step. *Coming in a later version.* |
 
 ## Undo, delete and more
 
@@ -69,9 +69,9 @@ it, as in Lightroom's Survey view.
 |---|---|
 | `Ctrl+Z` | Undo. |
 | `Ctrl+Shift+Z` | Redo. |
-| `Delete` | Show the delete summary for the selection or focused photo. |
-| `Ctrl+Backspace` | Review the rejected photos before deleting them. |
-| `M` | Move the photos to another folder. In that dialog, `1`–`9` choose a favourite or recent folder. |
+| `Delete` | Show the delete summary for the selection or focused photo. *Coming in a later version.* |
+| `Ctrl+Backspace` | Review the rejected photos before deleting them. *Coming in a later version.* |
+| `M` | Move the photos to another folder. In that dialog, `1`–`9` choose a favourite or recent folder. *Coming in a later version.* |
 | `Ctrl+/` | Show the shortcut help. `?` does the same. |
 
 Deleted photos always go to the Nextcloud trash bin, where you can restore them.
@@ -80,7 +80,7 @@ Deleted photos always go to the Nextcloud trash bin, where you can restore them.
 
 Turn on *Settings › Keyboard › Vi keys* to move around as in vi. They are off by default,
 because `g` then starts `g g` instead of opening the grid; with them on, `Esc` leads back to
-the grid.
+the grid. Until that setting arrives, set the browser storage key `honeycomb.viKeys` to `true`.
 
 | Keys | What it does |
 |---|---|

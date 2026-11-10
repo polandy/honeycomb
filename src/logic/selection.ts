@@ -13,18 +13,6 @@ export interface TileClick {
 	readonly toggle: boolean
 }
 
-/** The keys of a keyboard event that selection mode reads. */
-export interface SelectionKeyEvent {
-	readonly key: string
-	readonly ctrlKey: boolean
-	readonly metaKey: boolean
-	readonly shiftKey: boolean
-	readonly altKey: boolean
-}
-
-/** What a key does to the selection. */
-export type SelectionKeyAction = 'select-all' | 'select-none' | 'leave'
-
 /** Nothing selected. */
 export const NO_SELECTION: Selection = { ids: new Set(), anchor: null }
 
@@ -65,18 +53,4 @@ export function keepShown(selection: Selection, order: readonly number[]): Selec
 	}
 	const anchor = selection.anchor !== null && shown.has(selection.anchor) ? selection.anchor : null
 	return { ids: new Set(ids), anchor }
-}
-
-/** The selection action of a key (`docs/plan.md` Keyboard shortcuts), or null. */
-export function selectionKey(event: SelectionKeyEvent): SelectionKeyAction | null {
-	const command = (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey
-	const key = event.key.toLowerCase()
-	if (command && key === 'a') {
-		return 'select-all'
-	}
-	if (command && key === 'd') {
-		return 'select-none'
-	}
-	const bare = !event.ctrlKey && !event.metaKey && !event.altKey
-	return bare && event.key === 'Escape' ? 'leave' : null
 }

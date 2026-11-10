@@ -5,6 +5,7 @@
 <script setup lang="ts">
 import type { Decision } from '../logic/decision.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
+import type { FocusMove } from '../logic/grid-layout.ts'
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Schedule } from '../logic/long-press.ts'
@@ -18,7 +19,7 @@ import PhotoTile from './PhotoTile.vue'
 import { formatNumber } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { UNDECIDED } from '../logic/decision.ts'
-import { gridLayout, rowOfItem, stickyHeader, visibleRows } from '../logic/grid-layout.ts'
+import { focusStep, gridLayout, revealScrollTop, stickyHeader, visibleRows } from '../logic/grid-layout.ts'
 import { imageMember } from '../logic/image-tiers.ts'
 import { groupByFolder as folderGroups } from '../logic/picture-order.ts'
 import { NO_SELECTION } from '../logic/selection.ts'
@@ -159,17 +160,20 @@ onMounted(() => {
 })
 onBeforeUnmount(() => stopObserving())
 
+/** Scrolls the tile at `index` into view and focuses it, as after closing the loupe. */
+async function reveal(index: number) {
+	scroller.value!.scrollTop = scrollTop.value = revealScrollTop(layout.value, index, scrollTop.value, height.value)
+	focused.value = index
+	await nextTick()
+	scroller.value!.querySelector<HTMLElement>('[tabindex="0"]')!.focus()
+}
+
 defineExpose({
-	/** Scrolls the tile at `index` into view and focuses it, as after closing the loupe. */
-	async reveal(index: number) {
-		const row = layout.value.rows[rowOfItem(layout.value, index)]!
-		if (row.top < scrollTop.value || row.top + row.height > scrollTop.value + height.value) {
-			scroller.value!.scrollTop = scrollTop.value = Math.max(0, row.top - (height.value - row.height) / 2)
-		}
-		focused.value = index
-		await nextTick()
-		scroller.value!.querySelector<HTMLElement>('[tabindex="0"]')!.focus()
-	},
+	reveal,
+	/** The index of the tile that has, or last had, the focus. */
+	focusedIndex: () => focused.value,
+	/** Moves the focus one step, as an arrow, Home or End key does. */
+	step: (move: FocusMove) => reveal(focusStep(layout.value, focused.value, move)),
 })
 </script>
 

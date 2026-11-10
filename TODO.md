@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] M3.3: Keyboard shortcuts per the shared key map (`docs/plan.md` Keyboard shortcuts) incl. `R` for Keep RAW, `B`, `Home`/`End`, `Shift+K`, the optional vi keys (`docs/plan.md` Flag buttons and vi keys), undo and redo, shortcut sheet (Q5), the gesture guide's keys line as in the mockup (`P`, `X`, `U`, `Z`, `?`) (2026-11-09)
 - [ ] M4.1: Delete service — members and sidecars into the trash bin through `OCP\Files`, per-file failure report; ADR on pair atomicity first; tests for every failure path (2026-11-09)
 - [ ] M4.2: Reject review (grid of rejects, rescue single pictures) and delete summary with pictures · files · bytes freed, from "delete rejected" and from the selection (Q11) (2026-11-09)
 - [ ] M4.3: Remove RAWs — ⋯ menu action on the current view: every pair not marked Keep RAW and not rejected loses only its RAW member and that member's own `<raw>.xmp` to the trash bin, JPEG, shared `<base>.xmp` and decisions stay; summary with pictures · files · bytes freed, the skipped counts and two thumbnail groups (RAW removed, RAW stays) where a tap toggles Keep RAW; extends the M4.1 delete service under its ADR on pair atomicity; tests for every failure path (`docs/plan.md` Keep RAW and Remove RAWs) (2026-11-09)

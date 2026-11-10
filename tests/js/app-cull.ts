@@ -4,6 +4,7 @@ import type { StoredDecision } from '../../src/logic/decision.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
+import { defineComponent, h } from 'vue'
 import App from '../../src/App.vue'
 import FolderPicker from '../../src/components/FolderPicker.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
@@ -38,10 +39,32 @@ export function stored(fileId: number, flag: StoredDecision['flag']): StoredDeci
 	return { fileId, rating: 0, colourLabel: null, flag, keepRaw: false }
 }
 
+/** A grid that records the moves and reveals it is asked for and has its focus where the test puts it. */
+export function gridStub() {
+	const calls = { steps: [] as string[], revealed: [] as number[], focused: 0 }
+	const component = defineComponent({
+		props: ['pictures', 'folderSet', 'groupByFolder', 'tileSize', 'selecting', 'selection', 'decisionOf'],
+		setup(_props, { expose }) {
+			expose({
+				reveal: async (index: number) => {
+					calls.revealed.push(index)
+				},
+				step: async (move: string) => {
+					calls.steps.push(move)
+				},
+				focusedIndex: () => calls.focused,
+			})
+			return () => h('div')
+		},
+	})
+	return { component, calls }
+}
+
 export function mountApp(props: Record<string, unknown> = {}, decisions: StoredDecision[] = [], stubs: Record<string, unknown> = {}) {
 	const warmed: number[][] = []
 	const lookedUp: number[][] = []
 	const saved: StoredDecision[][] = []
+	const grid = gridStub()
 	const wrapper = mount(App, {
 		props: {
 			storage: fakeStorage(),
@@ -53,9 +76,9 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			saveDecisions: async (rows: readonly StoredDecision[]) => { saved.push([...rows]) },
 			...props,
 		},
-		global: { stubs: { FolderPicker: true, PhotoGrid: true, GridToolbar: true, FilterBar: true, PhotoLoupe: true, ...stubs } },
+		global: { stubs: { FolderPicker: true, PhotoGrid: grid.component, GridToolbar: true, FilterBar: true, PhotoLoupe: true, ...stubs } },
 	})
-	return { wrapper, warmed, lookedUp, saved }
+	return { wrapper, warmed, lookedUp, saved, grid: grid.calls }
 }
 
 /** The base names of the pictures the grid shows, in its order. */

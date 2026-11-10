@@ -25,10 +25,15 @@ import FolderPicker from './components/FolderPicker.vue'
 import GridToolbar from './components/GridToolbar.vue'
 import PhotoGrid from './components/PhotoGrid.vue'
 import PhotoLoupe from './components/PhotoLoupe.vue'
+import ShortcutSheet from './components/ShortcutSheet.vue'
 import UndoToast from './components/UndoToast.vue'
 import { listEntries as apiListEntries, listFolders as apiListFolders, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, warmPreviews as apiWarmPreviews } from './api.ts'
+import { readStored } from './browser-storage.ts'
 import { useCull } from './cull.ts'
-import { changeText, undoneText } from './decision-text.ts'
+import { changeText, redoneText, undoneText } from './decision-text.ts'
+import { toggleBrowserFullscreen } from './fullscreen.ts'
+import { gridHotkeys } from './grid-hotkeys.ts'
+import { useHotkeys, VI_KEYS_KEY } from './hotkeys.ts'
 import { clearFilters } from './logic/picture-filter.ts'
 import { useSelectionMode } from './selection-mode.ts'
 import { browserSchedule } from './tile-selection.ts'
@@ -42,6 +47,7 @@ const props = withDefaults(defineProps<{
 	saveDecisions?: (decisions: readonly StoredDecision[]) => Promise<void>
 	storage?: BrowserStorage
 	schedule?: Schedule
+	toggleFullscreen?: (element: HTMLElement) => void
 }>(), {
 	listFolders: apiListFolders,
 	listEntries: apiListEntries,
@@ -50,13 +56,18 @@ const props = withDefaults(defineProps<{
 	saveDecisions: apiSaveDecisions,
 	storage: () => () => window.localStorage,
 	schedule: browserSchedule,
+	toggleFullscreen: toggleBrowserFullscreen,
 })
 
 const cull = useCull({ warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions }, props.storage)
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
 const loupe = ref<{ pictures: readonly Picture<ListingEntry>[], index: number } | null>(null)
 const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
-const selection = useSelectionMode(() => view.value, pictures, () => folderSet.value !== null && !pickerOpen.value && loupe.value === null)
+const loupeView = useTemplateRef<InstanceType<typeof PhotoLoupe>>('loupeView')
+const filterBar = useTemplateRef<InstanceType<typeof FilterBar>>('filterBar')
+const headerShown = ref(true)
+const shortcutsOpen = ref(false)
+const selection = useSelectionMode(() => view.value, pictures)
 const { selecting, selected } = selection
 const common = computed(() => cull.common(selected.value))
 const toast = useToast(props.schedule)
@@ -77,6 +88,45 @@ function undo() {
 	}
 }
 
+/** Puts back the latest undone decision and says so. */
+function redo() {
+	const entry = cull.redo()
+	if (entry !== null) {
+		toast.show(redoneText(entry))
+	}
+}
+
+const gridKeys = gridHotkeys({
+	grid: () => grid.value,
+	view: () => view.value,
+	selection,
+	common: cull.common,
+	decide,
+	toggleFiltersOff: cull.toggleFiltersOff,
+	openLoupe: (index) => {
+		loupe.value = { pictures: view.value, index }
+	},
+	headerShown,
+	filtersOpen,
+	filterBar: () => filterBar.value?.$el,
+	toggleFullscreen: () => props.toggleFullscreen(document.documentElement),
+})
+
+/** Opens or closes the shortcut sheet. */
+function toggleShortcuts() {
+	shortcutsOpen.value = !shortcutsOpen.value
+}
+
+useHotkeys(() => {
+	if (pickerOpen.value) {
+		return null
+	}
+	if (shortcutsOpen.value || folderSet.value === null) {
+		return { shortcuts: toggleShortcuts }
+	}
+	return { undo, redo, shortcuts: toggleShortcuts, ...(loupe.value === null ? gridKeys : loupeView.value?.hotkeys) }
+}, () => readStored(props.storage, VI_KEYS_KEY) === 'true')
+
 /** Closes the loupe and focuses its last picture in the grid. */
 async function closeLoupe() {
 	const { index } = loupe.value!
@@ -91,6 +141,7 @@ async function closeLoupe() {
 		<NcAppContent class="honeycomb">
 			<template v-if="folderSet !== null">
 				<GridToolbar
+					v-if="headerShown"
 					:folderSet="folderSet"
 					:folders="folders"
 					:tileSize="tileSize"
@@ -114,7 +165,8 @@ async function closeLoupe() {
 					@selectAll="selection.selectAll"
 					@selectNone="selection.selectNone" />
 				<FilterBar
-					v-if="filtersOpen"
+					v-if="filtersOpen && headerShown"
+					ref="filterBar"
 					:filters="filters"
 					:folders="folderPaths"
 					:folderSet="folderSet"
@@ -180,6 +232,7 @@ async function closeLoupe() {
 			<Teleport to="body">
 				<PhotoLoupe
 					v-if="loupe !== null && folderSet !== null"
+					ref="loupeView"
 					v-model:index="loupe.index"
 					:pictures="loupe.pictures"
 					:folderSet="folderSet"
@@ -188,6 +241,10 @@ async function closeLoupe() {
 					@decide="(intent, picture) => decide(intent, [picture])"
 					@toast="toast.show($event.message, $event.action)"
 					@close="closeLoupe" />
+				<ShortcutSheet
+					v-if="shortcutsOpen"
+					:container="loupe !== null ? '.photo-loupe' : undefined"
+					@close="shortcutsOpen = false" />
 				<UndoToast
 					v-if="toast.current.value !== null"
 					:toast="toast.current.value"
