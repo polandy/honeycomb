@@ -11,6 +11,7 @@ Add items with `/todo`.
 
 ## Later
 
+- [ ] Flaky e2e `loupe-budget.spec.ts` (LOUPE-001.12): paging sometimes records a request for the prefetched `size=2048` image (CI runs 42808644898, 42812029801 on `main`, 42824995795); find the cause, likely a disk-cache hit Playwright reports as a request (2026-11-10)
 - [ ] DECISIONS-002.8, LISTING-003.13: *Recent* in the navigation and the folder picker lists the last folder sets with their progress and opens one at its position (2026-11-10)
 - [ ] LISTING-002.11: the grid shows a notice for a folder with ambiguous base names, not only the tile warning (2026-11-10)
 - [ ] LOUPE-001.17: the loupe pages without a transition under `prefers-reduced-motion` (2026-11-10)
