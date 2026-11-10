@@ -559,4 +559,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (LISTING-002.11).
 - 2026-11-10: LOUPE-001.17 needed no code: the loupe never had a transition, so the gap closed
   with a guard test.
-- 2026-11-10: LOUPE-002.11 needed no code: the layout was right, so the gap closed with a geometry e2e test.
+- 2026-11-10: LOUPE-002.11 needed no code: the layout was right, so the gap closed with a
+  geometry e2e test.
