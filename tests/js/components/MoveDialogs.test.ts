@@ -46,6 +46,21 @@ describe('MoveDialogs: target', () => {
 		wrapper.unmount()
 	})
 
+	// spec: MOVE-004.3
+	it('chooses a chip by its key while a button has the focus, as after tapping a chip', async () => {
+		const { wrapper, moving, pair } = mountDialogs()
+		moving.open([pair])
+		await flushPromises()
+		const chip = wrapper.findAll('.move-dialog__chip')[0]!
+		await chip.trigger('click')
+
+		chip.element.dispatchEvent(new KeyboardEvent('keydown', { key: '2', bubbles: true }))
+		await flushPromises()
+
+		expect(moving.target.value).toBe('/Old')
+		wrapper.unmount()
+	})
+
 	// spec: MOVE-004.4
 	it('browses for one folder, the open folder set\'s blocked', async () => {
 		const { wrapper, moving, pair } = mountDialogs()
@@ -159,6 +174,7 @@ describe('MoveDialogs: summary', () => {
 		await flushPromises()
 
 		expect(wrapper.find('.move-summary__unnamed').text()).toBe('sunset cannot be named: its file name does not end in digits for {number}')
+		expect(wrapper.find('.delete-stats').text()).toBe('1photo2files0conflicts')
 		expect(confirmButton(wrapper).text()).toBe('Move 2 files')
 		wrapper.unmount()
 	})

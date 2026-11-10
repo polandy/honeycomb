@@ -34,6 +34,7 @@ export function moveFlow(answer: Answer = allMoved(), { held = [] as string[], t
 	const toasts: { message: string, action: ToastAction | null }[] = []
 	const sent: MoveRequestFile[][][] = []
 	const probed: string[][] = []
+	const listing = ref<object>({})
 	const loupe = ref<{ pictures: readonly Picture<ListingEntry>[], index: number } | null>(null)
 	const moving = useMoveFlow({
 		view: () => pictures.value,
@@ -60,10 +61,11 @@ export function moveFlow(answer: Answer = allMoved(), { held = [] as string[], t
 			pictures.value = pairPictures(entries.value, DEFAULT_PAIRING_SETTINGS)
 		},
 		loupe,
+		listing: () => listing.value,
 		toast: (message, action = null) => toasts.push({ message, action }),
 		template: () => template,
 		offset: () => 0,
 	})
 	const [pair, single, sunset] = pictures.value as [Picture<ListingEntry>, Picture<ListingEntry>, Picture<ListingEntry>]
-	return { moving, pictures, entries, settings, toasts, sent, probed, loupe, pair, single, sunset }
+	return { moving, pictures, entries, settings, toasts, sent, probed, loupe, listing, pair, single, sunset }
 }

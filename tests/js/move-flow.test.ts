@@ -180,6 +180,24 @@ describe('useMoveFlow: moving and undo', () => {
 	})
 
 	// spec: MOVE-004.11
+	it('moves the files back but leaves them out of a listing opened since the move', async () => {
+		const { moving, pair, sent, pictures, listing, toasts } = moveFlow()
+		moving.open([pair])
+		moving.choose('/Out')
+		await flushPromises()
+		await moving.confirm()
+		const before = pictures.value.length
+
+		listing.value = {}
+		toasts.at(-1)!.action!.run()
+		await flushPromises()
+
+		expect(sent).toHaveLength(2)
+		expect(pictures.value).toHaveLength(before)
+		expect(toasts.at(-1)!.message).toBe('Moved 2 files back')
+	})
+
+	// spec: MOVE-004.11
 	it('says so when the undo request fails', async () => {
 		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		let calls = 0
