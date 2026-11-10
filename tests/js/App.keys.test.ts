@@ -7,9 +7,11 @@ import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import FilterBar from '../../src/components/FilterBar.vue'
+import FolderPicker from '../../src/components/FolderPicker.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
+import ShortcutSheet from '../../src/components/ShortcutSheet.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { VI_KEYS_KEY } from '../../src/hotkeys.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
@@ -205,5 +207,37 @@ describe('App: keys on the grid', () => {
 
 		expect(await press('p')).toBe(false)
 		expect(saved).toEqual([])
+	})
+})
+
+describe('App: the shortcut sheet', () => {
+	it('opens by ? and closes by Ctrl+/, keeping the other keys away while open', async () => {
+		const { wrapper, saved } = await openApp({}, { ShortcutSheet: true })
+		const sheet = () => wrapper.findComponent(ShortcutSheet)
+		expect(await press('?', { shiftKey: true })).toBe(true)
+		expect(sheet().props('container')).toBeUndefined()
+
+		expect(await press('p')).toBe(false)
+		expect(saved).toEqual([])
+		await press('/', { ctrlKey: true })
+		expect(sheet().exists()).toBe(false)
+		await press('/', { metaKey: true })
+		sheet().vm.$emit('close')
+		await flushPromises()
+		expect(sheet().exists()).toBe(false)
+	})
+
+	it('opens inside the loupe while the loupe is open, and on the empty screen', async () => {
+		const { wrapper } = await openApp({}, { ShortcutSheet: true })
+		wrapper.findComponent(PhotoGrid).vm.$emit('open', 0)
+		await flushPromises()
+		await press('?', { shiftKey: true })
+		expect(wrapper.findComponent(ShortcutSheet).props('container')).toBe('.photo-loupe')
+
+		const empty = mountApp({}, [], { ShortcutSheet: true })
+		empty.wrapper.findComponent(FolderPicker).vm.$emit('cancel')
+		await flushPromises()
+		await press('?', { shiftKey: true })
+		expect(empty.wrapper.findComponent(ShortcutSheet).exists()).toBe(true)
 	})
 })
