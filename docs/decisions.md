@@ -87,7 +87,7 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   (`src/create-honeycomb-app.ts`, logger injected); `src/main.ts` and `src/logger.ts` are wiring
   only, left out of coverage and covered by the e2e case. `src/*.ts` and `src/**/*.vue` keep the
   80 % lines gate of `02-workflow.md` §2.3.
-- 2026-11-10: The stub catalogue of ADR 0007 marks every string with `[de] ` through a `Proxy`
+- 2026-11-10: The stub catalogue of ADR 0007 marks every string with a `[de]` prefix through a `Proxy`
   in `@nextcloud/l10n`'s registry, so it needs no list of strings. Components are
   shallow-mounted, so `@nextcloud/vue`'s own English stays out and the props of the stubs, which
   render as attributes, are checked with the attributes of `vue/no-bare-strings-in-template`.
