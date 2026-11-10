@@ -203,3 +203,6 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   label keys) come with M3.3, and *Move…* and *Delete…* join the action bar with M4 and M7.
 - 2026-11-10: Leaving selection mode selects nothing; Ctrl+A enters selection mode, and a
   long-press or a Ctrl- or Shift-click on a tile does too.
+- 2026-11-10: When two overlapping saves of the same file both fail, the revert shows the first
+  change, which was never stored, until the next reload; that is rare and costs no data. The
+  stored decisions read on open go under changes made before they arrive.

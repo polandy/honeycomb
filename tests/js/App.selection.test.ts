@@ -94,7 +94,9 @@ describe('App: selection mode and bulk decisions', () => {
 
 	it('keeps a change made before the stored decisions arrive', async () => {
 		let resolveLookup: (rows: never[]) => void = () => undefined
-		const { wrapper } = mountApp({ lookupDecisions: () => new Promise((resolve) => { resolveLookup = resolve }) })
+		const { wrapper } = mountApp({ lookupDecisions: () => new Promise((resolve) => {
+			resolveLookup = resolve
+		}) })
 		await openCull(wrapper)
 		await select(wrapper, [1])
 
@@ -119,7 +121,9 @@ describe('App: selection mode and bulk decisions', () => {
 	it('says nothing about a failed save once another folder set is open', async () => {
 		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		let rejectSave: (error: Error) => void = () => undefined
-		const { wrapper } = mountApp({ saveDecisions: () => new Promise((_, reject) => { rejectSave = reject }) })
+		const { wrapper } = mountApp({ saveDecisions: () => new Promise((_, reject) => {
+			rejectSave = reject
+		}) })
 		await openCull(wrapper)
 		await select(wrapper, [1])
 		wrapper.findComponent(ActionBar).vm.$emit('decide', { kind: 'rating', rating: 3 })
