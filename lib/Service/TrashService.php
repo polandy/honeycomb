@@ -56,7 +56,7 @@ final class TrashService {
 	}
 
 	/**
-	 * Trashes the image files, then the sidecars, and stops at the first failure.
+	 * Trashes the members, then the sidecars, and stops at the first failure.
 	 * @param array<int, File> $files
 	 * @return list<TrashResult> in the order of `$files`
 	 */

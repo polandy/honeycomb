@@ -25,7 +25,7 @@ sync client, a storage error.
 - **Atomic means: checked whole, trashed in order, stopped at the first failure.**
   1. Every file of a picture is checked before any is trashed. If one fails its check, no file of
      that picture is touched.
-  2. Then the files are trashed one by one, sidecars (`.xmp`) after the image files, so a picture
+  2. Then the files are trashed one by one, sidecars (`.xmp`) after the members, so a picture
      that fails half way keeps its sidecars beside the member that is left.
   3. If trashing a file fails, the picture's remaining files are not tried. Files already trashed
      stay in the trash bin, restorable there; there is no rollback, because restoring is not
