@@ -40,7 +40,7 @@ const rows = computed(() => {
 	})
 })
 const stats = computed(() => {
-	const photos = props.flow.named.value.length
+	const photos = props.plan.length
 	const { files, conflicts } = props.flow.counts.value
 	return [
 		{ value: formatNumber(photos), label: n('honeycomb', 'photo', 'photos', photos) },

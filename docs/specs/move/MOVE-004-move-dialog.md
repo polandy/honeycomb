@@ -51,7 +51,7 @@ new file id, it adds that decisions did not move with the files. When a file fai
 report lists each failed file with its reason, and the toast counts moved and failed files.
 
 **Undo.** *Undo* in the toast sends the undo request (MOVE-003). The files that came back return to
-the listing at their old paths, with their decisions. `Ctrl+Z` does not undo a move; the undo
+the listing at their old paths, with their decisions, unless another folder set was opened since; then they only move back. `Ctrl+Z` does not undo a move; the undo
 history holds only decisions.
 
 **Failures.** A probe or move request that fails changes nothing and says so in a toast; a move the

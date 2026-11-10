@@ -34,6 +34,8 @@ export interface MoveFlowContext {
 	/** Takes the files out of the listing; returns what each affected picture became. */
 	readonly removeFiles: (fileIds: ReadonlySet<number>) => ReadonlyMap<Picture<ListingEntry>, Picture<ListingEntry> | null>
 	readonly restoreFiles: (entries: readonly ListingEntry[]) => void
+	/** Identifies the open listing; an undo restores files only into the one the move left. */
+	readonly listing?: () => unknown
 	readonly loupe: Ref<LoupeSnapshot | null>
 	readonly toast: (message: string, action?: ToastAction | null) => void
 	/** The name template's text; the default until the setting arrives (M7.4). */
@@ -144,6 +146,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 		}
 		busy.value = true
 		const to = target.value!
+		const listing = context.listing?.()
 		try {
 			const sent = planned.filter((picture) => picture.sent).map((picture) => picture.files.map(({ file }) => file))
 			const done = moveReport(sent, await context.move(moveRequest(planned)))
@@ -155,7 +158,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 			}
 			close()
 			report.value = done.failed.length > 0 ? done : null
-			context.toast(movedText(done, to, gotNewFileIds(done)), done.moved.length > 0 ? { label: t('honeycomb', 'Undo'), run: () => void undo(done) } : null)
+			context.toast(movedText(done, to, gotNewFileIds(done)), done.moved.length > 0 ? { label: t('honeycomb', 'Undo'), run: () => void undo(done, listing) } : null)
 		} catch (error) {
 			logger.error('Could not move the photos', { error })
 			fail(error)
@@ -164,11 +167,13 @@ export function useMoveFlow(context: MoveFlowContext) {
 		}
 	}
 
-	/** Moves the files of the move back and shows them again. */
-	async function undo(done: MoveReport) {
+	/** Moves the files of the move back and shows them again, if the listing is still the one they left. */
+	async function undo(done: MoveReport, listing: unknown) {
 		try {
 			const { entries, failed } = undoneEntries(done, await context.move(undoRequest(done)))
-			context.restoreFiles(entries)
+			if (context.listing?.() === listing) {
+				context.restoreFiles(entries)
+			}
 			context.toast(movedBackText(entries.length, failed))
 		} catch (error) {
 			logger.error('Could not move the photos back', { error })

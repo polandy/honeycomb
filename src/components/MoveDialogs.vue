@@ -49,16 +49,18 @@ watch(flow.browsing, () => {
 	browsed.value = null
 })
 
-/** `1`–`9` choose a chip and `Enter` moves while the move dialog is in front. */
+/** `1`–`9` choose a chip and `Enter` moves while the move dialog is in front; a button keeps its own `Enter`. */
 function onKey(event: KeyboardEvent) {
-	const onControl = event.target instanceof HTMLElement && event.target.closest('button, input, textarea, select, a') !== null
-	if (flow.pictures.value === null || flow.browsing.value || event.defaultPrevented || onControl || event.ctrlKey || event.metaKey || event.altKey) {
+	const element = event.target instanceof HTMLElement ? event.target : null
+	const typing = element !== null && element.closest('input, textarea, select, [contenteditable]') !== null
+	const pressing = element !== null && element.closest('button, a') !== null
+	if (flow.pictures.value === null || flow.browsing.value || event.defaultPrevented || typing || event.ctrlKey || event.metaKey || event.altKey) {
 		return
 	}
 	if (/^[1-9]$/.test(event.key)) {
 		flow.chooseKey(Number(event.key))
 		event.preventDefault()
-	} else if (event.key === 'Enter') {
+	} else if (event.key === 'Enter' && !pressing) {
 		void flow.confirm()
 		event.preventDefault()
 	}
