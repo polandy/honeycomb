@@ -21,6 +21,10 @@ use Psr\Log\LoggerInterface;
 final class ImageService {
 	/** Long edge in pixels: grid tiles, large grid tiles, loupe (`docs/plan.md` Image delivery). */
 	public const array TIERS = [256, 512, 2048];
+	/** The tier of the full image, for the loupe's 100 % zoom; no long-edge limit. */
+	public const int FULL = 0;
+	/** Types every browser shows, served as the file itself at full size. */
+	private const array BROWSER_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 	/** Keeps a job's JSON argument below the 4,000 characters of the job table. */
 	public const int FILE_IDS_PER_JOB = 200;
 
@@ -57,6 +61,21 @@ final class ImageService {
 			return $this->preview->getPreview($file, $tier, $tier, false, IPreview::MODE_FILL);
 		} catch (NotFoundException|\InvalidArgumentException $e) {
 			throw new ImageNotFoundException("No preview of file {$file->getId()}", 0, $e);
+		}
+	}
+
+	/**
+	 * The full image of `$file`: the file itself where browsers show it, else its largest preview.
+	 * @throws ImageNotFoundException when no preview can be rendered
+	 */
+	public function full(File $file): File|ISimpleFile {
+		if (in_array($file->getMimetype(), self::BROWSER_TYPES, true)) {
+			return $file;
+		}
+		try {
+			return $this->preview->getPreview($file, -1, -1, false);
+		} catch (NotFoundException|\InvalidArgumentException $e) {
+			throw new ImageNotFoundException("No full preview of file {$file->getId()}", 0, $e);
 		}
 	}
 

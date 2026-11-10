@@ -57,6 +57,7 @@ final class ImageControllerTest extends TestCase {
 	private function image(bool $readable = true): File {
 		$file = $this->createStub(File::class);
 		$file->method('getId')->willReturn(7);
+		$file->method('getName')->willReturn('IMG_0001.JPG');
 		$file->method('getMimetype')->willReturn('image/jpeg');
 		$file->method('getMTime')->willReturn(self::MTIME);
 		$file->method('isReadable')->willReturn($readable);

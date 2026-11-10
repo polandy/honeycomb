@@ -36,16 +36,16 @@ final class ImageController extends Controller {
 		parent::__construct($appName, $request);
 	}
 
-	/** The preview tier `size` of the image file, immutable while `v` is its mtime (ADR 0010). */
+	/** The preview tier `size` (0: the full image) of the image file, immutable while `v` is its mtime (ADR 0010). */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/images/{fileId}', requirements: ['fileId' => '\d+'])]
-	public function show(int $fileId, int $size = 0, int $v = 0): Response {
+	public function show(int $fileId, int $size = -1, int $v = 0): Response {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
 			return new Response(Http::STATUS_UNAUTHORIZED);
 		}
-		if (!in_array($size, ImageService::TIERS, true)) {
+		if ($size !== ImageService::FULL && !in_array($size, ImageService::TIERS, true)) {
 			return new Response(Http::STATUS_BAD_REQUEST);
 		}
 		try {
@@ -55,8 +55,8 @@ final class ImageController extends Controller {
 			if ($this->request->getHeader('If-None-Match') === "\"$etag\"") {
 				$response = new Response(Http::STATUS_NOT_MODIFIED, ['Cache-Control' => $cacheControl]);
 			} else {
-				$preview = $this->images->preview($file, $size);
-				$response = new FileDisplayResponse($preview, Http::STATUS_OK, ['Content-Type' => $preview->getMimeType(), 'Cache-Control' => $cacheControl]);
+				$image = $size === ImageService::FULL ? $this->images->full($file) : $this->images->preview($file, $size);
+				$response = new FileDisplayResponse($image, Http::STATUS_OK, ['Content-Type' => $image->getMimeType(), 'Cache-Control' => $cacheControl]);
 			}
 			$response->setETag($etag);
 			return $response;
