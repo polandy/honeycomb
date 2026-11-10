@@ -591,3 +591,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   names a key (*Move this photo*, *Info panel*, *Fit / 100 %*, the flag, star and colour buttons);
   the native `title`s of the grid toolbar, series badge, series compare and *Pick this, reject the
   rest* became tooltips.
+- 2026-11-10: PR 78 has no screenshots: the assets repository `polandy/honeycomb-assets` that
+  `docs/02-workflow.md` §2.7 names does not exist, and creating a public repository is the
+  owner's call; the Playwright run and the component tests stand in until it exists.
