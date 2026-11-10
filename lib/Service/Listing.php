@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-/** The entries of a folder set; `truncated` when the entry limit cut it short. */
+/** The entries of one listing request; `truncated` when the entry limit cut it short. */
 final class Listing implements \JsonSerializable {
 	/** @param list<Entry> $entries */
 	public function __construct(
