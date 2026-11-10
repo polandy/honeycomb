@@ -5,10 +5,12 @@ import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import AppNavigation from '../../src/components/AppNavigation.vue'
 import FolderPicker from '../../src/components/FolderPicker.vue'
+import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import SettingsDialog from '../../src/components/SettingsDialog.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { ENTRIES, mountApp, openCull, SET, shownNames } from './app-cull.ts'
+import { listingEntry } from './logic/listing-entries.ts'
 
 const OTHER = { paths: ['/Other'], subfolders: false }
 const trip = { folderSet: SET, fileId: 4, decided: 1, total: 3, updatedAt: 2 }
@@ -70,5 +72,16 @@ describe('App: Recent', () => {
 
 		expect(wrapper.findComponent(FolderPicker).exists()).toBe(true)
 		expect(wrapper.findComponent(SettingsDialog).props('open')).toBe(true)
+	})
+
+	// spec: DECISIONS-002.8
+	it('lists a folder set first once its cull saved a position', async () => {
+		const { wrapper } = openApp()
+		await openCull(wrapper, OTHER, [listingEntry(7, '/Other/IMG_7.JPG')])
+
+		wrapper.findComponent(PhotoGrid).vm.$emit('open', 0)
+		await flushPromises()
+
+		expect(wrapper.findComponent(AppNavigation).props('items').map((item: { position: { fileId: number }, current: boolean }) => [item.position.fileId, item.current])).toEqual([[7, true], [4, false]])
 	})
 })

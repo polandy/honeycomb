@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// @vitest-environment happy-dom
 import type { FolderSet } from '../../src/logic/folder-set.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 
@@ -123,5 +124,21 @@ describe('useRecent', () => {
 
 		expect(recent.items.value.map((item) => item.position.fileId)).toEqual([2])
 		expect(error).toHaveBeenCalledWith('Could not read the recent folder sets', expect.anything())
+	})
+
+	// spec: DECISIONS-002.8
+	it('lists a position the cull saved first, without reading the positions again', async () => {
+		let reads = 0
+		const recent = recentOn(async () => {
+			reads++
+			return [home]
+		})
+		recent.refresh()
+		await flushPromises()
+
+		recent.saved(trip)
+
+		expect(recent.items.value.map((item) => item.position.fileId)).toEqual([2, 9])
+		expect(reads).toBe(1)
 	})
 })

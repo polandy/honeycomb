@@ -29,7 +29,7 @@ test('lists a culled folder set under Recent and opens it at its position', asyn
 	await saved
 
 	await cullFolder(page, second)
-	const recent = page.getByRole('navigation', { name: 'honeycomb' }).getByRole('link', { name: first })
+	const recent = page.getByRole('navigation', { name: 'honeycomb navigation' }).getByRole('link', { name: first })
 	await expect(recent).toContainText('0 / 2 decided')
 	await recent.click()
 	await expect(loupe.getByRole('heading', { name: 'IMG_0002' })).toBeVisible()
