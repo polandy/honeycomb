@@ -24,9 +24,19 @@ describe('parsePositions', () => {
 	})
 
 	it('drops malformed positions and answers nothing for an answer that is no list', () => {
-		const malformed = [null, 'x', { ...position, folderSet: null }, { ...position, folderSet: { paths: '/P', subfolders: false } },
-			{ ...position, folderSet: { paths: [1], subfolders: false } }, { ...position, folderSet: { paths: ['/P'] } },
-			{ ...position, fileId: 0 }, { ...position, fileId: 1.5 }, { ...position, decided: -1 }, { ...position, decided: 4 }, { ...position, total: '3' }]
+		const malformed = [
+			null,
+			'x',
+			{ ...position, folderSet: null },
+			{ ...position, folderSet: { paths: '/P', subfolders: false } },
+			{ ...position, folderSet: { paths: [1], subfolders: false } },
+			{ ...position, folderSet: { paths: ['/P'] } },
+			{ ...position, fileId: 0 },
+			{ ...position, fileId: 1.5 },
+			{ ...position, decided: -1 },
+			{ ...position, decided: 4 },
+			{ ...position, total: '3' },
+		]
 		expect(parsePositions([...malformed, position])).toHaveLength(1)
 		expect(parsePositions({ positions: [position] })).toEqual([])
 	})

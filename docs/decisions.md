@@ -527,3 +527,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `{make}`, since otherwise the name does not depend on it.
 - 2026-11-10: The l10n test skips elements marked `translate="no"`, which hold data such as file
   names and paths rather than UI text.
+- 2026-11-10: The resume position follows the picture the loupe shows, not the grid's focus:
+  arrowing through tiles is not culling, and each focus step would be a request (DECISIONS-002.7).
+- 2026-11-10: Position saves are sent one at a time, only the latest of those that waited, so
+  paging fast costs no burst of requests and needs no timer (DECISIONS-002.7).
+- 2026-11-10: *Resume* opens at the first undecided picture of the view when the filters hide
+  the stored one, as the mockup does (DECISIONS-002.9).
+- 2026-11-10: The stored position is offered by a toast and the More menu item *Resume at
+  <name>*, as in the mockup; the toast is skipped once the loupe has shown a picture.

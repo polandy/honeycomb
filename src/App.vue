@@ -3,16 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { Folder } from './api.ts'
-import type { BrowserStorage } from './browser-storage.ts'
-import type { ListEntries } from './folder-count.ts'
-import type { StoredDecision } from './logic/decision.ts'
-import type { Schedule } from './logic/long-press.ts'
-import type { Settings } from './logic/settings.ts'
-import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
-import type { MoveApi } from './move-flow.ts'
-import type { SidecarFlowApi } from './sidecar-flow.ts'
-import type { ViewStateApi } from './view-state.ts'
+import type { AppSeams } from './app-seams.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, ref, useTemplateRef, watch } from 'vue'
@@ -33,55 +24,24 @@ import SeriesCompareFlow from './components/SeriesCompareFlow.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutSheet from './components/ShortcutSheet.vue'
 import UndoToast from './components/UndoToast.vue'
-import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, loadViewState, lookupSidecars, movePictures, probeTargets, saveSidecars, saveViewState } from './api.ts'
+import { APP_SEAMS } from './app-seams.ts'
 import { useCull } from './cull.ts'
 import { useDeleteFlow } from './delete-flow.ts'
-import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
 import { clearFilters } from './logic/picture-filter.ts'
 import { useLoupeOpening } from './loupe-opening.ts'
 import { useMoveFlow } from './move-flow.ts'
+import { useResume } from './resume.ts'
 import { useSelectionMode } from './selection-mode.ts'
 import { useSeriesCompare } from './series-compare.ts'
 import { useSettings } from './settings.ts'
-import { browserNow, useSidecarFlow } from './sidecar-flow.ts'
-import { browserSchedule } from './tile-selection.ts'
+import { useSidecarFlow } from './sidecar-flow.ts'
 import { useToast } from './toast.ts'
 import { useToastedDecisions } from './toasted-decisions.ts'
 import { useViewState } from './view-state.ts'
 
-const props = withDefaults(defineProps<{
-	listFolders?: (path: string) => Promise<Folder[]>
-	listEntries?: ListEntries
-	warmPreviews?: (fileIds: readonly number[]) => Promise<void>
-	lookupDecisions?: (fileIds: readonly number[]) => Promise<StoredDecision[]>
-	saveDecisions?: (decisions: readonly StoredDecision[]) => Promise<void>
-	loadSettings?: () => Promise<unknown>
-	saveSettings?: (settings: Settings) => Promise<void>
-	viewState?: ViewStateApi
-	storage?: BrowserStorage
-	schedule?: Schedule
-	toggleFullscreen?: (element: HTMLElement) => void
-	trashPictures?: (pictures: readonly (readonly TrashRequestFile[])[]) => Promise<TrashResponseFile[][]>
-	sidecars?: SidecarFlowApi
-	move?: MoveApi
-}>(), {
-	listFolders: apiListFolders,
-	listEntries: apiListEntries,
-	warmPreviews: apiWarmPreviews,
-	lookupDecisions: apiLookupDecisions,
-	saveDecisions: apiSaveDecisions,
-	loadSettings: apiLoadSettings,
-	saveSettings: apiSaveSettings,
-	viewState: () => ({ loadViewState, saveViewState }),
-	storage: () => () => window.localStorage,
-	schedule: browserSchedule,
-	toggleFullscreen: toggleBrowserFullscreen,
-	trashPictures: apiTrashPictures,
-	sidecars: () => ({ lookupSidecars, saveSidecars, now: browserNow }),
-	move: () => ({ probeTargets, movePictures }),
-})
+const props = withDefaults(defineProps<AppSeams>(), APP_SEAMS)
 
 const toast = useToast(props.schedule)
 const { settings, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, (message) => toast.show(message))
@@ -108,6 +68,17 @@ const overlayScreen = computed(() => (loupe.value !== null ? '.photo-loupe' : se
 const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
 const { dialog: deleteDialog, rejected, rawRemovable } = deleting
 const moving = useMoveFlow({ view: () => view.value, settings: () => settings.value, updateSettings, probe: props.move.probeTargets, move: props.move.movePictures, removeFiles: cull.removeFiles, restoreFiles: cull.restoreFiles, listing: () => folderSet.value, loupe, toast: toast.show })
+const resume = useResume(props.positions, {
+	folderSet: () => folderSet.value,
+	pictures: () => pictures.value,
+	view: () => view.value,
+	progress: () => progress.value,
+	decisionOf: cull.decisionOf,
+	shown: () => (loupe.value === null ? null : loupe.value.pictures[loupe.value.index] ?? null),
+	openLoupe: (index) => {
+		loupe.value = { pictures: view.value, index }
+	},
+}, toast.show)
 const movable = computed(() => (activeFilters.value > 0 ? view.value : pictures.value.filter((picture) => cull.decisionOf(picture).flag === 'picked')))
 
 const gridKeys = gridHotkeys({
@@ -125,6 +96,12 @@ const gridKeys = gridHotkeys({
 	filterBar: () => filterBar.value?.$el,
 	toggleFullscreen: () => props.toggleFullscreen(document.documentElement),
 })
+
+/** Opens the confirmed folder set and offers its resume position. */
+function openFolderSet(...opened: Parameters<typeof cull.open>) {
+	cull.open(...opened)
+	resume.offer()
+}
 
 /** Opens or closes the shortcut sheet. */
 function toggleShortcuts() {
@@ -169,6 +146,7 @@ useHotkeys(() => {
 					:rawRemovable="rawRemovable"
 					:movable="movable.length"
 					:sidecarsShared="cull.sharedPictures.value.length > 0"
+					:resumeName="resume.resumeName.value"
 					@changeFolders="pickerOpen = true"
 					@update:tileSize="cull.setTileSize"
 					@update:groupByFolder="groupByFolder = $event"
@@ -182,6 +160,7 @@ useHotkeys(() => {
 					@compareSeries="seriesCompare.start"
 					@removeRaws="deleting.removeRaws"
 					@move="moving.open(movable)"
+					@resume="resume.resume"
 					@writeSidecars="sidecarFlow.ask(cull.sharedDecided())"
 					@openSettings="settingsOpen = true" />
 				<FilterBar
@@ -239,7 +218,7 @@ useHotkeys(() => {
 				:listFolders="props.listFolders"
 				:listEntries="props.listEntries"
 				:pairing="cull.pairing.value"
-				@confirm="cull.open"
+				@confirm="openFolderSet"
 				@cancel="pickerOpen = false" />
 			<CullDialogs
 				v-if="folderSet !== null"

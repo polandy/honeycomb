@@ -11,7 +11,6 @@ Add items with `/todo`.
 
 ## Later
 
-- [ ] DECISIONS-002.7: the client saves the resume position while culling and offers to continue a folder set at it on another device (2026-11-10)
 - [ ] DECISIONS-002.8, LISTING-003.13: *Recent* in the navigation and the folder picker lists the last folder sets with their progress and opens one at its position (2026-11-10)
 - [ ] LISTING-002.11: the grid shows a notice for a folder with ambiguous base names, not only the tile warning (2026-11-10)
 - [ ] LOUPE-001.17: the loupe pages without a transition under `prefers-reduced-motion` (2026-11-10)

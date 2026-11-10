@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// @vitest-environment happy-dom
 import type { FolderSet } from '../../src/logic/folder-set.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
@@ -139,7 +140,8 @@ describe('useResume', () => {
 
 	it('sends one save at a time, then only the latest of those that waited', async () => {
 		const saves = [pending(), pending()]
-		const flow = resumeOn(async () => [], () => saves.shift()?.promise ?? Promise.resolve())
+		const queue = [...saves]
+		const flow = resumeOn(async () => [], () => queue.shift()!.promise)
 		flow.offer()
 		await flushPromises()
 
@@ -151,8 +153,7 @@ describe('useResume', () => {
 		await nextTick()
 		expect(flow.saved.map((position) => position.fileId)).toEqual([1])
 
-		const [firstSave] = saves
-		firstSave!.settle(false)
+		saves[0]!.settle(false)
 		await flushPromises()
 		expect(flow.saved.map((position) => position.fileId)).toEqual([1, 4])
 	})

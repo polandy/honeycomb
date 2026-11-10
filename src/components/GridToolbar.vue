@@ -43,6 +43,8 @@ const props = defineProps<{
 	sidecarsShared: boolean
 	/** How many pictures *Move picks* or, while a filter is on, *Move filtered* opens the move dialog on. */
 	movable: number
+	/** The base name of the picture *Resume* opens the loupe at, null when there is none. */
+	resumeName: string | null
 }>()
 
 const emit = defineEmits<{
@@ -59,6 +61,7 @@ const emit = defineEmits<{
 	compareSeries: []
 	removeRaws: []
 	move: []
+	resume: []
 	writeSidecars: []
 	openSettings: []
 }>()
@@ -163,11 +166,13 @@ const setName = computed(() => {
 				:sidecarsShared="props.sidecarsShared"
 				:movable="props.movable"
 				:moveFiltered="props.activeFilters > 0"
+				:resumeName="props.resumeName"
 				@update:tileSize="emit('update:tileSize', $event)"
 				@update:groupByFolder="emit('update:groupByFolder', $event)"
 				@update:sortOrder="emit('update:sortOrder', $event)"
 				@removeRaws="emit('removeRaws')"
 				@move="emit('move')"
+				@resume="emit('resume')"
 				@writeSidecars="emit('writeSidecars')"
 				@openSettings="emit('openSettings')" />
 		</NcPopover>
