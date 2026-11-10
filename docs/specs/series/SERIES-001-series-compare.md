@@ -29,7 +29,8 @@ history and the undo toast like any other. A rejected picture leaves the series;
 are left, the series is done and the next one shows. *Pick this, reject the rest* picks the one
 picture and rejects every other picture of the series, as one undo step: "Picked IMG_0003, rejected
 the rest · Undo". *Skip* shows the next series, after the last the first. Without any series left
-the dialog says "All series compared".
+the dialog says "All series compared". In a card narrower than 200 px, as on a phone, *Pick this,
+reject the rest* drops its icon and wraps its label to two balanced lines instead of cutting it.
 
 | Key in the dialog | Action |
 |---|---|
@@ -120,6 +121,12 @@ the dialog says "All series compared".
 - **When** the series compare dialog is open
 - **Then** it says "All series compared" and *Close* closes it
 
+### SERIES-001.13 – Pick this, reject the rest fits a phone
+
+- **Given** the series compare dialog shows a series on a 320 px wide phone
+- **When** a card shows *Pick this, reject the rest*
+- **Then** the button shows its whole label on two lines, without its icon
+
 ## Out of scope
 
 The fullscreen series viewer and the series badge on the tiles: SERIES-002. The capture time and
@@ -131,3 +138,4 @@ camera come from LISTING-001.
 |---|---|
 | 2026-11-10 | Created with the series and the series compare dialog (M6.1). |
 | 2026-11-10 | A tap on a picture's photo opens the series viewer instead of making it active (M6.2). |
+| 2026-11-10 | *Pick this, reject the rest* wraps to two lines without its icon in a narrow card (UX review L3). |
