@@ -104,6 +104,12 @@ continues on another, and *Recent* can list the last folder sets with their prog
 - **When** the folder set opens or the loupe pages
 - **Then** the failure is logged and the cull goes on without the offer
 
+### DECISIONS-002.12 – The navigation gets out of the way
+
+- **Given** a narrow screen, where the navigation covers the photos
+- **When** the user taps a recent folder set, *Folder* or *Settings*
+- **Then** the navigation closes; on a wide screen it stays open
+
 ## Out of scope
 
 The progress of the open cull (GRID-002).
@@ -115,3 +121,4 @@ The progress of the open cull (GRID-002).
 | 2026-11-10 | Written from the merged M2.4 (#42) |
 | 2026-11-10 | The client saves and offers the position (DECISIONS-002.7, .9–.11) |
 | 2026-11-10 | *Recent* in the navigation and the folder picker (DECISIONS-002.8) |
+| 2026-11-10 | The navigation closes after a tap on a narrow screen (DECISIONS-002.12) |

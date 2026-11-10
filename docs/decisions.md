@@ -549,3 +549,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   read from the server at start and whenever the picker opens, not after each save
   (DECISIONS-002.8).
 - 2026-11-10: The root folder is named *Home* under *Recent*, as in the picker's breadcrumbs.
+- 2026-11-10: The navigation closes on a narrow screen after a tap on *Folder* and *Settings*
+  too, not only on a recent folder set, as in the mockup (DECISIONS-002.12).
+- 2026-11-10: A narrow screen is `useIsMobile()` of `@nextcloud/vue` (below 1024 px), where
+  `NcAppNavigation` covers the content, not the mockup's 1000 px (ADR 0020).

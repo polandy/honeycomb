@@ -1,11 +1,16 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
+import { subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { mount } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ref } from 'vue'
 import AppNavigation from '../../../src/components/AppNavigation.vue'
 import RecentFolderSets from '../../../src/components/RecentFolderSets.vue'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
+
+const isMobile = ref(true)
+vi.mock('@nextcloud/vue/composables/useIsMobile', () => ({ useIsMobile: () => isMobile }))
 
 const MARK = TRANSLATED_MARK
 const position = { folderSet: { paths: ['/A', '/B'], subfolders: false }, fileId: 9, decided: 0, total: 40 }
@@ -17,7 +22,10 @@ function mountNavigation(items = ITEMS) {
 
 describe('AppNavigation', () => {
 	beforeEach(installMarkedCatalogue)
-	afterEach(uninstallMarkedCatalogue)
+	afterEach(() => {
+		uninstallMarkedCatalogue()
+		isMobile.value = true
+	})
 
 	// spec: DECISIONS-002.8
 	it('lists the recent folder sets under Recent and opens one', async () => {
@@ -43,6 +51,23 @@ describe('AppNavigation', () => {
 
 		expect(wrapper.emitted('chooseFolders')).toEqual([[]])
 		expect(wrapper.emitted('openSettings')).toEqual([[]])
+	})
+
+	// spec: DECISIONS-002.12
+	it.each([true, false])('closes the navigation after a tap on a narrow screen only (narrow: %s)', async (narrow) => {
+		isMobile.value = narrow
+		const toggled = vi.fn()
+		subscribe('toggle-navigation', toggled)
+		const wrapper = mountNavigation()
+		const button = (name: string) => wrapper.findAll('a, button').find((each) => each.text() === `${MARK}${name}`)!
+
+		wrapper.findComponent(RecentFolderSets).vm.$emit('open', position)
+		await button('Folder').trigger('click')
+		await button('Settings').trigger('click')
+		unsubscribe('toggle-navigation', toggled)
+
+		expect(toggled).toHaveBeenCalledTimes(narrow ? 3 : 0)
+		expect(toggled.mock.calls.every(([event]) => event.open === false)).toBe(true)
 	})
 
 	// spec: APP-001.4
