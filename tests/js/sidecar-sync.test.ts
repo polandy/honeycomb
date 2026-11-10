@@ -127,6 +127,19 @@ describe('useSidecarSync: write', () => {
 		expect(failures).toHaveLength(1)
 	})
 
+	// spec: XMP-003.9
+	it('runs the next write after one that threw', async () => {
+		const { sidecars } = sync()
+
+		const broken = sidecars.write([PAIR], () => {
+			throw new Error('broken')
+		})
+		const after = sidecars.write([PAIR], decisionOf(UNDECIDED))
+
+		await expect(broken).rejects.toThrow('broken')
+		expect((await after).written).toBe(1)
+	})
+
 	// spec: XMP-003.13
 	it('reports the sidecars of a failed lookup without saving them', async () => {
 		const { sidecars, saves, lookupAnswer } = sync(() => saved(30))
