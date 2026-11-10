@@ -5,7 +5,7 @@
 export const LONG_PRESS_MS = 480
 
 /** How far the finger may move before the long-press is cancelled, in CSS pixels. */
-export const LONG_PRESS_SLOP = 10
+const LONG_PRESS_SLOP = 10
 
 /** Runs `run` after `ms`; returns the function that cancels it. */
 export type Schedule = (run: () => void, ms: number) => () => void

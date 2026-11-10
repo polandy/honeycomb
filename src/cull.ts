@@ -35,7 +35,7 @@ export interface CullSidecars {
 }
 
 /** The browser storage key of the thumbnail size. */
-export const TILE_SIZE_KEY = 'honeycomb.tileSize'
+const TILE_SIZE_KEY = 'honeycomb.tileSize'
 
 /** The server calls the cull makes. */
 export interface CullApi {

@@ -10,7 +10,7 @@ export const GRID_TIERS = [256, 512] as const
 export const LOUPE_TIER = 2048
 
 /** The tier of the full image, the loupe's 100 % zoom (ADR 0010). */
-export const FULL_TIER = 0
+const FULL_TIER = 0
 
 /** One of the grid's preview tiers. */
 export type GridTier = typeof GRID_TIERS[number]

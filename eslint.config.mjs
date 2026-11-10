@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { recommended } from '@nextcloud/eslint-config'
 import tseslint from 'typescript-eslint'
+import noRawErrorText from './scripts/eslint-rules/no-raw-error-text.mjs'
 
 const TYPESCRIPT_FILES = ['**/*.ts', '**/*.vue']
 const LOGIC_FILES = ['src/logic/**/*.ts']
@@ -55,6 +56,13 @@ export default [
 			'jsdoc/require-param': 'off',
 			'no-restricted-properties': ['error', ...FORBIDDEN_PROPERTIES],
 			'no-restricted-syntax': ['error', ...UNTRANSLATABLE],
+		},
+	},
+	{
+		files: ['src/**/*.ts', 'src/**/*.vue'],
+		plugins: { honeycomb: { rules: { 'no-raw-error-text': noRawErrorText } } },
+		rules: {
+			'honeycomb/no-raw-error-text': 'error',
 		},
 	},
 	{

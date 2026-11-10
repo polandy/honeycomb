@@ -39,6 +39,7 @@ step php-cs-fixer scripts/php.sh vendor/bin/php-cs-fixer fix --dry-run --diff
 step psalm scripts/php.sh vendor/bin/psalm --no-cache --threads=1 --no-progress
 step phpunit scripts/php.sh vendor/bin/phpunit
 step "npm ci" npm ci
+step unused-exports scripts/unused-exports.sh
 step eslint npx eslint
 step vue-tsc npx vue-tsc
 step vitest npx vitest run --coverage

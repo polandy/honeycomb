@@ -13,7 +13,7 @@ is logged in [`decisions.md`](decisions.md).
   the other way, and never into a sibling's internals.
 - **Small public surface.** Private by default; export or make `public` on purpose. PHP classes
   are `final`, properties `private` (`readonly` where possible). A TypeScript export that nothing
-  imports loses `export`; psalm's `findUnusedCode` does this for PHP.
+  imports loses `export` (`scripts/unused-exports.sh`); psalm's `findUnusedCode` does this for PHP.
 - **Testability decides where code goes.** Decisions live in pure functions (TypeScript
   `src/logic/`, ADR 0006); I/O stays at thin edges (controllers, services over `OCP\Files`,
   stores calling `@nextcloud/axios`). Everything with a side effect — files, database, clock,
@@ -63,7 +63,8 @@ is logged in [`decisions.md`](decisions.md).
 - **Actionable messages** name the file or key, the bad value and what to do instead; no
   secrets, tokens or file contents.
 - **Raw error text never reaches the user.** The UI maps a failure to a translated sentence with
-  a way out (`@nextcloud/dialogs`, `t()`); the raw error goes to the log.
+  a way out (`@nextcloud/dialogs`, `t()`); the raw error goes to the log. Checked:
+  `honeycomb/no-raw-error-text` refuses reading a caught error's or a rejection's text in `src/`.
 - **Log, don't discard.** An error that is caught and handled on a path that changes files or
   stored decisions is logged. PHP logs through the injected `Psr\Log\LoggerInterface` with a
   context array (`['fileId' => $id]`), never through `error_log` or output (psalm forbids

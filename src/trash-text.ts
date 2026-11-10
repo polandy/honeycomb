@@ -24,10 +24,10 @@ export function failureReason(result: TrashFailure): string {
 }
 
 /** "%n file" with the count formatted. */
-export const filesText = (count: number) => n('honeycomb', '{count} file', '{count} files', count, { count: formatNumber(count) }, PLAIN_TEXT)
+const filesText = (count: number) => n('honeycomb', '{count} file', '{count} files', count, { count: formatNumber(count) }, PLAIN_TEXT)
 
 /** "%n photo" with the count formatted. */
-export const photosText = (count: number) => n('honeycomb', '{count} photo', '{count} photos', count, { count: formatNumber(count) }, PLAIN_TEXT)
+const photosText = (count: number) => n('honeycomb', '{count} photo', '{count} photos', count, { count: formatNumber(count) }, PLAIN_TEXT)
 
 /** "Moved 3 files to trash · 1 failed", when files of a delete failed. */
 function partlyText(report: TrashReport): string {
