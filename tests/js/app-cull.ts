@@ -106,7 +106,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			},
 			...props,
 		},
-		global: { stubs: { FolderPicker: true, PhotoGrid: grid.component, GridToolbar: true, FilterBar: true, PhotoLoupe: true, SettingsDialog: true, ...stubs } },
+		global: { stubs: { AppNavigation: true, FolderPicker: true, PhotoGrid: grid.component, GridToolbar: true, FilterBar: true, PhotoLoupe: true, SettingsDialog: true, ...stubs } },
 	})
 	return { wrapper, warmed, lookedUp, saved, savedSettings, sidecarSaves, grid: grid.calls }
 }

@@ -3,7 +3,7 @@
 import type { DecisionChange } from '../../src/logic/decision-change.ts'
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { changeText, redoneText, undoneText } from '../../src/decision-text.ts'
+import { changeText, decidedText, redoneText, undoneText } from '../../src/decision-text.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue } from './l10n/marked-catalogue.ts'
 
 const escapeMark = TRANSLATED_MARK.replace(/[[\]]/g, '\\$&')
@@ -48,5 +48,11 @@ describe('changeText', () => {
 			expect(changeText({ change: { colourLabel: 'blue' }, names: ['IMG_1'] })).toBe(`${TRANSLATED_MARK}Labelled IMG_1 ${TRANSLATED_MARK}Blue`)
 			expect(changeText({ change: { flag: 'picked' }, names: ['A', 'B'] })).toMatch(new RegExp(`^${escapeMark}Picked ${escapeMark}.*2 photos$`))
 		})
+	})
+})
+
+describe('decidedText', () => {
+	it('words the progress as "x / y decided"', () => {
+		expect(decidedText(1200, 1840)).toBe('1,200 / 1,840 decided')
 	})
 })

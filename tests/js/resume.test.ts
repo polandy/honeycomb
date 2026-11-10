@@ -200,4 +200,29 @@ describe('useResume', () => {
 
 		expect(flow.saved).toEqual([])
 	})
+
+	// spec: DECISIONS-002.8
+	it('opens the loupe at a position from Recent without the toast, and drops an offer in flight', async () => {
+		let answer = (_positions: unknown) => {}
+		const flow = resumeOn(() => new Promise((resolve) => (answer = resolve)))
+		flow.offer()
+
+		flow.resumeAt(3)
+		answer([stored(4)])
+		await flushPromises()
+
+		expect(flow.opened).toEqual([1])
+		expect(flow.toasts).toEqual([])
+		expect(flow.resumeName.value).toBe('B')
+	})
+
+	// spec: DECISIONS-002.10
+	it('opens nothing from Recent for a picture no longer in the folder set', () => {
+		const flow = resumeOn(async () => [])
+
+		flow.resumeAt(99)
+
+		expect(flow.opened).toEqual([])
+		expect(flow.resumeName.value).toBeNull()
+	})
 })
