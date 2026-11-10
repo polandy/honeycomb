@@ -7,7 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Service\ExistingSidecar;
 use OCA\Honeycomb\Service\InvalidSidecarRequestException;
+use OCA\Honeycomb\Service\NewSidecar;
 use OCA\Honeycomb\Service\SidecarLimits;
 use OCA\Honeycomb\Service\SidecarRequest;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -19,20 +21,21 @@ final class SidecarRequestTest extends TestCase {
 
 	// spec: XMP-002.3, XMP-002.4
 	public function testReadsExistingAndNewSidecarsWithTheirBytes(): void {
-		$this->assertSame([
-			['fileId' => 9, 'etag' => 'etag-9', 'size' => 3, 'bytes' => 'old'],
-			['path' => '/Photos/IMG_0001.NEF.xmp', 'bytes' => 'new'],
-			['path' => '/IMG_0002.JPG.XMP', 'bytes' => ''],
+		$this->assertEquals([
+			new ExistingSidecar(9, 'etag-9', 3, 'old'),
+			new NewSidecar('/Photos/IMG_0001.NEF.xmp', 'new'),
+			new NewSidecar('/IMG_0002.JPG.XMP', ''),
 		], SidecarRequest::sidecars([self::EXISTING, self::CREATED, ['path' => '/IMG_0002.JPG.XMP', 'content' => '']]));
 	}
 
 	public function testAcceptsTheLimits(): void {
 		$sidecars = SidecarRequest::sidecars([['path' => '/a.jpg.xmp', 'content' => base64_encode(str_repeat('x', SidecarLimits::MAX_BYTES))]]);
 
-		$this->assertSame(SidecarLimits::MAX_BYTES, strlen($sidecars[0]['bytes']));
+		$this->assertSame(SidecarLimits::MAX_BYTES, strlen($sidecars[0]->bytes));
 		$this->assertCount(SidecarLimits::MAX_ITEMS, SidecarRequest::fileIds(range(1, SidecarLimits::MAX_ITEMS)));
 	}
 
+	/** @return array<string, array{array<array-key, mixed>}> */
 	public static function malformedSidecars(): array {
 		$created = static fn (string $path): array => [['path' => $path, 'content' => 'bmV3']];
 		return [
@@ -66,6 +69,7 @@ final class SidecarRequestTest extends TestCase {
 		SidecarRequest::sidecars($sidecars);
 	}
 
+	/** @return array<string, array{array<array-key, mixed>}> */
 	public static function malformedFileIds(): array {
 		return [
 			'not a list' => [['a' => 1]],

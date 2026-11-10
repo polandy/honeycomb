@@ -21,9 +21,9 @@ use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\Files\IRootFolder;
 use OCP\FilesMetadata\IFilesMetadataManager;
 use OCP\IRequest;
-use OCP\Share\IManager as IShareManager;
 use OCP\IUser;
 use OCP\IUserSession;
+use OCP\Share\IManager as IShareManager;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 

@@ -82,6 +82,7 @@ final class SidecarControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(loggedIn: false)->save([])->getStatus());
 	}
 
+	/** @return array<string, array{string, string, string}> */
 	public static function routes(): array {
 		return [
 			'lookup' => ['lookup', 'POST', '/api/v1/sidecars/lookup'],

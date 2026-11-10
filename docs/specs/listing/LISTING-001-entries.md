@@ -14,9 +14,10 @@ show them, from one request per folder. The server lists; it never pairs (ADR 00
 
 `GET /apps/honeycomb/api/v1/entries?path=<folder>[&subfolders=1]`, logged in, with the CSRF
 token. `path` is relative to the user's files; empty is the root. The answer is
-`{"entries": [...], "truncated": <bool>, "folders": [...]}`. An entry has `fileId`, `path` (from the user's files,
-leading `/`), `size`, `mtime`, `etag`, `mime` and `captureTime`, `orientation`, `width`, `height`
-from Nextcloud's file metadata, each `null` where it has none. `folders` has one item per folder
+`{"entries": [...], "truncated": <bool>, "folders": [...]}`. An entry has `fileId`, `path`
+(from the user's files, leading `/`), `size`, `mtime`, `etag`, `mime` and `captureTime`,
+`orientation`, `width`, `height` from Nextcloud's file metadata, each `null` where it has none.
+`folders` has one item per folder
 that holds an entry, `{"path": "/Photos", "shared": <bool>}`: shared when another user or a
 federated user has access to it or to a folder above it, or when it lies in a group folder
 (ADR 0017).

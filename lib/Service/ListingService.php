@@ -28,6 +28,7 @@ final class ListingService {
 	public function __construct(
 		private UserFolderResolver $folders,
 		private EntryFactory $entryFactory,
+		private SharedFolders $sharedFolders,
 		private int $entryLimit = self::ENTRY_LIMIT,
 		private int $pageSize = self::PAGE_SIZE,
 	) {
@@ -43,30 +44,38 @@ final class ListingService {
 		$folder = $this->folders->folder($user, $path);
 		$userFolder = $this->folders->userFolder($user);
 		try {
-			return $this->collect($userFolder, $folder, $subfolders ? $this->searchBelow($user, $folder) : $folder->getDirectoryListing());
+			return $this->collect($user, $userFolder, $folder, $subfolders ? $this->searchBelow($user, $folder) : $folder->getDirectoryListing());
 		} catch (NotPermittedException) {
 			throw new FolderNotReadableException($path);
 		}
 	}
 
 	/** @param iterable<Node> $nodes */
-	private function collect(Folder $userFolder, Folder $folder, iterable $nodes): Listing {
+	private function collect(IUser $user, Folder $userFolder, Folder $folder, iterable $nodes): Listing {
 		$entries = [];
 		$batch = [];
+		$folders = [];
 		foreach ($nodes as $node) {
 			if (!$this->isListed($folder, $node)) {
 				continue;
 			}
 			if (count($entries) + count($batch) === $this->entryLimit) {
-				return new Listing([...$entries, ...$this->entryFactory->create($userFolder, $batch)], true);
+				return new Listing([...$entries, ...$this->entryFactory->create($userFolder, $batch)], true, array_values($folders));
 			}
 			$batch[] = $node;
+			$folders[dirname($node->getPath())] ??= $this->folderOf($user, $userFolder, $node);
 			if (count($batch) === self::METADATA_BATCH) {
 				array_push($entries, ...$this->entryFactory->create($userFolder, $batch));
 				$batch = [];
 			}
 		}
-		return new Listing([...$entries, ...$this->entryFactory->create($userFolder, $batch)], false);
+		return new Listing([...$entries, ...$this->entryFactory->create($userFolder, $batch)], false, array_values($folders));
+	}
+
+	/** @return array{path: string, shared: bool} */
+	private function folderOf(IUser $user, Folder $userFolder, File $node): array {
+		$path = $userFolder->getRelativePath(dirname($node->getPath())) ?? '/';
+		return ['path' => $path, 'shared' => $this->sharedFolders->isShared($user, $node->getParent())];
 	}
 
 	/** @psalm-assert-if-true File $node */

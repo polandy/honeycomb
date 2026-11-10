@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] M5.2: Sidecar endpoints — read the sidecars of listed pictures and save the bytes the client produced with the checked save through `OCP\Files` (`<name>.part`, ETag and size unchanged, rename; `docs/06-xmp-interop.md` Writing); the listing says per folder whether it is shared, deferred from M1.2 (`docs/plan.md` Decisions, gestures and shared folders); ADR on the endpoint shape first (2026-11-10)
 - [ ] M5.3: Sidecars in the cull — on listing, take over the sidecars' decision of pictures without a stored one (XMP-001); write each decision through to the picture's sidecars except in shared folders, where the ⋯ menu offers *Write decisions to sidecars…* after asking (ADR 0005); per-file failure report (2026-11-10)
 - [ ] M6: Series compare — group pictures taken within a short interval, show 2–4 side by side, Pick / Reject / Unflag per photo and "Pick this, reject the rest" as one undo step, from the shared components (`docs/plan.md` Culling workflow) (2026-11-09)
 - [ ] M7.1: Name template module in TypeScript — parse, validate with column, render, sanitise to `[A-Za-z0-9._-]`, fallbacks, collision suffix; tests from `docs/05-name-templates.md` (2026-11-09)

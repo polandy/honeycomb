@@ -15,9 +15,8 @@ use OCA\Honeycomb\Service\UserFolderResolver;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
-use OCP\Files\NotPermittedException;
-use OCP\Files\Mount\IMountPoint;
 use OCP\Files\Node;
+use OCP\Files\NotPermittedException;
 use OCP\FilesMetadata\IFilesMetadataManager;
 use OCP\Share\IManager as IShareManager;
 use PHPUnit\Framework\TestCase;
@@ -140,16 +139,13 @@ final class ListingServiceSubfoldersTest extends TestCase {
 
 	// spec: LISTING-001.12
 	public function testSaysOnceForEachFolderWhetherItIsShared(): void {
-		$folders = array_map($this->folder(...), ['/Photos' => '/Photos', '/Photos/Bob' => '/Photos/Bob', '/Photos/Fed/2024' => '/Photos/Fed/2024', '/Photos/Team' => '/Photos/Team']);
-		$group = $this->createStub(IMountPoint::class);
-		$group->method('getMountType')->willReturn('group');
-		$folders['/Photos/Team']->method('getMountPoint')->willReturn($group);
+		$folders = array_map($this->folder(...), ['/Photos' => '/Photos', '/Photos/Bob' => '/Photos/Bob', '/Photos/Fed/2024' => '/Photos/Fed/2024']);
+		$folders['/Photos/Team'] = $this->folder('/Photos/Team', mountType: 'group');
 		$this->accessLists = ['/Photos/Bob' => ['users' => ['alice', 'bob']], '/Photos/Fed/2024' => ['users' => ['alice'], 'remote' => true]];
 		$paths = [1 => '/Photos/IMG_1.JPG', 2 => '/Photos/Bob/IMG_2.JPG', 3 => '/Photos/IMG_3.JPG', 4 => '/Photos/Fed/2024/IMG_4.JPG', 5 => '/Photos/Team/IMG_5.JPG', 6 => '/Photos/Bob/IMG_6.JPG'];
 		$files = [];
 		foreach ($paths as $id => $path) {
-			$files[] = $file = $this->file($id, $path);
-			$file->method('getParent')->willReturn($folders[dirname($path)]);
+			$files[] = $this->file($id, $path, parent: $folders[dirname($path)]);
 		}
 
 		$listing = $this->service($this->rootWith(['/Photos' => $this->photosWith($files)]))->list($this->user(), 'Photos', true);
@@ -160,7 +156,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 			['path' => '/Photos/Fed/2024', 'shared' => true],
 			['path' => '/Photos/Team', 'shared' => true],
 		], $listing->jsonSerialize()['folders']);
-		$this->assertSame(['/Photos', '/Photos/Bob', '/Photos/Fed/2024', '/Photos/Team'], $this->lookups);
+		$this->assertSame(['/Photos', '/Photos/Bob', '/Photos/Fed/2024'], $this->lookups);
 	}
 
 	// spec: LISTING-001.8

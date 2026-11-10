@@ -151,11 +151,10 @@ final class SidecarWriterTest extends TestCase {
 
 	// spec: XMP-002.5
 	public function testASidecarChangedSinceItWasReadIsNotOverwritten(): void {
-		$results = $this->writer()->save($this->user(), [
-			$this->existing('new', etag: 'etag-seen'),
-			$this->existing('new', size: 4),
-			$this->created('fresh', '/Photos/IMG_0001.NEF.xmp'),
-		]);
+		$results = [
+			...$this->writer()->save($this->user(), [$this->existing('new', etag: 'etag-seen'), $this->created('fresh', '/Photos/IMG_0001.NEF.xmp')]),
+			...$this->writer()->save($this->user(), [$this->existing('new', size: 4)]),
+		];
 
 		$this->assertSame([SidecarResult::Changed, SidecarResult::Changed, SidecarResult::Changed], $this->resultsOf($results));
 		$this->assertSame([], $this->events);
@@ -223,6 +222,7 @@ final class SidecarWriterTest extends TestCase {
 		$this->assertSame([], $this->events);
 	}
 
+	/** @return array<string, array{string, \Exception, SidecarResult, list<string>}> */
 	public static function storageFailures(): array {
 		return [
 			'not permitted while writing' => ['newFile', new NotPermittedException('quota'), SidecarResult::NotPermitted, []],

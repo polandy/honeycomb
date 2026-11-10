@@ -17,6 +17,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class SharedFoldersTest extends TestCase {
+	/** @return array<string, array{array<string, mixed>, string, bool}> */
 	public static function accessLists(): array {
 		return [
 			'the user only' => [['users' => ['alice'], 'remote' => false, 'public' => false], '', false],
@@ -38,7 +39,7 @@ final class SharedFoldersTest extends TestCase {
 		$mount->method('getMountType')->willReturn($mountType);
 		$folder = $this->createStub(Folder::class);
 		$folder->method('getMountPoint')->willReturn($mount);
-		$shares = $this->createMock(IShareManager::class);
+		$shares = $this->createStub(IShareManager::class);
 		$shares->method('getAccessList')->willReturnCallback(function (Node $node, bool $recursive = true, bool $currentAccess = false) use ($folder, $accessList): array {
 			$this->assertSame([$folder, true, false], [$node, $recursive, $currentAccess]);
 			return $accessList;

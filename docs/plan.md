@@ -120,8 +120,8 @@ Read existing sidecars when a folder is listed and write ratings, colour labels,
 decisions. Fields, precedence, write rules and test vectors:
 [`06-xmp-interop.md`](06-xmp-interop.md). The mapping and the serialized form are a TypeScript
 module; the backend writes the bytes it gets with the checked save (ADR 0006). Three parts:
-M5.1 the pure module (XMP-001, ADR 0016), M5.2 the sidecar endpoints and the shared flag, M5.3
-reading on listing, writing through and *Write decisions to sidecars…*.
+M5.1 the pure module (XMP-001, ADR 0016), M5.2 the sidecar endpoints and the shared flag
+(XMP-002, ADR 0017), M5.3 reading on listing, writing through and *Write decisions to sidecars…*.
 
 ### M6 – Series compare
 
@@ -850,8 +850,8 @@ Answered by the owner on 2026-11-09 (Q3, Q4, Q5, Q6, Q20).
    RAW's own `<file>.xmp` ([`06-xmp-interop.md`](06-xmp-interop.md#sidecar-names)).
 5. **Shared folders.** Decisions are per user, in the database. Sidecars are shared by every
    user of the folder, so in a shared folder nothing is written through on its own: the ⋯ menu
-   offers *Write decisions to sidecars…*, which asks first (ADR 0005). The listing (M1.2) says
-   per folder whether it is shared.
+   offers *Write decisions to sidecars…*, which asks first (ADR 0005). The listing says per
+   folder whether it is shared (LISTING-001.12, ADR 0017).
 
 Where the work lands: M5 (shared per folder), M2.4 (per-user decisions), M3.2 (swipe), M3.3
 (colour keys), M4.4 (gesture setting), M5 (sidecars).

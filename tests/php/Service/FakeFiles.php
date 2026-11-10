@@ -11,6 +11,7 @@ use OCA\Honeycomb\Service\Listing;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use OCP\Files\Mount\IMountPoint;
 use OCP\Files\Search\ISearchBinaryOperator;
 use OCP\Files\Search\ISearchComparison;
 use OCP\Files\Search\ISearchOperator;
@@ -42,7 +43,7 @@ trait FakeFiles {
 		return $user;
 	}
 
-	private function file(int $id, string $path, string $mime = 'image/jpeg'): File&Stub {
+	private function file(int $id, string $path, string $mime = 'image/jpeg', ?Folder $parent = null): File&Stub {
 		$file = $this->createStub(File::class);
 		$file->method('getId')->willReturn($id);
 		$file->method('getPath')->willReturn(self::USER_ROOT . $path);
@@ -51,12 +52,16 @@ trait FakeFiles {
 		$file->method('getMTime')->willReturn(1_700_000_000 + $id);
 		$file->method('getEtag')->willReturn("etag-$id");
 		$file->method('getMimetype')->willReturn($mime);
+		$file->method('getParent')->willReturnCallback(fn (): Folder => $parent ?? $this->folder(dirname($path)));
 		return $file;
 	}
 
 	/** A folder at `$path` below the user's files. */
-	private function folder(string $path, bool $readable = true): Folder&Stub {
+	private function folder(string $path, bool $readable = true, string $mountType = ''): Folder&Stub {
+		$mount = $this->createStub(IMountPoint::class);
+		$mount->method('getMountType')->willReturn($mountType);
 		$folder = $this->createStub(Folder::class);
+		$folder->method('getMountPoint')->willReturn($mount);
 		$absolute = rtrim(self::USER_ROOT . $path, '/');
 		$folder->method('getPath')->willReturn($absolute);
 		$folder->method('getName')->willReturn(basename($absolute));
