@@ -6,6 +6,9 @@ import { ADMIN } from './admin.ts'
 import { cullFolder } from './cull.ts'
 import { createFolder, JPEG, RAW, requestToken, upload } from './files.ts'
 
+const API = '/index.php/apps/honeycomb/api/v1'
+const TRASHBIN = `/remote.php/dav/trashbin/${ADMIN.username}`
+
 // spec: DELETE-002.1, DELETE-002.8
 test('reviews the rejects, rescues one and moves the rest to the Nextcloud trash bin', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
@@ -52,4 +55,39 @@ test('reviews the rejects, rescues one and moves the rest to the Nextcloud trash
 		expect(locations).toContain(`${folder}/${file}`)
 	}
 	expect(locations).not.toContain(`${folder}/IMG_0003.jpg`)
+})
+
+// spec: DELETE-001.8
+test('a picture restored from the trash bin keeps its file id and its decision', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	const requesttoken = await requestToken(page)
+	const folder = `Restore ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	const path = `${folder}/IMG_0001.jpg`
+	const fileId = await upload(page, path, JPEG)
+	const file = `/remote.php/dav/files/${ADMIN.username}/${path}`
+	const etagResponse = await page.request.fetch(file, { method: 'PROPFIND', headers: { requesttoken, Depth: '0' }, data: '<d:propfind xmlns:d="DAV:"><d:prop><d:getetag/></d:prop></d:propfind>' })
+	const etag = /<d:getetag>&quot;(.+?)&quot;<\/d:getetag>/.exec(await etagResponse.text())?.[1]
+	expect(etag).toBeDefined()
+	const decision = { fileId, rating: 4, colourLabel: 'green', flag: 'picked', keepRaw: false }
+	expect((await page.request.put(`${API}/decisions`, { data: { decisions: [decision] }, headers: { requesttoken } })).status()).toBe(204)
+
+	const trashed = await page.request.post(`${API}/trash`, { data: { pictures: [[{ fileId, etag }]] }, headers: { requesttoken } })
+	expect(await trashed.json()).toEqual({ pictures: [[{ fileId, result: 'trashed' }]] })
+	const lookup = async () => (await (await page.request.post(`${API}/decisions/lookup`, { data: { fileIds: [fileId] }, headers: { requesttoken } })).json()) as unknown
+	expect(await lookup()).toEqual({ decisions: [decision] })
+
+	const trash = await page.request.fetch(`${TRASHBIN}/trash`, {
+		method: 'PROPFIND',
+		headers: { requesttoken, Depth: '1' },
+		data: '<d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns"><d:prop><nc:trashbin-original-location/></d:prop></d:propfind>',
+	})
+	const entry = new RegExp(`<d:href>([^<]+)</d:href>(?:(?!</d:response>).)*?<nc:trashbin-original-location>${path}</nc:trashbin-original-location>`, 's').exec(await trash.text())?.[1]
+	expect(entry).toBeDefined()
+	const restored = await page.request.fetch(entry as string, { method: 'MOVE', headers: { requesttoken, Destination: `${TRASHBIN}/restore/${randomUUID()}` } })
+	expect(restored.status(), await restored.text()).toBe(201)
+
+	const back = await page.request.fetch(file, { method: 'PROPFIND', headers: { requesttoken, Depth: '0' }, data: '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><oc:fileid/></d:prop></d:propfind>' })
+	expect(await back.text()).toContain(`<oc:fileid>${fileId}</oc:fileid>`)
+	expect(await lookup()).toEqual({ decisions: [decision] })
 })

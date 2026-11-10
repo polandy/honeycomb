@@ -90,7 +90,7 @@ sent. `result` is one of:
 - **Then** the answer is `401` and nothing is trashed; the route is open to every user and keeps
   Nextcloud's CSRF check
 
-### DELETE-001.8 – Decisions survive the trash bin (gap)
+### DELETE-001.8 – Decisions survive the trash bin
 
 - **Given** a picture with a decision
 - **When** its files are trashed and later restored from the trash bin
@@ -105,3 +105,4 @@ Choosing what to delete, the summary and the report: DELETE-002. Removing only R
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged M4.1 (#51) |
+| 2026-11-10 | DELETE-001.8 proven by an e2e test |
