@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { DecisionIntent } from './logic/decision-change.ts'
 import type { Decision } from './logic/decision.ts'
+import type { HotkeyIntent } from './logic/hotkeys.ts'
 import type { SwipeDirection } from './logic/loupe-gesture.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { Toast } from './toast.ts'
@@ -11,6 +12,7 @@ import { computed } from 'vue'
 import { keyCap } from './hotkeys.ts'
 import { commonDecision } from './logic/decision-change.ts'
 import { isDecided, nextUndecided } from './logic/decision.ts'
+import { stepRating } from './logic/hotkeys.ts'
 import { swipeFlag } from './logic/loupe-gesture.ts'
 
 /** What the loupe's decisions read from it and hand to it. */
@@ -41,6 +43,15 @@ export function useLoupeDecisions<P extends Picture<{ readonly fileId: number }>
 		return next !== null
 	}
 
+	/** Decides by a key: a star step counts from the shown rating, and `advance` goes on unless the decision moved. */
+	function decideByKey(intent: HotkeyIntent, advance: boolean) {
+		const index = context.index()
+		const resolved = intent.kind === 'ratingStep' ? { kind: 'rating' as const, rating: stepRating(context.decisionOf(shown()).rating, intent.step) } : intent
+		if (!decide(resolved) && advance) {
+			context.go(index + 1)
+		}
+	}
+
 	/** Sets the flag the swipe stands for, if any. */
 	function swipe(direction: SwipeDirection) {
 		const flag = swipeFlag(direction)
@@ -62,5 +73,5 @@ export function useLoupeDecisions<P extends Picture<{ readonly fileId: number }>
 				})
 	}
 
-	return { common, decide, swipe, setFlagButtonsShown }
+	return { common, decide, decideByKey, swipe, setFlagButtonsShown }
 }

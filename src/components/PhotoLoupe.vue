@@ -28,7 +28,6 @@ import PanelDivider from './PanelDivider.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
 import { toggleBrowserFullscreen } from '../fullscreen.ts'
 import { LOUPE_IDLE_MS, useIdle } from '../idle.ts'
-import { stepRating } from '../logic/hotkeys.ts'
 import { imageMember, loupeSources } from '../logic/image-tiers.ts'
 import { INFO_PANEL } from '../logic/panel-width.ts'
 import { prefetchOrder } from '../logic/prefetch.ts'
@@ -108,15 +107,6 @@ function go(index: number) {
 	}
 }
 
-/** Toggles the zoom when it is `zoomed`; otherwise leaves the key to the browser. */
-function toggleZoomWhen(zoomed: boolean): boolean {
-	if ((zoom.value !== null) !== zoomed) {
-		return false
-	}
-	stage.value!.toggleZoom()
-	return true
-}
-
 /** The loupe's keys (`docs/plan.md` Keyboard shortcuts); the app's dispatcher runs them. */
 const hotkeys: HotkeyHandlers = {
 	previous: () => go(props.index - 1),
@@ -132,17 +122,11 @@ const hotkeys: HotkeyHandlers = {
 	},
 	fullscreen: () => props.toggleFullscreen(root.value!),
 	zoom: () => stage.value!.toggleZoom(),
-	'zoom-in': () => toggleZoomWhen(false),
-	'zoom-out': () => toggleZoomWhen(true),
+	'zoom-in': () => stage.value!.toggleZoom(false),
+	'zoom-out': () => stage.value!.toggleZoom(true),
 	info: () => panels.setInfoOpen(!infoOpen.value),
 	'flag-buttons': () => decisions.setFlagButtonsShown(!flagButtonsShown.value, true),
-	decide: (intent, advance) => {
-		const resolved = intent.kind === 'ratingStep' ? { kind: 'rating' as const, rating: stepRating(props.decisionOf(picture.value).rating, intent.step) } : intent
-		const index = props.index
-		if (!decisions.decide(resolved) && advance) {
-			go(index + 1)
-		}
-	},
+	decide: decisions.decideByKey,
 }
 
 defineExpose({ hotkeys })
