@@ -65,8 +65,8 @@ describe('observeElementSize', () => {
 })
 
 describe('formatFileSize and formatDateTime', () => {
-	it('shows MB below one GB and GB from there', () => {
-		expect([formatFileSize(1.5 * 1024 ** 2), formatFileSize(2 * 1024 ** 3)]).toEqual(['1.5 MB', '2 GB'])
+	it('shows kB below one MB, MB below one GB and GB from there', () => {
+		expect([formatFileSize(512 * 1024), formatFileSize(1.5 * 1024 ** 2), formatFileSize(2 * 1024 ** 3)]).toEqual(['512 kB', '1.5 MB', '2 GB'])
 	})
 
 	it('shows a capture time with its year', () => {

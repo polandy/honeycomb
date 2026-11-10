@@ -128,11 +128,13 @@ describe('PhotoLoupe', () => {
 		expect(zoomButton.text()).toBe('Fit')
 	})
 
-	it('opens the info panel by I, keeps its state and width, and counts the loaded neighbours', async () => {
+	it('opens the info panel by I beside the overlays, keeps its state and width, and counts the loaded neighbours', async () => {
 		const { wrapper, root, stored } = await mountLoupe(4, { [INFO_WIDTH_KEY]: '320' })
 		expect(wrapper.find('.loupe-info').exists()).toBe(false)
+		expect(root.attributes('style')).toContain('--photo-loupe-panel: 0px')
 		await root.trigger('keydown', { key: 'i' })
 		expect(wrapper.find('.loupe-info').attributes('style')).toContain('width: 320px')
+		expect(root.attributes('style')).toContain('--photo-loupe-panel: 324px')
 		expect(wrapper.find('.loupe-info').text()).toContain('5 of 5 neighbours loaded')
 		await wrapper.find('[role="separator"]').trigger('keydown', { key: 'Home' })
 		expect(stored).toEqual({ [INFO_OPEN_KEY]: 'true', [INFO_WIDTH_KEY]: '220' })

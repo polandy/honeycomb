@@ -29,7 +29,7 @@ async function openApp() {
 }
 
 describe('App: the loupe', () => {
-	it('opens on the grid\'s picture over the pictures the grid shows', async () => {
+	it('opens on the grid\'s picture over the pictures the grid shows, at the body so no Nextcloud bar covers it', async () => {
 		const { wrapper } = await openApp()
 		expect(wrapper.findComponent(PhotoLoupe).exists()).toBe(false)
 
@@ -38,6 +38,7 @@ describe('App: the loupe', () => {
 
 		const loupe = wrapper.findComponent(PhotoLoupe)
 		expect(loupe.props('index')).toBe(1)
+		expect(loupe.element.parentElement).toBe(document.body)
 		expect(loupe.props('pictures').map((picture: { baseName: string }) => picture.baseName)).toEqual(shownNames(wrapper))
 	})
 
