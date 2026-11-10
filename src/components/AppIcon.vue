@@ -7,6 +7,7 @@
 const PATHS = {
 	check: 'M5 12l5 5 9-10',
 	chevronRight: 'M9 6l6 6-6 6',
+	filter: 'M3 5h18l-7 8v6l-4-2v-4z',
 	folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
 	home: 'M4 11l8-7 8 7v9H4zM10 20v-6h4v6',
 	more: 'M5 12h.01M12 12h.01M19 12h.01',

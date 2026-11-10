@@ -128,9 +128,9 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   TypeScript (ADR 0011); the listing is cached per folder and reused when the cull opens.
 - 2026-11-10: Folder paths in the client are `''` for the root and `/a/b` otherwise, as the
   listing returns them; no trailing slash.
-- 2026-11-10: Until M2.5 brings the sort, the grid orders pictures by folder, then base name
-  (`Intl.Collator`, numeric); the 20,000 cap keeps the earliest by capture time, ties in listing
-  order.
+- 2026-11-10: The grid sorts by *File name* for one folder and by *Capture time* for several;
+  with *Group by folder* it orders by folder first. Names compare with `Intl.Collator`, numeric;
+  the 20,000 cap keeps the earliest by capture time, ties in listing order.
 - 2026-11-10: The grid warms previews for the shown member of each shown picture only, so a
   request stays below ADR 0010's 60,000 ids.
 - 2026-11-10: A child folder whose own listing fails is still listed, with `hasSubfolders: false`;
@@ -164,3 +164,26 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   reorder of the palette needs no migration.
 - 2026-11-10: Saving a resume position deletes and re-inserts its row, so the new id orders it
   first when two saves land in the same second.
+- 2026-11-10: A pair whose members carry different stored decisions takes the rendered member's,
+  the one the user sees.
+- 2026-11-10: The default sort counts the folders that hold pictures: one → *File name*, several
+  → *Capture time*.
+- 2026-11-10: The file-name sort compares base names, ties by folder.
+- 2026-11-10: Filters and sort are per cull and reset on opening a folder set; they are not
+  stored.
+- 2026-11-10: *Clear filters* keeps the scope.
+- 2026-11-10: Previews are warmed in the view's order when a folder set opens, before the
+  decision lookup answers, so the warm-up does not wait for it.
+- 2026-11-10: A failed decision lookup is logged and every photo shows as undecided; an answer
+  for a folder set that is no longer open is dropped.
+- 2026-11-10: The scope's "The flag filter overrides this" is visible text beside the disabled
+  segment, tied to it by `aria-describedby`, until the shared `Tooltip` exists.
+- 2026-11-10: Tapping the pressed star chip turns the rating filter off, like *Any*, as in the
+  mockup.
+- 2026-11-10: The colour swatches use the mockup's fixed palette, not Nextcloud variables, since
+  a label's colour is data; names and colours sit in `src/colour-labels.ts` until the shared
+  `ColourLabels` component exists.
+- 2026-11-10: The empty states name the reason and offer *Show all* or *Clear filters*; the
+  mockup's counts and *Review rejects* come with the reject review (M4).
+- 2026-11-10: The untranslated-text check skips the `name` of an `input`: a form control's name is
+  its key in the form and never shown.

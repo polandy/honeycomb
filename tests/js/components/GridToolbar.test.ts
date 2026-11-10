@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { FolderSet } from '../../../src/logic/folder-set.ts'
+import type { Scope } from '../../../src/logic/picture-filter.ts'
+import type { SortOrder } from '../../../src/logic/picture-order.ts'
 
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -11,9 +13,17 @@ import { PopoverStub } from './stubs.ts'
 
 const MARK = TRANSLATED_MARK
 
-const CULL = { scope: 'not-rejected', scopeLocked: false, decided: 1840, total: 2000, activeFilters: 0, filtersOpen: false, sortOrder: 'file-name' } as const
+const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder } = {
+	scope: 'not-rejected',
+	scopeLocked: false,
+	decided: 1840,
+	total: 2000,
+	activeFilters: 0,
+	filtersOpen: false,
+	sortOrder: 'file-name',
+}
 
-function mountToolbar(folderSet: FolderSet, folders = 1, cull: Partial<Record<keyof typeof CULL, unknown>> = {}) {
+function mountToolbar(folderSet: FolderSet, folders = 1, cull: Partial<typeof CULL> = {}) {
 	return mount(GridToolbar, {
 		props: { folderSet, folders, tileSize: 150.4, groupByFolder: false, ...CULL, ...cull },
 		global: { stubs: { NcPopover: PopoverStub } },

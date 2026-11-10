@@ -4,6 +4,8 @@
 -->
 <script setup lang="ts">
 import type { FolderSet } from '../logic/folder-set.ts'
+import type { Scope } from '../logic/picture-filter.ts'
+import type { SortOrder } from '../logic/picture-order.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
@@ -11,6 +13,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcPopover from '@nextcloud/vue/components/NcPopover'
 import AppIcon from './AppIcon.vue'
+import ScopeProgress from './ScopeProgress.vue'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { MAX_TILE_SIZE, MIN_TILE_SIZE } from '../logic/tile-size.ts'
 
@@ -20,13 +23,29 @@ const props = defineProps<{
 	folders: number
 	tileSize: number
 	groupByFolder: boolean
+	scope: Scope
+	/** Whether a flag filter overrides the scope. */
+	scopeLocked: boolean
+	decided: number
+	total: number
+	/** How many filter groups have a choice. */
+	activeFilters: number
+	filtersOpen: boolean
+	sortOrder: SortOrder
 }>()
 
 const emit = defineEmits<{
 	changeFolders: []
 	'update:tileSize': [size: number]
 	'update:groupByFolder': [group: boolean]
+	'update:scope': [scope: Scope]
+	'update:filtersOpen': [open: boolean]
+	'update:sortOrder': [order: SortOrder]
 }>()
+
+const filtersLabel = computed(() => (props.activeFilters > 0
+	? t('honeycomb', 'Filters ({count})', { count: formatNumber(props.activeFilters) })
+	: t('honeycomb', 'Filters')))
 
 const setName = computed(() => {
 	const { paths, subfolders } = props.folderSet
@@ -58,6 +77,23 @@ const setName = computed(() => {
 				{{ setName }}
 			</button>
 		</nav>
+		<ScopeProgress
+			:scope="props.scope"
+			:locked="props.scopeLocked"
+			:decided="props.decided"
+			:total="props.total"
+			@update:scope="emit('update:scope', $event)" />
+		<NcButton
+			variant="tertiary"
+			:ariaLabel="filtersLabel"
+			:aria-pressed="props.filtersOpen"
+			:aria-expanded="props.filtersOpen"
+			@click="emit('update:filtersOpen', !props.filtersOpen)">
+			<template #icon>
+				<AppIcon name="filter" />
+			</template>
+			<span v-if="props.activeFilters > 0" class="grid-toolbar__badge" aria-hidden="true">{{ formatNumber(props.activeFilters) }}</span>
+		</NcButton>
 		<NcPopover>
 			<template #trigger>
 				<NcButton variant="tertiary" :ariaLabel="t('honeycomb', 'More')">
@@ -84,6 +120,25 @@ const setName = computed(() => {
 					@update:modelValue="emit('update:groupByFolder', $event)">
 					{{ t('honeycomb', 'Group by folder') }}
 				</NcCheckboxRadioSwitch>
+				<fieldset class="grid-toolbar__sort">
+					<legend>{{ t('honeycomb', 'Sort by') }}</legend>
+					<NcCheckboxRadioSwitch
+						type="radio"
+						name="sort-order"
+						value="file-name"
+						:modelValue="props.sortOrder"
+						@update:modelValue="emit('update:sortOrder', $event)">
+						{{ t('honeycomb', 'File name') }}
+					</NcCheckboxRadioSwitch>
+					<NcCheckboxRadioSwitch
+						type="radio"
+						name="sort-order"
+						value="capture-time"
+						:modelValue="props.sortOrder"
+						@update:modelValue="emit('update:sortOrder', $event)">
+						{{ t('honeycomb', 'Capture time') }}
+					</NcCheckboxRadioSwitch>
+				</fieldset>
 			</div>
 		</NcPopover>
 	</div>
@@ -92,6 +147,7 @@ const setName = computed(() => {
 <style scoped>
 .grid-toolbar {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: var(--default-grid-baseline);
 	padding: var(--default-grid-baseline) calc(2 * var(--default-grid-baseline));
@@ -132,6 +188,28 @@ const setName = computed(() => {
 	flex-direction: column;
 	gap: calc(2 * var(--default-grid-baseline));
 	padding: calc(2 * var(--default-grid-baseline));
+}
+
+.grid-toolbar__badge {
+	min-width: 18px;
+	padding: 0 4px;
+	border-radius: 9px;
+	background: var(--color-primary-element);
+	color: var(--color-primary-element-text);
+	font-size: 12px;
+	font-weight: bold;
+	line-height: 18px;
+	text-align: center;
+}
+
+.grid-toolbar__sort {
+	margin: 0;
+	padding: 0;
+	border: none;
+}
+
+.grid-toolbar__sort legend {
+	font-weight: bold;
 }
 
 .grid-toolbar__size {

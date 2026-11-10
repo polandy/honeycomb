@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] M2.5: Filter bar — rating, colour label, flag, pairing, Keep RAW, folder and sort as pure TypeScript modules (Q8, Q9, Q18; sort by file name or capture time with the fallback in `docs/plan.md` Sort order); scope not rejected (default) / undecided / all and "x of y decided" progress (2026-11-09)
 - [ ] M2.6: Selection mode and bulk rate, label, flag and Keep RAW (Q10) (2026-11-09)
 - [ ] M3.1: Loupe — full screen, swipe, pinch zoom to 100 %, prefetch 2–3 neighbours each way (next image <100 ms), chrome-free mode (F, double-tap), tap zones for previous and next (`docs/plan.md` Tap zones), collapsible info panel with draggable divider, collapsible sidebar (2026-11-09)
 - [ ] M3.2: Decisions in the loupe — pick/reject buttons and the *Flag buttons* toggle (`docs/plan.md` Flag buttons and vi keys), vertical swipe (Q6), rating, label and Keep RAW controls, auto-advance to the next undecided picture, "Rejected IMG_0001 · Undo" toast; built from the shared components (`docs/plan.md` Shared UI components) (2026-11-09)

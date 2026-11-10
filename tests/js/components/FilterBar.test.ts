@@ -19,7 +19,8 @@ function mountBar(filters: Partial<Filters> = {}, folders = ['/Trip', '/Trip/Day
 
 type Bar = ReturnType<typeof mountBar>
 
-const chip = (wrapper: Bar, label: string) => wrapper.findAll('button').find((button) => button.attributes('aria-label') === `${MARK}${label}` || button.text() === `${MARK}${label}`)!
+const plain = (text: string | undefined) => text?.replaceAll(MARK, '')
+const chip = (wrapper: Bar, label: string) => wrapper.findAll('button').find((button) => plain(button.attributes('aria-label')) === label || plain(button.text()) === label)!
 const comparison = (wrapper: Bar) => wrapper.find('.filter-bar__comparison')
 const emitted = (wrapper: Bar) => wrapper.emitted<[Filters]>('update:filters')!.map(([filters]) => filters)
 
@@ -41,7 +42,7 @@ describe('FilterBar', () => {
 		const stars = wrapper.findAll('.filter-bar__star')
 
 		expect(stars.map((star) => star.text())).toEqual(['0★', '1★', '2★', '3★', '4★', '5★'])
-		expect(stars[1]!.attributes('aria-label')).toBe(`${MARK}At least 1 star`)
+		expect(plain(stars[1]!.attributes('aria-label'))).toBe('At least 1 star')
 		await stars[3]!.trigger('click')
 
 		expect(emitted(wrapper)[0]).toMatchObject({ rating: 3, comparison: 'at-least' })
@@ -56,7 +57,7 @@ describe('FilterBar', () => {
 
 		expect(comparison(wrapper).text()).toBe(symbol)
 		expect(comparison(wrapper).attributes('aria-label')).toBe(`${MARK}Rating comparison: ${MARK}${now}. Tap for: ${MARK}${next}`)
-		expect(wrapper.find(`[aria-label="${MARK}${now} 2 stars"]`).attributes('aria-pressed')).toBe('true')
+		expect(chip(wrapper, `${now} 2 stars`).attributes('aria-pressed')).toBe('true')
 		await comparison(wrapper).trigger('click')
 
 		expect(emitted(wrapper)).toEqual([{ ...DEFAULT_FILTERS, rating: 2, comparison: after }])

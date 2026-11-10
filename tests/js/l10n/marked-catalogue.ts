@@ -43,7 +43,9 @@ export function untranslatedText(root: Element): string[] {
 		}
 	}
 	for (const element of [root, ...root.querySelectorAll('*')]) {
-		USER_VISIBLE_ATTRIBUTES.forEach((attribute) => check(element.getAttribute(attribute)))
+		// A form control's name is its key in the form, never shown.
+		const shown = element.tagName === 'INPUT' ? USER_VISIBLE_ATTRIBUTES.filter((attribute) => attribute !== 'name') : USER_VISIBLE_ATTRIBUTES
+		shown.forEach((attribute) => check(element.getAttribute(attribute)))
 		element.childNodes.forEach((node) => node.nodeType === node.TEXT_NODE && check(node.textContent))
 	}
 	return found
