@@ -12,10 +12,7 @@ use OCA\Honeycomb\Search\Comparison;
 use OCA\Honeycomb\Search\FileSearchQuery;
 use OCP\Files\File;
 use OCP\Files\Folder;
-use OCP\Files\InvalidPathException;
-use OCP\Files\IRootFolder;
 use OCP\Files\Node;
-use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\Files\Search\ISearchBinaryOperator;
 use OCP\Files\Search\ISearchComparison;
@@ -29,7 +26,7 @@ final class ListingService {
 	public const METADATA_BATCH = 1_000;
 
 	public function __construct(
-		private IRootFolder $rootFolder,
+		private UserFolderResolver $folders,
 		private EntryFactory $entryFactory,
 		private int $entryLimit = self::ENTRY_LIMIT,
 		private int $pageSize = self::PAGE_SIZE,
@@ -43,33 +40,13 @@ final class ListingService {
 	 * @throws FolderNotReadableException when the user may not read the folder
 	 */
 	public function list(IUser $user, string $path, bool $subfolders): Listing {
-		if (in_array('..', explode('/', $path), true) || str_contains($path, "\0")) {
-			throw new FolderNotFoundException($path);
-		}
-		$userFolder = $this->rootFolder->getUserFolder($user->getUID());
-		$folder = $this->folderAt($userFolder, $path);
+		$folder = $this->folders->folder($user, $path);
+		$userFolder = $this->folders->userFolder($user);
 		try {
 			return $this->collect($userFolder, $folder, $subfolders ? $this->searchBelow($user, $folder) : $folder->getDirectoryListing());
 		} catch (NotPermittedException) {
 			throw new FolderNotReadableException($path);
 		}
-	}
-
-	private function folderAt(Folder $userFolder, string $path): Folder {
-		try {
-			$node = $userFolder->get($path);
-		} catch (NotFoundException|InvalidPathException) {
-			throw new FolderNotFoundException($path);
-		} catch (NotPermittedException) {
-			throw new FolderNotReadableException($path);
-		}
-		if (!$node instanceof Folder || $userFolder->getRelativePath($node->getPath()) === null) {
-			throw new FolderNotFoundException($path);
-		}
-		if (!$node->isReadable()) {
-			throw new FolderNotReadableException($path);
-		}
-		return $node;
 	}
 
 	/** @param iterable<Node> $nodes */
