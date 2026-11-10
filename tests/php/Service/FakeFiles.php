@@ -42,7 +42,7 @@ trait FakeFiles {
 		return $user;
 	}
 
-	private function file(int $id, string $path, string $mime = 'image/jpeg'): File {
+	private function file(int $id, string $path, string $mime = 'image/jpeg'): File&Stub {
 		$file = $this->createStub(File::class);
 		$file->method('getId')->willReturn($id);
 		$file->method('getPath')->willReturn(self::USER_ROOT . $path);

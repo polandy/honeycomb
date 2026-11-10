@@ -10,19 +10,38 @@ namespace OCA\Honeycomb\Tests\Service;
 use OCA\Honeycomb\Service\EntryFactory;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\ListingService;
+use OCA\Honeycomb\Service\SharedFolders;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotPermittedException;
+use OCP\Files\Mount\IMountPoint;
+use OCP\Files\Node;
 use OCP\FilesMetadata\IFilesMetadataManager;
+use OCP\Share\IManager as IShareManager;
 use PHPUnit\Framework\TestCase;
 
 final class ListingServiceSubfoldersTest extends TestCase {
 	use FakeFiles;
 
+	/** @var array<string, array> access lists by folder path below the user's files */
+	private array $accessLists = [];
+	/** @var list<string> the folders whose access list was asked for */
+	private array $lookups = [];
+
+	private function shares(): IShareManager {
+		$shares = $this->createStub(IShareManager::class);
+		$shares->method('getAccessList')->willReturnCallback(function (Node $folder): array {
+			$path = substr($folder->getPath(), strlen(self::USER_ROOT));
+			$this->lookups[] = $path;
+			return $this->accessLists[$path] ?? [];
+		});
+		return $shares;
+	}
+
 	private function service(IRootFolder $root, int $entryLimit = ListingService::ENTRY_LIMIT, int $pageSize = ListingService::PAGE_SIZE): ListingService {
-		return new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class)), $entryLimit, $pageSize);
+		return new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class)), new SharedFolders($this->shares()), $entryLimit, $pageSize);
 	}
 
 	/** @param list<File> $files */
@@ -112,11 +131,36 @@ final class ListingServiceSubfoldersTest extends TestCase {
 				return [];
 			},
 		);
-		$service = new ListingService(new UserFolderResolver($this->rootWith(['/Photos' => $photos])), new EntryFactory($metadata));
+		$service = new ListingService(new UserFolderResolver($this->rootWith(['/Photos' => $photos])), new EntryFactory($metadata), new SharedFolders($this->shares()));
 
 		$listing = $service->list($this->user(), 'Photos', true);
 
 		$this->assertCount(6300, $listing->jsonSerialize()['entries']);
+	}
+
+	// spec: LISTING-001.12
+	public function testSaysOnceForEachFolderWhetherItIsShared(): void {
+		$folders = array_map($this->folder(...), ['/Photos' => '/Photos', '/Photos/Bob' => '/Photos/Bob', '/Photos/Fed/2024' => '/Photos/Fed/2024', '/Photos/Team' => '/Photos/Team']);
+		$group = $this->createStub(IMountPoint::class);
+		$group->method('getMountType')->willReturn('group');
+		$folders['/Photos/Team']->method('getMountPoint')->willReturn($group);
+		$this->accessLists = ['/Photos/Bob' => ['users' => ['alice', 'bob']], '/Photos/Fed/2024' => ['users' => ['alice'], 'remote' => true]];
+		$paths = [1 => '/Photos/IMG_1.JPG', 2 => '/Photos/Bob/IMG_2.JPG', 3 => '/Photos/IMG_3.JPG', 4 => '/Photos/Fed/2024/IMG_4.JPG', 5 => '/Photos/Team/IMG_5.JPG', 6 => '/Photos/Bob/IMG_6.JPG'];
+		$files = [];
+		foreach ($paths as $id => $path) {
+			$files[] = $file = $this->file($id, $path);
+			$file->method('getParent')->willReturn($folders[dirname($path)]);
+		}
+
+		$listing = $this->service($this->rootWith(['/Photos' => $this->photosWith($files)]))->list($this->user(), 'Photos', true);
+
+		$this->assertSame([
+			['path' => '/Photos', 'shared' => false],
+			['path' => '/Photos/Bob', 'shared' => true],
+			['path' => '/Photos/Fed/2024', 'shared' => true],
+			['path' => '/Photos/Team', 'shared' => true],
+		], $listing->jsonSerialize()['folders']);
+		$this->assertSame(['/Photos', '/Photos/Bob', '/Photos/Fed/2024', '/Photos/Team'], $this->lookups);
 	}
 
 	// spec: LISTING-001.8
