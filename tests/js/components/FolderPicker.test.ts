@@ -5,10 +5,12 @@ import type { Folder } from '../../../src/api.ts'
 import type { FolderSet } from '../../../src/logic/folder-set.ts'
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { PairingSettings } from '../../../src/logic/pairing.ts'
+import type { RecentFolderSet } from '../../../src/logic/recent.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import FolderPicker from '../../../src/components/FolderPicker.vue'
+import RecentFolderSets from '../../../src/components/RecentFolderSets.vue'
 import { DEFAULT_PAIRING_SETTINGS } from '../../../src/logic/pairing.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { listingEntry } from '../logic/listing-entries.ts'
@@ -47,10 +49,10 @@ function fakeApi() {
 	return { calls, pending, listEntries, listFolders: () => Promise.resolve(ROOT) }
 }
 
-async function mountPicker(current: FolderSet | null = null, pairing: PairingSettings = DEFAULT_PAIRING_SETTINGS) {
+async function mountPicker(current: FolderSet | null = null, pairing: PairingSettings = DEFAULT_PAIRING_SETTINGS, recent: RecentFolderSet[] = []) {
 	const api = fakeApi()
 	const wrapper = mount(FolderPicker, {
-		props: { current, listFolders: api.listFolders, listEntries: api.listEntries, pairing },
+		props: { current, listFolders: api.listFolders, listEntries: api.listEntries, pairing, recent },
 		global: { stubs: { NcDialog: DialogStub } },
 	})
 	await flushPromises()
@@ -221,6 +223,25 @@ describe('FolderPicker', () => {
 		const cancel = picker.wrapper.findAll('button').find((button) => button.text() === `${MARK}Cancel`)!
 		await cancel.trigger('click')
 		expect(picker.wrapper.emitted('cancel')).toEqual([[]])
+	})
+
+	// spec: LISTING-003.13
+	it('lists the recent folder sets and opens one at its resume position', async () => {
+		const position = { folderSet: { paths: ['/Trip'], subfolders: true }, fileId: 2, decided: 1, total: 3 }
+		const picker = await mountPicker(null, DEFAULT_PAIRING_SETTINGS, [{ position, current: false, decided: 1, total: 3 }])
+
+		expect(picker.wrapper.find('h3').text()).toBe(`${MARK}Recent`)
+		picker.wrapper.findComponent(RecentFolderSets).vm.$emit('open', position)
+
+		expect(picker.wrapper.emitted('openRecent')).toEqual([[position]])
+	})
+
+	// spec: LISTING-003.13
+	it('shows no Recent heading before any folder set was culled', async () => {
+		const picker = await mountPicker()
+
+		expect(picker.wrapper.findComponent(RecentFolderSets).exists()).toBe(false)
+		expect(picker.wrapper.text()).not.toContain(`${MARK}Recent`)
 	})
 
 	// spec: APP-001.4

@@ -28,7 +28,12 @@ continues on another, and *Recent* can list the last folder sets with their prog
   at that picture, at the first undecided picture of the view when filters hide it, or at the
   first picture of the view. Once the loupe has shown a picture, the toast is no longer offered.
 - A failed read or save is logged; the cull goes on without the offer.
-- *Recent* does not exist yet.
+- *Recent* in the app navigation and the folder picker lists the stored positions, newest first,
+  each folder set by its name ("Trip", "Trip + subfolders", "3 folders") with "x / y decided"; the
+  open folder set is marked and shows the progress of its cull. A position the cull saves moves
+  its folder set to the top without reading the list again. Tapping a folder set lists it and
+  opens the loupe at its position, without the toast; tapping the open one resumes it in place.
+  A folder set that cannot be listed is reported by a toast and the cull stays as it is.
 
 ## Acceptance criteria
 
@@ -75,7 +80,7 @@ continues on another, and *Recent* can list the last folder sets with their prog
 - **When** the user moves through it and later opens the same folder set on another device
 - **Then** the position was saved and the app offers to continue there
 
-### DECISIONS-002.8 – Recent (gap)
+### DECISIONS-002.8 – Recent
 
 - **Given** saved positions
 - **When** the user opens the navigation
@@ -109,3 +114,4 @@ The progress of the open cull (GRID-002).
 |---|---|
 | 2026-11-10 | Written from the merged M2.4 (#42) |
 | 2026-11-10 | The client saves and offers the position (DECISIONS-002.7, .9–.11) |
+| 2026-11-10 | *Recent* in the navigation and the folder picker (DECISIONS-002.8) |

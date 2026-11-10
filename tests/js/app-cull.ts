@@ -76,7 +76,15 @@ export function gridStub() {
 	return { component, calls }
 }
 
+/** The `#skip-actions` target Nextcloud's page holds, where NcContent teleports its skip links. */
+export function provideSkipActions() {
+	if (document.getElementById('skip-actions') === null) {
+		document.body.append(Object.assign(document.createElement('div'), { id: 'skip-actions' }))
+	}
+}
+
 export function mountApp(props: Record<string, unknown> = {}, decisions: StoredDecision[] = [], stubs: Record<string, unknown> = {}) {
+	provideSkipActions()
 	const warmed: number[][] = []
 	const lookedUp: number[][] = []
 	const saved: StoredDecision[][] = []
@@ -106,7 +114,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			},
 			...props,
 		},
-		global: { stubs: { FolderPicker: true, PhotoGrid: grid.component, GridToolbar: true, FilterBar: true, PhotoLoupe: true, SettingsDialog: true, ...stubs } },
+		global: { stubs: { AppNavigation: true, FolderPicker: true, PhotoGrid: grid.component, GridToolbar: true, FilterBar: true, PhotoLoupe: true, SettingsDialog: true, ...stubs } },
 	})
 	return { wrapper, warmed, lookedUp, saved, savedSettings, sidecarSaves, grid: grid.calls }
 }

@@ -85,7 +85,7 @@ test('hides a rejected photo in the default scope and shows it under All', async
 	const grid = page.getByRole('grid', { name: 'Photos' })
 	await expect(grid.getByRole('gridcell', { name: 'IMG_0002, JPG only' })).toBeVisible()
 	await expect(grid.getByRole('gridcell')).toHaveCount(1)
-	await expect(page.getByText('1 / 2 decided')).toBeVisible()
+	await expect(page.locator('#app-content-vue').getByText('1 / 2 decided')).toBeVisible()
 	await page.getByRole('button', { name: 'All', exact: true }).click()
 	await expect(grid.getByRole('gridcell', { name: 'IMG_0001, JPG only' })).toBeVisible()
 	await expect(grid.getByRole('gridcell')).toHaveCount(2)

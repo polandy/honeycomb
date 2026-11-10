@@ -535,3 +535,17 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the stored one, as the mockup does (DECISIONS-002.9).
 - 2026-11-10: The stored position is offered by a toast and the More menu item *Resume at
   <name>*, as in the mockup; the toast is skipped once the loupe has shown a picture.
+- 2026-11-10: *Recent* lives in an `NcAppNavigation` with *Folder* (opens the picker) and
+  *Settings* as in the mockup; the mockup's *Cull* entry is left out, since the grid is the only
+  content and the loupe closes by its own controls (DECISIONS-002.8).
+- 2026-11-10: *Recent* lists all positions the server keeps (20), not the mockup's 8, since the
+  server already caps the list and the navigation scrolls (DECISIONS-002.8).
+- 2026-11-10: The picker shows *Recent* above the folders, headed *Recent* and *Folders*, since
+  the mockup's picker only names Recent in its hint (LISTING-003.13).
+- 2026-11-10: Tapping a recent folder set opens the loupe at its position directly, without the
+  *Continue where you left off* toast, since the tap already chose to continue; tapping the open
+  folder set resumes it without listing it again (DECISIONS-002.8).
+- 2026-11-10: A saved position moves its folder set to the top of *Recent* locally; the list is
+  read from the server at start and whenever the picker opens, not after each save
+  (DECISIONS-002.8).
+- 2026-11-10: The root folder is named *Home* under *Recent*, as in the picker's breadcrumbs.

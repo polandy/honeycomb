@@ -88,6 +88,15 @@ export function useResume(api: ResumeApi, cull: ResumeCull, toast: (message: str
 		}).catch((error: unknown) => logger.error('Could not read the resume positions.', { error }))
 	}
 
+	/** Opens the loupe at the file of the folder set just opened from *Recent*, without the offer (DECISIONS-002.8). */
+	function resumeAt(stored: number) {
+		opening++
+		tracking = false
+		sent = ''
+		fileId.value = pictureHolding(cull.pictures(), stored) === null ? null : stored
+		resume()
+	}
+
 	const picture = computed(() => (fileId.value === null ? null : pictureHolding(cull.pictures(), fileId.value)))
 
 	/** Opens the loupe at the stored picture (DECISIONS-002.9). */
@@ -101,6 +110,7 @@ export function useResume(api: ResumeApi, cull: ResumeCull, toast: (message: str
 	return {
 		offer,
 		resume,
+		resumeAt,
 		/** The base name of the picture *Resume* opens, null when there is none. */
 		resumeName: computed(() => picture.value?.baseName ?? null),
 	}

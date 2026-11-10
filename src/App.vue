@@ -4,6 +4,7 @@
 -->
 <script setup lang="ts">
 import type { AppSeams } from './app-seams.ts'
+import type { ResumePosition } from './logic/resume-position.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, ref, useTemplateRef, watch } from 'vue'
@@ -12,6 +13,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcContent from '@nextcloud/vue/components/NcContent'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import ActionBar from './components/ActionBar.vue'
+import AppNavigation from './components/AppNavigation.vue'
 import CullDialogs from './components/CullDialogs.vue'
 import CullEmptyState from './components/CullEmptyState.vue'
 import FilterBar from './components/FilterBar.vue'
@@ -32,6 +34,7 @@ import { useHotkeys } from './hotkeys.ts'
 import { clearFilters } from './logic/picture-filter.ts'
 import { useLoupeOpening } from './loupe-opening.ts'
 import { useMoveFlow } from './move-flow.ts'
+import { useRecent } from './recent.ts'
 import { useResume } from './resume.ts'
 import { useSelectionMode } from './selection-mode.ts'
 import { useSeriesCompare } from './series-compare.ts'
@@ -68,7 +71,12 @@ const overlayScreen = computed(() => (loupe.value !== null ? '.photo-loupe' : se
 const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
 const { dialog: deleteDialog, rejected, rawRemovable } = deleting
 const moving = useMoveFlow({ view: () => view.value, settings: () => settings.value, updateSettings, probe: props.move.probeTargets, move: props.move.movePictures, removeFiles: cull.removeFiles, restoreFiles: cull.restoreFiles, listing: () => folderSet.value, loupe, toast: toast.show })
-const resume = useResume(props.positions, {
+const recent = useRecent(props.positions, props.listEntries, {
+	folderSet: () => folderSet.value,
+	progress: () => progress.value,
+	pairing: () => cull.pairing.value,
+}, (message) => toast.show(message))
+const resume = useResume(recent.positions, {
 	folderSet: () => folderSet.value,
 	pictures: () => pictures.value,
 	view: () => view.value,
@@ -79,6 +87,15 @@ const resume = useResume(props.positions, {
 		loupe.value = { pictures: view.value, index }
 	},
 }, toast.show)
+/** Opens a folder set from *Recent* at its position. */
+function openRecent(position: ResumePosition) {
+	void recent.open(position, { open: cull.open, resumeAt: resume.resumeAt, resumeOpen: () => {
+		pickerOpen.value = false
+		resume.resume()
+	} })
+}
+recent.refresh()
+watch(pickerOpen, (open) => open && recent.refresh())
 const movable = computed(() => (activeFilters.value > 0 ? view.value : pictures.value.filter((picture) => cull.decisionOf(picture).flag === 'picked')))
 
 const gridKeys = gridHotkeys({
@@ -124,6 +141,11 @@ useHotkeys(() => {
 
 <template>
 	<NcContent appName="honeycomb">
+		<AppNavigation
+			:items="recent.items.value"
+			@chooseFolders="pickerOpen = true"
+			@openRecent="openRecent"
+			@openSettings="settingsOpen = true" />
 		<NcAppContent class="honeycomb">
 			<template v-if="folderSet !== null">
 				<GridToolbar
@@ -218,7 +240,9 @@ useHotkeys(() => {
 				:listFolders="props.listFolders"
 				:listEntries="props.listEntries"
 				:pairing="cull.pairing.value"
+				:recent="recent.items.value"
 				@confirm="openFolderSet"
+				@openRecent="openRecent"
 				@cancel="pickerOpen = false" />
 			<CullDialogs
 				v-if="folderSet !== null"

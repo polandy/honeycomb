@@ -8,6 +8,8 @@ import type { ListEntries } from '../folder-count.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { PairingSettings } from '../logic/pairing.ts'
+import type { RecentFolderSet } from '../logic/recent.ts'
+import type { ResumePosition } from '../logic/resume-position.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
@@ -15,6 +17,7 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwit
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import ConfirmDialog from './ConfirmDialog.vue'
 import FolderList from './FolderList.vue'
+import RecentFolderSets from './RecentFolderSets.vue'
 import { listEntries as apiListEntries, listFolders as apiListFolders } from '../api.ts'
 import { useFolderCount } from '../folder-count.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
@@ -29,15 +32,19 @@ const props = withDefaults(defineProps<{
 	listEntries?: ListEntries
 	/** How the count pairs the files, from the settings. */
 	pairing?: PairingSettings
+	/** The folder sets culled before, newest first. */
+	recent?: readonly RecentFolderSet[]
 }>(), {
 	listFolders: apiListFolders,
 	listEntries: apiListEntries,
 	pairing: () => DEFAULT_PAIRING_SETTINGS,
+	recent: () => [],
 })
 
 const emit = defineEmits<{
 	confirm: [set: FolderSet, entries: ListingEntry[], sharedFolders: string[]]
 	cancel: []
+	openRecent: [position: ResumePosition]
 }>()
 
 const set = ref<FolderSet>(props.current ?? { paths: [], subfolders: false })
@@ -100,6 +107,15 @@ function onConfirm() {
 		<p v-if="props.current === null" class="folder-picker__intro">
 			{{ t('honeycomb', 'Choose one or more folders of photos to start culling. Decisions save as you go and can be undone; deleting only moves files to the Nextcloud trash bin.') }}
 		</p>
+		<template v-if="props.recent.length > 0">
+			<h3 class="folder-picker__heading">
+				{{ t('honeycomb', 'Recent') }}
+			</h3>
+			<RecentFolderSets :items="props.recent" @open="emit('openRecent', $event)" />
+			<h3 class="folder-picker__heading">
+				{{ t('honeycomb', 'Folders') }}
+			</h3>
+		</template>
 		<FolderList :ticked="set.paths" :listFolders="props.listFolders" @toggle="onToggle" />
 		<NcCheckboxRadioSwitch
 			class="folder-picker__subfolders"
@@ -124,6 +140,12 @@ function onConfirm() {
 <style scoped>
 .folder-picker__intro {
 	margin-bottom: calc(2 * var(--default-grid-baseline));
+}
+
+.folder-picker__heading {
+	margin: calc(2 * var(--default-grid-baseline)) 0 var(--default-grid-baseline);
+	font-size: inherit;
+	font-weight: bold;
 }
 
 .folder-picker__subfolders {
