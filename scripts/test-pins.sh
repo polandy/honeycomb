@@ -30,6 +30,7 @@ expect composer-ocp-branch pass composer.json '{"require-dev":{"nextcloud/ocp":"
 expect composer-caret fail composer.json '{"require-dev":{"vimeo/psalm":"^7.2"}}'
 expect action-sha pass .github/workflows/ci.yml "      - uses: actions/checkout@$SHA # v7.0.1"
 expect action-tag fail .github/workflows/ci.yml '      - uses: actions/checkout@v7'
+expect local-action pass .github/workflows/ci.yml '      - uses: ./.github/actions/setup'
 expect image-digest pass scripts/php.sh "IMAGE=composer:2.11.1@sha256:$SHA${SHA:0:24}"
 expect image-tag fail scripts/php.sh 'COMPOSER_IMAGE=composer:2.11.1'
 
