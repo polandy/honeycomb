@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { PictureFile } from './delete-summary.ts'
+import type { ListingEntry } from './listing.ts'
 import type { MoveRequestFile } from './move-plan.ts'
 
 /** Why the move endpoint left a file where it was, or put it back (ADR 0018). */
@@ -77,4 +78,25 @@ export function undoRequest(report: MoveReport): MoveRequestFile[][] {
 		byPicture.set(file.picture, files)
 	}
 	return [...byPicture.values()]
+}
+
+/** The listing entries of the files the undo moved back, at their old paths with the answer's id and ETag, and how many stayed. */
+export function undoneEntries(report: MoveReport, response: readonly (readonly MoveResponseFile[])[]): { entries: ListingEntry[], failed: number } {
+	const byNewId = new Map(report.moved.map((file) => [file.fileId, file]))
+	const entries: ListingEntry[] = []
+	let failed = 0
+	for (const answer of response.flat()) {
+		const moved = byNewId.get(answer.fileId)
+		if (moved !== undefined && answer.result === 'moved' && answer.path !== undefined && answer.newFileId !== undefined && answer.etag !== undefined) {
+			entries.push({ ...moved.file.entry, path: answer.path, fileId: answer.newFileId, etag: answer.etag })
+		} else {
+			failed++
+		}
+	}
+	return { entries, failed }
+}
+
+/** Whether a moved file has a new file id, as a move to another storage gives it. */
+export function gotNewFileIds(report: MoveReport): boolean {
+	return report.moved.some((file) => file.fileId !== file.file.entry.fileId)
 }

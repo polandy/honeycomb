@@ -6,7 +6,7 @@ import type { MoveFailure, MoveReport } from '../../src/logic/move-report.ts'
 import { describe, expect, it } from 'vitest'
 import { TrashBinOffError } from '../../src/api.ts'
 import { filesOf } from '../../src/logic/delete-summary.ts'
-import { moveFailedText, moveFailureReason, movedBackText, movedText, moveNote, namingProblemText } from '../../src/move-text.ts'
+import { movedBackText, movedText, moveFailedText, moveFailureReason, moveNote, namingProblemText } from '../../src/move-text.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 
 const FAILURES: MoveFailure[] = ['notFound', 'changed', 'notPermitted', 'locked', 'exists', 'failed', 'skipped', 'movedBack']
@@ -14,12 +14,14 @@ const [FILE] = filesOf(pictureOf(listingEntry(1, '/In/DSC_1.JPG')))
 const moved = { file: FILE!, from: '/In/DSC_1.JPG', path: '/Out/DSC_1.JPG', fileId: 1, etag: 'e' }
 
 /** A report of `count` moved files and `failed` failed ones, `pictures` of them whole. */
-const report = (count: number, failed: number, pictures: number): MoveReport => ({
-	moved: Array.from({ length: count }, () => moved),
-	failed: Array.from({ length: failed }, () => ({ file: FILE!, result: 'locked' as const })),
-	pictures,
-	replaced: 0,
-})
+function report(count: number, failed: number, pictures: number): MoveReport {
+	return {
+		moved: Array.from({ length: count }, () => moved),
+		failed: Array.from({ length: failed }, () => ({ file: FILE!, result: 'locked' as const })),
+		pictures,
+		replaced: 0,
+	}
+}
 
 describe('move texts', () => {
 	// spec: MOVE-004.12
