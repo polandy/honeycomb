@@ -5,6 +5,7 @@ import type { CommonDecision } from '../../../src/logic/decision-change.ts'
 
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { nextTick } from 'vue'
 import ActionBar from '../../../src/components/ActionBar.vue'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 
@@ -59,12 +60,15 @@ describe('ActionBar', () => {
 		expect(wrapper.find('[role="group"].colour-labels__palette').exists()).toBe(false)
 	})
 
-	it('closes the palette on Escape without a change', async () => {
+	it('closes the palette on Escape without a change and claims the key', async () => {
 		const wrapper = mountBar()
 		await button(wrapper, 'Colour label').trigger('click')
 
-		await wrapper.find('.colour-labels__palette').trigger('keydown', { key: 'Escape' })
+		const escape = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true })
+		wrapper.find('.colour-labels__palette').element.dispatchEvent(escape)
+		await nextTick()
 
+		expect(escape.defaultPrevented).toBe(true)
 		expect(wrapper.find('.colour-labels__palette').exists()).toBe(false)
 		expect(wrapper.emitted('decide')).toBeUndefined()
 	})

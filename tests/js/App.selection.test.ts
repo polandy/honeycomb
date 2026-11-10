@@ -92,6 +92,45 @@ describe('App: selection mode and bulk decisions', () => {
 		expect(wrapper.text()).toContain(`${MARK}Could not save the change; the photos show what is stored.`)
 	})
 
+	it('keeps a change made before the stored decisions arrive', async () => {
+		let resolveLookup: (rows: never[]) => void = () => undefined
+		const { wrapper } = mountApp({ lookupDecisions: () => new Promise((resolve) => { resolveLookup = resolve }) })
+		await openCull(wrapper)
+		await select(wrapper, [1])
+
+		wrapper.findComponent(ActionBar).vm.$emit('decide', { kind: 'rating', rating: 3 })
+		resolveLookup([])
+		await flushPromises()
+
+		expect(wrapper.findComponent(ActionBar).props('common')).toMatchObject({ rating: 3 })
+	})
+
+	it('sends nothing for a change that alters no picture', async () => {
+		const { wrapper, saved } = mountApp()
+		await openCull(wrapper)
+		await select(wrapper, [1])
+
+		wrapper.findComponent(ActionBar).vm.$emit('decide', { kind: 'rating', rating: 0 })
+		await flushPromises()
+
+		expect(saved).toEqual([])
+	})
+
+	it('says nothing about a failed save once another folder set is open', async () => {
+		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
+		let rejectSave: (error: Error) => void = () => undefined
+		const { wrapper } = mountApp({ saveDecisions: () => new Promise((_, reject) => { rejectSave = reject }) })
+		await openCull(wrapper)
+		await select(wrapper, [1])
+		wrapper.findComponent(ActionBar).vm.$emit('decide', { kind: 'rating', rating: 3 })
+
+		await openCull(wrapper)
+		rejectSave(new Error('down'))
+		await flushPromises()
+
+		expect(wrapper.text()).not.toContain('Could not save the change')
+	})
+
 	it('selects all shown, none, and leaves with the keyboard', async () => {
 		const { wrapper } = mountApp()
 		await openCull(wrapper)
@@ -103,6 +142,19 @@ describe('App: selection mode and bulk decisions', () => {
 		expect(selectedIds(wrapper)).toEqual([])
 		await press('Escape')
 		expect(wrapper.findComponent(PhotoGrid).props('selecting')).toBe(false)
+	})
+
+	it('leaves an Escape that closed an open layer to that layer', async () => {
+		const { wrapper } = mountApp()
+		await openCull(wrapper)
+		await select(wrapper, [1])
+		const escape = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true })
+		escape.preventDefault()
+
+		window.dispatchEvent(escape)
+		await flushPromises()
+
+		expect(wrapper.findComponent(PhotoGrid).props('selecting')).toBe(true)
 	})
 
 	it('selects all and none from the toolbar, and leaves selection mode with Done', async () => {
