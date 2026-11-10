@@ -83,23 +83,16 @@ final class ListingService {
 
 	/** @return \Generator<Node> */
 	private function searchBelow(IUser $user, Folder $folder): \Generator {
-		$cursor = 0;
-		do {
-			$page = $folder->search(new FileSearchQuery($this->picturesAndSidecarsAfter($cursor), $this->pageSize, $user));
-			foreach ($page as $node) {
-				$cursor = $node->getId();
-				yield $node;
-			}
-		} while (count($page) === $this->pageSize);
-	}
-
-	private function picturesAndSidecarsAfter(int $cursor): BinaryOperator {
-		return new BinaryOperator(ISearchBinaryOperator::OPERATOR_AND, [
-			new BinaryOperator(ISearchBinaryOperator::OPERATOR_OR, [
-				new Comparison(ISearchComparison::COMPARE_LIKE, 'mimetype', 'image/%'),
-				new Comparison(ISearchComparison::COMPARE_LIKE, 'name', '%.xmp'),
-			]),
-			new Comparison(ISearchComparison::COMPARE_GREATER_THAN, 'fileid', $cursor),
+		$picturesAndSidecars = new BinaryOperator(ISearchBinaryOperator::OPERATOR_OR, [
+			new Comparison(ISearchComparison::COMPARE_LIKE, 'mimetype', 'image/%'),
+			new Comparison(ISearchComparison::COMPARE_LIKE, 'name', '%.xmp'),
 		]);
+		$offset = 0;
+		do {
+			// Offset, not `fileid > cursor`: Nextcloud's file cache search allows only `eq` and `in` on fileid.
+			$page = $folder->search(new FileSearchQuery($picturesAndSidecars, $this->pageSize, $offset, $user));
+			yield from $page;
+			$offset += count($page);
+		} while (count($page) === $this->pageSize);
 	}
 }
