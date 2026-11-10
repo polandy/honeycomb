@@ -45,6 +45,13 @@ describe('trashReport', () => {
 		expect(report).toMatchObject({ removed: 0, bytes: 5 })
 	})
 
+	it('counts a picture as removed when every member it sent went, so a RAW unit counts once its RAW is gone', () => {
+		const raws = [filesOf(PAIR).filter((file) => file.role === 'raw')]
+
+		expect(trashReport(raws, results([[1, 'trashed']]))).toMatchObject({ removed: 1, bytes: 20 })
+		expect(trashReport(raws, results([[1, 'locked']]))).toMatchObject({ removed: 0, bytes: 0 })
+	})
+
 	it.each(['notFound', 'failed'])('keeps the %s result', (result) => {
 		const report = trashReport(wholePictures([SINGLE]), results([[4, result]]))
 

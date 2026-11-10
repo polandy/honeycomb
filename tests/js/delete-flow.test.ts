@@ -161,6 +161,85 @@ describe('useDeleteFlow', () => {
 	})
 })
 
+describe('useDeleteFlow: Remove RAWs', () => {
+	const [KEEP, DROP, SHARED] = picturesOf([
+		listingEntry(11, '/Trip/IMG_4.NEF', { mime: 'image/x-dcraw', size: 2048 }),
+		listingEntry(12, '/Trip/IMG_4.JPG', { size: 1024 }),
+		listingEntry(21, '/Trip/IMG_5.NEF', { mime: 'image/x-dcraw', size: 2048 }),
+		listingEntry(22, '/Trip/IMG_5.JPG', { size: 1024 }),
+		listingEntry(23, '/Trip/IMG_5.NEF.xmp', { mime: 'application/octet-stream', size: 1024 }),
+		listingEntry(24, '/Trip/IMG_5.xmp', { mime: 'application/octet-stream', size: 1 }),
+		listingEntry(31, '/Trip/IMG_6.NEF', { mime: 'image/x-dcraw', size: 1024 }),
+		listingEntry(32, '/Trip/IMG_6.JPG', { size: 1024 }),
+	]) as Picture<ListingEntry>[]
+
+	/** A flow over KEEP (marked Keep RAW), DROP and SHARED, where `decide` toggles Keep RAW. */
+	function rawFlow(answer: (request: { fileId: number }[][]) => Promise<TrashResponseFile[][]>) {
+		const pictures = shallowRef<readonly Picture<ListingEntry>[]>([KEEP!, DROP!, SHARED!])
+		const marked = ref(new Set([KEEP!]))
+		const toasts: string[] = []
+		const sent: { fileId: number }[][][] = []
+		const deleting = useDeleteFlow({
+			pictures: () => pictures.value,
+			decisionOf: (picture) => ({ ...UNDECIDED, keepRaw: marked.value.has(picture) }),
+			decide: (intent, chosen) => {
+				expect(intent).toEqual({ kind: 'keepRaw' })
+				const next = new Set(marked.value)
+				chosen.forEach((picture) => (next.has(picture) ? next.delete(picture) : next.add(picture)))
+				marked.value = next
+			},
+			trash: async (request) => {
+				sent.push(request.map((files) => [...files]))
+				return answer(request.map((files) => [...files]))
+			},
+			removeFiles: (fileIds) => {
+				const { pictures: left, replaced } = withoutFiles(pictures.value, fileIds, DEFAULT_PAIRING_SETTINGS)
+				pictures.value = left
+				return replaced
+			},
+			loupe: ref(null),
+			toast: (message) => toasts.push(message),
+		})
+		return { deleting, pictures, toasts, sent }
+	}
+
+	it('opens on the view, follows a Keep RAW toggle and moves only each RAW with its own sidecar', async () => {
+		const { deleting, pictures, toasts, sent } = rawFlow(allTrashed)
+
+		deleting.removeRaws([KEEP!, DROP!, SHARED!])
+		expect(deleting.rawRemoval.value).toMatchObject({ removed: [DROP, SHARED], kept: [KEEP] })
+
+		deleting.toggleKeepRaw(SHARED!)
+		expect(deleting.rawRemoval.value).toMatchObject({ removed: [DROP], kept: [KEEP, SHARED] })
+
+		await deleting.confirm()
+
+		expect(sent).toEqual([[[{ fileId: 21, etag: 'etag-21' }, { fileId: 23, etag: 'etag-23' }]]])
+		expect(pictures.value[1]).toMatchObject({ rendered: { fileId: 22 }, raw: null, sidecars: [{ fileId: 24 }] })
+		expect(deleting.dialog.value).toBeNull()
+		expect(toasts).toEqual(['Removed the RAWs of 1 photo · 2 files · 3 kB freed to the Nextcloud trash bin'])
+	})
+
+	it('keeps the pair whose RAW failed and reports it', async () => {
+		const { deleting, pictures, toasts } = rawFlow(async () => [[{ fileId: 21, result: 'locked' }, { fileId: 23, result: 'skipped' }], [{ fileId: 31, result: 'trashed' }]])
+
+		deleting.removeRaws([KEEP!, DROP!, SHARED!])
+		await deleting.confirm()
+
+		expect(pictures.value[1]).toBe(DROP)
+		expect(deleting.dialog.value?.kind).toBe('report')
+		expect(toasts).toEqual(['Moved 1 file to trash · 2 failed'])
+	})
+
+	it('has no removal without its summary open', () => {
+		const { deleting } = rawFlow(allTrashed)
+
+		deleting.summarise([KEEP!])
+
+		expect(deleting.rawRemoval.value).toBeNull()
+	})
+})
+
 describe('failureReason', () => {
 	it.each([
 		['notFound', 'File is gone or no longer a photo; reload the folder'],
