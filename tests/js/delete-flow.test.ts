@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// @vitest-environment happy-dom
 import type { Decision } from '../../src/logic/decision.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
@@ -100,7 +101,7 @@ describe('useDeleteFlow', () => {
 		expect(pictures.value).toEqual([SINGLE, OTHER])
 		expect(loupe.value).toEqual({ pictures: [SINGLE], index: 0 })
 		expect(deleting.dialog.value).toBeNull()
-		expect(toasts).toEqual(['Moved 1 photo · 2 files · 3 KB freed to the Nextcloud trash bin'])
+		expect(toasts).toEqual(['Moved 1 photo · 2 files · 3 kB freed to the Nextcloud trash bin'])
 	})
 
 	it('reports the failed files, keeps the picture that lost a member as a single, and retries only the failed ones', async () => {
