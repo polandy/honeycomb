@@ -271,3 +271,6 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   the toast still names the swipe and the flag at the top.
 - 2026-11-10: `I` shows or hides the loupe's info panel instead of cycling an overlay, as the glossary's
   info panel is a panel; the plan, user doc and sheet say so.
+- 2026-11-10: The shortcut sheet drops the mockup's rows without a key-map key (`Shift+click`,
+  `Ctrl+wheel`) and the "(Settings › Keyboard)" suffix of *Vi keys* until the M4.4 setting; the
+  gesture guide labels its keys *Pick*, *Reject*, *Unflag*, *Zoom* and *All keys*.
