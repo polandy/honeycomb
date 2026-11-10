@@ -189,6 +189,26 @@ describe('PhotoGrid', () => {
 			wrapper.unmount()
 		})
 
+		it('moves the focus a step by the keys\' moves, keeping the column across rows, and reports it', async () => {
+			const { wrapper, resize } = mountGrid({ selection: NO_SELECTION, selecting: false }, true)
+			await resize(432, 220)
+			const grid = wrapper.vm as unknown as { step: (move: string) => Promise<void>, focusedIndex: () => number }
+			expect(grid.focusedIndex()).toBe(0)
+
+			await grid.step('previous')
+			expect(grid.focusedIndex()).toBe(0)
+			await grid.step('down')
+			await grid.step('next')
+			expect(grid.focusedIndex()).toBe(5)
+			await grid.step('last')
+
+			expect(grid.focusedIndex()).toBe(99)
+			expect((document.activeElement as HTMLElement).getAttribute('aria-label')).toMatch(/^IMG_99,/)
+			await grid.step('up')
+			expect(grid.focusedIndex()).toBe(95)
+			wrapper.unmount()
+		})
+
 		it('toggles a tile on click, by Enter or Space in selection mode', async () => {
 			const { wrapper, resize } = mountGrid({ selection: NO_SELECTION, selecting: true })
 			await resize(432, 220)
