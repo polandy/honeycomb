@@ -1456,11 +1456,23 @@ function afterChange(ids){
 function viewChanged(){ const was = S.view.map(i => i.id).join('|'); computeView(); return was !== S.view.map(i => i.id).join('|'); }
 
 /* ---------- toast ---------- */
+const TOAST_MS = 5200;
 let toastTimer;
+const toastStart = el => { clearTimeout(toastTimer); toastTimer = setTimeout(() => el.remove(), TOAST_MS); };
 function toast(msg, withUndo, extra){
   const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status');
   el.innerHTML = `<span>${esc(msg)}</span>` + (withUndo ? `<span aria-hidden="true">·</span>` : '') + (withUndo ? `<button data-act="undo">${t('Undo')}</button>` : '') + (extra ? `<button data-act="${extra.act}">${esc(extra.label)}</button>` : '');
-  $('toasts').replaceChildren(el); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.remove(), 5200);
+  $('toasts').replaceChildren(el); toastStart(el); toastHold(el);
+}
+// WCAG 2.2.1: focus or a press holds the toast; letting go restarts its full time (UX review L4)
+function toastHold(el){
+  let pressed = false;
+  const hold = () => clearTimeout(toastTimer);
+  const release = () => { if (!el.isConnected || pressed || el.contains(document.activeElement)) return; toastStart(el); };
+  const up = () => { pressed = false; removeEventListener('pointerup', up); removeEventListener('pointercancel', up); release(); };
+  el.addEventListener('focusin', hold);
+  el.addEventListener('focusout', e => { if (!el.contains(e.relatedTarget)) release(); });
+  el.addEventListener('pointerdown', () => { pressed = true; hold(); addEventListener('pointerup', up); addEventListener('pointercancel', up); });
 }
 
 /* ---------- header / nav ---------- */
