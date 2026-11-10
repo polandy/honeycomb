@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { GRID_TIERS, gridSrcset, imageMember, LOUPE_TIER, sharpTier, smallSource } from '../../../src/logic/image-tiers.ts'
+import { fullLongEdge, GRID_TIERS, gridSrcset, imageMember, LOUPE_TIER, loupeSources, sharpTier, smallSource } from '../../../src/logic/image-tiers.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const urlFor = (fileId: number, size: number, mtime: number) => `/img/${fileId}?size=${size}&v=${mtime}`
@@ -45,5 +45,23 @@ describe('sharpTier', () => {
 		[340, 3, 512],
 	])('picks for a %d px tile at %d× the tier %d', (tileCssPx, devicePixelRatio, tier) => {
 		expect(sharpTier(tileCssPx, devicePixelRatio)).toBe(tier)
+	})
+})
+
+describe('loupe sources', () => {
+	it('are the large grid tier, the loupe tier and the full image', () => {
+		const member = listingEntry(7, '/P/A.JPG', { mtime: 1234 })
+
+		expect(loupeSources(member, urlFor)).toEqual({
+			preview: '/img/7?size=512&v=1234',
+			loupe: '/img/7?size=2048&v=1234',
+			full: '/img/7?size=0&v=1234',
+		})
+	})
+
+	it('take the full long edge from the listing, else the loupe tier', () => {
+		expect(fullLongEdge(listingEntry(1, '/P/A.JPG', { width: 6000, height: 4000 }))).toBe(6000)
+		expect(fullLongEdge(listingEntry(1, '/P/A.JPG', { width: 3000, height: 4500 }))).toBe(4500)
+		expect(fullLongEdge(listingEntry(1, '/P/A.JPG', { width: 6000 }))).toBe(LOUPE_TIER)
 	})
 })

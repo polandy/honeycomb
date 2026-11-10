@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { fitSize, FIT, fullScale, isZoomed, panBy, pinchZoom, toggleZoom, zoomAt, zoomPercent } from '../../../src/logic/loupe-zoom.ts'
+import { FIT, fitSize, fullScale, isZoomed, panBy, pinchZoom, toggleZoom, zoomAt, zoomPercent } from '../../../src/logic/loupe-zoom.ts'
 
 const STAGE = { width: 1000, height: 800 }
 const FITTED = { width: 1000, height: 500 }
