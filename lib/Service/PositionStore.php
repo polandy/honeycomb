@@ -20,4 +20,7 @@ interface PositionStore {
 
 	/** @param list<string> $folderSetKeys */
 	public function forget(string $userId, array $folderSetKeys): void;
+
+	/** Removes every position of the user. */
+	public function forgetUser(string $userId): void;
 }

@@ -51,4 +51,12 @@ final class PositionMapper extends QBMapper implements PositionStore {
 			->andWhere($query->expr()->in('folder_set_key', $query->createNamedParameter($folderSetKeys, IQueryBuilder::PARAM_STR_ARRAY)))
 			->executeStatement();
 	}
+
+	#[\Override]
+	public function forgetUser(string $userId): void {
+		$query = $this->db->getQueryBuilder();
+		$query->delete($this->getTableName())
+			->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
+			->executeStatement();
+	}
 }

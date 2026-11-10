@@ -11,7 +11,6 @@ Add items with `/todo`.
 
 ## Later
 
-- [ ] Clean-up job for `honeycomb_decisions` and `honeycomb_positions` rows whose files are deleted for good (ADR 0012 Consequences) (2026-11-10)
 - [ ] Grid: arrow-key focus moves between tiles (Tab only for now) and the phone bottom sheet of `ConfirmDialog` (2026-11-10)
 - [ ] Shared `Tooltip` component (`docs/plan.md` Tooltip) for the icon-only controls built so far: Home, More, Open {name} (2026-11-10)
 - [ ] Measure the image budgets of `docs/plan.md` Image delivery with real 24 MP RAW+JPEG pairs (IMAGES-001.12), incl. the `512` and `2048` tiers that Nextcloud delivers at up to 1024 and 4096 px (ADR 0010) — needs the owner's files (2026-11-10)

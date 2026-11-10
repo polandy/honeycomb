@@ -39,3 +39,15 @@ export async function upload(page: Page, path: string, content: Buffer): Promise
 	expect(fileId).toBeDefined()
 	return Number(fileId)
 }
+
+/** The trash bin URL of the admin's file deleted from `path`. */
+export async function trashEntry(page: Page, path: string): Promise<string> {
+	const trash = await page.request.fetch(`/remote.php/dav/trashbin/${ADMIN.username}/trash`, {
+		method: 'PROPFIND',
+		headers: { requesttoken: await requestToken(page), Depth: '1' },
+		data: '<d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns"><d:prop><nc:trashbin-original-location/></d:prop></d:propfind>',
+	})
+	const entry = new RegExp(`<d:href>([^<]+)</d:href>(?:(?!</d:response>).)*?<nc:trashbin-original-location>${path}</nc:trashbin-original-location>`, 's').exec(await trash.text())?.[1]
+	expect(entry).toBeDefined()
+	return entry as string
+}

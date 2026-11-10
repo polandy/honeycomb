@@ -15,6 +15,9 @@ final class FakeDecisionStore implements DecisionStore {
 	/** @var array<string, array<int, PictureDecision>> */
 	public array $rows = [];
 
+	/** @var list<int> The file ids deleted for good. */
+	public array $vanished = [];
+
 	#[\Override]
 	public function find(string $userId, array $fileIds): array {
 		return array_values(array_intersect_key($this->rows[$userId] ?? [], array_flip($fileIds)));
@@ -35,5 +38,20 @@ final class FakeDecisionStore implements DecisionStore {
 			unset($this->rows[$userId][$fileId]);
 			$this->rows[$userId][$newFileId] = new PictureDecision($newFileId, $decision->rating, $decision->colourLabel, $decision->flag, $decision->keepRaw);
 		}
+	}
+
+	#[\Override]
+	public function forgetVanishedFiles(): int {
+		$removed = 0;
+		foreach ($this->rows as $userId => $rows) {
+			$this->rows[$userId] = array_diff_key($rows, array_flip($this->vanished));
+			$removed += count($rows) - count($this->rows[$userId]);
+		}
+		return $removed;
+	}
+
+	#[\Override]
+	public function forgetUser(string $userId): void {
+		unset($this->rows[$userId]);
 	}
 }

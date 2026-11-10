@@ -18,6 +18,8 @@ continues on another, and *Recent* can list the last folder sets with their prog
 - A folder set is its sorted paths and the subfolders switch: the same paths in another order are
   the same set, without subfolders another one. The root folder is the path `""`.
 - Only the 20 most recent positions per user are kept; each user's positions are their own.
+  Deleting a user removes their positions. A position whose picture is deleted for good stays,
+  so *Recent* still lists its folder set.
 - `400` for a malformed position, `401` without a user.
 - While culling, the client saves the picture the loupe shows, named by its rendered member (a
   RAW alone by itself), with the progress of the cull; it saves again when the progress changes.
@@ -110,6 +112,12 @@ continues on another, and *Recent* can list the last folder sets with their prog
 - **When** the user taps a recent folder set, *Folder* or *Settings*
 - **Then** the navigation closes; on a wide screen it stays open
 
+### DECISIONS-002.13 – A deleted user
+
+- **Given** a user with stored positions
+- **When** the user is deleted
+- **Then** their positions are gone, and a new user of the same name lists none
+
 ## Out of scope
 
 The progress of the open cull (GRID-002).
@@ -122,3 +130,4 @@ The progress of the open cull (GRID-002).
 | 2026-11-10 | The client saves and offers the position (DECISIONS-002.7, .9–.11) |
 | 2026-11-10 | *Recent* in the navigation and the folder picker (DECISIONS-002.8) |
 | 2026-11-10 | The navigation closes after a tap on a narrow screen (DECISIONS-002.12) |
+| 2026-11-10 | Positions of a deleted user are removed (DECISIONS-002.13) |

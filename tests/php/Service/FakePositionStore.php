@@ -33,4 +33,9 @@ final class FakePositionStore implements PositionStore {
 	public function forget(string $userId, array $folderSetKeys): void {
 		$this->rows[$userId] = array_diff_key($this->rows[$userId] ?? [], array_flip($folderSetKeys));
 	}
+
+	#[\Override]
+	public function forgetUser(string $userId): void {
+		unset($this->rows[$userId]);
+	}
 }

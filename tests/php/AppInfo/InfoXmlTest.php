@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\AppInfo;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\BackgroundJob\RemoveVanishedDecisions;
 use PHPUnit\Framework\TestCase;
 use SimpleXMLElement;
 
@@ -39,6 +40,11 @@ final class InfoXmlTest extends TestCase {
 	// spec: APP-001.1
 	public function testNavigationOpensTheMainPage(): void {
 		$this->assertSame('honeycomb.page.index', (string)$this->info->navigations->navigation->route);
+	}
+
+	// spec: DECISIONS-001.11
+	public function testRegistersTheCleanUpJob(): void {
+		$this->assertSame(RemoveVanishedDecisions::class, (string)$this->info->{'background-jobs'}->job);
 	}
 
 	public function testVersionMatchesPackageJson(): void {

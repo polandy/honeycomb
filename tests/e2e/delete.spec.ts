@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
 import { cullFolder } from './cull.ts'
-import { createFolder, JPEG, RAW, requestToken, upload } from './files.ts'
+import { createFolder, JPEG, RAW, requestToken, trashEntry, upload } from './files.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
 const TRASHBIN = `/remote.php/dav/trashbin/${ADMIN.username}`
@@ -77,14 +77,8 @@ test('a picture restored from the trash bin keeps its file id and its decision',
 	const lookup = async () => (await (await page.request.post(`${API}/decisions/lookup`, { data: { fileIds: [fileId] }, headers: { requesttoken } })).json()) as unknown
 	expect(await lookup()).toEqual({ decisions: [decision] })
 
-	const trash = await page.request.fetch(`${TRASHBIN}/trash`, {
-		method: 'PROPFIND',
-		headers: { requesttoken, Depth: '1' },
-		data: '<d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns"><d:prop><nc:trashbin-original-location/></d:prop></d:propfind>',
-	})
-	const entry = new RegExp(`<d:href>([^<]+)</d:href>(?:(?!</d:response>).)*?<nc:trashbin-original-location>${path}</nc:trashbin-original-location>`, 's').exec(await trash.text())?.[1]
-	expect(entry).toBeDefined()
-	const restored = await page.request.fetch(entry as string, { method: 'MOVE', headers: { requesttoken, Destination: `${TRASHBIN}/restore/${randomUUID()}` } })
+	const entry = await trashEntry(page, path)
+	const restored = await page.request.fetch(entry, { method: 'MOVE', headers: { requesttoken, Destination: `${TRASHBIN}/restore/${randomUUID()}` } })
 	expect(restored.status(), await restored.text()).toBe(201)
 
 	const back = await page.request.fetch(file, { method: 'PROPFIND', headers: { requesttoken, Depth: '0' }, data: '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><oc:fileid/></d:prop></d:propfind>' })
