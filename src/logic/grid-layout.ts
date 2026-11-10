@@ -99,3 +99,26 @@ function firstRowWhere(rows: readonly GridRow[], meets: (row: GridRow, at: numbe
 	}
 	return low
 }
+
+/** Where the grid's focus goes from the picture at `index`: up and down keep the column, clamped to a shorter row. */
+export type FocusMove = 'previous' | 'next' | 'up' | 'down' | 'first' | 'last'
+
+/** The picture the focus moves to; it stays at either end. */
+export function focusStep(layout: GridLayout, index: number, move: FocusMove): number {
+	const tiles = layout.rows.filter((row) => row.kind === 'tiles')
+	const last = tiles.at(-1)!
+	const count = last.first + last.count
+	switch (move) {
+		case 'first':
+			return 0
+		case 'last':
+			return count - 1
+		case 'previous':
+			return Math.max(0, index - 1)
+		case 'next':
+			return Math.min(count - 1, index + 1)
+	}
+	const at = tiles.findIndex((row) => index < row.first + row.count)
+	const target = tiles[at + (move === 'down' ? 1 : -1)]
+	return target === undefined ? index : target.first + Math.min(index - tiles[at]!.first, target.count - 1)
+}
