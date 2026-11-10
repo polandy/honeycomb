@@ -459,3 +459,5 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: *Replace* on a conflict with a file the same move takes away falls back to *Add
   suffix*, since the server refuses to replace a file of its own request (MOVE-003.5).
 - 2026-11-10: M7.2 adds no Playwright test: it has no UI yet; the move dialog's e2e comes with M7.3.
+- 2026-11-10: A move that rolls back leaves the folders it created, empty: another picture of the
+  same move may already use them, and an empty folder loses nothing (ADR 0018).

@@ -38,7 +38,8 @@ file id. Restoring a file from the trash bin is not public API (ADR 0013).
      replaced file goes to the trash bin just before its file takes its place.
   3. If a move fails, the picture's files already moved are moved back, last first, and its
      remaining files are not tried. A file that cannot be moved back stays moved and is reported
-     there. One picture's failure does not stop the others.
+     there. Folders the move created stay, empty, since another picture may use them. One
+     picture's failure does not stop the others.
 - **Response:** `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "replaced": false,
   "path": "/Sorted/2026/a.RAF", "newFileId": 7, "etag": "…"}, …], …]}` in the order sent;
   `path`, `newFileId` and `etag` come with `moved` only. `result` is `moved`, `notFound`,
