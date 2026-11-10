@@ -238,3 +238,8 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: While the gesture guide shows, its *Got it* has the focus and the loupe's keys
   still work; *Got it* gives the focus back to the loupe. `Esc` closes the loupe without marking
   the guide seen.
+- 2026-11-10: The < 100 ms budget for a prefetched next loupe image is measured by an e2e spec
+  with three 24 MP JPEGs of about 11 MB drawn in the browser, since no real photos are
+  available; `HONEYCOMB_BUDGET_PHOTOS` swaps in real ones. Measured locally: about 5 ms.
+- 2026-11-10: The budget spec asserts only that paging makes no image request; the time is
+  reported, not asserted, because tests use no wall clock and shared CI runners vary.
