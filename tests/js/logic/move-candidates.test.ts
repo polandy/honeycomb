@@ -79,7 +79,7 @@ describe('nameCandidates', () => {
 		const [named] = nameCandidates([PAIR], template('{camera}/{name}.{ext}'), () => 0)
 
 		expect(named!.candidate!.files.map((file) => file.entry.fileId)).toEqual([2, 1, 3])
-		expect(named!.candidate!.rendered.map((file) => `${file.folder}/${file.name}.${file.extension}`)).toEqual(['Z_6/DSC_0001.JPG', 'Z_6/DSC_0001.NEF', 'Z_6/DSC_0001.NEF.xmp'])
+		expect(named!.candidate!.rendered.map((file) => `${file.folder}/${file.name}.${file.extension}`)).toEqual(['Z-6/DSC_0001.JPG', 'Z-6/DSC_0001.NEF', 'Z-6/DSC_0001.NEF.xmp'])
 		expect(named!.problem).toBeNull()
 	})
 
