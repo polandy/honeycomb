@@ -78,7 +78,7 @@ final class DecisionServiceTest extends TestCase {
 		$this->assertArrayNotHasKey(1, $this->store->rows['alice']);
 	}
 
-	/** @return array<string, array{mixed}> */
+	/** @return array<string, array{array<array-key, mixed>}> */
 	public static function malformedFileIds(): array {
 		return [
 			'not a list' => [['a' => 1]],

@@ -66,6 +66,27 @@
 				<directory name="vendor"/>
 			</errorLevel>
 		</MissingClosureReturnType>
+		<!-- OCP's TTransactional refers to server classes the stubs lack. -->
+		<UndefinedClass>
+			<errorLevel type="suppress">
+				<file name="vendor/nextcloud/ocp/OCP/AppFramework/Db/TTransactional.php"/>
+			</errorLevel>
+		</UndefinedClass>
+		<UndefinedFunction>
+			<errorLevel type="suppress">
+				<file name="vendor/nextcloud/ocp/OCP/AppFramework/Db/TTransactional.php"/>
+			</errorLevel>
+		</UndefinedFunction>
+		<InvalidThrow>
+			<errorLevel type="suppress">
+				<file name="vendor/nextcloud/ocp/OCP/AppFramework/Db/TTransactional.php"/>
+			</errorLevel>
+		</InvalidThrow>
+		<MixedMethodCall>
+			<errorLevel type="suppress">
+				<file name="vendor/nextcloud/ocp/OCP/AppFramework/Db/TTransactional.php"/>
+			</errorLevel>
+		</MixedMethodCall>
 		<MixedArgument>
 			<errorLevel type="suppress">
 				<directory name="vendor"/>

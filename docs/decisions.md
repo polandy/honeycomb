@@ -152,3 +152,15 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: The subfolder listing pages by offset in file id order, since Nextcloud's search
   accepts only `eq` and `in` on `fileid`. A file added during a listing can shift a page; the
   client drops duplicates by file id (`mergeListings`).
+- 2026-11-10: Decisions are stored per member file id (JPEG, RAW, each with the same values),
+  not per pair, since a pair key changes with a rename and the server does not pair (ADR 0012).
+- 2026-11-10: Decision writes send whole states, not changes, so undo resends the earlier state
+  and a write is idempotent; a state equal to the default deletes the row (ADR 0012).
+- 2026-11-10: The decision API does not check that a file id belongs to the user: rows are the
+  user's own and touch no file, and a lookup per id would cost a file cache query (ADR 0012).
+- 2026-11-10: The server keeps the resume positions of the 20 most recent folder sets per user,
+  the length of *Recent*, with decided and total so *Recent* shows progress without a listing.
+- 2026-11-10: A folder set holds at most 1,000 folders; colour labels are stored by name, so a
+  reorder of the palette needs no migration.
+- 2026-11-10: Saving a resume position deletes and re-inserts its row, so the new id orders it
+  first when two saves land in the same second.

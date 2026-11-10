@@ -30,7 +30,7 @@ final class FakePositionStore implements PositionStore {
 	}
 
 	#[\Override]
-	public function delete(string $userId, array $folderSetKeys): void {
+	public function forget(string $userId, array $folderSetKeys): void {
 		$this->rows[$userId] = array_diff_key($this->rows[$userId] ?? [], array_flip($folderSetKeys));
 	}
 }

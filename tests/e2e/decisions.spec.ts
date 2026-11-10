@@ -9,7 +9,7 @@ const API = '/index.php/apps/honeycomb/api/v1'
 const RECENT_LIMIT = 20
 
 /** Sends `data` as JSON with the session's CSRF token. */
-async function send(page: Page, method: 'POST' | 'PUT', path: string, data: unknown) {
+async function send(page: Page, method: 'GET' | 'POST' | 'PUT', path: string, data?: unknown) {
 	return page.request.fetch(`${API}${path}`, { method, data, headers: { requesttoken: await requestToken(page) } })
 }
 
@@ -50,7 +50,9 @@ test('keeps the most recent resume positions, newest first', async ({ page }) =>
 	const again = { folderSet: { paths: ['/Resume', `/Resume/${RECENT_LIMIT}`], subfolders: true }, fileId: 99, decided: 1, total: 2 }
 	expect((await send(page, 'PUT', '/positions', again)).status()).toBe(200)
 
-	const { positions } = await (await page.request.get(`${API}/positions`)).json() as { positions: { fileId: number, folderSet: unknown }[] }
+	const recent = await send(page, 'GET', '/positions')
+	expect(recent.status()).toBe(200)
+	const { positions } = await recent.json() as { positions: { fileId: number, folderSet: unknown }[] }
 	expect(positions).toHaveLength(RECENT_LIMIT)
 	expect(positions[0]).toMatchObject({ fileId: 99, folderSet: again.folderSet })
 	expect(positions.map((position) => position.fileId)).not.toContain(1)
