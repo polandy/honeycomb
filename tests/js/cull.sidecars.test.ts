@@ -142,6 +142,23 @@ describe('useCull: writing through to the sidecars', () => {
 		])
 	})
 
+	// spec: XMP-003.15
+	it.each([
+		{ kind: 'flag', flag: 'rejected' },
+		{ kind: 'rating', rating: 2 },
+		{ kind: 'colourLabel', colourLabel: 'red' },
+		{ kind: 'keepRaw' },
+	] as const)('writes the picture a $kind step touched and no other', async (intent) => {
+		const { cull, writes, picture } = cullWith()
+		cull.open(SET, ENTRIES, [])
+		await flushPromises()
+
+		cull.decide(intent, [picture('IMG_10')])
+		await flushPromises()
+
+		expect(writes.map((write) => write.map(({ name }) => name))).toEqual([['IMG_10']])
+	})
+
 	// spec: XMP-003.10
 	it('writes nothing when the save fails', async () => {
 		vi.spyOn(logger, 'error').mockImplementation(() => undefined)

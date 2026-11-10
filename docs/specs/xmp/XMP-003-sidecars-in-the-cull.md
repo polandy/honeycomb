@@ -24,8 +24,10 @@ save that is neither an undo step nor written back to the sidecars. A picture th
 meanwhile keeps the user's decision. A refused or unreadable sidecar, a disagreement between
 sidecars and a failed lookup are logged as warnings; the picture keeps what it shows.
 
-**Writing through.** After a step (a decision, undo, redo, *Keep RAW*) is stored, each picture it
-changed is written to its sidecars unless a member lies in a shared folder: every existing sidecar
+**Writing through.** As soon as any attribute is set on a photo — a flag, a rating, a colour label,
+*Keep RAW*, or an undo or redo of one — and the step is stored, each picture the step touched is
+written to its sidecars unless a member lies in a shared folder; a picture no step touched gets no
+sidecar: every existing sidecar
 (darktable duplicates excepted) and, for each member without one, a new `<member file>.xmp`
 (`docs/06-xmp-interop.md` Sidecar names). An existing sidecar is read before it is merged, unless
 honeycomb saved it itself and still holds its bytes; it is saved with the ETag and size read. A
@@ -142,16 +144,22 @@ picture's decision when it runs. A refused sidecar is never overwritten.
 - **Then** pictures in `/Photos/Team` count as in a shared folder; a listing without `folders`
   counts no folder as shared
 
+### XMP-003.15 – Every attribute writes through, and only for the touched picture
+
+- **Given** a cull outside a shared folder
+- **When** the user flags, rates, labels or keeps the RAW of one picture
+- **Then** that picture alone is written to its sidecars; the others get none
+
 ## Out of scope
 
 - Re-reading a sidecar that another program changed after the take-over (`06-xmp-interop.md`
   Reading).
 - The *Storage* setting of the mockup (database, sidecars or both); M5.3 always writes through
   outside shared folders.
-- Detecting external storage mounted for several users as shared (ADR 0017).
 
 ## History
 
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written with M5.3 |
+| 2026-11-10 | Any attribute writes through, never for an untouched picture; shared folders widened (owner review) |

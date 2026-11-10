@@ -18,6 +18,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\Files\Config\IUserMountCache;
 use OCP\Files\IRootFolder;
 use OCP\FilesMetadata\IFilesMetadataManager;
 use OCP\IRequest;
@@ -33,7 +34,7 @@ final class EntryControllerTest extends TestCase {
 	private function controller(IRootFolder $root, ?IUser $user): EntryController {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($user);
-		$listing = new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class)), new SharedFolders($this->createStub(IShareManager::class)));
+		$listing = new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class)), new SharedFolders($this->createStub(IShareManager::class), $this->createStub(IUserMountCache::class)));
 		return new EntryController(Application::APP_ID, $this->createStub(IRequest::class), $session, $listing);
 	}
 

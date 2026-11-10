@@ -12,6 +12,7 @@ use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\ListingService;
 use OCA\Honeycomb\Service\SharedFolders;
 use OCA\Honeycomb\Service\UserFolderResolver;
+use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -40,7 +41,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 	}
 
 	private function service(IRootFolder $root, int $entryLimit = ListingService::ENTRY_LIMIT, int $pageSize = ListingService::PAGE_SIZE): ListingService {
-		return new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class)), new SharedFolders($this->shares()), $entryLimit, $pageSize);
+		return new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class)), new SharedFolders($this->shares(), $this->createStub(IUserMountCache::class)), $entryLimit, $pageSize);
 	}
 
 	/** @param list<File> $files */
@@ -130,7 +131,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 				return [];
 			},
 		);
-		$service = new ListingService(new UserFolderResolver($this->rootWith(['/Photos' => $photos])), new EntryFactory($metadata), new SharedFolders($this->shares()));
+		$service = new ListingService(new UserFolderResolver($this->rootWith(['/Photos' => $photos])), new EntryFactory($metadata), new SharedFolders($this->shares(), $this->createStub(IUserMountCache::class)));
 
 		$listing = $service->list($this->user(), 'Photos', true);
 

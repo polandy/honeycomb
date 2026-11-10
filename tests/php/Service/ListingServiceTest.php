@@ -13,6 +13,7 @@ use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\ListingService;
 use OCA\Honeycomb\Service\SharedFolders;
 use OCA\Honeycomb\Service\UserFolderResolver;
+use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotPermittedException;
@@ -29,7 +30,7 @@ final class ListingServiceTest extends TestCase {
 		$manager->method('getMetadataForFiles')->willReturnCallback(
 			static fn (array $ids): array => array_intersect_key($metadata, array_flip($ids)),
 		);
-		return new ListingService(new UserFolderResolver($root), new EntryFactory($manager), new SharedFolders($this->createStub(IShareManager::class)), $entryLimit);
+		return new ListingService(new UserFolderResolver($root), new EntryFactory($manager), new SharedFolders($this->createStub(IShareManager::class), $this->createStub(IUserMountCache::class)), $entryLimit);
 	}
 
 	// spec: LISTING-001.1
