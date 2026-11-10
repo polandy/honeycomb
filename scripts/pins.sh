@@ -31,7 +31,7 @@ fi
 
 while IFS= read -r line; do
   report "not pinned by commit SHA: $line"
-done < <(grep -rnE '^\s*-?\s*uses:' .github 2>/dev/null | grep -vE 'uses:\s*\S+@[0-9a-f]{40}(\s|$)')
+done < <(grep -rnE '^\s*-?\s*uses:' .github 2>/dev/null | grep -vE 'uses:\s*(\./|\S+@[0-9a-f]{40}(\s|$))')
 
 while IFS= read -r line; do
   report "image not pinned by digest: $line"
