@@ -448,3 +448,16 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   empty after sanitising (`写真.jpg`), so no rendered folder or file name is ever empty.
 - 2026-11-10: Template problems are codes with a column (from 1), worded by the settings in M7.4;
   problems in the text are reported left to right before problems in the folder structure.
+- 2026-11-10: Undo of a move does not bring replaced files back from the trash bin: restoring is not
+  public API (ADR 0013), so they stay there, restorable, and folders the move created stay (ADR 0018).
+- 2026-11-10: The client probes the target folders for every child, not the listing, because a
+  file of a type the listing skips (`.CR3` as `application/octet-stream`) still takes its name.
+- 2026-11-10: The move endpoint keeps the new name as sent and checks no extension: renaming is the
+  user's right in Nextcloud, and the user's folder and its permissions are the boundary (ADR 0018).
+- 2026-11-10: A move rolls a picture back through `Node::move()` when one of its files fails, unlike
+  the trash, which cannot restore; a file that cannot go back is reported `moved` at its new path.
+- 2026-11-10: *Replace* on a conflict with a file the same move takes away falls back to *Add
+  suffix*, since the server refuses to replace a file of its own request (MOVE-003.5).
+- 2026-11-10: M7.2 adds no Playwright test: it has no UI yet; the move dialog's e2e comes with M7.3.
+- 2026-11-10: A move that rolls back leaves the folders it created, empty: another picture of the
+  same move may already use them, and an empty folder loses nothing (ADR 0018).

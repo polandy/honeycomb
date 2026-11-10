@@ -641,11 +641,11 @@ loupe, on the key `M`.
    counts pictures, files and conflicts. A conflict (the target name already exists) is resolved
    per picture or for all at once: *Add suffix* (default), *Skip* or *Replace*. *Replace* sends
    the existing file to the trash bin.
-5. **Undo.** One undo step moves the files back to their old names; replaced files come back from
-   the trash bin.
+5. **Undo.** One undo step moves the files back to their old names. Replaced files stay in the
+   trash bin, restorable there, since restoring is not public API (ADR 0018).
 6. **Failures.** If one file of a picture fails, the picture's files already moved go back, and
-   the summary reports each file (as in M4.1). An ADR on the move API and pair atomicity comes
-   before M7.2.
+   the summary reports each file (as in M4.1). Endpoints and atomicity: ADR 0018, MOVE-002;
+   plan, conflicts, report and undo: MOVE-003.
 
 **Name template.** The rules are in [`05-name-templates.md`](05-name-templates.md). They use
 Framehive's template language (ADR 0004), so Framehive can adopt the same default. The default

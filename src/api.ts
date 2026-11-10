@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Listing } from './logic/cull.ts'
 import type { StoredDecision } from './logic/decision.ts'
+import type { MoveRequestFile, TargetFolder } from './logic/move-plan.ts'
+import type { MoveResponseFile } from './logic/move-report.ts'
 import type { SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from './logic/sidecar-sync.ts'
 import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
 
@@ -111,6 +113,26 @@ export async function trashPictures(pictures: readonly (readonly TrashRequestFil
 		throw new ApiResponseError('The trash response came without a pictures array; check the server\'s version.')
 	}
 	return data.pictures as TrashResponseFile[][]
+}
+
+/** What each target folder of a move already holds (ADR 0018). */
+export async function probeTargets(folders: readonly string[]): Promise<TargetFolder[]> {
+	const { data } = await axios.post<unknown>(generateUrl(`${API}/move/targets`), { folders })
+	if (!isRecord(data) || !Array.isArray(data.folders)) {
+		throw new ApiResponseError('The move target response came without a folders array; check the server\'s version.')
+	}
+	return data.folders as TargetFolder[]
+}
+
+/** Moves each picture's files to their new paths and returns the result of every file (ADR 0018). */
+export async function movePictures(pictures: readonly (readonly MoveRequestFile[])[]): Promise<MoveResponseFile[][]> {
+	const data = await axios.post<unknown>(generateUrl(`${API}/move`), { pictures }).then((response) => response.data, (error: unknown) => {
+		throw isRecord(error) && isRecord(error.response) && error.response.status === 409 ? new TrashBinOffError('The trash bin is off; nothing was moved.') : error
+	})
+	if (!isRecord(data) || !Array.isArray(data.pictures)) {
+		throw new ApiResponseError('The move response came without a pictures array; check the server\'s version.')
+	}
+	return data.pictures as MoveResponseFile[][]
 }
 
 /** The immutable URL of a preview tier of a file (ADR 0010). */
