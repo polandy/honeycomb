@@ -7,15 +7,18 @@ import { t } from '@nextcloud/l10n'
 import { onMounted, useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
+import { keyCap } from '../hotkeys.ts'
 
 const emit = defineEmits<{
 	dismiss: []
 }>()
 
 const KEYS = [
-	{ caps: ['←', '→'], label: t('honeycomb', 'Previous or next photo') },
-	{ caps: [t('honeycomb', 'Z')], label: t('honeycomb', 'Zoom') },
-	{ caps: [t('honeycomb', 'Esc')], label: t('honeycomb', 'Close') },
+	{ caps: [keyCap('pick')], label: t('honeycomb', 'Pick') },
+	{ caps: [keyCap('reject')], label: t('honeycomb', 'Reject') },
+	{ caps: [keyCap('unflag')], label: t('honeycomb', 'Unflag') },
+	{ caps: [keyCap('zoom', 1)], label: t('honeycomb', 'Zoom') },
+	{ caps: [keyCap('shortcuts', 1)], label: t('honeycomb', 'All keys') },
 ]
 
 const gotIt = useTemplateRef<InstanceType<typeof NcButton>>('gotIt')
