@@ -73,16 +73,36 @@ describe('useSettings', () => {
 		expect(error).toHaveBeenCalledOnce()
 	})
 
-	it('keeps a change made before the stored settings arrive', async () => {
+	it('saves a change made before the stored settings arrive over them, keeping their other values', async () => {
 		let answer: (value: unknown) => void = () => undefined
-		const { settings, update } = settingsOn(() => new Promise((resolve) => {
+		const { settings, update, saved } = settingsOn(() => new Promise((resolve) => {
 			answer = resolve
 		}))
 
 		update({ viKeys: true })
+		expect(settings.value.viKeys).toBe(true)
+		expect(saved).toEqual([])
 		answer({ viKeys: false, autoAdvance: false })
 		await flushPromises()
 
-		expect(settings.value).toEqual({ ...DEFAULT_SETTINGS, viKeys: true })
+		expect(settings.value).toEqual({ ...DEFAULT_SETTINGS, autoAdvance: false, viKeys: true })
+		expect(saved).toEqual([{ ...DEFAULT_SETTINGS, autoAdvance: false, viKeys: true }])
+	})
+
+	it('never saves over settings it could not read, and says a change lasts this visit', async () => {
+		vi.spyOn(logger, 'error').mockImplementation(() => {})
+		let fail: (error: Error) => void = () => undefined
+		const { settings, update, saved, toasts } = settingsOn(() => new Promise((_resolve, reject) => {
+			fail = reject
+		}))
+
+		update({ viKeys: true })
+		fail(new Error('offline'))
+		await flushPromises()
+		update({ autoAdvance: false })
+
+		expect(settings.value).toEqual({ ...DEFAULT_SETTINGS, viKeys: true, autoAdvance: false })
+		expect(saved).toEqual([])
+		expect(toasts).toEqual(['Could not save the settings; they apply until you reload.', 'Could not save the settings; they apply until you reload.'])
 	})
 })
