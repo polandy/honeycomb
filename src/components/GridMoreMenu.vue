@@ -27,6 +27,7 @@ const emit = defineEmits<{
 	'update:groupByFolder': [group: boolean]
 	'update:sortOrder': [order: SortOrder]
 	removeRaws: []
+	openSettings: []
 }>()
 </script>
 
@@ -79,6 +80,16 @@ const emit = defineEmits<{
 			</template>
 			{{ t('honeycomb', 'Remove RAWs…') }}
 			<span class="grid-more-menu__count">{{ formatNumber(rawRemovable) }}</span>
+		</NcButton>
+		<NcButton
+			variant="tertiary"
+			alignment="start"
+			wide
+			@click="emit('openSettings')">
+			<template #icon>
+				<AppIcon name="settings" />
+			</template>
+			{{ t('honeycomb', 'Settings') }}
 		</NcButton>
 	</div>
 </template>

@@ -2,24 +2,33 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { StoredDecision } from '../../src/logic/decision.ts'
+import type { Settings } from '../../src/logic/settings.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import { shallowRef } from 'vue'
 import { useCull } from '../../src/cull.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
-import { ENTRIES, fakeStorage, SET } from './app-cull.ts'
+import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
+import { ENTRIES, fakeStorage, SET, stored } from './app-cull.ts'
+import { listingEntry } from './logic/listing-entries.ts'
 
 /** A cull opened on ENTRIES whose saves are recorded. */
-async function openedCull() {
+async function openedCull(stored: StoredDecision[] = []) {
 	const saved: StoredDecision[][] = []
+	const lookedUp: number[][] = []
+	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
 	const cull = useCull({
 		warmPreviews: async () => undefined,
-		lookupDecisions: async () => [],
+		lookupDecisions: async (fileIds) => {
+			lookedUp.push([...fileIds])
+			return stored
+		},
 		saveDecisions: async (rows) => { saved.push([...rows]) },
-	}, fakeStorage())
+	}, fakeStorage(), () => settings.value)
 	cull.open(SET, ENTRIES)
 	await flushPromises()
-	return { cull, saved, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
+	return { cull, saved, lookedUp, settings, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
 }
 
 describe('useCull: redo', () => {
@@ -108,5 +117,58 @@ describe('useCull: removeFiles', () => {
 		expect(replaced).toEqual(new Map([[pair, picture('IMG_10')], [single, null]]))
 		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('rejected')
 		expect(cull.progress.value).toEqual({ decided: 1, total: 2 })
+	})
+})
+
+describe('useCull: settings', () => {
+	it('leaves the singles out of the cull while show singles is off', async () => {
+		const { cull, settings } = await openedCull([stored(1, 'rejected'), stored(4, 'picked')])
+
+		settings.value = { ...settings.value, showSingles: false }
+
+		expect(cull.pictures.value.map((shown) => shown.baseName)).toEqual(['IMG_10'])
+		expect(cull.view.value.map((shown) => shown.baseName)).toEqual(['IMG_10'])
+		expect(cull.progress.value).toEqual({ decided: 0, total: 1 })
+
+		settings.value = { ...settings.value, showSingles: true }
+
+		expect(cull.progress.value).toEqual({ decided: 2, total: 3 })
+	})
+
+	it('pairs the open cull again when the extensions change, keeps the decisions and reads those of new members', async () => {
+		const { cull, settings, lookedUp, picture } = await openedCull([stored(3, 'rejected')])
+		const before = cull.pictures.value
+
+		settings.value = { ...settings.value, rawExtensions: ['nef'] }
+		await flushPromises()
+
+		expect(cull.pictures.value).not.toBe(before)
+		expect(picture('IMG_10')).toMatchObject({ rendered: { fileId: 2 }, raw: null })
+		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('unflagged')
+		settings.value = { ...settings.value, rawExtensions: ['cr3'] }
+		await flushPromises()
+		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('rejected')
+		expect(lookedUp).toHaveLength(3)
+	})
+
+	it('keeps the pictures when a setting that does not pair changes', async () => {
+		const { cull, settings, lookedUp } = await openedCull()
+		const before = cull.pictures.value
+
+		settings.value = { ...settings.value, viKeys: true, autoAdvance: false }
+		await flushPromises()
+
+		expect(cull.pictures.value).toBe(before)
+		expect(lookedUp).toHaveLength(1)
+	})
+
+	it('pairs what is left after a delete with the settings', async () => {
+		const { cull, settings } = await openedCull()
+		settings.value = { ...settings.value, folderMode: { kind: 'separate-subfolders', rawSubfolder: 'RAW', renderedSubfolder: 'JPG' } }
+		cull.open(SET, [listingEntry(5, '/Trip/A/RAW/X.CR3'), listingEntry(6, '/Trip/A/JPG/X.JPG')])
+
+		cull.removeFiles(new Set([6]))
+
+		expect(cull.pictures.value).toEqual([expect.objectContaining({ folder: '/Trip/A', raw: expect.objectContaining({ fileId: 5 }) })])
 	})
 })

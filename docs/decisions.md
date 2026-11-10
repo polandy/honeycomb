@@ -246,13 +246,12 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: The undo history (50 steps) and the undo toast are app-wide, so decisions from the
   selection bar get a toast too; redo and the undo keys wait for M3.3.
 - 2026-11-10: After a pick or reject in the loupe, auto-advance goes to the next undecided
-  picture after the shown one and stays when none follows; it is always on until the M4.3
-  setting, and the "All photos decided" toast is M4.2.
-- 2026-11-10: A swipe up picks and a swipe down rejects (`DEFAULT_SWIPES`, Q6) until the M4.3
-  gesture setting exists.
-- 2026-11-10: Whether the flag buttons are shown is kept in browser storage
-  (`honeycomb.flagButtonsShown`) until the M4.3 per-user setting; the hide toast names the
-  swipe and the flag toggle for every pointer until the `B` key exists (M3.3).
+  picture after the shown one and stays when none follows; *Settings › Loupe gestures* turns it
+  off (M4.4), and the "All photos decided" toast is M4.2.
+- 2026-11-10: A swipe up picks and a swipe down rejects by default (`DEFAULT_SWIPES`, Q6);
+  *Settings › Loupe gestures* sets each direction to Pick, Reject or Nothing (M4.4).
+- 2026-11-10: Whether the flag buttons are shown is the per-user setting *Show flag buttons*
+  (M4.4); `B`, the title-row flag and the toast's *Show* change it.
 - 2026-11-10: The undo toast stays 5.2 s, as in the mockup; the landscape flag rail is 96 px wide.
 - 2026-11-10: The key map (`src/logic/hotkeys.ts`) holds only keys that work; `N`, `Shift+K`, `M`,
   `Delete`, `Ctrl+Backspace` and the move dialog's `1`–`9` join it with M4, M6 and M7, and the
@@ -260,8 +259,7 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: `Caps Lock`, `Home`, `End`, `Z`, `F` and `\` are built as the plan's key table and
   the signed-off mockup say, though Lightroom's own list has not confirmed them yet.
 - 2026-11-10: The gesture guide's keys line teaches `P`, `X`, `U`, `Z` and `?`, as in the mockup.
-- 2026-11-10: The vi keys option lives in browser storage (`honeycomb.viKeys`) until the M4.4
-  setting.
+- 2026-11-10: The vi keys option is the per-user setting *Settings › Keyboard › Vi keys* (M4.4).
 - 2026-11-10: `Shift+` decisions and `Caps Lock` go to the next photo unless the decision already
   moved (loupe auto-advance) or, in the grid, the photo left the filtered view; `Caps Lock` also
   advances `[` and `]`. On a selection with mixed ratings, `[` and `]` step from 0.
@@ -272,7 +270,7 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: `I` shows or hides the loupe's info panel instead of cycling an overlay, as the glossary's
   info panel is a panel; the plan, user doc and sheet say so.
 - 2026-11-10: The shortcut sheet drops the mockup's rows without a key-map key (`Shift+click`,
-  `Ctrl+wheel`) and the "(Settings › Keyboard)" suffix of *Vi keys* until the M4.4 setting; the
+  `Ctrl+wheel`); its vi group is titled "Vi keys (Settings › Keyboard)" since M4.4; the
   gesture guide labels its keys *Pick*, *Reject*, *Unflag*, *Zoom* and *All keys*.
 - 2026-11-10: Trashing gets its own `TrashService` and `TrashController` instead of the plan's
   shared `FileService`, one responsibility each; moving and writing XMP get theirs in M5 and M7.2.
@@ -315,3 +313,30 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   menu, and like deleting it has no single-key shortcut.
 - 2026-11-10: The delete report's `removed` count is now per sent picture — every member it sent
   went — so a RAW unit counts once its RAW is gone; for whole pictures the count is unchanged.
+- 2026-11-10: Per-user settings are one JSON object in `IUserConfig` behind
+  `GET`/`PUT /api/v1/settings` (ADR 0014); the server checks only object and size, all field
+  rules are in `src/logic/settings.ts`, and the browser-storage values `honeycomb.flagButtonsShown`
+  and `honeycomb.viKeys` are dropped without migration.
+- 2026-11-10: A settings change applies at once and saves the whole object; a failed save keeps it
+  for the visit and says "Could not save the settings; they apply until you reload." A change made
+  before the stored settings arrive wins over that one field and is saved once they are read;
+  after a failed read nothing is saved, so the stored settings are never overwritten blind.
+- 2026-11-10: The settings dialog is `NcAppSettingsDialog` with the mockup's File types, Folder
+  layout, Loupe gestures and Keyboard sections, opened from *Settings* in the grid's ⋯ menu;
+  *Moving photos* and the storage section wait for M5 and M7.
+- 2026-11-10: An extension is letters and digits only; the dialog refuses an empty one, `xmp`, one
+  with other characters and one already in either list, and keeps the last one of each list. It
+  stores extensions in lower case and shows them as `.NEF`, as the mockup does.
+- 2026-11-10: Switching to *Separate subfolders* starts from `RAW` and `JPG`; custom subfolder
+  names are not kept while the mode is *Same folder*, and an empty name takes its default. Names
+  apply when the field is left, not per keystroke, so the cull is not re-paired while typing.
+- 2026-11-10: The swipe choices are a native `select`, which the iPad shows as its own picker.
+- 2026-11-10: A change of the extensions or the folder mode re-pairs the open cull from its
+  listing, keeps the decisions, looks up those of newly paired files and clears the selection.
+- 2026-11-10: With *Show singles* off, singles leave the cull entirely, also a JPEG whose RAW
+  *Remove RAWs* just removed; the folder picker's count still counts them.
+- 2026-11-10: Auto-advance off leaves the loupe on the photo after a pick or reject; `Shift+`
+  keys and `Caps Lock` still go on. The gesture guide names only the swipes that decide.
+- 2026-11-10: Hidden by a tap while no swipe decides, the flag buttons' toast says "Flag buttons
+  hidden, and no swipe decides: the flag at the top shows them"; by `B` it still names the key.
+- 2026-11-10: Keys are off while the settings dialog is open, as while the folder picker is.

@@ -75,6 +75,15 @@ describe('GridToolbar', () => {
 		expect(wrapper.emitted('removeRaws')).toHaveLength(1)
 	})
 
+	it('opens the settings from the More menu', async () => {
+		const wrapper = mountToolbar({ paths: ['/Trip'], subfolders: false })
+		const item = wrapper.findAll('button').find((button) => button.text().replaceAll(MARK, '') === 'Settings')!
+
+		await item.trigger('click')
+
+		expect(wrapper.emitted('openSettings')).toHaveLength(1)
+	})
+
 	it('opens the folder picker from Home and from the set name', async () => {
 		const wrapper = mountToolbar({ paths: ['/A', '/B'], subfolders: false })
 

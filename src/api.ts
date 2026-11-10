@@ -57,6 +57,20 @@ export async function lookupDecisions(fileIds: readonly number[]): Promise<Store
 	return data.decisions as StoredDecision[]
 }
 
+/** The stored settings of the user as they came, checked by `parseSettings` (ADR 0014). */
+export async function loadSettings(): Promise<unknown> {
+	const { data } = await axios.get<unknown>(generateUrl(`${API}/settings`))
+	if (!isRecord(data)) {
+		throw new ApiResponseError('The settings came without a settings object; check the server\'s version.')
+	}
+	return data.settings
+}
+
+/** Stores the whole settings of the user (ADR 0014). */
+export async function saveSettings(settings: object): Promise<void> {
+	await axios.put(generateUrl(`${API}/settings`), { settings })
+}
+
 /** Stores the whole decision of each file in one transaction (ADR 0012). */
 export async function saveDecisions(decisions: readonly StoredDecision[]): Promise<void> {
 	if (decisions.length > 0) {

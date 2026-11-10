@@ -3,7 +3,7 @@
 import type { DecisionIntent } from './logic/decision-change.ts'
 import type { Decision } from './logic/decision.ts'
 import type { HotkeyIntent } from './logic/hotkeys.ts'
-import type { SwipeDirection } from './logic/loupe-gesture.ts'
+import type { SwipeDirection, SwipeSetting } from './logic/loupe-gesture.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { Toast } from './toast.ts'
 
@@ -24,12 +24,16 @@ export interface LoupeDecisionsContext<P extends Picture<{ readonly fileId: numb
 	readonly decide: (intent: DecisionIntent, picture: P) => void
 	readonly go: (index: number) => void
 	readonly setFlagButtonsShown: (shown: boolean) => void
+	/** What each swipe sets, from the settings. */
+	readonly swipes: () => SwipeSetting
+	/** Whether a pick or reject moves on to the next undecided picture, from the settings. */
+	readonly autoAdvance: () => boolean
 	readonly toast: (toast: Toast) => void
 	/** Called when a flag left no undecided picture in the loupe. */
 	readonly allDecided: () => void
 }
 
-/** The shown picture's decision controls: a pick or reject moves on to the next undecided picture. */
+/** The shown picture's decision controls: with auto-advance on, a pick or reject moves on to the next undecided picture. */
 export function useLoupeDecisions<P extends Picture<{ readonly fileId: number }>>(context: LoupeDecisionsContext<P>) {
 	const shown = () => context.pictures()[context.index()]!
 	const common = computed(() => commonDecision([{ picture: shown(), decision: context.decisionOf(shown()) }]))
@@ -38,7 +42,7 @@ export function useLoupeDecisions<P extends Picture<{ readonly fileId: number }>
 	function decide(intent: DecisionIntent): boolean {
 		const picture = shown()
 		context.decide(intent, picture)
-		const next = intent.kind === 'flag' && isDecided(context.decisionOf(picture)) ? nextUndecided(context.pictures(), context.index(), context.decisionOf) : null
+		const next = intent.kind === 'flag' && context.autoAdvance() && isDecided(context.decisionOf(picture)) ? nextUndecided(context.pictures(), context.index(), context.decisionOf) : null
 		if (next !== null) {
 			context.go(next)
 		} else if (intent.kind === 'flag' && context.pictures().every((each) => isDecided(context.decisionOf(each)))) {
@@ -58,7 +62,7 @@ export function useLoupeDecisions<P extends Picture<{ readonly fileId: number }>
 
 	/** Sets the flag the swipe stands for, if any. */
 	function swipe(direction: SwipeDirection) {
-		const flag = swipeFlag(direction)
+		const flag = swipeFlag(direction, context.swipes())
 		if (flag !== null) {
 			decide({ kind: 'flag', flag })
 		}
@@ -72,9 +76,17 @@ export function useLoupeDecisions<P extends Picture<{ readonly fileId: number }>
 			: {
 					message: byKey
 						? t('honeycomb', 'Flag buttons hidden · {key} shows them', { key: keyCap('flag-buttons') })
-						: t('honeycomb', 'Flag buttons hidden · swipe to decide, the flag at the top shows them'),
+						: hiddenByTouchText(),
 					action: { label: t('honeycomb', 'Show'), run: () => setFlagButtonsShown(true) },
 				})
+	}
+
+	/** How to decide and get the flag buttons back without a key: by a swipe, unless none decides. */
+	function hiddenByTouchText() {
+		const swipes = context.swipes()
+		return swipes.up === null && swipes.down === null
+			? t('honeycomb', 'Flag buttons hidden, and no swipe decides: the flag at the top shows them')
+			: t('honeycomb', 'Flag buttons hidden · swipe to decide, the flag at the top shows them')
 	}
 
 	return { common, decide, decideByKey, swipe, setFlagButtonsShown }

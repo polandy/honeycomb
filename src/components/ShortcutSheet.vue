@@ -26,7 +26,7 @@ const GROUPS: Record<KeymapGroup, string> = {
 	views: t('honeycomb', 'Views and photos'),
 	filter: t('honeycomb', 'Filter and selection'),
 	undo: t('honeycomb', 'Undo, delete and help'),
-	vi: t('honeycomb', 'Vi keys'),
+	vi: t('honeycomb', 'Vi keys (Settings › Keyboard)'),
 }
 
 const LABELS: Readonly<Record<string, string>> = {

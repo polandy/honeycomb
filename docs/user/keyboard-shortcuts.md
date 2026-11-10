@@ -80,7 +80,7 @@ Deleted photos always go to the Nextcloud trash bin, where you can restore them.
 
 Turn on *Settings › Keyboard › Vi keys* to move around as in vi. They are off by default,
 because `g` then starts `g g` instead of opening the grid; with them on, `Esc` leads back to
-the grid. Until that setting arrives, set the browser storage key `honeycomb.viKeys` to `true`.
+the grid. Like every [setting](settings.md), it follows you to every device.
 
 | Keys | What it does |
 |---|---|

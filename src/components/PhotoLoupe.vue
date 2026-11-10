@@ -12,6 +12,7 @@ import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Schedule } from '../logic/long-press.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { Settings } from '../logic/settings.ts'
 import type { ObserveSize } from '../observe-size.ts'
 import type { Toast } from '../toast.ts'
 
@@ -44,6 +45,7 @@ const props = withDefaults(defineProps<{
 	folderSet: FolderSet
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
 	storage: BrowserStorage
+	settings: Settings
 	imageUrl?: ImageUrlFor
 	decode?: (src: string) => Promise<void>
 	schedule?: Schedule
@@ -64,6 +66,7 @@ const emit = defineEmits<{
 	decide: [intent: DecisionIntent, picture: Picture<ListingEntry>]
 	toast: [toast: Toast]
 	allDecided: []
+	updateSettings: [patch: Partial<Settings>]
 	close: []
 }>()
 
@@ -75,7 +78,7 @@ const RAIL = 96
 const root = useTemplateRef<HTMLElement>('root')
 const stage = useTemplateRef<InstanceType<typeof LoupeStage>>('stage')
 const panels = useLoupePanels(props.storage)
-const { infoOpen, infoWidth, navigationShown, gestureGuideSeen, flagButtonsShown } = panels
+const { infoOpen, infoWidth, navigationShown, gestureGuideSeen } = panels
 const filmstripOpen = ref(true)
 const chromeFree = ref(false)
 const zoom = ref<number | null>(null)
@@ -87,7 +90,9 @@ const decisions = useLoupeDecisions({
 	decisionOf: props.decisionOf,
 	decide: (intent, shown) => emit('decide', intent, shown),
 	go: (index) => go(index),
-	setFlagButtonsShown: panels.setFlagButtonsShown,
+	setFlagButtonsShown: (shown) => emit('updateSettings', { flagButtonsShown: shown }),
+	swipes: () => props.settings.swipes,
+	autoAdvance: () => props.settings.autoAdvance,
 	toast: (toast) => emit('toast', toast),
 	allDecided: () => emit('allDecided'),
 })
@@ -127,7 +132,7 @@ const hotkeys: HotkeyHandlers = {
 	'zoom-in': () => stage.value!.toggleZoom(false),
 	'zoom-out': () => stage.value!.toggleZoom(true),
 	info: () => panels.setInfoOpen(!infoOpen.value),
-	'flag-buttons': () => decisions.setFlagButtonsShown(!flagButtonsShown.value, true),
+	'flag-buttons': () => decisions.setFlagButtonsShown(!props.settings.flagButtonsShown, true),
 	decide: decisions.decideByKey,
 }
 
@@ -147,7 +152,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 		ref="root"
 		class="photo-loupe"
 		:class="{ 'photo-loupe--idle': overlays.idle.value, 'photo-loupe--chrome-free': chromeFree, 'photo-loupe--below-header': navigationShown && !chromeFree }"
-		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px`, '--photo-loupe-rail': `${flagButtonsShown ? RAIL : 0}px` }"
+		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px`, '--photo-loupe-rail': `${settings.flagButtonsShown ? RAIL : 0}px` }"
 		role="dialog"
 		:aria-modal="!navigationShown"
 		:aria-label="t('honeycomb', 'Loupe')"
@@ -163,7 +168,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:infoOpen="infoOpen"
 			:filmstripOpen="filmstripOpen"
 			:navigationShown="navigationShown"
-			:flagButtonsShown="flagButtonsShown"
+			:flagButtonsShown="settings.flagButtonsShown"
 			@pointerdown="overlays.wake"
 			@close="emit('close')"
 			@toggleZoom="stage!.toggleZoom()"
@@ -222,11 +227,11 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			v-if="!chromeFree"
 			layout="loupe"
 			:common="decisions.common.value"
-			:flags="flagButtonsShown"
+			:flags="settings.flagButtonsShown"
 			:idle="overlays.idle.value"
 			@pointerdown="overlays.wake"
 			@decide="decisions.decide" />
-		<GestureGuide v-if="!gestureGuideSeen" @dismiss="dismissGestureGuide" />
+		<GestureGuide v-if="!gestureGuideSeen" :swipes="settings.swipes" @dismiss="dismissGestureGuide" />
 	</div>
 </template>
 

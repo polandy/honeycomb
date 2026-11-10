@@ -6,15 +6,15 @@
 import type { Folder } from './api.ts'
 import type { BrowserStorage } from './browser-storage.ts'
 import type { ListEntries } from './folder-count.ts'
-import type { DecisionIntent } from './logic/decision-change.ts'
 import type { StoredDecision } from './logic/decision.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Schedule } from './logic/long-press.ts'
 import type { Picture } from './logic/pairing.ts'
+import type { Settings } from './logic/settings.ts'
 import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
 
 import { t } from '@nextcloud/l10n'
-import { computed, nextTick, ref, toRaw, useTemplateRef } from 'vue'
+import { computed, nextTick, ref, toRaw, useTemplateRef, watch } from 'vue'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcContent from '@nextcloud/vue/components/NcContent'
@@ -28,20 +28,21 @@ import FolderPicker from './components/FolderPicker.vue'
 import GridToolbar from './components/GridToolbar.vue'
 import PhotoGrid from './components/PhotoGrid.vue'
 import PhotoLoupe from './components/PhotoLoupe.vue'
+import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutSheet from './components/ShortcutSheet.vue'
 import UndoToast from './components/UndoToast.vue'
-import { listEntries as apiListEntries, listFolders as apiListFolders, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews } from './api.ts'
-import { readStored } from './browser-storage.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews } from './api.ts'
 import { useCull } from './cull.ts'
-import { changeText, redoneText, undoneText } from './decision-text.ts'
 import { useDeleteFlow } from './delete-flow.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
-import { useHotkeys, VI_KEYS_KEY } from './hotkeys.ts'
+import { useHotkeys } from './hotkeys.ts'
 import { clearFilters } from './logic/picture-filter.ts'
 import { useSelectionMode } from './selection-mode.ts'
+import { useSettings } from './settings.ts'
 import { browserSchedule } from './tile-selection.ts'
 import { useToast } from './toast.ts'
+import { useToastedDecisions } from './toasted-decisions.ts'
 
 const props = withDefaults(defineProps<{
 	listFolders?: (path: string) => Promise<Folder[]>
@@ -49,6 +50,8 @@ const props = withDefaults(defineProps<{
 	warmPreviews?: (fileIds: readonly number[]) => Promise<void>
 	lookupDecisions?: (fileIds: readonly number[]) => Promise<StoredDecision[]>
 	saveDecisions?: (decisions: readonly StoredDecision[]) => Promise<void>
+	loadSettings?: () => Promise<unknown>
+	saveSettings?: (settings: Settings) => Promise<void>
 	storage?: BrowserStorage
 	schedule?: Schedule
 	toggleFullscreen?: (element: HTMLElement) => void
@@ -59,13 +62,18 @@ const props = withDefaults(defineProps<{
 	warmPreviews: apiWarmPreviews,
 	lookupDecisions: apiLookupDecisions,
 	saveDecisions: apiSaveDecisions,
+	loadSettings: apiLoadSettings,
+	saveSettings: apiSaveSettings,
 	storage: () => () => window.localStorage,
 	schedule: browserSchedule,
 	toggleFullscreen: toggleBrowserFullscreen,
 	trashPictures: apiTrashPictures,
 })
 
-const cull = useCull({ warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions }, props.storage)
+const toast = useToast(props.schedule)
+const { settings, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, (message) => toast.show(message))
+const settingsOpen = ref(false)
+const cull = useCull({ warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions }, props.storage, () => settings.value)
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
 const loupe = ref<{ pictures: readonly Picture<ListingEntry>[], index: number } | null>(null)
 const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
@@ -76,32 +84,9 @@ const shortcutsOpen = ref(false)
 const selection = useSelectionMode(() => view.value, pictures)
 const { selecting, selected } = selection
 const common = computed(() => cull.common(selected.value))
-const toast = useToast(props.schedule)
+watch(cull.pairing, selection.selectNone)
 
-/** Decides the pictures and says what changed, with Undo. */
-function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]) {
-	const entry = cull.decide(intent, chosen)
-	if (entry !== null) {
-		toast.show(changeText(entry), { label: t('honeycomb', 'Undo'), run: undo })
-	}
-}
-
-/** Takes back the latest decision and says so. */
-function undo() {
-	const entry = cull.undo()
-	if (entry !== null) {
-		toast.show(undoneText(entry))
-	}
-}
-
-/** Puts back the latest undone decision and says so. */
-function redo() {
-	const entry = cull.redo()
-	if (entry !== null) {
-		toast.show(redoneText(entry))
-	}
-}
-
+const { decide, undo, redo } = useToastedDecisions(cull, toast.show)
 const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
 const { dialog: deleteDialog, busy: deleteBusy, rejected, rawRemovable, rawRemoval } = deleting
 
@@ -133,14 +118,14 @@ function toggleShortcuts() {
 }
 
 useHotkeys(() => {
-	if (pickerOpen.value || deleteDialog.value !== null) {
+	if (pickerOpen.value || settingsOpen.value || deleteDialog.value !== null) {
 		return null
 	}
 	if (shortcutsOpen.value || folderSet.value === null) {
 		return { shortcuts: toggleShortcuts }
 	}
 	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: deleteShown, ...(loupe.value === null ? gridKeys : loupeView.value?.hotkeys) }
-}, () => readStored(props.storage, VI_KEYS_KEY) === 'true')
+}, () => settings.value.viKeys)
 
 /** Closes the loupe and focuses its last picture in the grid. */
 async function closeLoupe() {
@@ -182,7 +167,8 @@ async function closeLoupe() {
 					@selectAll="selection.selectAll"
 					@selectNone="selection.selectNone"
 					@reviewRejects="deleting.review"
-					@removeRaws="deleting.removeRaws" />
+					@removeRaws="deleting.removeRaws"
+					@openSettings="settingsOpen = true" />
 				<FilterBar
 					v-if="filtersOpen && headerShown"
 					ref="filterBar"
@@ -242,6 +228,7 @@ async function closeLoupe() {
 				:current="folderSet"
 				:listFolders="props.listFolders"
 				:listEntries="props.listEntries"
+				:pairing="cull.pairing.value"
 				@confirm="cull.open"
 				@cancel="pickerOpen = false" />
 			<DeleteDialogs
@@ -260,6 +247,7 @@ async function closeLoupe() {
 				@close="deleting.close"
 				@confirm="deleting.confirm"
 				@retry="deleting.retry" />
+			<SettingsDialog v-model:open="settingsOpen" :settings="settings" @update="updateSettings" />
 			<Teleport to="body">
 				<PhotoLoupe
 					v-if="loupe !== null && folderSet !== null"
@@ -269,6 +257,8 @@ async function closeLoupe() {
 					:folderSet="folderSet"
 					:decisionOf="cull.decisionOf"
 					:storage="props.storage"
+					:settings="settings"
+					@updateSettings="updateSettings"
 					@decide="(intent, picture) => decide(intent, [picture])"
 					@toast="toast.show($event.message, $event.action)"
 					@allDecided="deleting.allDecided"

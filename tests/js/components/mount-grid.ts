@@ -6,6 +6,7 @@ import type { ListingEntry } from '../../../src/logic/listing.ts'
 import { mount } from '@vue/test-utils'
 import PhotoGrid from '../../../src/components/PhotoGrid.vue'
 import { prepareCull } from '../../../src/logic/cull.ts'
+import { DEFAULT_PAIRING_SETTINGS } from '../../../src/logic/pairing.ts'
 import { sortPictures } from '../../../src/logic/picture-order.ts'
 import { listingEntry } from '../logic/listing-entries.ts'
 
@@ -20,7 +21,7 @@ export function picturesIn(folders: Record<string, number>) {
 			entries.push(listingEntry(entries.length + 1, `${folder}/IMG_${index}.JPG`))
 		}
 	}
-	return sortPictures(prepareCull(entries).pictures, 'file-name', compareNames, true)
+	return sortPictures(prepareCull(entries, DEFAULT_PAIRING_SETTINGS).pictures, 'file-name', compareNames, true)
 }
 
 /** A size observer the test drives, and the grid mounted with it. */

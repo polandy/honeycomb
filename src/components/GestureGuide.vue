@@ -3,11 +3,21 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
+import type { SwipeSetting } from '../logic/loupe-gesture.ts'
+
 import { t } from '@nextcloud/l10n'
-import { onMounted, useTemplateRef } from 'vue'
+import { computed, onMounted, useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import { keyCap } from '../hotkeys.ts'
+import { DEFAULT_SWIPES } from '../logic/loupe-gesture.ts'
+
+const props = withDefaults(defineProps<{
+	/** What each swipe sets, from the settings. */
+	swipes?: SwipeSetting
+}>(), {
+	swipes: () => DEFAULT_SWIPES,
+})
 
 const emit = defineEmits<{
 	dismiss: []
@@ -21,6 +31,17 @@ const KEYS = [
 	{ caps: [keyCap('shortcuts', 1)], label: t('honeycomb', 'All keys') },
 ]
 
+const SWIPE_TEXT = {
+	up: { picked: t('honeycomb', 'Swipe up to pick'), rejected: t('honeycomb', 'Swipe up to reject') },
+	down: { picked: t('honeycomb', 'Swipe down to pick'), rejected: t('honeycomb', 'Swipe down to reject') },
+}
+
+/** One line per swipe that decides; a swipe set to Nothing has none. */
+const swipeLines = computed(() => (['up', 'down'] as const).flatMap((direction) => {
+	const flag = props.swipes[direction]
+	return flag === null || flag === 'unflagged' ? [] : [SWIPE_TEXT[direction][flag]]
+}))
+
 const gotIt = useTemplateRef<InstanceType<typeof NcButton>>('gotIt')
 
 onMounted(() => (gotIt.value!.$el as HTMLElement).focus())
@@ -31,7 +52,9 @@ onMounted(() => (gotIt.value!.$el as HTMLElement).focus())
 		<div class="gesture-guide__card" role="dialog" :aria-label="t('honeycomb', 'How to cull')">
 			<h3>{{ t('honeycomb', 'How to cull') }}</h3>
 			<ul>
-				<li>{{ t('honeycomb', 'Swipe up to pick, down to reject') }}</li>
+				<li v-for="line in swipeLines" :key="line">
+					{{ line }}
+				</li>
 				<li>{{ t('honeycomb', 'Swipe sideways for the next or previous photo') }}</li>
 				<li>
 					{{ t('honeycomb', 'Tap the left or right side for the previous or next photo, the middle for the controls') }}

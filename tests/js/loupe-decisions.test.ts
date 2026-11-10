@@ -3,17 +3,19 @@
 // @vitest-environment happy-dom
 import type { DecisionIntent } from '../../src/logic/decision-change.ts'
 import type { Decision } from '../../src/logic/decision.ts'
+import type { SwipeSetting } from '../../src/logic/loupe-gesture.ts'
 import type { Toast } from '../../src/toast.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../src/logic/decision.ts'
+import { DEFAULT_SWIPES } from '../../src/logic/loupe-gesture.ts'
 import { useLoupeDecisions } from '../../src/loupe-decisions.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
 
 const PICTURES = picturesOf([1, 2, 3].map((id) => listingEntry(id, `/P/IMG_${id}.JPG`)))
 
 /** The loupe's decisions at `index`, with the decisions stored in a map and every call recorded. */
-function loupeDecisions(index: number, decided: Record<string, Decision> = {}) {
+function loupeDecisions(index: number, decided: Record<string, Decision> = {}, settings: { swipes?: SwipeSetting, autoAdvance?: boolean } = {}) {
 	const went: number[] = []
 	const shown: boolean[] = []
 	const toasts: Toast[] = []
@@ -33,6 +35,8 @@ function loupeDecisions(index: number, decided: Record<string, Decision> = {}) {
 		setFlagButtonsShown: (on) => shown.push(on),
 		toast: (toast) => toasts.push(toast),
 		allDecided: () => allDecided++,
+		swipes: () => settings.swipes ?? DEFAULT_SWIPES,
+		autoAdvance: () => settings.autoAdvance ?? true,
 	})
 	return { decisions, went, shown, toasts, intents, allDecided: () => allDecided }
 }
@@ -52,6 +56,35 @@ describe('useLoupeDecisions: decide', () => {
 		const { decisions, went } = loupeDecisions(index)
 		expect(decisions.decide(intent)).toBe(false)
 		expect(went).toEqual([])
+	})
+})
+
+describe('useLoupeDecisions: auto-advance off', () => {
+	it('stays on the photo after a flag', () => {
+		const { decisions, went } = loupeDecisions(0, {}, { autoAdvance: false })
+		expect(decisions.decide({ kind: 'flag', flag: 'picked' })).toBe(false)
+		expect(went).toEqual([])
+	})
+
+	it('still goes to the next photo by a Shift key', () => {
+		const { decisions, went } = loupeDecisions(0, {}, { autoAdvance: false })
+		decisions.decideByKey({ kind: 'flag', flag: 'rejected' }, true)
+		expect(went).toEqual([1])
+	})
+
+	it('still says when the last undecided photo is decided', () => {
+		const { decisions, allDecided } = loupeDecisions(2, { IMG_1: { ...UNDECIDED, flag: 'picked' }, IMG_2: { ...UNDECIDED, flag: 'rejected' } }, { autoAdvance: false })
+		decisions.decide({ kind: 'flag', flag: 'picked' })
+		expect(allDecided()).toBe(1)
+	})
+})
+
+describe('useLoupeDecisions: swipe', () => {
+	it('sets the flag the settings give the direction', () => {
+		const { decisions, intents } = loupeDecisions(0, {}, { swipes: { up: 'rejected', down: null } })
+		decisions.swipe('up')
+		decisions.swipe('down')
+		expect(intents).toEqual([{ kind: 'flag', flag: 'rejected' }])
 	})
 })
 
@@ -100,6 +133,12 @@ describe('useLoupeDecisions: setFlagButtonsShown', () => {
 		decisions.setFlagButtonsShown(false)
 		expect(shown).toEqual([false])
 		expect(toasts[0]!.message).toBe('Flag buttons hidden · swipe to decide, the flag at the top shows them')
+	})
+
+	it('names only the flag at the top when hidden by a tap and no swipe decides', () => {
+		const { decisions, toasts } = loupeDecisions(0, {}, { swipes: { up: null, down: null } })
+		decisions.setFlagButtonsShown(false)
+		expect(toasts[0]!.message).toBe('Flag buttons hidden, and no swipe decides: the flag at the top shows them')
 	})
 
 	it('names the key when hidden by B, and Show brings them back', () => {

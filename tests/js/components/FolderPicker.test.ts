@@ -4,10 +4,12 @@
 import type { Folder } from '../../../src/api.ts'
 import type { FolderSet } from '../../../src/logic/folder-set.ts'
 import type { ListingEntry } from '../../../src/logic/listing.ts'
+import type { PairingSettings } from '../../../src/logic/pairing.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import FolderPicker from '../../../src/components/FolderPicker.vue'
+import { DEFAULT_PAIRING_SETTINGS } from '../../../src/logic/pairing.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { listingEntry } from '../logic/listing-entries.ts'
 import { DialogStub } from './stubs.ts'
@@ -45,10 +47,10 @@ function fakeApi() {
 	return { calls, pending, listEntries, listFolders: () => Promise.resolve(ROOT) }
 }
 
-async function mountPicker(current: FolderSet | null = null) {
+async function mountPicker(current: FolderSet | null = null, pairing: PairingSettings = DEFAULT_PAIRING_SETTINGS) {
 	const api = fakeApi()
 	const wrapper = mount(FolderPicker, {
-		props: { current, listFolders: api.listFolders, listEntries: api.listEntries },
+		props: { current, listFolders: api.listFolders, listEntries: api.listEntries, pairing },
 		global: { stubs: { NcDialog: DialogStub } },
 	})
 	await flushPromises()
@@ -99,6 +101,15 @@ describe('FolderPicker', () => {
 		expect(countLine(picker)).toBe(`${MARK}2 photos in 1 folder`)
 		expect(confirmButton(picker).text()).toBe(`${MARK}Cull Trip`)
 		expect(confirmButton(picker).attributes('disabled')).toBeUndefined()
+	})
+
+	it('counts the photos as the pairing settings pair them', async () => {
+		const picker = await mountPicker(null, { ...DEFAULT_PAIRING_SETTINGS, rawExtensions: ['nef'], renderedExtensions: ['cr3'] })
+
+		await tick(picker, 'Trip')
+		await settleAll(picker)
+
+		expect(countLine(picker)).toBe(`${MARK}1 photo in 1 folder`)
 	})
 
 	it('counts the subfolders at any depth when the switch is on', async () => {
