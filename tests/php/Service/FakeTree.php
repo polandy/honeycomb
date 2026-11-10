@@ -50,7 +50,10 @@ trait FakeTree {
 		return $root;
 	}
 
-	/** Adds files by id and path, and their folders. */
+	/**
+	 * Adds files by id and path, and their folders.
+	 * @param array<int, string> $files
+	 */
 	private function addFiles(array $files): void {
 		foreach ($files as $id => $path) {
 			$this->files[$id] = $path;

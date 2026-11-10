@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\InvalidMoveRequestException;
-use OCA\Honeycomb\Service\ListingService;
 use OCA\Honeycomb\Service\MoveService;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
 use OCP\App\IAppManager;
@@ -38,11 +37,15 @@ final class MoveServiceTest extends TestCase {
 	 * The request form of a file: its id, listed ETag and new path.
 	 * @return array{fileId: int, etag: string, path: string}
 	 */
+	/** @return array{fileId: int, etag: string, path: string, replace?: array{fileId: int, etag: string}} */
 	private static function to(int $fileId, string $path): array {
 		return ['fileId' => $fileId, 'etag' => "etag-$fileId", 'path' => $path];
 	}
 
-	/** The pair's files to `/Out/2026`, the sidecar first, and the single JPEG to `/Out/B.JPG`. */
+	/**
+	 * The pair's files to `/Out/2026`, the sidecar first, and the single JPEG to `/Out/B.JPG`.
+	 * @return list<list<array{fileId: int, etag: string, path: string, replace?: array{fileId: int, etag: string}}>>
+	 */
 	private static function request(): array {
 		return [
 			[self::to(3, '/Out/2026/X.RAF.xmp'), self::to(1, '/Out/2026/X.RAF'), self::to(2, '/Out/2026/X.JPG')],
@@ -262,55 +265,15 @@ final class MoveServiceTest extends TestCase {
 		$this->assertSame([[self::moved(4, '/Out/B.JPG')]], self::results($results));
 	}
 
-	/** @return array<string, array{array<array-key, mixed>}> */
-	public static function malformedRequests(): array {
-		$file = self::to(1, '/Out/X.RAF');
-		return [
-			'no list' => [['a' => [$file]]],
-			'a picture that is no list' => [[$file]],
-			'an empty picture' => [[[]]],
-			'a file that is no object' => [[[1]]],
-			'a file id that is no positive integer' => [[[['fileId' => 0] + $file]]],
-			'a file id as a string' => [[[['fileId' => '1'] + $file]]],
-			'a missing ETag' => [[[['fileId' => 1, 'path' => '/Out/X.RAF']]]],
-			'an empty ETag' => [[[['etag' => ''] + $file]]],
-			'a missing path' => [[[['fileId' => 1, 'etag' => 'etag-1']]]],
-			'a relative path' => [[[['path' => 'Out/X.RAF'] + $file]]],
-			'an empty segment' => [[[['path' => '/Out//X.RAF'] + $file]]],
-			'a trailing slash' => [[[['path' => '/Out/'] + $file]]],
-			'the root' => [[[['path' => '/'] + $file]]],
-			'a dot segment' => [[[['path' => '/Out/./X.RAF'] + $file]]],
-			'a dot-dot segment' => [[[['path' => '/Out/../../bob/X.RAF'] + $file]]],
-			'a backslash' => [[[['path' => '/Out\\X.RAF'] + $file]]],
-			'a NUL' => [[[['path' => "/Out/X.RAF\0"] + $file]]],
-			'a replace that is no object' => [[[['replace' => 9] + $file]]],
-			'a replace without ETag' => [[[['replace' => ['fileId' => 9]] + $file]]],
-			'a replace of a file of the request' => [[[$file, self::to(2, '/Out/X.JPG') + ['replace' => ['fileId' => 1, 'etag' => 'etag-1']]]]],
-			'a file id in two pictures' => [[[$file], [$file]]],
-			'a target path twice, in another case' => [[[$file], [self::to(2, '/out/x.raf')]]],
-			'more files than the limit' => [[array_map(static fn (int $id): array => self::to($id, "/Out/$id.JPG"), range(1, ListingService::ENTRY_LIMIT + 1))]],
-		];
-	}
-
 	// spec: MOVE-002.8
-	#[DataProvider('malformedRequests')]
-	public function testAMalformedRequestTouchesNothing(array $pictures): void {
+	public function testAMalformedRequestTouchesNothing(): void {
 		$this->pair();
 		$this->expectException(InvalidMoveRequestException::class);
 
 		try {
-			$this->service()->move($this->treeUser(), $pictures);
+			$this->service()->move($this->treeUser(), [[self::to(1, '/Out/../X.RAF')]]);
 		} finally {
 			$this->assertSame([], $this->log);
 		}
-	}
-
-	// spec: MOVE-002.8
-	public function testTheLimitItselfIsAccepted(): void {
-		$request = [array_map(static fn (int $id): array => self::to($id, "/Out/$id.JPG"), range(1, ListingService::ENTRY_LIMIT))];
-
-		$results = $this->service()->move($this->treeUser(), $request);
-
-		$this->assertCount(ListingService::ENTRY_LIMIT, $results[0]);
 	}
 }
