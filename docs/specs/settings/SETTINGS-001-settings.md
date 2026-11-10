@@ -128,6 +128,14 @@ LOUPE-002, KEYS-001).
 - **When** it opens, or the user shows or hides the flag buttons there
 - **Then** it acts on the current settings, and its change is saved like one from the dialog
 
+### SETTINGS-001.15 – Favourite and recent move targets
+
+- **Given** stored favourite and recent move targets with repeats, items that are not paths
+  starting with `/`, or a value that is not a list
+- **When** the settings are read
+- **Then** each list keeps its paths in order without repeats, drops the other items, and is empty
+  when it is not a list; the move dialog writes them (MOVE-004)
+
 ## Out of scope
 
 What the swipes, auto-advance and flag buttons do in the loupe: LOUPE-002. The vi keys: KEYS-001.
@@ -138,3 +146,4 @@ Pairing itself: LISTING-002.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged M4.4 (#54) |
+| 2026-11-10 | .15 favourite and recent move targets (M7.3) |
