@@ -6,7 +6,9 @@
 import type { RecentFolderSet } from '../logic/recent.ts'
 import type { ResumePosition } from '../logic/resume-position.ts'
 
+import { emit as emitEvent } from '@nextcloud/event-bus'
 import { t } from '@nextcloud/l10n'
+import { useIsMobile } from '@nextcloud/vue/composables/useIsMobile'
 import NcAppNavigation from '@nextcloud/vue/components/NcAppNavigation'
 import NcAppNavigationCaption from '@nextcloud/vue/components/NcAppNavigationCaption'
 import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
@@ -22,24 +24,33 @@ const emit = defineEmits<{
 	openRecent: [position: ResumePosition]
 	openSettings: []
 }>()
+
+const isMobile = useIsMobile()
+
+/** NcAppNavigation closes only through this event, as NcAppNavigationItem does for router links. */
+function closeOnNarrowScreen() {
+	if (isMobile.value) {
+		emitEvent('toggle-navigation', { open: false })
+	}
+}
 </script>
 
 <template>
 	<NcAppNavigation :ariaLabel="t('honeycomb', 'honeycomb navigation')">
 		<template #list>
-			<NcAppNavigationItem :name="t('honeycomb', 'Folder')" @click="emit('chooseFolders')">
+			<NcAppNavigationItem :name="t('honeycomb', 'Folder')" @click="closeOnNarrowScreen(); emit('chooseFolders')">
 				<template #icon>
 					<AppIcon name="folder" />
 				</template>
 			</NcAppNavigationItem>
 			<NcAppNavigationCaption :name="t('honeycomb', 'Recent')" />
-			<RecentFolderSets v-if="props.items.length > 0" :items="props.items" @open="emit('openRecent', $event)" />
+			<RecentFolderSets v-if="props.items.length > 0" :items="props.items" @open="closeOnNarrowScreen(); emit('openRecent', $event)" />
 			<p v-else class="app-navigation__empty">
 				{{ t('honeycomb', 'Folder sets you cull show here.') }}
 			</p>
 		</template>
 		<template #footer>
-			<NcAppNavigationItem :name="t('honeycomb', 'Settings')" @click="emit('openSettings')">
+			<NcAppNavigationItem :name="t('honeycomb', 'Settings')" @click="closeOnNarrowScreen(); emit('openSettings')">
 				<template #icon>
 					<AppIcon name="settings" />
 				</template>
