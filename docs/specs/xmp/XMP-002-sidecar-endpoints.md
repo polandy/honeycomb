@@ -110,7 +110,8 @@ the order sent.
 
 ## Out of scope
 
-- When the client reads and writes sidecars, and asking first in a shared folder: M5.3.
+- When the client reads and writes sidecars, and asking first in a shared folder:
+  [XMP-003](XMP-003-sidecars-in-the-cull.md).
 - Which folders are shared: LISTING-001.12.
 
 ## History

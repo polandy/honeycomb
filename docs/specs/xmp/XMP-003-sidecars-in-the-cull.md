@@ -1,8 +1,9 @@
 # XMP-003 – Sidecars in the cull
 
-- Status: accepted
+- Status: implemented
 - Area: xmp
-- Origin: `docs/plan.md` M5 and Decisions, gestures and shared folders, `docs/06-xmp-interop.md`, ADR 0005, ADR 0017
+- Origin: `docs/plan.md` M5 and Decisions, gestures and shared folders, `docs/06-xmp-interop.md`,
+  ADR 0005, ADR 0017
 - Depends on: LISTING-001, DECISIONS-001, XMP-001, XMP-002
 
 ## Purpose
@@ -43,8 +44,8 @@ of %n photos to sidecars*.
 a `<!DOCTYPE>`, a property given twice), a lookup or save answer other than `read` or `saved`, or a
 request that failed — is reported per file. After a write with failures a toast says *Could not
 write %n sidecars* with the action *Details*, which opens a dialog listing each file and its reason
-and offering *Retry failed sidecars*; a retry writes the pictures of the failed files again. A
-refused sidecar is never overwritten.
+and offering *Retry failed sidecars*; a retry writes the failed files again, each with its
+picture's decision when it runs. A refused sidecar is never overwritten.
 
 ## Acceptance criteria
 

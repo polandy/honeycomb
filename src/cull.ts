@@ -9,6 +9,7 @@ import type { PairingSettings, Picture } from './logic/pairing.ts'
 import type { Filters } from './logic/picture-filter.ts'
 import type { SortOrder } from './logic/picture-order.ts'
 import type { Settings } from './logic/settings.ts'
+import type { SidecarFailure } from './logic/sidecar-sync.ts'
 import type { UndoEntry, UndoHistory } from './logic/undo.ts'
 
 import { computed, ref, shallowRef, watch } from 'vue'
@@ -21,9 +22,16 @@ import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
 import { activeFilterCount, clearFilters, DEFAULT_FILTERS, emptyReason, filterPictures, pictureFolders, progress } from './logic/picture-filter.ts'
 import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
 import { pairingSettings } from './logic/settings.ts'
+import { inSharedFolder } from './logic/sidecar-sync.ts'
 import { parseTileSize } from './logic/tile-size.ts'
 import { withoutFiles } from './logic/trash-report.ts'
 import { NO_HISTORY, recordStep, redoStep, undoEntry, undoStep } from './logic/undo.ts'
+
+/** How the cull takes decisions over from the sidecars and writes them through (XMP-003). */
+export interface CullSidecars {
+	readonly takeOver: (pictures: readonly Picture<ListingEntry>[], storedIds: ReadonlySet<number>) => Promise<{ picture: Picture<ListingEntry>, decision: Decision }[]>
+	readonly write: (pictures: readonly Picture<ListingEntry>[], decisionOf: (picture: Picture<ListingEntry>) => Decision) => Promise<{ written: number, failed: SidecarFailure[] }>
+}
 
 /** The browser storage key of the thumbnail size. */
 export const TILE_SIZE_KEY = 'honeycomb.tileSize'
@@ -36,7 +44,7 @@ export interface CullApi {
 }
 
 /** The open cull, its view settings and the folder picker's state; it pairs and shows singles as the settings say. */
-export function useCull(api: CullApi, storage: BrowserStorage, settings: () => Settings) {
+export function useCull(api: CullApi, storage: BrowserStorage, settings: () => Settings, sidecars: CullSidecars) {
 	const compareNames = nameComparer()
 	const folderSet = ref<FolderSet | null>(null)
 	const entries = shallowRef<readonly ListingEntry[]>([])
@@ -52,6 +60,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const groupByFolder = ref(false)
 	const tileSize = ref(parseTileSize(readStored(storage, TILE_SIZE_KEY)))
 	const saveFailed = ref(false)
+	const sharedFolders = shallowRef<ReadonlySet<string>>(new Set())
 	let history: UndoHistory = NO_HISTORY
 	let opening = 0
 	let filtersOff: Filters | null = null
@@ -63,10 +72,12 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const cullProgress = computed(() => progress(pictures.value, decisionOf))
 	const activeFilters = computed(() => activeFilterCount(filters.value))
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
+	const sharedPictures = computed(() => pictures.value.filter((picture) => inSharedFolder(picture, sharedFolders.value)))
 
 	/** Shows the pictures of the confirmed folders with fresh filters, then their stored decisions. */
-	function open(set: FolderSet, listed: readonly ListingEntry[]) {
+	function open(set: FolderSet, listed: readonly ListingEntry[], shared: readonly string[]) {
 		folderSet.value = set
+		sharedFolders.value = new Set(shared)
 		opening++
 		entries.value = listed
 		paired.value = prepareCull(listed, pairing.value).pictures
@@ -86,14 +97,28 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		loadDecisions(paired.value)
 	})
 
-	/** Reads the decisions of every member; they apply only while the same pictures are open, under changes made meanwhile. */
+	/** Reads the decisions of every member, then takes the sidecars' over; they apply only while the same pictures are open, under changes made meanwhile. */
 	function loadDecisions(opened: readonly Picture<ListingEntry>[]) {
-		const fileIds = opened.flatMap((picture) => [picture.rendered, picture.raw].filter((member) => member !== null).map((member) => member.fileId))
-		api.lookupDecisions(fileIds).then((rows) => {
-			if (paired.value === opened) {
-				decisions.value = new Map([...decisionsByFileId(rows), ...decisions.value])
+		api.lookupDecisions(opened.flatMap(memberIds)).then(async (rows) => {
+			if (paired.value !== opened) {
+				return
 			}
+			decisions.value = new Map([...decisionsByFileId(rows), ...decisions.value])
+			await takeOver(opened, new Set(rows.map((row) => row.fileId)))
 		}).catch((error: unknown) => logger.error('Could not read the decisions; every photo shows as undecided', { error }))
+	}
+
+	/** Shows and stores the sidecars' decision of the pictures still undecided; no undo step and no write back (XMP-003.1–.5). */
+	async function takeOver(opened: readonly Picture<ListingEntry>[], storedIds: ReadonlySet<number>) {
+		const taken = await sidecars.takeOver(opened, storedIds)
+		const rows = paired.value === opened
+			? taken.filter(({ picture }) => !memberIds(picture).some((fileId) => decisions.value.has(fileId)))
+					.flatMap(({ picture, decision }) => memberIds(picture).map((fileId) => ({ fileId, ...decision })))
+			: []
+		if (rows.length > 0) {
+			decisions.value = withRows(decisions.value, rows)
+			api.saveDecisions(rows).catch((error: unknown) => logger.error('Could not save the decisions taken over from the sidecars', { error }))
+		}
 	}
 
 	/** The pictures with their decisions, as the decision rules take them. */
@@ -140,7 +165,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		const opened = opening
 		decisions.value = withRows(before, rows)
 		saveFailed.value = false
-		api.saveDecisions(rows).catch((error: unknown) => {
+		api.saveDecisions(rows).then(() => writeThrough(rows, opened), (error: unknown) => {
 			logger.error('Could not save the decisions', { error })
 			if (opening === opened) {
 				decisions.value = revertRows(decisions.value, rows, before)
@@ -148,6 +173,18 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 			}
 		})
 	}
+
+	/** Writes the decisions of the rows' pictures outside shared folders to their sidecars (XMP-003.6, .11). */
+	function writeThrough(rows: readonly StoredDecision[], opened: number) {
+		const fileIds = new Set(rows.map((row) => row.fileId))
+		const written = paired.value.filter((picture) => memberIds(picture).some((fileId) => fileIds.has(fileId)) && !inSharedFolder(picture, sharedFolders.value))
+		if (opening === opened && written.length > 0) {
+			void sidecars.write(written, decisionOf)
+		}
+	}
+
+	/** The pictures in shared folders with a stored decision, for an explicit write (XMP-003.12). */
+	const sharedDecided = () => sharedPictures.value.filter((picture) => memberIds(picture).some((fileId) => decisions.value.has(fileId)))
 
 	/** Takes trashed files out of the pictures; returns what each affected picture became (ADR 0013). */
 	function removeFiles(fileIds: ReadonlySet<number>) {
@@ -197,6 +234,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		groupByFolder,
 		tileSize,
 		saveFailed,
+		sharedPictures,
+		sharedDecided,
 		decisionOf,
 		common,
 		decide,
@@ -208,4 +247,9 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		toggleFiltersOff,
 		setTileSize,
 	}
+}
+
+/** The file ids of the picture's members, RAW first. */
+function memberIds(picture: Picture<ListingEntry>): number[] {
+	return [picture.raw, picture.rendered].filter((member) => member !== null).map((member) => member.fileId)
 }

@@ -3,6 +3,8 @@
 import type { ColourLabel, Decision, Flag, StoredDecision } from './decision.ts'
 import type { Picture } from './pairing.ts'
 
+import { sameDecision } from './decision.ts'
+
 /** A picture with its current decision. */
 export interface Decided {
 	readonly picture: Picture<{ readonly fileId: number }>
@@ -105,9 +107,4 @@ export function revertRows(decisions: ReadonlyMap<number, Decision>, rows: reado
 		}
 	}
 	return next
-}
-
-/** Whether two decisions hold the same values. */
-function sameDecision(a: Decision, b: Decision): boolean {
-	return a.rating === b.rating && a.colourLabel === b.colourLabel && a.flag === b.flag && a.keepRaw === b.keepRaw
 }
