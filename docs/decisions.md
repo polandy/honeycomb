@@ -566,3 +566,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   positions are not carried over: a moved picture has left the folder set whose position names it.
 - 2026-11-10: A decision row that cannot be carried over is logged as an error and the file is
   still reported `moved`: the files are where the user wanted, and the API keeps its shape.
+- 2026-11-10: The clean-up job keeps a resume position whose picture is deleted for good: the
+  folder set may still exist, *Recent* keeps listing it and resuming falls back to the first
+  picture. Positions are bounded at 20 per user; a deleted user's positions go with the user.
+- 2026-11-10: A deleted user's rows are removed on `UserDeletedEvent`, not by the job checking
+  whether users exist: a user backend that is briefly unreachable must not wipe a user's cull.

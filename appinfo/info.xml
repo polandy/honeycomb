@@ -21,6 +21,9 @@
 		<php min-version="8.3"/>
 		<nextcloud min-version="35" max-version="35"/>
 	</dependencies>
+	<background-jobs>
+		<job>OCA\Honeycomb\BackgroundJob\RemoveVanishedDecisions</job>
+	</background-jobs>
 	<navigations>
 		<navigation>
 			<id>honeycomb</id>

@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Listener;
 
 use OCA\Honeycomb\Listener\ForgetDeletedUser;
-use OCA\Honeycomb\Service\FolderSet;
 use OCA\Honeycomb\Service\Flag;
+use OCA\Honeycomb\Service\FolderSet;
 use OCA\Honeycomb\Service\PictureDecision;
 use OCA\Honeycomb\Service\ResumePosition;
 use OCA\Honeycomb\Tests\Service\FakeDecisionStore;

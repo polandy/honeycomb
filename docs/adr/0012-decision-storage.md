@@ -50,6 +50,9 @@ picture. A bulk action can change 2,000 pictures of two or three files each at o
 ## Consequences
 
 - One lookup per folder set after the listing; a bulk action is one request.
-- Rows of files deleted for good stay behind until a clean-up job removes them (`TODO.md`).
+- Rows of files deleted for good are removed by the daily job `RemoveVanishedDecisions`, which
+  compares them with the file cache; a file in the trash bin keeps its row and its decision. The
+  rows and positions of a deleted user go with the user (`UserDeletedEvent`). A position whose
+  picture is deleted for good stays, so *Recent* still lists its folder set.
 - Two devices writing the same picture: the last write wins.
 - A new field is added, never renamed or removed, without a new version in the path.

@@ -68,4 +68,36 @@ final class DecisionMapper extends QBMapper implements DecisionStore {
 			->andWhere($query->expr()->eq('file_id', $query->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
 			->executeStatement();
 	}
+
+	/** A file in the trash bin keeps its file cache row, so only a file deleted for good is gone. */
+	#[\Override]
+	public function forgetVanishedFiles(): int {
+		$removed = 0;
+		do {
+			$query = $this->db->getQueryBuilder();
+			$query->selectDistinct('d.file_id')
+				->from($this->getTableName(), 'd')
+				->leftJoin('d', 'filecache', 'f', $query->expr()->eq('d.file_id', 'f.fileid'))
+				->where($query->expr()->isNull('f.fileid'))
+				->setMaxResults(self::IN_CHUNK);
+			$result = $query->executeQuery();
+			$fileIds = array_map(intval(...), $result->fetchAll(\PDO::FETCH_COLUMN));
+			$result->closeCursor();
+			if ($fileIds !== []) {
+				$delete = $this->db->getQueryBuilder();
+				$removed += $delete->delete($this->getTableName())
+					->where($delete->expr()->in('file_id', $delete->createNamedParameter($fileIds, IQueryBuilder::PARAM_INT_ARRAY)))
+					->executeStatement();
+			}
+		} while (count($fileIds) === self::IN_CHUNK);
+		return $removed;
+	}
+
+	#[\Override]
+	public function forgetUser(string $userId): void {
+		$query = $this->db->getQueryBuilder();
+		$query->delete($this->getTableName())
+			->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
+			->executeStatement();
+	}
 }

@@ -25,4 +25,10 @@ interface DecisionStore {
 
 	/** Moves the user's decision of `$fileId`, if there is one, to `$newFileId`. */
 	public function carryOver(string $userId, int $fileId, int $newFileId): void;
+
+	/** Removes the rows of every user whose file is deleted for good and returns how many. */
+	public function forgetVanishedFiles(): int;
+
+	/** Removes every row of the user. */
+	public function forgetUser(string $userId): void;
 }
