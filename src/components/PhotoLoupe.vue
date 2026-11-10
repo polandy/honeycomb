@@ -61,6 +61,9 @@ const emit = defineEmits<{
 	close: []
 }>()
 
+/** The divider's width in the layout, its 12 px less the negative margins. */
+const DIVIDER_WIDTH = 4
+
 const root = useTemplateRef<HTMLElement>('root')
 const stage = useTemplateRef<InstanceType<typeof LoupeStage>>('stage')
 const panels = useLoupePanels(props.storage)
@@ -124,6 +127,7 @@ onMounted(() => root.value!.focus())
 		ref="root"
 		class="photo-loupe"
 		:class="{ 'photo-loupe--idle': overlays.idle.value, 'photo-loupe--chrome-free': chromeFree }"
+		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px` }"
 		role="dialog"
 		aria-modal="true"
 		:aria-label="t('honeycomb', 'Loupe')"
@@ -238,7 +242,7 @@ onMounted(() => root.value!.focus())
 }
 
 .photo-loupe__nav--next {
-	inset-inline-end: var(--default-grid-baseline);
+	inset-inline-end: calc(var(--photo-loupe-panel) + var(--default-grid-baseline));
 }
 
 .photo-loupe--chrome-free .photo-loupe__overlay,
@@ -251,7 +255,7 @@ onMounted(() => root.value!.focus())
 	.photo-loupe__filmstrip {
 		position: absolute;
 		z-index: 1;
-		inset-inline: 0;
+		inset-inline: 0 var(--photo-loupe-panel);
 		background-color: color-mix(in srgb, var(--color-main-background) 80%, transparent);
 	}
 

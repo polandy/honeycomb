@@ -152,14 +152,16 @@ async function closeLoupe() {
 				:listEntries="props.listEntries"
 				@confirm="cull.open"
 				@cancel="pickerOpen = false" />
-			<PhotoLoupe
-				v-if="loupe !== null && folderSet !== null"
-				v-model:index="loupe.index"
-				:pictures="loupe.pictures"
-				:folderSet="folderSet"
-				:decisionOf="cull.decisionOf"
-				:storage="props.storage"
-				@close="closeLoupe" />
+			<Teleport to="body">
+				<PhotoLoupe
+					v-if="loupe !== null && folderSet !== null"
+					v-model:index="loupe.index"
+					:pictures="loupe.pictures"
+					:folderSet="folderSet"
+					:decisionOf="cull.decisionOf"
+					:storage="props.storage"
+					@close="closeLoupe" />
+			</Teleport>
 		</NcAppContent>
 	</NcContent>
 </template>

@@ -15,10 +15,12 @@ export function nameComparer(): (a: string, b: string) => number {
 	return new Intl.Collator(getCanonicalLocale(), { numeric: true }).compare
 }
 
-/** A file size in the user's locale, in MB below one GB, e.g. "24.5 MB". */
+/** A file size in the user's locale in kB, MB or GB, e.g. "24.5 MB". */
 export function formatFileSize(bytes: number): string {
-	const megabytes = bytes / 1024 / 1024
-	const [value, unit] = megabytes >= 1024 ? [megabytes / 1024, 'gigabyte'] : [megabytes, 'megabyte']
+	const kilobytes = bytes / 1024
+	const [value, unit] = kilobytes >= 1024 ** 2
+		? [kilobytes / 1024 ** 2, 'gigabyte']
+		: kilobytes >= 1024 ? [kilobytes / 1024, 'megabyte'] : [kilobytes, 'kilobyte']
 	return new Intl.NumberFormat(getCanonicalLocale(), { style: 'unit', unit, maximumFractionDigits: 1 }).format(value)
 }
 

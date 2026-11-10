@@ -76,6 +76,7 @@ const decisionRows = computed(() => {
 
 <style scoped>
 .loupe-info {
+	box-sizing: border-box;
 	flex: none;
 	overflow: auto;
 	padding: calc(3 * var(--default-grid-baseline));
