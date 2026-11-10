@@ -622,3 +622,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   shorter label would break the glossary's words; one column would end the side-by-side
   compare. German still takes three lines at 320 px. The app's button ellipsizes instead of
   wrapping; that fix is its own `TODO.md` item, because it needs an e2e check at phone width.
+- 2026-11-10: UX review L4: the mockup's toast stops its timer while focus is inside it or a
+  pointer is pressed on it, and restarts the full 5.2 s once both end, so a reader who paused
+  gets the whole time back rather than a remainder that may be gone in a blink. Hover does not
+  hold it: touch has no hover, and the rule is about focus and press. The app's toast still
+  times out regardless; that fix is its own `TODO.md` item, because it needs Vitest and e2e
+  checks.
