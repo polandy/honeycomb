@@ -23,6 +23,7 @@ only. **Don't grow it**: move detail into `docs/` and keep a pointer here.
 | Topic | Document |
 |---|---|
 | What we build | `docs/01-requirements.md` |
+| What the merged code does, per feature | `docs/specs/` (rules in its `README.md`) |
 | Plan, milestones, open questions | `docs/plan.md` |
 | Branch, test, PR, review | `docs/02-workflow.md` — **binding**, read before the first commit |
 | How code is written here | `docs/conventions.md` (every language), `docs/03-coding-standards.md` (stack) |
@@ -66,6 +67,9 @@ Every tool result is re-read, and paid for, on each later turn.
 8. **Everything in the repository is English** — code, docs, UI strings, commits, PRs, issues —
    even when the owner writes in another language.
 9. **REUSE compliant.** A new file carries an SPDX header or is covered by `REUSE.toml`.
+10. **Spec and code stay in sync** (ADR 0015). A behaviour change updates its spec in
+    `docs/specs/` in the same PR, or the PR description says `Spec-Unchanged: <reason>`. A test
+    that proves a criterion is marked `// spec: <ID>.<n>`. `scripts/specs.sh` checks.
 
 ## Code style
 
@@ -84,8 +88,9 @@ Binding: `docs/conventions.md`. In short:
 
 ## Workflow
 
-1. Understand the task; read only the docs it touches.
-2. Write or extend the tests first, at the lowest layer that can express the behaviour.
+1. Understand the task; read only the docs it touches, and the spec of the feature.
+2. Update or add the spec (`docs/specs/`), then write or extend the tests first, at the lowest
+   layer that can express the behaviour, with their `// spec:` markers.
 3. Implement the smallest change that makes them pass.
 4. `scripts/verify.sh` is green.
 5. Update the docs the change touches and delete the finished item from `TODO.md`.

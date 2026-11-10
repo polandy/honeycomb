@@ -340,3 +340,17 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: Hidden by a tap while no swipe decides, the flag buttons' toast says "Flag buttons
   hidden, and no swipe decides: the flag at the top shows them"; by `B` it still names the key.
 - 2026-11-10: Keys are off while the settings dialog is open, as while the folder picker is.
+- 2026-11-10: Specs follow Framehive's model (IDs, numbered Given / When / Then criteria, `spec:`
+  markers on tests, `Spec-Unchanged:` / `Spec-Only:` trailers) rather than JIT-Pack's or
+  skipper-cd's review-only rule, because only Framehive's fails CI when spec and code part (ADR 0015).
+- 2026-11-10: Specs live in `docs/specs/`, not a top-level `specs/`, so CI's path groups treat them
+  as docs and a spec-only pull request skips the PHP and TypeScript jobs.
+- 2026-11-10: The trailer check judges the pull request as its squash commit (changed files, title
+  and description), not each commit as Framehive does: a test-first commit never touches the spec.
+- 2026-11-10: Behaviour code for the trailer check is `lib/`, `src/`, `appinfo/`, `templates/` and
+  `css/`; tests, scripts, workflows and docs need no trailer.
+- 2026-11-10: A criterion the merged code does not do yet, or that no test proves, stays in the
+  spec marked `(gap)` and must be named by a `TODO.md` item (`scripts/specs.sh`), so a gap is
+  listed instead of dropped; Framehive has no such marker.
+- 2026-11-10: No pull request template: the description becomes the squash commit body word for
+  word, so template text would land in `main`. The trailer rule is in `docs/02-workflow.md` §2.5.

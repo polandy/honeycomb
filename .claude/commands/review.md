@@ -16,5 +16,7 @@ Review uncommitted or recently committed changes against the project's standards
    - Are comments one line at most and about *why*?
    - Is a UI change backed by the signed-off mockup, and does it work without hover?
    - Is a closed `TODO.md` item removed, and are the docs it touches updated?
+   - Does the spec in `docs/specs/` describe the changed behaviour, with `// spec:` markers on
+     the tests that prove it (ADR 0015)?
 4. Report concisely: what needs fixing, with `file:line`. If everything is clean, say so in one
    line.

@@ -47,12 +47,14 @@ during a task becomes an issue as above.
   network, no shared state between tests. Playwright waits on a visible state, never on a
   timeout. Never skip, ignore or retry a failing test; fix the cause.
 - Pairing and deleting cover their edge and failure cases (CLAUDE.md rules 1–2).
+- A test that proves a spec criterion carries `// spec: <ID>.<n>` on the line above it
+  (`docs/specs/README.md`).
 
 ## 2.4 Before opening
 
 - `scripts/verify.sh` is green locally. CI runs the same tools at the same versions.
 - Docs that the change touches and the `TODO.md` line it finishes are part of the same pull
-  request. `CHANGELOG.md` is written by release-please.
+  request. So is the spec in `docs/specs/` for any behaviour change (ADR 0015). `CHANGELOG.md` is written by release-please.
 
 ## 2.5 Title and description
 
@@ -62,7 +64,9 @@ commit body, word for word. So:
 - **Title:** a Conventional Commit subject in English, such as `feat(pairing): match RAW and JPEG
   case-insensitively`. The `Pull request message` workflow checks it (`scripts/check-pr-title.sh`)
   and reruns when the title is edited.
-- **Description:** only commit body text: what changed and why.
+- **Description:** only commit body text: what changed and why. When behaviour code changes but
+  no spec does, a line `Spec-Unchanged: <reason>`; when an implemented spec changes but no code
+  or test does, `Spec-Only: <reason>`. The workflow checks them (`scripts/spec-trailers.sh`).
 - Notes for the reviewer, open questions and test evidence go into a comment, not into the
   description.
 - No `Co-Authored-By` or "Generated with" lines.

@@ -10,8 +10,8 @@ change is a pull request. The brief names the change and anything to look at clo
 - Read the diff before any file, and doc sections rather than whole directories.
 - Trust a green CI from the brief; run `scripts/verify.sh` again only after a fix of yours.
 - Change an existing file with `Edit`; `Write` only creates new files.
-- Fix real defects, test first: a missing test, a rule from `CLAUDE.md` that is broken, a doc that
-  contradicts the code. Report matters of taste, do not change them.
+- Fix real defects, test first: a missing test, a rule from `CLAUDE.md` that is broken, a doc or
+  spec (`docs/specs/`) that contradicts the code. Report matters of taste, do not change them.
 - Past ~120k tokens of context or ~150 turns, stop and report a hand-off instead.
 - Commit and push only when the brief says so or the change is a pull request under review.
   Never merge.

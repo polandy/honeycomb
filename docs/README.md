@@ -12,6 +12,7 @@ Open only the file, or the section, a change touches.
 | [`05-name-templates.md`](05-name-templates.md) | Name templates for moved pictures: syntax, tokens, sanitising, collisions |
 | [`06-xmp-interop.md`](06-xmp-interop.md) | XMP sidecars: digiKam, darktable and Lightroom fields, precedence, write rules, test vectors |
 | [`user/`](user/) | Documentation for users, e.g. [ratings, flags and colours in other programs](user/ratings-flags-colours.md), [keyboard shortcuts](user/keyboard-shortcuts.md), [settings](user/settings.md) |
+| [`specs/`](specs/) | What the merged code does, one spec per feature, coupled to the tests (ADR 0015) |
 | [`plan.md`](plan.md) | Milestones, project structure, target versions, open questions |
 | [`mockup/index.html`](mockup/index.html) | The interactive mockup (milestone M0); open it in a browser |
 | [`ux-review.md`](ux-review.md) | UX review of the mockup: findings, fixes, design direction; screenshots in [`ux/`](ux/) |
