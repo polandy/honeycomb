@@ -28,6 +28,8 @@ describe('parseSettings', () => {
 			autoAdvance: false,
 			flagButtonsShown: false,
 			viKeys: true,
+			moveFavourites: ['/Archive'],
+			moveRecent: ['/Archive', '/Best'],
 		}
 
 		expect(parseSettings(JSON.parse(JSON.stringify(settings)))).toEqual(settings)
@@ -125,5 +127,21 @@ describe('removeExtension', () => {
 		const one = { ...DEFAULT_SETTINGS, rawExtensions: ['nef'] }
 
 		expect(removeExtension(one, 'rawExtensions', 'nef')).toBe(one)
+	})
+})
+
+describe('move targets', () => {
+	// spec: SETTINGS-001.15
+	it('keeps paths in order without repeats and drops the rest', () => {
+		const parsed = parseSettings({ moveFavourites: ['/A', 'B', 3, '/A', '/C'], moveRecent: [null, '/R', '/R'] })
+
+		expect(parsed.moveFavourites).toEqual(['/A', '/C'])
+		expect(parsed.moveRecent).toEqual(['/R'])
+	})
+
+	// spec: SETTINGS-001.15
+	it.each([undefined, '/A', { 0: '/A' }])('reads %j as no targets', (value) => {
+		expect(parseSettings({ moveFavourites: value, moveRecent: value })).toMatchObject({ moveFavourites: [], moveRecent: [] })
+		expect(DEFAULT_SETTINGS).toMatchObject({ moveFavourites: [], moveRecent: [] })
 	})
 })
