@@ -78,6 +78,25 @@ describe('PhotoTile', () => {
 		expect(wrapper.find('img').attributes('srcset')).toBeUndefined()
 	})
 
+	// spec: GRID-001.12
+	it('is a skeleton tile until its small preview loaded', async () => {
+		const wrapper = mountTile(PAIR)
+		expect(wrapper.classes()).toContain('skeleton-tile')
+
+		await wrapper.find('img').trigger('load')
+
+		expect(wrapper.classes()).not.toContain('skeleton-tile')
+	})
+
+	// spec: GRID-001.12
+	it('stops being a skeleton tile when its small preview fails to load', async () => {
+		const wrapper = mountTile(PAIR)
+
+		await wrapper.find('img').trigger('error')
+
+		expect(wrapper.classes()).not.toContain('skeleton-tile')
+	})
+
 	// spec: GRID-001.2
 	it('loads no sharp image while the small preview is sharp enough', () => {
 		const { loads, loadImage } = fakeLoader()

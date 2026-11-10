@@ -37,7 +37,7 @@ Severity: **high** breaks a task or misleads, **medium** slows or confuses, **lo
 | M8 | medium | Grid | The filter scope switch is icon-only; the active scope has no name. | The active scope shows its name beside the icon above 520 px. | Fixed |
 | M9 | medium | Grid | The change-folder button is 38 px wide, below the 44 px target. | `min-width: 44px` on breadcrumb buttons. | Fixed |
 | M10 | medium | All dialogs (phone) | Dialogs open centred, out of thumb reach on a phone. | Bottom sheet at ≤ 520 px, with the safe-area inset. | Fixed |
-| L1 | low | Grid | No loading state while thumbnails arrive. | Skeleton tiles. | `TODO.md` |
+| L1 | low | Grid | No loading state while thumbnails arrive. | Skeleton tiles. | Fixed |
 | L2 | low | Grid (phone) | The scope name is hidden at phone width. | Name in the filter sheet, or a shorter label. | `TODO.md` |
 | L3 | low | Series (phone) | *Pick this, reject the rest* wraps to three lines. | Shorter label or icon plus text. | `TODO.md` |
 | L4 | low | Toast | The undo toast times out with no way to pause it (WCAG 2.2.1). | Pause on focus and pointer down. | `TODO.md` |

@@ -1,0 +1,21 @@
+/*
+ * SPDX-FileCopyrightText: 2026 honeycomb contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+/* A tile drawn before its photo is there pulses; shared by the grid's tiles and the listing skeleton. */
+.skeleton-tile {
+	background-color: var(--color-background-dark);
+	animation: skeleton-tile-pulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes skeleton-tile-pulse {
+	to {
+		background-color: var(--color-background-darker);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.skeleton-tile {
+		animation: none;
+	}
+}

@@ -5,6 +5,7 @@ import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import AppNavigation from '../../src/components/AppNavigation.vue'
 import FolderPicker from '../../src/components/FolderPicker.vue'
+import GridSkeleton from '../../src/components/GridSkeleton.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import SettingsDialog from '../../src/components/SettingsDialog.vue'
@@ -78,6 +79,26 @@ describe('App: Recent', () => {
 		expect(listed).toEqual(['/Trip +'])
 		expect(wrapper.findComponent(FolderPicker).exists()).toBe(false)
 		expect(wrapper.findComponent(PhotoLoupe).props('index')).toBe(shownNames(wrapper).indexOf('IMG_9'))
+	})
+
+	// spec: GRID-001.13
+	it('shows skeleton tiles in place of the grid while a recent folder set lists', async () => {
+		const answers: (() => void)[] = []
+		const wrapper = mountApp({
+			positions: { loadPositions: async () => [trip], savePosition: async () => undefined },
+			listEntries: (path: string) => new Promise((resolve) => answers.push(() => resolve({ entries: path === '/Trip' ? ENTRIES : [], truncated: false, sharedFolders: [] }))),
+		}).wrapper
+		await flushPromises()
+
+		wrapper.findComponent(AppNavigation).vm.$emit('openRecent', trip)
+		await flushPromises()
+		expect(wrapper.findComponent(GridSkeleton).exists()).toBe(true)
+		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
+
+		answers.forEach((answer) => answer())
+		await flushPromises()
+		expect(wrapper.findComponent(GridSkeleton).exists()).toBe(false)
+		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(true)
 	})
 
 	it('opens the folder picker and the settings from the navigation', async () => {

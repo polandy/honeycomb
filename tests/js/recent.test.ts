@@ -92,6 +92,37 @@ describe('useRecent', () => {
 		expect(recent.opened.map((args) => args[3])).toEqual([9])
 	})
 
+	// spec: GRID-001.13
+	it('says it is listing until the folder set chosen last opened', async () => {
+		const answers: (() => void)[] = []
+		const recent = recentOn(async () => [], (path) => new Promise((resolve) => answers.push(() => resolve({ entries: LISTINGS[path] ?? [], truncated: false, sharedFolders: [] }))))
+		expect(recent.listing.value).toBe(false)
+
+		void recent.open(trip)
+		void recent.open(home)
+		answers[0]!()
+		answers[1]!()
+		await flushPromises()
+		expect(recent.listing.value).toBe(true)
+
+		answers[2]!()
+		await flushPromises()
+		expect(recent.listing.value).toBe(false)
+	})
+
+	// spec: GRID-001.13
+	it('stops listing when the folder set cannot be listed', async () => {
+		vi.spyOn(logger, 'error').mockImplementation(() => {})
+		const recent = recentOn(async () => [], async () => {
+			throw new Error('offline')
+		})
+
+		await recent.open(trip)
+		await flushPromises()
+
+		expect(recent.listing.value).toBe(false)
+	})
+
 	it('reports a folder set that cannot be listed and keeps the cull', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => {})
 		const recent = recentOn(async () => [], async () => {
