@@ -7,9 +7,13 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\AppInfo;
 
+use OCA\Honeycomb\Db\DecisionMapper;
+use OCA\Honeycomb\Db\PositionMapper;
 use OCA\Honeycomb\Preview\JpegDecoder;
 use OCA\Honeycomb\Preview\OcpJpegDecoder;
 use OCA\Honeycomb\Preview\RawPreviewProvider;
+use OCA\Honeycomb\Service\DecisionStore;
+use OCA\Honeycomb\Service\PositionStore;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -27,6 +31,8 @@ final class Application extends App implements IBootstrap {
 	#[\Override]
 	public function register(IRegistrationContext $context): void {
 		$context->registerServiceAlias(JpegDecoder::class, OcpJpegDecoder::class);
+		$context->registerServiceAlias(DecisionStore::class, DecisionMapper::class);
+		$context->registerServiceAlias(PositionStore::class, PositionMapper::class);
 		$context->registerPreviewProvider(RawPreviewProvider::class, RawPreviewProvider::MIME_TYPE_REGEX);
 	}
 

@@ -21,6 +21,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **Remove RAWs** | The bulk action that moves the RAW member and its own sidecar of every unmarked, not rejected pair in the view to the trash bin; the JPEG and the decisions stay. |
 | **cull** | Going through a folder set and rating, labelling, flagging and deleting pictures. |
 | **folder set** | The folders one cull covers: the ticked folders and, with *Include subfolders*, every folder below them. Not a *selection*. |
+| **resume position** | Where a user stands in a folder set (the current picture and how many are decided), stored on the server so a cull continues on another device. |
 | **undecided** | A picture whose flag is unflagged; picked and rejected pictures are *decided*. |
 | **reject review** | The grid of all rejected pictures, where single ones can be rescued before the delete summary. |
 | **series** | Pictures taken within a short interval, compared side by side to pick the best. |

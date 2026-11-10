@@ -66,8 +66,9 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    pictures by folder, then file name.
 4. **Decision storage:** the table(s) and API for rating, colour label, flag and *Keep RAW* per
    picture and user (Q2, [Keep RAW and Remove RAWs](#keep-raw-and-remove-raws)), and the resume
-   position per folder set and user, so culling can stop and continue on another device (an ADR
-   first: new table).
+   position per folder set and user, so culling can stop and continue on another device (ADR
+   0012: one row per member file id and user, written as whole states; the 20 most recent
+   folder sets keep a position).
 5. **Filter bar:** rating, colour label, flag, pairing, *Keep RAW* and folder filters and the
    sort, as pure TypeScript modules over the listed pictures (Q8, Q9, Q18), and the scope *not
    rejected* / *undecided* / *all* of the culling workflow with the "x of y decided" progress.

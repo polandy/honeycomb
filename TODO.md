@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] M2.4: Decision storage — tables and API for rating, colour label, flag and Keep RAW per picture and user (Q2, Q20), plus the resume position per folder set and user so culling continues on another device; ADR first (2026-11-09)
 - [ ] M2.5: Filter bar — rating, colour label, flag, pairing, Keep RAW, folder and sort as pure TypeScript modules (Q8, Q9, Q18; sort by file name or capture time with the fallback in `docs/plan.md` Sort order); scope not rejected (default) / undecided / all and "x of y decided" progress (2026-11-09)
 - [ ] M2.6: Selection mode and bulk rate, label, flag and Keep RAW (Q10) (2026-11-09)
 - [ ] M3.1: Loupe — full screen, swipe, pinch zoom to 100 %, prefetch 2–3 neighbours each way (next image <100 ms), chrome-free mode (F, double-tap), tap zones for previous and next (`docs/plan.md` Tap zones), collapsible info panel with draggable divider, collapsible sidebar (2026-11-09)
@@ -29,6 +28,7 @@ Add items with `/todo`.
 
 ## Later
 
+- [ ] Clean-up job for `honeycomb_decisions` and `honeycomb_positions` rows whose files are deleted for good (ADR 0012 Consequences) (2026-11-10)
 - [ ] Grid: list RAW files whose type Nextcloud does not know (`.CR3` uploads get `application/octet-stream` and are skipped by the listing) — a mimetype mapping or a listing by RAW extension; decide before M4.3 (2026-11-10)
 - [ ] Grid: arrow-key focus moves between tiles (Tab only for now) and the phone bottom sheet of `ConfirmDialog` (2026-11-10)
 - [ ] Shared `Tooltip` component (`docs/plan.md` Tooltip) for the icon-only controls built so far: Home, More, Open {name} (2026-11-10)
