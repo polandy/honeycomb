@@ -363,8 +363,9 @@ most. The rule for the loupe and the series viewer, measured on the
    centred, on a dark translucent fill, always visible, and never reach the middle half of the
    screen. *Previous* and *Next* sit just inside them.
 3. **Everything else overlays the photo and hides when idle:** the title row (name, pair,
-   count, *Fit*, *Move…*, *Info*, filmstrip toggle) at the top, the filmstrip and the rating
-   and colour label row at the bottom (plus *Pick this, reject the rest* in the series viewer).
+   count, *Fit*, *Move…*, *Info*, filmstrip toggle, Nextcloud navigation toggle) at the top,
+   the filmstrip and the rating and colour label row at the bottom (plus *Pick this, reject
+   the rest* in the series viewer).
    They hide 2.5 s after the last touch, as the series viewer's controls already did; a tap on
    the middle of the photo shows or hides them ([Tap zones](#tap-zones)), a mouse move shows
    them, and a control with keyboard focus keeps them shown. The info panel opens beside the

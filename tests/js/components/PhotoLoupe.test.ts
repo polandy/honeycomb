@@ -158,7 +158,11 @@ describe('PhotoLoupe', () => {
 
 		expect(root.classes('photo-loupe--below-header')).toBe(true)
 		expect(toggle().attributes('aria-pressed')).toBe('true')
+		expect(root.attributes('aria-modal')).toBe('false')
 		expect(stored).toEqual({ [NAVIGATION_SHOWN_KEY]: 'true' })
+
+		await root.trigger('keydown', { key: 'Tab' })
+		expect(root.classes('photo-loupe--below-header')).toBe(false)
 	})
 
 	it('opens below the Nextcloud navigation when it was shown before', async () => {

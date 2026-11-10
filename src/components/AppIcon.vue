@@ -16,6 +16,7 @@ const PATHS = {
 	flagX: 'M5 3v18M5 4h11l-2 4 2 4H5M8 6l3 4M11 6l-3 4',
 	folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
 	home: 'M4 11l8-7 8 7v9H4zM10 20v-6h4v6',
+	menu: 'M4 6h16M4 12h16M4 18h16',
 	more: 'M5 12h.01M12 12h.01M19 12h.01',
 	select: 'M4 4h16v16H4zM8 12l3 3 5-6',
 } as const

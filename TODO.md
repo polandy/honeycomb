@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Loupe: a toggle for the Nextcloud app navigation beside the loupe, the rest of M3.1's "collapsible sidebar" (`docs/decisions.md` 2026-11-10) (2026-11-10)
 - [ ] Loupe: the gesture guide on the first loupe opening (`docs/plan.md` Tap zones, item 10) (2026-11-10)
 - [ ] Loupe: measure the < 100 ms budget for a prefetched next image (`docs/plan.md` Image delivery & performance, Budgets) (2026-11-10)
 - [ ] M3.2: Decisions in the loupe — pick/reject buttons and the *Flag buttons* toggle (`docs/plan.md` Flag buttons and vi keys), vertical swipe (Q6), rating, label and Keep RAW controls, auto-advance to the next undecided picture, "Rejected IMG_0001 · Undo" toast; built from the shared components (`docs/plan.md` Shared UI components) (2026-11-09)

@@ -17,6 +17,8 @@ const props = defineProps<{
 	zoom: number | null
 	infoOpen: boolean
 	filmstripOpen: boolean
+	/** Whether Nextcloud's header shows above the loupe. */
+	navigationShown: boolean
 }>()
 
 const emit = defineEmits<{
@@ -24,6 +26,7 @@ const emit = defineEmits<{
 	toggleZoom: []
 	'update:infoOpen': [open: boolean]
 	'update:filmstripOpen': [open: boolean]
+	'update:navigationShown': [shown: boolean]
 }>()
 </script>
 
@@ -51,6 +54,15 @@ const emit = defineEmits<{
 			@update:pressed="emit('update:filmstripOpen', $event)">
 			<template #icon>
 				<AppIcon name="film" />
+			</template>
+		</NcButton>
+		<NcButton
+			variant="tertiary"
+			:aria-label="t('honeycomb', 'Toggle Nextcloud navigation')"
+			:pressed="props.navigationShown"
+			@update:pressed="emit('update:navigationShown', $event)">
+			<template #icon>
+				<AppIcon name="menu" />
 			</template>
 		</NcButton>
 	</header>
