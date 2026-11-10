@@ -710,7 +710,7 @@ takes its sizes from the pointer type ([Control sizes](#control-sizes)), not fro
 | `PickRestButton` (`pickRestBtn`) | *Pick this, reject the rest* | series compare card, series viewer | `series` |
 | `UndoToast` (`toast`) | the change in words, *Undo*, an optional action; focus or a press holds it, letting go restarts its time (WCAG 2.2.1) | every undoable change | `undo`: entries and their text |
 | `ConfirmDialog` (`confirmDialog`) | title, body, footer *Back* · *Cancel* · confirm; a bottom sheet on a phone | delete summary, reject review, move summary, folder picker, delete report | — |
-| `PhotoTile` (`tileInner`, `updateTile`) | thumbnail, pair and series badges (a complete pair quiet, a single highlighted), stars once rated, colour dot, flag mark, selection check | grid | `pairing` |
+| `PhotoTile` (`tileInner`, `updateTile`) | thumbnail, pair and series badges (a complete pair quiet, a single highlighted), stars once rated, colour dot, flag mark (a bottom shade only behind these), selection check | grid | `pairing` |
 | `Tooltip` (`tip`, `tipShow`, `bindTips`) | the bubble tooltip of a control: its label in glossary words and its key from `HOTKEY`, e.g. "Pick `P`" | every icon and icon-only control on every screen | `hotkeys` |
 
 ### Tooltip
