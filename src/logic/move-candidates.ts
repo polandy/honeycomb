@@ -3,7 +3,7 @@
 import type { ListingEntry } from './listing.ts'
 import type { MoveCandidate, PlannedPicture } from './move-plan.ts'
 import type { NameTemplate } from './name-template/parse.ts'
-import type { MemberFile, PictureFacts } from './name-template/render.ts'
+import type { MemberFile, PictureFacts, RenderedFile } from './name-template/render.ts'
 import type { Picture } from './pairing.ts'
 
 import { filesOf } from './delete-summary.ts'
@@ -68,4 +68,10 @@ export function moveCounts(plan: readonly PlannedPicture[]): { files: number, co
 		files: plan.filter((picture) => picture.sent).reduce((sum, picture) => sum + picture.files.length, 0),
 		conflicts: plan.filter((picture) => picture.inConflict).length,
 	}
+}
+
+/** The collision suffix the plan added to the rendered file's name, e.g. `-2`, or null. */
+export function addedSuffix(rendered: RenderedFile, path: string): string | null {
+	const name = path.slice(path.lastIndexOf('/') + 1, -(rendered.extension.length + 1))
+	return name === rendered.name ? null : name.slice(rendered.name.length)
 }

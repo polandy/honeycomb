@@ -90,6 +90,7 @@ describe('MoveDialogs: summary', () => {
 	it('counts photos, files and conflicts, shows the template and every new path, and moves on Enter', async () => {
 		const { wrapper, moving, pair, single, sent } = mountDialogs()
 		moving.open([pair, single])
+		await flushPromises()
 		expect(confirmButton(wrapper).attributes('disabled')).toBeDefined()
 		moving.choose('/Out')
 		await flushPromises()

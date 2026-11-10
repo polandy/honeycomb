@@ -203,3 +203,6 @@ export function useMoveFlow(context: MoveFlowContext) {
 		},
 	}
 }
+
+/** The move flow a screen opens and its dialogs show. */
+export type MoveFlow = ReturnType<typeof useMoveFlow>
