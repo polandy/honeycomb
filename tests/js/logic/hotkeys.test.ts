@@ -77,6 +77,7 @@ describe('hotkey', () => {
 		['?', 'shortcuts'],
 		['Delete', 'delete'],
 		['n', 'compare'],
+		['m', 'move'],
 	])('runs %j as %s', (key, kind) => {
 		expect(action(press(key))).toEqual({ kind })
 	})
@@ -168,6 +169,11 @@ describe('KEYMAP', () => {
 	it('names every action once', () => {
 		const ids = KEYMAP.map((entry) => entry.id)
 		expect(new Set(ids).size).toBe(ids.length)
+	})
+
+	// spec: MOVE-004.1
+	it('lists M for the move dialog', () => {
+		expect(KEYMAP.find((entry) => entry.id === 'move')?.caps).toEqual(['M'])
 	})
 
 	// spec: KEYS-001.12
