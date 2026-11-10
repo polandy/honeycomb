@@ -34,7 +34,7 @@ async function openApp(props: Record<string, unknown> = {}, stubs: Record<string
 const toastText = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast).exists() ? wrapper.findComponent(UndoToast).text() : null
 function flagOf(wrapper: AppWrapper, at: number) {
 	const grid = wrapper.findComponent(PhotoGrid)
-	return grid.props('decisionOf')(grid.props('pictures')[at]).flag
+	return grid.props('decisionOf')!(grid.props('pictures')[at]!).flag
 }
 
 enableAutoUnmount(afterEach)

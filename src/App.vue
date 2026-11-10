@@ -6,8 +6,11 @@
 import type { Folder } from './api.ts'
 import type { BrowserStorage } from './browser-storage.ts'
 import type { ListEntries } from './folder-count.ts'
+import type { HotkeyHandlers } from './hotkeys.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
 import type { StoredDecision } from './logic/decision.ts'
+import type { FocusMove } from './logic/grid-layout.ts'
+import type { HotkeyIntent } from './logic/hotkeys.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Schedule } from './logic/long-press.ts'
 import type { Picture } from './logic/pairing.ts'
@@ -27,8 +30,12 @@ import PhotoGrid from './components/PhotoGrid.vue'
 import PhotoLoupe from './components/PhotoLoupe.vue'
 import UndoToast from './components/UndoToast.vue'
 import { listEntries as apiListEntries, listFolders as apiListFolders, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, warmPreviews as apiWarmPreviews } from './api.ts'
+import { readStored } from './browser-storage.ts'
 import { useCull } from './cull.ts'
-import { changeText, undoneText } from './decision-text.ts'
+import { changeText, redoneText, undoneText } from './decision-text.ts'
+import { toggleBrowserFullscreen } from './fullscreen.ts'
+import { useHotkeys, VI_KEYS_KEY } from './hotkeys.ts'
+import { stepRating } from './logic/hotkeys.ts'
 import { clearFilters } from './logic/picture-filter.ts'
 import { useSelectionMode } from './selection-mode.ts'
 import { browserSchedule } from './tile-selection.ts'
@@ -42,6 +49,7 @@ const props = withDefaults(defineProps<{
 	saveDecisions?: (decisions: readonly StoredDecision[]) => Promise<void>
 	storage?: BrowserStorage
 	schedule?: Schedule
+	toggleFullscreen?: (element: HTMLElement) => void
 }>(), {
 	listFolders: apiListFolders,
 	listEntries: apiListEntries,
@@ -50,13 +58,17 @@ const props = withDefaults(defineProps<{
 	saveDecisions: apiSaveDecisions,
 	storage: () => () => window.localStorage,
 	schedule: browserSchedule,
+	toggleFullscreen: toggleBrowserFullscreen,
 })
 
 const cull = useCull({ warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions }, props.storage)
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
 const loupe = ref<{ pictures: readonly Picture<ListingEntry>[], index: number } | null>(null)
 const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
-const selection = useSelectionMode(() => view.value, pictures, () => folderSet.value !== null && !pickerOpen.value && loupe.value === null)
+const loupeView = useTemplateRef<InstanceType<typeof PhotoLoupe>>('loupeView')
+const filterBar = useTemplateRef<InstanceType<typeof FilterBar>>('filterBar')
+const headerShown = ref(true)
+const selection = useSelectionMode(() => view.value, pictures)
 const { selecting, selected } = selection
 const common = computed(() => cull.common(selected.value))
 const toast = useToast(props.schedule)
@@ -77,6 +89,95 @@ function undo() {
 	}
 }
 
+/** Puts back the latest undone decision and says so. */
+function redo() {
+	const entry = cull.redo()
+	if (entry !== null) {
+		toast.show(redoneText(entry))
+	}
+}
+
+/** Decides the selection in selection mode, else the focused photo; `advance` then moves the focus on unless the photo left the view. */
+function decideByKey(intent: HotkeyIntent, advance: boolean): boolean {
+	const index = grid.value?.focusedIndex() ?? 0
+	const chosen = selecting.value ? selected.value : view.value.slice(index, index + 1)
+	if (chosen.length === 0) {
+		return false
+	}
+	decide(intent.kind === 'ratingStep' ? { kind: 'rating', rating: stepRating(cull.common(chosen).rating, intent.step) } : intent, chosen)
+	if (advance && view.value[index] === chosen[0]) {
+		void grid.value?.step('next')
+	} else if (advance && view.value.length > 0) {
+		void grid.value?.reveal(Math.min(index, view.value.length - 1))
+	}
+	return true
+}
+
+/** Opens the filter bar, with the toolbar, and focuses its first control. */
+async function focusFilters() {
+	headerShown.value = true
+	filtersOpen.value = true
+	await nextTick()
+	filterBar.value?.$el.querySelector('button, input, select')?.focus()
+}
+
+/** A grid key that moves the focus. */
+function step(move: FocusMove) {
+	return () => {
+		void grid.value?.step(move)
+	}
+}
+
+/** A key that acts only while selecting; otherwise it stays unhandled. */
+function whileSelecting(act: () => void) {
+	return () => {
+		if (!selecting.value) {
+			return false
+		}
+		act()
+		return true
+	}
+}
+
+/** The grid's keys (`docs/plan.md` Keyboard shortcuts). */
+const gridHotkeys: HotkeyHandlers = {
+	decide: decideByKey,
+	previous: step('previous'),
+	next: step('next'),
+	up: step('up'),
+	down: step('down'),
+	first: step('first'),
+	last: step('last'),
+	loupe: () => {
+		if (view.value.length === 0) {
+			return false
+		}
+		loupe.value = { pictures: view.value, index: grid.value?.focusedIndex() ?? 0 }
+		return true
+	},
+	header: () => {
+		headerShown.value = !headerShown.value
+	},
+	'filter-bar': () => {
+		filtersOpen.value = !filtersOpen.value
+	},
+	'filter-focus': () => {
+		void focusFilters()
+	},
+	'filters-off': cull.toggleFiltersOff,
+	'select-all': selection.selectAll,
+	'select-none': whileSelecting(selection.selectNone),
+	close: whileSelecting(() => selection.setSelecting(false)),
+	fullscreen: () => props.toggleFullscreen(document.documentElement),
+}
+
+useHotkeys(() => {
+	if (pickerOpen.value || folderSet.value === null) {
+		return null
+	}
+	return { undo, redo, ...(loupe.value === null ? gridHotkeys : loupeView.value?.hotkeys) }
+}, () => readStored(props.storage, VI_KEYS_KEY) === 'true')
+
 /** Closes the loupe and focuses its last picture in the grid. */
 async function closeLoupe() {
 	const { index } = loupe.value!
@@ -91,6 +192,7 @@ async function closeLoupe() {
 		<NcAppContent class="honeycomb">
 			<template v-if="folderSet !== null">
 				<GridToolbar
+					v-if="headerShown"
 					:folderSet="folderSet"
 					:folders="folders"
 					:tileSize="tileSize"
@@ -114,7 +216,8 @@ async function closeLoupe() {
 					@selectAll="selection.selectAll"
 					@selectNone="selection.selectNone" />
 				<FilterBar
-					v-if="filtersOpen"
+					v-if="filtersOpen && headerShown"
+					ref="filterBar"
 					:filters="filters"
 					:folders="folderPaths"
 					:folderSet="folderSet"
@@ -180,6 +283,7 @@ async function closeLoupe() {
 			<Teleport to="body">
 				<PhotoLoupe
 					v-if="loupe !== null && folderSet !== null"
+					ref="loupeView"
 					v-model:index="loupe.index"
 					:pictures="loupe.pictures"
 					:folderSet="folderSet"

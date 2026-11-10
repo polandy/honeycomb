@@ -3,7 +3,7 @@
 import type { Selection } from '../../../src/logic/selection.ts'
 
 import { describe, expect, it } from 'vitest'
-import { addSelected, keepShown, NO_SELECTION, selectAll, selectionAfterClick, selectionKey } from '../../../src/logic/selection.ts'
+import { addSelected, keepShown, NO_SELECTION, selectAll, selectionAfterClick } from '../../../src/logic/selection.ts'
 
 const ORDER = [10, 20, 30, 40, 50]
 const selection = (ids: number[], anchor: number | null = null): Selection => ({ ids: new Set(ids), anchor })
@@ -66,28 +66,5 @@ describe('keepShown', () => {
 		const kept = selection([10, 30], 30)
 
 		expect(keepShown(kept, ORDER)).toBe(kept)
-	})
-})
-
-describe('selectionKey', () => {
-	const key = (key: string, fields: Partial<Parameters<typeof selectionKey>[0]> = {}) => selectionKey({ key, ctrlKey: false, metaKey: false, shiftKey: false, altKey: false, ...fields })
-
-	it.each([
-		['a', { ctrlKey: true }, 'select-all'],
-		['A', { metaKey: true }, 'select-all'],
-		['d', { ctrlKey: true }, 'select-none'],
-		['Escape', {}, 'leave'],
-	])('maps %s with %o to %s', (pressed, fields, action) => {
-		expect(key(pressed, fields)).toBe(action)
-	})
-
-	it.each([
-		['a', {}],
-		['a', { ctrlKey: true, shiftKey: true }],
-		['d', { ctrlKey: true, altKey: true }],
-		['Escape', { ctrlKey: true }],
-		['x', { ctrlKey: true }],
-	])('ignores %s with %o', (pressed, fields) => {
-		expect(key(pressed, fields)).toBeNull()
 	})
 })
