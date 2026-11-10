@@ -83,6 +83,13 @@ describe('PhotoLoupe', () => {
 		expect(wrapper.emitted('close')).toHaveLength(3)
 	})
 
+	// spec: MOVE-004.1
+	it('asks to move its photo from the title row', async () => {
+		const { wrapper } = await mountLoupe()
+		await button(wrapper, 'Move this photo').trigger('click')
+		expect(wrapper.emitted('move')).toHaveLength(1)
+	})
+
 	// spec: KEYS-001.9
 	it('is the screen its keys belong to', async () => {
 		const { root } = await mountLoupe()

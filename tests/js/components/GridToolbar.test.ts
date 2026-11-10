@@ -13,7 +13,8 @@ import { PopoverStub } from './stubs.ts'
 
 const MARK = TRANSLATED_MARK
 
-const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number, series: number, rawRemovable: number, sidecarsShared: boolean } = {
+const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number, series: number, rawRemovable: number, sidecarsShared: boolean, movable: number } = {
+	movable: 0,
 	selecting: false,
 	rejected: 0,
 	series: 0,
@@ -91,6 +92,19 @@ describe('GridToolbar', () => {
 		expect(item(wrapper).text().replaceAll(MARK, '')).toBe('Remove RAWs… 88')
 		await item(wrapper).trigger('click')
 		expect(wrapper.emitted('removeRaws')).toHaveLength(1)
+	})
+
+	// spec: MOVE-004.2
+	it('moves the picks, or the filtered photos while a filter is on, from the More menu with their count, held at 0', async () => {
+		const set = { paths: ['/Trip'], subfolders: false }
+		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('button').find((button) => button.text().replaceAll(MARK, '').startsWith('Move'))!
+		const filtered = mountToolbar(set, 1, { movable: 5, activeFilters: 1 })
+
+		expect(item(mountToolbar(set)).attributes('disabled')).toBeDefined()
+		expect(item(mountToolbar(set, 1, { movable: 3 })).text().replaceAll(MARK, '')).toBe('Move picks… 3')
+		expect(item(filtered).text().replaceAll(MARK, '')).toBe('Move filtered… 5')
+		await item(filtered).trigger('click')
+		expect(filtered.emitted('move')).toHaveLength(1)
 	})
 
 	// spec: XMP-003.12

@@ -160,3 +160,6 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 		allDecided,
 	}
 }
+
+/** The delete flow a screen opens and its dialogs show. */
+export type DeleteFlow = ReturnType<typeof useDeleteFlow>

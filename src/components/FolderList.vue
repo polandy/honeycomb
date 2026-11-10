@@ -18,8 +18,13 @@ const props = withDefaults(defineProps<{
 	/** The ticked folder paths. */
 	ticked: readonly string[]
 	listFolders?: (path: string) => Promise<Folder[]>
+	/** One folder is chosen, not several ticked. */
+	single?: boolean
+	/** Folders that cannot be chosen, e.g. the open folder set's as a move target. */
+	blocked?: readonly string[]
 }>(), {
 	listFolders: apiListFolders,
+	blocked: () => [],
 })
 
 const emit = defineEmits<{
@@ -53,7 +58,7 @@ async function open(path: string) {
 
 /** Ticks or unticks a folder the cull can include. */
 function toggle(folder: Folder) {
-	if (!isHiddenFolder(folder.name)) {
+	if (!isHiddenFolder(folder.name) && !props.blocked.includes(folder.path)) {
 		emit('toggle', folder.path)
 	}
 }
@@ -82,7 +87,7 @@ void open('')
 				v-if="folders.length > 0"
 				class="folder-list__options"
 				role="listbox"
-				aria-multiselectable="true"
+				:aria-multiselectable="!props.single"
 				:aria-label="t('honeycomb', 'Folders')">
 				<li
 					v-for="folder in folders"
@@ -91,7 +96,7 @@ void open('')
 					tabindex="0"
 					class="folder-list__option"
 					:aria-selected="props.ticked.includes(folder.path)"
-					:aria-disabled="isHiddenFolder(folder.name) || undefined"
+					:aria-disabled="isHiddenFolder(folder.name) || props.blocked.includes(folder.path) || undefined"
 					@click="toggle(folder)"
 					@keydown.enter.space.prevent.self="toggle(folder)">
 					<span class="folder-list__box" aria-hidden="true">
@@ -101,6 +106,7 @@ void open('')
 					<span class="folder-list__label">
 						<span class="folder-list__name">{{ folder.name }}</span>
 						<span v-if="isHiddenFolder(folder.name)" class="folder-list__meta">{{ t('honeycomb', 'Hidden folder, always skipped') }}</span>
+						<span v-else-if="props.blocked.includes(folder.path)" class="folder-list__meta">{{ t('honeycomb', 'Open folder, cannot be the target') }}</span>
 					</span>
 					<button
 						v-if="folder.hasSubfolders"

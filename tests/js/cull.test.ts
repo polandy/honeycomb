@@ -157,6 +157,23 @@ describe('useCull: removeFiles', () => {
 	})
 })
 
+describe('useCull: restoreFiles', () => {
+	// spec: MOVE-004.11
+	it('puts files back into the listing, pairs them again and keeps their decisions', async () => {
+		const { cull, picture } = await openedCull()
+		const pair = picture('IMG_10')
+		cull.decide({ kind: 'flag', flag: 'picked' }, [pair])
+		const entries = [pair.raw!, pair.rendered!]
+		cull.removeFiles(new Set(entries.map((entry) => entry.fileId)))
+
+		cull.restoreFiles(entries)
+
+		expect(picture('IMG_10')).toMatchObject({ raw: { fileId: pair.raw!.fileId }, rendered: { fileId: pair.rendered!.fileId } })
+		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('picked')
+		expect(cull.pictures.value).toHaveLength(3)
+	})
+})
+
 describe('useCull: settings', () => {
 	it('leaves the singles out of the cull while show singles is off', async () => {
 		const { cull, settings } = await openedCull([stored(1, 'rejected'), stored(4, 'picked')])

@@ -13,6 +13,12 @@ export interface PanelLimits {
 /** The loupe's info panel, as in the mockup. */
 export const INFO_PANEL: PanelLimits = { min: 220, max: 480, initial: 300, step: 16 }
 
+/** The divider's width in the loupe's layout, its 12 px less the negative margins. */
+export const DIVIDER_WIDTH = 4
+
+/** The width of each side edge the large flag buttons take in landscape. */
+export const FLAG_RAIL = 96
+
 /** A stored width within the limits, else the initial width. */
 export function parsePanelWidth(stored: string | null, limits: PanelLimits): number {
 	const width = Number.parseInt(stored ?? '', 10)

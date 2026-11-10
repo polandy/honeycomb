@@ -12,6 +12,7 @@ import type { Schedule } from './logic/long-press.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { Settings } from './logic/settings.ts'
 import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
+import type { MoveApi } from './move-flow.ts'
 import type { SidecarFlowApi } from './sidecar-flow.ts'
 
 import { t } from '@nextcloud/l10n'
@@ -21,8 +22,8 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcContent from '@nextcloud/vue/components/NcContent'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import ActionBar from './components/ActionBar.vue'
+import CullDialogs from './components/CullDialogs.vue'
 import CullEmptyState from './components/CullEmptyState.vue'
-import DeleteDialogs from './components/DeleteDialogs.vue'
 import FilterBar from './components/FilterBar.vue'
 import FolderPicker from './components/FolderPicker.vue'
 import GridToolbar from './components/GridToolbar.vue'
@@ -32,15 +33,15 @@ import PhotoLoupe from './components/PhotoLoupe.vue'
 import SeriesCompareFlow from './components/SeriesCompareFlow.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutSheet from './components/ShortcutSheet.vue'
-import SidecarDialogs from './components/SidecarDialogs.vue'
 import UndoToast from './components/UndoToast.vue'
-import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, lookupSidecars, saveSidecars } from './api.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, lookupSidecars, movePictures, probeTargets, saveSidecars } from './api.ts'
 import { useCull } from './cull.ts'
 import { useDeleteFlow } from './delete-flow.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
 import { clearFilters } from './logic/picture-filter.ts'
+import { useMoveFlow } from './move-flow.ts'
 import { useSelectionMode } from './selection-mode.ts'
 import { useSeriesCompare } from './series-compare.ts'
 import { useSettings } from './settings.ts'
@@ -62,6 +63,7 @@ const props = withDefaults(defineProps<{
 	toggleFullscreen?: (element: HTMLElement) => void
 	trashPictures?: (pictures: readonly (readonly TrashRequestFile[])[]) => Promise<TrashResponseFile[][]>
 	sidecars?: SidecarFlowApi
+	move?: MoveApi
 }>(), {
 	listFolders: apiListFolders,
 	listEntries: apiListEntries,
@@ -75,6 +77,7 @@ const props = withDefaults(defineProps<{
 	toggleFullscreen: toggleBrowserFullscreen,
 	trashPictures: apiTrashPictures,
 	sidecars: () => ({ lookupSidecars, saveSidecars, now: browserNow }),
+	move: () => ({ probeTargets, movePictures }),
 })
 
 const toast = useToast(props.schedule)
@@ -99,7 +102,9 @@ const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisi
 const seriesFlow = useTemplateRef<InstanceType<typeof SeriesCompareFlow>>('seriesFlow')
 const overlayScreen = computed(() => (loupe.value !== null ? '.photo-loupe' : seriesCompare.viewer.open.value ? '.series-viewer' : undefined))
 const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
-const { dialog: deleteDialog, busy: deleteBusy, rejected, rawRemovable, rawRemoval } = deleting
+const { dialog: deleteDialog, rejected, rawRemovable } = deleting
+const moving = useMoveFlow({ view: () => view.value, settings: () => settings.value, updateSettings, probe: props.move.probeTargets, move: props.move.movePictures, removeFiles: cull.removeFiles, restoreFiles: cull.restoreFiles, listing: () => folderSet.value, loupe, toast: toast.show })
+const movable = computed(() => (activeFilters.value > 0 ? view.value : pictures.value.filter((picture) => cull.decisionOf(picture).flag === 'picked')))
 
 const gridKeys = gridHotkeys({
 	grid: () => grid.value,
@@ -123,7 +128,7 @@ function toggleShortcuts() {
 }
 
 useHotkeys(() => {
-	if (pickerOpen.value || settingsOpen.value || deleteDialog.value !== null || sidecarFlow.open.value) {
+	if (pickerOpen.value || settingsOpen.value || deleteDialog.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
 		return null
 	}
 	if (shortcutsOpen.value || folderSet.value === null) {
@@ -132,7 +137,7 @@ useHotkeys(() => {
 	if (seriesCompare.open.value) {
 		return { undo, redo, shortcuts: toggleShortcuts, ...(seriesFlow.value?.hotkeys() ?? seriesCompare.hotkeys) }
 	}
-	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: () => deleting.summariseShown(selected.value, () => grid.value?.focusedIndex() ?? 0), ...(loupe.value === null ? { ...gridKeys, compare: seriesCompare.start } : loupeView.value?.hotkeys) }
+	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: () => deleting.summariseShown(selected.value, () => grid.value?.focusedIndex() ?? 0), move: () => moving.openShown(selected.value, () => grid.value?.focusedIndex() ?? 0), ...(loupe.value === null ? { ...gridKeys, compare: seriesCompare.start } : loupeView.value?.hotkeys) }
 }, () => settings.value.viKeys)
 
 /** Closes the loupe and focuses its last picture in the grid. */
@@ -166,6 +171,7 @@ async function closeLoupe() {
 					:rejected="rejected.length"
 					:series="cull.series.value.length"
 					:rawRemovable="rawRemovable"
+					:movable="movable.length"
 					:sidecarsShared="cull.sharedPictures.value.length > 0"
 					@changeFolders="pickerOpen = true"
 					@update:tileSize="cull.setTileSize"
@@ -179,6 +185,7 @@ async function closeLoupe() {
 					@reviewRejects="deleting.review"
 					@compareSeries="seriesCompare.start"
 					@removeRaws="deleting.removeRaws"
+					@move="moving.open(movable)"
 					@writeSidecars="sidecarFlow.ask(cull.sharedDecided())"
 					@openSettings="settingsOpen = true" />
 				<FilterBar
@@ -220,6 +227,9 @@ async function closeLoupe() {
 					:disabled="selected.length === 0"
 					@decide="decide($event, selected)">
 					<template #end>
+						<NcButton :disabled="selected.length === 0" @click="moving.open(selected)">
+							{{ t('honeycomb', 'Move…') }}
+						</NcButton>
 						<NcButton variant="error" :disabled="selected.length === 0" @click="deleting.summarise(selected)">
 							{{ t('honeycomb', 'Delete…') }}
 						</NcButton>
@@ -235,27 +245,16 @@ async function closeLoupe() {
 				:pairing="cull.pairing.value"
 				@confirm="cull.open"
 				@cancel="pickerOpen = false" />
-			<DeleteDialogs
+			<CullDialogs
 				v-if="folderSet !== null"
-				:dialog="deleteDialog"
-				:rejected="rejected"
-				:rawRemoval="rawRemoval"
+				:deleting="deleting"
+				:moving="moving"
+				:sidecars="sidecarFlow"
 				:folderSet="folderSet"
 				:folders="folders"
-				:busy="deleteBusy"
-				:container="loupe !== null ? '.photo-loupe' : undefined"
-				@rescue="deleting.rescue"
-				@toggleKeepRaw="deleting.toggleKeepRaw"
-				@continue="deleting.continueToSummary"
-				@back="deleting.backToReview"
-				@close="deleting.close"
-				@confirm="deleting.confirm"
-				@retry="deleting.retry" />
-			<SidecarDialogs
-				v-if="folderSet !== null"
-				:flow="sidecarFlow"
-				:folderSet="folderSet"
-				:decisionOf="cull.decisionOf" />
+				:decisionOf="cull.decisionOf"
+				:listFolders="props.listFolders"
+				:container="loupe !== null ? '.photo-loupe' : undefined" />
 			<SeriesCompareFlow ref="seriesFlow" :flow="seriesCompare" :decisionOf="cull.decisionOf" />
 			<SettingsDialog v-model:open="settingsOpen" :settings="settings" @update="updateSettings" />
 			<Teleport to="body">
@@ -272,6 +271,7 @@ async function closeLoupe() {
 					@decide="(intent, picture) => decide(intent, [picture])"
 					@toast="toast.show($event.message, $event.action)"
 					@allDecided="deleting.allDecided"
+					@move="moving.openShown([], () => 0)"
 					@close="closeLoupe" />
 				<ShortcutSheet
 					v-if="shortcutsOpen"

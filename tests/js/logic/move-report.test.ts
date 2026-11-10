@@ -6,7 +6,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { describe, expect, it } from 'vitest'
 import { filesOf } from '../../../src/logic/delete-summary.ts'
-import { moveReport, undoRequest } from '../../../src/logic/move-report.ts'
+import { gotNewFileIds, moveReport, undoneEntries, undoRequest } from '../../../src/logic/move-report.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
 const [PAIR, SINGLE, OTHER] = picturesOf([
@@ -70,5 +70,31 @@ describe('undoRequest', () => {
 			[{ fileId: 2, etag: 'etag-2', path: '/In/A.JPG' }, { fileId: 10, etag: 'etag-10', path: '/In/A.RAF' }, { fileId: 3, etag: 'etag-3', path: '/In/A.xmp' }],
 			[{ fileId: 50, etag: 'etag-50', path: '/In/C.JPG' }],
 		])
+	})
+})
+
+describe('undoneEntries', () => {
+	// spec: MOVE-004.11
+	it('gives each file moved back its old entry at its old path with its id and ETag of the answer', () => {
+		const report = moveReport(SENT.slice(0, 2), [[moved(2, '/Out/X.JPG'), moved(1, '/Out/X.RAF'), moved(3, '/Out/X.xmp')], [moved(4, '/Out/B.JPG')]])
+
+		const undone = undoneEntries(report, [
+			[moved(2, '/In/A.JPG', 2), moved(1, '/In/A.RAF', 11), { fileId: 3, result: 'locked', replaced: false }],
+			[{ fileId: 4, result: 'moved', replaced: false }],
+		])
+
+		expect(undone.entries).toEqual([
+			{ ...PAIR.rendered, path: '/In/A.JPG', fileId: 2, etag: 'etag-2' },
+			{ ...PAIR.raw, path: '/In/A.RAF', fileId: 11, etag: 'etag-11' },
+		])
+		expect(undone.failed).toBe(2)
+	})
+})
+
+describe('gotNewFileIds', () => {
+	// spec: MOVE-004.14
+	it('tells whether a moved file has a new file id', () => {
+		expect(gotNewFileIds(moveReport(SENT.slice(1, 2), [[moved(4, '/Out/B.JPG')]]))).toBe(false)
+		expect(gotNewFileIds(moveReport(SENT.slice(1, 2), [[moved(4, '/Out/B.JPG', 40)]]))).toBe(true)
 	})
 })

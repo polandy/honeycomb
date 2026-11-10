@@ -28,6 +28,7 @@ import { imageUrl as apiImageUrl } from '../api.ts'
 import { LOUPE_IDLE_MS, useIdle } from '../idle.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { imageMember, loupeSources } from '../logic/image-tiers.ts'
+import { FLAG_RAIL } from '../logic/panel-width.ts'
 import { useLoupeDecisions } from '../loupe-decisions.ts'
 import { decodeSource, usePrefetch } from '../loupe-prefetch.ts'
 import { observeElementSize } from '../observe-size.ts'
@@ -63,9 +64,6 @@ const emit = defineEmits<{
 	updateSettings: [patch: Partial<Settings>]
 	close: []
 }>()
-
-/** The width of each side edge the large flag buttons take in landscape, as in the loupe. */
-const RAIL = 96
 
 const root = useTemplateRef<HTMLElement>('root')
 const stage = useTemplateRef<InstanceType<typeof LoupeStage>>('stage')
@@ -136,7 +134,7 @@ onMounted(() => root.value!.focus())
 		ref="root"
 		class="series-viewer"
 		:class="{ 'series-viewer--idle': overlays.idle.value }"
-		:style="{ '--photo-loupe-panel': '0px', '--photo-loupe-rail': `${settings.flagButtonsShown ? RAIL : 0}px` }"
+		:style="{ '--photo-loupe-panel': '0px', '--photo-loupe-rail': `${settings.flagButtonsShown ? FLAG_RAIL : 0}px` }"
 		role="dialog"
 		aria-modal="true"
 		:aria-label="t('honeycomb', 'Series viewer')"

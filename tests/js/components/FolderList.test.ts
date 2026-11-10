@@ -155,3 +155,23 @@ describe('FolderList', () => {
 		expect(untranslatedText(wrapper.element as Element)).toEqual(['.hidden', 'Day 9', 'Day 10', 'Photos'])
 	})
 })
+
+describe('FolderList: one folder', () => {
+	// spec: MOVE-004.4
+	it('offers one folder and refuses the blocked ones', async () => {
+		const folders = fakeFolders()
+		const wrapper = mount(FolderList, { props: { ticked: [], listFolders: folders.listFolders, single: true, blocked: ['/Day 9'] } })
+		folders.pending.shift()!.settle()
+		await flushPromises()
+
+		expect(wrapper.find('[role="listbox"]').attributes('aria-multiselectable')).toBe('false')
+		const option = (name: string) => wrapper.findAll('[role="option"]').find((each) => each.text().startsWith(name))!
+		expect(option('Day 9').attributes('aria-disabled')).toBe('true')
+		expect(option('Day 9').text()).toContain('Open folder, cannot be the target')
+
+		await option('Day 9').trigger('click')
+		await option('Day 10').trigger('click')
+
+		expect(wrapper.emitted('toggle')).toEqual([['/Day 10']])
+	})
+})

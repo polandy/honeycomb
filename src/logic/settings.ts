@@ -15,6 +15,8 @@ export interface Settings extends PairingSettings {
 	readonly autoAdvance: boolean
 	readonly flagButtonsShown: boolean
 	readonly viKeys: boolean
+	readonly moveFavourites: readonly string[]
+	readonly moveRecent: readonly string[]
 }
 
 /** One of the two extension lists. */
@@ -34,6 +36,8 @@ export const DEFAULT_SETTINGS: Settings = {
 	autoAdvance: true,
 	flagButtonsShown: true,
 	viKeys: false,
+	moveFavourites: [],
+	moveRecent: [],
 }
 
 const OTHER_LIST: Record<ExtensionList, ExtensionList> = { rawExtensions: 'renderedExtensions', renderedExtensions: 'rawExtensions' }
@@ -51,6 +55,8 @@ export function parseSettings(value: unknown): Settings {
 		autoAdvance: boolean('autoAdvance'),
 		flagButtonsShown: boolean('flagButtonsShown'),
 		viKeys: boolean('viKeys'),
+		moveFavourites: parsePaths(stored.moveFavourites),
+		moveRecent: parsePaths(stored.moveRecent),
 	}
 }
 
@@ -114,6 +120,11 @@ function parseSwipes(value: unknown): SwipeSetting {
 	const stored: Record<string, unknown> = isObject(value) ? value : {}
 	const flag = (direction: 'up' | 'down') => (SWIPE_FLAGS.includes(stored[direction] as Flag | null) ? stored[direction] as Flag | null : DEFAULT_SWIPES[direction])
 	return { up: flag('up'), down: flag('down') }
+}
+
+/** The stored folder paths in order without repeats; anything else is dropped. */
+function parsePaths(value: unknown): string[] {
+	return Array.isArray(value) ? [...new Set(value.filter((item): item is string => typeof item === 'string' && item.startsWith('/')))] : []
 }
 
 /** As pairing reads an extension: trimmed, without a leading dot, in lower case. */

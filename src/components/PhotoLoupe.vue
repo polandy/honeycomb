@@ -30,7 +30,7 @@ import { imageUrl as apiImageUrl } from '../api.ts'
 import { toggleBrowserFullscreen } from '../fullscreen.ts'
 import { LOUPE_IDLE_MS, useIdle } from '../idle.ts'
 import { imageMember, loupeSources } from '../logic/image-tiers.ts'
-import { INFO_PANEL } from '../logic/panel-width.ts'
+import { DIVIDER_WIDTH, FLAG_RAIL, INFO_PANEL } from '../logic/panel-width.ts'
 import { prefetchOrder } from '../logic/prefetch.ts'
 import { useLoupeDecisions } from '../loupe-decisions.ts'
 import { useLoupePanels } from '../loupe-panels.ts'
@@ -66,14 +66,10 @@ const emit = defineEmits<{
 	decide: [intent: DecisionIntent, picture: Picture<ListingEntry>]
 	toast: [toast: Toast]
 	allDecided: []
+	move: []
 	updateSettings: [patch: Partial<Settings>]
 	close: []
 }>()
-
-/** The divider's width in the layout, its 12 px less the negative margins. */
-const DIVIDER_WIDTH = 4
-/** The width of each side edge the large flag buttons take in landscape. */
-const RAIL = 96
 
 const root = useTemplateRef<HTMLElement>('root')
 const stage = useTemplateRef<InstanceType<typeof LoupeStage>>('stage')
@@ -152,7 +148,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 		ref="root"
 		class="photo-loupe"
 		:class="{ 'photo-loupe--idle': overlays.idle.value, 'photo-loupe--chrome-free': chromeFree, 'photo-loupe--below-header': navigationShown && !chromeFree }"
-		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px`, '--photo-loupe-rail': `${settings.flagButtonsShown ? RAIL : 0}px` }"
+		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px`, '--photo-loupe-rail': `${settings.flagButtonsShown ? FLAG_RAIL : 0}px` }"
 		role="dialog"
 		:aria-modal="!navigationShown"
 		:aria-label="t('honeycomb', 'Loupe')"
@@ -171,6 +167,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:flagButtonsShown="settings.flagButtonsShown"
 			@pointerdown="overlays.wake"
 			@close="emit('close')"
+			@move="emit('move')"
 			@toggleZoom="stage!.toggleZoom()"
 			@update:infoOpen="panels.setInfoOpen"
 			@update:filmstripOpen="filmstripOpen = $event"

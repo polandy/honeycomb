@@ -626,8 +626,8 @@ Where the work lands: M3.2 and M6 (flag buttons), M3.3 (keys, vi keys, shortcut 
 
 ## Moving pictures
 
-Decided by the owner on 2026-11-09. A *Move to…* action in the action bar, the toolbar and the
-loupe, on the key `M`.
+Decided by the owner on 2026-11-09. A *Move…* action in the action bar, the toolbar's More menu
+and the loupe's title row, on the key `M` (dialog and summary: MOVE-004).
 
 1. **What moves.** One picture, the selection, or a filter result (the toolbar's *Move picks*, or
    *Move filtered* while a filter is on). Always the whole picture: RAW member, rendered member
@@ -636,12 +636,14 @@ loupe, on the key `M`.
    user) and the 5 most recent targets are one-tap chips, and keys `1`–`9` in the dialog.
 3. **On the server.** The move runs through `OCP\Files` (`Node::move()`). On the same storage it
    is a rename, so file ids, shares, tags, comments and decisions are kept. Across storages it
-   becomes copy and delete with new file ids; the move summary warns about it.
+   becomes copy and delete with new file ids; the toast after the move says that decisions did
+   not move with the files.
 4. **Move summary.** Before anything moves, the dialog lists every file with its new path, and
    counts pictures, files and conflicts. A conflict (the target name already exists) is resolved
    per picture or for all at once: *Add suffix* (default), *Skip* or *Replace*. *Replace* sends
    the existing file to the trash bin.
-5. **Undo.** One undo step moves the files back to their old names. Replaced files stay in the
+5. **Undo.** The toast's *Undo* moves the files back to their old names; `Ctrl+Z` undoes
+   decisions only. Replaced files stay in the
    trash bin, restorable there, since restoring is not public API (ADR 0018).
 6. **Failures.** If one file of a picture fails, the picture's files already moved go back, and
    the summary reports each file (as in M4.1). Endpoints and atomicity: ADR 0018, MOVE-002;
