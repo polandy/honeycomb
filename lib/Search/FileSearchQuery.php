@@ -16,6 +16,7 @@ final class FileSearchQuery implements ISearchQuery {
 	public function __construct(
 		private ISearchOperator $operation,
 		private int $limit,
+		private int $offset,
 		private IUser $user,
 	) {
 	}
@@ -32,7 +33,7 @@ final class FileSearchQuery implements ISearchQuery {
 
 	#[\Override]
 	public function getOffset(): int {
-		return 0;
+		return $this->offset;
 	}
 
 	/** @return list<FileIdOrder> */

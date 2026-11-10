@@ -124,3 +124,31 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   the `JpegDecoder` interface; PHPUnit fakes the interface and the e2e case covers the class.
 - 2026-11-10: The budgets are not measured yet: no real 24 MP RAW+JPEG pairs are available to
   the agents. The measurement is a `TODO.md` item for the owner's files.
+- 2026-11-10: The folder picker counts photos by listing and pairing the ticked folders in
+  TypeScript (ADR 0011); the listing is cached per folder and reused when the cull opens.
+- 2026-11-10: Folder paths in the client are `''` for the root and `/a/b` otherwise, as the
+  listing returns them; no trailing slash.
+- 2026-11-10: Until M2.5 brings the sort, the grid orders pictures by folder, then base name
+  (`Intl.Collator`, numeric); the 20,000 cap keeps the earliest by capture time, ties in listing
+  order.
+- 2026-11-10: The grid warms previews for the shown member of each shown picture only, so a
+  request stays below ADR 0010's 60,000 ids.
+- 2026-11-10: A child folder whose own listing fails is still listed, with `hasSubfolders: false`;
+  opening it then answers `403` or `404`.
+- 2026-11-10: Counts in strings use `{count}` with `Intl.NumberFormat`, not `%n`, because `n()`
+  inserts the raw number ("1840" instead of "1,840").
+- 2026-11-10: A single's badge reads "{extension} only" ("JPG only", "HEIC only", "NEF only"), a
+  pair's "JPG+CR3", rendered extension first, `jpeg` shown as `JPG`.
+- 2026-11-10: The ⋯ *More* menu is an `NcPopover`, because `NcActions` cannot hold the thumbnail
+  size range input.
+- 2026-11-10: Icons are the mockup's inline SVG paths in `AppIcon.vue`; an icon package would be
+  a new dependency and needs an ADR first.
+- 2026-11-10: Pinch to resize tiles uses touch events, as in the mockup, since two-finger
+  distance needs both touches at once.
+- 2026-11-10: Icon-only controls carry an `aria-label` and no tooltip until the shared `Tooltip`
+  component exists (`TODO.md`); the native `title` stays unused.
+- 2026-11-10: `.CR3` files are not listed yet: Nextcloud types them `application/octet-stream`.
+  The e2e RAW is a `.NEF`; the fix is a `TODO.md` item.
+- 2026-11-10: The subfolder listing pages by offset in file id order, since Nextcloud's search
+  accepts only `eq` and `in` on `fileid`. A file added during a listing can shift a page; the
+  client drops duplicates by file id (`mergeListings`).

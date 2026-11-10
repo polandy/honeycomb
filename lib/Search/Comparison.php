@@ -10,7 +10,7 @@ namespace OCA\Honeycomb\Search;
 use OCP\Files\Search\ISearchComparison;
 
 /** One file-cache condition; `OCP` has no public implementation of `ISearchComparison`. */
-final class Comparison implements ISearchComparison {
+final class Comparison implements ISearchComparison, \Stringable {
 	use QueryHints;
 
 	public function __construct(
@@ -38,5 +38,11 @@ final class Comparison implements ISearchComparison {
 	#[\Override]
 	public function getValue(): string|int {
 		return $this->value;
+	}
+
+	/** The same form as Nextcloud's own comparison; its query optimizer groups operators by it. */
+	#[\Override]
+	public function __toString(): string {
+		return $this->field . ' ' . $this->type . ' ' . json_encode($this->value, JSON_THROW_ON_ERROR);
 	}
 }

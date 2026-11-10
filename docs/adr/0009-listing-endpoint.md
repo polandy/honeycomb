@@ -25,7 +25,8 @@ holds.
   outside the user's files, such as the trash bin and the preview folders, never match.
 - **Query:** without `subfolders` the folder's own listing; with it a file-cache search below the
   folder (`Folder::search`, every mount inside included) by mime type and name, paged by file id
-  in pages of 5,000. honeycomb implements `ISearchQuery` and its operators in `lib/Search/`.
+  in pages of 5,000 by offset (Nextcloud's search takes only `eq` and `in` on `fileid`).
+  honeycomb implements `ISearchQuery` and its operators in `lib/Search/`.
 - **Limit:** 60,000 entries, 20,000 pictures of a RAW, a JPEG and a sidecar each. Beyond it the
   response sets `truncated`; the client caps at 20,000 pictures after pairing.
 - **Errors:** `404` for a path with `..`, a vanished folder, a file or a folder outside the user's

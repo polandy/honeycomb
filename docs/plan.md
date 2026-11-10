@@ -61,6 +61,9 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 3. **Folder picker and grid:** a folder picker with a checkbox per folder and the *Include
    subfolders* switch, a virtual-scrolling grid with srcset thumbnails (256/512 px, stepless
    size), pair badges and folder headers, light and dark ([Multiple folders](#multiple-folders)).
+   The picker browses folders through `GET /api/v1/folders` (ADR 0011) and counts the ticked
+   folders by listing and pairing them in TypeScript. Until the sort of M2.5, the grid orders
+   pictures by folder, then file name.
 4. **Decision storage:** the table(s) and API for rating, colour label, flag and *Keep RAW* per
    picture and user (Q2, [Keep RAW and Remove RAWs](#keep-raw-and-remove-raws)), and the resume
    position per folder set and user, so culling can stop and continue on another device (an ADR

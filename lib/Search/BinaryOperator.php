@@ -11,10 +11,10 @@ use OCP\Files\Search\ISearchBinaryOperator;
 use OCP\Files\Search\ISearchOperator;
 
 /** `and`, `or` or `not` over file-cache conditions. */
-final class BinaryOperator implements ISearchBinaryOperator {
+final class BinaryOperator implements ISearchBinaryOperator, \Stringable {
 	use QueryHints;
 
-	/** @param list<ISearchOperator> $arguments */
+	/** @param list<BinaryOperator|Comparison> $arguments */
 	public function __construct(
 		private string $type,
 		private array $arguments,
@@ -30,5 +30,14 @@ final class BinaryOperator implements ISearchBinaryOperator {
 	#[\Override]
 	public function getArguments(): array {
 		return $this->arguments;
+	}
+
+	/** The same form as Nextcloud's own operator; its query optimizer groups operators by it. */
+	#[\Override]
+	public function __toString(): string {
+		if ($this->type === ISearchBinaryOperator::OPERATOR_NOT) {
+			return '(not ' . $this->arguments[0]->__toString() . ')';
+		}
+		return '(' . implode(' ' . $this->type . ' ', $this->arguments) . ')';
 	}
 }

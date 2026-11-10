@@ -11,6 +11,7 @@ use OCA\Honeycomb\Service\EntryFactory;
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\ListingService;
+use OCA\Honeycomb\Service\UserFolderResolver;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotPermittedException;
@@ -26,7 +27,7 @@ final class ListingServiceTest extends TestCase {
 		$manager->method('getMetadataForFiles')->willReturnCallback(
 			static fn (array $ids): array => array_intersect_key($metadata, array_flip($ids)),
 		);
-		return new ListingService($root, new EntryFactory($manager), $entryLimit);
+		return new ListingService(new UserFolderResolver($root), new EntryFactory($manager), $entryLimit);
 	}
 
 	public function testListsThePicturesFilesAndSidecarsOfTheFolderOnly(): void {
