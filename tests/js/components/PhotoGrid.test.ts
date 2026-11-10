@@ -19,6 +19,7 @@ describe('PhotoGrid', () => {
 	beforeEach(installMarkedCatalogue)
 	afterEach(uninstallMarkedCatalogue)
 
+	// spec: GRID-001.1
 	it('renders only the rows of the viewport and one viewport around it', async () => {
 		const { wrapper, resize } = mountGrid()
 
@@ -29,6 +30,7 @@ describe('PhotoGrid', () => {
 		expect(wrapper.find('.photo-grid__spacer').attributes('style')).toContain(`height: ${25 * 102 + 24 * 8}px`)
 	})
 
+	// spec: GRID-001.1
 	it('renders the rows the scroll position reaches', async () => {
 		const { wrapper, resize } = mountGrid()
 		await resize(432, 220)
@@ -40,6 +42,7 @@ describe('PhotoGrid', () => {
 		expect(tileNames(wrapper)).not.toContain('IMG_0')
 	})
 
+	// spec: GRID-001.1
 	it('starts at the top again when the pictures of another cull arrive', async () => {
 		const { wrapper, resize } = mountGrid()
 		await resize(432, 220)
@@ -71,6 +74,7 @@ describe('PhotoGrid', () => {
 		expect(stopped()).toBe(true)
 	})
 
+	// spec: GRID-001.9
 	it('heads each folder with its name relative to the picked folder and its count', async () => {
 		const { wrapper, resize } = mountGrid({ pictures: picturesIn({ '/P/A': 2, '/P/B/C': 3 }), groupByFolder: true })
 		await resize(432, 600)
@@ -80,6 +84,7 @@ describe('PhotoGrid', () => {
 		expect(wrapper.find('.photo-grid__sticky').text()).toBe('A')
 	})
 
+	// spec: GRID-001.9
 	it('sticks the header of the folder at the top of the viewport', async () => {
 		const { wrapper, resize } = mountGrid({ pictures: picturesIn({ '/P/A': 40, '/P/B': 40 }), groupByFolder: true })
 		await resize(432, 220)
@@ -98,6 +103,7 @@ describe('PhotoGrid', () => {
 		expect(wrapper.find('.photo-grid__sticky').exists()).toBe(false)
 	})
 
+	// spec: GRID-001.7
 	it('zooms the tiles with Ctrl and the wheel, and leaves a plain wheel to scrolling', async () => {
 		const { wrapper } = mountGrid()
 		const scroller = wrapper.find('[role="grid"]').element
@@ -117,6 +123,7 @@ describe('PhotoGrid', () => {
 		expect(zoom.defaultPrevented).toBe(true)
 	})
 
+	// spec: GRID-001.7
 	it('zooms the tiles with a two-finger pinch', async () => {
 		const { wrapper } = mountGrid()
 		const scroller = wrapper.find('[role="grid"]').element
@@ -159,6 +166,7 @@ describe('PhotoGrid', () => {
 	describe('selection', () => {
 		const tile = (wrapper: ReturnType<typeof mountGrid>['wrapper'], index: number) => wrapper.findAll('[role="gridcell"]')[index]!
 
+		// spec: GRID-001.10
 		it('opens the loupe on a plain click, Enter or Space outside selection mode', async () => {
 			const { wrapper, resize } = mountGrid({ selection: NO_SELECTION, selecting: false })
 			await resize(432, 220)
@@ -209,6 +217,7 @@ describe('PhotoGrid', () => {
 			wrapper.unmount()
 		})
 
+		// spec: GRID-003.3
 		it('toggles a tile on click, by Enter or Space in selection mode', async () => {
 			const { wrapper, resize } = mountGrid({ selection: NO_SELECTION, selecting: true })
 			await resize(432, 220)
@@ -222,6 +231,7 @@ describe('PhotoGrid', () => {
 			expect(wrapper.emitted('update:selecting')).toBeUndefined()
 		})
 
+		// spec: GRID-003.3
 		it('enters selection mode with Ctrl-click and ranges with Shift-click', async () => {
 			const { wrapper, resize } = mountGrid({ selection: { ids: new Set([1]), anchor: 1 }, selecting: false })
 			await resize(432, 220)
@@ -242,6 +252,7 @@ describe('PhotoGrid', () => {
 			expect(tile(wrapper, 1).find('.photo-tile__stars').text()).toBe('★★')
 		})
 
+		// spec: GRID-003.2
 		it('selects a tile on a long-press and swallows the click that follows', async () => {
 			const { schedule, fire } = fakeScheduler()
 			const { wrapper, resize } = mountGrid({ selection: NO_SELECTION, selecting: false, schedule })
@@ -260,6 +271,7 @@ describe('PhotoGrid', () => {
 			['lifting the finger', 'pointerup', {}],
 			['moving more than 10 px', 'pointermove', { clientX: 30, clientY: 10 }],
 			['the browser taking the pointer', 'pointercancel', {}],
+		// spec: GRID-003.2
 		])('cancels the long-press on %s', async (_, event, fields) => {
 			const { schedule, fire } = fakeScheduler()
 			const { wrapper, resize } = mountGrid({ selection: NO_SELECTION, selecting: false, schedule })
@@ -272,6 +284,7 @@ describe('PhotoGrid', () => {
 			expect(wrapper.emitted('update:selection')).toBeUndefined()
 		})
 
+		// spec: GRID-003.2
 		it('ignores a secondary button and the context menu', async () => {
 			const { schedule, fire } = fakeScheduler()
 			const { wrapper, resize } = mountGrid({ selection: NO_SELECTION, selecting: false, schedule })

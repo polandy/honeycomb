@@ -46,6 +46,7 @@ describe('pairingKind', () => {
 })
 
 describe('nextComparison', () => {
+	// spec: GRID-002.3
 	it('cycles at least → at most → exactly → at least', () => {
 		expect(nextComparison('at-least')).toBe('at-most')
 		expect(nextComparison('at-most')).toBe('exactly')
@@ -54,6 +55,7 @@ describe('nextComparison', () => {
 })
 
 describe('matchesFilters', () => {
+	// spec: GRID-002.1
 	it('shows everything but rejects by default', () => {
 		expect(DEFAULT_FILTERS.scope).toBe('not-rejected')
 		expect(matchesFilters(pair, decision({ flag: 'picked' }), DEFAULT_FILTERS)).toBe(true)
@@ -67,10 +69,12 @@ describe('matchesFilters', () => {
 		['undecided', 'rejected', false],
 		['all', 'rejected', true],
 		['all', 'picked', true],
+	// spec: GRID-002.1
 	] as const)('in the scope %s shows %s: %s', (scope, flag, expected) => {
 		expect(matchesFilters(pair, decision({ flag }), filters({ scope }))).toBe(expected)
 	})
 
+	// spec: GRID-002.2
 	it('lets a flag filter override the scope', () => {
 		const rejectsOnly = filters({ scope: 'not-rejected', flags: new Set(['rejected']) })
 
@@ -83,16 +87,19 @@ describe('matchesFilters', () => {
 		['at-most', 3, [true, true, true, true, false, false]],
 		['exactly', 3, [false, false, false, true, false, false]],
 		['at-least', 0, [true, true, true, true, true, true]],
+	// spec: GRID-002.3
 	] as const)('with rating %s %d matches ratings 0–5 as %o', (comparison, rating, expected) => {
 		const ratingFilter = filters({ rating, comparison })
 
 		expect([0, 1, 2, 3, 4, 5].map((stars) => matchesFilters(pair, decision({ rating: stars }), ratingFilter))).toEqual(expected)
 	})
 
+	// spec: GRID-002.3
 	it('ignores the comparison while no rating is chosen', () => {
 		expect(matchesFilters(pair, decision({ rating: 0 }), filters({ comparison: 'exactly' }))).toBe(true)
 	})
 
+	// spec: GRID-002.4
 	it('matches any of the chosen colour labels', () => {
 		const redOrGreen = filters({ colourLabels: new Set(['red', 'green']) })
 
@@ -101,6 +108,7 @@ describe('matchesFilters', () => {
 		expect(matchesFilters(pair, decision({ colourLabel: null }), redOrGreen)).toBe(false)
 	})
 
+	// spec: GRID-002.4
 	it('matches any of the chosen pairing kinds', () => {
 		const singles = filters({ pairings: new Set(['rendered-only', 'raw-only']) })
 
@@ -113,10 +121,12 @@ describe('matchesFilters', () => {
 		[['not-marked'], false, true],
 		[['not-marked'], true, false],
 		[['marked', 'not-marked'], false, true],
+	// spec: GRID-002.4
 	] as const)('with Keep RAW %o matches a marker %s: %s', (chips, keepRaw, expected) => {
 		expect(matchesFilters(pair, decision({ keepRaw }), filters({ keepRaw: new Set(chips) }))).toBe(expected)
 	})
 
+	// spec: GRID-002.4
 	it('matches any of the chosen folders', () => {
 		const folderP = filters({ folders: new Set(['/P']) })
 
@@ -124,6 +134,7 @@ describe('matchesFilters', () => {
 		expect(matchesFilters(rawOnly, UNDECIDED, folderP)).toBe(false)
 	})
 
+	// spec: GRID-002.5
 	it('needs every active group to match', () => {
 		const redAndThreeStars = filters({ colourLabels: new Set(['red']), rating: 3 })
 
@@ -144,6 +155,7 @@ describe('filterPictures', () => {
 })
 
 describe('progress', () => {
+	// spec: GRID-002.7
 	it('counts the picked and rejected pictures of all', () => {
 		const decisions = new Map([[pair, decision({ flag: 'rejected' })], [jpegOnly, decision({ flag: 'picked' })], [rawOnly, decision({ rating: 5 })]])
 
@@ -156,6 +168,7 @@ describe('activeFilterCount', () => {
 		expect(activeFilterCount(filters({ scope: 'all', comparison: 'exactly' }))).toBe(0)
 	})
 
+	// spec: GRID-002.6
 	it('counts each group with a choice once', () => {
 		const active = filters({
 			rating: 0,
@@ -171,6 +184,7 @@ describe('activeFilterCount', () => {
 })
 
 describe('clearFilters', () => {
+	// spec: GRID-002.6
 	it('resets every group and keeps the scope', () => {
 		const active = filters({ scope: 'undecided', rating: 2, comparison: 'exactly', colourLabels: new Set(['red']), folders: new Set(['/P']) })
 
@@ -204,6 +218,7 @@ describe('emptyReason', () => {
 		['an active filter', filters({ rating: 5 }), 3, 'no-match'],
 		['an active filter in the scope undecided', filters({ scope: 'undecided', folders: new Set(['/P']) }), 3, 'no-match'],
 		['the scope all', filters({ scope: 'all' }), 3, 'no-match'],
+	// spec: GRID-002.11
 	] as const)('of an empty view is %s', (_case, active, total, expected) => {
 		expect(emptyReason(active, total)).toBe(expected)
 	})

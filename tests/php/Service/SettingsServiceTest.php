@@ -39,10 +39,12 @@ final class SettingsServiceTest extends TestCase {
 		return $user;
 	}
 
+	// spec: SETTINGS-001.1
 	public function testNothingStoredIsAnEmptyObject(): void {
 		$this->assertEquals(new stdClass(), $this->service()->get($this->user()));
 	}
 
+	// spec: SETTINGS-001.2
 	public function testStoresTheObjectAsJsonUnderTheSettingsKey(): void {
 		$service = $this->service();
 
@@ -52,6 +54,7 @@ final class SettingsServiceTest extends TestCase {
 		$this->assertSame('{"viKeys":true,"rawExtensions":["nef"]}', json_encode($service->get($this->user())));
 	}
 
+	// spec: SETTINGS-001.2
 	public function testAnEmptyObjectIsStoredAsAnObject(): void {
 		$service = $this->service();
 
@@ -60,12 +63,14 @@ final class SettingsServiceTest extends TestCase {
 		$this->assertSame('{}', $this->stored['alice/honeycomb/settings']);
 	}
 
+	// spec: SETTINGS-001.3
 	public function testCorruptStoredJsonReadsAsAnEmptyObject(): void {
 		$this->stored['alice/honeycomb/settings'] = '{"viKeys":';
 
 		$this->assertEquals(new stdClass(), $this->service()->get($this->user()));
 	}
 
+	// spec: SETTINGS-001.3
 	public function testAStoredListReadsAsAnEmptyObject(): void {
 		$this->stored['alice/honeycomb/settings'] = '[1,2]';
 
@@ -77,6 +82,7 @@ final class SettingsServiceTest extends TestCase {
 		return ['a list' => [[1, 2]], 'a string' => ['viKeys'], 'a number' => [3], 'null' => [null]];
 	}
 
+	// spec: SETTINGS-001.4
 	#[DataProvider('invalidSettings')]
 	public function testRefusesSettingsThatAreNotAnObject(mixed $settings): void {
 		$this->expectException(InvalidSettingsException::class);
@@ -84,6 +90,7 @@ final class SettingsServiceTest extends TestCase {
 		$this->service()->save($this->user(), $settings);
 	}
 
+	// spec: SETTINGS-001.4
 	public function testRefusesSettingsOverTheSizeLimit(): void {
 		$service = $this->service();
 
@@ -95,6 +102,7 @@ final class SettingsServiceTest extends TestCase {
 		}
 	}
 
+	// spec: SETTINGS-001.4
 	public function testAcceptsSettingsAtTheSizeLimit(): void {
 		$settings = ['note' => str_repeat('x', SettingsService::MAX_BYTES - strlen('{"note":""}'))];
 

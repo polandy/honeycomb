@@ -21,6 +21,7 @@ describe('decisionsByFileId', () => {
 describe('pictureDecision', () => {
 	const pair = pictureOf(listingEntry(1, '/P/A.NEF'), listingEntry(2, '/P/A.JPG'))
 
+	// spec: DECISIONS-001.8
 	it('is undecided without a stored row for any member', () => {
 		expect(pictureDecision(pair, new Map())).toEqual(UNDECIDED)
 	})
@@ -33,6 +34,7 @@ describe('pictureDecision', () => {
 		expect(pictureDecision(pair, new Map<number, Decision>(rows))).toEqual(expected)
 	})
 
+	// spec: DECISIONS-001.8
 	it('of a RAW-only single is its row', () => {
 		expect(pictureDecision(pictureOf(listingEntry(3, '/P/B.NEF')), new Map([[3, rejected]]))).toEqual(rejected)
 	})

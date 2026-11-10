@@ -11,6 +11,7 @@ import { button, indices, mountLoupe } from './mount-loupe.ts'
 enableAutoUnmount(afterEach)
 
 describe('PhotoLoupe', () => {
+	// spec: LOUPE-001.15
 	it('shows the gesture guide above the overlays on its first opening, until Got it, then never again', async () => {
 		const { wrapper, root, stored } = await mountLoupe(4, {}, true)
 		const guide = () => wrapper.find('.gesture-guide')
@@ -28,6 +29,7 @@ describe('PhotoLoupe', () => {
 		expect(again.wrapper.find('.gesture-guide').exists()).toBe(false)
 	})
 
+	// spec: LOUPE-001.1, LOUPE-001.12
 	it('opens focused as a modal dialog on the picture and preloads it, then 3 ahead and 2 behind', async () => {
 		const { wrapper, root, decoded } = await mountLoupe()
 		expect(root.attributes('aria-modal')).toBe('true')
@@ -36,6 +38,7 @@ describe('PhotoLoupe', () => {
 		expect(decoded).toEqual([5, 6, 4, 7, 3, 8].map((id) => `/img/${id}/2048`))
 	})
 
+	// spec: LOUPE-001.3
 	it('pages by arrows, Home and End, never past either end', async () => {
 		const { wrapper, root } = await mountLoupe(0)
 		for (const key of ['ArrowLeft', 'ArrowRight', 'End', 'ArrowRight', 'Home']) {
@@ -44,6 +47,7 @@ describe('PhotoLoupe', () => {
 		expect(indices(wrapper)).toEqual([1, 9, 0])
 	})
 
+	// spec: LOUPE-001.3, KEYS-001.7
 	it('pages by ArrowUp and ArrowDown, and by h and l with the vi keys on', async () => {
 		const { wrapper, root } = await mountLoupe(4, {}, false, { settings: { ...DEFAULT_SETTINGS, viKeys: true } })
 		for (const key of ['ArrowDown', 'ArrowUp', 'l', 'h']) {
@@ -52,6 +56,7 @@ describe('PhotoLoupe', () => {
 		expect(indices(wrapper)).toEqual([5, 4, 5, 4])
 	})
 
+	// spec: LOUPE-001.3
 	it('pages by the navigation buttons, shown only where there is a neighbour', async () => {
 		const { wrapper } = await mountLoupe(0)
 		expect(button(wrapper, 'Previous photo').exists()).toBe(false)
@@ -61,6 +66,7 @@ describe('PhotoLoupe', () => {
 		expect(indices(wrapper)).toEqual([1, 0])
 	})
 
+	// spec: LOUPE-001.4
 	it('pages by a tap on the stage and by the filmstrip', async () => {
 		const { wrapper } = await mountLoupe()
 		await tap(wrapper.find('.loupe-stage'), 900, 0)
@@ -68,6 +74,7 @@ describe('PhotoLoupe', () => {
 		expect(indices(wrapper)).toEqual([5, 0])
 	})
 
+	// spec: LOUPE-001.2
 	it('closes by Escape, by G and by the close button', async () => {
 		const { wrapper, root } = await mountLoupe()
 		await root.trigger('keydown', { key: 'Escape' })
@@ -76,11 +83,13 @@ describe('PhotoLoupe', () => {
 		expect(wrapper.emitted('close')).toHaveLength(3)
 	})
 
+	// spec: KEYS-001.9
 	it('is the screen its keys belong to', async () => {
 		const { root } = await mountLoupe()
 		expect(root.attributes('data-hotkeys-screen')).toBeDefined()
 	})
 
+	// spec: LOUPE-001.10
 	it('toggles chrome-free by Tab on itself and by a double tap, but not by Tab on a control', async () => {
 		const { wrapper, root } = await mountLoupe()
 		const chromeFree = () => root.classes('photo-loupe--chrome-free')
@@ -95,6 +104,7 @@ describe('PhotoLoupe', () => {
 		expect(wrapper.emitted('close')).toBeUndefined()
 	})
 
+	// spec: KEYS-001.8
 	it('ignores keys with modifiers or already handled', async () => {
 		const { wrapper, root } = await mountLoupe()
 		await root.trigger('keydown', { key: 'ArrowRight', ctrlKey: true })
@@ -104,12 +114,14 @@ describe('PhotoLoupe', () => {
 		expect(indices(wrapper)).toBeUndefined()
 	})
 
+	// spec: LOUPE-001.10
 	it('goes browser fullscreen by F', async () => {
 		const { root, fullscreen } = await mountLoupe()
 		await root.trigger('keydown', { key: 'f' })
 		expect(fullscreen).toEqual([root.element])
 	})
 
+	// spec: LOUPE-001.7
 	it('zooms to 100 percent by Z or the zoom button and loads the full image', async () => {
 		const { wrapper, root, decoded } = await mountLoupe()
 		const zoomButton = button(wrapper, 'Toggle fit and 100 percent')
@@ -120,6 +132,7 @@ describe('PhotoLoupe', () => {
 		expect(zoomButton.text()).toBe('Fit')
 	})
 
+	// spec: LOUPE-001.9
 	it('zooms in by Ctrl+= only when fitted and out by Ctrl+- only when zoomed, leaving other presses to the browser', async () => {
 		const { wrapper, root } = await mountLoupe()
 		const zoomButton = button(wrapper, 'Toggle fit and 100 percent')
@@ -139,6 +152,7 @@ describe('PhotoLoupe', () => {
 		expect(zoomButton.text()).toBe('Fit')
 	})
 
+	// spec: LOUPE-001.13
 	it('opens the info panel by I beside the overlays, keeps its state and width, and counts the loaded neighbours', async () => {
 		const { wrapper, root, stored } = await mountLoupe(4, { [INFO_WIDTH_KEY]: '320' })
 		expect(wrapper.find('.loupe-info').exists()).toBe(false)
@@ -153,12 +167,14 @@ describe('PhotoLoupe', () => {
 		expect(wrapper.find('.loupe-info').exists()).toBe(false)
 	})
 
+	// spec: LOUPE-001.13
 	it('hides the filmstrip by its toggle', async () => {
 		const { wrapper } = await mountLoupe()
 		await button(wrapper, 'Toggle filmstrip').trigger('click')
 		expect(wrapper.find('.loupe-filmstrip').exists()).toBe(false)
 	})
 
+	// spec: LOUPE-001.14
 	it('shows the Nextcloud navigation above it by its toggle and keeps the choice', async () => {
 		const { wrapper, root, stored } = await mountLoupe()
 		const toggle = () => button(wrapper, 'Toggle Nextcloud navigation')
@@ -176,11 +192,13 @@ describe('PhotoLoupe', () => {
 		expect(root.classes('photo-loupe--below-header')).toBe(false)
 	})
 
+	// spec: LOUPE-001.14
 	it('opens below the Nextcloud navigation when it was shown before', async () => {
 		const { root } = await mountLoupe(4, { [NAVIGATION_SHOWN_KEY]: 'true' })
 		expect(root.classes('photo-loupe--below-header')).toBe(true)
 	})
 
+	// spec: LOUPE-001.11
 	it('idles its overlays after the last touch unless a control has focus, and wakes on a mouse move or a middle tap', async () => {
 		const { wrapper, root, scheduler } = await mountLoupe()
 		const idle = () => root.classes('photo-loupe--idle')

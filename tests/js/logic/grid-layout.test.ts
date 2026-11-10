@@ -144,6 +144,7 @@ describe('a grid of 20,000 pictures in 100 folders', () => {
 		}
 	})
 
+	// spec: GRID-001.1
 	it('gives the rows the viewport crosses deep down', () => {
 		const scrollTop = layout.totalHeight / 2
 		const { start, end } = visibleRows(layout, scrollTop, 800, 0)

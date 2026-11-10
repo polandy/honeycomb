@@ -33,6 +33,7 @@ final class DecisionControllerTest extends TestCase {
 		return new DecisionController(Application::APP_ID, $this->createStub(IRequest::class), $session, new DecisionService(new FakeDecisionStore()));
 	}
 
+	// spec: DECISIONS-001.1
 	public function testAnswersTheStoredDecisionsOfTheFileIds(): void {
 		$controller = $this->controller();
 
@@ -43,14 +44,17 @@ final class DecisionControllerTest extends TestCase {
 		$this->assertSame(['decisions' => [self::REJECTED]], json_decode($response->render(), true));
 	}
 
+	// spec: DECISIONS-001.6
 	public function testAMalformedLookupIsABadRequest(): void {
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->lookup(['7'])->getStatus());
 	}
 
+	// spec: DECISIONS-001.5
 	public function testAMalformedSaveIsABadRequest(): void {
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->save([['fileId' => 7]])->getStatus());
 	}
 
+	// spec: DECISIONS-001.7
 	public function testWithoutAUserNothingIsReadOrWritten(): void {
 		$controller = $this->controller(loggedIn: false);
 

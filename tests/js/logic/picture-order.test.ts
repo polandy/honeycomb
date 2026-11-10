@@ -40,6 +40,7 @@ describe('capPictures', () => {
 		expect(capped.pictures).toHaveLength(PICTURE_CAP)
 	})
 
+	// spec: GRID-001.11
 	it('keeps the first 20,000 by capture time above the cap, in their given order', () => {
 		const count = PICTURE_CAP + 2
 		const entries = Array.from({ length: count }, (_, index) => listingEntry(index, `/P/${index}.JPG`, { captureTime: count - index }))
@@ -54,6 +55,7 @@ describe('capPictures', () => {
 })
 
 describe('defaultSortOrder', () => {
+	// spec: GRID-002.8
 	it('sorts one folder by file name and several by capture time', () => {
 		expect(defaultSortOrder(0)).toBe('file-name')
 		expect(defaultSortOrder(1)).toBe('file-name')
@@ -64,6 +66,7 @@ describe('defaultSortOrder', () => {
 describe('sortPictures', () => {
 	const timed = (fileId: number, path: string, captureTime: number | null, mtime = 1000) => listingEntry(fileId, path, { captureTime, mtime })
 
+	// spec: GRID-002.9
 	it('sorts by base name with the given comparison, then by folder', () => {
 		const pictures = picturesOf(['/B/IMG_1.JPG', '/A/IMG_10.JPG', '/A/IMG_2.JPG', '/A/IMG_2.NEF', '/A/IMG_1.JPG'].map((path, index) => listingEntry(index, path)))
 
@@ -72,6 +75,7 @@ describe('sortPictures', () => {
 		expect(sorted.map((picture) => `${picture.folder}/${picture.baseName}`)).toEqual(['/A/IMG_1', '/B/IMG_1', '/A/IMG_2', '/A/IMG_10'])
 	})
 
+	// spec: GRID-002.9
 	it('sorts by capture time, a picture without one by its modification time, ties by file name', () => {
 		const pictures = picturesOf([timed(1, '/P/C.JPG', 30), timed(2, '/P/B.JPG', null, 20), timed(3, '/P/A.JPG', 30), timed(4, '/P/D.JPG', 10)])
 

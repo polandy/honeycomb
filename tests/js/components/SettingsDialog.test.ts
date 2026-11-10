@@ -37,6 +37,7 @@ describe('SettingsDialog', () => {
 	beforeEach(installMarkedCatalogue)
 	afterEach(uninstallMarkedCatalogue)
 
+	// spec: SETTINGS-001.7
 	it('shows the sections of the settings, all translated', () => {
 		const wrapper = mountDialog()
 
@@ -45,6 +46,7 @@ describe('SettingsDialog', () => {
 		expect(untranslatedText(wrapper.element as Element)).toEqual([...DEFAULT_SETTINGS.rawExtensions, ...DEFAULT_SETTINGS.renderedExtensions].map((extension) => `.${extension.toUpperCase()}`))
 	})
 
+	// spec: SETTINGS-001.7
 	it('emits the closing of the dialog', async () => {
 		const wrapper = mountDialog()
 
@@ -53,6 +55,7 @@ describe('SettingsDialog', () => {
 		expect(wrapper.emitted('update:open')).toEqual([[false]])
 	})
 
+	// spec: SETTINGS-001.8
 	it('lists the extensions and removes one', async () => {
 		const wrapper = mountDialog({ rawExtensions: ['nef', 'cr3', 'dng'] })
 		expect(chips(wrapper, 'RAW extensions')).toEqual(['.NEF', '.CR3', '.DNG'])
@@ -62,12 +65,14 @@ describe('SettingsDialog', () => {
 		expect(wrapper.emitted('update')).toEqual([[{ rawExtensions: ['nef', 'dng'] }]])
 	})
 
+	// spec: SETTINGS-001.8
 	it('keeps the last extension of a list', () => {
 		const wrapper = mountDialog({ renderedExtensions: ['jpg'] })
 
 		expect(wrapper.find(`button[aria-label="${MARK}Remove JPG"]`).attributes('disabled')).toBeDefined()
 	})
 
+	// spec: SETTINGS-001.8
 	it('adds an extension and clears the field', async () => {
 		const wrapper = mountDialog()
 
@@ -94,6 +99,7 @@ describe('SettingsDialog', () => {
 		expect(group(wrapper, 'RAW extensions').find('.settings-dialog__error').exists()).toBe(false)
 	})
 
+	// spec: SETTINGS-001.9
 	it('switches to separate subfolders with the default names and back', async () => {
 		const wrapper = mountDialog()
 		expect(wrapper.find(`input[aria-label="${MARK}RAW folder"]`).exists()).toBe(false)
@@ -103,6 +109,7 @@ describe('SettingsDialog', () => {
 		expect(wrapper.emitted('update')).toEqual([[{ folderMode: { kind: 'separate-subfolders', rawSubfolder: 'RAW', renderedSubfolder: 'JPG' } }]])
 	})
 
+	// spec: SETTINGS-001.9
 	it('changes the subfolder names, an empty one back to its default', async () => {
 		const wrapper = mountDialog({ folderMode: { kind: 'separate-subfolders', rawSubfolder: 'Raws', renderedSubfolder: 'Out' } })
 		expect(wrapper.text()).toContain(`${MARK}Folder names are matched ignoring case.`)
@@ -118,6 +125,7 @@ describe('SettingsDialog', () => {
 		])
 	})
 
+	// spec: SETTINGS-001.10
 	it.each([
 		['Show singles', 'showSingles'],
 		['Auto-advance to the next undecided photo', 'autoAdvance'],
@@ -131,6 +139,7 @@ describe('SettingsDialog', () => {
 		expect(wrapper.emitted('update')).toEqual([[{ [key]: false }]])
 	})
 
+	// spec: SETTINGS-001.10
 	it('sets what each swipe does, Nothing turning it off', async () => {
 		const wrapper = mountDialog()
 		const up = wrapper.find(`select[aria-label="${MARK}Swipe up"]`)

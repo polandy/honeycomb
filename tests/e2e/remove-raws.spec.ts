@@ -8,6 +8,7 @@ import { createFolder, JPEG, RAW, requestToken, upload } from './files.ts'
 
 const SIDECAR = Buffer.from('<x:xmpmeta xmlns:x="adobe:ns:meta/"/>')
 
+// spec: DELETE-003.4, DELETE-003.6
 test('removes only the RAW and its own sidecar of each pair not kept, after one is kept in the summary', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Raws ${randomUUID().slice(0, 8)}`

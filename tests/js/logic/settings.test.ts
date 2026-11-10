@@ -8,6 +8,7 @@ import { DEFAULT_PAIRING_SETTINGS, pairPictures } from '../../../src/logic/pairi
 import { addExtension, DEFAULT_SETTINGS, DEFAULT_SUBFOLDERS, folderMode, pairingSettings, parseSettings, removeExtension } from '../../../src/logic/settings.ts'
 
 describe('DEFAULT_SETTINGS', () => {
+	// spec: SETTINGS-001.6
 	it('pairs as the pairing defaults and turns on all but the vi keys', () => {
 		expect(pairingSettings(DEFAULT_SETTINGS)).toEqual(DEFAULT_PAIRING_SETTINGS)
 		expect(DEFAULT_SETTINGS).toMatchObject({ showSingles: true, swipes: DEFAULT_SWIPES, autoAdvance: true, flagButtonsShown: true, viKeys: false })
@@ -16,6 +17,7 @@ describe('DEFAULT_SETTINGS', () => {
 })
 
 describe('parseSettings', () => {
+	// spec: SETTINGS-001.6
 	it('reads back what it was given', () => {
 		const settings: Settings = {
 			rawExtensions: ['nef'],
@@ -31,10 +33,12 @@ describe('parseSettings', () => {
 		expect(parseSettings(JSON.parse(JSON.stringify(settings)))).toEqual(settings)
 	})
 
+	// spec: SETTINGS-001.6
 	it.each([null, undefined, [], 'settings', 3])('takes the defaults for %j', (value) => {
 		expect(parseSettings(value)).toEqual(DEFAULT_SETTINGS)
 	})
 
+	// spec: SETTINGS-001.6
 	it('takes the default of each missing or invalid field and keeps the rest', () => {
 		expect(parseSettings({ showSingles: 'no', autoAdvance: false, viKeys: 1, swipes: { up: 'rejected', down: 'maybe' } })).toEqual({
 			...DEFAULT_SETTINGS,
@@ -53,10 +57,12 @@ describe('parseSettings', () => {
 		expect(parseSettings({ rawExtensions }).rawExtensions).toEqual(DEFAULT_SETTINGS.rawExtensions)
 	})
 
+	// spec: SETTINGS-001.6
 	it('normalises the extensions and drops repeats', () => {
 		expect(parseSettings({ renderedExtensions: ['.JPG', ' jpeg ', 'jpg'] }).renderedExtensions).toEqual(['jpg', 'jpeg'])
 	})
 
+	// spec: SETTINGS-001.6
 	it('takes the default lists when an extension is in both, so pairing never fails', () => {
 		const settings = parseSettings({ rawExtensions: ['nef', 'jpg'], renderedExtensions: ['jpg'] })
 
@@ -73,12 +79,14 @@ describe('parseSettings', () => {
 		expect(parseSettings({ folderMode: value }).folderMode).toEqual(expected)
 	})
 
+	// spec: SETTINGS-001.6
 	it('takes the default swipes when they are no object', () => {
 		expect(parseSettings({ swipes: 'up' }).swipes).toEqual(DEFAULT_SWIPES)
 	})
 })
 
 describe('folderMode', () => {
+	// spec: SETTINGS-001.9
 	it('is the same folder or the subfolders with each empty name at its default', () => {
 		expect(folderMode('same-folder', 'A', 'B')).toEqual({ kind: 'same-folder' })
 		expect(folderMode('separate-subfolders', 'Raws', '')).toEqual({ kind: 'separate-subfolders', rawSubfolder: 'Raws', renderedSubfolder: 'JPG' })
@@ -86,6 +94,7 @@ describe('folderMode', () => {
 })
 
 describe('addExtension', () => {
+	// spec: SETTINGS-001.8
 	it('adds the normalised extension to the end of the list', () => {
 		const result = addExtension(DEFAULT_SETTINGS, 'renderedExtensions', ' .TIF ')
 
@@ -106,10 +115,12 @@ describe('addExtension', () => {
 })
 
 describe('removeExtension', () => {
+	// spec: SETTINGS-001.8
 	it('removes the extension from the list', () => {
 		expect(removeExtension(DEFAULT_SETTINGS, 'renderedExtensions', 'jpeg').renderedExtensions).toEqual(['jpg', 'heic', 'heif', 'hif'])
 	})
 
+	// spec: SETTINGS-001.8
 	it('keeps the last extension of a list', () => {
 		const one = { ...DEFAULT_SETTINGS, rawExtensions: ['nef'] }
 

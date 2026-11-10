@@ -47,6 +47,7 @@ final class TrashControllerTest extends TestCase {
 		return new TrashController(Application::APP_ID, $this->createStub(IRequest::class), $session, $trash);
 	}
 
+	// spec: DELETE-001.1
 	public function testAnswersTheResultOfEachFile(): void {
 		$response = $this->controller()->trash([[['fileId' => 7, 'etag' => 'etag-7']], [['fileId' => 8, 'etag' => 'etag-8']]]);
 
@@ -57,6 +58,7 @@ final class TrashControllerTest extends TestCase {
 		);
 	}
 
+	// spec: DELETE-001.6
 	public function testAMalformedRequestIsABadRequest(): void {
 		$response = $this->controller()->trash([[['fileId' => 7]]]);
 
@@ -64,14 +66,17 @@ final class TrashControllerTest extends TestCase {
 		$this->assertSame([], json_decode($response->render(), true));
 	}
 
+	// spec: DELETE-001.5
 	public function testWithoutTheTrashBinItIsAConflict(): void {
 		$this->assertSame(Http::STATUS_CONFLICT, $this->controller(trashBin: false)->trash([[['fileId' => 7, 'etag' => 'etag-7']]])->getStatus());
 	}
 
+	// spec: DELETE-001.7
 	public function testWithoutAUserNothingIsTrashed(): void {
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(loggedIn: false)->trash([[['fileId' => 7, 'etag' => 'etag-7']]])->getStatus());
 	}
 
+	// spec: DELETE-001.7
 	public function testIsARouteForEveryUserWithTheCsrfCheck(): void {
 		$method = new ReflectionMethod(TrashController::class, 'trash');
 

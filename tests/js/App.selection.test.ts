@@ -35,6 +35,7 @@ describe('App: selection mode and bulk decisions', () => {
 		vi.restoreAllMocks()
 	})
 
+	// spec: GRID-003.1
 	it('shows the action bar in selection mode, disabled until something is selected', async () => {
 		const { wrapper } = mountApp()
 		await openCull(wrapper)
@@ -48,6 +49,7 @@ describe('App: selection mode and bulk decisions', () => {
 		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ selecting: true, selected: 0 })
 	})
 
+	// spec: GRID-003.5
 	it('rates every member of the selected pictures, stores it and shows it', async () => {
 		const { wrapper, saved } = mountApp()
 		await openCull(wrapper)
@@ -65,6 +67,7 @@ describe('App: selection mode and bulk decisions', () => {
 		expect(wrapper.findComponent(ActionBar).props('common')).toMatchObject({ rating: 3 })
 	})
 
+	// spec: GRID-003.8
 	it('drops a rejected picture from the view and from the selection', async () => {
 		const { wrapper } = mountApp()
 		await openCull(wrapper)
@@ -78,6 +81,7 @@ describe('App: selection mode and bulk decisions', () => {
 		expect(wrapper.findComponent(GridToolbar).props('decided')).toBe(2)
 	})
 
+	// spec: GRID-003.9
 	it('reverts a change the server did not store and says so', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		const { wrapper } = mountApp({ saveDecisions: () => Promise.reject(new Error('down')) })
@@ -92,6 +96,7 @@ describe('App: selection mode and bulk decisions', () => {
 		expect(wrapper.text()).toContain(`${MARK}Could not save the change; the photos show what is stored.`)
 	})
 
+	// spec: GRID-003.10
 	it('keeps a change made before the stored decisions arrive', async () => {
 		let resolveLookup: (rows: never[]) => void = () => undefined
 		const { wrapper } = mountApp({ lookupDecisions: () => new Promise((resolve) => {
@@ -107,6 +112,7 @@ describe('App: selection mode and bulk decisions', () => {
 		expect(wrapper.findComponent(ActionBar).props('common')).toMatchObject({ rating: 3 })
 	})
 
+	// spec: GRID-003.10
 	it('sends nothing for a change that alters no picture', async () => {
 		const { wrapper, saved } = mountApp()
 		await openCull(wrapper)
@@ -118,6 +124,7 @@ describe('App: selection mode and bulk decisions', () => {
 		expect(saved).toEqual([])
 	})
 
+	// spec: GRID-003.9
 	it('says nothing about a failed save once another folder set is open', async () => {
 		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		let rejectSave: (error: Error) => void = () => undefined
@@ -135,6 +142,7 @@ describe('App: selection mode and bulk decisions', () => {
 		expect(wrapper.text()).not.toContain('Could not save the change')
 	})
 
+	// spec: GRID-003.4
 	it('selects all shown, none, and leaves with the keyboard', async () => {
 		const { wrapper } = mountApp()
 		await openCull(wrapper)
@@ -161,6 +169,7 @@ describe('App: selection mode and bulk decisions', () => {
 		expect(wrapper.findComponent(PhotoGrid).props('selecting')).toBe(true)
 	})
 
+	// spec: GRID-003.4
 	it('selects all and none from the toolbar, and leaves selection mode with Done', async () => {
 		const { wrapper } = mountApp()
 		await openCull(wrapper)
@@ -195,6 +204,7 @@ describe('App: selection mode and bulk decisions', () => {
 		field.remove()
 	})
 
+	// spec: GRID-003.8
 	it('keeps only the selected pictures the view still shows and leaves selection mode on opening a folder set', async () => {
 		const { wrapper } = mountApp()
 		await openCull(wrapper)

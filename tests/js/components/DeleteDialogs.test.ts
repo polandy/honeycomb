@@ -31,6 +31,7 @@ describe('RejectReview', () => {
 		global,
 	})
 
+	// spec: DELETE-002.1
 	it('sums the rejects up, shows a tile per reject with its folder and files, and rescues the one tapped', async () => {
 		const wrapper = review([PAIR!, SINGLE!])
 
@@ -49,6 +50,7 @@ describe('RejectReview', () => {
 		expect(buttons(wrapper).at(-1)).toBe('Continue: delete 2')
 	})
 
+	// spec: DELETE-002.4
 	it('says nothing is left to delete and cannot continue', () => {
 		const wrapper = review([])
 
@@ -61,6 +63,7 @@ describe('RejectReview', () => {
 describe('DeleteSummary', () => {
 	const summary = (props: Record<string, unknown>) => mount(DeleteSummary, { props: { pictures: [PAIR!, SINGLE!], folderSet: SET, folders: 2, busy: false, fromReview: false, ...props }, global })
 
+	// spec: DELETE-002.6
 	it('shows photos, files, bytes, pairs and singles, the folders, every file and the trash-bin note', () => {
 		const wrapper = summary({})
 
@@ -77,6 +80,7 @@ describe('DeleteSummary', () => {
 		expect(buttons(wrapper)).toEqual(['Cancel', 'Move 4 files to trash'])
 	})
 
+	// spec: DELETE-002.7
 	it('goes back to the review when it came from there, and holds the confirm button while a delete runs', async () => {
 		const wrapper = summary({ fromReview: true, busy: true })
 
@@ -88,6 +92,7 @@ describe('DeleteSummary', () => {
 })
 
 describe('DeleteReport', () => {
+	// spec: DELETE-002.9, DELETE-002.10
 	it('lists the failed files with their reasons and offers Close and Retry failed files', async () => {
 		const report = trashReport(wholePictures([PAIR!]), [[{ fileId: 2, result: 'trashed' }, { fileId: 1, result: 'locked' }, { fileId: 3, result: 'skipped' }]])
 		const wrapper = mount(DeleteReport, { props: { report, folderSet: SET, busy: false }, global })
@@ -120,6 +125,7 @@ describe('RawRemovalSummary', () => {
 		global,
 	})
 
+	// spec: DELETE-003.3
 	it('sums up the RAWs that go, says what was skipped and why, and lists their files collapsed', () => {
 		const wrapper = summary({})
 
@@ -132,6 +138,7 @@ describe('RawRemovalSummary', () => {
 		expect(buttons(wrapper).slice(-2)).toEqual(['Cancel', 'Move 2 files to trash'])
 	})
 
+	// spec: DELETE-003.3, DELETE-003.4
 	it('shows both thumbnail groups with their counts, and toggles Keep RAW on the photo tapped', async () => {
 		const wrapper = summary({})
 
@@ -149,6 +156,7 @@ describe('RawRemovalSummary', () => {
 		expect(wrapper.emitted('toggle')).toEqual([[DROP], [KEEP]])
 	})
 
+	// spec: DELETE-003.5
 	it('says None for an empty group and holds the confirm button with nothing to move or while it runs', () => {
 		const empty = summary({ removal: removal([], []) })
 

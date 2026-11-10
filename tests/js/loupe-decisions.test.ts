@@ -42,6 +42,7 @@ function loupeDecisions(index: number, decided: Record<string, Decision> = {}, s
 }
 
 describe('useLoupeDecisions: decide', () => {
+	// spec: LOUPE-002.1
 	it('says it moved when a flag sends it to the next undecided photo', () => {
 		const { decisions, went } = loupeDecisions(0, { IMG_2: { ...UNDECIDED, flag: 'picked' } })
 		expect(decisions.decide({ kind: 'flag', flag: 'rejected' })).toBe(true)
@@ -52,6 +53,7 @@ describe('useLoupeDecisions: decide', () => {
 		['a rating', { kind: 'rating', rating: 3 }, 0],
 		['an unflag', { kind: 'flag', flag: 'unflagged' }, 0],
 		['a flag on the last undecided photo', { kind: 'flag', flag: 'picked' }, 2],
+	// spec: LOUPE-002.2
 	] as const)('says it stayed after %s', (_, intent, index) => {
 		const { decisions, went } = loupeDecisions(index)
 		expect(decisions.decide(intent)).toBe(false)
@@ -60,6 +62,7 @@ describe('useLoupeDecisions: decide', () => {
 })
 
 describe('useLoupeDecisions: auto-advance off', () => {
+	// spec: LOUPE-002.5
 	it('stays on the photo after a flag', () => {
 		const { decisions, went } = loupeDecisions(0, {}, { autoAdvance: false })
 		expect(decisions.decide({ kind: 'flag', flag: 'picked' })).toBe(false)
@@ -80,6 +83,7 @@ describe('useLoupeDecisions: auto-advance off', () => {
 })
 
 describe('useLoupeDecisions: swipe', () => {
+	// spec: LOUPE-002.5
 	it('sets the flag the settings give the direction', () => {
 		const { decisions, intents } = loupeDecisions(0, {}, { swipes: { up: 'rejected', down: null } })
 		decisions.swipe('up')
@@ -89,6 +93,7 @@ describe('useLoupeDecisions: swipe', () => {
 })
 
 describe('useLoupeDecisions: all decided', () => {
+	// spec: LOUPE-002.3
 	it('says so when a flag decides the last undecided photo', () => {
 		const { decisions, allDecided } = loupeDecisions(2, { IMG_1: { ...UNDECIDED, flag: 'picked' }, IMG_2: { ...UNDECIDED, flag: 'rejected' } })
 		decisions.decide({ kind: 'flag', flag: 'picked' })
@@ -98,6 +103,7 @@ describe('useLoupeDecisions: all decided', () => {
 	it.each([
 		['an undecided photo is left before the shown one', { kind: 'flag', flag: 'picked' }, { IMG_2: { ...UNDECIDED, flag: 'rejected' } }],
 		['the decision is a rating', { kind: 'rating', rating: 4 }, { IMG_1: { ...UNDECIDED, flag: 'picked' }, IMG_2: { ...UNDECIDED, flag: 'rejected' } }],
+	// spec: LOUPE-002.3
 	] as const)('stays silent when %s', (_, intent, decided) => {
 		const { decisions, allDecided } = loupeDecisions(2, { ...decided })
 		decisions.decide(intent)
@@ -128,6 +134,7 @@ describe('useLoupeDecisions: decideByKey', () => {
 })
 
 describe('useLoupeDecisions: setFlagButtonsShown', () => {
+	// spec: LOUPE-002.6
 	it('names the swipe and the flag at the top when hidden by a tap', () => {
 		const { decisions, shown, toasts } = loupeDecisions(0)
 		decisions.setFlagButtonsShown(false)
@@ -135,12 +142,14 @@ describe('useLoupeDecisions: setFlagButtonsShown', () => {
 		expect(toasts[0]!.message).toBe('Flag buttons hidden · swipe to decide, the flag at the top shows them')
 	})
 
+	// spec: LOUPE-002.6
 	it('names only the flag at the top when hidden by a tap and no swipe decides', () => {
 		const { decisions, toasts } = loupeDecisions(0, {}, { swipes: { up: null, down: null } })
 		decisions.setFlagButtonsShown(false)
 		expect(toasts[0]!.message).toBe('Flag buttons hidden, and no swipe decides: the flag at the top shows them')
 	})
 
+	// spec: LOUPE-002.6
 	it('names the key when hidden by B, and Show brings them back', () => {
 		const { decisions, shown, toasts } = loupeDecisions(0)
 		decisions.setFlagButtonsShown(false, true)

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { expect, test } from '@playwright/test'
 
+// spec: APP-001.3
 test('opens on the empty state while no folder is chosen', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 

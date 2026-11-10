@@ -18,6 +18,7 @@ use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
 final class PageControllerTest extends TestCase {
+	// spec: APP-001.1
 	public function testIndexRendersTheMainTemplateForTheUser(): void {
 		$controller = new PageController(Application::APP_ID, $this->createStub(IRequest::class));
 
@@ -28,6 +29,7 @@ final class PageControllerTest extends TestCase {
 		$this->assertSame(TemplateResponse::RENDER_AS_USER, $response->getRenderAs());
 	}
 
+	// spec: APP-001.1
 	public function testIndexIsTheAppRootForEveryUser(): void {
 		$method = new ReflectionMethod(PageController::class, 'index');
 

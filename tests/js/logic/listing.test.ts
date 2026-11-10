@@ -21,6 +21,7 @@ function entry(fileId: number, path: string): ListingEntry {
 }
 
 describe('mergeListings', () => {
+	// spec: LISTING-001.11
 	it('keeps every entry of listings that do not overlap, in listing order', () => {
 		const a = [entry(1, '/A/1.jpg'), entry(2, '/A/2.jpg')]
 		const b = [entry(3, '/B/3.jpg')]
@@ -28,6 +29,7 @@ describe('mergeListings', () => {
 		expect(mergeListings([a, b])).toEqual([...a, ...b])
 	})
 
+	// spec: LISTING-001.11
 	it('lists a file once when a ticked parent with subfolders and a ticked child both list it', () => {
 		const child = entry(2, '/A/B/2.jpg')
 		const parent = [entry(1, '/A/1.jpg'), child]

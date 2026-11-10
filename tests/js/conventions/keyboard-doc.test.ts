@@ -10,6 +10,7 @@ const DOC = readFileSync(new URL('../../../docs/user/keyboard-shortcuts.md', imp
 const code = (cap: string) => (cap.includes('`') ? `\`\` ${cap} \`\`` : `\`${cap}\``)
 
 describe('the user doc on keyboard shortcuts', () => {
+	// spec: KEYS-001.1
 	it.each(KEYMAP.flatMap((entry) => entry.caps.map((cap) => [entry.id, cap])))('lists %s by %s', (_id, cap) => {
 		expect(DOC).toContain(code(cap))
 	})

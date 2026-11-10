@@ -12,6 +12,7 @@ test.afterEach(async ({ page }) => {
 	expect(reset.status(), await reset.text()).toBe(200)
 })
 
+// spec: SETTINGS-001.10, SETTINGS-001.11
 test('turns Show singles off in the settings and keeps it after a reload', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Prefs ${randomUUID().slice(0, 8)}`

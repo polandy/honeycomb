@@ -33,6 +33,7 @@ enableAutoUnmount(afterEach)
 describe('App: the undo toast', () => {
 	afterEach(() => vi.restoreAllMocks())
 
+	// spec: LOUPE-002.8
 	it('says what a decision in the loupe changed, undoes it by Undo and says so, then goes away', async () => {
 		const { wrapper, loupe, picture, saved, scheduler } = await openLoupe()
 		expect(picture.baseName).toBe('IMG_10')
@@ -54,6 +55,7 @@ describe('App: the undo toast', () => {
 		expect(toastText(wrapper)).toBeNull()
 	})
 
+	// spec: LOUPE-002.9
 	it('undoes only the latest decision, once', async () => {
 		const { wrapper, loupe, picture, saved } = await openLoupe()
 		loupe.vm.$emit('decide', { kind: 'flag', flag: 'picked' }, picture)
@@ -68,6 +70,7 @@ describe('App: the undo toast', () => {
 		expect(wrapper.findComponent(UndoToast).find('button').exists()).toBe(false)
 	})
 
+	// spec: LOUPE-002.9
 	it('shows nothing for a decision that changes nothing', async () => {
 		const { wrapper, loupe, picture } = await openLoupe()
 		loupe.vm.$emit('decide', { kind: 'flag', flag: 'unflagged' }, picture)
@@ -96,6 +99,7 @@ describe('App: the undo toast', () => {
 		expect(wrapper.findComponent(UndoToast).props('top')).toBe(false)
 	})
 
+	// spec: LOUPE-002.10
 	it('puts the decision back when the server does not store the undo, and says so', async () => {
 		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		let calls = 0

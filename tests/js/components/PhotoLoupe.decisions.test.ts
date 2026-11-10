@@ -35,6 +35,7 @@ async function mountDeciding(index: number, flags: Record<number, Decision['flag
 enableAutoUnmount(afterEach)
 
 describe('PhotoLoupe: decisions', () => {
+	// spec: LOUPE-002.1
 	it('decides the shown picture by its flag buttons and moves on to the next undecided picture', async () => {
 		const { wrapper, decided } = await mountDeciding(4, { 6: 'picked' })
 		expect(button(wrapper, 'Unflag').attributes('aria-pressed')).toBe('true')
@@ -45,6 +46,7 @@ describe('PhotoLoupe: decisions', () => {
 		expect(indices(wrapper)).toEqual([6])
 	})
 
+	// spec: LOUPE-002.2
 	it('stays on the picture after a rating, a label, Keep RAW or Unflag', async () => {
 		const { wrapper, decided } = await mountDeciding(4, { 5: 'picked' })
 		expect(button(wrapper, 'Pick').attributes('aria-pressed')).toBe('true')
@@ -56,12 +58,14 @@ describe('PhotoLoupe: decisions', () => {
 		expect(indices(wrapper)).toBeUndefined()
 	})
 
+	// spec: LOUPE-002.3
 	it('stays when no undecided picture follows', async () => {
 		const { wrapper } = await mountDeciding(8, { 10: 'rejected' })
 		await button(wrapper, 'Pick').trigger('click')
 		expect(indices(wrapper)).toBeUndefined()
 	})
 
+	// spec: LOUPE-002.4
 	it('picks by a swipe up and rejects by a swipe down', async () => {
 		const { wrapper, decided } = await mountDeciding(4)
 		const stage = wrapper.find('.loupe-stage')
@@ -74,6 +78,7 @@ describe('PhotoLoupe: decisions', () => {
 		expect(indices(wrapper)).toEqual([5, 6])
 	})
 
+	// spec: LOUPE-002.6
 	it('hides the flag buttons by their toggle, keeps the choice and says how to decide and to show them again', async () => {
 		const { wrapper } = await mountDeciding(4)
 		await button(wrapper, 'Flag buttons').trigger('click')
@@ -90,6 +95,7 @@ describe('PhotoLoupe: decisions', () => {
 		expect(wrapper.emitted('updateSettings')!.at(-1)).toEqual([{ flagButtonsShown: true }])
 	})
 
+	// spec: LOUPE-002.6
 	it('says when the flag buttons are shown again and starts with them hidden when they were', async () => {
 		const { wrapper } = await mountDeciding(4, {}, { flagButtonsShown: false })
 		expect(wrapper.find('.flag-buttons').exists()).toBe(false)
@@ -101,6 +107,7 @@ describe('PhotoLoupe: decisions', () => {
 		expect(wrapper.emitted('toast')).toEqual([[{ message: 'Flag buttons shown', action: null }]])
 	})
 
+	// spec: LOUPE-002.5
 	it('swipes as the settings say and stays on the photo with auto-advance off', async () => {
 		const { wrapper, decided } = await mountDeciding(4, {}, { swipes: { up: null, down: 'picked' }, autoAdvance: false })
 		const stage = wrapper.find('.loupe-stage')
@@ -115,6 +122,7 @@ describe('PhotoLoupe: decisions', () => {
 		expect(indices(wrapper)).toBeUndefined()
 	})
 
+	// spec: LOUPE-002.6
 	it('hides the flag buttons by B and names the key that shows them', async () => {
 		const { wrapper, root } = await mountDeciding(4)
 		await root.trigger('keydown', { key: 'b' })
@@ -124,6 +132,7 @@ describe('PhotoLoupe: decisions', () => {
 		expect(wrapper.find('.flag-buttons').exists()).toBe(true)
 	})
 
+	// spec: LOUPE-002.7
 	it('hides its decision controls in chrome-free mode', async () => {
 		const { wrapper, root } = await mountDeciding(4)
 		await root.trigger('keydown', { key: 'Tab' })
@@ -132,6 +141,7 @@ describe('PhotoLoupe: decisions', () => {
 })
 
 describe('PhotoLoupe: decision keys', () => {
+	// spec: KEYS-001.2
 	it('flags by P, X and U and moves on as a flag button does', async () => {
 		const { wrapper, root, decided } = await mountDeciding(4)
 		await root.trigger('keydown', { key: 'u' })
@@ -140,6 +150,7 @@ describe('PhotoLoupe: decision keys', () => {
 		expect(indices(wrapper)).toEqual([5])
 	})
 
+	// spec: KEYS-001.4
 	it('goes to the next photo after Shift and a flag only when the flag did not move already', async () => {
 		const { wrapper, root, decided } = await mountDeciding(4, { 6: 'picked' })
 		await root.trigger('keydown', { key: 'P', shiftKey: true })
@@ -148,6 +159,7 @@ describe('PhotoLoupe: decision keys', () => {
 		expect(indices(wrapper)).toEqual([6, 7])
 	})
 
+	// spec: KEYS-001.4
 	it('rates by a digit with Caps Lock on and goes to the next photo', async () => {
 		const { wrapper, root, decided } = await mountDeciding(4)
 		const event = new KeyboardEvent('keydown', { key: '3', bubbles: true, cancelable: true })
@@ -157,6 +169,7 @@ describe('PhotoLoupe: decision keys', () => {
 		expect(indices(wrapper)).toEqual([5])
 	})
 
+	// spec: KEYS-001.4
 	it('rates by Shift and a digit on the last photo and stays there', async () => {
 		const { wrapper, root, decided } = await mountDeciding(9)
 		await root.trigger('keydown', { key: '#', code: 'Digit3', shiftKey: true })
@@ -164,6 +177,7 @@ describe('PhotoLoupe: decision keys', () => {
 		expect(indices(wrapper)).toBeUndefined()
 	})
 
+	// spec: KEYS-001.3
 	it('steps the shown rating by ] and [', async () => {
 		const decided: DecisionIntent[] = []
 		const { root } = await mountLoupe(4, {}, false, {

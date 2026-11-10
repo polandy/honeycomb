@@ -35,12 +35,14 @@ final class RawPreviewProviderTest extends TestCase {
 		return $file;
 	}
 
+	// spec: IMAGES-001.6
 	public function testClaimsTheRawMimeType(): void {
 		$this->assertSame(1, preg_match(RawPreviewProvider::MIME_TYPE_REGEX, 'image/x-dcraw'));
 		$this->assertSame(0, preg_match(RawPreviewProvider::MIME_TYPE_REGEX, 'image/jpeg'));
 		$this->assertSame(RawPreviewProvider::MIME_TYPE_REGEX, $this->provider(null)->getMimeType());
 	}
 
+	// spec: IMAGES-001.6
 	public function testIsAvailableForAFileWithContent(): void {
 		$empty = $this->createStub(FileInfo::class);
 		$empty->method('getSize')->willReturn(0);
@@ -51,6 +53,7 @@ final class RawPreviewProviderTest extends TestCase {
 		$this->assertFalse($this->provider(null)->isAvailable($empty));
 	}
 
+	// spec: IMAGES-001.6
 	public function testScalesTheEmbeddedJpegDownToTheRequestedBox(): void {
 		$image = $this->createMock(IImage::class);
 		$image->expects($this->once())->method('scaleDownToFit')->with(2048, 1024)->willReturn(true);
@@ -61,14 +64,17 @@ final class RawPreviewProviderTest extends TestCase {
 		$this->assertSame(self::JPEG, $decodedBytes);
 	}
 
+	// spec: IMAGES-001.7
 	public function testHasNoThumbnailWithoutAnEmbeddedJpeg(): void {
 		$this->assertNull($this->provider($this->createStub(IImage::class))->getThumbnail($this->raw("II*\0sensor"), 256, 256));
 	}
 
+	// spec: IMAGES-001.7
 	public function testHasNoThumbnailWhenTheEmbeddedJpegDoesNotDecode(): void {
 		$this->assertNull($this->provider(null)->getThumbnail($this->raw(self::JPEG), 256, 256));
 	}
 
+	// spec: IMAGES-001.7
 	public function testHasNoThumbnailWhenTheRawCannotBeRead(): void {
 		$locked = $this->createStub(File::class);
 		$locked->method('getContent')->willThrowException(new LockedException('/alice/files/IMG_0001.NEF'));

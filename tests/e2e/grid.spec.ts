@@ -17,6 +17,7 @@ async function openPicker(page: Page) {
 	return picker
 }
 
+// spec: GRID-001.4, LISTING-003.12
 test('culls a ticked folder in a grid of pairs and singles', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = uniqueFolder('Grid')
@@ -37,6 +38,7 @@ test('culls a ticked folder in a grid of pairs and singles', async ({ page }) =>
 	await expect(grid.getByRole('gridcell')).toHaveCount(2)
 })
 
+// spec: GRID-001.9, LISTING-003.7, LISTING-003.12
 test('culls a folder with its subfolders and groups the grid by folder', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = uniqueFolder('Trip')
@@ -62,6 +64,7 @@ test('culls a folder with its subfolders and groups the grid by folder', async (
 	await expect(grid.getByRole('gridcell')).toHaveCount(2)
 })
 
+// spec: GRID-002.1
 test('hides a rejected photo in the default scope and shows it under All', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = uniqueFolder('Scope')
@@ -88,6 +91,7 @@ test('hides a rejected photo in the default scope and shows it under All', async
 	await expect(grid.getByRole('gridcell')).toHaveCount(2)
 })
 
+// spec: GRID-003.5
 test('rates and rejects selected photos and keeps the decisions over a reload', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = uniqueFolder('Select')

@@ -19,6 +19,7 @@ describe('App', () => {
 		vi.restoreAllMocks()
 	})
 
+	// spec: APP-001.3
 	it('shows that no folder is chosen and opens the folder picker', () => {
 		const { wrapper } = mountApp()
 
@@ -28,6 +29,7 @@ describe('App', () => {
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
 	})
 
+	// spec: IMAGES-001.10
 	it('shows the grid of the chosen folders in order and warms their previews in that order', async () => {
 		const { wrapper, warmed } = mountApp()
 
@@ -42,6 +44,7 @@ describe('App', () => {
 		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ folderSet: SET, folders: 2, sortOrder: 'capture-time', scope: 'not-rejected' })
 	})
 
+	// spec: IMAGES-001.11
 	it('logs a failed warm-up and keeps the grid', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		const { wrapper } = mountApp({ warmPreviews: () => Promise.reject(new Error('down')) })
@@ -52,6 +55,7 @@ describe('App', () => {
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(true)
 	})
 
+	// spec: LISTING-003.11
 	it('reopens the folder picker on the open cull from the toolbar and closes it on cancel', async () => {
 		const { wrapper } = mountApp()
 		await openCull(wrapper)
@@ -65,6 +69,7 @@ describe('App', () => {
 		expect(wrapper.findComponent(FolderPicker).exists()).toBe(false)
 	})
 
+	// spec: GRID-001.9
 	it('groups by folder only while the cull spans more than one folder', async () => {
 		const { wrapper } = mountApp()
 		await openCull(wrapper)
@@ -79,6 +84,7 @@ describe('App', () => {
 		expect(wrapper.findComponent(PhotoGrid).props('groupByFolder')).toBe(false)
 	})
 
+	// spec: GRID-001.8
 	it('reads the thumbnail size from the browser and saves every change', async () => {
 		const stored = { 'honeycomb.tileSize': '200' }
 		const { wrapper } = mountApp({ storage: fakeStorage(stored) })
@@ -95,6 +101,7 @@ describe('App', () => {
 		expect(stored['honeycomb.tileSize']).toBe('120')
 	})
 
+	// spec: GRID-001.8
 	it('uses the default thumbnail size when the browser keeps no site data', async () => {
 		const { wrapper } = mountApp({ storage: fakeStorage({}, true) })
 		await openCull(wrapper)
@@ -105,6 +112,7 @@ describe('App', () => {
 		expect(wrapper.findComponent(PhotoGrid).props('tileSize')).toBe(250)
 	})
 
+	// spec: APP-001.4
 	it('renders no text that bypasses the catalogue', async () => {
 		const { wrapper } = mountApp()
 		expect(untranslatedText(wrapper.element as Element)).toEqual([])

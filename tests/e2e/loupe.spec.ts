@@ -37,6 +37,7 @@ async function openLoupe(page: Page) {
 	return loupe
 }
 
+// spec: LOUPE-001.2, LOUPE-001.3
 test('opens a photo in the loupe, pages by key and closes back to the grid', async ({ page }) => {
 	const loupe = await openLoupe(page)
 
@@ -53,6 +54,7 @@ test('opens a photo in the loupe, pages by key and closes back to the grid', asy
 	await expect(page.getByRole('gridcell', { name: 'IMG_0002, JPG only' })).toBeFocused()
 })
 
+// spec: KEYS-001.10, KEYS-001.12
 test('picks by P, undoes it by Ctrl+Z and opens the shortcut sheet by ?', async ({ page }) => {
 	const loupe = await openLoupe(page)
 	const toast = page.getByRole('status').filter({ hasText: 'IMG_0001' })

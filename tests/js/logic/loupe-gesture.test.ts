@@ -24,6 +24,7 @@ function tap(recogniser: ReturnType<typeof gestures>, x: number, time: number, t
 }
 
 describe('tapZone', () => {
+	// spec: LOUPE-001.4
 	it('splits the stage into 30 % previous, 40 % middle and 30 % next', () => {
 		expect(tapZone(0.29, false, 'touch')).toBe(-1)
 		expect(tapZone(0.31, false, 'touch')).toBe(0)
@@ -31,6 +32,7 @@ describe('tapZone', () => {
 		expect(tapZone(0.71, false, 'pen')).toBe(1)
 	})
 
+	// spec: LOUPE-001.8
 	it('is the middle while zoomed and for the mouse', () => {
 		expect(tapZone(0.1, true, 'touch')).toBe(0)
 		expect(tapZone(0.9, false, 'mouse')).toBe(0)
@@ -38,6 +40,7 @@ describe('tapZone', () => {
 })
 
 describe('loupeGestures', () => {
+	// spec: LOUPE-001.4
 	it('pages on a tap in an outer zone at once, twice for two quick taps', () => {
 		const recogniser = gestures()
 
@@ -46,6 +49,7 @@ describe('loupeGestures', () => {
 		expect(tap(recogniser, 100, 200)).toEqual({ kind: 'page', step: -1 })
 	})
 
+	// spec: LOUPE-001.10
 	it('toggles the overlays on a tap in the middle and goes chrome-free on a double-tap', () => {
 		const recogniser = gestures()
 
@@ -62,6 +66,7 @@ describe('loupeGestures', () => {
 		expect(tap(recogniser, 600, DOUBLE_TAP_MS + 200)).toEqual({ kind: 'overlays' })
 	})
 
+	// spec: LOUPE-001.4
 	it('does not pair a page tap with a middle tap into a double-tap', () => {
 		const recogniser = gestures()
 
@@ -70,11 +75,13 @@ describe('loupeGestures', () => {
 		expect(tap(recogniser, 500, 100)).toEqual({ kind: 'overlays' })
 	})
 
+	// spec: LOUPE-001.8
 	it('acts as the middle while zoomed and for a mouse click', () => {
 		expect(tap(gestures({ zoomed: true }), 900, 0)).toEqual({ kind: 'overlays' })
 		expect(tap(gestures(), 900, 0, 'mouse')).toEqual({ kind: 'overlays' })
 	})
 
+	// spec: LOUPE-001.5
 	it('ignores a long press and a press the browser cancelled', () => {
 		const recogniser = gestures()
 
@@ -84,6 +91,7 @@ describe('loupeGestures', () => {
 		expect(recogniser.cancel(touch(900, 300, 1010))).toBeNull()
 	})
 
+	// spec: LOUPE-001.6
 	it('drags the track sideways and pages past 22 % of the width', () => {
 		const recogniser = gestures()
 
@@ -94,6 +102,7 @@ describe('loupeGestures', () => {
 		expect(recogniser.up(touch(500, 310, 400))).toEqual({ kind: 'page', step: 1 })
 	})
 
+	// spec: LOUPE-001.6
 	it('pages on a quick flick and settles back on a slow short drag', () => {
 		const flick = gestures()
 		flick.down(touch(300, 300, 0))
@@ -108,6 +117,7 @@ describe('loupeGestures', () => {
 		expect(slow.up(touch(400, 300, 1000))).toEqual({ kind: 'settle' })
 	})
 
+	// spec: LOUPE-001.6
 	it('settles back when the browser cancels a drag', () => {
 		const recogniser = gestures()
 
@@ -116,6 +126,7 @@ describe('loupeGestures', () => {
 		expect(recogniser.cancel(touch(400, 300, 100))).toEqual({ kind: 'settle' })
 	})
 
+	// spec: LOUPE-002.4
 	it('lifts the photo on a vertical drag and swipes once it went far enough', () => {
 		const down = gestures()
 		down.down(touch(500, 300, 0))
@@ -128,6 +139,7 @@ describe('loupeGestures', () => {
 		expect(up.up(touch(500, 200, 1000))).toEqual({ kind: 'swipe', direction: 'up' })
 	})
 
+	// spec: LOUPE-002.4
 	it('swipes on a quick vertical flick however short, and settles back from a slow short one', () => {
 		const flick = gestures()
 		flick.down(touch(500, 300, 0))
@@ -142,6 +154,7 @@ describe('loupeGestures', () => {
 		expect(slow.up(touch(500, 400, 1000))).toEqual({ kind: 'settle' })
 	})
 
+	// spec: LOUPE-002.4
 	it('settles back when the browser cancels a vertical drag', () => {
 		const recogniser = gestures()
 
@@ -150,6 +163,7 @@ describe('loupeGestures', () => {
 		expect(recogniser.cancel(touch(500, 450, 100))).toEqual({ kind: 'settle' })
 	})
 
+	// spec: LOUPE-001.8
 	it('pans while zoomed instead of paging', () => {
 		const recogniser = gestures({ zoomed: true })
 
@@ -183,11 +197,13 @@ describe('loupeGestures', () => {
 })
 
 describe('swipeFlag', () => {
+	// spec: LOUPE-002.4
 	it('picks on a swipe up and rejects on a swipe down by default (Q6)', () => {
 		expect(swipeFlag('up')).toBe('picked')
 		expect(swipeFlag('down')).toBe('rejected')
 	})
 
+	// spec: LOUPE-002.5
 	it('follows the gesture setting, where a direction can do nothing', () => {
 		expect(swipeFlag('up', { up: null, down: 'picked' })).toBeNull()
 		expect(swipeFlag('down', { up: null, down: 'picked' })).toBe('picked')

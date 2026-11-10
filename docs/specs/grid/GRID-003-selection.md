@@ -1,0 +1,108 @@
+# GRID-003 – Selection mode and bulk decisions
+
+- Status: implemented
+- Area: grid
+- Origin: `docs/plan.md` M2.6, Grid, filters and sort item 4; Q10
+- Depends on: GRID-001, DECISIONS-001
+
+## Purpose
+
+Selection mode lets the user rate, label, flag or mark *Keep RAW* many pictures in one step, by
+touch as well as with a mouse or keyboard.
+
+## Behaviour
+
+- *Select* in the toolbar enters and *Done* leaves selection mode; a long-press on a tile enters
+  it and selects that tile. Ctrl- or Cmd-click enters it too; Shift-click selects the range from
+  the anchor.
+- In selection mode a tap, Enter or Space toggles a tile. Selected tiles are marked; the selection
+  check shows only in selection mode. The toolbar counts the selection and offers *Select all*
+  (the shown pictures) and *Select none*.
+- The action bar shows rating, colour label, flag and *Keep RAW*; a control is pressed where every
+  selected picture shares the value. It is disabled while nothing is selected. *Keep RAW* acts on
+  pairs only and is disabled, with a reason, without one.
+- A change writes the whole new decision of every member of each changed picture; a picture the
+  change leaves as it is sends nothing. A save the server refuses is reverted and reported,
+  unless another folder set is open by then.
+- A rejected picture leaves the view (default scope) and the selection; the selection keeps only
+  shown pictures.
+
+## Acceptance criteria
+
+### GRID-003.1 – Enter and leave
+
+- **Given** the grid
+- **When** the user presses *Select*, then *Done*
+- **Then** selection mode starts with the action bar, disabled until something is selected, and
+  ends
+
+### GRID-003.2 – Long-press selects
+
+- **Given** the grid outside selection mode
+- **When** a finger stays on a tile long enough
+- **Then** selection mode starts with that tile selected and the click that follows is swallowed;
+  lifting the finger early, moving more than 10 px, a cancelled pointer or a secondary button
+  select nothing
+
+### GRID-003.3 – Toggle and range
+
+- **Given** selection mode, or a Ctrl- or Cmd-click outside it
+- **When** the user taps a tile or Shift-clicks another
+- **Then** the tile toggles and becomes the anchor, and Shift selects the range from the anchor
+  (or toggles when there is none)
+
+### GRID-003.4 – Select all, none, done
+
+- **Given** selection mode
+- **When** the user chooses *Select all*, *Select none* or *Done*, in the toolbar or by key
+- **Then** every shown picture, none, or selection mode ends
+
+### GRID-003.5 – Bulk decision on every member
+
+- **Given** selected pictures
+- **When** the user sets a rating, colour label or flag
+- **Then** every member of each picture gets the whole new decision, it is stored and shown, and
+  survives a reload
+
+### GRID-003.6 – Shared values pressed
+
+- **Given** a selection
+- **When** the action bar renders
+- **Then** a control is pressed where every selected picture shares the value, and none where
+  they differ; the colour palette sets a label or none and closes, Escape closes it unchanged
+
+### GRID-003.7 – Keep RAW on pairs only
+
+- **Given** a selection with and without pairs
+- **When** the user marks *Keep RAW*
+- **Then** only the pairs change; it marks unless every pair has it; without a pair it is
+  disabled and says why
+
+### GRID-003.8 – The selection follows the view
+
+- **Given** selected pictures
+- **When** one is rejected in the default scope, or another folder set opens
+- **Then** it leaves the view and the selection; the selection keeps only shown pictures
+
+### GRID-003.9 – A refused save is reverted
+
+- **Given** a bulk change
+- **When** the server does not store it
+- **Then** the change is reverted and the user is told; once another folder set is open, nothing
+  is said
+
+### GRID-003.10 – No change sends nothing
+
+- **Given** a bulk change that alters no picture
+- **When** the user applies it
+- **Then** nothing is sent; a change made before the stored decisions arrived is kept
+
+## Out of scope
+
+Selection keys in detail (KEYS-001), deleting a selection (DELETE-002).
+
+## History
+
+| Date | Change |
+|---|---|
+| 2026-11-10 | Written from the merged M2.6 (#44) |

@@ -79,6 +79,7 @@ function startTiming(page: Page, alt: string) {
 	}, alt)
 }
 
+// spec: LOUPE-001.12
 test('shows a prefetched 24 MP neighbour without a request when paging', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Budget ${randomUUID().slice(0, 8)}`

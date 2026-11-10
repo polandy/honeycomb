@@ -12,6 +12,7 @@ import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { mountApp, openCull, shownNames } from './app-cull.ts'
 
 describe('App: the settings', () => {
+	// spec: SETTINGS-001.7
 	it('opens the settings dialog from the toolbar with the stored settings', async () => {
 		const { wrapper } = mountApp({ loadSettings: async () => ({ viKeys: true }) })
 		await openCull(wrapper)
@@ -28,6 +29,7 @@ describe('App: the settings', () => {
 		expect(wrapper.findComponent(SettingsDialog).props('open')).toBe(false)
 	})
 
+	// spec: SETTINGS-001.10, SETTINGS-001.11
 	it('applies and saves a change from the dialog: singles off leave the grid', async () => {
 		const { wrapper, savedSettings } = mountApp()
 		await openCull(wrapper)
@@ -40,6 +42,7 @@ describe('App: the settings', () => {
 		expect(savedSettings).toEqual([{ ...DEFAULT_SETTINGS, showSingles: false }])
 	})
 
+	// spec: SETTINGS-001.13
 	it('clears the selection when the pairing changes, but not on another change', async () => {
 		const { wrapper } = mountApp()
 		await openCull(wrapper)
@@ -57,6 +60,7 @@ describe('App: the settings', () => {
 		expect(selected()).toEqual([])
 	})
 
+	// spec: SETTINGS-001.13
 	it('gives the folder picker the pairing settings', async () => {
 		const { wrapper } = mountApp({ loadSettings: async () => ({ rawExtensions: ['nef'] }) })
 		await flushPromises()
@@ -64,6 +68,7 @@ describe('App: the settings', () => {
 		expect(wrapper.findComponent(FolderPicker).props('pairing')).toEqual({ rawExtensions: ['nef'], renderedExtensions: DEFAULT_SETTINGS.renderedExtensions, folderMode: DEFAULT_SETTINGS.folderMode })
 	})
 
+	// spec: SETTINGS-001.14
 	it('gives the loupe the settings and saves the changes it makes', async () => {
 		const { wrapper, savedSettings } = mountApp()
 		await openCull(wrapper)

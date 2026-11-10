@@ -53,36 +53,42 @@ final class ImageServiceTest extends TestCase {
 		);
 	}
 
+	// spec: IMAGES-001.8
 	public function testFindsAnImageInTheUsersFiles(): void {
 		$raw = $this->image(7, 'image/x-dcraw');
 
 		$this->assertSame($raw, $this->service([7 => $raw])->find($this->user(), 7));
 	}
 
+	// spec: IMAGES-001.8
 	public function testAnIdOutsideTheUsersFilesIsNotFound(): void {
 		$this->expectException(ImageNotFoundException::class);
 
 		$this->service([])->find($this->user(), 7);
 	}
 
+	// spec: IMAGES-001.8
 	public function testAFolderIsNotFound(): void {
 		$this->expectException(ImageNotFoundException::class);
 
 		$this->service([7 => $this->createStub(Folder::class)])->find($this->user(), 7);
 	}
 
+	// spec: IMAGES-001.8
 	public function testAFileThatIsNoImageIsNotFound(): void {
 		$this->expectException(ImageNotFoundException::class);
 
 		$this->service([7 => $this->image(7, 'application/pdf')])->find($this->user(), 7);
 	}
 
+	// spec: IMAGES-001.8
 	public function testAnUnreadableImageIsNotReadable(): void {
 		$this->expectException(ImageNotReadableException::class);
 
 		$this->service([7 => $this->image(7, readable: false)])->find($this->user(), 7);
 	}
 
+	// spec: IMAGES-001.4
 	public function testRendersATierAsTheLongEdgeWithoutCropping(): void {
 		$file = $this->image(7);
 		$rendered = $this->createStub(ISimpleFile::class);
@@ -100,6 +106,7 @@ final class ImageServiceTest extends TestCase {
 		];
 	}
 
+	// spec: IMAGES-001.7
 	#[DataProvider('previewFailures')]
 	public function testAnImageWithoutAPreviewIsNotFound(\Throwable $failure): void {
 		$preview = $this->createStub(IPreview::class);
@@ -110,6 +117,7 @@ final class ImageServiceTest extends TestCase {
 		$this->service([], $preview)->preview($this->image(7), 256);
 	}
 
+	// spec: IMAGES-001.4
 	public function testTheFullImageOfAFileTheBrowserShowsIsTheFileItself(): void {
 		$file = $this->image(7);
 		$preview = $this->createMock(IPreview::class);
@@ -118,6 +126,7 @@ final class ImageServiceTest extends TestCase {
 		$this->assertSame($file, $this->service([], $preview)->full($file));
 	}
 
+	// spec: IMAGES-001.4
 	public function testTheFullImageOfARawIsItsLargestPreview(): void {
 		$file = $this->image(7, 'image/x-dcraw');
 		$rendered = $this->createStub(ISimpleFile::class);
@@ -127,6 +136,7 @@ final class ImageServiceTest extends TestCase {
 		$this->assertSame($rendered, $this->service([], $preview)->full($file));
 	}
 
+	// spec: IMAGES-001.7
 	#[DataProvider('previewFailures')]
 	public function testARawWithoutAPreviewHasNoFullImage(\Throwable $failure): void {
 		$preview = $this->createStub(IPreview::class);
@@ -137,6 +147,7 @@ final class ImageServiceTest extends TestCase {
 		$this->service([], $preview)->full($this->image(7, 'image/heic'));
 	}
 
+	// spec: IMAGES-001.10
 	public function testWarmsEveryTierOfEachImageAndSkipsWhatItCannotRender(): void {
 		$first = $this->image(1);
 		$broken = $this->image(2);
@@ -160,6 +171,7 @@ final class ImageServiceTest extends TestCase {
 		$this->assertSame([1 => $tiers, 4 => $tiers], $warmed);
 	}
 
+	// spec: IMAGES-001.10
 	public function testQueuesWarmingInJobsOfAtMostTwoHundredFiles(): void {
 		$ids = range(1, 450);
 		$queued = [];

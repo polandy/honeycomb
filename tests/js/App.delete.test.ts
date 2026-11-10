@@ -52,6 +52,7 @@ const summaryOf = (wrapper: AppWrapper) => wrapper.findComponent(DeleteSummary)
 enableAutoUnmount(afterEach)
 
 describe('App: deleting rejects', () => {
+	// spec: DELETE-002.1
 	it('reviews the rejects from the toolbar, rescues one, and moves the rest to the trash bin', async () => {
 		const { wrapper, sent } = await openApp()
 		const toolbar = wrapper.findComponent(GridToolbar)
@@ -80,6 +81,7 @@ describe('App: deleting rejects', () => {
 		expect(toastText(wrapper)).toContain('Moved 1 photo · 2 files')
 	})
 
+	// spec: DELETE-002.2
 	it('reviews the rejects by Ctrl+Backspace, closing the loupe first, and holds the cull keys while a dialog is open', async () => {
 		const { wrapper } = await openApp()
 		await openLoupe(wrapper)
@@ -95,6 +97,7 @@ describe('App: deleting rejects', () => {
 		expect(wrapper.findComponent(RejectReview).exists()).toBe(false)
 	})
 
+	// spec: DELETE-002.3
 	it('offers the review in the empty grid and after the loupe decided the last photo, never without rejects', async () => {
 		const { wrapper } = await openApp([...REJECTED, stored(4, 'picked')])
 		const loupe = await openLoupe(wrapper)
@@ -120,6 +123,7 @@ describe('App: deleting rejects', () => {
 })
 
 describe('App: the Delete key and Delete…', () => {
+	// spec: DELETE-002.5
 	it('summarises the focused tile, and the selection from the action bar and the key', async () => {
 		const { wrapper } = await openApp([])
 		await press('Delete')
@@ -140,6 +144,7 @@ describe('App: the Delete key and Delete…', () => {
 		expect(names(summaryOf(wrapper).props('pictures'))).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
 	})
 
+	// spec: DELETE-002.5, DELETE-002.8
 	it('deletes the loupe\'s photo and closes the loupe when no photo is left in it', async () => {
 		const { wrapper, sent } = await openApp()
 		await openLoupe(wrapper)
@@ -156,6 +161,7 @@ describe('App: the Delete key and Delete…', () => {
 })
 
 describe('App: removing RAWs', () => {
+	// spec: DELETE-003.1, DELETE-003.4, DELETE-003.6
 	it('removes the RAWs of the view from the More menu, after a Keep RAW toggled there and back', async () => {
 		const { wrapper, sent } = await openApp([])
 		const toolbar = wrapper.findComponent(GridToolbar)

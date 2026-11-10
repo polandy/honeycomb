@@ -19,6 +19,7 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use PHPUnit\Framework\TestCase;
 
 final class ApplicationTest extends TestCase {
+	// spec: IMAGES-001.6
 	public function testRegistersThePreviewProviderForRawFiles(): void {
 		$context = $this->createMock(IRegistrationContext::class);
 		$context->expects($this->once())->method('registerPreviewProvider')->with(RawPreviewProvider::class, RawPreviewProvider::MIME_TYPE_REGEX);

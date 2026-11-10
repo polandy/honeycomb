@@ -23,6 +23,7 @@ const ENTRY = {
 }
 
 describe('listEntries', () => {
+	// spec: LISTING-001.4
 	it('lists a folder with its subfolders', async () => {
 		vi.mocked(axios.get).mockResolvedValue({ data: { entries: [ENTRY], truncated: true } })
 
@@ -32,6 +33,7 @@ describe('listEntries', () => {
 		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/entries', { params: { path: '/Photos', subfolders: 1 } })
 	})
 
+	// spec: LISTING-001.1
 	it('lists a folder alone without the subfolders parameter', async () => {
 		vi.mocked(axios.get).mockResolvedValue({ data: { entries: [], truncated: false } })
 
@@ -52,6 +54,7 @@ describe('listEntries', () => {
 })
 
 describe('listFolders', () => {
+	// spec: LISTING-003.1
 	it('lists the child folders of a folder', async () => {
 		const folders = [{ name: 'A', path: '/P/A', hasSubfolders: false }]
 		vi.mocked(axios.get).mockResolvedValue({ data: { folders } })
@@ -60,6 +63,7 @@ describe('listFolders', () => {
 		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/folders', { params: { path: '/P' } })
 	})
 
+	// spec: LISTING-003.10
 	it('rejects a response without folders', async () => {
 		vi.mocked(axios.get).mockResolvedValue({ data: { entries: [] } })
 
@@ -68,6 +72,7 @@ describe('listFolders', () => {
 })
 
 describe('warmPreviews', () => {
+	// spec: IMAGES-001.10
 	it('asks the server to render the previews of the files', async () => {
 		vi.mocked(axios.post).mockResolvedValue({ data: null })
 
@@ -84,6 +89,7 @@ describe('warmPreviews', () => {
 })
 
 describe('lookupDecisions', () => {
+	// spec: DECISIONS-001.1
 	it('reads the stored decisions of the files', async () => {
 		const decisions = [{ fileId: 3, rating: 4, colourLabel: 'green', flag: 'picked', keepRaw: true }]
 		vi.mocked(axios.post).mockResolvedValue({ data: { decisions } })
@@ -92,11 +98,13 @@ describe('lookupDecisions', () => {
 		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/decisions/lookup', { fileIds: [3, 1] })
 	})
 
+	// spec: DECISIONS-001.10
 	it('asks nothing for no files', async () => {
 		expect(await lookupDecisions([])).toEqual([])
 		expect(axios.post).not.toHaveBeenCalled()
 	})
 
+	// spec: DECISIONS-001.9
 	it.each([['no object', 'oops'], ['no decisions', { rows: [] }]])('rejects a response with %s', async (_case, data) => {
 		vi.mocked(axios.post).mockResolvedValue({ data })
 
@@ -105,6 +113,7 @@ describe('lookupDecisions', () => {
 })
 
 describe('saveDecisions', () => {
+	// spec: DECISIONS-001.2
 	it('stores the whole decisions of the files', async () => {
 		const decisions = [{ fileId: 3, rating: 4, colourLabel: null, flag: 'picked' as const, keepRaw: false }]
 		vi.mocked(axios.put).mockResolvedValue({ status: 204 })
@@ -114,6 +123,7 @@ describe('saveDecisions', () => {
 		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/decisions', { decisions })
 	})
 
+	// spec: DECISIONS-001.10
 	it('sends nothing for no decisions', async () => {
 		await saveDecisions([])
 
@@ -147,6 +157,7 @@ describe('saveSettings', () => {
 })
 
 describe('imageUrl', () => {
+	// spec: IMAGES-001.1
 	it('names the file, the tier and the modification time', () => {
 		expect(imageUrl(7, 256, 1234)).toBe('/index.php/apps/honeycomb/api/v1/images/7?size=256&v=1234')
 	})

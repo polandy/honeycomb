@@ -32,6 +32,7 @@ async function openedCull(stored: StoredDecision[] = []) {
 }
 
 describe('useCull: redo', () => {
+	// spec: KEYS-001.10
 	it('puts an undone step again and stores what it wrote', async () => {
 		const { cull, saved, picture } = await openedCull()
 		const decided = cull.decide({ kind: 'flag', flag: 'picked' }, [picture('IMG_9')])
@@ -44,6 +45,7 @@ describe('useCull: redo', () => {
 		expect(cull.undo()).toBe(decided)
 	})
 
+	// spec: KEYS-001.11
 	it('has nothing to redo after a new decision or a new cull', async () => {
 		const { cull, picture } = await openedCull()
 		cull.decide({ kind: 'flag', flag: 'picked' }, [picture('IMG_9')])

@@ -14,6 +14,7 @@ describe('fitSize', () => {
 })
 
 describe('fullScale', () => {
+	// spec: LOUPE-001.7
 	it('is the scale at which one image pixel is one device pixel', () => {
 		expect(fullScale(6000, FITTED, 2)).toBe(3)
 	})

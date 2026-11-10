@@ -37,6 +37,7 @@ final class PositionControllerTest extends TestCase {
 		return new PositionController(Application::APP_ID, $this->createStub(IRequest::class), $session, new PositionService(new FakePositionStore(), $time));
 	}
 
+	// spec: DECISIONS-002.1
 	public function testAnswersTheSavedPositionAndListsIt(): void {
 		$controller = $this->controller();
 		$position = ['folderSet' => self::FOLDER_SET, 'fileId' => 12, 'decided' => 3, 'total' => 10, 'updatedAt' => self::NOW];
@@ -49,10 +50,12 @@ final class PositionControllerTest extends TestCase {
 		$this->assertSame(['positions' => [$position]], json_decode($recent->render(), true));
 	}
 
+	// spec: DECISIONS-002.5
 	public function testAMalformedPositionIsABadRequest(): void {
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->save(['paths' => ['/../etc'], 'subfolders' => false], 12, 3, 10)->getStatus());
 	}
 
+	// spec: DECISIONS-002.6
 	public function testWithoutAUserNothingIsReadOrWritten(): void {
 		$controller = $this->controller(loggedIn: false);
 

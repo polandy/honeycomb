@@ -53,12 +53,14 @@ final class GeneratePreviewsTest extends TestCase {
 		(new \ReflectionMethod($job, 'run'))->invoke($job, $argument);
 	}
 
+	// spec: IMAGES-001.10
 	public function testWarmsTheQueuedFilesOfTheUser(): void {
 		$this->runJob($this->job(), ['userId' => 'alice', 'fileIds' => [7, 8]]);
 
 		$this->assertSame([7], $this->warmed);
 	}
 
+	// spec: IMAGES-001.11
 	public function testDoesNothingForAUserWhoIsGone(): void {
 		$this->runJob($this->job(false), ['userId' => 'alice', 'fileIds' => [7]]);
 
@@ -75,6 +77,7 @@ final class GeneratePreviewsTest extends TestCase {
 		];
 	}
 
+	// spec: IMAGES-001.11
 	#[DataProvider('malformedArguments')]
 	public function testRejectsAMalformedArgument(mixed $argument): void {
 		$this->expectException(\InvalidArgumentException::class);

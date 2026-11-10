@@ -79,6 +79,7 @@ describe('FolderPicker', () => {
 	beforeEach(installMarkedCatalogue)
 	afterEach(uninstallMarkedCatalogue)
 
+	// spec: LISTING-003.11
 	it('asks to tick a folder, introduces the app and cannot be cancelled while no cull is open', async () => {
 		const picker = await mountPicker()
 
@@ -91,6 +92,7 @@ describe('FolderPicker', () => {
 		expect(picker.wrapper.find('[role="dialog"]').attributes('data-no-close')).toBe('true')
 	})
 
+	// spec: LISTING-003.6
 	it('counts the photos of a ticked folder and offers to cull it', async () => {
 		const picker = await mountPicker()
 
@@ -103,6 +105,7 @@ describe('FolderPicker', () => {
 		expect(confirmButton(picker).attributes('disabled')).toBeUndefined()
 	})
 
+	// spec: LISTING-003.6
 	it('counts the photos as the pairing settings pair them', async () => {
 		const picker = await mountPicker(null, { ...DEFAULT_PAIRING_SETTINGS, rawExtensions: ['nef'], renderedExtensions: ['cr3'] })
 
@@ -112,6 +115,7 @@ describe('FolderPicker', () => {
 		expect(countLine(picker)).toBe(`${MARK}1 photo in 1 folder`)
 	})
 
+	// spec: LISTING-003.7
 	it('counts the subfolders at any depth when the switch is on', async () => {
 		const picker = await mountPicker()
 		await tick(picker, 'Trip')
@@ -125,6 +129,7 @@ describe('FolderPicker', () => {
 		expect(confirmButton(picker).text()).toBe(`${MARK}${MARK}Cull 2 folders`)
 	})
 
+	// spec: LISTING-003.8
 	it('says when the ticked folders hold no photos', async () => {
 		const picker = await mountPicker()
 
@@ -135,6 +140,7 @@ describe('FolderPicker', () => {
 		expect(confirmButton(picker).attributes('disabled')).toBeDefined()
 	})
 
+	// spec: LISTING-003.9
 	it('lists each folder once per switch position and keeps the answer', async () => {
 		const picker = await mountPicker()
 		await tick(picker, 'Trip')
@@ -148,6 +154,7 @@ describe('FolderPicker', () => {
 		expect(countLine(picker)).toBe(`${MARK}2 photos in 1 folder`)
 	})
 
+	// spec: LISTING-003.9
 	it('shows the count of the latest ticks when an older answer comes late', async () => {
 		const picker = await mountPicker()
 		await tick(picker, 'Trip')
@@ -163,6 +170,7 @@ describe('FolderPicker', () => {
 		expect(countLine(picker)).toBe(`${MARK}No photos in the ticked folders.`)
 	})
 
+	// spec: LISTING-003.8
 	it('warns when the ticked folders hold more photos than the grid shows', async () => {
 		const picker = await mountPicker()
 
@@ -172,6 +180,7 @@ describe('FolderPicker', () => {
 		expect(picker.wrapper.text()).toContain(`${MARK}More than 20,000 photos. honeycomb shows the first 20,000 by capture time; untick folders to see the rest.`)
 	})
 
+	// spec: LISTING-003.8
 	it('says when the photos cannot be counted, and counts again on the next tick', async () => {
 		const picker = await mountPicker()
 		await tick(picker, 'Trip')
@@ -187,6 +196,7 @@ describe('FolderPicker', () => {
 		expect(picker.calls).toEqual(['/Trip', '/Empty', '/Trip'])
 	})
 
+	// spec: LISTING-003.12
 	it('emits the folder set and its merged entries on confirm', async () => {
 		const picker = await mountPicker()
 		await tick(picker, 'Trip')
@@ -199,6 +209,7 @@ describe('FolderPicker', () => {
 		expect(entries.map((entry) => entry.fileId)).toEqual([1, 2, 3])
 	})
 
+	// spec: LISTING-003.11
 	it('starts from the open cull, which it can cancel back to', async () => {
 		const picker = await mountPicker({ paths: ['/Trip'], subfolders: true })
 		await settleAll(picker)
@@ -211,6 +222,7 @@ describe('FolderPicker', () => {
 		expect(picker.wrapper.emitted('cancel')).toEqual([[]])
 	})
 
+	// spec: APP-001.4
 	it('renders no text that bypasses the catalogue but folder names', async () => {
 		const picker = await mountPicker()
 		await tick(picker, 'Trip')

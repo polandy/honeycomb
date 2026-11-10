@@ -15,6 +15,7 @@ async function naturalSize(page: Page, url: string): Promise<number[]> {
 	}, url)
 }
 
+// spec: IMAGES-001.1, IMAGES-001.3, IMAGES-001.6
 test('serves a JPEG and a RAW-only picture under immutable URLs', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 
@@ -32,6 +33,7 @@ test('serves a JPEG and a RAW-only picture under immutable URLs', async ({ page 
 	}
 })
 
+// spec: IMAGES-001.10
 test('queues the previews of a folder in the background', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const fileId = await upload(page, 'IMG_0003.JPG', JPEG)

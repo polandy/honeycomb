@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { clampTileSize, DEFAULT_TILE_SIZE, MAX_TILE_SIZE, MIN_TILE_SIZE, parseTileSize, pinchTileSize, wheelTileSize } from '../../../src/logic/tile-size.ts'
 
 describe('tile size', () => {
+	// spec: GRID-001.7
 	it('ranges from 90 to 340 px and starts at 160 px, as in the mockup', () => {
 		expect([MIN_TILE_SIZE, DEFAULT_TILE_SIZE, MAX_TILE_SIZE]).toEqual([90, 160, 340])
 	})
