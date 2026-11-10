@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Node } from '@xmldom/xmldom'
+import type { Node, ParseError } from '@xmldom/xmldom'
 import type { XmlPosition, XmpPacket } from './model.ts'
 import type { XmlElement, XmlName } from './rdf.ts'
 
-import { DOMParser, Element, ParseError, Text } from '@xmldom/xmldom'
+import { DOMParser, Element, Text } from '@xmldom/xmldom'
 import { XmpError } from './model.ts'
 import { packetOf } from './rdf.ts'
 
@@ -48,7 +48,7 @@ function positionOf(source: string, offset: number): XmlPosition {
 	return { line: before.length, column: (before.at(-1)?.length ?? 0) + 1 }
 }
 
-/** The root element of well-formed XML; any parser warning or error refuses the sidecar. */
+/** The root element of well-formed XML; any parser warning or error, a missing root included, refuses the sidecar. */
 function parsed(source: string): Element {
 	let reported = ''
 	const parser = new DOMParser({
@@ -58,26 +58,16 @@ function parsed(source: string): Element {
 		},
 	})
 	try {
-		const root = parser.parseFromString(source, 'application/xml').documentElement
-		if (root === null) {
-			throw new XmpError('malformed', 'the sidecar has no root element')
-		}
-		return root
+		return parser.parseFromString(source, 'application/xml').documentElement as Element
 	} catch (error) {
-		if (error instanceof ParseError) {
-			throw new XmpError('malformed', `the sidecar is not well-formed XML: ${reported}`, locatorPosition(error.locator))
-		}
-		throw error
+		throw new XmpError('malformed', `the sidecar is not well-formed XML: ${reported}`, locatorPosition((error as ParseError).locator))
 	}
 }
 
-/** The position xmldom's locator reports, if it has one. */
-function locatorPosition(locator: unknown): XmlPosition | null {
-	if (typeof locator !== 'object' || locator === null) {
-		return null
-	}
-	const { lineNumber, columnNumber } = locator as { lineNumber?: unknown, columnNumber?: unknown }
-	return typeof lineNumber === 'number' && typeof columnNumber === 'number' ? { line: lineNumber, column: columnNumber } : null
+/** The position xmldom's locator reports; an empty sidecar has no column. */
+function locatorPosition(locator: { lineNumber?: number, columnNumber?: number } | undefined): XmlPosition | null {
+	const { lineNumber, columnNumber } = locator ?? {}
+	return lineNumber !== undefined && columnNumber !== undefined ? { line: lineNumber, column: columnNumber } : null
 }
 
 /** Our own tree of an xmldom element, so only this module knows the library. */
