@@ -49,7 +49,7 @@ function choose(colourLabel: ColourLabel | null) {
 			class="colour-labels__palette"
 			role="group"
 			:aria-label="t('honeycomb', 'Colour label')"
-			@keydown.esc="open = false">
+			@keydown.esc.prevent="open = false">
 			<button
 				v-for="label in COLOUR_LABELS"
 				:key="label"

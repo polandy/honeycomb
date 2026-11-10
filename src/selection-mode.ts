@@ -47,7 +47,7 @@ export function useSelectionMode(view: () => readonly Picture<ListingEntry>[], r
 		} else if (action === 'select-none' && selecting.value) {
 			event.preventDefault()
 			selectNone()
-		} else if (action === 'leave' && selecting.value) {
+		} else if (action === 'leave' && selecting.value && !event.defaultPrevented) {
 			setSelecting(false)
 		}
 	}

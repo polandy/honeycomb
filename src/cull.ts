@@ -1,6 +1,6 @@
-import type { DecisionIntent } from './logic/decision-change.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { DecisionIntent } from './logic/decision-change.ts'
 import type { Decision, StoredDecision } from './logic/decision.ts'
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
@@ -66,12 +66,12 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 		loadDecisions(pictures.value)
 	}
 
-	/** Reads the decisions of every member; they apply only while the same pictures are open. */
+	/** Reads the decisions of every member; they apply only while the same pictures are open, under changes made meanwhile. */
 	function loadDecisions(opened: readonly Picture<ListingEntry>[]) {
 		const fileIds = opened.flatMap((picture) => [picture.rendered, picture.raw].filter((member) => member !== null).map((member) => member.fileId))
 		api.lookupDecisions(fileIds).then((rows) => {
 			if (pictures.value === opened) {
-				decisions.value = decisionsByFileId(rows)
+				decisions.value = new Map([...decisionsByFileId(rows), ...decisions.value])
 			}
 		}).catch((error: unknown) => logger.error('Could not read the decisions; every photo shows as undecided', { error }))
 	}
