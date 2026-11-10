@@ -57,6 +57,7 @@ const allTrashed = async (request: { fileId: number }[][]) => request.map((files
 afterEach(() => vi.restoreAllMocks())
 
 describe('useDeleteFlow', () => {
+	// spec: DELETE-002.1
 	it('reviews the rejects with the loupe closed, rescues one as a decision and continues to their summary', () => {
 		const { deleting, decided, loupe } = flow(allTrashed)
 
@@ -76,6 +77,7 @@ describe('useDeleteFlow', () => {
 		expect(deleting.dialog.value).toBeNull()
 	})
 
+	// spec: DELETE-002.4
 	it('says so instead of opening an empty review', () => {
 		const { deleting, toasts } = flow(allTrashed)
 		deleting.summarise([])
@@ -91,6 +93,7 @@ describe('useDeleteFlow', () => {
 		expect(toasts).toEqual([])
 	})
 
+	// spec: DELETE-002.8
 	it('moves whole pictures to the trash bin, takes them out of the listing and the loupe and says what was freed', async () => {
 		const { deleting, pictures, toasts, sent, loupe } = flow(allTrashed)
 		loupe.value = { pictures: [PAIR!, SINGLE!], index: 0 }
@@ -105,6 +108,7 @@ describe('useDeleteFlow', () => {
 		expect(toasts).toEqual(['Moved 1 photo · 2 files · 3 kB freed to the Nextcloud trash bin'])
 	})
 
+	// spec: DELETE-002.9, DELETE-002.10
 	it('reports the failed files, keeps the picture that lost a member as a single, and retries only the failed ones', async () => {
 		const answers = [
 			async () => [[{ fileId: 2, result: 'trashed' }, { fileId: 1, result: 'locked' }]],
@@ -128,6 +132,7 @@ describe('useDeleteFlow', () => {
 		expect(deleting.dialog.value).toBeNull()
 	})
 
+	// spec: DELETE-002.11
 	it.each([
 		[new TrashBinOffError('off'), 'The Nextcloud trash bin is off, so nothing was deleted. honeycomb deletes only into the trash bin.'],
 		[new Error('Network Error'), 'Could not delete the photos; reload the folder to see what changed.'],
@@ -144,6 +149,7 @@ describe('useDeleteFlow', () => {
 		expect(toasts).toEqual([message])
 	})
 
+	// spec: DELETE-002.7
 	it('sends nothing without a summary or a report, or while a request runs', async () => {
 		let release = () => {}
 		const { deleting, sent } = flow((request) => new Promise((resolve) => {
@@ -205,6 +211,7 @@ describe('useDeleteFlow: Remove RAWs', () => {
 		return { deleting, pictures, toasts, sent }
 	}
 
+	// spec: DELETE-003.1, DELETE-003.4, DELETE-003.6
 	it('opens on the view, follows a Keep RAW toggle and moves only each RAW with its own sidecar', async () => {
 		const { deleting, pictures, toasts, sent } = rawFlow(allTrashed)
 
@@ -224,6 +231,7 @@ describe('useDeleteFlow: Remove RAWs', () => {
 		expect(toasts).toEqual(['Removed the RAWs of 1 photo · 2 files · 3 kB freed to the Nextcloud trash bin'])
 	})
 
+	// spec: DELETE-003.7
 	it('keeps the pair whose RAW failed and reports it', async () => {
 		const { deleting, pictures, toasts } = rawFlow(async () => [[{ fileId: 21, result: 'locked' }, { fileId: 23, result: 'skipped' }], [{ fileId: 31, result: 'trashed' }]])
 
@@ -235,6 +243,7 @@ describe('useDeleteFlow: Remove RAWs', () => {
 		expect(toasts).toEqual(['Moved 1 file to trash · 2 failed'])
 	})
 
+	// spec: DELETE-003.5
 	it('has no removal without its summary open', () => {
 		const { deleting } = rawFlow(allTrashed)
 
@@ -244,6 +253,7 @@ describe('useDeleteFlow: Remove RAWs', () => {
 	})
 })
 
+// spec: DELETE-002.9
 describe('failureReason', () => {
 	it.each([
 		['notFound', 'File is gone or no longer a photo; reload the folder'],

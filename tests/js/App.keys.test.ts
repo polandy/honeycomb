@@ -43,6 +43,7 @@ enableAutoUnmount(afterEach)
 describe('App: keys on the grid', () => {
 	afterEach(() => vi.restoreAllMocks())
 
+	// spec: KEYS-001.5
 	it('decides the focused photo by a key and says so', async () => {
 		const { wrapper, grid, saved } = await openApp()
 		grid.focused = 1
@@ -54,6 +55,7 @@ describe('App: keys on the grid', () => {
 		expect(grid.steps).toEqual([])
 	})
 
+	// spec: KEYS-001.4
 	it('moves the focus on after Shift and a decision, unless the photo left the view', async () => {
 		const { wrapper, grid } = await openApp()
 		await press('U', { shiftKey: true })
@@ -67,6 +69,7 @@ describe('App: keys on the grid', () => {
 		expect(grid.revealed).toEqual([1])
 	})
 
+	// spec: KEYS-001.6
 	it('decides the selection in selection mode, stepping the rating they share', async () => {
 		const { wrapper, saved } = await openApp()
 		await press('a', { ctrlKey: true })
@@ -80,6 +83,7 @@ describe('App: keys on the grid', () => {
 		expect(wrapper.findComponent(GridToolbar).props('selected')).toBe(3)
 	})
 
+	// spec: KEYS-001.6
 	it('does nothing for a decision key with nothing selected', async () => {
 		const { saved } = await openApp()
 		await press('a', { ctrlKey: true })
@@ -88,6 +92,7 @@ describe('App: keys on the grid', () => {
 		expect(saved).toEqual([])
 	})
 
+	// spec: KEYS-001.10
 	it('undoes by Ctrl+Z and redoes by Ctrl+Shift+Z, saying so', async () => {
 		const { wrapper } = await openApp()
 		await press('p')
@@ -103,6 +108,7 @@ describe('App: keys on the grid', () => {
 		expect(toastText(wrapper)).toBe('Redid: Picked IMG_2')
 	})
 
+	// spec: KEYS-001.5, KEYS-001.7
 	it('moves the grid\'s focus by the arrows, Home and End, and by the vi keys when on', async () => {
 		const { grid } = await openApp({ loadSettings: async () => ({ viKeys: true }) })
 		for (const key of ['ArrowDown', 'ArrowLeft', 'End', 'Home', 'k', 'l']) {
@@ -112,6 +118,7 @@ describe('App: keys on the grid', () => {
 		expect(grid.steps).toEqual(['down', 'previous', 'last', 'first', 'up', 'next', 'last'])
 	})
 
+	// spec: KEYS-001.5
 	it('opens the loupe by E on the focused photo', async () => {
 		const { wrapper, grid } = await openApp()
 		grid.focused = 2
@@ -119,6 +126,7 @@ describe('App: keys on the grid', () => {
 		expect(wrapper.findComponent(PhotoLoupe).props('index')).toBe(2)
 	})
 
+	// spec: KEYS-001.5
 	it('hides the toolbar and the filter bar by Tab and toggles the filter bar by \\', async () => {
 		const { wrapper } = await openApp()
 		await press('\\')
@@ -134,6 +142,7 @@ describe('App: keys on the grid', () => {
 		expect(wrapper.findComponent(FilterBar).exists()).toBe(false)
 	})
 
+	// spec: KEYS-001.5
 	it('turns the filters off by Ctrl+L and on again', async () => {
 		const { wrapper } = await openApp()
 		await press('\\')
@@ -147,6 +156,7 @@ describe('App: keys on the grid', () => {
 		expect(active()).toBe(1)
 	})
 
+	// spec: KEYS-001.7
 	it('opens the filter bar and focuses its first control by / with the vi keys on', async () => {
 		const focus = vi.spyOn(HTMLElement.prototype, 'focus')
 		const { wrapper } = await openApp({ loadSettings: async () => ({ viKeys: true }) }, { FilterBar: false })
@@ -160,6 +170,7 @@ describe('App: keys on the grid', () => {
 		expect(focus.mock.contexts).toEqual([bar.find('button, input, select').element])
 	})
 
+	// spec: KEYS-001.5
 	it('selects none by Ctrl+D and leaves selection mode by Escape only while selecting', async () => {
 		const { wrapper } = await openApp()
 		expect(await press('d', { ctrlKey: true })).toBe(false)
@@ -170,6 +181,7 @@ describe('App: keys on the grid', () => {
 		expect(wrapper.findComponent(PhotoGrid).props('selecting')).toBe(false)
 	})
 
+	// spec: KEYS-001.5
 	it('goes browser fullscreen by F', async () => {
 		const fullscreen: HTMLElement[] = []
 		await openApp({ toggleFullscreen: (element: HTMLElement) => fullscreen.push(element) })
@@ -177,6 +189,7 @@ describe('App: keys on the grid', () => {
 		expect(fullscreen).toEqual([document.documentElement])
 	})
 
+	// spec: KEYS-001.9
 	it('leaves the keys to the loupe while it is open, but for undo', async () => {
 		const next = vi.fn()
 		const LoupeStub = defineComponent({
@@ -199,6 +212,7 @@ describe('App: keys on the grid', () => {
 		expect(toastText(wrapper)).toBe('Undid: Picked IMG_2')
 	})
 
+	// spec: KEYS-001.9
 	it('acts on no key while the folder picker is open', async () => {
 		const { wrapper, saved } = await openApp()
 		wrapper.findComponent(GridToolbar).vm.$emit('changeFolders')
@@ -210,6 +224,7 @@ describe('App: keys on the grid', () => {
 })
 
 describe('App: the shortcut sheet', () => {
+	// spec: KEYS-001.9, KEYS-001.12
 	it('opens by ? and closes by Ctrl+/, keeping the other keys away while open', async () => {
 		const { wrapper, saved } = await openApp({}, { ShortcutSheet: true })
 		const sheet = () => wrapper.findComponent(ShortcutSheet)
@@ -226,6 +241,7 @@ describe('App: the shortcut sheet', () => {
 		expect(sheet().exists()).toBe(false)
 	})
 
+	// spec: KEYS-001.12
 	it('opens inside the loupe while the loupe is open', async () => {
 		const { wrapper } = await openApp({}, { ShortcutSheet: true })
 		wrapper.findComponent(PhotoGrid).vm.$emit('open', 0)
@@ -234,6 +250,7 @@ describe('App: the shortcut sheet', () => {
 		expect(wrapper.findComponent(ShortcutSheet).props('container')).toBe('.photo-loupe')
 	})
 
+	// spec: KEYS-001.12
 	it('opens on the empty screen before a cull', async () => {
 		const empty = mountApp({}, [], { ShortcutSheet: true })
 		empty.wrapper.findComponent(FolderPicker).vm.$emit('cancel')

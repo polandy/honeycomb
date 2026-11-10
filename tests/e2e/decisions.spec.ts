@@ -13,6 +13,7 @@ async function send(page: Page, method: 'GET' | 'POST' | 'PUT', path: string, da
 	return page.request.fetch(`${API}${path}`, { method, data, headers: { requesttoken: await requestToken(page) } })
 }
 
+// spec: DECISIONS-001.1, DECISIONS-001.2, DECISIONS-001.3
 test('stores, overwrites and clears decisions per file id', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const picked = { fileId: 900_001, rating: 4, colourLabel: 'green', flag: 'picked', keepRaw: true }
@@ -29,6 +30,7 @@ test('stores, overwrites and clears decisions per file id', async ({ page }) => 
 	expect(await overwritten.json()).toEqual({ decisions: [{ ...picked, rating: 2 }] })
 })
 
+// spec: DECISIONS-001.5
 test('rejects a malformed decision without writing any', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const decision = { fileId: 900_010, rating: 1, colourLabel: null, flag: 'unflagged', keepRaw: false }
@@ -39,6 +41,7 @@ test('rejects a malformed decision without writing any', async ({ page }) => {
 	expect(await (await send(page, 'POST', '/decisions/lookup', { fileIds: [900_010] })).json()).toEqual({ decisions: [] })
 })
 
+// spec: DECISIONS-002.3
 test('keeps the most recent resume positions, newest first', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 

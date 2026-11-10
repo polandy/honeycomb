@@ -29,6 +29,7 @@ async function openApp() {
 }
 
 describe('App: the loupe', () => {
+	// spec: LOUPE-001.1
 	it('opens on the grid\'s picture over the pictures the grid shows, at the body so no Nextcloud bar covers it', async () => {
 		const { wrapper } = await openApp()
 		expect(wrapper.findComponent(PhotoLoupe).exists()).toBe(false)
@@ -42,6 +43,7 @@ describe('App: the loupe', () => {
 		expect(loupe.props('pictures').map((picture: { baseName: string }) => picture.baseName)).toEqual(shownNames(wrapper))
 	})
 
+	// spec: LOUPE-001.2
 	it('pages and, on close, reveals the last shown picture in the grid', async () => {
 		const { wrapper, revealed } = await openApp()
 		wrapper.findComponent(PhotoGrid).vm.$emit('open', 0)
@@ -57,6 +59,7 @@ describe('App: the loupe', () => {
 		expect(revealed).toEqual([2])
 	})
 
+	// spec: KEYS-001.9
 	it('keeps the grid\'s selection keys away while it is open', async () => {
 		const { wrapper } = await openApp()
 		wrapper.findComponent(GridToolbar).vm.$emit('update:selecting', true)

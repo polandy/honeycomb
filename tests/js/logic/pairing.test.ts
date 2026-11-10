@@ -28,6 +28,7 @@ function asVector(picture: Picture<Entry>) {
 }
 
 describe('pairPictures on the shared vectors', () => {
+	// spec: LISTING-002.1, LISTING-002.2, LISTING-002.3, LISTING-002.4, LISTING-002.5, LISTING-002.6, LISTING-002.7, LISTING-002.9
 	it.each(vectors.cases)('$name', (vector) => {
 		const settings = { ...VECTOR_DEFAULTS, ...('settings' in vector ? vector.settings : {}) } as PairingSettings
 
@@ -36,6 +37,7 @@ describe('pairPictures on the shared vectors', () => {
 })
 
 describe('pairPictures', () => {
+	// spec: LISTING-002.8
 	it('defaults to the RAW and rendered extensions of the requirements and the same folder mode', () => {
 		expect(DEFAULT_PAIRING_SETTINGS).toEqual(VECTOR_DEFAULTS)
 	})
@@ -53,12 +55,14 @@ describe('pairPictures', () => {
 	it.each([
 		['the RAW member when there is one', ['/P/dsc_1.jpg', '/P/DSC_1.NEF'], 'DSC_1'],
 		['the rendered member of a JPEG single', ['/P/2026.11.09.dsc_1.jpg'], '2026.11.09.dsc_1'],
+	// spec: LISTING-002.2
 	])('takes the base name as written from %s', (_member, paths, baseName) => {
 		const [picture] = pairPictures(entries(paths), DEFAULT_PAIRING_SETTINGS)
 
 		expect(picture?.baseName).toBe(baseName)
 	})
 
+	// spec: LISTING-002.7
 	it('accepts extensions in any case and with a leading dot', () => {
 		const settings = { ...DEFAULT_PAIRING_SETTINGS, rawExtensions: ['.NEF'], renderedExtensions: [' Jpg '] }
 
@@ -76,6 +80,7 @@ describe('pairPictures', () => {
 		['the sidecar extension as a RAW extension', { rawExtensions: ['xmp'] }, 'xmp'],
 		['the sidecar extension as a rendered extension', { renderedExtensions: ['.XMP'] }, 'xmp'],
 		['an empty extension', { rawExtensions: ['nef', ' '] }, '""'],
+	// spec: LISTING-002.10
 	])('rejects settings with %s', (_case, override, named) => {
 		const settings = { ...DEFAULT_PAIRING_SETTINGS, ...override }
 

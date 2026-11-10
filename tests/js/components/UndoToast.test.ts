@@ -18,6 +18,7 @@ describe('UndoToast', () => {
 		expect(wrapper.emitted('act')).toHaveLength(1)
 	})
 
+	// spec: LOUPE-002.8
 	it('leaves the focus where it is when its button is pressed', async () => {
 		const wrapper = mountToast({ label: 'Undo' })
 		const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
@@ -27,6 +28,7 @@ describe('UndoToast', () => {
 		expect(press.defaultPrevented).toBe(true)
 	})
 
+	// spec: LOUPE-002.8
 	it('sits at the bottom, or at the top where the loupe keeps its controls at the bottom', () => {
 		expect(mountToast(null).classes()).not.toContain('undo-toast--top')
 		expect(mountToast(null, true).classes()).toContain('undo-toast--top')

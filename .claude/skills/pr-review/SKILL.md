@@ -21,14 +21,14 @@ Decide from `gh pr diff <PR> --name-only`, and name the tier in the verdict. Whe
 higher one.
 
 - **Light:** only `*.md`, `docs/` (the mockup included), `.claude/`, `assets/` or `LICENSES/`.
-  §0, the *Light checks*, §6–§9. No test table.
+  §0, *Spec in sync*, the *Light checks*, §6–§9. No test table.
 - **Full:** any of: `lib/` code that reads, moves, trashes or writes files (CLAUDE.md rules 1–2),
   writing XMP or its mapping, pairing, a migration or new table, a new route or a changed response
   shape (`appinfo/routes.php`, a controller's return), a new dependency, a new screen or shared
-  component. §0, the §4.0 table, then `references/full-tier.md` §1–§5, then §6–§9.
+  component. §0, the §4.0 table, *Spec in sync*, then `references/full-tier.md` §1–§5, then §6–§9.
 - **Standard:** everything else (a contained pure module or component, styling, tests only,
-  `scripts/`, `.github/`). §0, the §4.0 table, the *Standard checks*, §6–§9. Do not open the
-  reference.
+  `scripts/`, `.github/`). §0, the §4.0 table, *Spec in sync*, the *Standard checks*, §6–§9. Do
+  not open the reference.
 
 ## Rules for every tier
 
@@ -62,7 +62,8 @@ higher one.
 ## 4.0 Tests against the diff — build the table first (Standard, Full)
 
 One row per changed source file under `lib/`, `src/` or `appinfo/`: the test that drives *its
-changed lines* (test file and case name). A row you cannot fill is a finding, whatever the title
+changed lines* (test file and case name) and the spec criterion it proves (`<ID>.<n>`, or `–` for
+an internal detail). A row you cannot fill is a finding, whatever the title
 says. The table itself goes into the verdict, not a claim that it was built: a pull request often
 carries a second change, and that one ships without tests.
 
@@ -78,6 +79,19 @@ carries a second change, and that one ships without tests.
   `src/logic/` module or one shared component.
 - **A shared test helper is never the assertion.** One that tolerates both states stays green when
   the behaviour is removed.
+
+## Spec in sync (every tier)
+
+ADR 0015, `docs/specs/README.md`. The `spec trailers` check only sees *that* a spec changed or a
+trailer was given; you judge whether the content is right.
+
+- Every behaviour the diff adds, changes or removes is stated in its spec's criteria, in the same
+  pull request; a criterion the code no longer meets is a finding. Fix it on the branch.
+- A `Spec-Unchanged:` or `Spec-Only:` reason must be true: a refactor that moves observable
+  behaviour, or a "rewording" that changes a rule, is a finding.
+- New or changed tests that prove a criterion carry its `// spec:` marker, and each marker's test
+  really asserts that criterion. A new `(gap)` has its `TODO.md` item; a closed gap loses the
+  suffix.
 
 ## Light checks
 
@@ -128,9 +142,9 @@ a `TODO.md` item finished twice.
 ## 8. Verdict
 
 1. **Summary:** what the pull request does, in one paragraph, and the tier.
-2. **Gates:** one line each — CI (✅ green on `<sha>` / ❌), e2e (✅ / ❌ / `n/a`, no `tests/e2e/`
-   yet), test first (✅ commit order, and in Full the mutation proof / ❌ / `n/a` Light), failure
-   paths (✅ / ❌ / `n/a` Light).
+2. **Gates:** one line each — spec in sync (✅ / ❌), CI (✅ green on `<sha>` / ❌), e2e (✅ / ❌ /
+   `n/a`, no `tests/e2e/` yet), test first (✅ commit order, and in Full the mutation proof / ❌ /
+   `n/a` Light), failure paths (✅ / ❌ / `n/a` Light).
 3. **Test table** (Standard, Full).
 4. **Findings:** per check ✅ ok, ⚠️ issue (`file:line`) or 🔧 fixed by me (commit).
 5. **Blockers:** what must change before the merge that you could not fix.

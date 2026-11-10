@@ -38,6 +38,7 @@ final class DecisionServiceTest extends TestCase {
 		return ['fileId' => $fileId, 'rating' => $rating, 'colourLabel' => $colourLabel, 'flag' => $flag, 'keepRaw' => $keepRaw];
 	}
 
+	// spec: DECISIONS-001.2
 	public function testStoresTheDecisionsOfEveryMember(): void {
 		$this->service->save($this->user('alice'), [self::item(1, 4, 'green', 'picked'), self::item(2, 4, 'green', 'picked')]);
 
@@ -47,12 +48,14 @@ final class DecisionServiceTest extends TestCase {
 		);
 	}
 
+	// spec: DECISIONS-001.1
 	public function testReturnsOnlyTheDecisionsOfTheAskedFileIds(): void {
 		$this->service->save($this->user('alice'), [self::item(1, 2), self::item(2, 3)]);
 
 		$this->assertEquals([new PictureDecision(2, 3, null, Flag::Unflagged, false)], $this->service->lookup($this->user('alice'), [2]));
 	}
 
+	// spec: DECISIONS-001.4
 	public function testKeepsTheDecisionsOfEachUserApart(): void {
 		$this->service->save($this->user('alice'), [self::item(1, flag: 'rejected')]);
 		$this->service->save($this->user('bob'), [self::item(1, flag: 'picked')]);
@@ -61,6 +64,7 @@ final class DecisionServiceTest extends TestCase {
 		$this->assertSame(Flag::Picked, $this->service->lookup($this->user('bob'), [1])[0]->flag);
 	}
 
+	// spec: DECISIONS-001.2
 	public function testOverwritesTheWholeEarlierState(): void {
 		$this->service->save($this->user('alice'), [self::item(1, 5, 'red', 'picked', true)]);
 
@@ -69,6 +73,7 @@ final class DecisionServiceTest extends TestCase {
 		$this->assertEquals([new PictureDecision(1, 0, null, Flag::Rejected, false)], $this->service->lookup($this->user('alice'), [1]));
 	}
 
+	// spec: DECISIONS-001.3
 	public function testRemovesTheRowOfADecisionBackToTheDefault(): void {
 		$this->service->save($this->user('alice'), [self::item(1, 3), self::item(2, 3)]);
 
@@ -88,6 +93,7 @@ final class DecisionServiceTest extends TestCase {
 		];
 	}
 
+	// spec: DECISIONS-001.6
 	#[DataProvider('malformedFileIds')]
 	public function testRejectsMalformedFileIdsOnLookup(array $fileIds): void {
 		$this->expectException(InvalidDecisionException::class);
@@ -105,6 +111,7 @@ final class DecisionServiceTest extends TestCase {
 		];
 	}
 
+	// spec: DECISIONS-001.5
 	#[DataProvider('malformedSaves')]
 	public function testWritesNothingWhenOneItemIsMalformed(array $items): void {
 		$this->service->save($this->user('alice'), [self::item(1, 5)]);

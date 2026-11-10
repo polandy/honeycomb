@@ -76,8 +76,11 @@ jobs:
       - run: scripts/test-ci-changes.sh
       - run: scripts/test-source-sizes.sh
       - run: scripts/test-pins.sh
+      - run: scripts/test-specs.sh
+      - run: scripts/test-spec-trailers.sh
       - run: scripts/source-sizes.sh
       - run: scripts/pins.sh
+      - run: scripts/specs.sh
 
   php:
     name: PHP ${{ matrix.php }}

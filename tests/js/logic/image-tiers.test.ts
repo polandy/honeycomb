@@ -7,6 +7,7 @@ import { listingEntry, pictureOf } from './listing-entries.ts'
 const urlFor = (fileId: number, size: number, mtime: number) => `/img/${fileId}?size=${size}&v=${mtime}`
 
 describe('image tiers', () => {
+	// spec: IMAGES-001.4
 	it('are 256 and 512 px for the grid and 2048 px for the loupe (ADR 0010)', () => {
 		expect([...GRID_TIERS, LOUPE_TIER]).toEqual([256, 512, 2048])
 	})
@@ -17,6 +18,7 @@ describe('imageMember', () => {
 		['the rendered member of a pair', ['/P/A.NEF', '/P/A.JPG'], 2],
 		['the rendered member of a JPEG single', ['/P/A.JPG'], 1],
 		['the RAW member of a RAW single', ['/P/A.NEF'], 1],
+	// spec: IMAGES-001.9
 	])('shows %s', (_case, paths, fileId) => {
 		const picture = pictureOf(...paths.map((path, index) => listingEntry(index + 1, path)))
 

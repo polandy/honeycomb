@@ -44,6 +44,7 @@ describe('FolderList', () => {
 	beforeEach(installMarkedCatalogue)
 	afterEach(uninstallMarkedCatalogue)
 
+	// spec: LISTING-003.4
 	it('lists the child folders of the root, sorted with digits by value', async () => {
 		const { wrapper } = await mountList()
 
@@ -51,12 +52,14 @@ describe('FolderList', () => {
 		expect(optionNames(wrapper)).toEqual(['.hidden', 'Day 9', 'Day 10', 'Photos'])
 	})
 
+	// spec: LISTING-003.4
 	it('marks the ticked folders as selected', async () => {
 		const { wrapper } = await mountList(['/Day 9'])
 
 		expect(wrapper.findAll('[role="option"]').map((option) => option.attributes('aria-selected'))).toEqual(['false', 'true', 'false', 'false'])
 	})
 
+	// spec: LISTING-003.4
 	it.each([['click', {}], ['keydown', { key: 'Enter' }], ['keydown', { key: ' ' }]] as const)('toggles a folder by %s %o', async (event, init) => {
 		const { wrapper } = await mountList()
 
@@ -65,6 +68,7 @@ describe('FolderList', () => {
 		expect(wrapper.emitted('toggle')).toEqual([['/Day 9']])
 	})
 
+	// spec: LISTING-003.5
 	it('disables a hidden folder and says why', async () => {
 		const { wrapper } = await mountList()
 		const hidden = wrapper.findAll('[role="option"]')[0]!
@@ -76,6 +80,7 @@ describe('FolderList', () => {
 		expect(wrapper.emitted('toggle')).toBeUndefined()
 	})
 
+	// spec: LISTING-003.4
 	it('opens a folder with subfolders by its arrow, without ticking it, and goes back by the breadcrumbs', async () => {
 		const { wrapper, pending } = await mountList()
 		const open = wrapper.find(`[aria-label="${MARK}Open Photos"]`)
@@ -96,6 +101,7 @@ describe('FolderList', () => {
 		expect(optionNames(wrapper)).toContain('Photos')
 	})
 
+	// spec: LISTING-003.4
 	it('offers no arrow for a folder without subfolders', async () => {
 		const { wrapper } = await mountList()
 
@@ -116,6 +122,7 @@ describe('FolderList', () => {
 		expect(wrapper.findAll('.folder-list__crumbs button').map((crumb) => crumb.text())).toEqual([`${MARK}Home`, 'Photos', '2026'])
 	})
 
+	// spec: LISTING-003.9
 	it('shows only the folders of the latest folder opened', async () => {
 		const { wrapper, pending } = await mountList()
 		await wrapper.find(`[aria-label="${MARK}Open Photos"]`).trigger('click')
@@ -129,6 +136,7 @@ describe('FolderList', () => {
 		expect(optionNames(wrapper)).toContain('Photos')
 	})
 
+	// spec: LISTING-003.10
 	it('says when the folders cannot be loaded', async () => {
 		const { wrapper, pending } = await mountList()
 		await wrapper.find(`[aria-label="${MARK}Open Photos"]`).trigger('click')
@@ -140,6 +148,7 @@ describe('FolderList', () => {
 		expect(wrapper.find('[role="option"]').exists()).toBe(false)
 	})
 
+	// spec: APP-001.4
 	it('renders no text that bypasses the catalogue but folder names', async () => {
 		const { wrapper } = await mountList()
 

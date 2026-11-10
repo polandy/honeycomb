@@ -33,6 +33,7 @@ final class FolderControllerTest extends TestCase {
 		return new FolderController(Application::APP_ID, $this->createStub(IRequest::class), $session, $folders);
 	}
 
+	// spec: LISTING-003.1
 	public function testReturnsTheChildFoldersAsJson(): void {
 		$photos = $this->folder('/Photos');
 		$year = $this->folder('/Photos/2024');
@@ -48,18 +49,21 @@ final class FolderControllerTest extends TestCase {
 		);
 	}
 
+	// spec: LISTING-003.3
 	public function testAMissingFolderIsNotFound(): void {
 		$response = $this->controller($this->rootWith([]), $this->user())->index('Gone');
 
 		$this->assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
 	}
 
+	// spec: LISTING-003.3
 	public function testAnUnreadableFolderIsForbidden(): void {
 		$response = $this->controller($this->rootWith(['/Photos' => $this->folder('/Photos', false)]), $this->user())->index('Photos');
 
 		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
 	}
 
+	// spec: LISTING-003.3
 	public function testWithoutAUserNothingIsListed(): void {
 		$root = $this->createMock(IRootFolder::class);
 		$root->expects($this->never())->method('getUserFolder');
@@ -69,6 +73,7 @@ final class FolderControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
 	}
 
+	// spec: LISTING-003.3
 	public function testIndexIsAGetRouteForEveryUserWithTheCsrfCheck(): void {
 		$method = new ReflectionMethod(FolderController::class, 'index');
 

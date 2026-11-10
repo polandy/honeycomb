@@ -40,6 +40,7 @@ final class PositionServiceTest extends TestCase {
 		return $user;
 	}
 
+	// spec: DECISIONS-002.1
 	public function testStoresThePositionWithTheTimeOfSaving(): void {
 		$saved = $this->service()->save($this->user('alice'), self::HOLIDAY, 12, 3, 10);
 
@@ -48,6 +49,7 @@ final class PositionServiceTest extends TestCase {
 		$this->assertEquals([$expected], $this->service()->recent($this->user('alice')));
 	}
 
+	// spec: DECISIONS-002.1
 	public function testAnswersInTheShapeOfTheRequest(): void {
 		$saved = $this->service()->save($this->user('alice'), self::HOLIDAY, 12, 3, 10);
 
@@ -57,6 +59,7 @@ final class PositionServiceTest extends TestCase {
 		);
 	}
 
+	// spec: DECISIONS-002.2
 	public function testTheSameFolderSetInAnotherOrderReplacesThePosition(): void {
 		$this->service()->save($this->user('alice'), self::HOLIDAY, 12, 3, 10);
 		$this->now++;
@@ -68,6 +71,7 @@ final class PositionServiceTest extends TestCase {
 		$this->assertSame(14, $recent[0]->fileId);
 	}
 
+	// spec: DECISIONS-002.2
 	public function testWithoutSubfoldersIsAnotherFolderSet(): void {
 		$this->service()->save($this->user('alice'), self::HOLIDAY, 12, 3, 10);
 
@@ -76,6 +80,7 @@ final class PositionServiceTest extends TestCase {
 		$this->assertCount(2, $this->service()->recent($this->user('alice')));
 	}
 
+	// spec: DECISIONS-002.3
 	public function testListsTheNewestFirstAndKeepsOnlyTheMostRecent(): void {
 		for ($folder = 1; $folder <= PositionService::RECENT_LIMIT + 1; $folder++) {
 			$this->service()->save($this->user('alice'), ['paths' => ["/Photos/$folder"], 'subfolders' => false], $folder, 0, 1);
@@ -88,6 +93,7 @@ final class PositionServiceTest extends TestCase {
 		$this->assertSame(2, $recent[PositionService::RECENT_LIMIT - 1]->fileId);
 	}
 
+	// spec: DECISIONS-002.3
 	public function testTheLatestSaveInTheSameSecondComesFirst(): void {
 		$this->service()->save($this->user('alice'), self::HOLIDAY, 12, 3, 10);
 		$this->service()->save($this->user('alice'), ['paths' => ['/Photos'], 'subfolders' => false], 13, 0, 5);
@@ -96,6 +102,7 @@ final class PositionServiceTest extends TestCase {
 		$this->assertSame([14, 13], array_map(static fn (ResumePosition $p): int => $p->fileId, $this->service()->recent($this->user('alice'))));
 	}
 
+	// spec: DECISIONS-002.4
 	public function testKeepsThePositionsOfEachUserApart(): void {
 		$this->service()->save($this->user('alice'), self::HOLIDAY, 12, 3, 10);
 
@@ -119,6 +126,7 @@ final class PositionServiceTest extends TestCase {
 		];
 	}
 
+	// spec: DECISIONS-002.5
 	#[DataProvider('malformedPositions')]
 	public function testRejectsAMalformedPosition(array $folderSet, int $fileId, int $decided, int $total): void {
 		$this->expectException(InvalidPositionException::class);
@@ -126,6 +134,7 @@ final class PositionServiceTest extends TestCase {
 		$this->service()->save($this->user('alice'), $folderSet, $fileId, $decided, $total);
 	}
 
+	// spec: DECISIONS-002.2
 	public function testTheRootFolderIsAPath(): void {
 		$saved = $this->service()->save($this->user('alice'), ['paths' => [''], 'subfolders' => true], 12, 0, 10);
 

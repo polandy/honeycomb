@@ -23,6 +23,7 @@ describe('ActionBar', () => {
 	beforeEach(installMarkedCatalogue)
 	afterEach(uninstallMarkedCatalogue)
 
+	// spec: GRID-003.6
 	it('presses what every picture shares and nothing where they differ', () => {
 		expect(pressed(mountBar())).toEqual([])
 		expect(pressed(mountBar({ rating: 3, flag: 'rejected', keepRaw: true }))).toEqual(['Rate 3 stars', 'Keep RAW', 'Reject'])
@@ -44,6 +45,7 @@ describe('ActionBar', () => {
 		expect(wrapper.emitted('decide')).toEqual([[intent]])
 	})
 
+	// spec: GRID-003.6
 	it('chooses a colour label or none from the palette and closes it', async () => {
 		const wrapper = mountBar({ colourLabel: 'green' })
 		const opener = button(wrapper, 'Colour label: Green')
@@ -60,6 +62,7 @@ describe('ActionBar', () => {
 		expect(wrapper.find('[role="group"].colour-labels__palette').exists()).toBe(false)
 	})
 
+	// spec: GRID-003.6
 	it('closes the palette on Escape without a change and claims the key', async () => {
 		const wrapper = mountBar()
 		await button(wrapper, 'Colour label').trigger('click')
@@ -73,12 +76,14 @@ describe('ActionBar', () => {
 		expect(wrapper.emitted('decide')).toBeUndefined()
 	})
 
+	// spec: GRID-003.7
 	it('disables Keep RAW without a pair and says why', () => {
 		const keepRaw = button(mountBar({ canKeepRaw: false }), 'Keep RAW: only for pairs')
 
 		expect(keepRaw.attributes('disabled')).toBeDefined()
 	})
 
+	// spec: GRID-003.1
 	it('disables every control while nothing is selected, the slot stays', () => {
 		const wrapper = mountBar({}, true)
 

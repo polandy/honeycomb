@@ -81,6 +81,7 @@ final class ImageControllerTest extends TestCase {
 		return (new \ReflectionProperty(Response::class, 'headers'))->getValue($response);
 	}
 
+	// spec: IMAGES-001.1
 	public function testServesATierUnderAnImmutableUrl(): void {
 		$response = $this->controller([7 => $this->image()], $this->previewOf('image/webp'))->show(7, 512, self::MTIME);
 
@@ -91,6 +92,7 @@ final class ImageControllerTest extends TestCase {
 		$this->assertSame('image/webp', $headers['Content-Type']);
 	}
 
+	// spec: IMAGES-001.2
 	public function testAStaleVersionGetsTheCurrentImageWithoutKeepingIt(): void {
 		$response = $this->controller([7 => $this->image()])->show(7, 256, self::MTIME - 1);
 
@@ -99,6 +101,7 @@ final class ImageControllerTest extends TestCase {
 		$this->assertSame('private, no-cache', $this->headersOf($response)['Cache-Control']);
 	}
 
+	// spec: IMAGES-001.3
 	public function testAMatchingETagIsNotModifiedAndRendersNothing(): void {
 		$preview = $this->createMock(IPreview::class);
 		$preview->expects($this->never())->method('getPreview');
@@ -110,6 +113,7 @@ final class ImageControllerTest extends TestCase {
 		$this->assertSame('private, max-age=31536000, immutable', $this->headersOf($response)['Cache-Control']);
 	}
 
+	// spec: IMAGES-001.3
 	public function testAnOutdatedETagGetsTheImage(): void {
 		$response = $this->controller([7 => $this->image()], ifNoneMatch: '"7-' . (self::MTIME - 1) . '-512"')->show(7, 512, self::MTIME);
 
@@ -121,11 +125,13 @@ final class ImageControllerTest extends TestCase {
 		return ['between tiers' => [300], 'above the largest' => [4096], 'negative' => [-256]];
 	}
 
+	// spec: IMAGES-001.5
 	#[DataProvider('sizesThatAreNoTier')]
 	public function testASizeThatIsNoTierIsABadRequest(int $size): void {
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller([7 => $this->image()])->show(7, $size, self::MTIME)->getStatus());
 	}
 
+	// spec: IMAGES-001.4
 	public function testServesTheFullImageAsTierZero(): void {
 		$preview = $this->createMock(IPreview::class);
 		$preview->expects($this->never())->method('getPreview');
@@ -137,18 +143,22 @@ final class ImageControllerTest extends TestCase {
 		$this->assertSame('image/jpeg', $this->headersOf($response)['Content-Type']);
 	}
 
+	// spec: IMAGES-001.5
 	public function testAMissingSizeIsABadRequest(): void {
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller([7 => $this->image()])->show(7, v: self::MTIME)->getStatus());
 	}
 
+	// spec: IMAGES-001.8
 	public function testAMissingImageIsNotFound(): void {
 		$this->assertSame(Http::STATUS_NOT_FOUND, $this->controller([])->show(7, 512, self::MTIME)->getStatus());
 	}
 
+	// spec: IMAGES-001.8
 	public function testAnUnreadableImageIsForbidden(): void {
 		$this->assertSame(Http::STATUS_FORBIDDEN, $this->controller([7 => $this->image(false)])->show(7, 512, self::MTIME)->getStatus());
 	}
 
+	// spec: IMAGES-001.7
 	public function testAnImageWithoutAPreviewIsNotFound(): void {
 		$preview = $this->createStub(IPreview::class);
 		$preview->method('getPreview')->willThrowException(new NotFoundException());
@@ -156,10 +166,12 @@ final class ImageControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_NOT_FOUND, $this->controller([7 => $this->image()], $preview)->show(7, 512, self::MTIME)->getStatus());
 	}
 
+	// spec: IMAGES-001.8
 	public function testWithoutAUserNoImageIsServed(): void {
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller([7 => $this->image()], loggedIn: false)->show(7, 512, self::MTIME)->getStatus());
 	}
 
+	// spec: IMAGES-001.10
 	public function testQueuesTheWarmingOfTheGivenFiles(): void {
 		$jobList = $this->createMock(IJobList::class);
 		$jobList->expects($this->once())->method('add')->with($this->anything(), ['userId' => 'alice', 'fileIds' => [3, 1, 2]]);
@@ -181,6 +193,7 @@ final class ImageControllerTest extends TestCase {
 	}
 
 	/** @param array<mixed> $fileIds */
+	// spec: IMAGES-001.11
 	#[DataProvider('invalidFileIds')]
 	public function testInvalidFileIdsAreABadRequestAndQueueNothing(array $fileIds): void {
 		$jobList = $this->createMock(IJobList::class);
@@ -189,6 +202,7 @@ final class ImageControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller([], jobList: $jobList)->warm($fileIds)->getStatus());
 	}
 
+	// spec: IMAGES-001.11
 	public function testWithoutAUserNothingIsQueued(): void {
 		$jobList = $this->createMock(IJobList::class);
 		$jobList->expects($this->never())->method('add');
@@ -196,6 +210,7 @@ final class ImageControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller([], jobList: $jobList, loggedIn: false)->warm([1])->getStatus());
 	}
 
+	// spec: IMAGES-001.8
 	public function testShowIsAGetRouteForEveryUserThatAnImgCanLoadWithoutAToken(): void {
 		$method = new \ReflectionMethod(ImageController::class, 'show');
 
@@ -206,6 +221,7 @@ final class ImageControllerTest extends TestCase {
 		$this->assertCount(1, $method->getAttributes(NoCSRFRequired::class));
 	}
 
+	// spec: IMAGES-001.10
 	public function testWarmIsAPostRouteForEveryUserWithTheCsrfCheck(): void {
 		$method = new \ReflectionMethod(ImageController::class, 'warm');
 

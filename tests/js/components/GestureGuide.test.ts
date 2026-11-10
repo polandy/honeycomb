@@ -9,6 +9,7 @@ import { installMarkedCatalogue, uninstallMarkedCatalogue, untranslatedText } fr
 enableAutoUnmount(afterEach)
 
 describe('GestureGuide', () => {
+	// spec: LOUPE-001.15
 	it('lists the decision swipes, the paging gestures, the tap zones with their sketch, pinch, double-tap and the keys', () => {
 		const wrapper = mount(GestureGuide)
 
@@ -45,6 +46,7 @@ describe('GestureGuide', () => {
 		expect(wrapper.findAll('li').map((line) => line.text()).filter((line) => /^Swipe (up|down)/.test(line))).toEqual(lines)
 	})
 
+	// spec: LOUPE-001.15
 	it('focuses Got it and is dismissed by it', async () => {
 		const wrapper = mount(GestureGuide, { attachTo: document.body })
 		const gotIt = wrapper.find('button')

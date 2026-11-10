@@ -16,6 +16,7 @@ function fakeDecoder() {
 }
 
 describe('usePrefetch', () => {
+	// spec: LOUPE-001.12
 	it('loads the sources in order, each once, and marks them ready', async () => {
 		const { decode, started, settle } = fakeDecoder()
 		const prefetcher = usePrefetch(decode)
@@ -44,6 +45,7 @@ describe('usePrefetch', () => {
 		expect(prefetcher.ready.has('a')).toBe(false)
 	})
 
+	// spec: LOUPE-001.12
 	it('tries a failed load again next time', async () => {
 		const { decode, started, fail } = fakeDecoder()
 		const prefetcher = usePrefetch(decode)

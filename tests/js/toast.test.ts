@@ -5,6 +5,7 @@ import { TOAST_MS, useToast } from '../../src/toast.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
 
 describe('useToast', () => {
+	// spec: LOUPE-002.8
 	it('shows a message with its action until its time is up', () => {
 		const scheduler = fakeScheduler()
 		const toast = useToast(scheduler.schedule)

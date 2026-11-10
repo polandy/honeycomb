@@ -13,6 +13,7 @@ function press(listener: (event: KeyboardEvent) => void, key: string, fields: Ke
 }
 
 describe('hotkeyListener', () => {
+	// spec: KEYS-001.8
 	it('runs the screen\'s handler and prevents the default only when it handled the key', () => {
 		const close = vi.fn(() => false)
 		const decide = vi.fn()
@@ -23,11 +24,13 @@ describe('hotkeyListener', () => {
 		expect(close).toHaveBeenCalledOnce()
 	})
 
+	// spec: KEYS-001.8
 	it('does nothing for a key with no handler on the screen, or with no screen', () => {
 		expect(press(hotkeyListener(() => ({}), () => false), 'z')).toBe(false)
 		expect(press(hotkeyListener(() => null, () => false), 'p')).toBe(false)
 	})
 
+	// spec: KEYS-001.4
 	it('reads Caps Lock as auto-advance', () => {
 		const decide = vi.fn()
 		const event = new KeyboardEvent('keydown', { key: 'P', cancelable: true })
@@ -36,6 +39,7 @@ describe('hotkeyListener', () => {
 		expect(decide).toHaveBeenCalledWith({ kind: 'flag', flag: 'picked' }, true)
 	})
 
+	// spec: KEYS-001.8
 	it('ignores keys typed into a field and keys already handled', () => {
 		const decide = vi.fn()
 		const listener = hotkeyListener(() => ({ decide }), () => false)
@@ -48,6 +52,7 @@ describe('hotkeyListener', () => {
 		field.remove()
 	})
 
+	// spec: KEYS-001.8
 	it('leaves Tab and Space to a focused control, but acts on them on the body or the screen', () => {
 		const header = vi.fn()
 		const listener = hotkeyListener(() => ({ header, zoom: header }), () => false)
@@ -63,6 +68,7 @@ describe('hotkeyListener', () => {
 		screen.remove()
 	})
 
+	// spec: KEYS-001.7
 	it('keeps a waiting g of the vi keys from one key to the next', () => {
 		const first = vi.fn()
 		const listener = hotkeyListener(() => ({ first }), () => true)

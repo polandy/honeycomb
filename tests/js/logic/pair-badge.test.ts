@@ -12,6 +12,7 @@ describe('pairBadge', () => {
 		['a JPEG single', ['/P/A.jpg'], { kind: 'rendered-only', extension: 'JPG' }],
 		['a HIF single', ['/P/A.hif'], { kind: 'rendered-only', extension: 'HIF' }],
 		['a RAW single', ['/P/A.Arw'], { kind: 'raw-only', extension: 'ARW' }],
+	// spec: GRID-001.4
 	])('labels %s', (_case, paths, badge) => {
 		const picture = pictureOf(...paths.map((path, index) => listingEntry(index + 1, path)))
 

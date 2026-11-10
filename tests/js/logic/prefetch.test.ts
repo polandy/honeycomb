@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { prefetchOrder } from '../../../src/logic/prefetch.ts'
 
 describe('prefetchOrder', () => {
+	// spec: LOUPE-001.12
 	it('takes three neighbours ahead and two behind, nearest first, the next one first', () => {
 		expect(prefetchOrder(10, 100)).toEqual([11, 9, 12, 8, 13])
 	})

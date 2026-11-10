@@ -13,6 +13,7 @@ const RAW = pictureOf(listingEntry(4, '/P/C.NEF', { mime: 'image/x-dcraw' }))
 const decided = (fields: Partial<Decision>): Decision => ({ ...UNDECIDED, ...fields })
 
 describe('commonDecision', () => {
+	// spec: GRID-003.6
 	it('holds each value all pictures share and undefined where they differ', () => {
 		const common = commonDecision([
 			{ picture: PAIR, decision: decided({ rating: 3, flag: 'picked', keepRaw: true }) },
@@ -22,6 +23,7 @@ describe('commonDecision', () => {
 		expect(common).toEqual({ rating: 3, colourLabel: undefined, flag: undefined, keepRaw: true, canKeepRaw: true })
 	})
 
+	// spec: GRID-003.7
 	it('takes Keep RAW from the pairs only, and none without a pair', () => {
 		expect(commonDecision([{ picture: JPEG, decision: UNDECIDED }])).toMatchObject({ keepRaw: undefined, canKeepRaw: false })
 		expect(commonDecision([])).toEqual({ rating: undefined, colourLabel: undefined, flag: undefined, keepRaw: undefined, canKeepRaw: false })
@@ -51,6 +53,7 @@ describe('resolveChange', () => {
 		expect(resolveChange({ kind: 'colourLabel', colourLabel: label }, two(a, b))).toEqual(change)
 	})
 
+	// spec: GRID-003.7
 	it('marks Keep RAW unless every pair has it, ignoring singles', () => {
 		const pairs = (keepRaw: boolean) => [{ picture: PAIR, decision: decided({ keepRaw }) }, { picture: JPEG, decision: UNDECIDED }]
 
@@ -60,6 +63,7 @@ describe('resolveChange', () => {
 })
 
 describe('changedRows', () => {
+	// spec: GRID-003.5
 	it('writes the whole new state for every member of each changed picture', () => {
 		const rows = changedRows([{ picture: PAIR, decision: decided({ rating: 2 }) }, { picture: RAW, decision: UNDECIDED }], { flag: 'picked' })
 
@@ -70,10 +74,12 @@ describe('changedRows', () => {
 		])
 	})
 
+	// spec: GRID-003.10
 	it('skips pictures the change leaves as they are', () => {
 		expect(changedRows([{ picture: JPEG, decision: decided({ rating: 5 }) }], { rating: 5 })).toEqual([])
 	})
 
+	// spec: GRID-003.7
 	it('changes Keep RAW on pairs only', () => {
 		const rows = changedRows([{ picture: PAIR, decision: UNDECIDED }, { picture: JPEG, decision: UNDECIDED }], { keepRaw: true })
 

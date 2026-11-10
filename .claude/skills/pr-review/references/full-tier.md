@@ -10,6 +10,7 @@ Every behaviour change is reflected in its doc **in the same pull request**, nev
 
 | Change | Doc that moves with it |
 |---|---|
+| Any observable behaviour | its spec in `docs/specs/` and the `// spec:` markers (ADR 0015) |
 | Culling behaviour, filters, sort, series, gestures, keys | its section of `docs/plan.md` |
 | A word, an icon, a colour or an order in the UI | `docs/04-glossary.md` |
 | XMP fields, precedence, write rules | `docs/06-xmp-interop.md`, and its test vectors |

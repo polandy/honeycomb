@@ -44,6 +44,7 @@ const images = (wrapper: Awaited<ReturnType<typeof mountStage>>['wrapper']) => w
 const current = (wrapper: Awaited<ReturnType<typeof mountStage>>['wrapper']) => wrapper.find('img[alt="IMG_2"]')
 
 describe('LoupeStage', () => {
+	// spec: LOUPE-001.12
 	it('shows the picture between its neighbours, each fitted, from the grid tier until the loupe tier loads', async () => {
 		const { wrapper, ready } = await mountStage()
 		expect(images(wrapper).map((image) => image.attributes('src'))).toEqual(['/img/1/512', '/img/2/512', '/img/3/512'])
@@ -65,6 +66,7 @@ describe('LoupeStage', () => {
 		['the left 30 %', 100, [['page', [-1]]]],
 		['the right 30 %', 900, [['page', [1]]]],
 		['the middle', 500, [['overlays', []]]],
+	// spec: LOUPE-001.4
 	])('pages or toggles the overlays on a tap on %s', async (_zone, x, emitted) => {
 		const { wrapper, stage } = await mountStage()
 
@@ -73,6 +75,7 @@ describe('LoupeStage', () => {
 		expect(['page', 'overlays', 'chromeFree'].flatMap((name) => (wrapper.emitted(name) ?? []).map((args) => [name, args]))).toEqual(emitted)
 	})
 
+	// spec: LOUPE-001.10
 	it('toggles the chrome-free mode on a double-tap in the middle', async () => {
 		const { wrapper, stage } = await mountStage()
 
@@ -82,6 +85,7 @@ describe('LoupeStage', () => {
 		expect(wrapper.emitted('chromeFree')).toHaveLength(1)
 	})
 
+	// spec: LOUPE-001.6
 	it('follows a drag and pages once it passes 22 % of the width', async () => {
 		const { wrapper, stage } = await mountStage()
 		await pointer(stage, 'pointerdown', { x: 600, time: 0 })
@@ -95,6 +99,7 @@ describe('LoupeStage', () => {
 		expect(wrapper.find('.loupe-stage__track').attributes('style')).toContain('translateX(0px)')
 	})
 
+	// spec: LOUPE-001.6
 	it('settles back after a short, slow drag and after a cancel', async () => {
 		const { wrapper, stage } = await mountStage()
 		await pointer(stage, 'pointerdown', { x: 600, time: 0 })
@@ -108,6 +113,7 @@ describe('LoupeStage', () => {
 		expect(wrapper.find('.loupe-stage__track').attributes('style')).toContain('translateX(0px)')
 	})
 
+	// spec: LOUPE-002.4
 	it('lifts the photo on a vertical drag and emits the swipe once it went far enough', async () => {
 		const { wrapper, stage } = await mountStage()
 		await pointer(stage, 'pointerdown', { x: 500, y: 400, time: 0 })
@@ -120,6 +126,7 @@ describe('LoupeStage', () => {
 		expect(wrapper.find('.loupe-stage__track').attributes('style')).toContain('translateY(0px)')
 	})
 
+	// spec: LOUPE-001.7
 	it('zooms to 100 % and back, and loads the full image while zoomed', async () => {
 		const { wrapper, loads, ready } = await mountStage()
 		expect(wrapper.emitted('update:zoom')).toEqual([[null]])
@@ -137,6 +144,7 @@ describe('LoupeStage', () => {
 		expect(wrapper.emitted('update:zoom')!.at(-1)).toEqual([null])
 	})
 
+	// spec: LOUPE-001.8
 	it('pans the zoomed photo instead of paging, and fits again on another picture', async () => {
 		const { wrapper, stage } = await mountStage()
 		;(wrapper.vm as unknown as { toggleZoom: () => void }).toggleZoom()
@@ -152,6 +160,7 @@ describe('LoupeStage', () => {
 		expect(wrapper.emitted('update:zoom')!.at(-1)).toEqual([null])
 	})
 
+	// spec: LOUPE-001.7
 	it('zooms with two fingers and snaps back to fit below the threshold', async () => {
 		const { wrapper, stage } = await mountStage()
 		await pointer(stage, 'pointerdown', { id: 1, x: 450, time: 0 })

@@ -88,6 +88,7 @@ final class TrashServiceTest extends TestCase {
 		];
 	}
 
+	// spec: DELETE-001.1
 	public function testTrashesEveryFileOfEachPictureWithTheSidecarsLast(): void {
 		$nodes = $this->pair() + [4 => $this->file(4, 'IMG_0002.JPG')];
 
@@ -111,6 +112,7 @@ final class TrashServiceTest extends TestCase {
 		];
 	}
 
+	// spec: DELETE-001.2
 	#[DataProvider('checkFailures')]
 	public function testAFileThatFailsItsCheckLeavesTheWholePictureUntouched(string $jpeg, string $result): void {
 		$nodes = [1 => $this->file(1, 'IMG_0001.CR3', 'image/x-canon-cr3'), 4 => $this->file(4, 'IMG_0002.JPG')];
@@ -144,6 +146,7 @@ final class TrashServiceTest extends TestCase {
 		];
 	}
 
+	// spec: DELETE-001.3
 	#[DataProvider('trashFailures')]
 	public function testAFailedTrashStopsThePictureAndKeepsItsSidecars(\Throwable $failure, string $result): void {
 		$nodes = $this->pair($failure) + [4 => $this->file(4, 'IMG_0002.JPG')];
@@ -157,6 +160,7 @@ final class TrashServiceTest extends TestCase {
 		$this->assertSame([1, 4], $this->trashed);
 	}
 
+	// spec: DELETE-001.4
 	public function testAStorageErrorIsLogged(): void {
 		$failure = new \RuntimeException('disk full');
 		$logger = $this->createMock(LoggerInterface::class);
@@ -165,6 +169,7 @@ final class TrashServiceTest extends TestCase {
 		$this->service($this->pair($failure), logger: $logger)->trash($this->user(), [self::picture(3, 1, 2)]);
 	}
 
+	// spec: DELETE-001.5
 	public function testWithoutTheTrashBinNothingIsTouched(): void {
 		$this->expectException(TrashBinDisabledException::class);
 
@@ -192,6 +197,7 @@ final class TrashServiceTest extends TestCase {
 		];
 	}
 
+	// spec: DELETE-001.6
 	#[DataProvider('malformedRequests')]
 	public function testAMalformedRequestTouchesNothing(array $pictures): void {
 		$this->expectException(InvalidTrashRequestException::class);
@@ -203,6 +209,7 @@ final class TrashServiceTest extends TestCase {
 		}
 	}
 
+	// spec: DELETE-001.6
 	public function testTheLimitItselfIsAccepted(): void {
 		$results = $this->service([])->trash($this->user(), [self::picture(...range(1, ListingService::ENTRY_LIMIT))]);
 

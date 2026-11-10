@@ -39,6 +39,7 @@ final class SettingsControllerTest extends TestCase {
 		return new SettingsController(Application::APP_ID, $this->createStub(IRequest::class), $session, new SettingsService($config));
 	}
 
+	// spec: SETTINGS-001.1
 	public function testAnswersAnEmptyObjectWhenNothingIsStored(): void {
 		$response = $this->controller()->index();
 
@@ -46,6 +47,7 @@ final class SettingsControllerTest extends TestCase {
 		$this->assertSame('{"settings":{}}', $response->render());
 	}
 
+	// spec: SETTINGS-001.1, SETTINGS-001.2
 	public function testAnswersTheSavedSettingsAndReadsThemBack(): void {
 		$controller = $this->controller();
 
@@ -58,6 +60,7 @@ final class SettingsControllerTest extends TestCase {
 		$this->assertSame($expected, $read->render());
 	}
 
+	// spec: SETTINGS-001.4
 	public function testSettingsThatAreNotAnObjectAreABadRequest(): void {
 		$controller = $this->controller();
 
@@ -67,6 +70,7 @@ final class SettingsControllerTest extends TestCase {
 		$this->assertSame('', $this->stored);
 	}
 
+	// spec: SETTINGS-001.4
 	public function testSettingsOverTheSizeLimitAreABadRequest(): void {
 		$response = $this->controller()->save(['note' => str_repeat('x', SettingsService::MAX_BYTES)]);
 
@@ -74,6 +78,7 @@ final class SettingsControllerTest extends TestCase {
 		$this->assertSame('', $this->stored);
 	}
 
+	// spec: SETTINGS-001.5
 	public function testWithoutAUserNothingIsReadOrWritten(): void {
 		$controller = $this->controller(loggedIn: false);
 
@@ -87,6 +92,7 @@ final class SettingsControllerTest extends TestCase {
 		return ['index' => ['index', 'GET'], 'save' => ['save', 'PUT']];
 	}
 
+	// spec: SETTINGS-001.5
 	#[DataProvider('routes')]
 	public function testEachActionIsARouteForEveryUserWithTheCsrfCheck(string $action, string $verb): void {
 		$method = new ReflectionMethod(SettingsController::class, $action);

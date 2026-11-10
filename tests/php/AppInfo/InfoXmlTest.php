@@ -24,16 +24,19 @@ final class InfoXmlTest extends TestCase {
 		$this->assertSame('Honeycomb', (string)$this->info->namespace);
 	}
 
+	// spec: APP-001.2
 	public function testSupportsNextcloud35Only(): void {
 		$nextcloud = $this->info->dependencies->nextcloud;
 		$this->assertSame('35', (string)$nextcloud['min-version']);
 		$this->assertSame('35', (string)$nextcloud['max-version']);
 	}
 
+	// spec: APP-001.2
 	public function testRequiresPhp83(): void {
 		$this->assertSame('8.3', (string)$this->info->dependencies->php['min-version']);
 	}
 
+	// spec: APP-001.1
 	public function testNavigationOpensTheMainPage(): void {
 		$this->assertSame('honeycomb.page.index', (string)$this->info->navigations->navigation->route);
 	}

@@ -31,6 +31,7 @@ final class FolderServiceTest extends TestCase {
 		return $folder;
 	}
 
+	// spec: LISTING-003.1
 	public function testListsTheChildFoldersOfTheRoot(): void {
 		$root = $this->folderWith('', [$this->folderWith('/Photos'), $this->folderWith('/Documents')]);
 
@@ -42,6 +43,7 @@ final class FolderServiceTest extends TestCase {
 		], $folders);
 	}
 
+	// spec: LISTING-003.1
 	public function testListsTheChildFoldersOfANestedFolder(): void {
 		$trip = $this->folderWith('/Photos/2024/Trip');
 		$year = $this->folderWith('/Photos/2024', [$trip]);
@@ -51,6 +53,7 @@ final class FolderServiceTest extends TestCase {
 		$this->assertSame([['name' => 'Trip', 'path' => '/Photos/2024/Trip', 'hasSubfolders' => false]], $folders);
 	}
 
+	// spec: LISTING-003.1
 	public function testIncludesHiddenFoldersAndSkipsFiles(): void {
 		$photos = $this->folderWith('/Photos', [
 			$this->file(1, '/Photos/IMG_0001.JPG'),
@@ -63,6 +66,7 @@ final class FolderServiceTest extends TestCase {
 		$this->assertSame([['name' => '.thumbnails', 'path' => '/Photos/.thumbnails', 'hasSubfolders' => false]], $folders);
 	}
 
+	// spec: LISTING-003.2
 	public function testHasSubfoldersOnlyWhenTheChildHoldsAFolder(): void {
 		$withFolder = $this->folderWith('/Photos/2024', [$this->folderWith('/Photos/2024/Trip')]);
 		$withFiles = $this->folderWith('/Photos/2023', [$this->file(1, '/Photos/2023/IMG_0001.JPG')]);
@@ -73,6 +77,7 @@ final class FolderServiceTest extends TestCase {
 		$this->assertSame([true, false], array_column($folders, 'hasSubfolders'));
 	}
 
+	// spec: LISTING-003.2
 	public function testAChildThatMayNotBeListedHasNoSubfolders(): void {
 		$locked = $this->folder('/Photos/Locked');
 		$locked->method('getDirectoryListing')->willThrowException(new NotPermittedException('Locked'));
@@ -92,6 +97,7 @@ final class FolderServiceTest extends TestCase {
 		];
 	}
 
+	// spec: LISTING-003.3
 	#[DataProvider('foreignPaths')]
 	public function testAForeignPathIsNotFound(string $path): void {
 		$root = $this->createMock(IRootFolder::class);
@@ -101,6 +107,7 @@ final class FolderServiceTest extends TestCase {
 		$this->service($root)->children($this->user(), $path);
 	}
 
+	// spec: LISTING-003.3
 	public function testAFolderOutsideTheUserFolderIsNotFound(): void {
 		$foreign = $this->createStub(Folder::class);
 		$foreign->method('getPath')->willReturn('/bob/files/Photos');
@@ -110,26 +117,31 @@ final class FolderServiceTest extends TestCase {
 		$this->service($this->rootWith(['/Shared' => $foreign]))->children($this->user(), 'Shared');
 	}
 
+	// spec: LISTING-003.3
 	public function testAVanishedFolderIsNotFound(): void {
 		$this->expectException(FolderNotFoundException::class);
 		$this->service($this->rootWith([]))->children($this->user(), 'Gone');
 	}
 
+	// spec: LISTING-003.3
 	public function testAFileIsNotAFolder(): void {
 		$this->expectException(FolderNotFoundException::class);
 		$this->service($this->rootWith(['/a.jpg' => $this->file(1, '/a.jpg')]))->children($this->user(), 'a.jpg');
 	}
 
+	// spec: LISTING-003.3
 	public function testAnUnreadableFolderIsNotReadable(): void {
 		$this->expectException(FolderNotReadableException::class);
 		$this->service($this->rootWith(['/Photos' => $this->folder('/Photos', false)]))->children($this->user(), 'Photos');
 	}
 
+	// spec: LISTING-003.3
 	public function testAFolderThatMayNotBeOpenedIsNotReadable(): void {
 		$this->expectException(FolderNotReadableException::class);
 		$this->service($this->rootWith(['/Photos' => new NotPermittedException('Photos')]))->children($this->user(), 'Photos');
 	}
 
+	// spec: LISTING-003.3
 	public function testAListingThatMayNotBeReadIsNotReadable(): void {
 		$folder = $this->folder('/Photos');
 		$folder->method('getDirectoryListing')->willThrowException(new NotPermittedException('Photos'));

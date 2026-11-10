@@ -25,7 +25,8 @@ goes back to the caller with your recommendation, instead of being guessed.
 2. Watch each new test fail once before you make it pass.
 3. Run single test files while iterating (`vendor/bin/phpunit --filter …`, `npx vitest run …`),
    and `scripts/verify.sh` before you report. It must be green.
-4. Update the docs the change touches and remove the item from `TODO.md`.
+4. Update the docs the change touches, the feature's spec in `docs/specs/` (ADR 0015) and remove
+   the item from `TODO.md`.
 5. Commit, push or open a pull request only when the brief says so, and then follow
    `docs/02-workflow.md`. Never merge.
 

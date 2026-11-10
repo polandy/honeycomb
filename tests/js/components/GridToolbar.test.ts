@@ -94,6 +94,7 @@ describe('GridToolbar', () => {
 		expect(wrapper.emitted('changeFolders')).toEqual([[], []])
 	})
 
+	// spec: GRID-001.7
 	it('sets the thumbnail size from the More menu', async () => {
 		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false })
 		const range = wrapper.find(`input[type="range"][aria-label="${MARK}Thumbnail size"]`)
@@ -106,6 +107,7 @@ describe('GridToolbar', () => {
 		expect(wrapper.emitted('update:tileSize')).toEqual([[200]])
 	})
 
+	// spec: GRID-001.9
 	it('offers Group by folder only when the cull spans more than one folder', async () => {
 		expect(mountToolbar({ paths: ['/A'], subfolders: true }, 1).text()).not.toContain('Group by folder')
 		const wrapper = mountToolbar({ paths: ['/A'], subfolders: true }, 2)
@@ -129,6 +131,7 @@ describe('GridToolbar', () => {
 		expect(wrapper.text()).not.toContain('The flag filter overrides this')
 	})
 
+	// spec: GRID-002.2
 	it('disables the scope while a flag filter overrides it and says why', () => {
 		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { scopeLocked: true })
 		const buttons = wrapper.findAll('.scope-progress__scope button')
@@ -138,6 +141,7 @@ describe('GridToolbar', () => {
 		expect(wrapper.text()).toContain(`${MARK}The flag filter overrides this`)
 	})
 
+	// spec: GRID-002.7
 	it('shows how many photos are decided as text and as a progress bar', () => {
 		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false })
 		const bar = wrapper.find('[role="progressbar"]')
@@ -147,12 +151,14 @@ describe('GridToolbar', () => {
 		expect(bar.find('.scope-progress__done').attributes('style')).toContain('width: 92%')
 	})
 
+	// spec: GRID-002.7
 	it('shows an empty progress bar for a cull without photos', () => {
 		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { decided: 0, total: 0 })
 
 		expect(wrapper.find('.scope-progress__done').attributes('style')).toContain('width: 0%')
 	})
 
+	// spec: GRID-002.6
 	it('toggles the filter bar and counts the active filters', async () => {
 		const closed = mountToolbar({ paths: ['/A'], subfolders: false })
 		const filters = () => closed.find(`[aria-label^="${MARK}Filters"]`)
@@ -170,6 +176,7 @@ describe('GridToolbar', () => {
 		expect(open.emitted('update:filtersOpen')).toEqual([[false]])
 	})
 
+	// spec: GRID-002.8
 	it('chooses the sort order in the More menu', async () => {
 		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false })
 		const radios = wrapper.findAll('input[type="radio"]')
@@ -188,6 +195,7 @@ describe('GridToolbar', () => {
 
 		expect(untranslatedText(wrapper.element as Element)).toEqual(['Trip'])
 	})
+	// spec: GRID-003.1
 	it('enters and leaves selection mode with Select', async () => {
 		const wrapper = mountToolbar({ paths: ['/Photos/Trip'], subfolders: false })
 		const select = wrapper.find(`[aria-label="${MARK}Select"]`)
@@ -201,6 +209,7 @@ describe('GridToolbar', () => {
 		expect(wrapper.emitted('update:selecting')).toEqual([[true], [false]])
 	})
 
+	// spec: GRID-003.4
 	it('counts the selection and selects all, none or is done', async () => {
 		const wrapper = mountToolbar({ paths: ['/Photos/Trip'], subfolders: false }, 1, { selecting: true, selected: 1234 })
 		const row = wrapper.find('.grid-toolbar__selection')

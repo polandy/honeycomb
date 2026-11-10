@@ -5,6 +5,7 @@ import { LONG_PRESS_MS, longPress } from '../../../src/logic/long-press.ts'
 import { fakeScheduler } from '../fake-scheduler.ts'
 
 describe('longPress', () => {
+	// spec: GRID-003.2
 	it('presses once the finger stays down long enough and swallows the click that follows', () => {
 		const { timers, schedule, fire } = fakeScheduler()
 		const press = longPress(schedule)
@@ -32,6 +33,7 @@ describe('longPress', () => {
 		expect(press.takeClick()).toBe(false)
 	})
 
+	// spec: GRID-003.2
 	it('cancels when the finger moves more than 10 px, not before', () => {
 		const { schedule, fire } = fakeScheduler()
 		const press = longPress(schedule)

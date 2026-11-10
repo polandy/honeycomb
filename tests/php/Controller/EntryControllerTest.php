@@ -35,6 +35,7 @@ final class EntryControllerTest extends TestCase {
 		return new EntryController(Application::APP_ID, $this->createStub(IRequest::class), $session, $listing);
 	}
 
+	// spec: LISTING-001.1
 	public function testReturnsTheListingAsJson(): void {
 		$photos = $this->folder('/Photos');
 		$photos->method('search')->willReturnCallback($this->searchOver([$this->file(1, '/Photos/2024/IMG_0001.JPG')]));
@@ -48,18 +49,21 @@ final class EntryControllerTest extends TestCase {
 		$this->assertFalse($json['truncated']);
 	}
 
+	// spec: LISTING-001.7
 	public function testAMissingFolderIsNotFound(): void {
 		$response = $this->controller($this->rootWith([]), $this->user())->index('Gone');
 
 		$this->assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
 	}
 
+	// spec: LISTING-001.8
 	public function testAnUnreadableFolderIsForbidden(): void {
 		$response = $this->controller($this->rootWith(['/Photos' => $this->folder('/Photos', false)]), $this->user())->index('Photos');
 
 		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
 	}
 
+	// spec: LISTING-001.9
 	public function testWithoutAUserNothingIsListed(): void {
 		$root = $this->createMock(IRootFolder::class);
 		$root->expects($this->never())->method('getUserFolder');
@@ -69,6 +73,7 @@ final class EntryControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
 	}
 
+	// spec: LISTING-001.9
 	public function testIndexIsAGetRouteForEveryUserWithTheCsrfCheck(): void {
 		$method = new ReflectionMethod(EntryController::class, 'index');
 

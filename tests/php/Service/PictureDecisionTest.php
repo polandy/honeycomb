@@ -48,6 +48,7 @@ final class PictureDecisionTest extends TestCase {
 		];
 	}
 
+	// spec: DECISIONS-001.5
 	#[DataProvider('malformedDecisions')]
 	public function testRejectsAMalformedDecision(mixed $item): void {
 		$this->expectException(InvalidDecisionException::class);
@@ -55,6 +56,7 @@ final class PictureDecisionTest extends TestCase {
 		PictureDecision::fromRequest($item);
 	}
 
+	// spec: DECISIONS-001.3
 	public function testOnlyTheUntouchedDecisionIsTheDefault(): void {
 		$this->assertTrue((new PictureDecision(7, 0, null, Flag::Unflagged, false))->isDefault());
 		$this->assertFalse((new PictureDecision(7, 1, null, Flag::Unflagged, false))->isDefault());

@@ -34,29 +34,34 @@ const DECISIONS = new Map<Picture<ListingEntry>, Decision>([
 const decisionOf = (picture: Picture<ListingEntry>) => DECISIONS.get(picture) ?? UNDECIDED
 
 describe('rawFilesOf', () => {
+	// spec: DELETE-003.6
 	it('lists the RAW member, then its own sidecars and darktable duplicates, never the JPEG\'s or the shared one', () => {
 		expect(rawFilesOf(PAIR).map((file) => [file.role, file.entry.fileId])).toEqual([['raw', 1], ['sidecar', 3], ['sidecar', 6]])
 		expect(rawFilesOf(PAIR).every((file) => file.picture === PAIR)).toBe(true)
 	})
 
+	// spec: DELETE-003.2
 	it('lists nothing for a picture without a RAW member', () => {
 		expect(rawFilesOf(JPEG_ONLY)).toEqual([])
 	})
 })
 
 describe('rawRemoval', () => {
+	// spec: DELETE-003.2
 	it('takes the unmarked, unrejected pairs and counts why the others are skipped', () => {
 		const removal = rawRemoval([PAIR, MARKED, REJECTED, MARKED_REJECTED, JPEG_ONLY, RAW_ONLY], decisionOf)
 
 		expect(removal).toEqual({ removed: [PAIR], kept: [MARKED, MARKED_REJECTED], rejected: 1, singles: 2 })
 	})
 
+	// spec: DELETE-003.2
 	it('takes nothing from an empty view', () => {
 		expect(rawRemoval([], decisionOf)).toEqual({ removed: [], kept: [], rejected: 0, singles: 0 })
 	})
 })
 
 describe('rawBatch', () => {
+	// spec: DELETE-003.6, DELETE-003.7
 	it('sends each RAW with its own sidecars as one unit, so a failed RAW keeps its sidecar', () => {
 		expect(rawBatch([PAIR, MARKED]).map((files) => files.map((file) => file.entry.fileId))).toEqual([[1, 3, 6], [11]])
 	})

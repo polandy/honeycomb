@@ -12,6 +12,7 @@ const JPEG = pictureOf(listingEntry(3, '/P/B.JPG'))
 const decided = (fields: Partial<Decision>): Decision => ({ ...UNDECIDED, ...fields })
 
 describe('undoEntry', () => {
+	// spec: KEYS-001.11
 	it('names the pictures the change alters, with the rows it writes and the rows that put them back', () => {
 		const entry = undoEntry([
 			{ picture: PAIR, decision: decided({ flag: 'picked', rating: 2 }) },
@@ -26,18 +27,21 @@ describe('undoEntry', () => {
 		})
 	})
 
+	// spec: KEYS-001.11
 	it('names only the pairs for Keep RAW', () => {
 		const entry = undoEntry([{ picture: PAIR, decision: UNDECIDED }, { picture: JPEG, decision: UNDECIDED }], { keepRaw: true })
 
 		expect(entry?.names).toEqual(['A'])
 	})
 
+	// spec: KEYS-001.11
 	it('is null when the change alters nothing', () => {
 		expect(undoEntry([{ picture: JPEG, decision: decided({ rating: 3 }) }], { rating: 3 })).toBeNull()
 	})
 })
 
 describe('pushUndo', () => {
+	// spec: KEYS-001.11
 	it('adds the entry last and keeps the most recent steps only', () => {
 		const entry = undoEntry([{ picture: JPEG, decision: UNDECIDED }], { rating: 1 })!
 		const full = Array.from({ length: UNDO_LIMIT }, (_, at) => ({ ...entry, names: [String(at)] }))
@@ -54,6 +58,7 @@ describe('pushUndo', () => {
 describe('undo and redo steps', () => {
 	const step = (rating: number) => undoEntry([{ picture: JPEG, decision: UNDECIDED }], { rating })!
 
+	// spec: KEYS-001.10
 	it('moves a step to redo on undo and back on redo', () => {
 		const recorded = recordStep(recordStep(NO_HISTORY, step(1)), step(2))
 		const undone = undoStep(recorded)!
@@ -64,11 +69,13 @@ describe('undo and redo steps', () => {
 		expect(redone.history).toEqual({ done: [step(1), step(2)], undone: [] })
 	})
 
+	// spec: KEYS-001.10
 	it('has nothing to undo or redo on empty stacks', () => {
 		expect(undoStep(NO_HISTORY)).toBeNull()
 		expect(redoStep(NO_HISTORY)).toBeNull()
 	})
 
+	// spec: KEYS-001.11
 	it('clears redo on a new decision', () => {
 		const undone = undoStep(recordStep(NO_HISTORY, step(1)))!.history
 		expect(redoStep(recordStep(undone, step(3)))).toBeNull()

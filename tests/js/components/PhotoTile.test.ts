@@ -32,6 +32,7 @@ describe('PhotoTile', () => {
 	beforeEach(installMarkedCatalogue)
 	afterEach(uninstallMarkedCatalogue)
 
+	// spec: GRID-001.2
 	it('shows the small preview of the image member first, without alt text', () => {
 		const img = mountTile(PAIR).find('img')
 
@@ -40,6 +41,7 @@ describe('PhotoTile', () => {
 		expect(img.attributes('srcset')).toBeUndefined()
 	})
 
+	// spec: GRID-001.2
 	it('swaps in every grid tier once the sharp image decoded', async () => {
 		const { loads, loadImage } = fakeLoader()
 		const wrapper = mountTile(PAIR, { loadImage })
@@ -64,6 +66,7 @@ describe('PhotoTile', () => {
 		expect(loads).toHaveLength(1)
 	})
 
+	// spec: GRID-001.3
 	it('keeps the small image when the sharp one fails to decode', async () => {
 		const { loads, loadImage } = fakeLoader()
 		const wrapper = mountTile(PAIR, { loadImage })
@@ -75,6 +78,7 @@ describe('PhotoTile', () => {
 		expect(wrapper.find('img').attributes('srcset')).toBeUndefined()
 	})
 
+	// spec: GRID-001.2
 	it('loads no sharp image while the small preview is sharp enough', () => {
 		const { loads, loadImage } = fakeLoader()
 
@@ -96,6 +100,7 @@ describe('PhotoTile', () => {
 		expect(wrapper.find('img').attributes('sizes')).toBe('200px')
 	})
 
+	// spec: GRID-001.4
 	it('labels a pair quietly with both extensions', () => {
 		const badge = mountTile(PAIR).find('.photo-tile__pair')
 
@@ -106,6 +111,7 @@ describe('PhotoTile', () => {
 	it.each([
 		['/A/IMG_0002.JPEG', `${MARK}JPG only`],
 		['/A/IMG_0003.NEF', `${MARK}NEF only`],
+	// spec: GRID-001.4
 	])('highlights the single %s as %s', (path, label) => {
 		const badge = mountTile(pictureOf(listingEntry(3, path))).find('.photo-tile__pair')
 
@@ -113,6 +119,7 @@ describe('PhotoTile', () => {
 		expect(badge.classes()).toContain('photo-tile__pair--single')
 	})
 
+	// spec: GRID-001.5, LISTING-002.4
 	it('names the photo, its badge and an ambiguous name for assistive technology', () => {
 		const [ambiguous] = picturesOf([listingEntry(4, '/A/x.jpg'), listingEntry(5, '/A/X.JPG')])
 		const wrapper = mountTile(ambiguous!)
@@ -128,6 +135,7 @@ describe('PhotoTile', () => {
 		expect(wrapper.html()).toContain(`${MARK}JPG only`)
 		expect(untranslatedText(wrapper.element as Element)).toEqual([`IMG_0002, ${MARK}JPG only`])
 	})
+	// spec: GRID-001.6
 	it('shows rating, colour label, flag and Keep RAW on the tile and in its label', () => {
 		const wrapper = mountTile(PAIR, { decision: { rating: 3, colourLabel: 'green', flag: 'rejected', keepRaw: true } })
 
@@ -138,6 +146,7 @@ describe('PhotoTile', () => {
 		expect(wrapper.attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3, 3 stars, Colour label: Green, Rejected, Keep RAW')
 	})
 
+	// spec: GRID-001.6
 	it('shows no overlay for an undecided picture', () => {
 		const wrapper = mountTile(PAIR, { decision: UNDECIDED })
 

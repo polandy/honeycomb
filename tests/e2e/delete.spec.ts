@@ -6,6 +6,7 @@ import { ADMIN } from './admin.ts'
 import { cullFolder } from './cull.ts'
 import { createFolder, JPEG, RAW, requestToken, upload } from './files.ts'
 
+// spec: DELETE-002.1, DELETE-002.8
 test('reviews the rejects, rescues one and moves the rest to the Nextcloud trash bin', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Delete ${randomUUID().slice(0, 8)}`

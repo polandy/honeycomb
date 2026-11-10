@@ -19,6 +19,7 @@ const rows = (wrapper: ReturnType<typeof mountSheet>) => wrapper.findAll('tr').m
 describe('ShortcutSheet', () => {
 	afterEach(() => vi.restoreAllMocks())
 
+	// spec: KEYS-001.1
 	it('lists every key of the key map under its group, its caps as keys', () => {
 		const wrapper = mountSheet()
 
@@ -29,6 +30,7 @@ describe('ShortcutSheet', () => {
 		expect(rows(wrapper).every(([, label]) => label !== '')).toBe(true)
 	})
 
+	// spec: KEYS-001.12
 	it('shows a range as from – to and Ctrl as ⌘ on a Mac', () => {
 		const wrapper = mountSheet({}, true)
 		const rating = wrapper.findAll('tr').find((row) => row.text().includes('Set rating'))!
@@ -36,6 +38,7 @@ describe('ShortcutSheet', () => {
 		expect(rows(wrapper).find(([, label]) => label === 'Undo')![0]).toEqual(['⌘+Z'])
 	})
 
+	// spec: KEYS-001.12
 	it('closes by its Close button and by the dialog\'s own close', async () => {
 		const wrapper = mountSheet()
 		await wrapper.find('button').trigger('click')

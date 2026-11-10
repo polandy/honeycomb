@@ -29,12 +29,14 @@ final class EmbeddedJpegTest extends TestCase {
 		return "II*\0" . implode("\0\x11\x22", $parts) . "\x33\x44";
 	}
 
+	// spec: IMAGES-001.6
 	public function testFindsTheJpegEmbeddedInARaw(): void {
 		$jpeg = self::jpeg();
 
 		$this->assertSame($jpeg, (new EmbeddedJpeg())->largest(self::raw($jpeg)));
 	}
 
+	// spec: IMAGES-001.6
 	public function testPicksTheLargestOfSeveralJpegs(): void {
 		$small = self::jpeg('small');
 		$large = self::jpeg(str_repeat('large', 100), self::SOF_PROGRESSIVE);
@@ -42,24 +44,28 @@ final class EmbeddedJpegTest extends TestCase {
 		$this->assertSame($large, (new EmbeddedJpeg())->largest(self::raw($small, $large, self::jpeg('medium'))));
 	}
 
+	// spec: IMAGES-001.6
 	public function testReturnsTheOuterJpegRatherThanTheThumbnailInItsExifSegment(): void {
 		$outer = self::jpeg('outer', app1: 'Exif' . self::jpeg('a thumbnail larger than the outer scan'));
 
 		$this->assertSame($outer, (new EmbeddedJpeg())->largest(self::raw($outer)));
 	}
 
+	// spec: IMAGES-001.6
 	public function testReadsPastStuffedBytesAndRestartMarkersInTheScan(): void {
 		$jpeg = self::jpeg("ab\xFF\x00cd\xFF\xD0ef\xFF\xD7gh");
 
 		$this->assertSame($jpeg, (new EmbeddedJpeg())->largest(self::raw($jpeg)));
 	}
 
+	// spec: IMAGES-001.6
 	public function testSkipsFillBytesBetweenSegments(): void {
 		$jpeg = "\xFF\xD8\xFF" . self::segment(self::SOF_BASELINE, 'frame') . self::segment(0xDA, 'scan') . "x\xFF\xFF\xD9";
 
 		$this->assertSame($jpeg, (new EmbeddedJpeg())->largest(self::raw($jpeg)));
 	}
 
+	// spec: IMAGES-001.6
 	public function testIgnoresLosslessSensorDataLargerThanThePreview(): void {
 		$preview = self::jpeg('preview');
 		$sensorData = self::jpeg(str_repeat('sensor', 100), self::SOF_LOSSLESS);
@@ -83,6 +89,7 @@ final class EmbeddedJpegTest extends TestCase {
 		];
 	}
 
+	// spec: IMAGES-001.7
 	#[DataProvider('withoutACompleteJpeg')]
 	public function testFindsNothingWithoutACompleteJpeg(string $bytes): void {
 		$this->assertNull((new EmbeddedJpeg())->largest($bytes));

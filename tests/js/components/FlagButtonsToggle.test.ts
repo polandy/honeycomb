@@ -20,6 +20,7 @@ describe('FlagButtonsToggle', () => {
 		expect(hidden.findComponent(AppIcon).props('name')).toBe('flagCross')
 	})
 
+	// spec: LOUPE-002.6
 	it('flips the flag buttons', async () => {
 		const wrapper = mountToggle(true)
 

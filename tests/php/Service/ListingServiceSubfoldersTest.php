@@ -32,6 +32,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 		return $folder;
 	}
 
+	// spec: LISTING-001.4
 	public function testListsEveryFolderBelowWithOneQueryByMimeTypeAndName(): void {
 		$photos = $this->photosWith([
 			$this->file(4, '/Photos/2024/IMG_0001.XMP', 'application/octet-stream'),
@@ -49,6 +50,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 		);
 	}
 
+	// spec: LISTING-001.5
 	public function testSkipsHiddenFoldersAndFilesBelowThePickedFolder(): void {
 		$photos = $this->photosWith([
 			$this->file(1, '/Photos/.thumbnails/IMG_0001.JPG'),
@@ -62,6 +64,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 		$this->assertSame([4], array_column($this->entriesOf($listing), 'fileId'));
 	}
 
+	// spec: LISTING-001.5
 	public function testAHiddenFolderPickedOnPurposeIsListed(): void {
 		$private = $this->photosWith([$this->file(1, '/.private/IMG_0001.JPG')], '/.private');
 
@@ -70,6 +73,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 		$this->assertSame([1], array_column($this->entriesOf($listing), 'fileId'));
 	}
 
+	// spec: LISTING-001.4
 	public function testPagesThroughTheFileCacheByFileId(): void {
 		$files = array_map(fn (int $id): File => $this->file($id, "/Photos/IMG_$id.JPG"), range(1, 5));
 
@@ -80,6 +84,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 		$this->assertFalse($listing->jsonSerialize()['truncated']);
 	}
 
+	// spec: LISTING-001.6
 	public function testStopsAtTheEntryLimitAcrossPages(): void {
 		$files = array_map(fn (int $id): File => $this->file($id, "/Photos/IMG_$id.JPG"), range(1, 5));
 
@@ -90,6 +95,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 		$this->assertTrue($listing->jsonSerialize()['truncated']);
 	}
 
+	// spec: LISTING-001.10
 	public function testListsTwoThousandPairsInFewQueries(): void {
 		$files = [];
 		foreach (range(1, 2100) as $n) {
@@ -113,6 +119,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 		$this->assertCount(6300, $listing->jsonSerialize()['entries']);
 	}
 
+	// spec: LISTING-001.8
 	public function testASearchThatMayNotBeRunIsNotReadable(): void {
 		$photos = $this->folder('/Photos');
 		$photos->method('search')->willThrowException(new NotPermittedException('Photos'));

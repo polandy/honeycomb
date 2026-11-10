@@ -70,6 +70,7 @@ describe('prepareCull', () => {
 		expect(cut).toBe(false)
 	})
 
+	// spec: GRID-001.11
 	it('keeps the earliest pictures by capture time above the cap', () => {
 		const entries = Array.from({ length: PICTURE_CAP + 1 }, (_, index) => listingEntry(index, `/A/IMG_${index}.JPG`, { captureTime: PICTURE_CAP - index }))
 

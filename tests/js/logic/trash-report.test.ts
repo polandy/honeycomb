@@ -17,6 +17,7 @@ const [PAIR, SINGLE, OTHER] = picturesOf(ENTRIES) as [ReturnType<typeof pictureO
 const results = (...pictures: [number, string][][]) => pictures.map((files) => files.map(([fileId, result]) => ({ fileId, result })))
 
 describe('trashRequest', () => {
+	// spec: DELETE-002.8
 	it('sends every file of each picture with its listing ETag, a picture per list', () => {
 		expect(trashRequest(wholePictures([PAIR, SINGLE]))).toEqual([
 			[{ fileId: 2, etag: 'etag-2' }, { fileId: 1, etag: 'etag-1' }, { fileId: 3, etag: 'etag-3' }],
@@ -26,6 +27,7 @@ describe('trashRequest', () => {
 })
 
 describe('trashReport', () => {
+	// spec: DELETE-002.8
 	it('counts the trashed files, the pictures fully removed and the bytes freed', () => {
 		const report = trashReport(wholePictures([PAIR, SINGLE]), results([[2, 'trashed'], [1, 'trashed'], [3, 'trashed']], [[4, 'trashed']]))
 
@@ -33,6 +35,7 @@ describe('trashReport', () => {
 		expect(report).toMatchObject({ failed: [], removed: 2, bytes: 33 })
 	})
 
+	// spec: DELETE-002.9
 	it('reports each failed file with its result and leaves a picture that kept a member out of the removed', () => {
 		const report = trashReport(wholePictures([PAIR, SINGLE, OTHER]), results(
 			[[2, 'trashed'], [1, 'locked'], [3, 'skipped']],
@@ -45,6 +48,7 @@ describe('trashReport', () => {
 		expect(report).toMatchObject({ removed: 0, bytes: 5 })
 	})
 
+	// spec: DELETE-002.9, DELETE-003.6
 	it('counts a picture as removed when every member it sent went, so a RAW unit counts once its RAW is gone', () => {
 		const raws = [filesOf(PAIR).filter((file) => file.role === 'raw')]
 
@@ -52,12 +56,14 @@ describe('trashReport', () => {
 		expect(trashReport(raws, results([[1, 'locked']]))).toMatchObject({ removed: 0, bytes: 0 })
 	})
 
+	// spec: DELETE-002.9
 	it.each(['notFound', 'failed'])('keeps the %s result', (result) => {
 		const report = trashReport(wholePictures([SINGLE]), results([[4, result]]))
 
 		expect(report.failed.map((failed) => failed.result)).toEqual([result])
 	})
 
+	// spec: DELETE-002.9
 	it('counts a file the response leaves out, or reports with an unknown result, as failed', () => {
 		const report = trashReport(wholePictures([PAIR]), results([[2, 'trashed'], [1, 'vanished']]))
 
@@ -66,6 +72,7 @@ describe('trashReport', () => {
 })
 
 describe('retryBatch', () => {
+	// spec: DELETE-002.10
 	it('resends only the failed and skipped files, grouped by their picture', () => {
 		const report = trashReport(wholePictures([PAIR, SINGLE, OTHER]), results(
 			[[2, 'trashed'], [1, 'locked'], [3, 'skipped']],
@@ -81,6 +88,7 @@ describe('retryBatch', () => {
 })
 
 describe('withoutFiles', () => {
+	// spec: DELETE-002.9
 	it('keeps an untouched picture as it is and drops a picture whose files all went', () => {
 		const { pictures, replaced } = withoutFiles([PAIR, SINGLE, OTHER], new Set([4]), DEFAULT_PAIRING_SETTINGS)
 
@@ -89,6 +97,7 @@ describe('withoutFiles', () => {
 		expect(replaced).toEqual(new Map([[SINGLE, null]]))
 	})
 
+	// spec: DELETE-002.9
 	it('pairs again what is left of a picture, so a pair that lost a member shows as a single with its sidecar', () => {
 		const { pictures, replaced } = withoutFiles([PAIR, SINGLE], new Set([2]), DEFAULT_PAIRING_SETTINGS)
 
@@ -97,6 +106,7 @@ describe('withoutFiles', () => {
 		expect(replaced.get(PAIR)).toBe(pictures[0])
 	})
 
+	// spec: DELETE-002.9
 	it('drops a picture that only kept its sidecars', () => {
 		const { pictures } = withoutFiles([PAIR], new Set(filesOf(PAIR).filter((file) => file.role !== 'sidecar').map((file) => file.entry.fileId)), DEFAULT_PAIRING_SETTINGS)
 
@@ -107,11 +117,13 @@ describe('withoutFiles', () => {
 describe('followReplaced', () => {
 	const PAIRED_AGAIN = pictureOf(ENTRIES[0]!)
 
+	// spec: DELETE-002.8
 	it('keeps the shown picture, or shows what replaced it', () => {
 		expect(followReplaced([PAIR, SINGLE, OTHER], 2, new Map([[SINGLE, null]]))).toEqual({ pictures: [PAIR, OTHER], index: 1 })
 		expect(followReplaced([PAIR, SINGLE], 0, new Map([[PAIR, PAIRED_AGAIN]]))).toEqual({ pictures: [PAIRED_AGAIN, SINGLE], index: 0 })
 	})
 
+	// spec: DELETE-002.8
 	it('shows the next picture when the shown one went, the previous at the end, and nothing when none is left', () => {
 		expect(followReplaced([PAIR, SINGLE, OTHER], 1, new Map([[SINGLE, null]]))).toEqual({ pictures: [PAIR, OTHER], index: 1 })
 		expect(followReplaced([PAIR, SINGLE], 1, new Map([[SINGLE, null]]))).toEqual({ pictures: [PAIR], index: 0 })

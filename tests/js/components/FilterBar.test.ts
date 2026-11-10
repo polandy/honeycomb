@@ -28,6 +28,7 @@ describe('FilterBar', () => {
 	beforeEach(installMarkedCatalogue)
 	afterEach(uninstallMarkedCatalogue)
 
+	// spec: GRID-002.3
 	it('selects Any while no rating filter is active and disables the comparison', () => {
 		const wrapper = mountBar()
 
@@ -37,6 +38,7 @@ describe('FilterBar', () => {
 		expect(comparison(wrapper).attributes('aria-label')).toBe(`${MARK}Rating comparison: pick a star count first`)
 	})
 
+	// spec: GRID-002.3
 	it('names each star chip by the comparison and filters by it', async () => {
 		const wrapper = mountBar()
 		const stars = wrapper.findAll('.filter-bar__star')
@@ -52,6 +54,7 @@ describe('FilterBar', () => {
 		['at-least', '≥', 'At least', 'At most', 'at-most'],
 		['at-most', '≤', 'At most', 'Exactly', 'exactly'],
 		['exactly', '=', 'Exactly', 'At least', 'at-least'],
+	// spec: GRID-002.3
 	] as const)('cycles the comparison from %s', async (current, symbol, now, next, after) => {
 		const wrapper = mountBar({ rating: 2, comparison: current })
 
@@ -63,6 +66,7 @@ describe('FilterBar', () => {
 		expect(emitted(wrapper)).toEqual([{ ...DEFAULT_FILTERS, rating: 2, comparison: after }])
 	})
 
+	// spec: GRID-002.3
 	it('turns the rating filter off by Any or by the pressed star chip', async () => {
 		const wrapper = mountBar({ rating: 4 })
 
@@ -83,6 +87,7 @@ describe('FilterBar', () => {
 		['RAW only', 'pairings', 'raw-only'],
 		['Marked', 'keepRaw', 'marked'],
 		['Not marked', 'keepRaw', 'not-marked'],
+	// spec: GRID-002.4
 	] as const)('switches the %s chip', async (label, group, value) => {
 		const off = mountBar()
 		expect(chip(off, label).attributes('aria-pressed')).toBe('false')
@@ -95,6 +100,7 @@ describe('FilterBar', () => {
 		expect(emitted(on)[0]![group].size).toBe(0)
 	})
 
+	// spec: GRID-002.4
 	it('offers a swatch for each of the nine colour labels', () => {
 		const swatches = mountBar().findAll('.filter-bar__swatch')
 		const names = ['Red', 'Orange', 'Yellow', 'Green', 'Blue', 'Magenta', 'Gray', 'Black', 'White']
@@ -102,6 +108,7 @@ describe('FilterBar', () => {
 		expect(swatches.map((swatch) => swatch.attributes('aria-label'))).toEqual(names.map((name) => `${MARK}${name}`))
 	})
 
+	// spec: GRID-002.4
 	it('labels the folder chips relative to the folder set and filters by folder', async () => {
 		const wrapper = mountBar()
 
@@ -111,10 +118,12 @@ describe('FilterBar', () => {
 		expect([...emitted(wrapper)[0]!.folders]).toEqual(['/Trip/Day 2'])
 	})
 
+	// spec: GRID-002.4
 	it('has no folder group for a single folder', () => {
 		expect(mountBar({}, ['/Trip']).text()).not.toContain(`${MARK}Folder`)
 	})
 
+	// spec: GRID-002.5
 	it('says how filters combine and how many photos pass', () => {
 		const text = mountBar().text()
 
@@ -122,6 +131,7 @@ describe('FilterBar', () => {
 		expect(text).toContain(`${MARK}1,840 of 2,000`)
 	})
 
+	// spec: GRID-002.6
 	it('clears the filters but keeps the scope, and is disabled while none is active', async () => {
 		expect(chip(mountBar({ scope: 'all' }), 'Clear filters').attributes('disabled')).toBeDefined()
 		const wrapper = mountBar({ scope: 'undecided', rating: 3, flags: new Set(['picked']) })

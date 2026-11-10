@@ -21,6 +21,7 @@ const RAW_ONLY = pictureOf(listingEntry(6, '/Trip/Day 2/IMG_3.NEF', { mime: 'ima
 const paths = (picture: Picture<ListingEntry>) => filesOf(picture).map((file) => [file.role, file.entry.path])
 
 describe('filesOf', () => {
+	// spec: DELETE-002.6
 	it('lists the rendered member, the RAW member, then every sidecar form', () => {
 		expect(paths(PAIR)).toEqual([
 			['rendered', '/Trip/IMG_1.JPG'],
@@ -31,6 +32,7 @@ describe('filesOf', () => {
 		expect(filesOf(PAIR).every((file) => file.picture === PAIR)).toBe(true)
 	})
 
+	// spec: DELETE-002.6
 	it('lists the one member of a single', () => {
 		expect(paths(SINGLE)).toEqual([['rendered', '/Trip/Day 2/IMG_2.JPG']])
 		expect(paths(RAW_ONLY)).toEqual([['raw', '/Trip/Day 2/IMG_3.NEF']])
@@ -38,6 +40,7 @@ describe('filesOf', () => {
 })
 
 describe('rejectedPictures', () => {
+	// spec: DELETE-002.1
 	it('keeps the rejected pictures in their order', () => {
 		const flags = new Map<Picture<ListingEntry>, Decision['flag']>([[PAIR, 'rejected'], [SINGLE, 'picked'], [RAW_ONLY, 'rejected']])
 		const decisionOf = (picture: Picture<ListingEntry>): Decision => ({ ...UNDECIDED, flag: flags.get(picture)! })
@@ -47,6 +50,7 @@ describe('rejectedPictures', () => {
 })
 
 describe('deleteSummary', () => {
+	// spec: DELETE-002.6
 	it('counts pictures, files, bytes, pairs, singles and the pictures per folder in first-seen order', () => {
 		expect(deleteSummary([SINGLE, PAIR, RAW_ONLY])).toEqual({
 			pictures: 3,
@@ -58,6 +62,7 @@ describe('deleteSummary', () => {
 		})
 	})
 
+	// spec: DELETE-002.6
 	it('is all zero for no pictures', () => {
 		expect(deleteSummary([])).toEqual({ pictures: 0, files: 0, bytes: 0, pairs: 0, singles: 0, folders: [] })
 	})

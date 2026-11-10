@@ -19,11 +19,18 @@ Add items with `/todo`.
 
 ## Later
 
+- [ ] DECISIONS-002.7: the client saves the resume position while culling and offers to continue a folder set at it on another device (2026-11-10)
+- [ ] DECISIONS-002.8, LISTING-003.13: *Recent* in the navigation and the folder picker lists the last folder sets with their progress and opens one at its position (2026-11-10)
+- [ ] LISTING-002.11: the grid shows a notice for a folder with ambiguous base names, not only the tile warning (2026-11-10)
+- [ ] LOUPE-001.17: the loupe pages without a transition under `prefers-reduced-motion` (2026-11-10)
+- [ ] LOUPE-002.11: a test that Pick and Reject sit at the side edges in landscape and in a row in portrait (2026-11-10)
+- [ ] DELETE-001.8: a test that trashed files keep their decision rows, so a picture restored from the trash bin keeps its decision (ADR 0013) (2026-11-10)
+- [ ] DELETE-002.12: a test that `Ctrl+Z` after a delete or Remove RAWs does not bring pictures back; the undo history holds only decisions (2026-11-10)
 - [ ] Clean-up job for `honeycomb_decisions` and `honeycomb_positions` rows whose files are deleted for good (ADR 0012 Consequences) (2026-11-10)
 - [ ] Grid: list RAW files whose type Nextcloud does not know (`.CR3` uploads get `application/octet-stream` and are skipped by the listing) — a mimetype mapping or a listing by RAW extension; decide before M4.3 (2026-11-10)
 - [ ] Grid: arrow-key focus moves between tiles (Tab only for now) and the phone bottom sheet of `ConfirmDialog` (2026-11-10)
 - [ ] Shared `Tooltip` component (`docs/plan.md` Tooltip) for the icon-only controls built so far: Home, More, Open {name} (2026-11-10)
-- [ ] Measure the image budgets of `docs/plan.md` Image delivery with real 24 MP RAW+JPEG pairs, incl. the `512` and `2048` tiers that Nextcloud delivers at up to 1024 and 4096 px (ADR 0010) — needs the owner's files (2026-11-10)
+- [ ] Measure the image budgets of `docs/plan.md` Image delivery with real 24 MP RAW+JPEG pairs (IMAGES-001.12), incl. the `512` and `2048` tiers that Nextcloud delivers at up to 1024 and 4096 px (ADR 0010) — needs the owner's files (2026-11-10)
 - [ ] Unused-export gate for TypeScript once `src/` has modules (glissando `unused-exports.sh`, or knip with an ADR) and a gate that no component shows raw error text (`docs/conventions.md` §1, §3) (2026-11-10)
 - [ ] Mockup: specify the grid's loading state (skeleton tiles while the listing and thumbnails arrive) — UX review L1 (`docs/ux-review.md`) (2026-11-09)
 - [ ] Mockup: give the scope switch a readable label at phone width, where it stays icon-only — UX review L2 (2026-11-09)

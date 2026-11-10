@@ -14,6 +14,7 @@ describe('selectionAfterClick', () => {
 		expect(selectionAfterClick(false, NO_SELECTION, ORDER, 20, plain)).toBeNull()
 	})
 
+	// spec: GRID-003.3
 	it('toggles the tile and moves the anchor in selection mode', () => {
 		const added = selectionAfterClick(true, selection([10], 10), ORDER, 30, plain)!
 
@@ -22,6 +23,7 @@ describe('selectionAfterClick', () => {
 		expect([...selectionAfterClick(true, added, ORDER, 10, plain)!.ids]).toEqual([30])
 	})
 
+	// spec: GRID-003.3
 	it('toggles with Ctrl or Cmd outside selection mode too', () => {
 		expect(selectionAfterClick(false, NO_SELECTION, ORDER, 40, { shift: false, toggle: true })).toEqual(selection([40], 40))
 	})
@@ -36,6 +38,7 @@ describe('selectionAfterClick', () => {
 		expect(ranged.anchor).toBe(anchor)
 	})
 
+	// spec: GRID-003.3
 	it('toggles with Shift when there is no anchor or it left the view', () => {
 		expect(selectionAfterClick(true, NO_SELECTION, ORDER, 20, { shift: true, toggle: false })).toEqual(selection([20], 20))
 		expect(selectionAfterClick(true, selection([], 99), ORDER, 20, { shift: true, toggle: false })).toEqual(selection([20], 20))
@@ -52,12 +55,14 @@ describe('addSelected', () => {
 })
 
 describe('selectAll', () => {
+	// spec: GRID-003.4
 	it('selects every shown picture and keeps the anchor', () => {
 		expect(selectAll(selection([20], 20), ORDER)).toEqual(selection(ORDER, 20))
 	})
 })
 
 describe('keepShown', () => {
+	// spec: GRID-003.8
 	it('drops the pictures that left the view and the anchor with them', () => {
 		expect(keepShown(selection([10, 99, 30], 99), ORDER)).toEqual(selection([10, 30], null))
 	})

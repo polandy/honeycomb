@@ -30,6 +30,7 @@ final class ListingServiceTest extends TestCase {
 		return new ListingService(new UserFolderResolver($root), new EntryFactory($manager), $entryLimit);
 	}
 
+	// spec: LISTING-001.1
 	public function testListsThePicturesFilesAndSidecarsOfTheFolderOnly(): void {
 		$folder = $this->folder('/Photos');
 		$folder->method('getDirectoryListing')->willReturn([
@@ -47,6 +48,7 @@ final class ListingServiceTest extends TestCase {
 		$this->assertFalse($listing->jsonSerialize()['truncated']);
 	}
 
+	// spec: LISTING-001.2
 	public function testAnEntryCarriesTheFileAndItsExifBasics(): void {
 		$folder = $this->folder('/Photos');
 		$folder->method('getDirectoryListing')->willReturn([$this->file(7, '/Photos/IMG_0007.JPG')]);
@@ -81,6 +83,7 @@ final class ListingServiceTest extends TestCase {
 		];
 	}
 
+	// spec: LISTING-001.3
 	#[DataProvider('incompleteMetadata')]
 	public function testMissingExifIsNull(array $values): void {
 		$folder = $this->folder('/Photos');
@@ -97,6 +100,7 @@ final class ListingServiceTest extends TestCase {
 		}
 	}
 
+	// spec: LISTING-001.6
 	public function testStopsAtTheEntryLimitAndSaysSo(): void {
 		$folder = $this->folder('/Photos');
 		$folder->method('getDirectoryListing')->willReturn(array_map(
@@ -110,6 +114,7 @@ final class ListingServiceTest extends TestCase {
 		$this->assertTrue($listing->jsonSerialize()['truncated']);
 	}
 
+	// spec: LISTING-001.6
 	public function testAFolderExactlyAtTheLimitIsComplete(): void {
 		$folder = $this->folder('/Photos');
 		$folder->method('getDirectoryListing')->willReturn([$this->file(1, '/Photos/a.jpg'), $this->file(2, '/Photos/b.jpg')]);
@@ -129,6 +134,7 @@ final class ListingServiceTest extends TestCase {
 		];
 	}
 
+	// spec: LISTING-001.7
 	#[DataProvider('foreignPaths')]
 	public function testAForeignPathIsNotFound(string $path): void {
 		$root = $this->createMock(IRootFolder::class);
@@ -138,6 +144,7 @@ final class ListingServiceTest extends TestCase {
 		$this->service($root)->list($this->user(), $path, false);
 	}
 
+	// spec: LISTING-001.7
 	public function testAFolderOutsideTheUserFolderIsNotFound(): void {
 		$foreign = $this->createStub(\OCP\Files\Folder::class);
 		$foreign->method('getPath')->willReturn('/bob/files/Photos');
@@ -147,26 +154,31 @@ final class ListingServiceTest extends TestCase {
 		$this->service($this->rootWith(['/Shared' => $foreign]))->list($this->user(), 'Shared', true);
 	}
 
+	// spec: LISTING-001.7
 	public function testAVanishedFolderIsNotFound(): void {
 		$this->expectException(FolderNotFoundException::class);
 		$this->service($this->rootWith([]))->list($this->user(), 'Gone', false);
 	}
 
+	// spec: LISTING-001.7
 	public function testAFileIsNotAFolder(): void {
 		$this->expectException(FolderNotFoundException::class);
 		$this->service($this->rootWith(['/a.jpg' => $this->file(1, '/a.jpg')]))->list($this->user(), 'a.jpg', false);
 	}
 
+	// spec: LISTING-001.8
 	public function testAnUnreadableFolderIsNotReadable(): void {
 		$this->expectException(FolderNotReadableException::class);
 		$this->service($this->rootWith(['/Photos' => $this->folder('/Photos', false)]))->list($this->user(), 'Photos', false);
 	}
 
+	// spec: LISTING-001.8
 	public function testAFolderThatMayNotBeOpenedIsNotReadable(): void {
 		$this->expectException(FolderNotReadableException::class);
 		$this->service($this->rootWith(['/Photos' => new NotPermittedException('Photos')]))->list($this->user(), 'Photos', false);
 	}
 
+	// spec: LISTING-001.8
 	public function testAListingThatMayNotBeReadIsNotReadable(): void {
 		$folder = $this->folder('/Photos');
 		$folder->method('getDirectoryListing')->willThrowException(new NotPermittedException('Photos'));

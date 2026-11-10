@@ -12,6 +12,7 @@ describe('useLoupePanels', () => {
 		expect([panels.infoOpen.value, panels.infoWidth.value]).toEqual([false, 300])
 	})
 
+	// spec: LOUPE-001.13
 	it('reads and keeps the open state and the width', () => {
 		const stored: Record<string, string> = { [INFO_OPEN_KEY]: 'true', [INFO_WIDTH_KEY]: '999' }
 		const panels = useLoupePanels(fakeStorage(stored))
@@ -24,6 +25,7 @@ describe('useLoupePanels', () => {
 		expect([panels.infoOpen.value, panels.infoWidth.value]).toEqual([false, 256])
 	})
 
+	// spec: LOUPE-001.14
 	it('covers the Nextcloud navigation until it is shown, and keeps that choice', () => {
 		const stored: Record<string, string> = {}
 		const panels = useLoupePanels(fakeStorage(stored))
@@ -35,6 +37,7 @@ describe('useLoupePanels', () => {
 		expect(useLoupePanels(fakeStorage(stored)).navigationShown.value).toBe(true)
 	})
 
+	// spec: LOUPE-001.15
 	it('shows the gesture guide until it is dismissed once', () => {
 		const stored: Record<string, string> = {}
 		const panels = useLoupePanels(fakeStorage(stored))
@@ -47,6 +50,7 @@ describe('useLoupePanels', () => {
 		expect(useLoupePanels(fakeStorage(stored)).gestureGuideSeen.value).toBe(true)
 	})
 
+	// spec: LOUPE-001.16
 	it('works for this visit where the browser blocks site data', () => {
 		const panels = useLoupePanels(fakeStorage({}, true))
 

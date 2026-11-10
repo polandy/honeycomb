@@ -11,6 +11,7 @@ function fakeLogger() {
 }
 
 describe('createHoneycombApp', () => {
+	// spec: APP-001.5
 	it('logs an error that reaches Vue as an error with its cause', () => {
 		const logger = fakeLogger()
 		const error = new Error('render failed')

@@ -23,6 +23,7 @@ describe('App: decisions, scope, filters and sort', () => {
 		vi.restoreAllMocks()
 	})
 
+	// spec: GRID-002.8
 	it('sorts one folder by file name and follows the sort chosen in the toolbar', async () => {
 		const entries = [
 			listingEntry(1, '/Trip/IMG_2.JPG', { captureTime: 300 }),
@@ -39,6 +40,7 @@ describe('App: decisions, scope, filters and sort', () => {
 		expect(shownNames(wrapper)).toEqual(['IMG_10', 'IMG_9', 'IMG_2'])
 	})
 
+	// spec: GRID-002.1
 	it('looks up the decisions of every member and hides rejected photos until the scope is All', async () => {
 		const { wrapper, lookedUp } = mountApp({}, [stored(3, 'rejected'), stored(1, 'picked')])
 
@@ -53,6 +55,7 @@ describe('App: decisions, scope, filters and sort', () => {
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
 	})
 
+	// spec: DECISIONS-001.9
 	it('ignores the decisions of a folder set that is no longer open', async () => {
 		let answer: (rows: StoredDecision[]) => void = () => undefined
 		const late = new Promise<StoredDecision[]>((resolve) => {
@@ -69,6 +72,7 @@ describe('App: decisions, scope, filters and sort', () => {
 		expect(shownNames(wrapper)).toEqual(['IMG_9', 'IMG_10'])
 	})
 
+	// spec: DECISIONS-001.9
 	it('logs a failed lookup and treats every photo as undecided', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		const { wrapper } = mountApp({ lookupDecisions: () => Promise.reject(new Error('down')) })
@@ -97,6 +101,7 @@ describe('App: decisions, scope, filters and sort', () => {
 		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ activeFilters: 1, filtersOpen: true })
 	})
 
+	// spec: GRID-002.2
 	it('locks the scope while a flag filter is active', async () => {
 		const { wrapper } = mountApp()
 		await openCull(wrapper)
@@ -109,6 +114,7 @@ describe('App: decisions, scope, filters and sort', () => {
 		expect(wrapper.findComponent(GridToolbar).props('scopeLocked')).toBe(true)
 	})
 
+	// spec: GRID-002.10
 	it('resets the filters and the sort on opening a folder set', async () => {
 		const { wrapper } = mountApp()
 		await openCull(wrapper)
@@ -121,6 +127,7 @@ describe('App: decisions, scope, filters and sort', () => {
 		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ scope: 'not-rejected', sortOrder: 'capture-time' })
 	})
 
+	// spec: GRID-002.11
 	it('says when the folders hold no photos', async () => {
 		const { wrapper } = mountApp()
 
@@ -133,6 +140,7 @@ describe('App: decisions, scope, filters and sort', () => {
 	it.each([
 		['not-rejected', 'rejected', 'No photos left to cull'],
 		['undecided', 'picked', 'Every photo is decided'],
+	// spec: GRID-002.11
 	] as const)('says when the scope %s leaves nothing and shows all on request', async (scope, flag, name) => {
 		const { wrapper } = mountApp({}, ENTRIES.map((entry) => stored(entry.fileId, flag)))
 		await openCull(wrapper)
@@ -147,6 +155,7 @@ describe('App: decisions, scope, filters and sort', () => {
 		expect(wrapper.findComponent(GridToolbar).props('scope')).toBe('all')
 	})
 
+	// spec: GRID-002.11
 	it('says when nothing matches the filters and clears them, keeping the scope', async () => {
 		const { wrapper } = mountApp()
 		await openCull(wrapper)
