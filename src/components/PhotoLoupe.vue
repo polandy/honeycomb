@@ -17,6 +17,7 @@ import { t } from '@nextcloud/l10n'
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
+import GestureGuide from './GestureGuide.vue'
 import LoupeFilmstrip from './LoupeFilmstrip.vue'
 import LoupeInfo from './LoupeInfo.vue'
 import LoupeStage from './LoupeStage.vue'
@@ -67,7 +68,7 @@ const DIVIDER_WIDTH = 4
 const root = useTemplateRef<HTMLElement>('root')
 const stage = useTemplateRef<InstanceType<typeof LoupeStage>>('stage')
 const panels = useLoupePanels(props.storage)
-const { infoOpen, infoWidth, navigationShown } = panels
+const { infoOpen, infoWidth, navigationShown, gestureGuideSeen } = panels
 const filmstripOpen = ref(true)
 const chromeFree = ref(false)
 const zoom = ref<number | null>(null)
@@ -119,7 +120,13 @@ function onKeydown(event: KeyboardEvent) {
 	}
 }
 
-onMounted(() => root.value!.focus())
+/** Remembers the gesture guide as seen and gives the keys back to the loupe. */
+function dismissGestureGuide() {
+	panels.dismissGestureGuide()
+	root.value!.focus()
+}
+
+onMounted(() => gestureGuideSeen.value && root.value!.focus())
 </script>
 
 <template>
@@ -203,6 +210,7 @@ onMounted(() => root.value!.focus())
 			:imageUrl="props.imageUrl"
 			@pointerdown="overlays.wake"
 			@select="go" />
+		<GestureGuide v-if="!gestureGuideSeen" @dismiss="dismissGestureGuide" />
 	</div>
 </template>
 
