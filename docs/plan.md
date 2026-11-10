@@ -712,8 +712,9 @@ takes its sizes from the pointer type ([Control sizes](#control-sizes)), not fro
 
 ### Tooltip
 
-The owner asked for a bubble tooltip on every icon (2026-11-09). One bubble, `AppTooltip`, serves the
-whole app (APP-002); a control opts in with `data-tip` (and `data-tip-key`), written by `tip(label, key)`.
+The owner asked for a bubble tooltip on every icon (2026-11-09). One bubble, `AppTooltip`,
+serves the whole app (APP-002); a control opts in with `data-tip` (and `data-tip-key`), written
+by `tip(label, key)`.
 The key comes from the one key map `HOTKEY`, which also feeds the keyboard shortcuts sheet and
 the key handlers, so a tooltip never names a key the app does not use. The native `title` is not
 used.
@@ -736,7 +737,8 @@ used.
   Inside a grid tile the long-press stays selection (Q10, answered by the owner on 2026-11-09),
   and one gesture never triggers the other:
   - The tooltip's long-press does not start inside a tile: its handler ignores a target within
-    a tile (`data-tip-hover-only`), so on a tile and its badges no tooltip timer runs and no click is swallowed by it.
+    a tile (`data-tip-hover-only`), so on a tile and its badges no tooltip timer runs and no
+    click is swallowed by it.
   - The tile's own long-press (480 ms, cancelled like the tooltip's by 10 px of movement, the
     finger lifting or the browser taking the pointer) enters selection mode and adds the tile;
     a second long-press never removes it. The click that follows is swallowed by the grid, so
