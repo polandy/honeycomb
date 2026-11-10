@@ -136,6 +136,24 @@ const within = () => n('honeycomb', 'Photos taken within {count} second of each 
 	flex-direction: column;
 	gap: 6px;
 	min-width: 0;
+	container: card / inline-size;
+}
+
+.series-compare__card :deep(.pick-rest-button .button-vue__text) {
+	line-height: 1.2;
+	text-align: center;
+	text-wrap: balance;
+	white-space: normal;
+}
+
+@container card (max-width: 200px) {
+	.series-compare__card :deep(.pick-rest-button) {
+		padding-inline: calc(2 * var(--default-grid-baseline));
+	}
+
+	.series-compare__card :deep(.pick-rest-button .button-vue__icon) {
+		display: none;
+	}
 }
 
 .series-compare__photo {
