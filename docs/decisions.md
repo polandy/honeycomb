@@ -3,6 +3,23 @@
 Smaller decisions made during implementation, one dated line each; larger ones become an
 [ADR](adr/).
 
+## Owner review 2026-11-10
+
+The owner reviewed the autonomous decisions of 2026-11-10 below and confirmed all of them, except
+these changes; a changed line below is marked *(changed by the owner review)*.
+
+- 2026-11-10: XMP sidecars are written as soon as any attribute is set on a photo (flag, rating,
+  colour label, *Keep RAW*), a member without one gets a new `<file>.xmp`, and a photo no step
+  touched gets none (XMP-003.15). The shared-folder rule Q20 stays.
+- 2026-11-10: Public links, mail shares and external storage mounted for several users make a
+  folder shared too (ADR 0017 amendment); external storage counts once Nextcloud's mount cache
+  lists another user for it.
+- 2026-11-10: The info panel's open state and whether the gesture guide was seen are kept per user
+  on the server (ADR 0019); a value in the browser's local storage is moved there once.
+- 2026-11-10: Listing Canon `.CR3` files is a low-priority `TODO.md` item.
+
+## Decisions
+
 - 2026-11-10: CI skips a job whose paths a pull request does not touch. `scripts/ci-changes.sh`
   maps the changed files (GitHub API, no deep checkout) to the groups `markdown`, `php`, `ts` and
   `app`; an unknown path or a push to `main` turns everything on, so a skip is never a guess.
@@ -220,8 +237,9 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: Overlays idle 2.5 s after the last touch in landscape only; a middle tap toggles
   them, a mouse move or a touch on an overlay wakes them, and a focused overlay control keeps
   them. Paging snaps without a slide animation in M3.1, and vertical swipes wait for M3.2.
-- 2026-11-10: The info panel's open state and width are kept in the browser's local storage; the
-  filmstrip starts open on each opening. The < 100 ms budget is not yet measured.
+- 2026-11-10 *(changed by the owner review)*: The info panel's open state and width are kept in the
+  browser's local storage; the filmstrip starts open on each opening. The < 100 ms budget is not yet
+  measured.
 - 2026-11-10: The "Nextcloud app navigation" the loupe covers is Nextcloud's header with the app
   menu; honeycomb has no navigation of its own yet. A pressed toggle at the end of the title row
   shows the header above the loupe, kept in the browser like the info panel; chrome-free mode
@@ -230,9 +248,9 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   zones with their sketch, pinch and double-tap, and the keys `←` `→`, `Z` and `Esc`. The swipe
   up and down line joins with M3.2 and the mockup's keys line (`P`, `X`, `U`, `Z`, `?`) with
   M3.3, so the guide, shown once, never names a gesture that does nothing.
-- 2026-11-10: The gesture guide counts as seen in the browser's local storage, like the info
-  panel; with site data blocked it shows on each opening. Showing it again from the settings is
-  the UX review's L6 in `TODO.md`.
+- 2026-11-10 *(changed by the owner review)*: The gesture guide counts as seen in the browser's
+  local storage, like the info panel; with site data blocked it shows on each opening. Showing it
+  again from the settings is the UX review's L6 in `TODO.md`.
 - 2026-11-10: The gesture guide's lines are plain translated sentences without the mockup's bold
   verbs, since markup inside a translated string needs `v-html`; key caps go through `t()` too.
 - 2026-11-10: While the gesture guide shows, its *Got it* has the focus and the loupe's keys
@@ -376,10 +394,11 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   pure module whole and it reports it (ADR 0017).
 - 2026-11-10: A sidecar request carries at most 1,000 sidecars of at most 1 MiB each; a larger
   sidecar answers `tooLarge` (ADR 0017).
-- 2026-11-10: Public links and mail shares do not make a folder shared; only other users, federated
-  users and group folders do, since only they edit the sidecars (ADR 0017).
-- 2026-11-10: External storage mounted for several users is not detected as shared; Nextcloud
-  offers no reliable signal for it (ADR 0017).
+- 2026-11-10 *(changed by the owner review)*: Public links and mail shares do not make a folder
+  shared; only other users, federated users and group folders do, since only they edit the sidecars
+  (ADR 0017).
+- 2026-11-10 *(changed by the owner review)*: External storage mounted for several users is not
+  detected as shared; Nextcloud offers no reliable signal for it (ADR 0017).
 - 2026-11-10: The client wrappers for the sidecar endpoints come with M5.3, which first uses them,
   so M5.2 adds no unused TypeScript.
 - 2026-11-10: M5.3 takes over no decision from sidecars that state none (undecided), so an empty
@@ -480,3 +499,16 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: Failed files open a move report without retry; a failed probe or move closes the
   dialog with a toast, and a 409 says the Nextcloud trash bin is off.
 - 2026-11-10: The move summary shows the name template without a "change it in Settings" hint.
+- 2026-11-10: The view state has its own endpoint (ADR 0019) rather than the settings object, so
+  writing one key never races a whole-object settings save; "view state" joins the glossary.
+- 2026-11-10: Until the view state has loaded, the info panel shows closed and the gesture guide
+  counts as seen, so the guide never flashes; a change made before the answer wins and is not
+  migrated over.
+- 2026-11-10: The info panel's width, the Nextcloud header toggle and the tile size stay in the
+  browser, since they depend on the device's screen.
+- 2026-11-10: A local view-state value other than `true` or `false` is ignored and left alone; a
+  failed migration save is only logged and the local keys stay, so the next visit tries again.
+- 2026-11-10: Opening the loupe moves from `App.vue` to `src/loupe-opening.ts`, which kept
+  `App.vue` under 300 lines.
+- 2026-11-10: The e2e tests reset the shared admin's view state after each page load, so server
+  state never leaks between tests.

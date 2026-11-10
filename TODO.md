@@ -22,7 +22,6 @@ Add items with `/todo`.
 - [ ] DELETE-002.12: a test that `Ctrl+Z` after a delete or Remove RAWs does not bring pictures back; the undo history holds only decisions (2026-11-10)
 - [ ] Carry decision rows over to the new file ids after a move across storages, where `Node::move()` copies (ADR 0018) (2026-11-10)
 - [ ] Clean-up job for `honeycomb_decisions` and `honeycomb_positions` rows whose files are deleted for good (ADR 0012 Consequences) (2026-11-10)
-- [ ] Grid: list RAW files whose type Nextcloud does not know (`.CR3` uploads get `application/octet-stream` and are skipped by the listing) — a mimetype mapping or a listing by RAW extension; decide before M4.3 (2026-11-10)
 - [ ] Grid: arrow-key focus moves between tiles (Tab only for now) and the phone bottom sheet of `ConfirmDialog` (2026-11-10)
 - [ ] Shared `Tooltip` component (`docs/plan.md` Tooltip) for the icon-only controls built so far: Home, More, Open {name} (2026-11-10)
 - [ ] Measure the image budgets of `docs/plan.md` Image delivery with real 24 MP RAW+JPEG pairs (IMAGES-001.12), incl. the `512` and `2048` tiers that Nextcloud delivers at up to 1024 and 4096 px (ADR 0010) — needs the owner's files (2026-11-10)
@@ -39,3 +38,4 @@ Add items with `/todo`.
 - [ ] Add a `main` ruleset (pull requests only, CI required), with a bypass for `nextcloud-bot` if issue #17 says so, and the `RELEASE_PLEASE_TOKEN` secret — owner (2026-11-09)
 - [ ] Set up Nextcloud's Transifex sync before the first App Store release: `.tx/config`, `l10n/.gitkeep`, `.l10nignore`, `REUSE.toml` for `l10n/**`; owner's steps and the `main` ruleset question in issue #17 (ADR 0007) (2026-11-09)
 - [ ] Publish to the Nextcloud app store: signing certificate, release workflow that builds and uploads the tarball (2026-11-09)
+- [ ] Low priority (owner, 2026-11-10): list Canon `.CR3` files, which Nextcloud types `application/octet-stream` so the listing skips them — a mimetype mapping or a listing by RAW extension (2026-11-10)
