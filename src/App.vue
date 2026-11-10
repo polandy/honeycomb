@@ -13,6 +13,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcContent from '@nextcloud/vue/components/NcContent'
 import ActionBar from './components/ActionBar.vue'
 import AppNavigation from './components/AppNavigation.vue'
+import AppTooltip from './components/AppTooltip.vue'
 import CullDialogs from './components/CullDialogs.vue'
 import CullEmptyState from './components/CullEmptyState.vue'
 import FilterBar from './components/FilterBar.vue'
@@ -121,9 +122,7 @@ function openFolderSet(...opened: Parameters<typeof cull.open>) {
 }
 
 /** Opens or closes the shortcut sheet. */
-function toggleShortcuts() {
-	shortcutsOpen.value = !shortcutsOpen.value
-}
+const toggleShortcuts = () => (shortcutsOpen.value = !shortcutsOpen.value)
 
 useHotkeys(() => {
 	if (pickerOpen.value || settingsOpen.value || deleteDialog.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
@@ -284,6 +283,7 @@ useHotkeys(() => {
 					@act="toast.act" />
 			</Teleport>
 		</NcAppContent>
+		<AppTooltip :container="overlayScreen" :schedule="props.schedule" />
 	</NcContent>
 </template>
 

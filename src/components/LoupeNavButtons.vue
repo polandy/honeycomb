@@ -7,6 +7,8 @@ import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
+import { keyCap } from '../hotkeys.ts'
+import { tip } from '../tooltip.ts'
 
 const props = defineProps<{
 	/** The shown picture's index. */
@@ -17,8 +19,8 @@ const props = defineProps<{
 const emit = defineEmits<{ page: [step: -1 | 1] }>()
 
 const navigation = computed(() => [
-	{ step: -1, shown: props.index > 0, icon: 'chevronLeft', label: t('honeycomb', 'Previous photo') },
-	{ step: 1, shown: props.index < props.count - 1, icon: 'chevronRight', label: t('honeycomb', 'Next photo') },
+	{ step: -1, shown: props.index > 0, icon: 'chevronLeft', label: t('honeycomb', 'Previous photo'), key: keyCap('arrows', 0) },
+	{ step: 1, shown: props.index < props.count - 1, icon: 'chevronRight', label: t('honeycomb', 'Next photo'), key: keyCap('arrows', 1) },
 ] as const)
 </script>
 
@@ -31,6 +33,7 @@ const navigation = computed(() => [
 				:class="`loupe-nav-buttons__button--${nav.step < 0 ? 'previous' : 'next'}`"
 				variant="tertiary"
 				:aria-label="nav.label"
+				v-bind="tip(nav.label, nav.key)"
 				@click="emit('page', nav.step)">
 				<template #icon>
 					<AppIcon :name="nav.icon" />

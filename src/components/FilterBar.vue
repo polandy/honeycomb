@@ -14,6 +14,7 @@ import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { COLOUR_LABELS } from '../logic/decision.ts'
 import { activeFilterCount, clearFilters, nextComparison, toggleChip } from '../logic/picture-filter.ts'
+import { tip } from '../tooltip.ts'
 
 const props = defineProps<{
 	filters: Filters
@@ -113,6 +114,7 @@ function toggle(group: ChipGroup, value: string) {
 					type="button"
 					class="filter-bar__chip filter-bar__comparison"
 					:aria-label="comparisonLabel"
+					v-bind="tip(comparisonLabel)"
 					:disabled="props.filters.rating === null"
 					@click="update({ comparison: nextComparison(props.filters.comparison) })">
 					{{ comparison.symbol }}
@@ -145,6 +147,7 @@ function toggle(group: ChipGroup, value: string) {
 					type="button"
 					class="filter-bar__chip filter-bar__swatch"
 					:aria-label="colourLabelName(label)"
+					v-bind="tip(colourLabelName(label))"
 					:aria-pressed="pressed('colourLabels', label)"
 					@click="toggle('colourLabels', label)">
 					<span class="filter-bar__dot" :style="{ background: COLOUR_LABEL_SWATCHES[label] }" />

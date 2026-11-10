@@ -25,6 +25,7 @@ import LoupeNavButtons from './LoupeNavButtons.vue'
 import LoupeStage from './LoupeStage.vue'
 import PickRestButton from './PickRestButton.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
+import { keyCap } from '../hotkeys.ts'
 import { LOUPE_IDLE_MS, useIdle } from '../idle.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { imageMember, loupeSources } from '../logic/image-tiers.ts'
@@ -33,6 +34,7 @@ import { useLoupeDecisions } from '../loupe-decisions.ts'
 import { decodeSource, usePrefetch } from '../loupe-prefetch.ts'
 import { observeElementSize } from '../observe-size.ts'
 import { browserSchedule } from '../tile-selection.ts'
+import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	/** The series without its rejected pictures. */
@@ -134,6 +136,7 @@ onMounted(() => root.value!.focus())
 		ref="root"
 		class="series-viewer"
 		:class="{ 'series-viewer--idle': overlays.idle.value }"
+		:data-tips-off="overlays.idle.value || undefined"
 		:style="{ '--photo-loupe-panel': '0px', '--photo-loupe-rail': `${settings.flagButtonsShown ? FLAG_RAIL : 0}px` }"
 		role="dialog"
 		aria-modal="true"
@@ -142,7 +145,11 @@ onMounted(() => root.value!.focus())
 		data-hotkeys-screen
 		@pointermove="$event.pointerType === 'mouse' && overlays.wake()">
 		<header class="series-viewer__top series-viewer__overlay" @pointerdown="overlays.wake">
-			<NcButton variant="tertiary" :aria-label="t('honeycomb', 'Close series viewer')" @click="emit('close')">
+			<NcButton
+				variant="tertiary"
+				:aria-label="t('honeycomb', 'Close series viewer')"
+				v-bind="tip(t('honeycomb', 'Close series viewer'), keyCap('close'))"
+				@click="emit('close')">
 				<template #icon>
 					<AppIcon name="close" />
 				</template>
@@ -154,7 +161,7 @@ onMounted(() => root.value!.focus())
 				<span class="series-viewer__place">{{ place }}</span>
 			</div>
 			<FlagButtonsToggle :shown="settings.flagButtonsShown" @update:shown="decisions.setFlagButtonsShown" />
-			<NcButton :aria-label="t('honeycomb', 'Toggle fit and 100 percent')" @click="stage!.toggleZoom()">
+			<NcButton :aria-label="t('honeycomb', 'Toggle fit and 100 percent')" v-bind="tip(t('honeycomb', 'Fit / 100 %'), keyCap('zoom', 1))" @click="stage!.toggleZoom()">
 				{{ zoom === null ? t('honeycomb', 'Fit') : t('honeycomb', '{percent} %', { percent: formatNumber(zoom) }, undefined, PLAIN_TEXT) }}
 			</NcButton>
 		</header>

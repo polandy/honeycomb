@@ -712,8 +712,9 @@ takes its sizes from the pointer type ([Control sizes](#control-sizes)), not fro
 
 ### Tooltip
 
-The owner asked for a bubble tooltip on every icon (2026-11-09). One `#tip` element serves the
-whole app; a control opts in with `data-tip` (and `data-tip-key`), written by `tip(label, key)`.
+The owner asked for a bubble tooltip on every icon (2026-11-09). One bubble, `AppTooltip`,
+serves the whole app (APP-002); a control opts in with `data-tip` (and `data-tip-key`), written
+by `tip(label, key)`.
 The key comes from the one key map `HOTKEY`, which also feeds the keyboard shortcuts sheet and
 the key handlers, so a tooltip never names a key the app does not use. The native `title` is not
 used.
@@ -723,20 +724,21 @@ used.
   long-press of 500 ms; the release hides it and the click that follows is swallowed, so the
   long-press never triggers the action.
 - **Hide.** Leaving the control (the bubble itself can be hovered, WCAG 1.4.13), blur, a click or
-  tap, scrolling the control's container, the control leaving the page, the series viewer's
-  controls fading out, and *Escape*.
+  tap, scrolling the control's container, the control leaving the page, the loupe's and the
+  series viewer's controls fading out (`data-tips-off`), and *Escape*.
 - **Escape.** While a tooltip shows, the first *Escape* only hides it; the next one closes the
   popover, dialog, series viewer or loupe as before.
 - **Placement.** The arrow points at the control. Below for a control in the top half of the
   frame, above in the bottom half, then the other side, right, left: the first side that stays
-  8 px inside the frame and its safe areas and clears the middle third of the photo in the loupe
-  and the series viewer wins.
+  8 px inside the frame and its safe areas and clears the middle third of the photo
+  (`data-tip-avoid`) in the loupe and the series viewer wins.
 - **Gestures.** The long-press timer stops when the finger moves more than 10 px, a second finger
   lands (pinch) or the browser takes the pointer (scroll in the filmstrip, the series track).
   Inside a grid tile the long-press stays selection (Q10, answered by the owner on 2026-11-09),
   and one gesture never triggers the other:
   - The tooltip's long-press does not start inside a tile: its handler ignores a target within
-    a tile, so on a tile and its badges no tooltip timer runs and no click is swallowed by it.
+    a tile (`data-tip-hover-only`), so on a tile and its badges no tooltip timer runs and no
+    click is swallowed by it.
   - The tile's own long-press (480 ms, cancelled like the tooltip's by 10 px of movement, the
     finger lifting or the browser taking the pointer) enters selection mode and adds the tile;
     a second long-press never removes it. The click that follows is swallowed by the grid, so
@@ -745,10 +747,10 @@ used.
     `aria-label` carries the same words.
 
   A disabled control shows its tooltip only where the browser sends hover to it.
-- **Accessibility.** While shown, the control has `aria-describedby="tip"`; the bubble
+- **Accessibility.** While shown, the control has `aria-describedby="honeycomb-tip"`; the bubble
   (`role="tooltip"`) never takes focus. Every icon-only control keeps its `aria-label`. Colours
-  come from `--tip-bg` and `--tip-fg`, at least 15:1 in both themes. Reduced motion shows it
-  without the fade.
+  come from `--tip-bg` and `--tip-fg`, Nextcloud's main text and background colours swapped. It
+  shows and hides without a fade.
 
 ## Visual design and first run
 

@@ -16,6 +16,7 @@ import GridMoreMenu from './GridMoreMenu.vue'
 import ScopeProgress from './ScopeProgress.vue'
 import { keyCap } from '../hotkeys.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
+import { tip } from '../tooltip.ts'
 
 const props = defineProps<{
 	folderSet: FolderSet
@@ -86,7 +87,11 @@ const setName = computed(() => {
 <template>
 	<div class="grid-toolbar">
 		<nav class="grid-toolbar__crumbs" :aria-label="t('honeycomb', 'Breadcrumb')">
-			<NcButton variant="tertiary" :ariaLabel="t('honeycomb', 'Change folders')" @click="emit('changeFolders')">
+			<NcButton
+				variant="tertiary"
+				:ariaLabel="t('honeycomb', 'Change folders')"
+				v-bind="tip(t('honeycomb', 'Change folders'))"
+				@click="emit('changeFolders')">
 				<template #icon>
 					<AppIcon name="home" />
 				</template>
@@ -109,6 +114,7 @@ const setName = computed(() => {
 		<NcButton
 			variant="tertiary"
 			:ariaLabel="filtersLabel"
+			v-bind="tip(t('honeycomb', 'Filter'), keyCap('filter-bar'))"
 			:aria-pressed="props.filtersOpen"
 			:aria-expanded="props.filtersOpen"
 			@click="emit('update:filtersOpen', !props.filtersOpen)">
@@ -120,6 +126,7 @@ const setName = computed(() => {
 		<NcButton
 			variant="tertiary"
 			:ariaLabel="t('honeycomb', 'Select')"
+			v-bind="tip(t('honeycomb', 'Select'))"
 			:aria-pressed="props.selecting"
 			@click="emit('update:selecting', !props.selecting)">
 			<template #icon>
@@ -130,7 +137,7 @@ const setName = computed(() => {
 		<NcButton
 			variant="tertiary"
 			:ariaLabel="props.rejected > 0 ? t('honeycomb', 'Review rejects ({count})', { count: formatNumber(props.rejected) }) : t('honeycomb', 'Review rejects')"
-			:title="t('honeycomb', 'Review rejects ({key})', { key: keyCap('review-rejects') })"
+			v-bind="tip(t('honeycomb', 'Review rejects'), keyCap('review-rejects'))"
 			:disabled="props.rejected === 0"
 			@click="emit('reviewRejects')">
 			<template #icon>
@@ -141,7 +148,7 @@ const setName = computed(() => {
 		<NcButton
 			variant="tertiary"
 			:ariaLabel="props.series > 0 ? t('honeycomb', 'Compare series ({count})', { count: formatNumber(props.series) }) : t('honeycomb', 'Compare series')"
-			:title="t('honeycomb', 'Compare series ({key})', { key: keyCap('compare') })"
+			v-bind="tip(t('honeycomb', 'Compare series'), keyCap('compare'))"
 			:disabled="props.series === 0"
 			@click="emit('compareSeries')">
 			<template #icon>
@@ -151,7 +158,7 @@ const setName = computed(() => {
 		</NcButton>
 		<NcPopover>
 			<template #trigger>
-				<NcButton variant="tertiary" :ariaLabel="t('honeycomb', 'More')">
+				<NcButton variant="tertiary" :ariaLabel="t('honeycomb', 'More')" v-bind="tip(t('honeycomb', 'More'))">
 					<template #icon>
 						<AppIcon name="more" />
 					</template>

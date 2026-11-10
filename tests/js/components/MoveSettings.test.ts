@@ -114,6 +114,8 @@ describe('MoveSettings', () => {
 		const wrapper = mountSection({ moveFavourites: ['/Photos/Best', '/Archive'] })
 
 		expect(wrapper.findAll('.move-settings__favourite').map((chip) => plain(chip.text()))).toEqual(['★ Best', '★ Archive'])
+		// spec: APP-002.9
+		expect(wrapper.find(`button[aria-label="${MARK}Remove favourite /Photos/Best"]`).attributes('data-tip')).toBe(`${MARK}Remove favourite /Photos/Best`)
 		await wrapper.find(`button[aria-label="${MARK}Remove favourite /Photos/Best"]`).trigger('click')
 
 		expect(updates(wrapper)).toEqual([[{ moveFavourites: ['/Archive'] }]])

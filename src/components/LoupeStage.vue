@@ -189,6 +189,7 @@ defineExpose({
 	<div
 		ref="stage"
 		class="loupe-stage"
+		data-tip-avoid
 		@pointerdown="onPointerDown"
 		@pointermove="act(gestures.move(pointerOf($event)))"
 		@pointerup="act(gestures.up(pointerOf($event)))"

@@ -109,6 +109,12 @@ export function stepRating(rating: number | undefined, step: 1 | -1): number {
 const MODIFIERS = new Set(['Shift', 'Control', 'Alt', 'AltGraph', 'Meta', 'CapsLock'])
 const FLAGS: Readonly<Record<string, 'picked' | 'rejected' | 'unflagged'>> = { p: 'picked', x: 'rejected', u: 'unflagged', '`': 'picked' }
 const LABELS: Readonly<Record<string, ColourLabel>> = { 6: 'red', 7: 'yellow', 8: 'green', 9: 'blue' }
+
+/** The number key that sets the colour label, if it has one. */
+export function colourLabelKey(colourLabel: ColourLabel): string | undefined {
+	return Object.keys(LABELS).find((key) => LABELS[key] === colourLabel)
+}
+
 const COMMANDS: Readonly<Record<string, HotkeyCommand>> = {
 	ArrowLeft: 'previous',
 	ArrowRight: 'next',

@@ -211,6 +211,8 @@ describe('SeriesViewer', () => {
 	// spec: SERIES-002.9
 	it('closes by its button and Esc', async () => {
 		const { wrapper, press } = await mountViewer()
+		// spec: APP-002.9
+		expect(label(wrapper, 'Close series viewer').attributes('data-tip-key')).toBe('Esc')
 		await label(wrapper, 'Close series viewer').trigger('click')
 		await press('Escape')
 

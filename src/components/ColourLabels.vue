@@ -10,6 +10,8 @@ import { computed, ref } from 'vue'
 import { COLOUR_LABEL_SWATCHES, colourLabelName } from '../colour-labels.ts'
 import { PLAIN_TEXT } from '../l10n.ts'
 import { COLOUR_LABELS } from '../logic/decision.ts'
+import { colourLabelKey } from '../logic/hotkeys.ts'
+import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	/** The label, null for none, or undefined where a selection's labels differ. */
@@ -40,6 +42,7 @@ function choose(colourLabel: ColourLabel | null) {
 			:disabled="props.disabled"
 			:aria-expanded="open"
 			:aria-label="openerLabel"
+			v-bind="tip(t('honeycomb', 'Colour label'))"
 			@click="open = !open">
 			<span class="colour-labels__dot" :class="{ 'colour-labels__dot--none': current === null }" :style="current === null ? undefined : { backgroundColor: COLOUR_LABEL_SWATCHES[current] }" />
 			{{ current === null ? t('honeycomb', 'Label') : colourLabelName(current) }}
@@ -56,6 +59,7 @@ function choose(colourLabel: ColourLabel | null) {
 				type="button"
 				class="colour-labels__swatch"
 				:aria-label="colourLabelName(label)"
+				v-bind="tip(colourLabelName(label), colourLabelKey(label))"
 				:aria-pressed="props.colourLabel === label"
 				@click="choose(label)">
 				<span class="colour-labels__dot" :style="{ backgroundColor: COLOUR_LABEL_SWATCHES[label] }" />
@@ -64,6 +68,7 @@ function choose(colourLabel: ColourLabel | null) {
 				type="button"
 				class="colour-labels__swatch"
 				:aria-label="t('honeycomb', 'No label')"
+				v-bind="tip(t('honeycomb', 'No label'))"
 				@click="choose(null)">
 				<!-- eslint-disable-next-line vue/no-bare-strings-in-template -- a symbol; the button's label names it -->
 				<span class="colour-labels__dot colour-labels__dot--none" aria-hidden="true">∅</span>

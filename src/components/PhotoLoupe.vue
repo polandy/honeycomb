@@ -149,6 +149,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 	<div
 		ref="root"
 		class="photo-loupe"
+		:data-tips-off="overlays.idle.value || undefined"
 		:class="{ 'photo-loupe--idle': overlays.idle.value, 'photo-loupe--chrome-free': chromeFree, 'photo-loupe--below-header': navigationShown && !chromeFree }"
 		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px`, '--photo-loupe-rail': `${settings.flagButtonsShown ? FLAG_RAIL : 0}px` }"
 		role="dialog"

@@ -13,6 +13,7 @@ import { listFolders as apiListFolders } from '../api.ts'
 import { nameComparer, PLAIN_TEXT } from '../l10n.ts'
 import { logger } from '../logger.ts'
 import { breadcrumbs, isHiddenFolder } from '../logic/folder-set.ts'
+import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	/** The ticked folder paths. */
@@ -113,6 +114,7 @@ void open('')
 						type="button"
 						class="folder-list__open"
 						:aria-label="t('honeycomb', 'Open {name}', { name: folder.name }, undefined, PLAIN_TEXT)"
+						v-bind="tip(t('honeycomb', 'Open {name}', { name: folder.name }, undefined, PLAIN_TEXT))"
 						@click.stop="open(folder.path)"
 						@keydown.stop>
 						<AppIcon name="chevronRight" />

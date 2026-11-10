@@ -10,8 +10,8 @@ export const LONG_PRESS_SLOP = 10
 /** Runs `run` after `ms`; returns the function that cancels it. */
 export type Schedule = (run: () => void, ms: number) => () => void
 
-/** A tile's long-press: started on pointer down, stopped on lifting, cancelling or moving away. */
-export function longPress(schedule: Schedule) {
+/** A long-press, a tile's by default: started on pointer down, stopped on lifting, cancelling or moving away. */
+export function longPress(schedule: Schedule, ms = LONG_PRESS_MS) {
 	let cancel: (() => void) | null = null
 	let startX = 0
 	let startY = 0
@@ -34,7 +34,7 @@ export function longPress(schedule: Schedule) {
 				cancel = null
 				fired = true
 				onPress()
-			}, LONG_PRESS_MS)
+			}, ms)
 		},
 		/** Cancels the press once the pointer moved too far. */
 		move(x: number, y: number) {

@@ -5,7 +5,7 @@
 export const TRANSLATED_MARK = '[de] '
 
 // Props of stubbed components render as attributes, so their names join the default ones of vue/no-bare-strings-in-template.
-const USER_VISIBLE_ATTRIBUTES = ['alt', 'aria-label', 'aria-placeholder', 'aria-roledescription', 'aria-valuetext', 'placeholder', 'title', 'name', 'description', 'label', 'text']
+const USER_VISIBLE_ATTRIBUTES = ['alt', 'aria-label', 'data-tip', 'aria-placeholder', 'aria-roledescription', 'aria-valuetext', 'placeholder', 'title', 'name', 'description', 'label', 'text']
 const PLURAL_KEY = /^_(.*)_::_(.*)_$/s
 
 type Registry = Record<string, unknown>
