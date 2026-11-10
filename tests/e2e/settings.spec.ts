@@ -14,7 +14,7 @@ test.afterEach(async ({ page }) => {
 
 test('turns Show singles off in the settings and keeps it after a reload', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
-	const folder = `Settings ${randomUUID().slice(0, 8)}`
+	const folder = `Prefs ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
 	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
 	await upload(page, `${folder}/IMG_0001.NEF`, RAW)
@@ -24,7 +24,7 @@ test('turns Show singles off in the settings and keeps it after a reload', async
 	const grid = page.getByRole('grid', { name: 'Photos' })
 	await expect(grid.getByRole('gridcell')).toHaveCount(2)
 	await page.getByRole('button', { name: 'More' }).click()
-	await page.getByRole('button', { name: 'Settings' }).click()
+	await page.getByRole('button', { name: 'Settings', exact: true }).click()
 	const settings = page.getByRole('dialog', { name: 'Settings' })
 	const saved = page.waitForResponse((response) => response.url().endsWith('/api/v1/settings') && response.request().method() === 'PUT')
 	await settings.getByText('Show singles', { exact: true }).click()
