@@ -62,6 +62,24 @@ describe('App: Recent', () => {
 		expect(wrapper.findComponent(PhotoLoupe).props('index')).toBe(shownNames(wrapper).indexOf('IMG_9'))
 	})
 
+	// spec: DECISIONS-002.8
+	it('closes the folder picker and resumes the open folder set without listing it again', async () => {
+		const { wrapper, listed } = openApp()
+		await flushPromises()
+		wrapper.findComponent(AppNavigation).vm.$emit('openRecent', trip)
+		await flushPromises()
+		wrapper.findComponent(PhotoLoupe).vm.$emit('close')
+		wrapper.findComponent(AppNavigation).vm.$emit('chooseFolders')
+		await flushPromises()
+
+		wrapper.findComponent(FolderPicker).vm.$emit('openRecent', trip)
+		await flushPromises()
+
+		expect(listed).toEqual(['/Trip +'])
+		expect(wrapper.findComponent(FolderPicker).exists()).toBe(false)
+		expect(wrapper.findComponent(PhotoLoupe).props('index')).toBe(shownNames(wrapper).indexOf('IMG_9'))
+	})
+
 	it('opens the folder picker and the settings from the navigation', async () => {
 		const { wrapper } = openApp()
 		await openCull(wrapper)
