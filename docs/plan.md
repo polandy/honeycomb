@@ -303,8 +303,9 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    settings and the mockup's language switch live in a **⋯ more menu** (arrow keys,
    one separator per group). The scope (*Not rejected* / *Undecided* / *All*) and the progress
    share one slim row below (it moves into the app bar while scrolling, item 2). The active
-   scope shows its name beside the icon when the app is wider than 520 px. Every control keeps
-   a 44 px hit target.
+   scope shows its name beside the icon when the app is wider than 520 px; at 520 px and below
+   the slim row shows one button with the active scope's name that opens the three scopes as a
+   menu (UX review L2). Every control keeps a 44 px hit target.
 2. **The key actions move into the app bar while scrolling** (owner, 2026-11-09, correcting the
    slim-row version). Nothing stays below the app bar: when the toolbar hides, all of it, the
    slim row included, slides away, and the most used actions appear in the top app bar

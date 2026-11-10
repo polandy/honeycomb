@@ -111,8 +111,8 @@ Controls with a tooltip:
 ## Out of scope
 
 - Dialog close buttons drawn by Nextcloud's own components.
-- The scope switch's "The flag filter overrides this", visible text until the scope switch gets
-  its readable label at phone width (GRID-002, `TODO.md`).
+- The scope switch's "The flag filter overrides this", visible text while the app's scope switch
+  shows text labels (GRID-002).
 
 ## History
 

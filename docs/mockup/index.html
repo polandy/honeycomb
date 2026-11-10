@@ -402,7 +402,9 @@ main{overflow:hidden}
 .ib .badge-n{position:absolute;top:1px;right:1px;min-width:18px;height:18px;font-size:11px;padding:0 4px;border-radius:9px}
 .slim{position:relative;display:flex;align-items:center;gap:4px;min-height:var(--hit)}
 .slim .seg button{padding:0 9px;white-space:nowrap}
-@container app (max-width:520px){.seg .sl{display:none}}
+.scope-pick{display:none;flex:0 1 auto;min-width:var(--hit);gap:4px;padding:0 8px 0 12px;font-weight:700}
+.scope-pick span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@container app (max-width:520px){.seg .sl,.slim .seg{display:none}.slim .scope-pick{display:inline-flex}}
 .chip svg.ic{width:16px;height:16px;margin-right:4px;vertical-align:-3px}
 .swipe-hint svg.ic{width:20px;height:20px;vertical-align:-5px;margin-right:4px}
 .slim .count{margin:0 auto 0 10px;font-size:14px;white-space:nowrap}
@@ -730,6 +732,7 @@ const DE = {
   'Change folders': 'Ordner wechseln',
   'Show': 'Anzeigen',
   'Not rejected': 'Nicht abgelehnt',
+  'Show: {scope}': 'Anzeigen: {scope}',
   'Undecided': 'Unentschieden',
   'All': 'Alle',
   'The flag filter overrides this': 'Der Markierungsfilter hat Vorrang',
@@ -1191,6 +1194,7 @@ const TPL_SAMPLES = [
 /* ---------- state ---------- */
 const DEF_SETTINGS = () => ({rawExt:['NEF','CR3','ARW','RAF','DNG'], renderedExt:['JPG','JPEG','HEIC','HEIF','HIF'], folderMode:'same', rawFolder:'RAW', jpgFolder:'JPG',
   showSingles:true, swipeUp:'pick', swipeDown:'reject', autoAdvance:true, flagButtons:true, viKeys:false, storage:'both', moveTemplate:TPL_PRESETS[0][1]});
+const SCOPES = [['notrej', 'Not rejected', 'flagCross'], ['undecided', 'Undecided', 'flag'], ['all', 'All', 'grid']];
 const DEF_FILTERS = () => ({scope:'notrej', ratingOp:'gte', rating:null, labels:new Set(), flags:new Set(), pairs:new Set(), keepRaw:new Set(), folders:new Set()});
 const PREF_KEY = 'honeycomb.mockup.layout';
 const PREF_DEF = {ts:160, navW:248, navOpen:null, infoOpen:false, infoW:300, coachSeen:false};
@@ -1491,8 +1495,8 @@ function renderToolbar(){
   }
   const ib = (act, icon, label, n, extra = '', key = '') => `<button class="btn ghost ib" data-act="${act}" ${extra} aria-label="${esc(label)}${n ? ' (' + nf(n) + ')' : ''}" ${tip(label, key)}>${ic(icon)}<span class="lb">${esc(label)}</span>${n ? `<span class="badge-n" aria-hidden="true">${nf(n)}</span>` : ''}</button>`;
   tb.classList.toggle('selmode', S.selMode);
-  const scopes = [['notrej', 'Not rejected', 'flagCross'], ['undecided', 'Undecided', 'flag'], ['all', 'All', 'grid']];
-  const keys = `<div class="seg" role="group" aria-label="${t('Show')}">${scopes.map(([v, l, i]) => `<button data-act="scope" data-v="${v}" aria-pressed="${S.filters.scope === v}" aria-label="${t(l)}" ${tip(S.filters.flags.size ? t('The flag filter overrides this') : t(l))} ${S.filters.flags.size ? 'disabled' : ''}>${ic(i)}${S.filters.scope === v ? `<span class="sl">${t(l)}</span>` : ''}</button>`).join('')}</div>
+  const scopeName = SCOPES.find(([v]) => v === S.filters.scope)[1];
+  const keys = `<div class="seg" role="group" aria-label="${t('Show')}">${SCOPES.map(([v, l, i]) => `<button data-act="scope" data-v="${v}" aria-pressed="${S.filters.scope === v}" aria-label="${t(l)}" ${tip(S.filters.flags.size ? t('The flag filter overrides this') : t(l))} ${S.filters.flags.size ? 'disabled' : ''}>${ic(i)}${S.filters.scope === v ? `<span class="sl">${t(l)}</span>` : ''}</button>`).join('')}</div><button class="btn scope-pick" data-act="scopeMenu" aria-haspopup="menu" aria-label="${esc(t('Show: {scope}', {scope:t(scopeName)}))}" ${tip(S.filters.flags.size ? t('The flag filter overrides this') : t('Show'))} ${S.filters.flags.size ? 'disabled' : ''}><span>${t(scopeName)}</span>${ic('chevD')}</button>
       <span class="count" aria-live="polite">${n('{done} / %n<span class="lb"> decided</span>', '{done} / %n<span class="lb"> decided</span>', nTot, {done:nf(nDec)})}</span>
       ${ib('delRejected', 'trash', t('Review rejects'), nRej, nRej ? '' : 'disabled', HOTKEY.reviewRejects)}
       <button class="btn ghost ib" data-act="more" aria-haspopup="menu" aria-label="${t('More')}" ${tip(t('More'))}>${ic('more')}</button>
@@ -1553,6 +1557,11 @@ function openMore(anchor){
     ${$('hRedo').offsetParent ? '' : menuItem('redo', 'redo', t('Redo'), S.redo.length ? '' : 'disabled', `<span class="k">${HOTKEY.redo}</span>`)}
     ${menuItem('barOff', 'up', t('Hide header'))}${menuItem('settings', 'settings', t('Settings'))}${sep}
     <div class="minfo" id="langLbl">${t('Language (mockup)')}</div><div role="group" aria-labelledby="langLbl">${[['en', 'English'], ['de', 'Deutsch']].map(([v, l]) => `<button class="mi" role="menuitemradio" aria-checked="${LANG === v}" data-act="langSet" data-v="${v}" lang="${v}"><span>${l}</span></button>`).join('')}</div>`;
+  openMenu(pop, anchor);
+}
+function openScope(anchor){
+  const pop = document.createElement('div'); pop.setAttribute('aria-label', t('Show'));
+  pop.innerHTML = SCOPES.map(([v, l, i]) => `<button class="mi" role="menuitemradio" aria-checked="${S.filters.scope === v}" data-act="scope" data-v="${v}">${ic(i)}<span>${t(l)}</span></button>`).join('');
   openMenu(pop, anchor);
 }
 function openPath(anchor){
@@ -2563,6 +2572,7 @@ const A = {
   rescue(el){ change([el.dataset.id], 'flag', 'none'); renderDlg(); }, reviewNext(){ openDlg({type:'del', ids:rejectedItems().map(i => i.id), from:'review'}); }, reviewBack(){ openDlg({type:'review'}); },
   scope(el){ S.filters.scope = el.dataset.v; refreshView(); },
   more(el){ if ($('popRoot').firstChild && S.menuAnchor === el) closeMenu(); else openMore(el); }, path(el){ if ($('popRoot').firstChild && S.menuAnchor === el) closeMenu(); else openPath(el); },
+  scopeMenu(el){ if ($('popRoot').firstChild && S.menuAnchor === el) closeMenu(); else openScope(el); },
   sortSet(el){ S.sort = el.dataset.v; refreshView(); }, langSet(el){ setLang(el.dataset.v); },
   writeSidecars(){ openDlg({type:'sidecars'}); },
   rawRm(){ openDlg({type:'rawrm', ids:S.view.map(i => i.id)}); }, rawRmConfirm(){ const res = doRemoveRaws(S.dlg.ids, S.mock.fail); S.lastFailed = res.failed; finishRawRm(res); },
@@ -2596,7 +2606,7 @@ const A = {
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-act]');
   const inPop = e.target.closest('.pop'), act = t && t.dataset.act;
-  if (!inPop && act !== 'palette' && act !== 'more' && act !== 'path') closePop();
+  if (!inPop && act !== 'palette' && act !== 'more' && act !== 'path' && act !== 'scopeMenu') closePop();
   if (e.target.dataset && e.target.dataset.scrim && S.dlg && S.folderPath) closeDlg();
   if (!t) return; if (t.tagName === 'A') e.preventDefault();
   A[t.dataset.act] && A[t.dataset.act](t, e);

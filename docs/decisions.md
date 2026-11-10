@@ -611,3 +611,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   picker needs no skeleton, as its confirm button waits for the listing it counts.
 - 2026-11-10: The skeleton pulse is a background-colour pulse between two Nextcloud background
   variables, still with reduced motion; a shimmer gradient would add motion for no extra meaning.
+- 2026-11-10: UX review L2: at 520 px and below the mockup's slim row replaces the three scope
+  icons with one button naming the active scope that opens the scopes as a menu; the name fits
+  at 360 px in English and German, a shorter label would break the glossary's words, and the
+  scope changes rarely, so one more tap costs little. The app bar keeps its three icons while
+  scrolling. The app needs no change: its scope switch already shows text labels.

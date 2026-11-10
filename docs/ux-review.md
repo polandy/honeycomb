@@ -38,7 +38,7 @@ Severity: **high** breaks a task or misleads, **medium** slows or confuses, **lo
 | M9 | medium | Grid | The change-folder button is 38 px wide, below the 44 px target. | `min-width: 44px` on breadcrumb buttons. | Fixed |
 | M10 | medium | All dialogs (phone) | Dialogs open centred, out of thumb reach on a phone. | Bottom sheet at ≤ 520 px, with the safe-area inset. | Fixed |
 | L1 | low | Grid | No loading state while thumbnails arrive. | Skeleton tiles. | Fixed |
-| L2 | low | Grid (phone) | The scope name is hidden at phone width. | Name in the filter sheet, or a shorter label. | `TODO.md` |
+| L2 | low | Grid (phone) | The scope name is hidden at phone width. | At 520 px and below the slim row shows one button with the active scope's name that opens the three scopes as a menu. | Fixed |
 | L3 | low | Series (phone) | *Pick this, reject the rest* wraps to three lines. | Shorter label or icon plus text. | `TODO.md` |
 | L4 | low | Toast | The undo toast times out with no way to pause it (WCAG 2.2.1). | Pause on focus and pointer down. | `TODO.md` |
 | L5 | low | Loupe, grid | Filmstrip at opacity .6 and a tile gradient without stars or flag. | Full opacity with an outline for the current photo; gradient only when needed. | `TODO.md` |
