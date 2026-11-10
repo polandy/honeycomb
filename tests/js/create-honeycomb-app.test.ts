@@ -6,8 +6,8 @@ import type { ILogger } from '@nextcloud/logger'
 import { describe, expect, it, vi } from 'vitest'
 import { createHoneycombApp } from '../../src/create-honeycomb-app.ts'
 
-function fakeLogger(): ILogger & { error: ReturnType<typeof vi.fn> } {
-	return { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn(), fatal: vi.fn() }
+function fakeLogger() {
+	return { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn<ILogger['error']>(), fatal: vi.fn() }
 }
 
 describe('createHoneycombApp', () => {

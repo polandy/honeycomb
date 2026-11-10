@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 const LOGIC_FILE = 'src/logic/example.ts'
 const COMPONENT_HELPER_FILE = 'src/components/example.ts'
 const TEST_FILE = 'tests/js/example.test.ts'
-const COMPONENT_FILE = 'src/components/Example.vue'
+const COMPONENT_FILE = 'src/components/ExampleView.vue'
 
 const eslint = new ESLint()
 
@@ -15,7 +15,7 @@ async function ruleIds(code: string, filePath: string): Promise<string[]> {
 	return (result?.messages ?? []).map((message) => message.ruleId ?? message.message)
 }
 
-describe('eslint conventions', () => {
+describe('eslint conventions', { timeout: 30_000 }, () => {
 	it('accepts a documented pure logic module', async () => {
 		const code = '/** Counts the pictures that are decided. */\n'
 			+ 'export function countDecided(flags: readonly string[]): number {\n'
@@ -82,6 +82,12 @@ describe('eslint conventions', () => {
 			+ '<template>\n\t<p :title="t(\'honeycomb\', \'Pictures\')">\n\t\t{{ t(\'honeycomb\', \'No folder chosen\') }}\n\t</p>\n</template>\n'
 
 		expect(await ruleIds(code, COMPONENT_FILE)).toEqual([])
+	})
+
+	it('lints a component\'s script with type information', async () => {
+		const code = '<script setup lang="ts">\ndeclare function save(): Promise<void>\nsave()\n</script>\n'
+
+		expect(await ruleIds(code, COMPONENT_FILE)).toContain('@typescript-eslint/no-floating-promises')
 	})
 
 	it.each([
