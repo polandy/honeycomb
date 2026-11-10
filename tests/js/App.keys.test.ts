@@ -227,13 +227,15 @@ describe('App: the shortcut sheet', () => {
 		expect(sheet().exists()).toBe(false)
 	})
 
-	it('opens inside the loupe while the loupe is open, and on the empty screen', async () => {
+	it('opens inside the loupe while the loupe is open', async () => {
 		const { wrapper } = await openApp({}, { ShortcutSheet: true })
 		wrapper.findComponent(PhotoGrid).vm.$emit('open', 0)
 		await flushPromises()
 		await press('?', { shiftKey: true })
 		expect(wrapper.findComponent(ShortcutSheet).props('container')).toBe('.photo-loupe')
+	})
 
+	it('opens on the empty screen before a cull', async () => {
 		const empty = mountApp({}, [], { ShortcutSheet: true })
 		empty.wrapper.findComponent(FolderPicker).vm.$emit('cancel')
 		await flushPromises()

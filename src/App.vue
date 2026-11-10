@@ -28,6 +28,7 @@ import FolderPicker from './components/FolderPicker.vue'
 import GridToolbar from './components/GridToolbar.vue'
 import PhotoGrid from './components/PhotoGrid.vue'
 import PhotoLoupe from './components/PhotoLoupe.vue'
+import ShortcutSheet from './components/ShortcutSheet.vue'
 import UndoToast from './components/UndoToast.vue'
 import { listEntries as apiListEntries, listFolders as apiListFolders, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, warmPreviews as apiWarmPreviews } from './api.ts'
 import { readStored } from './browser-storage.ts'
@@ -68,6 +69,7 @@ const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
 const loupeView = useTemplateRef<InstanceType<typeof PhotoLoupe>>('loupeView')
 const filterBar = useTemplateRef<InstanceType<typeof FilterBar>>('filterBar')
 const headerShown = ref(true)
+const shortcutsOpen = ref(false)
 const selection = useSelectionMode(() => view.value, pictures)
 const { selecting, selected } = selection
 const common = computed(() => cull.common(selected.value))
@@ -171,11 +173,19 @@ const gridHotkeys: HotkeyHandlers = {
 	fullscreen: () => props.toggleFullscreen(document.documentElement),
 }
 
+/** Opens or closes the shortcut sheet. */
+function toggleShortcuts() {
+	shortcutsOpen.value = !shortcutsOpen.value
+}
+
 useHotkeys(() => {
-	if (pickerOpen.value || folderSet.value === null) {
+	if (pickerOpen.value) {
 		return null
 	}
-	return { undo, redo, ...(loupe.value === null ? gridHotkeys : loupeView.value?.hotkeys) }
+	if (shortcutsOpen.value || folderSet.value === null) {
+		return { shortcuts: toggleShortcuts }
+	}
+	return { undo, redo, shortcuts: toggleShortcuts, ...(loupe.value === null ? gridHotkeys : loupeView.value?.hotkeys) }
 }, () => readStored(props.storage, VI_KEYS_KEY) === 'true')
 
 /** Closes the loupe and focuses its last picture in the grid. */
@@ -292,6 +302,10 @@ async function closeLoupe() {
 					@decide="(intent, picture) => decide(intent, [picture])"
 					@toast="toast.show($event.message, $event.action)"
 					@close="closeLoupe" />
+				<ShortcutSheet
+					v-if="shortcutsOpen"
+					:container="loupe !== null ? '.photo-loupe' : undefined"
+					@close="shortcutsOpen = false" />
 				<UndoToast
 					v-if="toast.current.value !== null"
 					:toast="toast.current.value"

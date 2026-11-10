@@ -2,19 +2,23 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ShortcutSheet from '../../../src/components/ShortcutSheet.vue'
 import { KEYMAP } from '../../../src/logic/hotkeys.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { DialogStub } from './stubs.ts'
 
-function mountSheet(props: Record<string, unknown> = {}) {
-	return mount(ShortcutSheet, { props: { mac: false, ...props }, global: { stubs: { NcDialog: DialogStub } } })
+/** The sheet on a keyboard with Ctrl, or with ⌘ when `mac`. */
+function mountSheet(props: Record<string, unknown> = {}, mac = false) {
+	vi.spyOn(navigator, 'platform', 'get').mockReturnValue(mac ? 'MacIntel' : 'Linux x86_64')
+	return mount(ShortcutSheet, { props, global: { stubs: { NcDialog: DialogStub } } })
 }
 
 const rows = (wrapper: ReturnType<typeof mountSheet>) => wrapper.findAll('tr').map((row) => [row.findAll('kbd').map((cap) => cap.text()), row.find('td:last-child').text()])
 
 describe('ShortcutSheet', () => {
+	afterEach(() => vi.restoreAllMocks())
+
 	it('lists every key of the key map under its group, its caps as keys', () => {
 		const wrapper = mountSheet()
 
@@ -26,7 +30,7 @@ describe('ShortcutSheet', () => {
 	})
 
 	it('shows a range as from – to and Ctrl as ⌘ on a Mac', () => {
-		const wrapper = mountSheet({ mac: true })
+		const wrapper = mountSheet({}, true)
 		const rating = wrapper.findAll('tr').find((row) => row.text().includes('Set rating'))!
 		expect(rating.find('td').text()).toBe('0 – 5')
 		expect(rows(wrapper).find(([, label]) => label === 'Undo')![0]).toEqual(['⌘+Z'])
