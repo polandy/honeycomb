@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { StoredDecision } from '../../src/logic/decision.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
+import type { SidecarSaveItem } from '../../src/logic/sidecar-sync.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
@@ -65,6 +66,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 	const lookedUp: number[][] = []
 	const saved: StoredDecision[][] = []
 	const savedSettings: object[] = []
+	const sidecarSaves: SidecarSaveItem[][] = []
 	const grid = gridStub()
 	const wrapper = mount(App, {
 		props: {
@@ -77,11 +79,19 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			saveDecisions: async (rows: readonly StoredDecision[]) => { saved.push([...rows]) },
 			loadSettings: async () => ({}),
 			saveSettings: async (settings: object) => { savedSettings.push(settings) },
+			sidecars: {
+				lookupSidecars: async (ids: readonly number[]) => ids.map(() => ({ result: 'notFound' })),
+				saveSidecars: async (items: readonly SidecarSaveItem[]) => {
+					sidecarSaves.push([...items])
+					return items.map((_, index) => ({ result: 'saved', fileId: 100 + index, etag: 'e', size: 1, mtime: 1 }))
+				},
+				now: () => ({ epochMs: 0, offsetMinutes: 0 }),
+			},
 			...props,
 		},
 		global: { stubs: { FolderPicker: true, PhotoGrid: grid.component, GridToolbar: true, FilterBar: true, PhotoLoupe: true, SettingsDialog: true, ...stubs } },
 	})
-	return { wrapper, warmed, lookedUp, saved, savedSettings, grid: grid.calls }
+	return { wrapper, warmed, lookedUp, saved, savedSettings, sidecarSaves, grid: grid.calls }
 }
 
 /** The base names of the pictures the grid shows, in its order. */
@@ -90,12 +100,12 @@ export function shownNames(wrapper: AppWrapper): string[] {
 }
 
 /** Confirms the folder set in the folder picker, reopened from the toolbar on an open cull. */
-export async function openCull(wrapper: AppWrapper, set = SET, entries = ENTRIES) {
+export async function openCull(wrapper: AppWrapper, set = SET, entries = ENTRIES, sharedFolders: readonly string[] = []) {
 	if (!wrapper.findComponent(FolderPicker).exists()) {
 		wrapper.findComponent(GridToolbar).vm.$emit('changeFolders')
 		await flushPromises()
 	}
-	wrapper.findComponent(FolderPicker).vm.$emit('confirm', set, entries)
+	wrapper.findComponent(FolderPicker).vm.$emit('confirm', set, entries, sharedFolders)
 	await flushPromises()
 }
 

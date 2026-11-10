@@ -178,7 +178,8 @@ because digiKam is the target of M5; darktable's only where darktable already wr
   `darktable:colorlabels` but never updates it: once written, darktable would show it forever.
   Where it is already present, honeycomb keeps it in step.
 - A changed colour label replaces darktable's whole list with one label, so what darktable shows
-  is what honeycomb shows. An unchanged one leaves the list alone.
+  is what honeycomb shows. The label counts as changed when it differs from the one the sidecar
+  states (Reading); an unchanged one leaves the list alone.
 - A rejected picture's stars stay in honeycomb's database; in the sidecar `xmp:Rating` is −1.
 
 **Serializing and saving** follow CORE-009 "Writing" and "Saving", so honeycomb and Framehive

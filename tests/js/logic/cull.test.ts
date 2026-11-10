@@ -20,11 +20,18 @@ describe('countFolderSet', () => {
 
 		const count = countFolderSet([{ entries: [...pair, single], truncated: false }, { entries: [single], truncated: false }], DEFAULT_PAIRING_SETTINGS)
 
-		expect(count).toEqual({ entries: [...pair, single], pictures: 2, folders: 2, firstFolder: '/A', overCap: false })
+		expect(count).toEqual({ entries: [...pair, single], pictures: 2, folders: 2, firstFolder: '/A', overCap: false, sharedFolders: [] })
 	})
 
 	it('has no first folder and nothing over the cap without pictures', () => {
-		expect(countFolderSet([{ entries: [], truncated: false }], DEFAULT_PAIRING_SETTINGS)).toEqual({ entries: [], pictures: 0, folders: 0, firstFolder: null, overCap: false })
+		expect(countFolderSet([{ entries: [], truncated: false }], DEFAULT_PAIRING_SETTINGS)).toEqual({ entries: [], pictures: 0, folders: 0, firstFolder: null, overCap: false, sharedFolders: [] })
+	})
+
+	// spec: XMP-003.14
+	it('collects the shared folders of every listing, each once', () => {
+		const listings = [{ entries: [], truncated: false, sharedFolders: ['/A/Team'] }, { entries: [], truncated: false, sharedFolders: ['/A/Team', '/B'] }]
+
+		expect(countFolderSet(listings, DEFAULT_PAIRING_SETTINGS).sharedFolders).toEqual(['/A/Team', '/B'])
 	})
 
 	it('is over the cap when a listing is truncated', () => {

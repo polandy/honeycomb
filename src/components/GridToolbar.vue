@@ -38,6 +38,7 @@ const props = defineProps<{
 	/** How many pictures are rejected. */
 	rejected: number
 	rawRemovable: number
+	sidecarsShared: boolean
 }>()
 
 const emit = defineEmits<{
@@ -52,6 +53,7 @@ const emit = defineEmits<{
 	selectNone: []
 	reviewRejects: []
 	removeRaws: []
+	writeSidecars: []
 	openSettings: []
 }>()
 
@@ -141,10 +143,12 @@ const setName = computed(() => {
 				:groupByFolder="props.groupByFolder"
 				:sortOrder="props.sortOrder"
 				:rawRemovable="props.rawRemovable"
+				:sidecarsShared="props.sidecarsShared"
 				@update:tileSize="emit('update:tileSize', $event)"
 				@update:groupByFolder="emit('update:groupByFolder', $event)"
 				@update:sortOrder="emit('update:sortOrder', $event)"
 				@removeRaws="emit('removeRaws')"
+				@writeSidecars="emit('writeSidecars')"
 				@openSettings="emit('openSettings')" />
 		</NcPopover>
 		<div v-if="props.selecting" class="grid-toolbar__selection">

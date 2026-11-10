@@ -71,6 +71,13 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 		}
 	}
 
+	/** Opens the delete summary of the loupe's photo, else of the chosen pictures, else of the focused tile. */
+	function summariseShown(chosen: Pictures, focused: () => number) {
+		const open = context.loupe.value
+		const shown = open === null ? context.view()[focused()] : toRaw(open.pictures[open.index])
+		summarise(open === null && chosen.length > 0 ? chosen : [shown].filter((each) => each !== undefined))
+	}
+
 	/** Opens the *Remove RAWs* summary of the view, which keeps its pictures while Keep RAW changes. */
 	function removeRaws() {
 		dialog.value = { kind: 'raws', pictures: context.view() }
@@ -137,6 +144,7 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 		rawRemoval: removal,
 		review,
 		summarise,
+		summariseShown,
 		continueToSummary: () => summarise(rejected.value, true),
 		backToReview: () => {
 			dialog.value = { kind: 'review' }

@@ -39,6 +39,11 @@ export function pictureDecision(picture: Picture<{ readonly fileId: number }>, b
 		?? UNDECIDED
 }
 
+/** Whether two decisions hold the same values. */
+export function sameDecision(a: Decision, b: Decision): boolean {
+	return a.rating === b.rating && a.colourLabel === b.colourLabel && a.flag === b.flag && a.keepRaw === b.keepRaw
+}
+
 /** Whether the picture is picked or rejected. */
 export function isDecided(decision: Decision): boolean {
 	return decision.flag !== 'unflagged'

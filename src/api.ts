@@ -1,13 +1,18 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Listing } from './logic/cull.ts'
 import type { StoredDecision } from './logic/decision.ts'
-import type { ListingEntry } from './logic/listing.ts'
+import type { SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from './logic/sidecar-sync.ts'
 import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 
 const API = '/apps/honeycomb/api/v1'
+/** The most sidecars one request reads or saves (ADR 0017). */
+const SIDECAR_BATCH = 1000
+/** The most bytes handed to `String.fromCharCode` at once, well under the engines' argument limits. */
+const CHARACTER_CHUNK = 0x8000
 
 /** A child folder as the folder endpoint returns it (ADR 0011). */
 export interface Folder {
@@ -19,14 +24,15 @@ export interface Folder {
 /** Thrown when an endpoint answers with a body of the wrong shape. */
 export class ApiResponseError extends Error {}
 
-/** The image files of a folder, with every folder below it when `subfolders` (ADR 0009). */
-export async function listEntries(path: string, subfolders: boolean): Promise<{ entries: ListingEntry[], truncated: boolean }> {
+/** The image files of a folder, with every folder below it when `subfolders` (ADR 0009), and the folders that are shared (ADR 0017). */
+export async function listEntries(path: string, subfolders: boolean): Promise<Required<Listing>> {
 	const params = subfolders ? { path, subfolders: 1 } : { path }
 	const { data } = await axios.get<unknown>(generateUrl(`${API}/entries`), { params })
 	if (!isRecord(data) || !Array.isArray(data.entries) || typeof data.truncated !== 'boolean') {
 		throw new ApiResponseError(`The listing of "${path}" has no entries array and truncated flag; check the server's version.`)
 	}
-	return { entries: data.entries as ListingEntry[], truncated: data.truncated }
+	const folders = Array.isArray(data.folders) ? data.folders as { path: string, shared: boolean }[] : []
+	return { entries: data.entries as Listing['entries'], truncated: data.truncated, sharedFolders: folders.filter((folder) => folder.shared).map((folder) => folder.path) }
 }
 
 /** The direct child folders of a folder (ADR 0011). */
@@ -78,6 +84,21 @@ export async function saveDecisions(decisions: readonly StoredDecision[]): Promi
 	}
 }
 
+/** The bytes, ETag, size and mtime of each sidecar, or why it could not be read, in the order asked (ADR 0017). */
+export async function lookupSidecars(fileIds: readonly number[]): Promise<SidecarLookupAnswer[]> {
+	const answers = await inBatches(fileIds, async (batch) => sidecarAnswers(await axios.post<unknown>(generateUrl(`${API}/sidecars/lookup`), { fileIds: batch }), batch.length))
+	return answers.map((answer) => (answer.result === 'read' ? { result: 'read', bytes: fromBase64(answer.content as string), etag: answer.etag, size: answer.size, mtime: answer.mtime } : { result: answer.result }) as SidecarLookupAnswer)
+}
+
+/** Saves each sidecar, existing ones only unchanged since read, and answers each one's result in order (ADR 0017). */
+export async function saveSidecars(items: readonly SidecarSaveItem[]): Promise<SidecarSaveAnswer[]> {
+	const answers = await inBatches(items, async (batch) => {
+		const sidecars = batch.map(({ bytes, ...item }) => ({ ...item, content: toBase64(bytes) }))
+		return sidecarAnswers(await axios.put<unknown>(generateUrl(`${API}/sidecars`), { sidecars }), batch.length)
+	})
+	return answers as SidecarSaveAnswer[]
+}
+
 /** Thrown when the trash bin app is off for the user; nothing was deleted (ADR 0013). */
 export class TrashBinOffError extends Error {}
 
@@ -95,6 +116,37 @@ export async function trashPictures(pictures: readonly (readonly TrashRequestFil
 /** The immutable URL of a preview tier of a file (ADR 0010). */
 export function imageUrl(fileId: number, size: number, mtime: number): string {
 	return `${generateUrl(`${API}/images/{fileId}`, { fileId })}?size=${size}&v=${mtime}`
+}
+
+/** The items sent in requests of at most SIDECAR_BATCH, one after another, their answers joined. */
+async function inBatches<T, A>(items: readonly T[], send: (batch: readonly T[]) => Promise<A[]>): Promise<A[]> {
+	const answers: A[] = []
+	for (let start = 0; start < items.length; start += SIDECAR_BATCH) {
+		answers.push(...await send(items.slice(start, start + SIDECAR_BATCH)))
+	}
+	return answers
+}
+
+/** The sidecar answers of a response, one per item sent. */
+function sidecarAnswers({ data }: { data: unknown }, sent: number): Record<string, unknown>[] {
+	if (!isRecord(data) || !Array.isArray(data.sidecars) || data.sidecars.length !== sent) {
+		throw new ApiResponseError('The sidecar response came without an answer for each sidecar; check the server\'s version.')
+	}
+	return data.sidecars as Record<string, unknown>[]
+}
+
+/** The bytes in base64, as the sidecar endpoints carry them. */
+function toBase64(bytes: Uint8Array): string {
+	let binary = ''
+	for (let start = 0; start < bytes.length; start += CHARACTER_CHUNK) {
+		binary += String.fromCharCode(...bytes.subarray(start, start + CHARACTER_CHUNK))
+	}
+	return btoa(binary)
+}
+
+/** The bytes of base64 text. */
+function fromBase64(text: string): Uint8Array {
+	return Uint8Array.from(atob(text), (character) => character.charCodeAt(0))
 }
 
 /** Whether a response body is a JSON object. */

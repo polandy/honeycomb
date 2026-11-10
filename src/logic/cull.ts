@@ -15,6 +15,8 @@ import { capPictures, PICTURE_CAP } from './picture-order.ts'
 export interface Listing {
 	readonly entries: readonly ListingEntry[]
 	readonly truncated: boolean
+	/** The folders of the listing shared with or by the user (ADR 0017). */
+	readonly sharedFolders?: readonly string[]
 }
 
 /** What the picker reports for the ticked folders; `overCap` when the grid will not show them all. */
@@ -24,6 +26,7 @@ export interface FolderSetCount {
 	readonly folders: number
 	readonly firstFolder: string | null
 	readonly overCap: boolean
+	readonly sharedFolders: string[]
 }
 
 /** The merged entries of the listings and how many pictures in how many folders they make. */
@@ -32,7 +35,8 @@ export function countFolderSet(listings: readonly Listing[], settings: PairingSe
 	const pictures = pairPictures(entries, settings)
 	const { folders } = summarise(pictures)
 	const overCap = pictures.length > PICTURE_CAP || listings.some((listing) => listing.truncated)
-	return { entries, pictures: pictures.length, folders, firstFolder: pictures[0]?.folder ?? null, overCap }
+	const sharedFolders = [...new Set(listings.flatMap((listing) => listing.sharedFolders ?? []))]
+	return { entries, pictures: pictures.length, folders, firstFolder: pictures[0]?.folder ?? null, overCap, sharedFolders }
 }
 
 /** A folder's name in the grid: relative to the one folder picked with its subfolders, else its own name. */

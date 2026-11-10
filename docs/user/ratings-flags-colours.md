@@ -56,3 +56,17 @@ file's sidecar if they were changed at the same time.
 
 Everything else in a sidecar — darktable's edit history, digiKam's tags, Lightroom's develop
 settings — stays as it was when honeycomb writes it.
+
+## Shared folders
+
+In a folder shared with you, or one you share, honeycomb keeps your decisions to itself and writes
+no sidecars on its own, since everyone with access would see them. To write them anyway, choose
+**⋯ → Write decisions to sidecars…**: honeycomb names the photos and folders and, once you
+confirm, writes the sidecars of every photo there that you have decided.
+
+## When a sidecar cannot be written
+
+If a sidecar cannot be written — you may not change it, it is locked, or it is not valid XML —
+honeycomb says *Could not write 2 sidecars*. **Details** lists each file with the reason, and
+**Retry failed sidecars** tries those files again. honeycomb never overwrites a sidecar it cannot
+read; your decision stays in honeycomb either way.

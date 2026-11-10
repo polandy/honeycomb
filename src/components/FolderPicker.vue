@@ -36,7 +36,7 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-	confirm: [set: FolderSet, entries: ListingEntry[]]
+	confirm: [set: FolderSet, entries: ListingEntry[], sharedFolders: string[]]
 	cancel: []
 }>()
 
@@ -84,7 +84,7 @@ function onSubfolders(subfolders: boolean) {
 /** Starts the cull of the counted folders. */
 function onConfirm() {
 	if (canCull.value) {
-		emit('confirm', set.value, count.value!.entries)
+		emit('confirm', set.value, count.value!.entries, count.value!.sharedFolders)
 	}
 }
 </script>

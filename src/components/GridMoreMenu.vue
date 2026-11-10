@@ -20,6 +20,8 @@ defineProps<{
 	sortOrder: SortOrder
 	/** How many pictures of the view would lose their RAW to *Remove RAWs*. */
 	rawRemovable: number
+	/** Whether pictures of the cull lie in a shared folder, where decisions reach the sidecars only on request. */
+	sidecarsShared: boolean
 }>()
 
 const emit = defineEmits<{
@@ -27,6 +29,7 @@ const emit = defineEmits<{
 	'update:groupByFolder': [group: boolean]
 	'update:sortOrder': [order: SortOrder]
 	removeRaws: []
+	writeSidecars: []
 	openSettings: []
 }>()
 </script>
@@ -80,6 +83,17 @@ const emit = defineEmits<{
 			</template>
 			{{ t('honeycomb', 'Remove RAWs…') }}
 			<span class="grid-more-menu__count">{{ formatNumber(rawRemovable) }}</span>
+		</NcButton>
+		<NcButton
+			v-if="sidecarsShared"
+			variant="tertiary"
+			alignment="start"
+			wide
+			@click="emit('writeSidecars')">
+			<template #icon>
+				<AppIcon name="check" />
+			</template>
+			{{ t('honeycomb', 'Write decisions to sidecars…') }}
 		</NcButton>
 		<NcButton
 			variant="tertiary"

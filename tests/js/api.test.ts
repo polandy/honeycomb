@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, imageUrl, listEntries, listFolders, loadSettings, lookupDecisions, saveDecisions, saveSettings, TrashBinOffError, trashPictures, warmPreviews } from '../../src/api.ts'
+import { ApiResponseError, imageUrl, listEntries, listFolders, loadSettings, lookupDecisions, lookupSidecars, saveDecisions, saveSettings, saveSidecars, TrashBinOffError, trashPictures, warmPreviews } from '../../src/api.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({
@@ -29,7 +29,7 @@ describe('listEntries', () => {
 
 		const listing = await listEntries('/Photos', true)
 
-		expect(listing).toEqual({ entries: [ENTRY], truncated: true })
+		expect(listing).toEqual({ entries: [ENTRY], truncated: true, sharedFolders: [] })
 		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/entries', { params: { path: '/Photos', subfolders: 1 } })
 	})
 
@@ -40,6 +40,14 @@ describe('listEntries', () => {
 		await listEntries('', false)
 
 		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/entries', { params: { path: '' } })
+	})
+
+	// spec: XMP-003.14
+	it('returns the folders the listing marks shared', async () => {
+		const folders = [{ path: '/Photos/Team', shared: true }, { path: '/Photos', shared: false }]
+		vi.mocked(axios.get).mockResolvedValue({ data: { entries: [ENTRY], truncated: false, folders } })
+
+		expect((await listEntries('/Photos', true)).sharedFolders).toEqual(['/Photos/Team'])
 	})
 
 	it.each([
@@ -190,5 +198,72 @@ describe('trashPictures', () => {
 		vi.mocked(axios.post).mockRejectedValue(error)
 
 		await expect(trashPictures(pictures)).rejects.toBe(error)
+	})
+})
+
+/** The bytes of a text, as a sidecar holds them. */
+const bytesOf = (text: string) => new TextEncoder().encode(text)
+
+describe('lookupSidecars', () => {
+	// spec: XMP-003.1
+	it('decodes the bytes of each read sidecar and keeps the other results', async () => {
+		vi.mocked(axios.post).mockResolvedValue({ data: { sidecars: [
+			{ fileId: 9, result: 'read', content: btoa('<x/>'), etag: 'e', size: 4, mtime: 17 },
+			{ fileId: 10, result: 'locked' },
+		] } })
+
+		const answers = await lookupSidecars([9, 10])
+
+		expect(answers).toEqual([{ result: 'read', bytes: bytesOf('<x/>'), etag: 'e', size: 4, mtime: 17 }, { result: 'locked' }])
+		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/sidecars/lookup', { fileIds: [9, 10] })
+	})
+
+	it('asks in requests of at most 1,000 ids and asks nothing for none', async () => {
+		vi.mocked(axios.post).mockImplementation(async (_url, body) => ({ data: { sidecars: (body as { fileIds: number[] }).fileIds.map(() => ({ result: 'notFound' })) } }))
+		const ids = Array.from({ length: 1001 }, (_, index) => index)
+
+		expect(await lookupSidecars(ids)).toHaveLength(1001)
+		expect(vi.mocked(axios.post).mock.calls.map(([, body]) => (body as { fileIds: number[] }).fileIds.length)).toEqual([1000, 1])
+		vi.mocked(axios.post).mockClear()
+		expect(await lookupSidecars([])).toEqual([])
+		expect(axios.post).not.toHaveBeenCalled()
+	})
+
+	it.each([
+		['no sidecars array', {}],
+		['another number of answers', { sidecars: [] }],
+	])('rejects a response with %s', async (_case, data) => {
+		vi.mocked(axios.post).mockResolvedValue({ data })
+
+		await expect(lookupSidecars([1])).rejects.toThrow(ApiResponseError)
+	})
+})
+
+describe('saveSidecars', () => {
+	// spec: XMP-003.6, XMP-003.7
+	it('sends existing sidecars with ETag and size and new ones by path, in base64', async () => {
+		const large = new Uint8Array(70000).map((_, index) => index % 256)
+		vi.mocked(axios.put).mockResolvedValue({ data: { sidecars: [{ result: 'saved', fileId: 9, etag: 'n', size: 3, mtime: 5 }, { result: 'changed' }] } })
+
+		const answers = await saveSidecars([{ fileId: 9, etag: 'e', size: 2, bytes: bytesOf('ab\u00e9') }, { path: '/P/A.JPG.xmp', bytes: large }])
+
+		expect(answers).toEqual([{ result: 'saved', fileId: 9, etag: 'n', size: 3, mtime: 5 }, { result: 'changed' }])
+		const [url, body] = vi.mocked(axios.put).mock.calls[0]!
+		const [existing, created] = (body as { sidecars: Record<string, unknown>[] }).sidecars
+		expect(url).toBe('/index.php/apps/honeycomb/api/v1/sidecars')
+		expect(existing).toEqual({ fileId: 9, etag: 'e', size: 2, content: 'YWLDqQ==' })
+		expect(created!.path).toBe('/P/A.JPG.xmp')
+		expect(Uint8Array.from(atob(created!.content as string), (char) => char.charCodeAt(0))).toEqual(large)
+	})
+
+	it('saves in requests of at most 1,000 sidecars and rejects a short answer', async () => {
+		vi.mocked(axios.put).mockImplementation(async (_url, body) => ({ data: { sidecars: (body as { sidecars: unknown[] }).sidecars.map(() => ({ result: 'failed' })) } }))
+		const items = Array.from({ length: 1001 }, (_, index) => ({ path: `/P/${index}.xmp`, bytes: new Uint8Array() }))
+
+		expect(await saveSidecars(items)).toHaveLength(1001)
+		expect(await saveSidecars([])).toEqual([])
+		expect(axios.put).toHaveBeenCalledTimes(2)
+		vi.mocked(axios.put).mockResolvedValue({ data: { sidecars: [] } })
+		await expect(saveSidecars(items.slice(0, 1))).rejects.toThrow(ApiResponseError)
 	})
 })

@@ -3,7 +3,7 @@
 import type { ColourLabel, Decision, Flag } from '../decision.ts'
 import type { XmpPacket } from './model.ts'
 
-import { COLOUR_LABELS } from '../decision.ts'
+import { COLOUR_LABELS, sameDecision } from '../decision.ts'
 import { DARKTABLE_LABELS, integerOf, LABEL_TEXTS, PICK_LABEL, PROPERTY, realOf, simpleText, XMP_TRUE } from './fields.ts'
 import { XmpError } from './model.ts'
 import { readXmp } from './parse.ts'
@@ -63,11 +63,6 @@ export function pictureSidecarDecision(sidecars: readonly SidecarBytes[], isPair
 /** Whether a sidecar wins over another: newer, or as new and the RAW member's. */
 function isNewer(candidate: SidecarBytes, winner: SidecarBytes): boolean {
 	return candidate.mtime > winner.mtime || (candidate.mtime === winner.mtime && candidate.ofRaw && !winner.ofRaw)
-}
-
-/** Whether two decisions are equal. */
-function sameDecision(left: Decision, right: Decision): boolean {
-	return left.rating === right.rating && left.colourLabel === right.colourLabel && left.flag === right.flag && left.keepRaw === right.keepRaw
 }
 
 /** `xmp:Rating` 0–5 rounded down; anything else is 0. */

@@ -12,9 +12,10 @@ import type { Schedule } from './logic/long-press.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { Settings } from './logic/settings.ts'
 import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
+import type { SidecarFlowApi } from './sidecar-flow.ts'
 
 import { t } from '@nextcloud/l10n'
-import { computed, nextTick, ref, toRaw, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcContent from '@nextcloud/vue/components/NcContent'
@@ -30,8 +31,9 @@ import PhotoGrid from './components/PhotoGrid.vue'
 import PhotoLoupe from './components/PhotoLoupe.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutSheet from './components/ShortcutSheet.vue'
+import SidecarDialogs from './components/SidecarDialogs.vue'
 import UndoToast from './components/UndoToast.vue'
-import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews } from './api.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, lookupSidecars, saveSidecars } from './api.ts'
 import { useCull } from './cull.ts'
 import { useDeleteFlow } from './delete-flow.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
@@ -40,6 +42,7 @@ import { useHotkeys } from './hotkeys.ts'
 import { clearFilters } from './logic/picture-filter.ts'
 import { useSelectionMode } from './selection-mode.ts'
 import { useSettings } from './settings.ts'
+import { browserNow, useSidecarFlow } from './sidecar-flow.ts'
 import { browserSchedule } from './tile-selection.ts'
 import { useToast } from './toast.ts'
 import { useToastedDecisions } from './toasted-decisions.ts'
@@ -56,6 +59,7 @@ const props = withDefaults(defineProps<{
 	schedule?: Schedule
 	toggleFullscreen?: (element: HTMLElement) => void
 	trashPictures?: (pictures: readonly (readonly TrashRequestFile[])[]) => Promise<TrashResponseFile[][]>
+	sidecars?: SidecarFlowApi
 }>(), {
 	listFolders: apiListFolders,
 	listEntries: apiListEntries,
@@ -68,12 +72,14 @@ const props = withDefaults(defineProps<{
 	schedule: browserSchedule,
 	toggleFullscreen: toggleBrowserFullscreen,
 	trashPictures: apiTrashPictures,
+	sidecars: () => ({ lookupSidecars, saveSidecars, now: browserNow }),
 })
 
 const toast = useToast(props.schedule)
 const { settings, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, (message) => toast.show(message))
 const settingsOpen = ref(false)
-const cull = useCull({ warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions }, props.storage, () => settings.value)
+const sidecarFlow = useSidecarFlow(props.sidecars, toast.show)
+const cull = useCull({ warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions }, props.storage, () => settings.value, sidecarFlow.sync)
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
 const loupe = ref<{ pictures: readonly Picture<ListingEntry>[], index: number } | null>(null)
 const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
@@ -89,12 +95,6 @@ watch(cull.pairing, selection.selectNone)
 const { decide, undo, redo } = useToastedDecisions(cull, toast.show)
 const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
 const { dialog: deleteDialog, busy: deleteBusy, rejected, rawRemovable, rawRemoval } = deleting
-
-/** Opens the delete summary of the loupe's photo, else of the selection, else of the focused tile. */
-function deleteShown() {
-	const shown = loupe.value === null ? view.value[grid.value?.focusedIndex() ?? 0] : toRaw(loupe.value.pictures[loupe.value.index])
-	deleting.summarise(loupe.value === null && selected.value.length > 0 ? selected.value : [shown].filter((each) => each !== undefined))
-}
 
 const gridKeys = gridHotkeys({
 	grid: () => grid.value,
@@ -118,13 +118,13 @@ function toggleShortcuts() {
 }
 
 useHotkeys(() => {
-	if (pickerOpen.value || settingsOpen.value || deleteDialog.value !== null) {
+	if (pickerOpen.value || settingsOpen.value || deleteDialog.value !== null || sidecarFlow.open.value) {
 		return null
 	}
 	if (shortcutsOpen.value || folderSet.value === null) {
 		return { shortcuts: toggleShortcuts }
 	}
-	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: deleteShown, ...(loupe.value === null ? gridKeys : loupeView.value?.hotkeys) }
+	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: () => deleting.summariseShown(selected.value, () => grid.value?.focusedIndex() ?? 0), ...(loupe.value === null ? gridKeys : loupeView.value?.hotkeys) }
 }, () => settings.value.viKeys)
 
 /** Closes the loupe and focuses its last picture in the grid. */
@@ -157,6 +157,7 @@ async function closeLoupe() {
 					:selected="selected.length"
 					:rejected="rejected.length"
 					:rawRemovable="rawRemovable"
+					:sidecarsShared="cull.sharedPictures.value.length > 0"
 					@changeFolders="pickerOpen = true"
 					@update:tileSize="cull.setTileSize"
 					@update:groupByFolder="groupByFolder = $event"
@@ -168,6 +169,7 @@ async function closeLoupe() {
 					@selectNone="selection.selectNone"
 					@reviewRejects="deleting.review"
 					@removeRaws="deleting.removeRaws"
+					@writeSidecars="sidecarFlow.ask(cull.sharedDecided())"
 					@openSettings="settingsOpen = true" />
 				<FilterBar
 					v-if="filtersOpen && headerShown"
@@ -247,6 +249,11 @@ async function closeLoupe() {
 				@close="deleting.close"
 				@confirm="deleting.confirm"
 				@retry="deleting.retry" />
+			<SidecarDialogs
+				v-if="folderSet !== null"
+				:flow="sidecarFlow"
+				:folderSet="folderSet"
+				:decisionOf="cull.decisionOf" />
 			<SettingsDialog v-model:open="settingsOpen" :settings="settings" @update="updateSettings" />
 			<Teleport to="body">
 				<PhotoLoupe

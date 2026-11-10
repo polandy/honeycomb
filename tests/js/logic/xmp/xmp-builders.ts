@@ -3,6 +3,7 @@
 import type { XmpFields, XmpNode, XmpPacket, XmpTime } from '../../../../src/logic/xmp/model.ts'
 
 import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { NAMESPACE, xmpKey } from '../../../../src/logic/xmp/model.ts'
 
 /** 2026-11-08T14:03:12+01:00, the time of the canonical fixture. */
@@ -12,7 +13,7 @@ type Prefix = keyof typeof NAMESPACE
 
 /** The bytes of a fixture under `tests/fixtures/xmp/`. */
 export function fixtureBytes(name: string): Uint8Array {
-	return new Uint8Array(readFileSync(new URL(`../../../fixtures/xmp/${name}`, import.meta.url)))
+	return new Uint8Array(readFileSync(resolve(import.meta.dirname, '../../../fixtures/xmp', name)))
 }
 
 /** The text of a fixture under `tests/fixtures/xmp/`. */

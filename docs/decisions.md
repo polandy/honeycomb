@@ -382,3 +382,28 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   offers no reliable signal for it (ADR 0017).
 - 2026-11-10: The client wrappers for the sidecar endpoints come with M5.3, which first uses them,
   so M5.2 adds no unused TypeScript.
+- 2026-11-10: M5.3 takes over no decision from sidecars that state none (undecided), so an empty
+  sidecar stores no rows and a later decision in another program can still be taken over.
+- 2026-11-10: The colour label counts as changed for darktable's list when it differs from the
+  label the sidecar itself states, not from honeycomb's stored one, so a sidecar already showing
+  the label keeps its whole darktable list.
+- 2026-11-10: Failures of a write-through, which runs in the background, are a toast with
+  *Details* rather than a dialog, so a decision is never interrupted; the dialog opens on request.
+- 2026-11-10: *Write decisions to sidecars…* writes only the pictures in shared folders with a
+  stored decision for a member; undecided pictures have nothing to write.
+- 2026-11-10: A refused or disagreeing sidecar found when a cull opens is only logged as a
+  warning, since the user has not asked for anything yet; it is reported when a write meets it.
+- 2026-11-10: Sidecar writes run one after another in one queue, each reading the decision when it
+  starts, so two quick steps on one picture never save over each other's ETag.
+- 2026-11-10: A new sidecar whose save answers `changed` (another program created it meanwhile) is
+  reported as failed rather than retried; only existing sidecars are read and merged once more.
+- 2026-11-10: A failed save of the decisions taken over from sidecars is only logged; they still
+  show and are taken over again when the cull next opens.
+- 2026-11-10: The sidecar failure report has its own list (path and reason) instead of
+  `TrashFileList`, whose rows need a listed file and a created sidecar has none.
+- 2026-11-10: *Retry failed sidecars* writes only the failed files, not every sidecar of their
+  pictures, so the sidecars that were saved are not written twice.
+- 2026-11-10: `sameDecision` moves to `src/logic/decision.ts`, shared by the undo, XMP and
+  sidecar modules instead of three private copies.
+- 2026-11-10: The XMP test fixtures are read by path (`import.meta.dirname`) instead of `new URL`,
+  which happy-dom replaces, so component tests can use them.
