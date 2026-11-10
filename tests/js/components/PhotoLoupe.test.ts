@@ -1,54 +1,11 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
+import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
-import PhotoLoupe from '../../../src/components/PhotoLoupe.vue'
-import { UNDECIDED } from '../../../src/logic/decision.ts'
 import { GESTURE_GUIDE_SEEN_KEY, INFO_OPEN_KEY, INFO_WIDTH_KEY, NAVIGATION_SHOWN_KEY } from '../../../src/loupe-panels.ts'
-import { fakeStorage } from '../app-cull.ts'
-import { fakeScheduler } from '../fake-scheduler.ts'
-import { listingEntry, picturesOf } from '../logic/listing-entries.ts'
 import { tap } from './loupe-pointer.ts'
-
-const PICTURES = picturesOf(Array.from({ length: 10 }, (_, at) => listingEntry(at + 1, `/P/IMG_${at + 1}.JPG`, { width: 3000, height: 2000 })))
-
-/** The loupe at `index` on a 1000 × 600 stage, attached so focus works; the gesture guide was seen unless `firstOpening`. */
-async function mountLoupe(index = 4, stored: Record<string, string> = {}, firstOpening = false) {
-	if (!firstOpening) {
-		stored[GESTURE_GUIDE_SEEN_KEY] = 'true'
-	}
-	const decoded: string[] = []
-	const fullscreen: HTMLElement[] = []
-	const scheduler = fakeScheduler()
-	const wrapper = mount(PhotoLoupe, {
-		attachTo: document.body,
-		props: {
-			pictures: PICTURES,
-			index,
-			folderSet: { paths: ['/P'], subfolders: true },
-			decisionOf: () => UNDECIDED,
-			storage: fakeStorage(stored),
-			imageUrl: (fileId: number, size: number) => `/img/${fileId}/${size}`,
-			decode: async (src: string) => {
-				decoded.push(src)
-			},
-			schedule: scheduler.schedule,
-			toggleFullscreen: (element: HTMLElement) => fullscreen.push(element),
-			devicePixelRatio: 1,
-			observeSize: (_element: Element, onSize: (width: number, height: number) => void) => {
-				onSize(1000, 600)
-				return () => undefined
-			},
-			'onUpdate:index': (next: number) => wrapper.setProps({ index: next }),
-		},
-	})
-	await flushPromises()
-	return { wrapper, root: wrapper.find('[role="dialog"]'), decoded, fullscreen, scheduler, stored }
-}
-
-const button = (wrapper: Awaited<ReturnType<typeof mountLoupe>>['wrapper'], label: string) => wrapper.find(`button[aria-label="${label}"]`)
-const indices = (wrapper: Awaited<ReturnType<typeof mountLoupe>>['wrapper']) => wrapper.emitted('update:index')?.map(([index]) => index)
+import { button, indices, mountLoupe } from './mount-loupe.ts'
 
 enableAutoUnmount(afterEach)
 

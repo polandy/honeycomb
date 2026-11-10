@@ -3,7 +3,7 @@
 import type { Decision } from '../../../src/logic/decision.ts'
 
 import { describe, expect, it } from 'vitest'
-import { decisionsByFileId, isDecided, pictureDecision, UNDECIDED } from '../../../src/logic/decision.ts'
+import { decisionsByFileId, isDecided, nextUndecided, pictureDecision, UNDECIDED } from '../../../src/logic/decision.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const picked = { rating: 4, colourLabel: 'red', flag: 'picked', keepRaw: true } as const
@@ -45,5 +45,20 @@ describe('isDecided', () => {
 		['unflagged', false],
 	] as const)('is %s → %s', (flag, expected) => {
 		expect(isDecided({ ...UNDECIDED, rating: 5, flag })).toBe(expected)
+	})
+})
+
+describe('nextUndecided', () => {
+	const decisions: Decision[] = (['picked', 'unflagged', 'rejected', 'unflagged'] as const).map((flag) => ({ ...UNDECIDED, flag }))
+	const next = (from: number) => nextUndecided(decisions, from, (decision) => decision)
+
+	it('finds the first undecided picture after the given one', () => {
+		expect(next(0)).toBe(1)
+		expect(next(1)).toBe(3)
+	})
+
+	it('is null when every picture after it is decided', () => {
+		expect(next(3)).toBeNull()
+		expect(nextUndecided([], 0, (decision: Decision) => decision)).toBeNull()
 	})
 })

@@ -8,17 +8,19 @@ import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { Filters } from './logic/picture-filter.ts'
 import type { SortOrder } from './logic/picture-order.ts'
+import type { UndoEntry } from './logic/undo.ts'
 
 import { computed, ref, shallowRef } from 'vue'
 import { readStored, writeStored } from './browser-storage.ts'
 import { nameComparer } from './l10n.ts'
 import { logger } from './logger.ts'
 import { prepareCull, warmFileIds } from './logic/cull.ts'
-import { changedRows, commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
+import { commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
 import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
 import { activeFilterCount, DEFAULT_FILTERS, emptyReason, filterPictures, pictureFolders, progress } from './logic/picture-filter.ts'
 import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
 import { parseTileSize } from './logic/tile-size.ts'
+import { pushUndo, undoEntry } from './logic/undo.ts'
 
 /** The browser storage key of the thumbnail size. */
 export const TILE_SIZE_KEY = 'honeycomb.tileSize'
@@ -43,6 +45,7 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 	const groupByFolder = ref(false)
 	const tileSize = ref(parseTileSize(readStored(storage, TILE_SIZE_KEY)))
 	const saveFailed = ref(false)
+	let history: readonly UndoEntry[] = []
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
 	const folders = computed(() => folderPaths.value.length)
 	const grouped = computed(() => groupByFolder.value && folders.value > 1)
@@ -57,6 +60,7 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 		folderSet.value = set
 		pictures.value = prepareCull(entries).pictures
 		decisions.value = new Map()
+		history = []
 		saveFailed.value = false
 		filters.value = DEFAULT_FILTERS
 		sortOrder.value = defaultSortOrder(folders.value)
@@ -81,12 +85,28 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 	/** What the pictures share, for the action bar. */
 	const common = (chosen: readonly Picture<ListingEntry>[]) => commonDecision(decided(chosen))
 
-	/** Shows the change at once and stores it; a failed save puts back what it replaced. */
-	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]) {
-		const rows = changedRows(decided(chosen), resolveChange(intent, decided(chosen)))
-		if (rows.length === 0) {
-			return
+	/** Decides the pictures, keeps the step for undo and returns it, or null when nothing changes. */
+	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]): UndoEntry | null {
+		const entry = undoEntry(decided(chosen), resolveChange(intent, decided(chosen)))
+		if (entry !== null) {
+			history = pushUndo(history, entry)
+			store(entry.after)
 		}
+		return entry
+	}
+
+	/** Puts back what the latest step replaced and returns it, or null when there is none. */
+	function undo(): UndoEntry | null {
+		const entry = history.at(-1) ?? null
+		if (entry !== null) {
+			history = history.slice(0, -1)
+			store(entry.before)
+		}
+		return entry
+	}
+
+	/** Shows the rows at once and stores them; a failed save puts back what they replaced. */
+	function store(rows: readonly StoredDecision[]) {
 		const before = decisions.value
 		const opened = pictures.value
 		decisions.value = withRows(before, rows)
@@ -131,6 +151,7 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 		decisionOf,
 		common,
 		decide,
+		undo,
 		open,
 		setScope,
 		setTileSize,

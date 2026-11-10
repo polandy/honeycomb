@@ -4,6 +4,7 @@
 -->
 <script setup lang="ts">
 import type { BrowserStorage } from '../browser-storage.ts'
+import type { DecisionIntent } from '../logic/decision-change.ts'
 import type { Decision } from '../logic/decision.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
@@ -12,14 +13,15 @@ import type { Schedule } from '../logic/long-press.ts'
 import type { LoupeKeyAction } from '../logic/loupe-keys.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { ObserveSize } from '../observe-size.ts'
+import type { Toast } from '../toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue'
-import NcButton from '@nextcloud/vue/components/NcButton'
-import AppIcon from './AppIcon.vue'
+import ActionBar from './ActionBar.vue'
 import GestureGuide from './GestureGuide.vue'
 import LoupeFilmstrip from './LoupeFilmstrip.vue'
 import LoupeInfo from './LoupeInfo.vue'
+import LoupeNavButtons from './LoupeNavButtons.vue'
 import LoupeStage from './LoupeStage.vue'
 import LoupeTitleRow from './LoupeTitleRow.vue'
 import PanelDivider from './PanelDivider.vue'
@@ -30,6 +32,7 @@ import { imageMember, loupeSources } from '../logic/image-tiers.ts'
 import { loupeKey } from '../logic/loupe-keys.ts'
 import { INFO_PANEL } from '../logic/panel-width.ts'
 import { prefetchOrder } from '../logic/prefetch.ts'
+import { useLoupeDecisions } from '../loupe-decisions.ts'
 import { useLoupePanels } from '../loupe-panels.ts'
 import { decodeSource, usePrefetch } from '../loupe-prefetch.ts'
 import { observeElementSize } from '../observe-size.ts'
@@ -59,30 +62,39 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
 	'update:index': [index: number]
+	decide: [intent: DecisionIntent, picture: Picture<ListingEntry>]
+	toast: [toast: Toast]
 	close: []
 }>()
 
 /** The divider's width in the layout, its 12 px less the negative margins. */
 const DIVIDER_WIDTH = 4
+/** The width of each side edge the large flag buttons take in landscape. */
+const RAIL = 96
 
 const root = useTemplateRef<HTMLElement>('root')
 const stage = useTemplateRef<InstanceType<typeof LoupeStage>>('stage')
 const panels = useLoupePanels(props.storage)
-const { infoOpen, infoWidth, navigationShown, gestureGuideSeen } = panels
+const { infoOpen, infoWidth, navigationShown, gestureGuideSeen, flagButtonsShown } = panels
 const filmstripOpen = ref(true)
 const chromeFree = ref(false)
 const zoom = ref<number | null>(null)
-const overlays = useIdle(props.schedule, LOUPE_IDLE_MS, () => Boolean(document.activeElement?.closest('.photo-loupe__overlay')))
+const overlays = useIdle(props.schedule, LOUPE_IDLE_MS, () => Boolean(document.activeElement?.closest('.photo-loupe__overlay, .action-bar__row')))
 const prefetcher = usePrefetch(props.decode)
+const decisions = useLoupeDecisions({
+	pictures: () => props.pictures,
+	index: () => props.index,
+	decisionOf: props.decisionOf,
+	decide: (intent, shown) => emit('decide', intent, shown),
+	go: (index) => go(index),
+	setFlagButtonsShown: panels.setFlagButtonsShown,
+	toast: (toast) => emit('toast', toast),
+})
 
 const picture = computed(() => props.pictures[props.index]!)
 const sourcesAt = (index: number) => loupeSources(imageMember(props.pictures[index]!), props.imageUrl)
 const neighbours = computed(() => prefetchOrder(props.index, props.pictures.length).map((index) => sourcesAt(index).loupe))
 const preloaded = computed(() => neighbours.value.filter((src) => prefetcher.ready.has(src)).length)
-const navigation = computed(() => [
-	{ step: -1, shown: props.index > 0, icon: 'chevronLeft', label: t('honeycomb', 'Previous photo') },
-	{ step: 1, shown: props.index < props.pictures.length - 1, icon: 'chevronRight', label: t('honeycomb', 'Next photo') },
-] as const)
 
 watch(() => props.index, (index) => {
 	const current = sourcesAt(index)
@@ -134,7 +146,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 		ref="root"
 		class="photo-loupe"
 		:class="{ 'photo-loupe--idle': overlays.idle.value, 'photo-loupe--chrome-free': chromeFree, 'photo-loupe--below-header': navigationShown && !chromeFree }"
-		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px` }"
+		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px`, '--photo-loupe-rail': `${flagButtonsShown ? RAIL : 0}px` }"
 		role="dialog"
 		:aria-modal="!navigationShown"
 		:aria-label="t('honeycomb', 'Loupe')"
@@ -150,12 +162,14 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:infoOpen="infoOpen"
 			:filmstripOpen="filmstripOpen"
 			:navigationShown="navigationShown"
+			:flagButtonsShown="flagButtonsShown"
 			@pointerdown="overlays.wake"
 			@close="emit('close')"
 			@toggleZoom="stage!.toggleZoom()"
 			@update:infoOpen="panels.setInfoOpen"
 			@update:filmstripOpen="filmstripOpen = $event"
-			@update:navigationShown="panels.setNavigationShown" />
+			@update:navigationShown="panels.setNavigationShown"
+			@update:flagButtonsShown="decisions.setFlagButtonsShown" />
 		<div class="photo-loupe__main">
 			<LoupeStage
 				ref="stage"
@@ -170,20 +184,13 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 				@page="go(props.index + $event)"
 				@overlays="overlays.toggle"
 				@chromeFree="chromeFree = !chromeFree"
+				@swipe="decisions.swipe"
 				@update:zoom="zoom = $event" />
-			<template v-for="nav in navigation" :key="nav.step">
-				<NcButton
-					v-if="nav.shown"
-					class="photo-loupe__nav photo-loupe__overlay"
-					:class="`photo-loupe__nav--${nav.step < 0 ? 'previous' : 'next'}`"
-					variant="tertiary"
-					:aria-label="nav.label"
-					@click="go(props.index + nav.step)">
-					<template #icon>
-						<AppIcon :name="nav.icon" />
-					</template>
-				</NcButton>
-			</template>
+			<LoupeNavButtons
+				class="photo-loupe__overlay"
+				:index="props.index"
+				:count="props.pictures.length"
+				@page="go(props.index + $event)" />
 			<template v-if="infoOpen">
 				<PanelDivider
 					class="photo-loupe__panel"
@@ -210,6 +217,14 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:imageUrl="props.imageUrl"
 			@pointerdown="overlays.wake"
 			@select="go" />
+		<ActionBar
+			v-if="!chromeFree"
+			layout="loupe"
+			:common="decisions.common.value"
+			:flags="flagButtonsShown"
+			:idle="overlays.idle.value"
+			@pointerdown="overlays.wake"
+			@decide="decisions.decide" />
 		<GestureGuide v-if="!gestureGuideSeen" @dismiss="dismissGestureGuide" />
 	</div>
 </template>
@@ -245,20 +260,6 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 	min-width: 0;
 }
 
-.photo-loupe__nav {
-	position: absolute;
-	top: 50%;
-	transform: translateY(-50%);
-}
-
-.photo-loupe__nav--previous {
-	inset-inline-start: var(--default-grid-baseline);
-}
-
-.photo-loupe__nav--next {
-	inset-inline-end: calc(var(--photo-loupe-panel) + var(--default-grid-baseline));
-}
-
 .photo-loupe--chrome-free .photo-loupe__overlay,
 .photo-loupe--chrome-free .photo-loupe__panel {
 	display: none;
@@ -269,7 +270,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 	.photo-loupe__filmstrip {
 		position: absolute;
 		z-index: 1;
-		inset-inline: 0 var(--photo-loupe-panel);
+		inset-inline: var(--photo-loupe-rail) calc(var(--photo-loupe-panel) + var(--photo-loupe-rail));
 		background-color: color-mix(in srgb, var(--color-main-background) 80%, transparent);
 	}
 
@@ -278,7 +279,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 	}
 
 	.photo-loupe__filmstrip {
-		bottom: 0;
+		bottom: var(--photo-loupe-row, 56px);
 	}
 
 	.photo-loupe__overlay {

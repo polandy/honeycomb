@@ -6,6 +6,7 @@
 import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
+import FlagButtonsToggle from './FlagButtonsToggle.vue'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 
 const props = defineProps<{
@@ -19,6 +20,7 @@ const props = defineProps<{
 	filmstripOpen: boolean
 	/** Whether Nextcloud's header shows above the loupe. */
 	navigationShown: boolean
+	flagButtonsShown: boolean
 }>()
 
 const emit = defineEmits<{
@@ -27,6 +29,7 @@ const emit = defineEmits<{
 	'update:infoOpen': [open: boolean]
 	'update:filmstripOpen': [open: boolean]
 	'update:navigationShown': [shown: boolean]
+	'update:flagButtonsShown': [shown: boolean]
 }>()
 </script>
 
@@ -44,6 +47,7 @@ const emit = defineEmits<{
 		<NcButton :aria-label="t('honeycomb', 'Toggle fit and 100 percent')" @click="emit('toggleZoom')">
 			{{ props.zoom === null ? t('honeycomb', 'Fit') : t('honeycomb', '{percent} %', { percent: formatNumber(props.zoom) }, undefined, PLAIN_TEXT) }}
 		</NcButton>
+		<FlagButtonsToggle :shown="props.flagButtonsShown" @update:shown="emit('update:flagButtonsShown', $event)" />
 		<NcButton :aria-label="t('honeycomb', 'Toggle info panel')" :pressed="props.infoOpen" @update:pressed="emit('update:infoOpen', $event)">
 			{{ t('honeycomb', 'Info') }}
 		</NcButton>

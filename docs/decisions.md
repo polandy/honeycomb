@@ -243,3 +243,14 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   available; `HONEYCOMB_BUDGET_PHOTOS` swaps in real ones. Measured locally: about 5 ms.
 - 2026-11-10: The budget spec asserts only that paging makes no image request; the time is
   reported, not asserted, because tests use no wall clock and shared CI runners vary.
+- 2026-11-10: The undo history (50 steps) and the undo toast are app-wide, so decisions from the
+  selection bar get a toast too; redo and the undo keys wait for M3.3.
+- 2026-11-10: After a pick or reject in the loupe, auto-advance goes to the next undecided
+  picture after the shown one and stays when none follows; it is always on until the M4.3
+  setting, and the "All photos decided" toast is M4.2.
+- 2026-11-10: A swipe up picks and a swipe down rejects (`DEFAULT_SWIPES`, Q6) until the M4.3
+  gesture setting exists.
+- 2026-11-10: Whether the flag buttons are shown is kept in browser storage
+  (`honeycomb.flagButtonsShown`) until the M4.3 per-user setting; the hide toast names the
+  swipe and the flag toggle for every pointer until the `B` key exists (M3.3).
+- 2026-11-10: The undo toast stays 5.2 s, as in the mockup; the landscape flag rail is 96 px wide.

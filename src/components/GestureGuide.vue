@@ -28,6 +28,7 @@ onMounted(() => (gotIt.value!.$el as HTMLElement).focus())
 		<div class="gesture-guide__card" role="dialog" :aria-label="t('honeycomb', 'How to cull')">
 			<h3>{{ t('honeycomb', 'How to cull') }}</h3>
 			<ul>
+				<li>{{ t('honeycomb', 'Swipe up to pick, down to reject') }}</li>
 				<li>{{ t('honeycomb', 'Swipe sideways for the next or previous photo') }}</li>
 				<li>
 					{{ t('honeycomb', 'Tap the left or right side for the previous or next photo, the middle for the controls') }}

@@ -3,13 +3,13 @@
 import type { GestureContext, GesturePointer } from '../../../src/logic/loupe-gesture.ts'
 
 import { describe, expect, it } from 'vitest'
-import { DOUBLE_TAP_MS, loupeGestures, TAP_MAX_MS, tapZone } from '../../../src/logic/loupe-gesture.ts'
+import { DOUBLE_TAP_MS, loupeGestures, swipeFlag, TAP_MAX_MS, tapZone } from '../../../src/logic/loupe-gesture.ts'
 
 const WIDTH = 1000
 
-/** A gesture recogniser on a 1000 px wide stage, zoomed or not. */
+/** A gesture recogniser on a 1000 × 600 px stage, zoomed or not. */
 function gestures(context: Partial<GestureContext> = {}) {
-	return loupeGestures(() => ({ width: WIDTH, zoomed: false, ...context }))
+	return loupeGestures(() => ({ width: WIDTH, height: 600, zoomed: false, ...context }))
 }
 
 /** A touch pointer at x, y at time ms. */
@@ -116,12 +116,38 @@ describe('loupeGestures', () => {
 		expect(recogniser.cancel(touch(400, 300, 100))).toEqual({ kind: 'settle' })
 	})
 
-	it('leaves a vertical drag to the decisions', () => {
+	it('lifts the photo on a vertical drag and swipes once it went far enough', () => {
+		const down = gestures()
+		down.down(touch(500, 300, 0))
+		expect(down.move(touch(505, 500, 1000))).toEqual({ kind: 'lift', dy: 200 })
+		expect(down.up(touch(505, 500, 1000))).toEqual({ kind: 'swipe', direction: 'down' })
+
+		const up = gestures()
+		up.down(touch(500, 400, 0))
+		up.move(touch(500, 200, 1000))
+		expect(up.up(touch(500, 200, 1000))).toEqual({ kind: 'swipe', direction: 'up' })
+	})
+
+	it('swipes on a quick vertical flick however short, and settles back from a slow short one', () => {
+		const flick = gestures()
+		flick.down(touch(500, 300, 0))
+		flick.move(touch(500, 280, 10))
+		flick.move(touch(500, 240, 50))
+		expect(flick.up(touch(500, 240, 50))).toEqual({ kind: 'swipe', direction: 'up' })
+
+		const slow = gestures()
+		slow.down(touch(500, 300, 0))
+		slow.move(touch(500, 350, 500))
+		slow.move(touch(500, 400, 1000))
+		expect(slow.up(touch(500, 400, 1000))).toEqual({ kind: 'settle' })
+	})
+
+	it('settles back when the browser cancels a vertical drag', () => {
 		const recogniser = gestures()
 
 		recogniser.down(touch(500, 300, 0))
-		expect(recogniser.move(touch(505, 500, 100))).toBeNull()
-		expect(recogniser.up(touch(505, 500, 100))).toBeNull()
+		recogniser.move(touch(500, 450, 100))
+		expect(recogniser.cancel(touch(500, 450, 100))).toEqual({ kind: 'settle' })
 	})
 
 	it('pans while zoomed instead of paging', () => {
@@ -153,5 +179,17 @@ describe('loupeGestures', () => {
 		expect(recogniser.move(touch(500, 500, 10, 3))).toBeNull()
 		expect(recogniser.move(touch(1, 1, 10, 9))).toBeNull()
 		expect(recogniser.up(touch(1, 1, 10, 9))).toBeNull()
+	})
+})
+
+describe('swipeFlag', () => {
+	it('picks on a swipe up and rejects on a swipe down by default (Q6)', () => {
+		expect(swipeFlag('up')).toBe('picked')
+		expect(swipeFlag('down')).toBe('rejected')
+	})
+
+	it('follows the gesture setting, where a direction can do nothing', () => {
+		expect(swipeFlag('up', { up: null, down: 'picked' })).toBeNull()
+		expect(swipeFlag('down', { up: null, down: 'picked' })).toBe('picked')
 	})
 })

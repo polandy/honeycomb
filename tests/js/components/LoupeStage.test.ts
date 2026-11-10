@@ -108,6 +108,18 @@ describe('LoupeStage', () => {
 		expect(wrapper.find('.loupe-stage__track').attributes('style')).toContain('translateX(0px)')
 	})
 
+	it('lifts the photo on a vertical drag and emits the swipe once it went far enough', async () => {
+		const { wrapper, stage } = await mountStage()
+		await pointer(stage, 'pointerdown', { x: 500, y: 400, time: 0 })
+		await pointer(stage, 'pointermove', { x: 500, y: 200, time: 1000 })
+		expect(wrapper.find('.loupe-stage__track').attributes('style')).toContain('translateY(-200px)')
+
+		await pointer(stage, 'pointerup', { x: 500, y: 200, time: 1000 })
+
+		expect(wrapper.emitted('swipe')).toEqual([['up']])
+		expect(wrapper.find('.loupe-stage__track').attributes('style')).toContain('translateY(0px)')
+	})
+
 	it('zooms to 100 % and back, and loads the full image while zoomed', async () => {
 		const { wrapper, loads, ready } = await mountStage()
 		expect(wrapper.emitted('update:zoom')).toEqual([[null]])

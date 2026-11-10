@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Flag } from './decision.ts'
 import type { PinchCentre } from './loupe-zoom.ts'
 
 /** Each outer tap zone's share of the stage width (`docs/plan.md` Tap zones). */
@@ -17,10 +18,10 @@ export const DOUBLE_TAP_MS = 320
 /** How far apart the two taps of a double-tap may land, in CSS pixels. */
 const DOUBLE_TAP_SLOP = 40
 
-/** The share of the stage width a drag must travel to page. */
+/** The share of the stage width a drag must travel to page, and of its height to swipe. */
 const PAGE_DISTANCE = 0.22
 
-/** The speed in CSS pixels per millisecond at which a flick pages however short it is. */
+/** The speed in CSS pixels per millisecond at which a flick pages or swipes however short it is. */
 const PAGE_SPEED = 0.5
 
 /** How many recent pointer positions measure a flick's speed. */
@@ -38,8 +39,18 @@ export interface GesturePointer {
 /** What the gestures need to know about the stage when a pointer goes down. */
 export interface GestureContext {
 	readonly width: number
+	readonly height: number
 	readonly zoomed: boolean
 }
+
+/** A vertical swipe's direction. */
+export type SwipeDirection = 'up' | 'down'
+
+/** The flag each swipe direction sets, or null where it does nothing. */
+export type SwipeSetting = Readonly<Record<SwipeDirection, Flag | null>>
+
+/** Swipe up picks, swipe down rejects (`docs/plan.md` Q6). */
+export const DEFAULT_SWIPES: SwipeSetting = { up: 'picked', down: 'rejected' }
 
 /** What a gesture asks the loupe to do. */
 export type GestureAction
@@ -48,6 +59,8 @@ export type GestureAction
 		| { readonly kind: 'chrome-free' }
 		| { readonly kind: 'drag', readonly dx: number }
 		| { readonly kind: 'settle' }
+		| { readonly kind: 'lift', readonly dy: number }
+		| { readonly kind: 'swipe', readonly direction: SwipeDirection }
 		| { readonly kind: 'pan-start' }
 		| { readonly kind: 'pan', readonly dx: number, readonly dy: number }
 		| { readonly kind: 'pinch-start', readonly centre: PinchCentre }
@@ -63,6 +76,11 @@ export function tapZone(fraction: number, zoomed: boolean, type: GesturePointer[
 }
 
 type Mode = 'undecided' | 'drag' | 'vertical' | 'pan' | 'pinch' | 'done'
+
+/** The flag a swipe in `direction` sets under `setting`. */
+export function swipeFlag(direction: SwipeDirection, setting: SwipeSetting = DEFAULT_SWIPES): Flag | null {
+	return setting[direction]
+}
 
 /** Recognises taps, swipes, pans and pinches on the loupe's stage from its pointer events. */
 export function loupeGestures(context: () => GestureContext) {
@@ -93,17 +111,23 @@ export function loupeGestures(context: () => GestureContext) {
 		return { kind: double ? 'chrome-free' : 'overlays' }
 	}
 
-	/** Pages after a drag that went far or fast enough, else settles back. */
-	function dragEnd(end: GesturePointer): GestureAction {
+	/** The signed travel along `axis` of a drag that went far or fast enough, else null. */
+	function flung(end: GesturePointer, axis: 'x' | 'y'): number | null {
 		const first = samples[0]!
 		const last = samples.at(-1)!
-		const speed = (last.x - first.x) / Math.max(1, last.time - first.time)
-		const dx = end.x - start!.x
-		const far = Math.abs(dx) > context().width * PAGE_DISTANCE
-		if (far || Math.abs(speed) > PAGE_SPEED) {
-			return { kind: 'page', step: (far ? dx : speed) < 0 ? 1 : -1 }
+		const speed = (last[axis] - first[axis]) / Math.max(1, last.time - first.time)
+		const travel = end[axis] - start![axis]
+		const far = Math.abs(travel) > (axis === 'x' ? context().width : context().height) * PAGE_DISTANCE
+		return far ? travel : Math.abs(speed) > PAGE_SPEED ? speed : null
+	}
+
+	/** Pages after a sideways drag, or swipes after a vertical one, that went far or fast enough, else settles back. */
+	function dragEnd(end: GesturePointer, ended: 'drag' | 'vertical'): GestureAction {
+		const travel = flung(end, ended === 'drag' ? 'x' : 'y')
+		if (travel === null) {
+			return { kind: 'settle' }
 		}
-		return { kind: 'settle' }
+		return ended === 'drag' ? { kind: 'page', step: travel < 0 ? 1 : -1 } : { kind: 'swipe', direction: travel < 0 ? 'up' : 'down' }
 	}
 
 	return {
@@ -142,7 +166,7 @@ export function loupeGestures(context: () => GestureContext) {
 			if (mode === 'pan') {
 				return { kind: 'pan', dx, dy }
 			}
-			return mode === 'drag' ? { kind: 'drag', dx } : null
+			return mode === 'drag' ? { kind: 'drag', dx } : mode === 'vertical' ? { kind: 'lift', dy } : null
 		},
 		up(pointer: GesturePointer): GestureAction | null {
 			if (!pointers.delete(pointer.id)) {
@@ -157,8 +181,8 @@ export function loupeGestures(context: () => GestureContext) {
 			}
 			const ended = mode
 			mode = 'undecided'
-			if (ended === 'drag') {
-				return dragEnd(pointer)
+			if (ended === 'drag' || ended === 'vertical') {
+				return dragEnd(pointer, ended)
 			}
 			return ended === 'undecided' && pointer.time - start!.time <= TAP_MAX_MS ? tapAction(pointer) : null
 		},
@@ -171,7 +195,7 @@ export function loupeGestures(context: () => GestureContext) {
 			if (ended === 'pinch') {
 				return { kind: 'pinch-end' }
 			}
-			return ended === 'drag' ? { kind: 'settle' } : null
+			return ended === 'drag' || ended === 'vertical' ? { kind: 'settle' } : null
 		},
 	}
 }

@@ -6,8 +6,10 @@
 import type { Folder } from './api.ts'
 import type { BrowserStorage } from './browser-storage.ts'
 import type { ListEntries } from './folder-count.ts'
+import type { DecisionIntent } from './logic/decision-change.ts'
 import type { StoredDecision } from './logic/decision.ts'
 import type { ListingEntry } from './logic/listing.ts'
+import type { Schedule } from './logic/long-press.ts'
 import type { Picture } from './logic/pairing.ts'
 
 import { t } from '@nextcloud/l10n'
@@ -23,10 +25,14 @@ import FolderPicker from './components/FolderPicker.vue'
 import GridToolbar from './components/GridToolbar.vue'
 import PhotoGrid from './components/PhotoGrid.vue'
 import PhotoLoupe from './components/PhotoLoupe.vue'
+import UndoToast from './components/UndoToast.vue'
 import { listEntries as apiListEntries, listFolders as apiListFolders, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, warmPreviews as apiWarmPreviews } from './api.ts'
 import { useCull } from './cull.ts'
+import { changeText, undoneText } from './decision-text.ts'
 import { clearFilters } from './logic/picture-filter.ts'
 import { useSelectionMode } from './selection-mode.ts'
+import { browserSchedule } from './tile-selection.ts'
+import { useToast } from './toast.ts'
 
 const props = withDefaults(defineProps<{
 	listFolders?: (path: string) => Promise<Folder[]>
@@ -35,6 +41,7 @@ const props = withDefaults(defineProps<{
 	lookupDecisions?: (fileIds: readonly number[]) => Promise<StoredDecision[]>
 	saveDecisions?: (decisions: readonly StoredDecision[]) => Promise<void>
 	storage?: BrowserStorage
+	schedule?: Schedule
 }>(), {
 	listFolders: apiListFolders,
 	listEntries: apiListEntries,
@@ -42,6 +49,7 @@ const props = withDefaults(defineProps<{
 	lookupDecisions: apiLookupDecisions,
 	saveDecisions: apiSaveDecisions,
 	storage: () => () => window.localStorage,
+	schedule: browserSchedule,
 })
 
 const cull = useCull({ warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions }, props.storage)
@@ -51,6 +59,23 @@ const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
 const selection = useSelectionMode(() => view.value, pictures, () => folderSet.value !== null && !pickerOpen.value && loupe.value === null)
 const { selecting, selected } = selection
 const common = computed(() => cull.common(selected.value))
+const toast = useToast(props.schedule)
+
+/** Decides the pictures and says what changed, with Undo. */
+function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]) {
+	const entry = cull.decide(intent, chosen)
+	if (entry !== null) {
+		toast.show(changeText(entry), { label: t('honeycomb', 'Undo'), run: undo })
+	}
+}
+
+/** Takes back the latest decision and says so. */
+function undo() {
+	const entry = cull.undo()
+	if (entry !== null) {
+		toast.show(undoneText(entry))
+	}
+}
 
 /** Closes the loupe and focuses its last picture in the grid. */
 async function closeLoupe() {
@@ -133,7 +158,7 @@ async function closeLoupe() {
 					v-if="selecting"
 					:common="common"
 					:disabled="selected.length === 0"
-					@decide="cull.decide($event, selected)" />
+					@decide="decide($event, selected)" />
 			</template>
 			<NcEmptyContent
 				v-else
@@ -160,7 +185,14 @@ async function closeLoupe() {
 					:folderSet="folderSet"
 					:decisionOf="cull.decisionOf"
 					:storage="props.storage"
+					@decide="(intent, picture) => decide(intent, [picture])"
+					@toast="toast.show($event.message, $event.action)"
 					@close="closeLoupe" />
+				<UndoToast
+					v-if="toast.current.value !== null"
+					:toast="toast.current.value"
+					:top="loupe !== null"
+					@act="toast.act" />
 			</Teleport>
 		</NcAppContent>
 	</NcContent>
