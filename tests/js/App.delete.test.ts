@@ -8,6 +8,7 @@ import type { AppWrapper } from './app-cull.ts'
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import ActionBar from '../../src/components/ActionBar.vue'
+import ConfirmDialog from '../../src/components/ConfirmDialog.vue'
 import DeleteSummary from '../../src/components/DeleteSummary.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
@@ -144,6 +145,7 @@ describe('App: the Delete key and Delete…', () => {
 
 		await press('Delete')
 		expect(names(summaryOf(wrapper).props('pictures'))).toEqual(['IMG_9'])
+		expect(summaryOf(wrapper).findComponent(ConfirmDialog).props('container')).toBe('.photo-loupe')
 		summaryOf(wrapper).vm.$emit('confirm')
 		await flushPromises()
 

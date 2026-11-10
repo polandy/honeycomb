@@ -60,6 +60,13 @@ describe('ConfirmDialog', () => {
 		expect(wrapper.emitted('cancel')).toHaveLength(1)
 	})
 
+	it('opens in the body, or inside the given container', () => {
+		const dialog = (props: Record<string, unknown>) => shallowMount(ConfirmDialog, { props: { title: 'T', confirmLabel: 'C', ...props } }).findComponent({ name: 'NcDialog' })
+
+		expect(dialog({}).props('container')).toBe('body')
+		expect(dialog({ container: '.photo-loupe' }).props('container')).toBe('.photo-loupe')
+	})
+
 	it('renders no text that bypasses the catalogue', () => {
 		const wrapper = shallowMount(ConfirmDialog, {
 			props: { title: `${MARK}Title`, confirmLabel: `${MARK}Confirm`, back: true, cancel: true },
