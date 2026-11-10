@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
+import type { DecisionIntent } from '../../src/logic/decision-change.ts'
 import type { Decision } from '../../src/logic/decision.ts'
 import type { Toast } from '../../src/toast.ts'
 
@@ -16,11 +17,13 @@ function loupeDecisions(index: number, decided: Record<string, Decision> = {}) {
 	const went: number[] = []
 	const shown: boolean[] = []
 	const toasts: Toast[] = []
+	const intents: DecisionIntent[] = []
 	const decisions = useLoupeDecisions({
 		pictures: () => PICTURES,
 		index: () => index,
 		decisionOf: (picture) => decided[picture.baseName] ?? UNDECIDED,
 		decide: (intent, picture) => {
+			intents.push(intent)
 			if (intent.kind === 'flag') {
 				decided[picture.baseName] = { ...UNDECIDED, flag: intent.flag }
 			}
@@ -29,7 +32,7 @@ function loupeDecisions(index: number, decided: Record<string, Decision> = {}) {
 		setFlagButtonsShown: (on) => shown.push(on),
 		toast: (toast) => toasts.push(toast),
 	})
-	return { decisions, went, shown, toasts }
+	return { decisions, went, shown, toasts, intents }
 }
 
 describe('useLoupeDecisions: decide', () => {
@@ -46,6 +49,28 @@ describe('useLoupeDecisions: decide', () => {
 	] as const)('says it stayed after %s', (_, intent, index) => {
 		const { decisions, went } = loupeDecisions(index)
 		expect(decisions.decide(intent)).toBe(false)
+		expect(went).toEqual([])
+	})
+})
+
+describe('useLoupeDecisions: decideByKey', () => {
+	it('steps the shown photo\'s rating', () => {
+		const { decisions, intents } = loupeDecisions(0, { IMG_1: { ...UNDECIDED, rating: 2 } })
+		expect(decisions.decideByKey({ kind: 'ratingStep', step: 1 }, false)).toBeUndefined()
+		decisions.decideByKey({ kind: 'ratingStep', step: -1 }, false)
+		expect(intents).toEqual([{ kind: 'rating', rating: 3 }, { kind: 'rating', rating: 1 }])
+	})
+
+	it('goes to the next photo when advancing, unless the decision already moved', () => {
+		const { decisions, went } = loupeDecisions(0, { IMG_2: { ...UNDECIDED, flag: 'picked' } })
+		decisions.decideByKey({ kind: 'rating', rating: 3 }, true)
+		decisions.decideByKey({ kind: 'flag', flag: 'rejected' }, true)
+		expect(went).toEqual([1, 2])
+	})
+
+	it('stays without advancing', () => {
+		const { decisions, went } = loupeDecisions(0)
+		decisions.decideByKey({ kind: 'colourLabel', colourLabel: 'red' }, false)
 		expect(went).toEqual([])
 	})
 })
