@@ -270,6 +270,11 @@ installs it. Imaginary is optional (ADR 0010).
 | First sharp image in a newly opened folder | < 500 ms |
 | Grid scroll at 2,000+ items | no jank |
 
+`tests/e2e/loupe-budget.spec.ts` measures the first budget in e2e: it pages from a picture to a
+prefetched 24 MP neighbour, checks that no image request follows the key press and reports the
+time from the key press to the frame after the loupe tier shows. It draws its JPEGs, or takes
+the first three of `HONEYCOMB_BUDGET_PHOTOS`, a folder of real photos.
+
 Where the work lands: M1.2 (file id and mtime per entry), M2.2 (cache-keyed URLs), M2.3
 (tiers, virtualised grid), M3.1 (prefetch, `decode()` swap), M4.5 (README recommendation), and
 a new item for the background generation and the RAW preview extraction.

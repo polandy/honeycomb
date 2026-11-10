@@ -4,6 +4,7 @@ import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
+import { cullFolder } from './cull.ts'
 import { createFolder, JPEG, upload } from './files.ts'
 
 /** Whether the middle of Nextcloud's header is on top, not under the loupe. */
@@ -21,10 +22,7 @@ test('opens a photo in the loupe, pages by key and closes back to the grid', asy
 	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
 	await upload(page, `${folder}/IMG_0002.jpg`, JPEG)
 
-	await page.goto('/index.php/apps/honeycomb/')
-	const picker = page.getByRole('dialog', { name: 'Choose folders' })
-	await picker.getByRole('option', { name: folder }).click()
-	await picker.getByRole('button', { name: `Cull ${folder}` }).click()
+	await cullFolder(page, folder)
 	await page.getByRole('gridcell', { name: 'IMG_0001, JPG only' }).click()
 
 	const loupe = page.getByRole('dialog', { name: 'Loupe' })
