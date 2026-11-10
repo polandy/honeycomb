@@ -9,6 +9,41 @@ import { installMarkedCatalogue, uninstallMarkedCatalogue, untranslatedText } fr
 const mountToast = (action: { label: string } | null, top = false) => mount(UndoToast, { props: { toast: { message: 'Rejected IMG_1', action: action && { ...action, run: () => undefined } }, top } })
 
 describe('UndoToast', () => {
+	// spec: LOUPE-002.12
+	it('reports the focus entering and leaving it, not moving between its own parts', async () => {
+		const wrapper = mountToast({ label: 'Undo' })
+
+		await wrapper.trigger('focusin')
+		await wrapper.trigger('focusout', { relatedTarget: wrapper.find('button').element })
+		await wrapper.trigger('focusout', { relatedTarget: null })
+
+		expect(wrapper.emitted('focus')).toEqual([[true], [false]])
+	})
+
+	// spec: LOUPE-002.12
+	it('reports a press on it until the pointer is lifted or cancelled anywhere', async () => {
+		const wrapper = mountToast({ label: 'Undo' })
+
+		await wrapper.trigger('pointerdown')
+		window.dispatchEvent(new Event('pointerup'))
+		await wrapper.trigger('pointerdown')
+		window.dispatchEvent(new Event('pointercancel'))
+		window.dispatchEvent(new Event('pointerup'))
+
+		expect(wrapper.emitted('press')).toEqual([[true], [false], [true], [false]])
+	})
+
+	// spec: LOUPE-002.12
+	it('lets go of a press when it goes away', async () => {
+		const wrapper = mountToast({ label: 'Undo' })
+		await wrapper.trigger('pointerdown')
+
+		wrapper.unmount()
+		window.dispatchEvent(new Event('pointerup'))
+
+		expect(wrapper.emitted('press')).toEqual([[true], [false]])
+	})
+
 	it('says the change, a dot and its action as a status', async () => {
 		const wrapper = mountToast({ label: 'Undo' })
 
