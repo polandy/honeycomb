@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, imageUrl, listEntries, listFolders, lookupDecisions, warmPreviews } from '../../src/api.ts'
+import { ApiResponseError, imageUrl, listEntries, listFolders, lookupDecisions, saveDecisions, warmPreviews } from '../../src/api.ts'
 
-vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
+vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({
 	generateUrl: (url: string, params: Record<string, number> = {}) => `/index.php${url.replace(/\{(\w+)\}/g, (_, key: string) => String(params[key]))}`,
 }))
@@ -101,6 +101,23 @@ describe('lookupDecisions', () => {
 		vi.mocked(axios.post).mockResolvedValue({ data })
 
 		await expect(lookupDecisions([1])).rejects.toThrow(ApiResponseError)
+	})
+})
+
+describe('saveDecisions', () => {
+	it('stores the whole decisions of the files', async () => {
+		const decisions = [{ fileId: 3, rating: 4, colourLabel: null, flag: 'picked' as const, keepRaw: false }]
+		vi.mocked(axios.put).mockResolvedValue({ status: 204 })
+
+		await saveDecisions(decisions)
+
+		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/decisions', { decisions })
+	})
+
+	it('sends nothing for no decisions', async () => {
+		await saveDecisions([])
+
+		expect(axios.put).not.toHaveBeenCalled()
 	})
 })
 

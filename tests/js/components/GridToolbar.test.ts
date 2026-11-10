@@ -13,7 +13,9 @@ import { PopoverStub } from './stubs.ts'
 
 const MARK = TRANSLATED_MARK
 
-const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder } = {
+const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number } = {
+	selecting: false,
+	selected: 0,
 	scope: 'not-rejected',
 	scopeLocked: false,
 	decided: 1840,
@@ -148,5 +150,34 @@ describe('GridToolbar', () => {
 		const wrapper = mountToolbar({ paths: ['/Photos/Trip'], subfolders: false }, 2, { scopeLocked: true, activeFilters: 1 })
 
 		expect(untranslatedText(wrapper.element as Element)).toEqual(['Trip'])
+	})
+	it('enters and leaves selection mode with Select', async () => {
+		const wrapper = mountToolbar({ paths: ['/Photos/Trip'], subfolders: false })
+		const select = wrapper.find(`[aria-label="${MARK}Select"]`)
+		expect(select.attributes('aria-pressed')).toBe('false')
+		expect(wrapper.find('.grid-toolbar__selection').exists()).toBe(false)
+
+		await select.trigger('click')
+		await wrapper.setProps({ selecting: true })
+		await wrapper.find(`[aria-label="${MARK}Select"]`).trigger('click')
+
+		expect(wrapper.emitted('update:selecting')).toEqual([[true], [false]])
+	})
+
+	it('counts the selection and selects all, none or is done', async () => {
+		const wrapper = mountToolbar({ paths: ['/Photos/Trip'], subfolders: false }, 1, { selecting: true, selected: 1234 })
+		const row = wrapper.find('.grid-toolbar__selection')
+		const named = (label: string) => row.findAll('button').find((found) => found.text() === `${MARK}${label}`)!
+
+		expect(row.text()).toContain('1,234 selected')
+		expect(wrapper.find(`[aria-label="${MARK}Select"]`).attributes('aria-pressed')).toBe('true')
+		await named('Select all (filtered)').trigger('click')
+		await named('None').trigger('click')
+		await named('Done').trigger('click')
+
+		expect(wrapper.emitted('selectAll')).toEqual([[]])
+		expect(wrapper.emitted('selectNone')).toEqual([[]])
+		expect(wrapper.emitted('update:selecting')).toEqual([[false]])
+		expect(untranslatedText(row.element)).toEqual([])
 	})
 })

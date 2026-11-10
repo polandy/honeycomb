@@ -41,6 +41,7 @@ export function stored(fileId: number, flag: StoredDecision['flag']): StoredDeci
 export function mountApp(props: Record<string, unknown> = {}, decisions: StoredDecision[] = []) {
 	const warmed: number[][] = []
 	const lookedUp: number[][] = []
+	const saved: StoredDecision[][] = []
 	const wrapper = mount(App, {
 		props: {
 			storage: fakeStorage(),
@@ -49,11 +50,12 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 				lookedUp.push([...ids])
 				return decisions
 			},
+			saveDecisions: async (rows: readonly StoredDecision[]) => { saved.push([...rows]) },
 			...props,
 		},
 		global: { stubs: { FolderPicker: true, PhotoGrid: true, GridToolbar: true, FilterBar: true } },
 	})
-	return { wrapper, warmed, lookedUp }
+	return { wrapper, warmed, lookedUp, saved }
 }
 
 /** The base names of the pictures the grid shows, in its order. */

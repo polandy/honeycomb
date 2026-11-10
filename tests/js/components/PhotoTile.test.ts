@@ -7,6 +7,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import PhotoTile from '../../../src/components/PhotoTile.vue'
+import { UNDECIDED } from '../../../src/logic/decision.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { listingEntry, pictureOf, picturesOf } from '../logic/listing-entries.ts'
 
@@ -126,5 +127,37 @@ describe('PhotoTile', () => {
 
 		expect(wrapper.html()).toContain(`${MARK}JPG only`)
 		expect(untranslatedText(wrapper.element as Element)).toEqual([`IMG_0002, ${MARK}JPG only`])
+	})
+	it('shows rating, colour label, flag and Keep RAW on the tile and in its label', () => {
+		const wrapper = mountTile(PAIR, { decision: { rating: 3, colourLabel: 'green', flag: 'rejected', keepRaw: true } })
+
+		expect(wrapper.find('.photo-tile__stars').text()).toBe('★★★')
+		expect(wrapper.find('.photo-tile__colour').attributes('style')).toContain('background-color')
+		expect(wrapper.find('.photo-tile__flag--rejected').exists()).toBe(true)
+		expect(wrapper.find('.photo-tile__pair--keep-raw').text()).toBe('JPG+CR3 ✓')
+		expect(wrapper.attributes('aria-label')).toBe(`IMG_0001, JPG+CR3, ${MARK}3 stars, ${MARK}Green label, ${MARK}Rejected, ${MARK}Keep RAW`)
+	})
+
+	it('shows no overlay for an undecided picture', () => {
+		const wrapper = mountTile(PAIR, { decision: UNDECIDED })
+
+		expect(wrapper.find('.photo-tile__stars').exists()).toBe(false)
+		expect(wrapper.find('.photo-tile__colour').exists()).toBe(false)
+		expect(wrapper.find('[class*="photo-tile__flag"]').exists()).toBe(false)
+		expect(wrapper.find('.photo-tile__pair--keep-raw').exists()).toBe(false)
+	})
+
+	it('shows the selection check only in selection mode and marks a selected tile', async () => {
+		const wrapper = mountTile(PAIR)
+		expect(wrapper.find('.photo-tile__check').exists()).toBe(false)
+		expect(wrapper.attributes('aria-selected')).toBeUndefined()
+
+		await wrapper.setProps({ selecting: true })
+		expect(wrapper.find('.photo-tile__check').exists()).toBe(true)
+		expect(wrapper.attributes('aria-selected')).toBe('false')
+
+		await wrapper.setProps({ selected: true })
+		expect(wrapper.classes()).toContain('photo-tile--selected')
+		expect(wrapper.attributes('aria-selected')).toBe('true')
 	})
 })
