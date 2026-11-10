@@ -1,84 +1,18 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { ListingEntry } from '../../src/logic/listing.ts'
-import type { MoveRequestFile } from '../../src/logic/move-plan.ts'
-import type { MoveResponseFile } from '../../src/logic/move-report.ts'
-import type { Picture } from '../../src/logic/pairing.ts'
-import type { Settings } from '../../src/logic/settings.ts'
-import type { ToastAction } from '../../src/toast.ts'
-
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ref, shallowRef } from 'vue'
 import { TrashBinOffError } from '../../src/api.ts'
 import { logger } from '../../src/logger.ts'
-import { DEFAULT_PAIRING_SETTINGS, pairPictures } from '../../src/logic/pairing.ts'
-import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { withoutFiles } from '../../src/logic/trash-report.ts'
-import { useMoveFlow } from '../../src/move-flow.ts'
-import { listingEntry } from './logic/listing-entries.ts'
-
-const ENTRIES = [
-	listingEntry(1, '/Trip/IMG_1.CR3', { size: 2048 }),
-	listingEntry(2, '/Trip/IMG_1.JPG', { size: 1024 }),
-	listingEntry(4, '/Trip/IMG_2.JPG', { size: 1024 }),
-	listingEntry(5, '/Trip/sunset.JPG', { size: 1024 }),
-]
-
-type Answer = (request: MoveRequestFile[][]) => Promise<MoveResponseFile[][]>
-
-/** Answers every file as moved to its requested path, with the same id unless `newId` says otherwise. */
-const allMoved = (newId = (fileId: number) => fileId): Answer => async (request) => request.map((files) => files.map(({ fileId, path }) => ({ fileId, result: 'moved', replaced: false, path, newFileId: newId(fileId), etag: `moved-${fileId}` })))
-
-/** A flow over the entries' pictures, the folder `/Out` holding `held`, with a move endpoint answering `answer`. */
-function flow(answer: Answer = allMoved(), { held = [] as string[], template = '{name}.{ext}', probe = undefined as (() => Promise<never>) | undefined } = {}) {
-	const entries = shallowRef<ListingEntry[]>(ENTRIES)
-	const pictures = shallowRef<Picture<ListingEntry>[]>(pairPictures(ENTRIES, DEFAULT_PAIRING_SETTINGS))
-	const settings = shallowRef<Settings>({ ...DEFAULT_SETTINGS, moveFavourites: ['/Fav'], moveRecent: ['/Old', '/Fav'] })
-	const toasts: { message: string, action: ToastAction | null }[] = []
-	const sent: MoveRequestFile[][][] = []
-	const probed: string[][] = []
-	const loupe = ref<{ pictures: readonly Picture<ListingEntry>[], index: number } | null>(null)
-	const moving = useMoveFlow({
-		view: () => pictures.value,
-		settings: () => settings.value,
-		updateSettings: (patch) => {
-			settings.value = { ...settings.value, ...patch }
-		},
-		probe: probe ?? (async (folders) => {
-			probed.push([...folders])
-			return folders.map((path) => ({ path, children: path === '/Out' ? held.map((name, index) => ({ name, fileId: 90 + index, etag: 'held' })) : [] }))
-		}),
-		move: async (request) => {
-			sent.push(request.map((files) => [...files]))
-			return answer(request.map((files) => [...files]))
-		},
-		removeFiles: (fileIds) => {
-			const { pictures: left, replaced } = withoutFiles(pictures.value, fileIds, DEFAULT_PAIRING_SETTINGS)
-			pictures.value = left
-			entries.value = entries.value.filter((entry) => !fileIds.has(entry.fileId))
-			return replaced
-		},
-		restoreFiles: (restored) => {
-			entries.value = [...entries.value, ...restored]
-			pictures.value = pairPictures(entries.value, DEFAULT_PAIRING_SETTINGS)
-		},
-		loupe,
-		toast: (message, action = null) => toasts.push({ message, action }),
-		template: () => template,
-		offset: () => 0,
-	})
-	const [pair, single, sunset] = pictures.value as [Picture<ListingEntry>, Picture<ListingEntry>, Picture<ListingEntry>]
-	return { moving, pictures, entries, settings, toasts, sent, probed, loupe, pair, single, sunset }
-}
+import { allMoved, moveFlow } from './move-fixtures.ts'
 
 afterEach(() => vi.restoreAllMocks())
 
 describe('useMoveFlow: opening and targets', () => {
 	// spec: MOVE-004.1
 	it('opens on the pictures in view order, and not on none', () => {
-		const { moving, pair, single } = flow()
+		const { moving, pair, single } = moveFlow()
 
 		moving.open([])
 		expect(moving.pictures.value).toBeNull()
@@ -90,7 +24,7 @@ describe('useMoveFlow: opening and targets', () => {
 
 	// spec: MOVE-004.1
 	it('opens on the loupe photo, else the chosen pictures, else the focused tile', () => {
-		const { moving, loupe, pair, single, sunset } = flow()
+		const { moving, loupe, pair, single, sunset } = moveFlow()
 
 		moving.openShown([], () => 1)
 		expect(moving.pictures.value).toEqual([single])
@@ -105,7 +39,7 @@ describe('useMoveFlow: opening and targets', () => {
 
 	// spec: MOVE-004.3
 	it('offers favourites, then recent targets, and chooses one by its key', async () => {
-		const { moving, pair, probed } = flow()
+		const { moving, pair, probed } = moveFlow()
 		moving.open([pair])
 
 		expect(moving.chips.value.map((chip) => [chip.path, chip.favourite])).toEqual([['/Fav', true], ['/Old', false]])
@@ -120,7 +54,7 @@ describe('useMoveFlow: opening and targets', () => {
 
 	// spec: MOVE-004.4
 	it('chooses a browsed folder and closes the picker', () => {
-		const { moving, pair } = flow()
+		const { moving, pair } = moveFlow()
 		moving.open([pair])
 		moving.browsing.value = true
 
@@ -132,7 +66,7 @@ describe('useMoveFlow: opening and targets', () => {
 
 	// spec: MOVE-004.5
 	it('adds the target to the favourites and removes it again', () => {
-		const { moving, pair, settings } = flow()
+		const { moving, pair, settings } = moveFlow()
 		moving.open([pair])
 		moving.choose('/New')
 
@@ -148,7 +82,7 @@ describe('useMoveFlow: opening and targets', () => {
 describe('useMoveFlow: the summary', () => {
 	// spec: MOVE-004.6
 	it('plans every file below the target once the folders are probed', async () => {
-		const { moving, pair, single } = flow()
+		const { moving, pair, single } = moveFlow()
 		moving.open([pair, single])
 		moving.choose('/Out')
 		expect(moving.plan.value).toBeNull()
@@ -161,7 +95,7 @@ describe('useMoveFlow: the summary', () => {
 
 	// spec: MOVE-004.7
 	it('sets the choice of one conflict and of all', async () => {
-		const { moving, pair, single } = flow(allMoved(), { held: ['IMG_1.JPG', 'IMG_2.JPG'] })
+		const { moving, pair, single } = moveFlow(allMoved(), { held: ['IMG_1.JPG', 'IMG_2.JPG'] })
 		moving.open([pair, single])
 		moving.choose('/Out')
 		await flushPromises()
@@ -178,7 +112,7 @@ describe('useMoveFlow: the summary', () => {
 
 	// spec: MOVE-004.15
 	it('leaves a picture it cannot name out of the plan', async () => {
-		const { moving, pair, sunset } = flow(allMoved(), { template: '{number}.{ext}' })
+		const { moving, pair, sunset } = moveFlow(allMoved(), { template: '{number}.{ext}' })
 		moving.open([pair, sunset])
 		moving.choose('/Out')
 		await flushPromises()
@@ -189,7 +123,7 @@ describe('useMoveFlow: the summary', () => {
 
 	// spec: MOVE-004.6
 	it('refuses an invalid template', () => {
-		const { moving, pair } = flow(allMoved(), { template: '{nope}' })
+		const { moving, pair } = moveFlow(allMoved(), { template: '{nope}' })
 		moving.open([pair])
 
 		expect(() => moving.named.value).toThrow('{nope}')
@@ -197,7 +131,7 @@ describe('useMoveFlow: the summary', () => {
 
 	// spec: MOVE-004.8
 	it('does not move without a target or without files', async () => {
-		const { moving, pair, sent } = flow(allMoved(), { held: ['IMG_1.JPG'] })
+		const { moving, pair, sent } = moveFlow(allMoved(), { held: ['IMG_1.JPG'] })
 		moving.open([pair])
 		await moving.confirm()
 		moving.choose('/Out')
@@ -213,7 +147,7 @@ describe('useMoveFlow: the summary', () => {
 describe('useMoveFlow: moving and undo', () => {
 	// spec: MOVE-004.9, MOVE-004.10
 	it('sends the plan, takes the pictures out of the listing and the loupe, keeps the target and offers Undo', async () => {
-		const { moving, pair, single, sunset, sent, pictures, loupe, settings, toasts } = flow()
+		const { moving, pair, single, sunset, sent, pictures, loupe, settings, toasts } = moveFlow()
 		loupe.value = { pictures: [pair, sunset], index: 0 }
 		moving.open([pair, single])
 		moving.choose('/Out')
@@ -231,7 +165,7 @@ describe('useMoveFlow: moving and undo', () => {
 
 	// spec: MOVE-004.11
 	it('moves the files back on Undo and shows them again', async () => {
-		const { moving, pair, sent, pictures, toasts } = flow()
+		const { moving, pair, sent, pictures, toasts } = moveFlow()
 		moving.open([pair])
 		moving.choose('/Out')
 		await flushPromises()
@@ -249,7 +183,7 @@ describe('useMoveFlow: moving and undo', () => {
 	it('says so when the undo request fails', async () => {
 		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		let calls = 0
-		const { moving, pair, toasts } = flow(async (request) => (calls++ === 0 ? allMoved()(request) : Promise.reject(new Error('down'))))
+		const { moving, pair, toasts } = moveFlow(async (request) => (calls++ === 0 ? allMoved()(request) : Promise.reject(new Error('down'))))
 		moving.open([pair])
 		moving.choose('/Out')
 		await flushPromises()
@@ -263,7 +197,7 @@ describe('useMoveFlow: moving and undo', () => {
 
 	// spec: MOVE-004.12
 	it('reports the files that failed', async () => {
-		const { moving, pair, single, pictures, toasts } = flow(async (request) => request.map((files) => files.map(({ fileId, path }) => (fileId === 4 ? { fileId, result: 'locked', replaced: false } : { fileId, result: 'moved', replaced: false, path, newFileId: fileId, etag: 'm' }))))
+		const { moving, pair, single, pictures, toasts } = moveFlow(async (request) => request.map((files) => files.map(({ fileId, path }) => (fileId === 4 ? { fileId, result: 'locked', replaced: false } : { fileId, result: 'moved', replaced: false, path, newFileId: fileId, etag: 'm' }))))
 		moving.open([pair, single])
 		moving.choose('/Out')
 		await flushPromises()
@@ -280,7 +214,7 @@ describe('useMoveFlow: moving and undo', () => {
 
 	// spec: MOVE-004.12
 	it('offers no Undo when nothing moved', async () => {
-		const { moving, single, toasts, settings } = flow(async (request) => request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'locked', replaced: false }))))
+		const { moving, single, toasts, settings } = moveFlow(async (request) => request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'locked', replaced: false }))))
 		moving.open([single])
 		moving.choose('/Out')
 		await flushPromises()
@@ -297,7 +231,7 @@ describe('useMoveFlow: moving and undo', () => {
 		[new Error('down'), 'Could not move the photos; reload the folder to see what changed.'],
 	])('changes nothing when the move request fails with %s', async (error, message) => {
 		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
-		const { moving, pair, pictures, toasts } = flow(async () => Promise.reject(error))
+		const { moving, pair, pictures, toasts } = moveFlow(async () => Promise.reject(error))
 		moving.open([pair])
 		moving.choose('/Out')
 		await flushPromises()
@@ -312,7 +246,7 @@ describe('useMoveFlow: moving and undo', () => {
 	// spec: MOVE-004.13
 	it('closes the dialog when the probe fails', async () => {
 		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
-		const { moving, pair, toasts } = flow(allMoved(), { probe: async () => Promise.reject(new Error('down')) })
+		const { moving, pair, toasts } = moveFlow(allMoved(), { probe: async () => Promise.reject(new Error('down')) })
 		moving.open([pair])
 
 		moving.choose('/Out')
@@ -324,7 +258,7 @@ describe('useMoveFlow: moving and undo', () => {
 
 	// spec: MOVE-004.14
 	it('says decisions did not move when a file got a new file id', async () => {
-		const { moving, single, toasts } = flow(allMoved((fileId) => fileId + 100))
+		const { moving, single, toasts } = moveFlow(allMoved((fileId) => fileId + 100))
 		moving.open([single])
 		moving.choose('/Out')
 		await flushPromises()

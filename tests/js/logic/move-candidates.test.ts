@@ -3,7 +3,7 @@
 import type { NameTemplate } from '../../../src/logic/name-template/parse.ts'
 
 import { describe, expect, it } from 'vitest'
-import { browserOffset, inViewOrder, memberFiles, moveCounts, nameCandidates, pictureFacts } from '../../../src/logic/move-candidates.ts'
+import { addedSuffix, browserOffset, inViewOrder, memberFiles, moveCounts, nameCandidates, pictureFacts } from '../../../src/logic/move-candidates.ts'
 import { planMove } from '../../../src/logic/move-plan.ts'
 import { parseNameTemplate } from '../../../src/logic/name-template/parse.ts'
 import { DEFAULT_NAME_TEMPLATE } from '../../../src/logic/name-template/presets.ts'
@@ -110,5 +110,15 @@ describe('moveCounts', () => {
 
 		expect(moveCounts(planMove('/Out', candidates, existing))).toEqual({ files: 4, conflicts: 2 })
 		expect(moveCounts(planMove('/Out', candidates, existing, (index) => (index === 0 ? 'skip' : 'suffix')))).toEqual({ files: 1, conflicts: 2 })
+	})
+})
+
+describe('addedSuffix', () => {
+	// spec: MOVE-004.7
+	it('names the suffix the plan added to the rendered name', () => {
+		const rendered = { folder: 'A', name: 'IMG_2', extension: 'NEF.xmp' }
+
+		expect(addedSuffix(rendered, '/Out/A/IMG_2-3.NEF.xmp')).toBe('-3')
+		expect(addedSuffix(rendered, '/Out/A/IMG_2.NEF.xmp')).toBeNull()
 	})
 })
