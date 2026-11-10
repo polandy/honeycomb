@@ -3,6 +3,7 @@
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { nextTick } from 'vue'
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import RecentFolderSets from '../../../src/components/RecentFolderSets.vue'
 import { installMarkedCatalogue, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
@@ -18,6 +19,7 @@ describe('RecentFolderSets', () => {
 	// spec: DECISIONS-002.8, LISTING-003.13
 	it('lists each folder set with its progress, marks the open one and opens one on a tap', async () => {
 		const wrapper = mount(RecentFolderSets, { props: { items: ITEMS } })
+		await nextTick()
 		const rows = wrapper.findAllComponents(NcListItem)
 
 		expect(rows.map((row) => row.text())).toEqual(['Trip + subfolders2 / 3 decided', '2 folders0 / 40 decided'])
@@ -31,8 +33,9 @@ describe('RecentFolderSets', () => {
 		beforeEach(installMarkedCatalogue)
 		afterEach(uninstallMarkedCatalogue)
 
-		it('renders no text that bypasses the catalogue but folder names', () => {
+		it('renders no text that bypasses the catalogue but folder names', async () => {
 			const wrapper = mount(RecentFolderSets, { props: { items: [{ ...ITEMS[1]! }] } })
+			await nextTick()
 			expect(untranslatedText(wrapper.element)).toEqual([])
 		})
 	})

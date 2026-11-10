@@ -45,7 +45,7 @@ describe('App: Recent', () => {
 		expect(listed).toEqual(['/Trip +'])
 		expect(wrapper.findComponent(PhotoLoupe).props('index')).toBe(shownNames(wrapper).indexOf('IMG_9'))
 		expect(wrapper.findComponent(UndoToast).exists()).toBe(false)
-		expect(wrapper.findComponent(AppNavigation).props('items')[0].current).toBe(true)
+		expect(wrapper.findComponent(AppNavigation).props('items')![0]!.current).toBe(true)
 	})
 
 	// spec: LISTING-003.13
@@ -53,7 +53,7 @@ describe('App: Recent', () => {
 		const { wrapper } = openApp()
 		await flushPromises()
 		const picker = wrapper.findComponent(FolderPicker)
-		expect(picker.props('recent').map((item: { position: { fileId: number } }) => item.position.fileId)).toEqual([4, 7])
+		expect(picker.props('recent')!.map((item: { position: { fileId: number } }) => item.position.fileId)).toEqual([4, 7])
 
 		picker.vm.$emit('openRecent', trip)
 		await flushPromises()

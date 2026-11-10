@@ -39,6 +39,10 @@ grid.
 | Listing failed | "Could not count the photos.", counted again on the next tick |
 | Folders failed to load | a message in the list |
 
+Above the folders, under *Recent*, the picker lists the folder sets culled before with their
+progress (DECISIONS-002.8); tapping one opens it at its resume position. The heading and list are
+left out until a folder set was culled.
+
 On the first opening it introduces the app and cannot be cancelled; opened from a running cull it
 starts from that folder set and *Cancel* returns to it.
 
@@ -123,7 +127,7 @@ starts from that folder set and *Cancel* returns to it.
 - **When** the user confirms
 - **Then** the grid shows the pictures of the folder set from the merged entries
 
-### LISTING-003.13 – Recent folder sets (gap)
+### LISTING-003.13 – Recent folder sets
 
 - **Given** folder sets the user culled before
 - **When** the picker opens
@@ -139,3 +143,4 @@ starts from that folder set and *Cancel* returns to it.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged code of #41 (ADR 0015) |
+| 2026-11-10 | *Recent* above the folders (LISTING-003.13) |

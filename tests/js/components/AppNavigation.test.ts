@@ -11,7 +11,6 @@ const MARK = TRANSLATED_MARK
 const position = { folderSet: { paths: ['/A', '/B'], subfolders: false }, fileId: 9, decided: 0, total: 40 }
 const ITEMS = [{ position, current: false, decided: 0, total: 40 }]
 
-/** The navigation without NcAppNavigation's own resize handling: its list and footer in place. */
 function mountNavigation(items = ITEMS) {
 	return mount(AppNavigation, { props: { items } })
 }
@@ -47,7 +46,7 @@ describe('AppNavigation', () => {
 	})
 
 	// spec: APP-001.4
-	it('renders no text that bypasses the catalogue', () => {
-		expect(untranslatedText(mountNavigation().element)).toEqual([])
+	it('renders no text that bypasses the catalogue but the toggle, which @nextcloud/vue translates', () => {
+		expect(untranslatedText(mountNavigation().element)).toEqual(['Open navigation', 'Open navigation'])
 	})
 })

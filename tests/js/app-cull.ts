@@ -76,7 +76,15 @@ export function gridStub() {
 	return { component, calls }
 }
 
+/** The `#skip-actions` target Nextcloud's page holds, where NcContent teleports its skip links. */
+export function provideSkipActions() {
+	if (document.getElementById('skip-actions') === null) {
+		document.body.append(Object.assign(document.createElement('div'), { id: 'skip-actions' }))
+	}
+}
+
 export function mountApp(props: Record<string, unknown> = {}, decisions: StoredDecision[] = [], stubs: Record<string, unknown> = {}) {
+	provideSkipActions()
 	const warmed: number[][] = []
 	const lookedUp: number[][] = []
 	const saved: StoredDecision[][] = []

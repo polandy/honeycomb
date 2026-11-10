@@ -52,3 +52,8 @@ export function undoneText(entry: Described): string {
 export function redoneText(entry: Described): string {
 	return t('honeycomb', 'Redid: {change}', { change: changeText(entry) }, undefined, PLAIN_TEXT)
 }
+
+/** The progress of a cull: "1,200 / 1,840 decided". */
+export function decidedText(decided: number, total: number): string {
+	return n('honeycomb', '{decided} / {total} decided', '{decided} / {total} decided', total, { decided: formatNumber(decided), total: formatNumber(total) })
+}

@@ -3,6 +3,7 @@
 // @vitest-environment happy-dom
 import type { FolderSet } from '../../src/logic/folder-set.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
+import type { ResumePosition } from '../../src/logic/resume-position.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -32,17 +33,16 @@ function recentOn(positions: () => Promise<unknown>, listEntries = async (path: 
 	let resumed = 0
 	const folderSet = ref<FolderSet | null>(null)
 	const progress = ref({ decided: 0, total: 0 })
-	const recent = useRecent({ loadPositions: positions }, (path, subfolders) => {
+	const recent = useRecent({ loadPositions: positions, savePosition: async () => undefined }, (path, subfolders) => {
 		listed.push(`${path}${subfolders ? ' +' : ''}`)
 		return listEntries(path)
 	}, {
 		folderSet: () => folderSet.value,
 		progress: () => progress.value,
 		pairing: () => DEFAULT_PAIRING_SETTINGS,
-		open: (...args) => opened.push(args),
-		resumeOpen: () => resumed++,
 	}, (message) => toasts.push(message))
-	return { ...recent, opened, toasts, listed, folderSet, progress, resumed: () => resumed }
+	const opener = { open: (...args: unknown[]) => opened.push(args), resumeAt: (fileId: number) => opened.at(-1)!.push(fileId), resumeOpen: () => resumed++ }
+	return { ...recent, open: (position: ResumePosition) => recent.open(position, opener), opened, toasts, listed, folderSet, progress, resumed: () => resumed }
 }
 
 describe('useRecent', () => {
@@ -61,7 +61,7 @@ describe('useRecent', () => {
 	it('lists a recent folder set and opens it at its position', async () => {
 		const recent = recentOn(async () => [trip])
 
-		recent.open(trip)
+		await recent.open(trip)
 		await flushPromises()
 
 		expect(recent.listed).toEqual(['/Trip', '/Day'])
@@ -73,7 +73,7 @@ describe('useRecent', () => {
 		const recent = recentOn(async () => [trip])
 		recent.folderSet.value = { paths: ['/Day', '/Trip'], subfolders: false }
 
-		recent.open(trip)
+		await recent.open(trip)
 		await flushPromises()
 
 		expect(recent.resumed()).toBe(1)
@@ -84,8 +84,8 @@ describe('useRecent', () => {
 		const answers: (() => void)[] = []
 		const recent = recentOn(async () => [], (path) => new Promise((resolve) => answers.push(() => resolve({ entries: LISTINGS[path] ?? [], truncated: false, sharedFolders: [] }))))
 
-		recent.open(trip)
-		recent.open(home)
+		void recent.open(trip)
+		void recent.open(home)
 		answers.forEach((answer) => answer())
 		await flushPromises()
 
@@ -98,7 +98,7 @@ describe('useRecent', () => {
 			throw new Error('offline')
 		})
 
-		recent.open(trip)
+		await recent.open(trip)
 		await flushPromises()
 
 		expect(recent.opened).toEqual([])
@@ -136,7 +136,7 @@ describe('useRecent', () => {
 		recent.refresh()
 		await flushPromises()
 
-		recent.saved(trip)
+		await recent.positions.savePosition(trip)
 
 		expect(recent.items.value.map((item) => item.position.fileId)).toEqual([2, 9])
 		expect(reads).toBe(1)

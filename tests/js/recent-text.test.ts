@@ -16,4 +16,3 @@ describe('folderSetName', () => {
 		expect(folderSetName(set)).toBe(name)
 	})
 })
-

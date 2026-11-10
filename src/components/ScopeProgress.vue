@@ -5,9 +5,9 @@
 <script setup lang="ts">
 import type { Scope } from '../logic/picture-filter.ts'
 
-import { n, t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
-import { formatNumber } from '../l10n.ts'
+import { decidedText } from '../decision-text.ts'
 
 const props = defineProps<{
 	scope: Scope
@@ -26,10 +26,7 @@ const scopes = computed<{ value: Scope, label: string }[]>(() => [
 	{ value: 'undecided', label: t('honeycomb', 'Undecided') },
 	{ value: 'all', label: t('honeycomb', 'All') },
 ])
-const decidedText = computed(() => n('honeycomb', '{decided} / {total} decided', '{decided} / {total} decided', props.total, {
-	decided: formatNumber(props.decided),
-	total: formatNumber(props.total),
-}))
+const progressText = computed(() => decidedText(props.decided, props.total))
 const percent = computed(() => (props.total > 0 ? Math.round(100 * props.decided / props.total) : 0))
 </script>
 
@@ -54,7 +51,7 @@ const percent = computed(() => (props.total > 0 ? Math.round(100 * props.decided
 		<span v-if="props.locked" id="scope-progress-locked" class="scope-progress__hint">
 			{{ t('honeycomb', 'The flag filter overrides this') }}
 		</span>
-		<span class="scope-progress__count" aria-live="polite">{{ decidedText }}</span>
+		<span class="scope-progress__count" aria-live="polite">{{ progressText }}</span>
 		<div
 			class="scope-progress__bar"
 			role="progressbar"
