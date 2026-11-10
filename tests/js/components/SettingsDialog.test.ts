@@ -1,0 +1,144 @@
+// SPDX-FileCopyrightText: 2026 honeycomb contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// @vitest-environment happy-dom
+import type { Settings } from '../../../src/logic/settings.ts'
+
+import { mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import SettingsDialog from '../../../src/components/SettingsDialog.vue'
+import { DEFAULT_SETTINGS } from '../../../src/logic/settings.ts'
+import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
+import { AppSettingsDialogStub, AppSettingsSectionStub } from './stubs.ts'
+
+const MARK = TRANSLATED_MARK
+
+/** The open dialog over the given settings. */
+function mountDialog(settings: Partial<Settings> = {}) {
+	return mount(SettingsDialog, {
+		props: { open: true, settings: { ...DEFAULT_SETTINGS, ...settings } },
+		global: { stubs: { NcAppSettingsDialog: AppSettingsDialogStub, NcAppSettingsSection: AppSettingsSectionStub } },
+	})
+}
+
+type Wrapper = ReturnType<typeof mountDialog>
+
+const plain = (text: string) => text.replaceAll(MARK, '').trim()
+const group = (wrapper: Wrapper, name: string) => wrapper.find(`[role="group"][aria-label="${MARK}${name}"]`)
+const chips = (wrapper: Wrapper, name: string) => group(wrapper, name).findAll('.settings-dialog__extension').map((chip) => plain(chip.text()))
+const switchOf = (wrapper: Wrapper, label: string) => wrapper.findAll('.checkbox-radio-switch').find((item) => plain(item.text()).startsWith(label))!.find('input')
+
+/** Types the extension into the add field of the named list and submits it. */
+async function addTo(wrapper: Wrapper, name: string, extension: string) {
+	await group(wrapper, name).find(`input[aria-label="${MARK}Add extension"]`).setValue(extension)
+	await group(wrapper, name).find('form').trigger('submit')
+}
+
+describe('SettingsDialog', () => {
+	beforeEach(installMarkedCatalogue)
+	afterEach(uninstallMarkedCatalogue)
+
+	it('shows the sections of the settings, all translated', () => {
+		const wrapper = mountDialog()
+
+		expect(wrapper.find('[role="dialog"]').attributes('name')).toBe(`${MARK}Settings`)
+		expect(wrapper.findAll('h3').map((heading) => plain(heading.text()))).toEqual(['File types', 'Folder layout', 'Loupe gestures', 'Keyboard'])
+		expect(untranslatedText(wrapper.element as Element)).toEqual(['.NEF', '.CR3', '.ARW', '.RAF', '.DNG', '.JPG', '.JPEG', '.HEIC', '.HEIF', '.HIF'])
+	})
+
+	it('emits the closing of the dialog', async () => {
+		const wrapper = mountDialog()
+
+		wrapper.findComponent(AppSettingsDialogStub).vm.$emit('update:open', false)
+
+		expect(wrapper.emitted('update:open')).toEqual([[false]])
+	})
+
+	it('lists the extensions and removes one', async () => {
+		const wrapper = mountDialog()
+		expect(chips(wrapper, 'RAW extensions')).toEqual(['.NEF', '.CR3', '.ARW', '.RAF', '.DNG'])
+
+		await wrapper.find(`button[aria-label="${MARK}Remove CR3"]`).trigger('click')
+
+		expect(wrapper.emitted('update')).toEqual([[{ rawExtensions: ['nef', 'arw', 'raf', 'dng'] }]])
+	})
+
+	it('keeps the last extension of a list', () => {
+		const wrapper = mountDialog({ renderedExtensions: ['jpg'] })
+
+		expect(wrapper.find(`button[aria-label="${MARK}Remove JPG"]`).attributes('disabled')).toBeDefined()
+	})
+
+	it('adds an extension and clears the field', async () => {
+		const wrapper = mountDialog()
+
+		await addTo(wrapper, 'Rendered extensions', '.tif')
+
+		expect(wrapper.emitted('update')).toEqual([[{ renderedExtensions: [...DEFAULT_SETTINGS.renderedExtensions, 'tif'] }]])
+		expect((group(wrapper, 'Rendered extensions').find('input').element as HTMLInputElement).value).toBe('')
+	})
+
+	it.each([
+		['', 'Type an extension.'],
+		['xmp', 'Sidecars are paired with their photo, they cannot be a photo type.'],
+		['tar.gz', 'An extension has only letters and digits.'],
+		['nef', '.NEF is already in this list.'],
+		['jpg', '.JPG is already in the other list.'],
+	])('refuses %j and says why until the next try', async (extension, reason) => {
+		const wrapper = mountDialog()
+
+		await addTo(wrapper, 'RAW extensions', extension)
+
+		expect(wrapper.emitted('update')).toBeUndefined()
+		expect(plain(group(wrapper, 'RAW extensions').find('.settings-dialog__error').text())).toBe(reason)
+		await addTo(wrapper, 'RAW extensions', 'orf')
+		expect(group(wrapper, 'RAW extensions').find('.settings-dialog__error').exists()).toBe(false)
+	})
+
+	it('switches to separate subfolders with the default names and back', async () => {
+		const wrapper = mountDialog()
+		expect(wrapper.find(`input[aria-label="${MARK}RAW folder"]`).exists()).toBe(false)
+
+		await wrapper.find('input[type="radio"][value="separate-subfolders"]').setValue(true)
+
+		expect(wrapper.emitted('update')).toEqual([[{ folderMode: { kind: 'separate-subfolders', rawSubfolder: 'RAW', renderedSubfolder: 'JPG' } }]])
+	})
+
+	it('changes the subfolder names, an empty one back to its default', async () => {
+		const wrapper = mountDialog({ folderMode: { kind: 'separate-subfolders', rawSubfolder: 'Raws', renderedSubfolder: 'Out' } })
+		expect(wrapper.text()).toContain(`${MARK}Folder names are matched ignoring case.`)
+
+		await wrapper.find(`input[aria-label="${MARK}Rendered folder"]`).setValue('JPEG')
+		await wrapper.find(`input[aria-label="${MARK}RAW folder"]`).setValue(' ')
+		await wrapper.find('input[type="radio"][value="same-folder"]').setValue(true)
+
+		expect(wrapper.emitted('update')).toEqual([
+			[{ folderMode: { kind: 'separate-subfolders', rawSubfolder: 'Raws', renderedSubfolder: 'JPEG' } }],
+			[{ folderMode: { kind: 'separate-subfolders', rawSubfolder: 'RAW', renderedSubfolder: 'Out' } }],
+			[{ folderMode: { kind: 'same-folder' } }],
+		])
+	})
+
+	it.each([
+		['Show singles', 'showSingles'],
+		['Auto-advance to the next undecided photo', 'autoAdvance'],
+		['Show flag buttons', 'flagButtonsShown'],
+		['Vi keys', 'viKeys'],
+	] as const)('turns %s on and off', async (label, key) => {
+		const wrapper = mountDialog({ [key]: true })
+
+		await switchOf(wrapper, label).setValue(false)
+
+		expect(wrapper.emitted('update')).toEqual([[{ [key]: false }]])
+	})
+
+	it('sets what each swipe does, Nothing turning it off', async () => {
+		const wrapper = mountDialog()
+		const up = wrapper.find(`select[aria-label="${MARK}Swipe up"]`)
+		expect((up.element as HTMLSelectElement).value).toBe('picked')
+
+		await up.setValue('')
+		await wrapper.find(`select[aria-label="${MARK}Swipe down"]`).setValue('picked')
+
+		expect(wrapper.emitted('update')).toEqual([[{ swipes: { up: null, down: 'rejected' } }], [{ swipes: { up: 'picked', down: 'picked' } }]])
+	})
+})

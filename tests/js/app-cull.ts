@@ -64,6 +64,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 	const warmed: number[][] = []
 	const lookedUp: number[][] = []
 	const saved: StoredDecision[][] = []
+	const savedSettings: object[] = []
 	const grid = gridStub()
 	const wrapper = mount(App, {
 		props: {
@@ -74,11 +75,13 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 				return decisions
 			},
 			saveDecisions: async (rows: readonly StoredDecision[]) => { saved.push([...rows]) },
+			loadSettings: async () => ({}),
+			saveSettings: async (settings: object) => { savedSettings.push(settings) },
 			...props,
 		},
-		global: { stubs: { FolderPicker: true, PhotoGrid: grid.component, GridToolbar: true, FilterBar: true, PhotoLoupe: true, ...stubs } },
+		global: { stubs: { FolderPicker: true, PhotoGrid: grid.component, GridToolbar: true, FilterBar: true, PhotoLoupe: true, SettingsDialog: true, ...stubs } },
 	})
-	return { wrapper, warmed, lookedUp, saved, grid: grid.calls }
+	return { wrapper, warmed, lookedUp, saved, savedSettings, grid: grid.calls }
 }
 
 /** The base names of the pictures the grid shows, in its order. */

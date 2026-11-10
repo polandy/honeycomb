@@ -17,3 +17,20 @@ export const PopoverStub = defineComponent({
 		return () => h('div', [slots.trigger?.(), slots.default?.()])
 	},
 })
+
+/** NcAppSettingsDialog in place: its name and sections while open, no teleport or focus trap. */
+export const AppSettingsDialogStub = defineComponent({
+	props: { open: Boolean, name: { type: String, required: true } },
+	emits: ['update:open'],
+	setup(props, { slots }) {
+		return () => props.open ? h('div', { role: 'dialog', name: props.name }, slots.default?.()) : null
+	},
+})
+
+/** NcAppSettingsSection in place: its name as a heading over its content. */
+export const AppSettingsSectionStub = defineComponent({
+	props: { id: { type: String, required: true }, name: { type: String, required: true } },
+	setup(props, { slots }) {
+		return () => h('section', { id: props.id }, [h('h3', props.name), slots.default?.()])
+	},
+})

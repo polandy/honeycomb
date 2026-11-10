@@ -13,9 +13,8 @@ import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import ShortcutSheet from '../../src/components/ShortcutSheet.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
-import { VI_KEYS_KEY } from '../../src/hotkeys.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
-import { fakeStorage, mountApp, openCull, shownNames } from './app-cull.ts'
+import { mountApp, openCull, shownNames } from './app-cull.ts'
 
 /** Presses a key on the page and returns whether the app handled it. */
 async function press(key: string, fields: KeyboardEventInit = {}) {
@@ -105,7 +104,7 @@ describe('App: keys on the grid', () => {
 	})
 
 	it('moves the grid\'s focus by the arrows, Home and End, and by the vi keys when on', async () => {
-		const { grid } = await openApp({ storage: fakeStorage({ [VI_KEYS_KEY]: 'true' }) })
+		const { grid } = await openApp({ loadSettings: async () => ({ viKeys: true }) })
 		for (const key of ['ArrowDown', 'ArrowLeft', 'End', 'Home', 'k', 'l']) {
 			await press(key)
 		}
@@ -150,7 +149,7 @@ describe('App: keys on the grid', () => {
 
 	it('opens the filter bar and focuses its first control by / with the vi keys on', async () => {
 		const focus = vi.spyOn(HTMLElement.prototype, 'focus')
-		const { wrapper } = await openApp({ storage: fakeStorage({ [VI_KEYS_KEY]: 'true' }) }, { FilterBar: false })
+		const { wrapper } = await openApp({ loadSettings: async () => ({ viKeys: true }) }, { FilterBar: false })
 		await press('Tab')
 
 		await press('/')

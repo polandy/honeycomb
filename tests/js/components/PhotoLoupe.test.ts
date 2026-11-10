@@ -3,7 +3,7 @@
 // @vitest-environment happy-dom
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
-import { VI_KEYS_KEY } from '../../../src/hotkeys.ts'
+import { DEFAULT_SETTINGS } from '../../../src/logic/settings.ts'
 import { GESTURE_GUIDE_SEEN_KEY, INFO_OPEN_KEY, INFO_WIDTH_KEY, NAVIGATION_SHOWN_KEY } from '../../../src/loupe-panels.ts'
 import { tap } from './loupe-pointer.ts'
 import { button, indices, mountLoupe } from './mount-loupe.ts'
@@ -45,7 +45,7 @@ describe('PhotoLoupe', () => {
 	})
 
 	it('pages by ArrowUp and ArrowDown, and by h and l with the vi keys on', async () => {
-		const { wrapper, root } = await mountLoupe(4, { [VI_KEYS_KEY]: 'true' })
+		const { wrapper, root } = await mountLoupe(4, {}, false, { settings: { ...DEFAULT_SETTINGS, viKeys: true } })
 		for (const key of ['ArrowDown', 'ArrowUp', 'l', 'h']) {
 			await root.trigger('keydown', { key })
 		}

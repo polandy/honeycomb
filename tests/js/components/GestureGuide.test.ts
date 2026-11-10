@@ -14,7 +14,8 @@ describe('GestureGuide', () => {
 
 		expect(wrapper.find('[role="dialog"]').attributes('aria-label')).toBe('How to cull')
 		expect(wrapper.findAll('li').map((line) => line.text())).toEqual([
-			'Swipe up to pick, down to reject',
+			'Swipe up to pick',
+			'Swipe down to reject',
 			'Swipe sideways for the next or previous photo',
 			'Tap the left or right side for the previous or next photo, the middle for the controls Controls',
 			'Pinch to zoom, double-tap to hide the controls',
@@ -31,6 +32,17 @@ describe('GestureGuide', () => {
 		const sketch = wrapper.find('.gesture-guide__zones')
 		expect(sketch.attributes('aria-hidden')).toBe('true')
 		expect(sketch.findAll('span').map((zone) => zone.text())).toEqual(['', 'Controls', ''])
+	})
+
+	it.each([
+		[{ up: 'rejected', down: 'picked' }, ['Swipe up to reject', 'Swipe down to pick']],
+		[{ up: null, down: 'rejected' }, ['Swipe down to reject']],
+		[{ up: 'picked', down: null }, ['Swipe up to pick']],
+		[{ up: null, down: null }, []],
+	] as const)('names each swipe that decides as %o sets them', (swipes, lines) => {
+		const wrapper = mount(GestureGuide, { props: { swipes } })
+
+		expect(wrapper.findAll('li').map((line) => line.text()).filter((line) => /^Swipe (up|down)/.test(line))).toEqual(lines)
 	})
 
 	it('focuses Got it and is dismissed by it', async () => {
