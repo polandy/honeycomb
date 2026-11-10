@@ -127,6 +127,7 @@ describe('eslint conventions', { timeout: 30_000 }, () => {
 		['its message after a cast', '(error as Error).message'],
 		['its stack', 'error.stack'],
 		['its text', 'String(error)'],
+		['it as JSON', 'JSON.stringify(error)'],
 		['its toString()', 'error.toString()'],
 		['it in a template string', '`${error}`'],
 		['it in a concatenation', '\'Failed: \' + error'],
