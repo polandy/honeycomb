@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Reads the repository and prints each unused export with what to do about it.
+import type { SourceFile } from './analyse.ts'
+
 import { readdirSync, readFileSync } from 'node:fs'
 import process from 'node:process'
-import type { SourceFile } from './analyse.ts'
 import { findUnusedExports } from './analyse.ts'
 
 const SOURCE_PATTERN = /\.(ts|vue|js|mjs)$/
