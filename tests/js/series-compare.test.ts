@@ -6,6 +6,7 @@ import type { Decision } from '../../src/logic/decision.ts'
 import { describe, expect, it } from 'vitest'
 import { shallowRef } from 'vue'
 import { UNDECIDED } from '../../src/logic/decision.ts'
+import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { useSeriesCompare } from '../../src/series-compare.ts'
 
 interface Shot { readonly name: string }
@@ -33,6 +34,9 @@ function compareOf(...series: string[][]) {
 			setFlag(picked, 'picked')
 			rest.forEach((shot) => setFlag(shot, 'rejected'))
 		},
+		settings: () => DEFAULT_SETTINGS,
+		updateSettings: () => undefined,
+		toast: () => undefined,
 	})
 	const shown = () => compare.current.value?.map((shot) => shot.name) ?? null
 	return { compare, calls, shown, setFlag, shot: (name: string) => shots.get(name)! }
@@ -153,5 +157,39 @@ describe('useSeriesCompare', () => {
 		compare.hotkeys.close!()
 
 		expect(compare.open.value).toBe(false)
+	})
+
+	// spec: SERIES-002.1, SERIES-002.9
+	it('opens the viewer on a picture of the shown series and makes the viewed one active on closing', () => {
+		const { compare, shown } = compareOf(['A', 'B', 'C'], ['D', 'E'])
+		compare.start()
+		compare.view(1)
+
+		expect(compare.viewer.open.value).toBe(true)
+		expect(compare.viewer.index.value).toBe(1)
+		compare.viewer.go(2)
+		compare.viewer.close()
+		expect(shown()).toEqual(['A', 'B', 'C'])
+		expect(compare.active.value).toBe(2)
+	})
+
+	// spec: SERIES-002.7, SERIES-002.8
+	it('closes the viewer by pick-rest and leaves the active picture once its series is gone', () => {
+		const { compare, shown, shot } = compareOf(['A', 'B', 'C'], ['D', 'E'])
+		compare.start()
+		compare.view(2)
+		compare.pickRest(shot('C'))
+
+		expect(compare.viewer.open.value).toBe(false)
+		expect(shown()).toEqual(['D', 'E'])
+		expect(compare.active.value).toBe(0)
+	})
+
+	it('opens no viewer once no series is left', () => {
+		const { compare } = compareOf()
+		compare.start()
+		compare.view(0)
+
+		expect(compare.viewer.open.value).toBe(false)
 	})
 })

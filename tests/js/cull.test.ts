@@ -90,6 +90,7 @@ describe('useCull: series', () => {
 
 		cull.decide({ kind: 'flag', flag: 'rejected' }, [picture('B')])
 		expect(cull.series.value.map((series) => series.map((each) => each.baseName))).toEqual([['A', 'C']])
+		expect([picture('A'), picture('B')].map((each) => cull.seriesSizes.value.get(each))).toEqual([2, undefined])
 	})
 })
 

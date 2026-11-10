@@ -50,7 +50,8 @@ describe('SeriesCompare', () => {
 		expect(plain(wrapper.find('[role="dialog"]').attributes('name'))).toBe('Compare series 2 of 4')
 		expect(cards(wrapper)).toHaveLength(3)
 		const photos = wrapper.findAll('.series-compare__photo')
-		expect(photos.map((photo) => plain(photo.attributes('aria-label')))).toEqual(['Photo 1: IMG_1', 'Photo 2: IMG_2', 'Photo 3: IMG_3'])
+		expect(photos.map((photo) => plain(photo.attributes('aria-label')))).toEqual(['Open photo 1: IMG_1', 'Open photo 2: IMG_2', 'Open photo 3: IMG_3'])
+		expect(plain(photos[0]!.attributes('title'))).toBe('Open in the series viewer')
 		expect(photos.map((photo) => photo.attributes('aria-pressed'))).toEqual(['false', 'true', 'false'])
 		expect(photos[0]!.find('img').attributes('src')).toBe('/image/1/256')
 		expect(photos[1]!.text()).toContain('2 · IMG_2')
@@ -60,8 +61,8 @@ describe('SeriesCompare', () => {
 		expect(cards(wrapper)[1]!.find('[aria-label$="Pick"]').attributes('aria-pressed')).toBe('true')
 	})
 
-	// spec: SERIES-001.7, SERIES-001.9
-	it('decides, picks the rest and makes a photo active from its card', async () => {
+	// spec: SERIES-001.7, SERIES-001.9, SERIES-002.1
+	it('decides, picks the rest and opens a photo in the viewer from its card', async () => {
 		const wrapper = mountCompare()
 
 		await cards(wrapper)[2]!.find('[aria-label$="Reject"]').trigger('click')
@@ -70,7 +71,7 @@ describe('SeriesCompare', () => {
 
 		expect(wrapper.emitted('decide')).toEqual([[{ kind: 'flag', flag: 'rejected' }, SERIES[2]]])
 		expect(wrapper.emitted('pickRest')).toEqual([[SERIES[0]]])
-		expect(wrapper.emitted('activate')).toEqual([[2]])
+		expect(wrapper.emitted('view')).toEqual([[2]])
 	})
 
 	// spec: SERIES-001.11

@@ -6,7 +6,9 @@ import type { AppWrapper } from './app-cull.ts'
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import GridToolbar from '../../src/components/GridToolbar.vue'
+import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import SeriesCompare from '../../src/components/SeriesCompare.vue'
+import SeriesViewer from '../../src/components/SeriesViewer.vue'
 import ShortcutSheet from '../../src/components/ShortcutSheet.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { mountApp, openCull, SET } from './app-cull.ts'
@@ -35,6 +37,12 @@ async function press(key: string, fields: KeyboardEventInit = {}) {
 const compare = (wrapper: AppWrapper) => wrapper.findComponent(SeriesCompare)
 const pictures = (wrapper: AppWrapper) => compare(wrapper).props('series')!
 const shown = (wrapper: AppWrapper) => compare(wrapper).props('series')?.map((picture: { baseName: string }) => picture.baseName) ?? null
+const viewer = (wrapper: AppWrapper) => wrapper.findComponent(SeriesViewer)
+/** The viewer's pictures by name and the shown one's name. */
+function viewed(wrapper: AppWrapper) {
+	const { pictures: shownPictures, index } = viewer(wrapper).props()
+	return [shownPictures.map((picture) => picture.baseName), shownPictures[index]!.baseName]
+}
 const toastText = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast).text()
 
 enableAutoUnmount(afterEach)
@@ -81,8 +89,7 @@ describe('App: series compare', () => {
 		expect(shown(wrapper)).toEqual(['IMG_2', 'IMG_3'])
 		compare(wrapper).vm.$emit('decide', { kind: 'flag', flag: 'picked' }, pictures(wrapper)[1])
 		compare(wrapper).vm.$emit('pickRest', pictures(wrapper)[0])
-		compare(wrapper).vm.$emit('activate', 1)
-		await flushPromises()
+		await press('ArrowRight')
 		expect(shown(wrapper)).toEqual(['IMG_4', 'IMG_5'])
 		expect(compare(wrapper).props('active')).toBe(1)
 	})
@@ -105,5 +112,56 @@ describe('App: series compare', () => {
 		compare(wrapper).vm.$emit('close')
 		await flushPromises()
 		expect(compare(wrapper).exists()).toBe(false)
+	})
+
+	// spec: SERIES-002.1, SERIES-002.6, SERIES-002.9
+	it('opens the viewer from a card, rejects with a toast, shows the photo again on undo and returns to the compare', async () => {
+		const { wrapper } = await openApp()
+		await press('n')
+		compare(wrapper).vm.$emit('view', 1)
+		await flushPromises()
+		expect(compare(wrapper).exists()).toBe(false)
+		expect(viewed(wrapper)).toEqual([['IMG_1', 'IMG_2', 'IMG_3'], 'IMG_2'])
+		expect(viewer(wrapper).props('position')).toBe(0)
+		expect(viewer(wrapper).props('count')).toBe(2)
+
+		await press('ArrowRight')
+		await press('x')
+		expect(toastText(wrapper)).toContain('Rejected IMG_3')
+		expect(viewed(wrapper)).toEqual([['IMG_1', 'IMG_2'], 'IMG_2'])
+		await press('z', { ctrlKey: true })
+		expect(viewed(wrapper)).toEqual([['IMG_1', 'IMG_2', 'IMG_3'], 'IMG_3'])
+
+		await press('Escape')
+		expect(viewer(wrapper).exists()).toBe(false)
+		expect(compare(wrapper).props('active')).toBe(2)
+	})
+
+	// spec: SERIES-002.7, SERIES-002.8
+	it('closes the viewer by pick-rest and once one photo is left, the compare showing the next series', async () => {
+		const { wrapper } = await openApp()
+		await press('n')
+		compare(wrapper).vm.$emit('view', 0)
+		await flushPromises()
+		await press('K', { shiftKey: true })
+		expect(toastText(wrapper)).toContain('Picked IMG_1, rejected the rest')
+		expect(viewer(wrapper).exists()).toBe(false)
+		expect(shown(wrapper)).toEqual(['IMG_4', 'IMG_5'])
+
+		compare(wrapper).vm.$emit('view', 1)
+		await flushPromises()
+		await press('x')
+		expect(viewer(wrapper).exists()).toBe(false)
+		expect(compare(wrapper).text()).toContain('All series compared')
+		await press('z', { ctrlKey: true })
+		expect(viewer(wrapper).exists()).toBe(false)
+	})
+
+	// spec: SERIES-002.10
+	it('hands the grid the size of each picture\'s series for its badge', async () => {
+		const { wrapper } = await openApp()
+		const sizes = wrapper.findComponent(PhotoGrid).props('seriesSizes') as ReadonlyMap<{ baseName: string }, number>
+
+		expect([...sizes].map(([picture, size]) => `${picture.baseName} ${size}`)).toEqual(['IMG_1 3', 'IMG_2 3', 'IMG_3 3', 'IMG_4 2', 'IMG_5 2'])
 	})
 })

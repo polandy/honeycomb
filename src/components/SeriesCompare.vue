@@ -38,7 +38,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
 	decide: [intent: DecisionIntent, picture: Picture<ListingEntry>]
 	pickRest: [picture: Picture<ListingEntry>]
-	activate: [index: number]
+	view: [index: number]
 	skip: []
 	close: []
 }>()
@@ -70,7 +70,7 @@ const within = () => n('honeycomb', 'Photos taken within {count} second of each 
 		<template v-else>
 			<p class="series-compare__hint">
 				{{ within() }}
-				{{ t('honeycomb', 'Tap a photo to make it active. The arrow keys switch the active photo; P, X, U and 0–5 decide it, {key} picks it and rejects the rest.', { key: keyCap('pick-rest') }, undefined, PLAIN_TEXT) }}
+				{{ t('honeycomb', 'Tap a photo to open the series fullscreen, or decide right here. The arrow keys switch the active photo (outlined); P, X, U and 0–5 decide it, {key} picks it and rejects the rest.', { key: keyCap('pick-rest') }, undefined, PLAIN_TEXT) }}
 			</p>
 			<ul class="series-compare" :class="`series-compare--${props.series.length}`">
 				<li v-for="(picture, index) in props.series" :key="imageMember(picture).fileId" class="series-compare__card">
@@ -79,8 +79,9 @@ const within = () => n('honeycomb', 'Photos taken within {count} second of each 
 						class="series-compare__photo"
 						:class="{ 'series-compare__photo--active': index === props.active }"
 						:aria-pressed="index === props.active"
-						:aria-label="t('honeycomb', 'Photo {i}: {name}', { i: formatNumber(index + 1), name: picture.baseName }, undefined, PLAIN_TEXT)"
-						@click="emit('activate', index)">
+						:aria-label="t('honeycomb', 'Open photo {i}: {name}', { i: formatNumber(index + 1), name: picture.baseName }, undefined, PLAIN_TEXT)"
+						:title="t('honeycomb', 'Open in the series viewer')"
+						@click="emit('view', index)">
 						<img
 							:src="smallSource(imageMember(picture), props.imageUrl)"
 							:srcset="gridSrcset(imageMember(picture), props.imageUrl)"
