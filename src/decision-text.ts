@@ -44,3 +44,8 @@ export function changeText({ change, names }: Described): string {
 export function undoneText(entry: Described): string {
 	return t('honeycomb', 'Undid: {change}', { change: changeText(entry) }, undefined, PLAIN_TEXT)
 }
+
+/** What a redo put again: "Redone: Rejected IMG_0001". */
+export function redoneText(entry: Described): string {
+	return t('honeycomb', 'Redone: {change}', { change: changeText(entry) }, undefined, PLAIN_TEXT)
+}

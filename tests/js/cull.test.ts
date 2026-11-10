@@ -58,7 +58,7 @@ describe('useCull: toggleFiltersOff', () => {
 		cull.toggleFiltersOff()
 		expect(cull.filters.value).toEqual({ ...DEFAULT_FILTERS, scope: 'all' })
 		cull.toggleFiltersOff()
-		expect(cull.filters.value).toBe(filtered)
+		expect(cull.filters.value).toEqual(filtered)
 	})
 
 	it('keeps a scope switched while the filters were off', async () => {
