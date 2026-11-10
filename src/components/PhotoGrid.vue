@@ -18,7 +18,7 @@ import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 
 import { t } from '@nextcloud/l10n'
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
 import PhotoTile from './PhotoTile.vue'
 import { formatNumber } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
@@ -71,6 +71,12 @@ const rendered = computed(() => {
 	return layout.value.rows.slice(start, end)
 })
 const sticky = computed(() => stickyHeader(layout.value, scrollTop.value))
+
+watch(() => props.pictures, () => {
+	scroller.value!.scrollTop = 0
+	scrollTop.value = 0
+	focused.value = 0
+})
 
 /** The name a group's header shows. */
 function groupName(group: number): string {
