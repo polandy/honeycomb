@@ -7,6 +7,8 @@ import type { Toast } from '../toast.ts'
 
 const props = defineProps<{
 	toast: Toast
+	/** Whether it sits at the top, clear of the loupe's controls at the bottom. */
+	top?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -15,7 +17,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-	<div class="undo-toast" role="status">
+	<div class="undo-toast" :class="{ 'undo-toast--top': props.top }" role="status">
 		<span>{{ props.toast.message }}</span>
 		<template v-if="props.toast.action !== null">
 			<span aria-hidden="true">·</span>
@@ -49,6 +51,11 @@ const emit = defineEmits<{
 	background: var(--color-main-text);
 	color: var(--color-main-background);
 	box-shadow: 0 2px 12px var(--color-box-shadow);
+}
+
+.undo-toast--top {
+	top: calc(70px + env(safe-area-inset-top, 0px));
+	bottom: auto;
 }
 
 .undo-toast__action {

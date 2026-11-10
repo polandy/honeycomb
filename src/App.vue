@@ -188,7 +188,11 @@ async function closeLoupe() {
 					@decide="(intent, picture) => decide(intent, [picture])"
 					@toast="toast.show($event.message, $event.action)"
 					@close="closeLoupe" />
-				<UndoToast v-if="toast.current.value !== null" :toast="toast.current.value" @act="toast.act" />
+				<UndoToast
+					v-if="toast.current.value !== null"
+					:toast="toast.current.value"
+					:top="loupe !== null"
+					@act="toast.act" />
 			</Teleport>
 		</NcAppContent>
 	</NcContent>
