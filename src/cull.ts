@@ -17,9 +17,11 @@ import { logger } from './logger.ts'
 import { prepareCull, warmFileIds } from './logic/cull.ts'
 import { commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
 import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
+import { DEFAULT_PAIRING_SETTINGS } from './logic/pairing.ts'
 import { activeFilterCount, clearFilters, DEFAULT_FILTERS, emptyReason, filterPictures, pictureFolders, progress } from './logic/picture-filter.ts'
 import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
 import { parseTileSize } from './logic/tile-size.ts'
+import { withoutFiles } from './logic/trash-report.ts'
 import { NO_HISTORY, recordStep, redoStep, undoEntry, undoStep } from './logic/undo.ts'
 
 /** The browser storage key of the thumbnail size. */
@@ -134,6 +136,13 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 		})
 	}
 
+	/** Takes trashed files out of the pictures; returns what each affected picture became (ADR 0013). */
+	function removeFiles(fileIds: ReadonlySet<number>) {
+		const { pictures: left, replaced } = withoutFiles(pictures.value, fileIds, DEFAULT_PAIRING_SETTINGS)
+		pictures.value = left
+		return replaced
+	}
+
 	/** Switches the scope and keeps the filters. */
 	function setScope(scope: Filters['scope']) {
 		filters.value = { ...filters.value, scope }
@@ -179,6 +188,7 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 		undo,
 		redo,
 		open,
+		removeFiles,
 		setScope,
 		toggleFiltersOff,
 		setTileSize,
