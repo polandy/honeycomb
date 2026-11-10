@@ -150,4 +150,13 @@ describe('SettingsDialog', () => {
 
 		expect(wrapper.emitted('update')).toEqual([[{ swipes: { up: null, down: 'rejected' } }], [{ swipes: { up: 'picked', down: 'picked' } }]])
 	})
+
+	// spec: SETTINGS-001.20
+	it('passes on a change in Moving photos', async () => {
+		const wrapper = mountDialog({ moveFavourites: ['/Photos/Best'] })
+
+		await wrapper.find(`button[aria-label="${MARK}Remove favourite /Photos/Best"]`).trigger('click')
+
+		expect(wrapper.emitted('update')).toEqual([[{ moveFavourites: [] }]])
+	})
 })
