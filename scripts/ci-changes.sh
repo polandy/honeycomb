@@ -17,10 +17,10 @@ while IFS= read -r path; do
     .github/workflows/ci.yml | .github/actions/* | scripts/verify.sh | scripts/ci-changes*) all ;;
     .github/workflows/* | .github/dependabot.yml | .claude/* | docs/* | LICENSES/* | REUSE.toml) ;;
     release-please-config.json | .release-please-manifest.json | .gitignore) ;;
-    tests/e2e/* | playwright* | img/* | l10n/* | css/*) app=true ;;
     *.php | composer.* | appinfo/* | templates/* | lib/* | tests/php/* | psalm* | .php-cs-fixer* | phpunit*) php=true app=true ;;
     *.ts | *.vue | src/* | package*.json | .npmrc | tsconfig* | vite* | vitest* | eslint* | .eslintrc*)
       ts=true app=true ;;
+    tests/e2e/* | scripts/e2e-server.sh | img/* | l10n/* | css/*) app=true ;;
     *) all ;;
   esac
 done
