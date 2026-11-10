@@ -358,7 +358,9 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
      rating and colour label for the shown photo, keys `P`, `X`, `U` — plus *Pick this, reject
      the rest* (`Shift+K`). On a phone it wraps to two rows; in landscape the flags sit at the side
      edges ([Loupe layout](#loupe-layout)). The series compare dialog shows the
-     same flag buttons and *Pick this, reject the rest* under each photo.
+     same flag buttons and *Pick this, reject the rest* under each photo; in a card narrower
+     than 200 px the button drops its icon and wraps its label to two balanced lines (UX review
+     L3).
 5. **Synchronised zoom.** Zooming one photo to 100 % (button, double-tap, pinch or `Z`) zooms
    every photo of the series to the same spot, and panning moves them together, so paging
    compares the same detail for sharpness. While zoomed, a swipe pans instead of paging.

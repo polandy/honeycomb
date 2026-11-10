@@ -39,7 +39,7 @@ Severity: **high** breaks a task or misleads, **medium** slows or confuses, **lo
 | M10 | medium | All dialogs (phone) | Dialogs open centred, out of thumb reach on a phone. | Bottom sheet at ≤ 520 px, with the safe-area inset. | Fixed |
 | L1 | low | Grid | No loading state while thumbnails arrive. | Skeleton tiles. | Fixed |
 | L2 | low | Grid (phone) | The scope name is hidden at phone width. | At 520 px and below the slim row shows one button with the active scope's name that opens the three scopes as a menu. | Fixed |
-| L3 | low | Series (phone) | *Pick this, reject the rest* wraps to three lines. | Shorter label or icon plus text. | `TODO.md` |
+| L3 | low | Series (phone) | *Pick this, reject the rest* wraps to three lines. | In a card narrower than 200 px the button drops its icon and wraps to two balanced lines. | Fixed in the mockup; the app in `TODO.md` |
 | L4 | low | Toast | The undo toast times out with no way to pause it (WCAG 2.2.1). | Pause on focus and pointer down. | `TODO.md` |
 | L5 | low | Loupe, grid | Filmstrip at opacity .6 and a tile gradient without stars or flag. | Full opacity with an outline for the current photo; gradient only when needed. | `TODO.md` |
 | L6 | low | Settings | The gesture guide cannot be shown again. | A settings entry "Show the gesture guide". | `TODO.md` |

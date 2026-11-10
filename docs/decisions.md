@@ -616,3 +616,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   at 360 px in English and German, a shorter label would break the glossary's words, and the
   scope changes rarely, so one more tap costs little. The app bar keeps its three icons while
   scrolling. The app needs no change: its scope switch already shows text labels.
+- 2026-11-10: UX review L3: in a series compare card narrower than 200 px the mockup's *Pick
+  this, reject the rest* drops its icon (the *Pick* button above shows the same flag), narrows
+  its padding to 8 px and balances its wrap, so it takes two lines from 320 px up in English. A
+  shorter label would break the glossary's words; one column would end the side-by-side
+  compare. German still takes three lines at 320 px. The app's button ellipsizes instead of
+  wrapping; that fix is its own `TODO.md` item, because it needs an e2e check at phone width.
