@@ -80,6 +80,13 @@ export function rowOfItem(layout: GridLayout, index: number): number {
 	return after - 1
 }
 
+/** The scroll offset that shows the picture at `index`: unchanged while its row is in view, else the row centred. */
+export function revealScrollTop(layout: GridLayout, index: number, scrollTop: number, viewportHeight: number): number {
+	const row = layout.rows[rowOfItem(layout, index)]!
+	const inView = row.top >= scrollTop && row.top + row.height <= scrollTop + viewportHeight
+	return inView ? scrollTop : Math.max(0, row.top - (viewportHeight - row.height) / 2)
+}
+
 /** The first picture of a row; a header's is that of the tile row below it. */
 function firstItem(rows: readonly GridRow[], row: GridRow, at: number): number {
 	return row.kind === 'tiles' ? row.first : firstItem(rows, rows[at + 1]!, at + 1)

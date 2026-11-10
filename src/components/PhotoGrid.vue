@@ -19,7 +19,7 @@ import PhotoTile from './PhotoTile.vue'
 import { formatNumber } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { UNDECIDED } from '../logic/decision.ts'
-import { focusStep, gridLayout, rowOfItem, stickyHeader, visibleRows } from '../logic/grid-layout.ts'
+import { focusStep, gridLayout, revealScrollTop, stickyHeader, visibleRows } from '../logic/grid-layout.ts'
 import { imageMember } from '../logic/image-tiers.ts'
 import { groupByFolder as folderGroups } from '../logic/picture-order.ts'
 import { NO_SELECTION } from '../logic/selection.ts'
@@ -162,10 +162,7 @@ onBeforeUnmount(() => stopObserving())
 
 /** Scrolls the tile at `index` into view and focuses it, as after closing the loupe. */
 async function reveal(index: number) {
-	const row = layout.value.rows[rowOfItem(layout.value, index)]!
-	if (row.top < scrollTop.value || row.top + row.height > scrollTop.value + height.value) {
-		scroller.value!.scrollTop = scrollTop.value = Math.max(0, row.top - (height.value - row.height) / 2)
-	}
+	scroller.value!.scrollTop = scrollTop.value = revealScrollTop(layout.value, index, scrollTop.value, height.value)
 	focused.value = index
 	await nextTick()
 	scroller.value!.querySelector<HTMLElement>('[tabindex="0"]')!.focus()
