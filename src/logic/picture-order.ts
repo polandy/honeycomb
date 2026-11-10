@@ -39,9 +39,20 @@ export function capPictures(pictures: readonly Picture<ListingEntry>[]): { pictu
 	return { pictures: kept.map((index) => pictures[index]!), cut: true }
 }
 
-/** The grid's order until the sort switch (M2.5): by folder, then by base name. */
-export function orderForGrid<P extends Placed>(pictures: readonly P[], compareNames: (a: string, b: string) => number): P[] {
-	return [...pictures].sort((a, b) => compareNames(a.folder, b.folder) || compareNames(a.baseName, b.baseName))
+/** How the grid sorts pictures (Q18). */
+export type SortOrder = 'file-name' | 'capture-time'
+
+/** One folder starts by file name, several by capture time (plan.md, Sort order). */
+export function defaultSortOrder(folderCount: number): SortOrder {
+	return folderCount > 1 ? 'capture-time' : 'file-name'
+}
+
+/** The pictures sorted, by folder first when grouped; names compare with `compareNames`, ties by folder. */
+export function sortPictures<P extends Picture<ListingEntry>>(pictures: readonly P[], order: SortOrder, compareNames: (a: string, b: string) => number, byFolder: boolean): P[] {
+	const byName = (a: P, b: P) => compareNames(a.baseName, b.baseName) || compareNames(a.folder, b.folder)
+	const times = new Map(order === 'capture-time' ? pictures.map((picture) => [picture, captureTime(picture)]) : [])
+	const byOrder = order === 'capture-time' ? (a: P, b: P) => times.get(a)! - times.get(b)! || byName(a, b) : byName
+	return [...pictures].sort(byFolder ? (a, b) => compareNames(a.folder, b.folder) || byOrder(a, b) : byOrder)
 }
 
 /** The runs of one folder in pictures already ordered by folder. */

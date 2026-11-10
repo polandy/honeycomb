@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { FolderSet } from '../../../src/logic/folder-set.ts'
+import type { Scope } from '../../../src/logic/picture-filter.ts'
+import type { SortOrder } from '../../../src/logic/picture-order.ts'
 
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -11,9 +13,19 @@ import { PopoverStub } from './stubs.ts'
 
 const MARK = TRANSLATED_MARK
 
-function mountToolbar(folderSet: FolderSet, folders = 1) {
+const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder } = {
+	scope: 'not-rejected',
+	scopeLocked: false,
+	decided: 1840,
+	total: 2000,
+	activeFilters: 0,
+	filtersOpen: false,
+	sortOrder: 'file-name',
+}
+
+function mountToolbar(folderSet: FolderSet, folders = 1, cull: Partial<typeof CULL> = {}) {
 	return mount(GridToolbar, {
-		props: { folderSet, folders, tileSize: 150.4, groupByFolder: false },
+		props: { folderSet, folders, tileSize: 150.4, groupByFolder: false, ...CULL, ...cull },
 		global: { stubs: { NcPopover: PopoverStub } },
 	})
 }
@@ -65,8 +77,75 @@ describe('GridToolbar', () => {
 		expect(wrapper.emitted('update:groupByFolder')).toEqual([[true]])
 	})
 
+	it('shows the scope pressed and switches it', async () => {
+		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { scope: 'undecided' })
+		const scope = (name: string) => wrapper.find(`.scope-progress__scope [aria-label="${MARK}${name}"]`)
+
+		expect(scope('Not rejected').attributes('aria-pressed')).toBe('false')
+		expect(scope('Undecided').attributes('aria-pressed')).toBe('true')
+		await scope('All').trigger('click')
+		await scope('Not rejected').trigger('click')
+
+		expect(wrapper.emitted('update:scope')).toEqual([['all'], ['not-rejected']])
+		expect(wrapper.text()).not.toContain('The flag filter overrides this')
+	})
+
+	it('disables the scope while a flag filter overrides it and says why', () => {
+		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { scopeLocked: true })
+		const buttons = wrapper.findAll('.scope-progress__scope button')
+
+		expect(buttons).toHaveLength(3)
+		expect(buttons.every((button) => button.attributes('disabled') !== undefined)).toBe(true)
+		expect(wrapper.text()).toContain(`${MARK}The flag filter overrides this`)
+	})
+
+	it('shows how many photos are decided as text and as a progress bar', () => {
+		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false })
+		const bar = wrapper.find('[role="progressbar"]')
+
+		expect(wrapper.text()).toContain(`${MARK}1,840 / 2,000 decided`)
+		expect(bar.attributes()).toMatchObject({ 'aria-label': `${MARK}Decided`, 'aria-valuemin': '0', 'aria-valuemax': '2000', 'aria-valuenow': '1840' })
+		expect(bar.find('.scope-progress__done').attributes('style')).toContain('width: 92%')
+	})
+
+	it('shows an empty progress bar for a cull without photos', () => {
+		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { decided: 0, total: 0 })
+
+		expect(wrapper.find('.scope-progress__done').attributes('style')).toContain('width: 0%')
+	})
+
+	it('toggles the filter bar and counts the active filters', async () => {
+		const closed = mountToolbar({ paths: ['/A'], subfolders: false })
+		const filters = () => closed.find(`[aria-label^="${MARK}Filters"]`)
+
+		expect(filters().attributes()).toMatchObject({ 'aria-pressed': 'false', 'aria-expanded': 'false' })
+		expect(closed.find('.grid-toolbar__badge').exists()).toBe(false)
+		await filters().trigger('click')
+		expect(closed.emitted('update:filtersOpen')).toEqual([[true]])
+
+		const open = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { filtersOpen: true, activeFilters: 2 })
+		const button = open.find(`[aria-label="${MARK}Filters (2)"]`)
+		expect(button.attributes()).toMatchObject({ 'aria-pressed': 'true', 'aria-expanded': 'true' })
+		expect(open.find('.grid-toolbar__badge').text()).toBe('2')
+		await button.trigger('click')
+		expect(open.emitted('update:filtersOpen')).toEqual([[false]])
+	})
+
+	it('chooses the sort order in the More menu', async () => {
+		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false })
+		const radios = wrapper.findAll('input[type="radio"]')
+
+		expect(wrapper.text()).toContain(`${MARK}Sort by`)
+		expect(radios.map((radio) => (radio.element as HTMLInputElement).checked)).toEqual([true, false])
+		await radios[1]!.setValue(true)
+
+		expect(wrapper.text()).toContain(`${MARK}File name`)
+		expect(wrapper.text()).toContain(`${MARK}Capture time`)
+		expect(wrapper.emitted('update:sortOrder')).toEqual([['capture-time']])
+	})
+
 	it('renders no text that bypasses the catalogue but the folder name', () => {
-		const wrapper = mountToolbar({ paths: ['/Photos/Trip'], subfolders: false }, 2)
+		const wrapper = mountToolbar({ paths: ['/Photos/Trip'], subfolders: false }, 2, { scopeLocked: true, activeFilters: 1 })
 
 		expect(untranslatedText(wrapper.element as Element)).toEqual(['Trip'])
 	})

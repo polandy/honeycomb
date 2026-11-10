@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { createFolder, JPEG, RAW, upload } from './files.ts'
+import { createFolder, JPEG, RAW, requestToken, upload } from './files.ts'
 
 /** A folder name no earlier run left behind. */
 const uniqueFolder = (prefix: string) => `${prefix} ${randomUUID().slice(0, 8)}`
@@ -59,5 +59,31 @@ test('culls a folder with its subfolders and groups the grid by folder', async (
 	const grid = page.getByRole('grid', { name: 'Photos' })
 	await expect(grid.getByRole('rowheader', { name: folder })).toBeVisible()
 	await expect(grid.getByRole('rowheader', { name: 'Day 2' })).toBeVisible()
+	await expect(grid.getByRole('gridcell')).toHaveCount(2)
+})
+
+test('hides a rejected photo in the default scope and shows it under All', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = uniqueFolder('Scope')
+	await createFolder(page, folder)
+	const rejected = await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+	await upload(page, `${folder}/IMG_0002.jpg`, JPEG)
+	const decision = { fileId: rejected, rating: 0, colourLabel: null, flag: 'rejected', keepRaw: false }
+	const saved = await page.request.put('/index.php/apps/honeycomb/api/v1/decisions', {
+		data: { decisions: [decision] },
+		headers: { requesttoken: await requestToken(page) },
+	})
+	expect(saved.status()).toBe(204)
+
+	const picker = await openPicker(page)
+	await picker.getByRole('option', { name: folder }).click()
+	await picker.getByRole('button', { name: `Cull ${folder}` }).click()
+
+	const grid = page.getByRole('grid', { name: 'Photos' })
+	await expect(grid.getByRole('gridcell', { name: 'IMG_0002, JPG only' })).toBeVisible()
+	await expect(grid.getByRole('gridcell')).toHaveCount(1)
+	await expect(page.getByText('1 / 2 decided')).toBeVisible()
+	await page.getByRole('button', { name: 'All', exact: true }).click()
+	await expect(grid.getByRole('gridcell', { name: 'IMG_0001, JPG only' })).toBeVisible()
 	await expect(grid.getByRole('gridcell')).toHaveCount(2)
 })

@@ -9,7 +9,7 @@ import { summarise } from './folder-set.ts'
 import { imageMember } from './image-tiers.ts'
 import { mergeListings } from './listing.ts'
 import { DEFAULT_PAIRING_SETTINGS, pairPictures } from './pairing.ts'
-import { capPictures, orderForGrid, PICTURE_CAP } from './picture-order.ts'
+import { capPictures, PICTURE_CAP } from './picture-order.ts'
 
 /** One folder's listing as the listing endpoint returns it (ADR 0009). */
 export interface Listing {
@@ -41,10 +41,9 @@ export function folderLabel(folder: string, set: FolderSet): string {
 	return root !== null && folder.startsWith(`${root}/`) ? folder.slice(root.length + 1) : splitFolder(folder).name
 }
 
-/** The pictures of a cull: paired, capped and in the grid's order; `cut` when some were left out. */
-export function prepareCull(entries: readonly ListingEntry[], compareNames: (a: string, b: string) => number): { pictures: Picture<ListingEntry>[], cut: boolean } {
-	const { pictures, cut } = capPictures(pairPictures(entries, DEFAULT_PAIRING_SETTINGS))
-	return { pictures: orderForGrid(pictures, compareNames), cut }
+/** The pictures of a cull: paired and capped; `cut` when some were left out. */
+export function prepareCull(entries: readonly ListingEntry[]): { pictures: Picture<ListingEntry>[], cut: boolean } {
+	return capPictures(pairPictures(entries, DEFAULT_PAIRING_SETTINGS))
 }
 
 /** The file ids whose previews to warm, in the pictures' order. */

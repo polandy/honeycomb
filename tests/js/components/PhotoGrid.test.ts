@@ -8,6 +8,7 @@ import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import PhotoGrid from '../../../src/components/PhotoGrid.vue'
 import { prepareCull } from '../../../src/logic/cull.ts'
+import { sortPictures } from '../../../src/logic/picture-order.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { listingEntry } from '../logic/listing-entries.ts'
 
@@ -22,7 +23,7 @@ function picturesIn(folders: Record<string, number>) {
 			entries.push(listingEntry(entries.length + 1, `${folder}/IMG_${index}.JPG`))
 		}
 	}
-	return prepareCull(entries, compareNames).pictures
+	return sortPictures(prepareCull(entries).pictures, 'file-name', compareNames, true)
 }
 
 /** A size observer the test drives, and the grid mounted with it. */

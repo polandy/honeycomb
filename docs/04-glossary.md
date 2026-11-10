@@ -31,6 +31,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **tap zone** | The left or right 30 % of the whole photo area in the loupe and series viewer, margins beside, above and below the photo included; a tap there goes to the previous or next photo. The middle shows or hides the overlays (`plan.md`, *Tap zones*). |
 | **tooltip** | The bubble that names a control and its key, on hover, keyboard focus or long-press. One for the whole app; not the browser's `title`. |
 | **filter** | A condition on rating, colour label, flag, pairing, *Keep RAW* or folder that narrows the grid and loupe. |
+| **scope** | Which pictures a cull shows before the filters: *not rejected* (default), *undecided* or *all*. A flag filter overrides it; *Clear filters* keeps it. |
 | **selection** | The set of pictures marked in selection mode for a bulk action. |
 | **bulk action** | Rate, label, flag, move or delete applied to the whole selection at once. |
 | **move** | Moving whole pictures (all members and sidecars) into a target folder, renamed by the name template. The files leave the source folder. |

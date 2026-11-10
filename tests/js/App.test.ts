@@ -1,55 +1,16 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { FolderSet } from '../../src/logic/folder-set.ts'
-
-import { flushPromises, mount } from '@vue/test-utils'
+import { flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import App from '../../src/App.vue'
 import FolderPicker from '../../src/components/FolderPicker.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import { logger } from '../../src/logger.ts'
+import { ENTRIES, fakeStorage, mountApp, openCull, SET, shownNames } from './app-cull.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from './l10n/marked-catalogue.ts'
-import { listingEntry } from './logic/listing-entries.ts'
 
 const MARK = TRANSLATED_MARK
-const ENTRIES = [
-	listingEntry(1, '/Trip/B/IMG_2.JPG'),
-	listingEntry(2, '/Trip/A/IMG_10.JPG'),
-	listingEntry(3, '/Trip/A/IMG_10.CR3', { mime: 'image/x-dcraw' }),
-	listingEntry(4, '/Trip/A/IMG_9.JPG'),
-]
-const SET: FolderSet = { paths: ['/Trip'], subfolders: true }
-
-/** A storage over a plain map, or one that throws like a browser with site data blocked. */
-function fakeStorage(stored: Record<string, string> = {}, blocked = false) {
-	return () => {
-		if (blocked) {
-			throw new DOMException('blocked', 'SecurityError')
-		}
-		return {
-			getItem: (key: string) => stored[key] ?? null,
-			setItem: (key: string, value: string) => {
-				stored[key] = value
-			},
-		}
-	}
-}
-
-function mountApp(props: Record<string, unknown> = {}) {
-	const warmed: number[][] = []
-	const wrapper = mount(App, {
-		props: { storage: fakeStorage(), warmPreviews: async (ids: readonly number[]) => { warmed.push([...ids]) }, ...props },
-		global: { stubs: { FolderPicker: true, PhotoGrid: true, GridToolbar: true } },
-	})
-	return { wrapper, warmed }
-}
-
-async function openCull(wrapper: ReturnType<typeof mountApp>['wrapper'], set = SET, entries = ENTRIES) {
-	wrapper.findComponent(FolderPicker).vm.$emit('confirm', set, entries)
-	await flushPromises()
-}
 
 describe('App', () => {
 	beforeEach(installMarkedCatalogue)
@@ -75,10 +36,10 @@ describe('App', () => {
 		expect(wrapper.findComponent(FolderPicker).exists()).toBe(false)
 		expect(wrapper.text()).not.toContain(`${MARK}No folder chosen`)
 		const grid = wrapper.findComponent(PhotoGrid)
-		expect(grid.props('pictures').map((picture: { baseName: string }) => picture.baseName)).toEqual(['IMG_9', 'IMG_10', 'IMG_2'])
+		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
 		expect(grid.props('folderSet')).toEqual(SET)
-		expect(warmed).toEqual([[4, 2, 1]])
-		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ folderSet: SET, folders: 2 })
+		expect(warmed).toEqual([[1, 4, 2]])
+		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ folderSet: SET, folders: 2, sortOrder: 'capture-time', scope: 'not-rejected' })
 	})
 
 	it('logs a failed warm-up and keeps the grid', async () => {
@@ -144,9 +105,11 @@ describe('App', () => {
 		expect(wrapper.findComponent(PhotoGrid).props('tileSize')).toBe(250)
 	})
 
-	it('renders no text that bypasses the catalogue', () => {
+	it('renders no text that bypasses the catalogue', async () => {
 		const { wrapper } = mountApp()
+		expect(untranslatedText(wrapper.element as Element)).toEqual([])
 
+		await openCull(wrapper, SET, [])
 		expect(untranslatedText(wrapper.element as Element)).toEqual([])
 	})
 })

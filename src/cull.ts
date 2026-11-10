@@ -1,13 +1,19 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Decision, StoredDecision } from './logic/decision.ts'
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
+import type { Filters } from './logic/picture-filter.ts'
+import type { SortOrder } from './logic/picture-order.ts'
 
 import { computed, ref, shallowRef } from 'vue'
 import { nameComparer } from './l10n.ts'
 import { logger } from './logger.ts'
 import { prepareCull, warmFileIds } from './logic/cull.ts'
+import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
+import { activeFilterCount, DEFAULT_FILTERS, emptyReason, filterPictures, pictureFolders, progress } from './logic/picture-filter.ts'
+import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
 import { parseTileSize } from './logic/tile-size.ts'
 
 /** The browser storage key of the thumbnail size. */
@@ -16,21 +22,58 @@ export const TILE_SIZE_KEY = 'honeycomb.tileSize'
 /** The browser's storage; reaching it throws where site data is blocked. */
 export type BrowserStorage = () => Pick<Storage, 'getItem' | 'setItem'>
 
+/** The server calls the cull makes. */
+export interface CullApi {
+	readonly warmPreviews: (fileIds: readonly number[]) => Promise<void>
+	readonly lookupDecisions: (fileIds: readonly number[]) => Promise<StoredDecision[]>
+}
+
 /** The open cull, its view settings and the folder picker's state. */
-export function useCull(warmPreviews: (fileIds: readonly number[]) => Promise<void>, storage: BrowserStorage) {
+export function useCull(api: CullApi, storage: BrowserStorage) {
+	const compareNames = nameComparer()
 	const folderSet = ref<FolderSet | null>(null)
 	const pictures = shallowRef<Picture<ListingEntry>[]>([])
+	const decisions = shallowRef<ReadonlyMap<number, Decision>>(new Map())
+	const filters = shallowRef<Filters>(DEFAULT_FILTERS)
+	const sortOrder = ref<SortOrder>('file-name')
+	const filtersOpen = ref(false)
 	const pickerOpen = ref(true)
 	const groupByFolder = ref(false)
 	const tileSize = ref(parseTileSize(readStored(storage)))
-	const folders = computed(() => new Set(pictures.value.map((picture) => picture.folder)).size)
+	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
+	const folders = computed(() => folderPaths.value.length)
+	const grouped = computed(() => groupByFolder.value && folders.value > 1)
+	const decisionOf = (picture: Picture<ListingEntry>) => pictureDecision(picture, decisions.value)
+	const view = computed(() => sortPictures(filterPictures(pictures.value, decisionOf, filters.value), sortOrder.value, compareNames, grouped.value))
+	const cullProgress = computed(() => progress(pictures.value, decisionOf))
+	const activeFilters = computed(() => activeFilterCount(filters.value))
+	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
 
-	/** Shows the pictures of the confirmed folders and warms their previews in the grid's order. */
+	/** Shows the pictures of the confirmed folders with fresh filters, then their stored decisions. */
 	function open(set: FolderSet, entries: readonly ListingEntry[]) {
 		folderSet.value = set
-		pictures.value = prepareCull(entries, nameComparer()).pictures
+		pictures.value = prepareCull(entries).pictures
+		decisions.value = new Map()
+		filters.value = DEFAULT_FILTERS
+		sortOrder.value = defaultSortOrder(folders.value)
 		pickerOpen.value = false
-		warmPreviews(warmFileIds(pictures.value)).catch((error: unknown) => logger.error('Could not warm the previews', { error }))
+		api.warmPreviews(warmFileIds(view.value)).catch((error: unknown) => logger.error('Could not warm the previews', { error }))
+		loadDecisions(pictures.value)
+	}
+
+	/** Reads the decisions of every member; they apply only while the same pictures are open. */
+	function loadDecisions(opened: readonly Picture<ListingEntry>[]) {
+		const fileIds = opened.flatMap((picture) => [picture.rendered, picture.raw].filter((member) => member !== null).map((member) => member.fileId))
+		api.lookupDecisions(fileIds).then((rows) => {
+			if (pictures.value === opened) {
+				decisions.value = decisionsByFileId(rows)
+			}
+		}).catch((error: unknown) => logger.error('Could not read the decisions; every photo shows as undecided', { error }))
+	}
+
+	/** Switches the scope and keeps the filters. */
+	function setScope(scope: Filters['scope']) {
+		filters.value = { ...filters.value, scope }
 	}
 
 	/** Sets the thumbnail size and keeps it for the next visit. */
@@ -43,7 +86,26 @@ export function useCull(warmPreviews: (fileIds: readonly number[]) => Promise<vo
 		}
 	}
 
-	return { folderSet, pictures, folders, pickerOpen, groupByFolder, tileSize, open, setTileSize }
+	return {
+		folderSet,
+		pictures,
+		folderPaths,
+		folders,
+		grouped,
+		view,
+		progress: cullProgress,
+		filters,
+		activeFilters,
+		empty,
+		sortOrder,
+		filtersOpen,
+		pickerOpen,
+		groupByFolder,
+		tileSize,
+		open,
+		setScope,
+		setTileSize,
+	}
 }
 
 /** The stored thumbnail size, or null when there is none or no storage. */

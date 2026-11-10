@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { StoredDecision } from './logic/decision.ts'
 import type { ListingEntry } from './logic/listing.ts'
 
 import axios from '@nextcloud/axios'
@@ -41,6 +42,18 @@ export async function warmPreviews(fileIds: readonly number[]): Promise<void> {
 	if (fileIds.length > 0) {
 		await axios.post(generateUrl(`${API}/previews`), { fileIds })
 	}
+}
+
+/** The stored decisions of the files; a file without one is undecided (ADR 0012). */
+export async function lookupDecisions(fileIds: readonly number[]): Promise<StoredDecision[]> {
+	if (fileIds.length === 0) {
+		return []
+	}
+	const { data } = await axios.post<unknown>(generateUrl(`${API}/decisions/lookup`), { fileIds })
+	if (!isRecord(data) || !Array.isArray(data.decisions)) {
+		throw new ApiResponseError('The decision lookup came without a decisions array; check the server\'s version.')
+	}
+	return data.decisions as StoredDecision[]
 }
 
 /** The immutable URL of a preview tier of a file (ADR 0010). */

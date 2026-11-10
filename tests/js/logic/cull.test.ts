@@ -5,8 +5,6 @@ import { countFolderSet, folderLabel, prepareCull, warmFileIds } from '../../../
 import { PICTURE_CAP } from '../../../src/logic/picture-order.ts'
 import { listingEntry } from './listing-entries.ts'
 
-const compareNames = new Intl.Collator('en', { numeric: true }).compare
-
 describe('countFolderSet', () => {
 	it('counts the pairs and singles of every listing, each file once, and their folders', () => {
 		const pair = [listingEntry(1, '/A/IMG_1.JPG'), listingEntry(2, '/A/IMG_1.CR3')]
@@ -47,19 +45,19 @@ describe('folderLabel', () => {
 })
 
 describe('prepareCull', () => {
-	it('pairs the entries and orders the pictures by folder, then by base name', () => {
-		const entries = [listingEntry(1, '/B/IMG_10.JPG'), listingEntry(2, '/B/IMG_9.JPG'), listingEntry(3, '/A/Z.JPG'), listingEntry(4, '/B/IMG_9.CR3')]
+	it('pairs the entries', () => {
+		const entries = [listingEntry(1, '/B/IMG_10.JPG'), listingEntry(2, '/B/IMG_9.JPG'), listingEntry(4, '/B/IMG_9.CR3')]
 
-		const { pictures, cut } = prepareCull(entries, compareNames)
+		const { pictures, cut } = prepareCull(entries)
 
-		expect(pictures.map((picture) => `${picture.folder}/${picture.baseName}`)).toEqual(['/A/Z', '/B/IMG_9', '/B/IMG_10'])
+		expect(pictures.map((picture) => [picture.baseName, picture.raw?.fileId ?? null])).toEqual([['IMG_10', null], ['IMG_9', 4]])
 		expect(cut).toBe(false)
 	})
 
 	it('keeps the earliest pictures by capture time above the cap', () => {
 		const entries = Array.from({ length: PICTURE_CAP + 1 }, (_, index) => listingEntry(index, `/A/IMG_${index}.JPG`, { captureTime: PICTURE_CAP - index }))
 
-		const { pictures, cut } = prepareCull(entries, compareNames)
+		const { pictures, cut } = prepareCull(entries)
 
 		expect(cut).toBe(true)
 		expect(pictures).toHaveLength(PICTURE_CAP)
@@ -69,7 +67,7 @@ describe('prepareCull', () => {
 
 describe('warmFileIds', () => {
 	it('lists the file id of the image each picture shows, in order', () => {
-		const { pictures } = prepareCull([listingEntry(1, '/A/X.CR3'), listingEntry(2, '/A/X.JPG'), listingEntry(3, '/A/Y.NEF')], compareNames)
+		const { pictures } = prepareCull([listingEntry(1, '/A/X.CR3'), listingEntry(2, '/A/X.JPG'), listingEntry(3, '/A/Y.NEF')])
 
 		expect(warmFileIds(pictures)).toEqual([2, 3])
 	})

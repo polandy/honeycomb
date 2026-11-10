@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { capPictures, captureTime, groupByFolder, orderForGrid, PICTURE_CAP } from '../../../src/logic/picture-order.ts'
+import { capPictures, captureTime, defaultSortOrder, groupByFolder, PICTURE_CAP, sortPictures } from '../../../src/logic/picture-order.ts'
 import { listingEntry, pictureOf, picturesOf } from './listing-entries.ts'
 
 const compareNames = new Intl.Collator('en', { numeric: true }).compare
@@ -53,19 +53,45 @@ describe('capPictures', () => {
 	})
 })
 
-describe('orderForGrid', () => {
-	it('orders by folder, then by base name with the given comparison', () => {
-		const pictures = picturesOf(['/B/IMG_1.JPG', '/A/IMG_10.JPG', '/A/IMG_2.JPG', '/A/IMG_2.NEF'].map((path, index) => listingEntry(index, path)))
+describe('defaultSortOrder', () => {
+	it('sorts one folder by file name and several by capture time', () => {
+		expect(defaultSortOrder(0)).toBe('file-name')
+		expect(defaultSortOrder(1)).toBe('file-name')
+		expect(defaultSortOrder(2)).toBe('capture-time')
+	})
+})
 
-		const ordered = orderForGrid(pictures, compareNames)
+describe('sortPictures', () => {
+	const timed = (fileId: number, path: string, captureTime: number | null, mtime = 1000) => listingEntry(fileId, path, { captureTime, mtime })
 
-		expect(ordered.map((picture) => `${picture.folder}/${picture.baseName}`)).toEqual(['/A/IMG_2', '/A/IMG_10', '/B/IMG_1'])
+	it('sorts by base name with the given comparison, then by folder', () => {
+		const pictures = picturesOf(['/B/IMG_1.JPG', '/A/IMG_10.JPG', '/A/IMG_2.JPG', '/A/IMG_2.NEF', '/A/IMG_1.JPG'].map((path, index) => listingEntry(index, path)))
+
+		const sorted = sortPictures(pictures, 'file-name', compareNames, false)
+
+		expect(sorted.map((picture) => `${picture.folder}/${picture.baseName}`)).toEqual(['/A/IMG_1', '/B/IMG_1', '/A/IMG_2', '/A/IMG_10'])
+	})
+
+	it('sorts by capture time, a picture without one by its modification time, ties by file name', () => {
+		const pictures = picturesOf([timed(1, '/P/C.JPG', 30), timed(2, '/P/B.JPG', null, 20), timed(3, '/P/A.JPG', 30), timed(4, '/P/D.JPG', 10)])
+
+		const sorted = sortPictures(pictures, 'capture-time', compareNames, false)
+
+		expect(sorted.map((picture) => picture.baseName)).toEqual(['D', 'B', 'A', 'C'])
+	})
+
+	it('sorts by folder first when grouped by folder', () => {
+		const pictures = picturesOf([timed(1, '/B/X.JPG', 10), timed(2, '/A/Y.JPG', 30), timed(3, '/A/Z.JPG', 20)])
+
+		const sorted = sortPictures(pictures, 'capture-time', compareNames, true)
+
+		expect(sorted.map((picture) => `${picture.folder}/${picture.baseName}`)).toEqual(['/A/Z', '/A/Y', '/B/X'])
 	})
 
 	it('leaves the given pictures in their order', () => {
 		const pictures = picturesOf([listingEntry(1, '/P/B.JPG'), listingEntry(2, '/P/A.JPG')])
 
-		orderForGrid(pictures, compareNames)
+		sortPictures(pictures, 'file-name', compareNames, false)
 
 		expect(pictures.map((picture) => picture.baseName)).toEqual(['B', 'A'])
 	})
