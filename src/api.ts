@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { StoredDecision } from './logic/decision.ts'
 import type { ListingEntry } from './logic/listing.ts'
+import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -61,6 +62,20 @@ export async function saveDecisions(decisions: readonly StoredDecision[]): Promi
 	if (decisions.length > 0) {
 		await axios.put(generateUrl(`${API}/decisions`), { decisions })
 	}
+}
+
+/** Thrown when the trash bin app is off for the user; nothing was deleted (ADR 0013). */
+export class TrashBinOffError extends Error {}
+
+/** Moves each picture's files to the trash bin and returns the result of every file (ADR 0013). */
+export async function trashPictures(pictures: readonly (readonly TrashRequestFile[])[]): Promise<TrashResponseFile[][]> {
+	const data = await axios.post<unknown>(generateUrl(`${API}/trash`), { pictures }).then((response) => response.data, (error: unknown) => {
+		throw isRecord(error) && isRecord(error.response) && error.response.status === 409 ? new TrashBinOffError('The trash bin is off; nothing was deleted.') : error
+	})
+	if (!isRecord(data) || !Array.isArray(data.pictures)) {
+		throw new ApiResponseError('The trash response came without a pictures array; check the server\'s version.')
+	}
+	return data.pictures as TrashResponseFile[][]
 }
 
 /** The immutable URL of a preview tier of a file (ADR 0010). */
