@@ -6,7 +6,7 @@ import type { ResumePosition } from './resume-position.ts'
 import { folderSetKey } from './folder-set.ts'
 
 /** How many positions the server keeps per user, `PositionService::RECENT_LIMIT`. */
-export const RECENT_LIMIT = 20
+const RECENT_LIMIT = 20
 
 /** One folder set under *Recent*: its stored position and its progress (DECISIONS-002.8). */
 export interface RecentFolderSet {

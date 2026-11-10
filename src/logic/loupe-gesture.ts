@@ -4,13 +4,13 @@ import type { Flag } from './decision.ts'
 import type { PinchCentre } from './loupe-zoom.ts'
 
 /** Each outer tap zone's share of the stage width (`docs/plan.md` Tap zones). */
-export const TAP_ZONE = 0.3
+const TAP_ZONE = 0.3
 
 /** The longest touch that is a tap, the tooltip's long-press time. */
 export const TAP_MAX_MS = 500
 
 /** The movement in CSS pixels below which a touch is still a tap. */
-export const TAP_SLOP = 8
+const TAP_SLOP = 8
 
 /** The longest pause between the two taps of a double-tap. */
 export const DOUBLE_TAP_MS = 320

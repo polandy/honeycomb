@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /** How many pictures ahead of the shown one the loupe loads (`docs/plan.md` Image delivery). */
-export const PREFETCH_AHEAD = 3
+const PREFETCH_AHEAD = 3
 
 /** How many pictures behind the shown one the loupe loads. */
-export const PREFETCH_BEHIND = 2
+const PREFETCH_BEHIND = 2
 
 /** The indexes the loupe loads around `index` of `count` pictures, nearest first, ahead before behind. */
 export function prefetchOrder(index: number, count: number): number[] {

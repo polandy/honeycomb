@@ -594,3 +594,13 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-10: PR 78 has no screenshots: the assets repository `polandy/honeycomb-assets` that
   `docs/02-workflow.md` §2.7 names does not exist, and creating a public repository is the
   owner's call; the Playwright run and the component tests stand in until it exists.
+- 2026-11-10: The TypeScript unused-export gate is glissando's `unused-exports` analyser, ported
+  and taught Vue script blocks, not knip: it needs no new dependency (it parses with the
+  `typescript` package already locked) and so no ADR. It judges `src/` except `src/main.ts`;
+  tests, scripts and config count only as importers, and a component's own exports are not
+  judged.
+- 2026-11-10: The no-raw-error-text gate is a local ESLint rule on `src/`, not a selector: it
+  follows the binding of a `catch` clause and of a `.catch()` or `.then()` rejection handler and
+  refuses reading its text (`message`, `stack`, `toString()`, `String()`, a template string or
+  `+`). Passing the error on, logging it, `instanceof` and rethrowing stay allowed, since the
+  `*Text()` mappers take the error and check its type.

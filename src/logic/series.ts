@@ -8,7 +8,7 @@ import type { Picture } from './pairing.ts'
 export const SERIES_GAP_SECONDS = 3
 
 /** The most pictures one series shows side by side. */
-export const SERIES_SIZE = 4
+const SERIES_SIZE = 4
 
 interface Shot<P> {
 	readonly picture: P

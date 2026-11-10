@@ -62,5 +62,3 @@ export function useSeriesViewer<P>(context: SeriesViewerContext<P>) {
 
 	return { open, pictures, index, openAt, go, close }
 }
-
-export type SeriesViewerState<P> = ReturnType<typeof useSeriesViewer<P>>

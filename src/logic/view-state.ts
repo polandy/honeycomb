@@ -12,7 +12,7 @@ export type ViewStateKey = keyof ViewState
 /** Each key's stored value, null while it was never stored. */
 export type StoredViewState = { [Key in ViewStateKey]: boolean | null }
 
-export const VIEW_STATE_KEYS: readonly ViewStateKey[] = ['infoPanelOpen', 'gestureGuideSeen']
+const VIEW_STATE_KEYS: readonly ViewStateKey[] = ['infoPanelOpen', 'gestureGuideSeen']
 
 export const DEFAULT_VIEW_STATE: ViewState = { infoPanelOpen: false, gestureGuideSeen: false }
 
