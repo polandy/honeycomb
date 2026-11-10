@@ -92,3 +92,12 @@ export function withoutFiles(pictures: readonly Picture<ListingEntry>[], fileIds
 	})
 	return { pictures: kept, replaced }
 }
+
+/** A snapshot of pictures after a delete, at what replaced the shown one or the next left; null when none is left. */
+export function followReplaced<P>(pictures: readonly P[], index: number, replaced: ReadonlyMap<P, P | null>): { pictures: P[], index: number } | null {
+	const follow = (picture: P): P | null => (replaced.has(picture) ? replaced.get(picture) ?? null : picture)
+	const kept = (list: readonly P[]) => list.map(follow).filter((picture): picture is P => picture !== null)
+	const left = kept(pictures)
+	const before = kept(pictures.slice(0, index)).length
+	return left.length === 0 ? null : { pictures: left, index: Math.min(before, left.length - 1) }
+}
