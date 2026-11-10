@@ -4,7 +4,7 @@ import type { Decision } from '../../../src/logic/decision.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { pushUndo, UNDO_LIMIT, undoEntry } from '../../../src/logic/undo.ts'
+import { NO_HISTORY, pushUndo, recordStep, redoStep, UNDO_LIMIT, undoEntry, undoStep } from '../../../src/logic/undo.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const PAIR = pictureOf(listingEntry(1, '/P/A.JPG'), listingEntry(2, '/P/A.NEF', { mime: 'image/x-dcraw' }))
@@ -48,5 +48,34 @@ describe('pushUndo', () => {
 		expect(pushed[0]!.names).toEqual(['1'])
 		expect(pushed.at(-1)).toBe(entry)
 		expect(UNDO_LIMIT).toBe(50)
+	})
+})
+
+describe('undo and redo steps', () => {
+	const step = (rating: number) => undoEntry([{ picture: JPEG, decision: UNDECIDED }], { rating })!
+
+	it('moves a step to redo on undo and back on redo', () => {
+		const recorded = recordStep(recordStep(NO_HISTORY, step(1)), step(2))
+		const undone = undoStep(recorded)!
+		expect(undone.entry).toEqual(step(2))
+		expect(undone.history).toEqual({ done: [step(1)], undone: [step(2)] })
+		const redone = redoStep(undone.history)!
+		expect(redone.entry).toEqual(step(2))
+		expect(redone.history).toEqual({ done: [step(1), step(2)], undone: [] })
+	})
+
+	it('has nothing to undo or redo on empty stacks', () => {
+		expect(undoStep(NO_HISTORY)).toBeNull()
+		expect(redoStep(NO_HISTORY)).toBeNull()
+	})
+
+	it('clears redo on a new decision', () => {
+		const undone = undoStep(recordStep(NO_HISTORY, step(1)))!.history
+		expect(redoStep(recordStep(undone, step(3)))).toBeNull()
+	})
+
+	it('keeps the limit on redo', () => {
+		const full = { done: Array.from({ length: UNDO_LIMIT }, (_, at) => step(at % 6)), undone: [step(5)] }
+		expect(redoStep(full)!.history.done).toHaveLength(UNDO_LIMIT)
 	})
 })

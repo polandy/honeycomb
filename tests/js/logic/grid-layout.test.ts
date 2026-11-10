@@ -3,7 +3,7 @@
 import type { GridLayoutInput } from '../../../src/logic/grid-layout.ts'
 
 import { describe, expect, it } from 'vitest'
-import { gridLayout, rowOfItem, stickyHeader, visibleRows } from '../../../src/logic/grid-layout.ts'
+import { focusStep, gridLayout, rowOfItem, stickyHeader, visibleRows } from '../../../src/logic/grid-layout.ts'
 
 // Two columns of 100 px tiles with a 10 px gap, two groups of 3 and 5 pictures.
 const GROUPED: GridLayoutInput = { width: 210, tileSize: 100, gap: 10, headerHeight: 30, groups: [3, 5], showHeaders: true }
@@ -133,5 +133,28 @@ describe('a grid of 20,000 pictures in 100 folders', () => {
 		const crossing = layout.rows.flatMap((row, index) => (row.top < scrollTop + 800 && row.top + row.height > scrollTop ? [index] : []))
 
 		expect([start, end]).toEqual([crossing[0], crossing.at(-1)! + 1])
+	})
+})
+
+describe('focusStep', () => {
+	// Rows: header, [0 1], [2], header, [3 4], [5 6], [7].
+	const layout = gridLayout(GROUPED)
+
+	it.each([
+		['previous', 3, 2],
+		['previous', 0, 0],
+		['next', 2, 3],
+		['next', 7, 7],
+		['first', 5, 0],
+		['last', 1, 7],
+		['down', 1, 2],
+		['down', 2, 3],
+		['down', 6, 7],
+		['down', 7, 7],
+		['up', 3, 2],
+		['up', 4, 2],
+		['up', 0, 0],
+	] as const)('moves %s from %i to %i, across group headers and onto shorter rows', (move, from, to) => {
+		expect(focusStep(layout, from, move)).toBe(to)
 	})
 })
