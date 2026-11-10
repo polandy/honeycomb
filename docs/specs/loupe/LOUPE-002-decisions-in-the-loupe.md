@@ -86,7 +86,7 @@ off. The flag buttons can be hidden by their toggle or `B`. Each decision shows 
 - **When** the server does not store the undo
 - **Then** the decision is put back and the toast says the undo failed
 
-### LOUPE-002.11 – Flag buttons at the side edges in landscape (gap)
+### LOUPE-002.11 – Flag buttons at the side edges in landscape
 
 - **Given** the loupe is wider than tall
 - **When** the flag buttons show
