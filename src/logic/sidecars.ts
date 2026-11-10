@@ -16,27 +16,22 @@ export interface SidecarOwner {
 	readonly ambiguous: boolean
 }
 
-/**
- * Finds the owner of a sidecar by its name: a member's file name exactly, else ignoring case when
- * unique, else a darktable duplicate's member, else the shared base name of an unambiguous owner.
- */
+/** Finds a sidecar's owner by member file name, darktable duplicate or shared base name (`docs/decisions.md`). */
 export function sidecarOwnerFinder(owners: readonly SidecarOwner[]): (sidecar: FileName) => number | undefined {
-	const exact = new Map<string, number>()
+	const exact = new Map<string, number[]>()
 	const ignoringCase = new Map<string, number[]>()
 	const shared = new Map<string, number>()
 	owners.forEach((owner, index) => {
 		for (const name of owner.memberNames) {
-			exact.set(`${owner.folder}/${name}`, index)
-			const key = `${owner.folder}/${name.toLowerCase()}`
-			ignoringCase.set(key, [...(ignoringCase.get(key) ?? []), index])
+			append(exact, `${owner.folder}/${name}`, index)
+			append(ignoringCase, `${owner.folder}/${name.toLowerCase()}`, index)
 		}
 		if (!owner.ambiguous) {
 			shared.set(`${owner.folder}/${owner.baseName.toLowerCase()}`, index)
 		}
 	})
 	const byMemberName = (folder: string, name: string): number | undefined => {
-		const matches = ignoringCase.get(`${folder}/${name.toLowerCase()}`) ?? []
-		return exact.get(`${folder}/${name}`) ?? (matches.length === 1 ? matches[0] : undefined)
+		return only(exact.get(`${folder}/${name}`)) ?? only(ignoringCase.get(`${folder}/${name.toLowerCase()}`))
 	}
 	return ({ folder, baseName }) => {
 		const duplicateOf = baseName.replace(DARKTABLE_DUPLICATE, '$1$2')
@@ -44,4 +39,14 @@ export function sidecarOwnerFinder(owners: readonly SidecarOwner[]): (sidecar: F
 			?? byMemberName(folder, duplicateOf)
 			?? shared.get(`${folder}/${baseName.toLowerCase()}`)
 	}
+}
+
+/** Adds an owner index under a key. */
+function append(index: Map<string, number[]>, key: string, owner: number): void {
+	index.set(key, [...(index.get(key) ?? []), owner])
+}
+
+/** The single owner of a match, or none when there are several. */
+function only(owners: readonly number[] | undefined): number | undefined {
+	return owners?.length === 1 ? owners[0] : undefined
 }
