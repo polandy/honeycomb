@@ -27,8 +27,8 @@ higher one.
   shape (`appinfo/routes.php`, a controller's return), a new dependency, a new screen or shared
   component. §0, the §4.0 table, *Spec in sync*, then `references/full-tier.md` §1–§5, then §6–§9.
 - **Standard:** everything else (a contained pure module or component, styling, tests only,
-  `scripts/`, `.github/`). §0, the §4.0 table, *Spec in sync*, the *Standard checks*, §6–§9. Do not open the
-  reference.
+  `scripts/`, `.github/`). §0, the §4.0 table, *Spec in sync*, the *Standard checks*, §6–§9. Do
+  not open the reference.
 
 ## Rules for every tier
 
@@ -142,9 +142,9 @@ a `TODO.md` item finished twice.
 ## 8. Verdict
 
 1. **Summary:** what the pull request does, in one paragraph, and the tier.
-2. **Gates:** one line each — spec in sync (✅ / ❌), CI (✅ green on `<sha>` / ❌), e2e (✅ / ❌ / `n/a`, no `tests/e2e/`
-   yet), test first (✅ commit order, and in Full the mutation proof / ❌ / `n/a` Light), failure
-   paths (✅ / ❌ / `n/a` Light).
+2. **Gates:** one line each — spec in sync (✅ / ❌), CI (✅ green on `<sha>` / ❌), e2e (✅ / ❌ /
+   `n/a`, no `tests/e2e/` yet), test first (✅ commit order, and in Full the mutation proof / ❌ /
+   `n/a` Light), failure paths (✅ / ❌ / `n/a` Light).
 3. **Test table** (Standard, Full).
 4. **Findings:** per check ✅ ok, ⚠️ issue (`file:line`) or 🔧 fixed by me (commit).
 5. **Blockers:** what must change before the merge that you could not fix.

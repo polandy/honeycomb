@@ -2,7 +2,8 @@
 
 - Status: implemented
 - Area: grid
-- Origin: `docs/plan.md` M2.5, Culling workflow items 6–7, Grid, filters and sort, Sort order; Q8, Q9, Q18
+- Origin: `docs/plan.md` M2.5, Culling workflow items 6–7, Grid, filters and sort,
+  Sort order; Q8, Q9, Q18
 - Depends on: GRID-001, DECISIONS-001
 
 ## Purpose

@@ -2,7 +2,8 @@
 
 - Status: implemented
 - Area: grid
-- Origin: `docs/plan.md` M2.3, Grid, filters and sort, Multiple folders, Image delivery & performance; ADR 0010
+- Origin: `docs/plan.md` M2.3, Grid, filters and sort, Multiple folders,
+  Image delivery & performance; ADR 0010
 - Depends on: LISTING-002, LISTING-003, IMAGES-001
 
 ## Purpose

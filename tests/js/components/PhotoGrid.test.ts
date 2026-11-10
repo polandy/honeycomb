@@ -30,7 +30,6 @@ describe('PhotoGrid', () => {
 		expect(wrapper.find('.photo-grid__spacer').attributes('style')).toContain(`height: ${25 * 102 + 24 * 8}px`)
 	})
 
-	// spec: GRID-001.1
 	it('renders the rows the scroll position reaches', async () => {
 		const { wrapper, resize } = mountGrid()
 		await resize(432, 220)
@@ -42,7 +41,6 @@ describe('PhotoGrid', () => {
 		expect(tileNames(wrapper)).not.toContain('IMG_0')
 	})
 
-	// spec: GRID-001.1
 	it('starts at the top again when the pictures of another cull arrive', async () => {
 		const { wrapper, resize } = mountGrid()
 		await resize(432, 220)

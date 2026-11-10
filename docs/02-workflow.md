@@ -54,7 +54,8 @@ during a task becomes an issue as above.
 
 - `scripts/verify.sh` is green locally. CI runs the same tools at the same versions.
 - Docs that the change touches and the `TODO.md` line it finishes are part of the same pull
-  request. So is the spec in `docs/specs/` for any behaviour change (ADR 0015). `CHANGELOG.md` is written by release-please.
+  request. So is the spec in `docs/specs/` for any behaviour change (ADR 0015). `CHANGELOG.md`
+  is written by release-please.
 
 ## 2.5 Title and description
 
