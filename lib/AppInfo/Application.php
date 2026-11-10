@@ -7,6 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\AppInfo;
 
+use OCA\Honeycomb\Preview\JpegDecoder;
+use OCA\Honeycomb\Preview\OcpJpegDecoder;
+use OCA\Honeycomb\Preview\RawPreviewProvider;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -23,6 +26,8 @@ final class Application extends App implements IBootstrap {
 
 	#[\Override]
 	public function register(IRegistrationContext $context): void {
+		$context->registerServiceAlias(JpegDecoder::class, OcpJpegDecoder::class);
+		$context->registerPreviewProvider(RawPreviewProvider::class, RawPreviewProvider::MIME_TYPE_REGEX);
 	}
 
 	#[\Override]

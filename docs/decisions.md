@@ -100,3 +100,27 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   An e2e spec and `playwright.config.ts` also run the `TypeScript` job, which lints them.
 - 2026-11-10: e2e never reuses a running server and takes its port from `HONEYCOMB_E2E_PORT`,
   because a server left by another worktree would test the wrong checkout.
+- 2026-11-10: Image URLs carry the tier and the mtime as query parameters
+  (`/api/v1/images/{fileId}?size=…&v=…`), like the listing's (ADR 0009, ADR 0010).
+- 2026-11-10: A stale `v` still gets the current image, with `Cache-Control: private, no-cache`
+  instead of `404`, so a grid listed before an edit shows the picture rather than a broken tile.
+- 2026-11-10: The tiers go through `OCP\IPreview` although Nextcloud rounds them up to powers of
+  four (512 → up to 1024 px, 2048 → up to 4096 px): an own scaled copy would need an own cache
+  and its clean-up; the budget measurement decides whether that is worth it.
+- 2026-11-10: The RAW preview is the largest baseline or progressive JPEG in the file, found by
+  walking JPEG marker segments; lossless JPEGs are skipped, since CR2 and DNG store sensor data
+  as lossless JPEG. Only the embedded JPEG's own orientation tag is applied; the RAW's own
+  orientation is not read.
+- 2026-11-10: Previews are warmed when the client opens a folder set (`POST /api/v1/previews`),
+  not on every upload: generating three tiers for every image of every user costs CPU and
+  storage for people who never cull; the Preview Generator app covers uploads for admins who
+  want it.
+- 2026-11-10: A warming job takes 200 file ids, so its JSON argument stays below the job
+  table's 4,000 characters; a file it cannot find or render is skipped with a debug log line.
+- 2026-11-10: The controller answers a matching `If-None-Match` with `304` itself before
+  rendering, so a revisit never generates a preview; Nextcloud's `NotModifiedMiddleware` would
+  only check after the controller ran.
+- 2026-11-10: `OcpJpegDecoder` wraps `new OCP\Image()`, which needs a running Nextcloud, behind
+  the `JpegDecoder` interface; PHPUnit fakes the interface and the e2e case covers the class.
+- 2026-11-10: The budgets are not measured yet: no real 24 MP RAW+JPEG pairs are available to
+  the agents. The measurement is a `TODO.md` item for the owner's files.

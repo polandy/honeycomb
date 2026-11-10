@@ -55,8 +55,9 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    `@nextcloud/l10n` and the checks that no user-visible string bypasses `t()`
    ([Translations](#translations)), the build and the Playwright job against a Nextcloud
    container in CI and `scripts/verify.sh`.
-2. **Image endpoint:** serves Nextcloud previews under immutable URLs keyed by file id and mtime
-   (see [Image delivery & performance](#image-delivery--performance)).
+2. **Image endpoint:** serves Nextcloud previews under immutable URLs keyed by file id and mtime,
+   the RAW's embedded JPEG for a RAW-only picture, and warms previews in the background (ADR
+   0010, [Image delivery & performance](#image-delivery--performance)).
 3. **Folder picker and grid:** a folder picker with a checkbox per folder and the *Include
    subfolders* switch, a virtual-scrolling grid with srcset thumbnails (256/512 px, stepless
    size), pair badges and folder headers, light and dark ([Multiple folders](#multiple-folders)).
@@ -252,10 +253,11 @@ preload state in the loupe's info panel, not over the photo.
 shows the embedded JPEG preview, extracted and cached on the server.
 
 **Caching.** Image URLs are immutable and keyed by file id and mtime, with a long
-`Cache-Control` and an `ETag`; an edited file gets a new URL.
+`Cache-Control` and an `ETag`; an edited file gets a new URL (endpoint shape: ADR 0010).
 
-**Pre-generation.** Previews are generated in the background on upload and when a folder is
-opened, by the Preview Generator app or an own background job. Imaginary is optional.
+**Pre-generation.** Previews are generated in the background when a folder is opened, by
+honeycomb's own background job, and on upload by the Preview Generator app when the admin
+installs it. Imaginary is optional (ADR 0010).
 
 **Budgets**, measured with real 24 MP files:
 
