@@ -1,6 +1,6 @@
 # LOUPE-003 – View state
 
-- Status: accepted
+- Status: implemented
 - Area: loupe
 - Origin: owner review 2026-11-10, ADR 0019
 - Depends on: LOUPE-001
@@ -78,9 +78,9 @@ an older version left in browser storage is taken over once.
 
 - **Given** the view state could not be read, or a write fails
 - **When** the loupe opens, or the user changes the info panel or dismisses the guide
-- **Then** a failed read takes the values left in browser storage, or the defaults, and writes or
-  removes nothing; a failed write keeps the change for this visit; both are logged without a
-  message to the user
+- **Then** a failed read takes the values left in browser storage, or the defaults, and neither
+  writes nor removes them; a failed write keeps the change for this visit and the local values;
+  both are logged without a message to the user
 
 ## Out of scope
 
@@ -91,4 +91,4 @@ LOUPE-001. The settings: SETTINGS-001.
 
 | Date | Change |
 |---|---|
-| 2026-11-10 | Written from the owner review of 2026-11-10 (ADR 0019) |
+| 2026-11-10 | Written and implemented from the owner review of 2026-11-10 (ADR 0019) |

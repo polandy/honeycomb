@@ -888,14 +888,16 @@ honeycomb/
 ├── lib/
 │   ├── AppInfo/Application.php
 │   ├── Controller/             PageController, EntryController, DecisionController,
-│   │                           TrashController, FileController, SettingsController (thin)
+│   │                           TrashController, FileController, SettingsController,
+│   │                           ViewStateController (thin)
 │   ├── Service/
 │   │   ├── ListingService.php  one file-cache query: flat entries of a folder
 │   │   ├── PathGuard.php       rechecks every client path: owned, exists, unchanged
 │   │   ├── TrashService.php    trash whole pictures through OCP\Files (ADR 0013)
 │   │   ├── FileService.php     move, write XMP bytes through OCP\Files
 │   │   ├── DecisionService.php rating, colour label, flag and resume position per user
-│   │   └── SettingsService.php per-user settings (IConfig user values)
+│   │   ├── SettingsService.php per-user settings (IConfig user values)
+│   │   └── ViewStateService.php the loupe's view state per user (ADR 0019)
 │   ├── Search/                 ISearchQuery and its operators, which OCP does not implement
 │   ├── Db/                     entities and QBMapper classes
 │   └── Migration/              database migrations

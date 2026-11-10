@@ -35,8 +35,9 @@ The overlays (title row, filmstrip, rating row) hide when idle after the last to
 control has keyboard focus; a mouse move or a middle tap shows them. The loupe loads the shown
 picture first, then 3 neighbours ahead and 2 behind, nearest first, so the next picture shows
 without a request. The info panel lists the picture's file facts, its decision and how many
-neighbours are loaded; its width can be dragged. The panel's state and width, the Nextcloud
-navigation choice and the dismissed gesture guide are kept in the browser.
+neighbours are loaded; its width can be dragged. The panel's width and the Nextcloud navigation
+choice are kept in the browser; whether the panel is open and whether the gesture guide was
+dismissed are kept per user on the server (LOUPE-003).
 
 ## Acceptance criteria
 
@@ -167,3 +168,4 @@ IMAGES-001.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged M3.1 (#45–#48) |
+| 2026-11-10 | The info panel's open state and the dismissed gesture guide moved to the server (LOUPE-003) |

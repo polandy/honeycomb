@@ -7,16 +7,15 @@ import type { Folder } from './api.ts'
 import type { BrowserStorage } from './browser-storage.ts'
 import type { ListEntries } from './folder-count.ts'
 import type { StoredDecision } from './logic/decision.ts'
-import type { ListingEntry } from './logic/listing.ts'
 import type { Schedule } from './logic/long-press.ts'
-import type { Picture } from './logic/pairing.ts'
 import type { Settings } from './logic/settings.ts'
 import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
 import type { MoveApi } from './move-flow.ts'
 import type { SidecarFlowApi } from './sidecar-flow.ts'
+import type { ViewStateApi } from './view-state.ts'
 
 import { t } from '@nextcloud/l10n'
-import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
+import { computed, ref, useTemplateRef, watch } from 'vue'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcContent from '@nextcloud/vue/components/NcContent'
@@ -34,13 +33,14 @@ import SeriesCompareFlow from './components/SeriesCompareFlow.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutSheet from './components/ShortcutSheet.vue'
 import UndoToast from './components/UndoToast.vue'
-import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, lookupSidecars, movePictures, probeTargets, saveSidecars } from './api.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, loadViewState, lookupSidecars, movePictures, probeTargets, saveSidecars, saveViewState } from './api.ts'
 import { useCull } from './cull.ts'
 import { useDeleteFlow } from './delete-flow.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
 import { clearFilters } from './logic/picture-filter.ts'
+import { useLoupeOpening } from './loupe-opening.ts'
 import { useMoveFlow } from './move-flow.ts'
 import { useSelectionMode } from './selection-mode.ts'
 import { useSeriesCompare } from './series-compare.ts'
@@ -49,6 +49,7 @@ import { browserNow, useSidecarFlow } from './sidecar-flow.ts'
 import { browserSchedule } from './tile-selection.ts'
 import { useToast } from './toast.ts'
 import { useToastedDecisions } from './toasted-decisions.ts'
+import { useViewState } from './view-state.ts'
 
 const props = withDefaults(defineProps<{
 	listFolders?: (path: string) => Promise<Folder[]>
@@ -58,6 +59,7 @@ const props = withDefaults(defineProps<{
 	saveDecisions?: (decisions: readonly StoredDecision[]) => Promise<void>
 	loadSettings?: () => Promise<unknown>
 	saveSettings?: (settings: Settings) => Promise<void>
+	viewState?: ViewStateApi
 	storage?: BrowserStorage
 	schedule?: Schedule
 	toggleFullscreen?: (element: HTMLElement) => void
@@ -72,6 +74,7 @@ const props = withDefaults(defineProps<{
 	saveDecisions: apiSaveDecisions,
 	loadSettings: apiLoadSettings,
 	saveSettings: apiSaveSettings,
+	viewState: () => ({ loadViewState, saveViewState }),
 	storage: () => () => window.localStorage,
 	schedule: browserSchedule,
 	toggleFullscreen: toggleBrowserFullscreen,
@@ -82,12 +85,13 @@ const props = withDefaults(defineProps<{
 
 const toast = useToast(props.schedule)
 const { settings, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, (message) => toast.show(message))
+const viewState = useViewState(props.viewState, props.storage)
 const settingsOpen = ref(false)
 const sidecarFlow = useSidecarFlow(props.sidecars, toast.show)
 const cull = useCull({ warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions }, props.storage, () => settings.value, sidecarFlow.sync)
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
-const loupe = ref<{ pictures: readonly Picture<ListingEntry>[], index: number } | null>(null)
 const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
+const { loupe, close: closeLoupe } = useLoupeOpening((index) => grid.value?.reveal(index))
 const loupeView = useTemplateRef<InstanceType<typeof PhotoLoupe>>('loupeView')
 const filterBar = useTemplateRef<InstanceType<typeof FilterBar>>('filterBar')
 const headerShown = ref(true)
@@ -139,14 +143,6 @@ useHotkeys(() => {
 	}
 	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: () => deleting.summariseShown(selected.value, () => grid.value?.focusedIndex() ?? 0), move: () => moving.openShown(selected.value, () => grid.value?.focusedIndex() ?? 0), ...(loupe.value === null ? { ...gridKeys, compare: seriesCompare.start } : loupeView.value?.hotkeys) }
 }, () => settings.value.viKeys)
-
-/** Closes the loupe and focuses its last picture in the grid. */
-async function closeLoupe() {
-	const { index } = loupe.value!
-	loupe.value = null
-	await nextTick()
-	await grid.value?.reveal(index)
-}
 </script>
 
 <template>
@@ -266,6 +262,7 @@ async function closeLoupe() {
 					:folderSet="folderSet"
 					:decisionOf="cull.decisionOf"
 					:storage="props.storage"
+					:viewState="viewState"
 					:settings="settings"
 					@updateSettings="updateSettings"
 					@decide="(intent, picture) => decide(intent, [picture])"
