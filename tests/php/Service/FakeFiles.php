@@ -24,6 +24,12 @@ use PHPUnit\Framework\MockObject\Stub;
 /** Stubs of `OCP\Files` for the user `alice`, whose files live under `/alice/files`. */
 trait FakeFiles {
 	private const string USER_ROOT = '/alice/files';
+	/** The comparisons Nextcloud 35's `SearchBuilder::validateComparison()` accepts for our fields. */
+	private const array CACHE_COMPARISONS = [
+		'mimetype' => ['eq', 'like', 'in'],
+		'name' => ['eq', 'like', 'clike', 'in'],
+		'fileid' => ['eq', 'in'],
+	];
 
 	/** @return list<array<string, mixed>> */
 	private function entriesOf(Listing $listing): array {
@@ -133,10 +139,10 @@ trait FakeFiles {
 		$this->assertInstanceOf(ISearchComparison::class, $operator);
 		$value = $operator->getValue();
 		$this->assertTrue(is_string($value) || is_int($value));
+		$this->assertContains($operator->getType(), self::CACHE_COMPARISONS[$operator->getField()] ?? [], 'Nextcloud\'s SearchBuilder rejects it');
 		return match ([$operator->getField(), $operator->getType()]) {
 			['mimetype', ISearchComparison::COMPARE_LIKE] => str_starts_with($file->getMimetype(), rtrim((string)$value, '%')),
 			['name', ISearchComparison::COMPARE_LIKE] => str_ends_with(strtolower($file->getName()), ltrim((string)$value, '%')),
-			['fileid', ISearchComparison::COMPARE_GREATER_THAN] => $file->getId() > $value,
 		};
 	}
 }
