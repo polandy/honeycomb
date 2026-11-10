@@ -1,0 +1,14 @@
+<x:xmpmeta xmlns:x="adobe:ns:meta/">
+  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <rdf:Description rdf:about="" xmlns:acme="https://acme.example/ns/1.0/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dc1="https://other.example/dc/" xmlns:xmp="http://ns.adobe.com/xap/1.0/">
+      <acme:Batch>42</acme:Batch>
+      <dc:title>
+        <rdf:Alt>
+          <rdf:li xml:lang="x-default">Harbour</rdf:li>
+        </rdf:Alt>
+      </dc:title>
+      <dc1:Kind>clash</dc1:Kind>
+      <xmp:MetadataDate>2026-11-08T14:03:12+01:00</xmp:MetadataDate>
+    </rdf:Description>
+  </rdf:RDF>
+</x:xmpmeta>

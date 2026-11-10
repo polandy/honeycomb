@@ -1,0 +1,30 @@
+<x:xmpmeta xmlns:x="adobe:ns:meta/">
+ <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about=""
+    xmlns:xmp="http://ns.adobe.com/xap/1.0/"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:acme="https://acme.example/ns/1.0/"
+    xmlns:Iptc4xmpCore="http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/"
+   xmp:Rating="1"
+   xmp:CreatorTool="digiKam-8.4.0"
+   acme:Batch="  42 &amp; more  ">
+   <acme:Location rdf:parseType="Resource">
+    <acme:Name>Pier &lt;3&gt;</acme:Name>
+    <acme:Code rdf:parseType="Resource">
+     <rdf:value>LIS</rdf:value>
+     <acme:Scheme>IATA</acme:Scheme>
+    </acme:Code>
+    <acme:Link rdf:resource="https://acme.example/pier"/>
+   </acme:Location>
+   <dc:rights>
+    <rdf:Alt>
+     <rdf:li xml:lang="x-default">© A.</rdf:li>
+     <rdf:li xml:lang="de">© Andy</rdf:li>
+    </rdf:Alt>
+   </dc:rights>
+   <Iptc4xmpCore:CreatorContactInfo rdf:parseType="Resource"/>
+   <acme:Empty></acme:Empty>
+   <acme:Steps><rdf:Seq/></acme:Steps>
+  </rdf:Description>
+ </rdf:RDF>
+</x:xmpmeta>
