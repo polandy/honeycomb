@@ -16,24 +16,46 @@ export interface SettingsApi {
 /** The user's settings: the defaults until the stored ones arrive, each change applied at once and saved whole. */
 export function useSettings(api: SettingsApi, toast: (message: string) => void) {
 	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
-	let changed = false
+	let loaded: 'pending' | 'read' | 'failed' = 'pending'
+	let early: Partial<Settings> = {}
 
 	api.loadSettings().then((stored) => {
-		if (!changed) {
-			settings.value = parseSettings(stored)
+		loaded = 'read'
+		settings.value = { ...parseSettings(stored), ...early }
+		if (Object.keys(early).length > 0) {
+			save()
 		}
 	}).catch((error: unknown) => {
+		loaded = 'failed'
 		logger.error('Could not read the settings; the defaults apply.', { error })
+		if (Object.keys(early).length > 0) {
+			unsaved()
+		}
 	})
 
-	/** Applies the change at once and saves the whole settings; a failed save keeps it for this visit. */
-	function update(patch: Partial<Settings>) {
-		changed = true
-		settings.value = { ...settings.value, ...patch }
+	/** Says that the settings last for this visit only. */
+	function unsaved() {
+		toast(t('honeycomb', 'Could not save the settings; they apply until you reload.'))
+	}
+
+	/** Saves the whole settings; a failed save keeps them for this visit. */
+	function save() {
 		api.saveSettings(settings.value).catch((error: unknown) => {
 			logger.error('Could not save the settings.', { error })
-			toast(t('honeycomb', 'Could not save the settings; they apply until you reload.'))
+			unsaved()
 		})
+	}
+
+	/** Applies the change at once and saves it once the stored settings are read, never over ones that could not be. */
+	function update(patch: Partial<Settings>) {
+		settings.value = { ...settings.value, ...patch }
+		if (loaded === 'read') {
+			save()
+		} else if (loaded === 'pending') {
+			early = { ...early, ...patch }
+		} else {
+			unsaved()
+		}
 	}
 
 	return { settings, update }

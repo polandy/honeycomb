@@ -319,7 +319,8 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   and `honeycomb.viKeys` are dropped without migration.
 - 2026-11-10: A settings change applies at once and saves the whole object; a failed save keeps it
   for the visit and says "Could not save the settings; they apply until you reload." A change made
-  before the stored settings arrive wins over them.
+  before the stored settings arrive wins over that one field and is saved once they are read;
+  after a failed read nothing is saved, so the stored settings are never overwritten blind.
 - 2026-11-10: The settings dialog is `NcAppSettingsDialog` with the mockup's File types, Folder
   layout, Loupe gestures and Keyboard sections, opened from *Settings* in the grid's ⋯ menu;
   *Moving photos* and the storage section wait for M5 and M7.
