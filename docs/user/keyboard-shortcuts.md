@@ -33,7 +33,7 @@ in the series compare). Press `Ctrl+/` at any time to see this list in the app.
 | `Enter` | Open the focused photo in the loupe. |
 | `G` | Back to the grid. |
 | `E` | Open the loupe. |
-| `N` | Compare the next series. *Coming in a later version.* |
+| `N` | Open the series compare. |
 | `Space` | Loupe: switch between fit and 100 %. |
 | `Z` | Loupe and series viewer: switch between fit and 100 %. |
 | `Ctrl+=` and `Ctrl+-` | Zoom in and out. |
@@ -61,7 +61,7 @@ it, as in Lightroom's Survey view.
 
 | Keys | What it does |
 |---|---|
-| `Shift+K` | **Pick this, reject the rest** of the series, as one undo step. *Coming in a later version.* |
+| `Shift+K` | **Pick this, reject the rest** of the series, as one undo step. |
 
 ## Undo, delete and more
 

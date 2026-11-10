@@ -407,3 +407,12 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   sidecar modules instead of three private copies.
 - 2026-11-10: The XMP test fixtures are read by path (`import.meta.dirname`) instead of `new URL`,
   which happy-dom replaces, so component tests can use them.
+- 2026-11-10: M6 is split: M6.1 ships the series compare dialog, pick-rest and the toolbar button;
+  the fullscreen series viewer and the tile series badge move to M6.2, so a PR stays reviewable.
+- 2026-11-10: A series needs one camera (EXIF make and model, added to the listing per ADR 0009)
+  and an EXIF capture time; file times are left out because copied files share them.
+- 2026-11-10: A run longer than four is split evenly (5 → 3 + 2), so no series is a lone photo.
+- 2026-11-10: Series are found over all pictures of the cull after rejects are removed, not the
+  filtered view, and a series is offered only while it holds an unflagged picture.
+- 2026-11-10: `N` opens the series compare from the grid only; in it, tapping a card makes it the
+  active photo until the series viewer exists.

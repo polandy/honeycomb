@@ -49,8 +49,8 @@ ticked parent with subfolders and a ticked child both hold it.
 
 - **Given** a listed file with capture time, orientation, dimensions and camera in its metadata
 - **When** it is listed
-- **Then** its entry has file id, path, size, mtime, ETag, mime type and those values; the camera is make and model, trimmed and joined by a
-  space, or the one of them that is there
+- **Then** its entry has file id, path, size, mtime, ETag, mime type and those values; the camera
+  is make and model, trimmed and joined by a space, or the one of them that is there
 
 ### LISTING-001.3 – Missing metadata is null
 
