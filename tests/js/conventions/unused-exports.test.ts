@@ -1,8 +1,7 @@
-import type { Finding } from '../../../scripts/unused-exports/analyse.ts'
-
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
+import type { Finding } from '../../../scripts/unused-exports/analyse.ts'
 import { findUnusedExports } from '../../../scripts/unused-exports/analyse.ts'
 
 const everything = () => true
