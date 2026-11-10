@@ -172,15 +172,20 @@ describe('PhotoGrid', () => {
 			expect(wrapper.emitted('open')).toEqual([[1], [2], [3]])
 		})
 
-		it('focuses a tile on reveal, scrolled into view', async () => {
+		it('focuses a tile on reveal, scrolled into view only when it is out of view', async () => {
 			const { wrapper, resize } = mountGrid({ selection: NO_SELECTION, selecting: false }, true)
 			await resize(432, 220)
+			const { reveal } = wrapper.vm as unknown as { reveal: (index: number) => Promise<void> }
+			const scroller = wrapper.find('.photo-grid__scroller').element
 
-			await (wrapper.vm as unknown as { reveal: (index: number) => Promise<void> }).reveal(41)
+			await reveal(1)
+			expect(scroller.scrollTop).toBe(0)
+			await reveal(41)
 
 			const focused = document.activeElement as HTMLElement
 			expect(focused.getAttribute('aria-label')).toMatch(/^IMG_41,/)
 			expect(focused.getAttribute('tabindex')).toBe('0')
+			expect(scroller.scrollTop).toBeGreaterThan(0)
 			wrapper.unmount()
 		})
 
