@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, imageUrl, listEntries, listFolders, lookupDecisions, saveDecisions, warmPreviews } from '../../src/api.ts'
+import { ApiResponseError, imageUrl, listEntries, listFolders, lookupDecisions, saveDecisions, TrashBinOffError, trashPictures, warmPreviews } from '../../src/api.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({
@@ -124,5 +124,35 @@ describe('saveDecisions', () => {
 describe('imageUrl', () => {
 	it('names the file, the tier and the modification time', () => {
 		expect(imageUrl(7, 256, 1234)).toBe('/index.php/apps/honeycomb/api/v1/images/7?size=256&v=1234')
+	})
+})
+
+describe('trashPictures', () => {
+	const pictures = [[{ fileId: 7, etag: 'e7' }, { fileId: 8, etag: 'e8' }]]
+
+	it('sends the pictures and returns the result of each file', async () => {
+		const results = [[{ fileId: 7, result: 'trashed' }, { fileId: 8, result: 'locked' }]]
+		vi.mocked(axios.post).mockResolvedValue({ data: { pictures: results } })
+
+		expect(await trashPictures(pictures)).toEqual(results)
+		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/trash', { pictures })
+	})
+
+	it('refuses a response without a pictures array', async () => {
+		vi.mocked(axios.post).mockResolvedValue({ data: {} })
+
+		await expect(trashPictures(pictures)).rejects.toBeInstanceOf(ApiResponseError)
+	})
+
+	it('turns a 409 into its own error, since the trash bin is off and nothing was touched', async () => {
+		vi.mocked(axios.post).mockRejectedValue(Object.assign(new Error('Conflict'), { response: { status: 409 } }))
+
+		await expect(trashPictures(pictures)).rejects.toBeInstanceOf(TrashBinOffError)
+	})
+
+	it.each([new Error('Network Error'), Object.assign(new Error('Bad'), { response: { status: 400 } })])('passes any other error on', async (error) => {
+		vi.mocked(axios.post).mockRejectedValue(error)
+
+		await expect(trashPictures(pictures)).rejects.toBe(error)
 	})
 })

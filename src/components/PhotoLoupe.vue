@@ -63,6 +63,7 @@ const emit = defineEmits<{
 	'update:index': [index: number]
 	decide: [intent: DecisionIntent, picture: Picture<ListingEntry>]
 	toast: [toast: Toast]
+	allDecided: []
 	close: []
 }>()
 
@@ -88,6 +89,7 @@ const decisions = useLoupeDecisions({
 	go: (index) => go(index),
 	setFlagButtonsShown: panels.setFlagButtonsShown,
 	toast: (toast) => emit('toast', toast),
+	allDecided: () => emit('allDecided'),
 })
 
 const picture = computed(() => props.pictures[props.index]!)

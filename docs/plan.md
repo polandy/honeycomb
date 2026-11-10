@@ -96,7 +96,9 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    failure stops that picture and is reported per file.
 2. **Reject review and delete summary:** the review grid of all rejected pictures with rescue,
    then the summary with pictures, files and bytes freed and the trash-bin note; also reachable
-   from the selection (Q11).
+   from the selection (Q11). The review opens from the toolbar's *Review rejects*,
+   `Ctrl+Backspace`, the empty grid and the *All photos decided* toast; *Delete…* and `Delete`
+   go straight to the summary. Failed files end in the delete report with *Retry failed files*.
 3. **Remove RAWs:** the bulk action and its summary ([Keep RAW and Remove
    RAWs](#keep-raw-and-remove-raws)), built on the delete service of M4.1 and its ADR on pair
    atomicity, with tests for every failure path.

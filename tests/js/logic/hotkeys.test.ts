@@ -63,6 +63,7 @@ describe('hotkey', () => {
 		['Escape', 'close'],
 		['b', 'flag-buttons'],
 		['?', 'shortcuts'],
+		['Delete', 'delete'],
 	])('runs %j as %s', (key, kind) => {
 		expect(action(press(key))).toEqual({ kind })
 	})
@@ -78,6 +79,8 @@ describe('hotkey', () => {
 		['-', {}, 'zoom-out'],
 		['/', {}, 'shortcuts'],
 		['/', { shiftKey: true }, 'shortcuts'],
+		['Backspace', {}, 'review-rejects'],
+		['Backspace', { metaKey: true }, 'review-rejects'],
 	])('runs Ctrl+%s %o as %s', (key, fields, kind) => {
 		expect(action(press(key, { ctrlKey: true, ...fields }))).toEqual({ kind })
 	})
@@ -90,7 +93,8 @@ describe('hotkey', () => {
 		press('Tab', { shiftKey: true }),
 		press('K', { shiftKey: true }),
 		press('n'),
-		press('Delete'),
+		press('Backspace'),
+		press('Delete', { shiftKey: true }),
 		press('h'),
 		press('/'),
 	])('leaves %o alone', (event) => {

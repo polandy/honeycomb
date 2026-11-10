@@ -11,15 +11,18 @@ import type { StoredDecision } from './logic/decision.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Schedule } from './logic/long-press.ts'
 import type { Picture } from './logic/pairing.ts'
+import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
 
 import { t } from '@nextcloud/l10n'
-import { computed, nextTick, ref, useTemplateRef } from 'vue'
+import { computed, nextTick, ref, toRaw, useTemplateRef } from 'vue'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcContent from '@nextcloud/vue/components/NcContent'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import ActionBar from './components/ActionBar.vue'
+import CullEmptyState from './components/CullEmptyState.vue'
+import DeleteDialogs from './components/DeleteDialogs.vue'
 import FilterBar from './components/FilterBar.vue'
 import FolderPicker from './components/FolderPicker.vue'
 import GridToolbar from './components/GridToolbar.vue'
@@ -27,10 +30,11 @@ import PhotoGrid from './components/PhotoGrid.vue'
 import PhotoLoupe from './components/PhotoLoupe.vue'
 import ShortcutSheet from './components/ShortcutSheet.vue'
 import UndoToast from './components/UndoToast.vue'
-import { listEntries as apiListEntries, listFolders as apiListFolders, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, warmPreviews as apiWarmPreviews } from './api.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews } from './api.ts'
 import { readStored } from './browser-storage.ts'
 import { useCull } from './cull.ts'
 import { changeText, redoneText, undoneText } from './decision-text.ts'
+import { useDeleteFlow } from './delete-flow.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys, VI_KEYS_KEY } from './hotkeys.ts'
@@ -48,6 +52,7 @@ const props = withDefaults(defineProps<{
 	storage?: BrowserStorage
 	schedule?: Schedule
 	toggleFullscreen?: (element: HTMLElement) => void
+	trashPictures?: (pictures: readonly (readonly TrashRequestFile[])[]) => Promise<TrashResponseFile[][]>
 }>(), {
 	listFolders: apiListFolders,
 	listEntries: apiListEntries,
@@ -57,6 +62,7 @@ const props = withDefaults(defineProps<{
 	storage: () => () => window.localStorage,
 	schedule: browserSchedule,
 	toggleFullscreen: toggleBrowserFullscreen,
+	trashPictures: apiTrashPictures,
 })
 
 const cull = useCull({ warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions }, props.storage)
@@ -96,6 +102,15 @@ function redo() {
 	}
 }
 
+const deleting = useDeleteFlow({ pictures: () => pictures.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
+const { dialog: deleteDialog, busy: deleteBusy, rejected } = deleting
+
+/** Opens the delete summary of the loupe's photo, else of the selection, else of the focused tile. */
+function deleteShown() {
+	const shown = loupe.value === null ? view.value[grid.value?.focusedIndex() ?? 0] : toRaw(loupe.value.pictures[loupe.value.index])
+	deleting.summarise(loupe.value === null && selected.value.length > 0 ? selected.value : [shown].filter((each) => each !== undefined))
+}
+
 const gridKeys = gridHotkeys({
 	grid: () => grid.value,
 	view: () => view.value,
@@ -118,13 +133,13 @@ function toggleShortcuts() {
 }
 
 useHotkeys(() => {
-	if (pickerOpen.value) {
+	if (pickerOpen.value || deleteDialog.value !== null) {
 		return null
 	}
 	if (shortcutsOpen.value || folderSet.value === null) {
 		return { shortcuts: toggleShortcuts }
 	}
-	return { undo, redo, shortcuts: toggleShortcuts, ...(loupe.value === null ? gridKeys : loupeView.value?.hotkeys) }
+	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: deleteShown, ...(loupe.value === null ? gridKeys : loupeView.value?.hotkeys) }
 }, () => readStored(props.storage, VI_KEYS_KEY) === 'true')
 
 /** Closes the loupe and focuses its last picture in the grid. */
@@ -155,6 +170,7 @@ async function closeLoupe() {
 					:sortOrder="sortOrder"
 					:selecting="selecting"
 					:selected="selected.length"
+					:rejected="rejected.length"
 					@changeFolders="pickerOpen = true"
 					@update:tileSize="cull.setTileSize"
 					@update:groupByFolder="groupByFolder = $event"
@@ -163,7 +179,8 @@ async function closeLoupe() {
 					@update:sortOrder="sortOrder = $event"
 					@update:selecting="selection.setSelecting"
 					@selectAll="selection.selectAll"
-					@selectNone="selection.selectNone" />
+					@selectNone="selection.selectNone"
+					@reviewRejects="deleting.review" />
 				<FilterBar
 					v-if="filtersOpen && headerShown"
 					ref="filterBar"
@@ -189,28 +206,24 @@ async function closeLoupe() {
 					@update:selecting="selection.setSelecting"
 					@update:selection="selection.select"
 					@open="loupe = { pictures: view, index: $event }" />
-				<NcEmptyContent v-else-if="empty === 'no-pictures'" :name="t('honeycomb', 'No photos in these folders')" />
-				<NcEmptyContent v-else-if="empty === 'no-match'" :name="t('honeycomb', 'Nothing matches these filters')">
-					<template #action>
-						<NcButton @click="filters = clearFilters(filters)">
-							{{ t('honeycomb', 'Clear filters') }}
-						</NcButton>
-					</template>
-				</NcEmptyContent>
-				<NcEmptyContent
+				<CullEmptyState
 					v-else
-					:name="empty === 'all-decided' ? t('honeycomb', 'Every photo is decided') : t('honeycomb', 'No photos left to cull')">
-					<template #action>
-						<NcButton @click="cull.setScope('all')">
-							{{ t('honeycomb', 'Show all') }}
-						</NcButton>
-					</template>
-				</NcEmptyContent>
+					:reason="empty"
+					:rejected="rejected.length"
+					@clearFilters="filters = clearFilters(filters)"
+					@showAll="cull.setScope('all')"
+					@reviewRejects="deleting.review" />
 				<ActionBar
 					v-if="selecting"
 					:common="common"
 					:disabled="selected.length === 0"
-					@decide="decide($event, selected)" />
+					@decide="decide($event, selected)">
+					<template #end>
+						<NcButton variant="error" :disabled="selected.length === 0" @click="deleting.summarise(selected)">
+							{{ t('honeycomb', 'Delete…') }}
+						</NcButton>
+					</template>
+				</ActionBar>
 			</template>
 			<NcEmptyContent
 				v-else
@@ -229,6 +242,20 @@ async function closeLoupe() {
 				:listEntries="props.listEntries"
 				@confirm="cull.open"
 				@cancel="pickerOpen = false" />
+			<DeleteDialogs
+				v-if="folderSet !== null"
+				:dialog="deleteDialog"
+				:rejected="rejected"
+				:folderSet="folderSet"
+				:folders="folders"
+				:busy="deleteBusy"
+				:container="loupe !== null ? '.photo-loupe' : undefined"
+				@rescue="deleting.rescue"
+				@continue="deleting.continueToSummary"
+				@back="deleting.backToReview"
+				@close="deleting.close"
+				@confirm="deleting.confirm"
+				@retry="deleting.retry" />
 			<Teleport to="body">
 				<PhotoLoupe
 					v-if="loupe !== null && folderSet !== null"
@@ -240,6 +267,7 @@ async function closeLoupe() {
 					:storage="props.storage"
 					@decide="(intent, picture) => decide(intent, [picture])"
 					@toast="toast.show($event.message, $event.action)"
+					@allDecided="deleting.allDecided"
 					@close="closeLoupe" />
 				<ShortcutSheet
 					v-if="shortcutsOpen"

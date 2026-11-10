@@ -50,6 +50,7 @@ const loupe = computed(() => props.layout === 'loupe')
 				@click="emit('decide', { kind: 'keepRaw' })">
 				{{ t('honeycomb', 'Keep RAW') }}
 			</button>
+			<slot name="end" />
 		</div>
 		<FlagButtons
 			v-if="!loupe"

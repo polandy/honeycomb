@@ -18,6 +18,7 @@ function loupeDecisions(index: number, decided: Record<string, Decision> = {}) {
 	const shown: boolean[] = []
 	const toasts: Toast[] = []
 	const intents: DecisionIntent[] = []
+	let allDecided = 0
 	const decisions = useLoupeDecisions({
 		pictures: () => PICTURES,
 		index: () => index,
@@ -31,8 +32,9 @@ function loupeDecisions(index: number, decided: Record<string, Decision> = {}) {
 		go: (next) => went.push(next),
 		setFlagButtonsShown: (on) => shown.push(on),
 		toast: (toast) => toasts.push(toast),
+		allDecided: () => allDecided++,
 	})
-	return { decisions, went, shown, toasts, intents }
+	return { decisions, went, shown, toasts, intents, allDecided: () => allDecided }
 }
 
 describe('useLoupeDecisions: decide', () => {
@@ -50,6 +52,23 @@ describe('useLoupeDecisions: decide', () => {
 		const { decisions, went } = loupeDecisions(index)
 		expect(decisions.decide(intent)).toBe(false)
 		expect(went).toEqual([])
+	})
+})
+
+describe('useLoupeDecisions: all decided', () => {
+	it('says so when a flag decides the last undecided photo', () => {
+		const { decisions, allDecided } = loupeDecisions(2, { IMG_1: { ...UNDECIDED, flag: 'picked' }, IMG_2: { ...UNDECIDED, flag: 'rejected' } })
+		decisions.decide({ kind: 'flag', flag: 'picked' })
+		expect(allDecided()).toBe(1)
+	})
+
+	it.each([
+		['an undecided photo is left before the shown one', { kind: 'flag', flag: 'picked' }, { IMG_2: { ...UNDECIDED, flag: 'rejected' } }],
+		['the decision is a rating', { kind: 'rating', rating: 4 }, { IMG_1: { ...UNDECIDED, flag: 'picked' }, IMG_2: { ...UNDECIDED, flag: 'rejected' } }],
+	] as const)('stays silent when %s', (_, intent, decided) => {
+		const { decisions, allDecided } = loupeDecisions(2, { ...decided })
+		decisions.decide(intent)
+		expect(allDecided()).toBe(0)
 	})
 })
 

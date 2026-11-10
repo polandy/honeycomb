@@ -23,7 +23,7 @@ describe('ShortcutSheet', () => {
 		const wrapper = mountSheet()
 
 		expect(wrapper.find('[role="dialog"]').attributes('name')).toBe('Keyboard shortcuts')
-		expect(wrapper.findAll('h3').map((heading) => heading.text())).toEqual(['Flags', 'Rating, colour label, Keep RAW', 'Views and photos', 'Filter and selection', 'Undo and help', 'Vi keys'])
+		expect(wrapper.findAll('h3').map((heading) => heading.text())).toEqual(['Flags', 'Rating, colour label, Keep RAW', 'Views and photos', 'Filter and selection', 'Undo, delete and help', 'Vi keys'])
 		expect(rows(wrapper)).toHaveLength(KEYMAP.length)
 		expect(rows(wrapper)[0]).toEqual([['P'], 'Pick (again: unflag)'])
 		expect(rows(wrapper).every(([, label]) => label !== '')).toBe(true)

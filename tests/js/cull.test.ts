@@ -93,3 +93,20 @@ describe('useCull: toggleFiltersOff', () => {
 		expect(cull.filters.value).toEqual(DEFAULT_FILTERS)
 	})
 })
+
+describe('useCull: removeFiles', () => {
+	it('takes trashed files out of the listing, pairs again what is left and keeps the decision of the member that stayed', async () => {
+		const { cull, picture } = await openedCull()
+		const pair = picture('IMG_10')
+		const single = picture('IMG_2')
+		cull.decide({ kind: 'flag', flag: 'rejected' }, [pair])
+
+		const replaced = cull.removeFiles(new Set([1, 2]))
+
+		expect(cull.pictures.value.map((shown) => shown.baseName).sort()).toEqual(['IMG_10', 'IMG_9'])
+		expect(picture('IMG_10')).toMatchObject({ raw: { fileId: 3 }, rendered: null })
+		expect(replaced).toEqual(new Map([[pair, picture('IMG_10')], [single, null]]))
+		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('rejected')
+		expect(cull.progress.value).toEqual({ decided: 1, total: 2 })
+	})
+})

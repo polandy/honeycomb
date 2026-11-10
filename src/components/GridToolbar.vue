@@ -14,6 +14,7 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwit
 import NcPopover from '@nextcloud/vue/components/NcPopover'
 import AppIcon from './AppIcon.vue'
 import ScopeProgress from './ScopeProgress.vue'
+import { keyCap } from '../hotkeys.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { MAX_TILE_SIZE, MIN_TILE_SIZE } from '../logic/tile-size.ts'
 
@@ -35,6 +36,8 @@ const props = defineProps<{
 	selecting: boolean
 	/** How many pictures are selected. */
 	selected: number
+	/** How many pictures are rejected. */
+	rejected: number
 }>()
 
 const emit = defineEmits<{
@@ -47,6 +50,7 @@ const emit = defineEmits<{
 	'update:selecting': [selecting: boolean]
 	selectAll: []
 	selectNone: []
+	reviewRejects: []
 }>()
 
 const filtersLabel = computed(() => (props.activeFilters > 0
@@ -109,6 +113,17 @@ const setName = computed(() => {
 				<AppIcon name="select" />
 			</template>
 			<span v-if="props.selecting && props.selected > 0" class="grid-toolbar__badge" aria-hidden="true">{{ formatNumber(props.selected) }}</span>
+		</NcButton>
+		<NcButton
+			variant="tertiary"
+			:ariaLabel="props.rejected > 0 ? t('honeycomb', 'Review rejects ({count})', { count: formatNumber(props.rejected) }) : t('honeycomb', 'Review rejects')"
+			:title="t('honeycomb', 'Review rejects ({key})', { key: keyCap('review-rejects') })"
+			:disabled="props.rejected === 0"
+			@click="emit('reviewRejects')">
+			<template #icon>
+				<AppIcon name="trash" />
+			</template>
+			<span v-if="props.rejected > 0" class="grid-toolbar__badge" aria-hidden="true">{{ formatNumber(props.rejected) }}</span>
 		</NcButton>
 		<NcPopover>
 			<template #trigger>

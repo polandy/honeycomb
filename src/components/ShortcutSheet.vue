@@ -25,7 +25,7 @@ const GROUPS: Record<KeymapGroup, string> = {
 	rating: t('honeycomb', 'Rating, colour label, Keep RAW'),
 	views: t('honeycomb', 'Views and photos'),
 	filter: t('honeycomb', 'Filter and selection'),
-	undo: t('honeycomb', 'Undo and help'),
+	undo: t('honeycomb', 'Undo, delete and help'),
 	vi: t('honeycomb', 'Vi keys'),
 }
 
@@ -61,6 +61,8 @@ const LABELS: Readonly<Record<string, string>> = {
 	'select-none': t('honeycomb', 'Select none'),
 	undo: t('honeycomb', 'Undo'),
 	redo: t('honeycomb', 'Redo'),
+	delete: t('honeycomb', 'Delete summary for the selection or focused tile'),
+	'review-rejects': t('honeycomb', 'Review rejects'),
 	shortcuts: t('honeycomb', 'This sheet'),
 	'vi-sideways': t('honeycomb', 'Previous photo, next photo'),
 	'vi-rows': t('honeycomb', 'Grid: one row down, one row up. Loupe: next photo, previous photo'),
