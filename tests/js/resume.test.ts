@@ -138,6 +138,19 @@ describe('useResume', () => {
 		expect(flow.toasts).toEqual([])
 	})
 
+	it('does not send the same position again when only the progress object is renewed', async () => {
+		const flow = resumeOn(async () => [])
+		flow.offer()
+		await flushPromises()
+
+		flow.shown.value = first
+		await flushPromises()
+		flow.progress.value = { decided: 0, total: 3 }
+		await flushPromises()
+
+		expect(flow.saved).toHaveLength(1)
+	})
+
 	it('sends one save at a time, then only the latest of those that waited', async () => {
 		const saves = [pending(), pending()]
 		const queue = [...saves]
