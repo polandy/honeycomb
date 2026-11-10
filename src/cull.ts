@@ -207,6 +207,12 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		return replaced
 	}
 
+	/** Puts files back into the listing and pairs it again; decisions are keyed by file id and stay. */
+	function restoreFiles(restored: readonly ListingEntry[]) {
+		entries.value = [...entries.value, ...restored]
+		paired.value = prepareCull(entries.value, pairing.value).pictures
+	}
+
 	/** Switches the scope and keeps the filters. */
 	function setScope(scope: Filters['scope']) {
 		filters.value = { ...filters.value, scope }
@@ -259,6 +265,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		redo,
 		open,
 		removeFiles,
+		restoreFiles,
 		setScope,
 		toggleFiltersOff,
 		setTileSize,
