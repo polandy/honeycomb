@@ -1,8 +1,18 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Page } from '@playwright/test'
+
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { createFolder, JPEG, upload } from './files.ts'
+
+/** Whether the middle of Nextcloud's header is on top, not under the loupe. */
+function headerUncovered(page: Page) {
+	return page.evaluate(() => {
+		const header = document.getElementById('header')!.getBoundingClientRect()
+		return document.elementFromPoint(header.x + header.width / 2, header.y + header.height / 2)?.closest('#header') !== null
+	})
+}
 
 test('opens a photo in the loupe, pages by key and closes back to the grid', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
@@ -25,6 +35,10 @@ test('opens a photo in the loupe, pages by key and closes back to the grid', asy
 	await page.keyboard.press('ArrowRight')
 	await expect(loupe.getByRole('heading', { name: 'IMG_0002' })).toBeVisible()
 	await expect(loupe.getByText('2 of 2')).toBeVisible()
+
+	await expect.poll(() => headerUncovered(page)).toBe(false)
+	await loupe.getByRole('button', { name: 'Toggle Nextcloud navigation' }).click()
+	await expect.poll(() => headerUncovered(page)).toBe(true)
 
 	await page.keyboard.press('Escape')
 	await expect(loupe).toBeHidden()

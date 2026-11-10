@@ -67,7 +67,7 @@ const DIVIDER_WIDTH = 4
 const root = useTemplateRef<HTMLElement>('root')
 const stage = useTemplateRef<InstanceType<typeof LoupeStage>>('stage')
 const panels = useLoupePanels(props.storage)
-const { infoOpen, infoWidth } = panels
+const { infoOpen, infoWidth, navigationShown } = panels
 const filmstripOpen = ref(true)
 const chromeFree = ref(false)
 const zoom = ref<number | null>(null)
@@ -126,10 +126,10 @@ onMounted(() => root.value!.focus())
 	<div
 		ref="root"
 		class="photo-loupe"
-		:class="{ 'photo-loupe--idle': overlays.idle.value, 'photo-loupe--chrome-free': chromeFree }"
+		:class="{ 'photo-loupe--idle': overlays.idle.value, 'photo-loupe--chrome-free': chromeFree, 'photo-loupe--below-header': navigationShown && !chromeFree }"
 		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px` }"
 		role="dialog"
-		aria-modal="true"
+		:aria-modal="!navigationShown"
 		:aria-label="t('honeycomb', 'Loupe')"
 		tabindex="-1"
 		@keydown="onKeydown"
@@ -142,11 +142,13 @@ onMounted(() => root.value!.focus())
 			:zoom="zoom"
 			:infoOpen="infoOpen"
 			:filmstripOpen="filmstripOpen"
+			:navigationShown="navigationShown"
 			@pointerdown="overlays.wake"
 			@close="emit('close')"
 			@toggleZoom="stage!.toggleZoom()"
 			@update:infoOpen="panels.setInfoOpen"
-			@update:filmstripOpen="filmstripOpen = $event" />
+			@update:filmstripOpen="filmstripOpen = $event"
+			@update:navigationShown="panels.setNavigationShown" />
 		<div class="photo-loupe__main">
 			<LoupeStage
 				ref="stage"
@@ -213,6 +215,10 @@ onMounted(() => root.value!.focus())
 	flex-direction: column;
 	background-color: var(--color-main-background);
 	color: var(--color-main-text);
+}
+
+.photo-loupe--below-header {
+	top: var(--header-height);
 }
 
 .photo-loupe:focus {

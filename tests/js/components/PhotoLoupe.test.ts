@@ -5,7 +5,7 @@ import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import PhotoLoupe from '../../../src/components/PhotoLoupe.vue'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { INFO_OPEN_KEY, INFO_WIDTH_KEY } from '../../../src/loupe-panels.ts'
+import { INFO_OPEN_KEY, INFO_WIDTH_KEY, NAVIGATION_SHOWN_KEY } from '../../../src/loupe-panels.ts'
 import { fakeStorage } from '../app-cull.ts'
 import { fakeScheduler } from '../fake-scheduler.ts'
 import { listingEntry, picturesOf } from '../logic/listing-entries.ts'
@@ -146,6 +146,28 @@ describe('PhotoLoupe', () => {
 		const { wrapper } = await mountLoupe()
 		await button(wrapper, 'Toggle filmstrip').trigger('click')
 		expect(wrapper.find('.loupe-filmstrip').exists()).toBe(false)
+	})
+
+	it('shows the Nextcloud navigation above it by its toggle and keeps the choice', async () => {
+		const { wrapper, root, stored } = await mountLoupe()
+		const toggle = () => button(wrapper, 'Toggle Nextcloud navigation')
+		expect(root.classes('photo-loupe--below-header')).toBe(false)
+		expect(toggle().attributes('aria-pressed')).toBe('false')
+
+		await toggle().trigger('click')
+
+		expect(root.classes('photo-loupe--below-header')).toBe(true)
+		expect(toggle().attributes('aria-pressed')).toBe('true')
+		expect(root.attributes('aria-modal')).toBe('false')
+		expect(stored).toEqual({ [NAVIGATION_SHOWN_KEY]: 'true' })
+
+		await root.trigger('keydown', { key: 'Tab' })
+		expect(root.classes('photo-loupe--below-header')).toBe(false)
+	})
+
+	it('opens below the Nextcloud navigation when it was shown before', async () => {
+		const { root } = await mountLoupe(4, { [NAVIGATION_SHOWN_KEY]: 'true' })
+		expect(root.classes('photo-loupe--below-header')).toBe(true)
 	})
 
 	it('idles its overlays after the last touch unless a control has focus, and wakes on a mouse move or a middle tap', async () => {

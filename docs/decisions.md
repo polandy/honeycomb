@@ -222,3 +222,7 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   them. Paging snaps without a slide animation in M3.1, and vertical swipes wait for M3.2.
 - 2026-11-10: The info panel's open state and width are kept in the browser's local storage; the
   filmstrip starts open on each opening. The < 100 ms budget is not yet measured.
+- 2026-11-10: The "Nextcloud app navigation" the loupe covers is Nextcloud's header with the app
+  menu; honeycomb has no navigation of its own yet. A pressed toggle at the end of the title row
+  shows the header above the loupe, kept in the browser like the info panel; chrome-free mode
+  still covers it, and the loupe is no longer `aria-modal` while it shows.
