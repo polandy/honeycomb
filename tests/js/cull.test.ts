@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
+import type { CullSidecars } from '../../src/cull.ts'
 import type { StoredDecision } from '../../src/logic/decision.ts'
 import type { Settings } from '../../src/logic/settings.ts'
 
@@ -12,6 +13,9 @@ import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { ENTRIES, fakeStorage, SET, stored } from './app-cull.ts'
 import { listingEntry } from './logic/listing-entries.ts'
+
+/** Sidecars with nothing to take over, written without a word. */
+const NO_SIDECARS: CullSidecars = { takeOver: async () => [], write: async () => ({ written: 0, failed: [] }) }
 
 /** A cull opened on ENTRIES whose saves are recorded. */
 async function openedCull(stored: StoredDecision[] = []) {
@@ -25,8 +29,8 @@ async function openedCull(stored: StoredDecision[] = []) {
 			return stored
 		},
 		saveDecisions: async (rows) => { saved.push([...rows]) },
-	}, fakeStorage(), () => settings.value)
-	cull.open(SET, ENTRIES)
+	}, fakeStorage(), () => settings.value, NO_SIDECARS)
+	cull.open(SET, ENTRIES, [])
 	await flushPromises()
 	return { cull, saved, lookedUp, settings, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
 }
@@ -54,7 +58,7 @@ describe('useCull: redo', () => {
 		expect(cull.redo()).toBeNull()
 
 		cull.undo()
-		cull.open(SET, ENTRIES)
+		cull.open(SET, ENTRIES, [])
 		expect(cull.redo()).toBeNull()
 	})
 })
@@ -98,7 +102,7 @@ describe('useCull: toggleFiltersOff', () => {
 		const { cull } = await openedCull()
 		cull.filters.value = filtered
 		cull.toggleFiltersOff()
-		cull.open(SET, ENTRIES)
+		cull.open(SET, ENTRIES, [])
 
 		cull.toggleFiltersOff()
 		expect(cull.filters.value).toEqual(DEFAULT_FILTERS)
@@ -167,7 +171,7 @@ describe('useCull: settings', () => {
 	it('pairs what is left after a delete with the settings', async () => {
 		const { cull, settings } = await openedCull()
 		settings.value = { ...settings.value, folderMode: { kind: 'separate-subfolders', rawSubfolder: 'RAW', renderedSubfolder: 'JPG' } }
-		cull.open(SET, [listingEntry(5, '/Trip/A/RAW/X.CR3'), listingEntry(6, '/Trip/A/JPG/X.JPG')])
+		cull.open(SET, [listingEntry(5, '/Trip/A/RAW/X.CR3'), listingEntry(6, '/Trip/A/JPG/X.JPG')], [])
 
 		cull.removeFiles(new Set([6]))
 

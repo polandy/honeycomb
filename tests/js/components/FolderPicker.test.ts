@@ -196,17 +196,18 @@ describe('FolderPicker', () => {
 		expect(picker.calls).toEqual(['/Trip', '/Empty', '/Trip'])
 	})
 
-	// spec: LISTING-003.12
-	it('emits the folder set and its merged entries on confirm', async () => {
+	// spec: LISTING-003.12, XMP-003.14
+	it('emits the folder set, its merged entries and its shared folders on confirm', async () => {
 		const picker = await mountPicker()
 		await tick(picker, 'Trip')
 		await settleAll(picker)
 
 		await confirmButton(picker).trigger('click')
 
-		const [set, entries] = picker.wrapper.emitted('confirm')![0] as [FolderSet, ListingEntry[]]
+		const [set, entries, shared] = picker.wrapper.emitted('confirm')![0] as [FolderSet, ListingEntry[], string[]]
 		expect(set).toEqual({ paths: ['/Trip'], subfolders: false })
 		expect(entries.map((entry) => entry.fileId)).toEqual([1, 2, 3])
+		expect(shared).toEqual([])
 	})
 
 	// spec: LISTING-003.11

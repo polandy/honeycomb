@@ -13,10 +13,11 @@ import { PopoverStub } from './stubs.ts'
 
 const MARK = TRANSLATED_MARK
 
-const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number, rawRemovable: number } = {
+const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number, rawRemovable: number, sidecarsShared: boolean } = {
 	selecting: false,
 	rejected: 0,
 	rawRemovable: 0,
+	sidecarsShared: false,
 	selected: 0,
 	scope: 'not-rejected',
 	scopeLocked: false,
@@ -73,6 +74,18 @@ describe('GridToolbar', () => {
 		expect(item(wrapper).text().replaceAll(MARK, '')).toBe('Remove RAWs… 88')
 		await item(wrapper).trigger('click')
 		expect(wrapper.emitted('removeRaws')).toHaveLength(1)
+	})
+
+	// spec: XMP-003.12
+	it('offers writing to sidecars in the More menu only with photos in a shared folder', async () => {
+		const set = { paths: ['/Trip'], subfolders: false }
+		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('button').find((button) => button.text().includes('Write decisions to sidecars'))
+		const wrapper = mountToolbar(set, 1, { sidecarsShared: true })
+
+		expect(item(mountToolbar(set))).toBeUndefined()
+		expect(item(wrapper)!.text().replaceAll(MARK, '')).toBe('Write decisions to sidecars…')
+		await item(wrapper)!.trigger('click')
+		expect(wrapper.emitted('writeSidecars')).toHaveLength(1)
 	})
 
 	it('opens the settings from the More menu', async () => {
