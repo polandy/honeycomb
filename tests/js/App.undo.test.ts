@@ -41,6 +41,7 @@ describe('App: the undo toast', () => {
 		await flushPromises()
 		expect(toastText(wrapper)).toBe('Rejected IMG_10·Undo')
 		expect(wrapper.findComponent(UndoToast).element.parentElement).toBe(document.body)
+		expect(wrapper.findComponent(UndoToast).props('top')).toBe(true)
 
 		await wrapper.findComponent(UndoToast).find('button').trigger('click')
 		await flushPromises()
@@ -92,6 +93,7 @@ describe('App: the undo toast', () => {
 		await flushPromises()
 
 		expect(toastText(wrapper)).toBe('Picked 2 photos·Undo')
+		expect(wrapper.findComponent(UndoToast).props('top')).toBe(false)
 	})
 
 	it('puts the decision back when the server does not store the undo, and says so', async () => {
