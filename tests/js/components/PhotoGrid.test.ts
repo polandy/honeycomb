@@ -85,6 +85,20 @@ describe('PhotoGrid', () => {
 		expect(tileNames(wrapper)).not.toContain('IMG_0')
 	})
 
+	it('starts at the top again when the pictures of another cull arrive', async () => {
+		const { wrapper, resize } = mountGrid()
+		await resize(432, 220)
+		const scroller = wrapper.find('[role="grid"]').element
+		Object.defineProperty(scroller, 'scrollTop', { value: 110 * 10, writable: true, configurable: true })
+		await wrapper.find('[role="grid"]').trigger('scroll')
+		expect(tileNames(wrapper)).not.toContain('IMG_0')
+
+		await wrapper.setProps({ pictures: picturesIn({ '/Q': 100 }) })
+
+		expect(scroller.scrollTop).toBe(0)
+		expect(tileNames(wrapper)[0]).toBe('IMG_0')
+	})
+
 	it('places each tile at its row and column', async () => {
 		const { wrapper, resize } = mountGrid()
 		await resize(432, 220)
