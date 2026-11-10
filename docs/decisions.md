@@ -354,3 +354,21 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   listed instead of dropped; Framehive has no such marker.
 - 2026-11-10: No pull request template: the description becomes the squash commit body word for
   word, so template text would land in `main`. The trailer rule is in `docs/02-workflow.md` §2.5.
+- 2026-11-10: M5 is split into M5.1 (the pure TypeScript model, parser, serializer and mapping),
+  M5.2 (sidecar endpoints and the shared flag) and M5.3 (wiring into the cull), so each pull
+  request stays reviewable; the pure part comes first because both others build on it.
+- 2026-11-10: The XMP time is formatted from an epoch and a UTC offset in minutes passed in, not
+  from `Date`'s local zone, so serializing stays deterministic in tests (CORE-009 Clock port).
+- 2026-11-10: The fixtures for CORE-009's forms are written for honeycomb, not copied from
+  Framehive (GPL-3.0-or-later); `canonical.xmp` states the same model as Framehive's, so equal
+  bytes show both write the same form.
+- 2026-11-10: A sidecar holding NUL characters is refused as not UTF-8, so UTF-16 without a byte
+  order mark, which fatal UTF-8 decoding accepts, is caught too (XMP-001.5).
+- 2026-11-10: A refused sidecar is reported by throwing a typed `XmpError` with its reason and,
+  where the parser gives one, line and column, rather than returning a result union.
+- 2026-11-10: The `honeycomb` namespace is added to the preferred prefixes, so `honeycomb:KeepRaw`
+  is always written with that prefix.
+- 2026-11-10: Setting a property honeycomb writes keeps that property's existing qualifiers; only
+  the value text changes (CORE-009.23).
+- 2026-11-10: A sidecar honeycomb creates goes next to its member, `<member path>.xmp`, also when
+  the members of a pair sit in different folders.

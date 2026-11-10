@@ -43,8 +43,17 @@ export function sidecarOwnerFinder(owners: readonly SidecarOwner[]): (sidecar: F
 
 /** Whether the sidecar is the member's own, `<member>.xmp` or a darktable duplicate's, ignoring case. */
 export function isOwnSidecar(sidecar: FileName, memberName: string): boolean {
-	const name = memberName.toLowerCase()
-	return sidecar.baseName.toLowerCase() === name || sidecar.baseName.replace(DARKTABLE_DUPLICATE, '$1$2').toLowerCase() === name
+	return isMemberSidecar(sidecar, memberName) || isDuplicateSidecar(sidecar, memberName)
+}
+
+/** Whether the sidecar is `<member>.xmp`, ignoring case. */
+export function isMemberSidecar(sidecar: FileName, memberName: string): boolean {
+	return sidecar.baseName.toLowerCase() === memberName.toLowerCase()
+}
+
+/** Whether the sidecar is a darktable duplicate's of the member, `IMG_0001_01.NEF.xmp`, ignoring case. */
+export function isDuplicateSidecar(sidecar: FileName, memberName: string): boolean {
+	return !isMemberSidecar(sidecar, memberName) && sidecar.baseName.replace(DARKTABLE_DUPLICATE, '$1$2').toLowerCase() === memberName.toLowerCase()
 }
 
 /** Adds an owner index under a key. */

@@ -1,0 +1,13 @@
+<x:xmpmeta xmlns:x="adobe:ns:meta/">
+ <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:Iptc4xmpCore="http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/">
+   <xmp:Rating rdf:parseType="Resource"><rdf:value>4</rdf:value></xmp:Rating>
+   <dc:title><rdf:Alt><rdf:li xml:lang="x-default" rdf:parseType="Resource"><rdf:value>Lisbon harbour</rdf:value></rdf:li></rdf:Alt></dc:title>
+   <dc:subject><rdf:Bag><rdf:li><rdf:Description rdf:value="Beach"/></rdf:li><rdf:li>Sea</rdf:li></rdf:Bag></dc:subject>
+   <Iptc4xmpCore:CreatorContactInfo rdf:parseType="Resource">
+    <Iptc4xmpCore:CiAdrCity>Lisbon</Iptc4xmpCore:CiAdrCity>
+    <Iptc4xmpCore:CiEmailWork>photos@example.org</Iptc4xmpCore:CiEmailWork>
+   </Iptc4xmpCore:CreatorContactInfo>
+  </rdf:Description>
+ </rdf:RDF>
+</x:xmpmeta>

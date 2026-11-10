@@ -119,7 +119,9 @@ Read existing sidecars when a folder is listed and write ratings, colour labels,
 *Keep RAW* to them, so digiKam, darktable and Lightroom Classic on the desktop see the
 decisions. Fields, precedence, write rules and test vectors:
 [`06-xmp-interop.md`](06-xmp-interop.md). The mapping and the serialized form are a TypeScript
-module; the backend writes the bytes it gets with the checked save (ADR 0006).
+module; the backend writes the bytes it gets with the checked save (ADR 0006). Three parts:
+M5.1 the pure module (XMP-001, ADR 0016), M5.2 the sidecar endpoints and the shared flag, M5.3
+reading on listing, writing through and *Write decisions to sidecars…*.
 
 ### M6 – Series compare
 
