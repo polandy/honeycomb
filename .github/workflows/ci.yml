@@ -65,6 +65,20 @@ jobs:
           persist-credentials: false
       - uses: fsfe/reuse-action@676e2d560c9a403aa252096d99fcab3e1132b0f5 # v6.0.0
 
+  conventions:
+    name: Convention gates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: scripts/test-ci-changes.sh
+      - run: scripts/test-source-sizes.sh
+      - run: scripts/test-pins.sh
+      - run: scripts/source-sizes.sh
+      - run: scripts/pins.sh
+
   php:
     name: PHP ${{ matrix.php }}
     needs: changes
@@ -117,7 +131,7 @@ jobs:
 
   gate:
     name: CI gate
-    needs: [changes, markdown, reuse, php, typescript]
+    needs: [changes, markdown, reuse, conventions, php, typescript]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 5

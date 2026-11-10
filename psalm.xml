@@ -16,7 +16,39 @@
 	<projectFiles>
 		<directory name="lib"/>
 		<directory name="templates"/>
+		<directory name="tests/php"/>
 	</projectFiles>
+	<!-- Files go through OCP\Files (CLAUDE.md rule 1); time, randomness and output through injected OCP services. -->
+	<forbiddenFunctions>
+		<function name="var_dump"/>
+		<function name="print_r"/>
+		<function name="error_log"/>
+		<function name="sleep"/>
+		<function name="usleep"/>
+		<function name="time"/>
+		<function name="microtime"/>
+		<function name="date"/>
+		<function name="rand"/>
+		<function name="mt_rand"/>
+		<function name="random_int"/>
+		<function name="uniqid"/>
+		<function name="fopen"/>
+		<function name="file_get_contents"/>
+		<function name="file_put_contents"/>
+		<function name="file_exists"/>
+		<function name="unlink"/>
+		<function name="rename"/>
+		<function name="copy"/>
+		<function name="mkdir"/>
+		<function name="rmdir"/>
+		<function name="scandir"/>
+		<function name="glob"/>
+		<function name="exec"/>
+		<function name="shell_exec"/>
+		<function name="system"/>
+		<function name="passthru"/>
+		<function name="proc_open"/>
+	</forbiddenFunctions>
 	<!-- Psalm reports the closures of the inherited OCP Controller constructor. -->
 	<issueHandlers>
 		<InvalidTemplateParam>

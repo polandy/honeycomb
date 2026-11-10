@@ -15,7 +15,7 @@ Every behaviour change is reflected in its doc **in the same pull request**, nev
 | XMP fields, precedence, write rules | `docs/06-xmp-interop.md`, and its test vectors |
 | Name templates | `docs/05-name-templates.md` |
 | Something a user does or sees differently | `docs/user/`, and `README.md` if it is on the front page |
-| Tools, test layers, procedure | `docs/03-coding-standards.md`, `docs/02-workflow.md`, `CLAUDE.md` |
+| Tools, test layers, procedure | `docs/conventions.md`, `docs/03-coding-standards.md`, `docs/02-workflow.md`, `CLAUDE.md` |
 | An architectural choice | a new ADR in `docs/adr/` |
 | A smaller decision taken on the way | one dated line in `docs/decisions.md` |
 | A finished item | its line deleted from `TODO.md` |
@@ -39,8 +39,8 @@ Every behaviour change is reflected in its doc **in the same pull request**, nev
 
 ## 3. Implementation quality
 
-Apply `CLAUDE.md` and `docs/03-coding-standards.md` to the diff rather than re-deriving them. Flag
-freshly introduced violations.
+Apply `CLAUDE.md`, `docs/conventions.md` and `docs/03-coding-standards.md` to the diff rather than
+re-deriving them. Flag freshly introduced violations.
 
 - **Files only through `OCP\Files`** (rule 1): no `fopen`, `file_put_contents`, `unlink`, `rename`,
   `scandir` or `\OC\` class on user data. One direct file-system call is a **blocker**.

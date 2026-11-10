@@ -10,8 +10,9 @@ only. **Don't grow it**: move detail into `docs/` and keep a pointer here.
 ## Commands
 
 - **Before finishing:** `scripts/verify.sh`. It mirrors CI, prints one line per step and the
-  failing step in full: markdownlint, REUSE, php-cs-fixer, psalm, PHPUnit, eslint, tsc, Vitest
-  with coverage; build and Playwright join with M2 (`docs/plan.md`). Without PHP it uses Docker.
+  failing step in full: convention gates (file size, pins), markdownlint, REUSE, php-cs-fixer,
+  psalm, PHPUnit, eslint, tsc, Vitest with coverage; build and Playwright join with M2
+  (`docs/plan.md`). Without PHP it uses Docker.
 - Open work: `TODO.md`. `/todo` adds, `/next` plans, `/status` and `/review` check, skill
   `pr-review` reviews a PR. Subagents: `honeycomb-implementer` (one task),
   `honeycomb-reviewer` (one change). Red CI: `gh run view <run> --log-failed`.
@@ -24,7 +25,7 @@ only. **Don't grow it**: move detail into `docs/` and keep a pointer here.
 | What we build | `docs/01-requirements.md` |
 | Plan, milestones, open questions | `docs/plan.md` |
 | Branch, test, PR, review | `docs/02-workflow.md` — **binding**, read before the first commit |
-| How code is written here | `docs/03-coding-standards.md` — read the section you touch |
+| How code is written here | `docs/conventions.md` (every language), `docs/03-coding-standards.md` (stack) |
 | Words we use | `docs/04-glossary.md` |
 | Why decisions were made | `docs/adr/` |
 
@@ -68,10 +69,14 @@ Every tool result is re-read, and paid for, on each later turn.
 
 ## Code style
 
-- Small units; names say *what*, comments say *why*, one line at most. Rationale goes into docs
-  or an ADR, not into comments.
-- PHP: strict types, constructor injection, no static state; Nextcloud coding standard via
-  php-cs-fixer; psalm clean.
+Binding: `docs/conventions.md`. In short:
+
+- Single responsibility, small public surface, files of at most 300 lines; side effects (files,
+  clock, randomness) injected, never global or static.
+- Names say *what*, comments say *why*, one line at most; a one-line doc comment on every export
+  and public service method. No magic strings or numbers. No duplicated logic.
+- Fail loud: no empty `catch`, typed errors, log through the injected logger, raw error text
+  never reaches the user. No `any`, no dropped promise, no `innerHTML` or `v-html`.
 - Thin backend: PHP lists, moves, trashes, writes and stores, and rechecks every path. Logic
   lives in pure TypeScript modules without DOM or network (ADR 0006).
 - Vue: `@nextcloud/vue` components, `@nextcloud/axios`, no hover-only interaction, colours from

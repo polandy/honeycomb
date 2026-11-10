@@ -13,6 +13,8 @@
 	failOnWarning="true"
 	failOnDeprecation="true"
 	failOnNotice="true"
+	executionOrder="random"
+	beStrictAboutOutputDuringTests="true"
 >
 	<testsuites>
 		<testsuite name="unit">

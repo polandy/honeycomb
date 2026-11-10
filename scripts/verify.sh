@@ -25,6 +25,9 @@ step() {
 }
 
 step ci-changes scripts/test-ci-changes.sh
+step "gate tests" sh -c 'scripts/test-source-sizes.sh && scripts/test-pins.sh'
+step source-sizes scripts/source-sizes.sh
+step pins scripts/pins.sh
 step markdownlint npx --yes "markdownlint-cli2@$MARKDOWNLINT_CLI2_VERSION"
 step reuse uvx --from "reuse==$REUSE_VERSION" reuse lint
 step "composer install" scripts/php.sh composer install --no-interaction --no-progress

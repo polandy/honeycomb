@@ -14,8 +14,9 @@ use SimpleXMLElement;
 final class InfoXmlTest extends TestCase {
 	private SimpleXMLElement $info;
 
+	#[\Override]
 	protected function setUp(): void {
-		$this->info = new SimpleXMLElement((string)file_get_contents(__DIR__ . '/../../../appinfo/info.xml'));
+		$this->info = new SimpleXMLElement($this->readRepositoryFile('appinfo/info.xml'));
 	}
 
 	public function testIdMatchesTheApplication(): void {
@@ -38,7 +39,13 @@ final class InfoXmlTest extends TestCase {
 	}
 
 	public function testVersionMatchesPackageJson(): void {
-		$package = json_decode((string)file_get_contents(__DIR__ . '/../../../package.json'), true, flags: JSON_THROW_ON_ERROR);
+		/** @var array{version: string} $package */
+		$package = json_decode($this->readRepositoryFile('package.json'), true, flags: JSON_THROW_ON_ERROR);
 		$this->assertSame($package['version'], (string)$this->info->version);
+	}
+
+	/** @psalm-suppress ForbiddenCode Reads the app's own metadata, not a user file. */
+	private function readRepositoryFile(string $path): string {
+		return (string)file_get_contents(__DIR__ . '/../../../' . $path);
 	}
 }
