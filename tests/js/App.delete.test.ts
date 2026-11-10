@@ -188,4 +188,30 @@ describe('App: removing RAWs', () => {
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
 		expect(toastText(wrapper)).toContain('Removed the RAWs of 1 photo · 1 file')
 	})
+
+	// spec: DELETE-002.12
+	it('does not bring pictures back with Ctrl+Z after Delete… or Remove RAWs', async () => {
+		const { wrapper } = await openApp()
+		await press('Backspace', { ctrlKey: true })
+		wrapper.findComponent(RejectReview).vm.$emit('confirm')
+		await flushPromises()
+		summaryOf(wrapper).vm.$emit('confirm')
+		await flushPromises()
+		const afterDelete = shownNames(wrapper)
+		expect(afterDelete).toEqual(['IMG_9'])
+
+		await press('z', { ctrlKey: true })
+		expect(shownNames(wrapper)).toEqual(afterDelete)
+
+		const raws = await openApp([])
+		raws.wrapper.findComponent(GridToolbar).vm.$emit('removeRaws')
+		await flushPromises()
+		raws.wrapper.findComponent(RawRemovalSummary).vm.$emit('confirm')
+		await flushPromises()
+		expect(raws.wrapper.findComponent(GridToolbar).props('rawRemovable')).toBe(0)
+
+		await press('z', { ctrlKey: true })
+		expect(raws.wrapper.findComponent(GridToolbar).props('rawRemovable')).toBe(0)
+		expect(shownNames(raws.wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
+	})
 })

@@ -99,7 +99,7 @@ says what was freed. Failed files end in the delete report, with a reason per fi
 - **When** the user confirms
 - **Then** the grid is unchanged, the dialog closes and a toast says why
 
-### DELETE-002.12 – Not undone by Ctrl+Z (gap)
+### DELETE-002.12 – Not undone by Ctrl+Z
 
 - **Given** pictures just moved to the trash bin
 - **When** the user presses `Ctrl+Z`
@@ -114,3 +114,4 @@ The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged M4.2 (#52) |
+| 2026-11-10 | DELETE-002.12 proven by a Vitest test |
