@@ -30,9 +30,9 @@ back to its default, so an unknown, missing or invalid field never breaks the ap
 | Favourite targets | None |
 
 *Settings* in the grid's ⋯ menu opens a dialog with the sections *File types*, *Folder layout*,
-*Loupe gestures*, *Keyboard* and *Moving photos*. Each change applies at once and saves the whole object; there is
-no OK button. What a setting does elsewhere is specified where it acts (LISTING-002, LOUPE-001,
-LOUPE-002, KEYS-001, MOVE-004).
+*Loupe gestures*, *Keyboard* and *Moving photos*. Each change applies at once and saves the whole
+object; there is no OK button. What a setting does elsewhere is specified where it acts
+(LISTING-002, LOUPE-001, LOUPE-002, KEYS-001, MOVE-004).
 
 *Moving photos* holds the name template: three presets, a text field and a live preview that
 renders the template on five fixed sample pictures, chosen to show the template's edge cases (two

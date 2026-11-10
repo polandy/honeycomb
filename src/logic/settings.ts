@@ -5,6 +5,8 @@ import type { SwipeSetting } from './loupe-gesture.ts'
 import type { FolderMode, PairingSettings } from './pairing.ts'
 
 import { DEFAULT_SWIPES } from './loupe-gesture.ts'
+import { parseNameTemplate } from './name-template/parse.ts'
+import { DEFAULT_NAME_TEMPLATE } from './name-template/presets.ts'
 import { DEFAULT_PAIRING_SETTINGS } from './pairing.ts'
 import { SIDECAR_EXTENSION } from './sidecars.ts'
 
@@ -17,6 +19,7 @@ export interface Settings extends PairingSettings {
 	readonly viKeys: boolean
 	readonly moveFavourites: readonly string[]
 	readonly moveRecent: readonly string[]
+	readonly moveTemplate: string
 }
 
 /** One of the two extension lists. */
@@ -38,6 +41,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	viKeys: false,
 	moveFavourites: [],
 	moveRecent: [],
+	moveTemplate: DEFAULT_NAME_TEMPLATE,
 }
 
 const OTHER_LIST: Record<ExtensionList, ExtensionList> = { rawExtensions: 'renderedExtensions', renderedExtensions: 'rawExtensions' }
@@ -57,6 +61,7 @@ export function parseSettings(value: unknown): Settings {
 		viKeys: boolean('viKeys'),
 		moveFavourites: parsePaths(stored.moveFavourites),
 		moveRecent: parsePaths(stored.moveRecent),
+		moveTemplate: typeof stored.moveTemplate === 'string' && parseNameTemplate(stored.moveTemplate).ok ? stored.moveTemplate : DEFAULT_NAME_TEMPLATE,
 	}
 }
 

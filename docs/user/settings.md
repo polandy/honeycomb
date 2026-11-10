@@ -43,3 +43,16 @@ Changing a list pairs the open folders again at once; your decisions stay.
 - **Vi keys:** `h` `j` `k` `l` switch photos, `g g` and `Shift+G` go to the first and last photo,
   `/` opens the filters. `g` then no longer opens the grid: `Esc` does. See
   [keyboard shortcuts](keyboard-shortcuts.md#vi-keys).
+
+## Moving photos
+
+- **Name template:** how a moved photo is named, relative to the folder you move it to. All files
+  of a photo, sidecars included, get the same new name. Choose a preset (*By day*, *By day, full
+  date in the name*, *Keep names*) or type your own; the tokens are described in
+  [name templates](../05-name-templates.md). A valid template is saved as you type. An invalid one
+  is marked where the problem is, and moving keeps using the last valid template.
+- **Preview:** five sample photos show the names the template gives. Notes mark a name that
+  collides and gets a `-2` suffix, a photo without an EXIF time (its file time is used) and one
+  without a camera model (`unknown`).
+- **Favourite folders:** the folders you starred in the move dialog. ✕ removes one; add them in
+  the move dialog.

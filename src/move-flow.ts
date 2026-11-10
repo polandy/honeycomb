@@ -18,7 +18,6 @@ import { existingFiles, moveRequest, planMove, probeFolders } from './logic/move
 import { gotNewFileIds, moveReport, undoneEntries, undoRequest } from './logic/move-report.ts'
 import { addRecent, targetChips, toggleFavourite as toggled } from './logic/move-targets.ts'
 import { parseNameTemplate } from './logic/name-template/parse.ts'
-import { DEFAULT_NAME_TEMPLATE } from './logic/name-template/presets.ts'
 import { followReplaced } from './logic/trash-report.ts'
 import { movedBackText, movedText, moveFailedText } from './move-text.ts'
 
@@ -38,8 +37,6 @@ export interface MoveFlowContext {
 	readonly listing?: () => unknown
 	readonly loupe: Ref<LoupeSnapshot | null>
 	readonly toast: (message: string, action?: ToastAction | null) => void
-	/** The name template's text; the default until the setting arrives (M7.4). */
-	readonly template?: () => string
 	readonly offset?: MtimeOffset
 }
 
@@ -61,7 +58,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 	let probing = 0
 
 	const template = computed(() => {
-		const text = (context.template ?? (() => DEFAULT_NAME_TEMPLATE))()
+		const text = context.settings().moveTemplate
 		const parsed = parseNameTemplate(text)
 		if (!parsed.ok) {
 			throw new Error(`The name template ${text} is invalid: ${parsed.problem}`)

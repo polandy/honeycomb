@@ -15,6 +15,7 @@ import NcAppSettingsSection from '@nextcloud/vue/components/NcAppSettingsSection
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import AppIcon from './AppIcon.vue'
+import MoveSettings from './MoveSettings.vue'
 import { addExtension, DEFAULT_SUBFOLDERS, folderMode, removeExtension } from '../logic/settings.ts'
 
 const props = defineProps<{
@@ -234,6 +235,9 @@ function setSwipe(direction: SwipeDirection, value: string) {
 				@update:modelValue="emit('update', { viKeys: $event })">
 				{{ SWITCHES.viKeys.label }}
 			</NcCheckboxRadioSwitch>
+		</NcAppSettingsSection>
+		<NcAppSettingsSection id="moving-photos" :name="t('honeycomb', 'Moving photos')">
+			<MoveSettings :settings="settings" @update="emit('update', $event)" />
 		</NcAppSettingsSection>
 	</NcAppSettingsDialog>
 </template>

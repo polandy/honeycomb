@@ -3,8 +3,8 @@
 import type { Settings } from '../../../src/logic/settings.ts'
 
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_NAME_TEMPLATE } from '../../../src/logic/name-template/presets.ts'
 import { DEFAULT_SWIPES } from '../../../src/logic/loupe-gesture.ts'
+import { DEFAULT_NAME_TEMPLATE } from '../../../src/logic/name-template/presets.ts'
 import { DEFAULT_PAIRING_SETTINGS, pairPictures } from '../../../src/logic/pairing.ts'
 import { addExtension, DEFAULT_SETTINGS, DEFAULT_SUBFOLDERS, folderMode, pairingSettings, parseSettings, removeExtension } from '../../../src/logic/settings.ts'
 

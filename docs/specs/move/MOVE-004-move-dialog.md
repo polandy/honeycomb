@@ -165,8 +165,8 @@ trash bin refuses (`409`, a *Replace* with the trash bin off) says the trash bin
 ## Out of scope
 
 The name template setting, its presets and the favourite targets list in the settings:
-SETTINGS-001. The endpoints: MOVE-002. The plan, conflicts, report and undo request: MOVE-003. Carrying decision rows
-over to new file ids after a move across storages: `TODO.md` Later.
+SETTINGS-001. The endpoints: MOVE-002. The plan, conflicts, report and undo request: MOVE-003.
+Carrying decision rows over to new file ids after a move across storages: `TODO.md` Later.
 
 ## History
 
