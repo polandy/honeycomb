@@ -188,8 +188,8 @@ from the injected clock, never `xmp:CreatorTool`, `xmp:ModifyDate` or `xmpMM:His
 (CORE-009.10). Saving goes through `OCP\Files` (CLAUDE.md rule 1): write `<name>.part`, check the
 target has not appeared or changed since it was read, rename (CORE-009.16–.19). *Differs:* the
 check uses the Nextcloud ETag and size in place of BLAKE3. Reading, the mapping and serializing
-are a pure TypeScript module; the backend only does the checked save of the bytes (ADR 0006).
-Which TypeScript XML library keeps every RDF form is an ADR at M5 (CLAUDE.md rule 6).
+are a pure TypeScript module, `src/logic/xmp/` (XMP-001); the backend only does the checked save
+of the bytes (ADR 0006). `@xmldom/xmldom` turns the bytes into an element tree (ADR 0016).
 
 ## Test vectors
 
