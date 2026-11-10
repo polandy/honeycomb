@@ -162,7 +162,8 @@ describe('PhotoTile', () => {
 		const badge = wrapper.find('.photo-tile__series')
 
 		expect(badge.text()).toBe('⧉ 3')
-		expect(badge.attributes('title')).toBe(`${MARK}Series of 3`)
+		expect(badge.attributes('title')!.startsWith(MARK)).toBe(true)
+		expect(badge.attributes('title')!.replaceAll(MARK, '')).toBe('Series of 3')
 		expect(badge.attributes('aria-hidden')).toBe('true')
 		expect(wrapper.attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3, Series of 3')
 		expect(mountTile(PAIR).find('.photo-tile__series').exists()).toBe(false)

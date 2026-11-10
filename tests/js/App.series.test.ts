@@ -38,9 +38,10 @@ const compare = (wrapper: AppWrapper) => wrapper.findComponent(SeriesCompare)
 const pictures = (wrapper: AppWrapper) => compare(wrapper).props('series')!
 const shown = (wrapper: AppWrapper) => compare(wrapper).props('series')?.map((picture: { baseName: string }) => picture.baseName) ?? null
 const viewer = (wrapper: AppWrapper) => wrapper.findComponent(SeriesViewer)
-const viewed = (wrapper: AppWrapper) => {
-	const props = viewer(wrapper).props()
-	return [props.pictures.map((picture: { baseName: string }) => picture.baseName), props.pictures[props.index].baseName]
+/** The viewer's pictures by name and the shown one's name. */
+function viewed(wrapper: AppWrapper) {
+	const { pictures: shownPictures, index } = viewer(wrapper).props()
+	return [shownPictures.map((picture) => picture.baseName), shownPictures[index]!.baseName]
 }
 const toastText = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast).text()
 
@@ -159,7 +160,7 @@ describe('App: series compare', () => {
 	// spec: SERIES-002.10
 	it('hands the grid the size of each picture\'s series for its badge', async () => {
 		const { wrapper } = await openApp()
-		const sizes = wrapper.findComponent(PhotoGrid).props('series') as ReadonlyMap<{ baseName: string }, number>
+		const sizes = wrapper.findComponent(PhotoGrid).props('seriesSizes') as ReadonlyMap<{ baseName: string }, number>
 
 		expect([...sizes].map(([picture, size]) => `${picture.baseName} ${size}`)).toEqual(['IMG_1 3', 'IMG_2 3', 'IMG_3 3', 'IMG_4 2', 'IMG_5 2'])
 	})

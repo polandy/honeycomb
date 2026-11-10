@@ -4,9 +4,12 @@ import type { HotkeyHandlers } from './hotkeys.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
 import type { Decision } from './logic/decision.ts'
 import type { HotkeyIntent } from './logic/hotkeys.ts'
+import type { Settings } from './logic/settings.ts'
+import type { Toast } from './toast.ts'
 
 import { computed, ref, shallowRef } from 'vue'
 import { stepRating } from './logic/hotkeys.ts'
+import { useSeriesViewer } from './series-viewer.ts'
 
 /** What the series compare reads from the cull and hands to it. */
 export interface SeriesCompareContext<P> {
@@ -14,6 +17,9 @@ export interface SeriesCompareContext<P> {
 	readonly decisionOf: (picture: P) => Decision
 	readonly decide: (intent: DecisionIntent, picture: P) => void
 	readonly pickRest: (picked: P, rest: readonly P[]) => void
+	readonly settings: () => Settings
+	readonly updateSettings: (patch: Partial<Settings>) => void
+	readonly toast: (toast: Toast) => void
 }
 
 /** The series compare dialog's state: which series it shows, which picture is active, and its keys (SERIES-001). */
@@ -90,6 +96,23 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 		}
 	}
 
+	const viewer = useSeriesViewer<P>({
+		decisionOf: context.decisionOf,
+		closed: (picture) => {
+			const at = current.value?.indexOf(picture) ?? -1
+			if (at >= 0) {
+				setActive(at)
+			}
+		},
+	})
+
+	/** Opens the series viewer on the picture at `at` of the shown series (SERIES-002.1). */
+	function view(at = active.value) {
+		if (current.value !== null) {
+			viewer.openAt(current.value, at)
+		}
+	}
+
 	const hotkeys: HotkeyHandlers = {
 		decide: decideByKey,
 		previous: () => setActive(active.value - 1),
@@ -98,7 +121,8 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 		close,
 	}
 
-	return { open, current, position, count, active, setActive, start, close, skip, decide, pickRest, hotkeys }
+	const { settings, updateSettings, toast } = context
+	return { open, current, position, count, active, setActive, start, close, skip, decide, pickRest, hotkeys, viewer, view, settings, updateSettings, toast }
 }
 
 export type SeriesCompareFlow<P> = ReturnType<typeof useSeriesCompare<P>>

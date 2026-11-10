@@ -41,8 +41,11 @@ const props = withDefaults(defineProps<{
 	decision?: Decision
 	selecting?: boolean
 	selected?: boolean
+	/** The size of the offered series the picture is in, 0 outside one (SERIES-002.10). */
+	series?: number
 }>(), {
 	decision: () => UNDECIDED,
+	series: 0,
 	selecting: false,
 	selected: false,
 	imageUrl: apiImageUrl,
@@ -77,10 +80,16 @@ const decisionLabel = computed(() => {
 	].filter((part) => part !== null)
 })
 
+const seriesText = computed(() => n('honeycomb', 'Series of {count}', 'Series of {count}', props.series, { count: formatNumber(props.series) }))
+
+/** The badge's symbol and the series' size, as the mockup draws it. */
+const seriesBadge = computed(() => `⧉ ${formatNumber(props.series)}`)
+
 const label = computed(() => [
 	props.picture.baseName,
 	badge.value.text.replace(' ✓', ''),
 	...(props.picture.ambiguous ? [t('honeycomb', 'ambiguous name')] : []),
+	...(props.series > 1 ? [seriesText.value] : []),
 	...decisionLabel.value,
 ].join(', '))
 
@@ -117,6 +126,11 @@ watch([srcset, sizes, () => props.devicePixelRatio], async () => {
 			:sizes="decoded === null ? undefined : sizes">
 		<span class="photo-tile__pair" :class="{ 'photo-tile__pair--single': badge.single, 'photo-tile__pair--keep-raw': badge.keepRaw }">{{ badge.text }}</span>
 		<span v-if="props.picture.ambiguous" class="photo-tile__ambiguous" aria-hidden="true">!</span>
+		<span
+			v-if="props.series > 1"
+			class="photo-tile__series"
+			aria-hidden="true"
+			:title="seriesText">{{ seriesBadge }}</span>
 		<span v-if="props.selecting" class="photo-tile__check" aria-hidden="true"><AppIcon v-if="props.selected" name="check" /></span>
 		<FlagMark v-if="props.decision.flag !== 'unflagged'" :flag="props.decision.flag" :class="`photo-tile__flag photo-tile__flag--${props.decision.flag}`" />
 		<span v-if="props.decision.colourLabel !== null" class="photo-tile__colour" :style="{ backgroundColor: COLOUR_LABEL_SWATCHES[props.decision.colourLabel] }" />
@@ -208,6 +222,20 @@ watch([srcset, sizes, () => props.devicePixelRatio], async () => {
 .photo-tile__check .app-icon {
 	width: 16px;
 	height: 16px;
+}
+
+.photo-tile__series {
+	position: absolute;
+	inset-inline-end: 6px;
+	bottom: 6px;
+	padding: 2px 6px;
+	border-radius: var(--border-radius);
+	background-color: var(--color-main-background-blur);
+	color: var(--color-main-text);
+	font-size: 11px;
+	font-weight: bold;
+	line-height: 1.3;
+	pointer-events: none;
 }
 
 .photo-tile__flag {

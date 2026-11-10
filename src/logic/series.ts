@@ -71,3 +71,8 @@ function evenChunks<T>(run: readonly T[]): T[][] {
 function compare(a: string, b: string): number {
 	return a < b ? -1 : a > b ? 1 : 0
 }
+
+/** Each picture of the given series mapped to the size of its series, for the series badge (SERIES-002.10). */
+export function seriesSizes<P>(series: readonly (readonly P[])[]): Map<P, number> {
+	return new Map(series.flatMap((pictures) => pictures.map((picture) => [picture, pictures.length] as const)))
+}

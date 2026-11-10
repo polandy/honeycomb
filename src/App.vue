@@ -95,7 +95,9 @@ const common = computed(() => cull.common(selected.value))
 watch(cull.pairing, selection.selectNone)
 
 const { decide, pickRest, undo, redo } = useToastedDecisions(cull, toast.show)
-const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: (intent, picture) => decide(intent, [picture]), pickRest })
+const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: (intent, picture) => decide(intent, [picture]), pickRest, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action) })
+const seriesFlow = useTemplateRef<InstanceType<typeof SeriesCompareFlow>>('seriesFlow')
+const overlayScreen = computed(() => (loupe.value !== null ? '.photo-loupe' : seriesCompare.viewer.open.value ? '.series-viewer' : undefined))
 const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
 const { dialog: deleteDialog, busy: deleteBusy, rejected, rawRemovable, rawRemoval } = deleting
 
@@ -128,7 +130,7 @@ useHotkeys(() => {
 		return { shortcuts: toggleShortcuts }
 	}
 	if (seriesCompare.open.value) {
-		return { undo, redo, shortcuts: toggleShortcuts, ...seriesCompare.hotkeys }
+		return { undo, redo, shortcuts: toggleShortcuts, ...(seriesFlow.value?.hotkeys() ?? seriesCompare.hotkeys) }
 	}
 	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: () => deleting.summariseShown(selected.value, () => grid.value?.focusedIndex() ?? 0), ...(loupe.value === null ? { ...gridKeys, compare: seriesCompare.start } : loupeView.value?.hotkeys) }
 }, () => settings.value.viKeys)
@@ -200,6 +202,7 @@ async function closeLoupe() {
 					:selecting="selecting"
 					:selection="selection.selection.value"
 					:decisionOf="cull.decisionOf"
+					:seriesSizes="cull.seriesSizes.value"
 					@update:tileSize="cull.setTileSize"
 					@update:selecting="selection.setSelecting"
 					@update:selection="selection.select"
@@ -253,7 +256,7 @@ async function closeLoupe() {
 				:flow="sidecarFlow"
 				:folderSet="folderSet"
 				:decisionOf="cull.decisionOf" />
-			<SeriesCompareFlow :flow="seriesCompare" :decisionOf="cull.decisionOf" />
+			<SeriesCompareFlow ref="seriesFlow" :flow="seriesCompare" :decisionOf="cull.decisionOf" />
 			<SettingsDialog v-model:open="settingsOpen" :settings="settings" @update="updateSettings" />
 			<Teleport to="body">
 				<PhotoLoupe
@@ -272,12 +275,12 @@ async function closeLoupe() {
 					@close="closeLoupe" />
 				<ShortcutSheet
 					v-if="shortcutsOpen"
-					:container="loupe !== null ? '.photo-loupe' : undefined"
+					:container="overlayScreen"
 					@close="shortcutsOpen = false" />
 				<UndoToast
 					v-if="toast.current.value !== null"
 					:toast="toast.current.value"
-					:top="loupe !== null"
+					:top="overlayScreen !== undefined"
 					@act="toast.act" />
 			</Teleport>
 		</NcAppContent>

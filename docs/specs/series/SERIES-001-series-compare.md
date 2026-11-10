@@ -20,15 +20,16 @@ left out before the runs are formed. A run of more than four is split into serie
 as even as possible (5 → 3 + 2). A series has at least two pictures and at least one undecided;
 the series are ordered by their first capture time.
 
-*Compare series* in the toolbar shows how many series there are and is disabled without one; it
-and `N` open the series compare dialog. The dialog, titled "Compare series 1 of 3", shows the
-series' pictures side by side, each with its name, stars, flag mark, the flag buttons and *Pick
-this, reject the rest*; one picture is active (outlined). A decision goes through the undo
-history and the undo toast like any other. A rejected picture leaves the series; once fewer than
-two are left, the series is done and the next one shows. *Pick this, reject the rest* picks the
-one picture and rejects every other picture of the series, as one undo step: "Picked IMG_0003,
-rejected the rest · Undo". *Skip* shows the next series, after the last the first. Without any
-series left the dialog says "All series compared".
+*Compare series* in the toolbar shows how many series there are and is disabled without one; it and
+`N` open the series compare dialog. The dialog, titled "Compare series 1 of 3", shows the series'
+pictures side by side, each with its name, stars, flag mark, the flag buttons and *Pick this, reject
+the rest*; one picture is active (outlined). Tapping a picture's photo opens it in the series viewer
+(SERIES-002); closing the viewer makes the viewed picture active. A decision goes through the undo
+history and the undo toast like any other. A rejected picture leaves the series; once fewer than two
+are left, the series is done and the next one shows. *Pick this, reject the rest* picks the one
+picture and rejects every other picture of the series, as one undo step: "Picked IMG_0003, rejected
+the rest · Undo". *Skip* shows the next series, after the last the first. Without any series left
+the dialog says "All series compared".
 
 | Key in the dialog | Action |
 |---|---|
@@ -121,8 +122,7 @@ series left the dialog says "All series compared".
 
 ## Out of scope
 
-The fullscreen series viewer with paging, swipes, synchronised zoom and its own *Pick this, reject
-the rest*, and the series badge on the tiles: milestone M6.2 in `TODO.md`. The capture time and
+The fullscreen series viewer and the series badge on the tiles: SERIES-002. The capture time and
 camera come from LISTING-001.
 
 ## History
@@ -130,3 +130,4 @@ camera come from LISTING-001.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Created with the series and the series compare dialog (M6.1). |
+| 2026-11-10 | A tap on a picture's photo opens the series viewer instead of making it active (M6.2). |

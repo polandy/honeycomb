@@ -416,3 +416,27 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   filtered view, and a series is offered only while it holds an unflagged picture.
 - 2026-11-10: `N` opens the series compare from the grid only; in it, tapping a card makes it the
   active photo until the series viewer exists.
+- 2026-11-10: The series viewer is built from the loupe's stage, action bar, navigation buttons,
+  flag button toggle, idle timer and prefetch; the stage keeps its zoom across paging by a
+  `keepZoom` prop, and a double-tap in the middle toggles 100 % instead of the chrome-free mode.
+- 2026-11-10: The series viewer's state lives in `src/series-viewer.ts`: it shows the series
+  without its rejected pictures and tracks the shown picture by identity, so a reject shows the
+  next photo (the previous after the last) and an undo that brings a photo back shows it.
+- 2026-11-10: Fewer than two photos left close the series viewer and the compare shows the next
+  series, so *Pick this, reject the rest* closes it too; an undo after that restores the flag only.
+- 2026-11-10: Tapping a card's photo in the series compare opens the series viewer on it instead of
+  making it active; the arrow keys still switch the active card. `Enter` does not open the viewer,
+  as the key map has no command for it. Closing the viewer makes the viewed photo active.
+- 2026-11-10: The series viewer's title row has the close button, the name, "Series 1 of 2 · photo
+  2 of 3", the flag button toggle and *Fit* / 100 %; no info panel, filmstrip, Nextcloud
+  navigation toggle or gesture guide.
+- 2026-11-10: A decision in the series viewer goes through the same path and undo toast as the
+  compare and never moves on by itself; `Shift` with a decision key moves on, except a reject,
+  which already takes the photo out. Swipes follow the swipe settings and do not decide while
+  zoomed.
+- 2026-11-10: The series viewer prefetches the whole series when it opens, and the compare stays
+  hidden while the viewer is open.
+- 2026-11-10: The series badge "⧉ N" marks a tile whose picture is in an offered series; it is
+  read-only, with "Series of N" as tooltip and in the tile's label.
+- 2026-11-10: No Playwright test for the series viewer yet: the e2e fixtures have no capture times,
+  so they form no series; the viewer is covered by Vitest component and App tests.

@@ -25,6 +25,8 @@ const props = defineProps<{
 	ready: ReadonlySet<string>
 	devicePixelRatio: number
 	observeSize: ObserveSize
+	/** Keeps the zoom and the spot on another picture, for the series viewer (SERIES-002.3). */
+	keepZoom?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -75,7 +77,9 @@ function sourceOf(shown: ListingEntry, current: boolean): string {
 }
 
 watch(() => props.index, () => {
-	zoom.value = FIT
+	if (!props.keepZoom) {
+		zoom.value = FIT
+	}
 	dragX.value = 0
 	liftY.value = 0
 })

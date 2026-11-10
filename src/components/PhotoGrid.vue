@@ -43,6 +43,7 @@ const props = withDefaults(defineProps<{
 	decisionOf?: (picture: Picture<ListingEntry>) => Decision
 	/** Times the long-press. */
 	schedule?: Schedule
+	seriesSizes?: ReadonlyMap<Picture<ListingEntry>, number>
 }>(), {
 	observeSize: observeElementSize,
 	selecting: false,
@@ -218,7 +219,7 @@ defineExpose({
 							:decision="props.decisionOf(picture)"
 							:selecting="props.selecting"
 							:selected="props.selection.ids.has(imageMember(picture).fileId)"
-							v-bind="{ ...(props.imageUrl && { imageUrl: props.imageUrl }), ...(props.loadImage && { loadImage: props.loadImage }) }"
+							v-bind="{ ...(props.imageUrl && { imageUrl: props.imageUrl }), ...(props.loadImage && { loadImage: props.loadImage }), series: props.seriesSizes?.get(picture) ?? 0 }"
 							@focus="focused = index"
 							@click="tiles.onClick(imageMember(picture).fileId, $event)"
 							@keydown="tiles.onKeydown(imageMember(picture).fileId, $event)"

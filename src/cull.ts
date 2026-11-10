@@ -21,7 +21,7 @@ import { commonDecision, resolveChange, revertRows, withRows } from './logic/dec
 import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
 import { activeFilterCount, clearFilters, DEFAULT_FILTERS, emptyReason, filterPictures, pictureFolders, progress } from './logic/picture-filter.ts'
 import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
-import { findSeries, seriesCandidates } from './logic/series.ts'
+import { findSeries, seriesCandidates, seriesSizes as sizesOf } from './logic/series.ts'
 import { pairingSettings } from './logic/settings.ts'
 import { inSharedFolder } from './logic/sidecar-sync.ts'
 import { parseTileSize } from './logic/tile-size.ts'
@@ -75,6 +75,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
 	const candidates = computed(() => seriesCandidates(pictures.value))
 	const series = computed(() => findSeries(candidates.value, decisionOf))
+	const seriesSizes = computed(() => sizesOf(series.value))
 	const sharedPictures = computed(() => pictures.value.filter((picture) => inSharedFolder(picture, sharedFolders.value)))
 
 	/** Shows the pictures of the confirmed folders with fresh filters, then their stored decisions. */
@@ -251,6 +252,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		decisionOf,
 		common,
 		series,
+		seriesSizes,
 		decide,
 		pickRest,
 		undo,
