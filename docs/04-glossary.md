@@ -27,6 +27,9 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **series** | Pictures taken within a short interval, compared side by side to pick the best. |
 | **grid** | The thumbnail view of a folder set. |
 | **loupe** | The full-screen view of one picture, with swipe, zoom and the decision buttons. |
+| **chrome-free mode** | The loupe showing only the photo, every overlay and panel hidden; `Tab` or a double-tap toggles it. |
+| **filmstrip** | The row of small thumbnails of the neighbouring pictures along the loupe's bottom edge. |
+| **info panel** | The loupe's resizable side panel with the picture's file facts, its decision and the preload state. |
 | **gesture guide** | The card on the first loupe opening that lists the swipes, tap zones, pinch, double-tap and keys. |
 | **tap zone** | The left or right 30 % of the whole photo area in the loupe and series viewer, margins beside, above and below the photo included; a tap there goes to the previous or next photo. The middle shows or hides the overlays (`plan.md`, *Tap zones*). |
 | **tooltip** | The bubble that names a control and its key, on hover, keyboard focus or long-press. One for the whole app; not the browser's `title`. |

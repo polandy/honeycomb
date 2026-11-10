@@ -9,7 +9,9 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] M3.1: Loupe — full screen, swipe, pinch zoom to 100 %, prefetch 2–3 neighbours each way (next image <100 ms), chrome-free mode (F, double-tap), tap zones for previous and next (`docs/plan.md` Tap zones), collapsible info panel with draggable divider, collapsible sidebar (2026-11-09)
+- [ ] Loupe: a toggle for the Nextcloud app navigation beside the loupe, the rest of M3.1's "collapsible sidebar" (`docs/decisions.md` 2026-11-10) (2026-11-10)
+- [ ] Loupe: the gesture guide on the first loupe opening (`docs/plan.md` Tap zones, item 10) (2026-11-10)
+- [ ] Loupe: measure the < 100 ms budget for a prefetched next image (`docs/plan.md` Image delivery & performance, Budgets) (2026-11-10)
 - [ ] M3.2: Decisions in the loupe — pick/reject buttons and the *Flag buttons* toggle (`docs/plan.md` Flag buttons and vi keys), vertical swipe (Q6), rating, label and Keep RAW controls, auto-advance to the next undecided picture, "Rejected IMG_0001 · Undo" toast; built from the shared components (`docs/plan.md` Shared UI components) (2026-11-09)
 - [ ] M3.3: Keyboard shortcuts per the shared key map (`docs/plan.md` Keyboard shortcuts) incl. `R` for Keep RAW, `B`, `Home`/`End`, `Shift+K`, the optional vi keys (`docs/plan.md` Flag buttons and vi keys), undo and redo, shortcut sheet (Q5) (2026-11-09)
 - [ ] M4.1: Delete service — members and sidecars into the trash bin through `OCP\Files`, per-file failure report; ADR on pair atomicity first; tests for every failure path (2026-11-09)
