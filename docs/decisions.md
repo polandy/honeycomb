@@ -282,3 +282,22 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   `notFound` for others, so a client bug cannot trash an unrelated file and nothing is revealed.
 - 2026-11-10: With the trash bin app disabled the trash endpoint answers `409` and touches
   nothing, because `Node::delete()` would then delete for good (CLAUDE.md rule 2).
+- 2026-11-10: *Retry failed files* resends only the failed and skipped files with their listing
+  ETags; a `changed` file needs a reload of the folder, and its reason in the delete report says so.
+- 2026-11-10: Decision rows of trashed files are kept (ADR 0013), so a file restored from the
+  trash bin comes back with its decision.
+- 2026-11-10: Rescuing in the reject review is an ordinary flag change to unflagged, recorded in
+  the undo history with its toast.
+- 2026-11-10: `Delete` on a single focused tile or the loupe's photo goes straight to the delete
+  summary, like *Delete…* on the selection; only "delete rejected" goes through the review.
+- 2026-11-10: After a delete the app takes the trashed files out of its listing and pairs a
+  picture that lost a member again from what is left, instead of listing the folders again.
+- 2026-11-10: The *All photos decided* toast replaces the Undo toast at once instead of after the
+  mockup's 1.6 s, as tests have no timers; Undo stays on `Ctrl+Z`. It shows only when a flag in
+  the loupe leaves no undecided photo in the loupe, and offers *Review rejects* only with rejects.
+- 2026-11-10: Only `Delete` and `Ctrl+Backspace` are mapped, not plain `Backspace`, so a stray
+  Backspace never opens a delete; the cull keys pause while a delete dialog is open.
+- 2026-11-10: A failed trash request changes nothing on screen and says why in a toast: the trash
+  bin being off (`409`) by name, anything else as "reload the folder to see what changed".
+- 2026-11-10: The shortcut sheet's group is "Undo, delete and help" (the mockup's "move" waits
+  for M5); the reject review's confirm is the danger button, as in the mockup.
