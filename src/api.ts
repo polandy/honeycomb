@@ -1,6 +1,6 @@
-import type { Listing } from './logic/cull.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Listing } from './logic/cull.ts'
 import type { StoredDecision } from './logic/decision.ts'
 import type { SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from './logic/sidecar-sync.ts'
 import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'

@@ -45,7 +45,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 	/** Writes each picture's decision, read when the write starts, to its sidecars; `paths` limits a picture to those sidecars. */
 	function write(pictures: Pictures, decisionOf: (picture: Picture<ListingEntry>) => Decision, paths?: Paths) {
 		const written = queue.then(() => writeNow(pictures, decisionOf, paths))
-		queue = written
+		queue = written.catch(() => undefined)
 		return written
 	}
 
