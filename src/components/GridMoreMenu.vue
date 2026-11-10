@@ -26,6 +26,8 @@ defineProps<{
 	movable: number
 	/** Whether a filter is on, which makes *Move picks* *Move filtered*. */
 	moveFiltered: boolean
+	/** The base name of the picture *Resume* opens the loupe at, null when there is none. */
+	resumeName: string | null
 }>()
 
 const emit = defineEmits<{
@@ -34,6 +36,7 @@ const emit = defineEmits<{
 	'update:sortOrder': [order: SortOrder]
 	removeRaws: []
 	move: []
+	resume: []
 	writeSidecars: []
 	openSettings: []
 }>()
@@ -100,6 +103,17 @@ const emit = defineEmits<{
 			</template>
 			{{ moveFiltered ? t('honeycomb', 'Move filtered…') : t('honeycomb', 'Move picks…') }}
 			<span class="grid-more-menu__count">{{ formatNumber(movable) }}</span>
+		</NcButton>
+		<NcButton
+			v-if="resumeName !== null"
+			variant="tertiary"
+			alignment="start"
+			wide
+			@click="emit('resume')">
+			<template #icon>
+				<AppIcon name="folder" />
+			</template>
+			{{ t('honeycomb', 'Resume at {name}', { name: resumeName }) }}
 		</NcButton>
 		<NcButton
 			v-if="sidecarsShared"

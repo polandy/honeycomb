@@ -4,6 +4,7 @@ import type { Listing } from './logic/cull.ts'
 import type { StoredDecision } from './logic/decision.ts'
 import type { MoveRequestFile, TargetFolder } from './logic/move-plan.ts'
 import type { MoveResponseFile } from './logic/move-report.ts'
+import type { ResumePosition } from './logic/resume-position.ts'
 import type { SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from './logic/sidecar-sync.ts'
 import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
 import type { ViewState } from './logic/view-state.ts'
@@ -99,6 +100,20 @@ export async function saveDecisions(decisions: readonly StoredDecision[]): Promi
 	if (decisions.length > 0) {
 		await axios.put(generateUrl(`${API}/decisions`), { decisions })
 	}
+}
+
+/** The stored resume positions of the user, newest first, as they came, checked by `parsePositions` (ADR 0012). */
+export async function loadPositions(): Promise<unknown[]> {
+	const { data } = await axios.get<unknown>(generateUrl(`${API}/positions`))
+	if (!isRecord(data) || !Array.isArray(data.positions)) {
+		throw new ApiResponseError('The resume positions came without a positions array; check the server\'s version.')
+	}
+	return data.positions
+}
+
+/** Stores the resume position of a folder set (ADR 0012). */
+export async function savePosition(position: ResumePosition): Promise<void> {
+	await axios.put(generateUrl(`${API}/positions`), position)
 }
 
 /** The bytes, ETag, size and mtime of each sidecar, or why it could not be read, in the order asked (ADR 0017). */

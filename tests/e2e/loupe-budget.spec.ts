@@ -98,9 +98,12 @@ test('shows a prefetched 24 MP neighbour without a request when paging', async (
 	await expect(loupe.getByText(`${PHOTO_COUNT - 1} of ${PHOTO_COUNT - 1} neighbours loaded`)).toBeVisible({ timeout: 60_000 })
 
 	const requests: string[] = []
-	page.on('request', (request) => {
-		if (request.url().includes('/api/v1/images/')) {
-			requests.push(request.url())
+	const network = await page.context().newCDPSession(page)
+	await network.send('Network.enable')
+	// A disk-cache hit also reaches Playwright's request event; only a network fetch counts.
+	network.on('Network.responseReceived', ({ response }) => {
+		if (response.url.includes('/api/v1/images/') && response.fromDiskCache !== true && response.fromPrefetchCache !== true) {
+			requests.push(response.url)
 		}
 	})
 	await startTiming(page, 'IMG_0002')
