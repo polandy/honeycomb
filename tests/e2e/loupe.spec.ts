@@ -32,6 +32,10 @@ test('opens a photo in the loupe, pages by key and closes back to the grid', asy
 	await expect(loupe.getByText('1 of 2')).toBeVisible()
 	await expect(loupe.getByRole('img', { name: 'IMG_0001' })).toHaveJSProperty('complete', true)
 
+	const guide = loupe.getByRole('dialog', { name: 'How to cull' })
+	await guide.getByRole('button', { name: 'Got it' }).click()
+	await expect(guide).toBeHidden()
+
 	await page.keyboard.press('ArrowRight')
 	await expect(loupe.getByRole('heading', { name: 'IMG_0002' })).toBeVisible()
 	await expect(loupe.getByText('2 of 2')).toBeVisible()

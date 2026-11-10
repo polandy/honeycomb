@@ -226,3 +226,15 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   menu; honeycomb has no navigation of its own yet. A pressed toggle at the end of the title row
   shows the header above the loupe, kept in the browser like the info panel; chrome-free mode
   still covers it, and the loupe is no longer `aria-modal` while it shows.
+- 2026-11-10: The gesture guide lists only what the loupe does today: sideways swipes, the tap
+  zones with their sketch, pinch and double-tap, and the keys `←` `→`, `Z` and `Esc`. The swipe
+  up and down line joins with M3.2 and the mockup's keys line (`P`, `X`, `U`, `Z`, `?`) with
+  M3.3, so the guide, shown once, never names a gesture that does nothing.
+- 2026-11-10: The gesture guide counts as seen in the browser's local storage, like the info
+  panel; with site data blocked it shows on each opening. Showing it again from the settings is
+  the UX review's L6 in `TODO.md`.
+- 2026-11-10: The gesture guide's lines are plain translated sentences without the mockup's bold
+  verbs, since markup inside a translated string needs `v-html`; key caps go through `t()` too.
+- 2026-11-10: While the gesture guide shows, its *Got it* has the focus and the loupe's keys
+  still work; *Got it* gives the focus back to the loupe. `Esc` closes the loupe without marking
+  the guide seen.

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest'
-import { INFO_OPEN_KEY, INFO_WIDTH_KEY, NAVIGATION_SHOWN_KEY, useLoupePanels } from '../../src/loupe-panels.ts'
+import { GESTURE_GUIDE_SEEN_KEY, INFO_OPEN_KEY, INFO_WIDTH_KEY, NAVIGATION_SHOWN_KEY, useLoupePanels } from '../../src/loupe-panels.ts'
 import { fakeStorage } from './app-cull.ts'
 
 describe('useLoupePanels', () => {
@@ -33,6 +33,18 @@ describe('useLoupePanels', () => {
 
 		expect(stored).toEqual({ [NAVIGATION_SHOWN_KEY]: 'true' })
 		expect(useLoupePanels(fakeStorage(stored)).navigationShown.value).toBe(true)
+	})
+
+	it('shows the gesture guide until it is dismissed once', () => {
+		const stored: Record<string, string> = {}
+		const panels = useLoupePanels(fakeStorage(stored))
+		expect(panels.gestureGuideSeen.value).toBe(false)
+
+		panels.dismissGestureGuide()
+
+		expect(panels.gestureGuideSeen.value).toBe(true)
+		expect(stored).toEqual({ [GESTURE_GUIDE_SEEN_KEY]: 'true' })
+		expect(useLoupePanels(fakeStorage(stored)).gestureGuideSeen.value).toBe(true)
 	})
 
 	it('works for this visit where the browser blocks site data', () => {

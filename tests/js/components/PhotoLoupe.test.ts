@@ -5,7 +5,7 @@ import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import PhotoLoupe from '../../../src/components/PhotoLoupe.vue'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { INFO_OPEN_KEY, INFO_WIDTH_KEY, NAVIGATION_SHOWN_KEY } from '../../../src/loupe-panels.ts'
+import { GESTURE_GUIDE_SEEN_KEY, INFO_OPEN_KEY, INFO_WIDTH_KEY, NAVIGATION_SHOWN_KEY } from '../../../src/loupe-panels.ts'
 import { fakeStorage } from '../app-cull.ts'
 import { fakeScheduler } from '../fake-scheduler.ts'
 import { listingEntry, picturesOf } from '../logic/listing-entries.ts'
@@ -13,8 +13,11 @@ import { tap } from './loupe-pointer.ts'
 
 const PICTURES = picturesOf(Array.from({ length: 10 }, (_, at) => listingEntry(at + 1, `/P/IMG_${at + 1}.JPG`, { width: 3000, height: 2000 })))
 
-/** The loupe at `index` on a 1000 × 600 stage, attached so focus works. */
-async function mountLoupe(index = 4, stored: Record<string, string> = {}) {
+/** The loupe at `index` on a 1000 × 600 stage, attached so focus works; the gesture guide was seen unless `firstOpening`. */
+async function mountLoupe(index = 4, stored: Record<string, string> = {}, firstOpening = false) {
+	if (!firstOpening) {
+		stored[GESTURE_GUIDE_SEEN_KEY] = 'true'
+	}
 	const decoded: string[] = []
 	const fullscreen: HTMLElement[] = []
 	const scheduler = fakeScheduler()
@@ -50,6 +53,23 @@ const indices = (wrapper: Awaited<ReturnType<typeof mountLoupe>>['wrapper']) => 
 enableAutoUnmount(afterEach)
 
 describe('PhotoLoupe', () => {
+	it('shows the gesture guide above the overlays on its first opening, until Got it, then never again', async () => {
+		const { wrapper, root, stored } = await mountLoupe(4, {}, true)
+		const guide = () => wrapper.find('.gesture-guide')
+		expect(guide().exists()).toBe(true)
+		expect(root.element.lastElementChild).toBe(guide().element)
+		expect(document.activeElement).toBe(guide().find('button').element)
+
+		await guide().find('button').trigger('click')
+
+		expect(guide().exists()).toBe(false)
+		expect(document.activeElement).toBe(root.element)
+		expect(stored).toEqual({ [GESTURE_GUIDE_SEEN_KEY]: 'true' })
+		wrapper.unmount()
+		const again = await mountLoupe(4, stored, true)
+		expect(again.wrapper.find('.gesture-guide').exists()).toBe(false)
+	})
+
 	it('opens focused as a modal dialog on the picture and preloads it, then 3 ahead and 2 behind', async () => {
 		const { wrapper, root, decoded } = await mountLoupe()
 		expect(root.attributes('aria-modal')).toBe('true')
@@ -137,7 +157,7 @@ describe('PhotoLoupe', () => {
 		expect(root.attributes('style')).toContain('--photo-loupe-panel: 324px')
 		expect(wrapper.find('.loupe-info').text()).toContain('5 of 5 neighbours loaded')
 		await wrapper.find('[role="separator"]').trigger('keydown', { key: 'Home' })
-		expect(stored).toEqual({ [INFO_OPEN_KEY]: 'true', [INFO_WIDTH_KEY]: '220' })
+		expect(stored).toEqual({ [GESTURE_GUIDE_SEEN_KEY]: 'true', [INFO_OPEN_KEY]: 'true', [INFO_WIDTH_KEY]: '220' })
 		await button(wrapper, 'Toggle info panel').trigger('click')
 		expect(wrapper.find('.loupe-info').exists()).toBe(false)
 	})
@@ -159,7 +179,7 @@ describe('PhotoLoupe', () => {
 		expect(root.classes('photo-loupe--below-header')).toBe(true)
 		expect(toggle().attributes('aria-pressed')).toBe('true')
 		expect(root.attributes('aria-modal')).toBe('false')
-		expect(stored).toEqual({ [NAVIGATION_SHOWN_KEY]: 'true' })
+		expect(stored).toEqual({ [GESTURE_GUIDE_SEEN_KEY]: 'true', [NAVIGATION_SHOWN_KEY]: 'true' })
 
 		await root.trigger('keydown', { key: 'Tab' })
 		expect(root.classes('photo-loupe--below-header')).toBe(false)
