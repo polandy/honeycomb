@@ -32,6 +32,9 @@ const props = defineProps<{
 	activeFilters: number
 	filtersOpen: boolean
 	sortOrder: SortOrder
+	selecting: boolean
+	/** How many pictures are selected. */
+	selected: number
 }>()
 
 const emit = defineEmits<{
@@ -41,6 +44,9 @@ const emit = defineEmits<{
 	'update:scope': [scope: Scope]
 	'update:filtersOpen': [open: boolean]
 	'update:sortOrder': [order: SortOrder]
+	'update:selecting': [selecting: boolean]
+	selectAll: []
+	selectNone: []
 }>()
 
 const filtersLabel = computed(() => (props.activeFilters > 0
@@ -94,6 +100,16 @@ const setName = computed(() => {
 			</template>
 			<span v-if="props.activeFilters > 0" class="grid-toolbar__badge" aria-hidden="true">{{ formatNumber(props.activeFilters) }}</span>
 		</NcButton>
+		<NcButton
+			variant="tertiary"
+			:ariaLabel="t('honeycomb', 'Select')"
+			:aria-pressed="props.selecting"
+			@click="emit('update:selecting', !props.selecting)">
+			<template #icon>
+				<AppIcon name="select" />
+			</template>
+			<span v-if="props.selecting && props.selected > 0" class="grid-toolbar__badge" aria-hidden="true">{{ formatNumber(props.selected) }}</span>
+		</NcButton>
 		<NcPopover>
 			<template #trigger>
 				<NcButton variant="tertiary" :ariaLabel="t('honeycomb', 'More')">
@@ -141,6 +157,18 @@ const setName = computed(() => {
 				</fieldset>
 			</div>
 		</NcPopover>
+		<div v-if="props.selecting" class="grid-toolbar__selection">
+			<span class="grid-toolbar__count">{{ n('honeycomb', '{count} selected', '{count} selected', props.selected, { count: formatNumber(props.selected) }) }}</span>
+			<NcButton variant="tertiary" @click="emit('selectAll')">
+				{{ t('honeycomb', 'Select all (filtered)') }}
+			</NcButton>
+			<NcButton variant="tertiary" @click="emit('selectNone')">
+				{{ t('honeycomb', 'None') }}
+			</NcButton>
+			<NcButton variant="primary" @click="emit('update:selecting', false)">
+				{{ t('honeycomb', 'Done') }}
+			</NcButton>
+		</div>
 	</div>
 </template>
 
@@ -200,6 +228,19 @@ const setName = computed(() => {
 	font-weight: bold;
 	line-height: 18px;
 	text-align: center;
+}
+
+.grid-toolbar__selection {
+	display: flex;
+	flex-basis: 100%;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--default-grid-baseline);
+}
+
+.grid-toolbar__count {
+	flex: 1;
+	font-weight: bold;
 }
 
 .grid-toolbar__sort {

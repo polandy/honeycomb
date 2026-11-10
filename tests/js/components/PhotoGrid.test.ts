@@ -10,6 +10,7 @@ import PhotoGrid from '../../../src/components/PhotoGrid.vue'
 import { prepareCull } from '../../../src/logic/cull.ts'
 import { sortPictures } from '../../../src/logic/picture-order.ts'
 import { NO_SELECTION } from '../../../src/logic/selection.ts'
+import { fakeScheduler } from '../fake-scheduler.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { listingEntry } from '../logic/listing-entries.ts'
 
@@ -204,14 +205,6 @@ describe('PhotoGrid', () => {
 		expect(untranslatedText(wrapper.element as Element)).toEqual(['A', 'A', 'IMG_0, JPG+', 'B', 'IMG_0, JPG+'].map((text) => text.replace(', JPG+', `, ${TRANSLATED_MARK}JPG only`)))
 	})
 	describe('selection', () => {
-		/** A scheduler whose long-press timers the test fires by hand. */
-		function fakeScheduler() {
-			const pending: (() => void)[] = []
-			return { schedule: (run: () => void) => {
-				pending.push(run)
-				return () => pending.splice(pending.indexOf(run), 1)
-			}, fire: () => pending.splice(0).forEach((run) => run()) }
-		}
 		const tile = (wrapper: ReturnType<typeof mountGrid>['wrapper'], index: number) => wrapper.findAll('[role="gridcell"]')[index]!
 
 		it('does nothing on a plain click outside selection mode', async () => {

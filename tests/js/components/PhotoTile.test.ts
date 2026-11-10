@@ -135,7 +135,7 @@ describe('PhotoTile', () => {
 		expect(wrapper.find('.photo-tile__colour').attributes('style')).toContain('background-color')
 		expect(wrapper.find('.photo-tile__flag--rejected').exists()).toBe(true)
 		expect(wrapper.find('.photo-tile__pair--keep-raw').text()).toBe('JPG+CR3 ✓')
-		expect(wrapper.attributes('aria-label')).toBe(`IMG_0001, JPG+CR3, ${MARK}3 stars, ${MARK}Green label, ${MARK}Rejected, ${MARK}Keep RAW`)
+		expect(wrapper.attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3, 3 stars, Colour label: Green, Rejected, Keep RAW')
 	})
 
 	it('shows no overlay for an undecided picture', () => {

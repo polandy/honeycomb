@@ -110,8 +110,9 @@ test('rates and rejects selected photos and keeps the decisions over a reload', 
 	await expect(page.getByText('2 selected')).toBeVisible()
 	await page.getByRole('button', { name: 'Rate 3 stars' }).click()
 	await page.getByRole('button', { name: 'Keep RAW', exact: true }).click()
-	await grid.getByRole('gridcell', { name: /^IMG_0002/ }).click()
-	await page.getByRole('button', { name: 'Reject' }).click()
+	await grid.getByRole('gridcell', { name: /^IMG_0001/ }).click()
+	await expect(page.getByText('1 selected')).toBeVisible()
+	await page.getByRole('button', { name: 'Reject', exact: true }).click()
 	await expect(grid.getByRole('gridcell')).toHaveCount(1)
 
 	await page.reload()

@@ -18,11 +18,11 @@ const MARK = TRANSLATED_MARK
 /** Enters selection mode from the toolbar and selects the grid keys. */
 async function select(wrapper: AppWrapper, ids: number[]) {
 	wrapper.findComponent(GridToolbar).vm.$emit('update:selecting', true)
-	wrapper.findComponent(PhotoGrid).vm.$emit('update:selection', { ids: new Set(ids), anchor: ids.at(-1) ?? null })
+	wrapper.findComponent(PhotoGrid).vm.$emit('update:selection', { ids: new Set(ids), anchor: ids.at(-1)! })
 	await flushPromises()
 }
 
-const selectedIds = (wrapper: AppWrapper) => [...wrapper.findComponent(PhotoGrid).props('selection').ids]
+const selectedIds = (wrapper: AppWrapper) => [...wrapper.findComponent(PhotoGrid).props('selection')!.ids]
 async function press(key: string, fields: KeyboardEventInit = {}) {
 	window.dispatchEvent(new KeyboardEvent('keydown', { key, ...fields }))
 	await flushPromises()
@@ -59,8 +59,8 @@ describe('App: selection mode and bulk decisions', () => {
 		await flushPromises()
 
 		expect(saved).toEqual([[1, 2, 3].map((fileId) => ({ fileId, ...UNDECIDED, rating: 3 }))])
-		const decisionOf = wrapper.findComponent(PhotoGrid).props('decisionOf')
-		const pair = wrapper.findComponent(PhotoGrid).props('pictures').find((picture: { baseName: string }) => picture.baseName === 'IMG_10')
+		const decisionOf = wrapper.findComponent(PhotoGrid).props('decisionOf')!
+		const pair = wrapper.findComponent(PhotoGrid).props('pictures').find((picture) => picture.baseName === 'IMG_10')!
 		expect(decisionOf(pair)).toMatchObject({ rating: 3 })
 		expect(wrapper.findComponent(ActionBar).props('common')).toMatchObject({ rating: 3 })
 	})

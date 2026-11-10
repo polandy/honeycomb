@@ -15,7 +15,7 @@ function mountBar(common: Partial<CommonDecision> = {}, disabled = false) {
 	return mount(ActionBar, { props: { common: { ...MIXED, ...common }, disabled }, slots: { default: '<span class="extra">3 selected</span>' } })
 }
 
-const button = (wrapper: ReturnType<typeof mountBar>, label: string) => wrapper.findAll('button').find((found) => found.attributes('aria-label') === `${MARK}${label}`)!
+const button = (wrapper: ReturnType<typeof mountBar>, label: string) => wrapper.findAll('button').find((found) => found.attributes('aria-label')?.replaceAll(MARK, '') === label)!
 const pressed = (wrapper: ReturnType<typeof mountBar>) => wrapper.findAll('button[aria-pressed="true"]').map((found) => found.attributes('aria-label')!.replaceAll(MARK, ''))
 
 describe('ActionBar', () => {

@@ -2,23 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
 import { LONG_PRESS_MS, longPress } from '../../../src/logic/long-press.ts'
-
-/** A scheduler whose timers the test runs by hand. */
-function fakeScheduler() {
-	const timers: { run: () => void, ms: number, cancelled: boolean }[] = []
-	const schedule = (run: () => void, ms: number) => {
-		const timer = { run, ms, cancelled: false }
-		timers.push(timer)
-		return () => {
-			timer.cancelled = true
-		}
-	}
-	const fire = () => timers.filter((timer) => !timer.cancelled).forEach((timer) => {
-		timer.cancelled = true
-		timer.run()
-	})
-	return { timers, schedule, fire }
-}
+import { fakeScheduler } from '../fake-scheduler.ts'
 
 describe('longPress', () => {
 	it('presses once the finger stays down long enough and swallows the click that follows', () => {
