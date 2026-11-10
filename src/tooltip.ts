@@ -55,9 +55,7 @@ export function useTooltip(seams: TipSeams, bubble: () => HTMLElement | null) {
 	const observer = new MutationObserver(() => tips.hideIf((shown) => !shown.isConnected || shown.closest(TIPS_OFF) !== null))
 	let stops: (() => void)[] = []
 
-	/**
-	 *
-	 */
+	/** The mouse left a control: hide the tooltip, or let the next control take over. */
 	function onPointerOut(event: PointerEvent) {
 		const from = tipOf(event.target)
 		const to = event.relatedTarget
@@ -71,9 +69,7 @@ export function useTooltip(seams: TipSeams, bubble: () => HTMLElement | null) {
 		}
 	}
 
-	/**
-	 *
-	 */
+	/** A finger or pen went down: start a long-press on a control that has a tooltip. */
 	function onPointerDown(event: PointerEvent) {
 		const next = event.pointerType === 'mouse' || !event.isPrimary ? null : liveTip(event.target)
 		tips.pressDown(next?.closest(HOVER_ONLY) === null ? next : null, event.clientX, event.clientY)

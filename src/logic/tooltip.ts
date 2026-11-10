@@ -97,9 +97,7 @@ export function tipController<A>(seams: TipSeams, show: (anchor: A | null) => vo
 		cancelPending = null
 	}
 
-	/**
-	 *
-	 */
+	/** Shows the tooltip of a control at once. */
 	function open(next: A) {
 		stopPending()
 		anchor = next
