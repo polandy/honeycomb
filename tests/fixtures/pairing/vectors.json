@@ -1,0 +1,282 @@
+{
+  "description": "Pairing test vectors: entry paths in, pictures out (docs/plan.md Pairing and file types). Cases with sharedWithFramehive true follow Framehive's LIBRARY-001 too; the others are honeycomb's rules (case-insensitive base names, separate subfolders, darktable duplicates). A case's settings override the defaults field by field. Pictures are listed in the order of their first member in the input; sidecars in input order.",
+  "defaults": {
+    "rawExtensions": ["nef", "cr2", "cr3", "arw", "raf", "orf", "rw2", "dng", "pef", "srw"],
+    "renderedExtensions": ["jpg", "jpeg", "heic", "heif", "hif"],
+    "folderMode": { "kind": "same-folder" }
+  },
+  "cases": [
+    {
+      "name": "a RAW and a JPEG with the same base name form one pair",
+      "source": "LIBRARY-001.1",
+      "sharedWithFramehive": true,
+      "files": ["DSCF1234.RAF", "DSCF1234.JPG"],
+      "pictures": [
+        { "folder": "", "raw": "DSCF1234.RAF", "rendered": "DSCF1234.JPG", "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "a HEIF pairs like a JPEG",
+      "source": "LIBRARY-001.2",
+      "sharedWithFramehive": true,
+      "files": ["DSCF1234.RAF", "DSCF1234.HIF"],
+      "pictures": [
+        { "folder": "", "raw": "DSCF1234.RAF", "rendered": "DSCF1234.HIF", "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "files in different folders do not pair",
+      "source": "LIBRARY-001.3",
+      "sharedWithFramehive": true,
+      "files": ["a/DSCF1234.RAF", "b/DSCF1234.JPG"],
+      "pictures": [
+        { "folder": "a", "raw": "a/DSCF1234.RAF", "rendered": null, "sidecars": [], "ambiguous": false },
+        { "folder": "b", "raw": null, "rendered": "b/DSCF1234.JPG", "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "two rendered files of one base name make every file an ambiguous single",
+      "source": "LIBRARY-001.4",
+      "sharedWithFramehive": true,
+      "files": ["A.RAF", "A.JPG", "A.jpg"],
+      "pictures": [
+        { "folder": "", "raw": "A.RAF", "rendered": null, "sidecars": [], "ambiguous": true },
+        { "folder": "", "raw": null, "rendered": "A.JPG", "sidecars": [], "ambiguous": true },
+        { "folder": "", "raw": null, "rendered": "A.jpg", "sidecars": [], "ambiguous": true }
+      ]
+    },
+    {
+      "name": "two RAW files of one base name make every file an ambiguous single",
+      "source": "Q14",
+      "sharedWithFramehive": true,
+      "files": ["/Photos/A.NEF", "/Photos/A.DNG", "/Photos/A.JPG"],
+      "pictures": [
+        { "folder": "/Photos", "raw": "/Photos/A.NEF", "rendered": null, "sidecars": [], "ambiguous": true },
+        { "folder": "/Photos", "raw": "/Photos/A.DNG", "rendered": null, "sidecars": [], "ambiguous": true },
+        { "folder": "/Photos", "raw": null, "rendered": "/Photos/A.JPG", "sidecars": [], "ambiguous": true }
+      ]
+    },
+    {
+      "name": "base names that differ only in case pair",
+      "source": "Q14",
+      "sharedWithFramehive": false,
+      "files": ["/Photos/DSC_0412.NEF", "/Photos/dsc_0412.jpg"],
+      "pictures": [
+        { "folder": "/Photos", "raw": "/Photos/DSC_0412.NEF", "rendered": "/Photos/dsc_0412.jpg", "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "extensions are compared ignoring case",
+      "source": "LIBRARY-001",
+      "sharedWithFramehive": true,
+      "files": ["/Photos/DSC_0412.nef", "/Photos/DSC_0412.Jpeg"],
+      "pictures": [
+        { "folder": "/Photos", "raw": "/Photos/DSC_0412.nef", "rendered": "/Photos/DSC_0412.Jpeg", "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "the base name runs up to the last dot when a name has several dots",
+      "source": "brief",
+      "sharedWithFramehive": true,
+      "files": ["/Trip/2026.11.09.DSC_1.NEF", "/Trip/2026.11.09.DSC_1.JPG", "/Trip/2026.11.09.DSC_2.JPG", "/Trip/2026.11.09.NEF"],
+      "pictures": [
+        { "folder": "/Trip", "raw": "/Trip/2026.11.09.DSC_1.NEF", "rendered": "/Trip/2026.11.09.DSC_1.JPG", "sidecars": [], "ambiguous": false },
+        { "folder": "/Trip", "raw": null, "rendered": "/Trip/2026.11.09.DSC_2.JPG", "sidecars": [], "ambiguous": false },
+        { "folder": "/Trip", "raw": "/Trip/2026.11.09.NEF", "rendered": null, "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "a JPEG without a RAW and a RAW without a JPEG are singles",
+      "source": "LIBRARY-001.11",
+      "sharedWithFramehive": true,
+      "files": ["/P/A.RAF", "/P/A.JPG", "/P/B.JPG", "/P/C.RAF"],
+      "pictures": [
+        { "folder": "/P", "raw": "/P/A.RAF", "rendered": "/P/A.JPG", "sidecars": [], "ambiguous": false },
+        { "folder": "/P", "raw": null, "rendered": "/P/B.JPG", "sidecars": [], "ambiguous": false },
+        { "folder": "/P", "raw": "/P/C.RAF", "rendered": null, "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "a sidecar named after a member belongs to that member's picture",
+      "source": "LIBRARY-001.9",
+      "sharedWithFramehive": true,
+      "files": ["/P/A.NEF.xmp", "/P/A.NEF", "/P/A.JPG", "/P/A.JPG.xmp"],
+      "pictures": [
+        { "folder": "/P", "raw": "/P/A.NEF", "rendered": "/P/A.JPG", "sidecars": ["/P/A.NEF.xmp", "/P/A.JPG.xmp"], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "a sidecar named after the base name is shared by the picture",
+      "source": "LIBRARY-001.7",
+      "sharedWithFramehive": true,
+      "files": ["/P/A.NEF", "/P/A.JPG", "/P/A.xmp"],
+      "pictures": [
+        { "folder": "/P", "raw": "/P/A.NEF", "rendered": "/P/A.JPG", "sidecars": ["/P/A.xmp"], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "sidecar names and their xmp extension are matched ignoring case",
+      "source": "06-xmp-interop Sidecar names",
+      "sharedWithFramehive": false,
+      "files": ["/P/A.NEF", "/P/a.nef.XMP", "/P/B.JPG", "/P/b.Xmp"],
+      "pictures": [
+        { "folder": "/P", "raw": "/P/A.NEF", "rendered": null, "sidecars": ["/P/a.nef.XMP"], "ambiguous": false },
+        { "folder": "/P", "raw": null, "rendered": "/P/B.JPG", "sidecars": ["/P/b.Xmp"], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "a darktable duplicate's sidecar belongs to its member's picture",
+      "source": "06-xmp-interop Sidecar names",
+      "sharedWithFramehive": false,
+      "files": ["/P/IMG_0001.NEF", "/P/IMG_0001.JPG", "/P/IMG_0001.NEF.xmp", "/P/IMG_0001_01.NEF.xmp", "/P/IMG_0001_12.NEF.xmp"],
+      "pictures": [
+        { "folder": "/P", "raw": "/P/IMG_0001.NEF", "rendered": "/P/IMG_0001.JPG", "sidecars": ["/P/IMG_0001.NEF.xmp", "/P/IMG_0001_01.NEF.xmp", "/P/IMG_0001_12.NEF.xmp"], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "a member whose name looks like a darktable duplicate keeps its own sidecar",
+      "source": "06-xmp-interop Sidecar names",
+      "sharedWithFramehive": false,
+      "files": ["/P/IMG_0001.NEF", "/P/IMG_0001_01.NEF", "/P/IMG_0001_01.NEF.xmp"],
+      "pictures": [
+        { "folder": "/P", "raw": "/P/IMG_0001.NEF", "rendered": null, "sidecars": [], "ambiguous": false },
+        { "folder": "/P", "raw": "/P/IMG_0001_01.NEF", "rendered": null, "sidecars": ["/P/IMG_0001_01.NEF.xmp"], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "a sidecar without a member belongs to no picture",
+      "source": "LIBRARY-001",
+      "sharedWithFramehive": true,
+      "files": ["/P/A.JPG", "/P/B.xmp", "/P/B.NEF.xmp", "/Q/A.xmp"],
+      "pictures": [
+        { "folder": "/P", "raw": null, "rendered": "/P/A.JPG", "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "an ambiguous base name keeps each member's own sidecar and shares none",
+      "source": "Q14",
+      "sharedWithFramehive": false,
+      "files": ["/P/A.NEF", "/P/A.JPG", "/P/A.jpg", "/P/A.JPG.xmp", "/P/A.jpg.xmp", "/P/A.NEF.xmp", "/P/A.xmp"],
+      "pictures": [
+        { "folder": "/P", "raw": "/P/A.NEF", "rendered": null, "sidecars": ["/P/A.NEF.xmp"], "ambiguous": true },
+        { "folder": "/P", "raw": null, "rendered": "/P/A.JPG", "sidecars": ["/P/A.JPG.xmp"], "ambiguous": true },
+        { "folder": "/P", "raw": null, "rendered": "/P/A.jpg", "sidecars": ["/P/A.jpg.xmp"], "ambiguous": true }
+      ]
+    },
+    {
+      "name": "a sidecar that matches two members only ignoring case belongs to neither",
+      "source": "Q14",
+      "sharedWithFramehive": false,
+      "files": ["/P/A.JPG", "/P/A.jpg", "/P/a.Jpg.xmp"],
+      "pictures": [
+        { "folder": "/P", "raw": null, "rendered": "/P/A.JPG", "sidecars": [], "ambiguous": true },
+        { "folder": "/P", "raw": null, "rendered": "/P/A.jpg", "sidecars": [], "ambiguous": true }
+      ]
+    },
+    {
+      "name": "files that are neither RAW, rendered nor sidecar are not pictures",
+      "source": "Q15",
+      "sharedWithFramehive": false,
+      "files": ["/P/A.PNG", "/P/B.TIF", "/P/README", "/P/.JPG", "/P/C.JPG"],
+      "pictures": [
+        { "folder": "/P", "raw": null, "rendered": "/P/C.JPG", "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "an extension added to the rendered list pairs",
+      "source": "Q15",
+      "sharedWithFramehive": true,
+      "settings": { "renderedExtensions": ["jpg", "jpeg", "heic", "heif", "hif", "tif", "tiff"] },
+      "files": ["/P/A.NEF", "/P/A.TIF"],
+      "pictures": [
+        { "folder": "/P", "raw": "/P/A.NEF", "rendered": "/P/A.TIF", "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "an extension missing from the RAW list is not a member",
+      "source": "Q15",
+      "sharedWithFramehive": false,
+      "settings": { "rawExtensions": ["raf"] },
+      "files": ["/P/A.NEF", "/P/A.JPG"],
+      "pictures": [
+        { "folder": "/P", "raw": null, "rendered": "/P/A.JPG", "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "in separate subfolders the RAW and the rendered subfolder pair as their parent folder",
+      "source": "Q16",
+      "sharedWithFramehive": false,
+      "settings": { "folderMode": { "kind": "separate-subfolders", "rawSubfolder": "RAW", "renderedSubfolder": "JPG" } },
+      "files": ["/Trip/raw/A.NEF", "/Trip/Jpg/A.JPG", "/Trip/raw/A.NEF.xmp", "/Trip/Jpg/B.JPG"],
+      "pictures": [
+        { "folder": "/Trip", "raw": "/Trip/raw/A.NEF", "rendered": "/Trip/Jpg/A.JPG", "sidecars": ["/Trip/raw/A.NEF.xmp"], "ambiguous": false },
+        { "folder": "/Trip", "raw": null, "rendered": "/Trip/Jpg/B.JPG", "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "in separate subfolders the subfolder names are a setting",
+      "source": "Q16",
+      "sharedWithFramehive": false,
+      "settings": { "folderMode": { "kind": "separate-subfolders", "rawSubfolder": "NEF", "renderedSubfolder": "JPEG" } },
+      "files": ["/Trip/NEF/A.NEF", "/Trip/JPEG/A.JPG", "/Other/RAW/B.NEF", "/Other/JPG/B.JPG"],
+      "pictures": [
+        { "folder": "/Trip", "raw": "/Trip/NEF/A.NEF", "rendered": "/Trip/JPEG/A.JPG", "sidecars": [], "ambiguous": false },
+        { "folder": "/Other/RAW", "raw": "/Other/RAW/B.NEF", "rendered": null, "sidecars": [], "ambiguous": false },
+        { "folder": "/Other/JPG", "raw": null, "rendered": "/Other/JPG/B.JPG", "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "in separate subfolders the chosen folder's own files join its subfolders, and other folders pair side by side",
+      "source": "Q16",
+      "sharedWithFramehive": false,
+      "settings": { "folderMode": { "kind": "separate-subfolders", "rawSubfolder": "RAW", "renderedSubfolder": "JPG" } },
+      "files": ["/Trip/RAW/A.NEF", "/Trip/A.JPG", "/Home/B.NEF", "/Home/B.JPG"],
+      "pictures": [
+        { "folder": "/Trip", "raw": "/Trip/RAW/A.NEF", "rendered": "/Trip/A.JPG", "sidecars": [], "ambiguous": false },
+        { "folder": "/Home", "raw": "/Home/B.NEF", "rendered": "/Home/B.JPG", "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "in separate subfolders the subfolders of two folders do not pair",
+      "source": "Q16",
+      "sharedWithFramehive": false,
+      "settings": { "folderMode": { "kind": "separate-subfolders", "rawSubfolder": "RAW", "renderedSubfolder": "JPG" } },
+      "files": ["/Trip/RAW/A.NEF", "/Home/JPG/A.JPG"],
+      "pictures": [
+        { "folder": "/Trip", "raw": "/Trip/RAW/A.NEF", "rendered": null, "sidecars": [], "ambiguous": false },
+        { "folder": "/Home", "raw": null, "rendered": "/Home/JPG/A.JPG", "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "in separate subfolders subfolders at the top of the listing pair as one",
+      "source": "Q16",
+      "sharedWithFramehive": false,
+      "settings": { "folderMode": { "kind": "separate-subfolders", "rawSubfolder": "RAW", "renderedSubfolder": "JPG" } },
+      "files": ["RAW/A.NEF", "JPG/A.JPG"],
+      "pictures": [
+        { "folder": "", "raw": "RAW/A.NEF", "rendered": "JPG/A.JPG", "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
+      "name": "in separate subfolders a sidecar named after two members of the same name belongs to neither",
+      "source": "Q16",
+      "sharedWithFramehive": false,
+      "settings": { "folderMode": { "kind": "separate-subfolders", "rawSubfolder": "RAW", "renderedSubfolder": "JPG" } },
+      "files": ["/Trip/RAW/A.NEF", "/Trip/JPG/A.NEF", "/Trip/RAW/A.NEF.xmp"],
+      "pictures": [
+        { "folder": "/Trip", "raw": "/Trip/RAW/A.NEF", "rendered": null, "sidecars": [], "ambiguous": true },
+        { "folder": "/Trip", "raw": "/Trip/JPG/A.NEF", "rendered": null, "sidecars": [], "ambiguous": true }
+      ]
+    },
+    {
+      "name": "in the same folder mode RAW and JPG subfolders do not pair",
+      "source": "Q16",
+      "sharedWithFramehive": true,
+      "files": ["/Trip/RAW/A.NEF", "/Trip/JPG/A.JPG"],
+      "pictures": [
+        { "folder": "/Trip/RAW", "raw": "/Trip/RAW/A.NEF", "rendered": null, "sidecars": [], "ambiguous": false },
+        { "folder": "/Trip/JPG", "raw": null, "rendered": "/Trip/JPG/A.JPG", "sidecars": [], "ambiguous": false }
+      ]
+    }
+  ]
+}
