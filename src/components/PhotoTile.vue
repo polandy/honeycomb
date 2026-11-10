@@ -226,8 +226,8 @@ watch([srcset, sizes, () => props.devicePixelRatio], async () => {
 
 .photo-tile__series {
 	position: absolute;
+	top: 30px;
 	inset-inline-end: 6px;
-	bottom: 6px;
 	padding: 2px 6px;
 	border-radius: var(--border-radius);
 	background-color: var(--color-main-background-blur);

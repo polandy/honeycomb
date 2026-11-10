@@ -437,6 +437,7 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: The series viewer prefetches the whole series when it opens, and the compare stays
   hidden while the viewer is open.
 - 2026-11-10: The series badge "⧉ N" marks a tile whose picture is in an offered series; it is
-  read-only, with "Series of N" as tooltip and in the tile's label.
+  read-only, with "Series of N" in the tile's label, and sits at the top end below the ambiguity
+  mark, as the bottom end holds the selection check.
 - 2026-11-10: No Playwright test for the series viewer yet: the e2e fixtures have no capture times,
   so they form no series; the viewer is covered by Vitest component and App tests.
