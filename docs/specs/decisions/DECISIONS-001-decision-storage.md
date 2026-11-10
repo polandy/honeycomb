@@ -21,6 +21,9 @@ continues on any device and each user of a shared folder keeps their own.
 - `400` for a malformed body; one malformed item writes nothing. `401` without a user.
 - The client reads the decisions of every member after the listing and merges them into the
   picture's decision; a failed lookup is logged and every picture counts as undecided.
+- A daily background job removes the rows of files deleted for good, of every user. A file in the
+  trash bin is not deleted for good: restored, it keeps its decision (DELETE-001.8).
+- Deleting a user removes their rows.
 
 ## Acceptance criteria
 
@@ -85,6 +88,19 @@ continues on any device and each user of a shared folder keeps their own.
 - **When** the client would look up or save
 - **Then** it sends no request
 
+### DECISIONS-001.11 – A file deleted for good
+
+- **Given** decisions of a file in the trash bin and of a file still in place
+- **When** the file is deleted from the trash bin and the clean-up job runs
+- **Then** its rows are gone for every user; the other file keeps its decision, and the job run
+  again removes nothing more
+
+### DECISIONS-001.12 – A deleted user
+
+- **Given** a user with stored decisions
+- **When** the user is deleted
+- **Then** their rows are gone, and a new user of the same name reads no decision
+
 ## Out of scope
 
 Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XMP sidecars (M5).
@@ -94,3 +110,4 @@ Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XM
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged M2.4 (#42) |
+| 2026-11-10 | Rows of files deleted for good and of deleted users are removed (DECISIONS-001.11, .12) |

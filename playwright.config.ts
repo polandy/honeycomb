@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { defineConfig, devices } from '@playwright/test'
 import { ADMIN, ADMIN_STATE } from './tests/e2e/admin.ts'
+import { PORT } from './tests/e2e/server.ts'
 
-const DEFAULT_PORT = 8180
-const PORT = Number(process.env.HONEYCOMB_E2E_PORT ?? DEFAULT_PORT)
 const BASE_URL = `http://localhost:${PORT}`
 const NEXTCLOUD_INSTALL_TIMEOUT_MS = 300_000
 
