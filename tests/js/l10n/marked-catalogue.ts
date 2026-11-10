@@ -33,7 +33,7 @@ export function uninstallMarkedCatalogue(): void {
 	delete registry._oc_l10n_registry_plural_functions.honeycomb
 }
 
-/** Lists the rendered text and user-visible attribute values that did not go through the catalogue. */
+/** Lists the rendered text and user-visible attribute values that did not go through the catalogue; data marked `translate="no"` is skipped. */
 export function untranslatedText(root: Element): string[] {
 	const found: string[] = []
 	const check = (value: string | null) => {
@@ -42,7 +42,7 @@ export function untranslatedText(root: Element): string[] {
 			found.push(text)
 		}
 	}
-	for (const element of [root, ...root.querySelectorAll('*')]) {
+	for (const element of [root, ...root.querySelectorAll('*')].filter((each) => each.closest('[translate="no"]') === null)) {
 		// A form control's name is its key in the form, never shown.
 		const shown = element.tagName === 'INPUT' ? USER_VISIBLE_ATTRIBUTES.filter((attribute) => attribute !== 'name') : USER_VISIBLE_ATTRIBUTES
 		shown.forEach((attribute) => check(element.getAttribute(attribute)))

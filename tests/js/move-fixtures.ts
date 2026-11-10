@@ -30,7 +30,7 @@ export const allMoved = (newId = (fileId: number) => fileId): Answer => async (r
 export function moveFlow(answer: Answer = allMoved(), { held = [] as string[], template = '{name}.{ext}', probe = undefined as (() => Promise<never>) | undefined } = {}) {
 	const entries = shallowRef<ListingEntry[]>(ENTRIES)
 	const pictures = shallowRef<Picture<ListingEntry>[]>(pairPictures(ENTRIES, DEFAULT_PAIRING_SETTINGS))
-	const settings = shallowRef<Settings>({ ...DEFAULT_SETTINGS, moveFavourites: ['/Fav'], moveRecent: ['/Old', '/Fav'] })
+	const settings = shallowRef<Settings>({ ...DEFAULT_SETTINGS, moveFavourites: ['/Fav'], moveRecent: ['/Old', '/Fav'], moveTemplate: template })
 	const toasts: { message: string, action: ToastAction | null }[] = []
 	const sent: MoveRequestFile[][][] = []
 	const probed: string[][] = []
@@ -63,7 +63,6 @@ export function moveFlow(answer: Answer = allMoved(), { held = [] as string[], t
 		loupe,
 		listing: () => listing.value,
 		toast: (message, action = null) => toasts.push({ message, action }),
-		template: () => template,
 		offset: () => 0,
 	})
 	const [pair, single, sunset] = pictures.value as [Picture<ListingEntry>, Picture<ListingEntry>, Picture<ListingEntry>]

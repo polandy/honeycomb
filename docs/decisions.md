@@ -512,3 +512,18 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `App.vue` under 300 lines.
 - 2026-11-10: The e2e tests reset the shared admin's view state after each page load, so server
   state never leaks between tests.
+- 2026-11-10: The move flow reads the name template from the settings; its separate template input
+  is gone, so the setting is the one source.
+- 2026-11-10: A stored name template that no longer parses reads as *By day*, so a move never runs
+  on an invalid template.
+- 2026-11-10: Each keystroke that leaves a valid template saves it, as the mockup shows; an invalid
+  one stays a draft and moving keeps the last valid template.
+- 2026-11-10: The empty folder and empty name problems get their own words ("Empty folder name;
+  remove the extra /", "The name needs something before .{ext}"), since the mockup's catch-all
+  read wrong for them; a bad `{number}` width shares "Unknown option in …" with a bad modifier.
+- 2026-11-10: The preview's five samples have fixed times at offset 0, so it reads the same on
+  every device and test run.
+- 2026-11-10: The preview notes an unknown camera only when the template uses `{camera}` or
+  `{make}`, since otherwise the name does not depend on it.
+- 2026-11-10: The l10n test skips elements marked `translate="no"`, which hold data such as file
+  names and paths rather than UI text.

@@ -9,8 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] M7.4: Name template setting with presets and a live preview on 5 sample pictures, and the favourite targets list in the settings (2026-11-09)
-
 ## Later
 
 - [ ] DECISIONS-002.7: the client saves the resume position while culling and offers to continue a folder set at it on another device (2026-11-10)

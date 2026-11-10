@@ -24,14 +24,14 @@ import { allMoved } from './move-fixtures.ts'
 
 type Move = (request: MoveRequestFile[][]) => Promise<unknown>
 
-/** The app on the cull, its probe finding `/Out` empty and its move endpoint answering `move`. */
-async function openApp(decisions: StoredDecision[] = [], move: Move = allMoved(), probeTargets = async (folders: readonly string[]): Promise<TargetFolder[]> => folders.map((path) => ({ path, children: [] }))) {
+/** The app on the cull with the stored settings, its probe finding `/Out` empty and its move endpoint answering `move`. */
+async function openApp(decisions: StoredDecision[] = [], move: Move = allMoved(), probeTargets = async (folders: readonly string[]): Promise<TargetFolder[]> => folders.map((path) => ({ path, children: [] })), settings: object = {}) {
 	const sent: MoveRequestFile[][][] = []
 	const movePictures = async (request: MoveRequestFile[][]) => {
 		sent.push(request)
 		return move(request)
 	}
-	const mounted = mountApp({ move: { probeTargets, movePictures }, schedule: fakeScheduler().schedule }, decisions, { NcDialog: DialogStub })
+	const mounted = mountApp({ move: { probeTargets, movePictures }, schedule: fakeScheduler().schedule, loadSettings: async () => settings }, decisions, { NcDialog: DialogStub })
 	await openCull(mounted.wrapper)
 	return { ...mounted, sent }
 }
@@ -101,6 +101,18 @@ describe('App: opening the move dialog', () => {
 		toolbar.vm.$emit('move')
 		await flushPromises()
 		expect(opened(wrapper)).toEqual(['IMG_9', 'IMG_10'])
+	})
+})
+
+describe('App: the name template', () => {
+	// spec: SETTINGS-001.21
+	it('names the moved files by the template in the settings', async () => {
+		const { wrapper, sent } = await openApp([], allMoved(), undefined, { moveTemplate: 'Kept/{name:lower}.{ext}' })
+		await press('m')
+		await moveToOut(wrapper)
+
+		expect(flowOf(wrapper).templateText.value).toBe('Kept/{name:lower}.{ext}')
+		expect(sent[0]!.flat().map((file) => file.path)).toEqual(['/Out/Kept/img_2.JPG'])
 	})
 })
 
