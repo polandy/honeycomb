@@ -11,13 +11,13 @@ import { computed, ref, useTemplateRef, watch } from 'vue'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcContent from '@nextcloud/vue/components/NcContent'
-import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import ActionBar from './components/ActionBar.vue'
 import AppNavigation from './components/AppNavigation.vue'
 import CullDialogs from './components/CullDialogs.vue'
 import CullEmptyState from './components/CullEmptyState.vue'
 import FilterBar from './components/FilterBar.vue'
 import FolderPicker from './components/FolderPicker.vue'
+import GridNotices from './components/GridNotices.vue'
 import GridToolbar from './components/GridToolbar.vue'
 import NoFolderState from './components/NoFolderState.vue'
 import PhotoGrid from './components/PhotoGrid.vue'
@@ -194,7 +194,7 @@ useHotkeys(() => {
 					:shown="view.length"
 					:total="pictures.length"
 					@update:filters="filters = $event" />
-				<NcNoteCard v-if="saveFailed" type="error" :text="t('honeycomb', 'Could not save the change; the photos show what is stored.')" />
+				<GridNotices :pictures="view" :saveFailed="saveFailed" />
 				<PhotoGrid
 					v-if="view.length > 0"
 					ref="grid"

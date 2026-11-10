@@ -103,11 +103,12 @@ shared with framehive.
 - **When** the entries are paired
 - **Then** pairing fails with an error that names the extension
 
-### LISTING-002.11 – One notice for ambiguous names (gap)
+### LISTING-002.11 – One notice for ambiguous names
 
 - **Given** a folder whose pictures include ambiguous singles
 - **When** the grid shows it
-- **Then** the grid shows one notice for that folder, beside the warning on each tile
+- **Then** the grid shows, above the tiles and beside the warning on each tile, one notice for
+  each ambiguous base name of that folder that names it and counts its shown singles
 
 ## Out of scope
 
