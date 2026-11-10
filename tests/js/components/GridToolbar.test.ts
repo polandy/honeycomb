@@ -13,8 +13,9 @@ import { PopoverStub } from './stubs.ts'
 
 const MARK = TRANSLATED_MARK
 
-const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number } = {
+const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number } = {
 	selecting: false,
+	rejected: 0,
 	selected: 0,
 	scope: 'not-rejected',
 	scopeLocked: false,
@@ -45,6 +46,20 @@ describe('GridToolbar', () => {
 		[{ paths: ['/A', '/B'], subfolders: true }, '2 folders + subfolders'],
 	])('names the folder set %o "%s"', (folderSet, name) => {
 		expect(setName(mountToolbar(folderSet))).toBe(name)
+	})
+
+	it('reviews the rejects from a button with their count, held while there are none', async () => {
+		const set = { paths: ['/Trip'], subfolders: false }
+		const none = mountToolbar(set).find('[aria-label^="Review rejects"]')
+		const wrapper = mountToolbar(set, 1, { rejected: 12 })
+		const button = wrapper.find('[aria-label^="Review rejects"]')
+
+		expect(none.attributes('disabled')).toBeDefined()
+		expect(none.find('.grid-toolbar__badge').exists()).toBe(false)
+		expect(button.attributes('title')!.replaceAll(MARK, '')).toBe('Review rejects (Ctrl+Backspace)')
+		expect(button.find('.grid-toolbar__badge').text()).toBe('12')
+		await button.trigger('click')
+		expect(wrapper.emitted('reviewRejects')).toHaveLength(1)
 	})
 
 	it('opens the folder picker from Home and from the set name', async () => {
