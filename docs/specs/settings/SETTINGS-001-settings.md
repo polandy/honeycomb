@@ -2,8 +2,9 @@
 
 - Status: implemented
 - Area: settings
-- Origin: `docs/plan.md` M4.4, Flag buttons and vi keys, ADR 0014, `docs/user/settings.md`
-- Depends on: LISTING-002
+- Origin: `docs/plan.md` M4.4, Flag buttons and vi keys, Moving pictures, ADR 0014,
+  `docs/user/settings.md`
+- Depends on: LISTING-002, MOVE-001
 
 ## Purpose
 
@@ -25,11 +26,18 @@ back to its default, so an unknown, missing or invalid field never breaks the ap
 | Auto-advance to the next undecided photo | On |
 | Show flag buttons | On |
 | Vi keys | Off |
+| Name template for moved photos | *By day* (`docs/05-name-templates.md` Default and presets) |
+| Favourite targets | None |
 
 *Settings* in the grid's ⋯ menu opens a dialog with the sections *File types*, *Folder layout*,
-*Loupe gestures* and *Keyboard*. Each change applies at once and saves the whole object; there is
+*Loupe gestures*, *Keyboard* and *Moving photos*. Each change applies at once and saves the whole object; there is
 no OK button. What a setting does elsewhere is specified where it acts (LISTING-002, LOUPE-001,
-LOUPE-002, KEYS-001).
+LOUPE-002, KEYS-001, MOVE-004).
+
+*Moving photos* holds the name template: three presets, a text field and a live preview that
+renders the template on five fixed sample pictures, chosen to show the template's edge cases (two
+cameras at the same second with the same original name, a phone, a sidecar, a file without EXIF).
+Below it, the favourite targets the move dialog starred, each with a ✕ to remove it.
 
 ## Acceptance criteria
 
@@ -136,6 +144,50 @@ LOUPE-002, KEYS-001).
 - **Then** each list keeps its paths in order without repeats, drops the other items, and is empty
   when it is not a list; the move dialog writes them (MOVE-004)
 
+### SETTINGS-001.16 – The stored name template
+
+- **Given** a stored name template that is valid, invalid (MOVE-001), not a string, or missing
+- **When** the settings are read
+- **Then** a valid template is kept and any other value reads as the default
+
+### SETTINGS-001.17 – Presets
+
+- **Given** the *Moving photos* section
+- **When** the user chooses *By day*, *By day, full date in the name* or *Keep names*
+- **Then** the template becomes that preset's and is saved; the preset whose template is the
+  current one is shown chosen, and none is when the template is the user's own
+
+### SETTINGS-001.18 – Typing a template
+
+- **Given** the template field
+- **When** the user types a template
+- **Then** a valid one is saved at once; an invalid one is not saved and the section shows it with
+  a caret under the problem's column, the problem in words and that moving keeps the last valid
+  template; reopening the dialog shows the saved template again
+
+### SETTINGS-001.19 – Live preview on 5 sample pictures
+
+- **Given** a valid template in the field
+- **When** the section shows it
+- **Then** the preview lists the 5 sample pictures with their files and camera (or *no EXIF*) and
+  the new path of every file, suffixed as one move would; it marks a collision suffix, a time
+  taken from the file, an unknown camera where the template uses `{camera}` or `{make}`, and a
+  picture `{number}` cannot name; below, how many samples get a suffix, or that all names are
+  unique
+
+### SETTINGS-001.20 – Favourite targets
+
+- **Given** favourite targets, or none
+- **When** the *Moving photos* section shows them and the user taps a target's ✕
+- **Then** each is listed by folder name with its path as the ✕'s label, the removed one is saved
+  without it, and with none a hint says to add one in the move dialog
+
+### SETTINGS-001.21 – The move uses the name template
+
+- **Given** a name template set in the settings
+- **When** the user opens the move dialog and chooses a target
+- **Then** the move summary shows that template and names the files by it
+
 ## Out of scope
 
 What the swipes, auto-advance and flag buttons do in the loupe: LOUPE-002. The vi keys: KEYS-001.
@@ -147,3 +199,4 @@ Pairing itself: LISTING-002.
 |---|---|
 | 2026-11-10 | Written from the merged M4.4 (#54) |
 | 2026-11-10 | .15 favourite and recent move targets (M7.3) |
+| 2026-11-10 | .16–.21 name template setting, presets, preview and favourite targets (M7.4) |

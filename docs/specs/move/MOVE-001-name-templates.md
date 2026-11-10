@@ -145,7 +145,7 @@ given existing paths. Paths are compared case-insensitively.
 
 ## Out of scope
 
-The name template setting, its presets and preview: M7.4. The move, conflict choices (*Skip*,
+The name template setting, its presets and preview: SETTINGS-001. The move, conflict choices (*Skip*,
 *Replace*) and which member's capture time and camera a picture uses: M7.2. Make and model come
 separately from the listing in M7.2; LISTING-001 joins them today.
 

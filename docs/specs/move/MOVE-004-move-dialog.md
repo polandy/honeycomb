@@ -33,8 +33,8 @@ set cannot be chosen. Once a target is chosen, the dialog names it and offers *�
 or *★ Favourite*, which adds or removes it from the favourite targets.
 
 **Move summary.** With a target, the client probes the target folders (MOVE-002) and plans the move
-(MOVE-003) with the default name template (`docs/plan.md` Moving pictures) until the name template
-setting arrives (M7.4). The summary counts photos, files and conflicts, shows the template, and
+(MOVE-003) with the user's name template (SETTINGS-001.21), by default *By day* (`docs/plan.md`
+Moving pictures). The summary counts photos, files and conflicts, shows the template, and
 lists every file with its folder, name, new path and size. A picture that cannot be named is listed
 with the reason and is not moved. A picture in conflict is headed by "*{name}*: a file with this
 name is already in *{folder}*" and an *Add suffix* · *Skip* · *Replace* choice, *Add suffix* first;
@@ -164,8 +164,8 @@ trash bin refuses (`409`, a *Replace* with the trash bin off) says the trash bin
 
 ## Out of scope
 
-The name template setting, its presets and the favourite targets list in the settings: M7.4. The
-endpoints: MOVE-002. The plan, conflicts, report and undo request: MOVE-003. Carrying decision rows
+The name template setting, its presets and the favourite targets list in the settings:
+SETTINGS-001. The endpoints: MOVE-002. The plan, conflicts, report and undo request: MOVE-003. Carrying decision rows
 over to new file ids after a move across storages: `TODO.md` Later.
 
 ## History
