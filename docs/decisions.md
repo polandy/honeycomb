@@ -77,3 +77,24 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: The pairing vectors (`tests/fixtures/pairing/vectors.json`) mark each case with
   `sharedWithFramehive`; the others follow rules where honeycomb differs from LIBRARY-001
   (case-insensitive base names, separate subfolders, darktable duplicates).
+- 2026-11-10: The frontend loads one script, `js/honeycomb-main.mjs`, added in
+  `templates/main.php`; `@nextcloud/vite-config` inlines the CSS into it (`inlineCSS`), so no
+  `Util::addStyle` is needed. `Util::addScript` is static and cannot run in PHPUnit, so the
+  template calls it and the e2e case covers it.
+- 2026-11-10: The skeleton shows the mockup's empty state *No folder chosen* / *Pick a folder to
+  start culling.* in `NcEmptyContent`, until the folder picker arrives with M2.3.
+- 2026-11-10: Vue errors reach `@nextcloud/logger` through `app.config.errorHandler`
+  (`src/create-honeycomb-app.ts`, logger injected); `src/main.ts` and `src/logger.ts` are wiring
+  only, left out of coverage and covered by the e2e case. `src/*.ts` and `src/**/*.vue` keep the
+  80 % lines gate of `02-workflow.md` §2.3.
+- 2026-11-10: The stub catalogue of ADR 0007 marks every string with `[de] ` through a `Proxy`
+  in `@nextcloud/l10n`'s registry, so it needs no list of strings. Components are
+  shallow-mounted, so `@nextcloud/vue`'s own English stays out and the props of the stubs, which
+  render as attributes, are checked with the attributes of `vue/no-bare-strings-in-template`.
+- 2026-11-10: e2e runs one Playwright project, desktop Chromium at 1440 × 900; the reference
+  device projects join with the grid (M2.3), when there is a layout to check on them. Nextcloud
+  logs a page in only through the login form, not HTTP basic auth, so a setup project logs in
+  once and stores the session.
+- 2026-11-10: CI builds and runs Playwright in one job, `Build and e2e`, since the e2e case needs
+  the bundle and a separate build job would repeat `npm ci`; it uploads the traces when it fails.
+  An e2e spec and `playwright.config.ts` also run the `TypeScript` job, which lints them.

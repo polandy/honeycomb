@@ -15,6 +15,13 @@ const WALL_CLOCK = [
 const RANDOMNESS = { selector: 'CallExpression[callee.object.name="Math"][callee.property.name="random"]', message: 'Inject randomness.' }
 const TIMERS = { selector: 'CallExpression[callee.name=/^set(Timeout|Interval)$/]', message: 'No timing waits in tests.' }
 
+// The l10n extractor reads only literals, and a message function must get a translated string (ADR 0007).
+const UNTRANSLATABLE = [
+	{ selector: 'CallExpression[callee.name="t"]:not([arguments.0.value="honeycomb"][arguments.1.type="Literal"])', message: 't() takes the literal app id \'honeycomb\' and a literal string.' },
+	{ selector: 'CallExpression[callee.name="n"]:not([arguments.0.value="honeycomb"][arguments.1.type="Literal"][arguments.2.type="Literal"])', message: 'n() takes the literal app id \'honeycomb\' and literal singular and plural strings.' },
+	{ selector: 'CallExpression[callee.name=/^show(Error|Warning|Info|Success|Message|Undo)$/][arguments.0.type=/^(Literal|TemplateLiteral)$/]', message: 'Pass a t() or n() string to the message.' },
+]
+
 const FORBIDDEN_PROPERTIES = [
 	{ property: 'innerHTML', message: 'Build nodes or bind in the template.' },
 	{ property: 'outerHTML', message: 'Build nodes or bind in the template.' },
@@ -30,9 +37,10 @@ export default [
 			parserOptions: {
 				projectService: {
 					// Lets tests/js/conventions lint snippets under paths that do not exist yet.
-					allowDefaultProject: ['src/*/example.ts', 'tests/js/example.test.ts'],
+					allowDefaultProject: ['src/*/example.ts', 'src/*/ExampleView.vue', 'tests/js/example.test.ts'],
 				},
 				tsconfigRootDir: import.meta.dirname,
+				extraFileExtensions: ['.vue'],
 			},
 		},
 		rules: {
@@ -46,11 +54,16 @@ export default [
 			}],
 			'jsdoc/require-param': 'off',
 			'no-restricted-properties': ['error', ...FORBIDDEN_PROPERTIES],
+			'no-restricted-syntax': ['error', ...UNTRANSLATABLE],
 		},
 	},
 	{
 		files: ['**/*.vue'],
-		rules: { 'vue/no-v-html': 'error' },
+		rules: {
+			'vue/no-v-html': 'error',
+			'vue/no-bare-strings-in-template': 'error',
+			'vue/no-restricted-syntax': ['error', ...UNTRANSLATABLE],
+		},
 	},
 	{
 		files: LOGIC_FILES,

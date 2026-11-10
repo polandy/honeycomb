@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# One job per toolchain, same tools and versions as scripts/verify.sh; build and e2e join with M2.
+# One job per toolchain, same tools and versions as scripts/verify.sh.
 name: CI
 
 on:
@@ -126,12 +126,37 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx eslint
-      - run: npx tsc
+      - run: npx vue-tsc
       - run: npx vitest run --coverage
+
+  e2e:
+    name: Build and e2e
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx vite build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7
 
   gate:
     name: CI gate
-    needs: [changes, markdown, reuse, conventions, php, typescript]
+    needs: [changes, markdown, reuse, conventions, php, typescript, e2e]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 5

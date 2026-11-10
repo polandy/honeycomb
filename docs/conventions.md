@@ -125,8 +125,10 @@ The procedure — test first as its own commit, layers, coverage gate — is
 | Gate | Tool | Runs in |
 |---|---|---|
 | Format, style, Vue and TypeScript rules above | ESLint (`eslint.config.mjs`) | `TypeScript` job |
-| Types | `tsc` | `TypeScript` job |
+| Types, `.vue` included | `vue-tsc` | `TypeScript` job |
 | Gates of `eslint.config.mjs` themselves | Vitest `tests/js/conventions/` | `TypeScript` job |
+| No English left with a stub catalogue (ADR 0007) | Vitest, `tests/js/l10n/marked-catalogue.ts` | `TypeScript` job |
+| Bundle builds; flows in a real Nextcloud | `vite build`, Playwright (`tests/e2e/`) | `Build and e2e` job |
 | PHP format (PSR-12 via `nextcloud/coding-standard`) | php-cs-fixer | `PHP` job |
 | PHP types, unused code, forbidden functions | psalm (`psalm.xml`) | `PHP` job |
 | File size, pins | `scripts/source-sizes.sh`, `scripts/pins.sh` | `Convention gates` job |
