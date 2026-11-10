@@ -49,18 +49,18 @@ final class GeneratePreviewsTest extends TestCase {
 		return new GeneratePreviews($this->createStub(ITimeFactory::class), $users, $images);
 	}
 
-	private function run(GeneratePreviews $job, mixed $argument): void {
+	private function runJob(GeneratePreviews $job, mixed $argument): void {
 		(new \ReflectionMethod($job, 'run'))->invoke($job, $argument);
 	}
 
 	public function testWarmsTheQueuedFilesOfTheUser(): void {
-		$this->run($this->job(), ['userId' => 'alice', 'fileIds' => [7, 8]]);
+		$this->runJob($this->job(), ['userId' => 'alice', 'fileIds' => [7, 8]]);
 
 		$this->assertSame([7], $this->warmed);
 	}
 
 	public function testDoesNothingForAUserWhoIsGone(): void {
-		$this->run($this->job(false), ['userId' => 'alice', 'fileIds' => [7]]);
+		$this->runJob($this->job(false), ['userId' => 'alice', 'fileIds' => [7]]);
 
 		$this->assertSame([], $this->warmed);
 	}
@@ -79,6 +79,6 @@ final class GeneratePreviewsTest extends TestCase {
 	public function testRejectsAMalformedArgument(mixed $argument): void {
 		$this->expectException(\InvalidArgumentException::class);
 
-		$this->run($this->job(), $argument);
+		$this->runJob($this->job(), $argument);
 	}
 }

@@ -26,7 +26,8 @@ A RAW+JPEG pair shows its JPEG; a RAW-only picture needs the JPEG preview embedd
   browser never keeps it under the old URL.
 - **Pixels:** through `OCP\IPreview`, so Nextcloud's preview cache stores every tier once and
   Imaginary, when the admin configured it, renders them; honeycomb neither needs nor configures
-  it.
+  it. Nextcloud rounds a preview up to a power of four, so a tier is a minimum: `256` comes as
+  256 px, `512` as up to 1024 px and `2048` as up to 4096 px, never more than the image has.
 - **RAW:** honeycomb registers a preview provider for `image/x-dcraw` that takes the largest
   JPEG embedded in the RAW file, so the preview cache keeps it like any other preview. The JPEG's
   own orientation tag is applied.
@@ -40,6 +41,9 @@ A RAW+JPEG pair shows its JPEG; a RAW-only picture needs the JPEG preview embedd
 ## Consequences
 
 - The first view of a tile not yet warmed renders it synchronously, as `/core/preview` would.
+- The `512` and `2048` tiers carry up to four times the pixels they name. If the budgets,
+  measured with real 24 MP files, miss because of it, honeycomb scales them down itself and
+  needs its own cache with clean-up for deleted files; that is a new decision.
 - With `camerarawpreviews` also installed, Nextcloud uses whichever provider matches first;
   both deliver the embedded JPEG.
 - The job's argument stays below the 4,000 characters of the job table's `argument` column.
