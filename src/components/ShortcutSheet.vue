@@ -65,6 +65,7 @@ const LABELS: Readonly<Record<string, string>> = {
 	redo: t('honeycomb', 'Redo'),
 	delete: t('honeycomb', 'Delete summary for the selection or focused tile'),
 	'review-rejects': t('honeycomb', 'Review rejects'),
+	move: t('honeycomb', 'Move dialog for the selection or focused tile'),
 	shortcuts: t('honeycomb', 'This sheet'),
 	'vi-sideways': t('honeycomb', 'Previous photo, next photo'),
 	'vi-rows': t('honeycomb', 'Grid: one row down, one row up. Loupe: next photo, previous photo'),

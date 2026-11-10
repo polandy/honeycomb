@@ -22,6 +22,10 @@ defineProps<{
 	rawRemovable: number
 	/** Whether pictures of the cull lie in a shared folder, where decisions reach the sidecars only on request. */
 	sidecarsShared: boolean
+	/** How many pictures the move item opens the move dialog on. */
+	movable: number
+	/** Whether a filter is on, which makes *Move picks* *Move filtered*. */
+	moveFiltered: boolean
 }>()
 
 const emit = defineEmits<{
@@ -29,6 +33,7 @@ const emit = defineEmits<{
 	'update:groupByFolder': [group: boolean]
 	'update:sortOrder': [order: SortOrder]
 	removeRaws: []
+	move: []
 	writeSidecars: []
 	openSettings: []
 }>()
@@ -83,6 +88,18 @@ const emit = defineEmits<{
 			</template>
 			{{ t('honeycomb', 'Remove RAWs…') }}
 			<span class="grid-more-menu__count">{{ formatNumber(rawRemovable) }}</span>
+		</NcButton>
+		<NcButton
+			variant="tertiary"
+			alignment="start"
+			wide
+			:disabled="movable === 0"
+			@click="emit('move')">
+			<template #icon>
+				<AppIcon name="folder" />
+			</template>
+			{{ moveFiltered ? t('honeycomb', 'Move filtered…') : t('honeycomb', 'Move picks…') }}
+			<span class="grid-more-menu__count">{{ formatNumber(movable) }}</span>
 		</NcButton>
 		<NcButton
 			v-if="sidecarsShared"

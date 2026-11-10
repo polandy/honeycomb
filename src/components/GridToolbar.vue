@@ -41,6 +41,8 @@ const props = defineProps<{
 	series: number
 	rawRemovable: number
 	sidecarsShared: boolean
+	/** How many pictures *Move picks* or, while a filter is on, *Move filtered* opens the move dialog on. */
+	movable: number
 }>()
 
 const emit = defineEmits<{
@@ -56,6 +58,7 @@ const emit = defineEmits<{
 	reviewRejects: []
 	compareSeries: []
 	removeRaws: []
+	move: []
 	writeSidecars: []
 	openSettings: []
 }>()
@@ -158,10 +161,13 @@ const setName = computed(() => {
 				:sortOrder="props.sortOrder"
 				:rawRemovable="props.rawRemovable"
 				:sidecarsShared="props.sidecarsShared"
+				:movable="props.movable"
+				:moveFiltered="props.activeFilters > 0"
 				@update:tileSize="emit('update:tileSize', $event)"
 				@update:groupByFolder="emit('update:groupByFolder', $event)"
 				@update:sortOrder="emit('update:sortOrder', $event)"
 				@removeRaws="emit('removeRaws')"
+				@move="emit('move')"
 				@writeSidecars="emit('writeSidecars')"
 				@openSettings="emit('openSettings')" />
 		</NcPopover>

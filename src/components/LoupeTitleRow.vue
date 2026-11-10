@@ -25,6 +25,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
 	close: []
+	move: []
 	toggleZoom: []
 	'update:infoOpen': [open: boolean]
 	'update:filmstripOpen': [open: boolean]
@@ -46,6 +47,9 @@ const emit = defineEmits<{
 		<span class="loupe-title-row__count">{{ t('honeycomb', '{position} of {count}', { position: formatNumber(props.index + 1), count: formatNumber(props.count) }, undefined, PLAIN_TEXT) }}</span>
 		<NcButton :aria-label="t('honeycomb', 'Toggle fit and 100 percent')" @click="emit('toggleZoom')">
 			{{ props.zoom === null ? t('honeycomb', 'Fit') : t('honeycomb', '{percent} %', { percent: formatNumber(props.zoom) }, undefined, PLAIN_TEXT) }}
+		</NcButton>
+		<NcButton :aria-label="t('honeycomb', 'Move this photo')" @click="emit('move')">
+			{{ t('honeycomb', 'Move…') }}
 		</NcButton>
 		<FlagButtonsToggle :shown="props.flagButtonsShown" @update:shown="emit('update:flagButtonsShown', $event)" />
 		<NcButton :aria-label="t('honeycomb', 'Toggle info panel')" :pressed="props.infoOpen" @update:pressed="emit('update:infoOpen', $event)">

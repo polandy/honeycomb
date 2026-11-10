@@ -41,6 +41,12 @@ export interface MoveFlowContext {
 	readonly offset?: MtimeOffset
 }
 
+/** The endpoints a move uses (ADR 0018). */
+export interface MoveApi {
+	readonly probeTargets: MoveFlowContext['probe']
+	readonly movePictures: MoveFlowContext['move']
+}
+
 /** The move dialog, its move summary, the move and its undo (`docs/plan.md` Moving pictures, MOVE-004). */
 export function useMoveFlow(context: MoveFlowContext) {
 	const pictures = shallowRef<Pictures | null>(null)
