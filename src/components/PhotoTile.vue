@@ -29,6 +29,7 @@ import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { UNDECIDED } from '../logic/decision.ts'
 import { GRID_TIERS, gridSrcset, imageMember, sharpTier, smallSource } from '../logic/image-tiers.ts'
 import { pairBadge } from '../logic/pair-badge.ts'
+import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	picture: Picture<ListingEntry>
@@ -116,6 +117,7 @@ watch([srcset, sizes, () => props.devicePixelRatio], async () => {
 		class="photo-tile"
 		:class="{ 'photo-tile--selected': props.selected }"
 		:aria-label="label"
+		data-tip-hover-only
 		:aria-selected="props.selecting ? props.selected : undefined">
 		<img
 			class="photo-tile__image"
@@ -130,7 +132,7 @@ watch([srcset, sizes, () => props.devicePixelRatio], async () => {
 			v-if="props.series > 1"
 			class="photo-tile__series"
 			aria-hidden="true"
-			:title="seriesText">{{ seriesBadge }}</span>
+			v-bind="tip(seriesText)">{{ seriesBadge }}</span>
 		<span v-if="props.selecting" class="photo-tile__check" aria-hidden="true"><AppIcon v-if="props.selected" name="check" /></span>
 		<FlagMark v-if="props.decision.flag !== 'unflagged'" :flag="props.decision.flag" :class="`photo-tile__flag photo-tile__flag--${props.decision.flag}`" />
 		<span v-if="props.decision.colourLabel !== null" class="photo-tile__colour" :style="{ backgroundColor: COLOUR_LABEL_SWATCHES[props.decision.colourLabel] }" />

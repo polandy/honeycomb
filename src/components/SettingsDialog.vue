@@ -17,6 +17,7 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwit
 import AppIcon from './AppIcon.vue'
 import MoveSettings from './MoveSettings.vue'
 import { addExtension, DEFAULT_SUBFOLDERS, folderMode, removeExtension } from '../logic/settings.ts'
+import { tip } from '../tooltip.ts'
 
 const props = defineProps<{
 	open: boolean
@@ -127,6 +128,7 @@ function setSwipe(direction: SwipeDirection, value: string) {
 							variant="tertiary-no-background"
 							size="small"
 							:aria-label="t('honeycomb', 'Remove {name}', { name: shown(extension) })"
+							v-bind="tip(t('honeycomb', 'Remove {name}', { name: shown(extension) }))"
 							:disabled="settings[list].length === 1"
 							@click="remove(list, extension)">
 							<template #icon>

@@ -23,7 +23,8 @@ ring shows. Touch and pen: a long-press of 500 ms; the release hides it and swal
 that follows. It hides on leaving, blur, a click or tap, scrolling the control's container, the
 control leaving the page, the loupe's and the series viewer's controls fading out, and *Escape*,
 which then goes no further. Its colours are Nextcloud's main text and background colours,
-swapped, so it follows the theme. It shows and hides without a fade, so reduced motion needs no
+swapped, so it follows the theme. While the loupe or the series viewer is open the bubble lives
+inside it, since the browser shows nothing outside a full-screen element. It shows and hides without a fade, so reduced motion needs no
 exception.
 
 Controls with a tooltip:

@@ -22,6 +22,7 @@ import { keyCap } from '../hotkeys.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { gridSrcset, imageMember, smallSource } from '../logic/image-tiers.ts'
 import { SERIES_GAP_SECONDS } from '../logic/series.ts'
+import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	/** The shown series, or null once none is left. */
@@ -80,7 +81,7 @@ const within = () => n('honeycomb', 'Photos taken within {count} second of each 
 						:class="{ 'series-compare__photo--active': index === props.active }"
 						:aria-pressed="index === props.active"
 						:aria-label="t('honeycomb', 'Open photo {i}: {name}', { i: formatNumber(index + 1), name: picture.baseName }, undefined, PLAIN_TEXT)"
-						:title="t('honeycomb', 'Open in the series viewer')"
+						v-bind="tip(t('honeycomb', 'Open in the series viewer'))"
 						@click="emit('view', index)">
 						<img
 							:src="smallSource(imageMember(picture), props.imageUrl)"

@@ -8,7 +8,7 @@ merged code does. Spec, tests and code change in the same pull request.
 
 | Area | Specs |
 |---|---|
-| `app/` | [APP-001](app/APP-001-app-page.md) app page and navigation |
+| `app/` | [APP-001](app/APP-001-app-page.md) app page and navigation, [APP-002](app/APP-002-tooltip.md) tooltip |
 | `listing/` | [LISTING-001](listing/LISTING-001-entries.md) entries of a folder set, [LISTING-002](listing/LISTING-002-pairing.md) pairing, [LISTING-003](listing/LISTING-003-folder-picker.md) folder picker |
 | `images/` | [IMAGES-001](images/IMAGES-001-preview-tiers.md) preview tiers and background previews |
 | `grid/` | [GRID-001](grid/GRID-001-grid.md) grid, [GRID-002](grid/GRID-002-filters-and-sort.md) filters, scope, progress and sort, [GRID-003](grid/GRID-003-selection.md) selection mode |

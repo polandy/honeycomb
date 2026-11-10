@@ -162,8 +162,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   a new dependency and needs an ADR first.
 - 2026-11-10: Pinch to resize tiles uses touch events, as in the mockup, since two-finger
   distance needs both touches at once.
-- 2026-11-10: Icon-only controls carry an `aria-label` and no tooltip until the shared `Tooltip`
-  component exists (`TODO.md`); the native `title` stays unused.
+- 2026-11-10: Icon-only controls carry an `aria-label` and a tooltip (APP-002); the native `title`
+  stays unused.
 - 2026-11-10: `.CR3` files are not listed yet: Nextcloud types them `application/octet-stream`.
   The e2e RAW is a `.NEF`; the fix is a `TODO.md` item.
 - 2026-11-10: The subfolder listing pages by offset in file id order, since Nextcloud's search
@@ -193,8 +193,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   decision lookup answers, so the warm-up does not wait for it.
 - 2026-11-10: A failed decision lookup is logged and every photo shows as undecided; an answer
   for a folder set that is no longer open is dropped.
-- 2026-11-10: The scope's "The flag filter overrides this" is visible text beside the disabled
-  segment, tied to it by `aria-describedby`, until the shared `Tooltip` exists.
+- 2026-11-10: The scope's "The flag filter overrides this" stays visible text beside the disabled
+  segment, tied to it by `aria-describedby`: a tooltip on a disabled control shows only where the
+  browser sends hover to it.
 - 2026-11-10: Tapping the pressed star chip turns the rating filter off, like *Any*, as in the
   mockup.
 - 2026-11-10: The colour swatches use the mockup's fixed palette, not Nextcloud variables, since
@@ -574,3 +575,19 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-10: The TODO item's grid arrow keys were already built (KEYS-001.5); only `ConfirmDialog`'s
   phone bottom sheet was left. It takes the mockup's 520 px breakpoint, not NcModal's 512 px, and
   is restyled from NcModal's classes, since `NcDialog` offers no sheet layout.
+- 2026-11-10: The shared tooltip is `AppTooltip.vue` (component names have two words, like
+  `AppIcon`) with the bubble id `honeycomb-tip`, so it cannot clash with an id in Nextcloud's page.
+- 2026-11-10: The tooltip's colours are Nextcloud's main text and background colours swapped, so
+  it follows the theme without colours of its own; it has no fade, so reduced motion needs no
+  exception.
+- 2026-11-10: Components tell the tooltip about their areas by data attributes, not props:
+  `data-tips-off` while the loupe's or series viewer's controls fade out, `data-tip-avoid` on the
+  photo's stage, `data-tip-hover-only` on a grid tile; the one bubble reads them from the page.
+- 2026-11-10: The tooltip catches *Escape* on the window in the capture phase, ahead of every key
+  handler, so the first *Escape* only hides it without each handler knowing about it.
+- 2026-11-10: The tooltip shows inside the loupe or series viewer while one is open, as the
+  browser shows nothing outside a full-screen element.
+- 2026-11-10: Tooltips go on every icon-only control and on the controls whose mockup tooltip
+  names a key (*Move this photo*, *Info panel*, *Fit / 100 %*, the flag, star and colour buttons);
+  the native `title`s of the grid toolbar, series badge, series compare and *Pick this, reject the
+  rest* became tooltips.

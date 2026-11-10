@@ -7,6 +7,7 @@ import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import { keyCap } from '../hotkeys.ts'
+import { tip } from '../tooltip.ts'
 
 const emit = defineEmits<{ pick: [] }>()
 </script>
@@ -16,7 +17,7 @@ const emit = defineEmits<{ pick: [] }>()
 		class="pick-rest-button"
 		variant="primary"
 		wide
-		:title="t('honeycomb', 'Pick this, reject the rest ({key})', { key: keyCap('pick-rest') })"
+		v-bind="tip(t('honeycomb', 'Pick this, reject the rest'), keyCap('pick-rest'))"
 		@click="emit('pick')">
 		<template #icon>
 			<AppIcon name="flagPick" />

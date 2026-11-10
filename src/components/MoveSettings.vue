@@ -18,6 +18,7 @@ import { NAME_TEMPLATE_PRESETS, presetOf } from '../logic/name-template/presets.
 import { templatePreview } from '../logic/name-template/preview.ts'
 import { namingProblemText } from '../move-text.ts'
 import { templateProblemText } from '../name-template-text.ts'
+import { tip } from '../tooltip.ts'
 
 const props = defineProps<{
 	settings: Settings
@@ -139,6 +140,7 @@ function summary(collisions: number): string {
 					variant="tertiary-no-background"
 					size="small"
 					:aria-label="t('honeycomb', 'Remove favourite {path}', { path }, undefined, PLAIN_TEXT)"
+					v-bind="tip(t('honeycomb', 'Remove favourite {path}', { path }, undefined, PLAIN_TEXT))"
 					@click="emit('update', { moveFavourites: toggleFavourite(settings.moveFavourites, path) })">
 					<template #icon>
 						<AppIcon name="close" />

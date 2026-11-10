@@ -7,7 +7,9 @@ import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import FlagButtonsToggle from './FlagButtonsToggle.vue'
+import { keyCap } from '../hotkeys.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
+import { tip } from '../tooltip.ts'
 
 const props = defineProps<{
 	name: string
@@ -36,7 +38,11 @@ const emit = defineEmits<{
 
 <template>
 	<header class="loupe-title-row">
-		<NcButton variant="tertiary" :aria-label="t('honeycomb', 'Close loupe')" @click="emit('close')">
+		<NcButton
+			variant="tertiary"
+			:aria-label="t('honeycomb', 'Close loupe')"
+			v-bind="tip(t('honeycomb', 'Close loupe'), keyCap('close'))"
+			@click="emit('close')">
 			<template #icon>
 				<AppIcon name="close" />
 			</template>
@@ -45,19 +51,24 @@ const emit = defineEmits<{
 			{{ props.name }}
 		</h2>
 		<span class="loupe-title-row__count">{{ t('honeycomb', '{position} of {count}', { position: formatNumber(props.index + 1), count: formatNumber(props.count) }, undefined, PLAIN_TEXT) }}</span>
-		<NcButton :aria-label="t('honeycomb', 'Toggle fit and 100 percent')" @click="emit('toggleZoom')">
+		<NcButton :aria-label="t('honeycomb', 'Toggle fit and 100 percent')" v-bind="tip(t('honeycomb', 'Fit / 100 %'), keyCap('zoom', 1))" @click="emit('toggleZoom')">
 			{{ props.zoom === null ? t('honeycomb', 'Fit') : t('honeycomb', '{percent} %', { percent: formatNumber(props.zoom) }, undefined, PLAIN_TEXT) }}
 		</NcButton>
-		<NcButton :aria-label="t('honeycomb', 'Move this photo')" @click="emit('move')">
+		<NcButton :aria-label="t('honeycomb', 'Move this photo')" v-bind="tip(t('honeycomb', 'Move this photo'), keyCap('move'))" @click="emit('move')">
 			{{ t('honeycomb', 'Move…') }}
 		</NcButton>
 		<FlagButtonsToggle :shown="props.flagButtonsShown" @update:shown="emit('update:flagButtonsShown', $event)" />
-		<NcButton :aria-label="t('honeycomb', 'Toggle info panel')" :pressed="props.infoOpen" @update:pressed="emit('update:infoOpen', $event)">
+		<NcButton
+			:aria-label="t('honeycomb', 'Toggle info panel')"
+			v-bind="tip(t('honeycomb', 'Info panel'), keyCap('info'))"
+			:pressed="props.infoOpen"
+			@update:pressed="emit('update:infoOpen', $event)">
 			{{ t('honeycomb', 'Info') }}
 		</NcButton>
 		<NcButton
 			variant="tertiary"
 			:aria-label="t('honeycomb', 'Toggle filmstrip')"
+			v-bind="tip(t('honeycomb', 'Filmstrip'))"
 			:pressed="props.filmstripOpen"
 			@update:pressed="emit('update:filmstripOpen', $event)">
 			<template #icon>
@@ -67,6 +78,7 @@ const emit = defineEmits<{
 		<NcButton
 			variant="tertiary"
 			:aria-label="t('honeycomb', 'Toggle Nextcloud navigation')"
+			v-bind="tip(t('honeycomb', 'Nextcloud navigation'))"
 			:pressed="props.navigationShown"
 			@update:pressed="emit('update:navigationShown', $event)">
 			<template #icon>

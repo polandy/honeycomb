@@ -5,6 +5,7 @@
 <script setup lang="ts">
 import { n, t } from '@nextcloud/l10n'
 import { formatNumber } from '../l10n.ts'
+import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	/** The rating, or undefined where a selection's ratings differ. */
@@ -46,6 +47,7 @@ function buttonText(value: number) {
 			:disabled="props.disabled"
 			:aria-pressed="props.rating === value"
 			:aria-label="rateLabel(value)"
+			v-bind="tip(rateLabel(value), String(value))"
 			@click="emit('rate', value)">
 			{{ buttonText(value) }}
 		</button>

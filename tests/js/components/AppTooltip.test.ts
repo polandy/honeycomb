@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import { flushPromises, mount } from '@vue/test-utils'
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, ref } from 'vue'
 import AppTooltip from '../../../src/components/AppTooltip.vue'
@@ -42,6 +42,8 @@ async function hover(page: ReturnType<typeof mountPage>, selector: string) {
 	page.fire()
 	await flushPromises()
 }
+
+enableAutoUnmount(afterEach)
 
 describe('AppTooltip', () => {
 	afterEach(() => document.body.replaceChildren())
@@ -130,6 +132,21 @@ describe('AppTooltip', () => {
 		await flushPromises()
 
 		expect(isShown()).toBe(false)
+	})
+
+	// spec: APP-002.3
+	it('cancels the long-press when the finger moves away and keeps the browser menu off a control', async () => {
+		const page = mountPage()
+		const menu = (selector: string) => page.control(selector).dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }))
+
+		await pointer(page.control('.pick'), 'pointerdown', { pointerType: 'touch', clientX: 10, clientY: 10 })
+		await pointer(page.control('.pick'), 'pointermove', { pointerType: 'touch', clientX: 30, clientY: 10 })
+		page.fire()
+		await flushPromises()
+
+		expect(isShown()).toBe(false)
+		expect(menu('.pick')).toBe(false)
+		expect(menu('.badge')).toBe(true)
 	})
 
 	// spec: APP-002.8

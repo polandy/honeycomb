@@ -8,6 +8,8 @@ import type { IconName } from './AppIcon.vue'
 
 import { t } from '@nextcloud/l10n'
 import AppIcon from './AppIcon.vue'
+import { keyCap } from '../hotkeys.ts'
+import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	/** The flag, or undefined where a selection's flags differ. */
@@ -19,10 +21,10 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{ flag: [flag: Flag] }>()
 
-const FLAGS: readonly { flag: Flag, icon: IconName, label: () => string }[] = [
-	{ flag: 'picked', icon: 'flagPick', label: () => t('honeycomb', 'Pick') },
-	{ flag: 'rejected', icon: 'flagX', label: () => t('honeycomb', 'Reject') },
-	{ flag: 'unflagged', icon: 'flag', label: () => t('honeycomb', 'Unflag') },
+const FLAGS: readonly { flag: Flag, icon: IconName, key: string, label: () => string }[] = [
+	{ flag: 'picked', icon: 'flagPick', key: 'pick', label: () => t('honeycomb', 'Pick') },
+	{ flag: 'rejected', icon: 'flagX', key: 'reject', label: () => t('honeycomb', 'Reject') },
+	{ flag: 'unflagged', icon: 'flag', key: 'unflag', label: () => t('honeycomb', 'Unflag') },
 ]
 </script>
 
@@ -41,6 +43,7 @@ const FLAGS: readonly { flag: Flag, icon: IconName, label: () => string }[] = [
 			:disabled="props.disabled"
 			:aria-pressed="props.flag === button.flag"
 			:aria-label="button.label()"
+			v-bind="tip(button.label(), keyCap(button.key))"
 			@click="emit('flag', button.flag)">
 			<AppIcon :name="button.icon" />
 			<span v-if="props.size === 'large'" class="flag-buttons__label">{{ button.label() }}</span>
