@@ -122,6 +122,49 @@ describe('eslint conventions', { timeout: 30_000 }, () => {
 		expect(await ruleIds(code, COMPONENT_HELPER_FILE)).toEqual([])
 	})
 
+	it.each([
+		['its message', 'error.message'],
+		['its message after a cast', '(error as Error).message'],
+		['its stack', 'error.stack'],
+		['its text', 'String(error)'],
+		['its toString()', 'error.toString()'],
+		['it in a template string', '`${error}`'],
+		['it in a concatenation', '\'Failed: \' + error'],
+	])('forbids reading %s from a caught error', async (_name, expression) => {
+		const code = 'declare function show(text: unknown): void\n'
+			+ `/** Tries it. */\nexport function attempt(run: () => void): void {\n\ttry {\n\t\trun()\n\t} catch (error) {\n\t\tshow(${expression})\n\t}\n}\n`
+
+		expect(await ruleIds(code, COMPONENT_HELPER_FILE)).toContain('honeycomb/no-raw-error-text')
+	})
+
+	it.each([
+		['a .catch() handler', 'run().catch((reason: Error) => show(reason.message))'],
+		['the rejection handler of .then()', 'run().then(() => undefined, (reason: Error) => show(reason.message))'],
+		['a destructured message', 'run().catch(({ message }: Error) => show(message))'],
+	])('forbids reading the text of a rejection in %s', async (_name, statement) => {
+		const code = 'declare function show(text: unknown): void\ndeclare function run(): Promise<void>\n'
+			+ `/** Tries it. */\nexport function attempt(): void {\n\tvoid ${statement}\n}\n`
+
+		expect(await ruleIds(code, COMPONENT_HELPER_FILE)).toContain('honeycomb/no-raw-error-text')
+	})
+
+	it('forbids reading the text of a caught error in a component', async () => {
+		const code = '<script setup lang="ts">\ndeclare function show(text: unknown): void\n'
+			+ 'try {\n\tshow(1)\n} catch (error) {\n\tshow((error as Error).message)\n}\n</script>\n'
+
+		expect(await ruleIds(code, COMPONENT_FILE)).toContain('honeycomb/no-raw-error-text')
+	})
+
+	it('accepts logging, typing and rethrowing a caught error', async () => {
+		const code = 'declare const logger: { error(message: string, context: object): void }\n'
+			+ 'declare function show(text: string): void\ndeclare function textOf(error: unknown): string\n'
+			+ '/** Tries it. */\nexport async function attempt(run: () => Promise<void>): Promise<void> {\n\ttry {\n\t\tawait run()\n\t} catch (error) {\n'
+			+ '\t\tlogger.error(\'Could not run\', { error })\n\t\tif (error instanceof TypeError) {\n\t\t\tthrow error\n\t\t}\n\t\tshow(textOf(error))\n\t}\n'
+			+ '\tawait run().catch((error: unknown) => logger.error(\'Could not run\', { error }))\n}\n'
+
+		expect(await ruleIds(code, COMPONENT_HELPER_FILE)).toEqual([])
+	})
+
 	it('requires a doc comment on an exported function', async () => {
 		const code = 'export function undocumented(): number {\n\treturn 1\n}\n'
 
