@@ -45,7 +45,6 @@ const props = withDefaults(defineProps<{
 	folderSet: FolderSet
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
 	storage: BrowserStorage
-	/** The user's settings: swipes, auto-advance and the flag buttons. */
 	settings: Settings
 	imageUrl?: ImageUrlFor
 	decode?: (src: string) => Promise<void>
@@ -67,7 +66,6 @@ const emit = defineEmits<{
 	decide: [intent: DecisionIntent, picture: Picture<ListingEntry>]
 	toast: [toast: Toast]
 	allDecided: []
-	/** A change of the settings, as the flag buttons' toggle makes it. */
 	updateSettings: [patch: Partial<Settings>]
 	close: []
 }>()
@@ -81,7 +79,6 @@ const root = useTemplateRef<HTMLElement>('root')
 const stage = useTemplateRef<InstanceType<typeof LoupeStage>>('stage')
 const panels = useLoupePanels(props.storage)
 const { infoOpen, infoWidth, navigationShown, gestureGuideSeen } = panels
-const flagButtonsShown = computed(() => props.settings.flagButtonsShown)
 const filmstripOpen = ref(true)
 const chromeFree = ref(false)
 const zoom = ref<number | null>(null)
@@ -135,7 +132,7 @@ const hotkeys: HotkeyHandlers = {
 	'zoom-in': () => stage.value!.toggleZoom(false),
 	'zoom-out': () => stage.value!.toggleZoom(true),
 	info: () => panels.setInfoOpen(!infoOpen.value),
-	'flag-buttons': () => decisions.setFlagButtonsShown(!flagButtonsShown.value, true),
+	'flag-buttons': () => decisions.setFlagButtonsShown(!props.settings.flagButtonsShown, true),
 	decide: decisions.decideByKey,
 }
 
@@ -155,7 +152,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 		ref="root"
 		class="photo-loupe"
 		:class="{ 'photo-loupe--idle': overlays.idle.value, 'photo-loupe--chrome-free': chromeFree, 'photo-loupe--below-header': navigationShown && !chromeFree }"
-		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px`, '--photo-loupe-rail': `${flagButtonsShown ? RAIL : 0}px` }"
+		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px`, '--photo-loupe-rail': `${settings.flagButtonsShown ? RAIL : 0}px` }"
 		role="dialog"
 		:aria-modal="!navigationShown"
 		:aria-label="t('honeycomb', 'Loupe')"
@@ -171,7 +168,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:infoOpen="infoOpen"
 			:filmstripOpen="filmstripOpen"
 			:navigationShown="navigationShown"
-			:flagButtonsShown="flagButtonsShown"
+			:flagButtonsShown="settings.flagButtonsShown"
 			@pointerdown="overlays.wake"
 			@close="emit('close')"
 			@toggleZoom="stage!.toggleZoom()"
@@ -230,7 +227,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			v-if="!chromeFree"
 			layout="loupe"
 			:common="decisions.common.value"
-			:flags="flagButtonsShown"
+			:flags="settings.flagButtonsShown"
 			:idle="overlays.idle.value"
 			@pointerdown="overlays.wake"
 			@decide="decisions.decide" />

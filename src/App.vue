@@ -6,7 +6,6 @@
 import type { Folder } from './api.ts'
 import type { BrowserStorage } from './browser-storage.ts'
 import type { ListEntries } from './folder-count.ts'
-import type { DecisionIntent } from './logic/decision-change.ts'
 import type { StoredDecision } from './logic/decision.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Schedule } from './logic/long-press.ts'
@@ -34,7 +33,6 @@ import ShortcutSheet from './components/ShortcutSheet.vue'
 import UndoToast from './components/UndoToast.vue'
 import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews } from './api.ts'
 import { useCull } from './cull.ts'
-import { changeText, redoneText, undoneText } from './decision-text.ts'
 import { useDeleteFlow } from './delete-flow.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
@@ -44,6 +42,7 @@ import { useSelectionMode } from './selection-mode.ts'
 import { useSettings } from './settings.ts'
 import { browserSchedule } from './tile-selection.ts'
 import { useToast } from './toast.ts'
+import { useToastedDecisions } from './toasted-decisions.ts'
 
 const props = withDefaults(defineProps<{
 	listFolders?: (path: string) => Promise<Folder[]>
@@ -87,30 +86,7 @@ const { selecting, selected } = selection
 const common = computed(() => cull.common(selected.value))
 watch(cull.pairing, selection.selectNone)
 
-/** Decides the pictures and says what changed, with Undo. */
-function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]) {
-	const entry = cull.decide(intent, chosen)
-	if (entry !== null) {
-		toast.show(changeText(entry), { label: t('honeycomb', 'Undo'), run: undo })
-	}
-}
-
-/** Takes back the latest decision and says so. */
-function undo() {
-	const entry = cull.undo()
-	if (entry !== null) {
-		toast.show(undoneText(entry))
-	}
-}
-
-/** Puts back the latest undone decision and says so. */
-function redo() {
-	const entry = cull.redo()
-	if (entry !== null) {
-		toast.show(redoneText(entry))
-	}
-}
-
+const { decide, undo, redo } = useToastedDecisions(cull, toast.show)
 const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
 const { dialog: deleteDialog, busy: deleteBusy, rejected, rawRemovable, rawRemoval } = deleting
 
