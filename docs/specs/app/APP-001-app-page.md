@@ -2,7 +2,7 @@
 
 - Status: implemented
 - Area: app
-- Origin: plan.md M1.1, M2.1, Translations, Target versions; ADR 0007
+- Origin: plan.md M1.1, M2.1, Translations, Target versions, Shared UI components; ADR 0007
 - Depends on: LISTING-003
 
 ## Purpose
@@ -16,7 +16,8 @@ The app installs on Nextcloud 35 with PHP 8.3 or later and adds a *honeycomb* en
 navigation. The entry opens the app's page for the logged-in user. While no folder set is chosen
 the page shows an empty state, *No folder chosen*, with the folder picker open over it. Every
 text the user reads comes from the translation catalogue (`t()`), except names taken from the
-user's files.
+user's files. On a phone, below 520 px, every confirm dialog is a bottom sheet: full width, at
+the bottom edge, rounded at the top only, its footer clear of the home indicator.
 
 ## Acceptance criteria
 
@@ -52,6 +53,13 @@ user's files.
 - **When** an error reaches Vue that no component handles
 - **Then** it is logged as an error together with its cause
 
+### APP-001.6 – A dialog is a bottom sheet on a phone
+
+- **Given** a screen at most 520 px wide
+- **When** a confirm dialog opens, e.g. the folder picker
+- **Then** it spans the full width, rests on the bottom edge, leaves at least 24 px above it and
+  has rounded top corners only
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -62,3 +70,4 @@ user's files.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged code of #31 and #39 (ADR 0015) |
+| 2026-11-10 | A confirm dialog is a bottom sheet on a phone (APP-001.6) |
