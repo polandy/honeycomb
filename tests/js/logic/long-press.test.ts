@@ -13,7 +13,10 @@ function fakeScheduler() {
 			timer.cancelled = true
 		}
 	}
-	const fire = () => timers.filter((timer) => !timer.cancelled).forEach((timer) => timer.run())
+	const fire = () => timers.filter((timer) => !timer.cancelled).forEach((timer) => {
+		timer.cancelled = true
+		timer.run()
+	})
 	return { timers, schedule, fire }
 }
 
