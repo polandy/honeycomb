@@ -11,7 +11,6 @@ Add items with `/todo`.
 
 ## Later
 
-- [ ] LOUPE-001.17: the loupe pages without a transition under `prefers-reduced-motion` (2026-11-10)
 - [ ] LOUPE-002.11: a test that Pick and Reject sit at the side edges in landscape and in a row in portrait (2026-11-10)
 - [ ] DELETE-001.8: a test that trashed files keep their decision rows, so a picture restored from the trash bin keeps its decision (ADR 0013) (2026-11-10)
 - [ ] DELETE-002.12: a test that `Ctrl+Z` after a delete or Remove RAWs does not bring pictures back; the undo history holds only decisions (2026-11-10)

@@ -557,3 +557,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   not one per folder; it counts the singles the filters show and sits above the grid beside the
   save-failure notice (`GridNotices`), so the virtual grid's layout stays untouched
   (LISTING-002.11).
+- 2026-11-10: LOUPE-001.17 needed no code: the loupe never had a transition, so the gap closed
+  with a guard test.
