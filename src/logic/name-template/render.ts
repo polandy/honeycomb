@@ -54,6 +54,9 @@ export function renderPicture(template: NameTemplate, facts: PictureFacts, files
 	}
 	const seconds = facts.captureTime ?? facts.mtime + facts.mtimeOffsetMinutes * SECONDS_PER_MINUTE
 	const time = new Date(seconds * MS_PER_SECOND)
+	if (Number.isNaN(time.getTime())) {
+		throw new RangeError(`the time ${seconds} of ${facts.baseName} is outside the range of a date`)
+	}
 	return {
 		ok: true,
 		files: files.map((file) => {
