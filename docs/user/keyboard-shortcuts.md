@@ -69,8 +69,8 @@ it, as in Lightroom's Survey view.
 |---|---|
 | `Ctrl+Z` | Undo. |
 | `Ctrl+Shift+Z` | Redo. |
-| `Delete` | Show the delete summary for the selection or focused photo. *Coming in a later version.* |
-| `Ctrl+Backspace` | Review the rejected photos before deleting them. *Coming in a later version.* |
+| `Delete` | Show the delete summary for the selection, else the focused photo; in the loupe, for the photo shown. |
+| `Ctrl+Backspace` | Review the rejected photos before deleting them; closes the loupe first. |
 | `M` | Move the photos to another folder. In that dialog, `1`–`9` choose a favourite or recent folder. *Coming in a later version.* |
 | `Ctrl+/` | Show the shortcut help. `?` does the same. |
 

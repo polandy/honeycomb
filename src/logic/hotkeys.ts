@@ -28,7 +28,7 @@ export type HotkeyCommand
 	= | 'previous' | 'next' | 'up' | 'down' | 'first' | 'last'
 		| 'grid' | 'loupe' | 'zoom' | 'zoom-in' | 'zoom-out' | 'fullscreen' | 'header' | 'info' | 'close' | 'flag-buttons'
 		| 'filter-bar' | 'filters-off' | 'filter-focus' | 'select-all' | 'select-none'
-		| 'undo' | 'redo' | 'shortcuts'
+		| 'undo' | 'redo' | 'shortcuts' | 'delete' | 'review-rejects'
 
 /** What a key does: decide (and maybe go to the next photo) or run a command. */
 export type HotkeyAction
@@ -79,6 +79,8 @@ export const KEYMAP: readonly KeymapEntry[] = [
 	{ id: 'select-none', group: 'filter', caps: ['Ctrl+D'] },
 	{ id: 'undo', group: 'undo', caps: ['Ctrl+Z'] },
 	{ id: 'redo', group: 'undo', caps: ['Ctrl+Shift+Z'] },
+	{ id: 'delete', group: 'undo', caps: ['Delete'] },
+	{ id: 'review-rejects', group: 'undo', caps: ['Ctrl+Backspace'] },
 	{ id: 'shortcuts', group: 'undo', caps: ['Ctrl+/', '?'] },
 	{ id: 'vi-sideways', group: 'vi', caps: ['h', 'l'] },
 	{ id: 'vi-rows', group: 'vi', caps: ['j', 'k'] },
@@ -122,8 +124,9 @@ const COMMANDS: Readonly<Record<string, HotkeyCommand>> = {
 	Escape: 'close',
 	b: 'flag-buttons',
 	'?': 'shortcuts',
+	Delete: 'delete',
 }
-const CTRL_COMMANDS: Readonly<Record<string, HotkeyCommand>> = { a: 'select-all', d: 'select-none', l: 'filters-off', z: 'undo', '=': 'zoom-in', '+': 'zoom-in', '-': 'zoom-out', '/': 'shortcuts' }
+const CTRL_COMMANDS: Readonly<Record<string, HotkeyCommand>> = { a: 'select-all', d: 'select-none', l: 'filters-off', z: 'undo', '=': 'zoom-in', '+': 'zoom-in', '-': 'zoom-out', '/': 'shortcuts', Backspace: 'review-rejects' }
 const VI_COMMANDS: Readonly<Record<string, HotkeyCommand>> = { h: 'previous', l: 'next', j: 'down', k: 'up', '/': 'filter-focus' }
 
 const decide = (intent: HotkeyIntent, advance: boolean): HotkeyAction => ({ kind: 'decide', intent, advance })
