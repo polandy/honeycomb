@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, imageUrl, listEntries, listFolders, lookupDecisions, saveDecisions, TrashBinOffError, trashPictures, warmPreviews } from '../../src/api.ts'
+import { ApiResponseError, imageUrl, listEntries, listFolders, loadSettings, lookupDecisions, saveDecisions, saveSettings, TrashBinOffError, trashPictures, warmPreviews } from '../../src/api.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({
@@ -118,6 +118,31 @@ describe('saveDecisions', () => {
 		await saveDecisions([])
 
 		expect(axios.put).not.toHaveBeenCalled()
+	})
+})
+
+describe('loadSettings', () => {
+	it('answers the stored settings as they came', async () => {
+		vi.mocked(axios.get).mockResolvedValue({ data: { settings: { viKeys: true } } })
+
+		await expect(loadSettings()).resolves.toEqual({ viKeys: true })
+		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/settings')
+	})
+
+	it('refuses an answer that is no object', async () => {
+		vi.mocked(axios.get).mockResolvedValue({ data: 'settings' })
+
+		await expect(loadSettings()).rejects.toThrow(ApiResponseError)
+	})
+})
+
+describe('saveSettings', () => {
+	it('stores the whole settings', async () => {
+		vi.mocked(axios.put).mockResolvedValue({ data: {} })
+
+		await saveSettings({ viKeys: true })
+
+		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/settings', { settings: { viKeys: true } })
 	})
 })
 
