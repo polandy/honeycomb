@@ -18,6 +18,9 @@ function photos(names: readonly string[]): string {
 /** What a change did, for its toast: "Rejected IMG_0001", "Rated 3 photos ★★★". */
 export function changeText({ change, names }: Described): string {
 	const vars = { photos: photos(names) }
+	if ('pickRest' in change) {
+		return t('honeycomb', 'Picked {name}, rejected the rest', { name: change.pickRest }, undefined, PLAIN_TEXT)
+	}
 	if ('flag' in change) {
 		return change.flag === 'picked'
 			? t('honeycomb', 'Picked {photos}', vars, undefined, PLAIN_TEXT)

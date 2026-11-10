@@ -4,7 +4,7 @@ import type { Decision } from '../../../src/logic/decision.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { NO_HISTORY, pushUndo, recordStep, redoStep, UNDO_LIMIT, undoEntry, undoStep } from '../../../src/logic/undo.ts'
+import { NO_HISTORY, pickRestEntry, pushUndo, recordStep, redoStep, UNDO_LIMIT, undoEntry, undoStep } from '../../../src/logic/undo.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const PAIR = pictureOf(listingEntry(1, '/P/A.JPG'), listingEntry(2, '/P/A.NEF', { mime: 'image/x-dcraw' }))
@@ -37,6 +37,43 @@ describe('undoEntry', () => {
 	// spec: KEYS-001.11
 	it('is null when the change alters nothing', () => {
 		expect(undoEntry([{ picture: JPEG, decision: decided({ rating: 3 }) }], { rating: 3 })).toBeNull()
+	})
+})
+
+describe('pickRestEntry', () => {
+	const C = pictureOf(listingEntry(4, '/P/C.JPG'))
+
+	// spec: SERIES-001.9
+	it('picks the one picture and rejects the rest in one step that puts back every flag', () => {
+		const entry = pickRestEntry(
+			{ picture: JPEG, decision: UNDECIDED },
+			[{ picture: PAIR, decision: decided({ rating: 2 }) }, { picture: C, decision: decided({ flag: 'picked' }) }],
+		)
+
+		expect(entry).toEqual({
+			change: { pickRest: 'B' },
+			names: ['B', 'A', 'C'],
+			after: [
+				{ fileId: 3, ...decided({ flag: 'picked' }) },
+				{ fileId: 1, ...decided({ flag: 'rejected', rating: 2 }) },
+				{ fileId: 2, ...decided({ flag: 'rejected', rating: 2 }) },
+				{ fileId: 4, ...decided({ flag: 'rejected' }) },
+			],
+			before: [
+				{ fileId: 3, ...UNDECIDED },
+				{ fileId: 1, ...decided({ rating: 2 }) },
+				{ fileId: 2, ...decided({ rating: 2 }) },
+				{ fileId: 4, ...decided({ flag: 'picked' }) },
+			],
+		})
+	})
+
+	// spec: SERIES-001.9
+	it('leaves out what already stands and is null when nothing changes', () => {
+		const picked = { picture: JPEG, decision: decided({ flag: 'picked' }) }
+
+		expect(pickRestEntry(picked, [{ picture: C, decision: UNDECIDED }])?.names).toEqual(['C'])
+		expect(pickRestEntry(picked, [{ picture: C, decision: decided({ flag: 'rejected' }) }])).toBeNull()
 	})
 })
 

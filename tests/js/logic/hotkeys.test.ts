@@ -26,6 +26,12 @@ describe('hotkey', () => {
 		expect(action(press('X', { capsLock: true }))).toEqual({ kind: 'decide', intent: { kind: 'flag', flag: 'rejected' }, advance: true })
 	})
 
+	// spec: SERIES-001.10
+	it('picks this and rejects the rest with Shift+K', () => {
+		expect(action(press('K', { shiftKey: true }))).toEqual({ kind: 'pick-rest' })
+		expect(action(press('k'))).toBeNull()
+	})
+
 	// spec: KEYS-001.3
 	it('rates by a digit, and by Shift and the digit key whatever the layout prints', () => {
 		expect(action(press('3'))).toEqual({ kind: 'decide', intent: { kind: 'rating', rating: 3 }, advance: false })
@@ -70,6 +76,7 @@ describe('hotkey', () => {
 		['b', 'flag-buttons'],
 		['?', 'shortcuts'],
 		['Delete', 'delete'],
+		['n', 'compare'],
 	])('runs %j as %s', (key, kind) => {
 		expect(action(press(key))).toEqual({ kind })
 	})
@@ -97,8 +104,6 @@ describe('hotkey', () => {
 		press('p', { altKey: true }),
 		press('ArrowRight', { shiftKey: true }),
 		press('Tab', { shiftKey: true }),
-		press('K', { shiftKey: true }),
-		press('n'),
 		press('Backspace'),
 		press('Delete', { shiftKey: true }),
 		press('h'),
@@ -138,6 +143,12 @@ describe('hotkey', () => {
 			expect(action(press('x'), VI)).toEqual({ kind: 'decide', intent: { kind: 'flag', flag: 'rejected' }, advance: false })
 			expect(action(press('Escape'), VI)).toEqual({ kind: 'close' })
 			expect(action(press('H', { shiftKey: true }), VI)).toBeNull()
+		})
+
+		// spec: SERIES-001.10
+		it('keeps Shift+K for the series, though k moves up', () => {
+			expect(action(press('K', { shiftKey: true }), VI)).toEqual({ kind: 'pick-rest' })
+			expect(action(press('n'), VI)).toEqual({ kind: 'compare' })
 		})
 	})
 })

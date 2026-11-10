@@ -46,6 +46,7 @@ final class EntryFactory {
 		$width = self::intOrNull($size['width'] ?? null);
 		$height = self::intOrNull($size['height'] ?? null);
 		$complete = $width !== null && $height !== null;
+		$ifd0 = $this->arrayOf($metadata, self::IFD0);
 		return new Entry(
 			$file->getId(),
 			(string)$userFolder->getRelativePath($file->getPath()),
@@ -54,9 +55,10 @@ final class EntryFactory {
 			$file->getEtag(),
 			$file->getMimetype(),
 			$this->captureTime($metadata),
-			self::intOrNull($this->arrayOf($metadata, self::IFD0)['Orientation'] ?? null),
+			self::intOrNull($ifd0['Orientation'] ?? null),
 			$complete ? $width : null,
 			$complete ? $height : null,
+			self::camera($ifd0),
 		);
 	}
 
@@ -75,6 +77,15 @@ final class EntryFactory {
 		} catch (FilesMetadataException) {
 			return [];
 		}
+	}
+
+	/** @param array<array-key, mixed> $ifd0 */
+	private static function camera(array $ifd0): ?string {
+		$parts = array_filter(
+			array_map(static fn (mixed $part): string => is_string($part) ? trim($part) : '', [$ifd0['Make'] ?? null, $ifd0['Model'] ?? null]),
+			static fn (string $part): bool => $part !== '',
+		);
+		return $parts === [] ? null : implode(' ', $parts);
 	}
 
 	private static function intOrNull(mixed $value): ?int {

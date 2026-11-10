@@ -21,11 +21,12 @@ import { commonDecision, resolveChange, revertRows, withRows } from './logic/dec
 import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
 import { activeFilterCount, clearFilters, DEFAULT_FILTERS, emptyReason, filterPictures, pictureFolders, progress } from './logic/picture-filter.ts'
 import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
+import { findSeries, seriesCandidates } from './logic/series.ts'
 import { pairingSettings } from './logic/settings.ts'
 import { inSharedFolder } from './logic/sidecar-sync.ts'
 import { parseTileSize } from './logic/tile-size.ts'
 import { withoutFiles } from './logic/trash-report.ts'
-import { NO_HISTORY, recordStep, redoStep, undoEntry, undoStep } from './logic/undo.ts'
+import { NO_HISTORY, pickRestEntry, recordStep, redoStep, undoEntry, undoStep } from './logic/undo.ts'
 
 /** How the cull takes decisions over from the sidecars and writes them through (XMP-003). */
 export interface CullSidecars {
@@ -72,6 +73,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const cullProgress = computed(() => progress(pictures.value, decisionOf))
 	const activeFilters = computed(() => activeFilterCount(filters.value))
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
+	const candidates = computed(() => seriesCandidates(pictures.value))
+	const series = computed(() => findSeries(candidates.value, decisionOf))
 	const sharedPictures = computed(() => pictures.value.filter((picture) => inSharedFolder(picture, sharedFolders.value)))
 
 	/** Shows the pictures of the confirmed folders with fresh filters, then their stored decisions. */
@@ -129,7 +132,16 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 
 	/** Decides the pictures, keeps the step for undo and returns it, or null when nothing changes. */
 	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]): UndoEntry | null {
-		const entry = undoEntry(decided(chosen), resolveChange(intent, decided(chosen)))
+		return record(undoEntry(decided(chosen), resolveChange(intent, decided(chosen))))
+	}
+
+	/** Picks one picture and rejects the rest as one undo step (SERIES-001.9), or null when nothing changes. */
+	function pickRest(picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]): UndoEntry | null {
+		return record(pickRestEntry(decided([picked])[0]!, decided(rest)))
+	}
+
+	/** Records a step in the history and stores its result. */
+	function record(entry: UndoEntry | null): UndoEntry | null {
 		if (entry !== null) {
 			history = recordStep(history, entry)
 			store(entry.after)
@@ -238,7 +250,9 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		sharedDecided,
 		decisionOf,
 		common,
+		series,
 		decide,
+		pickRest,
 		undo,
 		redo,
 		open,

@@ -11,15 +11,25 @@ import { changeText, redoneText, undoneText } from './decision-text.ts'
 
 interface Decisions {
 	decide: (intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]) => UndoEntry | null
+	pickRest: (picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]) => UndoEntry | null
 	undo: () => UndoEntry | null
 	redo: () => UndoEntry | null
 }
 
-/** Decide, undo and redo that each say in a toast what changed. */
+/** Decide, pick-rest, undo and redo that each say in a toast what changed. */
 export function useToastedDecisions(cull: Decisions, show: (message: string, action?: ToastAction | null) => void) {
 	/** Decides the pictures and says what changed, with Undo. */
 	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]) {
-		const entry = cull.decide(intent, chosen)
+		toastChange(cull.decide(intent, chosen))
+	}
+
+	/** Picks one picture, rejects the rest and says so, with Undo. */
+	function pickRest(picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]) {
+		toastChange(cull.pickRest(picked, rest))
+	}
+
+	/** Toasts a recorded step with Undo. */
+	function toastChange(entry: UndoEntry | null) {
 		if (entry !== null) {
 			show(changeText(entry), { label: t('honeycomb', 'Undo'), run: undo })
 		}
@@ -41,5 +51,5 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 		}
 	}
 
-	return { decide, undo, redo }
+	return { decide, pickRest, undo, redo }
 }

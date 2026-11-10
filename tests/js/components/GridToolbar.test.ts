@@ -13,9 +13,10 @@ import { PopoverStub } from './stubs.ts'
 
 const MARK = TRANSLATED_MARK
 
-const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number, rawRemovable: number, sidecarsShared: boolean } = {
+const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number, series: number, rawRemovable: number, sidecarsShared: boolean } = {
 	selecting: false,
 	rejected: 0,
+	series: 0,
 	rawRemovable: 0,
 	sidecarsShared: false,
 	selected: 0,
@@ -62,6 +63,22 @@ describe('GridToolbar', () => {
 		expect(button.find('.grid-toolbar__badge').text()).toBe('12')
 		await button.trigger('click')
 		expect(wrapper.emitted('reviewRejects')).toHaveLength(1)
+	})
+
+	// spec: SERIES-001.6
+	it('compares the series from a button with their count, held while there are none', async () => {
+		const set = { paths: ['/Trip'], subfolders: false }
+		const none = mountToolbar(set).find('[aria-label*="Compare series"]')
+		const wrapper = mountToolbar(set, 1, { series: 3 })
+		const button = wrapper.find('[aria-label*="Compare series"]')
+
+		expect(none.attributes('disabled')).toBeDefined()
+		expect(none.find('.grid-toolbar__badge').exists()).toBe(false)
+		expect(button.attributes('aria-label')!.replaceAll(MARK, '')).toBe('Compare series (3)')
+		expect(button.attributes('title')!.replaceAll(MARK, '')).toBe('Compare series (N)')
+		expect(button.find('.grid-toolbar__badge').text()).toBe('3')
+		await button.trigger('click')
+		expect(wrapper.emitted('compareSeries')).toHaveLength(1)
 	})
 
 	it('removes RAWs from the More menu with their count, held while there are none', async () => {

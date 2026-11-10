@@ -18,7 +18,7 @@ import { listingEntry } from './logic/listing-entries.ts'
 const NO_SIDECARS: CullSidecars = { takeOver: async () => [], write: async () => ({ written: 0, failed: [] }) }
 
 /** A cull opened on ENTRIES whose saves are recorded. */
-async function openedCull(stored: StoredDecision[] = []) {
+async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 	const saved: StoredDecision[][] = []
 	const lookedUp: number[][] = []
 	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
@@ -30,7 +30,7 @@ async function openedCull(stored: StoredDecision[] = []) {
 		},
 		saveDecisions: async (rows) => { saved.push([...rows]) },
 	}, fakeStorage(), () => settings.value, NO_SIDECARS)
-	cull.open(SET, ENTRIES, [])
+	cull.open(SET, entries, [])
 	await flushPromises()
 	return { cull, saved, lookedUp, settings, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
 }
@@ -60,6 +60,36 @@ describe('useCull: redo', () => {
 		cull.undo()
 		cull.open(SET, ENTRIES, [])
 		expect(cull.redo()).toBeNull()
+	})
+})
+
+describe('useCull: series', () => {
+	// spec: SERIES-001.9
+	it('picks one picture and rejects the rest as one stored undo step', async () => {
+		const { cull, saved, picture } = await openedCull()
+		const step = cull.pickRest(picture('IMG_9'), [picture('IMG_10'), picture('IMG_2')])
+
+		expect(step?.change).toEqual({ pickRest: 'IMG_9' })
+		expect(saved.at(-1)).toEqual(step!.after)
+		expect(['IMG_9', 'IMG_10', 'IMG_2'].map((name) => cull.decisionOf(picture(name)).flag)).toEqual(['picked', 'rejected', 'rejected'])
+		expect(cull.undo()).toBe(step)
+		expect(['IMG_9', 'IMG_10', 'IMG_2'].map((name) => cull.decisionOf(picture(name)).flag)).toEqual(['unflagged', 'unflagged', 'unflagged'])
+		expect(cull.pickRest(picture('IMG_9'), [])).not.toBeNull()
+		expect(cull.pickRest(picture('IMG_9'), [])).toBeNull()
+	})
+
+	// spec: SERIES-001.1, SERIES-001.5
+	it('forms the series of the cull and leaves a picture out once it is rejected', async () => {
+		const entries = [
+			listingEntry(1, '/Trip/A.JPG', { captureTime: 10 }),
+			listingEntry(2, '/Trip/B.JPG', { captureTime: 11 }),
+			listingEntry(3, '/Trip/C.JPG', { captureTime: 12 }),
+		]
+		const { cull, picture } = await openedCull([], entries)
+		expect(cull.series.value.map((series) => series.map((each) => each.baseName))).toEqual([['A', 'B', 'C']])
+
+		cull.decide({ kind: 'flag', flag: 'rejected' }, [picture('B')])
+		expect(cull.series.value.map((series) => series.map((each) => each.baseName))).toEqual([['A', 'C']])
 	})
 })
 
