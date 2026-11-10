@@ -206,3 +206,19 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: When two overlapping saves of the same file both fail, the revert shows the first
   change, which was never stored, until the next reload; that is rare and costs no data. The
   stored decisions read on open go under changes made before they arrive.
+- 2026-11-10: The loupe's 100 % zoom shows the original file (image tier 0; the largest preview
+  for a RAW-only picture), loaded only while zoomed; the pinch range runs from fit to 100 %.
+- 2026-11-10: Loupe keys follow the plan's key map: `Tab` and double-tap toggle chrome-free mode,
+  `F` browser fullscreen (the TODO item's "F" for chrome-free was the older wording). `Tab` and
+  `Space` act only while the loupe itself has focus, so a focused control keeps them.
+- 2026-11-10: "Collapsible sidebar" in M3.1 means the loupe covers the Nextcloud navigation and
+  its own info panel and filmstrip collapse; a toggle for the app navigation is a TODO item.
+- 2026-11-10: The loupe pages through a snapshot of the grid's view taken when it opens, so a
+  decision that hides a picture does not shift the loupe; closing focuses the last picture.
+- 2026-11-10: The loupe prefetches 3 ahead and 2 behind (paging forward is the common case) and
+  shows the 512 px grid tier until the 2048 px tier has decoded.
+- 2026-11-10: Overlays idle 2.5 s after the last touch in landscape only; a middle tap toggles
+  them, a mouse move or a touch on an overlay wakes them, and a focused overlay control keeps
+  them. Paging snaps without a slide animation in M3.1, and vertical swipes wait for M3.2.
+- 2026-11-10: The info panel's open state and width are kept in the browser's local storage; the
+  filmstrip starts open on each opening. The < 100 ms budget is not yet measured.

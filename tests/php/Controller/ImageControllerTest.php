@@ -57,6 +57,7 @@ final class ImageControllerTest extends TestCase {
 	private function image(bool $readable = true): File {
 		$file = $this->createStub(File::class);
 		$file->method('getId')->willReturn(7);
+		$file->method('getName')->willReturn('IMG_0001.JPG');
 		$file->method('getMimetype')->willReturn('image/jpeg');
 		$file->method('getMTime')->willReturn(self::MTIME);
 		$file->method('isReadable')->willReturn($readable);
@@ -117,12 +118,27 @@ final class ImageControllerTest extends TestCase {
 
 	/** @return array<string, array{int}> */
 	public static function sizesThatAreNoTier(): array {
-		return ['zero' => [0], 'between tiers' => [300], 'above the largest' => [4096], 'negative' => [-256]];
+		return ['between tiers' => [300], 'above the largest' => [4096], 'negative' => [-256]];
 	}
 
 	#[DataProvider('sizesThatAreNoTier')]
 	public function testASizeThatIsNoTierIsABadRequest(int $size): void {
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller([7 => $this->image()])->show(7, $size, self::MTIME)->getStatus());
+	}
+
+	public function testServesTheFullImageAsTierZero(): void {
+		$preview = $this->createMock(IPreview::class);
+		$preview->expects($this->never())->method('getPreview');
+
+		$response = $this->controller([7 => $this->image()], $preview)->show(7, ImageService::FULL, self::MTIME);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame('7-' . self::MTIME . '-0', $response->getETag());
+		$this->assertSame('image/jpeg', $this->headersOf($response)['Content-Type']);
+	}
+
+	public function testAMissingSizeIsABadRequest(): void {
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller([7 => $this->image()])->show(7, v: self::MTIME)->getStatus());
 	}
 
 	public function testAMissingImageIsNotFound(): void {

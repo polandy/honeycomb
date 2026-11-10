@@ -247,7 +247,7 @@ the thumbnail size is stepless (mockup: slider, Ctrl + wheel, pinch).
 **Progressive display.** The small preview shows first; the sharp one is swapped in after
 `img.decode()` resolves, so the tile never blanks or jumps.
 
-**Prefetch.** The loupe prefetches 2–3 neighbours in each direction. The mockup shows the
+**Prefetch.** The loupe prefetches 3 neighbours ahead and 2 behind. The mockup shows the
 preload state in the loupe's info panel, not over the photo.
 
 **Virtualised grid.** Only the visible rows are rendered, images load lazily.

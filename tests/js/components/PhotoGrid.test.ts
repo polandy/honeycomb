@@ -1,59 +1,11 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { FolderSet } from '../../../src/logic/folder-set.ts'
-import type { ListingEntry } from '../../../src/logic/listing.ts'
-
-import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import PhotoGrid from '../../../src/components/PhotoGrid.vue'
-import { prepareCull } from '../../../src/logic/cull.ts'
-import { sortPictures } from '../../../src/logic/picture-order.ts'
 import { NO_SELECTION } from '../../../src/logic/selection.ts'
 import { fakeScheduler } from '../fake-scheduler.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
-import { listingEntry } from '../logic/listing-entries.ts'
-
-const compareNames = new Intl.Collator('en', { numeric: true }).compare
-const SET: FolderSet = { paths: ['/P'], subfolders: true }
-
-/** `count` singles in each folder. */
-function picturesIn(folders: Record<string, number>) {
-	const entries: ListingEntry[] = []
-	for (const [folder, count] of Object.entries(folders)) {
-		for (let index = 0; index < count; index++) {
-			entries.push(listingEntry(entries.length + 1, `${folder}/IMG_${index}.JPG`))
-		}
-	}
-	return sortPictures(prepareCull(entries).pictures, 'file-name', compareNames, true)
-}
-
-/** A size observer the test drives, and the grid mounted with it. */
-function mountGrid(props: Record<string, unknown> = {}) {
-	let resize: (width: number, height: number) => void = () => undefined
-	let stopped = false
-	const observeSize = (_element: Element, onSize: typeof resize) => {
-		resize = onSize
-		return () => {
-			stopped = true
-		}
-	}
-	const wrapper = mount(PhotoGrid, {
-		props: {
-			pictures: picturesIn({ '/P': 100 }),
-			folderSet: SET,
-			groupByFolder: false,
-			tileSize: 100,
-			observeSize,
-			loadImage: () => new Promise<void>(() => undefined),
-			...props,
-		},
-	})
-	return { wrapper, resize: async (width: number, height: number) => {
-		resize(width, height)
-		await wrapper.vm.$nextTick()
-	}, stopped: () => stopped }
-}
+import { mountGrid, picturesIn } from './mount-grid.ts'
 
 async function scrollTo(wrapper: ReturnType<typeof mountGrid>['wrapper'], top: number) {
 	const scroller = wrapper.find('[role="grid"]')
@@ -207,13 +159,34 @@ describe('PhotoGrid', () => {
 	describe('selection', () => {
 		const tile = (wrapper: ReturnType<typeof mountGrid>['wrapper'], index: number) => wrapper.findAll('[role="gridcell"]')[index]!
 
-		it('does nothing on a plain click outside selection mode', async () => {
+		it('opens the loupe on a plain click, Enter or Space outside selection mode', async () => {
 			const { wrapper, resize } = mountGrid({ selection: NO_SELECTION, selecting: false })
 			await resize(432, 220)
 
 			await tile(wrapper, 1).trigger('click')
+			await tile(wrapper, 2).trigger('keydown', { key: 'Enter' })
+			await tile(wrapper, 3).trigger('keydown', { key: ' ' })
+			await tile(wrapper, 3).trigger('keydown', { key: 'a' })
 
 			expect(wrapper.emitted('update:selection')).toBeUndefined()
+			expect(wrapper.emitted('open')).toEqual([[1], [2], [3]])
+		})
+
+		it('focuses a tile on reveal, scrolled into view only when it is out of view', async () => {
+			const { wrapper, resize } = mountGrid({ selection: NO_SELECTION, selecting: false }, true)
+			await resize(432, 220)
+			const { reveal } = wrapper.vm as unknown as { reveal: (index: number) => Promise<void> }
+			const scroller = wrapper.find('.photo-grid__scroller').element
+
+			await reveal(1)
+			expect(scroller.scrollTop).toBe(0)
+			await reveal(41)
+
+			const focused = document.activeElement as HTMLElement
+			expect(focused.getAttribute('aria-label')).toMatch(/^IMG_41,/)
+			expect(focused.getAttribute('tabindex')).toBe('0')
+			expect(scroller.scrollTop).toBeGreaterThan(0)
+			wrapper.unmount()
 		})
 
 		it('toggles a tile on click, by Enter or Space in selection mode', async () => {

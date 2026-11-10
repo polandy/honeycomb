@@ -38,7 +38,7 @@ export function stored(fileId: number, flag: StoredDecision['flag']): StoredDeci
 	return { fileId, rating: 0, colourLabel: null, flag, keepRaw: false }
 }
 
-export function mountApp(props: Record<string, unknown> = {}, decisions: StoredDecision[] = []) {
+export function mountApp(props: Record<string, unknown> = {}, decisions: StoredDecision[] = [], stubs: Record<string, unknown> = {}) {
 	const warmed: number[][] = []
 	const lookedUp: number[][] = []
 	const saved: StoredDecision[][] = []
@@ -53,7 +53,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			saveDecisions: async (rows: readonly StoredDecision[]) => { saved.push([...rows]) },
 			...props,
 		},
-		global: { stubs: { FolderPicker: true, PhotoGrid: true, GridToolbar: true, FilterBar: true } },
+		global: { stubs: { FolderPicker: true, PhotoGrid: true, GridToolbar: true, FilterBar: true, PhotoLoupe: true, ...stubs } },
 	})
 	return { wrapper, warmed, lookedUp, saved }
 }

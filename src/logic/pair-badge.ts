@@ -24,7 +24,7 @@ export function pairBadge(picture: Picture<PairingEntry>): PairBadge {
 }
 
 /** The member's extension as the badge shows it. */
-function badgeExtension(member: PairingEntry): string {
+export function badgeExtension(member: PairingEntry): string {
 	const { extension } = parseFileName(member.path)
 	return (SHORT_EXTENSIONS.get(extension) ?? extension).toUpperCase()
 }

@@ -49,5 +49,6 @@ A RAW+JPEG pair shows its JPEG; a RAW-only picture needs the JPEG preview embedd
 - The job's argument stays below the 4,000 characters of the job table's `argument` column.
 - A file the user cannot reach, such as one in another user's files, is `404` like a missing
   one, so an id reveals nothing.
-- The 100 % zoom of the loupe (M3.1) needs the original or the full embedded JPEG; it is added
-  to this endpoint then, as a new tier.
+- The 100 % zoom of the loupe (M3.1) is the tier `0`, the full image: the file itself for JPEG,
+  PNG, WebP and GIF, else the largest preview Nextcloud renders (for a RAW the embedded JPEG).
+  It is not warmed: it is read only while zoomed in.

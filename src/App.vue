@@ -4,12 +4,14 @@
 -->
 <script setup lang="ts">
 import type { Folder } from './api.ts'
-import type { BrowserStorage } from './cull.ts'
+import type { BrowserStorage } from './browser-storage.ts'
 import type { ListEntries } from './folder-count.ts'
 import type { StoredDecision } from './logic/decision.ts'
+import type { ListingEntry } from './logic/listing.ts'
+import type { Picture } from './logic/pairing.ts'
 
 import { t } from '@nextcloud/l10n'
-import { computed } from 'vue'
+import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcContent from '@nextcloud/vue/components/NcContent'
@@ -20,6 +22,7 @@ import FilterBar from './components/FilterBar.vue'
 import FolderPicker from './components/FolderPicker.vue'
 import GridToolbar from './components/GridToolbar.vue'
 import PhotoGrid from './components/PhotoGrid.vue'
+import PhotoLoupe from './components/PhotoLoupe.vue'
 import { listEntries as apiListEntries, listFolders as apiListFolders, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, warmPreviews as apiWarmPreviews } from './api.ts'
 import { useCull } from './cull.ts'
 import { clearFilters } from './logic/picture-filter.ts'
@@ -43,9 +46,19 @@ const props = withDefaults(defineProps<{
 
 const cull = useCull({ warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions }, props.storage)
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
-const selection = useSelectionMode(() => view.value, pictures, () => folderSet.value !== null && !pickerOpen.value)
+const loupe = ref<{ pictures: readonly Picture<ListingEntry>[], index: number } | null>(null)
+const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
+const selection = useSelectionMode(() => view.value, pictures, () => folderSet.value !== null && !pickerOpen.value && loupe.value === null)
 const { selecting, selected } = selection
 const common = computed(() => cull.common(selected.value))
+
+/** Closes the loupe and focuses its last picture in the grid. */
+async function closeLoupe() {
+	const { index } = loupe.value!
+	loupe.value = null
+	await nextTick()
+	await grid.value?.reveal(index)
+}
 </script>
 
 <template>
@@ -86,6 +99,7 @@ const common = computed(() => cull.common(selected.value))
 				<NcNoteCard v-if="saveFailed" type="error" :text="t('honeycomb', 'Could not save the change; the photos show what is stored.')" />
 				<PhotoGrid
 					v-if="view.length > 0"
+					ref="grid"
 					class="honeycomb__grid"
 					:pictures="view"
 					:folderSet="folderSet"
@@ -96,7 +110,8 @@ const common = computed(() => cull.common(selected.value))
 					:decisionOf="cull.decisionOf"
 					@update:tileSize="cull.setTileSize"
 					@update:selecting="selection.setSelecting"
-					@update:selection="selection.select" />
+					@update:selection="selection.select"
+					@open="loupe = { pictures: view, index: $event }" />
 				<NcEmptyContent v-else-if="empty === 'no-pictures'" :name="t('honeycomb', 'No photos in these folders')" />
 				<NcEmptyContent v-else-if="empty === 'no-match'" :name="t('honeycomb', 'Nothing matches these filters')">
 					<template #action>
@@ -137,6 +152,16 @@ const common = computed(() => cull.common(selected.value))
 				:listEntries="props.listEntries"
 				@confirm="cull.open"
 				@cancel="pickerOpen = false" />
+			<Teleport to="body">
+				<PhotoLoupe
+					v-if="loupe !== null && folderSet !== null"
+					v-model:index="loupe.index"
+					:pictures="loupe.pictures"
+					:folderSet="folderSet"
+					:decisionOf="cull.decisionOf"
+					:storage="props.storage"
+					@close="closeLoupe" />
+			</Teleport>
 		</NcAppContent>
 	</NcContent>
 </template>
