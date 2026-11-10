@@ -99,9 +99,9 @@ describe('App: keys on the grid', () => {
 		await press('Z', { ctrlKey: true, shiftKey: true })
 
 		expect(flagOf(wrapper, 0)).toBe('picked')
-		expect(toastText(wrapper)).toBe('Redone: Picked IMG_2')
+		expect(toastText(wrapper)).toBe('Redid: Picked IMG_2')
 		await press('Z', { metaKey: true, shiftKey: true })
-		expect(toastText(wrapper)).toBe('Redone: Picked IMG_2')
+		expect(toastText(wrapper)).toBe('Redid: Picked IMG_2')
 	})
 
 	it('moves the grid\'s focus by the arrows, Home and End, and by the vi keys when on', async () => {

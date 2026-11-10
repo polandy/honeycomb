@@ -32,7 +32,7 @@ describe('changeText', () => {
 	})
 
 	it('answers a redo with the change it put again', () => {
-		expect(redoneText({ change: { rating: 2 }, names: ['A', 'B'] })).toBe('Redone: Rated 2 photos ★★')
+		expect(redoneText({ change: { rating: 2 }, names: ['A', 'B'] })).toBe('Redid: Rated 2 photos ★★')
 	})
 
 	describe('with the marked catalogue', () => {
