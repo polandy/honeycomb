@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Reads a pull request's changed paths on stdin and its squash message from SPEC_MESSAGE; fails when
-# behaviour and spec do not change together and no trailer says why (docs/specs/README.md, ADR 0015).
+# Fails when behaviour and spec change apart without a trailer saying why (docs/specs/README.md).
 set -uo pipefail
 
 SPECS=${SPECS_DIR:-docs/specs}
