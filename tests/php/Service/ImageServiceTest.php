@@ -110,6 +110,33 @@ final class ImageServiceTest extends TestCase {
 		$this->service([], $preview)->preview($this->image(7), 256);
 	}
 
+	public function testTheFullImageOfAFileTheBrowserShowsIsTheFileItself(): void {
+		$file = $this->image(7);
+		$preview = $this->createMock(IPreview::class);
+		$preview->expects($this->never())->method('getPreview');
+
+		$this->assertSame($file, $this->service([], $preview)->full($file));
+	}
+
+	public function testTheFullImageOfARawIsItsLargestPreview(): void {
+		$file = $this->image(7, 'image/x-dcraw');
+		$rendered = $this->createStub(ISimpleFile::class);
+		$preview = $this->createMock(IPreview::class);
+		$preview->expects($this->once())->method('getPreview')->with($file, -1, -1, false)->willReturn($rendered);
+
+		$this->assertSame($rendered, $this->service([], $preview)->full($file));
+	}
+
+	#[DataProvider('previewFailures')]
+	public function testARawWithoutAPreviewHasNoFullImage(\Throwable $failure): void {
+		$preview = $this->createStub(IPreview::class);
+		$preview->method('getPreview')->willThrowException($failure);
+
+		$this->expectException(ImageNotFoundException::class);
+
+		$this->service([], $preview)->full($this->image(7, 'image/heic'));
+	}
+
 	public function testWarmsEveryTierOfEachImageAndSkipsWhatItCannotRender(): void {
 		$first = $this->image(1);
 		$broken = $this->image(2);
