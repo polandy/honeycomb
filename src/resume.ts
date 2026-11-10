@@ -37,6 +37,7 @@ export function useResume(api: ResumeApi, cull: ResumeCull, toast: (message: str
 	let opening = 0
 	let saving = false
 	let waiting: ResumePosition | null = null
+	let sent = ''
 
 	/** Sends the position, or keeps it as the latest to send once the save in flight settles. */
 	function save(position: ResumePosition) {
@@ -63,8 +64,10 @@ export function useResume(api: ResumeApi, cull: ResumeCull, toast: (message: str
 			fileId.value = shownId
 			tracking = true
 		}
-		if (tracking && folderSet !== null && fileId.value !== null) {
-			save({ folderSet, fileId: fileId.value, decided, total })
+		const position = tracking && folderSet !== null && fileId.value !== null ? { folderSet, fileId: fileId.value, decided, total } : null
+		if (position !== null && JSON.stringify(position) !== sent) {
+			sent = JSON.stringify(position)
+			save(position)
 		}
 	})
 
@@ -73,6 +76,7 @@ export function useResume(api: ResumeApi, cull: ResumeCull, toast: (message: str
 		const opened = ++opening
 		fileId.value = null
 		tracking = false
+		sent = ''
 		api.loadPositions().then((answer) => {
 			const set = cull.folderSet()
 			const position = set === null ? null : positionOf(parsePositions(answer), set)
