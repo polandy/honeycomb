@@ -17,6 +17,14 @@ const props = defineProps<{
 	back?: boolean
 	/** Whether the footer has *Cancel*; without it the dialog cannot be closed either. */
 	cancel?: boolean
+	/** The *Back* button's label, *Back* by default. */
+	backLabel?: string
+	/** The *Cancel* button's label, *Cancel* by default. */
+	cancelLabel?: string
+	/** A large dialog, for a grid or a file list. */
+	wide?: boolean
+	/** The confirm button warns, for an action that removes files. */
+	danger?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -37,17 +45,17 @@ function onOpen(open: boolean) {
 	<NcDialog
 		:name="props.title"
 		:noClose="!props.cancel"
-		size="normal"
+		:size="props.wide ? 'large' : 'normal'"
 		@update:open="onOpen">
 		<slot />
 		<template #actions>
 			<NcButton v-if="props.back" variant="tertiary" @click="emit('back')">
-				{{ t('honeycomb', 'Back') }}
+				{{ props.backLabel ?? t('honeycomb', 'Back') }}
 			</NcButton>
 			<NcButton v-if="props.cancel" variant="tertiary" @click="emit('cancel')">
-				{{ t('honeycomb', 'Cancel') }}
+				{{ props.cancelLabel ?? t('honeycomb', 'Cancel') }}
 			</NcButton>
-			<NcButton variant="primary" :disabled="props.confirmDisabled" @click="emit('confirm')">
+			<NcButton :variant="props.danger ? 'error' : 'primary'" :disabled="props.confirmDisabled" @click="emit('confirm')">
 				{{ props.confirmLabel }}
 			</NcButton>
 		</template>

@@ -20,6 +20,7 @@ const PATHS = {
 	menu: 'M4 6h16M4 12h16M4 18h16',
 	more: 'M5 12h.01M12 12h.01M19 12h.01',
 	select: 'M4 4h16v16H4zM8 12l3 3 5-6',
+	trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
 } as const
 
 /** The name of one of the app's icons. */
