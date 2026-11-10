@@ -64,3 +64,16 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   `null` and the client falls back to `mtime`. Width and height come only as a pair.
 - 2026-11-10: The listing's per-folder shared flag moves from M1.2 to M5, the first item that
   acts on it; detecting outgoing shares needs `OCP\Share\IManager` and its own tests.
+- 2026-11-10: In *separate subfolders*, a file whose folder is named like the RAW or the rendered
+  subfolder pairs in the parent folder, together with the parent's own files; its role still
+  comes from its extension. Other folders keep pairing side by side.
+- 2026-11-10: A sidecar belongs to the member whose file name it carries (exactly, else ignoring
+  case when only one member matches), else to a darktable duplicate's member, else as shared
+  `<base>.xmp` to the picture of that base name. An ambiguous base name shares no `<base>.xmp`,
+  so deleting one of its singles never removes a sidecar the others still use.
+- 2026-11-10: Pairing ignores files outside both extension lists, names without a base name
+  (`.JPG`) and sidecars without an owner. An extension in both lists, `xmp` or an empty one in
+  a list is a settings error, since a file's role would be undefined.
+- 2026-11-10: The pairing vectors (`tests/fixtures/pairing/vectors.json`) mark each case with
+  `sharedWithFramehive`; the others follow rules where honeycomb differs from LIBRARY-001
+  (case-insensitive base names, separate subfolders, darktable duplicates).

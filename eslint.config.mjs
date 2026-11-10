@@ -30,7 +30,7 @@ export default [
 			parserOptions: {
 				projectService: {
 					// Lets tests/js/conventions lint snippets under paths that do not exist yet.
-					allowDefaultProject: ['src/*/*.ts', 'tests/js/*.ts'],
+					allowDefaultProject: ['src/*/example.ts', 'tests/js/example.test.ts'],
 				},
 				tsconfigRootDir: import.meta.dirname,
 			},

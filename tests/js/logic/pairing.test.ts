@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { describe, expect, it } from 'vitest'
 import type { PairingSettings, Picture } from '../../../src/logic/pairing.ts'
+
+import { describe, expect, it } from 'vitest'
 import { DEFAULT_PAIRING_SETTINGS, PairingSettingsError, pairPictures } from '../../../src/logic/pairing.ts'
 import vectors from '../../fixtures/pairing/vectors.json' with { type: 'json' }
 

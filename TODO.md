@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] M1.3: Pairing module in TypeScript — case, several dots, singles, sidecars, ambiguity (Q14), separate subfolders (Q16), extension lists (Q15); Vitest on test vectors shared with Framehive (LIBRARY-001) (2026-11-09)
 - [ ] M2.1: Frontend skeleton — Vue, `@nextcloud/vue`, `@nextcloud/vite-config` build; `@nextcloud/l10n` and the checks that no user-visible string bypasses `t()` (ADR 0007); Playwright e2e against a real Nextcloud container (no timing waits); build and e2e jobs in CI and `scripts/verify.sh`; `vue-tsc` and type-aware ESLint for `.vue`, Playwright with `reducedMotion` and role/label locators, `@nextcloud/logger` (`docs/conventions.md`) (2026-11-09)
 - [ ] M2.2: Image endpoint and background previews — immutable URLs keyed by file id + mtime (`Cache-Control`, `ETag`), size tiers 256/512/2048 px, embedded-JPEG preview of RAW-only pictures extracted and cached, Preview Generator or own background job on upload and folder open; ADR first (new endpoint shape, Imaginary optional); budgets measured with real 24 MP files (`docs/plan.md` Image delivery) (2026-11-09)
 - [ ] M2.3: Folder picker (a checkbox per folder, *Include subfolders*, photo count) and virtual-scrolling grid (*Group by folder* headers) — srcset by tile size × devicePixelRatio, small preview first and sharp swapped in after `img.decode()`, stepless size (slider, Ctrl+wheel, pinch) remembered per device, pair badges; grid scrolls without jank at 2,000+ items (2026-11-09)

@@ -757,7 +757,8 @@ Answered by the owner on 2026-11-09 (Q14, Q15, Q16).
    matched ignoring case). Pictures pair across the two subfolders of the chosen folder, and the
    grid shows the chosen folder as one.
 
-Where the work lands: M1.3 (pairing), M4.4 (settings).
+Where the work lands: M1.3 (pairing, `src/logic/pairing.ts`, vectors in
+`tests/fixtures/pairing/vectors.json`), M4.4 (settings).
 
 ## Grid, filters and sort
 

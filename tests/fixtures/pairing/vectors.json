@@ -248,6 +248,16 @@
       ]
     },
     {
+      "name": "in separate subfolders subfolders at the top of the listing pair as one",
+      "source": "Q16",
+      "sharedWithFramehive": false,
+      "settings": { "folderMode": { "kind": "separate-subfolders", "rawSubfolder": "RAW", "renderedSubfolder": "JPG" } },
+      "files": ["RAW/A.NEF", "JPG/A.JPG"],
+      "pictures": [
+        { "folder": "", "raw": "RAW/A.NEF", "rendered": "JPG/A.JPG", "sidecars": [], "ambiguous": false }
+      ]
+    },
+    {
       "name": "in the same folder mode RAW and JPG subfolders do not pair",
       "source": "Q16",
       "sharedWithFramehive": true,
