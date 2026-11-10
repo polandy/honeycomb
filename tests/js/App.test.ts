@@ -10,6 +10,7 @@ import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import { logger } from '../../src/logger.ts'
 import { ENTRIES, fakeStorage, mountApp, openCull, SET, shownNames } from './app-cull.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from './l10n/marked-catalogue.ts'
+import { listingEntry } from './logic/listing-entries.ts'
 
 const MARK = TRANSLATED_MARK
 
@@ -132,5 +133,13 @@ describe('App', () => {
 
 		await openCull(wrapper, SET, [])
 		expect(untranslatedText(wrapper.element as Element)).toEqual([])
+	})
+
+	// spec: LISTING-002.11
+	it('warns above the grid about a base name several files of a folder share', async () => {
+		const { wrapper } = mountApp()
+		await openCull(wrapper, SET, [...ENTRIES, listingEntry(5, '/Trip/B/IMG_2.jpg')])
+
+		expect(wrapper.text()).toContain('2 files share the name IMG_2; shown as singles')
 	})
 })

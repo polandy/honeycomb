@@ -553,3 +553,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   too, not only on a recent folder set, as in the mockup (DECISIONS-002.12).
 - 2026-11-10: A narrow screen is `useIsMobile()` of `@nextcloud/vue` (below 1024 px), where
   `NcAppNavigation` covers the content, not the mockup's 1000 px (ADR 0020).
+- 2026-11-10: The grid shows one notice per ambiguous base name of a folder, as the mockup does,
+  not one per folder; it counts the singles the filters show and sits above the grid beside the
+  save-failure notice (`GridNotices`), so the virtual grid's layout stays untouched
+  (LISTING-002.11).
