@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest'
-import { INFO_OPEN_KEY, INFO_WIDTH_KEY, useLoupePanels } from '../../src/loupe-panels.ts'
+import { INFO_OPEN_KEY, INFO_WIDTH_KEY, NAVIGATION_SHOWN_KEY, useLoupePanels } from '../../src/loupe-panels.ts'
 import { fakeStorage } from './app-cull.ts'
 
 describe('useLoupePanels', () => {
@@ -24,12 +24,24 @@ describe('useLoupePanels', () => {
 		expect([panels.infoOpen.value, panels.infoWidth.value]).toEqual([false, 256])
 	})
 
+	it('covers the Nextcloud navigation until it is shown, and keeps that choice', () => {
+		const stored: Record<string, string> = {}
+		const panels = useLoupePanels(fakeStorage(stored))
+		expect(panels.navigationShown.value).toBe(false)
+
+		panels.setNavigationShown(true)
+
+		expect(stored).toEqual({ [NAVIGATION_SHOWN_KEY]: 'true' })
+		expect(useLoupePanels(fakeStorage(stored)).navigationShown.value).toBe(true)
+	})
+
 	it('works for this visit where the browser blocks site data', () => {
 		const panels = useLoupePanels(fakeStorage({}, true))
 
 		panels.setInfoOpen(true)
 		panels.setInfoWidth(240)
+		panels.setNavigationShown(true)
 
-		expect([panels.infoOpen.value, panels.infoWidth.value]).toEqual([true, 240])
+		expect([panels.infoOpen.value, panels.infoWidth.value, panels.navigationShown.value]).toEqual([true, 240, true])
 	})
 })
