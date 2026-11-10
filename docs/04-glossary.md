@@ -31,6 +31,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **filmstrip** | The row of small thumbnails of the neighbouring pictures along the loupe's bottom edge. |
 | **info panel** | The loupe's resizable side panel with the picture's file facts, its decision and the preload state. |
 | **gesture guide** | The card on the first loupe opening that lists the swipes, tap zones, pinch, double-tap and keys. |
+| **view state** | The loupe's per-user state that is not a setting: whether the info panel is open and whether the gesture guide was dismissed. Stored on the server (ADR 0019). |
 | **tap zone** | The left or right 30 % of the whole photo area in the loupe and series viewer, margins beside, above and below the photo included; a tap there goes to the previous or next photo. The middle shows or hides the overlays (`plan.md`, *Tap zones*). |
 | **tooltip** | The bubble that names a control and its key, on hover, keyboard focus or long-press. One for the whole app; not the browser's `title`. |
 | **filter** | A condition on rating, colour label, flag, pairing, *Keep RAW* or folder that narrows the grid and loupe. |
