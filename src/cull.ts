@@ -207,10 +207,19 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		return replaced
 	}
 
-	/** Puts files back into the listing and pairs it again; decisions are keyed by file id and stay. */
+	/** Puts files back into the listing and pairs it again; decisions are keyed by file id, so those of unknown ids are read. */
 	function restoreFiles(restored: readonly ListingEntry[]) {
 		entries.value = [...entries.value, ...restored]
 		paired.value = prepareCull(entries.value, pairing.value).pictures
+		const unknown = restored.map((entry) => entry.fileId).filter((fileId) => !decisions.value.has(fileId))
+		const opened = opening
+		if (unknown.length > 0) {
+			api.lookupDecisions(unknown).then((rows) => {
+				if (opening === opened) {
+					decisions.value = new Map([...decisionsByFileId(rows), ...decisions.value])
+				}
+			}).catch((error: unknown) => logger.error('Could not read the decisions of the photos moved back', { error }))
+		}
 	}
 
 	/** Switches the scope and keeps the filters. */

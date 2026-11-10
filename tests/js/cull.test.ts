@@ -6,9 +6,10 @@ import type { StoredDecision } from '../../src/logic/decision.ts'
 import type { Settings } from '../../src/logic/settings.ts'
 
 import { flushPromises } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { shallowRef } from 'vue'
 import { useCull } from '../../src/cull.ts'
+import { logger } from '../../src/logger.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { ENTRIES, fakeStorage, SET, stored } from './app-cull.ts'
@@ -16,6 +17,13 @@ import { listingEntry } from './logic/listing-entries.ts'
 
 /** Sidecars with nothing to take over, written without a word. */
 const NO_SIDECARS: CullSidecars = { takeOver: async () => [], write: async () => ({ written: 0, failed: [] }) }
+
+/** The error the next lookups fail with, reset before each test. */
+let lookupFails: Error | null = null
+beforeEach(() => {
+	lookupFails = null
+})
+afterEach(() => vi.restoreAllMocks())
 
 /** A cull opened on ENTRIES whose saves are recorded. */
 async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
@@ -26,7 +34,10 @@ async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 		warmPreviews: async () => undefined,
 		lookupDecisions: async (fileIds) => {
 			lookedUp.push([...fileIds])
-			return stored
+			if (lookupFails !== null) {
+				throw lookupFails
+			}
+			return [...stored]
 		},
 		saveDecisions: async (rows) => { saved.push([...rows]) },
 	}, fakeStorage(), () => settings.value, NO_SIDECARS)
@@ -187,6 +198,38 @@ describe('useCull: restoreFiles', () => {
 
 		expect(lookedUp.at(-1)).toEqual([pair.raw!.fileId + 100, pair.rendered!.fileId + 100])
 		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('picked')
+	})
+
+	// spec: MOVE-004.14
+	it('logs a failed read of the decisions of files back, and leaves them undecided', async () => {
+		const { cull, picture } = await openedCull()
+		const error = new Error('offline')
+		const logged = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
+		const pair = picture('IMG_10')
+		cull.removeFiles(new Set([pair.raw!.fileId, pair.rendered!.fileId]))
+		lookupFails = error
+
+		cull.restoreFiles([{ ...pair.raw!, fileId: 103 }, { ...pair.rendered!, fileId: 102 }])
+		await flushPromises()
+
+		expect(logged).toHaveBeenCalledWith('Could not read the decisions of the photos moved back', { error })
+		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('unflagged')
+	})
+
+	// spec: MOVE-004.14
+	it('drops the decisions of files back once another folder set is open', async () => {
+		const rows: StoredDecision[] = []
+		const { cull, picture } = await openedCull(rows)
+		const pair = picture('IMG_10')
+		cull.removeFiles(new Set([pair.raw!.fileId, pair.rendered!.fileId]))
+		rows.push(stored(103, 'picked'))
+
+		cull.restoreFiles([{ ...pair.raw!, fileId: 103 }])
+		rows.length = 0
+		cull.open(SET, [{ ...pair.raw!, fileId: 103 }], [])
+		await flushPromises()
+
+		expect(cull.decisionOf(cull.pictures.value[0]!).flag).toBe('unflagged')
 	})
 })
 

@@ -561,3 +561,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   with a guard test.
 - 2026-11-10: LOUPE-002.11 needed no code: the layout was right, so the gap closed with a
   geometry e2e test.
+- 2026-11-10: A move across storages carries only the moving user's decision rows to the new file
+  id, as the decision store is per user; other users' rows stay for the clean-up job. Resume
+  positions are not carried over: a moved picture has left the folder set whose position names it.
+- 2026-11-10: A decision row that cannot be carried over is logged as an error and the file is
+  still reported `moved`: the files are where the user wanted, and the API keeps its shape.

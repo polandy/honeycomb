@@ -22,4 +22,7 @@ interface DecisionStore {
 	 * @param list<PictureDecision> $decisions
 	 */
 	public function replace(string $userId, array $fileIds, array $decisions): void;
+
+	/** Moves the user's decision of `$fileId`, if there is one, to `$newFileId`. */
+	public function carryOver(string $userId, int $fileId, int $newFileId): void;
 }

@@ -58,4 +58,14 @@ final class DecisionMapper extends QBMapper implements DecisionStore {
 			}
 		}, $this->db);
 	}
+
+	#[\Override]
+	public function carryOver(string $userId, int $fileId, int $newFileId): void {
+		$query = $this->db->getQueryBuilder();
+		$query->update($this->getTableName())
+			->set('file_id', $query->createNamedParameter($newFileId, IQueryBuilder::PARAM_INT))
+			->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
+			->andWhere($query->expr()->eq('file_id', $query->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
+			->executeStatement();
+	}
 }

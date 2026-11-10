@@ -15,7 +15,7 @@ import { computed, ref, shallowRef, toRaw } from 'vue'
 import { logger } from './logger.ts'
 import { browserOffset, inViewOrder, moveCounts, nameCandidates } from './logic/move-candidates.ts'
 import { existingFiles, moveRequest, planMove, probeFolders } from './logic/move-plan.ts'
-import { gotNewFileIds, moveReport, undoneEntries, undoRequest } from './logic/move-report.ts'
+import { moveReport, undoneEntries, undoRequest } from './logic/move-report.ts'
 import { addRecent, targetChips, toggleFavourite as toggled } from './logic/move-targets.ts'
 import { parseNameTemplate } from './logic/name-template/parse.ts'
 import { followReplaced } from './logic/trash-report.ts'
@@ -155,7 +155,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 			}
 			close()
 			report.value = done.failed.length > 0 ? done : null
-			context.toast(movedText(done, to, gotNewFileIds(done)), done.moved.length > 0 ? { label: t('honeycomb', 'Undo'), run: () => void undo(done, listing) } : null)
+			context.toast(movedText(done, to), done.moved.length > 0 ? { label: t('honeycomb', 'Undo'), run: () => void undo(done, listing) } : null)
 		} catch (error) {
 			logger.error('Could not move the photos', { error })
 			fail(error)

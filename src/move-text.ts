@@ -33,19 +33,17 @@ export function moveFailureReason(result: MoveFailure): string {
 /** "1 failed" with the count formatted. */
 const failedText = (count: number) => n('honeycomb', '{count} failed', '{count} failed', count, { count: formatNumber(count) }, PLAIN_TEXT)
 
-/** The toast after a move: the one picture or the photos moved, or the files moved and failed; and when decisions stayed behind. */
-export function movedText(report: MoveReport, target: string, newFileIds: boolean): string {
+/** The toast after a move: the one picture or the photos moved, or the files moved and failed. */
+export function movedText(report: MoveReport, target: string): string {
 	const folder = folderName(target)
 	const moved = report.moved.length
-	let text: string
 	if (report.failed.length > 0) {
-		text = `${n('honeycomb', 'Moved {count} file to {folder}', 'Moved {count} files to {folder}', moved, { count: formatNumber(moved), folder }, PLAIN_TEXT)} · ${failedText(report.failed.length)}`
-	} else if (report.pictures === 1) {
-		text = t('honeycomb', 'Moved {name} to {folder}', { name: report.moved[0]!.file.picture.baseName, folder }, undefined, PLAIN_TEXT)
-	} else {
-		text = n('honeycomb', 'Moved {count} photo to {folder}', 'Moved {count} photos to {folder}', report.pictures, { count: formatNumber(report.pictures), folder }, PLAIN_TEXT)
+		return `${n('honeycomb', 'Moved {count} file to {folder}', 'Moved {count} files to {folder}', moved, { count: formatNumber(moved), folder }, PLAIN_TEXT)} · ${failedText(report.failed.length)}`
 	}
-	return newFileIds ? `${text} · ${t('honeycomb', 'decisions did not move with the files')}` : text
+	if (report.pictures === 1) {
+		return t('honeycomb', 'Moved {name} to {folder}', { name: report.moved[0]!.file.picture.baseName, folder }, undefined, PLAIN_TEXT)
+	}
+	return n('honeycomb', 'Moved {count} photo to {folder}', 'Moved {count} photos to {folder}', report.pictures, { count: formatNumber(report.pictures), folder }, PLAIN_TEXT)
 }
 
 /** The toast after *Undo* of a move. */

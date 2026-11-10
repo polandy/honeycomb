@@ -95,8 +95,3 @@ export function undoneEntries(report: MoveReport, response: readonly (readonly M
 	}
 	return { entries, failed }
 }
-
-/** Whether a moved file has a new file id, as a move to another storage gives it. */
-export function gotNewFileIds(report: MoveReport): boolean {
-	return report.moved.some((file) => file.fileId !== file.file.entry.fileId)
-}

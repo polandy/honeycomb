@@ -21,7 +21,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Moves whole pictures to the paths the client rendered: each checked whole, moved file by file
- * and moved back when one of its files fails (ADR 0018).
+ * and moved back when one of its files fails (ADR 0018); decisions follow a new file id (MOVE-002.10).
  *
  * @psalm-type Outcome = array{fileId: int, result: MoveResult, replaced: bool, path?: string, newFileId?: int, etag?: string}
  */
@@ -29,6 +29,7 @@ final class MoveService {
 	public function __construct(
 		private IRootFolder $rootFolder,
 		private IAppManager $appManager,
+		private DecisionStore $decisions,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -47,14 +48,14 @@ final class MoveService {
 			throw new TrashBinDisabledException('The trash bin is disabled for the user');
 		}
 		$userFolder = $this->rootFolder->getUserFolder($user->getUID());
-		return array_map(fn (array $picture): array => $this->movePicture($userFolder, $picture), $pictures);
+		return array_map(fn (array $picture): array => $this->movePicture($user->getUID(), $userFolder, $picture), $pictures);
 	}
 
 	/**
 	 * @param non-empty-list<MoveFile> $picture
 	 * @return list<Outcome>
 	 */
-	private function movePicture(Folder $userFolder, array $picture): array {
+	private function movePicture(string $userId, Folder $userFolder, array $picture): array {
 		$checked = array_map(fn (MoveFile $file): CheckedMove|MoveResult => $this->check($userFolder, $file), $picture);
 		$moves = array_filter($checked, static fn (CheckedMove|MoveResult $move): bool => $move instanceof CheckedMove);
 		if (count($moves) !== count($checked)) {
@@ -64,7 +65,7 @@ final class MoveService {
 				'replaced' => false,
 			], $picture, $checked);
 		}
-		$outcomes = $this->moveInOrder($userFolder, $moves);
+		$outcomes = $this->moveInOrder($userId, $userFolder, $moves);
 		return array_map(static fn (MoveFile $file, array $outcome): array => ['fileId' => $file->fileId] + $outcome, $picture, $outcomes);
 	}
 
@@ -73,7 +74,7 @@ final class MoveService {
 	 * @param array<int, CheckedMove> $moves
 	 * @return list<array{result: MoveResult, replaced: bool, path?: string, newFileId?: int, etag?: string}> in the order of `$moves`
 	 */
-	private function moveInOrder(Folder $userFolder, array $moves): array {
+	private function moveInOrder(string $userId, Folder $userFolder, array $moves): array {
 		$sidecars = array_filter($moves, static fn (CheckedMove $move): bool => ListingService::isSidecar($move->source));
 		$outcomes = array_fill_keys(array_keys($moves), ['result' => MoveResult::Skipped, 'replaced' => false]);
 		/** @var array<int, Node> $moved */
@@ -82,11 +83,12 @@ final class MoveService {
 			$replaced = false;
 			try {
 				$moved[$index] = $this->moveFile($userFolder, $move, $replaced);
+				$this->carryOver($userId, $move->source->getId(), $moved[$index]);
 				$outcomes[$index] = self::moved($move, $moved[$index], $replaced);
 			} catch (\Exception $e) {
 				$outcomes[$index] = ['result' => $this->failure($e, $move->source), 'replaced' => $replaced];
 				foreach (array_reverse($moved, true) as $back => $node) {
-					$outcomes[$back] = $this->moveBack($node, $moves[$back]) ? ['result' => MoveResult::MovedBack, 'replaced' => $outcomes[$back]['replaced']] : $outcomes[$back];
+					$outcomes[$back] = $this->moveBack($userId, $node, $moves[$back]) ? ['result' => MoveResult::MovedBack, 'replaced' => $outcomes[$back]['replaced']] : $outcomes[$back];
 				}
 				break;
 			}
@@ -122,16 +124,29 @@ final class MoveService {
 		return $node instanceof Folder ? $node : throw new AlreadyExistsException("$name is not a folder");
 	}
 
-	private function moveBack(Node $node, CheckedMove $move): bool {
+	private function moveBack(string $userId, Node $node, CheckedMove $move): bool {
 		if ($move->stays) {
 			return true;
 		}
 		try {
-			$node->move($move->from);
+			$this->carryOver($userId, $node->getId(), $node->move($move->from));
 			return true;
 		} catch (\Exception $e) {
 			$this->logger->warning('A moved file could not be moved back', ['fileId' => $node->getId(), 'exception' => $e]);
 			return false;
+		}
+	}
+
+	/** Carries the user's decision over when the move gave the file a new id; a failure is logged and the file stays moved. */
+	private function carryOver(string $userId, int $fileId, Node $node): void {
+		$newFileId = $node->getId();
+		if ($newFileId === $fileId) {
+			return;
+		}
+		try {
+			$this->decisions->carryOver($userId, $fileId, $newFileId);
+		} catch (\Exception $e) {
+			$this->logger->error('A decision could not follow its file to a new file id', ['fileId' => $fileId, 'newFileId' => $newFileId, 'exception' => $e]);
 		}
 	}
 
