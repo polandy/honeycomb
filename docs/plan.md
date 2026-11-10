@@ -35,15 +35,15 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    ([`02-workflow.md`](02-workflow.md) §2.3); the PHP jobs on PHP 8.3 and 8.5 against
    Nextcloud 35 and the TypeScript jobs in CI and `scripts/verify.sh`; `info.xml` and
    `package.json` in release-please's extra files.
-2. **Listing backend:** `GET /api/v1/folders/{path}/entries` returns the folder's files as flat
+2. **Listing backend:** `GET /api/v1/entries?path=…` (ADR 0009) returns the folder's files as flat
    entries — file id, path, size, mtime, ETag, mime type and EXIF basics (capture time,
    orientation, dimensions) where Nextcloud's file metadata has them ([Sort order](#sort-order))
    — from one file-cache query
    by path prefix and mime type, for the user's folder only. No pairing on the server. With
    `?subfolders=1` the same query covers every folder below, minus the skipped ones
-   ([Multiple folders](#multiple-folders)), capped at 20,000 pictures. PHPUnit first, with the
-   failure paths: a foreign path, a vanished folder, no permission; 2,000+ pairs in one response
-   without stalls.
+   ([Multiple folders](#multiple-folders)), capped at 60,000 entries (20,000 pictures). PHPUnit
+   first, with the failure paths: a foreign path, a vanished folder, no permission; 2,000+ pairs
+   in one response without stalls.
 3. **Pairing module:** pure TypeScript that groups the entries into pictures. Vitest first, on
    test vectors shared with Framehive (LIBRARY-001) and the brief's cases: names differing only
    in case, several dots in a file name, singles (JPEG only, RAW only), sidecars, ambiguous
@@ -797,7 +797,7 @@ folder starts by file name; a folder set of several folders starts by capture ti
 - **Where capture time comes from.** The listing (M1.2) returns each file's EXIF capture time
   from Nextcloud's file metadata (`IFilesMetadataManager`), which Nextcloud extracts on upload
   and with `occ files:scan --generate-metadata`. No file is read to sort, so 2,000 pairs cost
-  no more than sorting by name; the metadata key is confirmed in M1.2.
+  no more than sorting by name; the keys are the Photos app's (ADR 0009).
 - **A picture's capture time** is the RAW member's, else the rendered member's, the same rule as
   the name templates ([`05-name-templates.md`](05-name-templates.md)).
 - **Without a capture time** (no EXIF, or the metadata not extracted yet) a picture sorts by its
@@ -829,7 +829,7 @@ Answered by the owner on 2026-11-09 (Q3, Q4, Q5, Q6, Q20).
    offers *Write decisions to sidecars…*, which asks first (ADR 0005). The listing (M1.2) says
    per folder whether it is shared.
 
-Where the work lands: M1.2 (shared per folder), M2.4 (per-user decisions), M3.2 (swipe), M3.3
+Where the work lands: M5 (shared per folder), M2.4 (per-user decisions), M3.2 (swipe), M3.3
 (colour keys), M4.4 (gesture setting), M5 (sidecars).
 
 ## Translations
@@ -868,6 +868,7 @@ honeycomb/
 │   │   ├── FileService.php     move, trash, write XMP bytes through OCP\Files
 │   │   ├── DecisionService.php rating, colour label, flag and resume position per user
 │   │   └── SettingsService.php per-user settings (IConfig user values)
+│   ├── Search/                 ISearchQuery and its operators, which OCP does not implement
 │   ├── Db/                     entities and QBMapper classes
 │   └── Migration/              database migrations
 ├── src/
