@@ -187,3 +187,22 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   mockup's counts and *Review rejects* come with the reject review (M4).
 - 2026-11-10: The untranslated-text check skips the `name` of an `input`: a form control's name is
   its key in the form and never shown.
+- 2026-11-10: Selection mode (M2.6) keeps the selection to the shown pictures: a filter, scope or
+  decision that hides a picture drops it from the selection, so a bulk change never reaches a
+  photo the user cannot see.
+- 2026-11-10: *Keep RAW*'s pressed state in the action bar is the common value over the selected
+  pairs only; singles neither press nor block it.
+- 2026-11-10: Bulk changes show at once and are stored with one `PUT /decisions`; a failed save
+  logs the error, puts back what the change replaced and shows an error note, without
+  `@nextcloud/dialogs` (a new dependency needs an ADR). Undo and its toast come with M3.2/M3.3.
+- 2026-11-10: The tile overlays (stars, colour dot, flag mark, *Keep RAW* badge, selection check)
+  land with M2.6 so a bulk change is visible in the grid.
+- 2026-11-10: The colour palette opens inline above its button, not in an `NcPopover`; the label
+  names and swatches stay in `src/colour-labels.ts`, which `ColourLabels` and `PhotoTile` share.
+- 2026-11-10: M2.6 brings only Ctrl+A, Ctrl+D and Escape; the decision keys (P, X, U, 0–5, the
+  label keys) come with M3.3, and *Move…* and *Delete…* join the action bar with M4 and M7.
+- 2026-11-10: Leaving selection mode selects nothing; Ctrl+A enters selection mode, and a
+  long-press or a Ctrl- or Shift-click on a tile does too.
+- 2026-11-10: When two overlapping saves of the same file both fail, the revert shows the first
+  change, which was never stored, until the next reload; that is rare and costs no data. The
+  stored decisions read on open go under changes made before they arrive.

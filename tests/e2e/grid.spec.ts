@@ -87,3 +87,36 @@ test('hides a rejected photo in the default scope and shows it under All', async
 	await expect(grid.getByRole('gridcell', { name: 'IMG_0001, JPG only' })).toBeVisible()
 	await expect(grid.getByRole('gridcell')).toHaveCount(2)
 })
+
+test('rates and rejects selected photos and keeps the decisions over a reload', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = uniqueFolder('Select')
+	await createFolder(page, folder)
+	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+	await upload(page, `${folder}/IMG_0001.NEF`, RAW)
+	await upload(page, `${folder}/IMG_0002.jpg`, JPEG)
+	const cull = async () => {
+		const picker = await openPicker(page)
+		await picker.getByRole('option', { name: folder }).click()
+		await picker.getByRole('button', { name: `Cull ${folder}` }).click()
+		await expect(picker).toBeHidden()
+		return page.getByRole('grid', { name: 'Photos' })
+	}
+
+	const grid = await cull()
+	await page.getByRole('button', { name: 'Select', exact: true }).click()
+	await grid.getByRole('gridcell', { name: 'IMG_0001, JPG+NEF' }).click()
+	await grid.getByRole('gridcell', { name: 'IMG_0002, JPG only' }).click()
+	await expect(page.getByText('2 selected')).toBeVisible()
+	await page.getByRole('button', { name: 'Rate 3 stars' }).click()
+	await page.getByRole('button', { name: 'Keep RAW', exact: true }).click()
+	await grid.getByRole('gridcell', { name: /^IMG_0001/ }).click()
+	await expect(page.getByText('1 selected')).toBeVisible()
+	await page.getByRole('button', { name: 'Reject', exact: true }).click()
+	await expect(grid.getByRole('gridcell')).toHaveCount(1)
+
+	await page.reload()
+	const again = await cull()
+	await expect(again.getByRole('gridcell', { name: 'IMG_0001, JPG+NEF, 3 stars, Keep RAW' })).toBeVisible()
+	await expect(again.getByRole('gridcell')).toHaveCount(1)
+})

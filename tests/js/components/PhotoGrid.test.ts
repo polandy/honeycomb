@@ -9,6 +9,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import PhotoGrid from '../../../src/components/PhotoGrid.vue'
 import { prepareCull } from '../../../src/logic/cull.ts'
 import { sortPictures } from '../../../src/logic/picture-order.ts'
+import { NO_SELECTION } from '../../../src/logic/selection.ts'
+import { fakeScheduler } from '../fake-scheduler.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { listingEntry } from '../logic/listing-entries.ts'
 
@@ -201,5 +203,94 @@ describe('PhotoGrid', () => {
 
 		expect(wrapper.find('[role="grid"]').attributes('aria-label')).toBe(`${TRANSLATED_MARK}Photos`)
 		expect(untranslatedText(wrapper.element as Element)).toEqual(['A', 'A', 'IMG_0, JPG+', 'B', 'IMG_0, JPG+'].map((text) => text.replace(', JPG+', `, ${TRANSLATED_MARK}JPG only`)))
+	})
+	describe('selection', () => {
+		const tile = (wrapper: ReturnType<typeof mountGrid>['wrapper'], index: number) => wrapper.findAll('[role="gridcell"]')[index]!
+
+		it('does nothing on a plain click outside selection mode', async () => {
+			const { wrapper, resize } = mountGrid({ selection: NO_SELECTION, selecting: false })
+			await resize(432, 220)
+
+			await tile(wrapper, 1).trigger('click')
+
+			expect(wrapper.emitted('update:selection')).toBeUndefined()
+		})
+
+		it('toggles a tile on click, by Enter or Space in selection mode', async () => {
+			const { wrapper, resize } = mountGrid({ selection: NO_SELECTION, selecting: true })
+			await resize(432, 220)
+
+			await tile(wrapper, 1).trigger('click')
+			await tile(wrapper, 2).trigger('keydown', { key: 'Enter' })
+			await tile(wrapper, 3).trigger('keydown', { key: ' ' })
+
+			const ids = (wrapper.emitted('update:selection') as [{ ids: Set<number> }][]).map(([selection]) => [...selection.ids])
+			expect(ids).toEqual([[2], [3], [4]])
+			expect(wrapper.emitted('update:selecting')).toBeUndefined()
+		})
+
+		it('enters selection mode with Ctrl-click and ranges with Shift-click', async () => {
+			const { wrapper, resize } = mountGrid({ selection: { ids: new Set([1]), anchor: 1 }, selecting: false })
+			await resize(432, 220)
+
+			await tile(wrapper, 3).trigger('click', { shiftKey: true })
+
+			expect(wrapper.emitted('update:selecting')).toEqual([[true]])
+			expect(wrapper.emitted('update:selection')).toEqual([[{ ids: new Set([1, 2, 3, 4]), anchor: 1 }]])
+		})
+
+		it('marks the selected tiles and shows each decision', async () => {
+			const decisionOf = (picture: { baseName: string }) => ({ rating: picture.baseName === 'IMG_1' ? 2 : 0, colourLabel: null, flag: 'unflagged' as const, keepRaw: false })
+			const { wrapper, resize } = mountGrid({ selection: { ids: new Set([2]), anchor: 2 }, selecting: true, decisionOf })
+			await resize(432, 220)
+
+			expect(tile(wrapper, 1).attributes('aria-selected')).toBe('true')
+			expect(tile(wrapper, 0).attributes('aria-selected')).toBe('false')
+			expect(tile(wrapper, 1).find('.photo-tile__stars').text()).toBe('★★')
+		})
+
+		it('selects a tile on a long-press and swallows the click that follows', async () => {
+			const { schedule, fire } = fakeScheduler()
+			const { wrapper, resize } = mountGrid({ selection: NO_SELECTION, selecting: false, schedule })
+			await resize(432, 220)
+
+			await tile(wrapper, 2).trigger('pointerdown', { button: 0, clientX: 10, clientY: 10 })
+			fire()
+			await tile(wrapper, 2).trigger('pointerup')
+			await tile(wrapper, 2).trigger('click')
+
+			expect(wrapper.emitted('update:selecting')).toEqual([[true]])
+			expect(wrapper.emitted('update:selection')).toEqual([[{ ids: new Set([3]), anchor: 3 }]])
+		})
+
+		it.each([
+			['lifting the finger', 'pointerup', {}],
+			['moving more than 10 px', 'pointermove', { clientX: 30, clientY: 10 }],
+			['the browser taking the pointer', 'pointercancel', {}],
+		])('cancels the long-press on %s', async (_, event, fields) => {
+			const { schedule, fire } = fakeScheduler()
+			const { wrapper, resize } = mountGrid({ selection: NO_SELECTION, selecting: false, schedule })
+			await resize(432, 220)
+
+			await tile(wrapper, 2).trigger('pointerdown', { button: 0, clientX: 10, clientY: 10 })
+			await tile(wrapper, 2).trigger(event, fields)
+			fire()
+
+			expect(wrapper.emitted('update:selection')).toBeUndefined()
+		})
+
+		it('ignores a secondary button and the context menu', async () => {
+			const { schedule, fire } = fakeScheduler()
+			const { wrapper, resize } = mountGrid({ selection: NO_SELECTION, selecting: false, schedule })
+			await resize(432, 220)
+
+			await tile(wrapper, 2).trigger('pointerdown', { button: 2 })
+			fire()
+			const menu = new Event('contextmenu', { cancelable: true })
+			wrapper.find('[role="grid"]').element.dispatchEvent(menu)
+
+			expect(wrapper.emitted('update:selection')).toBeUndefined()
+			expect(menu.defaultPrevented).toBe(true)
+		})
 	})
 })

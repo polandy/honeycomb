@@ -56,6 +56,13 @@ export async function lookupDecisions(fileIds: readonly number[]): Promise<Store
 	return data.decisions as StoredDecision[]
 }
 
+/** Stores the whole decision of each file in one transaction (ADR 0012). */
+export async function saveDecisions(decisions: readonly StoredDecision[]): Promise<void> {
+	if (decisions.length > 0) {
+		await axios.put(generateUrl(`${API}/decisions`), { decisions })
+	}
+}
+
 /** The immutable URL of a preview tier of a file (ADR 0010). */
 export function imageUrl(fileId: number, size: number, mtime: number): string {
 	return `${generateUrl(`${API}/images/{fileId}`, { fileId })}?size=${size}&v=${mtime}`

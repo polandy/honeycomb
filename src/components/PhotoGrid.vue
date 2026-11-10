@@ -12,20 +12,26 @@ function observeElementSize(element: Element, onSize: (width: number, height: nu
 </script>
 
 <script setup lang="ts">
+import type { Decision } from '../logic/decision.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { ListingEntry } from '../logic/listing.ts'
+import type { Schedule } from '../logic/long-press.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { Selection } from '../logic/selection.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
 import PhotoTile from './PhotoTile.vue'
 import { formatNumber } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
+import { UNDECIDED } from '../logic/decision.ts'
 import { gridLayout, stickyHeader, visibleRows } from '../logic/grid-layout.ts'
 import { imageMember } from '../logic/image-tiers.ts'
 import { groupByFolder as folderGroups } from '../logic/picture-order.ts'
+import { NO_SELECTION } from '../logic/selection.ts'
 import { pinchTileSize, wheelTileSize } from '../logic/tile-size.ts'
+import { browserSchedule, useTileSelection } from '../tile-selection.ts'
 
 const props = withDefaults(defineProps<{
 	/** The pictures in the grid's order. */
@@ -37,12 +43,24 @@ const props = withDefaults(defineProps<{
 	observeSize?: (element: Element, onSize: (width: number, height: number) => void) => () => void
 	imageUrl?: ImageUrlFor
 	loadImage?: (srcset: string, sizes: string) => Promise<void>
+	selecting?: boolean
+	/** The selected pictures by grid key, the file id of the member the tile shows. */
+	selection?: Selection
+	decisionOf?: (picture: Picture<ListingEntry>) => Decision
+	/** Times the long-press. */
+	schedule?: Schedule
 }>(), {
 	observeSize: observeElementSize,
+	selecting: false,
+	selection: () => NO_SELECTION,
+	decisionOf: () => UNDECIDED,
+	schedule: browserSchedule,
 })
 
 const emit = defineEmits<{
 	'update:tileSize': [size: number]
+	'update:selecting': [selecting: boolean]
+	'update:selection': [selection: Selection]
 }>()
 
 const GAP = 8
@@ -71,6 +89,14 @@ const rendered = computed(() => {
 	return layout.value.rows.slice(start, end)
 })
 const sticky = computed(() => stickyHeader(layout.value, scrollTop.value))
+const order = computed(() => props.pictures.map((picture) => imageMember(picture).fileId))
+const tiles = useTileSelection({
+	selecting: () => props.selecting,
+	selection: () => props.selection,
+	order: () => order.value,
+	select: (selection) => emit('update:selection', selection),
+	enterSelecting: () => emit('update:selecting', true),
+}, props.schedule)
 
 watch(() => props.pictures, () => {
 	scroller.value!.scrollTop = 0
@@ -162,7 +188,8 @@ onBeforeUnmount(() => stopObserving())
 			@scroll.passive="onScroll"
 			@touchstart.passive="onTouchStart"
 			@touchend.passive="onTouchEnd"
-			@touchcancel.passive="onTouchEnd">
+			@touchcancel.passive="onTouchEnd"
+			@contextmenu.prevent>
 			<div class="photo-grid__spacer" :style="{ height: `${layout.totalHeight}px` }">
 				<template v-for="row in rendered" :key="row.kind === 'header' ? `header-${row.group}` : `row-${row.first}`">
 					<div
@@ -186,8 +213,17 @@ onBeforeUnmount(() => stopObserving())
 							:style="{ left: `${column * (layout.tileWidth + GAP)}px`, width: `${layout.tileWidth}px` }"
 							:picture="picture"
 							:size="layout.tileWidth"
+							:decision="props.decisionOf(picture)"
+							:selecting="props.selecting"
+							:selected="props.selection.ids.has(imageMember(picture).fileId)"
 							v-bind="{ ...(props.imageUrl && { imageUrl: props.imageUrl }), ...(props.loadImage && { loadImage: props.loadImage }) }"
-							@focus="focused = index" />
+							@focus="focused = index"
+							@click="tiles.onClick(imageMember(picture).fileId, $event)"
+							@keydown="tiles.onKeydown(imageMember(picture).fileId, $event)"
+							@pointerdown="tiles.onPointerDown(imageMember(picture).fileId, $event)"
+							@pointermove="tiles.onPointerMove"
+							@pointerup="tiles.onPointerEnd"
+							@pointercancel="tiles.onPointerEnd" />
 					</div>
 				</template>
 			</div>

@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] M2.6: Selection mode and bulk rate, label, flag and Keep RAW (Q10) (2026-11-09)
 - [ ] M3.1: Loupe — full screen, swipe, pinch zoom to 100 %, prefetch 2–3 neighbours each way (next image <100 ms), chrome-free mode (F, double-tap), tap zones for previous and next (`docs/plan.md` Tap zones), collapsible info panel with draggable divider, collapsible sidebar (2026-11-09)
 - [ ] M3.2: Decisions in the loupe — pick/reject buttons and the *Flag buttons* toggle (`docs/plan.md` Flag buttons and vi keys), vertical swipe (Q6), rating, label and Keep RAW controls, auto-advance to the next undecided picture, "Rejected IMG_0001 · Undo" toast; built from the shared components (`docs/plan.md` Shared UI components) (2026-11-09)
 - [ ] M3.3: Keyboard shortcuts per the shared key map (`docs/plan.md` Keyboard shortcuts) incl. `R` for Keep RAW, `B`, `Home`/`End`, `Shift+K`, the optional vi keys (`docs/plan.md` Flag buttons and vi keys), undo and redo, shortcut sheet (Q5) (2026-11-09)
