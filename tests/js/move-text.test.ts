@@ -31,18 +31,13 @@ describe('move texts', () => {
 
 	// spec: MOVE-004.9
 	it('names the one picture or counts the photos, and names the folder', () => {
-		expect(movedText(report(1, 0, 1), '/Photos/Best', false)).toBe('Moved DSC_1 to Best')
-		expect(movedText(report(3, 0, 2), '/Photos/Best', false)).toBe('Moved 2 photos to Best')
+		expect(movedText(report(1, 0, 1), '/Photos/Best')).toBe('Moved DSC_1 to Best')
+		expect(movedText(report(3, 0, 2), '/Photos/Best')).toBe('Moved 2 photos to Best')
 	})
 
 	// spec: MOVE-004.12
 	it('counts moved and failed files', () => {
-		expect(movedText(report(3, 1, 1), '/Photos/Best', false)).toBe('Moved 3 files to Best · 1 failed')
-	})
-
-	// spec: MOVE-004.14
-	it('adds that decisions did not move when a file got a new file id', () => {
-		expect(movedText(report(1, 0, 1), '/Photos/Best', true)).toBe('Moved DSC_1 to Best · decisions did not move with the files')
+		expect(movedText(report(3, 1, 1), '/Photos/Best')).toBe('Moved 3 files to Best · 1 failed')
 	})
 
 	// spec: MOVE-004.11

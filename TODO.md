@@ -11,7 +11,6 @@ Add items with `/todo`.
 
 ## Later
 
-- [ ] Carry decision rows over to the new file ids after a move across storages, where `Node::move()` copies (ADR 0018) (2026-11-10)
 - [ ] Clean-up job for `honeycomb_decisions` and `honeycomb_positions` rows whose files are deleted for good (ADR 0012 Consequences) (2026-11-10)
 - [ ] Grid: arrow-key focus moves between tiles (Tab only for now) and the phone bottom sheet of `ConfirmDialog` (2026-11-10)
 - [ ] Shared `Tooltip` component (`docs/plan.md` Tooltip) for the icon-only controls built so far: Home, More, Open {name} (2026-11-10)

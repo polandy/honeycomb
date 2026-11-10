@@ -6,7 +6,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { describe, expect, it } from 'vitest'
 import { filesOf } from '../../../src/logic/delete-summary.ts'
-import { gotNewFileIds, moveReport, undoneEntries, undoRequest } from '../../../src/logic/move-report.ts'
+import { moveReport, undoneEntries, undoRequest } from '../../../src/logic/move-report.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
 const [PAIR, SINGLE, OTHER] = picturesOf([
@@ -88,13 +88,5 @@ describe('undoneEntries', () => {
 			{ ...PAIR.raw, path: '/In/A.RAF', fileId: 11, etag: 'etag-11' },
 		])
 		expect(undone.failed).toBe(2)
-	})
-})
-
-describe('gotNewFileIds', () => {
-	// spec: MOVE-004.14
-	it('tells whether a moved file has a new file id', () => {
-		expect(gotNewFileIds(moveReport(SENT.slice(1, 2), [[moved(4, '/Out/B.JPG')]]))).toBe(false)
-		expect(gotNewFileIds(moveReport(SENT.slice(1, 2), [[moved(4, '/Out/B.JPG', 40)]]))).toBe(true)
 	})
 })

@@ -25,7 +25,7 @@ final class MoveServiceTest extends TestCase {
 	private function service(bool $trashBin = true, ?LoggerInterface $logger = null): MoveService {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturnCallback(static fn (string $app): bool => $app === 'files_trashbin' && $trashBin);
-		return new MoveService($this->treeRoot(), $apps, $logger ?? $this->createStub(LoggerInterface::class));
+		return new MoveService($this->treeRoot(), $apps, new FakeDecisionStore(), $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
 	/** A RAW, its JPEG and the RAW's sidecar in `/In`, and a single JPEG. */
