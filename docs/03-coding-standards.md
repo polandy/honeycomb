@@ -58,7 +58,8 @@ dependencies — are in [`conventions.md`](conventions.md). This file adds the s
 - Playwright runs against a fresh Nextcloud 35 container (`scripts/e2e-server.sh`, image pinned
   by digest) with this checkout mounted as the app; a setup project logs in once through the
   login form and shares the session. Cases use `reducedMotion: 'reduce'` and wait on a visible
-  state.
+  state. Each run starts its own container on `HONEYCOMB_E2E_PORT` (default 8180), so parallel
+  worktrees pick different ports.
 - Every Vue component is checked with the marked stub catalogue of
   `tests/js/l10n/marked-catalogue.ts`: shallow-mount it with `renderStubDefaultSlot`, and expect
   `untranslatedText()` to return nothing (ADR 0007, *Checks*).

@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
 NEXTCLOUD_IMAGE=nextcloud:35.0.2-apache@sha256:786c102155d2717ba0f53a62b3fdd7a1354edc48e800b94dbe32294d9a5752a2
-CONTAINER=honeycomb-e2e
+CONTAINER=honeycomb-e2e-$1
 
 docker rm --force "$CONTAINER" >/dev/null 2>&1 || true
 exec docker run --rm --name "$CONTAINER" -p "127.0.0.1:$1:80" \

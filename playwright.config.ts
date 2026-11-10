@@ -3,7 +3,8 @@
 import { defineConfig, devices } from '@playwright/test'
 import { ADMIN, ADMIN_STATE } from './tests/e2e/admin.ts'
 
-const PORT = 8180
+const DEFAULT_PORT = 8180
+const PORT = Number(process.env.HONEYCOMB_E2E_PORT ?? DEFAULT_PORT)
 const BASE_URL = `http://localhost:${PORT}`
 const NEXTCLOUD_INSTALL_TIMEOUT_MS = 300_000
 
@@ -30,7 +31,8 @@ export default defineConfig({
 		command: `scripts/e2e-server.sh ${PORT} ${ADMIN.username} ${ADMIN.password}`,
 		url: `${BASE_URL}/status.php`,
 		timeout: NEXTCLOUD_INSTALL_TIMEOUT_MS,
-		reuseExistingServer: !process.env.CI,
+		// A server already on the port may serve another worktree's checkout.
+		reuseExistingServer: false,
 		gracefulShutdown: { signal: 'SIGTERM', timeout: 10_000 },
 	},
 })

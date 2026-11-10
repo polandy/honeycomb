@@ -98,3 +98,4 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: CI builds and runs Playwright in one job, `Build and e2e`, since the e2e case needs
   the bundle and a separate build job would repeat `npm ci`; it uploads the traces when it fails.
   An e2e spec and `playwright.config.ts` also run the `TypeScript` job, which lints them.
+- 2026-11-10: e2e never reuses a running server and takes its port from `HONEYCOMB_E2E_PORT`, because a server left by another worktree would test the wrong checkout.
