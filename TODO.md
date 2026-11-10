@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] M2.3: Folder picker (a checkbox per folder, *Include subfolders*, photo count) and virtual-scrolling grid (*Group by folder* headers) — srcset by tile size × devicePixelRatio, small preview first and sharp swapped in after `img.decode()`, stepless size (slider, Ctrl+wheel, pinch) remembered per device, pair badges; warm the previews with `POST /api/v1/previews` after listing (ADR 0010); grid scrolls without jank at 2,000+ items (2026-11-09)
 - [ ] M2.4: Decision storage — tables and API for rating, colour label, flag and Keep RAW per picture and user (Q2, Q20), plus the resume position per folder set and user so culling continues on another device; ADR first (2026-11-09)
 - [ ] M2.5: Filter bar — rating, colour label, flag, pairing, Keep RAW, folder and sort as pure TypeScript modules (Q8, Q9, Q18; sort by file name or capture time with the fallback in `docs/plan.md` Sort order); scope not rejected (default) / undecided / all and "x of y decided" progress (2026-11-09)
 - [ ] M2.6: Selection mode and bulk rate, label, flag and Keep RAW (Q10) (2026-11-09)
@@ -30,6 +29,9 @@ Add items with `/todo`.
 
 ## Later
 
+- [ ] Grid: list RAW files whose type Nextcloud does not know (`.CR3` uploads get `application/octet-stream` and are skipped by the listing) — a mimetype mapping or a listing by RAW extension; decide before M4.3 (2026-11-10)
+- [ ] Grid: arrow-key focus moves between tiles (Tab only for now) and the phone bottom sheet of `ConfirmDialog` (2026-11-10)
+- [ ] Shared `Tooltip` component (`docs/plan.md` Tooltip) for the icon-only controls built so far: Home, More, Open {name} (2026-11-10)
 - [ ] Measure the image budgets of `docs/plan.md` Image delivery with real 24 MP RAW+JPEG pairs, incl. the `512` and `2048` tiers that Nextcloud delivers at up to 1024 and 4096 px (ADR 0010) — needs the owner's files (2026-11-10)
 - [ ] Unused-export gate for TypeScript once `src/` has modules (glissando `unused-exports.sh`, or knip with an ADR) and a gate that no component shows raw error text (`docs/conventions.md` §1, §3) (2026-11-10)
 - [ ] Mockup: specify the grid's loading state (skeleton tiles while the listing and thumbnails arrive) — UX review L1 (`docs/ux-review.md`) (2026-11-09)
