@@ -18,6 +18,7 @@ export function listingEntry(fileId: number, path: string, fields: Partial<Listi
 		orientation: null,
 		width: null,
 		height: null,
+		camera: null,
 		...fields,
 	}
 }

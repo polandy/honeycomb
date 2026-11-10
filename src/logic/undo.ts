@@ -8,9 +8,12 @@ import { changedRows } from './decision-change.ts'
 /** How many steps the undo history keeps (`docs/plan.md` M3.2). */
 export const UNDO_LIMIT = 50
 
+/** A change to the decisions, or Pick this, reject the rest by the picked picture's name. */
+export type UndoChange = DecisionChange | { readonly pickRest: string }
+
 /** One step of the undo history: the change, the pictures it altered, and the rows it wrote and replaced. */
 export interface UndoEntry {
-	readonly change: DecisionChange
+	readonly change: UndoChange
 	readonly names: readonly string[]
 	readonly after: readonly StoredDecision[]
 	readonly before: readonly StoredDecision[]
@@ -18,7 +21,17 @@ export interface UndoEntry {
 
 /** The undo step of a change to the pictures, or null when it alters none. */
 export function undoEntry(pictures: readonly Decided[], change: DecisionChange): UndoEntry | null {
-	const altered = pictures.map((decided) => ({ decided, rows: changedRows([decided], change) })).filter(({ rows }) => rows.length > 0)
+	return entryOf(pictures.map((decided) => ({ decided, change })), change)
+}
+
+/** The undo step that picks one picture and rejects the rest, or null when it alters none. */
+export function pickRestEntry(picked: Decided, rest: readonly Decided[]): UndoEntry | null {
+	const changes = [{ decided: picked, change: { flag: 'picked' } as const }, ...rest.map((decided) => ({ decided, change: { flag: 'rejected' } as const }))]
+	return entryOf(changes, { pickRest: picked.picture.baseName })
+}
+
+function entryOf(changes: readonly { decided: Decided, change: DecisionChange }[], change: UndoChange): UndoEntry | null {
+	const altered = changes.map(({ decided, change }) => ({ decided, rows: changedRows([decided], change) })).filter(({ rows }) => rows.length > 0)
 	if (altered.length === 0) {
 		return null
 	}

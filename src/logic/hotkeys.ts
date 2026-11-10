@@ -28,7 +28,7 @@ export type HotkeyCommand
 	= | 'previous' | 'next' | 'up' | 'down' | 'first' | 'last'
 		| 'grid' | 'loupe' | 'zoom' | 'zoom-in' | 'zoom-out' | 'fullscreen' | 'header' | 'info' | 'close' | 'flag-buttons'
 		| 'filter-bar' | 'filters-off' | 'filter-focus' | 'select-all' | 'select-none'
-		| 'undo' | 'redo' | 'shortcuts' | 'delete' | 'review-rejects'
+		| 'undo' | 'redo' | 'shortcuts' | 'delete' | 'review-rejects' | 'compare' | 'pick-rest'
 
 /** What a key does: decide (and maybe go to the next photo) or run a command. */
 export type HotkeyAction
@@ -55,6 +55,7 @@ export const KEYMAP: readonly KeymapEntry[] = [
 	{ id: 'auto-advance', group: 'flags', caps: ['Caps Lock'] },
 	{ id: 'toggle-pick', group: 'flags', caps: ['`'] },
 	{ id: 'flag-buttons', group: 'flags', caps: ['B'] },
+	{ id: 'pick-rest', group: 'flags', caps: ['Shift+K'] },
 	{ id: 'rating', group: 'rating', caps: ['0', '5'], range: true },
 	{ id: 'rating-next', group: 'rating', caps: ['Shift+0', 'Shift+5'], range: true },
 	{ id: 'star-down', group: 'rating', caps: ['['] },
@@ -66,6 +67,7 @@ export const KEYMAP: readonly KeymapEntry[] = [
 	{ id: 'open', group: 'views', caps: ['Enter'] },
 	{ id: 'grid', group: 'views', caps: ['G'] },
 	{ id: 'loupe', group: 'views', caps: ['E'] },
+	{ id: 'compare', group: 'views', caps: ['N'] },
 	{ id: 'zoom', group: 'views', caps: ['Space', 'Z'] },
 	{ id: 'zoom-in', group: 'views', caps: ['Ctrl+='] },
 	{ id: 'zoom-out', group: 'views', caps: ['Ctrl+-'] },
@@ -123,6 +125,7 @@ const COMMANDS: Readonly<Record<string, HotkeyCommand>> = {
 	'\\': 'filter-bar',
 	Escape: 'close',
 	b: 'flag-buttons',
+	n: 'compare',
 	'?': 'shortcuts',
 	Delete: 'delete',
 }
@@ -140,14 +143,16 @@ function ctrlKey(event: HotkeyEvent, key: string): HotkeyAction | null {
 	return event.shiftKey && !['+', '/'].includes(key) ? null : command(CTRL_COMMANDS[key])
 }
 
-/** The action of a key with Shift: decide and go to the next photo, or the help sheet. */
+const SHIFT_COMMANDS: Readonly<Record<string, HotkeyCommand>> = { '?': 'shortcuts', k: 'pick-rest' }
+
+/** The action of a key with Shift: decide and go to the next photo, pick-rest or the help sheet. */
 function shiftKey(event: HotkeyEvent, key: string): HotkeyAction | null {
 	const digit = /^Digit([0-5])$/.exec(event.code)
 	if (digit !== null) {
 		return decide({ kind: 'rating', rating: Number(digit[1]) }, true)
 	}
 	const flag = key === '`' ? undefined : FLAGS[key]
-	return flag !== undefined ? decide({ kind: 'flag', flag }, true) : command(key === '?' ? 'shortcuts' : undefined)
+	return flag !== undefined ? decide({ kind: 'flag', flag }, true) : command(SHIFT_COMMANDS[key])
 }
 
 /** The action of a key without modifiers; Caps Lock makes every decision but Keep RAW advance. */

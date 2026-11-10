@@ -13,6 +13,7 @@ export interface ListingEntry {
 	readonly orientation: number | null
 	readonly width: number | null
 	readonly height: number | null
+	readonly camera: string | null
 }
 
 /** The listings of a folder set as one, each file once, in the order first listed. */
