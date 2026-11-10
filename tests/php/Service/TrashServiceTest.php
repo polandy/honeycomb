@@ -62,17 +62,24 @@ final class TrashServiceTest extends TestCase {
 		return new TrashService($root, $apps, $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
-	/** The request form of a picture: each file id with its listed ETag. */
+	/**
+	 * The request form of a picture: each file id with its listed ETag.
+	 * @return list<array{fileId: int, etag: string}>
+	 */
 	private static function picture(int ...$fileIds): array {
-		return array_map(static fn (int $id): array => ['fileId' => $id, 'etag' => "etag-$id"], $fileIds);
+		return array_values(array_map(static fn (int $id): array => ['fileId' => $id, 'etag' => "etag-$id"], $fileIds));
 	}
 
 	/** @return list<list<array{fileId: int, result: string}>> */
 	private static function results(array $pictures): array {
+		/** @var list<list<array{fileId: int, result: string}>> */
 		return json_decode(json_encode($pictures, JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR);
 	}
 
-	/** A RAW, a JPEG and the RAW's sidecar, with the sidecar sent first. */
+	/**
+	 * A RAW, a JPEG and the RAW's sidecar, with the sidecar sent first.
+	 * @return array<int, Node>
+	 */
 	private function pair(?\Throwable $jpegFailure = null): array {
 		return [
 			3 => $this->file(3, 'IMG_0001.CR3.xmp', 'application/octet-stream'),
@@ -93,25 +100,30 @@ final class TrashServiceTest extends TestCase {
 		$this->assertSame([1, 2, 3, 4], $this->trashed);
 	}
 
-	/** @return array<string, array{\Closure(self): array<int, Node>, array<string, string>, string}> */
+	/** @return array<string, array{string, string}> */
 	public static function checkFailures(): array {
 		return [
-			'a vanished or foreign file' => [static fn (self $test): array => [], [], 'notFound'],
-			'a folder' => [static fn (self $test): array => [2 => $test->createStub(Folder::class)], [], 'notFound'],
-			'a file the listing does not list' => [static fn (self $test): array => [2 => $test->file(2, 'notes.txt', 'text/plain')], [], 'notFound'],
-			'a file changed since the listing' => [static fn (self $test): array => [2 => $test->file(2, 'IMG_0001.JPG')], [2 => 'etag-old'], 'changed'],
-			'a file the user may not delete' => [static fn (self $test): array => [2 => $test->file(2, 'IMG_0001.JPG', deletable: false)], [], 'notPermitted'],
+			'a vanished or foreign file' => ['vanished', 'notFound'],
+			'a folder' => ['folder', 'notFound'],
+			'a file the listing does not list' => ['unlisted', 'notFound'],
+			'a file changed since the listing' => ['changed', 'changed'],
+			'a file the user may not delete' => ['undeletable', 'notPermitted'],
 		];
 	}
 
-	/**
-	 * @param \Closure(self): array<int, Node> $jpeg
-	 * @param array<int, string> $etags
-	 */
 	#[DataProvider('checkFailures')]
-	public function testAFileThatFailsItsCheckLeavesTheWholePictureUntouched(\Closure $jpeg, array $etags, string $result): void {
-		$nodes = [1 => $this->file(1, 'IMG_0001.CR3', 'image/x-canon-cr3')] + $jpeg($this) + [4 => $this->file(4, 'IMG_0002.JPG')];
-		$picture = array_map(static fn (array $file): array => ['fileId' => $file['fileId'], 'etag' => $etags[$file['fileId']] ?? $file['etag']], self::picture(1, 2));
+	public function testAFileThatFailsItsCheckLeavesTheWholePictureUntouched(string $jpeg, string $result): void {
+		$nodes = [1 => $this->file(1, 'IMG_0001.CR3', 'image/x-canon-cr3'), 4 => $this->file(4, 'IMG_0002.JPG')];
+		$node = match ($jpeg) {
+			'vanished' => null,
+			'folder' => $this->createStub(Folder::class),
+			'unlisted' => $this->file(2, 'notes.txt', 'text/plain'),
+			'changed', 'undeletable' => $this->file(2, 'IMG_0001.JPG', deletable: $jpeg !== 'undeletable'),
+		};
+		if ($node !== null) {
+			$nodes[2] = $node;
+		}
+		$picture = [['fileId' => 1, 'etag' => 'etag-1'], ['fileId' => 2, 'etag' => $jpeg === 'changed' ? 'etag-old' : 'etag-2']];
 
 		$results = $this->service($nodes)->trash($this->user(), [$picture, self::picture(4)]);
 

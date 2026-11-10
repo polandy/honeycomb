@@ -91,7 +91,9 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 
 1. **Delete service:** deletes the members and sidecars of each picture through `OCP\Files` into
    the trash bin; a failure is reported per file and leaves a traceable state. An ADR first on
-   what "atomic" means for a pair. Tests for every failure path.
+   what "atomic" means for a pair. Tests for every failure path. `POST /api/v1/trash` (ADR
+   0013): every file of a picture is checked before any is trashed, sidecars go last, and a
+   failure stops that picture and is reported per file.
 2. **Reject review and delete summary:** the review grid of all rejected pictures with rescue,
    then the summary with pictures, files and bytes freed and the trash-bin note; also reachable
    from the selection (Q11).
@@ -874,11 +876,12 @@ honeycomb/
 ├── lib/
 │   ├── AppInfo/Application.php
 │   ├── Controller/             PageController, EntryController, DecisionController,
-│   │                           FileController, SettingsController (thin)
+│   │                           TrashController, FileController, SettingsController (thin)
 │   ├── Service/
 │   │   ├── ListingService.php  one file-cache query: flat entries of a folder
 │   │   ├── PathGuard.php       rechecks every client path: owned, exists, unchanged
-│   │   ├── FileService.php     move, trash, write XMP bytes through OCP\Files
+│   │   ├── TrashService.php    trash whole pictures through OCP\Files (ADR 0013)
+│   │   ├── FileService.php     move, write XMP bytes through OCP\Files
 │   │   ├── DecisionService.php rating, colour label, flag and resume position per user
 │   │   └── SettingsService.php per-user settings (IConfig user values)
 │   ├── Search/                 ISearchQuery and its operators, which OCP does not implement
