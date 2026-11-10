@@ -53,6 +53,7 @@ trait FakeFiles {
 		$folder = $this->createStub(Folder::class);
 		$absolute = rtrim(self::USER_ROOT . $path, '/');
 		$folder->method('getPath')->willReturn($absolute);
+		$folder->method('getName')->willReturn(basename($absolute));
 		$folder->method('isReadable')->willReturn($readable);
 		$folder->method('getRelativePath')->willReturnCallback(
 			static fn (string $node): ?string => match (true) {

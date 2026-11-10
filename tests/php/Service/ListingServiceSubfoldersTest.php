@@ -10,6 +10,7 @@ namespace OCA\Honeycomb\Tests\Service;
 use OCA\Honeycomb\Service\EntryFactory;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\ListingService;
+use OCA\Honeycomb\Service\UserFolderResolver;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -21,7 +22,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 	use FakeFiles;
 
 	private function service(IRootFolder $root, int $entryLimit = ListingService::ENTRY_LIMIT, int $pageSize = ListingService::PAGE_SIZE): ListingService {
-		return new ListingService($root, new EntryFactory($this->createStub(IFilesMetadataManager::class)), $entryLimit, $pageSize);
+		return new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class)), $entryLimit, $pageSize);
 	}
 
 	/** @param list<File> $files */
@@ -105,7 +106,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 				return [];
 			},
 		);
-		$service = new ListingService($this->rootWith(['/Photos' => $photos]), new EntryFactory($metadata));
+		$service = new ListingService(new UserFolderResolver($this->rootWith(['/Photos' => $photos])), new EntryFactory($metadata));
 
 		$listing = $service->list($this->user(), 'Photos', true);
 
