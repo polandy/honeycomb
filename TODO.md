@@ -11,7 +11,6 @@ Add items with `/todo`.
 
 ## Later
 
-- [ ] DELETE-002.12: a test that `Ctrl+Z` after a delete or Remove RAWs does not bring pictures back; the undo history holds only decisions (2026-11-10)
 - [ ] Carry decision rows over to the new file ids after a move across storages, where `Node::move()` copies (ADR 0018) (2026-11-10)
 - [ ] Clean-up job for `honeycomb_decisions` and `honeycomb_positions` rows whose files are deleted for good (ADR 0012 Consequences) (2026-11-10)
 - [ ] Grid: arrow-key focus moves between tiles (Tab only for now) and the phone bottom sheet of `ConfirmDialog` (2026-11-10)
