@@ -32,6 +32,9 @@ optional. At most 60,000 files. For each picture:
    a replaced file goes to the trash bin just before its file takes its place.
 3. If a move fails, the picture's files already moved go back to their old paths, last first, and
    its remaining files are `skipped`. One picture's failure does not stop the others.
+4. A file that gets a new file id, as a move across storages gives it, takes the user's decision
+   row along to the new id, also when it moves back. A row that cannot be carried over is logged as
+   an error; the file stays where it moved.
 
 The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "replaced": false, "path":
 "/Sorted/2026/a.RAF", "newFileId": 7, "etag": "…"}, …], …]}` in the order sent; `path`,
@@ -39,7 +42,7 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
 
 | Result | Meaning |
 |---|---|
-| `moved` | At its new path, which may have a new file id across storages |
+| `moved` | At its new path, which may have a new file id across storages; its decision follows it |
 | `notFound` | Vanished, foreign, a folder or not a type the listing lists |
 | `changed` | Another ETag than the listing's |
 | `notPermitted` | The user may not move it or create in the target folder |
@@ -117,14 +120,24 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
 - **When** it reaches either endpoint
 - **Then** the answer is `401`, and both routes are `POST`, need no admin and keep the CSRF check
 
+### MOVE-002.10 – Decisions follow a new file id
+
+- **Given** a file with the user's decision row that gets a new file id when it moves, or when it
+  moves back
+- **When** the client posts it
+- **Then** the row is stored under the new file id and none is left under the old; other users'
+  rows stay; a row that cannot be carried over is logged as an error and the file is still
+  reported `moved`
+
 ## Out of scope
 
 The name template is MOVE-001; the move plan, conflict choices, report and undo are MOVE-003; the
-move dialog and move summary are M7.3. Carrying decision rows over to new file ids after a move
-across storages is a `TODO.md` item.
+move dialog and move summary are M7.3. Rows of resume positions (DECISIONS-002) are not carried
+over.
 
 ## History
 
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written and implemented with M7.2 (ADR 0018). |
+| 2026-11-10 | Decision rows follow a new file id (MOVE-002.10). |

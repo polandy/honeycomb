@@ -27,4 +27,13 @@ final class FakeDecisionStore implements DecisionStore {
 			$this->rows[$userId][$decision->fileId] = $decision;
 		}
 	}
+
+	#[\Override]
+	public function carryOver(string $userId, int $fileId, int $newFileId): void {
+		$decision = $this->rows[$userId][$fileId] ?? null;
+		if ($decision !== null) {
+			unset($this->rows[$userId][$fileId]);
+			$this->rows[$userId][$newFileId] = new PictureDecision($newFileId, $decision->rating, $decision->colourLabel, $decision->flag, $decision->keepRaw);
+		}
+	}
 }

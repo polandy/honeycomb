@@ -46,13 +46,14 @@ without a target or at 0 files; `Enter` confirms.
 
 **Moving.** Confirming sends the plan's request. The files that moved leave the listing, the
 selection and the loupe; the target becomes the first recent target (5 kept). The toast says
-"Moved *{name}* to *{folder}*" or "Moved *N* photos to *{folder}*", with *Undo*; when a file got a
-new file id, it adds that decisions did not move with the files. When a file failed, the move
-report lists each failed file with its reason, and the toast counts moved and failed files.
+"Moved *{name}* to *{folder}*" or "Moved *N* photos to *{folder}*", with *Undo*; decisions follow
+the files, also to a new file id (MOVE-002.10). When a file failed, the move report lists each
+failed file with its reason, and the toast counts moved and failed files.
 
 **Undo.** *Undo* in the toast sends the undo request (MOVE-003). The files that came back return to
 the listing at their old paths, with their decisions, unless another folder set was opened since;
-then they only move back. `Ctrl+Z` does not undo a move; the undo history holds only decisions.
+then they only move back. A file back under a new file id has its decision read again. `Ctrl+Z`
+does not undo a move; the undo history holds only decisions.
 
 **Failures.** A probe or move request that fails changes nothing and says so in a toast; a move the
 trash bin refuses (`409`, a *Replace* with the trash bin off) says the trash bin is off.
@@ -153,8 +154,9 @@ trash bin refuses (`409`, a *Replace* with the trash bin off) says the trash bin
 ### MOVE-004.14 – Across storages
 
 - **Given** a move the server answers with a new file id for a file
-- **When** the move ends
-- **Then** the toast adds that decisions did not move with the files
+- **When** the move ends, and when it is undone
+- **Then** the toast says nothing about decisions, and the files that come back show their
+  decisions, read under their new file ids
 
 ### MOVE-004.15 – A picture that cannot be named
 
@@ -166,10 +168,10 @@ trash bin refuses (`409`, a *Replace* with the trash bin off) says the trash bin
 
 The name template setting, its presets and the favourite targets list in the settings:
 SETTINGS-001. The endpoints: MOVE-002. The plan, conflicts, report and undo request: MOVE-003.
-Carrying decision rows over to new file ids after a move across storages: `TODO.md` Later.
 
 ## History
 
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written for M7.3. |
+| 2026-11-10 | Decisions follow the files across storages; the toast no longer warns (MOVE-004.14). |

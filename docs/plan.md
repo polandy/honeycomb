@@ -636,8 +636,8 @@ and the loupe's title row, on the key `M` (dialog and summary: MOVE-004).
    user) and the 5 most recent targets are one-tap chips, and keys `1`–`9` in the dialog.
 3. **On the server.** The move runs through `OCP\Files` (`Node::move()`). On the same storage it
    is a rename, so file ids, shares, tags, comments and decisions are kept. Across storages it
-   becomes copy and delete with new file ids; the toast after the move says that decisions did
-   not move with the files.
+   becomes copy and delete with new file ids; the server carries the user's decisions over to
+   them (MOVE-002.10).
 4. **Move summary.** Before anything moves, the dialog lists every file with its new path, and
    counts pictures, files and conflicts. A conflict (the target name already exists) is resolved
    per picture or for all at once: *Add suffix* (default), *Skip* or *Replace*. *Replace* sends

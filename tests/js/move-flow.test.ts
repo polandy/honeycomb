@@ -275,7 +275,7 @@ describe('useMoveFlow: moving and undo', () => {
 	})
 
 	// spec: MOVE-004.14
-	it('says decisions did not move when a file got a new file id', async () => {
+	it('says nothing about decisions when a file got a new file id', async () => {
 		const { moving, single, toasts } = moveFlow(allMoved((fileId) => fileId + 100))
 		moving.open([single])
 		moving.choose('/Out')
@@ -283,6 +283,6 @@ describe('useMoveFlow: moving and undo', () => {
 
 		await moving.confirm()
 
-		expect(toasts.at(-1)!.message).toBe('Moved IMG_2 to Out · decisions did not move with the files')
+		expect(toasts.at(-1)!.message).toBe('Moved IMG_2 to Out')
 	})
 })

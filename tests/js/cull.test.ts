@@ -160,7 +160,7 @@ describe('useCull: removeFiles', () => {
 describe('useCull: restoreFiles', () => {
 	// spec: MOVE-004.11
 	it('puts files back into the listing, pairs them again and keeps their decisions', async () => {
-		const { cull, picture } = await openedCull()
+		const { cull, picture, lookedUp } = await openedCull()
 		const pair = picture('IMG_10')
 		cull.decide({ kind: 'flag', flag: 'picked' }, [pair])
 		const entries = [pair.raw!, pair.rendered!]
@@ -171,6 +171,22 @@ describe('useCull: restoreFiles', () => {
 		expect(picture('IMG_10')).toMatchObject({ raw: { fileId: pair.raw!.fileId }, rendered: { fileId: pair.rendered!.fileId } })
 		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('picked')
 		expect(cull.pictures.value).toHaveLength(3)
+		expect(lookedUp).toHaveLength(1)
+	})
+
+	// spec: MOVE-004.14
+	it('reads the decisions of files back under new file ids', async () => {
+		const rows: StoredDecision[] = []
+		const { cull, picture, lookedUp } = await openedCull(rows)
+		const pair = picture('IMG_10')
+		cull.removeFiles(new Set([pair.raw!.fileId, pair.rendered!.fileId]))
+		rows.push(stored(pair.raw!.fileId + 100, 'picked'), stored(pair.rendered!.fileId + 100, 'picked'))
+
+		cull.restoreFiles([{ ...pair.raw!, fileId: pair.raw!.fileId + 100 }, { ...pair.rendered!, fileId: pair.rendered!.fileId + 100 }])
+		await flushPromises()
+
+		expect(lookedUp.at(-1)).toEqual([pair.raw!.fileId + 100, pair.rendered!.fileId + 100])
+		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('picked')
 	})
 })
 
