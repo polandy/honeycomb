@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 honeycomb contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Reads a pull request's changed paths on stdin and its squash message from SPEC_MESSAGE; fails when
+# behaviour and spec do not change together and no trailer says why (docs/specs/README.md, ADR 0015).
+set -uo pipefail
+
+SPECS=${SPECS_DIR:-docs/specs}
+message=${SPEC_MESSAGE-}
+message=${message//$'\r'/}
+
+behaviour=false spec_changed=false implemented_spec=false code_or_tests=false
+while IFS= read -r path; do
+  [ -n "$path" ] || continue
+  case $path in
+    lib/* | src/* | appinfo/* | templates/* | css/*) behaviour=true code_or_tests=true ;;
+    tests/*) code_or_tests=true ;;
+    "$SPECS"/README.md) ;;
+    "$SPECS"/*.md)
+      spec_changed=true
+      # A deleted spec counts as implemented, so removing one needs code or a reason too.
+      if [ ! -f "$path" ] || grep -qE '^- Status: implemented$' "$path"; then implemented_spec=true; fi
+      ;;
+  esac
+done
+
+trailer() { grep -qE "^$1: *[^ ]" <<<"$message"; }
+
+failed=0
+if $behaviour && ! $spec_changed && ! trailer Spec-Unchanged; then
+  echo "Behaviour code changed but no spec in $SPECS/ did."
+  echo "Update the spec in this pull request, or add 'Spec-Unchanged: <reason>' to its description."
+  failed=1
+fi
+if $implemented_spec && ! $code_or_tests && ! trailer Spec-Only; then
+  echo "An implemented spec in $SPECS/ changed but no code or test did."
+  echo "Change the code and tests with it, or add 'Spec-Only: <reason>' to the description."
+  failed=1
+fi
+exit $failed

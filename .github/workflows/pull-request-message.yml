@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# The title becomes the squash commit subject; `edited` reruns this check without restarting CI.
+# Title and description become the squash commit; `edited` reruns these checks without restarting CI.
 name: Pull request message
 
 on:
@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: pull-request-message-${{ github.ref }}
@@ -29,3 +30,24 @@ jobs:
         env:
           PULL_REQUEST_TITLE: ${{ github.event.pull_request.title }}
         run: scripts/check-pr-title.sh
+
+  spec-trailers:
+    name: spec trailers
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: scripts/spec-trailers.sh
+        # Passed as variables, never interpolated into the script, so the text cannot inject commands.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          PULL_REQUEST_TITLE: ${{ github.event.pull_request.title }}
+          PULL_REQUEST_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -o pipefail
+          gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[].filename' |
+            SPEC_MESSAGE="$PULL_REQUEST_TITLE"$'\n\n'"$PULL_REQUEST_BODY" scripts/spec-trailers.sh
