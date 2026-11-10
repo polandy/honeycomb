@@ -109,18 +109,6 @@ a glance, at any size, without waiting for a sharp image of every tile.
 - **When** the cull opens
 - **Then** the grid shows the first 20,000 by capture time
 
-## Out of scope
-
-Pairing (LISTING-002), the folder picker and its over-the-cap notice (LISTING-003), filters and
-sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard focus moves
-(KEYS-001).
-
-## History
-
-| Date | Change |
-|---|---|
-| 2026-11-10 | Written from the merged M2.3 (#41) |
-
 ### GRID-001.12 – A tile is a skeleton until its preview loads
 
 - **Given** a tile whose small preview has not loaded yet
@@ -133,3 +121,15 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 - **When** its listing has not arrived yet
 - **Then** skeleton tiles take the place of the grid and a status says *Loading photos…*, until
   the cull opens or the listing fails
+
+## Out of scope
+
+Pairing (LISTING-002), the folder picker and its over-the-cap notice (LISTING-003), filters and
+sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard focus moves
+(KEYS-001).
+
+## History
+
+| Date | Change |
+|---|---|
+| 2026-11-10 | Written from the merged M2.3 (#41) |
