@@ -4,16 +4,16 @@
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import { DEFAULT_SETTINGS } from '../../../src/logic/settings.ts'
-import { GESTURE_GUIDE_SEEN_KEY, INFO_OPEN_KEY, INFO_WIDTH_KEY, NAVIGATION_SHOWN_KEY } from '../../../src/loupe-panels.ts'
+import { INFO_WIDTH_KEY, NAVIGATION_SHOWN_KEY } from '../../../src/loupe-panels.ts'
 import { tap } from './loupe-pointer.ts'
 import { button, indices, mountLoupe } from './mount-loupe.ts'
 
 enableAutoUnmount(afterEach)
 
 describe('PhotoLoupe', () => {
-	// spec: LOUPE-001.15
+	// spec: LOUPE-001.15, LOUPE-003.6
 	it('shows the gesture guide above the overlays on its first opening, until Got it, then never again', async () => {
-		const { wrapper, root, stored } = await mountLoupe(4, {}, true)
+		const { wrapper, root, savedViewState } = await mountLoupe(4, {}, true)
 		const guide = () => wrapper.find('.gesture-guide')
 		expect(guide().exists()).toBe(true)
 		expect(root.element.lastElementChild).toBe(guide().element)
@@ -23,9 +23,10 @@ describe('PhotoLoupe', () => {
 
 		expect(guide().exists()).toBe(false)
 		expect(document.activeElement).toBe(root.element)
-		expect(stored).toEqual({ [GESTURE_GUIDE_SEEN_KEY]: 'true' })
+		expect(savedViewState).toEqual([{ gestureGuideSeen: true }])
+		const viewState = wrapper.props('viewState')
 		wrapper.unmount()
-		const again = await mountLoupe(4, stored, true)
+		const again = await mountLoupe(4, {}, true, { viewState })
 		expect(again.wrapper.find('.gesture-guide').exists()).toBe(false)
 	})
 
@@ -159,9 +160,9 @@ describe('PhotoLoupe', () => {
 		expect(zoomButton.text()).toBe('Fit')
 	})
 
-	// spec: LOUPE-001.13
+	// spec: LOUPE-001.13, LOUPE-003.6
 	it('opens the info panel by I beside the overlays, keeps its state and width, and counts the loaded neighbours', async () => {
-		const { wrapper, root, stored } = await mountLoupe(4, { [INFO_WIDTH_KEY]: '320' })
+		const { wrapper, root, stored, savedViewState } = await mountLoupe(4, { [INFO_WIDTH_KEY]: '320' })
 		expect(wrapper.find('.loupe-info').exists()).toBe(false)
 		expect(root.attributes('style')).toContain('--photo-loupe-panel: 0px')
 		await root.trigger('keydown', { key: 'i' })
@@ -169,7 +170,8 @@ describe('PhotoLoupe', () => {
 		expect(root.attributes('style')).toContain('--photo-loupe-panel: 324px')
 		expect(wrapper.find('.loupe-info').text()).toContain('5 of 5 neighbours loaded')
 		await wrapper.find('[role="separator"]').trigger('keydown', { key: 'Home' })
-		expect(stored).toEqual({ [GESTURE_GUIDE_SEEN_KEY]: 'true', [INFO_OPEN_KEY]: 'true', [INFO_WIDTH_KEY]: '220' })
+		expect(stored).toEqual({ [INFO_WIDTH_KEY]: '220' })
+		expect(savedViewState).toEqual([{ infoPanelOpen: true }])
 		await button(wrapper, 'Toggle info panel').trigger('click')
 		expect(wrapper.find('.loupe-info').exists()).toBe(false)
 	})
@@ -193,7 +195,7 @@ describe('PhotoLoupe', () => {
 		expect(root.classes('photo-loupe--below-header')).toBe(true)
 		expect(toggle().attributes('aria-pressed')).toBe('true')
 		expect(root.attributes('aria-modal')).toBe('false')
-		expect(stored).toEqual({ [GESTURE_GUIDE_SEEN_KEY]: 'true', [NAVIGATION_SHOWN_KEY]: 'true' })
+		expect(stored).toEqual({ [NAVIGATION_SHOWN_KEY]: 'true' })
 
 		await root.trigger('keydown', { key: 'Tab' })
 		expect(root.classes('photo-loupe--below-header')).toBe(false)

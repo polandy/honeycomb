@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { cullFolder } from './cull.ts'
+import { cullFolder, resetViewState } from './cull.ts'
 import { createFolder, upload } from './files.ts'
 
 const PHOTO_COUNT = 3
@@ -82,6 +82,7 @@ function startTiming(page: Page, alt: string) {
 // spec: LOUPE-001.12
 test('shows a prefetched 24 MP neighbour without a request when paging', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
+	await resetViewState(page)
 	const folder = `Budget ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
 	const measured = await photos(page)

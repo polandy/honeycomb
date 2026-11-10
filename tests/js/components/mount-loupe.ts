@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Settings } from '../../../src/logic/settings.ts'
+import type { ViewState } from '../../../src/logic/view-state.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach } from 'vitest'
@@ -8,8 +9,7 @@ import PhotoLoupe from '../../../src/components/PhotoLoupe.vue'
 import { hotkeyListener } from '../../../src/hotkeys.ts'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
 import { DEFAULT_SETTINGS } from '../../../src/logic/settings.ts'
-import { GESTURE_GUIDE_SEEN_KEY } from '../../../src/loupe-panels.ts'
-import { fakeStorage } from '../app-cull.ts'
+import { fakeStorage, fakeViewState } from '../app-cull.ts'
 import { fakeScheduler } from '../fake-scheduler.ts'
 import { listingEntry, picturesOf } from '../logic/listing-entries.ts'
 
@@ -20,9 +20,7 @@ export const PICTURES = picturesOf(Array.from({ length: 10 }, (_, at) => listing
 
 /** The loupe at `index` on a 1000 × 600 stage with its keys on the window as the app installs them, attached so focus works; the gesture guide was seen unless `firstOpening`; `props` override the defaults, and a settings change applies as the app applies it. */
 export async function mountLoupe(index = 4, stored: Record<string, string> = {}, firstOpening = false, props: Record<string, unknown> = {}) {
-	if (!firstOpening) {
-		stored[GESTURE_GUIDE_SEEN_KEY] = 'true'
-	}
+	const savedViewState: Partial<ViewState>[] = []
 	const decoded: string[] = []
 	const fullscreen: HTMLElement[] = []
 	const scheduler = fakeScheduler()
@@ -34,6 +32,7 @@ export async function mountLoupe(index = 4, stored: Record<string, string> = {},
 			folderSet: { paths: ['/P'], subfolders: true },
 			decisionOf: () => UNDECIDED,
 			storage: fakeStorage(stored),
+			viewState: fakeViewState({ gestureGuideSeen: !firstOpening }, savedViewState),
 			imageUrl: (fileId: number, size: number) => `/img/${fileId}/${size}`,
 			decode: async (src: string) => {
 				decoded.push(src)
@@ -55,7 +54,7 @@ export async function mountLoupe(index = 4, stored: Record<string, string> = {},
 	listeners.push(listener)
 	window.addEventListener('keydown', listener)
 	await flushPromises()
-	return { wrapper, root: wrapper.find('[role="dialog"]'), decoded, fullscreen, scheduler, stored }
+	return { wrapper, root: wrapper.find('[role="dialog"]'), decoded, fullscreen, scheduler, stored, savedViewState }
 }
 
 export const button = (wrapper: Awaited<ReturnType<typeof mountLoupe>>['wrapper'], label: string) => wrapper.find(`button[aria-label="${label}"]`)
