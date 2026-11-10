@@ -274,3 +274,11 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: The shortcut sheet drops the mockup's rows without a key-map key (`Shift+click`,
   `Ctrl+wheel`) and the "(Settings › Keyboard)" suffix of *Vi keys* until the M4.4 setting; the
   gesture guide labels its keys *Pick*, *Reject*, *Unflag*, *Zoom* and *All keys*.
+- 2026-11-10: Trashing gets its own `TrashService` and `TrashController` instead of the plan's
+  shared `FileService`, one responsibility each; moving and writing XMP get theirs in M5 and M7.2.
+- 2026-11-10: The trash endpoint rechecks a file by the ETag the listing gave, not by mtime, as
+  the ETag also changes on a write within the same second.
+- 2026-11-10: Trashing refuses only files the listing lists (`image/*` or `.xmp`) and answers
+  `notFound` for others, so a client bug cannot trash an unrelated file and nothing is revealed.
+- 2026-11-10: With the trash bin app disabled the trash endpoint answers `409` and touches
+  nothing, because `Node::delete()` would then delete for good (CLAUDE.md rule 2).

@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] M4.1: Delete service — members and sidecars into the trash bin through `OCP\Files`, per-file failure report; ADR on pair atomicity first; tests for every failure path (2026-11-09)
 - [ ] M4.2: Reject review (grid of rejects, rescue single pictures) and delete summary with pictures · files · bytes freed, from "delete rejected" and from the selection (Q11) (2026-11-09)
 - [ ] M4.3: Remove RAWs — ⋯ menu action on the current view: every pair not marked Keep RAW and not rejected loses only its RAW member and that member's own `<raw>.xmp` to the trash bin, JPEG, shared `<base>.xmp` and decisions stay; summary with pictures · files · bytes freed, the skipped counts and two thumbnail groups (RAW removed, RAW stays) where a tap toggles Keep RAW; extends the M4.1 delete service under its ADR on pair atomicity; tests for every failure path (`docs/plan.md` Keep RAW and Remove RAWs) (2026-11-09)
 - [ ] M4.4: Per-user settings — extensions, folder mode, singles, gestures, auto-advance, show flag buttons, vi keys (2026-11-09)

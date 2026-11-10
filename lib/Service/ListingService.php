@@ -78,7 +78,16 @@ final class ListingService {
 		if ($relative === null || preg_match('#/\.#', $relative) === 1) {
 			return false;
 		}
-		return str_starts_with($node->getMimetype(), 'image/') || str_ends_with(strtolower($node->getName()), '.xmp');
+		return self::isListedType($node);
+	}
+
+	/** Whether the listing lists a file of this type: an image or an XMP sidecar. */
+	public static function isListedType(File $file): bool {
+		return str_starts_with($file->getMimetype(), 'image/') || self::isSidecar($file);
+	}
+
+	public static function isSidecar(File $file): bool {
+		return str_ends_with(strtolower($file->getName()), '.xmp');
 	}
 
 	/** @return \Generator<Node> */
