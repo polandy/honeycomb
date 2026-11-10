@@ -15,7 +15,8 @@ function headerUncovered(page: Page) {
 	})
 }
 
-test('opens a photo in the loupe, pages by key and closes back to the grid', async ({ page }) => {
+/** Culls a new folder of IMG_0001 and IMG_0002, opens IMG_0001 in the loupe and dismisses the guide. */
+async function openLoupe(page: Page) {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Loupe ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
@@ -33,6 +34,11 @@ test('opens a photo in the loupe, pages by key and closes back to the grid', asy
 	const guide = loupe.getByRole('dialog', { name: 'How to cull' })
 	await guide.getByRole('button', { name: 'Got it' }).click()
 	await expect(guide).toBeHidden()
+	return loupe
+}
+
+test('opens a photo in the loupe, pages by key and closes back to the grid', async ({ page }) => {
+	const loupe = await openLoupe(page)
 
 	await page.keyboard.press('ArrowRight')
 	await expect(loupe.getByRole('heading', { name: 'IMG_0002' })).toBeVisible()
@@ -45,4 +51,23 @@ test('opens a photo in the loupe, pages by key and closes back to the grid', asy
 	await page.keyboard.press('Escape')
 	await expect(loupe).toBeHidden()
 	await expect(page.getByRole('gridcell', { name: 'IMG_0002, JPG only' })).toBeFocused()
+})
+
+test('picks by P, undoes it by Ctrl+Z and opens the shortcut sheet by ?', async ({ page }) => {
+	const loupe = await openLoupe(page)
+	const toast = page.getByRole('status').filter({ hasText: 'IMG_0001' })
+
+	await page.keyboard.press('p')
+	await expect(toast).toContainText('Picked IMG_0001')
+	await page.keyboard.press('Control+z')
+	await expect(toast).toContainText('Undid: Picked IMG_0001')
+	await page.keyboard.press('ArrowLeft')
+	await expect(loupe.getByRole('heading', { name: 'IMG_0001' })).toBeVisible()
+	await expect(loupe.getByRole('button', { name: 'Pick' }).first()).toHaveAttribute('aria-pressed', 'false')
+
+	await page.keyboard.press('Shift+?')
+	const sheet = page.getByRole('dialog', { name: 'Keyboard shortcuts' })
+	await expect(sheet.getByRole('heading', { name: 'Flags' })).toBeVisible()
+	await sheet.getByRole('button', { name: 'Close' }).last().click()
+	await expect(sheet).toBeHidden()
 })
