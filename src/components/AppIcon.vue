@@ -1,0 +1,44 @@
+<!--
+  - SPDX-FileCopyrightText: 2026 honeycomb contributors
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<script lang="ts">
+/** The mockup's stroke icons (docs/mockup/index.html, IC), drawn in the current text colour. */
+const PATHS = {
+	check: 'M5 12l5 5 9-10',
+	chevronRight: 'M9 6l6 6-6 6',
+	folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+	home: 'M4 11l8-7 8 7v9H4zM10 20v-6h4v6',
+	more: 'M5 12h.01M12 12h.01M19 12h.01',
+} as const
+
+/** The name of one of the app's icons. */
+export type IconName = keyof typeof PATHS
+</script>
+
+<script setup lang="ts">
+const props = defineProps<{ name: IconName }>()
+</script>
+
+<template>
+	<svg
+		class="app-icon"
+		viewBox="0 0 24 24"
+		aria-hidden="true"
+		focusable="false">
+		<path :d="PATHS[props.name]" />
+	</svg>
+</template>
+
+<style scoped>
+.app-icon {
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+</style>
