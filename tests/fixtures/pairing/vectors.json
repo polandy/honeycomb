@@ -258,6 +258,17 @@
       ]
     },
     {
+      "name": "in separate subfolders a sidecar named after two members of the same name belongs to neither",
+      "source": "Q16",
+      "sharedWithFramehive": false,
+      "settings": { "folderMode": { "kind": "separate-subfolders", "rawSubfolder": "RAW", "renderedSubfolder": "JPG" } },
+      "files": ["/Trip/RAW/A.NEF", "/Trip/JPG/A.NEF", "/Trip/RAW/A.NEF.xmp"],
+      "pictures": [
+        { "folder": "/Trip", "raw": "/Trip/RAW/A.NEF", "rendered": null, "sidecars": [], "ambiguous": true },
+        { "folder": "/Trip", "raw": "/Trip/JPG/A.NEF", "rendered": null, "sidecars": [], "ambiguous": true }
+      ]
+    },
+    {
       "name": "in the same folder mode RAW and JPG subfolders do not pair",
       "source": "Q16",
       "sharedWithFramehive": true,
