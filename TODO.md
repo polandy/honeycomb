@@ -12,7 +12,6 @@ Add items with `/todo`.
 ## Later
 
 - [ ] Measure the image budgets of `docs/plan.md` Image delivery with real 24 MP RAW+JPEG pairs (IMAGES-001.12), incl. the `512` and `2048` tiers that Nextcloud delivers at up to 1024 and 4096 px (ADR 0010) — needs the owner's files (2026-11-10)
-- [ ] App: `UndoToast` and `createToast` (`src/toast.ts`) hold the toast while it has focus or is pressed and restart its full time on release, as the mockup does (WCAG 2.2.1) — UX review L4 (2026-11-10)
 - [ ] Mockup: mark filmstrip and tile states without dimming the photo (filmstrip opacity .6, the tile's bottom gradient without stars or flag) — UX review L5 (2026-11-09)
 - [ ] Mockup: settings entry to show the loupe gesture guide again — UX review L6 (2026-11-09)
 - [ ] Mockup: quieter toolbar count badges (neutral, honey only for the active state) — UX review L7 (2026-11-09)

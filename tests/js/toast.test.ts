@@ -42,4 +42,75 @@ describe('useToast', () => {
 		toast.act()
 		expect(toast.current.value).toEqual({ message: 'Undid: Rejected IMG_1', action: null })
 	})
+
+	describe('held by focus or a press', () => {
+		const shown = () => {
+			const scheduler = fakeScheduler()
+			const toast = useToast(scheduler.schedule)
+			toast.show('Rejected IMG_1', { label: 'Undo', run: () => undefined })
+			return { scheduler, toast }
+		}
+		const live = (scheduler: ReturnType<typeof fakeScheduler>) => scheduler.timers.filter((timer) => !timer.cancelled).length
+
+		// spec: LOUPE-002.12
+		it('stops its timer while the focus is inside and restarts the full time when it leaves', () => {
+			const { scheduler, toast } = shown()
+
+			toast.setFocused(true)
+			expect(live(scheduler)).toBe(0)
+			toast.setFocused(false)
+
+			expect(live(scheduler)).toBe(1)
+			expect(scheduler.timers.map((timer) => timer.ms)).toEqual([TOAST_MS, TOAST_MS])
+		})
+
+		// spec: LOUPE-002.12
+		it('stops its timer while a pointer is pressed on it and restarts the full time on release', () => {
+			const { scheduler, toast } = shown()
+
+			toast.setPressed(true)
+			expect(live(scheduler)).toBe(0)
+			toast.setPressed(false)
+
+			expect(live(scheduler)).toBe(1)
+			scheduler.fire()
+			expect(toast.current.value).toBeNull()
+		})
+
+		// spec: LOUPE-002.12
+		it('stays held until both the focus and the press have ended', () => {
+			const { scheduler, toast } = shown()
+
+			toast.setFocused(true)
+			toast.setPressed(true)
+			toast.setPressed(false)
+			expect(live(scheduler)).toBe(0)
+			toast.setFocused(false)
+
+			expect(live(scheduler)).toBe(1)
+		})
+
+		it('does not start a second timer when a hold ends twice', () => {
+			const { scheduler, toast } = shown()
+
+			toast.setFocused(false)
+			toast.setPressed(false)
+
+			expect(scheduler.timers).toHaveLength(1)
+		})
+
+		it('holds a replacing toast while the focus is still inside, and forgets the hold once hidden', () => {
+			const { scheduler, toast } = shown()
+			toast.setFocused(true)
+
+			toast.show('second', { label: 'Undo', run: () => undefined })
+			expect(live(scheduler)).toBe(0)
+			toast.act()
+			toast.setPressed(false)
+			expect(live(scheduler)).toBe(0)
+
+			toast.show('third')
+			expect(live(scheduler)).toBe(1)
+		})
+	})
 })

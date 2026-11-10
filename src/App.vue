@@ -280,7 +280,7 @@ useHotkeys(() => {
 					v-if="toast.current.value !== null"
 					:toast="toast.current.value"
 					:top="overlayScreen !== undefined"
-					@act="toast.act" />
+					v-bind="toast.listeners" />
 			</Teleport>
 		</NcAppContent>
 		<AppTooltip :container="overlayScreen" :schedule="props.schedule" />
