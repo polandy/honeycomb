@@ -40,6 +40,23 @@ describe('App: the settings', () => {
 		expect(savedSettings).toEqual([{ ...DEFAULT_SETTINGS, showSingles: false }])
 	})
 
+	it('clears the selection when the pairing changes, but not on another change', async () => {
+		const { wrapper } = mountApp()
+		await openCull(wrapper)
+		wrapper.findComponent(GridToolbar).vm.$emit('update:selecting', true)
+		wrapper.findComponent(PhotoGrid).vm.$emit('update:selection', { ids: new Set([1, 4]), anchor: 4 })
+		await flushPromises()
+		const selected = () => [...wrapper.findComponent(PhotoGrid).props('selection')!.ids]
+
+		wrapper.findComponent(SettingsDialog).vm.$emit('update', { viKeys: true })
+		await flushPromises()
+		expect(selected()).toEqual([1, 4])
+		wrapper.findComponent(SettingsDialog).vm.$emit('update', { renderedExtensions: ['jpg', 'tif'] })
+		await flushPromises()
+
+		expect(selected()).toEqual([])
+	})
+
 	it('gives the folder picker the pairing settings', async () => {
 		const { wrapper } = mountApp({ loadSettings: async () => ({ rawExtensions: ['nef'] }) })
 		await flushPromises()
