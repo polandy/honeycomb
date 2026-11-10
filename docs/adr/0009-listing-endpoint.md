@@ -18,7 +18,8 @@ holds.
   the usual CSRF token. `path` is relative to the user's files; an empty `path` is the root.
 - **Response:** `{"entries": [...], "truncated": false}`. An entry is `fileId`, `path` (from the
   user's files, with a leading `/`), `size`, `mtime`, `etag`, `mime`, and `captureTime`,
-  `orientation`, `width`, `height` from Nextcloud's file metadata, each `null` where it has none.
+  `orientation`, `width`, `height`, `camera` (EXIF make and model) from Nextcloud's file
+  metadata, each `null` where it has none.
   Entries come in file id order; the client sorts.
 - **What is listed:** files whose mime type is `image/*` or whose name ends in `.xmp`, below no
   hidden folder or hidden name (a segment starting with `.`) beneath the picked folder. Folders

@@ -23,6 +23,11 @@ describe('changeText', () => {
 		expect(changeText({ change, names })).toBe(text)
 	})
 
+	// spec: SERIES-001.9
+	it('words Pick this, reject the rest by the picked name', () => {
+		expect(changeText({ change: { pickRest: 'IMG_3' }, names: ['IMG_3', 'IMG_4'] })).toBe('Picked IMG_3, rejected the rest')
+	})
+
 	it('keeps a name as it is', () => {
 		expect(changeText({ change: { flag: 'picked' }, names: ['A & <B>'] })).toBe('Picked A & <B>')
 	})

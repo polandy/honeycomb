@@ -59,7 +59,7 @@ final class ListingServiceTest extends TestCase {
 		$metadata = [7 => $this->metadata([
 			'photos-original_date_time' => 1_699_999_000,
 			'photos-size' => ['width' => 6000, 'height' => 4000],
-			'photos-ifd0' => ['Orientation' => 6, 'Make' => 'Canon'],
+			'photos-ifd0' => ['Orientation' => 6, 'Make' => ' Canon ', 'Model' => 'EOS R5'],
 		])];
 
 		$listing = $this->service($this->rootWith(['/Photos' => $folder]), $metadata)->list($this->user(), '/Photos', false);
@@ -75,6 +75,7 @@ final class ListingServiceTest extends TestCase {
 			'orientation' => 6,
 			'width' => 6000,
 			'height' => 4000,
+			'camera' => 'Canon EOS R5',
 		]], $this->entriesOf($listing));
 	}
 
@@ -84,6 +85,7 @@ final class ListingServiceTest extends TestCase {
 			'none extracted' => [[]],
 			'dimensions without height' => [['photos-size' => ['width' => 6000]]],
 			'orientation not a number' => [['photos-ifd0' => ['Orientation' => 'top-left']]],
+			'camera blank or not text' => [['photos-ifd0' => ['Make' => ' ', 'Model' => 5]]],
 		];
 	}
 
@@ -101,7 +103,19 @@ final class ListingServiceTest extends TestCase {
 			$this->assertNull($json['orientation']);
 			$this->assertNull($json['width']);
 			$this->assertNull($json['height']);
+			$this->assertNull($json['camera']);
 		}
+	}
+
+	// spec: LISTING-001.2
+	public function testACameraWithOnlyAModelIsTheModel(): void {
+		$folder = $this->folder('/Photos');
+		$folder->method('getDirectoryListing')->willReturn([$this->file(7, '/Photos/IMG_0007.JPG')]);
+		$metadata = [7 => $this->metadata(['photos-ifd0' => ['Model' => 'X100V']])];
+
+		$listing = $this->service($this->rootWith(['/Photos' => $folder]), $metadata)->list($this->user(), '/Photos', false);
+
+		$this->assertSame('X100V', $this->entriesOf($listing)[0]['camera']);
 	}
 
 	// spec: LISTING-001.6
