@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] M7.2: Move — ADR on the move API and pair atomicity first; backend moves the whole picture through `OCP\Files` and rechecks every path, conflicts (suffix, skip, replace into the trash bin) resolved in TypeScript, undo, per-file failure report (2026-11-09)
 - [ ] M7.3: Move dialog and move summary — target picker, favourite and recent targets, conflict choices, undo toast, key `M`, from the selection, the loupe and the filter result (2026-11-09)
 - [ ] M7.4: Name template setting with presets and a live preview on 5 sample pictures (2026-11-09)
 
@@ -22,6 +21,7 @@ Add items with `/todo`.
 - [ ] LOUPE-002.11: a test that Pick and Reject sit at the side edges in landscape and in a row in portrait (2026-11-10)
 - [ ] DELETE-001.8: a test that trashed files keep their decision rows, so a picture restored from the trash bin keeps its decision (ADR 0013) (2026-11-10)
 - [ ] DELETE-002.12: a test that `Ctrl+Z` after a delete or Remove RAWs does not bring pictures back; the undo history holds only decisions (2026-11-10)
+- [ ] Carry decision rows over to the new file ids after a move across storages, where `Node::move()` copies (ADR 0018) (2026-11-10)
 - [ ] Clean-up job for `honeycomb_decisions` and `honeycomb_positions` rows whose files are deleted for good (ADR 0012 Consequences) (2026-11-10)
 - [ ] Grid: list RAW files whose type Nextcloud does not know (`.CR3` uploads get `application/octet-stream` and are skipped by the listing) — a mimetype mapping or a listing by RAW extension; decide before M4.3 (2026-11-10)
 - [ ] Grid: arrow-key focus moves between tiles (Tab only for now) and the phone bottom sheet of `ConfirmDialog` (2026-11-10)
