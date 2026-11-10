@@ -5,6 +5,7 @@ import { flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import FolderPicker from '../../src/components/FolderPicker.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
+import NoFolderState from '../../src/components/NoFolderState.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import { logger } from '../../src/logger.ts'
 import { ENTRIES, fakeStorage, mountApp, openCull, SET, shownNames } from './app-cull.ts'
@@ -27,6 +28,18 @@ describe('App', () => {
 		expect(wrapper.text()).toContain(`${MARK}Choose a folder…`)
 		expect(wrapper.findComponent(FolderPicker).props('current')).toBeNull()
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
+	})
+
+	// spec: APP-001.3
+	it('opens the folder picker again from the no-folder state', async () => {
+		const { wrapper } = mountApp()
+		wrapper.findComponent(FolderPicker).vm.$emit('cancel')
+		await flushPromises()
+		expect(wrapper.findComponent(FolderPicker).exists()).toBe(false)
+
+		await wrapper.findComponent(NoFolderState).find('button').trigger('click')
+
+		expect(wrapper.findComponent(FolderPicker).props('current')).toBeNull()
 	})
 
 	// spec: IMAGES-001.10
