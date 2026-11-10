@@ -41,6 +41,7 @@ final class EntryControllerTest extends TestCase {
 		$response = $this->controller($this->rootWith(['/Photos' => $photos]), $this->user())->index('Photos', true);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		/** @var array{entries: list<array{path: string}>, truncated: bool} $json */
 		$json = json_decode($response->render(), true, flags: JSON_THROW_ON_ERROR);
 		$this->assertSame(['/Photos/2024/IMG_0001.JPG'], array_column($json['entries'], 'path'));
 		$this->assertFalse($json['truncated']);

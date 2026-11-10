@@ -11,19 +11,19 @@ use OCA\Honeycomb\Service\Listing;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
-use OCP\FilesMetadata\Exceptions\FilesMetadataNotFoundException;
-use OCP\FilesMetadata\Model\IFilesMetadata;
-use OCP\IUser;
 use OCP\Files\Search\ISearchBinaryOperator;
 use OCP\Files\Search\ISearchComparison;
 use OCP\Files\Search\ISearchOperator;
 use OCP\Files\Search\ISearchOrder;
 use OCP\Files\Search\ISearchQuery;
+use OCP\FilesMetadata\Exceptions\FilesMetadataNotFoundException;
+use OCP\FilesMetadata\Model\IFilesMetadata;
+use OCP\IUser;
 use PHPUnit\Framework\MockObject\Stub;
 
 /** Stubs of `OCP\Files` for the user `alice`, whose files live under `/alice/files`. */
 trait FakeFiles {
-	private const USER_ROOT = '/alice/files';
+	private const string USER_ROOT = '/alice/files';
 
 	/** @return list<array<string, mixed>> */
 	private function entriesOf(Listing $listing): array {
@@ -64,11 +64,14 @@ trait FakeFiles {
 		return $folder;
 	}
 
-	/** A root folder whose user folder resolves `$nodes` by their path below the user's files. */
+	/**
+	 * A root folder whose user folder resolves `$nodes` by their path below the user's files.
+	 * @param array<string, \OCP\Files\Node|\Throwable> $nodes
+	 */
 	private function rootWith(array $nodes): IRootFolder {
 		$userFolder = $this->folder('');
 		$userFolder->method('get')->willReturnCallback(
-			static function (string $path) use ($nodes) {
+			static function (string $path) use ($nodes): \OCP\Files\Node {
 				$key = '/' . trim($path, '/');
 				if (!isset($nodes[$key])) {
 					throw new \OCP\Files\NotFoundException($path);
@@ -128,6 +131,7 @@ trait FakeFiles {
 		}
 		$this->assertInstanceOf(ISearchComparison::class, $operator);
 		$value = $operator->getValue();
+		$this->assertTrue(is_string($value) || is_int($value));
 		return match ([$operator->getField(), $operator->getType()]) {
 			['mimetype', ISearchComparison::COMPARE_LIKE] => str_starts_with($file->getMimetype(), rtrim((string)$value, '%')),
 			['name', ISearchComparison::COMPARE_LIKE] => str_ends_with(strtolower($file->getName()), ltrim((string)$value, '%')),

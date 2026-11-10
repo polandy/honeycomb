@@ -50,3 +50,17 @@ Smaller decisions made during implementation, one dated line each; larger ones b
   `dev-stable35`, the branch Nextcloud publishes, locked by `composer.lock`.
 - 2026-11-10: The convention gates run in their own always-on CI job; they need no setup and take
   seconds.
+- 2026-11-10: The listing is `GET /api/v1/entries?path=…&subfolders=1` rather than a path
+  segment in the URL, so the root folder and names with `#`, `?` or `%` need no special route
+  (ADR 0009).
+- 2026-11-10: The listing caps at 60,000 entries, not 20,000: the server does not pair, and
+  20,000 pictures of a RAW, a JPEG and a sidecar each are 60,000 files. The client applies the
+  20,000-picture cap after pairing.
+- 2026-11-10: The subfolder search pages by file id in pages of 5,000 and reads metadata in
+  batches of 1,000 ids, so memory stays flat and no `IN` list exceeds a database's limit.
+- 2026-11-10: Hidden names are skipped too, not only hidden folders, so macOS `._IMG_0001.JPG`
+  files never pose as pictures; a hidden folder the user picks on purpose is listed.
+- 2026-11-10: EXIF basics come from the Photos app's metadata keys; without them the fields are
+  `null` and the client falls back to `mtime`. Width and height come only as a pair.
+- 2026-11-10: The listing's per-folder shared flag moves from M1.2 to M5, the first item that
+  acts on it; detecting outgoing shares needs `OCP\Share\IManager` and its own tests.
