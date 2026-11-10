@@ -1,6 +1,6 @@
 # MOVE-004 – Move dialog and move summary
 
-- Status: accepted
+- Status: implemented
 - Area: move
 - Origin: `docs/plan.md` Moving pictures, M7.3, mockup move dialog (`dlgMove`)
 - Depends on: MOVE-001, MOVE-002, MOVE-003, SETTINGS-001, KEYS-001

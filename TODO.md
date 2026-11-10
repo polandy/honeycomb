@@ -9,8 +9,7 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] M7.3: Move dialog and move summary — target picker, favourite and recent targets, conflict choices, undo toast, key `M`, from the selection, the loupe and the filter result (2026-11-09)
-- [ ] M7.4: Name template setting with presets and a live preview on 5 sample pictures (2026-11-09)
+- [ ] M7.4: Name template setting with presets and a live preview on 5 sample pictures, and the favourite targets list in the settings (2026-11-09)
 
 ## Later
 

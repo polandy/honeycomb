@@ -461,3 +461,22 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: M7.2 adds no Playwright test: it has no UI yet; the move dialog's e2e comes with M7.3.
 - 2026-11-10: A move that rolls back leaves the folders it created, empty: another picture of the
   same move may already use them, and an empty folder loses nothing (ADR 0018).
+- 2026-11-10: A move is undone only by its toast's *Undo*; `Ctrl+Z` keeps undoing decisions only
+  (MOVE-004).
+- 2026-11-10: Moved files leave the listing by `cull.removeFiles`, the loupe follows by
+  `followReplaced` and the selection drops them; *Undo* re-adds them by `cull.restoreFiles`.
+- 2026-11-10: The target picker forbids the folders of the open folder set; a target below a set
+  folder (subfolders on) hides the moved pictures until the set is reopened.
+- 2026-11-10: When a moved file's new file id differs from the old one (across storages), the toast
+  adds that decisions did not move with the files.
+- 2026-11-10: The move dialog names files by `DEFAULT_NAME_TEMPLATE`; the template text is an
+  input of the move flow until the setting arrives (M7.4).
+- 2026-11-10: A picture's new name uses the times and camera of its rendered member, else of its
+  RAW member.
+- 2026-11-10: `moveFavourites` and `moveRecent` (the 5 last targets) live in the settings blob
+  (SETTINGS-001.15).
+- 2026-11-10: With a *Replace* chosen, the move summary's note adds that replaced files stay in the
+  Nextcloud trash bin; the move texts live in `src/move-text.ts`.
+- 2026-11-10: Failed files open a move report without retry; a failed probe or move closes the
+  dialog with a toast, and a 409 says the Nextcloud trash bin is off.
+- 2026-11-10: The move summary shows the name template without a "change it in Settings" hint.

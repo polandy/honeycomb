@@ -14,7 +14,7 @@ merged code does. Spec, tests and code change in the same pull request.
 | `grid/` | [GRID-001](grid/GRID-001-grid.md) grid, [GRID-002](grid/GRID-002-filters-and-sort.md) filters, scope, progress and sort, [GRID-003](grid/GRID-003-selection.md) selection mode |
 | `decisions/` | [DECISIONS-001](decisions/DECISIONS-001-decision-storage.md) decision storage, [DECISIONS-002](decisions/DECISIONS-002-resume-position.md) resume position |
 | `loupe/` | [LOUPE-001](loupe/LOUPE-001-loupe.md) loupe, [LOUPE-002](loupe/LOUPE-002-decisions-in-the-loupe.md) decisions in the loupe |
-| `move/` | [MOVE-001](move/MOVE-001-name-templates.md) name templates, [MOVE-002](move/MOVE-002-move-endpoints.md) move endpoints, [MOVE-003](move/MOVE-003-move-plan-and-report.md) move plan, conflicts, report and undo |
+| `move/` | [MOVE-001](move/MOVE-001-name-templates.md) name templates, [MOVE-002](move/MOVE-002-move-endpoints.md) move endpoints, [MOVE-003](move/MOVE-003-move-plan-and-report.md) move plan, conflicts, report and undo, [MOVE-004](move/MOVE-004-move-dialog.md) move dialog and move summary |
 | `keys/` | [KEYS-001](keys/KEYS-001-key-map.md) key map, undo, redo and the shortcut sheet |
 | `delete/` | [DELETE-001](delete/DELETE-001-trash.md) trash endpoint, [DELETE-002](delete/DELETE-002-reject-review.md) reject review and delete, [DELETE-003](delete/DELETE-003-remove-raws.md) Remove RAWs |
 | `series/` | [SERIES-001](series/SERIES-001-series-compare.md) series compare, [SERIES-002](series/SERIES-002-series-viewer.md) series viewer and series badge |
