@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Decision } from '../../../src/logic/decision.ts'
-import type { Picture } from '../../../src/logic/pairing.ts'
 import type { ListingEntry } from '../../../src/logic/listing.ts'
+import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { describe, expect, it } from 'vitest'
-import { deleteSummary, filesOf, rejectedPictures } from '../../../src/logic/delete-summary.ts'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
+import { deleteSummary, filesOf, rejectedPictures } from '../../../src/logic/delete-summary.ts'
 import { listingEntry, pictureOf, picturesOf } from './listing-entries.ts'
 
 const PAIR = picturesOf([

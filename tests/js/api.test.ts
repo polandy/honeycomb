@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, imageUrl, listEntries, listFolders, lookupDecisions, saveDecisions, trashPictures, TrashBinOffError, warmPreviews } from '../../src/api.ts'
+import { ApiResponseError, imageUrl, listEntries, listFolders, lookupDecisions, saveDecisions, TrashBinOffError, trashPictures, warmPreviews } from '../../src/api.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({
