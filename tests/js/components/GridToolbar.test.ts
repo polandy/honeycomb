@@ -50,9 +50,9 @@ describe('GridToolbar', () => {
 
 	it('reviews the rejects from a button with their count, held while there are none', async () => {
 		const set = { paths: ['/Trip'], subfolders: false }
-		const none = mountToolbar(set).find('[aria-label^="Review rejects"]')
+		const none = mountToolbar(set).find('[aria-label*="Review rejects"]')
 		const wrapper = mountToolbar(set, 1, { rejected: 12 })
-		const button = wrapper.find('[aria-label^="Review rejects"]')
+		const button = wrapper.find('[aria-label*="Review rejects"]')
 
 		expect(none.attributes('disabled')).toBeDefined()
 		expect(none.find('.grid-toolbar__badge').exists()).toBe(false)

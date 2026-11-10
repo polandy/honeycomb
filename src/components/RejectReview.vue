@@ -55,6 +55,7 @@ function caption(picture: Picture<ListingEntry>): string {
 		:confirmDisabled="props.pictures.length === 0"
 		cancel
 		wide
+		danger
 		@cancel="emit('cancel')"
 		@confirm="emit('confirm')">
 		<NcEmptyContent
