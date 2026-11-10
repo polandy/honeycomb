@@ -52,6 +52,7 @@ const emit = defineEmits<{
 	selectNone: []
 	reviewRejects: []
 	removeRaws: []
+	openSettings: []
 }>()
 
 const filtersLabel = computed(() => (props.activeFilters > 0
@@ -143,7 +144,8 @@ const setName = computed(() => {
 				@update:tileSize="emit('update:tileSize', $event)"
 				@update:groupByFolder="emit('update:groupByFolder', $event)"
 				@update:sortOrder="emit('update:sortOrder', $event)"
-				@removeRaws="emit('removeRaws')" />
+				@removeRaws="emit('removeRaws')"
+				@openSettings="emit('openSettings')" />
 		</NcPopover>
 		<div v-if="props.selecting" class="grid-toolbar__selection">
 			<span class="grid-toolbar__count">{{ n('honeycomb', '{count} selected', '{count} selected', props.selected, { count: formatNumber(props.selected) }) }}</span>

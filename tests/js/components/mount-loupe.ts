@@ -47,7 +47,7 @@ export async function mountLoupe(index = 4, stored: Record<string, string> = {},
 			},
 			settings: DEFAULT_SETTINGS,
 			'onUpdate:index': (next: number) => wrapper.setProps({ index: next }),
-			'onUpdateSettings': (patch: Partial<Settings>) => wrapper.setProps({ settings: { ...wrapper.props('settings'), ...patch } }),
+			onUpdateSettings: (patch: Partial<Settings>) => wrapper.setProps({ settings: { ...wrapper.props('settings'), ...patch } }),
 			...props,
 		},
 	})

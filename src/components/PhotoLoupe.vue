@@ -12,6 +12,7 @@ import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Schedule } from '../logic/long-press.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { Settings } from '../logic/settings.ts'
 import type { ObserveSize } from '../observe-size.ts'
 import type { Toast } from '../toast.ts'
 
@@ -44,6 +45,8 @@ const props = withDefaults(defineProps<{
 	folderSet: FolderSet
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
 	storage: BrowserStorage
+	/** The user's settings: swipes, auto-advance and the flag buttons. */
+	settings: Settings
 	imageUrl?: ImageUrlFor
 	decode?: (src: string) => Promise<void>
 	schedule?: Schedule
@@ -64,6 +67,8 @@ const emit = defineEmits<{
 	decide: [intent: DecisionIntent, picture: Picture<ListingEntry>]
 	toast: [toast: Toast]
 	allDecided: []
+	/** A change of the settings, as the flag buttons' toggle makes it. */
+	updateSettings: [patch: Partial<Settings>]
 	close: []
 }>()
 
@@ -75,7 +80,8 @@ const RAIL = 96
 const root = useTemplateRef<HTMLElement>('root')
 const stage = useTemplateRef<InstanceType<typeof LoupeStage>>('stage')
 const panels = useLoupePanels(props.storage)
-const { infoOpen, infoWidth, navigationShown, gestureGuideSeen, flagButtonsShown } = panels
+const { infoOpen, infoWidth, navigationShown, gestureGuideSeen } = panels
+const flagButtonsShown = computed(() => props.settings.flagButtonsShown)
 const filmstripOpen = ref(true)
 const chromeFree = ref(false)
 const zoom = ref<number | null>(null)
@@ -87,7 +93,9 @@ const decisions = useLoupeDecisions({
 	decisionOf: props.decisionOf,
 	decide: (intent, shown) => emit('decide', intent, shown),
 	go: (index) => go(index),
-	setFlagButtonsShown: panels.setFlagButtonsShown,
+	setFlagButtonsShown: (shown) => emit('updateSettings', { flagButtonsShown: shown }),
+	swipes: () => props.settings.swipes,
+	autoAdvance: () => props.settings.autoAdvance,
 	toast: (toast) => emit('toast', toast),
 	allDecided: () => emit('allDecided'),
 })
@@ -226,7 +234,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:idle="overlays.idle.value"
 			@pointerdown="overlays.wake"
 			@decide="decisions.decide" />
-		<GestureGuide v-if="!gestureGuideSeen" @dismiss="dismissGestureGuide" />
+		<GestureGuide v-if="!gestureGuideSeen" :swipes="settings.swipes" @dismiss="dismissGestureGuide" />
 	</div>
 </template>
 

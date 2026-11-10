@@ -5,21 +5,22 @@ import type { DecisionIntent } from './logic/decision-change.ts'
 import type { Decision, StoredDecision } from './logic/decision.ts'
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
-import type { Picture } from './logic/pairing.ts'
+import type { PairingSettings, Picture } from './logic/pairing.ts'
 import type { Filters } from './logic/picture-filter.ts'
 import type { SortOrder } from './logic/picture-order.ts'
+import type { Settings } from './logic/settings.ts'
 import type { UndoEntry, UndoHistory } from './logic/undo.ts'
 
-import { computed, ref, shallowRef } from 'vue'
+import { computed, ref, shallowRef, watch } from 'vue'
 import { readStored, writeStored } from './browser-storage.ts'
 import { nameComparer } from './l10n.ts'
 import { logger } from './logger.ts'
 import { prepareCull, warmFileIds } from './logic/cull.ts'
 import { commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
 import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
-import { DEFAULT_PAIRING_SETTINGS } from './logic/pairing.ts'
 import { activeFilterCount, clearFilters, DEFAULT_FILTERS, emptyReason, filterPictures, pictureFolders, progress } from './logic/picture-filter.ts'
 import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
+import { pairingSettings } from './logic/settings.ts'
 import { parseTileSize } from './logic/tile-size.ts'
 import { withoutFiles } from './logic/trash-report.ts'
 import { NO_HISTORY, recordStep, redoStep, undoEntry, undoStep } from './logic/undo.ts'
@@ -34,11 +35,15 @@ export interface CullApi {
 	readonly saveDecisions: (decisions: readonly StoredDecision[]) => Promise<void>
 }
 
-/** The open cull, its view settings and the folder picker's state. */
-export function useCull(api: CullApi, storage: BrowserStorage) {
+/** The open cull, its view settings and the folder picker's state; it pairs and shows singles as the settings say. */
+export function useCull(api: CullApi, storage: BrowserStorage, settings: () => Settings) {
 	const compareNames = nameComparer()
 	const folderSet = ref<FolderSet | null>(null)
-	const pictures = shallowRef<Picture<ListingEntry>[]>([])
+	const entries = shallowRef<readonly ListingEntry[]>([])
+	const paired = shallowRef<Picture<ListingEntry>[]>([])
+	const pairingKey = computed(() => JSON.stringify(pairingSettings(settings())))
+	const pairing = computed(() => JSON.parse(pairingKey.value) as PairingSettings)
+	const pictures = computed(() => (settings().showSingles ? paired.value : paired.value.filter((picture) => picture.raw !== null && picture.rendered !== null)))
 	const decisions = shallowRef<ReadonlyMap<number, Decision>>(new Map())
 	const filters = shallowRef<Filters>(DEFAULT_FILTERS)
 	const sortOrder = ref<SortOrder>('file-name')
@@ -48,6 +53,7 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 	const tileSize = ref(parseTileSize(readStored(storage, TILE_SIZE_KEY)))
 	const saveFailed = ref(false)
 	let history: UndoHistory = NO_HISTORY
+	let opening = 0
 	let filtersOff: Filters | null = null
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
 	const folders = computed(() => folderPaths.value.length)
@@ -59,9 +65,11 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
 
 	/** Shows the pictures of the confirmed folders with fresh filters, then their stored decisions. */
-	function open(set: FolderSet, entries: readonly ListingEntry[]) {
+	function open(set: FolderSet, listed: readonly ListingEntry[]) {
 		folderSet.value = set
-		pictures.value = prepareCull(entries).pictures
+		opening++
+		entries.value = listed
+		paired.value = prepareCull(listed, pairing.value).pictures
 		decisions.value = new Map()
 		history = NO_HISTORY
 		filtersOff = null
@@ -70,14 +78,19 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 		sortOrder.value = defaultSortOrder(folders.value)
 		pickerOpen.value = false
 		api.warmPreviews(warmFileIds(view.value)).catch((error: unknown) => logger.error('Could not warm the previews', { error }))
-		loadDecisions(pictures.value)
+		loadDecisions(paired.value)
 	}
+
+	watch(pairing, () => {
+		paired.value = prepareCull(entries.value, pairing.value).pictures
+		loadDecisions(paired.value)
+	})
 
 	/** Reads the decisions of every member; they apply only while the same pictures are open, under changes made meanwhile. */
 	function loadDecisions(opened: readonly Picture<ListingEntry>[]) {
 		const fileIds = opened.flatMap((picture) => [picture.rendered, picture.raw].filter((member) => member !== null).map((member) => member.fileId))
 		api.lookupDecisions(fileIds).then((rows) => {
-			if (pictures.value === opened) {
+			if (paired.value === opened) {
 				decisions.value = new Map([...decisionsByFileId(rows), ...decisions.value])
 			}
 		}).catch((error: unknown) => logger.error('Could not read the decisions; every photo shows as undecided', { error }))
@@ -124,12 +137,12 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 	/** Shows the rows at once and stores them; a failed save puts back what they replaced. */
 	function store(rows: readonly StoredDecision[]) {
 		const before = decisions.value
-		const opened = pictures.value
+		const opened = opening
 		decisions.value = withRows(before, rows)
 		saveFailed.value = false
 		api.saveDecisions(rows).catch((error: unknown) => {
 			logger.error('Could not save the decisions', { error })
-			if (pictures.value === opened) {
+			if (opening === opened) {
 				decisions.value = revertRows(decisions.value, rows, before)
 				saveFailed.value = true
 			}
@@ -138,8 +151,9 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 
 	/** Takes trashed files out of the pictures; returns what each affected picture became (ADR 0013). */
 	function removeFiles(fileIds: ReadonlySet<number>) {
-		const { pictures: left, replaced } = withoutFiles(pictures.value, fileIds, DEFAULT_PAIRING_SETTINGS)
-		pictures.value = left
+		const { pictures: left, replaced } = withoutFiles(paired.value, fileIds, pairing.value)
+		entries.value = entries.value.filter((entry) => !fileIds.has(entry.fileId))
+		paired.value = left
 		return replaced
 	}
 
@@ -168,6 +182,7 @@ export function useCull(api: CullApi, storage: BrowserStorage) {
 	return {
 		folderSet,
 		pictures,
+		pairing,
 		folderPaths,
 		folders,
 		grouped,

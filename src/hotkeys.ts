@@ -5,9 +5,6 @@ import type { HotkeyCommand, HotkeyIntent } from './logic/hotkeys.ts'
 import { onBeforeUnmount, onMounted } from 'vue'
 import { formatCaps, hotkey, KEYMAP } from './logic/hotkeys.ts'
 
-/** The browser storage key of the vi keys option, until *Settings › Keyboard* (M4.4). */
-export const VI_KEYS_KEY = 'honeycomb.viKeys'
-
 /** What a screen's keys act on; a handler that returns false did not handle its key. */
 export type HotkeyHandlers = {
 	readonly decide?: (intent: HotkeyIntent, advance: boolean) => boolean | void

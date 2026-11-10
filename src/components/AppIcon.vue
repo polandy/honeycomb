@@ -20,6 +20,7 @@ const PATHS = {
 	menu: 'M4 6h16M4 12h16M4 18h16',
 	more: 'M5 12h.01M12 12h.01M19 12h.01',
 	select: 'M4 4h16v16H4zM8 12l3 3 5-6',
+	settings: 'M4 7h10M18 7h2M4 17h2M10 17h10M16 7m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0M8 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0',
 	trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
 } as const
 

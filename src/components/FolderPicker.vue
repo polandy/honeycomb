@@ -7,6 +7,7 @@ import type { Folder } from '../api.ts'
 import type { ListEntries } from '../folder-count.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ListingEntry } from '../logic/listing.ts'
+import type { PairingSettings } from '../logic/pairing.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
@@ -18,6 +19,7 @@ import { listEntries as apiListEntries, listFolders as apiListFolders } from '..
 import { useFolderCount } from '../folder-count.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { toggleFolder } from '../logic/folder-set.ts'
+import { DEFAULT_PAIRING_SETTINGS } from '../logic/pairing.ts'
 import { PICTURE_CAP } from '../logic/picture-order.ts'
 
 const props = withDefaults(defineProps<{
@@ -25,9 +27,12 @@ const props = withDefaults(defineProps<{
 	current: FolderSet | null
 	listFolders?: (path: string) => Promise<Folder[]>
 	listEntries?: ListEntries
+	/** How the count pairs the files, from the settings. */
+	pairing?: PairingSettings
 }>(), {
 	listFolders: apiListFolders,
 	listEntries: apiListEntries,
+	pairing: () => DEFAULT_PAIRING_SETTINGS,
 })
 
 const emit = defineEmits<{
@@ -36,7 +41,7 @@ const emit = defineEmits<{
 }>()
 
 const set = ref<FolderSet>(props.current ?? { paths: [], subfolders: false })
-const { count, failed } = useFolderCount(set, props.listEntries)
+const { count, failed } = useFolderCount(set, props.listEntries, () => props.pairing)
 const canCull = computed(() => (count.value?.pictures ?? 0) > 0)
 
 const summary = computed(() => {

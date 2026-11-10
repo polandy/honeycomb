@@ -42,7 +42,7 @@ describe('SettingsDialog', () => {
 
 		expect(wrapper.find('[role="dialog"]').attributes('name')).toBe(`${MARK}Settings`)
 		expect(wrapper.findAll('h3').map((heading) => plain(heading.text()))).toEqual(['File types', 'Folder layout', 'Loupe gestures', 'Keyboard'])
-		expect(untranslatedText(wrapper.element as Element)).toEqual(['.NEF', '.CR3', '.ARW', '.RAF', '.DNG', '.JPG', '.JPEG', '.HEIC', '.HEIF', '.HIF'])
+		expect(untranslatedText(wrapper.element as Element)).toEqual([...DEFAULT_SETTINGS.rawExtensions, ...DEFAULT_SETTINGS.renderedExtensions].map((extension) => `.${extension.toUpperCase()}`))
 	})
 
 	it('emits the closing of the dialog', async () => {
@@ -54,12 +54,12 @@ describe('SettingsDialog', () => {
 	})
 
 	it('lists the extensions and removes one', async () => {
-		const wrapper = mountDialog()
-		expect(chips(wrapper, 'RAW extensions')).toEqual(['.NEF', '.CR3', '.ARW', '.RAF', '.DNG'])
+		const wrapper = mountDialog({ rawExtensions: ['nef', 'cr3', 'dng'] })
+		expect(chips(wrapper, 'RAW extensions')).toEqual(['.NEF', '.CR3', '.DNG'])
 
 		await wrapper.find(`button[aria-label="${MARK}Remove CR3"]`).trigger('click')
 
-		expect(wrapper.emitted('update')).toEqual([[{ rawExtensions: ['nef', 'arw', 'raf', 'dng'] }]])
+		expect(wrapper.emitted('update')).toEqual([[{ rawExtensions: ['nef', 'dng'] }]])
 	})
 
 	it('keeps the last extension of a list', () => {
@@ -90,7 +90,7 @@ describe('SettingsDialog', () => {
 
 		expect(wrapper.emitted('update')).toBeUndefined()
 		expect(plain(group(wrapper, 'RAW extensions').find('.settings-dialog__error').text())).toBe(reason)
-		await addTo(wrapper, 'RAW extensions', 'orf')
+		await addTo(wrapper, 'RAW extensions', 'xyz')
 		expect(group(wrapper, 'RAW extensions').find('.settings-dialog__error').exists()).toBe(false)
 	})
 
