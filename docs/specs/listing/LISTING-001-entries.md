@@ -19,8 +19,9 @@ token. `path` is relative to the user's files; empty is the root. The answer is
 `orientation`, `width`, `height` from Nextcloud's file metadata, each `null` where it has none.
 `folders` has one item per folder
 that holds an entry, `{"path": "/Photos", "shared": <bool>}`: shared when another user or a
-federated user has access to it or to a folder above it, or when it lies in a group folder
-(ADR 0017).
+federated user has access to it or to a folder above it, when it or a folder above it is shared
+by public link or by mail, when it lies in a group folder, or when it lies on external storage
+mounted for another user too (ADR 0017).
 
 Listed are files whose mime type is `image/*` or whose name ends in `.xmp`. Without `subfolders`
 only the folder's own files; with it every folder below, through every mount inside, except
@@ -110,10 +111,12 @@ ticked parent with subfolders and a ticked child both hold it.
 ### LISTING-001.12 – Each folder says whether it is shared
 
 - **Given** entries in a folder of the user's own, in a folder shared with another user, below a
-  folder shared with a federated user and in a group folder
+  folder shared with a federated user, in a folder shared by public link, in one shared by mail,
+  in a group folder, on external storage of the user only and on external storage mounted for
+  another user too
 - **When** the client lists them
 - **Then** `folders` lists each of these folders once, with its path, and `shared` is false only
-  for the user's own folder
+  for the user's own folder and the external storage of the user only
 
 ## Out of scope
 
@@ -126,3 +129,4 @@ ticked parent with subfolders and a ticked child both hold it.
 |---|---|
 | 2026-11-10 | Written from the merged code of #37 and #41 (ADR 0015) |
 | 2026-11-10 | `folders` with the shared flag (ADR 0017) |
+| 2026-11-10 | Public links, mail shares and external storage of several users count as shared (owner review) |

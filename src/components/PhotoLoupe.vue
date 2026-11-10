@@ -15,6 +15,7 @@ import type { Picture } from '../logic/pairing.ts'
 import type { Settings } from '../logic/settings.ts'
 import type { ObserveSize } from '../observe-size.ts'
 import type { Toast } from '../toast.ts'
+import type { ViewStateStore } from '../view-state.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue'
@@ -45,6 +46,7 @@ const props = withDefaults(defineProps<{
 	folderSet: FolderSet
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
 	storage: BrowserStorage
+	viewState: ViewStateStore
 	settings: Settings
 	imageUrl?: ImageUrlFor
 	decode?: (src: string) => Promise<void>
@@ -73,7 +75,7 @@ const emit = defineEmits<{
 
 const root = useTemplateRef<HTMLElement>('root')
 const stage = useTemplateRef<InstanceType<typeof LoupeStage>>('stage')
-const panels = useLoupePanels(props.storage)
+const panels = useLoupePanels(props.storage, props.viewState)
 const { infoOpen, infoWidth, navigationShown, gestureGuideSeen } = panels
 const filmstripOpen = ref(true)
 const chromeFree = ref(false)

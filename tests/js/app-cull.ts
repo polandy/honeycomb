@@ -3,6 +3,7 @@
 import type { StoredDecision } from '../../src/logic/decision.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
 import type { SidecarSaveItem } from '../../src/logic/sidecar-sync.ts'
+import type { StoredViewState, ViewState } from '../../src/logic/view-state.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
@@ -10,6 +11,7 @@ import App from '../../src/App.vue'
 import FolderPicker from '../../src/components/FolderPicker.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
+import { useViewState } from '../../src/view-state.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
 export const ENTRIES = [
@@ -31,8 +33,21 @@ export function fakeStorage(stored: Record<string, string> = {}, blocked = false
 			setItem: (key: string, value: string) => {
 				stored[key] = value
 			},
+			removeItem: (key: string) => {
+				delete stored[key]
+			},
 		}
 	}
+}
+
+/** The view state over a server that answers `stored` and records each write in `saved`. */
+export function fakeViewState(stored: Partial<StoredViewState> = {}, saved: Partial<ViewState>[] = []) {
+	return useViewState({
+		loadViewState: async () => stored,
+		saveViewState: async (patch) => {
+			saved.push(patch)
+		},
+	}, fakeStorage())
 }
 
 /** A stored decision of the file with the given flag. */
@@ -79,6 +94,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			saveDecisions: async (rows: readonly StoredDecision[]) => { saved.push([...rows]) },
 			loadSettings: async () => ({}),
 			saveSettings: async (settings: object) => { savedSettings.push(settings) },
+			viewState: { loadViewState: async () => ({ infoPanelOpen: null, gestureGuideSeen: true }), saveViewState: async () => undefined },
 			sidecars: {
 				lookupSidecars: async (ids: readonly number[]) => ids.map(() => ({ result: 'notFound' })),
 				saveSidecars: async (items: readonly SidecarSaveItem[]) => {

@@ -43,6 +43,23 @@ describe('App: the loupe', () => {
 		expect(loupe.props('pictures').map((picture: { baseName: string }) => picture.baseName)).toEqual(shownNames(wrapper))
 	})
 
+	// spec: LOUPE-003.5
+	it('reads the view state once when it starts and hands it to the loupe', async () => {
+		let reads = 0
+		const loadViewState = async () => {
+			reads += 1
+			return { infoPanelOpen: true, gestureGuideSeen: true }
+		}
+		const { wrapper } = mountApp({ viewState: { loadViewState, saveViewState: async () => undefined } })
+		await openCull(wrapper)
+
+		wrapper.findComponent(PhotoGrid).vm.$emit('open', 0)
+		await flushPromises()
+
+		expect(reads).toBe(1)
+		expect(wrapper.findComponent(PhotoLoupe).props('viewState').infoPanelOpen.value).toBe(true)
+	})
+
 	// spec: LOUPE-001.2
 	it('pages and, on close, reveals the last shown picture in the grid', async () => {
 		const { wrapper, revealed } = await openApp()

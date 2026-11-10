@@ -6,6 +6,7 @@ import type { MoveRequestFile, TargetFolder } from './logic/move-plan.ts'
 import type { MoveResponseFile } from './logic/move-report.ts'
 import type { SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from './logic/sidecar-sync.ts'
 import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
+import type { ViewState } from './logic/view-state.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -77,6 +78,20 @@ export async function loadSettings(): Promise<unknown> {
 /** Stores the whole settings of the user (ADR 0014). */
 export async function saveSettings(settings: object): Promise<void> {
 	await axios.put(generateUrl(`${API}/settings`), { settings })
+}
+
+/** The stored view state of the user as it came, checked by `parseViewState` (ADR 0019). */
+export async function loadViewState(): Promise<unknown> {
+	const { data } = await axios.get<unknown>(generateUrl(`${API}/view-state`))
+	if (!isRecord(data) || !isRecord(data.viewState)) {
+		throw new ApiResponseError('The view state came without a viewState object; check the server\'s version.')
+	}
+	return data.viewState
+}
+
+/** Stores only the keys of the view state given (ADR 0019). */
+export async function saveViewState(viewState: Partial<ViewState>): Promise<void> {
+	await axios.put(generateUrl(`${API}/view-state`), { viewState })
 }
 
 /** Stores the whole decision of each file in one transaction (ADR 0012). */

@@ -853,7 +853,8 @@ Answered by the owner on 2026-11-09 (Q3, Q4, Q5, Q6, Q20).
 5. **Shared folders.** Decisions are per user, in the database. Sidecars are shared by every
    user of the folder, so in a shared folder nothing is written through on its own: the ⋯ menu
    offers *Write decisions to sidecars…*, which asks first (ADR 0005). The listing says per
-   folder whether it is shared (LISTING-001.12, ADR 0017).
+   folder whether it is shared (LISTING-001.12, ADR 0017): shared with another user, a federated
+   user, by public link or by mail, a group folder, or external storage mounted for several users.
 
 Where the work lands: M5 (shared per folder), M2.4 (per-user decisions), M3.2 (swipe), M3.3
 (colour keys), M4.4 (gesture setting), M5 (sidecars).
@@ -887,14 +888,16 @@ honeycomb/
 ├── lib/
 │   ├── AppInfo/Application.php
 │   ├── Controller/             PageController, EntryController, DecisionController,
-│   │                           TrashController, FileController, SettingsController (thin)
+│   │                           TrashController, FileController, SettingsController,
+│   │                           ViewStateController (thin)
 │   ├── Service/
 │   │   ├── ListingService.php  one file-cache query: flat entries of a folder
 │   │   ├── PathGuard.php       rechecks every client path: owned, exists, unchanged
 │   │   ├── TrashService.php    trash whole pictures through OCP\Files (ADR 0013)
 │   │   ├── FileService.php     move, write XMP bytes through OCP\Files
 │   │   ├── DecisionService.php rating, colour label, flag and resume position per user
-│   │   └── SettingsService.php per-user settings (IConfig user values)
+│   │   ├── SettingsService.php per-user settings (IConfig user values)
+│   │   └── ViewStateService.php the loupe's view state per user (ADR 0019)
 │   ├── Search/                 ISearchQuery and its operators, which OCP does not implement
 │   ├── Db/                     entities and QBMapper classes
 │   └── Migration/              database migrations

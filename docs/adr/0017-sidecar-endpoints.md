@@ -55,9 +55,11 @@ The options for the transfer:
   does not stop the others.
 - **Shared folders:** the listing (ADR 0009) adds `"folders": [{"path": "/Photos", "shared":
   false}, …]`, one item per folder that holds a listed entry. A folder is shared when another user
-  or a federated user has access to it or to a folder above it (`IShareManager::getAccessList()`),
-  or when it lies in a group folder (mount type `group`). The endpoints do not refuse a shared
-  folder; asking first is the client's job (ADR 0005).
+  or a federated user has access to it or to a folder above it, or it or a folder above it is
+  shared by public link or by mail (`IShareManager::getAccessList()`); when it lies in a group
+  folder (mount type `group`); or when it lies on external storage (mount type `external`) that
+  is mounted for another user too (`IUserMountCache::getMountsForStorageId()`). The endpoints do
+  not refuse a shared folder; asking first is the client's job (ADR 0005).
 - **Errors:** `400` for a malformed body, an id or path given twice, a path with `..`, content
   that is not base64 or over 1 MiB, or more than 1,000 items; nothing is read or written. `401`
   without a user. The body is empty.
@@ -70,6 +72,12 @@ The options for the transfer:
   is lost. Nextcloud's own uploads have the same window.
 - A part file needs the right to create files in the folder, also when an existing sidecar is
   replaced; a share that allows only updating answers `notPermitted`.
-- External storage mounted for several users is not detected as shared; only shares and group
-  folders are.
+- External storage counts as mounted for another user only once that user's mounts are known to
+  Nextcloud's mount cache, that is after their first login since it was configured.
 - A new result or field is added, never renamed or removed, without a new version in the path.
+
+## Amendment 2026-11-10
+
+The owner's review of 2026-11-10 widened *shared*: public links, mail shares and external storage
+mounted for several users count too, since anyone they reach may edit the sidecars. The first
+version counted only other users, federated users and group folders.
