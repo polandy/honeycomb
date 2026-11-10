@@ -55,6 +55,27 @@ test('opens a photo in the loupe, pages by key and closes back to the grid', asy
 	await expect(page.getByRole('gridcell', { name: 'IMG_0002, JPG only' })).toBeFocused()
 })
 
+// spec: LOUPE-002.11
+test('puts Pick and Reject at the side edges in landscape and in a row below the photo in portrait', async ({ page }) => {
+	const loupe = await openLoupe(page)
+	const box = async (name: string) => (await loupe.getByRole('button', { name, exact: true }).first().boundingBox())!
+	const frame = (await loupe.boundingBox())!
+
+	const [pick, reject] = [await box('Pick'), await box('Reject')]
+	expect(pick.x - frame.x).toBeLessThan(frame.width / 10)
+	expect(frame.x + frame.width - (reject.x + reject.width)).toBeLessThan(frame.width / 4)
+	expect(reject.x).toBeGreaterThan(frame.x + frame.width / 2)
+
+	await page.setViewportSize({ width: 600, height: 900 })
+	const photo = (await loupe.getByRole('img', { name: 'IMG_0001' }).boundingBox())!
+	const [portraitPick, portraitReject, unflag] = [await box('Pick'), await box('Reject'), await box('Unflag')]
+	expect(portraitPick.y).toBeGreaterThanOrEqual(photo.y + photo.height)
+	expect(portraitReject.y).toBe(portraitPick.y)
+	expect(unflag.y).toBe(portraitPick.y)
+	expect(portraitPick.x).toBeLessThan(portraitReject.x)
+	expect(portraitReject.x).toBeLessThan(unflag.x)
+})
+
 // spec: KEYS-001.10, KEYS-001.12
 test('picks by P, undoes it by Ctrl+Z and opens the shortcut sheet by ?', async ({ page }) => {
 	const loupe = await openLoupe(page)
