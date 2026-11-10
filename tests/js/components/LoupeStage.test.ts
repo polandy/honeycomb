@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { reactive } from 'vue'
 import LoupeStage from '../../../src/components/LoupeStage.vue'
@@ -44,6 +45,16 @@ const images = (wrapper: Awaited<ReturnType<typeof mountStage>>['wrapper']) => w
 const current = (wrapper: Awaited<ReturnType<typeof mountStage>>['wrapper']) => wrapper.find('img[alt="IMG_2"]')
 
 describe('LoupeStage', () => {
+	// spec: LOUPE-001.17
+	it('pages to the next picture at once, with no transition or animation', async () => {
+		const { wrapper } = await mountStage()
+
+		await wrapper.setProps({ index: 2 })
+
+		expect(wrapper.html()).not.toMatch(/transition|animation/)
+		expect(readFileSync('src/components/LoupeStage.vue', 'utf8')).not.toMatch(/transition|animation/)
+	})
+
 	// spec: LOUPE-001.12
 	it('shows the picture between its neighbours, each fitted, from the grid tier until the loupe tier loads', async () => {
 		const { wrapper, ready } = await mountStage()

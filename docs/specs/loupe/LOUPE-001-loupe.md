@@ -152,7 +152,7 @@ dismissed are kept per user on the server (LOUPE-003).
 - **When** the user opens the loupe, the info panel or the navigation toggle
 - **Then** they work for this visit with their defaults
 
-### LOUPE-001.17 – Reduced motion (gap)
+### LOUPE-001.17 – Reduced motion
 
 - **Given** the browser asks for reduced motion
 - **When** the loupe pages
@@ -169,3 +169,4 @@ IMAGES-001.
 |---|---|
 | 2026-11-10 | Written from the merged M3.1 (#45–#48) |
 | 2026-11-10 | The info panel's open state and the dismissed gesture guide moved to the server (LOUPE-003) |
+| 2026-11-10 | LOUPE-001.17 closed by a guard test; the loupe has no transition |
