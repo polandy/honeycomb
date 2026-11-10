@@ -269,3 +269,5 @@ Smaller decisions made during implementation, one dated line each; larger ones b
 - 2026-11-10: The shortcut sheet opens inside the loupe while it is open, so it lies above it.
 - 2026-11-10: Hiding the flag buttons by `B` says "Flag buttons hidden · B shows them"; by a tap
   the toast still names the swipe and the flag at the top.
+- 2026-11-10: `I` shows or hides the loupe's info panel instead of cycling an overlay, as the glossary's
+  info panel is a panel; the plan, user doc and sheet say so.
