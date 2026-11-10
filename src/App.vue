@@ -19,6 +19,7 @@ import CullEmptyState from './components/CullEmptyState.vue'
 import FilterBar from './components/FilterBar.vue'
 import FolderPicker from './components/FolderPicker.vue'
 import GridNotices from './components/GridNotices.vue'
+import GridSkeleton from './components/GridSkeleton.vue'
 import GridToolbar from './components/GridToolbar.vue'
 import NoFolderState from './components/NoFolderState.vue'
 import PhotoGrid from './components/PhotoGrid.vue'
@@ -59,6 +60,8 @@ const { loupe, close: closeLoupe } = useLoupeOpening((index) => grid.value?.reve
 const loupeView = useTemplateRef<InstanceType<typeof PhotoLoupe>>('loupeView')
 const filterBar = useTemplateRef<InstanceType<typeof FilterBar>>('filterBar')
 const headerShown = ref(true)
+/** Opens the loupe on the shown picture at the index. */
+const openLoupe = (index: number) => (loupe.value = { pictures: view.value, index })
 const shortcutsOpen = ref(false)
 const selection = useSelectionMode(() => view.value, pictures)
 const { selecting, selected } = selection
@@ -84,9 +87,7 @@ const resume = useResume(recent.positions, {
 	progress: () => progress.value,
 	decisionOf: cull.decisionOf,
 	shown: () => (loupe.value === null ? null : loupe.value.pictures[loupe.value.index] ?? null),
-	openLoupe: (index) => {
-		loupe.value = { pictures: view.value, index }
-	},
+	openLoupe,
 }, toast.show)
 /** Opens a folder set from *Recent* at its position. */
 function openRecent(position: ResumePosition) {
@@ -106,9 +107,7 @@ const gridKeys = gridHotkeys({
 	common: cull.common,
 	decide,
 	toggleFiltersOff: cull.toggleFiltersOff,
-	openLoupe: (index) => {
-		loupe.value = { pictures: view.value, index }
-	},
+	openLoupe,
 	headerShown,
 	filtersOpen,
 	filterBar: () => filterBar.value?.$el,
@@ -146,7 +145,8 @@ useHotkeys(() => {
 			@openRecent="openRecent"
 			@openSettings="settingsOpen = true" />
 		<NcAppContent class="honeycomb">
-			<template v-if="folderSet !== null">
+			<GridSkeleton v-if="recent.listing.value" class="honeycomb__grid" :tileSize="tileSize" />
+			<template v-else-if="folderSet !== null">
 				<GridToolbar
 					v-if="headerShown"
 					:folderSet="folderSet"
@@ -209,7 +209,7 @@ useHotkeys(() => {
 					@update:tileSize="cull.setTileSize"
 					@update:selecting="selection.setSelecting"
 					@update:selection="selection.select"
-					@open="loupe = { pictures: view, index: $event }" />
+					@open="openLoupe" />
 				<CullEmptyState
 					v-else
 					:reason="empty"

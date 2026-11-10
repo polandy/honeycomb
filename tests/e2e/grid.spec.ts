@@ -17,7 +17,7 @@ async function openPicker(page: Page) {
 	return picker
 }
 
-// spec: GRID-001.4, LISTING-003.12
+// spec: GRID-001.4, GRID-001.12, LISTING-003.12
 test('culls a ticked folder in a grid of pairs and singles', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = uniqueFolder('Grid')
@@ -36,6 +36,7 @@ test('culls a ticked folder in a grid of pairs and singles', async ({ page }) =>
 	await expect(grid.getByRole('gridcell', { name: 'IMG_0001, JPG+NEF' })).toBeVisible()
 	await expect(grid.getByRole('gridcell', { name: 'IMG_0002, JPG only' })).toBeVisible()
 	await expect(grid.getByRole('gridcell')).toHaveCount(2)
+	await expect(grid.locator('.skeleton-tile')).toHaveCount(0)
 })
 
 // spec: GRID-001.9, LISTING-003.7, LISTING-003.12

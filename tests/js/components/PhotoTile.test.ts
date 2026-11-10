@@ -81,11 +81,11 @@ describe('PhotoTile', () => {
 	// spec: GRID-001.12
 	it('is a skeleton tile until its small preview loaded', async () => {
 		const wrapper = mountTile(PAIR)
-		expect(wrapper.classes()).toContain('photo-tile--skeleton')
+		expect(wrapper.classes()).toContain('skeleton-tile')
 
 		await wrapper.find('img').trigger('load')
 
-		expect(wrapper.classes()).not.toContain('photo-tile--skeleton')
+		expect(wrapper.classes()).not.toContain('skeleton-tile')
 	})
 
 	// spec: GRID-001.12
@@ -94,7 +94,7 @@ describe('PhotoTile', () => {
 
 		await wrapper.find('img').trigger('error')
 
-		expect(wrapper.classes()).not.toContain('photo-tile--skeleton')
+		expect(wrapper.classes()).not.toContain('skeleton-tile')
 	})
 
 	// spec: GRID-001.2

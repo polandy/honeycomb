@@ -60,6 +60,8 @@ const srcset = computed(() => gridSrcset(member.value, props.imageUrl))
 const sizes = computed(() => `${Math.round(props.size)}px`)
 /** The srcset whose sharp image has decoded; null while the tile shows the small one. */
 const decoded = ref<string | null>(null)
+/** Whether the small preview is still on its way (GRID-001.12). */
+const waiting = ref(true)
 
 const badge = computed(() => {
 	const shown = pairBadge(props.picture)
@@ -115,7 +117,7 @@ watch([srcset, sizes, () => props.devicePixelRatio], async () => {
 <template>
 	<div
 		class="photo-tile"
-		:class="{ 'photo-tile--selected': props.selected }"
+		:class="{ 'photo-tile--selected': props.selected, 'skeleton-tile': waiting }"
 		:aria-label="label"
 		data-tip-hover-only
 		:aria-selected="props.selecting ? props.selected : undefined">
@@ -125,7 +127,9 @@ watch([srcset, sizes, () => props.devicePixelRatio], async () => {
 			draggable="false"
 			:src="small"
 			:srcset="decoded ?? undefined"
-			:sizes="decoded === null ? undefined : sizes">
+			:sizes="decoded === null ? undefined : sizes"
+			@load="waiting = false"
+			@error="waiting = false">
 		<span class="photo-tile__pair" :class="{ 'photo-tile__pair--single': badge.single, 'photo-tile__pair--keep-raw': badge.keepRaw }">{{ badge.text }}</span>
 		<span v-if="props.picture.ambiguous" class="photo-tile__ambiguous" aria-hidden="true">!</span>
 		<span
@@ -143,6 +147,8 @@ watch([srcset, sizes, () => props.devicePixelRatio], async () => {
 			:rating="props.decision.rating" />
 	</div>
 </template>
+
+<style src="../skeleton-tile.css" />
 
 <style scoped>
 .photo-tile {

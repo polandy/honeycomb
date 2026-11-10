@@ -8,7 +8,7 @@ import type { ResumePosition } from './logic/resume-position.ts'
 import type { ResumeApi } from './resume.ts'
 
 import { t } from '@nextcloud/l10n'
-import { computed, shallowRef } from 'vue'
+import { computed, ref, shallowRef } from 'vue'
 import { PLAIN_TEXT } from './l10n.ts'
 import { logger } from './logger.ts'
 import { countFolderSet } from './logic/cull.ts'
@@ -39,6 +39,8 @@ export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: Recent
 	const positions = shallowRef<ResumePosition[]>([])
 	let reading = 0
 	let opening = 0
+	/** Whether a folder set from *Recent* is being listed (GRID-001.13). */
+	const listing = ref(false)
 
 	/** Reads the stored positions again; a failed read keeps the list. */
 	function refresh() {
@@ -58,6 +60,7 @@ export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: Recent
 			return
 		}
 		const opened = ++opening
+		listing.value = true
 		try {
 			const listings = await Promise.all(folderSet.paths.map((path) => listEntries(path, folderSet.subfolders)))
 			if (opened === opening) {
@@ -68,6 +71,10 @@ export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: Recent
 		} catch (error) {
 			logger.error('Could not list the recent folder set', { folderSet, error })
 			toast(t('honeycomb', 'Could not open {name}.', { name: folderSetName(folderSet) }, undefined, PLAIN_TEXT))
+		} finally {
+			if (opened === opening) {
+				listing.value = false
+			}
 		}
 	}
 
@@ -75,6 +82,7 @@ export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: Recent
 		items: computed(() => recentFolderSets(positions.value, cull.folderSet(), cull.progress())),
 		refresh,
 		open,
+		listing,
 		/** The positions API for the resume flow; a saved position is listed first. */
 		positions: {
 			loadPositions: () => api.loadPositions(),

@@ -605,3 +605,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   template string or `+`). Passing the error on, logging it, `instanceof` and rethrowing stay
   allowed, since the `*Text()` mappers take the error and check its type. An alias
   (`const e = error`) escapes it; review catches that.
+- 2026-11-10: UX review L1 is fixed in the mockup and the app in one PR, so the two never
+  disagree: a tile is a skeleton tile until its small preview loaded or failed, and skeleton
+  tiles replace the grid and its toolbar while a folder set from *Recent* is listed. The folder
+  picker needs no skeleton, as its confirm button waits for the listing it counts.
+- 2026-11-10: The skeleton pulse is a background-colour pulse between two Nextcloud background
+  variables, still with reduced motion; a shimmer gradient would add motion for no extra meaning.
