@@ -31,6 +31,10 @@ describe('renderPicture', () => {
 		expect(rendered).toEqual({ ok: true, files: [{ folder: '2026', name: 'DSCF1234', extension: 'NEF.xmp' }] })
 	})
 
+	it('refuses a time outside the range of a date instead of rendering NaN', () => {
+		expect(() => renderPicture(templateOf('{date:%Y}/{name}.{ext}'), factsOf({ captureTime: 1e16 }), filesOf(['RAF']))).toThrow(RangeError)
+	})
+
 	it('renders every valid vector template for a picture with every fact', () => {
 		for (const template of vectors.valid) {
 			expect(renderPicture(templateOf(template), factsOf({}), filesOf(['RAF'])).ok).toBe(true)
