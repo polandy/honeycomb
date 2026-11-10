@@ -48,17 +48,13 @@ function scriptText(file: SourceFile): string {
 	return out + blank(file.text.slice(cursor))
 }
 
-/**
- *
- */
+/** Parses a file's script; a component is parsed as TypeScript. */
 function parse(file: SourceFile): ts.SourceFile {
 	const path = isComponent(file.path) ? `${file.path}.ts` : file.path
 	return ts.createSourceFile(path, scriptText(file), ts.ScriptTarget.Latest, true)
 }
 
-/**
- *
- */
+/** The known file a relative import names, or null for a package. */
 function resolve(from: string, specifier: string, known: ReadonlySet<string>): string | null {
 	if (!specifier.startsWith('.')) {
 		return null
@@ -75,16 +71,12 @@ function resolve(from: string, specifier: string, known: ReadonlySet<string>): s
 	return [base, ...MODULE_EXTENSIONS.map((extension) => base + extension)].find((candidate) => known.has(candidate)) ?? null
 }
 
-/**
- *
- */
+/** Whether a statement carries the modifier. */
 function hasModifier(node: ts.Node, kind: ts.SyntaxKind): boolean {
 	return ts.canHaveModifiers(node) && (ts.getModifiers(node)?.some((modifier) => modifier.kind === kind) ?? false)
 }
 
-/**
- *
- */
+/** The names a module exports by name, with their lines. */
 function declaredExports(source: ts.SourceFile): Declared[] {
 	const out: Declared[] = []
 	const add = (name: ts.Node, isType: boolean) => out.push({
@@ -151,9 +143,7 @@ function collectUses(files: readonly SourceFile[], known: ReadonlySet<string>): 
 	return uses
 }
 
-/**
- *
- */
+/** How the module itself uses one of its exports. */
 function localUse(source: ts.SourceFile, name: string): LocalUse {
 	let count = 0
 	let inTypeQuery = 0

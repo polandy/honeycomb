@@ -601,6 +601,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   judged.
 - 2026-11-10: The no-raw-error-text gate is a local ESLint rule on `src/`, not a selector: it
   follows the binding of a `catch` clause and of a `.catch()` or `.then()` rejection handler and
-  refuses reading its text (`message`, `stack`, `toString()`, `String()`, a template string or
-  `+`). Passing the error on, logging it, `instanceof` and rethrowing stay allowed, since the
-  `*Text()` mappers take the error and check its type.
+  refuses reading its text (`message`, `stack`, `toString()`, `String()`, `JSON.stringify()`, a
+  template string or `+`). Passing the error on, logging it, `instanceof` and rethrowing stay
+  allowed, since the `*Text()` mappers take the error and check its type. An alias
+  (`const e = error`) escapes it; review catches that.

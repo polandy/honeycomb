@@ -4,7 +4,19 @@
 
 const TEXT_PROPERTIES = new Set(['message', 'stack', 'toString'])
 const WRAPPERS = new Set(['TSAsExpression', 'TSNonNullExpression', 'TSTypeAssertion', 'TSSatisfiesExpression'])
+const TEXT_FUNCTIONS = new Set(['String', 'JSON.stringify'])
 const MESSAGE = 'Raw error text never reaches the user: log the error and show a t() sentence (docs/conventions.md §3).'
+
+/**
+ * The dotted name of a called function, such as `JSON.stringify`.
+ *
+ * @param {import('estree').Expression} callee the called expression
+ */
+function calleeName(callee) {
+	return callee.type === 'MemberExpression' && !callee.computed
+		? `${callee.object.name}.${callee.property.name}`
+		: callee.name
+}
 
 const propertyName = (node) => node.type === 'Identifier' ? node.name : node.value
 
@@ -29,7 +41,7 @@ function readsText(node) {
 		case 'MemberExpression':
 			return parent.object === node && !parent.computed && TEXT_PROPERTIES.has(parent.property.name)
 		case 'CallExpression':
-			return parent.callee.type === 'Identifier' && parent.callee.name === 'String'
+			return TEXT_FUNCTIONS.has(calleeName(parent.callee))
 		case 'TemplateLiteral':
 			return true
 		case 'BinaryExpression':

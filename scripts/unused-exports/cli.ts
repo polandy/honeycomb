@@ -15,9 +15,7 @@ const ACTIONS = {
 	unexport: 'used only inside its own module: drop the `export`',
 }
 
-/**
- *
- */
+/** Every source file under a directory. */
 function walk(directory: string): string[] {
 	return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
 		const path = `${directory}/${entry.name}`
