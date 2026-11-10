@@ -5,6 +5,8 @@
 <script setup lang="ts">
 import type { Toast } from '../toast.ts'
 
+import { onBeforeUnmount } from 'vue'
+
 const props = defineProps<{
 	toast: Toast
 	/** Whether it sits at the top, clear of the loupe's controls at the bottom. */
@@ -13,11 +15,47 @@ const props = defineProps<{
 
 const emit = defineEmits<{
 	act: []
+	/** Whether the focus is inside it. */
+	focus: [inside: boolean]
+	/** Whether a pointer is pressed on it. */
+	press: [down: boolean]
 }>()
+
+/** Moving between its own parts keeps the focus inside. */
+function onFocusOut(event: FocusEvent) {
+	if (!(event.relatedTarget instanceof Node && (event.currentTarget as Node).contains(event.relatedTarget))) {
+		emit('focus', false)
+	}
+}
+
+/** The release can happen anywhere on the page. */
+function onPointerDown() {
+	emit('press', true)
+	window.addEventListener('pointerup', release)
+	window.addEventListener('pointercancel', release)
+}
+
+/** Ends the press and stops listening. */
+function release() {
+	window.removeEventListener('pointerup', release)
+	window.removeEventListener('pointercancel', release)
+	emit('press', false)
+}
+
+onBeforeUnmount(() => {
+	window.removeEventListener('pointerup', release)
+	window.removeEventListener('pointercancel', release)
+})
 </script>
 
 <template>
-	<div class="undo-toast" :class="{ 'undo-toast--top': props.top }" role="status">
+	<div
+		class="undo-toast"
+		:class="{ 'undo-toast--top': props.top }"
+		role="status"
+		@focusin="emit('focus', true)"
+		@focusout="onFocusOut"
+		@pointerdown="onPointerDown">
 		<span>{{ props.toast.message }}</span>
 		<template v-if="props.toast.action !== null">
 			<span aria-hidden="true">·</span>

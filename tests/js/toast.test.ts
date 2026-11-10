@@ -103,7 +103,7 @@ describe('useToast', () => {
 			const { scheduler, toast } = shown()
 			toast.setFocused(true)
 
-			toast.show('second')
+			toast.show('second', { label: 'Undo', run: () => undefined })
 			expect(live(scheduler)).toBe(0)
 			toast.act()
 			toast.setPressed(false)

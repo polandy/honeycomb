@@ -98,8 +98,16 @@ off. The flag buttons can be hidden by their toggle or `B`. Each decision shows 
 Decision keys (`P`, `X`, `U`, digits, `[`, `]`): KEYS-001. Storage of decisions: DECISIONS-001.
 Delete from the loupe: DELETE-002.
 
+### LOUPE-002.12 – Focus or a press holds the toast
+
+- **Given** the undo toast is shown
+- **When** the focus is inside it or a pointer is pressed on it
+- **Then** its timer stops; once both have ended it runs its full time again (WCAG 2.2.1);
+  hover does not hold it
+
 ## History
 
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged M3.2 (#49) and M4.3 settings (#54) |
+| 2026-11-10 | .12 focus or a press holds the toast (UX review L4) |

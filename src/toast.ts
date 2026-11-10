@@ -19,23 +19,69 @@ export interface Toast {
 	readonly action: ToastAction | null
 }
 
-/** One toast at a time: a new one replaces the shown one and its timer. */
+/** One toast at a time: a new one replaces the shown one and its timer; focus or a press holds it. */
 export function useToast(schedule: Schedule) {
 	const current = ref<Toast | null>(null)
 	let cancel: (() => void) | null = null
+	let focused = false
+	let pressed = false
+
+	/** Stops the timer. */
+	function stop() {
+		cancel?.()
+		cancel = null
+	}
 
 	/** Hides the toast and stops its timer. */
 	function hide() {
-		cancel?.()
-		cancel = null
+		stop()
+		focused = false
+		pressed = false
 		current.value = null
+	}
+
+	/** Replaces the toast at once; the hold stays, as the focus may still be inside. */
+	function replace(next: Toast) {
+		stop()
+		current.value = next
+		start()
+	}
+
+	/** Runs the full time from now, unless the toast is held. */
+	function start() {
+		stop()
+		if (!focused && !pressed) {
+			cancel = schedule(hide, TOAST_MS)
+		}
 	}
 
 	/** Shows the message for TOAST_MS. */
 	function show(message: string, action: ToastAction | null = null) {
-		hide()
-		current.value = { message, action }
-		cancel = schedule(hide, TOAST_MS)
+		replace({ message, action })
+	}
+
+	/** Holds the toast while the focus is inside it; leaving restarts its full time. */
+	function setFocused(inside: boolean) {
+		focused = inside
+		update()
+	}
+
+	/** Holds the toast while a pointer is pressed on it; releasing restarts its full time. */
+	function setPressed(down: boolean) {
+		pressed = down
+		update()
+	}
+
+	/** Stops the timer of a held toast and restarts that of a released one. */
+	function update() {
+		if (current.value === null) {
+			return
+		}
+		if (focused || pressed) {
+			stop()
+		} else if (cancel === null) {
+			start()
+		}
 	}
 
 	/** Hides the toast, then runs its action. */
@@ -47,5 +93,8 @@ export function useToast(schedule: Schedule) {
 		}
 	}
 
-	return { current: readonly(current), show, act }
+	/** The events of `UndoToast`, to bind as they are. */
+	const listeners = { onAct: act, onFocus: setFocused, onPress: setPressed }
+
+	return { current: readonly(current), show, act, setFocused, setPressed, listeners }
 }

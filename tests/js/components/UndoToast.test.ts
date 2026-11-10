@@ -34,14 +34,15 @@ describe('UndoToast', () => {
 	})
 
 	// spec: LOUPE-002.12
-	it('lets go of a press when it goes away', async () => {
-		const wrapper = mountToast({ label: 'Undo' })
+	it('stops listening for the release when it goes away', async () => {
+		const presses: boolean[] = []
+		const wrapper = mount(UndoToast, { props: { toast: { message: 'Rejected IMG_1', action: null }, onPress: (down: boolean) => presses.push(down) } })
 		await wrapper.trigger('pointerdown')
 
 		wrapper.unmount()
 		window.dispatchEvent(new Event('pointerup'))
 
-		expect(wrapper.emitted('press')).toEqual([[true], [false]])
+		expect(presses).toEqual([true])
 	})
 
 	it('says the change, a dot and its action as a status', async () => {

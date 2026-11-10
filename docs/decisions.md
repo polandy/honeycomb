@@ -628,3 +628,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   hold it: touch has no hover, and the rule is about focus and press. The app's toast still
   times out regardless; that fix is its own `TODO.md` item, because it needs Vitest and e2e
   checks.
+- 2026-11-10: UX review L4 in the app: `useToast` holds the toast while focus is inside it or a
+  pointer is pressed (`UndoToast` reports both) and restarts the full 5.2 s once both end, as
+  the mockup does. A hidden toast forgets the hold, since an element removed under focus sends
+  no `focusout`.
