@@ -19,7 +19,16 @@ continues on another, and *Recent* can list the last folder sets with their prog
   the same set, without subfolders another one. The root folder is the path `""`.
 - Only the 20 most recent positions per user are kept; each user's positions are their own.
 - `400` for a malformed position, `401` without a user.
-- The client does not save or offer positions yet, and *Recent* does not exist yet.
+- While culling, the client saves the picture the loupe shows, named by its rendered member (a
+  RAW alone by itself), with the progress of the cull; it saves again when the progress changes.
+  Nothing is saved before the loupe has shown a picture of the open cull. One save is sent at a
+  time; of the saves that waited, only the latest is sent.
+- Opening a folder set whose position names a picture still in it shows the toast *Continue where
+  you left off* with *Resume*, and the More menu shows *Resume at <name>*. Either opens the loupe
+  at that picture, at the first undecided picture of the view when filters hide it, or at the
+  first picture of the view. Once the loupe has shown a picture, the toast is no longer offered.
+- A failed read or save is logged; the cull goes on without the offer.
+- *Recent* does not exist yet.
 
 ## Acceptance criteria
 
@@ -60,7 +69,7 @@ continues on another, and *Recent* can list the last folder sets with their prog
 - **When** a position is read or saved
 - **Then** the answer is `401`
 
-### DECISIONS-002.7 – The client saves and offers the position (gap)
+### DECISIONS-002.7 – The client saves and offers the position
 
 - **Given** a cull on one device
 - **When** the user moves through it and later opens the same folder set on another device
@@ -72,6 +81,24 @@ continues on another, and *Recent* can list the last folder sets with their prog
 - **When** the user opens the navigation
 - **Then** *Recent* lists the last folder sets with their progress and opens one at its position
 
+### DECISIONS-002.9 – A picture hidden by the filters
+
+- **Given** a stored position whose picture the filters hide
+- **When** the user resumes
+- **Then** the loupe opens at the first undecided picture of the view, or at its first picture
+
+### DECISIONS-002.10 – Nothing to offer
+
+- **Given** no position for the folder set, or one whose picture is no longer in it
+- **When** the folder set opens
+- **Then** nothing is offered, and nothing is saved until the loupe shows a picture
+
+### DECISIONS-002.11 – A failed read or save
+
+- **Given** a server that cannot read or save positions
+- **When** the folder set opens or the loupe pages
+- **Then** the failure is logged and the cull goes on without the offer
+
 ## Out of scope
 
 The progress of the open cull (GRID-002).
@@ -81,3 +108,4 @@ The progress of the open cull (GRID-002).
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged M2.4 (#42) |
+| 2026-11-10 | The client saves and offers the position (DECISIONS-002.7, .9–.11) |

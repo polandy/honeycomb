@@ -13,8 +13,9 @@ import { PopoverStub } from './stubs.ts'
 
 const MARK = TRANSLATED_MARK
 
-const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number, series: number, rawRemovable: number, sidecarsShared: boolean, movable: number } = {
+const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number, series: number, rawRemovable: number, sidecarsShared: boolean, movable: number, resumeName: string | null } = {
 	movable: 0,
+	resumeName: null,
 	selecting: false,
 	rejected: 0,
 	series: 0,
@@ -92,6 +93,18 @@ describe('GridToolbar', () => {
 		expect(item(wrapper).text().replaceAll(MARK, '')).toBe('Remove RAWs… 88')
 		await item(wrapper).trigger('click')
 		expect(wrapper.emitted('removeRaws')).toHaveLength(1)
+	})
+
+	// spec: DECISIONS-002.7
+	it('resumes at the stored picture from the More menu, shown only while there is one', async () => {
+		const set = { paths: ['/Trip'], subfolders: false }
+		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('button').find((button) => button.text().includes('Resume'))
+		const wrapper = mountToolbar(set, 1, { resumeName: 'IMG_9' })
+
+		expect(item(mountToolbar(set))).toBeUndefined()
+		expect(item(wrapper)!.text()).toBe(`${MARK}Resume at IMG_9`)
+		await item(wrapper)!.trigger('click')
+		expect(wrapper.emitted('resume')).toHaveLength(1)
 	})
 
 	// spec: MOVE-004.2
