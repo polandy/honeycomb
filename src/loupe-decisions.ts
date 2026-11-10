@@ -25,6 +25,8 @@ export interface LoupeDecisionsContext<P extends Picture<{ readonly fileId: numb
 	readonly go: (index: number) => void
 	readonly setFlagButtonsShown: (shown: boolean) => void
 	readonly toast: (toast: Toast) => void
+	/** Called when a flag left no undecided picture in the loupe. */
+	readonly allDecided: () => void
 }
 
 /** The shown picture's decision controls: a pick or reject moves on to the next undecided picture. */
@@ -39,6 +41,8 @@ export function useLoupeDecisions<P extends Picture<{ readonly fileId: number }>
 		const next = intent.kind === 'flag' && isDecided(context.decisionOf(picture)) ? nextUndecided(context.pictures(), context.index(), context.decisionOf) : null
 		if (next !== null) {
 			context.go(next)
+		} else if (intent.kind === 'flag' && context.pictures().every((each) => isDecided(context.decisionOf(each)))) {
+			context.allDecided()
 		}
 		return next !== null
 	}
