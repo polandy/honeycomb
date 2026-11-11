@@ -13,25 +13,41 @@ export const RAW = Buffer.concat([Buffer.from('II*\0'), Buffer.alloc(512, 0x11),
 
 const EXIF_DATE_TIME_LENGTH = 20
 
-/** `jpeg` with an EXIF block whose DateTimeOriginal is `dateTime` (`YYYY:MM:DD HH:MM:SS`), so the photo gets a capture time. */
-export function withCaptureTime(jpeg: Buffer, dateTime: string): Buffer {
-	const tiff = Buffer.alloc(44 + EXIF_DATE_TIME_LENGTH)
+/** `jpeg` with an EXIF block whose DateTimeOriginal is `dateTime` (`YYYY:MM:DD HH:MM:SS`), so the photo gets a capture time, and with `orientation` as its IFD0 Orientation. */
+export function withCaptureTime(jpeg: Buffer, dateTime: string, orientation: number | null = null): Buffer {
+	const ifd0Entries = orientation === null ? 1 : 2
+	const exifIfd = 10 + ifd0Entries * 12 + 4
+	const text = exifIfd + 18
+	const tiff = Buffer.alloc(text + EXIF_DATE_TIME_LENGTH)
 	tiff.write('II', 0, 'latin1')
 	tiff.writeUInt16LE(42, 2)
 	tiff.writeUInt32LE(8, 4)
-	// IFD0: one entry, the pointer to the Exif IFD at offset 26.
-	tiff.writeUInt16LE(1, 8)
-	tiff.writeUInt16LE(0x8769, 10)
-	tiff.writeUInt16LE(4, 12)
-	tiff.writeUInt32LE(1, 14)
-	tiff.writeUInt32LE(26, 18)
-	// Exif IFD: one entry, DateTimeOriginal as ASCII at offset 44.
-	tiff.writeUInt16LE(1, 26)
-	tiff.writeUInt16LE(0x9003, 28)
-	tiff.writeUInt16LE(2, 30)
-	tiff.writeUInt32LE(EXIF_DATE_TIME_LENGTH, 32)
-	tiff.writeUInt32LE(44, 36)
-	tiff.write(dateTime, 44, 'latin1')
+	// IFD0: Orientation as SHORT if given, then the pointer to the Exif IFD.
+	tiff.writeUInt16LE(ifd0Entries, 8)
+	let entry = 10
+	if (orientation !== null) {
+		tiff.writeUInt16LE(0x0112, entry)
+		tiff.writeUInt16LE(3, entry + 2)
+		tiff.writeUInt32LE(1, entry + 4)
+		tiff.writeUInt16LE(orientation, entry + 8)
+		entry += 12
+	}
+	tiff.writeUInt16LE(0x8769, entry)
+	tiff.writeUInt16LE(4, entry + 2)
+	tiff.writeUInt32LE(1, entry + 4)
+	tiff.writeUInt32LE(exifIfd, entry + 8)
+	// Exif IFD: one entry, DateTimeOriginal as ASCII after it.
+	tiff.writeUInt16LE(1, exifIfd)
+	tiff.writeUInt16LE(0x9003, exifIfd + 2)
+	tiff.writeUInt16LE(2, exifIfd + 4)
+	tiff.writeUInt32LE(EXIF_DATE_TIME_LENGTH, exifIfd + 6)
+	tiff.writeUInt32LE(text, exifIfd + 10)
+	tiff.write(dateTime, text, 'latin1')
+	return withExif(jpeg, tiff)
+}
+
+/** `jpeg` with `tiff` as its EXIF segment, right after the start marker. */
+function withExif(jpeg: Buffer, tiff: Buffer): Buffer {
 	const header = Buffer.from('Exif\0\0', 'latin1')
 	const segment = Buffer.alloc(4)
 	segment.writeUInt16BE(0xFFE1, 0)
