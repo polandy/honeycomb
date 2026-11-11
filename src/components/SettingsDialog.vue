@@ -3,8 +3,6 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { Flag } from '../logic/decision.ts'
-import type { SwipeDirection } from '../logic/loupe-gesture.ts'
 import type { FolderMode } from '../logic/pairing.ts'
 import type { ExtensionList, ExtensionRefusal, Settings } from '../logic/settings.ts'
 
@@ -15,6 +13,7 @@ import NcAppSettingsSection from '@nextcloud/vue/components/NcAppSettingsSection
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import AppIcon from './AppIcon.vue'
+import LoupeGestureSettings from './LoupeGestureSettings.vue'
 import MoveSettings from './MoveSettings.vue'
 import { addExtension, DEFAULT_SUBFOLDERS, folderMode, removeExtension } from '../logic/settings.ts'
 import { tip } from '../tooltip.ts'
@@ -39,15 +38,8 @@ const LISTS = [
 	{ list: 'renderedExtensions', label: t('honeycomb', 'Rendered extensions') },
 ] as const
 
-const SWIPES = [
-	{ direction: 'up', label: t('honeycomb', 'Swipe up') },
-	{ direction: 'down', label: t('honeycomb', 'Swipe down') },
-] as const
-
 const SWITCHES = {
 	singles: { key: 'showSingles', label: t('honeycomb', 'Show singles'), description: t('honeycomb', 'JPEG-only and RAW-only files stay in the grid') },
-	autoAdvance: { key: 'autoAdvance', label: t('honeycomb', 'Auto-advance to the next undecided photo'), description: t('honeycomb', 'After pick or reject, not after rating or colour label') },
-	flagButtons: { key: 'flagButtonsShown', label: t('honeycomb', 'Show flag buttons'), description: t('honeycomb', 'Pick, Reject and Unflag in the loupe and the series viewer. Hidden, the photo gets their room; keys, swipes and tooltips keep working, and the flag in the title row shows them again.') },
 	viKeys: { key: 'viKeys', label: t('honeycomb', 'Vi keys'), description: t('honeycomb', 'h j k l switch photos, g g and Shift + G go to the first and last, / opens the filters. g no longer opens the grid: Esc does.') },
 } as const
 
@@ -99,11 +91,6 @@ function setFolderMode(kind: FolderMode['kind'], names = subfolders(props.settin
 /** Renames one subfolder; an empty name takes its default. */
 function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 	setFolderMode('separate-subfolders', { ...subfolders(props.settings.folderMode), [field]: name })
-}
-
-/** Sets what the swipe in `direction` does; an empty value is Nothing. */
-function setSwipe(direction: SwipeDirection, value: string) {
-	emit('update', { swipes: { ...props.settings.swipes, [direction]: value === '' ? null : value as Flag } })
 }
 </script>
 
@@ -209,40 +196,11 @@ function setSwipe(direction: SwipeDirection, value: string) {
 			</NcCheckboxRadioSwitch>
 		</NcAppSettingsSection>
 		<NcAppSettingsSection id="loupe-gestures" :name="t('honeycomb', 'Loupe gestures')">
-			<p class="settings-dialog__hint">
-				{{ t('honeycomb', 'A direction set to Nothing turns that swipe off.') }}
-			</p>
-			<label v-for="{ direction, label } in SWIPES" :key="direction" class="settings-dialog__swipe">
-				<span>{{ label }}</span>
-				<select
-					:value="settings.swipes[direction] ?? ''"
-					:aria-label="label"
-					@change="setSwipe(direction, ($event.target as HTMLSelectElement).value)">
-					<option value="picked">{{ t('honeycomb', 'Pick') }}</option>
-					<option value="rejected">{{ t('honeycomb', 'Reject') }}</option>
-					<option value="">{{ t('honeycomb', 'Nothing') }}</option>
-				</select>
-			</label>
-			<NcCheckboxRadioSwitch
-				v-for="item in [SWITCHES.autoAdvance, SWITCHES.flagButtons]"
-				:key="item.key"
-				type="switch"
-				:modelValue="settings[item.key]"
-				:description="item.description"
-				@update:modelValue="emit('update', { [item.key]: $event })">
-				{{ item.label }}
-			</NcCheckboxRadioSwitch>
-			<div class="settings-dialog__guide">
-				<div>
-					<div>{{ t('honeycomb', 'Gesture guide') }}</div>
-					<div id="gesture-guide-hint" class="settings-dialog__hint">
-						{{ gestureGuideSeen ? t('honeycomb', 'The card with the swipes, tap zones and keys from the first loupe opening') : t('honeycomb', 'Shows the next time you open the loupe') }}
-					</div>
-				</div>
-				<NcButton aria-describedby="gesture-guide-hint" @click="emit('showGestureGuide')">
-					{{ t('honeycomb', 'Show the gesture guide') }}
-				</NcButton>
-			</div>
+			<LoupeGestureSettings
+				:settings="settings"
+				:gestureGuideSeen="gestureGuideSeen"
+				@update="emit('update', $event)"
+				@showGestureGuide="emit('showGestureGuide')" />
 		</NcAppSettingsSection>
 		<NcAppSettingsSection id="keyboard" :name="t('honeycomb', 'Keyboard')">
 			<NcCheckboxRadioSwitch
@@ -303,14 +261,5 @@ function setSwipe(direction: SwipeDirection, value: string) {
 	gap: calc(2 * var(--default-grid-baseline));
 	border: 0;
 	padding: 0;
-}
-
-.settings-dialog__swipe,
-.settings-dialog__guide {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: calc(2 * var(--default-grid-baseline));
-	margin-block-end: calc(2 * var(--default-grid-baseline));
 }
 </style>

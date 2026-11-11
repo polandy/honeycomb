@@ -75,11 +75,7 @@ const overlayScreen = computed(() => (loupe.value !== null ? '.photo-loupe' : se
 const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
 const { dialog: deleteDialog, rejected, rawRemovable } = deleting
 const moving = useMoveFlow({ view: () => view.value, settings: () => settings.value, updateSettings, probe: props.move.probeTargets, move: props.move.movePictures, removeFiles: cull.removeFiles, restoreFiles: cull.restoreFiles, listing: () => folderSet.value, loupe, toast: toast.show })
-const recent = useRecent(props.positions, props.listEntries, {
-	folderSet: () => folderSet.value,
-	progress: () => progress.value,
-	pairing: () => cull.pairing.value,
-}, (message) => toast.show(message))
+const recent = useRecent(props.positions, props.listEntries, { folderSet: () => folderSet.value, progress: () => progress.value, pairing: () => cull.pairing.value }, (message) => toast.show(message))
 const resume = useResume(recent.positions, {
 	folderSet: () => folderSet.value,
 	pictures: () => pictures.value,
@@ -277,10 +273,7 @@ useHotkeys(() => {
 					@allDecided="deleting.allDecided"
 					@move="moving.openShown([], () => 0)"
 					@close="closeLoupe" />
-				<ShortcutSheet
-					v-if="shortcutsOpen"
-					:container="overlayScreen"
-					@close="shortcutsOpen = false" />
+				<ShortcutSheet v-if="shortcutsOpen" :container="overlayScreen" @close="shortcutsOpen = false" />
 				<UndoToast
 					v-if="toast.current.value !== null"
 					:toast="toast.current.value"

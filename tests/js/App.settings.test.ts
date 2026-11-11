@@ -47,7 +47,7 @@ describe('App: the settings', () => {
 	// spec: SETTINGS-001.22
 	it('shows the gesture guide again from the dialog and writes only that key', async () => {
 		const saved: Partial<ViewState>[] = []
-		const { wrapper } = mountApp({ viewState: { loadViewState: async () => ({ infoPanelOpen: null, gestureGuideSeen: true }), saveViewState: async (patch) => void saved.push(patch) } })
+		const { wrapper } = mountApp({ viewState: { loadViewState: async () => ({ infoPanelOpen: null, gestureGuideSeen: true }), saveViewState: async (patch: Partial<ViewState>) => void saved.push(patch) } })
 		await openCull(wrapper)
 		expect(wrapper.findComponent(SettingsDialog).props('gestureGuideSeen')).toBe(true)
 
