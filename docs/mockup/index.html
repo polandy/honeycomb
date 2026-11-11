@@ -157,7 +157,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .tile img.th.ld{opacity:1}
 /* skeleton: a tile pulses until its thumbnail has loaded; reduced motion keeps it still */
 .tile.wait,.tile.sk{animation:skel 1.2s ease-in-out infinite alternate}
-.tile.sk{cursor:default}.tile.wait .ov{background:none}
+.tile.sk{cursor:default}.tile.wait .ov,.tile .ov.bare{background:none}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 @keyframes skel{to{background:var(--tile-skel)}}
 .tile .amb{position:absolute;left:6px;top:30px;min-width:20px;height:20px;border-radius:10px;background:var(--warn-bg);color:var(--warn-text);font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
@@ -314,8 +314,8 @@ table.sc{border-collapse:collapse;width:100%}table.sc td{padding:6px 4px;border-
 .prefetch i{width:8px;height:8px;border-radius:50%;background:#555;display:inline-block}.prefetch i.ok{background:var(--honey)}
 .zoomtag{position:absolute;right:10px;bottom:10px;background:#000a;border-radius:16px;padding:4px 12px;font-size:12px;z-index:2;margin-right:var(--sa-r)}
 .film{flex:none;display:flex;gap:6px;overflow-x:auto;padding:6px 10px;background:#000;touch-action:pan-x;-webkit-overflow-scrolling:touch}
-.film button{flex:none;width:72px;height:54px;border-radius:6px;border:0;padding:0;overflow:hidden;position:relative;background:#222;opacity:.6}
-.film button.cur{opacity:1;box-shadow:0 0 0 3px var(--honey)}
+.film button{flex:none;width:72px;height:54px;border-radius:6px;border:0;padding:0;overflow:hidden;position:relative;background:#222}
+.film button.cur{box-shadow:0 0 0 3px var(--honey)}
 .film img{width:100%;height:100%;object-fit:cover;display:block}
 .film .fl{position:absolute;right:2px;top:2px}
 .film .fl,.cm .fl{width:20px;height:20px;border-radius:50%;background:#000a}.film .fl svg,.cm .fl svg{width:14px;height:14px;stroke-width:2.4}
@@ -1629,6 +1629,7 @@ function updateTile(id){
   const st = el.querySelector('.stars'); st.innerHTML = it.rating ? stars(it.rating) : ''; if (it.rating) st.dataset.tip = n('Rating: %n star', 'Rating: %n stars', it.rating); else delete st.dataset.tip;
   const dot = el.querySelector('.dotc'); dot.hidden = !it.label; if (it.label){ dot.style.background = LBL[it.label].hex; dot.dataset.tip = labelText(it.label); }
   el.querySelector('.flw').innerHTML = flagMark(it.flag);
+  el.querySelector('.ov').classList.toggle('bare', !it.rating && !it.label && it.flag === 'none');
   const pb = el.querySelector('.pair'); pb.classList.toggle('k', !!it.keepRaw); pb.textContent = pairLabel(it) + (it.keepRaw ? ' ✓' : '');
   pb.dataset.tip = pairType(it) === 'pair' ? (it.keepRaw ? t('Pair: JPEG and RAW · Keep RAW') : t('Pair: JPEG and RAW')) : t('Single: {name}', {name:pairLabel(it)});
 }

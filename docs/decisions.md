@@ -632,3 +632,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   pointer is pressed (`UndoToast` reports both) and restarts the full 5.2 s once both end, as
   the mockup does. A hidden toast forgets the hold, since an element removed under focus sends
   no `focusout`.
+- 2026-11-10: UX review L5: the mockup's filmstrip shows every photo at full opacity and marks
+  the current one only by its honey outline, and a grid tile draws its bottom shade only behind
+  stars, a colour dot or a flag. Two dimmings stay, because they mark a state rather than
+  decorate: a rejected tile, and a rejected photo in the filmstrip that leaves the *not
+  rejected* scope. The app's tile has no shade; its filmstrip dims at 0.7, which is its own
+  `TODO.md` item.
