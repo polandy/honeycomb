@@ -888,6 +888,8 @@ const DE = {
   'Separate subfolders': 'Getrennte Unterordner',
   'RAW folder': 'RAW-Ordner',
   'Show singles': 'Einzeldateien anzeigen',
+  'Gesture guide': 'Gesten-Anleitung', 'Show the gesture guide': 'Gesten-Anleitung zeigen', 'Shows the next time you open the loupe': 'Erscheint beim nächsten Öffnen der Lupe',
+  'The card with the swipes, tap zones and keys from the first loupe opening': 'Die Karte mit Wischgesten, Tippzonen und Tasten vom ersten Öffnen der Lupe',
   'JPEG-only and RAW-only files stay in the grid': 'Nur-JPEG- und Nur-RAW-Dateien bleiben im Raster',
   'Loupe gestures': 'Lupen-Gesten',
   'Auto-advance to the next undecided photo': 'Automatisch zum nächsten unentschiedenen Foto',
@@ -2073,7 +2075,8 @@ function dlgSettings(){
   <div class="sec"><h3>${t('Loupe gestures')}</h3><p class="hint">${t('A direction set to Nothing turns that swipe off.')}</p>
     <div class="setrow"><span>${t('Swipe up')}</span>${act('swipeUp')}</div><div class="setrow"><span>${t('Swipe down')}</span>${act('swipeDown')}</div>
     ${sw('autoAdvance', 'Auto-advance to the next undecided photo', 'After pick or reject, not after rating or colour label')}
-    ${sw('flagButtons', 'Show flag buttons', 'Pick, Reject and Unflag in the loupe and the series viewer. Hidden, the photo gets their room; keys, swipes and tooltips keep working, and the flag in the title row shows them again.')}</div>
+    ${sw('flagButtons', 'Show flag buttons', 'Pick, Reject and Unflag in the loupe and the series viewer. Hidden, the photo gets their room; keys, swipes and tooltips keep working, and the flag in the title row shows them again.')}
+    <div class="setrow"><div><div>${t('Gesture guide')}</div><div style="font-size:12px;color:var(--muted)" id="coachHint">${t(P0.coachSeen ? 'The card with the swipes, tap zones and keys from the first loupe opening' : 'Shows the next time you open the loupe')}</div></div><button class="btn" id="coachAgain" data-act="coachAgain" aria-describedby="coachHint">${t('Show the gesture guide')}</button></div></div>
   <div class="sec"><h3>${t('Keyboard')}</h3>
     ${sw('viKeys', 'Vi keys', 'h j k l switch photos, g g and Shift + G go to the first and last, / opens the filters. g no longer opens the grid: Esc does.')}</div>
   <div class="sec"><h3>${t('Moving photos')}</h3><p class="hint">${t('Name template for moved photos, relative to the chosen folder. All files of a photo, sidecars included, get the same new name.')}</p>
@@ -2604,6 +2607,7 @@ const A = {
     storeItems(); closeDlg(); refreshView(); toast(n('Moved %n remaining file to the Nextcloud trash bin', 'Moved %n remaining files to the Nextcloud trash bin', f.length)); S.lastFailed = []; },
   undo(){ undo(); }, redo(){ redo(); },
   coachOk(){ P0.coachSeen = true; savePrefs(); $('lCoach').hidden = true; },
+  coachAgain(){ P0.coachSeen = false; savePrefs(); S.dlg.refocus = '#coachAgain'; renderDlg(); },
   closeLoupe(){ closeLoupe(); }, prev(){ step(-1); }, next(){ step(1); }, goto(el){ goTo(+el.dataset.i, false); },
   flag(el){ el.dataset.for === 'loupe' ? loupeDecide(el.dataset.v) : decideFlag(idsForKey(el.dataset.for, el.dataset.id), el.dataset.v); }, rate(el){ change(idsForKey(el.dataset.for, el.dataset.id), 'rating', +el.dataset.v); },
   zoomToggle(){ toggleZoom(); }, infoToggle(){ P0.infoOpen = !P0.infoOpen; savePrefs(); renderLoupeChrome(); measure(); showLoupe(); }, filmToggle(){ L.film = !L.film; renderLoupeChrome(); measure(); showLoupe(); },
