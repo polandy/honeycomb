@@ -235,6 +235,24 @@ describe('GridToolbar', () => {
 		expect(open.emitted('update:filtersOpen')).toEqual([[false]])
 	})
 
+	// spec: GRID-001.14
+	it.each([
+		['Filters', { activeFilters: 2 }, { activeFilters: 2, filtersOpen: true }],
+		['Select', null, { selecting: true, selected: 4 }],
+		['Review rejects', { rejected: 12 }, null],
+		['Compare series', { series: 3 }, null],
+	] as const)('keeps the %s badge neutral unless its button is pressed', (label, idle, pressed) => {
+		const badge = (cull: Partial<typeof CULL>) => mountToolbar({ paths: ['/A'], subfolders: false }, 1, cull)
+			.find(`[aria-label^="${MARK}${label}"] .grid-toolbar__badge`)
+
+		if (idle) {
+			expect(badge(idle).classes()).not.toContain('grid-toolbar__badge--pressed')
+		}
+		if (pressed) {
+			expect(badge(pressed).classes()).toContain('grid-toolbar__badge--pressed')
+		}
+	})
+
 	// spec: GRID-002.8
 	it('chooses the sort order in the More menu', async () => {
 		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false })
