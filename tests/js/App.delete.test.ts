@@ -109,14 +109,13 @@ describe('App: deleting rejects', () => {
 		expect(wrapper.findComponent(PhotoLoupe).exists()).toBe(false)
 		wrapper.findComponent(RejectReview).vm.$emit('cancel')
 
-		wrapper.findComponent(GridToolbar).vm.$emit('update:scope', 'undecided')
-		await flushPromises()
-		const button = wrapper.findAll('button').find((each) => each.text() === 'Review rejects')!
+		const empty = await openApp([1, 2, 3, 4].map((fileId) => stored(fileId, 'rejected')))
+		const button = empty.wrapper.findAll('button').find((each) => each.text() === 'Review rejects')!
 		await button.trigger('click')
-		expect(wrapper.findComponent(RejectReview).exists()).toBe(true)
+		expect(empty.wrapper.findComponent(RejectReview).exists()).toBe(true)
 
 		const none = await openApp([stored(4, 'picked'), stored(1, 'picked'), stored(2, 'picked'), stored(3, 'picked')])
-		none.wrapper.findComponent(GridToolbar).vm.$emit('update:scope', 'undecided')
+		none.wrapper.findComponent(GridToolbar).vm.$emit('update:flags', new Set(['rejected']))
 		await flushPromises()
 		expect(none.wrapper.findAll('button').map((each) => each.text())).not.toContain('Review rejects')
 	})

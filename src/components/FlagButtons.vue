@@ -4,10 +4,10 @@
 -->
 <script setup lang="ts">
 import type { Flag } from '../logic/decision.ts'
-import type { IconName } from './AppIcon.vue'
 
 import { t } from '@nextcloud/l10n'
 import AppIcon from './AppIcon.vue'
+import { FLAG_ICONS } from '../flag-icons.ts'
 import { keyCap } from '../hotkeys.ts'
 import { tip } from '../tooltip.ts'
 
@@ -21,10 +21,10 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{ flag: [flag: Flag] }>()
 
-const FLAGS: readonly { flag: Flag, icon: IconName, key: string, label: () => string }[] = [
-	{ flag: 'picked', icon: 'flagPick', key: 'pick', label: () => t('honeycomb', 'Pick') },
-	{ flag: 'rejected', icon: 'flagX', key: 'reject', label: () => t('honeycomb', 'Reject') },
-	{ flag: 'unflagged', icon: 'flag', key: 'unflag', label: () => t('honeycomb', 'Unflag') },
+const FLAGS: readonly { flag: Flag, key: string, label: () => string }[] = [
+	{ flag: 'picked', key: 'pick', label: () => t('honeycomb', 'Pick') },
+	{ flag: 'rejected', key: 'reject', label: () => t('honeycomb', 'Reject') },
+	{ flag: 'unflagged', key: 'unflag', label: () => t('honeycomb', 'Unflag') },
 ]
 </script>
 
@@ -45,7 +45,7 @@ const FLAGS: readonly { flag: Flag, icon: IconName, key: string, label: () => st
 			:aria-label="button.label()"
 			v-bind="tip(button.label(), keyCap(button.key))"
 			@click="emit('flag', button.flag)">
-			<AppIcon :name="button.icon" />
+			<AppIcon :name="FLAG_ICONS[button.flag]" />
 			<span v-if="props.size === 'large'" class="flag-buttons__label">{{ button.label() }}</span>
 		</button>
 	</div>

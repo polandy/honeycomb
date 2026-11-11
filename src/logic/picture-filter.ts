@@ -5,9 +5,6 @@ import type { Picture } from './pairing.ts'
 
 import { isDecided } from './decision.ts'
 
-/** Which pictures the cull shows before the filters (plan.md, Culling workflow). */
-export type Scope = 'not-rejected' | 'undecided' | 'all'
-
 /** How the rating filter compares a picture's stars with the chosen count (Q8). */
 export type RatingComparison = 'at-least' | 'at-most' | 'exactly'
 
@@ -18,11 +15,10 @@ export type PairingKind = 'pair' | 'rendered-only' | 'raw-only'
 export type KeepRawChip = 'marked' | 'not-marked'
 
 /** Why the filtered view is empty, for its empty state. */
-export type EmptyReason = 'no-pictures' | 'all-decided' | 'none-left' | 'no-match'
+export type EmptyReason = 'no-pictures' | 'none-left' | 'no-match'
 
-/** The scope and the filter bar's choices; an empty chip set filters nothing (Q9). */
+/** The filter bar's choices; an empty chip set filters nothing (Q9). */
 export interface Filters {
-	readonly scope: Scope
 	readonly rating: number | null
 	readonly comparison: RatingComparison
 	readonly colourLabels: ReadonlySet<ColourLabel>
@@ -32,13 +28,12 @@ export interface Filters {
 	readonly folders: ReadonlySet<string>
 }
 
-/** Not rejected, no filter, the comparison at least. */
+/** Picked and unflagged, no other filter, the comparison at least. */
 export const DEFAULT_FILTERS: Filters = {
-	scope: 'not-rejected',
 	rating: null,
 	comparison: 'at-least',
 	colourLabels: new Set(),
-	flags: new Set(),
+	flags: new Set(['picked', 'unflagged']),
 	pairings: new Set(),
 	keepRaw: new Set(),
 	folders: new Set(),
@@ -65,11 +60,10 @@ export function pairingKind(picture: Picture<unknown>): PairingKind {
 	return picture.rendered === null ? 'raw-only' : 'pair'
 }
 
-/** Whether a picture with this decision passes the scope and every active filter group. */
+/** Whether a picture with this decision passes every active filter group. */
 export function matchesFilters(picture: Picture<unknown>, decision: Decision, filters: Filters): boolean {
 	const chosen = <T>(chips: ReadonlySet<T>, value: T) => chips.size === 0 || chips.has(value)
-	return inScope(decision, filters)
-		&& (filters.rating === null || COMPARE_RATING[filters.comparison](decision.rating, filters.rating))
+	return (filters.rating === null || COMPARE_RATING[filters.comparison](decision.rating, filters.rating))
 		&& (filters.colourLabels.size === 0 || (decision.colourLabel !== null && filters.colourLabels.has(decision.colourLabel)))
 		&& chosen(filters.flags, decision.flag)
 		&& chosen(filters.pairings, pairingKind(picture))
@@ -87,15 +81,10 @@ export function progress<P>(pictures: readonly P[], decisionOf: (picture: P) => 
 	return { decided: pictures.filter((picture) => isDecided(decisionOf(picture))).length, total: pictures.length }
 }
 
-/** How many filter groups have a choice; the scope is not a filter. */
+/** How many filter groups have a choice; the flag filter has one when it is not the default. */
 export function activeFilterCount(filters: Filters): number {
-	const sets = [filters.colourLabels, filters.flags, filters.pairings, filters.keepRaw, filters.folders]
-	return Number(filters.rating !== null) + sets.filter((chips) => chips.size > 0).length
-}
-
-/** The filters reset, the scope kept (*Clear filters*). */
-export function clearFilters(filters: Filters): Filters {
-	return { ...DEFAULT_FILTERS, scope: filters.scope }
+	const sets = [filters.colourLabels, filters.pairings, filters.keepRaw, filters.folders]
+	return Number(filters.rating !== null) + Number(!isDefaultFlags(filters.flags)) + sets.filter((chips) => chips.size > 0).length
 }
 
 /** A copy of the chips with the chip switched. */
@@ -117,16 +106,10 @@ export function emptyReason(filters: Filters, total: number): EmptyReason {
 	if (total === 0) {
 		return 'no-pictures'
 	}
-	if (activeFilterCount(filters) > 0 || filters.scope === 'all') {
-		return 'no-match'
-	}
-	return filters.scope === 'undecided' ? 'all-decided' : 'none-left'
+	return activeFilterCount(filters) > 0 ? 'no-match' : 'none-left'
 }
 
-/** Whether the decision passes the scope; a flag filter overrides it. */
-function inScope(decision: Decision, filters: Filters): boolean {
-	if (filters.flags.size > 0 || filters.scope === 'all') {
-		return true
-	}
-	return filters.scope === 'undecided' ? !isDecided(decision) : decision.flag !== 'rejected'
+/** Whether the flag filter is the default one. */
+function isDefaultFlags(flags: ReadonlySet<Flag>): boolean {
+	return flags.size === DEFAULT_FILTERS.flags.size && [...flags].every((flag) => DEFAULT_FILTERS.flags.has(flag))
 }

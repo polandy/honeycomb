@@ -15,6 +15,7 @@ const PATHS = {
 	flag: 'M5 3v18M5 4h11l-2 4 2 4H5',
 	flagPick: 'M5 3v18M5 4h11l-2 4 2 4H5z',
 	flagX: 'M5 3v18M5 4h11l-2 4 2 4H5M8 6l3 4M11 6l-3 4',
+	flagOutline: 'M5 3v18M5 4h11l-2 4 2 4H5z',
 	flagCross: 'M5 3v18M5 4h11l-2 4 2 4H5M8 6l3 4M11 6l-3 4M3 20 21 4',
 	folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
 	home: 'M4 11l8-7 8 7v9H4zM10 20v-6h4v6',
@@ -24,6 +25,9 @@ const PATHS = {
 	settings: 'M4 7h10M18 7h2M4 17h2M10 17h10M16 7m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0M8 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0',
 	trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
 } as const
+
+/** The icons drawn filled. */
+const FILLED: ReadonlySet<IconName> = new Set(['flagPick'])
 
 /** The name of one of the app's icons. */
 export type IconName = keyof typeof PATHS
@@ -36,6 +40,7 @@ const props = defineProps<{ name: IconName }>()
 <template>
 	<svg
 		class="app-icon"
+		:class="{ 'app-icon--filled': FILLED.has(props.name) }"
 		viewBox="0 0 24 24"
 		aria-hidden="true"
 		focusable="false">
@@ -53,5 +58,9 @@ const props = defineProps<{ name: IconName }>()
 	stroke-width: 2;
 	stroke-linecap: round;
 	stroke-linejoin: round;
+}
+
+.app-icon--filled {
+	fill: currentColor;
 }
 </style>

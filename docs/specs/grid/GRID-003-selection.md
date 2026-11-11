@@ -24,7 +24,7 @@ touch as well as with a mouse or keyboard.
 - A change writes the whole new decision of every member of each changed picture; a picture the
   change leaves as it is sends nothing. A save the server refuses is reverted and reported,
   unless another folder set is open by then.
-- A rejected picture leaves the view (default scope) and the selection; the selection keeps only
+- A rejected picture leaves the view (default filter) and the selection; the selection keeps only
   shown pictures.
 
 ## Acceptance criteria
@@ -81,7 +81,7 @@ touch as well as with a mouse or keyboard.
 ### GRID-003.8 – The selection follows the view
 
 - **Given** selected pictures
-- **When** one is rejected in the default scope, or another folder set opens
+- **When** one is rejected in the default filter, or another folder set opens
 - **Then** it leaves the view and the selection; the selection keeps only shown pictures
 
 ### GRID-003.9 – A refused save is reverted

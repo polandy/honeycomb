@@ -19,7 +19,7 @@ import { logger } from './logger.ts'
 import { prepareCull, warmFileIds } from './logic/cull.ts'
 import { commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
 import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
-import { activeFilterCount, clearFilters, DEFAULT_FILTERS, emptyReason, filterPictures, pictureFolders, progress } from './logic/picture-filter.ts'
+import { activeFilterCount, DEFAULT_FILTERS, emptyReason, filterPictures, pictureFolders, progress } from './logic/picture-filter.ts'
 import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
 import { findSeries, seriesCandidates, seriesSizes as sizesOf } from './logic/series.ts'
 import { pairingSettings } from './logic/settings.ts'
@@ -222,19 +222,19 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		}
 	}
 
-	/** Switches the scope and keeps the filters. */
-	function setScope(scope: Filters['scope']) {
-		filters.value = { ...filters.value, scope }
+	/** Replaces the flag filter and keeps the other groups. */
+	function setFlags(flags: Filters['flags']) {
+		filters.value = { ...filters.value, flags }
 	}
 
-	/** Turns the filters off, keeping the scope; the next press turns them back on unless others were set meanwhile. */
+	/** Turns the filters off; the next press turns them back on unless others were set meanwhile. */
 	function toggleFiltersOff() {
 		if (filtersOff !== null && activeFilters.value === 0) {
-			filters.value = { ...filtersOff, scope: filters.value.scope }
+			filters.value = filtersOff
 			filtersOff = null
 		} else {
 			filtersOff = filters.value
-			filters.value = clearFilters(filters.value)
+			filters.value = DEFAULT_FILTERS
 		}
 	}
 
@@ -275,7 +275,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		open,
 		removeFiles,
 		restoreFiles,
-		setScope,
+		setFlags,
 		toggleFiltersOff,
 		setTileSize,
 	}

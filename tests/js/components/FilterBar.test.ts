@@ -91,7 +91,7 @@ describe('FilterBar', () => {
 		['Not marked', 'keepRaw', 'not-marked'],
 	// spec: GRID-002.4
 	] as const)('switches the %s chip', async (label, group, value) => {
-		const off = mountBar()
+		const off = mountBar({ flags: new Set() })
 		expect(chip(off, label).attributes('aria-pressed')).toBe('false')
 		await chip(off, label).trigger('click')
 		expect([...emitted(off)[0]![group]]).toEqual([value])
@@ -136,13 +136,13 @@ describe('FilterBar', () => {
 	})
 
 	// spec: GRID-002.6
-	it('clears the filters but keeps the scope, and is disabled while none is active', async () => {
-		expect(chip(mountBar({ scope: 'all' }), 'Clear filters').attributes('disabled')).toBeDefined()
-		const wrapper = mountBar({ scope: 'undecided', rating: 3, flags: new Set(['picked']) })
+	it('resets every group, the flag filter to its default, and is disabled while none is active', async () => {
+		expect(chip(mountBar({}), 'Clear filters').attributes('disabled')).toBeDefined()
+		const wrapper = mountBar({ rating: 3, flags: new Set(['picked']) })
 
 		await chip(wrapper, 'Clear filters').trigger('click')
 
-		expect(emitted(wrapper)).toEqual([{ ...DEFAULT_FILTERS, scope: 'undecided' }])
+		expect(emitted(wrapper)).toEqual([DEFAULT_FILTERS])
 	})
 
 	it('renders no text that bypasses the catalogue but folder names', () => {
