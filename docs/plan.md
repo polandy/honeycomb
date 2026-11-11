@@ -193,7 +193,7 @@ for most, so the RAWs of the rest can go once a cull is done.
 3. **Filter.** The filter bar has a *Keep RAW* group after *Pairing*, with the chips *Marked* and
    *Not marked*; like the other chip groups it selects several, none selected means no filter.
 4. **Remove RAWs.** A bulk action in the ⋯ menu, "Remove RAWs…" with a count, that acts on the
-   current view (scope and filters). It takes every picture in the view that is a pair, is not
+   current view (flag filter and filters). It takes every picture in the view that is a pair, is not
    marked *Keep RAW* and is not rejected; singles (JPEG only or RAW only), marked and rejected
    pictures are skipped. For each it moves **only the RAW member and its own `<raw>.xmp`
    sidecar** to the Nextcloud trash bin. The JPEG, its `<jpeg>.xmp` and a shared `<base>.xmp`
@@ -309,14 +309,14 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
 2. **The key actions move into the app bar while scrolling** (owner, 2026-11-09, correcting the
    slim-row version). Nothing stays below the app bar: when the toolbar hides, all of it, the
    slim row included, slides away, and the most used actions appear in the top app bar
-   (`.hdr`, where *Undo* and *Redo* are), between the logo and *Undo*: the scope as three icon
+   (`.hdr`, where *Undo* and *Redo* are), between the logo and *Undo*: the flag filter as three icon
    buttons, the *decided* count with a thin progress line on the bar's bottom edge, *Review
    rejects* with its badge and the ⋯ menu. When the toolbar returns they leave the app bar again;
    there are never two copies at once (the hidden toolbar is inert). Every target keeps 44 px.
    On a phone the logo shrinks to the mark, and to make room the navigation toggle and the count
    figures give way while the actions are in the app bar (the thin line stays), *Redo* moves into
    the ⋯ menu and *Undo* stays in the bar (owner, 2026-11-10; Ctrl+Shift+Z and Ctrl+Y are
-   unchanged). Checked in the mockup at 360 and 412 px: the mark, the three scope icons, *Review
+   unchanged). Checked in the mockup at 360 and 412 px: the mark, the three flag icons, *Review
    rejects*, ⋯ and *Undo* fit with 44 px targets beside the reserved 60 px on the right.
    Breadcrumbs, *Select*, *Compare series* and *Filters* sit in the toolbar, which returns on
    scrolling up. The ⋯ entry *Hide header* still hides everything, leaving a small handle. The
@@ -678,7 +678,7 @@ honeycomb is a classic PHP Nextcloud app, not an AppAPI ExApp (ADR 0006).
 | Backend (PHP, thin) | Frontend (pure TypeScript modules in `src/logic/`) |
 |---|---|
 | List a folder set: one file-cache query by path prefix and mime type, flat entries with EXIF basics | Pairing, series |
-| Move and trash files through `OCP\Files` | Filters, sort, the culling scope and progress |
+| Move and trash files through `OCP\Files` | Filters, sort, the flag filter and progress |
 | Write the XMP bytes the client produced, with the checked save | XMP read and write mapping, serialized form |
 | Store per-user decisions, resume position and settings | Name templates and move conflicts |
 | Serve Nextcloud previews | Decisions (flag toggle, common values), undo, gestures, hotkeys, header scroll logic |
