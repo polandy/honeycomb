@@ -25,6 +25,7 @@ back to its default, so an unknown, missing or invalid field never breaks the ap
 | Swipe up, swipe down | Pick, reject; each can be pick, reject or nothing |
 | Auto-advance to the next undecided photo | On |
 | Show flag buttons | On |
+| Pin the filmstrip, pin the rating row | Off |
 | Vi keys | Off |
 | Name template for moved photos | *By day* (`docs/05-name-templates.md` Default and presets) |
 | Favourite targets | None |
@@ -105,8 +106,8 @@ Below it, the favourite targets the move dialog starred, each with a ✕ to remo
 ### SETTINGS-001.10 – Switches and swipes
 
 - **Given** the dialog
-- **When** the user turns *Show singles*, *Auto-advance*, *Show flag buttons* or *Vi keys* on or
-  off, or sets a swipe to pick, reject or *Nothing*
+- **When** the user turns *Show singles*, *Auto-advance*, *Show flag buttons*, *Pin the
+  filmstrip*, *Pin the rating row* or *Vi keys* on or off, or sets a swipe to pick, reject or *Nothing*
 - **Then** exactly that change is applied; with *Show singles* off the singles leave the grid
 
 ### SETTINGS-001.11 – Applied at once, saved whole
@@ -208,4 +209,5 @@ Pairing itself: LISTING-002.
 | 2026-11-10 | Written from the merged M4.4 (#54) |
 | 2026-11-10 | .15 favourite and recent move targets (M7.3) |
 | 2026-11-10 | .16–.21 name template setting, presets, preview and favourite targets (M7.4) |
+| 2026-11-12 | .10 *Pin the filmstrip* and *Pin the rating row* (LOUPE-001.20) |
 | 2026-11-11 | .22 show the gesture guide again (UX review L6) |

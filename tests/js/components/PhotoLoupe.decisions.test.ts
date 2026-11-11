@@ -107,6 +107,15 @@ describe('PhotoLoupe: decisions', () => {
 		expect(wrapper.emitted('toast')).toEqual([[{ message: 'Flag buttons shown', action: null }]])
 	})
 
+	// spec: LOUPE-002.6
+	it('decides by the keys with the flag buttons hidden', async () => {
+		const { wrapper, root, decided } = await mountDeciding(4, {}, { flagButtonsShown: false, autoAdvance: false })
+		expect(wrapper.find('.flag-buttons').exists()).toBe(false)
+		await root.trigger('keydown', { key: 'p' })
+		await root.trigger('keydown', { key: 'x' })
+		expect(decided).toEqual([[{ kind: 'flag', flag: 'picked' }, 'IMG_5'], [{ kind: 'flag', flag: 'rejected' }, 'IMG_5']])
+	})
+
 	// spec: LOUPE-002.5
 	it('swipes as the settings say and stays on the photo with auto-advance off', async () => {
 		const { wrapper, decided } = await mountDeciding(4, {}, { swipes: { up: null, down: 'picked' }, autoAdvance: false })

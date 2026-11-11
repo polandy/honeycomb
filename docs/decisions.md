@@ -707,3 +707,15 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the grid's picture count; the progress saved with a recent folder set stays over every picture.
   The toolbar is compact (13 px text, 16–18 px icons, 28 px chips, 32 px buttons) and keeps the
   44 px touch target through a larger hit area on coarse pointers, not a larger look.
+- 2026-11-12: The loupe filmstrip is a dark band (`#111`) with a white border on the shown photo in
+  every theme, a fixed colour against the rule of theme variables, because the owner's Lightroom
+  reference asks for it and a light band would compete with the photo. Photos are 56 px squares.
+- 2026-11-12: The filmstrip pads both ends by half its width so the first and last picture sit in
+  the middle too, and renders only the photos in view plus four on each side, so a folder of
+  thousands costs no more than one of twenty.
+- 2026-11-12: *Pin the filmstrip* and *Pin the rating row* are per-user settings in the *Loupe
+  gestures* section, off by default so the photo keeps the most room as before. Pinned, they sit
+  below the photo in landscape (portrait already stacks them below); the chrome-free mode still
+  hides them, since the user asked for it. Showing or hiding the Pick and Reject buttons was
+  already the *Show flag buttons* setting and `B`; this change only adds a test that the keys
+  decide while they are hidden. The mockup is not redrawn for the filmstrip look.

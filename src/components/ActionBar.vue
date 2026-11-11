@@ -21,7 +21,9 @@ const props = withDefaults(defineProps<{
 	flags?: boolean
 	/** Whether the loupe's overlays are idle, which fades the row in landscape. */
 	idle?: boolean
-}>(), { disabled: false, layout: 'bar', flags: true, idle: false })
+	/** Whether the loupe's row stays below the photo in landscape instead of floating over it. */
+	pinned?: boolean
+}>(), { disabled: false, layout: 'bar', flags: true, idle: false, pinned: false })
 
 const emit = defineEmits<{ decide: [intent: DecisionIntent] }>()
 
@@ -29,7 +31,7 @@ const loupe = computed(() => props.layout === 'loupe')
 </script>
 
 <template>
-	<div class="action-bar" :class="[`action-bar--${props.layout}`, { 'action-bar--idle': props.idle }]">
+	<div class="action-bar" :class="[`action-bar--${props.layout}`, { 'action-bar--idle': props.idle && !props.pinned, 'action-bar--pinned': props.pinned }]">
 		<div v-if="loupe && props.flags" class="action-bar__flags">
 			<FlagButtons
 				size="large"
@@ -104,11 +106,17 @@ const loupe = computed(() => props.layout === 'loupe')
 		position: absolute;
 		z-index: 1;
 		inset-inline: var(--photo-loupe-rail, 0px) calc(var(--photo-loupe-panel, 0px) + var(--photo-loupe-rail, 0px));
-		bottom: 0;
+		bottom: var(--photo-loupe-strip, 0px);
+		box-sizing: border-box;
 		min-height: var(--photo-loupe-row, 56px);
 		padding: var(--default-grid-baseline) calc(2 * var(--default-grid-baseline));
 		background-color: color-mix(in srgb, var(--color-main-background) 80%, transparent);
 		transition: opacity 0.2s;
+	}
+
+	.action-bar--pinned .action-bar__row {
+		position: static;
+		margin-inline-end: var(--photo-loupe-panel, 0px);
 	}
 
 	.action-bar--idle .action-bar__row {

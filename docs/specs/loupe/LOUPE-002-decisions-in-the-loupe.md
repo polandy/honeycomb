@@ -59,7 +59,8 @@ off. The flag buttons can be hidden by their toggle or `B`. Each decision shows 
 - **Given** the flag buttons are shown
 - **When** the user presses their toggle or `B`
 - **Then** they hide, the choice is kept for the next visit, and a message says how to decide
-  and how to show them again (the swipes that decide and the toggle, or the key `B`)
+  and how to show them again (the swipes that decide and the toggle, or the key `B`); the
+  decision keys keep working
 
 ### LOUPE-002.7 – Chrome-free mode hides the decision controls
 
@@ -111,3 +112,4 @@ Delete from the loupe: DELETE-002.
 |---|---|
 | 2026-11-10 | Written from the merged M3.2 (#49) and M4.3 settings (#54) |
 | 2026-11-10 | .12 focus or a press holds the toast (UX review L4) |
+| 2026-11-12 | .6 the decision keys keep working with the flag buttons hidden |

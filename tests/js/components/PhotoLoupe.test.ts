@@ -3,6 +3,7 @@
 // @vitest-environment happy-dom
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
+import { FILMSTRIP_THUMB } from '../../../src/logic/filmstrip.ts'
 import { DEFAULT_SETTINGS } from '../../../src/logic/settings.ts'
 import { INFO_WIDTH_KEY, NAVIGATION_SHOWN_KEY } from '../../../src/loupe-panels.ts'
 import { tap } from './loupe-pointer.ts'
@@ -181,6 +182,41 @@ describe('PhotoLoupe', () => {
 		const { wrapper } = await mountLoupe()
 		await button(wrapper, 'Toggle filmstrip').trigger('click')
 		expect(wrapper.find('.loupe-filmstrip').exists()).toBe(false)
+	})
+
+	// spec: LOUPE-001.20
+	it('floats the filmstrip and the rating row over the photo and idles them by default', async () => {
+		const { wrapper, root, scheduler } = await mountLoupe()
+		scheduler.fire()
+		await flushPromises()
+		expect(wrapper.find('.loupe-filmstrip').classes()).toEqual(expect.arrayContaining(['photo-loupe__overlay']))
+		expect(wrapper.find('.loupe-filmstrip').classes()).not.toContain('photo-loupe__filmstrip--pinned')
+		expect(wrapper.find('.action-bar').classes()).toEqual(expect.arrayContaining(['action-bar--idle']))
+		expect(root.attributes('style')).toContain('--photo-loupe-strip: 0px')
+	})
+
+	// spec: LOUPE-001.20
+	it('keeps a pinned filmstrip and a pinned rating row below the photo, never idle', async () => {
+		const { wrapper, root, scheduler } = await mountLoupe(4, {}, false, { settings: { ...DEFAULT_SETTINGS, filmstripPinned: true, ratingRowPinned: true } })
+		scheduler.fire()
+		await flushPromises()
+		expect(root.classes('photo-loupe--idle')).toBe(true)
+		expect(wrapper.find('.loupe-filmstrip').classes()).toContain('photo-loupe__filmstrip--pinned')
+		expect(wrapper.find('.loupe-filmstrip').classes()).not.toContain('photo-loupe__overlay')
+		expect(wrapper.find('.action-bar').classes()).toContain('action-bar--pinned')
+		expect(wrapper.find('.action-bar').classes()).not.toContain('action-bar--idle')
+		expect(root.attributes('style')).toContain(`--photo-loupe-strip: ${FILMSTRIP_THUMB}px`)
+	})
+
+	// spec: LOUPE-001.20
+	it('pins either one alone, and a hidden pinned filmstrip takes no room', async () => {
+		const { wrapper, root } = await mountLoupe(4, {}, false, { settings: { ...DEFAULT_SETTINGS, filmstripPinned: true } })
+		expect(wrapper.find('.action-bar').classes()).not.toContain('action-bar--pinned')
+		await button(wrapper, 'Toggle filmstrip').trigger('click')
+		expect(root.attributes('style')).toContain('--photo-loupe-strip: 0px')
+
+		await wrapper.setProps({ settings: { ...DEFAULT_SETTINGS, ratingRowPinned: true } })
+		expect(wrapper.find('.action-bar').classes()).toContain('action-bar--pinned')
 	})
 
 	// spec: LOUPE-001.14

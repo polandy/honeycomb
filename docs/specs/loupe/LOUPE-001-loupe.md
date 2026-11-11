@@ -32,7 +32,10 @@ or on a quick flick.
 | `I` | info panel |
 
 The overlays (title row, filmstrip, rating row) hide when idle after the last touch, unless a
-control has keyboard focus; a mouse move or a middle tap shows them. The loupe loads the shown
+control has keyboard focus; a mouse move or a middle tap shows them. The filmstrip is a slim dark
+band of square photos edge to edge that keeps the shown picture in its middle. The settings *Pin
+the filmstrip* and *Pin the rating row* keep either one below the photo instead of over it, never
+idle. The loupe loads the shown
 picture first, then 3 neighbours ahead and 2 behind, nearest first, so the next picture shows
 without a request. The info panel lists the picture's file facts, its decision and how many
 neighbours are loaded; its width can be dragged. The panel's width and the Nextcloud navigation
@@ -136,8 +139,8 @@ dismissed are kept per user on the server (LOUPE-003).
   presses the filmstrip toggle
 - **Then** the info panel opens beside the photo with the file facts, decision and loaded
   neighbours, at the dragged width within its limits; open state and width are kept for the
-  next visit; the filmstrip shows eight pictures on each side, all at full opacity with the
-  shown one marked by its border, or hides
+  next visit; the filmstrip shows the pictures around the shown one, all at full opacity with
+  the shown one marked by its border, or hides
 
 ### LOUPE-001.14 – Nextcloud navigation
 
@@ -177,6 +180,7 @@ IMAGES-001.
 | 2026-11-10 | Written from the merged M3.1 (#45–#48) |
 | 2026-11-10 | The info panel's open state and the dismissed gesture guide moved to the server (LOUPE-003) |
 | 2026-11-10 | LOUPE-001.17 closed by a guard test; the loupe has no transition |
+| 2026-11-12 | .13 the filmstrip shows what fits; .19 its Lightroom-like look, .20 pinned filmstrip and rating row |
 
 ### LOUPE-001.18 – One photo in view
 
@@ -185,3 +189,19 @@ IMAGES-001.
 - **Then** only that photo is in view: each neighbour waits one full stage width aside, hidden,
   and shows only while a drag moves it in; a photo turned by its EXIF orientation is fitted
   upright
+
+### LOUPE-001.19 – Filmstrip
+
+- **Given** the filmstrip shows
+- **When** the loupe shows a picture, or the user scrolls the strip
+- **Then** the strip is one slim dark band of square photos edge to edge, the shown one with a
+  thin white border, scrolled to the middle of the strip, the first and last too; it renders
+  only the photos in view and a few beyond, and a scroll shows others without paging
+
+### LOUPE-001.20 – Pinned filmstrip and rating row
+
+- **Given** the loupe is wider than tall
+- **When** *Pin the filmstrip* or *Pin the rating row* is on (SETTINGS-001)
+- **Then** that one stays below the photo, the rating row below the filmstrip, and never idles;
+  one not pinned floats over the photo and idles as before; one photo stays in view
+  (LOUPE-001.18), and the chrome-free mode still hides both
