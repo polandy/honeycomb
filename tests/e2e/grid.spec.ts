@@ -66,7 +66,7 @@ test('culls a folder with its subfolders and groups the grid by folder', async (
 })
 
 // spec: GRID-002.1
-test('hides a rejected photo in the default scope and shows it under All', async ({ page }) => {
+test('hides a rejected photo by default and shows it under Rejected', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = uniqueFolder('Scope')
 	await createFolder(page, folder)
@@ -87,47 +87,56 @@ test('hides a rejected photo in the default scope and shows it under All', async
 	await expect(grid.getByRole('gridcell', { name: 'IMG_0002, JPG only' })).toBeVisible()
 	await expect(grid.getByRole('gridcell')).toHaveCount(1)
 	await expect(page.locator('#app-content-vue').getByText('1 / 2 decided')).toBeVisible()
-	await page.getByRole('button', { name: 'All', exact: true }).click()
+	await page.locator('.flag-filter').getByRole('button', { name: 'Rejected', exact: true }).click()
 	await expect(grid.getByRole('gridcell', { name: 'IMG_0001, JPG only' })).toBeVisible()
 	await expect(grid.getByRole('gridcell')).toHaveCount(2)
 })
 
-/** The gaps between the pressed segment of the scope control and its border, in pixels. */
-async function scopeGaps(page: Page) {
-	return page.getByRole('group', { name: 'Show' }).evaluate((group) => {
-		const outer = group.getBoundingClientRect()
-		const inner = group.querySelector('[aria-pressed="true"]')!.getBoundingClientRect()
-		return {
-			left: inner.left - outer.left,
-			top: inner.top - outer.top,
-			right: outer.right - inner.right,
-			bottom: outer.bottom - inner.bottom,
-		}
-	})
-}
-
-// spec: GRID-002.1
-test('keeps the pressed scope segment inside the control border on a phone and a desktop', async ({ page }) => {
+// spec: GRID-002.2, GRID-002.12
+test('combines the flag chips at iPad width and shares them with the filter bar', async ({ page }, testInfo) => {
+	await page.setViewportSize({ width: 820, height: 1180 })
 	await page.goto('/index.php/apps/honeycomb/')
-	const folder = uniqueFolder('Segment')
+	const folder = uniqueFolder('Chips')
 	await createFolder(page, folder)
 	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+	const picked = await upload(page, `${folder}/IMG_0002.jpg`, JPEG)
+	const rejected = await upload(page, `${folder}/IMG_0003.jpg`, JPEG)
+	const decide = (fileId: number, flag: string) => ({ fileId, rating: 0, colourLabel: null, flag, keepRaw: false })
+	const saved = await page.request.put('/index.php/apps/honeycomb/api/v1/decisions', {
+		data: { decisions: [decide(picked, 'picked'), decide(rejected, 'rejected')] },
+		headers: { requesttoken: await requestToken(page) },
+	})
+	expect(saved.status()).toBe(204)
+
 	const picker = await openPicker(page)
 	await picker.getByRole('option', { name: folder }).click()
 	await picker.getByRole('button', { name: `Cull ${folder}` }).click()
-	const scope = page.getByRole('group', { name: 'Show' })
-	await expect(scope).toBeVisible()
 
-	for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
-		await page.setViewportSize(viewport)
-		const gaps = await scopeGaps(page)
-		expect(gaps.left).toBeGreaterThan(1)
-		expect(gaps.top).toBe(gaps.left)
-		expect(gaps.bottom).toBe(gaps.left)
-		await scope.screenshot({ path: test.info().outputPath(`scope-${viewport.width}.png`) })
-	}
-	await page.getByRole('button', { name: 'All', exact: true }).click()
-	expect((await scopeGaps(page)).right).toBe(3)
+	const chips = page.locator('.flag-filter')
+	const chip = (name: string) => chips.getByRole('button', { name, exact: true })
+	const grid = page.getByRole('grid', { name: 'Photos' })
+	await expect(chip('Picked')).toHaveAttribute('aria-pressed', 'true')
+	await expect(chip('Unflagged')).toHaveAttribute('aria-pressed', 'true')
+	await expect(chip('Rejected')).toHaveAttribute('aria-pressed', 'false')
+	await expect(grid.getByRole('gridcell')).toHaveCount(2)
+	await chips.screenshot({ path: testInfo.outputPath('flag-filter-default.png') })
+
+	await chip('Unflagged').click()
+	await expect(grid.getByRole('gridcell')).toHaveCount(1)
+	await chip('Rejected').click()
+	await expect(grid.getByRole('gridcell')).toHaveCount(2)
+	await expect(grid.getByRole('gridcell', { name: 'IMG_0001, JPG only' })).toHaveCount(0)
+	await chips.screenshot({ path: testInfo.outputPath('flag-filter-picked-rejected.png') })
+
+	await page.getByRole('button', { name: /Filter/ }).first().click()
+	const flagGroup = page.locator('.filter-bar').getByRole('group', { name: 'Flag' })
+	await expect(flagGroup.getByRole('button', { name: 'Rejected' })).toHaveAttribute('aria-pressed', 'true')
+	await expect(flagGroup.getByRole('button', { name: 'Unflagged' })).toHaveAttribute('aria-pressed', 'false')
+
+	await chip('Picked').click()
+	await chip('Rejected').click()
+	await expect(grid.getByRole('gridcell')).toHaveCount(3)
+	await page.screenshot({ path: testInfo.outputPath('flag-filter-ipad.png') })
 })
 
 // spec: GRID-003.5

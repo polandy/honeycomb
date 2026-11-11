@@ -6,13 +6,14 @@
 import type { Flag } from '../logic/decision.ts'
 
 import AppIcon from './AppIcon.vue'
+import { FLAG_ICONS } from '../flag-icons.ts'
 
 const props = defineProps<{ flag: Exclude<Flag, 'unflagged'> }>()
 </script>
 
 <template>
 	<span class="flag-mark" :class="`flag-mark--${props.flag}`" aria-hidden="true">
-		<AppIcon :name="props.flag === 'picked' ? 'flagPick' : 'flagX'" />
+		<AppIcon :name="FLAG_ICONS[props.flag]" />
 	</span>
 </template>
 

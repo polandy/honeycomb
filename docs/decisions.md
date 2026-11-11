@@ -674,3 +674,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   types it `image/*`, since listing by the user's list would change the entries API (ADR 0001).
 - 2026-11-11: The RAW preview provider is registered for `application/octet-stream` too and is
   available there only for those extensions, so other untyped files still get no preview.
+- 2026-11-11: The scope control (*Not rejected* / *Undecided* / *All*) is replaced by the
+  combinable flag filter on the owner's request; *Undecided* and its "Every photo is decided"
+  empty state go. The scope was never stored, so there is no value to migrate. *Clear filters*
+  and the toolbar count treat the flag filter like any group, against its default.
+- 2026-11-11: `docs/mockup/index.html` still shows the old scope control; it is not redrawn here.

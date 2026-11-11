@@ -69,8 +69,9 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    0012: one row per member file id and user, written as whole states; the 20 most recent
    folder sets keep a position).
 5. **Filter bar:** rating, colour label, flag, pairing, *Keep RAW* and folder filters and the
-   sort, as pure TypeScript modules over the listed pictures (Q8, Q9, Q18), and the scope *not
-   rejected* / *undecided* / *all* of the culling workflow with the "x of y decided" progress.
+   sort, as pure TypeScript modules over the listed pictures (Q8, Q9, Q18), and the flag filter
+   (*Picked*, *Unflagged*, *Rejected*, combinable) of the culling workflow with the
+   "x of y decided" progress.
 6. **Selection and bulk actions:** selection mode, select all filtered, bulk rate, label, flag
    and *Keep RAW* (Q10).
 
@@ -167,11 +168,10 @@ pictures, a rejected picture disappears from view, and at the end delete all rej
    per folder set and user is stored on the server (with the decisions, M2.4), so another device
    offers to continue there. *Recent* in the navigation lists the last folder sets with their
    progress.
-7. **Multi-pass.** The scope filter has *not rejected* (default), *undecided* and *all*, so a
-   second pass over the picks or a pass over what is left is one tap. An explicit flag filter
-   overrides the scope.
+7. **Multi-pass.** The flag filter combines *Picked*, *Unflagged* and *Rejected* (default: picked
+   and unflagged), so a second pass over the picks or a pass over what is left is two taps.
 
-Where the work lands: M2.4 (resume position), M2.5 (scope, progress), M3.2 (auto-advance, toast),
+Where the work lands: M2.4 (resume position), M2.5 (flag filter, progress), M3.2 (auto-advance, toast),
 M4.1 and M4.2 (delete, review, summary), M6 (series).
 
 ## Keep RAW and Remove RAWs

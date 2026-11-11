@@ -249,7 +249,7 @@ describe('GridToolbar', () => {
 	})
 
 	it('renders no text that bypasses the catalogue but the folder name', () => {
-		const wrapper = mountToolbar({ paths: ['/Photos/Trip'], subfolders: false }, 2, { scopeLocked: true, activeFilters: 1 })
+		const wrapper = mountToolbar({ paths: ['/Photos/Trip'], subfolders: false }, 2, { activeFilters: 1 })
 
 		expect(untranslatedText(wrapper.element as Element)).toEqual(['Trip'])
 	})

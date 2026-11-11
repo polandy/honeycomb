@@ -91,7 +91,7 @@ describe('FilterBar', () => {
 		['Not marked', 'keepRaw', 'not-marked'],
 	// spec: GRID-002.4
 	] as const)('switches the %s chip', async (label, group, value) => {
-		const off = mountBar()
+		const off = mountBar({ flags: new Set() })
 		expect(chip(off, label).attributes('aria-pressed')).toBe('false')
 		await chip(off, label).trigger('click')
 		expect([...emitted(off)[0]![group]]).toEqual([value])

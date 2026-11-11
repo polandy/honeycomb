@@ -33,7 +33,7 @@ import { useCull } from './cull.ts'
 import { useDeleteFlow } from './delete-flow.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
-import { clearFilters } from './logic/picture-filter.ts'
+import { DEFAULT_FILTERS } from './logic/picture-filter.ts'
 import { useLoupeOpening } from './loupe-opening.ts'
 import { useMoveFlow } from './move-flow.ts'
 import { useRecent } from './recent.ts'
@@ -149,8 +149,7 @@ useHotkeys(() => {
 					:folders="folders"
 					:tileSize="tileSize"
 					:groupByFolder="groupByFolder"
-					:scope="filters.scope"
-					:scopeLocked="filters.flags.size > 0"
+					:flags="filters.flags"
 					:decided="progress.decided"
 					:total="progress.total"
 					:activeFilters="activeFilters"
@@ -167,7 +166,7 @@ useHotkeys(() => {
 					@changeFolders="pickerOpen = true"
 					@update:tileSize="cull.setTileSize"
 					@update:groupByFolder="groupByFolder = $event"
-					@update:scope="cull.setScope"
+					@update:flags="cull.setFlags"
 					@update:filtersOpen="filtersOpen = $event"
 					@update:sortOrder="sortOrder = $event"
 					@update:selecting="selection.setSelecting"
@@ -210,8 +209,8 @@ useHotkeys(() => {
 					v-else
 					:reason="empty"
 					:rejected="rejected.length"
-					@clearFilters="filters = clearFilters(filters)"
-					@showAll="cull.setScope('all')"
+					@clearFilters="filters = DEFAULT_FILTERS"
+					@showAll="cull.setFlags(new Set())"
 					@reviewRejects="deleting.review" />
 				<ActionBar
 					v-if="selecting"

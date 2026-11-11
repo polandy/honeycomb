@@ -35,7 +35,7 @@ export interface LoupeSnapshot {
 /** What a delete reads and changes in the cull. */
 export interface DeleteFlowContext {
 	readonly pictures: () => Pictures
-	/** The grid's pictures under the scope and filters, which *Remove RAWs* acts on. */
+	/** The grid's pictures under the filters, which *Remove RAWs* acts on. */
 	readonly view: () => Pictures
 	readonly decisionOf: (picture: Picture<ListingEntry>) => Decision
 	readonly decide: (intent: DecisionIntent, chosen: Pictures) => void
