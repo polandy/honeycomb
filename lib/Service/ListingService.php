@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Preview\UntypedRaw;
 use OCA\Honeycomb\Search\BinaryOperator;
 use OCA\Honeycomb\Search\Comparison;
 use OCA\Honeycomb\Search\FileSearchQuery;
@@ -90,9 +91,14 @@ final class ListingService {
 		return self::isListedType($node);
 	}
 
-	/** Whether the listing lists a file of this type: an image or an XMP sidecar. */
+	/** Whether the listing lists a file of this type: a photo or an XMP sidecar. */
 	public static function isListedType(File $file): bool {
-		return str_starts_with($file->getMimetype(), 'image/') || self::isSidecar($file);
+		return self::isPhoto($file) || self::isSidecar($file);
+	}
+
+	/** Whether the file is an image, including RAW files Nextcloud does not type. */
+	public static function isPhoto(File $file): bool {
+		return str_starts_with($file->getMimetype(), 'image/') || UntypedRaw::isNamed($file->getName());
 	}
 
 	public static function isSidecar(File $file): bool {
@@ -104,6 +110,7 @@ final class ListingService {
 		$picturesAndSidecars = new BinaryOperator(ISearchBinaryOperator::OPERATOR_OR, [
 			new Comparison(ISearchComparison::COMPARE_LIKE, 'mimetype', 'image/%'),
 			new Comparison(ISearchComparison::COMPARE_LIKE, 'name', '%.xmp'),
+			...array_map(static fn (string $extension): Comparison => new Comparison(ISearchComparison::COMPARE_LIKE, 'name', "%.$extension"), UntypedRaw::EXTENSIONS),
 		]);
 		$offset = 0;
 		do {

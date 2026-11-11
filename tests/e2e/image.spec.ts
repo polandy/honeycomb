@@ -15,11 +15,11 @@ async function naturalSize(page: Page, url: string): Promise<number[]> {
 	}, url)
 }
 
-// spec: IMAGES-001.1, IMAGES-001.3, IMAGES-001.6
+// spec: IMAGES-001.1, IMAGES-001.3, IMAGES-001.6, IMAGES-001.13
 test('serves a JPEG and a RAW-only picture under immutable URLs', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 
-	for (const [name, content] of [['IMG_0001.JPG', JPEG], ['IMG_0002.NEF', RAW]] as const) {
+	for (const [name, content] of [['IMG_0001.JPG', JPEG], ['IMG_0002.NEF', RAW], ['IMG_0004.CR3', RAW]] as const) {
 		const url = `/index.php/apps/honeycomb/api/v1/images/${await upload(page, name, content)}?size=256&v=${MTIME}`
 
 		const response = await page.request.get(url)

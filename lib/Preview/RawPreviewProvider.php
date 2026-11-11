@@ -16,8 +16,9 @@ use OCP\Preview\IProviderV2;
 
 /** Previews a RAW file by the largest JPEG it embeds (ADR 0010). */
 final class RawPreviewProvider implements IProviderV2 {
-	/** Nextcloud's mime type for camera RAW files. */
-	public const string MIME_TYPE_REGEX = '/^image\/x-dcraw$/';
+	/** Nextcloud's mime type for camera RAW files, and the one it gives RAW files it does not type. */
+	public const string MIME_TYPE_REGEX = '/^(image\/x-dcraw|application\/octet-stream)$/';
+	private const string RAW = 'image/x-dcraw';
 
 	public function __construct(
 		private EmbeddedJpeg $embeddedJpeg,
@@ -32,7 +33,7 @@ final class RawPreviewProvider implements IProviderV2 {
 
 	#[\Override]
 	public function isAvailable(FileInfo $file): bool {
-		return $file->getSize() > 0;
+		return $file->getSize() > 0 && ($file->getMimetype() === self::RAW || UntypedRaw::isNamed($file->getName()));
 	}
 
 	#[\Override]

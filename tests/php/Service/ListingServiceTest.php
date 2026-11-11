@@ -53,6 +53,20 @@ final class ListingServiceTest extends TestCase {
 		$this->assertSame([['path' => '/Photos', 'shared' => false]], $listing->jsonSerialize()['folders']);
 	}
 
+	// spec: LISTING-001.13
+	public function testListsTheRawFilesNextcloudDoesNotTypeByName(): void {
+		$folder = $this->folder('/Photos');
+		$folder->method('getDirectoryListing')->willReturn([
+			$this->file(1, '/Photos/IMG_0001.CR3', 'application/octet-stream'),
+			$this->file(2, '/Photos/SAM_0002.srw', 'application/octet-stream'),
+			$this->file(3, '/Photos/backup.bin', 'application/octet-stream'),
+		]);
+
+		$listing = $this->service($this->rootWith(['/Photos' => $folder]))->list($this->user(), 'Photos', false);
+
+		$this->assertSame([1, 2], array_column($this->entriesOf($listing), 'fileId'));
+	}
+
 	// spec: LISTING-001.2
 	public function testAnEntryCarriesTheFileAndItsExifBasics(): void {
 		$folder = $this->folder('/Photos');

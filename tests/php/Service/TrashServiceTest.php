@@ -112,6 +112,16 @@ final class TrashServiceTest extends TestCase {
 		];
 	}
 
+	// spec: DELETE-001.1
+	public function testTrashesARawFileNextcloudDoesNotTypeWithItsJpeg(): void {
+		$nodes = [1 => $this->file(1, 'IMG_0001.CR3', 'application/octet-stream'), 2 => $this->file(2, 'IMG_0001.JPG')];
+
+		$results = $this->service($nodes)->trash($this->user(), [self::picture(1, 2)]);
+
+		$this->assertSame([[['fileId' => 1, 'result' => 'trashed'], ['fileId' => 2, 'result' => 'trashed']]], self::results($results));
+		$this->assertSame([1, 2], $this->trashed);
+	}
+
 	// spec: DELETE-001.2
 	#[DataProvider('checkFailures')]
 	public function testAFileThatFailsItsCheckLeavesTheWholePictureUntouched(string $jpeg, string $result): void {

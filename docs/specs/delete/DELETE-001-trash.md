@@ -19,7 +19,8 @@ files. The server does not pair; it checks each file and trashes through `OCP\Fi
 For each picture:
 
 1. Every file is checked before any is trashed: it must exist in the user's files, be a file whose
-   mime type is `image/*` or whose name ends in `.xmp`, carry the given ETag and be deletable.
+   mime type is `image/*` or whose name ends in `.xmp`, `.cr3` or `.srw`, carry the given ETag
+   and be deletable.
 2. The files are then trashed in order, sidecars (`.xmp`) after the members.
 3. The first failure stops the picture; its remaining files are `skipped`. Files already trashed
    stay in the trash bin. One picture's failure does not stop the others.
@@ -106,3 +107,4 @@ Choosing what to delete, the summary and the report: DELETE-002. Removing only R
 |---|---|
 | 2026-11-10 | Written from the merged M4.1 (#51) |
 | 2026-11-10 | DELETE-001.8 proven by an e2e test |
+| 2026-11-11 | `.cr3` and `.srw` files Nextcloud does not type are trashed like any picture file |
