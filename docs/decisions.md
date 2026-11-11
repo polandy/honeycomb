@@ -654,3 +654,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   pressed (*Select* in selection mode, *Filters* while its panel is open). The *Review rejects*
   and *Compare series* counts stay neutral, since honey marks a state, not an amount. The app's
   `GridToolbar` badges use the primary colour always, which is its own `TODO.md` item.
+- 2026-11-11: UX review L7 in the app: the neutral `GridToolbar` badge uses
+  `--color-background-darker` with the main text colour, the Nextcloud counterpart of the
+  mockup's border colour that keeps the count legible in both themes; pressed, it uses the
+  primary element colours (GRID-001.14).
