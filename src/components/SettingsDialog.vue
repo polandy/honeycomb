@@ -22,12 +22,16 @@ import { tip } from '../tooltip.ts'
 const props = defineProps<{
 	open: boolean
 	settings: Settings
+	/** Whether the gesture guide counts as seen, which its hint tells. */
+	gestureGuideSeen: boolean
 }>()
 
 const emit = defineEmits<{
 	'update:open': [open: boolean]
 	/** A change of the settings; the app applies and saves it at once. */
 	update: [patch: Partial<Settings>]
+	/** The user wants the gesture guide on the next loupe opening. */
+	showGestureGuide: []
 }>()
 
 const LISTS = [
@@ -228,6 +232,17 @@ function setSwipe(direction: SwipeDirection, value: string) {
 				@update:modelValue="emit('update', { [item.key]: $event })">
 				{{ item.label }}
 			</NcCheckboxRadioSwitch>
+			<div class="settings-dialog__guide">
+				<div>
+					<div>{{ t('honeycomb', 'Gesture guide') }}</div>
+					<div id="gesture-guide-hint" class="settings-dialog__hint">
+						{{ gestureGuideSeen ? t('honeycomb', 'The card with the swipes, tap zones and keys from the first loupe opening') : t('honeycomb', 'Shows the next time you open the loupe') }}
+					</div>
+				</div>
+				<NcButton aria-describedby="gesture-guide-hint" @click="emit('showGestureGuide')">
+					{{ t('honeycomb', 'Show the gesture guide') }}
+				</NcButton>
+			</div>
 		</NcAppSettingsSection>
 		<NcAppSettingsSection id="keyboard" :name="t('honeycomb', 'Keyboard')">
 			<NcCheckboxRadioSwitch
@@ -290,7 +305,8 @@ function setSwipe(direction: SwipeDirection, value: string) {
 	padding: 0;
 }
 
-.settings-dialog__swipe {
+.settings-dialog__swipe,
+.settings-dialog__guide {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;

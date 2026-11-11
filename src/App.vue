@@ -254,7 +254,7 @@ useHotkeys(() => {
 				:listFolders="props.listFolders"
 				:container="loupe !== null ? '.photo-loupe' : undefined" />
 			<SeriesCompareFlow ref="seriesFlow" :flow="seriesCompare" :decisionOf="cull.decisionOf" />
-			<SettingsDialog v-model:open="settingsOpen" :settings="settings" @update="updateSettings" />
+			<SettingsDialog v-model:open="settingsOpen" :settings="settings" :gestureGuideSeen="viewState.gestureGuideSeen.value" @update="updateSettings" @showGestureGuide="viewState.showGestureGuide" />
 			<Teleport to="body">
 				<PhotoLoupe
 					v-if="loupe !== null && folderSet !== null"
