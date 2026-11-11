@@ -644,3 +644,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   waits for the stage to swap to that tier, which happens only once the prefetch has decoded
   it, so production needs no new seam. Holding the first decode reproduces the old failure;
   a build without neighbour prefetch still fails the test.
+- 2026-11-11: UX review L6: *Settings › Loupe gestures* gains *Show the gesture guide*, which
+  marks the guide unseen so it shows on the next loupe opening, rather than opening the loupe
+  from the dialog; the settings dialog opens from the grid, and jumping views from a dialog
+  would surprise. The button keeps focus and stays enabled; its hint says the guide comes next
+  time. The app keeps this as its own `TODO.md` item.
