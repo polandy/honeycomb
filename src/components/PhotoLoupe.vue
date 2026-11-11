@@ -122,9 +122,7 @@ const hotkeys: HotkeyHandlers = {
 	last: () => go(props.pictures.length - 1),
 	close: () => emit('close'),
 	grid: () => emit('close'),
-	header: () => {
-		chromeFree.value = !chromeFree.value
-	},
+	header: () => void (chromeFree.value = !chromeFree.value),
 	fullscreen: () => props.toggleFullscreen(root.value!),
 	zoom: () => stage.value!.toggleZoom(),
 	'zoom-in': () => stage.value!.toggleZoom(false),
@@ -172,6 +170,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			@close="emit('close')"
 			@move="emit('move')"
 			@toggleZoom="stage!.toggleZoom()"
+			@toggleFullscreen="props.toggleFullscreen(root!)"
 			@update:infoOpen="panels.setInfoOpen"
 			@update:filmstripOpen="filmstripOpen = $event"
 			@update:navigationShown="panels.setNavigationShown"

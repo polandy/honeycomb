@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { toggleBrowserFullscreen } from '../../src/fullscreen.ts'
+import { fullscreenAvailable, toggleBrowserFullscreen } from '../../src/fullscreen.ts'
 import { formatDateTime, formatFileSize } from '../../src/l10n.ts'
 import { observeElementSize } from '../../src/observe-size.ts'
 
@@ -32,6 +32,30 @@ describe('toggleBrowserFullscreen', () => {
 		}
 		expect(() => toggleBrowserFullscreen(element)).not.toThrow()
 		await Promise.resolve()
+	})
+})
+
+describe('webkit fullscreen fallback', () => {
+	const stub = (values: Record<string, unknown>) => Object.entries(values).forEach(([key, value]) => Object.defineProperty(document, key, { value, configurable: true }))
+	afterEach(() => ['fullscreenEnabled', 'webkitFullscreenEnabled', 'webkitFullscreenElement', 'webkitExitFullscreen', 'exitFullscreen'].forEach((key) => Reflect.deleteProperty(document, key)))
+
+	it('is available by either flag', () => {
+		expect(fullscreenAvailable()).toBe(false)
+		stub({ webkitFullscreenEnabled: true })
+		expect(fullscreenAvailable()).toBe(true)
+	})
+
+	it('enters and leaves with the webkit calls when the standard ones are missing', () => {
+		const element = document.createElement('div') as HTMLElement & { webkitRequestFullscreen?: () => void }
+		const request = vi.fn()
+		element.webkitRequestFullscreen = request
+		const exit = vi.fn()
+		stub({ webkitExitFullscreen: exit, exitFullscreen: undefined })
+		Object.defineProperty(element, 'requestFullscreen', { value: undefined })
+		toggleBrowserFullscreen(element)
+		stub({ webkitFullscreenElement: element })
+		toggleBrowserFullscreen(element)
+		expect([request.mock.calls.length, exit.mock.calls.length]).toEqual([1, 1])
 	})
 })
 

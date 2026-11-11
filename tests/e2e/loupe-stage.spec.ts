@@ -85,3 +85,22 @@ test('shows only the rotated pair, upright, in browser fullscreen', async ({ pag
 	await expect(loupe.getByRole('heading', { name: '_MG_1030' })).toBeVisible()
 	await expect.poll(() => photosInView(page)).toBe(1)
 })
+
+// spec: LOUPE-001.10
+test('goes fullscreen by the button, keeps one photo and Pick, and leaves by the button', async ({ page }, testInfo) => {
+	await page.setViewportSize(IPAD_LANDSCAPE)
+	const loupe = await openRotatedPair(page)
+
+	await loupe.getByRole('button', { name: 'Enter fullscreen' }).click()
+	await expect.poll(() => page.evaluate(() => document.fullscreenElement !== null)).toBe(true)
+	await expect(loupe.getByRole('button', { name: 'Leave fullscreen' })).toBeVisible()
+	await expectRotatedAlone(page, loupe, testInfo, 'loupe-fullscreen-button.png')
+
+	await page.keyboard.press('p')
+	await expect(loupe.getByRole('heading', { name: '_MG_1032' })).toBeVisible()
+	await expect.poll(() => photosInView(page)).toBe(1)
+
+	await loupe.getByRole('button', { name: 'Leave fullscreen' }).click()
+	await expect.poll(() => page.evaluate(() => document.fullscreenElement !== null)).toBe(false)
+	await expect(loupe.getByRole('button', { name: 'Enter fullscreen' })).toBeVisible()
+})

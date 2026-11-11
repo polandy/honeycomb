@@ -686,3 +686,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-11: Loupe neighbours are moved aside by `translateX(±100%)` on a full-width slide and
   hidden with `visibility: hidden` until a drag moves them in, rather than only clipped by the
   stage, so no browser (iPad Safari, fullscreen) can show them beside the shown photo.
+- 2026-11-11: The loupe's *Fullscreen* button sits in the title row, not on a separate culling
+  stage, because the loupe is the culling stage and `F` already fullscreens its root. Toasts and
+  dialogs mount outside that root, so they do not show in fullscreen; left as is, owner asked for
+  no other change.

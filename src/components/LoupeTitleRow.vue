@@ -7,6 +7,7 @@ import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import FlagButtonsToggle from './FlagButtonsToggle.vue'
+import { useFullscreenState } from '../fullscreen.ts'
 import { keyCap } from '../hotkeys.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { tip } from '../tooltip.ts'
@@ -29,11 +30,14 @@ const emit = defineEmits<{
 	close: []
 	move: []
 	toggleZoom: []
+	toggleFullscreen: []
 	'update:infoOpen': [open: boolean]
 	'update:filmstripOpen': [open: boolean]
 	'update:navigationShown': [shown: boolean]
 	'update:flagButtonsShown': [shown: boolean]
 }>()
+
+const fullscreen = useFullscreenState()
 </script>
 
 <template>
@@ -64,6 +68,14 @@ const emit = defineEmits<{
 			:pressed="props.infoOpen"
 			@update:pressed="emit('update:infoOpen', $event)">
 			{{ t('honeycomb', 'Info') }}
+		</NcButton>
+		<NcButton
+			v-if="fullscreen.available"
+			:aria-label="fullscreen.active.value ? t('honeycomb', 'Leave fullscreen') : t('honeycomb', 'Enter fullscreen')"
+			v-bind="tip(fullscreen.active.value ? t('honeycomb', 'Leave fullscreen') : t('honeycomb', 'Enter fullscreen'), keyCap('fullscreen'))"
+			:pressed="fullscreen.active.value"
+			@update:pressed="emit('toggleFullscreen')">
+			{{ t('honeycomb', 'Fullscreen') }}
 		</NcButton>
 		<NcButton
 			variant="tertiary"
