@@ -108,6 +108,12 @@ dismissed are kept per user on the server (LOUPE-003).
 - **When** the user presses `Tab` on the loupe itself, double-taps the middle, or presses `F`
 - **Then** `Tab` and the double-tap toggle the chrome-free mode, `Tab` on a focused control moves
   the focus instead, and `F` toggles browser fullscreen
+- **Given** the browser can show an element fullscreen (`fullscreenEnabled`, or
+  `webkitFullscreenEnabled` on iPad Safari)
+- **When** the user taps the *Fullscreen* button of the title row
+- **Then** the loupe enters or leaves fullscreen and the button follows the browser's state, also
+  when Escape leaves it; where the browser cannot (iPhone Safari) the button is not shown, and
+  deciding and the one shown photo work as outside fullscreen
 
 ### LOUPE-001.11 – Overlays idle
 

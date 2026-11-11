@@ -37,7 +37,7 @@ describe('toggleBrowserFullscreen', () => {
 
 describe('webkit fullscreen fallback', () => {
 	const stub = (values: Record<string, unknown>) => Object.entries(values).forEach(([key, value]) => Object.defineProperty(document, key, { value, configurable: true }))
-	afterEach(() => ['fullscreenEnabled', 'webkitFullscreenEnabled', 'webkitFullscreenElement', 'webkitExitFullscreen'].forEach((key) => Reflect.deleteProperty(document, key)))
+	afterEach(() => ['fullscreenEnabled', 'webkitFullscreenEnabled', 'webkitFullscreenElement', 'webkitExitFullscreen', 'exitFullscreen'].forEach((key) => Reflect.deleteProperty(document, key)))
 
 	it('is available by either flag', () => {
 		expect(fullscreenAvailable()).toBe(false)
@@ -50,7 +50,8 @@ describe('webkit fullscreen fallback', () => {
 		const request = vi.fn()
 		element.webkitRequestFullscreen = request
 		const exit = vi.fn()
-		stub({ webkitExitFullscreen: exit })
+		stub({ webkitExitFullscreen: exit, exitFullscreen: undefined })
+		Object.defineProperty(element, 'requestFullscreen', { value: undefined })
 		toggleBrowserFullscreen(element)
 		stub({ webkitFullscreenElement: element })
 		toggleBrowserFullscreen(element)
