@@ -74,15 +74,18 @@ const percent = computed(() => (props.total > 0 ? Math.round(100 * props.decided
 
 .scope-progress__scope {
 	display: flex;
-	overflow: hidden;
+	gap: 2px;
+	padding: 2px;
 	border: 1px solid var(--color-border-maxcontrast);
 	border-radius: var(--border-radius-element);
 }
 
 .scope-progress__scope button {
 	min-height: 34px;
+	margin: 0;
 	padding: 0 calc(2 * var(--default-grid-baseline));
 	border: none;
+	border-radius: calc(var(--border-radius-element) - 2px);
 	background: var(--color-main-background);
 	color: var(--color-main-text);
 	cursor: pointer;
