@@ -206,7 +206,14 @@ const setName = computed(() => {
 	flex-wrap: wrap;
 	align-items: center;
 	gap: var(--default-grid-baseline);
-	padding: var(--default-grid-baseline) calc(2 * var(--default-grid-baseline));
+	padding: 0 calc(2 * var(--default-grid-baseline));
+	font-size: 13px;
+	--default-clickable-area: 32px;
+}
+
+.grid-toolbar :deep(.app-icon) {
+	width: 18px;
+	height: 18px;
 }
 
 .grid-toolbar__crumbs {
@@ -223,7 +230,7 @@ const setName = computed(() => {
 
 .grid-toolbar__set {
 	overflow: hidden;
-	min-height: 34px;
+	min-height: 28px;
 	padding: 0 calc(2 * var(--default-grid-baseline));
 	border: none;
 	border-radius: var(--border-radius-element);
@@ -269,9 +276,18 @@ const setName = computed(() => {
 	font-weight: bold;
 }
 
+/* The hit area, not the look, keeps the 44 px touch target. */
 @media (pointer: coarse) {
-	.grid-toolbar__set {
-		min-height: 44px;
+	.grid-toolbar__set,
+	.grid-toolbar :deep(.button-vue) {
+		position: relative;
+	}
+
+	.grid-toolbar__set::before,
+	.grid-toolbar :deep(.button-vue)::before {
+		content: "";
+		position: absolute;
+		inset: -6px -2px;
 	}
 }
 </style>

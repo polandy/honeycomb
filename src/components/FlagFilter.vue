@@ -51,7 +51,14 @@ const CHIPS: readonly { flag: Flag, label: () => string }[] = [
 }
 
 .flag-filter__icon {
+	width: 16px;
+	height: 16px;
 	color: var(--color-text-maxcontrast);
+}
+
+.flag-filter__chip :deep(.app-icon) {
+	width: 16px;
+	height: 16px;
 }
 
 .flag-filter__chip {
@@ -59,12 +66,14 @@ const CHIPS: readonly { flag: Flag, label: () => string }[] = [
 	align-items: center;
 	justify-content: center;
 	gap: var(--default-grid-baseline);
-	min-width: 34px;
-	min-height: 34px;
+	position: relative;
+	min-width: 28px;
+	min-height: 28px;
 	margin: 0;
-	padding: 0 calc(3 * var(--default-grid-baseline));
+	padding: 0 calc(2 * var(--default-grid-baseline));
 	border: 1px solid var(--color-border-maxcontrast);
-	border-radius: 17px;
+	border-radius: 14px;
+	font-size: 13px;
 	background: var(--color-background-hover);
 	color: var(--color-main-text);
 	cursor: pointer;
@@ -83,10 +92,10 @@ const CHIPS: readonly { flag: Flag, label: () => string }[] = [
 }
 
 @media (pointer: coarse) {
-	.flag-filter__chip {
-		min-width: 44px;
-		min-height: 44px;
-		border-radius: 22px;
+	.flag-filter__chip::before {
+		content: "";
+		position: absolute;
+		inset: -8px -2px;
 	}
 }
 </style>

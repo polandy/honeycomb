@@ -703,3 +703,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-11: The grid's tile queue takes a settle callback, not a promise, so a tile's sharp
   load is queued before the queue starts the next waiting one; PhotoGrid's styles moved to
   `photo-grid.css` to keep the component under 300 lines.
+- 2026-11-12: The toolbar's "x of y decided" counts the pictures that pass the filters, so y equals
+  the grid's picture count; the progress saved with a recent folder set stays over every picture.
+  The toolbar is compact (13 px text, 16–18 px icons, 28 px chips, 32 px buttons) and keeps the
+  44 px touch target through a larger hit area on coarse pointers, not a larger look.

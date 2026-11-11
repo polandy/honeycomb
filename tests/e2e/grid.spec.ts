@@ -86,13 +86,14 @@ test('hides a rejected photo by default and shows it under Rejected', async ({ p
 	const grid = page.getByRole('grid', { name: 'Photos' })
 	await expect(grid.getByRole('gridcell', { name: 'IMG_0002, JPG only' })).toBeVisible()
 	await expect(grid.getByRole('gridcell')).toHaveCount(1)
-	await expect(page.locator('#app-content-vue').getByText('1 / 2 decided')).toBeVisible()
+	await expect(page.locator('#app-content-vue').getByText('0 / 1 decided')).toBeVisible()
 	await page.locator('.flag-filter').getByRole('button', { name: 'Rejected', exact: true }).click()
 	await expect(grid.getByRole('gridcell', { name: 'IMG_0001, JPG only' })).toBeVisible()
 	await expect(grid.getByRole('gridcell')).toHaveCount(2)
+	await expect(page.locator('#app-content-vue').getByText('1 / 2 decided')).toBeVisible()
 })
 
-// spec: GRID-002.2, GRID-002.12
+// spec: GRID-002.2, GRID-002.7, GRID-002.12
 test('combines the flag chips at iPad width and shares them with the filter bar', async ({ page }, testInfo) => {
 	await page.setViewportSize({ width: 820, height: 1180 })
 	await page.goto('/index.php/apps/honeycomb/')
@@ -119,12 +120,16 @@ test('combines the flag chips at iPad width and shares them with the filter bar'
 	await expect(chip('Unflagged')).toHaveAttribute('aria-pressed', 'true')
 	await expect(chip('Rejected')).toHaveAttribute('aria-pressed', 'false')
 	await expect(grid.getByRole('gridcell')).toHaveCount(2)
+	const count = page.locator('.cull-progress__count')
+	await expect(count).toHaveText('1 / 2 decided')
 	await chips.screenshot({ path: testInfo.outputPath('flag-filter-default.png') })
 
 	await chip('Unflagged').click()
 	await expect(grid.getByRole('gridcell')).toHaveCount(1)
+	await expect(count).toHaveText('1 / 1 decided')
 	await chip('Rejected').click()
 	await expect(grid.getByRole('gridcell')).toHaveCount(2)
+	await expect(count).toHaveText('2 / 2 decided')
 	await expect(grid.getByRole('gridcell', { name: 'IMG_0001, JPG only' })).toHaveCount(0)
 	await chips.screenshot({ path: testInfo.outputPath('flag-filter-picked-rejected.png') })
 
@@ -136,7 +141,11 @@ test('combines the flag chips at iPad width and shares them with the filter bar'
 	await chip('Picked').click()
 	await chip('Rejected').click()
 	await expect(grid.getByRole('gridcell')).toHaveCount(3)
+	await expect(count).toHaveText('2 / 3 decided')
 	await page.screenshot({ path: testInfo.outputPath('flag-filter-ipad.png') })
+	await page.setViewportSize({ width: 1180, height: 820 })
+	await expect(count).toHaveText('2 / 3 decided')
+	await page.screenshot({ path: testInfo.outputPath('flag-filter-ipad-landscape.png') })
 })
 
 // spec: GRID-003.5
