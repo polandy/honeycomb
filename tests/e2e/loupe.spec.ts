@@ -70,6 +70,7 @@ test('shows the filmstrip as square photos edge to edge at full opacity, the sho
 	expect(first.width).toBe(first.height)
 	expect(second.x).toBe(first.x + first.width)
 	expect(Math.abs(first.x + first.width / 2 - (strip.x + strip.width / 2))).toBeLessThanOrEqual(1)
+	expect((await loupe.locator('.action-bar__row').boundingBox())!.y).toBeGreaterThanOrEqual(strip.y + strip.height)
 })
 
 // spec: LOUPE-002.11

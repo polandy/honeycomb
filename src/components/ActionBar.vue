@@ -107,6 +107,7 @@ const loupe = computed(() => props.layout === 'loupe')
 		z-index: 1;
 		inset-inline: var(--photo-loupe-rail, 0px) calc(var(--photo-loupe-panel, 0px) + var(--photo-loupe-rail, 0px));
 		bottom: var(--photo-loupe-strip, 0px);
+		box-sizing: border-box;
 		min-height: var(--photo-loupe-row, 56px);
 		padding: var(--default-grid-baseline) calc(2 * var(--default-grid-baseline));
 		background-color: color-mix(in srgb, var(--color-main-background) 80%, transparent);
