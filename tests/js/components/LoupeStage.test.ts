@@ -201,6 +201,35 @@ describe('LoupeStage', () => {
 		expect(current(wrapper).attributes('style')).toContain('scale(1)')
 	})
 
+	// spec: LOUPE-001.18
+	it('keeps each neighbour one full stage width aside and hidden until a drag moves it in', async () => {
+		const { wrapper, stage } = await mountStage()
+		const slides = () => wrapper.findAll('.loupe-stage__slide').map((slide) => slide.attributes('style'))
+		expect(slides()).toEqual([
+			'transform: translateX(-100%); visibility: hidden;',
+			'transform: translateX(0%);',
+			'transform: translateX(100%); visibility: hidden;',
+		])
+
+		await pointer(stage, 'pointerdown', { x: 500, time: 0 })
+		await pointer(stage, 'pointermove', { x: 450, time: 500 })
+
+		expect(slides()).toEqual(['transform: translateX(-100%);', 'transform: translateX(0%);', 'transform: translateX(100%);'])
+	})
+
+	// spec: LOUPE-001.18
+	it('fits a loaded photo upright when the listing gives its size unturned', async () => {
+		const pictures = picturesOf([listingEntry(1, '/P/IMG_1.JPG', { width: 3000, height: 2000, orientation: 6 })])
+		const { wrapper } = await mountStage({ pictures, index: 0 })
+		const image = wrapper.find('img')
+		expect(image.attributes('style')).toContain('width: 900px; height: 600px')
+
+		Object.defineProperties(image.element, { naturalWidth: { value: 400 }, naturalHeight: { value: 600 } })
+		await image.trigger('load')
+
+		expect(image.attributes('style')).toContain('width: 400px; height: 600px')
+	})
+
 	it('learns the aspect from the loaded image when the listing has none', async () => {
 		const pictures = picturesOf([listingEntry(1, '/P/IMG_1.JPG')])
 		const { wrapper } = await mountStage({ pictures, index: 0 })

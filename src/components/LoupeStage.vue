@@ -46,7 +46,7 @@ const size = ref<Size>({ width: 0, height: 0 })
 const zoom = ref<Zoom>(FIT)
 const dragX = ref(0)
 const liftY = ref(0)
-/** Aspects learnt from loaded images whose listing had no size, by file id. */
+/** Aspects learnt from loaded images, by file id; they win over the listing's size. */
 const aspects = reactive(new Map<number, number>())
 
 const member = computed(() => imageMember(props.pictures[props.index]!))
@@ -62,9 +62,10 @@ const slides = computed(() => [-1, 0, 1]
 		return { offset, member: shown, src: sourceOf(shown, offset === 0), width: fit.width, height: fit.height }
 	}))
 
-/** The listing's aspect, else the loaded image's, else the default. */
+/** The loaded image's aspect, which is upright, else the listing's, else the default. */
 function aspectOf(shown: ListingEntry): number {
-	return shown.width !== null && shown.height !== null ? shown.width / shown.height : aspects.get(shown.fileId) ?? DEFAULT_ASPECT
+	const listed = shown.width !== null && shown.height !== null ? shown.width / shown.height : DEFAULT_ASPECT
+	return aspects.get(shown.fileId) ?? listed
 }
 
 /** The sharpest loaded source: the full image while zoomed, else the loupe tier, else the grid's. */
@@ -157,7 +158,7 @@ function onPointerDown(event: PointerEvent) {
 	act(gestures.down(pointerOf(event)))
 }
 
-/** Learns the aspect of a photo whose listing had no size. */
+/** Learns the upright aspect of a loaded photo. */
 function onLoad(fileId: number, event: Event) {
 	const image = event.target as HTMLImageElement
 	if (image.naturalWidth > 0 && image.naturalHeight > 0) {
@@ -200,7 +201,7 @@ defineExpose({
 				v-for="slide in slides"
 				:key="slide.member.fileId"
 				class="loupe-stage__slide"
-				:style="{ left: `${slide.offset * 100}%` }">
+				:style="{ transform: `translateX(${slide.offset * 100}%)`, visibility: slide.offset === 0 || dragX !== 0 ? undefined : 'hidden' }">
 				<img
 					class="loupe-stage__image"
 					:alt="slide.offset === 0 ? props.pictures[props.index]!.baseName : ''"
@@ -234,6 +235,7 @@ defineExpose({
 
 .loupe-stage__slide {
 	display: flex;
+	overflow: hidden;
 	align-items: center;
 	justify-content: center;
 }

@@ -171,3 +171,11 @@ IMAGES-001.
 | 2026-11-10 | Written from the merged M3.1 (#45–#48) |
 | 2026-11-10 | The info panel's open state and the dismissed gesture guide moved to the server (LOUPE-003) |
 | 2026-11-10 | LOUPE-001.17 closed by a guard test; the loupe has no transition |
+
+### LOUPE-001.18 – One photo in view
+
+- **Given** the loupe or the series viewer shows a picture, at any width or in browser fullscreen
+- **When** its neighbours are loaded
+- **Then** only that photo is in view: each neighbour waits one full stage width aside, hidden,
+  and shows only while a drag moves it in; a photo turned by its EXIF orientation is fitted
+  upright
