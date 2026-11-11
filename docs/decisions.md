@@ -649,3 +649,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   from the dialog; the settings dialog opens from the grid, and jumping views from a dialog
   would surprise. The button keeps focus and stays enabled; its hint says the guide comes next
   time. The app keeps this as its own `TODO.md` item.
+- 2026-11-11: UX review L7: the mockup's toolbar count badges are neutral (the border colour,
+  and a translucent white in the dark app bar) and turn honey only while their button is
+  pressed (*Select* in selection mode, *Filters* while its panel is open). The *Review rejects*
+  and *Compare series* counts stay neutral, since honey marks a state, not an amount. The app's
+  `GridToolbar` badges use the primary colour always, which is its own `TODO.md` item.

@@ -43,7 +43,7 @@ Severity: **high** breaks a task or misleads, **medium** slows or confuses, **lo
 | L4 | low | Toast | The undo toast times out with no way to pause it (WCAG 2.2.1). | Pause on focus and pointer down; letting go restarts the full time. | Fixed in the mockup and the app |
 | L5 | low | Loupe, grid | Filmstrip at opacity .6 and a tile gradient without stars or flag. | Full opacity with an outline for the current photo; gradient only when needed. | Fixed in the mockup and the app |
 | L6 | low | Settings | The gesture guide cannot be shown again. | A settings entry "Show the gesture guide". | Fixed in the mockup and the app (SETTINGS-001.22) |
-| L7 | low | Grid toolbar | Count badges on the toolbar compete with the photos. | Quieter neutral badges. | `TODO.md` |
+| L7 | low | Grid toolbar | Count badges on the toolbar compete with the photos. | Quieter neutral badges. | Fixed in the mockup; the app's toolbar in `TODO.md` |
 | L8 | low | All (light) | The app bar stays dark in the light theme. | A light app bar for the light theme. | `TODO.md` |
 
 ## Before and after
