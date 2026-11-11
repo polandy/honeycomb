@@ -92,6 +92,44 @@ test('hides a rejected photo in the default scope and shows it under All', async
 	await expect(grid.getByRole('gridcell')).toHaveCount(2)
 })
 
+/** The gaps between the pressed segment of the scope control and its border, in pixels. */
+async function scopeGaps(page: Page) {
+	return page.getByRole('group', { name: 'Show' }).evaluate((group) => {
+		const outer = group.getBoundingClientRect()
+		const inner = group.querySelector('[aria-pressed="true"]')!.getBoundingClientRect()
+		return {
+			left: inner.left - outer.left,
+			top: inner.top - outer.top,
+			right: outer.right - inner.right,
+			bottom: outer.bottom - inner.bottom,
+		}
+	})
+}
+
+// spec: GRID-002.1
+test('keeps the pressed scope segment inside the control border on a phone and a desktop', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = uniqueFolder('Segment')
+	await createFolder(page, folder)
+	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+	const picker = await openPicker(page)
+	await picker.getByRole('option', { name: folder }).click()
+	await picker.getByRole('button', { name: `Cull ${folder}` }).click()
+	const scope = page.getByRole('group', { name: 'Show' })
+	await expect(scope).toBeVisible()
+
+	for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
+		await page.setViewportSize(viewport)
+		const gaps = await scopeGaps(page)
+		expect(gaps.left).toBeGreaterThan(1)
+		expect(gaps.top).toBe(gaps.left)
+		expect(gaps.bottom).toBe(gaps.left)
+		await scope.screenshot({ path: test.info().outputPath(`scope-${viewport.width}.png`) })
+	}
+	await page.getByRole('button', { name: 'All', exact: true }).click()
+	expect((await scopeGaps(page)).right).toBe(3)
+})
+
 // spec: GRID-003.5
 test('rates and rejects selected photos and keeps the decisions over a reload', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
