@@ -298,9 +298,10 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
 1. **One bar, one slim row.** The bar is ~56 px. The breadcrumb shows only the root and the
    current folder when the toolbar is at most 720 px wide (container query); a tap on the folder
    shows the full path. *Select*, *Review rejects*, *Compare series* and *Filters* are icon
-   buttons with count badges; their labels appear beside the icons only when the toolbar is at
-   least 1000 px wide. Sort, the tile size slider, *Move picks*, *Resume*, hiding the header,
-   settings and the mockup's language switch live in a **⋯ more menu** (arrow keys,
+   buttons with count badges (neutral, honey while the button is pressed); their labels appear
+   beside the icons only when the toolbar is at least 1000 px wide. Sort, the tile size slider,
+   *Move picks*, *Resume*, hiding the header, settings and the mockup's language switch live in
+   a **⋯ more menu** (arrow keys,
    one separator per group). The scope (*Not rejected* / *Undecided* / *All*) and the progress
    share one slim row below (it moves into the app bar while scrolling, item 2). The active
    scope shows its name beside the icon when the app is wider than 520 px; at 520 px and below
