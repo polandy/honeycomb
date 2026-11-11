@@ -143,6 +143,9 @@ test('combines the flag chips at iPad width and shares them with the filter bar'
 	await expect(grid.getByRole('gridcell')).toHaveCount(3)
 	await expect(count).toHaveText('2 / 3 decided')
 	await page.screenshot({ path: testInfo.outputPath('flag-filter-ipad.png') })
+	await page.setViewportSize({ width: 1180, height: 820 })
+	await expect(count).toHaveText('2 / 3 decided')
+	await page.screenshot({ path: testInfo.outputPath('flag-filter-ipad-landscape.png') })
 })
 
 // spec: GRID-003.5
