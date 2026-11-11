@@ -43,7 +43,7 @@ final class ImageService {
 	 */
 	public function find(IUser $user, int $fileId): File {
 		$node = $this->rootFolder->getUserFolder($user->getUID())->getFirstNodeById($fileId);
-		if (!$node instanceof File || !str_starts_with($node->getMimetype(), 'image/')) {
+		if (!$node instanceof File || !ListingService::isPhoto($node)) {
 			throw new ImageNotFoundException("No image file $fileId in the user's files");
 		}
 		if (!$node->isReadable()) {

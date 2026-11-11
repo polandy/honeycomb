@@ -666,3 +666,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-11: Transifex sync files added per ADR 0007 although issue #17 was closed without an
   answer: they are inert until the owner requests translations, and the `main` ruleset question
   stays with the owner (recommendation (a), an organization with a bot bypass).
+- 2026-11-11: `.CR3` and `.SRW` files are listed, served and previewed by their extension, not by
+  a mime type mapping: an app cannot extend Nextcloud's mapping through public API, and files
+  already scanned would keep `application/octet-stream` until an admin repairs the file cache.
+- 2026-11-11: The by-name set is the fixed `cr3` and `srw`, the default RAW extensions Nextcloud
+  35 does not map; a RAW extension the user adds in the settings is listed only when Nextcloud
+  types it `image/*`, since listing by the user's list would change the entries API (ADR 0001).
+- 2026-11-11: The RAW preview provider is registered for `application/octet-stream` too and is
+  available there only for those extensions, so other untyped files still get no preview.

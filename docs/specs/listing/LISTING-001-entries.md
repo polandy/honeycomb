@@ -24,11 +24,11 @@ by public link or by mail, when it lies in a group folder, or when it lies on ex
 mounted for another user too (ADR 0017).
 
 Listed are files whose mime type is `image/*` or whose name ends in `.xmp`, `.cr3` or `.srw`
-(case-insensitive): Nextcloud types Canon and Samsung RAW files `application/octet-stream`. Without `subfolders`
-only the folder's own files; with it every folder below, through every mount inside, except
-hidden folders and files (a segment starting with `.`) below the picked folder. Folders outside
-the user's files (trash bin, preview folders) never match. The listing stops at 60,000 entries
-and then sets `truncated`.
+(case-insensitive): Nextcloud types Canon and Samsung RAW files `application/octet-stream`. Without
+`subfolders` only the folder's own files; with it every folder below, through every mount inside,
+except hidden folders and files (a segment starting with `.`) below the picked folder. Folders
+outside the user's files (trash bin, preview folders) never match. The listing stops at 60,000
+entries and then sets `truncated`.
 
 | Case | Answer |
 |---|---|

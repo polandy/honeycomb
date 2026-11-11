@@ -15,4 +15,3 @@ Add items with `/todo`.
 - [ ] Create the public repository `polandy/honeycomb-assets` for PR screenshots — owner (`docs/02-workflow.md` §2.7) (2026-11-09)
 - [ ] Add a `main` ruleset (pull requests only, CI required), with a bypass for `nextcloud-bot` if issue #17 says so, and the `RELEASE_PLEASE_TOKEN` secret — owner (2026-11-09)
 - [ ] Publish to the Nextcloud app store: signing certificate, release workflow that builds and uploads the tarball (2026-11-09)
-- [ ] Low priority (owner, 2026-11-10): list Canon `.CR3` files, which Nextcloud types `application/octet-stream` so the listing skips them — a mimetype mapping or a listing by RAW extension (2026-11-10)
