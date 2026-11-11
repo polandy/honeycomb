@@ -1,15 +1,15 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { fullLongEdge, GRID_TIERS, gridSrcset, imageMember, LOUPE_TIER, loupeSources, sharpTier, smallSource } from '../../../src/logic/image-tiers.ts'
+import { fullLongEdge, GRID_TIERS, gridSrcset, imageMember, loadPriority, LOUPE_TIER, loupeSources, sharpTier, smallSource, tierSource } from '../../../src/logic/image-tiers.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const urlFor = (fileId: number, size: number, mtime: number) => `/img/${fileId}?size=${size}&v=${mtime}`
 
 describe('image tiers', () => {
 	// spec: IMAGES-001.4
-	it('are 256 and 512 px for the grid and 2048 px for the loupe (ADR 0010)', () => {
-		expect([...GRID_TIERS, LOUPE_TIER]).toEqual([256, 512, 2048])
+	it('are core\'s preview sizes: 256 and 1024 px for the grid and 4096 px for the loupe (ADR 0010)', () => {
+		expect([...GRID_TIERS, LOUPE_TIER]).toEqual([256, 1024, 4096])
 	})
 })
 
@@ -30,11 +30,15 @@ describe('grid sources', () => {
 	const member = listingEntry(7, '/P/A.JPG', { mtime: 1234 })
 
 	it('offers both grid tiers by width', () => {
-		expect(gridSrcset(member, urlFor)).toBe('/img/7?size=256&v=1234 256w, /img/7?size=512&v=1234 512w')
+		expect(gridSrcset(member, urlFor)).toBe('/img/7?size=256&v=1234 256w, /img/7?size=1024&v=1234 1024w')
 	})
 
 	it('loads the small tier first', () => {
 		expect(smallSource(member, urlFor)).toBe('/img/7?size=256&v=1234')
+	})
+
+	it('name any tier of the member', () => {
+		expect(tierSource(member, 1024, urlFor)).toBe('/img/7?size=1024&v=1234')
 	})
 })
 
@@ -42,11 +46,21 @@ describe('sharpTier', () => {
 	it.each([
 		[160, 1, 256],
 		[128, 2, 256],
-		[160, 2, 512],
-		[256, 2, 512],
-		[340, 3, 512],
+		[160, 2, 1024],
+		[512, 2, 1024],
+		[340, 3, 1024],
 	])('picks for a %d px tile at %d× the tier %d', (tileCssPx, devicePixelRatio, tier) => {
 		expect(sharpTier(tileCssPx, devicePixelRatio)).toBe(tier)
+	})
+})
+
+describe('loadPriority', () => {
+	// spec: GRID-001.15
+	it('puts visible tiles first, and a tile\'s small tier before its sharp one', () => {
+		const order = [[false, true], [true, true], [false, false], [true, false]] as const
+		const sorted = [...order].sort(([visibleA, sharpA], [visibleB, sharpB]) => loadPriority(visibleA, sharpA) - loadPriority(visibleB, sharpB))
+
+		expect(sorted).toEqual([[true, false], [true, true], [false, false], [false, true]])
 	})
 })
 
@@ -55,8 +69,8 @@ describe('loupe sources', () => {
 		const member = listingEntry(7, '/P/A.JPG', { mtime: 1234 })
 
 		expect(loupeSources(member, urlFor)).toEqual({
-			preview: '/img/7?size=512&v=1234',
-			loupe: '/img/7?size=2048&v=1234',
+			preview: '/img/7?size=1024&v=1234',
+			loupe: '/img/7?size=4096&v=1234',
 			full: '/img/7?size=0&v=1234',
 		})
 	})

@@ -58,13 +58,13 @@ describe('LoupeStage', () => {
 	// spec: LOUPE-001.12
 	it('shows the picture between its neighbours, each fitted, from the grid tier until the loupe tier loads', async () => {
 		const { wrapper, ready } = await mountStage()
-		expect(images(wrapper).map((image) => image.attributes('src'))).toEqual(['/img/1/512', '/img/2/512', '/img/3/512'])
+		expect(images(wrapper).map((image) => image.attributes('src'))).toEqual(['/img/1/1024', '/img/2/1024', '/img/3/1024'])
 		expect(current(wrapper).attributes('style')).toContain('width: 900px; height: 600px')
 
-		ready.add('/img/2/2048')
+		ready.add('/img/2/4096')
 		await wrapper.vm.$nextTick()
 
-		expect(current(wrapper).attributes('src')).toBe('/img/2/2048')
+		expect(current(wrapper).attributes('src')).toBe('/img/2/4096')
 	})
 
 	it('shows no neighbour beyond the first picture', async () => {

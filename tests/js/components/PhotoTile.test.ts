@@ -8,6 +8,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import PhotoTile from '../../../src/components/PhotoTile.vue'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
+import { createLoadQueue } from '../../../src/logic/load-queue.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { listingEntry, pictureOf, picturesOf } from '../logic/listing-entries.ts'
 
@@ -15,17 +16,23 @@ const MARK = TRANSLATED_MARK
 const PAIR = pictureOf(listingEntry(1, '/A/IMG_0001.JPG', { mtime: 7 }), listingEntry(2, '/A/IMG_0001.CR3'))
 const urlFor = (fileId: number, size: number, mtime: number) => `/img/${fileId}/${size}/${mtime}`
 
-/** A loadImage seam whose loads the test settles one by one. */
-function fakeLoader() {
-	const loads: { srcset: string, sizes: string, resolve: () => void, reject: () => void }[] = []
-	const loadImage = (srcset: string, sizes: string) => new Promise<void>((resolve, reject) => {
-		loads.push({ srcset, sizes, resolve, reject })
-	})
-	return { loads, loadImage }
+/** A load queue over a loader whose loads the test settles by URL. */
+function fakeLoads() {
+	const started: string[] = []
+	const settle = new Map<string, { resolve: () => void, reject: () => void }>()
+	const loads = createLoadQueue((url) => new Promise<void>((resolve, reject) => {
+		started.push(url)
+		settle.set(url, { resolve, reject })
+	}), 10)
+	const settled = async (url: string, outcome: 'resolve' | 'reject' = 'resolve') => {
+		settle.get(url)![outcome]()
+		await flushPromises()
+	}
+	return { started, loads, settled }
 }
 
 function mountTile(picture: Picture<ListingEntry>, props: Record<string, unknown> = {}) {
-	return mount(PhotoTile, { props: { picture, size: 160, imageUrl: urlFor, loadImage: fakeLoader().loadImage, devicePixelRatio: 2, ...props } })
+	return mount(PhotoTile, { props: { picture, size: 160, imageUrl: urlFor, loads: fakeLoads().loads, devicePixelRatio: 2, ...props } })
 }
 
 describe('PhotoTile', () => {
@@ -33,90 +40,118 @@ describe('PhotoTile', () => {
 	afterEach(uninstallMarkedCatalogue)
 
 	// spec: GRID-001.2
-	it('shows the small preview of the image member first, without alt text', () => {
-		const img = mountTile(PAIR).find('img')
+	it('shows the small preview of the image member once it arrived, without alt text', async () => {
+		const { started, loads, settled } = fakeLoads()
+		const wrapper = mountTile(PAIR, { loads })
+		expect(started).toEqual(['/img/1/256/7'])
+		expect(wrapper.find('img').exists()).toBe(false)
 
-		expect(img.attributes('src')).toBe('/img/1/256/7')
-		expect(img.attributes('alt')).toBe('')
-		expect(img.attributes('srcset')).toBeUndefined()
+		await settled('/img/1/256/7')
+
+		expect(wrapper.find('img').attributes('src')).toBe('/img/1/256/7')
+		expect(wrapper.find('img').attributes('alt')).toBe('')
+		expect(wrapper.find('img').attributes('srcset')).toBeUndefined()
 	})
 
 	// spec: GRID-001.2
-	it('swaps in every grid tier once the sharp image decoded', async () => {
-		const { loads, loadImage } = fakeLoader()
-		const wrapper = mountTile(PAIR, { loadImage })
+	it('requests the sharp tier only after the small one arrived and swaps it in once decoded', async () => {
+		const { started, loads, settled } = fakeLoads()
+		const wrapper = mountTile(PAIR, { loads })
+		await settled('/img/1/256/7')
+		expect(started).toEqual(['/img/1/256/7', '/img/1/1024/7'])
+		expect(wrapper.find('img').attributes('src')).toBe('/img/1/256/7')
 
-		expect(loads.map(({ srcset, sizes }) => [srcset, sizes])).toEqual([['/img/1/256/7 256w, /img/1/512/7 512w', '160px']])
-		loads[0]!.resolve()
-		await flushPromises()
+		await settled('/img/1/1024/7')
 
-		expect(wrapper.find('img').attributes('srcset')).toBe('/img/1/256/7 256w, /img/1/512/7 512w')
-		expect(wrapper.find('img').attributes('sizes')).toBe('160px')
+		expect(wrapper.find('img').attributes('src')).toBe('/img/1/1024/7')
 	})
 
-	it('follows a new tile size once sharp, without loading again', async () => {
-		const { loads, loadImage } = fakeLoader()
-		const wrapper = mountTile(PAIR, { loadImage })
-		loads[0]!.resolve()
-		await flushPromises()
+	it('requests the sharp tier when the tile grows past the small one', async () => {
+		const { started, loads, settled } = fakeLoads()
+		const wrapper = mountTile(PAIR, { loads, size: 120 })
+		await settled('/img/1/256/7')
 
 		await wrapper.setProps({ size: 300 })
 
-		expect(wrapper.find('img').attributes('sizes')).toBe('300px')
-		expect(loads).toHaveLength(1)
+		expect(started).toEqual(['/img/1/256/7', '/img/1/1024/7'])
 	})
 
 	// spec: GRID-001.3
 	it('keeps the small image when the sharp one fails to decode', async () => {
-		const { loads, loadImage } = fakeLoader()
-		const wrapper = mountTile(PAIR, { loadImage })
+		const { loads, settled } = fakeLoads()
+		const wrapper = mountTile(PAIR, { loads })
+		await settled('/img/1/256/7')
 
-		loads[0]!.reject()
-		await flushPromises()
+		await settled('/img/1/1024/7', 'reject')
 
 		expect(wrapper.find('img').attributes('src')).toBe('/img/1/256/7')
-		expect(wrapper.find('img').attributes('srcset')).toBeUndefined()
 	})
 
 	// spec: GRID-001.12
-	it('is a skeleton tile until its small preview loaded', async () => {
-		const wrapper = mountTile(PAIR)
+	it('is a skeleton tile until its small preview arrived', async () => {
+		const { loads, settled } = fakeLoads()
+		const wrapper = mountTile(PAIR, { loads })
 		expect(wrapper.classes()).toContain('skeleton-tile')
 
-		await wrapper.find('img').trigger('load')
+		await settled('/img/1/256/7')
 
 		expect(wrapper.classes()).not.toContain('skeleton-tile')
 	})
 
 	// spec: GRID-001.12
-	it('stops being a skeleton tile when its small preview fails to load', async () => {
-		const wrapper = mountTile(PAIR)
+	it('stops being a skeleton tile and loads nothing more when its small preview fails', async () => {
+		const { started, loads, settled } = fakeLoads()
+		const wrapper = mountTile(PAIR, { loads })
 
-		await wrapper.find('img').trigger('error')
+		await settled('/img/1/256/7', 'reject')
 
 		expect(wrapper.classes()).not.toContain('skeleton-tile')
+		expect(wrapper.find('img').exists()).toBe(false)
+		expect(started).toEqual(['/img/1/256/7'])
 	})
 
 	// spec: GRID-001.2
-	it('loads no sharp image while the small preview is sharp enough', () => {
-		const { loads, loadImage } = fakeLoader()
+	it('loads no sharp image while the small preview is sharp enough', async () => {
+		const { started, loads, settled } = fakeLoads()
+		mountTile(PAIR, { loads, size: 120, devicePixelRatio: 2 })
 
-		mountTile(PAIR, { loadImage, size: 120, devicePixelRatio: 2 })
+		await settled('/img/1/256/7')
 
-		expect(loads).toEqual([])
+		expect(started).toEqual(['/img/1/256/7'])
 	})
 
-	it('ignores a sharp load that a newer size overtook', async () => {
-		const { loads, loadImage } = fakeLoader()
-		const wrapper = mountTile(PAIR, { loadImage })
-		await wrapper.setProps({ size: 200 })
+	// spec: GRID-001.15
+	it('moves its waiting load to the front once visible and drops it when unmounted', async () => {
+		const loader = { started: [] as string[], finish: [] as (() => void)[] }
+		const loads = createLoadQueue((url) => new Promise<void>((resolve) => {
+			loader.started.push(url)
+			loader.finish.push(resolve)
+		}), 1)
+		loads.enqueue('busy', 0, () => undefined)
+		const near = mountTile(PAIR, { loads, visible: false })
+		const far = mountTile(pictureOf(listingEntry(3, '/A/IMG_0003.JPG', { mtime: 7 })), { loads, visible: false })
+		const gone = mountTile(pictureOf(listingEntry(4, '/A/IMG_0004.JPG', { mtime: 7 })), { loads })
 
-		loads[1]!.resolve()
+		await far.setProps({ visible: true })
+		gone.unmount()
+		loader.finish[0]!()
 		await flushPromises()
-		loads[0]!.resolve()
+		loader.finish[1]!()
 		await flushPromises()
 
-		expect(wrapper.find('img').attributes('sizes')).toBe('200px')
+		expect(loader.started).toEqual(['busy', '/img/3/256/7', '/img/3/1024/7'])
+		near.unmount()
+	})
+
+	it('starts over when the image member changes', async () => {
+		const { started, loads, settled } = fakeLoads()
+		const wrapper = mountTile(PAIR, { loads })
+		await settled('/img/1/256/7')
+
+		await wrapper.setProps({ picture: pictureOf(listingEntry(1, '/A/IMG_0001.JPG', { mtime: 8 })) })
+
+		expect(wrapper.find('img').exists()).toBe(false)
+		expect(started.at(-1)).toBe('/img/1/256/8')
 	})
 
 	// spec: GRID-001.4

@@ -108,9 +108,9 @@ final class ImageServiceTest extends TestCase {
 		$file = $this->image(7);
 		$rendered = $this->createStub(ISimpleFile::class);
 		$preview = $this->createMock(IPreview::class);
-		$preview->expects($this->once())->method('getPreview')->with($file, 512, 512, false, IPreview::MODE_FILL)->willReturn($rendered);
+		$preview->expects($this->once())->method('getPreview')->with($file, 1024, 1024, false, IPreview::MODE_FILL)->willReturn($rendered);
 
-		$this->assertSame($rendered, $this->service([], $preview)->preview($file, 512));
+		$this->assertSame($rendered, $this->service([], $preview)->preview($file, 1024));
 	}
 
 	/** @return array<string, array{\Throwable}> */
@@ -182,7 +182,7 @@ final class ImageServiceTest extends TestCase {
 		$nodes = [1 => $first, 2 => $broken, 3 => $this->image(3, readable: false), 4 => $last];
 		$this->service($nodes, $preview, logger: $logger)->warm($this->user(), [1, 2, 3, 5, 4]);
 
-		$tiers = array_map(static fn (int $size): array => ['width' => $size, 'height' => $size, 'crop' => false, 'mode' => IPreview::MODE_FILL], [256, 512, 2048]);
+		$tiers = array_map(static fn (int $size): array => ['width' => $size, 'height' => $size, 'crop' => false, 'mode' => IPreview::MODE_FILL], [256, 1024, 4096]);
 		$this->assertSame([1 => $tiers, 4 => $tiers], $warmed);
 	}
 

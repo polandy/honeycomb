@@ -67,7 +67,7 @@ function startTiming(page: Page, alt: string) {
 				const start = performance.now()
 				const check = () => {
 					const image = document.querySelector<HTMLImageElement>(`img[alt="${alt}"]`)
-					if (image?.complete && image.src.includes('size=2048')) {
+					if (image?.complete && image.src.includes('size=4096')) {
 						requestAnimationFrame(() => resolve(performance.now() - start))
 					} else {
 						requestAnimationFrame(check)
@@ -97,7 +97,7 @@ test('shows a prefetched 24 MP neighbour without a request when paging', async (
 	await loupe.getByRole('button', { name: 'Toggle info panel' }).click()
 	await expect(loupe.getByText(`${PHOTO_COUNT - 1} of ${PHOTO_COUNT - 1} neighbours loaded`)).toBeVisible({ timeout: 60_000 })
 	// The counter leaves out the shown picture; the stage swaps to its loupe tier once that has loaded.
-	await expect(loupe.getByRole('img', { name: 'IMG_0001' })).toHaveAttribute('src', /size=2048/, { timeout: 60_000 })
+	await expect(loupe.getByRole('img', { name: 'IMG_0001' })).toHaveAttribute('src', /size=4096/, { timeout: 60_000 })
 
 	const requests: string[] = []
 	const network = await page.context().newCDPSession(page)
