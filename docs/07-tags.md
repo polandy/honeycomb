@@ -112,8 +112,9 @@ Screenshots: iPad mini 8.3″ (A17 Pro) landscape and portrait, desktop 1440 × 
 
 `T` opens the **tag entry** for the focused picture in the grid, the current one in the loupe
 and the active one in the series viewer; with a selection, for the selection. `T` is free in the
-key map (`plan.md` Keyboard shortcuts) and is digiKam's *Assign Tag*. On touch, an icon button *Tags* opens it, placed in the `ActionBar` slot, and the
-loupe's info panel lists the tags with the key.
+key map (`plan.md` Keyboard shortcuts) and is digiKam's *Assign Tag*. On touch, an icon button
+*Tags* opens it, placed in the `ActionBar` slot, and the loupe's info panel lists the tags with
+the key.
 
 ![Tag entry in the loupe, iPad landscape](ux/tags/entry-ipadmini24-land.png)
 
