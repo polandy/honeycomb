@@ -658,3 +658,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `--color-background-darker` with the main text colour, the Nextcloud counterpart of the
   mockup's border colour that keeps the count legible in both themes; pressed, it uses the
   primary element colours (GRID-001.14).
+- 2026-11-11: UX review L8: the mockup's app bar follows the theme through `--hdr-*` tokens:
+  white with the main text colour and a border line in the light theme, the near-black bar
+  only in the dark theme. The logo's outline strokes use `currentColor`, so it stays visible
+  on both. The app needs no follow-up: it has no app bar of its own and sits under
+  Nextcloud's themed header.
