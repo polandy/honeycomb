@@ -188,6 +188,14 @@ Below it, the favourite targets the move dialog starred, each with a ✕ to remo
 - **When** the user opens the move dialog and chooses a target
 - **Then** the move summary shows that template and names the files by it
 
+### SETTINGS-001.22 – Show the gesture guide again
+
+- **Given** the dialog's *Loupe gestures* section
+- **When** the user presses *Show the gesture guide*
+- **Then** the view state `gestureGuideSeen` is `false` and only that key is written (LOUPE-003.6),
+  so the guide shows on the next loupe opening; the hint under the button says so until the guide
+  is dismissed again, and says what the guide holds while it counts as seen
+
 ## Out of scope
 
 What the swipes, auto-advance and flag buttons do in the loupe: LOUPE-002. The vi keys: KEYS-001.
@@ -200,3 +208,4 @@ Pairing itself: LISTING-002.
 | 2026-11-10 | Written from the merged M4.4 (#54) |
 | 2026-11-10 | .15 favourite and recent move targets (M7.3) |
 | 2026-11-10 | .16–.21 name template setting, presets, preview and favourite targets (M7.4) |
+| 2026-11-11 | .22 show the gesture guide again (UX review L6) |

@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
+import type { ViewState } from '../../src/logic/view-state.ts'
+
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import FolderPicker from '../../src/components/FolderPicker.vue'
@@ -40,6 +42,20 @@ describe('App: the settings', () => {
 
 		expect(shownNames(wrapper)).toEqual(['IMG_10'])
 		expect(savedSettings).toEqual([{ ...DEFAULT_SETTINGS, showSingles: false }])
+	})
+
+	// spec: SETTINGS-001.22
+	it('shows the gesture guide again from the dialog and writes only that key', async () => {
+		const saved: Partial<ViewState>[] = []
+		const { wrapper } = mountApp({ viewState: { loadViewState: async () => ({ infoPanelOpen: null, gestureGuideSeen: true }), saveViewState: async (patch: Partial<ViewState>) => void saved.push(patch) } })
+		await openCull(wrapper)
+		expect(wrapper.findComponent(SettingsDialog).props('gestureGuideSeen')).toBe(true)
+
+		wrapper.findComponent(SettingsDialog).vm.$emit('showGestureGuide')
+		await flushPromises()
+
+		expect(wrapper.findComponent(SettingsDialog).props('gestureGuideSeen')).toBe(false)
+		expect(saved).toEqual([{ gestureGuideSeen: false }])
 	})
 
 	// spec: SETTINGS-001.13

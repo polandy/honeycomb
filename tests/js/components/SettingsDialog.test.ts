@@ -13,9 +13,9 @@ import { AppSettingsDialogStub, AppSettingsSectionStub } from './stubs.ts'
 const MARK = TRANSLATED_MARK
 
 /** The open dialog over the given settings. */
-function mountDialog(settings: Partial<Settings> = {}) {
+function mountDialog(settings: Partial<Settings> = {}, gestureGuideSeen = false) {
 	return mount(SettingsDialog, {
-		props: { open: true, settings: { ...DEFAULT_SETTINGS, ...settings } },
+		props: { open: true, settings: { ...DEFAULT_SETTINGS, ...settings }, gestureGuideSeen },
 		global: { stubs: { NcAppSettingsDialog: AppSettingsDialogStub, NcAppSettingsSection: AppSettingsSectionStub } },
 	})
 }
@@ -53,6 +53,20 @@ describe('SettingsDialog', () => {
 		wrapper.findComponent(AppSettingsDialogStub).vm.$emit('update:open', false)
 
 		expect(wrapper.emitted('update:open')).toEqual([[false]])
+	})
+
+	// spec: SETTINGS-001.22
+	it('asks to show the gesture guide again; the hint follows whether it was seen', async () => {
+		const unseen = mountDialog({}, false)
+		const hint = (wrapper: Wrapper) => plain(wrapper.find('#gesture-guide-hint').text())
+		expect(hint(unseen)).toBe('Shows the next time you open the loupe')
+		expect(hint(mountDialog({}, true))).toBe('The card with the swipes, tap zones and keys from the first loupe opening')
+
+		const button = unseen.findAll('button').find((item) => plain(item.text()) === 'Show the gesture guide')!
+		expect(button.attributes('aria-describedby')).toBe('gesture-guide-hint')
+		await button.trigger('click')
+
+		expect(unseen.emitted('showGestureGuide')).toHaveLength(1)
 	})
 
 	// spec: SETTINGS-001.8

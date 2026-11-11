@@ -62,7 +62,8 @@ an older version left in browser storage is taken over once.
 ### LOUPE-003.6 – A change applies at once and writes one key
 
 - **Given** the loupe
-- **When** the user opens or closes the info panel, or presses *Got it* in the gesture guide
+- **When** the user opens or closes the info panel, presses *Got it* in the gesture guide, or
+  presses *Show the gesture guide* in the settings (SETTINGS-001.22)
 - **Then** the change applies at once and only that key is written
 
 ### LOUPE-003.7 – Taking over values from browser storage

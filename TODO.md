@@ -12,7 +12,6 @@ Add items with `/todo`.
 ## Later
 
 - [ ] Measure the image budgets of `docs/plan.md` Image delivery with real 24 MP RAW+JPEG pairs (IMAGES-001.12), incl. the `512` and `2048` tiers that Nextcloud delivers at up to 1024 and 4096 px (ADR 0010) — needs the owner's files (2026-11-10)
-- [ ] App: *Settings › Loupe gestures › Show the gesture guide* sets the view state `gestureGuideSeen` back to false, as the mockup does — UX review L6 (2026-11-11)
 - [ ] Mockup: quieter toolbar count badges (neutral, honey only for the active state) — UX review L7 (2026-11-09)
 - [ ] Mockup: a light app bar for the light theme instead of the near-black bar — UX review L8 (2026-11-09)
 - [ ] Create the public repository `polandy/honeycomb-assets` for PR screenshots — owner (`docs/02-workflow.md` §2.7) (2026-11-09)

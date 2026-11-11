@@ -68,6 +68,18 @@ describe('useViewState', () => {
 		expect(saved).toEqual([{ infoPanelOpen: true }, { gestureGuideSeen: true }])
 	})
 
+	// spec: LOUPE-003.6, SETTINGS-001.22
+	it('shows the gesture guide again and writes only that key', async () => {
+		const { gestureGuideSeen, showGestureGuide, saved } = viewStateOn(async () => ({ infoPanelOpen: null, gestureGuideSeen: true }))
+		await flushPromises()
+		expect(gestureGuideSeen.value).toBe(true)
+
+		showGestureGuide()
+
+		expect(gestureGuideSeen.value).toBe(false)
+		expect(saved).toEqual([{ gestureGuideSeen: false }])
+	})
+
 	// spec: LOUPE-003.6
 	it('keeps a change made before the answer over the stored value', async () => {
 		const { infoPanelOpen, setInfoPanelOpen, saved } = viewStateOn(async () => ({ infoPanelOpen: false, gestureGuideSeen: true }))

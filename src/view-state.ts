@@ -61,6 +61,7 @@ export function useViewState(api: ViewStateApi, storage: BrowserStorage) {
 		gestureGuideSeen: computed(() => !loaded.value || state.value.gestureGuideSeen),
 		setInfoPanelOpen: (open: boolean) => change({ infoPanelOpen: open }),
 		dismissGestureGuide: () => change({ gestureGuideSeen: true }),
+		showGestureGuide: () => change({ gestureGuideSeen: false }),
 	}
 }
 
