@@ -302,11 +302,10 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    beside the icons only when the toolbar is at least 1000 px wide. Sort, the tile size slider,
    *Move picks*, *Resume*, hiding the header, settings and the mockup's language switch live in
    a **⋯ more menu** (arrow keys,
-   one separator per group). The scope (*Not rejected* / *Undecided* / *All*) and the progress
-   share one slim row below (it moves into the app bar while scrolling, item 2). The active
-   scope shows its name beside the icon when the app is wider than 520 px; at 520 px and below
-   the slim row shows one button with the active scope's name that opens the three scopes as a
-   menu (UX review L2). Every control keeps a 44 px hit target.
+   one separator per group). The flag filter (*Picked*, *Unflagged*, *Rejected*
+   chips behind a filter icon) and the progress share the toolbar and wrap onto a second line
+   rather than squeezing the breadcrumb (the mockup still shows the older scope control).
+   Every control keeps a 44 px hit target.
 2. **The key actions move into the app bar while scrolling** (owner, 2026-11-09, correcting the
    slim-row version). Nothing stays below the app bar: when the toolbar hides, all of it, the
    slim row included, slides away, and the most used actions appear in the top app bar
@@ -335,8 +334,7 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    - Focus entering the bar shows it, and selection mode keeps it shown.
    - Opening a folder starts with the bar shown.
 3. **Flag icons as in Lightroom and digiKam** (owner, 2026-11-09). *Rejected* is a flag with an
-   x, *Picked* a filled white flag and *Unflagged* an empty flag outline. The scope buttons use
-   a crossed reject flag for *Not rejected*, the empty flag for *Undecided* and a grid for *All*.
+   x, *Picked* a filled white flag and *Unflagged* an empty flag outline.
    The same icons mark the tiles, the loupe, the bulk actions, the flag filter and the series
    viewer. The words stay as `aria-label` and a [tooltip](#tooltip); targets stay 44 px.
 4. **Series viewer.** Tapping a photo of a series opens it fullscreen at once, the whole series
