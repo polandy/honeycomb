@@ -121,7 +121,7 @@ const setName = computed(() => {
 			<template #icon>
 				<AppIcon name="filter" />
 			</template>
-			<span v-if="props.activeFilters > 0" :class="['grid-toolbar__badge', { 'grid-toolbar__badge--pressed': props.filtersOpen }]" aria-hidden="true">{{ formatNumber(props.activeFilters) }}</span>
+			<span v-if="props.activeFilters > 0" class="grid-toolbar__badge" :class="{ 'grid-toolbar__badge--pressed': props.filtersOpen }" aria-hidden="true">{{ formatNumber(props.activeFilters) }}</span>
 		</NcButton>
 		<NcButton
 			variant="tertiary"
