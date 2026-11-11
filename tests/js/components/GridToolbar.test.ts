@@ -237,20 +237,14 @@ describe('GridToolbar', () => {
 
 	// spec: GRID-001.14
 	it.each([
-		['Filters', { activeFilters: 2 }, { activeFilters: 2, filtersOpen: true }],
-		['Select', null, { selecting: true, selected: 4 }],
-		['Review rejects', { rejected: 12 }, null],
-		['Compare series', { series: 3 }, null],
-	] as const)('keeps the %s badge neutral unless its button is pressed', (label, idle, pressed) => {
-		const badge = (cull: Partial<typeof CULL>) => mountToolbar({ paths: ['/A'], subfolders: false }, 1, cull)
-			.find(`[aria-label^="${MARK}${label}"] .grid-toolbar__badge`)
-
-		if (idle) {
-			expect(badge(idle).classes()).not.toContain('grid-toolbar__badge--pressed')
-		}
-		if (pressed) {
-			expect(badge(pressed).classes()).toContain('grid-toolbar__badge--pressed')
-		}
+		['Filters', { activeFilters: 2 }, false],
+		['Filters', { activeFilters: 2, filtersOpen: true }, true],
+		['Select', { selecting: true, selected: 4 }, true],
+		['Review rejects', { rejected: 12 }, false],
+		['Compare series', { series: 3 }, false],
+	] as const)('colours the %s badge for %o as pressed: %s', (label, cull, pressed) => {
+		const badge = mountToolbar({ paths: ['/A'], subfolders: false }, 1, cull).find(`[aria-label^="${MARK}${label}"] .grid-toolbar__badge`)
+		expect(badge.classes('grid-toolbar__badge--pressed')).toBe(pressed)
 	})
 
 	// spec: GRID-002.8
