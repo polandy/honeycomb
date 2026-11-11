@@ -13,6 +13,7 @@ use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\InvalidDecisionException;
 use OCA\Honeycomb\Service\ListingService;
 use OCA\Honeycomb\Service\PictureDecision;
+use OCP\DB\Exception as DbException;
 use OCP\IUser;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -81,6 +82,48 @@ final class DecisionServiceTest extends TestCase {
 
 		$this->assertCount(1, $this->store->rows['alice']);
 		$this->assertArrayNotHasKey(1, $this->store->rows['alice']);
+	}
+
+	// spec: DECISIONS-001.13
+	public function testSavesAgainWhenAConcurrentSaveWonTheInsert(): void {
+		$this->store->failures = 1;
+
+		$this->service->save($this->user('alice'), [self::item(1, 4)]);
+
+		$this->assertSame(2, $this->store->replaceCalls);
+		$this->assertSame(4, $this->service->lookup($this->user('alice'), [1])[0]->rating);
+	}
+
+	// spec: DECISIONS-001.13
+	public function testGivesUpAfterThreeConflictsAndStoresNothing(): void {
+		$this->store->failures = 10;
+
+		$thrown = null;
+		try {
+			$this->service->save($this->user('alice'), [self::item(1, 4)]);
+		} catch (DbException $e) {
+			$thrown = $e;
+		}
+
+		$this->assertInstanceOf(DbException::class, $thrown);
+		$this->assertSame(3, $this->store->replaceCalls);
+		$this->assertSame([], $this->service->lookup($this->user('alice'), [1]));
+	}
+
+	// spec: DECISIONS-001.13
+	public function testDoesNotRepeatAnotherDatabaseError(): void {
+		$this->store->failures = 1;
+		$this->store->failureReason = DbException::REASON_DEADLOCK;
+
+		$thrown = null;
+		try {
+			$this->service->save($this->user('alice'), [self::item(1, 4)]);
+		} catch (DbException $e) {
+			$thrown = $e;
+		}
+
+		$this->assertInstanceOf(DbException::class, $thrown);
+		$this->assertSame(1, $this->store->replaceCalls);
 	}
 
 	/** @return array<string, array{array<array-key, mixed>}> */
