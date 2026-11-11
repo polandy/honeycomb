@@ -42,6 +42,20 @@ describe('App: the settings', () => {
 		expect(savedSettings).toEqual([{ ...DEFAULT_SETTINGS, showSingles: false }])
 	})
 
+	// spec: SETTINGS-001.22
+	it('shows the gesture guide again from the dialog and writes only that key', async () => {
+		const saved: unknown[] = []
+		const { wrapper } = mountApp({ viewState: { loadViewState: async () => ({ infoPanelOpen: null, gestureGuideSeen: true }), saveViewState: async (patch) => void saved.push(patch) } })
+		await openCull(wrapper)
+		expect(wrapper.findComponent(SettingsDialog).props('gestureGuideSeen')).toBe(true)
+
+		wrapper.findComponent(SettingsDialog).vm.$emit('showGestureGuide')
+		await flushPromises()
+
+		expect(wrapper.findComponent(SettingsDialog).props('gestureGuideSeen')).toBe(false)
+		expect(saved).toEqual([{ gestureGuideSeen: false }])
+	})
+
 	// spec: SETTINGS-001.13
 	it('clears the selection when the pairing changes, but not on another change', async () => {
 		const { wrapper } = mountApp()
