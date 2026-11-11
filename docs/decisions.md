@@ -679,3 +679,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   empty state go. The scope was never stored, so there is no value to migrate. *Clear filters*
   and the toolbar count treat the flag filter like any group, against its default.
 - 2026-11-11: `docs/mockup/index.html` still shows the old scope control; it is not redrawn here.
+- 2026-11-11: The loupe stage fits a photo by its loaded image's aspect once it has loaded, ahead
+  of the listing's size. Previews are always drawn upright, while a listing size can disagree
+  with them (Nextcloud reports `photos-size` turned, but only when it also read the EXIF
+  orientation), so the drawn image is the one source that cannot distort an EXIF-rotated photo.
+- 2026-11-11: Loupe neighbours are moved aside by `translateX(±100%)` on a full-width slide and
+  hidden with `visibility: hidden` until a drag moves them in, rather than only clipped by the
+  stage, so no browser (iPad Safari, fullscreen) can show them beside the shown photo.
