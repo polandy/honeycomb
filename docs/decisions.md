@@ -663,3 +663,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   only in the dark theme. The logo's outline strokes use `currentColor`, so it stays visible
   on both. The app needs no follow-up: it has no app bar of its own and sits under
   Nextcloud's themed header.
+- 2026-11-11: Transifex sync files added per ADR 0007 although issue #17 was closed without an
+  answer: they are inert until the owner requests translations, and the `main` ruleset question
+  stays with the owner (recommendation (a), an organization with a bot bypass).
