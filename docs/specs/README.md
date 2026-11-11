@@ -11,7 +11,7 @@ merged code does. Spec, tests and code change in the same pull request.
 | `app/` | [APP-001](app/APP-001-app-page.md) app page and navigation, [APP-002](app/APP-002-tooltip.md) tooltip |
 | `listing/` | [LISTING-001](listing/LISTING-001-entries.md) entries of a folder set, [LISTING-002](listing/LISTING-002-pairing.md) pairing, [LISTING-003](listing/LISTING-003-folder-picker.md) folder picker |
 | `images/` | [IMAGES-001](images/IMAGES-001-preview-tiers.md) preview tiers and background previews |
-| `grid/` | [GRID-001](grid/GRID-001-grid.md) grid, [GRID-002](grid/GRID-002-filters-and-sort.md) filters, scope, progress and sort, [GRID-003](grid/GRID-003-selection.md) selection mode |
+| `grid/` | [GRID-001](grid/GRID-001-grid.md) grid, [GRID-002](grid/GRID-002-filters-and-sort.md) flag filter, filters, progress and sort, [GRID-003](grid/GRID-003-selection.md) selection mode |
 | `decisions/` | [DECISIONS-001](decisions/DECISIONS-001-decision-storage.md) decision storage, [DECISIONS-002](decisions/DECISIONS-002-resume-position.md) resume position |
 | `loupe/` | [LOUPE-001](loupe/LOUPE-001-loupe.md) loupe, [LOUPE-002](loupe/LOUPE-002-decisions-in-the-loupe.md) decisions in the loupe, [LOUPE-003](loupe/LOUPE-003-view-state.md) view state |
 | `move/` | [MOVE-001](move/MOVE-001-name-templates.md) name templates, [MOVE-002](move/MOVE-002-move-endpoints.md) move endpoints, [MOVE-003](move/MOVE-003-move-plan-and-report.md) move plan, conflicts, report and undo, [MOVE-004](move/MOVE-004-move-dialog.md) move dialog and move summary |

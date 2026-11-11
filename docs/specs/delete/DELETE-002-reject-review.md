@@ -42,7 +42,7 @@ says what was freed. Failed files end in the delete report, with a reason per fi
 ### DELETE-002.3 – Offered where culling ends
 
 - **Given** a cull with rejects
-- **When** the grid is empty under the scope, or the loupe decided the last photo
+- **When** the grid is empty under the filters, or the loupe decided the last photo
 - **Then** the review is offered there; without rejects it is never offered
 
 ### DELETE-002.4 – Nothing to review
