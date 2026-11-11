@@ -59,7 +59,7 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    the RAW's embedded JPEG for a RAW-only picture, and warms previews in the background (ADR
    0010, [Image delivery & performance](#image-delivery--performance)).
 3. **Folder picker and grid:** a folder picker with a checkbox per folder and the *Include
-   subfolders* switch, a virtual-scrolling grid with srcset thumbnails (256/512 px, stepless
+   subfolders* switch, a virtual-scrolling grid with tiered thumbnails (256/1024 px, stepless
    size), pair badges and folder headers, light and dark ([Multiple folders](#multiple-folders)).
    The picker browses folders through `GET /api/v1/folders` (ADR 0011) and counts the ticked
    folders by listing and pairing them in TypeScript.
@@ -251,9 +251,10 @@ per folder set), M2.5 (folder filter), M6 (series per camera).
 Decided by the owner on 2026-11-09 (answers Q19). Culling 2,000+ 24 MP pairs lives or dies by how
 fast the right pixels reach the screen.
 
-**Size tiers.** Grid tiles 256 px and 512 px, loupe 2048 px on the long edge, 100 % zoom the
-original file. The browser picks the tier through `srcset` from tile size × `devicePixelRatio`;
-the thumbnail size is stepless (mockup: slider, Ctrl + wheel, pinch).
+**Size tiers.** Grid tiles 256 px and 1024 px, loupe 4096 px on the long edge (core's preview
+sizes, ADR 0010), 100 % zoom the original file. A tile picks the tier from tile size ×
+`devicePixelRatio` and loads it through the grid's load queue, at most six at a time, visible
+tiles first (GRID-001.15); the thumbnail size is stepless (mockup: slider, Ctrl + wheel, pinch).
 
 **Progressive display.** The small preview shows first; the sharp one is swapped in after
 `img.decode()` resolves, so the tile never blanks or jumps.

@@ -14,9 +14,9 @@ and renders the tiers in the background before they are asked for.
 ## Behaviour
 
 `GET /apps/honeycomb/api/v1/images/{fileId}?size=<tier>&v=<mtime>`, logged in, no CSRF token (an
-`<img>` sends none). Tiers are `256`, `512` and `2048` px on the long edge, never upscaled or
-cropped; `0` is the full image (the file itself when the browser shows its type, else the largest
-preview). Another or a missing size is `400`.
+`<img>` sends none). Tiers are `256`, `1024` and `4096` px on the long edge, core's preview sizes,
+never upscaled or cropped; `0` is the full image (the file itself when the browser shows its
+type, else the largest preview). Another or a missing size is `400`.
 
 | Request | Answer |
 |---|---|
@@ -58,7 +58,7 @@ a failed request is logged and the grid stays.
 
 ### IMAGES-001.4 – Tiers keep the shape
 
-- **Given** a tier of 256, 512 or 2048, or 0
+- **Given** a tier of 256, 1024 or 4096, or 0
 - **When** the image is rendered
 - **Then** the tier is the long edge without cropping; 0 is the file itself, or the largest
   preview of a RAW
@@ -132,3 +132,4 @@ a failed request is logged and the grid stays.
 |---|---|
 | 2026-11-10 | Written from the merged code of #40 (ADR 0015) |
 | 2026-11-11 | `.cr3` and `.srw` files are served and previewed by name (`TODO.md`, owner 2026-11-10) |
+| 2026-11-11 | Tiers 256, 1024 and 4096, core's preview sizes, in place of 512 and 2048 (owner, nc-test analysis) |

@@ -20,10 +20,12 @@ import { formatNumber } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { UNDECIDED } from '../logic/decision.ts'
 import { focusStep, gridLayout, revealScrollTop, stickyHeader, visibleRows } from '../logic/grid-layout.ts'
-import { imageMember } from '../logic/image-tiers.ts'
+import { IMAGE_LOADS_IN_FLIGHT, imageMember } from '../logic/image-tiers.ts'
+import { createLoadQueue } from '../logic/load-queue.ts'
 import { groupByFolder as folderGroups } from '../logic/picture-order.ts'
 import { NO_SELECTION } from '../logic/selection.ts'
 import { pinchTileSize, wheelTileSize } from '../logic/tile-size.ts'
+import { decodeSource } from '../loupe-prefetch.ts'
 import { observeElementSize } from '../observe-size.ts'
 import { browserSchedule, useTileSelection } from '../tile-selection.ts'
 
@@ -36,7 +38,8 @@ const props = withDefaults(defineProps<{
 	tileSize: number
 	observeSize?: ObserveSize
 	imageUrl?: ImageUrlFor
-	loadImage?: (srcset: string, sizes: string) => Promise<void>
+	/** Resolves once the image at the URL is decoded, rejects if it cannot be. */
+	loadImage?: (url: string) => Promise<void>
 	selecting?: boolean
 	/** The selected pictures by grid key, the file id of the member the tile shows. */
 	selection?: Selection
@@ -46,6 +49,7 @@ const props = withDefaults(defineProps<{
 	seriesSizes?: ReadonlyMap<Picture<ListingEntry>, number>
 }>(), {
 	observeSize: observeElementSize,
+	loadImage: decodeSource,
 	selecting: false,
 	selection: () => NO_SELECTION,
 	decisionOf: () => UNDECIDED,
@@ -82,8 +86,10 @@ const layout = computed(() => gridLayout({
 const rendered = computed(() => {
 	const overscan = Math.ceil(height.value / (layout.value.tileWidth + GAP))
 	const { start, end } = visibleRows(layout.value, scrollTop.value, height.value, overscan)
-	return layout.value.rows.slice(start, end)
+	const shown = visibleRows(layout.value, scrollTop.value, height.value, 0)
+	return layout.value.rows.slice(start, end).map((row, offset) => ({ ...row, offscreen: start + offset < shown.start || start + offset >= shown.end }))
 })
+const loads = createLoadQueue(props.loadImage, IMAGE_LOADS_IN_FLIGHT)
 const sticky = computed(() => stickyHeader(layout.value, scrollTop.value))
 const order = computed(() => props.pictures.map((picture) => imageMember(picture).fileId))
 const tiles = useTileSelection({
@@ -219,7 +225,9 @@ defineExpose({
 							:decision="props.decisionOf(picture)"
 							:selecting="props.selecting"
 							:selected="props.selection.ids.has(imageMember(picture).fileId)"
-							v-bind="{ ...(props.imageUrl && { imageUrl: props.imageUrl }), ...(props.loadImage && { loadImage: props.loadImage }), series: props.seriesSizes?.get(picture) ?? 0 }"
+							:loads="loads"
+							:offscreen="row.offscreen"
+							v-bind="{ ...(props.imageUrl && { imageUrl: props.imageUrl }), series: props.seriesSizes?.get(picture) ?? 0 }"
 							@focus="focused = index"
 							@click="tiles.onClick(imageMember(picture).fileId, $event)"
 							@keydown="tiles.onKeydown(imageMember(picture).fileId, $event)"
@@ -234,67 +242,4 @@ defineExpose({
 	</div>
 </template>
 
-<style scoped>
-.photo-grid {
-	position: relative;
-	height: 100%;
-	min-height: 0;
-}
-
-.photo-grid__scroller {
-	height: 100%;
-	overflow-y: auto;
-	overscroll-behavior: contain;
-	padding: 0 var(--default-grid-baseline);
-	-webkit-user-select: none;
-	user-select: none;
-}
-
-.photo-grid__spacer {
-	position: relative;
-}
-
-.photo-grid__header,
-.photo-grid__sticky {
-	display: flex;
-	align-items: center;
-	gap: calc(2 * var(--default-grid-baseline));
-	padding: 0 var(--default-grid-baseline);
-	font-weight: bold;
-}
-
-.photo-grid__header {
-	position: absolute;
-	inset-inline: 0;
-}
-
-.photo-grid__header small {
-	color: var(--color-text-maxcontrast);
-	font-weight: normal;
-}
-
-.photo-grid__sticky {
-	position: absolute;
-	z-index: 1;
-	top: 0;
-	inset-inline: 0;
-	height: 40px;
-	background-color: var(--color-main-background);
-}
-
-.photo-grid__row {
-	position: absolute;
-	inset-inline: 0;
-}
-
-.photo-grid__tile {
-	position: absolute;
-	top: 0;
-	height: 100%;
-}
-
-.photo-grid__tile:focus-visible {
-	outline: 2px solid var(--color-primary-element);
-	outline-offset: 2px;
-}
-</style>
+<style scoped src="./photo-grid.css" />
