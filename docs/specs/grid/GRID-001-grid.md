@@ -121,14 +121,6 @@ a glance, at any size, without waiting for a sharp image of every tile.
 - **When** it renders
 - **Then** it is a skeleton tile, and it stops being one once the preview loaded or failed to load
 
-### GRID-001.15 – A few image loads at a time, visible tiles first
-
-- **Given** a grid whose rendered tiles need more images than the limit of six
-- **When** the tiles load their images
-- **Then** at most six loads are in flight; the next to start is a tile in the viewport before
-  one around it, a small preview before a sharp one, then the oldest request; a tile that scrolls
-  into view moves its waiting load forward, and an unmounted tile's waiting load never starts
-
 ### GRID-001.13 – Skeleton tiles while a folder set lists
 
 - **Given** a folder set opened from *Recent*
@@ -142,6 +134,14 @@ a glance, at any size, without waiting for a sharp image of every tile.
 - **When** the button is not pressed
 - **Then** its badge is neutral, and it takes the primary colour while the button is pressed
   (*Filters* while the filter bar is open, *Select* in selection mode)
+
+### GRID-001.15 – A few image loads at a time, visible tiles first
+
+- **Given** a grid whose rendered tiles need more images than the limit of six
+- **When** the tiles load their images
+- **Then** at most six loads are in flight; the next to start is a tile in the viewport before
+  one around it, a small preview before a sharp one, then the oldest request; a tile that scrolls
+  into view moves its waiting load forward, and an unmounted tile's waiting load never starts
 
 ## Out of scope
 
