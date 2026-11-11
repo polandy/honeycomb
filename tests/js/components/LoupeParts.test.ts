@@ -7,11 +7,13 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import { nextTick } from 'vue'
 import LoupeFilmstrip from '../../../src/components/LoupeFilmstrip.vue'
 import LoupeInfo from '../../../src/components/LoupeInfo.vue'
 import LoupeTitleRow from '../../../src/components/LoupeTitleRow.vue'
 import PanelDivider from '../../../src/components/PanelDivider.vue'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
+import { FILMSTRIP_OVERSCAN, FILMSTRIP_THUMB } from '../../../src/logic/filmstrip.ts'
 import { INFO_PANEL } from '../../../src/logic/panel-width.ts'
 import { listingEntry, pictureOf, picturesOf } from '../logic/listing-entries.ts'
 import { pointer } from './loupe-pointer.ts'
@@ -108,24 +110,54 @@ describe('LoupeFilmstrip', () => {
 			index,
 			decisionOf: (picture: Picture<ListingEntry>) => ({ ...UNDECIDED, flag: picture.baseName === 'IMG_11' ? 'picked' as const : 'unflagged' as const }),
 			imageUrl: (fileId: number, size: number) => `/img/${fileId}/${size}`,
+			observeSize: (_element: Element, onSize: (width: number, height: number) => void) => {
+				onSize(1000, FILMSTRIP_THUMB)
+				return () => undefined
+			},
 		},
 	})
+	const labels = (wrapper: ReturnType<typeof mountStrip>) => wrapper.findAll('button').map((button) => button.attributes('aria-label'))
+	const strip = (wrapper: ReturnType<typeof mountStrip>) => wrapper.find('.loupe-filmstrip').element as HTMLElement
 
-	// spec: LOUPE-001.13
-	it('shows eight pictures on each side of the shown one, marked current, with small thumbnails and flags', () => {
-		const wrapper = mountStrip(10)
-		const buttons = wrapper.findAll('button')
-		expect(buttons.map((button) => button.attributes('aria-label'))).toEqual(PICTURES.slice(2, 19).map((picture) => picture.baseName))
-		expect(wrapper.find('[aria-current="true"]').attributes('aria-label')).toBe('IMG_11')
-		expect(wrapper.find('[aria-current="true"] img').attributes('src')).toBe('/img/11/256')
+	// spec: LOUPE-001.13, LOUPE-001.19
+	it('scrolls the shown picture to the middle and renders the ones in view, marked current, with small thumbnails and flags', async () => {
+		const wrapper = mountStrip(15)
+		await nextTick()
+		expect(strip(wrapper).scrollLeft).toBe(15 * FILMSTRIP_THUMB)
+		expect(labels(wrapper)).toEqual(PICTURES.slice(6 - FILMSTRIP_OVERSCAN, 25 + FILMSTRIP_OVERSCAN).map((picture) => picture.baseName))
+		expect(wrapper.find('[aria-current="true"]').attributes('aria-label')).toBe('IMG_16')
+		expect(wrapper.find('[aria-current="true"] img').attributes('src')).toBe('/img/16/256')
 		expect(wrapper.findAll('.loupe-filmstrip__flag')).toHaveLength(1)
 	})
 
-	it('clips the window at the first picture and selects a tapped one', async () => {
+	// spec: LOUPE-001.19
+	it('places each picture by its index, edge to edge, after half the strip', async () => {
 		const wrapper = mountStrip(0)
-		const buttons = wrapper.findAll('button')
-		expect(buttons).toHaveLength(9)
-		await buttons[4]!.trigger('click')
+		await nextTick()
+		const left = (label: string) => wrapper.find(`button[aria-label="${label}"]`).attributes('style')
+		expect(left('IMG_01')).toContain(`left: ${500 - FILMSTRIP_THUMB / 2}px`)
+		expect(left('IMG_02')).toContain(`left: ${500 + FILMSTRIP_THUMB / 2}px`)
+	})
+
+	// spec: LOUPE-001.19
+	it('follows the shown picture and a scroll by the user', async () => {
+		const wrapper = mountStrip(0)
+		await nextTick()
+		expect(labels(wrapper)).toHaveLength(10 + FILMSTRIP_OVERSCAN)
+
+		await wrapper.setProps({ index: 29 })
+		expect(strip(wrapper).scrollLeft).toBe(29 * FILMSTRIP_THUMB)
+		expect(labels(wrapper).at(-1)).toBe('IMG_30')
+
+		strip(wrapper).scrollLeft = 0
+		await wrapper.find('.loupe-filmstrip').trigger('scroll')
+		expect(labels(wrapper)[0]).toBe('IMG_01')
+	})
+
+	it('selects a tapped picture', async () => {
+		const wrapper = mountStrip(0)
+		await nextTick()
+		await wrapper.find('button[aria-label="IMG_05"]').trigger('click')
 		expect(wrapper.emitted('select')).toEqual([[4]])
 	})
 })

@@ -55,8 +55,8 @@ test('opens a photo in the loupe, pages by key and closes back to the grid', asy
 	await expect(page.getByRole('gridcell', { name: 'IMG_0002, JPG only' })).toBeFocused()
 })
 
-// spec: LOUPE-001.13
-test('shows every filmstrip photo at full opacity and marks the shown one by its border', async ({ page }) => {
+// spec: LOUPE-001.13, LOUPE-001.19
+test('shows the filmstrip as square photos edge to edge at full opacity, the shown one in the middle with a white border', async ({ page }) => {
 	const loupe = await openLoupe(page)
 	const filmstrip = loupe.getByRole('navigation', { name: 'Filmstrip' })
 	const shown = filmstrip.getByRole('button', { name: 'IMG_0001' })
@@ -64,8 +64,12 @@ test('shows every filmstrip photo at full opacity and marks the shown one by its
 
 	await expect(shown).toHaveCSS('opacity', '1')
 	await expect(other).toHaveCSS('opacity', '1')
-	await expect(other).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)')
-	await expect(shown).not.toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)')
+	await expect(shown).toHaveCSS('outline-color', 'rgb(255, 255, 255)')
+	await expect(other).toHaveCSS('outline-style', 'none')
+	const [strip, first, second] = [(await filmstrip.boundingBox())!, (await shown.boundingBox())!, (await other.boundingBox())!]
+	expect(first.width).toBe(first.height)
+	expect(second.x).toBe(first.x + first.width)
+	expect(Math.abs(first.x + first.width / 2 - (strip.x + strip.width / 2))).toBeLessThanOrEqual(1)
 })
 
 // spec: LOUPE-002.11
