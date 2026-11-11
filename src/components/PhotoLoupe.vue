@@ -170,7 +170,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			@close="emit('close')"
 			@move="emit('move')"
 			@toggleZoom="stage!.toggleZoom()"
-			@toggleFullscreen="hotkeys.fullscreen()"
+			@toggleFullscreen="props.toggleFullscreen(root!)"
 			@update:infoOpen="panels.setInfoOpen"
 			@update:filmstripOpen="filmstripOpen = $event"
 			@update:navigationShown="panels.setNavigationShown"
