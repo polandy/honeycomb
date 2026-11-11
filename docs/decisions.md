@@ -638,3 +638,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   decorate: a rejected tile, and a rejected photo in the filmstrip that leaves the *not
   rejected* scope. The app's tile has no shade; its filmstrip dims at 0.7, which is its own
   `TODO.md` item.
+- 2026-11-11: The loupe budget e2e flake (one `size=2048` request after paging) came from the
+  test, not the prefetch: its *neighbours loaded* counter leaves out the shown picture, whose
+  loupe tier could still land after the test started counting requests. The test now also
+  waits for the stage to swap to that tier, which happens only once the prefetch has decoded
+  it, so production needs no new seam. Holding the first decode reproduces the old failure;
+  a build without neighbour prefetch still fails the test.
