@@ -71,6 +71,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const decisionOf = (picture: Picture<ListingEntry>) => pictureDecision(picture, decisions.value)
 	const view = computed(() => sortPictures(filterPictures(pictures.value, decisionOf, filters.value), sortOrder.value, compareNames, grouped.value))
 	const cullProgress = computed(() => progress(pictures.value, decisionOf))
+	const shownProgress = computed(() => progress(view.value, decisionOf))
 	const activeFilters = computed(() => activeFilterCount(filters.value))
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
 	const candidates = computed(() => seriesCandidates(pictures.value))
@@ -253,6 +254,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		grouped,
 		view,
 		progress: cullProgress,
+		shownProgress,
 		filters,
 		activeFilters,
 		empty,

@@ -22,7 +22,7 @@ how far the cull is; the sort orders the pictures by file name or capture time.
   colour label (nine swatches), flag, pairing (*Pairs*, *JPEG only*, *RAW only*), *Keep RAW*
   (*Marked*, *Not marked*) and, for a cull of several folders, folder. OR within a group, AND
   across groups. *Clear filters* resets every group, the flag filter to its default.
-- **Progress:** "x of y decided" as text and as a bar, over every picture of the cull.
+- **Progress:** "x of y decided" as text and as a bar, over the pictures the filters let through.
 - **Sort:** *File name* or *Capture time* in the ⋯ menu. One folder starts by file name, several
   by capture time. A picture without a capture time sorts by modification time; ties by file
   name, compared numerically on the user's locale. Opening a folder set resets filters and sort.
@@ -78,8 +78,9 @@ how far the cull is; the sort orders the pictures by file name or capture time.
 
 - **Given** a cull
 - **When** the toolbar renders
-- **Then** it shows "x of y decided" over every picture as text and a bar, empty for a cull
-  without photos
+- **Then** it shows "x of y decided" over the pictures that pass the filters (y is the number of
+  pictures the grid shows) as text and a bar, empty when none shows; the progress saved with a
+  recent folder set still counts every picture
 
 ### GRID-002.8 – Default sort and the sort menu
 

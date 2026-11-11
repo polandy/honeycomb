@@ -54,7 +54,7 @@ const viewState = useViewState(props.viewState, props.storage)
 const settingsOpen = ref(false)
 const sidecarFlow = useSidecarFlow(props.sidecars, toast.show)
 const cull = useCull({ warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions }, props.storage, () => settings.value, sidecarFlow.sync)
-const { folderSet, pictures, folderPaths, folders, grouped, view, progress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
+const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
 const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
 const { loupe, close: closeLoupe } = useLoupeOpening((index) => grid.value?.reveal(index))
 const loupeView = useTemplateRef<InstanceType<typeof PhotoLoupe>>('loupeView')
@@ -150,8 +150,8 @@ useHotkeys(() => {
 					:tileSize="tileSize"
 					:groupByFolder="groupByFolder"
 					:flags="filters.flags"
-					:decided="progress.decided"
-					:total="progress.total"
+					:decided="shownProgress.decided"
+					:total="shownProgress.total"
 					:activeFilters="activeFilters"
 					:filtersOpen="filtersOpen"
 					:sortOrder="sortOrder"

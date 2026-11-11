@@ -76,7 +76,7 @@ export function filterPictures<P extends Picture<unknown>>(pictures: readonly P[
 	return pictures.filter((picture) => matchesFilters(picture, decisionOf(picture), filters))
 }
 
-/** The "x of y decided" progress over all pictures of the cull. */
+/** The "x of y decided" progress over the given pictures. */
 export function progress<P>(pictures: readonly P[], decisionOf: (picture: P) => Decision): { decided: number, total: number } {
 	return { decided: pictures.filter((picture) => isDecided(decisionOf(picture))).length, total: pictures.length }
 }
