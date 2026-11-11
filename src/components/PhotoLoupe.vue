@@ -30,6 +30,7 @@ import PanelDivider from './PanelDivider.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
 import { toggleBrowserFullscreen } from '../fullscreen.ts'
 import { LOUPE_IDLE_MS, useIdle } from '../idle.ts'
+import { FILMSTRIP_THUMB } from '../logic/filmstrip.ts'
 import { imageMember, loupeSources } from '../logic/image-tiers.ts'
 import { DIVIDER_WIDTH, FLAG_RAIL, INFO_PANEL } from '../logic/panel-width.ts'
 import { prefetchOrder } from '../logic/prefetch.ts'
@@ -149,7 +150,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 		class="photo-loupe"
 		:data-tips-off="overlays.idle.value || undefined"
 		:class="{ 'photo-loupe--idle': overlays.idle.value, 'photo-loupe--chrome-free': chromeFree, 'photo-loupe--below-header': navigationShown && !chromeFree }"
-		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px`, '--photo-loupe-rail': `${settings.flagButtonsShown ? FLAG_RAIL : 0}px` }"
+		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px`, '--photo-loupe-rail': `${settings.flagButtonsShown ? FLAG_RAIL : 0}px`, '--photo-loupe-strip': `${filmstripOpen && settings.filmstripPinned ? FILMSTRIP_THUMB : 0}px` }"
 		role="dialog"
 		:aria-modal="!navigationShown"
 		:aria-label="t('honeycomb', 'Loupe')"
@@ -215,11 +216,13 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 		</div>
 		<LoupeFilmstrip
 			v-if="filmstripOpen"
-			class="photo-loupe__filmstrip photo-loupe__overlay"
+			class="photo-loupe__filmstrip"
+			:class="settings.filmstripPinned ? 'photo-loupe__filmstrip--pinned' : 'photo-loupe__overlay'"
 			:pictures="props.pictures"
 			:index="props.index"
 			:decisionOf="props.decisionOf"
 			:imageUrl="props.imageUrl"
+			:observeSize="props.observeSize"
 			@pointerdown="overlays.wake"
 			@select="go" />
 		<ActionBar
@@ -228,72 +231,11 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:common="decisions.common.value"
 			:flags="settings.flagButtonsShown"
 			:idle="overlays.idle.value"
+			:pinned="settings.ratingRowPinned"
 			@pointerdown="overlays.wake"
 			@decide="decisions.decide" />
 		<GestureGuide v-if="!gestureGuideSeen" :swipes="settings.swipes" @dismiss="dismissGestureGuide" />
 	</div>
 </template>
 
-<style scoped>
-.photo-loupe {
-	position: fixed;
-	z-index: 10000;
-	inset: 0;
-	display: flex;
-	flex-direction: column;
-	background-color: var(--color-main-background);
-	color: var(--color-main-text);
-}
-
-.photo-loupe--below-header {
-	top: var(--header-height);
-}
-
-.photo-loupe:focus {
-	outline: none;
-}
-
-.photo-loupe__main {
-	position: relative;
-	display: flex;
-	flex: 1;
-	min-height: 0;
-}
-
-.photo-loupe__stage {
-	flex: 1;
-	min-width: 0;
-}
-
-.photo-loupe--chrome-free .photo-loupe__overlay,
-.photo-loupe--chrome-free .photo-loupe__panel {
-	display: none;
-}
-
-@media (orientation: landscape) {
-	.photo-loupe__top,
-	.photo-loupe__filmstrip {
-		position: absolute;
-		z-index: 1;
-		inset-inline: var(--photo-loupe-rail) calc(var(--photo-loupe-panel) + var(--photo-loupe-rail));
-		background-color: color-mix(in srgb, var(--color-main-background) 80%, transparent);
-	}
-
-	.photo-loupe__top {
-		top: 0;
-	}
-
-	.photo-loupe__filmstrip {
-		bottom: var(--photo-loupe-row, 56px);
-	}
-
-	.photo-loupe__overlay {
-		transition: opacity 0.2s;
-	}
-
-	.photo-loupe--idle .photo-loupe__overlay {
-		opacity: 0;
-		pointer-events: none;
-	}
-}
-</style>
+<style scoped src="./photo-loupe.css" />

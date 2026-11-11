@@ -32,6 +32,8 @@ const SWIPES = [
 const SWITCHES = [
 	{ key: 'autoAdvance', label: t('honeycomb', 'Auto-advance to the next undecided photo'), description: t('honeycomb', 'After pick or reject, not after rating or colour label') },
 	{ key: 'flagButtonsShown', label: t('honeycomb', 'Show flag buttons'), description: t('honeycomb', 'Pick, Reject and Unflag in the loupe and the series viewer. Hidden, the photo gets their room; keys, swipes and tooltips keep working, and the flag in the title row shows them again.') },
+	{ key: 'filmstripPinned', label: t('honeycomb', 'Pin the filmstrip'), description: t('honeycomb', 'Always shown below the photo instead of over it, also when the other controls fade') },
+	{ key: 'ratingRowPinned', label: t('honeycomb', 'Pin the rating row'), description: t('honeycomb', 'Stars, colour labels and Keep RAW always shown below the photo instead of over it') },
 ] as const
 
 /** Sets what the swipe in `direction` does; an empty value is Nothing. */
