@@ -1,19 +1,20 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
+import type { Flag } from '../../../src/logic/decision.ts'
 import type { FolderSet } from '../../../src/logic/folder-set.ts'
-import type { Scope } from '../../../src/logic/picture-filter.ts'
 import type { SortOrder } from '../../../src/logic/picture-order.ts'
 
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import FlagFilter from '../../../src/components/FlagFilter.vue'
 import GridToolbar from '../../../src/components/GridToolbar.vue'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { PopoverStub } from './stubs.ts'
 
 const MARK = TRANSLATED_MARK
 
-const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number, series: number, rawRemovable: number, sidecarsShared: boolean, movable: number, resumeName: string | null } = {
+const CULL: { flags: ReadonlySet<Flag>, decided: number, total: number, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number, series: number, rawRemovable: number, sidecarsShared: boolean, movable: number, resumeName: string | null } = {
 	movable: 0,
 	resumeName: null,
 	selecting: false,
@@ -22,8 +23,7 @@ const CULL: { scope: Scope, scopeLocked: boolean, decided: number, total: number
 	rawRemovable: 0,
 	sidecarsShared: false,
 	selected: 0,
-	scope: 'not-rejected',
-	scopeLocked: false,
+	flags: new Set(['picked', 'unflagged']),
 	decided: 1840,
 	total: 2000,
 	activeFilters: 0,
@@ -177,27 +177,14 @@ describe('GridToolbar', () => {
 		expect(wrapper.emitted('update:groupByFolder')).toEqual([[true]])
 	})
 
-	it('shows the scope pressed and switches it', async () => {
-		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { scope: 'undecided' })
-		const scope = (name: string) => wrapper.find(`.scope-progress__scope [aria-label="${MARK}${name}"]`)
-
-		expect(scope('Not rejected').attributes('aria-pressed')).toBe('false')
-		expect(scope('Undecided').attributes('aria-pressed')).toBe('true')
-		await scope('All').trigger('click')
-		await scope('Not rejected').trigger('click')
-
-		expect(wrapper.emitted('update:scope')).toEqual([['all'], ['not-rejected']])
-		expect(wrapper.text()).not.toContain('The flag filter overrides this')
-	})
-
 	// spec: GRID-002.2
-	it('disables the scope while a flag filter overrides it and says why', () => {
-		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { scopeLocked: true })
-		const buttons = wrapper.findAll('.scope-progress__scope button')
+	it('passes the flag filter on and forwards its changes', async () => {
+		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { flags: new Set(['rejected']) })
 
-		expect(buttons).toHaveLength(3)
-		expect(buttons.every((button) => button.attributes('disabled') !== undefined)).toBe(true)
-		expect(wrapper.text()).toContain(`${MARK}The flag filter overrides this`)
+		expect(wrapper.findComponent(FlagFilter).props('flags')).toEqual(new Set(['rejected']))
+		await wrapper.find(`.flag-filter [aria-label="${MARK}Picked"]`).trigger('click')
+
+		expect(wrapper.emitted('update:flags')).toEqual([[new Set(['rejected', 'picked'])]])
 	})
 
 	// spec: GRID-002.7
@@ -207,14 +194,14 @@ describe('GridToolbar', () => {
 
 		expect(wrapper.text()).toContain(`${MARK}1,840 / 2,000 decided`)
 		expect(bar.attributes()).toMatchObject({ 'aria-label': `${MARK}Decided`, 'aria-valuemin': '0', 'aria-valuemax': '2000', 'aria-valuenow': '1840' })
-		expect(bar.find('.scope-progress__done').attributes('style')).toContain('width: 92%')
+		expect(bar.find('.cull-progress__done').attributes('style')).toContain('width: 92%')
 	})
 
 	// spec: GRID-002.7
 	it('shows an empty progress bar for a cull without photos', () => {
 		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { decided: 0, total: 0 })
 
-		expect(wrapper.find('.scope-progress__done').attributes('style')).toContain('width: 0%')
+		expect(wrapper.find('.cull-progress__done').attributes('style')).toContain('width: 0%')
 	})
 
 	// spec: GRID-002.6

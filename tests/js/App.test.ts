@@ -55,7 +55,7 @@ describe('App', () => {
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
 		expect(grid.props('folderSet')).toEqual(SET)
 		expect(warmed).toEqual([[1, 4, 2]])
-		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ folderSet: SET, folders: 2, sortOrder: 'capture-time', scope: 'not-rejected' })
+		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ folderSet: SET, folders: 2, sortOrder: 'capture-time', flags: new Set(['picked', 'unflagged']) })
 	})
 
 	// spec: IMAGES-001.11

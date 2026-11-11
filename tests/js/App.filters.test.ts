@@ -16,7 +16,7 @@ import { listingEntry } from './logic/listing-entries.ts'
 
 const MARK = TRANSLATED_MARK
 
-describe('App: decisions, scope, filters and sort', () => {
+describe('App: decisions, flag filter, filters and sort', () => {
 	beforeEach(installMarkedCatalogue)
 	afterEach(() => {
 		uninstallMarkedCatalogue()
@@ -41,16 +41,16 @@ describe('App: decisions, scope, filters and sort', () => {
 	})
 
 	// spec: GRID-002.1
-	it('looks up the decisions of every member and hides rejected photos until the scope is All', async () => {
+	it('looks up the decisions of every member and hides rejected photos until the Rejected chip is pressed', async () => {
 		const { wrapper, lookedUp } = mountApp({}, [stored(3, 'rejected'), stored(1, 'picked')])
 
 		await openCull(wrapper)
 
 		expect(lookedUp.map((ids) => [...ids].sort((a, b) => a - b))).toEqual([[1, 2, 3, 4]])
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9'])
-		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ decided: 2, total: 3, scopeLocked: false })
+		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ decided: 2, total: 3 })
 
-		wrapper.findComponent(GridToolbar).vm.$emit('update:scope', 'all')
+		wrapper.findComponent(GridToolbar).vm.$emit('update:flags', new Set())
 		await flushPromises()
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
 	})
@@ -102,7 +102,7 @@ describe('App: decisions, scope, filters and sort', () => {
 	})
 
 	// spec: GRID-002.2
-	it('locks the scope while a flag filter is active', async () => {
+	it('shows the toolbar chips and the filter bar group as one flag filter', async () => {
 		const { wrapper } = mountApp()
 		await openCull(wrapper)
 		wrapper.findComponent(GridToolbar).vm.$emit('update:filtersOpen', true)
@@ -110,21 +110,24 @@ describe('App: decisions, scope, filters and sort', () => {
 
 		wrapper.findComponent(FilterBar).vm.$emit('update:filters', { ...DEFAULT_FILTERS, flags: new Set(['unflagged']) })
 		await flushPromises()
+		expect(wrapper.findComponent(GridToolbar).props('flags')).toEqual(new Set(['unflagged']))
 
-		expect(wrapper.findComponent(GridToolbar).props('scopeLocked')).toBe(true)
+		wrapper.findComponent(GridToolbar).vm.$emit('update:flags', new Set(['picked', 'rejected']))
+		await flushPromises()
+		expect(wrapper.findComponent(FilterBar).props('filters').flags).toEqual(new Set(['picked', 'rejected']))
 	})
 
 	// spec: GRID-002.10
 	it('resets the filters and the sort on opening a folder set', async () => {
 		const { wrapper } = mountApp()
 		await openCull(wrapper)
-		wrapper.findComponent(GridToolbar).vm.$emit('update:scope', 'undecided')
+		wrapper.findComponent(GridToolbar).vm.$emit('update:flags', new Set(['rejected']))
 		wrapper.findComponent(GridToolbar).vm.$emit('update:sortOrder', 'file-name')
 		await flushPromises()
 
 		await openCull(wrapper)
 
-		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ scope: 'not-rejected', sortOrder: 'capture-time' })
+		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ flags: new Set(['picked', 'unflagged']), sortOrder: 'capture-time' })
 	})
 
 	// spec: GRID-002.11
@@ -137,38 +140,32 @@ describe('App: decisions, scope, filters and sort', () => {
 		expect(wrapper.text()).toContain(`${MARK}No photos in these folders`)
 	})
 
-	it.each([
-		['not-rejected', 'rejected', 'No photos left to cull'],
-		['undecided', 'picked', 'Every photo is decided'],
 	// spec: GRID-002.11
-	] as const)('says when the scope %s leaves nothing and shows all on request', async (scope, flag, name) => {
-		const { wrapper } = mountApp({}, ENTRIES.map((entry) => stored(entry.fileId, flag)))
+	it('says when the default flag filter leaves nothing and shows all on request', async () => {
+		const { wrapper } = mountApp({}, ENTRIES.map((entry) => stored(entry.fileId, 'rejected')))
 		await openCull(wrapper)
-		wrapper.findComponent(GridToolbar).vm.$emit('update:scope', scope)
-		await flushPromises()
 
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
-		expect(wrapper.text()).toContain(`${MARK}${name}`)
+		expect(wrapper.text()).toContain(`${MARK}No photos left to cull`)
 		await wrapper.findAll('button').find((button) => button.text() === `${MARK}Show all`)!.trigger('click')
 
 		expect(shownNames(wrapper)).toHaveLength(3)
-		expect(wrapper.findComponent(GridToolbar).props('scope')).toBe('all')
+		expect(wrapper.findComponent(GridToolbar).props('flags')).toEqual(new Set())
 	})
 
 	// spec: GRID-002.11
-	it('says when nothing matches the filters and clears them, keeping the scope', async () => {
+	it('says when nothing matches the filters and clears them, the flag filter to its default', async () => {
 		const { wrapper } = mountApp()
 		await openCull(wrapper)
-		wrapper.findComponent(GridToolbar).vm.$emit('update:scope', 'undecided')
 		wrapper.findComponent(GridToolbar).vm.$emit('update:filtersOpen', true)
 		await flushPromises()
-		wrapper.findComponent(FilterBar).vm.$emit('update:filters', { ...DEFAULT_FILTERS, scope: 'undecided', rating: 5 })
+		wrapper.findComponent(FilterBar).vm.$emit('update:filters', { ...DEFAULT_FILTERS, flags: new Set(['rejected']), rating: 5 })
 		await flushPromises()
 
 		expect(wrapper.text()).toContain(`${MARK}Nothing matches these filters`)
 		await wrapper.findAll('button').find((button) => button.text() === `${MARK}Clear filters`)!.trigger('click')
 
 		expect(shownNames(wrapper)).toHaveLength(3)
-		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ scope: 'undecided', activeFilters: 0 })
+		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ flags: new Set(['picked', 'unflagged']), activeFilters: 0 })
 	})
 })
