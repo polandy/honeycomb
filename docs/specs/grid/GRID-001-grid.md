@@ -33,6 +33,8 @@ a glance, at any size, without waiting for a sharp image of every tile.
   the top while its tiles scroll.
 - A click, Enter or Space on a tile outside selection mode opens the loupe on it.
 - Above 20,000 pictures the grid shows the first 20,000 by capture time.
+- The toolbar's count badges (*Filters*, *Select*, *Review rejects*, *Compare series*) are
+  neutral; a badge takes the primary colour only while its button is pressed.
 
 ## Acceptance criteria
 
@@ -122,6 +124,13 @@ a glance, at any size, without waiting for a sharp image of every tile.
 - **Then** skeleton tiles take the place of the grid and a status says *Loading photos…*, until
   the cull opens or the listing fails
 
+### GRID-001.14 – Count badges are neutral until pressed
+
+- **Given** a toolbar button with a count badge
+- **When** the button is not pressed
+- **Then** its badge is neutral, and it takes the primary colour while the button is pressed
+  (*Filters* while the filter bar is open, *Select* in selection mode)
+
 ## Out of scope
 
 Pairing (LISTING-002), the folder picker and its over-the-cap notice (LISTING-003), filters and
@@ -133,3 +142,4 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged M2.3 (#41) |
+| 2026-11-11 | GRID-001.14: neutral toolbar count badges, primary only while pressed (UX review L7) |

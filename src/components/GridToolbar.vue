@@ -121,7 +121,13 @@ const setName = computed(() => {
 			<template #icon>
 				<AppIcon name="filter" />
 			</template>
-			<span v-if="props.activeFilters > 0" class="grid-toolbar__badge" aria-hidden="true">{{ formatNumber(props.activeFilters) }}</span>
+			<span
+				v-if="props.activeFilters > 0"
+				class="grid-toolbar__badge"
+				:class="{ 'grid-toolbar__badge--pressed': props.filtersOpen }"
+				aria-hidden="true">
+				{{ formatNumber(props.activeFilters) }}
+			</span>
 		</NcButton>
 		<NcButton
 			variant="tertiary"
@@ -132,7 +138,7 @@ const setName = computed(() => {
 			<template #icon>
 				<AppIcon name="select" />
 			</template>
-			<span v-if="props.selecting && props.selected > 0" class="grid-toolbar__badge" aria-hidden="true">{{ formatNumber(props.selected) }}</span>
+			<span v-if="props.selecting && props.selected > 0" class="grid-toolbar__badge grid-toolbar__badge--pressed" aria-hidden="true">{{ formatNumber(props.selected) }}</span>
 		</NcButton>
 		<NcButton
 			variant="tertiary"
@@ -241,12 +247,17 @@ const setName = computed(() => {
 	min-width: 18px;
 	padding: 0 4px;
 	border-radius: 9px;
-	background: var(--color-primary-element);
-	color: var(--color-primary-element-text);
+	background: var(--color-background-darker);
+	color: var(--color-main-text);
 	font-size: 12px;
 	font-weight: bold;
 	line-height: 18px;
 	text-align: center;
+}
+
+.grid-toolbar__badge--pressed {
+	background: var(--color-primary-element);
+	color: var(--color-primary-element-text);
 }
 
 .grid-toolbar__selection {

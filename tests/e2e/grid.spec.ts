@@ -125,3 +125,32 @@ test('rates and rejects selected photos and keeps the decisions over a reload', 
 	await expect(again.getByRole('gridcell', { name: 'IMG_0001, JPG+NEF, 3 stars, Keep RAW' })).toBeVisible()
 	await expect(again.getByRole('gridcell')).toHaveCount(1)
 })
+
+// spec: GRID-001.14
+test('colours a toolbar count badge only while its button is pressed', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = uniqueFolder('Badges')
+	await createFolder(page, folder)
+	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+	await upload(page, `${folder}/IMG_0002.jpg`, JPEG)
+	const picker = await openPicker(page)
+	await picker.getByRole('option', { name: folder }).click()
+	await picker.getByRole('button', { name: `Cull ${folder}` }).click()
+	const grid = page.getByRole('grid', { name: 'Photos' })
+	const background = (label: string) => page.locator(`button[aria-label^="${label}"] .grid-toolbar__badge`)
+		.evaluate((badge) => getComputedStyle(badge).backgroundColor)
+
+	await page.getByRole('button', { name: 'Select', exact: true }).click()
+	await grid.getByRole('gridcell', { name: /^IMG_0001/ }).click()
+	await page.getByRole('button', { name: 'Reject', exact: true }).click()
+	await grid.getByRole('gridcell', { name: /^IMG_0002/ }).click()
+	await expect(page.getByText('1 selected')).toBeVisible()
+	const primary = await page.evaluate(() => {
+		const probe = document.body.appendChild(document.createElement('div'))
+		probe.style.background = 'var(--color-primary-element)'
+		return getComputedStyle(probe).backgroundColor
+	})
+
+	expect(await background('Select')).toBe(primary)
+	expect(await background('Review rejects')).not.toBe(primary)
+})
