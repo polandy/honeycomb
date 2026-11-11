@@ -66,7 +66,7 @@ final class ImageControllerTest extends TestCase {
 
 	private function previewOf(string $mime): IPreview {
 		$rendered = $this->createStub(ISimpleFile::class);
-		$rendered->method('getName')->willReturn('512-512.jpg');
+		$rendered->method('getName')->willReturn('1024-1024.jpg');
 		$rendered->method('getMimeType')->willReturn($mime);
 		$rendered->method('getMTime')->willReturn(self::MTIME + 60);
 		$rendered->method('getEtag')->willReturn('preview-etag');
@@ -83,10 +83,10 @@ final class ImageControllerTest extends TestCase {
 
 	// spec: IMAGES-001.1
 	public function testServesATierUnderAnImmutableUrl(): void {
-		$response = $this->controller([7 => $this->image()], $this->previewOf('image/webp'))->show(7, 512, self::MTIME);
+		$response = $this->controller([7 => $this->image()], $this->previewOf('image/webp'))->show(7, 1024, self::MTIME);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame('7-' . self::MTIME . '-512', $response->getETag());
+		$this->assertSame('7-' . self::MTIME . '-1024', $response->getETag());
 		$headers = $this->headersOf($response);
 		$this->assertSame('private, max-age=31536000, immutable', $headers['Cache-Control']);
 		$this->assertSame('image/webp', $headers['Content-Type']);
@@ -106,23 +106,23 @@ final class ImageControllerTest extends TestCase {
 		$preview = $this->createMock(IPreview::class);
 		$preview->expects($this->never())->method('getPreview');
 
-		$response = $this->controller([7 => $this->image()], $preview, ifNoneMatch: '"7-' . self::MTIME . '-2048"')->show(7, 2048, self::MTIME);
+		$response = $this->controller([7 => $this->image()], $preview, ifNoneMatch: '"7-' . self::MTIME . '-4096"')->show(7, 4096, self::MTIME);
 
 		$this->assertSame(Http::STATUS_NOT_MODIFIED, $response->getStatus());
-		$this->assertSame('7-' . self::MTIME . '-2048', $response->getETag());
+		$this->assertSame('7-' . self::MTIME . '-4096', $response->getETag());
 		$this->assertSame('private, max-age=31536000, immutable', $this->headersOf($response)['Cache-Control']);
 	}
 
 	// spec: IMAGES-001.3
 	public function testAnOutdatedETagGetsTheImage(): void {
-		$response = $this->controller([7 => $this->image()], ifNoneMatch: '"7-' . (self::MTIME - 1) . '-512"')->show(7, 512, self::MTIME);
+		$response = $this->controller([7 => $this->image()], ifNoneMatch: '"7-' . (self::MTIME - 1) . '-1024"')->show(7, 1024, self::MTIME);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
 	/** @return array<string, array{int}> */
 	public static function sizesThatAreNoTier(): array {
-		return ['between tiers' => [300], 'above the largest' => [4096], 'negative' => [-256]];
+		return ['between tiers' => [300], 'above the largest' => [16384], 'an old tier' => [512], 'negative' => [-256]];
 	}
 
 	// spec: IMAGES-001.5
@@ -150,12 +150,12 @@ final class ImageControllerTest extends TestCase {
 
 	// spec: IMAGES-001.8
 	public function testAMissingImageIsNotFound(): void {
-		$this->assertSame(Http::STATUS_NOT_FOUND, $this->controller([])->show(7, 512, self::MTIME)->getStatus());
+		$this->assertSame(Http::STATUS_NOT_FOUND, $this->controller([])->show(7, 1024, self::MTIME)->getStatus());
 	}
 
 	// spec: IMAGES-001.8
 	public function testAnUnreadableImageIsForbidden(): void {
-		$this->assertSame(Http::STATUS_FORBIDDEN, $this->controller([7 => $this->image(false)])->show(7, 512, self::MTIME)->getStatus());
+		$this->assertSame(Http::STATUS_FORBIDDEN, $this->controller([7 => $this->image(false)])->show(7, 1024, self::MTIME)->getStatus());
 	}
 
 	// spec: IMAGES-001.7
@@ -163,12 +163,12 @@ final class ImageControllerTest extends TestCase {
 		$preview = $this->createStub(IPreview::class);
 		$preview->method('getPreview')->willThrowException(new NotFoundException());
 
-		$this->assertSame(Http::STATUS_NOT_FOUND, $this->controller([7 => $this->image()], $preview)->show(7, 512, self::MTIME)->getStatus());
+		$this->assertSame(Http::STATUS_NOT_FOUND, $this->controller([7 => $this->image()], $preview)->show(7, 1024, self::MTIME)->getStatus());
 	}
 
 	// spec: IMAGES-001.8
 	public function testWithoutAUserNoImageIsServed(): void {
-		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller([7 => $this->image()], loggedIn: false)->show(7, 512, self::MTIME)->getStatus());
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller([7 => $this->image()], loggedIn: false)->show(7, 1024, self::MTIME)->getStatus());
 	}
 
 	// spec: IMAGES-001.10

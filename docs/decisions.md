@@ -690,3 +690,16 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   stage, because the loupe is the culling stage and `F` already fullscreens its root. Toasts and
   dialogs mount outside that root, so they do not show in fullscreen; left as is, owner asked for
   no other change.
+- 2026-11-11: The grid keeps six image loads in flight (owner asked for 6–8): core renders four
+  previews at a time, so six keeps it busy with two finishing transfer, and stays below what
+  exhausted nc-test's database connections. Order: visible small, visible sharp, nearby small,
+  nearby sharp; a visible tile's sharp image is worth more than an offscreen one's small.
+- 2026-11-11: The loupe's tier is core's largest preview, 4096 px, not 1024 px, by measurement on
+  the e2e Nextcloud (24 MP JPEG): the first request of any size renders the 4096 px preview first
+  (1.0–1.2 s), after which 4096 is served in 0.1 s and 1024 in 0.1–0.27 s; 4096 weighs about
+  1.2 MB against 76 kB. A 1024 px image would be scaled up two- to threefold on an iPad's loupe
+  (2316–2752 px), too soft to judge focus, and the loupe loads one image and its neighbours, not
+  the grid's dozens.
+- 2026-11-11: The grid's tile queue takes a settle callback, not a promise, so a tile's sharp
+  load is queued before the queue starts the next waiting one; PhotoGrid's styles moved to
+  `photo-grid.css` to keep the component under 300 lines.

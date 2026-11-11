@@ -36,7 +36,7 @@ describe('PhotoLoupe', () => {
 		expect(root.attributes('aria-modal')).toBe('true')
 		expect(document.activeElement).toBe(root.element)
 		expect(wrapper.find('h2').text()).toBe('IMG_5')
-		expect(decoded).toEqual([5, 6, 4, 7, 3, 8].map((id) => `/img/${id}/2048`))
+		expect(decoded).toEqual([5, 6, 4, 7, 3, 8].map((id) => `/img/${id}/4096`))
 	})
 
 	// spec: LOUPE-001.3

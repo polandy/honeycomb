@@ -15,9 +15,12 @@ a glance, at any size, without waiting for a sharp image of every tile.
 
 - The grid is virtual: only the rows near the viewport exist, so 20,000 pictures scroll as
   smoothly as 20. A new cull starts at the top.
-- A tile shows the image member's 256 px preview first and swaps in the sharp tier (256 or
-  512 px by tile size × device pixel ratio) once it has decoded; a failed decode keeps the small
-  one.
+- A tile shows the image member's 256 px preview once it has arrived, then requests the sharp
+  tier (1024 px, when tile size × device pixel ratio exceeds 256) and swaps it in once it has
+  decoded; a failed decode keeps the small one.
+- The grid loads at most six images at a time: the tiles in the viewport first, then the ones
+  around it, each tile's small preview before its sharp one. A tile that leaves the rendered rows
+  drops its waiting load.
 - Until its small preview has loaded, a tile is a skeleton tile: its empty face pulses (still with
   reduced motion); a preview that fails to load stops the pulse.
 - While a folder set from *Recent* is listed, skeleton tiles fill the content area and a status
@@ -49,8 +52,9 @@ a glance, at any size, without waiting for a sharp image of every tile.
 
 - **Given** a tile
 - **When** it appears
-- **Then** it shows the small preview of its image member, and the sharp tier replaces it only
-  after the sharp image decoded; no sharp image is loaded while the small one is sharp enough
+- **Then** it shows the small preview of its image member once it arrived, requests the sharp
+  tier only then, and the sharp tier replaces it only after it decoded; no sharp image is loaded
+  while the small one is sharp enough
 
 ### GRID-001.3 – A failed sharp image keeps the small one
 
@@ -131,6 +135,14 @@ a glance, at any size, without waiting for a sharp image of every tile.
 - **Then** its badge is neutral, and it takes the primary colour while the button is pressed
   (*Filters* while the filter bar is open, *Select* in selection mode)
 
+### GRID-001.15 – A few image loads at a time, visible tiles first
+
+- **Given** a grid whose rendered tiles need more images than the limit of six
+- **When** the tiles load their images
+- **Then** at most six loads are in flight; the next to start is a tile in the viewport before
+  one around it, a small preview before a sharp one, then the oldest request; a tile that scrolls
+  into view moves its waiting load forward, and an unmounted tile's waiting load never starts
+
 ## Out of scope
 
 Pairing (LISTING-002), the folder picker and its over-the-cap notice (LISTING-003), filters and
@@ -143,3 +155,4 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 |---|---|
 | 2026-11-10 | Written from the merged M2.3 (#41) |
 | 2026-11-11 | GRID-001.14: neutral toolbar count badges, primary only while pressed (UX review L7) |
+| 2026-11-11 | GRID-001.15: at most six image loads, visible tiles first; sharp tier 1024 after the small one (owner, nc-test analysis) |

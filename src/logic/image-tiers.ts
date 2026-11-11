@@ -3,11 +3,14 @@
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 
-/** The preview tiers of the grid's tiles, smallest first (ADR 0010). */
-export const GRID_TIERS = [256, 512] as const
+/** The preview tiers of the grid's tiles, smallest first, at core's preview sizes (ADR 0010). */
+export const GRID_TIERS = [256, 1024] as const
 
-/** The preview tier of the loupe (ADR 0010). */
-export const LOUPE_TIER = 2048
+/** The preview tier of the loupe, core's largest preview (ADR 0010). */
+export const LOUPE_TIER = 4096
+
+/** How many grid images load at once; core renders four previews at a time (GRID-001.15). */
+export const IMAGE_LOADS_IN_FLIGHT = 6
 
 /** The tier of the full image, the loupe's 100 % zoom (ADR 0010). */
 const FULL_TIER = 0
@@ -28,9 +31,19 @@ export function gridSrcset(member: ListingEntry, urlFor: ImageUrlFor): string {
 	return GRID_TIERS.map((tier) => `${urlFor(member.fileId, tier, member.mtime)} ${tier}w`).join(', ')
 }
 
+/** The URL of a tier of the member. */
+export function tierSource(member: ListingEntry, tier: number, urlFor: ImageUrlFor): string {
+	return urlFor(member.fileId, tier, member.mtime)
+}
+
 /** The URL of the smallest grid tier, which a tile loads first. */
 export function smallSource(member: ListingEntry, urlFor: ImageUrlFor): string {
-	return urlFor(member.fileId, GRID_TIERS[0], member.mtime)
+	return tierSource(member, GRID_TIERS[0], urlFor)
+}
+
+/** The queue priority of a tile's load: visible tiles first, each small tier before its sharp one. */
+export function loadPriority(visible: boolean, sharp: boolean): number {
+	return (visible ? 0 : 2) + (sharp ? 1 : 0)
 }
 
 /** The smallest grid tier at least as large as the tile's device pixels, else the largest. */
