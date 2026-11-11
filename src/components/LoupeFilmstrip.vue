@@ -72,12 +72,10 @@ const shown = computed(() => {
 	border: 2px solid transparent;
 	border-radius: var(--border-radius-small, 4px);
 	background: none;
-	opacity: 0.7;
 }
 
 .loupe-filmstrip__photo--current {
 	border-color: var(--color-primary-element);
-	opacity: 1;
 }
 
 .loupe-filmstrip__photo img {
