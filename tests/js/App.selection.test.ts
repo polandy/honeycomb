@@ -78,7 +78,7 @@ describe('App: selection mode and bulk decisions', () => {
 
 		expect(shownNames(wrapper)).toEqual(['IMG_2'])
 		expect(selectedIds(wrapper)).toEqual([])
-		expect(wrapper.findComponent(GridToolbar).props('decided')).toBe(2)
+		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ decided: 0, total: 1 })
 	})
 
 	// spec: GRID-003.9
