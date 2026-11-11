@@ -55,6 +55,19 @@ test('opens a photo in the loupe, pages by key and closes back to the grid', asy
 	await expect(page.getByRole('gridcell', { name: 'IMG_0002, JPG only' })).toBeFocused()
 })
 
+// spec: LOUPE-001.13
+test('shows every filmstrip photo at full opacity and marks the shown one by its border', async ({ page }) => {
+	const loupe = await openLoupe(page)
+	const filmstrip = loupe.getByRole('navigation', { name: 'Filmstrip' })
+	const shown = filmstrip.getByRole('button', { name: 'IMG_0001' })
+	const other = filmstrip.getByRole('button', { name: 'IMG_0002' })
+
+	await expect(shown).toHaveCSS('opacity', '1')
+	await expect(other).toHaveCSS('opacity', '1')
+	await expect(other).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)')
+	await expect(shown).not.toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)')
+})
+
 // spec: LOUPE-002.11
 test('puts Pick and Reject at the side edges in landscape and in a row below the photo in portrait', async ({ page }) => {
 	const loupe = await openLoupe(page)

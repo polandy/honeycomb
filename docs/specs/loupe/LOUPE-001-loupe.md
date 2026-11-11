@@ -130,7 +130,8 @@ dismissed are kept per user on the server (LOUPE-003).
   presses the filmstrip toggle
 - **Then** the info panel opens beside the photo with the file facts, decision and loaded
   neighbours, at the dragged width within its limits; open state and width are kept for the
-  next visit; the filmstrip shows eight pictures on each side or hides
+  next visit; the filmstrip shows eight pictures on each side, all at full opacity with the
+  shown one marked by its border, or hides
 
 ### LOUPE-001.14 – Nextcloud navigation
 
