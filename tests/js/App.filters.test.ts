@@ -40,7 +40,7 @@ describe('App: decisions, flag filter, filters and sort', () => {
 		expect(shownNames(wrapper)).toEqual(['IMG_10', 'IMG_9', 'IMG_2'])
 	})
 
-	// spec: GRID-002.1
+	// spec: GRID-002.1, GRID-002.7
 	it('looks up the decisions of every member and hides rejected photos until the Rejected chip is pressed', async () => {
 		const { wrapper, lookedUp } = mountApp({}, [stored(3, 'rejected'), stored(1, 'picked')])
 
@@ -48,11 +48,12 @@ describe('App: decisions, flag filter, filters and sort', () => {
 
 		expect(lookedUp.map((ids) => [...ids].sort((a, b) => a - b))).toEqual([[1, 2, 3, 4]])
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9'])
-		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ decided: 2, total: 3 })
+		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ decided: 1, total: 2 })
 
 		wrapper.findComponent(GridToolbar).vm.$emit('update:flags', new Set())
 		await flushPromises()
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
+		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ decided: 2, total: 3 })
 	})
 
 	// spec: DECISIONS-001.9

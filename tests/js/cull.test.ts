@@ -286,4 +286,12 @@ describe('useCull: settings', () => {
 
 		expect(cull.pictures.value).toEqual([expect.objectContaining({ folder: '/Trip/A', raw: expect.objectContaining({ fileId: 5 }) })])
 	})
+
+	// spec: GRID-002.7
+	it('counts the progress shown over the filtered pictures and the saved progress over all', async () => {
+		const { cull } = await openedCull([stored(1, 'rejected'), stored(4, 'picked')])
+
+		expect(cull.shownProgress.value).toEqual({ decided: 1, total: cull.view.value.length })
+		expect(cull.progress.value.total).toBeGreaterThan(cull.shownProgress.value.total)
+	})
 })
