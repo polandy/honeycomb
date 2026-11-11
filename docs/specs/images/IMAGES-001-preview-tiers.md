@@ -27,8 +27,9 @@ preview). Another or a missing size is `400`.
 | An image the user may not read | `403` |
 | No user | `401` |
 
-A picture shows its rendered member, else its RAW. For a RAW (`image/x-dcraw`) honeycomb's
-preview provider takes the largest complete JPEG embedded in the file.
+A picture shows its rendered member, else its RAW. For a RAW (`image/x-dcraw`, or a `.cr3` or
+`.srw` file that Nextcloud types `application/octet-stream`) honeycomb's preview provider takes
+the largest complete JPEG embedded in the file.
 
 `POST /apps/honeycomb/api/v1/previews` with `{"fileIds": [...]}` (at most 60,000 integers),
 with the CSRF token, queues background jobs of at most 200 files that render all three tiers and
@@ -115,6 +116,12 @@ a failed request is logged and the grid stays.
 - **When** the grid shows
 - **Then** the first sharp image shows within 500 ms
 
+### IMAGES-001.13 – RAW files Nextcloud does not type are served
+
+- **Given** a `.CR3` or `.SRW` file typed `application/octet-stream`, and another file of that type
+- **When** a tier of each is requested
+- **Then** the RAW is served by its embedded JPEG like any RAW; the other file is `404`
+
 ## Out of scope
 
 - Which tier a tile or the loupe loads, and prefetch: GRID-001, LOUPE-001.
@@ -124,3 +131,4 @@ a failed request is logged and the grid stays.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged code of #40 (ADR 0015) |
+| 2026-11-11 | `.cr3` and `.srw` files are served and previewed by name (`TODO.md`, owner 2026-11-10) |

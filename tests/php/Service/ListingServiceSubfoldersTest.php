@@ -69,6 +69,19 @@ final class ListingServiceSubfoldersTest extends TestCase {
 		);
 	}
 
+	// spec: LISTING-001.13
+	public function testListsTheRawFilesNextcloudDoesNotTypeBelowByName(): void {
+		$photos = $this->photosWith([
+			$this->file(1, '/Photos/2024/IMG_0001.CR3', 'application/octet-stream'),
+			$this->file(2, '/Photos/2024/SAM_0002.SRW', 'application/octet-stream'),
+			$this->file(3, '/Photos/2024/backup.bin', 'application/octet-stream'),
+		]);
+
+		$listing = $this->service($this->rootWith(['/Photos' => $photos]))->list($this->user(), 'Photos', true);
+
+		$this->assertSame([1, 2], array_column($this->entriesOf($listing), 'fileId'));
+	}
+
 	// spec: LISTING-001.5
 	public function testSkipsHiddenFoldersAndFilesBelowThePickedFolder(): void {
 		$photos = $this->photosWith([

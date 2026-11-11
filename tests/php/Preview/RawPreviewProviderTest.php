@@ -35,22 +35,37 @@ final class RawPreviewProviderTest extends TestCase {
 		return $file;
 	}
 
+	private function fileInfo(string $name, string $mime, int $size): FileInfo {
+		$file = $this->createStub(FileInfo::class);
+		$file->method('getName')->willReturn($name);
+		$file->method('getMimetype')->willReturn($mime);
+		$file->method('getSize')->willReturn($size);
+		return $file;
+	}
+
 	// spec: IMAGES-001.6
 	public function testClaimsTheRawMimeType(): void {
 		$this->assertSame(1, preg_match(RawPreviewProvider::MIME_TYPE_REGEX, 'image/x-dcraw'));
 		$this->assertSame(0, preg_match(RawPreviewProvider::MIME_TYPE_REGEX, 'image/jpeg'));
+		// spec: IMAGES-001.13
+		$this->assertSame(1, preg_match(RawPreviewProvider::MIME_TYPE_REGEX, 'application/octet-stream'));
 		$this->assertSame(RawPreviewProvider::MIME_TYPE_REGEX, $this->provider(null)->getMimeType());
 	}
 
 	// spec: IMAGES-001.6
 	public function testIsAvailableForAFileWithContent(): void {
-		$empty = $this->createStub(FileInfo::class);
-		$empty->method('getSize')->willReturn(0);
-		$raw = $this->createStub(FileInfo::class);
-		$raw->method('getSize')->willReturn(25_000_000);
+		$empty = $this->fileInfo('IMG_0001.NEF', 'image/x-dcraw', 0);
+		$raw = $this->fileInfo('IMG_0001.NEF', 'image/x-dcraw', 25_000_000);
 
 		$this->assertTrue($this->provider(null)->isAvailable($raw));
 		$this->assertFalse($this->provider(null)->isAvailable($empty));
+	}
+
+	// spec: IMAGES-001.13
+	public function testIsAvailableForARawFileNextcloudDoesNotTypeByName(): void {
+		$this->assertTrue($this->provider(null)->isAvailable($this->fileInfo('IMG_0001.CR3', 'application/octet-stream', 25_000_000)));
+		$this->assertTrue($this->provider(null)->isAvailable($this->fileInfo('SAM_0001.srw', 'application/octet-stream', 25_000_000)));
+		$this->assertFalse($this->provider(null)->isAvailable($this->fileInfo('backup.bin', 'application/octet-stream', 25_000_000)));
 	}
 
 	// spec: IMAGES-001.6

@@ -23,7 +23,8 @@ federated user has access to it or to a folder above it, when it or a folder abo
 by public link or by mail, when it lies in a group folder, or when it lies on external storage
 mounted for another user too (ADR 0017).
 
-Listed are files whose mime type is `image/*` or whose name ends in `.xmp`. Without `subfolders`
+Listed are files whose mime type is `image/*` or whose name ends in `.xmp`, `.cr3` or `.srw`
+(case-insensitive): Nextcloud types Canon and Samsung RAW files `application/octet-stream`. Without `subfolders`
 only the folder's own files; with it every folder below, through every mount inside, except
 hidden folders and files (a segment starting with `.`) below the picked folder. Folders outside
 the user's files (trash bin, preview folders) never match. The listing stops at 60,000 entries
@@ -118,6 +119,13 @@ ticked parent with subfolders and a ticked child both hold it.
 - **Then** `folders` lists each of these folders once, with its path, and `shared` is false only
   for the user's own folder and the external storage of the user only
 
+### LISTING-001.13 – RAW files Nextcloud does not type are listed
+
+- **Given** a `.CR3` and a `.SRW` file typed `application/octet-stream`, and another file of that
+  type
+- **When** their folder is listed, with or without `subfolders`
+- **Then** the `.CR3` and `.SRW` files are entries and the other file is not
+
 ## Out of scope
 
 - Grouping entries into pictures: LISTING-002.
@@ -130,3 +138,4 @@ ticked parent with subfolders and a ticked child both hold it.
 | 2026-11-10 | Written from the merged code of #37 and #41 (ADR 0015) |
 | 2026-11-10 | `folders` with the shared flag (ADR 0017) |
 | 2026-11-10 | Public links, mail shares and external storage of several users count as shared (owner review) |
+| 2026-11-11 | `.cr3` and `.srw` files are listed by name (`TODO.md`, owner 2026-11-10) |

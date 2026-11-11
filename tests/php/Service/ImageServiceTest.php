@@ -31,9 +31,10 @@ final class ImageServiceTest extends TestCase {
 		return $user;
 	}
 
-	private function image(int $id, string $mime = 'image/jpeg', bool $readable = true): File {
+	private function image(int $id, string $mime = 'image/jpeg', bool $readable = true, string $name = 'IMG_0001.JPG'): File {
 		$file = $this->createStub(File::class);
 		$file->method('getId')->willReturn($id);
+		$file->method('getName')->willReturn($name);
 		$file->method('getMimetype')->willReturn($mime);
 		$file->method('isReadable')->willReturn($readable);
 		return $file;
@@ -79,6 +80,20 @@ final class ImageServiceTest extends TestCase {
 		$this->expectException(ImageNotFoundException::class);
 
 		$this->service([7 => $this->image(7, 'application/pdf')])->find($this->user(), 7);
+	}
+
+	// spec: IMAGES-001.13
+	public function testFindsARawFileNextcloudDoesNotTypeByName(): void {
+		$raw = $this->image(7, 'application/octet-stream', name: 'IMG_0001.CR3');
+
+		$this->assertSame($raw, $this->service([7 => $raw])->find($this->user(), 7));
+	}
+
+	// spec: IMAGES-001.13
+	public function testAnUntypedFileOfAnotherNameIsNotFound(): void {
+		$this->expectException(ImageNotFoundException::class);
+
+		$this->service([7 => $this->image(7, 'application/octet-stream', name: 'backup.bin')])->find($this->user(), 7);
 	}
 
 	// spec: IMAGES-001.8
