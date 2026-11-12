@@ -110,7 +110,7 @@ function assign(text) {
   if (!known.includes(path)) known.push(path);
   const todo = targets().filter(i => !has(i, path));
   todo.forEach(i => photos[i].tags.push(path));
-  toast(todo.length ? `Tagged ${plural(todo.length)} ${path}` : `${path} is already assigned`);
+  if (todo.length) toast(`Tagged ${plural(todo.length)} ${path}`);
 }
 
 function remove(tag) {
@@ -121,7 +121,9 @@ function remove(tag) {
 
 function computeRows() {
   const typed = norm(base), q = typed.toLowerCase();
-  rows = known.filter(k => k.toLowerCase().includes(q)).sort().map(tag => ({tag, create: false}));
+  const todo = targets();
+  const open = k => !todo.every(i => has(i, k));
+  rows = known.filter(k => open(k) && k.toLowerCase().includes(q)).sort().map(tag => ({tag, create: false}));
   if (typed && !known.some(k => same(k, typed))) rows.push({tag: typed, create: true});
 }
 
