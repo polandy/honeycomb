@@ -31,10 +31,11 @@ A picture shows its rendered member, else its RAW. For a RAW (`image/x-dcraw`, o
 `.srw` file that Nextcloud types `application/octet-stream`) honeycomb's preview provider takes
 the largest complete JPEG embedded in the file.
 
-`POST /apps/honeycomb/api/v1/previews` with `{"fileIds": [...]}` (at most 60,000 integers),
-with the CSRF token, queues background jobs of at most 200 files that render all three tiers and
-skip what they cannot render. The client sends it after listing a folder set, in display order;
-a failed request is logged and the grid stays.
+`POST /apps/honeycomb/api/v1/previews` with `{"fileIds": [...]}` (at most 16 integers),
+with the CSRF token, renders all three tiers of at most 16 files before it answers `200` and
+skips what it cannot render. The client sends it after listing a folder set, in display order, in
+chunks of 4 files with at most 4 requests in flight; a failed request is logged and the grid
+stays. Nothing waits for cron.
 
 ## Acceptance criteria
 
@@ -96,19 +97,19 @@ a failed request is logged and the grid stays.
 - **When** the client picks the file to show
 - **Then** it shows the rendered member, else the RAW
 
-### IMAGES-001.10 – Previews are rendered in the background
+### IMAGES-001.10 – Previews are rendered right after the listing
 
 - **Given** a listed folder set
 - **When** the client sends its file ids in display order
-- **Then** jobs of at most 200 files render every tier of each and skip what they cannot render
+- **Then** chunks of 4 files are rendered, at most 4 requests at a time, every tier of each, skipping
+  what cannot be rendered
 
-### IMAGES-001.11 – Background request failures
+### IMAGES-001.11 – Warm-up request failures
 
-- **Given** file ids that are not a list of at most 60,000 integers, no user, a job whose user is
-  gone or whose argument is malformed, or a failed request
-- **When** the previews are queued or the job runs
-- **Then** the answer is `400` or `401` and nothing is queued; the job does nothing; the client
-  logs the failure and keeps the grid
+- **Given** file ids that are not a list of at most 16 integers, no user, or a failed request
+- **When** the previews are rendered
+- **Then** the answer is `400` or `401` and nothing is rendered; the client stops sending, logs the
+  failure and keeps the grid
 
 ### IMAGES-001.12 – First sharp image within 500 ms (gap)
 

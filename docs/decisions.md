@@ -132,8 +132,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   not on every upload: generating three tiers for every image of every user costs CPU and
   storage for people who never cull; the Preview Generator app covers uploads for admins who
   want it.
-- 2026-11-10: A warming job takes 200 file ids, so its JSON argument stays below the job
-  table's 4,000 characters; a file it cannot find or render is skipped with a debug log line.
+- 2026-11-10: A file the warm-up cannot find or render is skipped with a debug log line.
 - 2026-11-10: The controller answers a matching `If-None-Match` with `304` itself before
   rendering, so a revisit never generates a preview; Nextcloud's `NotModifiedMiddleware` would
   only check after the controller ran.
@@ -726,3 +725,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   added. Auto-scroll runs within 48 px of the edge at up to 16 px a frame, scaled by how deep the
   finger is in that band. The pressed tile's row stays rendered during the drag because a
   touch's events keep going to the element it started on.
+- 2026-11-12: Warming renders in the request (16 files at most, the client sends 4 at a time, 4
+  requests in flight) instead of a QueuedJob, which waited for cron for up to 5 minutes; the
+  grid's own image loads and the warm-up share core's four renders, and the QueuedJob is gone.

@@ -10,7 +10,6 @@ namespace OCA\Honeycomb\Controller;
 use OCA\Honeycomb\Service\ImageNotFoundException;
 use OCA\Honeycomb\Service\ImageNotReadableException;
 use OCA\Honeycomb\Service\ImageService;
-use OCA\Honeycomb\Service\ListingService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -67,7 +66,7 @@ final class ImageController extends Controller {
 		}
 	}
 
-	/** Queues the warming of the files' preview tiers, in the given order. */
+	/** Renders the preview tiers of the files, in the given order, before it answers. */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'POST', url: '/api/v1/previews')]
 	public function warm(array $fileIds = []): JSONResponse {
@@ -75,13 +74,13 @@ final class ImageController extends Controller {
 		if ($user === null) {
 			return new JSONResponse([], Http::STATUS_UNAUTHORIZED);
 		}
-		$valid = array_is_list($fileIds) && count($fileIds) <= ListingService::ENTRY_LIMIT
+		$valid = array_is_list($fileIds) && count($fileIds) <= ImageService::WARM_LIMIT
 			&& array_filter($fileIds, static fn (mixed $id): bool => is_int($id) && $id > 0) === $fileIds;
 		if (!$valid) {
 			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
 		}
 		/** @var list<int> $fileIds */
-		$this->images->queueWarm($user, $fileIds);
-		return new JSONResponse([], Http::STATUS_ACCEPTED);
+		$this->images->warm($user, $fileIds);
+		return new JSONResponse([]);
 	}
 }

@@ -7,11 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\BackgroundJob\GeneratePreviews;
 use OCA\Honeycomb\Service\ImageNotFoundException;
 use OCA\Honeycomb\Service\ImageNotReadableException;
 use OCA\Honeycomb\Service\ImageService;
-use OCP\BackgroundJob\IJobList;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -41,7 +39,7 @@ final class ImageServiceTest extends TestCase {
 	}
 
 	/** @param array<int, Node> $nodes alice's nodes by file id */
-	private function service(array $nodes, ?IPreview $preview = null, ?IJobList $jobList = null, ?LoggerInterface $logger = null): ImageService {
+	private function service(array $nodes, ?IPreview $preview = null, ?LoggerInterface $logger = null): ImageService {
 		$userFolder = $this->createStub(Folder::class);
 		$userFolder->method('getFirstNodeById')->willReturnCallback(static fn (int $id): ?Node => $nodes[$id] ?? null);
 		$root = $this->createStub(IRootFolder::class);
@@ -49,7 +47,6 @@ final class ImageServiceTest extends TestCase {
 		return new ImageService(
 			$root,
 			$preview ?? $this->createStub(IPreview::class),
-			$jobList ?? $this->createStub(IJobList::class),
 			$logger ?? $this->createStub(LoggerInterface::class),
 		);
 	}
@@ -184,23 +181,5 @@ final class ImageServiceTest extends TestCase {
 
 		$tiers = array_map(static fn (int $size): array => ['width' => $size, 'height' => $size, 'crop' => false, 'mode' => IPreview::MODE_FILL], [256, 1024, 4096]);
 		$this->assertSame([1 => $tiers, 4 => $tiers], $warmed);
-	}
-
-	// spec: IMAGES-001.10
-	public function testQueuesWarmingInJobsOfAtMostTwoHundredFiles(): void {
-		$ids = range(1, 450);
-		$queued = [];
-		$jobList = $this->createStub(IJobList::class);
-		$jobList->method('add')->willReturnCallback(static function (string $job, mixed $argument) use (&$queued): void {
-			$queued[] = [$job, $argument];
-		});
-
-		$this->service([], jobList: $jobList)->queueWarm($this->user(), $ids);
-
-		$this->assertSame([
-			[GeneratePreviews::class, ['userId' => 'alice', 'fileIds' => range(1, 200)]],
-			[GeneratePreviews::class, ['userId' => 'alice', 'fileIds' => range(201, 400)]],
-			[GeneratePreviews::class, ['userId' => 'alice', 'fileIds' => range(401, 450)]],
-		], $queued);
 	}
 }

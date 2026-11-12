@@ -33,10 +33,12 @@ A RAW+JPEG pair shows its JPEG; a RAW-only picture needs the JPEG preview embedd
 - **RAW:** honeycomb registers a preview provider for `image/x-dcraw` that takes the largest
   JPEG embedded in the RAW file, so the preview cache keeps it like any other preview. The JPEG's
   own orientation tag is applied.
-- **Background previews:** `POST /apps/honeycomb/api/v1/previews` with `{"fileIds": [...]}` (at
-  most 60,000, the listing's limit) queues background jobs of 200 ids each that render all three
-  tiers. The client sends it after listing a folder set, in display order. On upload honeycomb
-  generates nothing itself: an admin who wants that installs the Preview Generator app.
+- **Warming previews:** `POST /apps/honeycomb/api/v1/previews` with `{"fileIds": [...]}` (at most
+  16) renders all three tiers of each file before it answers `200`. The client sends it after
+  listing a folder set, in display order, in chunks of 4 with at most 4 requests in flight, so
+  the tiers are ready at once and not after the next cron run (amended 2026-11-12). honeycomb
+  needs no background worker; on upload it generates nothing itself, and an admin who wants that
+  installs the Preview Generator app, which needs cron.
 - **Errors:** `404` for an id that is not a file below the user's files, not an image, or has no
   preview; `403` when the user may not read it; `401` without a user. The body is empty.
 
@@ -50,7 +52,6 @@ A RAW+JPEG pair shows its JPEG; a RAW-only picture needs the JPEG preview embedd
   needs its own cache with clean-up for deleted files; that is a new decision.
 - With `camerarawpreviews` also installed, Nextcloud uses whichever provider matches first;
   both deliver the embedded JPEG.
-- The job's argument stays below the 4,000 characters of the job table's `argument` column.
 - A file the user cannot reach, such as one in another user's files, is `404` like a missing
   one, so an id reveals nothing.
 - The 100 % zoom of the loupe (M3.1) is the tier `0`, the full image: the file itself for JPEG,

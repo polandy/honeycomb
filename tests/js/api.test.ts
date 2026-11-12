@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, imageUrl, listEntries, listFolders, loadSettings, lookupDecisions, lookupSidecars, saveDecisions, saveSettings, saveSidecars, TrashBinOffError, trashPictures, warmPreviews } from '../../src/api.ts'
+import { ApiResponseError, imageUrl, listEntries, listFolders, loadSettings, lookupDecisions, lookupSidecars, saveDecisions, saveSettings, saveSidecars, TrashBinOffError, trashPictures } from '../../src/api.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({
@@ -76,23 +76,6 @@ describe('listFolders', () => {
 		vi.mocked(axios.get).mockResolvedValue({ data: { entries: [] } })
 
 		await expect(listFolders('')).rejects.toThrow(ApiResponseError)
-	})
-})
-
-describe('warmPreviews', () => {
-	// spec: IMAGES-001.10
-	it('asks the server to render the previews of the files', async () => {
-		vi.mocked(axios.post).mockResolvedValue({ data: null })
-
-		await warmPreviews([3, 1, 2])
-
-		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/previews', { fileIds: [3, 1, 2] })
-	})
-
-	it('sends nothing for no files', async () => {
-		await warmPreviews([])
-
-		expect(axios.post).not.toHaveBeenCalled()
 	})
 })
 

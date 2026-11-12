@@ -48,11 +48,27 @@ export async function listFolders(path: string): Promise<Folder[]> {
 	return data.folders as Folder[]
 }
 
-/** Queues the rendering of every preview tier of the files in the background (ADR 0010). */
+/** Files per warm-up request; the server renders them one after the other. */
+const WARM_CHUNK = 4
+/** Warm-up requests in flight, the number of previews core renders at a time. */
+const WARM_CONCURRENCY = 4
+
+/** Renders every preview tier of the files in display order, a few requests at a time (ADR 0010). */
 export async function warmPreviews(fileIds: readonly number[]): Promise<void> {
-	if (fileIds.length > 0) {
-		await axios.post(generateUrl(`${API}/previews`), { fileIds })
+	let next = 0
+	let failed = false
+	const worker = async (): Promise<void> => {
+		while (next < fileIds.length && !failed) {
+			const chunk = fileIds.slice(next, next += WARM_CHUNK)
+			try {
+				await axios.post(generateUrl(`${API}/previews`), { fileIds: chunk })
+			} catch (error) {
+				failed = true
+				throw error
+			}
+		}
 	}
+	await Promise.all(Array.from({ length: WARM_CONCURRENCY }, worker))
 }
 
 /** The stored decisions of the files; a file without one is undecided (ADR 0012). */

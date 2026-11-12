@@ -15,7 +15,6 @@ use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Response;
-use OCP\BackgroundJob\IJobList;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -34,7 +33,7 @@ final class ImageControllerTest extends TestCase {
 	private const int MTIME = 1_700_000_000;
 
 	/** @param array<int, Node> $nodes alice's nodes by file id */
-	private function controller(array $nodes, ?IPreview $preview = null, ?IJobList $jobList = null, ?string $ifNoneMatch = null, bool $loggedIn = true): ImageController {
+	private function controller(array $nodes, ?IPreview $preview = null, ?string $ifNoneMatch = null, bool $loggedIn = true): ImageController {
 		$user = $this->createStub(IUser::class);
 		$user->method('getUID')->willReturn('alice');
 		$session = $this->createStub(IUserSession::class);
@@ -48,7 +47,6 @@ final class ImageControllerTest extends TestCase {
 		$images = new ImageService(
 			$root,
 			$preview ?? $this->previewOf('image/jpeg'),
-			$jobList ?? $this->createStub(IJobList::class),
 			$this->createStub(LoggerInterface::class),
 		);
 		return new ImageController(Application::APP_ID, $request, $session, $images);
@@ -172,13 +170,13 @@ final class ImageControllerTest extends TestCase {
 	}
 
 	// spec: IMAGES-001.10
-	public function testQueuesTheWarmingOfTheGivenFiles(): void {
-		$jobList = $this->createMock(IJobList::class);
-		$jobList->expects($this->once())->method('add')->with($this->anything(), ['userId' => 'alice', 'fileIds' => [3, 1, 2]]);
+	public function testRendersTheTiersOfTheGivenFilesBeforeItAnswers(): void {
+		$preview = $this->createMock(IPreview::class);
+		$preview->expects($this->once())->method('generatePreviews')->with($this->isInstanceOf(File::class));
 
-		$response = $this->controller([], jobList: $jobList)->warm([3, 1, 2]);
+		$response = $this->controller([7 => $this->image()], $preview)->warm([7]);
 
-		$this->assertSame(Http::STATUS_ACCEPTED, $response->getStatus());
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
 	/** @return array<string, array{array<mixed>}> */
@@ -188,26 +186,26 @@ final class ImageControllerTest extends TestCase {
 			'zero' => [[0]],
 			'negative' => [[-1]],
 			'not a list' => [['a' => 1]],
-			'above the listing limit' => [range(1, 60_001)],
+			'above the files of one request' => [range(1, ImageService::WARM_LIMIT + 1)],
 		];
 	}
 
 	/** @param array<mixed> $fileIds */
 	// spec: IMAGES-001.11
 	#[DataProvider('invalidFileIds')]
-	public function testInvalidFileIdsAreABadRequestAndQueueNothing(array $fileIds): void {
-		$jobList = $this->createMock(IJobList::class);
-		$jobList->expects($this->never())->method('add');
+	public function testInvalidFileIdsAreABadRequestAndRenderNothing(array $fileIds): void {
+		$preview = $this->createMock(IPreview::class);
+		$preview->expects($this->never())->method('generatePreviews');
 
-		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller([], jobList: $jobList)->warm($fileIds)->getStatus());
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller([], $preview)->warm($fileIds)->getStatus());
 	}
 
 	// spec: IMAGES-001.11
-	public function testWithoutAUserNothingIsQueued(): void {
-		$jobList = $this->createMock(IJobList::class);
-		$jobList->expects($this->never())->method('add');
+	public function testWithoutAUserNothingIsRendered(): void {
+		$preview = $this->createMock(IPreview::class);
+		$preview->expects($this->never())->method('generatePreviews');
 
-		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller([], jobList: $jobList, loggedIn: false)->warm([1])->getStatus());
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller([], $preview, loggedIn: false)->warm([1])->getStatus());
 	}
 
 	// spec: IMAGES-001.8
