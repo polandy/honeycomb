@@ -17,8 +17,8 @@ moves on to the next undecided picture after the shown one (auto-advance); a rat
 label, *Keep RAW* or *Unflag* stays. A swipe up picks and a swipe down rejects by default;
 *Settings › Loupe gestures* sets each direction to Pick, Reject or Nothing and turns auto-advance
 off. While the photo lifts, a hint over it names the flag the release sets, fading in with the
-distance and filled once the release decides. The flag buttons can be hidden by their toggle or `B`. Each decision shows the undo toast
-(e.g. "Rejected IMG_0001 · Undo").
+distance and filled once the release decides. The flag buttons can be hidden by their toggle or
+`B`. Each decision shows the undo toast (e.g. "Rejected IMG_0001 · Undo").
 
 ## Acceptance criteria
 
