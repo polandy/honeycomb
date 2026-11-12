@@ -31,7 +31,7 @@ A picture shows its rendered member, else its RAW. For a RAW (`image/x-dcraw`, o
 `.srw` file that Nextcloud types `application/octet-stream`) honeycomb's preview provider takes
 the largest complete JPEG embedded in the file.
 
-`POST /apps/honeycomb/api/v1/previews` with `{"fileIds": [...]}` (at most 60,000 integers),
+`POST /apps/honeycomb/api/v1/previews` with `{"fileIds": [...]}` (at most 16 integers),
 with the CSRF token, renders all three tiers of at most 16 files before it answers `200` and
 skips what it cannot render. The client sends it after listing a folder set, in display order, in
 chunks of 4 files with at most 4 requests in flight; a failed request is logged and the grid
