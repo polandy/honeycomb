@@ -18,6 +18,11 @@ header h1{margin:0;font-size:16px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:6px 0 0;padding:0;list-style:none;color:var(--muted);font-size:13px}
 kbd{font:12px ui-monospace,monospace;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:0 5px}
 main{flex:1;padding:16px}
+.bar{display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:8px 12px;background:var(--card);border:1px solid var(--line);border-radius:8px}
+.bar[hidden]{display:none}
+.bar span{flex:1}
+.bar button{font:inherit;padding:6px 14px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);cursor:pointer}
+.bar button:disabled{opacity:.5}
 .grid{display:flex;flex-wrap:wrap;gap:12px}
 .thumb{width:140px;height:100px;border-radius:6px;border:3px solid transparent;cursor:pointer;position:relative;user-select:none}
 .thumb.sel{border-color:var(--accent)}
@@ -50,6 +55,7 @@ main{flex:1;padding:16px}
   <h1>Tag entry mockup (tags concept, PR #100)</h1>
   <ul class="legend">
     <li>grid: click, <kbd>Shift</kbd>/<kbd>Ctrl</kbd>-click or <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd>, <kbd>Shift</kbd>+arrows, <kbd>Ctrl</kbd><kbd>A</kbd> select</li>
+    <li>touch: long-press a tile for selection mode, tap toggles, bar: <kbd>Tags</kbd>, <kbd>Done</kbd>; tap outside it opens the loupe</li>
     <li><kbd>Enter</kbd> / double-click: loupe</li>
     <li><kbd>T</kbd> tag entry for the loupe picture or the selection</li>
     <li>type: filter by substring</li>
@@ -61,7 +67,10 @@ main{flex:1;padding:16px}
     <li><kbd>Esc</kbd> close entry, then loupe</li>
   </ul>
 </header>
-<main><div class="grid" id="grid"></div></main>
+<main>
+  <div class="bar" id="bar" hidden><span id="count"></span><button id="tags">Tags</button><button id="done">Done</button></div>
+  <div class="grid" id="grid"></div>
+</main>
 <div class="loupe" id="loupe" hidden>
   <div class="photo" id="photo"></div>
   <p class="name" id="name"></p>
@@ -81,7 +90,9 @@ const known = ['Berg', 'Bergsee', 'Natur', 'Natur/Berg', 'Natur/Forest', 'Natur/
 const tagsOf = [['Natur/Berg'], [], ['Sunrise', 'Places/Switzerland'], ['Natur/Berg', 'Family'], [], ['Natur/Berg'], [], ['Portrait']];
 const photos = tagsOf.map((tags, i) => ({name: `DSC_41${String(i + 1).padStart(2, '0')}`, hue: i * 40, tags}));
 const $ = id => document.getElementById(id);
+const LONG_PRESS_MS = 500;
 let focus = 0, anchor = 0, sel = new Set([0]);
+let selMode = false, longFired = false, pressTimer = 0, touched = false;
 let loupeOpen = false, entryOpen = false, base = '', picked = -1, rows = [], toastTimer = 0;
 
 const norm = text => text.split('/').map(s => s.trim()).filter(Boolean).join('/');
@@ -176,16 +187,39 @@ function render() {
     const b = document.createElement('small');
     b.textContent = `${p.tags.length} tags`;
     d.append(b);
-    d.onclick = e => select(i, e);
+    d.onpointerdown = e => press(i, e);
+    d.onpointerup = d.onpointerleave = () => clearTimeout(pressTimer);
+    d.onclick = e => tap(i, e);
     d.ondblclick = () => { select(i, {}); loupeOpen = true; render(); };
     return d;
   }));
+  $('bar').hidden = !selMode;
+  $('count').textContent = `${sel.size} selected`;
+  $('tags').disabled = !sel.size;
   $('loupe').hidden = !loupeOpen;
   $('photo').style.background = bg(photos[focus].hue);
   $('name').textContent = photos[focus].name;
   placePanel();
   renderChips();
   renderEntry();
+}
+
+function press(i, e) {
+  touched = e.pointerType === 'touch';
+  longFired = false;
+  clearTimeout(pressTimer);
+  if (!touched) return;
+  pressTimer = setTimeout(() => {
+    longFired = true;
+    if (!selMode) { selMode = true; select(i, {}); }
+  }, LONG_PRESS_MS);
+}
+
+function tap(i, e) {
+  if (longFired) { longFired = false; return; }
+  if (selMode) select(i, {ctrlKey: true});
+  else if (touched) { select(i, {}); loupeOpen = true; render(); }
+  else select(i, e);
 }
 
 function select(i, e) {
@@ -242,6 +276,8 @@ function onGlobalKey(e) {
   e.preventDefault();
 }
 
+$('tags').onclick = () => openEntry();
+$('done').onclick = () => { selMode = false; entryOpen = false; render(); };
 $('field').addEventListener('keydown', onEntryKey);
 $('field').addEventListener('input', () => { base = $('field').value; picked = -1; render(); });
 document.addEventListener('keydown', onGlobalKey);
