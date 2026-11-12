@@ -5,6 +5,7 @@ import type { Decision } from '../../../src/logic/decision.ts'
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
 
+import NcButton from '@nextcloud/vue/components/NcButton'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
@@ -169,8 +170,24 @@ describe('LoupeTitleRow', () => {
 	const button = (wrapper: ReturnType<typeof mountRow>, label: string) => wrapper.find(`button[aria-label="${label}"]`)
 
 	it('names the picture, its position and the zoom', () => {
-		expect(mountRow(null).text()).toMatch(/IMG_7\s*7 of 120\s*Fit/)
-		expect(button(mountRow(42), 'Toggle fit and 100 percent').text()).toBe('42 %')
+		expect(mountRow(null).text()).toMatch(/IMG_7\s*7 of 120/)
+	})
+
+	// spec: LOUPE-001.13
+	it('draws the zoom, move, info and fullscreen buttons as icons without a word', () => {
+		const wrapper = mountRow(42)
+		for (const label of ['Toggle fit and 100 percent', 'Move this photo', 'Toggle info panel', 'Enter fullscreen']) {
+			const each = button(wrapper, label)
+			expect(each.text(), label).toBe('')
+			expect(each.find('svg.app-icon').exists(), label).toBe(true)
+			const nc = wrapper.findAllComponents(NcButton).find((c) => c.attributes('aria-label') === label)
+			expect(nc?.props('variant'), label).toBe('tertiary')
+		}
+	})
+
+	it('shows the zoom button pressed while zoomed in', () => {
+		expect(button(mountRow(null), 'Toggle fit and 100 percent').attributes('aria-pressed')).toBe('false')
+		expect(button(mountRow(42), 'Toggle fit and 100 percent').attributes('aria-pressed')).toBe('true')
 	})
 
 	it('emits close, the zoom toggle and the panel toggles', async () => {
