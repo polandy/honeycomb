@@ -15,6 +15,7 @@ Open only the file, or the section, a change touches.
 | [`specs/`](specs/) | What the merged code does, one spec per feature, coupled to the tests (ADR 0015) |
 | [`plan.md`](plan.md) | Milestones, project structure, target versions, open questions |
 | [`mockup/index.html`](mockup/index.html) | The interactive mockup (milestone M0); open it in a browser |
+| [`mockup/tag-entry.html`](mockup/tag-entry.html) | Keyboard-testable mockup of the tag entry (`T`) proposed in the tags concept; open it in a browser |
 | [`ux-review.md`](ux-review.md) | UX review of the mockup: findings, fixes, design direction; screenshots in [`ux/`](ux/) |
 | [`adr/`](adr/) | Architecture decision records, one file each |
 | [`decisions.md`](decisions.md) | Smaller decisions made during implementation, one dated line each |
