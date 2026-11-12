@@ -1,10 +1,10 @@
 # 7. Tags (concept)
 
 **Status: concept, nothing is built.** The owner asked for tags that work like digiKam's and are
-read and written in digiKam's fields (2026-11-11). This document proposes how; the
-[open owner decisions](#open-owner-decisions) must be answered before a milestone is planned.
-The mockup is [`mockup/tags.html`](mockup/tags.html) (open it in a browser, no build); its
-screenshots are in [`ux/tags/`](ux/tags/).
+read and written in digiKam's fields (2026-11-11), and answered the
+[decisions](#decisions-2026-11-12) on 2026-11-12. The milestone is planned from the
+[implementation outline](#implementation-outline). The approved mockup is
+[`mockup/tag-entry.html`](mockup/tag-entry.html) (open it in a browser, no build).
 
 ## Sources
 
@@ -76,8 +76,8 @@ name read as `\`, as digiKam does), `dc:subject` (each keyword a tag without par
 4, 5 and IPTC are not read; digiKam, darktable and Lightroom always write one of the three.
 
 **Several sources of one picture.** A pair has up to four: `IMG.NEF.xmp`, `IMG.JPG.xmp`,
-the shared `IMG.xmp` and, if D1 says so, the JPEG's embedded XMP. Ratings and flags take the most
-recently modified sidecar as a whole (`06-xmp-interop.md`). For tags the proposal is the
+the shared `IMG.xmp` and the JPEG's embedded XMP (read only, D1). Ratings and flags take the most
+recently modified sidecar as a whole (`06-xmp-interop.md`). For tags they are the
 **union** of all sources (D2): tags are added in many places over the years, and dropping
 the older sidecar's tags would lose work no other program shows the user. Writing then brings
 every source to the same set, so a disagreement does not last.
@@ -100,95 +100,69 @@ honeycomb writes the three fields it reads and leaves the others alone:
 - **Fields 2, 4, 5** (Microsoft, MediaPro, ACDSee) are left as they are. Because digiKam reads
   `TagsList` first and honeycomb always writes it, a stale field 2 or 4 is never read by digiKam.
 - **Where:** every sidecar of the picture, by the sidecar rules of `06-xmp-interop.md`;
-  embedded XMP only if D1 says so.
+  the embedded XMP is never written (D1).
 - A darktable sidecar is written the same way: darktable reads `lr:hierarchicalSubject` and
   keeps foreign properties (`06-xmp-interop.md`).
 
 ## Interaction
 
-Screenshots: iPad mini 8.3″ (A17 Pro) landscape and portrait, desktop 1440 × 900.
+Approved mockup: [`mockup/tag-entry.html`](mockup/tag-entry.html).
+
+### Selecting
+
+A visible **Select** button in the grid enters selection mode (**Done** leaves it); a tap toggles
+a tile. A long-press on touch is a shortcut (D8). Ctrl/Shift-click, arrows, Shift+arrows and
+Ctrl+A work too. Outside selection mode a tap opens the loupe.
 
 ### Tag entry (`T`)
 
-`T` opens the **tag entry** for the focused picture in the grid, the current one in the loupe
-and the active one in the series viewer; with a selection, for the selection. `T` is free in the
-key map (`plan.md` Keyboard shortcuts) and is digiKam's *Assign Tag*. On touch, an icon button
-*Tags* opens it, placed in the `ActionBar` slot, and the loupe's info panel lists the tags with
-the key.
+`T` opens the **tag entry** for the current picture in the loupe and the series viewer; in the
+grid, for the selection. `T` is free in the key map (`plan.md` Keyboard shortcuts) and is
+digiKam's *Assign Tag*. On touch, an icon button *Tags* opens it, placed in the `ActionBar` slot
+(D8), and the loupe's info panel lists the tags.
 
-![Tag entry in the loupe, iPad landscape](ux/tags/entry-ipadmini24-land.png)
-
-- The picture's tags as chips, parents muted, leaf in full: *Places › Italy › Dolomites ›
-  Seceda*. × removes one.
-- A text field with focus. It completes **by substring, ignoring case**, as digiKam: leaves
-  that start with the text first, then leaves with a word that does, then any part of the path;
-  ties by how many pictures in the folder set have the tag, then by name. Six at most.
-- `↑` `↓` choose, `Enter` adds the chosen one, `Tab` completes the chosen one up to its next
-  level (`Pla` → `Places/`), `Backspace` in an empty field removes the last chip, `Esc` closes.
-- A **new tag**: the last row is *Create tag …* when nothing matches the text exactly. A `/`
-  starts a level: `Places/Italy/Bolzano` creates the missing levels in the tag list and tags
+- The tags of the targets as chips, × removes one from every target. A tag only some targets
+  have is a **partial chip** (dashed). Tags that every target already has are not offered again.
+- A text field with focus that filters by **substring, ignoring case**, as digiKam.
+- `Tab` / `Shift+Tab` (or `↓` `↑`) cycle the matches into the field, `Enter` assigns exactly the
+  field, creating the tag when it is new, `Backspace` in an empty field removes the last chip,
+  `Esc` closes the entry, then the loupe.
+- A `/` starts a level: `Places/Italy/Bolzano` creates the missing levels in the tag list and tags
   only the leaf.
-- The entry stays open after adding, so several tags go in one go; each added tag is its own undo
-  step. On a narrow screen (iPad portrait, phone) it is a bottom sheet; the keyboard pushes it up.
-
-![Tag entry, iPad portrait](ux/tags/entry-ipadmini24-port.png)
-
-### Bulk tagging
-
-With a selection, the entry shows each tag of the selected pictures: **solid** when every
-picture has it, **dashed with "4 of 7"** when some do. × removes it from all, + adds it to all;
-a new tag is added to all. Empty, the field offers the most recent tags. Each change is one
-undo step for the whole selection.
-
-![Bulk tagging, iPad landscape](ux/tags/bulk-ipadmini24-land.png)
+- The entry stays open after assigning. Each change is one undo step for all targets and one
+  toast: "Tagged 7 photos Dolomites · Undo", "Removed Anna from 2 photos · Undo". On a narrow
+  screen it is a bottom sheet; the keyboard pushes it up.
 
 ### Tag filter
 
-The filter bar gets a **Tags** group: a field that finds a tag in the tag list, the tags in the
-folder set as chips with their counts (the most used first, *More…* for the rest), and an
-*Untagged* chip. As in every group, several chips are OR and the groups are AND (Q9); a chip of
-a parent matches its descendants (D4, D5). The filter's count badge counts the tag chips.
-
-![Tag filter, iPad landscape](ux/tags/filter-ipadmini24-land.png)
+`F` opens the same entry to pick tags; the grid shows only the pictures that have **all** the
+chosen tags (D4), chips with × remove one. A chip of a parent matches its descendants (D5). The
+filter's count badge counts the tag chips. An *Untagged* chip and per-folder counts are not in
+the mockup and are left to the milestone.
 
 ### Tiles and info panel
 
 A tile shows a small tag icon and the count when the picture has tags (D3). The info panel lists
 the tags and the sidecars they were written to.
 
-![Loupe info panel and toast, desktop](ux/tags/loupe-desktop.png)
+## Decisions 2026-11-12
 
-Desktop views of the other screens: [entry](ux/tags/entry-desktop.png),
-[bulk](ux/tags/bulk-desktop.png), [filter](ux/tags/filter-desktop.png).
+The owner approved the mockup and said to build it; each decision is the option marked.
 
-## Open owner decisions
-
-Each has a recommendation, marked **(rec.)**.
-
-- **D1 – Embedded XMP.** digiKam writes into the image by default. (a) **(rec.)** Sidecars only;
-  read a JPEG's embedded XMP as one more source, never write it. Nothing rewrites the user's
-  photos, and digiKam with *Read from sidecar* on (already needed for ratings and flags) sees
-  the tags. (b) A per-user setting with digiKam's four writing modes; writing into a JPEG needs an
-  XMP-in-JPEG writer (a new dependency, ADR) and a new file version for every tag. (c) Always
-  both.
-- **D2 – Several sources.** (a) **(rec.)** Union of all, then every source written to the same
-  set. (b) The most recent sidecar wins, as for ratings and flags.
-- **D3 – Tile.** (a) **(rec.)** A tag icon and the count, shown only when tagged, as in the
-  mockup. (b) Nothing on the tile; the tags are in the info panel and the tile's `aria-label`.
-- **D4 – Several tag chips in the filter.** (a) **(rec.)** OR, like every other group. (b) AND
-  ("Anna and Ben"). (c) A switch *any* / *all*, like digiKam's tag filter (**unverified**).
-- **D5 – A parent in the filter.** (a) **(rec.)** `Places/Italy` matches its descendants.
-  (b) Only pictures tagged with exactly that tag.
-- **D6 – Tag list.** (a) **(rec.)** Tags read from the user's sidecars plus those they created,
-  kept per user. (b) Also an import of a digiKam tag tree. (c) Only the tags in the current
-  folder set.
-- **D7 – Managing tags** (rename, move, delete a tag across every picture). (a) **(rec.)** Not in
-  the first version: it writes sidecars outside the folder set. (b) Rename and delete in the tag
-  list, written to every tagged picture.
-- **D8 – Touch entry point.** (a) **(rec.)** An icon button *Tags* in the action bar of the
-  selection, the loupe and the series viewer. (b) Only in the info panel.
-- **D9 – Foreign keywords in `dc:subject`.** (a) **(rec.)** Keep them. (b) Replace the field
-  whole, as digiKam does.
+- **D1 – Embedded XMP.** (a) Sidecars only; a JPEG's embedded XMP is read as one more source,
+  never written. Nothing rewrites the user's photos.
+- **D2 – Several sources.** (a) Union of all, then every source written to the same set.
+- **D3 – Tile.** (a) A tag icon and the count, shown only when tagged.
+- **D4 – Several tag chips in the filter.** (b) AND: the approved mockup shows only pictures that
+  have all the chosen tags. This deviates from the earlier recommendation (OR, like the other
+  groups): within the tag filter the chips narrow, they do not widen.
+- **D5 – A parent in the filter.** (a) `Places/Italy` matches its descendants.
+- **D6 – Tag list.** (a) Tags read from the user's sidecars plus those they created, kept per
+  user.
+- **D7 – Managing tags** (rename, move, delete across pictures). (a) Not in the first version.
+- **D8 – Touch entry point.** (a) An icon button *Tags* in the action bar, plus the visible
+  *Select* button of the approved mockup, with long-press as a shortcut.
+- **D9 – Foreign keywords in `dc:subject`.** (a) Keep them.
 
 ## Proposed glossary entries
 
@@ -205,12 +179,12 @@ from …". The action is *Tag*, never *keyword* or *label* (a label is a colour 
 
 ## Implementation outline
 
-After the decisions; each step is one pull request with its spec and tests.
+Each step is one pull request with its spec and tests.
 
 1. ADR: the tag table (per user: picture tags and tag list) and the endpoint shape.
 2. `src/logic/xmp/`: read and merge tags (fixtures for each field, union, change applied to the
    current set, foreign keywords). Spec `XMP-004`.
 3. Backend: store and list tags with the decisions; sidecar writes carry them.
 4. Tag entry and `T` in the key map (`KEYS-001`), bulk tagging (`GRID-003`).
-5. Tag filter (`GRID-002`), tile and info panel.
-6. Mockup: merge `tags.html` into `index.html`; user doc `user/tags.md`.
+5. Tag filter (`GRID-002`, all tags must match), tile and info panel.
+6. Mockup: merge `tag-entry.html` into `index.html`; user doc `user/tags.md`.

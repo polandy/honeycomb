@@ -24,7 +24,8 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **resume position** | Where a user stands in a folder set (the current picture and how many are decided), stored on the server so a cull continues on another device. |
 | **undecided** | A picture whose flag is unflagged; picked and rejected pictures are *decided*. |
 | **reject review** | The grid of all rejected pictures, where single ones can be rescued before the delete summary. |
-| **series** | Pictures taken within a short interval, compared side by side to pick the best. |
+| **series** | Pictures taken within a short interval that look alike, compared side by side to pick the best. |
+| **visual hash** | A 64-bit fingerprint of a picture's small preview; two pictures look alike when their visual hashes differ in few bits (ADR 0021). |
 | **grid** | The thumbnail view of a folder set. |
 | **skeleton tile** | A tile drawn before its photo is there: its empty face pulses while the listing or the tile's thumbnail is on its way. |
 | **loupe** | The full-screen view of one picture, with swipe, zoom and the decision buttons. |
@@ -36,7 +37,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **tap zone** | The left or right 30 % of the whole photo area in the loupe and series viewer, margins beside, above and below the photo included; a tap there goes to the previous or next photo. The middle shows or hides the overlays (`plan.md`, *Tap zones*). |
 | **tooltip** | The bubble that names a control and its key, on hover, keyboard focus or long-press. One for the whole app; not the browser's `title`. |
 | **filter** | A condition on rating, colour label, flag, pairing, *Keep RAW* or folder that narrows the grid and loupe. |
-| **scope** | Which pictures a cull shows before the filters: *not rejected* (default), *undecided* or *all*. A flag filter overrides it; *Clear filters* keeps it. |
+| **flag filter** | The toolbar chips *Picked*, *Unflagged* and *Rejected*, the same state as the *Flag* group of the filter bar. They combine; none pressed shows every picture; picked and unflagged are pressed by default. |
 | **selection** | The set of pictures marked in selection mode for a bulk action. |
 | **bulk action** | Rate, label, flag, move or delete applied to the whole selection at once. |
 | **move** | Moving whole pictures (all members and sidecars) into a target folder, renamed by the name template. The files leave the source folder. |

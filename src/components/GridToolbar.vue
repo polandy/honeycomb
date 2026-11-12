@@ -3,8 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
+import type { Flag } from '../logic/decision.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
-import type { Scope } from '../logic/picture-filter.ts'
 import type { SortOrder } from '../logic/picture-order.ts'
 
 import { n, t } from '@nextcloud/l10n'
@@ -12,8 +12,9 @@ import { computed } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcPopover from '@nextcloud/vue/components/NcPopover'
 import AppIcon from './AppIcon.vue'
+import CullProgress from './CullProgress.vue'
+import FlagFilter from './FlagFilter.vue'
 import GridMoreMenu from './GridMoreMenu.vue'
-import ScopeProgress from './ScopeProgress.vue'
 import { keyCap } from '../hotkeys.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { tip } from '../tooltip.ts'
@@ -24,9 +25,8 @@ const props = defineProps<{
 	folders: number
 	tileSize: number
 	groupByFolder: boolean
-	scope: Scope
-	/** Whether a flag filter overrides the scope. */
-	scopeLocked: boolean
+	/** The pressed flags of the flag filter. */
+	flags: ReadonlySet<Flag>
 	decided: number
 	total: number
 	/** How many filter groups have a choice. */
@@ -52,7 +52,7 @@ const emit = defineEmits<{
 	changeFolders: []
 	'update:tileSize': [size: number]
 	'update:groupByFolder': [group: boolean]
-	'update:scope': [scope: Scope]
+	'update:flags': [flags: ReadonlySet<Flag>]
 	'update:filtersOpen': [open: boolean]
 	'update:sortOrder': [order: SortOrder]
 	'update:selecting': [selecting: boolean]
@@ -105,12 +105,8 @@ const setName = computed(() => {
 				{{ setName }}
 			</button>
 		</nav>
-		<ScopeProgress
-			:scope="props.scope"
-			:locked="props.scopeLocked"
-			:decided="props.decided"
-			:total="props.total"
-			@update:scope="emit('update:scope', $event)" />
+		<FlagFilter :flags="props.flags" @update:flags="emit('update:flags', $event)" />
+		<CullProgress :decided="props.decided" :total="props.total" />
 		<NcButton
 			variant="tertiary"
 			:ariaLabel="filtersLabel"
@@ -210,12 +206,19 @@ const setName = computed(() => {
 	flex-wrap: wrap;
 	align-items: center;
 	gap: var(--default-grid-baseline);
-	padding: var(--default-grid-baseline) calc(2 * var(--default-grid-baseline));
+	padding: 0 calc(2 * var(--default-grid-baseline));
+	font-size: 13px;
+	--default-clickable-area: 32px;
+}
+
+.grid-toolbar :deep(.app-icon) {
+	width: 18px;
+	height: 18px;
 }
 
 .grid-toolbar__crumbs {
 	display: flex;
-	flex: 1;
+	flex: 1 1 160px;
 	align-items: center;
 	gap: var(--default-grid-baseline);
 	min-width: 0;
@@ -227,7 +230,7 @@ const setName = computed(() => {
 
 .grid-toolbar__set {
 	overflow: hidden;
-	min-height: 34px;
+	min-height: 28px;
 	padding: 0 calc(2 * var(--default-grid-baseline));
 	border: none;
 	border-radius: var(--border-radius-element);
@@ -273,9 +276,18 @@ const setName = computed(() => {
 	font-weight: bold;
 }
 
+/* The hit area, not the look, keeps the 44 px touch target. */
 @media (pointer: coarse) {
-	.grid-toolbar__set {
-		min-height: 44px;
+	.grid-toolbar__set,
+	.grid-toolbar :deep(.button-vue) {
+		position: relative;
+	}
+
+	.grid-toolbar__set::before,
+	.grid-toolbar :deep(.button-vue)::before {
+		content: "";
+		position: absolute;
+		inset: -6px -2px;
 	}
 }
 </style>

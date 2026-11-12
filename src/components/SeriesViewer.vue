@@ -177,6 +177,7 @@ onMounted(() => root.value!.focus())
 				:ready="prefetcher.ready"
 				:devicePixelRatio="props.devicePixelRatio"
 				:observeSize="props.observeSize"
+				:swipes="settings.swipes"
 				@page="go(props.index + $event)"
 				@overlays="overlays.toggle"
 				@chromeFree="stage!.toggleZoom()"

@@ -93,7 +93,7 @@ describe('SeriesViewer', () => {
 		expect(wrapper.find('.loupe-filmstrip').exists()).toBe(false)
 		expect(label(wrapper, 'Toggle info panel').exists()).toBe(false)
 		expect(wrapper.find('.pick-rest-button').exists()).toBe(true)
-		expect(decoded).toEqual(['/img/1/2048', '/img/2/2048', '/img/3/2048'])
+		expect(decoded).toEqual(['/img/1/4096', '/img/2/4096', '/img/3/4096'])
 	})
 
 	// spec: SERIES-002.2

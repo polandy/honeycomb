@@ -12,7 +12,7 @@ describe('DEFAULT_SETTINGS', () => {
 	// spec: SETTINGS-001.6
 	it('pairs as the pairing defaults and turns on all but the vi keys', () => {
 		expect(pairingSettings(DEFAULT_SETTINGS)).toEqual(DEFAULT_PAIRING_SETTINGS)
-		expect(DEFAULT_SETTINGS).toMatchObject({ showSingles: true, swipes: DEFAULT_SWIPES, autoAdvance: true, flagButtonsShown: true, viKeys: false })
+		expect(DEFAULT_SETTINGS).toMatchObject({ showSingles: true, swipes: DEFAULT_SWIPES, autoAdvance: true, flagButtonsShown: true, filmstripPinned: false, ratingRowPinned: false, viKeys: false })
 		expect(DEFAULT_SUBFOLDERS).toEqual({ rawSubfolder: 'RAW', renderedSubfolder: 'JPG' })
 	})
 })
@@ -28,6 +28,8 @@ describe('parseSettings', () => {
 			swipes: { up: null, down: 'picked' },
 			autoAdvance: false,
 			flagButtonsShown: false,
+			filmstripPinned: true,
+			ratingRowPinned: true,
 			viKeys: true,
 			moveFavourites: ['/Archive'],
 			moveRecent: ['/Archive', '/Best'],

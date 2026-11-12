@@ -146,6 +146,8 @@ describe('SettingsDialog', () => {
 		['Show singles', 'showSingles'],
 		['Auto-advance to the next undecided photo', 'autoAdvance'],
 		['Show flag buttons', 'flagButtonsShown'],
+		['Pin the filmstrip', 'filmstripPinned'],
+		['Pin the rating row', 'ratingRowPinned'],
 		['Vi keys', 'viKeys'],
 	] as const)('turns %s on and off', async (label, key) => {
 		const wrapper = mountDialog({ [key]: true })

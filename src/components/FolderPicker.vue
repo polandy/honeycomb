@@ -116,7 +116,6 @@ function onConfirm() {
 				{{ t('honeycomb', 'Folders') }}
 			</h3>
 		</template>
-		<FolderList :ticked="set.paths" :listFolders="props.listFolders" @toggle="onToggle" />
 		<NcCheckboxRadioSwitch
 			class="folder-picker__subfolders"
 			type="switch"
@@ -125,6 +124,7 @@ function onConfirm() {
 			@update:modelValue="onSubfolders">
 			{{ t('honeycomb', 'Include subfolders') }}
 		</NcCheckboxRadioSwitch>
+		<FolderList :ticked="set.paths" :listFolders="props.listFolders" @toggle="onToggle" />
 		<p class="folder-picker__count" aria-live="polite">
 			{{ summary }}
 		</p>
@@ -149,7 +149,7 @@ function onConfirm() {
 }
 
 .folder-picker__subfolders {
-	margin-top: calc(2 * var(--default-grid-baseline));
+	margin-bottom: calc(2 * var(--default-grid-baseline));
 }
 
 .folder-picker__count {

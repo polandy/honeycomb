@@ -7,6 +7,7 @@ import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import FlagButtonsToggle from './FlagButtonsToggle.vue'
+import { useFullscreenState } from '../fullscreen.ts'
 import { keyCap } from '../hotkeys.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { tip } from '../tooltip.ts'
@@ -29,11 +30,14 @@ const emit = defineEmits<{
 	close: []
 	move: []
 	toggleZoom: []
+	toggleFullscreen: []
 	'update:infoOpen': [open: boolean]
 	'update:filmstripOpen': [open: boolean]
 	'update:navigationShown': [shown: boolean]
 	'update:flagButtonsShown': [shown: boolean]
 }>()
+
+const fullscreen = useFullscreenState()
 </script>
 
 <template>
@@ -51,19 +55,46 @@ const emit = defineEmits<{
 			{{ props.name }}
 		</h2>
 		<span class="loupe-title-row__count">{{ t('honeycomb', '{position} of {count}', { position: formatNumber(props.index + 1), count: formatNumber(props.count) }, undefined, PLAIN_TEXT) }}</span>
-		<NcButton :aria-label="t('honeycomb', 'Toggle fit and 100 percent')" v-bind="tip(t('honeycomb', 'Fit / 100 %'), keyCap('zoom', 1))" @click="emit('toggleZoom')">
-			{{ props.zoom === null ? t('honeycomb', 'Fit') : t('honeycomb', '{percent} %', { percent: formatNumber(props.zoom) }, undefined, PLAIN_TEXT) }}
+		<NcButton
+			variant="tertiary"
+			:aria-label="t('honeycomb', 'Toggle fit and 100 percent')"
+			v-bind="tip(t('honeycomb', 'Fit / 100 %'), keyCap('zoom', 1))"
+			:pressed="props.zoom !== null"
+			@update:pressed="emit('toggleZoom')">
+			<template #icon>
+				<AppIcon name="zoom" />
+			</template>
 		</NcButton>
-		<NcButton :aria-label="t('honeycomb', 'Move this photo')" v-bind="tip(t('honeycomb', 'Move this photo'), keyCap('move'))" @click="emit('move')">
-			{{ t('honeycomb', 'Move…') }}
+		<NcButton
+			variant="tertiary"
+			:aria-label="t('honeycomb', 'Move this photo')"
+			v-bind="tip(t('honeycomb', 'Move this photo'), keyCap('move'))"
+			@click="emit('move')">
+			<template #icon>
+				<AppIcon name="move" />
+			</template>
 		</NcButton>
 		<FlagButtonsToggle :shown="props.flagButtonsShown" @update:shown="emit('update:flagButtonsShown', $event)" />
 		<NcButton
+			variant="tertiary"
 			:aria-label="t('honeycomb', 'Toggle info panel')"
 			v-bind="tip(t('honeycomb', 'Info panel'), keyCap('info'))"
 			:pressed="props.infoOpen"
 			@update:pressed="emit('update:infoOpen', $event)">
-			{{ t('honeycomb', 'Info') }}
+			<template #icon>
+				<AppIcon name="info" />
+			</template>
+		</NcButton>
+		<NcButton
+			v-if="fullscreen.available"
+			variant="tertiary"
+			:aria-label="fullscreen.active.value ? t('honeycomb', 'Leave fullscreen') : t('honeycomb', 'Enter fullscreen')"
+			v-bind="tip(fullscreen.active.value ? t('honeycomb', 'Leave fullscreen') : t('honeycomb', 'Enter fullscreen'), keyCap('fullscreen'))"
+			:pressed="fullscreen.active.value"
+			@update:pressed="emit('toggleFullscreen')">
+			<template #icon>
+				<AppIcon name="fullscreen" />
+			</template>
 		</NcButton>
 		<NcButton
 			variant="tertiary"
@@ -107,6 +138,8 @@ const emit = defineEmits<{
 }
 
 .loupe-title-row__count {
+	flex-shrink: 0;
 	color: var(--color-text-maxcontrast);
+	white-space: nowrap;
 }
 </style>

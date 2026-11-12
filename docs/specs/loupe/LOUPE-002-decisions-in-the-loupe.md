@@ -16,8 +16,9 @@ The large flag buttons *Pick*, *Reject* and *Unflag* decide the shown picture. A
 moves on to the next undecided picture after the shown one (auto-advance); a rating, a colour
 label, *Keep RAW* or *Unflag* stays. A swipe up picks and a swipe down rejects by default;
 *Settings › Loupe gestures* sets each direction to Pick, Reject or Nothing and turns auto-advance
-off. The flag buttons can be hidden by their toggle or `B`. Each decision shows the undo toast
-(e.g. "Rejected IMG_0001 · Undo").
+off. While the photo lifts, a hint over it names the flag the release sets, fading in with the
+distance and filled once the release decides. The flag buttons can be hidden by their toggle or
+`B`. Each decision shows the undo toast (e.g. "Rejected IMG_0001 · Undo").
 
 ## Acceptance criteria
 
@@ -59,7 +60,8 @@ off. The flag buttons can be hidden by their toggle or `B`. Each decision shows 
 - **Given** the flag buttons are shown
 - **When** the user presses their toggle or `B`
 - **Then** they hide, the choice is kept for the next visit, and a message says how to decide
-  and how to show them again (the swipes that decide and the toggle, or the key `B`)
+  and how to show them again (the swipes that decide and the toggle, or the key `B`); the
+  decision keys keep working
 
 ### LOUPE-002.7 – Chrome-free mode hides the decision controls
 
@@ -91,7 +93,8 @@ off. The flag buttons can be hidden by their toggle or `B`. Each decision shows 
 - **Given** the loupe is wider than tall
 - **When** the flag buttons show
 - **Then** *Pick* floats at the left edge and *Reject* with *Unflag* at the right, the photo
-  fills the loupe; in portrait they form a row below the photo
+  fills the loupe; in portrait they form a row below the photo, *Pick* at the left, *Unflag* in
+  the middle and *Reject* at the right
 
 ## Out of scope
 
@@ -105,9 +108,32 @@ Delete from the loupe: DELETE-002.
 - **Then** its timer stops; once both have ended it runs its full time again (WCAG 2.2.1);
   hover does not hold it
 
+### LOUPE-002.13 – A pressed flag is readable
+
+- **Given** a picture is picked or rejected
+- **When** its flag button or flag mark shows
+- **Then** it is filled with the app's *Pick* or *Reject* colour and its icon and word are white,
+  at least 4.5:1 against the fill, in the light and the dark theme (UX review H1); a pressed
+  *Unflag* is filled the same way in the app's neutral *Unflag* colour, its border as thin as the
+  other two
+
+### LOUPE-002.14 – Swipe hint
+
+- **Given** a fitted photo
+- **When** the user lifts it up or down
+- **Then** a hint over the photo names the flag the release would set (*Pick* or *Reject* by the
+  gesture setting), faint and fading in with the distance while the release would settle back,
+  filled with that flag's colour once the release decides, by distance or flick, by the same rule
+  as the release; no hint shows for a direction set to Nothing, at rest, or once the photo settles
+  back or the swipe decided
+
 ## History
 
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged M3.2 (#49) and M4.3 settings (#54) |
 | 2026-11-10 | .12 focus or a press holds the toast (UX review L4) |
+| 2026-11-12 | .6 the decision keys keep working with the flag buttons hidden |
+| 2026-11-12 | .13 a pressed flag is readable (UX review H1) |
+| 2026-11-12 | .11 *Unflag* between *Pick* and *Reject* in portrait (owner, iPad) |
+| 2026-11-12 | .14 swipe hint; .13 a pressed *Unflag* is filled, not outlined (owner, iPad) |

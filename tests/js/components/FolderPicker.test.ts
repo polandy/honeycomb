@@ -9,6 +9,7 @@ import type { RecentFolderSet } from '../../../src/logic/recent.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import FolderList from '../../../src/components/FolderList.vue'
 import FolderPicker from '../../../src/components/FolderPicker.vue'
 import RecentFolderSets from '../../../src/components/RecentFolderSets.vue'
 import { DEFAULT_PAIRING_SETTINGS } from '../../../src/logic/pairing.ts'
@@ -129,6 +130,14 @@ describe('FolderPicker', () => {
 		expect(countLine(picker)).toBe(`${MARK}3 photos in 2 folders`)
 		// n() passes the plural form it picked through t() once more.
 		expect(confirmButton(picker).text()).toBe(`${MARK}${MARK}Cull 2 folders`)
+	})
+
+	// spec: LISTING-003.7
+	it('puts the subfolders switch above the folder list, so a long list cannot push it out of sight', async () => {
+		const picker = await mountPicker()
+		const list = picker.wrapper.findComponent(FolderList).element
+
+		expect(subfoldersSwitch(picker).element.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 	})
 
 	// spec: LISTING-003.8

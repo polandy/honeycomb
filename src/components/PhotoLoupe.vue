@@ -30,6 +30,7 @@ import PanelDivider from './PanelDivider.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
 import { toggleBrowserFullscreen } from '../fullscreen.ts'
 import { LOUPE_IDLE_MS, useIdle } from '../idle.ts'
+import { FILMSTRIP_THUMB } from '../logic/filmstrip.ts'
 import { imageMember, loupeSources } from '../logic/image-tiers.ts'
 import { DIVIDER_WIDTH, FLAG_RAIL, INFO_PANEL } from '../logic/panel-width.ts'
 import { prefetchOrder } from '../logic/prefetch.ts'
@@ -78,6 +79,7 @@ const stage = useTemplateRef<InstanceType<typeof LoupeStage>>('stage')
 const panels = useLoupePanels(props.storage, props.viewState)
 const { infoOpen, infoWidth, navigationShown, gestureGuideSeen } = panels
 const filmstripOpen = ref(true)
+const stripPinned = computed(() => filmstripOpen.value && props.settings.filmstripPinned)
 const chromeFree = ref(false)
 const zoom = ref<number | null>(null)
 const overlays = useIdle(props.schedule, LOUPE_IDLE_MS, () => Boolean(document.activeElement?.closest('.photo-loupe__overlay, .action-bar__row')))
@@ -122,9 +124,7 @@ const hotkeys: HotkeyHandlers = {
 	last: () => go(props.pictures.length - 1),
 	close: () => emit('close'),
 	grid: () => emit('close'),
-	header: () => {
-		chromeFree.value = !chromeFree.value
-	},
+	header: () => void (chromeFree.value = !chromeFree.value),
 	fullscreen: () => props.toggleFullscreen(root.value!),
 	zoom: () => stage.value!.toggleZoom(),
 	'zoom-in': () => stage.value!.toggleZoom(false),
@@ -151,7 +151,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 		class="photo-loupe"
 		:data-tips-off="overlays.idle.value || undefined"
 		:class="{ 'photo-loupe--idle': overlays.idle.value, 'photo-loupe--chrome-free': chromeFree, 'photo-loupe--below-header': navigationShown && !chromeFree }"
-		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px`, '--photo-loupe-rail': `${settings.flagButtonsShown ? FLAG_RAIL : 0}px` }"
+		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px`, '--photo-loupe-rail': `${settings.flagButtonsShown ? FLAG_RAIL : 0}px`, '--photo-loupe-strip': `${stripPinned ? FILMSTRIP_THUMB : 0}px` }"
 		role="dialog"
 		:aria-modal="!navigationShown"
 		:aria-label="t('honeycomb', 'Loupe')"
@@ -159,7 +159,8 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 		data-hotkeys-screen
 		@pointermove="$event.pointerType === 'mouse' && overlays.wake()">
 		<LoupeTitleRow
-			class="photo-loupe__top photo-loupe__overlay"
+			class="photo-loupe__top"
+			:class="stripPinned ? 'photo-loupe__top--pinned' : 'photo-loupe__overlay'"
 			:name="picture.baseName"
 			:index="props.index"
 			:count="props.pictures.length"
@@ -172,6 +173,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			@close="emit('close')"
 			@move="emit('move')"
 			@toggleZoom="stage!.toggleZoom()"
+			@toggleFullscreen="props.toggleFullscreen(root!)"
 			@update:infoOpen="panels.setInfoOpen"
 			@update:filmstripOpen="filmstripOpen = $event"
 			@update:navigationShown="panels.setNavigationShown"
@@ -187,6 +189,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 				:ready="prefetcher.ready"
 				:devicePixelRatio="props.devicePixelRatio"
 				:observeSize="props.observeSize"
+				:swipes="settings.swipes"
 				@page="go(props.index + $event)"
 				@overlays="overlays.toggle"
 				@chromeFree="chromeFree = !chromeFree"
@@ -216,85 +219,28 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 		</div>
 		<LoupeFilmstrip
 			v-if="filmstripOpen"
-			class="photo-loupe__filmstrip photo-loupe__overlay"
+			class="photo-loupe__filmstrip"
+			:class="settings.filmstripPinned ? 'photo-loupe__filmstrip--pinned' : 'photo-loupe__overlay'"
 			:pictures="props.pictures"
 			:index="props.index"
 			:decisionOf="props.decisionOf"
 			:imageUrl="props.imageUrl"
+			:observeSize="props.observeSize"
+			:pinned="settings.filmstripPinned"
 			@pointerdown="overlays.wake"
-			@select="go" />
+			@select="go"
+			@update:pinned="emit('updateSettings', { filmstripPinned: $event })" />
 		<ActionBar
 			v-if="!chromeFree"
 			layout="loupe"
 			:common="decisions.common.value"
 			:flags="settings.flagButtonsShown"
 			:idle="overlays.idle.value"
+			:pinned="settings.ratingRowPinned"
 			@pointerdown="overlays.wake"
 			@decide="decisions.decide" />
 		<GestureGuide v-if="!gestureGuideSeen" :swipes="settings.swipes" @dismiss="dismissGestureGuide" />
 	</div>
 </template>
 
-<style scoped>
-.photo-loupe {
-	position: fixed;
-	z-index: 10000;
-	inset: 0;
-	display: flex;
-	flex-direction: column;
-	background-color: var(--color-main-background);
-	color: var(--color-main-text);
-}
-
-.photo-loupe--below-header {
-	top: var(--header-height);
-}
-
-.photo-loupe:focus {
-	outline: none;
-}
-
-.photo-loupe__main {
-	position: relative;
-	display: flex;
-	flex: 1;
-	min-height: 0;
-}
-
-.photo-loupe__stage {
-	flex: 1;
-	min-width: 0;
-}
-
-.photo-loupe--chrome-free .photo-loupe__overlay,
-.photo-loupe--chrome-free .photo-loupe__panel {
-	display: none;
-}
-
-@media (orientation: landscape) {
-	.photo-loupe__top,
-	.photo-loupe__filmstrip {
-		position: absolute;
-		z-index: 1;
-		inset-inline: var(--photo-loupe-rail) calc(var(--photo-loupe-panel) + var(--photo-loupe-rail));
-		background-color: color-mix(in srgb, var(--color-main-background) 80%, transparent);
-	}
-
-	.photo-loupe__top {
-		top: 0;
-	}
-
-	.photo-loupe__filmstrip {
-		bottom: var(--photo-loupe-row, 56px);
-	}
-
-	.photo-loupe__overlay {
-		transition: opacity 0.2s;
-	}
-
-	.photo-loupe--idle .photo-loupe__overlay {
-		opacity: 0;
-		pointer-events: none;
-	}
-}
-</style>
+<style scoped src="./photo-loupe.css" />

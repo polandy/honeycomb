@@ -1,4 +1,4 @@
-# GRID-002 – Filters, scope, progress and sort
+# GRID-002 – Filters, flag filter, progress and sort
 
 - Status: implemented
 - Area: grid
@@ -8,38 +8,41 @@
 
 ## Purpose
 
-The scope and the filter bar narrow the grid to the pictures a pass is about; the progress shows
+The flag filter and the filter bar narrow the grid to the pictures a pass is about; the progress shows
 how far the cull is; the sort orders the pictures by file name or capture time.
 
 ## Behaviour
 
-- **Scope:** *not rejected* (default), *undecided* (unflagged only) or *all*. A flag filter
-  overrides it; the scope control is then disabled and says why.
+- **Flag filter:** three toggle chips in the toolbar, *Picked*, *Unflagged* and *Rejected*, each
+  with its flag icon, behind a filter icon. They combine; none pressed shows every picture.
+  *Picked* and *Unflagged* are pressed by default. The chips are the *Flag* group of the filter
+  bar, one state shown twice.
 - **Filter bar:** collapsible, toggled from the toolbar, which counts the active filter groups.
   Groups: rating (*Any*, 0–5 and a comparison button cycling *at least → at most → exactly*),
   colour label (nine swatches), flag, pairing (*Pairs*, *JPEG only*, *RAW only*), *Keep RAW*
   (*Marked*, *Not marked*) and, for a cull of several folders, folder. OR within a group, AND
-  across groups. *Clear filters* resets every group and keeps the scope.
-- **Progress:** "x of y decided" as text and as a bar, over every picture of the cull.
+  across groups. *Clear filters* resets every group, the flag filter to its default.
+- **Progress:** "x of y decided" as text and as a bar, over the pictures the filters let through.
 - **Sort:** *File name* or *Capture time* in the ⋯ menu. One folder starts by file name, several
   by capture time. A picture without a capture time sorts by modification time; ties by file
   name, compared numerically on the user's locale. Opening a folder set resets filters and sort.
-- **Empty view:** "No photos left to cull" (scope *not rejected*) and "Every photo is decided"
-  (scope *undecided*) offer *Show all*; no match offers *Clear filters*; empty folders say so.
+- **Empty view:** "No photos left to cull" (only the default flag filter) offers *Show all*; no
+  match offers *Clear filters*; empty folders say so.
 
 ## Acceptance criteria
 
-### GRID-002.1 – Scope
+### GRID-002.1 – Flag filter default
 
 - **Given** pictures picked, rejected and unflagged
-- **When** the scope is *not rejected*, *undecided* or *all*
-- **Then** the grid shows all but the rejected, only the unflagged, or every picture
+- **When** a cull opens
+- **Then** *Picked* and *Unflagged* are pressed and the grid shows all but the rejected
 
-### GRID-002.2 – A flag filter overrides the scope
+### GRID-002.2 – Flag chips combine
 
-- **Given** the scope *not rejected*
-- **When** the user filters for *Rejected*
-- **Then** the rejected pictures show, and the scope control is disabled and says why
+- **Given** the flag filter
+- **When** the user presses any combination of *Picked*, *Unflagged* and *Rejected*, or none
+- **Then** the grid shows the pictures with one of the pressed flags, or every picture when none is
+  pressed, and the *Flag* group of the filter bar shows the same chips
 
 ### GRID-002.3 – Rating filter
 
@@ -67,15 +70,17 @@ how far the cull is; the sort orders the pictures by file name or capture time.
 
 - **Given** active filters
 - **When** the user clears them
-- **Then** every group resets and the scope stays; the toolbar counts each active group once and
-  *Clear filters* is disabled while none is active
+- **Then** every group resets, the flag filter to its default; the toolbar counts each group that
+  has a choice, the flag filter when it differs from its default, and *Clear filters* is disabled
+  while none is active
 
 ### GRID-002.7 – Progress
 
 - **Given** a cull
 - **When** the toolbar renders
-- **Then** it shows "x of y decided" over every picture as text and a bar, empty for a cull
-  without photos
+- **Then** it shows "x of y decided" over the pictures that pass the filters (y is the number of
+  pictures the grid shows) as text and a bar, empty when none shows; the progress saved with a
+  recent folder set still counts every picture
 
 ### GRID-002.8 – Default sort and the sort menu
 
@@ -100,9 +105,16 @@ how far the cull is; the sort orders the pictures by file name or capture time.
 ### GRID-002.11 – Empty views
 
 - **Given** a view that shows nothing
-- **When** the folders hold no photos, the scope leaves nothing, or no picture matches
-- **Then** the grid says which, offers *Show all* for the scope and *Clear filters* (keeping the
-  scope) for filters
+- **When** the folders hold no photos, the default flag filter leaves nothing, or no picture matches
+- **Then** the grid says which, offers *Show all* (no flag pressed) for the flag filter and
+  *Clear filters* for filters
+
+### GRID-002.12 – One icon per flag
+
+- **Given** the flags *picked*, *rejected* and *unflagged*
+- **When** the action bar, the flag filter or a thumbnail shows them
+- **Then** each uses the same icon everywhere: a filled flag, a flag with an X and an outline flag;
+  each button keeps its label
 
 ## Out of scope
 
@@ -113,3 +125,4 @@ The filter toggle key (KEYS-001), the decisions themselves (DECISIONS-001).
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged M2.5 (#43) |
+| 2026-11-11 | The scope control becomes a combinable flag filter (owner) |

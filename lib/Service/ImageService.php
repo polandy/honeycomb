@@ -7,8 +7,6 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-use OCA\Honeycomb\BackgroundJob\GeneratePreviews;
-use OCP\BackgroundJob\IJobList;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
@@ -17,21 +15,20 @@ use OCP\IPreview;
 use OCP\IUser;
 use Psr\Log\LoggerInterface;
 
-/** Finds a user's image files by id and renders, warms and queues their preview tiers (ADR 0010). */
+/** Finds a user's image files by id and renders and warms their preview tiers (ADR 0010). */
 final class ImageService {
 	/** Long edge in pixels: grid tiles, large grid tiles, loupe (`docs/plan.md` Image delivery). */
-	public const array TIERS = [256, 512, 2048];
+	public const array TIERS = [256, 1024, 4096];
 	/** The tier of the full image, for the loupe's 100 % zoom; no long-edge limit. */
 	public const int FULL = 0;
 	/** Types every browser shows, served as the file itself at full size. */
 	private const array BROWSER_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-	/** Keeps a job's JSON argument below the 4,000 characters of the job table. */
-	public const int FILE_IDS_PER_JOB = 200;
+	/** The most files one warm-up request renders, so it ends within the PHP time limit. */
+	public const int WARM_LIMIT = 16;
 
 	public function __construct(
 		private IRootFolder $rootFolder,
 		private IPreview $preview,
-		private IJobList $jobList,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -94,16 +91,6 @@ final class ImageService {
 			} catch (ImageNotFoundException|ImageNotReadableException|NotFoundException|\InvalidArgumentException $e) {
 				$this->logger->debug('No previews warmed for file', ['fileId' => $fileId, 'exception' => $e]);
 			}
-		}
-	}
-
-	/**
-	 * Queues background jobs that warm the user's files in the given order.
-	 * @param list<int> $fileIds
-	 */
-	public function queueWarm(IUser $user, array $fileIds): void {
-		foreach (array_chunk($fileIds, self::FILE_IDS_PER_JOB) as $chunk) {
-			$this->jobList->add(GeneratePreviews::class, ['userId' => $user->getUID(), 'fileIds' => $chunk]);
 		}
 	}
 }

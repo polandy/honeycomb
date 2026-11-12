@@ -33,7 +33,7 @@ Controls with a tooltip:
 |---|---|
 | Grid toolbar | *Change folders*, *Filter* (`\`), *Select*, *Review rejects* (Ctrl+Backspace), *Compare series* (`N`), *More* |
 | Folder picker | *Open {name}* |
-| Loupe and series viewer title row | *Close* (Esc), *Flag buttons* (`B`), *Filmstrip*, *Nextcloud navigation* |
+| Loupe and series viewer title row | *Close* (Esc), *Fit / 100 %* (`Z`), *Move this photo* (`M`), *Flag buttons* (`B`), *Info panel* (`I`), *Fullscreen*, *Filmstrip*, *Nextcloud navigation* |
 | Loupe and series viewer | *Previous* (`←`), *Next* (`→`) |
 | Action bar, series compare | *Pick* (`P`), *Reject* (`X`), *Unflag* (`U`), the stars (`0`–`5`), the colour swatches (`6`–`9` for the first four), *Pick this, reject the rest* (Shift+K) |
 | Series compare | the photo, *Open in the series viewer* |
@@ -110,8 +110,6 @@ Controls with a tooltip:
 
 ## Out of scope
 
-- Dialog close buttons drawn by Nextcloud's own components.
-- The scope switch's "The flag filter overrides this", visible text while the app's scope switch
   shows text labels (GRID-002).
 
 ## History

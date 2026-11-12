@@ -15,7 +15,6 @@ use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Response;
-use OCP\BackgroundJob\IJobList;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -34,7 +33,7 @@ final class ImageControllerTest extends TestCase {
 	private const int MTIME = 1_700_000_000;
 
 	/** @param array<int, Node> $nodes alice's nodes by file id */
-	private function controller(array $nodes, ?IPreview $preview = null, ?IJobList $jobList = null, ?string $ifNoneMatch = null, bool $loggedIn = true): ImageController {
+	private function controller(array $nodes, ?IPreview $preview = null, ?string $ifNoneMatch = null, bool $loggedIn = true): ImageController {
 		$user = $this->createStub(IUser::class);
 		$user->method('getUID')->willReturn('alice');
 		$session = $this->createStub(IUserSession::class);
@@ -48,7 +47,6 @@ final class ImageControllerTest extends TestCase {
 		$images = new ImageService(
 			$root,
 			$preview ?? $this->previewOf('image/jpeg'),
-			$jobList ?? $this->createStub(IJobList::class),
 			$this->createStub(LoggerInterface::class),
 		);
 		return new ImageController(Application::APP_ID, $request, $session, $images);
@@ -66,7 +64,7 @@ final class ImageControllerTest extends TestCase {
 
 	private function previewOf(string $mime): IPreview {
 		$rendered = $this->createStub(ISimpleFile::class);
-		$rendered->method('getName')->willReturn('512-512.jpg');
+		$rendered->method('getName')->willReturn('1024-1024.jpg');
 		$rendered->method('getMimeType')->willReturn($mime);
 		$rendered->method('getMTime')->willReturn(self::MTIME + 60);
 		$rendered->method('getEtag')->willReturn('preview-etag');
@@ -83,10 +81,10 @@ final class ImageControllerTest extends TestCase {
 
 	// spec: IMAGES-001.1
 	public function testServesATierUnderAnImmutableUrl(): void {
-		$response = $this->controller([7 => $this->image()], $this->previewOf('image/webp'))->show(7, 512, self::MTIME);
+		$response = $this->controller([7 => $this->image()], $this->previewOf('image/webp'))->show(7, 1024, self::MTIME);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame('7-' . self::MTIME . '-512', $response->getETag());
+		$this->assertSame('7-' . self::MTIME . '-1024', $response->getETag());
 		$headers = $this->headersOf($response);
 		$this->assertSame('private, max-age=31536000, immutable', $headers['Cache-Control']);
 		$this->assertSame('image/webp', $headers['Content-Type']);
@@ -106,23 +104,23 @@ final class ImageControllerTest extends TestCase {
 		$preview = $this->createMock(IPreview::class);
 		$preview->expects($this->never())->method('getPreview');
 
-		$response = $this->controller([7 => $this->image()], $preview, ifNoneMatch: '"7-' . self::MTIME . '-2048"')->show(7, 2048, self::MTIME);
+		$response = $this->controller([7 => $this->image()], $preview, ifNoneMatch: '"7-' . self::MTIME . '-4096"')->show(7, 4096, self::MTIME);
 
 		$this->assertSame(Http::STATUS_NOT_MODIFIED, $response->getStatus());
-		$this->assertSame('7-' . self::MTIME . '-2048', $response->getETag());
+		$this->assertSame('7-' . self::MTIME . '-4096', $response->getETag());
 		$this->assertSame('private, max-age=31536000, immutable', $this->headersOf($response)['Cache-Control']);
 	}
 
 	// spec: IMAGES-001.3
 	public function testAnOutdatedETagGetsTheImage(): void {
-		$response = $this->controller([7 => $this->image()], ifNoneMatch: '"7-' . (self::MTIME - 1) . '-512"')->show(7, 512, self::MTIME);
+		$response = $this->controller([7 => $this->image()], ifNoneMatch: '"7-' . (self::MTIME - 1) . '-1024"')->show(7, 1024, self::MTIME);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
 	/** @return array<string, array{int}> */
 	public static function sizesThatAreNoTier(): array {
-		return ['between tiers' => [300], 'above the largest' => [4096], 'negative' => [-256]];
+		return ['between tiers' => [300], 'above the largest' => [16384], 'an old tier' => [512], 'negative' => [-256]];
 	}
 
 	// spec: IMAGES-001.5
@@ -150,12 +148,12 @@ final class ImageControllerTest extends TestCase {
 
 	// spec: IMAGES-001.8
 	public function testAMissingImageIsNotFound(): void {
-		$this->assertSame(Http::STATUS_NOT_FOUND, $this->controller([])->show(7, 512, self::MTIME)->getStatus());
+		$this->assertSame(Http::STATUS_NOT_FOUND, $this->controller([])->show(7, 1024, self::MTIME)->getStatus());
 	}
 
 	// spec: IMAGES-001.8
 	public function testAnUnreadableImageIsForbidden(): void {
-		$this->assertSame(Http::STATUS_FORBIDDEN, $this->controller([7 => $this->image(false)])->show(7, 512, self::MTIME)->getStatus());
+		$this->assertSame(Http::STATUS_FORBIDDEN, $this->controller([7 => $this->image(false)])->show(7, 1024, self::MTIME)->getStatus());
 	}
 
 	// spec: IMAGES-001.7
@@ -163,22 +161,22 @@ final class ImageControllerTest extends TestCase {
 		$preview = $this->createStub(IPreview::class);
 		$preview->method('getPreview')->willThrowException(new NotFoundException());
 
-		$this->assertSame(Http::STATUS_NOT_FOUND, $this->controller([7 => $this->image()], $preview)->show(7, 512, self::MTIME)->getStatus());
+		$this->assertSame(Http::STATUS_NOT_FOUND, $this->controller([7 => $this->image()], $preview)->show(7, 1024, self::MTIME)->getStatus());
 	}
 
 	// spec: IMAGES-001.8
 	public function testWithoutAUserNoImageIsServed(): void {
-		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller([7 => $this->image()], loggedIn: false)->show(7, 512, self::MTIME)->getStatus());
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller([7 => $this->image()], loggedIn: false)->show(7, 1024, self::MTIME)->getStatus());
 	}
 
 	// spec: IMAGES-001.10
-	public function testQueuesTheWarmingOfTheGivenFiles(): void {
-		$jobList = $this->createMock(IJobList::class);
-		$jobList->expects($this->once())->method('add')->with($this->anything(), ['userId' => 'alice', 'fileIds' => [3, 1, 2]]);
+	public function testRendersTheTiersOfTheGivenFilesBeforeItAnswers(): void {
+		$preview = $this->createMock(IPreview::class);
+		$preview->expects($this->once())->method('generatePreviews')->with($this->isInstanceOf(File::class));
 
-		$response = $this->controller([], jobList: $jobList)->warm([3, 1, 2]);
+		$response = $this->controller([7 => $this->image()], $preview)->warm([7]);
 
-		$this->assertSame(Http::STATUS_ACCEPTED, $response->getStatus());
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
 	/** @return array<string, array{array<mixed>}> */
@@ -188,26 +186,26 @@ final class ImageControllerTest extends TestCase {
 			'zero' => [[0]],
 			'negative' => [[-1]],
 			'not a list' => [['a' => 1]],
-			'above the listing limit' => [range(1, 60_001)],
+			'above the files of one request' => [range(1, ImageService::WARM_LIMIT + 1)],
 		];
 	}
 
 	/** @param array<mixed> $fileIds */
 	// spec: IMAGES-001.11
 	#[DataProvider('invalidFileIds')]
-	public function testInvalidFileIdsAreABadRequestAndQueueNothing(array $fileIds): void {
-		$jobList = $this->createMock(IJobList::class);
-		$jobList->expects($this->never())->method('add');
+	public function testInvalidFileIdsAreABadRequestAndRenderNothing(array $fileIds): void {
+		$preview = $this->createMock(IPreview::class);
+		$preview->expects($this->never())->method('generatePreviews');
 
-		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller([], jobList: $jobList)->warm($fileIds)->getStatus());
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller([], $preview)->warm($fileIds)->getStatus());
 	}
 
 	// spec: IMAGES-001.11
-	public function testWithoutAUserNothingIsQueued(): void {
-		$jobList = $this->createMock(IJobList::class);
-		$jobList->expects($this->never())->method('add');
+	public function testWithoutAUserNothingIsRendered(): void {
+		$preview = $this->createMock(IPreview::class);
+		$preview->expects($this->never())->method('generatePreviews');
 
-		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller([], jobList: $jobList, loggedIn: false)->warm([1])->getStatus());
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller([], $preview, loggedIn: false)->warm([1])->getStatus());
 	}
 
 	// spec: IMAGES-001.8

@@ -132,8 +132,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   not on every upload: generating three tiers for every image of every user costs CPU and
   storage for people who never cull; the Preview Generator app covers uploads for admins who
   want it.
-- 2026-11-10: A warming job takes 200 file ids, so its JSON argument stays below the job
-  table's 4,000 characters; a file it cannot find or render is skipped with a debug log line.
+- 2026-11-10: A file the warm-up cannot find or render is skipped with a debug log line.
 - 2026-11-10: The controller answers a matching `If-None-Match` with `304` itself before
   rendering, so a revisit never generates a preview; Nextcloud's `NotModifiedMiddleware` would
   only check after the controller ran.
@@ -674,3 +673,111 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   types it `image/*`, since listing by the user's list would change the entries API (ADR 0001).
 - 2026-11-11: The RAW preview provider is registered for `application/octet-stream` too and is
   available there only for those extensions, so other untyped files still get no preview.
+- 2026-11-11: The scope control (*Not rejected* / *Undecided* / *All*) is replaced by the
+  combinable flag filter on the owner's request; *Undecided* and its "Every photo is decided"
+  empty state go. The scope was never stored, so there is no value to migrate. *Clear filters*
+  and the toolbar count treat the flag filter like any group, against its default.
+- 2026-11-11: `docs/mockup/index.html` still shows the old scope control; it is not redrawn here.
+- 2026-11-11: The loupe stage fits a photo by its loaded image's aspect once it has loaded, ahead
+  of the listing's size. Previews are always drawn upright, while a listing size can disagree
+  with them (Nextcloud reports `photos-size` turned, but only when it also read the EXIF
+  orientation), so the drawn image is the one source that cannot distort an EXIF-rotated photo.
+- 2026-11-11: Loupe neighbours are moved aside by `translateX(±100%)` on a full-width slide and
+  hidden with `visibility: hidden` until a drag moves them in, rather than only clipped by the
+  stage, so no browser (iPad Safari, fullscreen) can show them beside the shown photo.
+- 2026-11-11: The loupe's *Fullscreen* button sits in the title row, not on a separate culling
+  stage, because the loupe is the culling stage and `F` already fullscreens its root. Toasts and
+  dialogs mount outside that root, so they do not show in fullscreen; left as is, owner asked for
+  no other change.
+- 2026-11-11: The grid keeps six image loads in flight (owner asked for 6–8): core renders four
+  previews at a time, so six keeps it busy with two finishing transfer, and stays below what
+  exhausted nc-test's database connections. Order: visible small, visible sharp, nearby small,
+  nearby sharp; a visible tile's sharp image is worth more than an offscreen one's small.
+- 2026-11-11: The loupe's tier is core's largest preview, 4096 px, not 1024 px, by measurement on
+  the e2e Nextcloud (24 MP JPEG): the first request of any size renders the 4096 px preview first
+  (1.0–1.2 s), after which 4096 is served in 0.1 s and 1024 in 0.1–0.27 s; 4096 weighs about
+  1.2 MB against 76 kB. A 1024 px image would be scaled up two- to threefold on an iPad's loupe
+  (2316–2752 px), too soft to judge focus, and the loupe loads one image and its neighbours, not
+  the grid's dozens.
+- 2026-11-11: The grid's tile queue takes a settle callback, not a promise, so a tile's sharp
+  load is queued before the queue starts the next waiting one; PhotoGrid's styles moved to
+  `photo-grid.css` to keep the component under 300 lines.
+- 2026-11-12: The toolbar's "x of y decided" counts the pictures that pass the filters, so y equals
+  the grid's picture count; the progress saved with a recent folder set stays over every picture.
+  The toolbar is compact (13 px text, 16–18 px icons, 28 px chips, 32 px buttons) and keeps the
+  44 px touch target through a larger hit area on coarse pointers, not a larger look.
+- 2026-11-12: The loupe filmstrip is a dark band (`#111`) with a white border on the shown photo in
+  every theme, a fixed colour against the rule of theme variables, because the owner's Lightroom
+  reference asks for it and a light band would compete with the photo. Photos are 56 px squares.
+- 2026-11-12: The filmstrip pads both ends by half its width so the first and last picture sit in
+  the middle too, and renders only the photos in view plus four on each side, so a folder of
+  thousands costs no more than one of twenty.
+- 2026-11-12: *Pin the filmstrip* and *Pin the rating row* are per-user settings in the *Loupe
+  gestures* section, off by default so the photo keeps the most room as before. Pinned, they sit
+  below the photo in landscape (portrait already stacks them below); the chrome-free mode still
+  hides them, since the user asked for it. Showing or hiding the Pick and Reject buttons was
+  already the *Show flag buttons* setting and `B`; this change only adds a test that the keys
+  decide while they are hidden. The mockup is not redrawn for the filmstrip look.
+- 2026-11-12: Drag selection starts only after the tile's long-press, also in selection mode;
+  iOS Photos also starts it from a sideways swipe in selection mode, but here a swipe always
+  scrolls, so scrolling never turns into selecting by surprise. The range follows grid order
+  from the pressed tile (not a rectangle), and dragging back deselects only what this drag
+  added. Auto-scroll runs within 48 px of the edge at up to 16 px a frame, scaled by how deep the
+  finger is in that band. The pressed tile's row stays rendered during the drag because a
+  touch's events keep going to the element it started on.
+- 2026-11-12: Warming renders in the request (16 files at most, the client sends 4 at a time, 4
+  requests in flight) instead of a QueuedJob, which waited for cron for up to 5 minutes; the
+  grid's own image loads and the warm-up share core's four renders, and the QueuedJob is gone.
+- 2026-11-12: The screenshots of `docs/ux-review-2026-11.md` live in `polandy/honeycomb-assets`
+  under `ux-review-2026-11/`, not `pr-<n>/`: the review document links them after the merge, and
+  `pr-<n>/` folders are pruned then. They show synthetic photos, never the owner's.
+- 2026-11-12: The tag entry (`docs/mockup/tag-entry.html`): `T` opens it for the loupe picture or the
+  selection; Tab and Shift+Tab cycle the matches into the field; Enter assigns exactly the field,
+  creating the tag if new; the entry stays open; Backspace in the empty field and a chip's `×`
+  remove, from all selected pictures. A tag on only some of them shows as a partial chip.
+- 2026-11-12: UX H1 — pressed Pick and Reject use the app tokens `--honeycomb-pick-fill` and
+  `--honeycomb-reject-fill` (`src/flag-fills.css`) with a white icon, because Nextcloud 35's success
+  and error colours are pale tints.
+- 2026-11-12: UX H2 — a tile's flag mark, stars and colour dot sit in one row on a fixed dark
+  bottom gradient with white stars (GRID-001.16), because the photo, not the theme, is their
+  background; the colour dot moved from the top-left to that row.
+- 2026-11-12: UX H3 shows the zoom as a pressed *Fit / 100 %* icon button; the zoom percentage
+  is gone from the title row, the tooltip keeps the name.
+- 2026-11-12: UX H4 opens the loupe info panel as a fixed bottom sheet at 520 px and below, at
+  most 60 % of the height, over the action bar; CSS only, so the dragged width stays for wider
+  screens.
+- 2026-11-12: UX H5 lays the title row out in the flow, not over the photo, while the filmstrip
+  is pinned in landscape, and keeps it from idling like the filmstrip; unpinned, both still float.
+- 2026-11-12: iPad feedback, portrait: the large flag buttons run *Pick*, *Unflag*, *Reject* in
+  the DOM too, so the focus order matches the row; the small buttons keep *Pick*, *Reject*,
+  *Unflag*.
+- 2026-11-12: iPad feedback, folder picker: *Include subfolders* sits directly above the folder
+  list, below *Recent*, since it applies to the ticked folders and not to a recent folder set.
+- 2026-11-12: iPad feedback, landscape: the filmstrip is pinned from a pin toggle in the loupe's
+  title row, bound to the existing *Pin the filmstrip* setting; it is hidden in portrait, where
+  the filmstrip always sits below the photo.
+- 2026-11-12: iPad feedback, filter: the loupe narrows its snapshot to the pictures the filters
+  let through, but keeps the shown picture until it is left, so a decision never shifts the photo
+  and the undo toast still shows what was decided.
+- 2026-11-12: iPad feedback, swipe hint: while a finger lifts the photo, a pill in the stage's
+  middle names the flag the release sets, dashed and fading in with the distance while the release
+  would settle back, filled with the flag's colour once it decides. The gesture recogniser reports
+  the swipe a release would make on every move, so the hint and the release share one rule (flick
+  included); a direction set to Nothing shows no hint.
+- 2026-11-12: iPad feedback, filmstrip pin: the pin toggle moved from the title row to the
+  filmstrip's end, a 44 px column of the same dark band, so it reads as part of the strip; still
+  landscape only.
+- 2026-11-12: iPad feedback, Unflag: its pressed state (every unflagged picture) was a 2 px outline
+  in the text colour over the 1 px border, which read as a thicker white border. It is now filled
+  like *Pick* and *Reject*, in a neutral grey (`--honeycomb-unflag-fill`, 7.2:1 with white).
+- 2026-11-12: Series compare also compares the images (owner decision): a dHash of the 256 px grid
+  preview, alike at most 10 of 64 bits apart, 30 s window with hashes, the 3 s rule without one;
+  constants, not a setting, until the owner's taste asks for one (ADR 0021).
+- 2026-11-12: The mockup selects several pictures with a visible *Select* button (long-press on
+  touch is a shortcut) and filters the grid by tags with the same autocomplete entry (`F`): a
+  picture stays if it has every chosen tag.
+- 2026-11-12: Tags (`docs/07-tags.md`, D1–D9, owner approved the #109 mockup): sidecars only with the
+  embedded XMP read-only; union of sources; tile icon and count; the filter is AND (the mockup
+  shows only pictures with every chosen tag, deviating from the recommended OR); a parent matches
+  its descendants; tag list kept per user; no tag management in v1; Select button plus long-press;
+  foreign `dc:subject` keywords kept.

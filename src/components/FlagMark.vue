@@ -6,13 +6,14 @@
 import type { Flag } from '../logic/decision.ts'
 
 import AppIcon from './AppIcon.vue'
+import { FLAG_ICONS } from '../flag-icons.ts'
 
 const props = defineProps<{ flag: Exclude<Flag, 'unflagged'> }>()
 </script>
 
 <template>
 	<span class="flag-mark" :class="`flag-mark--${props.flag}`" aria-hidden="true">
-		<AppIcon :name="props.flag === 'picked' ? 'flagPick' : 'flagX'" />
+		<AppIcon :name="FLAG_ICONS[props.flag]" />
 	</span>
 </template>
 
@@ -24,7 +25,7 @@ const props = defineProps<{ flag: Exclude<Flag, 'unflagged'> }>()
 	width: 24px;
 	height: 24px;
 	border-radius: 50%;
-	color: var(--color-main-background);
+	color: #fff;
 }
 
 .flag-mark .app-icon {
@@ -33,10 +34,10 @@ const props = defineProps<{ flag: Exclude<Flag, 'unflagged'> }>()
 }
 
 .flag-mark--picked {
-	background-color: var(--color-success);
+	background-color: var(--honeycomb-pick-fill);
 }
 
 .flag-mark--rejected {
-	background-color: var(--color-error);
+	background-color: var(--honeycomb-reject-fill);
 }
 </style>

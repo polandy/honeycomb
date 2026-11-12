@@ -11,6 +11,7 @@ import type { SortOrder } from './logic/picture-order.ts'
 import type { Settings } from './logic/settings.ts'
 import type { SidecarFailure } from './logic/sidecar-sync.ts'
 import type { UndoEntry, UndoHistory } from './logic/undo.ts'
+import type { HashImage } from './visual-hashes.ts'
 
 import { computed, ref, shallowRef, watch } from 'vue'
 import { readStored, writeStored } from './browser-storage.ts'
@@ -19,7 +20,7 @@ import { logger } from './logger.ts'
 import { prepareCull, warmFileIds } from './logic/cull.ts'
 import { commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
 import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
-import { activeFilterCount, clearFilters, DEFAULT_FILTERS, emptyReason, filterPictures, pictureFolders, progress } from './logic/picture-filter.ts'
+import { activeFilterCount, DEFAULT_FILTERS, emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
 import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
 import { findSeries, seriesCandidates, seriesSizes as sizesOf } from './logic/series.ts'
 import { pairingSettings } from './logic/settings.ts'
@@ -27,6 +28,7 @@ import { inSharedFolder } from './logic/sidecar-sync.ts'
 import { parseTileSize } from './logic/tile-size.ts'
 import { withoutFiles } from './logic/trash-report.ts'
 import { NO_HISTORY, pickRestEntry, recordStep, redoStep, undoEntry, undoStep } from './logic/undo.ts'
+import { useVisualHashes } from './visual-hashes.ts'
 
 /** How the cull takes decisions over from the sidecars and writes them through (XMP-003). */
 export interface CullSidecars {
@@ -37,8 +39,9 @@ export interface CullSidecars {
 /** The browser storage key of the thumbnail size. */
 const TILE_SIZE_KEY = 'honeycomb.tileSize'
 
-/** The server calls the cull makes. */
+/** The server calls the cull makes, and the visual hashing of its previews. */
 export interface CullApi {
+	readonly hashImage: HashImage
 	readonly warmPreviews: (fileIds: readonly number[]) => Promise<void>
 	readonly lookupDecisions: (fileIds: readonly number[]) => Promise<StoredDecision[]>
 	readonly saveDecisions: (decisions: readonly StoredDecision[]) => Promise<void>
@@ -69,12 +72,15 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const folders = computed(() => folderPaths.value.length)
 	const grouped = computed(() => groupByFolder.value && folders.value > 1)
 	const decisionOf = (picture: Picture<ListingEntry>) => pictureDecision(picture, decisions.value)
+	const passes = (picture: Picture<ListingEntry>) => matchesFilters(picture, decisionOf(picture), filters.value)
 	const view = computed(() => sortPictures(filterPictures(pictures.value, decisionOf, filters.value), sortOrder.value, compareNames, grouped.value))
 	const cullProgress = computed(() => progress(pictures.value, decisionOf))
+	const shownProgress = computed(() => progress(view.value, decisionOf))
 	const activeFilters = computed(() => activeFilterCount(filters.value))
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
-	const candidates = computed(() => seriesCandidates(pictures.value))
-	const series = computed(() => findSeries(candidates.value, decisionOf))
+	const hashes = useVisualHashes(api.hashImage, storage, () => pictures.value)
+	const candidates = computed(() => seriesCandidates(pictures.value, hashes.hashOf))
+	const series = computed(() => findSeries(candidates.value, decisionOf, hashes.hashOf))
 	const seriesSizes = computed(() => sizesOf(series.value))
 	const sharedPictures = computed(() => pictures.value.filter((picture) => inSharedFolder(picture, sharedFolders.value)))
 
@@ -222,19 +228,19 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		}
 	}
 
-	/** Switches the scope and keeps the filters. */
-	function setScope(scope: Filters['scope']) {
-		filters.value = { ...filters.value, scope }
+	/** Replaces the flag filter and keeps the other groups. */
+	function setFlags(flags: Filters['flags']) {
+		filters.value = { ...filters.value, flags }
 	}
 
-	/** Turns the filters off, keeping the scope; the next press turns them back on unless others were set meanwhile. */
+	/** Turns the filters off; the next press turns them back on unless others were set meanwhile. */
 	function toggleFiltersOff() {
 		if (filtersOff !== null && activeFilters.value === 0) {
-			filters.value = { ...filtersOff, scope: filters.value.scope }
+			filters.value = filtersOff
 			filtersOff = null
 		} else {
 			filtersOff = filters.value
-			filters.value = clearFilters(filters.value)
+			filters.value = DEFAULT_FILTERS
 		}
 	}
 
@@ -253,6 +259,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		grouped,
 		view,
 		progress: cullProgress,
+		shownProgress,
 		filters,
 		activeFilters,
 		empty,
@@ -265,9 +272,11 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		sharedPictures,
 		sharedDecided,
 		decisionOf,
+		passes,
 		common,
 		series,
 		seriesSizes,
+		holdHashes: hashes.hold,
 		decide,
 		pickRest,
 		undo,
@@ -275,7 +284,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		open,
 		removeFiles,
 		restoreFiles,
-		setScope,
+		setFlags,
 		toggleFiltersOff,
 		setTileSize,
 	}

@@ -59,7 +59,7 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    the RAW's embedded JPEG for a RAW-only picture, and warms previews in the background (ADR
    0010, [Image delivery & performance](#image-delivery--performance)).
 3. **Folder picker and grid:** a folder picker with a checkbox per folder and the *Include
-   subfolders* switch, a virtual-scrolling grid with srcset thumbnails (256/512 px, stepless
+   subfolders* switch, a virtual-scrolling grid with tiered thumbnails (256/1024 px, stepless
    size), pair badges and folder headers, light and dark ([Multiple folders](#multiple-folders)).
    The picker browses folders through `GET /api/v1/folders` (ADR 0011) and counts the ticked
    folders by listing and pairing them in TypeScript.
@@ -69,8 +69,9 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    0012: one row per member file id and user, written as whole states; the 20 most recent
    folder sets keep a position).
 5. **Filter bar:** rating, colour label, flag, pairing, *Keep RAW* and folder filters and the
-   sort, as pure TypeScript modules over the listed pictures (Q8, Q9, Q18), and the scope *not
-   rejected* / *undecided* / *all* of the culling workflow with the "x of y decided" progress.
+   sort, as pure TypeScript modules over the listed pictures (Q8, Q9, Q18), and the flag filter
+   (*Picked*, *Unflagged*, *Rejected*, combinable) of the culling workflow with the
+   "x of y decided" progress.
 6. **Selection and bulk actions:** selection mode, select all filtered, bulk rate, label, flag
    and *Keep RAW* (Q10).
 
@@ -156,8 +157,10 @@ pictures, a rejected picture disappears from view, and at the end delete all rej
    sidecar form, `<file>.xmp` of each member and a shared `<base>.xmp` alike. The delete summary
    shows pictures · files · bytes freed. *Remove RAWs* is the one action that takes a member
    away from a picture ([Keep RAW and Remove RAWs](#keep-raw-and-remove-raws)).
-4. **Series compare** (milestone M6). Pictures taken within a short interval (mockup: 3 seconds by
-   capture time, at most 4 per series) form a series, shown 2–4 side by side. Tapping the best one
+4. **Series compare** (milestone M6). Pictures taken within a short interval that look alike
+   (owner, 2026-11-12: up to 30 seconds apart with a visual hash of the preview, 3 seconds by
+   capture time until it is there; ADR 0021, at most 4 per series) form a series, shown 2–4 side
+   by side. Tapping the best one
    means *Pick this, reject the rest*: it is picked, the others rejected, as one undo step. The
    owner's 2026-11-09 feedback changes how: see [Compact header and series
    viewer](#compact-header-and-series-viewer).
@@ -167,11 +170,10 @@ pictures, a rejected picture disappears from view, and at the end delete all rej
    per folder set and user is stored on the server (with the decisions, M2.4), so another device
    offers to continue there. *Recent* in the navigation lists the last folder sets with their
    progress.
-7. **Multi-pass.** The scope filter has *not rejected* (default), *undecided* and *all*, so a
-   second pass over the picks or a pass over what is left is one tap. An explicit flag filter
-   overrides the scope.
+7. **Multi-pass.** The flag filter combines *Picked*, *Unflagged* and *Rejected* (default: picked
+   and unflagged), so a second pass over the picks or a pass over what is left is two taps.
 
-Where the work lands: M2.4 (resume position), M2.5 (scope, progress), M3.2 (auto-advance, toast),
+Where the work lands: M2.4 (resume position), M2.5 (flag filter, progress), M3.2 (auto-advance, toast),
 M4.1 and M4.2 (delete, review, summary), M6 (series).
 
 ## Keep RAW and Remove RAWs
@@ -193,7 +195,7 @@ for most, so the RAWs of the rest can go once a cull is done.
 3. **Filter.** The filter bar has a *Keep RAW* group after *Pairing*, with the chips *Marked* and
    *Not marked*; like the other chip groups it selects several, none selected means no filter.
 4. **Remove RAWs.** A bulk action in the ⋯ menu, "Remove RAWs…" with a count, that acts on the
-   current view (scope and filters). It takes every picture in the view that is a pair, is not
+   current view (flag filter and filters). It takes every picture in the view that is a pair, is not
    marked *Keep RAW* and is not rejected; singles (JPEG only or RAW only), marked and rejected
    pictures are skipped. For each it moves **only the RAW member and its own `<raw>.xmp`
    sidecar** to the Nextcloud trash bin. The JPEG, its `<jpeg>.xmp` and a shared `<base>.xmp`
@@ -224,8 +226,8 @@ Decided by the owner on 2026-11-09 (answers Q17): one cull can cover several fol
 folder with all its subfolders. That set of folders is the *folder set*.
 
 1. **Picker.** The folder picker has a checkbox per folder and an *Include subfolders* switch
-   (any depth). Before opening it shows the count, e.g. "1,840 photos in 23 folders"; the button
-   reads "Cull 23 folders".
+   (any depth) above the folder list. Before opening it shows the count, e.g. "1,840 photos in
+   23 folders"; the button reads "Cull 23 folders".
 2. **Skipped folders.** Hidden folders (name starts with `.`), the trash bin and Nextcloud's
    preview folders are never part of a folder set.
 3. **Grid.** Sorted by capture time across folders by default; one folder starts by file
@@ -251,9 +253,10 @@ per folder set), M2.5 (folder filter), M6 (series per camera).
 Decided by the owner on 2026-11-09 (answers Q19). Culling 2,000+ 24 MP pairs lives or dies by how
 fast the right pixels reach the screen.
 
-**Size tiers.** Grid tiles 256 px and 512 px, loupe 2048 px on the long edge, 100 % zoom the
-original file. The browser picks the tier through `srcset` from tile size × `devicePixelRatio`;
-the thumbnail size is stepless (mockup: slider, Ctrl + wheel, pinch).
+**Size tiers.** Grid tiles 256 px and 1024 px, loupe 4096 px on the long edge (core's preview
+sizes, ADR 0010), 100 % zoom the original file. A tile picks the tier from tile size ×
+`devicePixelRatio` and loads it through the grid's load queue, at most six at a time, visible
+tiles first (GRID-001.15); the thumbnail size is stepless (mockup: slider, Ctrl + wheel, pinch).
 
 **Progressive display.** The small preview shows first; the sharp one is swapped in after
 `img.decode()` resolves, so the tile never blanks or jumps.
@@ -302,22 +305,21 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    beside the icons only when the toolbar is at least 1000 px wide. Sort, the tile size slider,
    *Move picks*, *Resume*, hiding the header, settings and the mockup's language switch live in
    a **⋯ more menu** (arrow keys,
-   one separator per group). The scope (*Not rejected* / *Undecided* / *All*) and the progress
-   share one slim row below (it moves into the app bar while scrolling, item 2). The active
-   scope shows its name beside the icon when the app is wider than 520 px; at 520 px and below
-   the slim row shows one button with the active scope's name that opens the three scopes as a
-   menu (UX review L2). Every control keeps a 44 px hit target.
+   one separator per group). The flag filter (*Picked*, *Unflagged*, *Rejected*
+   chips behind a filter icon) and the progress share the toolbar and wrap onto a second line
+   rather than squeezing the breadcrumb (the mockup still shows the older scope control).
+   Every control keeps a 44 px hit target.
 2. **The key actions move into the app bar while scrolling** (owner, 2026-11-09, correcting the
    slim-row version). Nothing stays below the app bar: when the toolbar hides, all of it, the
    slim row included, slides away, and the most used actions appear in the top app bar
-   (`.hdr`, where *Undo* and *Redo* are), between the logo and *Undo*: the scope as three icon
+   (`.hdr`, where *Undo* and *Redo* are), between the logo and *Undo*: the flag filter as three icon
    buttons, the *decided* count with a thin progress line on the bar's bottom edge, *Review
    rejects* with its badge and the ⋯ menu. When the toolbar returns they leave the app bar again;
    there are never two copies at once (the hidden toolbar is inert). Every target keeps 44 px.
    On a phone the logo shrinks to the mark, and to make room the navigation toggle and the count
    figures give way while the actions are in the app bar (the thin line stays), *Redo* moves into
    the ⋯ menu and *Undo* stays in the bar (owner, 2026-11-10; Ctrl+Shift+Z and Ctrl+Y are
-   unchanged). Checked in the mockup at 360 and 412 px: the mark, the three scope icons, *Review
+   unchanged). Checked in the mockup at 360 and 412 px: the mark, the three flag icons, *Review
    rejects*, ⋯ and *Undo* fit with 44 px targets beside the reserved 60 px on the right.
    Breadcrumbs, *Select*, *Compare series* and *Filters* sit in the toolbar, which returns on
    scrolling up. The ⋯ entry *Hide header* still hides everything, leaving a small handle. The
@@ -335,8 +337,7 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    - Focus entering the bar shows it, and selection mode keeps it shown.
    - Opening a folder starts with the bar shown.
 3. **Flag icons as in Lightroom and digiKam** (owner, 2026-11-09). *Rejected* is a flag with an
-   x, *Picked* a filled white flag and *Unflagged* an empty flag outline. The scope buttons use
-   a crossed reject flag for *Not rejected*, the empty flag for *Undecided* and a grid for *All*.
+   x, *Picked* a filled white flag and *Unflagged* an empty flag outline.
    The same icons mark the tiles, the loupe, the bulk actions, the flag filter and the series
    viewer. The words stay as `aria-label` and a [tooltip](#tooltip); targets stay 44 px.
 4. **Series viewer.** Tapping a photo of a series opens it fullscreen at once, the whole series
@@ -680,7 +681,7 @@ honeycomb is a classic PHP Nextcloud app, not an AppAPI ExApp (ADR 0006).
 | Backend (PHP, thin) | Frontend (pure TypeScript modules in `src/logic/`) |
 |---|---|
 | List a folder set: one file-cache query by path prefix and mime type, flat entries with EXIF basics | Pairing, series |
-| Move and trash files through `OCP\Files` | Filters, sort, the culling scope and progress |
+| Move and trash files through `OCP\Files` | Filters, sort, the flag filter and progress |
 | Write the XMP bytes the client produced, with the checked save | XMP read and write mapping, serialized form |
 | Store per-user decisions, resume position and settings | Name templates and move conflicts |
 | Serve Nextcloud previews | Decisions (flag toggle, common values), undo, gestures, hotkeys, header scroll logic |
@@ -702,7 +703,7 @@ takes its sizes from the pointer type ([Control sizes](#control-sizes)), not fro
 
 | Component (mockup function) | Renders | Used by | Pure modules (`src/logic/`) |
 |---|---|---|---|
-| `FlagButtons` (`flagButtons`) | *Pick*, *Reject*, *Unflag*, neutral until pressed: a pressed *Pick* or *Reject* fills its colour, a pressed *Unflag* gets an outline; small or large | action bar, series compare card | `decisions`: flag toggle, a selection's common value |
+| `FlagButtons` (`flagButtons`) | *Pick*, *Reject*, *Unflag*, neutral until pressed: a pressed *Pick* or *Reject* fills its colour, a pressed *Unflag* fills a neutral grey; small or large | action bar, series compare card | `decisions`: flag toggle, a selection's common value |
 | `FlagMark` (`flagMark`) | the read-only flag icon | `PhotoTile`, loupe filmstrip, series compare card | — |
 | `StarRating` (`starRating`, `stars`) | 0–5 buttons, or read-only stars | action bar, `PhotoTile`, series compare card | `decisions` |
 | `ColourLabels` (`colourLabel`, `showPalette`) | the label button and the nine-colour palette | action bar, filter bar | `decisions`, `hotkeys` |
@@ -746,7 +747,9 @@ used.
   - The tile's own long-press (480 ms, cancelled like the tooltip's by 10 px of movement, the
     finger lifting or the browser taking the pointer) enters selection mode and adds the tile;
     a second long-press never removes it. The click that follows is swallowed by the grid, so
-    the loupe does not open and the tile is not toggled again.
+    the loupe does not open and the tile is not toggled again. Once it has fired, moving the
+    finger no longer cancels it but drags a selection, and the grid ignores the finger for
+    scrolling until it lifts.
   - Tile badges show their tooltip on mouse hover only; keyboard focus is on the tile, whose
     `aria-label` carries the same words.
 
@@ -818,7 +821,10 @@ Answered by the owner on 2026-11-09 (Q8, Q9, Q10, Q13, Q18).
 3. **Tile overlays.** Stars (once rated), colour label and flag are always visible on every
    tile. There is no setting: without hover, hiding them would hide the state on touch.
 4. **Selection mode.** The *Select* button and a long-press on a tile both enter selection mode;
-   the long-press also selects that tile. How this long-press and the tooltip's long-press are
+   the long-press also selects that tile. Dragging on without lifting the finger selects the
+   range in grid order up to the tile under it, as in Lightroom mobile and iOS Photos; dragging
+   back removes only what the drag added, and within 48 px of the top or bottom edge the grid
+   scrolls on by itself (GRID-003.11–.13). How this long-press and the tooltip's long-press are
    kept apart: [Tooltip](#tooltip), *Gestures*.
 
 ### Sort order

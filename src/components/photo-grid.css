@@ -1,0 +1,66 @@
+/*
+ * SPDX-FileCopyrightText: 2026 honeycomb contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+.photo-grid {
+	position: relative;
+	height: 100%;
+	min-height: 0;
+}
+
+.photo-grid__scroller {
+	height: 100%;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: 0 var(--default-grid-baseline);
+	-webkit-user-select: none;
+	user-select: none;
+}
+
+.photo-grid__spacer {
+	position: relative;
+}
+
+.photo-grid__header,
+.photo-grid__sticky {
+	display: flex;
+	align-items: center;
+	gap: calc(2 * var(--default-grid-baseline));
+	padding: 0 var(--default-grid-baseline);
+	font-weight: bold;
+}
+
+.photo-grid__header {
+	position: absolute;
+	inset-inline: 0;
+}
+
+.photo-grid__header small {
+	color: var(--color-text-maxcontrast);
+	font-weight: normal;
+}
+
+.photo-grid__sticky {
+	position: absolute;
+	z-index: 1;
+	top: 0;
+	inset-inline: 0;
+	height: 40px;
+	background-color: var(--color-main-background);
+}
+
+.photo-grid__row {
+	position: absolute;
+	inset-inline: 0;
+}
+
+.photo-grid__tile {
+	position: absolute;
+	top: 0;
+	height: 100%;
+}
+
+.photo-grid__tile:focus-visible {
+	outline: 2px solid var(--color-primary-element);
+	outline-offset: 2px;
+}

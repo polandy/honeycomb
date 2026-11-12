@@ -5,17 +5,18 @@
 <script setup lang="ts">
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { ListingEntry } from '../logic/listing.ts'
-import type { GestureAction, GesturePointer, SwipeDirection } from '../logic/loupe-gesture.ts'
+import type { GestureAction, GesturePointer, SwipeDirection, SwipeSetting } from '../logic/loupe-gesture.ts'
 import type { PinchCentre, Size, Zoom } from '../logic/loupe-zoom.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { ObserveSize } from '../observe-size.ts'
 
 import { computed, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef, watch } from 'vue'
+import LoupeSwipeHint from './LoupeSwipeHint.vue'
 import { fullLongEdge, imageMember, loupeSources } from '../logic/image-tiers.ts'
-import { loupeGestures } from '../logic/loupe-gesture.ts'
+import { DEFAULT_SWIPES, loupeGestures, swipeHint } from '../logic/loupe-gesture.ts'
 import { FIT, fitSize, fullScale, isZoomed, panBy, pinchZoom, toggleZoom, zoomPercent } from '../logic/loupe-zoom.ts'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	pictures: readonly Picture<ListingEntry>[]
 	index: number
 	imageUrl: ImageUrlFor
@@ -27,7 +28,9 @@ const props = defineProps<{
 	observeSize: ObserveSize
 	/** Keeps the zoom and the spot on another picture, for the series viewer (SERIES-002.3). */
 	keepZoom?: boolean
-}>()
+	/** What each swipe sets, for the swipe hint. */
+	swipes?: SwipeSetting
+}>(), { keepZoom: false, swipes: () => DEFAULT_SWIPES })
 
 const emit = defineEmits<{
 	page: [step: -1 | 1]
@@ -46,7 +49,9 @@ const size = ref<Size>({ width: 0, height: 0 })
 const zoom = ref<Zoom>(FIT)
 const dragX = ref(0)
 const liftY = ref(0)
-/** Aspects learnt from loaded images whose listing had no size, by file id. */
+/** The swipe releasing the lifted photo now makes, null when it settles back. */
+const liftSwipe = ref<SwipeDirection | null>(null)
+/** Aspects learnt from loaded images, by file id; they win over the listing's size. */
 const aspects = reactive(new Map<number, number>())
 
 const member = computed(() => imageMember(props.pictures[props.index]!))
@@ -54,6 +59,7 @@ const sources = computed(() => loupeSources(member.value, props.imageUrl))
 const fitted = computed(() => fitSize(aspectOf(member.value), size.value))
 const maxScale = computed(() => fullScale(fullLongEdge(member.value), fitted.value, props.devicePixelRatio))
 const zoomed = computed(() => isZoomed(zoom.value))
+const hint = computed(() => swipeHint(liftY.value, liftSwipe.value, size.value.height, props.swipes))
 const slides = computed(() => [-1, 0, 1]
 	.filter((offset) => props.pictures[props.index + offset] !== undefined)
 	.map((offset) => {
@@ -62,9 +68,10 @@ const slides = computed(() => [-1, 0, 1]
 		return { offset, member: shown, src: sourceOf(shown, offset === 0), width: fit.width, height: fit.height }
 	}))
 
-/** The listing's aspect, else the loaded image's, else the default. */
+/** The loaded image's aspect, which is upright, else the listing's, else the default. */
 function aspectOf(shown: ListingEntry): number {
-	return shown.width !== null && shown.height !== null ? shown.width / shown.height : aspects.get(shown.fileId) ?? DEFAULT_ASPECT
+	const listed = shown.width !== null && shown.height !== null ? shown.width / shown.height : DEFAULT_ASPECT
+	return aspects.get(shown.fileId) ?? listed
 }
 
 /** The sharpest loaded source: the full image while zoomed, else the loupe tier, else the grid's. */
@@ -82,6 +89,7 @@ watch(() => props.index, () => {
 	}
 	dragX.value = 0
 	liftY.value = 0
+	liftSwipe.value = null
 })
 watch(() => (zoomed.value ? zoomPercent(zoom.value, maxScale.value) : null), (percent) => emit('update:zoom', percent), { immediate: true })
 watch(() => zoomed.value && sources.value.full, (full) => {
@@ -112,12 +120,15 @@ function act(action: GestureAction | null) {
 		case 'settle':
 			dragX.value = 0
 			liftY.value = 0
+			liftSwipe.value = null
 			break
 		case 'lift':
 			liftY.value = action.dy
+			liftSwipe.value = action.swipe
 			break
 		case 'swipe':
 			liftY.value = 0
+			liftSwipe.value = null
 			emit('swipe', action.direction)
 			break
 		case 'overlays':
@@ -157,7 +168,7 @@ function onPointerDown(event: PointerEvent) {
 	act(gestures.down(pointerOf(event)))
 }
 
-/** Learns the aspect of a photo whose listing had no size. */
+/** Learns the upright aspect of a loaded photo. */
 function onLoad(fileId: number, event: Event) {
 	const image = event.target as HTMLImageElement
 	if (image.naturalWidth > 0 && image.naturalHeight > 0) {
@@ -200,7 +211,7 @@ defineExpose({
 				v-for="slide in slides"
 				:key="slide.member.fileId"
 				class="loupe-stage__slide"
-				:style="{ left: `${slide.offset * 100}%` }">
+				:style="{ transform: `translateX(${slide.offset * 100}%)`, visibility: slide.offset === 0 || dragX !== 0 ? undefined : 'hidden' }">
 				<img
 					class="loupe-stage__image"
 					:alt="slide.offset === 0 ? props.pictures[props.index]!.baseName : ''"
@@ -214,6 +225,7 @@ defineExpose({
 					@load="onLoad(slide.member.fileId, $event)">
 			</div>
 		</div>
+		<LoupeSwipeHint v-if="hint" :hint="hint" />
 	</div>
 </template>
 
@@ -234,6 +246,7 @@ defineExpose({
 
 .loupe-stage__slide {
 	display: flex;
+	overflow: hidden;
 	align-items: center;
 	justify-content: center;
 }

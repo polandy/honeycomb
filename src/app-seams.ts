@@ -11,17 +11,20 @@ import type { MoveApi } from './move-flow.ts'
 import type { ResumeApi } from './resume.ts'
 import type { SidecarFlowApi } from './sidecar-flow.ts'
 import type { ViewStateApi } from './view-state.ts'
+import type { HashImage } from './visual-hashes.ts'
 
-import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, loadPositions, loadViewState, lookupSidecars, movePictures, probeTargets, savePosition, saveSidecars, saveViewState } from './api.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, imageUrl, loadPositions, loadViewState, lookupSidecars, movePictures, probeTargets, savePosition, saveSidecars, saveViewState } from './api.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { browserNow } from './sidecar-flow.ts'
 import { browserSchedule } from './tile-selection.ts'
+import { hashPreview } from './visual-hashes.ts'
 
 /** The server and browser seams of the app; tests replace them with fakes. */
 export interface AppSeams {
 	listFolders?: (path: string) => Promise<Folder[]>
 	listEntries?: ListEntries
 	warmPreviews?: (fileIds: readonly number[]) => Promise<void>
+	hashImage?: HashImage
 	lookupDecisions?: (fileIds: readonly number[]) => Promise<StoredDecision[]>
 	saveDecisions?: (decisions: readonly StoredDecision[]) => Promise<void>
 	loadSettings?: () => Promise<unknown>
@@ -41,6 +44,7 @@ export const APP_SEAMS = {
 	listFolders: apiListFolders,
 	listEntries: apiListEntries,
 	warmPreviews: apiWarmPreviews,
+	hashImage: hashPreview(imageUrl),
 	lookupDecisions: apiLookupDecisions,
 	saveDecisions: apiSaveDecisions,
 	loadSettings: apiLoadSettings,

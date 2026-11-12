@@ -7,7 +7,6 @@ import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
 import {
 	activeFilterCount,
-	clearFilters,
 	DEFAULT_FILTERS,
 	emptyReason,
 	filterPictures,
@@ -57,29 +56,26 @@ describe('nextComparison', () => {
 describe('matchesFilters', () => {
 	// spec: GRID-002.1
 	it('shows everything but rejects by default', () => {
-		expect(DEFAULT_FILTERS.scope).toBe('not-rejected')
+		expect(DEFAULT_FILTERS.flags).toEqual(new Set(['picked', 'unflagged']))
 		expect(matchesFilters(pair, decision({ flag: 'picked' }), DEFAULT_FILTERS)).toBe(true)
 		expect(matchesFilters(pair, decision({}), DEFAULT_FILTERS)).toBe(true)
 		expect(matchesFilters(pair, decision({ flag: 'rejected' }), DEFAULT_FILTERS)).toBe(false)
 	})
 
 	it.each([
-		['undecided', 'unflagged', true],
-		['undecided', 'picked', false],
-		['undecided', 'rejected', false],
-		['all', 'rejected', true],
-		['all', 'picked', true],
-	// spec: GRID-002.1
-	] as const)('in the scope %s shows %s: %s', (scope, flag, expected) => {
-		expect(matchesFilters(pair, decision({ flag }), filters({ scope }))).toBe(expected)
-	})
-
+		[[], 'rejected', true],
+		[[], 'picked', true],
+		[[], 'unflagged', true],
+		[['rejected'], 'rejected', true],
+		[['rejected'], 'picked', false],
+		[['picked', 'rejected'], 'picked', true],
+		[['picked', 'rejected'], 'rejected', true],
+		[['picked', 'rejected'], 'unflagged', false],
+		[['unflagged'], 'unflagged', true],
+		[['unflagged'], 'picked', false],
 	// spec: GRID-002.2
-	it('lets a flag filter override the scope', () => {
-		const rejectsOnly = filters({ scope: 'not-rejected', flags: new Set(['rejected']) })
-
-		expect(matchesFilters(pair, decision({ flag: 'rejected' }), rejectsOnly)).toBe(true)
-		expect(matchesFilters(pair, decision({ flag: 'picked' }), rejectsOnly)).toBe(false)
+	] as const)('with the flags %j pressed shows %s: %s', (pressed, flag, expected) => {
+		expect(matchesFilters(pair, decision({ flag }), filters({ flags: new Set(pressed) }))).toBe(expected)
 	})
 
 	it.each([
@@ -164,8 +160,15 @@ describe('progress', () => {
 })
 
 describe('activeFilterCount', () => {
-	it('is 0 for the defaults, whatever the scope and comparison', () => {
-		expect(activeFilterCount(filters({ scope: 'all', comparison: 'exactly' }))).toBe(0)
+	it('is 0 for the defaults, whatever the comparison', () => {
+		expect(activeFilterCount(filters({ comparison: 'exactly' }))).toBe(0)
+	})
+
+	// spec: GRID-002.6
+	it('counts the flag filter once when it differs from its default, however it differs', () => {
+		expect(activeFilterCount(filters({ flags: new Set() }))).toBe(1)
+		expect(activeFilterCount(filters({ flags: new Set(['rejected']) }))).toBe(1)
+		expect(activeFilterCount(filters({ flags: new Set(['unflagged', 'picked']) }))).toBe(0)
 	})
 
 	// spec: GRID-002.6
@@ -180,15 +183,6 @@ describe('activeFilterCount', () => {
 		})
 
 		expect(activeFilterCount(active)).toBe(6)
-	})
-})
-
-describe('clearFilters', () => {
-	// spec: GRID-002.6
-	it('resets every group and keeps the scope', () => {
-		const active = filters({ scope: 'undecided', rating: 2, comparison: 'exactly', colourLabels: new Set(['red']), folders: new Set(['/P']) })
-
-		expect(clearFilters(active)).toEqual({ ...DEFAULT_FILTERS, scope: 'undecided' })
 	})
 })
 
@@ -213,11 +207,10 @@ describe('pictureFolders', () => {
 describe('emptyReason', () => {
 	it.each([
 		['no pictures at all', DEFAULT_FILTERS, 0, 'no-pictures'],
-		['every picture decided in the scope undecided', filters({ scope: 'undecided' }), 3, 'all-decided'],
-		['every picture rejected in the scope not rejected', DEFAULT_FILTERS, 3, 'none-left'],
+		['every picture rejected under the default flag filter', DEFAULT_FILTERS, 3, 'none-left'],
 		['an active filter', filters({ rating: 5 }), 3, 'no-match'],
-		['an active filter in the scope undecided', filters({ scope: 'undecided', folders: new Set(['/P']) }), 3, 'no-match'],
-		['the scope all', filters({ scope: 'all' }), 3, 'no-match'],
+		['a flag filter other than the default', filters({ flags: new Set(['picked']) }), 3, 'no-match'],
+		['no flag pressed', filters({ flags: new Set() }), 3, 'no-match'],
 	// spec: GRID-002.11
 	] as const)('of an empty view is %s', (_case, active, total, expected) => {
 		expect(emptyReason(active, total)).toBe(expected)

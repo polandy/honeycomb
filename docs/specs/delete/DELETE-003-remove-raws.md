@@ -12,7 +12,7 @@ member and its own sidecars of each pair go to the trash bin, the JPEG and every
 
 ## Behaviour
 
-*Remove RAWs…* in the grid's ⋯ menu, with a count, acts on the current view (scope and filters).
+*Remove RAWs…* in the grid's ⋯ menu, with a count, acts on the current view (flag filter and filters).
 It takes every pair that is not marked *Keep RAW* and not rejected; singles, marked and rejected
 pictures are skipped and counted by reason. The summary shows pictures · files · bytes freed,
 what was skipped and why, two thumbnail groups — *RAW will be removed* and *RAW stays (Keep RAW)* —

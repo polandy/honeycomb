@@ -15,6 +15,11 @@ touch as well as with a mouse or keyboard.
 - *Select* in the toolbar enters and *Done* leaves selection mode; a long-press on a tile enters
   it and selects that tile. Ctrl- or Cmd-click enters it too; Shift-click selects the range from
   the anchor.
+- Dragging on after the long-press, without lifting the finger, selects the range in grid order
+  from the pressed tile to the tile under the finger; dragging back removes what this drag added,
+  never what was selected before it. Near the top or bottom edge the grid scrolls on by itself,
+  faster the closer the finger is to the edge. While the drag lasts the grid does not scroll by
+  the finger; a swipe that starts without a long-press scrolls as before.
 - In selection mode a tap, Enter or Space toggles a tile. Selected tiles are marked; the selection
   check shows only in selection mode. The toolbar counts the selection and offers *Select all*
   (the shown pictures) and *Select none*.
@@ -24,7 +29,7 @@ touch as well as with a mouse or keyboard.
 - A change writes the whole new decision of every member of each changed picture; a picture the
   change leaves as it is sends nothing. A save the server refuses is reverted and reported,
   unless another folder set is open by then.
-- A rejected picture leaves the view (default scope) and the selection; the selection keeps only
+- A rejected picture leaves the view (default filter) and the selection; the selection keeps only
   shown pictures.
 
 ## Acceptance criteria
@@ -81,7 +86,7 @@ touch as well as with a mouse or keyboard.
 ### GRID-003.8 – The selection follows the view
 
 - **Given** selected pictures
-- **When** one is rejected in the default scope, or another folder set opens
+- **When** one is rejected in the default filter, or another folder set opens
 - **Then** it leaves the view and the selection; the selection keeps only shown pictures
 
 ### GRID-003.9 – A refused save is reverted
@@ -97,6 +102,30 @@ touch as well as with a mouse or keyboard.
 - **When** the user applies it
 - **Then** nothing is sent; a change made before the stored decisions arrived is kept
 
+### GRID-003.11 – Drag selects a range
+
+- **Given** a long-press on a tile, inside or outside selection mode
+- **When** the finger drags on across or down the grid
+- **Then** every tile from the pressed one to the one under the finger in grid order is
+  selected, with the pressed tile as the anchor; dragging back deselects only what this drag
+  added; a point in a gap or beside a row's last tile counts as the tile before it, one on a
+  folder header keeps the range as it is
+
+### GRID-003.12 – Auto-scroll at the edge
+
+- **Given** a drag after a long-press
+- **When** the finger stays within 48 px of the grid's top or bottom edge
+- **Then** the grid scrolls towards that edge every frame, up to 16 px a frame at the edge
+  itself, and extends the range to the tile now under the finger; it stops at the end of the
+  grid, when the finger leaves the edge or lifts
+
+### GRID-003.13 – The drag owns the finger
+
+- **Given** a drag after a long-press
+- **When** the finger moves
+- **Then** the browser does not scroll the grid, and the pressed tile stays rendered while the
+  drag lasts even when it scrolls far out of view; without a long-press the finger scrolls
+
 ## Out of scope
 
 Selection keys in detail (KEYS-001), deleting a selection (DELETE-002).
@@ -106,3 +135,4 @@ Selection keys in detail (KEYS-001), deleting a selection (DELETE-002).
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged M2.6 (#44) |
+| 2026-11-12 | Drag selection after a long-press, with auto-scroll at the edges (.11–.13) |

@@ -20,6 +20,7 @@ export interface SeriesCompareContext<P> {
 	readonly settings: () => Settings
 	readonly updateSettings: (patch: Partial<Settings>) => void
 	readonly toast: (toast: Toast) => void
+	readonly holdHashes: (hold: boolean) => void
 }
 
 /** The series compare dialog's state: which series it shows, which picture is active, and its keys (SERIES-001). */
@@ -56,12 +57,14 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	/** Opens the compare on the first series. */
 	function start() {
 		open.value = true
+		context.holdHashes(true)
 		show(0)
 	}
 
 	/** Closes the compare. */
 	function close() {
 		open.value = false
+		context.holdHashes(false)
 	}
 
 	/** The next series, the first after the last (SERIES-001.11). */

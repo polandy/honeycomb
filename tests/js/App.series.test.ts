@@ -23,8 +23,8 @@ const SHOTS = [
 	listingEntry(5, '/Trip/IMG_5.JPG', { captureTime: 201 }),
 ]
 
-async function openApp() {
-	const mounted = mountApp({}, [], { NcDialog: DialogStub, SeriesCompare: false, ShortcutSheet: true })
+async function openApp(props: Record<string, unknown> = {}) {
+	const mounted = mountApp(props, [], { NcDialog: DialogStub, SeriesCompare: false, ShortcutSheet: true })
 	await openCull(mounted.wrapper, SET, SHOTS)
 	return mounted
 }
@@ -163,5 +163,22 @@ describe('App: series compare', () => {
 		const sizes = wrapper.findComponent(PhotoGrid).props('seriesSizes') as ReadonlyMap<{ baseName: string }, number>
 
 		expect([...sizes].map(([picture, size]) => `${picture.baseName} ${size}`)).toEqual(['IMG_1 3', 'IMG_2 3', 'IMG_3 3', 'IMG_4 2', 'IMG_5 2'])
+	})
+
+	// spec: SERIES-001.15, SERIES-001.18
+	it('splits off a photo that looks different once hashed, but not while the compare is open', async () => {
+		const settle: (() => void)[] = []
+		const hashImage = (member: { fileId: number }) => new Promise<string>((resolve) => settle.push(() => resolve(member.fileId === 3 ? 'ffffffffffffffff' : '0000000000000000')))
+		const { wrapper } = await openApp({ hashImage })
+		await press('n')
+		for (let next = settle.shift(); next !== undefined; next = settle.shift()) {
+			next()
+			await flushPromises()
+		}
+		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_2', 'IMG_3'])
+
+		await press('Escape')
+		const sizes = wrapper.findComponent(PhotoGrid).props('seriesSizes') as ReadonlyMap<{ baseName: string }, number>
+		expect([...sizes].map(([picture, size]) => `${picture.baseName} ${size}`)).toEqual(['IMG_1 2', 'IMG_2 2', 'IMG_4 2', 'IMG_5 2'])
 	})
 })

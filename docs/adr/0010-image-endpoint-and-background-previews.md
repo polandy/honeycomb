@@ -1,11 +1,11 @@
 # 0010 – The image endpoint and background previews
 
 - Status: accepted
-- Date: 2026-11-10
+- Date: 2026-11-10, tiers amended 2026-11-11
 
 ## Context
 
-Culling 2,000+ 24 MP pairs needs the grid's 256 and 512 px tiles and the loupe's 2048 px image
+Culling 2,000+ 24 MP pairs needs the grid's small and large tiles and the loupe's image
 fast and cached ([`plan.md`](../plan.md#image-delivery--performance)). Nextcloud's own preview
 endpoint (`/core/preview`) takes a file id and a size but answers with a revalidating cache
 header, so every tile costs a round trip on a revisit. The browser never decodes RAW, and
@@ -15,7 +15,7 @@ A RAW+JPEG pair shows its JPEG; a RAW-only picture needs the JPEG preview embedd
 ## Decision
 
 - **Shape:** `GET /apps/honeycomb/api/v1/images/{fileId}?size=<tier>&v=<mtime>`, logged in, no
-  CSRF token (an `<img>` cannot send one). `size` is one of the tiers `256`, `512`, `2048`
+  CSRF token (an `<img>` cannot send one). `size` is one of the tiers `256`, `1024`, `4096`
   (long edge, never upscaled, never cropped); another value is `400`. The client picks the file
   of a picture (its JPEG, else its RAW) and takes `fileId` and `mtime` from the listing
   (ADR 0009).
@@ -26,27 +26,32 @@ A RAW+JPEG pair shows its JPEG; a RAW-only picture needs the JPEG preview embedd
   browser never keeps it under the old URL.
 - **Pixels:** through `OCP\IPreview`, so Nextcloud's preview cache stores every tier once and
   Imaginary, when the admin configured it, renders them; honeycomb neither needs nor configures
-  it. Nextcloud rounds a preview up to a power of four, so a tier is a minimum: `256` comes as
-  256 px, `512` as up to 1024 px and `2048` as up to 4096 px, never more than the image has.
+  it. Nextcloud rounds a preview up to a power of four and renders its largest preview (4096 px
+  by default) first, so the tiers are those sizes and each comes at the size it names, never more
+  than the image has. The loupe takes 4096: 1024 px would be scaled up two- to threefold on an
+  iPad's loupe, and the largest preview costs core no extra rendering, only transfer.
 - **RAW:** honeycomb registers a preview provider for `image/x-dcraw` that takes the largest
   JPEG embedded in the RAW file, so the preview cache keeps it like any other preview. The JPEG's
   own orientation tag is applied.
-- **Background previews:** `POST /apps/honeycomb/api/v1/previews` with `{"fileIds": [...]}` (at
-  most 60,000, the listing's limit) queues background jobs of 200 ids each that render all three
-  tiers. The client sends it after listing a folder set, in display order. On upload honeycomb
-  generates nothing itself: an admin who wants that installs the Preview Generator app.
+- **Warming previews:** `POST /apps/honeycomb/api/v1/previews` with `{"fileIds": [...]}` (at most
+  16) renders all three tiers of each file before it answers `200`. The client sends it after
+  listing a folder set, in display order, in chunks of 4 with at most 4 requests in flight, so
+  the tiers are ready at once and not after the next cron run (amended 2026-11-12). honeycomb
+  needs no background worker; on upload it generates nothing itself, and an admin who wants that
+  installs the Preview Generator app, which needs cron.
 - **Errors:** `404` for an id that is not a file below the user's files, not an image, or has no
   preview; `403` when the user may not read it; `401` without a user. The body is empty.
 
 ## Consequences
 
 - The first view of a tile not yet warmed renders it synchronously, as `/core/preview` would.
-- The `512` and `2048` tiers carry up to four times the pixels they name. If the budgets,
-  measured with real 24 MP files, miss because of it, honeycomb scales them down itself and
+- Until 2026-11-11 the tiers were `512` and `2048`, which core delivered as 1024 and 4096 px.
+- Core renders four previews at a time; the client keeps a few image loads in flight
+  (GRID-001.15), so a first view does not exhaust the server's database connections.
+- If the budgets, measured with real 24 MP files, miss, honeycomb scales the tiers itself and
   needs its own cache with clean-up for deleted files; that is a new decision.
 - With `camerarawpreviews` also installed, Nextcloud uses whichever provider matches first;
   both deliver the embedded JPEG.
-- The job's argument stays below the 4,000 characters of the job table's `argument` column.
 - A file the user cannot reach, such as one in another user's files, is `404` like a missing
   one, so an id reveals nothing.
 - The 100 % zoom of the loupe (M3.1) is the tier `0`, the full image: the file itself for JPEG,

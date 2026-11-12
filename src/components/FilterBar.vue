@@ -13,7 +13,7 @@ import { COLOUR_LABEL_SWATCHES, colourLabelName } from '../colour-labels.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { COLOUR_LABELS } from '../logic/decision.ts'
-import { activeFilterCount, clearFilters, nextComparison, toggleChip } from '../logic/picture-filter.ts'
+import { activeFilterCount, DEFAULT_FILTERS, nextComparison, toggleChip } from '../logic/picture-filter.ts'
 import { tip } from '../tooltip.ts'
 
 const props = defineProps<{
@@ -178,7 +178,7 @@ function toggle(group: ChipGroup, value: string) {
 			<span class="filter-bar__count">
 				{{ t('honeycomb', '{shown} of {total}', { shown: formatNumber(props.shown), total: formatNumber(props.total) }) }}
 			</span>
-			<NcButton :disabled="activeFilterCount(props.filters) === 0" @click="emit('update:filters', clearFilters(props.filters))">
+			<NcButton :disabled="activeFilterCount(props.filters) === 0" @click="emit('update:filters', DEFAULT_FILTERS)">
 				{{ t('honeycomb', 'Clear filters') }}
 			</NcButton>
 		</div>

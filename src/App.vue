@@ -33,7 +33,7 @@ import { useCull } from './cull.ts'
 import { useDeleteFlow } from './delete-flow.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
-import { clearFilters } from './logic/picture-filter.ts'
+import { DEFAULT_FILTERS } from './logic/picture-filter.ts'
 import { useLoupeOpening } from './loupe-opening.ts'
 import { useMoveFlow } from './move-flow.ts'
 import { useRecent } from './recent.ts'
@@ -53,10 +53,10 @@ const { settings, update: updateSettings } = useSettings({ loadSettings: props.l
 const viewState = useViewState(props.viewState, props.storage)
 const settingsOpen = ref(false)
 const sidecarFlow = useSidecarFlow(props.sidecars, toast.show)
-const cull = useCull({ warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions }, props.storage, () => settings.value, sidecarFlow.sync)
-const { folderSet, pictures, folderPaths, folders, grouped, view, progress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
+const cull = useCull({ hashImage: props.hashImage, warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions }, props.storage, () => settings.value, sidecarFlow.sync)
+const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
 const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
-const { loupe, close: closeLoupe } = useLoupeOpening((index) => grid.value?.reveal(index))
+const { loupe, shown: loupeShown, page: pageLoupe, close: closeLoupe } = useLoupeOpening((index) => grid.value?.reveal(index), cull.passes)
 const loupeView = useTemplateRef<InstanceType<typeof PhotoLoupe>>('loupeView')
 const filterBar = useTemplateRef<InstanceType<typeof FilterBar>>('filterBar')
 const headerShown = ref(true)
@@ -69,7 +69,7 @@ const common = computed(() => cull.common(selected.value))
 watch(cull.pairing, selection.selectNone)
 
 const { decide, pickRest, undo, redo } = useToastedDecisions(cull, toast.show)
-const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: (intent, picture) => decide(intent, [picture]), pickRest, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action) })
+const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: (intent, picture) => decide(intent, [picture]), pickRest, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })
 const seriesFlow = useTemplateRef<InstanceType<typeof SeriesCompareFlow>>('seriesFlow')
 const overlayScreen = computed(() => (loupe.value !== null ? '.photo-loupe' : seriesCompare.viewer.open.value ? '.series-viewer' : undefined))
 const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
@@ -149,10 +149,9 @@ useHotkeys(() => {
 					:folders="folders"
 					:tileSize="tileSize"
 					:groupByFolder="groupByFolder"
-					:scope="filters.scope"
-					:scopeLocked="filters.flags.size > 0"
-					:decided="progress.decided"
-					:total="progress.total"
+					:flags="filters.flags"
+					:decided="shownProgress.decided"
+					:total="shownProgress.total"
 					:activeFilters="activeFilters"
 					:filtersOpen="filtersOpen"
 					:sortOrder="sortOrder"
@@ -167,7 +166,7 @@ useHotkeys(() => {
 					@changeFolders="pickerOpen = true"
 					@update:tileSize="cull.setTileSize"
 					@update:groupByFolder="groupByFolder = $event"
-					@update:scope="cull.setScope"
+					@update:flags="cull.setFlags"
 					@update:filtersOpen="filtersOpen = $event"
 					@update:sortOrder="sortOrder = $event"
 					@update:selecting="selection.setSelecting"
@@ -210,8 +209,8 @@ useHotkeys(() => {
 					v-else
 					:reason="empty"
 					:rejected="rejected.length"
-					@clearFilters="filters = clearFilters(filters)"
-					@showAll="cull.setScope('all')"
+					@clearFilters="filters = DEFAULT_FILTERS"
+					@showAll="cull.setFlags(new Set())"
 					@reviewRejects="deleting.review" />
 				<ActionBar
 					v-if="selecting"
@@ -258,15 +257,16 @@ useHotkeys(() => {
 				@showGestureGuide="viewState.showGestureGuide" />
 			<Teleport to="body">
 				<PhotoLoupe
-					v-if="loupe !== null && folderSet !== null"
+					v-if="loupeShown !== null && folderSet !== null"
 					ref="loupeView"
-					v-model:index="loupe.index"
-					:pictures="loupe.pictures"
+					:index="loupeShown.index"
+					:pictures="loupeShown.pictures"
 					:folderSet="folderSet"
 					:decisionOf="cull.decisionOf"
 					:storage="props.storage"
 					:viewState="viewState"
 					:settings="settings"
+					@update:index="pageLoupe"
 					@updateSettings="updateSettings"
 					@decide="(intent, picture) => decide(intent, [picture])"
 					@toast="toast.show($event.message, $event.action)"
@@ -284,6 +284,8 @@ useHotkeys(() => {
 		<AppTooltip :container="overlayScreen" :schedule="props.schedule" />
 	</NcContent>
 </template>
+
+<style src="./flag-fills.css" />
 
 <style scoped>
 .honeycomb {

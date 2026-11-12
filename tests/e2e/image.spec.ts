@@ -34,7 +34,7 @@ test('serves a JPEG and a RAW-only picture under immutable URLs', async ({ page 
 })
 
 // spec: IMAGES-001.10
-test('queues the previews of a folder in the background', async ({ page }) => {
+test('renders the previews of a folder before it answers', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const fileId = await upload(page, 'IMG_0003.JPG', JPEG)
 
@@ -43,5 +43,5 @@ test('queues the previews of a folder in the background', async ({ page }) => {
 		headers: { requesttoken: await requestToken(page) },
 	})
 
-	expect(response.status()).toBe(202)
+	expect(response.status()).toBe(200)
 })

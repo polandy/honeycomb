@@ -23,7 +23,8 @@ without a user.
 sorted by name with digits by value. A checkbox ticks a folder by click, Enter or Space; an arrow
 opens a folder that has subfolders without ticking it, and breadcrumbs lead back. A hidden folder
 is shown disabled with the reason. *Include subfolders* (any depth; hidden folders, the trash bin
-and preview folders skipped) is a switch.
+and preview folders skipped) is a switch above the folder list, so a long list cannot push it out
+of sight.
 
 On every tick the picker lists the ticked folders (LISTING-001), pairs them with the user's
 pairing settings (LISTING-002) and shows the count, "*n* photos in *m* folders"; the button reads
@@ -91,7 +92,7 @@ starts from that folder set and *Cancel* returns to it.
 
 - **Given** *Include subfolders* is on
 - **When** a folder is ticked
-- **Then** the count covers its subfolders at any depth
+- **Then** the count covers its subfolders at any depth; the switch sits above the folder list
 
 ### LISTING-003.8 – Empty, capped and failed counts
 
@@ -144,3 +145,4 @@ starts from that folder set and *Cancel* returns to it.
 |---|---|
 | 2026-11-10 | Written from the merged code of #41 (ADR 0015) |
 | 2026-11-10 | *Recent* above the folders (LISTING-003.13) |
+| 2026-11-12 | .7 the switch above the folder list (owner, iPad) |

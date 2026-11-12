@@ -31,9 +31,7 @@ const emit = defineEmits<{
 			</NcButton>
 		</template>
 	</NcEmptyContent>
-	<NcEmptyContent
-		v-else
-		:name="props.reason === 'all-decided' ? t('honeycomb', 'Every photo is decided') : t('honeycomb', 'No photos left to cull')">
+	<NcEmptyContent v-else :name="t('honeycomb', 'No photos left to cull')">
 		<template #action>
 			<NcButton v-if="props.rejected > 0" variant="primary" @click="emit('reviewRejects')">
 				{{ t('honeycomb', 'Review rejects') }}

@@ -58,13 +58,13 @@ describe('LoupeStage', () => {
 	// spec: LOUPE-001.12
 	it('shows the picture between its neighbours, each fitted, from the grid tier until the loupe tier loads', async () => {
 		const { wrapper, ready } = await mountStage()
-		expect(images(wrapper).map((image) => image.attributes('src'))).toEqual(['/img/1/512', '/img/2/512', '/img/3/512'])
+		expect(images(wrapper).map((image) => image.attributes('src'))).toEqual(['/img/1/1024', '/img/2/1024', '/img/3/1024'])
 		expect(current(wrapper).attributes('style')).toContain('width: 900px; height: 600px')
 
-		ready.add('/img/2/2048')
+		ready.add('/img/2/4096')
 		await wrapper.vm.$nextTick()
 
-		expect(current(wrapper).attributes('src')).toBe('/img/2/2048')
+		expect(current(wrapper).attributes('src')).toBe('/img/2/4096')
 	})
 
 	it('shows no neighbour beyond the first picture', async () => {
@@ -137,6 +137,38 @@ describe('LoupeStage', () => {
 		expect(wrapper.find('.loupe-stage__track').attributes('style')).toContain('translateY(0px)')
 	})
 
+	// spec: LOUPE-002.14
+	it('shows the flag a release sets while lifting, faint until armed, and none once it settles', async () => {
+		const { wrapper, stage } = await mountStage()
+		const hint = () => wrapper.find('.loupe-swipe-hint')
+		await pointer(stage, 'pointerdown', { x: 500, y: 300, time: 0 })
+		await pointer(stage, 'pointermove', { x: 500, y: 366, time: 1000 })
+		expect(hint().text()).toBe('Reject')
+		expect(hint().classes()).toContain('loupe-swipe-hint--rejected')
+		expect(hint().classes()).not.toContain('loupe-swipe-hint--armed')
+		expect(hint().attributes('style')).toContain('opacity: 0.5')
+
+		await pointer(stage, 'pointermove', { x: 500, y: 500, time: 2000 })
+		expect(hint().classes()).toContain('loupe-swipe-hint--armed')
+		expect(hint().attributes('style')).toContain('opacity: 1')
+
+		await pointer(stage, 'pointercancel', { x: 500, y: 500, time: 2000 })
+		expect(hint().exists()).toBe(false)
+	})
+
+	// spec: LOUPE-002.14
+	it('shows no hint for a direction the gesture setting leaves doing nothing, and none after a swipe', async () => {
+		const { wrapper, stage } = await mountStage({ swipes: { up: null, down: 'picked' } })
+		await pointer(stage, 'pointerdown', { x: 500, y: 400, time: 0 })
+		await pointer(stage, 'pointermove', { x: 500, y: 200, time: 1000 })
+		expect(wrapper.find('.loupe-swipe-hint').exists()).toBe(false)
+
+		await pointer(stage, 'pointermove', { x: 500, y: 600, time: 2000 })
+		expect(wrapper.find('.loupe-swipe-hint').text()).toBe('Pick')
+		await pointer(stage, 'pointerup', { x: 500, y: 600, time: 2000 })
+		expect(wrapper.find('.loupe-swipe-hint').exists()).toBe(false)
+	})
+
 	// spec: LOUPE-001.7
 	it('zooms to 100 % and back, and loads the full image while zoomed', async () => {
 		const { wrapper, loads, ready } = await mountStage()
@@ -199,6 +231,35 @@ describe('LoupeStage', () => {
 
 		expect(wrapper.emitted('update:zoom')!.at(-1)).toEqual([null])
 		expect(current(wrapper).attributes('style')).toContain('scale(1)')
+	})
+
+	// spec: LOUPE-001.18
+	it('keeps each neighbour one full stage width aside and hidden until a drag moves it in', async () => {
+		const { wrapper, stage } = await mountStage()
+		const slides = () => wrapper.findAll('.loupe-stage__slide').map((slide) => slide.attributes('style'))
+		expect(slides()).toEqual([
+			'transform: translateX(-100%); visibility: hidden;',
+			'transform: translateX(0%);',
+			'transform: translateX(100%); visibility: hidden;',
+		])
+
+		await pointer(stage, 'pointerdown', { x: 500, time: 0 })
+		await pointer(stage, 'pointermove', { x: 450, time: 500 })
+
+		expect(slides()).toEqual(['transform: translateX(-100%);', 'transform: translateX(0%);', 'transform: translateX(100%);'])
+	})
+
+	// spec: LOUPE-001.18
+	it('fits a loaded photo upright when the listing gives its size unturned', async () => {
+		const pictures = picturesOf([listingEntry(1, '/P/IMG_1.JPG', { width: 3000, height: 2000, orientation: 6 })])
+		const { wrapper } = await mountStage({ pictures, index: 0 })
+		const image = wrapper.find('img')
+		expect(image.attributes('style')).toContain('width: 900px; height: 600px')
+
+		Object.defineProperties(image.element, { naturalWidth: { value: 400 }, naturalHeight: { value: 600 } })
+		await image.trigger('load')
+
+		expect(image.attributes('style')).toContain('width: 400px; height: 600px')
 	})
 
 	it('learns the aspect from the loaded image when the listing has none', async () => {

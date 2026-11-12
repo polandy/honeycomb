@@ -1,0 +1,10 @@
+/*
+ * SPDX-FileCopyrightText: 2026 honeycomb contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+/* Nextcloud's success and error colours are pale tints, so a pressed flag brings its own fill. */
+:root {
+	--honeycomb-pick-fill: #1f7a46;
+	--honeycomb-reject-fill: #b3302c;
+	--honeycomb-unflag-fill: #54585e;
+}

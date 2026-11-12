@@ -1,0 +1,99 @@
+/*
+ * SPDX-FileCopyrightText: 2026 honeycomb contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+.photo-loupe {
+	position: fixed;
+	z-index: 10000;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	background-color: var(--color-main-background);
+	color: var(--color-main-text);
+}
+
+.photo-loupe--below-header {
+	top: var(--header-height);
+}
+
+.photo-loupe:focus {
+	outline: none;
+}
+
+.photo-loupe__main {
+	position: relative;
+	display: flex;
+	flex: 1;
+	min-height: 0;
+}
+
+.photo-loupe__stage {
+	flex: 1;
+	min-width: 0;
+}
+
+.photo-loupe--chrome-free .photo-loupe__overlay,
+.photo-loupe--chrome-free .photo-loupe__top--pinned,
+.photo-loupe--chrome-free .photo-loupe__filmstrip,
+.photo-loupe--chrome-free .photo-loupe__panel {
+	display: none;
+}
+
+@media (orientation: landscape) {
+	.photo-loupe__top,
+	.photo-loupe__filmstrip {
+		position: absolute;
+		z-index: 1;
+	}
+
+	.photo-loupe__top {
+		top: 0;
+		inset-inline: var(--photo-loupe-rail) calc(var(--photo-loupe-panel) + var(--photo-loupe-rail));
+		background-color: color-mix(in srgb, var(--color-main-background) 80%, transparent);
+	}
+
+	.photo-loupe__filmstrip {
+		inset-inline: 0 var(--photo-loupe-panel);
+		bottom: var(--photo-loupe-row, 56px);
+	}
+
+	.photo-loupe__top--pinned {
+		position: static;
+		margin-inline: var(--photo-loupe-rail) calc(var(--photo-loupe-panel) + var(--photo-loupe-rail));
+	}
+
+	.photo-loupe__filmstrip--pinned {
+		position: static;
+		margin-inline-end: var(--photo-loupe-panel);
+	}
+
+	.photo-loupe__overlay {
+		transition: opacity 0.2s;
+	}
+
+	.photo-loupe--idle .photo-loupe__overlay {
+		opacity: 0;
+		pointer-events: none;
+	}
+}
+
+@media (max-width: 520px) {
+	.photo-loupe {
+		--photo-loupe-panel: 0px !important;
+	}
+
+	.photo-loupe__panel[role='separator'] {
+		display: none;
+	}
+
+	.photo-loupe__panel.loupe-info {
+		position: fixed;
+		z-index: 3;
+		inset-inline: 0;
+		bottom: 0;
+		width: auto !important;
+		max-height: 60%;
+		border-radius: var(--border-radius-large) var(--border-radius-large) 0 0;
+		box-shadow: 0 -2px 12px var(--color-box-shadow);
+	}
+}

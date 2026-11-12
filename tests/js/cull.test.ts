@@ -31,6 +31,7 @@ async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 	const lookedUp: number[][] = []
 	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
 	const cull = useCull({
+		hashImage: () => new Promise(() => undefined),
 		warmPreviews: async () => undefined,
 		lookupDecisions: async (fileIds) => {
 			lookedUp.push([...fileIds])
@@ -105,27 +106,29 @@ describe('useCull: series', () => {
 	})
 })
 
-describe('useCull: toggleFiltersOff', () => {
-	const filtered = { ...DEFAULT_FILTERS, scope: 'all' as const, rating: 3, flags: new Set(['picked' as const]) }
+describe('useCull: setFlags', () => {
+	// spec: GRID-002.2
+	it('replaces the flag filter and keeps the other groups', async () => {
+		const { cull } = await openedCull()
+		cull.filters.value = { ...DEFAULT_FILTERS, rating: 2 }
 
-	it('clears the filters but the scope, and the second press restores them', async () => {
+		cull.setFlags(new Set(['rejected']))
+
+		expect(cull.filters.value).toEqual({ ...DEFAULT_FILTERS, rating: 2, flags: new Set(['rejected']) })
+	})
+})
+
+describe('useCull: toggleFiltersOff', () => {
+	const filtered = { ...DEFAULT_FILTERS, rating: 3, flags: new Set(['picked' as const]) }
+
+	it('clears the filters, and the second press restores them', async () => {
 		const { cull } = await openedCull()
 		cull.filters.value = filtered
 
 		cull.toggleFiltersOff()
-		expect(cull.filters.value).toEqual({ ...DEFAULT_FILTERS, scope: 'all' })
+		expect(cull.filters.value).toEqual(DEFAULT_FILTERS)
 		cull.toggleFiltersOff()
 		expect(cull.filters.value).toEqual(filtered)
-	})
-
-	it('keeps a scope switched while the filters were off', async () => {
-		const { cull } = await openedCull()
-		cull.filters.value = filtered
-		cull.toggleFiltersOff()
-		cull.setScope('undecided')
-
-		cull.toggleFiltersOff()
-		expect(cull.filters.value).toEqual({ ...filtered, scope: 'undecided' })
 	})
 
 	it('turns off filters set while they were off rather than restoring the saved ones', async () => {
@@ -283,5 +286,13 @@ describe('useCull: settings', () => {
 		cull.removeFiles(new Set([6]))
 
 		expect(cull.pictures.value).toEqual([expect.objectContaining({ folder: '/Trip/A', raw: expect.objectContaining({ fileId: 5 }) })])
+	})
+
+	// spec: GRID-002.7
+	it('counts the progress shown over the filtered pictures and the saved progress over all', async () => {
+		const { cull } = await openedCull([stored(1, 'rejected'), stored(4, 'picked')])
+
+		expect(cull.shownProgress.value).toEqual({ decided: 1, total: cull.view.value.length })
+		expect(cull.progress.value.total).toBeGreaterThan(cull.shownProgress.value.total)
 	})
 })
