@@ -737,4 +737,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-12: UX H2 — a tile's flag mark, stars and colour dot sit in one row on a fixed dark
   bottom gradient with white stars (GRID-001.16), because the photo, not the theme, is their
   background; the colour dot moved from the top-left to that row.
-- 2026-11-12: UX H3 shows the zoom as a pressed *Fit / 100 %* icon button; the zoom percentage is gone from the title row, the tooltip keeps the name.
+- 2026-11-12: UX H3 shows the zoom as a pressed *Fit / 100 %* icon button; the zoom percentage
+  is gone from the title row, the tooltip keeps the name.

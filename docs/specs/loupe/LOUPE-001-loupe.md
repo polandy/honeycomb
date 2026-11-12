@@ -32,7 +32,9 @@ or on a quick flick.
 | `I` | info panel |
 
 The title row's *Fit / 100 %*, *Move*, *Info* and *Fullscreen* are icon buttons on a transparent
-fill, pressed while zoomed, open or on; the position count never wraps. The overlays (title row, filmstrip, rating row) hide when idle after the last touch, unless a
+fill, pressed while zoomed, open or on; the position count never wraps.
+
+The overlays (title row, filmstrip, rating row) hide when idle after the last touch, unless a
 control has keyboard focus; a mouse move or a middle tap shows them. The filmstrip is a slim dark
 band of square photos edge to edge that keeps the shown picture in its middle. The settings *Pin
 the filmstrip* and *Pin the rating row* keep either one below the photo instead of over it, never
