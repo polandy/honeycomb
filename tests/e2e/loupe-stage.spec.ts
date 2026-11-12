@@ -129,3 +129,21 @@ test('puts the pinned filmstrip and rating row below the one photo in landscape'
 		await putSettings(page, {})
 	}
 })
+
+// spec: LOUPE-001.21
+test('opens the info panel as a bottom sheet over the action bar on a phone', async ({ page }, testInfo) => {
+	const phone = { width: 390, height: 844 }
+	await page.setViewportSize(phone)
+	const loupe = await openRotatedPair(page)
+	await page.keyboard.press('i')
+	const sheet = loupe.getByRole('complementary', { name: 'Photo info' })
+	await expect(sheet).toBeVisible()
+	const box = (await sheet.boundingBox())!
+	expect(box.x).toBe(0)
+	expect(box.width).toBe(phone.width)
+	expect(box.y + box.height).toBe(phone.height)
+	await expect(loupe.getByRole('separator', { name: 'Resize info panel' })).toBeHidden()
+	const stage = (await loupe.locator('.loupe-stage').boundingBox())!
+	expect(stage.width).toBe(phone.width)
+	await page.screenshot({ path: testInfo.outputPath('loupe-info-phone.png') })
+})
