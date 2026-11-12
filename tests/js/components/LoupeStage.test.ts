@@ -137,6 +137,38 @@ describe('LoupeStage', () => {
 		expect(wrapper.find('.loupe-stage__track').attributes('style')).toContain('translateY(0px)')
 	})
 
+	// spec: LOUPE-002.14
+	it('shows the flag a release sets while lifting, faint until armed, and none once it settles', async () => {
+		const { wrapper, stage } = await mountStage()
+		const hint = () => wrapper.find('.loupe-swipe-hint')
+		await pointer(stage, 'pointerdown', { x: 500, y: 300, time: 0 })
+		await pointer(stage, 'pointermove', { x: 500, y: 366, time: 1000 })
+		expect(hint().text()).toBe('Reject')
+		expect(hint().classes()).toContain('loupe-swipe-hint--rejected')
+		expect(hint().classes()).not.toContain('loupe-swipe-hint--armed')
+		expect(hint().attributes('style')).toContain('opacity: 0.5')
+
+		await pointer(stage, 'pointermove', { x: 500, y: 500, time: 2000 })
+		expect(hint().classes()).toContain('loupe-swipe-hint--armed')
+		expect(hint().attributes('style')).toContain('opacity: 1')
+
+		await pointer(stage, 'pointercancel', { x: 500, y: 500, time: 2000 })
+		expect(hint().exists()).toBe(false)
+	})
+
+	// spec: LOUPE-002.14
+	it('shows no hint for a direction the gesture setting leaves doing nothing, and none after a swipe', async () => {
+		const { wrapper, stage } = await mountStage({ swipes: { up: null, down: 'picked' } })
+		await pointer(stage, 'pointerdown', { x: 500, y: 400, time: 0 })
+		await pointer(stage, 'pointermove', { x: 500, y: 200, time: 1000 })
+		expect(wrapper.find('.loupe-swipe-hint').exists()).toBe(false)
+
+		await pointer(stage, 'pointermove', { x: 500, y: 600, time: 2000 })
+		expect(wrapper.find('.loupe-swipe-hint').text()).toBe('Pick')
+		await pointer(stage, 'pointerup', { x: 500, y: 600, time: 2000 })
+		expect(wrapper.find('.loupe-swipe-hint').exists()).toBe(false)
+	})
+
 	// spec: LOUPE-001.7
 	it('zooms to 100 % and back, and loads the full image while zoomed', async () => {
 		const { wrapper, loads, ready } = await mountStage()

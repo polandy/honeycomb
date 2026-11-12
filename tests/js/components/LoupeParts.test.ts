@@ -105,10 +105,11 @@ describe('LoupeInfo', () => {
 
 describe('LoupeFilmstrip', () => {
 	const PICTURES = picturesOf(Array.from({ length: 30 }, (_, at) => listingEntry(at + 1, `/P/IMG_${String(at + 1).padStart(2, '0')}.JPG`)))
-	const mountStrip = (index: number) => mount(LoupeFilmstrip, {
+	const mountStrip = (index: number, pinned = false) => mount(LoupeFilmstrip, {
 		props: {
 			pictures: PICTURES,
 			index,
+			pinned,
 			decisionOf: (picture: Picture<ListingEntry>) => ({ ...UNDECIDED, flag: picture.baseName === 'IMG_11' ? 'picked' as const : 'unflagged' as const }),
 			imageUrl: (fileId: number, size: number) => `/img/${fileId}/${size}`,
 			observeSize: (_element: Element, onSize: (width: number, height: number) => void) => {
@@ -117,8 +118,8 @@ describe('LoupeFilmstrip', () => {
 			},
 		},
 	})
-	const labels = (wrapper: ReturnType<typeof mountStrip>) => wrapper.findAll('button').map((button) => button.attributes('aria-label'))
-	const strip = (wrapper: ReturnType<typeof mountStrip>) => wrapper.find('.loupe-filmstrip').element as HTMLElement
+	const labels = (wrapper: ReturnType<typeof mountStrip>) => wrapper.findAll('.loupe-filmstrip__photo').map((button) => button.attributes('aria-label'))
+	const strip = (wrapper: ReturnType<typeof mountStrip>) => wrapper.find('.loupe-filmstrip__strip').element as HTMLElement
 
 	// spec: LOUPE-001.13, LOUPE-001.19
 	it('scrolls the shown picture to the middle and renders the ones in view, marked current, with small thumbnails and flags', async () => {
@@ -151,7 +152,7 @@ describe('LoupeFilmstrip', () => {
 		expect(labels(wrapper).at(-1)).toBe('IMG_30')
 
 		strip(wrapper).scrollLeft = 0
-		await wrapper.find('.loupe-filmstrip').trigger('scroll')
+		await wrapper.find('.loupe-filmstrip__strip').trigger('scroll')
 		expect(labels(wrapper)[0]).toBe('IMG_01')
 	})
 
@@ -160,6 +161,20 @@ describe('LoupeFilmstrip', () => {
 		await nextTick()
 		await wrapper.find('button[aria-label="IMG_05"]').trigger('click')
 		expect(wrapper.emitted('select')).toEqual([[4]])
+	})
+
+	// spec: LOUPE-001.20
+	it('carries its own pin toggle at its edge, outside the scrolled photos', async () => {
+		const wrapper = mountStrip(0)
+		const pin = wrapper.find('button[aria-label="Pin filmstrip"]')
+		expect(pin.attributes('aria-pressed')).toBe('false')
+		expect(wrapper.find('.loupe-filmstrip__strip button[aria-label="Pin filmstrip"]').exists()).toBe(false)
+
+		await pin.trigger('click')
+		await mountStrip(0, true).find('button[aria-label="Pin filmstrip"]').trigger('click')
+
+		expect(wrapper.emitted('update:pinned')).toEqual([[true]])
+		expect(mountStrip(0, true).find('button[aria-label="Pin filmstrip"]').attributes('aria-pressed')).toBe('true')
 	})
 })
 
@@ -208,13 +223,7 @@ describe('LoupeTitleRow', () => {
 	})
 
 	// spec: LOUPE-001.20
-	it('pins the open filmstrip by its pin toggle, and offers no pin while it is hidden', async () => {
-		const wrapper = mountRow(null)
-		expect(button(wrapper, 'Pin filmstrip').attributes('aria-pressed')).toBe('false')
-
-		await button(wrapper, 'Pin filmstrip').trigger('click')
-
-		expect(wrapper.emitted('update:filmstripPinned')).toEqual([[true]])
-		expect(button(mountRow(null, false), 'Pin filmstrip').exists()).toBe(false)
+	it('leaves the filmstrip\'s pin to the filmstrip', () => {
+		expect(button(mountRow(null), 'Pin filmstrip').exists()).toBe(false)
 	})
 })

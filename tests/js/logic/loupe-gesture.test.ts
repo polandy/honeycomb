@@ -3,7 +3,7 @@
 import type { GestureContext, GesturePointer } from '../../../src/logic/loupe-gesture.ts'
 
 import { describe, expect, it } from 'vitest'
-import { DOUBLE_TAP_MS, loupeGestures, swipeFlag, TAP_MAX_MS, tapZone } from '../../../src/logic/loupe-gesture.ts'
+import { DOUBLE_TAP_MS, loupeGestures, swipeFlag, swipeHint, TAP_MAX_MS, tapZone } from '../../../src/logic/loupe-gesture.ts'
 
 const WIDTH = 1000
 
@@ -130,7 +130,7 @@ describe('loupeGestures', () => {
 	it('lifts the photo on a vertical drag and swipes once it went far enough', () => {
 		const down = gestures()
 		down.down(touch(500, 300, 0))
-		expect(down.move(touch(505, 500, 1000))).toEqual({ kind: 'lift', dy: 200 })
+		expect(down.move(touch(505, 500, 1000))).toEqual({ kind: 'lift', dy: 200, swipe: 'down' })
 		expect(down.up(touch(505, 500, 1000))).toEqual({ kind: 'swipe', direction: 'down' })
 
 		const up = gestures()
@@ -152,6 +152,26 @@ describe('loupeGestures', () => {
 		slow.move(touch(500, 350, 500))
 		slow.move(touch(500, 400, 1000))
 		expect(slow.up(touch(500, 400, 1000))).toEqual({ kind: 'settle' })
+	})
+
+	// spec: LOUPE-002.14
+	it('tells while lifting whether a release now swipes, by the same rule as the release', () => {
+		const recogniser = gestures()
+		recogniser.down(touch(500, 300, 0))
+
+		expect(recogniser.move(touch(500, 250, 500))).toEqual({ kind: 'lift', dy: -50, swipe: null })
+		expect(recogniser.move(touch(500, 160, 1000))).toEqual({ kind: 'lift', dy: -140, swipe: 'up' })
+		expect(recogniser.move(touch(500, 250, 1500))).toEqual({ kind: 'lift', dy: -50, swipe: null })
+		expect(recogniser.up(touch(500, 250, 1500))).toEqual({ kind: 'settle' })
+	})
+
+	// spec: LOUPE-002.14
+	it('tells a quick flick swipes however short, in the flick\'s direction', () => {
+		const recogniser = gestures()
+		recogniser.down(touch(500, 300, 0))
+
+		expect(recogniser.move(touch(500, 340, 10))).toEqual({ kind: 'lift', dy: 40, swipe: 'down' })
+		expect(recogniser.up(touch(500, 340, 10))).toEqual({ kind: 'swipe', direction: 'down' })
 	})
 
 	// spec: LOUPE-002.4
@@ -207,5 +227,27 @@ describe('swipeFlag', () => {
 	it('follows the gesture setting, where a direction can do nothing', () => {
 		expect(swipeFlag('up', { up: null, down: 'picked' })).toBeNull()
 		expect(swipeFlag('down', { up: null, down: 'picked' })).toBe('picked')
+	})
+})
+
+describe('swipeHint', () => {
+	// spec: LOUPE-002.14
+	it('fades in the flag of the drag\'s direction with the distance, unarmed until a release swipes', () => {
+		expect(swipeHint(-33, null, 600)).toEqual({ flag: 'picked', armed: false, progress: 0.25 })
+		expect(swipeHint(66, null, 600)).toEqual({ flag: 'rejected', armed: false, progress: 0.5 })
+	})
+
+	// spec: LOUPE-002.14
+	it('is armed and full once a release swipes, with the flag of the swipe', () => {
+		expect(swipeHint(-200, 'up', 600)).toEqual({ flag: 'picked', armed: true, progress: 1 })
+		expect(swipeHint(-10, 'down', 600)).toEqual({ flag: 'rejected', armed: true, progress: 1 })
+	})
+
+	// spec: LOUPE-002.14
+	it('shows nothing at rest or where the direction does nothing', () => {
+		expect(swipeHint(0, null, 600)).toBeNull()
+		expect(swipeHint(-200, 'up', 600, { up: null, down: 'rejected' })).toBeNull()
+		expect(swipeHint(-50, null, 600, { up: null, down: 'rejected' })).toBeNull()
+		expect(swipeHint(50, null, 600, { up: null, down: 'picked' })).toEqual({ flag: 'picked', armed: false, progress: 50 / 132 })
 	})
 })
