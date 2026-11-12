@@ -79,6 +79,7 @@ const stage = useTemplateRef<InstanceType<typeof LoupeStage>>('stage')
 const panels = useLoupePanels(props.storage, props.viewState)
 const { infoOpen, infoWidth, navigationShown, gestureGuideSeen } = panels
 const filmstripOpen = ref(true)
+const stripPinned = computed(() => filmstripOpen.value && props.settings.filmstripPinned)
 const chromeFree = ref(false)
 const zoom = ref<number | null>(null)
 const overlays = useIdle(props.schedule, LOUPE_IDLE_MS, () => Boolean(document.activeElement?.closest('.photo-loupe__overlay, .action-bar__row')))
@@ -150,7 +151,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 		class="photo-loupe"
 		:data-tips-off="overlays.idle.value || undefined"
 		:class="{ 'photo-loupe--idle': overlays.idle.value, 'photo-loupe--chrome-free': chromeFree, 'photo-loupe--below-header': navigationShown && !chromeFree }"
-		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px`, '--photo-loupe-rail': `${settings.flagButtonsShown ? FLAG_RAIL : 0}px`, '--photo-loupe-strip': `${filmstripOpen && settings.filmstripPinned ? FILMSTRIP_THUMB : 0}px` }"
+		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px`, '--photo-loupe-rail': `${settings.flagButtonsShown ? FLAG_RAIL : 0}px`, '--photo-loupe-strip': `${stripPinned ? FILMSTRIP_THUMB : 0}px` }"
 		role="dialog"
 		:aria-modal="!navigationShown"
 		:aria-label="t('honeycomb', 'Loupe')"
@@ -158,7 +159,8 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 		data-hotkeys-screen
 		@pointermove="$event.pointerType === 'mouse' && overlays.wake()">
 		<LoupeTitleRow
-			class="photo-loupe__top photo-loupe__overlay"
+			class="photo-loupe__top"
+			:class="stripPinned ? 'photo-loupe__top--pinned' : 'photo-loupe__overlay'"
 			:name="picture.baseName"
 			:index="props.index"
 			:count="props.pictures.length"
@@ -187,6 +189,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 				:ready="prefetcher.ready"
 				:devicePixelRatio="props.devicePixelRatio"
 				:observeSize="props.observeSize"
+				:swipes="settings.swipes"
 				@page="go(props.index + $event)"
 				@overlays="overlays.toggle"
 				@chromeFree="chromeFree = !chromeFree"
@@ -223,8 +226,10 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:decisionOf="props.decisionOf"
 			:imageUrl="props.imageUrl"
 			:observeSize="props.observeSize"
+			:pinned="settings.filmstripPinned"
 			@pointerdown="overlays.wake"
-			@select="go" />
+			@select="go"
+			@update:pinned="emit('updateSettings', { filmstripPinned: $event })" />
 		<ActionBar
 			v-if="!chromeFree"
 			layout="loupe"

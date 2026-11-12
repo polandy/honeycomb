@@ -10,7 +10,7 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import { mountApp, openCull, shownNames } from './app-cull.ts'
 
 /** The app on a cull whose grid records what it is asked to reveal. */
-async function openApp() {
+async function openApp(props: Record<string, unknown> = {}) {
 	const revealed: number[] = []
 	const GridStub = defineComponent({
 		props: ['pictures', 'selecting'],
@@ -23,7 +23,7 @@ async function openApp() {
 			return () => h('div')
 		},
 	})
-	const { wrapper } = mountApp({}, [], { PhotoGrid: GridStub })
+	const { wrapper } = mountApp(props, [], { PhotoGrid: GridStub })
 	await openCull(wrapper)
 	return { wrapper, revealed }
 }
@@ -74,6 +74,43 @@ describe('App: the loupe', () => {
 
 		expect(wrapper.findComponent(PhotoLoupe).exists()).toBe(false)
 		expect(revealed).toEqual([2])
+	})
+
+	// spec: LOUPE-001.22
+	it('drops a rejected picture the flag filter hides once the loupe leaves it', async () => {
+		const { wrapper } = await openApp()
+		wrapper.findComponent(PhotoGrid).vm.$emit('open', 0)
+		await flushPromises()
+		const loupe = () => wrapper.findComponent(PhotoLoupe)
+		const names = () => loupe().props('pictures').map((picture: { baseName: string }) => picture.baseName)
+		const [rejected, ...rest] = names()
+
+		loupe().vm.$emit('decide', { kind: 'flag', flag: 'rejected' }, loupe().props('pictures')[0])
+		await flushPromises()
+		expect(names()).toEqual([rejected, ...rest])
+
+		loupe().vm.$emit('update:index', 1)
+		await flushPromises()
+
+		expect(names()).toEqual(rest)
+		expect(loupe().props('index')).toBe(0)
+	})
+
+	// spec: LOUPE-001.22
+	it('shows a rejected picture again when its decision cannot be saved', async () => {
+		const { wrapper } = await openApp({ saveDecisions: () => Promise.reject(new Error('down')) })
+		wrapper.findComponent(PhotoGrid).vm.$emit('open', 1)
+		await flushPromises()
+		const loupe = () => wrapper.findComponent(PhotoLoupe)
+		const names = () => loupe().props('pictures').map((picture: { baseName: string }) => picture.baseName)
+		const before = names()
+
+		loupe().vm.$emit('decide', { kind: 'flag', flag: 'rejected' }, loupe().props('pictures')[1])
+		loupe().vm.$emit('update:index', 2)
+		await flushPromises()
+
+		expect(names()).toEqual(before)
+		expect(loupe().props('index')).toBe(2)
 	})
 
 	// spec: KEYS-001.9

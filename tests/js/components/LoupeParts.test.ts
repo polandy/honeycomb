@@ -8,6 +8,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
+import NcButton from '@nextcloud/vue/components/NcButton'
 import LoupeFilmstrip from '../../../src/components/LoupeFilmstrip.vue'
 import LoupeInfo from '../../../src/components/LoupeInfo.vue'
 import LoupeTitleRow from '../../../src/components/LoupeTitleRow.vue'
@@ -104,10 +105,11 @@ describe('LoupeInfo', () => {
 
 describe('LoupeFilmstrip', () => {
 	const PICTURES = picturesOf(Array.from({ length: 30 }, (_, at) => listingEntry(at + 1, `/P/IMG_${String(at + 1).padStart(2, '0')}.JPG`)))
-	const mountStrip = (index: number) => mount(LoupeFilmstrip, {
+	const mountStrip = (index: number, pinned = false) => mount(LoupeFilmstrip, {
 		props: {
 			pictures: PICTURES,
 			index,
+			pinned,
 			decisionOf: (picture: Picture<ListingEntry>) => ({ ...UNDECIDED, flag: picture.baseName === 'IMG_11' ? 'picked' as const : 'unflagged' as const }),
 			imageUrl: (fileId: number, size: number) => `/img/${fileId}/${size}`,
 			observeSize: (_element: Element, onSize: (width: number, height: number) => void) => {
@@ -116,8 +118,8 @@ describe('LoupeFilmstrip', () => {
 			},
 		},
 	})
-	const labels = (wrapper: ReturnType<typeof mountStrip>) => wrapper.findAll('button').map((button) => button.attributes('aria-label'))
-	const strip = (wrapper: ReturnType<typeof mountStrip>) => wrapper.find('.loupe-filmstrip').element as HTMLElement
+	const labels = (wrapper: ReturnType<typeof mountStrip>) => wrapper.findAll('.loupe-filmstrip__photo').map((button) => button.attributes('aria-label'))
+	const strip = (wrapper: ReturnType<typeof mountStrip>) => wrapper.find('.loupe-filmstrip__strip').element as HTMLElement
 
 	// spec: LOUPE-001.13, LOUPE-001.19
 	it('scrolls the shown picture to the middle and renders the ones in view, marked current, with small thumbnails and flags', async () => {
@@ -150,7 +152,7 @@ describe('LoupeFilmstrip', () => {
 		expect(labels(wrapper).at(-1)).toBe('IMG_30')
 
 		strip(wrapper).scrollLeft = 0
-		await wrapper.find('.loupe-filmstrip').trigger('scroll')
+		await wrapper.find('.loupe-filmstrip__strip').trigger('scroll')
 		expect(labels(wrapper)[0]).toBe('IMG_01')
 	})
 
@@ -160,17 +162,52 @@ describe('LoupeFilmstrip', () => {
 		await wrapper.find('button[aria-label="IMG_05"]').trigger('click')
 		expect(wrapper.emitted('select')).toEqual([[4]])
 	})
+
+	// spec: LOUPE-001.20
+	it('carries its own pin toggle at its edge, outside the scrolled photos', async () => {
+		const wrapper = mountStrip(0)
+		const pin = wrapper.find('button[aria-label="Pin filmstrip"]')
+		expect(pin.attributes('aria-pressed')).toBe('false')
+		expect(pin.attributes('data-tip')).toBe('Pin filmstrip')
+		expect(mountStrip(0, true).find('button[aria-label="Pin filmstrip"]').attributes('data-tip')).toBe('Unpin filmstrip')
+		expect(wrapper.find('.loupe-filmstrip__strip button[aria-label="Pin filmstrip"]').exists()).toBe(false)
+
+		await pin.trigger('click')
+		const pinned = mountStrip(0, true)
+		await pinned.find('button[aria-label="Pin filmstrip"]').trigger('click')
+
+		expect(wrapper.emitted('update:pinned')).toEqual([[true]])
+		expect(pinned.emitted('update:pinned')).toEqual([[false]])
+		expect(mountStrip(0, true).find('button[aria-label="Pin filmstrip"]').attributes('aria-pressed')).toBe('true')
+	})
 })
 
 describe('LoupeTitleRow', () => {
-	const mountRow = (zoom: number | null) => mount(LoupeTitleRow, {
-		props: { name: 'IMG_7', index: 6, count: 120, zoom, infoOpen: false, filmstripOpen: true, navigationShown: false, flagButtonsShown: true },
+	const mountRow = (zoom: number | null, filmstripOpen = true) => mount(LoupeTitleRow, {
+		props: { name: 'IMG_7', index: 6, count: 120, zoom, infoOpen: false, filmstripOpen, navigationShown: false, flagButtonsShown: true },
 	})
 	const button = (wrapper: ReturnType<typeof mountRow>, label: string) => wrapper.find(`button[aria-label="${label}"]`)
 
 	it('names the picture, its position and the zoom', () => {
-		expect(mountRow(null).text()).toMatch(/IMG_7\s*7 of 120\s*Fit/)
-		expect(button(mountRow(42), 'Toggle fit and 100 percent').text()).toBe('42 %')
+		expect(mountRow(null).text()).toMatch(/IMG_7\s*7 of 120/)
+	})
+
+	it('draws the zoom, move, info and fullscreen buttons as icons without a word', () => {
+		Object.defineProperty(document, 'fullscreenEnabled', { value: true, configurable: true })
+		const wrapper = mountRow(42)
+		Reflect.deleteProperty(document, 'fullscreenEnabled')
+		for (const label of ['Toggle fit and 100 percent', 'Move this photo', 'Toggle info panel', 'Enter fullscreen']) {
+			const each = button(wrapper, label)
+			expect(each.text(), label).toBe('')
+			expect(each.find('svg.app-icon').exists(), label).toBe(true)
+			const nc = wrapper.findAllComponents(NcButton).find((c) => c.attributes('aria-label') === label)
+			expect(nc?.props('variant'), label).toBe('tertiary')
+		}
+	})
+
+	it('shows the zoom button pressed while zoomed in', () => {
+		expect(button(mountRow(null), 'Toggle fit and 100 percent').attributes('aria-pressed')).toBe('false')
+		expect(button(mountRow(42), 'Toggle fit and 100 percent').attributes('aria-pressed')).toBe('true')
 	})
 
 	it('emits close, the zoom toggle and the panel toggles', async () => {
@@ -187,5 +224,10 @@ describe('LoupeTitleRow', () => {
 		expect(wrapper.emitted('update:filmstripOpen')).toEqual([[false]])
 		expect(wrapper.emitted('update:navigationShown')).toEqual([[true]])
 		expect(wrapper.emitted('update:flagButtonsShown')).toEqual([[false]])
+	})
+
+	// spec: LOUPE-001.20
+	it('leaves the filmstrip\'s pin to the filmstrip', () => {
+		expect(button(mountRow(null), 'Pin filmstrip').exists()).toBe(false)
 	})
 })

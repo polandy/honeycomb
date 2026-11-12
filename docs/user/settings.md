@@ -39,7 +39,7 @@ Changing a list pairs the open folders again at once; your decisions stay.
   again.
 - **Pin the filmstrip** and **Pin the rating row:** keep the filmstrip, or the stars, colour
   labels and *Keep RAW*, below the photo in landscape instead of over it, so they never fade. Each
-  is off by default.
+  is off by default; the pin in the loupe's title row switches the filmstrip's too.
 
 ## Keyboard
 

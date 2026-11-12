@@ -6,4 +6,5 @@
 :root {
 	--honeycomb-pick-fill: #1f7a46;
 	--honeycomb-reject-fill: #b3302c;
+	--honeycomb-unflag-fill: #54585e;
 }

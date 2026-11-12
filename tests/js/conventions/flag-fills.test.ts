@@ -21,7 +21,7 @@ const token = (name: string) => FILLS.match(new RegExp(`--honeycomb-${name}-fill
 
 describe('the flag fills', () => {
 	// spec: LOUPE-002.13
-	it.each(['pick', 'reject'])('draws white on the %s fill at 4.5:1 or more', (name) => {
+	it.each(['pick', 'reject', 'unflag'])('draws white on the %s fill at 4.5:1 or more', (name) => {
 		expect(contrastWithWhite(token(name))).toBeGreaterThanOrEqual(MIN_CONTRAST)
 	})
 
@@ -31,10 +31,18 @@ describe('the flag fills', () => {
 		['FlagMark.vue', 'rejected', 'reject'],
 		['FlagButtons.vue', 'picked', 'pick'],
 		['FlagButtons.vue', 'rejected', 'reject'],
+		['FlagButtons.vue', 'unflagged', 'unflag'],
+		['LoupeSwipeHint.vue', 'picked', 'pick'],
+		['LoupeSwipeHint.vue', 'rejected', 'reject'],
 	])('%s fills %s with the app token and a white icon', (file, flag, name) => {
 		const source = read(`components/${file}`)
 		expect(source).toContain(`var(--honeycomb-${name}-fill)`)
 		expect(source).not.toMatch(/--color-(success|error)\)/)
 		expect(source).not.toMatch(new RegExp(`${flag}[^}]*color: var\\(--color-main-background\\)`))
+	})
+
+	// spec: LOUPE-002.13
+	it('marks a pressed Unflag by its fill like Pick and Reject, not by a heavier outline', () => {
+		expect(read('components/FlagButtons.vue')).not.toMatch(/\[aria-pressed='true'\][^}]*outline/)
 	})
 })

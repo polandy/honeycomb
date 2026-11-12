@@ -4,21 +4,14 @@ import type { Locator, Page, TestInfo } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { cullFolder, resetViewState } from './cull.ts'
-import { createFolder, JPEG, RAW, requestToken, upload, withCaptureTime } from './files.ts'
+import { cullFolder, putSettings, resetViewState } from './cull.ts'
+import { createFolder, JPEG, RAW, upload, withCaptureTime } from './files.ts'
 
 const IPAD_LANDSCAPE = { width: 1180, height: 820 }
 const IPAD_PORTRAIT = { width: 820, height: 1180 }
 /** EXIF orientation: turn 90° clockwise to show upright. */
 const ROTATE_CW = 6
 const ASPECT_TOLERANCE = 0.02
-const SETTINGS_URL = '/index.php/apps/honeycomb/api/v1/settings'
-
-/** Stores the settings for the user, `{}` putting back the defaults. */
-async function putSettings(page: Page, settings: Record<string, unknown>) {
-	const response = await page.request.put(SETTINGS_URL, { data: { settings }, headers: { requesttoken: await requestToken(page) } })
-	expect(response.status(), await response.text()).toBe(200)
-}
 
 /** How many stage images are visible and reach into both the stage and the viewport. */
 function photosInView(page: Page) {
@@ -128,4 +121,55 @@ test('puts the pinned filmstrip and rating row below the one photo in landscape'
 	} finally {
 		await putSettings(page, {})
 	}
+})
+
+// spec: LOUPE-001.20
+test('fits the photo between the title row and the pinned filmstrip in landscape', async ({ page }) => {
+	await page.setViewportSize(IPAD_LANDSCAPE)
+	await page.goto('/index.php/apps/honeycomb/')
+	await putSettings(page, { filmstripPinned: true })
+	try {
+		const loupe = await openRotatedPair(page)
+		const title = (await loupe.locator('.photo-loupe__top').boundingBox())!
+		const stage = (await loupe.locator('.loupe-stage').boundingBox())!
+		const strip = (await loupe.getByRole('navigation', { name: 'Filmstrip' }).boundingBox())!
+		expect(stage.y).toBeGreaterThanOrEqual(title.y + title.height)
+		expect(stage.y + stage.height).toBeLessThanOrEqual(strip.y)
+	} finally {
+		await putSettings(page, {})
+	}
+})
+
+// spec: LOUPE-001.20
+test('hides the pinned title row and filmstrip in the chrome-free mode', async ({ page }) => {
+	await page.setViewportSize(IPAD_LANDSCAPE)
+	await page.goto('/index.php/apps/honeycomb/')
+	await putSettings(page, { filmstripPinned: true })
+	try {
+		const loupe = await openRotatedPair(page)
+		await expect(loupe.locator('.photo-loupe__top')).toBeVisible()
+		await page.keyboard.press('Tab')
+		await expect(loupe.locator('.photo-loupe__top')).toBeHidden()
+		await expect(loupe.getByRole('navigation', { name: 'Filmstrip' })).toBeHidden()
+	} finally {
+		await putSettings(page, {})
+	}
+})
+
+// spec: LOUPE-001.21
+test('opens the info panel as a bottom sheet over the action bar on a phone', async ({ page }, testInfo) => {
+	const phone = { width: 390, height: 844 }
+	await page.setViewportSize(phone)
+	const loupe = await openRotatedPair(page)
+	await page.keyboard.press('i')
+	const sheet = loupe.getByRole('complementary', { name: 'Photo info' })
+	await expect(sheet).toBeVisible()
+	const box = (await sheet.boundingBox())!
+	expect(box.x).toBe(0)
+	expect(box.width).toBe(phone.width)
+	expect(box.y + box.height).toBe(phone.height)
+	await expect(loupe.getByRole('separator', { name: 'Resize info panel' })).toBeHidden()
+	const stage = (await loupe.locator('.loupe-stage').boundingBox())!
+	expect(stage.width).toBe(phone.width)
+	await page.screenshot({ path: testInfo.outputPath('loupe-info-phone.png') })
 })

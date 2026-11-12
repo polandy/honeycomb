@@ -3,9 +3,7 @@
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
-import { randomUUID } from 'node:crypto'
-import { cullFolder, resetViewState } from './cull.ts'
-import { createFolder, JPEG, upload } from './files.ts'
+import { openLoupe } from './cull.ts'
 
 /** Whether the middle of Nextcloud's header is on top, not under the loupe. */
 function headerUncovered(page: Page) {
@@ -13,29 +11,6 @@ function headerUncovered(page: Page) {
 		const header = document.getElementById('header')!.getBoundingClientRect()
 		return document.elementFromPoint(header.x + header.width / 2, header.y + header.height / 2)?.closest('#header') !== null
 	})
-}
-
-/** Culls a new folder of IMG_0001 and IMG_0002, opens IMG_0001 in the loupe and dismisses the guide. */
-async function openLoupe(page: Page) {
-	await page.goto('/index.php/apps/honeycomb/')
-	await resetViewState(page)
-	const folder = `Loupe ${randomUUID().slice(0, 8)}`
-	await createFolder(page, folder)
-	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
-	await upload(page, `${folder}/IMG_0002.jpg`, JPEG)
-
-	await cullFolder(page, folder)
-	await page.getByRole('gridcell', { name: 'IMG_0001, JPG only' }).click()
-
-	const loupe = page.getByRole('dialog', { name: 'Loupe' })
-	await expect(loupe.getByRole('heading', { name: 'IMG_0001' })).toBeVisible()
-	await expect(loupe.getByText('1 of 2')).toBeVisible()
-	await expect(loupe.getByRole('img', { name: 'IMG_0001' })).toHaveJSProperty('complete', true)
-
-	const guide = loupe.getByRole('dialog', { name: 'How to cull' })
-	await guide.getByRole('button', { name: 'Got it' }).click()
-	await expect(guide).toBeHidden()
-	return loupe
 }
 
 // spec: LOUPE-001.2, LOUPE-001.3
@@ -74,7 +49,7 @@ test('shows the filmstrip as square photos edge to edge at full opacity, the sho
 })
 
 // spec: LOUPE-002.11
-test('puts Pick and Reject at the side edges in landscape and in a row below the photo in portrait', async ({ page }) => {
+test('puts Pick and Reject at the side edges in landscape and in a row below the photo in portrait, Unflag between them', async ({ page }) => {
 	const loupe = await openLoupe(page)
 	const box = async (name: string) => (await loupe.getByRole('button', { name, exact: true }).first().boundingBox())!
 	const frame = (await loupe.boundingBox())!
@@ -90,8 +65,8 @@ test('puts Pick and Reject at the side edges in landscape and in a row below the
 	expect(portraitPick.y).toBeGreaterThanOrEqual(photo.y + photo.height)
 	expect(portraitReject.y).toBe(portraitPick.y)
 	expect(unflag.y).toBe(portraitPick.y)
-	expect(portraitPick.x).toBeLessThan(portraitReject.x)
-	expect(portraitReject.x).toBeLessThan(unflag.x)
+	expect(portraitPick.x).toBeLessThan(unflag.x)
+	expect(unflag.x).toBeLessThan(portraitReject.x)
 })
 
 // spec: KEYS-001.10, KEYS-001.12

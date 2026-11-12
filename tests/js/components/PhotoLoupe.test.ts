@@ -135,10 +135,10 @@ describe('PhotoLoupe', () => {
 		const { wrapper, root, decoded } = await mountLoupe()
 		const zoomButton = button(wrapper, 'Toggle fit and 100 percent')
 		await root.trigger('keydown', { key: 'z' })
-		expect(zoomButton.text()).toBe('100 %')
+		expect(zoomButton.attributes('aria-pressed')).toBe('true')
 		expect(decoded).toContain('/img/5/0')
 		await zoomButton.trigger('click')
-		expect(zoomButton.text()).toBe('Fit')
+		expect(zoomButton.attributes('aria-pressed')).toBe('false')
 	})
 
 	// spec: LOUPE-001.9
@@ -152,13 +152,13 @@ describe('PhotoLoupe', () => {
 			return event.defaultPrevented
 		}
 		expect(await press('-')).toBe(false)
-		expect(zoomButton.text()).toBe('Fit')
+		expect(zoomButton.attributes('aria-pressed')).toBe('false')
 		expect(await press('=')).toBe(true)
-		expect(zoomButton.text()).toBe('100 %')
+		expect(zoomButton.attributes('aria-pressed')).toBe('true')
 		expect(await press('=')).toBe(false)
-		expect(zoomButton.text()).toBe('100 %')
+		expect(zoomButton.attributes('aria-pressed')).toBe('true')
 		expect(await press('-')).toBe(true)
-		expect(zoomButton.text()).toBe('Fit')
+		expect(zoomButton.attributes('aria-pressed')).toBe('false')
 	})
 
 	// spec: LOUPE-001.13, LOUPE-003.6
@@ -217,6 +217,17 @@ describe('PhotoLoupe', () => {
 
 		await wrapper.setProps({ settings: { ...DEFAULT_SETTINGS, ratingRowPinned: true } })
 		expect(wrapper.find('.action-bar').classes()).toContain('action-bar--pinned')
+	})
+
+	// spec: LOUPE-001.20
+	it('turns Pin the filmstrip on and off from its pin toggle', async () => {
+		const { wrapper } = await mountLoupe()
+		await button(wrapper, 'Pin filmstrip').trigger('click')
+		await wrapper.setProps({ settings: { ...DEFAULT_SETTINGS, filmstripPinned: true } })
+		expect(button(wrapper, 'Pin filmstrip').attributes('aria-pressed')).toBe('true')
+		await button(wrapper, 'Pin filmstrip').trigger('click')
+
+		expect(wrapper.emitted('updateSettings')).toEqual([[{ filmstripPinned: true }], [{ filmstripPinned: false }]])
 	})
 
 	// spec: LOUPE-001.14

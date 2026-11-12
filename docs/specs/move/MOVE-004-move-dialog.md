@@ -19,7 +19,7 @@ the move from its toast.
 |---|---|
 | *Move…* in the selection's action bar | the selected pictures |
 | `M` in the grid | the selected pictures, else the focused tile's |
-| *Move…* in the loupe's title row, `M` in the loupe | the loupe's photo |
+| the *Move this photo* icon in the loupe's title row, `M` in the loupe | the loupe's photo |
 | *Move picks* in the toolbar's More menu | every picked picture of the cull |
 | *Move filtered* in the More menu, shown instead while a filter is on | the pictures of the view |
 

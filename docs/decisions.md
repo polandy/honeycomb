@@ -738,6 +738,41 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-12: UX H1 — pressed Pick and Reject use the app tokens `--honeycomb-pick-fill` and
   `--honeycomb-reject-fill` (`src/flag-fills.css`) with a white icon, because Nextcloud 35's success
   and error colours are pale tints.
+- 2026-11-12: UX H2 — a tile's flag mark, stars and colour dot sit in one row on a fixed dark
+  bottom gradient with white stars (GRID-001.16), because the photo, not the theme, is their
+  background; the colour dot moved from the top-left to that row.
+- 2026-11-12: UX H3 shows the zoom as a pressed *Fit / 100 %* icon button; the zoom percentage
+  is gone from the title row, the tooltip keeps the name.
+- 2026-11-12: UX H4 opens the loupe info panel as a fixed bottom sheet at 520 px and below, at
+  most 60 % of the height, over the action bar; CSS only, so the dragged width stays for wider
+  screens.
+- 2026-11-12: UX H5 lays the title row out in the flow, not over the photo, while the filmstrip
+  is pinned in landscape, and keeps it from idling like the filmstrip; unpinned, both still float.
+- 2026-11-12: iPad feedback, portrait: the large flag buttons run *Pick*, *Unflag*, *Reject* in
+  the DOM too, so the focus order matches the row; the small buttons keep *Pick*, *Reject*,
+  *Unflag*.
+- 2026-11-12: iPad feedback, folder picker: *Include subfolders* sits directly above the folder
+  list, below *Recent*, since it applies to the ticked folders and not to a recent folder set.
+- 2026-11-12: iPad feedback, landscape: the filmstrip is pinned from a pin toggle in the loupe's
+  title row, bound to the existing *Pin the filmstrip* setting; it is hidden in portrait, where
+  the filmstrip always sits below the photo.
+- 2026-11-12: iPad feedback, filter: the loupe narrows its snapshot to the pictures the filters
+  let through, but keeps the shown picture until it is left, so a decision never shifts the photo
+  and the undo toast still shows what was decided.
+- 2026-11-12: iPad feedback, swipe hint: while a finger lifts the photo, a pill in the stage's
+  middle names the flag the release sets, dashed and fading in with the distance while the release
+  would settle back, filled with the flag's colour once it decides. The gesture recogniser reports
+  the swipe a release would make on every move, so the hint and the release share one rule (flick
+  included); a direction set to Nothing shows no hint.
+- 2026-11-12: iPad feedback, filmstrip pin: the pin toggle moved from the title row to the
+  filmstrip's end, a 44 px column of the same dark band, so it reads as part of the strip; still
+  landscape only.
+- 2026-11-12: iPad feedback, Unflag: its pressed state (every unflagged picture) was a 2 px outline
+  in the text colour over the 1 px border, which read as a thicker white border. It is now filled
+  like *Pick* and *Reject*, in a neutral grey (`--honeycomb-unflag-fill`, 7.2:1 with white).
+- 2026-11-12: Series compare also compares the images (owner decision): a dHash of the 256 px grid
+  preview, alike at most 10 of 64 bits apart, 30 s window with hashes, the 3 s rule without one;
+  constants, not a setting, until the owner's taste asks for one (ADR 0021).
 - 2026-11-12: The mockup selects several pictures with a visible *Select* button (long-press on
   touch is a shortcut) and filters the grid by tags with the same autocomplete entry (`F`): a
   picture stays if it has every chosen tag.

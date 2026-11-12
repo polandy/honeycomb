@@ -31,6 +31,7 @@ async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 	const lookedUp: number[][] = []
 	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
 	const cull = useCull({
+		hashImage: () => new Promise(() => undefined),
 		warmPreviews: async () => undefined,
 		lookupDecisions: async (fileIds) => {
 			lookedUp.push([...fileIds])

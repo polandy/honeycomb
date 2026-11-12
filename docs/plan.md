@@ -157,8 +157,10 @@ pictures, a rejected picture disappears from view, and at the end delete all rej
    sidecar form, `<file>.xmp` of each member and a shared `<base>.xmp` alike. The delete summary
    shows pictures · files · bytes freed. *Remove RAWs* is the one action that takes a member
    away from a picture ([Keep RAW and Remove RAWs](#keep-raw-and-remove-raws)).
-4. **Series compare** (milestone M6). Pictures taken within a short interval (mockup: 3 seconds by
-   capture time, at most 4 per series) form a series, shown 2–4 side by side. Tapping the best one
+4. **Series compare** (milestone M6). Pictures taken within a short interval that look alike
+   (owner, 2026-11-12: up to 30 seconds apart with a visual hash of the preview, 3 seconds by
+   capture time until it is there; ADR 0021, at most 4 per series) form a series, shown 2–4 side
+   by side. Tapping the best one
    means *Pick this, reject the rest*: it is picked, the others rejected, as one undo step. The
    owner's 2026-11-09 feedback changes how: see [Compact header and series
    viewer](#compact-header-and-series-viewer).
@@ -224,8 +226,8 @@ Decided by the owner on 2026-11-09 (answers Q17): one cull can cover several fol
 folder with all its subfolders. That set of folders is the *folder set*.
 
 1. **Picker.** The folder picker has a checkbox per folder and an *Include subfolders* switch
-   (any depth). Before opening it shows the count, e.g. "1,840 photos in 23 folders"; the button
-   reads "Cull 23 folders".
+   (any depth) above the folder list. Before opening it shows the count, e.g. "1,840 photos in
+   23 folders"; the button reads "Cull 23 folders".
 2. **Skipped folders.** Hidden folders (name starts with `.`), the trash bin and Nextcloud's
    preview folders are never part of a folder set.
 3. **Grid.** Sorted by capture time across folders by default; one folder starts by file
@@ -701,7 +703,7 @@ takes its sizes from the pointer type ([Control sizes](#control-sizes)), not fro
 
 | Component (mockup function) | Renders | Used by | Pure modules (`src/logic/`) |
 |---|---|---|---|
-| `FlagButtons` (`flagButtons`) | *Pick*, *Reject*, *Unflag*, neutral until pressed: a pressed *Pick* or *Reject* fills its colour, a pressed *Unflag* gets an outline; small or large | action bar, series compare card | `decisions`: flag toggle, a selection's common value |
+| `FlagButtons` (`flagButtons`) | *Pick*, *Reject*, *Unflag*, neutral until pressed: a pressed *Pick* or *Reject* fills its colour, a pressed *Unflag* fills a neutral grey; small or large | action bar, series compare card | `decisions`: flag toggle, a selection's common value |
 | `FlagMark` (`flagMark`) | the read-only flag icon | `PhotoTile`, loupe filmstrip, series compare card | — |
 | `StarRating` (`starRating`, `stars`) | 0–5 buttons, or read-only stars | action bar, `PhotoTile`, series compare card | `decisions` |
 | `ColourLabels` (`colourLabel`, `showPalette`) | the label button and the nine-colour palette | action bar, filter bar | `decisions`, `hotkeys` |
