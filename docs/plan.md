@@ -224,8 +224,8 @@ Decided by the owner on 2026-11-09 (answers Q17): one cull can cover several fol
 folder with all its subfolders. That set of folders is the *folder set*.
 
 1. **Picker.** The folder picker has a checkbox per folder and an *Include subfolders* switch
-   (any depth) above the folder list. Before opening it shows the count, e.g. "1,840 photos in 23 folders"; the button
-   reads "Cull 23 folders".
+   (any depth) above the folder list. Before opening it shows the count, e.g. "1,840 photos in
+   23 folders"; the button reads "Cull 23 folders".
 2. **Skipped folders.** Hidden folders (name starts with `.`), the trash bin and Nextcloud's
    preview folders are never part of a folder set.
 3. **Grid.** Sorted by capture time across folders by default; one folder starts by file

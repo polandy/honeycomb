@@ -14,8 +14,8 @@ grid shows, and zoom in on a detail, by touch, mouse or keyboard.
 
 The loupe opens from the grid on one picture and pages through a snapshot of the grid's view taken
 when it opens, so a decision that hides a picture does not shift it; once the loupe leaves a
-picture the filters no longer let through, it drops out of the snapshot (LOUPE-001.22). It covers the whole page,
-the Nextcloud header included, until the user shows the Nextcloud navigation above it.
+picture the filters no longer let through, it drops out of the snapshot (LOUPE-001.22). It covers
+the whole page, the Nextcloud header included, until the user shows the Nextcloud navigation above it.
 
 The photo area has three tap zones: a tap on the left 30 % goes to the previous picture, on the
 right 30 % to the next, on the middle 40 % it shows or hides the overlays; a double-tap in the
