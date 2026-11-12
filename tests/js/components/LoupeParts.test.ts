@@ -175,7 +175,9 @@ describe('LoupeTitleRow', () => {
 
 	// spec: LOUPE-001.13
 	it('draws the zoom, move, info and fullscreen buttons as icons without a word', () => {
+		Object.defineProperty(document, 'fullscreenEnabled', { value: true, configurable: true })
 		const wrapper = mountRow(42)
+		Reflect.deleteProperty(document, 'fullscreenEnabled')
 		for (const label of ['Toggle fit and 100 percent', 'Move this photo', 'Toggle info panel', 'Enter fullscreen']) {
 			const each = button(wrapper, label)
 			expect(each.text(), label).toBe('')
