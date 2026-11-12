@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { differenceHash, hashDistance, HASH_COLUMNS, HASH_ROWS, parseHashCache, serializeHashCache } from '../../../src/logic/visual-hash.ts'
+import { differenceHash, HASH_COLUMNS, HASH_ROWS, hashDistance, parseHashCache, serializeHashCache } from '../../../src/logic/visual-hash.ts'
 
 /** RGBA pixels of a HASH_COLUMNS × HASH_ROWS image whose grey level is `level(column, row)`. */
 function pixels(level: (column: number, row: number) => number): number[] {

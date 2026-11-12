@@ -17,16 +17,16 @@ A **series** is a run of pictures of one camera (EXIF make and model; pictures w
 as one camera), photo to photo in capture-time order, where each neighbour **looks alike** and lies
 at most 30 seconds apart: their visual hashes differ in at most 10 of 64 bits. Where either of two
 neighbours has no visual hash yet, they belong together when their EXIF capture times lie at most
-3 seconds apart. Series may cross folders.
+3 seconds apart. Series may cross folders. A picture without an EXIF capture time is never in a
+series. Rejected pictures are left out before the runs are formed. A run of more than four is
+split into series of at most four, as even as possible (5 → 3 + 2). A series has at least two pictures and at least one undecided;
+the series are ordered by their first capture time.
 
 The **visual hash** of a picture is a difference hash of the small grid preview of its shown member
 (ADR 0021). It is computed in the browser, in the background and one picture at a time, only for
 pictures with a shot of the same camera within 30 seconds, and kept in browser storage per file
 version (etag). A failed hash is logged and leaves the picture on the 3 second rule. The series
-change as hashes arrive, except while the series compare dialog is open. A picture without an EXIF capture time is never in a series. Rejected pictures are
-left out before the runs are formed. A run of more than four is split into series of at most four,
-as even as possible (5 → 3 + 2). A series has at least two pictures and at least one undecided;
-the series are ordered by their first capture time.
+change as hashes arrive, except while the series compare dialog is open.
 
 *Compare series* in the toolbar shows how many series there are and is disabled without one; it and
 `N` open the series compare dialog. The dialog, titled "Compare series 1 of 3", shows the series'

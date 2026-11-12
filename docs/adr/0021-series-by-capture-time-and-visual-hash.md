@@ -38,8 +38,8 @@ a new heavy dependency and would read the files a second time.
   under the user's finger.
 - **Cache.** Browser storage key `honeycomb.visualHashes`, a JSON object from `<fileId>:<etag>` to
   16 hex digits, the newest 10 000 entries (about 600 000 characters of the browser's 5 million).
-  A changed etag means new pixels and a new hash. The cache is device-local and rebuilt from the previews when cleared; nothing is
-  stored on the server.
+  A changed etag means new pixels and a new hash. The cache is device-local and rebuilt from the
+  previews when cleared; nothing is stored on the server.
 - **No setting yet.** Window and threshold are constants. A per-user setting would need the
   settings endpoint, its validation and UI (ADR 0014); it follows if the owner's taste differs.
 

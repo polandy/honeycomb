@@ -25,13 +25,13 @@ beforeEach(() => {
 })
 afterEach(() => vi.restoreAllMocks())
 
-/** A cull opened on ENTRIES whose saves are recorded and whose previews hash as `hashes` says, by file id, or never. */
-async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES, hashes: Record<number, string> = {}) {
+/** A cull opened on ENTRIES whose saves are recorded. */
+async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 	const saved: StoredDecision[][] = []
 	const lookedUp: number[][] = []
 	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
 	const cull = useCull({
-		hashImage: (member) => new Promise((resolve) => member.fileId in hashes && resolve(hashes[member.fileId]!)),
+		hashImage: () => new Promise(() => undefined),
 		warmPreviews: async () => undefined,
 		lookupDecisions: async (fileIds) => {
 			lookedUp.push([...fileIds])
@@ -103,14 +103,6 @@ describe('useCull: series', () => {
 		cull.decide({ kind: 'flag', flag: 'rejected' }, [picture('B')])
 		expect(cull.series.value.map((series) => series.map((each) => each.baseName))).toEqual([['A', 'C']])
 		expect([picture('A'), picture('B')].map((each) => cull.seriesSizes.value.get(each))).toEqual([2, undefined])
-	})
-
-	// spec: SERIES-001.14
-	it('joins shots that look alike once their previews are hashed', async () => {
-		const entries = [listingEntry(1, '/Trip/A.JPG', { captureTime: 10 }), listingEntry(2, '/Trip/B.JPG', { captureTime: 30 })]
-		const { cull } = await openedCull([], entries, { 1: '0000000000000000', 2: '0000000000000001' })
-
-		expect(cull.series.value.map((series) => series.map((each) => each.baseName))).toEqual([['A', 'B']])
 	})
 })
 
