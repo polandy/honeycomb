@@ -17,27 +17,31 @@ header{padding:10px 16px;border-bottom:1px solid var(--line)}
 header h1{margin:0;font-size:16px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:6px 0 0;padding:0;list-style:none;color:var(--muted);font-size:13px}
 kbd{font:12px ui-monospace,monospace;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:0 5px}
-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px}
-.grid{display:flex;gap:12px}
-.thumb{width:140px;height:100px;border-radius:6px;border:2px solid transparent;cursor:pointer}
-.thumb.focus{border-color:var(--accent)}
+main{flex:1;padding:16px}
+.grid{display:flex;flex-wrap:wrap;gap:12px}
+.thumb{width:140px;height:100px;border-radius:6px;border:3px solid transparent;cursor:pointer;position:relative;user-select:none}
+.thumb.sel{border-color:var(--accent)}
+.thumb.focus{outline:2px dashed var(--fg);outline-offset:2px}
+.thumb small{position:absolute;left:4px;bottom:4px;background:#000a;color:#fff;border-radius:8px;padding:0 6px;font-size:11px}
 .loupe{position:fixed;inset:0;background:#111;color:#eee;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
 .loupe[hidden]{display:none}
-.photo{width:min(80vw,640px);aspect-ratio:3/2;border-radius:8px}
-.name{font-size:14px;opacity:.8}
-.chips{display:flex;flex-wrap:wrap;gap:6px;min-height:28px;justify-content:center}
-.chip{background:var(--chip);color:var(--fg);border-radius:14px;padding:2px 10px;font-size:13px}
-.chip.last{outline:2px solid var(--accent)}
-.entry{width:min(90vw,420px);background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px}
+.photo{width:min(80vw,640px);aspect-ratio:3/2;border-radius:8px;position:relative}
+.name{font-size:14px;opacity:.8;margin:0}
+.panel{position:absolute;left:8px;right:8px;bottom:8px;display:flex;flex-direction:column;gap:6px;color:var(--fg)}
+.panel.fixed{position:fixed;left:50%;right:auto;width:min(94vw,440px);transform:translateX(-50%);bottom:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.chip{background:var(--chip);border:1px solid transparent;border-radius:14px;padding:1px 4px 1px 10px;font-size:13px;display:flex;gap:4px;align-items:center}
+.chip.partial{border:1px dashed var(--fg);background:var(--card)}
+.chip button{border:0;background:none;color:inherit;font:inherit;cursor:pointer;padding:0 4px;border-radius:50%}
+.entry{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px;box-shadow:0 2px 12px #0006}
 .entry[hidden]{display:none}
 .entry input{width:100%;font:inherit;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg)}
-.rows{list-style:none;margin:6px 0 0;padding:0;max-height:240px;overflow:auto}
+.rows{list-style:none;margin:6px 0 0;padding:0;max-height:180px;overflow:auto}
 .rows li{padding:6px 8px;border-radius:6px;display:flex;justify-content:space-between;cursor:pointer}
 .rows li.on{background:var(--accent);color:var(--accent-fg)}
 .rows li.create{font-style:italic}
-.rows .have{opacity:.6}
-.hint{margin:6px 2px 0;font-size:12px;color:var(--muted)}
-.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:6px 14px;border-radius:6px;font-size:13px}
+.rows .have{opacity:.7}
+.toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:6px 14px;border-radius:6px;font-size:13px;z-index:9}
 .toast[hidden]{display:none}
 </style>
 </head>
@@ -45,30 +49,28 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;justify-conten
 <header>
   <h1>Tag entry mockup (<code>docs/07-tags.md</code>)</h1>
   <ul class="legend">
-    <li><kbd>Enter</kbd> open loupe</li>
-    <li><kbd>←</kbd><kbd>→</kbd> other picture</li>
-    <li><kbd>T</kbd> tag entry</li>
+    <li>grid: click, <kbd>Shift</kbd>/<kbd>Ctrl</kbd>-click or <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd>, <kbd>Shift</kbd>+arrows, <kbd>Ctrl</kbd><kbd>A</kbd> select</li>
+    <li><kbd>Enter</kbd> / double-click: loupe</li>
+    <li><kbd>T</kbd> tag entry for the loupe picture or the selection</li>
     <li>type: filter by substring</li>
-    <li><kbd>↑</kbd><kbd>↓</kbd> pick a suggestion</li>
-    <li><kbd>Tab</kbd> complete (no assign)</li>
-    <li><kbd>Enter</kbd> assign typed text or picked row</li>
+    <li><kbd>Tab</kbd> / <kbd>Shift</kbd><kbd>Tab</kbd> (or <kbd>↓</kbd><kbd>↑</kbd>): cycle the matches into the field</li>
+    <li><kbd>Enter</kbd> assigns exactly the field (creates if new)</li>
     <li><kbd>/</kbd> makes a level</li>
-    <li><kbd>Backspace</kbd> in empty field: remove last chip</li>
+    <li>dashed chip: only some selected pictures have it</li>
+    <li>chip <kbd>×</kbd> or <kbd>Backspace</kbd> in empty field: remove (from all selected)</li>
     <li><kbd>Esc</kbd> close entry, then loupe</li>
   </ul>
 </header>
-<main>
-  <div class="grid" id="grid"></div>
-  <div class="name">Grid: pick with ← →, <kbd>Enter</kbd> opens the loupe.</div>
-</main>
+<main><div class="grid" id="grid"></div></main>
 <div class="loupe" id="loupe" hidden>
   <div class="photo" id="photo"></div>
-  <div class="name" id="name"></div>
+  <p class="name" id="name"></p>
+</div>
+<div class="panel fixed" id="panel">
   <div class="chips" id="chips" aria-label="Tags"></div>
   <div class="entry" id="entry" hidden>
     <input id="field" type="text" autocomplete="off" spellcheck="false" placeholder="Tag, or Place/Sub-place" aria-label="Tag">
     <ul class="rows" id="rows"></ul>
-    <p class="hint">The entry stays open for the next tag.</p>
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
@@ -76,118 +78,171 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;justify-conten
 'use strict';
 const known = ['Berg', 'Bergsee', 'Natur', 'Natur/Berg', 'Natur/Wald', 'Natur/Tiere/Reh', 'Orte', 'Orte/Schweiz',
   'Orte/Italien/Dolomiten', 'Personen/Anna', 'Haustiere/Anna', 'Sonnenaufgang', 'Familie', 'Portrait', 'Schwarzweiss'];
-const photos = [
-  {name: 'DSC_4101', hue: 200, tags: ['Natur/Berg']},
-  {name: 'DSC_4102', hue: 30, tags: []},
-  {name: 'DSC_4103', hue: 120, tags: ['Sonnenaufgang', 'Orte/Schweiz']},
-];
+const tagsOf = [['Natur/Berg'], [], ['Sonnenaufgang', 'Orte/Schweiz'], ['Natur/Berg', 'Familie'], [], ['Natur/Berg'], [], ['Portrait']];
+const photos = tagsOf.map((tags, i) => ({name: `DSC_41${String(i + 1).padStart(2, '0')}`, hue: i * 40, tags}));
 const $ = id => document.getElementById(id);
-let current = 0, loupeOpen = false, entryOpen = false, picked = -1, rows = [], toastTimer = 0;
+let focus = 0, anchor = 0, sel = new Set([0]);
+let loupeOpen = false, entryOpen = false, base = '', picked = -1, rows = [], toastTimer = 0;
 
 const norm = text => text.split('/').map(s => s.trim()).filter(Boolean).join('/');
 const same = (a, b) => a.toLowerCase() === b.toLowerCase();
-const have = tag => photos[current].tags.some(t => same(t, tag));
 const bg = h => `linear-gradient(135deg,hsl(${h} 50% 40%),hsl(${h + 50} 50% 25%))`;
+const targets = () => (loupeOpen ? [focus] : [...sel].sort((a, b) => a - b));
+const has = (i, tag) => photos[i].tags.some(t => same(t, tag));
+const plural = n => `${n} photo${n === 1 ? '' : 's'}`;
 
 function toast(msg) {
-  const el = $('toast');
-  el.textContent = msg; el.hidden = false;
+  $('toast').textContent = msg; $('toast').hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.hidden = true; }, 1500);
+  toastTimer = setTimeout(() => { $('toast').hidden = true; }, 1800);
+}
+
+function chipList() {
+  const counts = new Map();
+  for (const i of targets()) for (const t of photos[i].tags) counts.set(t, (counts.get(t) || 0) + 1);
+  return [...counts].map(([tag, count]) => ({tag, count}));
 }
 
 function assign(text) {
   const tag = norm(text);
   if (!tag || tag.includes('|')) { toast('A tag needs a name without "|"'); return; }
-  const existing = known.find(k => same(k, tag));
-  if (!existing) known.push(tag);
-  const path = existing || tag;
-  if (have(path)) { toast(`${path} is already assigned`); return; }
-  photos[current].tags.push(path);
-  toast(`${existing ? 'Tagged' : 'Created and tagged'} ${path}`);
+  const path = known.find(k => same(k, tag)) || tag;
+  if (!known.includes(path)) known.push(path);
+  const todo = targets().filter(i => !has(i, path));
+  todo.forEach(i => photos[i].tags.push(path));
+  toast(todo.length ? `Tagged ${plural(todo.length)} ${path}` : `${path} is already assigned`);
+}
+
+function remove(tag) {
+  const from = targets().filter(i => has(i, tag));
+  from.forEach(i => { photos[i].tags = photos[i].tags.filter(t => !same(t, tag)); });
+  toast(`Removed ${tag} from ${plural(from.length)}`);
 }
 
 function computeRows() {
-  const typed = norm($('field').value), q = typed.toLowerCase();
+  const typed = norm(base), q = typed.toLowerCase();
   rows = known.filter(k => k.toLowerCase().includes(q)).sort().map(tag => ({tag, create: false}));
   if (typed && !known.some(k => same(k, typed))) rows.push({tag: typed, create: true});
+}
+
+function renderChips() {
+  const n = targets().length;
+  $('chips').replaceChildren(...chipList().map(({tag, count}) => {
+    const c = document.createElement('span');
+    c.className = 'chip' + (count < n ? ' partial' : '');
+    c.textContent = count < n ? `${tag} ${count}/${n}` : tag;
+    const x = document.createElement('button');
+    x.textContent = '×'; x.setAttribute('aria-label', `Remove ${tag}`);
+    x.onmousedown = e => e.preventDefault();
+    x.onclick = () => { remove(tag); render(); };
+    c.append(x);
+    return c;
+  }));
+}
+
+function renderEntry() {
+  $('entry').hidden = !entryOpen;
+  if (!entryOpen) return;
+  computeRows();
+  const n = targets().length;
+  $('rows').replaceChildren(...rows.map((r, i) => {
+    const li = document.createElement('li');
+    li.className = (i === picked ? 'on ' : '') + (r.create ? 'create' : '');
+    li.textContent = r.create ? `Create tag “${r.tag}”` : r.tag;
+    const count = r.create ? 0 : targets().filter(t => has(t, r.tag)).length;
+    if (count) {
+      const s = document.createElement('span');
+      s.className = 'have'; s.textContent = count === n ? '✓' : `${count}/${n}`;
+      li.append(s);
+    }
+    li.onmousedown = e => { e.preventDefault(); assign(r.tag); resetField(); render(); };
+    return li;
+  }));
+}
+
+function placePanel() {
+  const host = loupeOpen ? $('photo') : document.body;
+  $('panel').classList.toggle('fixed', !loupeOpen);
+  if ($('panel').parentNode !== host) { host.append($('panel')); if (entryOpen) $('field').focus(); }
 }
 
 function render() {
   $('grid').replaceChildren(...photos.map((p, i) => {
     const d = document.createElement('div');
-    d.className = 'thumb' + (i === current ? ' focus' : '');
+    d.className = 'thumb' + (sel.has(i) ? ' sel' : '') + (i === focus ? ' focus' : '');
     d.style.background = bg(p.hue);
-    d.onclick = () => { current = i; openLoupe(); };
+    const b = document.createElement('small');
+    b.textContent = `${p.tags.length} tags`;
+    d.append(b);
+    d.onclick = e => select(i, e);
+    d.ondblclick = () => { select(i, {}); loupeOpen = true; render(); };
     return d;
   }));
   $('loupe').hidden = !loupeOpen;
-  const p = photos[current];
-  $('photo').style.background = bg(p.hue);
-  $('name').textContent = p.name;
-  $('chips').replaceChildren(...p.tags.map((t, i) => {
-    const c = document.createElement('span');
-    c.className = 'chip' + (i === p.tags.length - 1 ? ' last' : '');
-    c.textContent = t;
-    return c;
-  }));
-  $('entry').hidden = !entryOpen;
-  if (!entryOpen) return;
-  computeRows();
-  $('rows').replaceChildren(...rows.map((r, i) => {
-    const li = document.createElement('li');
-    li.className = (i === picked ? 'on ' : '') + (r.create ? 'create' : '');
-    li.textContent = r.create ? `Create tag “${r.tag}”` : r.tag;
-    if (!r.create && have(r.tag)) {
-      const s = document.createElement('span');
-      s.className = 'have'; s.textContent = '✓';
-      li.append(s);
-    }
-    li.onmousedown = e => { e.preventDefault(); assign(r.tag); $('field').value = ''; picked = -1; render(); };
-    return li;
-  }));
+  $('photo').style.background = bg(photos[focus].hue);
+  $('name').textContent = photos[focus].name;
+  placePanel();
+  renderChips();
+  renderEntry();
 }
 
-function openLoupe() { loupeOpen = true; render(); }
-function openEntry() { entryOpen = true; picked = -1; $('field').value = ''; render(); $('field').focus(); }
+function select(i, e) {
+  if (e.shiftKey) {
+    const [a, b] = [Math.min(anchor, i), Math.max(anchor, i)];
+    sel = new Set(Array.from({length: b - a + 1}, (_, k) => a + k));
+  } else if (e.ctrlKey || e.metaKey) {
+    if (!sel.delete(i)) sel.add(i);
+    anchor = i;
+  } else { sel = new Set([i]); anchor = i; }
+  focus = i;
+  render();
+}
+
+function resetField() { $('field').value = ''; base = ''; picked = -1; }
+function openEntry() { entryOpen = true; resetField(); render(); $('field').focus(); }
+
+function cycle(step) {
+  const n = rows.filter(r => !r.create).length;
+  if (!n) return;
+  picked = picked < 0 ? (step > 0 ? 0 : n - 1) : (picked + step + n) % n;
+  $('field').value = rows[picked].tag;
+}
 
 function onEntryKey(e) {
-  const field = $('field');
-  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-    const step = e.key === 'ArrowDown' ? 1 : -1;
-    if (rows.length) picked = picked < 0 ? (step > 0 ? 0 : rows.length - 1) : (picked + step + rows.length) % rows.length;
-  } else if (e.key === 'Tab') {
-    const typed = norm(field.value);
-    const target = picked >= 0 ? rows[picked] : rows.find(r => !r.create && !same(r.tag, typed));
-    if (target && !target.create) { field.value = target.tag; picked = -1; }
-  } else if (e.key === 'Enter') {
-    const row = picked >= 0 ? rows[picked] : null;
-    assign(row ? row.tag : field.value);
-    field.value = ''; picked = -1;
-  } else if (e.key === 'Backspace' && field.value === '') {
-    const removed = photos[current].tags.pop();
-    if (removed) toast(`Removed ${removed}`);
-  } else if (e.key === 'Escape') {
-    entryOpen = false;
-  } else { return; }
+  if (e.key === 'Tab') cycle(e.shiftKey ? -1 : 1);
+  else if (e.key === 'ArrowDown') cycle(1);
+  else if (e.key === 'ArrowUp') cycle(-1);
+  else if (e.key === 'Enter') { assign($('field').value); resetField(); }
+  else if (e.key === 'Backspace' && $('field').value === '') {
+    const last = chipList().pop();
+    if (last) remove(last.tag);
+  } else if (e.key === 'Escape') entryOpen = false;
+  else return;
   e.preventDefault(); e.stopPropagation();
   render();
-  if (entryOpen) field.focus();
+  if (entryOpen) $('field').focus();
+}
+
+const COLUMNS = () => Math.max(1, Math.floor($('grid').clientWidth / 152));
+const MOVES = {ArrowRight: () => 1, ArrowLeft: () => -1, ArrowDown: COLUMNS, ArrowUp: () => -COLUMNS()};
+
+function onGlobalKey(e) {
+  if (e.target === $('field') || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 't' && !e.ctrlKey && !e.metaKey) openEntry();
+  else if (k === 'escape') { if (entryOpen) entryOpen = false; else if (loupeOpen) loupeOpen = false; else return; render(); }
+  else if (k === 'enter' && !loupeOpen) { loupeOpen = true; render(); }
+  else if (k === 'a' && (e.ctrlKey || e.metaKey) && !loupeOpen) { sel = new Set(photos.keys()); render(); }
+  else if (e.key in MOVES) {
+    const i = Math.min(photos.length - 1, Math.max(0, focus + MOVES[e.key]()));
+    if (loupeOpen) { focus = i; sel = new Set([i]); anchor = i; render(); } else select(i, e);
+  } else return;
+  e.preventDefault();
 }
 
 $('field').addEventListener('keydown', onEntryKey);
-$('field').addEventListener('input', () => { picked = -1; render(); });
-document.addEventListener('keydown', e => {
-  if (e.target === $('field') || e.ctrlKey || e.metaKey || e.altKey) return;
-  if (e.key === 'ArrowRight') current = Math.min(current + 1, photos.length - 1);
-  else if (e.key === 'ArrowLeft') current = Math.max(current - 1, 0);
-  else if (e.key === 'Enter' && !loupeOpen) loupeOpen = true;
-  else if (e.key === 'Escape' && loupeOpen) loupeOpen = false;
-  else if ((e.key === 't' || e.key === 'T') && loupeOpen) { openEntry(); e.preventDefault(); return; }
-  else return;
-  e.preventDefault();
-  render();
-});
+$('field').addEventListener('input', () => { base = $('field').value; picked = -1; render(); });
+document.addEventListener('keydown', onGlobalKey);
 render();
 </script>
 </body>
