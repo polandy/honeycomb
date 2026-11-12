@@ -147,6 +147,22 @@ test('fits the photo between the title row and the pinned filmstrip in landscape
 	}
 })
 
+// spec: LOUPE-001.20
+test('hides the pinned title row and filmstrip in the chrome-free mode', async ({ page }) => {
+	await page.setViewportSize(IPAD_LANDSCAPE)
+	await page.goto('/index.php/apps/honeycomb/')
+	await putSettings(page, { filmstripPinned: true })
+	try {
+		const loupe = await openRotatedPair(page)
+		await expect(loupe.locator('.photo-loupe__top')).toBeVisible()
+		await page.keyboard.press('Tab')
+		await expect(loupe.locator('.photo-loupe__top')).toBeHidden()
+		await expect(loupe.getByRole('navigation', { name: 'Filmstrip' })).toBeHidden()
+	} finally {
+		await putSettings(page, {})
+	}
+})
+
 // spec: LOUPE-001.21
 test('opens the info panel as a bottom sheet over the action bar on a phone', async ({ page }, testInfo) => {
 	const phone = { width: 390, height: 844 }
