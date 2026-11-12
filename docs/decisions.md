@@ -734,3 +734,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-12: UX H1 — pressed Pick and Reject use the app tokens `--honeycomb-pick-fill` and
   `--honeycomb-reject-fill` (`src/flag-fills.css`) with a white icon, because Nextcloud 35's success
   and error colours are pale tints.
+- 2026-11-12: UX H2 — a tile's flag mark, stars and colour dot sit in one row on a fixed dark
+  bottom gradient with white stars (GRID-001.16), because the photo, not the theme, is their
+  background; the colour dot moved from the top-left to that row.

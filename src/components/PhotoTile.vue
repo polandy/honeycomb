@@ -78,6 +78,9 @@ const decisionLabel = computed(() => {
 	].filter((part) => part !== null)
 })
 
+/** Whether the tile shows a flag, a colour label or stars. */
+const marked = computed(() => props.decision.flag !== 'unflagged' || props.decision.colourLabel !== null || props.decision.rating > 0)
+
 const seriesText = computed(() => n('honeycomb', 'Series of {count}', 'Series of {count}', props.series, { count: formatNumber(props.series) }))
 
 /** The badge's symbol and the series' size, as the mockup draws it. */
@@ -153,13 +156,15 @@ onBeforeUnmount(() => pending?.load.cancel())
 			aria-hidden="true"
 			v-bind="tip(seriesText)">{{ seriesBadge }}</span>
 		<span v-if="props.selecting" class="photo-tile__check" aria-hidden="true"><AppIcon v-if="props.selected" name="check" /></span>
-		<FlagMark v-if="props.decision.flag !== 'unflagged'" :flag="props.decision.flag" :class="`photo-tile__flag photo-tile__flag--${props.decision.flag}`" />
-		<span v-if="props.decision.colourLabel !== null" class="photo-tile__colour" :style="{ backgroundColor: COLOUR_LABEL_SWATCHES[props.decision.colourLabel] }" />
-		<StarRating
-			v-if="props.decision.rating > 0"
-			readonly
-			class="photo-tile__stars"
-			:rating="props.decision.rating" />
+		<span v-if="marked" class="photo-tile__marks">
+			<FlagMark v-if="props.decision.flag !== 'unflagged'" :flag="props.decision.flag" :class="`photo-tile__flag photo-tile__flag--${props.decision.flag}`" />
+			<StarRating
+				v-if="props.decision.rating > 0"
+				readonly
+				class="photo-tile__stars"
+				:rating="props.decision.rating" />
+			<span v-if="props.decision.colourLabel !== null" class="photo-tile__colour" :style="{ backgroundColor: COLOUR_LABEL_SWATCHES[props.decision.colourLabel] }" />
+		</span>
 	</div>
 </template>
 
@@ -261,27 +266,27 @@ onBeforeUnmount(() => pending?.load.cancel())
 	pointer-events: none;
 }
 
-.photo-tile__flag {
+.photo-tile__marks {
 	position: absolute;
-	inset-inline-start: 6px;
-	bottom: 6px;
+	inset-inline: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 18px 42px 6px 6px;
+	background: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+	pointer-events: none;
 }
 
 .photo-tile__colour {
-	position: absolute;
-	top: 30px;
-	inset-inline-start: 6px;
 	width: 12px;
 	height: 12px;
-	border: 1px solid var(--color-main-background);
+	border: 1px solid #fff;
 	border-radius: 50%;
 }
 
 .photo-tile__stars {
-	position: absolute;
-	inset-inline-start: 36px;
-	bottom: 8px;
 	font-size: 14px;
-	text-shadow: 0 0 2px var(--color-main-background);
+	color: #fff;
 }
 </style>
