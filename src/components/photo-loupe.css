@@ -56,6 +56,11 @@
 		bottom: var(--photo-loupe-row, 56px);
 	}
 
+	.photo-loupe__top--pinned {
+		position: static;
+		margin-inline: var(--photo-loupe-rail) calc(var(--photo-loupe-panel) + var(--photo-loupe-rail));
+	}
+
 	.photo-loupe__filmstrip--pinned {
 		position: static;
 		margin-inline-end: var(--photo-loupe-panel);
