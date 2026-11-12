@@ -3,7 +3,7 @@
 import type { Selection } from '../../../src/logic/selection.ts'
 
 import { describe, expect, it } from 'vitest'
-import { addSelected, keepShown, NO_SELECTION, selectAll, selectionAfterClick } from '../../../src/logic/selection.ts'
+import { addSelected, dragSelection, keepShown, NO_SELECTION, selectAll, selectionAfterClick } from '../../../src/logic/selection.ts'
 
 const ORDER = [10, 20, 30, 40, 50]
 const selection = (ids: number[], anchor: number | null = null): Selection => ({ ids: new Set(ids), anchor })
@@ -71,5 +71,24 @@ describe('keepShown', () => {
 		const kept = selection([10, 30], 30)
 
 		expect(keepShown(kept, ORDER)).toBe(kept)
+	})
+})
+
+describe('dragSelection', () => {
+	// spec: GRID-003.11
+	it.each([
+		['forwards', 1, 3, [20, 30, 40]],
+		['backwards', 3, 1, [20, 30, 40]],
+		['on the pressed tile alone', 2, 2, [30]],
+	])('selects the range %s from the pressed tile, which is the anchor', (_, from, to, ids) => {
+		expect(dragSelection(NO_SELECTION, ORDER, from, to)).toEqual(selection(ids, ORDER[from]))
+	})
+
+	// spec: GRID-003.11
+	it('adds to what was selected before the drag and never removes it', () => {
+		const before = selection([10, 50], 50)
+
+		expect(dragSelection(before, ORDER, 1, 2)).toEqual(selection([10, 50, 20, 30], 20))
+		expect(dragSelection(before, ORDER, 4, 3)).toEqual(selection([10, 50, 40], 50))
 	})
 })
