@@ -738,3 +738,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-12: UX H1 — pressed Pick and Reject use the app tokens `--honeycomb-pick-fill` and
   `--honeycomb-reject-fill` (`src/flag-fills.css`) with a white icon, because Nextcloud 35's success
   and error colours are pale tints.
+- 2026-11-12: The mockup selects several pictures with a visible *Select* button (long-press on
+  touch is a shortcut) and filters the grid by tags with the same autocomplete entry (`F`): a
+  picture stays if it has every chosen tag.
