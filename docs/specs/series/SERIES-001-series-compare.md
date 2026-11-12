@@ -14,11 +14,19 @@ decides each photo or picks the best and rejects the rest in one step.
 ## Behaviour
 
 A **series** is a run of pictures of one camera (EXIF make and model; pictures without one count
-as one camera) whose EXIF capture times lie at most 3 seconds apart, photo to photo. Series may
-cross folders. A picture without an EXIF capture time is never in a series. Rejected pictures are
-left out before the runs are formed. A run of more than four is split into series of at most four,
-as even as possible (5 → 3 + 2). A series has at least two pictures and at least one undecided;
-the series are ordered by their first capture time.
+as one camera), photo to photo in capture-time order, where each neighbour **looks alike** and lies
+at most 30 seconds apart: their visual hashes differ in at most 10 of 64 bits. Where either of two
+neighbours has no visual hash yet, they belong together when their EXIF capture times lie at most
+3 seconds apart. Series may cross folders. A picture without an EXIF capture time is never in a
+series. Rejected pictures are left out before the runs are formed. A run of more than four is
+split into series of at most four, as even as possible (5 → 3 + 2). A series has at least
+two pictures and at least one undecided; the series are ordered by their first capture time.
+
+The **visual hash** of a picture is a difference hash of the small grid preview of its shown member
+(ADR 0021). It is computed in the browser, in the background and one picture at a time, only for
+pictures with a shot of the same camera within 30 seconds, and kept in browser storage per file
+version (etag). A failed hash is logged and leaves the picture on the 3 second rule. The series
+change as hashes arrive, except while the series compare dialog is open.
 
 *Compare series* in the toolbar shows how many series there are and is disabled without one; it and
 `N` open the series compare dialog. The dialog, titled "Compare series 1 of 3", shows the series'
@@ -45,7 +53,8 @@ reject the rest* drops its icon and wraps its label to two balanced lines instea
 
 ### SERIES-001.1 – Close shots of one camera form a series
 
-- **Given** pictures of one camera whose capture times lie at most 3 seconds apart, photo to photo
+- **Given** pictures of one camera without visual hashes whose capture times lie at most 3 seconds
+  apart, photo to photo
 - **When** the series are formed
 - **Then** they form one series in capture-time order, even across folders
 
@@ -127,6 +136,40 @@ reject the rest* drops its icon and wraps its label to two balanced lines instea
 - **When** a card shows *Pick this, reject the rest*
 - **Then** the button shows its whole label on two lines, without its icon
 
+### SERIES-001.14 – Shots that look alike form a series up to 30 seconds apart
+
+- **Given** neighbouring pictures of one camera, both with a visual hash
+- **When** the series are formed
+- **Then** they are in one series when they lie at most 30 seconds apart and their hashes differ in
+  at most 10 bits, and in different series otherwise
+
+### SERIES-001.15 – Shots that look different are no series
+
+- **Given** neighbouring pictures with visual hashes more than 10 bits apart, or of another camera
+- **When** the series are formed
+- **Then** they are in different series, however close their capture times
+
+### SERIES-001.16 – Without a visual hash the time rule applies
+
+- **Given** neighbouring pictures of one camera, one of them without a visual hash yet, or its
+  hash failed
+- **When** the series are formed
+- **Then** they are in one series exactly when their capture times lie at most 3 seconds apart
+
+### SERIES-001.17 – Visual hashes from the grid preview, kept per file version
+
+- **Given** an open cull
+- **When** pictures have a shot of the same camera within 30 seconds
+- **Then** their small grid previews are hashed one at a time in the background, the hashes are
+  kept in browser storage per file id and etag and reused on the next visit, a changed etag is
+  hashed again, and a failed hash is logged and skipped
+
+### SERIES-001.18 – Series hold still while the compare is open
+
+- **Given** the series compare dialog is open
+- **When** visual hashes arrive
+- **Then** the series do not change until the dialog closes
+
 ## Out of scope
 
 The fullscreen series viewer and the series badge on the tiles: SERIES-002. The capture time and
@@ -139,3 +182,4 @@ camera come from LISTING-001.
 | 2026-11-10 | Created with the series and the series compare dialog (M6.1). |
 | 2026-11-10 | A tap on a picture's photo opens the series viewer instead of making it active (M6.2). |
 | 2026-11-10 | *Pick this, reject the rest* wraps to two lines without its icon in a narrow card (UX review L3). |
+| 2026-11-12 | Series also compare the images: a visual hash of the grid preview, 30 s for alike shots, the 3 s rule without a hash (owner decision, ADR 0021). |

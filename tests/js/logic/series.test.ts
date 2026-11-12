@@ -6,7 +6,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { findSeries, SERIES_GAP_SECONDS, seriesCandidates, seriesSizes } from '../../../src/logic/series.ts'
+import { findSeries, hashablePictures, SERIES_GAP_SECONDS, seriesCandidates, seriesSizes, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
 /** Pictures named `/<folder>/<name>.JPG`, shot at `time` by `camera`. */
@@ -86,6 +86,70 @@ describe('findSeries', () => {
 		])
 
 		expect(seriesOf(pictures)).toEqual([['A', 'B']])
+	})
+})
+
+/** A visual hash with the lowest `bits` bits set, `bits` away from `hash(0)`. */
+const hash = (bits: number) => (2n ** BigInt(bits) - 1n).toString(16).padStart(16, '0')
+
+/** The series of the pictures with the visual hashes by base name, none otherwise. */
+function visualSeries(pictures: readonly Picture<ListingEntry>[], hashes: Record<string, string>, flags: Record<string, Flag> = {}) {
+	const decisionOf = (picture: Picture<ListingEntry>): Decision => ({ ...UNDECIDED, flag: flags[picture.baseName] ?? 'unflagged' })
+	const hashOf = (picture: Picture<ListingEntry>) => hashes[picture.baseName] ?? null
+	return names(findSeries(seriesCandidates(pictures, hashOf), decisionOf, hashOf))
+}
+
+describe('findSeries with visual hashes', () => {
+	// spec: SERIES-001.14
+	it('groups shots that look alike up to the wider gap apart', () => {
+		const pictures = shots(['P/A', 0], ['P/B', VISUAL_SERIES_GAP_SECONDS], ['P/C', 2 * VISUAL_SERIES_GAP_SECONDS + 1])
+
+		expect(visualSeries(pictures, { A: hash(0), B: hash(1), C: hash(1) })).toEqual([['A', 'B']])
+	})
+
+	// spec: SERIES-001.14
+	it('takes a difference up to the limit as alike', () => {
+		const pictures = shots(['P/A', 0], ['P/B', 10], ['P/C', 20])
+
+		expect(visualSeries(pictures, { A: hash(0), B: hash(VISUAL_DISTANCE_LIMIT), C: hash(2 * VISUAL_DISTANCE_LIMIT + 1) })).toEqual([['A', 'B']])
+	})
+
+	// spec: SERIES-001.15
+	it('keeps shots that look different apart, however close in time', () => {
+		const pictures = shots(['P/A', 0], ['P/B', 1], ['P/C', 2])
+
+		expect(visualSeries(pictures, { A: hash(0), B: hash(VISUAL_DISTANCE_LIMIT + 1), C: hash(VISUAL_DISTANCE_LIMIT + 1) })).toEqual([['B', 'C']])
+	})
+
+	// spec: SERIES-001.15
+	it('keeps another camera apart, however alike', () => {
+		expect(visualSeries(shots(['P/A', 0, 'X'], ['P/B', 1, 'Y']), { A: hash(0), B: hash(0) })).toEqual([])
+	})
+
+	// spec: SERIES-001.16
+	it('falls back to the time rule where a picture has no hash yet', () => {
+		const pictures = shots(['P/A', 0], ['P/B', SERIES_GAP_SECONDS], ['P/C', 10], ['P/D', 20])
+
+		expect(visualSeries(pictures, { A: hash(64), C: hash(0), D: hash(0) })).toEqual([['A', 'B'], ['C', 'D']])
+		expect(visualSeries(pictures, { A: hash(0), C: hash(0) })).toEqual([['A', 'B']])
+	})
+
+	// spec: SERIES-001.5, SERIES-001.14
+	it('measures the visual gap again once rejected pictures are left out', () => {
+		const pictures = shots(['P/A', 0], ['P/B', 20], ['P/C', 40], ['P/D', 60])
+		const hashes = { A: hash(0), B: hash(0), C: hash(0), D: hash(64) }
+
+		expect(visualSeries(pictures, hashes)).toEqual([['A', 'B', 'C']])
+		expect(visualSeries(pictures, hashes, { B: 'rejected' })).toEqual([])
+	})
+})
+
+describe('hashablePictures', () => {
+	// spec: SERIES-001.17
+	it('lists the pictures with a shot of the same camera within the wider gap', () => {
+		const pictures = shots(['P/A', 0], ['P/B', VISUAL_SERIES_GAP_SECONDS], ['P/C', 3 * VISUAL_SERIES_GAP_SECONDS, 'X'], ['P/D', 3 * VISUAL_SERIES_GAP_SECONDS + 1, 'Y'], ['P/E', null])
+
+		expect(hashablePictures(pictures).map((picture) => picture.baseName)).toEqual(['A', 'B'])
 	})
 })
 

@@ -16,6 +16,7 @@ function compareOf(...series: string[][]) {
 	const shots = new Map(series.flat().map((name) => [name, { name }]))
 	const decisions = shallowRef(new Map<string, Decision>())
 	const calls: string[] = []
+	const held: boolean[] = []
 	const decisionOf = (shot: Shot) => decisions.value.get(shot.name) ?? UNDECIDED
 	const setFlag = (shot: Shot, flag: Decision['flag']) => {
 		decisions.value = new Map([...decisions.value, [shot.name, { ...decisionOf(shot), flag }]])
@@ -37,9 +38,10 @@ function compareOf(...series: string[][]) {
 		settings: () => DEFAULT_SETTINGS,
 		updateSettings: () => undefined,
 		toast: () => undefined,
+		holdHashes: (hold) => held.push(hold),
 	})
 	const shown = () => compare.current.value?.map((shot) => shot.name) ?? null
-	return { compare, calls, shown, setFlag, shot: (name: string) => shots.get(name)! }
+	return { compare, calls, held, shown, setFlag, shot: (name: string) => shots.get(name)! }
 }
 
 describe('useSeriesCompare', () => {
@@ -53,6 +55,15 @@ describe('useSeriesCompare', () => {
 		expect(compare.position.value).toBe(0)
 		expect(compare.count.value).toBe(2)
 		expect(compare.active.value).toBe(0)
+	})
+
+	// spec: SERIES-001.18
+	it('holds new visual hashes back while it is open', () => {
+		const { compare, held } = compareOf(['A', 'B'])
+		compare.start()
+		compare.close()
+
+		expect(held).toEqual([true, false])
 	})
 
 	// spec: SERIES-001.11

@@ -4,8 +4,22 @@ import type { Decision } from './decision.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 
-/** The longest gap between two shots of one series, photo to photo (plan.md, Series compare). */
+import { hashDistance } from './visual-hash.ts'
+
+/** The longest gap between two shots of one series, photo to photo, where one has no visual hash (plan.md, Series compare). */
 export const SERIES_GAP_SECONDS = 3
+
+/** The longest gap between two shots of one series that look alike, photo to photo (ADR 0021). */
+export const VISUAL_SERIES_GAP_SECONDS = 30
+
+/** The most bits in which the visual hashes of two shots that look alike differ, of 64 (ADR 0021). */
+export const VISUAL_DISTANCE_LIMIT = 10
+
+/** The visual hash of a picture, or null while it has none. */
+export type HashOf<P> = (picture: P) => string | null
+
+/** Without visual hashes, series follow the time rule alone. */
+const noHashes = () => null
 
 /** The most pictures one series shows side by side. */
 const SERIES_SIZE = 4
@@ -14,40 +28,63 @@ interface Shot<P> {
 	readonly picture: P
 	readonly time: number
 	readonly camera: string
+	readonly hash: string | null
 }
 
-/** The runs of shots by one camera with no gap over SERIES_GAP_SECONDS, at least two long, before any decision. */
-export function seriesCandidates<P extends Picture<ListingEntry>>(pictures: readonly P[]): P[][] {
-	const shots = pictures.flatMap((picture) => shotOf(picture) ?? [])
-		.sort((a, b) => compare(a.camera, b.camera) || a.time - b.time || compare(a.picture.baseName, b.picture.baseName) || compare(a.picture.folder, b.picture.folder))
-	return runs(shots, (previous, next) => previous.camera === next.camera).map((run) => run.map((shot) => shot.picture))
+/** The runs of linked shots by one camera, at least two long, before any decision. */
+export function seriesCandidates<P extends Picture<ListingEntry>>(pictures: readonly P[], hashOf: HashOf<P> = noHashes): P[][] {
+	return runs(cameraShots(pictures, hashOf), (previous, next) => previous.camera === next.camera && linked(previous, next)).map(picturesOfRun)
 }
 
-/** The series to compare: candidates without rejected pictures, split evenly to SERIES_SIZE, each with an unflagged picture, by first capture time. */
-export function findSeries<P extends Picture<ListingEntry>>(candidates: readonly (readonly P[])[], decisionOf: (picture: P) => Decision): P[][] {
+/** The pictures whose visual hash could link them into a series: a shot of the same camera lies within VISUAL_SERIES_GAP_SECONDS. */
+export function hashablePictures<P extends Picture<ListingEntry>>(pictures: readonly P[]): P[] {
+	return runs(cameraShots(pictures, noHashes), (previous, next) => previous.camera === next.camera && next.time - previous.time <= VISUAL_SERIES_GAP_SECONDS).flatMap(picturesOfRun)
+}
+
+/** The series to compare: candidates without rejected pictures, linked again, split evenly to SERIES_SIZE, each with an unflagged picture, by first capture time. */
+export function findSeries<P extends Picture<ListingEntry>>(candidates: readonly (readonly P[])[], decisionOf: (picture: P) => Decision, hashOf: HashOf<P> = noHashes): P[][] {
 	return candidates
 		.flatMap((candidate) => {
-			const shots = candidate.filter((picture) => decisionOf(picture).flag !== 'rejected').map((picture) => shotOf(picture)!)
-			return runs(shots, () => true).flatMap((run) => evenChunks(run.map((shot) => shot.picture)))
+			const shots = candidate.filter((picture) => decisionOf(picture).flag !== 'rejected').map((picture) => shotOf(picture, hashOf)!)
+			return runs(shots, linked).flatMap((run) => evenChunks(picturesOfRun(run)))
 		})
 		.filter((series) => series.some((picture) => decisionOf(picture).flag === 'unflagged'))
-		.sort((a, b) => shotOf(a[0]!)!.time - shotOf(b[0]!)!.time)
+		.sort((a, b) => shotOf(a[0]!, noHashes)!.time - shotOf(b[0]!, noHashes)!.time)
+}
+
+/** Whether two shots in capture-time order belong together: alike within the visual gap, or within the time gap while one has no hash. */
+function linked<P>(previous: Shot<P>, next: Shot<P>): boolean {
+	const gap = next.time - previous.time
+	return previous.hash !== null && next.hash !== null
+		? gap <= VISUAL_SERIES_GAP_SECONDS && hashDistance(previous.hash, next.hash) <= VISUAL_DISTANCE_LIMIT
+		: gap <= SERIES_GAP_SECONDS
+}
+
+/** The shots of the pictures with a capture time, by camera, then capture time, then name. */
+function cameraShots<P extends Picture<ListingEntry>>(pictures: readonly P[], hashOf: HashOf<P>): Shot<P>[] {
+	return pictures.flatMap((picture) => shotOf(picture, hashOf) ?? [])
+		.sort((a, b) => compare(a.camera, b.camera) || a.time - b.time || compare(a.picture.baseName, b.picture.baseName) || compare(a.picture.folder, b.picture.folder))
 }
 
 /** The shot of a picture with an EXIF capture time, taken from its RAW member first; pictures without a camera share one. */
-function shotOf<P extends Picture<ListingEntry>>(picture: P): Shot<P> | null {
+function shotOf<P extends Picture<ListingEntry>>(picture: P, hashOf: HashOf<P>): Shot<P> | null {
 	const members = [picture.raw, picture.rendered].filter((member) => member !== null)
 	const time = members.find((member) => member.captureTime !== null)?.captureTime ?? null
 	const camera = members.find((member) => member.camera !== null)?.camera ?? ''
-	return time === null ? null : { picture, time, camera }
+	return time === null ? null : { picture, time, camera, hash: hashOf(picture) }
 }
 
-/** Sorted shots cut where `together` fails or the gap exceeds SERIES_GAP_SECONDS, keeping runs of two or more. */
+/** The pictures of a run of shots. */
+function picturesOfRun<P>(run: readonly Shot<P>[]): P[] {
+	return run.map((shot) => shot.picture)
+}
+
+/** Sorted shots cut where `together` fails, keeping runs of two or more. */
 function runs<P>(shots: readonly Shot<P>[], together: (previous: Shot<P>, next: Shot<P>) => boolean): Shot<P>[][] {
 	const all: Shot<P>[][] = []
 	shots.forEach((shot, index) => {
 		const previous = shots[index - 1]
-		if (previous !== undefined && together(previous, shot) && shot.time - previous.time <= SERIES_GAP_SECONDS) {
+		if (previous !== undefined && together(previous, shot)) {
 			all.at(-1)!.push(shot)
 		} else {
 			all.push([shot])

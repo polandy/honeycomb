@@ -36,6 +36,7 @@ function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<
 		},
 	}
 	const cull = useCull({
+		hashImage: () => new Promise(() => undefined),
 		warmPreviews: async () => undefined,
 		lookupDecisions: async () => options.stored ?? [],
 		saveDecisions: async (rows) => {
@@ -105,6 +106,7 @@ describe('useCull: taking over the sidecars\' decision', () => {
 	it('takes over again when the pairing settings change, and not for a closed cull', async () => {
 		const { cull, takeOvers, settings, saved } = cullWith({ takenOver: Promise.resolve(new Map([['IMG_9', THREE_REJECTED]])) })
 		cull.open(SET, ENTRIES, [])
+		await flushPromises()
 		settings.value = { ...DEFAULT_SETTINGS, showSingles: false, rawExtensions: ['cr3', 'nef'] }
 		await flushPromises()
 
