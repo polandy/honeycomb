@@ -145,7 +145,8 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 	object-fit: cover;
 }
 
-.loupe-filmstrip__pin {
+/* Nextcloud's own button margins outrank a single class. */
+.loupe-filmstrip .loupe-filmstrip__pin {
 	display: flex;
 	flex: none;
 	align-items: center;
@@ -170,7 +171,7 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 
 /* In portrait the filmstrip always sits below the photo, so there is nothing to pin. */
 @media (orientation: portrait) {
-	.loupe-filmstrip__pin {
+	.loupe-filmstrip .loupe-filmstrip__pin {
 		display: none;
 	}
 }
