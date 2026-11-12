@@ -1047,6 +1047,7 @@ the empty cases *> 5* and *< 0*.
 (a) OR within a group, AND across groups, a collapsible bar on top; (b) a side panel like digiKam's
 right sidebar. **Answered by the owner on 2026-11-09:** (a). See [Grid, filters and
 sort](#grid-filters-and-sort).
+The tag filter is the exception: its chips are AND ([`07-tags.md`](07-tags.md), D4).
 
 ### Q10 – Entering multi-select by touch
 
