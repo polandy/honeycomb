@@ -739,3 +739,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   background; the colour dot moved from the top-left to that row.
 - 2026-11-12: UX H3 shows the zoom as a pressed *Fit / 100 %* icon button; the zoom percentage
   is gone from the title row, the tooltip keeps the name.
+- 2026-11-12: UX H4 opens the loupe info panel as a fixed bottom sheet at 520 px and below, at
+  most 60 % of the height, over the action bar; CSS only, so the dragged width stays for wider
+  screens.

@@ -183,6 +183,7 @@ IMAGES-001.
 | 2026-11-10 | Written from the merged M3.1 (#45–#48) |
 | 2026-11-10 | The info panel's open state and the dismissed gesture guide moved to the server (LOUPE-003) |
 | 2026-11-10 | LOUPE-001.17 closed by a guard test; the loupe has no transition |
+| 2026-11-12 | .21 the info panel is a bottom sheet at 520 px and below (UX H4) |
 | 2026-11-12 | .13 the filmstrip shows what fits; .19 its Lightroom-like look, .20 pinned filmstrip and rating row |
 
 ### LOUPE-001.18 – One photo in view
@@ -208,3 +209,10 @@ IMAGES-001.
 - **Then** that one stays below the photo, the rating row below the filmstrip, and never idles;
   one not pinned floats over the photo and idles as before; one photo stays in view
   (LOUPE-001.18), and the chrome-free mode still hides both
+
+### LOUPE-001.21 – Info panel as a bottom sheet on a phone
+
+- **Given** the loupe is open and the viewport is 520 px wide or narrower
+- **When** the info panel is open
+- **Then** it shows as a bottom sheet over the action bar at the full width, without the divider,
+  and the photo keeps the full width
