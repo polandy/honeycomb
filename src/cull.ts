@@ -19,7 +19,7 @@ import { logger } from './logger.ts'
 import { prepareCull, warmFileIds } from './logic/cull.ts'
 import { commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
 import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
-import { activeFilterCount, DEFAULT_FILTERS, emptyReason, filterPictures, pictureFolders, progress } from './logic/picture-filter.ts'
+import { activeFilterCount, DEFAULT_FILTERS, emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
 import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
 import { findSeries, seriesCandidates, seriesSizes as sizesOf } from './logic/series.ts'
 import { pairingSettings } from './logic/settings.ts'
@@ -69,6 +69,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const folders = computed(() => folderPaths.value.length)
 	const grouped = computed(() => groupByFolder.value && folders.value > 1)
 	const decisionOf = (picture: Picture<ListingEntry>) => pictureDecision(picture, decisions.value)
+	const passes = (picture: Picture<ListingEntry>) => matchesFilters(picture, decisionOf(picture), filters.value)
 	const view = computed(() => sortPictures(filterPictures(pictures.value, decisionOf, filters.value), sortOrder.value, compareNames, grouped.value))
 	const cullProgress = computed(() => progress(pictures.value, decisionOf))
 	const shownProgress = computed(() => progress(view.value, decisionOf))
@@ -267,6 +268,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		sharedPictures,
 		sharedDecided,
 		decisionOf,
+		passes,
 		common,
 		series,
 		seriesSizes,

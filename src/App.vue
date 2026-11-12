@@ -56,7 +56,7 @@ const sidecarFlow = useSidecarFlow(props.sidecars, toast.show)
 const cull = useCull({ warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions }, props.storage, () => settings.value, sidecarFlow.sync)
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
 const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
-const { loupe, close: closeLoupe } = useLoupeOpening((index) => grid.value?.reveal(index))
+const { loupe, shown: loupeShown, page: pageLoupe, close: closeLoupe } = useLoupeOpening((index) => grid.value?.reveal(index), cull.passes)
 const loupeView = useTemplateRef<InstanceType<typeof PhotoLoupe>>('loupeView')
 const filterBar = useTemplateRef<InstanceType<typeof FilterBar>>('filterBar')
 const headerShown = ref(true)
@@ -257,15 +257,16 @@ useHotkeys(() => {
 				@showGestureGuide="viewState.showGestureGuide" />
 			<Teleport to="body">
 				<PhotoLoupe
-					v-if="loupe !== null && folderSet !== null"
+					v-if="loupeShown !== null && folderSet !== null"
 					ref="loupeView"
-					v-model:index="loupe.index"
-					:pictures="loupe.pictures"
+					:index="loupeShown.index"
+					:pictures="loupeShown.pictures"
 					:folderSet="folderSet"
 					:decisionOf="cull.decisionOf"
 					:storage="props.storage"
 					:viewState="viewState"
 					:settings="settings"
+					@update:index="pageLoupe"
 					@updateSettings="updateSettings"
 					@decide="(intent, picture) => decide(intent, [picture])"
 					@toast="toast.show($event.message, $event.action)"

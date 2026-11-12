@@ -167,6 +167,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:zoom="zoom"
 			:infoOpen="infoOpen"
 			:filmstripOpen="filmstripOpen"
+			:filmstripPinned="settings.filmstripPinned"
 			:navigationShown="navigationShown"
 			:flagButtonsShown="settings.flagButtonsShown"
 			@pointerdown="overlays.wake"
@@ -176,6 +177,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			@toggleFullscreen="props.toggleFullscreen(root!)"
 			@update:infoOpen="panels.setInfoOpen"
 			@update:filmstripOpen="filmstripOpen = $event"
+			@update:filmstripPinned="emit('updateSettings', { filmstripPinned: $event })"
 			@update:navigationShown="panels.setNavigationShown"
 			@update:flagButtonsShown="decisions.setFlagButtonsShown" />
 		<div class="photo-loupe__main">

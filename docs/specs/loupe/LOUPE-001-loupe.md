@@ -13,7 +13,8 @@ grid shows, and zoom in on a detail, by touch, mouse or keyboard.
 ## Behaviour
 
 The loupe opens from the grid on one picture and pages through a snapshot of the grid's view taken
-when it opens, so a decision that hides a picture does not shift it. It covers the whole page,
+when it opens, so a decision that hides a picture does not shift it; once the loupe leaves a
+picture the filters no longer let through, it drops out of the snapshot (LOUPE-001.22). It covers the whole page,
 the Nextcloud header included, until the user shows the Nextcloud navigation above it.
 
 The photo area has three tap zones: a tap on the left 30 % goes to the previous picture, on the
@@ -38,7 +39,7 @@ The overlays (title row, filmstrip, rating row) hide when idle after the last to
 control has keyboard focus; a mouse move or a middle tap shows them. The filmstrip is a slim dark
 band of square photos edge to edge that keeps the shown picture in its middle. The settings *Pin
 the filmstrip* and *Pin the rating row* keep either one below the photo instead of over it, never
-idle. The loupe loads the shown
+idle; the title row's pin toggle switches *Pin the filmstrip* in landscape. The loupe loads the shown
 picture first, then 3 neighbours ahead and 2 behind, nearest first, so the next picture shows
 without a request. The info panel lists the picture's file facts, its decision and how many
 neighbours are loaded; its width can be dragged. The panel's width and the Nextcloud navigation
@@ -186,6 +187,7 @@ IMAGES-001.
 | 2026-11-12 | .21 the info panel is a bottom sheet at 520 px and below (UX H4) |
 | 2026-11-12 | .20 a pinned filmstrip also keeps the title row above the photo (UX H5) |
 | 2026-11-12 | .13 the filmstrip shows what fits; .19 its Lightroom-like look, .20 pinned filmstrip and rating row |
+| 2026-11-12 | .20 a pin toggle in the title row; .22 a picture the filters hide leaves the loupe (owner, iPad) |
 
 ### LOUPE-001.18 – One photo in view
 
@@ -206,7 +208,8 @@ IMAGES-001.
 ### LOUPE-001.20 – Pinned filmstrip and rating row
 
 - **Given** the loupe is wider than tall
-- **When** *Pin the filmstrip* or *Pin the rating row* is on (SETTINGS-001)
+- **When** *Pin the filmstrip* or *Pin the rating row* is on (SETTINGS-001), or the user presses
+  the title row's pin toggle, shown in landscape while the filmstrip is open
 - **Then** that one stays below the photo, the rating row below the filmstrip, and never idles;
   with the filmstrip pinned the title row stays above the photo too and never idles, so the photo
   fits the space between the two; one not pinned floats over the photo and idles as before; one
@@ -218,3 +221,12 @@ IMAGES-001.
 - **When** the info panel is open
 - **Then** it shows as a bottom sheet over the action bar at the full width, without the divider,
   and the photo keeps the full width
+
+### LOUPE-001.22 – A hidden picture leaves the loupe
+
+- **Given** the loupe is open and the user decides a picture so the filters no longer let it
+  through, such as a reject while *Rejected* is not pressed
+- **When** the loupe shows another picture
+- **Then** the decided picture leaves the filmstrip and the "x of y" count; while it is shown it
+  stays, so the decision does not shift the photo, and a decision that cannot be saved brings it
+  back

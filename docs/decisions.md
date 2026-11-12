@@ -744,3 +744,14 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   screens.
 - 2026-11-12: UX H5 lays the title row out in the flow, not over the photo, while the filmstrip
   is pinned in landscape, and keeps it from idling like the filmstrip; unpinned, both still float.
+- 2026-11-12: iPad feedback, portrait: the large flag buttons run *Pick*, *Unflag*, *Reject* in
+  the DOM too, so the focus order matches the row; the small buttons keep *Pick*, *Reject*,
+  *Unflag*.
+- 2026-11-12: iPad feedback, folder picker: *Include subfolders* sits directly above the folder
+  list, below *Recent*, since it applies to the ticked folders and not to a recent folder set.
+- 2026-11-12: iPad feedback, landscape: the filmstrip is pinned from a pin toggle in the loupe's
+  title row, bound to the existing *Pin the filmstrip* setting; it is hidden in portrait, where
+  the filmstrip always sits below the photo.
+- 2026-11-12: iPad feedback, filter: the loupe narrows its snapshot to the pictures the filters
+  let through, but keeps the shown picture until it is left, so a decision never shifts the photo
+  and the undo toast still shows what was decided.

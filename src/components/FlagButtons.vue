@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<{
 	/** The flag, or undefined where a selection's flags differ. */
 	flag: Flag | undefined
 	disabled?: boolean
-	/** Large buttons carry their label: a row of their own in portrait, the side edges in landscape. */
+	/** Large buttons carry their label: a row of their own in portrait, Unflag in the middle, the side edges in landscape. */
 	size?: 'small' | 'large'
 }>(), { disabled: false, size: 'small' })
 
@@ -26,6 +26,8 @@ const FLAGS: readonly { flag: Flag, key: string, label: () => string }[] = [
 	{ flag: 'rejected', key: 'reject', label: () => t('honeycomb', 'Reject') },
 	{ flag: 'unflagged', key: 'unflag', label: () => t('honeycomb', 'Unflag') },
 ]
+// Large buttons put Unflag in the middle, so Pick and Reject take the outer edges in portrait.
+const LARGE_FLAGS = [FLAGS[0]!, FLAGS[2]!, FLAGS[1]!]
 </script>
 
 <template>
@@ -35,7 +37,7 @@ const FLAGS: readonly { flag: Flag, key: string, label: () => string }[] = [
 		role="group"
 		:aria-label="t('honeycomb', 'Flag')">
 		<button
-			v-for="button in FLAGS"
+			v-for="button in props.size === 'large' ? LARGE_FLAGS : FLAGS"
 			:key="button.flag"
 			type="button"
 			class="flag-buttons__button"
