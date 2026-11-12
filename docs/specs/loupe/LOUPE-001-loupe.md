@@ -15,7 +15,8 @@ grid shows, and zoom in on a detail, by touch, mouse or keyboard.
 The loupe opens from the grid on one picture and pages through a snapshot of the grid's view taken
 when it opens, so a decision that hides a picture does not shift it; once the loupe leaves a
 picture the filters no longer let through, it drops out of the snapshot (LOUPE-001.22). It covers
-the whole page, the Nextcloud header included, until the user shows the Nextcloud navigation above it.
+the whole page, the Nextcloud header included, until the user shows the Nextcloud navigation
+above it.
 
 The photo area has three tap zones: a tap on the left 30 % goes to the previous picture, on the
 right 30 % to the next, on the middle 40 % it shows or hides the overlays; a double-tap in the
@@ -39,8 +40,8 @@ The overlays (title row, filmstrip, rating row) hide when idle after the last to
 control has keyboard focus; a mouse move or a middle tap shows them. The filmstrip is a slim dark
 band of square photos edge to edge that keeps the shown picture in its middle. The settings *Pin
 the filmstrip* and *Pin the rating row* keep either one below the photo instead of over it, never
-idle; the title row's pin toggle switches *Pin the filmstrip* in landscape. The loupe loads the shown
-picture first, then 3 neighbours ahead and 2 behind, nearest first, so the next picture shows
+idle; the title row's pin toggle switches *Pin the filmstrip* in landscape. The loupe loads the
+shown picture first, then 3 neighbours ahead and 2 behind, nearest first, so the next picture shows
 without a request. The info panel lists the picture's file facts, its decision and how many
 neighbours are loaded; its width can be dragged. The panel's width and the Nextcloud navigation
 choice are kept in the browser; whether the panel is open and whether the gesture guide was
