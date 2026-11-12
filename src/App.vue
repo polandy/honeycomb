@@ -284,6 +284,8 @@ useHotkeys(() => {
 	</NcContent>
 </template>
 
+<style src="./flag-fills.css" />
+
 <style scoped>
 .honeycomb {
 	display: flex;

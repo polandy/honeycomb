@@ -71,15 +71,15 @@ const FLAGS: readonly { flag: Flag, key: string, label: () => string }[] = [
 }
 
 .flag-buttons__button--picked[aria-pressed='true'] {
-	border-color: var(--color-success);
-	background: var(--color-success);
-	color: var(--color-main-background);
+	border-color: var(--honeycomb-pick-fill);
+	background: var(--honeycomb-pick-fill);
+	color: #fff;
 }
 
 .flag-buttons__button--rejected[aria-pressed='true'] {
-	border-color: var(--color-error);
-	background: var(--color-error);
-	color: var(--color-main-background);
+	border-color: var(--honeycomb-reject-fill);
+	background: var(--honeycomb-reject-fill);
+	color: #fff;
 }
 
 .flag-buttons__button--unflagged[aria-pressed='true'] {

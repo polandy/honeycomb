@@ -8,8 +8,8 @@ const FILLS = read('flag-fills.css')
 const MIN_CONTRAST = 4.5
 
 /** The WCAG relative luminance of a #rrggbb colour. */
-const luminance = (hex: string) => {
-	const [r, g, b] = [1, 3, 5].map((i) => {
+function luminance(hex: string) {
+	const [r = 0, g = 0, b = 0] = [1, 3, 5].map((i) => {
 		const channel = Number.parseInt(hex.slice(i, i + 2), 16) / 255
 		return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
 	})
