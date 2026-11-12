@@ -731,6 +731,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-12: The screenshots of `docs/ux-review-2026-11.md` live in `polandy/honeycomb-assets`
   under `ux-review-2026-11/`, not `pr-<n>/`: the review document links them after the merge, and
   `pr-<n>/` folders are pruned then. They show synthetic photos, never the owner's.
+- 2026-11-12: The tag entry (`docs/mockup/tag-entry.html`): `T` opens it for the loupe picture or the
+  selection; Tab and Shift+Tab cycle the matches into the field; Enter assigns exactly the field,
+  creating the tag if new; the entry stays open; Backspace in the empty field and a chip's `×`
+  remove, from all selected pictures. A tag on only some of them shows as a partial chip.
 - 2026-11-12: UX H1 — pressed Pick and Reject use the app tokens `--honeycomb-pick-fill` and
   `--honeycomb-reject-fill` (`src/flag-fills.css`) with a white icon, because Nextcloud 35's success
   and error colours are pale tints.
@@ -769,3 +773,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-12: Series compare also compares the images (owner decision): a dHash of the 256 px grid
   preview, alike at most 10 of 64 bits apart, 30 s window with hashes, the 3 s rule without one;
   constants, not a setting, until the owner's taste asks for one (ADR 0021).
+- 2026-11-12: The mockup selects several pictures with a visible *Select* button (long-press on
+  touch is a shortcut) and filters the grid by tags with the same autocomplete entry (`F`): a
+  picture stays if it has every chosen tag.
