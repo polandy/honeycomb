@@ -33,6 +33,7 @@
 }
 
 .photo-loupe--chrome-free .photo-loupe__overlay,
+.photo-loupe--chrome-free .photo-loupe__top--pinned,
 .photo-loupe--chrome-free .photo-loupe__filmstrip,
 .photo-loupe--chrome-free .photo-loupe__panel {
 	display: none;
