@@ -200,6 +200,21 @@ describe('PhotoTile', () => {
 		expect(wrapper.attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3, 3 stars, Colour label: Green, Rejected, Keep RAW')
 	})
 
+	// spec: GRID-001.16
+	it('puts the flag mark, colour dot and stars in one marks shade', () => {
+		const wrapper = mountTile(PAIR, { decision: { rating: 2, colourLabel: 'red', flag: 'picked', keepRaw: false } })
+		const marks = wrapper.find('.photo-tile__marks')
+
+		expect(marks.find('.photo-tile__flag').exists()).toBe(true)
+		expect(marks.find('.photo-tile__colour').exists()).toBe(true)
+		expect(marks.find('.photo-tile__stars').exists()).toBe(true)
+	})
+
+	// spec: GRID-001.16
+	it('has no marks shade without a mark', () => {
+		expect(mountTile(PAIR, { decision: UNDECIDED }).find('.photo-tile__marks').exists()).toBe(false)
+	})
+
 	// spec: GRID-001.6
 	it('shows no overlay for an undecided picture', () => {
 		const wrapper = mountTile(PAIR, { decision: UNDECIDED })
