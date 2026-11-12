@@ -728,3 +728,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-12: Warming renders in the request (16 files at most, the client sends 4 at a time, 4
   requests in flight) instead of a QueuedJob, which waited for cron for up to 5 minutes; the
   grid's own image loads and the warm-up share core's four renders, and the QueuedJob is gone.
+- 2026-11-12: The screenshots of `docs/ux-review-2026-11.md` live in `polandy/honeycomb-assets`
+  under `ux-review-2026-11/`, not `pr-<n>/`: the review document links them after the merge, and
+  `pr-<n>/` folders are pruned then. They show synthetic photos, never the owner's.

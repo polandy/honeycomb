@@ -16,6 +16,7 @@ Open only the file, or the section, a change touches.
 | [`plan.md`](plan.md) | Milestones, project structure, target versions, open questions |
 | [`mockup/index.html`](mockup/index.html) | The interactive mockup (milestone M0); open it in a browser |
 | [`ux-review.md`](ux-review.md) | UX review of the mockup: findings, fixes, design direction; screenshots in [`ux/`](ux/) |
+| [`ux-review-2026-11.md`](ux-review-2026-11.md) | UX review of the running app (2026-11): prioritised findings and fixes, each a `TODO.md` item |
 | [`adr/`](adr/) | Architecture decision records, one file each |
 | [`decisions.md`](decisions.md) | Smaller decisions made during implementation, one dated line each |
 
