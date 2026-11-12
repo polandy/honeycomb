@@ -43,7 +43,7 @@ describe('the tooltips of the icon-only controls', () => {
 
 	// spec: APP-002.9
 	it('name the loupe\'s title row and paging buttons and their keys', () => {
-		const row = mount(LoupeTitleRow, { props: { name: 'IMG_7', index: 1, count: 3, zoom: null, infoOpen: false, filmstripOpen: true, filmstripPinned: false, navigationShown: false, flagButtonsShown: true } })
+		const row = mount(LoupeTitleRow, { props: { name: 'IMG_7', index: 1, count: 3, zoom: null, infoOpen: false, filmstripOpen: true, navigationShown: false, flagButtonsShown: true } })
 		const paging = mount(LoupeNavButtons, { props: { index: 1, count: 3 } })
 
 		expect(tips(row)).toEqual([
@@ -53,7 +53,6 @@ describe('the tooltips of the icon-only controls', () => {
 			['Flag buttons', 'B'],
 			['Info panel', 'I'],
 			['Filmstrip', null],
-			['Pin filmstrip', null],
 			['Nextcloud navigation', null],
 		])
 		expect(tips(paging)).toEqual([['Previous photo', '←'], ['Next photo', '→']])

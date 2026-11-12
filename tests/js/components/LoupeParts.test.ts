@@ -168,19 +168,23 @@ describe('LoupeFilmstrip', () => {
 		const wrapper = mountStrip(0)
 		const pin = wrapper.find('button[aria-label="Pin filmstrip"]')
 		expect(pin.attributes('aria-pressed')).toBe('false')
+		expect(pin.attributes('data-tip')).toBe('Pin filmstrip')
+		expect(mountStrip(0, true).find('button[aria-label="Pin filmstrip"]').attributes('data-tip')).toBe('Unpin filmstrip')
 		expect(wrapper.find('.loupe-filmstrip__strip button[aria-label="Pin filmstrip"]').exists()).toBe(false)
 
 		await pin.trigger('click')
-		await mountStrip(0, true).find('button[aria-label="Pin filmstrip"]').trigger('click')
+		const pinned = mountStrip(0, true)
+		await pinned.find('button[aria-label="Pin filmstrip"]').trigger('click')
 
 		expect(wrapper.emitted('update:pinned')).toEqual([[true]])
+		expect(pinned.emitted('update:pinned')).toEqual([[false]])
 		expect(mountStrip(0, true).find('button[aria-label="Pin filmstrip"]').attributes('aria-pressed')).toBe('true')
 	})
 })
 
 describe('LoupeTitleRow', () => {
 	const mountRow = (zoom: number | null, filmstripOpen = true) => mount(LoupeTitleRow, {
-		props: { name: 'IMG_7', index: 6, count: 120, zoom, infoOpen: false, filmstripOpen, filmstripPinned: false, navigationShown: false, flagButtonsShown: true },
+		props: { name: 'IMG_7', index: 6, count: 120, zoom, infoOpen: false, filmstripOpen, navigationShown: false, flagButtonsShown: true },
 	})
 	const button = (wrapper: ReturnType<typeof mountRow>, label: string) => wrapper.find(`button[aria-label="${label}"]`)
 

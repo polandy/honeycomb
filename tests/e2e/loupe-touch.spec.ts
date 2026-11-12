@@ -66,7 +66,7 @@ for (const [orientation, viewport] of Object.entries(IPAD)) {
 		const loupe = await openLoupe(page)
 		await expect(loupe.locator('.action-bar .flag-buttons__button--unflagged')).toHaveAttribute('aria-pressed', 'true')
 
-		const [pick, reject, unflag] = await Promise.all(['picked', 'rejected', 'unflagged'].map((flag) => lookOf(loupe, flag)))
+		const [pick, reject, unflag] = [await lookOf(loupe, 'picked'), await lookOf(loupe, 'rejected'), await lookOf(loupe, 'unflagged')]
 		expect(unflag.border).toBe(pick.border)
 		expect(unflag.border).toBe(reject.border)
 		expect(unflag.outline).toBe('none')

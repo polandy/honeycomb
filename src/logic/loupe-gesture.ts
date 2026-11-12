@@ -59,7 +59,7 @@ export type GestureAction
 		| { readonly kind: 'chrome-free' }
 		| { readonly kind: 'drag', readonly dx: number }
 		| { readonly kind: 'settle' }
-		| { readonly kind: 'lift', readonly dy: number }
+		| { readonly kind: 'lift', readonly dy: number, readonly swipe: SwipeDirection | null }
 		| { readonly kind: 'swipe', readonly direction: SwipeDirection }
 		| { readonly kind: 'pan-start' }
 		| { readonly kind: 'pan', readonly dx: number, readonly dy: number }
@@ -80,6 +80,22 @@ type Mode = 'undecided' | 'drag' | 'vertical' | 'pan' | 'pinch' | 'done'
 /** The flag a swipe in `direction` sets under `setting`. */
 export function swipeFlag(direction: SwipeDirection, setting: SwipeSetting = DEFAULT_SWIPES): Flag | null {
 	return setting[direction]
+}
+
+/** What a lifted photo shows: the flag its release sets, whether the release decides, and how near it is (0 to 1). */
+export interface SwipeHint {
+	readonly flag: Flag
+	readonly armed: boolean
+	readonly progress: number
+}
+
+/** The hint for a photo lifted by `dy` on a stage `height` tall whose release swipes `swipe`, or settles back on null. */
+export function swipeHint(dy: number, swipe: SwipeDirection | null, height: number, setting: SwipeSetting = DEFAULT_SWIPES): SwipeHint | null {
+	const flag = setting[swipe ?? (dy < 0 ? 'up' : 'down')]
+	if (flag === null || (swipe === null && dy === 0)) {
+		return null
+	}
+	return { flag, armed: swipe !== null, progress: swipe !== null ? 1 : Math.min(1, Math.abs(dy) / (height * PAGE_DISTANCE)) }
 }
 
 /** Recognises taps, swipes, pans and pinches on the loupe's stage from its pointer events. */
@@ -121,13 +137,20 @@ export function loupeGestures(context: () => GestureContext) {
 		return far ? travel : Math.abs(speed) > PAGE_SPEED ? speed : null
 	}
 
+	/** The swipe a vertical drag released at `end` makes, null when it settles back. */
+	function released(end: GesturePointer): SwipeDirection | null {
+		const travel = flung(end, 'y')
+		return travel === null ? null : travel < 0 ? 'up' : 'down'
+	}
+
 	/** Pages after a sideways drag, or swipes after a vertical one, that went far or fast enough, else settles back. */
 	function dragEnd(end: GesturePointer, ended: 'drag' | 'vertical'): GestureAction {
-		const travel = flung(end, ended === 'drag' ? 'x' : 'y')
-		if (travel === null) {
-			return { kind: 'settle' }
+		if (ended === 'vertical') {
+			const direction = released(end)
+			return direction === null ? { kind: 'settle' } : { kind: 'swipe', direction }
 		}
-		return ended === 'drag' ? { kind: 'page', step: travel < 0 ? 1 : -1 } : { kind: 'swipe', direction: travel < 0 ? 'up' : 'down' }
+		const travel = flung(end, 'x')
+		return travel === null ? { kind: 'settle' } : { kind: 'page', step: travel < 0 ? 1 : -1 }
 	}
 
 	return {
@@ -166,7 +189,7 @@ export function loupeGestures(context: () => GestureContext) {
 			if (mode === 'pan') {
 				return { kind: 'pan', dx, dy }
 			}
-			return mode === 'drag' ? { kind: 'drag', dx } : mode === 'vertical' ? { kind: 'lift', dy } : null
+			return mode === 'drag' ? { kind: 'drag', dx } : mode === 'vertical' ? { kind: 'lift', dy, swipe: released(pointer) } : null
 		},
 		up(pointer: GesturePointer): GestureAction | null {
 			if (!pointers.delete(pointer.id)) {
