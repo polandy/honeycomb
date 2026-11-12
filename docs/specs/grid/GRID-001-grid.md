@@ -149,6 +149,14 @@ Pairing (LISTING-002), the folder picker and its over-the-cap notice (LISTING-00
 sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard focus moves
 (KEYS-001).
 
+### GRID-001.16 – A tile's marks sit on a dark shade
+
+- **Given** a tile of a picture with a rating, a colour label or a flag
+- **When** it renders in the light or the dark theme
+- **Then** the flag mark, the colour dot and the stars sit together on one dark shade along the
+  tile's bottom edge, and the stars are white, the same in both themes; a tile without a mark has
+  no shade
+
 ## History
 
 | Date | Change |
@@ -156,3 +164,4 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 | 2026-11-10 | Written from the merged M2.3 (#41) |
 | 2026-11-11 | GRID-001.14: neutral toolbar count badges, primary only while pressed (UX review L7) |
 | 2026-11-11 | GRID-001.15: at most six image loads, visible tiles first; sharp tier 1024 after the small one (owner, nc-test analysis) |
+| 2026-11-12 | GRID-001.16: marks on one dark bottom shade, white stars in both themes (UX review H2) |
