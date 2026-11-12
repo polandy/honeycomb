@@ -36,7 +36,6 @@ describe('PanelDivider', () => {
 		expect(divider.attributes()).toMatchObject({ 'aria-label': 'Resize', 'aria-orientation': 'vertical', 'aria-valuenow': '300', 'aria-valuemin': '220', 'aria-valuemax': '480' })
 	})
 
-	// spec: LOUPE-001.13
 	it('widens the panel while dragged left and stops at the pointer up', async () => {
 		const wrapper = mountDivider()
 		const divider = wrapper.find('[role="separator"]')
@@ -48,7 +47,6 @@ describe('PanelDivider', () => {
 		expect(wrapper.emitted('update:width')).toEqual([[350]])
 	})
 
-	// spec: LOUPE-001.13
 	it('resizes by keys and leaves other keys alone', async () => {
 		const wrapper = mountDivider()
 		const divider = wrapper.find('[role="separator"]')
@@ -63,7 +61,6 @@ describe('LoupeInfo', () => {
 		props: { picture, folderSet: SET, decision, preloaded: 2, neighbours: 5 },
 	})
 
-	// spec: LOUPE-001.13
 	it('lists a pair\'s file facts, its decision and the preloading state', () => {
 		const picture = pictureOf(
 			listingEntry(1, '/P/Trip/IMG_1.JPG', { size: 4 * 1024 ** 2, width: 6000, height: 4000, captureTime: 1_700_000_000 }),
@@ -173,7 +170,6 @@ describe('LoupeTitleRow', () => {
 		expect(mountRow(null).text()).toMatch(/IMG_7\s*7 of 120/)
 	})
 
-	// spec: LOUPE-001.13
 	it('draws the zoom, move, info and fullscreen buttons as icons without a word', () => {
 		Object.defineProperty(document, 'fullscreenEnabled', { value: true, configurable: true })
 		const wrapper = mountRow(42)
