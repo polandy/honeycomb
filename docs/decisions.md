@@ -719,3 +719,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   hides them, since the user asked for it. Showing or hiding the Pick and Reject buttons was
   already the *Show flag buttons* setting and `B`; this change only adds a test that the keys
   decide while they are hidden. The mockup is not redrawn for the filmstrip look.
+- 2026-11-12: Drag selection starts only after the tile's long-press, also in selection mode;
+  iOS Photos also starts it from a sideways swipe in selection mode, but here a swipe always
+  scrolls, so scrolling never turns into selecting by surprise. The range follows grid order
+  from the pressed tile (not a rectangle), and dragging back deselects only what this drag
+  added. Auto-scroll runs within 48 px of the edge at up to 16 px a frame, scaled by how deep the
+  finger is in that band. The pressed tile's row stays rendered during the drag because a
+  touch's events keep going to the element it started on.

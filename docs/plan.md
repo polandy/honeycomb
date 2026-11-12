@@ -745,7 +745,9 @@ used.
   - The tile's own long-press (480 ms, cancelled like the tooltip's by 10 px of movement, the
     finger lifting or the browser taking the pointer) enters selection mode and adds the tile;
     a second long-press never removes it. The click that follows is swallowed by the grid, so
-    the loupe does not open and the tile is not toggled again.
+    the loupe does not open and the tile is not toggled again. Once it has fired, moving the
+    finger no longer cancels it but drags a selection, and the grid ignores the finger for
+    scrolling until it lifts.
   - Tile badges show their tooltip on mouse hover only; keyboard focus is on the tile, whose
     `aria-label` carries the same words.
 
@@ -817,7 +819,10 @@ Answered by the owner on 2026-11-09 (Q8, Q9, Q10, Q13, Q18).
 3. **Tile overlays.** Stars (once rated), colour label and flag are always visible on every
    tile. There is no setting: without hover, hiding them would hide the state on touch.
 4. **Selection mode.** The *Select* button and a long-press on a tile both enter selection mode;
-   the long-press also selects that tile. How this long-press and the tooltip's long-press are
+   the long-press also selects that tile. Dragging on without lifting the finger selects the
+   range in grid order up to the tile under it, as in Lightroom mobile and iOS Photos; dragging
+   back removes only what the drag added, and within 48 px of the top or bottom edge the grid
+   scrolls on by itself (GRID-003.11–.13). How this long-press and the tooltip's long-press are
    kept apart: [Tooltip](#tooltip), *Gestures*.
 
 ### Sort order

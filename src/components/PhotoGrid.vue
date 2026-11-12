@@ -3,6 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
+import type { Frame } from '../auto-scroll.ts'
 import type { Decision } from '../logic/decision.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { FocusMove } from '../logic/grid-layout.ts'
@@ -16,10 +17,12 @@ import type { ObserveSize } from '../observe-size.ts'
 import { t } from '@nextcloud/l10n'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
 import PhotoTile from './PhotoTile.vue'
+import { browserFrame } from '../auto-scroll.ts'
 import { formatNumber } from '../l10n.ts'
+import { autoScrollStep } from '../logic/auto-scroll.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { UNDECIDED } from '../logic/decision.ts'
-import { focusStep, gridLayout, revealScrollTop, stickyHeader, visibleRows } from '../logic/grid-layout.ts'
+import { focusStep, gridLayout, revealScrollTop, rowOfItem, stickyHeader, tileAt, visibleRows } from '../logic/grid-layout.ts'
 import { IMAGE_LOADS_IN_FLIGHT, imageMember } from '../logic/image-tiers.ts'
 import { createLoadQueue } from '../logic/load-queue.ts'
 import { groupByFolder as folderGroups } from '../logic/picture-order.ts'
@@ -46,6 +49,8 @@ const props = withDefaults(defineProps<{
 	decisionOf?: (picture: Picture<ListingEntry>) => Decision
 	/** Times the long-press. */
 	schedule?: Schedule
+	/** Times the auto-scroll of a drag selection. */
+	frame?: Frame
 	seriesSizes?: ReadonlyMap<Picture<ListingEntry>, number>
 }>(), {
 	observeSize: observeElementSize,
@@ -54,6 +59,7 @@ const props = withDefaults(defineProps<{
 	selection: () => NO_SELECTION,
 	decisionOf: () => UNDECIDED,
 	schedule: browserSchedule,
+	frame: browserFrame,
 })
 
 const emit = defineEmits<{
@@ -67,6 +73,7 @@ const GAP = 8
 const HEADER_HEIGHT = 40
 
 const scroller = useTemplateRef<HTMLElement>('scroller')
+const spacer = useTemplateRef<HTMLElement>('spacer')
 const width = ref(0)
 const height = ref(0)
 const scrollTop = ref(0)
@@ -83,12 +90,6 @@ const layout = computed(() => gridLayout({
 	groups: groups.value.map((group) => group.count),
 	showHeaders: props.groupByFolder,
 }))
-const rendered = computed(() => {
-	const overscan = Math.ceil(height.value / (layout.value.tileWidth + GAP))
-	const { start, end } = visibleRows(layout.value, scrollTop.value, height.value, overscan)
-	const shown = visibleRows(layout.value, scrollTop.value, height.value, 0)
-	return layout.value.rows.slice(start, end).map((row, offset) => ({ ...row, offscreen: start + offset < shown.start || start + offset >= shown.end }))
-})
 const loads = createLoadQueue(props.loadImage, IMAGE_LOADS_IN_FLIGHT)
 const sticky = computed(() => stickyHeader(layout.value, scrollTop.value))
 const order = computed(() => props.pictures.map((picture) => imageMember(picture).fileId))
@@ -99,7 +100,31 @@ const tiles = useTileSelection({
 	select: (selection) => emit('update:selection', selection),
 	enterSelecting: () => emit('update:selecting', true),
 	open: (id) => emit('open', order.value.indexOf(id)),
-}, props.schedule)
+	indexAt: (x, y) => tileAt(layout.value, GAP, x - spacer.value!.getBoundingClientRect().left, y - scroller.value!.getBoundingClientRect().top + scrollTop.value),
+	stepAt: (y) => autoScrollStep(y - scroller.value!.getBoundingClientRect().top, height.value),
+	scrollBy,
+}, props.schedule, props.frame)
+
+/** Scrolls the grid by `step` within its ends; false when it is already at that end. */
+function scrollBy(step: number): boolean {
+	const next = Math.max(0, Math.min(layout.value.totalHeight - height.value, scrollTop.value + step))
+	if (next === scrollTop.value) {
+		return false
+	}
+	scroller.value!.scrollTop = scrollTop.value = next
+	return true
+}
+
+const rendered = computed(() => {
+	const overscan = Math.ceil(height.value / (layout.value.tileWidth + GAP))
+	const { start, end } = visibleRows(layout.value, scrollTop.value, height.value, overscan)
+	const shown = visibleRows(layout.value, scrollTop.value, height.value, 0)
+	const rows = layout.value.rows.slice(start, end).map((row, offset) => ({ ...row, offscreen: start + offset < shown.start || start + offset >= shown.end }))
+	const origin = tiles.dragOrigin.value
+	const pinned = origin === null ? -1 : rowOfItem(layout.value, origin)
+	// The drag's pressed tile stays in the DOM: a touch's events keep going to the element it started on.
+	return pinned >= 0 && (pinned < start || pinned >= end) ? [...rows, { ...layout.value.rows[pinned]!, offscreen: true }] : rows
+})
 
 watch(() => props.pictures, () => {
 	scroller.value!.scrollTop = 0
@@ -142,7 +167,9 @@ function onTouchStart(event: TouchEvent) {
 
 /** Resizes the tiles while the pinch lasts. */
 function onTouchMove(event: TouchEvent) {
-	if (pinch !== null && event.touches.length === 2) {
+	if (tiles.dragOrigin.value !== null) {
+		event.preventDefault()
+	} else if (pinch !== null && event.touches.length === 2) {
 		event.preventDefault()
 		emit('update:tileSize', pinchTileSize(pinch.size, pinch.distance, fingerDistance(event.touches)))
 	}
@@ -198,8 +225,11 @@ defineExpose({
 			@touchstart.passive="onTouchStart"
 			@touchend.passive="onTouchEnd"
 			@touchcancel.passive="onTouchEnd"
+			@pointermove="tiles.onPointerMove"
+			@pointerup="tiles.onPointerEnd"
+			@pointercancel="tiles.onPointerEnd"
 			@contextmenu.prevent>
-			<div class="photo-grid__spacer" :style="{ height: `${layout.totalHeight}px` }">
+			<div ref="spacer" class="photo-grid__spacer" :style="{ height: `${layout.totalHeight}px` }">
 				<template v-for="row in rendered" :key="row.kind === 'header' ? `header-${row.group}` : `row-${row.first}`">
 					<div
 						v-if="row.kind === 'header'"
@@ -231,10 +261,7 @@ defineExpose({
 							@focus="focused = index"
 							@click="tiles.onClick(imageMember(picture).fileId, $event)"
 							@keydown="tiles.onKeydown(imageMember(picture).fileId, $event)"
-							@pointerdown="tiles.onPointerDown(imageMember(picture).fileId, $event)"
-							@pointermove="tiles.onPointerMove"
-							@pointerup="tiles.onPointerEnd"
-							@pointercancel="tiles.onPointerEnd" />
+							@pointerdown="tiles.onPointerDown(imageMember(picture).fileId, $event)" />
 					</div>
 				</template>
 			</div>
