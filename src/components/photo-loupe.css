@@ -70,3 +70,24 @@
 		pointer-events: none;
 	}
 }
+
+@media (max-width: 520px) {
+	.photo-loupe {
+		--photo-loupe-panel: 0px !important;
+	}
+
+	.photo-loupe__panel[role='separator'] {
+		display: none;
+	}
+
+	.photo-loupe__panel.loupe-info {
+		position: fixed;
+		z-index: 3;
+		inset-inline: 0;
+		bottom: 0;
+		width: auto !important;
+		max-height: 60%;
+		border-radius: var(--border-radius-large) var(--border-radius-large) 0 0;
+		box-shadow: 0 -2px 12px var(--color-box-shadow);
+	}
+}
