@@ -81,7 +81,11 @@ describe('listFolders', () => {
 
 describe('warmPreviews', () => {
 	const URL = '/index.php/apps/honeycomb/api/v1/previews'
-	const flush = async (): Promise<void> => { for (let i = 0; i < 10; i++) await Promise.resolve() }
+	const flush = async (): Promise<void> => {
+		for (let i = 0; i < 10; i++) {
+			await Promise.resolve()
+		}
+	}
 	const ids = (count: number): number[] => Array.from({ length: count }, (_, i) => i + 1)
 
 	// spec: IMAGES-001.10
@@ -102,14 +106,20 @@ describe('warmPreviews', () => {
 		vi.mocked(axios.post).mockImplementation(() => {
 			inFlight++
 			peak = Math.max(peak, inFlight)
-			return new Promise((resolve) => open.push(() => { inFlight--; resolve({ data: null }) }))
+			return new Promise((resolve) => open.push(() => {
+				inFlight--
+				resolve({ data: null })
+			}))
 		})
 
 		const done = warmPreviews(ids(10 * 4 + 1))
 		await flush()
 		expect(open).toHaveLength(4)
 		expect(vi.mocked(axios.post).mock.calls.map(([, body]) => body)).toEqual([
-			{ fileIds: [1, 2, 3, 4] }, { fileIds: [5, 6, 7, 8] }, { fileIds: [9, 10, 11, 12] }, { fileIds: [13, 14, 15, 16] },
+			{ fileIds: [1, 2, 3, 4] },
+			{ fileIds: [5, 6, 7, 8] },
+			{ fileIds: [9, 10, 11, 12] },
+			{ fileIds: [13, 14, 15, 16] },
 		])
 		while (open.length > 0) {
 			open.shift()?.()
