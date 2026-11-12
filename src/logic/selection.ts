@@ -54,3 +54,9 @@ export function keepShown(selection: Selection, order: readonly number[]): Selec
 	const anchor = selection.anchor !== null && shown.has(selection.anchor) ? selection.anchor : null
 	return { ids: new Set(ids), anchor }
 }
+
+/** The selection while a drag runs from the pressed tile at `from` to the one at `to`, added to `before`. */
+export function dragSelection(before: Selection, order: readonly number[], from: number, to: number): Selection {
+	const range = order.slice(Math.min(from, to), Math.max(from, to) + 1)
+	return { ids: new Set([...before.ids, ...range]), anchor: order[from]! }
+}

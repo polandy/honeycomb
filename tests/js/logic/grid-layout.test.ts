@@ -3,7 +3,7 @@
 import type { GridLayoutInput } from '../../../src/logic/grid-layout.ts'
 
 import { describe, expect, it } from 'vitest'
-import { focusStep, gridLayout, revealScrollTop, rowOfItem, stickyHeader, visibleRows } from '../../../src/logic/grid-layout.ts'
+import { focusStep, gridLayout, revealScrollTop, rowOfItem, stickyHeader, tileAt, visibleRows } from '../../../src/logic/grid-layout.ts'
 
 // Two columns of 100 px tiles with a 10 px gap, two groups of 3 and 5 pictures.
 const GROUPED: GridLayoutInput = { width: 210, tileSize: 100, gap: 10, headerHeight: 30, groups: [3, 5], showHeaders: true }
@@ -174,5 +174,27 @@ describe('focusStep', () => {
 		['up', 0, 0],
 	] as const)('moves %s from %i to %i, across group headers and onto shorter rows', (move, from, to) => {
 		expect(focusStep(layout, from, move)).toBe(to)
+	})
+})
+
+describe('tileAt', () => {
+	const layout = gridLayout(GROUPED)
+
+	// spec: GRID-003.11
+	it.each([
+		['a tile', 50, 50, 0],
+		['the second column', 160, 50, 1],
+		['the gap between columns', 105, 50, 0],
+		['beside the last tile of a short row', 160, 200, 2],
+		['the gap below a row', 50, 255, 2],
+		['left of the grid', -5, 310, 3],
+		['below the last row', 50, 900, 7],
+	])('finds the picture at %s', (_, x, y, index) => {
+		expect(tileAt(layout, GROUPED.gap, x, y)).toBe(index)
+	})
+
+	// spec: GRID-003.11
+	it.each([['a folder header', 50, 270], ['above the grid', 50, -1]])('finds none on %s', (_, x, y) => {
+		expect(tileAt(layout, GROUPED.gap, x, y)).toBeNull()
 	})
 })

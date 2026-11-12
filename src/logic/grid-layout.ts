@@ -87,6 +87,16 @@ export function revealScrollTop(layout: GridLayout, index: number, scrollTop: nu
 	return inView ? scrollTop : Math.max(0, row.top - (viewportHeight - row.height) / 2)
 }
 
+/** The picture at a point of the grid's content, `gap` apart; a gap or a short row's end counts as the tile before it. */
+export function tileAt(layout: GridLayout, gap: number, x: number, y: number): number | null {
+	const row = layout.rows[firstRowWhere(layout.rows, (candidate) => candidate.top > y) - 1]
+	if (row?.kind !== 'tiles') {
+		return null
+	}
+	const column = Math.floor(x / (layout.tileWidth + gap))
+	return row.first + Math.max(0, Math.min(row.count - 1, column))
+}
+
 /** The first picture of a row; a header's is that of the tile row below it. */
 function firstItem(rows: readonly GridRow[], row: GridRow, at: number): number {
 	return row.kind === 'tiles' ? row.first : firstItem(rows, rows[at + 1]!, at + 1)
