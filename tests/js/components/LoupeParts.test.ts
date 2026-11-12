@@ -173,7 +173,6 @@ describe('LoupeTitleRow', () => {
 		expect(mountRow(null).text()).toMatch(/IMG_7\s*7 of 120/)
 	})
 
-	// spec: LOUPE-001.13
 	it('draws the zoom, move, info and fullscreen buttons as icons without a word', () => {
 		Object.defineProperty(document, 'fullscreenEnabled', { value: true, configurable: true })
 		const wrapper = mountRow(42)
