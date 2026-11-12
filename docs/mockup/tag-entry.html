@@ -47,7 +47,7 @@ main{flex:1;padding:16px}
 </head>
 <body>
 <header>
-  <h1>Tag entry mockup (<code>docs/07-tags.md</code>)</h1>
+  <h1>Tag entry mockup (tags concept, PR #100)</h1>
   <ul class="legend">
     <li>grid: click, <kbd>Shift</kbd>/<kbd>Ctrl</kbd>-click or <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd>, <kbd>Shift</kbd>+arrows, <kbd>Ctrl</kbd><kbd>A</kbd> select</li>
     <li><kbd>Enter</kbd> / double-click: loupe</li>
@@ -76,9 +76,9 @@ main{flex:1;padding:16px}
 <div class="toast" id="toast" hidden></div>
 <script>
 'use strict';
-const known = ['Berg', 'Bergsee', 'Natur', 'Natur/Berg', 'Natur/Wald', 'Natur/Tiere/Reh', 'Orte', 'Orte/Schweiz',
-  'Orte/Italien/Dolomiten', 'Personen/Anna', 'Haustiere/Anna', 'Sonnenaufgang', 'Familie', 'Portrait', 'Schwarzweiss'];
-const tagsOf = [['Natur/Berg'], [], ['Sonnenaufgang', 'Orte/Schweiz'], ['Natur/Berg', 'Familie'], [], ['Natur/Berg'], [], ['Portrait']];
+const known = ['Berg', 'Bergsee', 'Natur', 'Natur/Berg', 'Natur/Forest', 'Natur/Animals/Deer', 'Places', 'Places/Switzerland',
+  'Places/Italy/Dolomites', 'People/Anna', 'Pets/Anna', 'Sunrise', 'Family', 'Portrait', 'Monochrome'];
+const tagsOf = [['Natur/Berg'], [], ['Sunrise', 'Places/Switzerland'], ['Natur/Berg', 'Family'], [], ['Natur/Berg'], [], ['Portrait']];
 const photos = tagsOf.map((tags, i) => ({name: `DSC_41${String(i + 1).padStart(2, '0')}`, hue: i * 40, tags}));
 const $ = id => document.getElementById(id);
 let focus = 0, anchor = 0, sel = new Set([0]);

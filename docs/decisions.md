@@ -731,3 +731,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-12: The screenshots of `docs/ux-review-2026-11.md` live in `polandy/honeycomb-assets`
   under `ux-review-2026-11/`, not `pr-<n>/`: the review document links them after the merge, and
   `pr-<n>/` folders are pruned then. They show synthetic photos, never the owner's.
+- 2026-11-12: The tag entry (`docs/mockup/tag-entry.html`): `T` opens it for the loupe picture or the
+  selection; Tab and Shift+Tab cycle the matches into the field; Enter assigns exactly the field,
+  creating the tag if new; the entry stays open; Backspace in the empty field and a chip's `×`
+  remove, from all selected pictures. A tag on only some of them shows as a partial chip.
