@@ -21,6 +21,7 @@ const props = defineProps<{
 	zoom: number | null
 	infoOpen: boolean
 	filmstripOpen: boolean
+	filmstripPinned: boolean
 	/** Whether Nextcloud's header shows above the loupe. */
 	navigationShown: boolean
 	flagButtonsShown: boolean
@@ -33,6 +34,7 @@ const emit = defineEmits<{
 	toggleFullscreen: []
 	'update:infoOpen': [open: boolean]
 	'update:filmstripOpen': [open: boolean]
+	'update:filmstripPinned': [pinned: boolean]
 	'update:navigationShown': [shown: boolean]
 	'update:flagButtonsShown': [shown: boolean]
 }>()
@@ -107,6 +109,18 @@ const fullscreen = useFullscreenState()
 			</template>
 		</NcButton>
 		<NcButton
+			v-if="props.filmstripOpen"
+			class="loupe-title-row__pin"
+			variant="tertiary"
+			:aria-label="t('honeycomb', 'Pin filmstrip')"
+			v-bind="tip(t('honeycomb', 'Pin filmstrip'))"
+			:pressed="props.filmstripPinned"
+			@update:pressed="emit('update:filmstripPinned', $event)">
+			<template #icon>
+				<AppIcon name="pin" />
+			</template>
+		</NcButton>
+		<NcButton
 			variant="tertiary"
 			:aria-label="t('honeycomb', 'Toggle Nextcloud navigation')"
 			v-bind="tip(t('honeycomb', 'Nextcloud navigation'))"
@@ -141,5 +155,12 @@ const fullscreen = useFullscreenState()
 	flex-shrink: 0;
 	color: var(--color-text-maxcontrast);
 	white-space: nowrap;
+}
+
+/* In portrait the filmstrip always sits below the photo, so there is nothing to pin. */
+@media (orientation: portrait) {
+	.loupe-title-row__pin {
+		display: none !important;
+	}
 }
 </style>

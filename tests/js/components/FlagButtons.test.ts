@@ -24,4 +24,11 @@ describe('FlagButtons', () => {
 
 		expect(filled).toEqual([true, false, false])
 	})
+
+	// spec: LOUPE-002.11
+	it('puts Unflag between Pick and Reject when large, so Pick and Reject take the outer edges', () => {
+		const wrapper = mount(FlagButtons, { props: { flag: undefined, size: 'large' } })
+
+		expect(wrapper.findAll('button').map((button) => button.attributes('aria-label'))).toEqual(['Pick', 'Unflag', 'Reject'])
+	})
 })

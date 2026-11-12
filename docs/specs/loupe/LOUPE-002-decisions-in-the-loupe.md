@@ -92,7 +92,8 @@ off. The flag buttons can be hidden by their toggle or `B`. Each decision shows 
 - **Given** the loupe is wider than tall
 - **When** the flag buttons show
 - **Then** *Pick* floats at the left edge and *Reject* with *Unflag* at the right, the photo
-  fills the loupe; in portrait they form a row below the photo
+  fills the loupe; in portrait they form a row below the photo, *Pick* at the left, *Unflag* in
+  the middle and *Reject* at the right
 
 ## Out of scope
 
@@ -121,3 +122,4 @@ Delete from the loupe: DELETE-002.
 | 2026-11-10 | .12 focus or a press holds the toast (UX review L4) |
 | 2026-11-12 | .6 the decision keys keep working with the flag buttons hidden |
 | 2026-11-12 | .13 a pressed flag is readable (UX review H1) |
+| 2026-11-12 | .11 *Unflag* between *Pick* and *Reject* in portrait (owner, iPad) |

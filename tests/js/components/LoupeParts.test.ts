@@ -164,8 +164,8 @@ describe('LoupeFilmstrip', () => {
 })
 
 describe('LoupeTitleRow', () => {
-	const mountRow = (zoom: number | null) => mount(LoupeTitleRow, {
-		props: { name: 'IMG_7', index: 6, count: 120, zoom, infoOpen: false, filmstripOpen: true, navigationShown: false, flagButtonsShown: true },
+	const mountRow = (zoom: number | null, filmstripOpen = true) => mount(LoupeTitleRow, {
+		props: { name: 'IMG_7', index: 6, count: 120, zoom, infoOpen: false, filmstripOpen, filmstripPinned: false, navigationShown: false, flagButtonsShown: true },
 	})
 	const button = (wrapper: ReturnType<typeof mountRow>, label: string) => wrapper.find(`button[aria-label="${label}"]`)
 
@@ -205,5 +205,16 @@ describe('LoupeTitleRow', () => {
 		expect(wrapper.emitted('update:filmstripOpen')).toEqual([[false]])
 		expect(wrapper.emitted('update:navigationShown')).toEqual([[true]])
 		expect(wrapper.emitted('update:flagButtonsShown')).toEqual([[false]])
+	})
+
+	// spec: LOUPE-001.20
+	it('pins the open filmstrip by its pin toggle, and offers no pin while it is hidden', async () => {
+		const wrapper = mountRow(null)
+		expect(button(wrapper, 'Pin filmstrip').attributes('aria-pressed')).toBe('false')
+
+		await button(wrapper, 'Pin filmstrip').trigger('click')
+
+		expect(wrapper.emitted('update:filmstripPinned')).toEqual([[true]])
+		expect(button(mountRow(null, false), 'Pin filmstrip').exists()).toBe(false)
 	})
 })

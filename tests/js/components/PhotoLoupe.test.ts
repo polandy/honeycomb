@@ -219,6 +219,17 @@ describe('PhotoLoupe', () => {
 		expect(wrapper.find('.action-bar').classes()).toContain('action-bar--pinned')
 	})
 
+	// spec: LOUPE-001.20
+	it('turns Pin the filmstrip on and off from its pin toggle', async () => {
+		const { wrapper } = await mountLoupe()
+		await button(wrapper, 'Pin filmstrip').trigger('click')
+		await wrapper.setProps({ settings: { ...DEFAULT_SETTINGS, filmstripPinned: true } })
+		expect(button(wrapper, 'Pin filmstrip').attributes('aria-pressed')).toBe('true')
+		await button(wrapper, 'Pin filmstrip').trigger('click')
+
+		expect(wrapper.emitted('updateSettings')).toEqual([[{ filmstripPinned: true }], [{ filmstripPinned: false }]])
+	})
+
 	// spec: LOUPE-001.14
 	it('shows the Nextcloud navigation above it by its toggle and keeps the choice', async () => {
 		const { wrapper, root, stored } = await mountLoupe()

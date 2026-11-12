@@ -23,6 +23,7 @@ const PATHS = {
 	info: 'M12 11v6M12 7.5h.01M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z',
 	menu: 'M4 6h16M4 12h16M4 18h16',
 	more: 'M5 12h.01M12 12h.01M19 12h.01',
+	pin: 'M9 4h6M10 4v6l-3 4h10l-3-4V4M12 14v7',
 	move: 'M3 12h14M13 7l5 5-5 5M21 5v14',
 	select: 'M4 4h16v16H4zM8 12l3 3 5-6',
 	settings: 'M4 7h10M18 7h2M4 17h2M10 17h10M16 7m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0M8 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0',

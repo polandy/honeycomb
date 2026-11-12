@@ -74,7 +74,7 @@ test('shows the filmstrip as square photos edge to edge at full opacity, the sho
 })
 
 // spec: LOUPE-002.11
-test('puts Pick and Reject at the side edges in landscape and in a row below the photo in portrait', async ({ page }) => {
+test('puts Pick and Reject at the side edges in landscape and in a row below the photo in portrait, Unflag between them', async ({ page }) => {
 	const loupe = await openLoupe(page)
 	const box = async (name: string) => (await loupe.getByRole('button', { name, exact: true }).first().boundingBox())!
 	const frame = (await loupe.boundingBox())!
@@ -90,8 +90,8 @@ test('puts Pick and Reject at the side edges in landscape and in a row below the
 	expect(portraitPick.y).toBeGreaterThanOrEqual(photo.y + photo.height)
 	expect(portraitReject.y).toBe(portraitPick.y)
 	expect(unflag.y).toBe(portraitPick.y)
-	expect(portraitPick.x).toBeLessThan(portraitReject.x)
-	expect(portraitReject.x).toBeLessThan(unflag.x)
+	expect(portraitPick.x).toBeLessThan(unflag.x)
+	expect(unflag.x).toBeLessThan(portraitReject.x)
 })
 
 // spec: KEYS-001.10, KEYS-001.12
