@@ -701,7 +701,7 @@ takes its sizes from the pointer type ([Control sizes](#control-sizes)), not fro
 
 | Component (mockup function) | Renders | Used by | Pure modules (`src/logic/`) |
 |---|---|---|---|
-| `FlagButtons` (`flagButtons`) | *Pick*, *Reject*, *Unflag*, neutral until pressed: a pressed *Pick* or *Reject* fills its colour, a pressed *Unflag* gets an outline; small or large | action bar, series compare card | `decisions`: flag toggle, a selection's common value |
+| `FlagButtons` (`flagButtons`) | *Pick*, *Reject*, *Unflag*, neutral until pressed: a pressed *Pick* or *Reject* fills its colour, a pressed *Unflag* fills a neutral grey; small or large | action bar, series compare card | `decisions`: flag toggle, a selection's common value |
 | `FlagMark` (`flagMark`) | the read-only flag icon | `PhotoTile`, loupe filmstrip, series compare card | — |
 | `StarRating` (`starRating`, `stars`) | 0–5 buttons, or read-only stars | action bar, `PhotoTile`, series compare card | `decisions` |
 | `ColourLabels` (`colourLabel`, `showPalette`) | the label button and the nine-colour palette | action bar, filter bar | `decisions`, `hotkeys` |

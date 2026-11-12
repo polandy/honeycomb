@@ -4,21 +4,14 @@ import type { Locator, Page, TestInfo } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { cullFolder, resetViewState } from './cull.ts'
-import { createFolder, JPEG, RAW, requestToken, upload, withCaptureTime } from './files.ts'
+import { cullFolder, putSettings, resetViewState } from './cull.ts'
+import { createFolder, JPEG, RAW, upload, withCaptureTime } from './files.ts'
 
 const IPAD_LANDSCAPE = { width: 1180, height: 820 }
 const IPAD_PORTRAIT = { width: 820, height: 1180 }
 /** EXIF orientation: turn 90° clockwise to show upright. */
 const ROTATE_CW = 6
 const ASPECT_TOLERANCE = 0.02
-const SETTINGS_URL = '/index.php/apps/honeycomb/api/v1/settings'
-
-/** Stores the settings for the user, `{}` putting back the defaults. */
-async function putSettings(page: Page, settings: Record<string, unknown>) {
-	const response = await page.request.put(SETTINGS_URL, { data: { settings }, headers: { requesttoken: await requestToken(page) } })
-	expect(response.status(), await response.text()).toBe(200)
-}
 
 /** How many stage images are visible and reach into both the stage and the viewport. */
 function photosInView(page: Page) {

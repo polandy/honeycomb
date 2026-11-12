@@ -167,7 +167,6 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:zoom="zoom"
 			:infoOpen="infoOpen"
 			:filmstripOpen="filmstripOpen"
-			:filmstripPinned="settings.filmstripPinned"
 			:navigationShown="navigationShown"
 			:flagButtonsShown="settings.flagButtonsShown"
 			@pointerdown="overlays.wake"
@@ -177,7 +176,6 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			@toggleFullscreen="props.toggleFullscreen(root!)"
 			@update:infoOpen="panels.setInfoOpen"
 			@update:filmstripOpen="filmstripOpen = $event"
-			@update:filmstripPinned="emit('updateSettings', { filmstripPinned: $event })"
 			@update:navigationShown="panels.setNavigationShown"
 			@update:flagButtonsShown="decisions.setFlagButtonsShown" />
 		<div class="photo-loupe__main">
@@ -191,6 +189,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 				:ready="prefetcher.ready"
 				:devicePixelRatio="props.devicePixelRatio"
 				:observeSize="props.observeSize"
+				:swipes="settings.swipes"
 				@page="go(props.index + $event)"
 				@overlays="overlays.toggle"
 				@chromeFree="chromeFree = !chromeFree"
@@ -227,8 +226,10 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:decisionOf="props.decisionOf"
 			:imageUrl="props.imageUrl"
 			:observeSize="props.observeSize"
+			:pinned="settings.filmstripPinned"
 			@pointerdown="overlays.wake"
-			@select="go" />
+			@select="go"
+			@update:pinned="emit('updateSettings', { filmstripPinned: $event })" />
 		<ActionBar
 			v-if="!chromeFree"
 			layout="loupe"

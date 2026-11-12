@@ -755,3 +755,14 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-12: iPad feedback, filter: the loupe narrows its snapshot to the pictures the filters
   let through, but keeps the shown picture until it is left, so a decision never shifts the photo
   and the undo toast still shows what was decided.
+- 2026-11-12: iPad feedback, swipe hint: while a finger lifts the photo, a pill in the stage's
+  middle names the flag the release sets, dashed and fading in with the distance while the release
+  would settle back, filled with the flag's colour once it decides. The gesture recogniser reports
+  the swipe a release would make on every move, so the hint and the release share one rule (flick
+  included); a direction set to Nothing shows no hint.
+- 2026-11-12: iPad feedback, filmstrip pin: the pin toggle moved from the title row to the
+  filmstrip's end, a 44 px column of the same dark band, so it reads as part of the strip; still
+  landscape only.
+- 2026-11-12: iPad feedback, Unflag: its pressed state (every unflagged picture) was a 2 px outline
+  in the text colour over the 1 px border, which read as a thicker white border. It is now filled
+  like *Pick* and *Reject*, in a neutral grey (`--honeycomb-unflag-fill`, 7.2:1 with white).

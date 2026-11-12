@@ -40,11 +40,11 @@ The overlays (title row, filmstrip, rating row) hide when idle after the last to
 control has keyboard focus; a mouse move or a middle tap shows them. The filmstrip is a slim dark
 band of square photos edge to edge that keeps the shown picture in its middle. The settings *Pin
 the filmstrip* and *Pin the rating row* keep either one below the photo instead of over it, never
-idle; the title row's pin toggle switches *Pin the filmstrip* in landscape. The loupe loads the
-shown picture first, then 3 neighbours ahead and 2 behind, nearest first, so the next picture shows
-without a request. The info panel lists the picture's file facts, its decision and how many
-neighbours are loaded; its width can be dragged. The panel's width and the Nextcloud navigation
-choice are kept in the browser; whether the panel is open and whether the gesture guide was
+idle; the pin toggle at the filmstrip's end switches *Pin the filmstrip* in landscape. The loupe
+loads the shown picture first, then 3 neighbours ahead and 2 behind, nearest first, so the next
+picture shows without a request. The info panel lists the picture's file facts, its decision and
+how many neighbours are loaded; its width can be dragged. The panel's width and the Nextcloud
+navigation choice are kept in the browser; whether the panel is open and whether the gesture guide was
 dismissed are kept per user on the server (LOUPE-003).
 
 ## Acceptance criteria
@@ -189,6 +189,7 @@ IMAGES-001.
 | 2026-11-12 | .20 a pinned filmstrip also keeps the title row above the photo (UX H5) |
 | 2026-11-12 | .13 the filmstrip shows what fits; .19 its Lightroom-like look, .20 pinned filmstrip and rating row |
 | 2026-11-12 | .20 a pin toggle in the title row; .22 a picture the filters hide leaves the loupe (owner, iPad) |
+| 2026-11-12 | .20 the pin toggle moved from the title row to the filmstrip's end (owner, iPad) |
 
 ### LOUPE-001.18 – One photo in view
 
@@ -210,7 +211,7 @@ IMAGES-001.
 
 - **Given** the loupe is wider than tall
 - **When** *Pin the filmstrip* or *Pin the rating row* is on (SETTINGS-001), or the user presses
-  the title row's pin toggle, shown in landscape while the filmstrip is open
+  the pin toggle at the filmstrip's end, beside its photos, shown in landscape
 - **Then** that one stays below the photo, the rating row below the filmstrip, and never idles;
   with the filmstrip pinned the title row stays above the photo too and never idles, so the photo
   fits the space between the two; one not pinned floats over the photo and idles as before; one
