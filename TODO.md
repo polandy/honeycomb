@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] UX H1: Give pressed *Pick* and *Reject* and the flag mark own fill tokens (#1f7a46, #b3302c) with a white icon and word, ≥ 4.5:1 in both themes (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX H2: Put the tile's stars, flag mark and colour dot on one dark bottom shade with white stars, the same in both themes (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX H3: Turn the loupe title row's *Fit / 100 %*, *Move*, *Info* and *Fullscreen* into icon buttons with tooltips on a transparent fill; the count never wraps (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX H4: Open the loupe info panel as a bottom sheet at 520 px and below, so the photo keeps the full width (`docs/ux-review-2026-11.md`) (2026-11-12)

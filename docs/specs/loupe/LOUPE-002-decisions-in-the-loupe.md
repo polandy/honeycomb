@@ -106,6 +106,13 @@ Delete from the loupe: DELETE-002.
 - **Then** its timer stops; once both have ended it runs its full time again (WCAG 2.2.1);
   hover does not hold it
 
+### LOUPE-002.13 – A pressed flag is readable
+
+- **Given** a picture is picked or rejected
+- **When** its flag button or flag mark shows
+- **Then** it is filled with the app's *Pick* or *Reject* colour and its icon and word are white,
+  at least 4.5:1 against the fill, in the light and the dark theme (UX review H1)
+
 ## History
 
 | Date | Change |
@@ -113,3 +120,4 @@ Delete from the loupe: DELETE-002.
 | 2026-11-10 | Written from the merged M3.2 (#49) and M4.3 settings (#54) |
 | 2026-11-10 | .12 focus or a press holds the toast (UX review L4) |
 | 2026-11-12 | .6 the decision keys keep working with the flag buttons hidden |
+| 2026-11-12 | .13 a pressed flag is readable (UX review H1) |

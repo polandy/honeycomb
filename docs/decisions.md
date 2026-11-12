@@ -731,3 +731,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-12: The screenshots of `docs/ux-review-2026-11.md` live in `polandy/honeycomb-assets`
   under `ux-review-2026-11/`, not `pr-<n>/`: the review document links them after the merge, and
   `pr-<n>/` folders are pruned then. They show synthetic photos, never the owner's.
+- 2026-11-12: UX H1 — pressed Pick and Reject use the app tokens `--honeycomb-pick-fill` and
+  `--honeycomb-reject-fill` (`src/flag-fills.css`) with a white icon, because Nextcloud 35's success
+  and error colours are pale tints.
