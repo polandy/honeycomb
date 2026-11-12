@@ -776,3 +776,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-12: The mockup selects several pictures with a visible *Select* button (long-press on
   touch is a shortcut) and filters the grid by tags with the same autocomplete entry (`F`): a
   picture stays if it has every chosen tag.
+- 2026-11-12: Tags (`docs/07-tags.md`, D1–D9, owner approved the #109 mockup): sidecars only with the
+  embedded XMP read-only; union of sources; tile icon and count; the filter is AND (the mockup
+  shows only pictures with every chosen tag, deviating from the recommended OR); a parent matches
+  its descendants; tag list kept per user; no tag management in v1; Select button plus long-press;
+  foreign `dc:subject` keywords kept.
