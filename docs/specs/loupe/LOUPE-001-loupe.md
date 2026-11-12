@@ -31,6 +31,9 @@ or on a quick flick.
 | `F` | browser fullscreen |
 | `I` | info panel |
 
+The title row's *Fit / 100 %*, *Move*, *Info* and *Fullscreen* are icon buttons on a transparent
+fill, pressed while zoomed, open or on; the position count never wraps.
+
 The overlays (title row, filmstrip, rating row) hide when idle after the last touch, unless a
 control has keyboard focus; a mouse move or a middle tap shows them. The filmstrip is a slim dark
 band of square photos edge to edge that keeps the shown picture in its middle. The settings *Pin
@@ -113,7 +116,7 @@ dismissed are kept per user on the server (LOUPE-003).
   the focus instead, and `F` toggles browser fullscreen
 - **Given** the browser can show an element fullscreen (`fullscreenEnabled`, or
   `webkitFullscreenEnabled` on iPad Safari)
-- **When** the user taps the *Fullscreen* button of the title row
+- **When** the user taps the *Fullscreen* icon button of the title row
 - **Then** the loupe enters or leaves fullscreen and the button follows the browser's state, also
   when Escape leaves it; where the browser cannot (iPhone Safari) the button is not shown, and
   deciding and the one shown photo work as outside fullscreen
