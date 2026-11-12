@@ -16,15 +16,14 @@ describe('differenceHash', () => {
 	it('sets a bit where a pixel is brighter than its right neighbour, row by row', () => {
 		expect(differenceHash(pixels((column) => column * 20))).toBe('0000000000000000')
 		expect(differenceHash(pixels((column) => 200 - column * 20))).toBe('ffffffffffffffff')
-		expect(differenceHash(pixels((column, row) => (row === 7 && column === 0 ? 255 : 0)))).toBe('0000000000000001')
+		expect(differenceHash(pixels((column, row) => (row === 7 && column === 7 ? 255 : 0)))).toBe('0000000000000001')
 	})
 
-	it('compares luminance, so green outweighs blue', () => {
+	it('compares luminance, so a darker green outweighs a full blue', () => {
 		const rgba = pixels(() => 0)
-		rgba.splice(0, 4, 0, 0, 255, 255)
-		rgba.splice(4, 4, 0, 255, 0, 255)
+		rgba.splice(0, 8, 0, 200, 0, 255, 0, 0, 255, 255)
 
-		expect(differenceHash(rgba)).toBe('0000000000000000')
+		expect(differenceHash(rgba)).toBe('c000000000000000')
 	})
 
 	it('refuses pixels of another size', () => {
