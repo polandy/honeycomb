@@ -742,3 +742,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-12: UX H4 opens the loupe info panel as a fixed bottom sheet at 520 px and below, at
   most 60 % of the height, over the action bar; CSS only, so the dragged width stays for wider
   screens.
+- 2026-11-12: UX H5 lays the title row out in the flow, not over the photo, while the filmstrip
+  is pinned in landscape, and keeps it from idling like the filmstrip; unpinned, both still float.

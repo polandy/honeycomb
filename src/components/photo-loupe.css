@@ -33,6 +33,7 @@
 }
 
 .photo-loupe--chrome-free .photo-loupe__overlay,
+.photo-loupe--chrome-free .photo-loupe__top--pinned,
 .photo-loupe--chrome-free .photo-loupe__filmstrip,
 .photo-loupe--chrome-free .photo-loupe__panel {
 	display: none;
@@ -54,6 +55,11 @@
 	.photo-loupe__filmstrip {
 		inset-inline: 0 var(--photo-loupe-panel);
 		bottom: var(--photo-loupe-row, 56px);
+	}
+
+	.photo-loupe__top--pinned {
+		position: static;
+		margin-inline: var(--photo-loupe-rail) calc(var(--photo-loupe-panel) + var(--photo-loupe-rail));
 	}
 
 	.photo-loupe__filmstrip--pinned {
