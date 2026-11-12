@@ -735,3 +735,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   selection; Tab and Shift+Tab cycle the matches into the field; Enter assigns exactly the field,
   creating the tag if new; the entry stays open; Backspace in the empty field and a chip's `×`
   remove, from all selected pictures. A tag on only some of them shows as a partial chip.
+- 2026-11-12: UX H1 — pressed Pick and Reject use the app tokens `--honeycomb-pick-fill` and
+  `--honeycomb-reject-fill` (`src/flag-fills.css`) with a white icon, because Nextcloud 35's success
+  and error colours are pale tints.
