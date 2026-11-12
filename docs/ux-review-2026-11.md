@@ -31,9 +31,9 @@ most for the least work.
 
 ## Findings
 
+Severity: **high** breaks a task or misleads, **medium** slows, confuses or looks unfinished,
 **low** is polish. *Decided by the owner* marks a fix that changes a look or a word the owner signed
 off and has since decided.
-**low** is polish. *Decided by the owner* marks a fix that changes a look or a word the owner signed off and has since decided.
 
 | ID | Severity | Screen | Finding | Fix |
 |---|---|---|---|---|
