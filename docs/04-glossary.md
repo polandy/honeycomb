@@ -24,7 +24,8 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **resume position** | Where a user stands in a folder set (the current picture and how many are decided), stored on the server so a cull continues on another device. |
 | **undecided** | A picture whose flag is unflagged; picked and rejected pictures are *decided*. |
 | **reject review** | The grid of all rejected pictures, where single ones can be rescued before the delete summary. |
-| **series** | Pictures taken within a short interval, compared side by side to pick the best. |
+| **series** | Pictures taken within a short interval that look alike, compared side by side to pick the best. |
+| **visual hash** | A 64-bit fingerprint of a picture's small preview; two pictures look alike when their visual hashes differ in few bits (ADR 0021). |
 | **grid** | The thumbnail view of a folder set. |
 | **skeleton tile** | A tile drawn before its photo is there: its empty face pulses while the listing or the tile's thumbnail is on its way. |
 | **loupe** | The full-screen view of one picture, with swipe, zoom and the decision buttons. |

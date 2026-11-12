@@ -11,6 +11,7 @@ import type { SortOrder } from './logic/picture-order.ts'
 import type { Settings } from './logic/settings.ts'
 import type { SidecarFailure } from './logic/sidecar-sync.ts'
 import type { UndoEntry, UndoHistory } from './logic/undo.ts'
+import type { HashImage } from './visual-hashes.ts'
 
 import { computed, ref, shallowRef, watch } from 'vue'
 import { readStored, writeStored } from './browser-storage.ts'
@@ -27,6 +28,7 @@ import { inSharedFolder } from './logic/sidecar-sync.ts'
 import { parseTileSize } from './logic/tile-size.ts'
 import { withoutFiles } from './logic/trash-report.ts'
 import { NO_HISTORY, pickRestEntry, recordStep, redoStep, undoEntry, undoStep } from './logic/undo.ts'
+import { useVisualHashes } from './visual-hashes.ts'
 
 /** How the cull takes decisions over from the sidecars and writes them through (XMP-003). */
 export interface CullSidecars {
@@ -37,8 +39,9 @@ export interface CullSidecars {
 /** The browser storage key of the thumbnail size. */
 const TILE_SIZE_KEY = 'honeycomb.tileSize'
 
-/** The server calls the cull makes. */
+/** The server calls the cull makes, and the visual hashing of its previews. */
 export interface CullApi {
+	readonly hashImage: HashImage
 	readonly warmPreviews: (fileIds: readonly number[]) => Promise<void>
 	readonly lookupDecisions: (fileIds: readonly number[]) => Promise<StoredDecision[]>
 	readonly saveDecisions: (decisions: readonly StoredDecision[]) => Promise<void>
@@ -75,8 +78,9 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const shownProgress = computed(() => progress(view.value, decisionOf))
 	const activeFilters = computed(() => activeFilterCount(filters.value))
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
-	const candidates = computed(() => seriesCandidates(pictures.value))
-	const series = computed(() => findSeries(candidates.value, decisionOf))
+	const hashes = useVisualHashes(api.hashImage, storage, () => pictures.value)
+	const candidates = computed(() => seriesCandidates(pictures.value, hashes.hashOf))
+	const series = computed(() => findSeries(candidates.value, decisionOf, hashes.hashOf))
 	const seriesSizes = computed(() => sizesOf(series.value))
 	const sharedPictures = computed(() => pictures.value.filter((picture) => inSharedFolder(picture, sharedFolders.value)))
 
@@ -272,6 +276,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		common,
 		series,
 		seriesSizes,
+		holdHashes: hashes.hold,
 		decide,
 		pickRest,
 		undo,

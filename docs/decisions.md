@@ -766,3 +766,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-12: iPad feedback, Unflag: its pressed state (every unflagged picture) was a 2 px outline
   in the text colour over the 1 px border, which read as a thicker white border. It is now filled
   like *Pick* and *Reject*, in a neutral grey (`--honeycomb-unflag-fill`, 7.2:1 with white).
+- 2026-11-12: Series compare also compares the images (owner decision): a dHash of the 256 px grid
+  preview, alike at most 10 of 64 bits apart, 30 s window with hashes, the 3 s rule without one;
+  constants, not a setting, until the owner's taste asks for one (ADR 0021).
