@@ -130,6 +130,23 @@ test('puts the pinned filmstrip and rating row below the one photo in landscape'
 	}
 })
 
+// spec: LOUPE-001.20
+test('fits the photo between the title row and the pinned filmstrip in landscape', async ({ page }) => {
+	await page.setViewportSize(IPAD_LANDSCAPE)
+	await page.goto('/index.php/apps/honeycomb/')
+	await putSettings(page, { filmstripPinned: true })
+	try {
+		const loupe = await openRotatedPair(page)
+		const title = (await loupe.locator('.photo-loupe__top').boundingBox())!
+		const stage = (await loupe.locator('.loupe-stage').boundingBox())!
+		const strip = (await loupe.getByRole('navigation', { name: 'Filmstrip' }).boundingBox())!
+		expect(stage.y).toBeGreaterThanOrEqual(title.y + title.height)
+		expect(stage.y + stage.height).toBeLessThanOrEqual(strip.y)
+	} finally {
+		await putSettings(page, {})
+	}
+})
+
 // spec: LOUPE-001.21
 test('opens the info panel as a bottom sheet over the action bar on a phone', async ({ page }, testInfo) => {
 	const phone = { width: 390, height: 844 }
