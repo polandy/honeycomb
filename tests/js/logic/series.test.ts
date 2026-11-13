@@ -6,7 +6,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { findSeries, hashablePictures, SERIES_GAP_SECONDS, seriesCandidates, seriesSizes, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
+import { findSeries, hashablePictures, SERIES_GAP_SECONDS, seriesCandidates, seriesSizes, SERIES_SPAN_SECONDS, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
 /** Pictures named `/<folder>/<name>.JPG`, shot at `time` by `camera`. */
@@ -136,6 +136,33 @@ describe('findSeries with visual hashes', () => {
 
 		expect(visualSeries(pictures, hashes)).toEqual([['A', 'B', 'C']])
 		expect(visualSeries(pictures, hashes, { B: 'rejected' })).toEqual([])
+	})
+})
+
+describe('findSeries with the series span', () => {
+	// spec: SERIES-001.22
+	it('ends a series of close shots once a shot lies more than the span after its first, and starts the next there', () => {
+		const pictures = shots(...Array.from({ length: 23 }, (_, index) => [`P/${String(index).padStart(2, '0')}`, index * SERIES_GAP_SECONDS] as [string, number]))
+
+		expect(seriesOf(pictures).map((series) => series.length)).toEqual([SERIES_SPAN_SECONDS / SERIES_GAP_SECONDS + 1, 2])
+	})
+
+	// spec: SERIES-001.22
+	it('ends a series of alike shots after the span, keeping a shot exactly the span after the first', () => {
+		const step = SERIES_SPAN_SECONDS / 3
+		const pictures = shots(['P/A', 0], ['P/B', step], ['P/C', 2 * step], ['P/D', 3 * step], ['P/E', 4 * step], ['P/F', 5 * step])
+		const hashes = Object.fromEntries(['A', 'B', 'C', 'D', 'E', 'F'].map((name) => [name, hash(0)]))
+
+		expect(visualSeries(pictures, hashes)).toEqual([['A', 'B', 'C', 'D'], ['E', 'F']])
+	})
+
+	// spec: SERIES-001.5, SERIES-001.22
+	it('measures the span from the first picture that is not rejected', () => {
+		const step = SERIES_SPAN_SECONDS / 3
+		const pictures = shots(['P/A', 0], ['P/B', step], ['P/C', 2 * step], ['P/D', 3 * step], ['P/E', 4 * step])
+		const hashes = Object.fromEntries(['A', 'B', 'C', 'D', 'E'].map((name) => [name, hash(0)]))
+
+		expect(visualSeries(pictures, hashes, { A: 'rejected' })).toEqual([['B', 'C', 'D', 'E']])
 	})
 })
 
