@@ -19,6 +19,12 @@ text the user reads comes from the translation catalogue (`t()`), except names t
 user's files. On a phone, below 520 px, every confirm dialog is a bottom sheet: full width, at
 the bottom edge, rounded at the top only, its footer clear of the home indicator.
 
+Nextcloud's navigation beside the page holds only *Folder*, the recent folder sets and
+*Settings*, so it starts closed below 1280 px, where the grid needs the room. Once the user opens
+or closes it with Nextcloud's toggle, the app keeps that choice in the browser and starts with it
+on every width. Below 1024 px Nextcloud shows the navigation over the page and closes it itself;
+there the app neither applies nor remembers a choice.
+
 ## Acceptance criteria
 
 ### APP-001.1 – The navigation opens the app page
@@ -60,6 +66,21 @@ the bottom edge, rounded at the top only, its footer clear of the home indicator
 - **Then** it spans the full width, rests on the bottom edge, leaves at least 24 px above it and
   has rounded top corners only
 
+### APP-001.7 – The navigation starts closed below 1280 px
+
+- **Given** a user who has never opened or closed the navigation in this browser
+- **When** the app page opens on a screen at least 1024 px wide
+- **Then** the navigation is open from 1280 px on and closed below; below 1024 px Nextcloud
+  decides alone
+
+### APP-001.8 – The navigation remembers the user's choice
+
+- **Given** a screen at least 1024 px wide
+- **When** the user opens or closes the navigation with its toggle and later opens the app page
+  again
+- **Then** the navigation starts as the user left it, at any width from 1024 px on; a choice made
+  below 1024 px is not remembered
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -71,3 +92,4 @@ the bottom edge, rounded at the top only, its footer clear of the home indicator
 |---|---|
 | 2026-11-10 | Written from the merged code of #31 and #39 (ADR 0015) |
 | 2026-11-10 | A confirm dialog is a bottom sheet on a phone (APP-001.6) |
+| 2026-11-13 | The navigation starts closed below 1280 px and remembers the user's choice (APP-001.7, APP-001.8; UX L3) |
