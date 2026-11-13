@@ -154,10 +154,21 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	/** Puts a step into effect, or takes it back when `back`. */
 	function apply(step: CullStep, back: boolean) {
 		if ('pictures' in step) {
-			void tags.change(step.pictures, back ? inverseChange(step.change) : step.change)
+			storeTags(step.pictures, back ? inverseChange(step.change) : step.change)
 		} else {
 			store(back ? step.before : step.after)
 		}
+	}
+
+	/** Changes the pictures' tags and says in the grid when the save failed. */
+	function storeTags(chosen: readonly Picture<ListingEntry>[], change: TagChange) {
+		const opened = opening
+		saveFailed.value = false
+		void tags.change(chosen, change).then((saved) => {
+			if (!saved && opening === opened) {
+				saveFailed.value = true
+			}
+		})
 	}
 
 	/** Shows the rows at once and stores them; a failed save puts back what they replaced. */

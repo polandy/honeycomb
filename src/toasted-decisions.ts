@@ -1,6 +1,6 @@
-import type { CullStep } from './cull.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { CullStep } from './cull.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'

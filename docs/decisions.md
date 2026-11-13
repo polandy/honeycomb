@@ -820,3 +820,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-13: Tag entry: a tag change is one undo step in the same history as the decisions, over
   the pictures it altered; undo applies the inverse change to them rather than restoring stored
   rows, so tags another step changed meanwhile stay.
+- 2026-11-13: Tag entry: a failed tag save, also of an undo or redo, sets the grid's existing
+  "could not save" notice like a decision; the toast that already said *Undid* is not withdrawn.
