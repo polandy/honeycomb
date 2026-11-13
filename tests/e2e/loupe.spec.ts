@@ -84,7 +84,7 @@ test('picks by P, undoes it by Ctrl+Z and opens the shortcut sheet by ?', async 
 
 	await page.keyboard.press('Shift+?')
 	const sheet = page.getByRole('dialog', { name: 'Keyboard shortcuts' })
-	await expect(sheet.getByRole('heading', { name: 'Flags' })).toBeVisible()
+	await expect(sheet.getByRole('rowheader', { name: 'Flags' })).toBeVisible()
 	await sheet.getByRole('button', { name: 'Close' }).last().click()
 	await expect(sheet).toBeHidden()
 })
