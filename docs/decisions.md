@@ -886,3 +886,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   table aligns the key column natively and keeps the row-group semantics for screen readers.
   The group names are no longer `<h3>` headings, as a heading inside a table cell is invalid.
   The frozen mockup (ADR 0003) keeps its separate tables.
+- 2026-11-13: UX L2 mutes the whole status line of the folder picker, the count included, not
+  only the hint: the count is repeated on the *Cull* button, so the line is secondary. The folder
+  rows lose their vertical padding and the arrow loses Nextcloud's global button margin, so a
+  row stays at the clickable size (34 px, 44 px for touch); a row with a reason line under the
+  name may still be taller.

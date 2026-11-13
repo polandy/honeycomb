@@ -165,7 +165,8 @@ void open('')
 	align-items: center;
 	gap: calc(2 * var(--default-grid-baseline));
 	min-height: 34px;
-	padding: var(--default-grid-baseline) calc(2 * var(--default-grid-baseline));
+	/* No vertical padding, so the open arrow does not make its row taller. */
+	padding: 0 calc(2 * var(--default-grid-baseline));
 	border-radius: var(--border-radius-element);
 	cursor: pointer;
 }
@@ -225,6 +226,11 @@ void open('')
 	align-items: center;
 	justify-content: center;
 	margin-inline-start: auto;
+}
+
+/* Outranks Nextcloud's global button margin, which would make the row taller. */
+.folder-list__option .folder-list__open {
+	margin-block: 0;
 }
 
 @media (pointer: coarse) {

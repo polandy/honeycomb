@@ -155,6 +155,6 @@ function onConfirm() {
 .folder-picker__count {
 	min-height: 1lh;
 	margin-top: calc(2 * var(--default-grid-baseline));
-	font-weight: bold;
+	color: var(--color-text-maxcontrast);
 }
 </style>

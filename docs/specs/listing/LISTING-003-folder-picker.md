@@ -40,6 +40,9 @@ grid.
 | Listing failed | "Could not count the photos.", counted again on the next tick |
 | Folders failed to load | a message in the list |
 
+The status line under the list is in regular weight and the muted colour, so the hint does not
+read as an error. Every folder row is one height, whether it has an arrow or not.
+
 Above the folders, under *Recent*, the picker lists the folder sets culled before with their
 progress (DECISIONS-002.8); tapping one opens it at its resume position. The heading and list are
 left out until a folder set was culled.
@@ -135,6 +138,13 @@ starts from that folder set and *Cancel* returns to it.
 - **Then** it lists them under *Recent*, each with its progress, and opens one at its resume
   position
 
+### LISTING-003.14 – A quiet status line and even rows
+
+- **Given** the picker with a folder that has subfolders and one that has none
+- **When** it shows the folders
+- **Then** the status line is in regular weight and the muted colour, and both rows are one
+  height
+
 ## Out of scope
 
 - The grid and its folder headers: GRID-001. The resume position: DECISIONS-002.
@@ -146,3 +156,4 @@ starts from that folder set and *Cancel* returns to it.
 | 2026-11-10 | Written from the merged code of #41 (ADR 0015) |
 | 2026-11-10 | *Recent* above the folders (LISTING-003.13) |
 | 2026-11-12 | .7 the switch above the folder list (owner, iPad) |
+| 2026-11-13 | .14 a quiet status line and even rows (UX L2) |
