@@ -42,7 +42,8 @@ are read and written in a later milestone ([`docs/plan.md`](docs/plan.md)).
   auto-advance ([settings](docs/user/settings.md)).
 
 How ratings, flags and colour labels appear in digiKam, darktable and Lightroom:
-[`docs/user/ratings-flags-colours.md`](docs/user/ratings-flags-colours.md). The words the app uses
+[`docs/user/ratings-flags-colours.md`](docs/user/ratings-flags-colours.md); tags:
+[`docs/user/tags.md`](docs/user/tags.md). The words the app uses
 (Pick, Reject, Unflag, series and more) are in the [glossary](docs/04-glossary.md). The interactive
 mockup in [`docs/mockup/index.html`](docs/mockup/index.html) shows the intended design; plan,
 milestones and open questions are in [`docs/plan.md`](docs/plan.md).

@@ -832,3 +832,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-13: The info panel's *Tags* section shows each tag by its full path, one per line;
   *Written to* names the write-through's own targets (`sidecarTargets`, incl. sidecars it creates),
   so the panel and the write cannot disagree; a shared folder reads *Not written, shared folder*.
+- 2026-11-13: The tag entry lives in `docs/mockup/index.html` now; `tag-entry.html` and its
+  Vitest harness `tests/js/mockup-tag-entry.test.ts` are removed, since the built app's tests
+  (`App.tags`, `TagEntry`, e2e `tags.spec.ts`) prove the same behaviour. The merged mockup follows
+  the built app: a *Tags* group in the filter bar with *Add tag* (no `F`, which is fullscreen
+  there), *Tags* beside *Move…* in the action bar, a tag badge on tiles, tags in the info panel.

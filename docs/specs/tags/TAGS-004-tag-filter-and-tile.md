@@ -3,7 +3,7 @@
 - Status: implemented
 - Area: tags
 - Origin: `docs/07-tags.md` Interaction (Tag filter, Tiles; D3, D4, D5), outline step 5;
-  `docs/mockup/tag-entry.html`
+  `docs/mockup/index.html`
 - Depends on: TAGS-002, TAGS-003, GRID-001, GRID-002, LOUPE-001
 
 ## Purpose

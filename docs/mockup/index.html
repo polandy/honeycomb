@@ -172,6 +172,15 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .tile .stars{letter-spacing:-1px;font-size:12px;white-space:nowrap}
 .stars .on{color:#ffc93c}.stars .off{color:rgba(255,255,255,.35)}
 .tile .flw{margin-left:auto;display:inline-flex}
+.tile .tgn{display:inline-flex;align-items:center;gap:2px;font-size:11px}.tile .tgn svg{width:13px;height:13px}
+.tgchips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.tgchips:empty{display:none}
+.tgchip{display:inline-flex;align-items:center;gap:4px;background:var(--honey-soft);color:var(--honey-text);border:1px solid transparent;border-radius:16px;padding:0 4px 0 12px;min-height:32px}
+.tgchip.part{border:1px dashed currentColor;background:var(--card-2)}
+.tgchip button{min-width:var(--hit);min-height:32px;border:0;background:none;color:inherit;font-size:18px;border-radius:50%}
+.tgfield{width:100%;min-height:var(--hit);font:inherit;padding:0 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-2);color:var(--text)}
+.tgrows{list-style:none;margin:6px 0 0;padding:0;max-height:min(40vh,260px);overflow:auto}
+.tgrows li{min-height:var(--hit);padding:0 12px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.tgrows li[aria-selected="true"]{background:var(--honey);color:var(--on-honey)}.tgrows li.create{font-style:italic}.tgrows .have{opacity:.7;font-size:12px}
 .fl{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center}
 .tile .fl svg{width:20px;height:20px;stroke-width:2.2}.fl.pick{color:#fff}.fl.reject{color:#ff8f87}
 .tile.rej img.th{opacity:.35}.tile.rej .rejx{display:flex}
@@ -585,7 +594,6 @@ const DE = {
   '%n file shares the name {name}; shown as singles': ['%n Datei hat den Namen {name}; als Einzeldateien angezeigt', '%n Dateien haben den Namen {name}; als Einzeldateien angezeigt'],
   'Ambiguous name: {count} files are called {name}, ignoring case, so none is paired': 'Mehrdeutiger Name: {count} Dateien heißen {name} (ohne Groß-/Kleinschreibung), daher wird keine gepaart',
   'ambiguous name': 'mehrdeutiger Name',
-  'Within a group: any. Across groups: all.': 'Innerhalb einer Gruppe: beliebig. Zwischen Gruppen: alle.',
   'Captured': 'Aufnahmezeit',
   'Modified {date} (no capture time)': 'Geändert {date} (keine Aufnahmezeit)',
   'A direction set to Nothing turns that swipe off.': 'Eine Richtung auf „Nichts“ schaltet diese Wischgeste ab.',
@@ -1039,6 +1047,13 @@ const DE = {
   'First photo, last photo': 'Erstes Foto, letztes Foto', 'First photo': 'Erstes Foto', 'Last photo': 'Letztes Foto', 'Previous photo, next photo': 'Vorheriges Foto, nächstes Foto',
   'Vi keys (Settings › Keyboard)': 'Vi-Tasten (Einstellungen › Tastatur)', 'Open the filter bar': 'Filterleiste öffnen', 'Back to the grid (g starts g g)': 'Zurück zum Raster (g beginnt g g)',
   'Grid: one row down, one row up. Elsewhere: next photo, previous photo': 'Raster: eine Reihe nach unten, nach oben. Sonst: nächstes Foto, vorheriges Foto',
+  'Tags': 'Tags', 'Tag': 'Tag', 'Add tag': 'Tag hinzufügen', 'Tag filter': 'Tag-Filter', 'Matching tags': 'Passende Tags', 'Written to': 'Geschrieben nach',
+  'Remove tag {name} from the filter': 'Tag {name} aus dem Filter entfernen', 'Remove {name}': '{name} entfernen', 'Select photos first': 'Wähle zuerst Fotos aus',
+  'Pick a known tag': 'Wähle ein bekanntes Tag', 'A tag needs a name without "|"': 'Ein Tag braucht einen Namen ohne „|“',
+  'Pick tags: the grid shows photos that have all of them.': 'Wähle Tags: Das Raster zeigt Fotos, die alle haben.', 'Tags for {name}': 'Tags für {name}',
+  'Tag, or Place/Sub-place': 'Tag oder Ort/Unterort', 'Create tag “{name}”': 'Tag „{name}“ anlegen', 'Tagged {name} {tag}': '{name} mit {tag} getaggt', 'Removed {tag} from {name}': '{tag} von {name} entfernt',
+  'Tags: open the tag entry': 'Tags: Tag-Eingabe öffnen', '%n tag': '%n Tag', '%n tags': '%n Tags',
+  'Within a group: any, but a photo needs every chosen tag. Across groups: all.': 'Innerhalb einer Gruppe: beliebig, bei Tags muss ein Foto alle haben. Zwischen Gruppen: alle.',
   /* DE:end */
 };
 const missingDE = new Set();
@@ -1067,7 +1082,7 @@ const IC = {
   close:'M6 6l12 12M18 6 6 18', check:'M5 12l5 5 9-10', trash:'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
   settings:'M4 7h10M18 7h2M4 17h2M10 17h10M16 7m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0M8 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0',
   folder:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', chevR:'M9 6l6 6-6 6', chevL:'M15 6l-6 6 6 6', chevD:'M6 9l6 6 6-6',
-  filter:'M3 5h18l-7 8v6l-4-2v-4z', select:'M4 4h16v16H4zM8 12l3 3 5-6', film:'M3 6h18v12H3zM8 6v12M16 6v12', sort:'M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3',
+  filter:'M3 5h18l-7 8v6l-4-2v-4z', tag:'M3 12V4h8l10 10-8 8zM7.5 8.5h.01', select:'M4 4h16v16H4zM8 12l3 3 5-6', film:'M3 6h18v12H3zM8 6v12M16 6v12', sort:'M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3',
   help:'M9 9a3 3 0 1 1 4.5 2.6c-1 .6-1.5 1.2-1.5 2.4M12 18v.5', grid:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z', up:'M6 15l6-6 6 6', down:'M6 9l6 6 6-6',
   flag:'M5 3v18M5 4h11l-2 4 2 4H5', flagPick:'M5 3v18M5 4h11l-2 4 2 4H5z', flagX:'M5 3v18M5 4h11l-2 4 2 4H5M8 6l3 4M11 6l-3 4', flagCross:'M5 3v18M5 4h11l-2 4 2 4H5M8 6l3 4M11 6l-3 4M3 20 21 4', move:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 13h7M13 10l3 3-3 3',
   more:'M5 12h.01M12 12h.01M19 12h.01', home:'M4 11l8-7 8 7v9H4zM10 20v-6h4v6', compare:'M3 5h8v14H3zM13 5h8v14h-8z', zoom:'M10 10m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0M15 15l5 5M10 7v6M7 10h6'
@@ -1090,7 +1105,7 @@ const labelText = id => t('Label {name}', {name:labelName(id)});
 /* one key map: the shortcuts sheet, the tooltips and the key handlers read it */
 const HOTKEY = {pick:'P', reject:'X', unflag:'U', togglePick:'`', pickRest:'Shift + K', starDown:'[', starUp:']', grid:'G', loupe:'E', compare:'N', fit:'Space', zoom:'Z',
   fullscreen:'F', header:'Tab', info:'I', close:'Esc', filters:'\\', filtersOff:'Ctrl/⌘ + L', undo:'Ctrl/⌘ + Z', redo:'Ctrl/⌘ + Shift + Z', reviewRejects:'Ctrl/⌘ + Backspace',
-  move:'M', keepRaw:'R', keys:'Ctrl/⌘ + /', prev:'←', next:'→', first:'Home', last:'End', flagButtons:'B'};
+  move:'M', keepRaw:'R', keys:'Ctrl/⌘ + /', prev:'←', next:'→', first:'Home', last:'End', flagButtons:'B', tags:'T'};
 /* vi keys, on with Settings › Keyboard; g becomes a prefix, so Esc then leads back to the grid */
 const VI = {prev:'h', next:'l', down:'j', up:'k', first:'g g', last:'Shift + G', filters:'/'};
 const isKey = (k, id) => k.toLowerCase() === HOTKEY[id].toLowerCase();
@@ -1203,7 +1218,7 @@ const TPL_SAMPLES = [
 const DEF_SETTINGS = () => ({rawExt:['NEF','CR3','ARW','RAF','DNG'], renderedExt:['JPG','JPEG','HEIC','HEIF','HIF'], folderMode:'same', rawFolder:'RAW', jpgFolder:'JPG',
   showSingles:true, swipeUp:'pick', swipeDown:'reject', autoAdvance:true, flagButtons:true, viKeys:false, storage:'both', moveTemplate:TPL_PRESETS[0][1]});
 const SCOPES = [['notrej', 'Not rejected', 'flagCross'], ['undecided', 'Undecided', 'flag'], ['all', 'All', 'grid']];
-const DEF_FILTERS = () => ({scope:'notrej', ratingOp:'gte', rating:null, labels:new Set(), flags:new Set(), pairs:new Set(), keepRaw:new Set(), folders:new Set()});
+const DEF_FILTERS = () => ({scope:'notrej', ratingOp:'gte', rating:null, labels:new Set(), flags:new Set(), pairs:new Set(), keepRaw:new Set(), folders:new Set(), tags:[]});
 const PREF_KEY = 'honeycomb.mockup.layout';
 const PREF_DEF = {ts:160, navW:248, navOpen:null, infoOpen:false, infoW:300, coachSeen:false};
 function loadPrefs(){ try { return {...PREF_DEF, ...JSON.parse(localStorage.getItem(PREF_KEY) || '{}')}; } catch (e) { return {...PREF_DEF}; } }
@@ -1222,7 +1237,7 @@ let S;
 function freshState(){
   return {folderPath:null, set:null, groupFolder:false, recent:[{paths:['/Photos/2026'], sub:true}, {paths:['/Photos/2026/2026-10-12 Dolomites (paired)'], sub:false},
       {paths:['/Photos/2026/2026-11-01 Wedding (separate)'], sub:false}, {paths:['/Photos/Phone'], sub:false}], folders:{}, items:[], view:[], byId:new Map(), filters:DEF_FILTERS(), filtersOpen:null, sel:new Set(), selMode:false, anchor:null, focusId:null,
-    sort:'name', ts:P0.ts, bursts:null, server:{resume:{}}, undo:[], redo:[], settings:DEF_SETTINGS(), loupe:null, dlg:null, navOpen:null,
+    sort:'name', tagList:['Places/Italy/Dolomites', 'People/Anna', 'Sunrise', 'Family'], ts:P0.ts, bursts:null, server:{resume:{}}, undo:[], redo:[], settings:DEF_SETTINGS(), loupe:null, dlg:null, navOpen:null,
     moveFav:['/Photos/Portfolio/Landscape', '/Photos/Archive'], moveRecent:['/Photos/Archive', '/Photos/Portfolio/People'], tfiles:{}, tplDraft:null,
     mock:{theme:S ? S.mock.theme : 'auto', frame:S ? S.mock.frame : 'off', orient:S ? S.mock.orient : 'land', fail:false, slow:S ? S.mock.slow : false, conflict:true, open:S ? S.mock.open : false}, scale:1};
 }
@@ -1243,7 +1258,7 @@ function genFolder(path){
     const type = roll < cfg.pPair ? 'pair' : roll < cfg.pPair + cfg.pJpg ? 'jpg' : 'raw';
     const portrait = r() < cfg.pPortrait, ratio = cfg.phone ? 4/3 : 3/2;
     const it = {id:path + '#' + i, folder:path, base:st, jpg:null, raw:null, xmp:null, keepRaw:false, aw:portrait ? 1 : ratio, ah:portrait ? ratio : 1, nativeW:portrait ? 4000 : 6000,
-      seed:Math.floor(r() * 1e9), hue:Math.floor(r() * 360), kind:cfg.kinds[Math.floor(r() * cfg.kinds.length)], time:t, rating:0, label:null, flag:'none'};
+      seed:Math.floor(r() * 1e9), hue:Math.floor(r() * 360), kind:cfg.kinds[Math.floor(r() * cfg.kinds.length)], time:t, rating:0, label:null, flag:'none', tags:demoTags(i)};
     const jdir = cfg.mode === 'sub' ? base + 'JPG/' : base, rdir = cfg.mode === 'sub' ? base + 'RAW/' : base;
     if (type !== 'raw') it.jpg = {name:st + '.JPG', dir:jdir, size:+(6 + r() * 8).toFixed(1)};
     if (type !== 'jpg') it.raw = {name:st + '.' + cam[0], dir:rdir, size:+(20 + r() * 40).toFixed(1)};
@@ -1267,7 +1282,7 @@ function ambiguousItems(path, cfg, r){
     const raw = ext.toUpperCase() === 'NEF', file = {name:'IMG_0042.' + ext, dir:path + '/', size:raw ? 24.6 : 7.2 + k};
     return {id:path + '#amb' + k, folder:path, base:'IMG_0042', jpg:raw ? null : file, raw:raw ? file : null, xmp:null, keepRaw:false, aw:1.5, ah:1, nativeW:6000,
       seed:Math.floor(r() * 1e9), hue:Math.floor(r() * 360), kind:0, time:t0 + k * 60000, exifTime:t0 + k * 60000, mtime:t0 + 3725000,
-      model:MODELS.NEF, make:MAKES.NEF, rating:0, label:null, flag:'none', ambiguous:cfg.ambiguous.length};
+      model:MODELS.NEF, make:MAKES.NEF, rating:0, label:null, flag:'none', tags:[], ambiguous:cfg.ambiguous.length};
   });
 }
 
@@ -1345,8 +1360,16 @@ const RATING_OPS = {
   lte:{sym:'≤', test:(r, k) => r <= k, one:'At most %n star', many:'At most %n stars', name:'At most', next:'eq'},
   eq:{sym:'=', test:(r, k) => r === k, one:'Exactly %n star', many:'Exactly %n stars', name:'Exactly', next:'gte'},
 };
-function filtersActive(){ const f = S.filters; return f.rating !== null || f.labels.size || f.flags.size || f.pairs.size || f.keepRaw.size || f.folders.size; }
-function activeFilterCount(){ const f = S.filters; return (f.rating !== null) + (f.labels.size > 0) + (f.flags.size > 0) + (f.pairs.size > 0) + (f.keepRaw.size > 0) + (f.folders.size > 0); }
+function filtersActive(){ const f = S.filters; return f.rating !== null || f.labels.size || f.flags.size || f.pairs.size || f.keepRaw.size || f.folders.size || f.tags.length; }
+function activeFilterCount(){ const f = S.filters; return (f.rating !== null) + (f.labels.size > 0) + (f.flags.size > 0) + (f.pairs.size > 0) + (f.keepRaw.size > 0) + (f.folders.size > 0) + f.tags.length; }
+/* tags: a path of names; a filter tag matches itself and every tag beneath it, ignoring case */
+const sameTag = (a, b) => a.toLowerCase() === b.toLowerCase();
+const hasTag = (it, x) => it.tags.some(tg => sameTag(tg, x) || tg.toLowerCase().startsWith(x.toLowerCase() + '/'));
+const hasExactTag = (it, x) => it.tags.some(tg => sameTag(tg, x));
+const tagLevels = tg => tg.split('/').map((_, i, a) => a.slice(0, i + 1).join('/'));
+const DEMO_TAGS = [[1, 6, 'Places/Italy/Dolomites'], [2, 9, 'People/Anna'], [4, 12, 'Sunrise'], [3, 10, 'Natur/Berg']];
+const demoTags = i => DEMO_TAGS.filter(([k, m]) => i % m === k).map(d => d[2]);
+const knownTags = () => [...new Set([...S.tagList, ...S.items.flatMap(i => i.tags)].flatMap(tagLevels))].sort((a, b) => a.localeCompare(b));
 function passes(it){
   const f = S.filters;
   if (!S.settings.showSingles && pairType(it) !== 'pair') return false;
@@ -1357,6 +1380,7 @@ function passes(it){
   if (f.pairs.size && !f.pairs.has(pairType(it))) return false;
   if (f.keepRaw.size && !f.keepRaw.has(it.keepRaw ? 'yes' : 'no')) return false;
   if (f.folders.size && !f.folders.has(it.folder)) return false;
+  if (!f.tags.every(x => hasTag(it, x))) return false;
   return true;
 }
 function computeView(){
@@ -1610,9 +1634,11 @@ function renderFilters(){
     ${ch('fPair', 'pair', t('Pairs'), f.pairs.has('pair'))}${ch('fPair', 'jpg', t('JPEG only'), f.pairs.has('jpg'))}${ch('fPair', 'raw', t('RAW only'), f.pairs.has('raw'))}</div></div>
   <div class="fgroup"><span class="lbl">${t('Keep RAW')}</span><div class="chips">
     ${ch('fKeepRaw', 'yes', t('Marked'), f.keepRaw.has('yes'), tip(t('Pairs marked Keep RAW')))}${ch('fKeepRaw', 'no', t('Not marked'), f.keepRaw.has('no'), tip(t('Photos without Keep RAW')))}</div></div>
+  <div class="fgroup"><span class="lbl">${t('Tags')}</span><div class="chips">
+    ${f.tags.map(x => `<button class="chip" aria-pressed="true" data-act="fTagRm" data-v="${esc(x)}" aria-label="${esc(t('Remove tag {name} from the filter', {name:x}))}">${esc(x)} ×</button>`).join('')}<button class="chip" data-act="fTagAdd">${ic('tag')}${t('Add tag')}</button></div></div>
   ${multiFolder() ? `<div class="fgroup"><span class="lbl">${t('Folder')}</span><div class="chips">
     ${S.set.folders.filter(p => !FOLDERS[p].big).map(p => `<button class="chip" data-act="fFolder" data-path="${esc(p)}" aria-pressed="${f.folders.has(p)}" ${tip(p)}>${esc(folderName(p))}</button>`).join('')}</div></div>` : ''}
-  <div class="fright"><span class="hint">${t('Within a group: any. Across groups: all.')}</span><span class="count" id="countF">${t('{shown} of {total}', {shown:nf(S.view.length), total:nf(S.items.length)})}</span><button class="btn" data-act="fClear" ${filtersActive() ? '' : 'disabled'}>${t('Clear filters')}</button></div>`;
+  <div class="fright"><span class="hint">${t('Within a group: any, but a photo needs every chosen tag. Across groups: all.')}</span><span class="count" id="countF">${t('{shown} of {total}', {shown:nf(S.view.length), total:nf(S.items.length)})}</span><button class="btn" data-act="fClear" ${filtersActive() ? '' : 'disabled'}>${t('Clear filters')}</button></div>`;
 }
 function toggleSet(set, v){ set.has(v) ? set.delete(v) : set.add(v); }
 
@@ -1622,10 +1648,10 @@ const tileEls = new Map();
 function pairLabel(it){ return pairType(it) === 'pair' ? 'JPG+' + it.raw.name.split('.').pop() : pairType(it) === 'jpg' ? t('JPG only') : t('RAW only'); }
 function tileInner(it){
   return `<img class="th" alt="" draggable="false"><span class="pair ${pairType(it) === 'pair' ? 'p' : 's'}" ${tip(pairType(it) === 'pair' ? t('Pair: JPEG and RAW') : t('Single: {name}', {name:pairLabel(it)}))}>${pairLabel(it)}</span>
-  ${it.ambiguous ? `<span class="amb" ${tip(t('Ambiguous name: {count} files are called {name}, ignoring case, so none is paired', {count:nf(it.ambiguous), name:it.base}))}>!</span>` : ''}<span class="burst" hidden></span><span class="chk" ${tip(t('Selected'))}>${ic('check')}</span><span class="rejx" aria-hidden="true" ${tip(flagName('reject'))}>${ic('flagX')}</span><div class="ov"><span class="stars" aria-hidden="true"></span><span class="dotc" hidden></span><span class="flw"></span></div>`;
+  ${it.ambiguous ? `<span class="amb" ${tip(t('Ambiguous name: {count} files are called {name}, ignoring case, so none is paired', {count:nf(it.ambiguous), name:it.base}))}>!</span>` : ''}<span class="burst" hidden></span><span class="chk" ${tip(t('Selected'))}>${ic('check')}</span><span class="rejx" aria-hidden="true" ${tip(flagName('reject'))}>${ic('flagX')}</span><div class="ov"><span class="stars" aria-hidden="true"></span><span class="dotc" hidden></span><span class="tgn" hidden>${ic('tag')}<b></b></span><span class="flw"></span></div>`;
 }
 function tileLabel(it){
-  const bits = [stem(it), pairLabel(it)]; if (it.rating) bits.push(n('%n star', '%n stars', it.rating)); if (it.label) bits.push(t('{name} label', {name:labelName(it.label)})); if (it.flag !== 'none') bits.push(flagName(it.flag).toLowerCase()); if (it.keepRaw) bits.push(t('Keep RAW')); if (it.ambiguous) bits.push(t('ambiguous name'));
+  const bits = [stem(it), pairLabel(it)]; if (it.rating) bits.push(n('%n star', '%n stars', it.rating)); if (it.label) bits.push(t('{name} label', {name:labelName(it.label)})); if (it.flag !== 'none') bits.push(flagName(it.flag).toLowerCase()); if (it.keepRaw) bits.push(t('Keep RAW')); if (it.tags.length) bits.push(n('%n tag', '%n tags', it.tags.length)); if (it.ambiguous) bits.push(t('ambiguous name'));
   return bits.join(', ');
 }
 function updateTile(id){
@@ -1636,7 +1662,8 @@ function updateTile(id){
   const st = el.querySelector('.stars'); st.innerHTML = it.rating ? stars(it.rating) : ''; if (it.rating) st.dataset.tip = n('Rating: %n star', 'Rating: %n stars', it.rating); else delete st.dataset.tip;
   const dot = el.querySelector('.dotc'); dot.hidden = !it.label; if (it.label){ dot.style.background = LBL[it.label].hex; dot.dataset.tip = labelText(it.label); }
   el.querySelector('.flw').innerHTML = flagMark(it.flag);
-  el.querySelector('.ov').classList.toggle('bare', !it.rating && !it.label && it.flag === 'none');
+  const tg = el.querySelector('.tgn'); tg.hidden = !it.tags.length; tg.querySelector('b').textContent = nf(it.tags.length); tg.dataset.tip = n('%n tag', '%n tags', it.tags.length);
+  el.querySelector('.ov').classList.toggle('bare', !it.rating && !it.label && it.flag === 'none' && !it.tags.length);
   const pb = el.querySelector('.pair'); pb.classList.toggle('k', !!it.keepRaw); pb.textContent = pairLabel(it) + (it.keepRaw ? ' ✓' : '');
   pb.dataset.tip = pairType(it) === 'pair' ? (it.keepRaw ? t('Pair: JPEG and RAW · Keep RAW') : t('Pair: JPEG and RAW')) : t('Single: {name}', {name:pairLabel(it)});
 }
@@ -1733,7 +1760,7 @@ function renderActionBar(){
   const dis = S.sel.size ? '' : 'disabled', its = [...S.sel].map(i => S.byId.get(i)).filter(Boolean);
   el.innerHTML = `${actionBar({rating:common(its, 'rating'), label:common(its, 'label'), flag:common(its, 'flag'), keepRaw:common(its, 'keepRaw'), pair:its.some(i => pairType(i) === 'pair')}, 'bulk', {dis})}
   <span class="grow"></span><span class="count">${n('%n selected', '%n selected', S.sel.size)}</span>
-  <button class="btn" data-act="moveSel" ${dis}>${ic('move')}${t('Move…')}</button><button class="btn danger" data-act="delSel" ${dis}>${ic('trash')}${t('Delete…')}</button>`;
+  <button class="btn" data-act="tags" data-for="bulk" ${dis}>${ic('tag')}${t('Tags')}</button><button class="btn" data-act="moveSel" ${dis}>${ic('move')}${t('Move…')}</button><button class="btn danger" data-act="delSel" ${dis}>${ic('trash')}${t('Delete…')}</button>`;
 }
 
 /* ---------- popovers ---------- */
@@ -1825,11 +1852,97 @@ function dlgShell(title, body, foot, wide, canClose = true){
 function renderDlg(){
   const d = S.dlg, root = $('dlgRoot'); if (!d){ root.replaceChildren(); return; }
   const old = root.querySelector('.dlg-b'), top = old ? old.scrollTop : 0;
-  const map = {picker:dlgPicker, del:dlgDelete, settings:dlgSettings, keys:dlgKeys, report:dlgReport, review:dlgReview, rawrm:dlgRawRm, burst:dlgBurst, move:dlgMove, sidecars:dlgSidecars};
+  const map = {picker:dlgPicker, del:dlgDelete, settings:dlgSettings, keys:dlgKeys, report:dlgReport, review:dlgReview, rawrm:dlgRawRm, burst:dlgBurst, move:dlgMove, sidecars:dlgSidecars, tags:dlgTags};
   root.innerHTML = map[d.type](d);
   const nb = root.querySelector('.dlg-b'); if (nb) nb.scrollTop = top;
   if (d.refocus){ const i = root.querySelector(d.refocus); i && i.focus(); d.refocus = null; }
 }
+/* tag entry: one dialog for assigning to the targets (T, Tags) and for picking filter tags; the field keeps its focus while the lists redraw */
+const tagMsgs = () => ({unknown:t('Pick a known tag'), bad:t('A tag needs a name without "|"')});
+function tagTargets(it){ const files = [it.jpg, it.raw].filter(Boolean).map(f => it.xmp && !it.xmp.shared ? it.xmp.name : f.name + '.xmp'); return [...new Set(files)].join(', '); }
+const tagNorm = text => text.split('/').map(x => x.trim()).filter(Boolean).join('/');
+function openTags(ids, mode = 'assign'){
+  if (mode === 'assign' && !ids.length){ toast(t('Select photos first')); return; }
+  openDlg({type:'tags', mode, ids, base:'', picked:-1, msg:'', refocus:'#tgField'});
+}
+const tagIts = d => d.ids.map(i => S.byId.get(i)).filter(Boolean);
+function tagRows(d){
+  const typed = tagNorm(d.base), q = typed.toLowerCase(), its = tagIts(d);
+  const open = k => d.mode === 'filter' ? !S.filters.tags.includes(k) : !its.every(i => hasExactTag(i, k));
+  const rows = knownTags().filter(k => open(k) && k.toLowerCase().includes(q)).map(tag => ({tag, create:false}));
+  if (d.mode === 'assign' && typed && !knownTags().some(k => sameTag(k, typed))) rows.push({tag:typed, create:true});
+  return rows;
+}
+function tagChips(d){
+  const its = tagIts(d), counts = new Map();
+  if (d.mode === 'filter') return S.filters.tags.map(tag => ({tag, count:1, all:true}));
+  its.forEach(i => i.tags.forEach(tg => counts.set(tg, (counts.get(tg) || 0) + 1)));
+  return [...counts].sort((a, b) => a[0].localeCompare(b[0])).map(([tag, count]) => ({tag, count, all:count === its.length}));
+}
+function tagLists(d){
+  const its = tagIts(d), rows = tagRows(d);
+  $('tgChips').innerHTML = tagChips(d).map(c => `<span class="tgchip${c.all ? '' : ' part'}">${esc(c.tag)}${c.all ? '' : ` <small>${c.count}/${its.length}</small>`}<button data-act="tgRm" data-v="${esc(c.tag)}" aria-label="${esc(t('Remove {name}', {name:c.tag}))}">×</button></span>`).join('');
+  $('tgRows').innerHTML = rows.map((r, i) => {
+    const have = r.create || d.mode === 'filter' ? 0 : its.filter(x => hasExactTag(x, r.tag)).length;
+    return `<li role="option" tabindex="-1" data-act="tgRow" data-v="${esc(r.tag)}" aria-selected="${i === d.picked}" class="${r.create ? 'create' : ''}">${r.create ? esc(t('Create tag “{name}”', {name:r.tag})) : esc(r.tag)}${have ? `<span class="have">${have}/${its.length}</span>` : ''}</li>`;
+  }).join('');
+  $('tgMsg').textContent = d.msg;
+}
+function dlgTags(d){
+  const filter = d.mode === 'filter', its = tagIts(d), name = its.length === 1 ? stem(its[0]) : n('%n photo', '%n photos', its.length);
+  const body = `<p class="hint">${filter ? t('Pick tags: the grid shows photos that have all of them.') : t('Tags for {name}', {name})}</p><div class="tgchips" id="tgChips" aria-label="${esc(t('Tags'))}"></div>
+    <input id="tgField" class="tgfield" type="text" autocomplete="off" spellcheck="false" placeholder="${esc(t('Tag, or Place/Sub-place'))}" aria-label="${esc(t('Tag'))}" value="${esc(d.base)}">
+    <p class="hint" id="tgMsg" role="alert"></p><ul class="tgrows" id="tgRows" role="listbox" aria-label="${esc(t('Matching tags'))}"></ul>`;
+  setTimeout(() => S.dlg === d && tagLists(d));
+  return confirmDialog(filter ? t('Tag filter') : t('Tags'), body, {cancel:null, confirm:{label:t('Done'), act:'closeDlg'}});
+}
+const tagRefocus = () => { const f = $('tgField'); f && f.focus(); };
+function tagReset(d){ d.base = ''; d.picked = -1; $('tgField').value = ''; }
+function tagCommit(text){
+  const d = S.dlg, tag = tagNorm(text), msgs = tagMsgs();
+  if (d.mode === 'filter'){
+    const known = knownTags().find(k => sameTag(k, tag));
+    if (!known) d.msg = msgs.unknown; else { d.msg = ''; if (!S.filters.tags.includes(known)) S.filters.tags.push(known); refreshView(); tagReset(d); }
+    tagLists(d); return;
+  }
+  if (!tag || tag.includes('|')){ d.msg = msgs.bad; tagLists(d); return; }
+  d.msg = ''; const path = knownTags().find(k => sameTag(k, tag)) || tag;
+  if (!S.tagList.some(k => sameTag(k, path))) S.tagList.push(path);
+  const its = tagIts(d).filter(i => !hasExactTag(i, path));
+  if (its.length) tagChange(its, path, true);
+  tagReset(d); tagLists(d);
+}
+function tagRemove(tag){
+  const d = S.dlg;
+  if (d.mode === 'filter'){ S.filters.tags = S.filters.tags.filter(x => x !== tag); refreshView(); } else tagChange(tagIts(d).filter(i => hasExactTag(i, tag)), tag, false);
+  d.msg = ''; tagLists(d);
+}
+function tagChange(its, tag, add){
+  const changes = its.map(it => { const from = [...it.tags]; it.tags = add ? [...from, tag] : from.filter(x => !sameTag(x, tag)); return {id:it.id, key:'tags', from, to:[...it.tags]}; });
+  const one = its.length === 1 ? stem(its[0]) : n('%n photo', '%n photos', its.length);
+  const desc = add ? t('Tagged {name} {tag}', {name:one, tag}) : t('Removed {tag} from {name}', {tag, name:one});
+  pushUndo(desc, changes); toast(desc, true);
+}
+function tagCycle(d, step){
+  const rows = tagRows(d).filter(r => !r.create); if (!rows.length) return;
+  d.picked = d.picked < 0 ? (step > 0 ? 0 : rows.length - 1) : (d.picked + step + rows.length) % rows.length;
+  $('tgField').value = rows[d.picked].tag; tagLists(d);
+}
+document.addEventListener('keydown', e => {
+  const d = S.dlg; if (e.target.id !== 'tgField' || !d || d.type !== 'tags') return;
+  if (e.key === 'Tab') tagCycle(d, e.shiftKey ? -1 : 1);
+  else if (e.key === 'ArrowDown') tagCycle(d, 1);
+  else if (e.key === 'ArrowUp') tagCycle(d, -1);
+  else if (e.key === 'Enter') tagCommit(e.target.value);
+  else if (e.key === 'Backspace' && e.target.value === ''){ const last = tagChips(d).pop(); if (last) tagRemove(last.tag); }
+  else if (e.key === 'Escape') closeDlg();
+  else return;
+  e.preventDefault();
+});
+document.addEventListener('input', e => {
+  const d = S.dlg; if (e.target.id !== 'tgField' || !d || d.type !== 'tags') return;
+  d.base = e.target.value; d.picked = -1; d.msg = ''; tagLists(d);
+});
 /* folder picker */
 function dlgPicker(d){
   const kids = TREE[d.cwd] || [], parts = d.cwd.split('/').filter(Boolean);
@@ -1955,7 +2068,7 @@ function seriePickRest(){
   const id = SV.ids[SV.idx]; if (!id) return; decideBurst(id, SV.ids.filter(i => i !== id && S.byId.get(i) && S.byId.get(i).flag !== 'reject')); closeSerie();
 }
 function serieKey(e, k = e.key){
-  serieWake(); if (cullKey(e, k, {ids:() => idsForKey('serie'), step:serieStep, advance:() => serieStep(1), zoom:serieZoom, pickRest:seriePickRest})) return;
+  serieWake(); if (isKey(k, 'tags') && !e.ctrlKey && !e.metaKey){ e.preventDefault(); openTags(idsForKey('serie')); return; } if (cullKey(e, k, {ids:() => idsForKey('serie'), step:serieStep, advance:() => serieStep(1), zoom:serieZoom, pickRest:seriePickRest})) return;
 }
 function svDown(e){
   SV.ptr.set(e.pointerId, {x:e.clientX, y:e.clientY}); if (SV.ptr.size === 1){ SV.moved = false; SV.vert = null; SV.dy = 0; SV.t0 = e.timeStamp; }
@@ -2097,7 +2210,7 @@ function dlgSettings(){
 }
 const KEYS = [
   ['Flags', [[HOTKEY.pick, 'Pick (again: unflag)'], [HOTKEY.reject, 'Reject (again: unflag)'], [HOTKEY.unflag, 'Unflag'], ['Shift + P', 'Pick and go to the next photo'], ['Shift + X', 'Reject and go to the next photo'], ['Shift + U', 'Unflag and go to the next photo'],
-    ['Caps Lock', 'Auto-advance: every decision goes to the next photo'], [HOTKEY.togglePick, 'Toggle pick'], [HOTKEY.pickRest, 'Series: pick this, reject the rest'], [HOTKEY.flagButtons, 'Show or hide the flag buttons']]],
+    ['Caps Lock', 'Auto-advance: every decision goes to the next photo'], [HOTKEY.togglePick, 'Toggle pick'], [HOTKEY.pickRest, 'Series: pick this, reject the rest'], [HOTKEY.tags, 'Tags: open the tag entry'], [HOTKEY.flagButtons, 'Show or hide the flag buttons']]],
   ['Rating, colour label, Keep RAW', [['0 – 5', 'Set rating'], ['Shift + 0 – 5', 'Set rating and go to the next photo'], [HOTKEY.starDown, 'One star down'], [HOTKEY.starUp, 'One star up'], [LABELS.filter(l => l.key).map(l => l.key).join(' '), 'Label red / yellow / green / blue (toggle)'], [HOTKEY.keepRaw, 'Keep RAW (toggle)']]],
   ['Views and photos', [['Arrow keys', 'Grid: move focus. Loupe, series compare, series viewer: switch photo'], [`${HOTKEY.first} ${HOTKEY.last}`, 'First photo, last photo'], ['Enter', 'Open the loupe'], [HOTKEY.grid, 'Grid'], [HOTKEY.loupe, 'Loupe'], [HOTKEY.compare, 'Series compare'], [HOTKEY.fit, 'Loupe: fit / 100 %'], [HOTKEY.zoom, 'Loupe and series viewer: fit / 100 %'],
     ['Ctrl/⌘ + =', 'Zoom in'], ['Ctrl/⌘ + -', 'Zoom out'], [HOTKEY.fullscreen, 'Fullscreen'], [HOTKEY.header, 'Show or hide the header (loupe: the controls)'], [HOTKEY.info, 'Cycle the info overlay'], [HOTKEY.close, 'Close loupe / dialog / selection']]],
@@ -2371,11 +2484,12 @@ function renderLoupeChrome(){
   $('lPair').textContent = parts.join('  ·  ') + (!it.jpg ? '  ·  ' + t('RAW only: showing embedded preview') : !it.raw ? '  ·  ' + t('JPEG only') : '') + (parts.length > 1 ? '  ·  ' + n('Reject covers the %n file', 'Reject covers all %n files', parts.length) : '');
   const up = S.settings.swipeUp, dn = S.settings.swipeDown, nm = a => swipeWord(a, 'off');
   $('lCount').textContent = `${nf(lp.idx + 1)} / ${nf(lp.ids.length)}`;
-  $('lCtrl').innerHTML = actionBar(it, 'loupe', {big:true}); syncFlagBtns();
+  $('lCtrl').innerHTML = actionBar(it, 'loupe', {big:true, tail:`<div class="grp"><button class="sq" data-act="tags" data-for="loupe" aria-label="${t('Tags')}" ${tip(t('Tags'), HOTKEY.tags)} style="padding:0 12px">${ic('tag')}</button></div>`}); syncFlagBtns();
   $('lZoomBtn').textContent = L.z.s > 1.02 ? Math.round(L.z.s * fitSize(it)[0] * (devicePixelRatio || 1) / it.nativeW * 100) + '%' : t('Fit');
   const ip = $('infoPanel'); ip.hidden = $('infoDiv').hidden = !P0.infoOpen; $('lInfoBtn').setAttribute('aria-pressed', P0.infoOpen);
   ip.innerHTML = `<h4>${t('File')}</h4><dl><dt>${t('Name')}</dt><dd>${esc(stem(it))}</dd><dt>${t('Folder')}</dt><dd ${tip(it.folder)}>${esc(folderName(it.folder))}</dd>${it.jpg ? `<dt>JPEG</dt><dd>${fmtSize(it.jpg.size)}</dd>` : ''}${it.raw ? `<dt>RAW</dt><dd>${esc(it.raw.name.split('.').pop())} · ${fmtSize(it.raw.size)}</dd>` : ''}<dt>${t('Sidecar')}</dt><dd>${it.xmp ? 'XMP' : t('none')}</dd><dt>${t('Size')}</dt><dd>${t('{px} px wide', {px:nf(it.nativeW)})}</dd><dt>${t('Captured')}</dt><dd>${it.exifTime != null ? esc(fmtWhen(it.exifTime)) : esc(t('Modified {date} (no capture time)', {date:fmtWhen(it.mtime)}))}</dd></dl>
     <h4 style="margin-top:16px">${t('Decision')}</h4><dl><dt>${t('Rating')}</dt><dd>${it.rating ? nf(it.rating) + ' ★' : t('none')}</dd><dt>${t('Label')}</dt><dd>${it.label ? esc(labelName(it.label)) : t('none')}</dd><dt>${t('Flag')}</dt><dd>${esc(t(FLAG_TXT[it.flag]))}</dd></dl>
+    <h4 style="margin-top:16px">${t('Tags')}</h4><dl><dt>${t('Tags')}</dt><dd>${it.tags.length ? [...it.tags].sort().map(esc).join('<br>') : t('none')}</dd>${it.tags.length ? `<dt>${t('Written to')}</dt><dd>${esc(tagTargets(it))}</dd>` : ''}</dl>
     <h4 style="margin-top:16px">${t('Gestures')}</h4><p class="gest" id="lGest"></p><h4>${t('Preloading')}</h4><div class="prefetch" id="lPre" aria-live="off"></div>`;
   $('lGest').innerHTML = t('Swipe ↑ {up} · ↓ {down} · auto-advance {state}', {up:nm(up), down:nm(dn), state:t(S.settings.autoAdvance ? 'on' : 'off')});
   const f = $('lFilm'); f.hidden = !L.film; $('lFilmBtn').setAttribute('aria-pressed', L.film);
@@ -2587,6 +2701,9 @@ const A = {
   fKeepRaw(el){ toggleSet(S.filters.keepRaw, el.dataset.v); refreshView(); },
   fFolder(el){ toggleSet(S.filters.folders, el.dataset.path); refreshView(); }, groupFolder(){ S.groupFolder = !S.groupFolder; closeMenu(); refreshView(); },
   fClear(){ S.filters = {...DEF_FILTERS(), scope:S.filters.scope}; refreshView(); },
+  fTagAdd(){ openTags([], 'filter'); }, fTagRm(el){ S.filters.tags = S.filters.tags.filter(x => x !== el.dataset.v); refreshView(); },
+  tags(el){ openTags(idsForKey(el.dataset.for, el.dataset.id)); },
+  tgRow(el){ tagCommit(el.dataset.v); tagRefocus(); }, tgRm(el){ tagRemove(el.dataset.v); tagRefocus(); },
   palette(el){ showPalette(el, el.dataset.for); },
   setLabel(el){ const ids = idsForKey(el.dataset.for), v = el.dataset.v; closePop(); if (v) toggleLabel(ids, v); else change(ids, 'label', null); },
   delSel(){ openDelete([...S.sel]); }, delRejected(){ if (S.loupe) closeLoupe(); rejectedItems().length ? openDlg({type:'review'}) : toast(t('No rejected photos')); },
@@ -2698,6 +2815,7 @@ document.addEventListener('keydown', e => {
   if (k === 'Tab' && (tg === document.body || tg === document.documentElement)){ e.preventDefault(); S.loupe ? setImmersive(!L.immersive) : document.body.classList.toggle('nohdr'); return; }
   if (isKey(k, 'compare')){ e.preventDefault(); A.burst(); return; }
   const ids = targetIds();
+  if (isKey(k, 'tags')){ e.preventDefault(); openTags(ids); return; }
   if (S.loupe){
     if (k === ' '){ e.preventDefault(); toggleZoom(); return; }
     if (isKey(k, 'info')){ e.preventDefault(); A.infoToggle(); return; }

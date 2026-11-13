@@ -39,7 +39,7 @@ white. Magenta is called "Purple" in darktable and Lightroom.
   honeycomb for JPEG-only photos.
 - **digiKam's "Pending".** honeycomb shows a pending photo as unflagged and keeps it pending in
   the sidecar until you pick or reject it.
-- **Tags** are not shown in honeycomb, and it never changes them.
+- **Tags** are a separate feature: see [tags](tags.md).
 - **Keep RAW** is honeycomb's own marker. It is kept in the sidecar, but no other program shows
   it.
 
@@ -56,8 +56,8 @@ If a photo has two sidecars that disagree (one per file of a RAW+JPEG pair, or b
 `IMG_0001.NEF.xmp` and `IMG_0001.xmp`), honeycomb uses the one changed most recently, and the RAW
 file's sidecar if they were changed at the same time.
 
-Everything else in a sidecar — darktable's edit history, digiKam's tags, Lightroom's develop
-settings — stays as it was when honeycomb writes it.
+Everything else in a sidecar — darktable's edit history, Lightroom's develop settings — stays as
+it was when honeycomb writes it. Tags are the one other thing honeycomb writes ([tags](tags.md)).
 
 ## Shared folders
 
