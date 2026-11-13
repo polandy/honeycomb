@@ -25,8 +25,9 @@ a glance, at any size, without waiting for a sharp image of every tile.
   reduced motion); a preview that fails to load stops the pulse.
 - While a folder set from *Recent* is listed, skeleton tiles fill the content area and a status
   tells screen readers *Loading photos…*.
-- A pair carries a quiet badge with both extensions (`JPG+CR3`); a single a highlighted one
-  (`JPG only`, `NEF only`). A picture with an ambiguous name shows `!`.
+- A complete pair carries no badge; a single carries a highlighted one (`JPG only`, `NEF only`).
+  A pair marked *Keep RAW* shows both extensions with a check (`JPG+CR3 ✓`). The tile's
+  accessible name still says `JPG+CR3`. A picture with an ambiguous name shows `!`.
 - Rating (once rated), colour label, flag and *Keep RAW* are always visible on a tile; an
   undecided tile shows none of them.
 - The tile size is stepless from 90 to 340 px, 160 px by default. Ctrl + wheel, a two-finger
@@ -70,8 +71,9 @@ a glance, at any size, without waiting for a sharp image of every tile.
 
 - **Given** a pair, a rendered-only and a RAW-only picture
 - **When** their tiles render
-- **Then** the pair shows both extensions quietly (`JPG+NEF`), each single its extension and
-  "only", highlighted (`JPG only`, `NEF only`)
+- **Then** the pair shows no badge, and its accessible name still names both extensions
+  (`JPG+NEF`); each single shows its extension and "only", highlighted (`JPG only`, `NEF only`);
+  a pair marked *Keep RAW* shows both extensions with a check (`JPG+NEF ✓`)
 
 ### GRID-001.5 – Ambiguous name
 
@@ -178,3 +180,4 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 | 2026-11-11 | GRID-001.15: at most six image loads, visible tiles first; sharp tier 1024 after the small one (owner, nc-test analysis) |
 | 2026-11-12 | GRID-001.16: marks on one dark bottom shade, white stars in both themes (UX review H2) |
 | 2026-11-13 | GRID-001.17: slim toolbar, *Review rejects* and *Compare series* in the ⋯ menu below 900 px (UX review M1) |
+| 2026-11-13 | GRID-001.4: no badge on a complete pair, singles and *Keep RAW* keep theirs (UX review M3) |
