@@ -50,6 +50,9 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **delete summary** | The dialog that lists pictures, files, bytes freed and the trash-bin note before deleting. |
 | **remove RAWs summary** | The same dialog before *Remove RAWs*, which also says how many pictures were skipped and why. |
 | **trash bin** | Nextcloud's trash bin (`files_trashbin`), where deleted files can be restored from. |
+| **tag** | A path of names, `Places/Italy/Dolomites`, given to a picture; digiKam's tag. Not a *keyword* or *label* (a label is a colour label). |
+| **tag list** | Every tag the user has, offered by the tag entry and the filter. |
+| **tag entry** | The field `T` opens, with autocomplete, to add and remove tags. |
 
 ## Words and conventions in the UI
 

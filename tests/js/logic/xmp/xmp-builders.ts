@@ -54,3 +54,14 @@ export function itemsOf(packet: XmpPacket, qualified: string): string[] | undefi
 	const node = packet.properties.get(key(qualified))
 	return node?.value.kind === 'array' ? node.value.items.map((item) => (item.value.kind === 'text' ? item.value.text : '')) : undefined
 }
+
+/** An unordered array of simple values. */
+export function bag(items: readonly string[]): XmpNode {
+	return { value: { kind: 'array', array: 'Bag', items: items.map((item) => text(item)) }, qualifiers: new Map() }
+}
+
+/** The kind of an array property written as `prefix:Name`, or undefined when absent or not an array. */
+export function arrayKindOf(packet: XmpPacket, qualified: string): string | undefined {
+	const node = packet.properties.get(key(qualified))
+	return node?.value.kind === 'array' ? node.value.array : undefined
+}

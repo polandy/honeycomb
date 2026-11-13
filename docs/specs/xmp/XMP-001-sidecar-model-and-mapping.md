@@ -185,7 +185,7 @@ has, else one new `<member file>.xmp` per member.
 
 - Fetching the sidecars, the backend's checked save, when sidecars are read on listing and written
   on a decision, and *Write decisions to sidecars…* in shared folders: `TODO.md` M5.2 and M5.3.
-- Tags, `photoshop:Urgency`, embedded XMP in JPEG or DNG.
+- Tags: XMP-004. `photoshop:Urgency`, embedded XMP in JPEG or DNG.
 
 ## History
 

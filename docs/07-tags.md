@@ -1,6 +1,8 @@
 # 7. Tags (concept)
 
-**Status: concept, nothing is built.** The owner asked for tags that work like digiKam's and are
+**Status: in progress.** Step 2 of the [implementation outline](#implementation-outline), reading
+and writing tags in sidecars, is built ([XMP-004](specs/xmp/XMP-004-tags-in-sidecars.md)); the
+other steps are open in `TODO.md`. The owner asked for tags that work like digiKam's and are
 read and written in digiKam's fields (2026-11-11), and answered the
 [decisions](#decisions-2026-11-12) on 2026-11-12. The milestone is planned from the
 [implementation outline](#implementation-outline). The approved mockup is
@@ -166,7 +168,7 @@ The owner approved the mockup and said to build it; each decision is the option 
 
 ## Proposed glossary entries
 
-Added to [`04-glossary.md`](04-glossary.md) when the milestone starts.
+Added to [`04-glossary.md`](04-glossary.md) with step 2.
 
 | Term | Meaning |
 |---|---|

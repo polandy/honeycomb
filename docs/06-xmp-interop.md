@@ -169,7 +169,7 @@ Camera Raw settings and unknown namespaces (CORE-009.3, .23).
 | `xmp:Label` | always, except in a darktable sidecar that lacks it | digiKam's text (`Purple` for magenta); removed for none |
 | `darktable:colorlabels` | only in a darktable sidecar, only when the colour label changed | a `rdf:Seq` with the one darktable index; removed for none and for orange, gray, black and white |
 | `honeycomb:KeepRaw` | always, for a pair | `True` when marked *Keep RAW*; removed when not marked |
-| tags | never yet | – (concept: [`07-tags.md`](07-tags.md)) |
+| tags | not yet on a change; the module is ready (XMP-004) | `digiKam:TagsList`, `lr:hierarchicalSubject`, `dc:subject` ([`07-tags.md`](07-tags.md)) |
 
 A **darktable sidecar** is one with `darktable:xmp_version`. digiKam's fields are written always
 because digiKam is the target of M5; darktable's only where darktable already wrote.

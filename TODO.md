@@ -9,6 +9,11 @@ Add items with `/todo`.
 
 ## Milestones
 
+- [ ] Tags 1: ADR and backend: a per-user table of picture tags and the tag list (D6), endpoints to list and change tags, read the JPEG's embedded XMP as a source (D1), and write each change through to every sidecar with `tagWrite`/`mergeTags` (XMP-004) (`docs/07-tags.md` outline steps 1 and 3) (2026-11-13)
+- [ ] Tags 2: Tag entry: `T` in the key map (KEYS-001) for the loupe, series viewer and grid selection, *Tags* icon button in the `ActionBar` (D8), substring autocomplete, `/` creates levels, one undo step and toast per change (`docs/07-tags.md` Tag entry, `docs/mockup/tag-entry.html`) (2026-11-13)
+- [ ] Tags 3: Multi-select and bulk tagging: visible *Select* / *Done* button with long-press as shortcut (D8), partial chips (dashed) for tags only some targets have (GRID-003) (2026-11-13)
+- [ ] Tags 4: Tag filter on `F`: chips AND (D4), a parent matches its descendants (D5), count badge (GRID-002); tile tag icon and count (D3); tags in the loupe's info panel (2026-11-13)
+- [ ] Tags 5: Merge `docs/mockup/tag-entry.html` into `docs/mockup/index.html`, user doc `docs/user/tags.md` (`docs/07-tags.md` outline step 6) (2026-11-13)
 - [ ] UX M1: Slim the grid toolbar: drop the funnel before the flag chips, move *Delete rejects* and *Compare* into *More* below 900 px, at most two rows on a phone (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX M2: Name the toolbar progress's scope when a flag filter hides photos ("4 / 20 shown decided"), so it no longer contradicts the navigation's count (owner decided 2026-11-12) (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX M3: Drop the pair badge on a complete pair; only singles keep "JPG only" or "NEF only" (owner decided 2026-11-12) (`docs/ux-review-2026-11.md`) (2026-11-12)
@@ -28,7 +33,6 @@ Add items with `/todo`.
 
 ## Later
 
-- [ ] Tags like digiKam's: plan the milestone from the implementation outline of `docs/07-tags.md` (decisions D1–D9 are recorded) — owner (2026-11-12)
 - [ ] Redraw `docs/mockup/index.html` and `docs/plan.md` item 2 (app bar) for the flag filter chips that replaced the scope control (GRID-002; owner sign-off on the look) (2026-11-11)
 - [ ] Measure the image budgets of `docs/plan.md` Image delivery with real 24 MP RAW+JPEG pairs (IMAGES-001.12), incl. the loupe's 4096 px tier and the six image loads in flight (GRID-001.15) — needs the owner's files (2026-11-10)
 - [ ] Add a `main` ruleset (pull requests only, CI required), with a bypass for `nextcloud-bot` if issue #17 says so, and the `RELEASE_PLEASE_TOKEN` secret — owner (2026-11-09)
