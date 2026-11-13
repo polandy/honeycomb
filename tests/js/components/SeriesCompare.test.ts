@@ -95,7 +95,7 @@ describe('SeriesCompare', () => {
 
 	// spec: SERIES-001.21
 	it('sizes the row by the series length and scrolls the active card into view', async () => {
-		const scrolled = vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(function (this: Element) {})
+		const scrolled = vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(function(this: Element) {})
 		const wrapper = mountCompare()
 
 		expect(wrapper.find('.series-compare').attributes('style')).toContain('--series-compare-count: 3')
