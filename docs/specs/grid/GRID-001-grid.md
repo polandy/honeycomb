@@ -38,6 +38,10 @@ a glance, at any size, without waiting for a sharp image of every tile.
 - Above 20,000 pictures the grid shows the first 20,000 by capture time.
 - The toolbar's count badges (*Filters*, *Select*, *Review rejects*, *Compare series*) are
   neutral; a badge takes the primary colour only while its button is pressed.
+- The toolbar stays slim: one filter icon, the one of *Filters*. Below 900 px window width
+  *Review rejects* and *Compare series* move from the toolbar into the ⋯ menu, with their counts,
+  and below 600 px the flag chips show their icons only, so the toolbar takes at most two rows on
+  a phone; selection mode adds its own row.
 
 ## Acceptance criteria
 
@@ -157,6 +161,14 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
   tile's bottom edge, and the stars are white, the same in both themes; a tile without a mark has
   no shade
 
+### GRID-001.17 – The toolbar takes at most two rows on a phone
+
+- **Given** an open cull
+- **When** the window is narrower than 900 px
+- **Then** *Review rejects* and *Compare series* are not in the toolbar but in the ⋯ menu, with
+  their counts and held while there is nothing to review or compare; no filter icon stands before
+  the flag chips; and on a phone (390 px) the toolbar outside selection mode takes at most two rows
+
 ## History
 
 | Date | Change |
@@ -165,3 +177,4 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 | 2026-11-11 | GRID-001.14: neutral toolbar count badges, primary only while pressed (UX review L7) |
 | 2026-11-11 | GRID-001.15: at most six image loads, visible tiles first; sharp tier 1024 after the small one (owner, nc-test analysis) |
 | 2026-11-12 | GRID-001.16: marks on one dark bottom shade, white stars in both themes (UX review H2) |
+| 2026-11-13 | GRID-001.17: slim toolbar, *Review rejects* and *Compare series* in the ⋯ menu below 900 px (UX review M1) |

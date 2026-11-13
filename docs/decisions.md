@@ -837,3 +837,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (`App.tags`, `TagEntry`, e2e `tags.spec.ts`) prove the same behaviour. The merged mockup follows
   the built app: a *Tags* group in the filter bar with *Add tag* (no `F`, which is fullscreen
   there), *Tags* beside *Move…* in the action bar, a tag badge on tiles, tags in the info panel.
+- 2026-11-13: UX M1 slims the grid toolbar by window width (media queries), not by a measured
+  toolbar width: the ⋯ menu is a popover outside the toolbar, so a container query cannot reach
+  it. Below 600 px the flag chips show icons only, which the two-row limit on a phone needs.
+  *Delete rejects* in the review is the toolbar's *Review rejects*. Selection mode keeps its own
+  row on top of the two. The mockup keeps its layout.

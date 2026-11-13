@@ -13,14 +13,14 @@ const mountFilter = (flags: Flag[]) => mount(FlagFilter, { props: { flags: new S
 const chip = (wrapper: ReturnType<typeof mountFilter>, name: string) => wrapper.find(`button[aria-label="${name}"]`)
 
 describe('FlagFilter', () => {
-	// spec: GRID-002.2
-	it('shows a labelled filter with a chip per flag, pressed as the flags are', () => {
+	// spec: GRID-002.2, GRID-001.17
+	it('shows a labelled filter with a chip per flag, pressed as the flags are, without a filter icon', () => {
 		const wrapper = mountFilter(['picked', 'unflagged'])
 
 		expect(wrapper.find('[role="group"]').attributes('aria-label')).toBe('Flag')
 		expect(wrapper.findAll('button').map((button) => button.attributes('aria-label'))).toEqual(['Picked', 'Unflagged', 'Rejected'])
 		expect(wrapper.findAll('button').map((button) => button.attributes('aria-pressed'))).toEqual(['true', 'true', 'false'])
-		expect(wrapper.findAllComponents(AppIcon).map((icon) => icon.props('name'))).toEqual(['filter', FLAG_ICONS.picked, FLAG_ICONS.unflagged, FLAG_ICONS.rejected])
+		expect(wrapper.findAllComponents(AppIcon).map((icon) => icon.props('name'))).toEqual([FLAG_ICONS.picked, FLAG_ICONS.unflagged, FLAG_ICONS.rejected])
 	})
 
 	// spec: GRID-002.2

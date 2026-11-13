@@ -14,7 +14,7 @@ how far the cull is; the sort orders the pictures by file name or capture time.
 ## Behaviour
 
 - **Flag filter:** three toggle chips in the toolbar, *Picked*, *Unflagged* and *Rejected*, each
-  with its flag icon, behind a filter icon. They combine; none pressed shows every picture.
+  with its flag icon. They combine; none pressed shows every picture.
   *Picked* and *Unflagged* are pressed by default. The chips are the *Flag* group of the filter
   bar, one state shown twice.
 - **Filter bar:** collapsible, toggled from the toolbar, which counts the active filter groups.

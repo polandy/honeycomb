@@ -85,6 +85,19 @@ describe('GridToolbar', () => {
 		expect(wrapper.emitted('compareSeries')).toHaveLength(1)
 	})
 
+	// spec: GRID-001.17
+	it.each([['Review rejects', 'rejected', 'reviewRejects'], ['Compare series', 'series', 'compareSeries']] as const)('keeps %s in the toolbar from 900 px and in the More menu below, with its count, held at 0', async (label, count, event) => {
+		const set = { paths: ['/Trip'], subfolders: false }
+		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('.grid-more-menu__narrow').find((button) => button.text().includes(label))!
+		const wrapper = mountToolbar(set, 1, { [count]: 4 })
+
+		expect(wrapper.find(`[aria-label*="${label}"]`).classes()).toContain('grid-toolbar__wide')
+		expect(item(mountToolbar(set)).attributes('disabled')).toBeDefined()
+		expect(item(wrapper).text().replaceAll(MARK, '')).toBe(`${label} 4`)
+		await item(wrapper).trigger('click')
+		expect(wrapper.emitted(event)).toHaveLength(1)
+	})
+
 	it('removes RAWs from the More menu with their count, held while there are none', async () => {
 		const set = { paths: ['/Trip'], subfolders: false }
 		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('button').find((button) => button.text().includes('Remove RAWs'))!
