@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 # Series in the loupe (concept)
 
 Status: proposal for the owner's sign-off (2026-11-13), revised with the owner's three decisions
-of 2026-11-13 (see *Owner decisions*). Interactive mockup:
+of 2026-11-13 and two more points of 2026-11-14 (see *Owner decisions*). Interactive mockup:
 [`docs/mockup/loupe-series/index.html`](../mockup/loupe-series/index.html), open it in a browser.
 
 ## Summary
@@ -29,6 +29,12 @@ the decision is made:
 6. **Part 3 decided:** a plain *Pick* never rejects the others silently; its undo toast offers
    "Reject the other 4" as one explicit tap.
 7. **One flag button order everywhere:** *Pick* left, *Unflag* in the middle, *Reject* right.
+8. **Full screen from the compare:** every card has a visible *View full screen* button; a
+   double tap or double click on a card and `Enter` do the same. It opens the series viewer on
+   that photo, to zoom and page; *Back to the series* or `Esc` returns to the grid.
+9. **A clear current photo in the filmstrip:** a thick white ring with a dark edge, at full
+   strength even when the photo is rejected, inside or outside a series frame. It ships first,
+   on its own.
 
 ## Owner decisions
 
@@ -65,6 +71,54 @@ As UX lead I decided the details:
   order. *Undo* restores the flags only and does not move the loupe back, as elsewhere.
 - **The toast's *Reject the other N*** lands after the series only while the loupe shows a member
   of that series; after `Shift+P` has moved on past it, the loupe stays where it is.
+
+### Owner points of 2026-11-14
+
+- **Point 4: from the compare grid, one photo goes full screen** to look at it closely; the
+  owner suggested a double tap. Today a tap on a card's photo opens the series viewer
+  (SERIES-001, since M6.2), and this concept's first revision kept that for the active card; the
+  owner did not find it, since nothing on the card says so.
+- **Point 5: the loupe's filmstrip does not show which photo is shown.** The app marks it with a
+  2 px white line inside the 56 px thumbnail (LOUPE-001.19), which vanishes on a bright photo and
+  reads as part of the picture on a busy one.
+
+As UX lead I decided:
+
+- **Full screen is the existing series viewer**, not a new view: it already pages through the
+  series, zooms with synchronised zoom and decides with the loupe's action bar (SERIES-002).
+  What was missing is a way in that people see.
+- **Three ways in, one for each hand:** a *View full screen* button (⤢) in the top right corner
+  of every card's photo, always shown, 44 px (34 px with a fine pointer), on a dark disc so it
+  reads on any photo; a **double tap** (double click) on a card's photo; and **`Enter`** for the
+  active card, as `Enter` opens the loupe from the grid. The tooltip names the key.
+- **A single tap only makes a card active**, on every card, and never opens the viewer. In the
+  full-screen grid the bottom bar's *Pick this, reject the rest* acts on the active card, so a
+  touch user needs a tap that chooses it; a tap that opens a full screen view without a sign is
+  what hid the viewer, and beside a double tap it would open the viewer on the first tap and
+  zoom on the second. The first tap
+  of a double tap still makes the card active, so there is no delay to wait out; the double tap
+  is recognised from the second tap's time against an injected clock, so tests stay
+  deterministic.
+- **In the viewer:** the title reads "Series of 5 · photo 2" (from the grid toolbar "Compare
+  series 1 of 3 · photo 2 of 5", as today); `←` `→`, a swipe, the edge buttons and the tap
+  zones page within the series; a double tap, a pinch, `Z` or *Fit* / 100 % zoom, synchronised
+  across the series; *Pick*, *Unflag*, *Reject* and *Pick this, reject the rest* in the loupe's
+  action bar in the one order.
+- **Back to the grid:** a *Back to the series* button at the top left with the loupe's back
+  arrow and the word on iPad and desktop, and `Esc`. The grid shows again with the viewed photo
+  active. *Pick this, reject the rest* in the viewer closes the viewer and the compare as the
+  compare's button does: opened from the loupe, the loupe lands on the first photo after the
+  series (owner decision 1); opened from the grid toolbar, the next series shows.
+- **The current photo in the filmstrip** gets a **3 px white ring with a 1 px black edge on
+  its inside**, drawn inside the thumbnail: the white reads on a dark photo, the black on a
+  bright one, and the strip's black background frames it from outside. The ring is white, the
+  series frame honey, so the two never read as one; inside a frame the ring sits inside the
+  frame's padding. The current thumbnail is never dimmed, so a rejected photo shown under the
+  *Rejected* flag filter keeps its reject mark but not the 45 % dimming of the other rejected
+  thumbnails. `aria-current` stays for screen readers.
+- **No scaling, no arrow, no glow:** a bigger current thumbnail would shift its neighbours
+  while paging, an arrow needs height the slim strip does not have, and a glow is too soft on
+  the dark strip.
 
 Rejected: a gesture (undiscoverable, conflicts with swipe and zoom) and an inline series strip
 in the loupe (a second compare view, thumbnails too small, duplicated logic).
@@ -117,9 +171,10 @@ words, icon, key and components the app already has. No new screen, no gesture.
   when a card would drop below a minimum width (150 px on a phone, 220 px otherwise) does the
   grid scroll, downwards and never sideways, with the active card kept in view. The rule is a
   pure function of the card count and the area, so it is unit tested.
-- A tap on a card's photo makes it active, and a tap on the active photo opens the series viewer
-  with synchronised zoom, as today. `←` `→` move the active card in reading order, `↑` `↓` to
-  the card above or below; `P` `U` `X` decide the active card.
+- A tap on a card's photo makes it active. Its *View full screen* button (⤢), a double tap on
+  the photo or `Enter` opens it in the series viewer with synchronised zoom (owner point 4);
+  *Back to the series* or `Esc` returns to the grid. `←` `→` move the active card in reading
+  order, `↑` `↓` to the card above or below; `P` `U` `X` decide the active card.
 - Closing it (button, `Esc`) returns to the loupe **on the active card's photo**. *Pick this,
   reject the rest* in the compare closes it too and returns to the loupe **on the first photo
   after the series** (owner decision 1), rather than moving to the next series: the user came
@@ -161,6 +216,21 @@ of large buttons below the photo, as today. iPad and desktop landscape: *Pick* a
 *Reject* at the right edge, *Unflag* centred at the bottom of the photo above the filmstrip. The
 series viewer, the compare's cards and the grid's action bar use the same order.
 
+### 6. Look closely: full screen from the compare
+
+The series viewer is the compare's full screen (owner point 4, decided above). A card's photo
+carries the *View full screen* button (⤢) in its top right corner on every device; a double tap
+(double click) on the photo and `Enter` on the active card do the same. In the viewer the user
+zooms, pages through the series and decides; *Back to the series* or `Esc` returns to the grid
+with the viewed photo active.
+
+### 7. See where you are: the current photo in the filmstrip
+
+The shown photo's thumbnail gets a 3 px white ring with a 1 px black inner edge, never dimmed
+(owner point 5, decided above). It works on dark and bright photos, inside and outside a series
+frame, and next to dimmed rejected thumbnails. It changes only the filmstrip's style, so it
+ships first and on its own.
+
 ### Per device
 
 | | Phone portrait (390 × 844) | iPad landscape (1180 × 820) | Desktop (1440 × 900) |
@@ -172,6 +242,9 @@ series viewer, the compare's cards and the grid's action bar use the same order.
 | Compare | full screen, 2 columns for 5 | full screen, 3 columns for 5 | same as iPad, plus arrow keys |
 | Flag buttons | row: *Pick*, *Unflag*, *Reject* | *Pick* left edge, *Unflag* bottom centre, *Reject* right edge | same as iPad |
 | Paging inside the series | swipe, tap zones, strip | same, edge buttons | `←` `→` |
+| Full screen from the compare | ⤢ on the card, or double tap | same | ⤢, double click, or `Enter` |
+| Back to the compare grid | *Back to the series* (arrow only) | *Back to the series* | same, or `Esc` |
+| Current photo in the strip | white ring, dark edge | same | same |
 
 ## Series parts 1–3: review and decisions
 
@@ -245,39 +318,51 @@ early: a mode switch the user did not ask for breaks the paging rhythm.
 - Reused unchanged: the series logic (`src/logic/series.ts`), the series viewer, the
   `pickRestBtn` action through the undo history, the `Shift+K` and `N` keys of the shared key
   map, the tooltip, the toast.
-- Changed: `SeriesCompare.vue` lays its cards out as the full-screen grid; the flag button
-  component (`FlagButtons.vue`) and the grid's action bar take the one order.
+- Changed: `SeriesCompare.vue` lays its cards out as the full-screen grid, and a single tap on a
+  card only makes it active; the flag button component (`FlagButtons.vue`) and the grid's
+  action bar take the one order; the series viewer's close button becomes *Back to the series*;
+  the filmstrip's current-photo ring.
 - New: the grid sizing rule (a pure module), `↑` `↓` in the compare, the landing after the
   series, the series span rule, the toast's *Reject the other N*, the chip in the loupe's title
   row, the compare's "opened from the loupe" entry (one series, return target), *Pick this,
   reject the rest* in the loupe's action bar (the `ActionBar` slot the viewer already uses), the
-  frame in the filmstrip (series part 2), the once-per-user hint.
+  frame in the filmstrip (series part 2), the once-per-user hint, the card's *View full screen*
+  button, the double tap on a card (a pure rule over the two taps' times) and `Enter` in the
+  compare.
 - Keys: `N` gains a meaning in the loupe (the plan's key table already lists it for the loupe),
   `Shift+K` does nothing outside a series, as today.
 
 ## Follow-up PRs in build order, after sign-off
 
-1. **Series span** (fix to part 1): `SERIES_SPAN_SECONDS = 60` in `src/logic/series.ts`, ADR 0021
+1. **Filmstrip current-photo marker** (owner point 5): the 3 px white ring with its dark inner
+   edge, the current thumbnail never dimmed, rejected thumbnails dimmed; LOUPE-001.19 and the
+   main mockup. Independent of the series work, so it can ship before the rest is signed off.
+2. **Series span** (fix to part 1): `SERIES_SPAN_SECONDS = 60` in `src/logic/series.ts`, ADR 0021
    amended, SERIES-001 updated.
-2. **Viewer preload window** (fix to part 1): SERIES-002.1 preloads the loupe's neighbour window;
+3. **Viewer preload window** (fix to part 1): SERIES-002.1 preloads the loupe's neighbour window;
    the compare's title shows the active photo's position.
-3. **Flag button order** (owner decision 2): *Pick*, *Unflag*, *Reject* in the loupe's portrait
+4. **Flag button order** (owner decision 2): *Pick*, *Unflag*, *Reject* in the loupe's portrait
    row, *Unflag* at the bottom centre in landscape, the same order in the series viewer, the
    compare's cards and the grid's action bar; LOUPE-002.11, SERIES-001, the grid's spec and the
    main mockup.
-4. **Compare as a full-screen grid** (owner decision 3): the grid sizing rule as a pure module,
+5. **Compare as a full-screen grid** (owner decision 3): the grid sizing rule as a pure module,
    `SeriesCompare.vue` full screen with the bottom bar, `↑` `↓`; SERIES-001. It replaces the
    sideways scrolling, and with it the `scroll-snap-type` suspected in the flaky e2e test of
    `TODO.md`.
-5. **Filmstrip group frame** (part 2): the frame and its tab in the loupe's filmstrip,
-   LOUPE-001.19 extended; the tab opens nothing until step 6 lands, so it ships hidden behind
+6. **Full screen from the compare** (owner point 4): the card's *View full screen* button, the
+   double tap (a pure rule over the taps' times, clock injected) and `Enter`; a single tap only
+   makes a card active; the viewer's *Back to the series*; *Pick this, reject the rest* in the
+   viewer closes the compare as the compare's button does; SERIES-001 (its tap rule) and
+   SERIES-002.1, .7, .9.
+7. **Filmstrip group frame** (part 2): the frame and its tab in the loupe's filmstrip,
+   LOUPE-001.19 extended; the tab opens nothing until step 8 lands, so it ships hidden behind
    it or together with it.
-6. **Chip and `N` in the loupe**: the compare opened on one series, its return to the loupe and
+8. **Chip and `N` in the loupe**: the compare opened on one series, its return to the loupe and
    its *Pick this, reject the rest* landing after the series, LOUPE-001 and SERIES-001.
-7. ***Pick this, reject the rest* in the loupe** (part 3): the rating-row button and `Shift+K`,
+9. ***Pick this, reject the rest* in the loupe** (part 3): the rating-row button and `Shift+K`,
    landing on the first photo after the series, LOUPE-002.
-8. ***Reject the other N* in the undo toast** (part 3): after a plain *Pick* in the loupe and the
-   series viewer, landing after the series while a member shows, DECISIONS and SERIES-002.
-9. **First-series hint**, stored per user like the gesture guide (LOUPE-003).
+10. ***Reject the other N* in the undo toast** (part 3): after a plain *Pick* in the loupe and
+    the series viewer, landing after the series while a member shows, DECISIONS and SERIES-002.
+11. **First-series hint**, stored per user like the gesture guide (LOUPE-003).
 
 Each PR updates its spec and starts with the failing tests.
