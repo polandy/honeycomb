@@ -146,13 +146,6 @@ words, icon, key and components the app already has. No new screen, no gesture.
   `Shift+K`; the tooltip names the key.
 - With the flag buttons hidden (`B`) the button stays in the rating row.
 
-### 5. One flag button order
-
-*Pick* left, *Unflag* in the middle, *Reject* right (owner decision 2). Phone portrait: the row
-of large buttons below the photo, as today. iPad and desktop landscape: *Pick* at the left edge,
-*Reject* at the right edge, *Unflag* centred at the bottom of the photo above the filmstrip. The
-series viewer, the compare's cards and the grid's action bar use the same order.
-
 ### 4. Make it found once: the first-series hint
 
 The owner's actual problem is discoverability, so the first time the loupe shows a photo of a
@@ -160,6 +153,13 @@ series, the chip gets a single honey pulse and a hint card under it: "This photo
 series of 5. ⧉ compares them; Shift+K picks this one and rejects the rest." with *Got it*.
 Dismissed once per user on the server, like the gesture guide (LOUPE-003). No pulse under
 `prefers-reduced-motion`.
+
+### 5. One flag button order
+
+*Pick* left, *Unflag* in the middle, *Reject* right (owner decision 2). Phone portrait: the row
+of large buttons below the photo, as today. iPad and desktop landscape: *Pick* at the left edge,
+*Reject* at the right edge, *Unflag* centred at the bottom of the photo above the filmstrip. The
+series viewer, the compare's cards and the grid's action bar use the same order.
 
 ### Per device
 
