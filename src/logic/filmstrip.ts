@@ -15,24 +15,23 @@ export interface FilmstripView {
 	readonly offset: number
 }
 
-/** The filmstrip's geometry: the padding before the first photo, the scroll width, the offset that centres the shown picture, and the photos to render, `first` up to but not including `end`. */
+/** The filmstrip's geometry: the scroll width, the offset that brings the shown picture as near the middle as the strip's ends allow, and the photos to render, `first` up to but not including `end`. */
 export interface FilmstripLayout {
-	readonly edge: number
 	readonly width: number
 	readonly centred: number
 	readonly first: number
 	readonly end: number
 }
 
-/** Lays the photos edge to edge after half the strip, so every one, the first and last too, can sit in the middle. */
+/** Lays the photos edge to edge from the strip's left edge; the strip scrolls the shown one to the middle but never past either end. */
 export function filmstripLayout({ index, count, viewport, offset }: FilmstripView): FilmstripLayout {
-	const edge = Math.max(0, viewport / 2 - FILMSTRIP_THUMB / 2)
-	const width = count * FILMSTRIP_THUMB + 2 * edge
-	const centred = index * FILMSTRIP_THUMB
+	const width = count * FILMSTRIP_THUMB
 	if (viewport <= 0) {
-		return { edge, width, centred, first: 0, end: 0 }
+		return { width, centred: 0, first: 0, end: 0 }
 	}
-	const end = Math.min(count, Math.ceil((offset + viewport - edge) / FILMSTRIP_THUMB) + FILMSTRIP_OVERSCAN)
-	const first = Math.min(end, Math.max(0, Math.floor((offset - edge) / FILMSTRIP_THUMB) - FILMSTRIP_OVERSCAN))
-	return { edge, width, centred, first, end }
+	const middle = index * FILMSTRIP_THUMB + FILMSTRIP_THUMB / 2 - viewport / 2
+	const centred = Math.min(Math.max(0, width - viewport), Math.max(0, middle))
+	const end = Math.min(count, Math.ceil((offset + viewport) / FILMSTRIP_THUMB) + FILMSTRIP_OVERSCAN)
+	const first = Math.min(end, Math.max(0, Math.floor(offset / FILMSTRIP_THUMB) - FILMSTRIP_OVERSCAN))
+	return { width, centred, first, end }
 }

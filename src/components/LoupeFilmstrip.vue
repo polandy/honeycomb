@@ -37,10 +37,10 @@ const layout = computed(() => filmstripLayout({ index: props.index, count: props
 
 const shown = computed(() => props.pictures.slice(layout.value.first, layout.value.end).map((picture, at) => {
 	const index = layout.value.first + at
-	return { picture, index, left: layout.value.edge + index * FILMSTRIP_THUMB, member: imageMember(picture), flag: props.decisionOf(picture).flag }
+	return { picture, index, left: index * FILMSTRIP_THUMB, member: imageMember(picture), flag: props.decisionOf(picture).flag }
 }))
 
-/** Scrolls the shown picture to the middle of the strip. */
+/** Scrolls the shown picture towards the middle of the strip. */
 function centre() {
 	offset.value = layout.value.centred
 	strip.value!.scrollLeft = offset.value

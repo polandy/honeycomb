@@ -908,3 +908,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   buttons, 292 px), colour label and *Keep RAW* need about 490 px, more than a 410 px phone has.
   The bar puts the flags, *Move* and *Delete* first wherever it wraps (two rows on a tablet);
   on a phone in portrait the decisions take two rows below them instead of shrinking targets.
+- 2026-11-13: UX L7 asks the loupe filmstrip to start at its left edge until the shown photo
+  reaches the middle. The strip stops at its right edge the same way, so the last photos never
+  leave the right half empty either; that is how Lightroom's filmstrip behaves (LOUPE-001.19).

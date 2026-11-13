@@ -168,7 +168,7 @@ describe('LoupeFilmstrip', () => {
 	it('scrolls the shown picture to the middle and renders the ones in view, marked current, with small thumbnails and flags', async () => {
 		const wrapper = mountStrip(15)
 		await nextTick()
-		expect(strip(wrapper).scrollLeft).toBe(15 * FILMSTRIP_THUMB)
+		expect(strip(wrapper).scrollLeft).toBe(15 * FILMSTRIP_THUMB - (500 - FILMSTRIP_THUMB / 2))
 		expect(labels(wrapper)).toEqual(PICTURES.slice(6 - FILMSTRIP_OVERSCAN, 25 + FILMSTRIP_OVERSCAN).map((picture) => picture.baseName))
 		expect(wrapper.find('[aria-current="true"]').attributes('aria-label')).toBe('IMG_16')
 		expect(wrapper.find('[aria-current="true"] img').attributes('src')).toBe('/img/16/256')
@@ -176,22 +176,23 @@ describe('LoupeFilmstrip', () => {
 	})
 
 	// spec: LOUPE-001.19
-	it('places each picture by its index, edge to edge, after half the strip', async () => {
+	it('places each picture by its index, edge to edge, from the left edge of the strip', async () => {
 		const wrapper = mountStrip(0)
 		await nextTick()
 		const left = (label: string) => wrapper.find(`button[aria-label="${label}"]`).attributes('style')
-		expect(left('IMG_01')).toContain(`left: ${500 - FILMSTRIP_THUMB / 2}px`)
-		expect(left('IMG_02')).toContain(`left: ${500 + FILMSTRIP_THUMB / 2}px`)
+		expect(strip(wrapper).scrollLeft).toBe(0)
+		expect(left('IMG_01')).toContain('left: 0px')
+		expect(left('IMG_02')).toContain(`left: ${FILMSTRIP_THUMB}px`)
 	})
 
 	// spec: LOUPE-001.19
 	it('follows the shown picture and a scroll by the user', async () => {
 		const wrapper = mountStrip(0)
 		await nextTick()
-		expect(labels(wrapper)).toHaveLength(10 + FILMSTRIP_OVERSCAN)
+		expect(labels(wrapper)).toHaveLength(18 + FILMSTRIP_OVERSCAN)
 
 		await wrapper.setProps({ index: 29 })
-		expect(strip(wrapper).scrollLeft).toBe(29 * FILMSTRIP_THUMB)
+		expect(strip(wrapper).scrollLeft).toBe(30 * FILMSTRIP_THUMB - 1000)
 		expect(labels(wrapper).at(-1)).toBe('IMG_30')
 
 		strip(wrapper).scrollLeft = 0
