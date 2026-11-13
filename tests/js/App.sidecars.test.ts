@@ -29,6 +29,7 @@ async function openShared(lookup: (fileId: number) => SidecarLookupAnswer, save:
 			lookups.push([...fileIds])
 			return fileIds.map(lookup)
 		},
+		lookupEmbeddedXmp: async (fileIds: readonly number[]) => fileIds.map(() => ({ result: 'none' as const })),
 		saveSidecars: async (items: readonly SidecarSaveItem[]) => {
 			saves.push([...items])
 			return items.map(save)

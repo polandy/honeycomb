@@ -42,6 +42,7 @@ function sync(answer: (item: SidecarSaveItem, call: number) => SidecarSaveAnswer
 			lookups.push([...fileIds])
 			return fileIds.map((fileId) => lookupAnswer.current(fileId))
 		},
+		lookupEmbeddedXmp: async (fileIds) => fileIds.map(() => ({ result: 'none' })),
 		saveSidecars: async (items) => {
 			saves.push([...items])
 			const call = saves.length

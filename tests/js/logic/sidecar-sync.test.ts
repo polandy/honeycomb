@@ -33,7 +33,7 @@ describe('takeOverLookups', () => {
 	// spec: XMP-003.2
 	it('looks up the sidecars of pictures without a stored decision only', () => {
 		const stored = pictureOf(listingEntry(3, '/P/A.JPG'), listingEntry(13, '/P/A.JPG.xmp'))
-		const bare = pictureOf(listingEntry(4, '/P/B.JPG'))
+		const bare = pictureOf(listingEntry(4, '/P/B.HEIC', { mime: 'image/heic' }))
 		const pair = pictureOf(NEF, JPG, NEF_XMP, listingEntry(14, '/P/IMG_0001_01.NEF.xmp'))
 
 		const lookups = takeOverLookups([stored, bare, pair], new Set([3]))
@@ -179,9 +179,11 @@ describe('planSaves: a tag change', () => {
 		const known = new Map<string, KnownSidecar>([['/P/IMG_0001.JPG.xmp', { fileId: 22, saved: { etag: 'c', size: 1, bytes: held } }]])
 		const untag = { tags: { added: [], removed: ['Events/Wedding'] } }
 
-		const first = planSaves(pair, WEDDING, new Map(), new Map(), CANONICAL_TIME)
+		const noPacket = new Map([[2, { result: 'none' as const }]])
+
+		const first = planSaves(pair, WEDDING, new Map(), new Map(), CANONICAL_TIME, undefined, noPacket)
 		const last = planSaves(pair, untag, known, new Map(), CANONICAL_TIME)
-		const none = planSaves(pair, untag, new Map(), new Map(), CANONICAL_TIME)
+		const none = planSaves(pair, untag, new Map(), new Map(), CANONICAL_TIME, undefined, noPacket)
 
 		expect(first.saves.map(({ path, item }) => [path, 'path' in item, tagsOf(item.bytes)])).toEqual([['/P/IMG_0001.NEF.xmp', true, ['Events/Wedding']], ['/P/IMG_0001.JPG.xmp', true, ['Events/Wedding']]])
 		expect(last.saves.map(({ path, item }) => [path, 'fileId' in item, tagsOf(item.bytes)])).toEqual([['/P/IMG_0001.JPG.xmp', true, undefined]])

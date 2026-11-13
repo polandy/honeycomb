@@ -23,7 +23,7 @@ describe('takeOverTags', () => {
 
 	// spec: TAGS-002.2
 	it('takes the union of the tags of every sidecar answered', () => {
-		const { tagged: taken, leftOut } = takeOverTags(lookups, new Map([[11, tagged('Places/Lisbon')], [12, tagged('People/Anna', 'Places/Lisbon')], [13, tagged()]]), new Set())
+		const { tagged: taken, leftOut } = takeOverTags(lookups, new Map([[11, tagged('Places/Lisbon')], [12, tagged('People/Anna', 'Places/Lisbon')], [13, tagged()]]), new Set(), new Map())
 
 		expect(taken).toEqual([{ picture: PAIR, tags: ['People/Anna', 'Places/Lisbon'] }])
 		expect(leftOut).toEqual([])
@@ -31,14 +31,14 @@ describe('takeOverTags', () => {
 
 	// spec: TAGS-002.3
 	it('takes nothing for a picture with stored tags for a member', () => {
-		const { tagged: taken } = takeOverTags(lookups, new Map([[11, tagged('Places/Lisbon')], [13, tagged('Anna')]]), new Set([2]))
+		const { tagged: taken } = takeOverTags(lookups, new Map([[11, tagged('Places/Lisbon')], [13, tagged('Anna')]]), new Set([2]), new Map())
 
 		expect(taken).toEqual([{ picture: SINGLE, tags: ['Anna'] }])
 	})
 
 	it('passes over a refused, an unread and an unanswered sidecar', () => {
 		const refused = fixtureBytes('refused/unclosed.xmp')
-		const { tagged: taken } = takeOverTags(lookups, new Map<number, SidecarLookupAnswer>([[11, { result: 'read', bytes: refused, etag: 'e', size: 1, mtime: 1 }], [12, { result: 'notPermitted' }]]), new Set())
+		const { tagged: taken } = takeOverTags(lookups, new Map<number, SidecarLookupAnswer>([[11, { result: 'read', bytes: refused, etag: 'e', size: 1, mtime: 1 }], [12, { result: 'notPermitted' }]]), new Set(), new Map())
 
 		expect(taken).toEqual([])
 	})
@@ -47,7 +47,7 @@ describe('takeOverTags', () => {
 	it('leaves out the tags the storage cannot hold', () => {
 		const long = 'x'.repeat(256)
 
-		const { tagged: taken, leftOut } = takeOverTags(lookups, new Map([[13, tagged('Anna', long)]]), new Set())
+		const { tagged: taken, leftOut } = takeOverTags(lookups, new Map([[13, tagged('Anna', long)]]), new Set(), new Map())
 
 		expect(taken).toEqual([{ picture: SINGLE, tags: ['Anna'] }])
 		expect(leftOut).toEqual([long])

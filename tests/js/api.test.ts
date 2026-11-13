@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, imageUrl, listEntries, listFolders, loadSettings, lookupDecisions, lookupSidecars, saveDecisions, saveSettings, saveSidecars, TrashBinOffError, trashPictures } from '../../src/api.ts'
+import { ApiResponseError, imageUrl, listEntries, listFolders, loadSettings, lookupDecisions, lookupEmbeddedXmp, lookupSidecars, saveDecisions, saveSettings, saveSidecars, TrashBinOffError, trashPictures } from '../../src/api.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({
@@ -219,6 +219,18 @@ describe('lookupSidecars', () => {
 		vi.mocked(axios.post).mockResolvedValue({ data })
 
 		await expect(lookupSidecars([1])).rejects.toThrow(ApiResponseError)
+	})
+})
+
+describe('lookupEmbeddedXmp', () => {
+	// spec: TAGS-002.15
+	it('decodes each packet read, keeps the other results and rejects a response of another shape', async () => {
+		vi.mocked(axios.post).mockResolvedValueOnce({ data: { packets: [{ fileId: 9, result: 'read', content: btoa('<x/>') }, { fileId: 10, result: 'none' }] } })
+		vi.mocked(axios.post).mockResolvedValueOnce({ data: { sidecars: [{ result: 'none' }] } })
+
+		expect(await lookupEmbeddedXmp([9, 10])).toEqual([{ result: 'read', bytes: bytesOf('<x/>') }, { result: 'none' }])
+		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/embedded-xmp/lookup', { fileIds: [9, 10] })
+		await expect(lookupEmbeddedXmp([1])).rejects.toThrow(ApiResponseError)
 	})
 })
 
