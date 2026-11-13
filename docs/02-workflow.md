@@ -67,7 +67,8 @@ commit body, word for word. So:
   and reruns when the title is edited.
 - **Description:** only commit body text: what changed and why. When behaviour code changes but
   no spec does, a line `Spec-Unchanged: <reason>`; when an implemented spec changes but no code
-  or test does, `Spec-Only: <reason>`. The workflow checks them (`scripts/spec-trailers.sh`).
+  or test does, `Spec-Only: <reason>`. The workflow checks them (`scripts/spec-trailers.sh`);
+  release-please pull requests (same-repository branch `release-please--branches--*`) are exempt.
 - Notes for the reviewer, open questions and test evidence go into a comment, not into the
   description.
 - No `Co-Authored-By` or "Generated with" lines.

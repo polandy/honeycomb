@@ -47,6 +47,8 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
           PULL_REQUEST_TITLE: ${{ github.event.pull_request.title }}
           PULL_REQUEST_BODY: ${{ github.event.pull_request.body }}
+          # Only same-repository branches count as release pull requests, so a fork cannot borrow the name.
+          SPEC_HEAD_REF: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref || '' }}
         run: |
           set -o pipefail
           gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[].filename' |
