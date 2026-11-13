@@ -30,7 +30,7 @@ that moment, and writes the same set to each sidecar:
 |---|---|
 | `digiKam:TagsList` | `rdf:Seq` of the paths, sorted, `/` |
 | `lr:hierarchicalSubject` | `rdf:Bag` of the paths with `\|` |
-| `dc:subject` | `rdf:Bag`: the keywords already there that are not the leaf of a removed tag, in their order, then the leaves of the tags not yet among them |
+| `dc:subject` | `rdf:Bag`: the keywords already there that are not only the leaf of a removed tag, each once, in their order, then the leaves of the tags not yet among them |
 
 With no tags left, `TagsList` and `hierarchicalSubject` are removed, and `dc:subject` keeps only
 the foreign keywords or is removed when none is left. Every other property is kept.

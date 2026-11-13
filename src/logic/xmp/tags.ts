@@ -75,12 +75,20 @@ export function mergeTags(packet: XmpPacket, write: TagWrite): XmpPacket {
 	return { properties, prefixes: packet.prefixes }
 }
 
-/** `dc:subject`: the keywords there that are not only the leaf of a removed tag, then the missing leaves (D9). */
+/** `dc:subject`: the keywords there that are not only the leaf of a removed tag, each once, then the missing leaves (D9). */
 function subjectOf(existing: XmpNode | undefined, write: TagWrite): XmpNode | null {
 	const leaves = new Set(write.tags.map(leafOf))
 	const removedLeaves = new Set(write.removed.map(leafOf).filter((leaf) => !leaves.has(leaf)))
-	const kept = itemNodes(existing).filter((item) => item.value.kind !== 'text' || !removedLeaves.has(item.value.text.trim()))
-	const present = new Set(kept.map((item) => (item.value.kind === 'text' ? item.value.text.trim() : null)))
+	const present = new Set<string>()
+	const kept = itemNodes(existing).filter((item) => {
+		if (item.value.kind !== 'text') {
+			return true
+		}
+		const keyword = item.value.text.trim()
+		const keep = !removedLeaves.has(keyword) && !present.has(keyword)
+		present.add(keyword)
+		return keep
+	})
 	const added = [...leaves].filter((leaf) => !present.has(leaf)).map((leaf) => textNode(leaf))
 	const items = [...kept, ...added]
 	return items.length === 0 ? null : { value: { kind: 'array', array: 'Bag', items }, qualifiers: existing?.qualifiers ?? EMPTY_PACKET.properties }

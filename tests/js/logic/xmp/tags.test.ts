@@ -7,7 +7,7 @@ import { NAMESPACE, xmpKey } from '../../../../src/logic/xmp/model.ts'
 import { readXmp } from '../../../../src/logic/xmp/parse.ts'
 import { serializeXmp } from '../../../../src/logic/xmp/serialize.ts'
 import { mergeTags, pictureTags, sidecarTags, tagWrite } from '../../../../src/logic/xmp/tags.ts'
-import { arrayKindOf, bag, CANONICAL_TIME, fixtureBytes, itemsOf, key, packetOf, seq } from './xmp-builders.ts'
+import { arrayKindOf, bag, CANONICAL_TIME, fixtureBytes, itemsOf, key, packetOf, seq, text } from './xmp-builders.ts'
 
 const TAG_FIELDS = ['digiKam:TagsList', 'lr:hierarchicalSubject', 'dc:subject'].map(key)
 const LAST_KEYWORD = xmpKey('http://ns.microsoft.com/photo/1.0/', 'LastKeywordXMP')
@@ -71,7 +71,7 @@ describe('sidecarTags', () => {
 	// spec: XMP-004.4
 	it('skips an item without a name and an item that is not text', () => {
 		const struct = { value: { kind: 'struct', fields: new Map() }, qualifiers: new Map() } as const
-		const list = { value: { kind: 'array', array: 'Seq', items: [struct, ...seq(['/', 'Anna']).value.items] }, qualifiers: new Map() } as const
+		const list = { value: { kind: 'array', array: 'Seq', items: [struct, text('/'), text('Anna')] }, qualifiers: new Map() } as const
 		expect(sidecarTags(packetOf({ 'digiKam:TagsList': list }))).toEqual(['Anna'])
 	})
 
@@ -138,7 +138,7 @@ describe('mergeTags', () => {
 	})
 
 	// spec: XMP-004.8
-	it('keeps a leaf another tag still has', () => {
+	it('keeps a leaf another tag still has, once', () => {
 		const sidecar = tagged(['People/Anna', 'Pets/Anna'])
 		const merged = mergeTags(sidecar, tagWrite([sidecar], { added: [], removed: ['Pets/Anna'] }))
 		expect(itemsOf(merged, 'dc:subject')).toEqual(['Anna'])
