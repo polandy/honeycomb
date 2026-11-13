@@ -867,3 +867,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   loupe budget e2e now counts the finished loupe-tier requests instead of reading the counter,
   so production keeps no debug output. The *Sidecars* row lists file names, which are unique
   in a folder, so "each once" needs no extra deduplication; "—" replaces every *none*.
+- 2026-11-13: UX M7 closes the ⋯ menu on every action, not only on those that open a dialog:
+  *Resume*, *Review rejects* and *Compare series* open the loupe or a view, and a menu left
+  above them hides it the same way. View options keep it open so several can be set in a row.
+  One separator splits view options from actions, as the review asks; the mockup's further
+  separators between action groups stay out, since the app's menu holds fewer items.

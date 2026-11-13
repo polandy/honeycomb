@@ -43,6 +43,8 @@ a glance, at any size, without waiting for a sharp image of every tile.
   *Review rejects* and *Compare series* move from the toolbar into the ⋯ menu, with their counts,
   and below 600 px the flag chips show their icons only, so the toolbar takes at most two rows on
   a phone; selection mode adds its own row.
+- The ⋯ menu holds view options (thumbnail size, *Group by folder*, sort) above one separator and
+  actions below it. Choosing an action closes the menu; changing a view option keeps it open.
 
 ## Acceptance criteria
 
@@ -171,6 +173,15 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
   their counts and held while there is nothing to review or compare; no filter icon stands before
   the flag chips; and on a phone (390 px) the toolbar outside selection mode takes at most two rows
 
+### GRID-001.18 – The ⋯ menu sets view options apart from actions
+
+- **Given** the open ⋯ menu
+- **When** the user looks at it, changes a view option or chooses an action
+- **Then** one separator stands between the view options (thumbnail size, *Group by folder*, sort)
+  and the actions; a changed view option leaves the menu open, and an action (*Review rejects*,
+  *Compare series*, *Remove RAWs…*, *Move picks…*, *Resume at*, *Write decisions to sidecars…*,
+  *Settings*) closes it, so no menu stays above the dialog or view it opens
+
 ## History
 
 | Date | Change |
@@ -181,3 +192,4 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 | 2026-11-12 | GRID-001.16: marks on one dark bottom shade, white stars in both themes (UX review H2) |
 | 2026-11-13 | GRID-001.17: slim toolbar, *Review rejects* and *Compare series* in the ⋯ menu below 900 px (UX review M1) |
 | 2026-11-13 | GRID-001.4: no badge on a complete pair, singles and *Keep RAW* keep theirs (UX review M3) |
+| 2026-11-13 | GRID-001.18: a separator between view options and actions in the ⋯ menu; an action closes it (UX review M7) |
