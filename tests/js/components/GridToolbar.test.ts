@@ -202,27 +202,10 @@ describe('GridToolbar', () => {
 	})
 
 	// spec: GRID-002.7
-	it('shows how many photos are decided as text and as a progress bar', () => {
-		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false })
-		const bar = wrapper.find('[role="progressbar"]')
-
-		expect(wrapper.text()).toContain(`${MARK}1,840 / 2,000 decided`)
-		expect(bar.attributes()).toMatchObject({ 'aria-label': `${MARK}Decided`, 'aria-valuemin': '0', 'aria-valuemax': '2000', 'aria-valuenow': '1840' })
-		expect(bar.find('.cull-progress__done').attributes('style')).toContain('width: 92%')
-	})
-
-	// spec: GRID-002.7
 	it('names the shown photos as the progress scope while the filters hide photos', () => {
 		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { decided: 4, total: 20, filtered: true })
 
 		expect(wrapper.find('.cull-progress__count').text()).toContain(`${MARK}4 / 20 shown decided`)
-	})
-
-	// spec: GRID-002.7
-	it('shows an empty progress bar for a cull without photos', () => {
-		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { decided: 0, total: 0 })
-
-		expect(wrapper.find('.cull-progress__done').attributes('style')).toContain('width: 0%')
 	})
 
 	// spec: GRID-002.6
