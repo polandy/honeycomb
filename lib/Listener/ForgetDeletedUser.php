@@ -9,12 +9,13 @@ namespace OCA\Honeycomb\Listener;
 
 use OCA\Honeycomb\Service\DecisionStore;
 use OCA\Honeycomb\Service\PositionStore;
+use OCA\Honeycomb\Service\TagStore;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\User\Events\UserDeletedEvent;
 
 /**
- * Removes the decisions and resume positions of a deleted user.
+ * Removes the decisions, resume positions, tags and tag list of a deleted user.
  * @template-implements IEventListener<Event>
  */
 final class ForgetDeletedUser implements IEventListener {
@@ -22,6 +23,7 @@ final class ForgetDeletedUser implements IEventListener {
 	public function __construct(
 		private DecisionStore $decisions,
 		private PositionStore $positions,
+		private TagStore $tags,
 	) {
 	}
 
@@ -32,5 +34,6 @@ final class ForgetDeletedUser implements IEventListener {
 		}
 		$this->decisions->forgetUser($event->getUid());
 		$this->positions->forgetUser($event->getUid());
+		$this->tags->forgetUser($event->getUid());
 	}
 }

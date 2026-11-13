@@ -786,3 +786,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `hierarchicalSubject`, so no tag is dropped and lost on the next write; empty names are dropped;
   tags are sorted by code unit so the written list is stable; step 1 (ADR for the tag table) moves
   to the backend step, because the sidecar module needs no table.
+- 2026-11-13: Tag storage (ADR 0022): tags get their own table beside the decisions, one JSON row
+  per file, so no decision save can erase them; the tag list has no unique index and is compared
+  in PHP, because MySQL's default collation would merge `Anna` and `anna`; a tag is at most 255
+  characters and a file has at most 100 tags. The *Tags 1* item is cut in two: storage and
+  endpoints now, the embedded XMP and the write-through to the sidecars next.

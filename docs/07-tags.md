@@ -183,10 +183,11 @@ from …". The action is *Tag*, never *keyword* or *label* (a label is a colour 
 
 Each step is one pull request with its spec and tests.
 
-1. ADR: the tag table (per user: picture tags and tag list) and the endpoint shape.
+1. ADR: the tag table (per user: picture tags and tag list) and the endpoint shape (ADR 0022,
+   `TAGS-001`).
 2. `src/logic/xmp/`: read and merge tags (fixtures for each field, union, change applied to the
    current set, foreign keywords). Spec `XMP-004`.
-3. Backend: store and list tags with the decisions; sidecar writes carry them.
+3. Backend: store and list tags beside the decisions (`TAGS-001`); sidecar writes carry them.
 4. Tag entry and `T` in the key map (`KEYS-001`), bulk tagging (`GRID-003`).
 5. Tag filter (`GRID-002`, all tags must match), tile and info panel.
 6. Mockup: merge `tag-entry.html` into `index.html`; user doc `user/tags.md`.

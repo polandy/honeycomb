@@ -7,14 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-use OCP\DB\Exception as DbException;
 use OCP\IUser;
 
 /** Reads and writes each user's decisions per file id (ADR 0012). */
 final class DecisionService {
-	/** A save tries this often; each repeat follows a concurrent save of the same file committing first. */
-	private const int SAVE_ATTEMPTS = 3;
-
 	public function __construct(
 		private DecisionStore $store,
 	) {
@@ -50,27 +46,7 @@ final class DecisionService {
 			throw new InvalidDecisionException('Each file id may appear only once');
 		}
 		$stored = array_values(array_filter($decisions, static fn (PictureDecision $decision): bool => !$decision->isDefault()));
-		$this->replaceWithRetry($user->getUID(), $fileIds, $stored);
-	}
-
-	/**
-	 * Two saves of one file at once both pass the delete and the second insert hits the unique key;
-	 * the winner has committed by then, so the same save now replaces its row (last writer wins).
-	 * @param list<int> $fileIds
-	 * @param list<PictureDecision> $stored
-	 * @throws DbException for any other database error, or a conflict on every attempt
-	 */
-	private function replaceWithRetry(string $userId, array $fileIds, array $stored): void {
-		for ($attempt = 1;; ++$attempt) {
-			try {
-				$this->store->replace($userId, $fileIds, $stored);
-				return;
-			} catch (DbException $e) {
-				if ($e->getReason() !== DbException::REASON_UNIQUE_CONSTRAINT_VIOLATION || $attempt >= self::SAVE_ATTEMPTS) {
-					throw $e;
-				}
-			}
-		}
+		RetryOnConflict::run(fn () => $this->store->replace($user->getUID(), $fileIds, $stored));
 	}
 
 	/**

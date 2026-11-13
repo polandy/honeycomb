@@ -12,6 +12,7 @@ use OCA\Honeycomb\Controller\MoveController;
 use OCA\Honeycomb\Service\MoveService;
 use OCA\Honeycomb\Service\MoveTargetService;
 use OCA\Honeycomb\Tests\Service\FakeDecisionStore;
+use OCA\Honeycomb\Tests\Service\FakeTagStore;
 use OCA\Honeycomb\Tests\Service\FakeTree;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
@@ -34,7 +35,7 @@ final class MoveControllerTest extends TestCase {
 		$apps->method('isEnabledForUser')->willReturn($trashBin);
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $this->treeUser() : null);
-		$move = new MoveService($this->treeRoot(), $apps, new FakeDecisionStore(), $this->createStub(LoggerInterface::class));
+		$move = new MoveService($this->treeRoot(), $apps, new FakeDecisionStore(), new FakeTagStore(), $this->createStub(LoggerInterface::class));
 		return new MoveController(Application::APP_ID, $this->createStub(IRequest::class), $session, $move, new MoveTargetService($this->treeRoot()));
 	}
 

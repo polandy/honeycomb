@@ -4,6 +4,12 @@
 /** A path of names, `Places/Italy/Dolomites`, as `digiKam:TagsList` writes it (`docs/07-tags.md` Model). */
 export type Tag = string
 
+/** The stored tags of one file, sorted (ADR 0022). */
+export interface StoredTags {
+	fileId: number
+	tags: Tag[]
+}
+
 /** Separates the names of a tag. */
 export const TAG_SEPARATOR = '/'
 
