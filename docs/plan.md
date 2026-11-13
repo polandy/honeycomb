@@ -304,9 +304,8 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    buttons with count badges (neutral, honey while the button is pressed); their labels appear
    beside the icons only when the toolbar is at least 1000 px wide. Below 900 px window width
    *Review rejects* and *Compare series* move into the ⋯ menu, with their counts (UX review M1).
-   Sort, the tile size slider, *Move picks*, *Resume*, hiding the header, settings and the mockup's language switch live in
-   a **⋯ more menu** (arrow keys,
-   one separator per group). The flag filter (*Picked*, *Unflagged*, *Rejected*
+   Sort, the tile size slider, *Move picks*, *Resume*, hiding the header, settings and the
+   mockup's language switch live in a **⋯ more menu** (arrow keys, one separator per group). The flag filter (*Picked*, *Unflagged*, *Rejected*
    chips, no filter icon before them) and the progress share the toolbar and wrap onto a second
    line rather than squeezing the breadcrumb (the mockup still shows the older scope control).
    Every control keeps a 44 px hit target.

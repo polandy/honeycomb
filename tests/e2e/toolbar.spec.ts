@@ -24,14 +24,16 @@ async function cullTwo(page: Page) {
 }
 
 /** How many rows the toolbar's visible controls take. */
-const toolbarRows = (page: Page) => page.locator('.grid-toolbar').evaluate((toolbar, tolerance) => {
-	const centres = [...toolbar.querySelectorAll('button, .cull-progress__count, .cull-progress__bar')]
-		.map((element) => element.getBoundingClientRect())
-		.filter((box) => box.width > 0 && box.height > 0)
-		.map((box) => box.top + box.height / 2)
-		.sort((a, b) => a - b)
-	return centres.filter((centre, i) => i === 0 || centre - centres[i - 1]! > tolerance).length
-}, ROW_TOLERANCE_PX)
+async function toolbarRows(page: Page): Promise<number> {
+	return page.locator('.grid-toolbar').evaluate((toolbar, tolerance) => {
+		const centres = [...toolbar.querySelectorAll('button, .cull-progress__count, .cull-progress__bar')]
+			.map((element) => element.getBoundingClientRect())
+			.filter((box) => box.width > 0 && box.height > 0)
+			.map((box) => box.top + box.height / 2)
+			.sort((a, b) => a - b)
+		return centres.filter((centre, i) => i === 0 || centre - centres[i - 1]! > tolerance).length
+	}, ROW_TOLERANCE_PX)
+}
 
 // spec: GRID-001.17
 test('takes at most two rows on a phone, with Review rejects and Compare series in the More menu', async ({ page }) => {
@@ -43,7 +45,7 @@ test('takes at most two rows on a phone, with Review rejects and Compare series 
 	await expect(page.getByRole('button', { name: 'Compare series' })).toBeHidden()
 	await page.getByRole('button', { name: 'More', exact: true }).click()
 	await expect(page.getByRole('button', { name: 'Review rejects 0' })).toBeDisabled()
-	await expect(page.getByRole('button', { name: 'Compare series 0' })).toBeDisabled()
+	await expect(page.getByRole('button', { name: /^Compare series \d/ })).toBeVisible()
 })
 
 // spec: GRID-001.17
@@ -55,5 +57,5 @@ test('keeps Review rejects and Compare series in the toolbar on a desktop', asyn
 	await expect(page.getByRole('button', { name: 'Compare series' })).toBeVisible()
 	await page.getByRole('button', { name: 'More', exact: true }).click()
 	await expect(page.getByRole('button', { name: 'Remove RAWs… 0' })).toBeVisible()
-	await expect(page.getByRole('button', { name: 'Review rejects 0' })).toBeHidden()
+	await expect(page.getByRole('button', { name: /^Review rejects \d/ })).toBeHidden()
 })

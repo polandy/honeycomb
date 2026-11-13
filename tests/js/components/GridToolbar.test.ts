@@ -86,10 +86,7 @@ describe('GridToolbar', () => {
 	})
 
 	// spec: GRID-001.17
-	it.each([
-		['Review rejects', 'rejected', 'reviewRejects'],
-		['Compare series', 'series', 'compareSeries'],
-	] as const)('keeps %s in the toolbar from 900 px and in the More menu below, with its count, held at 0', async (label, count, event) => {
+	it.each([['Review rejects', 'rejected', 'reviewRejects'], ['Compare series', 'series', 'compareSeries']] as const)('keeps %s in the toolbar from 900 px and in the More menu below, with its count, held at 0', async (label, count, event) => {
 		const set = { paths: ['/Trip'], subfolders: false }
 		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('.grid-more-menu__narrow').find((button) => button.text().includes(label))!
 		const wrapper = mountToolbar(set, 1, { [count]: 4 })
