@@ -29,6 +29,8 @@ continues on another, and *Recent* can list the last folder sets with their prog
   you left off* with *Resume*, and the More menu shows *Resume at <name>*. Either opens the loupe
   at that picture, at the first undecided picture of the view when filters hide it, or at the
   first picture of the view. Once the loupe has shown a picture, the toast is no longer offered.
+  The toast closes when the user opens a photo, decides or scrolls the grid; a scroll the grid
+  makes itself, such as keeping the focused tile in view, leaves it.
 - A failed read or save is logged; the cull goes on without the offer.
 - *Recent* in the app navigation and the folder picker lists the stored positions, newest first,
   each folder set by its name ("Trip", "Trip + subfolders", "3 folders") with "x / y decided"; the
@@ -118,6 +120,12 @@ continues on another, and *Recent* can list the last folder sets with their prog
 - **When** the user is deleted
 - **Then** their positions are gone, and a new user of the same name lists none
 
+### DECISIONS-002.14 – The offer gets out of the way
+
+- **Given** the toast *Continue where you left off*
+- **When** the user opens a photo, decides or scrolls the grid
+- **Then** the toast closes; *Resume* in the More menu stays
+
 ## Out of scope
 
 The progress of the open cull (GRID-002).
@@ -131,3 +139,4 @@ The progress of the open cull (GRID-002).
 | 2026-11-10 | *Recent* in the navigation and the folder picker (DECISIONS-002.8) |
 | 2026-11-10 | The navigation closes after a tap on a narrow screen (DECISIONS-002.12) |
 | 2026-11-10 | Positions of a deleted user are removed (DECISIONS-002.13) |
+| 2026-11-13 | The toast closes when the user opens a photo, decides or scrolls (DECISIONS-002.14) |

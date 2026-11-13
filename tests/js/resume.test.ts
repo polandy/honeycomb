@@ -37,7 +37,7 @@ function pending() {
 /** The resume flow over a fake server that answers `positions`; saves settle as `save` says. */
 function resumeOn(positions: () => Promise<unknown>, save: () => Promise<void> = async () => undefined) {
 	const saved: ResumePosition[] = []
-	const toasts: { message: string, action: ToastAction | null }[] = []
+	const toasts: { message: string, action: ToastAction | null, closed: boolean }[] = []
 	const opened: number[] = []
 	const folderSet = ref<FolderSet | null>(SET)
 	const pictures = shallowRef<Picture<ListingEntry>[]>([first, second, third])
@@ -58,7 +58,11 @@ function resumeOn(positions: () => Promise<unknown>, save: () => Promise<void> =
 		decisionOf: () => UNDECIDED,
 		shown: () => shown.value,
 		openLoupe: (index) => opened.push(index),
-	}, (message, action) => toasts.push({ message, action }))
+	}, (message, action) => {
+		const toast = { message, action, closed: false }
+		toasts.push(toast)
+		return () => (toast.closed = true)
+	})
 	return { ...resume, saved, toasts, opened, folderSet, pictures, view, progress, shown }
 }
 
@@ -70,10 +74,27 @@ describe('useResume', () => {
 		flow.offer()
 		await flushPromises()
 
-		expect(flow.toasts.map((toast) => [toast.message, toast.action?.label])).toEqual([['Continue where you left off', 'Resume']])
+		expect(flow.toasts.map((toast) => [toast.message, toast.action?.label, toast.closed])).toEqual([['Continue where you left off', 'Resume', false]])
 		expect(flow.resumeName.value).toBe('B')
 		flow.toasts[0]!.action!.run()
 		expect(flow.opened).toEqual([1])
+	})
+
+	// spec: DECISIONS-002.14
+	it('closes the offer once the loupe shows a picture, or when the user moves on in the grid', async () => {
+		const flow = resumeOn(async () => [stored(3)])
+		flow.offer()
+		await flushPromises()
+
+		flow.shown.value = first
+		await flushPromises()
+		expect(flow.toasts.map((toast) => toast.closed)).toEqual([true])
+
+		flow.shown.value = null
+		flow.offer()
+		await flushPromises()
+		flow.dismiss()
+		expect(flow.toasts.map((toast) => toast.closed)).toEqual([true, true])
 	})
 
 	// spec: DECISIONS-002.7
