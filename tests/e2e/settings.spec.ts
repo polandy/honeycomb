@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Locator } from '@playwright/test'
+
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { cullFolder } from './cull.ts'
@@ -38,4 +40,31 @@ test('turns Show singles off in the settings and keeps it after a reload', async
 	await cullFolder(page, folder)
 	await expect(grid.getByRole('gridcell', { name: /^IMG_0001, JPG\+NEF/ })).toBeVisible()
 	await expect(grid.getByRole('gridcell')).toHaveCount(1)
+})
+
+// spec: SETTINGS-001.23
+test('starts every text line of a settings section at its heading', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = `Layout ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+	await cullFolder(page, folder)
+	await page.getByRole('button', { name: 'More' }).click()
+	await page.getByRole('button', { name: 'Settings', exact: true }).click()
+	const settings = page.getByRole('dialog', { name: 'Settings' })
+	const textStart = (locator: Locator): Promise<number> => locator.evaluate((element) => {
+		const style = getComputedStyle(element)
+		return element.getBoundingClientRect().left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft)
+	})
+	const lines: Record<string, string[]> = {
+		'File types': ['Per user. Files are paired by name, ignoring case.', 'RAW extensions', 'Rendered extensions'],
+		'Loupe gestures': ['A direction set to Nothing turns that swipe off.', 'Swipe up', 'Gesture guide'],
+		'Moving photos': ['Favourite folders'],
+	}
+	for (const [section, texts] of Object.entries(lines)) {
+		const heading = await textStart(settings.getByRole('heading', { name: section, exact: true }))
+		for (const text of texts) {
+			expect(await textStart(settings.getByText(text, { exact: true })), `${section}: ${text}`).toBe(heading)
+		}
+	}
 })

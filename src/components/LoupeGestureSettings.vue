@@ -44,10 +44,10 @@ function setSwipe(direction: SwipeDirection, value: string) {
 
 <template>
 	<div>
-		<p class="loupe-gesture-settings__hint">
+		<p class="loupe-gesture-settings__hint settings-text">
 			{{ t('honeycomb', 'A direction set to Nothing turns that swipe off.') }}
 		</p>
-		<label v-for="{ direction, label } in SWIPES" :key="direction" class="loupe-gesture-settings__row">
+		<label v-for="{ direction, label } in SWIPES" :key="direction" class="loupe-gesture-settings__row settings-text">
 			<span>{{ label }}</span>
 			<select
 				:value="settings.swipes[direction] ?? ''"
@@ -67,7 +67,7 @@ function setSwipe(direction: SwipeDirection, value: string) {
 			@update:modelValue="emit('update', { [item.key]: $event })">
 			{{ item.label }}
 		</NcCheckboxRadioSwitch>
-		<div class="loupe-gesture-settings__row">
+		<div class="loupe-gesture-settings__row settings-text">
 			<div>
 				<div>{{ t('honeycomb', 'Gesture guide') }}</div>
 				<div id="gesture-guide-hint" class="loupe-gesture-settings__hint">
@@ -80,6 +80,8 @@ function setSwipe(direction: SwipeDirection, value: string) {
 		</div>
 	</div>
 </template>
+
+<style scoped src="./settings-text.css" />
 
 <style scoped>
 .loupe-gesture-settings__hint {

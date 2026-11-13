@@ -80,7 +80,7 @@ function summary(collisions: number): string {
 
 <template>
 	<div class="move-settings">
-		<p class="move-settings__hint">
+		<p class="move-settings__hint settings-text">
 			{{ t('honeycomb', 'Name template for moved photos, relative to the chosen folder. All files of a photo, sidecars included, get the same new name.') }}
 		</p>
 		<fieldset class="move-settings__presets" :aria-label="t('honeycomb', 'Template preset')">
@@ -108,7 +108,7 @@ function summary(collisions: number): string {
 		<template v-if="!preview.ok">
 			<pre class="move-settings__problem" role="alert">{{ shown }}
 {{ caret }}</pre>
-			<p class="move-settings__unsaved">
+			<p class="move-settings__unsaved settings-text">
 				{{ t('honeycomb', 'Not saved: moving keeps using the last valid template.') }}
 			</p>
 		</template>
@@ -125,14 +125,14 @@ function summary(collisions: number): string {
 					<span v-for="note in notes(row)" :key="note" class="move-settings__note">{{ ` ${note}` }}</span>
 				</li>
 			</ul>
-			<p class="move-settings__summary" :class="{ 'move-settings__summary--warning': preview.collisions > 0 }">
+			<p class="move-settings__summary settings-text" :class="{ 'move-settings__summary--warning': preview.collisions > 0 }">
 				{{ summary(preview.collisions) }}
 			</p>
 		</template>
-		<p class="move-settings__hint">
+		<p class="move-settings__hint settings-text">
 			{{ t('honeycomb', 'Tokens: {tokens}; :lower and :upper on text tokens. Only letters, digits, . _ - and /, never spaces.', { tokens: '{date:%Y %m %d %j %H %M %S}, {camera}, {make}, {name}, {number:N}, {ext}' }, undefined, PLAIN_TEXT) }}
 		</p>
-		<b>{{ t('honeycomb', 'Favourite folders') }}</b>
+		<b class="settings-text">{{ t('honeycomb', 'Favourite folders') }}</b>
 		<div class="move-settings__favourites">
 			<span v-for="path in settings.moveFavourites" :key="path" class="move-settings__favourite">
 				<span translate="no">{{ `★ ${folderName(path)}` }}</span>
@@ -153,6 +153,8 @@ function summary(collisions: number): string {
 		</div>
 	</div>
 </template>
+
+<style scoped src="./settings-text.css" />
 
 <style scoped>
 .move-settings__hint {

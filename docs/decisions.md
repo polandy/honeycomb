@@ -900,3 +900,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   function too many: Vue takes the default of a function-typed prop as the value, so every
   browser-storage read and write failed silently and the tile size, the info panel's width and
   the loupe's navigation toggle never lasted past a reload. The new choice depends on it.
+- 2026-11-13: UX L4 reads "the *File types* heading sits 8 px left" as the section's text (hint,
+  *RAW extensions*), since every section heading is the same `NcAppSettingsSection` heading. Every
+  text line in every settings section now takes Nextcloud's section text offset, so it starts
+  where its heading's text does; boxed controls (chips, fields, preview) keep the content edge.

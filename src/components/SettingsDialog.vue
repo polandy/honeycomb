@@ -102,7 +102,7 @@ function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 		noVersion
 		@update:open="emit('update:open', $event)">
 		<NcAppSettingsSection id="file-types" :name="t('honeycomb', 'File types')">
-			<p class="settings-dialog__hint">
+			<p class="settings-dialog__hint settings-text">
 				{{ t('honeycomb', 'Per user. Files are paired by name, ignoring case.') }}
 			</p>
 			<div
@@ -111,7 +111,7 @@ function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 				role="group"
 				class="settings-dialog__list"
 				:aria-label="label">
-				<b>{{ label }}</b>
+				<b class="settings-text">{{ label }}</b>
 				<div class="settings-dialog__chips">
 					<span v-for="extension in settings[list]" :key="extension" class="settings-dialog__extension">
 						.{{ shown(extension) }}
@@ -140,7 +140,7 @@ function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 						</NcButton>
 					</form>
 				</div>
-				<p v-if="errors[list] !== null" class="settings-dialog__error">
+				<p v-if="errors[list] !== null" class="settings-dialog__error settings-text">
 					{{ errors[list] }}
 				</p>
 			</div>
@@ -165,7 +165,7 @@ function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 				</NcCheckboxRadioSwitch>
 			</fieldset>
 			<template v-if="settings.folderMode.kind === 'separate-subfolders'">
-				<div class="settings-dialog__folders">
+				<div class="settings-dialog__folders settings-text">
 					<label>
 						{{ t('honeycomb', 'RAW folder') }}
 						<input
@@ -183,7 +183,7 @@ function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 							@change="rename('renderedSubfolder', ($event.target as HTMLInputElement).value)">
 					</label>
 				</div>
-				<p class="settings-dialog__hint">
+				<p class="settings-dialog__hint settings-text">
 					{{ t('honeycomb', 'Folder names are matched ignoring case.') }}
 				</p>
 			</template>
@@ -216,6 +216,8 @@ function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 		</NcAppSettingsSection>
 	</NcAppSettingsDialog>
 </template>
+
+<style scoped src="./settings-text.css" />
 
 <style scoped>
 .settings-dialog__hint {
