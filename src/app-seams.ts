@@ -53,7 +53,7 @@ export const APP_SEAMS = {
 	saveSettings: apiSaveSettings,
 	viewState: () => ({ loadViewState, saveViewState }),
 	positions: () => ({ loadPositions, savePosition }),
-	storage: () => () => window.localStorage,
+	storage: () => window.localStorage,
 	schedule: browserSchedule,
 	toggleFullscreen: toggleBrowserFullscreen,
 	trashPictures: apiTrashPictures,

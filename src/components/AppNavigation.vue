@@ -3,6 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
+import type { BrowserStorage } from '../browser-storage.ts'
 import type { RecentFolderSet } from '../logic/recent.ts'
 import type { ResumePosition } from '../logic/resume-position.ts'
 
@@ -14,10 +15,17 @@ import NcAppNavigationCaption from '@nextcloud/vue/components/NcAppNavigationCap
 import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
 import AppIcon from './AppIcon.vue'
 import RecentFolderSets from './RecentFolderSets.vue'
+import { useNavigationChoice } from '../navigation-choice.ts'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	items: readonly RecentFolderSet[]
-}>()
+	/** Where the user's choice to open or close the navigation stays. */
+	storage: BrowserStorage
+	/** The viewport's width in CSS pixels when the page opens. */
+	viewportWidth?: () => number
+}>(), {
+	viewportWidth: () => window.innerWidth,
+})
 
 const emit = defineEmits<{
 	chooseFolders: []
@@ -26,6 +34,7 @@ const emit = defineEmits<{
 }>()
 
 const isMobile = useIsMobile()
+useNavigationChoice(props.storage, props.viewportWidth)
 
 /** NcAppNavigation closes only through this event, as NcAppNavigationItem does for router links. */
 function closeOnNarrowScreen() {
