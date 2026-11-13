@@ -7,6 +7,7 @@ import type { CommonDecision, DecisionIntent } from '../logic/decision-change.ts
 
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
+import AppIcon from './AppIcon.vue'
 import ColourLabels from './ColourLabels.vue'
 import FlagButtons from './FlagButtons.vue'
 import StarRating from './StarRating.vue'
@@ -25,7 +26,7 @@ const props = withDefaults(defineProps<{
 	pinned?: boolean
 }>(), { disabled: false, layout: 'bar', flags: true, idle: false, pinned: false })
 
-const emit = defineEmits<{ decide: [intent: DecisionIntent] }>()
+const emit = defineEmits<{ decide: [intent: DecisionIntent], tag: [] }>()
 
 const loupe = computed(() => props.layout === 'loupe')
 </script>
@@ -51,6 +52,15 @@ const loupe = computed(() => props.layout === 'loupe')
 				:aria-label="props.common.canKeepRaw ? t('honeycomb', 'Keep RAW') : t('honeycomb', 'Keep RAW: only for pairs')"
 				@click="emit('decide', { kind: 'keepRaw' })">
 				{{ t('honeycomb', 'Keep RAW') }}
+			</button>
+			<button
+				type="button"
+				class="action-bar__tags"
+				:disabled="props.disabled"
+				:aria-label="t('honeycomb', 'Tags')"
+				@click="emit('tag')">
+				<AppIcon name="tag" />
+				{{ t('honeycomb', 'Tags') }}
 			</button>
 			<slot name="end" />
 		</div>
@@ -125,7 +135,11 @@ const loupe = computed(() => props.layout === 'loupe')
 	}
 }
 
-.action-bar__keep-raw {
+.action-bar__keep-raw,
+.action-bar__tags {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--default-grid-baseline);
 	min-height: 34px;
 	padding: 0 12px;
 	border: 1px solid var(--color-border);
@@ -141,13 +155,15 @@ const loupe = computed(() => props.layout === 'loupe')
 	color: var(--color-primary-element-text);
 }
 
-.action-bar__keep-raw:disabled {
+.action-bar__keep-raw:disabled,
+.action-bar__tags:disabled {
 	cursor: default;
 	opacity: .5;
 }
 
 @media (pointer: coarse) {
-	.action-bar__keep-raw {
+	.action-bar__keep-raw,
+	.action-bar__tags {
 		min-height: 44px;
 	}
 }

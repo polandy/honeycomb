@@ -84,7 +84,7 @@ export function provideSkipActions() {
 }
 
 /** Tag endpoints that store nothing. */
-export const NO_TAGS = { lookupTags: async () => [], saveTags: async () => undefined }
+export const NO_TAGS = { lookupTags: async () => [], saveTags: async () => undefined, loadTagList: async () => [] }
 
 export function mountApp(props: Record<string, unknown> = {}, decisions: StoredDecision[] = [], stubs: Record<string, unknown> = {}) {
 	provideSkipActions()

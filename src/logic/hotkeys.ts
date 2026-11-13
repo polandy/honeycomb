@@ -28,7 +28,7 @@ export type HotkeyCommand
 	= | 'previous' | 'next' | 'up' | 'down' | 'first' | 'last'
 		| 'grid' | 'loupe' | 'zoom' | 'zoom-in' | 'zoom-out' | 'fullscreen' | 'header' | 'info' | 'close' | 'flag-buttons'
 		| 'filter-bar' | 'filters-off' | 'filter-focus' | 'select-all' | 'select-none'
-		| 'undo' | 'redo' | 'shortcuts' | 'delete' | 'move' | 'review-rejects' | 'compare' | 'pick-rest'
+		| 'undo' | 'redo' | 'shortcuts' | 'delete' | 'move' | 'review-rejects' | 'compare' | 'pick-rest' | 'tag'
 
 /** What a key does: decide (and maybe go to the next photo) or run a command. */
 export type HotkeyAction
@@ -62,6 +62,7 @@ export const KEYMAP: readonly KeymapEntry[] = [
 	{ id: 'star-up', group: 'rating', caps: [']'] },
 	{ id: 'colour-label', group: 'rating', caps: ['6', '7', '8', '9'] },
 	{ id: 'keep-raw', group: 'rating', caps: ['R'] },
+	{ id: 'tag', group: 'rating', caps: ['T'] },
 	{ id: 'arrows', group: 'views', caps: ['←', '→', '↑', '↓'] },
 	{ id: 'first-last', group: 'views', caps: ['Home', 'End'] },
 	{ id: 'open', group: 'views', caps: ['Enter'] },
@@ -136,6 +137,7 @@ const COMMANDS: Readonly<Record<string, HotkeyCommand>> = {
 	'?': 'shortcuts',
 	Delete: 'delete',
 	m: 'move',
+	t: 'tag',
 }
 const CTRL_COMMANDS: Readonly<Record<string, HotkeyCommand>> = { a: 'select-all', d: 'select-none', l: 'filters-off', z: 'undo', '=': 'zoom-in', '+': 'zoom-in', '-': 'zoom-out', '/': 'shortcuts', Backspace: 'review-rejects' }
 const VI_COMMANDS: Readonly<Record<string, HotkeyCommand>> = { h: 'previous', l: 'next', j: 'down', k: 'up', '/': 'filter-focus' }

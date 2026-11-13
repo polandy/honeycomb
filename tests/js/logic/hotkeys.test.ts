@@ -78,6 +78,7 @@ describe('hotkey', () => {
 		['Delete', 'delete'],
 		['n', 'compare'],
 		['m', 'move'],
+		['t', 'tag'],
 	])('runs %j as %s', (key, kind) => {
 		expect(action(press(key))).toEqual({ kind })
 	})
@@ -174,6 +175,11 @@ describe('KEYMAP', () => {
 	// spec: MOVE-004.1
 	it('lists M for the move dialog', () => {
 		expect(KEYMAP.find((entry) => entry.id === 'move')?.caps).toEqual(['M'])
+	})
+
+	// spec: TAGS-003.1
+	it('lists T for the tag entry', () => {
+		expect(KEYMAP.find((entry) => entry.id === 'tag')?.caps).toEqual(['T'])
 	})
 
 	// spec: KEYS-001.12

@@ -6,12 +6,9 @@
 import type { AppSeams } from './app-seams.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
 
-import { t } from '@nextcloud/l10n'
 import { computed, ref, useTemplateRef, watch } from 'vue'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
-import NcButton from '@nextcloud/vue/components/NcButton'
 import NcContent from '@nextcloud/vue/components/NcContent'
-import ActionBar from './components/ActionBar.vue'
 import AppNavigation from './components/AppNavigation.vue'
 import AppTooltip from './components/AppTooltip.vue'
 import CullDialogs from './components/CullDialogs.vue'
@@ -24,9 +21,11 @@ import GridToolbar from './components/GridToolbar.vue'
 import NoFolderState from './components/NoFolderState.vue'
 import PhotoGrid from './components/PhotoGrid.vue'
 import PhotoLoupe from './components/PhotoLoupe.vue'
+import SelectionBar from './components/SelectionBar.vue'
 import SeriesCompareFlow from './components/SeriesCompareFlow.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutSheet from './components/ShortcutSheet.vue'
+import TagEntry from './components/TagEntry.vue'
 import UndoToast from './components/UndoToast.vue'
 import { APP_SEAMS } from './app-seams.ts'
 import { useCull } from './cull.ts'
@@ -42,6 +41,7 @@ import { useSelectionMode } from './selection-mode.ts'
 import { useSeriesCompare } from './series-compare.ts'
 import { useSettings } from './settings.ts'
 import { useSidecarFlow } from './sidecar-flow.ts'
+import { useTagEntryTargets } from './tag-entry-targets.ts'
 import { useToast } from './toast.ts'
 import { useToastedDecisions } from './toasted-decisions.ts'
 import { useViewState } from './view-state.ts'
@@ -68,7 +68,8 @@ const { selecting, selected } = selection
 const common = computed(() => cull.common(selected.value))
 watch(cull.pairing, selection.selectNone)
 
-const { decide, pickRest, undo, redo } = useToastedDecisions(cull, toast.show)
+const { decide, pickRest, tag, undo, redo } = useToastedDecisions(cull, toast.show)
+const tagEntry = useTagEntryTargets()
 const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: (intent, picture) => decide(intent, [picture]), pickRest, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })
 const seriesFlow = useTemplateRef<InstanceType<typeof SeriesCompareFlow>>('seriesFlow')
 const overlayScreen = computed(() => (loupe.value !== null ? '.photo-loupe' : seriesCompare.viewer.open.value ? '.series-viewer' : undefined))
@@ -76,15 +77,8 @@ const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => vie
 const { dialog: deleteDialog, rejected, rawRemovable } = deleting
 const moving = useMoveFlow({ view: () => view.value, settings: () => settings.value, updateSettings, probe: props.move.probeTargets, move: props.move.movePictures, removeFiles: cull.removeFiles, restoreFiles: cull.restoreFiles, listing: () => folderSet.value, loupe, toast: toast.show })
 const recent = useRecent(props.positions, props.listEntries, { folderSet: () => folderSet.value, progress: () => progress.value, pairing: () => cull.pairing.value }, (message) => toast.show(message))
-const resume = useResume(recent.positions, {
-	folderSet: () => folderSet.value,
-	pictures: () => pictures.value,
-	view: () => view.value,
-	progress: () => progress.value,
-	decisionOf: cull.decisionOf,
-	shown: () => (loupe.value === null ? null : loupe.value.pictures[loupe.value.index] ?? null),
-	openLoupe,
-}, toast.show)
+const shownInLoupe = () => (loupe.value === null ? null : loupe.value.pictures[loupe.value.index] ?? null)
+const resume = useResume(recent.positions, { folderSet: () => folderSet.value, pictures: () => pictures.value, view: () => view.value, progress: () => progress.value, decisionOf: cull.decisionOf, shown: shownInLoupe, openLoupe }, toast.show)
 /** Opens a folder set from *Recent* at its position. */
 function openRecent(position: ResumePosition) {
 	void recent.open(position, { open: cull.open, resumeAt: resume.resumeAt, resumeOpen: () => {
@@ -104,6 +98,7 @@ const gridKeys = gridHotkeys({
 	decide,
 	toggleFiltersOff: cull.toggleFiltersOff,
 	openLoupe,
+	openTags: tagEntry.open,
 	headerShown,
 	filtersOpen,
 	filterBar: () => filterBar.value?.$el,
@@ -120,7 +115,7 @@ function openFolderSet(...opened: Parameters<typeof cull.open>) {
 const toggleShortcuts = () => (shortcutsOpen.value = !shortcutsOpen.value)
 
 useHotkeys(() => {
-	if (pickerOpen.value || settingsOpen.value || deleteDialog.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
+	if (pickerOpen.value || settingsOpen.value || tagEntry.targets.value !== null || deleteDialog.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
 		return null
 	}
 	if (shortcutsOpen.value || folderSet.value === null) {
@@ -212,20 +207,14 @@ useHotkeys(() => {
 					@clearFilters="filters = DEFAULT_FILTERS"
 					@showAll="cull.setFlags(new Set())"
 					@reviewRejects="deleting.review" />
-				<ActionBar
+				<SelectionBar
 					v-if="selecting"
 					:common="common"
-					:disabled="selected.length === 0"
-					@decide="decide($event, selected)">
-					<template #end>
-						<NcButton :disabled="selected.length === 0" @click="moving.open(selected)">
-							{{ t('honeycomb', 'Move…') }}
-						</NcButton>
-						<NcButton variant="error" :disabled="selected.length === 0" @click="deleting.summarise(selected)">
-							{{ t('honeycomb', 'Delete…') }}
-						</NcButton>
-					</template>
-				</ActionBar>
+					:selected="selected.length"
+					@decide="decide($event, selected)"
+					@tag="tagEntry.open(selected)"
+					@move="moving.open(selected)"
+					@delete="deleting.summarise(selected)" />
 			</template>
 			<NoFolderState v-else @chooseFolder="pickerOpen = true" />
 			<FolderPicker
@@ -248,7 +237,11 @@ useHotkeys(() => {
 				:decisionOf="cull.decisionOf"
 				:listFolders="props.listFolders"
 				:container="loupe !== null ? '.photo-loupe' : undefined" />
-			<SeriesCompareFlow ref="seriesFlow" :flow="seriesCompare" :decisionOf="cull.decisionOf" />
+			<SeriesCompareFlow
+				ref="seriesFlow"
+				:flow="seriesCompare"
+				:decisionOf="cull.decisionOf"
+				@tag="tagEntry.open([$event])" />
 			<SettingsDialog
 				v-model:open="settingsOpen"
 				:settings="settings"
@@ -272,7 +265,14 @@ useHotkeys(() => {
 					@toast="toast.show($event.message, $event.action)"
 					@allDecided="deleting.allDecided"
 					@move="moving.openShown([], () => 0)"
+					@tag="tagEntry.open([$event])"
 					@close="closeLoupe" />
+				<TagEntry
+					v-if="tagEntry.targets.value !== null"
+					:targets="tagEntry.targets.value.map(cull.tags.tagsOf)"
+					:known="cull.tags.known.value"
+					@change="tag($event, tagEntry.targets.value!)"
+					@close="tagEntry.close" />
 				<ShortcutSheet v-if="shortcutsOpen" :container="overlayScreen" @close="shortcutsOpen = false" />
 				<UndoToast
 					v-if="toast.current.value !== null"

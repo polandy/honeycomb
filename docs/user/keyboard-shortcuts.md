@@ -23,6 +23,7 @@ in the series compare). Press `Ctrl+/` at any time to see this list in the app.
 | `[` and `]` | One star down, one star up. |
 | `6` `7` `8` `9` | Colour label red, yellow, green, blue. Press again to remove it. |
 | `R` | Toggle **Keep RAW** on a pair. |
+| `T` | Open the tag entry for the photo or the selection: type to find a tag, `Tab` or the arrows to go through the matches, `Enter` to add, `Backspace` in the empty field to remove the last tag, `Esc` to close. |
 
 ## Move around and look
 
@@ -101,3 +102,4 @@ digits set the rating. Undo is `Ctrl+Z`.
 - `N` opens the series compare; in Lightroom it opens Survey.
 - `M`, `Shift+K`, `B` and `R` exist only in honeycomb; in Lightroom `R` is Crop, which honeycomb
   does not have.
+- `T` opens the tag entry; Lightroom's `T` shows or hides the toolbar.

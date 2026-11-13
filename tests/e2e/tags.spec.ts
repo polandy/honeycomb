@@ -3,6 +3,8 @@
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
+import { randomUUID } from 'node:crypto'
+import { openLoupe } from './cull.ts'
 import { requestToken } from './files.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
@@ -41,4 +43,36 @@ test('rejects a malformed tag without writing any', async ({ page }) => {
 	expect(response.status()).toBe(400)
 	expect(await (await send(page, 'POST', '/tags/lookup', { fileIds: [910_010] })).json()).toEqual({ tags: [] })
 	expect((await (await send(page, 'GET', '/tags/list')).json()).tagList).not.toContain('e2e-Kept')
+})
+
+// spec: TAGS-003.1, TAGS-003.7, TAGS-003.12
+test('tags the loupe\'s photo from the tag entry and closes it with Esc', async ({ page }, testInfo) => {
+	const loupe = await openLoupe(page)
+	const tag = `e2e-Sunrise-${randomUUID().slice(0, 8)}`
+
+	await page.keyboard.press('t')
+	const entry = page.getByRole('dialog', { name: 'Tag entry' })
+	const field = entry.getByRole('combobox', { name: 'Tag' })
+	await expect(field).toBeFocused()
+	await field.fill(tag)
+	await expect(entry.getByRole('option', { name: `Create tag "${tag}"` })).toBeVisible()
+	await page.keyboard.press('Enter')
+
+	await expect(entry.getByRole('button', { name: `Remove ${tag}` })).toBeVisible()
+	await expect(field).toHaveValue('')
+	await expect(page.getByText(`Tagged IMG_0001 ${tag}`)).toBeVisible()
+	await page.setViewportSize({ width: 1210, height: 834 })
+	await page.screenshot({ path: testInfo.outputPath('tag-entry-ipad-landscape.png') })
+	await page.emulateMedia({ colorScheme: 'dark' })
+	await page.screenshot({ path: testInfo.outputPath('tag-entry-ipad-landscape-dark.png') })
+	await page.setViewportSize({ width: 427, height: 952 })
+	await page.screenshot({ path: testInfo.outputPath('tag-entry-phone-dark.png') })
+	await page.emulateMedia({ colorScheme: 'light' })
+	await page.screenshot({ path: testInfo.outputPath('tag-entry-phone.png') })
+
+	await page.keyboard.press('Escape')
+	await expect(entry).toBeHidden()
+	await expect(loupe).toBeVisible()
+	await page.keyboard.press('Escape')
+	await expect(loupe).toBeHidden()
 })

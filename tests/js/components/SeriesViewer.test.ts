@@ -228,4 +228,14 @@ describe('SeriesViewer', () => {
 		expect(plain((wrapper.emitted('toast') as [Toast][])[0]![0].message)).toBe('Flag buttons hidden · B shows them')
 		expect(wrapper.find('.flag-buttons--large, .action-bar__flags').exists()).toBe(false)
 	})
+
+	// spec: TAGS-003.1, TAGS-003.2
+	it('opens the tag entry for the shown photo by T and by Tags', async () => {
+		const { wrapper, press } = await mountViewer(1)
+
+		await press('t')
+		wrapper.findComponent(ActionBar).vm.$emit('tag')
+
+		expect(wrapper.emitted('tag')!.map(([picture]) => (picture as Picture<ListingEntry>).baseName)).toEqual(['IMG_2', 'IMG_2'])
+	})
 })

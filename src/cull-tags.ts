@@ -4,15 +4,17 @@ import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { StoredTags, Tag, TagChange } from './logic/tag.ts'
 
-import { shallowRef } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { logger } from './logger.ts'
 import { memberIds, pictureMembers } from './logic/pairing.ts'
+import { withLevels } from './logic/tag-entry.ts'
 import { changedTags, revertTagRows, sortedTags, withTagRows } from './logic/tag.ts'
 
 /** The tag endpoints (ADR 0022). */
 export interface CullTagsApi {
 	readonly lookupTags: (fileIds: readonly number[]) => Promise<StoredTags[]>
 	readonly saveTags: (rows: readonly StoredTags[]) => Promise<void>
+	readonly loadTagList: () => Promise<Tag[]>
 }
 
 type Pictures = readonly Picture<ListingEntry>[]
@@ -20,6 +22,15 @@ type Pictures = readonly Picture<ListingEntry>[]
 /** The tags of the open cull: read, taken over from the sidecars, changed and written through (TAGS-002); `current` names the open cull, answers for another are dropped. */
 export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, change: TagChange) => Promise<unknown>, current: () => unknown, writable: (picture: Picture<ListingEntry>) => boolean) {
 	const tags = shallowRef<ReadonlyMap<number, readonly Tag[]>>(new Map())
+	const list = shallowRef<readonly Tag[]>([])
+	const known = computed(() => withLevels([...list.value, ...[...tags.value.values()].flat()]))
+
+	/** Reads the user's tag list for the tag entry (TAGS-003.13). */
+	function loadList() {
+		api.loadTagList().then((read) => {
+			list.value = read
+		}, (error: unknown) => logger.error('Could not read the tag list; the entry offers the tags of this cull', { error }))
+	}
 
 	/** Forgets the tags of the cull before. */
 	function reset() {
@@ -96,5 +107,5 @@ export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, ch
 		}
 	}
 
-	return { tags, reset, tagsOf, load, takeOver, change, restore }
+	return { tags, known, reset, loadList, tagsOf, load, takeOver, change, restore }
 }

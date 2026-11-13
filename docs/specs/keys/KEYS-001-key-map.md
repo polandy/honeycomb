@@ -23,6 +23,7 @@ on the loupe's picture, the grid's focused picture, or the selection in selectio
 | `0`–`5`, `[` `]` | rating, step the rating |
 | `6`–`9` | red, yellow, green, blue label |
 | `R` | Keep RAW |
+| `T` | tag entry (TAGS-003) |
 | `Shift` + a decision key, or `Caps Lock` on | decide and go to the next picture |
 | `Ctrl+Z`, `Ctrl+Shift+Z` | undo, redo |
 | `?`, `Ctrl+/` | open, close the shortcut sheet |
@@ -131,3 +132,4 @@ What each decision does to the loupe: LOUPE-002. Delete keys: DELETE-002. Select
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged M3.3 (#50) and M4.3 vi keys setting (#54) |
+| 2026-11-13 | `T` opens the tag entry (TAGS-003) |

@@ -809,3 +809,16 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   embedded tag back with every later write. For the same reason a write creates the JPEG's sidecar
   also when the last tag goes and the embedded XMP held tags, and a picture whose embedded XMP
   cannot be read takes no tags over and is not written through, so its tags are not lost.
+- 2026-11-13: Tag entry (TAGS-003): `T` in the grid without selection mode opens the entry for the
+  focused photo, as the decision, delete and move keys act on it.
+- 2026-11-13: Tag entry: the levels of each tag (`Places` of `Places/Italy`) are derived in the
+  browser from the tag list and the cull's tags; the server's tag list stays as stored.
+- 2026-11-13: Tag entry: bulk tagging of the selection and the dashed partial chips come with the
+  entry, since the entry has to show the targets' tags anyway; *Tags 3* keeps only long-press.
+- 2026-11-13: Tag entry: a *Done* button closes it by touch, and below 600 px it is a bottom sheet;
+  it floats over the loupe and the series viewer like the toast.
+- 2026-11-13: Tag entry: a tag change is one undo step in the same history as the decisions, over
+  the pictures it altered; undo applies the inverse change to them rather than restoring stored
+  rows, so tags another step changed meanwhile stay.
+- 2026-11-13: Tag entry: a failed tag save, also of an undo or redo, sets the grid's existing
+  "could not save" notice like a decision; the toast that already said *Undid* is not withdrawn.

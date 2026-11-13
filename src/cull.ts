@@ -10,10 +10,12 @@ import type { PairingSettings, Picture } from './logic/pairing.ts'
 import type { Filters } from './logic/picture-filter.ts'
 import type { SortOrder } from './logic/picture-order.ts'
 import type { Settings } from './logic/settings.ts'
-import type { UndoEntry, UndoHistory } from './logic/undo.ts'
+import type { TagChange } from './logic/tag.ts'
+import type { TagStep, UndoEntry } from './logic/undo.ts'
 
 import { computed, ref, shallowRef, watch } from 'vue'
 import { readStored, writeStored } from './browser-storage.ts'
+import { useCullHistory } from './cull-history.ts'
 import { useCullTags } from './cull-tags.ts'
 import { nameComparer } from './l10n.ts'
 import { logger } from './logger.ts'
@@ -26,13 +28,17 @@ import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
 import { findSeries, seriesCandidates, seriesSizes as sizesOf } from './logic/series.ts'
 import { pairingSettings } from './logic/settings.ts'
 import { inSharedFolder } from './logic/sidecar-sync.ts'
+import { inverseChange } from './logic/tag.ts'
 import { parseTileSize } from './logic/tile-size.ts'
 import { withoutFiles } from './logic/trash-report.ts'
-import { NO_HISTORY, pickRestEntry, recordStep, redoStep, undoEntry, undoStep } from './logic/undo.ts'
+import { pickRestEntry, tagStep, undoEntry } from './logic/undo.ts'
 import { useVisualHashes } from './visual-hashes.ts'
 
 /** The browser storage key of the thumbnail size. */
 const TILE_SIZE_KEY = 'honeycomb.tileSize'
+
+/** A step of the cull's undo history: decisions or tags. */
+export type CullStep = UndoEntry | TagStep<Picture<ListingEntry>>
 
 /** The open cull, its view settings and the folder picker's state; it pairs and shows singles as the settings say. */
 export function useCull(api: CullApi, storage: BrowserStorage, settings: () => Settings, sidecars: CullSidecars) {
@@ -52,8 +58,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const tileSize = ref(parseTileSize(readStored(storage, TILE_SIZE_KEY)))
 	const saveFailed = ref(false)
 	const sharedFolders = shallowRef<ReadonlySet<string>>(new Set())
-	let history: UndoHistory = NO_HISTORY
 	let opening = 0
+	const history = useCullHistory<CullStep>(apply)
 	const tags = useCullTags(api.tags, sidecars.writeTags, () => opening, (picture) => !inSharedFolder(picture, sharedFolders.value))
 	let filtersOff: Filters | null = null
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
@@ -81,7 +87,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		paired.value = prepareCull(listed, pairing.value).pictures
 		decisions.value = new Map()
 		tags.reset()
-		history = NO_HISTORY
+		tags.loadList()
+		history.reset()
 		filtersOff = null
 		saveFailed.value = false
 		filters.value = DEFAULT_FILTERS
@@ -131,43 +138,37 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 
 	/** Decides the pictures, keeps the step for undo and returns it, or null when nothing changes. */
 	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]): UndoEntry | null {
-		return record(undoEntry(decided(chosen), resolveChange(intent, decided(chosen))))
+		return history.record(undoEntry(decided(chosen), resolveChange(intent, decided(chosen))))
 	}
 
 	/** Picks one picture and rejects the rest as one undo step (SERIES-001.9), or null when nothing changes. */
 	function pickRest(picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]): UndoEntry | null {
-		return record(pickRestEntry(decided([picked])[0]!, decided(rest)))
+		return history.record(pickRestEntry(decided([picked])[0]!, decided(rest)))
 	}
 
-	/** Records a step in the history and stores its result. */
-	function record(entry: UndoEntry | null): UndoEntry | null {
-		if (entry !== null) {
-			history = recordStep(history, entry)
-			store(entry.after)
-		}
-		return entry
+	/** Applies the tag change to the pictures as one undo step and returns it, or null when nothing changes (TAGS-003.10, .11). */
+	function tag(change: TagChange, chosen: readonly Picture<ListingEntry>[]): TagStep<Picture<ListingEntry>> | null {
+		return history.record(tagStep(chosen, tags.tagsOf, change))
 	}
 
-	/** Puts back what the latest step replaced and returns it, or null when there is none. */
-	function undo(): UndoEntry | null {
-		const step = undoStep(history)
-		if (step === null) {
-			return null
+	/** Puts a step into effect, or takes it back when `back`. */
+	function apply(step: CullStep, back: boolean) {
+		if ('pictures' in step) {
+			storeTags(step.pictures, back ? inverseChange(step.change) : step.change)
+		} else {
+			store(back ? step.before : step.after)
 		}
-		history = step.history
-		store(step.entry.before)
-		return step.entry
 	}
 
-	/** Writes again what the latest undo took back and returns it, or null when there is none. */
-	function redo(): UndoEntry | null {
-		const step = redoStep(history)
-		if (step === null) {
-			return null
-		}
-		history = step.history
-		store(step.entry.after)
-		return step.entry
+	/** Changes the pictures' tags and says in the grid when the save failed. */
+	function storeTags(chosen: readonly Picture<ListingEntry>[], change: TagChange) {
+		const opened = opening
+		saveFailed.value = false
+		void tags.change(chosen, change).then((saved) => {
+			if (!saved && opening === opened) {
+				saveFailed.value = true
+			}
+		})
 	}
 
 	/** Shows the rows at once and stores them; a failed save puts back what they replaced. */
@@ -273,8 +274,9 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		holdHashes: hashes.hold,
 		decide,
 		pickRest,
-		undo,
-		redo,
+		tag,
+		undo: history.undo,
+		redo: history.redo,
 		open,
 		removeFiles,
 		restoreFiles,
