@@ -1495,6 +1495,9 @@ function toast(msg, withUndo, extra){
   el.innerHTML = `<span>${esc(msg)}</span>` + (withUndo ? `<span aria-hidden="true">·</span>` : '') + (withUndo ? `<button data-act="undo">${t('Undo')}</button>` : '') + (extra ? `<button data-act="${extra.act}">${esc(extra.label)}</button>` : '');
   $('toasts').replaceChildren(el); toastStart(el); toastHold(el);
 }
+// UX review M4: the resume offer gets out of the way once the user moves on; a decision's toast replaces it anyway
+const closeResumeToast = () => $('toasts').querySelector('[data-act="resume"]')?.closest('.toast').remove();
+let gridTop = 0; // the grid's own scroll position, so its own scroll to the top keeps the offer
 // WCAG 2.2.1: focus or a press holds the toast; letting go restarts its full time (UX review L4)
 function toastHold(el){
   let pressed = false;
@@ -1745,6 +1748,7 @@ function bindGrid(){
   w.addEventListener('touchstart', e => { if (e.touches.length === 2){ d0 = dist(e.touches); ts0 = S.ts; } }, {passive:true});
   w.addEventListener('touchmove', e => { if (e.touches.length === 2 && d0){ e.preventDefault(); setTileSize(clamp(ts0 * dist(e.touches) / d0, 90, 340), true); } }, {passive:false});
   w.addEventListener('touchend', e => { if (d0 && e.touches.length < 2){ d0 = 0; renderToolbar(); } });
+  w.addEventListener('scroll', () => { if (w.scrollTop !== gridTop){ gridTop = w.scrollTop; closeResumeToast(); } }, {passive:true});
   w.addEventListener('scroll', () => { if (!S.bar || P0.barOff || !S.folderPath) return; S.bar = followScroll(S.bar, w.scrollTop, barHeight(), w.scrollHeight - w.clientHeight); applyBar(); }, {passive:true});
   $('toolbar').addEventListener('focusin', () => { if (S.bar && S.bar.hidden){ S.bar = {...S.bar, hidden:false}; applyBar(); } });
   w.addEventListener('wheel', e => { if (e.ctrlKey){ e.preventDefault(); setTileSize(clamp(S.ts * Math.exp(-e.deltaY * .01), 90, 340), true); } }, {passive:false});
@@ -2422,7 +2426,7 @@ function buildLoupe(){
 }
 function openLoupe(id){
   const ids = S.view.map(i => i.id), idx = ids.indexOf(id); if (idx < 0) return;
-  S.loupe = {ids, idx}; closePop(); document.body.classList.add('in-loupe');
+  S.loupe = {ids, idx}; closePop(); closeResumeToast(); document.body.classList.add('in-loupe');
   $('loupe').hidden = false; buildLoupe(); measure(); showLoupe(); bindStage(); showCoach(); loupeWake();
   $('loupe').onpointermove = e => { if (e.pointerType === 'mouse') loupeWake(); };
 }
@@ -2882,7 +2886,7 @@ function loadSet(paths, sub, listed){
   S.recent = [{paths:S.set.paths, sub}, ...S.recent.filter(r => setKey(r.paths, r.sub) !== path)].slice(0, 8);
   S.sort = folders.length > 1 ? 'time' : 'name';
   S.sel.clear(); S.selMode = false; S.filters = DEF_FILTERS(); S.focusId = null; S.undo = []; S.redo = [];
-  closeDlg(); $('gridWrap').scrollTop = 0; resetBar(); refreshView(); renderHeader();
+  closeDlg(); $('gridWrap').scrollTop = gridTop = 0; resetBar(); refreshView(); renderHeader();
   if (S.server.resume[path] && S.byId.has(S.server.resume[path])) toast(t('Continue where you left off'), false, {act:'resume', label:t('Resume')});
   else if (big.length) toast(n('Mockup: the %n photo of {folders} is not generated', 'Mockup: the %n photos of {folders} are not generated', big.reduce((a, p) => a + FOLDERS[p].big, 0), {folders:big.map(p => p.split('/').pop()).join(', ')}));
 }

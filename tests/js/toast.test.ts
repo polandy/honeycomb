@@ -30,6 +30,21 @@ describe('useToast', () => {
 		expect(scheduler.timers.map((timer) => timer.cancelled)).toEqual([true, false])
 	})
 
+	it('closes a toast by the closer its show returned, unless another toast replaced it', () => {
+		const scheduler = fakeScheduler()
+		const toast = useToast(scheduler.schedule)
+		const closeFirst = toast.show('first')
+		toast.show('second')
+
+		closeFirst()
+		expect(toast.current.value).toEqual({ message: 'second', action: null })
+
+		const closeThird = toast.show('third')
+		closeThird()
+		expect(toast.current.value).toBeNull()
+		expect(scheduler.timers.map((timer) => timer.cancelled)).toEqual([true, true, true])
+	})
+
 	it('hides the toast before it runs the action, so the action can show the next one', () => {
 		const scheduler = fakeScheduler()
 		const toast = useToast(scheduler.schedule)

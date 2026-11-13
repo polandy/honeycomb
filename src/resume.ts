@@ -31,8 +31,9 @@ export interface ResumeCull {
 }
 
 /** Saves where the user stands in the open cull and offers to continue at the stored position (DECISIONS-002.7). */
-export function useResume(api: ResumeApi, cull: ResumeCull, toast: (message: string, action: ToastAction) => void) {
+export function useResume(api: ResumeApi, cull: ResumeCull, toast: (message: string, action: ToastAction) => () => void) {
 	const fileId = ref<number | null>(null)
+	let closeOffer = () => {}
 	let tracking = false
 	let opening = 0
 	let saving = false
@@ -63,6 +64,7 @@ export function useResume(api: ResumeApi, cull: ResumeCull, toast: (message: str
 		if (shownId !== null) {
 			fileId.value = shownId
 			tracking = true
+			dismiss()
 		}
 		const position = tracking && folderSet !== null && fileId.value !== null ? { folderSet, fileId: fileId.value, decided, total } : null
 		if (position !== null && JSON.stringify(position) !== sent) {
@@ -84,7 +86,7 @@ export function useResume(api: ResumeApi, cull: ResumeCull, toast: (message: str
 				return
 			}
 			fileId.value = position.fileId
-			toast(t('honeycomb', 'Continue where you left off'), { label: t('honeycomb', 'Resume'), run: resume })
+			closeOffer = toast(t('honeycomb', 'Continue where you left off'), { label: t('honeycomb', 'Resume'), run: resume })
 		}).catch((error: unknown) => logger.error('Could not read the resume positions.', { error }))
 	}
 
@@ -95,6 +97,12 @@ export function useResume(api: ResumeApi, cull: ResumeCull, toast: (message: str
 		sent = ''
 		fileId.value = pictureHolding(cull.pictures(), stored) === null ? null : stored
 		resume()
+	}
+
+	/** Closes the offer's toast, if it is still shown (DECISIONS-002.14). */
+	function dismiss() {
+		closeOffer()
+		closeOffer = () => {}
 	}
 
 	const picture = computed(() => (fileId.value === null ? null : pictureHolding(cull.pictures(), fileId.value)))
@@ -108,6 +116,7 @@ export function useResume(api: ResumeApi, cull: ResumeCull, toast: (message: str
 	}
 
 	return {
+		dismiss,
 		offer,
 		resume,
 		resumeAt,

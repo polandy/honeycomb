@@ -5,6 +5,7 @@ import type { ResumePosition } from '../../src/logic/resume-position.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import ActionBar from '../../src/components/ActionBar.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
@@ -53,5 +54,28 @@ describe('App: the resume position', () => {
 		await flushPromises()
 
 		expect(saved).toEqual([{ folderSet: SET, fileId: 2, decided: 0, total: 3 }])
+	})
+	// spec: DECISIONS-002.14
+	it('closes the offer when the user opens a photo, decides or scrolls the grid', async () => {
+		const offered = [{ folderSet: { paths: ['/Trip'], subfolders: true }, fileId: 4, decided: 0, total: 3, updatedAt: 1 }]
+		const toastText = (wrapper: Awaited<ReturnType<typeof openApp>>['wrapper']) => wrapper.findComponent(UndoToast).exists() ? wrapper.findComponent(UndoToast).text() : ''
+
+		const opening = (await openApp(offered)).wrapper
+		opening.findComponent(PhotoGrid).vm.$emit('open', shownNames(opening).indexOf('IMG_10'))
+		await flushPromises()
+		expect(toastText(opening)).not.toContain('Continue where you left off')
+
+		const deciding = (await openApp(offered)).wrapper
+		deciding.findComponent(GridToolbar).vm.$emit('update:selecting', true)
+		deciding.findComponent(PhotoGrid).vm.$emit('update:selection', { ids: new Set([1]), anchor: 1 })
+		await flushPromises()
+		deciding.findComponent(ActionBar).vm.$emit('decide', { kind: 'flag', flag: 'picked' })
+		await flushPromises()
+		expect(toastText(deciding)).not.toContain('Continue where you left off')
+
+		const scrolling = (await openApp(offered)).wrapper
+		scrolling.findComponent(PhotoGrid).vm.$emit('scroll')
+		await flushPromises()
+		expect(toastText(scrolling)).toBe('')
 	})
 })

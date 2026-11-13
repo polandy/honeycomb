@@ -30,6 +30,16 @@ describe('PhotoGrid', () => {
 		expect(wrapper.find('.photo-grid__spacer').attributes('style')).toContain(`height: ${25 * 102 + 24 * 8}px`)
 	})
 
+	// spec: DECISIONS-002.14
+	it('tells when the user scrolls it, not when a scroll event repeats its own position', async () => {
+		const { wrapper, resize } = mountGrid()
+		await resize(432, 220)
+		await wrapper.find('[role="grid"]').trigger('scroll')
+		expect(wrapper.emitted('scroll')).toBeUndefined()
+		await scrollTo(wrapper, 110)
+		expect(wrapper.emitted('scroll')).toHaveLength(1)
+	})
+
 	it('renders the rows the scroll position reaches', async () => {
 		const { wrapper, resize } = mountGrid()
 		await resize(432, 220)

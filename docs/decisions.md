@@ -850,3 +850,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the badge was the tile's only *Keep RAW* mark (`JPG+NEF ✓`, GRID-001.6), and a kept pair is an
   exception worth showing like a single. The tile's accessible name still says `JPG+NEF`, so a
   screen reader keeps the pairing it cannot see from a missing badge. The mockup hides it too.
+- 2026-11-13: UX M4 closes the resume toast on a scroll of the user only: the grid's own scrolls
+  (back to the top on opening a folder set, keeping the focused tile in view) leave it, or opening
+  a folder set would close its own offer. A decision needs no extra rule: its *Undo* toast
+  replaces the offer. *Resume* in the More menu stays (DECISIONS-002.14).
