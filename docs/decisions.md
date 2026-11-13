@@ -949,3 +949,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   to rejected thumbnails; it ships as its own first build PR (`docs/plans/loupe-series-concept.md`).
 - 2026-11-14: The filmstrip's flag mark moves from 2 px to 4 px off the thumbnail's corner, so it
   sits inside the current photo's 4 px ring instead of on it (series step 1, LOUPE-001.19).
+- 2026-11-14: The 60 second series span is measured from the series' first picture after rejected
+  pictures are left out, like the gaps, so rejecting a series' first picture moves its end; no new
+  hotkey, since the step adds no action (series step 2, SERIES-001.22).

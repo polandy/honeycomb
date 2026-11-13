@@ -13,6 +13,9 @@ export const SERIES_GAP_SECONDS = 3
 /** The longest gap between two shots of one series that look alike, photo to photo (ADR 0021). */
 export const VISUAL_SERIES_GAP_SECONDS = 30
 
+/** The longest time from a series' first shot to its last; a later shot starts the next series (ADR 0021). */
+export const SERIES_SPAN_SECONDS = 60
+
 /** The most bits in which the visual hashes of two shots that look alike differ, of 64 (ADR 0021). */
 export const VISUAL_DISTANCE_LIMIT = 10
 
@@ -39,12 +42,12 @@ export function hashablePictures<P extends Picture<ListingEntry>>(pictures: read
 	return runs(cameraShots(pictures, noHashes), (previous, next) => previous.camera === next.camera && next.time - previous.time <= VISUAL_SERIES_GAP_SECONDS).flatMap(picturesOfRun)
 }
 
-/** The series to compare: candidates without rejected pictures, linked again, each with an unflagged picture, by first capture time. */
+/** The series to compare: candidates without rejected pictures, linked again and cut at the span, each with an unflagged picture, by first capture time. */
 export function findSeries<P extends Picture<ListingEntry>>(candidates: readonly (readonly P[])[], decisionOf: (picture: P) => Decision, hashOf: HashOf<P> = noHashes): P[][] {
 	return candidates
 		.flatMap((candidate) => {
 			const shots = candidate.filter((picture) => decisionOf(picture).flag !== 'rejected').map((picture) => shotOf(picture, hashOf)!)
-			return runs(shots, linked).map(picturesOfRun)
+			return runs(shots, (previous, next, first) => linked(previous, next) && next.time - first.time <= SERIES_SPAN_SECONDS).map(picturesOfRun)
 		})
 		.filter((series) => series.some((picture) => decisionOf(picture).flag === 'unflagged'))
 		.sort((a, b) => shotOf(a[0]!, noHashes)!.time - shotOf(b[0]!, noHashes)!.time)
@@ -77,13 +80,13 @@ function picturesOfRun<P>(run: readonly Shot<P>[]): P[] {
 	return run.map((shot) => shot.picture)
 }
 
-/** Sorted shots cut where `together` fails, keeping runs of two or more. */
-function runs<P>(shots: readonly Shot<P>[], together: (previous: Shot<P>, next: Shot<P>) => boolean): Shot<P>[][] {
+/** Sorted shots cut where `together` fails, given the run's first shot, keeping runs of two or more. */
+function runs<P>(shots: readonly Shot<P>[], together: (previous: Shot<P>, next: Shot<P>, first: Shot<P>) => boolean): Shot<P>[][] {
 	const all: Shot<P>[][] = []
-	shots.forEach((shot, index) => {
-		const previous = shots[index - 1]
-		if (previous !== undefined && together(previous, shot)) {
-			all.at(-1)!.push(shot)
+	shots.forEach((shot) => {
+		const run = all.at(-1)
+		if (run !== undefined && together(run.at(-1)!, shot, run[0]!)) {
+			run.push(shot)
 		} else {
 			all.push([shot])
 		}

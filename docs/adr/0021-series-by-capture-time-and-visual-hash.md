@@ -29,6 +29,12 @@ a new heavy dependency and would read the files a second time.
     reframe or to wait for a moment fit in 30 s; beyond that a photographer usually has moved on.
     (A four-per-series split once kept long runs small; the owner dropped it on 2026-11-13 to see
     a whole burst together, see `docs/decisions.md`.)
+  - **Amended 2026-11-14: a 60 second span** (`SERIES_SPAN_SECONDS`). Shots link photo to photo,
+    so without an end a quiet subject shot every 20 s chained into one series over minutes, and
+    *Pick this, reject the rest* rejected all of it. A series ends once a shot lies more than
+    60 s after the series' first shot, measured after rejected shots are left out; the next
+    series starts there. A real burst lasts seconds and stays whole
+    (`docs/plans/loupe-series-concept.md`, Part 1).
   - 10 bits (about 15 %): the threshold commonly used with dHash for "near duplicate"; burst
     frames of one subject usually stay below it, different scenes well above. It is a starting
     point to tune on the owner's photos.
@@ -48,7 +54,7 @@ a new heavy dependency and would read the files a second time.
 
 - Series are the same as before until hashes arrive, so nothing regresses or waits on hashing.
 - With hashes, a burst within 3 s whose frames look different is split, and alike shots up to
-  30 s apart are joined.
+  30 s apart are joined, up to 60 s from a series' first shot.
 - The first visit of a large folder set loads the small preview of every hashable picture once;
   the grid's own loads are then cache hits.
 - Another device hashes again; the hashes are cheap to recompute.
