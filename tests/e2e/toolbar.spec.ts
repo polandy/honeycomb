@@ -59,3 +59,17 @@ test('keeps Review rejects and Compare series in the toolbar on a desktop', asyn
 	await expect(page.getByRole('button', { name: 'Remove RAWs… 0' })).toBeVisible()
 	await expect(page.getByRole('button', { name: /^Review rejects \d/ })).toBeHidden()
 })
+
+// spec: GRID-001.18
+test('closes the More menu when an item opens the settings dialog', async ({ page }) => {
+	await page.setViewportSize(DESKTOP)
+	await cullTwo(page)
+
+	await page.getByRole('button', { name: 'More', exact: true }).click()
+	const size = page.getByRole('slider', { name: 'Thumbnail size' })
+	await expect(size).toBeVisible()
+	await page.getByRole('button', { name: 'Settings', exact: true }).click()
+
+	await expect(page.getByRole('dialog', { name: 'Settings' })).toBeVisible()
+	await expect(size).toBeHidden()
+})

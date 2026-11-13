@@ -11,10 +11,12 @@ export const DialogStub = defineComponent({
 	},
 })
 
-/** NcPopover in place: the trigger and the content, always shown. */
+/** NcPopover in place: the trigger and the content, always rendered, its shown state as an attribute. */
 export const PopoverStub = defineComponent({
-	setup(_props, { slots }) {
-		return () => h('div', [slots.trigger?.(), slots.default?.()])
+	props: { shown: Boolean },
+	emits: ['update:shown'],
+	setup(props, { slots }) {
+		return () => h('div', { 'data-shown': props.shown }, [slots.trigger?.(), slots.default?.()])
 	},
 })
 

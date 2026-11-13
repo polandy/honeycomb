@@ -180,6 +180,41 @@ describe('GridToolbar', () => {
 		expect(wrapper.emitted('update:tileSize')).toEqual([[200]])
 	})
 
+	// spec: GRID-001.18
+	it('sets the view options apart from the actions in the More menu by one separator', () => {
+		const menu = mountToolbar({ paths: ['/A', '/B'], subfolders: false }, 2).find('.grid-more-menu')
+		const separators = menu.findAll('hr, [role="separator"]')
+
+		expect(separators).toHaveLength(1)
+		expect(separators[0]!.element.previousElementSibling).toBe(menu.find('fieldset').element)
+		expect(separators[0]!.element.nextElementSibling!.tagName).toBe('BUTTON')
+	})
+
+	// spec: GRID-001.18
+	it.each(['Review rejects', 'Compare series', 'Remove RAWs', 'Move picks', 'Resume at', 'Write decisions to sidecars', 'Settings'])('closes the More menu when %s is chosen', async (label) => {
+		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { rejected: 1, series: 1, rawRemovable: 1, movable: 1, resumeName: 'IMG_9', sidecarsShared: true })
+		const popover = wrapper.findComponent(PopoverStub)
+		await popover.vm.$emit('update:shown', true)
+		expect(popover.props('shown')).toBe(true)
+
+		await wrapper.find('.grid-more-menu').findAll('button').find((button) => button.text().includes(label))!.trigger('click')
+
+		expect(popover.props('shown')).toBe(false)
+	})
+
+	// spec: GRID-001.18
+	it('keeps the More menu open while a view option changes', async () => {
+		const wrapper = mountToolbar({ paths: ['/A', '/B'], subfolders: false }, 2)
+		const popover = wrapper.findComponent(PopoverStub)
+		await popover.vm.$emit('update:shown', true)
+
+		await wrapper.find('input[type="range"]').setValue('200')
+		await wrapper.find('input[type="checkbox"]').setValue(true)
+		await wrapper.find('input[type="radio"][value="capture-time"]').setValue(true)
+
+		expect(popover.props('shown')).toBe(true)
+	})
+
 	// spec: GRID-001.9
 	it('offers Group by folder only when the cull spans more than one folder', async () => {
 		expect(mountToolbar({ paths: ['/A'], subfolders: true }, 1).text()).not.toContain('Group by folder')
