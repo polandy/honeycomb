@@ -1,0 +1,100 @@
+/*
+ * SPDX-FileCopyrightText: 2026 honeycomb contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+.grid-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--default-grid-baseline);
+	padding: 0 calc(2 * var(--default-grid-baseline));
+	font-size: 13px;
+	--default-clickable-area: 32px;
+}
+
+.grid-toolbar :deep(.app-icon) {
+	width: 18px;
+	height: 18px;
+}
+
+.grid-toolbar__crumbs {
+	display: flex;
+	flex: 1 1 160px;
+	align-items: center;
+	gap: var(--default-grid-baseline);
+	min-width: 0;
+}
+
+.grid-toolbar__separator {
+	color: var(--color-text-maxcontrast);
+}
+
+.grid-toolbar__set {
+	overflow: hidden;
+	min-height: 28px;
+	padding: 0 calc(2 * var(--default-grid-baseline));
+	border: none;
+	border-radius: var(--border-radius-element);
+	background: none;
+	color: var(--color-main-text);
+	font-weight: bold;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.grid-toolbar__set:focus-visible {
+	outline: 2px solid var(--color-primary-element);
+}
+
+.grid-toolbar__badge {
+	min-width: 18px;
+	padding: 0 4px;
+	border-radius: 9px;
+	background: var(--color-background-darker);
+	color: var(--color-main-text);
+	font-size: 12px;
+	font-weight: bold;
+	line-height: 18px;
+	text-align: center;
+}
+
+.grid-toolbar__badge--pressed {
+	background: var(--color-primary-element);
+	color: var(--color-primary-element-text);
+}
+
+.grid-toolbar__selection {
+	display: flex;
+	flex-basis: 100%;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--default-grid-baseline);
+}
+
+.grid-toolbar__count {
+	flex: 1;
+	font-weight: bold;
+}
+
+/* Below 900 px these move into the More menu (GridMoreMenu). */
+@media (max-width: 899px) {
+	.grid-toolbar__wide {
+		display: none;
+	}
+}
+
+/* The hit area, not the look, keeps the 44 px touch target. */
+@media (pointer: coarse) {
+	.grid-toolbar__set,
+	.grid-toolbar :deep(.button-vue) {
+		position: relative;
+	}
+
+	.grid-toolbar__set::before,
+	.grid-toolbar :deep(.button-vue)::before {
+		content: "";
+		position: absolute;
+		inset: -6px -2px;
+	}
+}

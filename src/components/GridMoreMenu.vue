@@ -28,6 +28,10 @@ defineProps<{
 	moveFiltered: boolean
 	/** The base name of the picture *Resume* opens the loupe at, null when there is none. */
 	resumeName: string | null
+	/** How many pictures are rejected. */
+	rejected: number
+	/** How many series are left to compare. */
+	series: number
 }>()
 
 const emit = defineEmits<{
@@ -37,6 +41,8 @@ const emit = defineEmits<{
 	removeRaws: []
 	move: []
 	resume: []
+	reviewRejects: []
+	compareSeries: []
 	writeSidecars: []
 	openSettings: []
 }>()
@@ -80,6 +86,32 @@ const emit = defineEmits<{
 				{{ t('honeycomb', 'Capture time') }}
 			</NcCheckboxRadioSwitch>
 		</fieldset>
+		<NcButton
+			class="grid-more-menu__narrow"
+			variant="tertiary"
+			alignment="start"
+			wide
+			:disabled="rejected === 0"
+			@click="emit('reviewRejects')">
+			<template #icon>
+				<AppIcon name="trash" />
+			</template>
+			{{ t('honeycomb', 'Review rejects') }}
+			<span class="grid-more-menu__count">{{ formatNumber(rejected) }}</span>
+		</NcButton>
+		<NcButton
+			class="grid-more-menu__narrow"
+			variant="tertiary"
+			alignment="start"
+			wide
+			:disabled="series === 0"
+			@click="emit('compareSeries')">
+			<template #icon>
+				<AppIcon name="compare" />
+			</template>
+			{{ t('honeycomb', 'Compare series') }}
+			<span class="grid-more-menu__count">{{ formatNumber(series) }}</span>
+		</NcButton>
 		<NcButton
 			variant="tertiary"
 			alignment="start"
@@ -171,6 +203,13 @@ const emit = defineEmits<{
 .grid-more-menu__size input {
 	min-height: 34px;
 	accent-color: var(--color-primary-element);
+}
+
+/* From 900 px the toolbar shows these itself (GridToolbar). */
+@media (min-width: 900px) {
+	.grid-more-menu__narrow {
+		display: none;
+	}
 }
 
 @media (pointer: coarse) {

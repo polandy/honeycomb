@@ -137,6 +137,7 @@ const setName = computed(() => {
 			<span v-if="props.selecting && props.selected > 0" class="grid-toolbar__badge grid-toolbar__badge--pressed" aria-hidden="true">{{ formatNumber(props.selected) }}</span>
 		</NcButton>
 		<NcButton
+			class="grid-toolbar__wide"
 			variant="tertiary"
 			:ariaLabel="props.rejected > 0 ? t('honeycomb', 'Review rejects ({count})', { count: formatNumber(props.rejected) }) : t('honeycomb', 'Review rejects')"
 			v-bind="tip(t('honeycomb', 'Review rejects'), keyCap('review-rejects'))"
@@ -148,6 +149,7 @@ const setName = computed(() => {
 			<span v-if="props.rejected > 0" class="grid-toolbar__badge" aria-hidden="true">{{ formatNumber(props.rejected) }}</span>
 		</NcButton>
 		<NcButton
+			class="grid-toolbar__wide"
 			variant="tertiary"
 			:ariaLabel="props.series > 0 ? t('honeycomb', 'Compare series ({count})', { count: formatNumber(props.series) }) : t('honeycomb', 'Compare series')"
 			v-bind="tip(t('honeycomb', 'Compare series'), keyCap('compare'))"
@@ -176,12 +178,16 @@ const setName = computed(() => {
 				:movable="props.movable"
 				:moveFiltered="props.activeFilters > 0"
 				:resumeName="props.resumeName"
+				:rejected="props.rejected"
+				:series="props.series"
 				@update:tileSize="emit('update:tileSize', $event)"
 				@update:groupByFolder="emit('update:groupByFolder', $event)"
 				@update:sortOrder="emit('update:sortOrder', $event)"
 				@removeRaws="emit('removeRaws')"
 				@move="emit('move')"
 				@resume="emit('resume')"
+				@reviewRejects="emit('reviewRejects')"
+				@compareSeries="emit('compareSeries')"
 				@writeSidecars="emit('writeSidecars')"
 				@openSettings="emit('openSettings')" />
 		</NcPopover>
@@ -200,94 +206,4 @@ const setName = computed(() => {
 	</div>
 </template>
 
-<style scoped>
-.grid-toolbar {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: var(--default-grid-baseline);
-	padding: 0 calc(2 * var(--default-grid-baseline));
-	font-size: 13px;
-	--default-clickable-area: 32px;
-}
-
-.grid-toolbar :deep(.app-icon) {
-	width: 18px;
-	height: 18px;
-}
-
-.grid-toolbar__crumbs {
-	display: flex;
-	flex: 1 1 160px;
-	align-items: center;
-	gap: var(--default-grid-baseline);
-	min-width: 0;
-}
-
-.grid-toolbar__separator {
-	color: var(--color-text-maxcontrast);
-}
-
-.grid-toolbar__set {
-	overflow: hidden;
-	min-height: 28px;
-	padding: 0 calc(2 * var(--default-grid-baseline));
-	border: none;
-	border-radius: var(--border-radius-element);
-	background: none;
-	color: var(--color-main-text);
-	font-weight: bold;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	cursor: pointer;
-}
-
-.grid-toolbar__set:focus-visible {
-	outline: 2px solid var(--color-primary-element);
-}
-
-.grid-toolbar__badge {
-	min-width: 18px;
-	padding: 0 4px;
-	border-radius: 9px;
-	background: var(--color-background-darker);
-	color: var(--color-main-text);
-	font-size: 12px;
-	font-weight: bold;
-	line-height: 18px;
-	text-align: center;
-}
-
-.grid-toolbar__badge--pressed {
-	background: var(--color-primary-element);
-	color: var(--color-primary-element-text);
-}
-
-.grid-toolbar__selection {
-	display: flex;
-	flex-basis: 100%;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: var(--default-grid-baseline);
-}
-
-.grid-toolbar__count {
-	flex: 1;
-	font-weight: bold;
-}
-
-/* The hit area, not the look, keeps the 44 px touch target. */
-@media (pointer: coarse) {
-	.grid-toolbar__set,
-	.grid-toolbar :deep(.button-vue) {
-		position: relative;
-	}
-
-	.grid-toolbar__set::before,
-	.grid-toolbar :deep(.button-vue)::before {
-		content: "";
-		position: absolute;
-		inset: -6px -2px;
-	}
-}
-</style>
+<style scoped src="./grid-toolbar.css" />

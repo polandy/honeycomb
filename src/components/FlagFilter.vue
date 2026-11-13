@@ -27,7 +27,6 @@ const CHIPS: readonly { flag: Flag, label: () => string }[] = [
 
 <template>
 	<div class="flag-filter" role="group" :aria-label="t('honeycomb', 'Flag')">
-		<AppIcon name="filter" class="flag-filter__icon" />
 		<button
 			v-for="chip in CHIPS"
 			:key="chip.flag"
@@ -48,12 +47,6 @@ const CHIPS: readonly { flag: Flag, label: () => string }[] = [
 	flex-wrap: wrap;
 	align-items: center;
 	gap: var(--default-grid-baseline);
-}
-
-.flag-filter__icon {
-	width: 16px;
-	height: 16px;
-	color: var(--color-text-maxcontrast);
 }
 
 .flag-filter__chip :deep(.app-icon) {
@@ -89,6 +82,13 @@ const CHIPS: readonly { flag: Flag, label: () => string }[] = [
 .flag-filter__chip:focus-visible {
 	outline: 2px solid var(--color-primary-element);
 	outline-offset: 2px;
+}
+
+/* On a phone the chips show their icons only; aria-label keeps the name. */
+@media (max-width: 599px) {
+	.flag-filter__label {
+		display: none;
+	}
 }
 
 @media (pointer: coarse) {
