@@ -37,9 +37,12 @@ const props = withDefaults(defineProps<{
 	selected?: boolean
 	/** The size of the offered series the picture is in, 0 outside one (SERIES-002.10). */
 	series?: number
+	/** How many tags the picture has (TAGS-004.7). */
+	tags?: number
 }>(), {
 	decision: () => UNDECIDED,
 	series: 0,
+	tags: 0,
 	selecting: false,
 	selected: false,
 	offscreen: false,
@@ -79,7 +82,7 @@ const decisionLabel = computed(() => {
 })
 
 /** Whether the tile shows a flag, a colour label or stars. */
-const marked = computed(() => props.decision.flag !== 'unflagged' || props.decision.colourLabel !== null || props.decision.rating > 0)
+const marked = computed(() => props.decision.flag !== 'unflagged' || props.decision.colourLabel !== null || props.decision.rating > 0 || props.tags > 0)
 
 const seriesText = computed(() => n('honeycomb', 'Series of {count}', 'Series of {count}', props.series, { count: formatNumber(props.series) }))
 
@@ -92,6 +95,7 @@ const label = computed(() => [
 	...(props.picture.ambiguous ? [t('honeycomb', 'ambiguous name')] : []),
 	...(props.series > 1 ? [seriesText.value] : []),
 	...decisionLabel.value,
+	...(props.tags > 0 ? [n('honeycomb', '{count} tag', '{count} tags', props.tags, { count: formatNumber(props.tags) })] : []),
 ].join(', '))
 
 let pending: { load: QueuedLoad, sharp: boolean } | null = null
@@ -164,129 +168,11 @@ onBeforeUnmount(() => pending?.load.cancel())
 				class="photo-tile__stars"
 				:rating="props.decision.rating" />
 			<span v-if="props.decision.colourLabel !== null" class="photo-tile__colour" :style="{ backgroundColor: COLOUR_LABEL_SWATCHES[props.decision.colourLabel] }" />
+			<span v-if="props.tags > 0" class="photo-tile__tags" aria-hidden="true"><AppIcon name="tag" />{{ formatNumber(props.tags) }}</span>
 		</span>
 	</div>
 </template>
 
 <style src="../skeleton-tile.css" />
 
-<style scoped>
-.photo-tile {
-	position: relative;
-	overflow: hidden;
-	width: 100%;
-	height: 100%;
-	border-radius: var(--border-radius-large);
-	background-color: var(--color-background-dark);
-}
-
-.photo-tile__image {
-	display: block;
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	user-select: none;
-	-webkit-touch-callout: none;
-}
-
-.photo-tile__pair,
-.photo-tile__ambiguous {
-	position: absolute;
-	top: 6px;
-	padding: 2px 6px;
-	border-radius: var(--border-radius);
-	font-size: 11px;
-	font-weight: bold;
-	line-height: 1.3;
-}
-
-.photo-tile__pair {
-	inset-inline-start: 6px;
-	background-color: var(--color-main-background-blur);
-	color: var(--color-main-text);
-}
-
-.photo-tile__pair--single {
-	border: 1px dashed var(--color-warning);
-	background-color: var(--color-main-background);
-	color: var(--color-warning-text);
-}
-
-.photo-tile__ambiguous {
-	inset-inline-end: 6px;
-	background-color: var(--color-warning);
-	color: var(--color-main-background);
-}
-
-.photo-tile__pair--keep-raw {
-	background-color: var(--color-primary-element);
-	color: var(--color-primary-element-text);
-}
-
-.photo-tile--selected {
-	outline: 3px solid var(--color-primary-element);
-	outline-offset: -3px;
-}
-
-.photo-tile__check {
-	position: absolute;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 24px;
-	height: 24px;
-	border-radius: 50%;
-	inset-inline-end: 6px;
-	bottom: 6px;
-	border: 2px solid var(--color-main-background);
-	background-color: var(--color-main-background-blur);
-}
-
-.photo-tile--selected .photo-tile__check {
-	background-color: var(--color-primary-element);
-	color: var(--color-primary-element-text);
-}
-
-.photo-tile__check .app-icon {
-	width: 16px;
-	height: 16px;
-}
-
-.photo-tile__series {
-	position: absolute;
-	top: 30px;
-	inset-inline-end: 6px;
-	padding: 2px 6px;
-	border-radius: var(--border-radius);
-	background-color: var(--color-main-background-blur);
-	color: var(--color-main-text);
-	font-size: 11px;
-	font-weight: bold;
-	line-height: 1.3;
-	pointer-events: none;
-}
-
-.photo-tile__marks {
-	position: absolute;
-	inset-inline: 0;
-	bottom: 0;
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	padding: 18px 42px 6px 6px;
-	background: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
-	pointer-events: none;
-}
-
-.photo-tile__colour {
-	width: 12px;
-	height: 12px;
-	border: 1px solid #fff;
-	border-radius: 50%;
-}
-
-.photo-tile__stars {
-	font-size: 14px;
-	color: #fff;
-}
-</style>
+<style scoped src="./photo-tile.css" />

@@ -144,7 +144,7 @@ are the cull's own.
 
 ## Out of scope
 
-The tag filter, the tile's tag icon and the info panel (*Tags 4*); renaming or deleting tags across
+The tag filter and the tile's tag icon ([TAGS-004](TAGS-004-tag-filter-and-tile.md)), the info panel (*Tags 4*); renaming or deleting tags across
 pictures (D7).
 
 ## History

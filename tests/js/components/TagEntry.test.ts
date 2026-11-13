@@ -159,8 +159,8 @@ describe('TagEntry', () => {
 		it('offers known tags but those chosen, never one to create, and takes a known tag in any case', async () => {
 			const wrapper = mountFilter()
 
-			await type(wrapper, 's')
-			expect(rows(wrapper)).toEqual(['People', 'People/Anna', 'Places', 'Places/Italy'])
+			await type(wrapper, 'n')
+			expect(rows(wrapper)).toEqual(['Natur', 'Natur/Berg', 'People/Anna'])
 			await type(wrapper, 'natur/berg')
 			await press(wrapper, 'Enter')
 

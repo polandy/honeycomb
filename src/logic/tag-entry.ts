@@ -44,6 +44,12 @@ export function typedTag(text: string, known: readonly Tag[]): Tag | null {
 	return known.find((candidate) => candidate.toLowerCase() === tag.toLowerCase()) ?? tag
 }
 
+/** The known tag typed text names, ignoring case, or null for any other text. */
+export function knownTag(text: string, known: readonly Tag[]): Tag | null {
+	const tag = typedTag(text, known)
+	return tag !== null && known.includes(tag) ? tag : null
+}
+
 /** The known tags containing the text, ignoring case, but those every target has; and the typed tag to create when it is not known. */
 export function tagMatches(text: string, known: readonly Tag[], chips: readonly TagChip[], targets: number): TagMatches {
 	const query = text.trim().toLowerCase()

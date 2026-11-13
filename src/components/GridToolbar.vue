@@ -29,7 +29,7 @@ const props = defineProps<{
 	flags: ReadonlySet<Flag>
 	decided: number
 	total: number
-	/** How many filter groups have a choice. */
+	/** How many filter groups have a choice, each chosen tag counting as one. */
 	activeFilters: number
 	filtersOpen: boolean
 	sortOrder: SortOrder

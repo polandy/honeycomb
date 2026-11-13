@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ColourLabel, Decision, Flag } from './decision.ts'
 import type { Picture } from './pairing.ts'
+import type { Tag } from './tag.ts'
 
 import { isDecided } from './decision.ts'
+import { hasEveryTag } from './tag.ts'
 
 /** How the rating filter compares a picture's stars with the chosen count (Q8). */
 export type RatingComparison = 'at-least' | 'at-most' | 'exactly'
@@ -26,6 +28,8 @@ export interface Filters {
 	readonly pairings: ReadonlySet<PairingKind>
 	readonly keepRaw: ReadonlySet<KeepRawChip>
 	readonly folders: ReadonlySet<string>
+	/** A picture needs every one of them (TAGS-004). */
+	readonly tags: ReadonlySet<Tag>
 }
 
 /** Picked and unflagged, no other filter, the comparison at least. */
@@ -37,6 +41,7 @@ export const DEFAULT_FILTERS: Filters = {
 	pairings: new Set(),
 	keepRaw: new Set(),
 	folders: new Set(),
+	tags: new Set(),
 }
 
 const NEXT_COMPARISON: Record<RatingComparison, RatingComparison> = { 'at-least': 'at-most', 'at-most': 'exactly', exactly: 'at-least' }
@@ -60,8 +65,8 @@ export function pairingKind(picture: Picture<unknown>): PairingKind {
 	return picture.rendered === null ? 'raw-only' : 'pair'
 }
 
-/** Whether a picture with this decision passes every active filter group. */
-export function matchesFilters(picture: Picture<unknown>, decision: Decision, filters: Filters): boolean {
+/** Whether a picture with this decision and these tags passes every active filter group. */
+export function matchesFilters(picture: Picture<unknown>, decision: Decision, tags: readonly Tag[], filters: Filters): boolean {
 	const chosen = <T>(chips: ReadonlySet<T>, value: T) => chips.size === 0 || chips.has(value)
 	return (filters.rating === null || COMPARE_RATING[filters.comparison](decision.rating, filters.rating))
 		&& (filters.colourLabels.size === 0 || (decision.colourLabel !== null && filters.colourLabels.has(decision.colourLabel)))
@@ -69,11 +74,12 @@ export function matchesFilters(picture: Picture<unknown>, decision: Decision, fi
 		&& chosen(filters.pairings, pairingKind(picture))
 		&& chosen(filters.keepRaw, decision.keepRaw ? 'marked' : 'not-marked')
 		&& chosen(filters.folders, picture.folder)
+		&& hasEveryTag(tags, filters.tags)
 }
 
 /** The pictures that pass the filters, in their given order. */
-export function filterPictures<P extends Picture<unknown>>(pictures: readonly P[], decisionOf: (picture: P) => Decision, filters: Filters): P[] {
-	return pictures.filter((picture) => matchesFilters(picture, decisionOf(picture), filters))
+export function filterPictures<P extends Picture<unknown>>(pictures: readonly P[], decisionOf: (picture: P) => Decision, tagsOf: (picture: P) => readonly Tag[], filters: Filters): P[] {
+	return pictures.filter((picture) => matchesFilters(picture, decisionOf(picture), tagsOf(picture), filters))
 }
 
 /** The "x of y decided" progress over the given pictures. */
@@ -81,10 +87,10 @@ export function progress<P>(pictures: readonly P[], decisionOf: (picture: P) => 
 	return { decided: pictures.filter((picture) => isDecided(decisionOf(picture))).length, total: pictures.length }
 }
 
-/** How many filter groups have a choice; the flag filter has one when it is not the default. */
+/** How many filter groups have a choice, each chosen tag counting as one; the flag filter has one when it is not the default. */
 export function activeFilterCount(filters: Filters): number {
 	const sets = [filters.colourLabels, filters.pairings, filters.keepRaw, filters.folders]
-	return Number(filters.rating !== null) + Number(!isDefaultFlags(filters.flags)) + sets.filter((chips) => chips.size > 0).length
+	return Number(filters.rating !== null) + Number(!isDefaultFlags(filters.flags)) + sets.filter((chips) => chips.size > 0).length + filters.tags.size
 }
 
 /** A copy of the chips with the chip switched. */

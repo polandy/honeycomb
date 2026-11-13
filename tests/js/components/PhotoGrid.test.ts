@@ -250,6 +250,16 @@ describe('PhotoGrid', () => {
 			expect(tile(wrapper, 1).find('.photo-tile__stars').text()).toBe('★★')
 		})
 
+		// spec: TAGS-004.7
+		it('counts each picture\'s tags on its tile', async () => {
+			const tagsOf = (picture: { baseName: string }) => (picture.baseName === 'IMG_1' ? ['Anna', 'Sunrise'] : [])
+			const { wrapper, resize } = mountGrid({ tagsOf })
+			await resize(432, 220)
+
+			expect(tile(wrapper, 1).find('.photo-tile__tags').text()).toBe('2')
+			expect(tile(wrapper, 0).find('.photo-tile__tags').exists()).toBe(false)
+		})
+
 		// spec: GRID-003.2
 		it('selects a tile on a long-press and swallows the click that follows', async () => {
 			const { schedule, fire } = fakeScheduler()

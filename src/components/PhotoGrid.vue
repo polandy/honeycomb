@@ -12,6 +12,7 @@ import type { ListingEntry } from '../logic/listing.ts'
 import type { Schedule } from '../logic/long-press.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Selection } from '../logic/selection.ts'
+import type { Tag } from '../logic/tag.ts'
 import type { ObserveSize } from '../observe-size.ts'
 
 import { t } from '@nextcloud/l10n'
@@ -47,6 +48,8 @@ const props = withDefaults(defineProps<{
 	/** The selected pictures by grid key, the file id of the member the tile shows. */
 	selection?: Selection
 	decisionOf?: (picture: Picture<ListingEntry>) => Decision
+	/** The picture's tags, counted on its tile. */
+	tagsOf?: (picture: Picture<ListingEntry>) => readonly Tag[]
 	/** Times the long-press. */
 	schedule?: Schedule
 	/** Times the auto-scroll of a drag selection. */
@@ -58,6 +61,7 @@ const props = withDefaults(defineProps<{
 	selecting: false,
 	selection: () => NO_SELECTION,
 	decisionOf: () => UNDECIDED,
+	tagsOf: () => [],
 	schedule: browserSchedule,
 	frame: browserFrame,
 })
@@ -253,6 +257,7 @@ defineExpose({
 							:picture="picture"
 							:size="layout.tileWidth"
 							:decision="props.decisionOf(picture)"
+							:tags="props.tagsOf(picture).length"
 							:selecting="props.selecting"
 							:selected="props.selection.ids.has(imageMember(picture).fileId)"
 							:loads="loads"

@@ -27,6 +27,11 @@ export function leafOf(tag: Tag): string {
 	return tag.slice(tag.lastIndexOf(TAG_SEPARATOR) + 1)
 }
 
+/** Whether the tags have each chosen tag or one beneath it (`docs/07-tags.md` D4, D5). */
+export function hasEveryTag(tags: readonly Tag[], chosen: Iterable<Tag>): boolean {
+	return [...chosen].every((wanted) => tags.some((tag) => tag === wanted || tag.startsWith(wanted + TAG_SEPARATOR)))
+}
+
 /** Tags added and removed in one step. */
 export interface TagChange {
 	readonly added: readonly Tag[]
