@@ -1,0 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 honeycomb contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/* Text in a settings section starts where its heading's text does (SETTINGS-001.23). */
+.settings-text {
+	padding-inline: var(--app-settings-section-text-offset);
+}
