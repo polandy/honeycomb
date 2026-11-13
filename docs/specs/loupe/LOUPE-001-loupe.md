@@ -42,10 +42,10 @@ band of square photos edge to edge that keeps the shown picture in its middle. T
 the filmstrip* and *Pin the rating row* keep either one below the photo instead of over it, never
 idle; the pin toggle at the filmstrip's end switches *Pin the filmstrip* in landscape. The loupe
 loads the shown picture first, then 3 neighbours ahead and 2 behind, nearest first, so the next
-picture shows without a request. The info panel lists the picture's file facts, its decision and
-how many neighbours are loaded; its width can be dragged. The panel's width and the Nextcloud
-navigation choice are kept in the browser; whether the panel is open and whether the gesture guide was
-dismissed are kept per user on the server (LOUPE-003).
+picture shows without a request. The info panel lists the picture's file facts, its decision, its
+tags (TAGS-004) and how many neighbours are loaded; its width can be dragged. The panel's width
+and the Nextcloud navigation choice are kept in the browser; whether the panel is open and whether
+the gesture guide was dismissed are kept per user on the server (LOUPE-003).
 
 ## Acceptance criteria
 

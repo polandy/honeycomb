@@ -59,8 +59,8 @@ describe('PanelDivider', () => {
 })
 
 describe('LoupeInfo', () => {
-	const mountInfo = (picture: Picture<ListingEntry>, decision: Decision = UNDECIDED) => mount(LoupeInfo, {
-		props: { picture, folderSet: SET, decision, preloaded: 2, neighbours: 5 },
+	const mountInfo = (picture: Picture<ListingEntry>, decision: Decision = UNDECIDED, tagged: { tags?: string[], writesSidecars?: boolean } = {}) => mount(LoupeInfo, {
+		props: { picture, folderSet: SET, decision, preloaded: 2, neighbours: 5, ...tagged },
 	})
 
 	// spec: LOUPE-001.13
@@ -100,6 +100,37 @@ describe('LoupeInfo', () => {
 	it('names an unflagged and unkept pair so', () => {
 		const picture = pictureOf(listingEntry(1, '/P/IMG_1.JPG'), listingEntry(2, '/P/IMG_1.CR3', { mime: 'image/x-canon-cr3' }))
 		expect(infoRows(mountInfo(picture))).toMatchObject({ Flag: 'Unflagged', 'Keep RAW': 'no' })
+	})
+
+	// spec: TAGS-004.8, TAGS-004.9
+	it('lists the tags by their full path and names the sidecars they are written to', () => {
+		const picture = pictureOf(
+			listingEntry(1, '/P/IMG_1.JPG'),
+			listingEntry(2, '/P/IMG_1.CR3', { mime: 'image/x-canon-cr3' }),
+			listingEntry(3, '/P/IMG_1.JPG.xmp', { mime: 'application/octet-stream' }),
+			listingEntry(4, '/P/IMG_1.xmp', { mime: 'application/octet-stream' }),
+			listingEntry(5, '/P/IMG_1_01.CR3.xmp', { mime: 'application/octet-stream' }),
+		)
+		const wrapper = mountInfo(picture, UNDECIDED, { tags: ['Anna', 'Places/Italy/Dolomites'], writesSidecars: true })
+
+		expect(wrapper.findAll('.loupe-info__tags li').map((tag) => tag.text())).toEqual(['Anna', 'Places/Italy/Dolomites'])
+		expect(infoRows(wrapper)['Written to']).toBe('IMG_1.JPG.xmp, IMG_1.xmp')
+	})
+
+	// spec: TAGS-004.9
+	it('names the sidecar a write creates and a shared folder that is not written', () => {
+		const picture = pictureOf(listingEntry(1, '/P/IMG_1.JPG'), listingEntry(2, '/P/IMG_1.CR3', { mime: 'image/x-canon-cr3' }), listingEntry(3, '/P/IMG_1.CR3.xmp', { mime: 'application/octet-stream' }))
+
+		expect(infoRows(mountInfo(picture, UNDECIDED, { tags: ['Anna'], writesSidecars: true }))['Written to']).toBe('IMG_1.CR3.xmp, IMG_1.JPG.xmp')
+		expect(infoRows(mountInfo(picture, UNDECIDED, { tags: ['Anna'], writesSidecars: false }))['Written to']).toBe('Not written, shared folder')
+	})
+
+	// spec: TAGS-004.8
+	it('says none for an untagged picture and has no written to row', () => {
+		const wrapper = mountInfo(pictureOf(listingEntry(1, '/P/IMG_1.JPG'), listingEntry(2, '/P/IMG_1.xmp', { mime: 'application/octet-stream' })))
+
+		expect(wrapper.find('.loupe-info__tags').text()).toBe('none')
+		expect(Object.keys(infoRows(wrapper))).not.toContain('Written to')
 	})
 })
 

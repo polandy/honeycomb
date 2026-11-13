@@ -1,15 +1,15 @@
-# TAGS-004 – Tag filter and the tile's tags
+# TAGS-004 – Tag filter, the tile's tags and the info panel
 
 - Status: implemented
 - Area: tags
 - Origin: `docs/07-tags.md` Interaction (Tag filter, Tiles; D3, D4, D5), outline step 5;
   `docs/mockup/tag-entry.html`
-- Depends on: TAGS-002, TAGS-003, GRID-001, GRID-002
+- Depends on: TAGS-002, TAGS-003, GRID-001, GRID-002, LOUPE-001
 
 ## Purpose
 
-Narrows the grid to the pictures that have chosen tags, and shows on a tile that its picture is
-tagged.
+Narrows the grid to the pictures that have chosen tags, shows on a tile that its picture is
+tagged, and lists the tags in the loupe's info panel.
 
 ## Behaviour
 
@@ -30,6 +30,13 @@ active groups.
 
 **Tile.** A tagged picture's tile shows a tag icon and the number of its tags on the marks' bottom
 shade, and its label names the count; an untagged tile shows neither.
+
+**Info panel.** The loupe's info panel has a *Tags* section below *Decision*: the picture's tags,
+one per line in sort order, each as its full path, or *none*. A tagged picture's *Written to*
+row names the files the tags are written through to (TAGS-002, XMP-003) by file name, each once:
+its sidecars but darktable's duplicates, then the `<member file>.xmp` a write creates for each
+member without one. In a shared folder nothing is written on its own, and the row says *Not
+written, shared folder*. The section follows a tag change at once.
 
 ## Acceptance criteria
 
@@ -80,9 +87,26 @@ shade, and its label names the count; an untagged tile shows neither.
 - **Then** the tagged tile shows a tag icon and the number of its tags, its label says "2 tags";
   the untagged tile shows no tag icon
 
+### TAGS-004.8 – The info panel lists the tags
+
+- **Given** the loupe's info panel open on a picture with tags, and on one without
+- **When** it shows the picture, and again after a tag change
+- **Then** the tagged picture's *Tags* section lists each tag once by its full path in sort order
+  and follows the change at once; the untagged picture's section says *none* and has no
+  *Written to* row
+
+### TAGS-004.9 – Where the tags are written
+
+- **Given** a tagged picture with two sidecars and a darktable duplicate's, a pair with the RAW's
+  sidecar only, and a picture in a shared folder
+- **When** the info panel shows each
+- **Then** *Written to* names the two sidecars by file name, not the duplicate's; names the RAW's
+  sidecar and the JPEG's sidecar the write creates; and says *Not written, shared folder* for the
+  third
+
 ## Out of scope
 
-The loupe's info panel listing the tags (*Tags 4*); an *Untagged* chip and per-tag counts in the
+An *Untagged* chip and per-tag counts in the
 filter (`docs/07-tags.md` Tag filter).
 
 ## History
@@ -90,3 +114,4 @@ filter (`docs/07-tags.md` Tag filter).
 | Date | Change |
 |---|---|
 | 2026-11-13 | Written with the tag filter and the tile's tags (*Tags 4*) |
+| 2026-11-13 | .8, .9 the loupe's info panel lists the tags and where they are written (*Tags 4*) |
