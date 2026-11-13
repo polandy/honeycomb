@@ -190,9 +190,9 @@ for most, so the RAWs of the rest can go once a cull is done.
    "Removed Keep RAW from IMG_0001 · Undo". It does not advance.
 2. **Where the toggle sits.** In the shared action bar, after the colour label, so it is the same
    control in the loupe (the small row below the flag buttons), the series viewer and the
-   selection bar; pressed, it is honey like the other pressed controls. On a grid tile, where a
-   complete pair has no badge, a marked pair shows one in honey with a check, `JPG+NEF ✓`, and
-   the tile's label says "Keep RAW".
+   selection bar; pressed, it is primary like the other pressed controls. On a grid tile, where a
+   complete pair has no badge, a marked pair shows one in the primary colour with a check,
+   `JPG+NEF ✓`, and the tile's label says "Keep RAW".
    Key `R` toggles it ([Keyboard shortcuts](#keyboard-shortcuts)).
 3. **Filter.** The filter bar has a *Keep RAW* group after *Pairing*, with the chips *Marked* and
    *Not marked*; like the other chip groups it selects several, none selected means no filter.
@@ -303,7 +303,7 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
 1. **One bar, one slim row.** The bar is ~56 px. The breadcrumb shows only the root and the
    current folder when the toolbar is at most 720 px wide (container query); a tap on the folder
    shows the full path. *Select*, *Review rejects*, *Compare series* and *Filters* are icon
-   buttons with count badges (neutral, honey while the button is pressed); their labels appear
+   buttons with count badges (neutral, primary while the button is pressed); their labels appear
    beside the icons only when the toolbar is at least 1000 px wide. Below 900 px window width
    *Review rejects* and *Compare series* move into the ⋯ menu, with their counts (UX review M1).
    Sort, the tile size slider, *Move picks*, *Resume*, hiding the header, settings and the
@@ -768,8 +768,9 @@ The UX review of 2026-11-09 ([ux-review.md](ux-review.md)) set the visual rules 
 follows; its design direction lists the tokens.
 
 - **Neutral, photo-first colours.** Greys without a colour cast in both themes, a near-black
-  stage behind the loupe and the series viewer; honey is the accent only. Pressed *Pick* and
-  *Reject* use fixed dark fills, so white text keeps its contrast in both themes.
+  stage behind the loupe and the series viewer; Nextcloud's primary colour is the accent only
+  (the mockup's honey stands for it, UX review 2026-11 M9). Pressed *Pick* and *Reject* use
+  fixed dark fills, so white text keeps its contrast in both themes.
 - **First run.** The folder picker opens with one sentence on what honeycomb does and that
   deleting goes to the trash bin. The first loupe opening shows a gesture guide (swipes from
   the settings, [tap zones](#tap-zones), pinch, double-tap, the main keys) until it is

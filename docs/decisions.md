@@ -872,3 +872,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   above them hides it the same way. View options keep it open so several can be set in a row.
   One separator splits view options from actions, as the review asks; the mockup's further
   separators between action groups stay out, since the app's menu holds fewer items.
+- 2026-11-13: UX M9 renames the accent from "honey" to "primary" in the glossary and `plan.md`
+  only. The mockup keeps its `--honey` tokens: it is frozen (ADR 0003) and has no Nextcloud
+  theme to read the primary colour from, so `plan.md` says its honey stands for that colour.
+  Older entries in this file and `ux-review.md` stay as written, since they record the past.

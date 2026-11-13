@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<{
 	action: string
 	/** The tile's accessible name, e.g. "Rescue IMG_0001". */
 	label: (picture: Picture<ListingEntry>) => string
-	/** The tile's frame: red for pictures that go, honey for pictures that stay. */
+	/** The tile's frame: red for pictures that go, primary for pictures that stay. */
 	tone: 'error' | 'primary'
 	imageUrl: ImageUrlFor
 	/** A second line under the name. */
