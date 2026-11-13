@@ -18,9 +18,9 @@ as one camera), photo to photo in capture-time order, where each neighbour **loo
 at most 30 seconds apart: their visual hashes differ in at most 10 of 64 bits. Where either of two
 neighbours has no visual hash yet, they belong together when their EXIF capture times lie at most
 3 seconds apart. Series may cross folders. A picture without an EXIF capture time is never in a
-series. Rejected pictures are left out before the runs are formed. A run of more than four is
-split into series of at most four, as even as possible (5 → 3 + 2). A series has at least
-two pictures and at least one undecided; the series are ordered by their first capture time.
+series. Rejected pictures are left out before the runs are formed. A run is one series however
+long, so a whole burst is seen together. A series has at least two pictures and at least one
+undecided; the series are ordered by their first capture time.
 
 The **visual hash** of a picture is a difference hash of the small grid preview of its shown member
 (ADR 0021). It is computed in the browser, in the background and one picture at a time, only for
@@ -32,6 +32,8 @@ change as hashes arrive, except while the series compare dialog is open.
 `N` open the series compare dialog. The dialog, titled "Compare series 1 of 3", is up to 1400 px
 wide and shows one line of instructions above the series' pictures side by side, whose photos grow
 as high as the window allows, but no higher than a 2:3 portrait photo needs at the card's width.
+Up to four cards share the dialog's width; a longer series gives each card at least 180 px (half the
+width on a phone) and the row scrolls sideways, the active card always scrolled into view.
 Each card has the picture's name, stars, flag mark, the flag buttons and *Pick this, reject the
 rest*; the flag buttons sit level across the cards, a flag mark or not. One picture is active
 (outlined); its *Pick this, reject the rest* is the primary button, the others' and *Skip* are
@@ -75,11 +77,11 @@ lines instead of cutting it.
 - **When** the series are formed
 - **Then** it is in no series, whatever its modification time
 
-### SERIES-001.4 – At most four per series
+### SERIES-001.4 – A whole burst is one series
 
 - **Given** a run of more than four pictures
 - **When** the series are formed
-- **Then** it is split into series of at most four, as even as possible
+- **Then** they form one series, however long
 
 ### SERIES-001.5 – Rejected pictures are left out, decided series are not offered
 
@@ -190,6 +192,13 @@ lines instead of cutting it.
 - **Then** the dialog takes most of the window's width, the photos at least half its height, and
   every card's flag buttons and *Pick this, reject the rest* start at the same height
 
+### SERIES-001.21 – A long series scrolls sideways
+
+- **Given** the series compare dialog shows a series too long for its cards to fit side by side
+- **When** the cards lay out and the user makes another picture active
+- **Then** every card shows in one row that scrolls sideways, and the active card scrolls into
+  view
+
 ## Out of scope
 
 The fullscreen series viewer and the series badge on the tiles: SERIES-002. The capture time and
@@ -204,3 +213,4 @@ camera come from LISTING-001.
 | 2026-11-10 | *Pick this, reject the rest* wraps to two lines without its icon in a narrow card (UX review L3). |
 | 2026-11-12 | Series also compare the images: a visual hash of the grid preview, 30 s for alike shots, the 3 s rule without a hash (owner decision, ADR 0021). |
 | 2026-11-13 | One primary button on the active card, *Skip* secondary, one line of instructions, photos fill the dialog, flag buttons level (UX review M5). |
+| 2026-11-13 | A run is one series however long, and a long series scrolls sideways in the compare (owner request after testing on nc-test). |
