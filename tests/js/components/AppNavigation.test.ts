@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
-import { mount } from '@vue/test-utils'
+import { enableAutoUnmount, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import AppNavigation from '../../../src/components/AppNavigation.vue'
@@ -28,6 +28,8 @@ function recordToggles() {
 	subscribe('toggle-navigation', toggled)
 	return { opens: () => toggled.mock.calls.map(([event]) => event.open), stop: () => unsubscribe('toggle-navigation', toggled) }
 }
+
+enableAutoUnmount(afterEach)
 
 describe('AppNavigation', () => {
 	beforeEach(installMarkedCatalogue)
@@ -91,6 +93,18 @@ describe('AppNavigation', () => {
 	})
 
 	// spec: APP-001.7
+	it('reads the width of the browser window by default', () => {
+		isMobile.value = false
+		vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(1280)
+		const toggles = recordToggles()
+
+		mount(AppNavigation, { props: { items: ITEMS, storage: fakeStorage() } })
+		toggles.stop()
+
+		expect(toggles.opens()).toEqual([true])
+	})
+
+	// spec: APP-001.7
 	it('leaves the navigation to Nextcloud on a narrow screen', () => {
 		const toggles = recordToggles()
 
@@ -101,12 +115,14 @@ describe('AppNavigation', () => {
 	})
 
 	// spec: APP-001.8
-	it('remembers the choice made with the toggle and starts with it next time', async () => {
+	it('remembers the choice made with the toggle and starts with it next time', () => {
 		isMobile.value = false
 		const stored: Record<string, string> = {}
 		const wrapper = mountNavigation(ITEMS, stored, 1440)
 
-		await wrapper.find('.app-navigation-toggle').trigger('click')
+		emit('navigation-toggled', { open: true })
+		expect(stored).toEqual({})
+		emit('navigation-toggled', { open: false })
 		expect(stored).toEqual({ [NAVIGATION_OPEN_KEY]: 'false' })
 		wrapper.unmount()
 
