@@ -192,6 +192,7 @@ IMAGES-001.
 | 2026-11-12 | .20 a pin toggle in the title row; .22 a picture the filters hide leaves the loupe (owner, iPad) |
 | 2026-11-12 | .20 the pin toggle moved from the title row to the filmstrip's end (owner, iPad) |
 | 2026-11-13 | .13 the info panel drops its *Preloading* section; .23 compact rows (UX M6) |
+| 2026-11-13 | .19 the filmstrip starts at its left edge and stops at its right one (UX L7) |
 
 ### LOUPE-001.18 – One photo in view
 
@@ -206,8 +207,9 @@ IMAGES-001.
 - **Given** the filmstrip shows
 - **When** the loupe shows a picture, or the user scrolls the strip
 - **Then** the strip is one slim dark band of square photos edge to edge, the shown one with a
-  thin white border, scrolled to the middle of the strip, the first and last too; it renders
-  only the photos in view and a few beyond, and a scroll shows others without paging
+  thin white border, starting at the strip's left edge and scrolled to keep the shown one in the
+  middle once it gets there, never past the last photo; it renders only the photos in view and a
+  few beyond, and a scroll shows others without paging
 
 ### LOUPE-001.20 – Pinned filmstrip and rating row
 
