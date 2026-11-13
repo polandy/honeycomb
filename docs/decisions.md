@@ -911,8 +911,18 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-13: UX L7 asks the loupe filmstrip to start at its left edge until the shown photo
   reaches the middle. The strip stops at its right edge the same way, so the last photos never
   leave the right half empty either; that is how Lightroom's filmstrip behaves (LOUPE-001.19).
+- 2026-11-13: Series in the loupe (concept, awaiting the owner's sign-off): a "⧉ 2/5" chip in the
+  title row and `N` open the existing series compare on this one series, *Pick this, reject the
+  rest* (`Shift+K`) joins the loupe's rating row, and the filmstrip frames each series. A gesture
+  was rejected as undiscoverable and an inline series strip as a second compare view
+  (`docs/plans/loupe-series-concept.md`).
 - 2026-11-13: The owner wants to see a whole group together, so a run is one series however long
   (the 2026-11-10 split into fours is dropped). The compare keeps its cards side by side, at
   least 180 px each (half the width on a phone), and scrolls the row sideways with the active
   card scrolled into view; a wrapped grid or smaller cards would lose the level flag buttons
   or make the photos too small to judge (SERIES-001.4, .21).
+- 2026-11-13: Series parts 1–3 (UX lead, concept awaiting sign-off): #147's one-series-per-burst
+  stays, but a series ends 60 s after its first shot, since photo-to-photo linking can chain
+  minutes of a quiet subject, and the series viewer preloads a neighbour window, not the whole
+  series. A plain *Pick* never rejects the rest silently; its undo toast offers *Reject the other
+  N* instead (`docs/plans/loupe-series-concept.md`).

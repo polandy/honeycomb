@@ -1,0 +1,348 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 honeycomb contributors -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>honeycomb mockup – series in the loupe</title>
+<link rel="icon" href="data:,">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --ink:#1b1b1b; --honey:#F4A51C; --on-honey:#1b1b1b; --bg:#f7f7f7; --card:#ffffff; --text:#1b1b1b; --muted:#5e5e5e;
+  --border:#dcdcdc; --focus:#1a62d6; --shadow:0 4px 18px rgba(0,0,0,.14);
+  --stage:#111111; --stage-2:#1a1a1a; --stage-text:#f2f2f2; --stage-muted:#b0b0b0; --pick-fill:#1f7a46; --reject-fill:#b3302c;
+  --hit:44px; --ic:22px;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#161616; --card:#222222; --text:#f2f2f2; --muted:#a6a6a6; --border:#3a3a3a; --focus:#8ab4ff; --shadow:0 4px 22px rgba(0,0,0,.5)}
+}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+svg.ic{width:var(--ic);height:var(--ic);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.ic.fill{fill:currentColor}
+
+body{display:flex;flex-direction:column}
+#mock{flex:none;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:8px 12px;border-bottom:2px dashed #b8860b;background:var(--card);font-size:13px}
+#mock b{font-size:14px}
+#mock .seg{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+#mock .seg button{min-height:36px;padding:0 10px;border:0;background:none}
+#mock .seg button[aria-pressed="true"]{background:var(--honey);color:var(--on-honey);font-weight:700}
+#mock label{display:flex;align-items:center;gap:6px}
+#mock input{width:18px;height:18px;accent-color:var(--honey)}
+#mock .lnk{border:1px solid var(--border);background:none;border-radius:10px;min-height:36px;padding:0 10px}
+#note{flex:none;padding:6px 12px;font-size:13px;color:var(--muted)}
+#host{flex:1;min-height:0;position:relative;overflow:hidden;background:repeating-linear-gradient(45deg,#2a2a2a 0 10px,#252525 10px 20px)}
+#dev{position:absolute;left:0;top:0;transform-origin:0 0;overflow:hidden;border-radius:18px;background:var(--stage);color:var(--stage-text);box-shadow:0 10px 40px #000a}
+#dev[data-input="fine"]{--hit:34px;--ic:18px;font-size:14px;border-radius:6px}
+
+/* loupe */
+.loupe{position:absolute;inset:0;display:flex;flex-direction:column}
+.top{flex:none;display:flex;align-items:center;gap:6px;padding:6px;min-height:60px;background:linear-gradient(#000a,#0000);z-index:3}
+.title{min-width:0;flex:1}
+.title b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.title span{display:block;font-size:12px;color:var(--stage-muted)}
+.count{font-variant-numeric:tabular-nums;color:var(--stage-muted);font-size:13px;white-space:nowrap}
+.icon-btn{width:var(--hit);height:var(--hit);border:0;border-radius:10px;background:none;color:var(--stage-text);display:flex;align-items:center;justify-content:center;flex:none}
+.chip{position:relative;flex:none;min-height:var(--hit);padding:0 12px;border-radius:999px;border:2px solid var(--honey);background:#0006;color:var(--honey);font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.chip.pulse{animation:pulse 1.2s ease-out 2}
+@keyframes pulse{0%{box-shadow:0 0 0 0 #F4A51Ccc}100%{box-shadow:0 0 0 14px #F4A51C00}}
+@media (prefers-reduced-motion: reduce){.chip.pulse{animation:none}}
+.stage{flex:1;position:relative;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.photo{position:relative;overflow:hidden;flex:none;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+.subj{position:absolute;border-radius:50%}
+.navbtn{position:absolute;top:50%;margin-top:-28px;width:56px;height:56px;border-radius:50%;border:0;background:#0009;color:#fff;display:flex;align-items:center;justify-content:center;z-index:2}
+.navbtn:disabled{opacity:.25}
+.mark{position:absolute;top:8px;left:8px;padding:4px 10px;border-radius:14px;font-weight:700;font-size:13px;display:flex;gap:4px;align-items:center;color:#fff}
+.mark.pick{background:var(--pick-fill)}.mark.reject{background:var(--reject-fill)}
+.film{flex:none;display:flex;gap:4px;overflow-x:auto;padding:12px 8px 6px;background:#000;align-items:flex-end;scrollbar-width:none}
+.film .th{flex:none;width:54px;height:54px;border:0;padding:0;position:relative;overflow:hidden;background:#222}
+.film .th.cur{box-shadow:inset 0 0 0 2px #fff}
+.film .th.rej{opacity:.45}
+.grp{flex:none;display:flex;gap:4px;padding:3px;border:2px solid var(--honey);border-radius:8px;position:relative}
+.grp .tab{position:absolute;left:6px;top:-11px;height:20px;padding:0 7px;border-radius:10px;border:0;background:var(--honey);color:var(--on-honey);font-size:12px;font-weight:800;line-height:20px}
+.grp .tab::before{content:"";position:absolute;inset:-12px -8px}
+.ctrl{flex:none;background:var(--stage-2);border-top:1px solid #ffffff1a;padding:8px 10px;display:flex;flex-direction:column;gap:8px}
+.big{display:flex;gap:10px}
+.bigbtn{flex:1;min-height:64px;border-radius:14px;border:2px solid #ffffff26;background:#ffffff14;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;color:var(--stage-text)}
+.bigbtn.pick svg{color:#5fcf8a}.bigbtn.reject svg{color:#ff8f87}.bigbtn.none{flex:0 0 auto;padding:0 20px}
+.bigbtn[aria-pressed="true"].pick{background:var(--pick-fill);border-color:var(--pick-fill);color:#fff}
+.bigbtn[aria-pressed="true"].reject{background:var(--reject-fill);border-color:var(--reject-fill);color:#fff}
+.bigbtn[aria-pressed="true"].none{border-color:var(--stage-text)}
+.bigbtn[aria-pressed="true"] svg{color:inherit}
+.bigbtn svg{width:28px;height:28px;stroke-width:3}
+.small{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 14px}
+.stars,.labels{display:flex}
+.sq{width:var(--hit);height:var(--hit);border:0;background:none;color:var(--stage-text);display:flex;align-items:center;justify-content:center}
+.sq.on{color:var(--honey)}.sq.on svg{fill:currentColor}
+.dot{width:20px;height:20px;border-radius:50%}
+.btn{position:relative;min-height:var(--hit);padding:0 14px;border-radius:10px;border:1px solid #ffffff40;background:#ffffff14;color:var(--stage-text);display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.btn.primary{background:var(--honey);border-color:var(--honey);color:var(--on-honey)}
+.btn kbd{font:12px ui-monospace,monospace;opacity:.7}
+.portrait .small .pickrest{flex-basis:100%;justify-content:center}
+
+/* landscape: the photo fills the screen, controls float */
+.landscape .stage{position:absolute;inset:0}
+.landscape .top{position:absolute;left:0;right:0;top:0}
+.landscape .bottom{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(#0000,#000c 40%);z-index:3}
+.landscape .bottom .film{background:none;justify-content:center}
+.landscape .bottom .small{padding:2px 8px 8px}
+.rail{position:absolute;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:3}
+.rail.l{left:8px}.rail.r{right:8px}
+.rail .bigbtn{width:84px;flex:none;min-height:120px;flex-direction:column;gap:4px;font-size:14px;background:#000a}
+.rail .bigbtn.none{min-height:72px;padding:0}
+#dev[data-input="fine"] .rail .bigbtn{width:64px;min-height:96px;font-size:12px}
+#dev[data-input="fine"] .rail .bigbtn.none{min-height:56px}
+
+/* hint, toast, compare */
+.hint{position:absolute;z-index:6;max-width:300px;background:var(--stage-2);border:2px solid var(--honey);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);font-size:14px}
+.hint p{margin:0 0 10px}
+.hint::before{content:"";position:absolute;top:-9px;right:28px;width:14px;height:14px;background:var(--stage-2);border-left:2px solid var(--honey);border-top:2px solid var(--honey);transform:rotate(45deg)}
+.toast{position:absolute;left:50%;transform:translateX(-50%);top:70px;z-index:8;background:#f2f2f2;color:#1b1b1b;border-radius:12px;padding:6px 6px 6px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);white-space:nowrap}
+.toast button{border:0;background:none;color:#8a5600;font-weight:800;min-height:var(--hit);padding:0 10px}
+.scrim{position:absolute;inset:0;background:#000b;z-index:7;display:flex;align-items:center;justify-content:center;padding:12px}
+.dlg{background:var(--stage-2);border-radius:14px;width:min(1400px,100%);max-height:100%;display:flex;flex-direction:column;box-shadow:var(--shadow);overflow:hidden}
+.dlg header{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 16px;border-bottom:1px solid #ffffff1a}
+.dlg header h2{margin:0;font-size:17px;flex:1}
+.dlg .cards{display:flex;gap:10px;overflow-x:auto;padding:12px;scroll-snap-type:x mandatory}
+.card{flex:1 0 180px;scroll-snap-align:start;display:flex;flex-direction:column;gap:6px;align-items:center;padding:6px;border-radius:10px;border:2px solid transparent}
+.card.act{border-color:var(--honey)}
+.card .pbtn{border:0;padding:0;background:none}
+.card .nm{font-size:12px;color:var(--stage-muted)}
+.card .fl{display:flex;gap:4px}
+.card .fl .sq{border-radius:8px;background:#ffffff14}
+.card .fl .sq[aria-pressed="true"]{background:var(--honey);color:var(--on-honey)}
+.dlg footer{padding:4px 16px 12px;font-size:12px;color:var(--stage-muted)}
+
+/* numbered callouts, matching the concept's sections */
+[data-co]:not(.hint){position:relative}
+#dev.co [data-co]::after{content:attr(data-co);position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:#1a62d6;color:#fff;font:700 12px/20px system-ui;text-align:center;z-index:9;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="mock" aria-label="Mockup controls">
+  <b>Series in the loupe</b>
+  <div class="seg" role="group" aria-label="Device">
+    <button data-dev="phone">Phone portrait</button><button data-dev="ipad">iPad landscape</button><button data-dev="desktop">Desktop</button>
+  </div>
+  <label><input type="checkbox" id="optRej"> <i>Rejected</i> pressed in the flag filter</label>
+  <label><input type="checkbox" id="optCo" checked> Callouts 1–5</label>
+  <button class="lnk" id="resetHint">Show the first-series hint again</button>
+  <button class="lnk" id="resetAll">Reset</button>
+</div>
+<div id="note">Concept: <code>docs/plans/loupe-series-concept.md</code>. ① chip ② filmstrip frame ③ <i>Pick this, reject the rest</i> ④ first-series hint ⑤ <i>Reject the other N</i> after a plain <i>Pick</i> (part 3). Keys: <kbd>←</kbd> <kbd>→</kbd> page, <kbd>P</kbd> <kbd>X</kbd> <kbd>U</kbd> decide (<kbd>Shift</kbd> moves on), <kbd>N</kbd> series, <kbd>Shift+K</kbd> pick this, reject the rest, <kbd>Ctrl+Z</kbd> undo, <kbd>Esc</kbd> close.</div>
+<div id="host"><div id="dev" class="co" role="application" aria-label="Loupe"></div></div>
+
+<script>
+'use strict';
+const DEVICES = {phone:{w:390, h:844, layout:'portrait', input:'touch'}, ipad:{w:1180, h:820, layout:'landscape', input:'touch'}, desktop:{w:1440, h:900, layout:'landscape', input:'fine'}};
+const ICONS = {
+  flag:'M5 3v18M5 4h11l-2 4 2 4H5', flagPick:'M5 3v18M5 4h11l-2 4 2 4H5z', flagX:'M5 3v18M5 4h11l-2 4 2 4H5M8 6l3 4M11 6l-3 4',
+  left:'M15 6l-6 6 6 6', right:'M9 6l6 6-6 6', close:'M6 6l12 12M18 6 6 18', back:'M19 12H5M11 6l-6 6 6 6',
+  star:'M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z', info:'M12 8v.01M11 12h1v5h1M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z',
+  fit:'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5',
+};
+const ic = (name, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[name]}"/></svg>`;
+const LABELS = ['#e5484d', '#f5d90a', '#30a46c', '#0091ff'];
+
+// 14 photos: a burst of 5 (IMG_4104–4108) and a pair (IMG_4111–4112); blur stands for focus.
+const SERIES = {A:[3, 4, 5, 6, 7], B:[10, 11]};
+const PHOTOS = Array.from({length:14}, (_, i) => {
+  const inA = SERIES.A.indexOf(i), inB = SERIES.B.indexOf(i);
+  const s = inA >= 0 ? 'A' : inB >= 0 ? 'B' : null;
+  const hue = s === 'A' ? 28 : s === 'B' ? 160 : (i * 47) % 360;
+  const x = s === 'A' ? 44 + inA * 3 : s === 'B' ? 40 + inB * 6 : 30 + (i * 13) % 40;
+  const blur = s === 'A' ? [2.5, 0, 3, 1.2, 4][inA] : s === 'B' ? [0, 2][inB] : 0;
+  return {i, name:`IMG_${4101 + i}`, series:s, hue, x, blur};
+});
+
+const st = {dev:'phone', cur:0, flags:Array(14).fill('none'), rating:Array(14).fill(0), showRej:false, hintSeen:false, hintOpen:false,
+  compare:null, toast:null, toastRest:null, undo:[]};
+
+const isRej = i => st.flags[i] === 'reject';
+const visible = () => PHOTOS.filter(p => st.showRej || !isRej(p.i) || p.i === st.cur).map(p => p.i);
+// A series is its members that are not rejected; fewer than two is no series.
+const members = i => { const s = PHOTOS[i].series; if (!s || isRej(i)) return []; const m = SERIES[s].filter(j => !isRej(j)); return m.length >= 2 ? m : []; };
+
+function photoHtml(i, w, h, cls = 'photo'){
+  const p = PHOTOS[i], d = Math.round(h * .42);
+  return `<div class="${cls}" style="width:${w}px;height:${h}px;background:linear-gradient(hsl(${p.hue} 55% 62%),hsl(${(p.hue + 30) % 360} 45% 30%))">`
+    + `<div class="subj" style="width:${d}px;height:${d}px;left:calc(${p.x}% - ${d / 2}px);top:${Math.round(h * .38)}px;background:radial-gradient(circle at 35% 35%,hsl(${(p.hue + 180) % 360} 70% 70%),hsl(${(p.hue + 200) % 360} 60% 25%));filter:blur(${(p.blur * w / 300).toFixed(2)}px)"></div></div>`;
+}
+
+function snapshot(){ st.undo.push(st.flags.slice()); }
+function setFlag(i, f, label){ snapshot(); st.flags[i] = st.flags[i] === f && f !== 'none' ? 'none' : f; showToast(label); }
+// Part 3: a plain Pick never rejects; the toast offers the rest as one explicit tap.
+function offerRest(i){ const others = members(i).filter(j => j !== i && st.flags[j] === 'none'); if (st.flags[i] === 'pick' && others.length) st.toastRest = {i, n:others.length}; }
+function pickRest(i){
+  const m = members(i); if (!m.length) return;
+  snapshot(); m.forEach(j => { st.flags[j] = j === i ? 'pick' : 'reject'; });
+  showToast(`Picked 1, rejected ${m.length - 1}`);
+}
+function undo(){ if (!st.undo.length) return; st.flags = st.undo.pop(); st.toast = null; st.toastRest = null; render(); }
+function showToast(text){ st.toast = text; st.toastRest = null; }
+function page(d){ const v = visible(), k = v.indexOf(st.cur) + d; if (k >= 0 && k < v.length){ st.cur = v[k]; maybeHint(); } }
+function maybeHint(){ if (!st.hintSeen && members(st.cur).length) st.hintOpen = true; }
+function openCompare(){ const m = members(st.cur); if (m.length) st.compare = {active:st.cur}; }
+function closeCompare(){ st.cur = st.compare.active; st.compare = null; }
+
+function topRow(){
+  const v = visible(), m = members(st.cur), phone = st.dev === 'phone', k = m.indexOf(st.cur) + 1;
+  const chip = m.length ? `<button class="chip${st.hintOpen ? ' pulse' : ''}" data-act="compare" data-co="1" aria-label="Photo ${k} of a series of ${m.length} – compare" title="Compare this series (N)">⧉ ${phone ? '' : 'Series '}${k}/${m.length}</button>` : '';
+  return `<div class="top"><button class="icon-btn" aria-label="Back to the grid">${ic('back')}</button>
+    <div class="title"><b>${PHOTOS[st.cur].name}.JPG</b><span>+ RAW</span></div>
+    <span class="count">${v.indexOf(st.cur) + 1} / ${v.length}</span>${chip}
+    <button class="icon-btn" aria-label="Fit">${ic('fit')}</button>${phone ? '' : `<button class="icon-btn" aria-label="Info">${ic('info')}</button>`}</div>`;
+}
+
+function film(){
+  const v = visible(); let out = '', run = null;
+  const th = i => `<button class="th${i === st.cur ? ' cur' : ''}${isRej(i) ? ' rej' : ''}" data-go="${i}" aria-label="${PHOTOS[i].name}">${photoHtml(i, 54, 54, 'tp')}</button>`;
+  const flush = () => { if (run){ out += `<div class="grp" data-co="${run.first ? 2 : ''}"><button class="tab" data-act="compareAt" data-at="${run.ids[0]}" aria-label="Series of ${run.n} – compare">⧉ ${run.n}</button>${run.ids.map(th).join('')}</div>`; run = null; } };
+  let first = true;
+  for (const i of v){
+    const m = members(i);
+    if (m.length && run && run.s === PHOTOS[i].series){ run.ids.push(i); continue; }
+    flush();
+    if (m.length){ run = {s:PHOTOS[i].series, n:m.length, ids:[i], first}; first = false; } else out += th(i);
+  }
+  flush();
+  return `<div class="film" aria-label="Filmstrip">${out.replace(/data-co=""/g, '')}</div>`;
+}
+
+function smallRow(){
+  const r = st.rating[st.cur], m = members(st.cur);
+  const stars = [1, 2, 3, 4, 5].map(n => `<button class="sq${n <= r ? ' on' : ''}" data-star="${n}" aria-label="${n} stars">${ic('star')}</button>`).join('');
+  const labels = LABELS.map(c => `<button class="sq" aria-label="Colour label"><span class="dot" style="background:${c}"></span></button>`).join('');
+  const pr = m.length ? `<button class="btn pickrest" data-act="pickRest" data-co="3" title="Pick this, reject the rest (Shift+K)">${ic('flagPick', 'fill')}Pick this, reject the rest${st.dev === 'desktop' ? ' <kbd>Shift+K</kbd>' : ''}</button>` : '';
+  return `<div class="small"><div class="stars">${stars}</div><div class="labels">${labels}</div>${pr}</div>`;
+}
+
+const flagBtn = (f, icon, label) => `<button class="bigbtn ${f}" data-flag="${f}" aria-pressed="${st.flags[st.cur] === f}">${ic(icon, f === 'pick' ? 'fill' : '')}<span>${label}</span></button>`;
+
+function stage(){
+  const v = visible(), k = v.indexOf(st.cur), f = st.flags[st.cur];
+  const mark = f === 'none' ? '' : `<span class="mark ${f}">${ic(f === 'pick' ? 'flagPick' : 'flagX', f === 'pick' ? 'fill' : '')}${f === 'pick' ? 'Picked' : 'Rejected'}</span>`;
+  const inset = DEVICES[st.dev].layout === 'landscape' ? (st.dev === 'desktop' ? 80 : 100) : 10;
+  return `<div class="stage" id="stage"><div id="ph"></div>${mark ? `<div style="position:absolute;inset:0;pointer-events:none" id="markWrap">${mark}</div>` : ''}
+    <button class="navbtn" style="left:${inset}px" data-nav="-1" aria-label="Previous" ${k <= 0 ? 'disabled' : ''}>${ic('left')}</button>
+    <button class="navbtn" style="right:${inset}px" data-nav="1" aria-label="Next" ${k >= v.length - 1 ? 'disabled' : ''}>${ic('right')}</button></div>`;
+}
+
+function hint(){
+  if (!st.hintOpen || st.compare) return '';
+  const n = members(st.cur).length;
+  return `<div class="hint" id="hint" role="dialog" aria-label="Series hint" data-co="4"><p>This photo is part of a <b>series of ${n}</b>. <b>⧉</b> compares them; <b>Pick this, reject the rest</b> (Shift+K) keeps this one and rejects the others.</p><button class="btn primary" data-act="gotIt">Got it</button></div>`;
+}
+
+function compareDlg(){
+  if (!st.compare) return '';
+  const m = SERIES[PHOTOS[st.compare.active].series].filter(j => !isRej(j)), w = st.dev === 'phone' ? 160 : 260;
+  const cards = m.map(i => {
+    const f = st.flags[i], a = i === st.compare.active;
+    const fl = [['pick', 'flagPick'], ['reject', 'flagX'], ['none', 'flag']].map(([v, icn]) => `<button class="sq" data-cflag="${v}" data-at="${i}" aria-pressed="${f === v}" aria-label="${v}">${ic(icn, v === 'pick' ? 'fill' : '')}</button>`).join('');
+    return `<div class="card${a ? ' act' : ''}" data-card="${i}"><button class="pbtn" data-cact="${i}" aria-label="${PHOTOS[i].name}">${photoHtml(i, w, Math.round(w * 2 / 3))}</button>
+      <span class="nm">${PHOTOS[i].name}</span><div class="fl">${fl}</div>${a ? `<button class="btn primary" data-act="cPickRest">${st.dev === 'phone' ? '' : ic('flagPick', 'fill')}Pick this, reject the rest</button>` : ''}</div>`;
+  }).join('');
+  return `<div class="scrim"><div class="dlg" role="dialog" aria-modal="true" aria-label="Series of ${m.length}"><header><h2>Series of ${m.length} · photo ${m.indexOf(st.compare.active) + 1}</h2><button class="icon-btn" data-act="closeCompare" aria-label="Close">${ic('close')}</button></header>
+    <div class="cards">${cards}</div><footer>Opened from the loupe: this one series, no <i>Skip</i>. A tap on a photo makes it active; in the app a tap on the active photo opens the series viewer (unchanged). Closing returns to the loupe on the active photo.</footer></div></div>`;
+}
+
+function render(){
+  const d = DEVICES[st.dev], dev = document.getElementById('dev');
+  dev.style.width = d.w + 'px'; dev.style.height = d.h + 'px'; dev.dataset.input = d.input;
+  const rest = st.toastRest ? `<button data-act="rejectOthers" data-co="5">Reject the other ${st.toastRest.n}</button>` : '';
+  const toast = st.toast ? `<div class="toast" role="status">${st.toast}${rest}<button data-act="undo">Undo</button></div>` : '';
+  let body;
+  if (d.layout === 'portrait'){
+    body = `<div class="loupe portrait">${topRow()}${stage()}${film()}<div class="ctrl"><div class="big">${flagBtn('pick', 'flagPick', 'Pick')}${flagBtn('reject', 'flagX', 'Reject')}${flagBtn('none', 'flag', '')}</div>${smallRow()}</div></div>`;
+  } else {
+    body = `<div class="loupe landscape">${stage()}${topRow()}<div class="rail l">${flagBtn('pick', 'flagPick', 'Pick')}</div><div class="rail r">${flagBtn('reject', 'flagX', 'Reject')}${flagBtn('none', 'flag', 'Unflag')}</div><div class="bottom">${film()}${smallRow()}</div></div>`;
+  }
+  dev.innerHTML = body + hint() + toast + compareDlg();
+  const sEl = document.getElementById('stage'), ph = document.getElementById('ph');
+  const sw = sEl.clientWidth - 20, sh = sEl.clientHeight - 20, w = Math.min(sw, sh * 1.5);
+  ph.outerHTML = photoHtml(st.cur, Math.round(w), Math.round(w / 1.5));
+  const mw = document.getElementById('markWrap'), photo = sEl.querySelector('.photo');
+  if (mw && photo){ mw.style.inset = 'auto'; mw.style.left = photo.offsetLeft + 'px'; mw.style.top = Math.max(photo.offsetTop, d.layout === 'landscape' ? 72 : 0) + 'px'; }
+  const chip = dev.querySelector('.chip'), hi = document.getElementById('hint');
+  if (chip && hi){ hi.style.top = (chip.offsetTop + chip.offsetHeight + 14) + 'px'; hi.style.right = Math.max(8, d.w - chip.offsetLeft - chip.offsetWidth - 10) + 'px'; }
+  const cur = dev.querySelector('.th.cur'); if (cur) cur.scrollIntoView({block:'nearest', inline:'center'});
+  const act = dev.querySelector('.card.act'); if (act) act.scrollIntoView({block:'nearest', inline:'nearest'});
+  document.querySelectorAll('#mock [data-dev]').forEach(b => b.setAttribute('aria-pressed', b.dataset.dev === st.dev));
+  fit();
+}
+
+function fit(){
+  const host = document.getElementById('host'), d = DEVICES[st.dev], dev = document.getElementById('dev');
+  const s = Math.min((host.clientWidth - 24) / d.w, (host.clientHeight - 24) / d.h, 1);
+  dev.style.transform = `translate(${(host.clientWidth - d.w * s) / 2}px,${(host.clientHeight - d.h * s) / 2}px) scale(${s})`;
+}
+
+function decide(f, next){
+  const i = st.compare ? st.compare.active : st.cur;
+  setFlag(i, f, `${PHOTOS[i].name}: ${f === 'pick' ? 'picked' : f === 'reject' ? 'rejected' : 'unflagged'}`);
+  if (!st.compare) offerRest(i);
+  if (next && !st.compare) page(1);
+}
+
+document.getElementById('dev').addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  const ds = t.dataset;
+  if (ds.nav) page(+ds.nav);
+  else if (ds.go) { st.cur = +ds.go; maybeHint(); }
+  else if (ds.flag) decide(ds.flag, false);
+  else if (ds.star) st.rating[st.cur] = st.rating[st.cur] === +ds.star ? 0 : +ds.star;
+  else if (ds.cflag) setFlag(+ds.at, ds.cflag, `${PHOTOS[+ds.at].name}: ${ds.cflag}`);
+  else if (ds.cact) st.compare.active = +ds.cact;
+  else if (ds.act === 'compare') { st.hintOpen = false; st.hintSeen = true; openCompare(); }
+  else if (ds.act === 'compareAt') { st.cur = +ds.at; st.hintOpen = false; st.hintSeen = true; openCompare(); }
+  else if (ds.act === 'pickRest') pickRest(st.cur);
+  else if (ds.act === 'cPickRest') { pickRest(st.compare.active); closeCompare(); }
+  else if (ds.act === 'closeCompare') closeCompare();
+  else if (ds.act === 'gotIt') { st.hintOpen = false; st.hintSeen = true; }
+  else if (ds.act === 'rejectOthers') pickRest(st.toastRest.i);
+  else if (ds.act === 'undo') return undo();
+  else return;
+  render();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.target.matches && e.target.matches('input')) return;
+  const k = e.key.toLowerCase();
+  if ((e.ctrlKey || e.metaKey) && k === 'z') { e.preventDefault(); return undo(); }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (st.compare){
+    const m = SERIES[PHOTOS[st.compare.active].series].filter(j => !isRej(j)), a = m.indexOf(st.compare.active);
+    if (k === 'escape') closeCompare();
+    else if (k === 'arrowleft' && a > 0) st.compare.active = m[a - 1];
+    else if (k === 'arrowright' && a < m.length - 1) st.compare.active = m[a + 1];
+    else if (k === 'k' && e.shiftKey) { pickRest(st.compare.active); closeCompare(); }
+    else if (k === 'p' || k === 'x' || k === 'u') decide({p:'pick', x:'reject', u:'none'}[k], false);
+    else return;
+  } else {
+    if (k === 'arrowleft') page(-1);
+    else if (k === 'arrowright') page(1);
+    else if (k === 'n') { st.hintOpen = false; st.hintSeen = true; openCompare(); }
+    else if (k === 'k' && e.shiftKey) pickRest(st.cur);
+    else if (k === 'p' || k === 'x' || k === 'u') decide({p:'pick', x:'reject', u:'none'}[k], e.shiftKey);
+    else if (k === 'escape' && st.hintOpen) { st.hintOpen = false; st.hintSeen = true; }
+    else return;
+  }
+  e.preventDefault(); render();
+});
+
+document.querySelectorAll('#mock [data-dev]').forEach(b => b.addEventListener('click', () => { st.dev = b.dataset.dev; render(); }));
+document.getElementById('optRej').addEventListener('change', e => { st.showRej = e.target.checked; render(); });
+document.getElementById('optCo').addEventListener('change', e => { document.getElementById('dev').classList.toggle('co', e.target.checked); });
+document.getElementById('resetHint').addEventListener('click', () => { st.hintSeen = false; maybeHint(); render(); });
+document.getElementById('resetAll').addEventListener('click', () => { Object.assign(st, {cur:3, flags:Array(14).fill('none'), rating:Array(14).fill(0), hintSeen:false, hintOpen:false, compare:null, toast:null, toastRest:null, undo:[]}); maybeHint(); render(); });
+addEventListener('resize', fit);
+st.cur = 3; maybeHint(); render();
+</script>
+</body>
+</html>
