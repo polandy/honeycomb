@@ -38,11 +38,15 @@ async function selecting(page: Page): Promise<Locator> {
 	return page.locator('.action-bar')
 }
 
-/** The centre of the flags, after checking that Move and Delete share their row. */
+/** The centre of the flags, after checking that Move and Delete follow them in their row. */
 async function firstRow(bar: Locator): Promise<number> {
-	const flags = await centre(bar.getByRole('group', { name: 'Flag' }))
+	const flagGroup = bar.getByRole('group', { name: 'Flag' })
+	const flags = await centre(flagGroup)
+	const flagsEnd = (await flagGroup.boundingBox())!
 	for (const name of FIRST_ROW) {
-		expect(Math.abs(await centre(bar.getByRole('button', { name, exact: true })) - flags), name).toBeLessThan(ROW_TOLERANCE_PX)
+		const control = bar.getByRole('button', { name, exact: true })
+		expect(Math.abs(await centre(control) - flags), name).toBeLessThan(ROW_TOLERANCE_PX)
+		expect((await control.boundingBox())!.x, name).toBeGreaterThan(flagsEnd.x + flagsEnd.width)
 	}
 	return flags
 }
