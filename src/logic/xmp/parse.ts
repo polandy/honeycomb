@@ -20,6 +20,18 @@ export function readXmp(bytes: Uint8Array): XmpPacket {
 	return packetOf(elementOf(parsed(source)))
 }
 
+/** The sidecar's packet, or null when it is refused; any other error is thrown. */
+export function readableXmp(bytes: Uint8Array): XmpPacket | null {
+	try {
+		return readXmp(bytes)
+	} catch (error) {
+		if (!(error instanceof XmpError)) {
+			throw error
+		}
+		return null
+	}
+}
+
 /** The text of UTF-8 bytes without a byte order mark. */
 function decoded(bytes: Uint8Array): string {
 	let source: string

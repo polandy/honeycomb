@@ -3,8 +3,8 @@
 import type { SidecarLookupAnswer } from '../../../src/logic/sidecar-sync.ts'
 
 import { describe, expect, it } from 'vitest'
-import { takeOverTags } from '../../../src/logic/sidecar-tags.ts'
 import { takeOverLookups } from '../../../src/logic/sidecar-sync.ts'
+import { takeOverTags } from '../../../src/logic/sidecar-tags.ts'
 import { serializeXmp } from '../../../src/logic/xmp/serialize.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 import { CANONICAL_TIME, fixtureBytes, packetOf, seq } from './xmp/xmp-builders.ts'

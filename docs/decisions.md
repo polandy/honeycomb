@@ -794,3 +794,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-13: Release versions: honeycomb is not ready for 1.0, so release-please starts at 0.1.0
   (`initial-version`, it defaults to 1.0.0) and `feat` bumps the minor, `fix` the patch while
   below 1.0 (`bump-patch-for-minor-pre-major` removed).
+- 2026-11-13: Tags in the cull (TAGS-002): *Tags 1* is cut again; the sidecar take-over and the
+  write-through come now, reading the JPEG's embedded XMP (D1) moves to *Tags 1b* because it needs
+  a new endpoint and its ADR. A picture takes the sidecars' tags over only when the sidecars are
+  looked up for its decision anyway (no stored decision) and no member has stored tags, so opening
+  a cull makes no extra request. A tag write changes only the three tag fields, never the decision,
+  so a pending decision take-over cannot be overwritten, and it creates a sidecar only while tags
+  are left. Sidecar tags over the storage limits are left out with a warning instead of failing
+  the whole save.

@@ -3,6 +3,8 @@
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 
+import { pictureMembers } from './pairing.ts'
+
 /** The most pictures one grid shows (plan.md, Multiple folders). */
 export const PICTURE_CAP = 20_000
 
@@ -21,7 +23,7 @@ export interface FolderGroup {
 
 /** The picture's capture time in Unix seconds; its file's modification time without one (plan.md, Sort order). */
 export function captureTime(picture: Picture<ListingEntry>): number {
-	const members = [picture.raw, picture.rendered].filter((member) => member !== null)
+	const members = pictureMembers(picture)
 	const captured = members.find((member) => member.captureTime !== null)
 	return captured?.captureTime ?? members[0]!.mtime
 }

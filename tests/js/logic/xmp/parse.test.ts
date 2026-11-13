@@ -4,7 +4,7 @@ import type { XmpNode } from '../../../../src/logic/xmp/model.ts'
 
 import { describe, expect, it } from 'vitest'
 import { NAMESPACE, XmpError, xmpKey } from '../../../../src/logic/xmp/model.ts'
-import { readXmp } from '../../../../src/logic/xmp/parse.ts'
+import { readableXmp, readXmp } from '../../../../src/logic/xmp/parse.ts'
 import expected from '../../../fixtures/xmp/expected.json' with { type: 'json' }
 import { fixtureBytes, fixtureText, key, text } from './xmp-builders.ts'
 
@@ -158,5 +158,13 @@ describe('readXmp', () => {
 	it('reads a qualified URI', () => {
 		const properties = readXmp(described('<acme:Link rdf:resource="https://acme.example/" acme:Kind="home"/>')).properties
 		expect(properties.get(xmpKey(ACME, 'Link'))).toEqual({ value: { kind: 'uri', uri: 'https://acme.example/' }, qualifiers: new Map([[xmpKey(ACME, 'Kind'), text('home')]]) })
+	})
+})
+
+describe('readableXmp', () => {
+	it('reads a sidecar and answers null for a refused one', () => {
+		expect(readableXmp(fixtureBytes('refused/unclosed.xmp'))).toBeNull()
+		expect(readableXmp(fixtureBytes('refused/doctype.xmp'))).toBeNull()
+		expect(readableXmp(fixtureBytes('digikam.xmp'))).toEqual(readXmp(fixtureBytes('digikam.xmp')))
 	})
 })

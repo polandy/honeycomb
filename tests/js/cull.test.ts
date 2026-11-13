@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { CullSidecars } from '../../src/cull.ts'
+import type { CullSidecars } from '../../src/cull-seams.ts'
 import type { StoredDecision } from '../../src/logic/decision.ts'
 import type { Settings } from '../../src/logic/settings.ts'
 

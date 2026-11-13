@@ -1,8 +1,10 @@
 # 7. Tags (concept)
 
-**Status: in progress.** Step 2 of the [implementation outline](#implementation-outline), reading
-and writing tags in sidecars, is built ([XMP-004](specs/xmp/XMP-004-tags-in-sidecars.md)); the
-other steps are open in `TODO.md`. The owner asked for tags that work like digiKam's and are
+**Status: in progress.** Steps 1 to 3 of the [implementation outline](#implementation-outline) are
+built: tags in sidecars ([XMP-004](specs/xmp/XMP-004-tags-in-sidecars.md)), their storage
+([TAGS-001](specs/tags/TAGS-001-tag-storage.md)) and the take-over and write-through in the cull
+([TAGS-002](specs/tags/TAGS-002-tags-in-the-cull.md)), except the embedded XMP (D1); the other
+steps are open in `TODO.md`. The owner asked for tags that work like digiKam's and are
 read and written in digiKam's fields (2026-11-11), and answered the
 [decisions](#decisions-2026-11-12) on 2026-11-12. The milestone is planned from the
 [implementation outline](#implementation-outline). The approved mockup is

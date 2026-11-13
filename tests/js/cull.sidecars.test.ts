@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { CullSidecars } from '../../src/cull.ts'
+import type { CullSidecars } from '../../src/cull-seams.ts'
 import type { Decision, StoredDecision } from '../../src/logic/decision.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
@@ -15,7 +15,7 @@ import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { ENTRIES, fakeStorage, NO_TAGS, SET, stored } from './app-cull.ts'
+import { ENTRIES, fakeStorage, SET, stored } from './app-cull.ts'
 
 const THREE_REJECTED: Decision = { ...UNDECIDED, rating: 3, flag: 'rejected' }
 
@@ -250,7 +250,7 @@ describe('useCull: tags', () => {
 
 		await cull.tags.change([picture('IMG_2'), picture('IMG_10')], change)
 
-		expect(tagWrites).toEqual([{ names: ['IMG_2'], change }])
+		expect(tagWrites).toEqual([{ names: ['IMG_10'], change }])
 	})
 
 	// spec: TAGS-002.14
