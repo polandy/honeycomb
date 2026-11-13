@@ -29,6 +29,8 @@ const props = defineProps<{
 	flags: ReadonlySet<Flag>
 	decided: number
 	total: number
+	/** Whether the filters hide photos of the cull. */
+	filtered: boolean
 	/** How many filter groups have a choice, each chosen tag counting as one. */
 	activeFilters: number
 	filtersOpen: boolean
@@ -106,7 +108,7 @@ const setName = computed(() => {
 			</button>
 		</nav>
 		<FlagFilter :flags="props.flags" @update:flags="emit('update:flags', $event)" />
-		<CullProgress :decided="props.decided" :total="props.total" />
+		<CullProgress :decided="props.decided" :total="props.total" :filtered="props.filtered" />
 		<NcButton
 			variant="tertiary"
 			:ariaLabel="filtersLabel"
