@@ -911,3 +911,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-13: UX L7 asks the loupe filmstrip to start at its left edge until the shown photo
   reaches the middle. The strip stops at its right edge the same way, so the last photos never
   leave the right half empty either; that is how Lightroom's filmstrip behaves (LOUPE-001.19).
+- 2026-11-13: The owner wants to see a whole group together, so a run is one series however long
+  (the 2026-11-10 split into fours is dropped). The compare keeps its cards side by side, at
+  least 180 px each (half the width on a phone), and scrolls the row sideways with the active
+  card scrolled into view; a wrapped grid or smaller cards would lose the level flag buttons
+  or make the photos too small to judge (SERIES-001.4, .21).

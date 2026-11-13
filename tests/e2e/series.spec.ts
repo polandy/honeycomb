@@ -58,3 +58,30 @@ test('fills the dialog height with the photos and keeps the flag buttons level b
 	const container = await page.locator('.series-compare-dialog .modal-container').boundingBox()
 	expect(container!.width).toBeGreaterThan(DESKTOP.width * 0.85)
 })
+
+// spec: SERIES-001.4, SERIES-001.21
+test('shows a whole burst as one series in one row that scrolls to the active card', async ({ page }) => {
+	await page.setViewportSize(PHONE)
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = `Series ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	for (const second of [0, 1, 2, 3, 4, 5]) {
+		await upload(page, `${folder}/IMG_000${second}.jpg`, withCaptureTime(JPEG, `2026:11:10 10:00:0${second}`))
+	}
+
+	await cullFolder(page, folder)
+	await expect(page.getByRole('gridcell').first()).toBeVisible()
+	await page.keyboard.press('n')
+	const dialog = page.getByRole('dialog', { name: 'Compare series 1 of 1' })
+	const cards = dialog.locator('.series-compare__card')
+	await expect(cards).toHaveCount(6)
+
+	const tops = await cards.evaluateAll((elements) => elements.map((element) => Math.round(element.getBoundingClientRect().top)))
+	expect(new Set(tops).size).toBe(1)
+	await expect(cards.last()).not.toBeInViewport()
+	for (const _ of [1, 2, 3, 4, 5]) {
+		await page.keyboard.press('ArrowRight')
+	}
+	await expect(cards.last().locator('.series-compare__photo')).toHaveAttribute('aria-pressed', 'true')
+	await expect(cards.last()).toBeInViewport()
+})

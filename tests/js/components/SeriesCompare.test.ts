@@ -6,7 +6,7 @@ import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { mount } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import ConfirmDialog from '../../../src/components/ConfirmDialog.vue'
 import PickRestButton from '../../../src/components/PickRestButton.vue'
@@ -91,6 +91,20 @@ describe('SeriesCompare', () => {
 		expect(wrapper.emitted('decide')).toEqual([[{ kind: 'flag', flag: 'rejected' }, SERIES[2]]])
 		expect(wrapper.emitted('pickRest')).toEqual([[SERIES[0]]])
 		expect(wrapper.emitted('view')).toEqual([[2]])
+	})
+
+	// spec: SERIES-001.21
+	it('sizes the row by the series length and scrolls the active card into view', async () => {
+		const scrolled = vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(function(this: Element) {})
+		const wrapper = mountCompare()
+
+		expect(wrapper.find('.series-compare').attributes('style')).toContain('--series-compare-count: 3')
+		expect(scrolled.mock.contexts).toEqual([cards(wrapper)[1]!.element])
+		await wrapper.setProps({ active: 2 })
+
+		expect(scrolled.mock.contexts).toEqual([cards(wrapper)[1]!.element, cards(wrapper)[2]!.element])
+		expect(scrolled).toHaveBeenLastCalledWith({ block: 'nearest', inline: 'nearest' })
+		scrolled.mockRestore()
 	})
 
 	// spec: SERIES-001.11
