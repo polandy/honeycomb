@@ -132,6 +132,7 @@ useHotkeys(() => {
 	<NcContent appName="honeycomb">
 		<AppNavigation
 			:items="recent.items.value"
+			:storage="props.storage"
 			@chooseFolders="pickerOpen = true"
 			@openRecent="openRecent"
 			@openSettings="settingsOpen = true" />

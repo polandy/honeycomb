@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { APP_SEAMS } from '../../src/app-seams.ts'
 import { fullscreenAvailable, toggleBrowserFullscreen } from '../../src/fullscreen.ts'
 import { formatDateTime, formatFileSize } from '../../src/l10n.ts'
 import { observeElementSize } from '../../src/observe-size.ts'
@@ -9,6 +10,13 @@ import { observeElementSize } from '../../src/observe-size.ts'
 afterEach(() => {
 	vi.restoreAllMocks()
 	vi.unstubAllGlobals()
+})
+
+describe('APP_SEAMS', () => {
+	// spec: APP-001.8
+	it('hands over the browser storage itself, as Vue takes a function default as the value', () => {
+		expect(APP_SEAMS.storage()).toBe(window.localStorage)
+	})
 })
 
 describe('toggleBrowserFullscreen', () => {

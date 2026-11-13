@@ -891,3 +891,12 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   rows lose their vertical padding and the arrow loses Nextcloud's global button margin, so a
   row stays at the clickable size (34 px, 44 px for touch); a row with a reason line under the
   name may still be taller.
+- 2026-11-13: UX L3 keeps the navigation's open state in the browser (`localStorage`), like the
+  tile size: it depends on the screen, not the user. Only a toggle while the navigation sits
+  beside the page (from 1024 px on) is a choice; below 1024 px Nextcloud overlays and closes it
+  itself, so nothing is applied or remembered there. A remembered choice applies at every width
+  from 1024 px on.
+- 2026-11-13: UX L3 also fixes `APP_SEAMS.storage`, which wrapped `window.localStorage` in one
+  function too many: Vue takes the default of a function-typed prop as the value, so every
+  browser-storage read and write failed silently and the tile size, the info panel's width and
+  the loupe's navigation toggle never lasted past a reload. The new choice depends on it.
