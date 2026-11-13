@@ -9,6 +9,7 @@ Add items with `/todo`.
 
 ## Milestones
 
+- [ ] Flaky e2e from #147: `tests/e2e/series.spec.ts` "shows a whole burst as one series…" failed once on `[desktop]` in a full local `scripts/verify.sh` run (`cards.last()` not in viewport after five `→`), then passed 3 of 3 alone; find the cause (suspect `scroll-snap-type` with `scrollIntoView` in `SeriesCompare.vue`), no retry (2026-11-13)
 - [ ] Loupe on a phone in landscape (Pixel 9 Pro, 952 × 427): keep *Unflag* at the right edge clear of the filmstrip, which covers its lower half (seen in PR #143, already on `main`) (2026-11-13)
 
 ## Later
