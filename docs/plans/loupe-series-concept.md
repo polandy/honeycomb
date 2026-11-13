@@ -8,30 +8,28 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 Status: proposal for the owner's sign-off (2026-11-13). Interactive mockup:
 [`docs/mockup/loupe-series/index.html`](../mockup/loupe-series/index.html), open it in a browser.
 
-## Kurzfassung (Deutsch)
+## Summary
 
-Die Lupe zeigt künftig selbst, dass ein Foto zu einer Serie gehört, und bietet die
-Serienaktionen dort an, wo man ohnehin entscheidet:
+The loupe shows by itself that a photo belongs to a series, and offers the series actions where
+the decision is made:
 
-1. **Serien-Chip in der Titelzeile:** „⧉ 2/5" (Foto 2 einer Serie aus 5). Ein Tipp darauf oder
-   `N` öffnet *Serie vergleichen* direkt für **diese** Serie, mit dem gezeigten Foto aktiv.
-   Schließen führt zurück in die Lupe.
-2. **Gruppenrahmen im Filmstreifen** (Serien-Teil 2): ein Honig-Rahmen um die Fotos der Serie
-   mit dem Etikett „⧉ 5"; ein Tipp aufs Etikett tut dasselbe wie der Chip.
-3. **„Dieses nehmen, Rest ablehnen"** steht in der Lupe in der Bewertungszeile, sobald das Foto
-   zu einer Serie gehört, mit `Shift+K` – derselbe Knopf und dieselbe Taste wie im
-   Serienvergleich und im Serienbetrachter, ein Rückgängig-Schritt.
-4. **Einmaliger Hinweis** beim ersten Serienfoto in der Lupe, weil der Besitzer die Funktion
-   bisher nie gefunden hat.
-5. **Teil 1 (#147, gemergt) bleibt**, mit zwei Korrekturen: eine Serie endet spätestens 60 s
-   nach ihrem ersten Foto (sonst verkettet ein ruhiges Motiv ganze Minuten zu einer „Serie"),
-   und der Serienbetrachter lädt nur die Nachbarn vor statt der ganzen Serie.
-6. **Teil 3 entschieden:** ein einfaches *Nehmen* lehnt **nie** still die anderen ab. Die
-   Rückgängig-Meldung bietet stattdessen „Die anderen 4 ablehnen" an – ein bewusster Tipp.
+1. **Series chip in the title row:** "⧉ 2/5" (photo 2 of a series of 5). A tap on it, or `N`,
+   opens *Compare series* on **this** series with the shown photo active; closing returns to
+   the loupe.
+2. **Group frame in the filmstrip** (series part 2): a honey frame around the series' photos
+   with a "⧉ 5" tab, which does the same as the chip.
+3. ***Pick this, reject the rest*** joins the loupe's rating row while the photo is in a series,
+   with `Shift+K`: the same button and key as in the compare and the series viewer, one undo
+   step.
+4. **A one-time hint** at the first series photo in the loupe, since the owner never found the
+   feature.
+5. **Part 1 (#147, merged) stays**, with two corrections: a series ends 60 s after its first
+   shot, and the series viewer preloads a window of neighbours, not the whole series.
+6. **Part 3 decided:** a plain *Pick* never rejects the others silently; its undo toast offers
+   "Reject the other 4" as one explicit tap.
 
-Verworfen: eine Geste (unauffindbar, kollidiert mit Wischen und Zoom) und ein aufklappender
-Serienstreifen in der Lupe (zweite Vergleichsansicht neben *Serie vergleichen*, zu kleine Bilder,
-doppelte Logik).
+Rejected: a gesture (undiscoverable, conflicts with swipe and zoom) and an inline series strip
+in the loupe (a second compare view, thumbnails too small, duplicated logic).
 
 ## Problem
 
