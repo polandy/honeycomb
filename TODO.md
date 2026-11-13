@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] UX L6: Grid selection on a phone: two action bar rows, flags, *Move* and *Delete* first (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX L7: Start the loupe filmstrip at the left edge until the current photo reaches the middle (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] Loupe on a phone in landscape (Pixel 9 Pro, 952 × 427): keep *Unflag* at the right edge clear of the filmstrip, which covers its lower half (seen in PR #143, already on `main`) (2026-11-13)
 

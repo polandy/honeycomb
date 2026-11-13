@@ -26,6 +26,9 @@ touch as well as with a mouse or keyboard.
 - The action bar shows rating, colour label, flag and *Keep RAW*; a control is pressed where every
   selected picture shares the value. It is disabled while nothing is selected. *Keep RAW* acts on
   pairs only and is disabled, with a reason, without one.
+- Where the action bar does not fit one row, the flags, *Move* and *Delete* take the first row and
+  rating, colour label, *Keep RAW* and *Tags* follow below; on a phone in portrait they need two
+  more rows, since 44 px targets leave no room for all four in one.
 - A change writes the whole new decision of every member of each changed picture; a picture the
   change leaves as it is sends nothing. A save the server refuses is reverted and reported,
   unless another folder set is open by then.
@@ -126,6 +129,13 @@ touch as well as with a mouse or keyboard.
 - **Then** the browser does not scroll the grid, and the pressed tile stays rendered while the
   drag lasts even when it scrolls far out of view; without a long-press the finger scrolls
 
+### GRID-003.14 – Flags, Move and Delete first when the bar wraps
+
+- **Given** selection mode on a tablet or a phone in portrait
+- **When** the action bar renders
+- **Then** the flags, *Move* and *Delete* share the first row; rating, colour label, *Keep RAW*
+  and *Tags* follow in the second row on a tablet, below the first on a phone
+
 ## Out of scope
 
 Selection keys in detail (KEYS-001), deleting a selection (DELETE-002).
@@ -136,3 +146,4 @@ Selection keys in detail (KEYS-001), deleting a selection (DELETE-002).
 |---|---|
 | 2026-11-10 | Written from the merged M2.6 (#44) |
 | 2026-11-12 | Drag selection after a long-press, with auto-scroll at the edges (.11–.13) |
+| 2026-11-13 | Flags, *Move* and *Delete* first when the action bar wraps, UX L6 (.14) |

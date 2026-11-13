@@ -120,11 +120,21 @@ describe('ActionBar', () => {
 		expect(wrapper.classes()).toContain('action-bar--idle')
 	})
 
-	it('in a bar, keeps the small flag buttons last', () => {
-		const wrapper = mountBar()
+	// spec: GRID-003.14
+	it('in a bar, groups the end slot and the small flag buttons apart from the decisions', () => {
+		const wrapper = mount(ActionBar, { props: { common: MIXED }, slots: { end: '<button class="move">Move</button>' } })
+		const primary = wrapper.find('.action-bar__primary')
 
 		expect(wrapper.find('.flag-buttons').classes()).not.toContain('flag-buttons--large')
-		expect(wrapper.element.lastElementChild!.classList).toContain('flag-buttons')
+		expect([...primary.element.children].map((child) => child.classList[0])).toEqual(['move', 'flag-buttons'])
+		expect(wrapper.find('.action-bar__row .move').exists()).toBe(false)
+	})
+
+	it('in the loupe, keeps the end slot in the row', () => {
+		const wrapper = mount(ActionBar, { props: { common: MIXED, layout: 'loupe' }, slots: { end: '<button class="move">Move</button>' } })
+
+		expect(wrapper.find('.action-bar__row .move').exists()).toBe(true)
+		expect(wrapper.find('.action-bar__primary').exists()).toBe(false)
 	})
 
 	it('translates every text it shows', async () => {
