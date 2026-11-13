@@ -202,7 +202,8 @@ useHotkeys(() => {
 					@update:tileSize="cull.setTileSize"
 					@update:selecting="selection.setSelecting"
 					@update:selection="selection.select"
-					@open="openLoupe" />
+					@open="openLoupe"
+					@scroll="resume.dismiss" />
 				<CullEmptyState
 					v-else
 					:reason="empty"

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Schedule } from './logic/long-press.ts'
 
-import { readonly, ref } from 'vue'
+import { readonly, ref, toRaw } from 'vue'
 
 /** How long a toast stays, as in the mockup. */
 export const TOAST_MS = 5200
@@ -47,6 +47,13 @@ export function useToast(schedule: Schedule) {
 		start()
 	}
 
+	/** Hides `shown` if it is still the current toast. */
+	function close(shown: Toast) {
+		if (toRaw(current.value) === shown) {
+			hide()
+		}
+	}
+
 	/** Runs the full time from now, unless the toast is held. */
 	function start() {
 		stop()
@@ -55,9 +62,11 @@ export function useToast(schedule: Schedule) {
 		}
 	}
 
-	/** Shows the message for TOAST_MS. */
-	function show(message: string, action: ToastAction | null = null) {
-		replace({ message, action })
+	/** Shows the message for TOAST_MS and returns a closer that hides it unless another toast replaced it. */
+	function show(message: string, action: ToastAction | null = null): () => void {
+		const shown = { message, action }
+		replace(shown)
+		return () => close(shown)
 	}
 
 	/** Holds the toast while the focus is inside it; leaving restarts its full time. */

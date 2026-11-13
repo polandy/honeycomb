@@ -71,6 +71,8 @@ const emit = defineEmits<{
 	'update:selecting': [selecting: boolean]
 	'update:selection': [selection: Selection]
 	open: [index: number]
+	/** The user scrolled the grid; a scroll it made itself does not count. */
+	scroll: []
 }>()
 
 const GAP = 8
@@ -146,9 +148,13 @@ function rowPictures(first: number, count: number) {
 	return props.pictures.slice(first, first + count).map((picture, column) => ({ picture, index: first + column, column }))
 }
 
-/** Follows the scroll position for the rendered rows. */
+/** Follows the scroll position for the rendered rows; the grid's own scrolls already set it. */
 function onScroll(event: Event) {
-	scrollTop.value = (event.target as HTMLElement).scrollTop
+	const top = (event.target as HTMLElement).scrollTop
+	if (top !== scrollTop.value) {
+		scrollTop.value = top
+		emit('scroll')
+	}
 }
 
 /** Resizes the tiles on a trackpad pinch, which arrives as a wheel event with Ctrl. */
