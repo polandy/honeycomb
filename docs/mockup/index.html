@@ -485,8 +485,7 @@ main{overflow:hidden}
   .ab-big .bigbtn{pointer-events:auto;flex-direction:column;gap:6px;width:calc(var(--rail) - 12px);height:clamp(120px,36cqh,240px);min-height:0;padding:0 4px;margin:0 6px;font-size:14px}
   .ab-big .bigbtn.pick{grid-area:2/1;justify-self:end}
   .ab-big .bigbtn.reject{grid-area:2/3;justify-self:start}
-  .ab-big .bigbtn.none{grid-area:3/3;justify-self:start;height:56px;flex:none}
-  .ab-big .bigbtn.none span{display:none}
+  .ab-big .bigbtn.none{grid-area:3/3;justify-self:start;height:auto;min-height:56px;flex:none}
   .ab-big .bigbtn:not([aria-pressed="true"]){background:#000000a6;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
   #loupe .navbtn{transition:opacity .3s}
   #loupe .navbtn.l{left:calc(var(--railL) + 4px)}#loupe .navbtn.r{right:calc(var(--railR) + 4px)}
@@ -519,7 +518,7 @@ main{overflow:hidden}
 @container app (orientation:landscape){
   #frame[data-input="fine"] :is(#loupe,#serie){--rail:64px}
   #frame[data-input="fine"] .ab-big .bigbtn{height:clamp(88px,20cqh,140px);font-size:13px}
-  #frame[data-input="fine"] .ab-big .bigbtn.none{height:40px}
+  #frame[data-input="fine"] .ab-big .bigbtn.none{height:auto;min-height:40px}
   #frame[data-input="fine"] :is(#loupe,#serie) .ab-small{min-height:44px}
   #frame[data-input="fine"] #loupe .film{bottom:44px}
 }

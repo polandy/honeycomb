@@ -51,13 +51,22 @@ test('shows the filmstrip as square photos edge to edge at full opacity, the sho
 // spec: LOUPE-002.11
 test('puts Pick and Reject at the side edges in landscape and in a row below the photo in portrait, Unflag between them', async ({ page }) => {
 	const loupe = await openLoupe(page)
-	const box = async (name: string) => (await loupe.getByRole('button', { name, exact: true }).first().boundingBox())!
+	const button = (name: string) => loupe.getByRole('button', { name, exact: true }).first()
+	const box = async (name: string) => (await button(name).boundingBox())!
 	const frame = (await loupe.boundingBox())!
 
 	const [pick, reject] = [await box('Pick'), await box('Reject')]
 	expect(pick.x - frame.x).toBeLessThan(frame.width / 10)
 	expect(frame.x + frame.width - (reject.x + reject.width)).toBeLessThan(frame.width / 4)
 	expect(reject.x).toBeGreaterThan(frame.x + frame.width / 2)
+	for (const name of ['Pick', 'Reject', 'Unflag']) {
+		const label = button(name).getByText(name, { exact: true })
+		await expect(label).toBeVisible()
+		const word = (await label.boundingBox())!
+		const edge = await box(name)
+		expect(word.y).toBeGreaterThanOrEqual(edge.y)
+		expect(word.y + word.height).toBeLessThanOrEqual(edge.y + edge.height)
+	}
 
 	await page.setViewportSize({ width: 600, height: 900 })
 	const photo = (await loupe.getByRole('img', { name: 'IMG_0001' }).boundingBox())!
