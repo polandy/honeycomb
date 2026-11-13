@@ -6,7 +6,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { findSeries, hashablePictures, SERIES_GAP_SECONDS, seriesCandidates, seriesSizes, SERIES_SPAN_SECONDS, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
+import { findSeries, hashablePictures, SERIES_GAP_SECONDS, SERIES_SPAN_SECONDS, seriesCandidates, seriesSizes, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
 /** Pictures named `/<folder>/<name>.JPG`, shot at `time` by `camera`. */
