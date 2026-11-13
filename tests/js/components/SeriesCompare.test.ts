@@ -7,7 +7,9 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import NcButton from '@nextcloud/vue/components/NcButton'
 import ConfirmDialog from '../../../src/components/ConfirmDialog.vue'
+import PickRestButton from '../../../src/components/PickRestButton.vue'
 import SeriesCompare from '../../../src/components/SeriesCompare.vue'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue } from '../l10n/marked-catalogue.ts'
@@ -60,6 +62,22 @@ describe('SeriesCompare', () => {
 		expect(cards(wrapper)[1]!.find('.flag-mark--picked').exists()).toBe(true)
 		expect(cards(wrapper)[0]!.find('.flag-mark').exists()).toBe(false)
 		expect(cards(wrapper)[1]!.find('[aria-label$="Pick"]').attributes('aria-pressed')).toBe('true')
+	})
+
+	// spec: SERIES-001.19
+	it('makes Pick this, reject the rest primary on the active card only, and Skip secondary', () => {
+		const wrapper = mountCompare()
+		const variants = cards(wrapper).map((card) => card.findComponent(PickRestButton).findComponent(NcButton).props('variant'))
+
+		expect(variants).toEqual(['secondary', 'primary', 'secondary'])
+		expect(wrapper.findComponent(ConfirmDialog).props('secondary')).toBe(true)
+	})
+
+	// spec: SERIES-001.7
+	it('gives one line of instructions above the cards', () => {
+		const wrapper = mountCompare()
+
+		expect(plain(wrapper.find('.series-compare__hint').text())).toBe('Tap a photo to open the series fullscreen, or decide right here.')
 	})
 
 	// spec: SERIES-001.7, SERIES-001.9, SERIES-002.1

@@ -3,6 +3,7 @@
 // @vitest-environment happy-dom
 import { mount, shallowMount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import NcButton from '@nextcloud/vue/components/NcButton'
 import ConfirmDialog from '../../../src/components/ConfirmDialog.vue'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { DialogStub } from './stubs.ts'
@@ -41,6 +42,13 @@ describe('ConfirmDialog', () => {
 		await wrapper.findAll('button')[index]!.trigger('click')
 
 		expect(Object.keys(wrapper.emitted())).toContain(event)
+	})
+
+	it('makes the confirm button secondary on request, primary by default', () => {
+		const confirmVariant = (props: Record<string, unknown>) => mountDialog(props).findAllComponents(NcButton).at(-1)!.props('variant')
+
+		expect(confirmVariant({})).toBe('primary')
+		expect(confirmVariant({ secondary: true })).toBe('secondary')
 	})
 
 	it('disables the confirm button on request', () => {
