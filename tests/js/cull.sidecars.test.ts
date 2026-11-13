@@ -6,6 +6,7 @@ import type { Decision, StoredDecision } from '../../src/logic/decision.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 import type { Settings } from '../../src/logic/settings.ts'
+import type { StoredTags, Tag, TagChange } from '../../src/logic/tag.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
@@ -14,24 +15,35 @@ import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { ENTRIES, fakeStorage, SET, stored } from './app-cull.ts'
+import { ENTRIES, fakeStorage, NO_TAGS, SET, stored } from './app-cull.ts'
 
 const THREE_REJECTED: Decision = { ...UNDECIDED, rating: 3, flag: 'rejected' }
 
 /** A cull whose sidecar take-over answers `takenOver` and whose writes and saves are recorded. */
-function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<string, Decision>>, saveFails?: boolean } = {}) {
+function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<string, Decision>>, saveFails?: boolean, storedTags?: StoredTags[], tagsTakenOver?: Map<string, Tag[]>, tagLookupFails?: boolean } = {}) {
 	const saved: StoredDecision[][] = []
-	const takeOvers: { names: string[], stored: number[] }[] = []
+	const takeOvers: { names: string[], stored: number[], tagged: number[] | null }[] = []
+	const tagWrites: { names: string[], change: TagChange }[] = []
+	const savedTags: StoredTags[][] = []
+	const tagLookups: number[][] = []
 	const writes: { name: string, decision: Decision }[][] = []
 	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
 	const sidecars: CullSidecars = {
-		takeOver: async (pictures, storedIds) => {
-			takeOvers.push({ names: pictures.map((picture) => picture.baseName), stored: [...storedIds].sort((a, b) => a - b) })
+		takeOver: async (pictures, storedIds, taggedIds) => {
+			takeOvers.push({ names: pictures.map((picture) => picture.baseName), stored: [...storedIds].sort((a, b) => a - b), tagged: taggedIds && [...taggedIds].sort((a, b) => a - b) })
 			const decisions = await (options.takenOver ?? Promise.resolve(new Map<string, Decision>()))
-			return pictures.filter((picture) => decisions.has(picture.baseName)).map((picture) => ({ picture, decision: decisions.get(picture.baseName)! }))
+			const tags = options.tagsTakenOver ?? new Map<string, Tag[]>()
+			return {
+				decided: pictures.filter((picture) => decisions.has(picture.baseName)).map((picture) => ({ picture, decision: decisions.get(picture.baseName)! })),
+				tagged: pictures.filter((picture) => tags.has(picture.baseName)).map((picture) => ({ picture, tags: tags.get(picture.baseName)! })),
+			}
 		},
 		write: async (pictures, decisionOf) => {
 			writes.push(pictures.map((picture) => ({ name: picture.baseName, decision: decisionOf(picture) })))
+			return { written: pictures.length, failed: [] }
+		},
+		writeTags: async (pictures, change) => {
+			tagWrites.push({ names: pictures.map((picture) => picture.baseName), change })
 			return { written: pictures.length, failed: [] }
 		},
 	}
@@ -45,9 +57,19 @@ function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<
 				throw new Error('offline')
 			}
 		},
+		tags: {
+			lookupTags: async (fileIds) => {
+				tagLookups.push([...fileIds])
+				if (options.tagLookupFails) {
+					throw new Error('down')
+				}
+				return (options.storedTags ?? []).filter((row) => fileIds.includes(row.fileId))
+			},
+			saveTags: async (rows) => { savedTags.push([...rows]) },
+		},
 	}, fakeStorage(), () => settings.value, sidecars)
 	const picture = (name: string): Picture<ListingEntry> => cull.pictures.value.find((each) => each.baseName === name)!
-	return { cull, saved, takeOvers, writes, settings, picture }
+	return { cull, saved, takeOvers, writes, settings, picture, tagWrites, savedTags, tagLookups }
 }
 
 describe('useCull: taking over the sidecars\' decision', () => {
@@ -58,7 +80,7 @@ describe('useCull: taking over the sidecars\' decision', () => {
 		cull.open(SET, ENTRIES, [])
 		await flushPromises()
 
-		expect(takeOvers).toEqual([{ names: ['IMG_2', 'IMG_10', 'IMG_9'], stored: [4] }])
+		expect(takeOvers).toEqual([{ names: ['IMG_2', 'IMG_10', 'IMG_9'], stored: [4], tagged: [] }])
 		expect(cull.decisionOf(picture('IMG_10'))).toEqual(THREE_REJECTED)
 		expect(saved).toEqual([[{ fileId: 3, ...THREE_REJECTED }, { fileId: 2, ...THREE_REJECTED }]])
 	})
@@ -189,5 +211,57 @@ describe('useCull: writing through to the sidecars', () => {
 
 		cull.open(SET, ENTRIES, [])
 		expect(cull.sharedPictures.value).toEqual([])
+	})
+})
+
+describe('useCull: tags', () => {
+	// spec: TAGS-002.1, TAGS-002.2
+	it('reads the stored tags, then shows and stores the sidecars\' tags of the pictures without', async () => {
+		const { cull, takeOvers, savedTags, tagLookups, picture } = cullWith({ storedTags: [{ fileId: 4, tags: ['Anna'] }], tagsTakenOver: new Map([['IMG_10', ['Places/Lisbon']]]) })
+
+		cull.open(SET, ENTRIES, [])
+		await flushPromises()
+
+		expect(tagLookups).toEqual([[1, 3, 2, 4]])
+		expect(takeOvers.map(({ tagged }) => tagged)).toEqual([[4]])
+		expect(cull.tags.tagsOf(picture('IMG_9'))).toEqual(['Anna'])
+		expect(cull.tags.tagsOf(picture('IMG_10'))).toEqual(['Places/Lisbon'])
+		expect(savedTags).toEqual([[{ fileId: 3, tags: ['Places/Lisbon'] }, { fileId: 2, tags: ['Places/Lisbon'] }]])
+	})
+
+	// spec: TAGS-002.6
+	it('takes no tags over when their read fails, and still loads the decisions', async () => {
+		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
+		const { cull, takeOvers, picture } = cullWith({ stored: [stored(4, 'picked')], tagLookupFails: true })
+
+		cull.open(SET, ENTRIES, [])
+		await flushPromises()
+
+		expect(takeOvers.map(({ tagged }) => tagged)).toEqual([null])
+		expect(cull.decisionOf(picture('IMG_9')).flag).toBe('picked')
+	})
+
+	// spec: TAGS-002.9, TAGS-002.12
+	it('writes a tag change through outside shared folders only', async () => {
+		const { cull, tagWrites, picture } = cullWith()
+		const change = { added: ['Anna'], removed: [] }
+		cull.open(SET, ENTRIES, ['/Trip/B'])
+		await flushPromises()
+
+		await cull.tags.change([picture('IMG_2'), picture('IMG_10')], change)
+
+		expect(tagWrites).toEqual([{ names: ['IMG_2'], change }])
+	})
+
+	// spec: TAGS-002.14
+	it('reads the tags of files moved back', async () => {
+		const { cull, tagLookups } = cullWith()
+		cull.open(SET, ENTRIES, [])
+		await flushPromises()
+		const pair = cull.pictures.value.find((each) => each.baseName === 'IMG_10')!
+		cull.restoreFiles([{ ...pair.raw!, fileId: 103 }])
+		await flushPromises()
+
+		expect(tagLookups.at(-1)).toEqual([103])
 	})
 })

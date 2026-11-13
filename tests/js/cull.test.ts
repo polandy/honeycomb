@@ -12,11 +12,11 @@ import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { ENTRIES, fakeStorage, SET, stored } from './app-cull.ts'
+import { ENTRIES, fakeStorage, NO_TAGS, SET, stored } from './app-cull.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
 /** Sidecars with nothing to take over, written without a word. */
-const NO_SIDECARS: CullSidecars = { takeOver: async () => [], write: async () => ({ written: 0, failed: [] }) }
+const NO_SIDECARS: CullSidecars = { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) }
 
 /** The error the next lookups fail with, reset before each test. */
 let lookupFails: Error | null = null
@@ -41,6 +41,7 @@ async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 			return [...stored]
 		},
 		saveDecisions: async (rows) => { saved.push([...rows]) },
+		tags: NO_TAGS,
 	}, fakeStorage(), () => settings.value, NO_SIDECARS)
 	cull.open(SET, entries, [])
 	await flushPromises()
