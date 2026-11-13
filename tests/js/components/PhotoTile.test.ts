@@ -253,4 +253,15 @@ describe('PhotoTile', () => {
 		expect(wrapper.classes()).toContain('photo-tile--selected')
 		expect(wrapper.attributes('aria-selected')).toBe('true')
 	})
+
+	// spec: TAGS-004.7
+	it('shows a tag icon and the tag count in the marks shade and the label, nothing untagged', () => {
+		const wrapper = mountTile(PAIR, { tags: 2 })
+
+		expect(wrapper.find('.photo-tile__marks .photo-tile__tags').text()).toBe('2')
+		expect(wrapper.find('.photo-tile__tags svg').exists()).toBe(true)
+		expect(wrapper.attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3, 2 tags')
+		expect(mountTile(PAIR).find('.photo-tile__tags').exists()).toBe(false)
+		expect(mountTile(PAIR, { tags: 0 }).find('.photo-tile__marks').exists()).toBe(false)
+	})
 })

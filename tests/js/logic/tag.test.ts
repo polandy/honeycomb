@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { changedTags, leafOf, revertTagRows, sortedTags, storableTags, tagOf, withTagRows } from '../../../src/logic/tag.ts'
+import { changedTags, hasEveryTag, leafOf, revertTagRows, sortedTags, storableTags, tagOf, withTagRows } from '../../../src/logic/tag.ts'
 
 describe('tagOf', () => {
 	// spec: XMP-004.1
@@ -65,5 +65,23 @@ describe('withTagRows and revertTagRows', () => {
 		const later = withTagRows(withTagRows(before, rows), [{ fileId: 2, tags: ['later'] }])
 
 		expect(revertTagRows(later, rows, before)).toEqual(new Map([[1, ['a']], [2, ['later']]]))
+	})
+})
+
+describe('hasEveryTag', () => {
+	// spec: TAGS-004.1
+	it('needs every chosen tag, and nothing chosen passes all', () => {
+		expect(hasEveryTag(['Anna', 'Sunrise'], ['Sunrise', 'Anna'])).toBe(true)
+		expect(hasEveryTag(['Anna'], ['Sunrise', 'Anna'])).toBe(false)
+		expect(hasEveryTag([], [])).toBe(true)
+	})
+
+	// spec: TAGS-004.2
+	it('matches a chosen parent by the tag itself or one beneath it, not by a longer name', () => {
+		expect(hasEveryTag(['Places/Italy'], ['Places/Italy'])).toBe(true)
+		expect(hasEveryTag(['Places/Italy/Dolomites'], ['Places/Italy'])).toBe(true)
+		expect(hasEveryTag(['Places/Italy/Dolomites'], ['Places'])).toBe(true)
+		expect(hasEveryTag(['Places/Italyx'], ['Places/Italy'])).toBe(false)
+		expect(hasEveryTag(['Places'], ['Places/Italy'])).toBe(false)
 	})
 })

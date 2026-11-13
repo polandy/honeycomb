@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Decision } from '../../../src/logic/decision.ts'
+import type { Picture } from '../../../src/logic/pairing.ts'
 import type { Filters } from '../../../src/logic/picture-filter.ts'
 
 import { describe, expect, it } from 'vitest'
@@ -27,6 +28,11 @@ const rawOnly = pictureOf(listingEntry(4, '/Q/C.NEF'))
 /** The default filters with the given fields changed. */
 function filters(fields: Partial<Filters>): Filters {
 	return { ...DEFAULT_FILTERS, ...fields }
+}
+
+/** Whether the untagged picture passes. */
+function matchesUntagged(picture: Picture<unknown>, chosen: Decision, active: Filters): boolean {
+	return matchesFilters(picture, chosen, [], active)
 }
 
 /** An undecided decision with the given fields changed. */
@@ -57,9 +63,9 @@ describe('matchesFilters', () => {
 	// spec: GRID-002.1
 	it('shows everything but rejects by default', () => {
 		expect(DEFAULT_FILTERS.flags).toEqual(new Set(['picked', 'unflagged']))
-		expect(matchesFilters(pair, decision({ flag: 'picked' }), DEFAULT_FILTERS)).toBe(true)
-		expect(matchesFilters(pair, decision({}), DEFAULT_FILTERS)).toBe(true)
-		expect(matchesFilters(pair, decision({ flag: 'rejected' }), DEFAULT_FILTERS)).toBe(false)
+		expect(matchesUntagged(pair, decision({ flag: 'picked' }), DEFAULT_FILTERS)).toBe(true)
+		expect(matchesUntagged(pair, decision({}), DEFAULT_FILTERS)).toBe(true)
+		expect(matchesUntagged(pair, decision({ flag: 'rejected' }), DEFAULT_FILTERS)).toBe(false)
 	})
 
 	it.each([
@@ -75,7 +81,7 @@ describe('matchesFilters', () => {
 		[['unflagged'], 'picked', false],
 	// spec: GRID-002.2
 	] as const)('with the flags %j pressed shows %s: %s', (pressed, flag, expected) => {
-		expect(matchesFilters(pair, decision({ flag }), filters({ flags: new Set(pressed) }))).toBe(expected)
+		expect(matchesUntagged(pair, decision({ flag }), filters({ flags: new Set(pressed) }))).toBe(expected)
 	})
 
 	it.each([
@@ -87,28 +93,28 @@ describe('matchesFilters', () => {
 	] as const)('with rating %s %d matches ratings 0–5 as %o', (comparison, rating, expected) => {
 		const ratingFilter = filters({ rating, comparison })
 
-		expect([0, 1, 2, 3, 4, 5].map((stars) => matchesFilters(pair, decision({ rating: stars }), ratingFilter))).toEqual(expected)
+		expect([0, 1, 2, 3, 4, 5].map((stars) => matchesUntagged(pair, decision({ rating: stars }), ratingFilter))).toEqual(expected)
 	})
 
 	// spec: GRID-002.3
 	it('ignores the comparison while no rating is chosen', () => {
-		expect(matchesFilters(pair, decision({ rating: 0 }), filters({ comparison: 'exactly' }))).toBe(true)
+		expect(matchesUntagged(pair, decision({ rating: 0 }), filters({ comparison: 'exactly' }))).toBe(true)
 	})
 
 	// spec: GRID-002.4
 	it('matches any of the chosen colour labels', () => {
 		const redOrGreen = filters({ colourLabels: new Set(['red', 'green']) })
 
-		expect(matchesFilters(pair, decision({ colourLabel: 'green' }), redOrGreen)).toBe(true)
-		expect(matchesFilters(pair, decision({ colourLabel: 'blue' }), redOrGreen)).toBe(false)
-		expect(matchesFilters(pair, decision({ colourLabel: null }), redOrGreen)).toBe(false)
+		expect(matchesUntagged(pair, decision({ colourLabel: 'green' }), redOrGreen)).toBe(true)
+		expect(matchesUntagged(pair, decision({ colourLabel: 'blue' }), redOrGreen)).toBe(false)
+		expect(matchesUntagged(pair, decision({ colourLabel: null }), redOrGreen)).toBe(false)
 	})
 
 	// spec: GRID-002.4
 	it('matches any of the chosen pairing kinds', () => {
 		const singles = filters({ pairings: new Set(['rendered-only', 'raw-only']) })
 
-		expect([pair, jpegOnly, rawOnly].map((picture) => matchesFilters(picture, UNDECIDED, singles))).toEqual([false, true, true])
+		expect([pair, jpegOnly, rawOnly].map((picture) => matchesUntagged(picture, UNDECIDED, singles))).toEqual([false, true, true])
 	})
 
 	it.each([
@@ -119,24 +125,40 @@ describe('matchesFilters', () => {
 		[['marked', 'not-marked'], false, true],
 	// spec: GRID-002.4
 	] as const)('with Keep RAW %o matches a marker %s: %s', (chips, keepRaw, expected) => {
-		expect(matchesFilters(pair, decision({ keepRaw }), filters({ keepRaw: new Set(chips) }))).toBe(expected)
+		expect(matchesUntagged(pair, decision({ keepRaw }), filters({ keepRaw: new Set(chips) }))).toBe(expected)
 	})
 
 	// spec: GRID-002.4
 	it('matches any of the chosen folders', () => {
 		const folderP = filters({ folders: new Set(['/P']) })
 
-		expect(matchesFilters(jpegOnly, UNDECIDED, folderP)).toBe(true)
-		expect(matchesFilters(rawOnly, UNDECIDED, folderP)).toBe(false)
+		expect(matchesUntagged(jpegOnly, UNDECIDED, folderP)).toBe(true)
+		expect(matchesUntagged(rawOnly, UNDECIDED, folderP)).toBe(false)
 	})
 
 	// spec: GRID-002.5
 	it('needs every active group to match', () => {
 		const redAndThreeStars = filters({ colourLabels: new Set(['red']), rating: 3 })
 
-		expect(matchesFilters(pair, decision({ colourLabel: 'red', rating: 4 }), redAndThreeStars)).toBe(true)
-		expect(matchesFilters(pair, decision({ colourLabel: 'red', rating: 2 }), redAndThreeStars)).toBe(false)
-		expect(matchesFilters(pair, decision({ colourLabel: 'blue', rating: 4 }), redAndThreeStars)).toBe(false)
+		expect(matchesUntagged(pair, decision({ colourLabel: 'red', rating: 4 }), redAndThreeStars)).toBe(true)
+		expect(matchesUntagged(pair, decision({ colourLabel: 'red', rating: 2 }), redAndThreeStars)).toBe(false)
+		expect(matchesUntagged(pair, decision({ colourLabel: 'blue', rating: 4 }), redAndThreeStars)).toBe(false)
+	})
+})
+
+describe('matchesFilters with tags', () => {
+	const chosen = filters({ tags: new Set(['Places/Italy', 'Anna']) })
+
+	// spec: TAGS-004.1, TAGS-004.2
+	it('passes a picture with every chosen tag, a parent matching beneath it', () => {
+		expect(matchesFilters(pair, UNDECIDED, ['Anna', 'Places/Italy/Dolomites'], chosen)).toBe(true)
+		expect(matchesFilters(pair, UNDECIDED, ['Places/Italy'], chosen)).toBe(false)
+		expect(matchesFilters(pair, UNDECIDED, [], DEFAULT_FILTERS)).toBe(true)
+	})
+
+	// spec: TAGS-004.1
+	it('combines with the other groups', () => {
+		expect(matchesFilters(pair, decision({ flag: 'rejected' }), ['Anna', 'Places/Italy'], chosen)).toBe(false)
 	})
 })
 
@@ -144,7 +166,7 @@ describe('filterPictures', () => {
 	it('keeps the matching pictures in their order', () => {
 		const decisions = new Map([[pair, decision({ flag: 'rejected' })]])
 
-		const shown = filterPictures([rawOnly, pair, jpegOnly], (picture) => decisions.get(picture) ?? UNDECIDED, DEFAULT_FILTERS)
+		const shown = filterPictures([rawOnly, pair, jpegOnly], (picture) => decisions.get(picture) ?? UNDECIDED, () => [], DEFAULT_FILTERS)
 
 		expect(shown).toEqual([rawOnly, jpegOnly])
 	})
@@ -184,6 +206,11 @@ describe('activeFilterCount', () => {
 
 		expect(activeFilterCount(active)).toBe(6)
 	})
+
+	// spec: TAGS-004.6
+	it('counts each chosen tag', () => {
+		expect(activeFilterCount(filters({ rating: 0, tags: new Set(['Anna', 'Places']) }))).toBe(3)
+	})
 })
 
 describe('toggleChip', () => {
@@ -211,6 +238,7 @@ describe('emptyReason', () => {
 		['an active filter', filters({ rating: 5 }), 3, 'no-match'],
 		['a flag filter other than the default', filters({ flags: new Set(['picked']) }), 3, 'no-match'],
 		['no flag pressed', filters({ flags: new Set() }), 3, 'no-match'],
+		['a tag chosen', filters({ tags: new Set(['Anna']) }), 3, 'no-match'],
 	// spec: GRID-002.11
 	] as const)('of an empty view is %s', (_case, active, total, expected) => {
 		expect(emptyReason(active, total)).toBe(expected)
