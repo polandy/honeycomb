@@ -829,3 +829,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-13: *Tags 3* (multi-select) was already delivered: the *Select* icon button (labelled
   from 1000 px, per the toolbar decision in `docs/plan.md`), long-press and the *Tags* action.
 - 2026-11-13: Tags in the loupe's info panel are left for a follow-up PR to keep TAGS-004 small.
+- 2026-11-13: The info panel's *Tags* section shows each tag by its full path, one per line;
+  *Written to* names the write-through's own targets (`sidecarTargets`, incl. sidecars it creates),
+  so the panel and the write cannot disagree; a shared folder reads *Not written, shared folder*.

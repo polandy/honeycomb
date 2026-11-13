@@ -13,6 +13,7 @@ import type { ListingEntry } from '../logic/listing.ts'
 import type { Schedule } from '../logic/long-press.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Settings } from '../logic/settings.ts'
+import type { Tag } from '../logic/tag.ts'
 import type { ObserveSize } from '../observe-size.ts'
 import type { Toast } from '../toast.ts'
 import type { ViewStateStore } from '../view-state.ts'
@@ -46,6 +47,10 @@ const props = withDefaults(defineProps<{
 	index: number
 	folderSet: FolderSet
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
+	/** The picture's tags for the info panel (TAGS-004.8). */
+	tagsOf?: (picture: Picture<ListingEntry>) => readonly Tag[]
+	/** Whether the picture's tag changes are written to its sidecars (TAGS-004.9). */
+	writesSidecars?: (picture: Picture<ListingEntry>) => boolean
 	storage: BrowserStorage
 	viewState: ViewStateStore
 	settings: Settings
@@ -56,6 +61,8 @@ const props = withDefaults(defineProps<{
 	devicePixelRatio?: number
 	observeSize?: ObserveSize
 }>(), {
+	tagsOf: () => [],
+	writesSidecars: () => true,
 	imageUrl: apiImageUrl,
 	decode: decodeSource,
 	schedule: browserSchedule,
@@ -215,6 +222,8 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 					:picture="picture"
 					:folderSet="props.folderSet"
 					:decision="props.decisionOf(picture)"
+					:tags="props.tagsOf(picture)"
+					:writesSidecars="props.writesSidecars(picture)"
 					:preloaded="preloaded"
 					:neighbours="neighbours.length" />
 			</template>

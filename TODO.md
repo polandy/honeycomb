@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Tags 4: Tags in the loupe's info panel; the tag filter and the tile's count came with TAGS-004 (2026-11-13)
 - [ ] Tags 5: Merge `docs/mockup/tag-entry.html` into `docs/mockup/index.html`, user doc `docs/user/tags.md` (`docs/07-tags.md` outline step 6) (2026-11-13)
 - [ ] UX M1: Slim the grid toolbar: drop the funnel before the flag chips, move *Delete rejects* and *Compare* into *More* below 900 px, at most two rows on a phone (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX M2: Name the toolbar progress's scope when a flag filter hides photos ("4 / 20 shown decided"), so it no longer contradicts the navigation's count (owner decided 2026-11-12) (`docs/ux-review-2026-11.md`) (2026-11-12)

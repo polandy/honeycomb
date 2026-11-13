@@ -107,5 +107,5 @@ export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, ch
 		}
 	}
 
-	return { tags, known, reset, loadList, tagsOf, load, takeOver, change, restore }
+	return { tags, known, reset, loadList, tagsOf, writable, load, takeOver, change, restore }
 }
