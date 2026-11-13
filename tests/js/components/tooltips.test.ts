@@ -26,7 +26,7 @@ describe('the tooltips of the icon-only controls', () => {
 	// spec: APP-002.9
 	it('name the grid toolbar\'s controls and their keys', () => {
 		const wrapper = mount(GridToolbar, {
-			props: { folderSet: { paths: ['/Trip'], subfolders: false }, folders: 1, tileSize: 150, groupByFolder: false, flags: new Set<Flag>(['picked', 'unflagged']), decided: 0, total: 1, activeFilters: 0, filtersOpen: false, sortOrder: 'file-name', selecting: false, selected: 0, rejected: 2, series: 1, rawRemovable: 0, sidecarsShared: false, movable: 0, resumeName: null },
+			props: { folderSet: { paths: ['/Trip'], subfolders: false }, folders: 1, tileSize: 150, groupByFolder: false, flags: new Set<Flag>(['picked', 'unflagged']), decided: 0, total: 1, filtered: false, activeFilters: 0, filtersOpen: false, sortOrder: 'file-name', selecting: false, selected: 0, rejected: 2, series: 1, rawRemovable: 0, sidecarsShared: false, movable: 0, resumeName: null },
 			global: { stubs: { NcPopover: PopoverStub } },
 		})
 

@@ -48,12 +48,12 @@ describe('App: decisions, flag filter, filters and sort', () => {
 
 		expect(lookedUp.map((ids) => [...ids].sort((a, b) => a - b))).toEqual([[1, 2, 3, 4]])
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9'])
-		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ decided: 1, total: 2 })
+		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ decided: 1, total: 2, filtered: true })
 
 		wrapper.findComponent(GridToolbar).vm.$emit('update:flags', new Set())
 		await flushPromises()
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
-		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ decided: 2, total: 3 })
+		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ decided: 2, total: 3, filtered: false })
 	})
 
 	// spec: DECISIONS-001.9
