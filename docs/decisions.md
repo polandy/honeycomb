@@ -911,3 +911,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-13: UX L7 asks the loupe filmstrip to start at its left edge until the shown photo
   reaches the middle. The strip stops at its right edge the same way, so the last photos never
   leave the right half empty either; that is how Lightroom's filmstrip behaves (LOUPE-001.19).
+- 2026-11-13: Series in the loupe (concept, awaiting the owner's sign-off): a "⧉ 2/5" chip in the
+  title row and `N` open the existing series compare on this one series, *Pick this, reject the
+  rest* (`Shift+K`) joins the loupe's rating row, and the filmstrip frames each series. A gesture
+  was rejected as undiscoverable and an inline series strip as a second compare view
+  (`docs/plans/loupe-series-concept.md`).
