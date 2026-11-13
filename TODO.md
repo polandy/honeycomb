@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] UX M3: Drop the pair badge on a complete pair; only singles keep "JPG only" or "NEF only" (owner decided 2026-11-12) (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX M4: Close the resume toast when the user opens a photo, decides or scrolls the grid (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX M5: Series compare: *Pick this, reject the rest* primary only on the active card, cards fill the dialog height, one line of instructions, equal flag-button heights (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX M6: Compact the loupe info panel: 32 px rows, left-aligned muted labels, sidecars by file name once each, "—" when empty, no *Preloading* section (`docs/ux-review-2026-11.md`) (2026-11-12)

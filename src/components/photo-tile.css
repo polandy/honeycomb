@@ -33,8 +33,6 @@
 
 .photo-tile__pair {
 	inset-inline-start: 6px;
-	background-color: var(--color-main-background-blur);
-	color: var(--color-main-text);
 }
 
 .photo-tile__pair--single {

@@ -61,11 +61,20 @@ const shown = ref<string | null>(null)
 /** Whether the small preview is still on its way (GRID-001.12). */
 const waiting = ref(true)
 
-const badge = computed(() => {
+/** The members as the label names them: both extensions of a pair, else the single's. */
+const members = computed(() => {
 	const shown = pairBadge(props.picture)
 	return shown.kind === 'pair'
-		? { text: props.decision.keepRaw ? `${shown.label} ✓` : shown.label, single: false, keepRaw: props.decision.keepRaw }
-		: { text: t('honeycomb', '{extension} only', { extension: shown.extension }, undefined, PLAIN_TEXT), single: true, keepRaw: false }
+		? { name: shown.label, single: false }
+		: { name: t('honeycomb', '{extension} only', { extension: shown.extension }, undefined, PLAIN_TEXT), single: true }
+})
+
+/** The tile's badge; a complete pair has none unless it keeps its RAW (GRID-001.4). */
+const badge = computed(() => {
+	if (members.value.single) {
+		return { text: members.value.name, single: true, keepRaw: false }
+	}
+	return props.decision.keepRaw ? { text: `${members.value.name} ✓`, single: false, keepRaw: true } : null
 })
 
 const FLAG_NAMES = { picked: () => t('honeycomb', 'Picked'), rejected: () => t('honeycomb', 'Rejected'), unflagged: () => null }
@@ -77,7 +86,7 @@ const decisionLabel = computed(() => {
 		rating > 0 ? n('honeycomb', '{count} star', '{count} stars', rating, { count: formatNumber(rating) }) : null,
 		colourLabel === null ? null : t('honeycomb', 'Colour label: {name}', { name: colourLabelName(colourLabel) }, undefined, PLAIN_TEXT),
 		FLAG_NAMES[flag](),
-		badge.value.keepRaw ? t('honeycomb', 'Keep RAW') : null,
+		badge.value?.keepRaw === true ? t('honeycomb', 'Keep RAW') : null,
 	].filter((part) => part !== null)
 })
 
@@ -91,7 +100,7 @@ const seriesBadge = computed(() => `⧉ ${formatNumber(props.series)}`)
 
 const label = computed(() => [
 	props.picture.baseName,
-	badge.value.text.replace(' ✓', ''),
+	members.value.name,
 	...(props.picture.ambiguous ? [t('honeycomb', 'ambiguous name')] : []),
 	...(props.series > 1 ? [seriesText.value] : []),
 	...decisionLabel.value,
@@ -152,7 +161,7 @@ onBeforeUnmount(() => pending?.load.cancel())
 			alt=""
 			draggable="false"
 			:src="shown">
-		<span class="photo-tile__pair" :class="{ 'photo-tile__pair--single': badge.single, 'photo-tile__pair--keep-raw': badge.keepRaw }">{{ badge.text }}</span>
+		<span v-if="badge !== null" class="photo-tile__pair" :class="{ 'photo-tile__pair--single': badge.single, 'photo-tile__pair--keep-raw': badge.keepRaw }">{{ badge.text }}</span>
 		<span v-if="props.picture.ambiguous" class="photo-tile__ambiguous" aria-hidden="true">!</span>
 		<span
 			v-if="props.series > 1"
