@@ -145,11 +145,10 @@ const LARGE_FLAGS = [FLAGS[0]!, FLAGS[2]!, FLAGS[1]!]
 
 	.flag-buttons--large .flag-buttons__button--unflagged {
 		grid-area: 3 / 3;
-		height: 56px;
-	}
-
-	.flag-buttons--large .flag-buttons__button--unflagged .flag-buttons__label {
-		display: none;
+		gap: var(--default-grid-baseline);
+		height: auto;
+		min-height: 56px;
+		padding: var(--default-grid-baseline) 0;
 	}
 }
 
@@ -160,7 +159,8 @@ const LARGE_FLAGS = [FLAGS[0]!, FLAGS[2]!, FLAGS[1]!]
 	}
 
 	.flag-buttons--large .flag-buttons__button--unflagged {
-		height: 40px;
+		height: auto;
+		min-height: 40px;
 	}
 }
 </style>
