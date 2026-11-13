@@ -83,7 +83,7 @@ how far the cull is; the sort orders the pictures by file name or capture time.
 - **Then** it shows "x of y decided" over the pictures that pass the filters (y is the number of
   pictures the grid shows) as text and a bar, empty when none shows; the progress saved with a
   recent folder set still counts every picture; while the filters hide pictures of the cull the
-  text reads "x / y shown decided", so it does not contradict the recent folder set's progress
+  text reads "x of y shown decided", so it does not contradict the recent folder set's progress
 
 ### GRID-002.8 – Default sort and the sort menu
 
