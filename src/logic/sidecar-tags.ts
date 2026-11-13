@@ -1,6 +1,6 @@
-import type { EmbeddedXmpAnswer } from './embedded-xmp.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { EmbeddedXmpAnswer } from './embedded-xmp.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 import type { SidecarFailureReason, SidecarLookupAnswer, TakeOverLookup } from './sidecar-sync.ts'
