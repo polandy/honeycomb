@@ -1664,7 +1664,7 @@ function updateTile(id){
   el.querySelector('.flw').innerHTML = flagMark(it.flag);
   const tg = el.querySelector('.tgn'); tg.hidden = !it.tags.length; tg.querySelector('b').textContent = nf(it.tags.length); tg.dataset.tip = n('%n tag', '%n tags', it.tags.length);
   el.querySelector('.ov').classList.toggle('bare', !it.rating && !it.label && it.flag === 'none' && !it.tags.length);
-  const pb = el.querySelector('.pair'); pb.classList.toggle('k', !!it.keepRaw); pb.textContent = pairLabel(it) + (it.keepRaw ? ' ✓' : '');
+  const pb = el.querySelector('.pair'); pb.hidden = pairType(it) === 'pair' && !it.keepRaw; pb.classList.toggle('k', !!it.keepRaw); pb.textContent = pairLabel(it) + (it.keepRaw ? ' ✓' : '');
   pb.dataset.tip = pairType(it) === 'pair' ? (it.keepRaw ? t('Pair: JPEG and RAW · Keep RAW') : t('Pair: JPEG and RAW')) : t('Single: {name}', {name:pairLabel(it)});
 }
 function renderGrid(){

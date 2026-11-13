@@ -190,8 +190,9 @@ for most, so the RAWs of the rest can go once a cull is done.
    "Removed Keep RAW from IMG_0001 · Undo". It does not advance.
 2. **Where the toggle sits.** In the shared action bar, after the colour label, so it is the same
    control in the loupe (the small row below the flag buttons), the series viewer and the
-   selection bar; pressed, it is honey like the other pressed controls. On a grid tile a marked
-   pair's badge turns honey with a check, `JPG+NEF ✓`, and the tile's label says "Keep RAW".
+   selection bar; pressed, it is honey like the other pressed controls. On a grid tile, where a
+   complete pair has no badge, a marked pair shows one in honey with a check, `JPG+NEF ✓`, and
+   the tile's label says "Keep RAW".
    Key `R` toggles it ([Keyboard shortcuts](#keyboard-shortcuts)).
 3. **Filter.** The filter bar has a *Keep RAW* group after *Pairing*, with the chips *Marked* and
    *Not marked*; like the other chip groups it selects several, none selected means no filter.

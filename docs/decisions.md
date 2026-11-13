@@ -846,3 +846,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   filter hiding rejects included), not only the flag filter: the filter bar narrows the same
   count, and the contradiction with the recent folder set's progress is the same. The mockup keeps
   its wording.
+- 2026-11-13: UX M3 hides the badge of a complete pair only while it is not marked *Keep RAW*:
+  the badge was the tile's only *Keep RAW* mark (`JPG+NEF ✓`, GRID-001.6), and a kept pair is an
+  exception worth showing like a single. The tile's accessible name still says `JPG+NEF`, so a
+  screen reader keeps the pairing it cannot see from a missing badge. The mockup hides it too.

@@ -155,11 +155,11 @@ describe('PhotoTile', () => {
 	})
 
 	// spec: GRID-001.4
-	it('labels a pair quietly with both extensions', () => {
-		const badge = mountTile(PAIR).find('.photo-tile__pair')
+	it('shows no badge on a complete pair but names both extensions in its label', () => {
+		const wrapper = mountTile(PAIR, { decision: UNDECIDED })
 
-		expect(badge.text()).toBe('JPG+CR3')
-		expect(badge.classes()).not.toContain('photo-tile__pair--single')
+		expect(wrapper.find('.photo-tile__pair').exists()).toBe(false)
+		expect(wrapper.attributes('aria-label')).toBe('IMG_0001, JPG+CR3')
 	})
 
 	it.each([
@@ -189,7 +189,7 @@ describe('PhotoTile', () => {
 		expect(wrapper.html()).toContain(`${MARK}JPG only`)
 		expect(untranslatedText(wrapper.element as Element)).toEqual([`IMG_0002, ${MARK}JPG only`])
 	})
-	// spec: GRID-001.6
+	// spec: GRID-001.4, GRID-001.6
 	it('shows rating, colour label, flag and Keep RAW on the tile and in its label', () => {
 		const wrapper = mountTile(PAIR, { decision: { rating: 3, colourLabel: 'green', flag: 'rejected', keepRaw: true } })
 
