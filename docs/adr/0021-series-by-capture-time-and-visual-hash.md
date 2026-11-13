@@ -26,8 +26,9 @@ a new heavy dependency and would read the files a second time.
   **10 of 64 bits**; while either has no hash, the old rule applies (at most 3 seconds). The
   numbers are named constants in `src/logic/series.ts`.
   - 30 s: with a visual check, time only has to rule out unrelated scenes. Bursts with pauses to
-    reframe or to wait for a moment fit in 30 s; beyond that a photographer usually has moved on,
-    and the four-per-series split keeps long runs small anyway.
+    reframe or to wait for a moment fit in 30 s; beyond that a photographer usually has moved on.
+    (A four-per-series split once kept long runs small; the owner dropped it on 2026-11-13 to see
+    a whole burst together, see `docs/decisions.md`.)
   - 10 bits (about 15 %): the threshold commonly used with dHash for "near duplicate"; burst
     frames of one subject usually stay below it, different scenes well above. It is a starting
     point to tune on the owner's photos.

@@ -10,7 +10,7 @@ import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 
 import { n, t } from '@nextcloud/l10n'
-import { computed } from 'vue'
+import { computed, onMounted, useTemplateRef, watch } from 'vue'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import ConfirmDialog from './ConfirmDialog.vue'
 import FlagButtons from './FlagButtons.vue'
@@ -46,6 +46,15 @@ const emit = defineEmits<{
 const title = computed(() => (props.series === null
 	? t('honeycomb', 'Compare series')
 	: t('honeycomb', 'Compare series {i} of {count}', { i: formatNumber(props.position + 1), count: formatNumber(props.count) }, undefined, PLAIN_TEXT)))
+const row = useTemplateRef<HTMLUListElement>('row')
+// A long series scrolls sideways; keys and the closing viewer move the active card (SERIES-001.21).
+/** Scrolls the active card into view. */
+function showActive() {
+	row.value?.children[props.active]?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+}
+onMounted(showActive)
+watch([() => props.active, () => props.series], showActive, { flush: 'post' })
+
 /** The picture's flag, or null while it is unflagged. */
 function flaggedOf(picture: Picture<ListingEntry>) {
 	const { flag } = props.decisionOf(picture)
@@ -72,7 +81,11 @@ function flaggedOf(picture: Picture<ListingEntry>) {
 			<p class="series-compare__hint">
 				{{ t('honeycomb', 'Tap a photo to open the series fullscreen, or decide right here.') }}
 			</p>
-			<ul class="series-compare" :class="`series-compare--${props.series.length}`">
+			<ul
+				ref="row"
+				class="series-compare"
+				:class="`series-compare--${props.series.length}`"
+				:style="{ '--series-compare-count': props.series.length }">
 				<li v-for="(picture, index) in props.series" :key="imageMember(picture).fileId" class="series-compare__card">
 					<button
 						type="button"
@@ -112,26 +125,29 @@ function flaggedOf(picture: Picture<ListingEntry>) {
 	--series-compare-room: min(90dvh, 100dvh - 2 * var(--header-height, 50px) - 2 * var(--body-container-margin, 8px));
 	--series-compare-chrome: 300px;
 	--series-compare-photo-height: calc(var(--series-compare-room) - var(--series-compare-chrome));
+	/* Narrower cards would squeeze the flag buttons; a longer series scrolls instead. */
+	--series-compare-card-min: 180px;
+	--series-compare-gap: 8px;
 	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	gap: 8px;
+	grid-auto-columns: max(var(--series-compare-card-min), (100% - (var(--series-compare-count) - 1) * var(--series-compare-gap)) / var(--series-compare-count));
+	grid-auto-flow: column;
+	gap: var(--series-compare-gap);
 	margin: 0;
 	padding: 0;
+	overflow-x: auto;
+	scroll-snap-type: x proximity;
 	list-style: none;
 }
 
-.series-compare--3 {
-	grid-template-columns: repeat(3, 1fr);
-}
-
-.series-compare--4 {
-	grid-template-columns: repeat(4, 1fr);
-}
-
 @media (max-width: 700px) {
+	.series-compare {
+		--series-compare-card-min: calc((100% - var(--series-compare-gap)) / 2);
+	}
+
 	.series-compare--3,
 	.series-compare--4 {
 		grid-template-columns: repeat(2, 1fr);
+		grid-auto-flow: row;
 		--series-compare-photo-height: calc((var(--series-compare-room) - var(--series-compare-chrome)) / 2 - 90px);
 	}
 }
@@ -141,6 +157,7 @@ function flaggedOf(picture: Picture<ListingEntry>) {
 	flex-direction: column;
 	gap: 6px;
 	min-width: 0;
+	scroll-snap-align: start;
 	container: card / inline-size;
 }
 

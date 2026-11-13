@@ -22,9 +22,6 @@ export type HashOf<P> = (picture: P) => string | null
 /** Without visual hashes, series follow the time rule alone. */
 const noHashes = () => null
 
-/** The most pictures one series shows side by side. */
-const SERIES_SIZE = 4
-
 interface Shot<P> {
 	readonly picture: P
 	readonly time: number
@@ -42,12 +39,12 @@ export function hashablePictures<P extends Picture<ListingEntry>>(pictures: read
 	return runs(cameraShots(pictures, noHashes), (previous, next) => previous.camera === next.camera && next.time - previous.time <= VISUAL_SERIES_GAP_SECONDS).flatMap(picturesOfRun)
 }
 
-/** The series to compare: candidates without rejected pictures, linked again, split evenly to SERIES_SIZE, each with an unflagged picture, by first capture time. */
+/** The series to compare: candidates without rejected pictures, linked again, each with an unflagged picture, by first capture time. */
 export function findSeries<P extends Picture<ListingEntry>>(candidates: readonly (readonly P[])[], decisionOf: (picture: P) => Decision, hashOf: HashOf<P> = noHashes): P[][] {
 	return candidates
 		.flatMap((candidate) => {
 			const shots = candidate.filter((picture) => decisionOf(picture).flag !== 'rejected').map((picture) => shotOf(picture, hashOf)!)
-			return runs(shots, linked).flatMap((run) => evenChunks(picturesOfRun(run)))
+			return runs(shots, linked).map(picturesOfRun)
 		})
 		.filter((series) => series.some((picture) => decisionOf(picture).flag === 'unflagged'))
 		.sort((a, b) => shotOf(a[0]!, noHashes)!.time - shotOf(b[0]!, noHashes)!.time)
@@ -92,17 +89,6 @@ function runs<P>(shots: readonly Shot<P>[], together: (previous: Shot<P>, next: 
 		}
 	})
 	return all.filter((run) => run.length > 1)
-}
-
-/** The run cut into as few chunks of at most SERIES_SIZE as possible, their sizes differing by one at most. */
-function evenChunks<T>(run: readonly T[]): T[][] {
-	const count = Math.ceil(run.length / SERIES_SIZE)
-	const size = Math.floor(run.length / count)
-	const larger = run.length % count
-	return Array.from({ length: count }, (_, index) => {
-		const start = index * size + Math.min(index, larger)
-		return run.slice(start, start + size + (index < larger ? 1 : 0))
-	})
 }
 
 /** Orders strings by code unit, independent of the locale. */
