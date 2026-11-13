@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { cycleMatch, tagChips, tagMatches, typedTag, withLevels } from '../../../src/logic/tag-entry.ts'
+import { cycleMatch, knownTag, tagChips, tagMatches, typedTag, withLevels } from '../../../src/logic/tag-entry.ts'
 
 describe('tagChips', () => {
 	// spec: TAGS-003.3
@@ -36,6 +36,18 @@ describe('typedTag', () => {
 	// spec: TAGS-003.8
 	it.each(['Places//Rome', 'A|B', '', '  '])('refuses %j', (typed) => {
 		expect(typedTag(typed, ['Places'])).toBeNull()
+	})
+})
+
+describe('knownTag', () => {
+	// spec: TAGS-004.3
+	it('takes the known spelling of the text, ignoring case', () => {
+		expect(knownTag(' places / italy ', ['Places', 'Places/Italy'])).toBe('Places/Italy')
+	})
+
+	// spec: TAGS-004.4
+	it.each(['Places/Rome', 'A|B', ''])('refuses %j, which is not known', (typed) => {
+		expect(knownTag(typed, ['Places', 'Places/Italy'])).toBeNull()
 	})
 })
 

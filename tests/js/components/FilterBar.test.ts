@@ -6,6 +6,7 @@ import type { Filters } from '../../../src/logic/picture-filter.ts'
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import FilterBar from '../../../src/components/FilterBar.vue'
+import TagFilter from '../../../src/components/TagFilter.vue'
 import { DEFAULT_FILTERS } from '../../../src/logic/picture-filter.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 
@@ -13,7 +14,7 @@ const MARK = TRANSLATED_MARK
 
 function mountBar(filters: Partial<Filters> = {}, folders = ['/Trip', '/Trip/Day 2']) {
 	return mount(FilterBar, {
-		props: { filters: { ...DEFAULT_FILTERS, ...filters }, folders, folderSet: { paths: ['/Trip'], subfolders: true }, shown: 1840, total: 2000 },
+		props: { filters: { ...DEFAULT_FILTERS, ...filters }, folders, folderSet: { paths: ['/Trip'], subfolders: true }, shown: 1840, total: 2000, known: ['Anna', 'Places'] },
 	})
 }
 
@@ -143,6 +144,17 @@ describe('FilterBar', () => {
 		await chip(wrapper, 'Clear filters').trigger('click')
 
 		expect(emitted(wrapper)).toEqual([DEFAULT_FILTERS])
+	})
+
+	// spec: TAGS-004.3
+	it('has a tag group that sets the tag filter', async () => {
+		const wrapper = mountBar({ rating: 2, tags: new Set(['Anna']) })
+		const group = wrapper.findComponent(TagFilter)
+
+		expect(group.props()).toEqual({ tags: new Set(['Anna']), known: ['Anna', 'Places'] })
+		group.vm.$emit('update:tags', new Set(['Anna', 'Places']))
+
+		expect(emitted(wrapper)).toEqual([{ ...DEFAULT_FILTERS, rating: 2, tags: new Set(['Anna', 'Places']) }])
 	})
 
 	it('renders no text that bypasses the catalogue but folder names', () => {

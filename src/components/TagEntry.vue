@@ -10,14 +10,16 @@ import { computed, onMounted, ref, useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import { PLAIN_TEXT } from '../l10n.ts'
-import { cycleMatch, tagChips, tagMatches, typedTag } from '../logic/tag-entry.ts'
+import { cycleMatch, knownTag, tagChips, tagMatches, typedTag } from '../logic/tag-entry.ts'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	/** The tags of each picture the entry changes. */
 	targets: readonly (readonly Tag[])[]
 	/** The tags autocomplete offers, with their levels. */
 	known: readonly Tag[]
-}>()
+	/** Whether it picks known tags for the tag filter, its one target (TAGS-004.3). */
+	filter?: boolean
+}>(), { filter: false })
 
 const emit = defineEmits<{ change: [change: TagChange], close: [] }>()
 
@@ -30,7 +32,8 @@ const at = ref(-1)
 const refused = ref(false)
 
 const chips = computed(() => tagChips(props.targets))
-const offered = computed(() => tagMatches(typed.value, props.known, chips.value, props.targets.length))
+const matched = computed(() => tagMatches(typed.value, props.known, chips.value, props.targets.length))
+const offered = computed(() => (props.filter ? { ...matched.value, create: null } : matched.value))
 const countOf = (tag: Tag) => chips.value.find((chip) => chip.tag === tag)?.count ?? 0
 const partial = (count: number) => count > 0 && count < props.targets.length
 
@@ -58,12 +61,12 @@ function assign(tag: Tag) {
 	onInput()
 }
 
-/** Assigns exactly the field, or says why it cannot (TAGS-003.7, .8). */
+/** Assigns exactly the field, or says why it cannot (TAGS-003.7, .8, TAGS-004.4). */
 function assignField() {
 	if (text.value.trim() === '') {
 		return
 	}
-	const tag = typedTag(text.value, props.known)
+	const tag = (props.filter ? knownTag : typedTag)(text.value, props.known)
 	if (tag === null) {
 		refused.value = true
 	} else {
@@ -108,7 +111,7 @@ function onKeydown(event: KeyboardEvent) {
 </script>
 
 <template>
-	<div class="tag-entry" role="dialog" :aria-label="t('honeycomb', 'Tag entry')">
+	<div class="tag-entry" role="dialog" :aria-label="props.filter ? t('honeycomb', 'Tag filter') : t('honeycomb', 'Tag entry')">
 		<div class="tag-entry__chips">
 			<span
 				v-for="chip in chips"
@@ -137,11 +140,11 @@ function onKeydown(event: KeyboardEvent) {
 			:aria-expanded="offered.matches.length > 0 || offered.create !== null"
 			:aria-controls="LISTBOX_ID"
 			:aria-label="t('honeycomb', 'Tag')"
-			:placeholder="t('honeycomb', 'Add a tag, “/” for levels')"
+			:placeholder="props.filter ? t('honeycomb', 'Filter by a tag') : t('honeycomb', 'Add a tag, “/” for levels')"
 			@input="onInput"
 			@keydown="onKeydown">
 		<p v-if="refused" class="tag-entry__refused" role="alert">
-			{{ t('honeycomb', 'A tag needs names, separated by "/", without "|"') }}
+			{{ props.filter ? t('honeycomb', 'Pick a known tag') : t('honeycomb', 'A tag needs names, separated by "/", without "|"') }}
 		</p>
 		<ul :id="LISTBOX_ID" class="tag-entry__matches" role="listbox">
 			<li

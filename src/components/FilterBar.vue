@@ -5,10 +5,12 @@
 <script setup lang="ts">
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { Filters, RatingComparison } from '../logic/picture-filter.ts'
+import type { Tag } from '../logic/tag.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import TagFilter from './TagFilter.vue'
 import { COLOUR_LABEL_SWATCHES, colourLabelName } from '../colour-labels.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
@@ -23,6 +25,8 @@ const props = defineProps<{
 	folderSet: FolderSet
 	shown: number
 	total: number
+	/** The tags the tag filter offers. */
+	known: readonly Tag[]
 }>()
 
 const emit = defineEmits<{
@@ -173,6 +177,7 @@ function toggle(group: ChipGroup, value: string) {
 				</button>
 			</div>
 		</div>
+		<TagFilter :tags="props.filters.tags" :known="props.known" @update:tags="update({ tags: $event })" />
 		<div class="filter-bar__end">
 			<span class="filter-bar__hint">{{ t('honeycomb', 'Within a group: any. Across groups: all.') }}</span>
 			<span class="filter-bar__count">
@@ -185,112 +190,4 @@ function toggle(group: ChipGroup, value: string) {
 	</div>
 </template>
 
-<style scoped>
-.filter-bar {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: flex-start;
-	gap: calc(1.5 * var(--default-grid-baseline)) calc(4.5 * var(--default-grid-baseline));
-	margin: calc(2 * var(--default-grid-baseline)) calc(3 * var(--default-grid-baseline)) calc(1.5 * var(--default-grid-baseline));
-	padding: calc(2 * var(--default-grid-baseline)) calc(3 * var(--default-grid-baseline));
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius-container);
-	background: var(--color-main-background);
-}
-
-.filter-bar__group {
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
-}
-
-.filter-bar__label {
-	color: var(--color-text-maxcontrast);
-	font-size: 12px;
-	font-weight: bold;
-	letter-spacing: .4px;
-	text-transform: uppercase;
-}
-
-.filter-bar__chips {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: var(--default-grid-baseline);
-}
-
-.filter-bar__chip {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	min-width: 34px;
-	min-height: 34px;
-	padding: 0 calc(3 * var(--default-grid-baseline));
-	border: 1px solid var(--color-border-maxcontrast);
-	border-radius: 17px;
-	background: var(--color-background-hover);
-	color: var(--color-main-text);
-	cursor: pointer;
-}
-
-.filter-bar__chip[aria-pressed="true"] {
-	border-color: var(--color-primary-element);
-	background: var(--color-primary-element);
-	color: var(--color-primary-element-text);
-	font-weight: bold;
-}
-
-.filter-bar__chip:disabled {
-	opacity: .5;
-	cursor: default;
-}
-
-.filter-bar__chip:focus-visible {
-	outline: 2px solid var(--color-primary-element);
-	outline-offset: 2px;
-}
-
-.filter-bar__swatch,
-.filter-bar__swatch[aria-pressed="true"] {
-	padding: 0;
-	border-color: transparent;
-	background: transparent;
-}
-
-.filter-bar__swatch[aria-pressed="true"] {
-	box-shadow: inset 0 0 0 3px var(--color-primary-element);
-}
-
-.filter-bar__dot {
-	width: 22px;
-	height: 22px;
-	border: 2px solid var(--color-border-maxcontrast);
-	border-radius: 50%;
-}
-
-.filter-bar__end {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	align-self: flex-end;
-	gap: calc(2 * var(--default-grid-baseline));
-	margin-left: auto;
-}
-
-.filter-bar__hint {
-	color: var(--color-text-maxcontrast);
-}
-
-.filter-bar__count {
-	font-weight: bold;
-	font-variant-numeric: tabular-nums;
-}
-
-@media (pointer: coarse) {
-	.filter-bar__chip {
-		min-width: 44px;
-		min-height: 44px;
-		border-radius: 22px;
-	}
-}
-</style>
+<style scoped src="./filter-bar.css" />

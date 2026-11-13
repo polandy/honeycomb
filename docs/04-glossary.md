@@ -53,6 +53,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **tag** | A path of names, `Places/Italy/Dolomites`, given to a picture; digiKam's tag. Not a *keyword* or *label* (a label is a colour label). |
 | **tag list** | Every tag the user has, offered by the tag entry and the filter. |
 | **tag entry** | The field `T` opens, with autocomplete, to add and remove tags. |
+| **tag filter** | The filter bar's *Tags* group: a picture passes when it has every chosen tag or a tag beneath it. |
 
 ## Words and conventions in the UI
 

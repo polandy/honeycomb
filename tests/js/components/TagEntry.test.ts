@@ -150,4 +150,34 @@ describe('TagEntry', () => {
 		expect(wrapper.emitted('change')).toBeUndefined()
 		expect(wrapper.emitted('close')).toBeUndefined()
 	})
+
+	describe('for the filter', () => {
+		/** The filter's entry with those tags chosen. */
+		const mountFilter = (chosen: Tag[] = ['Sunrise']) => mount(TagEntry, { props: { targets: [chosen], known: KNOWN, filter: true }, attachTo: document.body })
+
+		// spec: TAGS-004.3
+		it('offers known tags but those chosen, never one to create, and takes a known tag in any case', async () => {
+			const wrapper = mountFilter()
+
+			await type(wrapper, 'n')
+			expect(rows(wrapper)).toEqual(['Natur', 'Natur/Berg', 'People/Anna'])
+			await type(wrapper, 'natur/berg')
+			await press(wrapper, 'Enter')
+
+			expect(wrapper.emitted('change')).toEqual([[{ added: ['Natur/Berg'], removed: [] }]])
+			expect(wrapper.find('[role="dialog"]').attributes('aria-label')).toBe('Tag filter')
+		})
+
+		// spec: TAGS-004.4
+		it('refuses a tag that is not known', async () => {
+			const wrapper = mountFilter()
+
+			await type(wrapper, 'Rome')
+			expect(rows(wrapper)).toEqual([])
+			await press(wrapper, 'Enter')
+
+			expect(wrapper.emitted('change')).toBeUndefined()
+			expect(wrapper.find('[role="alert"]').text()).toBe('Pick a known tag')
+		})
+	})
 })

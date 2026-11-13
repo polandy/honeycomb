@@ -20,7 +20,8 @@ how far the cull is; the sort orders the pictures by file name or capture time.
 - **Filter bar:** collapsible, toggled from the toolbar, which counts the active filter groups.
   Groups: rating (*Any*, 0–5 and a comparison button cycling *at least → at most → exactly*),
   colour label (nine swatches), flag, pairing (*Pairs*, *JPEG only*, *RAW only*), *Keep RAW*
-  (*Marked*, *Not marked*) and, for a cull of several folders, folder. OR within a group, AND
+  (*Marked*, *Not marked*), tags ([TAGS-004](../tags/TAGS-004-tag-filter-and-tile.md): a picture
+  needs every chosen tag) and, for a cull of several folders, folder. OR within a group, AND
   across groups. *Clear filters* resets every group, the flag filter to its default.
 - **Progress:** "x of y decided" as text and as a bar, over the pictures the filters let through.
 - **Sort:** *File name* or *Capture time* in the ⋯ menu. One folder starts by file name, several
@@ -71,8 +72,8 @@ how far the cull is; the sort orders the pictures by file name or capture time.
 - **Given** active filters
 - **When** the user clears them
 - **Then** every group resets, the flag filter to its default; the toolbar counts each group that
-  has a choice, the flag filter when it differs from its default, and *Clear filters* is disabled
-  while none is active
+  has a choice, each chosen tag as one, the flag filter when it differs from its default, and
+  *Clear filters* is disabled while none is active
 
 ### GRID-002.7 – Progress
 

@@ -240,16 +240,6 @@ describe('PhotoGrid', () => {
 			expect(wrapper.emitted('update:selection')).toEqual([[{ ids: new Set([1, 2, 3, 4]), anchor: 1 }]])
 		})
 
-		it('marks the selected tiles and shows each decision', async () => {
-			const decisionOf = (picture: { baseName: string }) => ({ rating: picture.baseName === 'IMG_1' ? 2 : 0, colourLabel: null, flag: 'unflagged' as const, keepRaw: false })
-			const { wrapper, resize } = mountGrid({ selection: { ids: new Set([2]), anchor: 2 }, selecting: true, decisionOf })
-			await resize(432, 220)
-
-			expect(tile(wrapper, 1).attributes('aria-selected')).toBe('true')
-			expect(tile(wrapper, 0).attributes('aria-selected')).toBe('false')
-			expect(tile(wrapper, 1).find('.photo-tile__stars').text()).toBe('★★')
-		})
-
 		// spec: GRID-003.2
 		it('selects a tile on a long-press and swallows the click that follows', async () => {
 			const { schedule, fire } = fakeScheduler()

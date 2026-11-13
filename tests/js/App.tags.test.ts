@@ -7,12 +7,14 @@ import type { AppWrapper } from './app-cull.ts'
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import ActionBar from '../../src/components/ActionBar.vue'
+import FilterBar from '../../src/components/FilterBar.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import SeriesCompareFlow from '../../src/components/SeriesCompareFlow.vue'
 import TagEntry from '../../src/components/TagEntry.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
+import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
 import { mountApp, openCull, shownNames } from './app-cull.ts'
 
 /** Presses a key on the page and returns whether the app handled it. */
@@ -117,5 +119,39 @@ describe('App: tag entry', () => {
 		expect(await press('t')).toBe(false)
 
 		expect(entry(wrapper).exists()).toBe(false)
+	})
+})
+
+describe('App: tag filter and tile', () => {
+	/** The app on IMG_2 tagged `Places/Italyx` and IMG_10 with `Anna` on its JPEG and a Dolomites tag on its RAW. */
+	async function openTagged() {
+		const stored = [{ fileId: 1, tags: ['Places/Italyx'] }, { fileId: 2, tags: ['Anna'] }, { fileId: 3, tags: ['Places/Italy/Dolomites'] }]
+		const lookupTags = async (fileIds: readonly number[]) => stored.filter(({ fileId }) => fileIds.includes(fileId))
+		const mounted = mountApp({ tags: { lookupTags, saveTags: async () => {}, loadTagList: async () => [] } })
+		await openCull(mounted.wrapper)
+		mounted.wrapper.findComponent(GridToolbar).vm.$emit('update:filtersOpen', true)
+		await flushPromises()
+		return mounted.wrapper
+	}
+
+	// spec: TAGS-004.1, TAGS-004.2, TAGS-004.6
+	it('shows only the pictures with every chosen tag and counts each tag in the badge', async () => {
+		const wrapper = await openTagged()
+		expect(wrapper.findComponent(FilterBar).props('known')).toEqual(['Anna', 'Places', 'Places/Italy', 'Places/Italy/Dolomites', 'Places/Italyx'])
+
+		wrapper.findComponent(FilterBar).vm.$emit('update:filters', { ...DEFAULT_FILTERS, tags: new Set(['Places/Italy', 'Anna']) })
+		await flushPromises()
+
+		expect(shownNames(wrapper)).toEqual(['IMG_10'])
+		expect(wrapper.findComponent(GridToolbar).props('activeFilters')).toBe(2)
+	})
+
+	// spec: TAGS-004.7
+	it('gives the grid each picture\'s tags', async () => {
+		const wrapper = await openTagged()
+
+		const tagsOf = wrapper.findComponent(PhotoGrid).props('tagsOf')
+
+		expect([0, 1, 2].map((at) => tagsOf?.(pictureAt(wrapper, at)))).toEqual([['Places/Italyx'], [], ['Anna', 'Places/Italy/Dolomites']])
 	})
 })

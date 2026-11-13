@@ -76,3 +76,41 @@ test('tags the loupe\'s photo from the tag entry and closes it with Esc', async 
 	await page.keyboard.press('Escape')
 	await expect(loupe).toBeHidden()
 })
+
+// spec: TAGS-004.1, TAGS-004.3, TAGS-004.5, TAGS-004.7
+test('narrows the grid to a picked tag and counts the tags on the tile', async ({ page }, testInfo) => {
+	const loupe = await openLoupe(page)
+	const tag = `e2e-Filter-${randomUUID().slice(0, 8)}`
+	await page.keyboard.press('t')
+	const entry = page.getByRole('dialog', { name: 'Tag entry' })
+	await entry.getByRole('combobox', { name: 'Tag' }).fill(tag)
+	await page.keyboard.press('Enter')
+	await expect(page.getByText(`Tagged IMG_0001 ${tag}`)).toBeVisible()
+	await page.keyboard.press('Escape')
+	await page.keyboard.press('Escape')
+	await expect(loupe).toBeHidden()
+
+	const grid = page.getByRole('grid', { name: 'Photos' })
+	await expect(grid.getByRole('gridcell', { name: /^IMG_0001, JPG only, .*1 tag$/ })).toBeVisible()
+	await page.getByRole('button', { name: /Filter/ }).first().click()
+	const group = page.locator('.filter-bar').getByRole('group', { name: 'Tags' })
+	await group.getByRole('button', { name: 'Add tag' }).click()
+	const filter = page.getByRole('dialog', { name: 'Tag filter' })
+	await filter.getByRole('combobox', { name: 'Tag' }).fill(tag.toUpperCase())
+	await page.keyboard.press('Enter')
+	await page.keyboard.press('Escape')
+
+	await expect(group.getByRole('button', { name: `Remove ${tag} from the filter` })).toBeVisible()
+	await expect(grid.getByRole('gridcell')).toHaveCount(1)
+	await expect(grid.getByRole('gridcell', { name: /^IMG_0001, JPG only, .*1 tag$/ })).toBeVisible()
+	await page.setViewportSize({ width: 1210, height: 834 })
+	await page.screenshot({ path: testInfo.outputPath('tag-filter-ipad-landscape.png') })
+	await page.emulateMedia({ colorScheme: 'dark' })
+	await page.screenshot({ path: testInfo.outputPath('tag-filter-ipad-landscape-dark.png') })
+	await page.setViewportSize({ width: 427, height: 952 })
+	await page.screenshot({ path: testInfo.outputPath('tag-filter-phone-dark.png') })
+	await page.emulateMedia({ colorScheme: 'light' })
+
+	await group.getByRole('button', { name: `Remove ${tag} from the filter` }).click()
+	await expect(grid.getByRole('gridcell')).toHaveCount(2)
+})

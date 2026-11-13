@@ -182,6 +182,7 @@ useHotkeys(() => {
 					:folderSet="folderSet"
 					:shown="view.length"
 					:total="pictures.length"
+					:known="cull.tags.known.value"
 					@update:filters="filters = $event" />
 				<GridNotices :pictures="view" :saveFailed="saveFailed" />
 				<PhotoGrid
@@ -195,6 +196,7 @@ useHotkeys(() => {
 					:selecting="selecting"
 					:selection="selection.selection.value"
 					:decisionOf="cull.decisionOf"
+					:tagsOf="cull.tags.tagsOf"
 					:seriesSizes="cull.seriesSizes.value"
 					@update:tileSize="cull.setTileSize"
 					@update:selecting="selection.setSelecting"
@@ -287,14 +289,4 @@ useHotkeys(() => {
 
 <style src="./flag-fills.css" />
 
-<style scoped>
-.honeycomb {
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-}
-
-.honeycomb__grid {
-	flex: 1;
-}
-</style>
+<style scoped src="./app.css" />

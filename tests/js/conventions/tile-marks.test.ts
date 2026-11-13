@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-const tile = readFileSync(new URL('../../../src/components/PhotoTile.vue', import.meta.url), 'utf8')
+const tile = readFileSync(new URL('../../../src/components/photo-tile.css', import.meta.url), 'utf8')
 const rule = (selector: string) => tile.match(new RegExp(`${selector.replaceAll('.', '\\.')}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
 
 describe('the tile marks', () => {
