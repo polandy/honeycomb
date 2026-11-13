@@ -130,11 +130,11 @@ body{display:flex;flex-direction:column}
     <button data-dev="phone">Phone portrait</button><button data-dev="ipad">iPad landscape</button><button data-dev="desktop">Desktop</button>
   </div>
   <label><input type="checkbox" id="optRej"> <i>Rejected</i> pressed in the flag filter</label>
-  <label><input type="checkbox" id="optCo" checked> Callouts 1–4</label>
+  <label><input type="checkbox" id="optCo" checked> Callouts 1–5</label>
   <button class="lnk" id="resetHint">Show the first-series hint again</button>
   <button class="lnk" id="resetAll">Reset</button>
 </div>
-<div id="note">Concept: <code>docs/plans/loupe-series-concept.md</code>. ① chip ② filmstrip frame ③ <i>Pick this, reject the rest</i> ④ first-series hint. Keys: <kbd>←</kbd> <kbd>→</kbd> page, <kbd>P</kbd> <kbd>X</kbd> <kbd>U</kbd> decide (<kbd>Shift</kbd> moves on), <kbd>N</kbd> series, <kbd>Shift+K</kbd> pick this, reject the rest, <kbd>Ctrl+Z</kbd> undo, <kbd>Esc</kbd> close.</div>
+<div id="note">Concept: <code>docs/plans/loupe-series-concept.md</code>. ① chip ② filmstrip frame ③ <i>Pick this, reject the rest</i> ④ first-series hint ⑤ <i>Reject the other N</i> after a plain <i>Pick</i> (part 3). Keys: <kbd>←</kbd> <kbd>→</kbd> page, <kbd>P</kbd> <kbd>X</kbd> <kbd>U</kbd> decide (<kbd>Shift</kbd> moves on), <kbd>N</kbd> series, <kbd>Shift+K</kbd> pick this, reject the rest, <kbd>Ctrl+Z</kbd> undo, <kbd>Esc</kbd> close.</div>
 <div id="host"><div id="dev" class="co" role="application" aria-label="Loupe"></div></div>
 
 <script>
@@ -161,7 +161,7 @@ const PHOTOS = Array.from({length:14}, (_, i) => {
 });
 
 const st = {dev:'phone', cur:0, flags:Array(14).fill('none'), rating:Array(14).fill(0), showRej:false, hintSeen:false, hintOpen:false,
-  compare:null, toast:null, undo:[]};
+  compare:null, toast:null, toastRest:null, undo:[]};
 
 const isRej = i => st.flags[i] === 'reject';
 const visible = () => PHOTOS.filter(p => st.showRej || !isRej(p.i) || p.i === st.cur).map(p => p.i);
@@ -176,13 +176,15 @@ function photoHtml(i, w, h, cls = 'photo'){
 
 function snapshot(){ st.undo.push(st.flags.slice()); }
 function setFlag(i, f, label){ snapshot(); st.flags[i] = st.flags[i] === f && f !== 'none' ? 'none' : f; showToast(label); }
+// Part 3: a plain Pick never rejects; the toast offers the rest as one explicit tap.
+function offerRest(i){ const others = members(i).filter(j => j !== i && st.flags[j] === 'none'); if (st.flags[i] === 'pick' && others.length) st.toastRest = {i, n:others.length}; }
 function pickRest(i){
   const m = members(i); if (!m.length) return;
   snapshot(); m.forEach(j => { st.flags[j] = j === i ? 'pick' : 'reject'; });
   showToast(`Picked 1, rejected ${m.length - 1}`);
 }
-function undo(){ if (!st.undo.length) return; st.flags = st.undo.pop(); st.toast = null; render(); }
-function showToast(text){ st.toast = text; }
+function undo(){ if (!st.undo.length) return; st.flags = st.undo.pop(); st.toast = null; st.toastRest = null; render(); }
+function showToast(text){ st.toast = text; st.toastRest = null; }
 function page(d){ const v = visible(), k = v.indexOf(st.cur) + d; if (k >= 0 && k < v.length){ st.cur = v[k]; maybeHint(); } }
 function maybeHint(){ if (!st.hintSeen && members(st.cur).length) st.hintOpen = true; }
 function openCompare(){ const m = members(st.cur); if (m.length) st.compare = {active:st.cur}; }
@@ -246,14 +248,15 @@ function compareDlg(){
     return `<div class="card${a ? ' act' : ''}" data-card="${i}"><button class="pbtn" data-cact="${i}" aria-label="${PHOTOS[i].name}">${photoHtml(i, w, Math.round(w * 2 / 3))}</button>
       <span class="nm">${PHOTOS[i].name}</span><div class="fl">${fl}</div>${a ? `<button class="btn primary" data-act="cPickRest">${st.dev === 'phone' ? '' : ic('flagPick', 'fill')}Pick this, reject the rest</button>` : ''}</div>`;
   }).join('');
-  return `<div class="scrim"><div class="dlg" role="dialog" aria-modal="true" aria-label="Series of ${m.length}"><header><h2>Series of ${m.length}</h2><button class="icon-btn" data-act="closeCompare" aria-label="Close">${ic('close')}</button></header>
+  return `<div class="scrim"><div class="dlg" role="dialog" aria-modal="true" aria-label="Series of ${m.length}"><header><h2>Series of ${m.length} · photo ${m.indexOf(st.compare.active) + 1}</h2><button class="icon-btn" data-act="closeCompare" aria-label="Close">${ic('close')}</button></header>
     <div class="cards">${cards}</div><footer>Opened from the loupe: this one series, no <i>Skip</i>. A tap on a photo makes it active; in the app a tap on the active photo opens the series viewer (unchanged). Closing returns to the loupe on the active photo.</footer></div></div>`;
 }
 
 function render(){
   const d = DEVICES[st.dev], dev = document.getElementById('dev');
   dev.style.width = d.w + 'px'; dev.style.height = d.h + 'px'; dev.dataset.input = d.input;
-  const toast = st.toast ? `<div class="toast" role="status">${st.toast}<button data-act="undo">Undo</button></div>` : '';
+  const rest = st.toastRest ? `<button data-act="rejectOthers" data-co="5">Reject the other ${st.toastRest.n}</button>` : '';
+  const toast = st.toast ? `<div class="toast" role="status">${st.toast}${rest}<button data-act="undo">Undo</button></div>` : '';
   let body;
   if (d.layout === 'portrait'){
     body = `<div class="loupe portrait">${topRow()}${stage()}${film()}<div class="ctrl"><div class="big">${flagBtn('pick', 'flagPick', 'Pick')}${flagBtn('reject', 'flagX', 'Reject')}${flagBtn('none', 'flag', '')}</div>${smallRow()}</div></div>`;
@@ -283,6 +286,7 @@ function fit(){
 function decide(f, next){
   const i = st.compare ? st.compare.active : st.cur;
   setFlag(i, f, `${PHOTOS[i].name}: ${f === 'pick' ? 'picked' : f === 'reject' ? 'rejected' : 'unflagged'}`);
+  if (!st.compare) offerRest(i);
   if (next && !st.compare) page(1);
 }
 
@@ -301,6 +305,7 @@ document.getElementById('dev').addEventListener('click', e => {
   else if (ds.act === 'cPickRest') { pickRest(st.compare.active); closeCompare(); }
   else if (ds.act === 'closeCompare') closeCompare();
   else if (ds.act === 'gotIt') { st.hintOpen = false; st.hintSeen = true; }
+  else if (ds.act === 'rejectOthers') pickRest(st.toastRest.i);
   else if (ds.act === 'undo') return undo();
   else return;
   render();
@@ -335,7 +340,7 @@ document.querySelectorAll('#mock [data-dev]').forEach(b => b.addEventListener('c
 document.getElementById('optRej').addEventListener('change', e => { st.showRej = e.target.checked; render(); });
 document.getElementById('optCo').addEventListener('change', e => { document.getElementById('dev').classList.toggle('co', e.target.checked); });
 document.getElementById('resetHint').addEventListener('click', () => { st.hintSeen = false; maybeHint(); render(); });
-document.getElementById('resetAll').addEventListener('click', () => { Object.assign(st, {cur:3, flags:Array(14).fill('none'), rating:Array(14).fill(0), hintSeen:false, hintOpen:false, compare:null, toast:null, undo:[]}); maybeHint(); render(); });
+document.getElementById('resetAll').addEventListener('click', () => { Object.assign(st, {cur:3, flags:Array(14).fill('none'), rating:Array(14).fill(0), hintSeen:false, hintOpen:false, compare:null, toast:null, toastRest:null, undo:[]}); maybeHint(); render(); });
 addEventListener('resize', fit);
 st.cur = 3; maybeHint(); render();
 </script>

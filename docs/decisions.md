@@ -921,3 +921,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   least 180 px each (half the width on a phone), and scrolls the row sideways with the active
   card scrolled into view; a wrapped grid or smaller cards would lose the level flag buttons
   or make the photos too small to judge (SERIES-001.4, .21).
+- 2026-11-13: Series parts 1–3 (UX lead, concept awaiting sign-off): #147's one-series-per-burst
+  stays, but a series ends 60 s after its first shot, since photo-to-photo linking can chain
+  minutes of a quiet subject, and the series viewer preloads a neighbour window, not the whole
+  series. A plain *Pick* never rejects the rest silently; its undo toast offers *Reject the other
+  N* instead (`docs/plans/loupe-series-concept.md`).

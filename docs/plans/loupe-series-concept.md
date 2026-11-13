@@ -23,6 +23,11 @@ Serienaktionen dort an, wo man ohnehin entscheidet:
    Serienvergleich und im Serienbetrachter, ein Rückgängig-Schritt.
 4. **Einmaliger Hinweis** beim ersten Serienfoto in der Lupe, weil der Besitzer die Funktion
    bisher nie gefunden hat.
+5. **Teil 1 (#147, gemergt) bleibt**, mit zwei Korrekturen: eine Serie endet spätestens 60 s
+   nach ihrem ersten Foto (sonst verkettet ein ruhiges Motiv ganze Minuten zu einer „Serie"),
+   und der Serienbetrachter lädt nur die Nachbarn vor statt der ganzen Serie.
+6. **Teil 3 entschieden:** ein einfaches *Nehmen* lehnt **nie** still die anderen ab. Die
+   Rückgängig-Meldung bietet stattdessen „Die anderen 4 ablehnen" an – ein bewusster Tipp.
 
 Verworfen: eine Geste (unauffindbar, kollidiert mit Wischen und Zoom) und ein aufklappender
 Serienstreifen in der Lupe (zweite Vergleichsansicht neben *Serie vergleichen*, zu kleine Bilder,
@@ -54,6 +59,9 @@ words, icon, key and components the app already has. No new screen, no gesture.
   badge's ⧉ mark and number, so the two read as one thing.
 - Phone portrait: "⧉ 2/5" only. iPad and desktop: "⧉ Series 2/5". The chip is a 44 px target
   (34 px with a fine pointer), honey outline, never filled: honey fill marks a pressed state.
+- The chip counts the series' pictures that are not rejected, at least two, whether or not they
+  are decided: unlike *Compare series*, which offers only series with an unflagged picture, the
+  loupe shows the fact, so the chip stays on a series with two picks.
 - It hides with the title row when idle, like every overlay. A photo outside any series shows
   no chip, so nothing changes in an unrelated cull.
 
@@ -61,8 +69,9 @@ words, icon, key and components the app already has. No new screen, no gesture.
 
 - A tap on the chip, a tap on the filmstrip frame's label, or `N` in the loupe opens the existing
   **series compare dialog on this series** with the shown photo as the active card. Its title
-  says "Series of 5" instead of "Compare series 1 of 3": opened from the loupe it holds this one
-  series, so *Skip* and the series stepping hide.
+  says "Series of 5 · photo 2" instead of "Compare series 1 of 3": opened from the loupe it holds
+  this one series, so *Skip* and the series stepping hide, and the position orients in a long
+  burst whose cards scroll sideways.
 - Everything inside is unchanged: the cards scroll sideways for long bursts (PR #147), a tap on a
   card's photo opens the series viewer with synchronised zoom, `←` `→` move the active card.
 - Closing it (button, `Esc`) returns to the loupe **on the active card's photo**. *Pick this,
@@ -106,6 +115,51 @@ Dismissed once per user on the server, like the gesture guide (LOUPE-003). No pu
 | Pick one, reject the rest | button on its own line under the rating row | button in the bottom overlay row | button, or `Shift+K` |
 | Paging inside the series | swipe, tap zones, strip | same, edge buttons | `←` `→` |
 
+## Series parts 1–3: review and decisions
+
+As UX lead for series (owner, 2026-11-13) I reviewed part 1 and decided parts 2 and 3.
+
+### Part 1, merged as #147: one burst is one series — keep, with two corrections
+
+Showing a burst whole is right: splitting 5 into 3 + 2 hid the best frame from its rivals. The
+sideways-scrolling row at 180 px per card keeps the photos large enough to judge. Two
+consequences need a fix:
+
+1. **A series needs an end.** Shots link photo to photo (`src/logic/series.ts`, `linked`), and
+   the cap of four was the only limit on a run. A quiet subject shot every 20 s now chains into
+   one series over minutes, and *Pick this, reject the rest* would reject all of them in one
+   tap. Rule: **a series ends once a shot is more than 60 s after the series' first shot**; the
+   next run starts there. A real burst lasts seconds, so it stays whole. This amends ADR 0021
+   (new constant `SERIES_SPAN_SECONDS`).
+2. **The series viewer preloads a window**, not the whole series (SERIES-002.1): the shown
+   photo, then 3 ahead and 2 behind, as the loupe does (LOUPE-001). A burst of 26 at the 4096 px
+   tier would otherwise load 26 large images before the first page. Synchronised zoom is a
+   view state and needs no preloaded image.
+
+The compare's title gains the active photo's position ("Compare series 1 of 3 · photo 7 of 26"),
+so a long row that scrolls sideways does not lose the user.
+
+### Part 2: the group frame in the filmstrip — as in section 2
+
+One honey frame around each run of a series' pictures in the loupe's filmstrip, 2 px, 8 px
+corners, with a "⧉ N" tab at its top left whose hit area reaches 44 px (34 px with a fine
+pointer); the tab opens the compare on that series. N counts the pictures that are not rejected;
+fewer than two ends the frame. Rejected pictures shown under the *Rejected* flag filter stay
+outside the frame. The grid keeps its "⧉ N" badge and gets no frame: tiles wrap across rows,
+where a frame would break.
+
+### Part 3: picking one rejects the others — explicit, never implicit
+
+A plain *Pick* (`P`, button, swipe) on a series photo **does not** reject the others:
+
+- Two good frames of one burst are common, and *Pick* must keep meaning what it means everywhere
+  else; a silent reject would also write the reject (`digiKam:PickLabel` 1, `xmp:Rating` −1)
+  into the others' sidecars, which digiKam and Lightroom then show (`docs/06-xmp-interop.md`).
+- Instead, when the picked photo's series still has unflagged pictures, its undo toast offers
+  **Reject the other 4** next to *Undo*. One tap does what *Pick this, reject the rest* does,
+  as one undo step, so the plain *Pick* becomes the place where users discover it.
+- *Pick this, reject the rest* stays the explicit action in the loupe, compare and viewer.
+
 ## Alternatives rejected
 
 1. **A gesture** (long-press on the photo to open the series, a two-finger swipe for *Pick this,
@@ -127,17 +181,27 @@ early: a mode switch the user did not ask for breaks the paging rhythm.
 - Reused unchanged: the series logic (`src/logic/series.ts`), `SeriesCompare.vue` and the series
   viewer, the `pickRestBtn` action through the undo history, the `Shift+K` and `N` keys of the
   shared key map, the tooltip, the toast.
-- New: the chip in the loupe's title row, the compare's "opened from the loupe" entry (one series,
+- New: the series span rule, the toast's *Reject the other N*, the chip in the loupe's title row, the compare's "opened from the loupe" entry (one series,
   return target), *Pick this, reject the rest* in the loupe's action bar (the `ActionBar` slot the
   viewer already uses), the frame in the filmstrip (series part 2), the once-per-user hint.
 - Keys: `N` gains a meaning in the loupe (the plan's key table already lists it for the loupe),
   `Shift+K` does nothing outside a series, as today.
 
-## Order of work, after sign-off
+## Follow-up PRs in build order, after sign-off
 
-1. Series part 2: the filmstrip group frame and its tab (look as in the mockup).
-2. Chip and `N` in the loupe, the compare opened on one series with its return to the loupe.
-3. *Pick this, reject the rest* and `Shift+K` in the loupe (series part 3).
-4. The first-series hint.
+1. **Series span** (fix to part 1): `SERIES_SPAN_SECONDS = 60` in `src/logic/series.ts`, ADR 0021
+   amended, SERIES-001 updated.
+2. **Viewer preload window** (fix to part 1): SERIES-002.1 preloads the loupe's neighbour window;
+   the compare's title shows the active photo's position.
+3. **Filmstrip group frame** (part 2): the frame and its tab in the loupe's filmstrip,
+   LOUPE-001.19 extended; the tab opens nothing until step 4 lands, so it ships hidden behind
+   it or together with it.
+4. **Chip and `N` in the loupe**: the compare opened on one series, its return to the loupe,
+   LOUPE-001 and SERIES-001.
+5. ***Pick this, reject the rest* in the loupe** (part 3): the rating-row button and `Shift+K`,
+   LOUPE-002.
+6. ***Reject the other N* in the undo toast** (part 3): after a plain *Pick* in the loupe and the
+   series viewer, DECISIONS and SERIES-002.
+7. **First-series hint**, stored per user like the gesture guide (LOUPE-003).
 
-Each step gets its spec update (LOUPE-001, SERIES-001, SERIES-002) and tests first.
+Each PR updates its spec and starts with the failing tests.
