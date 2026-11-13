@@ -31,7 +31,7 @@ test('opens a photo in the loupe, pages by key and closes back to the grid', asy
 })
 
 // spec: LOUPE-001.13, LOUPE-001.19
-test('shows the filmstrip as square photos edge to edge at full opacity from its left edge, the shown one with a white border', async ({ page }) => {
+test('shows the filmstrip as square photos edge to edge at full opacity from its left edge, the shown one with a white ring and a dark edge', async ({ page }) => {
 	const loupe = await openLoupe(page)
 	const filmstrip = loupe.getByRole('navigation', { name: 'Filmstrip' })
 	const shown = filmstrip.getByRole('button', { name: 'IMG_0001' })
@@ -39,8 +39,9 @@ test('shows the filmstrip as square photos edge to edge at full opacity from its
 
 	await expect(shown).toHaveCSS('opacity', '1')
 	await expect(other).toHaveCSS('opacity', '1')
-	await expect(shown).toHaveCSS('outline-color', 'rgb(255, 255, 255)')
-	await expect(other).toHaveCSS('outline-style', 'none')
+	const ring = (button: typeof shown) => button.evaluate((element) => getComputedStyle(element, '::before').boxShadow)
+	expect(await ring(shown)).toBe('rgb(255, 255, 255) 0px 0px 0px 3px inset, rgb(0, 0, 0) 0px 0px 0px 4px inset')
+	expect(await ring(other)).toBe('none')
 	const [strip, first, second] = [(await filmstrip.boundingBox())!, (await shown.boundingBox())!, (await other.boundingBox())!]
 	expect(first.width).toBe(first.height)
 	expect(second.x).toBe(first.x + first.width)

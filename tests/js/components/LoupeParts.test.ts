@@ -148,12 +148,13 @@ describe('LoupeInfo', () => {
 
 describe('LoupeFilmstrip', () => {
 	const PICTURES = picturesOf(Array.from({ length: 30 }, (_, at) => listingEntry(at + 1, `/P/IMG_${String(at + 1).padStart(2, '0')}.JPG`)))
-	const mountStrip = (index: number, pinned = false) => mount(LoupeFilmstrip, {
+	const pickIMG11 = (picture: Picture<ListingEntry>) => ({ ...UNDECIDED, flag: picture.baseName === 'IMG_11' ? 'picked' as const : 'unflagged' as const })
+	const mountStrip = (index: number, pinned = false, decisionOf: (picture: Picture<ListingEntry>) => Decision = pickIMG11) => mount(LoupeFilmstrip, {
 		props: {
 			pictures: PICTURES,
 			index,
 			pinned,
-			decisionOf: (picture: Picture<ListingEntry>) => ({ ...UNDECIDED, flag: picture.baseName === 'IMG_11' ? 'picked' as const : 'unflagged' as const }),
+			decisionOf,
 			imageUrl: (fileId: number, size: number) => `/img/${fileId}/${size}`,
 			observeSize: (_element: Element, onSize: (width: number, height: number) => void) => {
 				onSize(1000, FILMSTRIP_THUMB)
@@ -198,6 +199,19 @@ describe('LoupeFilmstrip', () => {
 		strip(wrapper).scrollLeft = 0
 		await wrapper.find('.loupe-filmstrip__strip').trigger('scroll')
 		expect(labels(wrapper)[0]).toBe('IMG_01')
+	})
+
+	// spec: LOUPE-001.19
+	it('rings the shown picture and dims the other rejected ones, never the shown one', async () => {
+		const rejectOdd = (picture: Picture<ListingEntry>) => ({ ...UNDECIDED, flag: Number(picture.baseName.slice(4)) % 2 === 1 ? 'rejected' as const : 'unflagged' as const })
+		const wrapper = mountStrip(4, false, rejectOdd)
+		await nextTick()
+		const classes = (label: string) => wrapper.find(`button[aria-label="${label}"]`).classes()
+		expect(classes('IMG_05')).toContain('loupe-filmstrip__photo--current')
+		expect(classes('IMG_05')).not.toContain('loupe-filmstrip__photo--dimmed')
+		expect(classes('IMG_03')).toContain('loupe-filmstrip__photo--dimmed')
+		expect(classes('IMG_04')).not.toContain('loupe-filmstrip__photo--dimmed')
+		expect(wrapper.findAll('.loupe-filmstrip__photo--current')).toHaveLength(1)
 	})
 
 	it('selects a tapped picture', async () => {
