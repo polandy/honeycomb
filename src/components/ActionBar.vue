@@ -108,6 +108,10 @@ const loupe = computed(() => props.layout === 'loupe')
 		flex-basis: 100%;
 		order: -1;
 	}
+
+	.action-bar__primary > .flag-buttons {
+		order: -1;
+	}
 }
 
 .action-bar--loupe {
