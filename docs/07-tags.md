@@ -1,18 +1,18 @@
 # 7. Tags (concept)
 
-**Status: in progress.** Steps 1 to 4 of the [implementation outline](#implementation-outline) are
+**Status: built.** Steps 1 to 4 of the [implementation outline](#implementation-outline) are
 built: tags in sidecars ([XMP-004](specs/xmp/XMP-004-tags-in-sidecars.md)), their storage
 ([TAGS-001](specs/tags/TAGS-001-tag-storage.md)) and the take-over and write-through in the cull
 ([TAGS-002](specs/tags/TAGS-002-tags-in-the-cull.md)), with the JPEG's embedded XMP (D1,
 [XMP-005](specs/xmp/XMP-005-embedded-xmp-endpoint.md)), and the tag entry with bulk tagging
 ([TAGS-003](specs/tags/TAGS-003-tag-entry.md)). Step 5, the tag filter, the tile's tags and the
-info panel, is built ([TAGS-004](specs/tags/TAGS-004-tag-filter-and-tile.md)); step 6 is open in
-`TODO.md`.
+info panel, is built ([TAGS-004](specs/tags/TAGS-004-tag-filter-and-tile.md)); step 6, the mockup
+and the [user doc](user/tags.md), is done.
 The owner asked for tags that work like digiKam's and are read and written in digiKam's fields
 (2026-11-11), and answered the
 [decisions](#decisions-2026-11-12) on 2026-11-12. The milestone is planned from the
-[implementation outline](#implementation-outline). The approved mockup is
-[`mockup/tag-entry.html`](mockup/tag-entry.html) (open it in a browser, no build).
+[implementation outline](#implementation-outline). The approved mockup is part of
+[`mockup/index.html`](mockup/index.html) (open it in a browser, no build).
 
 ## Sources
 
@@ -117,7 +117,7 @@ honeycomb writes the three fields it reads and leaves the others alone:
 
 ## Interaction
 
-Approved mockup: [`mockup/tag-entry.html`](mockup/tag-entry.html).
+Approved mockup: [`mockup/index.html`](mockup/index.html).
 
 ### Selecting
 
@@ -199,4 +199,4 @@ Each step is one pull request with its spec and tests.
 3. Backend: store and list tags beside the decisions (`TAGS-001`); sidecar writes carry them.
 4. Tag entry and `T` in the key map (`KEYS-001`), bulk tagging (`GRID-003`).
 5. Tag filter (`GRID-002`, all tags must match), tile and info panel.
-6. Mockup: merge `tag-entry.html` into `index.html`; user doc `user/tags.md`.
+6. Mockup: merge the tag entry into `index.html`; user doc [`user/tags.md`](user/tags.md).

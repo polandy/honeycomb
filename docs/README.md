@@ -12,11 +12,10 @@ Open only the file, or the section, a change touches.
 | [`05-name-templates.md`](05-name-templates.md) | Name templates for moved pictures: syntax, tokens, sanitising, collisions |
 | [`06-xmp-interop.md`](06-xmp-interop.md) | XMP sidecars: digiKam, darktable and Lightroom fields, precedence, write rules, test vectors |
 | [`07-tags.md`](07-tags.md) | Tags like digiKam's (concept): XMP fields, tag entry, bulk tagging, tag filter, decisions |
-| [`user/`](user/) | Documentation for users, e.g. [ratings, flags and colours in other programs](user/ratings-flags-colours.md), [keyboard shortcuts](user/keyboard-shortcuts.md), [settings](user/settings.md) |
+| [`user/`](user/) | Documentation for users, e.g. [ratings, flags and colours in other programs](user/ratings-flags-colours.md), [tags](user/tags.md), [keyboard shortcuts](user/keyboard-shortcuts.md), [settings](user/settings.md) |
 | [`specs/`](specs/) | What the merged code does, one spec per feature, coupled to the tests (ADR 0015) |
 | [`plan.md`](plan.md) | Milestones, project structure, target versions, open questions |
-| [`mockup/index.html`](mockup/index.html) | The interactive mockup (milestone M0); open it in a browser |
-| [`mockup/tag-entry.html`](mockup/tag-entry.html) | Keyboard- and touch-testable mockup of the tag entry (`T`), multi-select and tag filter (`F`) proposed in the tags concept (PR #100); open it in a browser |
+| [`mockup/index.html`](mockup/index.html) | The interactive mockup (milestone M0), with the tag entry (`T`) and the tag filter; open it in a browser |
 | [`ux-review.md`](ux-review.md) | UX review of the mockup: findings, fixes, design direction; screenshots in [`ux/`](ux/) |
 | [`ux-review-2026-11.md`](ux-review-2026-11.md) | UX review of the running app (2026-11): prioritised findings and fixes, each a `TODO.md` item |
 | [`adr/`](adr/) | Architecture decision records, one file each |

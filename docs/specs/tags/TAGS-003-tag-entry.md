@@ -2,7 +2,7 @@
 
 - Status: implemented
 - Area: tags
-- Origin: `docs/07-tags.md` Interaction (Tag entry, D8), outline step 4; `docs/mockup/tag-entry.html`
+- Origin: `docs/07-tags.md` Interaction (Tag entry, D8), outline step 4; `docs/mockup/index.html`
 - Depends on: TAGS-002, KEYS-001, GRID-003, LOUPE-001, SERIES-002
 
 ## Purpose
