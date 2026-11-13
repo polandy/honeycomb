@@ -69,7 +69,10 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 					:key="item.member.fileId"
 					type="button"
 					class="loupe-filmstrip__photo"
-					:class="{ 'loupe-filmstrip__photo--current': item.index === props.index }"
+					:class="{
+						'loupe-filmstrip__photo--current': item.index === props.index,
+						'loupe-filmstrip__photo--dimmed': item.flag === 'rejected' && item.index !== props.index,
+					}"
 					:style="{ left: `${item.left}px` }"
 					:aria-label="item.picture.baseName"
 					:aria-current="item.index === props.index ? 'true' : undefined"
@@ -132,10 +135,18 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 	background: none;
 }
 
-.loupe-filmstrip__photo--current {
+.loupe-filmstrip__photo--dimmed {
+	opacity: .45;
+}
+
+/* White reads on a dark photo, the black inner edge on a bright one. */
+.loupe-filmstrip__photo--current::before {
+	content: '';
+	position: absolute;
+	inset: 0;
 	z-index: 1;
-	outline: 2px solid #fff;
-	outline-offset: -2px;
+	box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 4px #000;
+	pointer-events: none;
 }
 
 .loupe-filmstrip__photo img {
@@ -178,7 +189,8 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 
 .loupe-filmstrip__flag {
 	position: absolute;
-	inset-block-end: 2px;
-	inset-inline-end: 2px;
+	z-index: 2;
+	inset-block-end: 4px;
+	inset-inline-end: 4px;
 }
 </style>

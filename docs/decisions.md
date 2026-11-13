@@ -947,3 +947,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   line vanishes on bright photos. As UX lead: a 3 px white ring with a 1 px black inner edge, the
   current thumbnail never dimmed, so it reads on any photo, inside a honey series frame and next
   to rejected thumbnails; it ships as its own first build PR (`docs/plans/loupe-series-concept.md`).
+- 2026-11-14: The filmstrip's flag mark moves from 2 px to 4 px off the thumbnail's corner, so it
+  sits inside the current photo's 4 px ring instead of on it (series step 1, LOUPE-001.19).
