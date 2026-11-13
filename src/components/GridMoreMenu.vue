@@ -86,6 +86,7 @@ const emit = defineEmits<{
 				{{ t('honeycomb', 'Capture time') }}
 			</NcCheckboxRadioSwitch>
 		</fieldset>
+		<hr class="grid-more-menu__separator">
 		<NcButton
 			class="grid-more-menu__narrow"
 			variant="tertiary"
@@ -182,6 +183,13 @@ const emit = defineEmits<{
 .grid-more-menu__count {
 	margin-inline-start: calc(2 * var(--default-grid-baseline));
 	color: var(--color-text-maxcontrast);
+}
+
+.grid-more-menu__separator {
+	width: 100%;
+	margin: 0;
+	border: none;
+	border-top: 1px solid var(--color-border);
 }
 
 .grid-more-menu__sort {

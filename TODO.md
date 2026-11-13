@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] UX M7: Grid *More* menu: a separator between view options and actions; an item that opens a dialog closes the menu (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX M8: Order the gesture guide by pointer type: keys first as a two-column list with a mouse, gestures first on touch; align the tap-zone figure (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX M9: Change "honey" to "primary" in the glossary and `docs/plan.md`, since the app uses Nextcloud's primary colour (owner decided 2026-11-12) (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX L1: Lay out the keyboard shortcuts sheet as one grid with a shared key column (`docs/ux-review-2026-11.md`) (2026-11-12)

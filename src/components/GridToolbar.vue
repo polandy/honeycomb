@@ -8,7 +8,7 @@ import type { FolderSet } from '../logic/folder-set.ts'
 import type { SortOrder } from '../logic/picture-order.ts'
 
 import { n, t } from '@nextcloud/l10n'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcPopover from '@nextcloud/vue/components/NcPopover'
 import AppIcon from './AppIcon.vue'
@@ -68,6 +68,14 @@ const emit = defineEmits<{
 	writeSidecars: []
 	openSettings: []
 }>()
+
+const moreShown = ref(false)
+
+/** Closes the More menu, then runs the chosen action, so no menu stays above the dialog it opens. */
+function fromMenu(action: () => void) {
+	moreShown.value = false
+	action()
+}
 
 const filtersLabel = computed(() => (props.activeFilters > 0
 	? t('honeycomb', 'Filters ({count})', { count: formatNumber(props.activeFilters) })
@@ -162,7 +170,7 @@ const setName = computed(() => {
 			</template>
 			<span v-if="props.series > 0" class="grid-toolbar__badge" aria-hidden="true">{{ formatNumber(props.series) }}</span>
 		</NcButton>
-		<NcPopover>
+		<NcPopover v-model:shown="moreShown">
 			<template #trigger>
 				<NcButton variant="tertiary" :ariaLabel="t('honeycomb', 'More')" v-bind="tip(t('honeycomb', 'More'))">
 					<template #icon>
@@ -185,13 +193,13 @@ const setName = computed(() => {
 				@update:tileSize="emit('update:tileSize', $event)"
 				@update:groupByFolder="emit('update:groupByFolder', $event)"
 				@update:sortOrder="emit('update:sortOrder', $event)"
-				@removeRaws="emit('removeRaws')"
-				@move="emit('move')"
-				@resume="emit('resume')"
-				@reviewRejects="emit('reviewRejects')"
-				@compareSeries="emit('compareSeries')"
-				@writeSidecars="emit('writeSidecars')"
-				@openSettings="emit('openSettings')" />
+				@removeRaws="fromMenu(() => emit('removeRaws'))"
+				@move="fromMenu(() => emit('move'))"
+				@resume="fromMenu(() => emit('resume'))"
+				@reviewRejects="fromMenu(() => emit('reviewRejects'))"
+				@compareSeries="fromMenu(() => emit('compareSeries'))"
+				@writeSidecars="fromMenu(() => emit('writeSidecars'))"
+				@openSettings="fromMenu(() => emit('openSettings'))" />
 		</NcPopover>
 		<div v-if="props.selecting" class="grid-toolbar__selection">
 			<span class="grid-toolbar__count">{{ n('honeycomb', '{count} selected', '{count} selected', props.selected, { count: formatNumber(props.selected) }) }}</span>
