@@ -173,3 +173,32 @@ test('opens the info panel as a bottom sheet over the action bar on a phone', as
 	expect(stage.width).toBe(phone.width)
 	await page.screenshot({ path: testInfo.outputPath('loupe-info-phone.png') })
 })
+
+// spec: LOUPE-001.23
+test('lays the info panel out in 32 px rows with left-aligned muted labels', async ({ page }, testInfo) => {
+	await page.setViewportSize(IPAD_LANDSCAPE)
+	const loupe = await openRotatedPair(page)
+	await page.keyboard.press('i')
+	const panel = loupe.getByRole('complementary', { name: 'Photo info' })
+	await expect(panel.getByText('Sidecars')).toBeVisible()
+	const rows = await panel.locator('dl').first().evaluate((list) => {
+		const probe = document.createElement('span')
+		probe.style.color = 'var(--color-text-maxcontrast)'
+		list.append(probe)
+		const muted = getComputedStyle(probe).color
+		probe.remove()
+		const tracks = getComputedStyle(list).gridTemplateRows.split(' ').map(parseFloat)
+		return [...list.querySelectorAll('dt')].map((term, at) => ({
+			track: tracks[at],
+			value: term.nextElementSibling!.getBoundingClientRect().height,
+			align: getComputedStyle(term).textAlign,
+			muted: getComputedStyle(term).color === muted,
+		}))
+	})
+	expect(rows.length).toBeGreaterThan(3)
+	for (const row of rows) {
+		// A value that wraps makes its row taller; every other row is 32 px.
+		expect(row).toMatchObject({ track: Math.max(32, row.value), align: expect.stringMatching(/^(start|left)$/), muted: true })
+	}
+	await page.screenshot({ path: testInfo.outputPath('loupe-info-panel.png') })
+})
