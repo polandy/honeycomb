@@ -35,7 +35,8 @@ entry says why. The field empties and the entry stays open.
 **Undo and toast.** Each assignment or removal is one undo step over the pictures it altered and
 one toast with *Undo*: "Tagged DSC_4103 Sunrise", "Tagged 7 photos Dolomites", "Removed Anna from
 2 photos". A change that alters no picture records and says nothing. Undo takes the tag off, or
-puts it back on, exactly those pictures; redo repeats the change.
+puts it back on, exactly those pictures; redo repeats the change. A failed save, also of an undo
+or a redo, puts the tags back and the grid says the change could not be saved, as for a decision.
 
 **Closing.** `Esc` or *Done* closes the entry; the next `Esc` closes the loupe. On a narrow screen
 the entry is a bottom sheet.
@@ -133,6 +134,13 @@ are the cull's own.
 - **When** the cull opens
 - **Then** the known tags are the tag list and the cull's tags with their levels; after the failure
   the error is logged and the known tags are the cull's own
+
+### TAGS-003.14 – A failed save is said
+
+- **Given** a tagged photo whose tag save then fails
+- **When** the user undoes the tag, and later tags it again with the save working
+- **Then** the photo keeps its tag, the grid says the change could not be saved, and the next save
+  clears the notice
 
 ## Out of scope
 

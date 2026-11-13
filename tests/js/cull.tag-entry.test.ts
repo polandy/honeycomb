@@ -18,6 +18,7 @@ afterEach(() => vi.restoreAllMocks())
 /** A cull opened on ENTRIES with the stored tags, whose tag saves are recorded. */
 async function taggedCull(stored: StoredTags[], tagList: () => Promise<Tag[]> = async () => []) {
 	const saved: StoredTags[][] = []
+	const saving = { fails: false }
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
 		warmPreviews: async () => undefined,
@@ -25,13 +26,18 @@ async function taggedCull(stored: StoredTags[], tagList: () => Promise<Tag[]> = 
 		saveDecisions: async () => undefined,
 		tags: {
 			lookupTags: async (fileIds) => stored.filter((row) => fileIds.includes(row.fileId)),
-			saveTags: async (rows) => { saved.push([...rows]) },
+			saveTags: async (rows) => {
+				if (saving.fails) {
+					throw new Error('down')
+				}
+				saved.push([...rows])
+			},
 			loadTagList: tagList,
 		},
 	}, fakeStorage(), () => DEFAULT_SETTINGS, NO_SIDECARS)
 	cull.open(SET, ENTRIES, [])
 	await flushPromises()
-	return { cull, saved, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
+	return { cull, saved, saving, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
 }
 
 describe('useCull: tag', () => {
@@ -63,6 +69,25 @@ describe('useCull: tag', () => {
 
 		expect(cull.undo()).toBe(tagged)
 		expect(cull.undo()).toBe(decided)
+	})
+
+	// spec: TAGS-003.14
+	it('says a failed tag save, also on undo, and clears it with the next save', async () => {
+		const { cull, saving, picture } = await taggedCull([])
+		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
+		cull.tag({ added: ['Sunrise'], removed: [] }, [picture('IMG_2')])
+		await flushPromises()
+
+		saving.fails = true
+		cull.undo()
+		await flushPromises()
+		expect(cull.saveFailed.value).toBe(true)
+		expect(cull.tags.tagsOf(picture('IMG_2'))).toEqual(['Sunrise'])
+
+		saving.fails = false
+		cull.tag({ added: ['Dusk'], removed: [] }, [picture('IMG_2')])
+		await flushPromises()
+		expect(cull.saveFailed.value).toBe(false)
 	})
 
 	// spec: TAGS-003.11
