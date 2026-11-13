@@ -181,9 +181,10 @@ early: a mode switch the user did not ask for breaks the paging rhythm.
 - Reused unchanged: the series logic (`src/logic/series.ts`), `SeriesCompare.vue` and the series
   viewer, the `pickRestBtn` action through the undo history, the `Shift+K` and `N` keys of the
   shared key map, the tooltip, the toast.
-- New: the series span rule, the toast's *Reject the other N*, the chip in the loupe's title row, the compare's "opened from the loupe" entry (one series,
-  return target), *Pick this, reject the rest* in the loupe's action bar (the `ActionBar` slot the
-  viewer already uses), the frame in the filmstrip (series part 2), the once-per-user hint.
+- New: the series span rule, the toast's *Reject the other N*, the chip in the loupe's title
+  row, the compare's "opened from the loupe" entry (one series, return target), *Pick this,
+  reject the rest* in the loupe's action bar (the `ActionBar` slot the viewer already uses), the
+  frame in the filmstrip (series part 2), the once-per-user hint.
 - Keys: `N` gains a meaning in the loupe (the plan's key table already lists it for the loupe),
   `Shift+K` does nothing outside a series, as today.
 
