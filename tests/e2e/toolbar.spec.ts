@@ -41,7 +41,7 @@ test('takes at most two rows on a phone, with Review rejects and Compare series 
 	expect(await toolbarRows(page)).toBeLessThanOrEqual(2)
 	await expect(page.getByRole('button', { name: 'Review rejects' })).toBeHidden()
 	await expect(page.getByRole('button', { name: 'Compare series' })).toBeHidden()
-	await page.getByRole('button', { name: 'More' }).click()
+	await page.getByRole('button', { name: 'More', exact: true }).click()
 	await expect(page.getByRole('button', { name: 'Review rejects 0' })).toBeDisabled()
 	await expect(page.getByRole('button', { name: 'Compare series 0' })).toBeDisabled()
 })
@@ -53,7 +53,7 @@ test('keeps Review rejects and Compare series in the toolbar on a desktop', asyn
 
 	await expect(page.getByRole('button', { name: 'Review rejects' })).toBeVisible()
 	await expect(page.getByRole('button', { name: 'Compare series' })).toBeVisible()
-	await page.getByRole('button', { name: 'More' }).click()
+	await page.getByRole('button', { name: 'More', exact: true }).click()
 	await expect(page.getByRole('button', { name: 'Remove RAWs… 0' })).toBeVisible()
 	await expect(page.getByRole('button', { name: 'Review rejects 0' })).toBeHidden()
 })
