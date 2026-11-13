@@ -29,20 +29,20 @@ version (etag). A failed hash is logged and leaves the picture on the 3 second r
 change as hashes arrive, except while the series compare dialog is open.
 
 *Compare series* in the toolbar shows how many series there are and is disabled without one; it and
-`N` open the series compare dialog. The dialog, titled "Compare series 1 of 3", takes its full
-height and shows one line of instructions above the series' pictures side by side, whose photos
-grow to fill the rest. Each card has the picture's name, stars, flag mark, the flag buttons and
-*Pick this, reject the rest*; the flag buttons sit level across the cards, a flag mark or not. One
-picture is active (outlined); its *Pick this, reject the rest* is the primary button, the others'
-and *Skip* are secondary. The keys are in the buttons' tooltips and the shortcut sheet. Tapping a
-picture's photo opens it in the series viewer (SERIES-002); closing the viewer makes the viewed
-picture active. A decision goes through the undo
-history and the undo toast like any other. A rejected picture leaves the series; once fewer than two
-are left, the series is done and the next one shows. *Pick this, reject the rest* picks the one
-picture and rejects every other picture of the series, as one undo step: "Picked IMG_0003, rejected
-the rest · Undo". *Skip* shows the next series, after the last the first. Without any series left
-the dialog says "All series compared". In a card narrower than 200 px, as on a phone, *Pick this,
-reject the rest* drops its icon and wraps its label to two balanced lines instead of cutting it.
+`N` open the series compare dialog. The dialog, titled "Compare series 1 of 3", takes the full
+height and up to 1400 px of width, and shows one line of instructions above the series' pictures
+side by side, whose photos grow to fill the rest. Each card has the picture's name, stars, flag
+mark, the flag buttons and *Pick this, reject the rest*; the flag buttons sit level across the
+cards, a flag mark or not. One picture is active (outlined); its *Pick this, reject the rest* is the
+primary button, the others' and *Skip* are secondary. The keys are in the buttons' tooltips and the
+shortcut sheet. Tapping a picture's photo opens it in the series viewer (SERIES-002); closing the
+viewer makes the viewed picture active. A decision goes through the undo history and the undo toast
+like any other. A rejected picture leaves the series; once fewer than two are left, the series is
+done and the next one shows. *Pick this, reject the rest* picks the one picture and rejects every
+other picture of the series, as one undo step: "Picked IMG_0003, rejected the rest · Undo". *Skip*
+shows the next series, after the last the first. Without any series left the dialog says "All series
+compared". In a card narrower than 200 px, as on a phone, *Pick this, reject the rest* drops its
+icon and wraps its label to two balanced lines instead of cutting it.
 
 | Key in the dialog | Action |
 |---|---|
@@ -186,8 +186,8 @@ reject the rest* drops its icon and wraps its label to two balanced lines instea
 
 - **Given** the series compare dialog shows a series on a desktop, one picture flagged
 - **When** the cards lay out
-- **Then** the photos take at least half the window's height, and every card's flag buttons and
-  *Pick this, reject the rest* start at the same height
+- **Then** the dialog takes most of the window's width, the photos at least half its height, and
+  every card's flag buttons and *Pick this, reject the rest* start at the same height
 
 ## Out of scope
 

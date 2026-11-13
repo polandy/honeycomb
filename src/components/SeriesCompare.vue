@@ -199,8 +199,9 @@ function flaggedOf(picture: Picture<ListingEntry>) {
 </style>
 
 <style>
-/* Unscoped: NcDialog teleports the dialog; it takes its full height and the cards grow into it. */
+/* Unscoped: NcDialog teleports the dialog; it takes the full height and more width, the cards grow into it. */
 .confirm-dialog.series-compare-dialog.modal-mask .modal-wrapper .modal-container {
+	width: 1400px;
 	height: 100%;
 }
 
