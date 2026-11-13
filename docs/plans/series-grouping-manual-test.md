@@ -9,7 +9,7 @@ Read at `origin/main` 434c690 (2026-11-13).
 
 ## Question
 
-> How do I manually test, on nc-test (https://nc-test.1-0.io/apps/honeycomb, Nextcloud test
+> How do I manually test, on nc-test (<https://nc-test.1-0.io/apps/honeycomb>, Nextcloud test
 > instance with test photos), the feature that groups several photos by fingerprint
 > (series/burst/duplicate grouping)? Answer as a short step-by-step test guide: which feature/UI
 > it is, what preconditions the photos must meet (fingerprint source, time gap, EXIF, preview
@@ -113,8 +113,8 @@ Optional: RAW+JPEG pairs (same base name) must group as one picture, with the RA
 9. Reload: hashes come from the cache, series are immediate (no hashing visible). Replace a
    file (new etag) and only that file is hashed again.
 10. Clean up: delete the test folder (it goes to the trash bin) and the test decisions.
-    Honeycomb stores flags as Nextcloud tags/metadata on the files, not in the browser,
-    so deleting the folder is enough.
+    Honeycomb stores decisions on the server (DECISIONS-001), keyed by file id; deleting
+    the folder leaves orphan rows only, harmless on a test user.
 
 ## Known limitations and open items
 
