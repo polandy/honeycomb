@@ -152,6 +152,6 @@ describe('App: tag filter and tile', () => {
 
 		const tagsOf = wrapper.findComponent(PhotoGrid).props('tagsOf')
 
-		expect([0, 1, 2].map((at) => tagsOf(pictureAt(wrapper, at)))).toEqual([['Places/Italyx'], [], ['Anna', 'Places/Italy/Dolomites']])
+		expect([0, 1, 2].map((at) => tagsOf?.(pictureAt(wrapper, at)))).toEqual([['Places/Italyx'], [], ['Anna', 'Places/Italy/Dolomites']])
 	})
 })

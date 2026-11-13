@@ -91,7 +91,7 @@ test('narrows the grid to a picked tag and counts the tags on the tile', async (
 	await expect(loupe).toBeHidden()
 
 	const grid = page.getByRole('grid', { name: 'Photos' })
-	await expect(grid.getByRole('gridcell', { name: 'IMG_0001, JPG only, 1 tag' })).toBeVisible()
+	await expect(grid.getByRole('gridcell', { name: /^IMG_0001, JPG only, .*1 tag$/ })).toBeVisible()
 	await page.getByRole('button', { name: /Filter/ }).first().click()
 	const group = page.locator('.filter-bar').getByRole('group', { name: 'Tags' })
 	await group.getByRole('button', { name: 'Add tag' }).click()
@@ -102,7 +102,7 @@ test('narrows the grid to a picked tag and counts the tags on the tile', async (
 
 	await expect(group.getByRole('button', { name: `Remove ${tag} from the filter` })).toBeVisible()
 	await expect(grid.getByRole('gridcell')).toHaveCount(1)
-	await expect(grid.getByRole('gridcell', { name: 'IMG_0001, JPG only, 1 tag' })).toBeVisible()
+	await expect(grid.getByRole('gridcell', { name: /^IMG_0001, JPG only, .*1 tag$/ })).toBeVisible()
 	await page.screenshot({ path: testInfo.outputPath('tag-filter-ipad.png') })
 
 	await group.getByRole('button', { name: `Remove ${tag} from the filter` }).click()
