@@ -802,3 +802,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   so a pending decision take-over cannot be overwritten, and it creates a sidecar only while tags
   are left. Sidecar tags over the storage limits are left out with a warning instead of failing
   the whole save.
+- 2026-11-13: Embedded XMP (*Tags 1b*, ADR 0023): the server finds the JPEG's packet and sends
+  only it, since sending the whole JPEG costs megabytes per photo. The embedded XMP counts as a tag
+  source only while the JPEG has no sidecar of its own (`IMG.JPG.xmp` or the shared `IMG.xmp`),
+  digiKam's own rule: honeycomb never writes the JPEG, so a plain union would bring a removed
+  embedded tag back with every later write. For the same reason a write creates the JPEG's sidecar
+  also when the last tag goes and the embedded XMP held tags, and a picture whose embedded XMP
+  cannot be read takes no tags over and is not written through, so its tags are not lost.

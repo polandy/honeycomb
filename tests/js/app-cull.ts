@@ -111,6 +111,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			viewState: { loadViewState: async () => ({ infoPanelOpen: null, gestureGuideSeen: true }), saveViewState: async () => undefined },
 			sidecars: {
 				lookupSidecars: async (ids: readonly number[]) => ids.map(() => ({ result: 'notFound' })),
+				lookupEmbeddedXmp: async (ids: readonly number[]) => ids.map(() => ({ result: 'none' })),
 				saveSidecars: async (items: readonly SidecarSaveItem[]) => {
 					sidecarSaves.push([...items])
 					return items.map((_, index) => ({ result: 'saved', fileId: 100 + index, etag: 'e', size: 1, mtime: 1 }))

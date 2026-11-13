@@ -113,7 +113,7 @@ the foreign keywords or is removed when none is left. Every other property is ke
 ## Out of scope
 
 - Storing tags, the tag list and the endpoints (TAGS-001); the take-over and the write-through on
-  a change (TAGS-002). Reading the embedded XMP out of a JPEG: the `TODO.md` item *Tags 1b*.
+  a change (TAGS-002). Reading the embedded XMP out of a JPEG: XMP-005.
 - The tag entry, bulk tagging, the tag filter, the tile and the info panel: steps 4 and 5.
 
 ## History

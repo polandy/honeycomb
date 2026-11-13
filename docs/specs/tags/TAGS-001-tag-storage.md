@@ -112,8 +112,8 @@ device; the tag list keeps every tag the user ever had for autocomplete and the 
 
 ## Out of scope
 
-Reading tags from sidecars and writing them through (TAGS-002); the JPEG's embedded XMP (the
-`TODO.md` item *Tags 1b*); tag entry, filter and tiles (*Tags 2* to *Tags 4*); renaming tags (D7).
+Reading tags from sidecars and writing them through (TAGS-002); the JPEG's embedded XMP
+(XMP-005); tag entry, filter and tiles (*Tags 2* to *Tags 4*); renaming tags (D7).
 
 ## History
 

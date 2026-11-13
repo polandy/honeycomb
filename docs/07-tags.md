@@ -3,9 +3,10 @@
 **Status: in progress.** Steps 1 to 3 of the [implementation outline](#implementation-outline) are
 built: tags in sidecars ([XMP-004](specs/xmp/XMP-004-tags-in-sidecars.md)), their storage
 ([TAGS-001](specs/tags/TAGS-001-tag-storage.md)) and the take-over and write-through in the cull
-([TAGS-002](specs/tags/TAGS-002-tags-in-the-cull.md)), except the embedded XMP (D1); the other
-steps are open in `TODO.md`. The owner asked for tags that work like digiKam's and are
-read and written in digiKam's fields (2026-11-11), and answered the
+([TAGS-002](specs/tags/TAGS-002-tags-in-the-cull.md)), with the JPEG's embedded XMP (D1,
+[XMP-005](specs/xmp/XMP-005-embedded-xmp-endpoint.md)); the other steps are open in `TODO.md`.
+The owner asked for tags that work like digiKam's and are read and written in digiKam's fields
+(2026-11-11), and answered the
 [decisions](#decisions-2026-11-12) on 2026-11-12. The milestone is planned from the
 [implementation outline](#implementation-outline). The approved mockup is
 [`mockup/tag-entry.html`](mockup/tag-entry.html) (open it in a browser, no build).
@@ -84,7 +85,10 @@ the shared `IMG.xmp` and the JPEG's embedded XMP (read only, D1). Ratings and fl
 recently modified sidecar as a whole (`06-xmp-interop.md`). For tags they are the
 **union** of all sources (D2): tags are added in many places over the years, and dropping
 the older sidecar's tags would lose work no other program shows the user. Writing then brings
-every source to the same set, so a disagreement does not last.
+every source to the same set, so a disagreement does not last. The embedded XMP counts only
+while the JPEG has no sidecar of its own (`IMG.JPG.xmp` or the shared `IMG.xmp`), as in digiKam,
+where a sidecar replaces the embedded XMP: since the embedded XMP is never written, a tag removed
+from it would otherwise come back with the next write (`decisions.md`, 2026-11-13).
 
 ## Writing
 
