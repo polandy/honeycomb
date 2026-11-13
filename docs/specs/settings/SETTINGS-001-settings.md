@@ -197,6 +197,12 @@ Below it, the favourite targets the move dialog starred, each with a ✕ to remo
   so the guide shows on the next loupe opening; the hint under the button says so until the guide
   is dismissed again, and says what the guide holds while it counts as seen
 
+### SETTINGS-001.23 – Text lines up with the section heading
+
+- **Given** the settings dialog
+- **When** a section shows a hint, a sub-heading such as *RAW extensions* or a row label
+- **Then** its text starts at the x of the section heading's text, in every section
+
 ## Out of scope
 
 What the swipes, auto-advance and flag buttons do in the loupe: LOUPE-002. The vi keys: KEYS-001.
@@ -211,3 +217,4 @@ Pairing itself: LISTING-002.
 | 2026-11-10 | .16–.21 name template setting, presets, preview and favourite targets (M7.4) |
 | 2026-11-12 | .10 *Pin the filmstrip* and *Pin the rating row* (LOUPE-001.20) |
 | 2026-11-11 | .22 show the gesture guide again (UX review L6) |
+| 2026-11-13 | .23 text lines up with the section heading (UX L4) |
