@@ -61,8 +61,10 @@ body{display:flex;flex-direction:column}
 .mark.pick{background:var(--pick-fill)}.mark.reject{background:var(--reject-fill)}
 .film{flex:none;display:flex;gap:4px;overflow-x:auto;padding:12px 8px 6px;background:#000;align-items:flex-end;scrollbar-width:none}
 .film .th{flex:none;width:54px;height:54px;border:0;padding:0;position:relative;overflow:hidden;background:#222}
-.film .th.cur{box-shadow:inset 0 0 0 2px #fff}
 .film .th.rej{opacity:.45}
+/* owner point 5: a white ring with a dark inner edge reads on bright and dark photos; the current photo is never dimmed */
+.film .th.cur{opacity:1}
+.film .th.cur::before{content:"";position:absolute;inset:0;z-index:1;box-shadow:inset 0 0 0 3px #fff,inset 0 0 0 4px #000;pointer-events:none}
 .grp{flex:none;display:flex;gap:4px;padding:3px;border:2px solid var(--honey);border-radius:8px;position:relative}
 .grp .tab{position:absolute;left:6px;top:-11px;height:20px;padding:0 7px;border-radius:10px;border:0;background:var(--honey);color:var(--on-honey);font-size:12px;font-weight:800;line-height:20px}
 .grp .tab::before{content:"";position:absolute;inset:-12px -8px}
@@ -103,7 +105,7 @@ body{display:flex;flex-direction:column}
 .hint{position:absolute;z-index:6;max-width:300px;background:var(--stage-2);border:2px solid var(--honey);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);font-size:14px}
 .hint p{margin:0 0 10px}
 .hint::before{content:"";position:absolute;top:-9px;right:28px;width:14px;height:14px;background:var(--stage-2);border-left:2px solid var(--honey);border-top:2px solid var(--honey);transform:rotate(45deg)}
-.toast{position:absolute;left:50%;transform:translateX(-50%);top:70px;z-index:8;background:#f2f2f2;color:#1b1b1b;border-radius:12px;padding:6px 6px 6px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);white-space:nowrap}
+.toast{position:absolute;left:50%;transform:translateX(-50%);top:70px;z-index:9;background:#f2f2f2;color:#1b1b1b;border-radius:12px;padding:6px 6px 6px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);white-space:nowrap}
 .toast button{border:0;background:none;color:#8a5600;font-weight:800;min-height:var(--hit);padding:0 10px}
 /* the compare uses the whole screen: a grid of the series' photos */
 .dlg{position:absolute;inset:0;z-index:7;background:var(--stage-2);display:flex;flex-direction:column}
@@ -112,7 +114,22 @@ body{display:flex;flex-direction:column}
 .dlg .cards{flex:1;min-height:0;display:grid;gap:10px;overflow-y:auto;overflow-x:hidden;padding:12px;align-content:center;justify-content:center}
 .card{display:flex;flex-direction:column;gap:4px;align-items:center;padding:4px;border-radius:10px;border:2px solid transparent}
 .card.act{border-color:var(--honey)}
-.card .pbtn{border:0;padding:0;background:none}
+.card .pw{position:relative}
+.card .pbtn{border:0;padding:0;background:none;display:block}
+/* owner point 4: View full screen on every card, shown always, on a dark disc */
+.card .fs{position:absolute;top:6px;right:6px;width:var(--hit);height:var(--hit);border-radius:50%;border:0;background:#000b;color:#fff;display:flex;align-items:center;justify-content:center}
+/* the series viewer: the compare's full screen */
+.viewer{position:absolute;inset:0;z-index:8;background:#000;display:flex;flex-direction:column}
+.viewer header{display:flex;align-items:center;gap:8px;padding:8px;background:#0009}
+.viewer header h2{margin:0;font-size:16px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.viewer .back{display:flex;align-items:center;gap:6px;min-height:var(--hit);padding:0 12px 0 6px;border:0;border-radius:10px;background:#ffffff14;color:#fff;font-weight:700}
+.viewer .vstage{flex:1;min-height:0;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.viewer .vstage .zoomed{transform:scale(2.2);transform-origin:50% 45%}
+.viewer .vlive{position:absolute;left:50%;top:10px;transform:translateX(-50%);background:#000b;border-radius:8px;padding:4px 10px;font-size:13px}
+.viewer footer{flex:none;display:flex;flex-wrap:wrap;gap:8px;padding:8px;background:var(--stage-2);border-top:1px solid #ffffff1a}
+.viewer footer .bigbtn{min-height:56px;font-size:16px}
+.viewer footer .pickrest{flex-basis:100%;justify-content:center}
+.landscape ~ .viewer footer .pickrest{flex-basis:auto}
 .card .nm{font-size:12px;color:var(--stage-muted)}
 .card .fl{display:flex;gap:4px}
 .card .fl .sq{border-radius:8px;background:#ffffff14}
@@ -123,6 +140,7 @@ body{display:flex;flex-direction:column}
 
 /* numbered callouts, matching the concept's sections */
 [data-co]:not(.hint){position:relative}
+#dev.co:has(.dlg) .loupe [data-co]::after,#dev.co:has(.viewer) .dlg [data-co]::after{display:none}
 #dev.co [data-co]::after{content:attr(data-co);position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:#1a62d6;color:#fff;font:700 12px/20px system-ui;text-align:center;z-index:9;pointer-events:none}
 </style>
 </head>
@@ -134,11 +152,11 @@ body{display:flex;flex-direction:column}
   </div>
   <label><input type="checkbox" id="optRej"> <i>Rejected</i> pressed in the flag filter</label>
   <label><input type="checkbox" id="optGrid"> Compare opened from the grid toolbar</label>
-  <label><input type="checkbox" id="optCo" checked> Callouts 1–6</label>
+  <label><input type="checkbox" id="optCo" checked> Callouts 1–8</label>
   <button class="lnk" id="resetHint">Show the first-series hint again</button>
   <button class="lnk" id="resetAll">Reset</button>
 </div>
-<div id="note">Concept: <code>docs/plans/loupe-series-concept.md</code>. ① chip ② filmstrip frame ③ <i>Pick this, reject the rest</i> ④ first-series hint ⑤ <i>Reject the other N</i> after a plain <i>Pick</i> (part 3) ⑥ the compare as a full-screen grid. Flag buttons: <i>Pick</i> left, <i>Unflag</i> middle, <i>Reject</i> right. Keys: <kbd>←</kbd> <kbd>→</kbd> page (<kbd>↑</kbd> <kbd>↓</kbd> too in the compare), <kbd>P</kbd> <kbd>X</kbd> <kbd>U</kbd> decide (<kbd>Shift</kbd> moves on), <kbd>N</kbd> series, <kbd>Shift+K</kbd> pick this, reject the rest, <kbd>Ctrl+Z</kbd> undo, <kbd>Esc</kbd> close.</div>
+<div id="note">Concept: <code>docs/plans/loupe-series-concept.md</code>. ① chip ② filmstrip frame ③ <i>Pick this, reject the rest</i> ④ first-series hint ⑤ <i>Reject the other N</i> after a plain <i>Pick</i> (part 3) ⑥ the compare as a full-screen grid ⑦ <i>View full screen</i> on every card (also a double click or <kbd>Enter</kbd>): the series viewer, with zoom and <i>Back to the series</i> ⑧ the current photo in the filmstrip: a white ring with a dark edge, never dimmed. Flag buttons: <i>Pick</i> left, <i>Unflag</i> middle, <i>Reject</i> right. Keys: <kbd>←</kbd> <kbd>→</kbd> page (<kbd>↑</kbd> <kbd>↓</kbd> too in the compare), <kbd>P</kbd> <kbd>X</kbd> <kbd>U</kbd> decide (<kbd>Shift</kbd> moves on), <kbd>N</kbd> series, <kbd>Shift+K</kbd> pick this, reject the rest, <kbd>Enter</kbd> full screen from the compare, <kbd>Z</kbd> zoom in it, <kbd>Ctrl+Z</kbd> undo, <kbd>Esc</kbd> close.</div>
 <div id="host"><div id="dev" class="co" role="application" aria-label="Loupe"></div></div>
 
 <script>
@@ -148,7 +166,7 @@ const ICONS = {
   flag:'M5 3v18M5 4h11l-2 4 2 4H5', flagPick:'M5 3v18M5 4h11l-2 4 2 4H5z', flagX:'M5 3v18M5 4h11l-2 4 2 4H5M8 6l3 4M11 6l-3 4',
   left:'M15 6l-6 6 6 6', right:'M9 6l6 6-6 6', close:'M6 6l12 12M18 6 6 18', back:'M19 12H5M11 6l-6 6 6 6',
   star:'M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z', info:'M12 8v.01M11 12h1v5h1M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z',
-  fit:'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5',
+  fit:'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5', expand:'M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7',
 };
 const ic = (name, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[name]}"/></svg>`;
 const LABELS = ['#e5484d', '#f5d90a', '#30a46c', '#0091ff'];
@@ -165,7 +183,7 @@ const PHOTOS = Array.from({length:14}, (_, i) => {
 });
 
 const st = {dev:'phone', cur:0, flags:Array(14).fill('none'), rating:Array(14).fill(0), showRej:false, fromGrid:false, hintSeen:false, hintOpen:false,
-  compare:null, toast:null, toastRest:null, undo:[]};
+  compare:null, viewer:null, toast:null, toastRest:null, undo:[]};
 
 const isRej = i => st.flags[i] === 'reject';
 const visible = () => PHOTOS.filter(p => st.showRej || !isRej(p.i) || p.i === st.cur).map(p => p.i);
@@ -199,12 +217,26 @@ function showToast(text){ st.toast = text; st.toastRest = null; }
 function page(d){ const v = visible(), k = v.indexOf(st.cur) + d; if (k >= 0 && k < v.length){ st.cur = v[k]; maybeHint(); } }
 function maybeHint(){ if (!st.hintSeen && members(st.cur).length) st.hintOpen = true; }
 function openCompare(){ const m = members(st.cur); if (m.length) st.compare = {active:st.cur}; }
-function closeCompare(){ st.cur = st.compare.active; st.compare = null; }
+function closeCompare(){ st.cur = st.compare.active; st.compare = null; st.viewer = null; }
+// Owner point 4: a tap makes a card active; View full screen, a double tap or Enter opens the series viewer.
+const DOUBLE_TAP_MS = 350;
+function openViewer(i){ st.compare.active = i; st.viewer = {zoom:false}; }
+function viewerPage(d){ const m = compareMembers(), k = m.indexOf(st.compare.active) + d; if (k >= 0 && k < m.length) st.compare.active = m[k]; }
+// A rejected photo leaves the series; the next one shows, the previous after the last; under two left the viewer closes.
+function viewerDecide(f){
+  const i = st.compare.active, before = compareMembers(), k = before.indexOf(i);
+  setFlag(i, f, `${PHOTOS[i].name}: ${f === 'pick' ? 'picked' : f === 'reject' ? 'rejected' : 'unflagged'}`);
+  if (!isRej(i)) return;
+  const left = before.filter(j => j !== i);
+  if (left.length < 2) { st.viewer = null; st.compare.active = left[0] ?? i; return; }
+  st.compare.active = left[Math.min(k, left.length - 1)];
+}
 function comparePickRest(){
   const i = st.compare.active;
-  if (st.fromGrid){ pickRest(i); skipSeries(); return; }
+  if (st.fromGrid){ pickRest(i); skipSeries(); st.viewer = null; return; }
   pickRest(i); closeCompare(); landAfter(i);
 }
+function comparePickRestFromViewer(){ st.viewer = null; comparePickRest(); }
 function skipSeries(){ const k = Object.keys(SERIES), s = k[(k.indexOf(PHOTOS[st.compare.active].series) + 1) % k.length]; st.compare.active = SERIES[s].find(j => !isRej(j)); }
 const compareMembers = () => SERIES[PHOTOS[st.compare.active].series].filter(j => !isRej(j));
 
@@ -219,7 +251,7 @@ function topRow(){
 
 function film(){
   const v = visible(); let out = '', run = null;
-  const th = i => `<button class="th${i === st.cur ? ' cur' : ''}${isRej(i) ? ' rej' : ''}" data-go="${i}" aria-label="${PHOTOS[i].name}">${photoHtml(i, 54, 54, 'tp')}</button>`;
+  const th = i => `<button class="th${i === st.cur ? ' cur' : ''}${isRej(i) ? ' rej' : ''}" data-go="${i}" aria-label="${PHOTOS[i].name}"${i === st.cur ? ' aria-current="true" data-co="8"' : ''}>${photoHtml(i, 54, 54, 'tp')}</button>`;
   const flush = () => { if (run){ out += `<div class="grp" data-co="${run.first ? 2 : ''}"><button class="tab" data-act="compareAt" data-at="${run.ids[0]}" aria-label="Series of ${run.n} – compare">⧉ ${run.n}</button>${run.ids.map(th).join('')}</div>`; run = null; } };
   let first = true;
   for (const i of v){
@@ -265,7 +297,27 @@ function compareDlg(){
   const pr = `<button class="btn primary" data-act="cPickRest">${ic('flagPick', 'fill')}Pick this, reject the rest${st.dev === 'desktop' ? ' <kbd>Shift+K</kbd>' : ''}</button>`;
   const note = st.fromGrid ? 'From the grid: Skip and Pick this, reject the rest move to the next series.' : 'From the loupe: this one series. Closing returns to the loupe on the active photo; Pick this, reject the rest lands on the first photo after the series.';
   return `<div class="dlg" role="dialog" aria-modal="true" aria-label="${title}"><header><h2 data-co="6">${title}</h2>${skip}<button class="icon-btn" data-act="closeCompare" aria-label="Close">${ic('close')}</button></header>
-    <div class="cards" id="cards"></div><footer>${st.dev === 'phone' ? '' : `<p>${note} A tap on the active photo opens the series viewer (unchanged).</p>`}${pr}</footer></div>`;
+    <div class="cards" id="cards"></div><footer>${st.dev === 'phone' ? '' : `<p>${note} A tap makes a card active; ⤢, a double ${st.dev === 'desktop' ? 'click or Enter' : 'tap'} opens it full screen.</p>`}${pr}</footer></div>`;
+}
+
+function viewerDlg(){
+  if (!st.compare || !st.viewer) return '';
+  const m = compareMembers(), a = m.indexOf(st.compare.active), i = st.compare.active, keys = Object.keys(SERIES), f = st.flags[i];
+  const pos = st.fromGrid ? `Compare series ${keys.indexOf(PHOTOS[i].series) + 1} of ${keys.length} · photo ${a + 1} of ${m.length}` : `Series of ${m.length} · photo ${a + 1}`;
+  const vb = (v, icon, label) => `<button class="bigbtn ${v}" data-vflag="${v}" aria-pressed="${f === v}">${ic(icon, v === 'pick' ? 'fill' : '')}<span>${label}</span></button>`;
+  const phone = st.dev === 'phone';
+  return `<div class="viewer" role="dialog" aria-modal="true" aria-label="${pos}"><header><button class="back" data-act="closeViewer" aria-label="Back to the series" title="Back to the series (Esc)">${ic('back')}${phone ? '' : 'Back to the series'}</button>
+    <h2>${phone ? '' : `${PHOTOS[i].name}.JPG · `}${pos}</h2><button class="icon-btn" data-act="zoom" aria-pressed="${st.viewer.zoom}" aria-label="Fit or 100 %" title="Fit or 100 % (Z)">${ic('fit')}</button></header>
+    <div class="vstage" id="vstage"><div id="vph"></div>${st.viewer.zoom ? `<div class="vlive" role="status">Zoom synced on all ${m.length} photos</div>` : ''}
+    <button class="navbtn" style="left:10px" data-vnav="-1" aria-label="Previous" ${a <= 0 ? 'disabled' : ''}>${ic('left')}</button>
+    <button class="navbtn" style="right:10px" data-vnav="1" aria-label="Next" ${a >= m.length - 1 ? 'disabled' : ''}>${ic('right')}</button></div>
+    <footer>${vb('pick', 'flagPick', 'Pick')}${vb('none', 'flag', 'Unflag')}${vb('reject', 'flagX', 'Reject')}<button class="btn pickrest" data-act="vPickRest">${ic('flagPick', 'fill')}Pick this, reject the rest${st.dev === 'desktop' ? ' <kbd>Shift+K</kbd>' : ''}</button></footer></div>`;
+}
+
+function fillViewer(){
+  const box = document.getElementById('vstage'), ph = document.getElementById('vph'); if (!box || !ph) return;
+  const w = Math.min(box.clientWidth - 16, (box.clientHeight - 16) * 1.5);
+  ph.outerHTML = `<div class="${st.viewer.zoom ? 'zoomed' : ''}" id="vphoto">${photoHtml(st.compare.active, Math.round(w), Math.round(w / 1.5))}</div>`;
 }
 
 // Columns that give the largest card while every card fits; below the minimum width the grid scrolls down, never sideways.
@@ -290,7 +342,8 @@ function fillCards(){
   box.innerHTML = m.map(i => {
     const f = st.flags[i];
     const fl = [['pick', 'flagPick', 'Pick'], ['none', 'flag', 'Unflag'], ['reject', 'flagX', 'Reject']].map(([v, icn, lbl]) => `<button class="sq" data-cflag="${v}" data-at="${i}" aria-pressed="${f === v}" aria-label="${lbl}">${ic(icn, v === 'pick' ? 'fill' : '')}</button>`).join('');
-    return `<div class="card${i === st.compare.active ? ' act' : ''}" data-card="${i}"><button class="pbtn" data-cact="${i}" aria-label="${PHOTOS[i].name}">${photoHtml(i, w, Math.round(w * 2 / 3))}</button>
+    const fs = `<button class="fs" data-fs="${i}" aria-label="View full screen" title="View full screen (Enter)">${ic('expand')}</button>`;
+    return `<div class="card${i === st.compare.active ? ' act' : ''}" data-card="${i}"><div class="pw"${i === st.compare.active ? ' data-co="7"' : ''}><button class="pbtn" data-cact="${i}" aria-label="${PHOTOS[i].name}">${photoHtml(i, w, Math.round(w * 2 / 3))}</button>${fs}</div>
       <span class="nm">${PHOTOS[i].name}</span><div class="fl">${fl}</div></div>`;
   }).join('');
 }
@@ -306,8 +359,8 @@ function render(){
   } else {
     body = `<div class="loupe landscape">${stage()}${topRow()}<div class="rail l">${flagBtn('pick', 'flagPick', 'Pick')}</div><div class="rail r">${flagBtn('reject', 'flagX', 'Reject')}</div><div class="bottom"><div class="mid">${flagBtn('none', 'flag', 'Unflag')}</div>${film()}${smallRow()}</div></div>`;
   }
-  dev.innerHTML = body + hint() + toast + compareDlg();
-  fillCards();
+  dev.innerHTML = body + hint() + toast + compareDlg() + viewerDlg();
+  fillCards(); fillViewer();
   const sEl = document.getElementById('stage'), ph = document.getElementById('ph');
   const sw = sEl.clientWidth - 20, sh = sEl.clientHeight - 20, w = Math.min(sw, sh * 1.5);
   ph.outerHTML = photoHtml(st.cur, Math.round(w), Math.round(w / 1.5));
@@ -342,7 +395,13 @@ document.getElementById('dev').addEventListener('click', e => {
   else if (ds.flag) decide(ds.flag, false);
   else if (ds.star) st.rating[st.cur] = st.rating[st.cur] === +ds.star ? 0 : +ds.star;
   else if (ds.cflag) setFlag(+ds.at, ds.cflag, `${PHOTOS[+ds.at].name}: ${ds.cflag}`);
-  else if (ds.cact) st.compare.active = +ds.cact;
+  else if (ds.cact) { const i = +ds.cact, now = e.timeStamp, twice = st.lastTap && st.lastTap.i === i && now - st.lastTap.t < DOUBLE_TAP_MS; st.lastTap = twice ? null : {i, t:now}; if (twice) openViewer(i); else st.compare.active = i; }
+  else if (ds.fs) openViewer(+ds.fs);
+  else if (ds.vnav) viewerPage(+ds.vnav);
+  else if (ds.vflag) viewerDecide(ds.vflag);
+  else if (ds.act === 'closeViewer') st.viewer = null;
+  else if (ds.act === 'zoom') st.viewer.zoom = !st.viewer.zoom;
+  else if (ds.act === 'vPickRest') comparePickRestFromViewer();
   else if (ds.act === 'compare') { st.hintOpen = false; st.hintSeen = true; openCompare(); }
   else if (ds.act === 'compareAt') { st.cur = +ds.at; st.hintOpen = false; st.hintSeen = true; openCompare(); }
   else if (ds.act === 'pickRest') pickRestAndLand(st.cur);
@@ -356,12 +415,25 @@ document.getElementById('dev').addEventListener('click', e => {
   render();
 });
 
+// A double tap on the viewer's photo zooms; a card's double tap is counted in the click handler, since the first tap re-renders.
+document.getElementById('dev').addEventListener('dblclick', e => {
+  if (st.viewer && e.target.closest('#vstage') && !e.target.closest('button')) { st.viewer.zoom = !st.viewer.zoom; render(); }
+});
+
 document.addEventListener('keydown', e => {
   if (e.target.matches && e.target.matches('input')) return;
   const k = e.key.toLowerCase();
   if ((e.ctrlKey || e.metaKey) && k === 'z') { e.preventDefault(); return undo(); }
   if (e.ctrlKey || e.metaKey || e.altKey) return;
-  if (st.compare){
+  if (st.viewer){
+    if (k === 'escape') st.viewer = null;
+    else if (k === 'arrowleft') viewerPage(-1);
+    else if (k === 'arrowright') viewerPage(1);
+    else if (k === 'z') st.viewer.zoom = !st.viewer.zoom;
+    else if (k === 'k' && e.shiftKey) comparePickRestFromViewer();
+    else if (k === 'p' || k === 'x' || k === 'u') viewerDecide({p:'pick', x:'reject', u:'none'}[k]);
+    else return;
+  } else if (st.compare){
     const m = compareMembers(), a = m.indexOf(st.compare.active), c = st.compare.cols || 1;
     if (k === 'escape') closeCompare();
     else if (k === 'arrowleft' && a > 0) st.compare.active = m[a - 1];
@@ -369,6 +441,7 @@ document.addEventListener('keydown', e => {
     else if (k === 'arrowup' && a - c >= 0) st.compare.active = m[a - c];
     else if (k === 'arrowdown' && a + c < m.length) st.compare.active = m[a + c];
     else if (k === 'k' && e.shiftKey) comparePickRest();
+    else if (k === 'enter' && !e.target.closest('button')) openViewer(st.compare.active);
     else if (k === 'p' || k === 'x' || k === 'u') decide({p:'pick', x:'reject', u:'none'}[k], false);
     else return;
   } else {
@@ -388,7 +461,7 @@ document.getElementById('optRej').addEventListener('change', e => { st.showRej =
 document.getElementById('optGrid').addEventListener('change', e => { st.fromGrid = e.target.checked; render(); });
 document.getElementById('optCo').addEventListener('change', e => { document.getElementById('dev').classList.toggle('co', e.target.checked); });
 document.getElementById('resetHint').addEventListener('click', () => { st.hintSeen = false; maybeHint(); render(); });
-document.getElementById('resetAll').addEventListener('click', () => { Object.assign(st, {cur:3, flags:Array(14).fill('none'), rating:Array(14).fill(0), hintSeen:false, hintOpen:false, compare:null, toast:null, toastRest:null, undo:[]}); maybeHint(); render(); });
+document.getElementById('resetAll').addEventListener('click', () => { Object.assign(st, {cur:3, flags:Array(14).fill('none'), rating:Array(14).fill(0), hintSeen:false, hintOpen:false, compare:null, viewer:null, toast:null, toastRest:null, undo:[]}); maybeHint(); render(); });
 addEventListener('resize', fit);
 st.cur = 3; maybeHint(); render();
 </script>

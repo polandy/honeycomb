@@ -937,3 +937,13 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   bottom centre above the filmstrip. As UX lead I extend the order to every flag button group
   (series viewer, compare cards, grid action bar), replacing the 2026-11-12 line that the small
   buttons keep *Pick*, *Reject*, *Unflag*, so a hand learns one order.
+- 2026-11-14: Owner point on the series-in-the-loupe concept: one photo of the compare grid goes
+  full screen. As UX lead: the full screen is the existing series viewer, opened by a *View full
+  screen* button shown on every card, a double tap (double click) on a card or `Enter`; a single
+  tap only makes a card active, since a tap that opens a full screen view without a sign is what
+  hid the viewer; *Back to the series* or `Esc` returns to the grid
+  (`docs/plans/loupe-series-concept.md`).
+- 2026-11-14: Owner point: the loupe's filmstrip does not show the shown photo; its 2 px white
+  line vanishes on bright photos. As UX lead: a 3 px white ring with a 1 px black inner edge, the
+  current thumbnail never dimmed, so it reads on any photo, inside a honey series frame and next
+  to rejected thumbnails; it ships as its own first build PR (`docs/plans/loupe-series-concept.md`).
