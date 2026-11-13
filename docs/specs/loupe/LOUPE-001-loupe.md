@@ -42,8 +42,8 @@ band of square photos edge to edge that keeps the shown picture in its middle. T
 the filmstrip* and *Pin the rating row* keep either one below the photo instead of over it, never
 idle; the pin toggle at the filmstrip's end switches *Pin the filmstrip* in landscape. The loupe
 loads the shown picture first, then 3 neighbours ahead and 2 behind, nearest first, so the next
-picture shows without a request. The info panel lists the picture's file facts, its decision, its
-tags (TAGS-004) and how many neighbours are loaded; its width can be dragged. The panel's width
+picture shows without a request. The info panel lists the picture's file facts, its decision and
+its tags (TAGS-004) in compact rows; its width can be dragged. The panel's width
 and the Nextcloud navigation choice are kept in the browser; whether the panel is open and whether
 the gesture guide was dismissed are kept per user on the server (LOUPE-003).
 
@@ -142,8 +142,8 @@ the gesture guide was dismissed are kept per user on the server (LOUPE-003).
 - **Given** the loupe is open
 - **When** the user presses `I` or the info toggle, drags the divider or uses its arrow keys, or
   presses the filmstrip toggle
-- **Then** the info panel opens beside the photo with the file facts, decision and loaded
-  neighbours, at the dragged width within its limits; open state and width are kept for the
+- **Then** the info panel opens beside the photo with the file facts, decision and tags, at the
+  dragged width within its limits; open state and width are kept for the
   next visit; the filmstrip shows the pictures around the shown one, all at full opacity with
   the shown one marked by its border, or hides
 
@@ -190,6 +190,7 @@ IMAGES-001.
 | 2026-11-12 | .13 the filmstrip shows what fits; .19 its Lightroom-like look, .20 pinned filmstrip and rating row |
 | 2026-11-12 | .20 a pin toggle in the title row; .22 a picture the filters hide leaves the loupe (owner, iPad) |
 | 2026-11-12 | .20 the pin toggle moved from the title row to the filmstrip's end (owner, iPad) |
+| 2026-11-13 | .13 the info panel drops its *Preloading* section; .23 compact rows (UX M6) |
 
 ### LOUPE-001.18 – One photo in view
 
@@ -232,3 +233,11 @@ IMAGES-001.
 - **Then** the decided picture leaves the filmstrip and the "x of y" count; while it is shown it
   stays, so the decision does not shift the photo, and a decision that cannot be saved brings it
   back
+
+### LOUPE-001.23 – Compact info panel
+
+- **Given** the info panel is open
+- **When** it shows a picture
+- **Then** its rows are 32 px apart with each label left-aligned in the muted colour; the
+  *Sidecars* row names each sidecar once by its file name; an empty value (no sidecar, rating,
+  colour label or tag) shows "—"

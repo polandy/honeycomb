@@ -60,11 +60,11 @@ describe('PanelDivider', () => {
 
 describe('LoupeInfo', () => {
 	const mountInfo = (picture: Picture<ListingEntry>, decision: Decision = UNDECIDED, tagged: { tags?: string[], writesSidecars?: boolean } = {}) => mount(LoupeInfo, {
-		props: { picture, folderSet: SET, decision, preloaded: 2, neighbours: 5, ...tagged },
+		props: { picture, folderSet: SET, decision, ...tagged },
 	})
 
 	// spec: LOUPE-001.13
-	it('lists a pair\'s file facts, its decision and the preloading state', () => {
+	it('lists a pair\'s file facts and its decision without a preloading section', () => {
 		const picture = pictureOf(
 			listingEntry(1, '/P/Trip/IMG_1.JPG', { size: 4 * 1024 ** 2, width: 6000, height: 4000, captureTime: 1_700_000_000 }),
 			listingEntry(2, '/P/Trip/IMG_1.CR3', { size: 25 * 1024 ** 2, mime: 'image/x-canon-cr3' }),
@@ -77,20 +77,32 @@ describe('LoupeInfo', () => {
 			Size: '6,000 × 4,000',
 			JPG: '4 MB',
 			CR3: '25 MB',
-			Sidecar: 'XMP',
+			Sidecars: 'IMG_1.xmp',
 			Rating: '3 stars',
 			'Colour label': 'Red',
 			Flag: 'Picked',
 			'Keep RAW': 'yes',
 		})
 		expect(infoRows(wrapper).Captured).toBeTruthy()
-		expect(wrapper.text()).toContain('2 of 5 neighbours loaded')
+		expect(wrapper.text()).not.toContain('Preloading')
 	})
 
-	it('shows a lone RAW without unknown facts or the keep RAW row', () => {
+	// spec: LOUPE-001.23
+	it('names each sidecar once by its file name', () => {
+		const picture = pictureOf(
+			listingEntry(1, '/P/IMG_1.JPG'),
+			listingEntry(2, '/P/IMG_1.CR3', { mime: 'image/x-canon-cr3' }),
+			listingEntry(3, '/P/IMG_1.JPG.xmp', { mime: 'application/octet-stream' }),
+			listingEntry(4, '/P/IMG_1.xmp', { mime: 'application/octet-stream' }),
+		)
+		expect(infoRows(mountInfo(picture)).Sidecars).toBe('IMG_1.JPG.xmp, IMG_1.xmp')
+	})
+
+	// spec: LOUPE-001.23
+	it('shows a lone RAW without unknown facts or the keep RAW row, and a dash for each empty value', () => {
 		const wrapper = mountInfo(pictureOf(listingEntry(2, '/P/IMG_2.CR3', { mime: 'image/x-canon-cr3' })), { ...UNDECIDED, flag: 'rejected' })
 		const rows = infoRows(wrapper)
-		expect(rows).toMatchObject({ Sidecar: 'none', Rating: 'none', 'Colour label': 'none', Flag: 'Rejected' })
+		expect(rows).toMatchObject({ Sidecars: '—', Rating: '—', 'Colour label': '—', Flag: 'Rejected' })
 		expect(Object.keys(rows)).not.toContain('Captured')
 		expect(Object.keys(rows)).not.toContain('Size')
 		expect(Object.keys(rows)).not.toContain('Keep RAW')
@@ -125,11 +137,11 @@ describe('LoupeInfo', () => {
 		expect(infoRows(mountInfo(picture, UNDECIDED, { tags: ['Anna'], writesSidecars: false }))['Written to']).toBe('Not written, shared folder')
 	})
 
-	// spec: TAGS-004.8
-	it('says none for an untagged picture and has no written to row', () => {
+	// spec: TAGS-004.8, LOUPE-001.23
+	it('shows a dash for an untagged picture and has no written to row', () => {
 		const wrapper = mountInfo(pictureOf(listingEntry(1, '/P/IMG_1.JPG'), listingEntry(2, '/P/IMG_1.xmp', { mime: 'application/octet-stream' })))
 
-		expect(wrapper.find('.loupe-info__tags').text()).toBe('none')
+		expect(wrapper.find('.loupe-info__tags').text()).toBe('—')
 		expect(Object.keys(infoRows(wrapper))).not.toContain('Written to')
 	})
 })

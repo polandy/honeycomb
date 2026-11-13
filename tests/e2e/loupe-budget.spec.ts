@@ -91,12 +91,17 @@ test('shows a prefetched 24 MP neighbour without a request when paging', async (
 	}
 
 	await cullFolder(page, folder)
+	const loaded = new Set<string>()
+	page.on('requestfinished', (request) => {
+		if (request.url().includes('/api/v1/images/') && request.url().includes('size=4096')) {
+			loaded.add(request.url())
+		}
+	})
 	await page.getByRole('gridcell', { name: 'IMG_0001, JPG only' }).click()
 	const loupe = page.getByRole('dialog', { name: 'Loupe' })
 	await loupe.getByRole('dialog', { name: 'How to cull' }).getByRole('button', { name: 'Got it' }).click()
-	await loupe.getByRole('button', { name: 'Toggle info panel' }).click()
-	await expect(loupe.getByText(`${PHOTO_COUNT - 1} of ${PHOTO_COUNT - 1} neighbours loaded`)).toBeVisible({ timeout: 60_000 })
-	// The counter leaves out the shown picture; the stage swaps to its loupe tier once that has loaded.
+	// The shown picture's and every neighbour's loupe tier have arrived; the stage swaps to the shown one's.
+	await expect.poll(() => loaded.size, { timeout: 60_000 }).toBe(PHOTO_COUNT)
 	await expect(loupe.getByRole('img', { name: 'IMG_0001' })).toHaveAttribute('src', /size=4096/, { timeout: 60_000 })
 
 	const requests: string[] = []

@@ -32,7 +32,7 @@ active groups.
 shade, and its label names the count; an untagged tile shows neither.
 
 **Info panel.** The loupe's info panel has a *Tags* section below *Decision*: the picture's tags,
-one per line in sort order, each as its full path, or *none*. A tagged picture's *Written to*
+one per line in sort order, each as its full path, or "—". A tagged picture's *Written to*
 row names the files the tags are written through to (TAGS-002, XMP-003) by file name, each once:
 its sidecars but darktable's duplicates, then the `<member file>.xmp` a write creates for each
 member without one. In a shared folder nothing is written on its own, and the row says *Not
@@ -92,7 +92,7 @@ written, shared folder*. The section follows a tag change at once.
 - **Given** the loupe's info panel open on a picture with tags, and on one without
 - **When** it shows the picture, and again after a tag change
 - **Then** the tagged picture's *Tags* section lists each tag once by its full path in sort order
-  and follows the change at once; the untagged picture's section says *none* and has no
+  and follows the change at once; the untagged picture's section shows "—" and has no
   *Written to* row
 
 ### TAGS-004.9 – Where the tags are written
@@ -115,3 +115,4 @@ filter (`docs/07-tags.md` Tag filter).
 |---|---|
 | 2026-11-13 | Written with the tag filter and the tile's tags (*Tags 4*) |
 | 2026-11-13 | .8, .9 the loupe's info panel lists the tags and where they are written (*Tags 4*) |
+| 2026-11-13 | .8 an untagged picture shows "—" instead of *none* (UX M6) |
