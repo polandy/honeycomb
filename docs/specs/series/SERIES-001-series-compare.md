@@ -29,10 +29,14 @@ version (etag). A failed hash is logged and leaves the picture on the 3 second r
 change as hashes arrive, except while the series compare dialog is open.
 
 *Compare series* in the toolbar shows how many series there are and is disabled without one; it and
-`N` open the series compare dialog. The dialog, titled "Compare series 1 of 3", shows the series'
-pictures side by side, each with its name, stars, flag mark, the flag buttons and *Pick this, reject
-the rest*; one picture is active (outlined). Tapping a picture's photo opens it in the series viewer
-(SERIES-002); closing the viewer makes the viewed picture active. A decision goes through the undo
+`N` open the series compare dialog. The dialog, titled "Compare series 1 of 3", takes its full
+height and shows one line of instructions above the series' pictures side by side, whose photos
+grow to fill the rest. Each card has the picture's name, stars, flag mark, the flag buttons and
+*Pick this, reject the rest*; the flag buttons sit level across the cards, a flag mark or not. One
+picture is active (outlined); its *Pick this, reject the rest* is the primary button, the others'
+and *Skip* are secondary. The keys are in the buttons' tooltips and the shortcut sheet. Tapping a
+picture's photo opens it in the series viewer (SERIES-002); closing the viewer makes the viewed
+picture active. A decision goes through the undo
 history and the undo toast like any other. A rejected picture leaves the series; once fewer than two
 are left, the series is done and the next one shows. *Pick this, reject the rest* picks the one
 picture and rejects every other picture of the series, as one undo step: "Picked IMG_0003, rejected
@@ -94,8 +98,9 @@ reject the rest* drops its icon and wraps its label to two balanced lines instea
 
 - **Given** the series compare dialog is open
 - **When** it shows a series
-- **Then** its title says which series of how many, and each picture shows its image, name, stars,
-  flag mark, the flag buttons and *Pick this, reject the rest*; the first picture is active
+- **Then** its title says which series of how many, one line of instructions shows, and each
+  picture shows its image, name, stars, flag mark, the flag buttons and *Pick this, reject the
+  rest*; the first picture is active
 
 ### SERIES-001.8 – Deciding a picture of the series
 
@@ -170,6 +175,20 @@ reject the rest* drops its icon and wraps its label to two balanced lines instea
 - **When** visual hashes arrive
 - **Then** the series do not change until the dialog closes
 
+### SERIES-001.19 – One primary button
+
+- **Given** the series compare dialog shows a series
+- **When** the cards show *Pick this, reject the rest*
+- **Then** it is the primary button on the active card only, secondary on the others, and *Skip*
+  is secondary
+
+### SERIES-001.20 – The photos fill the dialog, the flag buttons sit level
+
+- **Given** the series compare dialog shows a series on a desktop, one picture flagged
+- **When** the cards lay out
+- **Then** the photos take at least half the window's height, and every card's flag buttons and
+  *Pick this, reject the rest* start at the same height
+
 ## Out of scope
 
 The fullscreen series viewer and the series badge on the tiles: SERIES-002. The capture time and
@@ -183,3 +202,4 @@ camera come from LISTING-001.
 | 2026-11-10 | A tap on a picture's photo opens the series viewer instead of making it active (M6.2). |
 | 2026-11-10 | *Pick this, reject the rest* wraps to two lines without its icon in a narrow card (UX review L3). |
 | 2026-11-12 | Series also compare the images: a visual hash of the grid preview, 30 s for alike shots, the 3 s rule without a hash (owner decision, ADR 0021). |
+| 2026-11-13 | One primary button on the active card, *Skip* secondary, one line of instructions, photos fill the dialog, flag buttons level (UX review M5). |

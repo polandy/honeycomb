@@ -854,3 +854,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (back to the top on opening a folder set, keeping the focused tile in view) leave it, or opening
   a folder set would close its own offer. A decision needs no extra rule: its *Undo* toast
   replaces the offer. *Resume* in the More menu stays (DECISIONS-002.14).
+- 2026-11-13: UX M5 makes *Skip* secondary too, as in the mockup, so the active card's *Pick this,
+  reject the rest* is the dialog's only primary button. The one line of instructions drops "Photos
+  taken within 3 seconds of each other": since ADR 0021 a series also spans up to 30 seconds of
+  alike shots, so the sentence was no longer true. The keys stay in the tooltips and the shortcut
+  sheet.

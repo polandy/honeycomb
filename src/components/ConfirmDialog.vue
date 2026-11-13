@@ -25,6 +25,8 @@ const props = defineProps<{
 	wide?: boolean
 	/** The confirm button warns, for an action that removes files. */
 	danger?: boolean
+	/** The confirm button is secondary, where the dialog's body holds the primary action. */
+	secondary?: boolean
 	/** Where the dialog opens, e.g. inside the loupe; the page body by default. */
 	container?: string | undefined
 }>()
@@ -59,7 +61,7 @@ function onOpen(open: boolean) {
 			<NcButton v-if="props.cancel" variant="tertiary" @click="emit('cancel')">
 				{{ props.cancelLabel ?? t('honeycomb', 'Cancel') }}
 			</NcButton>
-			<NcButton :variant="props.danger ? 'error' : 'primary'" :disabled="props.confirmDisabled" @click="emit('confirm')">
+			<NcButton :variant="props.danger ? 'error' : props.secondary ? 'secondary' : 'primary'" :disabled="props.confirmDisabled" @click="emit('confirm')">
 				{{ props.confirmLabel }}
 			</NcButton>
 		</template>

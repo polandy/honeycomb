@@ -377,14 +377,14 @@ table.sc{border-collapse:collapse;width:100%}table.sc td{padding:6px 4px;border-
 .rv-r{position:absolute;left:0;right:0;bottom:0;padding:10px 6px 6px;background:linear-gradient(transparent,rgba(0,0,0,.75));color:var(--honey);font-weight:800;font-size:13px;text-align:center}
 .rv-grp{margin:0 0 12px}.rv-grp h3{margin:0 0 4px;font-size:14px}.rv-grp .hint{margin:0 0 8px;color:var(--muted);font-size:13px}.rv-keep .rv-r{color:#fff}.rv-files{margin:0 0 12px}.rv-files summary{cursor:pointer;min-height:var(--hit);display:flex;align-items:center;font-size:13px}
 .cmp{display:grid;gap:8px;grid-template-columns:repeat(2,1fr)}.cmp.n3{grid-template-columns:repeat(3,1fr)}.cmp.n4{grid-template-columns:repeat(4,1fr)}
-@media (max-width:700px){.cmp.n3,.cmp.n4{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:700px){.cmp.n3,.cmp.n4{grid-template-columns:repeat(2,1fr)}.cmp.n3 .cm img,.cmp.n4 .cm img{height:max(96px,calc(45vh - 260px))}}
 .cm{container:card / inline-size;display:flex;flex-direction:column;gap:6px;border-radius:12px;padding:4px 4px 6px;background:var(--card-2)}
 .cm.active{outline:2px solid var(--honey);outline-offset:1px}
 .cm-open{display:flex;flex-direction:column;gap:2px;border:0;padding:0;background:none;text-align:left;cursor:pointer;color:inherit}
 .cm .grp{flex-wrap:wrap}.cm .btn{white-space:normal;text-wrap:balance;line-height:1.2;justify-content:center}
 @container card (max-width:200px){.cm [data-act="pickRest"]{padding:0 8px}.cm [data-act="pickRest"] svg{display:none}}
-.cm-s{display:flex;align-items:center;gap:6px}.cm-s .stars{letter-spacing:-1px}.cm-s .stars .off{color:var(--muted);opacity:.5}
-.cm img{width:100%;aspect-ratio:3/2;object-fit:contain;background:var(--tile-bg);border-radius:8px}
+.cm-s{display:flex;align-items:center;gap:6px;min-height:20px}.cm-s .stars{letter-spacing:-1px}.cm-s .stars .off{color:var(--muted);opacity:.5}
+.cm img{width:100%;height:max(96px,calc(90vh - 340px));object-fit:contain;background:var(--tile-bg);border-radius:8px}
 .cm-n{font-weight:700;font-size:13px}.cm-s{font-size:12px;color:var(--muted)}
 .later{display:inline-block;border:1px solid var(--border);border-radius:10px;padding:1px 8px;font-size:12px;font-weight:700;color:var(--muted)}
 
@@ -850,8 +850,7 @@ const DE = {
   'Close': 'Schließen',
   'No more photos taken within %n second of each other are left to decide.': ['Keine weiteren Fotos innerhalb von %n Sekunde zueinander sind noch zu entscheiden.', 'Keine weiteren Fotos innerhalb von %n Sekunden zueinander sind noch zu entscheiden.'],
   'Compare series {i} of {count}': 'Serienvergleich {i} von {count}',
-  'Photos taken within %n second of each other.': ['Fotos innerhalb von %n Sekunde zueinander aufgenommen.', 'Fotos innerhalb von %n Sekunden zueinander aufgenommen.'],
-  'Tap a photo to open the series fullscreen, or decide right here. The arrow keys switch the active photo (outlined); P, X, U and 0 – 5 decide it, K picks it and rejects the rest.': 'Tippe auf ein Foto, um die Serie im Vollbild zu öffnen, oder entscheide gleich hier. Die Pfeiltasten wechseln das aktive Foto (umrandet); P, X, U und 0 – 5 entscheiden es, K markiert es und lehnt den Rest ab.',
+  'Tap a photo to open the series fullscreen, or decide right here.': 'Tippe auf ein Foto, um die Serie im Vollbild zu öffnen, oder entscheide gleich hier.',
   'Later milestone M6': 'Späterer Meilenstein M6',
   'Open photo {i}: {name}': 'Foto {i} öffnen: {name}',
   'Open in the series viewer': 'Im Serienbetrachter öffnen',
@@ -1139,7 +1138,7 @@ function actionBar(d, forKey, opts = {}){
   return opts.big ? (S.settings.flagButtons ? `<div class="ab-big">${flagButtons(d.flag, forKey, opts)}</div>` : '') + `<div class="ab-small">${rest}</div>` : rest + flagButtons(d.flag, forKey, opts);
 }
 const flagBtnsToggle = id => `<button class="icon-btn" data-act="flagBtns" id="${id}" aria-label="${esc(t('Flag buttons'))}" ${tip(t('Flag buttons'), HOTKEY.flagButtons)} aria-pressed="${S.settings.flagButtons}">${ic(S.settings.flagButtons ? 'flag' : 'flagCross')}</button>`;
-const pickRestBtn = (forKey, id = '') => `<button class="btn primary" data-act="pickRest" ${forAttrs(forKey, id)} ${tip(t('Pick this, reject the rest'), HOTKEY.pickRest)}>${ic('flagPick')}${t('Pick this, reject the rest')}</button>`;
+const pickRestBtn = (forKey, id = '', primary = true) => `<button class="btn${primary ? ' primary' : ''}" data-act="pickRest" ${forAttrs(forKey, id)} ${tip(t('Pick this, reject the rest'), HOTKEY.pickRest)}>${ic('flagPick')}${t('Pick this, reject the rest')}</button>`;
 /* footer order everywhere: back, cancel, then the confirming action on the right */
 function confirmDialog(title, body, {back = null, cancel = t('Cancel'), confirm = null, wide = false, canClose = true} = {}){
   const foot = (back ? `<button class="btn ghost" data-act="${back.act}">${esc(back.label)}</button>` : '')
@@ -1999,9 +1998,9 @@ function dlgBurst(d){
   const m = burstCurrent(d);
   if (!m) return dlgShell(t('Compare series'), `<div class="empty"><div class="big">${t('All series compared')}</div>${n('No more photos taken within %n second of each other are left to decide.', 'No more photos taken within %n seconds of each other are left to decide.', BURST_GAP_MS / 1000)}</div>`, `<button class="btn primary" data-act="closeDlg">${t('Close')}</button>`, true);
   return dlgShell(t('Compare series {i} of {count}', {i:nf(d.i + 1), count:nf(d.gids.length)}),
-    `<p class="row" style="margin-top:0;color:var(--muted)">${n('Photos taken within %n second of each other.', 'Photos taken within %n seconds of each other.', BURST_GAP_MS / 1000)} ${t('Tap a photo to open the series fullscreen, or decide right here. The arrow keys switch the active photo (outlined); P, X, U and 0 – 5 decide it, K picks it and rejects the rest.')} <span class="later">${t('Later milestone M6')}</span></p>
+    `<p class="row" style="margin-top:0;color:var(--muted)">${t('Tap a photo to open the series fullscreen, or decide right here.')} <span class="later">${t('Later milestone M6')}</span></p>
     <div class="cmp n${m.length}">${m.map((it, k) => `<div class="cm${k === (d.a = clamp(d.a || 0, 0, m.length - 1)) ? ' active' : ''}"><button class="cm-open" data-act="cmpOpen" data-id="${esc(it.id)}" aria-label="${esc(t('Open photo {i}: {name}', {i:nf(k + 1), name:stem(it)}))}" ${tip(t('Open in the series viewer'))}><img alt="" src="${cmpURL(it)}"><span class="cm-n">${k + 1} · ${esc(stem(it))}</span><span class="cm-s">${pairLabel(it)}<span class="stars" aria-hidden="true">${stars(it.rating)}</span>${flagMark(it.flag)}</span></button>
-      ${flagButtons(it.flag, 'id', {id:it.id})}${pickRestBtn('id', it.id)}</div>`).join('')}</div>`,
+      ${flagButtons(it.flag, 'id', {id:it.id})}${pickRestBtn('id', it.id, k === d.a)}</div>`).join('')}</div>`,
     `<button class="btn ghost" data-act="closeDlg">${t('Close')}</button><button class="btn" data-act="cmpSkip">${t('Skip')}</button>`, true);
 }
 /* series viewer: fullscreen, swipe, zoom synchronised across the series */

@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] UX M5: Series compare: *Pick this, reject the rest* primary only on the active card, cards fill the dialog height, one line of instructions, equal flag-button heights (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX M6: Compact the loupe info panel: 32 px rows, left-aligned muted labels, sidecars by file name once each, "—" when empty, no *Preloading* section (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX M7: Grid *More* menu: a separator between view options and actions; an item that opens a dialog closes the menu (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX M8: Order the gesture guide by pointer type: keys first as a two-column list with a mouse, gestures first on touch; align the tap-zone figure (`docs/ux-review-2026-11.md`) (2026-11-12)

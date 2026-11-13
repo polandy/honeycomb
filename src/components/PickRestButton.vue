@@ -9,13 +9,18 @@ import AppIcon from './AppIcon.vue'
 import { keyCap } from '../hotkeys.ts'
 import { tip } from '../tooltip.ts'
 
+const props = defineProps<{
+	/** Secondary beside the active picture's primary one. */
+	secondary?: boolean
+}>()
+
 const emit = defineEmits<{ pick: [] }>()
 </script>
 
 <template>
 	<NcButton
 		class="pick-rest-button"
-		variant="primary"
+		:variant="props.secondary ? 'secondary' : 'primary'"
 		wide
 		v-bind="tip(t('honeycomb', 'Pick this, reject the rest'), keyCap('pick-rest'))"
 		@click="emit('pick')">

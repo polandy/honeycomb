@@ -18,7 +18,6 @@ import FlagMark from './FlagMark.vue'
 import PickRestButton from './PickRestButton.vue'
 import StarRating from './StarRating.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
-import { keyCap } from '../hotkeys.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { gridSrcset, imageMember, smallSource } from '../logic/image-tiers.ts'
 import { SERIES_GAP_SECONDS } from '../logic/series.ts'
@@ -52,14 +51,15 @@ function flaggedOf(picture: Picture<ListingEntry>) {
 	const { flag } = props.decisionOf(picture)
 	return flag === 'unflagged' ? null : flag
 }
-const within = () => n('honeycomb', 'Photos taken within {count} second of each other.', 'Photos taken within {count} seconds of each other.', SERIES_GAP_SECONDS, { count: formatNumber(SERIES_GAP_SECONDS) }, PLAIN_TEXT)
 </script>
 
 <template>
 	<ConfirmDialog
+		class="series-compare-dialog"
 		:title="title"
 		:confirmLabel="props.series === null ? t('honeycomb', 'Close') : t('honeycomb', 'Skip')"
 		:cancel="props.series !== null"
+		:secondary="props.series !== null"
 		:cancelLabel="t('honeycomb', 'Close')"
 		wide
 		@cancel="emit('close')"
@@ -70,8 +70,7 @@ const within = () => n('honeycomb', 'Photos taken within {count} second of each 
 			:description="n('honeycomb', 'No more photos taken within {count} second of each other are left to decide.', 'No more photos taken within {count} seconds of each other are left to decide.', SERIES_GAP_SECONDS, { count: formatNumber(SERIES_GAP_SECONDS) }, PLAIN_TEXT)" />
 		<template v-else>
 			<p class="series-compare__hint">
-				{{ within() }}
-				{{ t('honeycomb', 'Tap a photo to open the series fullscreen, or decide right here. The arrow keys switch the active photo (outlined); P, X, U and 0–5 decide it, {key} picks it and rejects the rest.', { key: keyCap('pick-rest') }, undefined, PLAIN_TEXT) }}
+				{{ t('honeycomb', 'Tap a photo to open the series fullscreen, or decide right here.') }}
 			</p>
 			<ul class="series-compare" :class="`series-compare--${props.series.length}`">
 				<li v-for="(picture, index) in props.series" :key="imageMember(picture).fileId" class="series-compare__card">
@@ -95,7 +94,7 @@ const within = () => n('honeycomb', 'Photos taken within {count} second of each 
 						</span>
 					</button>
 					<FlagButtons :flag="props.decisionOf(picture).flag" @flag="emit('decide', { kind: 'flag', flag: $event }, picture)" />
-					<PickRestButton @pick="emit('pickRest', picture)" />
+					<PickRestButton :secondary="index !== props.active" @pick="emit('pickRest', picture)" />
 				</li>
 			</ul>
 		</template>
@@ -110,8 +109,11 @@ const within = () => n('honeycomb', 'Photos taken within {count} second of each 
 
 .series-compare {
 	display: grid;
+	flex: 1 0 auto;
 	grid-template-columns: repeat(2, 1fr);
+	grid-auto-rows: 1fr;
 	gap: 8px;
+	margin: 0;
 	padding: 0;
 	list-style: none;
 }
@@ -158,6 +160,7 @@ const within = () => n('honeycomb', 'Photos taken within {count} second of each 
 
 .series-compare__photo {
 	display: flex;
+	flex: 1;
 	flex-direction: column;
 	gap: 4px;
 	padding: 4px;
@@ -174,8 +177,9 @@ const within = () => n('honeycomb', 'Photos taken within {count} second of each 
 }
 
 .series-compare__photo img {
+	flex: 1 1 0;
 	width: 100%;
-	aspect-ratio: 3 / 2;
+	min-height: 96px;
 	object-fit: contain;
 }
 
@@ -190,6 +194,18 @@ const within = () => n('honeycomb', 'Photos taken within {count} second of each 
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	min-height: 20px;
+	min-height: 24px;
+}
+</style>
+
+<style>
+/* Unscoped: NcDialog teleports the dialog; it takes its full height and the cards grow into it. */
+.confirm-dialog.series-compare-dialog.modal-mask .modal-wrapper .modal-container {
+	height: 100%;
+}
+
+.series-compare-dialog .dialog__content {
+	display: flex;
+	flex-direction: column;
 }
 </style>
