@@ -109,5 +109,7 @@ Agents never merge. The owner, or the orchestrator acting for them, squash-merge
 
 release-please opens a release pull request from the Conventional Commits on `main` and keeps
 `CHANGELOG.md`. `feat` bumps the minor and `fix` the patch version while the version is below
-1.0. `appinfo/info.xml` and `package.json` are extra files in `release-please-config.json`, so
-their versions move with the release; a PHPUnit test keeps the two equal.
+1.0, and a breaking change bumps the minor (`bump-minor-pre-major`). The first release is 0.1.0
+(`initial-version`; release-please defaults to 1.0.0 when no release exists).
+`appinfo/info.xml` and `package.json` are extra files in `release-please-config.json`, so their
+versions move with the release; a PHPUnit test keeps the two equal.
