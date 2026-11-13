@@ -19,7 +19,7 @@ merged code does. Spec, tests and code change in the same pull request.
 | `delete/` | [DELETE-001](delete/DELETE-001-trash.md) trash endpoint, [DELETE-002](delete/DELETE-002-reject-review.md) reject review and delete, [DELETE-003](delete/DELETE-003-remove-raws.md) Remove RAWs |
 | `series/` | [SERIES-001](series/SERIES-001-series-compare.md) series compare, [SERIES-002](series/SERIES-002-series-viewer.md) series viewer and series badge |
 | `settings/` | [SETTINGS-001](settings/SETTINGS-001-settings.md) per-user settings |
-| `xmp/` | [XMP-001](xmp/XMP-001-sidecar-model-and-mapping.md) sidecar model and decision mapping, [XMP-002](xmp/XMP-002-sidecar-endpoints.md) sidecar endpoints, [XMP-003](xmp/XMP-003-sidecars-in-the-cull.md) sidecars in the cull |
+| `xmp/` | [XMP-001](xmp/XMP-001-sidecar-model-and-mapping.md) sidecar model and decision mapping, [XMP-002](xmp/XMP-002-sidecar-endpoints.md) sidecar endpoints, [XMP-003](xmp/XMP-003-sidecars-in-the-cull.md) sidecars in the cull, [XMP-004](xmp/XMP-004-tags-in-sidecars.md) tags in sidecars |
 
 ## IDs and status
 

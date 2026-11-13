@@ -781,3 +781,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   shows only pictures with every chosen tag, deviating from the recommended OR); a parent matches
   its descendants; tag list kept per user; no tag management in v1; Select button plus long-press;
   foreign `dc:subject` keywords kept.
+- 2026-11-13: Tags in sidecars (XMP-004): a separator a field cannot hold inside a name (`|` in
+  `TagsList`, `/` and `|` in `dc:subject`) is read as `\`, like digiKam's `/` in
+  `hierarchicalSubject`, so no tag is dropped and lost on the next write; empty names are dropped;
+  tags are sorted by code unit so the written list is stable; step 1 (ADR for the tag table) moves
+  to the backend step, because the sidecar module needs no table.
