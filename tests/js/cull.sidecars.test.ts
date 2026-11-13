@@ -66,6 +66,7 @@ function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<
 				return (options.storedTags ?? []).filter((row) => fileIds.includes(row.fileId))
 			},
 			saveTags: async (rows) => { savedTags.push([...rows]) },
+			loadTagList: async () => [],
 		},
 	}, fakeStorage(), () => settings.value, sidecars)
 	const picture = (name: string): Picture<ListingEntry> => cull.pictures.value.find((each) => each.baseName === name)!

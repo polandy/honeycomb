@@ -31,6 +31,7 @@ function cullTags(options: { stored?: StoredTags[], lookup?: () => Promise<Store
 			saves.push([...rows])
 			return options.save?.()
 		},
+		loadTagList: async () => [],
 	}, async (pictures, change) => {
 		writes.push({ pictures: [...pictures], change })
 	}, () => current.pictures, (picture) => picture !== SHARED)

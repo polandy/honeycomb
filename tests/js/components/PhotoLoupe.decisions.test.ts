@@ -197,4 +197,14 @@ describe('PhotoLoupe: decision keys', () => {
 		await root.trigger('keydown', { key: '[' })
 		expect(decided).toEqual([{ kind: 'rating', rating: 3 }, { kind: 'rating', rating: 1 }])
 	})
+
+	// spec: TAGS-003.1, TAGS-003.2
+	it('opens the tag entry for the shown photo by T and by Tags', async () => {
+		const { wrapper } = await mountLoupe(2)
+
+		wrapper.vm.hotkeys.tag!()
+		await wrapper.find('.action-bar__tags').trigger('click')
+
+		expect(wrapper.emitted('tag')!.map(([picture]) => (picture as (typeof PICTURES)[number]).baseName)).toEqual(['IMG_3', 'IMG_3'])
+	})
 })

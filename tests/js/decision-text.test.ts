@@ -56,3 +56,15 @@ describe('decidedText', () => {
 		expect(decidedText(1200, 1840)).toBe('1,200 / 1,840 decided')
 	})
 })
+
+describe('changeText of a tag change', () => {
+	// spec: TAGS-003.10
+	it.each([
+		[{ added: ['Sunrise'], removed: [] }, ['DSC_4103'], 'Tagged DSC_4103 Sunrise'],
+		[{ added: ['Places/Dolomites'], removed: [] }, ['A', 'B', 'C', 'D', 'E', 'F', 'G'], 'Tagged 7 photos Places/Dolomites'],
+		[{ added: [], removed: ['People/Anna'] }, ['A', 'B'], 'Removed People/Anna from 2 photos'],
+	])('words %o of %o as "%s"', (change, names, text) => {
+		expect(changeText({ change, names })).toBe(text)
+		expect(undoneText({ change, names })).toBe(`Undid: ${text}`)
+	})
+})

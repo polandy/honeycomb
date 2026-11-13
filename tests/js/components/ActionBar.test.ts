@@ -45,6 +45,16 @@ describe('ActionBar', () => {
 		expect(wrapper.emitted('decide')).toEqual([[intent]])
 	})
 
+	// spec: TAGS-003.2
+	it('opens the tag entry with Tags, off while disabled', async () => {
+		const wrapper = mountBar()
+
+		await button(wrapper, 'Tags').trigger('click')
+
+		expect(wrapper.emitted('tag')).toEqual([[]])
+		expect(button(mountBar({}, true), 'Tags').attributes('disabled')).toBeDefined()
+	})
+
 	// spec: GRID-003.6
 	it('chooses a colour label or none from the palette and closes it', async () => {
 		const wrapper = mountBar({ colourLabel: 'green' })
