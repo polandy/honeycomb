@@ -10,7 +10,9 @@ namespace OCA\Honeycomb\Tests\BackgroundJob;
 use OCA\Honeycomb\BackgroundJob\RemoveVanishedDecisions;
 use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\PictureDecision;
+use OCA\Honeycomb\Service\PictureTags;
 use OCA\Honeycomb\Tests\Service\FakeDecisionStore;
+use OCA\Honeycomb\Tests\Service\FakeTagStore;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -23,7 +25,7 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 	}
 
 	public function testRunsOnceADayAtAnyTime(): void {
-		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FakeDecisionStore(), $this->createStub(LoggerInterface::class));
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FakeDecisionStore(), new FakeTagStore(), $this->createStub(LoggerInterface::class));
 
 		$this->assertSame(self::DAY, $job->getInterval());
 		$this->assertFalse($job->isTimeSensitive());
@@ -39,7 +41,7 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 		$store->vanished = [7];
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('info')->with($this->stringContains('2'));
-		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), $store, $logger);
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), $store, new FakeTagStore(), $logger);
 
 		$this->runJob($job);
 
@@ -50,8 +52,24 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 	public function testLogsNothingWhenNoRowIsLeftBehind(): void {
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->never())->method('info');
-		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FakeDecisionStore(), $logger);
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FakeDecisionStore(), new FakeTagStore(), $logger);
 
 		$this->runJob($job);
+	}
+
+	// spec: TAGS-001.11
+	public function testRemovesTheTagRowsOfFilesDeletedForGoodAndKeepsTheTagList(): void {
+		$tags = new FakeTagStore();
+		$tags->replace('alice', [7, 8], [new PictureTags(7, ['Anna']), new PictureTags(8, ['Bert'])]);
+		$tags->replace('bob', [7], [new PictureTags(7, ['Carl'])]);
+		$tags->vanished = [7];
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->expects($this->once())->method('info')->with($this->stringContains('2 tag rows'));
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FakeDecisionStore(), $tags, $logger);
+
+		$this->runJob($job);
+
+		$this->assertSame(['alice' => [8], 'bob' => []], array_map(array_keys(...), $tags->rows));
+		$this->assertSame(['Anna', 'Bert'], $tags->tagList('alice'));
 	}
 }
