@@ -20,8 +20,9 @@ neighbours has no visual hash yet, they belong together when their EXIF capture 
 3 seconds apart. Series may cross folders. A picture without an EXIF capture time is never in a
 series. Rejected pictures are left out before the runs are formed. A run is one series however
 many pictures it holds, so a whole burst is seen together, but a series ends once a picture lies
-more than 60 seconds after the series' first picture, and the next series starts there. A series has at least two pictures and at least one
-undecided; the series are ordered by their first capture time.
+more than 60 seconds after the series' first picture, and the next series starts there. A series
+has at least two pictures and at least one undecided; the series are ordered by their first capture
+time.
 
 The **visual hash** of a picture is a difference hash of the small grid preview of its shown member
 (ADR 0021). It is computed in the browser, in the background and one picture at a time, only for
