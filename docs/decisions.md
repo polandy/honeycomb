@@ -876,3 +876,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   only. The mockup keeps its `--honey` tokens: it is frozen (ADR 0003) and has no Nextcloud
   theme to read the primary colour from, so `plan.md` says its honey stands for that colour.
   Older entries in this file and `ux-review.md` stay as written, since they record the past.
+- 2026-11-13: UX M8 reads "two-column list" as the five keys in two columns, each key cap beside
+  its action, so the list takes three rows; it picks the order by the primary pointer
+  (`(pointer: fine)`) once when the guide opens, and gives both lists a heading, *Keys* and
+  *Gestures*, since a guide that starts with keys needs to say where the gestures begin. The
+  sections swap in the DOM, not by CSS `order`, so a screen reader reads them as shown.
