@@ -68,7 +68,7 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
    position per folder set and user, so culling can stop and continue on another device (ADR
    0012: one row per member file id and user, written as whole states; the 20 most recent
    folder sets keep a position).
-5. **Filter bar:** rating, colour label, flag, pairing, *Keep RAW* and folder filters and the
+5. **Filter bar:** rating, colour label, flag, pairing, *Keep RAW*, tag and folder filters and the
    sort, as pure TypeScript modules over the listed pictures (Q8, Q9, Q18), and the flag filter
    (*Picked*, *Unflagged*, *Rejected*, combinable) of the culling workflow with the
    "x of y decided" progress.
