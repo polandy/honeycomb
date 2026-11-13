@@ -31,7 +31,7 @@ test('opens a photo in the loupe, pages by key and closes back to the grid', asy
 })
 
 // spec: LOUPE-001.13, LOUPE-001.19
-test('shows the filmstrip as square photos edge to edge at full opacity, the shown one in the middle with a white border', async ({ page }) => {
+test('shows the filmstrip as square photos edge to edge at full opacity from its left edge, the shown one with a white border', async ({ page }) => {
 	const loupe = await openLoupe(page)
 	const filmstrip = loupe.getByRole('navigation', { name: 'Filmstrip' })
 	const shown = filmstrip.getByRole('button', { name: 'IMG_0001' })
@@ -44,7 +44,7 @@ test('shows the filmstrip as square photos edge to edge at full opacity, the sho
 	const [strip, first, second] = [(await filmstrip.boundingBox())!, (await shown.boundingBox())!, (await other.boundingBox())!]
 	expect(first.width).toBe(first.height)
 	expect(second.x).toBe(first.x + first.width)
-	expect(Math.abs(first.x + first.width / 2 - (strip.x + strip.width / 2))).toBeLessThanOrEqual(1)
+	expect(Math.abs(first.x - strip.x)).toBeLessThanOrEqual(1)
 	expect((await loupe.locator('.action-bar__row').boundingBox())!.y).toBeGreaterThanOrEqual(strip.y + strip.height)
 })
 
