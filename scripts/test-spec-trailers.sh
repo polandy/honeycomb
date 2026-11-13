@@ -48,4 +48,11 @@ HEAD_REF=$release expect release-pr-spec-alone-exempt pass '' "$spec"
 HEAD_REF=feat/release-please--branches-- expect other-branch-enforced fail '' src/logic/cull.ts
 HEAD_REF=main expect main-branch-enforced fail '' appinfo/info.xml
 
+# A producer still writing when the script exits early must not turn into SIGPIPE (141) under pipefail.
+if ! (set -o pipefail; cd "$work" && seq 1 200000 | sed 's|^|docs/plan-|' |
+  SPEC_HEAD_REF=$release "$OLDPWD/spec-trailers.sh") >/dev/null 2>&1; then
+  echo "FAIL release-pr-large-input: producer got SIGPIPE"
+  failed=1
+fi
+
 exit $failed
