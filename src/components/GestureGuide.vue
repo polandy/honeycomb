@@ -15,8 +15,11 @@ import { DEFAULT_SWIPES } from '../logic/loupe-gesture.ts'
 const props = withDefaults(defineProps<{
 	/** What each swipe sets, from the settings. */
 	swipes?: SwipeSetting
+	/** Whether the primary pointer is fine, such as a mouse; it puts the keys first. */
+	finePointer?: boolean
 }>(), {
 	swipes: () => DEFAULT_SWIPES,
+	finePointer: () => window.matchMedia('(pointer: fine)').matches,
 })
 
 const emit = defineEmits<{
@@ -42,6 +45,9 @@ const swipeLines = computed(() => (['up', 'down'] as const).flatMap((direction) 
 	return flag === null || flag === 'unflagged' ? [] : [SWIPE_TEXT[direction][flag]]
 }))
 
+/** The keys lead with a mouse, the gestures with a finger. */
+const sections = computed(() => props.finePointer ? ['keys', 'gestures'] as const : ['gestures', 'keys'] as const)
+
 const gotIt = useTemplateRef<InstanceType<typeof NcButton>>('gotIt')
 
 onMounted(() => (gotIt.value!.$el as HTMLElement).focus())
@@ -51,28 +57,35 @@ onMounted(() => (gotIt.value!.$el as HTMLElement).focus())
 	<div class="gesture-guide">
 		<div class="gesture-guide__card" role="dialog" :aria-label="t('honeycomb', 'How to cull')">
 			<h3>{{ t('honeycomb', 'How to cull') }}</h3>
-			<ul>
-				<li v-for="line in swipeLines" :key="line">
-					{{ line }}
-				</li>
-				<li>{{ t('honeycomb', 'Swipe sideways for the next or previous photo') }}</li>
-				<li>
-					{{ t('honeycomb', 'Tap the left or right side for the previous or next photo, the middle for the controls') }}
-					<div class="gesture-guide__zones" aria-hidden="true">
-						<span><AppIcon name="chevronLeft" /></span>
-						<span>{{ t('honeycomb', 'Controls') }}</span>
-						<span><AppIcon name="chevronRight" /></span>
-					</div>
-				</li>
-				<li>{{ t('honeycomb', 'Pinch to zoom, double-tap to hide the controls') }}</li>
-				<li>
-					{{ t('honeycomb', 'Keys:') }}
-					<span v-for="key in KEYS" :key="key.label" class="gesture-guide__key">
-						<kbd v-for="cap in key.caps" :key="cap">{{ cap }}</kbd>
-						{{ key.label }}
-					</span>
-				</li>
-			</ul>
+			<template v-for="section in sections" :key="section">
+				<section v-if="section === 'keys'">
+					<h4>{{ t('honeycomb', 'Keys') }}</h4>
+					<ul class="gesture-guide__keys">
+						<li v-for="key in KEYS" :key="key.label">
+							<kbd v-for="cap in key.caps" :key="cap">{{ cap }}</kbd>
+							<span>{{ key.label }}</span>
+						</li>
+					</ul>
+				</section>
+				<section v-else>
+					<h4>{{ t('honeycomb', 'Gestures') }}</h4>
+					<ul class="gesture-guide__gestures">
+						<li v-for="line in swipeLines" :key="line">
+							{{ line }}
+						</li>
+						<li>{{ t('honeycomb', 'Swipe sideways for the next or previous photo') }}</li>
+						<li>
+							{{ t('honeycomb', 'Tap the left or right side for the previous or next photo, the middle for the controls') }}
+							<div class="gesture-guide__zones" aria-hidden="true">
+								<span><AppIcon name="chevronLeft" /></span>
+								<span>{{ t('honeycomb', 'Controls') }}</span>
+								<span><AppIcon name="chevronRight" /></span>
+							</div>
+						</li>
+						<li>{{ t('honeycomb', 'Pinch to zoom, double-tap to hide the controls') }}</li>
+					</ul>
+				</section>
+			</template>
 			<NcButton ref="gotIt" variant="primary" @click="emit('dismiss')">
 				{{ t('honeycomb', 'Got it') }}
 			</NcButton>
@@ -103,17 +116,40 @@ onMounted(() => (gotIt.value!.$el as HTMLElement).focus())
 	box-shadow: 0 2px 8px var(--color-box-shadow);
 }
 
+.gesture-guide__card h4 {
+	margin-block: 0 var(--default-grid-baseline);
+	font-size: var(--default-font-size);
+	font-weight: bold;
+}
+
 .gesture-guide__card ul {
 	margin-block-end: calc(4 * var(--default-grid-baseline));
+	line-height: 1.8;
+}
+
+.gesture-guide__gestures {
 	padding-inline-start: calc(4 * var(--default-grid-baseline));
 	list-style: disc;
-	line-height: 1.8;
+}
+
+.gesture-guide__keys {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	column-gap: calc(4 * var(--default-grid-baseline));
+}
+
+.gesture-guide__keys li {
+	display: flex;
+	align-items: baseline;
+	gap: calc(2 * var(--default-grid-baseline));
+	white-space: nowrap;
 }
 
 .gesture-guide__zones {
 	display: grid;
 	grid-template-columns: 3fr 4fr 3fr;
 	gap: 3px;
+	margin-block: var(--default-grid-baseline) 2px;
 	font-size: var(--font-size-small, 12px);
 	line-height: 1;
 }
@@ -127,14 +163,9 @@ onMounted(() => (gotIt.value!.$el as HTMLElement).focus())
 	border-radius: var(--border-radius);
 }
 
-.gesture-guide__key {
-	margin-inline-start: 1ch;
-	white-space: nowrap;
-}
-
 kbd {
-	margin-inline-end: 0.5ch;
-
+	min-width: 2.5ch;
+	text-align: center;
 	padding: 0 var(--default-grid-baseline);
 	border: 1px solid var(--color-border-dark);
 	border-radius: var(--border-radius);

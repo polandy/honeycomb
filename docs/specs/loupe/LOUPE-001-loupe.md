@@ -188,6 +188,7 @@ IMAGES-001.
 | 2026-11-12 | .21 the info panel is a bottom sheet at 520 px and below (UX H4) |
 | 2026-11-12 | .20 a pinned filmstrip also keeps the title row above the photo (UX H5) |
 | 2026-11-12 | .13 the filmstrip shows what fits; .19 its Lightroom-like look, .20 pinned filmstrip and rating row |
+| 2026-11-13 | .24 the gesture guide orders keys and gestures by pointer type (UX M8) |
 | 2026-11-12 | .20 a pin toggle in the title row; .22 a picture the filters hide leaves the loupe (owner, iPad) |
 | 2026-11-12 | .20 the pin toggle moved from the title row to the filmstrip's end (owner, iPad) |
 | 2026-11-13 | .13 the info panel drops its *Preloading* section; .23 compact rows (UX M6) |
@@ -241,3 +242,11 @@ IMAGES-001.
 - **Then** its rows are 32 px apart with each label left-aligned in the muted colour; the
   *Sidecars* row names each sidecar once by its file name; an empty value (no sidecar, rating,
   colour label or tag) shows "—"
+
+### LOUPE-001.24 – Gesture guide by pointer type
+
+- **Given** the gesture guide shows
+- **When** the device's primary pointer is fine, such as a mouse
+- **Then** the *Keys* section comes first, its keys in two columns, each key cap beside its
+  action, and the *Gestures* section follows; with a coarse pointer, such as a finger, the
+  *Gestures* section comes first; the tap-zone sketch lines up with the text of its line
