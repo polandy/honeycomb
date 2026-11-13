@@ -6,6 +6,7 @@ import type { MoveRequestFile, TargetFolder } from './logic/move-plan.ts'
 import type { MoveResponseFile } from './logic/move-report.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
 import type { SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from './logic/sidecar-sync.ts'
+import type { StoredTags, Tag } from './logic/tag.ts'
 import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
 import type { ViewState } from './logic/view-state.ts'
 
@@ -116,6 +117,34 @@ export async function saveDecisions(decisions: readonly StoredDecision[]): Promi
 	if (decisions.length > 0) {
 		await axios.put(generateUrl(`${API}/decisions`), { decisions })
 	}
+}
+
+/** The stored tags of the files; a file without a row has no tags (ADR 0022). */
+export async function lookupTags(fileIds: readonly number[]): Promise<StoredTags[]> {
+	if (fileIds.length === 0) {
+		return []
+	}
+	const { data } = await axios.post<unknown>(generateUrl(`${API}/tags/lookup`), { fileIds })
+	if (!isRecord(data) || !Array.isArray(data.tags)) {
+		throw new ApiResponseError('The tag lookup came without a tags array; check the server\'s version.')
+	}
+	return data.tags as StoredTags[]
+}
+
+/** Stores the whole tags of each file in one transaction; an empty list removes them (ADR 0022). */
+export async function saveTags(tags: readonly StoredTags[]): Promise<void> {
+	if (tags.length > 0) {
+		await axios.put(generateUrl(`${API}/tags`), { tags })
+	}
+}
+
+/** Every tag the user has had, sorted (ADR 0022). */
+export async function loadTagList(): Promise<Tag[]> {
+	const { data } = await axios.get<unknown>(generateUrl(`${API}/tags/list`))
+	if (!isRecord(data) || !Array.isArray(data.tagList) || !data.tagList.every((tag) => typeof tag === 'string')) {
+		throw new ApiResponseError('The tag list came without a tagList array of texts; check the server\'s version.')
+	}
+	return data.tagList
 }
 
 /** The stored resume positions of the user, newest first, as they came, checked by `parsePositions` (ADR 0012). */

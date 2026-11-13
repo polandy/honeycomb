@@ -9,7 +9,7 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Tags 1: ADR and backend: a per-user table of picture tags and the tag list (D6), endpoints to list and change tags, read the JPEG's embedded XMP as a source (D1), and write each change through to every sidecar with `tagWrite`/`mergeTags` (XMP-004) (`docs/07-tags.md` outline steps 1 and 3) (2026-11-13)
+- [ ] Tags 1: Tags in the cull: read the JPEG's embedded XMP as a source (D1), take the sidecars' tags into the tag storage (TAGS-001, `lookupTags`/`saveTags`) when a picture is first listed, and write each change through to every sidecar with `tagWrite`/`mergeTags` (XMP-004) (`docs/07-tags.md` outline step 3) (2026-11-13)
 - [ ] Tags 2: Tag entry: `T` in the key map (KEYS-001) for the loupe, series viewer and grid selection, *Tags* icon button in the `ActionBar` (D8), substring autocomplete, `/` creates levels, one undo step and toast per change (`docs/07-tags.md` Tag entry, `docs/mockup/tag-entry.html`) (2026-11-13)
 - [ ] Tags 3: Multi-select and bulk tagging: visible *Select* / *Done* button with long-press as shortcut (D8), partial chips (dashed) for tags only some targets have (GRID-003) (2026-11-13)
 - [ ] Tags 4: Tag filter on `F`: chips AND (D4), a parent matches its descendants (D5), count badge (GRID-002); tile tag icon and count (D3); tags in the loupe's info panel (2026-11-13)
