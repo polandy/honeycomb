@@ -5,6 +5,8 @@
 set -uo pipefail
 
 SPECS=${SPECS_DIR:-docs/specs}
+# Release pull requests (release-please) carry no spec by design; the workflow leaves this empty for forks.
+case ${SPEC_HEAD_REF-} in release-please--branches--*) exit 0 ;; esac
 message=${SPEC_MESSAGE-}
 message=${message//$'\r'/}
 

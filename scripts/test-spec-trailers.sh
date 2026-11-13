@@ -15,7 +15,7 @@ failed=0
 expect() {
   local name=$1 want=$2 message=$3 got
   shift 3
-  if printf '%s\n' "$@" | (cd "$work" && SPEC_MESSAGE=$message "$OLDPWD/spec-trailers.sh") >/dev/null 2>&1
+  if printf '%s\n' "$@" | (cd "$work" && SPEC_MESSAGE=$message SPEC_HEAD_REF=${HEAD_REF-} "$OLDPWD/spec-trailers.sh") >/dev/null 2>&1
   then got=pass; else got=fail; fi
   if [ "$got" != "$want" ]; then
     echo "FAIL $name: want $want got $got"
@@ -41,5 +41,11 @@ expect accepted-spec-alone pass '' docs/specs/grid/GRID-002-later.md
 expect deleted-spec-alone fail '' docs/specs/grid/GRID-009-gone.md
 expect readme-alone pass '' docs/specs/README.md
 expect readme-not-a-spec fail '' docs/specs/README.md src/App.vue
+
+release=release-please--branches--main--components--honeycomb
+HEAD_REF=$release expect release-pr-exempt pass '' appinfo/info.xml package.json
+HEAD_REF=$release expect release-pr-spec-alone-exempt pass '' "$spec"
+HEAD_REF=feat/release-please--branches-- expect other-branch-enforced fail '' src/logic/cull.ts
+HEAD_REF=main expect main-branch-enforced fail '' appinfo/info.xml
 
 exit $failed
