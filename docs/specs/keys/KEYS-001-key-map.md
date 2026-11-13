@@ -120,7 +120,8 @@ on the loupe's picture, the grid's focused picture, or the selection in selectio
 - **Given** the grid, the loupe or the empty screen before a cull
 - **When** the user presses `?`
 - **Then** the sheet opens (inside the loupe while it is open) and lists every key, a range as
-  "from – to" and `Ctrl` as `⌘` on a Mac; `Ctrl+/`, *Close* or the dialog's close closes it
+  "from – to" and `Ctrl` as `⌘` on a Mac, every group in one table so the descriptions start at
+  the same x; `Ctrl+/`, *Close* or the dialog's close closes it
 
 ## Out of scope
 
@@ -133,3 +134,4 @@ What each decision does to the loupe: LOUPE-002. Delete keys: DELETE-002. Select
 |---|---|
 | 2026-11-10 | Written from the merged M3.3 (#50) and M4.3 vi keys setting (#54) |
 | 2026-11-13 | `T` opens the tag entry (TAGS-003) |
+| 2026-11-13 | The sheet is one table with a shared key column (UX L1) |

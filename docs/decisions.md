@@ -881,3 +881,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (`(pointer: fine)`) once when the guide opens, and gives both lists a heading, *Keys* and
   *Gestures*, since a guide that starts with keys needs to say where the gestures begin. The
   sections swap in the DOM, not by CSS `order`, so a screen reader reads them as shown.
+- 2026-11-13: UX L1 makes the shortcut sheet one `<table>` with a `<tbody>` per group, each
+  headed by a `<th scope="rowgroup">` row, rather than a CSS grid over separate tables: one
+  table aligns the key column natively and keeps the row-group semantics for screen readers.
+  The group names are no longer `<h3>` headings, as a heading inside a table cell is invalid.
+  The frozen mockup (ADR 0003) keeps its separate tables.

@@ -14,7 +14,7 @@ function mountSheet(props: Record<string, unknown> = {}, mac = false) {
 	return mount(ShortcutSheet, { props, global: { stubs: { NcDialog: DialogStub } } })
 }
 
-const rows = (wrapper: ReturnType<typeof mountSheet>) => wrapper.findAll('tr').map((row) => [row.findAll('kbd').map((cap) => cap.text()), row.find('td:last-child').text()])
+const rows = (wrapper: ReturnType<typeof mountSheet>) => wrapper.findAll('tr:has(td)').map((row) => [row.findAll('kbd').map((cap) => cap.text()), row.find('td:last-child').text()])
 
 describe('ShortcutSheet', () => {
 	afterEach(() => vi.restoreAllMocks())
@@ -24,10 +24,18 @@ describe('ShortcutSheet', () => {
 		const wrapper = mountSheet()
 
 		expect(wrapper.find('[role="dialog"]').attributes('name')).toBe('Keyboard shortcuts')
-		expect(wrapper.findAll('h3').map((heading) => heading.text())).toEqual(['Flags', 'Rating, colour label, Keep RAW', 'Views and photos', 'Filter and selection', 'Undo, delete and help', 'Vi keys (Settings › Keyboard)'])
+		expect(wrapper.findAll('th[scope="rowgroup"]').map((heading) => heading.text())).toEqual(['Flags', 'Rating, colour label, Keep RAW', 'Views and photos', 'Filter and selection', 'Undo, delete and help', 'Vi keys (Settings › Keyboard)'])
 		expect(rows(wrapper)).toHaveLength(KEYMAP.length)
 		expect(rows(wrapper)[0]).toEqual([['P'], 'Pick (again: unflag)'])
 		expect(rows(wrapper).every(([, label]) => label !== '')).toBe(true)
+	})
+
+	// spec: KEYS-001.12
+	it('lays out every group in one table, so all groups share the key column', () => {
+		const wrapper = mountSheet()
+		expect(wrapper.findAll('table')).toHaveLength(1)
+		expect(wrapper.findAll('tbody')).toHaveLength(6)
+		expect(wrapper.findAll('th[scope="rowgroup"]').every((heading) => heading.attributes('colspan') === '2')).toBe(true)
 	})
 
 	// spec: KEYS-001.12
@@ -57,7 +65,7 @@ describe('ShortcutSheet', () => {
 
 		it('translates every text but the key caps', () => {
 			const wrapper = mountSheet()
-			expect(wrapper.find('h3').text()).toBe(`${TRANSLATED_MARK}Flags`)
+			expect(wrapper.find('th').text()).toBe(`${TRANSLATED_MARK}Flags`)
 			wrapper.findAll('kbd').forEach((cap) => cap.element.remove())
 			expect(untranslatedText(wrapper.element)).toEqual([])
 		})

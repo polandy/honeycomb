@@ -105,11 +105,13 @@ function onOpen(open: boolean) {
 		<p class="shortcut-sheet__intro">
 			{{ t('honeycomb', 'The Lightroom Classic keys, the same on every screen. They act on the selection or focused tile in the grid, and on the shown photo in the loupe.') }}
 		</p>
-		<template v-for="section in sections" :key="section.group">
-			<h3 class="shortcut-sheet__group">
-				{{ section.name }}
-			</h3>
-			<table class="shortcut-sheet__table">
+		<table class="shortcut-sheet__table">
+			<tbody v-for="section in sections" :key="section.group">
+				<tr>
+					<th class="shortcut-sheet__group" scope="rowgroup" colspan="2">
+						{{ section.name }}
+					</th>
+				</tr>
 				<tr v-for="row in section.rows" :key="row.id">
 					<td class="shortcut-sheet__caps">
 						<template v-for="(cap, at) in row.caps" :key="cap">
@@ -121,8 +123,8 @@ function onOpen(open: boolean) {
 					</td>
 					<td>{{ row.label }}</td>
 				</tr>
-			</table>
-		</template>
+			</tbody>
+		</table>
 		<template #actions>
 			<NcButton variant="primary" @click="emit('close')">
 				{{ t('honeycomb', 'Close') }}
@@ -137,9 +139,14 @@ function onOpen(open: boolean) {
 	color: var(--color-text-maxcontrast);
 }
 
+.shortcut-sheet__table {
+	border-collapse: collapse;
+}
+
 .shortcut-sheet__group {
-	margin: 14px 0 4px;
-	font-size: 1em;
+	padding: 14px 0 4px;
+	font-weight: bold;
+	text-align: start;
 }
 
 .shortcut-sheet__table td {
