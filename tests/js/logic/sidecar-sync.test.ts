@@ -11,7 +11,7 @@ import { applySaves, inSharedFolder, planSaves, takeOverDecisions, takeOverLooku
 import { readXmp } from '../../../src/logic/xmp/parse.ts'
 import { serializeXmp } from '../../../src/logic/xmp/serialize.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
-import { CANONICAL_TIME, fixtureBytes, packetOf, textOf } from './xmp/xmp-builders.ts'
+import { CANONICAL_TIME, fixtureBytes, itemsOf, packetOf, seq, textOf } from './xmp/xmp-builders.ts'
 
 const NEF = listingEntry(1, '/P/IMG_0001.NEF')
 const JPG = listingEntry(2, '/P/IMG_0001.JPG')
@@ -98,7 +98,7 @@ describe('planSaves', () => {
 		const pair = pictureOf(NEF, JPG, NEF_XMP, JPG_XMP)
 		const bytes = xmp({ 'xmp:Rating': '4', 'dc:format': 'kept' })
 
-		const { saves, failed } = planSaves(pair, PICKED, new Map(), new Map([[11, read(bytes)], [12, read(bytes, 7)]]), CANONICAL_TIME)
+		const { saves, failed } = planSaves(pair, { decision: PICKED }, new Map(), new Map([[11, read(bytes)], [12, read(bytes, 7)]]), CANONICAL_TIME)
 
 		expect(failed).toEqual([])
 		expect(saves.map(({ path, item }) => [path, 'fileId' in item ? [item.fileId, item.etag, item.size] : null])).toEqual([
@@ -114,8 +114,8 @@ describe('planSaves', () => {
 		const pair = pictureOf(NEF, JPG)
 		const known = new Map<string, KnownSidecar>([['/P/IMG_0001.JPG.xmp', { fileId: 22, saved: { etag: 'c', size: 1, bytes: xmp({ 'xmp:Rating': '1' }) } }]])
 
-		const first = planSaves(pair, PICKED, new Map(), new Map(), CANONICAL_TIME)
-		const next = planSaves(pair, PICKED, known, new Map(), CANONICAL_TIME)
+		const first = planSaves(pair, { decision: PICKED }, new Map(), new Map(), CANONICAL_TIME)
+		const next = planSaves(pair, { decision: PICKED }, known, new Map(), CANONICAL_TIME)
 
 		expect(first.saves.map(({ item }) => ('path' in item ? item.path : item.fileId))).toEqual(['/P/IMG_0001.NEF.xmp', '/P/IMG_0001.JPG.xmp'])
 		expect(textOf(readXmp(first.saves[0]!.item.bytes), 'xmp:Rating')).toBe('2')
@@ -125,7 +125,7 @@ describe('planSaves', () => {
 	it('replaces darktable\'s colour labels only when the colour label differs from the sidecar\'s', () => {
 		const single = pictureOf(listingEntry(5, '/P/D.NEF'), listingEntry(15, '/P/D.NEF.xmp'))
 		const answers = new Map([[15, read(fixtureBytes('darktable.xmp'))]])
-		const labels = (decision: Decision) => new TextDecoder().decode(planSaves(single, decision, new Map(), answers, CANONICAL_TIME).saves[0]!.item.bytes).match(/<darktable:colorlabels>[\s\S]*?<\/darktable:colorlabels>/)?.[0].match(/<rdf:li>\d<\/rdf:li>/g)
+		const labels = (decision: Decision) => new TextDecoder().decode(planSaves(single, { decision }, new Map(), answers, CANONICAL_TIME).saves[0]!.item.bytes).match(/<darktable:colorlabels>[\s\S]*?<\/darktable:colorlabels>/)?.[0].match(/<rdf:li>\d<\/rdf:li>/g)
 
 		expect(labels({ ...UNDECIDED, colourLabel: 'red', flag: 'rejected' })).toEqual(['<rdf:li>3</rdf:li>', '<rdf:li>0</rdf:li>'])
 		expect(labels({ ...UNDECIDED, colourLabel: 'green', flag: 'rejected' })).toEqual(['<rdf:li>2</rdf:li>'])
@@ -136,8 +136,8 @@ describe('planSaves', () => {
 		const pair = pictureOf(NEF, JPG, NEF_XMP, JPG_XMP)
 		const single = pictureOf(listingEntry(6, '/P/E.JPG'), listingEntry(16, '/P/E.JPG.xmp'))
 
-		const refused = planSaves(pair, PICKED, new Map(), new Map([[11, read(fixtureBytes('refused/unclosed.xmp'))], [12, { result: 'notPermitted' }]]), CANONICAL_TIME)
-		const unanswered = planSaves(single, PICKED, new Map(), new Map(), CANONICAL_TIME)
+		const refused = planSaves(pair, { decision: PICKED }, new Map(), new Map([[11, read(fixtureBytes('refused/unclosed.xmp'))], [12, { result: 'notPermitted' }]]), CANONICAL_TIME)
+		const unanswered = planSaves(single, { decision: PICKED }, new Map(), new Map(), CANONICAL_TIME)
 
 		expect(refused.saves).toEqual([])
 		expect(refused.failed).toEqual([
@@ -150,15 +150,60 @@ describe('planSaves', () => {
 	it('plans only the given paths', () => {
 		const pair = pictureOf(NEF, JPG, NEF_XMP, JPG_XMP)
 
-		const { saves } = planSaves(pair, PICKED, new Map(), new Map([[12, read(xmp({}))]]), CANONICAL_TIME, new Set(['/P/IMG_0001.JPG.xmp']))
+		const { saves } = planSaves(pair, { decision: PICKED }, new Map(), new Map([[12, read(xmp({}))]]), CANONICAL_TIME, new Set(['/P/IMG_0001.JPG.xmp']))
 
 		expect(saves.map(({ path }) => path)).toEqual(['/P/IMG_0001.JPG.xmp'])
 	})
 })
 
+describe('planSaves: a tag change', () => {
+	const WEDDING = { tags: { added: ['Events/Wedding'], removed: ['Places/Lisbon'] } }
+	const tagsOf = (bytes: Uint8Array) => itemsOf(readXmp(bytes), 'digiKam:TagsList')
+
+	// spec: TAGS-002.9
+	it('applies the change to the union of the sidecars and writes that set to each, leaving the decision', () => {
+		const pair = pictureOf(NEF, JPG, NEF_XMP, JPG_XMP)
+		const answers = new Map([[11, read(serializeXmp(packetOf({ 'digiKam:TagsList': seq(['Places/Lisbon']), 'xmp:Rating': '4' }), CANONICAL_TIME))], [12, read(serializeXmp(packetOf({ 'digiKam:TagsList': seq(['People/Anna']) }), CANONICAL_TIME))]])
+
+		const { saves, failed } = planSaves(pair, WEDDING, new Map(), answers, CANONICAL_TIME)
+
+		expect(failed).toEqual([])
+		expect(saves.map(({ item }) => tagsOf(item.bytes))).toEqual([['Events/Wedding', 'People/Anna'], ['Events/Wedding', 'People/Anna']])
+		expect([textOf(readXmp(saves[0]!.item.bytes), 'xmp:Rating'), textOf(readXmp(saves[1]!.item.bytes), 'xmp:Rating')]).toEqual(['4', undefined])
+	})
+
+	// spec: TAGS-002.10
+	it('creates `<member file>.xmp` while tags are left, and saves over a held one without them', () => {
+		const pair = pictureOf(NEF, JPG)
+		const held = serializeXmp(packetOf({ 'digiKam:TagsList': seq(['Events/Wedding']) }), CANONICAL_TIME)
+		const known = new Map<string, KnownSidecar>([['/P/IMG_0001.JPG.xmp', { fileId: 22, saved: { etag: 'c', size: 1, bytes: held } }]])
+		const untag = { tags: { added: [], removed: ['Events/Wedding'] } }
+
+		const first = planSaves(pair, WEDDING, new Map(), new Map(), CANONICAL_TIME)
+		const last = planSaves(pair, untag, known, new Map(), CANONICAL_TIME)
+		const none = planSaves(pair, untag, new Map(), new Map(), CANONICAL_TIME)
+
+		expect(first.saves.map(({ path, item }) => [path, 'path' in item, tagsOf(item.bytes)])).toEqual([['/P/IMG_0001.NEF.xmp', true, ['Events/Wedding']], ['/P/IMG_0001.JPG.xmp', true, ['Events/Wedding']]])
+		expect(last.saves.map(({ path, item }) => [path, 'fileId' in item, tagsOf(item.bytes)])).toEqual([['/P/IMG_0001.JPG.xmp', true, undefined]])
+		expect(none.saves).toEqual([])
+	})
+
+	// spec: TAGS-002.11
+	it('reads the tags of the sidecars it holds when it plans only some paths', () => {
+		const pair = pictureOf(NEF, JPG, NEF_XMP, JPG_XMP)
+		const held = serializeXmp(packetOf({ 'digiKam:TagsList': seq(['Events/Wedding', 'People/Anna']) }), CANONICAL_TIME)
+		const known = new Map<string, KnownSidecar>([['/P/IMG_0001.NEF.xmp', { fileId: 11, saved: { etag: 'n', size: 1, bytes: held } }]])
+		const changed = new Map([[12, read(serializeXmp(packetOf({ 'digiKam:TagsList': seq(['Kids', 'Places/Lisbon']) }), CANONICAL_TIME))]])
+
+		const { saves } = planSaves(pair, WEDDING, known, changed, CANONICAL_TIME, new Set(['/P/IMG_0001.JPG.xmp']))
+
+		expect(saves.map(({ path, item }) => [path, tagsOf(item.bytes)])).toEqual([['/P/IMG_0001.JPG.xmp', ['Events/Wedding', 'Kids', 'People/Anna']]])
+	})
+})
+
 describe('applySaves', () => {
 	const pair = pictureOf(NEF, JPG, NEF_XMP)
-	const plan = planSaves(pair, PICKED, new Map(), new Map([[11, read(xmp({}))]]), CANONICAL_TIME).saves
+	const plan = planSaves(pair, { decision: PICKED }, new Map(), new Map([[11, read(xmp({}))]]), CANONICAL_TIME).saves
 
 	// spec: XMP-003.7
 	it('keeps what was saved so the next write needs no lookup', () => {

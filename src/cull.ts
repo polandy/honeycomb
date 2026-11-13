@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { BrowserStorage } from './browser-storage.ts'
+import type { CullApi, CullSidecars } from './cull-seams.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
 import type { Decision, StoredDecision } from './logic/decision.ts'
 import type { FolderSet } from './logic/folder-set.ts'
@@ -9,17 +10,17 @@ import type { PairingSettings, Picture } from './logic/pairing.ts'
 import type { Filters } from './logic/picture-filter.ts'
 import type { SortOrder } from './logic/picture-order.ts'
 import type { Settings } from './logic/settings.ts'
-import type { SidecarFailure } from './logic/sidecar-sync.ts'
 import type { UndoEntry, UndoHistory } from './logic/undo.ts'
-import type { HashImage } from './visual-hashes.ts'
 
 import { computed, ref, shallowRef, watch } from 'vue'
 import { readStored, writeStored } from './browser-storage.ts'
+import { useCullTags } from './cull-tags.ts'
 import { nameComparer } from './l10n.ts'
 import { logger } from './logger.ts'
 import { prepareCull, warmFileIds } from './logic/cull.ts'
 import { commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
 import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
+import { memberIds } from './logic/pairing.ts'
 import { activeFilterCount, DEFAULT_FILTERS, emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
 import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
 import { findSeries, seriesCandidates, seriesSizes as sizesOf } from './logic/series.ts'
@@ -30,22 +31,8 @@ import { withoutFiles } from './logic/trash-report.ts'
 import { NO_HISTORY, pickRestEntry, recordStep, redoStep, undoEntry, undoStep } from './logic/undo.ts'
 import { useVisualHashes } from './visual-hashes.ts'
 
-/** How the cull takes decisions over from the sidecars and writes them through (XMP-003). */
-export interface CullSidecars {
-	readonly takeOver: (pictures: readonly Picture<ListingEntry>[], storedIds: ReadonlySet<number>) => Promise<{ picture: Picture<ListingEntry>, decision: Decision }[]>
-	readonly write: (pictures: readonly Picture<ListingEntry>[], decisionOf: (picture: Picture<ListingEntry>) => Decision) => Promise<{ written: number, failed: SidecarFailure[] }>
-}
-
 /** The browser storage key of the thumbnail size. */
 const TILE_SIZE_KEY = 'honeycomb.tileSize'
-
-/** The server calls the cull makes, and the visual hashing of its previews. */
-export interface CullApi {
-	readonly hashImage: HashImage
-	readonly warmPreviews: (fileIds: readonly number[]) => Promise<void>
-	readonly lookupDecisions: (fileIds: readonly number[]) => Promise<StoredDecision[]>
-	readonly saveDecisions: (decisions: readonly StoredDecision[]) => Promise<void>
-}
 
 /** The open cull, its view settings and the folder picker's state; it pairs and shows singles as the settings say. */
 export function useCull(api: CullApi, storage: BrowserStorage, settings: () => Settings, sidecars: CullSidecars) {
@@ -67,6 +54,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const sharedFolders = shallowRef<ReadonlySet<string>>(new Set())
 	let history: UndoHistory = NO_HISTORY
 	let opening = 0
+	const tags = useCullTags(api.tags, sidecars.writeTags, () => opening, (picture) => !inSharedFolder(picture, sharedFolders.value))
 	let filtersOff: Filters | null = null
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
 	const folders = computed(() => folderPaths.value.length)
@@ -92,6 +80,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		entries.value = listed
 		paired.value = prepareCull(listed, pairing.value).pictures
 		decisions.value = new Map()
+		tags.reset()
 		history = NO_HISTORY
 		filtersOff = null
 		saveFailed.value = false
@@ -107,20 +96,23 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		loadDecisions(paired.value)
 	})
 
-	/** Reads the decisions of every member, then takes the sidecars' over; they apply only while the same pictures are open, under changes made meanwhile. */
+	/** Reads the decisions and tags of every member, then takes the sidecars' over; they apply only while the same pictures are open, under changes made meanwhile. */
 	function loadDecisions(opened: readonly Picture<ListingEntry>[]) {
+		const storedTags = tags.load(opened)
 		api.lookupDecisions(opened.flatMap(memberIds)).then(async (rows) => {
 			if (paired.value !== opened) {
 				return
 			}
 			decisions.value = new Map([...decisionsByFileId(rows), ...decisions.value])
-			await takeOver(opened, new Set(rows.map((row) => row.fileId)))
+			await takeOver(opened, new Set(rows.map((row) => row.fileId)), await storedTags)
 		}).catch((error: unknown) => logger.error('Could not read the decisions; every photo shows as undecided', { error }))
 	}
 
-	/** Shows and stores the sidecars' decision of the pictures still undecided; no undo step and no write back (XMP-003.1–.5). */
-	async function takeOver(opened: readonly Picture<ListingEntry>[], storedIds: ReadonlySet<number>) {
-		const taken = await sidecars.takeOver(opened, storedIds)
+	/** Shows and stores the sidecars' decision of the pictures still undecided, and their tags; no undo step and no write back (XMP-003.1–.5, TAGS-002.2). */
+	async function takeOver(opened: readonly Picture<ListingEntry>[], storedIds: ReadonlySet<number>, storedTagIds: ReadonlySet<number> | null) {
+		const cull = opening
+		const { decided: taken, tagged } = await sidecars.takeOver(opened, storedIds, storedTagIds)
+		tags.takeOver(paired.value === opened ? cull : null, tagged)
 		const rows = paired.value === opened
 			? taken.filter(({ picture }) => !memberIds(picture).some((fileId) => decisions.value.has(fileId)))
 					.flatMap(({ picture, decision }) => memberIds(picture).map((fileId) => ({ fileId, ...decision })))
@@ -217,6 +209,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	function restoreFiles(restored: readonly ListingEntry[]) {
 		entries.value = [...entries.value, ...restored]
 		paired.value = prepareCull(entries.value, pairing.value).pictures
+		tags.restore(restored.map((entry) => entry.fileId))
 		const unknown = restored.map((entry) => entry.fileId).filter((fileId) => !decisions.value.has(fileId))
 		const opened = opening
 		if (unknown.length > 0) {
@@ -271,6 +264,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		saveFailed,
 		sharedPictures,
 		sharedDecided,
+		tags,
 		decisionOf,
 		passes,
 		common,
@@ -288,9 +282,4 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		toggleFiltersOff,
 		setTileSize,
 	}
-}
-
-/** The file ids of the picture's members, RAW first. */
-function memberIds(picture: Picture<ListingEntry>): number[] {
-	return [picture.raw, picture.rendered].filter((member) => member !== null).map((member) => member.fileId)
 }

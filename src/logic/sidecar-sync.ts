@@ -3,17 +3,20 @@
 import type { Decision } from './decision.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
+import type { TagChange } from './tag.ts'
 import type { SidecarBytes } from './xmp/decision.ts'
-import type { XmpRefusal, XmpTime } from './xmp/model.ts'
+import type { XmpPacket, XmpRefusal, XmpTime } from './xmp/model.ts'
 
 import { sameDecision, UNDECIDED } from './decision.ts'
 import { parseFileName, splitFolder } from './file-name.ts'
+import { pictureMembers } from './pairing.ts'
 import { isMemberSidecar } from './sidecars.ts'
 import { pictureSidecarDecision, sidecarDecision } from './xmp/decision.ts'
 import { mergeDecision } from './xmp/merge.ts'
 import { EMPTY_PACKET, XmpError } from './xmp/model.ts'
-import { readXmp } from './xmp/parse.ts'
+import { readableXmp, readXmp } from './xmp/parse.ts'
 import { serializeXmp } from './xmp/serialize.ts'
+import { mergeTags, tagWrite } from './xmp/tags.ts'
 import { sidecarTargets } from './xmp/targets.ts'
 
 /** What the lookup endpoint answers for a sidecar other than its bytes (XMP-002). */
@@ -45,7 +48,11 @@ export interface SidecarFailure {
 	readonly path: string
 	readonly picture: Picture<ListingEntry>
 	readonly reason: SidecarFailureReason
+	readonly tags?: TagChange
 }
+
+/** What a write changes in a picture's sidecars: the decision fields, or the tag fields by a change. */
+export type SidecarEdit = { readonly decision: Decision } | { readonly tags: TagChange }
 
 /** A sidecar honeycomb knows by path: its file id and, while nobody else changed it, what honeycomb saved. */
 export interface KnownSidecar {
@@ -72,7 +79,7 @@ type Known = ReadonlyMap<string, KnownSidecar>
 /** The pictures without a stored decision for any member that have sidecars to take one from. */
 export function takeOverLookups(pictures: readonly Picture<ListingEntry>[], stored: ReadonlySet<number>): TakeOverLookup[] {
 	return pictures
-		.filter((picture) => !members(picture).some((member) => stored.has(member.fileId)))
+		.filter((picture) => !pictureMembers(picture).some((member) => stored.has(member.fileId)))
 		.map((picture) => ({ picture, sidecars: sidecarTargets(picture).existing }))
 		.filter(({ sidecars }) => sidecars.length > 0)
 }
@@ -106,19 +113,25 @@ export function writeLookups(picture: Picture<ListingEntry>, known: Known, paths
 	return targetsOf(picture, known, paths).flatMap(({ fileId, saved }) => (saved === null && fileId !== null ? [fileId] : []))
 }
 
-/** The saves that write the decision to the picture's sidecars, and the sidecars that cannot be written. */
-export function planSaves(picture: Picture<ListingEntry>, decision: Decision, known: Known, answers: Answers, time: XmpTime, paths?: ReadonlySet<string>) {
+/** The saves that write the edit to the picture's sidecars (to `paths` only, when given), and the sidecars that cannot be written. */
+export function planSaves(picture: Picture<ListingEntry>, edit: SidecarEdit, known: Known, answers: Answers, time: XmpTime, paths?: ReadonlySet<string>) {
 	const saves: PlannedSave[] = []
 	const failed: SidecarFailure[] = []
-	for (const { path, fileId, saved } of targetsOf(picture, known, paths)) {
-		const answer = saved === null && fileId !== null ? answers.get(fileId) : undefined
-		const source = saved ?? (answer?.result === 'read' ? answer : null)
+	const targets = targetsOf(picture, known).map((target) => {
+		const answer = target.saved === null && target.fileId !== null ? answers.get(target.fileId) : undefined
+		return { ...target, answer, source: target.saved ?? (answer?.result === 'read' ? answer : null) }
+	})
+	const { change, creates } = editorOf(edit, isPair(picture), targets.flatMap(({ source }) => (source === null ? [] : [source.bytes])))
+	for (const { path, fileId, answer, source } of targets.filter((target) => paths === undefined || paths.has(target.path))) {
 		if (fileId !== null && source === null) {
 			failed.push({ path, picture, reason: (answer?.result ?? 'unreachable') as SidecarFailureReason })
 			continue
 		}
+		if (fileId === null && !creates) {
+			continue
+		}
 		try {
-			const bytes = merged(source?.bytes ?? null, decision, isPair(picture), time)
+			const bytes = serializeXmp(change(source === null ? EMPTY_PACKET : readXmp(source.bytes)), time)
 			saves.push({ picture, path, item: fileId === null || source === null ? { path, bytes } : { fileId, etag: source.etag, size: source.size, bytes } })
 		} catch (error) {
 			if (!(error instanceof XmpError)) {
@@ -158,7 +171,7 @@ export function applySaves(saves: readonly PlannedSave[], answers: readonly Side
 
 /** Whether a member of the picture lies in one of the shared folders. */
 export function inSharedFolder(picture: Picture<ListingEntry>, shared: ReadonlySet<string>): boolean {
-	return members(picture).some((member) => {
+	return pictureMembers(picture).some((member) => {
 		const folder = splitFolder(member.path).parent
 		return shared.has(folder) || (folder === '' && shared.has('/'))
 	})
@@ -176,16 +189,17 @@ function targetsOf(picture: Picture<ListingEntry>, known: Known, paths?: Readonl
 		})
 }
 
-/** The sidecar's bytes, or a new one's, with the decision merged in; a refused sidecar throws its `XmpError`. */
-function merged(existing: Uint8Array | null, decision: Decision, pair: boolean, time: XmpTime): Uint8Array {
-	const packet = existing === null ? EMPTY_PACKET : readXmp(existing)
-	const colourLabelChanged = sidecarDecision(packet, pair).colourLabel !== decision.colourLabel
-	return serializeXmp(mergeDecision(packet, decision, { isPair: pair, colourLabelChanged }), time)
-}
-
-/** The picture's members. */
-function members(picture: Picture<ListingEntry>): ListingEntry[] {
-	return [picture.raw, picture.rendered].filter((member) => member !== null)
+/** How the edit changes a sidecar, and whether it creates missing ones: a tag change applies to the union of the sidecars read, and creates them only while tags are left. */
+function editorOf(edit: SidecarEdit, pair: boolean, sources: readonly Uint8Array[]): { change: (packet: XmpPacket) => XmpPacket, creates: boolean } {
+	if ('decision' in edit) {
+		const { decision } = edit
+		return {
+			change: (packet) => mergeDecision(packet, decision, { isPair: pair, colourLabelChanged: sidecarDecision(packet, pair).colourLabel !== decision.colourLabel }),
+			creates: true,
+		}
+	}
+	const write = tagWrite(sources.map(readableXmp).filter((packet) => packet !== null), edit.tags)
+	return { change: (packet) => mergeTags(packet, write), creates: write.tags.length > 0 }
 }
 
 /** Whether the picture is a pair. */

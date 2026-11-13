@@ -1,16 +1,10 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Tag } from '../tag.ts'
+import type { Tag, TagChange } from '../tag.ts'
 import type { XmpNode, XmpPacket } from './model.ts'
 
-import { HIERARCHY_SEPARATOR, leafOf, TAG_SEPARATOR } from '../tag.ts'
+import { changedTags, HIERARCHY_SEPARATOR, leafOf, sortedTags, TAG_SEPARATOR } from '../tag.ts'
 import { EMPTY_PACKET, NAMESPACE, textNode, xmpKey } from './model.ts'
-
-/** Tags added and removed in one step. */
-export interface TagChange {
-	readonly added: readonly Tag[]
-	readonly removed: readonly Tag[]
-}
 
 /** The tags every sidecar of a picture gets, and the removed tags whose leaves leave `dc:subject`. */
 export interface TagWrite {
@@ -40,7 +34,7 @@ export function sidecarTags(packet: XmpPacket): readonly Tag[] {
 	for (const { key, separator } of READ_ORDER) {
 		const tags = itemTexts(packet.properties.get(key)).map((item) => tagOfItem(item, separator)).filter((tag) => tag !== null)
 		if (tags.length > 0) {
-			return sortedUnique(tags)
+			return sortedTags(tags)
 		}
 	}
 	return []
@@ -48,14 +42,12 @@ export function sidecarTags(packet: XmpPacket): readonly Tag[] {
 
 /** The union of the tags of every source of a picture, sorted (D2). */
 export function pictureTags(sources: readonly XmpPacket[]): readonly Tag[] {
-	return sortedUnique(sources.flatMap(sidecarTags))
+	return sortedTags(sources.flatMap(sidecarTags))
 }
 
 /** The change applied to the sources as they are now, to be written to each sidecar. */
 export function tagWrite(sources: readonly XmpPacket[], change: TagChange): TagWrite {
-	const removed = new Set(change.removed)
-	const kept = pictureTags(sources).filter((tag) => !removed.has(tag))
-	return { tags: sortedUnique([...kept, ...change.added]), removed: change.removed }
+	return { tags: changedTags(pictureTags(sources), change), removed: change.removed }
 }
 
 /** Sets the three tag fields to the write and keeps every other property (`docs/07-tags.md` Writing). */
@@ -120,9 +112,4 @@ function tagOfItem(item: string, separator: string | null): Tag | null {
 /** An array of simple values. */
 function arrayOf(array: 'Seq' | 'Bag', texts: readonly string[]): XmpNode {
 	return { value: { kind: 'array', array, items: texts.map((text) => textNode(text)) }, qualifiers: EMPTY_PACKET.properties }
-}
-
-/** Each tag once, in code-unit order so the written list is stable. */
-function sortedUnique(tags: readonly Tag[]): readonly Tag[] {
-	return [...new Set(tags)].sort()
 }

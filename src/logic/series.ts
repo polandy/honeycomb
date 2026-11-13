@@ -4,6 +4,7 @@ import type { Decision } from './decision.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 
+import { pictureMembers } from './pairing.ts'
 import { hashDistance } from './visual-hash.ts'
 
 /** The longest gap between two shots of one series, photo to photo, where one has no visual hash (plan.md, Series compare). */
@@ -68,7 +69,7 @@ function cameraShots<P extends Picture<ListingEntry>>(pictures: readonly P[], ha
 
 /** The shot of a picture with an EXIF capture time, taken from its RAW member first; pictures without a camera share one. */
 function shotOf<P extends Picture<ListingEntry>>(picture: P, hashOf: HashOf<P>): Shot<P> | null {
-	const members = [picture.raw, picture.rendered].filter((member) => member !== null)
+	const members = pictureMembers(picture)
 	const time = members.find((member) => member.captureTime !== null)?.captureTime ?? null
 	const camera = members.find((member) => member.camera !== null)?.camera ?? ''
 	return time === null ? null : { picture, time, camera, hash: hashOf(picture) }

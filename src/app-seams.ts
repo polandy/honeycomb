@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Folder } from './api.ts'
 import type { BrowserStorage } from './browser-storage.ts'
+import type { CullTagsApi } from './cull-tags.ts'
 import type { ListEntries } from './folder-count.ts'
 import type { StoredDecision } from './logic/decision.ts'
 import type { Schedule } from './logic/long-press.ts'
@@ -13,7 +14,7 @@ import type { SidecarFlowApi } from './sidecar-flow.ts'
 import type { ViewStateApi } from './view-state.ts'
 import type { HashImage } from './visual-hashes.ts'
 
-import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, imageUrl, loadPositions, loadViewState, lookupSidecars, movePictures, probeTargets, savePosition, saveSidecars, saveViewState } from './api.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, imageUrl, loadPositions, loadViewState, lookupSidecars, lookupTags, movePictures, probeTargets, savePosition, saveSidecars, saveTags, saveViewState } from './api.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { browserNow } from './sidecar-flow.ts'
 import { browserSchedule } from './tile-selection.ts'
@@ -37,6 +38,7 @@ export interface AppSeams {
 	trashPictures?: (pictures: readonly (readonly TrashRequestFile[])[]) => Promise<TrashResponseFile[][]>
 	sidecars?: SidecarFlowApi
 	move?: MoveApi
+	tags?: CullTagsApi
 }
 
 /** The seams the app uses in production. */
@@ -57,4 +59,5 @@ export const APP_SEAMS = {
 	trashPictures: apiTrashPictures,
 	sidecars: () => ({ lookupSidecars, saveSidecars, now: browserNow }),
 	move: () => ({ probeTargets, movePictures }),
+	tags: () => ({ lookupTags, saveTags }),
 }

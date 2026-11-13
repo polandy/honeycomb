@@ -59,6 +59,16 @@ interface Draft<T> {
 	readonly ambiguous: boolean
 }
 
+/** The picture's members, RAW first. */
+export function pictureMembers<T>(picture: { readonly raw: T | null, readonly rendered: T | null }): T[] {
+	return [picture.raw, picture.rendered].filter((member): member is T => member !== null)
+}
+
+/** The file ids of the picture's members, RAW first. */
+export function memberIds(picture: Picture<{ readonly fileId: number }>): number[] {
+	return pictureMembers(picture).map((member) => member.fileId)
+}
+
 /** Groups listing entries into pictures, in the order of each picture's first member. */
 export function pairPictures<T extends PairingEntry>(entries: readonly T[], settings: PairingSettings): Picture<T>[] {
 	const roles = roleByExtension(settings)

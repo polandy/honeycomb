@@ -83,6 +83,9 @@ export function provideSkipActions() {
 	}
 }
 
+/** Tag endpoints that store nothing. */
+export const NO_TAGS = { lookupTags: async () => [], saveTags: async () => undefined }
+
 export function mountApp(props: Record<string, unknown> = {}, decisions: StoredDecision[] = [], stubs: Record<string, unknown> = {}) {
 	provideSkipActions()
 	const warmed: number[][] = []
@@ -101,6 +104,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 				return decisions
 			},
 			saveDecisions: async (rows: readonly StoredDecision[]) => { saved.push([...rows]) },
+			tags: NO_TAGS,
 			loadSettings: async () => ({}),
 			saveSettings: async (settings: object) => { savedSettings.push(settings) },
 			positions: { loadPositions: async () => [], savePosition: async () => undefined },

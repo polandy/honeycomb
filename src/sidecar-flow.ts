@@ -59,12 +59,9 @@ export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, act
 
 	/** Writes the failed sidecars once more. */
 	function retry(decisionOf: (picture: Picture<ListingEntry>) => Decision) {
-		const paths = new Map<Picture<ListingEntry>, Set<string>>()
-		for (const { picture, path } of report.value ?? []) {
-			paths.set(picture, (paths.get(picture) ?? new Set()).add(path))
-		}
+		const failed = report.value ?? []
 		report.value = null
-		void sync.write([...paths.keys()], decisionOf, paths)
+		void sync.retry(failed, decisionOf)
 	}
 
 	return { sync, asking, report, open, ask, close, confirm, retry }

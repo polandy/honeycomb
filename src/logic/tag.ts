@@ -26,3 +26,60 @@ export function tagOf(text: string): Tag | null {
 export function leafOf(tag: Tag): string {
 	return tag.slice(tag.lastIndexOf(TAG_SEPARATOR) + 1)
 }
+
+/** Tags added and removed in one step. */
+export interface TagChange {
+	readonly added: readonly Tag[]
+	readonly removed: readonly Tag[]
+}
+
+/** The longest tag the storage holds (ADR 0022). */
+const MAX_TAG_LENGTH = 255
+
+/** The most tags the storage holds for one file (ADR 0022). */
+const MAX_TAGS = 100
+
+/** Each tag once, in code-unit order so a written list is stable. */
+export function sortedTags(tags: readonly Tag[]): Tag[] {
+	return [...new Set(tags)].sort()
+}
+
+/** The tags with the change applied, sorted. */
+export function changedTags(tags: readonly Tag[], change: TagChange): Tag[] {
+	const removed = new Set(change.removed)
+	return sortedTags([...tags.filter((tag) => !removed.has(tag)), ...change.added])
+}
+
+/** The tags the storage can hold, sorted, and those it cannot: too long, or beyond the first `MAX_TAGS`. */
+export function storableTags(tags: readonly Tag[]): { kept: Tag[], leftOut: Tag[] } {
+	const sorted = sortedTags(tags)
+	const fitting = sorted.filter((tag) => tag.length <= MAX_TAG_LENGTH)
+	return {
+		kept: fitting.slice(0, MAX_TAGS),
+		leftOut: [...sorted.filter((tag) => tag.length > MAX_TAG_LENGTH), ...fitting.slice(MAX_TAGS)],
+	}
+}
+
+/** The tags by file id with each row set; an empty row drops its file. */
+export function withTagRows(tags: ReadonlyMap<number, readonly Tag[]>, rows: readonly StoredTags[]): Map<number, readonly Tag[]> {
+	const next = new Map(tags)
+	for (const { fileId, tags: set } of rows) {
+		if (set.length === 0) {
+			next.delete(fileId)
+		} else {
+			next.set(fileId, set)
+		}
+	}
+	return next
+}
+
+/** The tags with each row that still stands set back to what it replaced in `before`. */
+export function revertTagRows(tags: ReadonlyMap<number, readonly Tag[]>, rows: readonly StoredTags[], before: ReadonlyMap<number, readonly Tag[]>): Map<number, readonly Tag[]> {
+	const stillStanding = rows.filter(({ fileId, tags: set }) => sameTags(tags.get(fileId) ?? [], set))
+	return withTagRows(tags, stillStanding.map(({ fileId }) => ({ fileId, tags: [...(before.get(fileId) ?? [])] })))
+}
+
+/** Whether two sorted tag lists are the same. */
+function sameTags(left: readonly Tag[], right: readonly Tag[]): boolean {
+	return left.length === right.length && left.every((tag, index) => tag === right[index])
+}
