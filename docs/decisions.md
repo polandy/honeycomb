@@ -926,3 +926,14 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   minutes of a quiet subject, and the series viewer preloads a neighbour window, not the whole
   series. A plain *Pick* never rejects the rest silently; its undo toast offers *Reject the other
   N* instead (`docs/plans/loupe-series-concept.md`).
+- 2026-11-13: Owner decisions on the series-in-the-loupe concept: *Pick this, reject the rest*
+  (loupe button, `Shift+K`, the compare opened from the loupe, the toast's *Reject the other N*)
+  lands the loupe on the first photo after the series, since the series is decided; the compare
+  uses the whole screen as a grid of the series' photos instead of a sideways strip, from the
+  loupe and from the grid toolbar alike, so a burst is seen whole
+  (`docs/plans/loupe-series-concept.md`).
+- 2026-11-13: Owner decision, revising UX review L5 (#143): the flag buttons run *Pick* left,
+  *Unflag* in the middle, *Reject* right on every device; in landscape *Unflag* floats at the
+  bottom centre above the filmstrip. As UX lead I extend the order to every flag button group
+  (series viewer, compare cards, grid action bar), replacing the 2026-11-12 line that the small
+  buttons keep *Pick*, *Reject*, *Unflag*, so a hand learns one order.
