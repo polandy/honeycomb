@@ -11,28 +11,38 @@ enableAutoUnmount(afterEach)
 describe('GestureGuide', () => {
 	// spec: LOUPE-001.15
 	it('lists the decision swipes, the paging gestures, the tap zones with their sketch, pinch, double-tap and the keys', () => {
-		const wrapper = mount(GestureGuide)
+		const wrapper = mount(GestureGuide, { props: { finePointer: false } })
 
 		expect(wrapper.find('[role="dialog"]').attributes('aria-label')).toBe('How to cull')
-		expect(wrapper.findAll('li').map((line) => line.text())).toEqual([
+		expect(wrapper.findAll('.gesture-guide__gestures li').map((line) => line.text())).toEqual([
 			'Swipe up to pick',
 			'Swipe down to reject',
 			'Swipe sideways for the next or previous photo',
 			'Tap the left or right side for the previous or next photo, the middle for the controls Controls',
 			'Pinch to zoom, double-tap to hide the controls',
-			expect.stringMatching(/^Keys:/),
 		])
-		const keys = wrapper.findAll('.gesture-guide__key')
-		expect(keys.map((key) => [key.findAll('kbd').map((cap) => cap.text()), key.text()])).toEqual([
-			[['P'], 'P Pick'],
-			[['X'], 'X Reject'],
-			[['U'], 'U Unflag'],
-			[['Z'], 'Z Zoom'],
-			[['?'], '? All keys'],
+		const keys = wrapper.findAll('.gesture-guide__keys li')
+		expect(keys.map((key) => [key.find('kbd').text(), key.find('span').text()])).toEqual([
+			['P', 'Pick'],
+			['X', 'Reject'],
+			['U', 'Unflag'],
+			['Z', 'Zoom'],
+			['?', 'All keys'],
 		])
 		const sketch = wrapper.find('.gesture-guide__zones')
 		expect(sketch.attributes('aria-hidden')).toBe('true')
 		expect(sketch.findAll('span').map((zone) => zone.text())).toEqual(['', 'Controls', ''])
+	})
+
+	// spec: LOUPE-001.24
+	it.each([
+		[true, ['Keys', 'Gestures']],
+		[false, ['Gestures', 'Keys']],
+	])('with a fine pointer %s puts its sections in the order %o', (finePointer, headings) => {
+		const wrapper = mount(GestureGuide, { props: { finePointer } })
+
+		expect(wrapper.findAll('h4').map((heading) => heading.text())).toEqual(headings)
+		expect(wrapper.findAll('section').map((section) => section.find('h4').text())).toEqual(headings)
 	})
 
 	it.each([
@@ -41,9 +51,9 @@ describe('GestureGuide', () => {
 		[{ up: 'picked', down: null }, ['Swipe up to pick']],
 		[{ up: null, down: null }, []],
 	] as const)('names each swipe that decides as %o sets them', (swipes, lines) => {
-		const wrapper = mount(GestureGuide, { props: { swipes } })
+		const wrapper = mount(GestureGuide, { props: { swipes, finePointer: false } })
 
-		expect(wrapper.findAll('li').map((line) => line.text()).filter((line) => /^Swipe (up|down)/.test(line))).toEqual(lines)
+		expect(wrapper.findAll('.gesture-guide__gestures li').map((line) => line.text()).filter((line) => /^Swipe (up|down)/.test(line))).toEqual(lines)
 	})
 
 	// spec: LOUPE-001.15
