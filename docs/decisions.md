@@ -863,3 +863,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   and caps each photo at a 2:3 portrait photo's height at the card's width:
   in the 900 px large dialog four landscape photos stay 200 px wide however tall the cards grow,
   so filling the height alone left tall empty cards around landscape photos.
+- 2026-11-13: UX M6 removes the info panel's *Preloading* section without a replacement: the
+  loupe budget e2e now counts the finished loupe-tier requests instead of reading the counter,
+  so production keeps no debug output. The *Sidecars* row lists file names, which are unique
+  in a folder, so "each once" needs no extra deduplication; "—" replaces every *none*.

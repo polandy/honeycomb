@@ -108,7 +108,6 @@ const decisions = useLoupeDecisions({
 const picture = computed(() => props.pictures[props.index]!)
 const sourcesAt = (index: number) => loupeSources(imageMember(props.pictures[index]!), props.imageUrl)
 const neighbours = computed(() => prefetchOrder(props.index, props.pictures.length).map((index) => sourcesAt(index).loupe))
-const preloaded = computed(() => neighbours.value.filter((src) => prefetcher.ready.has(src)).length)
 
 watch(() => props.index, (index) => {
 	const current = sourcesAt(index)
@@ -223,9 +222,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 					:folderSet="props.folderSet"
 					:decision="props.decisionOf(picture)"
 					:tags="props.tagsOf(picture)"
-					:writesSidecars="props.writesSidecars(picture)"
-					:preloaded="preloaded"
-					:neighbours="neighbours.length" />
+					:writesSidecars="props.writesSidecars(picture)" />
 			</template>
 		</div>
 		<LoupeFilmstrip

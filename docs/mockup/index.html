@@ -147,8 +147,8 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 #loupe .l-main #stage{flex:1;min-width:0}
 #infoPanel{flex:none;width:var(--infow,300px);background:var(--stage-2);border-left:1px solid #ffffff1a;overflow:auto;padding:12px 14px;font-size:14px}
 #infoPanel h4{margin:0 0 8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-#infoPanel dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px}
-#infoPanel dt{color:var(--muted)}#infoPanel dd{margin:0;overflow-wrap:anywhere}
+#infoPanel dl{margin:0;display:grid;grid-template-columns:auto 1fr;grid-auto-rows:minmax(32px,auto);align-items:center;column-gap:12px}
+#infoPanel dt{color:var(--muted);text-align:start}#infoPanel dd{margin:0;overflow-wrap:anywhere}
 #loupe .l-main .divider::after{background:#ffffff2a}
 #loupe.immersive .l-top,#loupe.immersive .film,#loupe.immersive .l-ctrl,#loupe.immersive #infoPanel,#loupe.immersive #infoDiv,#loupe.immersive .navbtn{display:none}
 #loupe.immersive #stage{cursor:none}
@@ -322,8 +322,6 @@ table.sc{border-collapse:collapse;width:100%}table.sc td{padding:6px 4px;border-
 .coach-zones span{display:flex;align-items:center;justify-content:center;height:26px;border:1px dashed #ffffff59;border-radius:6px}
 .coach-zones svg.ic{width:16px;height:16px}
 .coach-card h3{margin:0 0 8px;font-size:17px}.coach-card ul{margin:0 0 16px;padding-left:18px;line-height:1.8}.coach-card .kbd{color:var(--text)}
-.prefetch{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--stage-muted)}
-.prefetch i{width:8px;height:8px;border-radius:50%;background:#555;display:inline-block}.prefetch i.ok{background:var(--honey)}
 .zoomtag{position:absolute;right:10px;bottom:10px;background:#000a;border-radius:16px;padding:4px 12px;font-size:12px;z-index:2;margin-right:var(--sa-r)}
 .film{flex:none;display:flex;gap:6px;overflow-x:auto;padding:6px 10px;background:#000;touch-action:pan-x;-webkit-overflow-scrolling:touch}
 .film button{flex:none;width:72px;height:54px;border-radius:6px;border:0;padding:0;overflow:hidden;position:relative;background:#222}
@@ -645,7 +643,7 @@ const DE = {
   'File': 'Datei',
   'Name': 'Name',
   'Folder': 'Ordner',
-  'Sidecar': 'Sidecar-Datei',
+  'Sidecars': 'Sidecar-Dateien',
   'none': 'keine',
   'Size': 'Größe',
   '{px} px wide': '{px} px breit',
@@ -654,7 +652,6 @@ const DE = {
   'Label': 'Farbetikett',
   'Flag': 'Markierung',
   'Gestures': 'Gesten',
-  'Preloading': 'Vorladen',
   'Swipe ↑ {up} · ↓ {down} · auto-advance {state}': 'Wischen ↑ {up} · ↓ {down} · automatisch weiter {state}',
   'PICK': 'MARKIEREN',
   'REJECT': 'ABLEHNEN',
@@ -688,7 +685,6 @@ const DE = {
   'Continue on another device': 'Auf einem anderen Gerät fortsetzen',
   'Reset mockup': 'Mockup zurücksetzen',
   'Reject covers the %n file': ['Ablehnen betrifft die %n Datei', 'Ablehnen betrifft alle %n Dateien'],
-  'preloaded: next %n': ['vorgeladen: nächstes %n', 'vorgeladen: nächste %n'],
   'Mockup: the %n photo of {folders} is not generated': ['Mockup: das %n Foto aus {folders} wird nicht erzeugt', 'Mockup: die %n Fotos aus {folders} werden nicht erzeugt'],
   'Moved %n remaining file to the Nextcloud trash bin': ['%n verbleibende Datei in den Nextcloud-Papierkorb verschoben', '%n verbleibende Dateien in den Nextcloud-Papierkorb verschoben'],
   'red': 'rot',
@@ -2490,10 +2486,10 @@ function renderLoupeChrome(){
   $('lCtrl').innerHTML = actionBar(it, 'loupe', {big:true, tail:`<div class="grp"><button class="sq" data-act="tags" data-for="loupe" aria-label="${t('Tags')}" ${tip(t('Tags'), HOTKEY.tags)} style="padding:0 12px">${ic('tag')}</button></div>`}); syncFlagBtns();
   $('lZoomBtn').textContent = L.z.s > 1.02 ? Math.round(L.z.s * fitSize(it)[0] * (devicePixelRatio || 1) / it.nativeW * 100) + '%' : t('Fit');
   const ip = $('infoPanel'); ip.hidden = $('infoDiv').hidden = !P0.infoOpen; $('lInfoBtn').setAttribute('aria-pressed', P0.infoOpen);
-  ip.innerHTML = `<h4>${t('File')}</h4><dl><dt>${t('Name')}</dt><dd>${esc(stem(it))}</dd><dt>${t('Folder')}</dt><dd ${tip(it.folder)}>${esc(folderName(it.folder))}</dd>${it.jpg ? `<dt>JPEG</dt><dd>${fmtSize(it.jpg.size)}</dd>` : ''}${it.raw ? `<dt>RAW</dt><dd>${esc(it.raw.name.split('.').pop())} · ${fmtSize(it.raw.size)}</dd>` : ''}<dt>${t('Sidecar')}</dt><dd>${it.xmp ? 'XMP' : t('none')}</dd><dt>${t('Size')}</dt><dd>${t('{px} px wide', {px:nf(it.nativeW)})}</dd><dt>${t('Captured')}</dt><dd>${it.exifTime != null ? esc(fmtWhen(it.exifTime)) : esc(t('Modified {date} (no capture time)', {date:fmtWhen(it.mtime)}))}</dd></dl>
-    <h4 style="margin-top:16px">${t('Decision')}</h4><dl><dt>${t('Rating')}</dt><dd>${it.rating ? nf(it.rating) + ' ★' : t('none')}</dd><dt>${t('Label')}</dt><dd>${it.label ? esc(labelName(it.label)) : t('none')}</dd><dt>${t('Flag')}</dt><dd>${esc(t(FLAG_TXT[it.flag]))}</dd></dl>
-    <h4 style="margin-top:16px">${t('Tags')}</h4><dl><dt>${t('Tags')}</dt><dd>${it.tags.length ? [...it.tags].sort().map(esc).join('<br>') : t('none')}</dd>${it.tags.length ? `<dt>${t('Written to')}</dt><dd>${esc(tagTargets(it))}</dd>` : ''}</dl>
-    <h4 style="margin-top:16px">${t('Gestures')}</h4><p class="gest" id="lGest"></p><h4>${t('Preloading')}</h4><div class="prefetch" id="lPre" aria-live="off"></div>`;
+  ip.innerHTML = `<h4>${t('File')}</h4><dl><dt>${t('Name')}</dt><dd>${esc(stem(it))}</dd><dt>${t('Folder')}</dt><dd ${tip(it.folder)}>${esc(folderName(it.folder))}</dd>${it.jpg ? `<dt>JPEG</dt><dd>${fmtSize(it.jpg.size)}</dd>` : ''}${it.raw ? `<dt>RAW</dt><dd>${esc(it.raw.name.split('.').pop())} · ${fmtSize(it.raw.size)}</dd>` : ''}<dt>${t('Sidecars')}</dt><dd>${it.xmp ? esc(it.xmp.name) : '—'}</dd><dt>${t('Size')}</dt><dd>${t('{px} px wide', {px:nf(it.nativeW)})}</dd><dt>${t('Captured')}</dt><dd>${it.exifTime != null ? esc(fmtWhen(it.exifTime)) : esc(t('Modified {date} (no capture time)', {date:fmtWhen(it.mtime)}))}</dd></dl>
+    <h4 style="margin-top:16px">${t('Decision')}</h4><dl><dt>${t('Rating')}</dt><dd>${it.rating ? nf(it.rating) + ' ★' : '—'}</dd><dt>${t('Label')}</dt><dd>${it.label ? esc(labelName(it.label)) : '—'}</dd><dt>${t('Flag')}</dt><dd>${esc(t(FLAG_TXT[it.flag]))}</dd></dl>
+    <h4 style="margin-top:16px">${t('Tags')}</h4><dl><dt>${t('Tags')}</dt><dd>${it.tags.length ? [...it.tags].sort().map(esc).join('<br>') : '—'}</dd>${it.tags.length ? `<dt>${t('Written to')}</dt><dd>${esc(tagTargets(it))}</dd>` : ''}</dl>
+    <h4 style="margin-top:16px">${t('Gestures')}</h4><p class="gest" id="lGest"></p>`;
   $('lGest').innerHTML = t('Swipe ↑ {up} · ↓ {down} · auto-advance {state}', {up:nm(up), down:nm(dn), state:t(S.settings.autoAdvance ? 'on' : 'off')});
   const f = $('lFilm'); f.hidden = !L.film; $('lFilmBtn').setAttribute('aria-pressed', L.film);
   if (L.film){
@@ -2501,17 +2497,13 @@ function renderLoupeChrome(){
     f.innerHTML = lp.ids.slice(a, b).map((id, k) => { const x = S.byId.get(id); return `<button data-act="goto" data-i="${a + k}" class="${a + k === lp.idx ? 'cur' : ''}${x.flag === 'reject' && S.filters.scope === 'notrej' && a + k !== lp.idx ? ' gone' : ''}" aria-label="${esc(stem(x))}" ${tip(stem(x))}><img alt="" src="${thumbURL(x)}">${flagMark(x.flag)}</button>`; }).join('');
     const c = f.querySelector('.cur'); if (c) f.scrollLeft = c.offsetLeft - f.clientWidth / 2 + c.offsetWidth / 2;
   }
-  renderPrefetch(); measure();
+  measure();
 }
 function nextIds(n = 3){ const lp = S.loupe; return lp ? lp.ids.slice(lp.idx + 1, lp.idx + 1 + n) : []; }
-function renderPrefetch(){
-  const ids = nextIds(); const el = $('lPre'); if (!el) return;
-  el.innerHTML = `${n('preloaded: next %n', 'preloaded: next %n', ids.length)} ${ids.map(id => `<i class="${bigCache.has(id) ? 'ok' : ''}" ${tip(id)}></i>`).join('')}`;
-}
 function schedulePrefetch(){
   L.timers.forEach(clearTimeout); L.timers = [];
   const lp = S.loupe; if (!lp) return;
-  [...nextIds(3), lp.ids[lp.idx - 1]].filter(Boolean).forEach((id, k) => L.timers.push(setTimeout(() => { const it = S.byId.get(id); if (it && S.loupe){ getBig(it); renderPrefetch(); } }, 120 + k * 140)));
+  [...nextIds(3), lp.ids[lp.idx - 1]].filter(Boolean).forEach((id, k) => L.timers.push(setTimeout(() => { const it = S.byId.get(id); if (it && S.loupe) getBig(it); }, 120 + k * 140)));
 }
 function goTo(i, animate, dir){
   const lp = S.loupe; if (!lp) return; i = clamp(i, 0, lp.ids.length - 1); if (i === lp.idx && !animate) return;

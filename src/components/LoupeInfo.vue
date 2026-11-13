@@ -12,7 +12,7 @@ import type { Tag } from '../logic/tag.ts'
 import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import { colourLabelName } from '../colour-labels.ts'
-import { formatDateTime, formatFileSize, formatNumber, PLAIN_TEXT } from '../l10n.ts'
+import { formatDateTime, formatFileSize, formatNumber } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { parseFileName } from '../logic/file-name.ts'
 import { imageMember } from '../logic/image-tiers.ts'
@@ -23,10 +23,6 @@ const props = withDefaults(defineProps<{
 	picture: Picture<ListingEntry>
 	folderSet: FolderSet
 	decision: Decision
-	/** How many of the prefetched neighbours have loaded. */
-	preloaded: number
-	/** How many neighbours the loupe prefetches here. */
-	neighbours: number
 	/** The picture's tags, sorted (TAGS-004.8). */
 	tags?: readonly Tag[]
 	/** Whether tag changes are written through to the sidecars; false in a shared folder (TAGS-004.9). */
@@ -36,6 +32,8 @@ const props = withDefaults(defineProps<{
 	writesSidecars: true,
 })
 
+/** Shown for a fact the picture lacks. */
+const EMPTY = '—'
 const FLAG_NAMES = { picked: () => t('honeycomb', 'Picked'), rejected: () => t('honeycomb', 'Rejected'), unflagged: () => t('honeycomb', 'Unflagged') }
 
 const member = computed(() => imageMember(props.picture))
@@ -49,14 +47,14 @@ const rows = computed(() => {
 		...(width === null || height === null ? [] : [{ term: t('honeycomb', 'Size'), value: `${formatNumber(width)} × ${formatNumber(height)}` }]),
 		...(rendered === null ? [] : [{ term: badgeExtension(rendered), value: formatFileSize(rendered.size) }]),
 		...(raw === null ? [] : [{ term: badgeExtension(raw), value: formatFileSize(raw.size) }]),
-		{ term: t('honeycomb', 'Sidecar'), value: props.picture.sidecars.map((sidecar) => badgeExtension(sidecar)).join(', ') || t('honeycomb', 'none') },
+		{ term: t('honeycomb', 'Sidecars'), value: props.picture.sidecars.map(({ path }) => parseFileName(path).name).join(', ') || EMPTY },
 	]
 })
 const decisionRows = computed(() => {
 	const { rating, colourLabel, flag, keepRaw } = props.decision
 	return [
-		{ term: t('honeycomb', 'Rating'), value: rating > 0 ? n('honeycomb', '{count} star', '{count} stars', rating, { count: formatNumber(rating) }) : t('honeycomb', 'none') },
-		{ term: t('honeycomb', 'Colour label'), value: colourLabel === null ? t('honeycomb', 'none') : colourLabelName(colourLabel) },
+		{ term: t('honeycomb', 'Rating'), value: rating > 0 ? n('honeycomb', '{count} star', '{count} stars', rating, { count: formatNumber(rating) }) : EMPTY },
+		{ term: t('honeycomb', 'Colour label'), value: colourLabel === null ? EMPTY : colourLabelName(colourLabel) },
 		{ term: t('honeycomb', 'Flag'), value: FLAG_NAMES[flag]() },
 		...(props.picture.raw !== null && props.picture.rendered !== null ? [{ term: t('honeycomb', 'Keep RAW'), value: keepRaw ? t('honeycomb', 'yes') : t('honeycomb', 'no') }] : []),
 	]
@@ -92,14 +90,12 @@ const writtenTo = computed(() => {
 			</li>
 		</ul>
 		<p v-else class="loupe-info__tags">
-			{{ t('honeycomb', 'none') }}
+			{{ EMPTY }}
 		</p>
 		<dl v-if="props.tags.length > 0">
 			<dt>{{ t('honeycomb', 'Written to') }}</dt>
 			<dd>{{ writtenTo }}</dd>
 		</dl>
-		<h3>{{ t('honeycomb', 'Preloading') }}</h3>
-		<p>{{ t('honeycomb', '{ready} of {count} neighbours loaded', { ready: formatNumber(props.preloaded), count: formatNumber(props.neighbours) }, undefined, PLAIN_TEXT) }}</p>
 	</aside>
 </template>
 
@@ -127,7 +123,9 @@ const writtenTo = computed(() => {
 .loupe-info dl {
 	display: grid;
 	grid-template-columns: auto 1fr;
-	gap: calc(1.5 * var(--default-grid-baseline)) calc(3 * var(--default-grid-baseline));
+	grid-auto-rows: minmax(calc(8 * var(--default-grid-baseline)), auto);
+	align-items: center;
+	column-gap: calc(3 * var(--default-grid-baseline));
 	margin: 0;
 }
 
@@ -138,12 +136,19 @@ const writtenTo = computed(() => {
 	overflow-wrap: anywhere;
 }
 
+.loupe-info dt,
+.loupe-info dd {
+	margin: 0;
+	padding: 0;
+	line-height: 1.4;
+}
+
 .loupe-info dt {
 	color: var(--color-text-maxcontrast);
+	text-align: start;
 }
 
 .loupe-info dd {
-	margin: 0;
 	overflow-wrap: anywhere;
 }
 </style>

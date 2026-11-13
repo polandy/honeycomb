@@ -263,8 +263,8 @@ tiles first (GRID-001.15); the thumbnail size is stepless (mockup: slider, Ctrl 
 **Progressive display.** The small preview shows first; the sharp one is swapped in after
 `img.decode()` resolves, so the tile never blanks or jumps.
 
-**Prefetch.** The loupe prefetches 3 neighbours ahead and 2 behind. The mockup shows the
-preload state in the loupe's info panel, not over the photo.
+**Prefetch.** The loupe prefetches 3 neighbours ahead and 2 behind. The preload state shows
+nowhere: neither over the photo nor in the info panel (UX M6).
 
 **Virtualised grid.** Only the visible rows are rendered, images load lazily.
 
@@ -775,8 +775,8 @@ follows; its design direction lists the tokens.
   the settings, [tap zones](#tap-zones), pinch, double-tap, the main keys) until it is
   dismissed once; *Settings › Loupe gestures › Show the gesture guide* shows it on the next
   loupe opening.
-- **Calm loupe chrome.** The title row shows the name and the pair; the gesture mapping and the
-  preload state sit in the info panel.
+- **Calm loupe chrome.** The title row shows the name and the pair; the gesture mapping sits
+  in the info panel.
 
 ## Pairing and file types
 
