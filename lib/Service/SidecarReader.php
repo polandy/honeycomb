@@ -10,10 +10,7 @@ namespace OCA\Honeycomb\Service;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
-use OCP\Files\NotFoundException;
-use OCP\Files\NotPermittedException;
 use OCP\IUser;
-use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
 
 /** Hands the client the bytes of listed sidecars (ADR 0017). */
@@ -61,16 +58,10 @@ final class SidecarReader {
 	}
 
 	private function resultOf(\Exception $e, int $fileId): SidecarResult {
-		return match (true) {
-			$e instanceof NotPermittedException => SidecarResult::NotPermitted,
-			$e instanceof LockedException => SidecarResult::Locked,
-			$e instanceof NotFoundException => SidecarResult::NotFound,
-			default => $this->failed($e, $fileId),
-		};
-	}
-
-	private function failed(\Exception $e, int $fileId): SidecarResult {
-		$this->logger->warning('A sidecar could not be read', ['fileId' => $fileId, 'exception' => $e]);
-		return SidecarResult::Failed;
+		$result = SidecarResult::ofFailure($e);
+		if ($result === SidecarResult::Failed) {
+			$this->logger->warning('A sidecar could not be read', ['fileId' => $fileId, 'exception' => $e]);
+		}
+		return $result;
 	}
 }

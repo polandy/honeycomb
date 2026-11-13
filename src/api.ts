@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Listing } from './logic/cull.ts'
 import type { StoredDecision } from './logic/decision.ts'
+import type { EmbeddedXmpAnswer } from './logic/embedded-xmp.ts'
 import type { MoveRequestFile, TargetFolder } from './logic/move-plan.ts'
 import type { MoveResponseFile } from './logic/move-report.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
@@ -163,15 +164,21 @@ export async function savePosition(position: ResumePosition): Promise<void> {
 
 /** The bytes, ETag, size and mtime of each sidecar, or why it could not be read, in the order asked (ADR 0017). */
 export async function lookupSidecars(fileIds: readonly number[]): Promise<SidecarLookupAnswer[]> {
-	const answers = await inBatches(fileIds, async (batch) => sidecarAnswers(await axios.post<unknown>(generateUrl(`${API}/sidecars/lookup`), { fileIds: batch }), batch.length))
+	const answers = await inBatches(fileIds, async (batch) => answersOf(await axios.post<unknown>(generateUrl(`${API}/sidecars/lookup`), { fileIds: batch }), 'sidecars', batch.length))
 	return answers.map((answer) => (answer.result === 'read' ? { result: 'read', bytes: fromBase64(answer.content as string), etag: answer.etag, size: answer.size, mtime: answer.mtime } : { result: answer.result }) as SidecarLookupAnswer)
+}
+
+/** The XMP packet each JPEG embeds, or why there is none, in the order asked (ADR 0023). */
+export async function lookupEmbeddedXmp(fileIds: readonly number[]): Promise<EmbeddedXmpAnswer[]> {
+	const answers = await inBatches(fileIds, async (batch) => answersOf(await axios.post<unknown>(generateUrl(`${API}/embedded-xmp/lookup`), { fileIds: batch }), 'packets', batch.length))
+	return answers.map((answer) => (answer.result === 'read' ? { result: 'read', bytes: fromBase64(answer.content as string) } : { result: answer.result }) as EmbeddedXmpAnswer)
 }
 
 /** Saves each sidecar, existing ones only unchanged since read, and answers each one's result in order (ADR 0017). */
 export async function saveSidecars(items: readonly SidecarSaveItem[]): Promise<SidecarSaveAnswer[]> {
 	const answers = await inBatches(items, async (batch) => {
 		const sidecars = batch.map(({ bytes, ...item }) => ({ ...item, content: toBase64(bytes) }))
-		return sidecarAnswers(await axios.put<unknown>(generateUrl(`${API}/sidecars`), { sidecars }), batch.length)
+		return answersOf(await axios.put<unknown>(generateUrl(`${API}/sidecars`), { sidecars }), 'sidecars', batch.length)
 	})
 	return answers as SidecarSaveAnswer[]
 }
@@ -224,12 +231,13 @@ async function inBatches<T, A>(items: readonly T[], send: (batch: readonly T[]) 
 	return answers
 }
 
-/** The sidecar answers of a response, one per item sent. */
-function sidecarAnswers({ data }: { data: unknown }, sent: number): Record<string, unknown>[] {
-	if (!isRecord(data) || !Array.isArray(data.sidecars) || data.sidecars.length !== sent) {
-		throw new ApiResponseError('The sidecar response came without an answer for each sidecar; check the server\'s version.')
+/** The answers under `key` of a response, one per item sent. */
+function answersOf({ data }: { data: unknown }, key: 'sidecars' | 'packets', sent: number): Record<string, unknown>[] {
+	const answers = isRecord(data) ? data[key] : undefined
+	if (!Array.isArray(answers) || answers.length !== sent) {
+		throw new ApiResponseError(`The ${key} response came without an answer for each file; check the server's version.`)
 	}
-	return data.sidecars as Record<string, unknown>[]
+	return answers as Record<string, unknown>[]
 }
 
 /** The bytes in base64, as the sidecar endpoints carry them. */

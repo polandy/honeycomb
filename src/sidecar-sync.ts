@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Decision } from './logic/decision.ts'
+import type { EmbeddedXmpAnswer } from './logic/embedded-xmp.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { KnownSidecar, PlannedSave, SidecarEdit, SidecarFailure, SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from './logic/sidecar-sync.ts'
@@ -8,12 +9,14 @@ import type { TagChange } from './logic/tag.ts'
 import type { XmpTime } from './logic/xmp/model.ts'
 
 import { logger } from './logger.ts'
+import { embeddedXmpSource } from './logic/embedded-xmp.ts'
 import { applySaves, planSaves, takeOverDecisions, takeOverLookups, writeLookups } from './logic/sidecar-sync.ts'
-import { takeOverTags } from './logic/sidecar-tags.ts'
+import { embeddedLookups, takeOverTags } from './logic/sidecar-tags.ts'
 
-/** The sidecar endpoints (ADR 0017). */
+/** The sidecar endpoints (ADR 0017) and the embedded XMP endpoint (ADR 0023). */
 export interface SidecarApi {
 	lookupSidecars(fileIds: readonly number[]): Promise<SidecarLookupAnswer[]>
+	lookupEmbeddedXmp(fileIds: readonly number[]): Promise<EmbeddedXmpAnswer[]>
 	saveSidecars(items: readonly SidecarSaveItem[]): Promise<SidecarSaveAnswer[]>
 }
 
@@ -30,21 +33,31 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 	async function takeOver(pictures: Pictures, stored: ReadonlySet<number>, storedTags: ReadonlySet<number> | null) {
 		const lookups = takeOverLookups(pictures, stored)
 		const fileIds = lookups.flatMap(({ sidecars }) => sidecars.map((sidecar) => sidecar.fileId))
-		if (fileIds.length === 0) {
+		const embeddedIds = storedTags === null ? [] : embeddedLookups(lookups, storedTags)
+		if (fileIds.length === 0 && embeddedIds.length === 0) {
 			return { decided: [], tagged: [] }
 		}
 		let answers: Map<number, SidecarLookupAnswer>
 		try {
-			const answered = await api.lookupSidecars(fileIds)
-			answers = new Map(fileIds.map((fileId, index) => [fileId, answered[index]!]))
+			answers = await answersById(fileIds, api.lookupSidecars)
 		} catch (error) {
 			logger.warn('Could not look up the sidecars; nothing is taken over', { error })
 			return { decided: [], tagged: [] }
 		}
 		const { decided, warnings } = takeOverDecisions(lookups, answers)
 		warnings.forEach((warning) => logger.warn('Could not take over the decision of a sidecar', warning))
-		const { tagged, leftOut } = storedTags === null ? { tagged: [], leftOut: [] } : takeOverTags(lookups, answers, storedTags)
+		if (storedTags === null) {
+			return { decided, tagged: [] }
+		}
+		let embedded = new Map<number, EmbeddedXmpAnswer>()
+		try {
+			embedded = await answersById(embeddedIds, api.lookupEmbeddedXmp)
+		} catch (error) {
+			logger.warn('Could not look up the embedded XMP; its pictures take no tags over', { error })
+		}
+		const { tagged, leftOut, unread } = takeOverTags(lookups, answers, storedTags, embedded)
 		leftOut.forEach((tag) => logger.warn('A sidecar tag cannot be stored; it is left out', { tag }))
+		unread.forEach((failure) => logger.warn('Could not read the embedded XMP; the picture takes no tags over', failure))
 		return { decided, tagged }
 	}
 
@@ -93,23 +106,21 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 
 	/** Reads the sidecars honeycomb holds no bytes of, merges the edits and saves them in one request each. */
 	async function round(pictures: Pictures, editOf: EditOf, paths?: Paths) {
-		const answers = await lookUp(pictures.flatMap((picture) => writeLookups(picture, known, paths?.get(picture))))
+		const answers = await lookUp(pictures.flatMap((picture) => writeLookups(picture, known, paths?.get(picture))), api.lookupSidecars, 'Could not look up the sidecars to write')
+		const embeddedIds = pictures.flatMap((picture) => ('tags' in editOf(picture) ? embeddedXmpSource(picture, known)?.fileId ?? [] : []))
+		const embedded = await lookUp(embeddedIds, api.lookupEmbeddedXmp, 'Could not look up the embedded XMP to write')
 		const time = now()
-		const planned = pictures.map((picture) => planSaves(picture, editOf(picture), known, answers, time, paths?.get(picture)))
+		const planned = pictures.map((picture) => planSaves(picture, editOf(picture), known, answers, time, paths?.get(picture), embedded))
 		const saved = await save(planned.flatMap(({ saves }) => saves))
 		return { failed: [...planned.flatMap(({ failed }) => failed), ...saved.failed], changed: saved.changed }
 	}
 
-	/** The lookup answers by file id; none when the request failed. */
-	async function lookUp(fileIds: number[]): Promise<Map<number, SidecarLookupAnswer>> {
-		if (fileIds.length === 0) {
-			return new Map()
-		}
+	/** The lookup's answers by file id; none, logged, when the request failed. */
+	async function lookUp<T>(fileIds: number[], request: (fileIds: readonly number[]) => Promise<T[]>, failure: string): Promise<Map<number, T>> {
 		try {
-			const answers = await api.lookupSidecars(fileIds)
-			return new Map(fileIds.map((fileId, index) => [fileId, answers[index]!]))
+			return await answersById(fileIds, request)
 		} catch (error) {
-			logger.error('Could not look up the sidecars to write', { error })
+			logger.error(failure, { error })
 			return new Map()
 		}
 	}
@@ -131,4 +142,13 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 	}
 
 	return { takeOver, write, writeTags, retry }
+}
+
+/** The lookup's answers by file id, without a request for no ids. */
+async function answersById<T>(fileIds: readonly number[], request: (fileIds: readonly number[]) => Promise<T[]>): Promise<Map<number, T>> {
+	if (fileIds.length === 0) {
+		return new Map()
+	}
+	const answers = await request(fileIds)
+	return new Map(fileIds.map((fileId, index) => [fileId, answers[index]!]))
 }
