@@ -791,3 +791,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   in PHP, because MySQL's default collation would merge `Anna` and `anna`; a tag is at most 255
   characters and a file has at most 100 tags. The *Tags 1* item is cut in two: storage and
   endpoints now, the embedded XMP and the write-through to the sidecars next.
+- 2026-11-13: Release versions: honeycomb is not ready for 1.0, so release-please starts at 0.1.0
+  (`initial-version`, it defaults to 1.0.0) and `feat` bumps the minor, `fix` the patch while
+  below 1.0 (`bump-patch-for-minor-pre-major` removed).
