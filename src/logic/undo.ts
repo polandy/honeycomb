@@ -1,9 +1,11 @@
-import type { Decided, DecisionChange } from './decision-change.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Decided, DecisionChange } from './decision-change.ts'
 import type { StoredDecision } from './decision.ts'
+import type { Tag, TagChange } from './tag.ts'
 
 import { changedRows } from './decision-change.ts'
+import { changedTags, sameTags } from './tag.ts'
 
 /** How many steps the undo history keeps (`docs/plan.md` M3.2). */
 export const UNDO_LIMIT = 50
@@ -44,33 +46,46 @@ function entryOf(changes: readonly { decided: Decided, change: DecisionChange }[
 	}
 }
 
+/** One tag change as an undo step: the change and the pictures it altered (TAGS-003.10). */
+export interface TagStep<P> {
+	readonly change: TagChange
+	readonly names: readonly string[]
+	readonly pictures: readonly P[]
+}
+
+/** The undo step of a tag change to the pictures, or null when it alters none. */
+export function tagStep<P extends { baseName: string }>(pictures: readonly P[], tagsOf: (picture: P) => readonly Tag[], change: TagChange): TagStep<P> | null {
+	const altered = pictures.filter((picture) => !sameTags(changedTags(tagsOf(picture), change), tagsOf(picture)))
+	return altered.length === 0 ? null : { change, names: altered.map((picture) => picture.baseName), pictures: altered }
+}
+
 /** The history with the entry added last, keeping the most recent UNDO_LIMIT steps. */
-export function pushUndo(history: readonly UndoEntry[], entry: UndoEntry): UndoEntry[] {
+export function pushUndo<E>(history: readonly E[], entry: E): E[] {
 	return [...history, entry].slice(-UNDO_LIMIT)
 }
 
 /** The steps undo can take back and the steps redo can put again, latest last. */
-export interface UndoHistory {
-	readonly done: readonly UndoEntry[]
-	readonly undone: readonly UndoEntry[]
+export interface UndoHistory<E> {
+	readonly done: readonly E[]
+	readonly undone: readonly E[]
 }
 
 /** Nothing to undo or redo. */
-export const NO_HISTORY: UndoHistory = { done: [], undone: [] }
+export const NO_HISTORY: UndoHistory<never> = { done: [], undone: [] }
 
 /** The history after a new step; it clears what redo could put again. */
-export function recordStep(history: UndoHistory, entry: UndoEntry): UndoHistory {
+export function recordStep<E>(history: UndoHistory<E>, entry: E): UndoHistory<E> {
 	return { done: pushUndo(history.done, entry), undone: [] }
 }
 
 /** The latest step and the history with it moved to redo, or null when there is none. */
-export function undoStep(history: UndoHistory): { entry: UndoEntry, history: UndoHistory } | null {
+export function undoStep<E>(history: UndoHistory<E>): { entry: E, history: UndoHistory<E> } | null {
 	const entry = history.done.at(-1)
 	return entry === undefined ? null : { entry, history: { done: history.done.slice(0, -1), undone: [...history.undone, entry] } }
 }
 
 /** The latest undone step and the history with it back on the undo side, or null when there is none. */
-export function redoStep(history: UndoHistory): { entry: UndoEntry, history: UndoHistory } | null {
+export function redoStep<E>(history: UndoHistory<E>): { entry: E, history: UndoHistory<E> } | null {
 	const entry = history.undone.at(-1)
 	return entry === undefined ? null : { entry, history: { done: pushUndo(history.done, entry), undone: history.undone.slice(0, -1) } }
 }

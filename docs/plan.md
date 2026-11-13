@@ -529,6 +529,7 @@ against it. `Ctrl` on Windows and Linux is `⌘` on a Mac.
 | `[` `]` | one star down, one star up | same keys |
 | `6` `7` `8` `9` | colour label red, yellow, green, blue (toggle) | same keys |
 | `R` | *Keep RAW* (toggle; honeycomb only) | differs: `R` is Crop in Lightroom, which honeycomb does not have |
+| `T` | tag entry for the photo or the selection (TAGS-003) | differs: `T` shows or hides the toolbar in Lightroom |
 | Arrow keys | grid: move focus; loupe, series compare, series viewer: switch photo | same idea |
 | `Home` `End` | first photo, last photo | not in the Adobe text read; the browser's usual meaning |
 | `G` `E` `N` | grid, loupe, series compare | `G` and `E` as in Lightroom; `N` is Survey there, series compare here |

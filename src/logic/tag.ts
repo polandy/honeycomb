@@ -33,6 +33,11 @@ export interface TagChange {
 	readonly removed: readonly Tag[]
 }
 
+/** The change that takes the change back. */
+export function inverseChange(change: TagChange): TagChange {
+	return { added: change.removed, removed: change.added }
+}
+
 /** The longest tag the storage holds (ADR 0022). */
 const MAX_TAG_LENGTH = 255
 
@@ -80,6 +85,6 @@ export function revertTagRows(tags: ReadonlyMap<number, readonly Tag[]>, rows: r
 }
 
 /** Whether two sorted tag lists are the same. */
-function sameTags(left: readonly Tag[], right: readonly Tag[]): boolean {
+export function sameTags(left: readonly Tag[], right: readonly Tag[]): boolean {
 	return left.length === right.length && left.every((tag, index) => tag === right[index])
 }

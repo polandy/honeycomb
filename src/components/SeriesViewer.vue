@@ -64,6 +64,7 @@ const emit = defineEmits<{
 	pickRest: [picture: Picture<ListingEntry>]
 	toast: [toast: Toast]
 	updateSettings: [patch: Partial<Settings>]
+	tag: [picture: Picture<ListingEntry>]
 	close: []
 }>()
 
@@ -123,6 +124,7 @@ const hotkeys: HotkeyHandlers = {
 	'zoom-out': () => stage.value!.toggleZoom(true),
 	'flag-buttons': () => decisions.setFlagButtonsShown(!props.settings.flagButtonsShown, true),
 	'pick-rest': () => emit('pickRest', picture.value),
+	tag: () => emit('tag', picture.value),
 	decide: decideByKey,
 }
 
@@ -198,7 +200,8 @@ onMounted(() => root.value!.focus())
 			:flags="settings.flagButtonsShown"
 			:idle="overlays.idle.value"
 			@pointerdown="overlays.wake"
-			@decide="decisions.decide">
+			@decide="decisions.decide"
+			@tag="emit('tag', picture)">
 			<template #end>
 				<PickRestButton @pick="emit('pickRest', picture)" />
 			</template>

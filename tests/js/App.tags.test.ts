@@ -1,8 +1,8 @@
+import type { StoredTags } from '../../src/logic/tag.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { AppWrapper } from './app-cull.ts'
-import type { StoredTags } from '../../src/logic/tag.ts'
 
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -26,7 +26,10 @@ async function press(key: string) {
 /** The app on an open cull of IMG_2, IMG_9 and IMG_10 whose tag saves are recorded. */
 async function openApp() {
 	const savedTags: StoredTags[][] = []
-	const mounted = mountApp({ tags: { lookupTags: async () => [], saveTags: async (rows: StoredTags[]) => { savedTags.push(rows) }, loadTagList: async () => ['Places/Italy'] } })
+	const saveTags = async (rows: StoredTags[]) => {
+		savedTags.push(rows)
+	}
+	const mounted = mountApp({ tags: { lookupTags: async () => [], saveTags, loadTagList: async () => ['Places/Italy'] } })
 	await openCull(mounted.wrapper)
 	expect(shownNames(mounted.wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
 	return { ...mounted, savedTags }

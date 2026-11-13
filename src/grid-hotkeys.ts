@@ -30,6 +30,7 @@ export interface GridHotkeyTargets {
 	decide: (intent: DecisionIntent, chosen: Pictures) => void
 	toggleFiltersOff: () => void
 	openLoupe: (index: number) => void
+	openTags: (chosen: Pictures) => boolean
 	headerShown: Ref<boolean>
 	filtersOpen: Ref<boolean>
 	filterBar: () => HTMLElement | undefined
@@ -41,10 +42,13 @@ export function gridHotkeys(targets: GridHotkeyTargets): HotkeyHandlers {
 	const { grid, view, selection, headerShown, filtersOpen } = targets
 	const focusedIndex = () => grid()?.focusedIndex() ?? 0
 
+	/** The selection in selection mode, else the focused photo. */
+	const chosenAt = (index: number) => (selection.selecting.value ? selection.selected.value : view().slice(index, index + 1))
+
 	/** Decides the selection in selection mode, else the focused photo; `advance` then moves the focus on unless the photo left the view. */
 	function decideByKey(intent: HotkeyIntent, advance: boolean): boolean {
 		const index = focusedIndex()
-		const chosen = selection.selecting.value ? selection.selected.value : view().slice(index, index + 1)
+		const chosen = chosenAt(index)
 		if (chosen.length === 0) {
 			return false
 		}
@@ -112,5 +116,6 @@ export function gridHotkeys(targets: GridHotkeyTargets): HotkeyHandlers {
 		'select-none': whileSelecting(selection.selectNone),
 		close: whileSelecting(() => selection.setSelecting(false)),
 		fullscreen: targets.toggleFullscreen,
+		tag: () => targets.openTags(chosenAt(focusedIndex())),
 	}
 }

@@ -71,6 +71,7 @@ const emit = defineEmits<{
 	allDecided: []
 	move: []
 	updateSettings: [patch: Partial<Settings>]
+	tag: [picture: Picture<ListingEntry>]
 	close: []
 }>()
 
@@ -131,6 +132,7 @@ const hotkeys: HotkeyHandlers = {
 	'zoom-out': () => stage.value!.toggleZoom(true),
 	info: () => panels.setInfoOpen(!infoOpen.value),
 	'flag-buttons': () => decisions.setFlagButtonsShown(!props.settings.flagButtonsShown, true),
+	tag: () => emit('tag', picture.value),
 	decide: decisions.decideByKey,
 }
 
@@ -238,7 +240,8 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:idle="overlays.idle.value"
 			:pinned="settings.ratingRowPinned"
 			@pointerdown="overlays.wake"
-			@decide="decisions.decide" />
+			@decide="decisions.decide"
+			@tag="emit('tag', picture)" />
 		<GestureGuide v-if="!gestureGuideSeen" :swipes="settings.swipes" @dismiss="dismissGestureGuide" />
 	</div>
 </template>

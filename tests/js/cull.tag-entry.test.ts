@@ -44,7 +44,7 @@ describe('useCull: tag', () => {
 		await flushPromises()
 
 		expect(step).toMatchObject({ change: { added: ['Dolomites'], removed: [] }, names: ['IMG_9', 'IMG_10'] })
-		expect(saved).toEqual([[{ fileId: 4, tags: ['Dolomites'] }, { fileId: 2, tags: ['Dolomites'] }, { fileId: 3, tags: ['Dolomites'] }]])
+		expect(saved).toEqual([[{ fileId: 4, tags: ['Dolomites'] }, { fileId: 3, tags: ['Dolomites'] }, { fileId: 2, tags: ['Dolomites'] }]])
 
 		expect(cull.undo()).toBe(step)
 		await flushPromises()

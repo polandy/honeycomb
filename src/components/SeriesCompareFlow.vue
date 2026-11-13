@@ -18,6 +18,8 @@ const props = defineProps<{
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
 }>()
 
+const emit = defineEmits<{ tag: [picture: Picture<ListingEntry>] }>()
+
 const viewer = useTemplateRef<InstanceType<typeof SeriesViewer>>('viewer')
 
 /** The keys of the series viewer while it is open, else those of the compare. */
@@ -56,6 +58,7 @@ defineExpose({ hotkeys })
 			@pickRest="props.flow.pickRest"
 			@toast="props.flow.toast"
 			@updateSettings="props.flow.updateSettings"
+			@tag="emit('tag', $event)"
 			@close="props.flow.viewer.close" />
 	</Teleport>
 </template>

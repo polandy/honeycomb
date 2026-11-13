@@ -58,7 +58,7 @@ describe('tagMatches', () => {
 	it('offers the levels of a tag and creates a new one', () => {
 		const levels = withLevels(['Places/Italy/Dolomites'])
 
-		expect(tagMatches('places/ital', levels, [], 1)).toEqual({ matches: ['Places/Italy', 'Places/Italy/Dolomites'], create: null })
+		expect(tagMatches('places/ital', levels, [], 1)).toEqual({ matches: ['Places/Italy', 'Places/Italy/Dolomites'], create: 'places/ital' })
 		expect(tagMatches('Places/Spain', levels, [], 1)).toEqual({ matches: [], create: 'Places/Spain' })
 	})
 

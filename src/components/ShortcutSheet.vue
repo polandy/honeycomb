@@ -44,6 +44,7 @@ const LABELS: Readonly<Record<string, string>> = {
 	'star-up': t('honeycomb', 'One star up'),
 	'colour-label': t('honeycomb', 'Label red / yellow / green / blue (toggle)'),
 	'keep-raw': t('honeycomb', 'Keep RAW (toggle)'),
+	tag: t('honeycomb', 'Tag entry: add or remove tags'),
 	arrows: t('honeycomb', 'Grid: move focus. Loupe: switch photo'),
 	'first-last': t('honeycomb', 'First photo, last photo'),
 	open: t('honeycomb', 'Open the loupe'),

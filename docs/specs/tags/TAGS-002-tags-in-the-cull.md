@@ -193,8 +193,8 @@ failed sidecars* applies the same change again.
 
 ## Out of scope
 
-- The tag entry, undo, toasts and the tag list in the UI (*Tags 2*); bulk tagging (*Tags 3*);
-  filter, tile and info panel (*Tags 4*).
+- The tag entry, undo, toasts and the tag list in the UI: TAGS-003; multi-select by long-press
+  (*Tags 3*); filter, tile and info panel (*Tags 4*).
 - Writing tags in shared folders: the ⋯ menu's *Write decisions to sidecars…* writes decisions
   only.
 - Re-reading sidecars another program changed after the take-over, as for decisions (XMP-003).

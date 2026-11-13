@@ -1,12 +1,16 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { UndoEntry } from './logic/undo.ts'
+import type { TagChange } from './logic/tag.ts'
+import type { UndoChange } from './logic/undo.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { colourLabelName } from './colour-labels.ts'
 import { formatNumber, PLAIN_TEXT } from './l10n.ts'
 
-type Described = Pick<UndoEntry, 'change' | 'names'>
+interface Described {
+	readonly change: UndoChange | TagChange
+	readonly names: readonly string[]
+}
 
 /** The one name, or the count of the photos. */
 function photos(names: readonly string[]): string {
@@ -15,9 +19,14 @@ function photos(names: readonly string[]): string {
 		: n('honeycomb', '{count} photo', '{count} photos', names.length, { count: formatNumber(names.length) }, PLAIN_TEXT)
 }
 
-/** What a change did, for its toast: "Rejected IMG_0001", "Rated 3 photos ★★★". */
+/** What a change did, for its toast: "Rejected IMG_0001", "Rated 3 photos ★★★", "Tagged 2 photos Sunrise". */
 export function changeText({ change, names }: Described): string {
 	const vars = { photos: photos(names) }
+	if ('added' in change) {
+		return change.added.length > 0
+			? t('honeycomb', 'Tagged {photos} {tag}', { ...vars, tag: change.added.join(', ') }, undefined, PLAIN_TEXT)
+			: t('honeycomb', 'Removed {tag} from {photos}', { ...vars, tag: change.removed.join(', ') }, undefined, PLAIN_TEXT)
+	}
 	if ('pickRest' in change) {
 		return t('honeycomb', 'Picked {name}, rejected the rest', { name: change.pickRest }, undefined, PLAIN_TEXT)
 	}
