@@ -34,10 +34,10 @@ export interface TagChange {
 }
 
 /** The longest tag the storage holds (ADR 0022). */
-export const MAX_TAG_LENGTH = 255
+const MAX_TAG_LENGTH = 255
 
 /** The most tags the storage holds for one file (ADR 0022). */
-export const MAX_TAGS = 100
+const MAX_TAGS = 100
 
 /** Each tag once, in code-unit order so a written list is stable. */
 export function sortedTags(tags: readonly Tag[]): Tag[] {
