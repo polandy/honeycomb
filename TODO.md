@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] UX L1: Lay out the keyboard shortcuts sheet as one grid with a shared key column (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX L2: Folder picker: status line in regular weight and muted colour; one folder row height (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX L3: Start the Nextcloud navigation closed below 1280 px and remember the user's choice (`docs/ux-review-2026-11.md`) (2026-11-12)
 - [ ] UX L4: Settings: one section heading style (*File types* sits 8 px left of the others) (`docs/ux-review-2026-11.md`) (2026-11-12)
