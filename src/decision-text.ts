@@ -62,6 +62,11 @@ export function redoneText(entry: Described): string {
 	return t('honeycomb', 'Redid: {change}', { change: changeText(entry) }, undefined, PLAIN_TEXT)
 }
 
+/** The progress over the photos the filters show, while they hide some: "4 / 20 shown decided" (GRID-002.7). */
+export function shownDecidedText(decided: number, total: number): string {
+	return n('honeycomb', '{decided} / {total} shown decided', '{decided} / {total} shown decided', total, { decided: formatNumber(decided), total: formatNumber(total) })
+}
+
 /** The progress of a cull: "1,200 / 1,840 decided". */
 export function decidedText(decided: number, total: number): string {
 	return n('honeycomb', '{decided} / {total} decided', '{decided} / {total} decided', total, { decided: formatNumber(decided), total: formatNumber(total) })

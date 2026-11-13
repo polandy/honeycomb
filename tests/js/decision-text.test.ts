@@ -3,7 +3,7 @@
 import type { DecisionChange } from '../../src/logic/decision-change.ts'
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { changeText, decidedText, redoneText, undoneText } from '../../src/decision-text.ts'
+import { changeText, decidedText, redoneText, shownDecidedText, undoneText } from '../../src/decision-text.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue } from './l10n/marked-catalogue.ts'
 
 const escapeMark = TRANSLATED_MARK.replace(/[[\]]/g, '\\$&')
@@ -54,6 +54,13 @@ describe('changeText', () => {
 describe('decidedText', () => {
 	it('words the progress as "x / y decided"', () => {
 		expect(decidedText(1200, 1840)).toBe('1,200 / 1,840 decided')
+	})
+})
+
+describe('shownDecidedText', () => {
+	// spec: GRID-002.7
+	it('names the shown photos as the scope: "x / y shown decided"', () => {
+		expect(shownDecidedText(4, 1820)).toBe('4 / 1,820 shown decided')
 	})
 })
 

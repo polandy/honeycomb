@@ -842,3 +842,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   it. Below 600 px the flag chips show icons only, which the two-row limit on a phone needs.
   *Delete rejects* in the review is the toolbar's *Review rejects*. Selection mode keeps its own
   row on top of the two. The mockup keeps its layout.
+- 2026-11-13: UX M2 names the scope whenever any filter hides photos of the cull (the default flag
+  filter hiding rejects included), not only the flag filter: the filter bar narrows the same
+  count, and the contradiction with the recent folder set's progress is the same. The mockup keeps
+  its wording.

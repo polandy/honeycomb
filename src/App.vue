@@ -147,6 +147,7 @@ useHotkeys(() => {
 					:flags="filters.flags"
 					:decided="shownProgress.decided"
 					:total="shownProgress.total"
+					:filtered="shownProgress.total < progress.total"
 					:activeFilters="activeFilters"
 					:filtersOpen="filtersOpen"
 					:sortOrder="sortOrder"

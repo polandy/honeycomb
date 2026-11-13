@@ -5,14 +5,16 @@
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
-import { decidedText } from '../decision-text.ts'
+import { decidedText, shownDecidedText } from '../decision-text.ts'
 
 const props = defineProps<{
 	decided: number
 	total: number
+	/** Whether the filters hide photos of the cull, so the count is of the shown ones. */
+	filtered: boolean
 }>()
 
-const progressText = computed(() => decidedText(props.decided, props.total))
+const progressText = computed(() => (props.filtered ? shownDecidedText : decidedText)(props.decided, props.total))
 const percent = computed(() => (props.total > 0 ? Math.round(100 * props.decided / props.total) : 0))
 </script>
 
