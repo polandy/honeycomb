@@ -94,9 +94,10 @@ body{display:flex;flex-direction:column}
 .rail{position:absolute;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:3}
 .rail.l{left:8px}.rail.r{right:8px}
 .rail .bigbtn{width:84px;flex:none;min-height:120px;flex-direction:column;gap:4px;font-size:14px;background:#000a}
-.rail .bigbtn.none{min-height:72px;padding:0}
+.mid{display:flex;justify-content:center;padding-top:6px}
+.mid .bigbtn{flex:none;min-height:56px;padding:0 22px;font-size:14px;background:#000a}
 #dev[data-input="fine"] .rail .bigbtn{width:64px;min-height:96px;font-size:12px}
-#dev[data-input="fine"] .rail .bigbtn.none{min-height:56px}
+#dev[data-input="fine"] .mid .bigbtn{min-height:var(--hit);font-size:12px}
 
 /* hint, toast, compare */
 .hint{position:absolute;z-index:6;max-width:300px;background:var(--stage-2);border:2px solid var(--honey);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);font-size:14px}
@@ -104,19 +105,21 @@ body{display:flex;flex-direction:column}
 .hint::before{content:"";position:absolute;top:-9px;right:28px;width:14px;height:14px;background:var(--stage-2);border-left:2px solid var(--honey);border-top:2px solid var(--honey);transform:rotate(45deg)}
 .toast{position:absolute;left:50%;transform:translateX(-50%);top:70px;z-index:8;background:#f2f2f2;color:#1b1b1b;border-radius:12px;padding:6px 6px 6px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);white-space:nowrap}
 .toast button{border:0;background:none;color:#8a5600;font-weight:800;min-height:var(--hit);padding:0 10px}
-.scrim{position:absolute;inset:0;background:#000b;z-index:7;display:flex;align-items:center;justify-content:center;padding:12px}
-.dlg{background:var(--stage-2);border-radius:14px;width:min(1400px,100%);max-height:100%;display:flex;flex-direction:column;box-shadow:var(--shadow);overflow:hidden}
+/* the compare uses the whole screen: a grid of the series' photos */
+.dlg{position:absolute;inset:0;z-index:7;background:var(--stage-2);display:flex;flex-direction:column}
 .dlg header{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 16px;border-bottom:1px solid #ffffff1a}
 .dlg header h2{margin:0;font-size:17px;flex:1}
-.dlg .cards{display:flex;gap:10px;overflow-x:auto;padding:12px;scroll-snap-type:x mandatory}
-.card{flex:1 0 180px;scroll-snap-align:start;display:flex;flex-direction:column;gap:6px;align-items:center;padding:6px;border-radius:10px;border:2px solid transparent}
+.dlg .cards{flex:1;min-height:0;display:grid;gap:10px;overflow-y:auto;overflow-x:hidden;padding:12px;align-content:center;justify-content:center}
+.card{display:flex;flex-direction:column;gap:4px;align-items:center;padding:4px;border-radius:10px;border:2px solid transparent}
 .card.act{border-color:var(--honey)}
 .card .pbtn{border:0;padding:0;background:none}
 .card .nm{font-size:12px;color:var(--stage-muted)}
 .card .fl{display:flex;gap:4px}
 .card .fl .sq{border-radius:8px;background:#ffffff14}
 .card .fl .sq[aria-pressed="true"]{background:var(--honey);color:var(--on-honey)}
-.dlg footer{padding:4px 16px 12px;font-size:12px;color:var(--stage-muted)}
+.dlg footer{flex:none;display:flex;align-items:center;gap:12px;padding:8px 12px;border-top:1px solid #ffffff1a;font-size:12px;color:var(--stage-muted)}
+.dlg footer p{margin:0;flex:1;min-width:0}
+.portrait ~ .dlg footer .btn{flex:1;justify-content:center}
 
 /* numbered callouts, matching the concept's sections */
 [data-co]:not(.hint){position:relative}
@@ -130,11 +133,12 @@ body{display:flex;flex-direction:column}
     <button data-dev="phone">Phone portrait</button><button data-dev="ipad">iPad landscape</button><button data-dev="desktop">Desktop</button>
   </div>
   <label><input type="checkbox" id="optRej"> <i>Rejected</i> pressed in the flag filter</label>
-  <label><input type="checkbox" id="optCo" checked> Callouts 1–5</label>
+  <label><input type="checkbox" id="optGrid"> Compare opened from the grid toolbar</label>
+  <label><input type="checkbox" id="optCo" checked> Callouts 1–6</label>
   <button class="lnk" id="resetHint">Show the first-series hint again</button>
   <button class="lnk" id="resetAll">Reset</button>
 </div>
-<div id="note">Concept: <code>docs/plans/loupe-series-concept.md</code>. ① chip ② filmstrip frame ③ <i>Pick this, reject the rest</i> ④ first-series hint ⑤ <i>Reject the other N</i> after a plain <i>Pick</i> (part 3). Keys: <kbd>←</kbd> <kbd>→</kbd> page, <kbd>P</kbd> <kbd>X</kbd> <kbd>U</kbd> decide (<kbd>Shift</kbd> moves on), <kbd>N</kbd> series, <kbd>Shift+K</kbd> pick this, reject the rest, <kbd>Ctrl+Z</kbd> undo, <kbd>Esc</kbd> close.</div>
+<div id="note">Concept: <code>docs/plans/loupe-series-concept.md</code>. ① chip ② filmstrip frame ③ <i>Pick this, reject the rest</i> ④ first-series hint ⑤ <i>Reject the other N</i> after a plain <i>Pick</i> (part 3) ⑥ the compare as a full-screen grid. Flag buttons: <i>Pick</i> left, <i>Unflag</i> middle, <i>Reject</i> right. Keys: <kbd>←</kbd> <kbd>→</kbd> page (<kbd>↑</kbd> <kbd>↓</kbd> too in the compare), <kbd>P</kbd> <kbd>X</kbd> <kbd>U</kbd> decide (<kbd>Shift</kbd> moves on), <kbd>N</kbd> series, <kbd>Shift+K</kbd> pick this, reject the rest, <kbd>Ctrl+Z</kbd> undo, <kbd>Esc</kbd> close.</div>
 <div id="host"><div id="dev" class="co" role="application" aria-label="Loupe"></div></div>
 
 <script>
@@ -160,7 +164,7 @@ const PHOTOS = Array.from({length:14}, (_, i) => {
   return {i, name:`IMG_${4101 + i}`, series:s, hue, x, blur};
 });
 
-const st = {dev:'phone', cur:0, flags:Array(14).fill('none'), rating:Array(14).fill(0), showRej:false, hintSeen:false, hintOpen:false,
+const st = {dev:'phone', cur:0, flags:Array(14).fill('none'), rating:Array(14).fill(0), showRej:false, fromGrid:false, hintSeen:false, hintOpen:false,
   compare:null, toast:null, toastRest:null, undo:[]};
 
 const isRej = i => st.flags[i] === 'reject';
@@ -183,12 +187,26 @@ function pickRest(i){
   snapshot(); m.forEach(j => { st.flags[j] = j === i ? 'pick' : 'reject'; });
   showToast(`Picked 1, rejected ${m.length - 1}`);
 }
+// Owner 2026-11-13: after Pick this, reject the rest the loupe lands on the first photo after the series.
+function landAfter(i){
+  const s = PHOTOS[i].series, v = visible();
+  const last = Math.max(...v.map((j, k) => PHOTOS[j].series === s ? k : -1));
+  if (last + 1 < v.length) st.cur = v[last + 1];
+}
+function pickRestAndLand(i){ pickRest(i); landAfter(i); }
 function undo(){ if (!st.undo.length) return; st.flags = st.undo.pop(); st.toast = null; st.toastRest = null; render(); }
 function showToast(text){ st.toast = text; st.toastRest = null; }
 function page(d){ const v = visible(), k = v.indexOf(st.cur) + d; if (k >= 0 && k < v.length){ st.cur = v[k]; maybeHint(); } }
 function maybeHint(){ if (!st.hintSeen && members(st.cur).length) st.hintOpen = true; }
 function openCompare(){ const m = members(st.cur); if (m.length) st.compare = {active:st.cur}; }
 function closeCompare(){ st.cur = st.compare.active; st.compare = null; }
+function comparePickRest(){
+  const i = st.compare.active;
+  if (st.fromGrid){ pickRest(i); skipSeries(); return; }
+  pickRest(i); closeCompare(); landAfter(i);
+}
+function skipSeries(){ const k = Object.keys(SERIES), s = k[(k.indexOf(PHOTOS[st.compare.active].series) + 1) % k.length]; st.compare.active = SERIES[s].find(j => !isRej(j)); }
+const compareMembers = () => SERIES[PHOTOS[st.compare.active].series].filter(j => !isRej(j));
 
 function topRow(){
   const v = visible(), m = members(st.cur), phone = st.dev === 'phone', k = m.indexOf(st.cur) + 1;
@@ -241,15 +259,40 @@ function hint(){
 
 function compareDlg(){
   if (!st.compare) return '';
-  const m = SERIES[PHOTOS[st.compare.active].series].filter(j => !isRej(j)), w = st.dev === 'phone' ? 160 : 260;
-  const cards = m.map(i => {
-    const f = st.flags[i], a = i === st.compare.active;
-    const fl = [['pick', 'flagPick'], ['reject', 'flagX'], ['none', 'flag']].map(([v, icn]) => `<button class="sq" data-cflag="${v}" data-at="${i}" aria-pressed="${f === v}" aria-label="${v}">${ic(icn, v === 'pick' ? 'fill' : '')}</button>`).join('');
-    return `<div class="card${a ? ' act' : ''}" data-card="${i}"><button class="pbtn" data-cact="${i}" aria-label="${PHOTOS[i].name}">${photoHtml(i, w, Math.round(w * 2 / 3))}</button>
-      <span class="nm">${PHOTOS[i].name}</span><div class="fl">${fl}</div>${a ? `<button class="btn primary" data-act="cPickRest">${st.dev === 'phone' ? '' : ic('flagPick', 'fill')}Pick this, reject the rest</button>` : ''}</div>`;
+  const m = compareMembers(), a = m.indexOf(st.compare.active), keys = Object.keys(SERIES);
+  const title = st.fromGrid ? `Compare series ${keys.indexOf(PHOTOS[st.compare.active].series) + 1} of ${keys.length} · photo ${a + 1} of ${m.length}` : `Series of ${m.length} · photo ${a + 1}`;
+  const skip = st.fromGrid ? `<button class="btn" data-act="skip">Skip</button>` : '';
+  const pr = `<button class="btn primary" data-act="cPickRest">${ic('flagPick', 'fill')}Pick this, reject the rest${st.dev === 'desktop' ? ' <kbd>Shift+K</kbd>' : ''}</button>`;
+  const note = st.fromGrid ? 'From the grid: Skip and Pick this, reject the rest move to the next series.' : 'From the loupe: this one series. Closing returns to the loupe on the active photo; Pick this, reject the rest lands on the first photo after the series.';
+  return `<div class="dlg" role="dialog" aria-modal="true" aria-label="${title}"><header><h2 data-co="6">${title}</h2>${skip}<button class="icon-btn" data-act="closeCompare" aria-label="Close">${ic('close')}</button></header>
+    <div class="cards" id="cards"></div><footer>${st.dev === 'phone' ? '' : `<p>${note} A tap on the active photo opens the series viewer (unchanged).</p>`}${pr}</footer></div>`;
+}
+
+// Columns that give the largest card while every card fits; below the minimum width the grid scrolls down, never sideways.
+const CARD_EXTRA = 84, CARD_GAP = 10;
+function gridLayout(n, W, H, minW){
+  let best = {cols:1, w:0};
+  for (let c = 1; c <= n; c++){
+    const r = Math.ceil(n / c), cw = (W - CARD_GAP * (c - 1)) / c - 12;
+    const w = Math.min(cw, ((H - CARD_GAP * (r - 1)) / r - CARD_EXTRA) * 1.5);
+    if (w > best.w) best = {cols:c, w};
+  }
+  if (best.w >= minW) return best;
+  const cols = Math.max(1, Math.floor((W + CARD_GAP) / (minW + 12 + CARD_GAP)));
+  return {cols, w:(W - CARD_GAP * (cols - 1)) / cols - 12};
+}
+
+function fillCards(){
+  const box = document.getElementById('cards'); if (!box) return;
+  const m = compareMembers(), g = gridLayout(m.length, box.clientWidth - 24, box.clientHeight - 24, st.dev === 'phone' ? 150 : 220);
+  const w = Math.floor(g.w); st.compare.cols = g.cols;
+  box.style.gridTemplateColumns = `repeat(${g.cols}, ${w + 12}px)`;
+  box.innerHTML = m.map(i => {
+    const f = st.flags[i];
+    const fl = [['pick', 'flagPick', 'Pick'], ['none', 'flag', 'Unflag'], ['reject', 'flagX', 'Reject']].map(([v, icn, lbl]) => `<button class="sq" data-cflag="${v}" data-at="${i}" aria-pressed="${f === v}" aria-label="${lbl}">${ic(icn, v === 'pick' ? 'fill' : '')}</button>`).join('');
+    return `<div class="card${i === st.compare.active ? ' act' : ''}" data-card="${i}"><button class="pbtn" data-cact="${i}" aria-label="${PHOTOS[i].name}">${photoHtml(i, w, Math.round(w * 2 / 3))}</button>
+      <span class="nm">${PHOTOS[i].name}</span><div class="fl">${fl}</div></div>`;
   }).join('');
-  return `<div class="scrim"><div class="dlg" role="dialog" aria-modal="true" aria-label="Series of ${m.length}"><header><h2>Series of ${m.length} · photo ${m.indexOf(st.compare.active) + 1}</h2><button class="icon-btn" data-act="closeCompare" aria-label="Close">${ic('close')}</button></header>
-    <div class="cards">${cards}</div><footer>Opened from the loupe: this one series, no <i>Skip</i>. A tap on a photo makes it active; in the app a tap on the active photo opens the series viewer (unchanged). Closing returns to the loupe on the active photo.</footer></div></div>`;
 }
 
 function render(){
@@ -259,11 +302,12 @@ function render(){
   const toast = st.toast ? `<div class="toast" role="status">${st.toast}${rest}<button data-act="undo">Undo</button></div>` : '';
   let body;
   if (d.layout === 'portrait'){
-    body = `<div class="loupe portrait">${topRow()}${stage()}${film()}<div class="ctrl"><div class="big">${flagBtn('pick', 'flagPick', 'Pick')}${flagBtn('reject', 'flagX', 'Reject')}${flagBtn('none', 'flag', '')}</div>${smallRow()}</div></div>`;
+    body = `<div class="loupe portrait">${topRow()}${stage()}${film()}<div class="ctrl"><div class="big">${flagBtn('pick', 'flagPick', 'Pick')}${flagBtn('none', 'flag', '')}${flagBtn('reject', 'flagX', 'Reject')}</div>${smallRow()}</div></div>`;
   } else {
-    body = `<div class="loupe landscape">${stage()}${topRow()}<div class="rail l">${flagBtn('pick', 'flagPick', 'Pick')}</div><div class="rail r">${flagBtn('reject', 'flagX', 'Reject')}${flagBtn('none', 'flag', 'Unflag')}</div><div class="bottom">${film()}${smallRow()}</div></div>`;
+    body = `<div class="loupe landscape">${stage()}${topRow()}<div class="rail l">${flagBtn('pick', 'flagPick', 'Pick')}</div><div class="rail r">${flagBtn('reject', 'flagX', 'Reject')}</div><div class="bottom"><div class="mid">${flagBtn('none', 'flag', 'Unflag')}</div>${film()}${smallRow()}</div></div>`;
   }
   dev.innerHTML = body + hint() + toast + compareDlg();
+  fillCards();
   const sEl = document.getElementById('stage'), ph = document.getElementById('ph');
   const sw = sEl.clientWidth - 20, sh = sEl.clientHeight - 20, w = Math.min(sw, sh * 1.5);
   ph.outerHTML = photoHtml(st.cur, Math.round(w), Math.round(w / 1.5));
@@ -301,11 +345,12 @@ document.getElementById('dev').addEventListener('click', e => {
   else if (ds.cact) st.compare.active = +ds.cact;
   else if (ds.act === 'compare') { st.hintOpen = false; st.hintSeen = true; openCompare(); }
   else if (ds.act === 'compareAt') { st.cur = +ds.at; st.hintOpen = false; st.hintSeen = true; openCompare(); }
-  else if (ds.act === 'pickRest') pickRest(st.cur);
-  else if (ds.act === 'cPickRest') { pickRest(st.compare.active); closeCompare(); }
+  else if (ds.act === 'pickRest') pickRestAndLand(st.cur);
+  else if (ds.act === 'cPickRest') comparePickRest();
+  else if (ds.act === 'skip') skipSeries();
   else if (ds.act === 'closeCompare') closeCompare();
   else if (ds.act === 'gotIt') { st.hintOpen = false; st.hintSeen = true; }
-  else if (ds.act === 'rejectOthers') pickRest(st.toastRest.i);
+  else if (ds.act === 'rejectOthers') { const i = st.toastRest.i, here = PHOTOS[st.cur].series === PHOTOS[i].series; pickRest(i); if (here) landAfter(i); }
   else if (ds.act === 'undo') return undo();
   else return;
   render();
@@ -317,18 +362,20 @@ document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && k === 'z') { e.preventDefault(); return undo(); }
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (st.compare){
-    const m = SERIES[PHOTOS[st.compare.active].series].filter(j => !isRej(j)), a = m.indexOf(st.compare.active);
+    const m = compareMembers(), a = m.indexOf(st.compare.active), c = st.compare.cols || 1;
     if (k === 'escape') closeCompare();
     else if (k === 'arrowleft' && a > 0) st.compare.active = m[a - 1];
     else if (k === 'arrowright' && a < m.length - 1) st.compare.active = m[a + 1];
-    else if (k === 'k' && e.shiftKey) { pickRest(st.compare.active); closeCompare(); }
+    else if (k === 'arrowup' && a - c >= 0) st.compare.active = m[a - c];
+    else if (k === 'arrowdown' && a + c < m.length) st.compare.active = m[a + c];
+    else if (k === 'k' && e.shiftKey) comparePickRest();
     else if (k === 'p' || k === 'x' || k === 'u') decide({p:'pick', x:'reject', u:'none'}[k], false);
     else return;
   } else {
     if (k === 'arrowleft') page(-1);
     else if (k === 'arrowright') page(1);
     else if (k === 'n') { st.hintOpen = false; st.hintSeen = true; openCompare(); }
-    else if (k === 'k' && e.shiftKey) pickRest(st.cur);
+    else if (k === 'k' && e.shiftKey) pickRestAndLand(st.cur);
     else if (k === 'p' || k === 'x' || k === 'u') decide({p:'pick', x:'reject', u:'none'}[k], e.shiftKey);
     else if (k === 'escape' && st.hintOpen) { st.hintOpen = false; st.hintSeen = true; }
     else return;
@@ -338,6 +385,7 @@ document.addEventListener('keydown', e => {
 
 document.querySelectorAll('#mock [data-dev]').forEach(b => b.addEventListener('click', () => { st.dev = b.dataset.dev; render(); }));
 document.getElementById('optRej').addEventListener('change', e => { st.showRej = e.target.checked; render(); });
+document.getElementById('optGrid').addEventListener('change', e => { st.fromGrid = e.target.checked; render(); });
 document.getElementById('optCo').addEventListener('change', e => { document.getElementById('dev').classList.toggle('co', e.target.checked); });
 document.getElementById('resetHint').addEventListener('click', () => { st.hintSeen = false; maybeHint(); render(); });
 document.getElementById('resetAll').addEventListener('click', () => { Object.assign(st, {cur:3, flags:Array(14).fill('none'), rating:Array(14).fill(0), hintSeen:false, hintOpen:false, compare:null, toast:null, toastRest:null, undo:[]}); maybeHint(); render(); });
