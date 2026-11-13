@@ -45,7 +45,7 @@ test('rejects a malformed tag without writing any', async ({ page }) => {
 	expect((await (await send(page, 'GET', '/tags/list')).json()).tagList).not.toContain('e2e-Kept')
 })
 
-// spec: TAGS-003.1, TAGS-003.7, TAGS-003.12
+// spec: TAGS-003.1, TAGS-003.7, TAGS-003.12, TAGS-004.8
 test('tags the loupe\'s photo from the tag entry and closes it with Esc', async ({ page }, testInfo) => {
 	const loupe = await openLoupe(page)
 	const tag = `e2e-Sunrise-${randomUUID().slice(0, 8)}`
@@ -73,6 +73,20 @@ test('tags the loupe\'s photo from the tag entry and closes it with Esc', async 
 	await page.keyboard.press('Escape')
 	await expect(entry).toBeHidden()
 	await expect(loupe).toBeVisible()
+	await page.keyboard.press('i')
+	const info = page.getByRole('complementary', { name: 'Photo info' })
+	await expect(info.getByRole('listitem').filter({ hasText: tag })).toBeVisible()
+	await expect(info.getByText('Written to')).toBeVisible()
+	await page.setViewportSize({ width: 1210, height: 834 })
+	await info.screenshot({ path: testInfo.outputPath('info-tags-ipad-landscape.png') })
+	await page.emulateMedia({ colorScheme: 'dark' })
+	await info.screenshot({ path: testInfo.outputPath('info-tags-ipad-landscape-dark.png') })
+	await page.setViewportSize({ width: 427, height: 952 })
+	await info.getByText('Written to').scrollIntoViewIfNeeded()
+	await info.screenshot({ path: testInfo.outputPath('info-tags-phone-dark.png') })
+	await page.emulateMedia({ colorScheme: 'light' })
+	await page.keyboard.press('i')
+	await expect(info).toBeHidden()
 	await page.keyboard.press('Escape')
 	await expect(loupe).toBeHidden()
 })

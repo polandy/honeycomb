@@ -154,4 +154,30 @@ describe('App: tag filter and tile', () => {
 
 		expect([0, 1, 2].map((at) => tagsOf?.(pictureAt(wrapper, at)))).toEqual([['Places/Italyx'], [], ['Anna', 'Places/Italy/Dolomites']])
 	})
+	// spec: TAGS-004.8, TAGS-004.9
+	it('gives the loupe each picture\'s tags, a tag change at once, and whether its sidecars are written', async () => {
+		const { wrapper } = await openApp()
+		await press('e')
+		const loupe = () => wrapper.findComponent(PhotoLoupe)
+		expect(loupe().props('tagsOf')?.(pictureAt(wrapper, 0))).toEqual([])
+
+		wrapper.findComponent(PhotoLoupe).vm.$emit('tag', pictureAt(wrapper, 0))
+		await flushPromises()
+		entry(wrapper).vm.$emit('change', { added: ['Sunrise'], removed: [] })
+		await flushPromises()
+
+		expect(loupe().props('tagsOf')?.(pictureAt(wrapper, 0))).toEqual(['Sunrise'])
+		expect(loupe().props('writesSidecars')?.(pictureAt(wrapper, 0))).toBe(true)
+	})
+
+	// spec: TAGS-004.9
+	it('tells the loupe that a picture in a shared folder is not written', async () => {
+		const mounted = mountApp({ tags: { lookupTags: async () => [], saveTags: async () => {}, loadTagList: async () => [] } })
+		await openCull(mounted.wrapper, undefined, undefined, ['/Trip/B'])
+		await press('e')
+
+		const writesSidecars = mounted.wrapper.findComponent(PhotoLoupe).props('writesSidecars')
+
+		expect([0, 1].map((at) => writesSidecars?.(pictureAt(mounted.wrapper, at)))).toEqual([false, true])
+	})
 })

@@ -5,9 +5,9 @@ built: tags in sidecars ([XMP-004](specs/xmp/XMP-004-tags-in-sidecars.md)), thei
 ([TAGS-001](specs/tags/TAGS-001-tag-storage.md)) and the take-over and write-through in the cull
 ([TAGS-002](specs/tags/TAGS-002-tags-in-the-cull.md)), with the JPEG's embedded XMP (D1,
 [XMP-005](specs/xmp/XMP-005-embedded-xmp-endpoint.md)), and the tag entry with bulk tagging
-([TAGS-003](specs/tags/TAGS-003-tag-entry.md)). Of step 5 the tag filter and the tile's tags are
-built ([TAGS-004](specs/tags/TAGS-004-tag-filter-and-tile.md)); the info panel and the other
-steps are open in `TODO.md`.
+([TAGS-003](specs/tags/TAGS-003-tag-entry.md)). Step 5, the tag filter, the tile's tags and the
+info panel, is built ([TAGS-004](specs/tags/TAGS-004-tag-filter-and-tile.md)); step 6 is open in
+`TODO.md`.
 The owner asked for tags that work like digiKam's and are read and written in digiKam's fields
 (2026-11-11), and answered the
 [decisions](#decisions-2026-11-12) on 2026-11-12. The milestone is planned from the
@@ -154,7 +154,7 @@ the mockup and are left to the milestone.
 ### Tiles and info panel
 
 A tile shows a small tag icon and the count when the picture has tags (D3). The info panel lists
-the tags and the sidecars they were written to.
+the tags and the sidecars they were written to; in a shared folder it says they are not written.
 
 ## Decisions 2026-11-12
 
