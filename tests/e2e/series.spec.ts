@@ -55,4 +55,6 @@ test('fills the dialog height with the photos and keeps the flag buttons level b
 	expect(new Set(await tops('.pick-rest-button')).size).toBe(1)
 	const photo = await dialog.locator('.series-compare__photo img').first().boundingBox()
 	expect(photo!.height).toBeGreaterThanOrEqual(DESKTOP.height / 2)
+	const container = await page.locator('.series-compare-dialog .modal-container').boundingBox()
+	expect(container!.width).toBeGreaterThan(DESKTOP.width * 0.85)
 })
