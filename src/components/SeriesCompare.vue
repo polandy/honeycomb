@@ -108,10 +108,12 @@ function flaggedOf(picture: Picture<ListingEntry>) {
 }
 
 .series-compare {
+	/* The dialog's height (NcModal's large size) and what it holds beside one row of photos. */
+	--series-compare-room: min(90dvh, 100dvh - 2 * var(--header-height, 50px) - 2 * var(--body-container-margin, 8px));
+	--series-compare-chrome: 300px;
+	--series-compare-photo-height: calc(var(--series-compare-room) - var(--series-compare-chrome));
 	display: grid;
-	flex: 1 0 auto;
 	grid-template-columns: repeat(2, 1fr);
-	grid-auto-rows: 1fr;
 	gap: 8px;
 	margin: 0;
 	padding: 0;
@@ -130,6 +132,7 @@ function flaggedOf(picture: Picture<ListingEntry>) {
 	.series-compare--3,
 	.series-compare--4 {
 		grid-template-columns: repeat(2, 1fr);
+		--series-compare-photo-height: calc((var(--series-compare-room) - var(--series-compare-chrome)) / 2 - 90px);
 	}
 }
 
@@ -160,7 +163,6 @@ function flaggedOf(picture: Picture<ListingEntry>) {
 
 .series-compare__photo {
 	display: flex;
-	flex: 1;
 	flex-direction: column;
 	gap: 4px;
 	padding: 4px;
@@ -177,9 +179,9 @@ function flaggedOf(picture: Picture<ListingEntry>) {
 }
 
 .series-compare__photo img {
-	flex: 1 1 0;
 	width: 100%;
-	min-height: 96px;
+	/* As high as the room allows, no higher than a 2:3 portrait photo at the card's width. */
+	height: min(150cqi, max(96px, var(--series-compare-photo-height)));
 	object-fit: contain;
 }
 
@@ -199,14 +201,10 @@ function flaggedOf(picture: Picture<ListingEntry>) {
 </style>
 
 <style>
-/* Unscoped: NcDialog teleports the dialog; it takes the full height and more width, the cards grow into it. */
-.confirm-dialog.series-compare-dialog.modal-mask .modal-wrapper .modal-container {
-	width: 1400px;
-	height: 100%;
-}
-
-.series-compare-dialog .dialog__content {
-	display: flex;
-	flex-direction: column;
+/* Unscoped: NcDialog teleports the dialog; wider than its large size so the photos can grow, above ConfirmDialog's phone sheet. */
+@media (min-width: 521px) {
+	.confirm-dialog.series-compare-dialog.modal-mask .modal-wrapper .modal-container {
+		width: 1400px;
+	}
 }
 </style>

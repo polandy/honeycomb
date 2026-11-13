@@ -859,6 +859,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   taken within 3 seconds of each other": since ADR 0021 a series also spans up to 30 seconds of
   alike shots, so the sentence was no longer true. The keys stay in the tooltips and the shortcut
   sheet.
-- 2026-11-13: UX M5 also widens the series compare dialog to 1400 px (at most 90 % of the window):
+- 2026-11-13: UX M5 also widens the series compare dialog to 1400 px (at most 90 % of the window)
+  and caps each photo at a 2:3 portrait photo's height at the card's width:
   in the 900 px large dialog four landscape photos stay 200 px wide however tall the cards grow,
-  so filling the height alone left the extra room empty.
+  so filling the height alone left tall empty cards around landscape photos.
