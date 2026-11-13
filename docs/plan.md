@@ -159,8 +159,8 @@ pictures, a rejected picture disappears from view, and at the end delete all rej
    away from a picture ([Keep RAW and Remove RAWs](#keep-raw-and-remove-raws)).
 4. **Series compare** (milestone M6). Pictures taken within a short interval that look alike
    (owner, 2026-11-12: up to 30 seconds apart with a visual hash of the preview, 3 seconds by
-   capture time until it is there; ADR 0021, at most 4 per series) form a series, shown 2–4 side
-   by side. Tapping the best one
+   capture time until it is there; ADR 0021) form a series, however long (owner, 2026-11-13),
+   shown side by side in a row that scrolls sideways beyond four. Tapping the best one
    means *Pick this, reject the rest*: it is picked, the others rejected, as one undo step. The
    owner's 2026-11-09 feedback changes how: see [Compact header and series
    viewer](#compact-header-and-series-viewer).

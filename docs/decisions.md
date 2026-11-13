@@ -916,3 +916,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   rest* (`Shift+K`) joins the loupe's rating row, and the filmstrip frames each series. A gesture
   was rejected as undiscoverable and an inline series strip as a second compare view
   (`docs/plans/loupe-series-concept.md`).
+- 2026-11-13: The owner wants to see a whole group together, so a run is one series however long
+  (the 2026-11-10 split into fours is dropped). The compare keeps its cards side by side, at
+  least 180 px each (half the width on a phone), and scrolls the row sideways with the active
+  card scrolled into view; a wrapped grid or smaller cards would lose the level flag buttons
+  or make the photos too small to judge (SERIES-001.4, .21).

@@ -28,8 +28,8 @@ guide below has you prepare a small throw-away folder; nothing on the server nee
 ## Evidence
 
 - Rule: `src/logic/series.ts:11-17` (3 s without hashes, 30 s and at most 10 of 64 bits with
-  hashes), `:49-54` `linked`; at most 4 per series (`:22`), runs split evenly.
-- Spec: `docs/specs/series/SERIES-001-series-compare.md` (criteria .1–.20),
+  hashes), `:54` `linked`; a run is one series however long (2026-11-13).
+- Spec: `docs/specs/series/SERIES-001-series-compare.md` (criteria .1–.21),
   `SERIES-002-series-viewer.md` (badge, viewer); decision: `docs/adr/0021-series-by-capture-time-and-visual-hash.md`.
 - Fingerprint source: `src/visual-hashes.ts:28-41` draws the small grid preview onto a 9 × 8
   canvas; hashes only pictures with a same-camera shot within 30 s (`hashablePictures`,
@@ -77,7 +77,7 @@ different photos, with `exiftool` (the capture times below are examples):
 | C different scenes | 2 unrelated photos | 0 s, 1 s | one series while hashing has not finished (3 s rule), **two singles** once hashes arrive |
 | D too far | 2 alike frames | 0 s, 45 s | no series |
 | E other camera | 2 alike frames, Make/Model differ | 0 s, 1 s | no series |
-| F five frames | 5 alike frames | 0–4 s | series of 3 and 2 |
+| F five frames | 5 alike frames | 0–4 s | one series of 5, its row scrolls on a phone |
 | G no EXIF | 2 alike frames, EXIF stripped | – | no series |
 
 ```sh
@@ -97,7 +97,7 @@ Optional: RAW+JPEG pairs (same base name) must group as one picture, with the RA
    read-only badge "⧉ N" (label "Series of N"). Hashes arrive one at a time, so badges and the
    *Compare series* count may change for a short while (case C).
 4. Find *Compare series* with its count: in the toolbar, in the ⋯ menu below 900 px window
-   width. Check the count against the table (A, B, F with its two series, C once hashes ran).
+   width. Check the count against the table (A, B, F as one series, C once hashes ran).
 5. Open it (button or `N`). The title reads "Compare series 1 of N"; the cards sit side by side
    in capture-time order, one outlined (active), the active card's *Pick this, reject the rest*
    is the only primary button.
@@ -128,7 +128,7 @@ Optional: RAW+JPEG pairs (same base name) must group as one picture, with the RA
   finder that works across time (not in scope of SERIES-001).
 - Series cross folders only for the folders in the cull; rejected pictures are left out and a
   series needs one unflagged picture, so a decided series disappears.
-- A series is at most 4 pictures; a longer burst is several series.
+- A burst is one series however long; the compare row scrolls sideways beyond four cards.
 - No e2e test (fixtures lack capture times); no TODO.md item is open for series. Suggested
   follow-up below.
 

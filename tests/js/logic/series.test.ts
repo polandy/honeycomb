@@ -48,15 +48,10 @@ describe('findSeries', () => {
 	})
 
 	// spec: SERIES-001.4
-	it.each([
-		[5, [3, 2]],
-		[8, [4, 4]],
-		[9, [3, 3, 3]],
-		[4, [4]],
-	])('splits a run of %i into series of %o', (count, sizes) => {
+	it.each([4, 5, 9, 26])('keeps a run of %i as one series', (count) => {
 		const pictures = shots(...Array.from({ length: count }, (_, index) => [`P/${String.fromCharCode(65 + index)}`, index] as [string, number]))
 
-		expect(seriesOf(pictures).map((series) => series.length)).toEqual(sizes)
+		expect(seriesOf(pictures).map((series) => series.length)).toEqual([count])
 	})
 
 	// spec: SERIES-001.5
