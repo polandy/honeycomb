@@ -21,7 +21,9 @@ test.use({ hasTouch: true })
 /** The vertical centre of a control. */
 async function centre(locator: Locator): Promise<number> {
 	const box = await locator.boundingBox()
-	if (box === null) throw new Error('control is not visible')
+	if (box === null) {
+		throw new Error('control is not visible')
+	}
 	return box.y + box.height / 2
 }
 

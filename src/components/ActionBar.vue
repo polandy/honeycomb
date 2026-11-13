@@ -62,13 +62,15 @@ const loupe = computed(() => props.layout === 'loupe')
 				<AppIcon name="tag" />
 				{{ t('honeycomb', 'Tags') }}
 			</button>
-			<slot name="end" />
+			<slot v-if="loupe" name="end" />
 		</div>
-		<FlagButtons
-			v-if="!loupe"
-			:flag="props.common.flag"
-			:disabled="props.disabled"
-			@flag="emit('decide', { kind: 'flag', flag: $event })" />
+		<div v-if="!loupe" class="action-bar__primary">
+			<slot name="end" />
+			<FlagButtons
+				:flag="props.common.flag"
+				:disabled="props.disabled"
+				@flag="emit('decide', { kind: 'flag', flag: $event })" />
+		</div>
 	</div>
 </template>
 
@@ -83,8 +85,29 @@ const loupe = computed(() => props.layout === 'loupe')
 	background: var(--color-main-background);
 }
 
-.action-bar__row {
+.action-bar__row,
+.action-bar__primary {
 	display: contents;
+}
+
+.action-bar--bar {
+	container: action-bar / inline-size;
+}
+
+/* One row needs about 950 px with 44 px targets. */
+@container action-bar (max-width: 960px) {
+	.action-bar__primary,
+	.action-bar__row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: inherit;
+	}
+
+	.action-bar__primary {
+		flex-basis: 100%;
+		order: -1;
+	}
 }
 
 .action-bar--loupe {

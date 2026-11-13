@@ -904,3 +904,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   *RAW extensions*), since every section heading is the same `NcAppSettingsSection` heading. Every
   text line in every settings section now takes Nextcloud's section text offset, so it starts
   where its heading's text does; boxed controls (chips, fields, preview) keep the content edge.
+- 2026-11-13: UX L6 asks for two action bar rows on a phone, but with 44 px targets rating (six
+  buttons, 292 px), colour label and *Keep RAW* need about 490 px, more than a 410 px phone has.
+  The bar puts the flags, *Move* and *Delete* first wherever it wraps (two rows on a tablet);
+  on a phone in portrait the decisions take two rows below them instead of shrinking targets.
