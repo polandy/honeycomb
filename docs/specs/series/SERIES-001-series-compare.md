@@ -33,7 +33,8 @@ change as hashes arrive, except while the series compare dialog is open.
 wide and shows one line of instructions above the series' pictures side by side, whose photos grow
 as high as the window allows, but no higher than a 2:3 portrait photo needs at the card's width.
 Up to four cards share the dialog's width; a longer series gives each card at least 180 px (half the
-width on a phone) and the row scrolls sideways, the active card always scrolled into view.
+width on a phone) and the row scrolls sideways, the active card always scrolled into view. On a
+phone a series of three or four wraps into two columns instead.
 Each card has the picture's name, stars, flag mark, the flag buttons and *Pick this, reject the
 rest*; the flag buttons sit level across the cards, a flag mark or not. One picture is active
 (outlined); its *Pick this, reject the rest* is the primary button, the others' and *Skip* are
