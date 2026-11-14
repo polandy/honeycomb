@@ -23,14 +23,17 @@ new code may read tables that do not exist yet, and saving a flag, a rating or a
 
 Tag storage (pull request #119) added the tables `honeycomb_file_tags` and
 `honeycomb_tag_list` without raising the app version, so an instance installed from a Git
-checkout before it never created them, and the commands above do not either. Run this once:
+checkout before it never created them, and the commands above do not either. The `migrations:`
+commands exist only in debug mode, so turn it on for this one run:
 
 ```sh
+sudo -u www-data php /var/www/nextcloud/occ config:system:set debug --value=true --type=boolean
 sudo -u www-data php /var/www/nextcloud/occ migrations:migrate honeycomb
+sudo -u www-data php /var/www/nextcloud/occ config:system:set debug --value=false --type=boolean
 ```
 
-It only creates what is missing and is safe to repeat. `occ migrations:status honeycomb` lists
-the migrations and which of them have run.
+It only creates what is missing and is safe to repeat. `occ migrations:status honeycomb`, also
+in debug mode, lists the migrations and which of them have run.
 
 ## File locking
 
