@@ -11,6 +11,7 @@ use OCA\Honeycomb\Service\PictureTags;
 use OCA\Honeycomb\Service\TagStore;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\AppFramework\Db\TTransactional;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
 /** @template-extends QBMapper<FileTags> */
@@ -19,6 +20,7 @@ final class TagMapper extends QBMapper implements TagStore {
 	use TTransactional;
 
 	private const string TAG_LIST_TABLE = 'honeycomb_tag_list';
+	private const array TAG_LIST_COLUMNS = ['user_id' => IQueryBuilder::PARAM_STR, 'tag' => IQueryBuilder::PARAM_STR];
 
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it. */
 	public function __construct(IDBConnection $db) {
@@ -34,12 +36,11 @@ final class TagMapper extends QBMapper implements TagStore {
 	public function replace(string $userId, array $fileIds, array $pictures): void {
 		$this->atomic(function () use ($userId, $fileIds, $pictures): void {
 			$this->deleteFileRows($userId, $fileIds);
-			$tags = [];
-			foreach ($pictures as $picture) {
-				$this->insert(FileTags::of($userId, $picture));
-				array_push($tags, ...$picture->tags);
-			}
-			$this->addToTagList($userId, $tags);
+			$this->insertRows(
+				new InsertStatements($this->getTableName(), FileTags::COLUMNS),
+				array_map(static fn (PictureTags $picture): array => FileTags::row($userId, $picture), $pictures),
+			);
+			$this->addToTagList($userId, array_merge(...array_map(static fn (PictureTags $picture): array => $picture->tags, $pictures)));
 		}, $this->db);
 	}
 
@@ -67,11 +68,9 @@ final class TagMapper extends QBMapper implements TagStore {
 
 	/** @param list<string> $tags */
 	private function addToTagList(string $userId, array $tags): void {
-		foreach (array_diff(array_unique($tags), $this->tagList($userId)) as $tag) {
-			$query = $this->db->getQueryBuilder();
-			$query->insert(self::TAG_LIST_TABLE)
-				->values(['user_id' => $query->createNamedParameter($userId), 'tag' => $query->createNamedParameter($tag)])
-				->executeStatement();
-		}
+		$this->insertRows(
+			new InsertStatements(self::TAG_LIST_TABLE, self::TAG_LIST_COLUMNS),
+			array_map(static fn (string $tag): array => ['user_id' => $userId, 'tag' => $tag], array_values(array_diff(array_unique($tags), $this->tagList($userId)))),
+		);
 	}
 }

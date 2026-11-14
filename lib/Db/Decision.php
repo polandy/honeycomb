@@ -11,6 +11,7 @@ use OCA\Honeycomb\Service\ColourLabel;
 use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\PictureDecision;
 use OCP\AppFramework\Db\Entity;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\DB\Types;
 
 /**
@@ -46,15 +47,26 @@ final class Decision extends Entity {
 		$this->addType('keepRaw', Types::BOOLEAN);
 	}
 
-	public static function of(string $userId, PictureDecision $decision): self {
-		$row = new self();
-		$row->setUserId($userId);
-		$row->setFileId($decision->fileId);
-		$row->setRating($decision->rating);
-		$row->setColourLabel($decision->colourLabel?->value);
-		$row->setFlag($decision->flag->value);
-		$row->setKeepRaw($decision->keepRaw);
-		return $row;
+	/** The table's columns and their parameter types, for `InsertStatements`. */
+	public const array COLUMNS = [
+		'user_id' => IQueryBuilder::PARAM_STR,
+		'file_id' => IQueryBuilder::PARAM_INT,
+		'rating' => IQueryBuilder::PARAM_INT,
+		'colour_label' => IQueryBuilder::PARAM_STR,
+		'flag' => IQueryBuilder::PARAM_STR,
+		'keep_raw' => IQueryBuilder::PARAM_BOOL,
+	];
+
+	/** @return array<key-of<self::COLUMNS>, int|string|bool|null> */
+	public static function row(string $userId, PictureDecision $decision): array {
+		return [
+			'user_id' => $userId,
+			'file_id' => $decision->fileId,
+			'rating' => $decision->rating,
+			'colour_label' => $decision->colourLabel?->value,
+			'flag' => $decision->flag->value,
+			'keep_raw' => $decision->keepRaw,
+		];
 	}
 
 	public function toDecision(): PictureDecision {

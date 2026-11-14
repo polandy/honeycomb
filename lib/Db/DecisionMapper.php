@@ -32,9 +32,10 @@ final class DecisionMapper extends QBMapper implements DecisionStore {
 	public function replace(string $userId, array $fileIds, array $decisions): void {
 		$this->atomic(function () use ($userId, $fileIds, $decisions): void {
 			$this->deleteFileRows($userId, $fileIds);
-			foreach ($decisions as $decision) {
-				$this->insert(Decision::of($userId, $decision));
-			}
+			$this->insertRows(
+				new InsertStatements($this->getTableName(), Decision::COLUMNS),
+				array_map(static fn (PictureDecision $decision): array => Decision::row($userId, $decision), $decisions),
+			);
 		}, $this->db);
 	}
 

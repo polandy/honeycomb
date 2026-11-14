@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\Db;
 
 use OCA\Honeycomb\Service\PictureTags;
 use OCP\AppFramework\Db\Entity;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\DB\Types;
 
 /**
@@ -32,15 +33,23 @@ final class FileTags extends Entity {
 		$this->addType('tags', Types::TEXT);
 	}
 
-	public static function of(string $userId, PictureTags $picture): self {
-		$row = new self();
-		$row->setUserId($userId);
-		$row->setFileId($picture->fileId);
-		$row->setTags(json_encode($picture->tags, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
-		return $row;
+	/** The table's columns and their parameter types, for `InsertStatements`. */
+	public const array COLUMNS = [
+		'user_id' => IQueryBuilder::PARAM_STR,
+		'file_id' => IQueryBuilder::PARAM_INT,
+		'tags' => IQueryBuilder::PARAM_STR,
+	];
+
+	/** @return array<key-of<self::COLUMNS>, int|string> */
+	public static function row(string $userId, PictureTags $picture): array {
+		return [
+			'user_id' => $userId,
+			'file_id' => $picture->fileId,
+			'tags' => json_encode($picture->tags, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+		];
 	}
 
-	/** @throws \JsonException for a row not written by `of()` */
+	/** @throws \JsonException for a row not written by `row()` */
 	public function toPictureTags(): PictureTags {
 		/** @var list<string> $tags */
 		$tags = json_decode($this->getTags(), true, 2, JSON_THROW_ON_ERROR);
