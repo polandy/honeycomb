@@ -276,7 +276,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			@decide="decisions.decide"
 			@tag="emit('tag', picture)">
 			<template v-if="series !== null" #end>
-				<PickRestButton secondary @pick="pickRest" />
+				<PickRestButton class="photo-loupe__pick-rest" secondary @pick="pickRest" />
 			</template>
 		</ActionBar>
 		<GestureGuide v-if="!gestureGuideSeen" :swipes="settings.swipes" @dismiss="dismissGestureGuide" />

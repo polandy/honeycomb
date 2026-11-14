@@ -139,8 +139,9 @@ Delete from the loupe: DELETE-002.
 - **Then** the shown picture is picked and every other picture of its series rejected, as one undo
   step with the toast "Picked IMG_0002, rejected the rest · Undo"; the loupe shows the first
   picture after the series' last in its order, the picked one when none follows; the button is
-  secondary beside the large flag buttons, its tooltip names `Shift+K`, it stays while the flag
-  buttons are hidden, and outside a series there is no button and `Shift+K` does nothing
+  secondary beside the large flag buttons, on a line of its own in portrait and on the rating row's
+  line in landscape, so the row stays above the filmstrip; its tooltip names `Shift+K`, it stays
+  while the flag buttons are hidden, and outside a series there is no button and `Shift+K` does nothing
 
 ## History
 
