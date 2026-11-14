@@ -903,45 +903,63 @@ through `t()`).
 
 ## Project structure
 
-The standard Nextcloud app layout; folders appear with the milestone that needs them.
+The standard Nextcloud app layout. The tree lists the folders and the seams that matter; the
+code is the full list.
 
 ```text
 honeycomb/
 ├── appinfo/info.xml            app id `honeycomb`, versions (Q1), navigation entry
 ├── lib/
 │   ├── AppInfo/Application.php
-│   ├── Controller/             PageController, EntryController, DecisionController,
-│   │                           TrashController, FileController, SettingsController,
-│   │                           ViewStateController (thin)
-│   ├── Service/
-│   │   ├── ListingService.php  one file-cache query: flat entries of a folder
-│   │   ├── PathGuard.php       rechecks every client path: owned, exists, unchanged
-│   │   ├── TrashService.php    trash whole pictures through OCP\Files (ADR 0013)
-│   │   ├── FileService.php     move, write XMP bytes through OCP\Files
-│   │   ├── DecisionService.php rating, colour label, flag and resume position per user
-│   │   ├── SettingsService.php per-user settings (IConfig user values)
-│   │   └── ViewStateService.php the loupe's view state per user (ADR 0019)
-│   ├── Search/                 ISearchQuery and its operators, which OCP does not implement
-│   ├── Db/                     entities and QBMapper classes
-│   └── Migration/              database migrations
+│   ├── Controller/             one thin controller per resource: Page, Entry, Folder, Image,
+│   │                           Decision, Tag, Position, ViewState, Settings, Trash, Move,
+│   │                           Sidecar, EmbeddedXmp, VisualHash
+│   ├── Service/                one service per resource (`ListingService`, `DecisionService`,
+│   │                           `TrashService`, `MoveService`, ...), its request and result
+│   │                           values, and one typed `Invalid*Exception` per request kind
+│   ├── Db/                     entities, `QBMapper` classes and the `FileRowQueries` trait
+│   ├── Preview/                RAW preview provider and the embedded JPEG decoder
+│   ├── BackgroundJob/          `RemoveVanishedDecisions`, the sweep of rows of deleted files
+│   ├── Listener/               `ForgetDeletedUser`
+│   └── Migration/              one database migration per feature
 ├── src/
-│   ├── logic/                  pure TypeScript, no DOM or network: pairing, series, filter,
-│   │                           sort, name templates, conflicts, xmp, decisions, undo,
-│   │                           gestures, hotkeys, header scroll
-│   └── main.ts, App.vue, views/, components/, store/ (Pinia)
-├── templates/main.php          mounts the Vue app
+│   ├── logic/                  pure TypeScript, no DOM or network (ADR 0006): pairing, series,
+│   │                           filter, sort, name templates, xmp, undo, gestures, hotkeys, ...
+│   ├── components/             Vue components and their CSS; there is no `views/` folder
+│   ├── main.ts, similarity-main.ts   the two entry points: cull app, similarity page
+│   ├── App.vue                 the cull app: grid, loupe and series viewer in one tree
+│   ├── cull.ts                 the cull's state as one composable; no Pinia, no store folder
+│   └── *.ts                    feature modules beside it: `api.ts` (every request),
+│                               `*-flow.ts`, `*-seams.ts`, `hash-*.ts`, `loupe-*.ts`, ...
+├── templates/                  `main.php` mounts the cull app, `similarity.php` the other page
 ├── tests/php/, tests/js/       PHPUnit, Vitest
 ├── tests/e2e/                  Playwright against a Nextcloud container
 ├── tests/fixtures/             test vectors, shared with Framehive where they overlap
 ├── img/app.svg, img/app-dark.svg
 ├── l10n/                       translations, once Transifex is set up (ADR 0007)
-├── docs/                       this documentation, the mockup, ADRs
+├── docs/                       this documentation, the mockup, specs, ADRs
 ├── assets/brand/               logo sources and generate.py
 ├── scripts/verify.sh           every CI check locally
 ├── composer.json, package.json, psalm.xml, .php-cs-fixer.dist.php, phpunit.xml,
 │   tsconfig.json, vite.config.ts, playwright.config.ts
 └── CLAUDE.md, TODO.md, REUSE.toml, LICENSES/
 ```
+
+### Seams
+
+- **Path and file-id checks** have no `PathGuard`; each service rechecks what it is given.
+  `UserFolderResolver` turns a path into a readable folder of the user, `CheckedMove` and
+  `ExistingSidecar` are files that passed their check, `SidecarWriter` checks again before its
+  rename, and `ExistingFiles` tells which file ids still have a file.
+- **Files** go through `OCP\Files` inside `TrashService`, `MoveService` and `SidecarWriter`;
+  there is no shared `FileService`.
+- **Rows per file id and per user** sit behind the `FileRowStore` and `UserRowStore`
+  interfaces. `FileRowStores` and `UserRowStores` register them once; the sweep, the user
+  clean-up and the move iterate that registry.
+- **Retries:** `RetryOnConflict` repeats a save that lost a race on a unique key or a lock.
+- **Frontend state** is composables and plain modules, not a store: the `cull*.ts` files hold
+  it, `api.ts` is the only code that sends requests, and `app-seams.ts` and `cull-seams.ts`
+  name what tests replace (the API calls and the hash workers).
 
 ## Target versions
 
