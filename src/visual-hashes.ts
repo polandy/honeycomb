@@ -134,11 +134,11 @@ export function useVisualHashes(api: { readonly hashImage: HashImage, readonly s
 	}, { immediate: true })
 
 	return {
-		/** The visual hash of the picture's shown member, or null while it has none. */
 		/** The hash state of the picture's shown member, or null when it is not hashable. */
 		stateOf: (picture: Picture<ListingEntry>) => stateOf(imageMember(picture)),
 		/** How far the hashes of the hashable pictures are (SERIES-003.18–.20). */
 		progress: computed(() => hashProgress(hashable.value.map((member) => stateOf(member)!), saveFailed.value)),
+		/** The visual hash of the picture's shown member, or null while it has none. */
 		hashOf(picture: Picture<ListingEntry>) {
 			const member = imageMember(picture)
 			return member.visualHash ?? published.value.get(versionKey(member)) ?? null
