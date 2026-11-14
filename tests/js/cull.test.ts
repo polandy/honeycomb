@@ -83,7 +83,7 @@ describe('useCull: series', () => {
 		const { cull, saved, picture } = await openedCull()
 		const step = cull.pickRest(picture('IMG_9'), [picture('IMG_10'), picture('IMG_2')])
 
-		expect(step?.change).toEqual({ pickRest: 'IMG_9' })
+		expect(step).toMatchObject({ kind: 'pickRest', picked: 'IMG_9' })
 		expect(saved.at(-1)).toEqual(step!.after)
 		expect(['IMG_9', 'IMG_10', 'IMG_2'].map((name) => cull.decisionOf(picture(name)).flag)).toEqual(['picked', 'rejected', 'rejected'])
 		expect(cull.undo()).toBe(step)

@@ -20,24 +20,24 @@ describe('changeText', () => {
 		[{ keepRaw: true }, ['IMG_1'], 'Marked IMG_1 Keep RAW'],
 		[{ keepRaw: false }, ['A', 'B'], 'Removed Keep RAW from 2 photos'],
 	])('words %o of %o as "%s"', (change, names, text) => {
-		expect(changeText({ change, names })).toBe(text)
+		expect(changeText({ kind: 'decision', change, names })).toBe(text)
 	})
 
 	// spec: SERIES-001.9
 	it('words Pick this, reject the rest by the picked name', () => {
-		expect(changeText({ change: { pickRest: 'IMG_3' }, names: ['IMG_3', 'IMG_4'] })).toBe('Picked IMG_3, rejected the rest')
+		expect(changeText({ kind: 'pickRest', picked: 'IMG_3', names: ['IMG_3', 'IMG_4'] })).toBe('Picked IMG_3, rejected the rest')
 	})
 
 	it('keeps a name as it is', () => {
-		expect(changeText({ change: { flag: 'picked' }, names: ['A & <B>'] })).toBe('Picked A & <B>')
+		expect(changeText({ kind: 'decision', change: { flag: 'picked' }, names: ['A & <B>'] })).toBe('Picked A & <B>')
 	})
 
 	it('answers an undo with the change it took back', () => {
-		expect(undoneText({ change: { flag: 'rejected' }, names: ['IMG_1'] })).toBe('Undid: Rejected IMG_1')
+		expect(undoneText({ kind: 'decision', change: { flag: 'rejected' }, names: ['IMG_1'] })).toBe('Undid: Rejected IMG_1')
 	})
 
 	it('answers a redo with the change it put again', () => {
-		expect(redoneText({ change: { rating: 2 }, names: ['A', 'B'] })).toBe('Redid: Rated 2 photos ★★')
+		expect(redoneText({ kind: 'decision', change: { rating: 2 }, names: ['A', 'B'] })).toBe('Redid: Rated 2 photos ★★')
 	})
 
 	describe('with the marked catalogue', () => {
@@ -45,8 +45,8 @@ describe('changeText', () => {
 		afterEach(uninstallMarkedCatalogue)
 
 		it('translates the words around the name', () => {
-			expect(changeText({ change: { colourLabel: 'blue' }, names: ['IMG_1'] })).toBe(`${TRANSLATED_MARK}Labelled IMG_1 ${TRANSLATED_MARK}Blue`)
-			expect(changeText({ change: { flag: 'picked' }, names: ['A', 'B'] })).toMatch(new RegExp(`^${escapeMark}Picked ${escapeMark}.*2 photos$`))
+			expect(changeText({ kind: 'decision', change: { colourLabel: 'blue' }, names: ['IMG_1'] })).toBe(`${TRANSLATED_MARK}Labelled IMG_1 ${TRANSLATED_MARK}Blue`)
+			expect(changeText({ kind: 'decision', change: { flag: 'picked' }, names: ['A', 'B'] })).toMatch(new RegExp(`^${escapeMark}Picked ${escapeMark}.*2 photos$`))
 		})
 	})
 })
@@ -71,7 +71,7 @@ describe('changeText of a tag change', () => {
 		[{ added: ['Places/Dolomites'], removed: [] }, ['A', 'B', 'C', 'D', 'E', 'F', 'G'], 'Tagged 7 photos Places/Dolomites'],
 		[{ added: [], removed: ['People/Anna'] }, ['A', 'B'], 'Removed People/Anna from 2 photos'],
 	])('words %o of %o as "%s"', (change, names, text) => {
-		expect(changeText({ change, names })).toBe(text)
-		expect(undoneText({ change, names })).toBe(`Undid: ${text}`)
+		expect(changeText({ kind: 'tags', change, names })).toBe(text)
+		expect(undoneText({ kind: 'tags', change, names })).toBe(`Undid: ${text}`)
 	})
 })
