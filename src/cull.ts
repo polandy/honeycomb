@@ -25,6 +25,7 @@ import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
 import { memberIds } from './logic/pairing.ts'
 import { activeFilterCount, DEFAULT_FILTERS, emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
 import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
+import { saveQueue } from './logic/save-queue.ts'
 import { allSeries, findSeries, seriesCandidates, seriesMembers, seriesSizes as sizesOf } from './logic/series.ts'
 import { pairingSettings } from './logic/settings.ts'
 import { inSharedFolder } from './logic/sidecar-sync.ts'
@@ -58,6 +59,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const groupByFolder = ref(false)
 	const tileSize = ref(parseTileSize(readStored(storage, TILE_SIZE_KEY)))
 	const saveFailed = ref(false)
+	const saveDecisions = saveQueue(api.saveDecisions)
 	const sharedFolders = shallowRef<ReadonlySet<string>>(new Set())
 	let opening = 0
 	const history = useCullHistory<CullStep>(apply)
@@ -129,7 +131,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 			: []
 		if (rows.length > 0) {
 			decisions.value = withRows(decisions.value, rows)
-			api.saveDecisions(rows).catch((error: unknown) => logger.error('Could not save the decisions taken over from the sidecars', { error }))
+			void saveDecisions(rows).then((saved) => saved.ok || logger.error('Could not save the decisions taken over from the sidecars', { error: saved.error }))
 		}
 	}
 
@@ -180,10 +182,14 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		const opened = opening
 		decisions.value = withRows(before, rows)
 		saveFailed.value = false
-		api.saveDecisions(rows).then(() => writeThrough(rows, opened), (error: unknown) => {
-			logger.error('Could not save the decisions', { error })
+		void saveDecisions(rows).then((saved) => {
+			if (saved.ok) {
+				writeThrough(rows, opened)
+				return
+			}
+			logger.error('Could not save the decisions', { error: saved.error })
 			if (opening === opened) {
-				decisions.value = revertRows(decisions.value, rows, before)
+				decisions.value = revertRows(decisions.value, saved.unsaved, before)
 				saveFailed.value = true
 			}
 		})

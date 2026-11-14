@@ -1034,3 +1034,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (`getDirectoryListing(FileInfo::MIMETYPE_FOLDER)`), so the file cache returns folders only
   instead of every photo in the child; a child that vanishes or may not be listed still counts as
   having none.
+- 2026-11-14: Decision and tag saves of a tab go one at a time through `src/logic/save-queue.ts`,
+  rows given meanwhile merged by file id with the newest winning, as the resume position already
+  does; a failed save is answered only once the queue is idle, newest first, without the files a
+  later save stored, so putting each back in turn ends at what the server holds.
