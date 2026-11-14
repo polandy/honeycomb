@@ -5,7 +5,7 @@ import type { Decision } from '../../../src/logic/decision.ts'
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
 
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import PickRestButton from '../../../src/components/PickRestButton.vue'
@@ -109,8 +109,9 @@ describe('SeriesCompare', () => {
 	})
 
 	// spec: SERIES-001.21
-	it('lays the cards out by the grid sizing rule and reports its columns', () => {
+	it('lays the cards out by the grid sizing rule and reports its columns', async () => {
 		const wrapper = mountCompare()
+		await flushPromises()
 		const grid = wrapper.find('.series-compare')
 
 		expect(grid.attributes('style')).toContain('grid-template-columns: repeat(3, 465px)')
@@ -122,6 +123,7 @@ describe('SeriesCompare', () => {
 	it('keeps the active card in view as it moves', async () => {
 		const scrolled = vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(function(this: Element) {})
 		const wrapper = mountCompare()
+		await flushPromises()
 
 		expect(scrolled.mock.contexts).toEqual([cards(wrapper)[1]!.element])
 		await wrapper.setProps({ active: 2 })
