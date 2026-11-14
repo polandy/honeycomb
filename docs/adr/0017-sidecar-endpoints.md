@@ -56,8 +56,9 @@ The options for the transfer:
 - **Shared folders:** the listing (ADR 0009) adds `"folders": [{"path": "/Photos", "shared":
   false}, …]`, one item per folder that holds a listed entry. A folder is shared when another user
   or a federated user has access to it or to a folder above it, or it or a folder above it is
-  shared by public link or by mail (`IShareManager::getAccessList()`); when it lies in a group
-  folder (mount type `group`); or when it lies on external storage (mount type `external`) that
+  shared by public link or by mail (`IShareManager::getAccessList()`); when it lies in a folder
+  shared with the user or in a group folder (mount type `shared` or `group`, without asking the
+  share manager); or when it lies on external storage (mount type `external`) that
   is mounted for another user too (`IUserMountCache::getMountsForStorageId()`). The endpoints do
   not refuse a shared folder; asking first is the client's job (ADR 0005).
 - **Errors:** `400` for a malformed body, an id or path given twice, a path with `..`, content

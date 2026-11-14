@@ -1044,3 +1044,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   may also save its siblings, where the next rule makes that harmless. A sidecar whose merged bytes
   equal its own bytes re-serialized at the same time is not saved and counts as written, which
   spares a file version, an ETag chain and a sync download per unchanged sidecar.
+- 2026-11-14: A folder on an incoming share (mount type `shared`, a user or a federated share) is
+  shared without asking the share manager: its owner is always another user, so the access-list
+  query per listed folder was wasted. Outgoing shares are still asked per folder.
