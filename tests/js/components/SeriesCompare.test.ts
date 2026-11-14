@@ -117,6 +117,16 @@ describe('SeriesCompare', () => {
 		scrolled.mockRestore()
 	})
 
+	// spec: SERIES-001.21
+	it('starts focus on the active card\'s photo, so the focus trap keeps the row where it is', () => {
+		const focused = vi.spyOn(HTMLElement.prototype, 'focus')
+		const wrapper = mountCompare()
+
+		expect(focused.mock.contexts).toEqual([wrapper.findAll('.series-compare__photo')[1]!.element])
+		expect(focused).toHaveBeenCalledWith({ preventScroll: true })
+		focused.mockRestore()
+	})
+
 	// spec: SERIES-001.11
 	it('skips by its confirm button and closes by Close', async () => {
 		const wrapper = mountCompare()

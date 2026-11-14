@@ -201,7 +201,8 @@ icon and wraps its label to two balanced lines instead of cutting it.
 - **Given** the series compare dialog shows a series too long for its cards to fit side by side
 - **When** the cards lay out and the user makes another picture active
 - **Then** every card shows in one row that scrolls sideways, and the active card scrolls into
-  view
+  view; focus starts on the active card's photo, so the dialog's focus trap does not scroll the
+  row back to the first card
 
 ### SERIES-001.22 – A series ends 60 seconds after its first picture
 
@@ -228,3 +229,4 @@ camera come from LISTING-001.
 | 2026-11-14 | The title names the active picture's place, "· photo 7 of 26" (series concept step 3). |
 | 2026-11-14 | A series ends 60 s after its first picture, so a slow run of alike shots no longer chains over minutes (series concept step 2, ADR 0021). |
 | 2026-11-14 | The cards' flag buttons run *Pick*, *Unflag*, *Reject*, as everywhere (series concept step 4, owner decision 2). |
+| 2026-11-14 | Focus starts on the active card's photo, so the row no longer jumps back to the first card once the dialog has opened (flaky e2e from #147). |
