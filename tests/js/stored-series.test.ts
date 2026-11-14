@@ -7,8 +7,8 @@ import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { logger } from '../../src/logger.ts'
 import { useStoredSeries } from '../../src/stored-series.ts'
-import { picturesOf } from './logic/listing-entries.ts'
 import { ENTRIES } from './app-cull.ts'
+import { picturesOf } from './logic/listing-entries.ts'
 
 afterEach(() => vi.restoreAllMocks())
 

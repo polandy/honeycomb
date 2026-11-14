@@ -18,7 +18,7 @@ describe('useCull: warm-up', () => {
 			lookupDecisions: async () => [],
 			saveDecisions: async () => undefined,
 			lookupSeries: NO_SERIES,
-		tags: NO_TAGS,
+			tags: NO_TAGS,
 		}, fakeStorage(), () => DEFAULT_SETTINGS, { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) })
 
 		cull.open(SET, ENTRIES, [])

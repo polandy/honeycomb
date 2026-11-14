@@ -44,8 +44,11 @@ describe('splitByStoredRows', () => {
 	// spec: SERIES-005.2
 	it('puts a picture in the series of a member, keeps it out when a member is kept out, and leaves the rest loose', () => {
 		const pictures = picturesOf([
-			listingEntry(1, '/P/A.JPG'), listingEntry(2, '/P/A.CR3', { mime: 'image/x-canon-cr3' }),
-			listingEntry(3, '/P/B.JPG'), listingEntry(4, '/P/C.JPG'), listingEntry(5, '/P/D.JPG'),
+			listingEntry(1, '/P/A.JPG'),
+			listingEntry(2, '/P/A.CR3', { mime: 'image/x-canon-cr3' }),
+			listingEntry(3, '/P/B.JPG'),
+			listingEntry(4, '/P/C.JPG'),
+			listingEntry(5, '/P/D.JPG'),
 		])
 
 		const { stored, loose } = splitByStoredRows(pictures, withLookup(NO_STORED_ROWS, { series: [storedSeries(9, [1, 3])], keptOut: [2, 4] }))
