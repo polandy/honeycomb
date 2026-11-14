@@ -7,6 +7,7 @@ import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
+import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import SeriesCompare from '../../src/components/SeriesCompare.vue'
 import SeriesViewer from '../../src/components/SeriesViewer.vue'
 import ShortcutSheet from '../../src/components/ShortcutSheet.vue'
@@ -173,6 +174,21 @@ describe('App: series compare', () => {
 		const sizes = wrapper.findComponent(PhotoGrid).props('seriesSizes') as ReadonlyMap<{ baseName: string }, number>
 
 		expect([...sizes].map(([picture, size]) => `${picture.baseName} ${size}`)).toEqual(['IMG_1 3', 'IMG_2 3', 'IMG_3 3', 'IMG_4 2', 'IMG_5 2'])
+	})
+
+	// spec: LOUPE-001.19
+	it('hands the loupe each picture\'s series, a series of picks included', async () => {
+		const { wrapper } = await openApp()
+		wrapper.findComponent(PhotoGrid).vm.$emit('open', 0)
+		await flushPromises()
+		const loupe = wrapper.findComponent(PhotoLoupe)
+		for (const picture of loupe.props('pictures').slice(0, 3)) {
+			loupe.vm.$emit('decide', { kind: 'flag', flag: 'picked' }, picture)
+		}
+		await flushPromises()
+		const members = loupe.props('seriesOf') as ReadonlyMap<{ baseName: string }, readonly { baseName: string }[]>
+
+		expect([...members].map(([picture, series]) => `${picture.baseName} ${series.length}`)).toEqual(['IMG_1 3', 'IMG_2 3', 'IMG_3 3', 'IMG_4 2', 'IMG_5 2'])
 	})
 
 	// spec: SERIES-001.15, SERIES-001.18

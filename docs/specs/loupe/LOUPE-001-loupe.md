@@ -210,7 +210,12 @@ IMAGES-001.
   by a 3 px white ring with a 1 px black inner edge and never dimmed, every other rejected one
   dimmed to 45 %, starting at the strip's left edge and scrolled to keep the shown one in the
   middle once it gets there, never past the last photo; it renders only the photos in view and a
-  few beyond, and a scroll shows others without paging
+  few beyond, and a scroll shows others without paging. A series (SERIES-001) gets one 2 px frame
+  with 8 px corners in the primary colour around each run of its photos in the strip, the shown
+  photo's ring inside it; a series counts its photos that are not rejected, decided or not, so a
+  rejected photo stays outside the frame and fewer than two end it. A run split off by the sort or
+  a filter gets its own frame. Once the loupe opens the compare from it, a frame carries a "⧉ N"
+  tab at its start, N the series' whole count, which opens the compare on that series (`N`)
 
 ### LOUPE-001.20 – Pinned filmstrip and rating row
 
