@@ -989,3 +989,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   makes the shown photo active when it is in that series, else the frame's first photo. The
   compare and its viewer mount inside the loupe (`.photo-loupe`), since the loupe sits above the
   page's dialogs; the viewer's title stays "Series 1 of 1" from the loupe, unchanged.
+- 2026-11-14: *Pick this, reject the rest* in the loupe (LOUPE-002.15, concept step 9) reuses the
+  compare's pick-and-land step (`pickRestAndLand` in `src/series-compare.ts`), so the loupe, the
+  compare and its viewer land after the series by one rule; the shortcut sheet's `Shift+K` row reads
+  "Series: pick this, reject the rest", since the key now works in the loupe as well.

@@ -37,7 +37,7 @@ const LABELS: Readonly<Record<string, string>> = {
 	'auto-advance': t('honeycomb', 'Auto-advance: every decision goes to the next photo'),
 	'toggle-pick': t('honeycomb', 'Toggle pick'),
 	'flag-buttons': t('honeycomb', 'Show or hide the flag buttons'),
-	'pick-rest': t('honeycomb', 'Series compare: pick this, reject the rest'),
+	'pick-rest': t('honeycomb', 'Series: pick this, reject the rest'),
 	rating: t('honeycomb', 'Set rating'),
 	'rating-next': t('honeycomb', 'Set rating and go to the next photo'),
 	'star-down': t('honeycomb', 'One star down'),

@@ -7,10 +7,13 @@ import type { CompareLanding } from './series-compare.ts'
 import { computed, nextTick, shallowRef } from 'vue'
 import { firstAfter, narrowSnapshot, snapshotIndex } from './logic/loupe-pictures.ts'
 
-/** The open loupe's snapshot of the cull's own pictures, not reactive proxies, and shown index, null while the grid shows, what it shows of them, and closing it back to the grid. */
+/** The open loupe's snapshot of the cull's own pictures, not reactive proxies, and shown index, null while the grid shows, what it shows of them and its picture, and closing it back to the grid. */
 export function useLoupeOpening(reveal: (index: number) => Promise<void> | undefined, passes: (picture: Picture<ListingEntry>) => boolean) {
 	const loupe = shallowRef<{ pictures: readonly Picture<ListingEntry>[], index: number } | null>(null)
 	const shown = computed(() => (loupe.value === null ? null : narrowSnapshot(loupe.value.pictures, loupe.value.index, passes)))
+
+	/** The picture the loupe shows, null while the grid shows. */
+	const picture = () => (loupe.value === null ? null : loupe.value.pictures[loupe.value.index] ?? null)
 
 	/** Shows the picture at the index of the shown pictures. */
 	function page(index: number) {
@@ -37,5 +40,5 @@ export function useLoupeOpening(reveal: (index: number) => Promise<void> | undef
 		await reveal(index)
 	}
 
-	return { loupe, shown, page, land, close }
+	return { loupe, shown, picture, page, land, close }
 }

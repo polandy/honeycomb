@@ -56,7 +56,7 @@ const sidecarFlow = useSidecarFlow(props.sidecars, toast.show)
 const cull = useCull({ hashImage: props.hashImage, warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions, tags: props.tags }, props.storage, () => settings.value, sidecarFlow.sync)
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
 const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
-const { loupe, shown: loupeShown, page: pageLoupe, land: landInLoupe, close: closeLoupe } = useLoupeOpening((index) => grid.value?.reveal(index), cull.passes)
+const { loupe, shown: loupeShown, picture: shownInLoupe, page: pageLoupe, land: landInLoupe, close: closeLoupe } = useLoupeOpening((index) => grid.value?.reveal(index), cull.passes)
 const loupeView = useTemplateRef<InstanceType<typeof PhotoLoupe>>('loupeView')
 const filterBar = useTemplateRef<InstanceType<typeof FilterBar>>('filterBar')
 const headerShown = ref(true)
@@ -77,7 +77,6 @@ const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => vie
 const { dialog: deleteDialog, rejected, rawRemovable } = deleting
 const moving = useMoveFlow({ view: () => view.value, settings: () => settings.value, updateSettings, probe: props.move.probeTargets, move: props.move.movePictures, removeFiles: cull.removeFiles, restoreFiles: cull.restoreFiles, listing: () => folderSet.value, loupe, toast: toast.show })
 const recent = useRecent(props.positions, props.listEntries, { folderSet: () => folderSet.value, progress: () => progress.value, pairing: () => cull.pairing.value }, (message) => toast.show(message))
-const shownInLoupe = () => (loupe.value === null ? null : loupe.value.pictures[loupe.value.index] ?? null)
 const resume = useResume(recent.positions, { folderSet: () => folderSet.value, pictures: () => pictures.value, view: () => view.value, progress: () => progress.value, decisionOf: cull.decisionOf, shown: shownInLoupe, openLoupe }, toast.show)
 /** Opens a folder set from *Recent* at its position. */
 function openRecent(position: ResumePosition) {
@@ -276,6 +275,7 @@ useHotkeys(() => {
 					@move="moving.openShown([], () => 0)"
 					@tag="tagEntry.open([$event])"
 					@compareSeries="(series, picture) => seriesCompare.startOn(series, picture, landInLoupe)"
+					@pickRest="(series, picture) => seriesCompare.pickRestAndLand(series, picture, landInLoupe)"
 					@close="closeLoupe" />
 				<TagEntry
 					v-if="tagEntry.targets.value !== null"

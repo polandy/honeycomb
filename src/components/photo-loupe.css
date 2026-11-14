@@ -62,6 +62,11 @@
 		margin-inline: var(--photo-loupe-rail) calc(var(--photo-loupe-panel) + var(--photo-loupe-rail));
 	}
 
+	/* One line keeps the row the height the filmstrip sits above. */
+	.photo-loupe .photo-loupe__pick-rest {
+		width: auto;
+	}
+
 	.photo-loupe__filmstrip--pinned {
 		position: static;
 		margin-inline-end: var(--photo-loupe-panel);
