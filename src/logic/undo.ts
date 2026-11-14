@@ -10,53 +10,66 @@ import { changedTags, sameTags } from './tag.ts'
 /** How many steps the undo history keeps (`docs/plan.md` M3.2). */
 export const UNDO_LIMIT = 50
 
-/** A change to the decisions, or Pick this, reject the rest by the picked picture's name. */
-export type UndoChange = DecisionChange | { readonly pickRest: string }
+/** What each kind of undo step changed, by its kind. */
+export interface StepChanges {
+	readonly decision: { readonly change: DecisionChange }
+	readonly pickRest: { readonly picked: string }
+	readonly tags: { readonly change: TagChange }
+}
 
-/** One step of the undo history: the change, the pictures it altered, and the rows it wrote and replaced. */
-export interface UndoEntry {
-	readonly change: UndoChange
-	readonly names: readonly string[]
+/** The kinds of undo step. */
+export type StepKind = keyof StepChanges
+
+/** A change of the given kinds with the names of the pictures it altered, all a toast needs. */
+export type DescribedStep<K extends StepKind = StepKind> = { [J in K]: { readonly kind: J, readonly names: readonly string[] } & StepChanges[J] }[K]
+
+/** The rows a decision step wrote and the rows it replaced. */
+interface DecisionRows {
 	readonly after: readonly StoredDecision[]
 	readonly before: readonly StoredDecision[]
 }
 
+/** A change to one field of the pictures' decisions, as an undo step. */
+export type DecisionStep = DescribedStep<'decision'> & DecisionRows
+
+/** Pick this, reject the rest by the picked picture's name, as an undo step (SERIES-001.9). */
+export type PickRestStep = DescribedStep<'pickRest'> & DecisionRows
+
+/** One tag change as an undo step: the change and the pictures it altered (TAGS-003.10). */
+export type TagStep<P> = DescribedStep<'tags'> & { readonly pictures: readonly P[] }
+
+/** One step of the undo history, tagged by its kind. */
+export type UndoStep<P> = DecisionStep | PickRestStep | TagStep<P>
+
 /** The undo step of a change to the pictures, or null when it alters none. */
-export function undoEntry(pictures: readonly Decided[], change: DecisionChange): UndoEntry | null {
-	return entryOf(pictures.map((decided) => ({ decided, change })), change)
+export function undoEntry(pictures: readonly Decided[], change: DecisionChange): DecisionStep | null {
+	const rows = rowsOf(pictures.map((decided) => ({ decided, change })))
+	return rows === null ? null : { kind: 'decision', change, ...rows }
 }
 
 /** The undo step that picks one picture and rejects the rest, or null when it alters none. */
-export function pickRestEntry(picked: Decided, rest: readonly Decided[]): UndoEntry | null {
-	const changes = [{ decided: picked, change: { flag: 'picked' } as const }, ...rest.map((decided) => ({ decided, change: { flag: 'rejected' } as const }))]
-	return entryOf(changes, { pickRest: picked.picture.baseName })
+export function pickRestEntry(picked: Decided, rest: readonly Decided[]): PickRestStep | null {
+	const rows = rowsOf([{ decided: picked, change: { flag: 'picked' } as const }, ...rest.map((decided) => ({ decided, change: { flag: 'rejected' } as const }))])
+	return rows === null ? null : { kind: 'pickRest', picked: picked.picture.baseName, ...rows }
 }
 
-/** The undo step of the changes that altered something, or null when none did. */
-function entryOf(changes: readonly { decided: Decided, change: DecisionChange }[], change: UndoChange): UndoEntry | null {
+/** The names and rows of the changes that altered something, or null when none did. */
+function rowsOf(changes: readonly { decided: Decided, change: DecisionChange }[]): DecisionRows & { readonly names: readonly string[] } | null {
 	const altered = changes.map(({ decided, change }) => ({ decided, rows: changedRows([decided], change) })).filter(({ rows }) => rows.length > 0)
 	if (altered.length === 0) {
 		return null
 	}
 	return {
-		change,
 		names: altered.map(({ decided }) => decided.picture.baseName),
 		after: altered.flatMap(({ rows }) => rows),
 		before: altered.flatMap(({ decided, rows }) => rows.map(({ fileId }) => ({ fileId, ...decided.decision }))),
 	}
 }
 
-/** One tag change as an undo step: the change and the pictures it altered (TAGS-003.10). */
-export interface TagStep<P> {
-	readonly change: TagChange
-	readonly names: readonly string[]
-	readonly pictures: readonly P[]
-}
-
 /** The undo step of a tag change to the pictures, or null when it alters none. */
 export function tagStep<P extends { baseName: string }>(pictures: readonly P[], tagsOf: (picture: P) => readonly Tag[], change: TagChange): TagStep<P> | null {
 	const altered = pictures.filter((picture) => !sameTags(changedTags(tagsOf(picture), change), tagsOf(picture)))
-	return altered.length === 0 ? null : { change, names: altered.map((picture) => picture.baseName), pictures: altered }
+	return altered.length === 0 ? null : { kind: 'tags', change, names: altered.map((picture) => picture.baseName), pictures: altered }
 }
 
 /** The history with the entry added last, keeping the most recent UNDO_LIMIT steps. */

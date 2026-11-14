@@ -11,7 +11,7 @@ import type { Filters } from './logic/picture-filter.ts'
 import type { SortOrder } from './logic/picture-order.ts'
 import type { Settings } from './logic/settings.ts'
 import type { TagChange } from './logic/tag.ts'
-import type { TagStep, UndoEntry } from './logic/undo.ts'
+import type { DecisionStep, PickRestStep, TagStep, UndoStep } from './logic/undo.ts'
 
 import { computed, ref, shallowRef, watch } from 'vue'
 import { readStored, writeStored } from './browser-storage.ts'
@@ -39,8 +39,8 @@ import { useVisualHashes } from './visual-hashes.ts'
 /** The browser storage key of the thumbnail size. */
 const TILE_SIZE_KEY = 'honeycomb.tileSize'
 
-/** A step of the cull's undo history: decisions or tags. */
-export type CullStep = UndoEntry | TagStep<Picture<ListingEntry>>
+/** A step of the cull's undo history. */
+export type CullStep = UndoStep<Picture<ListingEntry>>
 
 /** The open cull, its view settings and the folder picker's state; it pairs and shows singles as the settings say. */
 export function useCull(api: CullApi, storage: BrowserStorage, settings: () => Settings, sidecars: CullSidecars) {
@@ -142,12 +142,12 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const common = (chosen: readonly Picture<ListingEntry>[]) => commonDecision(decided(chosen))
 
 	/** Decides the pictures, keeps the step for undo and returns it, or null when nothing changes. */
-	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]): UndoEntry | null {
+	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]): DecisionStep | null {
 		return history.record(undoEntry(decided(chosen), resolveChange(intent, decided(chosen))))
 	}
 
 	/** Picks one picture and rejects the rest as one undo step (SERIES-001.9), or null when nothing changes. */
-	function pickRest(picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]): UndoEntry | null {
+	function pickRest(picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]): PickRestStep | null {
 		return history.record(pickRestEntry(decided([picked])[0]!, decided(rest)))
 	}
 
@@ -158,7 +158,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 
 	/** Puts a step into effect, or takes it back when `back`. */
 	function apply(step: CullStep, back: boolean) {
-		if ('pictures' in step) {
+		if (step.kind === 'tags') {
 			storeTags(step.pictures, back ? inverseChange(step.change) : step.change)
 		} else {
 			store(back ? step.before : step.after)
