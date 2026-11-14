@@ -46,3 +46,24 @@ test('picks the shown photo by the loupe\'s own Pick this, reject the rest and l
 	await expect(page.getByText('Picked IMG_0002, rejected the rest')).toBeVisible()
 	await expect(loupe.getByRole('heading', { name: 'IMG_0004' })).toBeVisible()
 })
+
+// spec: LOUPE-002.16
+test('offers Reject the other 2 in the toast after a plain Pick and lands after the series', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	await resetViewState(page)
+	const folder = `Series reject others ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	for (const [name, time] of [['IMG_0001', '10:00:00'], ['IMG_0002', '10:00:01'], ['IMG_0003', '10:00:02'], ['IMG_0004', '10:05:00']]) {
+		await upload(page, `${folder}/${name}.jpg`, withCaptureTime(JPEG, `2026:11:10 ${time}`))
+	}
+	await cullFolder(page, folder)
+	await page.getByRole('gridcell', { name: 'IMG_0002, JPG only' }).click()
+	const loupe = page.getByRole('dialog', { name: 'Loupe' })
+	await loupe.getByRole('dialog', { name: 'How to cull' }).getByRole('button', { name: 'Got it' }).click()
+
+	await loupe.getByRole('button', { name: 'Pick', exact: true }).click()
+	await page.getByRole('status').getByRole('button', { name: 'Reject the other 2' }).click()
+
+	await expect(page.getByText('Picked IMG_0002, rejected the rest')).toBeVisible()
+	await expect(loupe.getByRole('heading', { name: 'IMG_0004' })).toBeVisible()
+})

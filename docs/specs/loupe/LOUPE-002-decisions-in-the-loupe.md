@@ -143,6 +143,18 @@ Delete from the loupe: DELETE-002.
   line in landscape, so the row stays above the filmstrip; its tooltip names `Shift+K`, it stays
   while the flag buttons are hidden, and outside a series there is no button and `Shift+K` does nothing
 
+### LOUPE-002.16 – Reject the other N in the undo toast
+
+- **Given** the user picked the shown picture by *Pick*, `P`, `Shift+P` or a swipe, and its
+  series (SERIES-001) still has another unflagged picture
+- **When** the toast "Picked IMG_0002" shows
+- **Then** it offers **Reject the other 2** before *Undo*, N counting the series' other pictures
+  that are not rejected; a tap picks the picture and rejects them as one undo step with the toast
+  "Picked IMG_0002, rejected the rest · Undo", as *Pick this, reject the rest* does, and the loupe
+  lands on the first picture after the series only while it still shows a picture of that series,
+  else it stays; its tooltip names `Shift+K`; a plain *Pick* never rejects the others by itself,
+  and no other decision, nor a pick in the grid or on a compare card, offers it
+
 ## History
 
 | Date | Change |
@@ -156,3 +168,4 @@ Delete from the loupe: DELETE-002.
 | 2026-11-13 | .11 *Unflag* at the right edge carries its word (UX review L5) |
 | 2026-11-14 | .11 *Unflag* bottom centre above the filmstrip in landscape (owner decision 2) |
 | 2026-11-14 | .15 *Pick this, reject the rest* in the loupe (concept step 9) |
+| 2026-11-14 | .16 *Reject the other N* in the undo toast (concept step 10) |

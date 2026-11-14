@@ -128,6 +128,14 @@ A tile in the grid whose picture is in a series offered by the compare shows a r
 - **When** a picture is in a series the compare offers
 - **Then** its tile shows "⧉ 3" labelled "Series of 3"; a tile of any other picture has no badge
 
+### SERIES-002.11 – Reject the other N after a Pick in the viewer
+
+- **Given** the series viewer shows a photo and another photo of its series is unflagged
+- **When** the user picks it by *Pick* or `P`
+- **Then** the toast offers *Reject the other N* as in the loupe (LOUPE-002.16); a tap does what
+  the viewer's *Pick this, reject the rest* does (SERIES-002.7), and opened from the loupe the
+  compare closes and the loupe lands after the series (SERIES-001.24)
+
 ## Out of scope
 
 Zooming with the mouse wheel and a separate zoom level for the viewer: the viewer zooms like the
@@ -141,3 +149,4 @@ loupe, fit or 100 %.
 | 2026-11-14 | .1 preloads the loupe's window, not the whole series (series concept step 3). |
 | 2026-11-14 | The flag buttons run *Pick*, *Unflag*, *Reject*, *Unflag* bottom centre in landscape (series concept step 4). |
 | 2026-11-14 | Opened by *View full screen*, a double tap or `Enter` instead of a single tap; the close button becomes *Back to the series*; *Pick this, reject the rest* leaves the compare on the next series (series concept step 6, owner point 4). |
+| 2026-11-14 | .11 *Reject the other N* in the undo toast after a *Pick* in the viewer (series concept step 10). |

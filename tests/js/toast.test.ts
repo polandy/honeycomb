@@ -58,6 +58,24 @@ describe('useToast', () => {
 		expect(toast.current.value).toEqual({ message: 'Undid: Rejected IMG_1', action: null })
 	})
 
+	// spec: LOUPE-002.16
+	it('runs its offer like its action, hidden first, and keeps no offer it was not given', () => {
+		const scheduler = fakeScheduler()
+		const toast = useToast(scheduler.schedule)
+		const ran: string[] = []
+		const offer = { label: 'Reject the other 2', run: () => ran.push('offer') }
+		toast.show('Picked IMG_2', { label: 'Undo', run: () => ran.push('undo') }, offer)
+
+		expect(toast.current.value?.offer).toEqual(offer)
+		toast.offer()
+		expect(toast.current.value).toBeNull()
+		toast.offer()
+		expect(ran).toEqual(['offer'])
+		toast.show('Rejected IMG_1')
+		toast.offer()
+		expect(ran).toEqual(['offer'])
+	})
+
 	describe('held by focus or a press', () => {
 		const shown = () => {
 			const scheduler = fakeScheduler()
