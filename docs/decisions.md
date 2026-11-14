@@ -963,3 +963,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   activates after the open transition and focuses card 1, which scrolls the row back. The compare
   now focuses the active card's photo on open without scrolling, so the trap keeps it; scroll snap
   stays, it was not the cause (30 of 30 runs pass, 3 of 30 failed before; SERIES-001.21).
+- 2026-11-14: The full-screen series compare (concept step 5) puts *Skip* in the bottom bar beside
+  *Pick this, reject the rest*, not in the title row as the mockup draws it: NcDialog's header
+  holds only the title and the close button, and the bar keeps both series actions within thumb
+  reach. The cards keep their stars and flag mark next to the name, so a rating key shows its
+  effect on the card. "Phone" for the grid's 150 px minimum means the screen's shorter side is at
+  most 520 px, so a phone held sideways counts too (SERIES-001.21).

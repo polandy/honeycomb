@@ -32,7 +32,7 @@ every screen; each button's tooltip names its key.
 
 | Keys | What it does |
 |---|---|
-| `←` `→` `↑` `↓` | Grid: move the focus. Loupe, series compare and series viewer: switch to the previous or next photo. |
+| `←` `→` `↑` `↓` | Grid and series compare: move the focus, `↑` `↓` by a row. Loupe and series viewer: switch to the previous or next photo. |
 | `Home` and `End` | Go to the first or last photo. |
 | `Enter` | Open the focused photo in the loupe. |
 | `G` | Back to the grid. |
@@ -61,9 +61,12 @@ every screen; each button's tooltip names its key.
 
 Photos of one camera taken within a few seconds of each other, or up to 30 seconds apart while
 they look alike, form a series. A series ends a minute after its first photo; a later photo starts
-the next one. In the series compare and the
-series viewer the flag, rating and label keys act on the active photo and the arrow keys switch
-it, as in Lightroom's Survey view.
+the next one. The series compare (`N`) shows a series as a grid that fills the screen; where a
+long series does not fit, it scrolls down. In the series compare and the series viewer the flag,
+rating and label keys act on the active photo (in the compare the one with the honey frame) and
+the arrow keys switch it, as in Lightroom's Survey view: in the compare `←` `→` go in reading
+order and `↑` `↓` to the photo above or below. The bottom bar's *Pick this, reject the rest*
+acts on the active photo.
 
 | Keys | What it does |
 |---|---|
@@ -91,7 +94,7 @@ the grid. Like every [setting](settings.md), it follows you to every device.
 | Keys | What it does |
 |---|---|
 | `h` and `l` | Previous and next photo; in the grid, move the focus left and right. |
-| `j` and `k` | Grid: one row down and up. Elsewhere: next and previous photo. |
+| `j` and `k` | Grid and series compare: one row down and up. Elsewhere: next and previous photo. |
 | `g g` | Go to the first photo. |
 | `Shift+G` | Go to the last photo. |
 | `/` | Open the filter bar. |

@@ -161,9 +161,9 @@ pictures, a rejected picture disappears from view, and at the end delete all rej
    (owner, 2026-11-12: up to 30 seconds apart with a visual hash of the preview, 3 seconds by
    capture time until it is there; ADR 0021) form a series, however long (owner, 2026-11-13),
    up to 60 seconds from its first picture (owner, 2026-11-14),
-   shown side by side in a row that scrolls sideways beyond four. Tapping the best one
-   means *Pick this, reject the rest*: it is picked, the others rejected, as one undo step. The
-   owner's 2026-11-09 feedback changes how: see [Compact header and series
+   shown as a full-screen grid sized to fit the screen (owner decision 3, 2026-11-14). Tapping
+   the best one means *Pick this, reject the rest*: it is picked, the others rejected, as one
+   undo step. The owner's 2026-11-09 feedback changes how: see [Compact header and series
    viewer](#compact-header-and-series-viewer).
 5. **Auto-advance.** After each pick or reject the view moves to the next undecided picture
    (the setting stays, Q7 is answered). Rating and colour label do not advance.
@@ -363,9 +363,8 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
      rating and colour label for the shown photo, keys `P`, `U`, `X` — plus *Pick this, reject
      the rest* (`Shift+K`). On a phone it wraps to two rows; in landscape the flags sit at the side
      edges ([Loupe layout](#loupe-layout)). The series compare dialog shows the
-     same flag buttons and *Pick this, reject the rest* under each photo; in a card narrower
-     than 200 px the button drops its icon and wraps its label to two balanced lines (UX review
-     L3).
+     same flag buttons under each photo and *Pick this, reject the rest* for the active photo in
+     its bottom bar (series concept step 5).
 5. **Synchronised zoom.** Zooming one photo to 100 % (button, double-tap, pinch or `Z`) zooms
    every photo of the series to the same spot, and panning moves them together, so paging
    compares the same detail for sharpness. While zoomed, a swipe pans instead of paging.
@@ -533,7 +532,7 @@ against it. `Ctrl` on Windows and Linux is `⌘` on a Mac.
 | `6` `7` `8` `9` | colour label red, yellow, green, blue (toggle) | same keys |
 | `R` | *Keep RAW* (toggle; honeycomb only) | differs: `R` is Crop in Lightroom, which honeycomb does not have |
 | `T` | tag entry for the photo or the selection (TAGS-003) | differs: `T` shows or hides the toolbar in Lightroom |
-| Arrow keys | grid: move focus; loupe, series compare, series viewer: switch photo | same idea |
+| Arrow keys | grid, series compare: move focus, `↑` `↓` by a row; loupe, series viewer: switch photo | same idea |
 | `Home` `End` | first photo, last photo | not in the Adobe text read; the browser's usual meaning |
 | `G` `E` `N` | grid, loupe, series compare | `G` and `E` as in Lightroom; `N` is Survey there, series compare here |
 | `Space` | loupe: fit / 100 % | differs: Lightroom's `Space` leaves the grid for the loupe; `Z` zooms there |
@@ -605,7 +604,7 @@ whole set and leaves the loupe with `Esc`.
 | Keys (vi keys on) | Grid | Loupe, series compare, series viewer |
 |---|---|---|
 | `h` `l` | focus left, right | previous photo, next photo |
-| `j` `k` | focus one row down, up | next photo, previous photo, the order the grid reads in |
+| `j` `k` | focus one row down, up | next photo, previous photo, the order the grid reads in; series compare: one row down, up |
 | `g g` | first photo | first photo |
 | `Shift+G` | last photo | last photo |
 | `/` | open the filter bar and focus its first control | — |
@@ -713,7 +712,7 @@ takes its sizes from the pointer type ([Control sizes](#control-sizes)), not fro
 | `ColourLabels` (`colourLabel`, `showPalette`) | the label button and the nine-colour palette | action bar, filter bar | `decisions`, `hotkeys` |
 | `ActionBar` (`actionBar`) | rating, colour label, *Keep RAW* and flags; flags in a large row of their own (portrait) or at the side edges (landscape, [Loupe layout](#loupe-layout)), plus a slot | grid selection, loupe, series viewer | `decisions`, `hotkeys` |
 | `FlagButtonsToggle` (`flagBtnsToggle`) | the title-row icon button that shows or hides the large flag buttons ([Flag buttons and vi keys](#flag-buttons-and-vi-keys)) | loupe, series viewer | — |
-| `PickRestButton` (`pickRestBtn`) | *Pick this, reject the rest* | series compare card, series viewer | `series` |
+| `PickRestButton` (`pickRestBtn`) | *Pick this, reject the rest* | series compare bottom bar, series viewer | `series` |
 | `UndoToast` (`toast`) | the change in words, *Undo*, an optional action; focus or a press holds it, letting go restarts its time (WCAG 2.2.1) | every undoable change | `undo`: entries and their text |
 | `ConfirmDialog` (`confirmDialog`) | title, body, footer *Back* · *Cancel* · confirm; a bottom sheet on a phone | delete summary, reject review, move summary, folder picker, delete report | — |
 | `PhotoTile` (`tileInner`, `updateTile`) | thumbnail, pair and series badges (a complete pair quiet, a single highlighted), stars once rated, colour dot, flag mark (a bottom shade only behind these), selection check | grid | `pairing` |

@@ -6,36 +6,33 @@ import { cullFolder } from './cull.ts'
 import { createFolder, JPEG, upload, withCaptureTime } from './files.ts'
 
 const PHONE = { width: 320, height: 640 }
+const PHONE_SIDEWAYS = { width: 952, height: 427 }
 const DESKTOP = { width: 1440, height: 900 }
 
-// spec: SERIES-001.13
-test('wraps Pick this, reject the rest to two lines in a phone-wide compare card', async ({ page }) => {
-	await page.setViewportSize(PHONE)
-	await page.goto('/index.php/apps/honeycomb/')
-	const folder = `Series ${randomUUID().slice(0, 8)}`
-	await createFolder(page, folder)
-	await upload(page, `${folder}/IMG_0001.jpg`, withCaptureTime(JPEG, '2026:11:10 10:00:00'))
-	await upload(page, `${folder}/IMG_0002.jpg`, withCaptureTime(JPEG, '2026:11:10 10:00:01'))
+for (const [held, viewport] of [['upright', PHONE], ['sideways', PHONE_SIDEWAYS]] as const) {
+	// spec: SERIES-001.13
+	test(`shows the whole label of Pick this, reject the rest and hides the instructions on a phone held ${held}`, async ({ page }) => {
+		await page.setViewportSize(viewport)
+		await page.goto('/index.php/apps/honeycomb/')
+		const folder = `Series ${randomUUID().slice(0, 8)}`
+		await createFolder(page, folder)
+		await upload(page, `${folder}/IMG_0001.jpg`, withCaptureTime(JPEG, '2026:11:10 10:00:00'))
+		await upload(page, `${folder}/IMG_0002.jpg`, withCaptureTime(JPEG, '2026:11:10 10:00:01'))
 
-	await cullFolder(page, folder)
-	await expect(page.getByRole('gridcell')).toHaveCount(2)
-	await page.keyboard.press('n')
+		await cullFolder(page, folder)
+		await expect(page.getByRole('gridcell')).toHaveCount(2)
+		await page.keyboard.press('n')
 
-	const button = page.getByRole('dialog', { name: 'Compare series 1 of 1' }).getByRole('button', { name: 'Pick this, reject the rest' }).first()
-	await expect(button).toBeVisible()
-	const label = button.locator('.button-vue__text')
-	await expect(button.locator('.button-vue__icon')).toBeHidden()
-	const lines = await label.evaluate((element) => {
-		const range = document.createRange()
-		range.selectNodeContents(element)
-		return new Set([...range.getClientRects()].map((rect) => Math.round(rect.top))).size
+		const button = page.getByRole('dialog', { name: 'Compare series 1 of 1' }).getByRole('button', { name: 'Pick this, reject the rest' })
+		await expect(button).toBeInViewport({ ratio: 1 })
+		const label = button.locator('.button-vue__text')
+		expect(await label.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+		await expect(page.locator('.series-compare__hint')).toBeHidden()
 	})
-	expect(lines).toBe(2)
-	expect(await label.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
-})
+}
 
 // spec: SERIES-001.20
-test('fills the dialog height with the photos and keeps the flag buttons level beside a flagged card', async ({ page }) => {
+test('fills the screen with the compare and keeps the flag buttons level beside a flagged card', async ({ page }) => {
 	await page.setViewportSize(DESKTOP)
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Series ${randomUUID().slice(0, 8)}`
@@ -52,15 +49,16 @@ test('fills the dialog height with the photos and keeps the flag buttons level b
 
 	const tops = async (selector: string) => dialog.locator(selector).evaluateAll((elements) => elements.map((element) => Math.round(element.getBoundingClientRect().top)))
 	expect(new Set(await tops('.flag-buttons')).size).toBe(1)
-	expect(new Set(await tops('.pick-rest-button')).size).toBe(1)
+	await expect(dialog.locator('.pick-rest-button')).toHaveCount(1)
 	const photo = await dialog.locator('.series-compare__photo img').first().boundingBox()
-	expect(photo!.height).toBeGreaterThanOrEqual(DESKTOP.height / 2)
+	expect(photo!.width).toBeGreaterThanOrEqual(DESKTOP.width * 0.4)
 	const container = await page.locator('.series-compare-dialog .modal-container').boundingBox()
-	expect(container!.width).toBeGreaterThan(DESKTOP.width * 0.85)
+	expect(container!.width).toBe(DESKTOP.width)
+	expect(container!.y + container!.height).toBe(DESKTOP.height)
 })
 
 // spec: SERIES-001.4, SERIES-001.21
-test('shows a whole burst as one series in one row that scrolls to the active card', async ({ page }) => {
+test('shows a whole burst as one series in a grid that scrolls down to the active card', async ({ page }) => {
 	await page.setViewportSize(PHONE)
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Series ${randomUUID().slice(0, 8)}`
@@ -76,12 +74,15 @@ test('shows a whole burst as one series in one row that scrolls to the active ca
 	const cards = dialog.locator('.series-compare__card')
 	await expect(cards).toHaveCount(6)
 
-	const tops = await cards.evaluateAll((elements) => elements.map((element) => Math.round(element.getBoundingClientRect().top)))
-	expect(new Set(tops).size).toBe(1)
+	const grid = dialog.locator('.series-compare')
+	expect(await grid.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+	const columns = new Set(await cards.evaluateAll((elements) => elements.map((element) => Math.round(element.getBoundingClientRect().left)))).size
 	await expect(cards.last()).not.toBeInViewport()
 	for (const _ of [1, 2, 3, 4, 5]) {
 		await page.keyboard.press('ArrowRight')
 	}
 	await expect(cards.last().locator('.series-compare__photo')).toHaveAttribute('aria-pressed', 'true')
 	await expect(cards.last()).toBeInViewport()
+	await page.keyboard.press('ArrowUp')
+	await expect(cards.nth(5 - columns).locator('.series-compare__photo')).toHaveAttribute('aria-pressed', 'true')
 })

@@ -8,6 +8,7 @@ import type { Settings } from './logic/settings.ts'
 import type { Toast } from './toast.ts'
 
 import { computed, ref, shallowRef } from 'vue'
+import { rowStep } from './logic/compare-grid.ts'
 import { stepRating } from './logic/hotkeys.ts'
 import { useSeriesViewer } from './series-viewer.ts'
 
@@ -29,6 +30,7 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	const index = ref(0)
 	const activeIndex = ref(0)
 	const anchor = shallowRef<readonly P[]>([])
+	const columns = ref(1)
 
 	const all = computed(() => context.series()
 		.map((series) => series.filter((picture) => context.decisionOf(picture).flag !== 'rejected'))
@@ -46,6 +48,16 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	function setActive(at: number) {
 		anchor.value = current.value ?? []
 		activeIndex.value = Math.max(0, Math.min(at, anchor.value.length - 1))
+	}
+
+	/** Takes the grid's column count, which `↑` `↓` step by (SERIES-001.10). */
+	function setColumns(count: number) {
+		columns.value = count
+	}
+
+	/** Makes the picture a row above (-1) or below (1) active. */
+	function stepRow(step: -1 | 1) {
+		setActive(rowStep(active.value, step, columns.value, current.value?.length ?? 0))
 	}
 
 	/** Shows the series at `at` with its first picture active. */
@@ -120,12 +132,14 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 		decide: decideByKey,
 		previous: () => setActive(active.value - 1),
 		next: () => setActive(active.value + 1),
+		up: () => stepRow(-1),
+		down: () => stepRow(1),
 		'pick-rest': () => pickRest(),
 		close,
 	}
 
 	const { settings, updateSettings, toast } = context
-	return { open, current, position, count, active, setActive, start, close, skip, decide, pickRest, hotkeys, viewer, view, settings, updateSettings, toast }
+	return { open, current, position, count, active, setActive, setColumns, start, close, skip, decide, pickRest, hotkeys, viewer, view, settings, updateSettings, toast }
 }
 
 export type SeriesCompareFlow<P> = ReturnType<typeof useSeriesCompare<P>>

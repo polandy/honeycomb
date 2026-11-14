@@ -134,6 +134,24 @@ describe('useSeriesCompare', () => {
 	})
 
 	// spec: SERIES-001.10
+	it('moves the active picture a row up or down by the grid\'s columns', () => {
+		const { compare } = compareOf(['A', 'B', 'C', 'D', 'E'])
+		compare.start()
+		const keys = compare.hotkeys
+		keys.down!()
+		expect(compare.active.value).toBe(1)
+		compare.setColumns(3)
+		keys.down!()
+		expect(compare.active.value).toBe(4)
+		keys.down!()
+		expect(compare.active.value).toBe(4)
+		keys.up!()
+		expect(compare.active.value).toBe(1)
+		keys.up!()
+		expect(compare.active.value).toBe(1)
+	})
+
+	// spec: SERIES-001.10
 	it('decides the active picture by a key, steps a rating from its own, and moves on with advance', () => {
 		const { compare, calls } = compareOf(['A', 'B', 'C'])
 		compare.start()

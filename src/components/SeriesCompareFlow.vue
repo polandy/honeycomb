@@ -41,6 +41,7 @@ defineExpose({ hotkeys })
 		@decide="props.flow.decide"
 		@pickRest="props.flow.pickRest"
 		@view="props.flow.view"
+		@columns="props.flow.setColumns"
 		@skip="props.flow.skip"
 		@close="props.flow.close" />
 	<Teleport to="body">
