@@ -53,6 +53,20 @@ describe('PhotoLoupe: the first-series hint', () => {
 		expect(saved).toEqual([])
 	})
 
+	// spec: LOUPE-001.26
+	it('wakes the faded controls when it shows and keeps them while it shows', async () => {
+		const { wrapper, root, scheduler } = await mountWithHint(0)
+		scheduler.fire()
+		await flushPromises()
+		expect(root.classes('photo-loupe--idle')).toBe(true)
+
+		await wrapper.setProps({ index: 4 })
+		expect(root.classes('photo-loupe--idle')).toBe(false)
+		scheduler.fire()
+		await flushPromises()
+		expect(root.classes('photo-loupe--idle')).toBe(false)
+	})
+
 	// spec: LOUPE-001.26, LOUPE-003.6
 	it('goes for good by Got it, gives the keys back to the loupe and stops the pulse', async () => {
 		const { wrapper, root, saved } = await mountWithHint()
