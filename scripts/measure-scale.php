@@ -5,8 +5,7 @@
 
 declare(strict_types=1);
 
-// Runs inside the e2e container: times one listing or bulk save through the app's services and counts its queries.
-// Usage: php measure-scale.php <user> listing <path> | <user> decisions|tags <count> <path prefix>
+// Usage (in the e2e container): php measure-scale.php <user> listing <path> | <user> decisions|tags <count> <path prefix>
 
 use OCA\Honeycomb\Service\DecisionService;
 use OCA\Honeycomb\Service\ListingService;
