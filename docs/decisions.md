@@ -1022,3 +1022,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-14: Saving decisions and tags inserts their rows with one multi-row `INSERT` per 1,000
   rows, built as plain SQL because Nextcloud's query builder inserts one row; Oracle before 23ai
   has no multi-row `VALUES`, so it keeps one row per statement rather than a second dialect.
+- 2026-11-14: `occ app:remove honeycomb` keeps the tables and settings on Nextcloud 35 and the
+  docs say how to delete them by hand; honeycomb gets no uninstall step that deletes user data,
+  which would need an ADR and the owner's decision. The admin docs now say the `migrations:`
+  commands need debug mode, because Nextcloud 35 only registers them there.

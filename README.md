@@ -90,8 +90,12 @@ A Git checkout needs a build first (`composer install --no-dev`, `npm ci`, `npm 
 
 **Updating.** Every release needs `occ app:update honeycomb` (App Store) or `occ upgrade` (after
 unpacking a tarball), so its database migrations run. An instance installed from a Git checkout
-before tag storage (#119) also needs `occ migrations:migrate honeycomb` once. Use Redis for file
-locking. Details: [`docs/admin/updating.md`](docs/admin/updating.md).
+before tag storage (#119) also needs `occ migrations:migrate honeycomb` once, in debug mode. Use
+Redis for file locking. Details: [`docs/admin/updating.md`](docs/admin/updating.md).
+
+**Removing.** `occ app:remove honeycomb` keeps honeycomb's tables and settings, so a new install
+shows the old decisions and tags again. What stays and how to delete it:
+[`docs/admin/removing.md`](docs/admin/removing.md).
 
 **Signing.** Release tarballs carry `appinfo/signature.json`, made with the app's App Store
 certificate (`occ integrity:sign-app`). Nextcloud's code integrity check verifies it and warns
