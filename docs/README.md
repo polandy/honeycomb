@@ -13,6 +13,7 @@ Open only the file, or the section, a change touches.
 | [`06-xmp-interop.md`](06-xmp-interop.md) | XMP sidecars: digiKam, darktable and Lightroom fields, precedence, write rules, test vectors |
 | [`07-tags.md`](07-tags.md) | Tags like digiKam's (concept): XMP fields, tag entry, bulk tagging, tag filter, decisions |
 | [`user/`](user/) | Documentation for users, e.g. [ratings, flags and colours in other programs](user/ratings-flags-colours.md), [tags](user/tags.md), [keyboard shortcuts](user/keyboard-shortcuts.md), [settings](user/settings.md) |
+| [`admin/`](admin/) | Documentation for Nextcloud admins: [updating](admin/updating.md), the one-time migration for early installs, file locking |
 | [`specs/`](specs/) | What the merged code does, one spec per feature, coupled to the tests (ADR 0015) |
 | [`plan.md`](plan.md) | Milestones, project structure, target versions, open questions |
 | [`mockup/index.html`](mockup/index.html) | The interactive mockup (milestone M0), with the tag entry (`T`) and the tag filter; open it in a browser |

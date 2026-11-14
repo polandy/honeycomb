@@ -73,7 +73,7 @@ Nothing is released yet; this is how honeycomb will be installed. It needs Nextc
   folder is fast. honeycomb itself warms the previews of an opened folder without cron.
 
 **From the App Store.** As an admin, open *Apps*, search for honeycomb and click *Download and
-enable*, or run `occ app:install honeycomb`. Updates arrive the same way.
+enable*, or run `occ app:install honeycomb`.
 
 **Manually.** Download the release tarball `honeycomb-<version>.tar.gz` from the [GitHub
 releases](https://github.com/polandy/honeycomb/releases), unpack it into the server's
@@ -87,6 +87,11 @@ sudo -u www-data php /var/www/nextcloud/occ app:enable honeycomb
 ```
 
 A Git checkout needs a build first (`composer install --no-dev`, `npm ci`, `npm run build`).
+
+**Updating.** Every release needs `occ app:update honeycomb` (App Store) or `occ upgrade` (after
+unpacking a tarball), so its database migrations run. An instance installed from a Git checkout
+before tag storage (#119) also needs `occ migrations:migrate honeycomb` once. Use Redis for file
+locking. Details: [`docs/admin/updating.md`](docs/admin/updating.md).
 
 **Signing.** Release tarballs carry `appinfo/signature.json`, made with the app's App Store
 certificate (`occ integrity:sign-app`). Nextcloud's code integrity check verifies it and warns
