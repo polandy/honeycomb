@@ -15,7 +15,7 @@ import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { ENTRIES, fakeStorage, SET, stored } from './app-cull.ts'
+import { ENTRIES, fakeStorage, NO_SERIES, SET, stored } from './app-cull.ts'
 
 const THREE_REJECTED: Decision = { ...UNDECIDED, rating: 3, flag: 'rejected' }
 
@@ -52,6 +52,7 @@ function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<
 		saveVisualHashes: async () => undefined,
 		warmPreviews: async () => undefined,
 		lookupDecisions: async () => options.stored ?? [],
+		lookupSeries: NO_SERIES,
 		saveDecisions: async (rows) => {
 			saved.push([...rows])
 			if (options.saveFails) {

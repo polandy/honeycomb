@@ -30,6 +30,7 @@ import { withoutFiles } from './logic/trash-report.ts'
 import { applyStep, pickRestEntry, tagStep, undoEntry } from './logic/undo.ts'
 import { usePreviewWarmer } from './preview-warmer.ts'
 import { useSeries } from './series.ts'
+import { useStoredSeries } from './stored-series.ts'
 import { useViewOptions } from './view-options.ts'
 
 /** A step of the cull's undo history. */
@@ -67,7 +68,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const cullProgress = computed(() => progress(pictures.value, decisionOf))
 	const shownProgress = computed(() => progress(view.value, decisionOf))
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
-	const seriesState = useSeries(api, storage, () => pictures.value, decisionOf)
+	const storedSeries = useStoredSeries(api.lookupSeries, () => opening)
+	const seriesState = useSeries(api, storage, () => pictures.value, decisionOf, () => storedSeries.rows.value)
 	const warmer = usePreviewWarmer(api.warmPreviews, storage)
 	const sharedPictures = computed(() => pictures.value.filter((picture) => inSharedFolder(picture, sharedFolders.value)))
 
@@ -80,6 +82,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		paired.value = prepareCull(listed, pairing.value).pictures
 		decisions.value = new Map()
 		tags.reset()
+		storedSeries.reset()
 		tags.loadList()
 		history.reset()
 		saveFailed.value = false
@@ -93,9 +96,10 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		loadDecisions(paired.value)
 	})
 
-	/** Reads the decisions and tags of every member, then takes the sidecars' over; they apply only while the same pictures are open, under changes made meanwhile. */
+	/** Reads the decisions, tags and stored series of every member, then takes the sidecars' over; they apply only while the same pictures are open, under changes made meanwhile. */
 	function loadDecisions(opened: readonly Picture<ListingEntry>[]) {
 		const storedTags = tags.load(opened)
+		storedSeries.load(opened)
 		api.lookupDecisions(opened.flatMap(memberIds)).then(async (rows) => {
 			if (paired.value !== opened) {
 				return
@@ -196,6 +200,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		entries.value = [...entries.value, ...restored]
 		paired.value = prepareCull(entries.value, pairing.value).pictures
 		tags.restore(restored.map((entry) => entry.fileId))
+		storedSeries.restore(restored.map((entry) => entry.fileId))
 		const unknown = restored.map((entry) => entry.fileId).filter((fileId) => !decisions.value.has(fileId))
 		const opened = opening
 		if (unknown.length > 0) {

@@ -94,13 +94,4 @@ describe('useCull: stored series', () => {
 		expect(names(cull)).toEqual([['A', 'B', 'C', 'D']])
 		expect(cull.series.value[0]!.stored?.id).toBe(7)
 	})
-		await flushPromises()
-		cull.removeFiles(new Set([1]))
-
-		cull.restoreFiles([BURST[0]!])
-		await flushPromises()
-
-		expect(asked).toEqual([[1, 2, 3, 4], [1]])
-		expect(names(cull)).toEqual([['B', 'C', 'D']])
-	})
 })

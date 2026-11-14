@@ -7,6 +7,7 @@ import type { Picture } from './logic/pairing.ts'
 import type { SidecarFailure } from './logic/sidecar-sync.ts'
 import type { Tag, TagChange } from './logic/tag.ts'
 import type { WarmPreviews } from './preview-warmer.ts'
+import type { LookupSeries } from './stored-series.ts'
 import type { HashImage, SaveVisualHashes } from './visual-hashes.ts'
 
 type Written = Promise<{ written: number, failed: SidecarFailure[] }>
@@ -25,5 +26,6 @@ export interface CullApi {
 	readonly warmPreviews: WarmPreviews
 	readonly lookupDecisions: (fileIds: readonly number[]) => Promise<StoredDecision[]>
 	readonly saveDecisions: (decisions: readonly StoredDecision[]) => Promise<void>
+	readonly lookupSeries: LookupSeries
 	readonly tags: CullTagsApi
 }

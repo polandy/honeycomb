@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// @vitest-environment happy-dom
 import type { SeriesLookup } from '../../src/logic/stored-series.ts'
 
 import { flushPromises } from '@vue/test-utils'

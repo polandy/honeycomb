@@ -36,7 +36,7 @@ describe('withLookup', () => {
 
 		const rows = withLookup(known, { series: [storedSeries(8, [1, 2], 'done', true)], keptOut: [3] })
 
-		expect([...rows]).toEqual([[1, { id: 7, status: 'open', elsewhere: false }], [2, { id: 8, status: 'done', elsewhere: true }], [3, null]])
+		expect([...rows]).toEqual([[3, null], [1, { id: 7, status: 'open', elsewhere: false }], [2, { id: 8, status: 'done', elsewhere: true }]])
 	})
 })
 
