@@ -13,11 +13,10 @@ use OCP\DB\Exception as DbException;
 
 /** Keeps visual hashes in memory, by user and file id. */
 final class FakeVisualHashStore implements VisualHashStore {
+	use FakeFileRows;
+
 	/** @var array<string, array<int, VisualHash>> */
 	public array $rows = [];
-
-	/** @var list<int> The file ids deleted for good. */
-	public array $vanished = [];
 
 	/** @var list<list<int>> The file ids of each `find()` call. */
 	public array $findCalls = [];
@@ -53,16 +52,6 @@ final class FakeVisualHashStore implements VisualHashStore {
 			unset($this->rows[$userId][$fileId]);
 			$this->rows[$userId][$newFileId] = new VisualHash($newFileId, $hash->etag, $hash->hash);
 		}
-	}
-
-	#[\Override]
-	public function forgetVanishedFiles(): int {
-		$removed = 0;
-		foreach ($this->rows as $userId => $rows) {
-			$this->rows[$userId] = array_diff_key($rows, array_flip($this->vanished));
-			$removed += count($rows) - count($this->rows[$userId]);
-		}
-		return $removed;
 	}
 
 	#[\Override]

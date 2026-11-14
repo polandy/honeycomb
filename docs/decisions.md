@@ -1084,3 +1084,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   load, which is queued when it arrives.
 - 2026-11-14: With two Vite entries each chunk injects its own CSS (`relativeCSSInjection`) and the
   hash worker is built into `js/`, so the cull keeps its styles and REUSE sees no stray assets.
+- 2026-11-14: The clean-up job reads at most 100 chunks of 1,000 rows per table and run, so a cron
+  run stays short; a table of more than 100,000 rows takes several days per pass, and a leftover
+  row of a deleted file costs nothing but space. The cursor is a lazy app config value per table.
+- 2026-11-14: A database error in one table of the clean-up job is logged and the other tables are
+  still cleaned; the row id of the last finished chunk is kept, so the next run goes on from there.

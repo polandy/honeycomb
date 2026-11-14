@@ -11,8 +11,12 @@ use OCA\Honeycomb\BackgroundJob\RemoveVanishedDecisions;
 use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\PictureDecision;
 use OCA\Honeycomb\Service\PictureTags;
+use OCA\Honeycomb\Service\VanishedFileSweep;
 use OCA\Honeycomb\Service\VisualHash;
+use OCA\Honeycomb\Tests\Service\AppConfigStub;
+use OCA\Honeycomb\Tests\Service\FakeDbException;
 use OCA\Honeycomb\Tests\Service\FakeDecisionStore;
+use OCA\Honeycomb\Tests\Service\FakeExistingFiles;
 use OCA\Honeycomb\Tests\Service\FakeTagStore;
 use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -20,14 +24,27 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 final class RemoveVanishedDecisionsTest extends TestCase {
+	use AppConfigStub;
+
 	private const int DAY = 86_400;
+
+	private FakeExistingFiles $files;
+
+	#[\Override]
+	protected function setUp(): void {
+		$this->files = new FakeExistingFiles();
+	}
+
+	private function sweep(): VanishedFileSweep {
+		return new VanishedFileSweep($this->files, $this->appConfigStub());
+	}
 
 	private function runJob(RemoveVanishedDecisions $job): void {
 		(new \ReflectionMethod($job, 'run'))->invoke($job, null);
 	}
 
 	public function testRunsOnceADayAtAnyTime(): void {
-		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore(), $this->createStub(LoggerInterface::class));
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore(), $this->sweep(), $this->createStub(LoggerInterface::class));
 
 		$this->assertSame(self::DAY, $job->getInterval());
 		$this->assertFalse($job->isTimeSensitive());
@@ -40,10 +57,10 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 			'alice' => [7 => new PictureDecision(7, 3, null, Flag::Picked, false), 8 => new PictureDecision(8, 1, null, Flag::Unflagged, false)],
 			'bob' => [7 => new PictureDecision(7, 0, null, Flag::Rejected, false)],
 		];
-		$store->vanished = [7];
+		$this->files->vanished = [7];
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('info')->with($this->stringContains('2'));
-		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), $store, new FakeTagStore(), new FakeVisualHashStore(), $logger);
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), $store, new FakeTagStore(), new FakeVisualHashStore(), $this->sweep(), $logger);
 
 		$this->runJob($job);
 
@@ -54,7 +71,7 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 	public function testLogsNothingWhenNoRowIsLeftBehind(): void {
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->never())->method('info');
-		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore(), $logger);
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore(), $this->sweep(), $logger);
 
 		$this->runJob($job);
 	}
@@ -64,10 +81,10 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 		$tags = new FakeTagStore();
 		$tags->replace('alice', [7, 8], [new PictureTags(7, ['Anna']), new PictureTags(8, ['Bert'])]);
 		$tags->replace('bob', [7], [new PictureTags(7, ['Carl'])]);
-		$tags->vanished = [7];
+		$this->files->vanished = [7];
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('info')->with($this->stringContains('2 tag rows'));
-		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FakeDecisionStore(), $tags, new FakeVisualHashStore(), $logger);
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FakeDecisionStore(), $tags, new FakeVisualHashStore(), $this->sweep(), $logger);
 
 		$this->runJob($job);
 
@@ -82,13 +99,30 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 			'alice' => [7 => new VisualHash(7, 'etag-7', '0000000000000007'), 8 => new VisualHash(8, 'etag-8', '0000000000000008')],
 			'bob' => [7 => new VisualHash(7, 'etag-7', '0000000000000007')],
 		];
-		$hashes->vanished = [7];
+		$this->files->vanished = [7];
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('info')->with($this->stringContains('2 visual hash rows'));
-		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FakeDecisionStore(), new FakeTagStore(), $hashes, $logger);
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FakeDecisionStore(), new FakeTagStore(), $hashes, $this->sweep(), $logger);
 
 		$this->runJob($job);
 
 		$this->assertSame(['alice' => [8], 'bob' => []], array_map(array_keys(...), $hashes->rows));
+	}
+
+	// spec: DECISIONS-001.18
+	public function testAFailedTableIsLoggedAndTheOthersAreCleaned(): void {
+		$decisions = new FakeDecisionStore();
+		$decisions->readFails = true;
+		$hashes = new FakeVisualHashStore();
+		$hashes->rows = ['alice' => [7 => new VisualHash(7, 'etag-7', '0000000000000007')]];
+		$this->files->vanished = [7];
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->expects($this->once())->method('error')->with($this->stringContains('decision'), $this->callback(fn (array $context): bool => $context['exception'] instanceof FakeDbException));
+		$logger->expects($this->once())->method('info')->with($this->stringContains('1 visual hash row'));
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), $decisions, new FakeTagStore(), $hashes, $this->sweep(), $logger);
+
+		$this->runJob($job);
+
+		$this->assertSame(['alice' => []], array_map(array_keys(...), $hashes->rows));
 	}
 }

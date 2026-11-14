@@ -26,7 +26,11 @@ continues on any device and each user of a shared folder keeps their own.
   puts back what it replaced, except the files a later save stored; once no save is in flight or
   waiting, the newest failed save is put back first.
 - A daily background job removes the rows of files deleted for good, of every user. A file in the
-  trash bin is not deleted for good: restored, it keeps its decision (DELETE-001.8).
+  trash bin is not deleted for good: restored, it keeps its decision (DELETE-001.8). For each of
+  the decision, tag and visual hash tables it reads 1,000 rows at a time in row id order, asks the
+  file cache which of their file ids still exist, without a join, and stops after 100 chunks. The
+  row id it stopped at is kept in the app config, so the next run goes on from there; at the end of
+  a table the next run starts again from the beginning.
 - Deleting a user removes their rows.
 
 ## Acceptance criteria
@@ -130,6 +134,27 @@ continues on any device and each user of a shared folder keeps their own.
   before it, and the grid says the save failed; when the later save failed too, the file shows
   what it had before the first
 
+### DECISIONS-001.16 – The clean-up goes through a table in chunks
+
+- **Given** no rows, exactly 1,000 rows, 1,001 rows, or rows of files that are all deleted for good
+- **When** the clean-up job runs
+- **Then** it reads the rows 1,000 at a time after the last row id of the chunk before, removes
+  the rows whose file is gone, and ends the pass at the first chunk shorter than 1,000
+
+### DECISIONS-001.17 – A long table is cleaned over several runs
+
+- **Given** more rows than one run reads
+- **When** the clean-up job runs again
+- **Then** it goes on after the last row id of the run before, and after the last row it starts
+  again from the first
+
+### DECISIONS-001.18 – A failed clean-up of one table
+
+- **Given** a database error while one table is cleaned
+- **When** the clean-up job runs
+- **Then** the error is logged, the other tables are cleaned, and the next run goes on after the
+  last chunk that was finished
+
 ## Out of scope
 
 Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XMP sidecars (M5).
@@ -143,3 +168,4 @@ Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XM
 | 2026-11-11 | A save that loses a race on the unique key is repeated (DECISIONS-001.13) |
 | 2026-11-14 | A tab sends one save at a time, the newest state per file (DECISIONS-001.14, .15) |
 | 2026-11-14 | A deadlock or lock wait timeout is repeated like a unique-key conflict (DECISIONS-001.13) |
+| 2026-11-14 | The clean-up job pages by row id without joining the file cache (DECISIONS-001.16–.18) |

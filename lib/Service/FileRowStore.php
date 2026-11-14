@@ -12,8 +12,19 @@ interface FileRowStore {
 	/** Moves the user's row of `$fileId`, if there is one, to `$newFileId`. */
 	public function carryOver(string $userId, int $fileId, int $newFileId): void;
 
-	/** Removes the rows of every user whose file is deleted for good and returns how many. */
-	public function forgetVanishedFiles(): int;
+	/**
+	 * The file ids of at most `$limit` rows of every user with a row id above `$afterId`, in row id order.
+	 * @return array<int, int> row id to file id
+	 * @throws \OCP\DB\Exception
+	 */
+	public function fileIdsAfter(int $afterId, int $limit): array;
+
+	/**
+	 * Removes the rows with these row ids and returns how many.
+	 * @param list<int> $ids
+	 * @throws \OCP\DB\Exception
+	 */
+	public function deleteRows(array $ids): int;
 
 	/** Removes every row of the user. */
 	public function forgetUser(string $userId): void;

@@ -30,27 +30,33 @@ trait FileRowQueries {
 			->executeStatement();
 	}
 
-	/** A file in the trash bin keeps its file cache row, so only a file deleted for good is gone. */
+	/** @return array<int, int> row id to file id */
 	#[\Override]
-	public function forgetVanishedFiles(): int {
+	public function fileIdsAfter(int $afterId, int $limit): array {
+		$query = $this->db->getQueryBuilder();
+		$query->select('id', 'file_id')
+			->from($this->getTableName())
+			->where($query->expr()->gt('id', $query->createNamedParameter($afterId, IQueryBuilder::PARAM_INT)))
+			->orderBy('id')
+			->setMaxResults($limit);
+		$result = $query->executeQuery();
+		$fileIds = [];
+		while (($row = $result->fetch()) !== false) {
+			$fileIds[(int)$row['id']] = (int)$row['file_id'];
+		}
+		$result->closeCursor();
+		return $fileIds;
+	}
+
+	#[\Override]
+	public function deleteRows(array $ids): int {
 		$removed = 0;
-		do {
+		foreach (array_chunk($ids, self::IN_CHUNK) as $chunk) {
 			$query = $this->db->getQueryBuilder();
-			$query->selectDistinct('r.file_id')
-				->from($this->getTableName(), 'r')
-				->leftJoin('r', 'filecache', 'f', $query->expr()->eq('r.file_id', 'f.fileid'))
-				->where($query->expr()->isNull('f.fileid'))
-				->setMaxResults(self::IN_CHUNK);
-			$result = $query->executeQuery();
-			$fileIds = array_map(intval(...), $result->fetchAll(\PDO::FETCH_COLUMN));
-			$result->closeCursor();
-			if ($fileIds !== []) {
-				$delete = $this->db->getQueryBuilder();
-				$removed += $delete->delete($this->getTableName())
-					->where($delete->expr()->in('file_id', $delete->createNamedParameter($fileIds, IQueryBuilder::PARAM_INT_ARRAY)))
-					->executeStatement();
-			}
-		} while (count($fileIds) === self::IN_CHUNK);
+			$removed += $query->delete($this->getTableName())
+				->where($query->expr()->in('id', $query->createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)))
+				->executeStatement();
+		}
 		return $removed;
 	}
 
