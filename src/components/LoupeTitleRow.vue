@@ -4,9 +4,11 @@
 -->
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
+import { useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import FlagButtonsToggle from './FlagButtonsToggle.vue'
+import SeriesHint from './SeriesHint.vue'
 import { useFullscreenState } from '../fullscreen.ts'
 import { keyCap } from '../hotkeys.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
@@ -26,11 +28,14 @@ const props = withDefaults(defineProps<{
 	flagButtonsShown: boolean
 	/** The shown picture's place in its series, from 1, and the series' count; null outside a series (LOUPE-001.25). */
 	series?: { position: number, count: number } | null
-}>(), { series: null })
+	/** Whether the first-series hint shows under the chip, which then pulses (LOUPE-001.26). */
+	seriesHint?: boolean
+}>(), { series: null, seriesHint: false })
 
 const emit = defineEmits<{
 	close: []
 	compareSeries: []
+	dismissSeriesHint: []
 	move: []
 	toggleZoom: []
 	toggleFullscreen: []
@@ -41,13 +46,15 @@ const emit = defineEmits<{
 }>()
 
 const fullscreen = useFullscreenState()
+const row = useTemplateRef<HTMLElement>('row')
+const chip = useTemplateRef<HTMLButtonElement>('chip')
 
 /** The mark that stands for a series, as on the filmstrip's frame tab. */
 const SERIES_MARK = '⧉'
 </script>
 
 <template>
-	<header class="loupe-title-row">
+	<header ref="row" class="loupe-title-row">
 		<NcButton
 			variant="tertiary"
 			:aria-label="t('honeycomb', 'Close loupe')"
@@ -61,15 +68,24 @@ const SERIES_MARK = '⧉'
 			{{ props.name }}
 		</h2>
 		<span class="loupe-title-row__count">{{ t('honeycomb', '{position} of {count}', { position: formatNumber(props.index + 1), count: formatNumber(props.count) }, undefined, PLAIN_TEXT) }}</span>
-		<button
-			v-if="props.series !== null"
-			type="button"
-			class="loupe-title-row__series"
-			:aria-label="t('honeycomb', 'Photo {position} of a series of {count} – compare', { position: formatNumber(props.series.position), count: formatNumber(props.series.count) }, undefined, PLAIN_TEXT)"
-			v-bind="tip(t('honeycomb', 'Compare this series'), keyCap('compare'))"
-			@click="emit('compareSeries')">
-			{{ SERIES_MARK }} <span class="loupe-title-row__series-word">{{ t('honeycomb', 'Series') }}</span> {{ t('honeycomb', '{position}/{count}', { position: formatNumber(props.series.position), count: formatNumber(props.series.count) }, undefined, PLAIN_TEXT) }}
-		</button>
+		<span v-if="props.series !== null" class="loupe-title-row__series-anchor">
+			<button
+				ref="chip"
+				type="button"
+				class="loupe-title-row__series"
+				:class="{ 'loupe-title-row__series--pulse': props.seriesHint }"
+				:aria-label="t('honeycomb', 'Photo {position} of a series of {count} – compare', { position: formatNumber(props.series.position), count: formatNumber(props.series.count) }, undefined, PLAIN_TEXT)"
+				v-bind="tip(t('honeycomb', 'Compare this series'), keyCap('compare'))"
+				@click="emit('compareSeries')">
+				{{ SERIES_MARK }} <span class="loupe-title-row__series-word">{{ t('honeycomb', 'Series') }}</span> {{ t('honeycomb', '{position}/{count}', { position: formatNumber(props.series.position), count: formatNumber(props.series.count) }, undefined, PLAIN_TEXT) }}
+			</button>
+			<SeriesHint
+				v-if="props.seriesHint && row && chip"
+				:count="props.series.count"
+				:anchor="chip"
+				:box="row"
+				@dismiss="emit('dismissSeriesHint')" />
+		</span>
 		<NcButton
 			variant="tertiary"
 			:aria-label="t('honeycomb', 'Toggle fit and 100 percent')"
@@ -154,6 +170,33 @@ const SERIES_MARK = '⧉'
 @media (pointer: fine) {
 	.loupe-title-row__series {
 		min-height: 34px;
+	}
+}
+
+.loupe-title-row__series-anchor {
+	position: relative;
+	display: flex;
+	flex-shrink: 0;
+}
+
+/* One honey pulse calls the eye to the chip the first-series hint explains (LOUPE-001.26). */
+.loupe-title-row__series--pulse {
+	animation: loupe-title-row-pulse 1.2s ease-out 2;
+}
+
+@keyframes loupe-title-row-pulse {
+	from {
+		box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary-element) 80%, transparent);
+	}
+
+	to {
+		box-shadow: 0 0 0 14px transparent;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.loupe-title-row__series--pulse {
+		animation: none;
 	}
 }
 

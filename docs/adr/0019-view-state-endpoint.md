@@ -43,3 +43,9 @@ or device.
 - Two devices writing the same key at once: the last write wins, for that key only.
 - The loupe reads the view state from the server once per visit; a failed read falls back to the
   values left in browser storage, without migrating them.
+
+## Amendment 2026-11-14: a third key
+
+`seriesHintSeen` keeps whether the user dismissed the loupe's first-series hint (LOUPE-001.26),
+like `gestureGuideSeen`. No older version kept it in browser storage, so it has nothing to take
+over.

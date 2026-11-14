@@ -23,7 +23,7 @@ describe('LoupeTitleRow: the series chip', () => {
 		const wrapper = mountRow({ position: 2, count: 5 })
 		const chip = wrapper.find(CHIP)
 
-		expect(wrapper.find('.loupe-title-row__count + ' + CHIP).exists()).toBe(true)
+		expect(wrapper.find('.loupe-title-row__count + .loupe-title-row__series-anchor > ' + CHIP).exists()).toBe(true)
 		expect(chip.text()).toMatch(/^⧉\s*Series\s*2\/5$/)
 		expect(chip.find('.loupe-title-row__series-word').text()).toBe('Series')
 		expect(chip.attributes('aria-label')).toBe('Photo 2 of a series of 5 – compare')

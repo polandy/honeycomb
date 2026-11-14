@@ -39,6 +39,7 @@ import { useLoupeDecisions } from '../loupe-decisions.ts'
 import { useLoupePanels } from '../loupe-panels.ts'
 import { decodeSource, usePrefetch } from '../loupe-prefetch.ts'
 import { observeElementSize } from '../observe-size.ts'
+import { useSeriesHint } from '../series-hint.ts'
 import { browserSchedule } from '../tile-selection.ts'
 
 const props = withDefaults(defineProps<{
@@ -93,11 +94,12 @@ const root = useTemplateRef<HTMLElement>('root')
 const stage = useTemplateRef<InstanceType<typeof LoupeStage>>('stage')
 const panels = useLoupePanels(props.storage, props.viewState)
 const { infoOpen, infoWidth, navigationShown, gestureGuideSeen } = panels
+const seriesHint = useSeriesHint(panels, () => props.seriesOf.has(props.pictures[props.index]!))
 const filmstripOpen = ref(true)
 const stripPinned = computed(() => filmstripOpen.value && props.settings.filmstripPinned)
 const chromeFree = ref(false)
 const zoom = ref<number | null>(null)
-const overlays = useIdle(props.schedule, LOUPE_IDLE_MS, () => Boolean(document.activeElement?.closest('.photo-loupe__overlay, .action-bar__row')))
+const overlays = useIdle(props.schedule, LOUPE_IDLE_MS, () => seriesHint.shown.value || Boolean(document.activeElement?.closest('.photo-loupe__overlay, .action-bar__row')))
 const prefetcher = usePrefetch(props.decode)
 const decisions = useLoupeDecisions({
 	pictures: () => props.pictures,
@@ -131,6 +133,7 @@ function compareSeriesOf(index: number) {
 	const at = props.pictures[index]!
 	const members = props.seriesOf.get(at)
 	if (members !== undefined) {
+		seriesHint.dismiss()
 		emit('compareSeries', members, members.includes(picture.value) ? picture.value : at)
 	}
 }
@@ -138,6 +141,7 @@ function compareSeriesOf(index: number) {
 /** Asks to pick the shown picture and reject the rest of its series, if it is in one. */
 function pickRest() {
 	if (series.value !== null) {
+		seriesHint.dismiss()
 		emit('pickRest', series.value, picture.value)
 	}
 }
@@ -150,7 +154,7 @@ const hotkeys: HotkeyHandlers = {
 	down: () => go(props.index + 1),
 	first: () => go(0),
 	last: () => go(props.pictures.length - 1),
-	close: () => emit('close'),
+	close: () => (seriesHint.shown.value ? seriesHint.dismiss() : emit('close')),
 	grid: () => emit('close'),
 	header: () => void (chromeFree.value = !chromeFree.value),
 	fullscreen: () => props.toggleFullscreen(root.value!),
@@ -170,6 +174,12 @@ defineExpose({ hotkeys })
 /** Remembers the gesture guide as seen and gives the keys back to the loupe. */
 function dismissGestureGuide() {
 	panels.dismissGestureGuide()
+	root.value!.focus()
+}
+
+/** *Got it* in the first-series hint gives the keys back to the loupe. */
+function gotSeriesHint() {
+	seriesHint.dismiss()
 	root.value!.focus()
 }
 
@@ -201,8 +211,10 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:navigationShown="navigationShown"
 			:flagButtonsShown="settings.flagButtonsShown"
 			:series="seriesPlace"
+			:seriesHint="seriesHint.shown.value"
 			@pointerdown="overlays.wake"
 			@compareSeries="compareSeriesOf(props.index)"
+			@dismissSeriesHint="gotSeriesHint"
 			@close="emit('close')"
 			@move="emit('move')"
 			@toggleZoom="stage!.toggleZoom()"

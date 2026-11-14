@@ -12,8 +12,9 @@ hint were dismissed per user on the server, so both follow the user to every dev
 
 ## Behaviour
 
-The view state is three booleans per user behind `GET` and `PUT /apps/honeycomb/api/v1/view-state`:
-`infoPanelOpen`, `gestureGuideSeen` and `seriesHintSeen`, each `null` while it was never stored. A write names only
+The view state is three booleans per user behind `GET` and
+`PUT /apps/honeycomb/api/v1/view-state`: `infoPanelOpen`, `gestureGuideSeen` and
+`seriesHintSeen`, each `null` while it was never stored. A write names only
 the keys it changes. The info panel's width and the Nextcloud navigation toggle stay in browser
 storage (LOUPE-001), since they depend on the device's screen.
 
@@ -87,8 +88,8 @@ an older version left in browser storage is taken over once.
 
 ## Out of scope
 
-The info panel, the gesture guide, the first-series hint and the browser-stored width and navigation toggle themselves:
-LOUPE-001. The settings: SETTINGS-001.
+The info panel, the gesture guide, the first-series hint and the browser-stored width and navigation
+toggle themselves: LOUPE-001. The settings: SETTINGS-001.
 
 ## History
 

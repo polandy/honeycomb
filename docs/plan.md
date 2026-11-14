@@ -778,7 +778,8 @@ follows; its design direction lists the tokens.
   deleting goes to the trash bin. The first loupe opening shows a gesture guide (swipes from
   the settings, [tap zones](#tap-zones), pinch, double-tap, the main keys) until it is
   dismissed once; *Settings › Loupe gestures › Show the gesture guide* shows it on the next
-  loupe opening.
+  loupe opening. The first series photo in the loupe pulses the series chip once and shows a
+  hint under it (the chip, `N`, `Shift+K`) until it is dismissed once (LOUPE-001.26).
 - **Calm loupe chrome.** The title row shows the name and the pair; the gesture mapping sits
   in the info panel.
 

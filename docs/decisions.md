@@ -1000,3 +1000,12 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (the grid and the compare's cards have their own *Pick this, reject the rest* or none). Its key
   is that action's `Shift+K`, named in its tooltip, rather than a new key that would mean the same
   thing; the toast carries it as an optional offer before *Undo*.
+- 2026-11-14: The first-series hint (LOUPE-001.26, concept step 11) is a third view-state key,
+  `seriesHintSeen`, beside the gesture guide's (LOUPE-003): it waits for the gesture guide so two
+  cards never stack, hides at a photo outside any series without counting as seen, and goes for
+  good by *Got it*, `Esc` (then not closing the loupe, as the mockup does) or by using what it
+  tells: the chip, `N`, the frame's tab or *Pick this, reject the rest*. It adds no key of its
+  own; `Esc` dismisses as it closes every other card. It does not take the focus, so paging with
+  the keys goes on, and it keeps the title row from fading while it shows. Unlike the gesture
+  guide it has no *Show again* in the settings: the concept asks for none, and the user guide
+  explains the chip.
