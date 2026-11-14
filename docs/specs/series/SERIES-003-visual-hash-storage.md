@@ -38,12 +38,17 @@ server keeps the hashes the browser computed and hands them out with the listing
 - Each hashable picture has a hash state: *hashed* (delivered or computed), *pending* or *failed*
   (its preview could not be loaded or hashed). A failed file version is not hashed again in this
   visit; the next visit tries it once more. A picture that is not hashable has no hash state.
-- The grid toolbar shows the similarity of the cull's hashable pictures beside the decided count,
-  in quiet text: *Similarity 120/300* and a second bar under the decided bar while some are
-  pending; once none is pending, *Similarity: 3 photos not compared* in the warning colour when
-  some failed, else *Similarity: not saved* when the last save failed; nothing once every one is
-  hashed and saved. Below 900 px, where the toolbar keeps two rows (GRID-001.17), the text is
-  left to screen readers: the bar alone shows while hashing, and *⚠ 3* (or *⚠*) a failure.
+- A strip over the top of the grid shows the similarity of the cull's hashable pictures, at
+  every width, laid over the grid so that the tiles do not move when it comes or goes: while
+  some are pending, a bar and *Comparing photos 120/300*; when the last pending one is done,
+  *Photos compared* for 2 s; once none is pending, *Similarity: 3 photos not compared* in the
+  warning colour when some failed, else *Similarity: not saved* when the last save failed, and
+  it stays; nothing once every one is hashed and saved, and nothing for a cull that opens with
+  every hash delivered. Screen readers hear the progress in steps of 10 %, not on every hash.
+  The toolbar shows no similarity.
+- The series badge (SERIES-002.10) of a series with a pending member has a dashed outline, and
+  its tooltip and the tile's label add *Series may still change*: its members can still split
+  or join when their hashes arrive.
 
 ## Acceptance criteria
 
@@ -157,21 +162,24 @@ server keeps the hashes the browser computed and hands them out with the listing
 ### SERIES-003.18 – The similarity while hashing
 
 - **Given** an open cull with hashable pictures still pending
-- **When** the grid shows
-- **Then** the toolbar shows *Similarity* with the hashed and the hashable count, and a bar under
-  the decided bar; the toolbar of a phone keeps two rows
+- **When** the grid shows, on a phone or a desktop
+- **Then** a strip over the top of the grid shows a bar and *Comparing photos* with the hashed and
+  the hashable count, the toolbar shows no similarity, and the tiles do not move when the strip
+  comes or goes
 
 ### SERIES-003.19 – Failures show
 
 - **Given** an open cull with no hashable picture pending
 - **When** some failed, or the last save of hashes failed
-- **Then** the toolbar shows how many photos were not compared, else that the hashes were not saved
+- **Then** the strip stays and shows how many photos were not compared, else that the hashes were
+  not saved, in the warning colour
 
 ### SERIES-003.20 – Gone when every hash is there
 
-- **Given** an open cull whose hashable pictures are all hashed and saved, or without any
+- **Given** an open cull whose last pending picture is hashed, and every hash saved
 - **When** the grid shows
-- **Then** the toolbar shows no similarity
+- **Then** the strip shows *Photos compared* for 2 s and then nothing; a cull that opens with every
+  hash delivered, or without hashable pictures, shows no strip
 
 ### SERIES-003.21 – RAW-only pictures and pairs are hashed
 
@@ -191,6 +199,20 @@ server keeps the hashes the browser computed and hands them out with the listing
 - **When** they save more than 300 times within a minute
 - **Then** Nextcloud answers the further saves `429` and writes nothing
 
+### SERIES-003.24 – Progress is announced in steps
+
+- **Given** an open cull with hashable pictures still pending
+- **When** hashes arrive
+- **Then** screen readers are told the progress only when it passes a step of 10 %, and when the
+  photos are compared
+
+### SERIES-003.25 – A series that may still change
+
+- **Given** a series the compare offers with a member still pending
+- **When** the grid shows its tiles
+- **Then** their series badge has a dashed outline, and its tooltip and the tile's label add
+  *Series may still change*; once no member is pending, the badge is plain again
+
 ## Out of scope
 
 - The hash, the link rule and when a picture is hashed: SERIES-001.
@@ -204,3 +226,4 @@ server keeps the hashes the browser computed and hands them out with the listing
 | 2026-11-14 | Hash states, the similarity in the toolbar, no repeat of a failed hash (owner request) |
 | 2026-11-14 | `saveVisualHashes` resolves to the saved file ids, for the similarity page (SERIES-004) |
 | 2026-11-14 | Saves limited to 300 a minute per user (ADR 0026) |
+| 2026-11-14 | The similarity moves from the toolbar to a strip over the grid; a series that may still change has a dashed badge (owner decision #181) |
