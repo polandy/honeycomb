@@ -35,3 +35,35 @@ test('lists a culled folder set under Recent and opens it at its position', asyn
 	await expect(loupe.getByRole('heading', { name: 'IMG_0002' })).toBeVisible()
 	await expect(loupe.getByText('2 of 2')).toBeVisible()
 })
+
+// spec: LISTING-003.15
+test('lists at most three recent folder sets under the folder tree on a phone and opens the rest in place', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 })
+	await page.goto('/index.php/apps/honeycomb/')
+	await resetViewState(page)
+	const id = randomUUID().slice(0, 8)
+	const folders = [`Below ${id} A`, `Below ${id} B`, `Below ${id} C`, `Below ${id} D with a very long name that cannot fit on one line of a phone`]
+	for (const folder of folders) {
+		await createFolder(page, folder)
+		await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+		await cullFolder(page, folder)
+		await expect(page.getByRole('gridcell', { name: 'IMG_0001, JPG only' })).toBeVisible()
+	}
+
+	await page.goto('/index.php/apps/honeycomb/')
+	const picker = page.getByRole('dialog', { name: 'Choose folders' })
+	const rows = picker.locator('.picker-recent-sets__row')
+	await expect(rows).toHaveCount(3)
+	const tree = (await picker.getByRole('option').first().boundingBox())!
+	const first = (await rows.first().boundingBox())!
+	expect(first.y).toBeGreaterThan(tree.y)
+	expect(first.height).toBeGreaterThanOrEqual(44)
+	expect(first.x + first.width).toBeLessThanOrEqual(390)
+
+	await picker.getByRole('button', { name: /^Show all/ }).click()
+	expect(await rows.count()).toBeGreaterThanOrEqual(4)
+	const longRow = picker.locator('.picker-recent-sets__row', { hasText: 'with a very long name' })
+	await expect(longRow.locator('.picker-recent-sets__progress')).toBeVisible()
+	const box = (await longRow.boundingBox())!
+	expect(box.x + box.width).toBeLessThanOrEqual(390)
+})

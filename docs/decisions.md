@@ -1096,3 +1096,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   which would need the clock.
 - 2026-11-14: A limited save of the similarity page waits and is sent again without pausing the
   run; the cull treats it as a failed save, since it saves far too seldom to reach the limit.
+- 2026-11-14: The picker's *Recent* is its own component (`PickerRecentSets`) and the navigation
+  keeps `RecentFolderSets`, since #180 variant C only concerns the dialog; *Show all* folds back
+  as *Show fewer* so the focus stays on the button; rows shrink by 8 px below 640 px of height.

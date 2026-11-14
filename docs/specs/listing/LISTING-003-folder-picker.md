@@ -43,9 +43,12 @@ grid.
 The status line under the list is in regular weight and the muted colour, so the hint does not
 read as an error. Every folder row is one height, whether it has an arrow or not.
 
-Above the folders, under *Recent*, the picker lists the folder sets culled before with their
-progress (DECISIONS-002.8); tapping one opens it at its resume position. The heading and list are
-left out until a folder set was culled.
+Below the folders, under *Recent*, the picker lists the folder sets culled before with their
+progress (DECISIONS-002.8); tapping one opens it at its resume position. At most three quiet rows
+show, each with the name cut by an ellipsis and the progress whole; *Show all {count}* opens the
+full list in place and *Show fewer* folds it. A row is 44 px high where the dialog is tall
+enough, and the tab order is the folders first, then *Recent*. The heading and list are left out
+until a folder set was culled. The navigation's *Recent* is unchanged.
 
 On the first opening it introduces the app and cannot be cancelled; opened from a running cull it
 starts from that folder set and *Cancel* returns to it.
@@ -145,6 +148,13 @@ starts from that folder set and *Cancel* returns to it.
 - **Then** the status line is in regular weight and the muted colour, and both rows are one
   height
 
+### LISTING-003.15 – Recent below the folders, three rows
+
+- **Given** more than three folder sets culled before
+- **When** the picker opens
+- **Then** *Recent* sits under the folder list, shows three rows, and *Show all {count}* opens
+  the full list in place; the folders come first in the tab order
+
 ## Out of scope
 
 - The grid and its folder headers: GRID-001. The resume position: DECISIONS-002.
@@ -157,3 +167,4 @@ starts from that folder set and *Cancel* returns to it.
 | 2026-11-10 | *Recent* above the folders (LISTING-003.13) |
 | 2026-11-12 | .7 the switch above the folder list (owner, iPad) |
 | 2026-11-13 | .14 a quiet status line and even rows (UX L2) |
+| 2026-11-14 | .13/.15 *Recent* below the folders, three rows and *Show all* (owner, #180 variant C) |

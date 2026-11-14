@@ -17,7 +17,7 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwit
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import ConfirmDialog from './ConfirmDialog.vue'
 import FolderList from './FolderList.vue'
-import RecentFolderSets from './RecentFolderSets.vue'
+import PickerRecentSets from './PickerRecentSets.vue'
 import { listEntries as apiListEntries, listFolders as apiListFolders } from '../api.ts'
 import { useFolderCount } from '../folder-count.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
@@ -107,15 +107,6 @@ function onConfirm() {
 		<p v-if="props.current === null" class="folder-picker__intro">
 			{{ t('honeycomb', 'Choose one or more folders of photos to start culling. Decisions save as you go and can be undone; deleting only moves files to the Nextcloud trash bin.') }}
 		</p>
-		<template v-if="props.recent.length > 0">
-			<h3 class="folder-picker__heading">
-				{{ t('honeycomb', 'Recent') }}
-			</h3>
-			<RecentFolderSets :items="props.recent" @open="emit('openRecent', $event)" />
-			<h3 class="folder-picker__heading">
-				{{ t('honeycomb', 'Folders') }}
-			</h3>
-		</template>
 		<NcCheckboxRadioSwitch
 			class="folder-picker__subfolders"
 			type="switch"
@@ -134,12 +125,23 @@ function onConfirm() {
 		<NcNoteCard v-if="count?.overCap" type="warning">
 			{{ t('honeycomb', 'More than {cap} photos. honeycomb shows the first {cap} by capture time; untick folders to see the rest.', { cap: formatNumber(PICTURE_CAP) }) }}
 		</NcNoteCard>
+		<section v-if="props.recent.length > 0" class="folder-picker__recent">
+			<h3 class="folder-picker__heading">
+				{{ t('honeycomb', 'Recent') }}
+			</h3>
+			<PickerRecentSets :items="props.recent" @open="emit('openRecent', $event)" />
+		</section>
 	</ConfirmDialog>
 </template>
 
 <style scoped>
 .folder-picker__intro {
 	margin-bottom: calc(2 * var(--default-grid-baseline));
+}
+
+.folder-picker__recent {
+	margin-top: calc(2 * var(--default-grid-baseline));
+	border-top: 1px solid var(--color-border);
 }
 
 .folder-picker__heading {
