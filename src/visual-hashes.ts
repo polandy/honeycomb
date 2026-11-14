@@ -117,11 +117,11 @@ export function useVisualHashes(api: { readonly hashImage: HashImage, readonly s
 	/** The hash state of a member, or null when it is not hashable (SERIES-003.16). */
 	function stateOf(member: ListingEntry): HashState | null {
 		const key = versionKey(member)
-		if (member.visualHash !== null || hashed.value.has(key)) {
-			return 'hashed'
-		}
 		if (!hashableKeys.value.has(key)) {
 			return null
+		}
+		if (member.visualHash !== null || hashed.value.has(key)) {
+			return 'hashed'
 		}
 		return failed.value.has(key) ? 'failed' : 'pending'
 	}
