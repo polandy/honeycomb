@@ -7,18 +7,19 @@
 
 ## Purpose
 
-Keeps whether the loupe's info panel is open and whether the gesture guide was dismissed per user
-on the server, so both follow the user to every device and browser.
+Keeps whether the loupe's info panel is open and whether the gesture guide and the first-series
+hint were dismissed per user on the server, so both follow the user to every device and browser.
 
 ## Behaviour
 
-The view state is two booleans per user behind `GET` and `PUT /apps/honeycomb/api/v1/view-state`:
-`infoPanelOpen` and `gestureGuideSeen`, each `null` while it was never stored. A write names only
+The view state is three booleans per user behind `GET` and `PUT /apps/honeycomb/api/v1/view-state`:
+`infoPanelOpen`, `gestureGuideSeen` and `seriesHintSeen`, each `null` while it was never stored. A write names only
 the keys it changes. The info panel's width and the Nextcloud navigation toggle stay in browser
 storage (LOUPE-001), since they depend on the device's screen.
 
-The app reads the view state once when it starts. Until the answer arrives the gesture guide does
-not show; without a stored value the info panel is closed and the gesture guide not seen. A value
+The app reads the view state once when it starts. Until the answer arrives neither the gesture
+guide nor the first-series hint shows; without a stored value the info panel is closed and both
+are not seen. A value
 an older version left in browser storage is taken over once.
 
 ## Acceptance criteria
@@ -27,14 +28,14 @@ an older version left in browser storage is taken over once.
 
 - **Given** a user with some, all or none of the keys stored
 - **When** the client reads the view state
-- **Then** the answer is `{"viewState": {"infoPanelOpen": …, "gestureGuideSeen": …}}` with each
-  stored boolean, `null` for a key never stored
+- **Then** the answer is `{"viewState": {"infoPanelOpen": …, "gestureGuideSeen": …,
+  "seriesHintSeen": …}}` with each stored boolean, `null` for a key never stored
 
 ### LOUPE-003.2 – Write only the keys given
 
-- **Given** a view state object with one or both keys, each a boolean
+- **Given** a view state object with one or more of the keys, each a boolean
 - **When** the client writes it
-- **Then** only those keys are stored, the other keeps its value, and the answer is the full view
+- **Then** only those keys are stored, the others keep their values, and the answer is the full view
   state as a read returns it
 
 ### LOUPE-003.3 – Refused writes
@@ -55,15 +56,16 @@ an older version left in browser storage is taken over once.
 
 - **Given** the app starts
 - **When** the view state is still being read, or has been read
-- **Then** the gesture guide does not show until the answer arrives; then the loupe takes each
-  stored value, anything but a boolean counts as not stored, and without one the info panel is
-  closed and the gesture guide shows
+- **Then** neither the gesture guide nor the first-series hint shows until the answer arrives;
+  then the loupe takes each stored value, anything but a boolean counts as not stored, and without
+  one the info panel is closed and the gesture guide and the first-series hint show
 
 ### LOUPE-003.6 – A change applies at once and writes one key
 
 - **Given** the loupe
 - **When** the user opens or closes the info panel, presses *Got it* in the gesture guide, or
-  presses *Show the gesture guide* in the settings (SETTINGS-001.22)
+  presses *Show the gesture guide* in the settings (SETTINGS-001.22), or dismisses the
+  first-series hint (LOUPE-001.26)
 - **Then** the change applies at once and only that key is written
 
 ### LOUPE-003.7 – Taking over values from browser storage
@@ -85,7 +87,7 @@ an older version left in browser storage is taken over once.
 
 ## Out of scope
 
-The info panel, the gesture guide and the browser-stored width and navigation toggle themselves:
+The info panel, the gesture guide, the first-series hint and the browser-stored width and navigation toggle themselves:
 LOUPE-001. The settings: SETTINGS-001.
 
 ## History
@@ -93,3 +95,4 @@ LOUPE-001. The settings: SETTINGS-001.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written and implemented from the owner review of 2026-11-10 (ADR 0019) |
+| 2026-11-14 | `seriesHintSeen` for the first-series hint (series concept step 11) |

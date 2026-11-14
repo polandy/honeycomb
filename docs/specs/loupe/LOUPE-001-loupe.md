@@ -195,6 +195,7 @@ IMAGES-001.
 | 2026-11-13 | .13 the info panel drops its *Preloading* section; .23 compact rows (UX M6) |
 | 2026-11-13 | .19 the filmstrip starts at its left edge and stops at its right one (UX L7) |
 | 2026-11-14 | .25 the series chip and `N` open the compare on the shown series; .19 the frame's tab shows (series concept step 8) |
+| 2026-11-14 | .26 the first-series hint under the series chip (series concept step 11) |
 
 ### LOUPE-001.18 – One photo in view
 
@@ -272,3 +273,14 @@ IMAGES-001.
   – compare", a honey outline never filled, 44 px high (34 px with a fine pointer), its tooltip
   naming `N`; a tap on it or `N` opens the series compare on this series with the shown picture
   active (SERIES-001.24); a picture outside any series shows no chip and `N` does nothing
+
+### LOUPE-001.26 – First-series hint
+
+- **Given** the user has never dismissed the first-series hint and the gesture guide does not show
+- **When** the loupe shows a picture of a series (LOUPE-001.25)
+- **Then** a hint card under the series chip reads "This photo is part of a series of 5. ⧉ or N
+  compares them; Shift+K picks this one and rejects the rest." with *Got it*, and the chip gets a
+  single honey pulse, none under `prefers-reduced-motion`; the card keeps the focus on the loupe
+  and hides at a picture outside any series until the next one; *Got it*, `Esc`, the chip, `N`,
+  the filmstrip frame's tab or *Pick this, reject the rest* (`Shift+K`) dismiss it for good
+  (LOUPE-003), *Got it* giving the keys back to the loupe, and `Esc` then not closing the loupe

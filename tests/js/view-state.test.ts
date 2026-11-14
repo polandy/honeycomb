@@ -80,6 +80,19 @@ describe('useViewState', () => {
 		expect(saved).toEqual([{ gestureGuideSeen: false }])
 	})
 
+	// spec: LOUPE-003.5, LOUPE-003.6
+	it('counts the first-series hint as seen until the answer, and dismissing it writes only its key', async () => {
+		const { seriesHintSeen, dismissSeriesHint, saved } = viewStateOn(async () => ({ infoPanelOpen: true, gestureGuideSeen: true, seriesHintSeen: null }))
+		expect(seriesHintSeen.value).toBe(true)
+
+		await flushPromises()
+		expect(seriesHintSeen.value).toBe(false)
+		dismissSeriesHint()
+
+		expect(seriesHintSeen.value).toBe(true)
+		expect(saved).toEqual([{ seriesHintSeen: true }])
+	})
+
 	// spec: LOUPE-003.6
 	it('keeps a change made before the answer over the stored value', async () => {
 		const { infoPanelOpen, setInfoPanelOpen, saved } = viewStateOn(async () => ({ infoPanelOpen: false, gestureGuideSeen: true }))
