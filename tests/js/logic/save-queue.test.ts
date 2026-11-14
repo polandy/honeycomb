@@ -160,7 +160,7 @@ describe('saveQueue', () => {
 	it('does not wait after a failure the server did not limit', async () => {
 		const sender = fakeSender()
 		const waits: number[] = []
-		const save = saveQueue(sender.send, { key: byFileId, wait: async (seconds) => { waits.push(seconds) } })
+		const save = saveQueue(sender.send, { key: byFileId, wait: async (seconds) => void waits.push(seconds) })
 		const { results, record } = recorder()
 		const error = new Error('down')
 

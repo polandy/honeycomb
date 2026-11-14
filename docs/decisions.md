@@ -1133,3 +1133,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   take the keyed series, and the array adapter of R1a is gone; tile, title row and toolbar keep
   taking the numbers derived from it (size, place, count), since they show a series, not name it
   (R1c).
+- 2026-11-14: `saveQueue` takes the key that merges its rows (`byFileId` for decisions and tags)
+  and, given a `wait`, sends a save the server limits (`429`) again after the seconds it asks for,
+  with the same rows; rows given meanwhile wait for the next save. Series states can then be saved
+  through it instead of a seventh write path (architecture review R7a).
