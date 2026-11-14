@@ -160,6 +160,7 @@ pictures, a rejected picture disappears from view, and at the end delete all rej
 4. **Series compare** (milestone M6). Pictures taken within a short interval that look alike
    (owner, 2026-11-12: up to 30 seconds apart with a visual hash of the preview, 3 seconds by
    capture time until it is there; ADR 0021) form a series, however long (owner, 2026-11-13),
+   up to 60 seconds from its first picture (owner, 2026-11-14),
    shown side by side in a row that scrolls sideways beyond four. Tapping the best one
    means *Pick this, reject the rest*: it is picked, the others rejected, as one undo step. The
    owner's 2026-11-09 feedback changes how: see [Compact header and series

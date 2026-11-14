@@ -56,7 +56,9 @@ in the series compare). Press `Ctrl+/` at any time to see this list in the app.
 
 ## Series
 
-Photos taken within a few seconds of each other form a series. In the series compare and the
+Photos of one camera taken within a few seconds of each other, or up to 30 seconds apart while
+they look alike, form a series. A series ends a minute after its first photo; a later photo starts
+the next one. In the series compare and the
 series viewer the flag, rating and label keys act on the active photo and the arrow keys switch
 it, as in Lightroom's Survey view.
 

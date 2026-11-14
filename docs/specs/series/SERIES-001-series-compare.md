@@ -19,8 +19,10 @@ at most 30 seconds apart: their visual hashes differ in at most 10 of 64 bits. W
 neighbours has no visual hash yet, they belong together when their EXIF capture times lie at most
 3 seconds apart. Series may cross folders. A picture without an EXIF capture time is never in a
 series. Rejected pictures are left out before the runs are formed. A run is one series however
-long, so a whole burst is seen together. A series has at least two pictures and at least one
-undecided; the series are ordered by their first capture time.
+many pictures it holds, so a whole burst is seen together, but a series ends once a picture lies
+more than 60 seconds after the series' first picture, and the next series starts there. A series
+has at least two pictures and at least one undecided; the series are ordered by their first capture
+time.
 
 The **visual hash** of a picture is a difference hash of the small grid preview of its shown member
 (ADR 0021). It is computed in the browser, in the background and one picture at a time, only for
@@ -200,6 +202,13 @@ lines instead of cutting it.
 - **Then** every card shows in one row that scrolls sideways, and the active card scrolls into
   view
 
+### SERIES-001.22 – A series ends 60 seconds after its first picture
+
+- **Given** a run of linked pictures of one camera that lasts longer than 60 seconds
+- **When** the series are formed
+- **Then** a series ends before the first picture more than 60 seconds after its first picture,
+  which starts the next series; the span is measured from the first picture that is not rejected
+
 ## Out of scope
 
 The fullscreen series viewer and the series badge on the tiles: SERIES-002. The capture time and
@@ -215,3 +224,4 @@ camera come from LISTING-001.
 | 2026-11-12 | Series also compare the images: a visual hash of the grid preview, 30 s for alike shots, the 3 s rule without a hash (owner decision, ADR 0021). |
 | 2026-11-13 | One primary button on the active card, *Skip* secondary, one line of instructions, photos fill the dialog, flag buttons level (UX review M5). |
 | 2026-11-13 | A run is one series however long, and a long series scrolls sideways in the compare (owner request after testing on nc-test). |
+| 2026-11-14 | A series ends 60 s after its first picture, so a slow run of alike shots no longer chains over minutes (series concept step 2, ADR 0021). |
