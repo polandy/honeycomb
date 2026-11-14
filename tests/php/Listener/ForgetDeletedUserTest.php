@@ -8,11 +8,13 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Listener;
 
 use OCA\Honeycomb\Listener\ForgetDeletedUser;
+use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\FolderSet;
 use OCA\Honeycomb\Service\PictureDecision;
 use OCA\Honeycomb\Service\PictureTags;
 use OCA\Honeycomb\Service\ResumePosition;
+use OCA\Honeycomb\Service\UserRowStores;
 use OCA\Honeycomb\Service\VisualHash;
 use OCA\Honeycomb\Tests\Service\FakeDecisionStore;
 use OCA\Honeycomb\Tests\Service\FakePositionStore;
@@ -43,6 +45,10 @@ final class ForgetDeletedUserTest extends TestCase {
 		}
 	}
 
+	private function registry(): UserRowStores {
+		return new UserRowStores(new FileRowStores($this->decisions, $this->tags, $this->hashes), $this->positions);
+	}
+
 	private function deleted(string $userId): UserDeletedEvent {
 		$user = $this->createStub(IUser::class);
 		$user->method('getUID')->willReturn($userId);
@@ -51,7 +57,7 @@ final class ForgetDeletedUserTest extends TestCase {
 
 	// spec: DECISIONS-001.12, DECISIONS-002.13, TAGS-001.12, SERIES-003.11
 	public function testForgetsTheDecisionsAndPositionsOfTheDeletedUserOnly(): void {
-		(new ForgetDeletedUser($this->decisions, $this->positions, $this->tags, $this->hashes))->handle($this->deleted('alice'));
+		(new ForgetDeletedUser($this->registry()))->handle($this->deleted('alice'));
 
 		$this->assertSame([], $this->decisions->find('alice', [7]));
 		$this->assertSame([], $this->positions->all('alice'));
@@ -65,7 +71,7 @@ final class ForgetDeletedUserTest extends TestCase {
 	}
 
 	public function testIgnoresAnotherEvent(): void {
-		(new ForgetDeletedUser($this->decisions, $this->positions, $this->tags, $this->hashes))->handle(new Event());
+		(new ForgetDeletedUser($this->registry()))->handle(new Event());
 
 		$this->assertCount(1, $this->decisions->find('alice', [7]));
 		$this->assertCount(1, $this->positions->all('alice'));

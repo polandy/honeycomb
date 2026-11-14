@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 /** Rows each user keeps per file id, which follow a file and go with it or with the user. */
-interface FileRowStore {
+interface FileRowStore extends UserRowStore {
 	/** Moves the user's row of `$fileId`, if there is one, to `$newFileId`. */
 	public function carryOver(string $userId, int $fileId, int $newFileId): void;
 
@@ -25,7 +25,4 @@ interface FileRowStore {
 	 * @throws \OCP\DB\Exception
 	 */
 	public function deleteRows(array $ids): int;
-
-	/** Removes every row of the user. */
-	public function forgetUser(string $userId): void;
 }

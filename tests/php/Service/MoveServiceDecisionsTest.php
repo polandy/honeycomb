@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\DecisionStore;
+use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\MoveService;
 use OCA\Honeycomb\Service\PictureDecision;
@@ -37,7 +38,7 @@ final class MoveServiceDecisionsTest extends TestCase {
 	private function service(?DecisionStore $store = null, ?LoggerInterface $logger = null, ?TagStore $tags = null): MoveService {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturn(true);
-		return new MoveService($this->treeRoot(), $apps, $store ?? $this->store, $tags ?? $this->tags, $this->hashes, $logger ?? $this->createStub(LoggerInterface::class));
+		return new MoveService($this->treeRoot(), $apps, new FileRowStores($store ?? $this->store, $tags ?? $this->tags, $this->hashes), $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
 	private static function decision(int $fileId): PictureDecision {

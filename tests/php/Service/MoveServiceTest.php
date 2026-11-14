@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\InvalidMoveRequestException;
 use OCA\Honeycomb\Service\MoveService;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
@@ -25,7 +26,7 @@ final class MoveServiceTest extends TestCase {
 	private function service(bool $trashBin = true, ?LoggerInterface $logger = null): MoveService {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturnCallback(static fn (string $app): bool => $app === 'files_trashbin' && $trashBin);
-		return new MoveService($this->treeRoot(), $apps, new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore(), $logger ?? $this->createStub(LoggerInterface::class));
+		return new MoveService($this->treeRoot(), $apps, new FileRowStores(new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore()), $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
 	/** A RAW, its JPEG and the RAW's sidecar in `/In`, and a single JPEG. */
