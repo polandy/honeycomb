@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { countFolderSet, folderLabel, prepareCull, warmFileIds } from '../../../src/logic/cull.ts'
+import { countFolderSet, folderLabel, prepareCull, warmMembers } from '../../../src/logic/cull.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../../../src/logic/pairing.ts'
 import { PICTURE_CAP } from '../../../src/logic/picture-order.ts'
 import { listingEntry } from './listing-entries.ts'
@@ -89,10 +89,10 @@ describe('prepareCull', () => {
 	})
 })
 
-describe('warmFileIds', () => {
-	it('lists the file id of the image each picture shows, in order', () => {
+describe('warmMembers', () => {
+	it('lists the image each picture shows, in order', () => {
 		const { pictures } = prepareCull([listingEntry(1, '/A/X.CR3'), listingEntry(2, '/A/X.JPG'), listingEntry(3, '/A/Y.NEF')], DEFAULT_PAIRING_SETTINGS)
 
-		expect(warmFileIds(pictures)).toEqual([2, 3])
+		expect(warmMembers(pictures).map((member) => member.fileId)).toEqual([2, 3])
 	})
 })
