@@ -25,9 +25,10 @@ server keeps the hashes the browser computed and hands them out with the listing
   `hash` that is not 16 lower-case hex digits, or a file id given twice. `401` without a user.
 - The browser hashes only the hashable pictures (SERIES-001.17) whose shown member has no
   `visualHash`, and sends what it computed with `saveVisualHashes` in `src/api.ts`: every 100
-  hashes and when no picture is left to hash. A failed save is logged; the hashes still count for
-  the series of this visit. Browser storage holds no hashes; the key `honeycomb.visualHashes` of
-  earlier versions is removed when a cull opens.
+  hashes and when no picture is left to hash; it resolves to the `saved` file ids, which the
+  grid does not use, and rejects an answer without them. A failed save is logged; the hashes
+  still count for the series of this visit. Browser storage holds no hashes; the key
+  `honeycomb.visualHashes` of earlier versions is removed when a cull opens.
 - The browser hashes a picture's shown member from the small grid tier, the very URL the grid
   tile loads first (`smallSource`), so the browser's cache serves it: a pair by its JPEG, a
   RAW-only picture by the JPEG embedded in the RAW (IMAGES-001.6).
@@ -192,3 +193,4 @@ server keeps the hashes the browser computed and hands them out with the listing
 |---|---|
 | 2026-11-14 | Written with the visual hash table and endpoint (owner decision, ADR 0024) |
 | 2026-11-14 | Hash states, the similarity in the toolbar, no repeat of a failed hash (owner request) |
+| 2026-11-14 | `saveVisualHashes` resolves to the saved file ids, for the similarity page (SERIES-004) |

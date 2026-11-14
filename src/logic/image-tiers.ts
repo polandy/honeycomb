@@ -32,12 +32,12 @@ export function gridSrcset(member: ListingEntry, urlFor: ImageUrlFor): string {
 }
 
 /** The URL of a tier of the member. */
-export function tierSource(member: ListingEntry, tier: number, urlFor: ImageUrlFor): string {
+export function tierSource(member: Pick<ListingEntry, 'fileId' | 'mtime'>, tier: number, urlFor: ImageUrlFor): string {
 	return urlFor(member.fileId, tier, member.mtime)
 }
 
 /** The URL of the smallest grid tier, which a tile loads first. */
-export function smallSource(member: ListingEntry, urlFor: ImageUrlFor): string {
+export function smallSource(member: Pick<ListingEntry, 'fileId' | 'mtime'>, urlFor: ImageUrlFor): string {
 	return tierSource(member, GRID_TIERS[0], urlFor)
 }
 

@@ -3,6 +3,7 @@
 - Status: accepted
 - Date: 2026-11-14
 - Supersedes: [0021](0021-series-by-capture-time-and-visual-hash.md)
+- Extended by: [0025](0025-missing-visual-hashes-by-path-cursor.md), hashing a folder tree in bulk
 
 ## Context
 

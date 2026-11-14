@@ -1072,3 +1072,15 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   be rendered later, and a new table or column for it is not worth an ADR.
 - 2026-11-14: *Similarity: not saved* reflects the last save only; a later successful save clears
   it. The unsaved hashes still count for the visit and are computed again on the next one.
+- 2026-11-14: The similarity page hashes every photo below the folder, a pair's RAW too: the
+  server knows no pairing, which is a browser setting (ADR 0025).
+- 2026-11-14: No `needs-owner` issue for the similarity page: it reuses FolderList, ProgressBar,
+  NcButton and NcNoteCard on a plain page and fits the existing design.
+- 2026-11-14: The similarity page is a page of its own (`/similarity`, own Vite entry), not a view
+  in the cull: the cull's shell is at its size limit and its bundle stays as it is.
+- 2026-11-14: A similarity run looks at 500 photos per page, saves in batches of 250 and uses the
+  cores less one as workers, at most eight; a failed photo is tried once per run.
+- 2026-11-14: Pausing a similarity run waits for the hashes and the save in flight, not for a page
+  load, which is queued when it arrives.
+- 2026-11-14: With two Vite entries each chunk injects its own CSS (`relativeCSSInjection`) and the
+  hash worker is built into `js/`, so the cull keeps its styles and REUSE sees no stray assets.

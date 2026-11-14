@@ -112,8 +112,9 @@ trait FakeFiles {
 	 * file cache; every listing read is recorded in `$listed`.
 	 * @param list<File> $files
 	 * @param list<string> $unreadable folders the user may not read
+	 * @param array<string, string> $mountTypes folders on another mount, by path, e.g. `shared`
 	 */
-	private function treeOf(array $files, string $path = '/Photos', array $unreadable = []): Folder {
+	private function treeOf(array $files, string $path = '/Photos', array $unreadable = [], array $mountTypes = []): Folder {
 		$children = [$path => []];
 		foreach ($files as $file) {
 			for ($dir = dirname($this->below($file)); !isset($children[$dir]); $dir = dirname($dir)) {
@@ -122,7 +123,7 @@ trait FakeFiles {
 		}
 		$folders = [];
 		foreach (array_keys($children) as $dir) {
-			$folders[$dir] = $this->folder($dir, !in_array($dir, $unreadable, true));
+			$folders[$dir] = $this->folder($dir, !in_array($dir, $unreadable, true), $mountTypes[$dir] ?? '');
 		}
 		foreach ($files as $file) {
 			$children[dirname($this->below($file))][] = $file;

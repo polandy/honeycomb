@@ -40,6 +40,8 @@ are read and written in a later milestone ([`docs/plan.md`](docs/plan.md)).
 - **Remove RAWs.** Free the space of the RAWs you do not keep and leave the JPEGs and decisions.
 - **Settings.** Per user: file types, folder layout, singles, gestures, flag buttons, vi keys and
   auto-advance ([settings](docs/user/settings.md)).
+- **Similarity.** Compute the similarity of a whole folder tree ahead of the cull, so series show
+  at once ([similarity](docs/user/similarity.md)).
 
 How ratings, flags and colour labels appear in digiKam, darktable and Lightroom:
 [`docs/user/ratings-flags-colours.md`](docs/user/ratings-flags-colours.md); tags:
