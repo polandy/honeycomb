@@ -36,6 +36,8 @@ test('shows the filmstrip as square photos edge to edge at full opacity from its
 	const filmstrip = loupe.getByRole('navigation', { name: 'Filmstrip' })
 	const shown = filmstrip.getByRole('button', { name: 'IMG_0001' })
 	const other = filmstrip.getByRole('button', { name: 'IMG_0002' })
+	// The visual hashes make the two photos a series and reflow the loupe, so measure once it formed.
+	await expect(filmstrip.getByRole('button', { name: 'Series of 2 – compare' })).toBeVisible()
 
 	await expect(shown).toHaveCSS('opacity', '1')
 	await expect(other).toHaveCSS('opacity', '1')
