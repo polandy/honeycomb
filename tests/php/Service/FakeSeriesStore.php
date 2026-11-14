@@ -100,7 +100,12 @@ final class FakeSeriesStore implements SeriesStore {
 
 	#[\Override]
 	public function deleteEmptySeries(array $ids): int {
-		$used = array_flip(array_filter(array_merge(...array_values(array_map(array_values(...), $this->rows))), static fn (?int $id): bool => $id !== null));
+		$used = [];
+		foreach ($this->rows as $rows) {
+			foreach (array_filter($rows, static fn (?int $id): bool => $id !== null) as $id) {
+				$used[$id] = true;
+			}
+		}
 		$empty = array_filter($ids, fn (int $id): bool => isset($this->series[$id]) && !isset($used[$id]));
 		$this->series = array_diff_key($this->series, array_flip($empty));
 		return count($empty);

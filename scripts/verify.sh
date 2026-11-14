@@ -38,6 +38,7 @@ step "composer install" scripts/php.sh composer install --no-interaction --no-pr
 step php-cs-fixer scripts/php.sh vendor/bin/php-cs-fixer fix --dry-run --diff
 step psalm scripts/php.sh vendor/bin/psalm --no-cache --threads=1 --no-progress
 step phpunit scripts/php.sh vendor/bin/phpunit
+step "phpunit db" scripts/php-db-tests.sh
 step "npm ci" npm ci
 step unused-exports scripts/unused-exports.sh
 step eslint npx eslint

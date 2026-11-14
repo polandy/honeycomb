@@ -28,7 +28,8 @@ dependencies — are in [`conventions.md`](conventions.md). This file adds the s
   overrides.
 - Tools: `nextcloud/coding-standard` (PSR-12 plus Nextcloud's rules) through php-cs-fixer, psalm
   (with the `nextcloud/ocp` stubs of Nextcloud 35 and `forbiddenFunctions`) at the level set in
-  `psalm.xml`, PHPUnit for tests under `tests/php/`.
+  `psalm.xml`, PHPUnit for tests under `tests/php/`, and under `tests/php-db/` for the mappers
+  against a real database (`scripts/php-db-tests.sh`, Docker).
   `scripts/php.sh` runs them with the local PHP, or in the pinned composer Docker image.
 
 ## 3.3 TypeScript and Vue

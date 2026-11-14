@@ -205,7 +205,7 @@ through every new visual hash.
 ### SERIES-005.23 – Write: invalid bodies
 
 - **Given** a body that is not as ADR 0027 describes, more than 60,000 file ids or 1,000 series
-  items, a file id twice or a status other than `open` or `done`
+  items, a file id or a series id twice, or a status other than `open` or `done`
 - **When** it is sent
 - **Then** the answer is `400` and nothing is written; without a user it is `401`
 
@@ -241,3 +241,4 @@ through every new visual hash.
 | Date | Change |
 |---|---|
 | 2026-11-14 | Accepted with ADR 0027 (#185 PR 0). |
+| 2026-11-14 | Backend of SERIES-005.20–25 (#185 PR 1); a series id twice is a `400`. |

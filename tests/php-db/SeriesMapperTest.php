@@ -13,7 +13,10 @@ use OCA\Honeycomb\Service\SeriesStatus;
 use OCA\Honeycomb\Service\SeriesWrite;
 use OCA\Honeycomb\Service\StoredSeries;
 
-/** The series SQL against a real database. */
+/**
+ * The series SQL against a real database.
+ * @psalm-suppress PossiblyUndefinedArrayOffset The tests destructure the ids a write returns, one per series item.
+ */
 final class SeriesMapperTest extends DbTestCase {
 	/** More file ids than one `IN` list takes. */
 	private const int BEYOND_CHUNK = 2_500;

@@ -13,7 +13,7 @@ use OCP\EventDispatcher\IEventListener;
 use OCP\User\Events\UserDeletedEvent;
 
 /**
- * Removes the decisions, resume positions, tags, tag list and visual hashes of a deleted user.
+ * Removes the decisions, resume positions, tags, tag list, visual hashes and series of a deleted user.
  * @template-implements IEventListener<Event>
  */
 final class ForgetDeletedUser implements IEventListener {

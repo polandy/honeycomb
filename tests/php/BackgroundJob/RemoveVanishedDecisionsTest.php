@@ -145,7 +145,8 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 		$logger->expects($this->exactly(2))->method('info')->with($this->logicalOr($this->stringContains('2 series member rows'), $this->stringContains('1 series without')));
 		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores(new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore(), $series), $this->sweep(), $this->emptySeries($series), $logger);
 		$this->runJob($job);
-		$this->assertSame(['alice' => [8 => $kept, 9 => $kept], 'bob' => []], $series->rows);
+		$this->assertSame([8 => $kept, 9 => $kept], $series->rows['alice'] ?? null);
+		$this->assertSame([], $series->rows['bob'] ?? null);
 		$this->assertSame([$kept], array_keys($series->series));
 		$this->assertNotSame($gone, $kept);
 	}

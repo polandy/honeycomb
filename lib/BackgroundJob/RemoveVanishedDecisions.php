@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\BackgroundJob;
 
+use OCA\Honeycomb\Service\EmptySeriesSweep;
 use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\VanishedFileSweep;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -15,7 +16,7 @@ use OCP\BackgroundJob\TimedJob;
 use OCP\DB\Exception as DbException;
 use Psr\Log\LoggerInterface;
 
-/** Removes the decision, tag and visual hash rows of files deleted for good, once a day (ADR 0012, ADR 0022, ADR 0024). */
+/** Removes the decision, tag, visual hash and series member rows of files deleted for good, then the series left empty, once a day (ADR 0012, ADR 0022, ADR 0024, ADR 0027). */
 final class RemoveVanishedDecisions extends TimedJob {
 	private const int DAY = 86_400;
 
@@ -24,6 +25,7 @@ final class RemoveVanishedDecisions extends TimedJob {
 		ITimeFactory $time,
 		private FileRowStores $stores,
 		private VanishedFileSweep $sweep,
+		private EmptySeriesSweep $emptySeries,
 		private LoggerInterface $logger,
 	) {
 		parent::__construct($time);
@@ -44,6 +46,20 @@ final class RemoveVanishedDecisions extends TimedJob {
 			if ($removed > 0) {
 				$this->logger->info("Removed {$removed} {$entry->kind} rows of files deleted for good");
 			}
+		}
+		$this->removeEmptySeries();
+	}
+
+	/** After the member rows, so a series that lost its last member goes in the same run. */
+	private function removeEmptySeries(): void {
+		try {
+			$removed = $this->emptySeries->sweep();
+		} catch (DbException $e) {
+			$this->logger->error('Could not remove the series without members', ['exception' => $e]);
+			return;
+		}
+		if ($removed > 0) {
+			$this->logger->info("Removed {$removed} series without members");
 		}
 	}
 }

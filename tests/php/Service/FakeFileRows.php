@@ -39,7 +39,7 @@ trait FakeFileRows {
 		$removed = 0;
 		foreach (array_keys(array_intersect($this->rowIds, $ids)) as $key) {
 			[$userId, $fileId] = explode('/', $key);
-			if (isset($this->rows[$userId][(int)$fileId])) {
+			if (array_key_exists((int)$fileId, $this->rows[$userId] ?? [])) {
 				unset($this->rows[$userId][(int)$fileId]);
 				++$removed;
 			}

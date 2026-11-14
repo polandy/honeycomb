@@ -40,27 +40,32 @@ final class SeriesWriteTest extends TestCase {
 		$this->assertSame([], $write->released);
 	}
 
+	/** @return array{id: ?int, status: string, fileIds: array<int>} */
+	private static function item(?int $id, int ...$fileIds): array {
+		return ['id' => $id, 'status' => 'open', 'fileIds' => $fileIds];
+	}
+
 	/** @return array<string, array{array<array-key, mixed>, array<array-key, mixed>, array<array-key, mixed>}> */
 	public static function malformed(): array {
-		$item = ['id' => null, 'status' => 'open', 'fileIds' => [7]];
+		$item = self::item(null, 7);
 		return [
 			'series as an object' => [['a' => $item], [], []],
 			'an item that is no object' => [[7], [], []],
 			'an item without an id' => [[['status' => 'open', 'fileIds' => [7]]], [], []],
-			'an id as text' => [[[...$item, 'id' => '12']], [], []],
-			'an id of zero' => [[[...$item, 'id' => 0]], [], []],
-			'a status other than open or done' => [[[...$item, 'status' => 'closed']], [], []],
+			'an id as text' => [[['id' => '12', 'status' => 'open', 'fileIds' => [7]]], [], []],
+			'an id of zero' => [[self::item(0, 7)], [], []],
+			'a status other than open or done' => [[['id' => null, 'status' => 'closed', 'fileIds' => [7]]], [], []],
 			'an item without a status' => [[['id' => null, 'fileIds' => [7]]], [], []],
-			'file ids as an object' => [[[...$item, 'fileIds' => ['a' => 7]]], [], []],
-			'a negative file id' => [[[...$item, 'fileIds' => [-7]]], [], []],
+			'file ids as an object' => [[['id' => null, 'status' => 'open', 'fileIds' => ['a' => 7]]], [], []],
+			'a negative file id' => [[self::item(null, -7)], [], []],
 			'a kept-out file id as text' => [[], ['7'], []],
 			'released as an object' => [[], [], ['a' => 7]],
 			'a file id in a series and kept out' => [[$item], [7], []],
 			'a file id kept out and released' => [[], [7], [7]],
-			'a file id twice in one series' => [[[...$item, 'fileIds' => [7, 7]]], [], []],
-			'a series id twice' => [[[...$item, 'id' => 12, 'fileIds' => [7]], [...$item, 'id' => 12, 'fileIds' => [8]]], [], []],
-			'too many series items' => [array_fill(0, self::SERIES_LIMIT + 1, [...$item, 'fileIds' => []]), [], []],
-			'too many file ids in all' => [[[...$item, 'fileIds' => range(1, self::FILE_LIMIT / 2)]], range(self::FILE_LIMIT / 2 + 1, self::FILE_LIMIT), [self::FILE_LIMIT + 1]],
+			'a file id twice in one series' => [[self::item(null, 7, 7)], [], []],
+			'a series id twice' => [[self::item(12, 7), self::item(12, 8)], [], []],
+			'too many series items' => [array_fill(0, self::SERIES_LIMIT + 1, self::item(null)), [], []],
+			'too many file ids in all' => [[self::item(null, ...range(1, self::FILE_LIMIT / 2))], range(self::FILE_LIMIT / 2 + 1, self::FILE_LIMIT), [self::FILE_LIMIT + 1]],
 		];
 	}
 

@@ -14,6 +14,7 @@ final readonly class FileRowStores {
 		private DecisionStore $decisions,
 		private TagStore $tags,
 		private VisualHashStore $visualHashes,
+		private SeriesStore $series,
 	) {
 	}
 
@@ -23,6 +24,7 @@ final readonly class FileRowStores {
 			new FileRowStoreEntry('decision', 'vanished_after_decisions', $this->decisions),
 			new FileRowStoreEntry('tag', 'vanished_after_file_tags', $this->tags),
 			new FileRowStoreEntry('visual hash', 'vanished_after_hashes', $this->visualHashes),
+			new FileRowStoreEntry('series member', 'vanished_after_series_files', $this->series),
 		];
 	}
 

@@ -37,6 +37,19 @@ final class UserPhotos {
 		return $current;
 	}
 
+	/**
+	 * The file ids the user reaches as a photo, at any version, in the given order.
+	 * @param list<int> $fileIds
+	 * @return list<int>
+	 */
+	public function photos(IUser $user, array $fileIds): array {
+		if ($fileIds === []) {
+			return [];
+		}
+		$userFolder = $this->userFolders->userFolder($user);
+		return array_values(array_filter($fileIds, static fn (int $fileId): bool => self::photo($userFolder, $fileId) !== null));
+	}
+
 	private static function photo(Folder $userFolder, int $fileId): ?File {
 		$node = $userFolder->getFirstNodeById($fileId);
 		return $node instanceof File && ListingService::isPhoto($node) ? $node : null;
