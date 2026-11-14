@@ -1129,3 +1129,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   once the key is gone (decided, or re-keyed by a rejected first picture); the anchor of the
   active picture and the rest offer keep testing picture membership, since a series opened from
   the loupe is a snapshot whose key a rejected first picture outdates (R1b).
+- 2026-11-14: The grid's series badge, the open-series set and the loupe's landing after a series
+  take the keyed series, and the array adapter of R1a is gone; tile, title row and toolbar keep
+  taking the numbers derived from it (size, place, count), since they show a series, not name it
+  (R1c).

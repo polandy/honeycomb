@@ -25,7 +25,7 @@ export function useLoupeOpening(reveal: (index: number) => Promise<void> | undef
 		if (shown.value === null) {
 			return
 		}
-		const target = landing.kind === 'on' ? landing.picture : firstAfter(loupe.value!.pictures, shown.value.pictures, landing.series) ?? landing.picked
+		const target = landing.kind === 'on' ? landing.picture : firstAfter(loupe.value!.pictures, shown.value.pictures, landing.series.members) ?? landing.picked
 		const at = shown.value.pictures.indexOf(target)
 		if (at >= 0) {
 			page(at)

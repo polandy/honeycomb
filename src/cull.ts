@@ -26,7 +26,7 @@ import { memberIds } from './logic/pairing.ts'
 import { activeFilterCount, DEFAULT_FILTERS, emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
 import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
 import { saveQueue } from './logic/save-queue.ts'
-import { allSeries, findSeries, openSeries, seriesCandidates, seriesMembers, seriesPictures, seriesSizes as sizesOf } from './logic/series.ts'
+import { allSeries, findSeries, openSeries, seriesCandidates, seriesMembers, seriesSizes as sizesOf } from './logic/series.ts'
 import { pairingSettings } from './logic/settings.ts'
 import { inSharedFolder } from './logic/sidecar-sync.ts'
 import { inverseChange } from './logic/tag.ts'
@@ -86,7 +86,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const candidates = computed(() => seriesCandidates(pictures.value, hashes.hashOf))
 	const everySeries = computed(() => allSeries(candidates.value, decisionOf, hashes.hashOf))
 	const series = computed(() => findSeries(everySeries.value, decisionOf))
-	const seriesSizes = computed(() => sizesOf(seriesPictures(series.value)))
+	const seriesSizes = computed(() => sizesOf(series.value))
 	const seriesOf = computed(() => seriesMembers(everySeries.value))
 	const sharedPictures = computed(() => pictures.value.filter((picture) => inSharedFolder(picture, sharedFolders.value)))
 
@@ -279,7 +279,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		series,
 		seriesSizes,
 		seriesOf,
-		openSeries: computed(() => openSeries(seriesPictures(series.value), (picture) => hashes.stateOf(picture) === 'pending')),
+		openSeries: computed(() => openSeries(series.value, (picture) => hashes.stateOf(picture) === 'pending')),
 		holdHashes: hashes.hold,
 		hashProgress: hashes.progress,
 		decide,
