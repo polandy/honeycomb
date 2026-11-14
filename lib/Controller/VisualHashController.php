@@ -17,12 +17,18 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
 
 /** @psalm-suppress UnusedClass Routed by its attributes. */
 final class VisualHashController extends Controller {
+	/** Saves a user may send per period, well above a strong computer's full run (ADR 0026). */
+	private const int SAVES_PER_PERIOD = 300;
+	/** The period of the save limit in seconds. */
+	private const int SAVE_PERIOD_SECONDS = 60;
+
 	public function __construct(
 		string $appName,
 		IRequest $request,
@@ -36,6 +42,7 @@ final class VisualHashController extends Controller {
 	/** Stores the visual hashes the browser computed and answers the file ids stored (ADR 0024). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/visual-hashes')]
+	#[UserRateLimit(limit: self::SAVES_PER_PERIOD, period: self::SAVE_PERIOD_SECONDS)]
 	public function save(array $hashes = []): JSONResponse {
 		$user = $this->userSession->getUser();
 		if ($user === null) {

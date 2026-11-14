@@ -31,6 +31,11 @@ any device finds them stored and links series at once.
 - *Pause* hands no further picture to a worker; the pictures being hashed and a save in flight
   finish, then what is unsaved is saved; a page load in flight goes on and is queued. *Resume*
   goes on from there.
+- A save the server limits (`429`, SERIES-003.23) does not pause the run: the run waits the
+  seconds of the answer's `Retry-After` header, else 60 s, the period of the limit, and sends the
+  same hashes again, as often as it takes. Meanwhile the workers go on hashing and no other save
+  is sent, and the page says *The server asked for a break: the hashes are saved again in 60 s.*
+  *Pause* takes effect once that save is through.
 - A failed save pauses the run and keeps its hashes; *Resume* sends them again. A picture whose
   preview cannot be loaded or hashed, or that the server skips on save, counts as failed and is
   not tried again in this run; its path is listed under the progress.
@@ -128,6 +133,13 @@ any device finds them stored and links series at once.
 - **When** they open *Similarity*, choose the folder and start
 - **Then** the hashes are computed in workers and stored, and the cull of the folder delivers them
 
+### SERIES-004.14 – A limited save waits and is sent again
+
+- **Given** a running run
+- **When** the server answers a save `429`, with or without a `Retry-After` header
+- **Then** the run keeps hashing, says how long it waits, waits that long (60 s without the
+  header) and sends the same hashes again, and loses none of them
+
 ## Out of scope
 
 - The hash and the link rule: SERIES-001. Storing and delivering the hashes: SERIES-003.
@@ -139,3 +151,4 @@ any device finds them stored and links series at once.
 | Date | Change |
 |---|---|
 | 2026-11-14 | Written with the similarity page (owner decision, ADR 0025) |
+| 2026-11-14 | A save the server limits waits and is sent again (ADR 0026) |

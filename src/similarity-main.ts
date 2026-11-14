@@ -8,12 +8,16 @@ import { logger } from './logger.ts'
 import { hashWorkerCount } from './logic/hash-workers.ts'
 import { smallSource } from './logic/image-tiers.ts'
 
+/** Converts the seconds a limited save waits for the timer. */
+const MILLISECONDS_PER_SECOND = 1000
+
 const count = hashWorkerCount(navigator.hardwareConcurrency)
 const workers = createHashWorkers(count, () => new Worker(new URL('./hash-worker.ts', import.meta.url), { type: 'module' }))
 const seams = {
 	listMissing: listMissingVisualHashes,
 	hash: (picture: { fileId: number, mtime: number }) => workers.hash(smallSource(picture, imageUrl)),
 	save: saveVisualHashes,
+	wait: (seconds: number) => new Promise<void>((resume) => setTimeout(resume, seconds * MILLISECONDS_PER_SECOND)),
 	workers: count,
 }
 const app = createApp(SimilarityPage, { seams, listFolders })
