@@ -10,7 +10,7 @@ import { INFO_PANEL, parsePanelWidth } from './logic/panel-width.ts'
 export const INFO_WIDTH_KEY = 'honeycomb.infoWidth'
 export const NAVIGATION_SHOWN_KEY = 'honeycomb.loupeNavigationShown'
 
-/** The loupe's panels: the info panel's width and whether Nextcloud's navigation shows depend on the screen and stay in the browser like the tile size; the open state and the gesture guide come from the view state. */
+/** The loupe's panels: the info panel's width and whether Nextcloud's navigation shows depend on the screen and stay in the browser like the tile size; the open state, the gesture guide and the first-series hint come from the view state. */
 export function useLoupePanels(storage: BrowserStorage, viewState: ViewStateStore) {
 	const infoWidth = ref(parsePanelWidth(readStored(storage, INFO_WIDTH_KEY), INFO_PANEL))
 	const navigationShown = ref(readStored(storage, NAVIGATION_SHOWN_KEY) === 'true')
@@ -30,5 +30,7 @@ export function useLoupePanels(storage: BrowserStorage, viewState: ViewStateStor
 			writeStored(storage, NAVIGATION_SHOWN_KEY, String(shown))
 		},
 		dismissGestureGuide: viewState.dismissGestureGuide,
+		seriesHintSeen: viewState.seriesHintSeen,
+		dismissSeriesHint: viewState.dismissSeriesHint,
 	}
 }

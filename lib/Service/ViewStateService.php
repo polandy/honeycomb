@@ -14,7 +14,7 @@ use OCP\IUser;
 /** Keeps each user's view state as one bool per key, null while never stored (ADR 0019). */
 final class ViewStateService {
 	/** The keys of the view state. */
-	public const array KEYS = ['infoPanelOpen', 'gestureGuideSeen'];
+	public const array KEYS = ['infoPanelOpen', 'gestureGuideSeen', 'seriesHintSeen'];
 
 	public function __construct(
 		private IUserConfig $config,
@@ -46,7 +46,7 @@ final class ViewStateService {
 		}
 		foreach ($viewState as $key => $value) {
 			if (!in_array($key, self::KEYS, true) || !is_bool($value)) {
-				throw new InvalidViewStateException('viewState takes only ' . implode(' and ', self::KEYS) . ', each a boolean');
+				throw new InvalidViewStateException('viewState takes only ' . implode(', ', self::KEYS) . ', each a boolean');
 			}
 		}
 		/** @var array<string, bool> $viewState */

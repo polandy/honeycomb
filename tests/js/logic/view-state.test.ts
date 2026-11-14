@@ -6,8 +6,9 @@ import { NOTHING_STORED, parseLocalValue, parseViewState, planViewState } from '
 describe('parseViewState', () => {
 	// spec: LOUPE-003.5
 	it('keeps each boolean and reads anything else as not stored', () => {
-		expect(parseViewState({ infoPanelOpen: true, gestureGuideSeen: false })).toEqual({ infoPanelOpen: true, gestureGuideSeen: false })
-		expect(parseViewState({ infoPanelOpen: 'true', gestureGuideSeen: null, tileSize: 3 })).toEqual(NOTHING_STORED)
+		expect(parseViewState({ infoPanelOpen: true, gestureGuideSeen: false, seriesHintSeen: true })).toEqual({ infoPanelOpen: true, gestureGuideSeen: false, seriesHintSeen: true })
+		expect(parseViewState({ infoPanelOpen: true, gestureGuideSeen: false })).toEqual({ infoPanelOpen: true, gestureGuideSeen: false, seriesHintSeen: null })
+		expect(parseViewState({ infoPanelOpen: 'true', gestureGuideSeen: null, seriesHintSeen: 1, tileSize: 3 })).toEqual(NOTHING_STORED)
 		expect(parseViewState({})).toEqual(NOTHING_STORED)
 		expect(parseViewState(null)).toEqual(NOTHING_STORED)
 		expect(parseViewState([true, true])).toEqual(NOTHING_STORED)
@@ -26,7 +27,7 @@ describe('planViewState', () => {
 	// spec: LOUPE-003.5
 	it('takes the defaults when neither the server nor the browser has a value, and writes nothing', () => {
 		expect(planViewState(NOTHING_STORED, NOTHING_STORED, new Set())).toEqual({
-			apply: { infoPanelOpen: false, gestureGuideSeen: false },
+			apply: { infoPanelOpen: false, gestureGuideSeen: false, seriesHintSeen: false },
 			upload: {},
 			remove: [],
 		})
@@ -34,8 +35,8 @@ describe('planViewState', () => {
 
 	// spec: LOUPE-003.5, LOUPE-003.7
 	it('takes the stored values over the local ones and removes the local leftovers', () => {
-		expect(planViewState({ infoPanelOpen: true, gestureGuideSeen: false }, { infoPanelOpen: false, gestureGuideSeen: null }, new Set())).toEqual({
-			apply: { infoPanelOpen: true, gestureGuideSeen: false },
+		expect(planViewState({ infoPanelOpen: true, gestureGuideSeen: false, seriesHintSeen: true }, { infoPanelOpen: false, gestureGuideSeen: null, seriesHintSeen: null }, new Set())).toEqual({
+			apply: { infoPanelOpen: true, gestureGuideSeen: false, seriesHintSeen: true },
 			upload: {},
 			remove: ['infoPanelOpen'],
 		})
@@ -43,17 +44,17 @@ describe('planViewState', () => {
 
 	// spec: LOUPE-003.7
 	it('takes over a local value the server has never stored and writes it', () => {
-		expect(planViewState({ infoPanelOpen: null, gestureGuideSeen: true }, { infoPanelOpen: true, gestureGuideSeen: true }, new Set())).toEqual({
-			apply: { infoPanelOpen: true, gestureGuideSeen: true },
+		expect(planViewState({ infoPanelOpen: null, gestureGuideSeen: true, seriesHintSeen: null }, { infoPanelOpen: true, gestureGuideSeen: true, seriesHintSeen: null }, new Set())).toEqual({
+			apply: { infoPanelOpen: true, gestureGuideSeen: true, seriesHintSeen: false },
 			upload: { infoPanelOpen: true },
 			remove: ['gestureGuideSeen'],
 		})
-		expect(planViewState(NOTHING_STORED, { infoPanelOpen: false, gestureGuideSeen: true }, new Set()).upload).toEqual({ infoPanelOpen: false, gestureGuideSeen: true })
+		expect(planViewState(NOTHING_STORED, { infoPanelOpen: false, gestureGuideSeen: true, seriesHintSeen: null }, new Set()).upload).toEqual({ infoPanelOpen: false, gestureGuideSeen: true })
 	})
 
 	// spec: LOUPE-003.6
 	it('leaves a key the user changed before the answer alone', () => {
-		expect(planViewState({ infoPanelOpen: false, gestureGuideSeen: null }, { infoPanelOpen: true, gestureGuideSeen: false }, new Set(['infoPanelOpen', 'gestureGuideSeen'] as const))).toEqual({
+		expect(planViewState({ infoPanelOpen: false, gestureGuideSeen: null, seriesHintSeen: true }, { infoPanelOpen: true, gestureGuideSeen: false, seriesHintSeen: null }, new Set(['infoPanelOpen', 'gestureGuideSeen', 'seriesHintSeen'] as const))).toEqual({
 			apply: {},
 			upload: {},
 			remove: [],
@@ -62,6 +63,6 @@ describe('planViewState', () => {
 
 	// spec: LOUPE-003.8
 	it('without an answer takes the local values, else the defaults', () => {
-		expect(planViewState(NOTHING_STORED, { infoPanelOpen: true, gestureGuideSeen: null }, new Set()).apply).toEqual({ infoPanelOpen: true, gestureGuideSeen: false })
+		expect(planViewState(NOTHING_STORED, { infoPanelOpen: true, gestureGuideSeen: null, seriesHintSeen: null }, new Set()).apply).toEqual({ infoPanelOpen: true, gestureGuideSeen: false, seriesHintSeen: false })
 	})
 })

@@ -43,7 +43,7 @@ final class ViewStateServiceTest extends TestCase {
 
 	// spec: LOUPE-003.1
 	public function testAKeyNeverStoredIsNull(): void {
-		$this->assertSame(['infoPanelOpen' => null, 'gestureGuideSeen' => null], $this->service()->get($this->user()));
+		$this->assertSame(['infoPanelOpen' => null, 'gestureGuideSeen' => null, 'seriesHintSeen' => null], $this->service()->get($this->user()));
 	}
 
 	// spec: LOUPE-003.1
@@ -51,7 +51,7 @@ final class ViewStateServiceTest extends TestCase {
 		$this->stored['alice/honeycomb/infoPanelOpen'] = false;
 		$this->stored['alice/honeycomb/gestureGuideSeen'] = true;
 
-		$this->assertSame(['infoPanelOpen' => false, 'gestureGuideSeen' => true], $this->service()->get($this->user()));
+		$this->assertSame(['infoPanelOpen' => false, 'gestureGuideSeen' => true, 'seriesHintSeen' => null], $this->service()->get($this->user()));
 	}
 
 	// spec: LOUPE-003.2
@@ -60,15 +60,15 @@ final class ViewStateServiceTest extends TestCase {
 
 		$answer = $this->service()->save($this->user(), ['gestureGuideSeen' => false]);
 
-		$this->assertSame(['infoPanelOpen' => true, 'gestureGuideSeen' => false], $answer);
+		$this->assertSame(['infoPanelOpen' => true, 'gestureGuideSeen' => false, 'seriesHintSeen' => null], $answer);
 		$this->assertSame(['alice/honeycomb/infoPanelOpen' => true, 'alice/honeycomb/gestureGuideSeen' => false], $this->stored);
 	}
 
 	// spec: LOUPE-003.2
-	public function testStoresBothKeys(): void {
-		$answer = $this->service()->save($this->user(), ['infoPanelOpen' => true, 'gestureGuideSeen' => true]);
+	public function testStoresEveryKey(): void {
+		$answer = $this->service()->save($this->user(), ['infoPanelOpen' => true, 'gestureGuideSeen' => true, 'seriesHintSeen' => true]);
 
-		$this->assertSame(['infoPanelOpen' => true, 'gestureGuideSeen' => true], $answer);
+		$this->assertSame(['infoPanelOpen' => true, 'gestureGuideSeen' => true, 'seriesHintSeen' => true], $answer);
 	}
 
 	/** @return array<string, array{mixed}> */

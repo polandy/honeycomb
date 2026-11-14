@@ -44,7 +44,7 @@ every screen; each button's tooltip names its key.
 | `F` | Fullscreen. |
 | `Tab` | Show or hide the header; in the loupe, the controls. |
 | `I` | Loupe: show or hide the info panel. |
-| `Esc` | Close the loupe, dialog or selection mode. |
+| `Esc` | Close the loupe, dialog or selection mode. While the first-series hint shows in the loupe, `Esc` dismisses it first. |
 | `B` | Show or hide the flag buttons in the loupe and the series viewer. The keys and swipes keep working. |
 
 ## Filter and select
@@ -78,6 +78,11 @@ such as "⧉ Series 2/5" (on a phone "⧉ 2/5"): the photo is the second of five
 series, decided photos included, with the shown photo active. `Esc` or the close button returns to
 the loupe on the active photo. *Pick this, reject the rest* returns to the loupe on the first photo
 after the series, or stays on the picked one when the series is the last.
+
+The first time the loupe shows a photo of a series, the chip pulses twice and a hint under it
+explains the chip, `N` and `Shift+K`. *Got it* or `Esc` dismisses it for good, on every device;
+using the chip, `N`, the frame's tab or *Pick this, reject the rest* does too. Paging to a photo
+outside any series only hides it until the next series photo.
 
 While the loupe shows a photo of a series, its rating row ends with *Pick this, reject the rest*,
 and `Shift+K` does the same: the shown photo is picked, the others of its series rejected, and the
