@@ -3,6 +3,7 @@
 - Status: accepted
 - Date: 2026-11-14
 - Extends: [0024](0024-visual-hashes-stored-on-the-server.md)
+- Extended by: [0026](0026-rate-limit-of-the-visual-hash-saves.md), the rate limit of the saves
 
 ## Context
 

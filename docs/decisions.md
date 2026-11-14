@@ -1089,3 +1089,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   row of a deleted file costs nothing but space. The cursor is a lazy app config value per table.
 - 2026-11-14: A database error in one table of the clean-up job is logged and the other tables are
   still cleaned; the row id of the last finished chunk is kept, so the next run goes on from there.
+- 2026-11-14: The visual hash save is limited to 300 requests a minute per user, three times what
+  the similarity page sends at most on a strong computer (ADR 0026).
+- 2026-11-14: Nextcloud's `429` has no `Retry-After`; the similarity page waits the header's
+  seconds when a proxy sets one, else 60 s, the limit's period, and ignores the HTTP-date form,
+  which would need the clock.
+- 2026-11-14: A limited save of the similarity page waits and is sent again without pausing the
+  run; the cull treats it as a failed save, since it saves far too seldom to reach the limit.

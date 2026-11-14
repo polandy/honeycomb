@@ -88,6 +88,9 @@ function choose(path: string) {
 					<NcNoteCard v-if="run.problem.value === 'save'" type="error">
 						{{ t('honeycomb', 'Could not save the visual hashes. Resume to try again.') }}
 					</NcNoteCard>
+					<NcNoteCard v-if="run.waiting.value !== null" type="info">
+						{{ t('honeycomb', 'The server asked for a break: the hashes are saved again in {seconds} s.', { seconds: run.waiting.value }) }}
+					</NcNoteCard>
 					<NcNoteCard v-if="run.problem.value === 'page'" type="error">
 						{{ t('honeycomb', 'Could not load the photos. Resume to try again.') }}
 					</NcNoteCard>

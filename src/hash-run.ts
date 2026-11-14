@@ -6,6 +6,7 @@ import type { StoredVisualHash } from './logic/visual-hash.ts'
 import { computed, ref, shallowRef, triggerRef } from 'vue'
 import { logger } from './logger.ts'
 import { hashProgress } from './logic/hash-progress.ts'
+import { RateLimitedError } from './logic/retry-after.ts'
 
 /** How many computed hashes one save of a run carries at most (SERIES-004.5). */
 export const HASH_RUN_SAVE_BATCH = 250
@@ -29,11 +30,13 @@ export interface HashRunSeams {
 	readonly listMissing: (path: string, after: string) => Promise<MissingPage>
 	readonly hash: (picture: MissingPicture) => Promise<string>
 	readonly save: (hashes: readonly StoredVisualHash[]) => Promise<number[]>
+	/** Resolves after the given seconds; a save the server limits waits with it (ADR 0026). */
+	readonly wait: (seconds: number) => Promise<void>
 	readonly workers: number
 	readonly saveBatch?: number
 }
 
-/** Where a run stands; `pausing` waits for the work in flight. */
+/** Where a run stands; `pausing` waits for the work in flight, a limited save included. */
 export type HashRunStatus = 'idle' | 'running' | 'pausing' | 'paused' | 'done'
 
 /** Why a run paused by itself: a save or a page of missing hashes failed. */
@@ -48,6 +51,7 @@ export function useHashRun(seams: HashRunSeams) {
 	const status = ref<HashRunStatus>('idle')
 	const problem = ref<HashRunProblem | null>(null)
 	const listed = ref(false)
+	const waiting = ref<number | null>(null)
 	const states = shallowRef(new Map<number, { picture: MissingPicture, state: HashState }>())
 	let run = 0
 	let folder = ''
@@ -143,13 +147,32 @@ export function useHashRun(seams: HashRunSeams) {
 		}
 	}
 
+	/** Sends one batch, and again after each wait a limited save asks for; a run started meanwhile drops it. */
+	async function send(of: number, batch: readonly StoredVisualHash[]): Promise<number[]> {
+		for (;;) {
+			try {
+				return await seams.save(batch)
+			} catch (error) {
+				if (!(error instanceof RateLimitedError) || of !== run) {
+					throw error
+				}
+				waiting.value = error.seconds
+				await seams.wait(error.seconds)
+				if (of !== run) {
+					return []
+				}
+				waiting.value = null
+			}
+		}
+	}
+
 	/** Saves one batch; a failed save puts it back and pauses the run. */
 	async function save(of: number) {
 		saving = true
 		const batch = unsaved.slice(0, saveBatch)
 		unsaved = unsaved.slice(saveBatch)
 		try {
-			const saved = new Set(await seams.save(batch))
+			const saved = new Set(await send(of, batch))
 			if (of === run) {
 				batch.filter((each) => !saved.has(each.fileId)).forEach((each) => mark(each.fileId, 'failed'))
 			}
@@ -179,6 +202,7 @@ export function useHashRun(seams: HashRunSeams) {
 		loading = false
 		saving = false
 		problem.value = null
+		waiting.value = null
 		listed.value = false
 		states.value = new Map()
 		status.value = 'running'
@@ -202,5 +226,5 @@ export function useHashRun(seams: HashRunSeams) {
 		}
 	}
 
-	return { status, problem, progress, listed, failedPaths, start, pause, resume }
+	return { status, problem, waiting, progress, listed, failedPaths, start, pause, resume }
 }
