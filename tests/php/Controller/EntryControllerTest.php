@@ -14,6 +14,7 @@ use OCA\Honeycomb\Service\ListingService;
 use OCA\Honeycomb\Service\SharedFolders;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Tests\Service\FakeFiles;
+use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -34,7 +35,7 @@ final class EntryControllerTest extends TestCase {
 	private function controller(IRootFolder $root, ?IUser $user): EntryController {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($user);
-		$listing = new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class)), new SharedFolders($this->createStub(IShareManager::class), $this->createStub(IUserMountCache::class)));
+		$listing = new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore()), new SharedFolders($this->createStub(IShareManager::class), $this->createStub(IUserMountCache::class)));
 		return new EntryController(Application::APP_ID, $this->createStub(IRequest::class), $session, $listing);
 	}
 

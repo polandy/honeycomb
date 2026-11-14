@@ -21,6 +21,7 @@ async function waitingCull() {
 	const settle: { resolve: () => void, reject: (error: Error) => void }[] = []
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
+		saveVisualHashes: async () => undefined,
 		warmPreviews: async () => undefined,
 		lookupDecisions: async () => [],
 		saveDecisions: (rows) => new Promise<void>((resolve, reject) => {

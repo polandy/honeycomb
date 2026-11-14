@@ -3,6 +3,7 @@
 // @vitest-environment happy-dom
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
+import type { StoredVisualHash } from '../../src/logic/visual-hash.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -30,12 +31,19 @@ function fakeHasher() {
 	return { calls, hashImage }
 }
 
-function setUp(stored: Record<string, string> = {}) {
+function setUp(entries: ListingEntry[] = BURST, stored: Record<string, string> = {}, saveFails = false) {
 	const hasher = fakeHasher()
-	const pictures = shallowRef<Picture<ListingEntry>[]>(picturesOf(BURST))
-	const hashes = useVisualHashes(hasher.hashImage, fakeStorage(stored), () => pictures.value)
+	const saves: StoredVisualHash[][] = []
+	const saveVisualHashes = async (hashes: readonly StoredVisualHash[]) => {
+		saves.push([...hashes])
+		if (saveFails) {
+			throw new Error('offline')
+		}
+	}
+	const pictures = shallowRef<Picture<ListingEntry>[]>(picturesOf(entries))
+	const hashes = useVisualHashes({ hashImage: hasher.hashImage, saveVisualHashes }, fakeStorage(stored), () => pictures.value)
 	const byName = (name: string) => pictures.value.find((picture) => picture.baseName === name)!
-	return { ...hasher, pictures, hashes, byName, stored }
+	return { ...hasher, saves, pictures, hashes, byName, stored }
 }
 
 describe('useVisualHashes', () => {
@@ -52,25 +60,72 @@ describe('useVisualHashes', () => {
 		expect(hashes.hashOf(byName('C'))).toBeNull()
 	})
 
-	// spec: SERIES-001.17
-	it('stores the hashes once all are done and reuses them for the same file version', async () => {
-		const { calls, stored } = setUp()
+	// spec: SERIES-001.17, SERIES-003.12
+	it('saves the computed hashes with their etags once none is left to hash', async () => {
+		const { calls, saves } = setUp()
 		calls[0]!.resolve('0000000000000001')
 		await flushPromises()
-		expect(stored[VISUAL_HASHES_KEY]).toBeUndefined()
+		expect(saves).toEqual([])
 		calls[1]!.resolve('0000000000000003')
 		await flushPromises()
 
-		const again = setUp({ [VISUAL_HASHES_KEY]: stored[VISUAL_HASHES_KEY]! })
-		expect(again.calls).toEqual([])
-		expect(again.hashes.hashOf(again.byName('B'))).toBe('0000000000000003')
+		expect(saves).toEqual([[{ fileId: 1, etag: 'etag-1', hash: '0000000000000001' }, { fileId: 3, etag: 'etag-3', hash: '0000000000000003' }]])
+	})
+
+	// spec: SERIES-003.12
+	it('saves every 100 hashes while hashing goes on', async () => {
+		const { calls, saves } = setUp(Array.from({ length: 101 }, (_, index) => listingEntry(index + 1, `/P/${index}.JPG`, { captureTime: index })))
+		for (let index = 0; index < 101; index++) {
+			calls[index]!.resolve('0000000000000000')
+			await flushPromises()
+		}
+
+		expect(saves.map((batch) => batch.length)).toEqual([100, 1])
+	})
+
+	// spec: SERIES-001.17, SERIES-003.12
+	it('uses the hashes the listing delivered at once and hashes only the rest', async () => {
+		const { calls, saves, hashes, byName } = setUp([{ ...BURST[0]!, visualHash: '00000000000000aa' }, ...BURST.slice(1)])
+
+		expect(hashes.hashOf(byName('A'))).toBe('00000000000000aa')
+		expect(calls.map((call) => call.member.fileId)).toEqual([3])
+		calls[0]!.resolve('0000000000000003')
+		await flushPromises()
+		expect(saves).toEqual([[{ fileId: 3, etag: 'etag-3', hash: '0000000000000003' }]])
 	})
 
 	// spec: SERIES-001.17
-	it('hashes a file again once its etag changed', () => {
-		const { calls } = setUp({ [VISUAL_HASHES_KEY]: JSON.stringify({ '1:etag-1': '0000000000000001', '3:old': '0000000000000003' }) })
+	it('hashes a file again once its etag changed', async () => {
+		const { calls, pictures } = setUp()
+		calls[0]!.resolve('0000000000000001')
+		await flushPromises()
+		calls[1]!.resolve('0000000000000003')
+		await flushPromises()
+		pictures.value = picturesOf([{ ...BURST[0]!, etag: 'etag-new' }, ...BURST.slice(1)])
+		await flushPromises()
 
-		expect(calls.map((call) => call.member.fileId)).toEqual([3])
+		expect(calls.map((call) => call.member.fileId)).toEqual([1, 3, 1])
+	})
+
+	// spec: SERIES-003.13
+	it('logs a failed save and keeps the hashes for this visit', async () => {
+		const warn = vi.spyOn(logger, 'warn').mockImplementation(() => {})
+		const { calls, hashes, byName } = setUp(BURST, {}, true)
+		calls[0]!.resolve('0000000000000001')
+		await flushPromises()
+		calls[1]!.resolve('0000000000000003')
+		await flushPromises()
+
+		expect(warn).toHaveBeenCalledWith('Could not save the visual hashes', expect.objectContaining({ count: 2 }))
+		expect(hashes.hashOf(byName('A'))).toBe('0000000000000001')
+	})
+
+	// spec: SERIES-003.14
+	it('removes the hashes earlier versions kept in browser storage and ignores them', () => {
+		const { calls, stored } = setUp(BURST, { [VISUAL_HASHES_KEY]: JSON.stringify({ '1:etag-1': '0000000000000001' }) })
+
+		expect(stored[VISUAL_HASHES_KEY]).toBeUndefined()
+		expect(calls.map((call) => call.member.fileId)).toEqual([1])
 	})
 
 	// spec: SERIES-001.16, SERIES-001.17

@@ -32,6 +32,7 @@ async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
+		saveVisualHashes: async () => undefined,
 		warmPreviews: async () => undefined,
 		lookupDecisions: async (fileIds) => {
 			lookedUp.push([...fileIds])

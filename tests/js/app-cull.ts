@@ -98,6 +98,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 		props: {
 			storage: fakeStorage(),
 			hashImage: () => new Promise(() => undefined),
+			saveVisualHashes: async () => undefined,
 			warmPreviews: async (ids: readonly number[]) => { warmed.push([...ids]) },
 			lookupDecisions: async (ids: readonly number[]) => {
 				lookedUp.push([...ids])

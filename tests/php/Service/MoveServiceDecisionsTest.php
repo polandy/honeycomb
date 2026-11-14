@@ -13,6 +13,7 @@ use OCA\Honeycomb\Service\MoveService;
 use OCA\Honeycomb\Service\PictureDecision;
 use OCA\Honeycomb\Service\PictureTags;
 use OCA\Honeycomb\Service\TagStore;
+use OCA\Honeycomb\Service\VisualHash;
 use OCP\App\IAppManager;
 use OCP\Files\NotPermittedException;
 use PHPUnit\Framework\TestCase;
@@ -23,18 +24,20 @@ final class MoveServiceDecisionsTest extends TestCase {
 
 	private FakeDecisionStore $store;
 	private FakeTagStore $tags;
+	private FakeVisualHashStore $hashes;
 
 	#[\Override]
 	protected function setUp(): void {
 		$this->store = new FakeDecisionStore();
 		$this->tags = new FakeTagStore();
+		$this->hashes = new FakeVisualHashStore();
 		$this->addFiles([1 => '/In/A.RAF', 2 => '/In/A.JPG']);
 	}
 
 	private function service(?DecisionStore $store = null, ?LoggerInterface $logger = null, ?TagStore $tags = null): MoveService {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturn(true);
-		return new MoveService($this->treeRoot(), $apps, $store ?? $this->store, $tags ?? $this->tags, $logger ?? $this->createStub(LoggerInterface::class));
+		return new MoveService($this->treeRoot(), $apps, $store ?? $this->store, $tags ?? $this->tags, $this->hashes, $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
 	private static function decision(int $fileId): PictureDecision {
@@ -115,5 +118,16 @@ final class MoveServiceDecisionsTest extends TestCase {
 
 		$this->assertSame(['moved', 'moved'], array_map(static fn (array $file): string => $file['result']->value, $results[0]));
 		$this->assertEquals(['alice' => [20 => self::decision(20)]], $this->store->rows);
+	}
+
+	// spec: SERIES-003.15
+	public function testAVisualHashFollowsItsFileToANewFileId(): void {
+		$this->addFolder('/Out');
+		$this->newIds[2] = 20;
+		$this->hashes->rows = ['alice' => [2 => new VisualHash(2, 'etag-2', '00ff00ff00ff00ff')]];
+
+		$this->service()->move($this->treeUser(), self::request());
+
+		$this->assertEquals(['alice' => [20 => new VisualHash(20, 'etag-2', '00ff00ff00ff00ff')]], $this->hashes->rows);
 	}
 }
