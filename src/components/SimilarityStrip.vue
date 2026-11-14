@@ -85,7 +85,7 @@ const announced = computed(() => (props.progress.phase === 'running'
 	display: flex;
 	align-items: center;
 	gap: calc(2 * var(--default-grid-baseline));
-	height: 22px;
+	height: 100%;
 	padding: 0 calc(2 * var(--default-grid-baseline));
 	background-color: var(--color-main-background-blur);
 	color: var(--color-text-maxcontrast);

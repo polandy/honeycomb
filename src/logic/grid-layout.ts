@@ -9,6 +9,8 @@ export interface GridLayoutInput {
 	readonly headerHeight: number
 	readonly groups: readonly number[]
 	readonly showHeaders: boolean
+	/** Space kept free above the first row. */
+	readonly top: number
 }
 
 /** A group's header or one row of its square tiles; `first` counts pictures across groups. */
@@ -31,7 +33,7 @@ export function gridLayout(input: GridLayoutInput): GridLayout {
 	const columns = Math.max(1, Math.floor((width + gap) / (tileSize + gap)))
 	const tileWidth = Math.max(0, (width - gap * (columns - 1)) / columns)
 	const rows: GridRow[] = []
-	let top = 0
+	let top = input.top
 	const add = (row: GridRow) => {
 		rows.push(row)
 		top = row.top + row.height + gap

@@ -1117,3 +1117,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   picture outside the series that may still join it does not mark it, to keep the rule simple.
 - 2026-11-14: The strip lies over the grid's sticky folder header while it shows; it lets taps
   through to the tiles.
+- 2026-11-14: The grid keeps the strip's 22 px free above its first row at all times (#181 B), so
+  the strip covers no tile at the top and nothing moves when it comes or goes.
