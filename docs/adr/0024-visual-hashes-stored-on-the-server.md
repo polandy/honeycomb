@@ -4,7 +4,8 @@
 - Date: 2026-11-14
 - Supersedes: [0021](0021-series-by-capture-time-and-visual-hash.md)
 - Extended by: [0025](0025-missing-visual-hashes-by-path-cursor.md), hashing a folder tree in bulk;
-  [0026](0026-rate-limit-of-the-visual-hash-saves.md), the rate limit of the saves
+  [0026](0026-rate-limit-of-the-visual-hash-saves.md), the rate limit of the saves;
+  [0027](0027-series-stored-on-the-server.md), stored series
 
 ## Context
 

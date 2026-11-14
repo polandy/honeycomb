@@ -1099,3 +1099,13 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-14: The picker's *Recent* is its own component (`PickerRecentSets`) and the navigation
   keeps `RecentFolderSets`, since #180 variant C only concerns the dialog; *Show all* folds back
   as *Show fewer* so the focus stays on the button; rows shrink by 8 px below 640 px of height.
+- 2026-11-14: Stored series (#185 PR 0): a series write moves the listed files into the series
+  and leaves unlisted members alone, and an unknown series id makes a new series, so members in
+  another folder set survive a merge and undo works after the clean-up job (ADR 0027).
+- 2026-11-14: The series lookup answers per series only the requested members and `elsewhere`,
+  not a count: the server cannot pair files into photos; the compare says "Also in other
+  folders".
+- 2026-11-14: *Series done* is a toggle in the compare's title menu (pressed again reopens), the
+  badge of a done series carries a check instead of the pin, and the series edits get no keys yet.
+- 2026-11-14: SERIES-005 is `accepted`, not `draft`: the owner decided D1a–D5a and #183 and
+  released the chain, so the backend PR can mark its tests.
