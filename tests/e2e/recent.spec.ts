@@ -64,7 +64,7 @@ test('lists at most three recent folder sets under the folder tree on a phone an
 	expect(first.x + first.width).toBeLessThanOrEqual(390)
 
 	await picker.getByRole('button', { name: /^Show all/ }).click()
-	expect(await rows.count()).toBeGreaterThanOrEqual(4)
+	await expect(rows.nth(3)).toBeVisible()
 	const longRow = picker.locator('.picker-recent-sets__row', { hasText: 'with a very long name' })
 	await expect(longRow.locator('.picker-recent-sets__progress')).toBeVisible()
 	const box = (await longRow.boundingBox())!

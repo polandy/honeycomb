@@ -59,6 +59,17 @@ describe('PickerRecentSets', () => {
 	})
 
 	// spec: LISTING-003.15
+	it('keeps the toggle in the page while it folds, so the focus stays on it', async () => {
+		const wrapper = mount(PickerRecentSets, { props: { items: MANY }, attachTo: document.body })
+		const toggle = wrapper.find('.picker-recent-sets__toggle')
+		;(toggle.element as HTMLElement).focus()
+		await toggle.trigger('click')
+
+		expect(document.activeElement).toBe(wrapper.find('.picker-recent-sets__toggle').element)
+		wrapper.unmount()
+	})
+
+	// spec: LISTING-003.15
 	it('keeps the full path in the tooltip of a row so a long name can be cut', () => {
 		const long = { folderSet: { paths: ['/Photos/Wedding 2026-06-14 Ceremony and Reception'], subfolders: false }, fileId: 1, decided: 0, total: 300 }
 		const wrapper = mount(PickerRecentSets, { props: { items: [{ position: long, current: false, decided: 0, total: 300 }] } })
