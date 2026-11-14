@@ -40,8 +40,7 @@ final class EntryControllerTest extends TestCase {
 
 	// spec: LISTING-001.1
 	public function testReturnsTheListingAsJson(): void {
-		$photos = $this->folder('/Photos');
-		$photos->method('search')->willReturnCallback($this->searchOver([$this->file(1, '/Photos/2024/IMG_0001.JPG')]));
+		$photos = $this->treeOf([$this->file(1, '/Photos/2024/IMG_0001.JPG')]);
 
 		$response = $this->controller($this->rootWith(['/Photos' => $photos]), $this->user())->index('Photos', true);
 
