@@ -1030,3 +1030,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   server table would be a new ADR-level storage choice, and a wrong "warmed" costs only one
   synchronous render. They are capped at 20,000 (`PICTURE_CAP`), about 400 KB, the files warmed or
   skipped last; a cancelled warm-up logs nothing, a failed one logs as before.
+- 2026-11-14: The folder picker learns `hasSubfolders` from a folder-only listing of each child
+  (`getDirectoryListing(FileInfo::MIMETYPE_FOLDER)`), so the file cache returns folders only
+  instead of every photo in the child; a child that vanishes or may not be listed still counts as
+  having none.
