@@ -19,8 +19,9 @@ viewer preloads the loupe's window around the shown photo, 3 ahead and 2 behind 
 not the whole series. The viewer shows the series without its rejected pictures, one photo
 at a time, with the loupe's controls: a close button, the name and "Series 1 of 2 · photo 2 of
 3", the flag button toggle and the *Fit* / 100 % button at the top, the previous and next
-buttons, and the loupe's action bar (flag buttons, rating, colour label, *Keep RAW*) with *Pick
-this, reject the rest*. It has no info panel, filmstrip or gesture guide.
+buttons, and the loupe's action bar (flag buttons *Pick*, *Unflag*, *Reject* placed as in
+LOUPE-002.11, rating, colour label, *Keep RAW*) with *Pick this, reject the rest*. It has no info
+panel, filmstrip or gesture guide, so in landscape *Unflag* sits just above the action bar.
 
 Paging works as in the loupe: a horizontal swipe, the previous and next buttons, `←` `→`, and a
 tap on the left or right 30 % of the photo area; the outer zone does nothing on the first or last
@@ -134,3 +135,4 @@ loupe, fit or 100 %.
 |---|---|
 | 2026-11-10 | Created with the series viewer and the series badge (M6.2). |
 | 2026-11-14 | .1 preloads the loupe's window, not the whole series (series concept step 3). |
+| 2026-11-14 | The flag buttons run *Pick*, *Unflag*, *Reject*, *Unflag* bottom centre in landscape (series concept step 4). |

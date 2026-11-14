@@ -92,9 +92,11 @@ distance and filled once the release decides. The flag buttons can be hidden by 
 
 - **Given** the loupe is wider than tall
 - **When** the flag buttons show
-- **Then** *Pick* floats at the left edge and *Reject* with *Unflag* at the right, each with
-  its word below its icon, the photo fills the loupe; in portrait they form a row below the
-  photo, *Pick* at the left, *Unflag* in the middle and *Reject* at the right
+- **Then** *Pick* floats at the left edge and *Reject* at the right, each with its word below its
+  icon, and *Unflag* centred at the bottom of the photo just above the filmstrip, its word beside
+  its icon; the photo fills the loupe and no flag button overlaps the filmstrip, on a phone too;
+  in portrait they form a row below the photo, *Pick* at the left, *Unflag* in the middle and
+  *Reject* at the right (owner decision, 2026-11-13)
 
 ## Out of scope
 
@@ -138,3 +140,4 @@ Delete from the loupe: DELETE-002.
 | 2026-11-12 | .11 *Unflag* between *Pick* and *Reject* in portrait (owner, iPad) |
 | 2026-11-12 | .14 swipe hint; .13 a pressed *Unflag* is filled, not outlined (owner, iPad) |
 | 2026-11-13 | .11 *Unflag* at the right edge carries its word (UX review L5) |
+| 2026-11-14 | .11 *Unflag* bottom centre above the filmstrip in landscape (owner decision 2) |

@@ -9,12 +9,12 @@ import { FLAG_ICONS } from '../../../src/flag-icons.ts'
 
 describe('FlagButtons', () => {
 	// spec: GRID-002.12
-	it('labels Pick, Reject and Unflag and gives each its own flag icon', () => {
+	it('labels Pick, Unflag and Reject and gives each its own flag icon', () => {
 		const wrapper = mount(FlagButtons, { props: { flag: undefined } })
 		const buttons = wrapper.findAll('button')
 
-		expect(buttons.map((button) => button.attributes('aria-label'))).toEqual(['Pick', 'Reject', 'Unflag'])
-		expect(buttons.map((button) => button.findComponent(AppIcon).props('name'))).toEqual([FLAG_ICONS.picked, FLAG_ICONS.rejected, FLAG_ICONS.unflagged])
+		expect(buttons.map((button) => button.attributes('aria-label'))).toEqual(['Pick', 'Unflag', 'Reject'])
+		expect(buttons.map((button) => button.findComponent(AppIcon).props('name'))).toEqual([FLAG_ICONS.picked, FLAG_ICONS.unflagged, FLAG_ICONS.rejected])
 	})
 
 	// spec: GRID-002.12
@@ -25,9 +25,9 @@ describe('FlagButtons', () => {
 		expect(filled).toEqual([true, false, false])
 	})
 
-	// spec: LOUPE-002.11
-	it('puts Unflag between Pick and Reject when large, so Pick and Reject take the outer edges', () => {
-		const wrapper = mount(FlagButtons, { props: { flag: undefined, size: 'large' } })
+	// spec: LOUPE-002.11, GRID-003.15
+	it.each(['small', 'large'] as const)('runs Pick, Unflag, Reject in the %s size, one order everywhere', (size) => {
+		const wrapper = mount(FlagButtons, { props: { flag: undefined, size } })
 
 		expect(wrapper.findAll('button').map((button) => button.attributes('aria-label'))).toEqual(['Pick', 'Unflag', 'Reject'])
 	})

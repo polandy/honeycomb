@@ -62,6 +62,7 @@ describe('SeriesCompare', () => {
 		expect(cards(wrapper)[1]!.find('.flag-mark--picked').exists()).toBe(true)
 		expect(cards(wrapper)[0]!.find('.flag-mark').exists()).toBe(false)
 		expect(cards(wrapper)[1]!.find('[aria-label$="Pick"]').attributes('aria-pressed')).toBe('true')
+		expect(cards(wrapper)[0]!.findAll('.flag-buttons button').map((button) => plain(button.attributes('aria-label')))).toEqual(['Pick', 'Unflag', 'Reject'])
 	})
 
 	// spec: SERIES-001.7

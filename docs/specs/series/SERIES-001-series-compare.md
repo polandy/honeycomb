@@ -38,8 +38,8 @@ portrait photo needs at the card's width.
 Up to four cards share the dialog's width; a longer series gives each card at least 180 px (half the
 width on a phone) and the row scrolls sideways, the active card always scrolled into view. On a
 phone a series of three or four wraps into two columns instead.
-Each card has the picture's name, stars, flag mark, the flag buttons and *Pick this, reject the
-rest*; the flag buttons sit level across the cards, a flag mark or not. One picture is active
+Each card has the picture's name, stars, flag mark, the flag buttons (*Pick*, *Unflag*, *Reject*,
+GRID-003.15) and *Pick this, reject the rest*; the flag buttons sit level across the cards, a flag mark or not. One picture is active
 (outlined); its *Pick this, reject the rest* is the primary button, the others' and *Skip* are
 secondary. The keys are in the buttons' tooltips and the shortcut sheet. Tapping a picture's photo
 opens it in the series viewer (SERIES-002); closing the viewer makes the viewed picture active. A
@@ -107,7 +107,7 @@ lines instead of cutting it.
 - **When** it shows a series
 - **Then** its title says which series of how many and the active picture's place in it, one
   line of instructions shows, and each picture shows its image, name, stars, flag mark, the flag
-  buttons and *Pick this, reject the rest*; the first picture is active
+  buttons *Pick*, *Unflag*, *Reject* and *Pick this, reject the rest*; the first picture is active
 
 ### SERIES-001.8 – Deciding a picture of the series
 
@@ -227,3 +227,4 @@ camera come from LISTING-001.
 | 2026-11-13 | A run is one series however long, and a long series scrolls sideways in the compare (owner request after testing on nc-test). |
 | 2026-11-14 | The title names the active picture's place, "· photo 7 of 26" (series concept step 3). |
 | 2026-11-14 | A series ends 60 s after its first picture, so a slow run of alike shots no longer chains over minutes (series concept step 2, ADR 0021). |
+| 2026-11-14 | The cards' flag buttons run *Pick*, *Unflag*, *Reject*, as everywhere (series concept step 4, owner decision 2). |
