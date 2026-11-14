@@ -79,9 +79,11 @@ device; the tag list keeps every tag the user ever had for autocomplete and the 
 
 - **Given** two saves of the same file at once, so one hits the unique key of a row the other just
   inserted
-- **When** the second one fails with that conflict
+- **When** the second one fails with that conflict, or on MySQL with a deadlock or a lock wait
+  timeout on the other's locks
 - **Then** it is repeated, at most three attempts in all (the last writer wins); any other database
-  error is not repeated and nothing of that save is stored
+  error, or one of these on every attempt, is not repeated further and nothing of that save is
+  stored
 
 ### TAGS-001.10 – A moved file
 
@@ -120,3 +122,4 @@ Reading tags from sidecars and writing them through (TAGS-002); the JPEG's embed
 | Date | Change |
 |---|---|
 | 2026-11-13 | Written with the tag tables and endpoints (ADR 0022) |
+| 2026-11-14 | A deadlock or lock wait timeout is repeated like a unique-key conflict (TAGS-001.9) |
