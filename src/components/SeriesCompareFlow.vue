@@ -40,6 +40,7 @@ defineExpose({ hotkeys })
 		:decisionOf="props.decisionOf"
 		@decide="props.flow.decide"
 		@pickRest="props.flow.pickRest"
+		@activate="props.flow.setActive"
 		@view="props.flow.view"
 		@columns="props.flow.setColumns"
 		@skip="props.flow.skip"

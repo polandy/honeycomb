@@ -43,9 +43,16 @@ as many columns as keep that width, the active card always scrolled into view.
 Each card has the picture's name, stars, flag mark and the flag buttons (*Pick*, *Unflag*,
 *Reject*, GRID-003.15); the flag buttons sit level across the cards, a flag mark or not. One
 picture is active: its card has the honey frame. *Pick this, reject the rest* is the primary
-button, *Skip* secondary. The keys are in the buttons' tooltips and the shortcut sheet. Tapping
-a picture's photo opens it in the series viewer (SERIES-002); closing the viewer
-makes the viewed picture active. A decision goes through the undo history and the undo toast like
+button, *Skip* secondary. The keys are in the buttons' tooltips and the shortcut sheet. A single
+tap (click) on a card's photo only makes it active, never opens anything. Every card's photo
+carries a *View full screen* button (⤢) in its top right corner, always shown, 44 px (34 px with a
+fine pointer) on a dark disc; it, a **double tap** (double click) on the photo and `Enter` on the
+active card open the picture in the series viewer (SERIES-002), the compare's full screen. A
+double tap is a second tap on the same photo within 320 ms and 40 px of the first, the loupe's
+double-tap rule, timed by an injected clock; its first tap has already made the card active, so
+there is no delay to wait out. Keyboard focus follows the active card while it is on a card's
+photo, so `Enter` opens the active one. *Back to the series* or `Esc` in the viewer returns to the
+grid with the viewed picture active. A decision goes through the undo history and the undo toast like
 any other. A rejected picture leaves the series; once fewer than two are left, the series is done
 and the next one shows. *Pick this, reject the rest* picks the one picture and rejects every other
 picture of the series, as one undo step: "Picked IMG_0003, rejected the rest · Undo". *Skip* shows
@@ -60,6 +67,7 @@ instead of cutting it.
 | `P` `X` `U` `` ` `` `0`–`5` `6`–`9` `[` `]` `R` | Decide the active picture, as in the grid |
 | `Shift+P` `Shift+X` `Shift+U` `Shift+0`–`5` | Decide it and make the next picture active |
 | `Shift+K` | *Pick this, reject the rest* for the active picture |
+| `Enter` | View the active picture full screen in the series viewer |
 | `Ctrl+Z`, `Ctrl+Shift+Z` | Undo, redo |
 | `Esc` | Close the dialog |
 
@@ -218,6 +226,16 @@ instead of cutting it.
 - **Then** a series ends before the first picture more than 60 seconds after its first picture,
   which starts the next series; the span is measured from the first picture that is not rejected
 
+### SERIES-001.23 – A tap makes a card active; ⤢, a double tap or Enter views it full screen
+
+- **Given** the series compare dialog shows a series
+- **When** the user taps a card's photo once, taps it twice within 320 ms, presses its *View full
+  screen* button (⤢, tooltip with `Enter`) or presses `Enter` on the active card
+- **Then** a single tap only makes the card active; the double tap, the button and `Enter` open
+  the picture in the series viewer, the double tap's first tap having made it active; a slower,
+  distant or other card's second tap is a single tap again, and focus on a card's photo follows
+  the active card while focus elsewhere stays put
+
 ## Out of scope
 
 The fullscreen series viewer and the series badge on the tiles: SERIES-002. The capture time and
@@ -238,3 +256,4 @@ camera come from LISTING-001.
 | 2026-11-14 | The cards' flag buttons run *Pick*, *Unflag*, *Reject*, as everywhere (series concept step 4, owner decision 2). |
 | 2026-11-14 | Focus starts on the active card's photo, so the row no longer jumps back to the first card once the dialog has opened (flaky e2e from #147). |
 | 2026-11-14 | The compare uses the whole screen as a grid sized to fit, with `↑` `↓` and a bottom bar holding *Skip* and the one *Pick this, reject the rest*; the sideways-scrolling row is gone (series concept step 5, owner decision 3). |
+| 2026-11-14 | A tap only makes a card active; *View full screen* (⤢), a double tap or `Enter` opens the series viewer (series concept step 6, owner point 4). |

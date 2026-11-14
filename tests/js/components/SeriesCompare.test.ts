@@ -5,7 +5,7 @@ import type { Decision } from '../../../src/logic/decision.ts'
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
 
-import { flushPromises, mount } from '@vue/test-utils'
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import PickRestButton from '../../../src/components/PickRestButton.vue'
@@ -23,9 +23,11 @@ const SERIES = picturesOf([
 ]) as Picture<ListingEntry>[]
 const DECISIONS: Record<string, Decision> = { IMG_2: { ...UNDECIDED, rating: 3, flag: 'picked' } }
 
-function mountCompare(series: Picture<ListingEntry>[] | null = SERIES) {
+function mountCompare(series: Picture<ListingEntry>[] | null = SERIES, now = () => 0) {
 	return mount(SeriesCompare, {
+		attachTo: document.body,
 		props: {
+			now,
 			series,
 			position: 1,
 			count: 4,
@@ -45,6 +47,8 @@ const plain = (text: string | undefined) => text?.replaceAll(MARK, '')
 const cards = (wrapper: ReturnType<typeof mountCompare>) => wrapper.findAll('.series-compare__card')
 const button = (wrapper: ReturnType<typeof mountCompare>, label: string) => wrapper.findAllComponents(NcButton).find((found) => plain(found.text()) === label)!
 
+enableAutoUnmount(afterEach)
+
 describe('SeriesCompare', () => {
 	beforeEach(installMarkedCatalogue)
 	afterEach(uninstallMarkedCatalogue)
@@ -58,8 +62,8 @@ describe('SeriesCompare', () => {
 		expect(cards(wrapper)).toHaveLength(3)
 		expect(cards(wrapper).map((card) => card.classes('series-compare__card--active'))).toEqual([false, true, false])
 		const photos = wrapper.findAll('.series-compare__photo')
-		expect(photos.map((photo) => plain(photo.attributes('aria-label')))).toEqual(['Open photo 1: IMG_1', 'Open photo 2: IMG_2', 'Open photo 3: IMG_3'])
-		expect(plain(photos[0]!.attributes('data-tip'))).toBe('Open in the series viewer')
+		expect(photos.map((photo) => plain(photo.attributes('aria-label')))).toEqual(['Photo 1: IMG_1', 'Photo 2: IMG_2', 'Photo 3: IMG_3'])
+		expect(plain(photos[0]!.attributes('data-tip'))).toBe('Make active, double-tap to view full screen')
 		expect(photos[0]!.attributes('title')).toBeUndefined()
 		expect(photos.map((photo) => photo.attributes('aria-pressed'))).toEqual(['false', 'true', 'false'])
 		expect(photos[0]!.find('img').attributes('src')).toBe('/image/1/256')
@@ -86,26 +90,89 @@ describe('SeriesCompare', () => {
 		const wrapper = mountCompare()
 		const bar = wrapper.find('.series-compare__bar')
 
-		expect(plain(bar.find('.series-compare__hint').text())).toBe('Tap a photo to open the series fullscreen, or decide right here.')
+		expect(plain(bar.find('.series-compare__hint').text())).toBe('Tap a photo to make it active, double-tap it or press ⤢ to view it full screen, or decide right here.')
 		expect(wrapper.findAllComponents(PickRestButton)).toHaveLength(1)
 		expect(wrapper.findComponent(PickRestButton).findComponent(NcButton).props('variant')).toBe('primary')
 		expect(button(wrapper, 'Skip').props('variant')).toBe('secondary')
 		expect(bar.findAll('button').map((found) => plain(found.text()))).toEqual(['Skip', 'Pick this, reject the rest'])
 	})
 
-	// spec: SERIES-001.7, SERIES-001.9, SERIES-002.1
-	it('decides from a card, picks the active picture and rejects the rest from the bar, and opens a photo in the viewer', async () => {
+	// spec: SERIES-001.7, SERIES-001.9
+	it('decides from a card and picks the active picture and rejects the rest from the bar', async () => {
 		const wrapper = mountCompare()
 
 		await cards(wrapper)[2]!.find('[aria-label$="Reject"]').trigger('click')
 		await wrapper.find('.pick-rest-button').trigger('click')
 		await wrapper.setProps({ active: 0 })
 		await wrapper.find('.pick-rest-button').trigger('click')
-		await wrapper.findAll('.series-compare__photo')[2]!.trigger('click')
 
 		expect(wrapper.emitted('decide')).toEqual([[{ kind: 'flag', flag: 'rejected' }, SERIES[2]]])
 		expect(wrapper.emitted('pickRest')).toEqual([[SERIES[1]], [SERIES[0]]])
+	})
+
+	// spec: SERIES-001.23
+	it('makes a card active by a single tap and opens no viewer', async () => {
+		let time = 0
+		const wrapper = mountCompare(SERIES, () => time)
+
+		await wrapper.findAll('.series-compare__photo')[2]!.trigger('click')
+		time = 1000
+		await wrapper.findAll('.series-compare__photo')[2]!.trigger('click')
+		await wrapper.findAll('.series-compare__photo')[0]!.trigger('click')
+
+		expect(wrapper.emitted('activate')).toEqual([[2], [2], [0]])
+		expect(wrapper.emitted('view')).toBeUndefined()
+	})
+
+	// spec: SERIES-001.23, SERIES-002.1
+	it('opens a card in the viewer by a double tap, the first tap making it active', async () => {
+		let time = 0
+		const wrapper = mountCompare(SERIES, () => time)
+
+		await wrapper.findAll('.series-compare__photo')[2]!.trigger('click')
+		time = 200
+		await wrapper.findAll('.series-compare__photo')[2]!.trigger('click')
+
+		expect(wrapper.emitted('activate')).toEqual([[2]])
 		expect(wrapper.emitted('view')).toEqual([[2]])
+	})
+
+	// spec: SERIES-001.23, SERIES-002.1
+	it('opens a card in the viewer by its View full screen button, which names Enter', async () => {
+		const wrapper = mountCompare()
+		const full = cards(wrapper)[0]!.find('.series-compare__full')
+
+		expect(plain(full.attributes('aria-label'))).toBe('View photo 1 full screen')
+		expect(plain(full.attributes('data-tip'))).toBe('View full screen')
+		expect(full.attributes('data-tip-key')).toBe('Enter')
+		await full.trigger('click')
+
+		expect(wrapper.emitted('view')).toEqual([[0]])
+		expect(wrapper.emitted('activate')).toBeUndefined()
+	})
+
+	// spec: SERIES-001.23, SERIES-002.1
+	it('opens the active card in the viewer by Enter, focus following the active card', async () => {
+		const wrapper = mountCompare()
+		const photos = () => wrapper.findAll('.series-compare__photo')
+
+		await wrapper.setProps({ active: 2 })
+		expect(document.activeElement).toBe(photos()[2]!.element)
+		await photos()[2]!.trigger('keydown', { key: 'Enter' })
+
+		expect(wrapper.emitted('view')).toEqual([[2]])
+		expect(wrapper.emitted('activate')).toBeUndefined()
+	})
+
+	// spec: SERIES-001.23
+	it('leaves focus outside the cards where it is as the active card moves', async () => {
+		const wrapper = mountCompare()
+		const skip = button(wrapper, 'Skip').element as HTMLElement
+		skip.focus()
+
+		await wrapper.setProps({ active: 2 })
+
+		expect(document.activeElement).toBe(skip)
 	})
 
 	// spec: SERIES-001.21

@@ -343,11 +343,13 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    x, *Picked* a filled white flag and *Unflagged* an empty flag outline.
    The same icons mark the tiles, the loupe, the bulk actions, the flag filter and the series
    viewer. The words stay as `aria-label` and a [tooltip](#tooltip); targets stay 44 px.
-4. **Series viewer.** Tapping a photo of a series opens it fullscreen at once, the loupe's window
-   around it preloaded. Swipe pages between the photos (arrow buttons and keys also work, also while
-   zoomed). *Pick this, reject the rest* is in the viewer, one undo step. The controls fade out
-   when idle; a tap on the middle of the photo brings them back or hides them, a tap on its left
-   or right side pages ([Tap zones](#tap-zones)).
+4. **Series viewer.** The compare's full screen: a card's *View full screen* button, a double tap
+   on its photo or `Enter` opens it (a single tap only makes the card active), the loupe's window
+   around it preloaded. *Back to the series* or `Esc` returns.
+   Swipe pages between the photos (arrow buttons and keys also work, also while zoomed). *Pick
+   this, reject the rest* is in the viewer, one undo step. The controls fade out when idle;
+   a tap on the middle of the photo brings them back or hides them, a tap on its left or right
+   side pages ([Tap zones](#tap-zones)).
    - **Reject a single photo** without leaving fullscreen (owner, 2026-11-09): the *Reject*
      button in the bottom bar, the `X` key, or a swipe down
      on the photo following the *Swipe down* setting (a horizontal swipe still pages; no
@@ -534,6 +536,7 @@ against it. `Ctrl` on Windows and Linux is `⌘` on a Mac.
 | `T` | tag entry for the photo or the selection (TAGS-003) | differs: `T` shows or hides the toolbar in Lightroom |
 | Arrow keys | grid, series compare: move focus, `↑` `↓` by a row; loupe, series viewer: switch photo | same idea |
 | `Home` `End` | first photo, last photo | not in the Adobe text read; the browser's usual meaning |
+| `Enter` | grid: open the focused photo in the loupe; series compare: view the active photo full screen in the series viewer | same idea |
 | `G` `E` `N` | grid, loupe, series compare | `G` and `E` as in Lightroom; `N` is Survey there, series compare here |
 | `Space` | loupe: fit / 100 % | differs: Lightroom's `Space` leaves the grid for the loupe; `Z` zooms there |
 | `Z` | loupe and series viewer: fit / 100 % | not confirmed in the Adobe text read |

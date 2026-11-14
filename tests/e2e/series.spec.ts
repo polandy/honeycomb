@@ -86,3 +86,34 @@ test('shows a whole burst as one series in a grid that scrolls down to the activ
 	await page.keyboard.press('ArrowUp')
 	await expect(cards.nth(5 - columns).locator('.series-compare__photo')).toHaveAttribute('aria-pressed', 'true')
 })
+
+// spec: SERIES-001.23, SERIES-002.1, SERIES-002.9
+test('views a card full screen by Enter, its button and a double click, and goes back to the series', async ({ page }) => {
+	await page.setViewportSize(DESKTOP)
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = `Series ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	await upload(page, `${folder}/IMG_0001.jpg`, withCaptureTime(JPEG, '2026:11:10 10:00:00'))
+	await upload(page, `${folder}/IMG_0002.jpg`, withCaptureTime(JPEG, '2026:11:10 10:00:01'))
+
+	await cullFolder(page, folder)
+	await expect(page.getByRole('gridcell')).toHaveCount(2)
+	await page.keyboard.press('n')
+	const compare = page.getByRole('dialog', { name: /^Compare series 1 of 1/ })
+	const viewer = page.getByRole('dialog', { name: 'Series viewer' })
+	await page.keyboard.press('ArrowRight')
+	await page.keyboard.press('Enter')
+	await expect(viewer.getByRole('heading', { name: 'IMG_0002' })).toBeVisible()
+	await viewer.getByRole('button', { name: 'Back to the series' }).click()
+
+	await compare.getByRole('button', { name: 'Photo 1: IMG_0001' }).click()
+	await expect(compare.getByRole('button', { name: 'Photo 1: IMG_0001' })).toHaveAttribute('aria-pressed', 'true')
+	await expect(viewer).toBeHidden()
+	await compare.getByRole('button', { name: 'View photo 2 full screen' }).click()
+	await expect(viewer.getByRole('heading', { name: 'IMG_0002' })).toBeVisible()
+	await page.keyboard.press('Escape')
+	await expect(compare.getByRole('button', { name: 'Photo 2: IMG_0002' })).toHaveAttribute('aria-pressed', 'true')
+
+	await compare.getByRole('button', { name: 'Photo 1: IMG_0001' }).dblclick()
+	await expect(viewer.getByRole('heading', { name: 'IMG_0001' })).toBeVisible()
+})

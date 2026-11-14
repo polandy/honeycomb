@@ -14,10 +14,13 @@ compares the same detail; the series badge shows in the grid which photos form a
 
 ## Behaviour
 
-Tapping the photo of a card in the series compare opens the **series viewer** on that photo; the
-viewer preloads the loupe's window around the shown photo, 3 ahead and 2 behind (LOUPE-001.12),
-not the whole series. The viewer shows the series without its rejected pictures, one photo
-at a time, with the loupe's controls: a close button, the name and "Series 1 of 2 · photo 2 of
+The **series viewer** is the series compare's full screen: a card's *View full screen* button (⤢),
+a double tap (double click) on its photo or `Enter` on the active card opens it on that photo
+(SERIES-001.23); a single tap only makes the card active. The viewer preloads the loupe's
+window around the shown photo, 3 ahead and 2 behind (LOUPE-001.12), not the whole series. The
+viewer shows the series without its rejected pictures, one photo at a time, with the loupe's
+controls: *Back to the series* (a back arrow, with the words except on a phone, where the
+screen's shorter side is at most 520 px), the name and "Series 1 of 2 · photo 2 of
 3", the flag button toggle and the *Fit* / 100 % button at the top, the previous and next
 buttons, and the loupe's action bar (flag buttons *Pick*, *Unflag*, *Reject* placed as in
 LOUPE-002.11, rating, colour label, *Keep RAW*) with *Pick this, reject the rest*. It has no info
@@ -35,10 +38,10 @@ A decision acts on the shown photo through the undo history and the undo toast, 
 on, so the view stays steady; `Shift` with a decision key moves on as in the loupe. A swipe up or
 down follows the swipe settings. A rejected photo leaves the series and the next photo shows
 (the previous one after the last), at the same zoom; an undo that puts it back shows it again.
-*Pick this, reject the rest* is one undo step and closes the viewer. Once fewer than two photos
+*Pick this, reject the rest* is one undo step and closes the viewer as the compare's own button
+does: the compare shows the next series. Once fewer than two photos
 are left, the viewer closes and the compare shows the next series; an undo after that restores
-the flag only. Closing the viewer (button, `Esc`) returns to the compare with the viewed photo
-active.
+the flag only. *Back to the series* or `Esc` returns to the compare's grid with the viewed photo active.
 
 | Key in the viewer | Action |
 |---|---|
@@ -49,7 +52,7 @@ active.
 | `Z`, `Space` | Fit or 100 % |
 | `B` | Show or hide the flag buttons |
 | `Ctrl+Z`, `Ctrl+Shift+Z` | Undo, redo |
-| `Esc` | Close the viewer |
+| `Esc` | Back to the series |
 
 A tile in the grid whose picture is in a series offered by the compare shows a read-only badge
 "⧉ 3", labelled "Series of 3".
@@ -59,7 +62,8 @@ A tile in the grid whose picture is in a series offered by the compare shows a r
 ### SERIES-002.1 – A card opens the viewer on its photo
 
 - **Given** the series compare dialog shows a series
-- **When** the user taps the photo of a card
+- **When** the user presses a card's *View full screen* button, double-taps its photo or presses
+  `Enter` on the active card
 - **Then** the series viewer opens on that photo, its title row says the name and "Series 1 of 2
   · photo 2 of 3", and the photo with 3 photos ahead and 2 behind is preloaded; the window follows
   paging and a photo that leaves the series
@@ -103,8 +107,8 @@ A tile in the grid whose picture is in a series offered by the compare shows a r
 
 - **Given** the series viewer shows a photo
 - **When** the user presses *Pick this, reject the rest* or `Shift+K`
-- **Then** that photo is picked and every other one rejected as one undo step, and the viewer
-  closes
+- **Then** that photo is picked and every other one rejected as one undo step, the viewer
+  closes and the compare shows the next series, as after its own *Pick this, reject the rest*
 
 ### SERIES-002.8 – Fewer than two left closes the viewer
 
@@ -112,11 +116,11 @@ A tile in the grid whose picture is in a series offered by the compare shows a r
 - **When** one of them is rejected
 - **Then** the viewer closes and the compare shows the next series; an undo restores the flag only
 
-### SERIES-002.9 – Closing returns to the compare
+### SERIES-002.9 – Back to the series
 
 - **Given** the series viewer is open
-- **When** the user presses the close button or `Esc`
-- **Then** the series compare shows again with the viewed photo active
+- **When** the user presses *Back to the series* (tooltip with `Esc`) or `Esc`
+- **Then** the series compare's grid shows again with the viewed photo active
 
 ### SERIES-002.10 – The series badge
 
@@ -136,3 +140,4 @@ loupe, fit or 100 %.
 | 2026-11-10 | Created with the series viewer and the series badge (M6.2). |
 | 2026-11-14 | .1 preloads the loupe's window, not the whole series (series concept step 3). |
 | 2026-11-14 | The flag buttons run *Pick*, *Unflag*, *Reject*, *Unflag* bottom centre in landscape (series concept step 4). |
+| 2026-11-14 | Opened by *View full screen*, a double tap or `Enter` instead of a single tap; the close button becomes *Back to the series*; *Pick this, reject the rest* leaves the compare on the next series (series concept step 6, owner point 4). |

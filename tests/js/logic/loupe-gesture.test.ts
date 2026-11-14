@@ -3,7 +3,8 @@
 import type { GestureContext, GesturePointer } from '../../../src/logic/loupe-gesture.ts'
 
 import { describe, expect, it } from 'vitest'
-import { DOUBLE_TAP_MS, loupeGestures, swipeFlag, swipeHint, TAP_MAX_MS, tapZone } from '../../../src/logic/loupe-gesture.ts'
+import { DOUBLE_TAP_MS } from '../../../src/logic/double-tap.ts'
+import { loupeGestures, swipeFlag, swipeHint, TAP_MAX_MS, tapZone } from '../../../src/logic/loupe-gesture.ts'
 
 const WIDTH = 1000
 

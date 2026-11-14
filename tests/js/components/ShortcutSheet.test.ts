@@ -30,6 +30,11 @@ describe('ShortcutSheet', () => {
 		expect(rows(wrapper).every(([, label]) => label !== '')).toBe(true)
 	})
 
+	// spec: SERIES-001.23
+	it('names Enter for the loupe and for full screen from the series compare', () => {
+		expect(rows(mountSheet()).find(([caps]) => caps?.[0] === 'Enter')).toEqual([['Enter'], 'Open the loupe; series compare: view full screen'])
+	})
+
 	// spec: KEYS-001.12
 	it('lays out every group in one table, so all groups share the key column', () => {
 		const wrapper = mountSheet()

@@ -19,7 +19,7 @@ import { n, t } from '@nextcloud/l10n'
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import ActionBar from './ActionBar.vue'
-import AppIcon from './AppIcon.vue'
+import BackButton from './BackButton.vue'
 import FlagButtonsToggle from './FlagButtonsToggle.vue'
 import LoupeNavButtons from './LoupeNavButtons.vue'
 import LoupeStage from './LoupeStage.vue'
@@ -146,15 +146,7 @@ onMounted(() => root.value!.focus())
 		data-hotkeys-screen
 		@pointermove="$event.pointerType === 'mouse' && overlays.wake()">
 		<header class="series-viewer__top series-viewer__overlay" @pointerdown="overlays.wake">
-			<NcButton
-				variant="tertiary"
-				:aria-label="t('honeycomb', 'Close series viewer')"
-				v-bind="tip(t('honeycomb', 'Close series viewer'), keyCap('close'))"
-				@click="emit('close')">
-				<template #icon>
-					<AppIcon name="close" />
-				</template>
-			</NcButton>
+			<BackButton :label="t('honeycomb', 'Back to the series')" @back="emit('close')" />
 			<div class="series-viewer__title">
 				<h2 class="series-viewer__name">
 					{{ picture.baseName }}

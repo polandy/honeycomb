@@ -114,6 +114,16 @@ describe('App: series compare', () => {
 		expect(compare(wrapper).exists()).toBe(false)
 	})
 
+	// spec: SERIES-001.23
+	it('makes the tapped card active', async () => {
+		const { wrapper } = await openApp()
+		await press('n')
+		compare(wrapper).vm.$emit('activate', 2)
+		await flushPromises()
+
+		expect(compare(wrapper).props('active')).toBe(2)
+	})
+
 	// spec: SERIES-002.1, SERIES-002.6, SERIES-002.9
 	it('opens the viewer from a card, rejects with a toast, shows the photo again on undo and returns to the compare', async () => {
 		const { wrapper } = await openApp()
