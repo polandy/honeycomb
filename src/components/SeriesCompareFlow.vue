@@ -44,6 +44,8 @@ defineExpose({ hotkeys })
 		:container="props.container ?? 'body'"
 		@decide="props.flow.decide"
 		@pickRest="props.flow.pickRest"
+		@remove="props.flow.removeFromSeries"
+		@dissolve="props.flow.dissolve"
 		@activate="props.flow.setActive"
 		@view="props.flow.view"
 		@columns="props.flow.setColumns"

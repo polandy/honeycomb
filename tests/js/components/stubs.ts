@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { defineComponent, h } from 'vue'
+import { defineComponent, h, provide } from 'vue'
 
 /** NcDialog in place: its name as an attribute, its body and its actions, no teleport or focus trap. */
 export const DialogStub = defineComponent({
@@ -37,10 +37,11 @@ export const AppSettingsSectionStub = defineComponent({
 	},
 })
 
-/** NcActions in place: its label and its items, always rendered, no popover. */
+/** NcActions in place: its label and its items, always rendered, no popover; its items close nothing. */
 export const ActionsStub = defineComponent({
 	props: { ariaLabel: { type: String, default: '' } },
 	setup(props, { slots }) {
+		provide(Symbol.for('NcActions:closeMenu'), () => undefined)
 		return () => h('div', { 'data-actions': props.ariaLabel }, slots.default?.())
 	},
 })

@@ -9,7 +9,7 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Stored series (#185, ADR 0027, SERIES-005): PR 3 remove and dissolve, PR 4 grid *Series…* menu, PR 5 merge with the next or previous series, PR 6 *Series done* (#183) (2026-11-14)
+- [ ] Stored series (#185, ADR 0027, SERIES-005): PR 4 grid *Series…* menu, PR 5 merge with the next or previous series, PR 6 *Series done* (#183) (2026-11-14)
 
 ## Later
 

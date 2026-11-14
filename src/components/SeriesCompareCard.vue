@@ -9,6 +9,9 @@ import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 
 import { t } from '@nextcloud/l10n'
+import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcActionCaption from '@nextcloud/vue/components/NcActionCaption'
+import NcActions from '@nextcloud/vue/components/NcActions'
 import AppIcon from './AppIcon.vue'
 import FlagButtons from './FlagButtons.vue'
 import FlagMark from './FlagMark.vue'
@@ -28,12 +31,16 @@ const props = defineProps<{
 	imageUrl: ImageUrlFor
 	/** The photo's width in CSS pixels, or null before the grid is measured. */
 	photoWidth: number | null
+	/** Where the card's menu mounts: inside the loupe when opened from it. */
+	container?: string
 }>()
 
 const emit = defineEmits<{
 	/** A tap or click on the photo; the compare tells a double tap from it. */
 	tap: [event: MouseEvent]
 	view: []
+	/** *Remove from this series* in the card's menu (SERIES-005.10). */
+	remove: []
 	flag: [flag: Flag]
 }>()
 </script>
@@ -63,6 +70,29 @@ const emit = defineEmits<{
 				@click="emit('view')">
 				<AppIcon name="expand" />
 			</button>
+			<NcActions
+				class="series-compare__menu"
+				forceMenu
+				:container="props.container ?? 'body'"
+				:ariaLabel="t('honeycomb', 'Photo {i} menu', { i: formatNumber(props.index + 1) }, undefined, PLAIN_TEXT)"
+				v-bind="tip(t('honeycomb', 'More'))">
+				<template #icon>
+					<AppIcon name="more" />
+				</template>
+				<NcActionCaption :name="props.picture.baseName" />
+				<NcActionButton closeAfterClick :description="t('honeycomb', 'It stays in the folder, with its flags')" @click="emit('remove')">
+					<template #icon>
+						<AppIcon name="minus" />
+					</template>
+					{{ t('honeycomb', 'Remove from this series') }}
+				</NcActionButton>
+				<NcActionButton closeAfterClick @click="emit('view')">
+					<template #icon>
+						<AppIcon name="expand" />
+					</template>
+					{{ t('honeycomb', 'View full screen') }}
+				</NcActionButton>
+			</NcActions>
 		</div>
 		<span class="series-compare__label">
 			<span class="series-compare__name">{{ formatNumber(props.index + 1) }} · {{ props.picture.baseName }}</span>
@@ -125,6 +155,16 @@ const emit = defineEmits<{
 	background-color: rgba(0, 0, 0, .7);
 	color: #fff;
 	cursor: pointer;
+}
+
+/* The card's menu, top left on the same dark disc (mockup series-edit). */
+.series-compare__menu {
+	position: absolute;
+	top: 6px;
+	left: 6px;
+	border-radius: 50%;
+	background-color: rgba(0, 0, 0, .7);
+	color: #fff;
 }
 
 @media (pointer: fine) {

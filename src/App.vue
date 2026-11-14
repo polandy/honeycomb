@@ -59,7 +59,7 @@ const { settings, update: updateSettings } = useSettings({ loadSettings: props.l
 const viewState = useViewState(props.viewState, props.storage)
 const settingsOpen = ref(false)
 const sidecarFlow = useSidecarFlow(props.sidecars, toast.show)
-const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions, lookupSeries: props.lookupSeries, tags: props.tags }, props.storage, () => settings.value, sidecarFlow.sync)
+const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions, lookupSeries: props.lookupSeries, saveSeries: props.saveSeries, tags: props.tags }, props.storage, () => settings.value, sidecarFlow.sync)
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
 const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
 const { loupe, shown: loupeShown, picture: shownInLoupe, page: pageLoupe, land: landInLoupe, close: closeLoupe } = useLoupeOpening((index) => grid.value?.reveal(index), cull.passes)
@@ -74,9 +74,9 @@ const { selecting, selected } = selection
 const common = computed(() => cull.common(selected.value))
 watch(cull.pairing, selection.selectNone)
 
-const { decide, pickRest, tag, undo, redo } = useToastedDecisions(cull, toast.show)
+const { decide, pickRest, tag, removeFromSeries, dissolveSeries, undo, redo } = useToastedDecisions(cull, toast.show)
 const tagEntry = useTagEntryTargets()
-const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: decideInCompare, pickRest, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })
+const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: decideInCompare, pickRest, removeFromSeries, dissolve: dissolveSeries, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })
 const restOffer = useRestOffer({ seriesOf: () => cull.seriesOf.value, decisionOf: cull.decisionOf, compare: seriesCompare, shown: shownInLoupe, land: landInLoupe })
 /** Decides in the series compare, offering *Reject the other N* after a Pick in its viewer. */
 function decideInCompare(intent: DecisionIntent, picture: Picture<ListingEntry>, inViewer: boolean) {

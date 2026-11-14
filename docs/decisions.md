@@ -1150,3 +1150,17 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   pending; its members are still hashed for the similarity page (#185 PR 2).
 - 2026-11-14: The series lookup lives in `src/series-api.ts`, because `api.ts` is at the
   300-line limit; it shares `API` and `isRecord` with `api.ts` (#185 PR 2).
+- 2026-11-15: A new series gets a local id below 0 until the series write answers its real id;
+  later writes, undo and redo then use the answered id, also when the server replaced a vanished
+  one (#185 PR 3).
+- 2026-11-15: Removing a photo from an automatic series stores the other shown members as an
+  open series, even when only one is left, so nothing regroups behind the user's back (#185 PR 3).
+- 2026-11-15: *Dissolve this series* keeps out every member the browser knows of a stored
+  series, hidden (rejected) ones too; of an automatic series, the shown members (#185 PR 3).
+- 2026-11-15: Opened from the loupe, *Dissolve this series* closes the compare on the active
+  photo; *Remove from this series* follows the series that is left (#185 PR 3).
+- 2026-11-15: A failed series save is logged and puts the rows back per file, as decisions do;
+  no grid notice, and no rate-limit wait, as the series write has no rate limit (#185 PR 3).
+- 2026-11-15: The compare's menus are `NcActions` with a caption and second lines; the title
+  row's menu sits in a row above the cards, as `NcDialog` has no header slot. It holds only
+  *Dissolve this series* until merge and *Series done* come (PR 5, PR 6) (#185 PR 3).

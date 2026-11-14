@@ -24,6 +24,7 @@ const PATHS = {
 	home: 'M4 11l8-7 8 7v9H4zM10 20v-6h4v6',
 	info: 'M12 11v6M12 7.5h.01M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z',
 	menu: 'M4 6h16M4 12h16M4 18h16',
+	minus: 'M5 12h14',
 	more: 'M5 12h.01M12 12h.01M19 12h.01',
 	pin: 'M9 4h6M10 4v6l-3 4h10l-3-4V4M12 14v7',
 	move: 'M3 12h14M13 7l5 5-5 5M21 5v14',
