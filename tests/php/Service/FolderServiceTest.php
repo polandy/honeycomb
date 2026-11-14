@@ -11,8 +11,10 @@ use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\FolderService;
 use OCA\Honeycomb\Service\UserFolderResolver;
+use OCP\Files\FileInfo;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -24,10 +26,14 @@ final class FolderServiceTest extends TestCase {
 		return new FolderService(new UserFolderResolver($root));
 	}
 
-	/** A folder at `$path` whose listing holds `$children`. */
+	/** A folder at `$path` whose listing holds `$children`, filtered to folders on request. */
 	private function folderWith(string $path, array $children = []): Folder {
 		$folder = $this->folder($path);
-		$folder->method('getDirectoryListing')->willReturn($children);
+		$folder->method('getDirectoryListing')->willReturnCallback(
+			static fn (?string $mime = null): array => $mime === FileInfo::MIMETYPE_FOLDER
+				? array_values(array_filter($children, static fn (object $node): bool => $node instanceof Folder))
+				: $children,
+		);
 		return $folder;
 	}
 
@@ -86,6 +92,33 @@ final class FolderServiceTest extends TestCase {
 		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
 
 		$this->assertSame([['name' => 'Locked', 'path' => '/Photos/Locked', 'hasSubfolders' => false]], $folders);
+	}
+
+	// spec: LISTING-003.2
+	public function testAsksAChildForItsFoldersOnly(): void {
+		$filters = [];
+		$year = $this->folder('/Photos/2024');
+		$year->method('getDirectoryListing')->willReturnCallback(function (?string $mime = null) use (&$filters): array {
+			$filters[] = $mime;
+			return [$this->folderWith('/Photos/2024/Trip')];
+		});
+		$photos = $this->folderWith('/Photos', [$year]);
+
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
+
+		$this->assertSame([true], array_column($folders, 'hasSubfolders'));
+		$this->assertSame([FileInfo::MIMETYPE_FOLDER], $filters);
+	}
+
+	// spec: LISTING-003.2
+	public function testAChildThatVanishedHasNoSubfolders(): void {
+		$gone = $this->folder('/Photos/Gone');
+		$gone->method('getDirectoryListing')->willThrowException(new NotFoundException('Gone'));
+		$photos = $this->folderWith('/Photos', [$gone]);
+
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
+
+		$this->assertSame([['name' => 'Gone', 'path' => '/Photos/Gone', 'hasSubfolders' => false]], $folders);
 	}
 
 	/** @return array<string, array{string}> */
