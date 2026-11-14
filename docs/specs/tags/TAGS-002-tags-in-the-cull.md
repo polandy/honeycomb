@@ -38,13 +38,13 @@ one in flight, as decisions do (DECISIONS-001.14, .15). A failed save puts back 
 except the files a later save stored, and writes no sidecar.
 
 **Writing through.** After the save, each changed picture outside a shared folder gets the change
-written to its sidecars, in the same queue as the decisions (XMP-003): every sidecar is read unless
+written to its sidecars, in the same passes as the decisions (XMP-003): every sidecar is read unless
 honeycomb holds its bytes, the change is applied to the union of their tags as they are then, and
 that set is written to every sidecar, and to a new `<member file>.xmp` for each member without one
 while any tag is left. The JPEG gets its new sidecar also when no tag is left but its embedded XMP
 held tags, so the removal lasts. Only the three tag fields change (XMP-004); the decision fields
-stay as the sidecar holds them. A sidecar answering `changed` is read again and gets the change
-once more. A sidecar that cannot be written is reported like a decision's (XMP-003.13); *Retry
+stay as the sidecar holds them. Changes waiting for the same pass are applied in order and saved
+once (XMP-003.16). A sidecar answering `changed` is read again and gets the change once more. A sidecar that cannot be written is reported like a decision's (XMP-003.13); *Retry
 failed sidecars* applies the same change again.
 
 **Files moved back.** Files put back into the cull (an undone delete) have their stored tags read.
@@ -214,3 +214,4 @@ failed sidecars* applies the same change again.
 | 2026-11-13 | Written with *Tags 1*: take-over from sidecars and write-through |
 | 2026-11-13 | The JPEG's embedded XMP as one more source (*Tags 1b*, .15–.20) |
 | 2026-11-14 | Tag saves go one at a time, the newest tags per file (.21) |
+| 2026-11-14 | Tag changes waiting for one sidecar pass are saved once (XMP-003.16) |

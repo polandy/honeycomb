@@ -18,6 +18,7 @@ const JPG = listingEntry(2, '/P/IMG_0001.JPG')
 const NEF_XMP = listingEntry(11, '/P/IMG_0001.NEF.xmp')
 const JPG_XMP = listingEntry(12, '/P/IMG_0001.JPG.xmp')
 const PICKED: Decision = { ...UNDECIDED, rating: 2, flag: 'picked' }
+const LATER = { ...CANONICAL_TIME, epochMs: CANONICAL_TIME.epochMs + 60_000 }
 
 /** The bytes of a sidecar with the properties, each written as `prefix:Name`. */
 function xmp(properties: Record<string, string>): Uint8Array {
@@ -153,6 +154,28 @@ describe('planSaves', () => {
 		const { saves } = planSaves(pair, { decision: PICKED }, new Map(), new Map([[12, read(xmp({}))]]), CANONICAL_TIME, new Set(['/P/IMG_0001.JPG.xmp']))
 
 		expect(saves.map(({ path }) => path)).toEqual(['/P/IMG_0001.JPG.xmp'])
+	})
+
+	// spec: XMP-003.17
+	it('skips an existing sidecar the edit would not change and saves one it changes', () => {
+		const single = pictureOf(NEF, NEF_XMP)
+		const stated = planSaves(single, { decision: PICKED }, new Map(), new Map([[11, read(xmp({}))]]), CANONICAL_TIME).saves[0]!.item.bytes
+		const answers = new Map([[11, read(stated)]])
+
+		expect(planSaves(single, { decision: PICKED }, new Map(), answers, LATER)).toEqual({ saves: [], failed: [] })
+		expect(planSaves(single, { tags: { added: [], removed: ['Places/Lisbon'] } }, new Map(), answers, LATER)).toEqual({ saves: [], failed: [] })
+		expect(planSaves(single, { decision: { ...PICKED, rating: 5 } }, new Map(), answers, LATER).saves.map(({ path }) => path)).toEqual(['/P/IMG_0001.NEF.xmp'])
+	})
+
+	// spec: XMP-003.16
+	it('writes a decision and a tag change together in one save per sidecar', () => {
+		const single = pictureOf(NEF, NEF_XMP)
+
+		const { saves } = planSaves(single, { decision: PICKED, tags: { added: ['Events/Wedding'], removed: [] } }, new Map(), new Map([[11, read(xmp({}))]]), CANONICAL_TIME)
+
+		expect(saves).toHaveLength(1)
+		const written = readXmp(saves[0]!.item.bytes)
+		expect([textOf(written, 'xmp:Rating'), itemsOf(written, 'digiKam:TagsList')]).toEqual(['2', ['Events/Wedding']])
 	})
 })
 

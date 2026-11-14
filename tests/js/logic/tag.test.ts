@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { changedTags, hasEveryTag, leafOf, revertTagRows, sortedTags, storableTags, tagOf, withTagRows } from '../../../src/logic/tag.ts'
+import { changedTags, combinedChange, hasEveryTag, leafOf, revertTagRows, sortedTags, storableTags, tagOf, withTagRows } from '../../../src/logic/tag.ts'
 
 describe('tagOf', () => {
 	// spec: XMP-004.1
@@ -38,6 +38,18 @@ describe('changedTags', () => {
 	// spec: TAGS-002.7
 	it('removes the removed tags and adds the added ones, sorted', () => {
 		expect(changedTags(['Places/Lisbon', 'People/Anna'], { added: ['Events/Wedding', 'People/Anna'], removed: ['Places/Lisbon'] })).toEqual(['Events/Wedding', 'People/Anna'])
+	})
+})
+
+describe('combinedChange', () => {
+	// spec: XMP-003.16
+	it('changes tags as the two changes do one after the other', () => {
+		const first = { added: ['Events/Wedding', 'Kids'], removed: ['Places/Lisbon', 'People/Anna'] }
+		const then = { added: ['People/Anna'], removed: ['Kids'] }
+		const tags = ['Kids', 'People/Anna', 'Places/Lisbon', 'Places/Porto']
+
+		expect(changedTags(tags, combinedChange(first, then))).toEqual(changedTags(changedTags(tags, first), then))
+		expect(combinedChange(first, then)).toEqual({ added: ['Events/Wedding', 'People/Anna'], removed: ['Kids', 'Places/Lisbon'] })
 	})
 })
 
