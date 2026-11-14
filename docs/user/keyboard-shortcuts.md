@@ -83,6 +83,13 @@ While the loupe shows a photo of a series, its rating row ends with *Pick this, 
 and `Shift+K` does the same: the shown photo is picked, the others of its series rejected, and the
 loupe moves on to the first photo after the series. One *Undo* puts all of them back.
 
+A plain *Pick* (`P`, the button or a swipe) never rejects the other photos of a series. When
+another photo of the picked one's series is still unflagged, the toast "Picked IMG_0002" offers
+*Reject the other 4* next to *Undo*: one tap does what *Pick this, reject the rest* does, and the
+loupe moves on to the first photo after the series if it still shows a photo of that series. The
+same works after a *Pick* in the series viewer. `Shift+K` does the same while the picked photo
+still shows.
+
 In the series compare a tap or click on a photo makes it the active one. To look at a photo
 closely, press the *View full screen* button (⤢) in its top right corner, double-tap or
 double-click it, or press `Enter` for the active photo: the series viewer shows it full screen,

@@ -13,10 +13,11 @@ export interface ToastAction {
 	readonly run: () => void
 }
 
-/** One message at the bottom of the screen, with an optional action. */
+/** One message at the bottom of the screen, with an optional action and an optional offer before it. */
 export interface Toast {
 	readonly message: string
 	readonly action: ToastAction | null
+	readonly offer?: ToastAction
 }
 
 /** One toast at a time: a new one replaces the shown one and its timer; focus or a press holds it. */
@@ -63,8 +64,8 @@ export function useToast(schedule: Schedule) {
 	}
 
 	/** Shows the message for TOAST_MS and returns a closer that hides it unless another toast replaced it. */
-	function show(message: string, action: ToastAction | null = null): () => void {
-		const shown = { message, action }
+	function show(message: string, action: ToastAction | null = null, offer?: ToastAction): () => void {
+		const shown = offer === undefined ? { message, action } : { message, action, offer }
 		replace(shown)
 		return () => close(shown)
 	}
@@ -95,7 +96,16 @@ export function useToast(schedule: Schedule) {
 
 	/** Hides the toast, then runs its action. */
 	function act() {
-		const action = current.value?.action
+		run(current.value?.action)
+	}
+
+	/** Hides the toast, then runs its offer (LOUPE-002.16). */
+	function offer() {
+		run(current.value?.offer)
+	}
+
+	/** Hides the toast, then runs the button's action, if it has one. */
+	function run(action: ToastAction | null | undefined) {
 		if (action) {
 			hide()
 			action.run()
@@ -103,7 +113,7 @@ export function useToast(schedule: Schedule) {
 	}
 
 	/** The events of `UndoToast`, to bind as they are. */
-	const listeners = { onAct: act, onFocus: setFocused, onPress: setPressed }
+	const listeners = { onAct: act, onOffer: offer, onFocus: setFocused, onPress: setPressed }
 
-	return { current: readonly(current), show, act, setFocused, setPressed, listeners }
+	return { current: readonly(current), show, act, offer, setFocused, setPressed, listeners }
 }

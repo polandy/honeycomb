@@ -16,7 +16,8 @@ import { useSeriesViewer } from './series-viewer.ts'
 export interface SeriesCompareContext<P> {
 	readonly series: () => readonly (readonly P[])[]
 	readonly decisionOf: (picture: P) => Decision
-	readonly decide: (intent: DecisionIntent, picture: P) => void
+	/** `inViewer` when the series viewer decided, whose pick offers to reject the rest (SERIES-002.11). */
+	readonly decide: (intent: DecisionIntent, picture: P, inViewer: boolean) => void
 	readonly pickRest: (picked: P, rest: readonly P[]) => void
 	readonly settings: () => Settings
 	readonly updateSettings: (patch: Partial<Settings>) => void
@@ -119,8 +120,13 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	/** Decides the given or the active picture. */
 	function decide(intent: DecisionIntent, picture = activePicture()) {
 		if (picture !== null) {
-			context.decide(intent, picture)
+			context.decide(intent, picture, false)
 		}
+	}
+
+	/** Decides the series viewer's picture. */
+	function decideInViewer(intent: DecisionIntent, picture: P) {
+		context.decide(intent, picture, true)
 	}
 
 	/** Picks the given or the active picture and rejects the rest of the series as one step (SERIES-001.9). */
@@ -184,7 +190,7 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	}
 
 	const { settings, updateSettings, toast } = context
-	return { open, oneSeries, current, position, count, active, setActive, setColumns, start, startOn, close, skip, decide, pickRest, pickRestAndLand, hotkeys, viewer, view, settings, updateSettings, toast }
+	return { open, oneSeries, current, position, count, active, setActive, setColumns, start, startOn, close, skip, decide, decideInViewer, pickRest, pickRestAndLand, hotkeys, viewer, view, settings, updateSettings, toast }
 }
 
 export type SeriesCompareFlow<P> = ReturnType<typeof useSeriesCompare<P>>

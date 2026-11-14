@@ -70,6 +70,21 @@ describe('UndoToast', () => {
 		expect(mountToast(null, true).classes()).toContain('undo-toast--top')
 	})
 
+	// spec: LOUPE-002.16
+	it('shows its offer before the action, its tooltip naming Shift+K', async () => {
+		const wrapper = mount(UndoToast, { props: { toast: { message: 'Picked IMG_2', action: { label: 'Undo', run: () => undefined }, offer: { label: 'Reject the other 2', run: () => undefined } } } })
+		const offer = wrapper.find('.undo-toast__offer')
+
+		expect(wrapper.text()).toBe('Picked IMG_2·Reject the other 2Undo')
+		expect(offer.attributes()).toMatchObject({ 'data-tip': 'Reject the other 2', 'data-tip-key': 'Shift+K' })
+		const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+		offer.element.dispatchEvent(press)
+		expect(press.defaultPrevented).toBe(true)
+		await offer.trigger('click')
+		expect(wrapper.emitted('offer')).toHaveLength(1)
+		expect(wrapper.emitted('act')).toBeUndefined()
+	})
+
 	it('shows the message alone without an action', () => {
 		const wrapper = mountToast(null)
 

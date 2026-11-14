@@ -6,6 +6,8 @@
 import type { Toast } from '../toast.ts'
 
 import { onBeforeUnmount } from 'vue'
+import { keyCap } from '../hotkeys.ts'
+import { tip } from '../tooltip.ts'
 
 const props = defineProps<{
 	toast: Toast
@@ -15,6 +17,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
 	act: []
+	/** The offer before the action was pressed. */
+	offer: []
 	/** Whether the focus is inside it. */
 	focus: [inside: boolean]
 	/** Whether a pointer is pressed on it. */
@@ -57,17 +61,25 @@ onBeforeUnmount(() => {
 		@focusout="onFocusOut"
 		@pointerdown="onPointerDown">
 		<span>{{ props.toast.message }}</span>
-		<template v-if="props.toast.action !== null">
-			<span aria-hidden="true">·</span>
-			<!-- mousedown would move the focus out of the loupe and its keys -->
-			<button
-				type="button"
-				class="undo-toast__action"
-				@mousedown.prevent
-				@click="emit('act')">
-				{{ props.toast.action.label }}
-			</button>
-		</template>
+		<span v-if="props.toast.action !== null || props.toast.offer" aria-hidden="true">·</span>
+		<!-- mousedown would move the focus out of the loupe and its keys -->
+		<button
+			v-if="props.toast.offer"
+			type="button"
+			class="undo-toast__action undo-toast__offer"
+			v-bind="tip(props.toast.offer.label, keyCap('pick-rest'))"
+			@mousedown.prevent
+			@click="emit('offer')">
+			{{ props.toast.offer.label }}
+		</button>
+		<button
+			v-if="props.toast.action !== null"
+			type="button"
+			class="undo-toast__action"
+			@mousedown.prevent
+			@click="emit('act')">
+			{{ props.toast.action.label }}
+		</button>
 	</div>
 </template>
 

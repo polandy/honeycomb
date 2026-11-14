@@ -993,3 +993,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   compare's pick-and-land step (`pickRestAndLand` in `src/series-compare.ts`), so the loupe, the
   compare and its viewer land after the series by one rule; the shortcut sheet's `Shift+K` row reads
   "Series: pick this, reject the rest", since the key now works in the loupe as well.
+- 2026-11-14: *Reject the other N* in the undo toast (LOUPE-002.16, SERIES-002.11, concept step 10)
+  does exactly what *Pick this, reject the rest* does, so N counts every other photo of the series
+  that is not rejected (a second picked one included) and the label says what the tap does; it is
+  offered while one of them is unflagged, after a *Pick* in the loupe and the series viewer only
+  (the grid and the compare's cards have their own *Pick this, reject the rest* or none). Its key
+  is that action's `Shift+K`, named in its tooltip, rather than a new key that would mean the same
+  thing; the toast carries it as an optional offer before *Undo*.

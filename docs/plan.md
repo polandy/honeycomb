@@ -552,7 +552,7 @@ against it. `Ctrl` on Windows and Linux is `⌘` on a Mac.
 | `Ctrl+/` | shortcut help (`?` also works, for a touch keyboard) | same keys |
 | `Delete` | delete summary for the selection or focused picture | |
 | `M` | *Move to…* (honeycomb only) | |
-| `Shift+K` | *Pick this, reject the rest* in the series compare, the series viewer and the loupe on a series photo (honeycomb only; was `K`, which the vi keys need) | |
+| `Shift+K` | *Pick this, reject the rest* in the series compare, the series viewer and the loupe on a series photo, which the undo toast's *Reject the other N* also names (honeycomb only; was `K`, which the vi keys need) | |
 | `B` | show or hide the flag buttons in the loupe and the series viewer (honeycomb only) | differs: `B` adds to the Quick Collection in Lightroom, which honeycomb does not have |
 | `1`–`9` | move dialog: choose a favourite or recent folder (honeycomb only) | |
 
@@ -716,7 +716,7 @@ takes its sizes from the pointer type ([Control sizes](#control-sizes)), not fro
 | `ActionBar` (`actionBar`) | rating, colour label, *Keep RAW* and flags; flags in a large row of their own (portrait) or at the side edges (landscape, [Loupe layout](#loupe-layout)), plus a slot | grid selection, loupe, series viewer | `decisions`, `hotkeys` |
 | `FlagButtonsToggle` (`flagBtnsToggle`) | the title-row icon button that shows or hides the large flag buttons ([Flag buttons and vi keys](#flag-buttons-and-vi-keys)) | loupe, series viewer | — |
 | `PickRestButton` (`pickRestBtn`) | *Pick this, reject the rest* | series compare bottom bar, series viewer, loupe on a series photo | `series` |
-| `UndoToast` (`toast`) | the change in words, *Undo*, an optional action; focus or a press holds it, letting go restarts its time (WCAG 2.2.1) | every undoable change | `undo`: entries and their text |
+| `UndoToast` (`toast`) | the change in words, *Undo*, an optional offer before it (*Reject the other N* after a plain *Pick* on a series photo); focus or a press holds it, letting go restarts its time (WCAG 2.2.1) | every undoable change | `undo`: entries and their text |
 | `ConfirmDialog` (`confirmDialog`) | title, body, footer *Back* · *Cancel* · confirm; a bottom sheet on a phone | delete summary, reject review, move summary, folder picker, delete report | — |
 | `PhotoTile` (`tileInner`, `updateTile`) | thumbnail, pair and series badges (a complete pair quiet, a single highlighted), stars once rated, colour dot, flag mark (a bottom shade only behind these), selection check | grid | `pairing` |
 | `Tooltip` (`tip`, `tipShow`, `bindTips`) | the bubble tooltip of a control: its label in glossary words and its key from `HOTKEY`, e.g. "Pick `P`" | every icon and icon-only control on every screen | `hotkeys` |

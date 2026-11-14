@@ -60,7 +60,7 @@ defineExpose({ hotkeys })
 			:decisionOf="props.decisionOf"
 			:settings="props.flow.settings()"
 			@update:index="props.flow.viewer.go"
-			@decide="props.flow.decide"
+			@decide="props.flow.decideInViewer"
 			@pickRest="props.flow.pickRest"
 			@toast="props.flow.toast"
 			@updateSettings="props.flow.updateSettings"
