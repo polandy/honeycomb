@@ -86,7 +86,7 @@ describe('GridToolbar', () => {
 	it('shows the similarity beside the decided count while hashing', () => {
 		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { similarity: { phase: 'running', hashed: 1, failed: 0, total: 4 } })
 
-		expect(wrapper.find('.cull-progress + .similarity-progress').text()).toBe(`${MARK}Similarity 1/4`)
+		expect(wrapper.find('.cull-progress .similarity-progress').text()).toBe(`${MARK}Similarity 1/4`)
 	})
 
 	// spec: GRID-002.6

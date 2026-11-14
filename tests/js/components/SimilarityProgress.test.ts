@@ -13,13 +13,11 @@ describe('SimilarityProgress', () => {
 	afterEach(uninstallMarkedCatalogue)
 
 	// spec: SERIES-003.18
-	it('shows the hashed and the hashable count and a bar while hashing', () => {
+	it('shows the hashed and the hashable count while hashing', () => {
 		const wrapper = mount(SimilarityProgress, { props: { progress: { phase: 'running', hashed: 1200, failed: 0, total: 3000 } } })
-		const bar = wrapper.find('[role="progressbar"]')
 
 		expect(wrapper.text()).toBe(`${MARK}Similarity 1,200/3,000`)
-		expect(bar.attributes()).toMatchObject({ 'aria-label': `${MARK}Similarity`, 'aria-valuemax': '3000', 'aria-valuenow': '1200' })
-		expect(bar.find('.progress-bar__done').attributes('style')).toContain('width: 40%')
+		expect(wrapper.find('.similarity-progress__short').exists()).toBe(false)
 	})
 
 	// spec: SERIES-003.19
@@ -27,16 +25,17 @@ describe('SimilarityProgress', () => {
 		const wrapper = mount(SimilarityProgress, { props: { progress: { phase: 'failed', hashed: 297, failed: 3, total: 300 } } })
 
 		// The test catalogue marks a plural form twice, once as a form and once as the chosen text.
-		expect(wrapper.text()).toBe(`${MARK}${MARK}Similarity: 3 photos not compared`)
+		expect(wrapper.find('.similarity-progress__text').text()).toBe(`${MARK}${MARK}Similarity: 3 photos not compared`)
 		expect(wrapper.classes()).toContain('similarity-progress--failed')
-		expect(wrapper.find('[role="progressbar"]').exists()).toBe(false)
+		expect(wrapper.find('.similarity-progress__short').text()).toBe('⚠ 3')
 	})
 
 	// spec: SERIES-003.19
 	it('says the hashes were not saved when only the save failed', () => {
 		const wrapper = mount(SimilarityProgress, { props: { progress: { phase: 'failed', hashed: 300, failed: 0, total: 300 } } })
 
-		expect(wrapper.text()).toBe(`${MARK}Similarity: not saved`)
+		expect(wrapper.find('.similarity-progress__text').text()).toBe(`${MARK}Similarity: not saved`)
+		expect(wrapper.find('.similarity-progress__short').text()).toBe('⚠')
 	})
 
 	// spec: SERIES-003.20

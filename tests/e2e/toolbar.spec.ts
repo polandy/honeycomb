@@ -26,7 +26,7 @@ async function cullTwo(page: Page) {
 /** How many rows the toolbar's visible controls take. */
 async function toolbarRows(page: Page): Promise<number> {
 	return page.locator('.grid-toolbar').evaluate((toolbar, tolerance) => {
-		const centres = [...toolbar.querySelectorAll('button, .cull-progress__count, .cull-progress__bar')]
+		const centres = [...toolbar.querySelectorAll('button, .cull-progress__count, .progress-bar, .similarity-progress')]
 			.map((element) => element.getBoundingClientRect())
 			.filter((box) => box.width > 0 && box.height > 0)
 			.map((box) => box.top + box.height / 2)

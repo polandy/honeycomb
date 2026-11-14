@@ -35,9 +35,11 @@ server keeps the hashes the browser computed and hands them out with the listing
   (its preview could not be loaded or hashed). A failed file version is not hashed again in this
   visit; the next visit tries it once more. A picture that is not hashable has no hash state.
 - The grid toolbar shows the similarity of the cull's hashable pictures beside the decided count,
-  in quiet text: *Similarity 120/300* with a bar while some are pending; once none is pending,
-  *Similarity: 3 photos not compared* in the warning colour when some failed, else *Similarity:
-  not saved* when the last save failed; nothing once every one is hashed and saved.
+  in quiet text: *Similarity 120/300* and a second bar under the decided bar while some are
+  pending; once none is pending, *Similarity: 3 photos not compared* in the warning colour when
+  some failed, else *Similarity: not saved* when the last save failed; nothing once every one is
+  hashed and saved. Below 900 px, where the toolbar keeps two rows (GRID-001.17), the text is
+  left to screen readers: the bar alone shows while hashing, and *⚠ 3* (or *⚠*) a failure.
 
 ## Acceptance criteria
 
@@ -152,7 +154,8 @@ server keeps the hashes the browser computed and hands them out with the listing
 
 - **Given** an open cull with hashable pictures still pending
 - **When** the grid shows
-- **Then** the toolbar shows *Similarity* with the hashed and the hashable count and a bar
+- **Then** the toolbar shows *Similarity* with the hashed and the hashable count, and a bar under
+  the decided bar; the toolbar of a phone keeps two rows
 
 ### SERIES-003.19 – Failures show
 

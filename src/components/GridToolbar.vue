@@ -16,7 +16,6 @@ import AppIcon from './AppIcon.vue'
 import CullProgress from './CullProgress.vue'
 import FlagFilter from './FlagFilter.vue'
 import GridMoreMenu from './GridMoreMenu.vue'
-import SimilarityProgress from './SimilarityProgress.vue'
 import { keyCap } from '../hotkeys.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { tip } from '../tooltip.ts'
@@ -120,8 +119,11 @@ const setName = computed(() => {
 			</button>
 		</nav>
 		<FlagFilter :flags="props.flags" @update:flags="emit('update:flags', $event)" />
-		<CullProgress :decided="props.decided" :total="props.total" :filtered="props.filtered" />
-		<SimilarityProgress :progress="props.similarity" />
+		<CullProgress
+			:decided="props.decided"
+			:total="props.total"
+			:filtered="props.filtered"
+			:similarity="props.similarity" />
 		<NcButton
 			variant="tertiary"
 			:ariaLabel="filtersLabel"

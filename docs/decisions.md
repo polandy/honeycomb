@@ -1059,10 +1059,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-14: A missing `honeycomb_hashes` table fails the listing loudly instead of delivering no
   hashes; only a Git-checkout install can lack it, and docs/admin/updating.md tells how to add it.
 - 2026-11-14: The similarity indicator sits in the grid toolbar beside the decided count and
-  reuses its look (count text and the same 80 px bar, now the shared `ProgressBar`), in quiet
-  text, warning colour on failures, gone when done: it fits the signed-off toolbar, so no
-  owner-decision issue. It counts only the hashable pictures (a shot of the same camera within
-  30 s), since the others need no hash.
+  reuses its look (count text and the same 80 px bar, now the shared `ProgressBar`, stacked under
+  the decided bar so it takes no width), in quiet text, warning colour on failures, gone when
+  done; below 900 px only the bar and a short *⚠ 3*, so a phone keeps its two toolbar rows. It
+  fits the signed-off toolbar, so no owner-decision issue. It counts only the hashable pictures
+  (a shot of the same camera within 30 s), since the others need no hash.
 - 2026-11-14: No per-tile hash mark: the owner called it optional, a mark on every tile would add
   noise to the grid for a rare failure, and the toolbar already names how many failed. The state
   per picture (`stateOf`) is there for one later.
