@@ -15,17 +15,15 @@ import { computed, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
-import FlagButtons from './FlagButtons.vue'
-import FlagMark from './FlagMark.vue'
 import PickRestButton from './PickRestButton.vue'
-import StarRating from './StarRating.vue'
+import SeriesCompareCard from './SeriesCompareCard.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { CARD_FRAME, CARD_GAP, compareGrid } from '../logic/compare-grid.ts'
-import { gridSrcset, imageMember, smallSource } from '../logic/image-tiers.ts'
+import { doubleTaps } from '../logic/double-tap.ts'
+import { imageMember } from '../logic/image-tiers.ts'
 import { SERIES_GAP_SECONDS } from '../logic/series.ts'
 import { observeElementSize } from '../observe-size.ts'
-import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	/** The shown series, or null once none is left. */
@@ -38,11 +36,15 @@ const props = withDefaults(defineProps<{
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
 	imageUrl?: ImageUrlFor
 	observeSize?: ObserveSize
-}>(), { imageUrl: apiImageUrl, observeSize: observeElementSize })
+	/** The clock that times a double tap, in ms. */
+	now?: () => number
+}>(), { imageUrl: apiImageUrl, observeSize: observeElementSize, now: () => performance.now() })
 
 const emit = defineEmits<{
 	decide: [intent: DecisionIntent, picture: Picture<ListingEntry>]
 	pickRest: [picture: Picture<ListingEntry>]
+	/** A single tap made the card at `index` active. */
+	activate: [index: number]
 	view: [index: number]
 	/** The grid's column count, which `↑` `↓` step by. */
 	columns: [count: number]
@@ -79,18 +81,28 @@ const gridStyle = computed(() => (layout.value === null || photoWidth.value === 
 		}))
 watch(() => layout.value?.columns, (columns) => columns !== undefined && emit('columns', columns))
 
-/** Scrolls the active card into view; keys, the closing viewer and a new layout move it (SERIES-001.21). */
+const photoAt = (index: number) => grid.value?.children[index]?.querySelector<HTMLElement>('.series-compare__photo')
+
+/** Scrolls the active card into view, its photo taking focus from another card's (SERIES-001.21, SERIES-001.23). */
 function showActive() {
 	grid.value?.children[props.active]?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+	if (document.activeElement?.matches('.series-compare__photo')) {
+		photoAt(props.active)?.focus({ preventScroll: true })
+	}
 }
 // The focus trap keeps focus that is already inside; else it focuses card 1 and scrolls back to it.
-onMounted(() => grid.value?.children[props.active]?.querySelector<HTMLElement>('.series-compare__photo')?.focus({ preventScroll: true }))
+onMounted(() => photoAt(props.active)?.focus({ preventScroll: true }))
 watch([() => props.active, () => props.series, () => layout.value?.columns], showActive, { flush: 'post' })
 
-/** The picture's flag, or null while it is unflagged. */
-function flaggedOf(picture: Picture<ListingEntry>) {
-	const { flag } = props.decisionOf(picture)
-	return flag === 'unflagged' ? null : flag
+const taps = doubleTaps()
+
+/** A tap makes the card active, its second tap of a double tap opens the viewer (SERIES-001.23). */
+function onPhotoTap(index: number, event: MouseEvent) {
+	if (taps.tap({ time: props.now(), x: event.clientX, y: event.clientY, target: index })) {
+		emit('view', index)
+	} else {
+		emit('activate', index)
+	}
 }
 
 /** Picks the active picture and rejects the rest (SERIES-001.9). */
@@ -125,37 +137,24 @@ function onOpen(open: boolean) {
 			ref="grid"
 			class="series-compare"
 			:style="gridStyle">
-			<li
+			<SeriesCompareCard
 				v-for="(picture, index) in props.series"
 				:key="imageMember(picture).fileId"
-				class="series-compare__card"
-				:class="{ 'series-compare__card--active': index === props.active }">
-				<button
-					type="button"
-					class="series-compare__photo"
-					:aria-pressed="index === props.active"
-					:aria-label="t('honeycomb', 'Open photo {i}: {name}', { i: formatNumber(index + 1), name: picture.baseName }, undefined, PLAIN_TEXT)"
-					v-bind="tip(t('honeycomb', 'Open in the series viewer'))"
-					@click="emit('view', index)">
-					<img
-						:src="smallSource(imageMember(picture), props.imageUrl)"
-						:srcset="gridSrcset(imageMember(picture), props.imageUrl)"
-						:sizes="photoWidth === null ? '33vw' : `${photoWidth}px`"
-						alt="">
-				</button>
-				<span class="series-compare__label">
-					<span class="series-compare__name">{{ formatNumber(index + 1) }} · {{ picture.baseName }}</span>
-					<StarRating :rating="props.decisionOf(picture).rating" readonly />
-					<FlagMark v-if="flaggedOf(picture) !== null" :flag="flaggedOf(picture)!" />
-				</span>
-				<FlagButtons :flag="props.decisionOf(picture).flag" @flag="emit('decide', { kind: 'flag', flag: $event }, picture)" />
-			</li>
+				:picture="picture"
+				:index="index"
+				:active="index === props.active"
+				:decision="props.decisionOf(picture)"
+				:imageUrl="props.imageUrl"
+				:photoWidth="photoWidth"
+				@tap="onPhotoTap(index, $event)"
+				@view="emit('view', index)"
+				@flag="emit('decide', { kind: 'flag', flag: $event }, picture)" />
 		</ul>
 		<template #actions>
 			<div class="series-compare__bar">
 				<template v-if="props.series !== null">
 					<p class="series-compare__hint">
-						{{ t('honeycomb', 'Tap a photo to open the series fullscreen, or decide right here.') }}
+						{{ t('honeycomb', 'Tap a photo to make it active, double-tap it or press ⤢ to view it full screen, or decide right here.') }}
 					</p>
 					<NcButton variant="secondary" @click="emit('skip')">
 						{{ t('honeycomb', 'Skip') }}
@@ -185,53 +184,6 @@ function onOpen(open: boolean) {
 	overflow: hidden auto;
 	scrollbar-gutter: stable;
 	list-style: none;
-}
-
-/* Border and padding make up CARD_FRAME; with the label row and the flag buttons, CARD_CHROME_HEIGHT. */
-.series-compare__card {
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-	min-width: 0;
-	padding: 4px;
-	border: 2px solid transparent;
-	border-radius: var(--border-radius-element);
-	background: var(--color-background-dark);
-}
-
-.series-compare__card--active {
-	border-color: var(--color-primary-element);
-}
-
-.series-compare__photo {
-	display: block;
-	padding: 0;
-	border: 0;
-	background: none;
-	cursor: pointer;
-}
-
-.series-compare__photo img {
-	display: block;
-	width: var(--series-compare-photo-width, 100%);
-	aspect-ratio: 3 / 2;
-	object-fit: contain;
-}
-
-.series-compare__label {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	min-height: 24px;
-	color: var(--color-main-text);
-}
-
-.series-compare__name {
-	flex: 1;
-	overflow: hidden;
-	font-weight: bold;
-	text-overflow: ellipsis;
-	white-space: nowrap;
 }
 
 .series-compare__bar {

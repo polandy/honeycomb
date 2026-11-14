@@ -3,6 +3,8 @@
 import type { Flag } from './decision.ts'
 import type { PinchCentre } from './loupe-zoom.ts'
 
+import { doubleTaps } from './double-tap.ts'
+
 /** Each outer tap zone's share of the stage width (`docs/plan.md` Tap zones). */
 const TAP_ZONE = 0.3
 
@@ -11,12 +13,6 @@ export const TAP_MAX_MS = 500
 
 /** The movement in CSS pixels below which a touch is still a tap. */
 const TAP_SLOP = 8
-
-/** The longest pause between the two taps of a double-tap. */
-export const DOUBLE_TAP_MS = 320
-
-/** How far apart the two taps of a double-tap may land, in CSS pixels. */
-const DOUBLE_TAP_SLOP = 40
 
 /** The share of the stage width a drag must travel to page, and of its height to swipe. */
 const PAGE_DISTANCE = 0.22
@@ -105,7 +101,7 @@ export function loupeGestures(context: () => GestureContext) {
 	let start: GesturePointer | null = null
 	let zoomed = false
 	let samples: GesturePointer[] = []
-	let lastTap: GesturePointer | null = null
+	const taps = doubleTaps()
 
 	/** The centre and distance of the first two fingers. */
 	function centre(): PinchCentre {
@@ -118,13 +114,10 @@ export function loupeGestures(context: () => GestureContext) {
 		const { width } = context()
 		const zone = tapZone(end.x / width, zoomed, end.type)
 		if (zone !== 0) {
-			lastTap = null
+			taps.reset()
 			return { kind: 'page', step: zone }
 		}
-		const double = lastTap !== null && end.time - lastTap.time < DOUBLE_TAP_MS
-			&& Math.hypot(end.x - lastTap.x, end.y - lastTap.y) < DOUBLE_TAP_SLOP
-		lastTap = double ? null : end
-		return { kind: double ? 'chrome-free' : 'overlays' }
+		return { kind: taps.tap(end) ? 'chrome-free' : 'overlays' }
 	}
 
 	/** The signed travel along `axis` of a drag that went far or fast enough, else null. */
