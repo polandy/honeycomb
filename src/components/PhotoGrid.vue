@@ -55,6 +55,8 @@ const props = withDefaults(defineProps<{
 	/** Times the auto-scroll of a drag selection. */
 	frame?: Frame
 	seriesSizes?: ReadonlyMap<Picture<ListingEntry>, number>
+	/** The pictures of a series that may still change (SERIES-003.25). */
+	openSeries?: ReadonlySet<Picture<ListingEntry>>
 }>(), {
 	observeSize: observeElementSize,
 	loadImage: decodeSource,
@@ -223,6 +225,7 @@ defineExpose({
 
 <template>
 	<div class="photo-grid">
+		<div class="photo-grid__overlay"><slot /></div>
 		<div v-if="sticky !== null" class="photo-grid__sticky" aria-hidden="true">
 			{{ groupName(sticky) }}
 		</div>
@@ -268,7 +271,7 @@ defineExpose({
 							:selected="props.selection.ids.has(imageMember(picture).fileId)"
 							:loads="loads"
 							:offscreen="row.offscreen"
-							v-bind="{ ...(props.imageUrl && { imageUrl: props.imageUrl }), series: props.seriesSizes?.get(picture) ?? 0 }"
+							v-bind="{ ...(props.imageUrl && { imageUrl: props.imageUrl }), series: props.seriesSizes?.get(picture) ?? 0, seriesOpen: props.openSeries?.has(picture) ?? false }"
 							@focus="focused = index"
 							@click="tiles.onClick(imageMember(picture).fileId, $event)"
 							@keydown="tiles.onKeydown(imageMember(picture).fileId, $event)"

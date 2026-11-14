@@ -28,6 +28,7 @@ import SelectionBar from './components/SelectionBar.vue'
 import SeriesCompareFlow from './components/SeriesCompareFlow.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutSheet from './components/ShortcutSheet.vue'
+import SimilarityStrip from './components/SimilarityStrip.vue'
 import TagEntry from './components/TagEntry.vue'
 import UndoToast from './components/UndoToast.vue'
 import { APP_SEAMS } from './app-seams.ts'
@@ -154,7 +155,6 @@ useHotkeys(() => {
 					:movable="movable.length"
 					:sidecarsShared="cull.sharedPictures.value.length > 0"
 					:resumeName="resume.resumeName.value"
-					:similarity="cull.hashProgress.value"
 					@changeFolders="pickerOpen = true"
 					@update:tileSize="cull.setTileSize"
 					@update:groupByFolder="groupByFolder = $event"
@@ -195,11 +195,14 @@ useHotkeys(() => {
 					:decisionOf="cull.decisionOf"
 					:tagsOf="cull.tags.tagsOf"
 					:seriesSizes="cull.seriesSizes.value"
+					:openSeries="cull.openSeries.value"
 					@update:tileSize="cull.setTileSize"
 					@update:selecting="selection.setSelecting"
 					@update:selection="selection.select"
 					@open="openLoupe"
-					@scroll="resume.dismiss" />
+					@scroll="resume.dismiss">
+					<SimilarityStrip :progress="cull.hashProgress.value" />
+				</PhotoGrid>
 				<CullEmptyState
 					v-else
 					:reason="empty"

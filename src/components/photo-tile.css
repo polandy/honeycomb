@@ -133,3 +133,8 @@
 	width: 14px;
 	height: 14px;
 }
+
+.photo-tile__series--open {
+	outline: 2px dashed var(--color-warning);
+	outline-offset: 1px;
+}
