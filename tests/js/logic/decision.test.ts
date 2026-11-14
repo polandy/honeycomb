@@ -3,7 +3,7 @@
 import type { Decision } from '../../../src/logic/decision.ts'
 
 import { describe, expect, it } from 'vitest'
-import { decisionsByFileId, isDecided, nextUndecided, pictureDecision, UNDECIDED } from '../../../src/logic/decision.ts'
+import { decisionsByFileId, isDecided, isOpen, isPicked, isRejected, nextUndecided, pictureDecision, UNDECIDED } from '../../../src/logic/decision.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const picked = { rating: 4, colourLabel: 'red', flag: 'picked', keepRaw: true } as const
@@ -47,6 +47,22 @@ describe('isDecided', () => {
 		['unflagged', false],
 	] as const)('is %s → %s', (flag, expected) => {
 		expect(isDecided({ ...UNDECIDED, rating: 5, flag })).toBe(expected)
+	})
+})
+
+describe('isPicked, isRejected and isOpen', () => {
+	it.each([
+		['picked', true, false, false],
+		['rejected', false, true, false],
+		['unflagged', false, false, true],
+	] as const)('tell %s apart', (flag, picks, rejects, open) => {
+		const decision = { ...UNDECIDED, rating: 5, flag }
+		expect([isPicked(decision), isRejected(decision), isOpen(decision)]).toEqual([picks, rejects, open])
+		expect(isOpen(decision)).toBe(!isDecided(decision))
+	})
+
+	it('accepts anything that carries a flag', () => {
+		expect(isRejected({ flag: 'rejected' })).toBe(true)
 	})
 })
 
