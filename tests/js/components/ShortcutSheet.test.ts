@@ -40,6 +40,11 @@ describe('ShortcutSheet', () => {
 		expect(rows(mountSheet()).find(([caps]) => caps?.[0] === 'N')).toEqual([['N'], 'Compare series; loupe: the shown photo\'s series'])
 	})
 
+	// spec: LOUPE-002.15
+	it('names Shift+K for the series compare, the series viewer and the loupe alike', () => {
+		expect(rows(mountSheet()).find(([caps]) => caps?.[0] === 'Shift+K')).toEqual([['Shift+K'], 'Series: pick this, reject the rest'])
+	})
+
 	// spec: KEYS-001.12
 	it('lays out every group in one table, so all groups share the key column', () => {
 		const wrapper = mountSheet()

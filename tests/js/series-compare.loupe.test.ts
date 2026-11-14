@@ -72,6 +72,17 @@ describe('useSeriesCompare: opened from the loupe', () => {
 		expect(landings).toEqual([])
 	})
 
+	// spec: LOUPE-002.15
+	it('picks for the loupe without opening and lands after the series', () => {
+		const { compare, calls, shot } = compareOf(['C', 'D', 'E'])
+		const landings: string[] = []
+		compare.pickRestAndLand(['C', 'D', 'E'].map(shot), shot('E'), (landing) => landings.push(landing.kind === 'after' ? `after ${landing.series.map(({ name }) => name).join(' ')}, picked ${landing.picked.name}` : 'on'))
+
+		expect(calls).toEqual(['pick E, reject C D'])
+		expect(compare.open.value).toBe(false)
+		expect(landings).toEqual(['after C D E, picked E'])
+	})
+
 	// spec: SERIES-001.6
 	it('opens on every series again from the grid, landing nowhere', () => {
 		const { compare, shown, landings } = fromLoupe(['C', 'D'], 'C', ['A', 'B'])

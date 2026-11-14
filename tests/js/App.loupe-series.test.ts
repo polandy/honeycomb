@@ -7,7 +7,9 @@ import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
+import PickRestButton from '../../src/components/PickRestButton.vue'
 import SeriesCompare from '../../src/components/SeriesCompare.vue'
+import UndoToast from '../../src/components/UndoToast.vue'
 import { mountApp, openCull, SET } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'
 import { listingEntry } from './logic/listing-entries.ts'
@@ -35,6 +37,7 @@ async function press(key: string, fields: KeyboardEventInit = {}) {
 }
 
 const compare = (wrapper: AppWrapper) => wrapper.findComponent(SeriesCompare)
+const toastText = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast).text()
 const shown = (wrapper: AppWrapper) => compare(wrapper).props('series')?.map((picture: { baseName: string }) => picture.baseName) ?? null
 /** The name of the picture the loupe shows. */
 function inLoupe(wrapper: AppWrapper) {
@@ -85,5 +88,29 @@ describe('App: the series compare opened from the loupe', () => {
 		await press('n')
 
 		expect(compare(wrapper).props()).toMatchObject({ oneSeries: false, count: 2, container: 'body' })
+	})
+})
+
+describe('App: Pick this, reject the rest in the loupe', () => {
+	// spec: LOUPE-002.15
+	it('picks the shown photo by Shift+K, rejects the rest in one step and lands on the first photo after the series', async () => {
+		const { wrapper, saved } = await openLoupe(1)
+		await press('K', { shiftKey: true })
+
+		expect(saved.at(-1)!.map(({ fileId, flag }) => `${fileId} ${flag}`)).toEqual(['2 picked', '1 rejected', '3 rejected'])
+		expect(toastText(wrapper)).toContain('Picked IMG_2, rejected the rest')
+		expect(inLoupe(wrapper)).toBe('IMG_4')
+		await press('z', { ctrlKey: true })
+		expect(saved.at(-1)!.map(({ fileId, flag }) => `${fileId} ${flag}`)).toEqual(['2 unflagged', '1 unflagged', '3 unflagged'])
+	})
+
+	// spec: LOUPE-002.15
+	it('does the same by the rating row\'s button and stays on the picked photo when no photo follows the series', async () => {
+		const { wrapper, saved } = await openLoupe(4)
+		await wrapper.findComponent(PickRestButton).trigger('click')
+		await flushPromises()
+
+		expect(saved.at(-1)!.map(({ fileId, flag }) => `${fileId} ${flag}`)).toEqual(['5 picked', '4 rejected'])
+		expect(inLoupe(wrapper)).toBe('IMG_5')
 	})
 })
