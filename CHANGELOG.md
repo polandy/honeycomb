@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.2.0](https://github.com/polandy/honeycomb/compare/v0.1.0...v0.2.0) (2026-11-14)
+
+
+### Features
+
+* **flags:** run the flag buttons Pick, Unflag, Reject everywhere ([#154](https://github.com/polandy/honeycomb/issues/154)) ([450149a](https://github.com/polandy/honeycomb/commit/450149a9d249bca1c45d0a2987a7f7513d7adebf))
+* **grid:** put flags, Move and Delete first when the action bar wraps (UX L6) ([#144](https://github.com/polandy/honeycomb/issues/144)) ([2858046](https://github.com/polandy/honeycomb/commit/28580461f8714c1e4390f2f865fad36539ed9208))
+* **keys:** lay out the shortcut sheet as one table with a shared key column (UX L1) ([#138](https://github.com/polandy/honeycomb/issues/138)) ([d825421](https://github.com/polandy/honeycomb/commit/d82542176a09c6927f01f9e2d6c35299bceade0e))
+* **loupe:** a white ring with a dark edge marks the shown photo in the filmstrip ([#151](https://github.com/polandy/honeycomb/issues/151)) ([a689c6d](https://github.com/polandy/honeycomb/commit/a689c6d05fb55b1735c1050f4d3a64769e1a5722))
+* **loupe:** first-series hint under the series chip ([#161](https://github.com/polandy/honeycomb/issues/161)) ([2d438de](https://github.com/polandy/honeycomb/commit/2d438de1fcf290dbf0e5a122987151424d0781af))
+* **loupe:** frame each series run in the filmstrip ([#157](https://github.com/polandy/honeycomb/issues/157)) ([3c6573c](https://github.com/polandy/honeycomb/commit/3c6573c2a604a0bce30741759e7d3fa03b7f9cd5))
+* **loupe:** give Unflag at the right edge its word, like Pick and Reject (UX L5) ([#143](https://github.com/polandy/honeycomb/issues/143)) ([9197b74](https://github.com/polandy/honeycomb/commit/9197b74343fee94b4473b3db90467894e3139b30))
+* **loupe:** Pick this, reject the rest and Shift+K in the loupe ([#159](https://github.com/polandy/honeycomb/issues/159)) ([f282139](https://github.com/polandy/honeycomb/commit/f282139aee3c33f544e8ebeee6483c4235af86df))
+* **loupe:** start the filmstrip at its left edge until the shown photo reaches the middle (UX L7) ([#145](https://github.com/polandy/honeycomb/issues/145)) ([434c690](https://github.com/polandy/honeycomb/commit/434c690d5c3b760f7beff67167b82d8a5b862b30))
+* **loupe:** the series chip and N open the compare on one series ([#158](https://github.com/polandy/honeycomb/issues/158)) ([f7f3ad5](https://github.com/polandy/honeycomb/commit/f7f3ad53b25282fb6519a5f3df2e678c712bf2b6))
+* **navigation:** start closed below 1280 px and remember the user's choice (UX L3) ([#141](https://github.com/polandy/honeycomb/issues/141)) ([538f754](https://github.com/polandy/honeycomb/commit/538f7543a1c4eb59ffd14b3ca68fb4a20fbe454b))
+* **picker:** mute the status line and give every folder row one height (UX L2) ([#140](https://github.com/polandy/honeycomb/issues/140)) ([35680da](https://github.com/polandy/honeycomb/commit/35680da3d184455eefdf76b1e29040983ca13725))
+* **series:** a series ends 60 seconds after its first picture ([#152](https://github.com/polandy/honeycomb/issues/152)) ([07003c7](https://github.com/polandy/honeycomb/commit/07003c7bb116dd902a4b23dae6a44f92ace3421f))
+* **series:** full screen from the compare — View full screen, double tap, Enter ([#156](https://github.com/polandy/honeycomb/issues/156)) ([d02426d](https://github.com/polandy/honeycomb/commit/d02426dc7c6f7982f6fa1426743f8eed253a8de3))
+* **series:** Reject the other N in the undo toast after a plain Pick ([#160](https://github.com/polandy/honeycomb/issues/160)) ([b1e75a1](https://github.com/polandy/honeycomb/commit/b1e75a19b8c6a074f8822e480aa0797e48a59d82))
+* **series:** show a whole burst as one series, scrolling the compare row sideways ([#147](https://github.com/polandy/honeycomb/issues/147)) ([6ab4cf1](https://github.com/polandy/honeycomb/commit/6ab4cf1b5a0094e2762b6030f558b3d3810f53fb))
+* **series:** show the similarity progress of the visual hashes ([#176](https://github.com/polandy/honeycomb/issues/176)) ([7360761](https://github.com/polandy/honeycomb/commit/736076120b79cbf30f3d28b88eb9e353737ae749))
+* **series:** store visual hashes on the server per file version ([#175](https://github.com/polandy/honeycomb/issues/175)) ([e6bb045](https://github.com/polandy/honeycomb/commit/e6bb04592c8ef08071710ac6509ac482090f6427))
+* **series:** the compare as a full-screen grid that fits the screen ([#155](https://github.com/polandy/honeycomb/issues/155)) ([3b56d3a](https://github.com/polandy/honeycomb/commit/3b56d3a04856dda42cf1f68d4587b7f8aed3bf9c))
+* **series:** the viewer preloads the loupe's window and the compare names the active photo ([#153](https://github.com/polandy/honeycomb/issues/153)) ([48e5bd6](https://github.com/polandy/honeycomb/commit/48e5bd642f960c6aa8baff63119f1c38ea2437bd))
+
+
+### Bug Fixes
+
+* **loupe:** keep the undo toast's buttons readable on hover and focus ([#165](https://github.com/polandy/honeycomb/issues/165)) ([003cfa9](https://github.com/polandy/honeycomb/commit/003cfa93d045aa5d96e24d87d5849e990e8acc2c))
+* **settings:** start every settings text line at its section heading (UX L4) ([#142](https://github.com/polandy/honeycomb/issues/142)) ([137ef8d](https://github.com/polandy/honeycomb/commit/137ef8d3feed1c74c583166a9e4c8178afc30b8c))
+* **storage:** repeat a save after a deadlock or lock wait timeout ([#166](https://github.com/polandy/honeycomb/issues/166)) ([c3449ee](https://github.com/polandy/honeycomb/commit/c3449ee2ccd361e7f912325df5cc0a53ef43deb6))
+
+
+### Performance Improvements
+
+* **decisions:** send one decision and tag save at a time per tab ([#172](https://github.com/polandy/honeycomb/issues/172)) ([500b593](https://github.com/polandy/honeycomb/commit/500b593e68143193e2625800177c7ad115e6eaab))
+* **folders:** list only the subfolders of each child folder ([#171](https://github.com/polandy/honeycomb/issues/171)) ([38623e7](https://github.com/polandy/honeycomb/commit/38623e7e299f8723e2f5f6930aacf34547f438ab))
+* **images:** stop the warm-up on a new folder set and skip warmed previews ([#170](https://github.com/polandy/honeycomb/issues/170)) ([fce9e6d](https://github.com/polandy/honeycomb/commit/fce9e6d3b824457d793b9eaf04936a36935d4ceb))
+* **listing:** count a folder shared with the user as shared without a share query ([#174](https://github.com/polandy/honeycomb/issues/174)) ([30ea3c8](https://github.com/polandy/honeycomb/commit/30ea3c873a6c044ef14c45a3808bf1846d6f9d3a))
+* **listing:** walk the folders below instead of paging a search by offset ([#164](https://github.com/polandy/honeycomb/issues/164)) ([ad1a753](https://github.com/polandy/honeycomb/commit/ad1a753b89bf203f90654ccdcb2987835e994142))
+* **sidecars:** save each sidecar once per pass and skip unchanged ones ([#173](https://github.com/polandy/honeycomb/issues/173)) ([4a79b16](https://github.com/polandy/honeycomb/commit/4a79b163ecfcef6a02e447c1b91774bc38b4311e))
+* **storage:** insert decisions and tags with one statement per 1,000 rows ([#167](https://github.com/polandy/honeycomb/issues/167)) ([871f194](https://github.com/polandy/honeycomb/commit/871f1940aeffc7197e0aebe9539fe5b1bf6ecaeb))
+
 ## 0.1.0 (2026-11-13)
 
 
