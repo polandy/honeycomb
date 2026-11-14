@@ -39,4 +39,24 @@ final class PageControllerTest extends TestCase {
 		$this->assertCount(1, $method->getAttributes(NoAdminRequired::class));
 		$this->assertCount(1, $method->getAttributes(NoCSRFRequired::class));
 	}
+
+	// spec: SERIES-004.13
+	public function testSimilarityRendersItsTemplateAndAllowsItsWorkers(): void {
+		$controller = new PageController(Application::APP_ID, $this->createStub(IRequest::class));
+
+		$response = $controller->similarity();
+
+		$this->assertSame('similarity', $response->getTemplateName());
+		$this->assertSame(TemplateResponse::RENDER_AS_USER, $response->getRenderAs());
+		$this->assertStringContainsString("worker-src 'self'", $response->getContentSecurityPolicy()->buildPolicy());
+	}
+
+	// spec: SERIES-004.13
+	public function testSimilarityIsAPageForEveryUser(): void {
+		$method = new ReflectionMethod(PageController::class, 'similarity');
+
+		$this->assertSame(['verb' => 'GET', 'url' => '/similarity'], $method->getAttributes(FrontpageRoute::class)[0]->getArguments());
+		$this->assertCount(1, $method->getAttributes(NoAdminRequired::class));
+		$this->assertCount(1, $method->getAttributes(NoCSRFRequired::class));
+	}
 }

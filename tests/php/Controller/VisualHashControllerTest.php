@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\VisualHashController;
+use OCA\Honeycomb\Service\MissingVisualHashes;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\VisualHashService;
 use OCA\Honeycomb\Tests\Service\FakeFiles;
@@ -36,14 +37,17 @@ final class VisualHashControllerTest extends TestCase {
 		$this->store = new FakeVisualHashStore();
 	}
 
-	private function controller(bool $loggedIn = true): VisualHashController {
+	private function controller(bool $loggedIn = true, ?IRootFolder $root = null): VisualHashController {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $this->user() : null);
-		$userFolder = $this->folder('');
-		$userFolder->method('getFirstNodeById')->willReturnCallback(fn (int $id): ?Node => $id === 7 ? $this->file(7, '/P/A.JPG') : null);
-		$root = $this->createStub(IRootFolder::class);
-		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
-		return new VisualHashController(Application::APP_ID, $this->createStub(IRequest::class), $session, new VisualHashService($this->store, new UserFolderResolver($root)));
+		if ($root === null) {
+			$userFolder = $this->folder('');
+			$userFolder->method('getFirstNodeById')->willReturnCallback(fn (int $id): ?Node => $id === 7 ? $this->file(7, '/P/A.JPG') : null);
+			$root = $this->createStub(IRootFolder::class);
+			$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
+		}
+		$folders = new UserFolderResolver($root);
+		return new VisualHashController(Application::APP_ID, $this->createStub(IRequest::class), $session, new VisualHashService($this->store, $folders), new MissingVisualHashes($folders, $this->store));
 	}
 
 	// spec: SERIES-003.3, SERIES-003.4
@@ -80,5 +84,33 @@ final class VisualHashControllerTest extends TestCase {
 		$this->assertSame(['verb' => 'PUT', 'url' => '/api/v1/visual-hashes'], $route);
 		$this->assertCount(1, $method->getAttributes(NoAdminRequired::class));
 		$this->assertCount(0, $method->getAttributes(NoCSRFRequired::class));
+	}
+
+	// spec: SERIES-004.1
+	public function testAnswersThePageOfMissingHashes(): void {
+		$root = $this->rootWith(['/Photos' => $this->treeOf([$this->file(1, '/Photos/a.JPG')])]);
+
+		$response = $this->controller(root: $root)->missing('Photos', '');
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame(['pictures' => [['fileId' => 1, 'etag' => 'etag-1', 'mtime' => 1_700_000_001, 'path' => '/Photos/a.JPG']], 'next' => null], json_decode($response->render(), true));
+	}
+
+	// spec: SERIES-004.4
+	public function testMissingHashesOfAWrongPathOrCursorAreRefused(): void {
+		$root = $this->rootWith(['/Photos' => $this->treeOf([$this->file(1, '/Photos/a.JPG')]), '/Locked' => $this->folder('/Locked', false)]);
+
+		$this->assertSame(Http::STATUS_NOT_FOUND, $this->controller(root: $root)->missing('Nowhere', '')->getStatus());
+		$this->assertSame(Http::STATUS_FORBIDDEN, $this->controller(root: $root)->missing('Locked', '')->getStatus());
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller(root: $root)->missing('Photos', '../a.JPG')->getStatus());
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(false, $root)->missing('Photos', '')->getStatus());
+	}
+
+	public function testTheMissingHashesAreRoutedForUsers(): void {
+		$method = new ReflectionMethod(VisualHashController::class, 'missing');
+		$route = $method->getAttributes(FrontpageRoute::class)[0]->getArguments();
+
+		$this->assertSame(['verb' => 'GET', 'url' => '/api/v1/visual-hashes/missing'], $route);
+		$this->assertCount(1, $method->getAttributes(NoAdminRequired::class));
 	}
 }
