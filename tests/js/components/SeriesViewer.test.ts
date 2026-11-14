@@ -88,7 +88,7 @@ describe('SeriesViewer', () => {
 		expect(root.attributes('data-hotkeys-screen')).toBeDefined()
 		expect(wrapper.find('h2').text()).toBe('IMG_2')
 		expect(plain(wrapper.find('.series-viewer__place').text())).toBe('Series 2 of 3 · photo 2 of 3')
-		expect(label(wrapper, 'Close series viewer').exists()).toBe(true)
+		expect(plain(label(wrapper, 'Back to the series').text())).toBe('Back to the series')
 		expect(wrapper.find('.flag-buttons-toggle, button[aria-label$="Flag buttons"]').exists()).toBe(true)
 		expect(wrapper.find('.loupe-filmstrip').exists()).toBe(false)
 		expect(label(wrapper, 'Toggle info panel').exists()).toBe(false)
@@ -221,11 +221,11 @@ describe('SeriesViewer', () => {
 	})
 
 	// spec: SERIES-002.9
-	it('closes by its button and Esc', async () => {
+	it('goes back to the series by its button and Esc', async () => {
 		const { wrapper, press } = await mountViewer()
 		// spec: APP-002.9
-		expect(label(wrapper, 'Close series viewer').attributes('data-tip-key')).toBe('Esc')
-		await label(wrapper, 'Close series viewer').trigger('click')
+		expect(label(wrapper, 'Back to the series').attributes('data-tip-key')).toBe('Esc')
+		await label(wrapper, 'Back to the series').trigger('click')
 		await press('Escape')
 
 		expect(wrapper.emitted('close')).toHaveLength(2)
