@@ -91,6 +91,16 @@ trait FileRowQueries {
 		}
 	}
 
+	/**
+	 * Runs the statements inserting `$rows`.
+	 * @param list<array<string, scalar|null>> $rows
+	 */
+	private function insertRows(InsertStatements $insert, array $rows): void {
+		foreach ($insert->of($rows, $this->db->getDatabaseProvider()) as $statement) {
+			$this->db->executeStatement($statement->sql, $statement->params, $statement->types);
+		}
+	}
+
 	private function deleteUserRows(string $table, string $userId): void {
 		$query = $this->db->getQueryBuilder();
 		$query->delete($table)

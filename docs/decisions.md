@@ -1019,3 +1019,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   outline in their light text colour, both on the transparent background: the mockup gives
   them no hover look, and a filled hover would need a colour Nextcloud does not offer for the
   inverted toast (LOUPE-002.17).
+- 2026-11-14: Saving decisions and tags inserts their rows with one multi-row `INSERT` per 1,000
+  rows, built as plain SQL because Nextcloud's query builder inserts one row; Oracle before 23ai
+  has no multi-row `VALUES`, so it keeps one row per statement rather than a second dialect.
