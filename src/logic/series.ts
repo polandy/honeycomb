@@ -10,13 +10,13 @@ import { hashDistance } from './visual-hash.ts'
 /** The longest gap between two shots of one series, photo to photo, where one has no visual hash (plan.md, Series compare). */
 export const SERIES_GAP_SECONDS = 3
 
-/** The longest gap between two shots of one series that look alike, photo to photo (ADR 0021). */
+/** The longest gap between two shots of one series that look alike, photo to photo (ADR 0024). */
 export const VISUAL_SERIES_GAP_SECONDS = 30
 
-/** The longest time from a series' first shot to its last; a later shot starts the next series (ADR 0021). */
+/** The longest time from a series' first shot to its last; a later shot starts the next series (ADR 0024). */
 export const SERIES_SPAN_SECONDS = 60
 
-/** The most bits in which the visual hashes of two shots that look alike differ, of 64 (ADR 0021). */
+/** The most bits in which the visual hashes of two shots that look alike differ, of 64 (ADR 0024). */
 export const VISUAL_DISTANCE_LIMIT = 10
 
 /** The visual hash of a picture, or null while it has none. */

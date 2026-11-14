@@ -4,24 +4,28 @@ import type { BrowserStorage } from './browser-storage.ts'
 import type { ImageUrlFor } from './logic/image-tiers.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
+import type { StoredVisualHash } from './logic/visual-hash.ts'
 
 import { shallowRef, watch } from 'vue'
-import { readStored, writeStored } from './browser-storage.ts'
+import { removeStored } from './browser-storage.ts'
 import { logger } from './logger.ts'
 import { imageMember, smallSource } from './logic/image-tiers.ts'
 import { hashablePictures } from './logic/series.ts'
-import { differenceHash, HASH_COLUMNS, HASH_ROWS, parseHashCache, serializeHashCache } from './logic/visual-hash.ts'
+import { differenceHash, HASH_COLUMNS, HASH_ROWS } from './logic/visual-hash.ts'
 
-/** The browser storage key of the visual hashes (ADR 0021). */
+/** The browser storage key under which earlier versions kept the visual hashes (ADR 0021); removed when a cull opens. */
 export const VISUAL_HASHES_KEY = 'honeycomb.visualHashes'
 
-/** The most visual hashes kept in the browser, about 60 characters each (ADR 0021). */
-const CACHE_SIZE = 10000
+/** How many computed hashes one save carries while hashing goes on (ADR 0024). */
+const SAVE_BATCH = 100
 
 /** Computes the visual hash of a member's image. */
 export type HashImage = (member: ListingEntry) => Promise<string>
 
-/** The cache key of a file version: a new etag means new pixels. */
+/** Stores computed visual hashes on the server. */
+export type SaveVisualHashes = (hashes: readonly StoredVisualHash[]) => Promise<void>
+
+/** A file version: a new etag means new pixels. */
 const versionKey = (member: ListingEntry) => `${member.fileId}:${member.etag}`
 
 /** A hasher that draws the member's small grid preview, already in the browser's cache, at the hash size. */
@@ -43,38 +47,64 @@ export function hashPreview(urlFor: ImageUrlFor): HashImage {
 	}
 }
 
-/** The visual hashes of the shown pictures, computed in the background one at a time and kept per file version (SERIES-001.17). */
-export function useVisualHashes(hashImage: HashImage, storage: BrowserStorage, pictures: () => readonly Picture<ListingEntry>[]) {
-	const cache = parseHashCache(readStored(storage, VISUAL_HASHES_KEY))
-	const published = shallowRef<ReadonlyMap<string, string>>(new Map(cache))
+/**
+ * The visual hashes of the shown pictures: those the listing delivered, and the missing ones computed in the background one at
+ * a time and saved to the server (SERIES-001.17, SERIES-003.12).
+ */
+export function useVisualHashes(api: { readonly hashImage: HashImage, readonly saveVisualHashes: SaveVisualHashes }, storage: BrowserStorage, pictures: () => readonly Picture<ListingEntry>[]) {
+	removeStored(storage, VISUAL_HASHES_KEY)
+	const computed = new Map<string, string>()
+	const published = shallowRef<ReadonlyMap<string, string>>(new Map())
 	let pending: ListingEntry[] = []
+	let unsaved: StoredVisualHash[] = []
 	let running = false
 	let held = false
 
-	/** Makes the cached hashes count for the series. */
+	/** Makes the computed hashes count for the series. */
 	function publish() {
-		published.value = new Map(cache)
+		published.value = new Map(computed)
 	}
 
-	/** Hashes the pending members in turn, then stores the cache. */
+	/** Saves the hashes computed since the last save; a failure is logged and the hashes still count for this visit (SERIES-003.13). */
+	async function save() {
+		const batch = unsaved
+		unsaved = []
+		if (batch.length === 0) {
+			return
+		}
+		try {
+			await api.saveVisualHashes(batch)
+		} catch (error) {
+			logger.warn('Could not save the visual hashes', { error, count: batch.length })
+		}
+	}
+
+	/** Hashes the pending members in turn, saving every batch and what is left once none is pending. */
 	async function drain() {
 		running = true
-		for (let member = pending.shift(); member !== undefined; member = pending.shift()) {
-			try {
-				cache.set(versionKey(member), await hashImage(member))
-				if (!held) {
-					publish()
+		while (pending.length > 0) {
+			for (let member = pending.shift(); member !== undefined; member = pending.shift()) {
+				try {
+					const hash = await api.hashImage(member)
+					computed.set(versionKey(member), hash)
+					unsaved.push({ fileId: member.fileId, etag: member.etag, hash })
+					if (!held) {
+						publish()
+					}
+				} catch (error) {
+					logger.warn('Could not hash the preview', { error, fileId: member.fileId })
 				}
-			} catch (error) {
-				logger.warn('Could not hash the preview', { error, fileId: member.fileId })
+				if (unsaved.length >= SAVE_BATCH) {
+					await save()
+				}
 			}
+			await save()
 		}
 		running = false
-		writeStored(storage, VISUAL_HASHES_KEY, serializeHashCache(cache, CACHE_SIZE))
 	}
 
 	watch(pictures, (shown) => {
-		pending = hashablePictures(shown).map(imageMember).filter((member) => !cache.has(versionKey(member)))
+		pending = hashablePictures(shown).map(imageMember).filter((member) => member.visualHash === null && !computed.has(versionKey(member)))
 		if (!running && pending.length > 0) {
 			void drain()
 		}
@@ -82,7 +112,10 @@ export function useVisualHashes(hashImage: HashImage, storage: BrowserStorage, p
 
 	return {
 		/** The visual hash of the picture's shown member, or null while it has none. */
-		hashOf: (picture: Picture<ListingEntry>) => published.value.get(versionKey(imageMember(picture))) ?? null,
+		hashOf(picture: Picture<ListingEntry>) {
+			const member = imageMember(picture)
+			return member.visualHash ?? published.value.get(versionKey(member)) ?? null
+		},
 		/** Holds new hashes back from the series, as while the series compare is open, and shows them on release. */
 		hold(hold: boolean) {
 			held = hold

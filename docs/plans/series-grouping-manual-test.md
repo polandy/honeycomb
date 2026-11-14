@@ -33,9 +33,8 @@ guide below has you prepare a small throw-away folder; nothing on the server nee
   `SERIES-002-series-viewer.md` (badge, viewer); decision: `docs/adr/0021-series-by-capture-time-and-visual-hash.md`.
 - Fingerprint source: `src/visual-hashes.ts:28-41` draws the small grid preview onto a 9 × 8
   canvas; hashes only pictures with a same-camera shot within 30 s (`hashablePictures`,
-  `src/logic/series.ts:41-44`), one at a time, cached in browser storage
-  `honeycomb.visualHashes` per `fileId:etag` (`src/visual-hashes.ts:15-25`). Nothing is stored on
-  the server.
+  `src/logic/series.ts`), one at a time, and saved on the server per file id and etag
+  (SERIES-003, ADR 0024); the listing delivers the stored hashes as `visualHash`.
 - EXIF source: `lib/Service/EntryFactory.php:16-21` reads Nextcloud file metadata written by the
   **Photos app's** metadata providers (`photos-original_date_time`, `photos-ifd0` for make and
   model). Missing values are `null` (LISTING-001.3); a picture without capture time is never in a
@@ -59,8 +58,8 @@ guide below has you prepare a small throw-away folder; nothing on the server nee
    Nextcloud generates it on first request; the grid requests it anyway, so no
    `preview:pre-generate` is needed. Previews that fail to load (error tile) mean no hash and the
    3 s rule applies, which is itself a valid test (case C).
-4. Use a **fresh browser profile or clear `honeycomb.visualHashes`** (DevTools → Application →
-   Local Storage) to see hashing from scratch.
+4. To see hashing from scratch, use photos the user has not opened in honeycomb before: stored
+   hashes come with the listing on every device.
 5. Photos where the same camera shot at most 30 s apart. Different cameras never group.
 
 ## Preparing the photos

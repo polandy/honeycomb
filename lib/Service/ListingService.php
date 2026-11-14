@@ -54,16 +54,16 @@ final class ListingService {
 				continue;
 			}
 			if (count($entries) + count($batch) === $this->entryLimit) {
-				return new Listing([...$entries, ...$this->entryFactory->create($userFolder, $batch)], true, array_values($folders));
+				return new Listing([...$entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch)], true, array_values($folders));
 			}
 			$batch[] = $node;
 			$folders[dirname($node->getPath())] ??= $this->folderOf($user, $userFolder, $node);
 			if (count($batch) === self::METADATA_BATCH) {
-				array_push($entries, ...$this->entryFactory->create($userFolder, $batch));
+				array_push($entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch));
 				$batch = [];
 			}
 		}
-		return new Listing([...$entries, ...$this->entryFactory->create($userFolder, $batch)], false, array_values($folders));
+		return new Listing([...$entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch)], false, array_values($folders));
 	}
 
 	/** @return array{path: string, shared: bool} */

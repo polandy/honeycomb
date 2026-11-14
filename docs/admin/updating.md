@@ -19,11 +19,12 @@ sudo -u www-data php /var/www/nextcloud/occ upgrade
 Clicking *Update* in *Apps* does the same as `occ app:update`. Until the update has run, the
 new code may read tables that do not exist yet, and saving a flag, a rating or a tag fails.
 
-## Installed before tags (#119)
+## Installed from a Git checkout
 
 Tag storage (pull request #119) added the tables `honeycomb_file_tags` and
-`honeycomb_tag_list` without raising the app version, so an instance installed from a Git
-checkout before it never created them, and the commands above do not either. The `migrations:`
+`honeycomb_tag_list`, and visual hash storage added `honeycomb_hashes`, without raising the app
+version, so an instance installed from a Git checkout before them never created them, and the
+commands above do not either. Without `honeycomb_hashes` no folder opens. The `migrations:`
 commands exist only in debug mode, so turn it on for this one run:
 
 ```sh

@@ -14,6 +14,8 @@ export interface ListingEntry {
 	readonly width: number | null
 	readonly height: number | null
 	readonly camera: string | null
+	/** The stored visual hash of this file version, `null` while none is stored (ADR 0024). */
+	readonly visualHash: string | null
 }
 
 /** The listings of a folder set as one, each file once, in the order first listed. */

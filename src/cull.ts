@@ -75,7 +75,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const shownProgress = computed(() => progress(view.value, decisionOf))
 	const activeFilters = computed(() => activeFilterCount(filters.value))
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
-	const hashes = useVisualHashes(api.hashImage, storage, () => pictures.value)
+	const hashes = useVisualHashes(api, storage, () => pictures.value)
 	const warmer = usePreviewWarmer(api.warmPreviews, storage)
 	const candidates = computed(() => seriesCandidates(pictures.value, hashes.hashOf))
 	const series = computed(() => findSeries(candidates.value, decisionOf, hashes.hashOf))

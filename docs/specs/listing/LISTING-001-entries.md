@@ -16,7 +16,9 @@ show them, from one request per folder. The server lists; it never pairs (ADR 00
 token. `path` is relative to the user's files; empty is the root. The answer is
 `{"entries": [...], "truncated": <bool>, "folders": [...]}`. An entry has `fileId`, `path`
 (from the user's files, leading `/`), `size`, `mtime`, `etag`, `mime` and `captureTime`,
-`orientation`, `width`, `height` from Nextcloud's file metadata, each `null` where it has none.
+`orientation`, `width`, `height` from Nextcloud's file metadata, each `null` where it has none,
+and `visualHash`, the user's stored visual hash of the file's current version or `null`
+(SERIES-003).
 `folders` has one item per folder
 that holds an entry, `{"path": "/Photos", "shared": <bool>}`: shared when another user or a
 federated user has access to it or to a folder above it, when it lies in a folder shared with the
@@ -142,3 +144,4 @@ ticked parent with subfolders and a ticked child both hold it.
 | 2026-11-10 | Public links, mail shares and external storage of several users count as shared (owner review) |
 | 2026-11-11 | `.cr3` and `.srw` files are listed by name (`TODO.md`, owner 2026-11-10) |
 | 2026-11-14 | A folder shared with the user is shared without asking the share manager |
+| 2026-11-14 | `visualHash` on every entry (SERIES-003, ADR 0024) |

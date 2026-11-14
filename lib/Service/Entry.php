@@ -21,6 +21,7 @@ final class Entry implements \JsonSerializable {
 		private ?int $width,
 		private ?int $height,
 		private ?string $camera,
+		private ?string $visualHash,
 	) {
 	}
 
@@ -39,6 +40,7 @@ final class Entry implements \JsonSerializable {
 			'width' => $this->width,
 			'height' => $this->height,
 			'camera' => $this->camera,
+			'visualHash' => $this->visualHash,
 		];
 	}
 }

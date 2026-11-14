@@ -41,7 +41,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 	}
 
 	private function service(IRootFolder $root, int $entryLimit = ListingService::ENTRY_LIMIT): ListingService {
-		return new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class)), new SharedFolders($this->shares(), $this->createStub(IUserMountCache::class)), $entryLimit);
+		return new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore()), new SharedFolders($this->shares(), $this->createStub(IUserMountCache::class)), $entryLimit);
 	}
 
 	// spec: LISTING-001.4
@@ -148,7 +148,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 				return [];
 			},
 		);
-		$service = new ListingService(new UserFolderResolver($this->rootWith(['/Photos' => $photos])), new EntryFactory($metadata), new SharedFolders($this->shares(), $this->createStub(IUserMountCache::class)));
+		$service = new ListingService(new UserFolderResolver($this->rootWith(['/Photos' => $photos])), new EntryFactory($metadata, new FakeVisualHashStore()), new SharedFolders($this->shares(), $this->createStub(IUserMountCache::class)));
 
 		$listing = $service->list($this->user(), 'Photos', true);
 

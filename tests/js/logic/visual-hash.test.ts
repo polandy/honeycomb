@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { differenceHash, HASH_COLUMNS, HASH_ROWS, hashDistance, parseHashCache, serializeHashCache } from '../../../src/logic/visual-hash.ts'
+import { differenceHash, HASH_COLUMNS, HASH_ROWS, hashDistance } from '../../../src/logic/visual-hash.ts'
 
 /** RGBA pixels of a HASH_COLUMNS × HASH_ROWS image whose grey level is `level(column, row)`. */
 function pixels(level: (column: number, row: number) => number): number[] {
@@ -42,23 +42,5 @@ describe('hashDistance', () => {
 	it('refuses hashes that are not 16 hex digits', () => {
 		expect(() => hashDistance('0', '0000000000000000')).toThrow(RangeError)
 		expect(() => hashDistance('000000000000000g', '0000000000000000')).toThrow(RangeError)
-	})
-})
-
-describe('hash cache', () => {
-	// spec: SERIES-001.17
-	it('reads stored hashes and drops what is not one', () => {
-		const stored = JSON.stringify({ '1:a': '00000000000003ff', '2:b': 'nope', '3:c': 7 })
-
-		expect([...parseHashCache(stored)]).toEqual([['1:a', '00000000000003ff']])
-		expect(parseHashCache(null).size).toBe(0)
-		expect(parseHashCache('{').size).toBe(0)
-		expect(parseHashCache('[]').size).toBe(0)
-	})
-
-	it('writes the newest hashes up to the limit', () => {
-		const cache = new Map([['1:a', '0000000000000001'], ['2:b', '0000000000000002'], ['3:c', '0000000000000003']])
-
-		expect(JSON.parse(serializeHashCache(cache, 2))).toEqual({ '2:b': '0000000000000002', '3:c': '0000000000000003' })
 	})
 })

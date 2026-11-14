@@ -19,6 +19,7 @@ export function listingEntry(fileId: number, path: string, fields: Partial<Listi
 		width: null,
 		height: null,
 		camera: null,
+		visualHash: null,
 		...fields,
 	}
 }

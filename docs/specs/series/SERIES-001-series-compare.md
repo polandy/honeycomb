@@ -25,9 +25,9 @@ has at least two pictures and at least one undecided; the series are ordered by 
 time.
 
 The **visual hash** of a picture is a difference hash of the small grid preview of its shown member
-(ADR 0021). It is computed in the browser, in the background and one picture at a time, only for
-pictures with a shot of the same camera within 30 seconds, and kept in browser storage per file
-version (etag). A failed hash is logged and leaves the picture on the 3 second rule. The series
+(ADR 0024). It is computed in the browser, in the background and one picture at a time, only for
+pictures with a shot of the same camera within 30 seconds, and kept on the server per file version
+(etag, SERIES-003). A failed hash is logged and leaves the picture on the 3 second rule. The series
 change as hashes arrive, except while the series compare dialog is open.
 
 *Compare series* in the toolbar shows how many series there are and is disabled without one; it and
@@ -192,8 +192,8 @@ phone *Pick this, reject the rest* wraps its label to two balanced lines instead
 - **Given** an open cull
 - **When** pictures have a shot of the same camera within 30 seconds
 - **Then** their small grid previews are hashed one at a time in the background, the hashes are
-  kept in browser storage per file id and etag and reused on the next visit, a changed etag is
-  hashed again, and a failed hash is logged and skipped
+  kept per file id and etag (SERIES-003) and reused on the next visit, a changed etag is hashed
+  again, and a failed hash is logged and skipped
 
 ### SERIES-001.18 – Series hold still while the compare is open
 
@@ -272,4 +272,5 @@ camera come from LISTING-001.
 | 2026-11-14 | Focus starts on the active card's photo, so the row no longer jumps back to the first card once the dialog has opened (flaky e2e from #147). |
 | 2026-11-14 | The compare uses the whole screen as a grid sized to fit, with `↑` `↓` and a bottom bar holding *Skip* and the one *Pick this, reject the rest*; the sideways-scrolling row is gone (series concept step 5, owner decision 3). |
 | 2026-11-14 | A tap only makes a card active; *View full screen* (⤢), a double tap or `Enter` opens the series viewer (series concept step 6, owner point 4). |
+| 2026-11-14 | Visual hashes are kept on the server instead of in browser storage (owner decision, ADR 0024, SERIES-003). |
 | 2026-11-14 | Opened from the loupe the compare holds one series, returns to the loupe and lands after the series on *Pick this, reject the rest* (series concept step 8). |

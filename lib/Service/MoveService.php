@@ -31,6 +31,7 @@ final class MoveService {
 		private IAppManager $appManager,
 		private DecisionStore $decisions,
 		private TagStore $tags,
+		private VisualHashStore $visualHashes,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -138,17 +139,17 @@ final class MoveService {
 		}
 	}
 
-	/** Carries the user's decision and tags over when the move gave the file a new id; a failure is logged and the file stays moved. */
+	/** Carries the user's decision, tags and visual hash over when the move gave the file a new id; a failure is logged and the file stays moved. */
 	private function carryOver(string $userId, int $fileId, Node $node): void {
 		$newFileId = $node->getId();
 		if ($newFileId === $fileId) {
 			return;
 		}
-		foreach ([$this->decisions, $this->tags] as $store) {
+		foreach ([$this->decisions, $this->tags, $this->visualHashes] as $store) {
 			try {
 				$store->carryOver($userId, $fileId, $newFileId);
 			} catch (\Exception $e) {
-				$this->logger->error('A decision or tags could not follow their file to a new file id', ['fileId' => $fileId, 'newFileId' => $newFileId, 'exception' => $e]);
+				$this->logger->error('A decision, tags or a visual hash could not follow their file to a new file id', ['fileId' => $fileId, 'newFileId' => $newFileId, 'exception' => $e]);
 			}
 		}
 	}

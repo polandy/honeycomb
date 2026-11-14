@@ -1,6 +1,6 @@
 # 0021 – Series by capture time and a visual hash of the grid preview
 
-- Status: accepted
+- Status: superseded by [0024](0024-visual-hashes-stored-on-the-server.md)
 - Date: 2026-11-12
 
 ## Context
