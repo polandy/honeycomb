@@ -9,6 +9,7 @@ import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { shallowRef } from 'vue'
 import { UNDECIDED } from '../../src/logic/decision.ts'
+import { NO_STORED_ROWS } from '../../src/logic/stored-series.ts'
 import { useSeries } from '../../src/series.ts'
 import { fakeStorage } from './app-cull.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
@@ -19,7 +20,7 @@ function setUp(entries: ListingEntry[]) {
 	const hasher = fakeHasher()
 	const pictures = shallowRef<Picture<ListingEntry>[]>(picturesOf(entries))
 	const decisions = shallowRef<ReadonlyMap<Picture<ListingEntry>, Decision>>(new Map())
-	const series = useSeries({ hashImage: hasher.hashImage, saveVisualHashes: async () => undefined }, fakeStorage(), () => pictures.value, (picture) => decisions.value.get(picture) ?? UNDECIDED)
+	const series = useSeries({ hashImage: hasher.hashImage, saveVisualHashes: async () => undefined }, fakeStorage(), () => pictures.value, (picture) => decisions.value.get(picture) ?? UNDECIDED, () => NO_STORED_ROWS)
 	const byName = (name: string) => pictures.value.find((picture) => picture.baseName === name)!
 	const names = () => series.series.value.map((each) => each.members.map((member) => member.baseName))
 	return { ...hasher, series, decisions, byName, names }

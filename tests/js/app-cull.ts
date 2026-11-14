@@ -83,6 +83,9 @@ export function provideSkipActions() {
 	}
 }
 
+/** A series lookup with nothing stored. */
+export const NO_SERIES = async () => ({ series: [], keptOut: [] })
+
 /** Tag endpoints that store nothing. */
 export const NO_TAGS = { lookupTags: async () => [], saveTags: async () => undefined, loadTagList: async () => [] }
 
@@ -105,6 +108,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 				return decisions
 			},
 			saveDecisions: async (rows: readonly StoredDecision[]) => { saved.push([...rows]) },
+			lookupSeries: NO_SERIES,
 			tags: NO_TAGS,
 			loadSettings: async () => ({}),
 			saveSettings: async (settings: object) => { savedSettings.push(settings) },

@@ -222,7 +222,7 @@ through every new visual hash.
   deleted
 - **Then** the daily job removes its row and afterwards every series without a row; a move carries
   the row to the new file id; a file in the trash bin keeps it; a deleted user's rows of both
-  tables go
+  tables go; a file moved back into the open cull is read again and is in its series
 
 ### SERIES-005.26 – A failed read stores nothing
 
@@ -242,3 +242,4 @@ through every new visual hash.
 |---|---|
 | 2026-11-14 | Accepted with ADR 0027 (#185 PR 0). |
 | 2026-11-14 | Backend of SERIES-005.20–25 (#185 PR 1); a series id twice is a `400`. |
+| 2026-11-14 | Delivery and logic of SERIES-005.1–3, .26 (#185 PR 2): the browser reads the rows per folder set and forms automatic series from the loose pictures only; 005.25 adds the re-read of files moved back. |

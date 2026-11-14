@@ -18,7 +18,8 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { asRateLimited } from './logic/retry-after.ts'
 
-const API = '/apps/honeycomb/api/v1'
+/** The base path of honeycomb's endpoints. */
+export const API = '/apps/honeycomb/api/v1'
 /** The most sidecars one request reads or saves (ADR 0017). */
 const SIDECAR_BATCH = 1000
 /** The most bytes handed to `String.fromCharCode` at once, well under the engines' argument limits. */
@@ -293,6 +294,6 @@ function fromBase64(text: string): Uint8Array {
 }
 
 /** Whether a response body is a JSON object. */
-function isRecord(data: unknown): data is Record<string, unknown> {
+export function isRecord(data: unknown): data is Record<string, unknown> {
 	return typeof data === 'object' && data !== null
 }

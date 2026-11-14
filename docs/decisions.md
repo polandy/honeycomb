@@ -1144,3 +1144,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   member row whose series row the sweep removed meanwhile reads as `open`; the empty-series
   sweep keeps its cursor under `empty_series_after` and shares the cursor walk of the vanished
   file sweep (#185 PR 1).
+- 2026-11-14: A picture whose members have different series rows is in the series of its first
+  member with one (RAW first), else kept out when a member is; stored members without a capture
+  time sort last, by name; a stored series never shows "may still change" while hashes are
+  pending; its members are still hashed for the similarity page (#185 PR 2).
+- 2026-11-14: The series lookup lives in `src/series-api.ts`, because `api.ts` is at the
+  300-line limit; it shares `API` and `isRecord` with `api.ts` (#185 PR 2).
