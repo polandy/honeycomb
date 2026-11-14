@@ -1,14 +1,16 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { BrowserStorage } from './browser-storage.ts'
+import type { HashState } from './logic/hash-progress.ts'
 import type { ImageUrlFor } from './logic/image-tiers.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { StoredVisualHash } from './logic/visual-hash.ts'
 
-import { shallowRef, watch } from 'vue'
+import { computed, ref, shallowRef, triggerRef, watch } from 'vue'
 import { removeStored } from './browser-storage.ts'
 import { logger } from './logger.ts'
+import { hashProgress } from './logic/hash-progress.ts'
 import { imageMember, smallSource } from './logic/image-tiers.ts'
 import { hashablePictures } from './logic/series.ts'
 import { differenceHash, HASH_COLUMNS, HASH_ROWS } from './logic/visual-hash.ts'
@@ -49,12 +51,16 @@ export function hashPreview(urlFor: ImageUrlFor): HashImage {
 
 /**
  * The visual hashes of the shown pictures: those the listing delivered, and the missing ones computed in the background one at
- * a time and saved to the server (SERIES-001.17, SERIES-003.12).
+ * a time and saved to the server (SERIES-001.17, SERIES-003.12); a failed file version is not hashed again in this visit.
  */
 export function useVisualHashes(api: { readonly hashImage: HashImage, readonly saveVisualHashes: SaveVisualHashes }, storage: BrowserStorage, pictures: () => readonly Picture<ListingEntry>[]) {
 	removeStored(storage, VISUAL_HASHES_KEY)
-	const computed = new Map<string, string>()
+	const hashed = shallowRef(new Map<string, string>())
+	const failed = shallowRef(new Set<string>())
+	const saveFailed = ref(false)
 	const published = shallowRef<ReadonlyMap<string, string>>(new Map())
+	const hashable = computed(() => hashablePictures(pictures()).map(imageMember))
+	const hashableKeys = computed(() => new Set(hashable.value.map(versionKey)))
 	let pending: ListingEntry[] = []
 	let unsaved: StoredVisualHash[] = []
 	let running = false
@@ -62,7 +68,7 @@ export function useVisualHashes(api: { readonly hashImage: HashImage, readonly s
 
 	/** Makes the computed hashes count for the series. */
 	function publish() {
-		published.value = new Map(computed)
+		published.value = new Map(hashed.value)
 	}
 
 	/** Saves the hashes computed since the last save; a failure is logged and the hashes still count for this visit (SERIES-003.13). */
@@ -74,7 +80,9 @@ export function useVisualHashes(api: { readonly hashImage: HashImage, readonly s
 		}
 		try {
 			await api.saveVisualHashes(batch)
+			saveFailed.value = false
 		} catch (error) {
+			saveFailed.value = true
 			logger.warn('Could not save the visual hashes', { error, count: batch.length })
 		}
 	}
@@ -86,12 +94,15 @@ export function useVisualHashes(api: { readonly hashImage: HashImage, readonly s
 			for (let member = pending.shift(); member !== undefined; member = pending.shift()) {
 				try {
 					const hash = await api.hashImage(member)
-					computed.set(versionKey(member), hash)
+					hashed.value.set(versionKey(member), hash)
+					triggerRef(hashed)
 					unsaved.push({ fileId: member.fileId, etag: member.etag, hash })
 					if (!held) {
 						publish()
 					}
 				} catch (error) {
+					failed.value.add(versionKey(member))
+					triggerRef(failed)
 					logger.warn('Could not hash the preview', { error, fileId: member.fileId })
 				}
 				if (unsaved.length >= SAVE_BATCH) {
@@ -103,8 +114,20 @@ export function useVisualHashes(api: { readonly hashImage: HashImage, readonly s
 		running = false
 	}
 
-	watch(pictures, (shown) => {
-		pending = hashablePictures(shown).map(imageMember).filter((member) => member.visualHash === null && !computed.has(versionKey(member)))
+	/** The hash state of a member, or null when it is not hashable (SERIES-003.16). */
+	function stateOf(member: ListingEntry): HashState | null {
+		const key = versionKey(member)
+		if (member.visualHash !== null || hashed.value.has(key)) {
+			return 'hashed'
+		}
+		if (!hashableKeys.value.has(key)) {
+			return null
+		}
+		return failed.value.has(key) ? 'failed' : 'pending'
+	}
+
+	watch(hashable, (members) => {
+		pending = members.filter((member) => stateOf(member) === 'pending')
 		if (!running && pending.length > 0) {
 			void drain()
 		}
@@ -112,6 +135,10 @@ export function useVisualHashes(api: { readonly hashImage: HashImage, readonly s
 
 	return {
 		/** The visual hash of the picture's shown member, or null while it has none. */
+		/** The hash state of the picture's shown member, or null when it is not hashable. */
+		stateOf: (picture: Picture<ListingEntry>) => stateOf(imageMember(picture)),
+		/** How far the hashes of the hashable pictures are (SERIES-003.18–.20). */
+		progress: computed(() => hashProgress(hashable.value.map((member) => stateOf(member)!), saveFailed.value)),
 		hashOf(picture: Picture<ListingEntry>) {
 			const member = imageMember(picture)
 			return member.visualHash ?? published.value.get(versionKey(member)) ?? null

@@ -282,6 +282,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		seriesSizes,
 		seriesOf,
 		holdHashes: hashes.hold,
+		hashProgress: hashes.progress,
 		decide,
 		pickRest,
 		tag,

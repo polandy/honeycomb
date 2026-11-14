@@ -3,9 +3,9 @@
 // @vitest-environment happy-dom
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { logger } from '../../src/logger.ts'
 import { imageUrl } from '../../src/api.ts'
 import { APP_SEAMS } from '../../src/app-seams.ts'
+import { logger } from '../../src/logger.ts'
 import { GRID_TIERS, smallSource } from '../../src/logic/image-tiers.ts'
 import { HASH_COLUMNS, HASH_ROWS } from '../../src/logic/visual-hash.ts'
 import { hashPreview, VISUAL_HASHES_KEY } from '../../src/visual-hashes.ts'

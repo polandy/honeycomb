@@ -5,6 +5,7 @@
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
+import ProgressBar from './ProgressBar.vue'
 import { decidedText, shownDecidedText } from '../decision-text.ts'
 
 const props = defineProps<{
@@ -15,21 +16,12 @@ const props = defineProps<{
 }>()
 
 const progressText = computed(() => (props.filtered ? shownDecidedText : decidedText)(props.decided, props.total))
-const percent = computed(() => (props.total > 0 ? Math.round(100 * props.decided / props.total) : 0))
 </script>
 
 <template>
 	<div class="cull-progress">
 		<span class="cull-progress__count" aria-live="polite">{{ progressText }}</span>
-		<div
-			class="cull-progress__bar"
-			role="progressbar"
-			:aria-label="t('honeycomb', 'Decided')"
-			aria-valuemin="0"
-			:aria-valuemax="props.total"
-			:aria-valuenow="props.decided">
-			<span class="cull-progress__done" :style="{ width: `${percent}%` }" />
-		</div>
+		<ProgressBar :label="t('honeycomb', 'Decided')" :value="props.decided" :max="props.total" />
 	</div>
 </template>
 
@@ -44,19 +36,5 @@ const percent = computed(() => (props.total > 0 ? Math.round(100 * props.decided
 .cull-progress__count {
 	font-weight: bold;
 	font-variant-numeric: tabular-nums;
-}
-
-.cull-progress__bar {
-	overflow: hidden;
-	width: 80px;
-	height: 4px;
-	border-radius: 2px;
-	background: var(--color-background-darker);
-}
-
-.cull-progress__done {
-	display: block;
-	height: 100%;
-	background: var(--color-primary-element);
 }
 </style>
