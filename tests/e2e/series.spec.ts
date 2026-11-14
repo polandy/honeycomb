@@ -117,3 +117,38 @@ test('views a card full screen by Enter, its button and a double click, and goes
 	await compare.getByRole('button', { name: 'Photo 1: IMG_0001' }).dblclick()
 	await expect(viewer.getByRole('heading', { name: 'IMG_0001' })).toBeVisible()
 })
+
+// spec: SERIES-005.10, SERIES-005.13
+test('removes a photo from the series and dissolves the series from the compare\'s menus, kept after a reload', async ({ page }) => {
+	await page.setViewportSize(DESKTOP)
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = `Series ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	for (const second of [1, 2, 3]) {
+		await upload(page, `${folder}/IMG_000${second}.jpg`, withCaptureTime(JPEG, `2026:11:10 10:00:0${second}`))
+	}
+
+	await cullFolder(page, folder)
+	await expect(page.getByRole('gridcell')).toHaveCount(3)
+	await page.keyboard.press('n')
+	const compare = page.getByRole('dialog', { name: /^Compare series 1 of 1/ })
+	await compare.getByRole('button', { name: 'Photo 2 menu' }).click()
+	await page.getByRole('menuitem', { name: /Remove from this series/ }).click()
+	await expect(page.getByText('Removed IMG_0002 from the series')).toBeVisible()
+	await expect(compare.locator('.series-compare__card')).toHaveCount(2)
+
+	await page.reload()
+	await cullFolder(page, folder)
+	await expect(page.getByRole('gridcell')).toHaveCount(3)
+	await page.keyboard.press('n')
+	await expect(compare.locator('.series-compare__name')).toHaveText(['1 · IMG_0001', '2 · IMG_0003'])
+	await compare.getByRole('button', { name: 'Series menu' }).click()
+	await page.getByRole('menuitem', { name: /Dissolve this series/ }).click()
+	await expect(page.getByText('Dissolved the series · 2 photos')).toBeVisible()
+
+	await page.reload()
+	await cullFolder(page, folder)
+	await expect(page.getByRole('gridcell')).toHaveCount(3)
+	await page.keyboard.press('n')
+	await expect(page.getByText('All series compared')).toBeVisible()
+})
