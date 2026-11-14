@@ -129,12 +129,19 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 		if (picked !== null && series !== null) {
 			const onLand = land
 			land = null
-			context.pickRest(picked, series.filter((picture) => picture !== picked))
-			if (onLand !== null) {
-				close(null)
-				onLand({ kind: 'after', series, picked })
+			if (onLand === null) {
+				context.pickRest(picked, series.filter((picture) => picture !== picked))
+				return
 			}
+			close(null)
+			pickRestAndLand(series, picked, onLand)
 		}
+	}
+
+	/** Picks the picture, rejects the rest of its series as one step and lands after the series (SERIES-001.24, LOUPE-002.15). */
+	function pickRestAndLand(series: readonly P[], picked: P, onLand: (landing: CompareLanding<P>) => void) {
+		context.pickRest(picked, series.filter((picture) => picture !== picked))
+		onLand({ kind: 'after', series, picked })
 	}
 
 	/** Decides the active picture by a key; a star step counts from its rating, `advance` moves on unless it left (SERIES-001.10). */
@@ -177,7 +184,7 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	}
 
 	const { settings, updateSettings, toast } = context
-	return { open, oneSeries, current, position, count, active, setActive, setColumns, start, startOn, close, skip, decide, pickRest, hotkeys, viewer, view, settings, updateSettings, toast }
+	return { open, oneSeries, current, position, count, active, setActive, setColumns, start, startOn, close, skip, decide, pickRest, pickRestAndLand, hotkeys, viewer, view, settings, updateSettings, toast }
 }
 
 export type SeriesCompareFlow<P> = ReturnType<typeof useSeriesCompare<P>>

@@ -28,6 +28,7 @@ import LoupeNavButtons from './LoupeNavButtons.vue'
 import LoupeStage from './LoupeStage.vue'
 import LoupeTitleRow from './LoupeTitleRow.vue'
 import PanelDivider from './PanelDivider.vue'
+import PickRestButton from './PickRestButton.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
 import { toggleBrowserFullscreen } from '../fullscreen.ts'
 import { LOUPE_IDLE_MS, useIdle } from '../idle.ts'
@@ -83,6 +84,8 @@ const emit = defineEmits<{
 	tag: [picture: Picture<ListingEntry>]
 	/** Opens the compare on the series with the picture active (LOUPE-001.25). */
 	compareSeries: [series: readonly Picture<ListingEntry>[], picture: Picture<ListingEntry>]
+	/** Picks the shown picture and rejects the rest of its series (LOUPE-002.15). */
+	pickRest: [series: readonly Picture<ListingEntry>[], picture: Picture<ListingEntry>]
 	close: []
 }>()
 
@@ -132,6 +135,13 @@ function compareSeriesOf(index: number) {
 	}
 }
 
+/** Asks to pick the shown picture and reject the rest of its series, if it is in one. */
+function pickRest() {
+	if (series.value !== null) {
+		emit('pickRest', series.value, picture.value)
+	}
+}
+
 /** The loupe's keys (`docs/plan.md` Keyboard shortcuts); the app's dispatcher runs them. */
 const hotkeys: HotkeyHandlers = {
 	previous: () => go(props.index - 1),
@@ -151,6 +161,7 @@ const hotkeys: HotkeyHandlers = {
 	'flag-buttons': () => decisions.setFlagButtonsShown(!props.settings.flagButtonsShown, true),
 	tag: () => emit('tag', picture.value),
 	compare: () => compareSeriesOf(props.index),
+	'pick-rest': pickRest,
 	decide: decisions.decideByKey,
 }
 
@@ -263,7 +274,11 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:pinned="settings.ratingRowPinned"
 			@pointerdown="overlays.wake"
 			@decide="decisions.decide"
-			@tag="emit('tag', picture)" />
+			@tag="emit('tag', picture)">
+			<template v-if="series !== null" #end>
+				<PickRestButton secondary @pick="pickRest" />
+			</template>
+		</ActionBar>
 		<GestureGuide v-if="!gestureGuideSeen" :swipes="settings.swipes" @dismiss="dismissGestureGuide" />
 	</div>
 </template>

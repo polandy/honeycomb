@@ -35,7 +35,7 @@ Controls with a tooltip:
 | Folder picker | *Open {name}* |
 | Loupe and series viewer title row | *Close* (Esc), *Fit / 100 %* (`Z`), *Move this photo* (`M`), *Flag buttons* (`B`), *Info panel* (`I`), *Fullscreen*, *Filmstrip*, *Nextcloud navigation* |
 | Loupe and series viewer | *Previous* (`←`), *Next* (`→`) |
-| Action bar, series compare | *Pick* (`P`), *Reject* (`X`), *Unflag* (`U`), the stars (`0`–`5`), the colour swatches (`6`–`9` for the first four), *Pick this, reject the rest* (Shift+K) |
+| Action bar, loupe, series compare | *Pick* (`P`), *Reject* (`X`), *Unflag* (`U`), the stars (`0`–`5`), the colour swatches (`6`–`9` for the first four), *Pick this, reject the rest* (Shift+K) |
 | Series compare | the photo, *Open in the series viewer* |
 | Grid tile | the series badge, on mouse hover only |
 | Filter bar | the comparison, the colour swatches |

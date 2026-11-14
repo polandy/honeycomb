@@ -18,7 +18,9 @@ label, *Keep RAW* or *Unflag* stays. A swipe up picks and a swipe down rejects b
 *Settings › Loupe gestures* sets each direction to Pick, Reject or Nothing and turns auto-advance
 off. While the photo lifts, a hint over it names the flag the release sets, fading in with the
 distance and filled once the release decides. The flag buttons can be hidden by their toggle or
-`B`. Each decision shows the undo toast (e.g. "Rejected IMG_0001 · Undo").
+`B`. Each decision shows the undo toast (e.g. "Rejected IMG_0001 · Undo"). While the shown photo
+is in a series, the rating row ends with *Pick this, reject the rest* (`Shift+K`), which picks it,
+rejects the rest of its series as one undo step and moves on to the first photo after the series.
 
 ## Acceptance criteria
 
@@ -129,6 +131,17 @@ Delete from the loupe: DELETE-002.
   as the release; no hint shows for a direction set to Nothing, at rest, or once the photo settles
   back or the swipe decided
 
+### LOUPE-002.15 – Pick this, reject the rest
+
+- **Given** the shown picture is in a series (SERIES-001)
+- **When** the user presses *Pick this, reject the rest* at the end of the rating row, or
+  `Shift+K`
+- **Then** the shown picture is picked and every other picture of its series rejected, as one undo
+  step with the toast "Picked IMG_0002, rejected the rest · Undo"; the loupe shows the first
+  picture after the series' last in its order, the picked one when none follows; the button is
+  secondary beside the large flag buttons, its tooltip names `Shift+K`, it stays while the flag
+  buttons are hidden, and outside a series there is no button and `Shift+K` does nothing
+
 ## History
 
 | Date | Change |
@@ -141,3 +154,4 @@ Delete from the loupe: DELETE-002.
 | 2026-11-12 | .14 swipe hint; .13 a pressed *Unflag* is filled, not outlined (owner, iPad) |
 | 2026-11-13 | .11 *Unflag* at the right edge carries its word (UX review L5) |
 | 2026-11-14 | .11 *Unflag* bottom centre above the filmstrip in landscape (owner decision 2) |
+| 2026-11-14 | .15 *Pick this, reject the rest* in the loupe (concept step 9) |

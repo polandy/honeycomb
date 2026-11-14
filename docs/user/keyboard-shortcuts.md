@@ -79,6 +79,10 @@ series, decided photos included, with the shown photo active. `Esc` or the close
 the loupe on the active photo. *Pick this, reject the rest* returns to the loupe on the first photo
 after the series, or stays on the picked one when the series is the last.
 
+While the loupe shows a photo of a series, its rating row ends with *Pick this, reject the rest*,
+and `Shift+K` does the same: the shown photo is picked, the others of its series rejected, and the
+loupe moves on to the first photo after the series. One *Undo* puts all of them back.
+
 In the series compare a tap or click on a photo makes it the active one. To look at a photo
 closely, press the *View full screen* button (⤢) in its top right corner, double-tap or
 double-click it, or press `Enter` for the active photo: the series viewer shows it full screen,
@@ -87,7 +91,7 @@ where you zoom with `Z`, page through the series with `←` `→` and decide. *B
 
 | Keys | What it does |
 |---|---|
-| `Shift+K` | **Pick this, reject the rest** of the series, as one undo step. |
+| `Shift+K` | **Pick this, reject the rest** of the series, as one undo step: in the series compare and viewer the active photo, in the loupe the shown one. |
 | `Enter` | Series compare: view the active photo full screen. |
 | `Esc` | Series viewer: back to the series. Series compare: close it. |
 
