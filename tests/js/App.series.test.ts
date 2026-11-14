@@ -38,8 +38,8 @@ async function press(key: string, fields: KeyboardEventInit = {}) {
 }
 
 const compare = (wrapper: AppWrapper) => wrapper.findComponent(SeriesCompare)
-const pictures = (wrapper: AppWrapper) => compare(wrapper).props('series')!
-const shown = (wrapper: AppWrapper) => compare(wrapper).props('series')?.map((picture: { baseName: string }) => picture.baseName) ?? null
+const pictures = (wrapper: AppWrapper) => compare(wrapper).props('series')!.members
+const shown = (wrapper: AppWrapper) => compare(wrapper).props('series')?.members.map((picture: { baseName: string }) => picture.baseName) ?? null
 const viewer = (wrapper: AppWrapper) => wrapper.findComponent(SeriesViewer)
 /** The viewer's pictures by name and the shown one's name. */
 function viewed(wrapper: AppWrapper) {

@@ -132,6 +132,6 @@ describe('App: Reject the other N in the undo toast', () => {
 		await takeOffer(wrapper)
 
 		expect(wrapper.findComponent(SeriesViewer).exists()).toBe(false)
-		expect(wrapper.findComponent(SeriesCompare).props('series')!.map((picture: { baseName: string }) => picture.baseName)).toEqual(['IMG_4', 'IMG_5'])
+		expect(wrapper.findComponent(SeriesCompare).props('series')!.members.map((picture: { baseName: string }) => picture.baseName)).toEqual(['IMG_4', 'IMG_5'])
 	})
 })

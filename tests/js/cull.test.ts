@@ -100,10 +100,10 @@ describe('useCull: series', () => {
 			listingEntry(3, '/Trip/C.JPG', { captureTime: 12 }),
 		]
 		const { cull, picture } = await openedCull([], entries)
-		expect(cull.series.value.map((series) => series.map((each) => each.baseName))).toEqual([['A', 'B', 'C']])
+		expect(cull.series.value.map((series) => series.members.map((each) => each.baseName))).toEqual([['A', 'B', 'C']])
 
 		cull.decide({ kind: 'flag', flag: 'rejected' }, [picture('B')])
-		expect(cull.series.value.map((series) => series.map((each) => each.baseName))).toEqual([['A', 'C']])
+		expect(cull.series.value.map((series) => series.members.map((each) => each.baseName))).toEqual([['A', 'C']])
 		expect([picture('A'), picture('B')].map((each) => cull.seriesSizes.value.get(each))).toEqual([2, undefined])
 	})
 })

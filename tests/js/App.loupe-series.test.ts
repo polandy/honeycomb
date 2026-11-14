@@ -38,7 +38,7 @@ async function press(key: string, fields: KeyboardEventInit = {}) {
 
 const compare = (wrapper: AppWrapper) => wrapper.findComponent(SeriesCompare)
 const toastText = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast).text()
-const shown = (wrapper: AppWrapper) => compare(wrapper).props('series')?.map((picture: { baseName: string }) => picture.baseName) ?? null
+const shown = (wrapper: AppWrapper) => compare(wrapper).props('series')?.members.map((picture: { baseName: string }) => picture.baseName) ?? null
 /** The name of the picture the loupe shows. */
 function inLoupe(wrapper: AppWrapper) {
 	const loupe = wrapper.findComponent(PhotoLoupe)
