@@ -7,14 +7,11 @@ import type { Decision, StoredDecision } from './logic/decision.ts'
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { PairingSettings, Picture } from './logic/pairing.ts'
-import type { Filters } from './logic/picture-filter.ts'
-import type { SortOrder } from './logic/picture-order.ts'
 import type { Settings } from './logic/settings.ts'
 import type { TagChange } from './logic/tag.ts'
 import type { DecisionStep, PickRestStep, StepEffects, TagStep, UndoStep } from './logic/undo.ts'
 
 import { computed, ref, shallowRef, watch } from 'vue'
-import { readStored, writeStored } from './browser-storage.ts'
 import { useCullHistory } from './cull-history.ts'
 import { useCullTags } from './cull-tags.ts'
 import { nameComparer } from './l10n.ts'
@@ -23,21 +20,18 @@ import { prepareCull, warmMembers } from './logic/cull.ts'
 import { commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
 import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
 import { memberIds } from './logic/pairing.ts'
-import { activeFilterCount, DEFAULT_FILTERS, emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
-import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
+import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
+import { sortPictures } from './logic/picture-order.ts'
 import { saveQueue } from './logic/save-queue.ts'
 import { allSeries, findSeries, openSeries, seriesCandidates, seriesMembers, seriesSizes as sizesOf } from './logic/series.ts'
 import { pairingSettings } from './logic/settings.ts'
 import { inSharedFolder } from './logic/sidecar-sync.ts'
 import { inverseChange } from './logic/tag.ts'
-import { parseTileSize } from './logic/tile-size.ts'
 import { withoutFiles } from './logic/trash-report.ts'
 import { applyStep, pickRestEntry, tagStep, undoEntry } from './logic/undo.ts'
 import { usePreviewWarmer } from './preview-warmer.ts'
+import { useViewOptions } from './view-options.ts'
 import { useVisualHashes } from './visual-hashes.ts'
-
-/** The browser storage key of the thumbnail size. */
-const TILE_SIZE_KEY = 'honeycomb.tileSize'
 
 /** A step of the cull's undo history. */
 export type CullStep = UndoStep<Picture<ListingEntry>>
@@ -52,12 +46,6 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const pairing = computed(() => JSON.parse(pairingKey.value) as PairingSettings)
 	const pictures = computed(() => (settings().showSingles ? paired.value : paired.value.filter((picture) => picture.raw !== null && picture.rendered !== null)))
 	const decisions = shallowRef<ReadonlyMap<number, Decision>>(new Map())
-	const filters = shallowRef<Filters>(DEFAULT_FILTERS)
-	const sortOrder = ref<SortOrder>('file-name')
-	const filtersOpen = ref(false)
-	const pickerOpen = ref(true)
-	const groupByFolder = ref(false)
-	const tileSize = ref(parseTileSize(readStored(storage, TILE_SIZE_KEY)))
 	const saveFailed = ref(false)
 	const saveDecisions = saveQueue(api.saveDecisions)
 	const sharedFolders = shallowRef<ReadonlySet<string>>(new Set())
@@ -70,16 +58,15 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	}
 	const history = useCullHistory<CullStep>((step, back) => applyStep(effects, step, back))
 	const tags = useCullTags(api.tags, sidecars.writeTags, () => opening, (picture) => !inSharedFolder(picture, sharedFolders.value))
-	let filtersOff: Filters | null = null
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
 	const folders = computed(() => folderPaths.value.length)
-	const grouped = computed(() => groupByFolder.value && folders.value > 1)
+	const options = useViewOptions(storage, () => folders.value)
+	const { filters, sortOrder, grouped } = options
 	const decisionOf = (picture: Picture<ListingEntry>) => pictureDecision(picture, decisions.value)
 	const passes = (picture: Picture<ListingEntry>) => matchesFilters(picture, decisionOf(picture), tags.tagsOf(picture), filters.value)
 	const view = computed(() => sortPictures(filterPictures(pictures.value, decisionOf, tags.tagsOf, filters.value), sortOrder.value, compareNames, grouped.value))
 	const cullProgress = computed(() => progress(pictures.value, decisionOf))
 	const shownProgress = computed(() => progress(view.value, decisionOf))
-	const activeFilters = computed(() => activeFilterCount(filters.value))
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
 	const hashes = useVisualHashes(api, storage, () => pictures.value)
 	const warmer = usePreviewWarmer(api.warmPreviews, storage)
@@ -101,11 +88,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		tags.reset()
 		tags.loadList()
 		history.reset()
-		filtersOff = null
 		saveFailed.value = false
-		filters.value = DEFAULT_FILTERS
-		sortOrder.value = defaultSortOrder(folders.value)
-		pickerOpen.value = false
+		options.reset()
 		warmer.warm(warmMembers(view.value))
 		loadDecisions(paired.value)
 	}
@@ -229,28 +213,6 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		}
 	}
 
-	/** Replaces the flag filter and keeps the other groups. */
-	function setFlags(flags: Filters['flags']) {
-		filters.value = { ...filters.value, flags }
-	}
-
-	/** Turns the filters off; the next press turns them back on unless others were set meanwhile. */
-	function toggleFiltersOff() {
-		if (filtersOff !== null && activeFilters.value === 0) {
-			filters.value = filtersOff
-			filtersOff = null
-		} else {
-			filtersOff = filters.value
-			filters.value = DEFAULT_FILTERS
-		}
-	}
-
-	/** Sets the thumbnail size and keeps it for the next visit. */
-	function setTileSize(size: number) {
-		tileSize.value = size
-		writeStored(storage, TILE_SIZE_KEY, String(size))
-	}
-
 	return {
 		folderSet,
 		pictures,
@@ -262,13 +224,13 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		progress: cullProgress,
 		shownProgress,
 		filters,
-		activeFilters,
+		activeFilters: options.activeFilters,
 		empty,
 		sortOrder,
-		filtersOpen,
-		pickerOpen,
-		groupByFolder,
-		tileSize,
+		filtersOpen: options.filtersOpen,
+		pickerOpen: options.pickerOpen,
+		groupByFolder: options.groupByFolder,
+		tileSize: options.tileSize,
 		saveFailed,
 		sharedPictures,
 		sharedDecided,
@@ -290,8 +252,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		open,
 		removeFiles,
 		restoreFiles,
-		setFlags,
-		toggleFiltersOff,
-		setTileSize,
+		setFlags: options.setFlags,
+		toggleFiltersOff: options.toggleFiltersOff,
+		setTileSize: options.setTileSize,
 	}
 }

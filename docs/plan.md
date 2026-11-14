@@ -929,6 +929,8 @@ honeycomb/
 │   ├── main.ts, similarity-main.ts   the two entry points: cull app, similarity page
 │   ├── App.vue                 the cull app: grid, loupe and series viewer in one tree
 │   ├── cull.ts                 the cull's state as one composable; no Pinia, no store folder
+│   ├── view-options.ts         how the cull is shown (filters, sort, grouping, tile size,
+│   │                           panels); `cull.ts` hands it on unchanged
 │   └── *.ts                    feature modules beside it: `api.ts` (every request),
 │                               `*-flow.ts`, `*-seams.ts`, `hash-*.ts`, `loupe-*.ts`, ...
 ├── templates/                  `main.php` mounts the cull app, `similarity.php` the other page
