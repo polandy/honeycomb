@@ -25,7 +25,7 @@ export function picturesIn(folders: Record<string, number>) {
 }
 
 /** A size observer the test drives, and the grid mounted with it. */
-export function mountGrid(props: Record<string, unknown> = {}, attach = false) {
+export function mountGrid(props: Record<string, unknown> = {}, attach = false, slots: Record<string, string> = {}) {
 	let resize: (width: number, height: number) => void = () => undefined
 	let stopped = false
 	const observeSize = (_element: Element, onSize: typeof resize) => {
@@ -44,6 +44,7 @@ export function mountGrid(props: Record<string, unknown> = {}, attach = false) {
 			loadImage: () => new Promise<void>(() => undefined),
 			...props,
 		},
+		slots,
 		...(attach && { attachTo: document.body }),
 	})
 	return { wrapper, resize: async (width: number, height: number) => {
