@@ -64,7 +64,7 @@ describe('the tooltips of the icon-only controls', () => {
 		const labels = mount(ColourLabels, { props: { colourLabel: null } })
 		await labels.find('.colour-labels__opener').trigger('click')
 
-		expect(tips(mount(FlagButtons, { props: { flag: undefined } }))).toEqual([['Pick', 'P'], ['Reject', 'X'], ['Unflag', 'U']])
+		expect(tips(mount(FlagButtons, { props: { flag: undefined } }))).toEqual([['Pick', 'P'], ['Unflag', 'U'], ['Reject', 'X']])
 		expect(tips(mount(StarRating, { props: { rating: 0 } }))).toEqual([
 			['Clear rating', '0'],
 			['Rate 1 star', '1'],

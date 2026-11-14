@@ -62,6 +62,7 @@ describe('SeriesCompare', () => {
 		expect(cards(wrapper)[1]!.find('.flag-mark--picked').exists()).toBe(true)
 		expect(cards(wrapper)[0]!.find('.flag-mark').exists()).toBe(false)
 		expect(cards(wrapper)[1]!.find('[aria-label$="Pick"]').attributes('aria-pressed')).toBe('true')
+		expect(cards(wrapper)[0]!.findAll('.flag-buttons button').map((button) => plain(button.attributes('aria-label')))).toEqual(['Pick', 'Unflag', 'Reject'])
 	})
 
 	// spec: SERIES-001.7
@@ -114,6 +115,16 @@ describe('SeriesCompare', () => {
 		expect(scrolled.mock.contexts).toEqual([cards(wrapper)[1]!.element, cards(wrapper)[2]!.element])
 		expect(scrolled).toHaveBeenLastCalledWith({ block: 'nearest', inline: 'nearest' })
 		scrolled.mockRestore()
+	})
+
+	// spec: SERIES-001.21
+	it('starts focus on the active card\'s photo, so the focus trap keeps the row where it is', () => {
+		const focused = vi.spyOn(HTMLElement.prototype, 'focus')
+		const wrapper = mountCompare()
+
+		expect(focused.mock.contexts).toEqual([wrapper.findAll('.series-compare__photo')[1]!.element])
+		expect(focused).toHaveBeenCalledWith({ preventScroll: true })
+		focused.mockRestore()
 	})
 
 	// spec: SERIES-001.11

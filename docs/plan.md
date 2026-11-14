@@ -359,8 +359,8 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    - Once one photo is left the viewer closes and the series counts as decided. Undo after
      that restores the flag only; *Compare series* finds the series again on its next opening.
    - **Same controls as the loupe** (owner, 2026-11-09: "keep/reject is not consistent with the
-     normal pick/reject"). The bottom bar is the loupe's action bar — *Pick*, *Reject*, *Unflag*,
-     rating and colour label for the shown photo, keys `P`, `X`, `U` — plus *Pick this, reject
+     normal pick/reject"). The bottom bar is the loupe's action bar — *Pick*, *Unflag*, *Reject*,
+     rating and colour label for the shown photo, keys `P`, `U`, `X` — plus *Pick this, reject
      the rest* (`Shift+K`). On a phone it wraps to two rows; in landscape the flags sit at the side
      edges ([Loupe layout](#loupe-layout)). The series compare dialog shows the
      same flag buttons and *Pick this, reject the rest* under each photo; in a card narrower
@@ -382,10 +382,10 @@ most. The rule for the loupe and the series viewer, measured on the
 1. **Landscape (wider than tall): the photo fills the screen.** Nothing takes a strip of its
    own; the photo is fitted to the whole loupe.
 2. **Pick and Reject float at the side edges**, where the hands hold a tablet: *Pick* at the
-   left edge, *Reject* at the right with *Unflag* below it, so the glossary order holds from
-   left to right. They are 84 px wide and 120–240 px tall (68 px wide on a phone), vertically
-   centred, on a dark translucent fill, always visible, and never reach the middle half of the
-   screen. *Previous* and *Next* sit just inside them.
+   left edge, *Reject* at the right, and *Unflag*, the rarest, at the bottom centre above the
+   filmstrip, so the glossary order holds from left to right. They are 84 px wide and 120–240 px
+   tall (68 px wide on a phone), vertically centred, on a dark translucent fill, always visible, and
+   never reach the middle half of the screen. *Previous* and *Next* sit just inside them.
 3. **Everything else overlays the photo and hides when idle:** the title row (name, pair,
    count, *Fit*, *Move…*, *Info*, filmstrip toggle, Nextcloud navigation toggle) at the top,
    the filmstrip and the rating and colour label row at the bottom (plus *Pick this, reject

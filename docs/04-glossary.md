@@ -73,11 +73,11 @@ loupe, series compare, series viewer). The controls come from the shared compone
 
 - **Primary** is Nextcloud's primary colour (`--color-primary-element`), blue by default; the
   mockup draws it in honey.
-- **Order.** The flag buttons are always *Pick*, *Reject*, *Unflag*. An action bar shows rating,
+- **Order.** The flag buttons are always *Pick*, *Unflag*, *Reject*. An action bar shows rating,
   colour label and flags; where flags are the main action (loupe, series viewer) they get a row
-  of large buttons of their own, or in landscape *Pick* at the left edge and *Reject* above
-  *Unflag* at the right edge. *Show flag buttons* (setting) and *Flag buttons* (toggle, `B`)
-  hide them there.
+  of large buttons of their own, or in landscape *Pick* at the left edge, *Reject* at the right
+  edge and *Unflag* at the bottom centre above the filmstrip. *Show flag buttons* (setting) and
+  *Flag buttons* (toggle, `B`) hide them there.
 - **Toggle.** Pressing the flag a picture already has, by button or key, unflags it.
 - **Photo.** The UI and the user docs say *photo* for a picture; code and specs say *picture*.
 - **Avoid** *keep*, *discard*, *accept*, *unreject* and *clear flag*: they are *Pick*, *Reject*

@@ -57,7 +57,11 @@ const row = useTemplateRef<HTMLUListElement>('row')
 function showActive() {
 	row.value?.children[props.active]?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
 }
-onMounted(showActive)
+// The focus trap keeps focus that is already inside; else it focuses card 1 and scrolls back to it.
+onMounted(() => {
+	row.value?.children[props.active]?.querySelector<HTMLElement>('.series-compare__photo')?.focus({ preventScroll: true })
+	showActive()
+})
 watch([() => props.active, () => props.series], showActive, { flush: 'post' })
 
 /** The picture's flag, or null while it is unflagged. */

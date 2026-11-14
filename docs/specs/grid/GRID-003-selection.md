@@ -136,6 +136,13 @@ touch as well as with a mouse or keyboard.
 - **Then** the flags, *Move* and *Delete* share the first row; rating, colour label, *Keep RAW*
   and *Tags* follow in the second row on a tablet, below the first on a phone
 
+### GRID-003.15 – One flag button order
+
+- **Given** the action bar's flag buttons
+- **When** they render, in the grid, the loupe, the series viewer or a series compare card
+- **Then** they run *Pick*, *Unflag*, *Reject* from left to right, so a hand learns one order
+  (owner decision, 2026-11-13)
+
 ## Out of scope
 
 Selection keys in detail (KEYS-001), deleting a selection (DELETE-002).
@@ -147,3 +154,4 @@ Selection keys in detail (KEYS-001), deleting a selection (DELETE-002).
 | 2026-11-10 | Written from the merged M2.6 (#44) |
 | 2026-11-12 | Drag selection after a long-press, with auto-scroll at the edges (.11–.13) |
 | 2026-11-13 | Flags, *Move* and *Delete* first when the action bar wraps, UX L6 (.14) |
+| 2026-11-14 | One flag button order *Pick*, *Unflag*, *Reject* (.15, owner decision 2) |

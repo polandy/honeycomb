@@ -25,6 +25,9 @@ in the series compare). Press `Ctrl+/` at any time to see this list in the app.
 | `R` | Toggle **Keep RAW** on a pair. |
 | `T` | Open the tag entry for the photo or the selection: type to find a tag, `Tab` or the arrows to go through the matches, `Enter` to add, `Backspace` in the empty field to remove the last tag, `Esc` to close. |
 
+The flag buttons run **Pick** (`P`), **Unflag** (`U`), **Reject** (`X`) from left to right on
+every screen; each button's tooltip names its key.
+
 ## Move around and look
 
 | Keys | What it does |

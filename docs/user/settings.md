@@ -34,9 +34,10 @@ Changing a list pairs the open folders again at once; your decisions stay.
 - **Auto-advance to the next undecided photo:** after a pick or reject the loupe goes to the next
   photo you have not decided yet. A rating or colour label never moves on. With it off, the loupe
   stays; `Shift` with a decision key still goes on.
-- **Show flag buttons:** *Pick*, *Reject* and *Unflag* in the loupe. Hidden, the photo gets their
-  room; the keys and swipes keep working, and the flag in the loupe's title row or `B` shows them
-  again.
+- **Show flag buttons:** *Pick*, *Unflag* and *Reject* in the loupe and the series viewer: a row
+  below the photo when the screen is taller than wide, otherwise *Pick* at the left edge, *Reject*
+  at the right edge and *Unflag* at the bottom centre. Hidden, the photo gets their room; the keys
+  and swipes keep working, and the flag in the loupe's title row or `B` shows them again.
 - **Pin the filmstrip** and **Pin the rating row:** keep the filmstrip, or the stars, colour
   labels and *Keep RAW*, below the photo in landscape instead of over it, so they never fade. Each
   is off by default; the pin in the loupe's title row switches the filmstrip's too.

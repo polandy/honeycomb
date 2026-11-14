@@ -38,18 +38,18 @@ portrait photo needs at the card's width.
 Up to four cards share the dialog's width; a longer series gives each card at least 180 px (half the
 width on a phone) and the row scrolls sideways, the active card always scrolled into view. On a
 phone a series of three or four wraps into two columns instead.
-Each card has the picture's name, stars, flag mark, the flag buttons and *Pick this, reject the
-rest*; the flag buttons sit level across the cards, a flag mark or not. One picture is active
-(outlined); its *Pick this, reject the rest* is the primary button, the others' and *Skip* are
-secondary. The keys are in the buttons' tooltips and the shortcut sheet. Tapping a picture's photo
-opens it in the series viewer (SERIES-002); closing the viewer makes the viewed picture active. A
-decision goes through the undo history and the undo toast like any other. A rejected picture leaves
-the series; once fewer than two are left, the series is done and the next one shows. *Pick this,
-reject the rest* picks the one picture and rejects every other picture of the series, as one undo
-step: "Picked IMG_0003, rejected the rest · Undo". *Skip* shows the next series, after the last the
-first. Without any series left the dialog says "All series compared". In a card narrower than 200
-px, as on a phone, *Pick this, reject the rest* drops its icon and wraps its label to two balanced
-lines instead of cutting it.
+Each card has the picture's name, stars, flag mark, the flag buttons (*Pick*, *Unflag*, *Reject*,
+GRID-003.15) and *Pick this, reject the rest*; the flag buttons sit level across the cards, a flag
+mark or not. One picture is active (outlined); its *Pick this, reject the rest* is the primary
+button, the others' and *Skip* are secondary. The keys are in the buttons' tooltips and the shortcut
+sheet. Tapping a picture's photo opens it in the series viewer (SERIES-002); closing the viewer
+makes the viewed picture active. A decision goes through the undo history and the undo toast like
+any other. A rejected picture leaves the series; once fewer than two are left, the series is done
+and the next one shows. *Pick this, reject the rest* picks the one picture and rejects every other
+picture of the series, as one undo step: "Picked IMG_0003, rejected the rest · Undo". *Skip* shows
+the next series, after the last the first. Without any series left the dialog says "All series
+compared". In a card narrower than 200 px, as on a phone, *Pick this, reject the rest* drops its
+icon and wraps its label to two balanced lines instead of cutting it.
 
 | Key in the dialog | Action |
 |---|---|
@@ -107,7 +107,7 @@ lines instead of cutting it.
 - **When** it shows a series
 - **Then** its title says which series of how many and the active picture's place in it, one
   line of instructions shows, and each picture shows its image, name, stars, flag mark, the flag
-  buttons and *Pick this, reject the rest*; the first picture is active
+  buttons *Pick*, *Unflag*, *Reject* and *Pick this, reject the rest*; the first picture is active
 
 ### SERIES-001.8 – Deciding a picture of the series
 
@@ -201,7 +201,8 @@ lines instead of cutting it.
 - **Given** the series compare dialog shows a series too long for its cards to fit side by side
 - **When** the cards lay out and the user makes another picture active
 - **Then** every card shows in one row that scrolls sideways, and the active card scrolls into
-  view
+  view; focus starts on the active card's photo, so the dialog's focus trap does not scroll the
+  row back to the first card
 
 ### SERIES-001.22 – A series ends 60 seconds after its first picture
 
@@ -227,3 +228,5 @@ camera come from LISTING-001.
 | 2026-11-13 | A run is one series however long, and a long series scrolls sideways in the compare (owner request after testing on nc-test). |
 | 2026-11-14 | The title names the active picture's place, "· photo 7 of 26" (series concept step 3). |
 | 2026-11-14 | A series ends 60 s after its first picture, so a slow run of alike shots no longer chains over minutes (series concept step 2, ADR 0021). |
+| 2026-11-14 | The cards' flag buttons run *Pick*, *Unflag*, *Reject*, as everywhere (series concept step 4, owner decision 2). |
+| 2026-11-14 | Focus starts on the active card's photo, so the row no longer jumps back to the first card once the dialog has opened (flaky e2e from #147). |

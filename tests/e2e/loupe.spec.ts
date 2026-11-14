@@ -50,16 +50,20 @@ test('shows the filmstrip as square photos edge to edge at full opacity from its
 })
 
 // spec: LOUPE-002.11
-test('puts Pick and Reject at the side edges in landscape and in a row below the photo in portrait, Unflag between them', async ({ page }) => {
+test('puts Pick and Reject at the side edges and Unflag bottom centre above the filmstrip in landscape, and Pick, Unflag, Reject in a row in portrait', async ({ page }) => {
 	const loupe = await openLoupe(page)
 	const button = (name: string) => loupe.getByRole('button', { name, exact: true }).first()
 	const box = async (name: string) => (await button(name).boundingBox())!
 	const frame = (await loupe.boundingBox())!
+	const strip = (await loupe.getByRole('navigation', { name: 'Filmstrip' }).boundingBox())!
 
-	const [pick, reject] = [await box('Pick'), await box('Reject')]
+	const [pick, reject, centre] = [await box('Pick'), await box('Reject'), await box('Unflag')]
 	expect(pick.x - frame.x).toBeLessThan(frame.width / 10)
 	expect(frame.x + frame.width - (reject.x + reject.width)).toBeLessThan(frame.width / 4)
 	expect(reject.x).toBeGreaterThan(frame.x + frame.width / 2)
+	expect(Math.abs(centre.x + centre.width / 2 - (frame.x + frame.width / 2))).toBeLessThanOrEqual(1)
+	expect(centre.y + centre.height).toBeLessThanOrEqual(strip.y)
+	expect(centre.y).toBeGreaterThan(pick.y + pick.height / 2)
 	for (const name of ['Pick', 'Reject', 'Unflag']) {
 		const label = button(name).getByText(name, { exact: true })
 		await expect(label).toBeVisible()
@@ -77,6 +81,13 @@ test('puts Pick and Reject at the side edges in landscape and in a row below the
 	expect(unflag.y).toBe(portraitPick.y)
 	expect(portraitPick.x).toBeLessThan(unflag.x)
 	expect(unflag.x).toBeLessThan(portraitReject.x)
+
+	await page.setViewportSize({ width: 952, height: 427 })
+	const [phonePick, phoneReject, phoneUnflag] = [await box('Pick'), await box('Reject'), await box('Unflag')]
+	const phoneStrip = (await loupe.getByRole('navigation', { name: 'Filmstrip' }).boundingBox())!
+	for (const flag of [phonePick, phoneReject, phoneUnflag]) {
+		expect(flag.y + flag.height).toBeLessThanOrEqual(phoneStrip.y)
+	}
 })
 
 // spec: KEYS-001.10, KEYS-001.12
