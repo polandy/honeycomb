@@ -9,6 +9,7 @@ import type { Schedule } from './logic/long-press.ts'
 import type { Settings } from './logic/settings.ts'
 import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
 import type { MoveApi } from './move-flow.ts'
+import type { WarmPreviews } from './preview-warmer.ts'
 import type { ResumeApi } from './resume.ts'
 import type { SidecarFlowApi } from './sidecar-flow.ts'
 import type { ViewStateApi } from './view-state.ts'
@@ -24,7 +25,7 @@ import { hashPreview } from './visual-hashes.ts'
 export interface AppSeams {
 	listFolders?: (path: string) => Promise<Folder[]>
 	listEntries?: ListEntries
-	warmPreviews?: (fileIds: readonly number[]) => Promise<void>
+	warmPreviews?: WarmPreviews
 	hashImage?: HashImage
 	lookupDecisions?: (fileIds: readonly number[]) => Promise<StoredDecision[]>
 	saveDecisions?: (decisions: readonly StoredDecision[]) => Promise<void>

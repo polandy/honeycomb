@@ -10,6 +10,7 @@ import type { SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from './
 import type { StoredTags, Tag } from './logic/tag.ts'
 import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
 import type { ViewState } from './logic/view-state.ts'
+import type { WarmOptions } from './preview-warmer.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -55,19 +56,25 @@ const WARM_CHUNK = 4
 /** Warm-up requests in flight, the number of previews core renders at a time. */
 const WARM_CONCURRENCY = 4
 
-/** Renders every preview tier of the files in display order, a few requests at a time (ADR 0010). */
-export async function warmPreviews(fileIds: readonly number[]): Promise<void> {
+/** Renders every preview tier of the files in display order, a few requests at a time; an abort stops it without an error (ADR 0010). */
+export async function warmPreviews(fileIds: readonly number[], { signal, onWarmed }: WarmOptions = {}): Promise<void> {
 	let next = 0
 	let failed = false
+	const aborted = () => signal?.aborted === true
+	const config = signal === undefined ? {} : { signal }
 	const worker = async (): Promise<void> => {
-		while (next < fileIds.length && !failed) {
+		while (next < fileIds.length && !failed && !aborted()) {
 			const chunk = fileIds.slice(next, next += WARM_CHUNK)
 			try {
-				await axios.post(generateUrl(`${API}/previews`), { fileIds: chunk })
+				await axios.post(generateUrl(`${API}/previews`), { fileIds: chunk }, config)
 			} catch (error) {
+				if (aborted()) {
+					return
+				}
 				failed = true
 				throw error
 			}
+			onWarmed?.(chunk)
 		}
 	}
 	await Promise.all(Array.from({ length: WARM_CONCURRENCY }, worker))

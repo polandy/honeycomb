@@ -6,6 +6,7 @@ import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { SidecarFailure } from './logic/sidecar-sync.ts'
 import type { Tag, TagChange } from './logic/tag.ts'
+import type { WarmPreviews } from './preview-warmer.ts'
 import type { HashImage } from './visual-hashes.ts'
 
 type Written = Promise<{ written: number, failed: SidecarFailure[] }>
@@ -20,7 +21,7 @@ export interface CullSidecars {
 /** The server calls the cull makes, and the visual hashing of its previews. */
 export interface CullApi {
 	readonly hashImage: HashImage
-	readonly warmPreviews: (fileIds: readonly number[]) => Promise<void>
+	readonly warmPreviews: WarmPreviews
 	readonly lookupDecisions: (fileIds: readonly number[]) => Promise<StoredDecision[]>
 	readonly saveDecisions: (decisions: readonly StoredDecision[]) => Promise<void>
 	readonly tags: CullTagsApi

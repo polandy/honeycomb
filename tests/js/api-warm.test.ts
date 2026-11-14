@@ -10,7 +10,9 @@ vi.mock('@nextcloud/router', () => ({
 }))
 
 describe('warmPreviews', () => {
-	beforeEach(() => vi.mocked(axios.post).mockReset())
+	beforeEach(() => {
+		vi.mocked(axios.post).mockReset()
+	})
 	const URL = '/index.php/apps/honeycomb/api/v1/previews'
 	const flush = async (): Promise<void> => {
 		for (let i = 0; i < 10; i++) {
@@ -26,7 +28,7 @@ describe('warmPreviews', () => {
 		await warmPreviews([3, 1, 2])
 
 		expect(axios.post).toHaveBeenCalledOnce()
-		expect(axios.post).toHaveBeenCalledWith(URL, { fileIds: [3, 1, 2] }, { signal: undefined })
+		expect(axios.post).toHaveBeenCalledWith(URL, { fileIds: [3, 1, 2] }, {})
 	})
 
 	// spec: IMAGES-001.10

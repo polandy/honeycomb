@@ -1,7 +1,7 @@
 # 0010 – The image endpoint and background previews
 
 - Status: accepted
-- Date: 2026-11-10, tiers amended 2026-11-11
+- Date: 2026-11-10, tiers amended 2026-11-11, warm-up amended 2026-11-14
 
 ## Context
 
@@ -36,7 +36,11 @@ A RAW+JPEG pair shows its JPEG; a RAW-only picture needs the JPEG preview embedd
 - **Warming previews:** `POST /apps/honeycomb/api/v1/previews` with `{"fileIds": [...]}` (at most
   16) renders all three tiers of each file before it answers `200`. The client sends it after
   listing a folder set, in display order, in chunks of 4 with at most 4 requests in flight, so
-  the tiers are ready at once and not after the next cron run (amended 2026-11-12). honeycomb
+  the tiers are ready at once and not after the next cron run (amended 2026-11-12). Opening
+  another folder set aborts the running warm-up: it sends no further chunk and aborts the
+  requests in flight. The browser keeps `fileId:mtime` of every file whose request succeeded,
+  the 20,000 used last, in local storage (`honeycomb.warmedPreviews`), and a warm-up skips
+  those, so reopening a warmed folder set sends next to nothing (amended 2026-11-14). honeycomb
   needs no background worker; on upload it generates nothing itself, and an admin who wants that
   installs the Preview Generator app, which needs cron.
 - **Errors:** `404` for an id that is not a file below the user's files, not an image, or has no
@@ -45,6 +49,11 @@ A RAW+JPEG pair shows its JPEG; a RAW-only picture needs the JPEG preview embedd
 ## Consequences
 
 - The first view of a tile not yet warmed renders it synchronously, as `/core/preview` would.
+- A file the browser counts as warmed whose previews core no longer has, such as after
+  `occ preview:cleanup` or in another browser's cache only, renders once on its first view. A
+  new `mtime` warms it again.
+- An aborted request still renders on the server until it ends; only the requests not yet sent
+  are saved.
 - Until 2026-11-11 the tiers were `512` and `2048`, which core delivered as 1024 and 4096 px.
 - Core renders four previews at a time; the client keeps a few image loads in flight
   (GRID-001.15), so a first view does not exhaust the server's database connections.
