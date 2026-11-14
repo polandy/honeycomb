@@ -16,6 +16,8 @@ import SeriesViewer from './SeriesViewer.vue'
 const props = defineProps<{
 	flow: SeriesCompareFlow<Picture<ListingEntry>>
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
+	/** Where the compare and its viewer mount: inside the loupe when opened from it. */
+	container?: string
 }>()
 
 const emit = defineEmits<{ tag: [picture: Picture<ListingEntry>] }>()
@@ -38,6 +40,8 @@ defineExpose({ hotkeys })
 		:count="props.flow.count.value"
 		:active="props.flow.active.value"
 		:decisionOf="props.decisionOf"
+		:oneSeries="props.flow.oneSeries.value"
+		:container="props.container ?? 'body'"
 		@decide="props.flow.decide"
 		@pickRest="props.flow.pickRest"
 		@activate="props.flow.setActive"
@@ -45,7 +49,7 @@ defineExpose({ hotkeys })
 		@columns="props.flow.setColumns"
 		@skip="props.flow.skip"
 		@close="props.flow.close" />
-	<Teleport to="body">
+	<Teleport :to="props.container ?? 'body'">
 		<SeriesViewer
 			v-if="props.flow.viewer.open.value"
 			ref="viewer"

@@ -50,7 +50,7 @@ const LABELS: Readonly<Record<string, string>> = {
 	open: t('honeycomb', 'Open the loupe; series compare: view full screen'),
 	grid: t('honeycomb', 'Grid'),
 	loupe: t('honeycomb', 'Loupe'),
-	compare: t('honeycomb', 'Compare series'),
+	compare: t('honeycomb', 'Compare series; loupe: the shown photo\'s series'),
 	zoom: t('honeycomb', 'Loupe: fit / 100 %'),
 	'zoom-in': t('honeycomb', 'Zoom in'),
 	'zoom-out': t('honeycomb', 'Zoom out'),

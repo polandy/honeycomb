@@ -37,7 +37,7 @@ every screen; each button's tooltip names its key.
 | `Enter` | Open the focused photo in the loupe. In the series compare: view the active photo full screen. |
 | `G` | Back to the grid. |
 | `E` | Open the loupe. |
-| `N` | Open the series compare. |
+| `N` | Open the series compare. In the loupe: compare the shown photo's series. |
 | `Space` | Loupe: switch between fit and 100 %. |
 | `Z` | Loupe and series viewer: switch between fit and 100 %. |
 | `Ctrl+=` and `Ctrl+-` | Zoom in and out. |
@@ -71,6 +71,13 @@ acts on the active photo.
 In the loupe's filmstrip a honey frame surrounds the photos of a series, so you see where a burst
 starts and ends before you page into it. Rejected photos stay outside the frame; a series with
 fewer than two photos left that are not rejected loses it.
+
+When the shown photo belongs to a series, the loupe's title row shows a chip after the position,
+such as "⧉ Series 2/5" (on a phone "⧉ 2/5"): the photo is the second of five. A tap on the chip,
+`N`, or the "⧉ 5" tab at the start of a frame in the filmstrip opens the series compare on that one
+series, decided photos included, with the shown photo active. `Esc` or the close button returns to
+the loupe on the active photo. *Pick this, reject the rest* returns to the loupe on the first photo
+after the series, or stays on the picked one when the series is the last.
 
 In the series compare a tap or click on a photo makes it the active one. To look at a photo
 closely, press the *View full screen* button (⤢) in its top right corner, double-tap or
@@ -119,7 +126,8 @@ digits set the rating. Undo is `Ctrl+Z`.
 - `` ` `` toggles **Picked**; Lightroom cycles through pick, reject and unflagged.
 - `Space` switches between fit and 100 % in the loupe; Lightroom uses it to leave the grid.
 - `Tab` shows or hides the header, not Lightroom's side panels.
-- `N` opens the series compare; in Lightroom it opens Survey.
+- `N` opens the series compare, from the loupe on the shown photo's series; in Lightroom it opens
+  Survey.
 - `M`, `Shift+K`, `B` and `R` exist only in honeycomb; in Lightroom `R` is Crop, which honeycomb
   does not have.
 - `T` opens the tag entry; Lightroom's `T` shows or hides the toolbar.

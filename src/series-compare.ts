@@ -7,7 +7,7 @@ import type { HotkeyIntent } from './logic/hotkeys.ts'
 import type { Settings } from './logic/settings.ts'
 import type { Toast } from './toast.ts'
 
-import { computed, ref, shallowRef } from 'vue'
+import { computed, ref, shallowRef, watch } from 'vue'
 import { rowStep } from './logic/compare-grid.ts'
 import { stepRating } from './logic/hotkeys.ts'
 import { useSeriesViewer } from './series-viewer.ts'
@@ -24,6 +24,9 @@ export interface SeriesCompareContext<P> {
 	readonly holdHashes: (hold: boolean) => void
 }
 
+/** Where the loupe lands once a compare opened from it closes: on a picture, or after a series (SERIES-001.24). */
+export type CompareLanding<P> = { readonly kind: 'on', readonly picture: P } | { readonly kind: 'after', readonly series: readonly P[], readonly picked: P }
+
 /** The series compare dialog's state: which series it shows, which picture is active, and its keys (SERIES-001). */
 export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	const open = ref(false)
@@ -31,8 +34,11 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	const activeIndex = ref(0)
 	const anchor = shallowRef<readonly P[]>([])
 	const columns = ref(1)
+	const single = shallowRef<readonly P[] | null>(null)
+	let land: ((landing: CompareLanding<P>) => void) | null = null
 
-	const all = computed(() => context.series()
+	const oneSeries = computed(() => single.value !== null)
+	const all = computed(() => (single.value === null ? context.series() : [single.value])
 		.map((series) => series.filter((picture) => context.decisionOf(picture).flag !== 'rejected'))
 		.filter((series) => series.length > 1))
 	const count = computed(() => all.value.length)
@@ -73,11 +79,37 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 		show(0)
 	}
 
-	/** Closes the compare. */
-	function close() {
-		open.value = false
-		context.holdHashes(false)
+	/** Opens the compare from the loupe on one series, the picture active; `onLand` gets where the loupe lands on closing (SERIES-001.24). */
+	function startOn(series: readonly P[], picture: P, onLand: (landing: CompareLanding<P>) => void) {
+		single.value = series
+		land = onLand
+		start()
+		setActive(Math.max(0, current.value?.indexOf(picture) ?? 0))
 	}
+
+	/** Closes the compare; opened from the loupe, the loupe lands on the active picture or the given landing. */
+	function close(landing: CompareLanding<P> | null = activeLanding()) {
+		if (!open.value) {
+			return
+		}
+		const onLand = land
+		open.value = false
+		single.value = null
+		land = null
+		context.holdHashes(false)
+		if (onLand !== null && landing !== null) {
+			onLand(landing)
+		}
+	}
+
+	/** The landing on the active picture, none once the series is gone. */
+	function activeLanding(): CompareLanding<P> | null {
+		const picture = activePicture()
+		return picture === null ? null : { kind: 'on', picture }
+	}
+
+	// Opened from the loupe, a series left with fewer than two pictures ends the compare.
+	watch(current, (series) => series === null && single.value !== null && close(null), { flush: 'sync' })
 
 	/** The next series, the first after the last (SERIES-001.11). */
 	function skip() {
@@ -95,7 +127,13 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	function pickRest(picked = activePicture()) {
 		const series = current.value
 		if (picked !== null && series !== null) {
+			const onLand = land
+			land = null
 			context.pickRest(picked, series.filter((picture) => picture !== picked))
+			if (onLand !== null) {
+				close(null)
+				onLand({ kind: 'after', series, picked })
+			}
 		}
 	}
 
@@ -135,11 +173,11 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 		up: () => stepRow(-1),
 		down: () => stepRow(1),
 		'pick-rest': () => pickRest(),
-		close,
+		close: () => close(),
 	}
 
 	const { settings, updateSettings, toast } = context
-	return { open, current, position, count, active, setActive, setColumns, start, close, skip, decide, pickRest, hotkeys, viewer, view, settings, updateSettings, toast }
+	return { open, oneSeries, current, position, count, active, setActive, setColumns, start, startOn, close, skip, decide, pickRest, hotkeys, viewer, view, settings, updateSettings, toast }
 }
 
 export type SeriesCompareFlow<P> = ReturnType<typeof useSeriesCompare<P>>

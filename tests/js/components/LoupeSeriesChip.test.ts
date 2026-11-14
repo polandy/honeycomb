@@ -46,8 +46,10 @@ function seriesOf(first: number, end: number) {
 }
 
 /** The compare openings the loupe emitted, as the series' names and the active one's. */
-const openings = (wrapper: Awaited<ReturnType<typeof mountLoupe>>['wrapper']) => (wrapper.emitted('compareSeries') as [readonly Picture<ListingEntry>[], Picture<ListingEntry>][] | undefined)
-	?.map(([series, active]) => `${series.map((picture) => picture.baseName).join(' ')}: ${active.baseName}`)
+function openings(wrapper: Awaited<ReturnType<typeof mountLoupe>>['wrapper']) {
+	return (wrapper.emitted('compareSeries') as [readonly Picture<ListingEntry>[], Picture<ListingEntry>][] | undefined)
+		?.map(([series, active]) => `${series.map((picture) => picture.baseName).join(' ')}: ${active.baseName}`)
+}
 
 describe('PhotoLoupe: the series chip and N', () => {
 	// spec: LOUPE-001.25
