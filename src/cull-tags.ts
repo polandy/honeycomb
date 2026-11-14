@@ -7,6 +7,7 @@ import type { StoredTags, Tag, TagChange } from './logic/tag.ts'
 import { computed, shallowRef } from 'vue'
 import { logger } from './logger.ts'
 import { memberIds, pictureMembers } from './logic/pairing.ts'
+import { saveQueue } from './logic/save-queue.ts'
 import { withLevels } from './logic/tag-entry.ts'
 import { changedTags, revertTagRows, sortedTags, withTagRows } from './logic/tag.ts'
 
@@ -23,6 +24,7 @@ type Pictures = readonly Picture<ListingEntry>[]
 export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, change: TagChange) => Promise<unknown>, current: () => unknown, writable: (picture: Picture<ListingEntry>) => boolean) {
 	const tags = shallowRef<ReadonlyMap<number, readonly Tag[]>>(new Map())
 	const list = shallowRef<readonly Tag[]>([])
+	const saveTags = saveQueue(api.saveTags)
 	const known = computed(() => withLevels([...list.value, ...[...tags.value.values()].flat()]))
 
 	/** Reads the user's tag list for the tag entry (TAGS-003.13). */
@@ -65,7 +67,7 @@ export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, ch
 			: []
 		if (rows.length > 0) {
 			tags.value = withTagRows(tags.value, rows)
-			api.saveTags(rows).catch((error: unknown) => logger.error('Could not save the tags taken over from the sidecars', { error }))
+			void saveTags(rows).then((saved) => saved.ok || logger.error('Could not save the tags taken over from the sidecars', { error: saved.error }))
 		}
 	}
 
@@ -78,13 +80,12 @@ export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, ch
 		})
 		tags.value = withTagRows(before, rows)
 		const cull = current()
-		try {
-			await api.saveTags(rows)
-		} catch (error) {
+		const saved = await saveTags(rows)
+		if (!saved.ok) {
 			if (current() === cull) {
-				tags.value = revertTagRows(tags.value, rows, before)
+				tags.value = revertTagRows(tags.value, saved.unsaved, before)
 			}
-			logger.error('Could not save the tags', { error })
+			logger.error('Could not save the tags', { error: saved.error })
 			return false
 		}
 		const written = chosen.filter(writable)
