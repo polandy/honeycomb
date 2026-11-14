@@ -22,9 +22,10 @@ new code may read tables that do not exist yet, and saving a flag, a rating or a
 ## Installed from a Git checkout
 
 Tag storage (pull request #119) added the tables `honeycomb_file_tags` and
-`honeycomb_tag_list`, and visual hash storage added `honeycomb_hashes`, without raising the app
-version, so an instance installed from a Git checkout before them never created them, and the
-commands above do not either. Without `honeycomb_hashes` no folder opens. The `migrations:`
+`honeycomb_tag_list`, visual hash storage added `honeycomb_hashes` and stored series added
+`honeycomb_series` and `honeycomb_series_files`, without raising the app version, so an
+instance installed from a Git checkout before them never created them, and the commands above
+do not either. Without `honeycomb_hashes` no folder opens. The `migrations:`
 commands exist only in debug mode, so turn it on for this one run:
 
 ```sh

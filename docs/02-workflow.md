@@ -37,7 +37,8 @@ during a task becomes an issue as above.
     for components.
   - **PHPUnit** for every endpoint and service, with `OCP\Files` mocks or the Nextcloud test
     server, including the failure paths: a foreign path, a vanished file, a conflict, no
-    permission.
+    permission. The mapper SQL also runs against SQLite inside the pinned Nextcloud image
+    (`tests/php-db/`, `scripts/php-db-tests.sh`).
   - **Playwright** end to end against a real Nextcloud container, for the flows across both.
 - Coverage gate in CI: logic modules (`src/logic/`) at least 95 % lines and 90 % branches; Vue
   components at least 80 % lines. A pull request does not lower either.

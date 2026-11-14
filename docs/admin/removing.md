@@ -17,8 +17,9 @@ everything it stored stays in the database:
 | Resume positions | table `oc_honeycomb_positions` |
 | Tags | tables `oc_honeycomb_file_tags`, `oc_honeycomb_tag_list` |
 | Visual hashes of the pictures | table `oc_honeycomb_hashes` |
+| Stored series and kept-out photos | tables `oc_honeycomb_series`, `oc_honeycomb_series_files` |
 | Applied migrations | rows with `app = 'honeycomb'` in `oc_migrations` |
-| App state (`enabled = no`, `installed_version`) and the clean-up job's `vanished_after_*` row ids | rows with `appid = 'honeycomb'` in `oc_appconfig` |
+| App state (`enabled = no`, `installed_version`) and the clean-up job's `vanished_after_*` and `empty_series_after` row ids | rows with `appid = 'honeycomb'` in `oc_appconfig` |
 | Each user's settings and view state | rows with `appid = 'honeycomb'` in `oc_preferences` |
 | Background job `RemoveVanishedDecisions` | one row in `oc_jobs`, until the next cron run |
 
@@ -31,17 +32,18 @@ are not touched. `occ app:remove --keep-data honeycomb` leaves the same data and
 ## Installing again
 
 Installing honeycomb again finds the tables and the `oc_migrations` rows, skips the migrations
-that already ran and shows every user's decisions, tags, visual hashes and settings as they were.
+that already ran and shows every user's decisions, tags, visual hashes, series and settings as
+they were.
 
 ## Deleting the data by hand
 
 honeycomb never deletes this data itself. To remove it for good, back up the database first,
-then, with honeycomb removed, drop the five tables and delete the rows listed above, for
+then, with honeycomb removed, drop the seven tables and delete the rows listed above, for
 example on MySQL or MariaDB:
 
 ```sql
 DROP TABLE oc_honeycomb_decisions, oc_honeycomb_positions, oc_honeycomb_file_tags,
-  oc_honeycomb_tag_list, oc_honeycomb_hashes;
+  oc_honeycomb_tag_list, oc_honeycomb_hashes, oc_honeycomb_series, oc_honeycomb_series_files;
 DELETE FROM oc_migrations WHERE app = 'honeycomb';
 DELETE FROM oc_appconfig WHERE appid = 'honeycomb';
 DELETE FROM oc_preferences WHERE appid = 'honeycomb';

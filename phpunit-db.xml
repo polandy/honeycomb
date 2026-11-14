@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  - SPDX-FileCopyrightText: 2026 honeycomb contributors
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<!-- The mapper tests against a real database; scripts/php-db-tests.sh runs them inside Nextcloud. -->
+<phpunit
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+	bootstrap="tests/php-db/bootstrap.php"
+	cacheResult="false"
+	colors="true"
+	failOnRisky="true"
+	failOnWarning="true"
+	failOnDeprecation="true"
+	failOnNotice="true"
+	executionOrder="random"
+	beStrictAboutOutputDuringTests="true"
+>
+	<testsuites>
+		<testsuite name="db">
+			<directory>tests/php-db</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

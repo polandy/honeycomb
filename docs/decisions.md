@@ -1137,3 +1137,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   and, given a `wait`, sends a save the server limits (`429`) again after the seconds it asks for,
   with the same rows; rows given meanwhile wait for the next save. Series states can then be saved
   through it instead of a seventh write path (architecture review R7a).
+- 2026-11-14: The mapper SQL is tested against SQLite inside the pinned Nextcloud image
+  (`tests/php-db/`, `scripts/php-db-tests.sh`, CI job `php-db`), not with a hand-built query
+  builder over Doctrine: no new dependency, and the real `IQueryBuilder` runs (R10, #185 PR 1).
+- 2026-11-14: A series write that names one series id twice is a `400`, like a file id twice; a
+  member row whose series row the sweep removed meanwhile reads as `open`; the empty-series
+  sweep keeps its cursor under `empty_series_after` and shares the cursor walk of the vanished
+  file sweep (#185 PR 1).

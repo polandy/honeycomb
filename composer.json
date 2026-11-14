@@ -20,6 +20,7 @@
 	"autoload-dev": {
 		"psr-4": {
 			"OCA\\Honeycomb\\Tests\\": "tests/php/",
+			"OCA\\Honeycomb\\DbTests\\": "tests/php-db/",
 			"OCP\\": "vendor/nextcloud/ocp/OCP/"
 		}
 	},
