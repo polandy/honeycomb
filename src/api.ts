@@ -10,6 +10,7 @@ import type { SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from './
 import type { StoredTags, Tag } from './logic/tag.ts'
 import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
 import type { ViewState } from './logic/view-state.ts'
+import type { StoredVisualHash } from './logic/visual-hash.ts'
 import type { WarmOptions } from './preview-warmer.ts'
 
 import axios from '@nextcloud/axios'
@@ -143,6 +144,13 @@ export async function lookupTags(fileIds: readonly number[]): Promise<StoredTags
 export async function saveTags(tags: readonly StoredTags[]): Promise<void> {
 	if (tags.length > 0) {
 		await axios.put(generateUrl(`${API}/tags`), { tags })
+	}
+}
+
+/** Stores visual hashes with the etags they were taken from; the server skips those of changed files (ADR 0024). */
+export async function saveVisualHashes(hashes: readonly StoredVisualHash[]): Promise<void> {
+	if (hashes.length > 0) {
+		await axios.put(generateUrl(`${API}/visual-hashes`), { hashes })
 	}
 }
 

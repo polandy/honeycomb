@@ -13,9 +13,9 @@ import type { WarmPreviews } from './preview-warmer.ts'
 import type { ResumeApi } from './resume.ts'
 import type { SidecarFlowApi } from './sidecar-flow.ts'
 import type { ViewStateApi } from './view-state.ts'
-import type { HashImage } from './visual-hashes.ts'
+import type { HashImage, SaveVisualHashes } from './visual-hashes.ts'
 
-import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, imageUrl, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, lookupTags, movePictures, probeTargets, savePosition, saveSidecars, saveTags, saveViewState } from './api.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, imageUrl, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, lookupTags, movePictures, probeTargets, savePosition, saveSidecars, saveTags, saveViewState, saveVisualHashes } from './api.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { browserNow } from './sidecar-flow.ts'
 import { browserSchedule } from './tile-selection.ts'
@@ -27,6 +27,7 @@ export interface AppSeams {
 	listEntries?: ListEntries
 	warmPreviews?: WarmPreviews
 	hashImage?: HashImage
+	saveVisualHashes?: SaveVisualHashes
 	lookupDecisions?: (fileIds: readonly number[]) => Promise<StoredDecision[]>
 	saveDecisions?: (decisions: readonly StoredDecision[]) => Promise<void>
 	loadSettings?: () => Promise<unknown>
@@ -48,6 +49,7 @@ export const APP_SEAMS = {
 	listEntries: apiListEntries,
 	warmPreviews: apiWarmPreviews,
 	hashImage: hashPreview(imageUrl),
+	saveVisualHashes,
 	lookupDecisions: apiLookupDecisions,
 	saveDecisions: apiSaveDecisions,
 	loadSettings: apiLoadSettings,

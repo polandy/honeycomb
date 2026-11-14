@@ -10,6 +10,7 @@ namespace OCA\Honeycomb\AppInfo;
 use OCA\Honeycomb\Db\DecisionMapper;
 use OCA\Honeycomb\Db\PositionMapper;
 use OCA\Honeycomb\Db\TagMapper;
+use OCA\Honeycomb\Db\VisualHashMapper;
 use OCA\Honeycomb\Listener\ForgetDeletedUser;
 use OCA\Honeycomb\Preview\JpegDecoder;
 use OCA\Honeycomb\Preview\OcpJpegDecoder;
@@ -17,6 +18,7 @@ use OCA\Honeycomb\Preview\RawPreviewProvider;
 use OCA\Honeycomb\Service\DecisionStore;
 use OCA\Honeycomb\Service\PositionStore;
 use OCA\Honeycomb\Service\TagStore;
+use OCA\Honeycomb\Service\VisualHashStore;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -38,6 +40,7 @@ final class Application extends App implements IBootstrap {
 		$context->registerServiceAlias(DecisionStore::class, DecisionMapper::class);
 		$context->registerServiceAlias(PositionStore::class, PositionMapper::class);
 		$context->registerServiceAlias(TagStore::class, TagMapper::class);
+		$context->registerServiceAlias(VisualHashStore::class, VisualHashMapper::class);
 		$context->registerEventListener(UserDeletedEvent::class, ForgetDeletedUser::class);
 		$context->registerPreviewProvider(RawPreviewProvider::class, RawPreviewProvider::MIME_TYPE_REGEX);
 	}

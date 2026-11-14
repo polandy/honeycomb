@@ -48,21 +48,9 @@ export function hashDistance(a: string, b: string): number {
 	return count
 }
 
-/** The stored visual hashes by file version, empty when nothing valid is stored. */
-export function parseHashCache(stored: string | null): Map<string, string> {
-	let parsed: unknown
-	try {
-		parsed = JSON.parse(stored ?? '{}')
-	} catch {
-		return new Map()
-	}
-	if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-		return new Map()
-	}
-	return new Map(Object.entries(parsed).filter((entry): entry is [string, string] => typeof entry[1] === 'string' && HASH_PATTERN.test(entry[1])))
-}
-
-/** The newest `limit` visual hashes, in insertion order, for storage. */
-export function serializeHashCache(cache: ReadonlyMap<string, string>, limit: number): string {
-	return JSON.stringify(Object.fromEntries([...cache].slice(-limit)))
+/** A visual hash with the etag of the file version it was taken from, as the server stores it (ADR 0024). */
+export interface StoredVisualHash {
+	readonly fileId: number
+	readonly etag: string
+	readonly hash: string
 }
