@@ -9,11 +9,13 @@ import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { ObserveSize } from '../observe-size.ts'
 
-import { t } from '@nextcloud/l10n'
+import { n, t } from '@nextcloud/l10n'
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
 import AppIcon from './AppIcon.vue'
 import FlagMark from './FlagMark.vue'
-import { FILMSTRIP_THUMB, filmstripLayout } from '../logic/filmstrip.ts'
+import { keyCap } from '../hotkeys.ts'
+import { formatNumber } from '../l10n.ts'
+import { FILMSTRIP_THUMB, filmstripFrames, filmstripLayout } from '../logic/filmstrip.ts'
 import { imageMember, smallSource } from '../logic/image-tiers.ts'
 import { observeElementSize } from '../observe-size.ts'
 import { tip } from '../tooltip.ts'
@@ -22,10 +24,14 @@ const props = withDefaults(defineProps<{
 	pictures: readonly Picture<ListingEntry>[]
 	index: number
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
+	/** Each picture of a series mapped to its whole series; each run in the strip gets a frame. */
+	seriesOf: ReadonlyMap<Picture<ListingEntry>, readonly Picture<ListingEntry>[]>
 	imageUrl: ImageUrlFor
 	/** Whether *Pin the filmstrip* is on; its toggle sits at the strip's end. */
 	pinned: boolean
 	observeSize?: ObserveSize
+	/** Opens the compare on the series at that index; the frame's tab shows only with it (LOUPE-001.19). */
+	onCompareSeries?: (index: number) => void
 }>(), { observeSize: observeElementSize })
 
 const emit = defineEmits<{ select: [index: number], 'update:pinned': [pinned: boolean] }>()
@@ -37,8 +43,12 @@ const layout = computed(() => filmstripLayout({ index: props.index, count: props
 
 const shown = computed(() => props.pictures.slice(layout.value.first, layout.value.end).map((picture, at) => {
 	const index = layout.value.first + at
-	return { picture, index, left: index * FILMSTRIP_THUMB, member: imageMember(picture), flag: props.decisionOf(picture).flag }
+	return { picture, index, left: index * FILMSTRIP_THUMB, member: imageMember(picture), flag: props.decisionOf(picture).flag, framed: props.seriesOf.has(picture) }
 }))
+
+const frames = computed(() => filmstripFrames(props.pictures, props.seriesOf)
+	.filter((frame) => frame.end > layout.value.first && frame.first < layout.value.end)
+	.map((frame) => ({ ...frame, badge: `⧉ ${formatNumber(frame.count)}`, label: n('honeycomb', 'Series of {count} – compare', 'Series of {count} – compare', frame.count, { count: formatNumber(frame.count) }) })))
 
 /** Scrolls the shown picture towards the middle of the strip. */
 function centre() {
@@ -72,6 +82,7 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 					:class="{
 						'loupe-filmstrip__photo--current': item.index === props.index,
 						'loupe-filmstrip__photo--dimmed': item.flag === 'rejected' && item.index !== props.index,
+						'loupe-filmstrip__photo--framed': item.framed,
 					}"
 					:style="{ left: `${item.left}px` }"
 					:aria-label="item.picture.baseName"
@@ -80,6 +91,21 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 					<img alt="" draggable="false" :src="smallSource(item.member, props.imageUrl)">
 					<FlagMark v-if="item.flag !== 'unflagged'" class="loupe-filmstrip__flag" :flag="item.flag" />
 				</button>
+				<div
+					v-for="frame in frames"
+					:key="frame.first"
+					class="loupe-filmstrip__frame"
+					:style="{ left: `${frame.first * FILMSTRIP_THUMB}px`, width: `${(frame.end - frame.first) * FILMSTRIP_THUMB}px` }">
+					<button
+						v-if="props.onCompareSeries"
+						type="button"
+						class="loupe-filmstrip__tab"
+						:aria-label="frame.label"
+						v-bind="tip(t('honeycomb', 'Compare this series'), keyCap('compare'))"
+						@click="props.onCompareSeries(frame.first)">
+						{{ frame.badge }}
+					</button>
+				</div>
 			</div>
 		</nav>
 		<button
@@ -96,6 +122,7 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 
 <style scoped>
 .loupe-filmstrip {
+	--loupe-filmstrip-frame: 2px;
 	display: flex;
 	flex: none;
 	height: var(--loupe-filmstrip-thumb);
@@ -147,6 +174,55 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 	z-index: 1;
 	box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 4px #000;
 	pointer-events: none;
+}
+
+/* The frame's border is drawn over the photos' edges, so the ring moves inside it. */
+.loupe-filmstrip__photo--framed::before {
+	inset: var(--loupe-filmstrip-frame);
+}
+
+.loupe-filmstrip__frame {
+	position: absolute;
+	top: 0;
+	z-index: 3;
+	height: 100%;
+	box-sizing: border-box;
+	border: var(--loupe-filmstrip-frame) solid var(--color-primary-element);
+	border-radius: 8px;
+	pointer-events: none;
+}
+
+/* Nextcloud's own button sizes outrank a single class. */
+.loupe-filmstrip .loupe-filmstrip__tab {
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	min-width: 0;
+	height: 20px;
+	min-height: 0;
+	margin: 0;
+	padding: 0 7px;
+	border: 0;
+	border-radius: 10px;
+	background: var(--color-primary-element);
+	color: var(--color-primary-element-text);
+	font-size: 12px;
+	font-weight: bold;
+	line-height: 20px;
+	pointer-events: auto;
+}
+
+/* The hit area reaches 44 px, 34 px with a fine pointer. */
+.loupe-filmstrip__tab::before {
+	content: '';
+	position: absolute;
+	inset: -12px -8px;
+}
+
+@media (pointer: fine) {
+	.loupe-filmstrip__tab::before {
+		inset: -7px -4px;
+	}
 }
 
 .loupe-filmstrip__photo img {

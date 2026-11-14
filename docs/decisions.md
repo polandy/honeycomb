@@ -975,3 +975,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   photo, so `Enter` opens the active one. The card double tap and the loupe share one pure rule
   (`src/logic/double-tap.ts`, 320 ms, 40 px, same card). The viewer's back arrow is a new shared
   `BackButton` with the word hidden on a phone, since the loupe has no back arrow yet to reuse.
+- 2026-11-14: The filmstrip's series frame (LOUPE-001.19, concept step 7) ships now and its "⧉ N"
+  tab ships hidden: the tab renders only while the loupe listens for `compareSeries`, which step 8
+  adds with the chip and `N`, so no control opens nothing. The frame counts every series that is
+  not rejected, picked ones included, like the chip (`allSeries`), unlike *Compare series*, and a
+  run of one photo split off by the sort or a filter is framed too, since it still belongs to a
+  series. The frame is drawn over the photos' edges rather than padding them, so the strip's
+  geometry and centring stay as they are; the shown photo's ring moves 2 px inside it.

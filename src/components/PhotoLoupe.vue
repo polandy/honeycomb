@@ -46,6 +46,8 @@ const props = withDefaults(defineProps<{
 	index: number
 	folderSet: FolderSet
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
+	/** Each picture of a series mapped to its whole series, for the filmstrip's frame (LOUPE-001.19). */
+	seriesOf?: ReadonlyMap<Picture<ListingEntry>, readonly Picture<ListingEntry>[]>
 	/** The picture's tags for the info panel (TAGS-004.8). */
 	tagsOf?: (picture: Picture<ListingEntry>) => readonly Tag[]
 	/** Whether the picture's tag changes are written to its sidecars (TAGS-004.9). */
@@ -60,6 +62,7 @@ const props = withDefaults(defineProps<{
 	devicePixelRatio?: number
 	observeSize?: ObserveSize
 }>(), {
+	seriesOf: () => new Map(),
 	tagsOf: () => [],
 	writesSidecars: () => true,
 	imageUrl: apiImageUrl,
@@ -227,6 +230,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:pictures="props.pictures"
 			:index="props.index"
 			:decisionOf="props.decisionOf"
+			:seriesOf="props.seriesOf"
 			:imageUrl="props.imageUrl"
 			:observeSize="props.observeSize"
 			:pinned="settings.filmstripPinned"

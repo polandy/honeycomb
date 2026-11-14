@@ -25,7 +25,7 @@ import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
 import { memberIds } from './logic/pairing.ts'
 import { activeFilterCount, DEFAULT_FILTERS, emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
 import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
-import { findSeries, seriesCandidates, seriesSizes as sizesOf } from './logic/series.ts'
+import { allSeries, findSeries, seriesCandidates, seriesMembers, seriesSizes as sizesOf } from './logic/series.ts'
 import { pairingSettings } from './logic/settings.ts'
 import { inSharedFolder } from './logic/sidecar-sync.ts'
 import { inverseChange } from './logic/tag.ts'
@@ -76,6 +76,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const candidates = computed(() => seriesCandidates(pictures.value, hashes.hashOf))
 	const series = computed(() => findSeries(candidates.value, decisionOf, hashes.hashOf))
 	const seriesSizes = computed(() => sizesOf(series.value))
+	const seriesOf = computed(() => seriesMembers(allSeries(candidates.value, decisionOf, hashes.hashOf)))
 	const sharedPictures = computed(() => pictures.value.filter((picture) => inSharedFolder(picture, sharedFolders.value)))
 
 	/** Shows the pictures of the confirmed folders with fresh filters, then their stored decisions. */
@@ -271,6 +272,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		common,
 		series,
 		seriesSizes,
+		seriesOf,
 		holdHashes: hashes.hold,
 		decide,
 		pickRest,
