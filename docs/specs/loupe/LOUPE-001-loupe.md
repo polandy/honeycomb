@@ -32,6 +32,7 @@ or on a quick flick.
 | `Tab` (on the loupe), double-tap | chrome-free mode |
 | `F` | browser fullscreen |
 | `I` | info panel |
+| `N` | compare the shown picture's series (LOUPE-001.25) |
 
 The title row's *Fit / 100 %*, *Move*, *Info* and *Fullscreen* are icon buttons on a transparent
 fill, pressed while zoomed, open or on; the position count never wraps.
@@ -193,6 +194,7 @@ IMAGES-001.
 | 2026-11-12 | .20 the pin toggle moved from the title row to the filmstrip's end (owner, iPad) |
 | 2026-11-13 | .13 the info panel drops its *Preloading* section; .23 compact rows (UX M6) |
 | 2026-11-13 | .19 the filmstrip starts at its left edge and stops at its right one (UX L7) |
+| 2026-11-14 | .25 the series chip and `N` open the compare on the shown series; .19 the frame's tab shows (series concept step 8) |
 
 ### LOUPE-001.18 – One photo in view
 
@@ -213,9 +215,10 @@ IMAGES-001.
   scroll shows others without paging. A series (SERIES-001) gets one 2 px honey frame with 8 px
   corners around each run of its photos in the strip, the shown photo's ring inside it; a series
   counts its photos that are not rejected, decided or not, so a rejected photo stays outside the
-  frame and fewer than two end it. A run split off by the sort or a filter gets its own frame. Once
-  the loupe opens the compare from it, a frame carries a "⧉ N" tab at its start, N the series'
-  whole count, which opens the compare on that series (`N`)
+  frame and fewer than two end it. A run split off by the sort or a filter gets its own frame. A frame
+  carries a "⧉ N" tab at its start, N the series' whole count, which opens the compare on that
+  series as the series chip does (LOUPE-001.25), with the shown picture active while it is in that
+  series, else the frame's first
 
 ### LOUPE-001.20 – Pinned filmstrip and rating row
 
@@ -258,3 +261,14 @@ IMAGES-001.
 - **Then** the *Keys* section comes first, its keys in two columns, each key cap beside its
   action, and the *Gestures* section follows; with a coarse pointer, such as a finger, the
   *Gestures* section comes first; the tap-zone sketch lines up with the text of its line
+
+### LOUPE-001.25 – Series chip and `N`
+
+- **Given** the loupe shows a picture of a series (SERIES-001), the series counting its pictures
+  that are not rejected, decided or not
+- **When** the title row shows
+- **Then** a series chip follows the position count: "⧉ 2/5" on a phone, "⧉ Series 2/5"
+  otherwise, the shown picture's place and the series' count, labelled "Photo 2 of a series of 5
+  – compare", a honey outline never filled, 44 px high (34 px with a fine pointer), its tooltip
+  naming `N`; a tap on it or `N` opens the series compare on this series with the shown picture
+  active (SERIES-001.24); a picture outside any series shows no chip and `N` does nothing
