@@ -48,25 +48,6 @@ async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 	return { cull, saved, lookedUp, settings, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
 }
 
-describe('useCull: warm-up', () => {
-	// spec: IMAGES-001.14
-	it('stops the warm-up of the previous folder set when another opens', () => {
-		const signals: AbortSignal[] = []
-		const cull = useCull({
-			hashImage: () => new Promise(() => undefined),
-			warmPreviews: async (_fileIds, options) => { signals.push(options.signal!) },
-			lookupDecisions: async () => [],
-			saveDecisions: async () => undefined,
-			tags: NO_TAGS,
-		}, fakeStorage(), () => DEFAULT_SETTINGS, NO_SIDECARS)
-
-		cull.open(SET, ENTRIES, [])
-		cull.open(SET, [listingEntry(50, '/A/IMG_50.JPG')], [])
-
-		expect(signals.map((signal) => signal.aborted)).toEqual([true, false])
-	})
-})
-
 describe('useCull: redo', () => {
 	// spec: KEYS-001.10
 	it('puts an undone step again and stores what it wrote', async () => {

@@ -35,7 +35,8 @@ the largest complete JPEG embedded in the file.
 with the CSRF token, renders all three tiers of at most 16 files before it answers `200` and
 skips what it cannot render. The client sends it after listing a folder set, in display order, in
 chunks of 4 files with at most 4 requests in flight; a failed request is logged and the grid
-stays. Nothing waits for cron.
+stays. Nothing waits for cron. The browser skips files it warmed at their current `mtime`, and
+opening another folder set stops the running warm-up.
 
 ## Acceptance criteria
 
