@@ -1006,6 +1006,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   good by *Got it*, `Esc` (then not closing the loupe, as the mockup does) or by using what it
   tells: the chip, `N`, the frame's tab or *Pick this, reject the rest*. It adds no key of its
   own; `Esc` dismisses as it closes every other card. It does not take the focus, so paging with
-  the keys goes on, and it keeps the title row from fading while it shows. Unlike the gesture
+  the keys goes on, and it wakes the faded title row and keeps it while it shows. Unlike the gesture
   guide it has no *Show again* in the settings: the concept asks for none, and the user guide
   explains the chip.

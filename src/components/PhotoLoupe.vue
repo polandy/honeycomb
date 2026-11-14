@@ -120,6 +120,7 @@ const seriesPlace = computed(() => (series.value === null ? null : { position: s
 const sourcesAt = (index: number) => loupeSources(imageMember(props.pictures[index]!), props.imageUrl)
 
 watch(() => props.index, (index) => prefetcher.prefetchAround(index, props.pictures.length, sourcesAt), { immediate: true })
+watch(seriesHint.shown, (shown) => shown && overlays.wake())
 
 /** Shows the picture at `index` if there is one. */
 function go(index: number) {
