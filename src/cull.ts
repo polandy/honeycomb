@@ -19,7 +19,7 @@ import { useCullHistory } from './cull-history.ts'
 import { useCullTags } from './cull-tags.ts'
 import { nameComparer } from './l10n.ts'
 import { logger } from './logger.ts'
-import { prepareCull, warmFileIds } from './logic/cull.ts'
+import { prepareCull, warmMembers } from './logic/cull.ts'
 import { commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
 import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
 import { memberIds } from './logic/pairing.ts'
@@ -32,6 +32,7 @@ import { inverseChange } from './logic/tag.ts'
 import { parseTileSize } from './logic/tile-size.ts'
 import { withoutFiles } from './logic/trash-report.ts'
 import { pickRestEntry, tagStep, undoEntry } from './logic/undo.ts'
+import { usePreviewWarmer } from './preview-warmer.ts'
 import { useVisualHashes } from './visual-hashes.ts'
 
 /** The browser storage key of the thumbnail size. */
@@ -73,6 +74,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const activeFilters = computed(() => activeFilterCount(filters.value))
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
 	const hashes = useVisualHashes(api.hashImage, storage, () => pictures.value)
+	const warmer = usePreviewWarmer(api.warmPreviews, storage)
 	const candidates = computed(() => seriesCandidates(pictures.value, hashes.hashOf))
 	const series = computed(() => findSeries(candidates.value, decisionOf, hashes.hashOf))
 	const seriesSizes = computed(() => sizesOf(series.value))
@@ -95,7 +97,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		filters.value = DEFAULT_FILTERS
 		sortOrder.value = defaultSortOrder(folders.value)
 		pickerOpen.value = false
-		api.warmPreviews(warmFileIds(view.value)).catch((error: unknown) => logger.error('Could not warm the previews', { error }))
+		warmer.warm(warmMembers(view.value))
 		loadDecisions(paired.value)
 	}
 

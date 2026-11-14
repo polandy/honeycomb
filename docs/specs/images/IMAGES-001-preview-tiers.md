@@ -35,7 +35,8 @@ the largest complete JPEG embedded in the file.
 with the CSRF token, renders all three tiers of at most 16 files before it answers `200` and
 skips what it cannot render. The client sends it after listing a folder set, in display order, in
 chunks of 4 files with at most 4 requests in flight; a failed request is logged and the grid
-stays. Nothing waits for cron.
+stays. Nothing waits for cron. The browser skips files it warmed at their current `mtime`, and
+opening another folder set stops the running warm-up.
 
 ## Acceptance criteria
 
@@ -123,6 +124,20 @@ stays. Nothing waits for cron.
 - **When** a tier of each is requested
 - **Then** the RAW is served by its embedded JPEG like any RAW; the other file is `404`
 
+### IMAGES-001.14 – Another folder set stops the warm-up
+
+- **Given** a warm-up still running
+- **When** another folder set opens
+- **Then** no further request is sent for the earlier set, the requests in flight are aborted and
+  nothing is logged
+
+### IMAGES-001.15 – Warmed previews are skipped
+
+- **Given** files whose previews this browser warmed at the files' current `mtime`
+- **When** a folder set with them opens
+- **Then** their ids are not sent again; a file with another `mtime` is; the browser keeps the
+  20,000 files warmed or skipped last, and only those whose request succeeded count as warmed
+
 ## Out of scope
 
 - Which tier a tile or the loupe loads, and prefetch: GRID-001, LOUPE-001.
@@ -134,3 +149,4 @@ stays. Nothing waits for cron.
 | 2026-11-10 | Written from the merged code of #40 (ADR 0015) |
 | 2026-11-11 | `.cr3` and `.srw` files are served and previewed by name (`TODO.md`, owner 2026-11-10) |
 | 2026-11-11 | Tiers 256, 1024 and 4096, core's preview sizes, in place of 512 and 2048 (owner, nc-test analysis) |
+| 2026-11-14 | A new folder set stops the warm-up; warmed files are skipped by `fileId` and `mtime` (ADR 0010, amended 2026-11-14) |

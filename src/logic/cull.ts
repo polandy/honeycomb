@@ -50,7 +50,7 @@ export function prepareCull(entries: readonly ListingEntry[], settings: PairingS
 	return capPictures(pairPictures(entries, settings))
 }
 
-/** The file ids whose previews to warm, in the pictures' order. */
-export function warmFileIds(pictures: readonly Picture<ListingEntry>[]): number[] {
-	return pictures.map((picture) => imageMember(picture).fileId)
+/** The members whose previews to warm, in the pictures' order. */
+export function warmMembers(pictures: readonly Picture<ListingEntry>[]): ListingEntry[] {
+	return pictures.map(imageMember)
 }

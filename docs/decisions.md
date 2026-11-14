@@ -1026,3 +1026,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   docs say how to delete them by hand; honeycomb gets no uninstall step that deletes user data,
   which would need an ADR and the owner's decision. The admin docs now say the `migrations:`
   commands need debug mode, because Nextcloud 35 only registers them there.
+- 2026-11-14: The warmed-preview keys live in the browser's local storage, not on the server: a
+  server table would be a new ADR-level storage choice, and a wrong "warmed" costs only one
+  synchronous render. They are capped at 20,000 (`PICTURE_CAP`), about 400 KB, the files warmed or
+  skipped last; a cancelled warm-up logs nothing, a failed one logs as before.

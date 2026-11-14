@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { warmPreviews } from '../../src/api.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
@@ -10,6 +10,9 @@ vi.mock('@nextcloud/router', () => ({
 }))
 
 describe('warmPreviews', () => {
+	beforeEach(() => {
+		vi.mocked(axios.post).mockReset()
+	})
 	const URL = '/index.php/apps/honeycomb/api/v1/previews'
 	const flush = async (): Promise<void> => {
 		for (let i = 0; i < 10; i++) {
@@ -25,7 +28,7 @@ describe('warmPreviews', () => {
 		await warmPreviews([3, 1, 2])
 
 		expect(axios.post).toHaveBeenCalledOnce()
-		expect(axios.post).toHaveBeenCalledWith(URL, { fileIds: [3, 1, 2] })
+		expect(axios.post).toHaveBeenCalledWith(URL, { fileIds: [3, 1, 2] }, {})
 	})
 
 	// spec: IMAGES-001.10
@@ -68,6 +71,46 @@ describe('warmPreviews', () => {
 		await expect(warmPreviews(ids(100))).rejects.toThrow('down')
 
 		expect(vi.mocked(axios.post).mock.calls.length).toBeLessThanOrEqual(4)
+	})
+
+	// spec: IMAGES-001.15
+	it('reports each chunk the server rendered, and not a failed one', async () => {
+		vi.mocked(axios.post).mockResolvedValueOnce({ data: null }).mockRejectedValueOnce(new Error('down'))
+		const warmed: number[][] = []
+
+		await expect(warmPreviews(ids(8), { onWarmed: (chunk) => warmed.push([...chunk]) })).rejects.toThrow('down')
+
+		expect(warmed).toEqual([[1, 2, 3, 4]])
+	})
+
+	// spec: IMAGES-001.14
+	it('aborts the requests in flight, sends no more and resolves once the signal aborts', async () => {
+		const pending: Array<(error: Error) => void> = []
+		vi.mocked(axios.post).mockImplementation((_url, _body, config) => new Promise((_resolve, reject) => {
+			pending.push(reject)
+			config?.signal?.addEventListener?.('abort', () => reject(new Error('canceled')))
+		}))
+		const controller = new AbortController()
+		const warmed: number[][] = []
+
+		const done = warmPreviews(ids(100), { signal: controller.signal, onWarmed: (chunk) => warmed.push([...chunk]) })
+		await flush()
+		controller.abort()
+		await done
+
+		expect(pending).toHaveLength(4)
+		expect(vi.mocked(axios.post).mock.calls.every(([, , config]) => config?.signal === controller.signal)).toBe(true)
+		expect(warmed).toEqual([])
+	})
+
+	// spec: IMAGES-001.14
+	it('sends nothing once the signal aborted', async () => {
+		const controller = new AbortController()
+		controller.abort()
+
+		await warmPreviews(ids(8), { signal: controller.signal })
+
+		expect(axios.post).not.toHaveBeenCalled()
 	})
 
 	it('sends nothing for no files', async () => {
