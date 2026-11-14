@@ -1,50 +1,18 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { ListingEntry } from '../../src/logic/listing.ts'
-import type { Picture } from '../../src/logic/pairing.ts'
-import type { StoredVisualHash } from '../../src/logic/visual-hash.ts'
-
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { shallowRef } from 'vue'
+import { imageUrl } from '../../src/api.ts'
+import { APP_SEAMS } from '../../src/app-seams.ts'
 import { logger } from '../../src/logger.ts'
-import { GRID_TIERS } from '../../src/logic/image-tiers.ts'
+import { GRID_TIERS, smallSource } from '../../src/logic/image-tiers.ts'
 import { HASH_COLUMNS, HASH_ROWS } from '../../src/logic/visual-hash.ts'
-import { hashPreview, useVisualHashes, VISUAL_HASHES_KEY } from '../../src/visual-hashes.ts'
-import { fakeStorage } from './app-cull.ts'
+import { hashPreview, VISUAL_HASHES_KEY } from '../../src/visual-hashes.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
+import { BURST, setUp } from './visual-hash-fakes.ts'
 
 afterEach(() => vi.restoreAllMocks())
-
-const BURST = [
-	listingEntry(1, '/P/A.JPG', { captureTime: 0 }),
-	listingEntry(2, '/P/A.CR3', { captureTime: 0, mime: 'image/x-dcraw' }),
-	listingEntry(3, '/P/B.CR3', { captureTime: 10, mime: 'image/x-dcraw' }),
-	listingEntry(4, '/P/C.JPG', { captureTime: 500 }),
-]
-
-/** A hasher whose hashes the test settles one by one, in call order. */
-function fakeHasher() {
-	const calls: { member: ListingEntry, resolve: (hash: string) => void, reject: (error: Error) => void }[] = []
-	const hashImage = (member: ListingEntry) => new Promise<string>((resolve, reject) => calls.push({ member, resolve, reject }))
-	return { calls, hashImage }
-}
-
-function setUp(entries: ListingEntry[] = BURST, stored: Record<string, string> = {}, saveFails = false) {
-	const hasher = fakeHasher()
-	const saves: StoredVisualHash[][] = []
-	const saveVisualHashes = async (hashes: readonly StoredVisualHash[]) => {
-		saves.push([...hashes])
-		if (saveFails) {
-			throw new Error('offline')
-		}
-	}
-	const pictures = shallowRef<Picture<ListingEntry>[]>(picturesOf(entries))
-	const hashes = useVisualHashes({ hashImage: hasher.hashImage, saveVisualHashes }, fakeStorage(stored), () => pictures.value)
-	const byName = (name: string) => pictures.value.find((picture) => picture.baseName === name)!
-	return { ...hasher, saves, pictures, hashes, byName, stored }
-}
 
 describe('useVisualHashes', () => {
 	// spec: SERIES-001.17
@@ -60,51 +28,13 @@ describe('useVisualHashes', () => {
 		expect(hashes.hashOf(byName('C'))).toBeNull()
 	})
 
-	// spec: SERIES-001.17, SERIES-003.12
-	it('saves the computed hashes with their etags once none is left to hash', async () => {
-		const { calls, saves } = setUp()
+	// spec: SERIES-003.21
+	it('hashes a RAW-only picture by its RAW and a pair by its JPEG', async () => {
+		const { calls } = setUp()
 		calls[0]!.resolve('0000000000000001')
 		await flushPromises()
-		expect(saves).toEqual([])
-		calls[1]!.resolve('0000000000000003')
-		await flushPromises()
 
-		expect(saves).toEqual([[{ fileId: 1, etag: 'etag-1', hash: '0000000000000001' }, { fileId: 3, etag: 'etag-3', hash: '0000000000000003' }]])
-	})
-
-	// spec: SERIES-003.12
-	it('saves every 100 hashes while hashing goes on', async () => {
-		const { calls, saves } = setUp(Array.from({ length: 101 }, (_, index) => listingEntry(index + 1, `/P/${index}.JPG`, { captureTime: index })))
-		for (let index = 0; index < 101; index++) {
-			calls[index]!.resolve('0000000000000000')
-			await flushPromises()
-		}
-
-		expect(saves.map((batch) => batch.length)).toEqual([100, 1])
-	})
-
-	// spec: SERIES-001.17, SERIES-003.12
-	it('uses the hashes the listing delivered at once and hashes only the rest', async () => {
-		const { calls, saves, hashes, byName } = setUp([{ ...BURST[0]!, visualHash: '00000000000000aa' }, ...BURST.slice(1)])
-
-		expect(hashes.hashOf(byName('A'))).toBe('00000000000000aa')
-		expect(calls.map((call) => call.member.fileId)).toEqual([3])
-		calls[0]!.resolve('0000000000000003')
-		await flushPromises()
-		expect(saves).toEqual([[{ fileId: 3, etag: 'etag-3', hash: '0000000000000003' }]])
-	})
-
-	// spec: SERIES-001.17
-	it('hashes a file again once its etag changed', async () => {
-		const { calls, pictures } = setUp()
-		calls[0]!.resolve('0000000000000001')
-		await flushPromises()
-		calls[1]!.resolve('0000000000000003')
-		await flushPromises()
-		pictures.value = picturesOf([{ ...BURST[0]!, etag: 'etag-new' }, ...BURST.slice(1)])
-		await flushPromises()
-
-		expect(calls.map((call) => call.member.fileId)).toEqual([1, 3, 1])
+		expect(calls.map((call) => call.member.path)).toEqual(['/P/A.JPG', '/P/B.CR3'])
 	})
 
 	// spec: SERIES-003.13
@@ -118,6 +48,7 @@ describe('useVisualHashes', () => {
 
 		expect(warn).toHaveBeenCalledWith('Could not save the visual hashes', expect.objectContaining({ count: 2 }))
 		expect(hashes.hashOf(byName('A'))).toBe('0000000000000001')
+		expect(hashes.progress.value.phase).toBe('failed')
 	})
 
 	// spec: SERIES-003.14
@@ -190,6 +121,15 @@ describe('hashPreview', () => {
 		expect(hash).toBe('0000000000000000')
 		expect(sources).toEqual([`/preview/5/${GRID_TIERS[0]}/9`])
 		expect(drawImage).toHaveBeenCalledWith(expect.anything(), 0, 0, HASH_COLUMNS, HASH_ROWS)
+	})
+
+	// spec: SERIES-003.22
+	it('loads the very URL the grid tile loads first, so the browser cache serves it', async () => {
+		const sources = stubCanvas({ drawImage: vi.fn(), getImageData: () => ({ data: new Uint8ClampedArray(HASH_COLUMNS * HASH_ROWS * 4) }) })
+		const member = listingEntry(5, '/P/A.JPG', { mtime: 9 })
+		await APP_SEAMS.hashImage(member)
+
+		expect(sources).toEqual([smallSource(member, imageUrl)])
 	})
 
 	it('fails without a 2D canvas', async () => {

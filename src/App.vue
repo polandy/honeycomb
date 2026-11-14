@@ -153,6 +153,7 @@ useHotkeys(() => {
 					:movable="movable.length"
 					:sidecarsShared="cull.sharedPictures.value.length > 0"
 					:resumeName="resume.resumeName.value"
+					:similarity="cull.hashProgress.value"
 					@changeFolders="pickerOpen = true"
 					@update:tileSize="cull.setTileSize"
 					@update:groupByFolder="groupByFolder = $event"

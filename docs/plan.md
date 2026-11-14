@@ -168,7 +168,9 @@ pictures, a rejected picture disappears from view, and at the end delete all rej
 5. **Auto-advance.** After each pick or reject the view moves to the next undecided picture
    (the setting stays, Q7 is answered). Rating and colour label do not advance.
 6. **Progress and resume.** The toolbar shows "x of y decided" per folder set, "x of y shown
-   decided" while the filters hide photos. The last position per folder set and user is stored
+   decided" while the filters hide photos; beside it, in quiet text, *Similarity 120/300* while
+   visual hashes are computed, and how many photos were not compared once some failed
+   (SERIES-003.18–.20). The last position per folder set and user is stored
    on the server (with the decisions, M2.4), so another device
    offers to continue there. *Recent* in the navigation lists the last folder sets with their
    progress.

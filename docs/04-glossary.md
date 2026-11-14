@@ -80,6 +80,8 @@ loupe, series compare, series viewer). The controls come from the shared compone
   *Flag buttons* (toggle, `B`) hide them there.
 - **Toggle.** Pressing the flag a picture already has, by button or key, unflags it.
 - **Photo.** The UI and the user docs say *photo* for a picture; code and specs say *picture*.
+- **Similarity.** The UI says *similarity* for the progress of the visual hashes; code and specs
+  say *visual hash*.
 - **Avoid** *keep*, *discard*, *accept*, *unreject* and *clear flag*: they are *Pick*, *Reject*
   and *Unflag*. *Keep RAW* is the one exception: it names the RAW marker, never a flag.
 - **Toasts.** One undoable change, one toast: the change in the past tense, the photo's name or

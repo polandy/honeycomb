@@ -82,6 +82,13 @@ describe('GridToolbar', () => {
 		expect(wrapper.find('.cull-progress__count').text()).toContain(`${MARK}4 / 20 shown decided`)
 	})
 
+	// spec: SERIES-003.18
+	it('shows the similarity beside the decided count while hashing', () => {
+		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { similarity: { phase: 'running', hashed: 1, failed: 0, total: 4 } })
+
+		expect(wrapper.find('.cull-progress .similarity-progress').text()).toBe(`${MARK}Similarity 1/4`)
+	})
+
 	// spec: GRID-002.6
 	it('toggles the filter bar and counts the active filters', async () => {
 		const closed = mountToolbar({ paths: ['/A'], subfolders: false })
