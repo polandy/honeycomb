@@ -24,6 +24,9 @@ export interface StoredDecision extends Decision {
 	readonly fileId: number
 }
 
+/** What the predicates read of a decision. */
+type FlagOf = Pick<Decision, 'flag'>
+
 /** The decision of a picture without a stored row. */
 export const UNDECIDED: Decision = { rating: 0, colourLabel: null, flag: 'unflagged', keepRaw: false }
 
@@ -45,8 +48,23 @@ export function sameDecision(a: Decision, b: Decision): boolean {
 }
 
 /** Whether the picture is picked or rejected. */
-export function isDecided(decision: Decision): boolean {
+export function isDecided<T extends FlagOf>(decision: T): decision is T & { readonly flag: 'picked' | 'rejected' } {
 	return decision.flag !== 'unflagged'
+}
+
+/** Whether the picture is picked. */
+export function isPicked<T extends FlagOf>(decision: T): boolean {
+	return decision.flag === 'picked'
+}
+
+/** Whether the picture is rejected. */
+export function isRejected<T extends FlagOf>(decision: T): boolean {
+	return decision.flag === 'rejected'
+}
+
+/** Whether the picture is still open, neither picked nor rejected. */
+export function isOpen<T extends FlagOf>(decision: T): boolean {
+	return !isDecided(decision)
 }
 
 /** The index of the first undecided item after `from`, or null when every later item is decided. */

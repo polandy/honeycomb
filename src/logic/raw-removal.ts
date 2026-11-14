@@ -5,6 +5,7 @@ import type { PictureFile } from './delete-summary.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 
+import { isRejected } from './decision.ts'
 import { filesOf } from './delete-summary.ts'
 import { parseFileName } from './file-name.ts'
 import { isOwnSidecar } from './sidecars.ts'
@@ -31,7 +32,7 @@ export function rawRemoval(pictures: readonly Picture<ListingEntry>[], decisionO
 	const pairs = pictures.filter((picture) => picture.raw !== null && picture.rendered !== null)
 	const kept = pairs.filter((picture) => decisionOf(picture).keepRaw)
 	const unmarked = pairs.filter((picture) => !decisionOf(picture).keepRaw)
-	const removed = unmarked.filter((picture) => decisionOf(picture).flag !== 'rejected')
+	const removed = unmarked.filter((picture) => !isRejected(decisionOf(picture)))
 	return { removed, kept, rejected: unmarked.length - removed.length, singles: pictures.length - pairs.length }
 }
 

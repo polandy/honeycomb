@@ -35,6 +35,7 @@ import { useCull } from './cull.ts'
 import { useDeleteFlow } from './delete-flow.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
+import { isPicked } from './logic/decision.ts'
 import { DEFAULT_FILTERS } from './logic/picture-filter.ts'
 import { useLoupeOpening } from './loupe-opening.ts'
 import { useMoveFlow } from './move-flow.ts'
@@ -96,7 +97,7 @@ function openRecent(position: ResumePosition) {
 }
 recent.refresh()
 watch(pickerOpen, (open) => open && recent.refresh())
-const movable = computed(() => (activeFilters.value > 0 ? view.value : pictures.value.filter((picture) => cull.decisionOf(picture).flag === 'picked')))
+const movable = computed(() => (activeFilters.value > 0 ? view.value : pictures.value.filter((picture) => isPicked(cull.decisionOf(picture)))))
 
 const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => filterBar.value?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
 

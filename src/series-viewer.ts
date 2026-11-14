@@ -3,6 +3,7 @@
 import type { Decision } from './logic/decision.ts'
 
 import { computed, shallowRef, watch } from 'vue'
+import { isRejected } from './logic/decision.ts'
 
 /** What the series viewer reads from the cull and hands back on closing. */
 export interface SeriesViewerContext<P> {
@@ -15,7 +16,7 @@ export function useSeriesViewer<P>(context: SeriesViewerContext<P>) {
 	const members = shallowRef<readonly P[]>([])
 	const shown = shallowRef<P | null>(null)
 
-	const pictures = computed(() => members.value.filter((picture) => context.decisionOf(picture).flag !== 'rejected'))
+	const pictures = computed(() => members.value.filter((picture) => !isRejected(context.decisionOf(picture))))
 	const open = computed(() => shown.value !== null)
 	const index = computed(() => (shown.value === null ? 0 : Math.max(0, pictures.value.indexOf(shown.value))))
 

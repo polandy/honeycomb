@@ -4,6 +4,7 @@ import type { Decision } from './decision.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 
+import { isOpen, isRejected } from './decision.ts'
 import { pictureMembers } from './pairing.ts'
 import { hashDistance } from './visual-hash.ts'
 
@@ -46,7 +47,7 @@ export function hashablePictures<P extends Picture<ListingEntry>>(pictures: read
 export function allSeries<P extends Picture<ListingEntry>>(candidates: readonly (readonly P[])[], decisionOf: (picture: P) => Decision, hashOf: HashOf<P> = noHashes): P[][] {
 	return candidates
 		.flatMap((candidate) => {
-			const shots = candidate.filter((picture) => decisionOf(picture).flag !== 'rejected').map((picture) => shotOf(picture, hashOf)!)
+			const shots = candidate.filter((picture) => !isRejected(decisionOf(picture))).map((picture) => shotOf(picture, hashOf)!)
 			return runs(shots, (previous, next, first) => linked(previous, next) && next.time - first.time <= SERIES_SPAN_SECONDS).map(picturesOfRun)
 		})
 		.sort((a, b) => shotOf(a[0]!, noHashes)!.time - shotOf(b[0]!, noHashes)!.time)
@@ -54,7 +55,7 @@ export function allSeries<P extends Picture<ListingEntry>>(candidates: readonly 
 
 /** The series to compare: every series with an unflagged picture. */
 export function findSeries<P extends Picture<ListingEntry>>(candidates: readonly (readonly P[])[], decisionOf: (picture: P) => Decision, hashOf: HashOf<P> = noHashes): P[][] {
-	return allSeries(candidates, decisionOf, hashOf).filter((series) => series.some((picture) => decisionOf(picture).flag === 'unflagged'))
+	return allSeries(candidates, decisionOf, hashOf).filter((series) => series.some((picture) => isOpen(decisionOf(picture))))
 }
 
 /** Whether two shots in capture-time order belong together: alike within the visual gap, or within the time gap while one has no hash. */
