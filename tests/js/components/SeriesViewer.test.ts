@@ -25,7 +25,7 @@ const SERIES = picturesOf([1, 2, 3].map((id) => listingEntry(id, `/Trip/IMG_${id
 const listeners: ((event: KeyboardEvent) => void)[] = []
 
 /** The viewer at `index` of the series on a 1000 × 600 stage, its keys on the window as the app installs them. */
-async function mountViewer(index = 1, settings: Partial<Settings> = {}) {
+async function mountViewer(index = 1, settings: Partial<Settings> = {}, pictures: Picture<ListingEntry>[] = SERIES) {
 	const decoded: string[] = []
 	const decided: [DecisionIntent, string][] = []
 	const decisions = reactive(new Map<string, Decision>())
@@ -33,7 +33,7 @@ async function mountViewer(index = 1, settings: Partial<Settings> = {}) {
 	const wrapper = mount(SeriesViewer, {
 		attachTo: document.body,
 		props: {
-			pictures: SERIES,
+			pictures,
 			index,
 			position: 1,
 			count: 3,
@@ -81,7 +81,7 @@ describe('SeriesViewer', () => {
 	})
 
 	// spec: SERIES-002.1
-	it('shows the photo with its name and place, the loupe controls without its panels, and preloads the whole series', async () => {
+	it('shows the photo with its name and place, the loupe controls without its panels, and preloads its neighbours', async () => {
 		const { wrapper, root, decoded } = await mountViewer()
 
 		expect(plain(root.attributes('aria-label'))).toBe('Series viewer')
@@ -93,7 +93,19 @@ describe('SeriesViewer', () => {
 		expect(wrapper.find('.loupe-filmstrip').exists()).toBe(false)
 		expect(label(wrapper, 'Toggle info panel').exists()).toBe(false)
 		expect(wrapper.find('.pick-rest-button').exists()).toBe(true)
-		expect(decoded).toEqual(['/img/1/4096', '/img/2/4096', '/img/3/4096'])
+		expect(decoded).toEqual(['/img/2/4096', '/img/3/4096', '/img/1/4096'])
+	})
+
+	// spec: SERIES-002.1
+	it('preloads the loupe\'s window of 3 ahead and 2 behind, following the page and a photo that leaves', async () => {
+		const burst = picturesOf([1, 2, 3, 4, 5, 6, 7, 8].map((id) => listingEntry(id, `/Trip/IMG_${id}.JPG`))) as Picture<ListingEntry>[]
+		const { wrapper, decoded } = await mountViewer(2, {}, burst)
+		expect(decoded).toEqual([3, 4, 2, 5, 1, 6].map((id) => `/img/${id}/4096`))
+
+		await wrapper.setProps({ pictures: burst.filter((_picture, index) => index !== 2) })
+		await wrapper.setProps({ index: 6 })
+
+		expect(decoded.slice(6)).toEqual(['/img/7/4096', '/img/8/4096'])
 	})
 
 	// spec: SERIES-002.2
