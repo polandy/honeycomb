@@ -28,6 +28,16 @@ server keeps the hashes the browser computed and hands them out with the listing
   hashes and when no picture is left to hash. A failed save is logged; the hashes still count for
   the series of this visit. Browser storage holds no hashes; the key `honeycomb.visualHashes` of
   earlier versions is removed when a cull opens.
+- The browser hashes a picture's shown member from the small grid tier, the very URL the grid
+  tile loads first (`smallSource`), so the browser's cache serves it: a pair by its JPEG, a
+  RAW-only picture by the JPEG embedded in the RAW (IMAGES-001.6).
+- Each hashable picture has a hash state: *hashed* (delivered or computed), *pending* or *failed*
+  (its preview could not be loaded or hashed). A failed file version is not hashed again in this
+  visit; the next visit tries it once more. A picture that is not hashable has no hash state.
+- The grid toolbar shows the similarity of the cull's hashable pictures beside the decided count,
+  in quiet text: *Similarity 120/300* with a bar while some are pending; once none is pending,
+  *Similarity: 3 photos not compared* in the warning colour when some failed, else *Similarity:
+  not saved* when the last save failed; nothing once every one is hashed and saved.
 
 ## Acceptance criteria
 
@@ -125,6 +135,49 @@ server keeps the hashes the browser computed and hands them out with the listing
 - **When** the move is done
 - **Then** the hash is stored under the new file id, with its etag
 
+### SERIES-003.16 – Each picture knows its hash state
+
+- **Given** an open cull with hashable pictures, some delivered with a hash, one being hashed and
+  one whose preview failed, and a picture that is not hashable
+- **When** the state of each is asked
+- **Then** they are *hashed*, *pending* and *failed*, and the last one has none
+
+### SERIES-003.17 – A failed hash is not repeated
+
+- **Given** a picture whose preview failed to hash
+- **When** the shown pictures change, as after a decision or another pairing
+- **Then** the same file version is not hashed again in this visit; a new version is
+
+### SERIES-003.18 – The similarity while hashing
+
+- **Given** an open cull with hashable pictures still pending
+- **When** the grid shows
+- **Then** the toolbar shows *Similarity* with the hashed and the hashable count and a bar
+
+### SERIES-003.19 – Failures show
+
+- **Given** an open cull with no hashable picture pending
+- **When** some failed, or the last save of hashes failed
+- **Then** the toolbar shows how many photos were not compared, else that the hashes were not saved
+
+### SERIES-003.20 – Gone when every hash is there
+
+- **Given** an open cull whose hashable pictures are all hashed and saved, or without any
+- **When** the grid shows
+- **Then** the toolbar shows no similarity
+
+### SERIES-003.21 – RAW-only pictures and pairs are hashed
+
+- **Given** a RAW-only picture and a RAW+JPEG pair in one burst
+- **When** they are hashed
+- **Then** the RAW-only picture is hashed from its RAW's grid preview and the pair from its JPEG's
+
+### SERIES-003.22 – The hash loads no second preview
+
+- **Given** a picture the grid shows
+- **When** it is hashed
+- **Then** the hasher loads the same URL as the tile's small preview, with the same URL builder
+
 ## Out of scope
 
 - The hash, the link rule and when a picture is hashed: SERIES-001.
@@ -135,3 +188,4 @@ server keeps the hashes the browser computed and hands them out with the listing
 | Date | Change |
 |---|---|
 | 2026-11-14 | Written with the visual hash table and endpoint (owner decision, ADR 0024) |
+| 2026-11-14 | Hash states, the similarity in the toolbar, no repeat of a failed hash (owner request) |

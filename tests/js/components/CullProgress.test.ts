@@ -19,13 +19,13 @@ describe('CullProgress', () => {
 
 		expect(wrapper.text()).toContain(`${MARK}1,840 / 2,000 decided`)
 		expect(bar.attributes()).toMatchObject({ 'aria-label': `${MARK}Decided`, 'aria-valuemin': '0', 'aria-valuemax': '2000', 'aria-valuenow': '1840' })
-		expect(bar.find('.cull-progress__done').attributes('style')).toContain('width: 92%')
+		expect(bar.find('.progress-bar__done').attributes('style')).toContain('width: 92%')
 	})
 
 	// spec: GRID-002.7
 	it('shows an empty progress bar for a cull without photos', () => {
 		const wrapper = mount(CullProgress, { props: { decided: 0, total: 0, filtered: false } })
 
-		expect(wrapper.find('.cull-progress__done').attributes('style')).toContain('width: 0%')
+		expect(wrapper.find('.progress-bar__done').attributes('style')).toContain('width: 0%')
 	})
 })
