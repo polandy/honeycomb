@@ -260,7 +260,8 @@ function onOpen(open: boolean) {
 	white-space: normal;
 }
 
-@media (max-width: 520px) {
+/* A phone either way round, as in the grid sizing rule's PHONE_SIDE. */
+@media (max-width: 520px), (max-height: 520px) {
 	.series-compare__hint {
 		display: none;
 	}
