@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/** The width of the image a visual hash is taken from; one column more than bits per row (ADR 0021). */
+/** The width of the image a visual hash is taken from; one column more than bits per row (ADR 0024). */
 export const HASH_COLUMNS = 9
 
 /** The height of the image a visual hash is taken from, one row of bits each. */

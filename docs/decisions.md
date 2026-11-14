@@ -1047,3 +1047,14 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-14: A folder on an incoming share (mount type `shared`, a user or a federated share) is
   shared without asking the share manager: its owner is always another user, so the access-list
   query per listed folder was wasted. Outgoing shares are still asked per folder.
+- 2026-11-14: Stored visual hashes (ADR 0024) reach the browser as a `visualHash` field of each
+  listing entry, not through a lookup endpoint: no extra request, and the server drops a hash
+  whose etag is no longer the file's. The etag alone marks the version; no mtime column.
+- 2026-11-14: The browser no longer keeps visual hashes in its storage, not even as a cache: the
+  listing delivers them, and the old key `honeycomb.visualHashes` is removed once.
+- 2026-11-14: A visual hash save looks up each file id in the user's folder, so a hash is stored
+  only for a photo the user reaches and only for its current etag; batches of 100 keep it short.
+  The save goes straight to the API, not through the decision save queue: hashes are computed one
+  at a time and a batch is sent after the previous one, so no two saves of one tab overlap.
+- 2026-11-14: A missing `honeycomb_hashes` table fails the listing loudly instead of delivering no
+  hashes; only a Git-checkout install can lack it, and docs/admin/updating.md tells how to add it.
