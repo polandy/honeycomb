@@ -6,26 +6,30 @@ import { cullFolder } from './cull.ts'
 import { createFolder, JPEG, upload, withCaptureTime } from './files.ts'
 
 const PHONE = { width: 320, height: 640 }
+const PHONE_SIDEWAYS = { width: 952, height: 427 }
 const DESKTOP = { width: 1440, height: 900 }
 
-// spec: SERIES-001.13
-test('shows the whole label of Pick this, reject the rest in the bottom bar of a phone', async ({ page }) => {
-	await page.setViewportSize(PHONE)
-	await page.goto('/index.php/apps/honeycomb/')
-	const folder = `Series ${randomUUID().slice(0, 8)}`
-	await createFolder(page, folder)
-	await upload(page, `${folder}/IMG_0001.jpg`, withCaptureTime(JPEG, '2026:11:10 10:00:00'))
-	await upload(page, `${folder}/IMG_0002.jpg`, withCaptureTime(JPEG, '2026:11:10 10:00:01'))
+for (const [held, viewport] of [['upright', PHONE], ['sideways', PHONE_SIDEWAYS]] as const) {
+	// spec: SERIES-001.13
+	test(`shows the whole label of Pick this, reject the rest and hides the instructions on a phone held ${held}`, async ({ page }) => {
+		await page.setViewportSize(viewport)
+		await page.goto('/index.php/apps/honeycomb/')
+		const folder = `Series ${randomUUID().slice(0, 8)}`
+		await createFolder(page, folder)
+		await upload(page, `${folder}/IMG_0001.jpg`, withCaptureTime(JPEG, '2026:11:10 10:00:00'))
+		await upload(page, `${folder}/IMG_0002.jpg`, withCaptureTime(JPEG, '2026:11:10 10:00:01'))
 
-	await cullFolder(page, folder)
-	await expect(page.getByRole('gridcell')).toHaveCount(2)
-	await page.keyboard.press('n')
+		await cullFolder(page, folder)
+		await expect(page.getByRole('gridcell')).toHaveCount(2)
+		await page.keyboard.press('n')
 
-	const button = page.getByRole('dialog', { name: 'Compare series 1 of 1' }).getByRole('button', { name: 'Pick this, reject the rest' })
-	await expect(button).toBeInViewport({ ratio: 1 })
-	const label = button.locator('.button-vue__text')
-	expect(await label.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
-})
+		const button = page.getByRole('dialog', { name: 'Compare series 1 of 1' }).getByRole('button', { name: 'Pick this, reject the rest' })
+		await expect(button).toBeInViewport({ ratio: 1 })
+		const label = button.locator('.button-vue__text')
+		expect(await label.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+		await expect(page.locator('.series-compare__hint')).toBeHidden()
+	})
+}
 
 // spec: SERIES-001.20
 test('fills the screen with the compare and keeps the flag buttons level beside a flagged card', async ({ page }) => {
