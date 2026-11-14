@@ -969,3 +969,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   reach. The cards keep their stars and flag mark next to the name, so a rating key shows its
   effect on the card. "Phone" for the grid's 150 px minimum means the screen's shorter side is at
   most 520 px, so a phone held sideways counts too (SERIES-001.21).
+- 2026-11-14: Full screen from the compare (concept step 6): `Enter` is handled by the focused card's
+  photo, as the grid's tiles handle it, rather than added to the window key map, where it would
+  take `Enter` from every focused button; focus follows the active card while it is on a card's
+  photo, so `Enter` opens the active one. The card double tap and the loupe share one pure rule
+  (`src/logic/double-tap.ts`, 320 ms, 40 px, same card). The viewer's back arrow is a new shared
+  `BackButton` with the word hidden on a phone, since the loupe has no back arrow yet to reuse.

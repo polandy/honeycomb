@@ -534,6 +534,7 @@ against it. `Ctrl` on Windows and Linux is `⌘` on a Mac.
 | `T` | tag entry for the photo or the selection (TAGS-003) | differs: `T` shows or hides the toolbar in Lightroom |
 | Arrow keys | grid, series compare: move focus, `↑` `↓` by a row; loupe, series viewer: switch photo | same idea |
 | `Home` `End` | first photo, last photo | not in the Adobe text read; the browser's usual meaning |
+| `Enter` | grid: open the focused photo in the loupe; series compare: view the active photo full screen in the series viewer | same idea |
 | `G` `E` `N` | grid, loupe, series compare | `G` and `E` as in Lightroom; `N` is Survey there, series compare here |
 | `Space` | loupe: fit / 100 % | differs: Lightroom's `Space` leaves the grid for the loupe; `Z` zooms there |
 | `Z` | loupe and series viewer: fit / 100 % | not confirmed in the Adobe text read |

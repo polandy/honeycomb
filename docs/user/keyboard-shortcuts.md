@@ -34,7 +34,7 @@ every screen; each button's tooltip names its key.
 |---|---|
 | `←` `→` `↑` `↓` | Grid and series compare: move the focus, `↑` `↓` by a row. Loupe and series viewer: switch to the previous or next photo. |
 | `Home` and `End` | Go to the first or last photo. |
-| `Enter` | Open the focused photo in the loupe. |
+| `Enter` | Open the focused photo in the loupe. In the series compare: view the active photo full screen. |
 | `G` | Back to the grid. |
 | `E` | Open the loupe. |
 | `N` | Open the series compare. |
@@ -68,9 +68,17 @@ the arrow keys switch it, as in Lightroom's Survey view: in the compare `←` `�
 order and `↑` `↓` to the photo above or below. The bottom bar's *Pick this, reject the rest*
 acts on the active photo.
 
+In the series compare a tap or click on a photo makes it the active one. To look at a photo
+closely, press the *View full screen* button (⤢) in its top right corner, double-tap or
+double-click it, or press `Enter` for the active photo: the series viewer shows it full screen,
+where you zoom with `Z`, page through the series with `←` `→` and decide. *Back to the series* or
+`Esc` returns to the compare with that photo active.
+
 | Keys | What it does |
 |---|---|
 | `Shift+K` | **Pick this, reject the rest** of the series, as one undo step. |
+| `Enter` | Series compare: view the active photo full screen. |
+| `Esc` | Series viewer: back to the series. Series compare: close it. |
 
 ## Undo, delete and more
 
