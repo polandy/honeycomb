@@ -7,8 +7,6 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-use OCP\Files\File;
-use OCP\Files\Folder;
 use OCP\IUser;
 
 /** Stores the visual hashes the browser computed, each only for the current version of a photo the user reaches (ADR 0024). */
@@ -18,7 +16,7 @@ final class VisualHashService {
 
 	public function __construct(
 		private VisualHashStore $store,
-		private UserFolderResolver $userFolders,
+		private UserPhotos $photos,
 	) {
 	}
 
@@ -29,25 +27,13 @@ final class VisualHashService {
 	 * @throws InvalidVisualHashException for a malformed item, a file id given twice or too many items
 	 */
 	public function save(IUser $user, array $items): array {
-		if (!array_is_list($items) || count($items) > self::SAVE_LIMIT) {
-			throw new InvalidVisualHashException('Expected a list of at most ' . self::SAVE_LIMIT . ' items');
-		}
-		$hashes = array_map(VisualHash::fromRequest(...), $items);
-		$fileIds = array_map(static fn (VisualHash $hash): int => $hash->fileId, $hashes);
-		if (count(array_unique($fileIds)) !== count($fileIds)) {
-			throw new InvalidVisualHashException('Each file id may appear only once');
-		}
-		$userFolder = $this->userFolders->userFolder($user);
-		$current = array_values(array_filter($hashes, static fn (VisualHash $hash): bool => self::isCurrent($userFolder, $hash)));
+		$hashes = array_map(VisualHash::fromRequest(...), FileIds::items($items, self::SAVE_LIMIT, InvalidVisualHashException::class));
+		$fileIds = FileIds::eachOnce(array_map(static fn (VisualHash $hash): int => $hash->fileId, $hashes), InvalidVisualHashException::class);
+		$isCurrent = array_flip($this->photos->current($user, array_combine($fileIds, array_map(static fn (VisualHash $hash): string => $hash->etag, $hashes))));
+		$current = array_values(array_filter($hashes, static fn (VisualHash $hash): bool => isset($isCurrent[$hash->fileId])));
 		if ($current !== []) {
 			RetryOnConflict::run(fn () => $this->store->replace($user->getUID(), $current));
 		}
 		return array_map(static fn (VisualHash $hash): int => $hash->fileId, $current);
-	}
-
-	/** Whether the hash's file is a photo in the user's folder and still at the hash's etag. */
-	private static function isCurrent(Folder $userFolder, VisualHash $hash): bool {
-		$node = $userFolder->getFirstNodeById($hash->fileId);
-		return $node instanceof File && ListingService::isPhoto($node) && $node->getEtag() === $hash->etag;
 	}
 }

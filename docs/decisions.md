@@ -1119,3 +1119,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   through to the tiles.
 - 2026-11-14: The grid keeps the strip's 22 px free above its first row at all times (#181 B), so
   the strip covers no tile at the top and nothing moves when it comes or goes.
+- 2026-11-14: `FileIds` throws the caller's exception class, a subclass of the new
+  `InvalidRequestException`, so each controller keeps mapping its own exception to 400 and no
+  service needs a try/catch to rethrow (R5a).

@@ -8,5 +8,5 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 /** A decision request is malformed: nothing of it is written. */
-final class InvalidDecisionException extends \InvalidArgumentException {
+final class InvalidDecisionException extends InvalidRequestException {
 }
