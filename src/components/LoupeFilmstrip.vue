@@ -30,7 +30,7 @@ const props = withDefaults(defineProps<{
 	/** Whether *Pin the filmstrip* is on; its toggle sits at the strip's end. */
 	pinned: boolean
 	observeSize?: ObserveSize
-	/** Opens the compare on the series at that index; the frame's tab shows only with it (LOUPE-001.19). */
+	/** Opens the compare on the series of the photo at that index, the frame's first; the frame's tab shows only with it (LOUPE-001.19). */
 	onCompareSeries?: (index: number) => void
 }>(), { observeSize: observeElementSize })
 
