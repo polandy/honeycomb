@@ -19,6 +19,7 @@ import NcActions from '@nextcloud/vue/components/NcActions'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
+import ActionIcon from './ActionIcon.vue'
 import AppIcon from './AppIcon.vue'
 import PickRestButton from './PickRestButton.vue'
 import SeriesCompareCard from './SeriesCompareCard.vue'
@@ -108,6 +109,14 @@ function showActive() {
 }
 // The focus trap keeps focus that is already inside; else it focuses card 1 and scrolls back to it.
 onMounted(() => photoAt(props.active)?.focus({ preventScroll: true }))
+// NcModal closes on any Escape while it tops the focus trap stack, and a menu adds no trap of its own.
+const openMenus = shallowRef(0)
+/** Counts the open menus, so that Escape in one closes only the menu. */
+function onMenuOpen(open: boolean) {
+	openMenus.value += open ? 1 : -1
+}
+// An edit can unmount a menu before it reports closing.
+watch(() => props.series, () => { openMenus.value = 0 })
 watch([() => props.active, () => props.series, () => layout.value?.columns], showActive, { flush: 'post' })
 
 const taps = doubleTaps()
@@ -143,6 +152,7 @@ function onOpen(open: boolean) {
 		:name="title"
 		size="full"
 		:container="props.container"
+		:noClose="openMenus > 0"
 		@update:open="onOpen">
 		<NcEmptyContent
 			v-if="props.series === null"
@@ -153,14 +163,15 @@ function onOpen(open: boolean) {
 				forceMenu
 				:container="props.container"
 				:ariaLabel="t('honeycomb', 'Series menu')"
-				v-bind="tip(t('honeycomb', 'More'))">
+				v-bind="tip(t('honeycomb', 'More'))"
+				@update:open="onMenuOpen">
 				<template #icon>
 					<AppIcon name="more" />
 				</template>
 				<NcActionCaption :name="t('honeycomb', 'This series · ⧉ {count}', { count: formatNumber(props.series.members.length) }, undefined, PLAIN_TEXT)" />
 				<NcActionButton closeAfterClick :description="t('honeycomb', 'Its photos are never grouped again automatically')" @click="emit('dissolve')">
 					<template #icon>
-						<AppIcon name="minus" />
+						<ActionIcon name="minus" />
 					</template>
 					{{ t('honeycomb', 'Dissolve this series') }}
 				</NcActionButton>
@@ -184,6 +195,7 @@ function onOpen(open: boolean) {
 				@tap="onPhotoTap(index, $event)"
 				@view="emit('view', index)"
 				@remove="emit('remove', picture)"
+				@menu="onMenuOpen"
 				@flag="emit('decide', { kind: 'flag', flag: $event }, picture)" />
 		</ul>
 		<template #actions>

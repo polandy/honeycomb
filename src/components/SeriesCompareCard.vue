@@ -12,6 +12,7 @@ import { t } from '@nextcloud/l10n'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActionCaption from '@nextcloud/vue/components/NcActionCaption'
 import NcActions from '@nextcloud/vue/components/NcActions'
+import ActionIcon from './ActionIcon.vue'
 import AppIcon from './AppIcon.vue'
 import FlagButtons from './FlagButtons.vue'
 import FlagMark from './FlagMark.vue'
@@ -41,6 +42,8 @@ const emit = defineEmits<{
 	view: []
 	/** *Remove from this series* in the card's menu (SERIES-005.10). */
 	remove: []
+	/** The card's menu opened or closed. */
+	menu: [open: boolean]
 	flag: [flag: Flag]
 }>()
 </script>
@@ -75,20 +78,21 @@ const emit = defineEmits<{
 				forceMenu
 				:container="props.container ?? 'body'"
 				:ariaLabel="t('honeycomb', 'Photo {i} menu', { i: formatNumber(props.index + 1) }, undefined, PLAIN_TEXT)"
-				v-bind="tip(t('honeycomb', 'More'))">
+				v-bind="tip(t('honeycomb', 'More'))"
+				@update:open="emit('menu', $event)">
 				<template #icon>
 					<AppIcon name="more" />
 				</template>
 				<NcActionCaption :name="props.picture.baseName" />
 				<NcActionButton closeAfterClick :description="t('honeycomb', 'It stays in the folder, with its flags')" @click="emit('remove')">
 					<template #icon>
-						<AppIcon name="minus" />
+						<ActionIcon name="minus" />
 					</template>
 					{{ t('honeycomb', 'Remove from this series') }}
 				</NcActionButton>
 				<NcActionButton closeAfterClick @click="emit('view')">
 					<template #icon>
-						<AppIcon name="expand" />
+						<ActionIcon name="expand" />
 					</template>
 					{{ t('honeycomb', 'View full screen') }}
 				</NcActionButton>
@@ -165,6 +169,10 @@ const emit = defineEmits<{
 	border-radius: 50%;
 	background-color: rgba(0, 0, 0, .7);
 	color: #fff;
+}
+
+.series-compare__menu :deep(.action-item__menutoggle) {
+	color: inherit;
 }
 
 @media (pointer: fine) {

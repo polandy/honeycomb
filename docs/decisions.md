@@ -1300,3 +1300,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-15: The compare's menus are `NcActions` with a caption and second lines; the title
   row's menu sits in a row above the cards, as `NcDialog` has no header slot. It holds only
   *Dissolve this series* until merge and *Series done* come (PR 5, PR 6) (#185 PR 3).
+- 2026-11-15: Escape in an open menu of the compare closes only the menu: the dialog takes
+  `noClose` while a menu is open, counted per menu and reset when the series changes, as NcModal
+  closes on any Escape while it tops the focus trap stack and a menu adds no trap (#185 PR 3).
