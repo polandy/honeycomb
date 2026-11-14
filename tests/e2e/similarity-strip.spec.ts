@@ -38,6 +38,8 @@ for (const [width, viewport] of Object.entries(WIDTHS)) {
 		await expect(firstTile).toHaveAccessibleName(/Series of 2, Series may still change/)
 		await expect(page.locator('.photo-tile__series--open')).toHaveCount(2)
 		const before = await firstTile.boundingBox()
+		const band = (await strip.boundingBox())!
+		expect(before!.y).toBeGreaterThanOrEqual(band.y + band.height)
 
 		released = true
 		await Promise.all(held.map((route) => route.continue()))
