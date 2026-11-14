@@ -43,6 +43,16 @@ export function inverseChange(change: TagChange): TagChange {
 	return { added: change.removed, removed: change.added }
 }
 
+/** One change that changes tags as `first` and then `then` do. */
+export function combinedChange(first: TagChange, then: TagChange): TagChange {
+	const added = new Set(then.added)
+	const removed = new Set(then.removed)
+	return {
+		added: sortedTags([...first.added.filter((tag) => !removed.has(tag)), ...then.added]),
+		removed: sortedTags([...first.removed.filter((tag) => !added.has(tag)), ...then.removed]),
+	}
+}
+
 /** The longest tag the storage holds (ADR 0022). */
 const MAX_TAG_LENGTH = 255
 

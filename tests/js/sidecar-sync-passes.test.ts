@@ -105,11 +105,11 @@ describe('useSidecarSync: passes', () => {
 		const { sidecars, saves, release } = sync()
 		release()
 
-		await sidecars.write([SINGLE], () => rated(4))
+		await Promise.all([sidecars.write([SINGLE], () => rated(4)), sidecars.writeTags([SINGLE], { added: ['Kids'], removed: [] })])
 		expect(saves).toHaveLength(1)
 
 		expect(await sidecars.write([SINGLE], () => rated(4))).toEqual({ written: 1, failed: [] })
-		expect(await sidecars.writeTags([SINGLE], { added: [], removed: ['Kids'] })).toEqual({ written: 1, failed: [] })
+		expect(await sidecars.writeTags([SINGLE], { added: ['Kids'], removed: ['Events/Wedding'] })).toEqual({ written: 1, failed: [] })
 		expect(saves).toHaveLength(1)
 	})
 
