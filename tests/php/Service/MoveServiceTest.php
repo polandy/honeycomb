@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidMoveRequestException;
 use OCA\Honeycomb\Service\FileRowStores;
+use OCA\Honeycomb\Service\InvalidMoveRequestException;
 use OCA\Honeycomb\Service\MoveService;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
 use OCP\App\IAppManager;

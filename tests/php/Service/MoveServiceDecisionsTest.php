@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\DecisionStore;
+use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\MoveService;
 use OCA\Honeycomb\Service\PictureDecision;

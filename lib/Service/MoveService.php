@@ -29,9 +29,7 @@ final class MoveService {
 	public function __construct(
 		private IRootFolder $rootFolder,
 		private IAppManager $appManager,
-		private DecisionStore $decisions,
-		private TagStore $tags,
-		private VisualHashStore $visualHashes,
+		private FileRowStores $fileRows,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -145,7 +143,7 @@ final class MoveService {
 		if ($newFileId === $fileId) {
 			return;
 		}
-		foreach ([$this->decisions, $this->tags, $this->visualHashes] as $store) {
+		foreach ($this->fileRows->stores() as $store) {
 			try {
 				$store->carryOver($userId, $fileId, $newFileId);
 			} catch (\Exception $e) {

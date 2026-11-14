@@ -7,10 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Listener;
 
-use OCA\Honeycomb\Service\DecisionStore;
-use OCA\Honeycomb\Service\PositionStore;
-use OCA\Honeycomb\Service\TagStore;
-use OCA\Honeycomb\Service\VisualHashStore;
+use OCA\Honeycomb\Service\UserRowStores;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\User\Events\UserDeletedEvent;
@@ -22,10 +19,7 @@ use OCP\User\Events\UserDeletedEvent;
 final class ForgetDeletedUser implements IEventListener {
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it. */
 	public function __construct(
-		private DecisionStore $decisions,
-		private PositionStore $positions,
-		private TagStore $tags,
-		private VisualHashStore $visualHashes,
+		private UserRowStores $stores,
 	) {
 	}
 
@@ -34,9 +28,8 @@ final class ForgetDeletedUser implements IEventListener {
 		if (!$event instanceof UserDeletedEvent) {
 			return;
 		}
-		$this->decisions->forgetUser($event->getUid());
-		$this->positions->forgetUser($event->getUid());
-		$this->tags->forgetUser($event->getUid());
-		$this->visualHashes->forgetUser($event->getUid());
+		foreach ($this->stores->all() as $store) {
+			$store->forgetUser($event->getUid());
+		}
 	}
 }

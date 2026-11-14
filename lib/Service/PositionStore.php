@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 /** Where the resume positions of each user are kept, by folder set key. */
-interface PositionStore {
+interface PositionStore extends UserRowStore {
 	/**
 	 * The user's positions, the latest saved first.
 	 * @return list<ResumePosition>
@@ -20,7 +20,4 @@ interface PositionStore {
 
 	/** @param list<string> $folderSetKeys */
 	public function forget(string $userId, array $folderSetKeys): void;
-
-	/** Removes every position of the user. */
-	public function forgetUser(string $userId): void;
 }

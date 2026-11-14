@@ -19,6 +19,9 @@ dependencies — are in [`conventions.md`](conventions.md). This file adds the s
   serve previews. Every path or file id from the client is rechecked — owned by the user, still
   exists, unchanged since the client read it — before anything is touched.
 - Database access through `QBMapper`/`Entity` and migrations in `lib/Migration/`.
+- A new table of rows per file id is a `FileRowStore`, registered in `FileRowStores`; one of rows
+  per user is a `UserRowStore`, registered in `UserRowStores`. The vanished-file sweep, the
+  clean-up of a deleted user and the carry-over on a move read those lists, so nothing else changes.
 - Errors: domain exceptions per service; controllers map them to HTTP status codes. Logging
   through the injected `Psr\Log\LoggerInterface` ([`conventions.md`](conventions.md) §3).
 - Classes `final`, properties `private`, constructor property promotion, `#[\Override]` on
