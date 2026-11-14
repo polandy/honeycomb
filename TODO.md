@@ -9,6 +9,8 @@ Add items with `/todo`.
 
 ## Milestones
 
+- [ ] Stored series (#185, ADR 0027, SERIES-005): PR 1 backend (tables, `SeriesStore`, lookup and write), PR 2 delivery and logic, PR 3 remove and dissolve, PR 4 grid *Series…* menu, PR 5 merge with the next or previous series, PR 6 *Series done* (#183) (2026-11-14)
+
 ## Later
 
 - [ ] Redraw `docs/mockup/index.html` and `docs/plan.md` item 2 (app bar) for the flag filter chips that replaced the scope control (GRID-002; owner sign-off on the look) (2026-11-11)

@@ -22,9 +22,13 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **cull** | Going through a folder set and rating, labelling, flagging and deleting pictures. |
 | **folder set** | The folders one cull covers: the ticked folders and, with *Include subfolders*, every folder below them. Not a *selection*. |
 | **resume position** | Where a user stands in a folder set (the current picture and how many are decided), stored on the server so a cull continues on another device. |
-| **undecided** | A picture whose flag is unflagged; picked and rejected pictures are *decided*. |
+| **undecided** | A picture whose flag is unflagged; picked and rejected pictures are *decided*. Once SERIES-005 is built, an unflagged picture of a done series counts as decided too. |
 | **reject review** | The grid of all rejected pictures, where single ones can be rescued before the delete summary. |
 | **series** | Pictures taken within a short interval that look alike, compared side by side to pick the best. |
+| **automatic series** | A series computed from capture time and visual hash (SERIES-001) out of the pictures that are neither in a stored series nor kept out. |
+| **stored series** | A series the user has made, changed, merged or marked done; stored on the server and never changed automatically (ADR 0027). |
+| **kept out** | A picture the user removed from a series: no automatic series takes it again; by hand it can still join one. |
+| **series done** | The status of a stored series the user has finished: its unflagged pictures count as decided but stay unflagged. Its opposite is *open*. |
 | **visual hash** | A 64-bit fingerprint of a picture's small preview; two pictures look alike when their visual hashes differ in few bits (ADR 0024). |
 | **grid** | The thumbnail view of a folder set. |
 | **skeleton tile** | A tile drawn before its photo is there: its empty face pulses while the listing or the tile's thumbnail is on its way. |
@@ -87,6 +91,9 @@ loupe, series compare, series viewer). The controls come from the shared compone
 - **Toasts.** One undoable change, one toast: the change in the past tense, the photo's name or
   "n photos", then *Undo* — "Rejected IMG_0001 · Undo", "Picked IMG_0001 · rejected 2 · Undo",
   "Rated 3 photos ★★★ · Undo". Undo and redo answer "Undid: …" and "Redid: …".
+- **Series edits.** *New series from n photos*, *Add n photos to series*, *Merge n series*,
+  *Merge with the next series*, *Remove from this series*, *Dissolve this series* and *Series
+  done* (SERIES-005); not *group*, *split* or *ungroup*.
 - **Dialogs.** The footer reads *Back*, then *Cancel* (or *Close* when the dialog only shows
   something), then the confirming action on the right: primary, or red for deleting. Its label
   says what happens, e.g. "Move 12 files to trash".
