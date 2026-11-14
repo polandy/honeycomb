@@ -120,7 +120,11 @@ function onOpen(open: boolean) {
 			v-if="props.series === null"
 			:name="t('honeycomb', 'All series compared')"
 			:description="n('honeycomb', 'No more photos taken within {count} second of each other are left to decide.', 'No more photos taken within {count} seconds of each other are left to decide.', SERIES_GAP_SECONDS, { count: formatNumber(SERIES_GAP_SECONDS) }, PLAIN_TEXT)" />
-		<ul v-else ref="grid" class="series-compare" :style="gridStyle">
+		<ul
+			v-else
+			ref="grid"
+			class="series-compare"
+			:style="gridStyle">
 			<li
 				v-for="(picture, index) in props.series"
 				:key="imageMember(picture).fileId"
