@@ -43,65 +43,67 @@ function choose(path: string) {
 
 <template>
 	<NcContent appName="honeycomb">
-		<NcAppContent class="similarity-page">
-			<NcButton variant="tertiary" :href="cullUrl">
-				<template #icon>
-					<AppIcon name="back" />
+		<NcAppContent>
+			<div class="similarity-page">
+				<NcButton variant="tertiary" :href="cullUrl">
+					<template #icon>
+						<AppIcon name="back" />
+					</template>
+					{{ t('honeycomb', 'Back to the cull') }}
+				</NcButton>
+				<h2>{{ t('honeycomb', 'Similarity') }}</h2>
+				<p>{{ t('honeycomb', 'Compares every photo in a folder and its subfolders ahead of the cull, so series show at once on any device.') }}</p>
+				<FolderList
+					:ticked="chosen === null ? [] : [chosen]"
+					:listFolders="props.listFolders"
+					single
+					@toggle="choose" />
+				<div class="similarity-page__actions">
+					<NcButton
+						v-if="!busy && run.status.value !== 'paused'"
+						variant="primary"
+						:disabled="chosen === null"
+						@click="run.start(chosen!)">
+						{{ t('honeycomb', 'Start') }}
+					</NcButton>
+					<NcButton v-if="busy" :disabled="run.status.value === 'pausing'" @click="run.pause()">
+						{{ t('honeycomb', 'Pause') }}
+					</NcButton>
+					<NcButton v-if="run.status.value === 'paused'" variant="primary" @click="run.resume()">
+						{{ t('honeycomb', 'Resume') }}
+					</NcButton>
+				</div>
+				<template v-if="run.status.value !== 'idle'">
+					<ProgressBar
+						class="similarity-page__bar"
+						:label="t('honeycomb', 'Similarity')"
+						:value="done"
+						:max="run.progress.value.total" />
+					<dl class="similarity-page__counts">
+						<div v-for="count in counts" :key="count.label">
+							<dt>{{ count.label }}</dt>
+							<dd>{{ count.value }}</dd>
+						</div>
+					</dl>
+					<NcNoteCard v-if="run.problem.value === 'save'" type="error">
+						{{ t('honeycomb', 'Could not save the visual hashes. Resume to try again.') }}
+					</NcNoteCard>
+					<NcNoteCard v-if="run.problem.value === 'page'" type="error">
+						{{ t('honeycomb', 'Could not load the photos. Resume to try again.') }}
+					</NcNoteCard>
+					<NcNoteCard v-if="run.status.value === 'done'" type="success">
+						{{ t('honeycomb', 'Done: every photo in this folder has its similarity.') }}
+					</NcNoteCard>
+					<details v-if="run.failedPaths.value.length > 0" class="similarity-page__failed">
+						<summary>{{ t('honeycomb', 'Photos that could not be compared') }}</summary>
+						<ul>
+							<li v-for="path in run.failedPaths.value" :key="path">
+								{{ path }}
+							</li>
+						</ul>
+					</details>
 				</template>
-				{{ t('honeycomb', 'Back to the cull') }}
-			</NcButton>
-			<h2>{{ t('honeycomb', 'Similarity') }}</h2>
-			<p>{{ t('honeycomb', 'Compares every photo in a folder and its subfolders ahead of the cull, so series show at once on any device.') }}</p>
-			<FolderList
-				:ticked="chosen === null ? [] : [chosen]"
-				:listFolders="props.listFolders"
-				single
-				@toggle="choose" />
-			<div class="similarity-page__actions">
-				<NcButton
-					v-if="!busy && run.status.value !== 'paused'"
-					variant="primary"
-					:disabled="chosen === null"
-					@click="run.start(chosen!)">
-					{{ t('honeycomb', 'Start') }}
-				</NcButton>
-				<NcButton v-if="busy" :disabled="run.status.value === 'pausing'" @click="run.pause()">
-					{{ t('honeycomb', 'Pause') }}
-				</NcButton>
-				<NcButton v-if="run.status.value === 'paused'" variant="primary" @click="run.resume()">
-					{{ t('honeycomb', 'Resume') }}
-				</NcButton>
 			</div>
-			<template v-if="run.status.value !== 'idle'">
-				<ProgressBar
-					class="similarity-page__bar"
-					:label="t('honeycomb', 'Similarity')"
-					:value="done"
-					:max="run.progress.value.total" />
-				<dl class="similarity-page__counts">
-					<div v-for="count in counts" :key="count.label">
-						<dt>{{ count.label }}</dt>
-						<dd>{{ count.value }}</dd>
-					</div>
-				</dl>
-				<NcNoteCard v-if="run.problem.value === 'save'" type="error">
-					{{ t('honeycomb', 'Could not save the visual hashes. Resume to try again.') }}
-				</NcNoteCard>
-				<NcNoteCard v-if="run.problem.value === 'page'" type="error">
-					{{ t('honeycomb', 'Could not load the photos. Resume to try again.') }}
-				</NcNoteCard>
-				<NcNoteCard v-if="run.status.value === 'done'" type="success">
-					{{ t('honeycomb', 'Done: every photo in this folder has its similarity.') }}
-				</NcNoteCard>
-				<details v-if="run.failedPaths.value.length > 0" class="similarity-page__failed">
-					<summary>{{ t('honeycomb', 'Photos that could not be compared') }}</summary>
-					<ul>
-						<li v-for="path in run.failedPaths.value" :key="path">
-							{{ path }}
-						</li>
-					</ul>
-				</details>
-			</template>
 		</NcAppContent>
 	</NcContent>
 </template>
@@ -125,8 +127,20 @@ function choose(path: string) {
 }
 
 .similarity-page__counts {
-	display: flex;
-	gap: calc(6 * var(--default-grid-baseline));
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: calc(2 * var(--default-grid-baseline));
+	margin: 0;
+}
+
+/* Nextcloud's server styles give dt and dd a width, alignment and padding of their own. */
+.similarity-page__counts dt,
+.similarity-page__counts dd {
+	display: block;
+	width: auto;
+	margin: 0;
+	padding: 0;
+	text-align: start;
 }
 
 .similarity-page__counts dt {

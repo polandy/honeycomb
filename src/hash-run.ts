@@ -61,9 +61,7 @@ export function useHashRun(seams: HashRunSeams) {
 	const progress = computed(() => hashProgress([...states.value.values()].map((each) => each.state), problem.value === 'save'))
 	const failedPaths = computed(() => [...states.value.values()].filter((each) => each.state === 'failed').map((each) => each.picture.path))
 
-	/**
-	 *
-	 */
+	/** Sets the state of one picture and lets the progress know. */
 	function mark(fileId: number, state: HashState) {
 		states.value.get(fileId)!.state = state
 		triggerRef(states)
@@ -96,9 +94,7 @@ export function useHashRun(seams: HashRunSeams) {
 		}
 	}
 
-	/**
-	 *
-	 */
+	/** Asks for the next page of missing pictures and queues them; a failed page pauses the run. */
 	async function loadPage(of: number) {
 		loading = true
 		try {
@@ -125,9 +121,7 @@ export function useHashRun(seams: HashRunSeams) {
 		}
 	}
 
-	/**
-	 *
-	 */
+	/** Hashes one picture in a worker; a failure marks it failed for the rest of the run. */
 	async function hashOne(of: number, picture: MissingPicture) {
 		hashing++
 		try {
@@ -149,9 +143,7 @@ export function useHashRun(seams: HashRunSeams) {
 		}
 	}
 
-	/**
-	 *
-	 */
+	/** Saves one batch; a failed save puts it back and pauses the run. */
 	async function save(of: number) {
 		saving = true
 		const batch = unsaved.slice(0, saveBatch)

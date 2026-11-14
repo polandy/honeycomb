@@ -36,9 +36,7 @@ export function createHashWorkers(count: number, create: () => HashWorker) {
 		return worker
 	})
 
-	/**
-	 *
-	 */
+	/** Hands the waiting previews to the idle workers. */
 	function dispatch() {
 		while (idle.length > 0 && waiting.length > 0) {
 			const { url, settle } = waiting.shift()!
