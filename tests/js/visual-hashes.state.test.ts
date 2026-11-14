@@ -28,6 +28,13 @@ describe('useVisualHashes states and progress', () => {
 		expect(hashes.stateOf(byName('D'))).toBe('hashed')
 	})
 
+	// spec: SERIES-003.16
+	it('gives a picture that is not hashable no state, even with a listed hash', () => {
+		const { hashes, byName } = setUp([...BURST.slice(0, 3), { ...BURST[3]!, visualHash: '00000000000000cc' }])
+
+		expect(hashes.stateOf(byName('C'))).toBeNull()
+	})
+
 	// spec: SERIES-003.18, SERIES-003.19
 	it('counts the progress of the hashable pictures and reports the failed', async () => {
 		vi.spyOn(logger, 'warn').mockImplementation(() => {})
