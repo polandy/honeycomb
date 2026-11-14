@@ -6,7 +6,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { allSeries, findSeries, hashablePictures, SERIES_GAP_SECONDS, SERIES_SPAN_SECONDS, seriesCandidates, seriesMembers, seriesSizes, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
+import { allSeries, findSeries, hashablePictures, openSeries, SERIES_GAP_SECONDS, SERIES_SPAN_SECONDS, seriesCandidates, seriesMembers, seriesSizes, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
 /** Pictures named `/<folder>/<name>.JPG`, shot at `time` by `camera`. */
@@ -202,5 +202,14 @@ describe('seriesMembers', () => {
 		const members = seriesMembers([first, second])
 
 		expect([...members]).toEqual([['A', first], ['B', first], ['C', second], ['D', second]])
+	})
+})
+
+describe('openSeries', () => {
+	// spec: SERIES-003.25
+	it('holds each picture of a series with a pending member, and none of a series without', () => {
+		const open = openSeries([['A', 'B'], ['C', 'D']], (picture) => picture === 'D')
+
+		expect([...open]).toEqual(['C', 'D'])
 	})
 })

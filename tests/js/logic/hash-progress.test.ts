@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { hashProgress } from '../../../src/logic/hash-progress.ts'
+import { hashProgress, progressStep } from '../../../src/logic/hash-progress.ts'
 
 describe('hashProgress', () => {
 	// spec: SERIES-003.18
@@ -28,5 +28,17 @@ describe('hashProgress', () => {
 	it('is done when every picture is hashed and saved, or none is hashable', () => {
 		expect(hashProgress(['hashed', 'hashed'], false).phase).toBe('done')
 		expect(hashProgress([], false)).toEqual({ phase: 'done', hashed: 0, failed: 0, total: 0 })
+	})
+})
+
+describe('progressStep', () => {
+	// spec: SERIES-003.24
+	it('rounds the hashed share down to a step of 10 %', () => {
+		expect([0, 199, 200, 640, 1999, 2000].map((hashed) => progressStep({ phase: 'running', hashed, failed: 0, total: 2000 }))).toEqual([0, 0, 10, 30, 90, 100])
+	})
+
+	// spec: SERIES-003.24
+	it('is 100 without a hashable picture', () => {
+		expect(progressStep({ phase: 'done', hashed: 0, failed: 0, total: 0 })).toBe(100)
 	})
 })

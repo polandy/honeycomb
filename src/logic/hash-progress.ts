@@ -21,3 +21,8 @@ export function hashProgress(states: readonly HashState[], saveFailed: boolean):
 	const phase = pending > 0 ? 'running' : failed > 0 || saveFailed ? 'failed' : 'done'
 	return { phase, hashed, failed, total: states.length }
 }
+
+/** How many percent of the hashable pictures are hashed, rounded down to a step of 10 %, for screen readers (SERIES-003.24). */
+export function progressStep({ hashed, total }: HashProgress): number {
+	return total === 0 ? 100 : Math.floor(hashed * 10 / total) * 10
+}

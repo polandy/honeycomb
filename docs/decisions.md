@@ -1109,3 +1109,13 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   badge of a done series carries a check instead of the pin, and the series edits get no keys yet.
 - 2026-11-14: SERIES-005 is `accepted`, not `draft`: the owner decided D1a–D5a and #183 and
   released the chain, so the backend PR can mark its tests.
+- 2026-11-14: The similarity strip (#181 B) replaces the toolbar's similarity text at every width,
+  not only its thin bar: one place to look, and the narrow toolbar keeps its room.
+- 2026-11-14: The strip's failure texts stay *Similarity: 3 photos not compared* and *Similarity:
+  not saved*; it has no retry, as a failed hash is retried on the next visit (SERIES-003.17).
+- 2026-11-14: A series badge is dashed (#181 C) while a member of that series is pending; a pending
+  picture outside the series that may still join it does not mark it, to keep the rule simple.
+- 2026-11-14: The strip lies over the grid's sticky folder header while it shows; it lets taps
+  through to the tiles.
+- 2026-11-14: The grid keeps the strip's 22 px free above its first row at all times (#181 B), so
+  the strip covers no tile at the top and nothing moves when it comes or goes.

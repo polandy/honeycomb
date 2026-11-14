@@ -113,3 +113,8 @@ export function seriesSizes<P>(series: readonly (readonly P[])[]): Map<P, number
 export function seriesMembers<P>(series: readonly (readonly P[])[]): Map<P, readonly P[]> {
 	return new Map(series.flatMap((pictures) => pictures.map((picture) => [picture, pictures] as const)))
 }
+
+/** Each picture of a series with a pending member, whose badge says the series may still change (SERIES-003.25). */
+export function openSeries<P>(series: readonly (readonly P[])[], isPending: (picture: P) => boolean): Set<P> {
+	return new Set(series.filter((pictures) => pictures.some(isPending)).flat())
+}

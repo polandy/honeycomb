@@ -16,7 +16,7 @@ import type { Tag } from '../logic/tag.ts'
 import type { ObserveSize } from '../observe-size.ts'
 
 import { t } from '@nextcloud/l10n'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useSlots, useTemplateRef, watch } from 'vue'
 import PhotoTile from './PhotoTile.vue'
 import { browserFrame } from '../auto-scroll.ts'
 import { formatNumber } from '../l10n.ts'
@@ -55,6 +55,8 @@ const props = withDefaults(defineProps<{
 	/** Times the auto-scroll of a drag selection. */
 	frame?: Frame
 	seriesSizes?: ReadonlyMap<Picture<ListingEntry>, number>
+	/** The pictures of a series that may still change (SERIES-003.25). */
+	openSeries?: ReadonlySet<Picture<ListingEntry>>
 }>(), {
 	observeSize: observeElementSize,
 	loadImage: decodeSource,
@@ -77,6 +79,7 @@ const emit = defineEmits<{
 
 const GAP = 8
 const HEADER_HEIGHT = 40
+const OVERLAY_HEIGHT = 22
 
 const scroller = useTemplateRef<HTMLElement>('scroller')
 const spacer = useTemplateRef<HTMLElement>('spacer')
@@ -84,6 +87,8 @@ const width = ref(0)
 const height = ref(0)
 const scrollTop = ref(0)
 const focused = ref(0)
+// The overlay keeps its band free so it covers no tile at the top.
+const overlayHeight = useSlots().default === undefined ? 0 : OVERLAY_HEIGHT
 
 const groups = computed(() => (props.groupByFolder
 	? folderGroups(props.pictures)
@@ -95,6 +100,7 @@ const layout = computed(() => gridLayout({
 	headerHeight: HEADER_HEIGHT,
 	groups: groups.value.map((group) => group.count),
 	showHeaders: props.groupByFolder,
+	top: overlayHeight,
 }))
 const loads = createLoadQueue(props.loadImage, IMAGE_LOADS_IN_FLIGHT)
 const sticky = computed(() => stickyHeader(layout.value, scrollTop.value))
@@ -223,6 +229,7 @@ defineExpose({
 
 <template>
 	<div class="photo-grid">
+		<div class="photo-grid__overlay" :style="{ height: `${overlayHeight}px` }"><slot /></div>
 		<div v-if="sticky !== null" class="photo-grid__sticky" aria-hidden="true">
 			{{ groupName(sticky) }}
 		</div>
@@ -268,7 +275,7 @@ defineExpose({
 							:selected="props.selection.ids.has(imageMember(picture).fileId)"
 							:loads="loads"
 							:offscreen="row.offscreen"
-							v-bind="{ ...(props.imageUrl && { imageUrl: props.imageUrl }), series: props.seriesSizes?.get(picture) ?? 0 }"
+							v-bind="{ ...(props.imageUrl && { imageUrl: props.imageUrl }), series: props.seriesSizes?.get(picture) ?? 0, seriesOpen: props.openSeries?.has(picture) ?? false }"
 							@focus="focused = index"
 							@click="tiles.onClick(imageMember(picture).fileId, $event)"
 							@keydown="tiles.onKeydown(imageMember(picture).fileId, $event)"

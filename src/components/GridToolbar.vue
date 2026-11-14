@@ -5,7 +5,6 @@
 <script setup lang="ts">
 import type { Flag } from '../logic/decision.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
-import type { HashProgress } from '../logic/hash-progress.ts'
 import type { SortOrder } from '../logic/picture-order.ts'
 
 import { n, t } from '@nextcloud/l10n'
@@ -49,8 +48,6 @@ const props = defineProps<{
 	movable: number
 	/** The base name of the picture *Resume* opens the loupe at, null when there is none. */
 	resumeName: string | null
-	/** How far the visual hashes of the cull are. */
-	similarity: HashProgress
 }>()
 
 const emit = defineEmits<{
@@ -122,8 +119,7 @@ const setName = computed(() => {
 		<CullProgress
 			:decided="props.decided"
 			:total="props.total"
-			:filtered="props.filtered"
-			:similarity="props.similarity" />
+			:filtered="props.filtered" />
 		<NcButton
 			variant="tertiary"
 			:ariaLabel="filtersLabel"

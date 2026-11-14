@@ -37,11 +37,14 @@ const props = withDefaults(defineProps<{
 	selected?: boolean
 	/** The size of the offered series the picture is in, 0 outside one (SERIES-002.10). */
 	series?: number
+	/** Whether a member of the series is still without its visual hash (SERIES-003.25). */
+	seriesOpen?: boolean
 	/** How many tags the picture has (TAGS-004.7). */
 	tags?: number
 }>(), {
 	decision: () => UNDECIDED,
 	series: 0,
+	seriesOpen: false,
 	tags: 0,
 	selecting: false,
 	selected: false,
@@ -93,7 +96,10 @@ const decisionLabel = computed(() => {
 /** Whether the tile shows a flag, a colour label or stars. */
 const marked = computed(() => isDecided(props.decision) || props.decision.colourLabel !== null || props.decision.rating > 0 || props.tags > 0)
 
-const seriesText = computed(() => n('honeycomb', 'Series of {count}', 'Series of {count}', props.series, { count: formatNumber(props.series) }))
+const seriesText = computed(() => [
+	n('honeycomb', 'Series of {count}', 'Series of {count}', props.series, { count: formatNumber(props.series) }),
+	...(props.seriesOpen ? [t('honeycomb', 'Series may still change')] : []),
+].join(', '))
 
 /** The badge's symbol and the series' size, as the mockup draws it. */
 const seriesBadge = computed(() => `⧉ ${formatNumber(props.series)}`)
@@ -166,6 +172,7 @@ onBeforeUnmount(() => pending?.load.cancel())
 		<span
 			v-if="props.series > 1"
 			class="photo-tile__series"
+			:class="{ 'photo-tile__series--open': props.seriesOpen }"
 			aria-hidden="true"
 			v-bind="tip(seriesText)">{{ seriesBadge }}</span>
 		<span v-if="props.selecting" class="photo-tile__check" aria-hidden="true"><AppIcon v-if="props.selected" name="check" /></span>

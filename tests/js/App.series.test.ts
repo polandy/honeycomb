@@ -11,6 +11,7 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import SeriesCompare from '../../src/components/SeriesCompare.vue'
 import SeriesViewer from '../../src/components/SeriesViewer.vue'
 import ShortcutSheet from '../../src/components/ShortcutSheet.vue'
+import SimilarityStrip from '../../src/components/SimilarityStrip.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { mountApp, openCull, SET } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'
@@ -174,6 +175,15 @@ describe('App: series compare', () => {
 		const sizes = wrapper.findComponent(PhotoGrid).props('seriesSizes') as ReadonlyMap<{ baseName: string }, number>
 
 		expect([...sizes].map(([picture, size]) => `${picture.baseName} ${size}`)).toEqual(['IMG_1 3', 'IMG_2 3', 'IMG_3 3', 'IMG_4 2', 'IMG_5 2'])
+	})
+
+	// spec: SERIES-003.18, SERIES-003.25
+	it('lays the similarity strip over the grid and hands it the series still without every hash', async () => {
+		const { wrapper } = await openApp()
+		const open = wrapper.findComponent(PhotoGrid).props('openSeries') as ReadonlySet<{ baseName: string }>
+
+		expect(wrapper.findComponent(PhotoGrid).findComponent(SimilarityStrip).props('progress')).toEqual({ phase: 'running', hashed: 0, failed: 0, total: 5 })
+		expect([...open].map((picture) => picture.baseName)).toEqual(['IMG_1', 'IMG_2', 'IMG_3', 'IMG_4', 'IMG_5'])
 	})
 
 	// spec: LOUPE-001.19

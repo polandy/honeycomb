@@ -59,8 +59,8 @@ export function stored(fileId: number, flag: StoredDecision['flag']): StoredDeci
 export function gridStub() {
 	const calls = { steps: [] as string[], revealed: [] as number[], focused: 0 }
 	const component = defineComponent({
-		props: ['pictures', 'folderSet', 'groupByFolder', 'tileSize', 'selecting', 'selection', 'decisionOf', 'tagsOf', 'seriesSizes'],
-		setup(_props, { expose }) {
+		props: ['pictures', 'folderSet', 'groupByFolder', 'tileSize', 'selecting', 'selection', 'decisionOf', 'tagsOf', 'seriesSizes', 'openSeries'],
+		setup(_props, { expose, slots }) {
 			expose({
 				reveal: async (index: number) => {
 					calls.revealed.push(index)
@@ -70,7 +70,7 @@ export function gridStub() {
 				},
 				focusedIndex: () => calls.focused,
 			})
-			return () => h('div')
+			return () => h('div', slots.default?.())
 		},
 	})
 	return { component, calls }

@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { focusStep, gridLayout, revealScrollTop, rowOfItem, stickyHeader, tileAt, visibleRows } from '../../../src/logic/grid-layout.ts'
 
 // Two columns of 100 px tiles with a 10 px gap, two groups of 3 and 5 pictures.
-const GROUPED: GridLayoutInput = { width: 210, tileSize: 100, gap: 10, headerHeight: 30, groups: [3, 5], showHeaders: true }
+const GROUPED: GridLayoutInput = { width: 210, tileSize: 100, gap: 10, headerHeight: 30, groups: [3, 5], showHeaders: true, top: 0 }
 
 describe('gridLayout', () => {
 	it.each([
@@ -18,6 +18,14 @@ describe('gridLayout', () => {
 
 		expect(layout.columns).toBe(columns)
 		expect(layout.tileWidth).toBeCloseTo(tileWidth)
+	})
+
+	// spec: SERIES-003.18
+	it('keeps the top free above the first row', () => {
+		const layout = gridLayout({ ...GROUPED, groups: [3], top: 22 })
+
+		expect(layout.rows.map((row) => row.top)).toEqual([22, 62, 172])
+		expect(layout.totalHeight).toBe(272)
 	})
 
 	it('puts a header above each group and breaks rows at a group\'s end', () => {
@@ -128,7 +136,7 @@ describe('revealScrollTop', () => {
 })
 
 describe('a grid of 20,000 pictures in 100 folders', () => {
-	const layout = gridLayout({ width: 1000, tileSize: 160, gap: 4, headerHeight: 40, groups: Array.from({ length: 100 }, () => 200), showHeaders: true })
+	const layout = gridLayout({ width: 1000, tileSize: 160, gap: 4, headerHeight: 40, groups: Array.from({ length: 100 }, () => 200), showHeaders: true, top: 0 })
 
 	it('holds every picture once', () => {
 		const tiles = layout.rows.filter((row) => row.kind === 'tiles')
