@@ -7,7 +7,7 @@ import type { Series } from '../../../src/logic/series.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { allSeries, findSeries, hashablePictures, openSeries, SERIES_GAP_SECONDS, SERIES_SPAN_SECONDS, seriesCandidates, seriesMembers, seriesPictures, seriesSizes, visibleMembers, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
+import { allSeries, findSeries, hashablePictures, openSeries, SERIES_GAP_SECONDS, SERIES_SPAN_SECONDS, seriesCandidates, seriesMembers, seriesSizes, visibleMembers, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
 /** Pictures named `/<folder>/<name>.JPG`, shot at `time` by `camera`. */
@@ -15,7 +15,7 @@ function shots(...specs: [name: string, time: number | null, camera?: string | n
 	return picturesOf(specs.map(([name, time, camera = 'Canon EOS R5'], index) => listingEntry(index + 1, `/${name}.JPG`, { captureTime: time, camera, mtime: 5000 })))
 }
 
-const names = (series: readonly Series<Picture<ListingEntry>>[]) => seriesPictures(series).map((each) => each.map((picture) => picture.baseName))
+const names = (series: readonly Series<Picture<ListingEntry>>[]) => series.map(({ members }) => members.map((picture) => picture.baseName))
 
 /** The series of the pictures with the given flags by base name, undecided otherwise. */
 function seriesOf(pictures: readonly Picture<ListingEntry>[], flags: Record<string, Flag> = {}) {
@@ -179,7 +179,7 @@ describe('hashablePictures', () => {
 describe('seriesSizes', () => {
 	// spec: SERIES-002.10
 	it('maps each picture of a series to the size of its series', () => {
-		const sizes = seriesSizes([['A', 'B', 'C'], ['D', 'E']])
+		const sizes = seriesSizes([{ key: 1, members: ['A', 'B', 'C'] }, { key: 4, members: ['D', 'E'] }])
 
 		expect([...sizes]).toEqual([['A', 3], ['B', 3], ['C', 3], ['D', 2], ['E', 2]])
 	})
@@ -215,14 +215,6 @@ describe('visibleMembers', () => {
 	})
 })
 
-describe('seriesPictures', () => {
-	it('lists the members of each series, for the consumers of the old form', () => {
-		const first = ['A', 'B']
-
-		expect(seriesPictures([{ key: 1, members: first }, { key: 2, members: ['C', 'D'] }])).toEqual([first, ['C', 'D']])
-	})
-})
-
 describe('seriesMembers', () => {
 	// spec: LOUPE-001.19
 	it('maps each picture of a series to its whole series', () => {
@@ -237,7 +229,7 @@ describe('seriesMembers', () => {
 describe('openSeries', () => {
 	// spec: SERIES-003.25
 	it('holds each picture of a series with a pending member, and none of a series without', () => {
-		const open = openSeries([['A', 'B'], ['C', 'D']], (picture) => picture === 'D')
+		const open = openSeries([{ key: 1, members: ['A', 'B'] }, { key: 3, members: ['C', 'D'] }], (picture) => picture === 'D')
 
 		expect([...open]).toEqual(['C', 'D'])
 	})

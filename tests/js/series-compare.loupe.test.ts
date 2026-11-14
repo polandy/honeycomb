@@ -12,7 +12,7 @@ function fromLoupe(names: string[], active: string, ...grid: string[][]) {
 	const landings: string[] = []
 	const land = (landing: CompareLanding<Shot>) => landings.push(landing.kind === 'on'
 		? `on ${landing.picture.name}`
-		: `after ${landing.series.map((shot) => shot.name).join(' ')}, picked ${landing.picked.name}`)
+		: `after ${landing.series.members.map((shot) => shot.name).join(' ')}, picked ${landing.picked.name}`)
 	fixture.compare.startOn(fixture.seriesOf(names), fixture.shot(active), land)
 	return { ...fixture, landings }
 }
@@ -76,11 +76,11 @@ describe('useSeriesCompare: opened from the loupe', () => {
 	it('picks for the loupe without opening and lands after the series', () => {
 		const { compare, calls, shot, seriesOf } = compareOf(['C', 'D', 'E'])
 		const landings: string[] = []
-		compare.pickRestAndLand(seriesOf(['C', 'D', 'E']), shot('E'), (landing) => landings.push(landing.kind === 'after' ? `after ${landing.series.map(({ name }) => name).join(' ')}, picked ${landing.picked.name}` : 'on'))
+		compare.pickRestAndLand(seriesOf(['C', 'D', 'E']), shot('E'), (landing) => landings.push(landing.kind === 'after' ? `after ${landing.series.key}: ${landing.series.members.map(({ name }) => name).join(' ')}, picked ${landing.picked.name}` : 'on'))
 
 		expect(calls).toEqual(['pick E, reject C D'])
 		expect(compare.open.value).toBe(false)
-		expect(landings).toEqual(['after C D E, picked E'])
+		expect(landings).toEqual([`after ${seriesOf(['C', 'D', 'E']).key}: C D E, picked E`])
 	})
 
 	// spec: SERIES-001.6
