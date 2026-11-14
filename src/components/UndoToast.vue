@@ -117,4 +117,22 @@ onBeforeUnmount(() => {
 	color: var(--color-primary-element-light);
 	font-weight: bold;
 }
+
+/* Nextcloud's global button:hover would paint it light under its light text. */
+.undo-toast .undo-toast__action:hover,
+.undo-toast .undo-toast__action:focus {
+	background: transparent;
+	color: var(--color-primary-element-light);
+}
+
+.undo-toast .undo-toast__action:hover {
+	text-decoration: underline;
+}
+
+/* Nextcloud's focus-visible ring is !important and dark on the dark toast. */
+.undo-toast .undo-toast__action:focus {
+	outline: 2px solid var(--color-primary-element-light) !important;
+	outline-offset: -2px;
+	box-shadow: none !important;
+}
 </style>

@@ -109,3 +109,20 @@ test('picks by P, undoes it by Ctrl+Z and opens the shortcut sheet by ?', async 
 	await sheet.getByRole('button', { name: 'Close' }).last().click()
 	await expect(sheet).toBeHidden()
 })
+
+// spec: LOUPE-002.17
+test('keeps the toast button transparent and readable under the pointer and outlines it on focus', async ({ page }) => {
+	await openLoupe(page)
+	await page.keyboard.press('p')
+	const undo = page.getByRole('status').filter({ hasText: 'Picked IMG_0001' }).getByRole('button', { name: 'Undo' })
+	const color = await undo.evaluate((element) => getComputedStyle(element).color)
+
+	await undo.focus()
+	await expect(undo).toHaveCSS('outline-style', 'solid')
+	await expect(undo).toHaveCSS('outline-color', color)
+	await expect(undo).toHaveCSS('box-shadow', 'none')
+	await undo.hover()
+	await expect(undo).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+	await expect(undo).toHaveCSS('color', color)
+	await expect(undo).toHaveCSS('text-decoration-line', 'underline')
+})
