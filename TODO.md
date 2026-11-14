@@ -9,8 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Flaky e2e from #147: `tests/e2e/series.spec.ts` "shows a whole burst as one series…" failed once on `[desktop]` in a full local `scripts/verify.sh` run (`cards.last()` not in viewport after five `→`), then passed 3 of 3 alone; find the cause (suspect `scroll-snap-type` with `scrollIntoView` in `SeriesCompare.vue`), no retry (2026-11-13)
-
 ## Later
 
 - [ ] Series in the loupe and series parts 1–3: build follow-up PRs 5–11 of `docs/plans/loupe-series-concept.md` in its order once the owner signs off its revised mockup (2026-11-13)
