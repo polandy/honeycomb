@@ -282,6 +282,6 @@ honeycomb hat **keine Uninstall-Repair-Steps** (`appinfo/info.xml` deklariert ke
 9. Optional: Index `(file_id)` auf `honeycomb_decisions` und `honeycomb_file_tags` für den
    Hintergrundjob — erst bei Bibliotheken deutlich über 1 Mio. Zeilen sinnvoll.
 
-Messung als nächster Schritt: die Schätzungen in §2.1 und §3 mit einem Fixture-Baum von
+Messung als nächster Schritt (in `TODO.md` erfasst, wie die Empfehlungen 1–7): die Schätzungen in §2.1 und §3 mit einem Fixture-Baum von
 ~100k Dateien im e2e-Container und aktiviertem Query-Log (`'debug' => true` bzw.
 `log_query`) bestätigen.
