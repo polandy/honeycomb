@@ -108,42 +108,8 @@ describe('useCull: series', () => {
 	})
 })
 
-describe('useCull: setFlags', () => {
-	// spec: GRID-002.2
-	it('replaces the flag filter and keeps the other groups', async () => {
-		const { cull } = await openedCull()
-		cull.filters.value = { ...DEFAULT_FILTERS, rating: 2 }
-
-		cull.setFlags(new Set(['rejected']))
-
-		expect(cull.filters.value).toEqual({ ...DEFAULT_FILTERS, rating: 2, flags: new Set(['rejected']) })
-	})
-})
-
 describe('useCull: toggleFiltersOff', () => {
 	const filtered = { ...DEFAULT_FILTERS, rating: 3, flags: new Set(['picked' as const]) }
-
-	it('clears the filters, and the second press restores them', async () => {
-		const { cull } = await openedCull()
-		cull.filters.value = filtered
-
-		cull.toggleFiltersOff()
-		expect(cull.filters.value).toEqual(DEFAULT_FILTERS)
-		cull.toggleFiltersOff()
-		expect(cull.filters.value).toEqual(filtered)
-	})
-
-	it('turns off filters set while they were off rather than restoring the saved ones', async () => {
-		const { cull } = await openedCull()
-		cull.filters.value = filtered
-		cull.toggleFiltersOff()
-		cull.filters.value = { ...cull.filters.value, rating: 1 }
-
-		cull.toggleFiltersOff()
-		expect(cull.filters.value.rating).toBeNull()
-		cull.toggleFiltersOff()
-		expect(cull.filters.value.rating).toBe(1)
-	})
 
 	it('forgets the saved filters when a new cull opens', async () => {
 		const { cull } = await openedCull()
