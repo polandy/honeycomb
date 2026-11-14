@@ -947,8 +947,12 @@ honeycomb/
 
 ### Seams
 
-- **Path and file-id checks** have no `PathGuard`; each service rechecks what it is given.
-  `UserFolderResolver` turns a path into a readable folder of the user, `CheckedMove` and
+- **Path and file-id checks:** `FileIds` checks the file ids and item lists a request carries
+  (a list within a limit, positive integers, each once) and throws the caller's
+  `InvalidRequestException` subclass. `UserPhotos` answers which file ids are photos in the
+  user's files at a given etag; `VisualHashService` uses it, the services that open, trash, move
+  or read sidecars still check on their own. `UserFolderResolver` turns a path into a readable
+  folder of the user, `CheckedMove` and
   `ExistingSidecar` are files that passed their check, `SidecarWriter` checks again before its
   rename, and `ExistingFiles` tells which file ids still have a file.
 - **Files** go through `OCP\Files` inside `TrashService`, `MoveService` and `SidecarWriter`;

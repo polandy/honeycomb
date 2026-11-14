@@ -23,13 +23,7 @@ final class TagService {
 	 * @throws InvalidTagsException for anything but a list of positive file ids within the limit
 	 */
 	public function lookup(IUser $user, array $fileIds): array {
-		$this->checkSize($fileIds);
-		foreach ($fileIds as $fileId) {
-			if (!is_int($fileId) || $fileId < 1) {
-				throw new InvalidTagsException('fileIds must be positive integers');
-			}
-		}
-		/** @var list<int> $fileIds */
+		$fileIds = FileIds::parse($fileIds, ListingService::ENTRY_LIMIT, InvalidTagsException::class);
 		return $this->store->find($user->getUID(), $fileIds);
 	}
 
@@ -39,12 +33,8 @@ final class TagService {
 	 * @throws InvalidTagsException for a malformed item or a file id given twice
 	 */
 	public function save(IUser $user, array $items): void {
-		$this->checkSize($items);
-		$pictures = array_map(PictureTags::fromRequest(...), $items);
-		$fileIds = array_map(static fn (PictureTags $picture): int => $picture->fileId, $pictures);
-		if (count(array_unique($fileIds)) !== count($fileIds)) {
-			throw new InvalidTagsException('Each file id may appear only once');
-		}
+		$pictures = array_map(PictureTags::fromRequest(...), FileIds::items($items, ListingService::ENTRY_LIMIT, InvalidTagsException::class));
+		$fileIds = FileIds::eachOnce(array_map(static fn (PictureTags $picture): int => $picture->fileId, $pictures), InvalidTagsException::class);
 		$stored = array_values(array_filter($pictures, static fn (PictureTags $picture): bool => $picture->tags !== []));
 		RetryOnConflict::run(fn () => $this->store->replace($user->getUID(), $fileIds, $stored));
 	}
@@ -55,15 +45,5 @@ final class TagService {
 	 */
 	public function tagList(IUser $user): array {
 		return $this->store->tagList($user->getUID());
-	}
-
-	/**
-	 * @param array<array-key, mixed> $list
-	 * @psalm-assert list<mixed> $list
-	 */
-	private function checkSize(array $list): void {
-		if (!array_is_list($list) || count($list) > ListingService::ENTRY_LIMIT) {
-			throw new InvalidTagsException('Expected a list of at most ' . ListingService::ENTRY_LIMIT . ' items');
-		}
 	}
 }

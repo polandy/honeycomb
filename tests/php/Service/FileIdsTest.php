@@ -62,15 +62,13 @@ final class FileIdsTest extends TestCase {
 	}
 
 	public function testAcceptsEachFileIdOnce(): void {
-		FileIds::requireEachOnce([1, 2, 3], InvalidDecisionException::class);
-		FileIds::requireEachOnce([], InvalidDecisionException::class);
-
-		$this->addToAssertionCount(1);
+		$this->assertSame([3, 1, 2], FileIds::eachOnce([3, 1, 2], InvalidDecisionException::class));
+		$this->assertSame([], FileIds::eachOnce([], InvalidDecisionException::class));
 	}
 
 	public function testRejectsAFileIdGivenTwice(): void {
 		$this->expectException(InvalidTagsException::class);
 
-		FileIds::requireEachOnce([1, 2, 1], InvalidTagsException::class);
+		FileIds::eachOnce([1, 2, 1], InvalidTagsException::class);
 	}
 }

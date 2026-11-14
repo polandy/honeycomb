@@ -8,5 +8,5 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 /** A visual hash save is malformed: nothing of it is written. */
-final class InvalidVisualHashException extends \InvalidArgumentException {
+final class InvalidVisualHashException extends InvalidRequestException {
 }
