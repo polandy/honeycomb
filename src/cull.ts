@@ -11,7 +11,7 @@ import type { Filters } from './logic/picture-filter.ts'
 import type { SortOrder } from './logic/picture-order.ts'
 import type { Settings } from './logic/settings.ts'
 import type { TagChange } from './logic/tag.ts'
-import type { DecisionStep, PickRestStep, TagStep, UndoStep } from './logic/undo.ts'
+import type { DecisionStep, PickRestStep, StepEffects, TagStep, UndoStep } from './logic/undo.ts'
 
 import { computed, ref, shallowRef, watch } from 'vue'
 import { readStored, writeStored } from './browser-storage.ts'
@@ -32,7 +32,7 @@ import { inSharedFolder } from './logic/sidecar-sync.ts'
 import { inverseChange } from './logic/tag.ts'
 import { parseTileSize } from './logic/tile-size.ts'
 import { withoutFiles } from './logic/trash-report.ts'
-import { pickRestEntry, tagStep, undoEntry } from './logic/undo.ts'
+import { applyStep, pickRestEntry, tagStep, undoEntry } from './logic/undo.ts'
 import { usePreviewWarmer } from './preview-warmer.ts'
 import { useVisualHashes } from './visual-hashes.ts'
 
@@ -62,7 +62,13 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const saveDecisions = saveQueue(api.saveDecisions)
 	const sharedFolders = shallowRef<ReadonlySet<string>>(new Set())
 	let opening = 0
-	const history = useCullHistory<CullStep>(apply)
+	/** Puts each kind of step into effect, or takes it back when `back`. */
+	const effects: StepEffects<Picture<ListingEntry>> = {
+		decision: (step, back) => store(back ? step.before : step.after),
+		pickRest: (step, back) => store(back ? step.before : step.after),
+		tags: (step, back) => storeTags(step.pictures, back ? inverseChange(step.change) : step.change),
+	}
+	const history = useCullHistory<CullStep>((step, back) => applyStep(effects, step, back))
 	const tags = useCullTags(api.tags, sidecars.writeTags, () => opening, (picture) => !inSharedFolder(picture, sharedFolders.value))
 	let filtersOff: Filters | null = null
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
@@ -154,15 +160,6 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	/** Applies the tag change to the pictures as one undo step and returns it, or null when nothing changes (TAGS-003.10, .11). */
 	function tag(change: TagChange, chosen: readonly Picture<ListingEntry>[]): TagStep<Picture<ListingEntry>> | null {
 		return history.record(tagStep(chosen, tags.tagsOf, change))
-	}
-
-	/** Puts a step into effect, or takes it back when `back`. */
-	function apply(step: CullStep, back: boolean) {
-		if (step.kind === 'tags') {
-			storeTags(step.pictures, back ? inverseChange(step.change) : step.change)
-		} else {
-			store(back ? step.before : step.after)
-		}
 	}
 
 	/** Changes the pictures' tags and says in the grid when the save failed. */

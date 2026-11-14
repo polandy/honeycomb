@@ -5,16 +5,16 @@ import type { DecisionIntent } from './logic/decision-change.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { TagChange } from './logic/tag.ts'
-import type { DecisionStep, PickRestStep, TagStep } from './logic/undo.ts'
 import type { ToastAction } from './toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import { changeText, redoneText, undoneText } from './decision-text.ts'
 
+/** The cull's recording actions; each returns the step it recorded, whatever its kind, or null. */
 interface Decisions {
-	decide: (intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]) => DecisionStep | null
-	pickRest: (picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]) => PickRestStep | null
-	tag: (change: TagChange, chosen: readonly Picture<ListingEntry>[]) => TagStep<Picture<ListingEntry>> | null
+	decide: (intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]) => CullStep | null
+	pickRest: (picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]) => CullStep | null
+	tag: (change: TagChange, chosen: readonly Picture<ListingEntry>[]) => CullStep | null
 	undo: () => CullStep | null
 	redo: () => CullStep | null
 }
