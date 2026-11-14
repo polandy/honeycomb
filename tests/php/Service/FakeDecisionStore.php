@@ -13,11 +13,10 @@ use OCP\DB\Exception as DbException;
 
 /** Keeps decisions in memory, by user and file id. */
 final class FakeDecisionStore implements DecisionStore {
+	use FakeFileRows;
+
 	/** @var array<string, array<int, PictureDecision>> */
 	public array $rows = [];
-
-	/** @var list<int> The file ids deleted for good. */
-	public array $vanished = [];
 
 	/** @var int How many `replace()` calls still fail, as a concurrent save winning the insert would. */
 	public int $failures = 0;
@@ -53,16 +52,6 @@ final class FakeDecisionStore implements DecisionStore {
 			unset($this->rows[$userId][$fileId]);
 			$this->rows[$userId][$newFileId] = new PictureDecision($newFileId, $decision->rating, $decision->colourLabel, $decision->flag, $decision->keepRaw);
 		}
-	}
-
-	#[\Override]
-	public function forgetVanishedFiles(): int {
-		$removed = 0;
-		foreach ($this->rows as $userId => $rows) {
-			$this->rows[$userId] = array_diff_key($rows, array_flip($this->vanished));
-			$removed += count($rows) - count($this->rows[$userId]);
-		}
-		return $removed;
 	}
 
 	#[\Override]

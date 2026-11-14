@@ -13,14 +13,13 @@ use OCP\DB\Exception as DbException;
 
 /** Keeps tags and tag lists in memory, by user and file id. */
 final class FakeTagStore implements TagStore {
+	use FakeFileRows;
+
 	/** @var array<string, array<int, PictureTags>> */
 	public array $rows = [];
 
 	/** @var array<string, list<string>> */
 	public array $tagLists = [];
-
-	/** @var list<int> The file ids deleted for good. */
-	public array $vanished = [];
 
 	/** @var int How many `replace()` calls still fail, as a concurrent save winning the insert would. */
 	public int $failures = 0;
@@ -66,16 +65,6 @@ final class FakeTagStore implements TagStore {
 			unset($this->rows[$userId][$fileId]);
 			$this->rows[$userId][$newFileId] = new PictureTags($newFileId, $picture->tags);
 		}
-	}
-
-	#[\Override]
-	public function forgetVanishedFiles(): int {
-		$removed = 0;
-		foreach ($this->rows as $userId => $rows) {
-			$this->rows[$userId] = array_diff_key($rows, array_flip($this->vanished));
-			$removed += count($rows) - count($this->rows[$userId]);
-		}
-		return $removed;
 	}
 
 	#[\Override]
