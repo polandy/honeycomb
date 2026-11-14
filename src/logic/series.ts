@@ -5,7 +5,7 @@ import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 
 import { isOpen, isRejected } from './decision.ts'
-import { pictureMembers } from './pairing.ts'
+import { memberIds, pictureMembers } from './pairing.ts'
 import { hashDistance } from './visual-hash.ts'
 
 /** The longest gap between two shots of one series, photo to photo, where one has no visual hash (plan.md, Series compare). */
@@ -22,6 +22,12 @@ export const VISUAL_DISTANCE_LIMIT = 10
 
 /** The visual hash of a picture, or null while it has none. */
 export type HashOf<P> = (picture: P) => string | null
+
+/** A series: its pictures in capture-time order, keyed by the smallest member file ID of its first picture. */
+export interface Series<P> {
+	readonly key: number
+	readonly members: readonly P[]
+}
 
 /** Without visual hashes, series follow the time rule alone. */
 const noHashes = () => null
@@ -44,18 +50,29 @@ export function hashablePictures<P extends Picture<ListingEntry>>(pictures: read
 }
 
 /** Every series, decided or not: candidates without rejected pictures, linked again and cut at the span, by first capture time. */
-export function allSeries<P extends Picture<ListingEntry>>(candidates: readonly (readonly P[])[], decisionOf: (picture: P) => Decision, hashOf: HashOf<P> = noHashes): P[][] {
+export function allSeries<P extends Picture<ListingEntry>>(candidates: readonly (readonly P[])[], decisionOf: (picture: P) => Decision, hashOf: HashOf<P> = noHashes): Series<P>[] {
 	return candidates
 		.flatMap((candidate) => {
-			const shots = candidate.filter((picture) => !isRejected(decisionOf(picture))).map((picture) => shotOf(picture, hashOf)!)
+			const shots = visibleMembers(candidate, decisionOf).map((picture) => shotOf(picture, hashOf)!)
 			return runs(shots, (previous, next, first) => linked(previous, next) && next.time - first.time <= SERIES_SPAN_SECONDS).map(picturesOfRun)
 		})
 		.sort((a, b) => shotOf(a[0]!, noHashes)!.time - shotOf(b[0]!, noHashes)!.time)
+		.map((members) => ({ key: Math.min(...memberIds(members[0]!)), members }))
 }
 
-/** The series to compare: every series with an unflagged picture. */
-export function findSeries<P extends Picture<ListingEntry>>(candidates: readonly (readonly P[])[], decisionOf: (picture: P) => Decision, hashOf: HashOf<P> = noHashes): P[][] {
-	return allSeries(candidates, decisionOf, hashOf).filter((series) => series.some((picture) => isOpen(decisionOf(picture))))
+/** The series to compare: of all series, those with an unflagged picture. */
+export function findSeries<P>(series: readonly Series<P>[], decisionOf: (picture: P) => Decision): Series<P>[] {
+	return series.filter(({ members }) => members.some((picture) => isOpen(decisionOf(picture))))
+}
+
+/** The pictures of a series that are not rejected, in order. */
+export function visibleMembers<P>(pictures: readonly P[], decisionOf: (picture: P) => Decision): P[] {
+	return pictures.filter((picture) => !isRejected(decisionOf(picture)))
+}
+
+/** The members of each series, for consumers that still take the series as arrays. */
+export function seriesPictures<P>(series: readonly Series<P>[]): (readonly P[])[] {
+	return series.map(({ members }) => members)
 }
 
 /** Whether two shots in capture-time order belong together: alike within the visual gap, or within the time gap while one has no hash. */
