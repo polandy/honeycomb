@@ -113,7 +113,7 @@ final class DecisionServiceTest extends TestCase {
 	// spec: DECISIONS-001.13
 	public function testDoesNotRepeatAnotherDatabaseError(): void {
 		$this->store->failures = 1;
-		$this->store->failureReason = DbException::REASON_DEADLOCK;
+		$this->store->failureReason = DbException::REASON_FOREIGN_KEY_VIOLATION;
 
 		$thrown = null;
 		try {

@@ -105,10 +105,11 @@ continues on any device and each user of a shared folder keeps their own.
 
 - **Given** two saves of the same file that reach the server at the same time, so that one hits the
   unique key of a row the other just inserted
-- **When** the second one fails with that unique-key conflict
+- **When** the second one fails with that unique-key conflict, or on MySQL with a deadlock or a
+  lock wait timeout on the other's locks
 - **Then** the save is repeated, at most three attempts in all, and stores its state (the last
-  writer wins); any other database error, or a conflict on every attempt, is not repeated and
-  nothing of that save is stored
+  writer wins); any other database error, or one of these on every attempt, is not repeated
+  further and nothing of that save is stored
 
 ## Out of scope
 
@@ -121,3 +122,4 @@ Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XM
 | 2026-11-10 | Written from the merged M2.4 (#42) |
 | 2026-11-10 | Rows of files deleted for good and of deleted users are removed (DECISIONS-001.11, .12) |
 | 2026-11-11 | A save that loses a race on the unique key is repeated (DECISIONS-001.13) |
+| 2026-11-14 | A deadlock or lock wait timeout is repeated like a unique-key conflict (DECISIONS-001.13) |
