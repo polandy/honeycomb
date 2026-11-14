@@ -42,15 +42,19 @@ export function hashablePictures<P extends Picture<ListingEntry>>(pictures: read
 	return runs(cameraShots(pictures, noHashes), (previous, next) => previous.camera === next.camera && next.time - previous.time <= VISUAL_SERIES_GAP_SECONDS).flatMap(picturesOfRun)
 }
 
-/** The series to compare: candidates without rejected pictures, linked again and cut at the span, each with an unflagged picture, by first capture time. */
-export function findSeries<P extends Picture<ListingEntry>>(candidates: readonly (readonly P[])[], decisionOf: (picture: P) => Decision, hashOf: HashOf<P> = noHashes): P[][] {
+/** Every series, decided or not: candidates without rejected pictures, linked again and cut at the span, by first capture time. */
+export function allSeries<P extends Picture<ListingEntry>>(candidates: readonly (readonly P[])[], decisionOf: (picture: P) => Decision, hashOf: HashOf<P> = noHashes): P[][] {
 	return candidates
 		.flatMap((candidate) => {
 			const shots = candidate.filter((picture) => decisionOf(picture).flag !== 'rejected').map((picture) => shotOf(picture, hashOf)!)
 			return runs(shots, (previous, next, first) => linked(previous, next) && next.time - first.time <= SERIES_SPAN_SECONDS).map(picturesOfRun)
 		})
-		.filter((series) => series.some((picture) => decisionOf(picture).flag === 'unflagged'))
 		.sort((a, b) => shotOf(a[0]!, noHashes)!.time - shotOf(b[0]!, noHashes)!.time)
+}
+
+/** The series to compare: every series with an unflagged picture. */
+export function findSeries<P extends Picture<ListingEntry>>(candidates: readonly (readonly P[])[], decisionOf: (picture: P) => Decision, hashOf: HashOf<P> = noHashes): P[][] {
+	return allSeries(candidates, decisionOf, hashOf).filter((series) => series.some((picture) => decisionOf(picture).flag === 'unflagged'))
 }
 
 /** Whether two shots in capture-time order belong together: alike within the visual gap, or within the time gap while one has no hash. */
@@ -102,4 +106,9 @@ function compare(a: string, b: string): number {
 /** Each picture of the given series mapped to the size of its series, for the series badge (SERIES-002.10). */
 export function seriesSizes<P>(series: readonly (readonly P[])[]): Map<P, number> {
 	return new Map(series.flatMap((pictures) => pictures.map((picture) => [picture, pictures.length] as const)))
+}
+
+/** Each picture of the given series mapped to its whole series, for the filmstrip's frame (LOUPE-001.19). */
+export function seriesMembers<P>(series: readonly (readonly P[])[]): Map<P, readonly P[]> {
+	return new Map(series.flatMap((pictures) => pictures.map((picture) => [picture, pictures] as const)))
 }

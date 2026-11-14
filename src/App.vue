@@ -261,6 +261,7 @@ useHotkeys(() => {
 					:pictures="loupeShown.pictures"
 					:folderSet="folderSet"
 					:decisionOf="cull.decisionOf"
+					:seriesOf="cull.seriesOf.value"
 					:tagsOf="cull.tags.tagsOf"
 					:writesSidecars="cull.tags.writable"
 					:storage="props.storage"

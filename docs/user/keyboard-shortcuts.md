@@ -68,6 +68,10 @@ the arrow keys switch it, as in Lightroom's Survey view: in the compare `←` `�
 order and `↑` `↓` to the photo above or below. The bottom bar's *Pick this, reject the rest*
 acts on the active photo.
 
+In the loupe's filmstrip a honey frame surrounds the photos of a series, so you see where a burst
+starts and ends before you page into it. Rejected photos stay outside the frame; a series with
+fewer than two photos left that are not rejected loses it.
+
 In the series compare a tap or click on a photo makes it the active one. To look at a photo
 closely, press the *View full screen* button (⤢) in its top right corner, double-tap or
 double-click it, or press `Enter` for the active photo: the series viewer shows it full screen,

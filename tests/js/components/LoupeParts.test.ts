@@ -155,6 +155,7 @@ describe('LoupeFilmstrip', () => {
 			index,
 			pinned,
 			decisionOf,
+			seriesOf: new Map(),
 			imageUrl: (fileId: number, size: number) => `/img/${fileId}/${size}`,
 			observeSize: (_element: Element, onSize: (width: number, height: number) => void) => {
 				onSize(1000, FILMSTRIP_THUMB)

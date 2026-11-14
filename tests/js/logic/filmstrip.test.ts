@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { FILMSTRIP_OVERSCAN, FILMSTRIP_THUMB, filmstripLayout } from '../../../src/logic/filmstrip.ts'
+import { FILMSTRIP_OVERSCAN, FILMSTRIP_THUMB, filmstripFrames, filmstripLayout } from '../../../src/logic/filmstrip.ts'
 
 describe('filmstripLayout', () => {
 	const VIEWPORT = 1000
@@ -48,5 +48,36 @@ describe('filmstripLayout', () => {
 	it('renders nothing before the strip has a width and nothing past the last picture', () => {
 		expect(filmstripLayout({ index: 3, count: 5, viewport: 0, offset: 0 })).toMatchObject({ centred: 0, first: 0, end: 0 })
 		expect(filmstripLayout({ index: 0, count: 0, viewport: VIEWPORT, offset: 0 })).toMatchObject({ first: 0, end: 0, width: 0, centred: 0 })
+	})
+})
+
+describe('filmstripFrames', () => {
+	const first = ['B', 'C', 'D']
+	const second = ['F', 'G']
+	const members = new Map([...first.map((name) => [name, first] as const), ...second.map((name) => [name, second] as const)])
+
+	// spec: LOUPE-001.19
+	it('frames each run of neighbours in one series with the size of the series', () => {
+		expect(filmstripFrames(['A', 'B', 'C', 'D', 'E', 'F', 'G'], members)).toEqual([
+			{ first: 1, end: 4, count: 3 },
+			{ first: 5, end: 7, count: 2 },
+		])
+	})
+
+	// spec: LOUPE-001.19
+	it('gives each run of a split series its own frame, each with the whole count', () => {
+		expect(filmstripFrames(['B', 'X', 'C', 'D'], members)).toEqual([
+			{ first: 0, end: 1, count: 3 },
+			{ first: 2, end: 4, count: 3 },
+		])
+	})
+
+	// spec: LOUPE-001.19
+	it('ends a frame where the next series starts and frames nothing outside a series', () => {
+		expect(filmstripFrames(['D', 'F'], members)).toEqual([
+			{ first: 0, end: 1, count: 3 },
+			{ first: 1, end: 2, count: 2 },
+		])
+		expect(filmstripFrames(['A', 'X'], members)).toEqual([])
 	})
 })

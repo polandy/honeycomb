@@ -35,3 +35,28 @@ export function filmstripLayout({ index, count, viewport, offset }: FilmstripVie
 	const first = Math.min(end, Math.max(0, Math.floor(offset / FILMSTRIP_THUMB) - FILMSTRIP_OVERSCAN))
 	return { width, centred, first, end }
 }
+
+/** A frame around a run of neighbours in one series: the photos `first` up to but not including `end`, and the series' size. */
+export interface FilmstripFrame {
+	readonly first: number
+	readonly end: number
+	readonly count: number
+}
+
+/** The frames around each run of neighbouring photos that share a series; a picture outside every series breaks a run. */
+export function filmstripFrames<P>(pictures: readonly P[], seriesOf: ReadonlyMap<P, readonly P[]>): FilmstripFrame[] {
+	const frames: FilmstripFrame[] = []
+	pictures.forEach((picture, index) => {
+		const series = seriesOf.get(picture)
+		const last = frames.at(-1)
+		if (series === undefined) {
+			return
+		}
+		if (last !== undefined && last.end === index && seriesOf.get(pictures[index - 1]!) === series) {
+			frames[frames.length - 1] = { ...last, end: index + 1 }
+		} else {
+			frames.push({ first: index, end: index + 1, count: series.length })
+		}
+	})
+	return frames
+}

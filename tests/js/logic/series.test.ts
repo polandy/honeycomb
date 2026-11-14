@@ -6,7 +6,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { findSeries, hashablePictures, SERIES_GAP_SECONDS, SERIES_SPAN_SECONDS, seriesCandidates, seriesSizes, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
+import { allSeries, findSeries, hashablePictures, SERIES_GAP_SECONDS, SERIES_SPAN_SECONDS, seriesCandidates, seriesMembers, seriesSizes, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
 /** Pictures named `/<folder>/<name>.JPG`, shot at `time` by `camera`. */
@@ -181,5 +181,26 @@ describe('seriesSizes', () => {
 		const sizes = seriesSizes([['A', 'B', 'C'], ['D', 'E']])
 
 		expect([...sizes]).toEqual([['A', 3], ['B', 3], ['C', 3], ['D', 2], ['E', 2]])
+	})
+})
+
+describe('allSeries', () => {
+	// spec: LOUPE-001.19
+	it('keeps every series of two or more pictures that are not rejected, decided or not', () => {
+		const pictures = shots(['P/A', 0], ['P/B', 1], ['P/C', 2], ['P/D', 10], ['P/E', 11])
+		const decisionOf = (picture: Picture<ListingEntry>): Decision => ({ ...UNDECIDED, flag: picture.baseName === 'E' ? 'rejected' : 'picked' })
+
+		expect(names(allSeries(seriesCandidates(pictures), decisionOf))).toEqual([['A', 'B', 'C']])
+	})
+})
+
+describe('seriesMembers', () => {
+	// spec: LOUPE-001.19
+	it('maps each picture of a series to its whole series', () => {
+		const first = ['A', 'B']
+		const second = ['C', 'D']
+		const members = seriesMembers([first, second])
+
+		expect([...members]).toEqual([['A', first], ['B', first], ['C', second], ['D', second]])
 	})
 })
