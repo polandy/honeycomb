@@ -3,8 +3,8 @@
 import type { Decision } from '../../src/logic/decision.ts'
 import type { CompareLanding } from '../../src/series-compare.ts'
 
-import { computed, ref, shallowRef } from 'vue'
 import { describe, expect, it } from 'vitest'
+import { computed, ref, shallowRef } from 'vue'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { useRestOffer } from '../../src/rest-offer.ts'
 
@@ -19,7 +19,7 @@ function offerOf(series: string[], shownName: string | null = null) {
 	const decisions = shallowRef(new Map<string, Decision>())
 	const calls: string[] = []
 	const open = ref(false)
-	const current = shallowRef<readonly Shot[] | null>(null)
+	const current = shallowRef<Shot[] | null>(null)
 	const shown = shallowRef(shownName === null ? null : shot(shownName))
 	const setFlag = (name: string, flag: Decision['flag']) => {
 		decisions.value = new Map([...decisions.value, [name, { ...UNDECIDED, flag }]])

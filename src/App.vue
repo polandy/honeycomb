@@ -4,6 +4,9 @@
 -->
 <script setup lang="ts">
 import type { AppSeams } from './app-seams.ts'
+import type { DecisionIntent } from './logic/decision-change.ts'
+import type { ListingEntry } from './logic/listing.ts'
+import type { Picture } from './logic/pairing.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
 
 import { computed, ref, useTemplateRef, watch } from 'vue'
@@ -36,6 +39,7 @@ import { DEFAULT_FILTERS } from './logic/picture-filter.ts'
 import { useLoupeOpening } from './loupe-opening.ts'
 import { useMoveFlow } from './move-flow.ts'
 import { useRecent } from './recent.ts'
+import { useRestOffer } from './rest-offer.ts'
 import { useResume } from './resume.ts'
 import { useSelectionMode } from './selection-mode.ts'
 import { useSeriesCompare } from './series-compare.ts'
@@ -70,7 +74,12 @@ watch(cull.pairing, selection.selectNone)
 
 const { decide, pickRest, tag, undo, redo } = useToastedDecisions(cull, toast.show)
 const tagEntry = useTagEntryTargets()
-const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: (intent, picture) => decide(intent, [picture]), pickRest, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })
+const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: decideInCompare, pickRest, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })
+const restOffer = useRestOffer({ seriesOf: () => cull.seriesOf.value, decisionOf: cull.decisionOf, compare: seriesCompare, shown: shownInLoupe, land: landInLoupe })
+/** Decides in the series compare, offering *Reject the other N* after a Pick in its viewer. */
+function decideInCompare(intent: DecisionIntent, picture: Picture<ListingEntry>, inViewer: boolean) {
+	decide(intent, [picture], () => (inViewer ? restOffer(intent, picture) : null))
+}
 const seriesFlow = useTemplateRef<InstanceType<typeof SeriesCompareFlow>>('seriesFlow')
 const overlayScreen = computed(() => (loupe.value !== null ? '.photo-loupe' : seriesCompare.viewer.open.value ? '.series-viewer' : undefined))
 const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
@@ -89,30 +98,15 @@ recent.refresh()
 watch(pickerOpen, (open) => open && recent.refresh())
 const movable = computed(() => (activeFilters.value > 0 ? view.value : pictures.value.filter((picture) => cull.decisionOf(picture).flag === 'picked')))
 
-const gridKeys = gridHotkeys({
-	grid: () => grid.value,
-	view: () => view.value,
-	selection,
-	common: cull.common,
-	decide,
-	toggleFiltersOff: cull.toggleFiltersOff,
-	openLoupe,
-	openTags: tagEntry.open,
-	headerShown,
-	filtersOpen,
-	filterBar: () => filterBar.value?.$el,
-	toggleFullscreen: () => props.toggleFullscreen(document.documentElement),
-})
+const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => filterBar.value?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
 
 /** Opens the confirmed folder set and offers its resume position. */
 function openFolderSet(...opened: Parameters<typeof cull.open>) {
 	cull.open(...opened)
 	resume.offer()
 }
-
 /** Opens or closes the shortcut sheet. */
 const toggleShortcuts = () => (shortcutsOpen.value = !shortcutsOpen.value)
-
 useHotkeys(() => {
 	if (pickerOpen.value || settingsOpen.value || tagEntry.targets.value !== null || deleteDialog.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
 		return null
@@ -269,7 +263,7 @@ useHotkeys(() => {
 					:settings="settings"
 					@update:index="pageLoupe"
 					@updateSettings="updateSettings"
-					@decide="(intent, picture) => decide(intent, [picture])"
+					@decide="(intent, picture) => decide(intent, [picture], () => restOffer(intent, picture))"
 					@toast="toast.show($event.message, $event.action)"
 					@allDecided="deleting.allDecided"
 					@move="moving.openShown([], () => 0)"

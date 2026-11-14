@@ -20,10 +20,10 @@ interface Decisions {
 }
 
 /** Decide, pick-rest, tag, undo and redo that each say in a toast what changed. */
-export function useToastedDecisions(cull: Decisions, show: (message: string, action?: ToastAction | null) => void) {
-	/** Decides the pictures and says what changed, with Undo. */
-	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]) {
-		toastChange(cull.decide(intent, chosen))
+export function useToastedDecisions(cull: Decisions, show: (message: string, action?: ToastAction | null, offer?: ToastAction) => void) {
+	/** Decides the pictures and says what changed, with Undo and the offer `offer` makes once they are decided. */
+	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[], offer: () => ToastAction | null = () => null) {
+		toastChange(cull.decide(intent, chosen), offer)
 	}
 
 	/** Picks one picture, rejects the rest and says so, with Undo. */
@@ -36,10 +36,10 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 		toastChange(cull.tag(change, chosen))
 	}
 
-	/** Toasts a recorded step with Undo. */
-	function toastChange(entry: CullStep | null) {
+	/** Toasts a recorded step with Undo and the offer, if any. */
+	function toastChange(entry: CullStep | null, offer: () => ToastAction | null = () => null) {
 		if (entry !== null) {
-			show(changeText(entry), { label: t('honeycomb', 'Undo'), run: undo })
+			show(changeText(entry), { label: t('honeycomb', 'Undo'), run: undo }, offer() ?? undefined)
 		}
 	}
 

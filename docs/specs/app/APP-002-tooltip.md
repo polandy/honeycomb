@@ -37,6 +37,7 @@ Controls with a tooltip:
 | Loupe and series viewer | *Previous* (`←`), *Next* (`→`) |
 | Action bar, loupe, series compare | *Pick* (`P`), *Reject* (`X`), *Unflag* (`U`), the stars (`0`–`5`), the colour swatches (`6`–`9` for the first four), *Pick this, reject the rest* (Shift+K) |
 | Series compare | the photo, *Open in the series viewer* |
+| Undo toast | *Reject the other N* (Shift+K) |
 | Grid tile | the series badge, on mouse hover only |
 | Filter bar | the comparison, the colour swatches |
 | Settings, move settings | *Remove {name}*, *Remove favourite {path}* |
@@ -117,3 +118,4 @@ Controls with a tooltip:
 | Date | Change |
 |---|---|
 | 2026-11-10 | The shared tooltip for the icon-only controls built so far |
+| 2026-11-14 | The undo toast's *Reject the other N* names `Shift+K` (series concept step 10) |

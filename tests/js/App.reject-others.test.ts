@@ -46,6 +46,11 @@ async function takeOffer(wrapper: AppWrapper) {
 	await flushPromises()
 }
 const flags = (saved: { fileId: number, flag: string }[][]) => saved.at(-1)!.map(({ fileId, flag }) => `${fileId} ${flag}`).sort()
+/** Opens the series viewer on the compare's picture at `at`. */
+async function view(wrapper: AppWrapper, at: number) {
+	wrapper.findComponent(SeriesCompare).vm.$emit('view', at)
+	await flushPromises()
+}
 /** The name of the picture the loupe shows. */
 function inLoupe(wrapper: AppWrapper) {
 	const loupe = wrapper.findComponent(PhotoLoupe)
@@ -62,11 +67,11 @@ describe('App: Reject the other N in the undo toast', () => {
 
 		expect(toast(wrapper).text()).toBe('Picked IMG_2·Reject the other 2Undo')
 		await takeOffer(wrapper)
-		expect(flags(saved)).toEqual(['1 rejected', '2 picked', '3 rejected'])
+		expect(flags(saved)).toEqual(['1 rejected', '3 rejected'])
 		expect(toast(wrapper).text()).toContain('Picked IMG_2, rejected the rest')
 		expect(inLoupe(wrapper)).toBe('IMG_4')
 		await press('z', { ctrlKey: true })
-		expect(flags(saved)).toEqual(['1 unflagged', '2 picked', '3 unflagged'])
+		expect(flags(saved)).toEqual(['1 unflagged', '3 unflagged'])
 		expect(inLoupe(wrapper)).toBe('IMG_4')
 	})
 
@@ -83,32 +88,34 @@ describe('App: Reject the other N in the undo toast', () => {
 		await press('P', { shiftKey: true })
 		expect(inLoupe(second.wrapper)).toBe('IMG_4')
 		await takeOffer(second.wrapper)
-		expect(flags(second.saved)).toEqual(['1 rejected', '2 rejected', '3 picked'])
+		expect(flags(second.saved)).toEqual(['1 rejected', '2 rejected'])
 		expect(inLoupe(second.wrapper)).toBe('IMG_4')
 	})
 
 	// spec: LOUPE-002.16
-	it('offers nothing after a reject or once no other photo of the series is unflagged', async () => {
+	it('offers nothing after a rating or a reject, or once no other photo of the series is unflagged', async () => {
 		const { wrapper } = await openApp(3)
-		await press('x')
+		await press('3')
 		expect(offer(wrapper).exists()).toBe(false)
 		await press('p')
 		expect(offer(wrapper).text()).toBe('Reject the other 1')
 		await press('ArrowRight')
 		await press('p')
 		expect(toast(wrapper).text()).toBe('Picked IMG_5·Undo')
+		await press('x')
+		expect(offer(wrapper).exists()).toBe(false)
 	})
 
 	// spec: SERIES-002.11
 	it('offers it after a Pick in the series viewer opened from the loupe, closes the compare and lands after the series', async () => {
 		const { wrapper, saved } = await openApp(0)
 		await press('n')
-		await press('Enter')
+		await view(wrapper, 0)
 		await press('p')
 
 		expect(offer(wrapper).text()).toBe('Reject the other 2')
 		await takeOffer(wrapper)
-		expect(flags(saved)).toEqual(['1 picked', '2 rejected', '3 rejected'])
+		expect(flags(saved)).toEqual(['2 rejected', '3 rejected'])
 		expect(wrapper.findComponent(SeriesViewer).exists()).toBe(false)
 		expect(wrapper.findComponent(SeriesCompare).exists()).toBe(false)
 		expect(inLoupe(wrapper)).toBe('IMG_4')
@@ -120,12 +127,11 @@ describe('App: Reject the other N in the undo toast', () => {
 		await press('n')
 		await press('p')
 		expect(offer(wrapper).exists()).toBe(false)
-		await press('Enter')
-		await press('ArrowRight')
+		await view(wrapper, 1)
 		await press('p')
 		await takeOffer(wrapper)
 
 		expect(wrapper.findComponent(SeriesViewer).exists()).toBe(false)
-		expect(wrapper.findComponent(SeriesCompare).props('series').map((picture: { baseName: string }) => picture.baseName)).toEqual(['IMG_4', 'IMG_5'])
+		expect(wrapper.findComponent(SeriesCompare).props('series')!.map((picture: { baseName: string }) => picture.baseName)).toEqual(['IMG_4', 'IMG_5'])
 	})
 })
