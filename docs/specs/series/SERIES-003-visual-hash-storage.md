@@ -165,7 +165,8 @@ server keeps the hashes the browser computed and hands them out with the listing
 - **When** the grid shows, on a phone or a desktop
 - **Then** a strip over the top of the grid shows a bar and *Comparing photos* with the hashed and
   the hashable count, the toolbar shows no similarity, and the tiles do not move when the strip
-  comes or goes
+  comes or goes; the grid keeps the strip's height free above its first row, so the strip covers
+  no tile while the grid is scrolled to the top
 
 ### SERIES-003.19 – Failures show
 
