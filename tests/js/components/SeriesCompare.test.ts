@@ -274,4 +274,25 @@ describe('SeriesCompare', () => {
 		expect(wrapper.emitted('dissolve')).toHaveLength(1)
 		expect(mountCompare(null).find('.series-compare__head').exists()).toBe(false)
 	})
+
+	// spec: SERIES-005.10, SERIES-005.13
+	it('keeps the dialog open while a menu is open, so Escape closes only the menu, until the series changes', async () => {
+		const wrapper = mountCompare()
+		const dialog = () => wrapper.findComponent(DialogStub)
+		const [series, card] = wrapper.findAllComponents(ActionsStub)
+
+		series!.vm.$emit('update:open', true)
+		card!.vm.$emit('update:open', true)
+		series!.vm.$emit('update:open', false)
+		await flushPromises()
+		expect(dialog().props('noClose')).toBe(true)
+
+		card!.vm.$emit('update:open', false)
+		await flushPromises()
+		expect(dialog().props('noClose')).toBe(false)
+
+		card!.vm.$emit('update:open', true)
+		await wrapper.setProps({ series: { key: 2, members: SERIES } })
+		expect(dialog().props('noClose')).toBe(false)
+	})
 })

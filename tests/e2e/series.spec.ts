@@ -152,3 +152,36 @@ test('removes a photo from the series and dissolves the series from the compare\
 	await page.keyboard.press('n')
 	await expect(page.getByText('All series compared')).toBeVisible()
 })
+
+// spec: SERIES-005.10, SERIES-005.13
+test('draws the card menu\'s dots in white on its dark disc, each menu icon in the icon column, and closes only the menu on Escape', async ({ page }) => {
+	await page.setViewportSize(DESKTOP)
+	await page.emulateMedia({ colorScheme: 'light' })
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = `Series ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	await upload(page, `${folder}/IMG_0001.jpg`, withCaptureTime(JPEG, '2026:11:10 10:00:00'))
+	await upload(page, `${folder}/IMG_0002.jpg`, withCaptureTime(JPEG, '2026:11:10 10:00:01'))
+
+	await cullFolder(page, folder)
+	await expect(page.getByRole('gridcell')).toHaveCount(2)
+	await page.keyboard.press('n')
+	const compare = page.getByRole('dialog', { name: /^Compare series 1 of 1/ })
+	const toggle = compare.getByRole('button', { name: 'Photo 1 menu' })
+	expect(await toggle.locator('svg').evaluate((element) => getComputedStyle(element).color)).toBe('rgb(255, 255, 255)')
+
+	const area = await page.evaluate(() => parseFloat(getComputedStyle(document.body).getPropertyValue('--default-clickable-area')))
+	for (const [menu, label] of [[toggle, /Remove from this series/], [compare.getByRole('button', { name: 'Series menu' }), /Dissolve this series/]] as const) {
+		await menu.click()
+		const item = page.getByRole('menuitem', { name: label })
+		const box = (await item.boundingBox())!
+		const icon = (await item.locator('svg').boundingBox())!
+		expect(Math.round(icon.x + icon.width / 2 - box.x)).toBe(Math.round(area / 2))
+		expect(Math.round(icon.y + icon.height / 2 - box.y)).toBe(Math.round(area / 2))
+		await page.keyboard.press('Escape')
+		await expect(item).toBeHidden()
+		await expect(compare).toBeVisible()
+	}
+	await page.keyboard.press('Escape')
+	await expect(compare).toBeHidden()
+})

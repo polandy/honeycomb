@@ -40,6 +40,7 @@ export const AppSettingsSectionStub = defineComponent({
 /** NcActions in place: its label and its items, always rendered, no popover; its items close nothing. */
 export const ActionsStub = defineComponent({
 	props: { ariaLabel: { type: String, default: '' } },
+	emits: ['update:open'],
 	setup(props, { slots }) {
 		provide(Symbol.for('NcActions:closeMenu'), () => undefined)
 		return () => h('div', { 'data-actions': props.ariaLabel }, slots.default?.())
