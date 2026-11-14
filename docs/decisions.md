@@ -1009,3 +1009,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the keys goes on, and it wakes the faded title row and keeps it while it shows. Unlike the gesture
   guide it has no *Show again* in the settings: the concept asks for none, and the user guide
   explains the chip.
+- 2026-11-14: The subfolder listing walks the folder tree, one `getDirectoryListing()` per
+  folder, instead of paging a file-cache search by offset (ADR 0009 amendment). Keyset paging by
+  `fileid >` is not possible: Nextcloud 35.0.2's `SearchBuilder::validateComparison` allows only
+  `eq` and `in` on `fileid`. The walk reads each row once with memory bounded to one folder; one
+  unpaged search with a limit of 60,001 would hold that many nodes at once. The `TODO.md` item on
+  `LIKE` and upper-case names on PostgreSQL goes with the search, as names now match in PHP.

@@ -64,14 +64,15 @@ ticked parent with subfolders and a ticked child both hold it.
 
 - **Given** a folder with nested subfolders
 - **When** the user lists it with `subfolders=1`
-- **Then** the answer holds the photos and sidecars of every folder below, read by file id page
-  after page
+- **Then** the answer holds the photos and sidecars of every folder below, read folder by folder:
+  each folder's listing once, each file once, a folder the user may not read never
 
 ### LISTING-001.5 – Hidden folders and files are skipped
 
 - **Given** hidden folders and files below the picked folder
 - **When** the folder is listed with `subfolders=1`
-- **Then** they are left out; a hidden folder picked on purpose is listed
+- **Then** they are left out and a hidden folder is never opened; a hidden folder picked on purpose
+  is listed
 
 ### LISTING-001.6 – The entry limit
 
@@ -101,7 +102,7 @@ ticked parent with subfolders and a ticked child both hold it.
 
 - **Given** a folder set of 2,000 RAW+JPEG pairs
 - **When** it is listed with `subfolders=1`
-- **Then** it takes a few file-cache queries, not one per file
+- **Then** it takes one file-cache query per folder, not one per file
 
 ### LISTING-001.11 – Overlapping folders list a file once
 
