@@ -16,7 +16,7 @@ Open only the file, or the section, a change touches.
 | [`specs/`](specs/) | What the merged code does, one spec per feature, coupled to the tests (ADR 0015) |
 | [`plan.md`](plan.md) | Milestones, project structure, target versions, open questions |
 | [`mockup/index.html`](mockup/index.html) | The interactive mockup (milestone M0), with the tag entry (`T`) and the tag filter; open it in a browser |
-| [`plans/`](plans/) | Concepts awaiting the owner's sign-off, analyses such as [the database impact](plans/database-impact.md), e.g. [series in the loupe](plans/loupe-series-concept.md) with its [mockup](mockup/loupe-series/index.html), and manual test guides |
+| [`plans/`](plans/) | Concepts awaiting the owner's sign-off, e.g. [series in the loupe](plans/loupe-series-concept.md) with its [mockup](mockup/loupe-series/index.html), analyses such as [the database impact](plans/database-impact.md), and manual test guides |
 | [`ux-review.md`](ux-review.md) | UX review of the mockup: findings, fixes, design direction; screenshots in [`ux/`](ux/) |
 | [`ux-review-2026-11.md`](ux-review-2026-11.md) | UX review of the running app (2026-11): prioritised findings and fixes, each a `TODO.md` item |
 | [`adr/`](adr/) | Architecture decision records, one file each |
