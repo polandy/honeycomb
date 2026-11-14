@@ -8,7 +8,7 @@
 	<name>honeycomb</name>
 	<summary>Cull RAW+JPEG photo pairs, touch-first for the iPad</summary>
 	<description><![CDATA[A photo shot as RAW+JPEG is two files with the same base name; honeycomb treats them as one picture. Look at it once, rate, label, pick or reject it once, and delete both files and their XMP sidecars together into the trash bin.]]></description>
-	<version>0.1.0</version>
+	<version>0.2.0</version>
 	<licence>agpl</licence>
 	<author>Andy Pollari</author>
 	<namespace>Honeycomb</namespace>
