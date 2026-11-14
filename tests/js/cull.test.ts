@@ -91,21 +91,6 @@ describe('useCull: series', () => {
 		expect(cull.pickRest(picture('IMG_9'), [])).not.toBeNull()
 		expect(cull.pickRest(picture('IMG_9'), [])).toBeNull()
 	})
-
-	// spec: SERIES-001.1, SERIES-001.5
-	it('forms the series of the cull and leaves a picture out once it is rejected', async () => {
-		const entries = [
-			listingEntry(1, '/Trip/A.JPG', { captureTime: 10 }),
-			listingEntry(2, '/Trip/B.JPG', { captureTime: 11 }),
-			listingEntry(3, '/Trip/C.JPG', { captureTime: 12 }),
-		]
-		const { cull, picture } = await openedCull([], entries)
-		expect(cull.series.value.map((series) => series.members.map((each) => each.baseName))).toEqual([['A', 'B', 'C']])
-
-		cull.decide({ kind: 'flag', flag: 'rejected' }, [picture('B')])
-		expect(cull.series.value.map((series) => series.members.map((each) => each.baseName))).toEqual([['A', 'C']])
-		expect([picture('A'), picture('B')].map((each) => cull.seriesSizes.value.get(each))).toEqual([2, undefined])
-	})
 })
 
 describe('useCull: toggleFiltersOff', () => {

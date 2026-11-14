@@ -23,15 +23,14 @@ import { memberIds } from './logic/pairing.ts'
 import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
 import { sortPictures } from './logic/picture-order.ts'
 import { byFileId, saveQueue } from './logic/save-queue.ts'
-import { allSeries, findSeries, openSeries, seriesCandidates, seriesMembers, seriesSizes as sizesOf } from './logic/series.ts'
 import { pairingSettings } from './logic/settings.ts'
 import { inSharedFolder } from './logic/sidecar-sync.ts'
 import { inverseChange } from './logic/tag.ts'
 import { withoutFiles } from './logic/trash-report.ts'
 import { applyStep, pickRestEntry, tagStep, undoEntry } from './logic/undo.ts'
 import { usePreviewWarmer } from './preview-warmer.ts'
+import { useSeries } from './series.ts'
 import { useViewOptions } from './view-options.ts'
-import { useVisualHashes } from './visual-hashes.ts'
 
 /** A step of the cull's undo history. */
 export type CullStep = UndoStep<Picture<ListingEntry>>
@@ -68,13 +67,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const cullProgress = computed(() => progress(pictures.value, decisionOf))
 	const shownProgress = computed(() => progress(view.value, decisionOf))
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
-	const hashes = useVisualHashes(api, storage, () => pictures.value)
+	const seriesState = useSeries(api, storage, () => pictures.value, decisionOf)
 	const warmer = usePreviewWarmer(api.warmPreviews, storage)
-	const candidates = computed(() => seriesCandidates(pictures.value, hashes.hashOf))
-	const everySeries = computed(() => allSeries(candidates.value, decisionOf, hashes.hashOf))
-	const series = computed(() => findSeries(everySeries.value, decisionOf))
-	const seriesSizes = computed(() => sizesOf(series.value))
-	const seriesOf = computed(() => seriesMembers(everySeries.value))
 	const sharedPictures = computed(() => pictures.value.filter((picture) => inSharedFolder(picture, sharedFolders.value)))
 
 	/** Shows the pictures of the confirmed folders with fresh filters, then their stored decisions. */
@@ -238,12 +232,12 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		decisionOf,
 		passes,
 		common,
-		series,
-		seriesSizes,
-		seriesOf,
-		openSeries: computed(() => openSeries(series.value, (picture) => hashes.stateOf(picture) === 'pending')),
-		holdHashes: hashes.hold,
-		hashProgress: hashes.progress,
+		series: seriesState.series,
+		seriesSizes: seriesState.seriesSizes,
+		seriesOf: seriesState.seriesOf,
+		openSeries: seriesState.openSeries,
+		holdHashes: seriesState.holdHashes,
+		hashProgress: seriesState.hashProgress,
 		decide,
 		pickRest,
 		tag,

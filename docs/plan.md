@@ -931,6 +931,8 @@ honeycomb/
 │   ├── cull.ts                 the cull's state as one composable; no Pinia, no store folder
 │   ├── view-options.ts         how the cull is shown (filters, sort, grouping, tile size,
 │   │                           panels); `cull.ts` hands it on unchanged
+│   ├── series.ts               the cull's series, their sizes and the visual hashes they
+│   │                           are formed by; `cull.ts` hands it on unchanged
 │   └── *.ts                    feature modules beside it: `api.ts` (every request),
 │                               `*-flow.ts`, `*-seams.ts`, `hash-*.ts`, `loupe-*.ts`, ...
 ├── templates/                  `main.php` mounts the cull app, `similarity.php` the other page
