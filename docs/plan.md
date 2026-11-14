@@ -346,9 +346,10 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
 4. **Series viewer.** The compare's full screen: a card's *View full screen* button, a double tap
    on its photo or `Enter` opens it (a single tap only makes the card active), the loupe's window
    around it preloaded. *Back to the series* or `Esc` returns.
-   Swipe pages between the photos (arrow buttons and keys also work, also while zoomed). *Pick this, reject the rest* is in the viewer, one undo step. The controls fade out
-   when idle; a tap on the middle of the photo brings them back or hides them, a tap on its left
-   or right side pages ([Tap zones](#tap-zones)).
+   Swipe pages between the photos (arrow buttons and keys also work, also while zoomed). *Pick
+   this, reject the rest* is in the viewer, one undo step. The controls fade out when idle;
+   a tap on the middle of the photo brings them back or hides them, a tap on its left or right
+   side pages ([Tap zones](#tap-zones)).
    - **Reject a single photo** without leaving fullscreen (owner, 2026-11-09): the *Reject*
      button in the bottom bar, the `X` key, or a swipe down
      on the photo following the *Swipe down* setting (a horizontal swipe still pages; no
