@@ -27,7 +27,6 @@ final class SharedFoldersTest extends TestCase {
 			'the user only' => [['users' => ['alice'], 'remote' => false, 'public' => false, 'mail' => []], '', ['alice'], false],
 			'no shares at all' => [[], '', [], false],
 			'shared with another user' => [['users' => ['alice', 'bob'], 'remote' => false], '', [], true],
-			'received from another user' => [['users' => ['bob', 'alice']], 'shared', [], true],
 			'shared with a federated user' => [['users' => ['alice'], 'remote' => true], '', [], true],
 			'shared by public link' => [['users' => ['alice'], 'public' => true], '', [], true],
 			'shared by mail' => [['users' => ['alice'], 'mail' => ['carol@example.com']], '', [], true],
@@ -60,6 +59,20 @@ final class SharedFoldersTest extends TestCase {
 		});
 
 		$this->assertSame($shared, (new SharedFolders($shares, $mounts))->isShared($user, $folder));
+	}
+
+	// spec: LISTING-001.12
+	public function testAFolderSharedWithTheUserIsSharedWithoutAskingTheShareManager(): void {
+		$mount = $this->createStub(IMountPoint::class);
+		$mount->method('getMountType')->willReturn('shared');
+		$folder = $this->createStub(Folder::class);
+		$folder->method('getMountPoint')->willReturn($mount);
+		$shares = $this->createMock(IShareManager::class);
+		$shares->expects($this->never())->method($this->anything());
+		$mounts = $this->createMock(IUserMountCache::class);
+		$mounts->expects($this->never())->method($this->anything());
+
+		$this->assertTrue((new SharedFolders($shares, $mounts))->isShared($this->userNamed('alice'), $folder));
 	}
 
 	private function userNamed(string $uid): IUser {
