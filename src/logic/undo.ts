@@ -41,6 +41,21 @@ export type TagStep<P> = DescribedStep<'tags'> & { readonly pictures: readonly P
 /** One step of the undo history, tagged by its kind. */
 export type UndoStep<P> = DecisionStep | PickRestStep | TagStep<P>
 
+/** The undo step of each kind. */
+interface StepsByKind<P> {
+	readonly decision: DecisionStep
+	readonly pickRest: PickRestStep
+	readonly tags: TagStep<P>
+}
+
+/** What puts each kind of step into effect, or takes it back when `back`. */
+export type StepEffects<P> = { readonly [K in StepKind]: (step: StepsByKind<P>[K], back: boolean) => void }
+
+/** Puts the step into effect through the effect of its kind, or takes it back when `back`. */
+export function applyStep<P, K extends StepKind>(effects: StepEffects<P>, step: StepsByKind<P>[K] & { readonly kind: K }, back: boolean): void {
+	effects[step.kind](step, back)
+}
+
 /** The undo step of a change to the pictures, or null when it alters none. */
 export function undoEntry(pictures: readonly Decided[], change: DecisionChange): DecisionStep | null {
 	const rows = rowsOf(pictures.map((decided) => ({ decided, change })))
