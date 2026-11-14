@@ -44,8 +44,9 @@ that set is written to every sidecar, and to a new `<member file>.xmp` for each 
 while any tag is left. The JPEG gets its new sidecar also when no tag is left but its embedded XMP
 held tags, so the removal lasts. Only the three tag fields change (XMP-004); the decision fields
 stay as the sidecar holds them. Changes waiting for the same pass are applied in order and saved
-once (XMP-003.16). A sidecar answering `changed` is read again and gets the change once more. A sidecar that cannot be written is reported like a decision's (XMP-003.13); *Retry
-failed sidecars* applies the same change again.
+once (XMP-003.16). A sidecar answering `changed` is read again and gets the change once more. A
+sidecar that cannot be written is reported like a decision's (XMP-003.13); *Retry failed
+sidecars* applies the same change again.
 
 **Files moved back.** Files put back into the cull (an undone delete) have their stored tags read.
 
