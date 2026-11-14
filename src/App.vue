@@ -56,7 +56,7 @@ const sidecarFlow = useSidecarFlow(props.sidecars, toast.show)
 const cull = useCull({ hashImage: props.hashImage, warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions, tags: props.tags }, props.storage, () => settings.value, sidecarFlow.sync)
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
 const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
-const { loupe, shown: loupeShown, page: pageLoupe, close: closeLoupe } = useLoupeOpening((index) => grid.value?.reveal(index), cull.passes)
+const { loupe, shown: loupeShown, page: pageLoupe, land: landInLoupe, close: closeLoupe } = useLoupeOpening((index) => grid.value?.reveal(index), cull.passes)
 const loupeView = useTemplateRef<InstanceType<typeof PhotoLoupe>>('loupeView')
 const filterBar = useTemplateRef<InstanceType<typeof FilterBar>>('filterBar')
 const headerShown = ref(true)
@@ -245,6 +245,7 @@ useHotkeys(() => {
 			<SeriesCompareFlow
 				ref="seriesFlow"
 				:flow="seriesCompare"
+				:container="seriesCompare.oneSeries.value ? '.photo-loupe' : 'body'"
 				:decisionOf="cull.decisionOf"
 				@tag="tagEntry.open([$event])" />
 			<SettingsDialog
@@ -274,6 +275,7 @@ useHotkeys(() => {
 					@allDecided="deleting.allDecided"
 					@move="moving.openShown([], () => 0)"
 					@tag="tagEntry.open([$event])"
+					@compareSeries="(series, picture) => seriesCompare.startOn(series, picture, landInLoupe)"
 					@close="closeLoupe" />
 				<TagEntry
 					v-if="tagEntry.targets.value !== null"

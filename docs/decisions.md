@@ -982,3 +982,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   run of one photo split off by the sort or a filter is framed too, since it still belongs to a
   series. The frame is drawn over the photos' edges rather than padding them, so the strip's
   geometry and centring stay as they are; the shown photo's ring moves 2 px inside it.
+- 2026-11-14: The loupe's series chip (LOUPE-001.25, concept step 8) drops the word "Series" at
+  520 px on either side, the phone rule of SERIES-001.21, so a phone held sideways keeps the short
+  "⧉ 2/5". The compare opened from the loupe holds that one series, decided or not, and closes
+  without moving the loupe once fewer than two of its photos are not rejected. A frame's "⧉ N" tab
+  makes the shown photo active when it is in that series, else the frame's first photo. The
+  compare and its viewer mount inside the loupe (`.photo-loupe`), since the loupe sits above the
+  page's dialogs; the viewer's title stays "Series 1 of 1" from the loupe, unchanged.

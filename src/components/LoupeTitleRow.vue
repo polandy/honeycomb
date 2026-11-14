@@ -12,7 +12,7 @@ import { keyCap } from '../hotkeys.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { tip } from '../tooltip.ts'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	name: string
 	/** The shown picture's index. */
 	index: number
@@ -24,10 +24,13 @@ const props = defineProps<{
 	/** Whether Nextcloud's header shows above the loupe. */
 	navigationShown: boolean
 	flagButtonsShown: boolean
-}>()
+	/** The shown picture's place in its series, from 1, and the series' count; null outside a series (LOUPE-001.25). */
+	series?: { position: number, count: number } | null
+}>(), { series: null })
 
 const emit = defineEmits<{
 	close: []
+	compareSeries: []
 	move: []
 	toggleZoom: []
 	toggleFullscreen: []
@@ -38,6 +41,9 @@ const emit = defineEmits<{
 }>()
 
 const fullscreen = useFullscreenState()
+
+/** The mark that stands for a series, as on the filmstrip's frame tab. */
+const SERIES_MARK = '⧉'
 </script>
 
 <template>
@@ -55,6 +61,15 @@ const fullscreen = useFullscreenState()
 			{{ props.name }}
 		</h2>
 		<span class="loupe-title-row__count">{{ t('honeycomb', '{position} of {count}', { position: formatNumber(props.index + 1), count: formatNumber(props.count) }, undefined, PLAIN_TEXT) }}</span>
+		<button
+			v-if="props.series !== null"
+			type="button"
+			class="loupe-title-row__series"
+			:aria-label="t('honeycomb', 'Photo {position} of a series of {count} – compare', { position: formatNumber(props.series.position), count: formatNumber(props.series.count) }, undefined, PLAIN_TEXT)"
+			v-bind="tip(t('honeycomb', 'Compare this series'), keyCap('compare'))"
+			@click="emit('compareSeries')">
+			{{ SERIES_MARK }} <span class="loupe-title-row__series-word">{{ t('honeycomb', 'Series') }}</span> {{ t('honeycomb', '{position}/{count}', { position: formatNumber(props.series.position), count: formatNumber(props.series.count) }, undefined, PLAIN_TEXT) }}
+		</button>
 		<NcButton
 			variant="tertiary"
 			:aria-label="t('honeycomb', 'Toggle fit and 100 percent')"
@@ -120,6 +135,35 @@ const fullscreen = useFullscreenState()
 </template>
 
 <style scoped>
+/* A honey outline, never filled: a fill marks a pressed state (LOUPE-001.25). */
+.loupe-title-row__series {
+	flex-shrink: 0;
+	min-height: 44px;
+	margin: 0;
+	padding: 0 12px;
+	border: 2px solid var(--color-primary-element);
+	border-radius: 22px;
+	background: transparent;
+	color: var(--color-primary-element);
+	font-weight: bold;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+@media (pointer: fine) {
+	.loupe-title-row__series {
+		min-height: 34px;
+	}
+}
+
+/* A phone shows the mark and the numbers only, either way round. */
+@media (max-width: 520px), (max-height: 520px) {
+	.loupe-title-row__series-word {
+		display: none;
+	}
+}
+
 .loupe-title-row {
 	display: flex;
 	align-items: center;

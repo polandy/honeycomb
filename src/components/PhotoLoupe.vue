@@ -81,6 +81,8 @@ const emit = defineEmits<{
 	move: []
 	updateSettings: [patch: Partial<Settings>]
 	tag: [picture: Picture<ListingEntry>]
+	/** Opens the compare on the series with the picture active (LOUPE-001.25). */
+	compareSeries: [series: readonly Picture<ListingEntry>[], picture: Picture<ListingEntry>]
 	close: []
 }>()
 
@@ -108,6 +110,8 @@ const decisions = useLoupeDecisions({
 })
 
 const picture = computed(() => props.pictures[props.index]!)
+const series = computed(() => props.seriesOf.get(picture.value) ?? null)
+const seriesPlace = computed(() => (series.value === null ? null : { position: series.value.indexOf(picture.value) + 1, count: series.value.length }))
 const sourcesAt = (index: number) => loupeSources(imageMember(props.pictures[index]!), props.imageUrl)
 
 watch(() => props.index, (index) => prefetcher.prefetchAround(index, props.pictures.length, sourcesAt), { immediate: true })
@@ -116,6 +120,15 @@ watch(() => props.index, (index) => prefetcher.prefetchAround(index, props.pictu
 function go(index: number) {
 	if (index >= 0 && index < props.pictures.length && index !== props.index) {
 		emit('update:index', index)
+	}
+}
+
+/** Opens the compare on the series of the picture at `index`, the shown picture active while it is in it, else that one. */
+function compareSeriesOf(index: number) {
+	const at = props.pictures[index]!
+	const members = props.seriesOf.get(at)
+	if (members !== undefined) {
+		emit('compareSeries', members, members.includes(picture.value) ? picture.value : at)
 	}
 }
 
@@ -137,6 +150,7 @@ const hotkeys: HotkeyHandlers = {
 	info: () => panels.setInfoOpen(!infoOpen.value),
 	'flag-buttons': () => decisions.setFlagButtonsShown(!props.settings.flagButtonsShown, true),
 	tag: () => emit('tag', picture.value),
+	compare: () => compareSeriesOf(props.index),
 	decide: decisions.decideByKey,
 }
 
@@ -175,7 +189,9 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:filmstripOpen="filmstripOpen"
 			:navigationShown="navigationShown"
 			:flagButtonsShown="settings.flagButtonsShown"
+			:series="seriesPlace"
 			@pointerdown="overlays.wake"
+			@compareSeries="compareSeriesOf(props.index)"
 			@close="emit('close')"
 			@move="emit('move')"
 			@toggleZoom="stage!.toggleZoom()"
@@ -234,6 +250,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:imageUrl="props.imageUrl"
 			:observeSize="props.observeSize"
 			:pinned="settings.filmstripPinned"
+			:onCompareSeries="compareSeriesOf"
 			@pointerdown="overlays.wake"
 			@select="go"
 			@update:pinned="emit('updateSettings', { filmstripPinned: $event })" />

@@ -38,7 +38,11 @@ const props = withDefaults(defineProps<{
 	observeSize?: ObserveSize
 	/** The clock that times a double tap, in ms. */
 	now?: () => number
-}>(), { imageUrl: apiImageUrl, observeSize: observeElementSize, now: () => performance.now() })
+	/** Opened from the loupe on this one series, without *Skip* (SERIES-001.24). */
+	oneSeries?: boolean
+	/** Where the dialog mounts: inside the loupe when opened from it. */
+	container?: string
+}>(), { imageUrl: apiImageUrl, observeSize: observeElementSize, now: () => performance.now(), oneSeries: false, container: 'body' })
 
 const emit = defineEmits<{
 	decide: [intent: DecisionIntent, picture: Picture<ListingEntry>]
@@ -54,12 +58,14 @@ const emit = defineEmits<{
 
 const title = computed(() => (props.series === null
 	? t('honeycomb', 'Compare series')
-	: t('honeycomb', 'Compare series {i} of {count} · photo {photo} of {photos}', {
-			i: formatNumber(props.position + 1),
-			count: formatNumber(props.count),
-			photo: formatNumber(props.active + 1),
-			photos: formatNumber(props.series.length),
-		}, undefined, PLAIN_TEXT)))
+	: props.oneSeries
+		? t('honeycomb', 'Series of {photos} · photo {photo}', { photos: formatNumber(props.series.length), photo: formatNumber(props.active + 1) }, undefined, PLAIN_TEXT)
+		: t('honeycomb', 'Compare series {i} of {count} · photo {photo} of {photos}', {
+				i: formatNumber(props.position + 1),
+				count: formatNumber(props.count),
+				photo: formatNumber(props.active + 1),
+				photos: formatNumber(props.series.length),
+			}, undefined, PLAIN_TEXT)))
 
 const grid = useTemplateRef<HTMLUListElement>('grid')
 const area = shallowRef<{ width: number, height: number } | null>(null)
@@ -126,7 +132,7 @@ function onOpen(open: boolean) {
 		class="series-compare-dialog"
 		:name="title"
 		size="full"
-		container="body"
+		:container="props.container"
 		@update:open="onOpen">
 		<NcEmptyContent
 			v-if="props.series === null"
@@ -156,7 +162,7 @@ function onOpen(open: boolean) {
 					<p class="series-compare__hint">
 						{{ t('honeycomb', 'Tap a photo to make it active, double-tap it or press ⤢ to view it full screen, or decide right here.') }}
 					</p>
-					<NcButton variant="secondary" @click="emit('skip')">
+					<NcButton v-if="!props.oneSeries" variant="secondary" @click="emit('skip')">
 						{{ t('honeycomb', 'Skip') }}
 					</NcButton>
 					<PickRestButton @pick="pickActive" />

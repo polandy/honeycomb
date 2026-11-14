@@ -57,8 +57,12 @@ any other. A rejected picture leaves the series; once fewer than two are left, t
 and the next one shows. *Pick this, reject the rest* picks the one picture and rejects every other
 picture of the series, as one undo step: "Picked IMG_0003, rejected the rest · Undo". *Skip* shows
 the next series, after the last the first. Without any series left the dialog says "All series
-compared". On a narrow phone *Pick this, reject the rest* wraps its label to two balanced lines
-instead of cutting it.
+compared". Opened from the loupe (LOUPE-001.25), the compare holds that one series, decided or
+not, with the loupe's picture active: its title says "Series of 5 · photo 2", *Skip* hides,
+closing returns to the loupe on the active picture, and *Pick this, reject the rest* closes it and
+returns to the loupe on the first picture after the series in the loupe's order, or on the picked
+one when none follows; once fewer than two of its pictures are left, it closes. On a narrow
+phone *Pick this, reject the rest* wraps its label to two balanced lines instead of cutting it.
 
 | Key in the dialog | Action |
 |---|---|
@@ -236,6 +240,17 @@ instead of cutting it.
   distant or other card's second tap is a single tap again, and focus on a card's photo follows
   the active card while focus elsewhere stays put
 
+### SERIES-001.24 – Opened from the loupe on one series
+
+- **Given** the loupe shows a picture of a series
+- **When** the user opens the compare from it (the series chip, the filmstrip frame's tab or `N`)
+- **Then** the compare shows that series alone with the loupe's picture active, titled "Series of 5
+  · photo 2" by the active picture and without *Skip*; closing it (button, `Esc`) returns to the
+  loupe on the active picture; *Pick this, reject the rest*, in the compare or its series viewer,
+  closes it and returns to the loupe on the first picture after the series' last in the loupe's
+  order, on the picked one when none follows; a series left with fewer than two pictures closes it
+  where the loupe was
+
 ## Out of scope
 
 The fullscreen series viewer and the series badge on the tiles: SERIES-002. The capture time and
@@ -257,3 +272,4 @@ camera come from LISTING-001.
 | 2026-11-14 | Focus starts on the active card's photo, so the row no longer jumps back to the first card once the dialog has opened (flaky e2e from #147). |
 | 2026-11-14 | The compare uses the whole screen as a grid sized to fit, with `↑` `↓` and a bottom bar holding *Skip* and the one *Pick this, reject the rest*; the sideways-scrolling row is gone (series concept step 5, owner decision 3). |
 | 2026-11-14 | A tap only makes a card active; *View full screen* (⤢), a double tap or `Enter` opens the series viewer (series concept step 6, owner point 4). |
+| 2026-11-14 | Opened from the loupe the compare holds one series, returns to the loupe and lands after the series on *Pick this, reject the rest* (series concept step 8). |

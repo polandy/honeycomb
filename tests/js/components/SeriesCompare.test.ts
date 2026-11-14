@@ -23,11 +23,12 @@ const SERIES = picturesOf([
 ]) as Picture<ListingEntry>[]
 const DECISIONS: Record<string, Decision> = { IMG_2: { ...UNDECIDED, rating: 3, flag: 'picked' } }
 
-function mountCompare(series: Picture<ListingEntry>[] | null = SERIES, now = () => 0) {
+function mountCompare(series: Picture<ListingEntry>[] | null = SERIES, now = () => 0, oneSeries = false) {
 	return mount(SeriesCompare, {
 		attachTo: document.body,
 		props: {
 			now,
+			oneSeries,
 			series,
 			position: 1,
 			count: 4,
@@ -95,6 +96,14 @@ describe('SeriesCompare', () => {
 		expect(wrapper.findComponent(PickRestButton).findComponent(NcButton).props('variant')).toBe('primary')
 		expect(button(wrapper, 'Skip').props('variant')).toBe('secondary')
 		expect(bar.findAll('button').map((found) => plain(found.text()))).toEqual(['Skip', 'Pick this, reject the rest'])
+	})
+
+	// spec: SERIES-001.24
+	it('names one series opened from the loupe by its size and the active photo, without Skip', () => {
+		const wrapper = mountCompare(SERIES, () => 0, true)
+
+		expect(plain(wrapper.find('[role="dialog"]').attributes('name'))).toBe('Series of 3 · photo 2')
+		expect(wrapper.find('.series-compare__bar').findAll('button').map((found) => plain(found.text()))).toEqual(['Pick this, reject the rest'])
 	})
 
 	// spec: SERIES-001.7, SERIES-001.9
