@@ -1015,3 +1015,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `eq` and `in` on `fileid`. The walk reads each row once with memory bounded to one folder; one
   unpaged search with a limit of 60,001 would hold that many nodes at once. The `TODO.md` item on
   `LIKE` and upper-case names on PostgreSQL goes with the search, as names now match in PHP.
+- 2026-11-14: The undo toast's buttons show the pointer by an underline and the focus by an
+  outline in their light text colour, both on the transparent background: the mockup gives
+  them no hover look, and a filled hover would need a colour Nextcloud does not offer for the
+  inverted toast (LOUPE-002.17).
