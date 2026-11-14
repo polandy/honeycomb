@@ -12,7 +12,7 @@ import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { ENTRIES, fakeStorage, NO_SERIES, NO_TAGS, SET, stored } from './app-cull.ts'
+import { ENTRIES, fakeStorage, NO_SERIES, NO_TAGS, SAVED_SERIES, SET, stored } from './app-cull.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
 /** Sidecars with nothing to take over, written without a word. */
@@ -43,6 +43,7 @@ async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 		},
 		saveDecisions: async (rows) => { saved.push([...rows]) },
 		lookupSeries: NO_SERIES,
+		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,
 	}, fakeStorage(), () => settings.value, NO_SIDECARS)
 	cull.open(SET, entries, [])

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { StoredDecision } from '../../src/logic/decision.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
+import type { SeriesWrite } from '../../src/logic/series-edit.ts'
 import type { SidecarSaveItem } from '../../src/logic/sidecar-sync.ts'
 import type { StoredViewState, ViewState } from '../../src/logic/view-state.ts'
 
@@ -86,6 +87,9 @@ export function provideSkipActions() {
 /** A series lookup with nothing stored. */
 export const NO_SERIES = async () => ({ series: [], keptOut: [] })
 
+/** A series save that keeps each series' id and gives a new one 100. */
+export const SAVED_SERIES = async (write: SeriesWrite) => ({ ids: write.series.map(({ id }) => id ?? 100) })
+
 /** Tag endpoints that store nothing. */
 export const NO_TAGS = { lookupTags: async () => [], saveTags: async () => undefined, loadTagList: async () => [] }
 
@@ -109,6 +113,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			},
 			saveDecisions: async (rows: readonly StoredDecision[]) => { saved.push([...rows]) },
 			lookupSeries: NO_SERIES,
+			saveSeries: SAVED_SERIES,
 			tags: NO_TAGS,
 			loadSettings: async () => ({}),
 			saveSettings: async (settings: object) => { savedSettings.push(settings) },

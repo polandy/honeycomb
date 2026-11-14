@@ -36,3 +36,11 @@ export const AppSettingsSectionStub = defineComponent({
 		return () => h('section', { id: props.id }, [h('h3', props.name), slots.default?.()])
 	},
 })
+
+/** NcActions in place: its label and its items, always rendered, no popover. */
+export const ActionsStub = defineComponent({
+	props: { ariaLabel: { type: String, default: '' } },
+	setup(props, { slots }) {
+		return () => h('div', { 'data-actions': props.ariaLabel }, slots.default?.())
+	},
+})

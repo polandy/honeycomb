@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { ENTRIES, fakeStorage, NO_SERIES, NO_TAGS, SET } from './app-cull.ts'
+import { ENTRIES, fakeStorage, NO_SERIES, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
 
 const NO_SIDECARS: CullSidecars = { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) }
 
@@ -29,6 +29,7 @@ async function waitingCull() {
 			settle.push({ resolve, reject })
 		}),
 		lookupSeries: NO_SERIES,
+		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,
 	}, fakeStorage(), () => DEFAULT_SETTINGS, NO_SIDECARS)
 	cull.open(SET, ENTRIES, [])
