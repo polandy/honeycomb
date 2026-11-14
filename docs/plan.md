@@ -246,9 +246,18 @@ folder with all its subfolders. That set of folders is the *folder set*.
    show each picture's folder.
 7. **Moving.** Moving pictures into a folder of the folder set still removes them from the view.
 8. **Recent.** A folder set is listed under *Recent* with its own resume position and progress.
-9. **Performance.** The server lists the whole folder set with one file-cache query by path
-   prefix and mime type, never a WebDAV walk. The grid is virtualised. Above 20,000 pictures the
-   picker shows a notice and the grid shows the first 20,000 by capture time.
+9. **Performance.** The server lists the whole folder set from the file cache, never a WebDAV
+   walk. The grid is virtualised. Above 20,000 pictures the picker shows a notice and the grid
+   shows the first 20,000 by capture time.
+   **Measured** on 2026-11-14 with `scripts/measure-scale.sh` (100,000 empty photo files in 1,000
+   folders, the e2e container on SQLite, the services called without HTTP): the subfolder
+   listing costs 5 queries per folder (one directory listing and 4 share lookups of
+   `SharedFolders::isShared`) and 2 per 1,000 entries (file metadata, visual hashes). 10,000
+   entries in 100 folders took 525 queries and 0.17 s; the 60,000 entry cap, reached after 600
+   folders, 3,132 queries, 1.0 s and 135 MB of PHP memory. A bulk save of 60,000 decisions or tag
+   lists is 2 queries per 1,000 items (delete, insert): about 120 queries in 0.2–0.3 s and
+   ~110 MB; 2,000 items take 5–6 queries. On MySQL or PostgreSQL each query adds a network round
+   trip, so the share lookups dominate a deep tree.
 
 Where the work lands: M1.2 (listing with subfolders), M2.3 (picker, grid headers), M2.4 (resume
 per folder set), M2.5 (folder filter), M6 (series per camera).

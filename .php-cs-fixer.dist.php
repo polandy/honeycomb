@@ -12,7 +12,7 @@ use Nextcloud\CodingStandard\Config;
 $config = new Config();
 $config
 	->getFinder()
-	->in(['appinfo', 'lib', 'templates', 'tests/php'])
+	->in(['appinfo', 'lib', 'scripts', 'templates', 'tests/php'])
 	->append([__FILE__]);
 
 return $config;

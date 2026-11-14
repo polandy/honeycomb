@@ -1099,3 +1099,4 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-14: The picker's *Recent* is its own component (`PickerRecentSets`) and the navigation
   keeps `RecentFolderSets`, since #180 variant C only concerns the dialog; *Show all* folds back
   as *Show fewer* so the focus stays on the button; rows shrink by 8 px below 640 px of height.
+- 2026-11-14: The scale measurement calls the services inside the e2e container instead of the HTTP endpoints, since a scripted login gets `401` there; HTTP adds the same JSON encoding once.
