@@ -189,6 +189,7 @@ describe('App: series compare', () => {
 		const members = loupe.props('seriesOf') as ReadonlyMap<{ baseName: string }, readonly { baseName: string }[]>
 
 		expect([...members].map(([picture, series]) => `${picture.baseName} ${series.length}`)).toEqual(['IMG_1 3', 'IMG_2 3', 'IMG_3 3', 'IMG_4 2', 'IMG_5 2'])
+		expect(loupe.props('pictures').filter((picture: { baseName: string }) => members.has(picture))).toHaveLength(5)
 	})
 
 	// spec: SERIES-001.15, SERIES-001.18
