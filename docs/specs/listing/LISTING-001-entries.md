@@ -19,8 +19,9 @@ token. `path` is relative to the user's files; empty is the root. The answer is
 `orientation`, `width`, `height` from Nextcloud's file metadata, each `null` where it has none.
 `folders` has one item per folder
 that holds an entry, `{"path": "/Photos", "shared": <bool>}`: shared when another user or a
-federated user has access to it or to a folder above it, when it or a folder above it is shared
-by public link or by mail, when it lies in a group folder, or when it lies on external storage
+federated user has access to it or to a folder above it, when it lies in a folder shared with the
+user, when it or a folder above it is shared by public link or by mail, when it lies in a group
+folder, or when it lies on external storage
 mounted for another user too (ADR 0017).
 
 Listed are files whose mime type is `image/*` or whose name ends in `.xmp`, `.cr3` or `.srw`
@@ -112,10 +113,10 @@ ticked parent with subfolders and a ticked child both hold it.
 
 ### LISTING-001.12 – Each folder says whether it is shared
 
-- **Given** entries in a folder of the user's own, in a folder shared with another user, below a
-  folder shared with a federated user, in a folder shared by public link, in one shared by mail,
-  in a group folder, on external storage of the user only and on external storage mounted for
-  another user too
+- **Given** entries in a folder of the user's own, in a folder shared with another user, in a
+  folder shared with the user, below a folder shared with a federated user, in a folder shared
+  by public link, in one shared by mail, in a group folder, on external storage of the user only
+  and on external storage mounted for another user too
 - **When** the client lists them
 - **Then** `folders` lists each of these folders once, with its path, and `shared` is false only
   for the user's own folder and the external storage of the user only
@@ -140,3 +141,4 @@ ticked parent with subfolders and a ticked child both hold it.
 | 2026-11-10 | `folders` with the shared flag (ADR 0017) |
 | 2026-11-10 | Public links, mail shares and external storage of several users count as shared (owner review) |
 | 2026-11-11 | `.cr3` and `.srw` files are listed by name (`TODO.md`, owner 2026-11-10) |
+| 2026-11-14 | A folder shared with the user is shared without asking the share manager |

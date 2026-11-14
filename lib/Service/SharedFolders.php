@@ -24,7 +24,7 @@ final class SharedFolders {
 	public function isShared(IUser $user, Folder $folder): bool {
 		$mount = $folder->getMountPoint();
 		return match ($mount->getMountType()) {
-			'group' => true,
+			'group', 'shared' => true,
 			'external' => $this->isMountedForOthers($user, (int)$mount->getNumericStorageId()) || $this->hasShares($user, $folder),
 			default => $this->hasShares($user, $folder),
 		};
