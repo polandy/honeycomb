@@ -13,9 +13,6 @@ import { formatNumber } from '../l10n.ts'
 import { folderSetName } from '../recent-text.ts'
 import { tip } from '../tooltip.ts'
 
-/** How many folder sets show before *Show all*. */
-const COLLAPSED_ROWS = 3
-
 const props = defineProps<{
 	items: readonly RecentFolderSet[]
 }>()
@@ -23,6 +20,9 @@ const props = defineProps<{
 const emit = defineEmits<{
 	open: [position: ResumePosition]
 }>()
+
+/** How many folder sets show before *Show all*. */
+const COLLAPSED_ROWS = 3
 
 const expanded = ref(false)
 const shown = computed(() => (expanded.value ? props.items : props.items.slice(0, COLLAPSED_ROWS)))
