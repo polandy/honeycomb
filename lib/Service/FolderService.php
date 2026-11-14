@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCP\Files\FileInfo;
 use OCP\Files\Folder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
@@ -45,14 +46,9 @@ final class FolderService {
 
 	private function hasSubfolders(Folder $folder): bool {
 		try {
-			foreach ($folder->getDirectoryListing() as $node) {
-				if ($node instanceof Folder) {
-					return true;
-				}
-			}
+			return $folder->getDirectoryListing(FileInfo::MIMETYPE_FOLDER) !== [];
 		} catch (NotPermittedException|NotFoundException) {
 			return false;
 		}
-		return false;
 	}
 }
