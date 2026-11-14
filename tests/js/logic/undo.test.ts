@@ -4,7 +4,7 @@ import type { Decision } from '../../../src/logic/decision.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { NO_HISTORY, pickRestEntry, pushUndo, recordStep, redoStep, tagStep, UNDO_LIMIT, undoEntry, undoStep } from '../../../src/logic/undo.ts'
+import { applyStep, NO_HISTORY, pickRestEntry, pushUndo, recordStep, redoStep, tagStep, UNDO_LIMIT, undoEntry, undoStep } from '../../../src/logic/undo.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const PAIR = pictureOf(listingEntry(1, '/P/A.JPG'), listingEntry(2, '/P/A.NEF', { mime: 'image/x-dcraw' }))
@@ -93,6 +93,26 @@ describe('tagStep', () => {
 	// spec: TAGS-003.10
 	it('is null when the change alters nothing', () => {
 		expect(tagStep([PAIR], tagsOf, { added: ['Sunrise'], removed: [] })).toBeNull()
+	})
+})
+
+describe('applyStep', () => {
+	const calls: string[] = []
+	const effect = (step: { kind: string }, back: boolean) => {
+		calls.push(`${step.kind} ${back}`)
+	}
+	const effects = { decision: effect, pickRest: effect, tags: effect }
+
+	it('hands each step to the effect of its kind, forward or back', () => {
+		const tags = tagStep([JPEG], () => [], { added: ['Sunrise'], removed: [] })!
+		const decision = undoEntry([{ picture: JPEG, decision: UNDECIDED }], { flag: 'picked' })!
+		const pickRest = pickRestEntry({ picture: PAIR, decision: UNDECIDED }, [{ picture: JPEG, decision: UNDECIDED }])!
+
+		applyStep(effects, tags, false)
+		applyStep(effects, decision, true)
+		applyStep(effects, pickRest, false)
+
+		expect(calls).toEqual(['tags false', 'decision true', 'pickRest false'])
 	})
 })
 
