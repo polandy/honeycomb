@@ -179,7 +179,7 @@ const SERIES_MARK = '⧉'
 	flex-shrink: 0;
 }
 
-/* One honey pulse calls the eye to the chip the first-series hint explains (LOUPE-001.26). */
+/* A honey pulse, run twice, calls the eye to the chip the first-series hint explains (LOUPE-001.26). */
 .loupe-title-row__series--pulse {
 	animation: loupe-title-row-pulse 1.2s ease-out 2;
 }

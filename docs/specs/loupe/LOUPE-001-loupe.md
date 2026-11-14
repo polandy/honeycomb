@@ -280,7 +280,8 @@ IMAGES-001.
 - **When** the loupe shows a picture of a series (LOUPE-001.25)
 - **Then** a hint card under the series chip reads "This photo is part of a series of 5. ⧉ or N
   compares them; Shift+K picks this one and rejects the rest." with *Got it*, and the chip gets a
-  single honey pulse, none under `prefers-reduced-motion`; the card keeps the focus on the loupe
-  and hides at a picture outside any series until the next one; *Got it*, `Esc`, the chip, `N`,
-  the filmstrip frame's tab or *Pick this, reject the rest* (`Shift+K`) dismiss it for good
+  honey pulse that runs twice, none under `prefers-reduced-motion`; the card keeps
+  the focus on the loupe and hides at a picture outside any series until the next one; *Got it*,
+  `Esc`, the chip, `N`, the filmstrip frame's tab or *Pick this, reject the rest*
+  (`Shift+K`) dismiss it for good
   (LOUPE-003), *Got it* giving the keys back to the loupe, and `Esc` then not closing the loupe
