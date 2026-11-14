@@ -33,8 +33,9 @@ tag writes, and never written. A picture whose embedded XMP cannot be looked up 
 and is not written through; its sidecars fail as when they cannot be read.
 
 **A tag change** (tags added, tags removed) applies to each chosen picture's tags; the result is
-shown at once and stored for every member in one save. A failed save puts back what it replaced
-and writes no sidecar.
+shown at once and stored for every member in one save. Saves go one at a time and wait for the
+one in flight, as decisions do (DECISIONS-001.14, .15). A failed save puts back what it replaced,
+except the files a later save stored, and writes no sidecar.
 
 **Writing through.** After the save, each changed picture outside a shared folder gets the change
 written to its sidecars, in the same queue as the decisions (XMP-003): every sidecar is read unless
@@ -191,6 +192,13 @@ failed sidecars* applies the same change again.
 - **Then** none of its sidecars is saved, they are reported as not written, and *Retry failed
   sidecars* looks the embedded XMP up again
 
+### TAGS-002.21 – Tag saves go one at a time
+
+- **Given** a tag save in flight
+- **When** the user changes the same picture's tags twice meanwhile and the first save then fails
+- **Then** one more save follows with the newest tags of each file; once it is stored the picture
+  keeps those tags, and when it fails too the picture shows the tags it had before the first
+
 ## Out of scope
 
 - The tag entry, undo, toasts and the tag list in the UI: TAGS-003; multi-select by long-press
@@ -205,3 +213,4 @@ failed sidecars* applies the same change again.
 |---|---|
 | 2026-11-13 | Written with *Tags 1*: take-over from sidecars and write-through |
 | 2026-11-13 | The JPEG's embedded XMP as one more source (*Tags 1b*, .15–.20) |
+| 2026-11-14 | Tag saves go one at a time, the newest tags per file (.21) |

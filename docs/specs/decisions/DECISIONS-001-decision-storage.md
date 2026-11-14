@@ -21,6 +21,10 @@ continues on any device and each user of a shared folder keeps their own.
 - `400` for a malformed body; one malformed item writes nothing. `401` without a user.
 - The client reads the decisions of every member after the listing and merges them into the
   picture's decision; a failed lookup is logged and every picture counts as undecided.
+- The client sends the saves of one tab one at a time: changes made while a save is in flight
+  wait and go in the next save together, the newest state of each file winning. A failed save
+  puts back what it replaced, except the files a later save stored; once no save is in flight or
+  waiting, the newest failed save is put back first.
 - A daily background job removes the rows of files deleted for good, of every user. A file in the
   trash bin is not deleted for good: restored, it keeps its decision (DELETE-001.8).
 - Deleting a user removes their rows.
@@ -111,6 +115,21 @@ continues on any device and each user of a shared folder keeps their own.
   writer wins); any other database error, or one of these on every attempt, is not repeated
   further and nothing of that save is stored
 
+### DECISIONS-001.14 – One save at a time per tab
+
+- **Given** a save of the cull in flight
+- **When** the user changes the same picture twice and another picture once meanwhile
+- **Then** nothing more is sent until the save settles; then one save follows with the newest state
+  of each changed file
+
+### DECISIONS-001.15 – A failed save puts back only what no later save stored
+
+- **Given** a failed save whose file a later save of the same tab stored
+- **When** no save is in flight or waiting any more
+- **Then** that file keeps the stored state, the failed save's other files show what they had
+  before it, and the grid says the save failed; when the later save failed too, the file shows
+  what it had before the first
+
 ## Out of scope
 
 Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XMP sidecars (M5).
@@ -122,4 +141,5 @@ Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XM
 | 2026-11-10 | Written from the merged M2.4 (#42) |
 | 2026-11-10 | Rows of files deleted for good and of deleted users are removed (DECISIONS-001.11, .12) |
 | 2026-11-11 | A save that loses a race on the unique key is repeated (DECISIONS-001.13) |
+| 2026-11-14 | A tab sends one save at a time, the newest state per file (DECISIONS-001.14, .15) |
 | 2026-11-14 | A deadlock or lock wait timeout is repeated like a unique-key conflict (DECISIONS-001.13) |

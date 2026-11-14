@@ -172,6 +172,51 @@ describe('useCullTags: change', () => {
 	})
 })
 
+describe('useCullTags: saves', () => {
+	const ANNA: TagChange = { added: ['People/Anna'], removed: ['Events/Wedding'] }
+
+	/** Cull tags whose saves wait until the test settles them one by one. */
+	async function waitingTags() {
+		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
+		const settle: { resolve: () => void, reject: (error: Error) => void }[] = []
+		const opened = cullTags({ stored: [{ fileId: 1, tags: ['Places/Lisbon'] }], save: () => new Promise<void>((resolve, reject) => settle.push({ resolve, reject })) })
+		await opened.tags.load(OPENED)
+		return { ...opened, settle }
+	}
+
+	// spec: TAGS-002.21
+	it('sends one save at a time with the newest tags; a later stored save keeps its tags', async () => {
+		const { tags, saves, settle } = await waitingTags()
+
+		const first = tags.change([PAIR], WEDDING)
+		const second = tags.change([PAIR], ANNA)
+		expect(saves).toHaveLength(1)
+		settle[0]!.reject(new Error('down'))
+		await flushPromises()
+		expect(saves[1]).toEqual([{ fileId: 1, tags: ['People/Anna'] }, { fileId: 2, tags: ['People/Anna'] }])
+		settle[1]!.resolve()
+
+		expect(await second).toBe(true)
+		expect(await first).toBe(false)
+		expect(tags.tagsOf(PAIR)).toEqual(['People/Anna'])
+	})
+
+	// spec: TAGS-002.21
+	it('puts back the tags before the first save when the later one fails too', async () => {
+		const { tags, settle } = await waitingTags()
+
+		const first = tags.change([PAIR], WEDDING)
+		const second = tags.change([PAIR], ANNA)
+		settle[0]!.reject(new Error('down'))
+		await flushPromises()
+		settle[1]!.reject(new Error('still down'))
+
+		expect(await first).toBe(false)
+		expect(await second).toBe(false)
+		expect(tags.tagsOf(PAIR)).toEqual(['Places/Lisbon'])
+	})
+})
+
 describe('useCullTags: restore', () => {
 	// spec: TAGS-002.14
 	it('reads the tags of files put back that it does not know', async () => {
