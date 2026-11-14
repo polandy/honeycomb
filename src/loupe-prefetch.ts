@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { reactive } from 'vue'
+import { prefetchOrder } from './logic/prefetch.ts'
+
+/** The images of one picture in the loupe, as `loupeSources` gives them. */
+interface LoupeImages { readonly loupe: string, readonly full: string }
 
 /** Decodes the image at `src` off the page. */
 export async function decodeSource(src: string): Promise<void> {
@@ -42,5 +46,11 @@ export function usePrefetch(decode: (src: string) => Promise<void>) {
 		}
 	}
 
-	return { ready, load, prefetch }
+	/** Loads the loupe image at `index` of `count` and its neighbours' (LOUPE-001.12), keeping its full image. */
+	function prefetchAround(index: number, count: number, imagesAt: (index: number) => LoupeImages) {
+		const shown = imagesAt(index)
+		prefetch([shown.loupe, ...prefetchOrder(index, count).map((each) => imagesAt(each).loupe)], [shown.full])
+	}
+
+	return { ready, load, prefetch, prefetchAround }
 }

@@ -30,6 +30,19 @@ describe('usePrefetch', () => {
 		expect([...prefetcher.ready]).toEqual(['a'])
 	})
 
+	// spec: LOUPE-001.12, SERIES-002.1
+	it('loads the shown picture and its neighbours, keeping its full image', () => {
+		const { decode, started } = fakeDecoder()
+		const prefetcher = usePrefetch(decode)
+		const imagesAt = (index: number) => ({ loupe: `loupe${index}`, full: `full${index}` })
+
+		prefetcher.prefetchAround(4, 6, imagesAt)
+		prefetcher.load('full4').catch(() => undefined)
+		prefetcher.prefetchAround(4, 6, imagesAt)
+
+		expect(started).toEqual(['loupe4', 'loupe5', 'loupe3', 'loupe2', 'full4'])
+	})
+
 	it('forgets the sources outside the window but keeps the ones asked to', async () => {
 		const { decode, started, settle } = fakeDecoder()
 		const prefetcher = usePrefetch(decode)

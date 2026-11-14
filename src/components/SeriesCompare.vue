@@ -45,7 +45,12 @@ const emit = defineEmits<{
 
 const title = computed(() => (props.series === null
 	? t('honeycomb', 'Compare series')
-	: t('honeycomb', 'Compare series {i} of {count}', { i: formatNumber(props.position + 1), count: formatNumber(props.count) }, undefined, PLAIN_TEXT)))
+	: t('honeycomb', 'Compare series {i} of {count} · photo {photo} of {photos}', {
+			i: formatNumber(props.position + 1),
+			count: formatNumber(props.count),
+			photo: formatNumber(props.active + 1),
+			photos: formatNumber(props.series.length),
+		}, undefined, PLAIN_TEXT)))
 const row = useTemplateRef<HTMLUListElement>('row')
 // A long series scrolls sideways; keys and the closing viewer move the active card (SERIES-001.21).
 /** Scrolls the active card into view. */

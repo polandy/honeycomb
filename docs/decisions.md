@@ -952,3 +952,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-14: The 60 second series span is measured from the series' first picture after rejected
   pictures are left out, like the gaps, so rejecting a series' first picture moves its end; no new
   hotkey, since the step adds no action (series step 2, SERIES-001.22).
+- 2026-11-14: The series viewer keeps only the shown photo's full image, as the loupe does, not every
+  photo's, so synchronised zoom loads each 100 % image on its page; no new hotkey, since the step
+  adds no action (series step 3, SERIES-002.1).

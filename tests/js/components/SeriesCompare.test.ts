@@ -49,7 +49,7 @@ describe('SeriesCompare', () => {
 	it('shows the series side by side with name, stars and flag, the active one marked', () => {
 		const wrapper = mountCompare()
 
-		expect(plain(wrapper.find('[role="dialog"]').attributes('name'))).toBe('Compare series 2 of 4')
+		expect(plain(wrapper.find('[role="dialog"]').attributes('name'))).toBe('Compare series 2 of 4 · photo 2 of 3')
 		expect(cards(wrapper)).toHaveLength(3)
 		const photos = wrapper.findAll('.series-compare__photo')
 		expect(photos.map((photo) => plain(photo.attributes('aria-label')))).toEqual(['Open photo 1: IMG_1', 'Open photo 2: IMG_2', 'Open photo 3: IMG_3'])
@@ -62,6 +62,15 @@ describe('SeriesCompare', () => {
 		expect(cards(wrapper)[1]!.find('.flag-mark--picked').exists()).toBe(true)
 		expect(cards(wrapper)[0]!.find('.flag-mark').exists()).toBe(false)
 		expect(cards(wrapper)[1]!.find('[aria-label$="Pick"]').attributes('aria-pressed')).toBe('true')
+	})
+
+	// spec: SERIES-001.7
+	it('names the active photo\'s position in its title as the active card moves', async () => {
+		const wrapper = mountCompare()
+
+		await wrapper.setProps({ active: 2 })
+
+		expect(plain(wrapper.find('[role="dialog"]').attributes('name'))).toBe('Compare series 2 of 4 · photo 3 of 3')
 	})
 
 	// spec: SERIES-001.19

@@ -98,9 +98,9 @@ Optional: RAW+JPEG pairs (same base name) must group as one picture, with the RA
    *Compare series* count may change for a short while (case C).
 4. Find *Compare series* with its count: in the toolbar, in the ⋯ menu below 900 px window
    width. Check the count against the table (A, B, F as one series, C once hashes ran).
-5. Open it (button or `N`). The title reads "Compare series 1 of N"; the cards sit side by side
-   in capture-time order, one outlined (active), the active card's *Pick this, reject the rest*
-   is the only primary button.
+5. Open it (button or `N`). The title reads "Compare series 1 of N · photo 1 of M"; the cards
+   sit side by side in capture-time order, one outlined (active), the active card's *Pick this,
+   reject the rest* is the only primary button.
 6. Decide: `Shift+K` picks the active photo and rejects the others in one undo step, toast
    "Picked IMG_xxxx, rejected the rest · Undo"; press Undo and all flags return. Flag a single
    photo with `P`/`X`; a rejected card leaves the series, below two left the next series shows.

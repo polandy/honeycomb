@@ -34,7 +34,6 @@ import { LOUPE_IDLE_MS, useIdle } from '../idle.ts'
 import { FILMSTRIP_THUMB } from '../logic/filmstrip.ts'
 import { imageMember, loupeSources } from '../logic/image-tiers.ts'
 import { DIVIDER_WIDTH, FLAG_RAIL, INFO_PANEL } from '../logic/panel-width.ts'
-import { prefetchOrder } from '../logic/prefetch.ts'
 import { useLoupeDecisions } from '../loupe-decisions.ts'
 import { useLoupePanels } from '../loupe-panels.ts'
 import { decodeSource, usePrefetch } from '../loupe-prefetch.ts'
@@ -107,12 +106,8 @@ const decisions = useLoupeDecisions({
 
 const picture = computed(() => props.pictures[props.index]!)
 const sourcesAt = (index: number) => loupeSources(imageMember(props.pictures[index]!), props.imageUrl)
-const neighbours = computed(() => prefetchOrder(props.index, props.pictures.length).map((index) => sourcesAt(index).loupe))
 
-watch(() => props.index, (index) => {
-	const current = sourcesAt(index)
-	prefetcher.prefetch([current.loupe, ...neighbours.value], [current.full])
-}, { immediate: true })
+watch(() => props.index, (index) => prefetcher.prefetchAround(index, props.pictures.length, sourcesAt), { immediate: true })
 
 /** Shows the picture at `index` if there is one. */
 function go(index: number) {
