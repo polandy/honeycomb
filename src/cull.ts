@@ -22,7 +22,7 @@ import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
 import { memberIds } from './logic/pairing.ts'
 import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
 import { sortPictures } from './logic/picture-order.ts'
-import { saveQueue } from './logic/save-queue.ts'
+import { byFileId, saveQueue } from './logic/save-queue.ts'
 import { allSeries, findSeries, openSeries, seriesCandidates, seriesMembers, seriesSizes as sizesOf } from './logic/series.ts'
 import { pairingSettings } from './logic/settings.ts'
 import { inSharedFolder } from './logic/sidecar-sync.ts'
@@ -47,7 +47,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const pictures = computed(() => (settings().showSingles ? paired.value : paired.value.filter((picture) => picture.raw !== null && picture.rendered !== null)))
 	const decisions = shallowRef<ReadonlyMap<number, Decision>>(new Map())
 	const saveFailed = ref(false)
-	const saveDecisions = saveQueue(api.saveDecisions)
+	const saveDecisions = saveQueue(api.saveDecisions, { key: byFileId })
 	const sharedFolders = shallowRef<ReadonlySet<string>>(new Set())
 	let opening = 0
 	/** Puts each kind of step into effect, or takes it back when `back`. */
