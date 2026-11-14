@@ -35,6 +35,11 @@ describe('ShortcutSheet', () => {
 		expect(rows(mountSheet()).find(([caps]) => caps?.[0] === 'Enter')).toEqual([['Enter'], 'Open the loupe; series compare: view full screen'])
 	})
 
+	// spec: LOUPE-001.25
+	it('names N for the series compare and, in the loupe, for the shown photo\'s series', () => {
+		expect(rows(mountSheet()).find(([caps]) => caps?.[0] === 'N')).toEqual([['N'], 'Compare series; loupe: the shown photo\'s series'])
+	})
+
 	// spec: KEYS-001.12
 	it('lays out every group in one table, so all groups share the key column', () => {
 		const wrapper = mountSheet()
