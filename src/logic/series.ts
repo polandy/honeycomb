@@ -127,8 +127,8 @@ export function seriesSizes<P>(series: readonly (readonly P[])[]): Map<P, number
 }
 
 /** Each picture of the given series mapped to its whole series, for the filmstrip's frame (LOUPE-001.19). */
-export function seriesMembers<P>(series: readonly (readonly P[])[]): Map<P, readonly P[]> {
-	return new Map(series.flatMap((pictures) => pictures.map((picture) => [picture, pictures] as const)))
+export function seriesMembers<P>(series: readonly Series<P>[]): Map<P, Series<P>> {
+	return new Map(series.flatMap((each) => each.members.map((picture) => [picture, each] as const)))
 }
 
 /** Each picture of a series with a pending member, whose badge says the series may still change (SERIES-003.25). */

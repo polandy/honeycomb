@@ -8,6 +8,7 @@ import type { Decision } from '../logic/decision.ts'
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { Series } from '../logic/series.ts'
 import type { ObserveSize } from '../observe-size.ts'
 
 import { n, t } from '@nextcloud/l10n'
@@ -27,7 +28,7 @@ import { observeElementSize } from '../observe-size.ts'
 
 const props = withDefaults(defineProps<{
 	/** The shown series, or null once none is left. */
-	series: readonly Picture<ListingEntry>[] | null
+	series: Series<Picture<ListingEntry>> | null
 	/** The shown series' place among `count`, from 0. */
 	position: number
 	count: number
@@ -59,12 +60,12 @@ const emit = defineEmits<{
 const title = computed(() => (props.series === null
 	? t('honeycomb', 'Compare series')
 	: props.oneSeries
-		? t('honeycomb', 'Series of {photos} · photo {photo}', { photos: formatNumber(props.series.length), photo: formatNumber(props.active + 1) }, undefined, PLAIN_TEXT)
+		? t('honeycomb', 'Series of {photos} · photo {photo}', { photos: formatNumber(props.series.members.length), photo: formatNumber(props.active + 1) }, undefined, PLAIN_TEXT)
 		: t('honeycomb', 'Compare series {i} of {count} · photo {photo} of {photos}', {
 				i: formatNumber(props.position + 1),
 				count: formatNumber(props.count),
 				photo: formatNumber(props.active + 1),
-				photos: formatNumber(props.series.length),
+				photos: formatNumber(props.series.members.length),
 			}, undefined, PLAIN_TEXT)))
 
 const grid = useTemplateRef<HTMLUListElement>('grid')
@@ -76,7 +77,7 @@ watch(grid, (element, _, onCleanup) => {
 		}))
 	}
 }, { flush: 'post' })
-const layout = computed(() => (area.value === null || props.series === null ? null : compareGrid({ count: props.series.length, ...area.value })))
+const layout = computed(() => (area.value === null || props.series === null ? null : compareGrid({ count: props.series.members.length, ...area.value })))
 const photoWidth = computed(() => (layout.value === null ? null : Math.floor(layout.value.photoWidth)))
 const gridStyle = computed(() => (layout.value === null || photoWidth.value === null
 	? { '--series-compare-gap': `${CARD_GAP}px` }
@@ -113,7 +114,7 @@ function onPhotoTap(index: number, event: MouseEvent) {
 
 /** Picks the active picture and rejects the rest (SERIES-001.9). */
 function pickActive() {
-	const picture = props.series?.[props.active]
+	const picture = props.series?.members[props.active]
 	if (picture !== undefined) {
 		emit('pickRest', picture)
 	}
@@ -144,7 +145,7 @@ function onOpen(open: boolean) {
 			class="series-compare"
 			:style="gridStyle">
 			<SeriesCompareCard
-				v-for="(picture, index) in props.series"
+				v-for="(picture, index) in props.series.members"
 				:key="imageMember(picture).fileId"
 				:picture="picture"
 				:index="index"
