@@ -15,19 +15,21 @@ final class FileRowStoresTest extends TestCase {
 		$decisions = new FakeDecisionStore();
 		$tags = new FakeTagStore();
 		$hashes = new FakeVisualHashStore();
+		$series = new FakeSeriesStore();
 
-		$entries = (new FileRowStores($decisions, $tags, $hashes))->all();
+		$entries = (new FileRowStores($decisions, $tags, $hashes, $series))->all();
 
-		$this->assertSame(['decision', 'tag', 'visual hash'], array_map(static fn ($entry): string => $entry->kind, $entries));
-		$this->assertSame(['vanished_after_decisions', 'vanished_after_file_tags', 'vanished_after_hashes'], array_map(static fn ($entry): string => $entry->cursorKey, $entries));
-		$this->assertSame([$decisions, $tags, $hashes], array_map(static fn ($entry) => $entry->store, $entries));
+		$this->assertSame(['decision', 'tag', 'visual hash', 'series member'], array_map(static fn ($entry): string => $entry->kind, $entries));
+		$this->assertSame(['vanished_after_decisions', 'vanished_after_file_tags', 'vanished_after_hashes', 'vanished_after_series_files'], array_map(static fn ($entry): string => $entry->cursorKey, $entries));
+		$this->assertSame([$decisions, $tags, $hashes, $series], array_map(static fn ($entry) => $entry->store, $entries));
 	}
 
 	public function testListsTheStoresAlone(): void {
 		$decisions = new FakeDecisionStore();
 		$tags = new FakeTagStore();
 		$hashes = new FakeVisualHashStore();
+		$series = new FakeSeriesStore();
 
-		$this->assertSame([$decisions, $tags, $hashes], (new FileRowStores($decisions, $tags, $hashes))->stores());
+		$this->assertSame([$decisions, $tags, $hashes, $series], (new FileRowStores($decisions, $tags, $hashes, $series))->stores());
 	}
 }

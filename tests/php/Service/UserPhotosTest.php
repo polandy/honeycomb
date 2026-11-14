@@ -81,4 +81,16 @@ final class UserPhotosTest extends TestCase {
 	public function testAnswersNothingForNoFileIds(): void {
 		$this->assertSame([], $this->photos()->current($this->user(), []));
 	}
+
+	// spec: SERIES-005.24
+	public function testAnswersTheFileIdsTheUserReachesAsPhotosInRequestOrder(): void {
+		$folder = $this->folder('/P/Sub');
+		$folder->method('getId')->willReturn(5);
+		$photos = $this->photos($this->file(7, '/P/A.JPG'), $this->file(8, '/P/B.CR3', 'application/octet-stream'), $this->file(10, '/P/notes.txt', 'text/plain'), $folder);
+		$this->assertSame([8, 7], $photos->photos($this->user(), [8, 404, 10, 5, 50, 7]));
+	}
+
+	public function testAnswersNoPhotosForNoFileIds(): void {
+		$this->assertSame([], $this->photos()->photos($this->user(), []));
+	}
 }

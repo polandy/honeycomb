@@ -14,10 +14,12 @@ use OCA\Honeycomb\Service\FolderSet;
 use OCA\Honeycomb\Service\PictureDecision;
 use OCA\Honeycomb\Service\PictureTags;
 use OCA\Honeycomb\Service\ResumePosition;
+use OCA\Honeycomb\Service\SeriesStatus;
 use OCA\Honeycomb\Service\UserRowStores;
 use OCA\Honeycomb\Service\VisualHash;
 use OCA\Honeycomb\Tests\Service\FakeDecisionStore;
 use OCA\Honeycomb\Tests\Service\FakePositionStore;
+use OCA\Honeycomb\Tests\Service\FakeSeriesStore;
 use OCA\Honeycomb\Tests\Service\FakeTagStore;
 use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
 use OCP\EventDispatcher\Event;
@@ -30,6 +32,7 @@ final class ForgetDeletedUserTest extends TestCase {
 	private FakePositionStore $positions;
 	private FakeTagStore $tags;
 	private FakeVisualHashStore $hashes;
+	private FakeSeriesStore $series;
 
 	#[\Override]
 	protected function setUp(): void {
@@ -37,16 +40,18 @@ final class ForgetDeletedUserTest extends TestCase {
 		$this->positions = new FakePositionStore();
 		$this->tags = new FakeTagStore();
 		$this->hashes = new FakeVisualHashStore();
+		$this->series = new FakeSeriesStore();
 		foreach (['alice', 'bob'] as $userId) {
 			$this->decisions->replace($userId, [7], [new PictureDecision(7, 3, null, Flag::Picked, false)]);
 			$this->tags->replace($userId, [7], [new PictureTags(7, ['Anna'])]);
 			$this->hashes->replace($userId, [new VisualHash(7, 'etag-7', '0000000000000007')]);
+			$this->series->add($userId, SeriesStatus::Open, 7, 8);
 			$this->positions->save($userId, new ResumePosition(new FolderSet(['/Trip'], false), 7, 1, 2, 0));
 		}
 	}
 
 	private function registry(): UserRowStores {
-		return new UserRowStores(new FileRowStores($this->decisions, $this->tags, $this->hashes), $this->positions);
+		return new UserRowStores(new FileRowStores($this->decisions, $this->tags, $this->hashes, $this->series), $this->positions);
 	}
 
 	private function deleted(string $userId): UserDeletedEvent {
@@ -55,7 +60,7 @@ final class ForgetDeletedUserTest extends TestCase {
 		return new UserDeletedEvent($user);
 	}
 
-	// spec: DECISIONS-001.12, DECISIONS-002.13, TAGS-001.12, SERIES-003.11
+	// spec: DECISIONS-001.12, DECISIONS-002.13, TAGS-001.12, SERIES-003.11, SERIES-005.25
 	public function testForgetsTheDecisionsAndPositionsOfTheDeletedUserOnly(): void {
 		(new ForgetDeletedUser($this->registry()))->handle($this->deleted('alice'));
 
@@ -68,6 +73,8 @@ final class ForgetDeletedUserTest extends TestCase {
 		$this->assertSame(['Anna'], $this->tags->tagList('bob'));
 		$this->assertSame([], $this->hashes->find('alice', [7]));
 		$this->assertCount(1, $this->hashes->find('bob', [7]));
+		$this->assertArrayNotHasKey('alice', $this->series->rows);
+		$this->assertSame(['bob'], array_values(array_unique(array_column($this->series->series, 'userId'))));
 	}
 
 	public function testIgnoresAnotherEvent(): void {
