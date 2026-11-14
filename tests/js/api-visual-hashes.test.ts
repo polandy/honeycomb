@@ -3,6 +3,7 @@
 import axios from '@nextcloud/axios'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiResponseError, listMissingVisualHashes, saveVisualHashes } from '../../src/api.ts'
+import { RateLimitedError } from '../../src/logic/retry-after.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({ generateUrl: (url: string) => `/index.php${url}` }))
@@ -28,6 +29,31 @@ describe('saveVisualHashes', () => {
 		vi.mocked(axios.put).mockResolvedValue({ data: {} })
 
 		await expect(saveVisualHashes([HASHED])).rejects.toThrow(ApiResponseError)
+	})
+
+	// spec: SERIES-004.14
+	it('tells a limited save by the seconds the server asks to wait', async () => {
+		vi.mocked(axios.put).mockRejectedValue({ response: { status: 429, headers: { 'retry-after': '30' } } })
+
+		const error: unknown = await saveVisualHashes([HASHED]).catch((failure: unknown) => failure)
+
+		expect(error).toBeInstanceOf(RateLimitedError)
+		expect(error).toMatchObject({ seconds: 30 })
+	})
+
+	// spec: SERIES-004.14
+	it('waits the period of the limit when the server names no seconds', async () => {
+		vi.mocked(axios.put).mockRejectedValue({ response: { status: 429 } })
+
+		await expect(saveVisualHashes([HASHED])).rejects.toMatchObject({ seconds: 60 })
+	})
+
+	// spec: SERIES-004.9
+	it('passes any other failure on', async () => {
+		const failure = { response: { status: 500, headers: {} } }
+		vi.mocked(axios.put).mockRejectedValue(failure)
+
+		await expect(saveVisualHashes([HASHED])).rejects.toBe(failure)
 	})
 
 	// spec: SERIES-003.12

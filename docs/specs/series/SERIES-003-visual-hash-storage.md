@@ -23,6 +23,9 @@ server keeps the hashes the browser computed and hands them out with the listing
 - `400`, nothing written, for a body that is not a list of at most 1,000 items, an item without a
   positive integer `fileId`, with an `etag` that is not a string of 1 to 40 characters, with a
   `hash` that is not 16 lower-case hex digits, or a file id given twice. `401` without a user.
+- A user may save at most 300 times a minute (`#[UserRateLimit]`, ADR 0026); a save beyond that
+  is answered `429` by Nextcloud, without a `Retry-After` header, and writes nothing. In the
+  cull, a limited save is a failed save (SERIES-003.13).
 - The browser hashes only the hashable pictures (SERIES-001.17) whose shown member has no
   `visualHash`, and sends what it computed with `saveVisualHashes` in `src/api.ts`: every 100
   hashes and when no picture is left to hash; it resolves to the `saved` file ids, which the
@@ -182,6 +185,12 @@ server keeps the hashes the browser computed and hands them out with the listing
 - **When** it is hashed
 - **Then** the hasher loads the same URL as the tile's small preview, with the same URL builder
 
+### SERIES-003.23 – Saves are limited per user
+
+- **Given** a user who saves visual hashes
+- **When** they save more than 300 times within a minute
+- **Then** Nextcloud answers the further saves `429` and writes nothing
+
 ## Out of scope
 
 - The hash, the link rule and when a picture is hashed: SERIES-001.
@@ -194,3 +203,4 @@ server keeps the hashes the browser computed and hands them out with the listing
 | 2026-11-14 | Written with the visual hash table and endpoint (owner decision, ADR 0024) |
 | 2026-11-14 | Hash states, the similarity in the toolbar, no repeat of a failed hash (owner request) |
 | 2026-11-14 | `saveVisualHashes` resolves to the saved file ids, for the similarity page (SERIES-004) |
+| 2026-11-14 | Saves limited to 300 a minute per user (ADR 0026) |

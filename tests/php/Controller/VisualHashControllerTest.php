@@ -18,6 +18,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\IRequest;
@@ -84,6 +85,14 @@ final class VisualHashControllerTest extends TestCase {
 		$this->assertSame(['verb' => 'PUT', 'url' => '/api/v1/visual-hashes'], $route);
 		$this->assertCount(1, $method->getAttributes(NoAdminRequired::class));
 		$this->assertCount(0, $method->getAttributes(NoCSRFRequired::class));
+	}
+
+	// spec: SERIES-003.23
+	public function testTheSaveIsLimitedToThreeHundredRequestsAMinutePerUser(): void {
+		$limits = (new ReflectionMethod(VisualHashController::class, 'save'))->getAttributes(UserRateLimit::class);
+
+		$this->assertCount(1, $limits);
+		$this->assertSame(['limit' => 300, 'period' => 60], $limits[0]->getArguments());
 	}
 
 	// spec: SERIES-004.1

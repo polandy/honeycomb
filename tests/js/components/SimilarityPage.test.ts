@@ -8,6 +8,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import FolderList from '../../../src/components/FolderList.vue'
 import SimilarityPage from '../../../src/components/SimilarityPage.vue'
+import { RateLimitedError } from '../../../src/logic/retry-after.ts'
 
 vi.mock('../../../src/logger.ts', () => ({ logger: { warn: vi.fn() } }))
 
@@ -29,6 +30,7 @@ function seams() {
 			return '00000000000000ff'
 		}),
 		save: vi.fn(async (hashes: readonly StoredVisualHash[]) => hashes.map((each) => each.fileId)),
+		wait: vi.fn(() => new Promise<void>(() => {})),
 		workers: 1,
 	}
 	return { fake, finish: () => nextPage({ pictures: [picture(4)], next: null }) }
@@ -106,6 +108,19 @@ describe('SimilarityPage', () => {
 
 		expect(wrapper.text()).toContain('Could not save the visual hashes. Resume to try again.')
 		expect(button(wrapper, 'Resume')).toBeDefined()
+	})
+
+	// spec: SERIES-004.14
+	it('says how long it waits when the server limits the saves', async () => {
+		const { fake } = seams()
+		fake.save.mockRejectedValueOnce(new RateLimitedError(60))
+		fake.listMissing.mockResolvedValue({ pictures: [picture(1)], next: null })
+		const wrapper = mountPage(fake)
+
+		await startIn(wrapper)
+
+		expect(wrapper.text()).toContain('The server asked for a break: the hashes are saved again in 60 s.')
+		expect(button(wrapper, 'Pause')).toBeDefined()
 	})
 
 	// spec: SERIES-004.12
