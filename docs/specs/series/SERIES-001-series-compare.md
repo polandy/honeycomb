@@ -33,8 +33,8 @@ change as hashes arrive, except while the series compare dialog is open.
 *Compare series* in the toolbar shows how many series there are and is disabled without one; it and
 `N` open the series compare dialog. The dialog uses the whole screen: a title row ("Compare series
 1 of 3 · photo 2 of 5" by the active picture, and the close button), a **grid of cards** and a
-bottom bar with one line of instructions (hidden on a phone), *Skip* and *Pick this, reject the
-rest* for the active picture.
+bottom bar with one line of instructions (hidden on a phone, held either way), *Skip* and *Pick
+this, reject the rest* for the active picture.
 The grid picks the column count that gives the largest photo (shown in a 3:2 frame) while every
 card fits the screen, so a phone shows a series of five in two columns, an iPad and a desktop in
 three. Only when a photo would drop below its minimum width (150 px on a phone, where the screen's
@@ -149,9 +149,11 @@ instead of cutting it.
 
 ### SERIES-001.13 – Pick this, reject the rest fits a phone
 
-- **Given** the series compare dialog shows a series on a 320 px wide phone
+- **Given** the series compare dialog shows a series on a 320 px wide phone, or a phone held
+  sideways
 - **When** the bottom bar shows *Pick this, reject the rest*
-- **Then** the button lies inside the screen and shows its whole label
+- **Then** the button lies inside the screen and shows its whole label, and the line of
+  instructions is hidden rather than cut off
 
 ### SERIES-001.14 – Shots that look alike form a series up to 30 seconds apart
 
