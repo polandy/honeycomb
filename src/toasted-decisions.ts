@@ -5,15 +5,15 @@ import type { DecisionIntent } from './logic/decision-change.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { TagChange } from './logic/tag.ts'
-import type { TagStep, UndoEntry } from './logic/undo.ts'
+import type { DecisionStep, PickRestStep, TagStep } from './logic/undo.ts'
 import type { ToastAction } from './toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import { changeText, redoneText, undoneText } from './decision-text.ts'
 
 interface Decisions {
-	decide: (intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]) => UndoEntry | null
-	pickRest: (picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]) => UndoEntry | null
+	decide: (intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]) => DecisionStep | null
+	pickRest: (picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]) => PickRestStep | null
 	tag: (change: TagChange, chosen: readonly Picture<ListingEntry>[]) => TagStep<Picture<ListingEntry>> | null
 	undo: () => CullStep | null
 	redo: () => CullStep | null
