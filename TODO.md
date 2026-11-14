@@ -15,6 +15,5 @@ Add items with `/todo`.
 - [ ] Measure the image budgets of `docs/plan.md` Image delivery with real 24 MP RAW+JPEG pairs (IMAGES-001.12), incl. the loupe's 4096 px tier and the six image loads in flight (GRID-001.15) — needs the owner's files (2026-11-10)
 - [ ] Add a `main` ruleset (pull requests only, CI required), with a bypass for `nextcloud-bot` if issue #17 says so, and the `RELEASE_PLEASE_TOKEN` secret — owner (2026-11-09)
 - [ ] Publish to the Nextcloud app store: signing certificate, release workflow that builds and uploads the tarball (2026-11-09)
-- [ ] Admin docs: every release needs `occ upgrade` or `occ app:update honeycomb`; instances installed before #119 need `occ migrations:migrate honeycomb`; recommend Redis file locking (2026-11-14)
 - [ ] Verify what `occ app:remove honeycomb` leaves behind on Nextcloud 35 and document it; an uninstall repair step needs an ADR (2026-11-14)
 - [ ] Measure the cost of the subfolder listing (`ListingService::walkBelow`, one query per folder) and of bulk-action writes with a fixture tree of ~100k files in the e2e container and the query log (2026-11-14)
