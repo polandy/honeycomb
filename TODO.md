@@ -17,3 +17,4 @@ Add items with `/todo`.
 - [ ] Publish to the Nextcloud app store: signing certificate, release workflow that builds and uploads the tarball (2026-11-09)
 - [ ] Cut the share lookups of the subfolder listing (4 of its 5 queries per folder, `SharedFolders::isShared`, `docs/plan.md` Multiple folders item 9), e.g. once per mount instead of per folder (2026-11-14)
 - [ ] Fix the flaky e2e `delete.spec.ts` "a picture restored from the trash bin keeps its file id and its decision": failed once in a full `scripts/verify.sh` run (restore `201`, then the file not at its path), passed alone; suspect two `IMG_0001.jpg` trashed in the same second by the spec's first test (2026-11-14)
+- [ ] Fix the flaky e2e `loupe.spec.ts` "puts Pick and Reject at the side edges …": failed once in a full `scripts/verify.sh` run (portrait Pick at y 745, photo bottom 813), likely measured before the layout settled after the viewport change (2026-11-14)
