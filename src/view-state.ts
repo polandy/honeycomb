@@ -11,7 +11,8 @@ import { DEFAULT_VIEW_STATE, NOTHING_STORED, parseLocalValue, parseViewState, pl
 /** Where versions before ADR 0019 kept the view state in browser storage. */
 export const INFO_OPEN_KEY = 'honeycomb.infoOpen'
 export const GESTURE_GUIDE_SEEN_KEY = 'honeycomb.gestureGuideSeen'
-const LOCAL_KEYS: Record<ViewStateKey, string> = { infoPanelOpen: INFO_OPEN_KEY, gestureGuideSeen: GESTURE_GUIDE_SEEN_KEY }
+/** The first-series hint came after ADR 0019 and never lived there. */
+const LOCAL_KEYS: Partial<Record<ViewStateKey, string>> = { infoPanelOpen: INFO_OPEN_KEY, gestureGuideSeen: GESTURE_GUIDE_SEEN_KEY }
 
 /** The server seams of the view state (ADR 0019). */
 export interface ViewStateApi {
@@ -30,7 +31,7 @@ export function useViewState(api: ViewStateApi, storage: BrowserStorage) {
 	}
 
 	/** Removes the local leftovers of `keys`. */
-	const removeLocal = (keys: readonly ViewStateKey[]) => keys.forEach((key) => removeStored(storage, LOCAL_KEYS[key]))
+	const removeLocal = (keys: readonly ViewStateKey[]) => keys.forEach((key) => LOCAL_KEYS[key] !== undefined && removeStored(storage, LOCAL_KEYS[key]))
 
 	api.loadViewState().then((answer) => {
 		const plan = planViewState(parseViewState(answer), local, changed)
@@ -62,6 +63,9 @@ export function useViewState(api: ViewStateApi, storage: BrowserStorage) {
 		setInfoPanelOpen: (open: boolean) => change({ infoPanelOpen: open }),
 		dismissGestureGuide: () => change({ gestureGuideSeen: true }),
 		showGestureGuide: () => change({ gestureGuideSeen: false }),
+		/** Seen until the view state is read, like the gesture guide. */
+		seriesHintSeen: computed(() => !loaded.value || state.value.seriesHintSeen),
+		dismissSeriesHint: () => change({ seriesHintSeen: true }),
 	}
 }
 

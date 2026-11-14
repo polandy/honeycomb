@@ -18,7 +18,7 @@ afterEach(() => listeners.splice(0).forEach((listener) => window.removeEventList
 
 export const PICTURES = picturesOf(Array.from({ length: 10 }, (_, at) => listingEntry(at + 1, `/P/IMG_${at + 1}.JPG`, { width: 3000, height: 2000 })))
 
-/** The loupe at `index` on a 1000 × 600 stage with its keys on the window as the app installs them, attached so focus works; the gesture guide was seen unless `firstOpening`; `props` override the defaults, and a settings change applies as the app applies it. */
+/** The loupe at `index` on a 1000 × 600 stage with its keys on the window as the app installs them, attached so focus works; the gesture guide was seen unless `firstOpening`, the first-series hint always; `props` override the defaults, and a settings change applies as the app applies it. */
 export async function mountLoupe(index = 4, stored: Record<string, string> = {}, firstOpening = false, props: Record<string, unknown> = {}) {
 	const savedViewState: Partial<ViewState>[] = []
 	const decoded: string[] = []
@@ -32,7 +32,7 @@ export async function mountLoupe(index = 4, stored: Record<string, string> = {},
 			folderSet: { paths: ['/P'], subfolders: true },
 			decisionOf: () => UNDECIDED,
 			storage: fakeStorage(stored),
-			viewState: fakeViewState({ gestureGuideSeen: !firstOpening }, savedViewState),
+			viewState: fakeViewState({ gestureGuideSeen: !firstOpening, seriesHintSeen: true }, savedViewState),
 			imageUrl: (fileId: number, size: number) => `/img/${fileId}/${size}`,
 			decode: async (src: string) => {
 				decoded.push(src)

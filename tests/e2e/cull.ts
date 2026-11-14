@@ -16,10 +16,10 @@ export async function cullFolder(page: Page, folder: string): Promise<void> {
 	await picker.getByRole('button', { name: `Cull ${folder}` }).click()
 }
 
-/** Closes the info panel and brings the gesture guide back; the view state is the admin's, shared by every test (LOUPE-003). */
-export async function resetViewState(page: Page): Promise<void> {
+/** Closes the info panel, brings the gesture guide back and sets the first-series hint as seen unless `seriesHintSeen` says otherwise; the view state is the admin's, shared by every test (LOUPE-003). */
+export async function resetViewState(page: Page, seriesHintSeen = true): Promise<void> {
 	const reset = await page.request.put('/index.php/apps/honeycomb/api/v1/view-state', {
-		data: { viewState: { infoPanelOpen: false, gestureGuideSeen: false } },
+		data: { viewState: { infoPanelOpen: false, gestureGuideSeen: false, seriesHintSeen } },
 		headers: { requesttoken: await requestToken(page) },
 	})
 	expect(reset.status(), await reset.text()).toBe(200)
