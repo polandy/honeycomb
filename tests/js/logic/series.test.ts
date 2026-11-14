@@ -3,10 +3,11 @@
 import type { Decision, Flag } from '../../../src/logic/decision.ts'
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
+import type { Series } from '../../../src/logic/series.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { allSeries, findSeries, hashablePictures, openSeries, SERIES_GAP_SECONDS, SERIES_SPAN_SECONDS, seriesCandidates, seriesMembers, seriesSizes, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
+import { allSeries, findSeries, hashablePictures, openSeries, SERIES_GAP_SECONDS, SERIES_SPAN_SECONDS, seriesCandidates, seriesMembers, seriesPictures, seriesSizes, visibleMembers, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
 /** Pictures named `/<folder>/<name>.JPG`, shot at `time` by `camera`. */
@@ -14,12 +15,12 @@ function shots(...specs: [name: string, time: number | null, camera?: string | n
 	return picturesOf(specs.map(([name, time, camera = 'Canon EOS R5'], index) => listingEntry(index + 1, `/${name}.JPG`, { captureTime: time, camera, mtime: 5000 })))
 }
 
-const names = (series: readonly (readonly Picture<ListingEntry>[])[]) => series.map((each) => each.map((picture) => picture.baseName))
+const names = (series: readonly Series<Picture<ListingEntry>>[]) => seriesPictures(series).map((each) => each.map((picture) => picture.baseName))
 
 /** The series of the pictures with the given flags by base name, undecided otherwise. */
 function seriesOf(pictures: readonly Picture<ListingEntry>[], flags: Record<string, Flag> = {}) {
 	const decisionOf = (picture: Picture<ListingEntry>): Decision => ({ ...UNDECIDED, flag: flags[picture.baseName] ?? 'unflagged' })
-	return names(findSeries(seriesCandidates(pictures), decisionOf))
+	return names(findSeries(allSeries(seriesCandidates(pictures), decisionOf), decisionOf))
 }
 
 describe('findSeries', () => {
@@ -91,7 +92,7 @@ const hash = (bits: number) => (2n ** BigInt(bits) - 1n).toString(16).padStart(1
 function visualSeries(pictures: readonly Picture<ListingEntry>[], hashes: Record<string, string>, flags: Record<string, Flag> = {}) {
 	const decisionOf = (picture: Picture<ListingEntry>): Decision => ({ ...UNDECIDED, flag: flags[picture.baseName] ?? 'unflagged' })
 	const hashOf = (picture: Picture<ListingEntry>) => hashes[picture.baseName] ?? null
-	return names(findSeries(seriesCandidates(pictures, hashOf), decisionOf, hashOf))
+	return names(findSeries(allSeries(seriesCandidates(pictures, hashOf), decisionOf, hashOf), decisionOf))
 }
 
 describe('findSeries with visual hashes', () => {
@@ -191,6 +192,34 @@ describe('allSeries', () => {
 		const decisionOf = (picture: Picture<ListingEntry>): Decision => ({ ...UNDECIDED, flag: picture.baseName === 'E' ? 'rejected' : 'picked' })
 
 		expect(names(allSeries(seriesCandidates(pictures), decisionOf))).toEqual([['A', 'B', 'C']])
+	})
+
+	it('keys each series by the smallest member file ID of its first picture', () => {
+		const pictures = picturesOf([
+			listingEntry(7, '/P/A.JPG', { captureTime: 0 }),
+			listingEntry(3, '/P/A.CR3', { captureTime: 0 }),
+			listingEntry(5, '/P/B.JPG', { captureTime: 1 }),
+			listingEntry(9, '/P/C.JPG', { captureTime: 10 }),
+			listingEntry(8, '/P/D.JPG', { captureTime: 11 }),
+		])
+
+		expect(allSeries(seriesCandidates(pictures), () => UNDECIDED).map((series) => series.key)).toEqual([3, 9])
+	})
+})
+
+describe('visibleMembers', () => {
+	it('leaves out the rejected pictures and keeps the order', () => {
+		const flags: Record<string, Flag> = { A: 'picked', B: 'rejected', C: 'unflagged' }
+
+		expect(visibleMembers(['A', 'B', 'C'], (picture) => ({ ...UNDECIDED, flag: flags[picture]! }))).toEqual(['A', 'C'])
+	})
+})
+
+describe('seriesPictures', () => {
+	it('lists the members of each series, for the consumers of the old form', () => {
+		const first = ['A', 'B']
+
+		expect(seriesPictures([{ key: 1, members: first }, { key: 2, members: ['C', 'D'] }])).toEqual([first, ['C', 'D']])
 	})
 })
 

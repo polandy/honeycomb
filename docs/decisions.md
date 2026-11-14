@@ -1122,3 +1122,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-14: `FileIds` throws the caller's exception class, a subclass of the new
   `InvalidRequestException`, so each controller keeps mapping its own exception to 400 and no
   service needs a try/catch to rethrow (R5a).
+- 2026-11-14: A series is a value `Series{key, members}` keyed by the smallest member file ID of
+  its first picture: unique, since a picture belongs to one series, and stable while that
+  picture stays, until the stored series of #185 may bring their own ID (R1a).
