@@ -1,3 +1,4 @@
+import type { Series } from '../../src/logic/series.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
@@ -196,9 +197,9 @@ describe('App: series compare', () => {
 			loupe.vm.$emit('decide', { kind: 'flag', flag: 'picked' }, picture)
 		}
 		await flushPromises()
-		const members = loupe.props('seriesOf') as ReadonlyMap<{ baseName: string }, readonly { baseName: string }[]>
+		const members = loupe.props('seriesOf') as ReadonlyMap<{ baseName: string }, Series<{ baseName: string }>>
 
-		expect([...members].map(([picture, series]) => `${picture.baseName} ${series.length}`)).toEqual(['IMG_1 3', 'IMG_2 3', 'IMG_3 3', 'IMG_4 2', 'IMG_5 2'])
+		expect([...members].map(([picture, series]) => `${picture.baseName} ${series.key} ${series.members.length}`)).toEqual(['IMG_1 1 3', 'IMG_2 1 3', 'IMG_3 1 3', 'IMG_4 4 2', 'IMG_5 4 2'])
 		expect(loupe.props('pictures').filter((picture: { baseName: string }) => members.has(picture))).toHaveLength(5)
 	})
 

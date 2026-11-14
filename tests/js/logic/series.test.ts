@@ -226,8 +226,8 @@ describe('seriesPictures', () => {
 describe('seriesMembers', () => {
 	// spec: LOUPE-001.19
 	it('maps each picture of a series to its whole series', () => {
-		const first = ['A', 'B']
-		const second = ['C', 'D']
+		const first = { key: 1, members: ['A', 'B'] }
+		const second = { key: 3, members: ['C', 'D'] }
 		const members = seriesMembers([first, second])
 
 		expect([...members]).toEqual([['A', first], ['B', first], ['C', second], ['D', second]])

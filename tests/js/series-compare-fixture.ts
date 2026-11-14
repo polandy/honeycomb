@@ -15,13 +15,15 @@ export function compareOf(...series: string[][]) {
 	const shots = new Map(series.flat().map((name) => [name, { name }]))
 	const decisions = shallowRef(new Map<string, Decision>())
 	const calls: string[] = []
+	/** The series of the named shots, keyed by the place of its first shot among all. */
+	const seriesOf = (names: readonly string[]) => ({ key: [...shots.keys()].indexOf(names[0]!), members: names.map((name) => shots.get(name)!) })
 	const held: boolean[] = []
 	const decisionOf = (shot: Shot) => decisions.value.get(shot.name) ?? UNDECIDED
 	const setFlag = (shot: Shot, flag: Decision['flag']) => {
 		decisions.value = new Map([...decisions.value, [shot.name, { ...decisionOf(shot), flag }]])
 	}
 	const compare = useSeriesCompare<Shot>({
-		series: () => series.map((names) => names.map((name) => shots.get(name)!)),
+		series: () => series.map((names) => seriesOf(names)),
 		decisionOf,
 		decide: (intent: DecisionIntent, shot) => {
 			calls.push(`${intent.kind === 'flag' ? intent.flag : JSON.stringify(intent)} ${shot.name}`)
@@ -39,6 +41,6 @@ export function compareOf(...series: string[][]) {
 		toast: () => undefined,
 		holdHashes: (hold) => held.push(hold),
 	})
-	const shown = () => compare.current.value?.map((shot) => shot.name) ?? null
-	return { compare, calls, held, shown, setFlag, shot: (name: string) => shots.get(name)! }
+	const shown = () => compare.current.value?.members.map((shot) => shot.name) ?? null
+	return { compare, calls, held, shown, setFlag, shot: (name: string) => shots.get(name)!, seriesOf }
 }

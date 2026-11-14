@@ -18,7 +18,7 @@ type Mounted = Awaited<ReturnType<typeof mountWithHint>>
 
 /** IMG_4 to IMG_6 as one series, each mapped to it. */
 const SERIES = PICTURES.slice(3, 6)
-const SERIES_OF = new Map(SERIES.map((picture) => [picture, SERIES] as const))
+const SERIES_OF = new Map(SERIES.map((picture) => [picture, { key: 4, members: SERIES }] as const))
 
 /** The loupe at `index` with the series above and the view state `stored`, by default the hint never dismissed. */
 async function mountWithHint(index = 4, stored: Partial<StoredViewState> = { gestureGuideSeen: true, seriesHintSeen: null }) {
