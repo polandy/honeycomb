@@ -11,7 +11,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import FolderList from '../../../src/components/FolderList.vue'
 import FolderPicker from '../../../src/components/FolderPicker.vue'
-import RecentFolderSets from '../../../src/components/RecentFolderSets.vue'
+import PickerRecentSets from '../../../src/components/PickerRecentSets.vue'
 import { DEFAULT_PAIRING_SETTINGS } from '../../../src/logic/pairing.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { listingEntry } from '../logic/listing-entries.ts'
@@ -240,16 +240,27 @@ describe('FolderPicker', () => {
 		const picker = await mountPicker(null, DEFAULT_PAIRING_SETTINGS, [{ position, current: false, decided: 1, total: 3 }])
 
 		expect(picker.wrapper.find('h3').text()).toBe(`${MARK}Recent`)
-		picker.wrapper.findComponent(RecentFolderSets).vm.$emit('open', position)
+		picker.wrapper.findComponent(PickerRecentSets).vm.$emit('open', position)
 
 		expect(picker.wrapper.emitted('openRecent')).toEqual([[position]])
+	})
+
+	// spec: LISTING-003.15
+	it('puts Recent under the folder list so the tree comes first in the tab order', async () => {
+		const position = { folderSet: { paths: ['/Trip'], subfolders: true }, fileId: 2, decided: 1, total: 3 }
+		const picker = await mountPicker(null, DEFAULT_PAIRING_SETTINGS, [{ position, current: false, decided: 1, total: 3 }])
+		const html = picker.wrapper.html()
+
+		expect(html.indexOf('folder-list')).toBeGreaterThan(-1)
+		expect(html.indexOf('folder-list')).toBeLessThan(html.indexOf('picker-recent-sets'))
+		expect(picker.wrapper.text()).not.toContain(`${MARK}Folders`)
 	})
 
 	// spec: LISTING-003.13
 	it('shows no Recent heading before any folder set was culled', async () => {
 		const picker = await mountPicker()
 
-		expect(picker.wrapper.findComponent(RecentFolderSets).exists()).toBe(false)
+		expect(picker.wrapper.findComponent(PickerRecentSets).exists()).toBe(false)
 		expect(picker.wrapper.text()).not.toContain(`${MARK}Recent`)
 	})
 

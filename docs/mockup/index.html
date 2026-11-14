@@ -254,6 +254,9 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .plist .nm{flex:1;min-width:0}
 .pk-box{width:24px;height:24px;flex:none;border:2px solid var(--muted);border-radius:6px;display:flex;align-items:center;justify-content:center}
 .plist li[aria-selected="true"] .pk-box{background:var(--honey);border-color:var(--honey);color:var(--on-honey)}.pk-box svg{width:16px;height:16px;stroke-width:3}
+.pk-recent{margin-top:12px;border-top:1px solid var(--line,#ddd)}.pk-recent h3{margin:8px 0 4px;font-size:inherit}
+.pk-rc{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:0 8px;border:0;border-radius:8px;background:none;color:inherit;font:inherit;text-align:start;cursor:pointer}
+.pk-rc .rc-n{flex:1;min-width:0;font-size:inherit}.pk-rc .rc-m{flex:none;white-space:nowrap}.pk-rc.more{color:var(--muted);font-size:12px}
 .pk-sub{margin-top:8px}.pk-count{margin:8px 0 0;font-size:13px;font-variant-numeric:tabular-nums}
 .note.warn{background:var(--warn-bg);color:var(--warn-text)}
 .ghead{grid-column:1/-1;position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;min-height:40px;padding:0 4px;background:var(--bg);font-weight:600;font-size:14px}
@@ -799,6 +802,8 @@ const DE = {
   'Every photo is decided': 'Alle Fotos sind entschieden',
   'No photos left to cull': 'Keine Fotos mehr zum Aussortieren',
   'Show all': 'Alle anzeigen',
+  'Show all {count}': 'Alle {count} anzeigen',
+  'Show fewer': 'Weniger anzeigen',
   'Nothing matches these filters': 'Keine Treffer für diese Filter',
   '{items} in {folders}.': '{items} in {folders}.',
   '{items} in this folder.': '{items} in diesem Ordner.',
@@ -1970,10 +1975,16 @@ function dlgPicker(d){
   const intro = S.folderPath ? '' : `<p class="intro">${t('Choose one or more folders of photos to start culling. Decisions save as you go and can be undone; deleting only moves files to the Nextcloud trash bin.')}</p>`;
   const subRow = `<div class="setrow pk-sub"><div><div>${t('Include subfolders')}</div><div class="hint" style="margin:0">${t('Any depth. Hidden folders, the trash bin and preview folders are skipped.')}</div></div><button class="sw-btn" role="switch" aria-checked="${d.sub}" aria-label="${esc(t('Include subfolders'))}" ${tip(t('Include subfolders'))} data-act="pkSub"></button></div>`;
   const sum = !ticks.length ? t('Tick one or more folders.') : cnt.photos ? `<b>${t('{photos} in {folders}', {photos:n('%n photo', '%n photos', cnt.photos), folders:n('%n folder', '%n folders', cnt.folders)})}</b>` + (ticks.length > 1 || d.sub ? ` · ${ticks.map(p => esc(p.split('/').pop())).join(', ')}` : '') : t('No photos in the ticked folders.');
+  const rcAll = d.recentAll || S.recent.length <= 3;
+  const rcRows = S.recent.slice(0, rcAll ? S.recent.length : 3).map((r, k) => {
+    const its = resolveSet(r.paths, r.sub).flatMap(getItems), dec = its.filter(i => i.flag !== 'none').length;
+    return `<button class="pk-rc" data-act="openRecent" data-i="${k}" ${tip(r.paths.join(', '))}><span class="rc-n">${esc(setName(r))}</span><span class="rc-m">${n('{done} / %n decided', '{done} / %n decided', its.length, {done:nf(dec)})}</span></button>`;
+  }).join('') + (S.recent.length > 3 ? `<button class="pk-rc more" data-act="pkRecentAll" aria-expanded="${!!d.recentAll}">${d.recentAll ? t('Show fewer') : t('Show all {count}', {count:nf(S.recent.length)})}</button>` : '');
+  const recent = S.recent.length ? `<section class="pk-recent"><h3>${t('Recent')}</h3>${rcRows}</section>` : '';
   const cap = cnt.photos > PHOTO_CAP ? `<div class="note warn"><span>${t('More than {cap} photos. honeycomb shows the first {cap} by capture time; untick folders to see the rest.', {cap:nf(PHOTO_CAP)})}</span></div>` : '';
   return confirmDialog(t('Choose folders'), `${intro}${crumbs}<ul class="plist" role="listbox" aria-multiselectable="true" aria-label="${esc(t('Folders'))}" style="margin-top:8px">${rows}</ul>
     ${subRow}<p class="pk-count" aria-live="polite">${sum}</p>${cap}
-    <p class="hint">${t('Tap folders to tick them, the arrow to open one. A cull of several folders is listed under Recent with its own progress.')}</p>`,
+    <p class="hint">${t('Tap folders to tick them, the arrow to open one. A cull of several folders is listed under Recent with its own progress.')}</p>${recent}`,
     {cancel:S.folderPath ? t('Cancel') : null, confirm:{act:'pkChoose', label, dis:!can}, canClose:!!S.folderPath});
 }
 function dlgSidecars(){
@@ -2677,6 +2688,7 @@ const A = {
   pkGo(el){ S.dlg.cwd = el.dataset.path; S.dlg.sel = null; renderDlg(); },
   pkSel(el){ S.dlg.sel = el.dataset.path; renderDlg(); },
   pkTick(el){ if (el.getAttribute('aria-disabled')) return; toggleSet(S.dlg.ticks, el.dataset.path); S.dlg.refocus = `[data-path="${CSS.escape(el.dataset.path)}"]`; renderDlg(); },
+  pkRecentAll(){ S.dlg.recentAll = !S.dlg.recentAll; S.dlg.refocus = '[data-act="pkRecentAll"]'; renderDlg(); },
   pkSub(){ S.dlg.sub = !S.dlg.sub; S.dlg.refocus = '[data-act="pkSub"]'; renderDlg(); },
   pkChoose(){ const p = S.dlg.sel; if (S.dlg.forMove){ if (p && p !== S.folderPath) openDlg({...S.dlg.forMove, target:p}); return; } const t = [...S.dlg.ticks]; if (setCount(t, S.dlg.sub).photos) loadSet(t, S.dlg.sub); },
   moveSel(){ openMove([...S.sel]); }, moveCur(){ openMove(targetIds()); },
