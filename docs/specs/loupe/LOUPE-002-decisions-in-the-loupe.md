@@ -155,6 +155,14 @@ Delete from the loupe: DELETE-002.
   else it stays; its tooltip names `Shift+K`; a plain *Pick* never rejects the others by itself,
   and no other decision, nor a pick in the grid or on a compare card, offers it
 
+### LOUPE-002.17 – Toast buttons stay readable
+
+- **Given** the undo toast shows *Undo* or *Reject the other N*
+- **When** the pointer rests on a button or the keyboard focuses it
+- **Then** the button stays transparent with its light text, as in the mockup; the pointer
+  underlines its word and the focus draws an outline in that light colour, so neither turns
+  unreadable under Nextcloud's own button hover
+
 ## History
 
 | Date | Change |
@@ -169,3 +177,4 @@ Delete from the loupe: DELETE-002.
 | 2026-11-14 | .11 *Unflag* bottom centre above the filmstrip in landscape (owner decision 2) |
 | 2026-11-14 | .15 *Pick this, reject the rest* in the loupe (concept step 9) |
 | 2026-11-14 | .16 *Reject the other N* in the undo toast (concept step 10) |
+| 2026-11-14 | .17 toast buttons stay readable on hover and focus |
