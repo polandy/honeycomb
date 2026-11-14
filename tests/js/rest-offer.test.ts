@@ -38,7 +38,7 @@ function offerOf(series: string[], shownName: string | null = null) {
 			pickRest: (picked) => calls.push(`compare pick ${picked!.name}`),
 			pickRestAndLand: (series, picked, land) => {
 				calls.push(`pick ${picked.name}, reject ${series.members.filter((member) => member !== picked).map((member) => member.name).join(' ')}`)
-				land({ kind: 'after', series: series.members, picked })
+				land({ kind: 'after', series, picked })
 			},
 		},
 		shown: () => shown.value,

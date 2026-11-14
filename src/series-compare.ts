@@ -28,7 +28,7 @@ export interface SeriesCompareContext<P> {
 }
 
 /** Where the loupe lands once a compare opened from it closes: on a picture, or after a series (SERIES-001.24). */
-export type CompareLanding<P> = { readonly kind: 'on', readonly picture: P } | { readonly kind: 'after', readonly series: readonly P[], readonly picked: P }
+export type CompareLanding<P> = { readonly kind: 'on', readonly picture: P } | { readonly kind: 'after', readonly series: Series<P>, readonly picked: P }
 
 /** The series compare dialog's state: which series it shows, which picture is active, and its keys (SERIES-001). */
 export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
@@ -156,7 +156,7 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	/** Picks the picture, rejects the rest of its series as one step and lands after the series (SERIES-001.24, LOUPE-002.15). */
 	function pickRestAndLand(series: Series<P>, picked: P, onLand: (landing: CompareLanding<P>) => void) {
 		context.pickRest(picked, series.members.filter((picture) => picture !== picked))
-		onLand({ kind: 'after', series: series.members, picked })
+		onLand({ kind: 'after', series, picked })
 	}
 
 	/** Decides the active picture by a key; a star step counts from its rating, `advance` moves on unless it left (SERIES-001.10). */

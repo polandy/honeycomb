@@ -70,11 +70,6 @@ export function visibleMembers<P>(pictures: readonly P[], decisionOf: (picture: 
 	return pictures.filter((picture) => !isRejected(decisionOf(picture)))
 }
 
-/** The members of each series, for consumers that still take the series as arrays. */
-export function seriesPictures<P>(series: readonly Series<P>[]): (readonly P[])[] {
-	return series.map(({ members }) => members)
-}
-
 /** Whether two shots in capture-time order belong together: alike within the visual gap, or within the time gap while one has no hash. */
 function linked<P>(previous: Shot<P>, next: Shot<P>): boolean {
 	const gap = next.time - previous.time
@@ -122,8 +117,8 @@ function compare(a: string, b: string): number {
 }
 
 /** Each picture of the given series mapped to the size of its series, for the series badge (SERIES-002.10). */
-export function seriesSizes<P>(series: readonly (readonly P[])[]): Map<P, number> {
-	return new Map(series.flatMap((pictures) => pictures.map((picture) => [picture, pictures.length] as const)))
+export function seriesSizes<P>(series: readonly Series<P>[]): Map<P, number> {
+	return new Map(series.flatMap(({ members }) => members.map((picture) => [picture, members.length] as const)))
 }
 
 /** Each picture of the given series mapped to its whole series, for the filmstrip's frame (LOUPE-001.19). */
@@ -132,6 +127,6 @@ export function seriesMembers<P>(series: readonly Series<P>[]): Map<P, Series<P>
 }
 
 /** Each picture of a series with a pending member, whose badge says the series may still change (SERIES-003.25). */
-export function openSeries<P>(series: readonly (readonly P[])[], isPending: (picture: P) => boolean): Set<P> {
-	return new Set(series.filter((pictures) => pictures.some(isPending)).flat())
+export function openSeries<P>(series: readonly Series<P>[], isPending: (picture: P) => boolean): Set<P> {
+	return new Set(series.filter(({ members }) => members.some(isPending)).flatMap(({ members }) => members))
 }
