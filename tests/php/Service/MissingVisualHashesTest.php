@@ -34,7 +34,10 @@ final class MissingVisualHashesTest extends TestCase {
 		return new MissingVisualHashes(new UserFolderResolver($root), $this->store, $pageSize);
 	}
 
-	/** @return list<string> */
+	/**
+	 * @param array{pictures: list<array{path: string, ...}>, ...} $page
+	 * @return list<string>
+	 */
 	private function paths(array $page): array {
 		return array_column($page['pictures'], 'path');
 	}
@@ -76,7 +79,7 @@ final class MissingVisualHashesTest extends TestCase {
 
 		$first = $service->page($this->user(), 'Photos', '');
 		$second = $service->page($this->user(), 'Photos', (string)$first['next']);
-		$this->listed = [];
+		$listedBefore = count($this->listed);
 		$third = $service->page($this->user(), 'Photos', (string)$second['next']);
 
 		$this->assertSame(['/Photos/2023/IMG_0001.JPG', '/Photos/2023/IMG_0002.JPG'], $this->paths($first));
@@ -84,7 +87,7 @@ final class MissingVisualHashesTest extends TestCase {
 		$this->assertSame(['/Photos/2023/IMG_0003.JPG', '/Photos/2024/IMG_0004.JPG'], $this->paths($second));
 		$this->assertSame(['/Photos/2024/IMG_0005.JPG'], $this->paths($third));
 		$this->assertNull($third['next']);
-		$this->assertSame(['/Photos', '/Photos/2024'], $this->listed);
+		$this->assertSame(['/Photos', '/Photos/2024'], array_slice($this->listed, $listedBefore));
 	}
 
 	// spec: SERIES-004.2

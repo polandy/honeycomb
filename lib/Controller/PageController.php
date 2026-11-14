@@ -12,6 +12,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\TemplateResponse;
 
 /** @psalm-suppress UnusedClass Routed by its attributes. */
@@ -21,5 +22,17 @@ final class PageController extends Controller {
 	#[FrontpageRoute(verb: 'GET', url: '/')]
 	public function index(): TemplateResponse {
 		return new TemplateResponse(Application::APP_ID, 'main');
+	}
+
+	/** The page that computes the missing visual hashes of a folder tree in Web Workers (ADR 0025). */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[FrontpageRoute(verb: 'GET', url: '/similarity')]
+	public function similarity(): TemplateResponse {
+		$response = new TemplateResponse(Application::APP_ID, 'similarity');
+		$policy = new ContentSecurityPolicy();
+		$policy->addAllowedWorkerSrcDomain("'self'");
+		$response->setContentSecurityPolicy($policy);
+		return $response;
 	}
 }

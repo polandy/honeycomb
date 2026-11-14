@@ -48,7 +48,9 @@ final class PageControllerTest extends TestCase {
 
 		$this->assertSame('similarity', $response->getTemplateName());
 		$this->assertSame(TemplateResponse::RENDER_AS_USER, $response->getRenderAs());
-		$this->assertStringContainsString("worker-src 'self'", $response->getContentSecurityPolicy()->buildPolicy());
+		$policy = $response->getContentSecurityPolicy();
+		$this->assertNotNull($policy);
+		$this->assertStringContainsString("worker-src 'self'", $policy->buildPolicy());
 	}
 
 	// spec: SERIES-004.13

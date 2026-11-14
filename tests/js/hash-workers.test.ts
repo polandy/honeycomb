@@ -67,7 +67,7 @@ describe('createHashWorkers', () => {
 		const { hashing, workers } = pool(1)
 
 		const failed = hashing.hash('/a')
-		workers[0]!.answer({ error: 'Preview answered 404' })
+		workers[0]!.answer({ error: new Error('Preview answered 404') })
 
 		await expect(failed).rejects.toThrow('Preview answered 404')
 	})

@@ -9,11 +9,12 @@ import type { StoredVisualHash } from './logic/visual-hash.ts'
 
 import { computed, ref, shallowRef, triggerRef, watch } from 'vue'
 import { removeStored } from './browser-storage.ts'
+import { drawHash } from './hash-drawing.ts'
 import { logger } from './logger.ts'
 import { hashProgress } from './logic/hash-progress.ts'
 import { imageMember, smallSource } from './logic/image-tiers.ts'
 import { hashablePictures } from './logic/series.ts'
-import { differenceHash, HASH_COLUMNS, HASH_ROWS } from './logic/visual-hash.ts'
+import { HASH_COLUMNS, HASH_ROWS } from './logic/visual-hash.ts'
 
 /** The browser storage key under which earlier versions kept the visual hashes (ADR 0021); removed when a cull opens. */
 export const VISUAL_HASHES_KEY = 'honeycomb.visualHashes'
@@ -25,7 +26,7 @@ const SAVE_BATCH = 100
 export type HashImage = (member: ListingEntry) => Promise<string>
 
 /** Stores computed visual hashes on the server. */
-export type SaveVisualHashes = (hashes: readonly StoredVisualHash[]) => Promise<void>
+export type SaveVisualHashes = (hashes: readonly StoredVisualHash[]) => Promise<unknown>
 
 /** A file version: a new etag means new pixels. */
 const versionKey = (member: ListingEntry) => `${member.fileId}:${member.etag}`
@@ -39,13 +40,7 @@ export function hashPreview(urlFor: ImageUrlFor): HashImage {
 		const canvas = document.createElement('canvas')
 		canvas.width = HASH_COLUMNS
 		canvas.height = HASH_ROWS
-		const context = canvas.getContext('2d', { willReadFrequently: true })
-		if (context === null) {
-			throw new Error('No 2D canvas to hash the preview')
-		}
-		context.imageSmoothingQuality = 'high'
-		context.drawImage(image, 0, 0, HASH_COLUMNS, HASH_ROWS)
-		return differenceHash(context.getImageData(0, 0, HASH_COLUMNS, HASH_ROWS).data)
+		return drawHash(image, canvas.getContext('2d', { willReadFrequently: true }))
 	}
 }
 

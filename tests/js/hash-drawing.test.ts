@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest'
 import { hashFetched } from '../../src/hash-drawing.ts'
 import { differenceHash, HASH_COLUMNS, HASH_ROWS } from '../../src/logic/visual-hash.ts'

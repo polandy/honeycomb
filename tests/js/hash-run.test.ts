@@ -26,13 +26,13 @@ function deferred<T>() {
 
 /** Seams answering pages by cursor, hashing at once and saving every hash. */
 function seams(pages: Record<string, { pictures: MissingPicture[], next: string | null }>, overrides: Partial<HashRunSeams> = {}) {
-	return {
+	const base = {
 		listMissing: vi.fn(async (_path: string, after: string) => pages[after]!),
 		hash: vi.fn(async (each: MissingPicture) => hashOf(each.fileId)),
 		save: vi.fn(async (hashes: readonly StoredVisualHash[]) => hashes.map((each) => each.fileId)),
 		workers: 2,
-		...overrides,
 	}
+	return { ...base, ...overrides } as typeof base & HashRunSeams
 }
 
 const TWO_PAGES = { '': { pictures: pictures(1, 3), next: '3.jpg' }, '3.jpg': { pictures: pictures(4, 5), next: null } }

@@ -9,6 +9,7 @@ import type { ResumePosition } from '../logic/resume-position.ts'
 
 import { emit as emitEvent } from '@nextcloud/event-bus'
 import { t } from '@nextcloud/l10n'
+import { generateUrl } from '@nextcloud/router'
 import { useIsMobile } from '@nextcloud/vue/composables/useIsMobile'
 import NcAppNavigation from '@nextcloud/vue/components/NcAppNavigation'
 import NcAppNavigationCaption from '@nextcloud/vue/components/NcAppNavigationCaption'
@@ -34,6 +35,7 @@ const emit = defineEmits<{
 }>()
 
 const isMobile = useIsMobile()
+const similarityUrl = generateUrl('/apps/honeycomb/similarity')
 useNavigationChoice(props.storage, props.viewportWidth)
 
 /** NcAppNavigation closes only through this event, as NcAppNavigationItem does for router links. */
@@ -50,6 +52,11 @@ function closeOnNarrowScreen() {
 			<NcAppNavigationItem :name="t('honeycomb', 'Folder')" @click="closeOnNarrowScreen(); emit('chooseFolders')">
 				<template #icon>
 					<AppIcon name="folder" />
+				</template>
+			</NcAppNavigationItem>
+			<NcAppNavigationItem :name="t('honeycomb', 'Similarity')" :href="similarityUrl">
+				<template #icon>
+					<AppIcon name="compare" />
 				</template>
 			</NcAppNavigationItem>
 			<NcAppNavigationCaption :name="t('honeycomb', 'Recent')" />

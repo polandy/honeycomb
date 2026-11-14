@@ -19,9 +19,9 @@ any device finds them stored and links series at once.
   "next": "<cursor>"}`: the user's own photos (ListingService::isPhoto) in the folder and every
   folder below it without a stored hash of their current etag. It walks the tree in name order
   and stops after 500 photos; `next` is the path of the last photo looked at, relative to the
-  folder, or `null` when none is left. A page may hold fewer pictures, even none, while `next`
-  is not `null`. Hidden and unreadable folders, and folders of another mount (a share, a group
-  folder, external storage), are skipped. `404` for a path that is not the user's folder,
+  folder, or `null` when the walk ended before 500. A page may hold fewer pictures, even none,
+  while `next` is not `null`. Hidden and unreadable folders, and folders of another mount (a
+  share, a group folder, external storage), are skipped. `404` for a path that is not the user's folder,
   `403` when it is not readable, `400` for a cursor that is not a relative path.
 - *Start* asks for the pages one after another and hashes their pictures, each the way the grid
   hashes it (SERIES-003.22): the same URL of the small grid tier and the same drawing and hash
@@ -29,7 +29,8 @@ any device finds them stored and links series at once.
 - The hashes are saved in requests of at most 250, when 250 are computed, once no picture is
   left and when the run pauses.
 - *Pause* hands no further picture to a worker; the pictures being hashed and a save in flight
-  finish, then what is unsaved is saved. *Resume* goes on from there.
+  finish, then what is unsaved is saved; a page load in flight goes on and is queued. *Resume*
+  goes on from there.
 - A failed save pauses the run and keeps its hashes; *Resume* sends them again. A picture whose
   preview cannot be loaded or hashed, or that the server skips on save, counts as failed and is
   not tried again in this run; its path is listed under the progress.

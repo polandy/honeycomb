@@ -20,8 +20,8 @@ function seams() {
 		listMissing: vi.fn(async (_path: string, after: string) => (after === ''
 			? { pictures: [picture(1), picture(2), picture(3)], next: 'IMG_3.jpg' }
 			: new Promise<{ pictures: MissingPicture[], next: string | null }>((settle) => {
-				nextPage = settle
-			}))),
+					nextPage = settle
+				}))),
 		hash: vi.fn(async (each: MissingPicture) => {
 			if (each.fileId === 2) {
 				throw new Error('no preview')
