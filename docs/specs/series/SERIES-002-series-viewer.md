@@ -15,7 +15,8 @@ compares the same detail; the series badge shows in the grid which photos form a
 ## Behaviour
 
 Tapping the photo of a card in the series compare opens the **series viewer** on that photo; the
-whole series is preloaded. The viewer shows the series without its rejected pictures, one photo
+viewer preloads the loupe's window around the shown photo, 3 ahead and 2 behind (LOUPE-001.12),
+not the whole series. The viewer shows the series without its rejected pictures, one photo
 at a time, with the loupe's controls: a close button, the name and "Series 1 of 2 · photo 2 of
 3", the flag button toggle and the *Fit* / 100 % button at the top, the previous and next
 buttons, and the loupe's action bar (flag buttons, rating, colour label, *Keep RAW*) with *Pick
@@ -59,7 +60,8 @@ A tile in the grid whose picture is in a series offered by the compare shows a r
 - **Given** the series compare dialog shows a series
 - **When** the user taps the photo of a card
 - **Then** the series viewer opens on that photo, its title row says the name and "Series 1 of 2
-  · photo 2 of 3", and every photo of the series is preloaded
+  · photo 2 of 3", and the photo with 3 photos ahead and 2 behind is preloaded; the window follows
+  paging and a photo that leaves the series
 
 ### SERIES-002.2 – Paging
 
@@ -131,3 +133,4 @@ loupe, fit or 100 %.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Created with the series viewer and the series badge (M6.2). |
+| 2026-11-14 | .1 preloads the loupe's window, not the whole series (series concept step 3). |

@@ -31,9 +31,10 @@ version (etag). A failed hash is logged and leaves the picture on the 3 second r
 change as hashes arrive, except while the series compare dialog is open.
 
 *Compare series* in the toolbar shows how many series there are and is disabled without one; it and
-`N` open the series compare dialog. The dialog, titled "Compare series 1 of 3", is up to 1400 px
-wide and shows one line of instructions above the series' pictures side by side, whose photos grow
-as high as the window allows, but no higher than a 2:3 portrait photo needs at the card's width.
+`N` open the series compare dialog. The dialog, titled "Compare series 1 of 3 · photo 2 of 5" by
+the active picture, is up to 1400 px wide and shows one line of instructions above the series'
+pictures side by side, whose photos grow as high as the window allows, but no higher than a 2:3
+portrait photo needs at the card's width.
 Up to four cards share the dialog's width; a longer series gives each card at least 180 px (half the
 width on a phone) and the row scrolls sideways, the active card always scrolled into view. On a
 phone a series of three or four wraps into two columns instead.
@@ -104,9 +105,9 @@ lines instead of cutting it.
 
 - **Given** the series compare dialog is open
 - **When** it shows a series
-- **Then** its title says which series of how many, one line of instructions shows, and each
-  picture shows its image, name, stars, flag mark, the flag buttons and *Pick this, reject the
-  rest*; the first picture is active
+- **Then** its title says which series of how many and the active picture's place in it, one
+  line of instructions shows, and each picture shows its image, name, stars, flag mark, the flag
+  buttons and *Pick this, reject the rest*; the first picture is active
 
 ### SERIES-001.8 – Deciding a picture of the series
 
@@ -224,4 +225,5 @@ camera come from LISTING-001.
 | 2026-11-12 | Series also compare the images: a visual hash of the grid preview, 30 s for alike shots, the 3 s rule without a hash (owner decision, ADR 0021). |
 | 2026-11-13 | One primary button on the active card, *Skip* secondary, one line of instructions, photos fill the dialog, flag buttons level (UX review M5). |
 | 2026-11-13 | A run is one series however long, and a long series scrolls sideways in the compare (owner request after testing on nc-test). |
+| 2026-11-14 | The title names the active picture's place, "· photo 7 of 26" (series concept step 3). |
 | 2026-11-14 | A series ends 60 s after its first picture, so a slow run of alike shots no longer chains over minutes (series concept step 2, ADR 0021). |

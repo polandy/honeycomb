@@ -97,9 +97,8 @@ const synced = computed(() => (zoom.value === null
 	? ''
 	: n('honeycomb', 'Zoom synced on all {count} photo', 'Zoom synced on all {count} photos', props.pictures.length, { count: formatNumber(props.pictures.length) })))
 
-watch(() => props.pictures, (pictures) => {
-	const sources = pictures.map((each) => loupeSources(imageMember(each), props.imageUrl))
-	prefetcher.prefetch(sources.map((each) => each.loupe), sources.map((each) => each.full))
+watch([() => props.index, () => props.pictures], ([index, pictures]) => {
+	prefetcher.prefetchAround(index, pictures.length, (each) => loupeSources(imageMember(pictures[each]!), props.imageUrl))
 }, { immediate: true })
 
 /** Shows the picture at `index` if there is one. */
