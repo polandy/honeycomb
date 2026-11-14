@@ -18,7 +18,7 @@ everything it stored stays in the database:
 | Tags | tables `oc_honeycomb_file_tags`, `oc_honeycomb_tag_list` |
 | Visual hashes of the pictures | table `oc_honeycomb_hashes` |
 | Applied migrations | rows with `app = 'honeycomb'` in `oc_migrations` |
-| App state (`enabled = no`, `installed_version`) | rows with `appid = 'honeycomb'` in `oc_appconfig` |
+| App state (`enabled = no`, `installed_version`) and the clean-up job's `vanished_after_*` row ids | rows with `appid = 'honeycomb'` in `oc_appconfig` |
 | Each user's settings and view state | rows with `appid = 'honeycomb'` in `oc_preferences` |
 | Background job `RemoveVanishedDecisions` | one row in `oc_jobs`, until the next cron run |
 

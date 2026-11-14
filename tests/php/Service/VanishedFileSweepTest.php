@@ -27,6 +27,10 @@ final class VanishedFileSweepTest extends TestCase {
 		$this->sweep = new VanishedFileSweep($this->files, $this->appConfigStub());
 	}
 
+	private function cursor(): int {
+		return $this->appConfig[self::KEY] ?? -1;
+	}
+
 	// spec: DECISIONS-001.16
 	public function testAnEmptyTableIsReadOnceAndRemovesNothing(): void {
 		$table = new FakeRowTable();
@@ -35,7 +39,7 @@ final class VanishedFileSweepTest extends TestCase {
 
 		$this->assertSame([0], $table->reads);
 		$this->assertSame([], $this->files->calls);
-		$this->assertSame(0, $this->appConfig[self::KEY]);
+		$this->assertSame(0, $this->cursor());
 	}
 
 	// spec: DECISIONS-001.16
@@ -48,7 +52,7 @@ final class VanishedFileSweepTest extends TestCase {
 		$this->assertSame([0, self::CHUNK], $table->reads);
 		$this->assertCount(self::CHUNK - 3, $table->rows);
 		$this->assertArrayNotHasKey(500, $table->rows);
-		$this->assertSame(0, $this->appConfig[self::KEY]);
+		$this->assertSame(0, $this->cursor());
 	}
 
 	// spec: DECISIONS-001.16
@@ -60,7 +64,7 @@ final class VanishedFileSweepTest extends TestCase {
 
 		$this->assertSame([0, self::CHUNK], $table->reads);
 		$this->assertCount(self::CHUNK, $table->rows);
-		$this->assertSame(0, $this->appConfig[self::KEY]);
+		$this->assertSame(0, $this->cursor());
 	}
 
 	// spec: DECISIONS-001.16
@@ -76,8 +80,7 @@ final class VanishedFileSweepTest extends TestCase {
 
 	// spec: DECISIONS-001.16
 	public function testAsksTheFileCacheOncePerChunkWithEachFileIdOnce(): void {
-		$table = new FakeRowTable();
-		$table->rows = [3 => 7, 4 => 8, 9 => 7];
+		$table = FakeRowTable::withRows([3 => 7, 4 => 8, 9 => 7]);
 		$this->files->vanished = [7];
 
 		$this->assertSame(2, $this->sweep->sweep(self::KEY, $table));
@@ -93,17 +96,15 @@ final class VanishedFileSweepTest extends TestCase {
 		$this->files->vanished = [$rowsPerRun, $rowsPerRun + 1];
 
 		$this->assertSame(1, $this->sweep->sweep(self::KEY, $table));
-		$this->assertCount(self::CHUNKS_PER_RUN, $table->reads);
-		$this->assertSame($rowsPerRun, $this->appConfig[self::KEY]);
+		$this->assertCount(self::CHUNKS_PER_RUN, $table->takeReads());
+		$this->assertSame($rowsPerRun, $this->cursor());
 
-		$table->reads = [];
 		$this->assertSame(1, $this->sweep->sweep(self::KEY, $table));
-		$this->assertSame([$rowsPerRun], $table->reads);
-		$this->assertSame(0, $this->appConfig[self::KEY]);
+		$this->assertSame([$rowsPerRun], $table->takeReads());
+		$this->assertSame(0, $this->cursor());
 
-		$table->reads = [];
 		$this->sweep->sweep(self::KEY, $table);
-		$this->assertSame(0, $table->reads[0]);
+		$this->assertSame(0, $table->takeReads()[0]);
 	}
 
 	// spec: DECISIONS-001.17
@@ -130,7 +131,7 @@ final class VanishedFileSweepTest extends TestCase {
 		} finally {
 			$this->assertArrayNotHasKey(1, $table->rows);
 			$this->assertArrayHasKey(self::CHUNK + 1, $table->rows);
-			$this->assertSame(self::CHUNK, $this->appConfig[self::KEY]);
+			$this->assertSame(self::CHUNK, $this->cursor());
 		}
 	}
 
@@ -145,7 +146,7 @@ final class VanishedFileSweepTest extends TestCase {
 			$this->sweep->sweep(self::KEY, $table);
 		} finally {
 			$this->assertCount(3, $table->rows);
-			$this->assertSame(1, $this->appConfig[self::KEY]);
+			$this->assertSame(1, $this->cursor());
 		}
 	}
 }

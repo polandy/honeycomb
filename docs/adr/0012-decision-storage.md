@@ -51,7 +51,10 @@ picture. A bulk action can change 2,000 pictures of two or three files each at o
 
 - One lookup per folder set after the listing; a bulk action is one request.
 - Rows of files deleted for good are removed by the daily job `RemoveVanishedDecisions`, which
-  compares them with the file cache; a file in the trash bin keeps its row and its decision. The
+  compares them with the file cache; a file in the trash bin keeps its row and its decision. It
+  reads 1,000 rows at a time by row id and looks their file ids up in the file cache by primary
+  key, never joining it, so a sharded file cache works; a run stops after 100 chunks and keeps the
+  row id in the app config for the next (DECISIONS-001.16–.18). The
   rows and positions of a deleted user go with the user (`UserDeletedEvent`). A position whose
   picture is deleted for good stays, so *Recent* still lists its folder set.
 - Two devices writing the same picture: the last write wins.

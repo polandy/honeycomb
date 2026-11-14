@@ -20,13 +20,26 @@ final class FakeRowTable implements FileRowStore {
 	/** @var int How many reads succeed before every further one fails. */
 	public int $readsBeforeFailure = PHP_INT_MAX;
 
-	/** Fills row ids 1 to `$count` with file id = row id + `$fileIdOffset`. */
-	public static function ofRows(int $count, int $fileIdOffset = 0): self {
+	/** @param array<int, int> $rows row id to file id */
+	public static function withRows(array $rows): self {
 		$table = new self();
-		for ($id = 1; $id <= $count; ++$id) {
-			$table->rows[$id] = $id + $fileIdOffset;
-		}
+		$table->rows = $rows;
 		return $table;
+	}
+
+	/** Fills row ids 1 to `$count`, each with the file id of the same number. */
+	public static function ofRows(int $count): self {
+		return self::withRows($count === 0 ? [] : array_combine(range(1, $count), range(1, $count)));
+	}
+
+	/**
+	 * The reads since the last call.
+	 * @return list<int>
+	 */
+	public function takeReads(): array {
+		$reads = $this->reads;
+		$this->reads = [];
+		return $reads;
 	}
 
 	#[\Override]

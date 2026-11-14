@@ -123,6 +123,6 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 
 		$this->runJob($job);
 
-		$this->assertSame(['alice' => []], $hashes->rows);
+		$this->assertSame(['alice' => []], array_map(array_keys(...), $hashes->rows));
 	}
 }

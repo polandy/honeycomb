@@ -7,10 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-/**
- * The row ids of a fake store whose rows are `$rows[$userId][$fileId]`, given out when a row is first read.
- * @property array<string, array<int, mixed>> $rows
- */
+/** The row ids of a fake store whose rows are `$rows[$userId][$fileId]`, given out when a row is first read. */
 trait FakeFileRows {
 	/** @var bool Whether every read of row ids fails, as a lost database connection would. */
 	public bool $readFails = false;
@@ -18,6 +15,7 @@ trait FakeFileRows {
 	/** @var array<string, int> */
 	private array $rowIds = [];
 
+	/** @return array<int, int> */
 	#[\Override]
 	public function fileIdsAfter(int $afterId, int $limit): array {
 		if ($this->readFails) {
@@ -39,7 +37,7 @@ trait FakeFileRows {
 	#[\Override]
 	public function deleteRows(array $ids): int {
 		$removed = 0;
-		foreach (array_intersect($this->rowIds, $ids) as $key => $id) {
+		foreach (array_keys(array_intersect($this->rowIds, $ids)) as $key) {
 			[$userId, $fileId] = explode('/', $key);
 			if (isset($this->rows[$userId][(int)$fileId])) {
 				unset($this->rows[$userId][(int)$fileId]);
