@@ -12,11 +12,7 @@ use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\Mount\IMountPoint;
-use OCP\Files\Search\ISearchBinaryOperator;
-use OCP\Files\Search\ISearchComparison;
-use OCP\Files\Search\ISearchOperator;
-use OCP\Files\Search\ISearchOrder;
-use OCP\Files\Search\ISearchQuery;
+use OCP\Files\Node;
 use OCP\FilesMetadata\Exceptions\FilesMetadataNotFoundException;
 use OCP\FilesMetadata\Model\IFilesMetadata;
 use OCP\IUser;
@@ -25,12 +21,9 @@ use PHPUnit\Framework\MockObject\Stub;
 /** Stubs of `OCP\Files` for the user `alice`, whose files live under `/alice/files`. */
 trait FakeFiles {
 	private const string USER_ROOT = '/alice/files';
-	/** The comparisons Nextcloud 35's `SearchBuilder::validateComparison()` accepts for our fields. */
-	private const array CACHE_COMPARISONS = [
-		'mimetype' => ['eq', 'like', 'in'],
-		'name' => ['eq', 'like', 'clike', 'in'],
-		'fileid' => ['eq', 'in'],
-	];
+
+	/** @var list<string> the folders whose listing was read, by path below the user's files */
+	private array $listed = [];
 
 	/** @return list<array<string, mixed>> */
 	private function entriesOf(Listing $listing): array {
@@ -115,39 +108,42 @@ trait FakeFiles {
 	}
 
 	/**
-	 * Answers `Folder::search()` over `$files` the way the file cache does for the fields we query.
+	 * The folder at `$path` with `$files` in folders below it, each listed in name order like the
+	 * file cache; every listing read is recorded in `$listed`.
 	 * @param list<File> $files
-	 * @return \Closure(ISearchQuery): list<File>
+	 * @param list<string> $unreadable folders the user may not read
 	 */
-	private function searchOver(array $files): \Closure {
-		return function (ISearchQuery $query) use ($files): array {
-			$this->assertSame([], $query->getSelectFields());
-			$this->assertFalse($query->limitToHome());
-			$hits = array_values(array_filter($files, fn (File $file): bool => $this->cacheMatches($query->getSearchOperation(), $file)));
-			$this->assertCount(1, $query->getOrder());
-			$order = $query->getOrder()[0];
-			$this->assertSame(['fileid', ISearchOrder::DIRECTION_ASCENDING], [$order->getField(), $order->getDirection()]);
-			usort($hits, $order->sortFileInfo(...));
-			return array_slice($hits, $query->getOffset(), $query->getLimit());
-		};
+	private function treeOf(array $files, string $path = '/Photos', array $unreadable = []): Folder {
+		$children = [$path => []];
+		foreach ($files as $file) {
+			for ($dir = dirname($this->below($file)); !isset($children[$dir]); $dir = dirname($dir)) {
+				$children[$dir] = [];
+			}
+		}
+		$folders = [];
+		foreach (array_keys($children) as $dir) {
+			$folders[$dir] = $this->folder($dir, !in_array($dir, $unreadable, true));
+		}
+		foreach ($files as $file) {
+			$children[dirname($this->below($file))][] = $file;
+		}
+		foreach ($folders as $dir => $folder) {
+			if ($dir !== $path) {
+				$children[dirname($dir)][] = $folder;
+			}
+		}
+		foreach ($folders as $dir => $folder) {
+			$listing = $children[$dir];
+			usort($listing, static fn (Node $a, Node $b): int => strcmp($a->getName(), $b->getName()));
+			$folder->method('getDirectoryListing')->willReturnCallback(function () use ($dir, $listing): array {
+				$this->listed[] = $dir;
+				return $listing;
+			});
+		}
+		return $folders[$path];
 	}
 
-	private function cacheMatches(ISearchOperator $operator, File $file): bool {
-		if ($operator instanceof ISearchBinaryOperator) {
-			$results = array_map(fn (ISearchOperator $argument): bool => $this->cacheMatches($argument, $file), $operator->getArguments());
-			return match ($operator->getType()) {
-				ISearchBinaryOperator::OPERATOR_AND => !in_array(false, $results, true),
-				ISearchBinaryOperator::OPERATOR_OR => in_array(true, $results, true),
-				ISearchBinaryOperator::OPERATOR_NOT => !$results[0],
-			};
-		}
-		$this->assertInstanceOf(ISearchComparison::class, $operator);
-		$value = $operator->getValue();
-		$this->assertTrue(is_string($value) || is_int($value));
-		$this->assertContains($operator->getType(), self::CACHE_COMPARISONS[$operator->getField()] ?? [], 'Nextcloud\'s SearchBuilder rejects it');
-		return match ([$operator->getField(), $operator->getType()]) {
-			['mimetype', ISearchComparison::COMPARE_LIKE] => str_starts_with($file->getMimetype(), rtrim((string)$value, '%')),
-			['name', ISearchComparison::COMPARE_LIKE] => str_ends_with(strtolower($file->getName()), ltrim((string)$value, '%')),
-		};
+	private function below(Node $node): string {
+		return substr($node->getPath(), strlen(self::USER_ROOT));
 	}
 }

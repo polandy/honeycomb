@@ -40,20 +40,13 @@ final class ListingServiceSubfoldersTest extends TestCase {
 		return $shares;
 	}
 
-	private function service(IRootFolder $root, int $entryLimit = ListingService::ENTRY_LIMIT, int $pageSize = ListingService::PAGE_SIZE): ListingService {
-		return new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class)), new SharedFolders($this->shares(), $this->createStub(IUserMountCache::class)), $entryLimit, $pageSize);
-	}
-
-	/** @param list<File> $files */
-	private function photosWith(array $files, string $path = '/Photos'): Folder {
-		$folder = $this->folder($path);
-		$folder->method('search')->willReturnCallback($this->searchOver($files));
-		return $folder;
+	private function service(IRootFolder $root, int $entryLimit = ListingService::ENTRY_LIMIT): ListingService {
+		return new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class)), new SharedFolders($this->shares(), $this->createStub(IUserMountCache::class)), $entryLimit);
 	}
 
 	// spec: LISTING-001.4
-	public function testListsEveryFolderBelowWithOneQueryByMimeTypeAndName(): void {
-		$photos = $this->photosWith([
+	public function testListsThePhotosAndSidecarsOfEveryFolderBelow(): void {
+		$photos = $this->treeOf([
 			$this->file(4, '/Photos/2024/IMG_0001.XMP', 'application/octet-stream'),
 			$this->file(1, '/Photos/IMG_0001.JPG'),
 			$this->file(2, '/Photos/2024/IMG_0001.CR2', 'image/x-dcraw'),
@@ -71,7 +64,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 
 	// spec: LISTING-001.13
 	public function testListsTheRawFilesNextcloudDoesNotTypeBelowByName(): void {
-		$photos = $this->photosWith([
+		$photos = $this->treeOf([
 			$this->file(1, '/Photos/2024/IMG_0001.CR3', 'application/octet-stream'),
 			$this->file(2, '/Photos/2024/SAM_0002.SRW', 'application/octet-stream'),
 			$this->file(3, '/Photos/2024/backup.bin', 'application/octet-stream'),
@@ -84,7 +77,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 
 	// spec: LISTING-001.5
 	public function testSkipsHiddenFoldersAndFilesBelowThePickedFolder(): void {
-		$photos = $this->photosWith([
+		$photos = $this->treeOf([
 			$this->file(1, '/Photos/.thumbnails/IMG_0001.JPG'),
 			$this->file(2, '/Photos/2024/.git/IMG_0002.JPG'),
 			$this->file(3, '/Photos/2024/._IMG_0003.JPG'),
@@ -94,11 +87,12 @@ final class ListingServiceSubfoldersTest extends TestCase {
 		$listing = $this->service($this->rootWith(['/Photos' => $photos]))->list($this->user(), 'Photos', true);
 
 		$this->assertSame([4], array_column($this->entriesOf($listing), 'fileId'));
+		$this->assertSame(['/Photos', '/Photos/2024'], $this->listed);
 	}
 
 	// spec: LISTING-001.5
 	public function testAHiddenFolderPickedOnPurposeIsListed(): void {
-		$private = $this->photosWith([$this->file(1, '/.private/IMG_0001.JPG')], '/.private');
+		$private = $this->treeOf([$this->file(1, '/.private/IMG_0001.JPG')], '/.private');
 
 		$listing = $this->service($this->rootWith(['/.private' => $private]))->list($this->user(), '.private', true);
 
@@ -106,25 +100,36 @@ final class ListingServiceSubfoldersTest extends TestCase {
 	}
 
 	// spec: LISTING-001.4
-	public function testPagesThroughTheFileCacheByFileId(): void {
-		$files = array_map(fn (int $id): File => $this->file($id, "/Photos/IMG_$id.JPG"), range(1, 5));
+	public function testReadsEachFolderOnceAndListsEachFileOnceAcrossFolderBoundaries(): void {
+		$paths = ['/Photos/A/IMG_1.JPG', '/Photos/A/IMG_2.JPG', '/Photos/A/x/IMG_3.JPG', '/Photos/A/x/y/IMG_4.JPG', '/Photos/B/IMG_5.JPG', '/Photos/IMG_6.JPG', '/Photos/C/IMG_7.JPG'];
+		$files = array_map(fn (int $id): File => $this->file($id, $paths[$id - 1]), range(1, count($paths)));
 
-		$listing = $this->service($this->rootWith(['/Photos' => $this->photosWith($files)]), pageSize: 2)
-			->list($this->user(), 'Photos', true);
+		$listing = $this->service($this->rootWith(['/Photos' => $this->treeOf($files)]))->list($this->user(), 'Photos', true);
 
-		$this->assertSame(range(1, 5), array_column($this->entriesOf($listing), 'fileId'));
+		$this->assertSame([6, 1, 2, 3, 4, 5, 7], array_column($this->entriesOf($listing), 'fileId'));
+		$this->assertSame(['/Photos', '/Photos/A', '/Photos/A/x', '/Photos/A/x/y', '/Photos/B', '/Photos/C'], $this->listed);
 		$this->assertFalse($listing->jsonSerialize()['truncated']);
 	}
 
-	// spec: LISTING-001.6
-	public function testStopsAtTheEntryLimitAcrossPages(): void {
-		$files = array_map(fn (int $id): File => $this->file($id, "/Photos/IMG_$id.JPG"), range(1, 5));
+	// spec: LISTING-001.4
+	public function testLeavesOutAFolderBelowTheUserMayNotRead(): void {
+		$files = [$this->file(1, '/Photos/Locked/IMG_1.JPG'), $this->file(2, '/Photos/Open/IMG_2.JPG')];
 
-		$listing = $this->service($this->rootWith(['/Photos' => $this->photosWith($files)]), 3, 2)
-			->list($this->user(), 'Photos', true);
+		$listing = $this->service($this->rootWith(['/Photos' => $this->treeOf($files, unreadable: ['/Photos/Locked'])]))->list($this->user(), 'Photos', true);
+
+		$this->assertSame([2], array_column($this->entriesOf($listing), 'fileId'));
+		$this->assertSame(['/Photos', '/Photos/Open'], $this->listed);
+	}
+
+	// spec: LISTING-001.6
+	public function testStopsWalkingAtTheEntryLimit(): void {
+		$files = [$this->file(1, '/Photos/A/IMG_1.JPG'), $this->file(2, '/Photos/A/IMG_2.JPG'), $this->file(3, '/Photos/B/IMG_3.JPG'), $this->file(4, '/Photos/B/IMG_4.JPG'), $this->file(5, '/Photos/C/IMG_5.JPG')];
+
+		$listing = $this->service($this->rootWith(['/Photos' => $this->treeOf($files)]), 3)->list($this->user(), 'Photos', true);
 
 		$this->assertSame([1, 2, 3], array_column($this->entriesOf($listing), 'fileId'));
 		$this->assertTrue($listing->jsonSerialize()['truncated']);
+		$this->assertSame(['/Photos', '/Photos/A', '/Photos/B'], $this->listed);
 	}
 
 	// spec: LISTING-001.10
@@ -135,8 +140,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 			$files[] = $this->file(3 * $n + 1, "/Photos/IMG_$n.JPG");
 			$files[] = $this->file(3 * $n + 2, "/Photos/IMG_$n.xmp", 'application/octet-stream');
 		}
-		$photos = $this->folder('/Photos');
-		$photos->method('search')->willReturnCallback($this->searchOver($files));
+		$photos = $this->treeOf($files);
 		$metadata = $this->createMock(IFilesMetadataManager::class);
 		$metadata->expects($this->exactly(7))->method('getMetadataForFiles')->willReturnCallback(
 			function (array $ids): array {
@@ -149,6 +153,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 		$listing = $service->list($this->user(), 'Photos', true);
 
 		$this->assertCount(6300, $listing->jsonSerialize()['entries']);
+		$this->assertSame(['/Photos'], $this->listed);
 	}
 
 	// spec: LISTING-001.12
@@ -162,7 +167,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 			$files[] = $this->file($id, $path, parent: $folders[dirname($path)]);
 		}
 
-		$listing = $this->service($this->rootWith(['/Photos' => $this->photosWith($files)]))->list($this->user(), 'Photos', true);
+		$listing = $this->service($this->rootWith(['/Photos' => $this->treeOf($files)]))->list($this->user(), 'Photos', true);
 
 		$this->assertSame([
 			['path' => '/Photos', 'shared' => false],
@@ -174,9 +179,9 @@ final class ListingServiceSubfoldersTest extends TestCase {
 	}
 
 	// spec: LISTING-001.8
-	public function testASearchThatMayNotBeRunIsNotReadable(): void {
+	public function testAListingThatMayNotBeReadIsNotReadable(): void {
 		$photos = $this->folder('/Photos');
-		$photos->method('search')->willThrowException(new NotPermittedException('Photos'));
+		$photos->method('getDirectoryListing')->willThrowException(new NotPermittedException('Photos'));
 
 		$this->expectException(FolderNotReadableException::class);
 		$this->service($this->rootWith(['/Photos' => $photos]))->list($this->user(), 'Photos', true);

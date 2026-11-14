@@ -8,22 +8,16 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 use OCA\Honeycomb\Preview\UntypedRaw;
-use OCA\Honeycomb\Search\BinaryOperator;
-use OCA\Honeycomb\Search\Comparison;
-use OCA\Honeycomb\Search\FileSearchQuery;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\Node;
 use OCP\Files\NotPermittedException;
-use OCP\Files\Search\ISearchBinaryOperator;
-use OCP\Files\Search\ISearchComparison;
 use OCP\IUser;
 
 /** Lists the files of one picked folder from the file cache: members and sidecars, unpaired. */
 final class ListingService {
 	/** 20,000 pictures of a RAW, a JPEG and a sidecar each (`docs/plan.md` Multiple folders). */
 	public const ENTRY_LIMIT = 60_000;
-	public const PAGE_SIZE = 5_000;
 	public const METADATA_BATCH = 1_000;
 
 	public function __construct(
@@ -31,7 +25,6 @@ final class ListingService {
 		private EntryFactory $entryFactory,
 		private SharedFolders $sharedFolders,
 		private int $entryLimit = self::ENTRY_LIMIT,
-		private int $pageSize = self::PAGE_SIZE,
 	) {
 	}
 
@@ -45,7 +38,7 @@ final class ListingService {
 		$folder = $this->folders->folder($user, $path);
 		$userFolder = $this->folders->userFolder($user);
 		try {
-			return $this->collect($user, $userFolder, $folder, $subfolders ? $this->searchBelow($user, $folder) : $folder->getDirectoryListing());
+			return $this->collect($user, $userFolder, $folder, $subfolders ? $this->walkBelow($folder) : $folder->getDirectoryListing());
 		} catch (NotPermittedException) {
 			throw new FolderNotReadableException($path);
 		}
@@ -105,19 +98,23 @@ final class ListingService {
 		return str_ends_with(strtolower($file->getName()), '.xmp');
 	}
 
-	/** @return \Generator<Node> */
-	private function searchBelow(IUser $user, Folder $folder): \Generator {
-		$picturesAndSidecars = new BinaryOperator(ISearchBinaryOperator::OPERATOR_OR, [
-			new Comparison(ISearchComparison::COMPARE_LIKE, 'mimetype', 'image/%'),
-			new Comparison(ISearchComparison::COMPARE_LIKE, 'name', '%.xmp'),
-			...array_map(static fn (string $extension): Comparison => new Comparison(ISearchComparison::COMPARE_LIKE, 'name', "%.$extension"), UntypedRaw::EXTENSIONS),
-		]);
-		$offset = 0;
-		do {
-			// Offset, not `fileid > cursor`: Nextcloud's file cache search allows only `eq` and `in` on fileid.
-			$page = $folder->search(new FileSearchQuery($picturesAndSidecars, $this->pageSize, $offset, $user));
-			yield from $page;
-			$offset += count($page);
-		} while (count($page) === $this->pageSize);
+	/**
+	 * The files of `$folder` and of every folder below it, depth first, one listing per folder;
+	 * hidden folders and those the user may not read are never opened.
+	 * @return \Generator<Node>
+	 */
+	private function walkBelow(Folder $folder): \Generator {
+		$pending = [$folder];
+		while (($current = array_pop($pending)) !== null) {
+			$subfolders = [];
+			foreach ($current->getDirectoryListing() as $node) {
+				if (!$node instanceof Folder) {
+					yield $node;
+				} elseif (!str_starts_with($node->getName(), '.') && $node->isReadable()) {
+					$subfolders[] = $node;
+				}
+			}
+			array_push($pending, ...array_reverse($subfolders));
+		}
 	}
 }
