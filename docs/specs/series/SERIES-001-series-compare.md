@@ -39,17 +39,17 @@ Up to four cards share the dialog's width; a longer series gives each card at le
 width on a phone) and the row scrolls sideways, the active card always scrolled into view. On a
 phone a series of three or four wraps into two columns instead.
 Each card has the picture's name, stars, flag mark, the flag buttons (*Pick*, *Unflag*, *Reject*,
-GRID-003.15) and *Pick this, reject the rest*; the flag buttons sit level across the cards, a flag mark or not. One picture is active
-(outlined); its *Pick this, reject the rest* is the primary button, the others' and *Skip* are
-secondary. The keys are in the buttons' tooltips and the shortcut sheet. Tapping a picture's photo
-opens it in the series viewer (SERIES-002); closing the viewer makes the viewed picture active. A
-decision goes through the undo history and the undo toast like any other. A rejected picture leaves
-the series; once fewer than two are left, the series is done and the next one shows. *Pick this,
-reject the rest* picks the one picture and rejects every other picture of the series, as one undo
-step: "Picked IMG_0003, rejected the rest · Undo". *Skip* shows the next series, after the last the
-first. Without any series left the dialog says "All series compared". In a card narrower than 200
-px, as on a phone, *Pick this, reject the rest* drops its icon and wraps its label to two balanced
-lines instead of cutting it.
+GRID-003.15) and *Pick this, reject the rest*; the flag buttons sit level across the cards, a flag
+mark or not. One picture is active (outlined); its *Pick this, reject the rest* is the primary
+button, the others' and *Skip* are secondary. The keys are in the buttons' tooltips and the shortcut
+sheet. Tapping a picture's photo opens it in the series viewer (SERIES-002); closing the viewer
+makes the viewed picture active. A decision goes through the undo history and the undo toast like
+any other. A rejected picture leaves the series; once fewer than two are left, the series is done
+and the next one shows. *Pick this, reject the rest* picks the one picture and rejects every other
+picture of the series, as one undo step: "Picked IMG_0003, rejected the rest · Undo". *Skip* shows
+the next series, after the last the first. Without any series left the dialog says "All series
+compared". In a card narrower than 200 px, as on a phone, *Pick this, reject the rest* drops its
+icon and wraps its label to two balanced lines instead of cutting it.
 
 | Key in the dialog | Action |
 |---|---|

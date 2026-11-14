@@ -15,19 +15,18 @@ const props = withDefaults(defineProps<{
 	/** The flag, or undefined where a selection's flags differ. */
 	flag: Flag | undefined
 	disabled?: boolean
-	/** Large buttons carry their label: a row of their own in portrait, Unflag in the middle, the side edges in landscape. */
+	/** Large buttons carry their label: a row of their own in portrait, the side edges and the bottom centre in landscape. */
 	size?: 'small' | 'large'
 }>(), { disabled: false, size: 'small' })
 
 const emit = defineEmits<{ flag: [flag: Flag] }>()
 
+// One order everywhere, so a hand learns it once (GRID-003.15).
 const FLAGS: readonly { flag: Flag, key: string }[] = [
 	{ flag: 'picked', key: 'pick' },
-	{ flag: 'rejected', key: 'reject' },
 	{ flag: 'unflagged', key: 'unflag' },
+	{ flag: 'rejected', key: 'reject' },
 ]
-// Large buttons put Unflag in the middle, so Pick and Reject take the outer edges in portrait.
-const LARGE_FLAGS = [FLAGS[0]!, FLAGS[2]!, FLAGS[1]!]
 </script>
 
 <template>
@@ -37,7 +36,7 @@ const LARGE_FLAGS = [FLAGS[0]!, FLAGS[2]!, FLAGS[1]!]
 		role="group"
 		:aria-label="t('honeycomb', 'Flag')">
 		<button
-			v-for="button in props.size === 'large' ? LARGE_FLAGS : FLAGS"
+			v-for="button in FLAGS"
 			:key="button.flag"
 			type="button"
 			class="flag-buttons__button"
@@ -120,8 +119,8 @@ const LARGE_FLAGS = [FLAGS[0]!, FLAGS[2]!, FLAGS[1]!]
 		inset: 0 var(--photo-loupe-panel, 0px) 0 0;
 		display: grid;
 		grid-template-columns: var(--flag-buttons-rail) 1fr var(--flag-buttons-rail);
-		grid-template-rows: 1fr auto auto 1fr;
-		gap: calc(2.5 * var(--default-grid-baseline)) 0;
+		grid-template-rows: 1fr auto 1fr;
+		gap: 0;
 		pointer-events: none;
 		--flag-buttons-rail: 96px;
 	}
@@ -144,11 +143,14 @@ const LARGE_FLAGS = [FLAGS[0]!, FLAGS[2]!, FLAGS[1]!]
 	}
 
 	.flag-buttons--large .flag-buttons__button--unflagged {
-		grid-area: 3 / 3;
-		gap: var(--default-grid-baseline);
-		height: auto;
-		min-height: 56px;
-		padding: var(--default-grid-baseline) 0;
+		grid-area: 3 / 2;
+		flex-direction: row;
+		align-self: end;
+		justify-self: center;
+		width: auto;
+		height: 56px;
+		margin-bottom: calc(var(--photo-loupe-row, 56px) + var(--photo-loupe-filmstrip, 0px) + 2 * var(--default-grid-baseline));
+		padding: 0 calc(4 * var(--default-grid-baseline));
 	}
 }
 
@@ -159,8 +161,7 @@ const LARGE_FLAGS = [FLAGS[0]!, FLAGS[2]!, FLAGS[1]!]
 	}
 
 	.flag-buttons--large .flag-buttons__button--unflagged {
-		height: auto;
-		min-height: 40px;
+		height: 44px;
 	}
 }
 </style>

@@ -473,6 +473,7 @@ main{overflow:hidden}
 /* landscape: the photo fills the screen, Pick and Reject float at its side edges, the rest hides when idle (docs/plan.md Loupe layout) */
 @container app (orientation:landscape){
   #loupe,#serie{--rail:96px;--railL:calc(var(--rail) + var(--sa-l));--railR:calc(var(--rail) + var(--sa-r))}
+  #loupe{--unflag-lift:130px}#serie{--unflag-lift:64px}
   #loupe .l-top{position:absolute;top:0;left:0;right:0;z-index:4;padding-left:calc(var(--railL) + 6px)}
   #loupe #infoPanel{padding-top:68px;margin-right:var(--railR)}
   #loupe .l-top,#loupe .film{transition:opacity .3s}
@@ -483,11 +484,11 @@ main{overflow:hidden}
   #serie #svSync{position:absolute;left:var(--railL);bottom:62px;padding:0 10px}
   #loupe .ab-big,#serie .ab-big{position:absolute;inset:0;max-width:none;width:auto}
   #loupe.noflags,#serie.noflags{--railL:var(--sa-l);--railR:var(--sa-r)}
-  .ab-big .grp.flags{flex:1;display:grid;grid-template-columns:var(--railL) 1fr var(--railR);grid-template-rows:1fr auto auto 1fr;gap:10px 0;padding:8px 0 calc(8px + var(--sa-b))}
+  .ab-big .grp.flags{flex:1;display:grid;grid-template-columns:var(--railL) 1fr var(--railR);grid-template-rows:1fr auto 1fr;gap:10px 0;padding:8px 0 calc(8px + var(--sa-b))}
   .ab-big .bigbtn{pointer-events:auto;flex-direction:column;gap:6px;width:calc(var(--rail) - 12px);height:clamp(120px,36cqh,240px);min-height:0;padding:0 4px;margin:0 6px;font-size:14px}
   .ab-big .bigbtn.pick{grid-area:2/1;justify-self:end}
   .ab-big .bigbtn.reject{grid-area:2/3;justify-self:start}
-  .ab-big .bigbtn.none{grid-area:3/3;justify-self:start;height:auto;min-height:56px;flex:none}
+  .ab-big .bigbtn.none{grid-area:3/2;align-self:end;justify-self:center;flex-direction:row;width:auto;height:56px;padding:0 20px;margin-bottom:var(--unflag-lift);flex:none}
   .ab-big .bigbtn:not([aria-pressed="true"]){background:#000000a6;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
   #loupe .navbtn{transition:opacity .3s}
   #loupe .navbtn.l{left:calc(var(--railL) + 4px)}#loupe .navbtn.r{right:calc(var(--railR) + 4px)}
@@ -520,7 +521,8 @@ main{overflow:hidden}
 @container app (orientation:landscape){
   #frame[data-input="fine"] :is(#loupe,#serie){--rail:64px}
   #frame[data-input="fine"] .ab-big .bigbtn{height:clamp(88px,20cqh,140px);font-size:13px}
-  #frame[data-input="fine"] .ab-big .bigbtn.none{height:auto;min-height:40px}
+  #frame[data-input="fine"] .ab-big .bigbtn.none{height:44px}
+  #frame[data-input="fine"] #loupe{--unflag-lift:118px}#frame[data-input="fine"] #serie{--unflag-lift:52px}
   #frame[data-input="fine"] :is(#loupe,#serie) .ab-small{min-height:44px}
   #frame[data-input="fine"] #loupe .film{bottom:44px}
 }
@@ -1034,7 +1036,7 @@ const DE = {
   '%n rejected': ['%n abgelehnt', '%n abgelehnt'],
   'Removed the RAWs of {photos} · {files} · {size} freed to the Nextcloud trash bin': 'RAWs von {photos} entfernt · {files} · {size} frei im Nextcloud-Papierkorb',
   'Flag buttons': 'Markierungsknöpfe', 'Show flag buttons': 'Markierungsknöpfe zeigen', 'Show or hide the flag buttons': 'Markierungsknöpfe ein- oder ausblenden',
-  'Pick, Reject and Unflag in the loupe and the series viewer. Hidden, the photo gets their room; keys, swipes and tooltips keep working, and the flag in the title row shows them again.': 'Markieren, Ablehnen und Markierung aufheben in der Lupe und im Serienbetrachter. Ausgeblendet bekommt das Foto ihren Platz; Tasten, Wischgesten und Tooltips funktionieren weiter, und die Fahne in der Titelzeile zeigt sie wieder.',
+  'Pick, Unflag and Reject in the loupe and the series viewer. Hidden, the photo gets their room; keys, swipes and tooltips keep working, and the flag in the title row shows them again.': 'Markieren, Markierung aufheben und Ablehnen in der Lupe und im Serienbetrachter. Ausgeblendet bekommt das Foto ihren Platz; Tasten, Wischgesten und Tooltips funktionieren weiter, und die Fahne in der Titelzeile zeigt sie wieder.',
   'Flag buttons shown': 'Markierungsknöpfe eingeblendet', 'Flag buttons hidden · {key} shows them': 'Markierungsknöpfe ausgeblendet · {key} zeigt sie wieder',
   'Flag buttons hidden, and no swipe decides: the flag at the top shows them': 'Markierungsknöpfe ausgeblendet, und keine Wischgeste entscheidet: die Fahne oben zeigt sie wieder',
   'Flag buttons hidden · swipe to decide, the flag at the top shows them': 'Markierungsknöpfe ausgeblendet · per Wischen entscheiden, die Fahne oben zeigt sie wieder',
@@ -1110,7 +1112,7 @@ const kbd = t => t.split(' ').map(k => k === '+' || k === '–' ? esc(k) : `<spa
 const tip = (label, key = '') => `data-tip="${esc(label)}"${key ? ` data-tip-key="${esc(key)}"` : ''}`;
 
 /* ---------- shared components: one renderer each, used by grid, loupe, series compare and series viewer ---------- */
-const FLAGS = [{v:'pick', icon:'flagPick', label:'Pick', key:HOTKEY.pick}, {v:'reject', icon:'flagX', label:'Reject', key:HOTKEY.reject}, {v:'none', icon:'flag', label:'Unflag', key:HOTKEY.unflag}];
+const FLAGS = [{v:'pick', icon:'flagPick', label:'Pick', key:HOTKEY.pick}, {v:'none', icon:'flag', label:'Unflag', key:HOTKEY.unflag}, {v:'reject', icon:'flagX', label:'Reject', key:HOTKEY.reject}];
 const forAttrs = (forKey, id) => `data-for="${forKey}"${id ? ` data-id="${esc(id)}"` : ''}`;
 const flagMark = flag => flag === 'none' ? '' : `<span class="fl ${flag}" ${tip(flagName(flag))}>${ic(flag === 'pick' ? 'flagPick' : 'flagX')}</span>`;
 function flagButtons(cur, forKey, {id = '', dis = '', big = false} = {}){
@@ -2193,7 +2195,7 @@ function dlgSettings(){
   <div class="sec"><h3>${t('Loupe gestures')}</h3><p class="hint">${t('A direction set to Nothing turns that swipe off.')}</p>
     <div class="setrow"><span>${t('Swipe up')}</span>${act('swipeUp')}</div><div class="setrow"><span>${t('Swipe down')}</span>${act('swipeDown')}</div>
     ${sw('autoAdvance', 'Auto-advance to the next undecided photo', 'After pick or reject, not after rating or colour label')}
-    ${sw('flagButtons', 'Show flag buttons', 'Pick, Reject and Unflag in the loupe and the series viewer. Hidden, the photo gets their room; keys, swipes and tooltips keep working, and the flag in the title row shows them again.')}
+    ${sw('flagButtons', 'Show flag buttons', 'Pick, Unflag and Reject in the loupe and the series viewer. Hidden, the photo gets their room; keys, swipes and tooltips keep working, and the flag in the title row shows them again.')}
     <div class="setrow"><div><div>${t('Gesture guide')}</div><div style="font-size:12px;color:var(--muted)" id="coachHint">${t(P0.coachSeen ? 'The card with the swipes, tap zones and keys from the first loupe opening' : 'Shows the next time you open the loupe')}</div></div><button class="btn" id="coachAgain" data-act="coachAgain" aria-describedby="coachHint">${t('Show the gesture guide')}</button></div></div>
   <div class="sec"><h3>${t('Keyboard')}</h3>
     ${sw('viKeys', 'Vi keys', 'h j k l switch photos, g g and Shift + G go to the first and last, / opens the filters. g no longer opens the grid: Esc does.')}</div>

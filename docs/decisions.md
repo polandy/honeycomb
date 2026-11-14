@@ -955,3 +955,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-14: The series viewer keeps only the shown photo's full image, as the loupe does, not every
   photo's, so synchronised zoom loads each 100 % image on its page; no new hotkey, since the step
   adds no action (series step 3, SERIES-002.1).
+- 2026-11-14: Series step 4 moves *Unflag* off the right edge to the bottom centre, lifted by the
+  action row and the open filmstrip, so the phone-landscape TODO "keep *Unflag* clear of the
+  filmstrip" is closed by it; no new hotkey, `P`, `U`, `X` stay and the tooltips follow the new
+  order (GRID-003.15, LOUPE-002.11).
