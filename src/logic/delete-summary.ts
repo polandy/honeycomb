@@ -4,6 +4,8 @@ import type { Decision } from './decision.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 
+import { isRejected } from './decision.ts'
+
 /** What a file is to its picture. */
 export type FileRole = 'rendered' | 'raw' | 'sidecar'
 
@@ -41,7 +43,7 @@ export function filesOf(picture: Picture<ListingEntry>): PictureFile[] {
 
 /** The rejected pictures, in their order. */
 export function rejectedPictures<P>(pictures: readonly P[], decisionOf: (picture: P) => Decision): P[] {
-	return pictures.filter((picture) => decisionOf(picture).flag === 'rejected')
+	return pictures.filter((picture) => isRejected(decisionOf(picture)))
 }
 
 /** Pictures, files, bytes, pairs and singles of a delete, and its pictures per folder in first-seen order. */

@@ -9,6 +9,7 @@ import type { Toast } from './toast.ts'
 
 import { computed, ref, shallowRef, watch } from 'vue'
 import { rowStep } from './logic/compare-grid.ts'
+import { isRejected } from './logic/decision.ts'
 import { stepRating } from './logic/hotkeys.ts'
 import { useSeriesViewer } from './series-viewer.ts'
 
@@ -40,7 +41,7 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 
 	const oneSeries = computed(() => single.value !== null)
 	const all = computed(() => (single.value === null ? context.series() : [single.value])
-		.map((series) => series.filter((picture) => context.decisionOf(picture).flag !== 'rejected'))
+		.map((series) => series.filter((picture) => !isRejected(context.decisionOf(picture))))
 		.filter((series) => series.length > 1))
 	const count = computed(() => all.value.length)
 	const position = computed(() => (index.value < count.value ? index.value : 0))

@@ -15,6 +15,7 @@ import FlagMark from './FlagMark.vue'
 import StarRating from './StarRating.vue'
 import { keyCap } from '../hotkeys.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
+import { isDecided } from '../logic/decision.ts'
 import { gridSrcset, imageMember, smallSource } from '../logic/image-tiers.ts'
 import { tip } from '../tooltip.ts'
 
@@ -66,7 +67,7 @@ const emit = defineEmits<{
 		<span class="series-compare__label">
 			<span class="series-compare__name">{{ formatNumber(props.index + 1) }} · {{ props.picture.baseName }}</span>
 			<StarRating :rating="props.decision.rating" readonly />
-			<FlagMark v-if="props.decision.flag !== 'unflagged'" :flag="props.decision.flag" />
+			<FlagMark v-if="isDecided(props.decision)" :flag="props.decision.flag" />
 		</span>
 		<FlagButtons :flag="props.decision.flag" @flag="emit('flag', $event)" />
 	</li>

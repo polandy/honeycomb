@@ -17,7 +17,7 @@ import StarRating from './StarRating.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
 import { COLOUR_LABEL_SWATCHES, colourLabelName } from '../colour-labels.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
-import { UNDECIDED } from '../logic/decision.ts'
+import { isDecided, UNDECIDED } from '../logic/decision.ts'
 import { GRID_TIERS, imageMember, loadPriority, sharpTier, smallSource, tierSource } from '../logic/image-tiers.ts'
 import { pairBadge } from '../logic/pair-badge.ts'
 import { tip } from '../tooltip.ts'
@@ -91,7 +91,7 @@ const decisionLabel = computed(() => {
 })
 
 /** Whether the tile shows a flag, a colour label or stars. */
-const marked = computed(() => props.decision.flag !== 'unflagged' || props.decision.colourLabel !== null || props.decision.rating > 0 || props.tags > 0)
+const marked = computed(() => isDecided(props.decision) || props.decision.colourLabel !== null || props.decision.rating > 0 || props.tags > 0)
 
 const seriesText = computed(() => n('honeycomb', 'Series of {count}', 'Series of {count}', props.series, { count: formatNumber(props.series) }))
 
@@ -170,7 +170,7 @@ onBeforeUnmount(() => pending?.load.cancel())
 			v-bind="tip(seriesText)">{{ seriesBadge }}</span>
 		<span v-if="props.selecting" class="photo-tile__check" aria-hidden="true"><AppIcon v-if="props.selected" name="check" /></span>
 		<span v-if="marked" class="photo-tile__marks">
-			<FlagMark v-if="props.decision.flag !== 'unflagged'" :flag="props.decision.flag" :class="`photo-tile__flag photo-tile__flag--${props.decision.flag}`" />
+			<FlagMark v-if="isDecided(props.decision)" :flag="props.decision.flag" :class="`photo-tile__flag photo-tile__flag--${props.decision.flag}`" />
 			<StarRating
 				v-if="props.decision.rating > 0"
 				readonly

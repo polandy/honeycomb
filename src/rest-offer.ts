@@ -7,6 +7,7 @@ import type { ToastAction } from './toast.ts'
 
 import { n } from '@nextcloud/l10n'
 import { formatNumber, PLAIN_TEXT } from './l10n.ts'
+import { isOpen, isPicked } from './logic/decision.ts'
 
 /** What the undo toast's *Reject the other N* reads and runs through. */
 export interface RestOfferContext<P extends object> {
@@ -45,8 +46,8 @@ export function useRestOffer<P extends object>(context: RestOfferContext<P>) {
 
 	return (intent: DecisionIntent, picked: P): ToastAction | null => {
 		const others = othersOf(picked)
-		const picks = intent.kind === 'flag' && intent.flag === 'picked' && context.decisionOf(picked).flag === 'picked'
-		if (!picks || !others.some((picture) => context.decisionOf(picture).flag === 'unflagged')) {
+		const picks = intent.kind === 'flag' && intent.flag === 'picked' && isPicked(context.decisionOf(picked))
+		if (!picks || !others.some((picture) => isOpen(context.decisionOf(picture)))) {
 			return null
 		}
 		return {
