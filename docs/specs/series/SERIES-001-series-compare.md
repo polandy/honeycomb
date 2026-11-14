@@ -130,7 +130,8 @@ phone *Pick this, reject the rest* wraps its label to two balanced lines instead
 - **Given** the series compare dialog shows a series
 - **When** the user picks, rejects or unflags one of its pictures
 - **Then** that picture gets the flag with the undo toast; a rejected picture leaves the series,
-  and a series with fewer than two pictures left gives way to the next
+  and a series with fewer than two pictures left gives way to the next; an undo that brings
+  back an earlier series keeps the shown one on screen
 
 ### SERIES-001.9 – Pick this, reject the rest is one undo step
 

@@ -7,6 +7,7 @@ import type { Decision } from '../logic/decision.ts'
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { Series } from '../logic/series.ts'
 import type { ObserveSize } from '../observe-size.ts'
 
 import { n, t } from '@nextcloud/l10n'
@@ -26,7 +27,7 @@ const props = withDefaults(defineProps<{
 	index: number
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
 	/** Each picture of a series mapped to its whole series; each run in the strip gets a frame. */
-	seriesOf: ReadonlyMap<Picture<ListingEntry>, readonly Picture<ListingEntry>[]>
+	seriesOf: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>
 	imageUrl: ImageUrlFor
 	/** Whether *Pin the filmstrip* is on; its toggle sits at the strip's end. */
 	pinned: boolean

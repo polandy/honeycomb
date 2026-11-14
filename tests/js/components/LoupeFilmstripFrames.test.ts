@@ -3,6 +3,7 @@
 // @vitest-environment happy-dom
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
+import type { Series } from '../../../src/logic/series.ts'
 
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
@@ -18,12 +19,12 @@ const PICTURES = picturesOf(Array.from({ length: 30 }, (_, at) => listingEntry(a
 /** Each picture of the given index runs mapped to its run as one series. */
 function seriesOf(...runs: [first: number, end: number][]) {
 	return new Map(runs.flatMap(([first, end]) => {
-		const series = PICTURES.slice(first, end)
-		return series.map((picture) => [picture, series] as const)
+		const series = { key: first + 1, members: PICTURES.slice(first, end) }
+		return series.members.map((picture) => [picture, series] as const)
 	}))
 }
 
-async function mountStrip(index: number, members: ReadonlyMap<Picture<ListingEntry>, readonly Picture<ListingEntry>[]>, onCompareSeries?: (index: number) => void) {
+async function mountStrip(index: number, members: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>, onCompareSeries?: (index: number) => void) {
 	const wrapper = mount(LoupeFilmstrip, {
 		props: {
 			pictures: PICTURES,
@@ -101,7 +102,7 @@ describe('PhotoLoupe: the series frame', () => {
 		const { wrapper } = await mountLoupe(4)
 		expect(wrapper.find('.loupe-filmstrip__frame').exists()).toBe(false)
 
-		await wrapper.setProps({ seriesOf: new Map(wrapper.props('pictures').slice(0, 2).map((picture, _at, series) => [picture, series])) })
+		await wrapper.setProps({ seriesOf: new Map(wrapper.props('pictures').slice(0, 2).map((picture, _at, members) => [picture, { key: 1, members }])) })
 		expect(wrapper.findAll('.loupe-filmstrip__frame')).toHaveLength(1)
 	})
 })

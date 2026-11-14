@@ -4,6 +4,7 @@ import type { HotkeyHandlers } from './hotkeys.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
 import type { Decision } from './logic/decision.ts'
 import type { HotkeyIntent } from './logic/hotkeys.ts'
+import type { Series } from './logic/series.ts'
 import type { Settings } from './logic/settings.ts'
 import type { Toast } from './toast.ts'
 
@@ -15,7 +16,7 @@ import { useSeriesViewer } from './series-viewer.ts'
 
 /** What the series compare reads from the cull and hands to it. */
 export interface SeriesCompareContext<P> {
-	readonly series: () => readonly (readonly P[])[]
+	readonly series: () => readonly Series<P>[]
 	readonly decisionOf: (picture: P) => Decision
 	/** `inViewer` when the series viewer decided, whose pick offers to reject the rest (SERIES-002.11). */
 	readonly decide: (intent: DecisionIntent, picture: P, inViewer: boolean) => void
@@ -33,28 +34,31 @@ export type CompareLanding<P> = { readonly kind: 'on', readonly picture: P } | {
 export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	const open = ref(false)
 	const index = ref(0)
+	const shownKey = ref<number | null>(null)
 	const activeIndex = ref(0)
 	const anchor = shallowRef<readonly P[]>([])
 	const columns = ref(1)
-	const single = shallowRef<readonly P[] | null>(null)
+	const single = shallowRef<Series<P> | null>(null)
 	let land: ((landing: CompareLanding<P>) => void) | null = null
 
 	const oneSeries = computed(() => single.value !== null)
-	const all = computed(() => (single.value === null ? context.series() : [single.value])
-		.map((series) => visibleMembers(series, context.decisionOf))
-		.filter((series) => series.length > 1))
+	const all = computed<Series<P>[]>(() => (single.value === null ? context.series() : [single.value])
+		.map(({ key, members }) => ({ key, members: visibleMembers(members, context.decisionOf) }))
+		.filter(({ members }) => members.length > 1))
 	const count = computed(() => all.value.length)
-	const position = computed(() => (index.value < count.value ? index.value : 0))
+	const keyed = computed(() => all.value.findIndex(({ key }) => key === shownKey.value))
+	// By key while its series is listed, else by place: a decided series gives way to the next.
+	const position = computed(() => (keyed.value >= 0 ? keyed.value : index.value < count.value ? index.value : 0))
 	const current = computed(() => all.value[position.value] ?? null)
 	const active = computed(() => {
-		const series = current.value ?? []
-		return series.some((picture) => anchor.value.includes(picture)) ? Math.min(activeIndex.value, series.length - 1) : 0
+		const members = current.value?.members ?? []
+		return members.some((picture) => anchor.value.includes(picture)) ? Math.min(activeIndex.value, members.length - 1) : 0
 	})
-	const activePicture = () => current.value?.[active.value] ?? null
+	const activePicture = () => current.value?.members[active.value] ?? null
 
 	/** Makes the picture at `at` of the shown series active, clamped. */
 	function setActive(at: number) {
-		anchor.value = current.value ?? []
+		anchor.value = current.value?.members ?? []
 		activeIndex.value = Math.max(0, Math.min(at, anchor.value.length - 1))
 	}
 
@@ -65,12 +69,13 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 
 	/** Makes the picture a row above (-1) or below (1) active. */
 	function stepRow(step: -1 | 1) {
-		setActive(rowStep(active.value, step, columns.value, current.value?.length ?? 0))
+		setActive(rowStep(active.value, step, columns.value, current.value?.members.length ?? 0))
 	}
 
 	/** Shows the series at `at` with its first picture active. */
 	function show(at: number) {
 		index.value = at
+		shownKey.value = all.value[at]?.key ?? null
 		setActive(0)
 	}
 
@@ -82,11 +87,11 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	}
 
 	/** Opens the compare from the loupe on one series, the picture active; `onLand` gets where the loupe lands on closing (SERIES-001.24). */
-	function startOn(series: readonly P[], picture: P, onLand: (landing: CompareLanding<P>) => void) {
+	function startOn(series: Series<P>, picture: P, onLand: (landing: CompareLanding<P>) => void) {
 		single.value = series
 		land = onLand
 		start()
-		setActive(Math.max(0, current.value?.indexOf(picture) ?? 0))
+		setActive(Math.max(0, current.value?.members.indexOf(picture) ?? 0))
 	}
 
 	/** Closes the compare; opened from the loupe, the loupe lands on the active picture or the given landing. */
@@ -109,6 +114,9 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 		const picture = activePicture()
 		return picture === null ? null : { kind: 'on', picture }
 	}
+
+	// The place a series shown by key falls back to once a rejected first picture re-keys it.
+	watch(keyed, (at) => at >= 0 && (index.value = at), { flush: 'sync' })
 
 	// Opened from the loupe, a series left with fewer than two pictures ends the compare.
 	watch(current, (series) => series === null && single.value !== null && close(null), { flush: 'sync' })
@@ -137,7 +145,7 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 			const onLand = land
 			land = null
 			if (onLand === null) {
-				context.pickRest(picked, series.filter((picture) => picture !== picked))
+				context.pickRest(picked, series.members.filter((picture) => picture !== picked))
 				return
 			}
 			close(null)
@@ -146,9 +154,9 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	}
 
 	/** Picks the picture, rejects the rest of its series as one step and lands after the series (SERIES-001.24, LOUPE-002.15). */
-	function pickRestAndLand(series: readonly P[], picked: P, onLand: (landing: CompareLanding<P>) => void) {
-		context.pickRest(picked, series.filter((picture) => picture !== picked))
-		onLand({ kind: 'after', series, picked })
+	function pickRestAndLand(series: Series<P>, picked: P, onLand: (landing: CompareLanding<P>) => void) {
+		context.pickRest(picked, series.members.filter((picture) => picture !== picked))
+		onLand({ kind: 'after', series: series.members, picked })
 	}
 
 	/** Decides the active picture by a key; a star step counts from its rating, `advance` moves on unless it left (SERIES-001.10). */
@@ -158,7 +166,7 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 			return
 		}
 		decide(intent.kind === 'ratingStep' ? { kind: 'rating', rating: stepRating(context.decisionOf(picture).rating, intent.step) } : intent, picture)
-		if (advance && current.value?.includes(picture)) {
+		if (advance && current.value?.members.includes(picture)) {
 			setActive(active.value + 1)
 		}
 	}
@@ -166,7 +174,7 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	const viewer = useSeriesViewer<P>({
 		decisionOf: context.decisionOf,
 		closed: (picture) => {
-			const at = current.value?.indexOf(picture) ?? -1
+			const at = current.value?.members.indexOf(picture) ?? -1
 			if (at >= 0) {
 				setActive(at)
 			}

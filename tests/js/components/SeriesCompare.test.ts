@@ -29,7 +29,7 @@ function mountCompare(series: Picture<ListingEntry>[] | null = SERIES, now = () 
 		props: {
 			now,
 			oneSeries,
-			series,
+			series: series === null ? null : { key: 1, members: series },
 			position: 1,
 			count: 4,
 			active: 1,

@@ -65,6 +65,21 @@ describe('useSeriesCompare', () => {
 		expect(shown()).toEqual(['A', 'B'])
 	})
 
+	// spec: SERIES-001.8, SERIES-001.11
+	it('keeps showing its series by key when a series before it comes back on undo, and by place once re-keyed', () => {
+		const { compare, shown, setFlag, shot } = compareOf(['A', 'B'], ['C', 'D'], ['E', 'F', 'G'])
+		compare.start()
+		compare.pickRest(shot('A'))
+		compare.skip()
+
+		expect(shown()).toEqual(['E', 'F', 'G'])
+		setFlag(shot('B'), 'unflagged')
+		expect(shown()).toEqual(['E', 'F', 'G'])
+		expect([compare.position.value, compare.count.value]).toEqual([2, 3])
+		setFlag(shot('E'), 'rejected')
+		expect(shown()).toEqual(['F', 'G'])
+	})
+
 	// spec: SERIES-001.9
 	it('picks the active or the given picture and rejects the rest of its series', () => {
 		const { compare, calls, shown, shot } = compareOf(['A', 'B', 'C'], ['D', 'E'])

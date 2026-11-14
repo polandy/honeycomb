@@ -85,9 +85,9 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const warmer = usePreviewWarmer(api.warmPreviews, storage)
 	const candidates = computed(() => seriesCandidates(pictures.value, hashes.hashOf))
 	const everySeries = computed(() => allSeries(candidates.value, decisionOf, hashes.hashOf))
-	const series = computed(() => seriesPictures(findSeries(everySeries.value, decisionOf)))
-	const seriesSizes = computed(() => sizesOf(series.value))
-	const seriesOf = computed(() => seriesMembers(seriesPictures(everySeries.value)))
+	const series = computed(() => findSeries(everySeries.value, decisionOf))
+	const seriesSizes = computed(() => sizesOf(seriesPictures(series.value)))
+	const seriesOf = computed(() => seriesMembers(everySeries.value))
 	const sharedPictures = computed(() => pictures.value.filter((picture) => inSharedFolder(picture, sharedFolders.value)))
 
 	/** Shows the pictures of the confirmed folders with fresh filters, then their stored decisions. */
@@ -279,7 +279,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		series,
 		seriesSizes,
 		seriesOf,
-		openSeries: computed(() => openSeries(series.value, (picture) => hashes.stateOf(picture) === 'pending')),
+		openSeries: computed(() => openSeries(seriesPictures(series.value), (picture) => hashes.stateOf(picture) === 'pending')),
 		holdHashes: hashes.hold,
 		hashProgress: hashes.progress,
 		decide,

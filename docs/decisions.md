@@ -1125,3 +1125,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-14: A series is a value `Series{key, members}` keyed by the smallest member file ID of
   its first picture: unique, since a picture belongs to one series, and stable while that
   picture stays, until the stored series of #185 may bring their own ID (R1a).
+- 2026-11-14: The series compare follows its shown series by key and falls back to its last place
+  once the key is gone (decided, or re-keyed by a rejected first picture); the anchor of the
+  active picture and the rest offer keep testing picture membership, since a series opened from
+  the loupe is a snapshot whose key a rejected first picture outdates (R1b).

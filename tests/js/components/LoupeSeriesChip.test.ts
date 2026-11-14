@@ -3,6 +3,7 @@
 // @vitest-environment happy-dom
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
+import type { Series } from '../../../src/logic/series.ts'
 
 import { enableAutoUnmount, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -42,13 +43,13 @@ describe('LoupeTitleRow: the series chip', () => {
 /** The series of the pictures from `first` to before `end`, each mapped to it. */
 function seriesOf(first: number, end: number) {
 	const series = PICTURES.slice(first, end)
-	return new Map(series.map((picture) => [picture, series] as const))
+	return new Map(series.map((picture) => [picture, { key: first + 1, members: series }] as const))
 }
 
 /** The compare openings the loupe emitted, as the series' names and the active one's. */
 function openings(wrapper: Awaited<ReturnType<typeof mountLoupe>>['wrapper']) {
-	return (wrapper.emitted('compareSeries') as [readonly Picture<ListingEntry>[], Picture<ListingEntry>][] | undefined)
-		?.map(([series, active]) => `${series.map((picture) => picture.baseName).join(' ')}: ${active.baseName}`)
+	return (wrapper.emitted('compareSeries') as [Series<Picture<ListingEntry>>, Picture<ListingEntry>][] | undefined)
+		?.map(([series, active]) => `${series.members.map((picture) => picture.baseName).join(' ')}: ${active.baseName}`)
 }
 
 describe('PhotoLoupe: the series chip and N', () => {
