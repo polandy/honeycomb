@@ -32,9 +32,11 @@ sidecar: every existing sidecar
 (`docs/06-xmp-interop.md` Sidecar names). An existing sidecar is read before it is merged, unless
 honeycomb saved it itself and still holds its bytes; it is saved with the ETag and size read. A
 sidecar answering `changed` is read, merged and saved once more. The colour label counts as changed
-for darktable's list when it differs from the one the sidecar states. Writes run one after another
-in the order of the steps, each with the picture's decision when it runs. A step whose save fails
-writes nothing.
+for darktable's list when it differs from the one the sidecar states. Writes run in passes, one
+pass at a time: the steps that come while a pass runs wait and are written together by the next
+pass, so each sidecar is saved at most once per pass, with the picture's decision when the pass
+starts and the tag changes of its steps in order (TAGS-002). A sidecar the pass would leave as it
+is, apart from `xmp:MetadataDate`, is not saved. A step whose save fails writes nothing.
 
 **Shared folders.** The listing says per folder whether it is shared (ADR 0017). When a picture of
 the cull lies in a shared folder, the grid's ⋯ menu offers *Write decisions to sidecars…*. It asks
@@ -109,6 +111,20 @@ picture's decision when it runs. A refused sidecar is never overwritten.
 - **When** the first write finishes
 - **Then** the second write starts only then, and writes the picture's decision of that moment
 
+### XMP-003.16 – The steps waiting behind a pass are written together
+
+- **Given** a pass still being written, and meanwhile three decisions and a tag change on one
+  picture
+- **When** the pass finishes
+- **Then** one more pass saves each sidecar of the picture once, with its decision of that moment
+  and the tag change; each step's write answers with the failures of its own pictures
+
+### XMP-003.17 – A sidecar the write would not change is not saved
+
+- **Given** a sidecar that already states the picture's decision, or the tags a change leaves
+- **When** the decision or the tag change is written through
+- **Then** that sidecar is not saved and counts as written; a sidecar that differs is saved
+
 ### XMP-003.10 – A failed decision save writes nothing
 
 - **Given** a decision whose save fails
@@ -163,3 +179,4 @@ picture's decision when it runs. A refused sidecar is never overwritten.
 |---|---|
 | 2026-11-10 | Written with M5.3 |
 | 2026-11-10 | Any attribute writes through, never for an untouched picture; shared folders widened (owner review) |
+| 2026-11-14 | Writes waiting behind a pass are written together; an unchanged sidecar is not saved (.16, .17) |

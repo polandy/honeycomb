@@ -4,12 +4,14 @@ import type { Decision } from './logic/decision.ts'
 import type { EmbeddedXmpAnswer } from './logic/embedded-xmp.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
+import type { SidecarStep } from './logic/sidecar-pass.ts'
 import type { KnownSidecar, PlannedSave, SidecarEdit, SidecarFailure, SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from './logic/sidecar-sync.ts'
 import type { TagChange } from './logic/tag.ts'
 import type { XmpTime } from './logic/xmp/model.ts'
 
 import { logger } from './logger.ts'
 import { embeddedXmpSource } from './logic/embedded-xmp.ts'
+import { failureOf, passOf, retryStep, stepResult } from './logic/sidecar-pass.ts'
 import { applySaves, planSaves, takeOverDecisions, takeOverLookups, writeLookups } from './logic/sidecar-sync.ts'
 import { embeddedLookups, takeOverTags } from './logic/sidecar-tags.ts'
 
@@ -23,11 +25,20 @@ export interface SidecarApi {
 type Pictures = readonly Picture<ListingEntry>[]
 type Paths = ReadonlyMap<Picture<ListingEntry>, ReadonlySet<string>>
 type EditOf = (picture: Picture<ListingEntry>) => SidecarEdit
+type Written = { written: number, failed: SidecarFailure[] }
 
-/** Takes decisions and tags over from the sidecars and writes them to the sidecars, one write after another (XMP-003, TAGS-002). */
+/** A step waiting for its pass, and how to answer its write. */
+interface Waiting {
+	readonly step: SidecarStep
+	readonly resolve: (written: Written) => void
+	readonly reject: (error: unknown) => void
+}
+
+/** Takes decisions and tags over from the sidecars and writes them to the sidecars, one pass after another (XMP-003, TAGS-002). */
 export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (failed: SidecarFailure[]) => void) {
 	let known = new Map<string, KnownSidecar>()
-	let queue: Promise<unknown> = Promise.resolve()
+	let waiting: Waiting[] = []
+	let passing = false
 
 	/** The decision of the sidecars of each picture without a stored decision for any member, and the tags of those without stored tags; none while the stored tags are unknown. */
 	async function takeOver(pictures: Pictures, stored: ReadonlySet<number>, storedTags: ReadonlySet<number> | null) {
@@ -63,51 +74,65 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 
 	/** Writes each picture's decision, read when the write starts, to its sidecars; `paths` limits a picture to those sidecars. */
 	function write(pictures: Pictures, decisionOf: (picture: Picture<ListingEntry>) => Decision, paths?: Paths) {
-		return queued(pictures, (picture) => ({ decision: decisionOf(picture) }), paths)
+		return queued({ pictures, decisionOf, tags: null, paths })
 	}
 
 	/** Writes the tag change to each picture's sidecars, applied to their tags when the write starts; `paths` limits a picture to those sidecars. */
 	function writeTags(pictures: Pictures, change: TagChange, paths?: Paths) {
-		return queued(pictures, () => ({ tags: change }), paths)
+		return queued({ pictures, decisionOf: null, tags: change, paths })
 	}
 
 	/** Writes the failed sidecars once more: a decision as it is now, a tag change as it was. */
 	function retry(failed: readonly SidecarFailure[], decisionOf: (picture: Picture<ListingEntry>) => Decision) {
-		const byChange = new Map<TagChange | null, Map<Picture<ListingEntry>, Set<string>>>()
-		for (const { picture, path, tags } of failed) {
-			const paths = byChange.get(tags ?? null) ?? new Map<Picture<ListingEntry>, Set<string>>()
-			byChange.set(tags ?? null, paths.set(picture, (paths.get(picture) ?? new Set()).add(path)))
+		return Promise.all(failed.map((failure) => queued(retryStep(failure, decisionOf))))
+	}
+
+	/** Answers the step's write once a pass has written it with the steps waiting beside it. */
+	function queued(step: SidecarStep): Promise<Written> {
+		return new Promise((resolve, reject) => {
+			waiting.push({ step, resolve, reject })
+			if (!passing) {
+				passing = true
+				void passes()
+			}
+		})
+	}
+
+	/** Runs one pass after another while steps wait, each over all that wait when it starts. */
+	async function passes() {
+		await Promise.resolve()
+		while (waiting.length > 0) {
+			const steps = waiting
+			waiting = []
+			const pass = passOf(steps.map(({ step }) => step))
+			try {
+				const failed = await writeNow(pass.pictures, pass.editOf, pass.paths)
+				steps.forEach(({ step, resolve }) => resolve(stepResult(step, failed)))
+			} catch (error) {
+				steps.forEach(({ reject }) => reject(error))
+			}
 		}
-		return Promise.all([...byChange].map(([change, paths]) => (change === null ? write([...paths.keys()], decisionOf, paths) : writeTags([...paths.keys()], change, paths))))
+		passing = false
 	}
 
-	/** Runs the write after those before it. */
-	function queued(pictures: Pictures, editOf: EditOf, paths?: Paths) {
-		const written = queue.then(() => writeNow(pictures, editOf, paths))
-		queue = written.catch(() => undefined)
-		return written
-	}
-
-	/** One write: a round, and one more for the sidecars that changed meanwhile; a tag change's failures carry it for a retry. */
-	async function writeNow(pictures: Pictures, editOf: EditOf, paths?: Paths) {
+	/** One pass: a round, and one more for the sidecars that changed meanwhile; a failure carries a tag change for a retry. */
+	async function writeNow(pictures: Pictures, editOf: EditOf, paths: Paths) {
 		const first = await round(pictures, editOf, paths)
 		const again = new Map<Picture<ListingEntry>, Set<string>>()
 		first.changed.forEach(({ picture, path }) => again.set(picture, (again.get(picture) ?? new Set()).add(path)))
 		const second = await round([...again.keys()], editOf, again)
-		const failed = [...first.failed, ...second.failed, ...second.changed.map(({ path, picture }) => ({ path, picture, reason: 'changed' as const }))].map((failure): SidecarFailure => {
-			const edit = editOf(failure.picture)
-			return 'tags' in edit ? { ...failure, tags: edit.tags } : failure
-		})
+		const failed = [...first.failed, ...second.failed, ...second.changed.map(({ path, picture }) => ({ path, picture, reason: 'changed' as const }))]
+			.map((failure) => failureOf(failure, editOf(failure.picture)))
 		if (failed.length > 0) {
 			onFailed(failed)
 		}
-		return { written: pictures.filter((picture) => !failed.some((failure) => failure.picture === picture)).length, failed }
+		return failed
 	}
 
 	/** Reads the sidecars honeycomb holds no bytes of, merges the edits and saves them in one request each. */
 	async function round(pictures: Pictures, editOf: EditOf, paths?: Paths) {
 		const answers = await lookUp(pictures.flatMap((picture) => writeLookups(picture, known, paths?.get(picture))), api.lookupSidecars, 'Could not look up the sidecars to write')
-		const embeddedIds = pictures.flatMap((picture) => ('tags' in editOf(picture) ? embeddedXmpSource(picture, known)?.fileId ?? [] : []))
+		const embeddedIds = pictures.flatMap((picture) => (editOf(picture).tags === undefined ? [] : embeddedXmpSource(picture, known)?.fileId ?? []))
 		const embedded = await lookUp(embeddedIds, api.lookupEmbeddedXmp, 'Could not look up the embedded XMP to write')
 		const time = now()
 		const planned = pictures.map((picture) => planSaves(picture, editOf(picture), known, answers, time, paths?.get(picture), embedded))

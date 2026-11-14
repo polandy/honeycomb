@@ -105,8 +105,8 @@ describe('useSidecarSync: write', () => {
 		let decision: Decision = { ...UNDECIDED, rating: 1 }
 
 		const writing = sidecars.write([PAIR], () => decision)
-		const next = sidecars.write([PAIR], () => decision)
 		await flushPromises()
+		const next = sidecars.write([PAIR], () => decision)
 		decision = { ...UNDECIDED, rating: 5 }
 		expect(saves).toHaveLength(1)
 
@@ -136,10 +136,9 @@ describe('useSidecarSync: write', () => {
 		const broken = sidecars.write([PAIR], () => {
 			throw new Error('broken')
 		})
-		const after = sidecars.write([PAIR], decisionOf(UNDECIDED))
 
 		await expect(broken).rejects.toThrow('broken')
-		expect((await after).written).toBe(1)
+		expect((await sidecars.write([PAIR], decisionOf(UNDECIDED))).written).toBe(1)
 	})
 
 	// spec: XMP-003.13

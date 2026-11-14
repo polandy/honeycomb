@@ -1038,3 +1038,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   rows given meanwhile merged by file id with the newest winning, as the resume position already
   does; a failed save is answered only once the queue is idle, newest first, without the files a
   later save stored, so putting each back in turn ends at what the server holds.
+- 2026-11-14: Sidecar writes run in passes: the steps that come while a pass runs are written
+  together by the next one (`src/logic/sidecar-pass.ts`), each picture with its latest decision,
+  its tag changes combined in order and the union of its paths, so a retry limited to one sidecar
+  may also save its siblings, where the next rule makes that harmless. A sidecar whose merged bytes
+  equal its own bytes re-serialized at the same time is not saved and counts as written, which
+  spares a file version, an ETag chain and a sync download per unchanged sidecar.
