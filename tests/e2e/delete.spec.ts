@@ -87,7 +87,7 @@ test('deletes the rejects from the More menu while the flag filter hides them', 
 	const review = page.getByRole('dialog', { name: 'Review rejects' })
 	await expect(review.getByRole('button', { name: 'Rescue IMG_0001' })).toBeVisible()
 	await review.getByRole('button', { name: 'Continue: delete 1' }).click()
-	await page.getByRole('dialog', { name: 'Delete 1 photo' }).getByRole('button', { name: 'Move 1 file to trash' }).click()
+	await page.getByRole('dialog', { name: 'Delete 1 photo' }).getByRole('button', { name: 'Move 2 files to trash' }).click()
 
 	await expect(page.getByRole('status').filter({ hasText: 'Moved 1 photo · 2 files' })).toBeVisible()
 	await expect(grid.getByRole('gridcell', { name: 'IMG_0002, JPG only' })).toBeVisible()
