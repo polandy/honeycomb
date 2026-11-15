@@ -118,7 +118,8 @@ where you zoom with `Z`, page through the series with `←` `→` and decide. *B
 | `M` | Move the selection, else the focused photo, to another folder; in the loupe, the photo shown. In that dialog, `1`–`9` choose a favourite or recent folder and `Enter` moves. |
 | `Ctrl+/` | Show the shortcut help. `?` does the same. |
 
-Deleted photos always go to the Nextcloud trash bin, where you can restore them.
+Deleted photos go to the Nextcloud trash bin, where you can restore them until it empties itself.
+A file the trash bin would not keep is not deleted.
 
 ## Vi keys
 

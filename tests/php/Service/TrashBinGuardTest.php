@@ -65,8 +65,8 @@ final class TrashBinGuardTest extends TestCase {
 		];
 	}
 
-	/** @param array<string, string> $userSizes */
 	// spec: DELETE-001.9
+	/** @param array<string, string> $userSizes */
 	#[DataProvider('sizeLimits')]
 	public function testRefusesAFileAtLeastAsLargeAsTheOwnersTrashBinSize(array $userSizes, string $serverSize, int $size, bool $kept): void {
 		$this->assertSame($kept, $this->guard($userSizes, $serverSize)->keeps('alice', $this->file($size)));
