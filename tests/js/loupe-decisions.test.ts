@@ -52,7 +52,7 @@ describe('useLoupeDecisions: decide', () => {
 
 	// spec: SERIES-005.14
 	it('skips the photos the cull counts as decided and says when none is left', () => {
-		const { decisions, went, allDecided } = loupeDecisions(0, {}, {}, ['IMG_2'])
+		const { decisions, went } = loupeDecisions(0, {}, {}, ['IMG_2'])
 		expect(decisions.decide({ kind: 'flag', flag: 'picked' })).toBe(true)
 		expect(went).toEqual([2])
 		const last = loupeDecisions(0, {}, {}, ['IMG_2', 'IMG_3'])
