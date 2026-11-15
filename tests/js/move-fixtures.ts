@@ -27,8 +27,8 @@ export type Answer = (request: MoveRequestFile[][]) => Promise<MoveResponseFile[
 /** Answers every file as moved to its requested path, with the same id unless `newId` says otherwise. */
 export const allMoved = (newId = (fileId: number) => fileId): Answer => async (request) => request.map((files) => files.map(({ fileId, path }) => ({ fileId, result: 'moved', replaced: false, path, newFileId: newId(fileId), etag: `moved-${fileId}` })))
 
-/** A flow over the entries' pictures, the folder `/Out` holding `held`, folders on the `storages` named (else `/`), with a move endpoint answering `answer`. */
-export function moveFlow(answer: Answer = allMoved(), { held = [] as string[], template = '{name}.{ext}', probe = undefined as (() => Promise<never>) | undefined, chunks = undefined as ChunkLimits | undefined, storages = {} as Record<string, string> } = {}) {
+/** A flow over the entries' pictures, the folder `/Out` holding `held`, folders on the `storages` named (else `/`), with a move endpoint answering `answer` and `flush` writing the waiting sidecars. */
+export function moveFlow(answer: Answer = allMoved(), { held = [] as string[], template = '{name}.{ext}', probe = undefined as (() => Promise<never>) | undefined, chunks = undefined as ChunkLimits | undefined, storages = {} as Record<string, string>, flush = async () => {} } = {}) {
 	const entries = shallowRef<ListingEntry[]>(ENTRIES)
 	const pictures = shallowRef<Picture<ListingEntry>[]>(pairPictures(ENTRIES, DEFAULT_PAIRING_SETTINGS))
 	const settings = shallowRef<Settings>({ ...DEFAULT_SETTINGS, moveFavourites: ['/Fav'], moveRecent: ['/Old', '/Fav'], moveTemplate: template })
@@ -53,6 +53,7 @@ export function moveFlow(answer: Answer = allMoved(), { held = [] as string[], t
 				sources: from.map((path) => ({ path, storage: storageOf(path) })),
 			}
 		}),
+		flush,
 		move: async (request) => {
 			sent.push(request.map((files) => [...files]))
 			return answer(request.map((files) => [...files]))

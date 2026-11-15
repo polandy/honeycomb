@@ -5,6 +5,7 @@ import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 import type { TrashResponseFile } from '../../src/logic/trash-report.ts'
 
+import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ref, shallowRef } from 'vue'
 import { TrashBinOffError } from '../../src/api.ts'
@@ -112,6 +113,21 @@ describe('useDeleteFlow', () => {
 		expect(toasts).toEqual([message])
 	})
 
+	// spec: XMP-003.30
+	it('writes the waiting sidecars and waits for every write before it moves anything to the trash bin', async () => {
+		let written = () => {}
+		const { deleting, sent } = flow(allTrashed, undefined, () => new Promise<void>((resolve) => (written = resolve)))
+		deleting.summarise([PAIR!])
+
+		const confirmed = deleting.confirm()
+		await flushPromises()
+		expect(sent).toEqual([])
+
+		written()
+		await confirmed
+		expect(sent).toHaveLength(1)
+	})
+
 	// spec: DELETE-002.7
 	it('sends nothing without a summary or a report, or while a request runs', async () => {
 		let release = () => {}
@@ -159,6 +175,7 @@ describe('useDeleteFlow: Remove RAWs', () => {
 				chosen.forEach((picture) => (next.has(picture) ? next.delete(picture) : next.add(picture)))
 				marked.value = next
 			},
+			flush: async () => {},
 			trash: async (request) => {
 				sent.push(request.map((files) => [...files]))
 				return answer(request.map((files) => [...files]))
