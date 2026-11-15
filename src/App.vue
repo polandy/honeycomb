@@ -32,6 +32,7 @@ import { useCull } from './cull.ts'
 import { useDeleteFlow } from './delete-flow.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
+import { useLegacy } from './legacy.ts'
 import { useLoupeOpening } from './loupe-opening.ts'
 import { useMoveFlow } from './move-flow.ts'
 import { useRecent } from './recent.ts'
@@ -52,7 +53,9 @@ const toast = useToast(props.schedule)
 const { settings, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, (message) => toast.show(message))
 const viewState = useViewState(props.viewState, props.storage)
 const settingsOpen = ref(false)
-const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, () => settings.value.sidecarWrite !== 'existing')
+const sidecarsReady = computed(() => settings.value.sidecarWrite === 'existing-and-new')
+const legacy = useLegacy(props.legacy, props.saveFile, (message) => toast.show(message), () => sidecarsReady.value)
+const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, () => settings.value.sidecarWrite !== 'existing', legacy.acknowledge)
 const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions, lookupSeries: props.lookupSeries, tags: props.tags }, props.storage, () => settings.value, sidecarFlow.sync)
 const { folderSet, pictures, folders, view, progress, filtersOpen, pickerOpen, tileSize } = cull
 const gridScreen = useTemplateRef<InstanceType<typeof GridScreen>>('gridScreen')
@@ -94,7 +97,7 @@ watch(pickerOpen, (open) => open && recent.refresh())
 
 const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => gridScreen.value?.filterBar?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
 
-provideCullContext({ cull, selection, decide, deleting, moving, resume, seriesCompare, sidecars: sidecarFlow, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true) })
+provideCullContext({ cull, selection, decide, deleting, moving, resume, seriesCompare, sidecars: sidecarFlow, legacy, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true) })
 
 /** Opens the confirmed folder set and offers its resume position. */
 function openFolderSet(...opened: Parameters<typeof cull.open>) {
@@ -144,6 +147,7 @@ useHotkeys(() => {
 				:deleting="deleting"
 				:moving="moving"
 				:sidecars="sidecarFlow"
+				:sidecarsReady="sidecarsReady"
 				:folderSet="folderSet"
 				:folders="folders"
 				:decisionOf="cull.decisionOf"

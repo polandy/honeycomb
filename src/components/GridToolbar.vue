@@ -161,7 +161,7 @@ const setName = computed(() => {
 				:groupByFolder="props.view.groupByFolder"
 				:sortOrder="props.view.sortOrder"
 				:rawRemovable="props.tasks.rawRemovable"
-				:sidecarsShared="props.tasks.sidecarsShared"
+				:legacyRows="props.tasks.legacyRows"
 				:movable="props.tasks.movable"
 				:moveFiltered="props.view.activeFilters > 0"
 				:resumeName="props.tasks.resumeName"

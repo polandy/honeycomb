@@ -216,3 +216,16 @@ on values not yet saved). 9 comes a release after 6.
   #208, keeps its file id.
 - Known limits: without DELETE permission a failed save leaves its `.part` file; the flush on
   hide is best effort.
+
+## Amendment 2026-11-15: the migration as built (PR 5)
+
+PR 5 builds *App state and migration* 2 before the switch of PR 6, so it differs where PR 6 is
+missing. The migration needs *Write decisions to XMP sidecars* set to *Existing and new
+sidecars*, the setting that creates every missing sidecar; *On* comes with PR 6. Versions are
+checked by the sidecar save, which answers `noVersions`, not by the client. Acknowledging writes
+no cache row: the cull reads a file without one from PR 6 anyway (XMP-006). The export is
+`GET /api/v1/legacy/export` and holds the rows of unreachable ids only; a reachable picture whose
+sidecar failed keeps its rows, stays in the inventory and is written again by the next run.
+*Discard* acknowledges the exported ids. The notice shows only while writing creates new sidecars,
+as the inventory looks up every file id. Until PR 6 the cull still stores into the tables, so a
+picture decided again gets legacy rows again (XMP-007).

@@ -19,6 +19,7 @@ import { logger } from './logger.ts'
 import { prepareCull, warmMembers } from './logic/cull.ts'
 import { changedFields, commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
 import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
+import { legacyWrites } from './logic/legacy.ts'
 import { memberIds } from './logic/pairing.ts'
 import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
 import { sortPictures } from './logic/picture-order.ts'
@@ -188,8 +189,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		}
 	}
 
-	/** The pictures in shared folders with a stored decision, for an explicit write (XMP-003.12). */
-	const sharedDecided = () => sharedPictures.value.filter((picture) => memberIds(picture).some((fileId) => decisions.value.has(fileId)))
+	/** The pictures with legacy rows, for *Write decisions to sidecars…* (XMP-007.5). */
+	const legacy = computed(() => legacyWrites(paired.value, decisions.value, tags.tagsOf, (picture) => inSharedFolder(picture, sharedFolders.value)))
 
 	/** Takes trashed files out of the pictures; returns what each affected picture became (ADR 0013). */
 	function removeFiles(fileIds: ReadonlySet<number>) {
@@ -237,7 +238,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		tileSize: options.tileSize,
 		saveFailed,
 		sharedPictures,
-		sharedDecided,
+		legacy,
 		tags,
 		decisionOf,
 		passes,

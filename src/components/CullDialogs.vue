@@ -20,6 +20,8 @@ const props = defineProps<{
 	deleting: DeleteFlow
 	moving: MoveFlow
 	sidecars: SidecarFlow
+	/** Whether writing creates new sidecars, which the migration needs (XMP-007.7). */
+	sidecarsReady: boolean
 	folderSet: FolderSet
 	/** How many folders the cull shows. */
 	folders: number
@@ -49,7 +51,11 @@ const deleting = props.deleting
 		@close="deleting.close"
 		@confirm="deleting.confirm"
 		@retry="deleting.retry" />
-	<SidecarDialogs :flow="props.sidecars" :folderSet="props.folderSet" :decisionOf="props.decisionOf" />
+	<SidecarDialogs
+		:flow="props.sidecars"
+		:folderSet="props.folderSet"
+		:decisionOf="props.decisionOf"
+		:ready="props.sidecarsReady" />
 	<MoveDialogs
 		:flow="props.moving"
 		:folderSet="props.folderSet"

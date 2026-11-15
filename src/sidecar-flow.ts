@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Decision } from './logic/decision.ts'
+import type { LegacyWrite } from './logic/legacy.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { SidecarFailure } from './logic/sidecar-sync.ts'
@@ -10,6 +11,7 @@ import type { ToastAction } from './toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, shallowRef } from 'vue'
+import { acknowledgedIds } from './logic/legacy.ts'
 import { useSidecarSync } from './sidecar-sync.ts'
 import { notWrittenText, writtenText } from './sidecar-text.ts'
 
@@ -24,9 +26,9 @@ export function browserNow(): XmpTime {
 	return { epochMs: date.getTime(), offsetMinutes: -date.getTimezoneOffset() }
 }
 
-/** Writing to sidecars as the user sees it: the confirmation in shared folders, the toasts and the report with a retry (XMP-003.11–.13); `createsNew` as in `useSidecarSync`. */
-export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, action?: ToastAction | null) => void, createsNew: () => boolean) {
-	const asking = shallowRef<Picture<ListingEntry>[] | null>(null)
+/** Writing to sidecars as the user sees it: the migration's confirmation, the toasts and the report with a retry (XMP-003.13, XMP-007.5–.6); `createsNew` as in `useSidecarSync`. */
+export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, action?: ToastAction | null) => void, createsNew: () => boolean, acknowledge: (fileIds: readonly number[]) => Promise<void>) {
+	const asking = shallowRef<readonly LegacyWrite[] | null>(null)
 	const report = shallowRef<SidecarFailure[] | null>(null)
 	const open = computed(() => asking.value !== null || report.value !== null)
 	const sync = useSidecarSync(api, api.now, (failed) => toast(notWrittenText(failed.length), {
@@ -36,9 +38,9 @@ export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, act
 		},
 	}), createsNew)
 
-	/** Asks before writing the pictures, the decided ones of shared folders. */
-	function ask(pictures: Picture<ListingEntry>[]) {
-		asking.value = pictures
+	/** Asks before writing the legacy rows of the pictures to their sidecars. */
+	function ask(writes: readonly LegacyWrite[]) {
+		asking.value = writes
 	}
 
 	/** Closes the question or the report. */
@@ -47,13 +49,21 @@ export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, act
 		report.value = null
 	}
 
-	/** Writes the pictures asked about and tells how many were written. */
+	/** Writes the stored decisions and adds the stored tags in one pass, then acknowledges each picture saved in full. */
 	async function confirm(decisionOf: (picture: Picture<ListingEntry>) => Decision) {
 		const chosen = asking.value ?? []
 		asking.value = null
-		const { written, failed } = await sync.write(chosen, decisionOf)
+		const decided = chosen.filter((write) => write.decided).map(({ picture }) => picture)
+		const written = decided.length > 0 ? [sync.write(decided, decisionOf)] : []
+		const tagged = chosen.filter((write) => write.tags.length > 0).map(({ picture, tags }) => sync.writeTags([picture], { added: tags, removed: [] }))
+		const results = await Promise.all([...written, ...tagged])
+		const failed = results.flatMap((result) => result.failed)
 		if (failed.length === 0) {
-			toast(writtenText(written))
+			toast(writtenText(chosen.length))
+		}
+		const fileIds = acknowledgedIds(chosen, failed)
+		if (fileIds.length > 0) {
+			await acknowledge(fileIds)
 		}
 	}
 
