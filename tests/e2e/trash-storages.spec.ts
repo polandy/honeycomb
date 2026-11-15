@@ -88,14 +88,15 @@ test('refuses a picture whose files the trash bin would delete for good', async 
 	const mount = `External ${randomUUID().slice(0, 8)}`
 	await withExternalStorage(mount, async () => {
 		const picture = await uploadPair(page, mount)
-		occ(['config:app:set', 'files_trashbin', 'trashbin_size', `--value=${JPEG.length}`])
+		// The admin's own limit: the web process caches app config that occ changes behind its back.
+		occ(['user:setting', ADMIN.username, 'files_trashbin', 'trashbin_size', String(JPEG.length)])
 		try {
 			expect(await trash(page, picture)).toEqual(['noTrashBin', 'noTrashBin'])
 			for (const name of PAIR) {
 				expect(await etagOf(page, `${mount}/${name}`)).not.toBe('')
 			}
 		} finally {
-			occ(['config:app:delete', 'files_trashbin', 'trashbin_size'])
+			occ(['user:setting', '--delete', ADMIN.username, 'files_trashbin', 'trashbin_size'])
 		}
 	})
 })

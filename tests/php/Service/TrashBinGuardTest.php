@@ -65,6 +65,7 @@ final class TrashBinGuardTest extends TestCase {
 		];
 	}
 
+	/** @param array<string, string> $userSizes */
 	// spec: DELETE-001.9
 	#[DataProvider('sizeLimits')]
 	public function testRefusesAFileAtLeastAsLargeAsTheOwnersTrashBinSize(array $userSizes, string $serverSize, int $size, bool $kept): void {
