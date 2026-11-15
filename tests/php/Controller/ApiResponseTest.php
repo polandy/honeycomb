@@ -80,7 +80,7 @@ final class ApiResponseTest extends TestCase {
 	}
 
 	#[DataProvider('failures')]
-	public function testEachKnownFailureIsItsStatusWithAnEmptyBody(\Throwable $failure, int $status): void {
+	public function testEachKnownFailureIsItsStatusWithAnEmptyList(\Throwable $failure, int $status): void {
 		$response = $this->api($this->createStub(IUser::class))->forUser(function () use ($failure): Response {
 			throw $failure;
 		});

@@ -37,7 +37,7 @@ final class ApiResponse {
 	}
 
 	/**
-	 * The handler's answer for the user; 401 without one, the status of a known failure with an empty body.
+	 * The handler's answer for the user; 401 without one, the status of a known failure with the body `[]`.
 	 * @param \Closure(IUser): Response $handle
 	 */
 	public function forUser(\Closure $handle): Response {
