@@ -1170,3 +1170,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   job queue or a move journal, both a new table. A later failed chunk keeps what earlier ones did
   and lists the unsent files as `failed`, so *Retry failed files* and *Undo* cover them; the
   progress shows as "N of M photos sent" in the dialog's footer.
+- 2026-11-15: A file the trash bin would not keep (storage without the trash bin wrapper, or at
+  least as large as `trashbin_size`, outside a Team folder) is refused as `noTrashBin` before its
+  picture is touched (ADR 0030, DELETE-001.9, risk review R6). Chosen over checking after the
+  delete (too late) or the trash manager (no public API). Team folders and local External
+  Storage are proven in e2e with a pinned Team folders 23.0.1 release; the summaries' note now
+  names retention and space and advises a backup.
