@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { StoredDecision } from '../../src/logic/decision.ts'
-import type { MoveRequestFile, TargetFolder } from '../../src/logic/move-plan.ts'
+import type { MoveRequestFile, Probe } from '../../src/logic/move-plan.ts'
 import type { MoveFlow } from '../../src/move-flow.ts'
 import type { AppWrapper } from './app-cull.ts'
 
@@ -25,7 +25,7 @@ import { allMoved } from './move-fixtures.ts'
 type Move = (request: MoveRequestFile[][]) => Promise<unknown>
 
 /** The app on the cull with the stored settings, its probe finding `/Out` empty and its move endpoint answering `move`. */
-async function openApp(decisions: StoredDecision[] = [], move: Move = allMoved(), probeTargets = async (folders: readonly string[]): Promise<TargetFolder[]> => folders.map((path) => ({ path, children: [] })), settings: object = {}) {
+async function openApp(decisions: StoredDecision[] = [], move: Move = allMoved(), probeTargets = async (folders: readonly string[], sources: readonly string[]): Promise<Probe> => ({ folders: folders.map((path) => ({ path, storage: '/', children: [] })), sources: sources.map((path) => ({ path, storage: '/' })) }), settings: object = {}) {
 	const sent: MoveRequestFile[][][] = []
 	const movePictures = async (request: MoveRequestFile[][]) => {
 		sent.push(request)
