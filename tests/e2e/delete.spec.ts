@@ -67,6 +67,33 @@ test('reviews the rejects, rescues one and moves the rest with their sidecars to
 	expect(locations).not.toContain(`${folder}/IMG_0003.jpg`)
 })
 
+// spec: DELETE-002.19
+test('deletes the rejects from the More menu while the flag filter hides them', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = `Menu ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+	await upload(page, `${folder}/IMG_0001.jpg.xmp`, pickLabel(1))
+	await upload(page, `${folder}/IMG_0002.jpg`, JPEG)
+
+	await cullFolder(page, folder)
+	const grid = page.getByRole('grid', { name: 'Photos' })
+	await expect(grid.getByRole('gridcell')).toHaveCount(1)
+	await page.getByRole('button', { name: 'More', exact: true }).click()
+	const item = page.getByRole('button', { name: /^Review rejects 1/ })
+	await expect(item.locator('kbd')).toHaveText('Ctrl+Backspace')
+	await item.click()
+
+	const review = page.getByRole('dialog', { name: 'Review rejects' })
+	await expect(review.getByRole('button', { name: 'Rescue IMG_0001' })).toBeVisible()
+	await review.getByRole('button', { name: 'Continue: delete 1' }).click()
+	await page.getByRole('dialog', { name: 'Delete 1 photo' }).getByRole('button', { name: 'Move 2 files to trash' }).click()
+
+	await expect(page.getByRole('status').filter({ hasText: 'Moved 1 photo · 2 files' })).toBeVisible()
+	await expect(grid.getByRole('gridcell', { name: 'IMG_0002, JPG only' })).toBeVisible()
+	expect(await trashLocations(page)).toContain(`${folder}/IMG_0001.jpg.xmp<`)
+})
+
 // spec: DELETE-002.15, DELETE-002.16
 test('skips a reject whose sidecar was changed elsewhere to picked, and reports it', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')

@@ -12,11 +12,11 @@ chosen pictures — into the Nextcloud trash bin after a summary of what goes.
 
 ## Behaviour
 
-*Review rejects* opens a grid of every rejected picture in the cull, from the toolbar,
-`Ctrl+Backspace`, the empty grid and after the loupe decided the last photo. Tapping a tile
-rescues it: its flag is cleared like any decision. *Continue* opens the delete summary. *Delete…*
-on the selection and the `Delete` key on the focused tile or the loupe's photo go straight to the
-summary.
+*Review rejects* opens a grid of every rejected picture in the cull, whatever the filters show,
+from the toolbar, the ⋯ menu at every width (which shows its key), `Ctrl+Backspace`, the empty
+grid and after the loupe decided the last photo. Tapping a tile rescues it: its flag is cleared
+like any decision. *Continue* opens the delete summary. *Delete…* on the selection and the
+`Delete` key on the focused tile or the loupe's photo go straight to the summary.
 
 The summary counts photos, files, bytes, pairs and singles, lists the folders and every file, and
 says the files go to the Nextcloud trash bin, that the trash bin empties itself after its
@@ -172,6 +172,14 @@ honeycomb's write, keeps the listing's ETag and holds its picture as `changed`.
 - **Then** the sidecar reports `changed`, no file of that picture is touched, and the other
   pictures move to the trash bin
 
+### DELETE-002.19 – From the ⋯ menu, whatever the filters show
+
+- **Given** a cull with rejects that the flag filter hides, at any window width
+- **When** the user opens the ⋯ menu and chooses *Review rejects*, shown with its count and
+  `Ctrl+Backspace`
+- **Then** the review opens on every reject of the cull and leads through the same summary and
+  fresh check to the trash bin; without rejects the entry is held
+
 ## Out of scope
 
 The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
@@ -185,4 +193,5 @@ The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
 | 2026-11-15 | Requests in chunks with progress (DELETE-002.13, DELETE-002.14, ADR 0029) |
 | 2026-11-15 | The trash-bin note names the retention and space risk and advises a backup; `noTrashBin` has its reason (DELETE-002.6, DELETE-002.9) |
 | 2026-11-15 | Deleting by decision checks the sidecars afresh and reports the skipped photos (DELETE-002.15, DELETE-002.16, ADR 0032 PR 8) |
+| 2026-11-15 | *Review rejects* in the ⋯ menu at every width, with its key (DELETE-002.19, owner) |
 | 2026-11-15 | *Delete…* sends the sidecars as honeycomb last saved or created them; only another program's change holds a picture (DELETE-002.17, DELETE-002.18) |
