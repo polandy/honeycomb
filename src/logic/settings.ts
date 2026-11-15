@@ -87,7 +87,7 @@ export function parseSettings(value: unknown): Settings {
 		moveFavourites: parsePaths(stored.moveFavourites),
 		moveRecent: parsePaths(stored.moveRecent),
 		moveTemplate: typeof stored.moveTemplate === 'string' && parseNameTemplate(stored.moveTemplate).ok ? stored.moveTemplate : DEFAULT_NAME_TEMPLATE,
-		sidecarWrite: typeof stored.sidecarWrite === 'string' ? STORED_SIDECAR_WRITES[stored.sidecarWrite] ?? DEFAULT_SETTINGS.sidecarWrite : DEFAULT_SETTINGS.sidecarWrite,
+		sidecarWrite: typeof stored.sidecarWrite === 'string' ? (Object.hasOwn(STORED_SIDECAR_WRITES, stored.sidecarWrite) ? STORED_SIDECAR_WRITES[stored.sidecarWrite] : undefined) ?? DEFAULT_SETTINGS.sidecarWrite : DEFAULT_SETTINGS.sidecarWrite,
 		sidecarExistingHint: stored.sidecarWrite === STORED_EXISTING_ONLY || stored.sidecarExistingHint === true,
 		confirmedSharedFolders: parseFileIds(stored.confirmedSharedFolders),
 	}
