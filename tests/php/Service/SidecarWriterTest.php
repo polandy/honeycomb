@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\SidecarResult;
 use OCA\Honeycomb\Service\SidecarWriter;
+use OCP\App\IAppManager;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -36,6 +37,7 @@ final class SidecarWriterTest extends TestCase {
 	private ?\Closure $afterWrite = null;
 	private bool $creatable = true;
 	private bool $updateable = true;
+	private bool $versions = true;
 
 	private function user(): IUser {
 		$user = $this->createStub(IUser::class);
@@ -114,7 +116,9 @@ final class SidecarWriterTest extends TestCase {
 		});
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
-		return new SidecarWriter($root, $logger ?? $this->createStub(LoggerInterface::class));
+		$apps = $this->createStub(IAppManager::class);
+		$apps->method('isEnabledForUser')->willReturnCallback(fn (string $app): bool => $app === 'files_versions' && $this->versions);
+		return new SidecarWriter($root, $apps, $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
 	private function existing(string $content, ?string $etag = null, ?int $size = null): array {
@@ -138,6 +142,17 @@ final class SidecarWriterTest extends TestCase {
 		$this->assertSame('new', $this->disk['IMG_0001.NEF.xmp']);
 		$this->assertArrayNotHasKey('IMG_0001.NEF.xmp.part', $this->disk);
 		$this->assertSame([['result' => SidecarResult::Saved, 'fileId' => 9, 'etag' => md5('new'), 'size' => 3, 'mtime' => 1_700_000_002]], $results);
+	}
+
+	// spec: XMP-002.10
+	public function testAnExistingSidecarIsNotOverwrittenWithoutFileVersionsButANewOneIsCreated(): void {
+		$this->versions = false;
+
+		$results = $this->writer()->save($this->user(), [$this->existing('new'), $this->created('fresh')]);
+
+		$this->assertSame([SidecarResult::NoVersions, SidecarResult::Saved], $this->resultsOf($results));
+		$this->assertSame('old', $this->disk['IMG_0001.NEF.xmp']);
+		$this->assertSame(['write IMG_0002.JPG.xmp.part', 'move IMG_0002.JPG.xmp.part'], $this->events);
 	}
 
 	// spec: XMP-002.4

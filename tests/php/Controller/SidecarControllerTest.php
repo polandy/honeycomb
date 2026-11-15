@@ -11,6 +11,7 @@ use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\SidecarController;
 use OCA\Honeycomb\Service\SidecarReader;
 use OCA\Honeycomb\Service\SidecarWriter;
+use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -46,7 +47,9 @@ final class SidecarControllerTest extends TestCase {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
 		$logger = $this->createStub(LoggerInterface::class);
-		return new SidecarController(Application::APP_ID, $this->createStub(IRequest::class), $session, new SidecarReader($root, $logger), new SidecarWriter($root, $logger));
+		$apps = $this->createStub(IAppManager::class);
+		$apps->method('isEnabledForUser')->willReturn(true);
+		return new SidecarController(Application::APP_ID, $this->createStub(IRequest::class), $session, new SidecarReader($root, $logger), new SidecarWriter($root, $apps, $logger));
 	}
 
 	// spec: XMP-002.1
