@@ -122,3 +122,58 @@ test('a picture restored from the trash bin keeps its file id and its decision',
 	expect(await back.text()).toContain(`<oc:fileid>${fileId}</oc:fileid>`)
 	expect(await lookup()).toEqual({ decisions: [decision] })
 })
+
+/** Culls a folder of `IMG_0001.jpg` with a sidecar and `IMG_0002.jpg` without, and picks both, which writes both sidecars at once. */
+async function pickBoth(page: Page): Promise<{ folder: string, saved: Promise<unknown> }> {
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = `Own writes ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+	await upload(page, `${folder}/IMG_0001.jpg.xmp`, pickLabel(0))
+	await upload(page, `${folder}/IMG_0002.jpg`, JPEG)
+
+	await cullFolder(page, folder)
+	const grid = page.getByRole('grid', { name: 'Photos' })
+	await page.getByRole('button', { name: 'Select', exact: true }).click()
+	for (const name of ['IMG_0001, JPG only', 'IMG_0002, JPG only']) {
+		await grid.getByRole('gridcell', { name }).click()
+	}
+	const saved = page.waitForResponse((response) => response.url().endsWith('/api/v1/sidecars') && response.request().method() === 'PUT')
+	await page.getByRole('button', { name: 'Pick', exact: true }).click()
+	return { folder, saved }
+}
+
+/** Confirms *Delete…* of the selection. */
+async function deleteSelection(page: Page): Promise<void> {
+	await page.getByRole('button', { name: 'Delete…', exact: true }).click()
+	await page.getByRole('dialog', { name: 'Delete 2 photos' }).getByRole('button', { name: /^Move \d+ files to trash$/ }).click()
+}
+
+// spec: DELETE-002.17
+test('deletes chosen photos right after deciding them, with the sidecars honeycomb just wrote and created', async ({ page }) => {
+	const { folder } = await pickBoth(page)
+	await deleteSelection(page)
+
+	await expect(page.getByRole('status').filter({ hasText: 'Moved 2 photos · 4 files' })).toBeVisible()
+	await expect(page.getByRole('dialog', { name: 'Deletion finished with errors' })).toBeHidden()
+	const locations = await trashLocations(page)
+	for (const file of ['IMG_0001.jpg', 'IMG_0001.jpg.xmp', 'IMG_0002.jpg', 'IMG_0002.jpg.xmp']) {
+		expect(locations).toContain(`${folder}/${file}<`)
+	}
+})
+
+// spec: DELETE-002.18
+test('keeps a chosen photo whose sidecar another program changed after honeycomb wrote it', async ({ page }) => {
+	const { folder, saved } = await pickBoth(page)
+	await saved
+	await upload(page, `${folder}/IMG_0001.jpg.xmp`, pickLabel(1))
+	await deleteSelection(page)
+
+	const report = page.getByRole('dialog', { name: 'Deletion finished with errors' })
+	await expect(report.getByRole('list', { name: 'Files that failed' })).toContainText('IMG_0001.jpg.xmpFile changed since the folder was listed')
+	const locations = await trashLocations(page)
+	for (const file of ['IMG_0002.jpg', 'IMG_0002.jpg.xmp']) {
+		expect(locations).toContain(`${folder}/${file}<`)
+	}
+	expect(locations).not.toContain(`${folder}/IMG_0001.jpg`)
+})
