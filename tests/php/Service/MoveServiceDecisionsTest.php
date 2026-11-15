@@ -43,7 +43,7 @@ final class MoveServiceDecisionsTest extends TestCase {
 	private function service(?DecisionStore $store = null, ?LoggerInterface $logger = null, ?TagStore $tags = null): MoveService {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturn(true);
-		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores($store ?? $this->store, $tags ?? $this->tags, $this->hashes, $this->series), $logger ?? $this->createStub(LoggerInterface::class));
+		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores($store ?? $this->store, $tags ?? $this->tags, $this->hashes, $this->series, new FakeXmpCacheStore()), $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
 	private static function decision(int $fileId): PictureDecision {

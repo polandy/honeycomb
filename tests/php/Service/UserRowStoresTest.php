@@ -17,10 +17,11 @@ final class UserRowStoresTest extends TestCase {
 		$tags = new FakeTagStore();
 		$hashes = new FakeVisualHashStore();
 		$series = new FakeSeriesStore();
+		$xmpCache = new FakeXmpCacheStore();
 		$positions = new FakePositionStore();
 
-		$all = (new UserRowStores(new FileRowStores($decisions, $tags, $hashes, $series), $positions))->all();
+		$all = (new UserRowStores(new FileRowStores($decisions, $tags, $hashes, $series, $xmpCache), $positions))->all();
 
-		$this->assertSame([$decisions, $tags, $hashes, $series, $positions], $all);
+		$this->assertSame([$decisions, $tags, $hashes, $series, $xmpCache, $positions], $all);
 	}
 }

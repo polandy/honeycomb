@@ -32,7 +32,7 @@ back to its default, so an unknown, missing or invalid field never breaks the ap
 | Write decisions to XMP sidecars | Off; can be only existing sidecars, or existing and new ones |
 
 *Settings* in the grid's ⋯ menu opens a dialog with the sections *File types*, *Folder layout*,
-*Loupe gestures*, *Keyboard*, *Moving photos* and *XMP sidecars*. Each change applies at once and
+*Loupe gestures*, *Keyboard*, *Moving photos*, *XMP sidecars* and *Cache*. Each change applies at once and
 saves the whole object; there is no OK button. What a setting does elsewhere is specified where it
 acts (LISTING-002, LOUPE-001, LOUPE-002, KEYS-001, MOVE-004, XMP-003).
 
@@ -218,6 +218,13 @@ Below it, the favourite targets the move dialog starred, each with a ✕ to remo
   choice, *Cancel* or closing keeps *Off*; from either choice, another choice or *Off* applies at
   once without asking; a stored value other than the three reads as *Off*
 
+### SETTINGS-001.25 – Clear cache
+
+- **Given** the *Cache* section
+- **When** the user taps *Clear cache*
+- **Then** the user's XMP cache and visual hashes are removed (XMP-006.5) without asking, and a
+  toast says *Cache cleared*; when it fails, the toast says the cache could not be cleared
+
 ## Out of scope
 
 What the swipes, auto-advance and flag buttons do in the loupe: LOUPE-002. The vi keys: KEYS-001.
@@ -234,3 +241,4 @@ Pairing itself: LISTING-002.
 | 2026-11-11 | .22 show the gesture guide again (UX review L6) |
 | 2026-11-13 | .23 text lines up with the section heading (UX L4) |
 | 2026-11-15 | .24 *Write decisions to XMP sidecars*, opted into after a dialog (risk review R1) |
+| 2026-11-15 | .25 *Clear cache* (ADR 0032) |

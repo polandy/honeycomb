@@ -25,12 +25,14 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
   visual hash of the user (SERIES-003).
 - `400` for a malformed body; one malformed item writes nothing. `401` without a user.
 - A save writes only the file ids the user reaches: a sidecar for `sidecar`, a JPEG for
-  `embedded`; any other id is skipped (ADR 0031). Saves are rate limited per user (APP-001.9).
+  `embedded`; any other id is skipped (ADR 0031). Saves and the `DELETE` are rate limited per user
+(APP-001.9).
 - A row is valid while its `etag` equals the ETag the listing gives the file and its `reader` is
   the current version; the client reads every other listed source again and stores the new row.
 - `occ honeycomb:cache:clear [<user>]` removes the XMP cache rows and visual hashes of one user,
   or of every user without an argument, and prints how many rows it removed. An unknown user
   fails with a message and removes nothing.
+- *Clear cache* in the settings' *Cache* section sends the `DELETE` (SETTINGS-001.25).
 - Neither the `DELETE` nor the command touches a sidecar, a position, a stored series, the settings
   or the tag list.
 - The daily background job removes the rows of files deleted for good, like the other file row
@@ -94,10 +96,11 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 ## Out of scope
 
 - A cache shared between users per file id and ETag (ADR 0032 Consequences).
-- The *Clear cache* button and its confirmation (SETTINGS-001, ADR 0032 PR 6).
+- Reading through the cache in the cull, and the client's diff (XMP-006.7): ADR 0032 PR 6.
 
 ## History
 
 | Date | Change |
 |---|---|
 | 2026-11-15 | Accepted with ADR 0032 |
+| 2026-11-15 | The endpoints, the command and *Clear cache* (ADR 0032 PR 4); the save answers the ids stored |
