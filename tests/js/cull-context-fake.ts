@@ -6,13 +6,14 @@ import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
-import { computed, defineComponent, h, ref } from 'vue'
+import { computed, defineComponent, h, ref, shallowRef } from 'vue'
 import { provideCullContext } from '../../src/cull-context.ts'
 import { useCull } from '../../src/cull.ts'
 import { useLegacy } from '../../src/legacy.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
+import { useLoupeOpening } from '../../src/loupe-opening.ts'
 import { useSelectionMode } from '../../src/selection-mode.ts'
-import { ENTRIES, fakeStorage, NO_LEGACY, NO_SERIES, NO_SIDECARS, NO_TAGS, SET } from './app-cull.ts'
+import { ENTRIES, fakeStorage, fakeViewState, NO_LEGACY, NO_SERIES, NO_SIDECARS, NO_TAGS, SET } from './app-cull.ts'
 
 /** One call of a context action: its name and arguments. */
 export type ContextCall = [name: string, ...args: unknown[]]
@@ -26,7 +27,7 @@ export interface ContextCounts {
 
 /**
  * A cull context over a real cull opened on `entries` and a real selection; the flows around them
- * are fakes that record each call in `calls`.
+ * are fakes that record each call in `calls`. The loupe opens for real, its reveal recorded.
  */
 export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES) {
 	const calls: ContextCall[] = []
@@ -45,14 +46,15 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 	}, fakeStorage(), () => DEFAULT_SETTINGS, NO_SIDECARS)
 	cull.open(SET, entries, [])
 	await flushPromises()
+	const opening = useLoupeOpening(async (index) => record('reveal')(index), () => true)
 	const context: CullContext = {
 		cull,
 		selection: useSelectionMode(() => cull.view.value, cull.pictures),
 		decide: record('decide'),
-		deleting: { rejected: computed(() => counts.value.rejected), rawRemovable: computed(() => counts.value.rawRemovable), review: record('review'), removeRaws: record('removeRaws'), summarise: record('summarise') },
-		moving: { open: record('move') },
+		deleting: { rejected: computed(() => counts.value.rejected), rawRemovable: computed(() => counts.value.rawRemovable), review: record('review'), removeRaws: record('removeRaws'), summarise: record('summarise'), allDecided: record('allDecided') },
+		moving: { open: record('move'), openShown: record('moveShown') },
 		resume: { resumeName: computed(() => counts.value.resumeName), resume: record('resume'), dismiss: record('dismissResume') },
-		seriesCompare: { start: record('compareSeries') },
+		seriesCompare: { start: record('compareSeries'), startOn: record('compareSeriesOn'), pickRestAndLand: record('pickRestAndLand') },
 		sidecars: { ask: record('writeSidecars') },
 		tagEntry: { open: (chosen) => {
 			calls.push(['tag', chosen])
@@ -62,8 +64,21 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 		headerShown: ref(true),
 		openLoupe: record('openLoupe'),
 		openSettings: record('openSettings'),
+		loupe: opening,
+		restOffer: (intent, picture) => {
+			calls.push(['restOffer', intent, picture])
+			return null
+		},
+		toast: (message, action) => {
+			calls.push(['toast', message, action])
+			return () => undefined
+		},
+		settings: shallowRef(DEFAULT_SETTINGS),
+		updateSettings: record('updateSettings'),
+		viewState: fakeViewState(),
+		storage: fakeStorage(),
 	}
-	return { context, calls, counts }
+	return { context, calls, counts, opening }
 }
 
 /** Mounts the screen under a parent that provides the context, as App provides it to its screens. */
