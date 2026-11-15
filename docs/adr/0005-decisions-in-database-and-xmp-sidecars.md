@@ -1,6 +1,6 @@
 # 0005 – Decisions live in the database and are written through to XMP sidecars
 
-- Status: accepted
+- Status: superseded by [0032](0032-sidecar-is-the-source-of-truth.md)
 - Date: 2026-11-09
 
 ## Context

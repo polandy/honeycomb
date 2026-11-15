@@ -136,6 +136,13 @@ Moves one picture, the selection or a filter result into another Nextcloud folde
 name template (see [Moving pictures](#moving-pictures)). Decided by the owner on 2026-11-09; the
 mockup shows it.
 
+### M8 – The sidecar is the source of truth
+
+Ratings, flags, colour labels, *Keep RAW* and tags move from the database into the sidecars; the
+database keeps a per-user XMP cache that is rebuilt from the files (XMP-006), and digiKam
+compatibility comes first. Decided by the owner on 2026-11-15 (#187); the rules, the permission
+model and the pull request order are in ADR 0032.
+
 ### Release – first App Store release
 
 Before it: Transifex setup ([Translations](#translations)), the signing certificate and the
@@ -873,7 +880,8 @@ Answered by the owner on 2026-11-09 (Q3, Q4, Q5, Q6, Q20).
 4. **Sidecar names.** Both `<file>.xmp` and `<base>.xmp` are read; every one that exists is
    written, else `<file>.xmp` per member; deleting a picture removes both, *Remove RAWs* only the
    RAW's own `<file>.xmp` ([`06-xmp-interop.md`](06-xmp-interop.md#sidecar-names)).
-5. **Shared folders.** Decisions are per user, in the database. Sidecars are shared by every
+5. **Shared folders** (until M8, where ADR 0032 makes writing there permission-based and confirmed).
+   Decisions are per user, in the database. Sidecars are shared by every
    user of the folder, so in a shared folder nothing is written through on its own: the ⋯ menu
    offers *Write decisions to sidecars…*, which asks first (ADR 0005). Writing through is
    opt-in at all: *Settings › XMP sidecars* is *Off* by default, *Only existing sidecars* or
@@ -1039,7 +1047,8 @@ the decisions.
   read by digiKam.
 
 **Answer (owner, 2026-11-09): (c)**, database first (M2), sidecars as M5, read and written in
-digiKam's, darktable's and Lightroom's fields (ADR 0005). The mapping is
+digiKam's, darktable's and Lightroom's fields (ADR 0005). **Revised (owner, 2026-11-15): (b)**,
+the sidecar is the source of truth and the database only a cache (ADR 0032, M8). The mapping is
 [`06-xmp-interop.md`](06-xmp-interop.md).
 
 ### Q3 – Sidecar file names

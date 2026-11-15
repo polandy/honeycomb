@@ -1,6 +1,6 @@
 # 0017 – The sidecar endpoints: bytes in base64, a checked save through a part file
 
-- Status: accepted
+- Status: accepted, amended by [0032](0032-sidecar-is-the-source-of-truth.md)
 - Date: 2026-11-10
 
 ## Context
