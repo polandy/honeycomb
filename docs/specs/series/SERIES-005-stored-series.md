@@ -27,8 +27,9 @@ through every new visual hash.
 - **Storage** per user and member file id (ADR 0027): `POST /apps/honeycomb/api/v1/series/lookup`
   reads, `PUT /apps/honeycomb/api/v1/series` writes. An automatic series is stored, with its shown
   members, the moment the user first edits it or marks it done.
-- **Grid, selection mode:** the action bar's *Series…* button opens a menu that offers what fits
-  the selection, with counts:
+- **Grid, selection mode:** the action bar's *Series…* button, after *Tags*, opens a menu that
+  offers what fits the selection, with counts. Its heading says how the selection splits: "2
+  photos, none in a series", "1 photo in series ⧉ 3 · 1 loose", "3 photos in 2 series":
 
   | Selection | Offered |
   |---|---|
@@ -37,7 +38,11 @@ through every new visual hash.
   | photos of two or more series | *Merge k series · m photos* (their whole series and the loose selected photos), *New series from n photos* |
   | any photo in a series | *Remove n photos from their series* |
 
-  An entry that does not fit is shown disabled with the reason in its second line.
+  The menu always shows three entries: *Add* (or *Merge* when the selection touches two series
+  or more), *New series* and *Remove*; *Add* or *Merge* comes first once a photo is in a series.
+  An entry that does not fit is shown disabled with the reason in its second line ("Select two
+  photos or more", "Select photos outside the series too"). A merge keeps the id of the first
+  stored series; a touched automatic series keeps its other shown members as a stored series.
 - **Series compare:** the title row's ⋯ menu offers *Merge with the next series*, *Merge with the
   previous series* (next and previous by first capture time among every series of the folder
   set), *Series done* (pressed when done; pressing it again reopens the series) and *Dissolve
@@ -244,3 +249,4 @@ through every new visual hash.
 | 2026-11-14 | Backend of SERIES-005.20–25 (#185 PR 1); a series id twice is a `400`. |
 | 2026-11-14 | Delivery and logic of SERIES-005.1–3, .26 (#185 PR 2): the browser reads the rows per folder set and forms automatic series from the loose pictures only; 005.25 adds the re-read of files moved back. |
 | 2026-11-15 | SERIES-005.10, .13 and .19 in the series compare (#185 PR 3): the card's and the title row's ⋯ menus offer *Remove from this series* and *Dissolve this series*, each one undo step with a toast, saved one at a time. |
+| 2026-11-15 | SERIES-005.4–.7, .9, .11, .12 and .16 in the grid (#185 PR 4): the selection bar's *Series…* menu after *Tags* makes, adds to, merges and leaves series, each one undo step with a toast. |

@@ -7,6 +7,7 @@ import type { Decision, DecisionField, StoredDecision } from './logic/decision.t
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { PairingSettings, Picture } from './logic/pairing.ts'
+import type { SelectionEdit } from './logic/series-menu.ts'
 import type { Series } from './logic/series.ts'
 import type { Settings, SidecarWriting } from './logic/settings.ts'
 import type { TagChange } from './logic/tag.ts'
@@ -26,6 +27,7 @@ import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress }
 import { sortPictures } from './logic/picture-order.ts'
 import { byFileId, saveQueue } from './logic/save-queue.ts'
 import { dissolveChange, removeChange } from './logic/series-edit.ts'
+import { selectionChange, seriesOffer } from './logic/series-menu.ts'
 import { pairingSettings } from './logic/settings.ts'
 import { inSharedFolder } from './logic/sidecar-sync.ts'
 import { inverseChange } from './logic/tag.ts'
@@ -155,12 +157,18 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 
 	/** Takes the picture out of the series and keeps it out, as one undo step, and returns it (SERIES-005.10). */
 	function removeFromSeries(series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>): SeriesStep | null {
-		return history.record(seriesStep('remove', [picture], removeChange(series, picture, storedSeries.rows.value, storedSeries.newId())))
+		return history.record(seriesStep('remove', [picture], removeChange([series], [picture], storedSeries.rows.value, storedSeries.newId), 1))
 	}
 
 	/** Keeps out every member of the series, as one undo step, and returns it (SERIES-005.13). */
 	function dissolveSeries(series: Series<Picture<ListingEntry>>): SeriesStep | null {
-		return history.record(seriesStep('dissolve', series.members, dissolveChange(series, storedSeries.rows.value)))
+		return history.record(seriesStep('dissolve', series.members, dissolveChange(series, storedSeries.rows.value), 1))
+	}
+
+	/** Makes, adds to, merges or leaves series with the chosen pictures, as one undo step, and returns it (SERIES-005.4–.7, .11). */
+	function editSelection(edit: SelectionEdit, chosen: readonly Picture<ListingEntry>[]): SeriesStep | null {
+		const { pictures, change, series } = selectionChange(edit, seriesOffer(chosen, seriesState.seriesOf.value), storedSeries.rows.value, storedSeries.newId)
+		return history.record(seriesStep(edit, pictures, change, series))
 	}
 
 	/** Changes the pictures' tags and says in the grid when the save failed. */
@@ -267,6 +275,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		tag,
 		removeFromSeries,
 		dissolveSeries,
+		editSelection,
 		undo: history.undo,
 		redo: history.redo,
 		open,

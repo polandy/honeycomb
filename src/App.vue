@@ -72,7 +72,7 @@ const selection = useSelectionMode(() => view.value, pictures)
 const { selected } = selection
 watch(cull.pairing, selection.selectNone)
 
-const { decide, pickRest, tag, removeFromSeries, dissolveSeries, undo, redo } = useToastedDecisions(cull, toast.show)
+const { decide, pickRest, tag, removeFromSeries, dissolveSeries, editSelection, undo, redo } = useToastedDecisions(cull, toast.show)
 const tagEntry = useTagEntryTargets()
 const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: decideInCompare, pickRest, removeFromSeries, dissolve: dissolveSeries, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })
 const restOffer = useRestOffer({ seriesOf: () => cull.seriesOf.value, decisionOf: cull.decisionOf, compare: seriesCompare, shown: shownInLoupe, land: landInLoupe })
@@ -99,7 +99,7 @@ watch(pickerOpen, (open) => open && recent.refresh())
 
 const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => gridScreen.value?.filterBar?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
 
-provideCullContext({ cull, selection, decide, deleting, moving, resume, seriesCompare, sidecars: sidecarFlow, legacy, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage })
+provideCullContext({ cull, selection, decide, editSeries: editSelection, deleting, moving, resume, seriesCompare, sidecars: sidecarFlow, legacy, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage })
 
 /** Opens the confirmed folder set and offers its resume position. */
 function openFolderSet(...opened: Parameters<typeof cull.open>) {

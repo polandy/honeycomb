@@ -18,8 +18,9 @@ import { useCullContext } from '../cull-context.ts'
 import { isPicked } from '../logic/decision.ts'
 import { hasLegacyRows } from '../logic/legacy.ts'
 import { DEFAULT_FILTERS } from '../logic/picture-filter.ts'
+import { seriesOffer } from '../logic/series-menu.ts'
 
-const { cull, selection, decide, deleting, moving, resume, seriesCompare, sidecars, legacy, tagEntry, headerShown, openLoupe, openSettings } = useCullContext()
+const { cull, selection, decide, editSeries, deleting, moving, resume, seriesCompare, sidecars, legacy, tagEntry, headerShown, openLoupe, openSettings } = useCullContext()
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
 const { selecting, selected } = selection
 const { rejected, rawRemovable } = deleting
@@ -27,6 +28,7 @@ const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
 const filterBar = useTemplateRef<InstanceType<typeof FilterBar>>('filterBar')
 
 const common = computed(() => cull.common(selected.value))
+const offer = computed(() => seriesOffer(selected.value, cull.seriesOf.value))
 const movable = computed(() => (activeFilters.value > 0 ? view.value : pictures.value.filter((picture) => isPicked(cull.decisionOf(picture)))))
 
 const toolbarFolders = computed<ToolbarFolders | null>(() => folderSet.value && { set: folderSet.value, count: folders.value })
@@ -114,10 +116,12 @@ defineExpose({ grid, filterBar })
 			v-if="selecting"
 			:common="common"
 			:selected="selected.length"
+			:seriesOffer="offer"
 			@decide="decide($event, selected)"
 			@tag="tagEntry.open(selected)"
 			@move="moving.open(selected)"
-			@delete="deleting.summarise(selected)" />
+			@delete="deleting.summarise(selected)"
+			@series="editSeries($event, selected)" />
 	</template>
 </template>
 

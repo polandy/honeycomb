@@ -229,7 +229,9 @@ defineExpose({
 
 <template>
 	<div class="photo-grid">
-		<div class="photo-grid__overlay" :style="{ height: `${overlayHeight}px` }"><slot /></div>
+		<div class="photo-grid__overlay" :style="{ height: `${overlayHeight}px` }">
+			<slot />
+		</div>
 		<div v-if="sticky !== null" class="photo-grid__sticky" aria-hidden="true">
 			{{ groupName(sticky) }}
 		</div>

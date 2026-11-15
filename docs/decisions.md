@@ -1303,3 +1303,14 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-15: Escape in an open menu of the compare closes only the menu: the dialog takes
   `noClose` while a menu is open, counted per menu and reset when the series changes, as NcModal
   closes on any Escape while it tops the focus trap stack and a menu adds no trap (#185 PR 3).
+- 2026-11-15: The grid's *Series…* button sits in the decisions row after *Tags*, not in the
+  phone's first row, which GRID-003.14 keeps to the flags, *Move* and *Delete*; the bar's one-row
+  threshold rises from 960 px to 1040 px to make room for it (#185 PR 4).
+- 2026-11-15: The *Series…* menu always shows three entries; *Merge* takes *Add*'s place when the
+  selection touches two series or more, and an entry that does not fit is disabled with its
+  reason, as the mockup shows (#185 PR 4).
+- 2026-11-15: A merge from the grid keeps the id of the first stored series it touches, brings
+  along that series' members outside the folder set, and is done only when every merged series was
+  and no loose photo joined (SERIES-005.9, .16) (#185 PR 4).
+- 2026-11-15: When a grid edit takes photos out of an automatic series, its other shown members are
+  stored as a series even when only one is left, as the compare's *Remove* does (#185 PR 4).

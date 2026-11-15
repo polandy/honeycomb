@@ -22,8 +22,11 @@ export interface SeriesChange {
 	readonly before: readonly SeriesRow[]
 }
 
-/** The series edits of the series compare (SERIES-005.10, SERIES-005.13). */
-export type SeriesEdit = 'remove' | 'dissolve'
+/** The series edits: the series compare's (SERIES-005.10, .13) and the grid's (SERIES-005.4–.7, .11). */
+export type SeriesEdit = 'new' | 'add' | 'merge' | 'remove' | 'dissolve'
+
+/** Hands out a local id for each new series. */
+export type NewSeriesId = () => number
 
 /** The body of the series write (ADR 0027); a null id makes a new series. */
 export interface SeriesWrite {
@@ -43,19 +46,44 @@ function changeTo(rows: StoredRows, after: readonly SeriesRow[]): SeriesChange {
 	return { after, before: after.map(({ fileId }) => ({ fileId, place: placeOf(rows, fileId) })) }
 }
 
-/** Takes the picture out of the series and keeps it out; an automatic series is first stored with its other shown members under `newId` (SERIES-005.10). */
-export function removeChange(series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>, rows: StoredRows, newId: number): SeriesChange {
-	const rest: SeriesRow[] = series.stored === undefined
-		? series.members.filter((member) => member !== picture).flatMap(memberIds).map((fileId) => ({ fileId, place: { id: newId, status: 'open', elsewhere: false } }))
-		: []
-	return changeTo(rows, [...rest, ...memberIds(picture).map((fileId) => ({ fileId, place: 'keptOut' as const }))])
+/** The rows of each touched automatic series' members that stay, each series stored under its own new id (D3a). */
+function restRows(touched: readonly Series<Picture<ListingEntry>>[], leaving: readonly Picture<ListingEntry>[], newId: NewSeriesId): SeriesRow[] {
+	return touched.filter(({ stored }) => stored === undefined).flatMap(({ members }) => {
+		const place: StoredSeriesInfo = { id: newId(), status: 'open', elsewhere: false }
+		return members.filter((member) => !leaving.includes(member)).flatMap(memberIds).map((fileId) => ({ fileId, place }))
+	})
+}
+
+/** The file ids of the series: of a stored series every listed row the browser knows, hidden ones too, of an automatic one its members. */
+function seriesFileIds(series: Series<Picture<ListingEntry>>, rows: StoredRows): number[] {
+	const stored = series.stored === undefined ? [] : [...rows].filter(([, info]) => info?.id === series.stored!.id).map(([fileId]) => fileId)
+	return [...new Set([...series.members.flatMap(memberIds), ...stored])]
+}
+
+/** Takes the pictures out of their touched series and keeps them out; an automatic series is first stored with its other shown members (SERIES-005.10, .11). */
+export function removeChange(touched: readonly Series<Picture<ListingEntry>>[], pictures: readonly Picture<ListingEntry>[], rows: StoredRows, newId: NewSeriesId): SeriesChange {
+	return changeTo(rows, [...restRows(touched, pictures, newId), ...pictures.flatMap(memberIds).map((fileId) => ({ fileId, place: 'keptOut' as const }))])
+}
+
+/** Puts the pictures into a new series, taking them out of their touched series as `removeChange` does (SERIES-005.4, .5, .12). */
+export function newSeriesChange(touched: readonly Series<Picture<ListingEntry>>[], pictures: readonly Picture<ListingEntry>[], rows: StoredRows, newId: NewSeriesId): SeriesChange {
+	const rest = restRows(touched, pictures, newId)
+	const place: StoredSeriesInfo = { id: newId(), status: 'open', elsewhere: false }
+	return changeTo(rows, [...rest, ...pictures.flatMap(memberIds).map((fileId) => ({ fileId, place }))])
+}
+
+/** Joins the series and the loose pictures into one, under the first stored series' id; it is done only when every series was and nothing loose joins (SERIES-005.6, .7, .9, .16). */
+export function joinChange(series: readonly Series<Picture<ListingEntry>>[], loose: readonly Picture<ListingEntry>[], rows: StoredRows, newId: NewSeriesId): SeriesChange {
+	const target = series.find(({ stored }) => stored !== undefined)?.stored
+	const done = loose.length === 0 && series.every(({ stored }) => stored?.status === 'done')
+	const place: StoredSeriesInfo = { ...(target ?? { id: newId(), elsewhere: false }), status: done ? 'done' : 'open' }
+	const fileIds = [...series.flatMap((each) => seriesFileIds(each, rows)), ...loose.flatMap(memberIds)]
+	return changeTo(rows, fileIds.map((fileId) => ({ fileId, place })))
 }
 
 /** Keeps out every member of the series, for a stored series also its hidden and unlisted rows the browser knows (SERIES-005.13). */
 export function dissolveChange(series: Series<Picture<ListingEntry>>, rows: StoredRows): SeriesChange {
-	const stored = series.stored === undefined ? [] : [...rows].filter(([, info]) => info?.id === series.stored!.id).map(([fileId]) => fileId)
-	const fileIds = new Set([...series.members.flatMap(memberIds), ...stored])
-	return changeTo(rows, [...fileIds].map((fileId) => ({ fileId, place: 'keptOut' })))
+	return changeTo(rows, seriesFileIds(series, rows).map((fileId) => ({ fileId, place: 'keptOut' })))
 }
 
 /** The rows with each written file in its new place. */
