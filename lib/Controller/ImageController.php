@@ -10,6 +10,7 @@ namespace OCA\Honeycomb\Controller;
 use OCA\Honeycomb\Service\ImageNotFoundException;
 use OCA\Honeycomb\Service\ImageNotReadableException;
 use OCA\Honeycomb\Service\ImageService;
+use OCA\Honeycomb\Service\InvalidPreviewRequestException;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -74,13 +75,11 @@ final class ImageController extends Controller {
 		if ($user === null) {
 			return new JSONResponse([], Http::STATUS_UNAUTHORIZED);
 		}
-		$valid = array_is_list($fileIds) && count($fileIds) <= ImageService::WARM_LIMIT
-			&& array_filter($fileIds, static fn (mixed $id): bool => is_int($id) && $id > 0) === $fileIds;
-		if (!$valid) {
+		try {
+			$this->images->warm($user, $fileIds);
+		} catch (InvalidPreviewRequestException) {
 			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
 		}
-		/** @var list<int> $fileIds */
-		$this->images->warm($user, $fileIds);
 		return new JSONResponse([]);
 	}
 }

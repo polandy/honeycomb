@@ -10,7 +10,6 @@ namespace OCA\Honeycomb\Service;
 use OCP\App\IAppManager;
 use OCP\Files\File;
 use OCP\Files\Folder;
-use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IUser;
@@ -20,7 +19,7 @@ use Psr\Log\LoggerInterface;
 /** Saves sidecars by the checked save: check, write a part file, check again, rename (ADR 0017). */
 final class SidecarWriter {
 	public function __construct(
-		private IRootFolder $rootFolder,
+		private UserPhotos $photos,
 		private IAppManager $appManager,
 		private LoggerInterface $logger,
 	) {
@@ -34,7 +33,7 @@ final class SidecarWriter {
 	 */
 	public function save(IUser $user, array $sidecars): array {
 		$sidecars = SidecarRequest::sidecars($sidecars);
-		$userFolder = $this->rootFolder->getUserFolder($user->getUID());
+		$userFolder = $this->photos->userFolder($user);
 		$versioned = $this->appManager->isEnabledForUser('files_versions', $user);
 		return array_map(fn (ExistingSidecar|NewSidecar $sidecar): array => $this->saveOne($userFolder, $sidecar, $versioned), $sidecars);
 	}
@@ -76,8 +75,8 @@ final class SidecarWriter {
 		if ($sidecar instanceof NewSidecar) {
 			return $this->checkNew($userFolder, $sidecar->path);
 		}
-		$node = $userFolder->getFirstNodeById($sidecar->fileId);
-		if (!$node instanceof File || !ListingService::isSidecar($node)) {
+		$node = $this->photos->sidecar($userFolder, $sidecar->fileId);
+		if ($node === null) {
 			return SidecarResult::NotFound;
 		}
 		if ($node->getEtag() !== $sidecar->etag || $node->getSize() !== $sidecar->size) {

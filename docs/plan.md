@@ -957,9 +957,10 @@ honeycomb/
 
 - **Path and file-id checks:** `FileIds` checks the file ids and item lists a request carries
   (a list within a limit, positive integers, each once) and throws the caller's
-  `InvalidRequestException` subclass. `UserPhotos` answers which file ids are photos in the
-  user's files at a given etag; `VisualHashService` uses it, the services that open, trash, move
-  or read sidecars still check on their own. `UserFolderResolver` turns a path into a readable
+  `InvalidRequestException` subclass. `UserPhotos` is the one lookup of a file id in the user's
+  files: it answers which file ids are photos (at a given etag) and finds the photo, sidecar or
+  listed file behind an id; every service that opens, trashes, moves, reads or writes a file by
+  id goes through it. `UserFolderResolver` turns a path into a readable
   folder of the user, `CheckedMove` and
   `ExistingSidecar` are files that passed their check, `SidecarWriter` checks again before its
   rename, and `ExistingFiles` tells which file ids still have a file.

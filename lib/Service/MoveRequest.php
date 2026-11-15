@@ -23,7 +23,7 @@ final class MoveRequest {
 		if (count($files) > PictureRequestLimit::FILES) {
 			throw new InvalidMoveRequestException('At most ' . PictureRequestLimit::FILES . ' files');
 		}
-		self::refuseTwice(array_map(static fn (MoveFile $file): int => $file->fileId, $files), 'file id');
+		FileIds::eachOnce(array_map(static fn (MoveFile $file): int => $file->fileId, $files), InvalidMoveRequestException::class);
 		self::refuseTwice(array_map(static fn (MoveFile $file): string => mb_strtolower($file->path), $files), 'target path');
 		$moved = array_flip(array_map(static fn (MoveFile $file): int => $file->fileId, $files));
 		foreach ($files as $file) {
