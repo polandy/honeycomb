@@ -96,7 +96,8 @@ any device finds them stored and links series at once.
 
 - **Given** a preview the grid would hash
 - **When** a worker hashes it
-- **Then** it draws it with the same code as the grid and gives the same hash
+- **Then** it draws it with the code the cull's hashes use, as the cull hashes in the same
+  workers (SERIES-003.26), and gives the same hash
 
 ### SERIES-004.8 – Pause and resume
 
