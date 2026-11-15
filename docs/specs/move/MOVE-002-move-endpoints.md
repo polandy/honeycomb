@@ -22,7 +22,8 @@ file or may not be read has no children.
 **Move.** `POST /apps/honeycomb/api/v1/move` takes `{"pictures": [[{"fileId": 7, "etag": "…",
 "path": "/Sorted/2026/a.RAF", "replace": {"fileId": 9, "etag": "…"}}, …], …]}`: a list of
 pictures, each the list of its files with the ETag from the listing and its new path; `replace` is
-optional. At most 60,000 files. For each picture:
+optional. At most 500 files, so one request ends well inside a proxy or PHP timeout (ADR 0029).
+For each picture:
 
 1. Every file is checked before any moves. The source must exist in the user's files, be a file the
    listing lists, carry the given ETag and be deletable. The target path must be free, hold the
@@ -109,7 +110,7 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
 - **Given** a body that is not a list of non-empty pictures of files with a positive file id, an
   ETag and a path; a path that is not absolute or holds an empty, `.` or `..` segment, a backslash
   or a NUL; a file id or a target path (case-insensitively) given twice; a `replace` that names a
-  file of the request; more than 60,000 files; or a probe that is not a list of such paths or holds
+  file of the request; more than 500 files; or a probe that is not a list of such paths or holds
   more than 60,000
 - **When** the client posts it
 - **Then** the answer is `400` with an empty body and nothing is touched
@@ -141,3 +142,4 @@ over.
 |---|---|
 | 2026-11-10 | Written and implemented with M7.2 (ADR 0018). |
 | 2026-11-10 | Decision rows follow a new file id (MOVE-002.10). |
+| 2026-11-15 | At most 500 files per move request instead of 60,000 (ADR 0029). |

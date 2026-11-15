@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\InvalidTrashRequestException;
-use OCA\Honeycomb\Service\ListingService;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
 use OCA\Honeycomb\Service\TrashService;
 use OCP\App\IAppManager;
@@ -203,7 +202,7 @@ final class TrashServiceTest extends TestCase {
 			'an empty ETag' => [[[['fileId' => 1, 'etag' => '']]]],
 			'a file id twice in one picture' => [[self::picture(1, 1)]],
 			'a file id in two pictures' => [[self::picture(1), self::picture(1)]],
-			'more files than the limit' => [[self::picture(...range(1, ListingService::ENTRY_LIMIT + 1))]],
+			'more files than the limit' => [[self::picture(...range(1, 501))]],
 		];
 	}
 
@@ -221,8 +220,8 @@ final class TrashServiceTest extends TestCase {
 
 	// spec: DELETE-001.6
 	public function testTheLimitItselfIsAccepted(): void {
-		$results = $this->service([])->trash($this->user(), [self::picture(...range(1, ListingService::ENTRY_LIMIT))]);
+		$results = $this->service([])->trash($this->user(), [self::picture(...range(1, 500))]);
 
-		$this->assertCount(ListingService::ENTRY_LIMIT, $results[0]);
+		$this->assertCount(500, $results[0]);
 	}
 }

@@ -156,6 +156,16 @@ describe('RawRemovalSummary', () => {
 		expect(wrapper.emitted('toggle')).toEqual([[DROP], [KEEP]])
 	})
 
+	// spec: DELETE-002.13
+	it('shows the progress of a running delete in each dialog that sends', () => {
+		const progress = { done: 1, total: 2 }
+		const report = trashReport(wholePictures([PAIR!]), [])
+
+		expect(summary({ progress }).findComponent(ConfirmDialog).props('progress')).toEqual(progress)
+		expect(mount(DeleteSummary, { props: { pictures: [PAIR!], folderSet: SET, fromReview: false, busy: true, progress }, global }).findComponent(ConfirmDialog).props('progress')).toEqual(progress)
+		expect(mount(DeleteReport, { props: { report, folderSet: SET, busy: true, progress }, global }).findComponent(ConfirmDialog).props('progress')).toEqual(progress)
+	})
+
 	// spec: DELETE-003.5
 	it('says None for an empty group and holds the confirm button with nothing to move or while it runs', () => {
 		const empty = summary({ removal: removal([], []) })
