@@ -28,13 +28,17 @@ final class WriteRateLimitTest extends TestCase {
 	/** @return array<string, ReflectionMethod> every routed method that is not `GET`, by `Controller::method` */
 	private static function changingRoutes(): array {
 		$routes = [];
-		foreach (glob(__DIR__ . '/../../../lib/Controller/*Controller.php') ?: [] as $path) {
-			$class = new ReflectionClass('OCA\\Honeycomb\\Controller\\' . basename($path, '.php'));
+		foreach (new \FilesystemIterator(__DIR__ . '/../../../lib/Controller') as $file) {
+			$name = $file instanceof \SplFileInfo ? 'OCA\\Honeycomb\\Controller\\' . $file->getBasename('.php') : '';
+			if (!str_ends_with($name, 'Controller') || !class_exists($name)) {
+				continue;
+			}
+			$class = new ReflectionClass($name);
 			foreach ($class->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-				$verbs = array_map(static fn ($route): mixed => $route->getArguments()['verb'] ?? 'GET', $method->getAttributes(FrontpageRoute::class));
-				$name = $class->getShortName() . '::' . $method->getName();
-				if (array_diff($verbs, ['GET']) !== [] && !in_array($name, self::READING, true)) {
-					$routes[$name] = $method;
+				$verbs = array_map(static fn ($attribute): mixed => $attribute->getArguments()['verb'] ?? 'GET', $method->getAttributes(FrontpageRoute::class));
+				$route = $class->getShortName() . '::' . $method->getName();
+				if (array_diff($verbs, ['GET']) !== [] && !in_array($route, self::READING, true)) {
+					$routes[$route] = $method;
 				}
 			}
 		}
