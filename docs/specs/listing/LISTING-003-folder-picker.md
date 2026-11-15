@@ -35,7 +35,8 @@ of sight.
 On every tick the picker lists the ticked folders (LISTING-001), pairs them with the user's
 pairing settings (LISTING-002) and shows the count, "*n* photos in *m* folders"; the button reads
 "Cull <folder>" or "Cull *m* folders". Each folder is listed once per switch position; only the
-latest ticks' count is shown. Opened with ticked folders, the folders above them start expanded. Confirming hands the folder set and its merged entries to the
+latest ticks' count is shown. Opened with ticked folders, the folders above them start
+expanded. Confirming hands the folder set and its merged entries to the
 grid.
 
 | State | Picker shows |

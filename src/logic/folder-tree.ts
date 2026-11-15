@@ -13,18 +13,18 @@ export interface TreeFolder {
 }
 
 /** What the tree knows of one folder's child folders. */
-export type Branch =
-	| { readonly state: 'loading' }
-	| { readonly state: 'failed' }
-	| { readonly state: 'loaded', readonly folders: readonly TreeFolder[] }
+export type Branch
+	= | { readonly state: 'loading' }
+		| { readonly state: 'failed' }
+		| { readonly state: 'loaded', readonly folders: readonly TreeFolder[] }
 
 /** Why a note row stands in for the children of an expanded folder. */
 export type TreeNote = 'loading' | 'failed' | 'empty'
 
 /** One shown row: a folder, or a note under an expanded folder; the root's rows are level 1. */
-export type TreeRow =
-	| { readonly kind: 'folder', readonly folder: TreeFolder, readonly level: number, readonly expanded: boolean, readonly parent: string }
-	| { readonly kind: 'note', readonly note: TreeNote, readonly level: number, readonly parent: string }
+export type TreeRow
+	= | { readonly kind: 'folder', readonly folder: TreeFolder, readonly level: number, readonly expanded: boolean, readonly parent: string }
+		| { readonly kind: 'note', readonly note: TreeNote, readonly level: number, readonly parent: string }
 
 /** Where a key moves the focus, or what it expands or collapses; null when it does nothing. */
 export type TreeMove = { readonly focus: string } | { readonly expand: string } | { readonly collapse: string } | null

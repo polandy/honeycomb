@@ -16,9 +16,11 @@ const BRANCHES = new Map<string, Branch>([
 ])
 
 /** The visible rows as `path@level` for folders and `note:parent@level` for notes. */
-const shown = (expanded: string[], branches = BRANCHES) => visibleRows(branches, new Set(expanded)).map((row) => (row.kind === 'folder'
-	? `${row.folder.path}@${row.level}${row.expanded ? '+' : ''}`
-	: `${row.note}:${row.parent}@${row.level}`))
+function shown(expanded: string[], branches = BRANCHES) {
+	return visibleRows(branches, new Set(expanded)).map((row) => (row.kind === 'folder'
+		? `${row.folder.path}@${row.level}${row.expanded ? '+' : ''}`
+		: `${row.note}:${row.parent}@${row.level}`))
+}
 
 describe('visibleRows', () => {
 	// spec: LISTING-003.4
