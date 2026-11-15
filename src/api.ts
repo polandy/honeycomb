@@ -4,7 +4,7 @@ import type { MissingPage, MissingPicture } from './hash-run.ts'
 import type { Listing } from './logic/cull.ts'
 import type { StoredDecision } from './logic/decision.ts'
 import type { EmbeddedXmpAnswer } from './logic/embedded-xmp.ts'
-import type { MoveRequestFile, TargetFolder } from './logic/move-plan.ts'
+import type { MoveRequestFile, Probe } from './logic/move-plan.ts'
 import type { MoveResponseFile } from './logic/move-report.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
 import type { SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from './logic/sidecar-sync.ts'
@@ -236,13 +236,13 @@ export async function trashPictures(pictures: readonly (readonly TrashRequestFil
 	return data.pictures as TrashResponseFile[][]
 }
 
-/** What each target folder of a move already holds (ADR 0018). */
-export async function probeTargets(folders: readonly string[]): Promise<TargetFolder[]> {
-	const { data } = await axios.post<unknown>(generateUrl(`${API}/move/targets`), { folders })
-	if (!isRecord(data) || !Array.isArray(data.folders)) {
-		throw new ApiResponseError('The move target response came without a folders array; check the server\'s version.')
+/** What each target folder of a move already holds, and the storage of each target and source folder (ADR 0018). */
+export async function probeTargets(folders: readonly string[], sources: readonly string[]): Promise<Probe> {
+	const { data } = await axios.post<unknown>(generateUrl(`${API}/move/targets`), { folders, sources })
+	if (!isRecord(data) || !Array.isArray(data.folders) || !Array.isArray(data.sources)) {
+		throw new ApiResponseError('The move target response came without a folders and a sources array; check the server\'s version.')
 	}
-	return data.folders as TargetFolder[]
+	return { folders: data.folders as Probe['folders'], sources: data.sources as Probe['sources'] }
 }
 
 /** Moves each picture's files to their new paths and returns the result of every file (ADR 0018). */

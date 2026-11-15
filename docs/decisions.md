@@ -1213,3 +1213,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   architecture review). The cursor, position, settings and view-state exceptions now extend
   `InvalidRequestException` too. The status codes are unchanged; the few routes that answered
   an error with an empty body now answer `[]` like all the others.
+- 2026-11-15: A move that would leave its storage (out of or into an incoming share, a group
+  folder or external storage) is refused with the new result `otherStorage`, and the move summary
+  lists such pictures as not moved (MOVE-002.11, MOVE-004.16, risk review R3, ADR 0018
+  amendment). Chosen over allowing it after a confirmation, since the owner who loses the files is
+  not the one who confirms; there is no setting to allow it.

@@ -22,22 +22,38 @@ final class MoveTargetServiceTest extends TestCase {
 		$this->unreadable['/Hidden'] = true;
 		$service = new MoveTargetService($this->treeRoot());
 
-		$folders = $service->targets($this->treeUser(), ['/Out', '/Out/2027', '/Out/a.RAF', '/Hidden', '/']);
+		$folders = $service->targets($this->treeUser(), ['/Out', '/Out/2027', '/Out/a.RAF', '/Hidden', '/'])['folders'];
 
 		$this->assertSame([
-			['path' => '/Out', 'children' => [
+			['path' => '/Out', 'storage' => '/', 'children' => [
 				['name' => '2026', 'fileId' => $this->folders['/Out/2026'], 'etag' => 'etag-folder/Out/2026'],
 				['name' => 'a.RAF', 'fileId' => 1, 'etag' => 'etag-1'],
 				['name' => 'notes.txt', 'fileId' => 2, 'etag' => 'etag-2'],
 			]],
-			['path' => '/Out/2027', 'children' => []],
-			['path' => '/Out/a.RAF', 'children' => []],
-			['path' => '/Hidden', 'children' => []],
-			['path' => '/', 'children' => [
+			['path' => '/Out/2027', 'storage' => '/', 'children' => []],
+			['path' => '/Out/a.RAF', 'storage' => '/', 'children' => []],
+			['path' => '/Hidden', 'storage' => '/', 'children' => []],
+			['path' => '/', 'storage' => '/', 'children' => [
 				['name' => 'Out', 'fileId' => $this->folders['/Out'], 'etag' => 'etag-folder/Out'],
 				['name' => 'Hidden', 'fileId' => $this->folders['/Hidden'], 'etag' => 'etag-folder/Hidden'],
 			]],
 		], $folders);
+	}
+
+	// spec: MOVE-002.12
+	public function testNamesTheStorageOfEachTargetAndSourceFolder(): void {
+		$this->addFiles([1 => '/Shared/Shoot/a.RAF', 2 => '/In/b.JPG']);
+		$this->mounts = ['/Shared' => true];
+		$service = new MoveTargetService($this->treeRoot());
+
+		$probe = $service->targets($this->treeUser(), ['/Shared/Shoot/2026', '/Out'], ['/Shared/Shoot', '/In', '/Shared']);
+
+		$this->assertSame([['/Shared/Shoot/2026', '/Shared'], ['/Out', '/']], array_map(static fn (array $folder): array => [$folder['path'], $folder['storage']], $probe['folders']));
+		$this->assertSame([
+			['path' => '/Shared/Shoot', 'storage' => '/Shared'],
+			['path' => '/In', 'storage' => '/'],
+			['path' => '/Shared', 'storage' => '/Shared'],
+		], $probe['sources']);
 	}
 
 	/** @return array<string, array{array<array-key, mixed>}> */
@@ -57,5 +73,13 @@ final class MoveTargetServiceTest extends TestCase {
 		$this->expectException(InvalidMoveRequestException::class);
 
 		(new MoveTargetService($this->treeRoot()))->targets($this->treeUser(), $folders);
+	}
+
+	// spec: MOVE-002.8
+	#[DataProvider('malformedRequests')]
+	public function testAMalformedSourceListIsRefused(array $sources): void {
+		$this->expectException(InvalidMoveRequestException::class);
+
+		(new MoveTargetService($this->treeRoot()))->targets($this->treeUser(), ['/Out'], $sources);
 	}
 }

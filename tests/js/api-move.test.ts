@@ -11,18 +11,24 @@ vi.mock('@nextcloud/router', () => ({
 
 describe('probeTargets', () => {
 	// spec: MOVE-002.1
-	it('sends the folders and returns the children of each', async () => {
-		const folders = [{ path: '/Out', children: [{ name: 'a.RAF', fileId: 9, etag: 'e9' }] }]
-		vi.mocked(axios.post).mockResolvedValue({ data: { folders } })
+	// spec: MOVE-002.12
+	it('sends the folders and the source folders and returns the children and storage of each', async () => {
+		const probe = {
+			folders: [{ path: '/Out', storage: '/', children: [{ name: 'a.RAF', fileId: 9, etag: 'e9' }] }],
+			sources: [{ path: '/Shared/In', storage: '/Shared' }],
+		}
+		vi.mocked(axios.post).mockResolvedValue({ data: probe })
 
-		expect(await probeTargets(['/Out'])).toEqual(folders)
-		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/move/targets', { folders: ['/Out'] })
+		expect(await probeTargets(['/Out'], ['/Shared/In'])).toEqual(probe)
+		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/move/targets', { folders: ['/Out'], sources: ['/Shared/In'] })
 	})
 
-	it('refuses a response without a folders array', async () => {
-		vi.mocked(axios.post).mockResolvedValue({ data: {} })
+	it('refuses a response without a folders or a sources array', async () => {
+		for (const data of [{}, { folders: [] }, { sources: [] }]) {
+			vi.mocked(axios.post).mockResolvedValue({ data })
 
-		await expect(probeTargets(['/Out'])).rejects.toBeInstanceOf(ApiResponseError)
+			await expect(probeTargets(['/Out'], [])).rejects.toBeInstanceOf(ApiResponseError)
+		}
 	})
 })
 

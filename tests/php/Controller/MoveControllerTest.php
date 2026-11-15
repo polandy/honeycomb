@@ -47,10 +47,13 @@ final class MoveControllerTest extends TestCase {
 
 	// spec: MOVE-002.1
 	public function testTheProbeAnswersTheChildrenOfEachFolder(): void {
-		$response = $this->controller()->targets(['/Out']);
+		$response = $this->controller()->targets(['/Out'], ['/In']);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame(['folders' => [['path' => '/Out', 'children' => [['name' => 'A.JPG', 'fileId' => 9, 'etag' => 'etag-9']]]]], json_decode($response->render(), true));
+		$this->assertSame([
+			'folders' => [['path' => '/Out', 'storage' => '/', 'children' => [['name' => 'A.JPG', 'fileId' => 9, 'etag' => 'etag-9']]]],
+			'sources' => [['path' => '/In', 'storage' => '/']],
+		], json_decode($response->render(), true));
 	}
 
 	// spec: MOVE-002.2

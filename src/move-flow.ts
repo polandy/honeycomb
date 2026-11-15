@@ -4,7 +4,7 @@ import type { Ref } from 'vue'
 import type { LoupeSnapshot } from './delete-flow.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { MtimeOffset } from './logic/move-candidates.ts'
-import type { ConflictChoice, ExistingFile, MoveRequestFile, TargetFolder } from './logic/move-plan.ts'
+import type { ConflictChoice, ExistingFile, MoveRequestFile, Probe } from './logic/move-plan.ts'
 import type { MoveReport, MoveResponseFile } from './logic/move-report.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { ChunkLimits, SendProgress } from './logic/request-chunks.ts'
@@ -15,7 +15,7 @@ import { t } from '@nextcloud/l10n'
 import { computed, ref, shallowRef, toRaw } from 'vue'
 import { logger } from './logger.ts'
 import { browserOffset, inViewOrder, moveCounts, nameCandidates } from './logic/move-candidates.ts'
-import { existingFiles, moveRequest, planMove, probeFolders } from './logic/move-plan.ts'
+import { existingFiles, leavesStorage, moveRequest, planMove, probeFolders, sourceFolders } from './logic/move-plan.ts'
 import { moveReport, undoneEntries, undoRequest } from './logic/move-report.ts'
 import { addRecent, targetChips, toggleFavourite as toggled } from './logic/move-targets.ts'
 import { parseNameTemplate } from './logic/name-template/parse.ts'
@@ -30,7 +30,7 @@ export interface MoveFlowContext {
 	readonly view: () => Pictures
 	readonly settings: () => Settings
 	readonly updateSettings: (patch: Partial<Settings>) => void
-	readonly probe: (folders: readonly string[]) => Promise<TargetFolder[]>
+	readonly probe: (folders: readonly string[], sources: readonly string[]) => Promise<Probe>
 	readonly move: (pictures: readonly (readonly MoveRequestFile[])[]) => Promise<MoveResponseFile[][]>
 	/** Takes the files out of the listing; returns what each affected picture became. */
 	readonly removeFiles: (fileIds: ReadonlySet<number>) => ReadonlyMap<Picture<ListingEntry>, Picture<ListingEntry> | null>
@@ -56,6 +56,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 	const browsing = ref(false)
 	const target = ref<string | null>(null)
 	const existing = shallowRef<ExistingFile[] | null>(null)
+	const leaving = shallowRef<ReadonlySet<Picture<ListingEntry>>>(new Set())
 	const choices = shallowRef<ReadonlyMap<Picture<ListingEntry>, ConflictChoice>>(new Map())
 	const report = shallowRef<MoveReport | null>(null)
 	const busy = ref(false)
@@ -71,7 +72,8 @@ export function useMoveFlow(context: MoveFlowContext) {
 		return { text, parsed: parsed.template }
 	})
 	const named = computed(() => nameCandidates(pictures.value ?? [], template.value.parsed, context.offset ?? browserOffset))
-	const candidates = computed(() => named.value.flatMap((each) => (each.candidate === null ? [] : [{ picture: each.picture, candidate: each.candidate }])))
+	const nameable = computed(() => named.value.flatMap((each) => (each.candidate === null ? [] : [{ picture: each.picture, candidate: each.candidate }])))
+	const candidates = computed(() => nameable.value.filter((each) => !leaving.value.has(each.picture)))
 	const plan = computed(() => (target.value === null || existing.value === null
 		? null
 		: planMove(target.value, candidates.value.map((each) => each.candidate), existing.value, (index) => choices.value.get(candidates.value[index]!.picture) ?? 'suffix')))
@@ -114,11 +116,16 @@ export function useMoveFlow(context: MoveFlowContext) {
 		const probe = ++probing
 		target.value = path
 		existing.value = null
+		leaving.value = new Set()
 		choices.value = new Map()
 		browsing.value = false
-		context.probe(probeFolders(path, candidates.value.map((each) => each.candidate))).then((folders) => {
+		const all = nameable.value
+		const moved = all.map((each) => each.candidate)
+		context.probe(probeFolders(path, moved), sourceFolders(moved)).then((answer) => {
 			if (probe === probing) {
-				existing.value = existingFiles(folders)
+				const leaves = leavesStorage(path, moved, answer)
+				leaving.value = new Set(all.filter((_, index) => leaves[index]).map((each) => each.picture))
+				existing.value = existingFiles(answer.folders)
 			}
 		}, (error: unknown) => {
 			logger.error('Could not probe the move target folders', { error })
@@ -206,6 +213,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 		browsing,
 		target,
 		named,
+		leaving,
 		plan,
 		counts,
 		allChoice,

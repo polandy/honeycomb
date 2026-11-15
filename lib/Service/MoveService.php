@@ -19,7 +19,7 @@ use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
 
 /**
- * Moves whole pictures to the paths the client rendered: each checked whole, moved file by file
+ * Moves whole pictures to the paths the client rendered, within their storage: each checked whole, moved file by file
  * and moved back when one of its files fails (ADR 0018); decisions and tags follow a new file id (MOVE-002.10, TAGS-001.10).
  *
  * @psalm-type Outcome = array{fileId: int, result: MoveResult, replaced: bool, path?: string, newFileId?: int, etag?: string}
@@ -194,6 +194,10 @@ final class MoveService {
 		}
 		if ($parent === null) {
 			return MoveResult::Exists;
+		}
+		$storage = StorageRoot::of($userFolder, $source);
+		if (StorageRoot::of($userFolder, $parent) !== $storage || ($target !== null && StorageRoot::of($userFolder, $target) !== $storage)) {
+			return MoveResult::OtherStorage;
 		}
 		if (!$parent->isCreatable()) {
 			return MoveResult::NotPermitted;

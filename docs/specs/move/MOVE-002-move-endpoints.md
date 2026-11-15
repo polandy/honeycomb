@@ -13,11 +13,14 @@ the result of each file.
 
 ## Behaviour
 
-**Probe.** `POST /apps/honeycomb/api/v1/move/targets` takes `{"folders": ["/Sorted/2026", …]}`,
-paths from the user's files with a leading `/`, at most 60,000. The answer is `200` with
-`{"folders": [{"path": "/Sorted/2026", "children": [{"name": "a.RAF", "fileId": 9, "etag": "…"},
-…]}, …]}` in the order sent: every child file and folder. A folder that does not exist yet, is a
-file or may not be read has no children.
+**Probe.** `POST /apps/honeycomb/api/v1/move/targets` takes `{"folders": ["/Sorted/2026", …],
+"sources": ["/Trip", …]}`, paths from the user's files with a leading `/`, at most 60,000 each;
+`sources` is optional. The answer is `200` with `{"folders": [{"path": "/Sorted/2026", "storage":
+"/", "children": [{"name": "a.RAF", "fileId": 9, "etag": "…"}, …]}, …], "sources": [{"path":
+"/Trip", "storage": "/"}, …]}` in the order sent: every child file and folder. A folder that does
+not exist yet, is a file or may not be read has no children. `storage` is where the storage of the
+deepest folder on the path that exists and may be read is mounted, as a path of the user's files:
+`/` for the user's own storage, else the folder of the share, group folder or external storage.
 
 **Move.** `POST /apps/honeycomb/api/v1/move` takes `{"pictures": [[{"fileId": 7, "etag": "…",
 "path": "/Sorted/2026/a.RAF", "replace": {"fileId": 9, "etag": "…"}}, …], …]}`: a list of
@@ -28,13 +31,14 @@ For each picture:
 1. Every file is checked before any moves. The source must exist in the user's files, be a file the
    listing lists, carry the given ETag and be deletable. The target path must be free, hold the
    source itself, or hold the file `replace` names with its ETag, deletable. The deepest existing
-   folder on the target path must be a folder the user may create in.
+   folder on the target path must be a folder the user may create in, on the source's storage, as
+   must the file `replace` names.
 2. The files then move in order, sidecars (`.xmp`) after the members. Missing folders are created;
    a replaced file goes to the trash bin just before its file takes its place.
 3. If a move fails, the picture's files already moved go back to their old paths, last first, and
    its remaining files are `skipped`. One picture's failure does not stop the others.
-4. A file that gets a new file id, as a move across storages gives it, takes the user's decision
-   row along to the new id, also when it moves back. A row that cannot be carried over is logged as
+4. A file that gets a new file id anyway takes the user's decision row along to the new id, also
+   when it moves back. A row that cannot be carried over is logged as
    an error; the file stays where it moved.
 
 The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "replaced": false, "path":
@@ -43,7 +47,7 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
 
 | Result | Meaning |
 |---|---|
-| `moved` | At its new path, which may have a new file id across storages; its decision follows it |
+| `moved` | At its new path, possibly under a new file id; its decision follows it |
 | `notFound` | Vanished, foreign, a folder or not a type the listing lists |
 | `changed` | Another ETag than the listing's |
 | `notPermitted` | The user may not move it or create in the target folder |
@@ -52,6 +56,7 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
 | `failed` | Any other error, logged as a warning |
 | `skipped` | Not tried, because another file of the picture failed |
 | `movedBack` | Moved, then moved back because another file of the picture failed |
+| `otherStorage` | The target is on another storage than the file, see MOVE-002.11 |
 
 ## Acceptance criteria
 
@@ -110,8 +115,8 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
 - **Given** a body that is not a list of non-empty pictures of files with a positive file id, an
   ETag and a path; a path that is not absolute or holds an empty, `.` or `..` segment, a backslash
   or a NUL; a file id or a target path (case-insensitively) given twice; a `replace` that names a
-  file of the request; more than 500 files; or a probe that is not a list of such paths or holds
-  more than 60,000
+  file of the request; more than 500 files; or a probe whose `folders` or `sources` is not a list
+  of such paths or holds more than 60,000
 - **When** the client posts it
 - **Then** the answer is `400` with an empty body and nothing is touched
 
@@ -130,6 +135,23 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
   rows stay; a row that cannot be carried over is logged as an error and the file is still
   reported `moved`
 
+### MOVE-002.11 – A move stays on its storage
+
+- **Given** a picture in an incoming share, a group folder or external storage whose target lies
+  outside it, a picture whose target lies in one (also in a folder still to be created there), or
+  a `replace` that names a file mounted from another storage
+- **When** the client posts it with a picture that moves within its share
+- **Then** the files of the first are reported `otherStorage` and stay, nothing goes to the trash
+  bin, and the other picture moves
+
+### MOVE-002.12 – The probe names each folder's storage
+
+- **Given** target folders in and below a share, one in the user's own storage, and source folders
+  in both
+- **When** the client probes them
+- **Then** each target and source folder is answered with its `storage`, the share's folder or
+  `/`, in the order sent; a malformed `sources` list is a `400`
+
 ## Out of scope
 
 The name template is MOVE-001; the move plan, conflict choices, report and undo are MOVE-003; the
@@ -143,3 +165,4 @@ over.
 | 2026-11-10 | Written and implemented with M7.2 (ADR 0018). |
 | 2026-11-10 | Decision rows follow a new file id (MOVE-002.10). |
 | 2026-11-15 | At most 500 files per move request instead of 60,000 (ADR 0029). |
+| 2026-11-15 | A move stays on its storage (MOVE-002.11); the probe names storages (MOVE-002.12). |

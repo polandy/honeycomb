@@ -19,3 +19,4 @@ Add items with `/todo`.
 - [ ] Add a `main` ruleset (pull requests only, CI required), with a bypass for `nextcloud-bot` if issue #17 says so, and the `RELEASE_PLEASE_TOKEN` secret — owner (2026-11-09)
 - [ ] Publish to the Nextcloud App Store: request the certificate, register the app and add the secrets `APP_SIGNING_KEY`, `APP_SIGNING_CERT` and `APPSTORE_TOKEN` ([`docs/admin/releasing.md`](docs/admin/releasing.md)) — owner (2026-11-09)
 - [ ] Measure the cost of the subfolder listing (`ListingService::walkBelow`, one query per folder) and of bulk-action writes with a fixture tree of ~100k files in the e2e container and the query log (2026-11-14)
+- [ ] Flaky e2e `delete.spec.ts` *restored from the trash bin* (DELETE-001.8): restore MOVE answered 201 yet the file was missing, once in two runs; the previous case trashed in the same second (trash suffix `.d<seconds>`) — find the cause (2026-11-15)

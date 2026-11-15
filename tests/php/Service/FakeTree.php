@@ -10,6 +10,7 @@ namespace OCA\Honeycomb\Tests\Service;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use OCP\Files\Mount\IMountPoint;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
@@ -29,6 +30,8 @@ trait FakeTree {
 	private array $readOnly = [];
 	/** @var array<string, true> folder paths the user may not read */
 	private array $unreadable = [];
+	/** @var array<string, true> folder paths where another storage is mounted, as a share or a group folder */
+	private array $mounts = [];
 	/** @var array<int, \Throwable> file id → what its next move throws */
 	private array $moveFailures = [];
 	/** @var array<int, int> file id → the id it gets when it moves, as across storages */
@@ -82,6 +85,12 @@ trait FakeTree {
 		$folder->method('getName')->willReturn(basename($path));
 		$folder->method('getPath')->willReturn(rtrim(self::TREE_ROOT . $path, '/'));
 		$folder->method('getEtag')->willReturn('etag-folder' . $path);
+		$folder->method('getMountPoint')->willReturnCallback(fn (): IMountPoint => $this->treeMount($path));
+		$folder->method('getRelativePath')->willReturnCallback(static fn (string $full): ?string => match (true) {
+			$full === rtrim(self::TREE_ROOT . $path, '/') => '/',
+			str_starts_with($full, rtrim(self::TREE_ROOT . $path, '/') . '/') => substr($full, strlen(rtrim(self::TREE_ROOT . $path, '/'))),
+			default => null,
+		});
 		$folder->method('isCreatable')->willReturnCallback(fn (): bool => !isset($this->readOnly[$path]));
 		$folder->method('isReadable')->willReturnCallback(fn (): bool => !isset($this->unreadable[$path]));
 		$folder->method('getFirstNodeById')->willReturnCallback(fn (int $id): ?Node => isset($this->files[$id]) ? $this->treeFile($id) : null);
@@ -114,6 +123,7 @@ trait FakeTree {
 		$file->method('getName')->willReturn(basename($path));
 		$file->method('getPath')->willReturn(self::TREE_ROOT . $path);
 		$file->method('getEtag')->willReturn("etag-$id");
+		$file->method('getMountPoint')->willReturnCallback(fn (): IMountPoint => $this->treeMount($path));
 		$file->method('getMimetype')->willReturn(match (strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
 			'jpg' => 'image/jpeg',
 			'raf' => 'image/x-fuji-raf',
@@ -143,5 +153,14 @@ trait FakeTree {
 			return $this->treeFile($newId);
 		});
 		return $file;
+	}
+
+	/** The mount of the deepest mount root on the path; the user's home is mounted at `/alice/`. */
+	private function treeMount(string $path): IMountPoint {
+		$roots = array_filter(array_keys($this->mounts), static fn (string $root): bool => $path === $root || str_starts_with($path, $root . '/'));
+		usort($roots, static fn (string $a, string $b): int => strlen($b) - strlen($a));
+		$mount = $this->createStub(IMountPoint::class);
+		$mount->method('getMountPoint')->willReturn($roots === [] ? '/alice/' : self::TREE_ROOT . $roots[0] . '/');
+		return $mount;
 	}
 }

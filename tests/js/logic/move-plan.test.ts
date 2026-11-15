@@ -6,7 +6,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { describe, expect, it } from 'vitest'
 import { filesOf } from '../../../src/logic/delete-summary.ts'
-import { existingFiles, moveRequest, planMove, probeFolders } from '../../../src/logic/move-plan.ts'
+import { existingFiles, leavesStorage, moveRequest, planMove, probeFolders, sourceFolders } from '../../../src/logic/move-plan.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
 const [PAIR, SINGLE, OTHER] = picturesOf([
@@ -40,12 +40,42 @@ describe('probeFolders', () => {
 	})
 })
 
+describe('sourceFolders', () => {
+	// spec: MOVE-004.16
+	it('lists the folder of each file once, the root as `/`', () => {
+		const [ROOT] = picturesOf([listingEntry(6, '/D.JPG')]) as [Picture<ListingEntry>]
+
+		expect(sourceFolders([candidate(PAIR, 'X'), candidate(SINGLE, 'Y'), candidate(ROOT, 'Z')])).toEqual(['/In', '/'])
+	})
+})
+
+describe('leavesStorage', () => {
+	const probe = (targets: Record<string, string>, sources: Record<string, string>) => ({
+		folders: Object.entries(targets).map(([path, storage]) => ({ path, storage, children: [] })),
+		sources: Object.entries(sources).map(([path, storage]) => ({ path, storage })),
+	})
+
+	// spec: MOVE-004.16
+	it('marks a picture whose target folder is on another storage than its folder', () => {
+		const candidates = [candidate(PAIR, 'X', 'Shared'), candidate(SINGLE, 'Y'), candidate(OTHER, 'Z', 'Group')]
+
+		expect(leavesStorage('/Out', candidates, probe({ '/Out/Shared': '/Out/Shared', '/Out': '/', '/Out/Group': '/Group' }, { '/In': '/Out/Shared' })))
+			.toEqual([false, true, true])
+	})
+
+	// spec: MOVE-004.16
+	it('marks nothing the probe does not name', () => {
+		expect(leavesStorage('/Out', [candidate(SINGLE, 'Y')], probe({}, { '/In': '/Shared' }))).toEqual([false])
+		expect(leavesStorage('/Out', [candidate(SINGLE, 'Y')], probe({ '/Out': '/' }, {}))).toEqual([false])
+	})
+})
+
 describe('existingFiles', () => {
 	// spec: MOVE-003.3
 	it('turns the probe answer into the paths of the existing files', () => {
 		const folders = [
-			{ path: '/Out', children: [{ name: 'a.RAF', fileId: 9, etag: 'etag-9' }] },
-			{ path: '/', children: [{ name: 'b.JPG', fileId: 8, etag: 'etag-8' }] },
+			{ path: '/Out', storage: '/', children: [{ name: 'a.RAF', fileId: 9, etag: 'etag-9' }] },
+			{ path: '/', storage: '/', children: [{ name: 'b.JPG', fileId: 8, etag: 'etag-8' }] },
 		]
 
 		expect(existingFiles(folders)).toEqual(existing(['/Out/a.RAF', 9], ['/b.JPG', 8]))
