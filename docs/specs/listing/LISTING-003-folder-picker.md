@@ -19,9 +19,15 @@ not. `hasSubfolders` is false when the child holds no folder or may not be liste
 LISTING-001: `404` for a foreign, vanished or file path, `403` for an unreadable folder, `401`
 without a user.
 
-**Picker.** A dialog, *Choose folders*, lists the child folders of the folder being browsed,
-sorted by name with digits by value. A checkbox ticks a folder by click, Enter or Space; an arrow
-opens a folder that has subfolders without ticking it, and breadcrumbs lead back. A hidden folder
+**Picker.** A dialog, *Choose folders*, shows the user's folders as a tree, each level sorted by
+name with digits by value; the home folder's children are the top level. A checkbox ticks a
+folder by click, Enter or Space; an arrow before a folder that has subfolders expands or
+collapses it in place without ticking it, and its child folders are loaded the first time it is
+expanded (a note says while they load, when it has none, and when they failed; expanding again
+retries). The tree is one tab stop: Up and Down move between the shown folders, Home and End go
+to the first and last, Right expands a folder or moves to its first child, Left collapses it or
+moves to its parent (WAI-ARIA tree pattern). An arrow and a row are 44 px high on a touch
+screen. A hidden folder
 is shown disabled with the reason. *Include subfolders* (any depth; hidden folders, the trash bin
 and preview folders skipped) is a switch above the folder list, so a long list cannot push it out
 of sight.
@@ -29,7 +35,7 @@ of sight.
 On every tick the picker lists the ticked folders (LISTING-001), pairs them with the user's
 pairing settings (LISTING-002) and shows the count, "*n* photos in *m* folders"; the button reads
 "Cull <folder>" or "Cull *m* folders". Each folder is listed once per switch position; only the
-latest ticks' count is shown. Confirming hands the folder set and its merged entries to the
+latest ticks' count is shown. Opened with ticked folders, the folders above them start expanded. Confirming hands the folder set and its merged entries to the
 grid.
 
 | State | Picker shows |
@@ -38,7 +44,7 @@ grid.
 | No photos | "No photos in the ticked folders." |
 | More than 20,000 pictures | a notice that the grid shows the first 20,000 by capture time |
 | Listing failed | "Could not count the photos.", counted again on the next tick |
-| Folders failed to load | a message in the list |
+| Folders failed to load | a note under the folder expanded, or in place of the list |
 
 The status line under the list is in regular weight and the muted colour, so the hint does not
 read as an error. Every folder row is one height, whether it has an arrow or not.
@@ -78,9 +84,10 @@ starts from that folder set and *Cancel* returns to it.
 ### LISTING-003.4 – Browse and tick
 
 - **Given** the picker
-- **When** the user browses and ticks folders
+- **When** the user expands and ticks folders
 - **Then** folders are sorted with digits by value, ticked ones are selected, a click, Enter or
-  Space toggles one, the arrow opens a folder without ticking it, and the breadcrumbs go back
+  Space toggles one, and the arrow expands a folder in place, loading its child folders once,
+  without ticking it, and collapses it again
 
 ### LISTING-003.5 – Hidden folders cannot be ticked
 
@@ -112,21 +119,20 @@ starts from that folder set and *Cancel* returns to it.
 
 - **Given** an older listing or folder answer that arrives after a newer one
 - **When** the picker shows counts or folders
-- **Then** it shows those of the latest ticks and the latest folder opened; each folder is listed
-  once per switch position
+- **Then** it shows the count of the latest ticks; each folder is listed once per switch position
 
 ### LISTING-003.10 – Folders that cannot be loaded
 
 - **Given** the folder endpoint fails
-- **When** the picker opens a folder
-- **Then** it says the folders cannot be loaded
+- **When** the picker loads the top level or expands a folder
+- **Then** it says the folders cannot be loaded, and expanding the folder again tries again
 
 ### LISTING-003.11 – First opening and reopening
 
 - **Given** no open cull, or an open one
 - **When** the picker opens
 - **Then** without a cull it introduces the app and cannot be cancelled; with one it starts from
-  that folder set and cancelling returns to it
+  that folder set, with the folders above the ticked ones expanded, and cancelling returns to it
 
 ### LISTING-003.12 – Confirm opens the cull
 
@@ -155,6 +161,14 @@ starts from that folder set and *Cancel* returns to it.
 - **Then** *Recent* sits under the folder list, shows three rows, and *Show all {count}* opens
   the full list in place; the folders come first in the tab order
 
+### LISTING-003.16 – Keys and touch targets of the tree
+
+- **Given** the folder tree on a desktop, iPad or phone
+- **When** the user moves through it by keyboard or by touch
+- **Then** it is one tab stop, the arrow keys move, expand and collapse after the WAI-ARIA tree
+  pattern, every arrow and row is at least 44 px on a touch screen, and the tree fits the width
+  of every reference device
+
 ## Out of scope
 
 - The grid and its folder headers: GRID-001. The resume position: DECISIONS-002.
@@ -168,3 +182,4 @@ starts from that folder set and *Cancel* returns to it.
 | 2026-11-12 | .7 the switch above the folder list (owner, iPad) |
 | 2026-11-13 | .14 a quiet status line and even rows (UX L2) |
 | 2026-11-14 | .13/.15 *Recent* below the folders, three rows and *Show all* (owner, #180 variant C) |
+| 2026-11-16 | .4/.9/.10/.11 the picker as an expandable tree, .16 its keys and touch targets (owner) |

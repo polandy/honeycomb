@@ -79,9 +79,7 @@ function expand(path: string) {
 
 /** Hides the child folders of `path`. */
 function collapse(path: string) {
-	const next = new Set(expanded.value)
-	next.delete(path)
-	expanded.value = next
+	expanded.value = new Set([...expanded.value].filter((each) => each !== path))
 }
 
 /** Expands a collapsed folder and collapses an expanded one. */
@@ -94,10 +92,13 @@ function flip(folder: Folder) {
 	}
 }
 
+/** Whether a folder is shown disabled. */
+const isDisabled = (folder: Folder) => isHiddenFolder(folder.name) || props.blocked.includes(folder.path)
+
 /** Ticks or unticks a folder the cull can include. */
 function toggle(folder: Folder) {
 	focusedPath.value = folder.path
-	if (!isHiddenFolder(folder.name) && !props.blocked.includes(folder.path)) {
+	if (!isDisabled(folder)) {
 		emit('toggle', folder.path)
 	}
 }
@@ -124,9 +125,6 @@ async function onKey(event: KeyboardEvent, folder: Folder) {
 		treeEl.value?.querySelector<HTMLElement>('[role="treeitem"][tabindex="0"]')?.focus()
 	}
 }
-
-/** Whether a folder is shown disabled. */
-const isDisabled = (folder: Folder) => isHiddenFolder(folder.name) || props.blocked.includes(folder.path)
 
 for (const path of [ROOT, ...foldersToExpand(props.ticked)]) {
 	expand(path)
@@ -165,7 +163,7 @@ for (const path of [ROOT, ...foldersToExpand(props.ticked)]) {
 					@click.stop="flip(row.folder)">
 					<AppIcon name="chevronRight" />
 				</button>
-				<span v-else class="folder-tree__twisty" aria-hidden="true" />
+				<span v-else class="folder-tree__spacer" aria-hidden="true" />
 				<span class="folder-tree__box" aria-hidden="true">
 					<AppIcon v-if="props.ticked.includes(row.folder.path)" name="check" />
 				</span>
@@ -206,18 +204,21 @@ for (const path of [ROOT, ...foldersToExpand(props.ticked)]) {
 	border-radius: var(--border-radius-element);
 }
 
-.folder-tree__item {
-	cursor: pointer;
-}
-
-/* The note lines up with the names of the folders beside it. */
 .folder-tree__note {
 	padding-inline-start: calc(var(--folder-tree-level) * var(--folder-tree-indent) + var(--folder-tree-target) + 2 * var(--default-grid-baseline));
+}
+
+.folder-tree__note,
+.folder-tree__meta {
 	color: var(--color-text-maxcontrast);
 }
 
 .folder-tree__note--failed {
 	color: var(--color-error-text);
+}
+
+.folder-tree__item {
+	cursor: pointer;
 }
 
 .folder-tree__item[aria-selected='true'] {
@@ -234,12 +235,16 @@ for (const path of [ROOT, ...foldersToExpand(props.ticked)]) {
 	outline-offset: -2px;
 }
 
+.folder-tree__twisty,
+.folder-tree__spacer {
+	flex: none;
+	width: var(--folder-tree-target);
+}
+
 .folder-tree__twisty {
 	display: flex;
-	flex: none;
 	align-items: center;
 	justify-content: center;
-	width: var(--folder-tree-target);
 	height: var(--folder-tree-target);
 	min-height: 0;
 	/* Outranks Nextcloud's global button margin, which would make the row taller. */
@@ -284,10 +289,6 @@ for (const path of [ROOT, ...foldersToExpand(props.ticked)]) {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-}
-
-.folder-tree__meta {
-	color: var(--color-text-maxcontrast);
 }
 
 @media (pointer: coarse) {
