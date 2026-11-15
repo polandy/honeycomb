@@ -19,6 +19,21 @@ sudo -u www-data php /var/www/nextcloud/occ upgrade
 Clicking *Update* in *Apps* does the same as `occ app:update`. Until the update has run, the
 new code may read tables that do not exist yet, and saving a flag, a rating or a tag fails.
 
+## Supported Nextcloud versions
+
+Each release names the Nextcloud versions it runs on in `appinfo/info.xml`, today Nextcloud 35
+only. Its tests run on the first and the newest release of that range, and an update from the
+first honeycomb release with saved decisions, tags and settings. When Nextcloud updates to a major
+the installed honeycomb does not list, Nextcloud disables honeycomb; the saved data stays in its
+tables and is used again once a honeycomb release for that major is installed.
+
+## Downgrade not supported
+
+Going back to an older honeycomb release is not supported. Updates only add tables and columns,
+but the older code does not know what a newer release wrote, and Nextcloud does not undo a
+migration. To go back, restore the database and the `custom_apps/honeycomb` folder from the
+backup taken before the update.
+
 ## Installed from a Git checkout
 
 Tag storage (pull request #119) added the tables `honeycomb_file_tags` and
