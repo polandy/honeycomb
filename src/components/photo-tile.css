@@ -139,10 +139,10 @@
 	outline-offset: 1px;
 }
 
-/* A ring, so it never reads as a colour label's filled swatch. */
+/* A white ring like the stars on the dark scrim, so it never reads as a colour label's filled swatch. */
 .photo-tile__unsaved {
 	width: 10px;
 	height: 10px;
-	border: 2px solid var(--color-warning);
+	border: 2px solid #fff;
 	border-radius: 50%;
 }

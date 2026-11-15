@@ -12,7 +12,7 @@ stars on your desktop. When you open a folder for the first time, honeycomb also
 programs have already written.
 
 While you stay on a photo, honeycomb collects your changes and writes them once you move on, or
-after two seconds without a change. Until then the grid tile shows a small orange ring. Leaving
+after two seconds without a change. Until then the grid tile shows a small white ring next to the stars. Leaving
 the page, deleting and moving write what still waits first.
 
 The technical details are in [`../06-xmp-interop.md`](../06-xmp-interop.md).
