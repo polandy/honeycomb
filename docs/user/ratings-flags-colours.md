@@ -15,7 +15,7 @@ While you stay on a photo, honeycomb collects your changes and writes them once 
 after two seconds without a change. Until then the grid tile shows a small white ring next to the
 stars. Leaving the page, deleting and moving write what still waits first.
 
-Deleting goes by the sidecars as they are now, not as honeycomb last saw them. *Delete rejected*
+Deleting goes by the sidecars as they are now, not as honeycomb last saw them. [*Review rejects*](deleting.md)
 deletes a photo only when every sidecar of it still says rejected, and *Remove RAWs* only when none
 says *Keep RAW* or rejected. If someone changed a sidecar on the desktop in between, the photo is
 skipped and the report says why; reload the folder to see its current state. A deleted photo takes
