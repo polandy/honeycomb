@@ -31,15 +31,17 @@ function deferred<T>() {
 	return { promise, resolve, reject }
 }
 
-/** A sync whose lookups answer `read` with BYTES unless told otherwise, whose saves answer as `answer` says, and that creates sidecars while `createsNew` says so. */
-function sync(answer: (item: SidecarSaveItem, call: number) => SidecarSaveAnswer | Promise<never> = () => saved(40), createsNew = () => true) {
+/** A sync whose lookups answer `read` with BYTES unless told otherwise and whose saves answer as `answer` says. */
+function sync(answer: (item: SidecarSaveItem, call: number) => SidecarSaveAnswer | Promise<never> = () => saved(40)) {
 	const lookups: number[][] = []
+	const sized: [number, number][][] = []
 	const saves: SidecarSaveItem[][] = []
 	const failures: SidecarFailure[][] = []
 	const lookupAnswer = { current: (_fileId: number): SidecarLookupAnswer => ({ result: 'read', bytes: BYTES, etag: `etag-${lookups.length}`, size: BYTES.length, mtime: 100 }) }
 	const sidecars = useSidecarSync({
-		lookupSidecars: async (fileIds) => {
+		lookupSidecars: async (fileIds, sizes) => {
 			lookups.push([...fileIds])
+			sized.push([...sizes ?? []])
 			return fileIds.map((fileId) => lookupAnswer.current(fileId))
 		},
 		lookupEmbeddedXmp: async (fileIds) => fileIds.map(() => ({ result: 'none' })),
@@ -49,8 +51,8 @@ function sync(answer: (item: SidecarSaveItem, call: number) => SidecarSaveAnswer
 			const answers = items.map((item) => answer(item, call))
 			return Promise.all(answers)
 		},
-	}, () => CANONICAL_TIME, (failed) => failures.push([...failed]), createsNew)
-	return { sidecars, lookups, saves, failures, lookupAnswer }
+	}, () => CANONICAL_TIME, (failed) => failures.push([...failed]))
+	return { sidecars, lookups, sized, saves, failures, lookupAnswer }
 }
 
 /** A `saved` answer for the file id. */
@@ -72,6 +74,17 @@ describe('useSidecarSync: write', () => {
 		expect(saves[0]!.map((item) => ('fileId' in item ? [item.fileId, item.etag] : item.path))).toEqual([[11, 'etag-1'], '/P/IMG_0001.JPG.xmp'])
 		expect(saves[1]!.map((item) => ('fileId' in item ? [item.fileId, item.etag] : item.path))).toEqual([[11, 'saved-11'], [30, 'saved-30']])
 		expect(textOf(readXmp(saves[1]![1]!.bytes), 'xmp:Rating')).toBe('4')
+	})
+
+	// spec: XMP-003.32
+	it('looks the sidecars up with the sizes the listing states, so the client packs the requests', async () => {
+		const listed = pictureOf(listingEntry(1, '/P/IMG_0002.NEF'), listingEntry(12, '/P/IMG_0002.NEF.xmp', { size: 4096 }))
+		const { sidecars, sized } = sync()
+
+		await sidecars.write([listed], decisionOf({ ...UNDECIDED, rating: 1 }))
+		await sidecars.takeOver([listed], new Set(), null)
+
+		expect(sized).toEqual([[[12, 4096]], [[12, 4096]]])
 	})
 
 	// spec: XMP-003.8
@@ -153,33 +166,6 @@ describe('useSidecarSync: write', () => {
 
 		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'unreachable', fields: DECISION_FIELDS }])
 		expect(saves[0]!.map((item) => 'path' in item && item.path)).toEqual(['/P/IMG_0001.JPG.xmp'])
-	})
-})
-
-describe('useSidecarSync: only existing sidecars', () => {
-	const paths = (items: readonly SidecarSaveItem[] | undefined) => (items ?? []).map((item) => ('fileId' in item ? item.fileId : item.path))
-
-	// spec: XMP-003.19
-	it('saves the existing sidecar of a decision, a tag change and a retry, and creates none', async () => {
-		const { sidecars, saves } = sync((item, call) => (call === 1 ? { result: 'locked' } : saved('fileId' in item ? item.fileId : 30)), () => false)
-
-		const { failed } = await sidecars.write([PAIR], decisionOf({ ...UNDECIDED, flag: 'picked' }))
-		await sidecars.retry(failed, decisionOf({ ...UNDECIDED, flag: 'picked' }))
-		await sidecars.writeTags([PAIR], { added: ['Birds'], removed: [] })
-
-		expect(saves.map(paths)).toEqual([[11], [11], [11]])
-	})
-
-	// spec: XMP-003.19
-	it('creates sidecars again once the setting allows it', async () => {
-		const creates = { current: false }
-		const { sidecars, saves } = sync((item) => saved('fileId' in item ? item.fileId : 30), () => creates.current)
-
-		await sidecars.write([PAIR], decisionOf({ ...UNDECIDED, rating: 2 }))
-		creates.current = true
-		await sidecars.write([PAIR], decisionOf({ ...UNDECIDED, rating: 3 }))
-
-		expect(saves.map(paths)).toEqual([[11], [11, '/P/IMG_0001.JPG.xmp']])
 	})
 })
 

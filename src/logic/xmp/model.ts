@@ -81,8 +81,11 @@ export interface XmpTime {
 	readonly offsetMinutes: number
 }
 
+/** Every reason a sidecar is refused. */
+export const XMP_REFUSALS = ['not-utf-8', 'malformed', 'doctype', 'conflict', 'not-xmp'] as const
+
 /** Why a sidecar was refused. */
-export type XmpRefusal = 'not-utf-8' | 'malformed' | 'doctype' | 'conflict' | 'not-xmp'
+export type XmpRefusal = typeof XMP_REFUSALS[number]
 
 /** A line and column in a sidecar, both from 1. */
 export interface XmlPosition {

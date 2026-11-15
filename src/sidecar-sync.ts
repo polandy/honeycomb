@@ -13,12 +13,12 @@ import { logger } from './logger.ts'
 import { DECISION_FIELDS } from './logic/decision.ts'
 import { embeddedXmpSource } from './logic/embedded-xmp.ts'
 import { failureOf, passOf, retryStep, stepResult } from './logic/sidecar-pass.ts'
-import { applySaves, embeddedLookups, existingOnly, planSaves, takeOverDecisions, takeOverLookups, writeLookups } from './logic/sidecar-sync.ts'
+import { applySaves, embeddedLookups, planSaves, takeOverDecisions, takeOverLookups, writeLookups } from './logic/sidecar-sync.ts'
 import { takeOverTags } from './logic/sidecar-tags.ts'
 
 /** The sidecar endpoints (ADR 0017) and the embedded XMP endpoint (ADR 0023). */
 export interface SidecarApi {
-	lookupSidecars(fileIds: readonly number[]): Promise<SidecarLookupAnswer[]>
+	lookupSidecars(fileIds: readonly number[], sizes?: ReadonlyMap<number, number>): Promise<SidecarLookupAnswer[]>
 	lookupEmbeddedXmp(fileIds: readonly number[]): Promise<EmbeddedXmpAnswer[]>
 	saveSidecars(items: readonly SidecarSaveItem[]): Promise<SidecarSaveAnswer[]>
 }
@@ -35,8 +35,8 @@ interface Waiting {
 	readonly reject: (error: unknown) => void
 }
 
-/** Takes decisions and tags over from the sidecars and writes them to the sidecars, one pass after another, creating missing ones while `createsNew` says so (XMP-003, TAGS-002). */
-export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (failed: SidecarFailure[]) => void, createsNew: () => boolean) {
+/** Takes decisions and tags over from the sidecars and writes them to the sidecars, one pass after another, creating missing ones (XMP-003, TAGS-002). */
+export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (failed: SidecarFailure[]) => void) {
 	let known = new Map<string, KnownSidecar>()
 	let waiting: Waiting[] = []
 	let passing = false
@@ -51,7 +51,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		}
 		let answers: Map<number, SidecarLookupAnswer>
 		try {
-			answers = await answersById(fileIds, api.lookupSidecars)
+			answers = await answersById(fileIds, (ids) => api.lookupSidecars(ids, sizesOf(pictures)))
 		} catch (error) {
 			logger.warn('Could not look up the sidecars; nothing is taken over', { error })
 			return { decided: [], tagged: [] }
@@ -132,13 +132,13 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 
 	/** Reads the sidecars honeycomb holds no bytes of, merges the edits and saves them in one request each. */
 	async function round(pictures: Pictures, editOf: EditOf, paths?: Paths) {
-		const answers = await lookUp(pictures.flatMap((picture) => writeLookups(picture, known, paths?.get(picture))), api.lookupSidecars, 'Could not look up the sidecars to write')
+		const answers = await lookUp(pictures.flatMap((picture) => writeLookups(picture, known, paths?.get(picture))), (ids) => api.lookupSidecars(ids, sizesOf(pictures)), 'Could not look up the sidecars to write')
 		const embeddedIds = pictures.flatMap((picture) => embeddedXmpSource(picture, known)?.fileId ?? [])
 		const embedded = await lookUp(embeddedIds, api.lookupEmbeddedXmp, 'Could not look up the embedded XMP to write')
 		const time = now()
 		const planned = pictures.map((picture) => planSaves(picture, editOf(picture), known, answers, time, paths?.get(picture), embedded))
 		const saves = planned.flatMap(({ saves }) => saves)
-		const saved = await save(createsNew() ? saves : existingOnly(saves))
+		const saved = await save(saves)
 		return { failed: [...planned.flatMap(({ failed }) => failed), ...saved.failed], changed: saved.changed }
 	}
 
@@ -178,4 +178,9 @@ async function answersById<T>(fileIds: readonly number[], request: (fileIds: rea
 	}
 	const answers = await request(fileIds)
 	return new Map(fileIds.map((fileId, index) => [fileId, answers[index]!]))
+}
+
+/** The listed size of each sidecar of the pictures, by file id, which the lookup packs its requests by. */
+function sizesOf(pictures: Pictures): Map<number, number> {
+	return new Map(pictures.flatMap((picture) => picture.sidecars.map(({ fileId, size }): [number, number] => [fileId, size])))
 }

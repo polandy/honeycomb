@@ -10,6 +10,7 @@ import type { Schedule } from './logic/long-press.ts'
 import type { Settings } from './logic/settings.ts'
 import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
 import type { MoveApi } from './move-flow.ts'
+import type { OnPageHide } from './page-hide.ts'
 import type { WarmPreviews } from './preview-warmer.ts'
 import type { ResumeApi } from './resume.ts'
 import type { SidecarFlowApi } from './sidecar-flow.ts'
@@ -21,6 +22,7 @@ import { listEntries as apiListEntries, listFolders as apiListFolders, loadSetti
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { browserHashWorkers } from './hash-workers.ts'
 import { acknowledgeLegacy, loadLegacyExport, loadLegacyInventory } from './legacy-api.ts'
+import { onBrowserPageHide } from './page-hide.ts'
 import { saveBrowserFile } from './save-file.ts'
 import { lookupSeries, saveSeries } from './series-api.ts'
 import { browserNow } from './sidecar-flow.ts'
@@ -45,6 +47,8 @@ export interface AppSeams {
 	positions?: ResumeApi
 	storage?: BrowserStorage
 	schedule?: Schedule
+	/** Writes the waiting sidecars when the page hides (XMP-003.29). */
+	onPageHide?: OnPageHide
 	toggleFullscreen?: (element: HTMLElement) => void
 	trashPictures?: (pictures: readonly (readonly TrashRequestFile[])[]) => Promise<TrashResponseFile[][]>
 	sidecars?: SidecarFlowApi
@@ -53,6 +57,8 @@ export interface AppSeams {
 	clearCache?: () => Promise<void>
 	legacy?: LegacyApi
 	saveFile?: (name: string, text: string) => void
+	/** Whether the Versions app is enabled for the user, which writing to sidecars needs (SETTINGS-001.26). */
+	versionsApp?: boolean
 }
 
 /** The seams the app uses in production. */
@@ -72,6 +78,7 @@ export const APP_SEAMS = {
 	positions: () => ({ loadPositions, savePosition }),
 	storage: () => window.localStorage,
 	schedule: browserSchedule,
+	onPageHide: onBrowserPageHide,
 	toggleFullscreen: toggleBrowserFullscreen,
 	trashPictures: apiTrashPictures,
 	sidecars: () => ({ lookupSidecars, lookupEmbeddedXmp, saveSidecars, now: browserNow }),
@@ -80,4 +87,5 @@ export const APP_SEAMS = {
 	clearCache,
 	legacy: () => ({ loadInventory: loadLegacyInventory, loadExport: loadLegacyExport, acknowledge: acknowledgeLegacy }),
 	saveFile: () => saveBrowserFile,
+	versionsApp: true,
 }

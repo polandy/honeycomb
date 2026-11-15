@@ -23,6 +23,7 @@ describe('useDeleteFlow: requests in chunks', () => {
 		deleting.summarise([PAIR!, SINGLE!])
 		const done = deleting.confirm()
 		expect(deleting.progress.value).toEqual({ done: 0, total: 2 })
+		await flushPromises()
 		pending.shift()!()
 		await flushPromises()
 		expect(deleting.progress.value).toEqual({ done: 1, total: 2 })

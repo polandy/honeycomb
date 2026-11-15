@@ -68,7 +68,7 @@ honeycomb writes it into the sidecar files of the photo, so it is the same tag i
 - `lr:hierarchicalSubject`, which Lightroom Classic and darktable read;
 - `dc:subject`, which holds the last name of each tag, for programs that know no levels.
 
-With *Existing and new sidecars*, a photo without a sidecar gets one when you tag it, like
+A photo without a sidecar gets one when you tag it, like
 `IMG_0001.NEF.xmp`. Keywords that other
 programs have written into `dc:subject` stay as they are.
 

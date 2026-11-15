@@ -98,14 +98,13 @@ written, shared folder*. The section follows a tag change at once.
 ### TAGS-004.9 – Where the tags are written
 
 - **Given** a tagged picture with two sidecars and a darktable duplicate's, a pair with the RAW's
-  sidecar only, a picture without one, and a picture in a shared folder
-- **When** the info panel shows each, for each choice of *Write decisions to XMP sidecars*
-  (XMP-003)
-- **Then** *Written to* names the two sidecars by file name, not the duplicate's; names the RAW's
-  sidecar and, with *Existing and new sidecars*, the JPEG's sidecar the write creates; says
-  *Not written, no sidecar* for the picture without one under *Only existing sidecars*,
-  *Not written, shared folder* for the shared one, and *Not written, off in the settings* for
-  every picture while the setting is *Off*
+  sidecar only, and pictures of each writability (XMP-008)
+- **When** the info panel shows each
+- **Then** for a writable picture *Written to* names the two sidecars by file name, not the
+  duplicate's, and for the pair the RAW's sidecar and the JPEG's sidecar the write creates; for a
+  locked one it says *Not written, off in the settings*, *Not written, read-only folder*, *Not
+  written, shared folder not confirmed*, *Not written, the folder keeps no versions* or *Not
+  written, a sidecar was refused*
 
 ## Out of scope
 
@@ -120,3 +119,4 @@ filter (`docs/07-tags.md` Tag filter).
 | 2026-11-13 | .8, .9 the loupe's info panel lists the tags and where they are written (*Tags 4*) |
 | 2026-11-13 | .8 an untagged picture shows "—" instead of *none* (UX M6) |
 | 2026-11-15 | .9 *Written to* follows the setting *Write decisions to XMP sidecars* (risk review R1/R9) |
+| 2026-11-15 | .9 *Written to* names the picture's writability (XMP-008, ADR 0032 PR 6) |

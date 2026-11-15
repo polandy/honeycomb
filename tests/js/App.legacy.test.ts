@@ -16,7 +16,7 @@ const INVENTORY: LegacyInventory = { folders: [{ path: '/Photos/A', files: 2 }, 
 const EXPORTED: LegacyExport = { decisions: [{ fileId: 7, rating: 1, colourLabel: null, flag: 'picked', keepRaw: false }], tags: [{ fileId: 8, tags: ['Anna'] }, { fileId: 9, tags: ['Ben'] }] }
 
 /** The app on a cull, over legacy endpoints answering `inventory`, with writing set as given. */
-async function openWith(inventory: LegacyInventory, sidecarWrite: SidecarWrite = 'existing-and-new') {
+async function openWith(inventory: LegacyInventory, sidecarWrite: SidecarWrite = 'on') {
 	const reads: number[] = []
 	const acknowledged: number[][] = []
 	const saved: { name: string, text: string }[] = []
@@ -78,9 +78,8 @@ describe('App: the notice of legacy rows', () => {
 
 	// spec: XMP-007.8
 	it.each<[string, LegacyInventory, SidecarWrite]>([
-		['without rows', { folders: [], unreachable: 0 }, 'existing-and-new'],
+		['without rows', { folders: [], unreachable: 0 }, 'on'],
 		['with writing Off', INVENTORY, 'off'],
-		['with only existing sidecars', INVENTORY, 'existing'],
 	])('shows no notice %s', async (_case, inventory, sidecarWrite) => {
 		const { wrapper } = await openWith(inventory, sidecarWrite)
 

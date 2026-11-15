@@ -12,7 +12,7 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import SettingsDialog from '../../src/components/SettingsDialog.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { mountApp, openCull, shownNames } from './app-cull.ts'
+import { mountApp, openCull, shownNames, WRITING_ON } from './app-cull.ts'
 
 describe('App: the settings', () => {
 	// spec: SETTINGS-001.7
@@ -42,7 +42,7 @@ describe('App: the settings', () => {
 		await flushPromises()
 
 		expect(shownNames(wrapper)).toEqual(['IMG_10'])
-		expect(savedSettings).toEqual([{ ...DEFAULT_SETTINGS, showSingles: false }])
+		expect(savedSettings).toEqual([{ ...WRITING_ON, showSingles: false }])
 	})
 
 	// spec: SETTINGS-001.22
@@ -92,13 +92,13 @@ describe('App: the settings', () => {
 		wrapper.findComponent(PhotoGrid).vm.$emit('open', 0)
 		await flushPromises()
 		const loupe = wrapper.findComponent(PhotoLoupe)
-		expect(loupe.props('settings')).toEqual(DEFAULT_SETTINGS)
+		expect(loupe.props('settings')).toEqual(WRITING_ON)
 
 		loupe.vm.$emit('updateSettings', { flagButtonsShown: false })
 		await flushPromises()
 
-		expect(wrapper.findComponent(PhotoLoupe).props('settings')).toEqual({ ...DEFAULT_SETTINGS, flagButtonsShown: false })
-		expect(savedSettings).toEqual([{ ...DEFAULT_SETTINGS, flagButtonsShown: false }])
+		expect(wrapper.findComponent(PhotoLoupe).props('settings')).toEqual({ ...WRITING_ON, flagButtonsShown: false })
+		expect(savedSettings).toEqual([{ ...WRITING_ON, flagButtonsShown: false }])
 	})
 
 	// spec: SETTINGS-001.25

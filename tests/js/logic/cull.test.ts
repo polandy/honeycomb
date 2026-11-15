@@ -20,18 +20,24 @@ describe('countFolderSet', () => {
 
 		const count = countFolderSet([{ entries: [...pair, single], truncated: false }, { entries: [single], truncated: false }], DEFAULT_PAIRING_SETTINGS)
 
-		expect(count).toEqual({ entries: [...pair, single], pictures: 2, folders: 2, firstFolder: '/A', overCap: false, sharedFolders: [] })
+		expect(count).toEqual({ entries: [...pair, single], pictures: 2, folders: 2, firstFolder: '/A', overCap: false, access: { folders: [], opened: [] } })
 	})
 
 	it('has no first folder and nothing over the cap without pictures', () => {
-		expect(countFolderSet([{ entries: [], truncated: false }], DEFAULT_PAIRING_SETTINGS)).toEqual({ entries: [], pictures: 0, folders: 0, firstFolder: null, overCap: false, sharedFolders: [] })
+		expect(countFolderSet([{ entries: [], truncated: false }], DEFAULT_PAIRING_SETTINGS)).toEqual({ entries: [], pictures: 0, folders: 0, firstFolder: null, overCap: false, access: { folders: [], opened: [] } })
 	})
 
 	// spec: XMP-003.14
-	it('collects the shared folders of every listing, each once', () => {
-		const listings = [{ entries: [], truncated: false, sharedFolders: ['/A/Team'] }, { entries: [], truncated: false, sharedFolders: ['/A/Team', '/B'] }]
+	// spec: XMP-008.4
+	it('collects the folders of every listing, each once, and every opened folder', () => {
+		const team = { path: '/A/Team', shared: true, permissions: 31, versions: true }
+		const b = { path: '/B', shared: false, permissions: 1, versions: true }
+		const listings = [
+			{ entries: [], truncated: false, folders: [team], opened: { path: '/A', fileId: 7 } },
+			{ entries: [], truncated: false, folders: [team, b], opened: null },
+		]
 
-		expect(countFolderSet(listings, DEFAULT_PAIRING_SETTINGS).sharedFolders).toEqual(['/A/Team', '/B'])
+		expect(countFolderSet(listings, DEFAULT_PAIRING_SETTINGS).access).toEqual({ folders: [team, b], opened: [{ path: '/A', fileId: 7 }] })
 	})
 
 	it('is over the cap when a listing is truncated', () => {

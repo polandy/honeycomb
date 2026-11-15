@@ -95,7 +95,7 @@ describe('DeleteReport', () => {
 	// spec: DELETE-002.9, DELETE-002.10
 	it('lists the failed files with their reasons and offers Close and Retry failed files', async () => {
 		const report = trashReport(wholePictures([PAIR!]), [[{ fileId: 2, result: 'trashed' }, { fileId: 1, result: 'locked' }, { fileId: 3, result: 'skipped' }]])
-		const wrapper = mount(DeleteReport, { props: { report, folderSet: SET, busy: false }, global })
+		const wrapper = mount(DeleteReport, { props: { report, skipped: [], folderSet: SET, busy: false }, global })
 
 		expect(wrapper.find('[role="dialog"]').attributes('name')).toBe('Deletion finished with errors')
 		expect(wrapper.find('.delete-stats').text()).toBe('1file moved to trash2failed')
@@ -108,6 +108,20 @@ describe('DeleteReport', () => {
 		await wrapper.findAll('button')[0]!.trigger('click')
 		expect(wrapper.emitted('retry')).toHaveLength(1)
 		expect(wrapper.emitted('close')).toHaveLength(1)
+	})
+
+	// spec: DELETE-002.16
+	it('lists the skipped photos with their reasons and holds the retry while no file failed', () => {
+		const report = trashReport(wholePictures([PAIR!]), [[{ fileId: 1, result: 'trashed' }, { fileId: 2, result: 'trashed' }, { fileId: 3, result: 'trashed' }]])
+		const skipped = [{ picture: SINGLE!, reason: 'notRejected' as const }]
+		const wrapper = mount(DeleteReport, { props: { report, skipped, folderSet: SET, busy: false }, global })
+
+		expect(wrapper.find('[role="dialog"]').attributes('name')).toBe('Some photos were skipped')
+		expect(wrapper.find('.delete-stats').text()).toBe('3files moved to trash0failed1photo skipped')
+		expect(wrapper.findAll('.trash-files__row').map((row) => row.text())).toEqual([
+			'JPGB/IMG_2.JPGIts sidecars do not say rejected1 kB',
+		])
+		expect(wrapper.findComponent(ConfirmDialog).props('confirmDisabled')).toBe(true)
 	})
 })
 
@@ -163,7 +177,7 @@ describe('RawRemovalSummary', () => {
 
 		expect(summary({ progress }).findComponent(ConfirmDialog).props('progress')).toEqual(progress)
 		expect(mount(DeleteSummary, { props: { pictures: [PAIR!], folderSet: SET, fromReview: false, busy: true, progress }, global }).findComponent(ConfirmDialog).props('progress')).toEqual(progress)
-		expect(mount(DeleteReport, { props: { report, folderSet: SET, busy: true, progress }, global }).findComponent(ConfirmDialog).props('progress')).toEqual(progress)
+		expect(mount(DeleteReport, { props: { report, skipped: [], folderSet: SET, busy: true, progress }, global }).findComponent(ConfirmDialog).props('progress')).toEqual(progress)
 	})
 
 	// spec: DELETE-003.5

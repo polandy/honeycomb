@@ -7,11 +7,13 @@ import type { Decision, DecisionField, StoredDecision } from './logic/decision.t
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { PairingSettings, Picture } from './logic/pairing.ts'
-import type { Settings, SidecarWriting } from './logic/settings.ts'
+import type { Settings } from './logic/settings.ts'
 import type { TagChange } from './logic/tag.ts'
 import type { DecisionStep, PickRestStep, StepEffects, TagStep, UndoStep } from './logic/undo.ts'
+import type { ListedAccess, WriteLock } from './logic/writability.ts'
 
 import { computed, ref, shallowRef, watch } from 'vue'
+import { useCullAccess } from './cull-access.ts'
 import { useCullHistory } from './cull-history.ts'
 import { useCullTags } from './cull-tags.ts'
 import { nameComparer } from './l10n.ts'
@@ -30,6 +32,7 @@ import { inDoneSeries } from './logic/stored-series.ts'
 import { inverseChange } from './logic/tag.ts'
 import { withoutFiles } from './logic/trash-report.ts'
 import { applyStep, pickRestEntry, tagStep, undoEntry } from './logic/undo.ts'
+import { NO_ACCESS } from './logic/writability.ts'
 import { usePreviewWarmer } from './preview-warmer.ts'
 import { useSeriesEdits } from './series-edits.ts'
 import { useSeries } from './series.ts'
@@ -39,8 +42,8 @@ import { useViewOptions } from './view-options.ts'
 /** A step of the cull's undo history. */
 export type CullStep = UndoStep<Picture<ListingEntry>>
 
-/** The open cull, its view settings and the folder picker's state; it pairs and shows singles as the settings say. */
-export function useCull(api: CullApi, storage: BrowserStorage, settings: () => Settings, sidecars: CullSidecars) {
+/** The open cull, its view settings and the folder picker's state; it pairs and shows singles as the settings say, and reports a step it may not write in `onLocked`. */
+export function useCull(api: CullApi, storage: BrowserStorage, settings: () => Settings, sidecars: CullSidecars, onLocked: (lock: WriteLock<CullStep>) => void) {
 	const compareNames = nameComparer()
 	const folderSet = ref<FolderSet | null>(null)
 	const entries = shallowRef<readonly ListingEntry[]>([])
@@ -51,7 +54,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const decisions = shallowRef<ReadonlyMap<number, Decision>>(new Map())
 	const saveFailed = ref(false)
 	const saveDecisions = saveQueue(api.saveDecisions, { key: byFileId })
-	const sharedFolders = shallowRef<ReadonlySet<string>>(new Set())
+	const access = useCullAccess(settings, onLocked)
 	let opening = 0
 	const storedSeries = useStoredSeries(api, () => opening)
 	/** Puts each kind of step into effect, or takes it back when `back`. */
@@ -62,10 +65,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		series: (step, back) => void storedSeries.store(back ? step.before : step.after),
 	}
 	const history = useCullHistory<CullStep>((step, back) => applyStep(effects, step, back))
-	/** How the picture's sidecars are written: the setting, unless a shared folder keeps them (XMP-003.11, .18). */
-	const sidecarWriting = (picture: Picture<ListingEntry>): SidecarWriting => settings().sidecarWrite !== 'off' && inSharedFolder(picture, sharedFolders.value) ? 'shared-folder' : settings().sidecarWrite
-	/** Whether a step on the picture is written through to its sidecars on its own. */
-	const writesThrough = (picture: Picture<ListingEntry>) => sidecarWriting(picture) !== 'off' && sidecarWriting(picture) !== 'shared-folder'
+	/** Whether a step on the picture is written through to its sidecars (XMP-008.1). */
+	const writesThrough = (picture: Picture<ListingEntry>) => access.writabilityOf(picture) === 'writable'
 	const tags = useCullTags(api.tags, sidecars.writeTags, () => opening, writesThrough)
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
 	const folders = computed(() => folderPaths.value.length)
@@ -81,13 +82,13 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
 	const seriesState = useSeries(api, storage, () => pictures.value, decisionOf, () => storedSeries.rows.value)
 	const warmer = usePreviewWarmer(api.warmPreviews, storage)
-	const sharedPictures = computed(() => pictures.value.filter((picture) => inSharedFolder(picture, sharedFolders.value)))
+	const sharedPictures = computed(() => pictures.value.filter((picture) => inSharedFolder(picture, access.sharedFolders.value)))
 	const seriesEdits = useSeriesEdits({ record: history.record, rows: () => storedSeries.rows.value, newId: storedSeries.newId, seriesOf: () => seriesState.seriesOf.value })
 
 	/** Shows the pictures of the confirmed folders with fresh filters, then their stored decisions. */
-	function open(set: FolderSet, listed: readonly ListingEntry[], shared: readonly string[]) {
+	function open(set: FolderSet, listed: readonly ListingEntry[], listedAccess: ListedAccess = NO_ACCESS) {
 		folderSet.value = set
-		sharedFolders.value = new Set(shared)
+		access.open(listedAccess)
 		opening++
 		entries.value = listed
 		paired.value = prepareCull(listed, pairing.value).pictures
@@ -141,19 +142,19 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	/** What the pictures share, for the action bar. */
 	const common = (chosen: readonly Picture<ListingEntry>[]) => commonDecision(decided(chosen))
 
-	/** Decides the pictures, keeps the step for undo and returns it, or null when nothing changes. */
+	/** Decides the pictures, keeps the step for undo and returns it, or null when nothing changes or a picture is locked. */
 	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]): DecisionStep | null {
-		return history.record(undoEntry(decided(chosen), resolveChange(intent, decided(chosen))))
+		return access.gate(chosen, () => history.record(undoEntry(decided(chosen), resolveChange(intent, decided(chosen)))))
 	}
 
 	/** Picks one picture and rejects the rest as one undo step (SERIES-001.9), or null when nothing changes. */
 	function pickRest(picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]): PickRestStep | null {
-		return history.record(pickRestEntry(decided([picked])[0]!, decided(rest)))
+		return access.gate([picked, ...rest], () => history.record(pickRestEntry(decided([picked])[0]!, decided(rest))))
 	}
 
 	/** Applies the tag change to the pictures as one undo step and returns it, or null when nothing changes (TAGS-003.10, .11). */
 	function tag(change: TagChange, chosen: readonly Picture<ListingEntry>[]): TagStep<Picture<ListingEntry>> | null {
-		return history.record(tagStep(chosen, tags.tagsOf, change))
+		return access.gate(chosen, () => history.record(tagStep(chosen, tags.tagsOf, change)))
 	}
 
 	/** Changes the pictures' tags and says in the grid when the save failed. */
@@ -186,7 +187,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		})
 	}
 
-	/** Writes the changed fields of the rows' pictures to their sidecars where they write through (XMP-003.6, .11, .18, .20). */
+	/** Writes the changed fields of the rows' pictures to their sidecars where they write through (XMP-003.6, .20, XMP-008.1). */
 	function writeThrough(rows: readonly StoredDecision[], fields: readonly DecisionField[], opened: number) {
 		const fileIds = new Set(rows.map((row) => row.fileId))
 		const written = paired.value.filter((picture) => memberIds(picture).some((fileId) => fileIds.has(fileId)) && writesThrough(picture))
@@ -196,7 +197,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	}
 
 	/** The pictures with legacy rows, for *Write decisions to sidecars…* (XMP-007.5). */
-	const legacy = computed(() => legacyWrites(paired.value, decisions.value, tags.tagsOf, (picture) => inSharedFolder(picture, sharedFolders.value)))
+	const legacy = computed(() => legacyWrites(paired.value, decisions.value, tags.tagsOf, (picture) => inSharedFolder(picture, access.sharedFolders.value)))
 
 	/** Takes trashed files out of the pictures; returns what each affected picture became (ADR 0013). */
 	function removeFiles(fileIds: ReadonlySet<number>) {
@@ -224,7 +225,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	}
 
 	return {
-		sidecarWriting,
+		writabilityOf: access.writabilityOf,
+		refuse: access.refuse,
 		folderSet,
 		pictures,
 		pairing,

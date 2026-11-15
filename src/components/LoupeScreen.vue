@@ -35,7 +35,7 @@ defineExpose({ loupe: photoLoupe })
 		:decidedOf="cull.decidedOf"
 		:seriesOf="cull.seriesOf.value"
 		:tagsOf="cull.tags.tagsOf"
-		:sidecarWriting="cull.sidecarWriting"
+		:writabilityOf="cull.writabilityOf"
 		:storage="storage"
 		:viewState="viewState"
 		:settings="settings"

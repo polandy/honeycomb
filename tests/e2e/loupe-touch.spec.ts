@@ -3,7 +3,7 @@
 import type { CDPSession, Locator, Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
-import { openLoupe, putSettings } from './cull.ts'
+import { E2E_SETTINGS, openLoupe, putSettings } from './cull.ts'
 
 const IPAD = {
 	portrait: { width: 820, height: 1180 },
@@ -98,6 +98,6 @@ test('pins the filmstrip by the pin at its own end in landscape, and offers none
 		await page.setViewportSize(IPAD.portrait)
 		await expect(pin).toBeHidden()
 	} finally {
-		await putSettings(page, {})
+		await putSettings(page, E2E_SETTINGS)
 	}
 })

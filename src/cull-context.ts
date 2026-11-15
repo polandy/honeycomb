@@ -35,6 +35,8 @@ export interface CullContext {
 	/** Whole, as the series compare screen binds nearly all of it. */
 	readonly seriesCompare: SeriesCompareFlow<Picture<ListingEntry>>
 	readonly sidecars: Pick<SidecarFlow, 'ask'>
+	/** The picture whose sidecar writes still wait (XMP-003.28). */
+	readonly unsaved: Readonly<Ref<Picture<ListingEntry> | null>>
 	readonly legacy: Legacy
 	readonly tagEntry: Pick<ReturnType<typeof useTagEntryTargets>, 'open'>
 	/** Whether the toolbar and the filter bar show above the grid. */

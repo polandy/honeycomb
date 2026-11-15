@@ -5,6 +5,7 @@ import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 import type { TrashResponseFile } from '../../src/logic/trash-report.ts'
 
+import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ref, shallowRef } from 'vue'
 import { TrashBinOffError } from '../../src/api.ts'
@@ -14,7 +15,7 @@ import { UNDECIDED } from '../../src/logic/decision.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../../src/logic/pairing.ts'
 import { withoutFiles } from '../../src/logic/trash-report.ts'
 import { failureReason } from '../../src/trash-text.ts'
-import { allTrashed, flow, OTHER, PAIR, SINGLE } from './delete-fixtures.ts'
+import { allPass, allTrashed, flow, OTHER, PAIR, SINGLE } from './delete-fixtures.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
 
 afterEach(() => vi.restoreAllMocks())
@@ -112,11 +113,29 @@ describe('useDeleteFlow', () => {
 		expect(toasts).toEqual([message])
 	})
 
+	// spec: XMP-003.30
+	it('writes the waiting sidecars and waits for every write before it moves anything to the trash bin', async () => {
+		let written = () => {}
+		const { deleting, sent } = flow(allTrashed, undefined, () => new Promise<void>((resolve) => (written = resolve)))
+		deleting.summarise([PAIR!])
+
+		const confirmed = deleting.confirm()
+		await flushPromises()
+		expect(sent).toEqual([])
+
+		written()
+		await confirmed
+		expect(sent).toHaveLength(1)
+	})
+
 	// spec: DELETE-002.7
 	it('sends nothing without a summary or a report, or while a request runs', async () => {
 		let release = () => {}
+		let reached = () => {}
+		const trashing = new Promise<void>((resolve) => (reached = resolve))
 		const { deleting, sent } = flow((request) => new Promise((resolve) => {
 			release = () => resolve(request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'trashed' }))))
+			reached()
 		}))
 		await deleting.confirm()
 		await deleting.retry()
@@ -124,6 +143,7 @@ describe('useDeleteFlow', () => {
 		deleting.summarise([SINGLE!])
 		const first = deleting.confirm()
 		await deleting.confirm()
+		await trashing
 		release()
 		await first
 
@@ -159,6 +179,8 @@ describe('useDeleteFlow: Remove RAWs', () => {
 				chosen.forEach((picture) => (next.has(picture) ? next.delete(picture) : next.add(picture)))
 				marked.value = next
 			},
+			flush: async () => {},
+			check: allPass,
 			trash: async (request) => {
 				sent.push(request.map((files) => [...files]))
 				return answer(request.map((files) => [...files]))

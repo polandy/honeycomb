@@ -2,14 +2,25 @@
 
 honeycomb keeps your decisions — stars, flags and colour labels — and, once you turn it on, writes
 them into the XMP sidecar files next to your photos (`IMG_0001.NEF.xmp` or `IMG_0001.xmp`).
-Writing is off by default; choose it under **Settings → XMP sidecars**
-([settings](settings.md#xmp-sidecars)). With *Only existing sidecars*, setting anything on a photo
-— a flag, stars, a colour label or *Keep RAW* — updates the sidecars it already has; with
-*Existing and new sidecars* a file without one also gets a new `IMG_0001.NEF.xmp`. A photo you have
-not touched gets none. digiKam,
+Writing is off by default, and honeycomb rates only what it can write: your first flag, stars,
+colour label or *Keep RAW* asks to turn it *On*, as does **Settings → XMP sidecars**
+([settings](settings.md#xmp-sidecars)). Then setting anything on a photo updates the sidecars it
+already has, and a file without one gets a new `IMG_0001.NEF.xmp`. A photo you have not touched
+gets none. digiKam,
 darktable and Lightroom Classic read those files, so a photo you rated on the iPad shows the same
 stars on your desktop. When you open a folder for the first time, honeycomb also picks up what these
 programs have already written.
+
+While you stay on a photo, honeycomb collects your changes and writes them once you move on, or
+after two seconds without a change. Until then the grid tile shows a small white ring next to the
+stars. Leaving the page, deleting and moving write what still waits first.
+
+Deleting goes by the sidecars as they are now, not as honeycomb last saw them. *Delete rejected*
+deletes a photo only when every sidecar of it still says rejected, and *Remove RAWs* only when none
+says *Keep RAW* or rejected. If someone changed a sidecar on the desktop in between, the photo is
+skipped and the report says why; reload the folder to see its current state. A deleted photo takes
+its sidecars into the trash bin with it. Before a RAW goes, its values are copied into the JPEG's
+own sidecar, so nothing you decided is lost; if that sidecar cannot be written, the RAW stays.
 
 The technical details are in [`../06-xmp-interop.md`](../06-xmp-interop.md).
 
@@ -88,14 +99,17 @@ it was when honeycomb writes it. Tags are the one other thing honeycomb writes (
 ## Shared folders
 
 In a folder shared with you, or one you share — with other users, by public link or by mail, as a
-group folder or on external storage several users mount — honeycomb keeps your decisions to itself
-and writes no sidecars on its own, since everyone with access would see them.
+group folder or on external storage several users mount — everyone with access sees the sidecars.
+So your first rating there asks once whether to write to the shared folder; your answer covers
+the folder you opened and its subfolders. In a folder you may only read, in one whose storage
+keeps no versions, or for a photo whose sidecar honeycomb refused to change, nothing can be
+rated: a message says why, and the loupe's info panel names the reason under *Written to*.
 
 ## Moving stored decisions into sidecars
 
 Earlier versions kept ratings, flags, colour labels, *Keep RAW* marks and tags in honeycomb's
 database. To move them into the sidecars, where digiKam, darktable and Lightroom see them, set
-**Write decisions to XMP sidecars** to *Existing and new sidecars*. The grid then names the folders
+**Write decisions to XMP sidecars** to *On*. The grid then names the folders
 that still hold stored decisions. Open each one and choose **⋯ → Write decisions to sidecars…**:
 honeycomb names the photos and folders, warns if one lies in a shared folder, and once you confirm
 writes the stored values into each photo's sidecars. Where a sidecar says otherwise, the stored

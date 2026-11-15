@@ -12,6 +12,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **RAW file** | A camera RAW file, recognised by its extension (configurable list). |
 | **sidecar** | An `.xmp` file that holds metadata for a member; deleted together with its picture. |
 | **XMP cache** | The values honeycomb derived from one sidecar or one JPEG's embedded XMP, kept per user and ETag so a folder visit reads only changed files; rebuilt at any time (ADR 0032). |
+| **waiting picture** | The one picture whose sidecar writes honeycomb holds until the user leaves it or 2 s pass idle; its grid tile shows a ring, read as *Not saved yet* (ADR 0032). |
 | **base name** | The file name up to the last `.`, compared case-insensitively. |
 | **folder mode** | *Same folder* (pairs side by side) or *separate subfolders* (e.g. `RAW/`, `JPG/`). |
 | **rating** | 0 to 5 stars. 0 means unrated. |
@@ -54,6 +55,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **name template** | The pattern that builds a moved picture's path, e.g. `{date:%Y}/{name}.{ext}` (`docs/05-name-templates.md`). |
 | **delete summary** | The dialog that lists pictures, files, bytes freed and the trash-bin note before deleting. |
 | **remove RAWs summary** | The same dialog before *Remove RAWs*, which also says how many pictures were skipped and why. |
+| **skipped photo** | A photo a delete by decision leaves alone because its sidecars changed, cannot be read or do not agree; listed in the delete report (ADR 0032). |
 | **trash bin** | Nextcloud's trash bin (`files_trashbin`), where deleted files can be restored from. |
 | **tag** | A path of names, `Places/Italy/Dolomites`, given to a picture; digiKam's tag. Not a *keyword* or *label* (a label is a colour label). |
 | **tag list** | Every tag the user has, offered by the tag entry and the filter. |

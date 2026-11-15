@@ -31,7 +31,7 @@ async function openApp(decisions: StoredDecision[] = [], move: Move = allMoved()
 		sent.push(request)
 		return move(request)
 	}
-	const mounted = mountApp({ move: { probeTargets, movePictures }, schedule: fakeScheduler().schedule, loadSettings: async () => settings }, decisions, { NcDialog: DialogStub })
+	const mounted = mountApp({ move: { probeTargets, movePictures }, schedule: fakeScheduler().schedule, loadSettings: async () => ({ sidecarWrite: 'on', ...settings }) }, decisions, { NcDialog: DialogStub })
 	await openCull(mounted.wrapper)
 	return { ...mounted, sent }
 }

@@ -129,6 +129,8 @@ test('narrows the grid to a picked tag and counts the tags on the tile', async (
 	await page.setViewportSize({ width: 427, height: 952 })
 	await page.screenshot({ path: testInfo.outputPath('tag-filter-phone-dark.png') })
 	await page.emulateMedia({ colorScheme: 'light' })
+	// on the phone the open filter bar and the stored-decisions note leave the grid no height to render cells in
+	await page.setViewportSize({ width: 1440, height: 900 })
 
 	await group.getByRole('button', { name: `Remove ${tag} from the filter` }).click()
 	await expect(grid.getByRole('gridcell')).toHaveCount(2)

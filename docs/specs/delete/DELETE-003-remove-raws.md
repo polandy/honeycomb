@@ -23,6 +23,13 @@ Confirming sends each RAW with its own sidecars (`<raw>.xmp` and darktable dupli
 picture to the trash endpoint, RAW first. The JPEG, its sidecar and a shared `<base>.xmp` stay; the
 picture becomes a *JPEG only* single. Like deleting, it is not undone by `Ctrl+Z` (DELETE-002.12).
 
+Confirming checks the sidecars afresh like deleting by decision (DELETE-002.15): a pair goes only
+when every sidecar reads and none says *Keep RAW* or *rejected*. Before a RAW sidecar that states a
+decision or tags goes, a pair whose JPEG has no sidecar of its own nor a shared one gets
+`<jpeg>.xmp` with the picture's decision and tags, so the JPEG keeps its values in digiKam. Where
+that sidecar cannot be written (the picture is not writable, XMP-008, or the save fails), the pair
+is skipped. The delete report lists the skipped photos (DELETE-002.16).
+
 ## Acceptance criteria
 
 ### DELETE-003.1 – The action and its count
@@ -75,6 +82,21 @@ picture becomes a *JPEG only* single. Like deleting, it is not undone by `Ctrl+Z
 - **Then** its sidecar is not tried, the picture stays a pair, the other RAWs go, and the delete
   report lists the failed files
 
+### DELETE-003.8 – Only pairs every sidecar lets go
+
+- **Given** the summary with a pair whose RAW sidecar says *Keep RAW* since the listing, a pair
+  whose sidecar cannot be read, and an undecided pair without sidecars
+- **When** the user confirms
+- **Then** only the RAW of the undecided pair goes; the other two are skipped and reported
+
+### DELETE-003.9 – The JPEG keeps its values
+
+- **Given** a pair whose only sidecar is `IMG.NEF.xmp` with a rating and tags, and a second such
+  pair whose JPEG cannot get a sidecar written
+- **When** the user confirms *Remove RAWs*
+- **Then** `IMG.JPG.xmp` is written with the rating and tags before the first RAW goes; the second
+  pair is skipped and keeps its RAW
+
 ## Out of scope
 
 Marking *Keep RAW* elsewhere and its filter: DECISIONS-001, GRID-002, GRID-003. Writing the marker
@@ -86,3 +108,4 @@ to XMP: M5.
 |---|---|
 | 2026-11-10 | Written from the merged M4.3 (#53) |
 | 2026-11-15 | The summary shows the trash-bin note of DELETE-002.6 |
+| 2026-11-15 | Checks the sidecars afresh and writes the JPEG's sidecar first (DELETE-003.8, DELETE-003.9, ADR 0032 PR 8) |

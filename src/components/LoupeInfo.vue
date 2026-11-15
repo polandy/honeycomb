@@ -7,8 +7,8 @@ import type { Decision } from '../logic/decision.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
-import type { SidecarWriting } from '../logic/settings.ts'
 import type { Tag } from '../logic/tag.ts'
+import type { Writability } from '../logic/writability.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
@@ -26,11 +26,11 @@ const props = withDefaults(defineProps<{
 	decision: Decision
 	/** The picture's tags, sorted (TAGS-004.8). */
 	tags?: readonly Tag[]
-	/** How tag changes are written to the sidecars (TAGS-004.9). */
-	sidecarWriting?: SidecarWriting
+	/** Whether the picture's decisions and tags are written to its sidecars, or why not (TAGS-004.9, XMP-008). */
+	writability?: Writability
 }>(), {
 	tags: () => [],
-	sidecarWriting: 'off',
+	writability: 'off',
 })
 
 /** Shown for a fact the picture lacks. */
@@ -60,16 +60,19 @@ const decisionRows = computed(() => {
 		...(props.picture.raw !== null && props.picture.rendered !== null ? [{ term: t('honeycomb', 'Keep RAW'), value: keepRaw ? t('honeycomb', 'yes') : t('honeycomb', 'no') }] : []),
 	]
 })
+const NOT_WRITTEN: Record<Exclude<Writability, 'writable'>, () => string> = {
+	off: () => t('honeycomb', 'Not written, off in the settings'),
+	readOnly: () => t('honeycomb', 'Not written, read-only folder'),
+	shared: () => t('honeycomb', 'Not written, shared folder not confirmed'),
+	noVersions: () => t('honeycomb', 'Not written, the folder keeps no versions'),
+	refused: () => t('honeycomb', 'Not written, a sidecar was refused'),
+}
 const writtenTo = computed(() => {
-	if (props.sidecarWriting === 'off') {
-		return t('honeycomb', 'Not written, off in the settings')
-	}
-	if (props.sidecarWriting === 'shared-folder') {
-		return t('honeycomb', 'Not written, shared folder')
+	if (props.writability !== 'writable') {
+		return NOT_WRITTEN[props.writability]()
 	}
 	const { existing, created } = sidecarTargets(props.picture)
-	const paths = [...existing.map(({ path }) => path), ...(props.sidecarWriting === 'existing-and-new' ? created : [])]
-	return paths.length > 0 ? paths.map((path) => parseFileName(path).name).join(', ') : t('honeycomb', 'Not written, no sidecar')
+	return [...existing.map(({ path }) => path), ...created].map((path) => parseFileName(path).name).join(', ')
 })
 </script>
 

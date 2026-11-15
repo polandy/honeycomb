@@ -32,6 +32,8 @@ export interface MoveFlowContext {
 	readonly updateSettings: (patch: Partial<Settings>) => void
 	readonly probe: (folders: readonly string[], sources: readonly string[]) => Promise<Probe>
 	readonly move: (pictures: readonly (readonly MoveRequestFile[])[]) => Promise<MoveResponseFile[][]>
+	/** Writes the waiting sidecars and waits for every write in flight (XMP-003.30). */
+	readonly flush: () => Promise<void>
 	/** Takes the files out of the listing; returns what each affected picture became. */
 	readonly removeFiles: (fileIds: ReadonlySet<number>) => ReadonlyMap<Picture<ListingEntry>, Picture<ListingEntry> | null>
 	readonly restoreFiles: (entries: readonly ListingEntry[]) => void
@@ -147,8 +149,9 @@ export function useMoveFlow(context: MoveFlowContext) {
 		context.toast(moveFailedText(error))
 	}
 
-	/** Sends the pictures in chunks; throws when the first request fails, logs a later failure (ADR 0029). */
+	/** Sends the pictures in chunks once the waiting sidecars are written; throws when the first request fails, logs a later failure (ADR 0029). */
 	async function send(request: readonly (readonly MoveRequestFile[])[], what: string, onProgress: (done: number) => void = () => {}) {
+		await context.flush()
 		const sent = await sendInChunks(request, context.move, onProgress, context.chunks)
 		if (sent.failure !== null && sent.answers.length === 0) {
 			throw sent.failure.error

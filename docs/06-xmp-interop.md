@@ -125,8 +125,8 @@ Same as Framehive (CORE-009 "Sidecar names", LIBRARY-001 "Metadata"):
 - **Writing** is off until the user opts in (setting *Write decisions to XMP sidecars*,
   XMP-003). It then goes to every sidecar of the picture that exists, so none is left stale. When
   a member has none, honeycomb creates `<member file>.xmp` (CORE-009.21, `original_with_extension`,
-  digiKam's default), one per member (LIBRARY-001.6). ADR 0032 PR 6 leaves *Off* and *On*; until
-  then *Only existing sidecars* creates none.
+  digiKam's default), one per member (LIBRARY-001.6). The setting is *Off* or *On* (ADR 0032
+  PR 6); *On* creates them.
 - darktable's duplicates (`IMG_0001_01.NEF.xmp`, `image.c:930`) belong to darktable versions,
   not to members: honeycomb neither reads nor writes them, and deletes them with the picture.
   *Added; Framehive does not mention them.*

@@ -1271,6 +1271,19 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   *Existing and new sidecars*, as the inventory looks up every file id with a row.
 - 2026-11-15: The migration acknowledges the member ids of the saved pictures in one request,
   sorted, and sends none when no picture was saved.
+- 2026-11-15: A step with any picture not writable decides none of its pictures; `off` and
+  `shared` ask in one dialog and take the step after *Write to sidecars*, the rest is a toast.
+- 2026-11-15: Undo and redo are not gated by writability; the server checks every save.
+- 2026-11-15: A folder the listing does not name counts as writable; the server rechecks.
+- 2026-11-15: `refused` holds the XMP refusals of this visit only; opening a folder set clears it.
+- 2026-11-15: The shared confirmation is keyed by the listed folder's `fileId`, which the listing
+  now answers; the settings keep the latest 200.
+- 2026-11-15: Whether the Versions app is on for the user reaches the client as the page's
+  `data-versions-app`, not as an endpoint.
+- 2026-11-15: The hint for a stored *Only existing sidecars* is cleared once the settings section
+  showed it.
+- 2026-11-15: The cull reading through the XMP cache (XMP-006.7) is split from sidecar PR 6 into
+  its own PR.
 - 2026-11-15: The loupe reads the cull from the context (ADR 0028, review R8b) through a new
   screen root `LoupeScreen`, not by `PhotoLoupe` injecting it: `PhotoLoupe` keeps its props, so
   its eight test files mount it unchanged, and only the screen root injects, as for the grid.
@@ -1324,6 +1337,30 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   number in the compare (#185 PR 5).
 - 2026-11-15: After a merge in the compare, it shows the merged series with the same photo active;
   the merged series keeps the id of the earlier stored series, as a grid merge does (#185 PR 5).
+- 2026-11-15: Sidecar writes wait per picture (ADR 0032 PR 7) until the loupe shows another picture
+  or closes, a write lands on another picture, or 2 s pass idle; a write of several pictures or of
+  none goes at once. The flush before delete and move also awaits the writes already in flight.
+- 2026-11-15: The pending marker is a white ring on the grid tile, like the stars, read as "Not
+  saved yet"; in the loupe the waiting picture is the shown one, so it needs no marker there.
+- 2026-11-15: Sidecar requests are packed in the browser, at most 1000 items and 8 MiB each:
+  lookups by the listed file size, saves by the content's length; the server keeps no byte budget.
+- 2026-11-15: The resume position and the visual hashes save through `saveQueue`; the resume
+  position uses one key, so only the latest position is sent, as before.
+- 2026-11-15: The sidecar migration and its retry write at once; they are no step on a picture.
+- 2026-11-15: The fresh check before deleting (ADR 0032 PR 8) runs for the reviewed rejects and
+  *Remove RAWs* only; an explicit *Delete…* of chosen photos deletes them as chosen.
+- 2026-11-15: The fresh check agrees per flag: rejects needs every readable sidecar to say
+  rejected and at least one source; Remove RAWs needs none to say *Keep RAW* or rejected and
+  passes a pair with no sidecar.
+- 2026-11-15: Before a RAW goes, `IMG.JPG.xmp` is written only when the RAW's own sidecars hold a
+  decision or tags; a pair whose JPEG sidecar cannot be written is skipped.
+- 2026-11-15: A delete by decision trashes the files of the fresh listing, so sidecars written
+  since the folder was listed go to the trash bin with their photo.
+- 2026-11-15: A skipped photo is listed in the delete report with its reason, stays in the grid
+  with its old decision until the folder is reloaded, and is not retried; *Retry* stays off when
+  nothing failed. A failed listing or lookup aborts the delete with the generic message.
+- 2026-11-15: A reject stored only in the legacy decision table is skipped by the fresh check, as
+  no sidecar or embedded XMP says rejected.
 - 2026-11-15: *Series done* marks the series from the compare's title row menu only; the loupe's
   auto-advance trigger stays the flag, the pictures it skips are those the cull counts as decided,
   and the *rest* offer still reads flags (#185 PR 6).
