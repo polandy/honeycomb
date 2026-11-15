@@ -46,7 +46,7 @@ test('keeps pictures in an incoming share out of a move to the own files', async
 	const dialog = page.getByRole('dialog', { name: 'Move 1 photo' })
 	await dialog.getByRole('button', { name: 'Browse…' }).click()
 	const browse = page.getByRole('dialog', { name: 'Choose the target folder' })
-	await browse.getByRole('option', { name: target }).click()
+	await browse.getByRole('treeitem', { name: target }).click()
 	await browse.getByRole('button', { name: 'Choose' }).click()
 	await expect(dialog.getByText('IMG_0001 is not moved: the target is outside its shared folder or storage')).toBeVisible()
 	await expect(dialog.getByRole('button', { name: /^Move/ })).toBeDisabled()

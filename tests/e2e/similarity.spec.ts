@@ -23,7 +23,7 @@ test('computes the missing hashes of a folder tree in workers and stores them', 
 	expect((await missing()).pictures.map((picture) => picture.path)).toEqual([`/${folder}/2026/IMG_0002.jpg`, `/${folder}/IMG_0001.jpg`])
 	await page.reload()
 
-	await page.getByRole('option', { name: folder }).click()
+	await page.getByRole('treeitem', { name: folder }).click()
 	await page.getByRole('button', { name: 'Start' }).click()
 
 	await expect(page.getByText('Done: every photo in this folder has its similarity.')).toBeVisible()

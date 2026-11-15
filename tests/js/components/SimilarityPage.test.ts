@@ -6,7 +6,7 @@ import type { StoredVisualHash } from '../../../src/logic/visual-hash.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import FolderList from '../../../src/components/FolderList.vue'
+import FolderTree from '../../../src/components/FolderTree.vue'
 import SimilarityPage from '../../../src/components/SimilarityPage.vue'
 import { RateLimitedError } from '../../../src/logic/retry-after.ts'
 
@@ -43,7 +43,7 @@ function mountPage(fake = seams().fake) {
 const button = (wrapper: ReturnType<typeof mountPage>, label: string) => wrapper.findAll('button').find((each) => each.text() === label)
 
 async function startIn(wrapper: ReturnType<typeof mountPage>) {
-	await wrapper.findComponent(FolderList).vm.$emit('toggle', '/Photos')
+	await wrapper.findComponent(FolderTree).vm.$emit('toggle', '/Photos')
 	await button(wrapper, 'Start')!.trigger('click')
 	await flushPromises()
 }
