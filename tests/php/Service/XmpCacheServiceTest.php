@@ -82,15 +82,15 @@ final class XmpCacheServiceTest extends TestCase {
 
 	// spec: XMP-006.3
 	public function testSkipsWhatTheUserDoesNotReachAsThatKind(): void {
-		$saved = $this->service()->save($this->user(), [
+		$skipped = $this->service()->save($this->user(), [
 			XmpCacheRowTest::item(['fileId' => 404]),
 			XmpCacheRowTest::item(['fileId' => 7]),
 			XmpCacheRowTest::item(['fileId' => 8, 'kind' => 'embedded']),
 			XmpCacheRowTest::item(['fileId' => 5]),
-			XmpCacheRowTest::item(['fileId' => 7, 'kind' => 'embedded']),
-			XmpCacheRowTest::item(),
 		]);
+		$saved = $this->service()->save($this->user(), [XmpCacheRowTest::item(['fileId' => 7, 'kind' => 'embedded']), XmpCacheRowTest::item()]);
 
+		$this->assertSame([], $skipped);
 		$this->assertSame([7, 9], $saved);
 		$this->assertSame([7, 9], array_keys($this->store->rows['alice']));
 	}

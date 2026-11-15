@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\FileVersions;
-use OCA\Honeycomb\Service\SidecarResult;
 use OCA\Honeycomb\Service\SidecarWriter;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
@@ -17,14 +16,11 @@ use OCP\App\IAppManager;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
+use OCP\Files\Mount\IMountPoint;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
-use OCP\Files\NotPermittedException;
 use OCP\Files\Storage\IStorage;
 use OCP\IUser;
-use OCP\Lock\LockedException;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 /** A folder of sidecars on a fake disk, and the `SidecarWriter` that writes into it. */
@@ -66,6 +62,7 @@ trait FakeSidecarFolder {
 		$file->method('getParent')->willReturn($folder);
 		$file->method('getOwner')->willReturn($this->user($this->owner));
 		$file->method('getStorage')->willReturn($this->createStub(IStorage::class));
+		$file->method('getMountPoint')->willReturn($this->createStub(IMountPoint::class));
 		return $file;
 	}
 

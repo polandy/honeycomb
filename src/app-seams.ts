@@ -22,6 +22,7 @@ import { lookupSeries } from './series-api.ts'
 import { browserNow } from './sidecar-flow.ts'
 import { browserSchedule } from './tile-selection.ts'
 import { hashPreview } from './visual-hashes.ts'
+import { clearCache } from './xmp-cache-api.ts'
 
 /** The server and browser seams of the app; tests replace them with fakes. */
 export interface AppSeams {
@@ -44,6 +45,7 @@ export interface AppSeams {
 	sidecars?: SidecarFlowApi
 	move?: MoveApi
 	tags?: CullTagsApi
+	clearCache?: () => Promise<void>
 }
 
 /** The seams the app uses in production. */
@@ -67,4 +69,5 @@ export const APP_SEAMS = {
 	sidecars: () => ({ lookupSidecars, lookupEmbeddedXmp, saveSidecars, now: browserNow }),
 	move: () => ({ probeTargets, movePictures }),
 	tags: () => ({ lookupTags, saveTags, loadTagList }),
+	clearCache,
 }

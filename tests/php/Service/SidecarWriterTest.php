@@ -7,21 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\FileVersions;
 use OCA\Honeycomb\Service\SidecarResult;
-use OCA\Honeycomb\Service\SidecarWriter;
-use OCA\Honeycomb\Service\UserFolderResolver;
-use OCA\Honeycomb\Service\UserPhotos;
-use OCA\Honeycomb\Service\VersionBackends;
-use OCP\App\IAppManager;
-use OCP\Files\File;
 use OCP\Files\Folder;
-use OCP\Files\IRootFolder;
-use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
-use OCP\Files\Storage\IStorage;
-use OCP\IUser;
 use OCP\Lock\LockedException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;

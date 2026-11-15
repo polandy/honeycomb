@@ -14,7 +14,6 @@ use Psr\Log\LoggerInterface;
 
 /** Hands the client the XMP packet each listed JPEG embeds (ADR 0023). */
 final class EmbeddedXmpReader {
-	private const string JPEG_MIME = 'image/jpeg';
 
 	public function __construct(
 		private UserPhotos $photos,
@@ -37,8 +36,8 @@ final class EmbeddedXmpReader {
 
 	/** @return array{result: SidecarResult, content?: string} */
 	private function read(Folder $userFolder, int $fileId): array {
-		$node = $this->photos->photo($userFolder, $fileId);
-		if ($node === null || $node->getMimetype() !== self::JPEG_MIME) {
+		$node = $this->photos->jpeg($userFolder, $fileId);
+		if ($node === null) {
 			return ['result' => SidecarResult::NotFound];
 		}
 		if (!$node->isReadable()) {

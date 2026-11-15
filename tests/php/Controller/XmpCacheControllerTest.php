@@ -25,6 +25,7 @@ use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\UserRateLimit;
+use OCP\AppFramework\Http\Response;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\IRequest;
@@ -109,6 +110,7 @@ final class XmpCacheControllerTest extends TestCase {
 	}
 
 	// spec: XMP-006.4
+	/** @param \Closure(XmpCacheController): Response $call */
 	#[DataProvider('routes')]
 	public function testAnswersUnauthorizedWithoutAUser(\Closure $call): void {
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $call($this->controller(false))->getStatus());

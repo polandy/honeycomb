@@ -27,7 +27,7 @@ final class XmpCacheMapperTest extends DbTestCase {
 	}
 
 	private static function stated(int $fileId): XmpCacheRow {
-		return new XmpCacheRow($fileId, XmpSource::Sidecar, "etag-$fileId", 2, XmpReadState::Read, null, 0, Flag::Picked, ColourLabel::Purple, false, ['Holiday', 'People/Anna']);
+		return new XmpCacheRow($fileId, XmpSource::Sidecar, "etag-$fileId", 2, XmpReadState::Read, null, 0, Flag::Picked, ColourLabel::Magenta, false, ['Holiday', 'People/Anna']);
 	}
 
 	private static function silent(int $fileId): XmpCacheRow {

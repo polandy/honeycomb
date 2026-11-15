@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-use OCP\App\IAppManager;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\NotFoundException;
@@ -20,7 +19,7 @@ use Psr\Log\LoggerInterface;
 final class SidecarWriter {
 	public function __construct(
 		private UserPhotos $photos,
-		private IAppManager $appManager,
+		private FileVersions $versions,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -34,21 +33,20 @@ final class SidecarWriter {
 	public function save(IUser $user, array $sidecars): array {
 		$sidecars = SidecarRequest::sidecars($sidecars);
 		$userFolder = $this->photos->userFolder($user);
-		$versioned = $this->appManager->isEnabledForUser('files_versions', $user);
-		return array_map(fn (ExistingSidecar|NewSidecar $sidecar): array => $this->saveOne($userFolder, $sidecar, $versioned), $sidecars);
+		return array_map(fn (ExistingSidecar|NewSidecar $sidecar): array => $this->saveOne($userFolder, $sidecar), $sidecars);
 	}
 
 	/** @return array{result: SidecarResult, fileId?: int, etag?: string, size?: int|float, mtime?: int} */
-	private function saveOne(Folder $userFolder, ExistingSidecar|NewSidecar $sidecar, bool $versioned): array {
+	private function saveOne(Folder $userFolder, ExistingSidecar|NewSidecar $sidecar): array {
 		$target = $this->check($userFolder, $sidecar);
-		// Without versions the replaced bytes of another program could not be restored (XMP-002.10).
-		if (!$versioned && $sidecar instanceof ExistingSidecar && !$target instanceof SidecarResult) {
-			return ['result' => SidecarResult::NoVersions];
-		}
 		if ($target instanceof SidecarResult) {
 			return ['result' => $target];
 		}
-		[$folder, $name] = $target;
+		[$folder, $name, $existing] = $target;
+		// Without versions the replaced bytes of another program could not be restored (XMP-002.10).
+		if ($existing !== null && !$this->versions->keeps($existing)) {
+			return ['result' => SidecarResult::NoVersions];
+		}
 		$part = null;
 		try {
 			$part = $folder->newFile("$name.part", $sidecar->bytes);
@@ -68,8 +66,8 @@ final class SidecarWriter {
 	}
 
 	/**
-	 * The folder and name to save to, or why the sidecar may not be saved.
-	 * @return array{Folder, string}|SidecarResult
+	 * The folder and name to save to with the sidecar it replaces, or why the sidecar may not be saved.
+	 * @return array{Folder, string, ?File}|SidecarResult
 	 */
 	private function check(Folder $userFolder, ExistingSidecar|NewSidecar $sidecar): array|SidecarResult {
 		if ($sidecar instanceof NewSidecar) {
@@ -86,10 +84,10 @@ final class SidecarWriter {
 		if (!$node->isUpdateable() || !$folder->isCreatable()) {
 			return SidecarResult::NotPermitted;
 		}
-		return [$folder, $node->getName()];
+		return [$folder, $node->getName(), $node];
 	}
 
-	/** @return array{Folder, string}|SidecarResult */
+	/** @return array{Folder, string, null}|SidecarResult */
 	private function checkNew(Folder $userFolder, string $path): array|SidecarResult {
 		try {
 			$image = $userFolder->get(substr($path, 0, -strlen('.xmp')));
@@ -104,7 +102,7 @@ final class SidecarWriter {
 		if ($folder->nodeExists($name)) {
 			return SidecarResult::Changed;
 		}
-		return $folder->isCreatable() ? [$folder, $name] : SidecarResult::NotPermitted;
+		return $folder->isCreatable() ? [$folder, $name, null] : SidecarResult::NotPermitted;
 	}
 
 	private function deletePart(File $part): void {

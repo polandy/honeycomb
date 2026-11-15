@@ -42,7 +42,9 @@ final class ListingServiceSubfoldersTest extends TestCase {
 	}
 
 	private function service(IRootFolder $root, int $entryLimit = ListingService::ENTRY_LIMIT): ListingService {
-		return new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore()), new SharedFolders($this->shares(), $this->createStub(IUserMountCache::class)), $this->fileVersions(), $entryLimit);
+		$mounts = $this->createStub(IUserMountCache::class);
+		$mounts->method('getMountsForStorageId')->willReturn([]);
+		return new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore()), new SharedFolders($this->shares(), $mounts), $this->fileVersions(), $entryLimit);
 	}
 
 	// spec: LISTING-001.4

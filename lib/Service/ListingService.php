@@ -24,6 +24,7 @@ final class ListingService {
 		private UserFolderResolver $folders,
 		private EntryFactory $entryFactory,
 		private SharedFolders $sharedFolders,
+		private FileVersions $versions,
 		private int $entryLimit = self::ENTRY_LIMIT,
 	) {
 	}
@@ -66,10 +67,11 @@ final class ListingService {
 		return new Listing([...$entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch)], false, array_values($folders));
 	}
 
-	/** @return array{path: string, shared: bool} */
+	/** @return array{path: string, shared: bool, permissions: int, versions: bool} */
 	private function folderOf(IUser $user, Folder $userFolder, File $node): array {
 		$path = $userFolder->getRelativePath(dirname($node->getPath())) ?? '/';
-		return ['path' => $path, 'shared' => $this->sharedFolders->isShared($user, $node->getParent())];
+		$parent = $node->getParent();
+		return ['path' => $path, 'shared' => $this->sharedFolders->isShared($user, $parent), 'permissions' => $parent->getPermissions(), 'versions' => $this->versions->keeps($parent)];
 	}
 
 	/** @psalm-assert-if-true File $node */

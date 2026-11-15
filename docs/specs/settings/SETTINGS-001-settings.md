@@ -32,9 +32,9 @@ back to its default, so an unknown, missing or invalid field never breaks the ap
 | Write decisions to XMP sidecars | Off; can be only existing sidecars, or existing and new ones |
 
 *Settings* in the grid's ⋯ menu opens a dialog with the sections *File types*, *Folder layout*,
-*Loupe gestures*, *Keyboard*, *Moving photos*, *XMP sidecars* and *Cache*. Each change applies at once and
-saves the whole object; there is no OK button. What a setting does elsewhere is specified where it
-acts (LISTING-002, LOUPE-001, LOUPE-002, KEYS-001, MOVE-004, XMP-003).
+*Loupe gestures*, *Keyboard*, *Moving photos*, *XMP sidecars* and *Cache*. Each change applies at
+once and saves the whole object; there is no OK button. What a setting does elsewhere is specified
+where it acts (LISTING-002, LOUPE-001, LOUPE-002, KEYS-001, MOVE-004, XMP-003).
 
 *XMP sidecars* offers *Off*, *Only existing sidecars* and *Existing and new sidecars*, each with a
 line that says what it changes. Leaving *Off* asks first: a dialog explains what is written where

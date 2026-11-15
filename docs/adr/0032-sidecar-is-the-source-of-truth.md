@@ -177,9 +177,9 @@ values.
 | 1 | `refactor(xmp)` | the delta applied to each sidecar's state; never `xmp:Rating` −1 |
 | 2 | – | dropped (`honeycomb:RejectedRating`) |
 | 3 | `feat(xmp)` | embedded XMP as a source of rating, flag and colour label; a new JPEG sidecar takes them over |
-| 4 | `feat(api)` | cache table, lookup, put, delete, `occ honeycomb:cache:clear`, versions per node, `permissions` and `versions` in the listing |
+| 4 | `feat(api)` | cache table, lookup, put, delete, `occ honeycomb:cache:clear`, *Clear cache*, versions per node, `permissions` and `versions` in the listing |
 | 5 | `feat(xmp)` | migration through the ⋯ entry, acknowledgement, banner, export |
-| 6 | `feat(cull)` | the switch: cull reads through the cache, writability with `readOnly`, confirmation, *Off*/*On*, *Clear cache* |
+| 6 | `feat(cull)` | the switch: cull reads through the cache, writability with `readOnly`, confirmation, *Off*/*On* |
 | 7 | `feat(xmp)` | bundling with an injected scheduler and the flushes |
 | 8 | `fix(delete)` | the fresh check, every sidecar must state the flag, the JPEG sidecar before *Remove RAWs* |
 | 9 | `refactor(db)` | the repair step and `occ` drop the legacy tables, endpoints and `carryOver` |

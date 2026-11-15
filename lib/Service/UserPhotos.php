@@ -13,6 +13,9 @@ use OCP\IUser;
 
 /** The one check whether a file id is a photo, sidecar or listed file in the user's files, at a given version. */
 final class UserPhotos {
+	/** The one photo type that embeds XMP the client reads (ADR 0023). */
+	private const string JPEG_MIME = 'image/jpeg';
+
 	public function __construct(
 		private UserFolderResolver $userFolders,
 	) {
@@ -58,6 +61,12 @@ final class UserPhotos {
 	/** The photo with `$fileId` in `$userFolder`, or null for a missing, foreign, folder or other id. */
 	public function photo(Folder $userFolder, int $fileId): ?File {
 		return self::fileOf($userFolder, $fileId, ListingService::isPhoto(...));
+	}
+
+	/** The JPEG with `$fileId` in `$userFolder`, or null for a missing, foreign, folder or other id. */
+	public function jpeg(Folder $userFolder, int $fileId): ?File {
+		$photo = $this->photo($userFolder, $fileId);
+		return $photo?->getMimetype() === self::JPEG_MIME ? $photo : null;
 	}
 
 	/** The XMP sidecar with `$fileId` in `$userFolder`, or null for a missing, foreign, folder or other id. */
