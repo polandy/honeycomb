@@ -251,4 +251,3 @@ describe('App: series compare', () => {
 		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_2', 'IMG_3'])
 	})
 })
-

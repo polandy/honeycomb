@@ -204,4 +204,3 @@ describe('useCull: series edits', () => {
 		expect(written.at(-1)).toEqual({ series: [{ id: 12, status: 'done', fileIds: [1, 2] }, { id: 13, status: 'open', fileIds: [3, 4] }], keptOut: [], released: [] })
 	})
 })
-
