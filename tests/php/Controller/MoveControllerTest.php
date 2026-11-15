@@ -20,6 +20,7 @@ use OCA\Honeycomb\Tests\Service\FakeSeriesStore;
 use OCA\Honeycomb\Tests\Service\FakeTagStore;
 use OCA\Honeycomb\Tests\Service\FakeTree;
 use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
+use OCA\Honeycomb\Tests\Service\FakeXmpCacheStore;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -41,7 +42,7 @@ final class MoveControllerTest extends TestCase {
 		$apps->method('isEnabledForUser')->willReturn($trashBin);
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $this->treeUser() : null);
-		$move = new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores(new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore(), new FakeSeriesStore()), $this->createStub(LoggerInterface::class));
+		$move = new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores(new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore()), $this->createStub(LoggerInterface::class));
 		return new MoveController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $move, new MoveTargetService($this->treeRoot()));
 	}
 

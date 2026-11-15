@@ -10,6 +10,7 @@ import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import SettingsDialog from '../../src/components/SettingsDialog.vue'
+import UndoToast from '../../src/components/UndoToast.vue'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { mountApp, openCull, shownNames } from './app-cull.ts'
 
@@ -98,5 +99,18 @@ describe('App: the settings', () => {
 
 		expect(wrapper.findComponent(PhotoLoupe).props('settings')).toEqual({ ...DEFAULT_SETTINGS, flagButtonsShown: false })
 		expect(savedSettings).toEqual([{ ...DEFAULT_SETTINGS, flagButtonsShown: false }])
+	})
+
+	// spec: SETTINGS-001.25
+	it('clears the cache from the dialog and says so', async () => {
+		let cleared = 0
+		const { wrapper } = mountApp({ clearCache: async () => void cleared++ })
+		await openCull(wrapper)
+
+		wrapper.findComponent(SettingsDialog).vm.$emit('clearCache')
+		await flushPromises()
+
+		expect(cleared).toBe(1)
+		expect(wrapper.findComponent(UndoToast).text()).toContain('Cache cleared')
 	})
 })

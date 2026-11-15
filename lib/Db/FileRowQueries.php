@@ -107,6 +107,16 @@ trait FileRowQueries {
 		}
 	}
 
+	/** Removes the rows of `$userId`, or every row for null, and returns how many. */
+	private function clearRows(?string $userId): int {
+		$query = $this->db->getQueryBuilder();
+		$query->delete($this->getTableName());
+		if ($userId !== null) {
+			$query->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)));
+		}
+		return $query->executeStatement();
+	}
+
 	private function deleteUserRows(string $table, string $userId): void {
 		$query = $this->db->getQueryBuilder();
 		$query->delete($table)

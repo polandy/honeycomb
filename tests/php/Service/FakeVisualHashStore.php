@@ -55,6 +55,17 @@ final class FakeVisualHashStore implements VisualHashStore {
 	}
 
 	#[\Override]
+	public function clear(?string $userId): int {
+		$userIds = $userId === null ? array_keys($this->rows) : [$userId];
+		$removed = 0;
+		foreach ($userIds as $id) {
+			$removed += count($this->rows[$id] ?? []);
+			unset($this->rows[$id]);
+		}
+		return $removed;
+	}
+
+	#[\Override]
 	public function forgetUser(string $userId): void {
 		unset($this->rows[$userId]);
 	}

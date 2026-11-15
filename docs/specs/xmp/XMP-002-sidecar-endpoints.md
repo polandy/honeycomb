@@ -25,9 +25,10 @@ checked again, part file renamed onto it; a failure deletes the part file. The a
 `{"sidecars": [{"result": "saved", "fileId": 9, "etag": "…", "size": 830, "mtime": …}, …]}` in
 the order sent.
 
-An existing sidecar is overwritten only while the Versions app (`files_versions`) is enabled for
-the user, so the version it replaces, possibly written by another program, can be restored from
-the file's versions; a new sidecar has nothing to lose and is created either way.
+An existing sidecar is overwritten only while its folder keeps versions (`versions` in
+LISTING-001.15: `files_versions` enabled for the owner, a versions backend for the storage, not
+external storage), so the version it replaces, possibly written by another program, can be
+restored from the file's versions; a new sidecar has nothing to lose and is created either way.
 
 | Result | Lookup | Save |
 |---|---|---|
@@ -35,7 +36,7 @@ the file's versions; a new sidecar has nothing to lose and is created either way
 | `saved` | – | Saved; the sidecar's file id, ETag, size and mtime |
 | `notFound` | Vanished, foreign, a folder or not `.xmp` | An existing sidecar vanished or is not `.xmp`; a new one's image is missing |
 | `changed` | – | Another ETag or size, or a new one that exists meanwhile |
-| `noVersions` | – | An existing sidecar while the Versions app (`files_versions`) is disabled for the user |
+| `noVersions` | – | An existing sidecar whose folder keeps no versions |
 | `tooLarge` | Over 1 MiB | – |
 | `notPermitted` | The user may not read it | The user may not update it or create files in its folder |
 | `locked` | Locked by another process | Locked by another process |
@@ -115,7 +116,8 @@ the file's versions; a new sidecar has nothing to lose and is created either way
 
 ### XMP-002.10 – No existing sidecar is overwritten without file versions
 
-- **Given** the Versions app disabled for the user, an existing sidecar and a new sidecar path
+- **Given** an existing sidecar whose folder keeps no versions (the Versions app disabled for its
+  owner, no versions backend for its storage, or external storage) and a new sidecar path
 - **When** the client saves both
 - **Then** the existing one answers `noVersions` and keeps its bytes, nothing is written beside it,
   and the new one is `saved`; the client reports it as *File versions are off, so honeycomb does
@@ -133,3 +135,4 @@ the file's versions; a new sidecar has nothing to lose and is created either way
 |---|---|
 | 2026-11-10 | Written with the endpoints (ADR 0017) |
 | 2026-11-15 | No overwrite without file versions (XMP-002.10) |
+| 2026-11-15 | Versions checked per folder, by owner and storage (ADR 0032) |

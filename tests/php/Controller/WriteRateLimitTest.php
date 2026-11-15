@@ -23,6 +23,7 @@ final class WriteRateLimitTest extends TestCase {
 		'SeriesController::lookup',
 		'SidecarController::lookup',
 		'TagController::lookup',
+		'XmpCacheController::lookup',
 	];
 
 	/** @return array<string, ReflectionMethod> every routed method that is not `GET`, by `Controller::method` */
@@ -61,6 +62,8 @@ final class WriteRateLimitTest extends TestCase {
 			'TrashController::trash' => [['limit' => 600, 'period' => 60]],
 			'ViewStateController::save' => [['limit' => 600, 'period' => 60]],
 			'VisualHashController::save' => [['limit' => 300, 'period' => 60]],
+			'XmpCacheController::clear' => [['limit' => 600, 'period' => 60]],
+			'XmpCacheController::save' => [['limit' => 600, 'period' => 60]],
 		], $limits);
 	}
 }

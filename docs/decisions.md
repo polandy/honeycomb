@@ -1247,3 +1247,14 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   outgrow the sidecar lookup limit, and honeycomb writes only its own fields (ADR 0032 PR 3).
 - 2026-11-15: An embedded XMP that is not read is a warning in the take-over, like a sidecar not
   read; in a write it fails the picture, since the JPEG's new sidecar would hide unknown values.
+- 2026-11-15: *Clear cache* ships with the cache API (ADR 0032 PR 4), not with the switch in PR 6,
+  and asks for no confirmation: it loses nothing that the next folder visit does not read again.
+- 2026-11-15: The XMP cache save checks only that the user reaches the file as its kind (a
+  sidecar, or a JPEG for embedded XMP), not its ETag; the client compares the ETag on lookup.
+- 2026-11-15: A refused XMP cache row carries a reason of 1 to 32 lower-case letters, digits or
+  dashes, such as `not-utf-8`; the tags follow the rules of the tag API and are stored as JSON.
+- 2026-11-15: Whether a folder keeps versions is asked per node: the owner's `files_versions`, a
+  versions backend for the storage, and external storage counts as none; the sidecar save uses
+  the same check (XMP-002.10).
+- 2026-11-15: The XMP cache lookup is a POST without a rate limit, like the other lookups; the
+  save and the clear are rate limited like every write.

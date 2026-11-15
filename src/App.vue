@@ -26,6 +26,7 @@ import ShortcutSheet from './components/ShortcutSheet.vue'
 import TagEntry from './components/TagEntry.vue'
 import UndoToast from './components/UndoToast.vue'
 import { APP_SEAMS } from './app-seams.ts'
+import { clearCacheWithToast } from './cache-clear.ts'
 import { provideCullContext } from './cull-context.ts'
 import { useCull } from './cull.ts'
 import { useDeleteFlow } from './delete-flow.ts'
@@ -159,7 +160,8 @@ useHotkeys(() => {
 				:settings="settings"
 				:gestureGuideSeen="viewState.gestureGuideSeen.value"
 				@update="updateSettings"
-				@showGestureGuide="viewState.showGestureGuide" />
+				@showGestureGuide="viewState.showGestureGuide"
+				@clearCache="clearCacheWithToast(props.clearCache, toast.show)" />
 			<Teleport to="body">
 				<PhotoLoupe
 					v-if="loupeShown !== null && folderSet !== null"

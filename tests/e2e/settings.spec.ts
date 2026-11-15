@@ -105,3 +105,30 @@ test('asks before writing to sidecars and saves the choice once confirmed', asyn
 	expect((await saved).request().postDataJSON()).toMatchObject({ settings: { sidecarWrite: 'existing' } })
 	await expect(choices.getByRole('radio', { name: /^Only existing sidecars/ })).toBeChecked()
 })
+
+// spec: SETTINGS-001.25
+test('clears the cache from the settings and says so', async ({ page }, testInfo) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = `Cache ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+	await cullFolder(page, folder)
+	await page.getByRole('button', { name: 'More' }).click()
+	await page.getByRole('button', { name: 'Settings', exact: true }).click()
+	const section = page.getByRole('dialog', { name: 'Settings' }).locator('section', { has: page.getByRole('heading', { name: 'Cache', exact: true }) })
+	const clear = section.getByRole('button', { name: 'Clear cache' })
+	await clear.scrollIntoViewIfNeeded()
+	for (const scheme of ['light', 'dark'] as const) {
+		await page.emulateMedia({ colorScheme: scheme })
+		await section.screenshot({ path: testInfo.outputPath(`cache-section-${scheme}.png`), animations: 'disabled' })
+	}
+
+	const cleared = page.waitForResponse((response) => response.url().endsWith('/api/v1/xmp-cache') && response.request().method() === 'DELETE')
+	await clear.click()
+	expect((await cleared).status()).toBe(204)
+	await expect(page.getByText('Cache cleared')).toBeVisible()
+	for (const [device, viewport] of Object.entries(SCREENSHOT_VIEWPORTS)) {
+		await page.setViewportSize(viewport)
+		await page.screenshot({ path: testInfo.outputPath(`cache-cleared-${device}.png`), animations: 'disabled' })
+	}
+})

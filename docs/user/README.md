@@ -10,3 +10,4 @@ the [README](../../README.md).
 | [Tags](tags.md) | Adding, filtering and saving tags |
 | [Settings](settings.md) | The per-user settings and what each one does |
 | [Similarity](similarity.md) | How similar pictures are grouped into series |
+| [Clearing the cache](cache.md) | For admins: `occ honeycomb:cache:clear` for one user or every user |

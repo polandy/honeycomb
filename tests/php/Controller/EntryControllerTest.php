@@ -36,7 +36,7 @@ final class EntryControllerTest extends TestCase {
 	private function controller(IRootFolder $root, ?IUser $user): EntryController {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($user);
-		$listing = new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore()), new SharedFolders($this->createStub(IShareManager::class), $this->createStub(IUserMountCache::class)));
+		$listing = new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore()), new SharedFolders($this->createStub(IShareManager::class), $this->createStub(IUserMountCache::class)), $this->fileVersions());
 		return new EntryController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $listing);
 	}
 

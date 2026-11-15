@@ -70,3 +70,10 @@ Changing a list pairs the open folders again at once; your decisions stay.
   without a camera model (`unknown`).
 - **Favourite folders:** the folders you starred in the move dialog. ✕ removes one; add them in
   the move dialog.
+
+## Cache
+
+- **Clear cache:** honeycomb remembers what it read from your XMP sidecars and JPEGs, and the
+  visual hashes of your photos, so a folder opens fast. *Clear cache* removes that at once; the
+  next visit of a folder reads its files again. Your sidecars, decisions and tags stay. A message
+  says when the cache is cleared or could not be.
