@@ -190,7 +190,7 @@ picture's decision when it runs. A refused sidecar is never overwritten.
 ## Out of scope
 
 - Re-reading a sidecar that another program changed after the take-over (`06-xmp-interop.md`
-  Reading).
+  Reading); ADR 0032 replaces the take-over with the XMP cache (XMP-006) in its PR 6.
 - The *Storage* setting of the mockup (database, sidecars or both); the database always holds the
   decisions, and *Write decisions to XMP sidecars* says whether they also go to the sidecars.
 

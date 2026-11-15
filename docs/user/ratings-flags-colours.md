@@ -26,6 +26,25 @@ The technical details are in [`../06-xmp-interop.md`](../06-xmp-interop.md).
 honeycomb's colours are digiKam's nine: red, orange, yellow, green, blue, magenta, gray, black and
 white. Magenta is called "Purple" in darktable and Lightroom.
 
+## digiKam settings
+
+digiKam sees honeycomb's decisions only when it reads sidecars, which it does not do by default.
+In digiKam 8, under **Settings → Configure digiKam → Metadata** (the wording may differ between
+versions):
+
+- **Behavior:** turn on writing for rating, pick label, colour label and tags.
+- **Sidecars:** turn on *Read from sidecar files* and *Write to sidecar files*, with *Write to XMP
+  sidecar only* or *Write to image and XMP sidecar*. Leave the option for sidecar file names
+  compatible with commercial programs off: digiKam then reads `IMG_0001.NEF.xmp`, the name
+  honeycomb creates; with it on, digiKam reads only `IMG_0001.xmp` and ignores honeycomb's file.
+
+Without *Read from sidecar files*, digiKam's own write replaces the sidecar and drops what it does
+not know, such as *Keep RAW* and darktable's edit history.
+
+digiKam picks up honeycomb's changes at its next scan of the folder. darktable reads a changed
+sidecar only when its crawler runs (**Preferences → Storage → look for updated XMP files on
+startup**, off by default) and you confirm the update.
+
 ## What can get lost
 
 - **Stars on rejected photos.** darktable stores "rejected" in place of the stars, so a rejected

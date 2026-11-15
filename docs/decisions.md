@@ -1218,3 +1218,20 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   lists such pictures as not moved (MOVE-002.11, MOVE-004.16, risk review R3, ADR 0018
   amendment). Chosen over allowing it after a confirmation, since the owner who loses the files is
   not the one who confirms; there is no setting to allow it.
+- 2026-11-15: ADR 0032 supersedes ADR 0005 and 0012 and amends 0017, 0022 and 0023, rather than
+  superseding all five, since the sidecar endpoints, the tag list and the embedded XMP endpoint
+  stay.
+- 2026-11-15: honeycomb does not keep digiKam's extra copies (`MicrosoftPhoto:Rating`,
+  `acdsee:rating`, `photoshop:Urgency`) in step (ADR 0032, review F20): digiKam reads `xmp:Rating`,
+  `ColorLabel` and `TagsList` first, so a stale copy is not seen, and fewer written fields mean
+  fewer foreign bytes changed.
+- 2026-11-15: The XMP cache is per user, not shared per file id and ETag (ADR 0032, review F21):
+  the pattern of ADR 0012 and the simpler access rule; the shared cache stays an option.
+- 2026-11-15: *Remove RAWs* skips, with a hint, a pair whose JPEG sidecar cannot be written before
+  the RAW's sidecar goes (ADR 0032, review F22), rather than warning and going on: a JPEG never
+  loses its values, as with the owner's rule for *Delete rejected* (Q3).
+- 2026-11-15: *Clear cache* is one `DELETE /api/v1/xmp-cache` that also removes the visual hashes
+  (XMP-006), since the owner's decision clears both together and a second endpoint would add
+  nothing.
+- 2026-11-15: The work of ADR 0032 is one milestone (M8) and one `TODO.md` item listing its pull
+  requests in order, like the stored series item.

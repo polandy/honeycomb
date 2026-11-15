@@ -1,6 +1,6 @@
 # 0022 – Tag storage: a row of tags per file id and user, and a tag list per user
 
-- Status: accepted
+- Status: accepted, amended by [0032](0032-sidecar-is-the-source-of-truth.md)
 - Date: 2026-11-13
 
 ## Context

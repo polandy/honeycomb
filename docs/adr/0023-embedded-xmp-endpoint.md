@@ -1,6 +1,6 @@
 # 0023 – The embedded XMP endpoint: the JPEG's packet found on the server
 
-- Status: accepted
+- Status: accepted, amended by [0032](0032-sidecar-is-the-source-of-truth.md)
 - Date: 2026-11-13
 
 ## Context
