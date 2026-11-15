@@ -12,7 +12,7 @@ import { removeStored } from './browser-storage.ts'
 import { logger } from './logger.ts'
 import { hashProgress } from './logic/hash-progress.ts'
 import { imageMember, smallSource } from './logic/image-tiers.ts'
-import { sendLimited } from './logic/retry-after.ts'
+import { byFileId, saveQueue } from './logic/save-queue.ts'
 import { hashablePictures } from './logic/series.ts'
 
 /** The browser storage key under which earlier versions kept the visual hashes (ADR 0021); removed when a cull opens. */
@@ -57,6 +57,9 @@ export function useVisualHashes(api: VisualHashApi, storage: BrowserStorage, pic
 	let pending: ListingEntry[] = []
 	const unsaved: StoredVisualHash[] = []
 	let running = false
+	const queue = saveQueue<StoredVisualHash, number>(async (hashes) => {
+		await api.saveVisualHashes(hashes)
+	}, { key: byFileId, wait: api.wait })
 	let saving = false
 	let held = false
 
@@ -69,22 +72,20 @@ export function useVisualHashes(api: VisualHashApi, storage: BrowserStorage, pic
 	 * Saves the computed hashes one save at a time, full batches while hashing goes on and the rest once it stops; a limited save
 	 * waits and is sent again (SERIES-003.27), a failed one is logged and its hashes still count for this visit (SERIES-003.13).
 	 */
-	async function save() {
-		if (saving) {
+	function save() {
+		if (saving || !(unsaved.length >= SAVE_BATCH || (!running && unsaved.length > 0))) {
 			return
 		}
 		saving = true
-		while (unsaved.length >= SAVE_BATCH || (!running && unsaved.length > 0)) {
-			const batch = unsaved.splice(0, SAVE_BATCH)
-			try {
-				await sendLimited(() => api.saveVisualHashes(batch), api.wait)
-				saveFailed.value = false
-			} catch (error) {
-				saveFailed.value = true
-				logger.warn('Could not save the visual hashes', { error, count: batch.length })
+		const batch = unsaved.splice(0, SAVE_BATCH)
+		void queue(batch).then((result) => {
+			saveFailed.value = !result.ok
+			if (!result.ok) {
+				logger.warn('Could not save the visual hashes', { error: result.error, count: batch.length })
 			}
-		}
-		saving = false
+			saving = false
+			save()
+		})
 	}
 
 	/** Hashes one member; a failure is logged and the file version is not hashed again. */
@@ -109,10 +110,10 @@ export function useVisualHashes(api: VisualHashApi, storage: BrowserStorage, pic
 		running = true
 		for (let member = pending.shift(); member !== undefined; member = pending.shift()) {
 			await hashOne(member)
-			void save()
+			save()
 		}
 		running = false
-		void save()
+		save()
 	}
 
 	/** The hash state of a member, or null when it is not hashable (SERIES-003.16). */

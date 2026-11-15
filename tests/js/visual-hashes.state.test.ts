@@ -4,6 +4,7 @@
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { logger } from '../../src/logger.ts'
+import { RateLimitedError } from '../../src/logic/retry-after.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
 import { BURST, setUp } from './visual-hash-fakes.ts'
 
@@ -105,6 +106,23 @@ describe('useVisualHashes states and progress', () => {
 		}
 
 		expect(saves.map((batch) => batch.length)).toEqual([100, 1])
+	})
+
+	// spec: SERIES-003.12
+	it('keeps saving 100 hashes at a time when they piled up behind a limited save', async () => {
+		let waited = () => {}
+		const wait = () => new Promise<void>((resolve) => (waited = resolve))
+		const entries = Array.from({ length: 250 }, (_, index) => listingEntry(index + 1, `/P/${index}.JPG`, { captureTime: index }))
+		const { calls, saves } = setUp(entries, {}, [new RateLimitedError(1)], wait)
+		for (let index = 0; index < 250; index++) {
+			calls[index]!.resolve('0000000000000000')
+			await flushPromises()
+		}
+
+		waited()
+		await flushPromises()
+
+		expect(saves.map((batch) => batch.length)).toEqual([100, 100, 100, 50])
 	})
 
 	// spec: SERIES-001.17, SERIES-003.12

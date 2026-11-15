@@ -11,6 +11,7 @@ import { t } from '@nextcloud/l10n'
 import { computed, ref, watch } from 'vue'
 import { logger } from './logger.ts'
 import { parsePositions, pictureHolding, positionFileId, positionOf, resumeIndex } from './logic/resume-position.ts'
+import { saveQueue } from './logic/save-queue.ts'
 
 /** The server seams of the resume position (ADR 0012). */
 export interface ResumeApi {
@@ -36,23 +37,17 @@ export function useResume(api: ResumeApi, cull: ResumeCull, toast: (message: str
 	let closeOffer = () => {}
 	let tracking = false
 	let opening = 0
-	let saving = false
-	let waiting: ResumePosition | null = null
 	let sent = ''
+	// One key: only the latest position is worth sending.
+	const queue = saveQueue<ResumePosition, null>(async (positions) => {
+		await Promise.all(positions.map((position) => api.savePosition(position)))
+	}, { key: () => null })
 
 	/** Sends the position, or keeps it as the latest to send once the save in flight settles. */
 	function save(position: ResumePosition) {
-		if (saving) {
-			waiting = position
-			return
-		}
-		saving = true
-		api.savePosition(position).catch((error: unknown) => logger.error('Could not save the resume position.', { error })).finally(() => {
-			saving = false
-			const next = waiting
-			waiting = null
-			if (next !== null) {
-				save(next)
+		void queue([position]).then((result) => {
+			if (!result.ok) {
+				logger.error('Could not save the resume position.', { error: result.error })
 			}
 		})
 	}

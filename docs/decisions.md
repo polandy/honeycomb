@@ -1337,3 +1337,13 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   number in the compare (#185 PR 5).
 - 2026-11-15: After a merge in the compare, it shows the merged series with the same photo active;
   the merged series keeps the id of the earlier stored series, as a grid merge does (#185 PR 5).
+- 2026-11-15: Sidecar writes wait per picture (ADR 0032 PR 7) until the loupe shows another picture
+  or closes, a write lands on another picture, or 2 s pass idle; a write of several pictures or of
+  none goes at once. The flush before delete and move also awaits the writes already in flight.
+- 2026-11-15: The pending marker is a white ring on the grid tile, like the stars, read as "Not
+  saved yet"; in the loupe the waiting picture is the shown one, so it needs no marker there.
+- 2026-11-15: Sidecar requests are packed in the browser, at most 1000 items and 8 MiB each:
+  lookups by the listed file size, saves by the content's length; the server keeps no byte budget.
+- 2026-11-15: The resume position and the visual hashes save through `saveQueue`; the resume
+  position uses one key, so only the latest position is sent, as before.
+- 2026-11-15: The sidecar migration and its retry write at once; they are no step on a picture.

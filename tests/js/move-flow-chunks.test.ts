@@ -71,4 +71,27 @@ describe('useMoveFlow: requests in chunks', () => {
 
 		expect(toasts.at(-1)!.message).toBe('Moved 2 files back · 1 failed')
 	})
+
+	// spec: XMP-003.30
+	it('writes the waiting sidecars and waits for every write before it moves anything, an undo too', async () => {
+		const flushes: (() => void)[] = []
+		const { moving, pair, sent, toasts } = moveFlow(allMoved(), { flush: () => new Promise<void>((resolve) => flushes.push(resolve)) })
+		moving.open([pair])
+		moving.choose('/Out')
+		await flushPromises()
+
+		const confirmed = moving.confirm()
+		await flushPromises()
+		expect(sent).toHaveLength(0)
+		flushes[0]!()
+		await confirmed
+		expect(sent).toHaveLength(1)
+
+		toasts.at(-1)!.action!.run()
+		await flushPromises()
+		expect(sent).toHaveLength(1)
+		flushes[1]!()
+		await flushPromises()
+		expect(sent).toHaveLength(2)
+	})
 })

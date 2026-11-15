@@ -62,6 +62,7 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 		resume: { resumeName: computed(() => counts.value.resumeName), resume: record('resume'), dismiss: record('dismissResume') },
 		seriesCompare: { ...flow, start: record('compareSeries'), startOn: record('compareSeriesOn'), pickRestAndLand: record('pickRestAndLand') },
 		sidecars: { ask: record('writeSidecars') },
+		unsaved: shallowRef(null),
 		tagEntry: { open: (chosen) => {
 			calls.push(['tag', chosen])
 			return true

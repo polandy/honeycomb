@@ -41,7 +41,8 @@ const rejected = [stored(2, 'rejected'), stored(3, 'rejected')]
 describe('App: deciding needs writing', () => {
 	// spec: XMP-008.7, XMP-003.18, SETTINGS-001.24
 	it('asks to turn writing On at the first decision, then saves it and the decision', async () => {
-		const opened = await openLoupe({})
+		const scheduler = fakeScheduler()
+		const opened = await openLoupe({}, NO_ACCESS, { schedule: scheduler.schedule })
 		const { wrapper, saved, savedSettings, sidecarSaves } = opened
 
 		await reject(opened)
@@ -50,6 +51,8 @@ describe('App: deciding needs writing', () => {
 		expect(saved).toEqual([])
 
 		await button(wrapper, 'Write to sidecars').trigger('click')
+		await flushPromises()
+		scheduler.fire()
 		await flushPromises()
 
 		expect(savedSettings.at(-1)).toMatchObject({ sidecarWrite: 'on' })

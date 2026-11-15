@@ -57,6 +57,8 @@ const props = withDefaults(defineProps<{
 	seriesSizes?: ReadonlyMap<Picture<ListingEntry>, number>
 	/** The pictures of a series that may still change (SERIES-003.25). */
 	openSeries?: ReadonlySet<Picture<ListingEntry>>
+	/** The picture whose sidecar writes still wait (XMP-003.28). */
+	unsaved?: Picture<ListingEntry> | null
 }>(), {
 	observeSize: observeElementSize,
 	loadImage: decodeSource,
@@ -64,6 +66,7 @@ const props = withDefaults(defineProps<{
 	selection: () => NO_SELECTION,
 	decisionOf: () => UNDECIDED,
 	tagsOf: () => [],
+	unsaved: null,
 	schedule: browserSchedule,
 	frame: browserFrame,
 })
@@ -271,6 +274,7 @@ defineExpose({
 							:size="layout.tileWidth"
 							:decision="props.decisionOf(picture)"
 							:tags="props.tagsOf(picture).length"
+							:unsaved="picture === props.unsaved"
 							:selecting="props.selecting"
 							:selected="props.selection.ids.has(imageMember(picture).fileId)"
 							:loads="loads"

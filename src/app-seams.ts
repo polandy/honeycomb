@@ -10,6 +10,7 @@ import type { Schedule } from './logic/long-press.ts'
 import type { Settings } from './logic/settings.ts'
 import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
 import type { MoveApi } from './move-flow.ts'
+import type { OnPageHide } from './page-hide.ts'
 import type { WarmPreviews } from './preview-warmer.ts'
 import type { ResumeApi } from './resume.ts'
 import type { SidecarFlowApi } from './sidecar-flow.ts'
@@ -21,6 +22,7 @@ import { listEntries as apiListEntries, listFolders as apiListFolders, loadSetti
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { browserHashWorkers } from './hash-workers.ts'
 import { acknowledgeLegacy, loadLegacyExport, loadLegacyInventory } from './legacy-api.ts'
+import { onBrowserPageHide } from './page-hide.ts'
 import { saveBrowserFile } from './save-file.ts'
 import { lookupSeries, saveSeries } from './series-api.ts'
 import { browserNow } from './sidecar-flow.ts'
@@ -45,6 +47,8 @@ export interface AppSeams {
 	positions?: ResumeApi
 	storage?: BrowserStorage
 	schedule?: Schedule
+	/** Writes the waiting sidecars when the page hides (XMP-003.29). */
+	onPageHide?: OnPageHide
 	toggleFullscreen?: (element: HTMLElement) => void
 	trashPictures?: (pictures: readonly (readonly TrashRequestFile[])[]) => Promise<TrashResponseFile[][]>
 	sidecars?: SidecarFlowApi
@@ -74,6 +78,7 @@ export const APP_SEAMS = {
 	positions: () => ({ loadPositions, savePosition }),
 	storage: () => window.localStorage,
 	schedule: browserSchedule,
+	onPageHide: onBrowserPageHide,
 	toggleFullscreen: toggleBrowserFullscreen,
 	trashPictures: apiTrashPictures,
 	sidecars: () => ({ lookupSidecars, lookupEmbeddedXmp, saveSidecars, now: browserNow }),

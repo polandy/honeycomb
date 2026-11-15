@@ -41,11 +41,14 @@ const props = withDefaults(defineProps<{
 	seriesOpen?: boolean
 	/** How many tags the picture has (TAGS-004.7). */
 	tags?: number
+	/** Whether the picture's sidecar writes still wait (XMP-003.28). */
+	unsaved?: boolean
 }>(), {
 	decision: () => UNDECIDED,
 	series: 0,
 	seriesOpen: false,
 	tags: 0,
+	unsaved: false,
 	selecting: false,
 	selected: false,
 	offscreen: false,
@@ -93,8 +96,8 @@ const decisionLabel = computed(() => {
 	].filter((part) => part !== null)
 })
 
-/** Whether the tile shows a flag, a colour label or stars. */
-const marked = computed(() => isDecided(props.decision) || props.decision.colourLabel !== null || props.decision.rating > 0 || props.tags > 0)
+/** Whether the tile shows a flag, a colour label, stars, tags or the *Not saved yet* marker. */
+const marked = computed(() => isDecided(props.decision) || props.decision.colourLabel !== null || props.decision.rating > 0 || props.tags > 0 || props.unsaved)
 
 const seriesText = computed(() => [
 	n('honeycomb', 'Series of {count}', 'Series of {count}', props.series, { count: formatNumber(props.series) }),
@@ -111,6 +114,7 @@ const label = computed(() => [
 	...(props.series > 1 ? [seriesText.value] : []),
 	...decisionLabel.value,
 	...(props.tags > 0 ? [n('honeycomb', '{count} tag', '{count} tags', props.tags, { count: formatNumber(props.tags) })] : []),
+	...(props.unsaved ? [t('honeycomb', 'Not saved yet')] : []),
 ].join(', '))
 
 let pending: { load: QueuedLoad, sharp: boolean } | null = null
@@ -185,6 +189,7 @@ onBeforeUnmount(() => pending?.load.cancel())
 				:rating="props.decision.rating" />
 			<span v-if="props.decision.colourLabel !== null" class="photo-tile__colour" :style="{ backgroundColor: COLOUR_LABEL_SWATCHES[props.decision.colourLabel] }" />
 			<span v-if="props.tags > 0" class="photo-tile__tags" aria-hidden="true"><AppIcon name="tag" />{{ formatNumber(props.tags) }}</span>
+			<span v-if="props.unsaved" class="photo-tile__unsaved" aria-hidden="true" />
 		</span>
 	</div>
 </template>

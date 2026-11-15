@@ -275,4 +275,16 @@ describe('PhotoTile', () => {
 		expect(mountTile(PAIR).find('.photo-tile__tags').exists()).toBe(false)
 		expect(mountTile(PAIR, { tags: 0 }).find('.photo-tile__marks').exists()).toBe(false)
 	})
+
+	// spec: XMP-003.28
+	it('marks a picture whose sidecars are not saved yet in the marks shade and the label, nothing once saved', async () => {
+		const wrapper = mountTile(PAIR, { unsaved: true })
+
+		expect(wrapper.find('.photo-tile__marks .photo-tile__unsaved').exists()).toBe(true)
+		expect(wrapper.attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3, Not saved yet')
+
+		await wrapper.setProps({ unsaved: false })
+		expect(wrapper.find('.photo-tile__marks').exists()).toBe(false)
+		expect(wrapper.attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3')
+	})
 })

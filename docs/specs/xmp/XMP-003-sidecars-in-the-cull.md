@@ -52,6 +52,20 @@ states, so a field no step changed keeps each sidecar's own value (`06-xmp-inter
 0032). A sidecar the pass would leave as it is, apart from `xmp:MetadataDate`, is not saved. A step
 whose save fails writes nothing.
 
+**Bundling per picture.** The steps on one picture wait and are written together, in one pass, when
+the user leaves the picture — a step on another picture, or the loupe showing another picture or
+closing — or when 2 s pass without another step on it, timed by an injected scheduler (ADR 0032).
+A step on several pictures at once (a selection, *Pick, reject the rest*, the migration, a retry)
+writes the waiting picture and its own pictures at once. A waiting picture shows the *Not saved
+yet* marker on its tile. The page going hidden (`visibilitychange`) or away (`pagehide`) writes
+the waiting picture at once, best effort; a delete, *Remove RAWs* and a move write it, and wait for
+every write in flight, before they send their first request. A step undone while it waits leaves
+the sidecars as they state, so no sidecar is saved for it (XMP-003.17).
+
+**Requests.** The client packs sidecar lookups into requests of at most 1,000 file ids and 8 MiB by
+the sizes the listing states, and saves into requests of at most 1,000 sidecars and 8 MiB of
+content; one sidecar over 8 MiB goes alone. The server keeps no byte budget of its own.
+
 **Shared folders.** The listing says per folder whether it is shared (ADR 0017). A picture of the
 cull in a shared folder is decided only once the user confirmed the opened folder (XMP-008.4).
 The grid's ⋯ menu
@@ -231,6 +245,59 @@ sidecars* reads as *Off* (SETTINGS-001.26).
 - **When** it is written through
 - **Then** no sidecar of the picture is saved, and each is reported with the lookup's reason
 
+### XMP-003.25 – One picture's steps are written together when the user leaves it
+
+- **Given** writing *On*, the loupe on a picture
+- **When** the user rates, flags and labels it, then the loupe shows the next picture
+- **Then** nothing is saved before the loupe moves on; then one pass saves each sidecar of the
+  picture once, with all three changes
+
+### XMP-003.26 – A picture left alone is written after 2 s
+
+- **Given** a step on one picture
+- **When** 2 s pass without another step on it
+- **Then** its sidecars are written; each further step on it starts the 2 s again
+
+### XMP-003.27 – A step on another picture or on several writes the waiting one at once
+
+- **Given** a step waiting on one picture
+- **When** the user decides another picture
+- **Then** the waiting picture is written at once and the other one waits
+- **When** the user decides several pictures in one step instead
+- **Then** the waiting picture and the step's pictures are written at once and none waits
+
+### XMP-003.28 – A waiting picture shows a marker
+
+- **Given** a step waiting on one picture
+- **When** the grid shows it
+- **Then** its tile shows the *Not saved yet* marker, also in its label, until its write starts
+
+### XMP-003.29 – Hiding the page writes the waiting picture
+
+- **Given** a step waiting on one picture
+- **When** the page turns hidden or is left
+- **Then** the picture is written at once
+
+### XMP-003.30 – Deleting and moving write first
+
+- **Given** a step waiting on one picture, or a write in flight
+- **When** the user confirms a delete, *Remove RAWs* or a move
+- **Then** the waiting picture is written and every write has finished before the trash or move
+  request is sent
+
+### XMP-003.31 – A step undone while it waits saves no sidecar
+
+- **Given** a picture whose sidecars honeycomb saved last
+- **When** the user rates it and undoes the rating before it is written
+- **Then** no sidecar is looked up or saved
+
+### XMP-003.32 – Requests are packed by count and size
+
+- **Given** sidecars to look up or save
+- **When** the requests are sent
+- **Then** each carries at most 1,000 sidecars and 8 MiB, by the listed size for a lookup and the
+  content for a save, cut in the order given; one sidecar over 8 MiB goes alone
+
 ## Out of scope
 
 - Re-reading a sidecar that another program changed after the take-over (`06-xmp-interop.md`
@@ -250,3 +317,4 @@ sidecars* reads as *Off* (SETTINGS-001.26).
 | 2026-11-15 | The JPEG's embedded XMP is a source of the decision; a new JPEG sidecar takes it over (.22–.24, ADR 0032 PR 3) |
 | 2026-11-15 | The ⋯ entry migrates every picture with legacy rows (.12 removed, XMP-007, ADR 0032 PR 5) |
 | 2026-11-15 | *Off* and *On*; a locked picture is not decided, a shared folder is confirmed (.11, .18 changed, .19 removed, XMP-008, ADR 0032 PR 6) |
+| 2026-11-15 | Steps are written per picture when the user leaves it or after 2 s; requests packed by count and size (.25–.32, ADR 0032 PR 7) |

@@ -227,6 +227,15 @@ describe('lookupSidecars', () => {
 		expect(axios.post).not.toHaveBeenCalled()
 	})
 
+	// spec: XMP-003.32
+	it('packs the ids by the listed sizes into requests of at most 8 MiB, an id without a size counting nothing', async () => {
+		vi.mocked(axios.post).mockImplementation(async (_url, body) => ({ data: { sidecars: (body as { fileIds: number[] }).fileIds.map(() => ({ result: 'notFound' })) } }))
+		const sizes = new Map([[1, 5 * 1024 * 1024], [2, 4 * 1024 * 1024]])
+
+		expect(await lookupSidecars([1, 2, 3], sizes)).toHaveLength(3)
+		expect(vi.mocked(axios.post).mock.calls.map(([, body]) => (body as { fileIds: number[] }).fileIds)).toEqual([[1], [2, 3]])
+	})
+
 	it.each([
 		['no sidecars array', {}],
 		['another number of answers', { sidecars: [] }],
@@ -275,5 +284,14 @@ describe('saveSidecars', () => {
 		expect(axios.put).toHaveBeenCalledTimes(2)
 		vi.mocked(axios.put).mockResolvedValue({ data: { sidecars: [] } })
 		await expect(saveSidecars(items.slice(0, 1))).rejects.toThrow(ApiResponseError)
+	})
+
+	// spec: XMP-003.32
+	it('packs the sidecars by their content into requests of at most 8 MiB', async () => {
+		vi.mocked(axios.put).mockImplementation(async (_url, body) => ({ data: { sidecars: (body as { sidecars: unknown[] }).sidecars.map(() => ({ result: 'failed' })) } }))
+		const items = [5, 4, 3].map((mebibytes, index) => ({ path: `/P/${index}.xmp`, bytes: new Uint8Array(mebibytes * 1024 * 1024) }))
+
+		expect(await saveSidecars(items)).toHaveLength(3)
+		expect(vi.mocked(axios.put).mock.calls.map(([, body]) => (body as { sidecars: { path: string }[] }).sidecars.map(({ path }) => path))).toEqual([['/P/0.xmp'], ['/P/1.xmp', '/P/2.xmp']])
 	})
 })
