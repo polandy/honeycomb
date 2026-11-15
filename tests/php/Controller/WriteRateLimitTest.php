@@ -53,6 +53,7 @@ final class WriteRateLimitTest extends TestCase {
 
 		$this->assertSame([
 			'DecisionController::save' => [['limit' => 600, 'period' => 60]],
+			'LegacyController::acknowledge' => [['limit' => 600, 'period' => 60]],
 			'MoveController::move' => [['limit' => 600, 'period' => 60]],
 			'PositionController::save' => [['limit' => 600, 'period' => 60]],
 			'SeriesController::save' => [['limit' => 600, 'period' => 60]],

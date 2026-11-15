@@ -89,10 +89,21 @@ it was when honeycomb writes it. Tags are the one other thing honeycomb writes (
 
 In a folder shared with you, or one you share — with other users, by public link or by mail, as a
 group folder or on external storage several users mount — honeycomb keeps your decisions to itself
-and writes no sidecars on its own, since everyone with access would see them. To write them anyway,
-choose **⋯ → Write decisions to sidecars…**: honeycomb names the photos and folders and, once you
-confirm, writes the sidecars of every photo there that you have decided. This works whatever the
-setting; with *Only existing sidecars* it creates no new ones.
+and writes no sidecars on its own, since everyone with access would see them.
+
+## Moving stored decisions into sidecars
+
+Earlier versions kept ratings, flags, colour labels, *Keep RAW* marks and tags in honeycomb's
+database. To move them into the sidecars, where digiKam, darktable and Lightroom see them, set
+**Write decisions to XMP sidecars** to *Existing and new sidecars*. The grid then names the folders
+that still hold stored decisions. Open each one and choose **⋯ → Write decisions to sidecars…**:
+honeycomb names the photos and folders, warns if one lies in a shared folder, and once you confirm
+writes the stored values into each photo's sidecars. Where a sidecar says otherwise, the stored
+value wins; stored tags are added to the sidecar's. A photo whose sidecars were all written leaves
+the database; one that failed stays and is written again the next time.
+
+Stored decisions of files that are gone or no longer shared with you cannot be written. **Export**
+saves them as `honeycomb-legacy-rows.json`; **Discard** removes them for good.
 
 ## When a sidecar cannot be written
 

@@ -53,12 +53,9 @@ states, so a field no step changed keeps each sidecar's own value (`06-xmp-inter
 whose save fails writes nothing.
 
 **Shared folders.** The listing says per folder whether it is shared (ADR 0017). When a picture of
-the cull lies in a shared folder, the grid's ⋯ menu offers *Write decisions to sidecars…*. It asks
-first, names the number of photos and their folders, and on *Write to sidecars* writes every
-picture in a shared folder that has a stored decision, as above with every decision field,
-whatever the setting; it creates
-new sidecars unless the setting is *Only existing sidecars*. Success says *Wrote the decisions
-of %n photos to sidecars*.
+the cull lies in a shared folder, nothing is written through for it. The grid's ⋯ menu entry
+*Write decisions to sidecars…* writes it after asking, with every picture that has legacy rows
+(XMP-007).
 
 **Failure report.** A sidecar that could not be written — refused when read (not UTF-8, malformed,
 a `<!DOCTYPE>`, a property given twice), a lookup or save answer other than `read` or `saved`, or a
@@ -153,13 +150,10 @@ picture's decision when it runs, for the fields its write changed. A refused sid
 - **When** the user decides it
 - **Then** the decision is stored and no sidecar is looked up or saved
 
-### XMP-003.12 – The ⋯ menu writes to sidecars in shared folders after asking
+### XMP-003.12 – The ⋯ menu writes to sidecars in shared folders after asking (removed)
 
-- **Given** a cull with pictures in a shared folder, some with a stored decision
-- **When** the user chooses *Write decisions to sidecars…* and confirms *Write to sidecars*
-- **Then** the decided pictures in shared folders are written to their sidecars and a toast says
-  how many; the entry is absent when no picture lies in a shared folder, and *Cancel* writes
-  nothing
+Replaced by XMP-007.5: the ⋯ entry now writes every picture with legacy rows, in shared folders
+and elsewhere.
 
 ### XMP-003.13 – A failed sidecar is reported per file
 
@@ -254,3 +248,4 @@ picture's decision when it runs, for the fields its write changed. A refused sid
 | 2026-11-15 | Writing through is opt-in, *Off* by default; *Only existing sidecars* creates none (.18, .19; risk review R1, R9) |
 | 2026-11-15 | A step writes the fields it changed, as a delta on each sidecar's decision (.20, .21, ADR 0032) |
 | 2026-11-15 | The JPEG's embedded XMP is a source of the decision; a new JPEG sidecar takes it over (.22–.24, ADR 0032 PR 3) |
+| 2026-11-15 | The ⋯ entry migrates every picture with legacy rows (.12 removed, XMP-007, ADR 0032 PR 5) |

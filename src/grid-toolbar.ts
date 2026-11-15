@@ -46,7 +46,8 @@ export interface ToolbarTasks {
 	readonly rawRemovable: number
 	/** How many pictures *Move picks* or, while a filter is on, *Move filtered* opens the move dialog on. */
 	readonly movable: number
-	readonly sidecarsShared: boolean
+	/** Whether a picture of the cull has a stored decision or tag to write to its sidecars (XMP-007.7). */
+	readonly legacyRows: boolean
 	/** The base name of the picture *Resume* opens the loupe at, null when there is none. */
 	readonly resumeName: string | null
 }

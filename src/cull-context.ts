@@ -3,6 +3,7 @@
 import type { InjectionKey, Ref } from 'vue'
 import type { useCull } from './cull.ts'
 import type { DeleteFlow } from './delete-flow.ts'
+import type { Legacy } from './legacy.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { MoveFlow } from './move-flow.ts'
@@ -25,6 +26,7 @@ export interface CullContext {
 	readonly resume: Pick<ReturnType<typeof useResume>, 'resumeName' | 'resume' | 'dismiss'>
 	readonly seriesCompare: Pick<SeriesCompareFlow<Picture<ListingEntry>>, 'start'>
 	readonly sidecars: Pick<SidecarFlow, 'ask'>
+	readonly legacy: Legacy
 	readonly tagEntry: Pick<ReturnType<typeof useTagEntryTargets>, 'open'>
 	/** Whether the toolbar and the filter bar show above the grid. */
 	readonly headerShown: Ref<boolean>

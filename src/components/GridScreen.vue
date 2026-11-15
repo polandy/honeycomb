@@ -10,14 +10,16 @@ import CullEmptyState from './CullEmptyState.vue'
 import FilterBar from './FilterBar.vue'
 import GridNotices from './GridNotices.vue'
 import GridToolbar from './GridToolbar.vue'
+import LegacyNotice from './LegacyNotice.vue'
 import PhotoGrid from './PhotoGrid.vue'
 import SelectionBar from './SelectionBar.vue'
 import SimilarityStrip from './SimilarityStrip.vue'
 import { useCullContext } from '../cull-context.ts'
 import { isPicked } from '../logic/decision.ts'
+import { hasLegacyRows } from '../logic/legacy.ts'
 import { DEFAULT_FILTERS } from '../logic/picture-filter.ts'
 
-const { cull, selection, decide, deleting, moving, resume, seriesCompare, sidecars, tagEntry, headerShown, openLoupe, openSettings } = useCullContext()
+const { cull, selection, decide, deleting, moving, resume, seriesCompare, sidecars, legacy, tagEntry, headerShown, openLoupe, openSettings } = useCullContext()
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
 const { selecting, selected } = selection
 const { rejected, rawRemovable } = deleting
@@ -36,7 +38,7 @@ const toolbarTasks = computed<ToolbarTasks>(() => ({
 	series: cull.series.value.length,
 	rawRemovable: rawRemovable.value,
 	movable: movable.value.length,
-	sidecarsShared: cull.sharedPictures.value.length > 0,
+	legacyRows: hasLegacyRows(cull.legacy.value),
 	resumeName: resume.resumeName.value,
 }))
 
@@ -66,7 +68,7 @@ defineExpose({ grid, filterBar })
 			@removeRaws="deleting.removeRaws"
 			@move="moving.open(movable)"
 			@resume="resume.resume"
-			@writeSidecars="sidecars.ask(cull.sharedDecided())"
+			@writeSidecars="sidecars.ask(cull.legacy.value)"
 			@openSettings="openSettings" />
 		<FilterBar
 			v-if="filtersOpen && headerShown"
@@ -79,6 +81,7 @@ defineExpose({ grid, filterBar })
 			:known="cull.tags.known.value"
 			@update:filters="filters = $event" />
 		<GridNotices :pictures="view" :saveFailed="saveFailed" />
+		<LegacyNotice v-if="legacy.shown.value" :legacy="legacy" />
 		<PhotoGrid
 			v-if="view.length > 0"
 			ref="grid"

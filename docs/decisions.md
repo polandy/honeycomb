@@ -1258,3 +1258,16 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the same check (XMP-002.10).
 - 2026-11-15: The XMP cache lookup is a POST without a rate limit, like the other lookups; the
   save and the clear are rate limited like every write.
+- 2026-11-15: The legacy migration needs *Existing and new sidecars*, so every picture gets a
+  sidecar; *On* comes with ADR 0032 PR 6 (XMP-007.7).
+- 2026-11-15: Acknowledging legacy rows writes no XMP cache row; the cull reads a file without one
+  from ADR 0032 PR 6 anyway.
+- 2026-11-15: The migration leaves the versions check to the sidecar save (`noVersions`); the
+  client does not check versions before writing.
+- 2026-11-15: The export of unreachable legacy rows is its own endpoint,
+  `GET /api/v1/legacy/export`; *Discard* acknowledges the exported ids, and a retry after a failed
+  run does not acknowledge, the next run does.
+- 2026-11-15: The legacy notice shows, and its inventory is read, only while writing is set to
+  *Existing and new sidecars*, as the inventory looks up every file id with a row.
+- 2026-11-15: The migration acknowledges the member ids of the saved pictures in one request,
+  sorted, and sends none when no picture was saved.

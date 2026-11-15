@@ -219,8 +219,8 @@ describe('useCull: writing through to the sidecars', () => {
 		expect(writes.map((write) => write.map(({ name }) => name))).toEqual([['IMG_10']])
 	})
 
-	// spec: XMP-003.11, XMP-003.14
-	it('writes nothing for a picture in a shared folder and lists the decided ones there', async () => {
+	// spec: XMP-003.11, XMP-003.14, XMP-007.5
+	it('writes nothing for a picture in a shared folder and lists the decided ones as legacy rows', async () => {
 		const { cull, writes, picture } = cullWith({ stored: [stored(1, 'picked')] })
 		cull.open(SET, ENTRIES, ['/Trip/A', '/Trip/B'])
 		await flushPromises()
@@ -230,7 +230,7 @@ describe('useCull: writing through to the sidecars', () => {
 
 		expect(writes).toEqual([])
 		expect(cull.sharedPictures.value.map((each) => each.baseName)).toEqual(['IMG_2', 'IMG_10', 'IMG_9'])
-		expect(cull.sharedDecided().map((each) => each.baseName)).toEqual(['IMG_2', 'IMG_9'])
+		expect(cull.legacy.value.map(({ picture, shared }) => [picture.baseName, shared])).toEqual([['IMG_2', true], ['IMG_9', true]])
 
 		cull.open(SET, ENTRIES, [])
 		expect(cull.sharedPictures.value).toEqual([])

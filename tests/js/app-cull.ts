@@ -90,6 +90,9 @@ export const NO_SERIES = async () => ({ series: [], keptOut: [] })
 /** Sidecars with nothing to take over, written without a word. */
 export const NO_SIDECARS: CullSidecars = { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) }
 
+/** Legacy endpoints without a legacy row. */
+export const NO_LEGACY = { loadInventory: async () => ({ folders: [], unreachable: 0 }), loadExport: async () => ({ decisions: [], tags: [] }), acknowledge: async () => undefined }
+
 /** Tag endpoints that store nothing. */
 export const NO_TAGS = { lookupTags: async () => [], saveTags: async () => undefined, loadTagList: async () => [] }
 
@@ -114,6 +117,8 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			saveDecisions: async (rows: readonly StoredDecision[]) => { saved.push([...rows]) },
 			lookupSeries: NO_SERIES,
 			tags: NO_TAGS,
+			legacy: NO_LEGACY,
+			saveFile: () => undefined,
 			loadSettings: async () => ({}),
 			saveSettings: async (settings: object) => { savedSettings.push(settings) },
 			positions: { loadPositions: async () => [], savePosition: async () => undefined },
