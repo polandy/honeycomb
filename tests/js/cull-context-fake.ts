@@ -13,6 +13,7 @@ import { useLegacy } from '../../src/legacy.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { useLoupeOpening } from '../../src/loupe-opening.ts'
 import { useSelectionMode } from '../../src/selection-mode.ts'
+import { useSeriesCompare } from '../../src/series-compare.ts'
 import { ENTRIES, fakeStorage, fakeViewState, NO_LEGACY, NO_SERIES, NO_SIDECARS, NO_TAGS, SET } from './app-cull.ts'
 
 /** One call of a context action: its name and arguments. */
@@ -27,7 +28,8 @@ export interface ContextCounts {
 
 /**
  * A cull context over a real cull opened on `entries` and a real selection; the flows around them
- * are fakes that record each call in `calls`. The loupe opens for real, its reveal recorded.
+ * are fakes that record each call in `calls`. The loupe and the series compare (`flow`) open for
+ * real; the compare's entry points in the context and what it hands back to the cull are recorded.
  */
 export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES) {
 	const calls: ContextCall[] = []
@@ -47,6 +49,7 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 	cull.open(SET, entries, [])
 	await flushPromises()
 	const opening = useLoupeOpening(async (index) => record('reveal')(index), () => true)
+	const flow = useSeriesCompare<Picture<ListingEntry>>({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: record('compareDecide'), pickRest: record('comparePickRest'), settings: () => DEFAULT_SETTINGS, updateSettings: record('updateSettings'), toast: (shown) => record('toast')(shown.message, shown.action), holdHashes: () => undefined })
 	const context: CullContext = {
 		cull,
 		selection: useSelectionMode(() => cull.view.value, cull.pictures),
@@ -54,7 +57,7 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 		deleting: { rejected: computed(() => counts.value.rejected), rawRemovable: computed(() => counts.value.rawRemovable), review: record('review'), removeRaws: record('removeRaws'), summarise: record('summarise'), allDecided: record('allDecided') },
 		moving: { open: record('move'), openShown: record('moveShown') },
 		resume: { resumeName: computed(() => counts.value.resumeName), resume: record('resume'), dismiss: record('dismissResume') },
-		seriesCompare: { start: record('compareSeries'), startOn: record('compareSeriesOn'), pickRestAndLand: record('pickRestAndLand') },
+		seriesCompare: { ...flow, start: record('compareSeries'), startOn: record('compareSeriesOn'), pickRestAndLand: record('pickRestAndLand') },
 		sidecars: { ask: record('writeSidecars') },
 		tagEntry: { open: (chosen) => {
 			calls.push(['tag', chosen])
@@ -78,7 +81,7 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 		viewState: fakeViewState(),
 		storage: fakeStorage(),
 	}
-	return { context, calls, counts, opening }
+	return { context, calls, counts, opening, flow }
 }
 
 /** Mounts the screen under a parent that provides the context, as App provides it to its screens. */
