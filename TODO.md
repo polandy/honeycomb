@@ -12,6 +12,7 @@ Add items with `/todo`.
 - [ ] Sidecar saving fails on Nextcloud 35.0.3: a `.part` file made with `Folder::newFile()` has no cache entry and permissions 0, so `SidecarWriter` cannot move it into place (`notPermitted`, e2e `sidecars.spec.ts` XMP-002.9). Pick a temporary name 35.0.3 caches, revise ADR 0017, then raise `NEWEST_NEXTCLOUD_IMAGE` in `scripts/nextcloud-images.sh` to 35.0.3 (2026-11-15)
 - [ ] Stored series (#185, ADR 0027, SERIES-005): PR 3 remove and dissolve, PR 4 grid *Series…* menu, PR 5 merge with the next or previous series, PR 6 *Series done* (#183) (2026-11-14)
 - [ ] Sidecar is the source of truth (M8, ADR 0032, #187), in this order: PR 6 the cull reads through the cache (XMP-006.7), writability, confirmation, *Off*/*On*; PR 7 bundling per picture; PR 8 fresh check before deleting by decision; PR 9 drop the legacy tables a release after PR 6 (2026-11-15)
+- [ ] One hash worker pool for the cull too (architecture review R12 b): the cull hashes through `browserHashWorkers()` instead of the main thread (`hashPreview`), its hash saves wait on a `429` like the similarity run's (ADR 0026, SERIES-003.13), tile loading keeps priority over hashing and the hash order follows the tiles (2026-11-15)
 
 ## Later
 

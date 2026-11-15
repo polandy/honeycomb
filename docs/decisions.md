@@ -1277,3 +1277,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-15: The series compare and its viewer read the cull from the context (ADR 0028, review
   R8c) through `SeriesCompareFlow`, renamed `SeriesCompareScreen` like the other screen roots; the
   context holds the compare flow whole instead of a `Pick` of nearly all its members.
+- 2026-11-15: Review R12 is split in two PRs. a) the pool starts its workers when needed and
+  survives a crash, and the similarity page takes it from `browserHashWorkers()`; b) the cull
+  hashes in the same pool, its saves wait on a `429` like the run's (ADR 0026), with the tile
+  order kept and hashing still behind the tile loads. The cull's `429` belongs to b, as the cull
+  page's save path changes only there.
