@@ -18,7 +18,10 @@ quick to go through on an iPad.
 
 **Status:** pre-release. The grid, the loupe, deciding, deleting and the settings work; nothing
 is released yet, so see [Installation](#installation) for how it will be installed. XMP sidecars
-are read and written in a later milestone ([`docs/plan.md`](docs/plan.md)).
+are read, and written through every decision, in your own folders
+([`docs/06-xmp-interop.md`](docs/06-xmp-interop.md)). Read [What honeycomb changes in your
+files](#what-honeycomb-changes-in-your-files) and [Back up first](#back-up-first) before you
+use it on photos you cannot replace.
 
 ## Features
 
@@ -49,6 +52,47 @@ How ratings, flags and colour labels appear in digiKam, darktable and Lightroom:
 (Pick, Reject, Unflag, series and more) are in the [glossary](docs/04-glossary.md). The interactive
 mockup in [`docs/mockup/index.html`](docs/mockup/index.html) shows the intended design; plan,
 milestones and open questions are in [`docs/plan.md`](docs/plan.md).
+
+## What honeycomb changes in your files
+
+honeycomb reads your photos and changes files only through Nextcloud's file API, so permissions,
+file versions and the trash bin apply.
+
+- **Deleting** moves every file of a rejected picture (JPEG, RAW and sidecars) into the
+  Nextcloud trash bin. It needs the trash bin to be on and refuses otherwise.
+- **Moving** renames and moves the files of a picture into the folder you choose, by a name
+  template ([`docs/05-name-templates.md`](docs/05-name-templates.md)). A picture is moved whole
+  or not at all, and the move can be undone.
+- **XMP sidecars** (`<file>.xmp`) are created or updated next to the photo for every decision
+  you make: rating, flag, colour label, tags. An existing sidecar is merged, so what other
+  programs wrote stays. In a shared folder nothing is written unless you ask. The photos
+  themselves are never modified.
+- **Everything else** (decisions, tags, positions, similarity) lives in honeycomb's own tables,
+  not in your files.
+
+## Back up first
+
+honeycomb is pre-release software and moves, trashes and writes files. Keep a backup of photos you
+cannot replace before you cull them, and check that the trash bin works for the folder: external
+storage and group folders may not have one. The licence ([`LICENSE`](LICENSE)) excludes any
+warranty.
+
+## Privacy
+
+honeycomb sends nothing out: no telemetry and no outgoing requests. It stores, per user, in
+the Nextcloud database:
+
+- ratings, flags, colour labels and *Keep RAW* per picture, tags, and the position where you
+  stopped a cull;
+- visual hashes and series of your pictures (for similarity);
+- your settings and view state.
+
+It stores file ids, not file names. The Nextcloud log can contain full file paths when a sidecar
+cannot be saved, so remove them before you share a log. Deleting a user deletes their honeycomb
+data. There is no per-user export. `occ app:remove` leaves the tables in place; see
+[`docs/admin/removing.md`](docs/admin/removing.md) to delete them.
+
+Report a security problem privately: [`SECURITY.md`](SECURITY.md).
 
 ## Screenshots
 

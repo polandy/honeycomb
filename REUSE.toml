@@ -12,6 +12,7 @@ path = [
     "CLAUDE.md",
     "CHANGELOG.md",
     "README.md",
+    "SECURITY.md",
     "TODO.md",
     ".markdownlint-cli2.jsonc",
     ".release-please-manifest.json",
