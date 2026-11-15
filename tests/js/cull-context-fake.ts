@@ -56,6 +56,7 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 		cull,
 		selection: useSelectionMode(() => cull.view.value, cull.pictures),
 		decide: record('decide'),
+		editSeries: record('editSeries'),
 		deleting: { rejected: computed(() => counts.value.rejected), rawRemovable: computed(() => counts.value.rawRemovable), review: record('review'), removeRaws: record('removeRaws'), summarise: record('summarise'), allDecided: record('allDecided') },
 		moving: { open: record('move'), openShown: record('moveShown') },
 		resume: { resumeName: computed(() => counts.value.resumeName), resume: record('resume'), dismiss: record('dismissResume') },

@@ -100,13 +100,13 @@ describe('useCull: stored series', () => {
 })
 
 describe('useCull: series edits', () => {
-	/** A cull on the burst that records its series writes and answers each new series with id 31. */
+	/** A cull on the burst that records its series writes and answers new series with ids from 31 on. */
 	function editedCull(api: Partial<CullApi> = {}) {
 		const written: SeriesWrite[] = []
 		const cull = openedCull(BURST, {
 			saveSeries: async (write) => {
 				written.push(write)
-				return { ids: write.series.map(({ id }) => id ?? 31) }
+				return { ids: write.series.map(({ id }, index) => id ?? 31 + index) }
 			},
 			...api,
 		})
@@ -153,5 +153,37 @@ describe('useCull: series edits', () => {
 
 		cull.redo()
 		expect(names(cull)).toEqual([])
+	})
+
+	// spec: SERIES-005.4, SERIES-005.5
+	it('makes a new series of the selected pictures as one undo step, storing the rest of their series', async () => {
+		const { cull, written } = editedCull()
+		await flushPromises()
+		const [A, B, C, D] = cull.pictures.value
+
+		const step = cull.editSelection('new', [C!, D!])
+		await flushPromises()
+
+		expect(step).toMatchObject({ kind: 'series', edit: 'new', names: ['C', 'D'], series: 1 })
+		expect(written).toEqual([{ series: [{ id: null, status: 'open', fileIds: [1, 2] }, { id: null, status: 'open', fileIds: [3, 4] }], keptOut: [], released: [] }])
+		expect(cull.series.value.map(({ members }) => members)).toEqual([[A, B], [C, D]])
+
+		cull.undo()
+		await flushPromises()
+		expect(names(cull)).toEqual([['A', 'B', 'C', 'D']])
+	})
+
+	// spec: SERIES-005.7
+	it('merges the series the selection touches, naming every photo of the merged series', async () => {
+		const { cull } = editedCull({ lookupSeries: async () => ({ series: [{ id: 12, status: 'open', fileIds: [1, 2] }, { id: 13, status: 'open', fileIds: [3, 4] }].map((series) => ({ ...series, elsewhere: false })), keptOut: [] }) })
+		await flushPromises()
+		const [A, , C] = cull.pictures.value
+
+		const step = cull.editSelection('merge', [A!, C!])
+		await flushPromises()
+
+		expect(step).toMatchObject({ edit: 'merge', names: ['A', 'B', 'C', 'D'], series: 2 })
+		expect(names(cull)).toEqual([['A', 'B', 'C', 'D']])
+		expect(cull.series.value[0]!.stored?.id).toBe(12)
 	})
 })

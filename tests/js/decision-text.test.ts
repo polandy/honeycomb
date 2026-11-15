@@ -79,12 +79,20 @@ describe('changeText of a tag change', () => {
 describe('changeText of a series edit', () => {
 	it.each([
 		// spec: SERIES-005.10
-		['remove', ['IMG_0402'], 'Removed IMG_0402 from the series'],
-		['remove', ['A', 'B'], 'Removed 2 photos from the series'],
+		['remove', ['IMG_0402'], 1, 'Removed IMG_0402 from the series'],
+		// spec: SERIES-005.11
+		['remove', ['A', 'B'], 2, 'Removed 2 photos from their series'],
 		// spec: SERIES-005.13
-		['dissolve', ['A', 'B', 'C', 'D'], 'Dissolved the series · 4 photos'],
-	] as const)('words %s of %o as "%s"', (edit, names, text) => {
-		expect(changeText({ kind: 'series', edit, names })).toBe(text)
-		expect(redoneText({ kind: 'series', edit, names })).toBe(`Redid: ${text}`)
+		['dissolve', ['A', 'B', 'C', 'D'], 1, 'Dissolved the series · 4 photos'],
+		// spec: SERIES-005.4
+		['new', ['A', 'B', 'C', 'D'], 0, 'Made a series of 4 photos'],
+		// spec: SERIES-005.6
+		['add', ['A', 'B', 'C'], 1, 'Added 3 photos to the series'],
+		['add', ['A'], 1, 'Added A to the series'],
+		// spec: SERIES-005.7
+		['merge', ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'], 2, 'Merged 2 series · 8 photos'],
+	] as const)('words %s of %o in %i series as "%s"', (edit, names, series, text) => {
+		expect(changeText({ kind: 'series', edit, names, series })).toBe(text)
+		expect(redoneText({ kind: 'series', edit, names, series })).toBe(`Redid: ${text}`)
 	})
 })
