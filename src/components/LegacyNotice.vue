@@ -58,6 +58,12 @@ const unreachableText = computed(() => n('honeycomb', '{count} file with stored 
 </template>
 
 <style scoped>
+/* a long folder list scrolls in the notice so the grid keeps room on a phone */
+.legacy-notice {
+	max-height: 30dvh;
+	overflow-y: auto;
+}
+
 .legacy-notice__actions {
 	display: flex;
 	gap: var(--default-grid-baseline);

@@ -109,6 +109,8 @@ read shows no notice and is logged.
 - **Then** the notice names both folders and the 3 files, *Export* saves the export as
   `honeycomb-legacy-rows.json`, *Discard* acknowledges the exported file ids and the notice is
   read again; *Cancel* discards nothing, and without rows or with writing *Off* no notice shows
+- **And** a long folder list scrolls inside the notice, which takes at most 30 % of the screen's
+  height, so the grid keeps room on a phone
 
 ### XMP-007.9 – A failed inventory shows no notice
 
