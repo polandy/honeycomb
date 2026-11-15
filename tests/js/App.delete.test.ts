@@ -16,20 +16,29 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import RawRemovalSummary from '../../src/components/RawRemovalSummary.vue'
 import RejectReview from '../../src/components/RejectReview.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
-import { mountApp, openCull, shownNames, stored, toolbarProps } from './app-cull.ts'
+import { ENTRIES, mountApp, openCull, shownNames, stored, toolbarProps } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
+import { xmp } from './logic/sidecar-answers.ts'
 
 const REJECTED = [stored(1, 'rejected'), stored(2, 'rejected'), stored(3, 'rejected')]
 
-/** The app on a cull with IMG_2 and IMG_10 rejected, so the grid shows IMG_9; the trash endpoint trashes every file. */
+/** The app on a cull with IMG_2 and IMG_10 rejected, so the grid shows IMG_9; a fresh listing answers the same files, each JPEG embeds its decision's flag, and the trash endpoint trashes every file. */
 async function openApp(decisions: StoredDecision[] = REJECTED) {
 	const sent: TrashRequestFile[][][] = []
 	const trashPictures = async (request: TrashRequestFile[][]) => {
 		sent.push(request)
 		return request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'trashed' })))
 	}
-	const mounted = mountApp({ trashPictures, schedule: fakeScheduler().schedule }, decisions, { NcDialog: DialogStub })
+	const flags = new Map(decisions.map(({ fileId, flag }) => [fileId, flag]))
+	const sidecars = {
+		lookupSidecars: async (ids: readonly number[]) => ids.map(() => ({ result: 'notFound' })),
+		lookupEmbeddedXmp: async (ids: readonly number[]) => ids.map((id) => (flags.get(id) === 'rejected' ? { result: 'read', bytes: xmp({ 'digiKam:PickLabel': '1' }) } : { result: 'none' })),
+		saveSidecars: async (items: readonly unknown[]) => items.map((_, index) => ({ result: 'saved', fileId: 100 + index, etag: 'e', size: 1, mtime: 1 })),
+		now: () => ({ epochMs: 0, offsetMinutes: 0 }),
+	}
+	const listEntries = async () => ({ entries: ENTRIES })
+	const mounted = mountApp({ trashPictures, sidecars, listEntries, schedule: fakeScheduler().schedule }, decisions, { NcDialog: DialogStub })
 	await openCull(mounted.wrapper)
 	return { ...mounted, sent }
 }

@@ -15,7 +15,7 @@ import { UNDECIDED } from '../../src/logic/decision.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../../src/logic/pairing.ts'
 import { withoutFiles } from '../../src/logic/trash-report.ts'
 import { failureReason } from '../../src/trash-text.ts'
-import { allTrashed, flow, OTHER, PAIR, SINGLE } from './delete-fixtures.ts'
+import { allPass, allTrashed, flow, OTHER, PAIR, SINGLE } from './delete-fixtures.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
 
 afterEach(() => vi.restoreAllMocks())
@@ -131,8 +131,11 @@ describe('useDeleteFlow', () => {
 	// spec: DELETE-002.7
 	it('sends nothing without a summary or a report, or while a request runs', async () => {
 		let release = () => {}
+		let reached = () => {}
+		const trashing = new Promise<void>((resolve) => (reached = resolve))
 		const { deleting, sent } = flow((request) => new Promise((resolve) => {
 			release = () => resolve(request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'trashed' }))))
+			reached()
 		}))
 		await deleting.confirm()
 		await deleting.retry()
@@ -140,6 +143,7 @@ describe('useDeleteFlow', () => {
 		deleting.summarise([SINGLE!])
 		const first = deleting.confirm()
 		await deleting.confirm()
+		await trashing
 		release()
 		await first
 
@@ -176,6 +180,7 @@ describe('useDeleteFlow: Remove RAWs', () => {
 				marked.value = next
 			},
 			flush: async () => {},
+			check: allPass,
 			trash: async (request) => {
 				sent.push(request.map((files) => [...files]))
 				return answer(request.map((files) => [...files]))

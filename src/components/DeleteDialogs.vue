@@ -76,6 +76,7 @@ const emit = defineEmits<{
 	<DeleteReport
 		v-else-if="props.dialog?.kind === 'report'"
 		:report="props.dialog.report"
+		:skipped="props.dialog.skipped"
 		:folderSet="props.folderSet"
 		:busy="props.busy"
 		:progress="props.progress"

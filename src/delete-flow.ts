@@ -1,8 +1,10 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Ref } from 'vue'
+import type { FreshCheckResult } from './fresh-check.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
 import type { Decision } from './logic/decision.ts'
+import type { DecisionFlow, SkippedPicture } from './logic/fresh-check.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { ChunkLimits, SendProgress } from './logic/request-chunks.ts'
@@ -17,16 +19,22 @@ import { rejectedPictures } from './logic/delete-summary.ts'
 import { rawBatch, rawRemoval } from './logic/raw-removal.ts'
 import { sendInChunks } from './logic/request-chunks.ts'
 import { followReplaced, retryBatch, trashReport, trashRequest, wholePictures } from './logic/trash-report.ts'
-import { deletedText, removedRawsText } from './trash-text.ts'
+import { deletedText, removedRawsText, skippedText } from './trash-text.ts'
 
 type Pictures = readonly Picture<ListingEntry>[]
 
-/** The open step of a delete: the reject review, the delete summary, the *Remove RAWs* summary of a view or the report of failed files. */
+/** The fresh pictures a delete by decision may send, and those it skips. */
+export type FreshCheck = FreshCheckResult
+
+/** What a delete sends, once the waiting sidecars are written, and the pictures it skipped. */
+type Plan = () => Promise<{ readonly batch: TrashBatch, readonly skipped: readonly SkippedPicture[] }>
+
+/** The open step of a delete: the reject review, the delete summary, the *Remove RAWs* summary of a view or the report of failed and skipped files. */
 export type DeleteDialog
 	= | { readonly kind: 'review' }
 		| { readonly kind: 'summary', readonly pictures: Pictures, readonly fromReview: boolean }
 		| { readonly kind: 'raws', readonly pictures: Pictures }
-		| { readonly kind: 'report', readonly report: TrashReport }
+		| { readonly kind: 'report', readonly report: TrashReport, readonly skipped: readonly SkippedPicture[] }
 
 /** The loupe's snapshot of pictures and the shown one. */
 export interface LoupeSnapshot {
@@ -43,6 +51,8 @@ export interface DeleteFlowContext {
 	readonly decide: (intent: DecisionIntent, chosen: Pictures) => void
 	/** Writes the waiting sidecars and waits for every write in flight (XMP-003.30). */
 	readonly flush: () => Promise<void>
+	/** Lists and reads the pictures afresh and keeps what every sidecar lets go in the flow (ADR 0032). */
+	readonly check: (pictures: Pictures, flow: DecisionFlow) => Promise<FreshCheck>
 	readonly trash: (pictures: readonly (readonly TrashRequestFile[])[]) => Promise<TrashResponseFile[][]>
 	/** Takes the files out of the listing; returns what each affected picture became. */
 	readonly removeFiles: (fileIds: ReadonlySet<number>) => ReadonlyMap<Picture<ListingEntry>, Picture<ListingEntry> | null>
@@ -100,14 +110,29 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 		context.decide({ kind: 'flag', flag: 'unflagged' }, [picture])
 	}
 
-	/** Sends the batch in chunks, takes the trashed files out of the listing and the loupe, and reports. */
-	async function send(batch: TrashBatch, done: (report: TrashReport) => string) {
+	/** The batch as it stands, nothing skipped. */
+	function planned(batch: TrashBatch): Plan {
+		return async () => ({ batch, skipped: [] })
+	}
+
+	/** The batch of the pictures that pass the fresh check of the flow, and those skipped. */
+	function checked(pictures: Pictures, flow: DecisionFlow, toBatch: (passed: Pictures) => TrashBatch): Plan {
+		return async () => {
+			const { passed, skipped } = await context.check(pictures, flow)
+			return { batch: toBatch(passed), skipped }
+		}
+	}
+
+	/** Writes the waiting sidecars, plans and sends the batch in chunks, takes the trashed files out of the listing and the loupe, and reports. */
+	async function send(total: number, plan: Plan, done: (report: TrashReport) => string) {
 		busy.value = true
-		const onProgress = (count: number) => (progress.value = { done: count, total: batch.length })
+		let onProgress = (count: number) => (progress.value = { done: count, total })
 		onProgress(0)
 		try {
 			await context.flush()
-			const sent = await sendInChunks(trashRequest(batch), context.trash, onProgress, context.chunks)
+			const { batch, skipped } = await plan()
+			onProgress = (count: number) => (progress.value = { done: count, total: batch.length })
+			const sent = batch.length === 0 ? { answers: [], failure: null } : await sendInChunks(trashRequest(batch), context.trash, onProgress, context.chunks)
 			if (sent.failure !== null && sent.answers.length === 0) {
 				throw sent.failure.error
 			}
@@ -118,8 +143,8 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 			const replaced = context.removeFiles(new Set(report.trashed.map((file) => file.entry.fileId)))
 			const loupe = toRaw(context.loupe.value)
 			context.loupe.value = loupe === null ? null : followReplaced(loupe.pictures, loupe.index, replaced)
-			dialog.value = report.failed.length > 0 ? { kind: 'report', report } : null
-			context.toast(done(report))
+			dialog.value = report.failed.length > 0 || skipped.length > 0 ? { kind: 'report', report, skipped } : null
+			context.toast([...(batch.length > 0 ? [done(report)] : []), ...(skipped.length > 0 ? [skippedText(skipped.length)] : [])].join(' · '))
 		} catch (error) {
 			logger.error('Could not move the files to the trash bin', { error })
 			dialog.value = null
@@ -132,21 +157,28 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 		}
 	}
 
-	/** Moves every file of the summary's pictures, or the RAWs *Remove RAWs* takes, to the trash bin. */
+	/** Moves every file of the summary's pictures, or the RAWs *Remove RAWs* takes, to the trash bin; a delete by decision checks them afresh first. */
 	function confirm() {
 		if (busy.value) {
 			return Promise.resolve()
 		}
-		if (dialog.value?.kind === 'summary') {
-			return send(wholePictures(dialog.value.pictures), (report) => deletedText(report, false))
+		const open = dialog.value
+		if (open?.kind === 'summary') {
+			const plan = open.fromReview ? checked(open.pictures, 'rejects', wholePictures) : planned(wholePictures(open.pictures))
+			return send(open.pictures.length, plan, (report) => deletedText(report, false))
 		}
-		return removal.value === null ? Promise.resolve() : send(rawBatch(removal.value.removed), removedRawsText)
+		const removed = removal.value?.removed
+		return removed === undefined ? Promise.resolve() : send(removed.length, checked(removed, 'raws', rawBatch), removedRawsText)
 	}
 
 	/** Sends the failed and skipped files of the report again. */
 	function retry() {
 		const open = dialog.value
-		return open?.kind === 'report' && !busy.value ? send(retryBatch(open.report), (report) => deletedText(report, true)) : Promise.resolve()
+		if (open?.kind !== 'report' || open.report.failed.length === 0 || busy.value) {
+			return Promise.resolve()
+		}
+		const batch = retryBatch(open.report)
+		return send(batch.length, planned(batch), (report) => deletedText(report, true))
 	}
 
 	/** Says the loupe left nothing undecided, and offers the reject review. */

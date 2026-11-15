@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Page } from '@playwright/test'
+
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
@@ -9,8 +11,21 @@ import { createFolder, etagOf, JPEG, RAW, requestToken, trashEntry, upload } fro
 const API = '/index.php/apps/honeycomb/api/v1'
 const TRASHBIN = `/remote.php/dav/trashbin/${ADMIN.username}`
 
-// spec: DELETE-002.1, DELETE-002.8
-test('reviews the rejects, rescues one and moves the rest to the Nextcloud trash bin', async ({ page }) => {
+/** A sidecar that states only the pick label, digiKam's 1 rejected and 3 picked. */
+const pickLabel = (label: number) => Buffer.from(`<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:digiKam="http://www.digikam.org/ns/1.0/" digiKam:PickLabel="${label}"/></rdf:RDF></x:xmpmeta>`)
+
+/** The original locations of the files in the trash bin. */
+async function trashLocations(page: Page): Promise<string> {
+	const trash = await page.request.fetch(`${TRASHBIN}/trash`, {
+		method: 'PROPFIND',
+		headers: { requesttoken: await requestToken(page), Depth: '1' },
+		data: '<d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns"><d:prop><nc:trashbin-original-location/></d:prop></d:propfind>',
+	})
+	return trash.text()
+}
+
+// spec: DELETE-002.1, DELETE-002.8, DELETE-002.15
+test('reviews the rejects, rescues one and moves the rest with their sidecars to the Nextcloud trash bin', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Delete ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
@@ -41,20 +56,44 @@ test('reviews the rejects, rescues one and moves the rest to the Nextcloud trash
 	await summary.getByRole('button', { name: 'Move 3 files to trash' }).click()
 
 	await expect(summary).toBeHidden()
-	await expect(page.getByRole('status').filter({ hasText: 'Moved 2 photos · 3 files' })).toBeVisible()
+	await expect(page.getByRole('status').filter({ hasText: 'Moved 2 photos · 6 files' })).toBeVisible()
 	await expect(grid.getByRole('gridcell')).toHaveCount(1)
 	await expect(grid.getByRole('gridcell', { name: 'IMG_0003, JPG only' })).toBeVisible()
 
-	const trash = await page.request.fetch(`/remote.php/dav/trashbin/${ADMIN.username}/trash`, {
-		method: 'PROPFIND',
-		headers: { requesttoken: await requestToken(page), Depth: '1' },
-		data: '<d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns"><d:prop><nc:trashbin-original-location/></d:prop></d:propfind>',
-	})
-	const locations = await trash.text()
-	for (const file of ['IMG_0001.jpg', 'IMG_0001.NEF', 'IMG_0002.jpg']) {
-		expect(locations).toContain(`${folder}/${file}`)
+	const locations = await trashLocations(page)
+	for (const file of ['IMG_0001.jpg', 'IMG_0001.NEF', 'IMG_0002.jpg', 'IMG_0001.jpg.xmp', 'IMG_0001.NEF.xmp', 'IMG_0002.jpg.xmp']) {
+		expect(locations).toContain(`${folder}/${file}<`)
 	}
 	expect(locations).not.toContain(`${folder}/IMG_0003.jpg`)
+})
+
+// spec: DELETE-002.15, DELETE-002.16
+test('skips a reject whose sidecar was changed elsewhere to picked, and reports it', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = `Fresh ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	for (const name of ['IMG_0001', 'IMG_0002']) {
+		await upload(page, `${folder}/${name}.jpg`, JPEG)
+		await upload(page, `${folder}/${name}.jpg.xmp`, pickLabel(1))
+	}
+
+	await cullFolder(page, folder)
+	await expect(page.getByRole('button', { name: 'Review rejects (2)' })).toBeVisible()
+	await upload(page, `${folder}/IMG_0002.jpg.xmp`, pickLabel(3))
+
+	await page.getByRole('button', { name: 'Review rejects (2)' }).click()
+	await page.getByRole('dialog', { name: 'Review rejects' }).getByRole('button', { name: 'Continue: delete 2' }).click()
+	await page.getByRole('dialog', { name: 'Delete 2 photos' }).getByRole('button', { name: /^Move \d+ files to trash$/ }).click()
+
+	const report = page.getByRole('dialog', { name: 'Some photos were skipped' })
+	await expect(report.getByRole('list', { name: 'Photos skipped' })).toContainText('IMG_0002.jpgIts sidecars do not say rejected')
+	await expect(report.getByRole('button', { name: 'Retry failed files' })).toBeDisabled()
+	await expect(page.getByRole('status').filter({ hasText: 'Moved 1 photo · 2 files' }).filter({ hasText: '1 photo skipped' })).toBeVisible()
+	const locations = await trashLocations(page)
+	for (const file of ['IMG_0001.jpg', 'IMG_0001.jpg.xmp']) {
+		expect(locations).toContain(`${folder}/${file}<`)
+	}
+	expect(locations).not.toContain(`${folder}/IMG_0002.jpg`)
 })
 
 // spec: DELETE-001.8

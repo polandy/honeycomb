@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { FreshCheck } from '../../src/delete-flow.ts'
 import type { Decision } from '../../src/logic/decision.ts'
+import type { DecisionFlow } from '../../src/logic/fresh-check.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 import type { ChunkLimits } from '../../src/logic/request-chunks.ts'
@@ -20,8 +22,11 @@ export const [PAIR, SINGLE, OTHER] = picturesOf([
 	listingEntry(5, '/Trip/IMG_3.JPG', { size: 1024 }),
 ]) as Picture<ListingEntry>[]
 
-/** A flow over the three pictures, PAIR and OTHER rejected, with a trash endpoint answering `answer` and `flush` writing the waiting sidecars. */
-export function flow(answer: (request: { fileId: number }[][]) => Promise<TrashResponseFile[][]>, chunks?: ChunkLimits, flush = async () => {}) {
+/** A check that lets every picture go. */
+export const allPass = async (pictures: readonly Picture<ListingEntry>[]): Promise<FreshCheck> => ({ passed: pictures, skipped: [] })
+
+/** A flow over the three pictures, PAIR and OTHER rejected, with a trash endpoint answering `answer`, `flush` writing the waiting sidecars and `check` checking them afresh. */
+export function flow(answer: (request: { fileId: number }[][]) => Promise<TrashResponseFile[][]>, chunks?: ChunkLimits, flush = async () => {}, check: (pictures: readonly Picture<ListingEntry>[], flow: DecisionFlow) => Promise<FreshCheck> = allPass) {
 	const pictures = shallowRef<readonly Picture<ListingEntry>[]>([PAIR!, SINGLE!, OTHER!])
 	const flags = new Map([[PAIR, 'rejected'], [OTHER, 'rejected']])
 	const toasts: string[] = []
@@ -34,6 +39,7 @@ export function flow(answer: (request: { fileId: number }[][]) => Promise<TrashR
 		decisionOf: (picture) => ({ ...UNDECIDED, flag: flags.get(picture) ?? 'unflagged' } as Decision),
 		decide: (intent, chosen) => decided.push([intent, chosen]),
 		flush,
+		check,
 		trash: async (request) => {
 			sent.push(request.map((files) => [...files]))
 			return answer(request.map((files) => [...files]))

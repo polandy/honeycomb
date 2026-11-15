@@ -27,6 +27,15 @@ per file, *Close* and *Retry failed files*. Deleting is not undone by `Ctrl+Z`; 
 restores. A delete, a *Remove RAWs* and a retry send at most 50 pictures and 500 files per
 request, one request after another, and the dialog shows how many photos were sent (ADR 0029).
 
+**Deleting by decision** (ADR 0032). Confirming the summary that came from the review first writes
+the waiting sidecars (XMP-003.30), lists the pictures' folders again and reads every sidecar of each
+picture, and the JPEG's embedded XMP while it counts. A picture goes only when every one of them
+reads and at least one says *rejected*; the files sent are those of the fresh listing, so a sidecar
+made since the folder was listed goes too. A picture is skipped, and stays, when its members
+changed, a sidecar cannot be read or is not valid XMP, its sidecars disagree, or none says
+*rejected*. The delete report lists the skipped photos with the reason. *Delete…* and the `Delete`
+key delete what the user chose, without this check.
+
 ## Acceptance criteria
 
 ### DELETE-002.1 – Review and rescue
@@ -125,6 +134,23 @@ request, one request after another, and the dialog shows how many photos were se
   the delete report lists their files as failed for *Retry failed files*, and the toast counts
   moved and failed files
 
+### DELETE-002.15 – Only what every sidecar rejects
+
+- **Given** the summary from the review, with a picture whose sidecar another program changed to
+  *picked*, a pair whose RAW sidecar says *rejected* and JPEG sidecar *unflagged*, a picture with an
+  unreadable sidecar, and a picture every sidecar of which says *rejected*
+- **When** the user confirms
+- **Then** the waiting sidecars are written first, the folders are listed again, and only the last
+  picture is sent, with every sidecar of the fresh listing; the others stay
+
+### DELETE-002.16 – The skipped photos are reported
+
+- **Given** a delete by decision that skipped pictures
+- **When** it ends
+- **Then** the delete report lists each skipped photo with its reason, *Retry failed files* is held
+  while no file failed, and the toast adds how many photos were skipped; when every picture was
+  skipped, nothing is sent
+
 ## Out of scope
 
 The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
@@ -137,3 +163,4 @@ The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
 | 2026-11-10 | DELETE-002.12 proven by a Vitest test |
 | 2026-11-15 | Requests in chunks with progress (DELETE-002.13, DELETE-002.14, ADR 0029) |
 | 2026-11-15 | The trash-bin note names the retention and space risk and advises a backup; `noTrashBin` has its reason (DELETE-002.6, DELETE-002.9) |
+| 2026-11-15 | Deleting by decision checks the sidecars afresh and reports the skipped photos (DELETE-002.15, DELETE-002.16, ADR 0032 PR 8) |
