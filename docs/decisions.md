@@ -1154,3 +1154,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   one `CullContext` holding the cull and the selection whole and each flow as a `Pick` of what a
   screen uses, so a test fakes a flow in a line; the toolbar's 22 props become the groups
   `folders`, `view`, `progress`, `selection` and `tasks`; its events stay as they were.
+- 2026-11-15: Writing decisions to XMP sidecars is opt-in (XMP-003, risk review R1/R9): a
+  setting *Off* (default for every user, no migration) / *Only existing sidecars* / *Existing and
+  new sidecars*. The opt-in dialog opens when the user leaves *Off* in the settings, not as a
+  prompt at start. Take-over reading runs with every choice; the ⋯ menu write in a shared folder
+  works with every choice and creates no sidecar under *Only existing sidecars*, nor does a retry
+  or the embedded-JPEG tag sidecar.

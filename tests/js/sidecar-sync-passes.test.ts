@@ -35,7 +35,7 @@ function sync(answer: (item: SidecarSaveItem) => SidecarSaveAnswer = (item) => s
 			}
 			return items.map(answer)
 		},
-	}, () => CANONICAL_TIME, () => undefined)
+	}, () => CANONICAL_TIME, () => undefined, () => true)
 	return { sidecars, saves, release }
 }
 

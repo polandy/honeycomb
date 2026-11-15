@@ -12,7 +12,7 @@ import type { XmpTime } from './logic/xmp/model.ts'
 import { logger } from './logger.ts'
 import { embeddedXmpSource } from './logic/embedded-xmp.ts'
 import { failureOf, passOf, retryStep, stepResult } from './logic/sidecar-pass.ts'
-import { applySaves, planSaves, takeOverDecisions, takeOverLookups, writeLookups } from './logic/sidecar-sync.ts'
+import { applySaves, existingOnly, planSaves, takeOverDecisions, takeOverLookups, writeLookups } from './logic/sidecar-sync.ts'
 import { embeddedLookups, takeOverTags } from './logic/sidecar-tags.ts'
 
 /** The sidecar endpoints (ADR 0017) and the embedded XMP endpoint (ADR 0023). */
@@ -34,8 +34,8 @@ interface Waiting {
 	readonly reject: (error: unknown) => void
 }
 
-/** Takes decisions and tags over from the sidecars and writes them to the sidecars, one pass after another (XMP-003, TAGS-002). */
-export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (failed: SidecarFailure[]) => void) {
+/** Takes decisions and tags over from the sidecars and writes them to the sidecars, one pass after another, creating missing ones while `createsNew` says so (XMP-003, TAGS-002). */
+export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (failed: SidecarFailure[]) => void, createsNew: () => boolean) {
 	let known = new Map<string, KnownSidecar>()
 	let waiting: Waiting[] = []
 	let passing = false
@@ -136,7 +136,8 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		const embedded = await lookUp(embeddedIds, api.lookupEmbeddedXmp, 'Could not look up the embedded XMP to write')
 		const time = now()
 		const planned = pictures.map((picture) => planSaves(picture, editOf(picture), known, answers, time, paths?.get(picture), embedded))
-		const saved = await save(planned.flatMap(({ saves }) => saves))
+		const saves = planned.flatMap(({ saves }) => saves)
+		const saved = await save(createsNew() ? saves : existingOnly(saves))
 		return { failed: [...planned.flatMap(({ failed }) => failed), ...saved.failed], changed: saved.changed }
 	}
 

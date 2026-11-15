@@ -1,9 +1,12 @@
 # Ratings, flags and colour labels in other programs
 
-honeycomb keeps your decisions — stars, flags and colour labels — and writes them into the XMP
-sidecar files next to your photos (`IMG_0001.NEF.xmp` or `IMG_0001.xmp`). As soon as you set
-anything on a photo — a flag, stars, a colour label or *Keep RAW* — its sidecars are written, and a
-file without one gets a new `IMG_0001.NEF.xmp`; a photo you have not touched gets none. digiKam,
+honeycomb keeps your decisions — stars, flags and colour labels — and, once you turn it on, writes
+them into the XMP sidecar files next to your photos (`IMG_0001.NEF.xmp` or `IMG_0001.xmp`).
+Writing is off by default; choose it under **Settings → XMP sidecars**
+([settings](settings.md#xmp-sidecars)). With *Only existing sidecars*, setting anything on a photo
+— a flag, stars, a colour label or *Keep RAW* — updates the sidecars it already has; with
+*Existing and new sidecars* a file without one also gets a new `IMG_0001.NEF.xmp`. A photo you have
+not touched gets none. digiKam,
 darktable and Lightroom Classic read those files, so a photo you rated on the iPad shows the same
 stars on your desktop. When you open a folder for the first time, honeycomb also picks up what these
 programs have already written.
@@ -65,7 +68,8 @@ In a folder shared with you, or one you share — with other users, by public li
 group folder or on external storage several users mount — honeycomb keeps your decisions to itself
 and writes no sidecars on its own, since everyone with access would see them. To write them anyway,
 choose **⋯ → Write decisions to sidecars…**: honeycomb names the photos and folders and, once you
-confirm, writes the sidecars of every photo there that you have decided.
+confirm, writes the sidecars of every photo there that you have decided. This works whatever the
+setting; with *Only existing sidecars* it creates no new ones.
 
 ## When a sidecar cannot be written
 

@@ -185,6 +185,11 @@ export function applySaves(saves: readonly PlannedSave[], answers: readonly Side
 	return { known, failed, changed }
 }
 
+/** The saves without those that would create a sidecar (XMP-003.19). */
+export function existingOnly(saves: readonly PlannedSave[]): PlannedSave[] {
+	return saves.filter((save) => 'fileId' in save.item)
+}
+
 /** Whether a member of the picture lies in one of the shared folders. */
 export function inSharedFolder(picture: Picture<ListingEntry>, shared: ReadonlySet<string>): boolean {
 	return pictureMembers(picture).some((member) => {

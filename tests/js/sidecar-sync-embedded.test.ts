@@ -44,7 +44,7 @@ function sync(embedded: (fileId: number) => EmbeddedXmpAnswer | null) {
 			saves.push([...items])
 			return items.map((item, index) => ({ result: 'saved', fileId: 'fileId' in item ? item.fileId : 30 + index, etag: 's', size: 1, mtime: 1 }))
 		},
-	}, () => CANONICAL_TIME, (failed) => failures.push([...failed]))
+	}, () => CANONICAL_TIME, (failed) => failures.push([...failed]), () => true)
 	return { sidecars, lookups, embeddedLookups, saves, failures }
 }
 
