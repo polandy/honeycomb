@@ -4,10 +4,12 @@
 -->
 <script setup lang="ts">
 import type { AppSeams } from './app-seams.ts'
+import type { CullStep } from './cull.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
+import type { SidecarFailure } from './logic/sidecar-sync.ts'
 
 import { computed, ref, useTemplateRef, watch } from 'vue'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
@@ -25,6 +27,7 @@ import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutSheet from './components/ShortcutSheet.vue'
 import TagEntry from './components/TagEntry.vue'
 import UndoToast from './components/UndoToast.vue'
+import WriteOnDialog from './components/WriteOnDialog.vue'
 import { APP_SEAMS } from './app-seams.ts'
 import { clearCacheWithToast } from './cache-clear.ts'
 import { provideCullContext } from './cull-context.ts'
@@ -46,6 +49,7 @@ import { useTagEntryTargets } from './tag-entry-targets.ts'
 import { useToast } from './toast.ts'
 import { useToastedDecisions } from './toasted-decisions.ts'
 import { useViewState } from './view-state.ts'
+import { useWriteLock } from './write-lock.ts'
 
 const props = withDefaults(defineProps<AppSeams>(), APP_SEAMS)
 
@@ -53,10 +57,15 @@ const toast = useToast(props.schedule)
 const { settings, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, (message) => toast.show(message))
 const viewState = useViewState(props.viewState, props.storage)
 const settingsOpen = ref(false)
-const sidecarsReady = computed(() => settings.value.sidecarWrite === 'existing-and-new')
+const sidecarsReady = computed(() => settings.value.sidecarWrite === 'on')
 const legacy = useLegacy(props.legacy, props.saveFile, (message) => toast.show(message), () => sidecarsReady.value)
-const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, () => settings.value.sidecarWrite !== 'existing', legacy.acknowledge)
-const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions, lookupSeries: props.lookupSeries, tags: props.tags }, props.storage, () => settings.value, sidecarFlow.sync)
+const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, refuseFailed, legacy.acknowledge)
+const writeLock = useWriteLock(() => settings.value, updateSettings, toast.show, retryLocked)
+const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions, lookupSeries: props.lookupSeries, tags: props.tags }, props.storage, () => settings.value, sidecarFlow.sync, writeLock.locked)
+/** Locks the pictures whose sidecar a write refused (XMP-008.6). */
+function refuseFailed(failed: readonly SidecarFailure[]) {
+	cull.refuse(failed)
+}
 const { folderSet, pictures, folders, view, progress, filtersOpen, pickerOpen, tileSize } = cull
 const gridScreen = useTemplateRef<InstanceType<typeof GridScreen>>('gridScreen')
 const grid = computed(() => gridScreen.value?.grid ?? null)
@@ -70,7 +79,11 @@ const selection = useSelectionMode(() => view.value, pictures)
 const { selected } = selection
 watch(cull.pairing, selection.selectNone)
 
-const { decide, pickRest, tag, undo, redo } = useToastedDecisions(cull, toast.show)
+const { decide, pickRest, tag, undo, redo, toastChange } = useToastedDecisions(cull, toast.show)
+/** Toasts a step taken once its lock was lifted (XMP-008.7). */
+function retryLocked(step: CullStep | null) {
+	toastChange(step)
+}
 const tagEntry = useTagEntryTargets()
 const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: decideInCompare, pickRest, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })
 const restOffer = useRestOffer({ seriesOf: () => cull.seriesOf.value, decisionOf: cull.decisionOf, compare: seriesCompare, shown: shownInLoupe, land: landInLoupe })
@@ -107,7 +120,7 @@ function openFolderSet(...opened: Parameters<typeof cull.open>) {
 /** Opens or closes the shortcut sheet. */
 const toggleShortcuts = () => (shortcutsOpen.value = !shortcutsOpen.value)
 useHotkeys(() => {
-	if (pickerOpen.value || settingsOpen.value || tagEntry.targets.value !== null || deleteDialog.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
+	if (pickerOpen.value || settingsOpen.value || tagEntry.targets.value !== null || deleteDialog.value !== null || sidecarFlow.open.value || writeLock.asking.value !== null || moving.pictures.value !== null || moving.report.value !== null) {
 		return null
 	}
 	if (shortcutsOpen.value || folderSet.value === null) {
@@ -163,9 +176,18 @@ useHotkeys(() => {
 				v-model:open="settingsOpen"
 				:settings="settings"
 				:gestureGuideSeen="viewState.gestureGuideSeen.value"
+				:versionsApp="props.versionsApp"
 				@update="updateSettings"
 				@showGestureGuide="viewState.showGestureGuide"
 				@clearCache="clearCacheWithToast(props.clearCache, toast.show)" />
+			<WriteOnDialog
+				v-if="writeLock.asking.value !== null"
+				:turnsOn="writeLock.turnsOn.value"
+				:sharedNames="writeLock.sharedNames.value"
+				:versionsApp="props.versionsApp"
+				:container="loupe !== null ? '.photo-loupe' : undefined"
+				@cancel="writeLock.cancel"
+				@confirm="writeLock.confirm" />
 			<Teleport to="body">
 				<PhotoLoupe
 					v-if="loupeShown !== null && folderSet !== null"
@@ -176,7 +198,7 @@ useHotkeys(() => {
 					:decisionOf="cull.decisionOf"
 					:seriesOf="cull.seriesOf.value"
 					:tagsOf="cull.tags.tagsOf"
-					:sidecarWriting="cull.sidecarWriting"
+					:writabilityOf="cull.writabilityOf"
 					:storage="props.storage"
 					:viewState="viewState"
 					:settings="settings"

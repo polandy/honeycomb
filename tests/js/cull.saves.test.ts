@@ -26,7 +26,7 @@ async function waitingCull() {
 		}),
 		lookupSeries: NO_SERIES,
 		tags: NO_TAGS,
-	}, fakeStorage(), () => WRITING_ON, NO_SIDECARS)
+	}, fakeStorage(), () => WRITING_ON, NO_SIDECARS, () => undefined)
 	cull.open(SET, ENTRIES)
 	await flushPromises()
 	return { cull, saved, settle, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }

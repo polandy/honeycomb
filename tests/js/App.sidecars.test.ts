@@ -68,7 +68,7 @@ async function askToWrite(wrapper: AppWrapper) {
 }
 
 describe('App: migrating the stored decisions and tags to sidecars', () => {
-	// spec: XMP-007.5, XMP-003.11
+	// spec: XMP-007.5
 	it('asks first, then writes the stored decision over the sidecar\'s and adds the stored tags', async () => {
 		const { wrapper, saves, acknowledged } = await openWith({
 			lookup: (fileId) => read(fileId === 5 ? RATED_AND_TAGGED : GOOD),

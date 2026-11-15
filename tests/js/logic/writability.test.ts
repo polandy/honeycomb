@@ -5,7 +5,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 import type { FolderAccess, WriteContext } from '../../../src/logic/writability.ts'
 
 import { describe, expect, it } from 'vitest'
-import { confirmationFolders, folderAccess, writability } from '../../../src/logic/writability.ts'
+import { confirmationFolders, folderAccess, lockReason, writability } from '../../../src/logic/writability.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const ALL = 31
@@ -65,6 +65,16 @@ describe('writability', () => {
 	it('reads the root folder as `/` and takes a folder the listing did not name as writable', () => {
 		expect(writability(AT_ROOT, context([folder('/', { permissions: READ })]))).toBe('readOnly')
 		expect(writability(AT_ROOT, context([]))).toBe('writable')
+	})
+})
+
+describe('lockReason', () => {
+	// spec: XMP-008.7
+	it('names the first reason in the order of the reasons, not of the pictures, and null when all are writable', () => {
+		const folders = [folder('/P', { versions: false }), folder('/', { permissions: READ })]
+		expect(lockReason([SPLIT, AT_ROOT], context(folders))).toBe('readOnly')
+		expect(lockReason([SPLIT], context(folders))).toBe('noVersions')
+		expect(lockReason([AT_ROOT], context([]))).toBeNull()
 	})
 })
 

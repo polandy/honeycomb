@@ -24,7 +24,7 @@ function openedCull(entries: readonly ListingEntry[], api: Partial<CullApi> = {}
 		lookupSeries: NO_SERIES,
 		tags: NO_TAGS,
 		...api,
-	}, fakeStorage(), () => WRITING_ON, { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) })
+	}, fakeStorage(), () => WRITING_ON, { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) }, () => undefined)
 	cull.open(SET, entries)
 	return cull
 }

@@ -32,7 +32,7 @@ async function taggedCull(stored: StoredTags[], tagList: () => Promise<Tag[]> = 
 			},
 			loadTagList: tagList,
 		},
-	}, fakeStorage(), () => WRITING_ON, NO_SIDECARS)
+	}, fakeStorage(), () => WRITING_ON, NO_SIDECARS, () => undefined)
 	cull.open(SET, ENTRIES)
 	await flushPromises()
 	return { cull, saved, saving, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }

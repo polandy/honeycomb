@@ -17,6 +17,7 @@ import type { WarmOptions } from './preview-warmer.ts'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { asRateLimited } from './logic/retry-after.ts'
+import { listedFolders } from './logic/writability.ts'
 
 /** The base path of honeycomb's endpoints. */
 export const API = '/apps/honeycomb/api/v1'
@@ -42,8 +43,8 @@ export async function listEntries(path: string, subfolders: boolean): Promise<Re
 	if (!isRecord(data) || !Array.isArray(data.entries) || typeof data.truncated !== 'boolean') {
 		throw new ApiResponseError(`The listing of "${path}" has no entries array and truncated flag; check the server's version.`)
 	}
-	const folders = Array.isArray(data.folders) ? data.folders as { path: string, shared: boolean }[] : []
-	return { entries: data.entries as Listing['entries'], truncated: data.truncated, sharedFolders: folders.filter((folder) => folder.shared).map((folder) => folder.path) }
+	const opened = typeof data.fileId === 'number' ? { path, fileId: data.fileId } : null
+	return { entries: data.entries as Listing['entries'], truncated: data.truncated, folders: listedFolders(data.folders), opened }
 }
 
 /** The direct child folders of a folder (ADR 0011). */

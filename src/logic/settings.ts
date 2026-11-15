@@ -23,15 +23,22 @@ export interface Settings extends PairingSettings {
 	readonly moveRecent: readonly string[]
 	readonly moveTemplate: string
 	readonly sidecarWrite: SidecarWrite
+	/** A stored *Only existing sidecars* turned Off, not yet told (SETTINGS-001.26). */
+	readonly sidecarExistingHint: boolean
+	/** The opened shared folders, by file id, whose writing the user confirmed, oldest first (XMP-008.4). */
+	readonly confirmedSharedFolders: readonly number[]
 }
 
-/** Which sidecars decisions are written through to: none, the existing ones, or those and new ones (XMP-003). */
-export type SidecarWrite = 'off' | 'existing' | 'existing-and-new'
+/** Whether decisions are written to the sidecars (XMP-003, ADR 0032). */
+export type SidecarWrite = 'off' | 'on'
 
-/** How a picture's sidecars are written: off, the setting's choice, or not on its own in a shared folder (TAGS-004.9). */
-export type SidecarWriting = SidecarWrite | 'shared-folder'
+/** The confirmed shared folders kept; the oldest go first, so the settings stay well under 8 KB. */
+export const CONFIRMED_FOLDER_CAP = 200
 
-const SIDECAR_WRITES: readonly SidecarWrite[] = ['off', 'existing', 'existing-and-new']
+/** What the stored values of earlier releases read as: the two modes that wrote become On or Off. */
+const STORED_SIDECAR_WRITES: Readonly<Record<string, SidecarWrite>> = { off: 'off', on: 'on', 'existing-and-new': 'on', existing: 'off' }
+/** The stored value of *Only existing sidecars*, gone with ADR 0032. */
+const STORED_EXISTING_ONLY = 'existing'
 
 /** One of the two extension lists. */
 export type ExtensionList = 'rawExtensions' | 'renderedExtensions'
@@ -56,6 +63,8 @@ export const DEFAULT_SETTINGS: Settings = {
 	moveRecent: [],
 	moveTemplate: DEFAULT_NAME_TEMPLATE,
 	sidecarWrite: 'off',
+	sidecarExistingHint: false,
+	confirmedSharedFolders: [],
 }
 
 const OTHER_LIST: Record<ExtensionList, ExtensionList> = { rawExtensions: 'renderedExtensions', renderedExtensions: 'rawExtensions' }
@@ -78,8 +87,15 @@ export function parseSettings(value: unknown): Settings {
 		moveFavourites: parsePaths(stored.moveFavourites),
 		moveRecent: parsePaths(stored.moveRecent),
 		moveTemplate: typeof stored.moveTemplate === 'string' && parseNameTemplate(stored.moveTemplate).ok ? stored.moveTemplate : DEFAULT_NAME_TEMPLATE,
-		sidecarWrite: SIDECAR_WRITES.find((mode) => mode === stored.sidecarWrite) ?? DEFAULT_SETTINGS.sidecarWrite,
+		sidecarWrite: typeof stored.sidecarWrite === 'string' ? STORED_SIDECAR_WRITES[stored.sidecarWrite] ?? DEFAULT_SETTINGS.sidecarWrite : DEFAULT_SETTINGS.sidecarWrite,
+		sidecarExistingHint: stored.sidecarWrite === STORED_EXISTING_ONLY || stored.sidecarExistingHint === true,
+		confirmedSharedFolders: parseFileIds(stored.confirmedSharedFolders),
 	}
+}
+
+/** The confirmed folders with the added ones last, each once, at most the cap (XMP-008.4). */
+export function withConfirmedFolders(current: readonly number[], added: readonly number[]): number[] {
+	return [...new Set([...current.filter((fileId) => !added.includes(fileId)), ...added])].slice(-CONFIRMED_FOLDER_CAP)
 }
 
 /** Whether choosing `chosen` over `current` asks first: only leaving off does (SETTINGS-001.24). */
@@ -152,6 +168,11 @@ function parseSwipes(value: unknown): SwipeSetting {
 /** The stored folder paths in order without repeats; anything else is dropped. */
 function parsePaths(value: unknown): string[] {
 	return Array.isArray(value) ? [...new Set(value.filter((item): item is string => typeof item === 'string' && item.startsWith('/')))] : []
+}
+
+/** The stored file ids in order without repeats, the newest at most the cap; anything else is dropped. */
+function parseFileIds(value: unknown): number[] {
+	return Array.isArray(value) ? withConfirmedFolders([], value.filter((item): item is number => Number.isInteger(item) && item > 0)) : []
 }
 
 /** As pairing reads an extension: trimmed, without a leading dot, in lower case. */

@@ -5,6 +5,7 @@ import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { PairingSettings } from './logic/pairing.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
+import type { ListedAccess } from './logic/writability.ts'
 import type { ResumeApi } from './resume.ts'
 
 import { t } from '@nextcloud/l10n'
@@ -27,7 +28,7 @@ export interface RecentCull {
 /** How a folder set under *Recent* opens; apart from `RecentCull`, since it needs the resume flow. */
 export interface RecentOpener {
 	/** Opens the folder set's cull. */
-	readonly open: (set: FolderSet, entries: ListingEntry[], sharedFolders: string[]) => void
+	readonly open: (set: FolderSet, entries: ListingEntry[], access: ListedAccess) => void
 	/** Opens the loupe of the cull just opened at the file. */
 	readonly resumeAt: (fileId: number) => void
 	/** Opens the loupe of the open cull at its resume position. */
@@ -64,8 +65,8 @@ export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: Recent
 		try {
 			const listings = await Promise.all(folderSet.paths.map((path) => listEntries(path, folderSet.subfolders)))
 			if (opened === opening) {
-				const { entries, sharedFolders } = countFolderSet(listings, cull.pairing())
-				opener.open(folderSet, entries, sharedFolders)
+				const { entries, access } = countFolderSet(listings, cull.pairing())
+				opener.open(folderSet, entries, access)
 				opener.resumeAt(fileId)
 			}
 		} catch (error) {

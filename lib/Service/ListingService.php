@@ -55,7 +55,7 @@ final class ListingService {
 				continue;
 			}
 			if (count($entries) + count($batch) === $this->entryLimit) {
-				return new Listing([...$entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch)], true, array_values($folders));
+				return new Listing([...$entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch)], true, array_values($folders), $folder->getId());
 			}
 			$batch[] = $node;
 			$folders[dirname($node->getPath())] ??= $this->folderOf($user, $userFolder, $node);
@@ -64,7 +64,7 @@ final class ListingService {
 				$batch = [];
 			}
 		}
-		return new Listing([...$entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch)], false, array_values($folders));
+		return new Listing([...$entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch)], false, array_values($folders), $folder->getId());
 	}
 
 	/** @return array{path: string, shared: bool, permissions: int, versions: bool} */

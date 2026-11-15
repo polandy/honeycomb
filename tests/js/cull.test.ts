@@ -39,7 +39,7 @@ async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 		saveDecisions: async (rows) => { saved.push([...rows]) },
 		lookupSeries: NO_SERIES,
 		tags: NO_TAGS,
-	}, fakeStorage(), () => settings.value, NO_SIDECARS)
+	}, fakeStorage(), () => settings.value, NO_SIDECARS, () => undefined)
 	cull.open(SET, entries)
 	await flushPromises()
 	return { cull, saved, lookedUp, settings, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
@@ -178,7 +178,7 @@ describe('useCull: restoreFiles', () => {
 
 		cull.restoreFiles([{ ...pair.raw!, fileId: 103 }])
 		rows.length = 0
-		cull.open(SET, [{ ...pair.raw!, fileId: 103 }], [])
+		cull.open(SET, [{ ...pair.raw!, fileId: 103 }])
 		await flushPromises()
 
 		expect(cull.decisionOf(cull.pictures.value[0]!).flag).toBe('unflagged')
@@ -230,7 +230,7 @@ describe('useCull: settings', () => {
 	it('pairs what is left after a delete with the settings', async () => {
 		const { cull, settings } = await openedCull()
 		settings.value = { ...settings.value, folderMode: { kind: 'separate-subfolders', rawSubfolder: 'RAW', renderedSubfolder: 'JPG' } }
-		cull.open(SET, [listingEntry(5, '/Trip/A/RAW/X.CR3'), listingEntry(6, '/Trip/A/JPG/X.JPG')], [])
+		cull.open(SET, [listingEntry(5, '/Trip/A/RAW/X.CR3'), listingEntry(6, '/Trip/A/JPG/X.JPG')])
 
 		cull.removeFiles(new Set([6]))
 

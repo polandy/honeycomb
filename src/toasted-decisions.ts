@@ -59,5 +59,5 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 		}
 	}
 
-	return { decide, pickRest, tag, undo, redo }
+	return { decide, pickRest, tag, undo, redo, toastChange }
 }

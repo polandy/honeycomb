@@ -229,3 +229,16 @@ sidecar failed keeps its rows, stays in the inventory and is written again by th
 *Discard* acknowledges the exported ids. The notice shows only while writing creates new sidecars,
 as the inventory looks up every file id. Until PR 6 the cull still stores into the tables, so a
 picture decided again gets legacy rows again (XMP-007).
+
+## Amendment 2026-11-15: the switch as built (PR 6)
+
+PR 6 builds *Writability and permissions* and leaves the cull reading through the cache
+(XMP-006.7) to a later PR; the cull still takes over from the sidecars and stores into the tables. A step whose
+pictures are not all writable decides none of them (XMP-008.7): `off` and `shared` ask in one
+dialog and take the step after *Write to sidecars*, the other reasons show a toast. Undo and redo
+are not gated; the server checks every save. A folder the listing does not name counts as
+writable. `refused` covers the sidecars a write of this visit refused, and opening a folder set
+clears it. The listing adds the opened folder's `fileId`, the key of a confirmation; the settings
+keep at most 200. Whether the Versions app is on for the user comes with the page
+(`data-versions-app`). The migration (XMP-007) keeps its own dialog and still writes to shared
+folders without a confirmation of its own.

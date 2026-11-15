@@ -1271,3 +1271,16 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   *Existing and new sidecars*, as the inventory looks up every file id with a row.
 - 2026-11-15: The migration acknowledges the member ids of the saved pictures in one request,
   sorted, and sends none when no picture was saved.
+- 2026-11-15: A step with any picture not writable decides none of its pictures; `off` and
+  `shared` ask in one dialog and take the step after *Write to sidecars*, the rest is a toast.
+- 2026-11-15: Undo and redo are not gated by writability; the server checks every save.
+- 2026-11-15: A folder the listing does not name counts as writable; the server rechecks.
+- 2026-11-15: `refused` holds the XMP refusals of this visit only; opening a folder set clears it.
+- 2026-11-15: The shared confirmation is keyed by the listed folder's `fileId`, which the listing
+  now answers; the settings keep the latest 200.
+- 2026-11-15: Whether the Versions app is on for the user reaches the client as the page's
+  `data-versions-app`, not as an endpoint.
+- 2026-11-15: The hint for a stored *Only existing sidecars* is cleared once the settings section
+  showed it.
+- 2026-11-15: The cull reading through the XMP cache (XMP-006.7) is split from sidecar PR 6 into
+  its own PR.

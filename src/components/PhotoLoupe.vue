@@ -13,8 +13,9 @@ import type { ListingEntry } from '../logic/listing.ts'
 import type { Schedule } from '../logic/long-press.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Series } from '../logic/series.ts'
-import type { Settings, SidecarWriting } from '../logic/settings.ts'
+import type { Settings } from '../logic/settings.ts'
 import type { Tag } from '../logic/tag.ts'
+import type { Writability } from '../logic/writability.ts'
 import type { ObserveSize } from '../observe-size.ts'
 import type { Toast } from '../toast.ts'
 import type { ViewStateStore } from '../view-state.ts'
@@ -53,8 +54,7 @@ const props = withDefaults(defineProps<{
 	seriesOf?: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>
 	/** The picture's tags for the info panel (TAGS-004.8). */
 	tagsOf?: (picture: Picture<ListingEntry>) => readonly Tag[]
-	/** How the picture's tag changes are written to its sidecars (TAGS-004.9). */
-	sidecarWriting?: (picture: Picture<ListingEntry>) => SidecarWriting
+	writabilityOf?: (picture: Picture<ListingEntry>) => Writability
 	storage: BrowserStorage
 	viewState: ViewStateStore
 	settings: Settings
@@ -67,7 +67,7 @@ const props = withDefaults(defineProps<{
 }>(), {
 	seriesOf: () => new Map(),
 	tagsOf: () => [],
-	sidecarWriting: (): SidecarWriting => 'off',
+	writabilityOf: (): Writability => 'off',
 	imageUrl: apiImageUrl,
 	decode: decodeSource,
 	schedule: browserSchedule,
@@ -261,7 +261,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 					:folderSet="props.folderSet"
 					:decision="props.decisionOf(picture)"
 					:tags="props.tagsOf(picture)"
-					:sidecarWriting="props.sidecarWriting(picture)" />
+					:writability="props.writabilityOf(picture)" />
 			</template>
 		</div>
 		<LoupeFilmstrip

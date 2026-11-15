@@ -41,7 +41,7 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 		saveDecisions: async () => undefined,
 		lookupSeries: NO_SERIES,
 		tags: NO_TAGS,
-	}, fakeStorage(), () => WRITING_ON, NO_SIDECARS)
+	}, fakeStorage(), () => WRITING_ON, NO_SIDECARS, () => undefined)
 	cull.open(SET, entries)
 	await flushPromises()
 	const context: CullContext = {

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
+import type { ListEntries } from '../../src/folder-count.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { ResumePosition } from '../../src/logic/resume-position.ts'
@@ -26,7 +27,7 @@ const LISTINGS: Record<string, ListingEntry[]> = {
 }
 
 /** The recent folder sets over a fake server whose answers the test gives as functions. */
-function recentOn(positions: () => Promise<unknown>, listEntries = async (path: string) => ({ entries: LISTINGS[path] ?? [], truncated: false, folders: [{ path: '/Day', shared: path === '/Day', permissions: 31, versions: true }], opened: { path, fileId: path.length } })) {
+function recentOn(positions: () => Promise<unknown>, listEntries: ListEntries = async (path: string) => ({ entries: LISTINGS[path] ?? [], truncated: false, folders: [{ path: '/Day', shared: path === '/Day', permissions: 31, versions: true }], opened: { path, fileId: path.length } })) {
 	const opened: unknown[][] = []
 	const toasts: string[] = []
 	const listed: string[] = []
@@ -35,7 +36,7 @@ function recentOn(positions: () => Promise<unknown>, listEntries = async (path: 
 	const progress = ref({ decided: 0, total: 0 })
 	const recent = useRecent({ loadPositions: positions, savePosition: async () => undefined }, (path, subfolders) => {
 		listed.push(`${path}${subfolders ? ' +' : ''}`)
-		return listEntries(path)
+		return listEntries(path, subfolders)
 	}, {
 		folderSet: () => folderSet.value,
 		progress: () => progress.value,

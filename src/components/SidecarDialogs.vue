@@ -56,7 +56,7 @@ function shownPath(path: string): string {
 			{{ t('honeycomb', 'honeycomb still keeps these decisions and tags in its database. The XMP sidecar of each file gets the stored rating, colour label, flag and Keep RAW mark.') }}
 			{{ t('honeycomb', 'Where a sidecar says otherwise, the stored value wins; stored tags are added to the sidecar\'s.') }}
 		</p>
-		<NcNoteCard v-if="!props.ready" type="info" :text="t('honeycomb', 'Choose Existing and new sidecars under Write decisions to XMP sidecars in the settings first.')" />
+		<NcNoteCard v-if="!props.ready" type="info" :text="t('honeycomb', 'Turn on Write decisions to XMP sidecars in the settings first.')" />
 		<NcNoteCard v-if="shared" type="warning" :text="t('honeycomb', 'Every user of a shared folder, and digiKam, darktable and Lightroom, will see these decisions.')" />
 		<p class="sidecar-dialogs__hint">
 			{{ askedText }}

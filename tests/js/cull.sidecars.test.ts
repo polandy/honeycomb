@@ -96,7 +96,7 @@ describe('useCull: taking over the sidecars\' decision', () => {
 		expect(saved).toEqual([[{ fileId: 3, ...THREE_REJECTED }, { fileId: 2, ...THREE_REJECTED }]])
 	})
 
-	// spec: XMP-003.3
+	// spec: XMP-003.3, XMP-008.8
 	it('keeps a decision the user made while the sidecars were looked up', async () => {
 		let answer!: (decisions: Map<string, Decision>) => void
 		const { cull, saved, picture } = cullWith({

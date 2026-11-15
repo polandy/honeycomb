@@ -26,17 +26,20 @@ export function browserNow(): XmpTime {
 	return { epochMs: date.getTime(), offsetMinutes: -date.getTimezoneOffset() }
 }
 
-/** Writing to sidecars as the user sees it: the migration's confirmation, the toasts and the report with a retry (XMP-003.13, XMP-007.5–.6); `createsNew` as in `useSidecarSync`. */
-export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, action?: ToastAction | null) => void, createsNew: () => boolean, acknowledge: (fileIds: readonly number[]) => Promise<void>) {
+/** Writing to sidecars as the user sees it: the migration's confirmation, the toasts and the report with a retry (XMP-003.13, XMP-007.5–.6); `onFailed` hears of each failed write too. */
+export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, action?: ToastAction | null) => void, onFailed: (failed: readonly SidecarFailure[]) => void, acknowledge: (fileIds: readonly number[]) => Promise<void>) {
 	const asking = shallowRef<readonly LegacyWrite[] | null>(null)
 	const report = shallowRef<SidecarFailure[] | null>(null)
 	const open = computed(() => asking.value !== null || report.value !== null)
-	const sync = useSidecarSync(api, api.now, (failed) => toast(notWrittenText(failed.length), {
-		label: t('honeycomb', 'Details'),
-		run: () => {
-			report.value = failed
-		},
-	}), createsNew)
+	const sync = useSidecarSync(api, api.now, (failed) => {
+		onFailed(failed)
+		toast(notWrittenText(failed.length), {
+			label: t('honeycomb', 'Details'),
+			run: () => {
+				report.value = failed
+			},
+		})
+	})
 
 	/** Asks before writing the legacy rows of the pictures to their sidecars. */
 	function ask(writes: readonly LegacyWrite[]) {
