@@ -71,6 +71,12 @@ export function findSeries<P>(series: readonly Series<P>[], decisionOf: (picture
 	return series.filter(({ members }) => members.some((picture) => isOpen(decisionOf(picture))))
 }
 
+/** The series before and after the one with the key, null at either end or when it is not among them (SERIES-005.8). */
+export function seriesNeighbours<S extends { readonly key: number }>(series: readonly S[], key: number | null): { previous: S | null, next: S | null } {
+	const at = series.findIndex((each) => each.key === key)
+	return at < 0 ? { previous: null, next: null } : { previous: series[at - 1] ?? null, next: series[at + 1] ?? null }
+}
+
 /** The pictures of a series that are not rejected, in order. */
 export function visibleMembers<P>(pictures: readonly P[], decisionOf: (picture: P) => Decision): P[] {
 	return pictures.filter((picture) => !isRejected(decisionOf(picture)))

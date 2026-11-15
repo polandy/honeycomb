@@ -1,5 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Series } from '../../src/logic/series.ts'
+import type { Shot } from './series-compare-fixture.ts'
+
 import { describe, expect, it } from 'vitest'
 import { compareOf } from './series-compare-fixture.ts'
 
@@ -218,6 +221,52 @@ describe('useSeriesCompare', () => {
 		expect(shown()).toEqual(['C', 'D'])
 		bringBack()
 		expect(shown()).toEqual(['A', 'B'])
+	})
+
+	/** The names of the shown series' neighbours. */
+	const neighbourNames = ({ previous, next }: { previous: Series<Shot> | null, next: Series<Shot> | null }) => [previous, next].map((series) => series?.members.map(({ name }) => name) ?? null)
+
+	// spec: SERIES-005.8
+	it('offers the series before and after the shown one among every series, a decided one too', () => {
+		const { compare, setFlag, shot } = compareOf(['A', 'B'], ['C', 'D'], ['E', 'F'])
+		setFlag(shot('E'), 'picked')
+		setFlag(shot('F'), 'picked')
+		compare.start()
+
+		expect(compare.count.value).toBe(2)
+		expect(neighbourNames(compare.neighbours.value)).toEqual([null, ['C', 'D']])
+		compare.skip()
+		expect(neighbourNames(compare.neighbours.value)).toEqual([['A', 'B'], ['E', 'F']])
+	})
+
+	// spec: SERIES-005.8
+	it('merges the shown series with the previous or next one and shows the merged series, the active picture still active', () => {
+		const { compare, calls, shown } = compareOf(['A', 'B'], ['C', 'D'], ['E', 'F'])
+		compare.start()
+		compare.skip()
+		compare.setActive(1)
+		compare.merge('previous')
+
+		expect(calls).toEqual(['merge A B + C D'])
+		expect(shown()).toEqual(['A', 'B', 'C', 'D'])
+		expect([compare.position.value, compare.count.value, compare.active.value]).toEqual([0, 2, 3])
+		compare.merge('next')
+		expect(calls.at(-1)).toBe('merge A B C D + E F')
+		expect(shown()).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
+		expect(compare.active.value).toBe(3)
+	})
+
+	// spec: SERIES-005.8
+	it('merges nothing without a series that way or once no series is left', () => {
+		const { compare, calls } = compareOf(['A', 'B'])
+		compare.start()
+		compare.merge('next')
+		compare.merge('previous')
+		const none = compareOf()
+		none.compare.start()
+		none.compare.merge('next')
+
+		expect([...calls, ...none.calls]).toEqual([])
 	})
 
 	// spec: SERIES-005.10, SERIES-005.13

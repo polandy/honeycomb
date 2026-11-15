@@ -153,6 +153,34 @@ test('removes a photo from the series and dissolves the series from the compare\
 	await expect(page.getByText('All series compared')).toBeVisible()
 })
 
+// spec: SERIES-005.8
+test('merges the series with the next one from the compare\'s menu, kept after a reload', async ({ page }) => {
+	await page.setViewportSize(DESKTOP)
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = `Series ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	for (const [shot, second] of [[1, '01'], [2, '02'], [3, '10'], [4, '11']] as const) {
+		await upload(page, `${folder}/IMG_000${shot}.jpg`, withCaptureTime(JPEG, `2026:11:10 10:00:${second}`))
+	}
+
+	await cullFolder(page, folder)
+	await expect(page.getByRole('gridcell')).toHaveCount(4)
+	await page.keyboard.press('n')
+	await expect(page.getByRole('dialog', { name: /^Compare series 1 of 2/ })).toBeVisible()
+	await page.getByRole('button', { name: 'Series menu' }).click()
+	await expect(page.getByRole('menuitem', { name: /Merge with the previous series/ })).toBeDisabled()
+	await page.getByRole('menuitem', { name: /Merge with the next series/ }).click()
+	await expect(page.getByText('Merged 2 series · 4 photos')).toBeVisible()
+	const merged = page.getByRole('dialog', { name: /^Compare series 1 of 1/ })
+	await expect(merged.locator('.series-compare__card')).toHaveCount(4)
+
+	await page.reload()
+	await cullFolder(page, folder)
+	await expect(page.getByRole('gridcell')).toHaveCount(4)
+	await page.keyboard.press('n')
+	await expect(merged.locator('.series-compare__name')).toHaveText(['1 · IMG_0001', '2 · IMG_0002', '3 · IMG_0003', '4 · IMG_0004'])
+})
+
 // spec: SERIES-005.10, SERIES-005.13
 test('draws the card menu\'s dots in white on its dark disc, each menu icon in the icon column, and closes only the menu on Escape', async ({ page }) => {
 	await page.setViewportSize(DESKTOP)

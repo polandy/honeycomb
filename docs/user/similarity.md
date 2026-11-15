@@ -39,3 +39,7 @@ says how many of the selected photos are in a series. Then choose:
 
 An entry that does not fit the selection is greyed out and says why. Every change shows a message
 with **Undo**, and a series you changed stays as you made it.
+
+In the series compare, the **⋯** menu above the photos offers **Merge with the next series** and
+**Merge with the previous series**, for a burst that was cut in two. Each says how many photos the
+other series has and when it starts; the compare then shows the merged series.

@@ -72,9 +72,9 @@ const selection = useSelectionMode(() => view.value, pictures)
 const { selected } = selection
 watch(cull.pairing, selection.selectNone)
 
-const { decide, pickRest, tag, removeFromSeries, dissolveSeries, editSelection, undo, redo } = useToastedDecisions(cull, toast.show)
+const { decide, pickRest, tag, removeFromSeries, dissolveSeries, mergeSeries, editSelection, undo, redo } = useToastedDecisions(cull, toast.show)
 const tagEntry = useTagEntryTargets()
-const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: decideInCompare, pickRest, removeFromSeries, dissolve: dissolveSeries, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })
+const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: decideInCompare, pickRest, removeFromSeries, dissolve: dissolveSeries, everySeries: () => cull.everySeries.value, merge: mergeSeries, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })
 const restOffer = useRestOffer({ seriesOf: () => cull.seriesOf.value, decisionOf: cull.decisionOf, compare: seriesCompare, shown: shownInLoupe, land: landInLoupe })
 /** Decides in the series compare, offering *Reject the other N* after a Pick in its viewer. */
 function decideInCompare(intent: DecisionIntent, picture: Picture<ListingEntry>, inViewer: boolean) {

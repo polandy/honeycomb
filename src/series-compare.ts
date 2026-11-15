@@ -11,7 +11,7 @@ import type { Toast } from './toast.ts'
 import { computed, ref, shallowRef, watch } from 'vue'
 import { rowStep } from './logic/compare-grid.ts'
 import { stepRating } from './logic/hotkeys.ts'
-import { visibleMembers } from './logic/series.ts'
+import { seriesNeighbours, visibleMembers } from './logic/series.ts'
 import { useSeriesViewer } from './series-viewer.ts'
 
 /** What the series compare reads from the cull and hands to it. */
@@ -23,10 +23,22 @@ export interface SeriesCompareContext<P> {
 	readonly pickRest: (picked: P, rest: readonly P[]) => void
 	readonly removeFromSeries: (series: Series<P>, picture: P) => void
 	readonly dissolve: (series: Series<P>) => void
+	/** Every series of the folder set, decided or not, whose neighbours a series merges with (SERIES-005.8). */
+	readonly everySeries: () => readonly Series<P>[]
+	/** Merges the series, in capture-time order, into one. */
+	readonly merge: (series: readonly Series<P>[]) => void
 	readonly settings: () => Settings
 	readonly updateSettings: (patch: Partial<Settings>) => void
 	readonly toast: (toast: Toast) => void
 	readonly holdHashes: (hold: boolean) => void
+}
+
+/** Which neighbour of the shown series a merge takes. */
+export type MergeDirection = 'previous' | 'next'
+
+/** The series with their rejected pictures left out, those with fewer than two pictures left gone. */
+function shownSeries<P>(series: readonly Series<P>[], decisionOf: (picture: P) => Decision): Series<P>[] {
+	return series.map((each) => ({ ...each, members: visibleMembers(each.members, decisionOf) })).filter(({ members }) => members.length > 1)
 }
 
 /** Where the loupe lands once a compare opened from it closes: on a picture, or after a series (SERIES-001.24). */
@@ -44,9 +56,7 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	let land: ((landing: CompareLanding<P>) => void) | null = null
 
 	const oneSeries = computed(() => single.value !== null)
-	const all = computed<Series<P>[]>(() => (single.value === null ? context.series() : [single.value])
-		.map((series) => ({ ...series, members: visibleMembers(series.members, context.decisionOf) }))
-		.filter(({ members }) => members.length > 1))
+	const all = computed(() => shownSeries(single.value === null ? context.series() : [single.value], context.decisionOf))
 	const count = computed(() => all.value.length)
 	const keyed = computed(() => all.value.findIndex(({ key }) => key === shownKey.value))
 	// By key while its series is listed, else by place: a decided series gives way to the next.
@@ -57,6 +67,7 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 		return members.some((picture) => anchor.value.includes(picture)) ? Math.min(activeIndex.value, members.length - 1) : 0
 	})
 	const activePicture = () => current.value?.members[active.value] ?? null
+	const neighbours = computed(() => seriesNeighbours(shownSeries(context.everySeries(), context.decisionOf), current.value?.key ?? null))
 
 	/** Makes the picture at `at` of the shown series active, clamped. */
 	function setActive(at: number) {
@@ -187,6 +198,25 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 		}
 	}
 
+	/** Merges the shown series with its previous or next one and shows the merged series, the active picture still active (SERIES-005.8). */
+	function merge(direction: MergeDirection) {
+		const series = current.value
+		const other = neighbours.value[direction]
+		const picture = activePicture()
+		if (series === null || other === null || picture === null) {
+			return
+		}
+		context.merge(direction === 'next' ? [series, other] : [other, series])
+		const merged = context.everySeries().find(({ members }) => members.includes(picture))
+		if (merged !== undefined) {
+			if (single.value !== null) {
+				single.value = merged
+			}
+			shownKey.value = merged.key
+			setActive(current.value?.members.indexOf(picture) ?? 0)
+		}
+	}
+
 	/** Decides the active picture by a key; a star step counts from its rating, `advance` moves on unless it left (SERIES-001.10). */
 	function decideByKey(intent: HotkeyIntent, advance: boolean) {
 		const picture = activePicture()
@@ -227,7 +257,7 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	}
 
 	const { settings, updateSettings, toast } = context
-	return { open, oneSeries, current, position, count, active, setActive, setColumns, start, startOn, close, skip, decide, decideInViewer, pickRest, pickRestAndLand, removeFromSeries, dissolve, hotkeys, viewer, view, settings, updateSettings, toast }
+	return { open, oneSeries, current, position, count, active, neighbours, setActive, setColumns, start, startOn, close, skip, decide, decideInViewer, pickRest, pickRestAndLand, removeFromSeries, dissolve, merge, hotkeys, viewer, view, settings, updateSettings, toast }
 }
 
 export type SeriesCompareFlow<P> = ReturnType<typeof useSeriesCompare<P>>
