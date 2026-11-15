@@ -22,7 +22,16 @@ export interface Settings extends PairingSettings {
 	readonly moveFavourites: readonly string[]
 	readonly moveRecent: readonly string[]
 	readonly moveTemplate: string
+	readonly sidecarWrite: SidecarWrite
 }
+
+/** Which sidecars decisions are written through to: none, the existing ones, or those and new ones (XMP-003). */
+export type SidecarWrite = 'off' | 'existing' | 'existing-and-new'
+
+/** How a picture's sidecars are written: off, the setting's choice, or not on its own in a shared folder (TAGS-004.9). */
+export type SidecarWriting = SidecarWrite | 'shared-folder'
+
+const SIDECAR_WRITES: readonly SidecarWrite[] = ['off', 'existing', 'existing-and-new']
 
 /** One of the two extension lists. */
 export type ExtensionList = 'rawExtensions' | 'renderedExtensions'
@@ -46,6 +55,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	moveFavourites: [],
 	moveRecent: [],
 	moveTemplate: DEFAULT_NAME_TEMPLATE,
+	sidecarWrite: 'off',
 }
 
 const OTHER_LIST: Record<ExtensionList, ExtensionList> = { rawExtensions: 'renderedExtensions', renderedExtensions: 'rawExtensions' }
@@ -68,7 +78,13 @@ export function parseSettings(value: unknown): Settings {
 		moveFavourites: parsePaths(stored.moveFavourites),
 		moveRecent: parsePaths(stored.moveRecent),
 		moveTemplate: typeof stored.moveTemplate === 'string' && parseNameTemplate(stored.moveTemplate).ok ? stored.moveTemplate : DEFAULT_NAME_TEMPLATE,
+		sidecarWrite: SIDECAR_WRITES.find((mode) => mode === stored.sidecarWrite) ?? DEFAULT_SETTINGS.sidecarWrite,
 	}
+}
+
+/** Whether choosing `chosen` over `current` asks first: only leaving off does (SETTINGS-001.24). */
+export function asksBeforeSidecarWrite(current: SidecarWrite, chosen: SidecarWrite): boolean {
+	return current === 'off' && chosen !== 'off'
 }
 
 /** What pairing reads of the settings. */

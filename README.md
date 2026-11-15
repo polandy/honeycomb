@@ -18,7 +18,7 @@ quick to go through on an iPad.
 
 **Status:** pre-release. The grid, the loupe, deciding, deleting and the settings work; nothing
 is released yet, so see [Installation](#installation) for how it will be installed. XMP sidecars
-are read, and written through every decision, in your own folders
+are read; writing your decisions into them is off until you turn it on in the settings
 ([`docs/06-xmp-interop.md`](docs/06-xmp-interop.md)). Read [What honeycomb changes in your
 files](#what-honeycomb-changes-in-your-files) and [Back up first](#back-up-first) before you
 use it on photos you cannot replace.
@@ -63,8 +63,10 @@ file versions and the trash bin apply.
 - **Moving** renames and moves the files of a picture into the folder you choose, by a name
   template ([`docs/05-name-templates.md`](docs/05-name-templates.md)). A picture is moved whole
   or not at all, and the move can be undone.
-- **XMP sidecars** (`<file>.xmp`) are created or updated next to the photo for every decision
-  you make: rating, flag, colour label, tags. An existing sidecar is merged, so what other
+- **XMP sidecars** (`<file>.xmp`) are written only once you turn on *Write decisions to XMP
+  sidecars* in the settings (off by default). Then every decision you make — rating, flag,
+  colour label, tags — updates the sidecars next to the photo and, with *Existing and new
+  sidecars*, creates one where none exists. An existing sidecar is merged, so what other
   programs wrote stays. In a shared folder nothing is written unless you ask. The photos
   themselves are never modified.
 - **Everything else** (decisions, tags, positions, similarity) lives in honeycomb's own tables,

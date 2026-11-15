@@ -24,8 +24,8 @@ export function browserNow(): XmpTime {
 	return { epochMs: date.getTime(), offsetMinutes: -date.getTimezoneOffset() }
 }
 
-/** Writing to sidecars as the user sees it: the confirmation in shared folders, the toasts and the report with a retry (XMP-003.11–.13). */
-export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, action?: ToastAction | null) => void) {
+/** Writing to sidecars as the user sees it: the confirmation in shared folders, the toasts and the report with a retry (XMP-003.11–.13); `createsNew` as in `useSidecarSync`. */
+export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, action?: ToastAction | null) => void, createsNew: () => boolean) {
 	const asking = shallowRef<Picture<ListingEntry>[] | null>(null)
 	const report = shallowRef<SidecarFailure[] | null>(null)
 	const open = computed(() => asking.value !== null || report.value !== null)
@@ -34,7 +34,7 @@ export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, act
 		run: () => {
 			report.value = failed
 		},
-	}))
+	}), createsNew)
 
 	/** Asks before writing the pictures, the decided ones of shared folders. */
 	function ask(pictures: Picture<ListingEntry>[]) {

@@ -51,7 +51,7 @@ const toast = useToast(props.schedule)
 const { settings, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, (message) => toast.show(message))
 const viewState = useViewState(props.viewState, props.storage)
 const settingsOpen = ref(false)
-const sidecarFlow = useSidecarFlow(props.sidecars, toast.show)
+const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, () => settings.value.sidecarWrite !== 'existing')
 const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions, lookupSeries: props.lookupSeries, tags: props.tags }, props.storage, () => settings.value, sidecarFlow.sync)
 const { folderSet, pictures, folders, view, progress, filtersOpen, pickerOpen, tileSize } = cull
 const gridScreen = useTemplateRef<InstanceType<typeof GridScreen>>('gridScreen')
@@ -170,7 +170,7 @@ useHotkeys(() => {
 					:decisionOf="cull.decisionOf"
 					:seriesOf="cull.seriesOf.value"
 					:tagsOf="cull.tags.tagsOf"
-					:writesSidecars="cull.tags.writable"
+					:sidecarWriting="cull.sidecarWriting"
 					:storage="props.storage"
 					:viewState="viewState"
 					:settings="settings"

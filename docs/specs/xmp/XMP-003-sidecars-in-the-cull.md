@@ -33,9 +33,9 @@ exist and creates none. *Existing and new sidecars* writes through as below.
 **Writing through.** As soon as any attribute is set on a photo — a flag, a rating, a colour label,
 *Keep RAW*, or an undo or redo of one — and the step is stored, each picture the step touched is
 written to its sidecars unless a member lies in a shared folder; a picture no step touched gets no
-sidecar: every existing sidecar
-(darktable duplicates excepted) and, with *Existing and new sidecars*, for each member without one a new `<member file>.xmp`
-(`docs/06-xmp-interop.md` Sidecar names). An existing sidecar is read before it is merged, unless
+sidecar: every existing sidecar (darktable duplicates excepted) and, with *Existing and new
+sidecars*, for each member without one a new `<member file>.xmp` (`docs/06-xmp-interop.md`
+Sidecar names). An existing sidecar is read before it is merged, unless
 honeycomb saved it itself and still holds its bytes; it is saved with the ETag and size read. A
 sidecar answering `changed` is read, merged and saved once more. The colour label counts as changed
 for darktable's list when it differs from the one the sidecar states. Writes run in passes, one

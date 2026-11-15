@@ -15,6 +15,7 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwit
 import AppIcon from './AppIcon.vue'
 import LoupeGestureSettings from './LoupeGestureSettings.vue'
 import MoveSettings from './MoveSettings.vue'
+import SidecarSettings from './SidecarSettings.vue'
 import { addExtension, DEFAULT_SUBFOLDERS, folderMode, removeExtension } from '../logic/settings.ts'
 import { tip } from '../tooltip.ts'
 
@@ -213,6 +214,9 @@ function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 		</NcAppSettingsSection>
 		<NcAppSettingsSection id="moving-photos" :name="t('honeycomb', 'Moving photos')">
 			<MoveSettings :settings="settings" @update="emit('update', $event)" />
+		</NcAppSettingsSection>
+		<NcAppSettingsSection id="xmp-sidecars" :name="t('honeycomb', 'XMP sidecars')">
+			<SidecarSettings :settings="settings" @update="emit('update', $event)" />
 		</NcAppSettingsSection>
 	</NcAppSettingsDialog>
 </template>

@@ -7,6 +7,7 @@ import type { Decision } from '../logic/decision.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { SidecarWriting } from '../logic/settings.ts'
 import type { Tag } from '../logic/tag.ts'
 
 import { n, t } from '@nextcloud/l10n'
@@ -25,11 +26,11 @@ const props = withDefaults(defineProps<{
 	decision: Decision
 	/** The picture's tags, sorted (TAGS-004.8). */
 	tags?: readonly Tag[]
-	/** Whether tag changes are written through to the sidecars; false in a shared folder (TAGS-004.9). */
-	writesSidecars?: boolean
+	/** How tag changes are written to the sidecars (TAGS-004.9). */
+	sidecarWriting?: SidecarWriting
 }>(), {
 	tags: () => [],
-	writesSidecars: true,
+	sidecarWriting: 'off',
 })
 
 /** Shown for a fact the picture lacks. */
@@ -60,10 +61,15 @@ const decisionRows = computed(() => {
 	]
 })
 const writtenTo = computed(() => {
+	if (props.sidecarWriting === 'off') {
+		return t('honeycomb', 'Not written, off in the settings')
+	}
+	if (props.sidecarWriting === 'shared-folder') {
+		return t('honeycomb', 'Not written, shared folder')
+	}
 	const { existing, created } = sidecarTargets(props.picture)
-	return props.writesSidecars
-		? [...existing.map(({ path }) => path), ...created].map((path) => parseFileName(path).name).join(', ')
-		: t('honeycomb', 'Not written, shared folder')
+	const paths = [...existing.map(({ path }) => path), ...(props.sidecarWriting === 'existing-and-new' ? created : [])]
+	return paths.length > 0 ? paths.map((path) => parseFileName(path).name).join(', ') : t('honeycomb', 'Not written, no sidecar')
 })
 </script>
 

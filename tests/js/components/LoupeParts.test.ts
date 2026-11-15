@@ -134,7 +134,7 @@ describe('LoupeInfo', () => {
 	it('names the sidecars each setting writes, and why none is written', () => {
 		const picture = pictureOf(listingEntry(1, '/P/IMG_1.JPG'), listingEntry(2, '/P/IMG_1.CR3', { mime: 'image/x-canon-cr3' }), listingEntry(3, '/P/IMG_1.CR3.xmp', { mime: 'application/octet-stream' }))
 		const bare = pictureOf(listingEntry(4, '/P/IMG_2.JPG'))
-		const writtenTo = (shown: Picture<ListingEntry>, sidecarWriting?: SidecarWriting) => infoRows(mountInfo(shown, UNDECIDED, { tags: ['Anna'], sidecarWriting }))['Written to']
+		const writtenTo = (shown: Picture<ListingEntry>, sidecarWriting?: SidecarWriting) => infoRows(mountInfo(shown, UNDECIDED, { tags: ['Anna'], ...(sidecarWriting === undefined ? {} : { sidecarWriting }) }))['Written to']
 
 		expect(writtenTo(picture, 'existing-and-new')).toBe('IMG_1.CR3.xmp, IMG_1.JPG.xmp')
 		expect(writtenTo(picture, 'existing')).toBe('IMG_1.CR3.xmp')

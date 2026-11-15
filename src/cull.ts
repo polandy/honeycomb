@@ -7,7 +7,7 @@ import type { Decision, StoredDecision } from './logic/decision.ts'
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { PairingSettings, Picture } from './logic/pairing.ts'
-import type { Settings } from './logic/settings.ts'
+import type { Settings, SidecarWriting } from './logic/settings.ts'
 import type { TagChange } from './logic/tag.ts'
 import type { DecisionStep, PickRestStep, StepEffects, TagStep, UndoStep } from './logic/undo.ts'
 
@@ -57,7 +57,11 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		tags: (step, back) => storeTags(step.pictures, back ? inverseChange(step.change) : step.change),
 	}
 	const history = useCullHistory<CullStep>((step, back) => applyStep(effects, step, back))
-	const tags = useCullTags(api.tags, sidecars.writeTags, () => opening, (picture) => !inSharedFolder(picture, sharedFolders.value))
+	/** How the picture's sidecars are written: the setting, unless a shared folder keeps them (XMP-003.11, .18). */
+	const sidecarWriting = (picture: Picture<ListingEntry>): SidecarWriting => settings().sidecarWrite !== 'off' && inSharedFolder(picture, sharedFolders.value) ? 'shared-folder' : settings().sidecarWrite
+	/** Whether a step on the picture is written through to its sidecars on its own. */
+	const writesThrough = (picture: Picture<ListingEntry>) => sidecarWriting(picture) !== 'off' && sidecarWriting(picture) !== 'shared-folder'
+	const tags = useCullTags(api.tags, sidecars.writeTags, () => opening, writesThrough)
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
 	const folders = computed(() => folderPaths.value.length)
 	const options = useViewOptions(storage, () => folders.value)
@@ -175,10 +179,10 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		})
 	}
 
-	/** Writes the decisions of the rows' pictures outside shared folders to their sidecars (XMP-003.6, .11). */
+	/** Writes the decisions of the rows' pictures to their sidecars where they write through (XMP-003.6, .11, .18). */
 	function writeThrough(rows: readonly StoredDecision[], opened: number) {
 		const fileIds = new Set(rows.map((row) => row.fileId))
-		const written = paired.value.filter((picture) => memberIds(picture).some((fileId) => fileIds.has(fileId)) && !inSharedFolder(picture, sharedFolders.value))
+		const written = paired.value.filter((picture) => memberIds(picture).some((fileId) => fileIds.has(fileId)) && writesThrough(picture))
 		if (opening === opened && written.length > 0) {
 			void sidecars.write(written, decisionOf)
 		}
@@ -213,6 +217,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	}
 
 	return {
+		sidecarWriting,
 		folderSet,
 		pictures,
 		pairing,
