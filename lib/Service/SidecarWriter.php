@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCP\App\IAppManager;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -16,10 +17,11 @@ use OCP\IUser;
 use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
 
-/** Saves sidecars by the checked save: check, write a part file, check again, rename (ADR 0017). */
+/** Saves sidecars by the checked save: check, write a part file, check again, rename (ADR 0017); overwrites only while file versions keep the old bytes. */
 final class SidecarWriter {
 	public function __construct(
 		private IRootFolder $rootFolder,
+		private IAppManager $appManager,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -33,12 +35,16 @@ final class SidecarWriter {
 	public function save(IUser $user, array $sidecars): array {
 		$sidecars = SidecarRequest::sidecars($sidecars);
 		$userFolder = $this->rootFolder->getUserFolder($user->getUID());
-		return array_map(fn (ExistingSidecar|NewSidecar $sidecar): array => $this->saveOne($userFolder, $sidecar), $sidecars);
+		$versioned = $this->appManager->isEnabledForUser('files_versions', $user);
+		return array_map(fn (ExistingSidecar|NewSidecar $sidecar): array => $this->saveOne($userFolder, $sidecar, $versioned), $sidecars);
 	}
 
 	/** @return array{result: SidecarResult, fileId?: int, etag?: string, size?: int|float, mtime?: int} */
-	private function saveOne(Folder $userFolder, ExistingSidecar|NewSidecar $sidecar): array {
+	private function saveOne(Folder $userFolder, ExistingSidecar|NewSidecar $sidecar, bool $versioned): array {
 		$target = $this->check($userFolder, $sidecar);
+		if (!$versioned && $sidecar instanceof ExistingSidecar && !$target instanceof SidecarResult) {
+			return ['result' => SidecarResult::NoVersions];
+		}
 		if ($target instanceof SidecarResult) {
 			return ['result' => $target];
 		}
