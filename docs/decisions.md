@@ -1364,3 +1364,14 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-15: *Series done* marks the series from the compare's title row menu only; the loupe's
   auto-advance trigger stays the flag, the pictures it skips are those the cull counts as decided,
   and the *rest* offer still reads flags (#185 PR 6).
+- 2026-11-15: *Delete…* sends each sidecar with the ETag of honeycomb's last save, followed from
+  the listed ETag through each save, and adds the sidecars honeycomb created for a member; a
+  sidecar another program changed before honeycomb's save keeps the listed ETag, so it still
+  holds its picture. The listing itself is not changed, so pictures keep their identity.
+- 2026-11-15: The delete summary counts the listed files; a sidecar honeycomb creates by the
+  waiting write appears only in the toast and the trash bin.
+- 2026-11-15: *Move…* has the same stale ETags after honeycomb's own writes; it is fixed in its
+  own PR (TODO.md), as its plan and conflict probe are built before the waiting writes land.
+- 2026-11-15: The owner's "delete all rejected" menu entry is the existing *Review rejects* (the
+  reject review), now in the ⋯ menu at every width with `Ctrl+Backspace`; it keeps the glossary's
+  name instead of a synonym like *Delete rejected*, and takes every reject whatever the filter.

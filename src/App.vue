@@ -100,7 +100,7 @@ function decideInCompare(intent: DecisionIntent, picture: Picture<ListingEntry>,
 const seriesScreen = useTemplateRef<InstanceType<typeof SeriesCompareScreen>>('seriesScreen')
 const overlayScreen = computed(() => (loupe.value !== null ? '.photo-loupe' : seriesCompare.viewer.open.value ? '.series-viewer' : undefined))
 const check = freshCheck({ listEntries: props.listEntries, ...props.sidecars }, { pairing: () => cull.pairing.value, writable: (picture) => cull.writabilityOf(picture) === 'writable', writeSidecar: sidecarSaver(sidecarFlow.sync) })
-const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, flush: sidecars.flush, check, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
+const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, flush: sidecars.flush, current: sidecarFlow.sync.current, check, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
 const { dialog: deleteDialog } = deleting
 const moving = useMoveFlow({ view: () => view.value, settings: () => settings.value, updateSettings, probe: props.move.probeTargets, move: props.move.movePictures, flush: sidecars.flush, removeFiles: cull.removeFiles, restoreFiles: cull.restoreFiles, listing: () => folderSet.value, loupe, toast: toast.show })
 const recent = useRecent(props.positions, props.listEntries, { folderSet: () => folderSet.value, progress: () => progress.value, pairing: () => cull.pairing.value }, (message) => toast.show(message))

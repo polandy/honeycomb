@@ -9,6 +9,7 @@ import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import AppIcon from './AppIcon.vue'
+import { keyCap } from '../hotkeys.ts'
 import { formatNumber } from '../l10n.ts'
 import { MAX_TILE_SIZE, MIN_TILE_SIZE } from '../logic/tile-size.ts'
 
@@ -88,7 +89,6 @@ const emit = defineEmits<{
 		</fieldset>
 		<hr class="grid-more-menu__separator">
 		<NcButton
-			class="grid-more-menu__narrow"
 			variant="tertiary"
 			alignment="start"
 			wide
@@ -99,6 +99,7 @@ const emit = defineEmits<{
 			</template>
 			{{ t('honeycomb', 'Review rejects') }}
 			<span class="grid-more-menu__count">{{ formatNumber(rejected) }}</span>
+			<kbd class="grid-more-menu__key" translate="no">{{ keyCap('review-rejects') }}</kbd>
 		</NcButton>
 		<NcButton
 			class="grid-more-menu__narrow"
@@ -183,6 +184,12 @@ const emit = defineEmits<{
 .grid-more-menu__count {
 	margin-inline-start: calc(2 * var(--default-grid-baseline));
 	color: var(--color-text-maxcontrast);
+}
+
+.grid-more-menu__key {
+	margin-inline-start: calc(2 * var(--default-grid-baseline));
+	color: var(--color-text-maxcontrast);
+	font-family: inherit;
 }
 
 .grid-more-menu__separator {

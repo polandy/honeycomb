@@ -40,9 +40,10 @@ a glance, at any size, without waiting for a sharp image of every tile.
 - The toolbar's count badges (*Filters*, *Select*, *Review rejects*, *Compare series*) are
   neutral; a badge takes the primary colour only while its button is pressed.
 - The toolbar stays slim: one filter icon, the one of *Filters*. Below 900 px window width
-  *Review rejects* and *Compare series* move from the toolbar into the ⋯ menu, with their counts,
-  and below 600 px the flag chips show their icons only, so the toolbar takes at most two rows on
-  a phone; selection mode adds its own row.
+  *Review rejects* and *Compare series* leave the toolbar; the ⋯ menu shows *Compare series*
+  then, and *Review rejects* at every width, with their counts, and below 600 px the flag chips
+  show their icons only, so the toolbar takes at most two rows on a phone; selection mode adds its
+  own row.
 - The ⋯ menu holds view options (thumbnail size, *Group by folder*, sort) above one separator and
   actions below it. Choosing an action closes the menu; changing a view option keeps it open.
 
@@ -192,4 +193,5 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 | 2026-11-12 | GRID-001.16: marks on one dark bottom shade, white stars in both themes (UX review H2) |
 | 2026-11-13 | GRID-001.17: slim toolbar, *Review rejects* and *Compare series* in the ⋯ menu below 900 px (UX review M1) |
 | 2026-11-13 | GRID-001.4: no badge on a complete pair, singles and *Keep RAW* keep theirs (UX review M3) |
+| 2026-11-15 | GRID-001.17: *Review rejects* stays in the ⋯ menu from 900 px too (owner, DELETE-002.19) |
 | 2026-11-13 | GRID-001.18: a separator between view options and actions in the ⋯ menu; an action closes it (UX review M7) |

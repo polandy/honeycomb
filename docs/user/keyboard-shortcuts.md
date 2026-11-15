@@ -114,12 +114,12 @@ where you zoom with `Z`, page through the series with `←` `→` and decide. *B
 | `Ctrl+Z` | Undo. |
 | `Ctrl+Shift+Z` | Redo. |
 | `Delete` | Show the delete summary for the selection, else the focused photo; in the loupe, for the photo shown. |
-| `Ctrl+Backspace` | Review the rejected photos before deleting them; closes the loupe first. |
+| `Ctrl+Backspace` | Review the rejected photos before deleting them; closes the loupe first. The ⋯ menu has it too, as *Review rejects*. |
 | `M` | Move the selection, else the focused photo, to another folder; in the loupe, the photo shown. In that dialog, `1`–`9` choose a favourite or recent folder and `Enter` moves. |
 | `Ctrl+/` | Show the shortcut help. `?` does the same. |
 
 Deleted photos go to the Nextcloud trash bin, where you can restore them until it empties itself.
-A file the trash bin would not keep is not deleted.
+A file the trash bin would not keep is not deleted. More in [Deleting photos](deleting.md).
 
 ## Vi keys
 

@@ -7,6 +7,7 @@ the [README](../../README.md).
 |---|---|
 | [Keyboard shortcuts](keyboard-shortcuts.md) | Every key in the grid, the loupe and the series compare |
 | [Ratings, flags and colour labels](ratings-flags-colours.md) | How digiKam, darktable and Lightroom show honeycomb's decisions |
+| [Deleting photos](deleting.md) | Deleting every rejected photo, or the ones you choose |
 | [Tags](tags.md) | Adding, filtering and saving tags |
 | [Settings](settings.md) | The per-user settings and what each one does |
 | [Similarity](similarity.md) | How similar pictures are grouped into series |

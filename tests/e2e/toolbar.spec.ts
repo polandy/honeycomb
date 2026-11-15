@@ -48,8 +48,8 @@ test('takes at most two rows on a phone, with Review rejects and Compare series 
 	await expect(page.getByRole('button', { name: /^Compare series \d/ })).toBeVisible()
 })
 
-// spec: GRID-001.17
-test('keeps Review rejects and Compare series in the toolbar on a desktop', async ({ page }) => {
+// spec: GRID-001.17, DELETE-002.19
+test('keeps Review rejects and Compare series in the toolbar on a desktop, and Review rejects in the More menu too', async ({ page }) => {
 	await page.setViewportSize(DESKTOP)
 	await cullTwo(page)
 
@@ -57,7 +57,8 @@ test('keeps Review rejects and Compare series in the toolbar on a desktop', asyn
 	await expect(page.getByRole('button', { name: 'Compare series' })).toBeVisible()
 	await page.getByRole('button', { name: 'More', exact: true }).click()
 	await expect(page.getByRole('button', { name: 'Remove RAWs… 0' })).toBeVisible()
-	await expect(page.getByRole('button', { name: /^Review rejects \d/ })).toBeHidden()
+	await expect(page.getByRole('button', { name: /^Review rejects 0/ })).toBeDisabled()
+	await expect(page.getByRole('button', { name: /^Compare series \d/ })).toBeHidden()
 })
 
 // spec: GRID-001.18
