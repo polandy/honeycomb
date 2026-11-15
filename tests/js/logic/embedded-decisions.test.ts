@@ -35,6 +35,12 @@ describe('takeOverDecisions with the embedded XMP', () => {
 		expect(embeddedLookups(lookups)).toEqual([2, 3])
 	})
 
+	// spec: TAGS-002.16
+	it('leaves out the JPEG of a picture with a stored decision', () => {
+		expect(embeddedLookups(takeOverLookups([PAIR, ALONE], new Set([JPG.fileId])))).toEqual([3])
+		expect(embeddedLookups(takeOverLookups([PAIR, ALONE], new Set([NEF.fileId])))).toEqual([3])
+	})
+
 	// spec: XMP-003.22
 	it('reads the embedded XMP as the JPEG\'s sidecar, at the JPEG\'s modification time', () => {
 		const answers = new Map([[11, read(xmp({ 'xmp:Rating': '1' }), 100)]])
