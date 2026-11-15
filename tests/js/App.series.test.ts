@@ -250,4 +250,19 @@ describe('App: series compare', () => {
 		await press('z', { ctrlKey: true })
 		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_2', 'IMG_3'])
 	})
+
+	// spec: SERIES-005.14
+	it('marks the series done from the compare: its photos count as decided, with a toast and undo', async () => {
+		const { wrapper } = await openApp()
+		await press('n')
+
+		compare(wrapper).vm.$emit('markDone', true)
+		await flushPromises()
+		expect(toastText(wrapper)).toContain('Marked the series done')
+		expect(toolbarProps(wrapper)).toMatchObject({ decided: 3, total: 5 })
+		expect(shown(wrapper)).toEqual(['IMG_4', 'IMG_5'])
+		await press('z', { ctrlKey: true })
+		expect(toolbarProps(wrapper).decided).toBe(0)
+		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_2', 'IMG_3'])
+	})
 })

@@ -128,4 +128,17 @@ describe('useSeriesCompare: opened from the loupe', () => {
 		expect(shown()).toEqual(['A', 'B', 'C', 'D'])
 		expect([compare.oneSeries.value, compare.count.value, compare.active.value]).toEqual([true, 1, 3])
 	})
+
+	// spec: SERIES-005.14, SERIES-005.15
+	it('marks its one series done and keeps showing it, then reopens it', () => {
+		const { compare, calls, shown } = fromLoupe(['C', 'D'], 'D', ['A', 'B'])
+		compare.markDone(true)
+
+		expect(shown()).toEqual(['C', 'D'])
+		expect(compare.current.value?.stored?.status).toBe('done')
+		compare.markDone(false)
+		expect(calls).toEqual(['done C D', 'reopen C D'])
+		expect(compare.current.value?.stored).toBeUndefined()
+		expect(compare.active.value).toBe(1)
+	})
 })

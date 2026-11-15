@@ -66,9 +66,9 @@ export function allSeries<P extends Picture<ListingEntry>>(candidates: readonly 
 		.map((series) => ({ key: Math.min(...memberIds(series.members[0]!)), ...series }))
 }
 
-/** The series to compare: of all series, those with an unflagged picture. */
+/** The series to compare: of all series, those not marked done with an unflagged picture (SERIES-005.14). */
 export function findSeries<P>(series: readonly Series<P>[], decisionOf: (picture: P) => Decision): Series<P>[] {
-	return series.filter(({ members }) => members.some((picture) => isOpen(decisionOf(picture))))
+	return series.filter(({ members, stored }) => stored?.status !== 'done' && members.some((picture) => isOpen(decisionOf(picture))))
 }
 
 /** The series before and after the one with the key, null at either end or when it is not among them (SERIES-005.8). */

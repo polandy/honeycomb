@@ -91,6 +91,10 @@ describe('changeText of a series edit', () => {
 		['add', ['A'], 1, 'Added A to the series'],
 		// spec: SERIES-005.7
 		['merge', ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'], 2, 'Merged 2 series · 8 photos'],
+		// spec: SERIES-005.14
+		['done', ['A', 'B', 'C'], 1, 'Marked the series done'],
+		// spec: SERIES-005.15
+		['reopen', ['A', 'B', 'C'], 1, 'Reopened the series'],
 	] as const)('words %s of %o in %i series as "%s"', (edit, names, series, text) => {
 		expect(changeText({ kind: 'series', edit, names, series })).toBe(text)
 		expect(redoneText({ kind: 'series', edit, names, series })).toBe(`Redid: ${text}`)

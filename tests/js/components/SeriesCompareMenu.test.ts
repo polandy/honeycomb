@@ -25,9 +25,9 @@ const shown: Series<P> = { key: 3, members: [C, D] }
 const plain = (text: string | undefined) => text?.replaceAll(TRANSLATED_MARK, '').replace(/\s+/g, ' ').trim()
 
 /** The title row's menu on `shown` with the given neighbours, and its entries as plain text with whether each is disabled. */
-function mountMenu(previous: Series<P> | null, next: Series<P> | null) {
+function mountMenu(previous: Series<P> | null, next: Series<P> | null, series = shown) {
 	const wrapper = mount(SeriesCompareMenu, {
-		props: { series: shown, previous, next, container: 'body' },
+		props: { series, previous, next, container: 'body' },
 		global: { stubs: { NcActions: ActionsStub } },
 	})
 	const buttons = () => wrapper.findAllComponents(NcActionButton)
@@ -45,11 +45,12 @@ describe('SeriesCompareMenu', () => {
 		expect(entries()).toEqual([
 			[`Merge with the next series ⧉ 3 · starts ${formatTime(5350)}`, false],
 			[`Merge with the previous series ⧉ 2 · starts ${formatTime(5070)}`, false],
+			['Series done Its unflagged photos count as decided', false],
 			['Dissolve this series Its photos are never grouped again automatically', false],
 		])
 		await buttons()[0]!.find('button').trigger('click')
 		await buttons()[1]!.find('button').trigger('click')
-		await buttons()[2]!.find('button').trigger('click')
+		await buttons()[3]!.find('button').trigger('click')
 
 		expect(wrapper.emitted('merge')).toEqual([['next'], ['previous']])
 		expect(wrapper.emitted('dissolve')).toHaveLength(1)
@@ -63,6 +64,18 @@ describe('SeriesCompareMenu', () => {
 			['Merge with the next series None after this one', true],
 			['Merge with the previous series None before this one', true],
 		])
+	})
+
+	// spec: SERIES-005.14, SERIES-005.15
+	it('marks the series done, or reopens it once it is done, its entry pressed while done', async () => {
+		const open = mountMenu(null, null)
+		const done = mountMenu(null, null, { ...shown, stored: { id: 9, status: 'done', elsewhere: false } })
+		await open.buttons()[2]!.find('button').trigger('click')
+		await done.buttons()[2]!.find('button').trigger('click')
+
+		expect([open.buttons()[2]!.props('modelValue'), done.buttons()[2]!.props('modelValue')]).toEqual([false, true])
+		expect(open.wrapper.emitted('markDone')).toEqual([[true]])
+		expect(done.wrapper.emitted('markDone')).toEqual([[false]])
 	})
 
 	// spec: SERIES-005.8

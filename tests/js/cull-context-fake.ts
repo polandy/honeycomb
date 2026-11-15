@@ -51,7 +51,7 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 	cull.open(SET, entries)
 	await flushPromises()
 	const opening = useLoupeOpening(async (index) => record('reveal')(index), () => true)
-	const flow = useSeriesCompare<Picture<ListingEntry>>({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: record('compareDecide'), pickRest: record('comparePickRest'), removeFromSeries: record('compareRemove'), dissolve: record('compareDissolve'), everySeries: () => cull.everySeries.value, merge: record('compareMerge'), settings: () => DEFAULT_SETTINGS, updateSettings: record('updateSettings'), toast: (shown) => record('toast')(shown.message, shown.action), holdHashes: () => undefined })
+	const flow = useSeriesCompare<Picture<ListingEntry>>({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: record('compareDecide'), pickRest: record('comparePickRest'), removeFromSeries: record('compareRemove'), dissolve: record('compareDissolve'), everySeries: () => cull.everySeries.value, merge: record('compareMerge'), markSeries: record('compareMarkSeries'), settings: () => DEFAULT_SETTINGS, updateSettings: record('updateSettings'), toast: (shown) => record('toast')(shown.message, shown.action), holdHashes: () => undefined })
 	const context: CullContext = {
 		cull,
 		selection: useSelectionMode(() => cull.view.value, cull.pictures),

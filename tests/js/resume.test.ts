@@ -11,7 +11,6 @@ import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, ref, shallowRef } from 'vue'
 import { logger } from '../../src/logger.ts'
-import { UNDECIDED } from '../../src/logic/decision.ts'
 import { useResume } from '../../src/resume.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 
@@ -55,7 +54,7 @@ function resumeOn(positions: () => Promise<unknown>, save: () => Promise<void> =
 		pictures: () => pictures.value,
 		view: () => view.value,
 		progress: () => progress.value,
-		decisionOf: () => UNDECIDED,
+		decidedOf: () => false,
 		shown: () => shown.value,
 		openLoupe: (index) => opened.push(index),
 	}, (message, action) => {

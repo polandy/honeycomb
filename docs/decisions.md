@@ -1361,3 +1361,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   nothing failed. A failed listing or lookup aborts the delete with the generic message.
 - 2026-11-15: A reject stored only in the legacy decision table is skipped by the fresh check, as
   no sidecar or embedded XMP says rejected.
+- 2026-11-15: *Series done* marks the series from the compare's title row menu only; the loupe's
+  auto-advance trigger stays the flag, the pictures it skips are those the cull counts as decided,
+  and the *rest* offer still reads flags (#185 PR 6).

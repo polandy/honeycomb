@@ -57,6 +57,8 @@ const SERIES_TEXT: { readonly [E in SeriesEdit]: (count: number, photos: string,
 		? t('honeycomb', 'Removed {photos} from the series', { photos }, undefined, PLAIN_TEXT)
 		: t('honeycomb', 'Removed {photos} from their series', { photos }, undefined, PLAIN_TEXT)),
 	dissolve: (count) => n('honeycomb', 'Dissolved the series · {count} photo', 'Dissolved the series · {count} photos', count, { count: formatNumber(count) }, PLAIN_TEXT),
+	done: () => t('honeycomb', 'Marked the series done'),
+	reopen: () => t('honeycomb', 'Reopened the series'),
 }
 
 /** The words of each kind of step, given the step and its photos. */

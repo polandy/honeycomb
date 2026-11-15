@@ -86,6 +86,16 @@ describe('SeriesCompareScreen', () => {
 		])
 	})
 
+	// spec: SERIES-005.14
+	it('passes marking the series done from its menu to the flow', async () => {
+		const { compare, calls, series, openOnSeries } = await mountScreen()
+		await openOnSeries()
+		calls.splice(0)
+		compare().vm.$emit('markDone', true)
+
+		expect(calls).toEqual([['compareMarkSeries', series, 'done']])
+	})
+
 	it('closes the compare', async () => {
 		const { compare, openOnSeries } = await mountScreen()
 		await openOnSeries()

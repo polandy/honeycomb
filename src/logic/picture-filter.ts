@@ -4,7 +4,6 @@ import type { ColourLabel, Decision, Flag } from './decision.ts'
 import type { Picture } from './pairing.ts'
 import type { Tag } from './tag.ts'
 
-import { isDecided } from './decision.ts'
 import { hasEveryTag } from './tag.ts'
 
 /** How the rating filter compares a picture's stars with the chosen count (Q8). */
@@ -83,8 +82,8 @@ export function filterPictures<P extends Picture<unknown>>(pictures: readonly P[
 }
 
 /** The "x of y decided" progress over the given pictures. */
-export function progress<P>(pictures: readonly P[], decisionOf: (picture: P) => Decision): { decided: number, total: number } {
-	return { decided: pictures.filter((picture) => isDecided(decisionOf(picture))).length, total: pictures.length }
+export function progress<P>(pictures: readonly P[], decidedOf: (picture: P) => boolean): { decided: number, total: number } {
+	return { decided: pictures.filter(decidedOf).length, total: pictures.length }
 }
 
 /** How many filter groups have a choice, each chosen tag counting as one; the flag filter has one when it is not the default. */

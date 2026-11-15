@@ -81,8 +81,13 @@ export function isOpen<T extends FlagOf>(decision: T): boolean {
 	return !isDecided(decision)
 }
 
-/** The index of the first undecided item after `from`, or null when every later item is decided. */
-export function nextUndecided<T>(items: readonly T[], from: number, decisionOf: (item: T) => Decision): number | null {
-	const found = items.findIndex((item, index) => index > from && !isDecided(decisionOf(item)))
+/** Whether the picture counts as decided: picked, rejected, or unflagged in a done series (SERIES-005.14). */
+export function countsAsDecided(decision: FlagOf, seriesDone: boolean): boolean {
+	return seriesDone || isDecided(decision)
+}
+
+/** The index of the first item after `from` that `decidedOf` does not count as decided, or null when there is none. */
+export function nextUndecided<T>(items: readonly T[], from: number, decidedOf: (item: T) => boolean): number | null {
+	const found = items.findIndex((item, index) => index > from && !decidedOf(item))
 	return found === -1 ? null : found
 }

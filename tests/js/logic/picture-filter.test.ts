@@ -5,7 +5,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 import type { Filters } from '../../../src/logic/picture-filter.ts'
 
 import { describe, expect, it } from 'vitest'
-import { UNDECIDED } from '../../../src/logic/decision.ts'
+import { isDecided, UNDECIDED } from '../../../src/logic/decision.ts'
 import {
 	activeFilterCount,
 	DEFAULT_FILTERS,
@@ -177,7 +177,12 @@ describe('progress', () => {
 	it('counts the picked and rejected pictures of all', () => {
 		const decisions = new Map([[pair, decision({ flag: 'rejected' })], [jpegOnly, decision({ flag: 'picked' })], [rawOnly, decision({ rating: 5 })]])
 
-		expect(progress([pair, jpegOnly, rawOnly], (picture) => decisions.get(picture)!)).toEqual({ decided: 2, total: 3 })
+		expect(progress([pair, jpegOnly, rawOnly], (picture) => isDecided(decisions.get(picture)!))).toEqual({ decided: 2, total: 3 })
+	})
+
+	// spec: SERIES-005.14
+	it('counts what the given test counts as decided', () => {
+		expect(progress([pair, jpegOnly, rawOnly], (picture) => picture !== rawOnly)).toEqual({ decided: 2, total: 3 })
 	})
 })
 

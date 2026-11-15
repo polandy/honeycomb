@@ -1,11 +1,9 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Decision } from '../../../src/logic/decision.ts'
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { describe, expect, it } from 'vitest'
-import { UNDECIDED } from '../../../src/logic/decision.ts'
 import { parsePositions, pictureHolding, positionFileId, positionOf, resumeIndex } from '../../../src/logic/resume-position.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
@@ -65,14 +63,13 @@ describe('pictureHolding', () => {
 })
 
 describe('resumeIndex', () => {
-	const rejected: Decision = { ...UNDECIDED, flag: 'rejected' }
-	const decisionOf = (decided: readonly Picture<ListingEntry>[]) => (picture: Picture<ListingEntry>) => (decided.includes(picture) ? rejected : UNDECIDED)
+	const decidedOf = (decided: readonly Picture<ListingEntry>[]) => (picture: Picture<ListingEntry>) => decided.includes(picture)
 
 	// spec: DECISIONS-002.9
 	it('opens at the picture, else at the first undecided one of the view, else at the first', () => {
-		expect(resumeIndex([rawOnly, pair, jpegOnly], pair, decisionOf([]))).toBe(1)
-		expect(resumeIndex([rawOnly, jpegOnly], pair, decisionOf([rawOnly]))).toBe(1)
-		expect(resumeIndex([rawOnly, jpegOnly], pair, decisionOf([rawOnly, jpegOnly]))).toBe(0)
-		expect(resumeIndex([], pair, decisionOf([]))).toBe(-1)
+		expect(resumeIndex([rawOnly, pair, jpegOnly], pair, decidedOf([]))).toBe(1)
+		expect(resumeIndex([rawOnly, jpegOnly], pair, decidedOf([rawOnly]))).toBe(1)
+		expect(resumeIndex([rawOnly, jpegOnly], pair, decidedOf([rawOnly, jpegOnly]))).toBe(0)
+		expect(resumeIndex([], pair, decidedOf([]))).toBe(-1)
 	})
 })

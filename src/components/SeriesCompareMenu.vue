@@ -13,6 +13,7 @@ import { computed } from 'vue'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActionCaption from '@nextcloud/vue/components/NcActionCaption'
 import NcActions from '@nextcloud/vue/components/NcActions'
+import NcActionSeparator from '@nextcloud/vue/components/NcActionSeparator'
 import ActionIcon from './ActionIcon.vue'
 import AppIcon from './AppIcon.vue'
 import { formatNumber, formatTime, PLAIN_TEXT } from '../l10n.ts'
@@ -32,6 +33,8 @@ const props = defineProps<{
 const emit = defineEmits<{
 	merge: [direction: MergeDirection]
 	dissolve: []
+	/** Marks the series done, or reopens it when false (SERIES-005.14, .15). */
+	markDone: [done: boolean]
 	/** The menu opened or closed. */
 	menu: [open: boolean]
 }>()
@@ -43,6 +46,7 @@ function mergeDescription(other: Series<Picture<ListingEntry>> | null, none: str
 		: t('honeycomb', '⧉ {count} · starts {time}', { count: formatNumber(other.members.length), time: formatTime(captureTime(other.members[0]!)) }, undefined, PLAIN_TEXT)
 }
 
+const done = computed(() => props.series.stored?.status === 'done')
 const merges = computed(() => [
 	{ direction: 'next' as const, other: props.next, name: t('honeycomb', 'Merge with the next series'), description: mergeDescription(props.next, t('honeycomb', 'None after this one')) },
 	{ direction: 'previous' as const, other: props.previous, name: t('honeycomb', 'Merge with the previous series'), description: mergeDescription(props.previous, t('honeycomb', 'None before this one')) },
@@ -71,6 +75,17 @@ const merges = computed(() => [
 				<ActionIcon name="merge" />
 			</template>
 			{{ entry.name }}
+		</NcActionButton>
+		<NcActionSeparator />
+		<NcActionButton
+			closeAfterClick
+			:modelValue="done"
+			:description="t('honeycomb', 'Its unflagged photos count as decided')"
+			@click="emit('markDone', !done)">
+			<template #icon>
+				<ActionIcon name="check" />
+			</template>
+			{{ t('honeycomb', 'Series done') }}
 		</NcActionButton>
 		<NcActionButton closeAfterClick :description="t('honeycomb', 'Its photos are never grouped again automatically')" @click="emit('dissolve')">
 			<template #icon>

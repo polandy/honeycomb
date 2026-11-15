@@ -85,3 +85,29 @@ test('merges two series and removes a photo from its series on a desktop, kept a
 	await cullFolder(page, folder)
 	await openMenu(page, ['IMG_0001', 'IMG_0002'], '1 photo in series ⧉ 4 · 1 loose')
 })
+
+// spec: SERIES-005.14, SERIES-005.15
+test('marks a series done from the compare\'s menu, its photos counted as decided after a reload, and reopens it', async ({ page }) => {
+	await page.setViewportSize(DESKTOP)
+	const folder = await cullPhotos(page)
+	const progress = page.locator('.cull-progress__count')
+
+	await page.keyboard.press('n')
+	await page.getByRole('button', { name: 'Series menu', exact: true }).click()
+	await page.getByRole('menuitemcheckbox', { name: /Series done/, checked: false }).click()
+	await expect(page.getByText('Marked the series done')).toBeVisible()
+	await expect(progress).toHaveText('3 / 5 decided')
+
+	await page.reload()
+	await cullFolder(page, folder)
+	await expect(progress).toHaveText('3 / 5 decided')
+	await page.getByRole('gridcell', { name: /^IMG_0001/ }).click()
+	const loupe = page.getByRole('dialog', { name: 'Loupe' })
+	await loupe.getByRole('button', { name: 'Photo 1 of a series of 3 – compare' }).click()
+	await page.getByRole('button', { name: 'Series menu', exact: true }).click()
+	await page.getByRole('menuitemcheckbox', { name: /Series done/, checked: true }).click()
+	await expect(page.getByText('Reopened the series')).toBeVisible()
+	await page.keyboard.press('Escape')
+	await page.keyboard.press('Escape')
+	await expect(progress).toHaveText('0 / 5 decided')
+})

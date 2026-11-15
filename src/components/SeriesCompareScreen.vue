@@ -39,6 +39,7 @@ defineExpose({ hotkeys })
 		@pickRest="flow.pickRest"
 		@remove="flow.removeFromSeries"
 		@dissolve="flow.dissolve"
+		@markDone="flow.markDone"
 		@merge="flow.merge"
 		@activate="flow.setActive"
 		@view="flow.view"

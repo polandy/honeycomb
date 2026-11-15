@@ -6,6 +6,7 @@ import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { SelectionEdit } from './logic/series-menu.ts'
 import type { Series } from './logic/series.ts'
+import type { SeriesStatus } from './logic/stored-series.ts'
 import type { TagChange } from './logic/tag.ts'
 import type { ToastAction } from './toast.ts'
 
@@ -21,6 +22,7 @@ interface Decisions {
 	dissolveSeries: (series: Series<Picture<ListingEntry>>) => CullStep | null
 	mergeSeries: (series: readonly Series<Picture<ListingEntry>>[]) => CullStep | null
 	editSelection: (edit: SelectionEdit, chosen: readonly Picture<ListingEntry>[]) => CullStep | null
+	markSeries: (series: Series<Picture<ListingEntry>>, status: SeriesStatus) => CullStep | null
 	undo: () => CullStep | null
 	redo: () => CullStep | null
 }
@@ -57,6 +59,11 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 		toastChange(cull.dissolveSeries(series))
 	}
 
+	/** Marks the series done or reopens it and says so, with Undo (SERIES-005.14, .15). */
+	function markSeries(series: Series<Picture<ListingEntry>>, status: SeriesStatus) {
+		toastChange(cull.markSeries(series, status))
+	}
+
 	/** Edits series with the chosen pictures and says what changed, with Undo (SERIES-005.4–.7, .11). */
 	function editSelection(edit: SelectionEdit, chosen: readonly Picture<ListingEntry>[]) {
 		toastChange(cull.editSelection(edit, chosen))
@@ -85,5 +92,5 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 		}
 	}
 
-	return { decide, pickRest, tag, removeFromSeries, dissolveSeries, mergeSeries, editSelection, undo, redo, toastChange }
+	return { decide, pickRest, tag, removeFromSeries, dissolveSeries, mergeSeries, markSeries, editSelection, undo, redo, toastChange }
 }

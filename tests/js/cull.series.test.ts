@@ -55,14 +55,14 @@ describe('useCull: stored series', () => {
 	// spec: SERIES-005.2
 	it('takes stored series and kept-out pictures out before the automatic rule', async () => {
 		const cull = openedCull([...BURST, listingEntry(5, '/Trip/E.JPG', { captureTime: 14 })], {
-			lookupSeries: async () => ({ series: [{ id: 7, status: 'done', fileIds: [1, 4], elsewhere: true }], keptOut: [2] }),
+			lookupSeries: async () => ({ series: [{ id: 7, status: 'open', fileIds: [1, 4], elsewhere: true }], keptOut: [2] }),
 		})
 		expect(names(cull)).toEqual([['A', 'B', 'C', 'D', 'E']])
 
 		await flushPromises()
 
 		expect(names(cull)).toEqual([['A', 'D'], ['C', 'E']])
-		expect(cull.series.value[0]!.stored).toEqual({ id: 7, status: 'done', elsewhere: true })
+		expect(cull.series.value[0]!.stored).toEqual({ id: 7, status: 'open', elsewhere: true })
 	})
 
 	// spec: SERIES-005.26
@@ -135,7 +135,7 @@ describe('useCull: series edits', () => {
 
 	// spec: SERIES-005.13
 	it('dissolves a stored series as one undo step and brings it back with the same members', async () => {
-		const { cull, written } = editedCull({ lookupSeries: async () => ({ series: [{ id: 12, status: 'done', fileIds: [1, 2, 3, 4], elsewhere: false }], keptOut: [] }) })
+		const { cull, written } = editedCull({ lookupSeries: async () => ({ series: [{ id: 12, status: 'open', fileIds: [1, 2, 3, 4], elsewhere: false }], keptOut: [] }) })
 		await flushPromises()
 
 		const step = cull.dissolveSeries(cull.series.value[0]!)
@@ -147,7 +147,7 @@ describe('useCull: series edits', () => {
 
 		cull.undo()
 		await flushPromises()
-		expect(written.at(-1)).toEqual({ series: [{ id: 12, status: 'done', fileIds: [1, 2, 3, 4] }], keptOut: [], released: [] })
+		expect(written.at(-1)).toEqual({ series: [{ id: 12, status: 'open', fileIds: [1, 2, 3, 4] }], keptOut: [], released: [] })
 		expect(cull.series.value[0]!.stored?.id).toBe(12)
 
 		cull.redo()
@@ -201,5 +201,43 @@ describe('useCull: series edits', () => {
 		cull.undo()
 		await flushPromises()
 		expect(written.at(-1)).toEqual({ series: [{ id: 12, status: 'done', fileIds: [1, 2] }, { id: 13, status: 'open', fileIds: [3, 4] }], keptOut: [], released: [] })
+	})
+
+	// spec: SERIES-005.14
+	it('marks an automatic series done as one undo step: its unflagged pictures count as decided but keep their flag', async () => {
+		const { cull, written } = editedCull({ lookupDecisions: async () => [stored(3, 'picked')] })
+		await flushPromises()
+		const [A, , C] = cull.pictures.value
+
+		const step = cull.markSeries(cull.series.value[0]!, 'done')
+		await flushPromises()
+
+		expect(step).toMatchObject({ kind: 'series', edit: 'done', names: ['A', 'B', 'C', 'D'], series: 1 })
+		expect(written).toEqual([{ series: [{ id: null, status: 'done', fileIds: [1, 2, 3, 4] }], keptOut: [], released: [] }])
+		expect(cull.progress.value).toEqual({ decided: 4, total: 4 })
+		expect([cull.decidedOf(A!), cull.decisionOf(A!).flag, cull.decisionOf(C!).flag]).toEqual([true, 'unflagged', 'picked'])
+		expect(cull.series.value).toEqual([])
+		expect(cull.everySeries.value[0]!.stored).toEqual({ id: 31, status: 'done', elsewhere: false })
+
+		cull.undo()
+		await flushPromises()
+		expect(written.at(-1)).toEqual({ series: [], keptOut: [], released: [1, 2, 3, 4] })
+		expect(cull.progress.value).toEqual({ decided: 1, total: 4 })
+		expect(names(cull)).toEqual([['A', 'B', 'C', 'D']])
+	})
+
+	// spec: SERIES-005.15
+	it('reopens a done series as one undo step', async () => {
+		const { cull, written } = editedCull({ lookupSeries: async () => ({ series: [{ id: 12, status: 'done', fileIds: [1, 2, 3, 4], elsewhere: false }], keptOut: [] }) })
+		await flushPromises()
+		expect(cull.progress.value).toEqual({ decided: 4, total: 4 })
+
+		const step = cull.markSeries(cull.everySeries.value[0]!, 'open')
+		await flushPromises()
+
+		expect(step).toMatchObject({ kind: 'series', edit: 'reopen', names: ['A', 'B', 'C', 'D'] })
+		expect(written).toEqual([{ series: [{ id: 12, status: 'open', fileIds: [1, 2, 3, 4] }], keptOut: [], released: [] }])
+		expect(cull.progress.value).toEqual({ decided: 0, total: 4 })
+		expect(names(cull)).toEqual([['A', 'B', 'C', 'D']])
 	})
 })
