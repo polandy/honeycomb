@@ -150,10 +150,12 @@ Redis for file locking. Details: [`docs/admin/updating.md`](docs/admin/updating.
 shows the old decisions and tags again. What stays and how to delete it:
 [`docs/admin/removing.md`](docs/admin/removing.md).
 
-**Signing.** Release tarballs carry `appinfo/signature.json`, made with the app's App Store
-certificate (`occ integrity:sign-app`). Nextcloud's code integrity check verifies it and warns
-in *Administration settings → Overview* when a file was changed, added or removed; do not edit
-an installed release. A Git checkout has no signature and is not checked.
+**Signing.** Once the app's App Store certificate exists, release tarballs carry
+`appinfo/signature.json`, made with it (`occ integrity:sign-app`); until then they are unsigned
+and on GitHub only ([`docs/admin/releasing.md`](docs/admin/releasing.md)). Nextcloud's code
+integrity check verifies it and warns in *Administration settings → Overview* when a file was
+changed, added or removed; do not edit an installed release. A Git checkout has no signature and
+is not checked.
 
 ## Sister project
 

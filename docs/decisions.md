@@ -1191,3 +1191,16 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   The newest image stays 35.0.2: on 35.0.3 a `.part` node has no cache entry and permissions 0,
   so moving the sidecar part file into place fails; the fix revises ADR 0017 and is its own
   TODO.md item instead of growing this change.
+- 2026-11-15: The App Store package is built by `scripts/package.sh`, not krankerl or a Makefile:
+  the repository's tooling is shell scripts under `scripts/` with table tests, krankerl is one
+  more pinned binary for CI, and an allowlist of app folders keeps tests, sources and `vendor/`
+  out of the tarball. Code signing runs `occ integrity:sign-app` in the pinned Nextcloud image
+  (`scripts/sign-app.sh`), so it needs only Docker, the key and the certificate.
+- 2026-11-15: The release job signs and uploads to the App Store only when the secrets
+  `APP_SIGNING_KEY`, `APP_SIGNING_CERT` and `APPSTORE_TOKEN` exist; without them it attaches an
+  unsigned tarball to the GitHub release, so releases keep working until the owner has the
+  certificate (R16).
+- 2026-11-15: The App Store screenshots point at the synthetic-photo screenshots of
+  `docs/ux-review-2026-11.md` in `polandy/honeycomb-assets` (`ux-review-2026-11/`, kept for the
+  review): grid, loupe and series compare on the iPad. Fresh screenshots replace them in
+  `appinfo/info.xml` when the UI changes enough to mislead.

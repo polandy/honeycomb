@@ -7,16 +7,16 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\AppInfo;
 
+use DOMDocument;
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\BackgroundJob\RemoveVanishedDecisions;
-use DOMDocument;
 use PHPUnit\Framework\TestCase;
 use SimpleXMLElement;
 
 final class InfoXmlTest extends TestCase {
 	private const REPOSITORY = __DIR__ . '/../../../';
 	private const DOCS_URL = 'https://github.com/polandy/honeycomb/blob/main/';
-	private const SCREENSHOT_URL = 'https://raw.githubusercontent.com/polandy/honeycomb-assets/main/appstore/';
+	private const SCREENSHOT_URL = 'https://raw.githubusercontent.com/polandy/honeycomb-assets/main/';
 
 	private SimpleXMLElement $info;
 
@@ -60,7 +60,7 @@ final class InfoXmlTest extends TestCase {
 
 	public function testValidatesAgainstTheAppStoreSchema(): void {
 		$document = new DOMDocument();
-		$document->loadXML($this->readRepositoryFile('appinfo/info.xml'));
+		$document->load(self::REPOSITORY . 'appinfo/info.xml');
 		$this->assertTrue($document->schemaValidate(self::REPOSITORY . 'tests/fixtures/appstore/info.xsd'));
 	}
 
@@ -80,7 +80,7 @@ final class InfoXmlTest extends TestCase {
 		$screenshots = iterator_to_array($this->info->screenshot, false);
 		$this->assertGreaterThanOrEqual(2, count($screenshots));
 		foreach ($screenshots as $screenshot) {
-			$this->assertMatchesRegularExpression('#^' . preg_quote(self::SCREENSHOT_URL, '#') . '[a-z0-9-]+\.png$#', (string)$screenshot);
+			$this->assertMatchesRegularExpression('#^' . preg_quote(self::SCREENSHOT_URL, '#') . '[a-z0-9/-]+\.png$#', (string)$screenshot);
 		}
 	}
 
