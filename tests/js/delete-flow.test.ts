@@ -128,6 +128,20 @@ describe('useDeleteFlow', () => {
 		expect(sent).toHaveLength(1)
 	})
 
+	// spec: DELETE-002.17
+	it('sends the chosen pictures as honeycomb saved their sidecars, once the waiting sidecars are written', async () => {
+		const own = { ...PAIR!, sidecars: [listingEntry(30, '/Trip/IMG_1.JPG.xmp', { etag: 'saved' })] }
+		let written = false
+		const { deleting, sent } = flow(allTrashed, undefined, async () => {
+			written = true
+		}, allPass, (picture) => (written && picture === PAIR ? own : picture))
+		deleting.summarise([PAIR!])
+
+		await deleting.confirm()
+
+		expect(sent).toEqual([[[{ fileId: 2, etag: 'etag-2' }, { fileId: 1, etag: 'etag-1' }, { fileId: 30, etag: 'saved' }]]])
+	})
+
 	// spec: DELETE-002.7
 	it('sends nothing without a summary or a report, or while a request runs', async () => {
 		let release = () => {}
