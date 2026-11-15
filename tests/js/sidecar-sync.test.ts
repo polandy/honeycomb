@@ -10,7 +10,7 @@ import type { TagChange } from '../../src/logic/tag.ts'
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { logger } from '../../src/logger.ts'
-import { UNDECIDED } from '../../src/logic/decision.ts'
+import { DECISION_FIELDS, UNDECIDED } from '../../src/logic/decision.ts'
 import { readXmp } from '../../src/logic/xmp/parse.ts'
 import { serializeXmp } from '../../src/logic/xmp/serialize.ts'
 import { useSidecarSync } from '../../src/sidecar-sync.ts'
@@ -94,7 +94,7 @@ describe('useSidecarSync: write', () => {
 		const { written, failed } = await sidecars.write([PAIR], decisionOf(UNDECIDED))
 
 		expect(written).toBe(0)
-		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'changed' }])
+		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'changed', fields: DECISION_FIELDS }])
 		expect(failures).toEqual([failed])
 	})
 
@@ -151,7 +151,7 @@ describe('useSidecarSync: write', () => {
 
 		const { failed } = await sidecars.write([PAIR], decisionOf(UNDECIDED))
 
-		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'unreachable' }])
+		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'unreachable', fields: DECISION_FIELDS }])
 		expect(saves[0]!.map((item) => 'path' in item && item.path)).toEqual(['/P/IMG_0001.JPG.xmp'])
 	})
 })

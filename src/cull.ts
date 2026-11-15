@@ -3,7 +3,7 @@
 import type { BrowserStorage } from './browser-storage.ts'
 import type { CullApi, CullSidecars } from './cull-seams.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
-import type { Decision, StoredDecision } from './logic/decision.ts'
+import type { Decision, DecisionField, StoredDecision } from './logic/decision.ts'
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { PairingSettings, Picture } from './logic/pairing.ts'
@@ -17,7 +17,7 @@ import { useCullTags } from './cull-tags.ts'
 import { nameComparer } from './l10n.ts'
 import { logger } from './logger.ts'
 import { prepareCull, warmMembers } from './logic/cull.ts'
-import { commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
+import { changedFields, commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
 import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
 import { memberIds } from './logic/pairing.ts'
 import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
@@ -168,7 +168,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		saveFailed.value = false
 		void saveDecisions(rows).then((saved) => {
 			if (saved.ok) {
-				writeThrough(rows, opened)
+				writeThrough(rows, changedFields(rows, before), opened)
 				return
 			}
 			logger.error('Could not save the decisions', { error: saved.error })
@@ -179,12 +179,12 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		})
 	}
 
-	/** Writes the decisions of the rows' pictures to their sidecars where they write through (XMP-003.6, .11, .18). */
-	function writeThrough(rows: readonly StoredDecision[], opened: number) {
+	/** Writes the changed fields of the rows' pictures to their sidecars where they write through (XMP-003.6, .11, .18, .20). */
+	function writeThrough(rows: readonly StoredDecision[], fields: readonly DecisionField[], opened: number) {
 		const fileIds = new Set(rows.map((row) => row.fileId))
 		const written = paired.value.filter((picture) => memberIds(picture).some((fileId) => fileIds.has(fileId)) && writesThrough(picture))
-		if (opening === opened && written.length > 0) {
-			void sidecars.write(written, decisionOf)
+		if (opening === opened && written.length > 0 && fields.length > 0) {
+			void sidecars.write(written, decisionOf, fields)
 		}
 	}
 

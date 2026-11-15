@@ -19,6 +19,15 @@ export interface Decision {
 	readonly keepRaw: boolean
 }
 
+/** One field of a decision. */
+export type DecisionField = keyof Decision
+
+/** The fields a change sets, applied per sidecar to the decision it states (ADR 0032). */
+export type DecisionDelta = Partial<Decision>
+
+/** Every field of a decision, in its order. */
+export const DECISION_FIELDS: readonly DecisionField[] = ['rating', 'colourLabel', 'flag', 'keepRaw']
+
 /** A decision as the decision endpoint stores it per member file id (ADR 0012). */
 export interface StoredDecision extends Decision {
 	readonly fileId: number
@@ -45,6 +54,11 @@ export function pictureDecision(picture: Picture<{ readonly fileId: number }>, b
 /** Whether two decisions hold the same values. */
 export function sameDecision(a: Decision, b: Decision): boolean {
 	return a.rating === b.rating && a.colourLabel === b.colourLabel && a.flag === b.flag && a.keepRaw === b.keepRaw
+}
+
+/** The delta that sets the fields to the decision's values. */
+export function deltaOf(decision: Decision, fields: readonly DecisionField[]): DecisionDelta {
+	return Object.fromEntries(fields.map((field) => [field, decision[field]]))
 }
 
 /** Whether the picture is picked or rejected. */

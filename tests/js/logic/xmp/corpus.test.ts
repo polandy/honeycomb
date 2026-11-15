@@ -33,7 +33,7 @@ describe('the corpus of foreign sidecars', () => {
 		const original = fixtureBytes(name)
 		let bytes = original
 		for (const decision of DECISIONS) {
-			bytes = writeSidecar(bytes, decision, { isPair: true, colourLabelChanged: true }, CANONICAL_TIME)
+			bytes = writeSidecar(bytes, decision, true, CANONICAL_TIME)
 			const written = readXmp(bytes)
 			expect(sidecarDecision(written, true)).toEqual(decision)
 			expect(foreign(written)).toEqual(foreign(readXmp(original)))

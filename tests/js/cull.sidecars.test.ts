@@ -26,7 +26,7 @@ function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<
 	const tagWrites: { names: string[], change: TagChange }[] = []
 	const savedTags: StoredTags[][] = []
 	const tagLookups: number[][] = []
-	const writes: { name: string, decision: Decision }[][] = []
+	const writes: { name: string, decision: Decision, fields: readonly string[] }[][] = []
 	const settings = shallowRef<Settings>({ ...DEFAULT_SETTINGS, sidecarWrite: options.sidecarWrite ?? 'existing-and-new' })
 	const sidecars: CullSidecars = {
 		takeOver: async (pictures, storedIds, taggedIds) => {
@@ -38,8 +38,8 @@ function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<
 				tagged: pictures.filter((picture) => tags.has(picture.baseName)).map((picture) => ({ picture, tags: tags.get(picture.baseName)! })),
 			}
 		},
-		write: async (pictures, decisionOf) => {
-			writes.push(pictures.map((picture) => ({ name: picture.baseName, decision: decisionOf(picture) })))
+		write: async (pictures, decisionOf, fields) => {
+			writes.push(pictures.map((picture) => ({ name: picture.baseName, decision: decisionOf(picture), fields })))
 			return { written: pictures.length, failed: [] }
 		},
 		writeTags: async (pictures, change) => {
@@ -151,8 +151,8 @@ describe('useCull: taking over the sidecars\' decision', () => {
 })
 
 describe('useCull: writing through to the sidecars', () => {
-	// spec: XMP-003.6, XMP-003.9
-	it('writes each picture of a stored step with its decision when the save is done', async () => {
+	// spec: XMP-003.6, XMP-003.9, XMP-003.20
+	it('writes each picture of a stored step with its decision and changed fields when the save is done', async () => {
 		const { cull, writes, picture } = cullWith()
 		cull.open(SET, ENTRIES, [])
 		await flushPromises()
@@ -167,6 +167,7 @@ describe('useCull: writing through to the sidecars', () => {
 			[['IMG_2', 'picked'], ['IMG_10', 'picked']],
 			[['IMG_2', 'unflagged'], ['IMG_10', 'unflagged']],
 		])
+		expect(writes.map((write) => write.map(({ fields }) => fields))).toEqual([[['flag'], ['flag']], [['flag'], ['flag']]])
 	})
 
 	// spec: XMP-003.15

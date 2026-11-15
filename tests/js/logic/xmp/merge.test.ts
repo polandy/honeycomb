@@ -6,7 +6,7 @@ import type { XmpPacket } from '../../../../src/logic/xmp/model.ts'
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../../src/logic/decision.ts'
 import { sidecarDecision } from '../../../../src/logic/xmp/decision.ts'
-import { mergeDecision, writeSidecar } from '../../../../src/logic/xmp/merge.ts'
+import { mergeDecision, mergeDelta, writeSidecar } from '../../../../src/logic/xmp/merge.ts'
 import { XmpError } from '../../../../src/logic/xmp/model.ts'
 import { readXmp } from '../../../../src/logic/xmp/parse.ts'
 import { CANONICAL_TIME, fixtureBytes, itemsOf, key, packetOf, textOf } from './xmp-builders.ts'
@@ -36,7 +36,7 @@ describe('mergeDecision', () => {
 	// spec: XMP-001.13
 	it.each([
 		['picked', '3', '1', 'True', '2'],
-		['rejected', '1', '-1', 'False', '-1'],
+		['rejected', '1', '-1', 'False', '2'],
 		['unflagged', undefined, undefined, undefined, '2'],
 	] as const)('writes the flag %s for digiKam, darktable and Lightroom', (flag, pickLabel, pick, good, rating) => {
 		const merged = mergeDecision(fixture('digikam.xmp'), decided({ flag, rating: 2 }), UNCHANGED)
@@ -110,12 +110,51 @@ describe('mergeDecision', () => {
 	})
 })
 
+describe('mergeDelta', () => {
+	const REJECTION = ['xmp:Rating', 'digiKam:PickLabel', 'xmpDM:pick', 'xmpDM:good', 'honeycomb:RejectedRating']
+	const rejection = (packet: XmpPacket) => REJECTION.map((name) => textOf(packet, name))
+
+	// spec: XMP-001.23
+	it('applies the delta to the decision the sidecar states and writes the whole set from it', () => {
+		const sidecar = packetOf({ 'xmp:Rating': '2', 'digiKam:ColorLabel': '4', 'digiKam:PickLabel': '3' })
+
+		const merged = mergeDelta(sidecar, { flag: 'rejected' }, false)
+
+		expect(sidecarDecision(merged, false)).toEqual(decided({ rating: 2, colourLabel: 'green', flag: 'rejected' }))
+		expect(textOf(merged, 'xmp:Label')).toBe('Green')
+	})
+
+	// spec: XMP-001.24
+	it.each([
+		[{ rating: 3 }, ['3', '1', '-1', 'False', undefined], 'rejected'],
+		[{ flag: 'unflagged' }, ['0', undefined, undefined, undefined, undefined], 'unflagged'],
+		[{ colourLabel: 'green' }, ['0', '1', '-1', 'False', undefined], 'rejected'],
+	] as const)('turns darktable\'s −1 into stars and digiKam\'s reject on %o', (delta, written, flag) => {
+		const merged = mergeDelta(fixture('darktable.xmp'), delta, false)
+
+		expect(rejection(merged)).toEqual(written)
+		expect(sidecarDecision(merged, false).flag).toBe(flag)
+	})
+
+	// spec: XMP-001.24
+	it('rejects in a darktable sidecar with stars the digiKam way', () => {
+		const rated = packetOf({ 'darktable:xmp_version': '5', 'xmp:Rating': '4' })
+
+		expect(rejection(mergeDelta(rated, { flag: 'rejected' }, false))).toEqual(['4', '1', '-1', 'False', undefined])
+	})
+
+	it('changes darktable\'s colour labels only when the delta changes the colour label', () => {
+		expect(itemsOf(mergeDelta(fixture('darktable.xmp'), { rating: 1 }, false), 'darktable:colorlabels')).toEqual(['3', '0'])
+		expect(itemsOf(mergeDelta(fixture('darktable.xmp'), { colourLabel: 'green' }, false), 'darktable:colorlabels')).toEqual(['2'])
+	})
+})
+
 describe('writeSidecar', () => {
 	// spec: XMP-001.16
 	it('keeps darktable\'s history and tags value for value when rejecting and then picking', () => {
 		const original = fixture('darktable.xmp')
-		const rejected = writeSidecar(fixtureBytes('darktable.xmp'), decided({ flag: 'rejected', colourLabel: 'red' }), UNCHANGED, CANONICAL_TIME)
-		const picked = readXmp(writeSidecar(rejected, decided({ flag: 'picked', colourLabel: 'red' }), UNCHANGED, CANONICAL_TIME))
+		const rejected = writeSidecar(fixtureBytes('darktable.xmp'), decided({ flag: 'rejected', colourLabel: 'red' }), false, CANONICAL_TIME)
+		const picked = readXmp(writeSidecar(rejected, decided({ flag: 'picked', colourLabel: 'red' }), false, CANONICAL_TIME))
 		expect(picked.properties.has(key('darktable:history'))).toBe(true)
 		expect(itemsOf(picked, 'darktable:colorlabels')).toEqual(['3', '0'])
 		expect(untouched(picked)).toEqual(untouched(original))
@@ -123,20 +162,20 @@ describe('writeSidecar', () => {
 
 	// spec: XMP-001.16
 	it('keeps unknown namespaces, struct qualifiers and language alternatives', () => {
-		const written = readXmp(writeSidecar(fixtureBytes('unknown-fields.xmp'), decided({ rating: 5, colourLabel: 'green' }), CHANGED, CANONICAL_TIME))
+		const written = readXmp(writeSidecar(fixtureBytes('unknown-fields.xmp'), decided({ rating: 5, colourLabel: 'green' }), false, CANONICAL_TIME))
 		expect(textOf(written, 'xmp:Rating')).toBe('5')
 		expect(untouched(written)).toEqual(untouched(fixture('unknown-fields.xmp')))
 	})
 
 	it('creates a new sidecar that reads back as the decision', () => {
 		const decision = decided({ rating: 3, flag: 'picked', colourLabel: 'yellow', keepRaw: true })
-		const written = readXmp(writeSidecar(null, decision, { isPair: true, colourLabelChanged: true }, CANONICAL_TIME))
+		const written = readXmp(writeSidecar(null, decision, true, CANONICAL_TIME))
 		expect(sidecarDecision(written, true)).toEqual(decision)
 	})
 
 	// spec: XMP-001.21
 	it('fails with the reason and no bytes when the target cannot be read', () => {
-		expect(() => writeSidecar(fixtureBytes('conflict.xmp'), decided({ rating: 1 }), UNCHANGED, CANONICAL_TIME)).toThrow(XmpError)
-		expect(() => writeSidecar(fixtureBytes('conflict.xmp'), decided({ rating: 1 }), UNCHANGED, CANONICAL_TIME)).toThrow('conflicting values for xmp:Rating')
+		expect(() => writeSidecar(fixtureBytes('conflict.xmp'), decided({ rating: 1 }), true, CANONICAL_TIME)).toThrow(XmpError)
+		expect(() => writeSidecar(fixtureBytes('conflict.xmp'), decided({ rating: 1 }), true, CANONICAL_TIME)).toThrow('conflicting values for xmp:Rating')
 	})
 })

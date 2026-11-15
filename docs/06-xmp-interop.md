@@ -185,7 +185,7 @@ Camera Raw settings and unknown namespaces (CORE-009.3, .23).
 
 | Property | Written | Value |
 |---|---|---|
-| `xmp:Rating` | always | rating 0–5, also when *rejected*; never −1 (ADR 0032; −1 until its PR 1) |
+| `xmp:Rating` | always | rating 0–5, also when *rejected*; never −1 (ADR 0032) |
 | `digiKam:PickLabel` | always | 3 *picked*, 1 *rejected*; *unflagged* removes it, but an existing 2 (pending) stays |
 | `xmpDM:pick` | always | 1 *picked*, −1 *rejected*; removed when *unflagged*, as digiKam does |
 | `xmpDM:good` | always | `True` *picked*, `False` *rejected*; removed when *unflagged* |
@@ -208,7 +208,7 @@ because digiKam is the target of M5; darktable's only where darktable already wr
   digiKam's way, also in a darktable sidecar; darktable then does not see the reject (owner,
   2026-11-15). A sidecar with `xmp:Rating` −1 gets the picture's stars 0–5 on any write, and a
   reject that stays moves to the pick fields.
-- **Deltas** (ADR 0032 PR 1): a change carries only the fields it sets; per sidecar it is applied
+- **Deltas** (ADR 0032): a change carries only the fields it sets; per sidecar it is applied
   to the decision that sidecar reads as, and the whole set above is written from the result, so
   fields the change does not touch keep each sidecar's own value.
 
