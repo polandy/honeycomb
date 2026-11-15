@@ -241,13 +241,13 @@ for (const path of [ROOT, ...foldersToExpand(props.ticked)]) {
 	width: var(--folder-tree-target);
 }
 
-.folder-tree__twisty {
+/* Outranks Nextcloud's global button margin, which would make the row taller. */
+.folder-tree .folder-tree__item > .folder-tree__twisty {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	height: var(--folder-tree-target);
 	min-height: 0;
-	/* Outranks Nextcloud's global button margin, which would make the row taller. */
 	margin: 0;
 	padding: 0;
 	border: none;
