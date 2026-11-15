@@ -66,3 +66,17 @@ file id. Restoring a file from the trash bin is not public API (ADR 0013).
 - A move across storages gives the files new ids; their decision rows stay with the old ids until
   a follow-up carries them over (`TODO.md`). The move summary warns about it (M7.3).
 - A new result or field is added, never renamed or removed, without a new version in the path.
+
+## Amendment 2026-11-15
+
+The public-release risk review (R3) found that a move across storages is copy and delete: a
+recipient who may delete in an incoming share or a group folder could move the photos into their
+own files, and the owner loses them without a trash bin entry; the move is not atomic either (R4).
+A move therefore stays on its storage. The check compares the mount of the source with the mount
+of the deepest existing target folder and of a file to replace, and refuses a difference with the
+new result `otherStorage`; nothing of the picture moves. The probe takes the optional `sources`
+and names the `storage` of each target and source folder (its mount point as a path of the user's
+files), so the move summary lists such pictures before the move instead of reporting them failed.
+Chosen over a confirmation that allows the move, since the person who loses the files is not the
+one who would confirm. Moving between storages stays possible in the Files app. The carry-over of
+rows to a new file id (MOVE-002.10) stays for a storage that gives a new id anyway.

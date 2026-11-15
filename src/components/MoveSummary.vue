@@ -18,7 +18,7 @@ import { folderLabel } from '../logic/cull.ts'
 import { addedSuffix } from '../logic/move-candidates.ts'
 import { folderName } from '../logic/move-targets.ts'
 import { badgeExtension } from '../logic/pair-badge.ts'
-import { moveNote, namingProblemText } from '../move-text.ts'
+import { leavesStorageText, moveNote, namingProblemText } from '../move-text.ts'
 
 const props = defineProps<{
 	flow: MoveFlow
@@ -28,12 +28,15 @@ const props = defineProps<{
 	folderSet: FolderSet
 }>()
 
-/** Each picture with its plan, or why it cannot be named. */
+/** Each picture with its plan, or why it is not moved. */
 const rows = computed(() => {
 	let next = 0
 	return props.flow.named.value.map(({ picture, candidate, problem }) => {
 		if (candidate === null) {
-			return { picture, problem, planned: null, notes: [] }
+			return { picture, problem: namingProblemText(problem!), planned: null, notes: [] }
+		}
+		if (props.flow.leaving.value.has(picture)) {
+			return { picture, problem: leavesStorageText(), planned: null, notes: [] }
 		}
 		const planned = props.plan[next++]!
 		return { picture, problem: null, planned, notes: notesOf(planned, candidate.rendered[0]!) }
@@ -100,7 +103,7 @@ function pathOf({ entry, picture }: PictureFile): string {
 		<ul class="move-summary__files" :aria-label="t('honeycomb', 'Files that will be moved')">
 			<template v-for="row in rows" :key="row.picture.baseName + row.picture.folder">
 				<li v-if="row.planned === null" class="move-summary__unnamed">
-					{{ row.picture.baseName }} {{ namingProblemText(row.problem!) }}
+					{{ row.picture.baseName }} {{ row.problem }}
 				</li>
 				<template v-else>
 					<li v-if="row.planned.inConflict" class="move-summary__conflict">

@@ -64,7 +64,8 @@ file versions and the trash bin apply.
   bin, or a file larger than the trash bin size (`trashbin_size`).
 - **Moving** renames and moves the files of a picture into the folder you choose, by a name
   template ([`docs/05-name-templates.md`](docs/05-name-templates.md)). A picture is moved whole
-  or not at all, and the move can be undone.
+  or not at all, and the move can be undone. It stays on its storage: honeycomb does not move
+  files out of or into a share, a group folder or external storage.
 - **XMP sidecars** (`<file>.xmp`) are written only once you turn on *Write decisions to XMP
   sidecars* in the settings (off by default). Then every decision you make — rating, flag,
   colour label, tags — updates the sidecars next to the photo and, with *Existing and new
