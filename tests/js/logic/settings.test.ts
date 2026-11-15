@@ -105,6 +105,12 @@ describe('sidecarWrite', () => {
 	})
 
 	// spec: SETTINGS-001.26
+	// spec: SETTINGS-001.24
+	it('reads a stored name of an object property as off, not as a mode', () => {
+		expect(parseSettings({ sidecarWrite: 'constructor' }).sidecarWrite).toBe('off')
+		expect(parseSettings({ sidecarWrite: '__proto__' }).sidecarWrite).toBe('off')
+	})
+
 	it('reads a stored existing as off with the hint, and existing and new as on', () => {
 		expect(parseSettings({ sidecarWrite: 'existing' })).toMatchObject({ sidecarWrite: 'off', sidecarExistingHint: true })
 		expect(parseSettings({ sidecarWrite: 'existing-and-new' })).toMatchObject({ sidecarWrite: 'on', sidecarExistingHint: false })

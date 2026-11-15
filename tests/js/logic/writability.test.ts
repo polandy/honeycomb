@@ -76,6 +76,15 @@ describe('lockReason', () => {
 		expect(lockReason([SPLIT], context(folders))).toBe('noVersions')
 		expect(lockReason([AT_ROOT], context([]))).toBeNull()
 	})
+
+	// spec: XMP-008.7
+	it('names a refused picture last, after a picture locked for any other reason', () => {
+		const refused = (picture: Picture<ListingEntry>) => picture === SPLIT
+		expect(lockReason([SPLIT, AT_ROOT], context([folder('/', { versions: false })], { refused }))).toBe('noVersions')
+		expect(lockReason([SPLIT, AT_ROOT], context([folder('/', { permissions: READ })], { refused }))).toBe('readOnly')
+		expect(lockReason([SPLIT, AT_ROOT], context([], { setting: 'off', refused }))).toBe('off')
+		expect(lockReason([SPLIT, AT_ROOT], context([], { refused }))).toBe('refused')
+	})
 })
 
 describe('confirmationFolders', () => {
