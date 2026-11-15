@@ -19,6 +19,8 @@ device; the tag list keeps every tag the user ever had for autocomplete and the 
 - A tag is at most 255 characters; its names, split at `/`, are not empty, have no space at either
   end and contain no `|`. A file has at most 100 tags, each once; they are stored sorted.
 - `400` for a malformed body; one malformed item writes nothing. `401` without a user.
+- A save writes only the file ids the user reaches as a photo; any other id is skipped, its row
+  neither written nor removed (ADR 0031). Saves are rate limited per user (APP-001.9).
 - The client functions `lookupTags`, `saveTags` and `loadTagList` in `src/api.ts` send these
   requests and reject an answer without the expected list.
 
@@ -112,6 +114,13 @@ device; the tag list keeps every tag the user ever had for autocomplete and the 
 - **Then** they send the requests above, send nothing for no file ids or no tags, and reject an
   answer without the expected list
 
+### TAGS-001.14 – A file the user does not reach
+
+- **Given** a save naming a file id that is not in the user's files, or not a photo
+- **When** it is stored
+- **Then** the user's photos in it are stored, nothing is written for that id, and a save of no
+  such photo writes nothing
+
 ## Out of scope
 
 Reading tags from sidecars and writing them through (TAGS-002); the JPEG's embedded XMP
@@ -123,3 +132,4 @@ Reading tags from sidecars and writing them through (TAGS-002); the JPEG's embed
 |---|---|
 | 2026-11-13 | Written with the tag tables and endpoints (ADR 0022) |
 | 2026-11-14 | A deadlock or lock wait timeout is repeated like a unique-key conflict (TAGS-001.9) |
+| 2026-11-15 | A save skips file ids that are not the user's photos (TAGS-001.14, ADR 0031, risk review R10) |
