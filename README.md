@@ -67,7 +67,9 @@ file versions and the trash bin apply.
   sidecars* in the settings (off by default). Then every decision you make — rating, flag,
   colour label, tags — updates the sidecars next to the photo and, with *Existing and new
   sidecars*, creates one where none exists. An existing sidecar is merged, so what other
-  programs wrote stays. In a shared folder nothing is written unless you ask. The photos
+  programs wrote stays, and it is rewritten in honeycomb's layout (formatting, comments and the
+  packet wrapper change). It is only replaced while Nextcloud's file versions are on, so the
+  previous version can be restored. In a shared folder nothing is written unless you ask. The photos
   themselves are never modified.
 - **Everything else** (decisions, tags, positions, similarity) lives in honeycomb's own tables,
   not in your files.

@@ -25,12 +25,17 @@ checked again, part file renamed onto it; a failure deletes the part file. The a
 `{"sidecars": [{"result": "saved", "fileId": 9, "etag": "…", "size": 830, "mtime": …}, …]}` in
 the order sent.
 
+An existing sidecar is overwritten only while the Versions app (`files_versions`) is enabled for
+the user, so the version it replaces, possibly written by another program, can be restored from
+the file's versions; a new sidecar has nothing to lose and is created either way.
+
 | Result | Lookup | Save |
 |---|---|---|
 | `read` | The bytes, ETag, size and mtime | – |
 | `saved` | – | Saved; the sidecar's file id, ETag, size and mtime |
 | `notFound` | Vanished, foreign, a folder or not `.xmp` | An existing sidecar vanished or is not `.xmp`; a new one's image is missing |
 | `changed` | – | Another ETag or size, or a new one that exists meanwhile |
+| `noVersions` | – | An existing sidecar while the Versions app (`files_versions`) is disabled for the user |
 | `tooLarge` | Over 1 MiB | – |
 | `notPermitted` | The user may not read it | The user may not update it or create files in its folder |
 | `locked` | Locked by another process | Locked by another process |
@@ -108,6 +113,14 @@ the order sent.
 - **When** the client saves new bytes to it and looks it up
 - **Then** the lookup answers the new bytes under the same file id
 
+### XMP-002.10 – No existing sidecar is overwritten without file versions
+
+- **Given** the Versions app disabled for the user, an existing sidecar and a new sidecar path
+- **When** the client saves both
+- **Then** the existing one answers `noVersions` and keeps its bytes, nothing is written beside it,
+  and the new one is `saved`; the client reports it as *File versions are off, so honeycomb does
+  not overwrite an existing sidecar*
+
 ## Out of scope
 
 - When the client reads and writes sidecars, and asking first in a shared folder:
@@ -119,3 +132,4 @@ the order sent.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written with the endpoints (ADR 0017) |
+| 2026-11-15 | No overwrite without file versions (XMP-002.10) |

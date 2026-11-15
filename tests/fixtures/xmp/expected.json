@@ -5,5 +5,10 @@
   "darktable-label-precedence.xmp": { "rating": 2, "flag": "unflagged", "colourLabel": "green" },
   "lightroom.xmp": { "rating": 4, "flag": "rejected", "colourLabel": "yellow" },
   "lightroom-no-flag.xmp": { "rating": 2, "flag": "unflagged", "colourLabel": null },
+  "corpus/lightroom-classic.xmp": { "rating": 3, "flag": "unflagged", "colourLabel": "red" },
+  "corpus/capture-one.xmp": { "rating": 5, "flag": "unflagged", "colourLabel": "green" },
+  "corpus/on1.xmp": { "rating": 2, "flag": "unflagged", "colourLabel": "blue" },
+  "corpus/photo-mechanic.xmp": { "rating": 1, "flag": "unflagged", "colourLabel": "yellow" },
+  "corpus/darktable-history.xmp": { "rating": 4, "flag": "unflagged", "colourLabel": "magenta" },
   "conflict.xmp": { "error": "conflicting values for xmp:Rating" }
 }

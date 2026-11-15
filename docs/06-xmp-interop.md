@@ -188,7 +188,9 @@ write the same bytes for the same model: Framehive's canonical form (CORE-009.4,
 prefixes and a clashing prefix renamed (CORE-009.6, .7), `xmp:MetadataDate` set on every write
 from the injected clock, never `xmp:CreatorTool`, `xmp:ModifyDate` or `xmpMM:History`
 (CORE-009.10). Saving goes through `OCP\Files` (CLAUDE.md rule 1): write `<name>.part`, check the
-target has not appeared or changed since it was read, rename (CORE-009.16–.19). *Differs:* the
+target has not appeared or changed since it was read, rename (CORE-009.16–.19). An existing
+sidecar is replaced only while the Versions app is enabled for the user, so the bytes another
+program wrote can be restored; without it the save answers `noVersions` (XMP-002.10). *Differs:* the
 check uses the Nextcloud ETag and size in place of BLAKE3. Reading, the mapping and serializing
 are a pure TypeScript module, `src/logic/xmp/` (XMP-001); the backend only reads the bytes and
 does the checked save (ADR 0006, endpoints in ADR 0017 and XMP-002). `@xmldom/xmldom` turns
@@ -211,6 +213,17 @@ Synthetic sidecars written from the sources above, not exported from the program
 | `lightroom.xmp` | elements form, `xmpDM:pick` −1, `crs:` settings | 4 | rejected | yellow |
 | `lightroom-no-flag.xmp` | real rating 2.5, custom label text | 2 | unflagged | none |
 | `conflict.xmp` | two `rdf:Description` with ratings 2 and 4 | refused | | |
+| `corpus/lightroom-classic.xmp` | Lightroom Classic: `<?xpacket?>` with padding, `crs:` settings, `crs:Look` struct, `xmpMM:History` | 3 | unflagged | red |
+| `corpus/capture-one.xmp` | Capture One: IPTC contact struct as `rdf:parseType="Resource"`, a two-language `dc:description` | 5 | unflagged | green |
+| `corpus/on1.xmp` | ON1 Photo RAW: elements form, `dc:title`, `lr:hierarchicalSubject` | 2 | unflagged | blue |
+| `corpus/photo-mechanic.xmp` | Photo Mechanic: `photomechanic:` color class and tag, `photoshop:Urgency` beside `xmp:Label` | 1 | unflagged | yellow |
+| `corpus/darktable-history.xmp` | darktable with four history items, a mask and its hashes | 4 | unflagged | magenta |
+
+The corpus under `corpus/` is synthetic too, written after each program's documented fields;
+XMP-001.22 writes three decisions in turn into each and checks that every property honeycomb does
+not write keeps its value and qualifiers. The bytes still change: honeycomb writes its canonical
+form, without the wrapper, padding, `x:xmptk` or comments, which is why a replace needs file
+versions.
 
 Write cases for M5, on top of CORE-009's:
 

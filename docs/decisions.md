@@ -1160,3 +1160,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   prompt at start. Take-over reading runs with every choice; the ⋯ menu write in a shared folder
   works with every choice and creates no sidecar under *Only existing sidecars*, nor does a retry
   or the embedded-JPEG tag sidecar.
+- 2026-11-15: An existing XMP sidecar is overwritten only while `files_versions` is enabled for
+  the user, otherwise the save answers `noVersions` (XMP-002.10, risk review R2, ADR 0017
+  amendment). Chosen over a one-time `.xmp.orig` copy, which would add synced files other
+  programs may read and keep only the first version. The check is per user, like the trash bin
+  check; a storage that keeps no versions despite the app is not detected.

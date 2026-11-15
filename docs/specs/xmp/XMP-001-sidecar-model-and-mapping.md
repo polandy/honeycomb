@@ -181,6 +181,14 @@ has, else one new `<member file>.xmp` per member.
 - **When** a decision is to be merged into it
 - **Then** the merge fails with the reason and produces no bytes
 
+### XMP-001.22 – Foreign sidecars keep every foreign property
+
+- **Given** the corpus `tests/fixtures/xmp/corpus/`, sidecars in the style of Lightroom Classic,
+  Capture One, ON1 Photo RAW, Photo Mechanic and darktable with a history and masks
+- **When** three decisions are written in turn, each read back
+- **Then** each reads back as the decision written and every property honeycomb does not write is
+  unchanged, value and qualifiers
+
 ## Out of scope
 
 - Fetching the sidecars, the backend's checked save, when sidecars are read on listing and written
@@ -192,3 +200,4 @@ has, else one new `<member file>.xmp` per member.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Created and implemented with M5.1 (ADR 0016) |
+| 2026-11-15 | Corpus of foreign sidecars (XMP-001.22) |

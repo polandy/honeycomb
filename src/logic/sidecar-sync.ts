@@ -25,7 +25,7 @@ import { sidecarTargets } from './xmp/targets.ts'
 export type SidecarLookupFailure = 'notFound' | 'tooLarge' | 'notPermitted' | 'locked' | 'failed'
 
 /** What the save endpoint answers for a sidecar it did not save (XMP-002). */
-export type SidecarSaveFailure = 'notFound' | 'changed' | 'notPermitted' | 'locked' | 'failed'
+export type SidecarSaveFailure = 'notFound' | 'changed' | 'noVersions' | 'notPermitted' | 'locked' | 'failed'
 
 /** The lookup endpoint's answer for one sidecar. */
 export type SidecarLookupAnswer
