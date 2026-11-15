@@ -37,12 +37,13 @@ shown at once and stored for every member in one save. Saves go one at a time an
 one in flight, as decisions do (DECISIONS-001.14, .15). A failed save puts back what it replaced,
 except the files a later save stored, and writes no sidecar.
 
-**Writing through.** After the save, each changed picture outside a shared folder gets the change
-written to its sidecars, in the same passes as the decisions (XMP-003): every sidecar is read unless
-honeycomb holds its bytes, the change is applied to the union of their tags as they are then, and
-that set is written to every sidecar, and to a new `<member file>.xmp` for each member without one
-while any tag is left. The JPEG gets its new sidecar also when no tag is left but its embedded XMP
-held tags, so the removal lasts. Only the three tag fields change (XMP-004); the decision fields
+**Writing through.** After the save, while writing to sidecars is on (XMP-003 The setting), each
+changed picture outside a shared folder gets the change written to its sidecars, in the same passes
+as the decisions (XMP-003): every sidecar is read unless honeycomb holds its bytes, the change is
+applied to the union of their tags as they are then, and that set is written to every sidecar, and,
+with *Existing and new sidecars*, to a new `<member file>.xmp` for each member without one while
+any tag is left. The JPEG gets its new sidecar also when no tag is left but its embedded XMP held
+tags, so the removal lasts, again only with *Existing and new sidecars*. Only the three tag fields change (XMP-004); the decision fields
 stay as the sidecar holds them. Changes waiting for the same pass are applied in order and saved
 once (XMP-003.16). A sidecar answering `changed` is read again and gets the change once more. A
 sidecar that cannot be written is reported like a decision's (XMP-003.13); *Retry failed
