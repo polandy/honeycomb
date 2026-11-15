@@ -1181,3 +1181,13 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   rest; every write route is limited to 600 requests a minute per user, one shared limit far above
   a person culling, the visual hash save keeps 300 (ADR 0031, risk review R10). Preview warming is
   not limited: it reads and renders cached previews, 16 file ids a request.
+- 2026-11-15: The supported Nextcloud range stays 35 only (`min-version` = `max-version` = 35,
+  the owner's Q1 answer); 36 is not released, so there is nothing to test it on. e2e runs on
+  35.0.0, the first release `min-version` admits, and on the newest 35 release it passes on
+  instead of every patch release, and `scripts/nextcloud-versions.sh` ties both to `info.xml`. The
+  update test starts from v0.1.0, the first release, so it runs every migration added since, and
+  saves through that release's own API instead of writing rows, so it checks what a real user had
+  stored (R14).
+  The newest image stays 35.0.2: on 35.0.3 a `.part` node has no cache entry and permissions 0,
+  so moving the sidecar part file into place fails; the fix revises ADR 0017 and is its own
+  TODO.md item instead of growing this change.

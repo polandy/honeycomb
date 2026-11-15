@@ -3,10 +3,16 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Runs a fresh Nextcloud with this checkout as the honeycomb app, in the foreground for Playwright.
 # Usage: scripts/e2e-server.sh <port> <admin user> <admin password>
+# HONEYCOMB_E2E_NEXTCLOUD=oldest runs the oldest supported Nextcloud instead of the newest.
 set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
-NEXTCLOUD_IMAGE=nextcloud:35.0.2-apache@sha256:786c102155d2717ba0f53a62b3fdd7a1354edc48e800b94dbe32294d9a5752a2
+source scripts/nextcloud-images.sh
+case "${HONEYCOMB_E2E_NEXTCLOUD:-newest}" in
+  oldest) NEXTCLOUD=$OLDEST_NEXTCLOUD_IMAGE ;;
+  newest) NEXTCLOUD=$NEWEST_NEXTCLOUD_IMAGE ;;
+  *) echo "HONEYCOMB_E2E_NEXTCLOUD must be oldest or newest" >&2 && exit 1 ;;
+esac
 CONTAINER=honeycomb-e2e-$1
 TEAM_FOLDERS_VERSION=23.0.1
 TEAM_FOLDERS_SHA256=3949e6a45947188090c170c6983aae11a1d66134ec317ffe7b7609062f3aecf3
@@ -32,4 +38,4 @@ exec docker run --rm --name "$CONTAINER" -p "127.0.0.1:$1:80" \
   -v "$PWD:/var/www/html/custom_apps/honeycomb:ro" \
   -v "$TEAM_FOLDERS:/var/www/html/custom_apps/groupfolders:ro" \
   -v "$PWD/tests/e2e/nextcloud/post-installation:/docker-entrypoint-hooks.d/post-installation:ro" \
-  "$NEXTCLOUD_IMAGE"
+  "$NEXTCLOUD"

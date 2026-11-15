@@ -1003,8 +1003,10 @@ Sources:
 **Supported: Nextcloud 35 only, PHP 8.3 and later** (Q1, answered by the owner on 2026-11-09,
 against the recommendation of 34 and 35). `appinfo/info.xml` sets `min-version` and `max-version`
 to 35 and requires PHP 8.3. CI runs the PHP jobs on PHP 8.3, the floor, and 8.5, the version
-Nextcloud recommends, against Nextcloud 35. Supporting 36 once it ships is a new decision for the
-owner.
+Nextcloud recommends, against Nextcloud 35, and e2e on 35.0.0, the first release `min-version`
+admits, and on the newest 35 release it passes on; `scripts/nextcloud-versions.sh` fails when `info.xml`
+declares a version these images do not cover, so `max-version` rises only with an e2e run on that
+major. Supporting 36 once it ships is a new decision for the owner.
 
 ## Open questions
 

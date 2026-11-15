@@ -25,10 +25,11 @@ step() {
 }
 
 step ci-changes scripts/test-ci-changes.sh
-step "gate tests" sh -c 'scripts/test-source-sizes.sh && scripts/test-pins.sh && scripts/test-specs.sh && scripts/test-spec-trailers.sh'
+step "gate tests" sh -c 'scripts/test-source-sizes.sh && scripts/test-pins.sh && scripts/test-specs.sh && scripts/test-spec-trailers.sh && scripts/test-nextcloud-versions.sh'
 step source-sizes scripts/source-sizes.sh
 step pins scripts/pins.sh
 step specs scripts/specs.sh
+step "nextcloud versions" scripts/nextcloud-versions.sh
 # The branch's commit messages stand in for the description CI judges (docs/specs/README.md).
 step "spec trailers" sh -c 'git diff --name-only origin/main...HEAD |
   SPEC_MESSAGE="$(git log --format=%B origin/main..HEAD)" scripts/spec-trailers.sh'
@@ -46,5 +47,7 @@ step vue-tsc npx vue-tsc
 step vitest npx vitest run --coverage
 step build npx vite build
 step e2e npx playwright test
+step "e2e oldest" env HONEYCOMB_E2E_NEXTCLOUD=oldest npx playwright test
+step "upgrade test" scripts/upgrade-test.sh
 
 exit $failed
