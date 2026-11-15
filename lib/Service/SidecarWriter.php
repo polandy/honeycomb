@@ -17,7 +17,7 @@ use OCP\IUser;
 use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
 
-/** Saves sidecars by the checked save: check, write a part file, check again, rename (ADR 0017); overwrites only while file versions keep the old bytes. */
+/** Saves sidecars by the checked save: check, write a part file, check again, rename (ADR 0017). */
 final class SidecarWriter {
 	public function __construct(
 		private IRootFolder $rootFolder,
@@ -42,6 +42,7 @@ final class SidecarWriter {
 	/** @return array{result: SidecarResult, fileId?: int, etag?: string, size?: int|float, mtime?: int} */
 	private function saveOne(Folder $userFolder, ExistingSidecar|NewSidecar $sidecar, bool $versioned): array {
 		$target = $this->check($userFolder, $sidecar);
+		// Without versions the replaced bytes of another program could not be restored (XMP-002.10).
 		if (!$versioned && $sidecar instanceof ExistingSidecar && !$target instanceof SidecarResult) {
 			return ['result' => SidecarResult::NoVersions];
 		}

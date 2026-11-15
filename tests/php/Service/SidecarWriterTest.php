@@ -155,6 +155,17 @@ final class SidecarWriterTest extends TestCase {
 		$this->assertSame(['write IMG_0002.JPG.xmp.part', 'move IMG_0002.JPG.xmp.part'], $this->events);
 	}
 
+	// spec: XMP-002.10
+	public function testAChangedOrForbiddenSidecarAnswersItsOwnResultWithoutFileVersions(): void {
+		$this->versions = false;
+		$changed = $this->writer()->save($this->user(), [$this->existing('new', etag: 'etag-seen')]);
+		$this->updateable = false;
+		$forbidden = $this->writer()->save($this->user(), [$this->existing('new')]);
+
+		$this->assertSame([SidecarResult::Changed, SidecarResult::NotPermitted], $this->resultsOf([...$changed, ...$forbidden]));
+		$this->assertSame([], $this->events);
+	}
+
 	// spec: XMP-002.4
 	public function testCreatesANewSidecarBesideItsImage(): void {
 		$results = $this->writer()->save($this->user(), [$this->created('fresh')]);
