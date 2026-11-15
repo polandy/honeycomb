@@ -222,6 +222,7 @@ describe('failureReason', () => {
 		['notFound', 'File is gone or no longer a photo; reload the folder'],
 		['changed', 'File changed since the folder was listed; reload the folder, then delete again'],
 		['notPermitted', 'You may not delete this file'],
+		['noTrashBin', 'Not deleted: no trash bin on this storage, or the file is larger than the trash bin allows'],
 		['skipped', 'Not tried, because another file of this photo failed'],
 		['failed', 'Could not move the file to the trash bin'],
 	] as const)('words %s', (result, reason) => {

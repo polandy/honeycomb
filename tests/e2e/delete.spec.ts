@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
 import { cullFolder } from './cull.ts'
-import { createFolder, JPEG, RAW, requestToken, trashEntry, upload } from './files.ts'
+import { createFolder, etagOf, JPEG, RAW, requestToken, trashEntry, upload } from './files.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
 const TRASHBIN = `/remote.php/dav/trashbin/${ADMIN.username}`
@@ -66,9 +66,7 @@ test('a picture restored from the trash bin keeps its file id and its decision',
 	const path = `${folder}/IMG_0001.jpg`
 	const fileId = await upload(page, path, JPEG)
 	const file = `/remote.php/dav/files/${ADMIN.username}/${path}`
-	const etagResponse = await page.request.fetch(file, { method: 'PROPFIND', headers: { requesttoken, Depth: '0' }, data: '<d:propfind xmlns:d="DAV:"><d:prop><d:getetag/></d:prop></d:propfind>' })
-	const etag = /<d:getetag>&quot;(.+?)&quot;<\/d:getetag>/.exec(await etagResponse.text())?.[1]
-	expect(etag).toBeDefined()
+	const etag = await etagOf(page, path)
 	const decision = { fileId, rating: 4, colourLabel: 'green', flag: 'picked', keepRaw: false }
 	expect((await page.request.put(`${API}/decisions`, { data: { decisions: [decision] }, headers: { requesttoken } })).status()).toBe(204)
 

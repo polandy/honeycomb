@@ -43,7 +43,8 @@ picture becomes a *JPEG only* single. Like deleting, it is not undone by `Ctrl+Z
 - **Given** the summary is open
 - **When** the user reads it
 - **Then** it sums up the RAWs that go (pictures, files, bytes), says what was skipped and why,
-  lists their files in a collapsed section and shows both thumbnail groups with their counts
+  lists their files in a collapsed section, shows both thumbnail groups with their counts and the
+  trash-bin note of DELETE-002.6
 
 ### DELETE-003.4 – Keep RAW from the summary
 
@@ -84,3 +85,4 @@ to XMP: M5.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written from the merged M4.3 (#53) |
+| 2026-11-15 | The summary shows the trash-bin note of DELETE-002.6 |

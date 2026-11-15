@@ -9,14 +9,18 @@ namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\InvalidTrashRequestException;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
+use OCA\Honeycomb\Service\TrashBinGuard;
 use OCA\Honeycomb\Service\TrashService;
 use OCP\App\IAppManager;
+use OCP\Config\IUserConfig;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
+use OCP\Files\Storage\IStorage;
+use OCP\IAppConfig;
 use OCP\IUser;
 use OCP\Lock\LockedException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -33,9 +37,13 @@ final class TrashServiceTest extends TestCase {
 		return $user;
 	}
 
-	/** A file of alice's that records its delete, or throws `$failure` instead. */
-	private function file(int $id, string $name, string $mime = 'image/jpeg', bool $deletable = true, ?\Throwable $failure = null): File {
+	/** A file of alice's that records its delete, or throws `$failure` instead; `$size` bytes against a trash bin size of 1000. */
+	private function file(int $id, string $name, string $mime = 'image/jpeg', bool $deletable = true, ?\Throwable $failure = null, int $size = 1): File {
+		$storage = $this->createStub(IStorage::class);
+		$storage->method('instanceOfStorage')->willReturnCallback(static fn (string $class): bool => $class === 'OCA\Files_Trashbin\Storage');
 		$file = $this->createStub(File::class);
+		$file->method('getStorage')->willReturn($storage);
+		$file->method('getSize')->willReturn($size);
 		$file->method('getId')->willReturn($id);
 		$file->method('getName')->willReturn($name);
 		$file->method('getMimetype')->willReturn($mime);
@@ -58,7 +66,12 @@ final class TrashServiceTest extends TestCase {
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturnCallback(static fn (string $app): bool => $app === 'files_trashbin' && $trashBin);
-		return new TrashService($root, $apps, $logger ?? $this->createStub(LoggerInterface::class));
+		$userConfig = $this->createStub(IUserConfig::class);
+		$userConfig->method('getValueString')->willReturnArgument(3);
+		$appConfig = $this->createStub(IAppConfig::class);
+		$appConfig->method('getValueString')->willReturn('1000');
+		$guard = new TrashBinGuard($userConfig, $appConfig);
+		return new TrashService($root, $apps, $guard, $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
 	/**
@@ -108,6 +121,7 @@ final class TrashServiceTest extends TestCase {
 			'a file the listing does not list' => ['unlisted', 'notFound'],
 			'a file changed since the listing' => ['changed', 'changed'],
 			'a file the user may not delete' => ['undeletable', 'notPermitted'],
+			'a file the trash bin would not keep' => ['too large', 'noTrashBin'],
 		];
 	}
 
@@ -121,7 +135,7 @@ final class TrashServiceTest extends TestCase {
 		$this->assertSame([1, 2], $this->trashed);
 	}
 
-	// spec: DELETE-001.2
+	// spec: DELETE-001.2, DELETE-001.9
 	#[DataProvider('checkFailures')]
 	public function testAFileThatFailsItsCheckLeavesTheWholePictureUntouched(string $jpeg, string $result): void {
 		$nodes = [1 => $this->file(1, 'IMG_0001.CR3', 'image/x-canon-cr3'), 4 => $this->file(4, 'IMG_0002.JPG')];
@@ -130,6 +144,7 @@ final class TrashServiceTest extends TestCase {
 			'folder' => $this->createStub(Folder::class),
 			'unlisted' => $this->file(2, 'notes.txt', 'text/plain'),
 			'changed', 'undeletable' => $this->file(2, 'IMG_0001.JPG', deletable: $jpeg !== 'undeletable'),
+			'too large' => $this->file(2, 'IMG_0001.JPG', size: 1000),
 		};
 		if ($node !== null) {
 			$nodes[2] = $node;

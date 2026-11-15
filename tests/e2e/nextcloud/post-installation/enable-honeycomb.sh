@@ -5,3 +5,6 @@
 set -eu
 php /var/www/html/occ app:disable firstrunwizard
 php /var/www/html/occ app:enable honeycomb
+# Team folders and local External Storage, for the trash bin on other storages.
+php /var/www/html/occ app:enable groupfolders files_external
+mkdir -p /tmp/honeycomb-e2e-external
