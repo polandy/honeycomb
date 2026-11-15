@@ -9,6 +9,8 @@ namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\MoveService;
+use OCA\Honeycomb\Service\UserFolderResolver;
+use OCA\Honeycomb\Service\UserPhotos;
 use OCP\App\IAppManager;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -20,7 +22,7 @@ final class MoveServiceStorageTest extends TestCase {
 	private function service(): MoveService {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturn(true);
-		return new MoveService($this->treeRoot(), $apps, new FileRowStores(new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore(), new FakeSeriesStore()), $this->createStub(LoggerInterface::class));
+		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores(new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore(), new FakeSeriesStore()), $this->createStub(LoggerInterface::class));
 	}
 
 	/** @return array{fileId: int, etag: string, path: string} */
