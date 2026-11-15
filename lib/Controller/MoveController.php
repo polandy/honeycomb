@@ -30,11 +30,11 @@ final class MoveController extends Controller {
 		parent::__construct($appName, $request);
 	}
 
-	/** Lists every child of each target folder, so the client can find conflicts (ADR 0018). */
+	/** Lists every child and the storage of each target folder and the storage of each source folder (ADR 0018). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'POST', url: '/api/v1/move/targets')]
-	public function targets(array $folders = []): Response {
-		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(['folders' => $this->targetFolders->targets($user, $folders)]));
+	public function targets(array $folders = [], array $sources = []): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->targetFolders->targets($user, $folders, $sources)));
 	}
 
 	/** Moves each picture's files to their new paths and reports every file (ADR 0018). */

@@ -18,4 +18,5 @@ enum MoveResult: string {
 	case Failed = 'failed';
 	case Skipped = 'skipped';
 	case MovedBack = 'movedBack';
+	case OtherStorage = 'otherStorage';
 }

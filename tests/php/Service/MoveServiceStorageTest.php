@@ -51,13 +51,13 @@ final class MoveServiceStorageTest extends TestCase {
 		$this->addFolder('/Group');
 		$this->mounts = ['/Shared' => true, '/Group' => true];
 
-		$results = $this->service()->move($this->treeUser(), [[self::to(1, "$to/A.RAF"), self::to(2, "$to/A.JPG")], [self::to(4, '/Shared/Shoot/B.JPG')]]);
+		$results = $this->service()->move($this->treeUser(), [[self::to(1, "$to/A.RAF"), self::to(2, "$to/A.JPG")], [self::to(4, '/Shared/C.JPG')]]);
 
 		$this->assertSame([
 			[['fileId' => 1, 'result' => 'otherStorage', 'replaced' => false], ['fileId' => 2, 'result' => 'otherStorage', 'replaced' => false]],
-			[['fileId' => 4, 'result' => 'moved', 'replaced' => false, 'path' => '/Shared/Shoot/B.JPG', 'newFileId' => 4, 'etag' => 'etag-4']],
+			[['fileId' => 4, 'result' => 'moved', 'replaced' => false, 'path' => '/Shared/C.JPG', 'newFileId' => 4, 'etag' => 'etag-4']],
 		], self::results($results));
-		$this->assertSame(['move 4 /Shared/Shoot/B.JPG'], $this->log);
+		$this->assertSame(['move 4 /Shared/C.JPG'], $this->log);
 	}
 
 	// spec: MOVE-002.11
