@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\EntryController;
 use OCA\Honeycomb\Service\EntryFactory;
 use OCA\Honeycomb\Service\ListingService;
@@ -36,7 +37,7 @@ final class EntryControllerTest extends TestCase {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($user);
 		$listing = new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore()), new SharedFolders($this->createStub(IShareManager::class), $this->createStub(IUserMountCache::class)));
-		return new EntryController(Application::APP_ID, $this->createStub(IRequest::class), $session, $listing);
+		return new EntryController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $listing);
 	}
 
 	// spec: LISTING-001.1

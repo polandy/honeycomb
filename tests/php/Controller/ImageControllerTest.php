@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\ImageController;
 use OCA\Honeycomb\Service\ImageService;
 use OCA\Honeycomb\Service\UserFolderResolver;
@@ -51,7 +52,7 @@ final class ImageControllerTest extends TestCase {
 			$preview ?? $this->previewOf('image/jpeg'),
 			$this->createStub(LoggerInterface::class),
 		);
-		return new ImageController(Application::APP_ID, $request, $session, $images);
+		return new ImageController(Application::APP_ID, $request, new ApiResponse($session), $images);
 	}
 
 	private function image(bool $readable = true): File {

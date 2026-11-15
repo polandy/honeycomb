@@ -22,7 +22,9 @@ dependencies — are in [`conventions.md`](conventions.md). This file adds the s
 - A new table of rows per file id is a `FileRowStore`, registered in `FileRowStores`; one of rows
   per user is a `UserRowStore`, registered in `UserRowStores`. The vanished-file sweep, the
   clean-up of a deleted user and the carry-over on a move read those lists, so nothing else changes.
-- Errors: domain exceptions per service; controllers map them to HTTP status codes. Logging
+- Errors: domain exceptions per service; a malformed request throws a subclass of
+  `InvalidRequestException`. Every controller action answers through `ApiResponse::forUser`,
+  which answers 401 without a user and maps each known exception to its status. Logging
   through the injected `Psr\Log\LoggerInterface` ([`conventions.md`](conventions.md) §3).
 - Classes `final`, properties `private`, constructor property promotion, `#[\Override]` on
   overrides.

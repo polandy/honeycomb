@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\SeriesController;
 use OCA\Honeycomb\Service\SeriesService;
 use OCA\Honeycomb\Service\UserFolderResolver;
@@ -43,7 +44,7 @@ final class SeriesControllerTest extends TestCase {
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturn($userFolder);
 		$service = new SeriesService($this->store, new UserPhotos(new UserFolderResolver($root)));
-		return new SeriesController(Application::APP_ID, $this->createStub(IRequest::class), $session, $service);
+		return new SeriesController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $service);
 	}
 
 	// spec: SERIES-005.20, SERIES-005.21

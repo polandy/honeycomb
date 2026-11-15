@@ -81,7 +81,9 @@ final class ApiResponseTest extends TestCase {
 
 	#[DataProvider('failures')]
 	public function testEachKnownFailureIsItsStatusWithAnEmptyBody(\Throwable $failure, int $status): void {
-		$response = $this->api($this->createStub(IUser::class))->forUser(fn (): Response => throw $failure);
+		$response = $this->api($this->createStub(IUser::class))->forUser(function () use ($failure): Response {
+			throw $failure;
+		});
 
 		$this->assertSame($status, $response->getStatus());
 		$this->assertSame([], json_decode($response->render(), true));
@@ -90,6 +92,8 @@ final class ApiResponseTest extends TestCase {
 	public function testAnUnknownFailureIsNotCaught(): void {
 		$this->expectException(\LogicException::class);
 
-		$this->api($this->createStub(IUser::class))->forUser(fn (): Response => throw new \LogicException());
+		$this->api($this->createStub(IUser::class))->forUser(function (): Response {
+			throw new \LogicException();
+		});
 	}
 }

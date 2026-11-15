@@ -7,23 +7,22 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\InvalidSettingsException;
 use OCA\Honeycomb\Service\SettingsService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
-use OCP\IUserSession;
+use OCP\IUser;
 
 /** @psalm-suppress UnusedClass Routed by its attributes. */
 final class SettingsController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IUserSession $userSession,
+		private ApiResponse $api,
 		private SettingsService $settings,
 	) {
 		parent::__construct($appName, $request);
@@ -32,27 +31,15 @@ final class SettingsController extends Controller {
 	/** The user's stored settings object (ADR 0014). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/settings')]
-	public function index(): JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse([], Http::STATUS_UNAUTHORIZED);
-		}
-		return new JSONResponse(['settings' => $this->settings->get($user)]);
+	public function index(): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(['settings' => $this->settings->get($user)]));
 	}
 
 	/** Stores the user's whole settings object (ADR 0014). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/settings')]
 	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
-	public function save(mixed $settings = null): JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse([], Http::STATUS_UNAUTHORIZED);
-		}
-		try {
-			return new JSONResponse(['settings' => $this->settings->save($user, $settings)]);
-		} catch (InvalidSettingsException) {
-			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
-		}
+	public function save(mixed $settings = null): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(['settings' => $this->settings->save($user, $settings)]));
 	}
 }

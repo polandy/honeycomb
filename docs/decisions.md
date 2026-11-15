@@ -1208,3 +1208,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `FileIds` and throws the new `InvalidPreviewRequestException`, like every other list of file
   ids; the move, trash and sidecar exceptions now extend `InvalidRequestException` so `FileIds`
   can throw them (R5b of the architecture review).
+- 2026-11-15: Every controller action answers through `ApiResponse::forUser`, which answers
+  401 without a user and maps the service exceptions to their status by one table (R9 of the
+  architecture review). The cursor, position, settings and view-state exceptions now extend
+  `InvalidRequestException` too. The status codes are unchanged; the few routes that answered
+  an error with an empty body now answer `[]` like all the others.

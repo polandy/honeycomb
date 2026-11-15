@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\TrashController;
 use OCA\Honeycomb\Service\TrashBinGuard;
 use OCA\Honeycomb\Service\TrashService;
@@ -58,7 +59,7 @@ final class TrashControllerTest extends TestCase {
 		$appConfig->method('getValueString')->willReturnArgument(2);
 		$guard = new TrashBinGuard($userConfig, $appConfig);
 		$trash = new TrashService(new UserPhotos(new UserFolderResolver($root)), $apps, $guard, $this->createStub(LoggerInterface::class));
-		return new TrashController(Application::APP_ID, $this->createStub(IRequest::class), $session, $trash);
+		return new TrashController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $trash);
 	}
 
 	// spec: DELETE-001.1

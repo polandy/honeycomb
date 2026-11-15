@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\FolderController;
 use OCA\Honeycomb\Service\FolderService;
 use OCA\Honeycomb\Service\UserFolderResolver;
@@ -30,7 +31,7 @@ final class FolderControllerTest extends TestCase {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($user);
 		$folders = new FolderService(new UserFolderResolver($root));
-		return new FolderController(Application::APP_ID, $this->createStub(IRequest::class), $session, $folders);
+		return new FolderController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $folders);
 	}
 
 	// spec: LISTING-003.1
