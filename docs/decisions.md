@@ -1282,3 +1282,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   hashes in the same pool, its saves wait on a `429` like the run's (ADR 0026), with the tile
   order kept and hashing still behind the tile loads. The cull's `429` belongs to b, as the cull
   page's save path changes only there.
+- 2026-11-15: The cull hashes in the worker pool one picture at a time, not as many as the pool
+  holds (review R12 b): one hash beside the six tile loads keeps the tiles first without coupling
+  the hashing to the grid's load queue; the main thread no longer draws previews. A save the
+  server limits waits silently in the cull: the strip shows the hash progress, not the save.

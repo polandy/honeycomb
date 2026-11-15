@@ -1,7 +1,7 @@
 # 0026 – Rate limit of the visual hash saves
 
 - Status: accepted
-- Date: 2026-11-14
+- Date: 2026-11-14, cull amended 2026-11-15
 - Extends: [0024](0024-visual-hashes-stored-on-the-server.md), [0025](0025-missing-visual-hashes-by-path-cursor.md)
 
 ## Context
@@ -39,8 +39,10 @@ The options:
   waits through an injected timer seam, and sends the same batch again, as often as it takes;
   the workers go on hashing meanwhile and no other save is sent. *Pause* takes effect once that
   save is through.
-- **Cull:** a limited save is a failed save (SERIES-003.13): logged, the hashes count for the
-  visit and are computed again on the next one. It sends far too few saves to reach the limit.
+- **Cull:** a limited save waits and is sent again like the similarity page's, through the same
+  helper (`sendLimited`), while the cull keeps hashing; no other save is sent meanwhile
+  (SERIES-003.27, amended 2026-11-15: before, a limited save was a failed save, and its hashes
+  were computed again on the next visit).
 
 ## Consequences
 

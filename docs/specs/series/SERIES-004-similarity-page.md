@@ -171,3 +171,4 @@ any device finds them stored and links series at once.
 | 2026-11-14 | Written with the similarity page (owner decision, ADR 0025) |
 | 2026-11-14 | A save the server limits waits and is sent again (ADR 0026) |
 | 2026-11-15 | Workers start when needed; a crashed worker fails one picture (review R12 a) |
+| 2026-11-15 | The cull hashes in the same workers (review R12 b, SERIES-003.26) |

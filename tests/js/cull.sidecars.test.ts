@@ -50,6 +50,7 @@ function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
 		saveVisualHashes: async () => undefined,
+		wait: async () => {},
 		warmPreviews: async () => undefined,
 		lookupDecisions: async () => options.stored ?? [],
 		lookupSeries: NO_SERIES,

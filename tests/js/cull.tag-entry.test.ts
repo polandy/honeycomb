@@ -19,6 +19,7 @@ async function taggedCull(stored: StoredTags[], tagList: () => Promise<Tag[]> = 
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
 		saveVisualHashes: async () => undefined,
+		wait: async () => {},
 		warmPreviews: async () => undefined,
 		lookupDecisions: async () => [],
 		saveDecisions: async () => undefined,
