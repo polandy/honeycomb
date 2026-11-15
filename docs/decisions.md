@@ -1150,3 +1150,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   pending; its members are still hashed for the similarity page (#185 PR 2).
 - 2026-11-14: The series lookup lives in `src/series-api.ts`, because `api.ts` is at the
   300-line limit; it shares `API` and `isRecord` with `api.ts` (#185 PR 2).
+- 2026-11-15: The grid screen reads the cull from a context App provides (ADR 0028, review R8a):
+  one `CullContext` holding the cull and the selection whole and each flow as a `Pick` of what a
+  screen uses, so a test fakes a flow in a line; the toolbar's 22 props become the groups
+  `folders`, `view`, `progress`, `selection` and `tasks`; its events stay as they were.

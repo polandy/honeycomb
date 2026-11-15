@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { mount } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { useCullContext } from '../../src/cull-context.ts'
 import { fakeCullContext, mountInCullContext } from './cull-context-fake.ts'
@@ -23,8 +23,6 @@ describe('the cull context', () => {
 	})
 
 	it('fails loud when a screen is mounted without it', () => {
-		vi.spyOn(console, 'warn').mockImplementation(() => undefined)
-
 		expect(() => mount(Screen)).toThrow('The cull context is missing')
 	})
 })

@@ -81,10 +81,11 @@ describe('GridScreen', () => {
 	})
 
 	it('decides, tags, moves and deletes the selection from the selection bar', async () => {
-		const { wrapper, context, calls } = await mountScreen(({ context }) => context.selection.setSelecting(true))
-		const chosen = context.cull.view.value.slice(0, 1)
-		context.selection.select({ ids: new Set([chosen[0]!.key]), anchor: chosen[0]!.key })
-		await flushPromises()
+		const { wrapper, context, calls } = await mountScreen(({ context }) => {
+			context.selection.setSelecting(true)
+			context.selection.selectAll()
+		})
+		const chosen = context.cull.view.value
 		const bar = wrapper.findComponent(SelectionBar)
 
 		bar.vm.$emit('decide', { kind: 'flag', flag: 'picked' })
@@ -95,14 +96,17 @@ describe('GridScreen', () => {
 		expect(calls).toEqual([['decide', { kind: 'flag', flag: 'picked' }, chosen], ['tag', chosen], ['move', chosen], ['summarise', chosen]])
 	})
 
-	it('shows the empty state when the filters hide every photo, and clears them from it', async () => {
+	it.each([
+		['clearFilters', DEFAULT_FILTERS.flags],
+		['showAll', new Set()],
+	])('shows the empty state while the flag filter hides every photo, and the photos again after %s', async (event, flags) => {
 		const { wrapper, context } = await mountScreen(({ context }) => context.cull.setFlags(new Set(['rejected'])))
 
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
-		wrapper.findComponent(CullEmptyState).vm.$emit('showAll')
+		wrapper.findComponent(CullEmptyState).vm.$emit(event)
 		await flushPromises()
 
-		expect(context.cull.filters.value).toEqual(DEFAULT_FILTERS)
+		expect(context.cull.filters.value.flags).toEqual(flags)
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(true)
 	})
 

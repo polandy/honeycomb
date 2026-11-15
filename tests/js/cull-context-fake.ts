@@ -65,7 +65,7 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 }
 
 /** Mounts the screen under a parent that provides the context, as App provides it to its screens. */
-export function mountInCullContext(screen: Component, context: CullContext, stubs: Record<string, unknown> = {}) {
+export function mountInCullContext(screen: Component, context: CullContext, stubs: Record<string, Component | boolean> = {}) {
 	const Parent = defineComponent({
 		setup() {
 			provideCullContext(context)
