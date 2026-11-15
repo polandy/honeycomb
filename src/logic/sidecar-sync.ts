@@ -238,13 +238,13 @@ function editorOf(edit: SidecarEdit, pair: boolean, sources: readonly XmpPacket[
 }
 
 /** A sidecar of the picture as the reading rules take it. */
-function sidecarBytes(picture: Picture<ListingEntry>, path: string, { mtime, bytes }: { readonly mtime: number, readonly bytes: Uint8Array }): SidecarBytes {
+export function sidecarBytes(picture: Picture<ListingEntry>, path: string, { mtime, bytes }: { readonly mtime: number, readonly bytes: Uint8Array }): SidecarBytes {
 	const rawName = picture.raw === null ? null : parseFileName(picture.raw.path).name
 	return { name: path, mtime, ofRaw: rawName !== null && isMemberSidecar(parseFileName(path), rawName), bytes }
 }
 
 /** The JPEG's embedded XMP as the reading rules take it: the JPEG's own sidecar, at the JPEG's modification time. */
-function embeddedBytes(jpeg: ListingEntry, bytes: Uint8Array): SidecarBytes {
+export function embeddedBytes(jpeg: ListingEntry, bytes: Uint8Array): SidecarBytes {
 	return { name: jpeg.path, mtime: jpeg.mtime, ofRaw: false, bytes }
 }
 
@@ -254,6 +254,6 @@ function sameBytes(left: Uint8Array, right: Uint8Array): boolean {
 }
 
 /** Whether the picture is a pair. */
-function isPair(picture: Picture<ListingEntry>): boolean {
+export function isPair(picture: Picture<ListingEntry>): boolean {
 	return picture.raw !== null && picture.rendered !== null
 }

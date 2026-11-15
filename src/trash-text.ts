@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { SkipReason } from './logic/fresh-check.ts'
 import type { TrashFailure, TrashReport } from './logic/trash-report.ts'
 
 import { n, t } from '@nextcloud/l10n'
@@ -65,4 +66,29 @@ export function removedRawsText(report: TrashReport): string {
 	return report.failed.length > 0
 		? partlyText(report)
 		: t('honeycomb', 'Removed the RAWs of {photos} · {files} · {size} freed to the Nextcloud trash bin', movedParts(report), undefined, PLAIN_TEXT)
+}
+
+/** "%n photo skipped", the toast's part on the photos a delete by decision skipped. */
+export function skippedText(count: number): string {
+	return n('honeycomb', '{count} photo skipped', '{count} photos skipped', count, { count: formatNumber(count) }, PLAIN_TEXT)
+}
+
+/** Why a delete by decision skipped a photo, in the user's words (DELETE-002.16). */
+export function skipReason(reason: SkipReason): string {
+	switch (reason) {
+		case 'changed':
+			return t('honeycomb', 'Its files changed since the folder was listed; reload the folder')
+		case 'unread':
+			return t('honeycomb', 'A sidecar could not be read')
+		case 'refused':
+			return t('honeycomb', 'A sidecar is not valid XMP')
+		case 'disagrees':
+			return t('honeycomb', 'Its sidecars disagree')
+		case 'notRejected':
+			return t('honeycomb', 'Its sidecars do not say rejected')
+		case 'notRemovable':
+			return t('honeycomb', 'Its sidecars now say Keep RAW or rejected')
+		default:
+			return t('honeycomb', 'The JPEG sidecar could not be written, so the RAW stays')
+	}
 }

@@ -6,7 +6,7 @@ import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { SidecarLookupAnswer } from '../../src/logic/sidecar-sync.ts'
 
 import { describe, expect, it } from 'vitest'
-import { freshCheck } from '../../src/fresh-check.ts'
+import { freshCheck, sidecarSaver } from '../../src/fresh-check.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../../src/logic/pairing.ts'
 import { listingEntry, pictureOf, picturesOf } from './logic/listing-entries.ts'
@@ -106,5 +106,36 @@ describe('freshCheck', () => {
 
 		expect(await freshCheck(seam, context().context)([], 'rejects')).toEqual({ passed: [], skipped: [] })
 		expect(calls).toEqual([])
+	})
+})
+
+describe('sidecarSaver', () => {
+	// spec: DELETE-003.9
+	it('writes the decision, then the tags, to the one sidecar and says whether both saved', async () => {
+		const picture = pictureOf(RAW, JPEG, RAW_SIDECAR)
+		const calls: unknown[] = []
+		const failure = { path: '/Trip/IMG_1.JPG.xmp', picture, reason: 'locked' as const }
+		const save = (failed: boolean) => sidecarSaver({
+			write: async (pictures, decisionOf, fields, paths) => {
+				calls.push(['write', pictures, decisionOf(picture), fields, paths])
+				return { written: 1, failed: [] }
+			},
+			writeTags: async (pictures, change, paths) => {
+				calls.push(['tags', pictures, change, paths])
+				return { written: 0, failed: failed ? [failure] : [] }
+			},
+		})
+		const decision = { ...UNDECIDED, rating: 4 }
+		const paths = new Map([[picture, new Set(['/Trip/IMG_1.JPG.xmp'])]])
+
+		expect(await save(false)(picture, '/Trip/IMG_1.JPG.xmp', decision, ['Places/Lisbon'])).toBe(true)
+		expect(calls).toEqual([
+			['write', [picture], decision, ['rating', 'colourLabel', 'flag', 'keepRaw'], paths],
+			['tags', [picture], { added: ['Places/Lisbon'], removed: [] }, paths],
+		])
+		expect(await save(true)(picture, '/Trip/IMG_1.JPG.xmp', decision, ['Places/Lisbon'])).toBe(false)
+		calls.length = 0
+		expect(await save(true)(picture, '/Trip/IMG_1.JPG.xmp', decision, [])).toBe(true)
+		expect(calls).toHaveLength(1)
 	})
 })

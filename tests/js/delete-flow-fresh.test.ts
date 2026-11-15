@@ -6,6 +6,7 @@ import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 
 import { describe, expect, it } from 'vitest'
+import { skipReason } from '../../src/trash-text.ts'
 import { allTrashed, flow, OTHER, PAIR } from './delete-fixtures.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 
@@ -33,7 +34,7 @@ describe('useDeleteFlow, deleting by decision', () => {
 		expect(sent).toEqual([[[{ fileId: 2, etag: 'etag-2' }, { fileId: 1, etag: 'etag-1' }, { fileId: 3, etag: 'etag-3' }]]])
 		expect(pictures.value).toHaveLength(2)
 		expect(deleting.dialog.value).toMatchObject({ kind: 'report', skipped: [{ picture: OTHER, reason: 'notRejected' }] })
-		expect(toasts).toEqual(['Moved 1 photo · 3 files · 3 kB freed to the Nextcloud trash bin · 1 photo skipped'])
+		expect(toasts).toEqual(['Moved 1 photo · 3 files · 3.1 kB freed to the Nextcloud trash bin · 1 photo skipped'])
 	})
 
 	// spec: DELETE-002.16
@@ -92,5 +93,20 @@ describe('useDeleteFlow, deleting by decision', () => {
 		expect(sent).toEqual([])
 		expect(deleting.dialog.value).toBeNull()
 		expect(toasts).toEqual(['Could not delete the photos; reload the folder to see what changed.'])
+	})
+})
+
+// spec: DELETE-002.16
+describe('skipReason', () => {
+	it.each([
+		['changed', 'Its files changed since the folder was listed; reload the folder'],
+		['unread', 'A sidecar could not be read'],
+		['refused', 'A sidecar is not valid XMP'],
+		['disagrees', 'Its sidecars disagree'],
+		['notRejected', 'Its sidecars do not say rejected'],
+		['notRemovable', 'Its sidecars now say Keep RAW or rejected'],
+		['jpegSidecar', 'The JPEG sidecar could not be written, so the RAW stays'],
+	] as const)('words %s', (reason, text) => {
+		expect(skipReason(reason)).toBe(text)
 	})
 })

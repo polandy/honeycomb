@@ -1347,3 +1347,17 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-15: The resume position and the visual hashes save through `saveQueue`; the resume
   position uses one key, so only the latest position is sent, as before.
 - 2026-11-15: The sidecar migration and its retry write at once; they are no step on a picture.
+- 2026-11-15: The fresh check before deleting (ADR 0032 PR 8) runs for the reviewed rejects and
+  *Remove RAWs* only; an explicit *Delete…* of chosen photos deletes them as chosen.
+- 2026-11-15: The fresh check agrees per flag: rejects needs every readable sidecar to say
+  rejected and at least one source; Remove RAWs needs none to say *Keep RAW* or rejected and
+  passes a pair with no sidecar.
+- 2026-11-15: Before a RAW goes, `IMG.JPG.xmp` is written only when the RAW's own sidecars hold a
+  decision or tags; a pair whose JPEG sidecar cannot be written is skipped.
+- 2026-11-15: A delete by decision trashes the files of the fresh listing, so sidecars written
+  since the folder was listed go to the trash bin with their photo.
+- 2026-11-15: A skipped photo is listed in the delete report with its reason, stays in the grid
+  with its old decision until the folder is reloaded, and is not retried; *Retry* stays off when
+  nothing failed. A failed listing or lookup aborts the delete with the generic message.
+- 2026-11-15: A reject stored only in the legacy decision table is skipped by the fresh check, as
+  no sidecar or embedded XMP says rejected.

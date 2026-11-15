@@ -131,8 +131,11 @@ describe('useDeleteFlow', () => {
 	// spec: DELETE-002.7
 	it('sends nothing without a summary or a report, or while a request runs', async () => {
 		let release = () => {}
+		let reached = () => {}
+		const trashing = new Promise<void>((resolve) => (reached = resolve))
 		const { deleting, sent } = flow((request) => new Promise((resolve) => {
 			release = () => resolve(request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'trashed' }))))
+			reached()
 		}))
 		await deleting.confirm()
 		await deleting.retry()
@@ -140,6 +143,7 @@ describe('useDeleteFlow', () => {
 		deleting.summarise([SINGLE!])
 		const first = deleting.confirm()
 		await deleting.confirm()
+		await trashing
 		release()
 		await first
 
