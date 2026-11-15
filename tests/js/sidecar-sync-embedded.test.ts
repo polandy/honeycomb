@@ -84,7 +84,7 @@ describe('useSidecarSync: the embedded XMP in the take-over', () => {
 
 		expect(decided).toHaveLength(1)
 		expect(taken).toEqual([])
-		expect(warn).toHaveBeenCalledWith('Could not look up the embedded XMP; its pictures take no tags over', expect.anything())
+		expect(warn).toHaveBeenCalledWith('Could not look up the embedded XMP; its pictures take no tags over and decide without it', expect.anything())
 		expect(warn).toHaveBeenCalledWith('Could not read the embedded XMP; the picture takes no tags over', { path: '/P/IMG_0001.JPG', reason: 'unreachable' })
 		warn.mockRestore()
 	})
