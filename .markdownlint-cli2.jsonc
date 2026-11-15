@@ -8,5 +8,5 @@
     "MD060": false
   },
   "globs": ["**/*.md"],
-  "ignores": ["node_modules/**", "vendor/**", "CHANGELOG.md", "LICENSE", "LICENSES/**"]
+  "ignores": ["node_modules/**", "vendor/**", "build/**", "CHANGELOG.md", "LICENSE", "LICENSES/**"]
 }
