@@ -175,7 +175,7 @@ describe('useCull: series edits', () => {
 
 	// spec: SERIES-005.7
 	it('merges the series the selection touches, naming every photo of the merged series', async () => {
-		const { cull } = editedCull({ lookupSeries: async () => ({ series: [{ id: 12, status: 'open', fileIds: [1, 2] }, { id: 13, status: 'open', fileIds: [3, 4] }].map((series) => ({ ...series, elsewhere: false })), keptOut: [] }) })
+		const { cull } = editedCull({ lookupSeries: async () => ({ series: [{ id: 12, status: 'open' as const, fileIds: [1, 2] }, { id: 13, status: 'open' as const, fileIds: [3, 4] }].map((series) => ({ ...series, elsewhere: false })), keptOut: [] }) })
 		await flushPromises()
 		const [A, , C] = cull.pictures.value
 

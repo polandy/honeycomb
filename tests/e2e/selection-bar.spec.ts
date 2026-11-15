@@ -14,7 +14,7 @@ const TABLET = { width: 744, height: 1133 }
 /** Controls whose centres lie closer than this share a row. */
 const ROW_TOLERANCE_PX = 12
 const FIRST_ROW = ['Move…', 'Delete…']
-const DECISIONS = [/^Colour label/, /^Keep RAW/, /^Tags$/]
+const DECISIONS = [/^Colour label/, /^Keep RAW/, /^Tags$/, /^Series…$/]
 
 test.use({ hasTouch: true })
 

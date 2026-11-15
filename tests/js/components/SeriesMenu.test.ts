@@ -33,7 +33,7 @@ function mountMenu(selected: readonly P[]) {
 		global: { stubs: { NcActions: ActionsStub } },
 	})
 	const buttons = () => wrapper.findAllComponents(NcActionButton)
-	const entries = () => buttons().map((button) => [plain(button.text()), button.props('disabled')])
+	const entries = () => buttons().map((button) => [plain(button.findAll('.action-button__longtext-wrapper > span').map((part) => part.text()).join(' ')), button.props('disabled')])
 	return { wrapper, buttons, entries }
 }
 

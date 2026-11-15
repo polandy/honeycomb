@@ -101,7 +101,7 @@ describe('seriesStep', () => {
 	it('keeps the edit, the names of the pictures it acts on and its rows', () => {
 		const change = { after: [{ fileId: 3, place: 'keptOut' as const }], before: [{ fileId: 3, place: 'loose' as const }] }
 
-		expect(seriesStep('remove', [JPEG], change)).toEqual({ kind: 'series', edit: 'remove', names: ['B'], ...change })
+		expect(seriesStep('remove', [JPEG], change, 1)).toEqual({ kind: 'series', edit: 'remove', names: ['B'], series: 1, ...change })
 	})
 })
 
@@ -120,7 +120,7 @@ describe('applyStep', () => {
 		applyStep(effects, tags, false)
 		applyStep(effects, decision, true)
 		applyStep(effects, pickRest, false)
-		applyStep(effects, seriesStep('dissolve', [JPEG], { after: [], before: [] }), true)
+		applyStep(effects, seriesStep('dissolve', [JPEG], { after: [], before: [] }, 1), true)
 
 		expect(calls).toEqual(['tags false', 'decision true', 'pickRest false', 'series true'])
 	})

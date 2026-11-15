@@ -16,7 +16,7 @@ const first: Series<P> = { key: 1, members: [A, B] }
 const second: Series<P> = { key: 3, members: [C, D] }
 const seriesOf = new Map<P, Series<P>>([[A, first], [B, first], [C, second], [D, second]])
 const NEW = { id: -1, status: 'open', elsewhere: false } as const
-const newIds = () => {
+function newIds() {
 	let last = 0
 	return () => --last
 }

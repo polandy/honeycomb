@@ -17,7 +17,7 @@ const [A, B, C, D, E] = picturesOf([
 	listingEntry(4, '/P/C.JPG'),
 	listingEntry(5, '/P/D.JPG'),
 	listingEntry(6, '/P/E.JPG'),
-]) as [Picture<ListingEntry>, Picture<ListingEntry>, Picture<ListingEntry>, Picture<ListingEntry>, Picture<ListingEntry>]
+]) as [Picture<ListingEntry>, Picture<ListingEntry>, Picture<ListingEntry>, Picture<ListingEntry>, Picture<ListingEntry>, Picture<ListingEntry>]
 
 const OPEN_12 = { id: 12, status: 'open', elsewhere: false } as const
 const DONE_12 = { id: 12, status: 'done', elsewhere: true } as const
@@ -30,7 +30,7 @@ const automatic: Series<Picture<ListingEntry>> = { key: 1, members: [A, B, C] }
 const stored = (info: typeof OPEN_12 | typeof DONE_12): Series<Picture<ListingEntry>> => ({ key: 1, members: [A, B, C], stored: info })
 const rowsOf = (entries: [number, StoredSeriesInfo | null][]): StoredRows => new Map(entries)
 /** Local ids for new series, -1 first, as the stored series hand them out. */
-const newIds = () => {
+function newIds() {
 	let last = 0
 	return () => --last
 }
@@ -53,7 +53,6 @@ describe('removeChange', () => {
 			before: [2, 1, 4, 3].map((fileId) => ({ fileId, place: 'loose' })),
 		})
 	})
-})
 
 	// spec: SERIES-005.11
 	it('keeps out photos of several series and stores each automatic series with its rest under its own id', () => {
@@ -111,7 +110,7 @@ describe('joinChange', () => {
 
 		const change = joinChange([stored(DONE_12)], [D], rows, newIds())
 
-		expect(change.after).toEqual([9, 1, 2, 3, 4, 5].map((fileId) => ({ fileId, place: open })))
+		expect(change.after).toEqual([2, 1, 3, 4, 9, 5].map((fileId) => ({ fileId, place: open })))
 		expect(change.before.at(-1)).toEqual({ fileId: 5, place: 'loose' })
 	})
 
@@ -126,7 +125,7 @@ describe('joinChange', () => {
 		const first: Series<Picture<ListingEntry>> = { key: 1, members: [A] }
 		const second: Series<Picture<ListingEntry>> = { key: 3, members: [B, C], stored: OPEN_13 }
 
-		expect(joinChange([first, second], [D], rows, newIds()).after).toEqual([2, 1, 3, 9, 4, 5].map((fileId) => ({ fileId, place: OPEN_13 })))
+		expect(joinChange([first, second], [D], rows, newIds()).after).toEqual([2, 1, 3, 4, 9, 5].map((fileId) => ({ fileId, place: OPEN_13 })))
 	})
 
 	// spec: SERIES-005.9
