@@ -4,19 +4,25 @@
 -->
 <script setup lang="ts">
 import type { CommonDecision, DecisionIntent } from '../logic/decision-change.ts'
+import type { ListingEntry } from '../logic/listing.ts'
+import type { Picture } from '../logic/pairing.ts'
+import type { SelectionEdit, SeriesOffer } from '../logic/series-menu.ts'
 
 import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import ActionBar from './ActionBar.vue'
+import SeriesMenu from './SeriesMenu.vue'
 
 const props = defineProps<{
 	/** What the selected pictures share. */
 	common: CommonDecision
 	/** How many pictures are selected. */
 	selected: number
+	/** What the selection touches, for the *Series…* menu. */
+	seriesOffer: SeriesOffer<Picture<ListingEntry>>
 }>()
 
-const emit = defineEmits<{ decide: [intent: DecisionIntent], tag: [], move: [], delete: [] }>()
+const emit = defineEmits<{ decide: [intent: DecisionIntent], tag: [], move: [], delete: [], series: [edit: SelectionEdit] }>()
 </script>
 
 <template>
@@ -25,6 +31,9 @@ const emit = defineEmits<{ decide: [intent: DecisionIntent], tag: [], move: [], 
 		:disabled="props.selected === 0"
 		@decide="emit('decide', $event)"
 		@tag="emit('tag')">
+		<template #tools>
+			<SeriesMenu :offer="props.seriesOffer" @edit="emit('series', $event)" />
+		</template>
 		<template #end>
 			<NcButton :disabled="props.selected === 0" @click="emit('move')">
 				{{ t('honeycomb', 'Move…') }}

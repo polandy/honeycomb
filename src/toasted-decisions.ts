@@ -4,6 +4,7 @@ import type { CullStep } from './cull.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
+import type { SelectionEdit } from './logic/series-menu.ts'
 import type { Series } from './logic/series.ts'
 import type { TagChange } from './logic/tag.ts'
 import type { ToastAction } from './toast.ts'
@@ -18,6 +19,7 @@ interface Decisions {
 	tag: (change: TagChange, chosen: readonly Picture<ListingEntry>[]) => CullStep | null
 	removeFromSeries: (series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>) => CullStep | null
 	dissolveSeries: (series: Series<Picture<ListingEntry>>) => CullStep | null
+	editSelection: (edit: SelectionEdit, chosen: readonly Picture<ListingEntry>[]) => CullStep | null
 	undo: () => CullStep | null
 	redo: () => CullStep | null
 }
@@ -49,6 +51,11 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 		toastChange(cull.dissolveSeries(series))
 	}
 
+	/** Edits series with the chosen pictures and says what changed, with Undo (SERIES-005.4–.7, .11). */
+	function editSelection(edit: SelectionEdit, chosen: readonly Picture<ListingEntry>[]) {
+		toastChange(cull.editSelection(edit, chosen))
+	}
+
 	/** Toasts a recorded step with Undo and the offer, if any. */
 	function toastChange(entry: CullStep | null, offer: () => ToastAction | null = () => null) {
 		if (entry !== null) {
@@ -72,5 +79,5 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 		}
 	}
 
-	return { decide, pickRest, tag, removeFromSeries, dissolveSeries, undo, redo }
+	return { decide, pickRest, tag, removeFromSeries, dissolveSeries, editSelection, undo, redo }
 }

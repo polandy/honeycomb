@@ -16,7 +16,7 @@ export interface StepChanges {
 	readonly decision: { readonly change: DecisionChange }
 	readonly pickRest: { readonly picked: string }
 	readonly tags: { readonly change: TagChange }
-	readonly series: { readonly edit: SeriesEdit }
+	readonly series: { readonly edit: SeriesEdit, readonly series: number }
 }
 
 /** The kinds of undo step. */
@@ -93,9 +93,9 @@ export function tagStep<P extends { baseName: string }>(pictures: readonly P[], 
 	return altered.length === 0 ? null : { kind: 'tags', change, names: altered.map((picture) => picture.baseName), pictures: altered }
 }
 
-/** The undo step of a series edit to the pictures. */
-export function seriesStep(edit: SeriesEdit, pictures: readonly { readonly baseName: string }[], change: SeriesChange): SeriesStep {
-	return { kind: 'series', edit, names: pictures.map((picture) => picture.baseName), ...change }
+/** The undo step of a series edit to the pictures, in as many series. */
+export function seriesStep(edit: SeriesEdit, pictures: readonly { readonly baseName: string }[], change: SeriesChange, series: number): SeriesStep {
+	return { kind: 'series', edit, names: pictures.map((picture) => picture.baseName), series, ...change }
 }
 
 /** The history with the entry added last, keeping the most recent UNDO_LIMIT steps. */
