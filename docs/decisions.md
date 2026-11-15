@@ -1305,7 +1305,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   closes on any Escape while it tops the focus trap stack and a menu adds no trap (#185 PR 3).
 - 2026-11-15: The grid's *Series…* button sits in the decisions row after *Tags*, not in the
   phone's first row, which GRID-003.14 keeps to the flags, *Move* and *Delete*; the bar's one-row
-  threshold rises from 960 px to 1040 px to make room for it (#185 PR 4).
+  threshold rises from 960 px to 1040 px to make room for it. On an iPad mini in portrait it may
+  wrap to a row of its own rather than shrink to an icon, so its name stays readable (#185 PR 4).
 - 2026-11-15: The *Series…* menu always shows three entries; *Merge* takes *Add*'s place when the
   selection touches two series or more, and an entry that does not fit is disabled with its
   reason, as the mockup shows (#185 PR 4).

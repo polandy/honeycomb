@@ -84,6 +84,15 @@ describe('SeriesMenu', () => {
 		expect(wrapper.emitted('edit')).toEqual([['merge'], ['remove']])
 	})
 
+	// spec: SERIES-005.4
+	it('emits nothing for an entry that does not fit', async () => {
+		const { wrapper, buttons } = mountMenu([F])
+
+		await buttons()[0]!.find('button').trigger('click')
+
+		expect(wrapper.emitted('edit')).toBeUndefined()
+	})
+
 	it('is disabled without a selection', () => {
 		const { wrapper } = mountMenu([])
 

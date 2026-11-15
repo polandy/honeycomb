@@ -134,8 +134,9 @@ touch as well as with a mouse or keyboard.
 
 - **Given** selection mode on a tablet or a phone in portrait
 - **When** the action bar renders
-- **Then** the flags, *Move* and *Delete* share the first row; rating, colour label, *Keep RAW*,
-  *Tags* and *Series…* follow in the second row on a tablet, below the first on a phone
+- **Then** the flags, *Move* and *Delete* share the first row; rating, colour label, *Keep RAW*
+  and *Tags* follow in the second row on a tablet, below the first on a phone; *Series…* follows
+  them, in their row where it fits, else in the next
 
 ### GRID-003.15 – One flag button order
 
@@ -156,4 +157,4 @@ Selection keys in detail (KEYS-001), deleting a selection (DELETE-002).
 | 2026-11-12 | Drag selection after a long-press, with auto-scroll at the edges (.11–.13) |
 | 2026-11-13 | Flags, *Move* and *Delete* first when the action bar wraps, UX L6 (.14) |
 | 2026-11-14 | One flag button order *Pick*, *Unflag*, *Reject* (.15, owner decision 2) |
-| 2026-11-15 | *Series…* joins the decisions after *Tags*; one row from about 1040 px (.14, #185 PR 4) |
+| 2026-11-15 | *Series…* follows the decisions after *Tags*, wrapping on a narrow tablet; one row from about 1040 px (.14, #185 PR 4) |
