@@ -1271,3 +1271,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   *Existing and new sidecars*, as the inventory looks up every file id with a row.
 - 2026-11-15: The migration acknowledges the member ids of the saved pictures in one request,
   sorted, and sends none when no picture was saved.
+- 2026-11-15: The loupe reads the cull from the context (ADR 0028, review R8b) through a new
+  screen root `LoupeScreen`, not by `PhotoLoupe` injecting it: `PhotoLoupe` keeps its props, so
+  its eight test files mount it unchanged, and only the screen root injects, as for the grid.

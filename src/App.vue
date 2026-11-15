@@ -18,8 +18,8 @@ import CullDialogs from './components/CullDialogs.vue'
 import FolderPicker from './components/FolderPicker.vue'
 import GridScreen from './components/GridScreen.vue'
 import GridSkeleton from './components/GridSkeleton.vue'
+import LoupeScreen from './components/LoupeScreen.vue'
 import NoFolderState from './components/NoFolderState.vue'
-import PhotoLoupe from './components/PhotoLoupe.vue'
 import SeriesCompareFlow from './components/SeriesCompareFlow.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutSheet from './components/ShortcutSheet.vue'
@@ -60,8 +60,9 @@ const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveV
 const { folderSet, pictures, folders, view, progress, filtersOpen, pickerOpen, tileSize } = cull
 const gridScreen = useTemplateRef<InstanceType<typeof GridScreen>>('gridScreen')
 const grid = computed(() => gridScreen.value?.grid ?? null)
-const { loupe, shown: loupeShown, picture: shownInLoupe, page: pageLoupe, land: landInLoupe, close: closeLoupe } = useLoupeOpening((index) => grid.value?.reveal(index), cull.passes)
-const loupeView = useTemplateRef<InstanceType<typeof PhotoLoupe>>('loupeView')
+const loupeOpening = useLoupeOpening((index) => grid.value?.reveal(index), cull.passes)
+const { loupe, picture: shownInLoupe, land: landInLoupe } = loupeOpening
+const loupeScreen = useTemplateRef<InstanceType<typeof LoupeScreen>>('loupeScreen')
 const headerShown = ref(true)
 /** Opens the loupe on the shown picture at the index. */
 const openLoupe = (index: number) => (loupe.value = { pictures: view.value, index })
@@ -97,7 +98,7 @@ watch(pickerOpen, (open) => open && recent.refresh())
 
 const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => gridScreen.value?.filterBar?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
 
-provideCullContext({ cull, selection, decide, deleting, moving, resume, seriesCompare, sidecars: sidecarFlow, legacy, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true) })
+provideCullContext({ cull, selection, decide, deleting, moving, resume, seriesCompare, sidecars: sidecarFlow, legacy, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage })
 
 /** Opens the confirmed folder set and offers its resume position. */
 function openFolderSet(...opened: Parameters<typeof cull.open>) {
@@ -116,7 +117,7 @@ useHotkeys(() => {
 	if (seriesCompare.open.value) {
 		return { undo, redo, shortcuts: toggleShortcuts, ...(seriesFlow.value?.hotkeys() ?? seriesCompare.hotkeys) }
 	}
-	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: () => deleting.summariseShown(selected.value, () => grid.value?.focusedIndex() ?? 0), move: () => moving.openShown(selected.value, () => grid.value?.focusedIndex() ?? 0), ...(loupe.value === null ? { ...gridKeys, compare: seriesCompare.start } : loupeView.value?.hotkeys) }
+	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: () => deleting.summariseShown(selected.value, () => grid.value?.focusedIndex() ?? 0), move: () => moving.openShown(selected.value, () => grid.value?.focusedIndex() ?? 0), ...(loupe.value === null ? { ...gridKeys, compare: seriesCompare.start } : loupeScreen.value?.loupe?.hotkeys) }
 }, () => settings.value.viKeys)
 </script>
 
@@ -167,29 +168,7 @@ useHotkeys(() => {
 				@showGestureGuide="viewState.showGestureGuide"
 				@clearCache="clearCacheWithToast(props.clearCache, toast.show)" />
 			<Teleport to="body">
-				<PhotoLoupe
-					v-if="loupeShown !== null && folderSet !== null"
-					ref="loupeView"
-					:index="loupeShown.index"
-					:pictures="loupeShown.pictures"
-					:folderSet="folderSet"
-					:decisionOf="cull.decisionOf"
-					:seriesOf="cull.seriesOf.value"
-					:tagsOf="cull.tags.tagsOf"
-					:sidecarWriting="cull.sidecarWriting"
-					:storage="props.storage"
-					:viewState="viewState"
-					:settings="settings"
-					@update:index="pageLoupe"
-					@updateSettings="updateSettings"
-					@decide="(intent, picture) => decide(intent, [picture], () => restOffer(intent, picture))"
-					@toast="toast.show($event.message, $event.action)"
-					@allDecided="deleting.allDecided"
-					@move="moving.openShown([], () => 0)"
-					@tag="tagEntry.open([$event])"
-					@compareSeries="(series, picture) => seriesCompare.startOn(series, picture, landInLoupe)"
-					@pickRest="(series, picture) => seriesCompare.pickRestAndLand(series, picture, landInLoupe)"
-					@close="closeLoupe" />
+				<LoupeScreen ref="loupeScreen" />
 				<TagEntry
 					v-if="tagEntry.targets.value !== null"
 					:targets="tagEntry.targets.value.map(cull.tags.tagsOf)"
