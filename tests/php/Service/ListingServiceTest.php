@@ -54,6 +54,16 @@ final class ListingServiceTest extends TestCase {
 		$this->assertSame([['path' => '/Photos', 'shared' => false, 'permissions' => 31, 'versions' => true]], $listing->jsonSerialize()['folders']);
 	}
 
+	// spec: XMP-008.4
+	public function testNamesTheListedFolderByItsFileId(): void {
+		$folder = $this->folder('/Photos', fileId: 42);
+		$folder->method('getDirectoryListing')->willReturn([]);
+
+		$listing = $this->service($this->rootWith(['/Photos' => $folder]))->list($this->user(), 'Photos', false);
+
+		$this->assertSame(42, $listing->jsonSerialize()['fileId']);
+	}
+
 	// spec: LISTING-001.13
 	public function testListsTheRawFilesNextcloudDoesNotTypeByName(): void {
 		$folder = $this->folder('/Photos');

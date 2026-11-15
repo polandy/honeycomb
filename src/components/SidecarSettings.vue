@@ -6,14 +6,16 @@
 import type { Settings, SidecarWrite } from '../logic/settings.ts'
 
 import { t } from '@nextcloud/l10n'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
-import ConfirmDialog from './ConfirmDialog.vue'
+import WriteOnDialog from './WriteOnDialog.vue'
 import { asksBeforeSidecarWrite } from '../logic/settings.ts'
 
 const props = defineProps<{
 	settings: Settings
+	/** Whether the Versions app is enabled; On needs it (SETTINGS-001.26). */
+	versionsApp: boolean
 }>()
 
 const emit = defineEmits<{
@@ -21,33 +23,38 @@ const emit = defineEmits<{
 	update: [patch: Partial<Settings>]
 }>()
 
-const CHOICES: readonly { mode: SidecarWrite, label: string, description: string }[] = [
-	{ mode: 'off', label: t('honeycomb', 'Off'), description: t('honeycomb', 'No file next to your photos is changed.') },
-	{ mode: 'existing', label: t('honeycomb', 'Only existing sidecars'), description: t('honeycomb', 'Sidecars another program already wrote get your decisions; no new file is created.') },
-	{ mode: 'existing-and-new', label: t('honeycomb', 'Existing and new sidecars'), description: t('honeycomb', 'Each file without a sidecar also gets a new one.') },
-]
+const versionsText = t('honeycomb', 'On needs the Versions app, so that every write can be undone; ask your administrator to enable it.')
+const CHOICES = computed<readonly { mode: SidecarWrite, label: string, description: string, disabled: boolean }[]>(() => [
+	{ mode: 'off', label: t('honeycomb', 'Off'), description: t('honeycomb', 'No file next to your photos is changed, and deciding asks to turn writing On first.'), disabled: false },
+	{ mode: 'on', label: t('honeycomb', 'On'), description: props.versionsApp ? t('honeycomb', 'Each decision goes into the sidecars of the photo; a file without a sidecar gets a new one.') : versionsText, disabled: !props.versionsApp },
+])
 
-/** The choice waiting for the opt-in dialog's answer. */
-const asking = ref<SidecarWrite | null>(null)
-/** The checked choice: the one asked about while the dialog is open, so a cancel checks the stored one again. */
-const checked = computed(() => asking.value ?? props.settings.sidecarWrite)
+/** Whether the stored *Only existing sidecars* was read as Off; kept for this view while the hint is cleared (SETTINGS-001.26). */
+const hinted = props.settings.sidecarExistingHint
+onMounted(() => {
+	if (hinted) {
+		emit('update', { sidecarExistingHint: false })
+	}
+})
 
-/** Applies the choice, or asks first when it leaves off. */
+/** Whether the opt-in dialog is open, asking about On. */
+const asking = ref(false)
+/** The checked choice: On while the dialog asks about it, so a cancel checks the stored one again. */
+const checked = computed<SidecarWrite>(() => (asking.value ? 'on' : props.settings.sidecarWrite))
+
+/** Applies the choice, or asks first when it turns On. */
 function choose(mode: SidecarWrite) {
 	if (asksBeforeSidecarWrite(props.settings.sidecarWrite, mode)) {
-		asking.value = mode
+		asking.value = true
 		return
 	}
 	emit('update', { sidecarWrite: mode })
 }
 
-/** Applies the choice the dialog asked about. */
+/** Turns On, as the dialog confirmed. */
 function confirm() {
-	const mode = asking.value
-	asking.value = null
-	if (mode !== null) {
-		emit('update', { sidecarWrite: mode })
-	}
+	asking.value = false
+	emit('update', { sidecarWrite: 'on' })
 }
 </script>
 
@@ -55,6 +62,7 @@ function confirm() {
 	<p class="sidecar-settings__hint settings-text">
 		{{ t('honeycomb', 'Your decisions always stay in honeycomb. Choose whether they also go into the XMP sidecars next to your photos, where digiKam, darktable and Lightroom read them.') }}
 	</p>
+	<NcNoteCard v-if="hinted" type="info" :text="t('honeycomb', 'Only existing sidecars is gone; writing is Off until you turn it On.')" />
 	<fieldset class="sidecar-settings__choices" :aria-label="t('honeycomb', 'Write decisions to XMP sidecars')">
 		<NcCheckboxRadioSwitch
 			v-for="choice in CHOICES"
@@ -64,28 +72,18 @@ function confirm() {
 			:value="choice.mode"
 			:modelValue="checked"
 			:description="choice.description"
+			:disabled="choice.disabled"
 			@update:modelValue="choose(choice.mode)">
 			{{ choice.label }}
 		</NcCheckboxRadioSwitch>
 	</fieldset>
-	<ConfirmDialog
-		v-if="asking !== null"
-		:title="t('honeycomb', 'Write decisions to XMP sidecars?')"
-		:confirmLabel="t('honeycomb', 'Write to sidecars')"
-		cancel
-		@cancel="asking = null"
-		@confirm="confirm">
-		<p class="sidecar-settings__intro">
-			{{ t('honeycomb', 'From now on every rating, flag, colour label, Keep RAW and tag you set is written to the XMP sidecars of the photo, so digiKam, darktable and Lightroom see it.') }}
-			<template v-if="asking === 'existing-and-new'">
-				{{ t('honeycomb', 'A file without a sidecar gets a new one, such as {name}.', { name: 'IMG_0001.NEF.xmp' }) }}
-			</template>
-		</p>
-		<NcNoteCard type="warning" :text="t('honeycomb', 'honeycomb keeps what other programs stored in a sidecar, but they may notice that it changed. Each write is a new version of the file and is synced to your devices.')" />
-		<p class="sidecar-settings__hint">
-			{{ t('honeycomb', 'In a shared folder honeycomb writes only when you ask, from the ⋯ menu.') }}
-		</p>
-	</ConfirmDialog>
+	<WriteOnDialog
+		v-if="asking"
+		turnsOn
+		:sharedNames="[]"
+		:versionsApp="props.versionsApp"
+		@cancel="asking = false"
+		@confirm="confirm" />
 </template>
 
 <style scoped src="./settings-text.css" />
@@ -98,9 +96,5 @@ function confirm() {
 .sidecar-settings__choices {
 	border: 0;
 	padding: 0;
-}
-
-.sidecar-settings__intro {
-	margin-top: 0;
 }
 </style>

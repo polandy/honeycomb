@@ -13,7 +13,7 @@ import { logger } from './logger.ts'
 import { DECISION_FIELDS } from './logic/decision.ts'
 import { embeddedXmpSource } from './logic/embedded-xmp.ts'
 import { failureOf, passOf, retryStep, stepResult } from './logic/sidecar-pass.ts'
-import { applySaves, embeddedLookups, existingOnly, planSaves, takeOverDecisions, takeOverLookups, writeLookups } from './logic/sidecar-sync.ts'
+import { applySaves, embeddedLookups, planSaves, takeOverDecisions, takeOverLookups, writeLookups } from './logic/sidecar-sync.ts'
 import { takeOverTags } from './logic/sidecar-tags.ts'
 
 /** The sidecar endpoints (ADR 0017) and the embedded XMP endpoint (ADR 0023). */
@@ -35,8 +35,8 @@ interface Waiting {
 	readonly reject: (error: unknown) => void
 }
 
-/** Takes decisions and tags over from the sidecars and writes them to the sidecars, one pass after another, creating missing ones while `createsNew` says so (XMP-003, TAGS-002). */
-export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (failed: SidecarFailure[]) => void, createsNew: () => boolean) {
+/** Takes decisions and tags over from the sidecars and writes them to the sidecars, one pass after another, creating missing ones (XMP-003, TAGS-002). */
+export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (failed: SidecarFailure[]) => void) {
 	let known = new Map<string, KnownSidecar>()
 	let waiting: Waiting[] = []
 	let passing = false
@@ -138,7 +138,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		const time = now()
 		const planned = pictures.map((picture) => planSaves(picture, editOf(picture), known, answers, time, paths?.get(picture), embedded))
 		const saves = planned.flatMap(({ saves }) => saves)
-		const saved = await save(createsNew() ? saves : existingOnly(saves))
+		const saved = await save(saves)
 		return { failed: [...planned.flatMap(({ failed }) => failed), ...saved.failed], changed: saved.changed }
 	}
 

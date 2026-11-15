@@ -38,7 +38,7 @@ describe('LoupeScreen', () => {
 			decisionOf: context.cull.decisionOf,
 			seriesOf: context.cull.seriesOf.value,
 			tagsOf: context.cull.tags.tagsOf,
-			sidecarWriting: context.cull.sidecarWriting,
+			writabilityOf: context.cull.writabilityOf,
 			storage: context.storage,
 			viewState: context.viewState,
 			settings: context.settings.value,

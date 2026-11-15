@@ -14,7 +14,7 @@ import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { useLoupeOpening } from '../../src/loupe-opening.ts'
 import { useSelectionMode } from '../../src/selection-mode.ts'
 import { useSeriesCompare } from '../../src/series-compare.ts'
-import { ENTRIES, fakeStorage, fakeViewState, NO_LEGACY, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
+import { ENTRIES, fakeStorage, fakeViewState, NO_LEGACY, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET, WRITING_ON } from './app-cull.ts'
 
 /** One call of a context action: its name and arguments. */
 export type ContextCall = [name: string, ...args: unknown[]]
@@ -47,8 +47,8 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,
-	}, fakeStorage(), () => DEFAULT_SETTINGS, NO_SIDECARS)
-	cull.open(SET, entries, [])
+	}, fakeStorage(), () => WRITING_ON, NO_SIDECARS, () => undefined)
+	cull.open(SET, entries)
 	await flushPromises()
 	const opening = useLoupeOpening(async (index) => record('reveal')(index), () => true)
 	const flow = useSeriesCompare<Picture<ListingEntry>>({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: record('compareDecide'), pickRest: record('comparePickRest'), removeFromSeries: record('compareRemove'), dissolve: record('compareDissolve'), everySeries: () => cull.everySeries.value, merge: record('compareMerge'), settings: () => DEFAULT_SETTINGS, updateSettings: record('updateSettings'), toast: (shown) => record('toast')(shown.message, shown.action), holdHashes: () => undefined })

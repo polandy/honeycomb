@@ -7,8 +7,7 @@ import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
-import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
+import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET, WRITING_ON } from './app-cull.ts'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -29,8 +28,8 @@ async function waitingCull() {
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,
-	}, fakeStorage(), () => DEFAULT_SETTINGS, NO_SIDECARS)
-	cull.open(SET, ENTRIES, [])
+	}, fakeStorage(), () => WRITING_ON, NO_SIDECARS, () => undefined)
+	cull.open(SET, ENTRIES)
 	await flushPromises()
 	return { cull, saved, settle, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
 }

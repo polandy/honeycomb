@@ -7,5 +7,6 @@ declare(strict_types=1);
 
 \OCP\Util::addScript('honeycomb', 'honeycomb-main');
 
+/** @var array{versionsApp: bool} $_ */
 ?>
-<div id="honeycomb"></div>
+<div id="honeycomb" data-versions-app="<?php echo $_['versionsApp'] ? 'true' : 'false'; ?>"></div>

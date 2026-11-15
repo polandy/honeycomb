@@ -4,7 +4,7 @@
 import type { Decision } from '../../../src/logic/decision.ts'
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
-import type { SidecarWriting } from '../../../src/logic/settings.ts'
+import type { Writability } from '../../../src/logic/writability.ts'
 
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
@@ -60,7 +60,7 @@ describe('PanelDivider', () => {
 })
 
 describe('LoupeInfo', () => {
-	const mountInfo = (picture: Picture<ListingEntry>, decision: Decision = UNDECIDED, tagged: { tags?: string[], sidecarWriting?: SidecarWriting } = {}) => mount(LoupeInfo, {
+	const mountInfo = (picture: Picture<ListingEntry>, decision: Decision = UNDECIDED, tagged: { tags?: string[], writability?: Writability } = {}) => mount(LoupeInfo, {
 		props: { picture, folderSet: SET, decision, ...tagged },
 	})
 
@@ -124,24 +124,24 @@ describe('LoupeInfo', () => {
 			listingEntry(4, '/P/IMG_1.xmp', { mime: 'application/octet-stream' }),
 			listingEntry(5, '/P/IMG_1_01.CR3.xmp', { mime: 'application/octet-stream' }),
 		)
-		const wrapper = mountInfo(picture, UNDECIDED, { tags: ['Anna', 'Places/Italy/Dolomites'], sidecarWriting: 'existing-and-new' })
+		const wrapper = mountInfo(picture, UNDECIDED, { tags: ['Anna', 'Places/Italy/Dolomites'], writability: 'writable' })
 
 		expect(wrapper.findAll('.loupe-info__tags li').map((tag) => tag.text())).toEqual(['Anna', 'Places/Italy/Dolomites'])
 		expect(infoRows(wrapper)['Written to']).toBe('IMG_1.JPG.xmp, IMG_1.xmp')
 	})
 
-	// spec: TAGS-004.9
-	it('names the sidecars each setting writes, and why none is written', () => {
+	// spec: TAGS-004.9, XMP-008.7
+	it('names the sidecars a writable picture writes, and why a locked one writes none', () => {
 		const picture = pictureOf(listingEntry(1, '/P/IMG_1.JPG'), listingEntry(2, '/P/IMG_1.CR3', { mime: 'image/x-canon-cr3' }), listingEntry(3, '/P/IMG_1.CR3.xmp', { mime: 'application/octet-stream' }))
-		const bare = pictureOf(listingEntry(4, '/P/IMG_2.JPG'))
-		const writtenTo = (shown: Picture<ListingEntry>, sidecarWriting?: SidecarWriting) => infoRows(mountInfo(shown, UNDECIDED, { tags: ['Anna'], ...(sidecarWriting === undefined ? {} : { sidecarWriting }) }))['Written to']
+		const writtenTo = (writability?: Writability) => infoRows(mountInfo(picture, UNDECIDED, { tags: ['Anna'], ...(writability === undefined ? {} : { writability }) }))['Written to']
 
-		expect(writtenTo(picture, 'existing-and-new')).toBe('IMG_1.CR3.xmp, IMG_1.JPG.xmp')
-		expect(writtenTo(picture, 'existing')).toBe('IMG_1.CR3.xmp')
-		expect(writtenTo(bare, 'existing')).toBe('Not written, no sidecar')
-		expect(writtenTo(picture, 'shared-folder')).toBe('Not written, shared folder')
-		expect(writtenTo(picture, 'off')).toBe('Not written, off in the settings')
-		expect(writtenTo(picture)).toBe('Not written, off in the settings')
+		expect(writtenTo('writable')).toBe('IMG_1.CR3.xmp, IMG_1.JPG.xmp')
+		expect(writtenTo('off')).toBe('Not written, off in the settings')
+		expect(writtenTo()).toBe('Not written, off in the settings')
+		expect(writtenTo('readOnly')).toBe('Not written, read-only folder')
+		expect(writtenTo('shared')).toBe('Not written, shared folder not confirmed')
+		expect(writtenTo('noVersions')).toBe('Not written, the folder keeps no versions')
+		expect(writtenTo('refused')).toBe('Not written, a sidecar was refused')
 	})
 
 	// spec: TAGS-004.8, LOUPE-001.23

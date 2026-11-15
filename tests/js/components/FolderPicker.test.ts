@@ -6,6 +6,7 @@ import type { FolderSet } from '../../../src/logic/folder-set.ts'
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { PairingSettings } from '../../../src/logic/pairing.ts'
 import type { RecentFolderSet } from '../../../src/logic/recent.ts'
+import type { ListedAccess } from '../../../src/logic/writability.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -13,6 +14,7 @@ import FolderList from '../../../src/components/FolderList.vue'
 import FolderPicker from '../../../src/components/FolderPicker.vue'
 import PickerRecentSets from '../../../src/components/PickerRecentSets.vue'
 import { DEFAULT_PAIRING_SETTINGS } from '../../../src/logic/pairing.ts'
+import { NO_ACCESS } from '../../../src/logic/writability.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { listingEntry } from '../logic/listing-entries.ts'
 import { DialogStub } from './stubs.ts'
@@ -208,17 +210,17 @@ describe('FolderPicker', () => {
 	})
 
 	// spec: LISTING-003.12, XMP-003.14
-	it('emits the folder set, its merged entries and its shared folders on confirm', async () => {
+	it('emits the folder set, its merged entries and its folders\' access on confirm', async () => {
 		const picker = await mountPicker()
 		await tick(picker, 'Trip')
 		await settleAll(picker)
 
 		await confirmButton(picker).trigger('click')
 
-		const [set, entries, shared] = picker.wrapper.emitted('confirm')![0] as [FolderSet, ListingEntry[], string[]]
+		const [set, entries, access] = picker.wrapper.emitted('confirm')![0] as [FolderSet, ListingEntry[], ListedAccess]
 		expect(set).toEqual({ paths: ['/Trip'], subfolders: false })
 		expect(entries.map((entry) => entry.fileId)).toEqual([1, 2, 3])
-		expect(shared).toEqual([])
+		expect(access).toEqual(NO_ACCESS)
 	})
 
 	// spec: LISTING-003.11

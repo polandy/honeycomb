@@ -19,12 +19,14 @@ import SidecarSettings from './SidecarSettings.vue'
 import { addExtension, DEFAULT_SUBFOLDERS, folderMode, removeExtension } from '../logic/settings.ts'
 import { tip } from '../tooltip.ts'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	open: boolean
 	settings: Settings
 	/** Whether the gesture guide counts as seen, which its hint tells. */
 	gestureGuideSeen: boolean
-}>()
+	/** Whether the Versions app is enabled; writing to sidecars needs it. */
+	versionsApp?: boolean
+}>(), { versionsApp: true })
 
 const emit = defineEmits<{
 	'update:open': [open: boolean]
@@ -218,7 +220,7 @@ function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 			<MoveSettings :settings="settings" @update="emit('update', $event)" />
 		</NcAppSettingsSection>
 		<NcAppSettingsSection id="xmp-sidecars" :name="t('honeycomb', 'XMP sidecars')">
-			<SidecarSettings :settings="settings" @update="emit('update', $event)" />
+			<SidecarSettings :settings="settings" :versionsApp="props.versionsApp" @update="emit('update', $event)" />
 		</NcAppSettingsSection>
 		<NcAppSettingsSection id="cache" :name="t('honeycomb', 'Cache')">
 			<p id="clear-cache-hint" class="settings-dialog__hint settings-text">

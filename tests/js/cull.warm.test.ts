@@ -21,10 +21,10 @@ describe('useCull: warm-up', () => {
 			lookupSeries: NO_SERIES,
 			saveSeries: SAVED_SERIES,
 			tags: NO_TAGS,
-		}, fakeStorage(), () => DEFAULT_SETTINGS, { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) })
+		}, fakeStorage(), () => DEFAULT_SETTINGS, { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) }, () => undefined)
 
-		cull.open(SET, ENTRIES, [])
-		cull.open(SET, [listingEntry(50, '/A/IMG_50.JPG')], [])
+		cull.open(SET, ENTRIES)
+		cull.open(SET, [listingEntry(50, '/A/IMG_50.JPG')])
 
 		expect(signals.map((signal) => signal.aborted)).toEqual([true, false])
 	})

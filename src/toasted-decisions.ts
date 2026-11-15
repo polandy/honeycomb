@@ -85,5 +85,5 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 		}
 	}
 
-	return { decide, pickRest, tag, removeFromSeries, dissolveSeries, mergeSeries, editSelection, undo, redo }
+	return { decide, pickRest, tag, removeFromSeries, dissolveSeries, mergeSeries, editSelection, undo, redo, toastChange }
 }

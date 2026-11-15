@@ -10,6 +10,7 @@ import type { ListingEntry } from '../logic/listing.ts'
 import type { PairingSettings } from '../logic/pairing.ts'
 import type { RecentFolderSet } from '../logic/recent.ts'
 import type { ResumePosition } from '../logic/resume-position.ts'
+import type { ListedAccess } from '../logic/writability.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
@@ -42,7 +43,7 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-	confirm: [set: FolderSet, entries: ListingEntry[], sharedFolders: string[]]
+	confirm: [set: FolderSet, entries: ListingEntry[], access: ListedAccess]
 	cancel: []
 	openRecent: [position: ResumePosition]
 }>()
@@ -91,7 +92,7 @@ function onSubfolders(subfolders: boolean) {
 /** Starts the cull of the counted folders. */
 function onConfirm() {
 	if (canCull.value) {
-		emit('confirm', set.value, count.value!.entries, count.value!.sharedFolders)
+		emit('confirm', set.value, count.value!.entries, count.value!.access)
 	}
 }
 </script>

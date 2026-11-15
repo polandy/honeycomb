@@ -884,8 +884,8 @@ Answered by the owner on 2026-11-09 (Q3, Q4, Q5, Q6, Q20).
    Decisions are per user, in the database. Sidecars are shared by every
    user of the folder, so in a shared folder nothing is written through on its own: the ⋯ menu
    offers *Write decisions to sidecars…*, which asks first (ADR 0005). Writing through is
-   opt-in at all: *Settings › XMP sidecars* is *Off* by default, *Only existing sidecars* or
-   *Existing and new sidecars* (XMP-003, risk review R1/R9). The listing says per
+   opt-in at all: *Settings › XMP sidecars* is *Off* by default or *On* (XMP-003, risk review
+   R1/R9; ADR 0032 PR 6 dropped *Only existing sidecars*). The listing says per
    folder whether it is shared (LISTING-001.12, ADR 0017): shared with another user, a federated
    user, by public link or by mail, a group folder, or external storage mounted for several users.
 

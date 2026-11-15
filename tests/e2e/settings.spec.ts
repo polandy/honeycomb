@@ -4,16 +4,14 @@ import type { Locator } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { cullFolder } from './cull.ts'
-import { createFolder, JPEG, RAW, requestToken, upload } from './files.ts'
+import { cullFolder, E2E_SETTINGS, openLoupe, putSettings } from './cull.ts'
+import { createFolder, JPEG, RAW, upload } from './files.ts'
 
-const SETTINGS_URL = '/index.php/apps/honeycomb/api/v1/settings'
 // The reference devices the opt-in dialog is captured on (docs/plan.md Reference devices).
 const SCREENSHOT_VIEWPORTS = { 'pixel-portrait': { width: 427, height: 952 }, 'ipad-mini-portrait': { width: 744, height: 1133 }, 'ipad-mini-landscape': { width: 1133, height: 744 } }
 
 test.afterEach(async ({ page }) => {
-	const reset = await page.request.put(SETTINGS_URL, { data: { settings: {} }, headers: { requesttoken: await requestToken(page) } })
-	expect(reset.status(), await reset.text()).toBe(200)
+	await putSettings(page, E2E_SETTINGS)
 })
 
 // spec: SETTINGS-001.10, SETTINGS-001.11
@@ -75,6 +73,7 @@ test('starts every text line of a settings section at its heading', async ({ pag
 // spec: SETTINGS-001.24
 test('asks before writing to sidecars and saves the choice once confirmed', async ({ page }, testInfo) => {
 	await page.goto('/index.php/apps/honeycomb/')
+	await putSettings(page, {})
 	const folder = `Sidecars ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
 	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
@@ -88,7 +87,7 @@ test('asks before writing to sidecars and saves the choice once confirmed', asyn
 	await expect(off).toBeChecked()
 	await settings.locator('section', { has: page.getByRole('heading', { name: 'XMP sidecars', exact: true }) }).screenshot({ path: testInfo.outputPath('xmp-sidecars-section.png'), animations: 'disabled' })
 
-	await choices.getByText('Existing and new sidecars', { exact: true }).click()
+	await choices.getByText('On', { exact: true }).click()
 	const ask = page.getByRole('dialog', { name: 'Write decisions to XMP sidecars?' })
 	await expect(ask).toContainText('IMG_0001.NEF.xmp')
 	for (const [device, viewport] of Object.entries(SCREENSHOT_VIEWPORTS)) {
@@ -99,11 +98,29 @@ test('asks before writing to sidecars and saves the choice once confirmed', asyn
 	await expect(ask).toBeHidden()
 	await expect(off).toBeChecked()
 
-	await choices.getByText('Only existing sidecars', { exact: true }).click()
+	await choices.getByText('On', { exact: true }).click()
 	const saved = page.waitForResponse((response) => response.url().endsWith('/api/v1/settings') && response.request().method() === 'PUT')
 	await ask.getByRole('button', { name: 'Write to sidecars' }).click()
-	expect((await saved).request().postDataJSON()).toMatchObject({ settings: { sidecarWrite: 'existing' } })
-	await expect(choices.getByRole('radio', { name: /^Only existing sidecars/ })).toBeChecked()
+	expect((await saved).request().postDataJSON()).toMatchObject({ settings: { sidecarWrite: 'on' } })
+	await expect(choices.getByRole('radio', { name: /^On/ })).toBeChecked()
+})
+
+// spec: XMP-008.7, XMP-003.18
+test('asks to turn writing On at the first decision and then decides', async ({ page }, testInfo) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	await putSettings(page, {})
+	const loupe = await openLoupe(page)
+
+	await page.keyboard.press('p')
+	const ask = page.getByRole('dialog', { name: 'Write decisions to XMP sidecars?' })
+	await expect(ask).toBeVisible()
+	await page.screenshot({ path: testInfo.outputPath('opt-in-at-first-decision.png'), animations: 'disabled' })
+	const saved = page.waitForResponse((response) => response.url().endsWith('/api/v1/settings') && response.request().method() === 'PUT')
+	await ask.getByRole('button', { name: 'Write to sidecars' }).click()
+
+	expect((await saved).request().postDataJSON()).toMatchObject({ settings: { sidecarWrite: 'on' } })
+	await expect(page.getByRole('status').filter({ hasText: 'IMG_0001' })).toContainText('Picked IMG_0001')
+	await expect(loupe.getByRole('button', { name: 'Pick' }).first()).toHaveAttribute('aria-pressed', 'true')
 })
 
 // spec: SETTINGS-001.25
