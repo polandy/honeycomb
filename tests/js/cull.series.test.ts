@@ -3,13 +3,14 @@
 // @vitest-environment happy-dom
 import type { CullApi } from '../../src/cull-seams.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
+import type { SeriesWrite } from '../../src/logic/series-edit.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { fakeStorage, NO_SERIES, NO_TAGS, SET, stored } from './app-cull.ts'
+import { fakeStorage, NO_SERIES, NO_TAGS, SAVED_SERIES, SET, stored } from './app-cull.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
 afterEach(() => vi.restoreAllMocks())
@@ -24,6 +25,7 @@ function openedCull(entries: readonly ListingEntry[], api: Partial<CullApi> = {}
 		lookupDecisions: async () => [],
 		saveDecisions: async () => undefined,
 		lookupSeries: NO_SERIES,
+		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,
 		...api,
 	}, fakeStorage(), () => DEFAULT_SETTINGS, { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) })
@@ -94,5 +96,62 @@ describe('useCull: stored series', () => {
 		expect(asked).toEqual([[1, 2, 3, 4], [9]])
 		expect(names(cull)).toEqual([['A', 'B', 'C', 'D']])
 		expect(cull.series.value[0]!.stored?.id).toBe(7)
+	})
+})
+
+describe('useCull: series edits', () => {
+	/** A cull on the burst that records its series writes and answers each new series with id 31. */
+	function editedCull(api: Partial<CullApi> = {}) {
+		const written: SeriesWrite[] = []
+		const cull = openedCull(BURST, {
+			saveSeries: async (write) => {
+				written.push(write)
+				return { ids: write.series.map(({ id }) => id ?? 31) }
+			},
+			...api,
+		})
+		return { cull, written }
+	}
+
+	// spec: SERIES-005.10
+	it('removes a picture from an automatic series as one undo step: the rest is stored, the picture kept out', async () => {
+		const { cull, written } = editedCull()
+		await flushPromises()
+		const [series] = cull.series.value
+
+		const step = cull.removeFromSeries(series!, series!.members[1]!)
+		await flushPromises()
+
+		expect(step).toMatchObject({ kind: 'series', edit: 'remove', names: ['B'] })
+		expect(written).toEqual([{ series: [{ id: null, status: 'open', fileIds: [1, 3, 4] }], keptOut: [2], released: [] }])
+		expect(names(cull)).toEqual([['A', 'C', 'D']])
+		expect(cull.series.value[0]!.stored).toEqual({ id: 31, status: 'open', elsewhere: false })
+
+		expect(cull.undo()).toBe(step)
+		await flushPromises()
+		expect(written.at(-1)).toEqual({ series: [], keptOut: [], released: [1, 3, 4, 2] })
+		expect(names(cull)).toEqual([['A', 'B', 'C', 'D']])
+		expect(cull.series.value[0]!.stored).toBeUndefined()
+	})
+
+	// spec: SERIES-005.13
+	it('dissolves a stored series as one undo step and brings it back with the same members', async () => {
+		const { cull, written } = editedCull({ lookupSeries: async () => ({ series: [{ id: 12, status: 'done', fileIds: [1, 2, 3, 4], elsewhere: false }], keptOut: [] }) })
+		await flushPromises()
+
+		const step = cull.dissolveSeries(cull.series.value[0]!)
+		await flushPromises()
+
+		expect(step).toMatchObject({ kind: 'series', edit: 'dissolve', names: ['A', 'B', 'C', 'D'] })
+		expect(written).toEqual([{ series: [], keptOut: [1, 2, 3, 4], released: [] }])
+		expect(names(cull)).toEqual([])
+
+		cull.undo()
+		await flushPromises()
+		expect(written.at(-1)).toEqual({ series: [{ id: 12, status: 'done', fileIds: [1, 2, 3, 4] }], keptOut: [], released: [] })
+		expect(cull.series.value[0]!.stored?.id).toBe(12)
+
+		cull.redo()
+		expect(names(cull)).toEqual([])
 	})
 })

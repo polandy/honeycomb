@@ -13,7 +13,7 @@ import type { MoveApi } from './move-flow.ts'
 import type { WarmPreviews } from './preview-warmer.ts'
 import type { ResumeApi } from './resume.ts'
 import type { SidecarFlowApi } from './sidecar-flow.ts'
-import type { LookupSeries } from './stored-series.ts'
+import type { LookupSeries, SaveSeries } from './stored-series.ts'
 import type { ViewStateApi } from './view-state.ts'
 import type { HashImage, SaveVisualHashes } from './visual-hashes.ts'
 
@@ -22,7 +22,7 @@ import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { browserHashWorkers } from './hash-workers.ts'
 import { acknowledgeLegacy, loadLegacyExport, loadLegacyInventory } from './legacy-api.ts'
 import { saveBrowserFile } from './save-file.ts'
-import { lookupSeries } from './series-api.ts'
+import { lookupSeries, saveSeries } from './series-api.ts'
 import { browserNow } from './sidecar-flow.ts'
 import { browserSchedule } from './tile-selection.ts'
 import { hashInWorkers } from './visual-hashes.ts'
@@ -38,6 +38,7 @@ export interface AppSeams {
 	lookupDecisions?: (fileIds: readonly number[]) => Promise<StoredDecision[]>
 	saveDecisions?: (decisions: readonly StoredDecision[]) => Promise<void>
 	lookupSeries?: LookupSeries
+	saveSeries?: SaveSeries
 	loadSettings?: () => Promise<unknown>
 	saveSettings?: (settings: Settings) => Promise<void>
 	viewState?: ViewStateApi
@@ -64,6 +65,7 @@ export const APP_SEAMS = {
 	lookupDecisions: apiLookupDecisions,
 	saveDecisions: apiSaveDecisions,
 	lookupSeries,
+	saveSeries,
 	loadSettings: apiLoadSettings,
 	saveSettings: apiSaveSettings,
 	viewState: () => ({ loadViewState, saveViewState }),

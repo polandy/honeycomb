@@ -75,3 +75,16 @@ describe('changeText of a tag change', () => {
 		expect(undoneText({ kind: 'tags', change, names })).toBe(`Undid: ${text}`)
 	})
 })
+
+describe('changeText of a series edit', () => {
+	it.each([
+		// spec: SERIES-005.10
+		['remove', ['IMG_0402'], 'Removed IMG_0402 from the series'],
+		['remove', ['A', 'B'], 'Removed 2 photos from the series'],
+		// spec: SERIES-005.13
+		['dissolve', ['A', 'B', 'C', 'D'], 'Dissolved the series · 4 photos'],
+	] as const)('words %s of %o as "%s"', (edit, names, text) => {
+		expect(changeText({ kind: 'series', edit, names })).toBe(text)
+		expect(redoneText({ kind: 'series', edit, names })).toBe(`Redid: ${text}`)
+	})
+})

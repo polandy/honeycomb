@@ -52,6 +52,9 @@ const STEP_TEXT: { readonly [K in StepKind]: (step: DescribedStep<K>, photos: st
 	decision: ({ change }, photos) => decisionText(change, photos),
 	pickRest: ({ picked }) => t('honeycomb', 'Picked {name}, rejected the rest', { name: picked }, undefined, PLAIN_TEXT),
 	tags: ({ change }, photos) => tagText(change, photos),
+	series: ({ edit, names }, photos) => (edit === 'remove'
+		? t('honeycomb', 'Removed {photos} from the series', { photos }, undefined, PLAIN_TEXT)
+		: n('honeycomb', 'Dissolved the series · {count} photo', 'Dissolved the series · {count} photos', names.length, { count: formatNumber(names.length) }, PLAIN_TEXT)),
 }
 
 /** What a change did, for its toast: "Rejected IMG_0001", "Rated 3 photos ★★★", "Tagged 2 photos Sunrise". */

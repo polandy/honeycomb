@@ -13,9 +13,14 @@ import type { ObserveSize } from '../observe-size.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
+import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcActionCaption from '@nextcloud/vue/components/NcActionCaption'
+import NcActions from '@nextcloud/vue/components/NcActions'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
+import ActionIcon from './ActionIcon.vue'
+import AppIcon from './AppIcon.vue'
 import PickRestButton from './PickRestButton.vue'
 import SeriesCompareCard from './SeriesCompareCard.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
@@ -25,6 +30,7 @@ import { doubleTaps } from '../logic/double-tap.ts'
 import { imageMember } from '../logic/image-tiers.ts'
 import { SERIES_GAP_SECONDS } from '../logic/series.ts'
 import { observeElementSize } from '../observe-size.ts'
+import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	/** The shown series, or null once none is left. */
@@ -48,6 +54,10 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
 	decide: [intent: DecisionIntent, picture: Picture<ListingEntry>]
 	pickRest: [picture: Picture<ListingEntry>]
+	/** *Remove from this series* in a card's menu (SERIES-005.10). */
+	remove: [picture: Picture<ListingEntry>]
+	/** *Dissolve this series* in the title row's menu (SERIES-005.13). */
+	dissolve: []
 	/** A single tap made the card at `index` active. */
 	activate: [index: number]
 	view: [index: number]
@@ -99,6 +109,16 @@ function showActive() {
 }
 // The focus trap keeps focus that is already inside; else it focuses card 1 and scrolls back to it.
 onMounted(() => photoAt(props.active)?.focus({ preventScroll: true }))
+// NcModal closes on any Escape while it tops the focus trap stack, and a menu adds no trap of its own.
+const openMenus = shallowRef(0)
+/** Counts the open menus, so that Escape in one closes only the menu. */
+function onMenuOpen(open: boolean) {
+	openMenus.value += open ? 1 : -1
+}
+// An edit can unmount a menu before it reports closing.
+watch(() => props.series, () => {
+	openMenus.value = 0
+})
 watch([() => props.active, () => props.series, () => layout.value?.columns], showActive, { flush: 'post' })
 
 const taps = doubleTaps()
@@ -134,13 +154,33 @@ function onOpen(open: boolean) {
 		:name="title"
 		size="full"
 		:container="props.container"
+		:noClose="openMenus > 0"
 		@update:open="onOpen">
 		<NcEmptyContent
 			v-if="props.series === null"
 			:name="t('honeycomb', 'All series compared')"
 			:description="n('honeycomb', 'No more photos taken within {count} second of each other are left to decide.', 'No more photos taken within {count} seconds of each other are left to decide.', SERIES_GAP_SECONDS, { count: formatNumber(SERIES_GAP_SECONDS) }, PLAIN_TEXT)" />
+		<div v-if="props.series !== null" class="series-compare__head">
+			<NcActions
+				forceMenu
+				:container="props.container"
+				:ariaLabel="t('honeycomb', 'Series menu')"
+				v-bind="tip(t('honeycomb', 'More'))"
+				@update:open="onMenuOpen">
+				<template #icon>
+					<AppIcon name="more" />
+				</template>
+				<NcActionCaption :name="t('honeycomb', 'This series · ⧉ {count}', { count: formatNumber(props.series.members.length) }, undefined, PLAIN_TEXT)" />
+				<NcActionButton closeAfterClick :description="t('honeycomb', 'Its photos are never grouped again automatically')" @click="emit('dissolve')">
+					<template #icon>
+						<ActionIcon name="minus" />
+					</template>
+					{{ t('honeycomb', 'Dissolve this series') }}
+				</NcActionButton>
+			</NcActions>
+		</div>
 		<ul
-			v-else
+			v-if="props.series !== null"
 			ref="grid"
 			class="series-compare"
 			:style="gridStyle">
@@ -153,8 +193,11 @@ function onOpen(open: boolean) {
 				:decision="props.decisionOf(picture)"
 				:imageUrl="props.imageUrl"
 				:photoWidth="photoWidth"
+				:container="props.container"
 				@tap="onPhotoTap(index, $event)"
 				@view="emit('view', index)"
+				@remove="emit('remove', picture)"
+				@menu="onMenuOpen"
 				@flag="emit('decide', { kind: 'flag', flag: $event }, picture)" />
 		</ul>
 		<template #actions>
@@ -191,6 +234,16 @@ function onOpen(open: boolean) {
 	overflow: hidden auto;
 	scrollbar-gutter: stable;
 	list-style: none;
+}
+
+.series-compare__head {
+	display: flex;
+	justify-content: flex-end;
+	height: var(--default-clickable-area);
+}
+
+.series-compare__head + .series-compare {
+	height: calc(100% - var(--default-clickable-area));
 }
 
 .series-compare__bar {

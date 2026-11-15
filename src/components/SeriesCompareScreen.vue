@@ -35,6 +35,8 @@ defineExpose({ hotkeys })
 		:container="container"
 		@decide="flow.decide"
 		@pickRest="flow.pickRest"
+		@remove="flow.removeFromSeries"
+		@dissolve="flow.dissolve"
 		@activate="flow.setActive"
 		@view="flow.view"
 		@columns="flow.setColumns"

@@ -195,4 +195,38 @@ describe('useSeriesCompare', () => {
 
 		expect(compare.viewer.open.value).toBe(false)
 	})
+
+	// spec: SERIES-005.10
+	it('removes the active or the given picture from the shown series and keeps showing the series', () => {
+		const { compare, calls, shown, shot } = compareOf(['A', 'B', 'C', 'D'], ['E', 'F'])
+		compare.start()
+		compare.setActive(1)
+		compare.removeFromSeries()
+		compare.removeFromSeries(shot('D'))
+
+		expect(calls).toEqual(['remove B from A B C D', 'remove D from A C D'])
+		expect(shown()).toEqual(['A', 'C'])
+	})
+
+	// spec: SERIES-005.13
+	it('dissolves the shown series and moves on as after Skip; undo brings it back', () => {
+		const { compare, calls, shown, bringBack } = compareOf(['A', 'B'], ['C', 'D'])
+		compare.start()
+		compare.dissolve()
+
+		expect(calls).toEqual(['dissolve A B'])
+		expect(shown()).toEqual(['C', 'D'])
+		bringBack()
+		expect(shown()).toEqual(['A', 'B'])
+	})
+
+	// spec: SERIES-005.10, SERIES-005.13
+	it('edits nothing once no series is left', () => {
+		const { compare, calls } = compareOf()
+		compare.start()
+		compare.removeFromSeries()
+		compare.dissolve()
+
+		expect(calls).toEqual([])
+	})
 })
