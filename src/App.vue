@@ -20,7 +20,7 @@ import GridScreen from './components/GridScreen.vue'
 import GridSkeleton from './components/GridSkeleton.vue'
 import LoupeScreen from './components/LoupeScreen.vue'
 import NoFolderState from './components/NoFolderState.vue'
-import SeriesCompareFlow from './components/SeriesCompareFlow.vue'
+import SeriesCompareScreen from './components/SeriesCompareScreen.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutSheet from './components/ShortcutSheet.vue'
 import TagEntry from './components/TagEntry.vue'
@@ -79,7 +79,7 @@ const restOffer = useRestOffer({ seriesOf: () => cull.seriesOf.value, decisionOf
 function decideInCompare(intent: DecisionIntent, picture: Picture<ListingEntry>, inViewer: boolean) {
 	decide(intent, [picture], () => (inViewer ? restOffer(intent, picture) : null))
 }
-const seriesFlow = useTemplateRef<InstanceType<typeof SeriesCompareFlow>>('seriesFlow')
+const seriesScreen = useTemplateRef<InstanceType<typeof SeriesCompareScreen>>('seriesScreen')
 const overlayScreen = computed(() => (loupe.value !== null ? '.photo-loupe' : seriesCompare.viewer.open.value ? '.series-viewer' : undefined))
 const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
 const { dialog: deleteDialog } = deleting
@@ -115,7 +115,7 @@ useHotkeys(() => {
 		return { shortcuts: toggleShortcuts }
 	}
 	if (seriesCompare.open.value) {
-		return { undo, redo, shortcuts: toggleShortcuts, ...(seriesFlow.value?.hotkeys() ?? seriesCompare.hotkeys) }
+		return { undo, redo, shortcuts: toggleShortcuts, ...(seriesScreen.value?.hotkeys() ?? seriesCompare.hotkeys) }
 	}
 	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: () => deleting.summariseShown(selected.value, () => grid.value?.focusedIndex() ?? 0), move: () => moving.openShown(selected.value, () => grid.value?.focusedIndex() ?? 0), ...(loupe.value === null ? { ...gridKeys, compare: seriesCompare.start } : loupeScreen.value?.loupe?.hotkeys) }
 }, () => settings.value.viKeys)
@@ -154,12 +154,7 @@ useHotkeys(() => {
 				:decisionOf="cull.decisionOf"
 				:listFolders="props.listFolders"
 				:container="loupe !== null ? '.photo-loupe' : undefined" />
-			<SeriesCompareFlow
-				ref="seriesFlow"
-				:flow="seriesCompare"
-				:container="seriesCompare.oneSeries.value ? '.photo-loupe' : 'body'"
-				:decisionOf="cull.decisionOf"
-				@tag="tagEntry.open([$event])" />
+			<SeriesCompareScreen ref="seriesScreen" />
 			<SettingsDialog
 				v-model:open="settingsOpen"
 				:settings="settings"

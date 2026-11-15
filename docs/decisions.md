@@ -1274,3 +1274,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-15: The loupe reads the cull from the context (ADR 0028, review R8b) through a new
   screen root `LoupeScreen`, not by `PhotoLoupe` injecting it: `PhotoLoupe` keeps its props, so
   its eight test files mount it unchanged, and only the screen root injects, as for the grid.
+- 2026-11-15: The series compare and its viewer read the cull from the context (ADR 0028, review
+  R8c) through `SeriesCompareFlow`, renamed `SeriesCompareScreen` like the other screen roots; the
+  context holds the compare flow whole instead of a `Pick` of nearly all its members.

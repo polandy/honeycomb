@@ -74,10 +74,12 @@ describe('SeriesCompareScreen', () => {
 		compare().vm.$emit('activate', 0)
 		compare().vm.$emit('columns', 2)
 		compare().vm.$emit('decide', PICK, pictures[0])
+		await flushPromises()
+		expect(compare().props('active')).toBe(0)
 		compare().vm.$emit('pickRest', pictures[1])
 		await flushPromises()
 
-		expect(compare().props('active')).toBe(0)
+		expect(compare().exists()).toBe(false)
 		expect(calls).toEqual([
 			['compareDecide', PICK, pictures[0], false],
 			['comparePickRest', pictures[1], [pictures[0]]],
@@ -121,6 +123,19 @@ describe('SeriesCompareScreen', () => {
 		])
 		expect(viewer().exists()).toBe(false)
 		expect(compare().exists()).toBe(true)
+	})
+
+	it('passes a pick of the rest from the viewer to the flow', async () => {
+		const { compare, viewer, calls, pictures, openOnSeries } = await mountScreen()
+		await openOnSeries()
+		compare().vm.$emit('view', 0)
+		await flushPromises()
+		calls.splice(0)
+
+		viewer().vm.$emit('pickRest', pictures[0])
+		await flushPromises()
+
+		expect(calls).toEqual([['comparePickRest', pictures[0], [pictures[1]]]])
 	})
 
 	it('exposes the viewer\'s keys while it is open, else the compare\'s', async () => {

@@ -25,10 +25,11 @@ App provides one **`CullContext`** (`src/cull-context.ts`) with `provideCullCont
 root component reads it with `useCullContext`, which throws when no parent provides it. The
 injection key stays private to the module.
 
-- Only **screen roots** inject (`GridScreen`, then `LoupeScreen`; the series compare follows).
+- Only **screen roots** inject (`GridScreen`, `LoupeScreen` and `SeriesCompareScreen`).
   The components below a root keep plain props and events, so they stay testable on their own.
 - The context holds the cull and the selection whole, and of each flow only the members a screen
-  uses (`Pick<…>`), so a test fakes a flow in a line. A screen that needs more widens the `Pick`.
+  uses (`Pick<…>`), so a test fakes a flow in a line. A screen that needs more widens the `Pick`;
+  the series compare, whose screen binds nearly all of it, is held whole and faked by a real flow.
 - A leaf with many props takes them in **groups** of one concern each: the toolbar takes
   `folders`, `view`, `progress`, `selection` and `tasks` (`src/grid-toolbar.ts`).
 - Tests mount a screen with `mountInCullContext` over `fakeCullContext`
@@ -42,4 +43,5 @@ injection key stays private to the module.
   `CullContext` type instead.
 - App renders `<LoupeScreen>` instead of the loupe's ten props and ten events; the screen binds them
   from the context, and `PhotoLoupe` keeps its props, so its own tests mount it unchanged (R8 b).
-- The series compare moves to the context in its own PR (review R8 c).
+- App renders `<SeriesCompareScreen>` (formerly `SeriesCompareFlow`) without props; the screen
+  binds the compare and its viewer from the context, and both keep their props (R8 c).

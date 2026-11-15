@@ -30,7 +30,8 @@ export interface CullContext {
 	readonly deleting: Pick<DeleteFlow, 'rejected' | 'rawRemovable' | 'review' | 'removeRaws' | 'summarise' | 'allDecided'>
 	readonly moving: Pick<MoveFlow, 'open' | 'openShown'>
 	readonly resume: Pick<ReturnType<typeof useResume>, 'resumeName' | 'resume' | 'dismiss'>
-	readonly seriesCompare: Pick<SeriesCompareFlow<Picture<ListingEntry>>, 'start' | 'startOn' | 'pickRestAndLand'>
+	/** Whole, as the series compare screen binds nearly all of it. */
+	readonly seriesCompare: SeriesCompareFlow<Picture<ListingEntry>>
 	readonly sidecars: Pick<SidecarFlow, 'ask'>
 	readonly legacy: Legacy
 	readonly tagEntry: Pick<ReturnType<typeof useTagEntryTargets>, 'open'>
