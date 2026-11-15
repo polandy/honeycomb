@@ -22,6 +22,7 @@ final class TrashService {
 	public function __construct(
 		private IRootFolder $rootFolder,
 		private IAppManager $appManager,
+		private TrashBinGuard $trashBinGuard,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -39,15 +40,15 @@ final class TrashService {
 			throw new TrashBinDisabledException('The trash bin is disabled for the user');
 		}
 		$userFolder = $this->rootFolder->getUserFolder($user->getUID());
-		return array_map(fn (array $picture): array => $this->trashPicture($userFolder, $picture), $pictures);
+		return array_map(fn (array $picture): array => $this->trashPicture($user, $userFolder, $picture), $pictures);
 	}
 
 	/**
 	 * @param non-empty-list<array{fileId: int, etag: string}> $picture
 	 * @return list<array{fileId: int, result: TrashResult}>
 	 */
-	private function trashPicture(Folder $userFolder, array $picture): array {
-		$checked = array_map(fn (array $file): File|TrashResult => $this->check($userFolder, $file['fileId'], $file['etag']), $picture);
+	private function trashPicture(IUser $user, Folder $userFolder, array $picture): array {
+		$checked = array_map(fn (array $file): File|TrashResult => $this->check($user, $userFolder, $file['fileId'], $file['etag']), $picture);
 		$files = array_filter($checked, static fn (File|TrashResult $node): bool => $node instanceof File);
 		$results = count($files) === count($checked)
 			? $this->trashInOrder($files)
@@ -89,7 +90,7 @@ final class TrashService {
 	}
 
 	/** The file to trash, or why it may not be trashed. */
-	private function check(Folder $userFolder, int $fileId, string $etag): File|TrashResult {
+	private function check(IUser $user, Folder $userFolder, int $fileId, string $etag): File|TrashResult {
 		$node = $userFolder->getFirstNodeById($fileId);
 		if (!$node instanceof File || !ListingService::isListedType($node)) {
 			return TrashResult::NotFound;
@@ -99,6 +100,9 @@ final class TrashService {
 		}
 		if (!$node->isDeletable()) {
 			return TrashResult::NotPermitted;
+		}
+		if (!$this->trashBinGuard->keeps($user->getUID(), $node)) {
+			return TrashResult::NoTrashBin;
 		}
 		return $node;
 	}

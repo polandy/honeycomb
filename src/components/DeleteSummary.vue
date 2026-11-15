@@ -16,6 +16,7 @@ import TrashFileList from './TrashFileList.vue'
 import { formatFileSize, formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { deleteSummary, filesOf } from '../logic/delete-summary.ts'
+import { trashBinNote } from '../trash-text.ts'
 
 const props = defineProps<{
 	/** The pictures to delete, each with all of its files. */
@@ -76,7 +77,7 @@ const scope = computed(() => {
 		<p>{{ scope }}</p>
 		<TrashFileList :rows="rows" :folderSet="props.folderSet" :label="t('honeycomb', 'Files that will be deleted')" />
 		<p class="delete-summary__note">
-			{{ t('honeycomb', 'Files move to the Nextcloud trash bin and can be restored from there. Nothing is deleted for good; the space returns when the trash bin is emptied.') }}
+			{{ trashBinNote() }}
 		</p>
 	</ConfirmDialog>
 </template>

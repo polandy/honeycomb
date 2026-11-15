@@ -57,7 +57,7 @@ describe('trashReport', () => {
 	})
 
 	// spec: DELETE-002.9
-	it.each(['notFound', 'failed'])('keeps the %s result', (result) => {
+	it.each(['notFound', 'noTrashBin', 'failed'])('keeps the %s result', (result) => {
 		const report = trashReport(wholePictures([SINGLE]), results([[4, result]]))
 
 		expect(report.failed.map((failed) => failed.result)).toEqual([result])

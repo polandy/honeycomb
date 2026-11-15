@@ -14,6 +14,8 @@ export function failureReason(result: TrashFailure): string {
 			return t('honeycomb', 'File changed since the folder was listed; reload the folder, then delete again')
 		case 'notPermitted':
 			return t('honeycomb', 'You may not delete this file')
+		case 'noTrashBin':
+			return t('honeycomb', 'Not deleted: no trash bin on this storage, or the file is larger than the trash bin allows')
 		case 'locked':
 			return t('honeycomb', 'File is locked (another process is writing to it)')
 		case 'skipped':
@@ -21,6 +23,11 @@ export function failureReason(result: TrashFailure): string {
 		default:
 			return t('honeycomb', 'Could not move the file to the trash bin')
 	}
+}
+
+/** The summaries' note on where deleted files go and how long the trash bin keeps them. */
+export function trashBinNote(): string {
+	return t('honeycomb', 'Files move to the Nextcloud trash bin and can be restored from there until it empties itself: after its retention time, or sooner when space runs short. Keep a backup of photos you cannot afford to lose.')
 }
 
 /** "%n file" with the count formatted. */

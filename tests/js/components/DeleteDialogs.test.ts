@@ -76,7 +76,7 @@ describe('DeleteSummary', () => {
 			'XMPA/IMG_1.xmp1 kB',
 			'JPGB/IMG_2.JPG1 kB',
 		])
-		expect(wrapper.text()).toContain('Files move to the Nextcloud trash bin and can be restored from there.')
+		expect(wrapper.text()).toContain('Files move to the Nextcloud trash bin and can be restored from there until it empties itself: after its retention time, or sooner when space runs short. Keep a backup of photos you cannot afford to lose.')
 		expect(buttons(wrapper)).toEqual(['Cancel', 'Move 4 files to trash'])
 	})
 
@@ -134,7 +134,7 @@ describe('RawRemovalSummary', () => {
 		expect(wrapper.text()).toContain('Only the RAW file and its own sidecar go. The JPEG, its sidecar and a shared sidecar stay, and every photo keeps its rating, label and flag. Skipped: 1 marked Keep RAW · 6 rejected · 30 singles.')
 		expect(wrapper.find('details').attributes('open')).toBeUndefined()
 		expect(wrapper.findAll('details .trash-files__row').map((row) => row.text())).toEqual(['NEFA/IMG_3.NEF2 kB', 'XMPA/IMG_3.NEF.xmp1 kB'])
-		expect(wrapper.text()).toContain('Files move to the Nextcloud trash bin and can be restored from there.')
+		expect(wrapper.text()).toContain('Files move to the Nextcloud trash bin and can be restored from there until it empties itself: after its retention time, or sooner when space runs short. Keep a backup of photos you cannot afford to lose.')
 		expect(buttons(wrapper).slice(-2)).toEqual(['Cancel', 'Move 2 files to trash'])
 	})
 

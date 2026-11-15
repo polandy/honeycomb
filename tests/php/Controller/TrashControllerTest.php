@@ -9,16 +9,20 @@ namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\TrashController;
+use OCA\Honeycomb\Service\TrashBinGuard;
 use OCA\Honeycomb\Service\TrashService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\Config\IUserConfig;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
+use OCP\Files\Storage\IStorage;
+use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -28,7 +32,10 @@ use ReflectionMethod;
 
 final class TrashControllerTest extends TestCase {
 	private function controller(bool $loggedIn = true, bool $trashBin = true): TrashController {
+		$storage = $this->createStub(IStorage::class);
+		$storage->method('instanceOfStorage')->willReturnCallback(static fn (string $class): bool => $class === 'OCA\Files_Trashbin\Storage');
 		$file = $this->createStub(File::class);
+		$file->method('getStorage')->willReturn($storage);
 		$file->method('getName')->willReturn('IMG_0001.JPG');
 		$file->method('getMimetype')->willReturn('image/jpeg');
 		$file->method('getEtag')->willReturn('etag-7');
@@ -43,7 +50,12 @@ final class TrashControllerTest extends TestCase {
 		$user->method('getUID')->willReturn('alice');
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
-		$trash = new TrashService($root, $apps, $this->createStub(LoggerInterface::class));
+		$userConfig = $this->createStub(IUserConfig::class);
+		$userConfig->method('getValueString')->willReturnArgument(3);
+		$appConfig = $this->createStub(IAppConfig::class);
+		$appConfig->method('getValueString')->willReturnArgument(2);
+		$guard = new TrashBinGuard($userConfig, $appConfig);
+		$trash = new TrashService($root, $apps, $guard, $this->createStub(LoggerInterface::class));
 		return new TrashController(Application::APP_ID, $this->createStub(IRequest::class), $session, $trash);
 	}
 
