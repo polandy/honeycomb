@@ -19,6 +19,7 @@ interface Decisions {
 	tag: (change: TagChange, chosen: readonly Picture<ListingEntry>[]) => CullStep | null
 	removeFromSeries: (series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>) => CullStep | null
 	dissolveSeries: (series: Series<Picture<ListingEntry>>) => CullStep | null
+	mergeSeries: (series: readonly Series<Picture<ListingEntry>>[]) => CullStep | null
 	editSelection: (edit: SelectionEdit, chosen: readonly Picture<ListingEntry>[]) => CullStep | null
 	undo: () => CullStep | null
 	redo: () => CullStep | null
@@ -44,6 +45,11 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 	/** Takes the picture out of the series and says so, with Undo (SERIES-005.10). */
 	function removeFromSeries(series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>) {
 		toastChange(cull.removeFromSeries(series, picture))
+	}
+
+	/** Merges the series and says so, with Undo (SERIES-005.8). */
+	function mergeSeries(series: readonly Series<Picture<ListingEntry>>[]) {
+		toastChange(cull.mergeSeries(series))
 	}
 
 	/** Dissolves the series and says so, with Undo (SERIES-005.13). */
@@ -79,5 +85,5 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 		}
 	}
 
-	return { decide, pickRest, tag, removeFromSeries, dissolveSeries, editSelection, undo, redo }
+	return { decide, pickRest, tag, removeFromSeries, dissolveSeries, mergeSeries, editSelection, undo, redo }
 }

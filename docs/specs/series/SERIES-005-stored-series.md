@@ -250,3 +250,4 @@ through every new visual hash.
 | 2026-11-14 | Delivery and logic of SERIES-005.1–3, .26 (#185 PR 2): the browser reads the rows per folder set and forms automatic series from the loose pictures only; 005.25 adds the re-read of files moved back. |
 | 2026-11-15 | SERIES-005.10, .13 and .19 in the series compare (#185 PR 3): the card's and the title row's ⋯ menus offer *Remove from this series* and *Dissolve this series*, each one undo step with a toast, saved one at a time. |
 | 2026-11-15 | SERIES-005.4–.7, .9, .11, .12 and .16 in the grid (#185 PR 4): the selection bar's *Series…* menu after *Tags* makes, adds to, merges and leaves series, each one undo step with a toast. |
+| 2026-11-15 | SERIES-005.8 and .9 in the series compare (#185 PR 5): the title row's ⋯ menu merges with the next or previous series, its second line "⧉ 3 · starts 14:03:40"; the compare then shows the merged series. |

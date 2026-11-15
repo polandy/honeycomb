@@ -26,7 +26,7 @@ import { memberIds } from './logic/pairing.ts'
 import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
 import { sortPictures } from './logic/picture-order.ts'
 import { byFileId, saveQueue } from './logic/save-queue.ts'
-import { dissolveChange, removeChange } from './logic/series-edit.ts'
+import { dissolveChange, joinChange, removeChange } from './logic/series-edit.ts'
 import { selectionChange, seriesOffer } from './logic/series-menu.ts'
 import { pairingSettings } from './logic/settings.ts'
 import { inSharedFolder } from './logic/sidecar-sync.ts'
@@ -165,6 +165,11 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		return history.record(seriesStep('dissolve', series.members, dissolveChange(series, storedSeries.rows.value), 1))
 	}
 
+	/** Merges the series, in capture-time order, into one under the first stored one's id, as one undo step, and returns it (SERIES-005.8, .9). */
+	function mergeSeries(series: readonly Series<Picture<ListingEntry>>[]): SeriesStep | null {
+		return history.record(seriesStep('merge', series.flatMap(({ members }) => members), joinChange(series, [], storedSeries.rows.value, storedSeries.newId), series.length))
+	}
+
 	/** Makes, adds to, merges or leaves series with the chosen pictures, as one undo step, and returns it (SERIES-005.4–.7, .11). */
 	function editSelection(edit: SelectionEdit, chosen: readonly Picture<ListingEntry>[]): SeriesStep | null {
 		const { pictures, change, series } = selectionChange(edit, seriesOffer(chosen, seriesState.seriesOf.value), storedSeries.rows.value, storedSeries.newId)
@@ -265,6 +270,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		passes,
 		common,
 		series: seriesState.series,
+		everySeries: seriesState.everySeries,
 		seriesSizes: seriesState.seriesSizes,
 		seriesOf: seriesState.seriesOf,
 		openSeries: seriesState.openSeries,
@@ -275,6 +281,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		tag,
 		removeFromSeries,
 		dissolveSeries,
+		mergeSeries,
 		editSelection,
 		undo: history.undo,
 		redo: history.redo,

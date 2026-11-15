@@ -1315,3 +1315,12 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   and no loose photo joined (SERIES-005.9, .16) (#185 PR 4).
 - 2026-11-15: When a grid edit takes photos out of an automatic series, its other shown members are
   stored as a series even when only one is left, as the compare's *Remove* does (#185 PR 4).
+- 2026-11-15: *Merge with the next* / *previous series* in the compare takes its neighbour among
+  every series of the folder set with two shown pictures or more, decided ones too, not only those
+  the compare offers, so a burst whose second half is decided can still be joined; opened from the
+  loupe, likewise (SERIES-005.8) (#185 PR 5).
+- 2026-11-15: The merge entry's second line reads "⧉ 3 · starts 14:03:40" (time of day with
+  seconds, in the user's locale) without the mockup's "Series 2", as a decided neighbour has no
+  number in the compare (#185 PR 5).
+- 2026-11-15: After a merge in the compare, it shows the merged series with the same photo active;
+  the merged series keeps the id of the earlier stored series, as a grid merge does (#185 PR 5).

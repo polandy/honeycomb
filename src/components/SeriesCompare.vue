@@ -10,19 +10,16 @@ import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Series } from '../logic/series.ts'
 import type { ObserveSize } from '../observe-size.ts'
+import type { MergeDirection } from '../series-compare.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
-import NcActionButton from '@nextcloud/vue/components/NcActionButton'
-import NcActionCaption from '@nextcloud/vue/components/NcActionCaption'
-import NcActions from '@nextcloud/vue/components/NcActions'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
-import ActionIcon from './ActionIcon.vue'
-import AppIcon from './AppIcon.vue'
 import PickRestButton from './PickRestButton.vue'
 import SeriesCompareCard from './SeriesCompareCard.vue'
+import SeriesCompareMenu from './SeriesCompareMenu.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { CARD_FRAME, CARD_GAP, compareGrid } from '../logic/compare-grid.ts'
@@ -30,7 +27,6 @@ import { doubleTaps } from '../logic/double-tap.ts'
 import { imageMember } from '../logic/image-tiers.ts'
 import { SERIES_GAP_SECONDS } from '../logic/series.ts'
 import { observeElementSize } from '../observe-size.ts'
-import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	/** The shown series, or null once none is left. */
@@ -49,7 +45,10 @@ const props = withDefaults(defineProps<{
 	oneSeries?: boolean
 	/** Where the dialog mounts: inside the loupe when opened from it. */
 	container?: string
-}>(), { imageUrl: apiImageUrl, observeSize: observeElementSize, now: () => performance.now(), oneSeries: false, container: 'body' })
+	/** The series before and after the shown one, which its title row's menu merges with (SERIES-005.8). */
+	previous?: Series<Picture<ListingEntry>> | null
+	next?: Series<Picture<ListingEntry>> | null
+}>(), { previous: null, next: null, imageUrl: apiImageUrl, observeSize: observeElementSize, now: () => performance.now(), oneSeries: false, container: 'body' })
 
 const emit = defineEmits<{
 	decide: [intent: DecisionIntent, picture: Picture<ListingEntry>]
@@ -58,6 +57,8 @@ const emit = defineEmits<{
 	remove: [picture: Picture<ListingEntry>]
 	/** *Dissolve this series* in the title row's menu (SERIES-005.13). */
 	dissolve: []
+	/** *Merge with the next* or *previous series* in the title row's menu (SERIES-005.8). */
+	merge: [direction: MergeDirection]
 	/** A single tap made the card at `index` active. */
 	activate: [index: number]
 	view: [index: number]
@@ -161,23 +162,14 @@ function onOpen(open: boolean) {
 			:name="t('honeycomb', 'All series compared')"
 			:description="n('honeycomb', 'No more photos taken within {count} second of each other are left to decide.', 'No more photos taken within {count} seconds of each other are left to decide.', SERIES_GAP_SECONDS, { count: formatNumber(SERIES_GAP_SECONDS) }, PLAIN_TEXT)" />
 		<div v-if="props.series !== null" class="series-compare__head">
-			<NcActions
-				forceMenu
+			<SeriesCompareMenu
+				:series="props.series"
+				:previous="props.previous"
+				:next="props.next"
 				:container="props.container"
-				:ariaLabel="t('honeycomb', 'Series menu')"
-				v-bind="tip(t('honeycomb', 'More'))"
-				@update:open="onMenuOpen">
-				<template #icon>
-					<AppIcon name="more" />
-				</template>
-				<NcActionCaption :name="t('honeycomb', 'This series · ⧉ {count}', { count: formatNumber(props.series.members.length) }, undefined, PLAIN_TEXT)" />
-				<NcActionButton closeAfterClick :description="t('honeycomb', 'Its photos are never grouped again automatically')" @click="emit('dissolve')">
-					<template #icon>
-						<ActionIcon name="minus" />
-					</template>
-					{{ t('honeycomb', 'Dissolve this series') }}
-				</NcActionButton>
-			</NcActions>
+				@merge="emit('merge', $event)"
+				@dissolve="emit('dissolve')"
+				@menu="onMenuOpen" />
 		</div>
 		<ul
 			v-if="props.series !== null"

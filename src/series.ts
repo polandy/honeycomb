@@ -21,6 +21,7 @@ export function useSeries(api: VisualHashApi, storage: BrowserStorage, pictures:
 	const series = computed(() => findSeries(everySeries.value, decisionOf))
 	return {
 		series,
+		everySeries,
 		seriesSizes: computed(() => sizesOf(series.value)),
 		seriesOf: computed(() => seriesMembers(everySeries.value)),
 		openSeries: computed(() => openSeries(series.value, (picture) => hashes.stateOf(picture) === 'pending')),
