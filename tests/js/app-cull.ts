@@ -3,8 +3,10 @@
 import type { CullSidecars } from '../../src/cull-seams.ts'
 import type { StoredDecision } from '../../src/logic/decision.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
+import type { Settings } from '../../src/logic/settings.ts'
 import type { SidecarSaveItem } from '../../src/logic/sidecar-sync.ts'
 import type { StoredViewState, ViewState } from '../../src/logic/view-state.ts'
+import type { ListedAccess } from '../../src/logic/writability.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
@@ -12,6 +14,8 @@ import App from '../../src/App.vue'
 import FolderPicker from '../../src/components/FolderPicker.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
+import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
+import { NO_ACCESS } from '../../src/logic/writability.ts'
 import { useViewState } from '../../src/view-state.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
@@ -22,6 +26,9 @@ export const ENTRIES = [
 	listingEntry(4, '/Trip/A/IMG_9.JPG'),
 ]
 export const SET: FolderSet = { paths: ['/Trip'], subfolders: true }
+
+/** The default settings with writing to sidecars on, so a cull may decide. */
+export const WRITING_ON: Settings = { ...DEFAULT_SETTINGS, sidecarWrite: 'on' }
 
 /** A storage over a plain map, or one that throws like a browser with site data blocked. */
 export function fakeStorage(stored: Record<string, string> = {}, blocked = false) {
@@ -119,7 +126,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			tags: NO_TAGS,
 			legacy: NO_LEGACY,
 			saveFile: () => undefined,
-			loadSettings: async () => ({}),
+			loadSettings: async () => ({ sidecarWrite: 'on' }),
 			saveSettings: async (settings: object) => { savedSettings.push(settings) },
 			positions: { loadPositions: async () => [], savePosition: async () => undefined },
 			viewState: { loadViewState: async () => ({ infoPanelOpen: null, gestureGuideSeen: true, seriesHintSeen: true }), saveViewState: async () => undefined },
@@ -144,13 +151,18 @@ export function shownNames(wrapper: AppWrapper): string[] {
 	return wrapper.findComponent(PhotoGrid).props('pictures').map((picture: { baseName: string }) => picture.baseName)
 }
 
+/** The access of a cull of `/Trip`, opened as file id 7, whose folders in `shared` are shared. */
+export function sharedAccess(shared: readonly string[]): ListedAccess {
+	return { folders: shared.map((path) => ({ path, shared: true, permissions: 31, versions: true })), opened: [{ path: '/Trip', fileId: 7 }] }
+}
+
 /** Confirms the folder set in the folder picker, reopened from the toolbar on an open cull. */
-export async function openCull(wrapper: AppWrapper, set = SET, entries = ENTRIES, sharedFolders: readonly string[] = []) {
+export async function openCull(wrapper: AppWrapper, set = SET, entries = ENTRIES, access: ListedAccess = NO_ACCESS) {
 	if (!wrapper.findComponent(FolderPicker).exists()) {
 		wrapper.findComponent(GridToolbar).vm.$emit('changeFolders')
 		await flushPromises()
 	}
-	wrapper.findComponent(FolderPicker).vm.$emit('confirm', set, entries, sharedFolders)
+	wrapper.findComponent(FolderPicker).vm.$emit('confirm', set, entries, access)
 	await flushPromises()
 }
 

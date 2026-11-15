@@ -10,8 +10,7 @@ import { shallowRef } from 'vue'
 import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
-import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SET, stored } from './app-cull.ts'
+import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SET, stored, WRITING_ON } from './app-cull.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
 /** The error the next lookups fail with, reset before each test. */
@@ -25,7 +24,7 @@ afterEach(() => vi.restoreAllMocks())
 async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 	const saved: StoredDecision[][] = []
 	const lookedUp: number[][] = []
-	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
+	const settings = shallowRef<Settings>(WRITING_ON)
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
 		saveVisualHashes: async () => undefined,
@@ -41,7 +40,7 @@ async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 		lookupSeries: NO_SERIES,
 		tags: NO_TAGS,
 	}, fakeStorage(), () => settings.value, NO_SIDECARS)
-	cull.open(SET, entries, [])
+	cull.open(SET, entries)
 	await flushPromises()
 	return { cull, saved, lookedUp, settings, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
 }
@@ -69,7 +68,7 @@ describe('useCull: redo', () => {
 		expect(cull.redo()).toBeNull()
 
 		cull.undo()
-		cull.open(SET, ENTRIES, [])
+		cull.open(SET, ENTRIES)
 		expect(cull.redo()).toBeNull()
 	})
 })
@@ -97,7 +96,7 @@ describe('useCull: toggleFiltersOff', () => {
 		const { cull } = await openedCull()
 		cull.filters.value = filtered
 		cull.toggleFiltersOff()
-		cull.open(SET, ENTRIES, [])
+		cull.open(SET, ENTRIES)
 
 		cull.toggleFiltersOff()
 		expect(cull.filters.value).toEqual(DEFAULT_FILTERS)

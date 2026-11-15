@@ -21,7 +21,7 @@ describe('useCull: warm-up', () => {
 			tags: NO_TAGS,
 		}, fakeStorage(), () => DEFAULT_SETTINGS, { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) })
 
-		cull.open(SET, ENTRIES, [])
+		cull.open(SET, ENTRIES)
 		cull.open(SET, [listingEntry(50, '/A/IMG_50.JPG')], [])
 
 		expect(signals.map((signal) => signal.aborted)).toEqual([true, false])

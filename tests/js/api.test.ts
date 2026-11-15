@@ -29,7 +29,7 @@ describe('listEntries', () => {
 
 		const listing = await listEntries('/Photos', true)
 
-		expect(listing).toEqual({ entries: [ENTRY], truncated: true, sharedFolders: [] })
+		expect(listing).toEqual({ entries: [ENTRY], truncated: true, folders: [], opened: null })
 		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/entries', { params: { path: '/Photos', subfolders: 1 } })
 	})
 
@@ -43,11 +43,26 @@ describe('listEntries', () => {
 	})
 
 	// spec: XMP-003.14
-	it('returns the folders the listing marks shared', async () => {
-		const folders = [{ path: '/Photos/Team', shared: true }, { path: '/Photos', shared: false }]
-		vi.mocked(axios.get).mockResolvedValue({ data: { entries: [ENTRY], truncated: false, folders } })
+	// spec: XMP-008.4
+	it('returns the folders with their access and the opened folder by its file id', async () => {
+		const folders = [{ path: '/Photos/Team', shared: true, permissions: 1, versions: false }, { path: '/Photos', shared: false, permissions: 31, versions: true }]
+		vi.mocked(axios.get).mockResolvedValue({ data: { entries: [ENTRY], truncated: false, folders, fileId: 7 } })
 
-		expect((await listEntries('/Photos', true)).sharedFolders).toEqual(['/Photos/Team'])
+		const listing = await listEntries('/Photos', true)
+
+		expect(listing.folders).toEqual(folders)
+		expect(listing.opened).toEqual({ path: '/Photos', fileId: 7 })
+	})
+
+	// spec: XMP-008.1
+	it('drops a folder item of the wrong shape and an opened folder without a file id', async () => {
+		const folders = [{ path: '/Photos', shared: true }, 'oops', { path: '/Photos/A', shared: false, permissions: 31, versions: true }]
+		vi.mocked(axios.get).mockResolvedValue({ data: { entries: [], truncated: false, folders, fileId: '7' } })
+
+		const listing = await listEntries('/Photos', true)
+
+		expect(listing.folders).toEqual([{ path: '/Photos/A', shared: false, permissions: 31, versions: true }])
+		expect(listing.opened).toBeNull()
 	})
 
 	it.each([

@@ -14,7 +14,7 @@ import UndoToast from '../../src/components/UndoToast.vue'
 import { sidecarDecision } from '../../src/logic/xmp/decision.ts'
 import { readXmp } from '../../src/logic/xmp/parse.ts'
 import { serializeXmp } from '../../src/logic/xmp/serialize.ts'
-import { ENTRIES, mountApp, NO_LEGACY, openCull, SET, stored, toolbarProps } from './app-cull.ts'
+import { ENTRIES, mountApp, NO_LEGACY, openCull, SET, sharedAccess, stored, toolbarProps } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
 import { listingEntry } from './logic/listing-entries.ts'
@@ -47,10 +47,10 @@ async function openWith(options: { lookup: (fileId: number) => SidecarLookupAnsw
 	const storedTags = options.tags ?? []
 	const tags = { lookupTags: async (fileIds: readonly number[]) => storedTags.filter((row) => fileIds.includes(row.fileId)), saveTags: async () => undefined, loadTagList: async () => [] }
 	const legacy = { ...NO_LEGACY, acknowledge: async (fileIds: readonly number[]) => void acknowledged.push([...fileIds]) }
-	const loadSettings = async () => ({ sidecarWrite: options.sidecarWrite ?? 'existing-and-new' })
+	const loadSettings = async () => ({ sidecarWrite: options.sidecarWrite ?? 'on' })
 	const mounted = mountApp({ sidecars, tags, legacy, loadSettings, schedule: fakeScheduler().schedule }, options.decisions ?? [stored(2, 'picked'), stored(4, 'rejected')], { NcDialog: DialogStub })
 	await flushPromises()
-	await openCull(mounted.wrapper, SET, WITH_SIDECARS, options.shared ?? ['/Trip/A'])
+	await openCull(mounted.wrapper, SET, WITH_SIDECARS, sharedAccess(options.shared ?? ['/Trip/A']))
 	return { ...mounted, lookups, saves, acknowledged }
 }
 
@@ -141,12 +141,12 @@ describe('App: migrating the stored decisions and tags to sidecars', () => {
 	})
 
 	// spec: XMP-007.7
-	it.each<SidecarWrite>(['off', 'existing'])('needs new sidecars: with %s it says so and writes nothing', async (sidecarWrite) => {
-		const { wrapper, saves } = await openWith({ lookup: () => read(GOOD), save: saved, sidecarWrite, shared: [] })
+	it('needs writing on: with it off it says so and writes nothing', async () => {
+		const { wrapper, saves } = await openWith({ lookup: () => read(GOOD), save: saved, sidecarWrite: 'off', shared: [] })
 
 		await askToWrite(wrapper)
 		const asked = dialog(wrapper, 'Write decisions to sidecars')
-		expect(asked.text()).toContain('Choose Existing and new sidecars under Write decisions to XMP sidecars in the settings first.')
+		expect(asked.text()).toContain('Turn on Write decisions to XMP sidecars in the settings first.')
 		expect(asked.text()).not.toContain('Every user of a shared folder')
 		expect(button(wrapper, 'Write to sidecars').attributes('disabled')).toBeDefined()
 		await button(wrapper, 'Cancel').trigger('click')

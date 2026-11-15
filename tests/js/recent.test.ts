@@ -26,7 +26,7 @@ const LISTINGS: Record<string, ListingEntry[]> = {
 }
 
 /** The recent folder sets over a fake server whose answers the test gives as functions. */
-function recentOn(positions: () => Promise<unknown>, listEntries = async (path: string) => ({ entries: LISTINGS[path] ?? [], truncated: false, sharedFolders: path === '/Day' ? ['/Day'] : [] })) {
+function recentOn(positions: () => Promise<unknown>, listEntries = async (path: string) => ({ entries: LISTINGS[path] ?? [], truncated: false, folders: [{ path: '/Day', shared: path === '/Day', permissions: 31, versions: true }], opened: { path, fileId: path.length } })) {
 	const opened: unknown[][] = []
 	const toasts: string[] = []
 	const listed: string[] = []
@@ -65,7 +65,7 @@ describe('useRecent', () => {
 		await flushPromises()
 
 		expect(recent.listed).toEqual(['/Trip', '/Day'])
-		expect(recent.opened).toEqual([[TRIP, [...LISTINGS['/Trip']!, ...LISTINGS['/Day']!], ['/Day'], 2]])
+		expect(recent.opened).toEqual([[TRIP, [...LISTINGS['/Trip']!, ...LISTINGS['/Day']!], { folders: [{ path: '/Day', shared: false, permissions: 31, versions: true }], opened: [{ path: '/Trip', fileId: 5 }, { path: '/Day', fileId: 4 }] }, 2]])
 	})
 
 	// spec: DECISIONS-002.8
@@ -82,7 +82,7 @@ describe('useRecent', () => {
 
 	it('opens only the folder set chosen last', async () => {
 		const answers: (() => void)[] = []
-		const recent = recentOn(async () => [], (path) => new Promise((resolve) => answers.push(() => resolve({ entries: LISTINGS[path] ?? [], truncated: false, sharedFolders: [] }))))
+		const recent = recentOn(async () => [], (path) => new Promise((resolve) => answers.push(() => resolve({ entries: LISTINGS[path] ?? [], truncated: false, folders: [], opened: null }))))
 
 		void recent.open(trip)
 		void recent.open(home)
@@ -95,7 +95,7 @@ describe('useRecent', () => {
 	// spec: GRID-001.13
 	it('says it is listing until the folder set chosen last opened', async () => {
 		const answers: (() => void)[] = []
-		const recent = recentOn(async () => [], (path) => new Promise((resolve) => answers.push(() => resolve({ entries: LISTINGS[path] ?? [], truncated: false, sharedFolders: [] }))))
+		const recent = recentOn(async () => [], (path) => new Promise((resolve) => answers.push(() => resolve({ entries: LISTINGS[path] ?? [], truncated: false, folders: [], opened: null }))))
 		expect(recent.listing.value).toBe(false)
 
 		void recent.open(trip)

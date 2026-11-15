@@ -10,9 +10,8 @@ import { computed, defineComponent, h, ref } from 'vue'
 import { provideCullContext } from '../../src/cull-context.ts'
 import { useCull } from '../../src/cull.ts'
 import { useLegacy } from '../../src/legacy.ts'
-import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { useSelectionMode } from '../../src/selection-mode.ts'
-import { ENTRIES, fakeStorage, NO_LEGACY, NO_SERIES, NO_SIDECARS, NO_TAGS, SET } from './app-cull.ts'
+import { ENTRIES, fakeStorage, NO_LEGACY, NO_SERIES, NO_SIDECARS, NO_TAGS, SET, WRITING_ON } from './app-cull.ts'
 
 /** One call of a context action: its name and arguments. */
 export type ContextCall = [name: string, ...args: unknown[]]
@@ -42,8 +41,8 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 		saveDecisions: async () => undefined,
 		lookupSeries: NO_SERIES,
 		tags: NO_TAGS,
-	}, fakeStorage(), () => DEFAULT_SETTINGS, NO_SIDECARS)
-	cull.open(SET, entries, [])
+	}, fakeStorage(), () => WRITING_ON, NO_SIDECARS)
+	cull.open(SET, entries)
 	await flushPromises()
 	const context: CullContext = {
 		cull,

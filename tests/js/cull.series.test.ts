@@ -8,8 +8,7 @@ import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
-import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { fakeStorage, NO_SERIES, NO_TAGS, SET, stored } from './app-cull.ts'
+import { fakeStorage, NO_SERIES, NO_TAGS, SET, stored, WRITING_ON } from './app-cull.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
 afterEach(() => vi.restoreAllMocks())
@@ -25,8 +24,8 @@ function openedCull(entries: readonly ListingEntry[], api: Partial<CullApi> = {}
 		lookupSeries: NO_SERIES,
 		tags: NO_TAGS,
 		...api,
-	}, fakeStorage(), () => DEFAULT_SETTINGS, { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) })
-	cull.open(SET, entries, [])
+	}, fakeStorage(), () => WRITING_ON, { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) })
+	cull.open(SET, entries)
 	return cull
 }
 

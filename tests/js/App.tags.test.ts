@@ -15,7 +15,7 @@ import SeriesCompareFlow from '../../src/components/SeriesCompareFlow.vue'
 import TagEntry from '../../src/components/TagEntry.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
-import { mountApp, openCull, shownNames, toolbarProps } from './app-cull.ts'
+import { mountApp, openCull, sharedAccess, shownNames, toolbarProps } from './app-cull.ts'
 
 /** Presses a key on the page and returns whether the app handled it. */
 async function press(key: string) {
@@ -26,7 +26,7 @@ async function press(key: string) {
 }
 
 /** The app on an open cull of IMG_2, IMG_9 and IMG_10 whose tag saves are recorded. */
-async function openApp(settings: object = {}) {
+async function openApp(settings: object = { sidecarWrite: 'on' }) {
 	const savedTags: StoredTags[][] = []
 	const saveTags = async (rows: StoredTags[]) => {
 		savedTags.push(rows)
@@ -156,7 +156,7 @@ describe('App: tag filter and tile', () => {
 	})
 	// spec: TAGS-004.8, TAGS-004.9
 	it('gives the loupe each picture\'s tags, a tag change at once, and how its sidecars are written', async () => {
-		const { wrapper } = await openApp({ sidecarWrite: 'existing' })
+		const { wrapper } = await openApp()
 		await press('e')
 		const loupe = () => wrapper.findComponent(PhotoLoupe)
 		expect(loupe().props('tagsOf')?.(pictureAt(wrapper, 0))).toEqual([])
@@ -167,25 +167,25 @@ describe('App: tag filter and tile', () => {
 		await flushPromises()
 
 		expect(loupe().props('tagsOf')?.(pictureAt(wrapper, 0))).toEqual(['Sunrise'])
-		expect(loupe().props('sidecarWriting')?.(pictureAt(wrapper, 0))).toBe('existing')
+		expect(loupe().props('writabilityOf')?.(pictureAt(wrapper, 0))).toBe('writable')
 	})
 
 	// spec: TAGS-004.9
 	it('tells the loupe that writing is off by default', async () => {
-		const { wrapper } = await openApp()
+		const { wrapper } = await openApp({})
 		await press('e')
 
-		expect(wrapper.findComponent(PhotoLoupe).props('sidecarWriting')?.(pictureAt(wrapper, 0))).toBe('off')
+		expect(wrapper.findComponent(PhotoLoupe).props('writabilityOf')?.(pictureAt(wrapper, 0))).toBe('off')
 	})
 
 	// spec: TAGS-004.9
 	it('tells the loupe that a picture in a shared folder is not written', async () => {
-		const mounted = mountApp({ tags: { lookupTags: async () => [], saveTags: async () => {}, loadTagList: async () => [] }, loadSettings: async () => ({ sidecarWrite: 'existing-and-new' }) })
-		await openCull(mounted.wrapper, undefined, undefined, ['/Trip/B'])
+		const mounted = mountApp({ tags: { lookupTags: async () => [], saveTags: async () => {}, loadTagList: async () => [] }, loadSettings: async () => ({ sidecarWrite: 'on' }) })
+		await openCull(mounted.wrapper, undefined, undefined, sharedAccess(['/Trip/B']))
 		await press('e')
 
-		const sidecarWriting = mounted.wrapper.findComponent(PhotoLoupe).props('sidecarWriting')
+		const writabilityOf = mounted.wrapper.findComponent(PhotoLoupe).props('writabilityOf')
 
-		expect([0, 1].map((at) => sidecarWriting?.(pictureAt(mounted.wrapper, at)))).toEqual(['shared-folder', 'existing-and-new'])
+		expect([0, 1].map((at) => writabilityOf?.(pictureAt(mounted.wrapper, at)))).toEqual(['shared', 'writable'])
 	})
 })
