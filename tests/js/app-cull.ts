@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { CullSidecars } from '../../src/cull-seams.ts'
 import type { StoredDecision } from '../../src/logic/decision.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
 import type { SidecarSaveItem } from '../../src/logic/sidecar-sync.ts'
@@ -86,6 +87,9 @@ export function provideSkipActions() {
 /** A series lookup with nothing stored. */
 export const NO_SERIES = async () => ({ series: [], keptOut: [] })
 
+/** Sidecars with nothing to take over, written without a word. */
+export const NO_SIDECARS: CullSidecars = { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) }
+
 /** Tag endpoints that store nothing. */
 export const NO_TAGS = { lookupTags: async () => [], saveTags: async () => undefined, loadTagList: async () => [] }
 
@@ -143,6 +147,12 @@ export async function openCull(wrapper: AppWrapper, set = SET, entries = ENTRIES
 	}
 	wrapper.findComponent(FolderPicker).vm.$emit('confirm', set, entries, sharedFolders)
 	await flushPromises()
+}
+
+/** The toolbar's groups flattened into one object, as the tests read them. */
+export function toolbarProps(wrapper: AppWrapper) {
+	const { folders, view, progress, selection, tasks } = wrapper.findComponent(GridToolbar).props()
+	return { folderSet: folders.set, folders: folders.count, ...view, ...progress, ...selection, ...tasks }
 }
 
 /** The mounted app. */

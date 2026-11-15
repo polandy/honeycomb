@@ -14,7 +14,7 @@ import SeriesViewer from '../../src/components/SeriesViewer.vue'
 import ShortcutSheet from '../../src/components/ShortcutSheet.vue'
 import SimilarityStrip from '../../src/components/SimilarityStrip.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
-import { mountApp, openCull, SET } from './app-cull.ts'
+import { mountApp, openCull, SET, toolbarProps } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
@@ -55,7 +55,7 @@ describe('App: series compare', () => {
 	it('counts the series on the toolbar and opens the compare from it', async () => {
 		const { wrapper } = await openApp()
 		const toolbar = wrapper.findComponent(GridToolbar)
-		expect(toolbar.props('series')).toBe(2)
+		expect(toolbarProps(wrapper).series).toBe(2)
 
 		toolbar.vm.$emit('compareSeries')
 		await flushPromises()

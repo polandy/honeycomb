@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { serializeXmp } from '../../src/logic/xmp/serialize.ts'
-import { ENTRIES, mountApp, openCull, SET, stored } from './app-cull.ts'
+import { ENTRIES, mountApp, openCull, SET, stored, toolbarProps } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
 import { listingEntry } from './logic/listing-entries.ts'
@@ -57,7 +57,7 @@ describe('App: writing decisions to sidecars in a shared folder', () => {
 	// spec: XMP-003.11, XMP-003.12
 	it('writes nothing on its own, asks first and writes the decided photos on confirm', async () => {
 		const { wrapper, saves } = await openShared(() => read(GOOD), saved)
-		expect(wrapper.findComponent(GridToolbar).props('sidecarsShared')).toBe(true)
+		expect(toolbarProps(wrapper).sidecarsShared).toBe(true)
 		expect(saves).toEqual([])
 
 		await askToWrite(wrapper)
@@ -84,7 +84,7 @@ describe('App: writing decisions to sidecars in a shared folder', () => {
 		expect(saves).toEqual([])
 
 		await openCull(wrapper, SET, WITH_SIDECARS, [])
-		expect(wrapper.findComponent(GridToolbar).props('sidecarsShared')).toBe(false)
+		expect(toolbarProps(wrapper).sidecarsShared).toBe(false)
 	})
 
 	// spec: XMP-003.13
