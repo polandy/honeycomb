@@ -13,6 +13,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
@@ -47,6 +48,7 @@ final class TagController extends Controller {
 	/** Replaces the user's tags on the files with the whole lists given (ADR 0022). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/tags')]
+	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
 	public function save(array $tags = []): Response {
 		$user = $this->userSession->getUser();
 		if ($user === null) {

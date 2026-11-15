@@ -15,6 +15,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -49,6 +50,7 @@ final class MoveController extends Controller {
 	/** Moves each picture's files to their new paths and reports every file (ADR 0018). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'POST', url: '/api/v1/move')]
+	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
 	public function move(array $pictures = []): JSONResponse {
 		$user = $this->userSession->getUser();
 		if ($user === null) {

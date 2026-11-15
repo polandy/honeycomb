@@ -19,6 +19,8 @@ continues on any device and each user of a shared folder keeps their own.
   `rejected`, `unflagged`) and `keepRaw`, one row per member file id. A row back at the default is
   removed.
 - `400` for a malformed body; one malformed item writes nothing. `401` without a user.
+- A save writes only the file ids the user reaches as a photo; any other id is skipped, its row
+  neither written nor removed (ADR 0031). Saves are rate limited per user (APP-001.9).
 - The client reads the decisions of every member after the listing and merges them into the
   picture's decision; a failed lookup is logged and every picture counts as undecided.
 - The client sends the saves of one tab one at a time: changes made while a save is in flight
@@ -155,6 +157,13 @@ continues on any device and each user of a shared folder keeps their own.
 - **Then** the error is logged, the other tables are cleaned, and the next run goes on after the
   last chunk that was finished
 
+### DECISIONS-001.19 – A file the user does not reach
+
+- **Given** a save naming a file id that is not in the user's files, or not a photo
+- **When** it is stored
+- **Then** the user's photos in it are stored, nothing is written for that id, and a save of no
+  such photo writes nothing
+
 ## Out of scope
 
 Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XMP sidecars (M5).
@@ -169,3 +178,4 @@ Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XM
 | 2026-11-14 | A tab sends one save at a time, the newest state per file (DECISIONS-001.14, .15) |
 | 2026-11-14 | A deadlock or lock wait timeout is repeated like a unique-key conflict (DECISIONS-001.13) |
 | 2026-11-14 | The clean-up job pages by row id without joining the file cache (DECISIONS-001.16–.18) |
+| 2026-11-15 | A save skips file ids that are not the user's photos (DECISIONS-001.19, ADR 0031, risk review R10) |

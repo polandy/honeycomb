@@ -13,6 +13,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -46,6 +47,7 @@ final class SeriesController extends Controller {
 	/** Writes the whole states of the series, kept-out and released files given (ADR 0027). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/series')]
+	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
 	public function save(array $series = [], array $keptOut = [], array $released = []): JSONResponse {
 		$user = $this->userSession->getUser();
 		if ($user === null) {

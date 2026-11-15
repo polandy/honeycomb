@@ -1176,3 +1176,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   delete (too late) or the trash manager (no public API). Team folders and local External
   Storage are proven in e2e with a pinned Team folders 23.0.1 release; the summaries' note now
   names retention and space and advises a backup.
+- 2026-11-15: Decision and tag saves skip file ids the user does not reach as a photo instead of
+  refusing the save, as the series and visual hash saves do, so one vanished file never fails the
+  rest; every write route is limited to 600 requests a minute per user, one shared limit far above
+  a person culling, the visual hash save keeps 300 (ADR 0031, risk review R10). Preview warming is
+  not limited: it reads and renders cached previews, 16 file ids a request.

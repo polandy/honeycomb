@@ -25,6 +25,10 @@ or closes it with Nextcloud's toggle, the app keeps that choice in the browser a
 on every width. Below 1024 px Nextcloud shows the navigation over the page and closes it itself;
 there the app neither applies nor remembers a choice.
 
+Every route that writes is limited to 600 requests a minute per user, the visual hash save to
+300 (SERIES-003.23); Nextcloud answers a request beyond the limit `429` without running it
+(ADR 0031). The routes that only read are not limited.
+
 ## Acceptance criteria
 
 ### APP-001.1 – The navigation opens the app page
@@ -81,6 +85,12 @@ there the app neither applies nor remembers a choice.
 - **Then** the navigation starts as the user left it, at any width from 1024 px on; a choice made
   below 1024 px is not remembered
 
+### APP-001.9 – Every write route is limited per user
+
+- **Given** a route that writes: a save, the move or the trash
+- **When** one user sends it more than 600 times within a minute (300 for the visual hash save)
+- **Then** Nextcloud answers the further requests `429` and runs none of them
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -93,3 +103,4 @@ there the app neither applies nor remembers a choice.
 | 2026-11-10 | Written from the merged code of #31 and #39 (ADR 0015) |
 | 2026-11-10 | A confirm dialog is a bottom sheet on a phone (APP-001.6) |
 | 2026-11-13 | The navigation starts closed below 1280 px and remembers the user's choice (APP-001.7, APP-001.8; UX L3) |
+| 2026-11-15 | Every write route is rate limited per user (APP-001.9, ADR 0031, risk review R10) |

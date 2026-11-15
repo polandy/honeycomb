@@ -13,6 +13,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -42,6 +43,7 @@ final class SettingsController extends Controller {
 	/** Stores the user's whole settings object (ADR 0014). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/settings')]
+	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
 	public function save(mixed $settings = null): JSONResponse {
 		$user = $this->userSession->getUser();
 		if ($user === null) {

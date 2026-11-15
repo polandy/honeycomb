@@ -13,6 +13,7 @@ use OCP\IUser;
 final class DecisionService {
 	public function __construct(
 		private DecisionStore $store,
+		private UserPhotos $photos,
 	) {
 	}
 
@@ -28,14 +29,18 @@ final class DecisionService {
 	}
 
 	/**
-	 * Replaces the user's decisions with the whole states in `$items`, all or nothing.
+	 * Replaces the user's decisions with the whole states in `$items`, all or nothing, skipping file ids that are not the user's photos.
 	 * @param array<array-key, mixed> $items
 	 * @throws InvalidDecisionException for a malformed item or a file id given twice
 	 */
 	public function save(IUser $user, array $items): void {
 		$decisions = array_map(PictureDecision::fromRequest(...), FileIds::items($items, ListingService::ENTRY_LIMIT, InvalidDecisionException::class));
-		$fileIds = FileIds::eachOnce(array_map(static fn (PictureDecision $decision): int => $decision->fileId, $decisions), InvalidDecisionException::class);
-		$stored = array_values(array_filter($decisions, static fn (PictureDecision $decision): bool => !$decision->isDefault()));
+		$fileIds = $this->photos->photos($user, FileIds::eachOnce(array_map(static fn (PictureDecision $decision): int => $decision->fileId, $decisions), InvalidDecisionException::class));
+		if ($fileIds === []) {
+			return;
+		}
+		$isPhoto = array_flip($fileIds);
+		$stored = array_values(array_filter($decisions, static fn (PictureDecision $decision): bool => isset($isPhoto[$decision->fileId]) && !$decision->isDefault()));
 		RetryOnConflict::run(fn () => $this->store->replace($user->getUID(), $fileIds, $stored));
 	}
 }

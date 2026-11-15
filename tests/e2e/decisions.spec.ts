@@ -3,7 +3,8 @@
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
-import { requestToken } from './files.ts'
+import { randomUUID } from 'node:crypto'
+import { createFolder, JPEG, requestToken, upload } from './files.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
 const RECENT_LIMIT = 20
@@ -13,20 +14,24 @@ async function send(page: Page, method: 'GET' | 'POST' | 'PUT', path: string, da
 	return page.request.fetch(`${API}${path}`, { method, data, headers: { requesttoken: await requestToken(page) } })
 }
 
-// spec: DECISIONS-001.1, DECISIONS-001.2, DECISIONS-001.3
+// spec: DECISIONS-001.1, DECISIONS-001.2, DECISIONS-001.3, DECISIONS-001.19
 test('stores, overwrites and clears decisions per file id', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
-	const picked = { fileId: 900_001, rating: 4, colourLabel: 'green', flag: 'picked', keepRaw: true }
-	const rejected = { fileId: 900_002, rating: 0, colourLabel: null, flag: 'rejected', keepRaw: false }
+	const folder = `Decisions ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	const [first, second] = [await upload(page, `${folder}/A.JPG`, JPEG), await upload(page, `${folder}/B.JPG`, JPEG)]
+	const picked = { fileId: first, rating: 4, colourLabel: 'green', flag: 'picked', keepRaw: true }
+	const rejected = { fileId: second, rating: 0, colourLabel: null, flag: 'rejected', keepRaw: false }
+	const unreachable = { ...picked, fileId: 900_001 }
 
-	expect((await send(page, 'PUT', '/decisions', { decisions: [picked, rejected] })).status()).toBe(204)
-	const stored = await send(page, 'POST', '/decisions/lookup', { fileIds: [900_001, 900_002, 900_003] })
+	expect((await send(page, 'PUT', '/decisions', { decisions: [picked, rejected, unreachable] })).status()).toBe(204)
+	const stored = await send(page, 'POST', '/decisions/lookup', { fileIds: [first, second, 900_001] })
 	expect(stored.status()).toBe(200)
 	expect(await stored.json()).toEqual({ decisions: [picked, rejected] })
 
 	const unflagged = { ...rejected, flag: 'unflagged' }
 	expect((await send(page, 'PUT', '/decisions', { decisions: [{ ...picked, rating: 2 }, unflagged] })).status()).toBe(204)
-	const overwritten = await send(page, 'POST', '/decisions/lookup', { fileIds: [900_001, 900_002] })
+	const overwritten = await send(page, 'POST', '/decisions/lookup', { fileIds: [first, second] })
 	expect(await overwritten.json()).toEqual({ decisions: [{ ...picked, rating: 2 }] })
 })
 
