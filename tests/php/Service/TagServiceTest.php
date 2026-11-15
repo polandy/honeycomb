@@ -138,6 +138,7 @@ final class TagServiceTest extends TestCase {
 
 		$this->assertSame(0, $this->store->replaceCalls);
 	}
+
 	/** @return array<string, array{array<array-key, mixed>}> */
 	public static function malformedFileIds(): array {
 		return [

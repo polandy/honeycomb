@@ -42,7 +42,7 @@ The options for the limit:
   request beyond the limit `429` without running it.
 - **Not limited:** the routes that only read, the lookups, the probe of move targets, and the
   preview warming, which renders previews Nextcloud caches and runs several requests at once; its
-  load is bounded by its 100 file ids a request.
+  load is bounded by its 16 file ids a request.
 - **Client:** a limited save is a failed save as before: logged, and put back as DECISIONS-001.15
   describes. No honest client sends enough to reach it, so the client does not wait and retry.
 - A test reads the attributes of every routed method that is not `GET`, so a new write route
