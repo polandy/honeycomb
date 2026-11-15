@@ -60,7 +60,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		try {
 			embedded = await answersById(embeddedIds, api.lookupEmbeddedXmp)
 		} catch (error) {
-			logger.warn('Could not look up the embedded XMP; its pictures take no tags over', { error })
+			logger.warn('Could not look up the embedded XMP; its pictures take no tags over and decide without it', { error })
 		}
 		const { decided, warnings } = takeOverDecisions(lookups, answers, embedded)
 		warnings.forEach((warning) => logger.warn('Could not take over the decision of a sidecar', warning))
