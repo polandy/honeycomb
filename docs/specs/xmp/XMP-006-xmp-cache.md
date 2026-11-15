@@ -80,7 +80,7 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 - **Then** the first removes only alice's rows and names the count, the second the rest; an
   unknown user fails with a message and removes nothing
 
-### XMP-006.7 – A stale row is read again
+### XMP-006.7 – A stale row is read again (gap)
 
 - **Given** a cache row whose `etag` differs from the listed ETag, one with an older `reader`, and
   one valid row
