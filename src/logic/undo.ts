@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Decided, DecisionChange } from './decision-change.ts'
 import type { StoredDecision } from './decision.ts'
+import type { SeriesChange, SeriesEdit } from './series-edit.ts'
 import type { Tag, TagChange } from './tag.ts'
 
 import { changedRows } from './decision-change.ts'
@@ -15,6 +16,7 @@ export interface StepChanges {
 	readonly decision: { readonly change: DecisionChange }
 	readonly pickRest: { readonly picked: string }
 	readonly tags: { readonly change: TagChange }
+	readonly series: { readonly edit: SeriesEdit, readonly series: number }
 }
 
 /** The kinds of undo step. */
@@ -38,14 +40,18 @@ export type PickRestStep = DescribedStep<'pickRest'> & DecisionRows
 /** One tag change as an undo step: the change and the pictures it altered (TAGS-003.10). */
 export type TagStep<P> = DescribedStep<'tags'> & { readonly pictures: readonly P[] }
 
+/** One series edit as an undo step: the rows it wrote and replaced (SERIES-005). */
+export type SeriesStep = DescribedStep<'series'> & SeriesChange
+
 /** One step of the undo history, tagged by its kind. */
-export type UndoStep<P> = DecisionStep | PickRestStep | TagStep<P>
+export type UndoStep<P> = DecisionStep | PickRestStep | TagStep<P> | SeriesStep
 
 /** The undo step of each kind. */
 interface StepsByKind<P> {
 	readonly decision: DecisionStep
 	readonly pickRest: PickRestStep
 	readonly tags: TagStep<P>
+	readonly series: SeriesStep
 }
 
 /** What puts each kind of step into effect, or takes it back when `back`. */
@@ -85,6 +91,11 @@ function rowsOf(changes: readonly { decided: Decided, change: DecisionChange }[]
 export function tagStep<P extends { baseName: string }>(pictures: readonly P[], tagsOf: (picture: P) => readonly Tag[], change: TagChange): TagStep<P> | null {
 	const altered = pictures.filter((picture) => !sameTags(changedTags(tagsOf(picture), change), tagsOf(picture)))
 	return altered.length === 0 ? null : { kind: 'tags', change, names: altered.map((picture) => picture.baseName), pictures: altered }
+}
+
+/** The undo step of a series edit to the pictures, in as many series. */
+export function seriesStep(edit: SeriesEdit, pictures: readonly { readonly baseName: string }[], change: SeriesChange, series: number): SeriesStep {
+	return { kind: 'series', edit, names: pictures.map((picture) => picture.baseName), series, ...change }
 }
 
 /** The history with the entry added last, keeping the most recent UNDO_LIMIT steps. */

@@ -10,7 +10,7 @@ import { shallowRef } from 'vue'
 import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
-import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SET, stored, WRITING_ON } from './app-cull.ts'
+import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET, stored, WRITING_ON } from './app-cull.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
 /** The error the next lookups fail with, reset before each test. */
@@ -28,6 +28,7 @@ async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
 		saveVisualHashes: async () => undefined,
+		wait: async () => {},
 		warmPreviews: async () => undefined,
 		lookupDecisions: async (fileIds) => {
 			lookedUp.push([...fileIds])
@@ -38,6 +39,7 @@ async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 		},
 		saveDecisions: async (rows) => { saved.push([...rows]) },
 		lookupSeries: NO_SERIES,
+		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,
 	}, fakeStorage(), () => settings.value, NO_SIDECARS, () => undefined)
 	cull.open(SET, entries)

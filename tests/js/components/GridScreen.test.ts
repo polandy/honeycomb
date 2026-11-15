@@ -92,8 +92,19 @@ describe('GridScreen', () => {
 		bar.vm.$emit('tag')
 		bar.vm.$emit('move')
 		bar.vm.$emit('delete')
+		bar.vm.$emit('series', 'new')
 
-		expect(calls).toEqual([['decide', { kind: 'flag', flag: 'picked' }, chosen], ['tag', chosen], ['move', chosen], ['summarise', chosen]])
+		expect(calls).toEqual([['decide', { kind: 'flag', flag: 'picked' }, chosen], ['tag', chosen], ['move', chosen], ['summarise', chosen], ['editSeries', 'new', chosen]])
+	})
+
+	// spec: SERIES-005.4
+	it('offers the selection bar\'s series menu what the selection touches', async () => {
+		const { wrapper, context } = await mountScreen(({ context }) => {
+			context.selection.setSelecting(true)
+			context.selection.selectAll()
+		})
+
+		expect(wrapper.findComponent(SelectionBar).props('seriesOffer')).toEqual({ selected: context.cull.view.value, touched: [], inSeries: [], loose: context.cull.view.value })
 	})
 
 	it.each([

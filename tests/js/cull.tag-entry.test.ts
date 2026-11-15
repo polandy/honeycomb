@@ -7,7 +7,7 @@ import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
-import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, SET, WRITING_ON } from './app-cull.ts'
+import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, SAVED_SERIES, SET, WRITING_ON } from './app-cull.ts'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -18,10 +18,12 @@ async function taggedCull(stored: StoredTags[], tagList: () => Promise<Tag[]> = 
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
 		saveVisualHashes: async () => undefined,
+		wait: async () => {},
 		warmPreviews: async () => undefined,
 		lookupDecisions: async () => [],
 		saveDecisions: async () => undefined,
 		lookupSeries: NO_SERIES,
+		saveSeries: SAVED_SERIES,
 		tags: {
 			lookupTags: async (fileIds) => stored.filter((row) => fileIds.includes(row.fileId)),
 			saveTags: async (rows) => {

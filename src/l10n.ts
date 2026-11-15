@@ -24,6 +24,11 @@ export function formatFileSize(bytes: number): string {
 	return new Intl.NumberFormat(getCanonicalLocale(), { style: 'unit', unit, maximumFractionDigits: 1 }).format(value)
 }
 
+/** A Unix time in seconds as a time of day with seconds in the user's locale. */
+export function formatTime(seconds: number): string {
+	return new Intl.DateTimeFormat(getCanonicalLocale(), { timeStyle: 'medium' }).format(seconds * 1000)
+}
+
 /** A Unix time in seconds as a date and time in the user's locale. */
 export function formatDateTime(seconds: number): string {
 	return new Intl.DateTimeFormat(getCanonicalLocale(), { dateStyle: 'medium', timeStyle: 'short' }).format(seconds * 1000)

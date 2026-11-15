@@ -20,9 +20,9 @@ import CullDialogs from './components/CullDialogs.vue'
 import FolderPicker from './components/FolderPicker.vue'
 import GridScreen from './components/GridScreen.vue'
 import GridSkeleton from './components/GridSkeleton.vue'
+import LoupeScreen from './components/LoupeScreen.vue'
 import NoFolderState from './components/NoFolderState.vue'
-import PhotoLoupe from './components/PhotoLoupe.vue'
-import SeriesCompareFlow from './components/SeriesCompareFlow.vue'
+import SeriesCompareScreen from './components/SeriesCompareScreen.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutSheet from './components/ShortcutSheet.vue'
 import TagEntry from './components/TagEntry.vue'
@@ -36,6 +36,7 @@ import { useDeleteFlow } from './delete-flow.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
 import { useLegacy } from './legacy.ts'
+import { waitSeconds } from './logic/retry-after.ts'
 import { useLoupeOpening } from './loupe-opening.ts'
 import { useMoveFlow } from './move-flow.ts'
 import { useRecent } from './recent.ts'
@@ -61,7 +62,7 @@ const sidecarsReady = computed(() => settings.value.sidecarWrite === 'on')
 const legacy = useLegacy(props.legacy, props.saveFile, (message) => toast.show(message), () => sidecarsReady.value)
 const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, refuseFailed, legacy.acknowledge)
 const writeLock = useWriteLock(() => settings.value, updateSettings, toast.show, retryLocked)
-const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions, lookupSeries: props.lookupSeries, tags: props.tags }, props.storage, () => settings.value, sidecarFlow.sync, writeLock.locked)
+const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, wait: waitSeconds(props.schedule), warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions, lookupSeries: props.lookupSeries, saveSeries: props.saveSeries, tags: props.tags }, props.storage, () => settings.value, sidecarFlow.sync, writeLock.locked)
 /** Locks the pictures whose sidecar a write refused (XMP-008.6). */
 function refuseFailed(failed: readonly SidecarFailure[]) {
 	cull.refuse(failed)
@@ -69,8 +70,9 @@ function refuseFailed(failed: readonly SidecarFailure[]) {
 const { folderSet, pictures, folders, view, progress, filtersOpen, pickerOpen, tileSize } = cull
 const gridScreen = useTemplateRef<InstanceType<typeof GridScreen>>('gridScreen')
 const grid = computed(() => gridScreen.value?.grid ?? null)
-const { loupe, shown: loupeShown, picture: shownInLoupe, page: pageLoupe, land: landInLoupe, close: closeLoupe } = useLoupeOpening((index) => grid.value?.reveal(index), cull.passes)
-const loupeView = useTemplateRef<InstanceType<typeof PhotoLoupe>>('loupeView')
+const loupeOpening = useLoupeOpening((index) => grid.value?.reveal(index), cull.passes)
+const { loupe, picture: shownInLoupe, land: landInLoupe } = loupeOpening
+const loupeScreen = useTemplateRef<InstanceType<typeof LoupeScreen>>('loupeScreen')
 const headerShown = ref(true)
 /** Opens the loupe on the shown picture at the index. */
 const openLoupe = (index: number) => (loupe.value = { pictures: view.value, index })
@@ -79,19 +81,19 @@ const selection = useSelectionMode(() => view.value, pictures)
 const { selected } = selection
 watch(cull.pairing, selection.selectNone)
 
-const { decide, pickRest, tag, undo, redo, toastChange } = useToastedDecisions(cull, toast.show)
+const { decide, pickRest, tag, removeFromSeries, dissolveSeries, mergeSeries, editSelection, undo, redo, toastChange } = useToastedDecisions(cull, toast.show)
 /** Toasts a step taken once its lock was lifted (XMP-008.7). */
 function retryLocked(step: CullStep | null) {
 	toastChange(step)
 }
 const tagEntry = useTagEntryTargets()
-const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: decideInCompare, pickRest, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })
+const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: decideInCompare, pickRest, removeFromSeries, dissolve: dissolveSeries, everySeries: () => cull.everySeries.value, merge: mergeSeries, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })
 const restOffer = useRestOffer({ seriesOf: () => cull.seriesOf.value, decisionOf: cull.decisionOf, compare: seriesCompare, shown: shownInLoupe, land: landInLoupe })
 /** Decides in the series compare, offering *Reject the other N* after a Pick in its viewer. */
 function decideInCompare(intent: DecisionIntent, picture: Picture<ListingEntry>, inViewer: boolean) {
 	decide(intent, [picture], () => (inViewer ? restOffer(intent, picture) : null))
 }
-const seriesFlow = useTemplateRef<InstanceType<typeof SeriesCompareFlow>>('seriesFlow')
+const seriesScreen = useTemplateRef<InstanceType<typeof SeriesCompareScreen>>('seriesScreen')
 const overlayScreen = computed(() => (loupe.value !== null ? '.photo-loupe' : seriesCompare.viewer.open.value ? '.series-viewer' : undefined))
 const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
 const { dialog: deleteDialog } = deleting
@@ -110,7 +112,7 @@ watch(pickerOpen, (open) => open && recent.refresh())
 
 const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => gridScreen.value?.filterBar?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
 
-provideCullContext({ cull, selection, decide, deleting, moving, resume, seriesCompare, sidecars: sidecarFlow, legacy, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true) })
+provideCullContext({ cull, selection, decide, editSeries: editSelection, deleting, moving, resume, seriesCompare, sidecars: sidecarFlow, legacy, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage })
 
 /** Opens the confirmed folder set and offers its resume position. */
 function openFolderSet(...opened: Parameters<typeof cull.open>) {
@@ -127,9 +129,9 @@ useHotkeys(() => {
 		return { shortcuts: toggleShortcuts }
 	}
 	if (seriesCompare.open.value) {
-		return { undo, redo, shortcuts: toggleShortcuts, ...(seriesFlow.value?.hotkeys() ?? seriesCompare.hotkeys) }
+		return { undo, redo, shortcuts: toggleShortcuts, ...(seriesScreen.value?.hotkeys() ?? seriesCompare.hotkeys) }
 	}
-	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: () => deleting.summariseShown(selected.value, () => grid.value?.focusedIndex() ?? 0), move: () => moving.openShown(selected.value, () => grid.value?.focusedIndex() ?? 0), ...(loupe.value === null ? { ...gridKeys, compare: seriesCompare.start } : loupeView.value?.hotkeys) }
+	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: () => deleting.summariseShown(selected.value, () => grid.value?.focusedIndex() ?? 0), move: () => moving.openShown(selected.value, () => grid.value?.focusedIndex() ?? 0), ...(loupe.value === null ? { ...gridKeys, compare: seriesCompare.start } : loupeScreen.value?.loupe?.hotkeys) }
 }, () => settings.value.viKeys)
 </script>
 
@@ -166,12 +168,7 @@ useHotkeys(() => {
 				:decisionOf="cull.decisionOf"
 				:listFolders="props.listFolders"
 				:container="loupe !== null ? '.photo-loupe' : undefined" />
-			<SeriesCompareFlow
-				ref="seriesFlow"
-				:flow="seriesCompare"
-				:container="seriesCompare.oneSeries.value ? '.photo-loupe' : 'body'"
-				:decisionOf="cull.decisionOf"
-				@tag="tagEntry.open([$event])" />
+			<SeriesCompareScreen ref="seriesScreen" />
 			<SettingsDialog
 				v-model:open="settingsOpen"
 				:settings="settings"
@@ -189,29 +186,7 @@ useHotkeys(() => {
 				@cancel="writeLock.cancel"
 				@confirm="writeLock.confirm" />
 			<Teleport to="body">
-				<PhotoLoupe
-					v-if="loupeShown !== null && folderSet !== null"
-					ref="loupeView"
-					:index="loupeShown.index"
-					:pictures="loupeShown.pictures"
-					:folderSet="folderSet"
-					:decisionOf="cull.decisionOf"
-					:seriesOf="cull.seriesOf.value"
-					:tagsOf="cull.tags.tagsOf"
-					:writabilityOf="cull.writabilityOf"
-					:storage="props.storage"
-					:viewState="viewState"
-					:settings="settings"
-					@update:index="pageLoupe"
-					@updateSettings="updateSettings"
-					@decide="(intent, picture) => decide(intent, [picture], () => restOffer(intent, picture))"
-					@toast="toast.show($event.message, $event.action)"
-					@allDecided="deleting.allDecided"
-					@move="moving.openShown([], () => 0)"
-					@tag="tagEntry.open([$event])"
-					@compareSeries="(series, picture) => seriesCompare.startOn(series, picture, landInLoupe)"
-					@pickRest="(series, picture) => seriesCompare.pickRestAndLand(series, picture, landInLoupe)"
-					@close="closeLoupe" />
+				<LoupeScreen ref="loupeScreen" />
 				<TagEntry
 					v-if="tagEntry.targets.value !== null"
 					:targets="tagEntry.targets.value.map(cull.tags.tagsOf)"

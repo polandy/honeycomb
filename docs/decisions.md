@@ -1284,3 +1284,56 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   showed it.
 - 2026-11-15: The cull reading through the XMP cache (XMP-006.7) is split from sidecar PR 6 into
   its own PR.
+- 2026-11-15: The loupe reads the cull from the context (ADR 0028, review R8b) through a new
+  screen root `LoupeScreen`, not by `PhotoLoupe` injecting it: `PhotoLoupe` keeps its props, so
+  its eight test files mount it unchanged, and only the screen root injects, as for the grid.
+- 2026-11-15: The series compare and its viewer read the cull from the context (ADR 0028, review
+  R8c) through `SeriesCompareFlow`, renamed `SeriesCompareScreen` like the other screen roots; the
+  context holds the compare flow whole instead of a `Pick` of nearly all its members.
+- 2026-11-15: Review R12 is split in two PRs. a) the pool starts its workers when needed and
+  survives a crash, and the similarity page takes it from `browserHashWorkers()`; b) the cull
+  hashes in the same pool, its saves wait on a `429` like the run's (ADR 0026), with the tile
+  order kept and hashing still behind the tile loads. The cull's `429` belongs to b, as the cull
+  page's save path changes only there.
+- 2026-11-15: The cull hashes in the worker pool one picture at a time, not as many as the pool
+  holds (review R12 b): one hash beside the six tile loads keeps the tiles first without coupling
+  the hashing to the grid's load queue; the main thread no longer draws previews. A save the
+  server limits waits silently in the cull: the strip shows the hash progress, not the save.
+- 2026-11-15: A new series gets a local id below 0 until the series write answers its real id;
+  later writes, undo and redo then use the answered id, also when the server replaced a vanished
+  one (#185 PR 3).
+- 2026-11-15: Removing a photo from an automatic series stores the other shown members as an
+  open series, even when only one is left, so nothing regroups behind the user's back (#185 PR 3).
+- 2026-11-15: *Dissolve this series* keeps out every member the browser knows of a stored
+  series, hidden (rejected) ones too; of an automatic series, the shown members (#185 PR 3).
+- 2026-11-15: Opened from the loupe, *Dissolve this series* closes the compare on the active
+  photo; *Remove from this series* follows the series that is left (#185 PR 3).
+- 2026-11-15: A failed series save is logged and puts the rows back per file, as decisions do;
+  no grid notice, and no rate-limit wait, as the series write has no rate limit (#185 PR 3).
+- 2026-11-15: The compare's menus are `NcActions` with a caption and second lines; the title
+  row's menu sits in a row above the cards, as `NcDialog` has no header slot. It holds only
+  *Dissolve this series* until merge and *Series done* come (PR 5, PR 6) (#185 PR 3).
+- 2026-11-15: Escape in an open menu of the compare closes only the menu: the dialog takes
+  `noClose` while a menu is open, counted per menu and reset when the series changes, as NcModal
+  closes on any Escape while it tops the focus trap stack and a menu adds no trap (#185 PR 3).
+- 2026-11-15: The grid's *Series…* button sits in the decisions row after *Tags*, not in the
+  phone's first row, which GRID-003.14 keeps to the flags, *Move* and *Delete*; the bar's one-row
+  threshold rises from 960 px to 1040 px to make room for it. On an iPad mini in portrait it may
+  wrap to a row of its own rather than shrink to an icon, so its name stays readable (#185 PR 4).
+- 2026-11-15: The *Series…* menu always shows three entries; *Merge* takes *Add*'s place when the
+  selection touches two series or more, and an entry that does not fit is disabled with its
+  reason, as the mockup shows (#185 PR 4).
+- 2026-11-15: A merge from the grid keeps the id of the first stored series it touches, brings
+  along that series' members outside the folder set, and is done only when every merged series was
+  and no loose photo joined (SERIES-005.9, .16) (#185 PR 4).
+- 2026-11-15: When a grid edit takes photos out of an automatic series, its other shown members are
+  stored as a series even when only one is left, as the compare's *Remove* does (#185 PR 4).
+- 2026-11-15: *Merge with the next* / *previous series* in the compare takes its neighbour among
+  every series of the folder set with two shown pictures or more, decided ones too, not only those
+  the compare offers, so a burst whose second half is decided can still be joined; opened from the
+  loupe, likewise (SERIES-005.8) (#185 PR 5).
+- 2026-11-15: The merge entry's second line reads "⧉ 3 · starts 14:03:40" (time of day with
+  seconds, in the user's locale) without the mockup's "Series 2", as a decided neighbour has no
+  number in the compare (#185 PR 5).
+- 2026-11-15: After a merge in the compare, it shows the merged series with the same photo active;
+  the merged series keeps the id of the earlier stored series, as a grid merge does (#185 PR 5).

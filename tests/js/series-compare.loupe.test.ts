@@ -95,4 +95,37 @@ describe('useSeriesCompare: opened from the loupe', () => {
 		compare.close()
 		expect(landings).toEqual(['on C'])
 	})
+
+	// spec: SERIES-005.10
+	it('removes a picture from the one series it holds and closes once one picture is left', () => {
+		const { compare, calls, shown, shot, landings } = fromLoupe(['C', 'D', 'E'], 'D')
+		compare.removeFromSeries()
+
+		expect(calls).toEqual(['remove D from C D E'])
+		expect(shown()).toEqual(['C', 'E'])
+		compare.removeFromSeries(shot('C'))
+		expect(compare.open.value).toBe(false)
+		expect(landings).toEqual([])
+	})
+
+	// spec: SERIES-005.13
+	it('closes on dissolving its series and lands on the active picture', () => {
+		const { compare, calls, landings } = fromLoupe(['C', 'D', 'E'], 'E')
+		compare.dissolve()
+
+		expect(calls).toEqual(['dissolve C D E'])
+		expect(compare.open.value).toBe(false)
+		expect(landings).toEqual(['on E'])
+	})
+
+	// spec: SERIES-005.8
+	it('merges its one series with the series before it and holds the merged series', () => {
+		const { compare, calls, shown } = fromLoupe(['C', 'D'], 'D', ['A', 'B'])
+
+		expect(compare.neighbours.value.next).toBeNull()
+		compare.merge('previous')
+		expect(calls).toEqual(['merge A B + C D'])
+		expect(shown()).toEqual(['A', 'B', 'C', 'D'])
+		expect([compare.oneSeries.value, compare.count.value, compare.active.value]).toEqual([true, 1, 3])
+	})
 })

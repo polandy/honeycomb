@@ -219,4 +219,35 @@ describe('App: series compare', () => {
 		const sizes = wrapper.findComponent(PhotoGrid).props('seriesSizes') as ReadonlyMap<{ baseName: string }, number>
 		expect([...sizes].map(([picture, size]) => `${picture.baseName} ${size}`)).toEqual(['IMG_1 2', 'IMG_2 2', 'IMG_4 2', 'IMG_5 2'])
 	})
+
+	// spec: SERIES-005.10, SERIES-005.13
+	it('removes a photo from the series and dissolves the series from the compare, each with a toast and undo', async () => {
+		const { wrapper } = await openApp()
+		await press('n')
+
+		compare(wrapper).vm.$emit('remove', pictures(wrapper)[1])
+		await flushPromises()
+		expect(toastText(wrapper)).toContain('Removed IMG_2 from the series')
+		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_3'])
+		compare(wrapper).vm.$emit('dissolve')
+		await flushPromises()
+		expect(toastText(wrapper)).toContain('Dissolved the series · 2 photos')
+		expect(shown(wrapper)).toEqual(['IMG_4', 'IMG_5'])
+		await press('z', { ctrlKey: true })
+		expect(toastText(wrapper)).toContain('Undid: Dissolved the series · 2 photos')
+		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_3'])
+	})
+
+	// spec: SERIES-005.8
+	it('merges the series with the next one from the compare, with a toast and undo', async () => {
+		const { wrapper } = await openApp()
+		await press('n')
+
+		compare(wrapper).vm.$emit('merge', 'next')
+		await flushPromises()
+		expect(toastText(wrapper)).toContain('Merged 2 series · 5 photos')
+		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_2', 'IMG_3', 'IMG_4', 'IMG_5'])
+		await press('z', { ctrlKey: true })
+		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_2', 'IMG_3'])
+	})
 })

@@ -62,6 +62,7 @@ const loupe = computed(() => props.layout === 'loupe')
 				<AppIcon name="tag" />
 				{{ t('honeycomb', 'Tags') }}
 			</button>
+			<slot name="tools" />
 			<slot v-if="loupe" name="end" />
 		</div>
 		<div v-if="!loupe" class="action-bar__primary">
@@ -94,8 +95,8 @@ const loupe = computed(() => props.layout === 'loupe')
 	container: action-bar / inline-size;
 }
 
-/* One row needs about 950 px with 44 px targets. */
-@container action-bar (max-width: 960px) {
+/* One row needs about 1020 px with 44 px targets. */
+@container action-bar (max-width: 1040px) {
 	.action-bar__primary,
 	.action-bar__row {
 		display: flex;

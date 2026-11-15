@@ -7,13 +7,14 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import PickRestButton from '../../../src/components/PickRestButton.vue'
 import SeriesCompare from '../../../src/components/SeriesCompare.vue'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue } from '../l10n/marked-catalogue.ts'
 import { listingEntry, picturesOf } from '../logic/listing-entries.ts'
-import { DialogStub } from './stubs.ts'
+import { ActionsStub, DialogStub } from './stubs.ts'
 
 const MARK = TRANSLATED_MARK
 const SERIES = picturesOf([
@@ -40,13 +41,13 @@ function mountCompare(series: Picture<ListingEntry>[] | null = SERIES, now = () 
 				return () => undefined
 			},
 		},
-		global: { stubs: { NcDialog: DialogStub } },
+		global: { stubs: { NcDialog: DialogStub, NcActions: ActionsStub } },
 	})
 }
 
 const plain = (text: string | undefined) => text?.replaceAll(MARK, '')
 const cards = (wrapper: ReturnType<typeof mountCompare>) => wrapper.findAll('.series-compare__card')
-const button = (wrapper: ReturnType<typeof mountCompare>, label: string) => wrapper.findAllComponents(NcButton).find((found) => plain(found.text()) === label)!
+const button = (wrapper: ReturnType<typeof mountCompare>, label: string) => wrapper.findAllComponents(NcButton).find((found: { text: () => string }) => plain(found.text()) === label)!
 
 enableAutoUnmount(afterEach)
 
@@ -241,5 +242,57 @@ describe('SeriesCompare', () => {
 		await button(wrapper, 'Close').trigger('click')
 		expect(wrapper.emitted('close')).toHaveLength(1)
 		expect(wrapper.emitted('skip')).toBeUndefined()
+	})
+
+	// spec: SERIES-005.10
+	it('removes a card\'s photo from the series or views it full screen from the card\'s ⋯ menu', async () => {
+		const wrapper = mountCompare()
+		const menu = cards(wrapper)[2]!.find('[data-actions]')
+		const item = (label: string) => menu.findAllComponents(NcActionButton).find((found: { text: () => string }) => plain(found.text())!.startsWith(label))!
+
+		expect(plain(menu.attributes('data-actions'))).toBe('Photo 3 menu')
+		expect(plain(menu.text())).toContain('IMG_3')
+		expect(plain(item('Remove from this series').text())).toContain('It stays in the folder, with its flags')
+		await item('Remove from this series').find('button').trigger('click')
+		await item('View full screen').find('button').trigger('click')
+
+		expect(wrapper.emitted('remove')).toEqual([[SERIES[2]]])
+		expect(wrapper.emitted('view')).toEqual([[2]])
+	})
+
+	// spec: SERIES-005.13
+	it('dissolves the series from the title row\'s ⋯ menu, offered only while a series is shown', async () => {
+		const wrapper = mountCompare()
+		const menu = wrapper.find('.series-compare__head [data-actions]')
+		const dissolve = menu.findAllComponents(NcActionButton).find((found: { text: () => string }) => plain(found.text())!.startsWith('Dissolve this series'))!
+
+		expect(plain(menu.attributes('data-actions'))).toBe('Series menu')
+		expect(plain(menu.text())).toContain('This series · ⧉ 3')
+		expect(plain(dissolve.text())).toContain('Its photos are never grouped again automatically')
+		await dissolve.find('button').trigger('click')
+
+		expect(wrapper.emitted('dissolve')).toHaveLength(1)
+		expect(mountCompare(null).find('.series-compare__head').exists()).toBe(false)
+	})
+
+	// spec: SERIES-005.10, SERIES-005.13
+	it('keeps the dialog open while a menu is open, so Escape closes only the menu, until the series changes', async () => {
+		const wrapper = mountCompare()
+		const dialog = () => wrapper.findComponent(DialogStub)
+		const [series, card] = wrapper.findAllComponents(ActionsStub)
+
+		series!.vm.$emit('update:open', true)
+		card!.vm.$emit('update:open', true)
+		series!.vm.$emit('update:open', false)
+		await flushPromises()
+		expect(dialog().props('noClose')).toBe(true)
+
+		card!.vm.$emit('update:open', false)
+		await flushPromises()
+		expect(dialog().props('noClose')).toBe(false)
+
+		card!.vm.$emit('update:open', true)
+		await wrapper.setProps({ series: { key: 2, members: SERIES } })
+		expect(dialog().props('noClose')).toBe(false)
 	})
 })

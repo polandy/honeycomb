@@ -8,6 +8,7 @@ import { createHashWorkers } from '../../src/hash-workers.ts'
 /** A worker that keeps what it is sent and answers when the test says so. */
 class FakeWorker implements HashWorker {
 	onmessage: ((event: MessageEvent<WorkerAnswer>) => void) | null = null
+	onerror: ((event: ErrorEvent) => void) | null = null
 	sent: WorkerRequest[] = []
 	terminated = false
 
@@ -17,6 +18,10 @@ class FakeWorker implements HashWorker {
 
 	answer(answer: Omit<WorkerAnswer, 'id'>) {
 		this.onmessage!({ data: { id: this.sent.at(-1)!.id, ...answer } } as MessageEvent<WorkerAnswer>)
+	}
+
+	crash() {
+		this.onerror!({ message: 'Uncaught out of memory' } as ErrorEvent)
 	}
 
 	terminate() {
@@ -72,8 +77,67 @@ describe('createHashWorkers', () => {
 		await expect(failed).rejects.toThrow('Preview answered 404')
 	})
 
+	// spec: SERIES-004.15
+	it('starts no worker before the first hash, then one per URL up to the count', () => {
+		const { hashing, workers } = pool(2)
+		expect(workers).toHaveLength(0)
+
+		void hashing.hash('/a')
+		expect(workers).toHaveLength(1)
+		void hashing.hash('/b')
+		void hashing.hash('/c')
+
+		expect(workers).toHaveLength(2)
+		expect(hashing.size).toBe(2)
+	})
+
+	// spec: SERIES-004.15
+	it('reuses an idle worker before it starts another', async () => {
+		const { hashing, workers } = pool(2)
+
+		const first = hashing.hash('/a')
+		workers[0]!.answer({ hash: '00000000000000aa' })
+		await first
+		void hashing.hash('/b')
+
+		expect(workers).toHaveLength(1)
+		expect(workers[0]!.sent.map((request) => request.url)).toEqual(['/a', '/b'])
+	})
+
+	// spec: SERIES-004.16
+	it('fails only the URL of a crashed worker and hashes the next in a new one', async () => {
+		const { hashing, workers } = pool(1)
+
+		const crashed = hashing.hash('/a')
+		const next = hashing.hash('/b')
+		workers[0]!.crash()
+
+		await expect(crashed).rejects.toThrow('The hash worker crashed: Uncaught out of memory')
+		expect(workers[0]!.terminated).toBe(true)
+		expect(workers[1]!.sent.map((request) => request.url)).toEqual(['/b'])
+		workers[1]!.answer({ hash: '00000000000000bb' })
+		await expect(next).resolves.toBe('00000000000000bb')
+	})
+
+	// spec: SERIES-004.16
+	it('starts no worker again for a crash while idle', async () => {
+		const { hashing, workers } = pool(1)
+		const first = hashing.hash('/a')
+		workers[0]!.answer({ hash: '00000000000000aa' })
+		await first
+
+		workers[0]!.crash()
+		expect(workers).toHaveLength(1)
+		void hashing.hash('/b')
+
+		expect(workers).toHaveLength(2)
+		expect(workers[1]!.sent.map((request) => request.url)).toEqual(['/b'])
+	})
+
 	it('ends every worker', () => {
 		const { hashing, workers } = pool(2)
+		void hashing.hash('/a')
+		void hashing.hash('/b')
 
 		hashing.terminate()
 

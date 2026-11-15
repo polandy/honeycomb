@@ -12,7 +12,7 @@ import { shallowRef } from 'vue'
 import { useCull } from '../../src/cull.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { fakeStorage, NO_SERIES } from './app-cull.ts'
+import { fakeStorage, NO_SERIES, SAVED_SERIES } from './app-cull.ts'
 
 /** A decision of three stars, rejected. */
 export const THREE_REJECTED: Decision = { ...UNDECIDED, rating: 3, flag: 'rejected' }
@@ -55,9 +55,11 @@ export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promi
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
 		saveVisualHashes: async () => undefined,
+		wait: async () => {},
 		warmPreviews: async () => undefined,
 		lookupDecisions: async () => options.stored ?? [],
 		lookupSeries: NO_SERIES,
+		saveSeries: SAVED_SERIES,
 		saveDecisions: async (rows) => {
 			saved.push([...rows])
 			if (options.saveFails) {

@@ -11,7 +11,6 @@ import FilterBar from '../../src/components/FilterBar.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
-import SeriesCompareFlow from '../../src/components/SeriesCompareFlow.vue'
 import TagEntry from '../../src/components/TagEntry.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
@@ -95,7 +94,7 @@ describe('App: tag entry', () => {
 	})
 
 	// spec: TAGS-003.1, TAGS-003.12
-	it('opens for the loupe\'s and the series viewer\'s photo, and closes', async () => {
+	it('opens for the loupe\'s photo, and closes', async () => {
 		const { wrapper } = await openApp()
 		await press('e')
 		wrapper.findComponent(PhotoLoupe).vm.$emit('tag', pictureAt(wrapper, 1))
@@ -106,10 +105,6 @@ describe('App: tag entry', () => {
 		await flushPromises()
 		expect(entry(wrapper).exists()).toBe(false)
 		expect(wrapper.findComponent(PhotoLoupe).exists()).toBe(true)
-
-		wrapper.findComponent(SeriesCompareFlow).vm.$emit('tag', pictureAt(wrapper, 2))
-		await flushPromises()
-		expect(targetCount(wrapper)).toBe(1)
 	})
 
 	it('opens for nothing when nothing is chosen', async () => {

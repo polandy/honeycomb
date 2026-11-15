@@ -7,9 +7,11 @@ import type { Decision, DecisionField, StoredDecision } from './logic/decision.t
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { PairingSettings, Picture } from './logic/pairing.ts'
+import type { SelectionEdit } from './logic/series-menu.ts'
+import type { Series } from './logic/series.ts'
 import type { Settings } from './logic/settings.ts'
 import type { TagChange } from './logic/tag.ts'
-import type { DecisionStep, PickRestStep, StepEffects, TagStep, UndoStep } from './logic/undo.ts'
+import type { DecisionStep, PickRestStep, SeriesStep, StepEffects, TagStep, UndoStep } from './logic/undo.ts'
 import type { ListedAccess, WriteLock } from './logic/writability.ts'
 
 import { computed, ref, shallowRef, watch } from 'vue'
@@ -26,11 +28,13 @@ import { memberIds } from './logic/pairing.ts'
 import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
 import { sortPictures } from './logic/picture-order.ts'
 import { byFileId, saveQueue } from './logic/save-queue.ts'
+import { dissolveChange, joinChange, removeChange } from './logic/series-edit.ts'
+import { selectionChange, seriesOffer } from './logic/series-menu.ts'
 import { pairingSettings } from './logic/settings.ts'
 import { inSharedFolder } from './logic/sidecar-sync.ts'
 import { inverseChange } from './logic/tag.ts'
 import { withoutFiles } from './logic/trash-report.ts'
-import { applyStep, pickRestEntry, tagStep, undoEntry } from './logic/undo.ts'
+import { applyStep, pickRestEntry, seriesStep, tagStep, undoEntry } from './logic/undo.ts'
 import { NO_ACCESS } from './logic/writability.ts'
 import { usePreviewWarmer } from './preview-warmer.ts'
 import { useSeries } from './series.ts'
@@ -54,11 +58,13 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const saveDecisions = saveQueue(api.saveDecisions, { key: byFileId })
 	const access = useCullAccess(settings, onLocked)
 	let opening = 0
+	const storedSeries = useStoredSeries(api, () => opening)
 	/** Puts each kind of step into effect, or takes it back when `back`. */
 	const effects: StepEffects<Picture<ListingEntry>> = {
 		decision: (step, back) => store(back ? step.before : step.after),
 		pickRest: (step, back) => store(back ? step.before : step.after),
 		tags: (step, back) => storeTags(step.pictures, back ? inverseChange(step.change) : step.change),
+		series: (step, back) => void storedSeries.store(back ? step.before : step.after),
 	}
 	const history = useCullHistory<CullStep>((step, back) => applyStep(effects, step, back))
 	/** Whether a step on the picture is written through to its sidecars (XMP-008.1). */
@@ -74,7 +80,6 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const cullProgress = computed(() => progress(pictures.value, decisionOf))
 	const shownProgress = computed(() => progress(view.value, decisionOf))
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
-	const storedSeries = useStoredSeries(api.lookupSeries, () => opening)
 	const seriesState = useSeries(api, storage, () => pictures.value, decisionOf, () => storedSeries.rows.value)
 	const warmer = usePreviewWarmer(api.warmPreviews, storage)
 	const sharedPictures = computed(() => pictures.value.filter((picture) => inSharedFolder(picture, access.sharedFolders.value)))
@@ -149,6 +154,27 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	/** Applies the tag change to the pictures as one undo step and returns it, or null when nothing changes (TAGS-003.10, .11). */
 	function tag(change: TagChange, chosen: readonly Picture<ListingEntry>[]): TagStep<Picture<ListingEntry>> | null {
 		return access.gate(chosen, () => history.record(tagStep(chosen, tags.tagsOf, change)))
+	}
+
+	/** Takes the picture out of the series and keeps it out, as one undo step, and returns it (SERIES-005.10). */
+	function removeFromSeries(series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>): SeriesStep | null {
+		return history.record(seriesStep('remove', [picture], removeChange([series], [picture], storedSeries.rows.value, storedSeries.newId), 1))
+	}
+
+	/** Keeps out every member of the series, as one undo step, and returns it (SERIES-005.13). */
+	function dissolveSeries(series: Series<Picture<ListingEntry>>): SeriesStep | null {
+		return history.record(seriesStep('dissolve', series.members, dissolveChange(series, storedSeries.rows.value), 1))
+	}
+
+	/** Merges the series, in capture-time order, into one under the first stored one's id, as one undo step, and returns it (SERIES-005.8, .9). */
+	function mergeSeries(series: readonly Series<Picture<ListingEntry>>[]): SeriesStep | null {
+		return history.record(seriesStep('merge', series.flatMap(({ members }) => members), joinChange(series, [], storedSeries.rows.value, storedSeries.newId), series.length))
+	}
+
+	/** Makes, adds to, merges or leaves series with the chosen pictures, as one undo step, and returns it (SERIES-005.4–.7, .11). */
+	function editSelection(edit: SelectionEdit, chosen: readonly Picture<ListingEntry>[]): SeriesStep | null {
+		const { pictures, change, series } = selectionChange(edit, seriesOffer(chosen, seriesState.seriesOf.value), storedSeries.rows.value, storedSeries.newId)
+		return history.record(seriesStep(edit, pictures, change, series))
 	}
 
 	/** Changes the pictures' tags and says in the grid when the save failed. */
@@ -246,6 +272,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		passes,
 		common,
 		series: seriesState.series,
+		everySeries: seriesState.everySeries,
 		seriesSizes: seriesState.seriesSizes,
 		seriesOf: seriesState.seriesOf,
 		openSeries: seriesState.openSeries,
@@ -254,6 +281,10 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		decide,
 		pickRest,
 		tag,
+		removeFromSeries,
+		dissolveSeries,
+		mergeSeries,
+		editSelection,
 		undo: history.undo,
 		redo: history.redo,
 		open,

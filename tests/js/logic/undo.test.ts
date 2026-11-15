@@ -4,7 +4,7 @@ import type { Decision } from '../../../src/logic/decision.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { applyStep, NO_HISTORY, pickRestEntry, pushUndo, recordStep, redoStep, tagStep, UNDO_LIMIT, undoEntry, undoStep } from '../../../src/logic/undo.ts'
+import { applyStep, NO_HISTORY, pickRestEntry, pushUndo, recordStep, redoStep, seriesStep, tagStep, UNDO_LIMIT, undoEntry, undoStep } from '../../../src/logic/undo.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const PAIR = pictureOf(listingEntry(1, '/P/A.JPG'), listingEntry(2, '/P/A.NEF', { mime: 'image/x-dcraw' }))
@@ -96,12 +96,21 @@ describe('tagStep', () => {
 	})
 })
 
+describe('seriesStep', () => {
+	// spec: SERIES-005.10, SERIES-005.13
+	it('keeps the edit, the names of the pictures it acts on and its rows', () => {
+		const change = { after: [{ fileId: 3, place: 'keptOut' as const }], before: [{ fileId: 3, place: 'loose' as const }] }
+
+		expect(seriesStep('remove', [JPEG], change, 1)).toEqual({ kind: 'series', edit: 'remove', names: ['B'], series: 1, ...change })
+	})
+})
+
 describe('applyStep', () => {
 	const calls: string[] = []
 	const effect = (step: { kind: string }, back: boolean) => {
 		calls.push(`${step.kind} ${back}`)
 	}
-	const effects = { decision: effect, pickRest: effect, tags: effect }
+	const effects = { decision: effect, pickRest: effect, tags: effect, series: effect }
 
 	it('hands each step to the effect of its kind, forward or back', () => {
 		const tags = tagStep([JPEG], () => [], { added: ['Sunrise'], removed: [] })!
@@ -111,8 +120,9 @@ describe('applyStep', () => {
 		applyStep(effects, tags, false)
 		applyStep(effects, decision, true)
 		applyStep(effects, pickRest, false)
+		applyStep(effects, seriesStep('dissolve', [JPEG], { after: [], before: [] }, 1), true)
 
-		expect(calls).toEqual(['tags false', 'decision true', 'pickRest false'])
+		expect(calls).toEqual(['tags false', 'decision true', 'pickRest false', 'series true'])
 	})
 })
 

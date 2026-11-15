@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { DecisionChange } from './logic/decision-change.ts'
+import type { SeriesEdit } from './logic/series-edit.ts'
 import type { TagChange } from './logic/tag.ts'
 import type { DescribedStep, StepKind } from './logic/undo.ts'
 
@@ -47,11 +48,23 @@ function tagText(change: TagChange, photos: string): string {
 		: t('honeycomb', 'Removed {tag} from {photos}', { photos, tag: change.removed.join(', ') }, undefined, PLAIN_TEXT)
 }
 
+/** What each series edit did, given how many photos it named, the photos and how many series it touched. */
+const SERIES_TEXT: { readonly [E in SeriesEdit]: (count: number, photos: string, series: number) => string } = {
+	new: (count) => n('honeycomb', 'Made a series of {count} photo', 'Made a series of {count} photos', count, { count: formatNumber(count) }, PLAIN_TEXT),
+	add: (_count, photos) => t('honeycomb', 'Added {photos} to the series', { photos }, undefined, PLAIN_TEXT),
+	merge: (count, _photos, series) => n('honeycomb', 'Merged {series} series · {count} photo', 'Merged {series} series · {count} photos', count, { count: formatNumber(count), series: formatNumber(series) }, PLAIN_TEXT),
+	remove: (count, photos) => (count === 1
+		? t('honeycomb', 'Removed {photos} from the series', { photos }, undefined, PLAIN_TEXT)
+		: t('honeycomb', 'Removed {photos} from their series', { photos }, undefined, PLAIN_TEXT)),
+	dissolve: (count) => n('honeycomb', 'Dissolved the series · {count} photo', 'Dissolved the series · {count} photos', count, { count: formatNumber(count) }, PLAIN_TEXT),
+}
+
 /** The words of each kind of step, given the step and its photos. */
 const STEP_TEXT: { readonly [K in StepKind]: (step: DescribedStep<K>, photos: string) => string } = {
 	decision: ({ change }, photos) => decisionText(change, photos),
 	pickRest: ({ picked }) => t('honeycomb', 'Picked {name}, rejected the rest', { name: picked }, undefined, PLAIN_TEXT),
 	tags: ({ change }, photos) => tagText(change, photos),
+	series: ({ edit, names, series }, photos) => SERIES_TEXT[edit](names.length, photos, series),
 }
 
 /** What a change did, for its toast: "Rejected IMG_0001", "Rated 3 photos ★★★", "Tagged 2 photos Sunrise". */
