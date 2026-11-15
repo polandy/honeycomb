@@ -11,6 +11,8 @@ use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\TrashController;
 use OCA\Honeycomb\Service\TrashBinGuard;
 use OCA\Honeycomb\Service\TrashService;
+use OCA\Honeycomb\Service\UserFolderResolver;
+use OCA\Honeycomb\Service\UserPhotos;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -55,7 +57,7 @@ final class TrashControllerTest extends TestCase {
 		$appConfig = $this->createStub(IAppConfig::class);
 		$appConfig->method('getValueString')->willReturnArgument(2);
 		$guard = new TrashBinGuard($userConfig, $appConfig);
-		$trash = new TrashService($root, $apps, $guard, $this->createStub(LoggerInterface::class));
+		$trash = new TrashService(new UserPhotos(new UserFolderResolver($root)), $apps, $guard, $this->createStub(LoggerInterface::class));
 		return new TrashController(Application::APP_ID, $this->createStub(IRequest::class), $session, $trash);
 	}
 

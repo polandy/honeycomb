@@ -11,6 +11,8 @@ use OCA\Honeycomb\Service\InvalidSidecarRequestException;
 use OCA\Honeycomb\Service\SidecarLimits;
 use OCA\Honeycomb\Service\SidecarReader;
 use OCA\Honeycomb\Service\SidecarResult;
+use OCA\Honeycomb\Service\UserFolderResolver;
+use OCA\Honeycomb\Service\UserPhotos;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -54,7 +56,7 @@ final class SidecarReaderTest extends TestCase {
 		$userFolder->method('getFirstNodeById')->willReturnCallback(static fn (int $id): ?Node => $nodes[$id] ?? null);
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
-		return new SidecarReader($root, $logger ?? $this->createStub(LoggerInterface::class));
+		return new SidecarReader(new UserPhotos(new UserFolderResolver($root)), $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
 	// spec: XMP-002.1
@@ -130,6 +132,6 @@ final class SidecarReaderTest extends TestCase {
 		$root->method('getUserFolder')->willReturn($userFolder);
 
 		$this->expectException(InvalidSidecarRequestException::class);
-		(new SidecarReader($root, $this->createStub(LoggerInterface::class)))->lookup($this->user(), [9, 9]);
+		(new SidecarReader(new UserPhotos(new UserFolderResolver($root)), $this->createStub(LoggerInterface::class)))->lookup($this->user(), [9, 9]);
 	}
 }

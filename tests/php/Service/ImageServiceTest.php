@@ -10,6 +10,9 @@ namespace OCA\Honeycomb\Tests\Service;
 use OCA\Honeycomb\Service\ImageNotFoundException;
 use OCA\Honeycomb\Service\ImageNotReadableException;
 use OCA\Honeycomb\Service\ImageService;
+use OCA\Honeycomb\Service\InvalidPreviewRequestException;
+use OCA\Honeycomb\Service\UserFolderResolver;
+use OCA\Honeycomb\Service\UserPhotos;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -45,7 +48,7 @@ final class ImageServiceTest extends TestCase {
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
 		return new ImageService(
-			$root,
+			new UserPhotos(new UserFolderResolver($root)),
 			$preview ?? $this->createStub(IPreview::class),
 			$logger ?? $this->createStub(LoggerInterface::class),
 		);
@@ -181,5 +184,26 @@ final class ImageServiceTest extends TestCase {
 
 		$tiers = array_map(static fn (int $size): array => ['width' => $size, 'height' => $size, 'crop' => false, 'mode' => IPreview::MODE_FILL], [256, 1024, 4096]);
 		$this->assertSame([1 => $tiers, 4 => $tiers], $warmed);
+	}
+
+	/** @return array<string, array{array<mixed>}> */
+	public static function invalidWarmRequests(): array {
+		return [
+			'a string' => [[1, '2']],
+			'zero' => [[0]],
+			'not a list' => [['a' => 1]],
+			'above the files of one request' => [range(1, ImageService::WARM_LIMIT + 1)],
+		];
+	}
+
+	/** @param array<mixed> $fileIds */
+	// spec: IMAGES-001.11
+	#[DataProvider('invalidWarmRequests')]
+	public function testAMalformedWarmRequestRendersNothing(array $fileIds): void {
+		$preview = $this->createMock(IPreview::class);
+		$preview->expects($this->never())->method('generatePreviews');
+		$this->expectException(InvalidPreviewRequestException::class);
+
+		$this->service([1 => $this->image(1)], $preview)->warm($this->user(), $fileIds);
 	}
 }
