@@ -9,7 +9,7 @@ import { sidecarDecision } from '../../../src/logic/xmp/decision.ts'
 import { readXmp } from '../../../src/logic/xmp/parse.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 import { read, xmp } from './sidecar-answers.ts'
-import { fixtureBytes, itemsOf, CANONICAL_TIME } from './xmp/xmp-builders.ts'
+import { CANONICAL_TIME, fixtureBytes, itemsOf } from './xmp/xmp-builders.ts'
 
 const NEF = listingEntry(1, '/P/IMG_0001.NEF', { mime: 'image/x-nikon-nef' })
 const JPG = listingEntry(2, '/P/IMG_0001.JPG', { mtime: 200 })

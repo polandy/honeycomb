@@ -29,8 +29,9 @@ of a picture in sort order) is left out and logged as a warning.
 **The embedded XMP** of the picture's JPEG (`image/jpeg`) is one more source (D1) while the JPEG
 has no sidecar of its own, neither `<JPEG file>.xmp` nor the shared `<base name>.xmp`; one that
 exists replaces it, as in digiKam. It is looked up for pictures that take a decision or tags over
-and for every write (XMP-003.22), and never written. A picture whose embedded XMP cannot be looked up takes no tags over
-and is not written through; its sidecars fail as when they cannot be read.
+and for every write (XMP-003.22), and never written. A picture whose embedded XMP cannot be
+looked up takes no tags over and is not written through; its sidecars fail as when they cannot be
+read.
 
 **A tag change** (tags added, tags removed) applies to each chosen picture's tags; the result is
 shown at once and stored for every member in one save. Saves go one at a time and wait for the

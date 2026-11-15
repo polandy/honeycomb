@@ -1242,3 +1242,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   stored decision wins there, as ADR 0032's migration rule asks.
 - 2026-11-15: A new sidecar starts from the decision the picture's other sidecars state, newest
   first, else from *undecided*; values only the database holds come over in the migration (PR 5).
+- 2026-11-15: The JPEG's new sidecar takes over the embedded decision values (rating, flag, colour
+  label, *Keep RAW*), not a copy of the whole embedded packet: Lightroom's embedded history can
+  outgrow the sidecar lookup limit, and honeycomb writes only its own fields (ADR 0032 PR 3).
+- 2026-11-15: An embedded XMP that is not read is a warning in the take-over, like a sidecar not
+  read; in a write it fails the picture, since the JPEG's new sidecar would hide unknown values.

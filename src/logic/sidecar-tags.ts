@@ -12,11 +12,6 @@ import { storableTags } from './tag.ts'
 import { readableXmp } from './xmp/parse.ts'
 import { pictureTags } from './xmp/tags.ts'
 
-/** The file ids of the JPEGs whose embedded XMP the looked-up pictures without stored tags take tags over from (TAGS-002.16). */
-export function embeddedLookups(lookups: readonly TakeOverLookup[], storedTagIds: ReadonlySet<number>): number[] {
-	return lookups.filter(({ picture }) => !hasStoredTags(picture, storedTagIds)).flatMap(({ picture }) => embeddedXmpSource(picture)?.fileId ?? [])
-}
-
 /** The tags each looked-up picture without stored tags takes over from its sidecars and embedded XMP (TAGS-002.2, .15), those the storage cannot hold, and the JPEGs whose embedded XMP was not read (TAGS-002.17). */
 export function takeOverTags(lookups: readonly TakeOverLookup[], answers: ReadonlyMap<number, SidecarLookupAnswer>, storedTagIds: ReadonlySet<number>, embedded: ReadonlyMap<number, EmbeddedXmpAnswer>) {
 	const tagged: { readonly picture: Picture<ListingEntry>, readonly tags: Tag[] }[] = []

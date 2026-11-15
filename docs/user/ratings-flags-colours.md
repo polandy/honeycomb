@@ -78,6 +78,10 @@ If a photo has two sidecars that disagree (one per file of a RAW+JPEG pair, or b
 `IMG_0001.NEF.xmp` and `IMG_0001.xmp`), honeycomb uses the one changed most recently, and the RAW
 file's sidecar if they were changed at the same time.
 
+A JPEG without a sidecar of its own counts with the XMP stored inside it, as in digiKam; honeycomb
+reads it but never changes the photo. When honeycomb gives such a JPEG its own sidecar, the stars,
+flag and colour label of the embedded XMP move into it, so digiKam shows the same values.
+
 Everything else in a sidecar — darktable's edit history, Lightroom's develop settings — stays as
 it was when honeycomb writes it. Tags are the one other thing honeycomb writes ([tags](tags.md)).
 
