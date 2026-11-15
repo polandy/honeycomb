@@ -116,7 +116,9 @@ function onMenuOpen(open: boolean) {
 	openMenus.value += open ? 1 : -1
 }
 // An edit can unmount a menu before it reports closing.
-watch(() => props.series, () => { openMenus.value = 0 })
+watch(() => props.series, () => {
+	openMenus.value = 0
+})
 watch([() => props.active, () => props.series, () => layout.value?.columns], showActive, { flush: 'post' })
 
 const taps = doubleTaps()
