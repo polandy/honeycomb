@@ -40,9 +40,10 @@ a glance, at any size, without waiting for a sharp image of every tile.
 - The toolbar's count badges (*Filters*, *Select*, *Review rejects*, *Compare series*) are
   neutral; a badge takes the primary colour only while its button is pressed.
 - The toolbar stays slim: one filter icon, the one of *Filters*. Below 900 px window width
-  *Review rejects* and *Compare series* leave the toolbar; the ⋯ menu shows *Compare series* then,
-  and *Review rejects* at every width, with their counts, and below 600 px the flag chips show their icons only, so the toolbar takes at most two rows on
-  a phone; selection mode adds its own row.
+  *Review rejects* and *Compare series* leave the toolbar; the ⋯ menu shows *Compare series*
+  then, and *Review rejects* at every width, with their counts, and below 600 px the flag chips
+  show their icons only, so the toolbar takes at most two rows on a phone; selection mode adds its
+  own row.
 - The ⋯ menu holds view options (thumbnail size, *Group by folder*, sort) above one separator and
   actions below it. Choosing an action closes the menu; changing a view option keeps it open.
 

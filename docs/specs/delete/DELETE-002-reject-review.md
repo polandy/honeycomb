@@ -13,10 +13,10 @@ chosen pictures — into the Nextcloud trash bin after a summary of what goes.
 ## Behaviour
 
 *Review rejects* opens a grid of every rejected picture in the cull, whatever the filters show,
-from the toolbar, the ⋯ menu at every width (with its key `Ctrl+Backspace`), `Ctrl+Backspace`, the empty grid and after the loupe decided the last photo. Tapping a tile
-rescues it: its flag is cleared like any decision. *Continue* opens the delete summary. *Delete…*
-on the selection and the `Delete` key on the focused tile or the loupe's photo go straight to the
-summary.
+from the toolbar, the ⋯ menu at every width (which shows its key), `Ctrl+Backspace`, the empty
+grid and after the loupe decided the last photo. Tapping a tile rescues it: its flag is cleared
+like any decision. *Continue* opens the delete summary. *Delete…* on the selection and the
+`Delete` key on the focused tile or the loupe's photo go straight to the summary.
 
 The summary counts photos, files, bytes, pairs and singles, lists the folders and every file, and
 says the files go to the Nextcloud trash bin, that the trash bin empties itself after its

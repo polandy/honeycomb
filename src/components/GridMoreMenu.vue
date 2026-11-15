@@ -99,7 +99,7 @@ const emit = defineEmits<{
 			</template>
 			{{ t('honeycomb', 'Review rejects') }}
 			<span class="grid-more-menu__count">{{ formatNumber(rejected) }}</span>
-			<kbd class="grid-more-menu__key">{{ keyCap('review-rejects') }}</kbd>
+			<kbd class="grid-more-menu__key" translate="no">{{ keyCap('review-rejects') }}</kbd>
 		</NcButton>
 		<NcButton
 			class="grid-more-menu__narrow"
