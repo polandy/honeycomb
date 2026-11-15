@@ -1324,3 +1324,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   number in the compare (#185 PR 5).
 - 2026-11-15: After a merge in the compare, it shows the merged series with the same photo active;
   the merged series keeps the id of the earlier stored series, as a grid merge does (#185 PR 5).
+- 2026-11-15: *Series done* marks the series from the compare's title row menu only; the loupe's
+  auto-advance trigger stays the flag, the pictures it skips are those the cull counts as decided,
+  and the *rest* offer still reads flags (#185 PR 6).

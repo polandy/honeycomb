@@ -1,6 +1,5 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Decision } from './logic/decision.ts'
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
@@ -24,7 +23,8 @@ export interface ResumeCull {
 	readonly pictures: () => readonly Picture<ListingEntry>[]
 	readonly view: () => readonly Picture<ListingEntry>[]
 	readonly progress: () => { decided: number, total: number }
-	readonly decisionOf: (picture: Picture<ListingEntry>) => Decision
+	/** Whether the picture counts as decided (SERIES-005.14). */
+	readonly decidedOf: (picture: Picture<ListingEntry>) => boolean
 	/** The picture the loupe shows, null while it is closed. */
 	readonly shown: () => Picture<ListingEntry> | null
 	readonly openLoupe: (index: number) => void
@@ -109,7 +109,7 @@ export function useResume(api: ResumeApi, cull: ResumeCull, toast: (message: str
 
 	/** Opens the loupe at the stored picture (DECISIONS-002.9). */
 	function resume() {
-		const index = picture.value === null ? -1 : resumeIndex(cull.view(), picture.value, cull.decisionOf)
+		const index = picture.value === null ? -1 : resumeIndex(cull.view(), picture.value, cull.decidedOf)
 		if (index >= 0) {
 			cull.openLoupe(index)
 		}

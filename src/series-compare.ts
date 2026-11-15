@@ -5,6 +5,7 @@ import type { DecisionIntent } from './logic/decision-change.ts'
 import type { Decision } from './logic/decision.ts'
 import type { HotkeyIntent } from './logic/hotkeys.ts'
 import type { Series } from './logic/series.ts'
+import type { SeriesStatus } from './logic/stored-series.ts'
 import type { Settings } from './logic/settings.ts'
 import type { Toast } from './toast.ts'
 
@@ -27,6 +28,8 @@ export interface SeriesCompareContext<P> {
 	readonly everySeries: () => readonly Series<P>[]
 	/** Merges the series, in capture-time order, into one. */
 	readonly merge: (series: readonly Series<P>[]) => void
+	/** Marks the series done or reopens it (SERIES-005.14, .15). */
+	readonly markSeries: (series: Series<P>, status: SeriesStatus) => void
 	readonly settings: () => Settings
 	readonly updateSettings: (patch: Partial<Settings>) => void
 	readonly toast: (toast: Toast) => void
@@ -217,6 +220,18 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 		}
 	}
 
+	/** Marks the shown series done, moving on as after Skip, or reopens it; opened from the loupe, it keeps showing it (SERIES-005.14, .15). */
+	function markDone(done: boolean) {
+		const series = current.value
+		if (series === null) {
+			return
+		}
+		context.markSeries(series, done ? 'done' : 'open')
+		if (single.value !== null) {
+			single.value = context.everySeries().find(({ key }) => key === series.key) ?? single.value
+		}
+	}
+
 	/** Decides the active picture by a key; a star step counts from its rating, `advance` moves on unless it left (SERIES-001.10). */
 	function decideByKey(intent: HotkeyIntent, advance: boolean) {
 		const picture = activePicture()
@@ -257,7 +272,7 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	}
 
 	const { settings, updateSettings, toast } = context
-	return { open, oneSeries, current, position, count, active, neighbours, setActive, setColumns, start, startOn, close, skip, decide, decideInViewer, pickRest, pickRestAndLand, removeFromSeries, dissolve, merge, hotkeys, viewer, view, settings, updateSettings, toast }
+	return { open, oneSeries, current, position, count, active, neighbours, setActive, setColumns, start, startOn, close, skip, decide, decideInViewer, pickRest, pickRestAndLand, removeFromSeries, dissolve, merge, markDone, hotkeys, viewer, view, settings, updateSettings, toast }
 }
 
 export type SeriesCompareFlow<P> = ReturnType<typeof useSeriesCompare<P>>

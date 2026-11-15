@@ -22,8 +22,8 @@ export interface SeriesChange {
 	readonly before: readonly SeriesRow[]
 }
 
-/** The series edits: the series compare's (SERIES-005.10, .13) and the grid's (SERIES-005.4–.7, .11). */
-export type SeriesEdit = 'new' | 'add' | 'merge' | 'remove' | 'dissolve'
+/** The series edits: the series compare's (SERIES-005.10, .13–.15) and the grid's (SERIES-005.4–.7, .11). */
+export type SeriesEdit = 'new' | 'add' | 'merge' | 'remove' | 'dissolve' | 'done' | 'reopen'
 
 /** Hands out a local id for each new series. */
 export type NewSeriesId = () => number
@@ -79,6 +79,12 @@ export function joinChange(series: readonly Series<Picture<ListingEntry>>[], loo
 	const place: StoredSeriesInfo = { ...(target ?? { id: newId(), elsewhere: false }), status: done ? 'done' : 'open' }
 	const fileIds = [...series.flatMap((each) => seriesFileIds(each, rows)), ...loose.flatMap(memberIds)]
 	return changeTo(rows, fileIds.map((fileId) => ({ fileId, place })))
+}
+
+/** Marks the series done or open; an automatic series is stored under a new id first (SERIES-005.14, .15). */
+export function statusChange(series: Series<Picture<ListingEntry>>, status: SeriesStatus, rows: StoredRows, newId: NewSeriesId): SeriesChange {
+	const place: StoredSeriesInfo = { ...(series.stored ?? { id: newId(), elsewhere: false }), status }
+	return changeTo(rows, seriesFileIds(series, rows).map((fileId) => ({ fileId, place })))
 }
 
 /** Keeps out every member of the series, for a stored series also its hidden and unlisted rows the browser knows (SERIES-005.13). */

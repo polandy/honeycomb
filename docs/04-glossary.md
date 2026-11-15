@@ -23,7 +23,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **cull** | Going through a folder set and rating, labelling, flagging and deleting pictures. |
 | **folder set** | The folders one cull covers: the ticked folders and, with *Include subfolders*, every folder below them. Not a *selection*. |
 | **resume position** | Where a user stands in a folder set (the current picture and how many are decided), stored on the server so a cull continues on another device. |
-| **undecided** | A picture whose flag is unflagged; picked and rejected pictures are *decided*. Once SERIES-005 is built, an unflagged picture of a done series counts as decided too. |
+| **undecided** | A picture whose flag is unflagged and that is not in a done series; picked and rejected pictures, and the unflagged pictures of a done series (SERIES-005.14), are *decided*. |
 | **reject review** | The grid of all rejected pictures, where single ones can be rescued before the delete summary. |
 | **series** | Pictures taken within a short interval that look alike, compared side by side to pick the best. |
 | **automatic series** | A series computed from capture time and visual hash (SERIES-001) out of the pictures that are neither in a stored series nor kept out. |

@@ -53,8 +53,7 @@ export function splitByStoredRows<P extends Picture<ListingEntry>>(pictures: rea
 	const stored = new Map<number, { info: StoredSeriesInfo, pictures: P[] }>()
 	const loose: P[] = []
 	pictures.forEach((picture) => {
-		const memberRows = memberIds(picture).map((fileId) => rows.get(fileId))
-		const info = memberRows.find((row) => row !== undefined && row !== null)
+		const info = storedSeriesOf(picture, rows)
 		if (info) {
 			const group = stored.get(info.id)
 			if (group === undefined) {
@@ -62,9 +61,19 @@ export function splitByStoredRows<P extends Picture<ListingEntry>>(pictures: rea
 			} else {
 				group.pictures.push(picture)
 			}
-		} else if (!memberRows.includes(null)) {
+		} else if (!memberIds(picture).some((fileId) => rows.get(fileId) === null)) {
 			loose.push(picture)
 		}
 	})
 	return { stored: [...stored.values()], loose }
+}
+
+/** Whether the picture belongs to a stored series marked done (SERIES-005.14). */
+export function inDoneSeries(picture: Picture<ListingEntry>, rows: StoredRows): boolean {
+	return storedSeriesOf(picture, rows)?.status === 'done'
+}
+
+/** The stored series a member of the picture belongs to, if any. */
+function storedSeriesOf(picture: Picture<ListingEntry>, rows: StoredRows): StoredSeriesInfo | undefined {
+	return memberIds(picture).map((fileId) => rows.get(fileId)).find((row) => row !== undefined && row !== null) ?? undefined
 }

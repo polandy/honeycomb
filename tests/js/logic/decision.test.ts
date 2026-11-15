@@ -82,7 +82,7 @@ describe('nextUndecided', () => {
 
 	// spec: SERIES-005.14
 	it('skips what the given test counts as decided', () => {
-		expect(nextUndecided(decisions, 0, (decision) => decision !== decisions[1] && isDecided(decision))).toBe(3)
+		expect(nextUndecided(decisions, 0, (decision) => decision === decisions[1] || isDecided(decision))).toBe(3)
 	})
 })
 

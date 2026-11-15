@@ -57,6 +57,8 @@ const emit = defineEmits<{
 	remove: [picture: Picture<ListingEntry>]
 	/** *Dissolve this series* in the title row's menu (SERIES-005.13). */
 	dissolve: []
+	/** Marks the shown series done, or reopens it when false (SERIES-005.14, .15). */
+	markDone: [done: boolean]
 	/** *Merge with the next* or *previous series* in the title row's menu (SERIES-005.8). */
 	merge: [direction: MergeDirection]
 	/** A single tap made the card at `index` active. */
@@ -169,6 +171,7 @@ function onOpen(open: boolean) {
 				:container="props.container"
 				@merge="emit('merge', $event)"
 				@dissolve="emit('dissolve')"
+				@markDone="emit('markDone', $event)"
 				@menu="onMenuOpen" />
 		</div>
 		<ul

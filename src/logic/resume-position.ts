@@ -1,10 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Decision } from './decision.ts'
 import type { FolderSet } from './folder-set.ts'
 import type { Picture } from './pairing.ts'
 
-import { isDecided } from './decision.ts'
 import { folderSetKey } from './folder-set.ts'
 
 /** Where a user stands in a folder set, as the positions endpoint stores it (ADR 0012). */
@@ -40,12 +38,12 @@ export function pictureHolding<P extends Picture<{ readonly fileId: number }>>(p
 }
 
 /** Where the loupe resumes: at the picture, else at the first undecided one of the view, else at the first; -1 for an empty view. */
-export function resumeIndex<P>(view: readonly P[], picture: P, decisionOf: (picture: P) => Decision): number {
+export function resumeIndex<P>(view: readonly P[], picture: P, decidedOf: (picture: P) => boolean): number {
 	const at = view.indexOf(picture)
 	if (at >= 0) {
 		return at
 	}
-	const undecided = view.findIndex((shown) => !isDecided(decisionOf(shown)))
+	const undecided = view.findIndex((shown) => !decidedOf(shown))
 	return undecided >= 0 ? undecided : view.length > 0 ? 0 : -1
 }
 

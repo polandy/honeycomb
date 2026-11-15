@@ -32,6 +32,7 @@ defineExpose({ loupe: photoLoupe })
 		:pictures="shown.pictures"
 		:folderSet="folderSet"
 		:decisionOf="cull.decisionOf"
+		:decidedOf="cull.decidedOf"
 		:seriesOf="cull.seriesOf.value"
 		:tagsOf="cull.tags.tagsOf"
 		:sidecarWriting="cull.sidecarWriting"

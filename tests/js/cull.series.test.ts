@@ -202,7 +202,7 @@ describe('useCull: series edits', () => {
 		cull.undo()
 		await flushPromises()
 		expect(written.at(-1)).toEqual({ series: [{ id: 12, status: 'done', fileIds: [1, 2] }, { id: 13, status: 'open', fileIds: [3, 4] }], keptOut: [], released: [] })
-	}
+	})
 
 	// spec: SERIES-005.14
 	it('marks an automatic series done as one undo step: its unflagged pictures count as decided but keep their flag', async () => {

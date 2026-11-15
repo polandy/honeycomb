@@ -49,6 +49,8 @@ const props = withDefaults(defineProps<{
 	index: number
 	folderSet: FolderSet
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
+	/** Whether the picture counts as decided, by its flag unless given (SERIES-005.14). */
+	decidedOf?: (picture: Picture<ListingEntry>) => boolean
 	/** Each picture of a series mapped to its whole series, for the filmstrip's frame (LOUPE-001.19). */
 	seriesOf?: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>
 	/** The picture's tags for the info panel (TAGS-004.8). */
@@ -106,6 +108,7 @@ const decisions = useLoupeDecisions({
 	pictures: () => props.pictures,
 	index: () => props.index,
 	decisionOf: props.decisionOf,
+	decidedOf: props.decidedOf,
 	decide: (intent, shown) => emit('decide', intent, shown),
 	go: (index) => go(index),
 	setFlagButtonsShown: (shown) => emit('updateSettings', { flagButtonsShown: shown }),
@@ -173,15 +176,9 @@ const hotkeys: HotkeyHandlers = {
 
 defineExpose({ hotkeys })
 
-/** Remembers the gesture guide as seen and gives the keys back to the loupe. */
-function dismissGestureGuide() {
-	panels.dismissGestureGuide()
-	root.value!.focus()
-}
-
-/** *Got it* in the first-series hint gives the keys back to the loupe. */
-function gotSeriesHint() {
-	seriesHint.dismiss()
+/** Dismisses the gesture guide or the first-series hint and gives the keys back to the loupe. */
+function dismissAndFocus(dismiss: () => void) {
+	dismiss()
 	root.value!.focus()
 }
 
@@ -216,7 +213,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:seriesHint="seriesHint.shown.value"
 			@pointerdown="overlays.wake"
 			@compareSeries="compareSeriesOf(props.index)"
-			@dismissSeriesHint="gotSeriesHint"
+			@dismissSeriesHint="dismissAndFocus(seriesHint.dismiss)"
 			@close="emit('close')"
 			@move="emit('move')"
 			@toggleZoom="stage!.toggleZoom()"
@@ -293,7 +290,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 				<PickRestButton class="photo-loupe__pick-rest" secondary @pick="pickRest" />
 			</template>
 		</ActionBar>
-		<GestureGuide v-if="!gestureGuideSeen" :swipes="settings.swipes" @dismiss="dismissGestureGuide" />
+		<GestureGuide v-if="!gestureGuideSeen" :swipes="settings.swipes" @dismiss="dismissAndFocus(panels.dismissGestureGuide)" />
 	</div>
 </template>
 
