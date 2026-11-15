@@ -194,6 +194,7 @@ describe('useDeleteFlow: Remove RAWs', () => {
 				marked.value = next
 			},
 			flush: async () => {},
+			current: (picture) => picture,
 			check: allPass,
 			trash: async (request) => {
 				sent.push(request.map((files) => [...files]))

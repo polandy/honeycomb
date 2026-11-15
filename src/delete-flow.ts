@@ -51,6 +51,8 @@ export interface DeleteFlowContext {
 	readonly decide: (intent: DecisionIntent, chosen: Pictures) => void
 	/** Writes the waiting sidecars and waits for every write in flight (XMP-003.30). */
 	readonly flush: () => Promise<void>
+	/** The picture with its sidecars as honeycomb last saved them since the listing (DELETE-002.17). */
+	readonly current: (picture: Picture<ListingEntry>) => Picture<ListingEntry>
 	/** Lists and reads the pictures afresh and keeps what every sidecar lets go in the flow (ADR 0032). */
 	readonly check: (pictures: Pictures, flow: DecisionFlow) => Promise<FreshCheck>
 	readonly trash: (pictures: readonly (readonly TrashRequestFile[])[]) => Promise<TrashResponseFile[][]>
@@ -164,7 +166,7 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 		}
 		const open = dialog.value
 		if (open?.kind === 'summary') {
-			const plan = open.fromReview ? checked(open.pictures, 'rejects', wholePictures) : planned(wholePictures(open.pictures))
+			const plan = open.fromReview ? checked(open.pictures, 'rejects', wholePictures) : async () => ({ batch: wholePictures(open.pictures.map(context.current)), skipped: [] })
 			return send(open.pictures.length, plan, (report) => deletedText(report, false))
 		}
 		const removed = removal.value?.removed
