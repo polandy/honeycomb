@@ -25,7 +25,7 @@ step() {
 }
 
 step ci-changes scripts/test-ci-changes.sh
-step "gate tests" sh -c 'scripts/test-source-sizes.sh && scripts/test-pins.sh && scripts/test-specs.sh && scripts/test-spec-trailers.sh && scripts/test-nextcloud-versions.sh'
+step "gate tests" sh -c 'scripts/test-source-sizes.sh && scripts/test-pins.sh && scripts/test-specs.sh && scripts/test-spec-trailers.sh && scripts/test-nextcloud-versions.sh && scripts/test-package.sh'
 step source-sizes scripts/source-sizes.sh
 step pins scripts/pins.sh
 step specs scripts/specs.sh

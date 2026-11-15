@@ -79,6 +79,7 @@ jobs:
       - run: scripts/test-specs.sh
       - run: scripts/test-spec-trailers.sh
       - run: scripts/test-nextcloud-versions.sh
+      - run: scripts/test-package.sh
       - run: scripts/source-sizes.sh
       - run: scripts/pins.sh
       - run: scripts/specs.sh
