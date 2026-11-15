@@ -223,6 +223,17 @@ describe('useSeriesCompare', () => {
 		expect(shown()).toEqual(['A', 'B'])
 	})
 
+	// spec: SERIES-005.14
+	it('marks the shown series done and moves on as after Skip; a done series is no longer offered', () => {
+		const { compare, calls, shown } = compareOf(['A', 'B'], ['C', 'D'])
+		compare.start()
+		compare.markDone(true)
+
+		expect(calls).toEqual(['done A B'])
+		expect(shown()).toEqual(['C', 'D'])
+		expect(compare.count.value).toBe(1)
+	})
+
 	/** The names of the shown series' neighbours. */
 	const neighbourNames = ({ previous, next }: { previous: Series<Shot> | null, next: Series<Shot> | null }) => [previous, next].map((series) => series?.members.map(({ name }) => name) ?? null)
 

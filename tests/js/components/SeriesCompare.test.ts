@@ -260,8 +260,8 @@ describe('SeriesCompare', () => {
 		expect(wrapper.emitted('view')).toEqual([[2]])
 	})
 
-	// spec: SERIES-005.13
-	it('dissolves the series from the title row\'s ⋯ menu, offered only while a series is shown', async () => {
+	// spec: SERIES-005.13, SERIES-005.14
+	it('dissolves or marks done the series from the title row\'s ⋯ menu, offered only while a series is shown', async () => {
 		const wrapper = mountCompare()
 		const menu = wrapper.find('.series-compare__head [data-actions]')
 		const dissolve = menu.findAllComponents(NcActionButton).find((found: { text: () => string }) => plain(found.text())!.startsWith('Dissolve this series'))!
@@ -272,6 +272,8 @@ describe('SeriesCompare', () => {
 		await dissolve.find('button').trigger('click')
 
 		expect(wrapper.emitted('dissolve')).toHaveLength(1)
+		await menu.findAllComponents(NcActionButton).find((found: { text: () => string }) => plain(found.text())!.startsWith('Series done'))!.find('button').trigger('click')
+		expect(wrapper.emitted('markDone')).toEqual([[true]])
 		expect(mountCompare(null).find('.series-compare__head').exists()).toBe(false)
 	})
 

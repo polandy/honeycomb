@@ -3,7 +3,7 @@
 import type { Decision } from '../../../src/logic/decision.ts'
 
 import { describe, expect, it } from 'vitest'
-import { decisionsByFileId, isDecided, isOpen, isPicked, isRejected, nextUndecided, pictureDecision, UNDECIDED } from '../../../src/logic/decision.ts'
+import { countsAsDecided, decisionsByFileId, isDecided, isOpen, isPicked, isRejected, nextUndecided, pictureDecision, UNDECIDED } from '../../../src/logic/decision.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const picked = { rating: 4, colourLabel: 'red', flag: 'picked', keepRaw: true } as const
@@ -68,7 +68,7 @@ describe('isPicked, isRejected and isOpen', () => {
 
 describe('nextUndecided', () => {
 	const decisions: Decision[] = (['picked', 'unflagged', 'rejected', 'unflagged'] as const).map((flag) => ({ ...UNDECIDED, flag }))
-	const next = (from: number) => nextUndecided(decisions, from, (decision) => decision)
+	const next = (from: number) => nextUndecided(decisions, from, isDecided)
 
 	it('finds the first undecided picture after the given one', () => {
 		expect(next(0)).toBe(1)
@@ -77,6 +77,24 @@ describe('nextUndecided', () => {
 
 	it('is null when every picture after it is decided', () => {
 		expect(next(3)).toBeNull()
-		expect(nextUndecided([], 0, (decision: Decision) => decision)).toBeNull()
+		expect(nextUndecided([], 0, isDecided)).toBeNull()
+	})
+
+	// spec: SERIES-005.14
+	it('skips what the given test counts as decided', () => {
+		expect(nextUndecided(decisions, 0, (decision) => decision !== decisions[1] && isDecided(decision))).toBe(3)
+	})
+})
+
+describe('countsAsDecided', () => {
+	// spec: SERIES-005.14
+	it.each([
+		['picked', false, true],
+		['rejected', false, true],
+		['unflagged', false, false],
+		['unflagged', true, true],
+		['rejected', true, true],
+	] as const)('counts %s with a done series %s as %s', (flag, seriesDone, expected) => {
+		expect(countsAsDecided({ ...UNDECIDED, flag }, seriesDone)).toBe(expected)
 	})
 })

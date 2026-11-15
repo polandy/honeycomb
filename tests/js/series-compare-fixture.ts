@@ -18,9 +18,14 @@ export function compareOf(...series: string[][]) {
 	const groups = shallowRef(series)
 	const decisions = shallowRef(new Map<string, Decision>())
 	const out = shallowRef<ReadonlySet<string>>(new Set())
+	const done = shallowRef<ReadonlySet<string>>(new Set())
 	const calls: string[] = []
-	/** The series of the named shots, keyed by the place of its first shot among all, as a rejected first shot re-keys it. */
-	const seriesOf = (names: readonly string[]) => ({ key: [...shots.keys()].indexOf(names[0]!), members: names.map((name) => shots.get(name)!) })
+	/** The series of the named shots, keyed by the place of its first shot among all, as a rejected first shot re-keys it; stored once marked done. */
+	const seriesOf = (names: readonly string[]): Series<Shot> => ({
+		key: [...shots.keys()].indexOf(names[0]!),
+		members: names.map((name) => shots.get(name)!),
+		...(names.some((name) => done.value.has(name)) ? { stored: { id: 1, status: 'done' as const, elsewhere: false } } : {}),
+	})
 	const held: boolean[] = []
 	const decisionOf = (shot: Shot) => decisions.value.get(shot.name) ?? UNDECIDED
 	const setFlag = (shot: Shot, flag: Decision['flag']) => {
@@ -63,6 +68,11 @@ export function compareOf(...series: string[][]) {
 		merge: (merged) => {
 			calls.push(`merge ${merged.map(({ members }) => members.map(({ name }) => name).join(' ')).join(' + ')}`)
 			merge(merged)
+		},
+		markSeries: (shown, status) => {
+			const names = shown.members.map(({ name }) => name)
+			calls.push(`${status === 'done' ? 'done' : 'reopen'} ${names.join(' ')}`)
+			done.value = new Set([...done.value].filter((name) => !names.includes(name)).concat(status === 'done' ? names : []))
 		},
 		settings: () => DEFAULT_SETTINGS,
 		updateSettings: () => undefined,

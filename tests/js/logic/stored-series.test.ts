@@ -8,7 +8,7 @@ import type { SeriesLookup } from '../../../src/logic/stored-series.ts'
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
 import { allSeries, findSeries, openSeries, seriesCandidates } from '../../../src/logic/series.ts'
-import { NO_STORED_ROWS, splitByStoredRows, withLookup } from '../../../src/logic/stored-series.ts'
+import { inDoneSeries, NO_STORED_ROWS, splitByStoredRows, withLookup } from '../../../src/logic/stored-series.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
 /** Pictures `/P/<name>.JPG` with file ids from 1, shot at `time` by `camera`, with an optional visual hash. */
@@ -55,6 +55,22 @@ describe('splitByStoredRows', () => {
 
 		expect(stored.map(({ info, pictures: members }) => [info.id, members.map((picture) => picture.baseName)])).toEqual([[9, ['A', 'B']]])
 		expect(loose.map((picture) => picture.baseName)).toEqual(['D'])
+	})
+})
+
+describe('inDoneSeries', () => {
+	// spec: SERIES-005.14
+	it('is true for a picture whose member is in a done series, false in an open one, kept out or loose', () => {
+		const [A, B, C, D] = picturesOf([
+			listingEntry(1, '/P/A.JPG'),
+			listingEntry(2, '/P/A.CR3', { mime: 'image/x-canon-cr3' }),
+			listingEntry(3, '/P/B.JPG'),
+			listingEntry(4, '/P/C.JPG'),
+			listingEntry(5, '/P/D.JPG'),
+		]) as [Picture<ListingEntry>, Picture<ListingEntry>, Picture<ListingEntry>, Picture<ListingEntry>]
+		const rows = withLookup(NO_STORED_ROWS, { series: [storedSeries(9, [2], 'done'), storedSeries(8, [3])], keptOut: [4] })
+
+		expect([A, B, C, D].map((picture) => inDoneSeries(picture, rows))).toEqual([true, false, false, false])
 	})
 })
 

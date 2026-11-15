@@ -6,7 +6,7 @@ import type { Series } from '../../../src/logic/series.ts'
 import type { StoredRows, StoredSeriesInfo } from '../../../src/logic/stored-series.ts'
 
 import { describe, expect, it } from 'vitest'
-import { dissolveChange, joinChange, newSeriesChange, removeChange, renameSeries, revertSeriesRows, seriesWrite, withSeriesRows } from '../../../src/logic/series-edit.ts'
+import { dissolveChange, joinChange, newSeriesChange, removeChange, renameSeries, revertSeriesRows, seriesWrite, statusChange, withSeriesRows } from '../../../src/logic/series-edit.ts'
 import { NO_STORED_ROWS } from '../../../src/logic/stored-series.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
@@ -36,7 +36,7 @@ function newIds() {
 }
 
 describe('removeChange', () => {
-	// spec: SERIES-005.10
+	// spec: SERIES-005.10, SERIES-005.16
 	it('keeps the picture out of a stored series and leaves the other members as they are', () => {
 		const rows = rowsOf([[1, DONE_12], [2, DONE_12], [3, DONE_12], [4, DONE_12]])
 
@@ -154,6 +154,26 @@ describe('dissolveChange', () => {
 
 		expect(change.after).toEqual([2, 1, 4, 9, 3].map((fileId) => ({ fileId, place: 'keptOut' })))
 		expect(change.before).toEqual([2, 1, 4, 9, 3].map((fileId) => ({ fileId, place: OPEN_12 })))
+	})
+})
+
+describe('statusChange', () => {
+	// spec: SERIES-005.14
+	it('stores an automatic series done under a new id, with its shown members', () => {
+		const change = statusChange(automatic, 'done', NO_STORED_ROWS, newIds())
+
+		expect(change.after).toEqual([2, 1, 3, 4].map((fileId) => ({ fileId, place: { ...NEW, status: 'done' } })))
+		expect(change.before).toEqual([2, 1, 3, 4].map((fileId) => ({ fileId, place: 'loose' })))
+	})
+
+	// spec: SERIES-005.14, SERIES-005.15
+	it('sets the status of every listed row of a stored series, hidden ones too, and remembers their rows', () => {
+		const rows = rowsOf([[9, DONE_12], [1, DONE_12], [2, DONE_12], [3, DONE_12], [4, DONE_12]])
+
+		const change = statusChange({ key: 1, members: [A, C], stored: DONE_12 }, 'open', rows, newIds())
+
+		expect(change.after).toEqual([2, 1, 4, 9, 3].map((fileId) => ({ fileId, place: { ...DONE_12, status: 'open' } })))
+		expect(change.before).toEqual([2, 1, 4, 9, 3].map((fileId) => ({ fileId, place: DONE_12 })))
 	})
 })
 

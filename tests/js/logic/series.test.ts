@@ -95,6 +95,21 @@ function visualSeries(pictures: readonly Picture<ListingEntry>[], hashes: Record
 	return names(findSeries(allSeries(seriesCandidates(pictures, hashOf), decisionOf, hashOf), decisionOf))
 }
 
+describe('findSeries with stored series', () => {
+	const [A, B, C, D] = shots(['P/A', 0], ['P/B', 1], ['P/C', 100], ['P/D', 101])
+	const decisionOf = () => UNDECIDED
+
+	// spec: SERIES-005.14
+	it('no longer offers a done series, and offers an open stored one', () => {
+		const series: Series<Picture<ListingEntry>>[] = [
+			{ key: 1, members: [A!, B!], stored: { id: 5, status: 'done', elsewhere: false } },
+			{ key: 3, members: [C!, D!], stored: { id: 6, status: 'open', elsewhere: false } },
+		]
+
+		expect(names(findSeries(series, decisionOf))).toEqual([['C', 'D']])
+	})
+})
+
 describe('findSeries with visual hashes', () => {
 	// spec: SERIES-001.14
 	it('groups shots that look alike up to the wider gap apart', () => {
