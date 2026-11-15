@@ -9,6 +9,7 @@ Add items with `/todo`.
 
 ## Milestones
 
+- [ ] Sidecar saving fails on Nextcloud 35.0.3: a `.part` file made with `Folder::newFile()` has no cache entry and permissions 0, so `SidecarWriter` cannot move it into place (`notPermitted`, e2e `sidecars.spec.ts` XMP-002.9). Pick a temporary name 35.0.3 caches, revise ADR 0017, then raise `NEWEST_NEXTCLOUD_IMAGE` in `scripts/nextcloud-images.sh` to 35.0.3 (2026-11-15)
 - [ ] Stored series (#185, ADR 0027, SERIES-005): PR 3 remove and dissolve, PR 4 grid *Series…* menu, PR 5 merge with the next or previous series, PR 6 *Series done* (#183) (2026-11-14)
 
 ## Later

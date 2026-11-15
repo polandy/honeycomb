@@ -22,7 +22,7 @@ new code may read tables that do not exist yet, and saving a flag, a rating or a
 ## Supported Nextcloud versions
 
 Each release names the Nextcloud versions it runs on in `appinfo/info.xml`, today Nextcloud 35
-only. Its tests run on the first and the newest release of that range, and an update from the
+only. Its tests run on the first release of that range and a recent one, and an update from the
 first honeycomb release with saved decisions, tags and settings. When Nextcloud updates to a major
 the installed honeycomb does not list, Nextcloud disables honeycomb; the saved data stays in its
 tables and is used again once a honeycomb release for that major is installed.
