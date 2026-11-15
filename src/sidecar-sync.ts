@@ -12,6 +12,7 @@ import type { XmpTime } from './logic/xmp/model.ts'
 import { logger } from './logger.ts'
 import { DECISION_FIELDS } from './logic/decision.ts'
 import { embeddedXmpSource } from './logic/embedded-xmp.ts'
+import { NO_OWN_SAVES, recordSaves, withOwnSaves } from './logic/own-saves.ts'
 import { failureOf, passOf, retryStep, stepResult } from './logic/sidecar-pass.ts'
 import { applySaves, embeddedLookups, planSaves, takeOverDecisions, takeOverLookups, writeLookups } from './logic/sidecar-sync.ts'
 import { takeOverTags } from './logic/sidecar-tags.ts'
@@ -38,6 +39,7 @@ interface Waiting {
 /** Takes decisions and tags over from the sidecars and writes them to the sidecars, one pass after another, creating missing ones (XMP-003, TAGS-002). */
 export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (failed: SidecarFailure[]) => void) {
 	let known = new Map<string, KnownSidecar>()
+	let own = NO_OWN_SAVES
 	let waiting: Waiting[] = []
 	let passing = false
 
@@ -165,10 +167,16 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		}
 		const applied = applySaves(saves, answers, known)
 		known = applied.known
+		own = recordSaves(own, saves, answers)
 		return applied
 	}
 
-	return { takeOver, write, writeTags, retry }
+	/** The picture with its sidecars as honeycomb last saved them, which a delete sends (DELETE-002.17). */
+	function current(picture: Picture<ListingEntry>) {
+		return withOwnSaves(picture, own)
+	}
+
+	return { takeOver, write, writeTags, retry, current }
 }
 
 /** The lookup's answers by file id, without a request for no ids. */

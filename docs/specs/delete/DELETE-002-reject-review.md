@@ -36,6 +36,12 @@ changed, a sidecar cannot be read or is not valid XMP, its sidecars disagree, or
 *rejected*. The delete report lists the skipped photos with the reason. *Delete…* and the `Delete`
 key delete what the user chose, without this check.
 
+**honeycomb's own writes** (ADR 0032). *Delete…* and the `Delete` key also write the waiting
+sidecars first. Each sidecar honeycomb saved since the folder was listed is sent with the ETag of
+that save, and a sidecar honeycomb created for a member goes with its picture, so honeycomb's own
+writes are no change. A sidecar another program changed since the listing, before or after
+honeycomb's write, keeps the listing's ETag and holds its picture as `changed`.
+
 ## Acceptance criteria
 
 ### DELETE-002.1 – Review and rescue
@@ -151,6 +157,21 @@ key delete what the user chose, without this check.
   while no file failed, and the toast adds how many photos were skipped; when every picture was
   skipped, nothing is sent
 
+### DELETE-002.17 – honeycomb's own writes are no change
+
+- **Given** chosen pictures whose existing sidecar honeycomb saved and whose missing sidecar it
+  created since the folder was listed, the last write still waiting
+- **When** the user confirms *Delete…*
+- **Then** the waiting write lands first, each saved sidecar is sent with the ETag of its last
+  save, the created sidecar goes with its picture, and every picture moves to the trash bin
+
+### DELETE-002.18 – Another program's change still holds the picture
+
+- **Given** a chosen picture whose sidecar another program changed after honeycomb saved it
+- **When** the user confirms *Delete…*
+- **Then** the sidecar reports `changed`, no file of that picture is touched, and the other
+  pictures move to the trash bin
+
 ## Out of scope
 
 The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
@@ -164,3 +185,4 @@ The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
 | 2026-11-15 | Requests in chunks with progress (DELETE-002.13, DELETE-002.14, ADR 0029) |
 | 2026-11-15 | The trash-bin note names the retention and space risk and advises a backup; `noTrashBin` has its reason (DELETE-002.6, DELETE-002.9) |
 | 2026-11-15 | Deleting by decision checks the sidecars afresh and reports the skipped photos (DELETE-002.15, DELETE-002.16, ADR 0032 PR 8) |
+| 2026-11-15 | *Delete…* sends the sidecars as honeycomb last saved or created them; only another program's change holds a picture (DELETE-002.17, DELETE-002.18) |

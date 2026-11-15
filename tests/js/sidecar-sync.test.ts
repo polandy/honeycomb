@@ -76,6 +76,20 @@ describe('useSidecarSync: write', () => {
 		expect(textOf(readXmp(saves[1]![1]!.bytes), 'xmp:Rating')).toBe('4')
 	})
 
+	// spec: DELETE-002.17
+	it('gives a picture the sidecars it saved and created, which a delete sends', async () => {
+		const { sidecars, lookupAnswer } = sync((item) => saved('fileId' in item ? item.fileId : 30))
+		lookupAnswer.current = () => ({ result: 'read', bytes: BYTES, etag: 'etag-11', size: BYTES.length, mtime: 100 })
+
+		expect(sidecars.current(PAIR)).toBe(PAIR)
+		await sidecars.write([PAIR], decisionOf({ ...UNDECIDED, flag: 'picked' }))
+
+		expect(sidecars.current(PAIR).sidecars.map(({ fileId, path, etag }) => [fileId, path, etag])).toEqual([
+			[11, '/P/IMG_0001.NEF.xmp', 'saved-11'],
+			[30, '/P/IMG_0001.JPG.xmp', 'saved-30'],
+		])
+	})
+
 	// spec: XMP-003.32
 	it('looks the sidecars up with the sizes the listing states, so the client packs the requests', async () => {
 		const listed = pictureOf(listingEntry(1, '/P/IMG_0002.NEF'), listingEntry(12, '/P/IMG_0002.NEF.xmp', { size: 4096 }))
