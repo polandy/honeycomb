@@ -13,8 +13,8 @@ import { logger } from './logger.ts'
 import { DECISION_FIELDS } from './logic/decision.ts'
 import { embeddedXmpSource } from './logic/embedded-xmp.ts'
 import { failureOf, passOf, retryStep, stepResult } from './logic/sidecar-pass.ts'
-import { applySaves, existingOnly, planSaves, takeOverDecisions, takeOverLookups, writeLookups } from './logic/sidecar-sync.ts'
-import { embeddedLookups, takeOverTags } from './logic/sidecar-tags.ts'
+import { applySaves, embeddedLookups, existingOnly, planSaves, takeOverDecisions, takeOverLookups, writeLookups } from './logic/sidecar-sync.ts'
+import { takeOverTags } from './logic/sidecar-tags.ts'
 
 /** The sidecar endpoints (ADR 0017) and the embedded XMP endpoint (ADR 0023). */
 export interface SidecarApi {
@@ -41,11 +41,11 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 	let waiting: Waiting[] = []
 	let passing = false
 
-	/** The decision of the sidecars of each picture without a stored decision for any member, and the tags of those without stored tags; none while the stored tags are unknown. */
+	/** The decision of the sidecars and embedded XMP of each picture without a stored decision for any member, and the tags of those without stored tags; no tags while the stored tags are unknown. */
 	async function takeOver(pictures: Pictures, stored: ReadonlySet<number>, storedTags: ReadonlySet<number> | null) {
 		const lookups = takeOverLookups(pictures, stored)
 		const fileIds = lookups.flatMap(({ sidecars }) => sidecars.map((sidecar) => sidecar.fileId))
-		const embeddedIds = storedTags === null ? [] : embeddedLookups(lookups, storedTags)
+		const embeddedIds = embeddedLookups(lookups)
 		if (fileIds.length === 0 && embeddedIds.length === 0) {
 			return { decided: [], tagged: [] }
 		}
@@ -56,16 +56,16 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 			logger.warn('Could not look up the sidecars; nothing is taken over', { error })
 			return { decided: [], tagged: [] }
 		}
-		const { decided, warnings } = takeOverDecisions(lookups, answers)
-		warnings.forEach((warning) => logger.warn('Could not take over the decision of a sidecar', warning))
-		if (storedTags === null) {
-			return { decided, tagged: [] }
-		}
 		let embedded = new Map<number, EmbeddedXmpAnswer>()
 		try {
 			embedded = await answersById(embeddedIds, api.lookupEmbeddedXmp)
 		} catch (error) {
-			logger.warn('Could not look up the embedded XMP; its pictures take no tags over', { error })
+			logger.warn('Could not look up the embedded XMP; its pictures take no tags over and decide without it', { error })
+		}
+		const { decided, warnings } = takeOverDecisions(lookups, answers, embedded)
+		warnings.forEach((warning) => logger.warn('Could not take over the decision of a sidecar', warning))
+		if (storedTags === null) {
+			return { decided, tagged: [] }
 		}
 		const { tagged, leftOut, unread } = takeOverTags(lookups, answers, storedTags, embedded)
 		leftOut.forEach((tag) => logger.warn('A sidecar tag cannot be stored; it is left out', { tag }))
@@ -133,7 +133,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 	/** Reads the sidecars honeycomb holds no bytes of, merges the edits and saves them in one request each. */
 	async function round(pictures: Pictures, editOf: EditOf, paths?: Paths) {
 		const answers = await lookUp(pictures.flatMap((picture) => writeLookups(picture, known, paths?.get(picture))), api.lookupSidecars, 'Could not look up the sidecars to write')
-		const embeddedIds = pictures.flatMap((picture) => (editOf(picture).tags === undefined ? [] : embeddedXmpSource(picture, known)?.fileId ?? []))
+		const embeddedIds = pictures.flatMap((picture) => embeddedXmpSource(picture, known)?.fileId ?? [])
 		const embedded = await lookUp(embeddedIds, api.lookupEmbeddedXmp, 'Could not look up the embedded XMP to write')
 		const time = now()
 		const planned = pictures.map((picture) => planSaves(picture, editOf(picture), known, answers, time, paths?.get(picture), embedded))

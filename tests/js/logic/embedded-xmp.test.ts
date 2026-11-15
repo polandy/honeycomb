@@ -4,10 +4,9 @@ import type { EmbeddedXmpAnswer } from '../../../src/logic/embedded-xmp.ts'
 import type { KnownSidecar, SidecarLookupAnswer } from '../../../src/logic/sidecar-sync.ts'
 
 import { describe, expect, it } from 'vitest'
-import { UNDECIDED } from '../../../src/logic/decision.ts'
 import { embeddedSourceOf, embeddedXmpSource } from '../../../src/logic/embedded-xmp.ts'
 import { planSaves, takeOverLookups } from '../../../src/logic/sidecar-sync.ts'
-import { embeddedLookups, takeOverTags } from '../../../src/logic/sidecar-tags.ts'
+import { takeOverTags } from '../../../src/logic/sidecar-tags.ts'
 import { readXmp } from '../../../src/logic/xmp/parse.ts'
 import { serializeXmp } from '../../../src/logic/xmp/serialize.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
@@ -67,13 +66,6 @@ describe('embeddedSourceOf', () => {
 describe('takeOverTags with the embedded XMP', () => {
 	const lookups = takeOverLookups([PAIR, ALONE], new Set())
 
-	// spec: TAGS-002.15, TAGS-002.16
-	it('looks up the JPEGs of the pictures without stored tags only', () => {
-		expect(lookups.map(({ picture }) => picture)).toEqual([PAIR, ALONE])
-		expect(embeddedLookups(lookups, new Set())).toEqual([2, 3])
-		expect(embeddedLookups(lookups, new Set([1]))).toEqual([3])
-	})
-
 	// spec: TAGS-002.15
 	it('joins the embedded tags into the union of the sidecars', () => {
 		const { tagged: taken, unread } = takeOverTags(lookups, new Map([[11, read(tagged(['People/Anna']))]]), new Set(), new Map([[2, embedded('Places/Lisbon')], [3, { result: 'none' }]]))
@@ -83,7 +75,7 @@ describe('takeOverTags with the embedded XMP', () => {
 	})
 
 	// spec: TAGS-002.17
-	it('takes no tags over for a picture whose embedded XMP was not read', () => {
+	it('takes no tags over for a picture whose embedded XMP was not read, nor for one with stored tags', () => {
 		const { tagged: taken, unread } = takeOverTags(lookups, new Map([[11, read(tagged(['People/Anna']))]]), new Set(), new Map([[3, embedded('Kids')], [2, { result: 'notPermitted' }]]))
 		const none = takeOverTags(lookups, new Map([[11, read(tagged(['People/Anna']))]]), new Set(), new Map())
 
@@ -91,6 +83,7 @@ describe('takeOverTags with the embedded XMP', () => {
 		expect(unread).toEqual([{ path: '/P/IMG_0001.JPG', reason: 'notPermitted' }])
 		expect(none.tagged).toEqual([])
 		expect(none.unread).toEqual([{ path: '/P/IMG_0001.JPG', reason: 'unreachable' }, { path: '/P/B.JPG', reason: 'unreachable' }])
+		expect(takeOverTags(lookups, new Map(), new Set([1, 3]), new Map()).unread).toEqual([])
 	})
 })
 
@@ -138,9 +131,5 @@ describe('planSaves with the embedded XMP', () => {
 		expect(saves).toEqual([])
 		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'failed' }, { path: '/P/IMG_0001.JPG.xmp', picture: PAIR, reason: 'failed' }])
 		expect(limited.failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'unreachable' }])
-	})
-
-	it('needs no embedded XMP for a decision', () => {
-		expect(planSaves(PAIR, { decision: UNDECIDED }, new Map(), new Map([[11, read(tagged([]))]]), CANONICAL_TIME).failed).toEqual([])
 	})
 })

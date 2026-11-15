@@ -172,9 +172,16 @@ darktable index (red, yellow, green, blue, purple), which does not depend on the
 happens to write them in. The others stay in the sidecar until the user changes the colour label
 in honeycomb (see Writing).
 
+**The embedded XMP.** A JPEG without a sidecar of its own (neither `<JPEG file>.xmp` nor the
+shared `<base name>.xmp`) states its values through its embedded XMP packet (ADR 0023): it is read
+by the same rules, as the JPEG's sidecar with the JPEG's modification time, and never written.
+When honeycomb creates the JPEG's sidecar, the new sidecar starts from the decision the embedded
+XMP states, so digiKam, which then reads only the sidecar, loses no value (see Writing).
+
 **Several sidecars of one picture.** When they disagree, the most recently modified sidecar wins
 as a whole, a tie goes to the RAW member's sidecar, and the conflict is logged (LIBRARY-001.8).
-The modification time comes from `OCP\Files` (`Node::getMTime()`). Framehive's conflict badge is
+The embedded XMP counts as one of them. The modification time comes from `OCP\Files`
+(`Node::getMTime()`). Framehive's conflict badge is
 a UI choice honeycomb has not made.
 
 ## Writing
@@ -210,7 +217,9 @@ because digiKam is the target of M5; darktable's only where darktable already wr
   reject that stays moves to the pick fields.
 - **Deltas** (ADR 0032): a change carries only the fields it sets; per sidecar it is applied
   to the decision that sidecar reads as, and the whole set above is written from the result, so
-  fields the change does not touch keep each sidecar's own value.
+  fields the change does not touch keep each sidecar's own value. A new sidecar reads as what the
+  picture's sources state; the JPEG's new sidecar reads as its embedded XMP, while that has a
+  packet. A new sidecar gets the decision fields also from a tag change.
 
 **Serializing and saving** follow CORE-009 "Writing" and "Saving", so honeycomb and Framehive
 write the same bytes for the same model: Framehive's canonical form (CORE-009.4, .5), preferred

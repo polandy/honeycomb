@@ -18,12 +18,14 @@ being asked.
 
 **Taking over.** When a cull opens, and again when the pairing settings change, the stored
 decisions are read first. Each picture with no stored decision for any member and with sidecars
-(darktable duplicates excepted) has them looked up; their decision follows
+(darktable duplicates excepted) or a JPEG whose embedded XMP counts (TAGS-002) has them looked up;
+the embedded XMP is read as the JPEG's sidecar, at the JPEG's modification time; their decision follows
 [`06-xmp-interop.md`](../../06-xmp-interop.md#reading) (newest wins as a whole, a tie goes to the
 RAW member's sidecar). A decision other than undecided is shown and stored for every member, as one
 save that is neither an undo step nor written back to the sidecars. A picture the user decided
 meanwhile keeps the user's decision. A refused or unreadable sidecar, a disagreement between
-sidecars and a failed lookup are logged as warnings; the picture keeps what it shows.
+sidecars and a failed lookup are logged as warnings; the picture keeps what it shows, or takes over
+what the sources that were read state.
 
 **The setting.** *Write decisions to XMP sidecars* (SETTINGS-001.24) is *Off* by default, for
 every user, also one who culled before it existed. Off, no decision or tag is written through;
@@ -35,7 +37,10 @@ exist and creates none. *Existing and new sidecars* writes through as below.
 written to its sidecars unless a member lies in a shared folder; a picture no step touched gets no
 sidecar: every existing sidecar (darktable duplicates excepted) and, with *Existing and new
 sidecars*, for each member without one a new `<member file>.xmp` (`docs/06-xmp-interop.md` Sidecar
-names), started from what the picture's other sidecars state. An existing sidecar is read before it
+names), started from what the picture's other sidecars and embedded XMP state, the JPEG's from
+what its embedded XMP states while that counts (XMP-003.23). A picture whose embedded XMP counts
+has it looked up for every write; when that fails, nothing is written for the picture and its
+sidecars fail as when they cannot be read. An existing sidecar is read before it
 is merged, unless honeycomb saved it itself and still holds its bytes; it is saved with the ETag and
 size read. A sidecar answering `changed` is read, merged and saved once more. The colour label
 counts as changed for darktable's list when it differs from the one the sidecar states. Writes run
@@ -206,6 +211,32 @@ picture's decision when it runs, for the fields its write changed. A refused sid
 - **Then** `IMG_0001.JPG.xmp` is created with three stars, red and rejected; held bytes honeycomb
   saved count before read ones, and without any sidecar the delta applies to undecided
 
+### XMP-003.22 – The JPEG's embedded XMP is a source of the decision taken over
+
+- **Given** a JPEG without a sidecar whose embedded XMP states three stars and red, and a pair
+  whose `IMG_0001.NEF.xmp` states one star and whose JPEG, modified later, embeds four stars and
+  picked
+- **When** the cull opens
+- **Then** the JPEG shows three stars and red and the pair four stars and picked, also while the
+  stored tags are unknown; with the sidecar modified later the pair shows one star; an embedded
+  XMP that is refused or not read is logged as a warning, and the picture takes over what its
+  sidecars state
+
+### XMP-003.23 – A new JPEG sidecar takes over the embedded decision
+
+- **Given** *Existing and new sidecars*, a pair whose `IMG_0001.NEF.xmp` states one star and whose
+  JPEG embeds four stars and green, without `IMG_0001.JPG.xmp`
+- **When** the user picks it
+- **Then** `IMG_0001.NEF.xmp` gets one star and picked, and `IMG_0001.JPG.xmp` is created with four
+  stars, green and picked; a new RAW sidecar of a pair with only the embedded XMP starts from it,
+  and a tag change that creates the JPEG's sidecar writes the embedded decision into it
+
+### XMP-003.24 – A failed embedded lookup writes nothing for the picture
+
+- **Given** a decision for a picture whose JPEG has no sidecar and whose embedded XMP lookup fails
+- **When** it is written through
+- **Then** no sidecar of the picture is saved, and each is reported with the lookup's reason
+
 ## Out of scope
 
 - Re-reading a sidecar that another program changed after the take-over (`06-xmp-interop.md`
@@ -222,3 +253,4 @@ picture's decision when it runs, for the fields its write changed. A refused sid
 | 2026-11-14 | Writes waiting behind a pass are written together; an unchanged sidecar is not saved (.16, .17) |
 | 2026-11-15 | Writing through is opt-in, *Off* by default; *Only existing sidecars* creates none (.18, .19; risk review R1, R9) |
 | 2026-11-15 | A step writes the fields it changed, as a delta on each sidecar's decision (.20, .21, ADR 0032) |
+| 2026-11-15 | The JPEG's embedded XMP is a source of the decision; a new JPEG sidecar takes it over (.22–.24, ADR 0032 PR 3) |

@@ -7,8 +7,8 @@
 
 ## Purpose
 
-Hands the client the XMP packet a JPEG embeds, so its tags can count as one more source of a
-picture (TAGS-002) while the photo itself is never written.
+Hands the client the XMP packet a JPEG embeds, so its decision and tags can count as one more
+source of a picture (XMP-003, TAGS-002) while the photo itself is never written.
 
 ## Behaviour
 
@@ -76,7 +76,7 @@ is not read.
 
 ## Out of scope
 
-- Which pictures' JPEGs are looked up and how their tags count: TAGS-002.
+- Which pictures' JPEGs are looked up and how their decision and tags count: XMP-003, TAGS-002.
 - Extended XMP, and writing the embedded XMP (D1).
 
 ## History
