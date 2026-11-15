@@ -26,6 +26,9 @@ any device finds them stored and links series at once.
 - *Start* asks for the pages one after another and hashes their pictures, each the way the grid
   hashes it (SERIES-003.22): the same URL of the small grid tier and the same drawing and hash
   code, in Web Workers, as many as the processor's cores less one, at least one, at most eight.
+  A worker starts when a picture needs one and no started worker is idle, not when the page
+  opens. A worker that crashes fails the picture it was hashing; it is ended, and the next
+  picture starts a new one.
 - The hashes are saved in requests of at most 250, when 250 are computed, once no picture is
   left and when the run pauses.
 - *Pause* hands no further picture to a worker; the pictures being hashed and a save in flight
@@ -140,6 +143,20 @@ any device finds them stored and links series at once.
 - **Then** the run keeps hashing, says how long it waits, waits that long (60 s without the
   header) and sends the same hashes again, and loses none of them
 
+### SERIES-004.15 – Workers start when needed
+
+- **Given** the page with no run started
+- **When** a run hands out its first pictures
+- **Then** no worker runs before, and a new worker starts only while none of the started ones is
+  idle and fewer than the count run
+
+### SERIES-004.16 – A crashed worker fails one picture
+
+- **Given** a run whose worker crashes while it hashes a picture
+- **When** the crash is reported
+- **Then** that picture counts as failed, the worker is ended and the next picture is hashed in
+  a new worker; a crash while idle starts none
+
 ## Out of scope
 
 - The hash and the link rule: SERIES-001. Storing and delivering the hashes: SERIES-003.
@@ -152,3 +169,4 @@ any device finds them stored and links series at once.
 |---|---|
 | 2026-11-14 | Written with the similarity page (owner decision, ADR 0025) |
 | 2026-11-14 | A save the server limits waits and is sent again (ADR 0026) |
+| 2026-11-15 | Workers start when needed; a crashed worker fails one picture (review R12 a) |
