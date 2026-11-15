@@ -21,7 +21,7 @@ defineProps<{
 	/** How many pictures of the view would lose their RAW to *Remove RAWs*. */
 	rawRemovable: number
 	/** Whether pictures of the cull lie in a shared folder, where decisions reach the sidecars only on request. */
-	sidecarsShared: boolean
+	legacyRows: boolean
 	/** How many pictures the move item opens the move dialog on. */
 	movable: number
 	/** Whether a filter is on, which makes *Move picks* *Move filtered*. */
@@ -149,7 +149,7 @@ const emit = defineEmits<{
 			{{ t('honeycomb', 'Resume at {name}', { name: resumeName }) }}
 		</NcButton>
 		<NcButton
-			v-if="sidecarsShared"
+			v-if="legacyRows"
 			variant="tertiary"
 			alignment="start"
 			wide

@@ -1,6 +1,6 @@
 # 0017 – The sidecar endpoints: bytes in base64, a checked save through a part file
 
-- Status: accepted
+- Status: accepted, amended by [0032](0032-sidecar-is-the-source-of-truth.md)
 - Date: 2026-11-10
 
 ## Context
@@ -51,7 +51,8 @@ The options for the transfer:
   "size": 830, "mtime": 1700000100}, …]}` in the order sent, so the client can save the same
   sidecar again without listing. `result` is `saved`, `notFound` (an existing sidecar vanished or
   is not a sidecar; a new one's image is missing), `changed` (another ETag or size, or a new one
-  that appeared meanwhile), `notPermitted`, `locked` or `failed` (logged). One sidecar's failure
+  that appeared meanwhile), `noVersions` (amended 2026-11-15), `notPermitted`, `locked` or
+  `failed` (logged). One sidecar's failure
   does not stop the others.
 - **Shared folders:** the listing (ADR 0009) adds `"folders": [{"path": "/Photos", "shared":
   false}, …]`, one item per folder that holds a listed entry. A folder is shared when another user
@@ -82,3 +83,13 @@ The options for the transfer:
 The owner's review of 2026-11-10 widened *shared*: public links, mail shares and external storage
 mounted for several users count too, since anyone they reach may edit the sidecars. The first
 version counted only other users, federated users and group folders.
+
+## Amendment 2026-11-15
+
+The public-release risk review (R2) found that a merge rewrites another program's sidecar in
+honeycomb's canonical form and loses what the model does not hold (the `<?xpacket?>` wrapper,
+`x:xmptk`, comments). An existing sidecar is therefore saved only while the Versions app
+(`files_versions`) is enabled for the user, so the replaced bytes can be restored; otherwise it
+answers the new result `noVersions` and keeps its bytes. A new sidecar is created either way.
+A one-time `<name>.xmp.orig` copy was rejected: it adds files to the user's folders that sync to
+every desktop and that other programs may read, and it keeps only the first version.

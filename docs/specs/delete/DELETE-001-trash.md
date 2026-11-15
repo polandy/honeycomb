@@ -13,14 +13,15 @@ the result of each file, so a partial failure leaves a state the user can trace.
 ## Behaviour
 
 `POST /apps/honeycomb/api/v1/trash` takes `{"pictures": [[{"fileId": 7, "etag": "…"}, …], …]}`:
-a list of pictures, each the list of its files with the ETag from the listing, at most 60,000
-files. The server does not pair; it checks each file and trashes through `OCP\Files`.
+a list of pictures, each the list of its files with the ETag from the listing, at most 500
+files, so one request ends well inside a proxy or PHP timeout (ADR 0029). The server does not
+pair; it checks each file and trashes through `OCP\Files`.
 
 For each picture:
 
 1. Every file is checked before any is trashed: it must exist in the user's files, be a file whose
-   mime type is `image/*` or whose name ends in `.xmp`, `.cr3` or `.srw`, carry the given ETag
-   and be deletable.
+   mime type is `image/*` or whose name ends in `.xmp`, `.cr3` or `.srw`, carry the given ETag,
+   be deletable and be kept by the trash bin (below).
 2. The files are then trashed in order, sidecars (`.xmp`) after the members.
 3. The first failure stops the picture; its remaining files are `skipped`. Files already trashed
    stay in the trash bin. One picture's failure does not stop the others.
@@ -34,9 +35,15 @@ sent. `result` is one of:
 | `notFound` | Vanished, foreign, a folder or not a type the listing lists |
 | `changed` | Another ETag than the listing's |
 | `notPermitted` | The user may not delete it |
+| `noTrashBin` | The trash bin would not keep it, so deleting it would be for good |
 | `locked` | Locked by another process |
 | `failed` | Any other error, logged as a warning |
 | `skipped` | Not tried, because another file of the picture failed |
+
+Nextcloud's trash bin deletes a file for good instead of keeping it when its storage is not
+wrapped by the trash bin, or when the file is at least as large as the trash bin size
+(`trashbin_size`, the owner's setting, else the server's). A Team folder keeps its own trash bin
+without that size. So before trashing, each file is checked against these rules (ADR 0030).
 
 ## Acceptance criteria
 
@@ -80,7 +87,7 @@ sent. `result` is one of:
 
 - **Given** a body that is no list, a picture that is no list or empty, a file that is no object,
   a file id that is no positive integer, a missing or empty ETag, a file id given twice, or more
-  files than the limit
+  files than the limit of 500
 - **When** the client posts it
 - **Then** the answer is `400` and nothing is touched; a request of exactly the limit is accepted
 
@@ -97,6 +104,20 @@ sent. `result` is one of:
 - **When** its files are trashed and later restored from the trash bin
 - **Then** the restored files keep their file ids and so their decision
 
+### DELETE-001.9 – A file the trash bin would not keep is not deleted
+
+- **Given** a picture with a file on a storage without the trash bin, or a file at least as large
+  as the trash bin size, outside a Team folder
+- **When** the client posts it with another, valid picture
+- **Then** no file of that picture is touched, that file reports `noTrashBin`, its other files
+  `skipped` unless they fail too, and the other picture is trashed
+
+### DELETE-001.10 – Team folders and External Storage
+
+- **Given** a pair in a Team folder, or on local External Storage
+- **When** the client posts it
+- **Then** both files are trashed and appear in the user's trash bin
+
 ## Out of scope
 
 Choosing what to delete, the summary and the report: DELETE-002. Removing only RAWs: DELETE-003.
@@ -108,3 +129,5 @@ Choosing what to delete, the summary and the report: DELETE-002. Removing only R
 | 2026-11-10 | Written from the merged M4.1 (#51) |
 | 2026-11-10 | DELETE-001.8 proven by an e2e test |
 | 2026-11-11 | `.cr3` and `.srw` files Nextcloud does not type are trashed like any picture file |
+| 2026-11-15 | At most 500 files per request instead of 60,000 (ADR 0029) |
+| 2026-11-15 | A file the trash bin would not keep reports `noTrashBin` (DELETE-001.9, ADR 0030); Team folders and External Storage proven by e2e tests (DELETE-001.10) |

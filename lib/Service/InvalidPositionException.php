@@ -8,5 +8,5 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 /** A resume position request is malformed: nothing of it is written. */
-final class InvalidPositionException extends \InvalidArgumentException {
+final class InvalidPositionException extends InvalidRequestException {
 }

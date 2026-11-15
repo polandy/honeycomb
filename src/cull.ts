@@ -3,12 +3,12 @@
 import type { BrowserStorage } from './browser-storage.ts'
 import type { CullApi, CullSidecars } from './cull-seams.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
-import type { Decision, StoredDecision } from './logic/decision.ts'
+import type { Decision, DecisionField, StoredDecision } from './logic/decision.ts'
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { PairingSettings, Picture } from './logic/pairing.ts'
 import type { Series } from './logic/series.ts'
-import type { Settings } from './logic/settings.ts'
+import type { Settings, SidecarWriting } from './logic/settings.ts'
 import type { TagChange } from './logic/tag.ts'
 import type { DecisionStep, PickRestStep, SeriesStep, StepEffects, TagStep, UndoStep } from './logic/undo.ts'
 
@@ -18,8 +18,9 @@ import { useCullTags } from './cull-tags.ts'
 import { nameComparer } from './l10n.ts'
 import { logger } from './logger.ts'
 import { prepareCull, warmMembers } from './logic/cull.ts'
-import { commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
+import { changedFields, commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
 import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
+import { legacyWrites } from './logic/legacy.ts'
 import { memberIds } from './logic/pairing.ts'
 import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
 import { sortPictures } from './logic/picture-order.ts'
@@ -61,7 +62,11 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		series: (step, back) => void storedSeries.store(back ? step.before : step.after),
 	}
 	const history = useCullHistory<CullStep>((step, back) => applyStep(effects, step, back))
-	const tags = useCullTags(api.tags, sidecars.writeTags, () => opening, (picture) => !inSharedFolder(picture, sharedFolders.value))
+	/** How the picture's sidecars are written: the setting, unless a shared folder keeps them (XMP-003.11, .18). */
+	const sidecarWriting = (picture: Picture<ListingEntry>): SidecarWriting => settings().sidecarWrite !== 'off' && inSharedFolder(picture, sharedFolders.value) ? 'shared-folder' : settings().sidecarWrite
+	/** Whether a step on the picture is written through to its sidecars on its own. */
+	const writesThrough = (picture: Picture<ListingEntry>) => sidecarWriting(picture) !== 'off' && sidecarWriting(picture) !== 'shared-folder'
+	const tags = useCullTags(api.tags, sidecars.writeTags, () => opening, writesThrough)
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
 	const folders = computed(() => folderPaths.value.length)
 	const options = useViewOptions(storage, () => folders.value)
@@ -177,7 +182,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		saveFailed.value = false
 		void saveDecisions(rows).then((saved) => {
 			if (saved.ok) {
-				writeThrough(rows, opened)
+				writeThrough(rows, changedFields(rows, before), opened)
 				return
 			}
 			logger.error('Could not save the decisions', { error: saved.error })
@@ -188,17 +193,17 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		})
 	}
 
-	/** Writes the decisions of the rows' pictures outside shared folders to their sidecars (XMP-003.6, .11). */
-	function writeThrough(rows: readonly StoredDecision[], opened: number) {
+	/** Writes the changed fields of the rows' pictures to their sidecars where they write through (XMP-003.6, .11, .18, .20). */
+	function writeThrough(rows: readonly StoredDecision[], fields: readonly DecisionField[], opened: number) {
 		const fileIds = new Set(rows.map((row) => row.fileId))
-		const written = paired.value.filter((picture) => memberIds(picture).some((fileId) => fileIds.has(fileId)) && !inSharedFolder(picture, sharedFolders.value))
-		if (opening === opened && written.length > 0) {
-			void sidecars.write(written, decisionOf)
+		const written = paired.value.filter((picture) => memberIds(picture).some((fileId) => fileIds.has(fileId)) && writesThrough(picture))
+		if (opening === opened && written.length > 0 && fields.length > 0) {
+			void sidecars.write(written, decisionOf, fields)
 		}
 	}
 
-	/** The pictures in shared folders with a stored decision, for an explicit write (XMP-003.12). */
-	const sharedDecided = () => sharedPictures.value.filter((picture) => memberIds(picture).some((fileId) => decisions.value.has(fileId)))
+	/** The pictures with legacy rows, for *Write decisions to sidecars…* (XMP-007.5). */
+	const legacy = computed(() => legacyWrites(paired.value, decisions.value, tags.tagsOf, (picture) => inSharedFolder(picture, sharedFolders.value)))
 
 	/** Takes trashed files out of the pictures; returns what each affected picture became (ADR 0013). */
 	function removeFiles(fileIds: ReadonlySet<number>) {
@@ -226,6 +231,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	}
 
 	return {
+		sidecarWriting,
 		folderSet,
 		pictures,
 		pairing,
@@ -245,7 +251,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		tileSize: options.tileSize,
 		saveFailed,
 		sharedPictures,
-		sharedDecided,
+		legacy,
 		tags,
 		decisionOf,
 		passes,

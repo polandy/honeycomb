@@ -136,6 +136,13 @@ Moves one picture, the selection or a filter result into another Nextcloud folde
 name template (see [Moving pictures](#moving-pictures)). Decided by the owner on 2026-11-09; the
 mockup shows it.
 
+### M8 – The sidecar is the source of truth
+
+Ratings, flags, colour labels, *Keep RAW* and tags move from the database into the sidecars; the
+database keeps a per-user XMP cache that is rebuilt from the files (XMP-006), and digiKam
+compatibility comes first. Decided by the owner on 2026-11-15 (#187); the rules, the permission
+model and the pull request order are in ADR 0032.
+
 ### Release – first App Store release
 
 Before it: Transifex setup ([Translations](#translations)), the signing certificate and the
@@ -648,9 +655,9 @@ and the loupe's title row, on the key `M` (dialog and summary: MOVE-004).
 2. **Where to.** A target folder chosen with a folder picker. Favourite targets (★, set by the
    user) and the 5 most recent targets are one-tap chips, and keys `1`–`9` in the dialog.
 3. **On the server.** The move runs through `OCP\Files` (`Node::move()`). On the same storage it
-   is a rename, so file ids, shares, tags, comments and decisions are kept. Across storages it
-   becomes copy and delete with new file ids; the server carries the user's decisions over to
-   them (MOVE-002.10).
+   is a rename, so file ids, shares, tags, comments and decisions are kept. A move to another
+   storage (out of or into an incoming share, a group folder or external storage) is refused,
+   since it would be copy and delete and take the files from their owner (MOVE-002.11).
 4. **Move summary.** Before anything moves, the dialog lists every file with its new path, and
    counts pictures, files and conflicts. A conflict (the target name already exists) is resolved
    per picture or for all at once: *Add suffix* (default), *Skip* or *Replace*. *Replace* sends
@@ -873,9 +880,12 @@ Answered by the owner on 2026-11-09 (Q3, Q4, Q5, Q6, Q20).
 4. **Sidecar names.** Both `<file>.xmp` and `<base>.xmp` are read; every one that exists is
    written, else `<file>.xmp` per member; deleting a picture removes both, *Remove RAWs* only the
    RAW's own `<file>.xmp` ([`06-xmp-interop.md`](06-xmp-interop.md#sidecar-names)).
-5. **Shared folders.** Decisions are per user, in the database. Sidecars are shared by every
+5. **Shared folders** (until M8, where ADR 0032 makes writing there permission-based and confirmed).
+   Decisions are per user, in the database. Sidecars are shared by every
    user of the folder, so in a shared folder nothing is written through on its own: the ⋯ menu
-   offers *Write decisions to sidecars…*, which asks first (ADR 0005). The listing says per
+   offers *Write decisions to sidecars…*, which asks first (ADR 0005). Writing through is
+   opt-in at all: *Settings › XMP sidecars* is *Off* by default, *Only existing sidecars* or
+   *Existing and new sidecars* (XMP-003, risk review R1/R9). The listing says per
    folder whether it is shared (LISTING-001.12, ADR 0017): shared with another user, a federated
    user, by public link or by mail, a group folder, or external storage mounted for several users.
 
@@ -913,7 +923,8 @@ honeycomb/
 │   ├── AppInfo/Application.php
 │   ├── Controller/             one thin controller per resource: Page, Entry, Folder, Image,
 │   │                           Decision, Tag, Position, ViewState, Settings, Trash, Move,
-│   │                           Sidecar, EmbeddedXmp, VisualHash
+│   │                           Sidecar, EmbeddedXmp, VisualHash; `ApiResponse` maps the
+│   │                           missing user and the service exceptions to HTTP status codes
 │   ├── Service/                one service per resource (`ListingService`, `DecisionService`,
 │   │                           `TrashService`, `MoveService`, ...), its request and result
 │   │                           values, and one typed `Invalid*Exception` per request kind
@@ -927,7 +938,8 @@ honeycomb/
 │   │                           filter, sort, name templates, xmp, undo, gestures, hotkeys, ...
 │   ├── components/             Vue components and their CSS; there is no `views/` folder
 │   ├── main.ts, similarity-main.ts   the two entry points: cull app, similarity page
-│   ├── App.vue                 the cull app: grid, loupe and series viewer in one tree
+│   ├── App.vue                 the cull app: grid, loupe and series viewer in one tree; it
+│   │                           provides the screens their `CullContext` (ADR 0028)
 │   ├── cull.ts                 the cull's state as one composable; no Pinia, no store folder
 │   ├── view-options.ts         how the cull is shown (filters, sort, grouping, tile size,
 │   │                           panels); `cull.ts` hands it on unchanged
@@ -954,9 +966,10 @@ honeycomb/
 
 - **Path and file-id checks:** `FileIds` checks the file ids and item lists a request carries
   (a list within a limit, positive integers, each once) and throws the caller's
-  `InvalidRequestException` subclass. `UserPhotos` answers which file ids are photos in the
-  user's files at a given etag; `VisualHashService` uses it, the services that open, trash, move
-  or read sidecars still check on their own. `UserFolderResolver` turns a path into a readable
+  `InvalidRequestException` subclass. `UserPhotos` is the one lookup of a file id in the user's
+  files: it answers which file ids are photos (at a given etag) and finds the photo, sidecar or
+  listed file behind an id; every service that opens, trashes, moves, reads or writes a file by
+  id goes through it. `UserFolderResolver` turns a path into a readable
   folder of the user, `CheckedMove` and
   `ExistingSidecar` are files that passed their check, `SidecarWriter` checks again before its
   rename, and `ExistingFiles` tells which file ids still have a file.
@@ -1000,8 +1013,10 @@ Sources:
 **Supported: Nextcloud 35 only, PHP 8.3 and later** (Q1, answered by the owner on 2026-11-09,
 against the recommendation of 34 and 35). `appinfo/info.xml` sets `min-version` and `max-version`
 to 35 and requires PHP 8.3. CI runs the PHP jobs on PHP 8.3, the floor, and 8.5, the version
-Nextcloud recommends, against Nextcloud 35. Supporting 36 once it ships is a new decision for the
-owner.
+Nextcloud recommends, against Nextcloud 35, and e2e on 35.0.0, the first release `min-version`
+admits, and on the newest 35 release it passes on; `scripts/nextcloud-versions.sh` fails when `info.xml`
+declares a version these images do not cover, so `max-version` rises only with an e2e run on that
+major. Supporting 36 once it ships is a new decision for the owner.
 
 ## Open questions
 
@@ -1032,7 +1047,8 @@ the decisions.
   read by digiKam.
 
 **Answer (owner, 2026-11-09): (c)**, database first (M2), sidecars as M5, read and written in
-digiKam's, darktable's and Lightroom's fields (ADR 0005). The mapping is
+digiKam's, darktable's and Lightroom's fields (ADR 0005). **Revised (owner, 2026-11-15): (b)**,
+the sidecar is the source of truth and the database only a cache (ADR 0032, M8). The mapping is
 [`06-xmp-interop.md`](06-xmp-interop.md).
 
 ### Q3 – Sidecar file names

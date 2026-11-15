@@ -872,7 +872,7 @@ const DE = {
   'Every photo goes with all of its files, sidecars included.': 'Jedes Foto wird mit allen seinen Dateien gelöscht, Sidecar-Dateien eingeschlossen.',
   'From {folders}.': 'Aus {folders}.',
   'Files that will be deleted': 'Dateien, die gelöscht werden',
-  'Files move to the Nextcloud trash bin and can be restored from there. Nothing is deleted for good; the space returns when the trash bin is emptied.': 'Dateien wandern in den Nextcloud-Papierkorb und lassen sich von dort wiederherstellen. Nichts wird endgültig gelöscht; der Speicherplatz wird frei, wenn der Papierkorb geleert wird.',
+  'Files move to the Nextcloud trash bin and can be restored from there until it empties itself: after its retention time, or sooner when space runs short. Keep a backup of photos you cannot afford to lose.': 'Dateien wandern in den Nextcloud-Papierkorb und lassen sich von dort wiederherstellen, bis er sich selbst leert: nach seiner Aufbewahrungszeit oder früher, wenn der Platz knapp wird. Sichere Fotos, die du nicht verlieren darfst, zusätzlich in einem Backup.',
   'Back to review': 'Zurück zur Prüfung',
   'Move %n file to trash': ['%n Datei in den Papierkorb verschieben', '%n Dateien in den Papierkorb verschieben'],
   'Deletion finished with errors': 'Löschen mit Fehlern beendet',
@@ -2122,7 +2122,7 @@ function dlgDelete(d){
     `<div class="sumrow"><div class="stat"><b>${nf(its.length)}</b>${n('photo', 'photos', its.length)}</div><div class="stat"><b>${nf(files.length)}</b>${n('file', 'files', files.length)}</div><div class="stat"><b>${fmtSize(total)}</b>${t('freed')}</div></div>
     <p style="margin:0 0 10px;color:var(--muted);font-size:13px">${n('%n pair', '%n pairs', pairs)} · ${n('%n single', '%n singles', singles)}. ${t('Every photo goes with all of its files, sidecars included.')}${multiFolder() ? ' ' + t('From {folders}.', {folders:[...new Set(its.map(i => i.folder))].map(p => `${esc(folderName(p))} (${nf(its.filter(i => i.folder === p).length)})`).join(', ')}) : ''}</p>
     <div class="fl-list" tabindex="0" aria-label="${esc(t('Files that will be deleted'))}">${files.map(f => `<div><span class="k">${f.kind}</span><span class="n"><i>${esc(f.dir.replace('/Photos/', '…/'))}</i>${esc(f.name)}</span><span>${fmtSize(f.size)}</span></div>`).join('')}</div>
-    <div class="note">${ic('trash')}<span>${t('Files move to the Nextcloud trash bin and can be restored from there. Nothing is deleted for good; the space returns when the trash bin is emptied.')}</span></div>`,
+    <div class="note">${ic('trash')}<span>${t('Files move to the Nextcloud trash bin and can be restored from there until it empties itself: after its retention time, or sooner when space runs short. Keep a backup of photos you cannot afford to lose.')}</span></div>`,
     {back:d.from === 'review' ? {act:'reviewBack', label:t('Back to review')} : null, cancel:t('Cancel'), confirm:{act:'delConfirm', label:n('Move %n file to trash', 'Move %n files to trash', files.length), icon:'trash', kind:'danger'}});
 }
 function doDelete(ids, failFirst){
@@ -2153,7 +2153,7 @@ function dlgRawRm(d){
     ${rawGroup(t('RAW will be removed'), its, t('Tap a photo to keep its RAW instead.'), t('Keep RAW'), 'rv-rm')}
     ${rawGroup(t('RAW stays (Keep RAW)'), keptIts, t('Tap a photo to remove its RAW after all.'), t('Remove RAW'), 'rv-keep')}
     <details class="rv-files"><summary>${t('Files that will be deleted')}</summary><div class="fl-list" tabindex="0">${files.map(f => `<div><span class="k">${f.kind}</span><span class="n"><i>${esc(f.dir.replace('/Photos/', '…/'))}</i>${esc(f.name)}</span><span>${fmtSize(f.size)}</span></div>`).join('')}</div></details>
-    <div class="note">${ic('trash')}<span>${t('Files move to the Nextcloud trash bin and can be restored from there. Nothing is deleted for good; the space returns when the trash bin is emptied.')}</span></div>`,
+    <div class="note">${ic('trash')}<span>${t('Files move to the Nextcloud trash bin and can be restored from there until it empties itself: after its retention time, or sooner when space runs short. Keep a backup of photos you cannot afford to lose.')}</span></div>`,
     {cancel:t('Cancel'), confirm:{act:'rawRmConfirm', label:n('Move %n file to trash', 'Move %n files to trash', files.length), icon:'trash', kind:'danger', dis:!files.length}, wide:true});
 }
 function doRemoveRaws(ids, failFirst){

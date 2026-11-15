@@ -8,5 +8,5 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 /** The cursor of a page of missing visual hashes is no path relative to the folder. */
-final class InvalidCursorException extends \InvalidArgumentException {
+final class InvalidCursorException extends InvalidRequestException {
 }

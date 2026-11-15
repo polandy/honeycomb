@@ -132,7 +132,7 @@ describe('GridToolbar', () => {
 		expect(wrapper.find('.grid-toolbar__selection').exists()).toBe(false)
 
 		await select.trigger('click')
-		await wrapper.setProps({ selecting: true })
+		await wrapper.setProps({ selection: { selecting: true, selected: 0 } })
 		await wrapper.find(`[aria-label="${MARK}Select"]`).trigger('click')
 
 		expect(wrapper.emitted('update:selecting')).toEqual([[true], [false]])

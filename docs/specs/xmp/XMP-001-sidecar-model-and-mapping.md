@@ -119,8 +119,8 @@ has, else one new `<member file>.xmp` per member.
 - **Given** a sidecar and the flags *picked*, *rejected* and *unflagged*
 - **When** each is merged and written
 - **Then** `digiKam:PickLabel`, `xmpDM:pick`, `xmpDM:good` and `xmp:Rating` are as in the writing
-  table of `06-xmp-interop.md`: −1 rating when rejected, the three flag properties removed when
-  unflagged, and an existing PickLabel 2 kept when unflagged
+  table of `06-xmp-interop.md`: the stars kept in `xmp:Rating` when rejected, never −1, the three
+  flag properties removed when unflagged, and an existing PickLabel 2 kept when unflagged
 
 ### XMP-001.14 – Colour labels are written
 
@@ -181,6 +181,31 @@ has, else one new `<member file>.xmp` per member.
 - **When** a decision is to be merged into it
 - **Then** the merge fails with the reason and produces no bytes
 
+### XMP-001.22 – Foreign sidecars keep every foreign property
+
+- **Given** the corpus `tests/fixtures/xmp/corpus/`, sidecars in the style of Lightroom Classic,
+  Capture One, ON1 Photo RAW, Photo Mechanic and darktable with a history and masks
+- **When** three decisions are written in turn, each read back
+- **Then** each reads back as the decision written and every property honeycomb does not write is
+  unchanged, value and qualifiers
+
+### XMP-001.23 – A delta is applied to the sidecar's own decision
+
+- **Given** a sidecar stating two stars, green and picked
+- **When** the delta `{flag: 'rejected'}` is merged
+- **Then** it reads back as two stars, green and rejected, and the whole field set of the writing
+  table is written from that result
+
+### XMP-001.24 – darktable's −1 becomes stars and digiKam's reject
+
+- **Given** a darktable sidecar stating `xmp:Rating` −1 and no pick fields
+- **When** the delta `{rating: 3}`, the delta `{flag: 'unflagged'}`, and a change of its colour
+  label are merged
+- **Then** the first writes `xmp:Rating` 3 and the reject as `digiKam:PickLabel` 1, `xmpDM:pick`
+  −1 and `xmpDM:good` `False`; the second writes `xmp:Rating` 0 and no pick fields; the third
+  writes `xmp:Rating` 0 and the reject in the pick fields; none writes −1 or
+  `honeycomb:RejectedRating`
+
 ## Out of scope
 
 - Fetching the sidecars, the backend's checked save, when sidecars are read on listing and written
@@ -192,3 +217,5 @@ has, else one new `<member file>.xmp` per member.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Created and implemented with M5.1 (ADR 0016) |
+| 2026-11-15 | Corpus of foreign sidecars (XMP-001.22) |
+| 2026-11-15 | Deltas on each sidecar's own decision, a reject never as `xmp:Rating` −1 (ADR 0032; .13, .23, .24) |

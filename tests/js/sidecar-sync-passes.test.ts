@@ -6,7 +6,8 @@ import type { SidecarSaveAnswer, SidecarSaveItem } from '../../src/logic/sidecar
 
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import { UNDECIDED } from '../../src/logic/decision.ts'
+import { DECISION_FIELDS, UNDECIDED } from '../../src/logic/decision.ts'
+import { sidecarDecision } from '../../src/logic/xmp/decision.ts'
 import { readXmp } from '../../src/logic/xmp/parse.ts'
 import { serializeXmp } from '../../src/logic/xmp/serialize.ts'
 import { useSidecarSync } from '../../src/sidecar-sync.ts'
@@ -35,7 +36,7 @@ function sync(answer: (item: SidecarSaveItem) => SidecarSaveAnswer = (item) => s
 			}
 			return items.map(answer)
 		},
-	}, () => CANONICAL_TIME, () => undefined)
+	}, () => CANONICAL_TIME, () => undefined, () => true)
 	return { sidecars, saves, release }
 }
 
@@ -81,7 +82,32 @@ describe('useSidecarSync: passes', () => {
 
 		await running
 		expect(await mine).toEqual({ written: 1, failed: [] })
-		expect(await theirs).toEqual({ written: 1, failed: [{ path: '/P/B.NEF.xmp', picture: OTHER, reason: 'locked' }] })
+		expect(await theirs).toEqual({ written: 1, failed: [{ path: '/P/B.NEF.xmp', picture: OTHER, reason: 'locked', fields: DECISION_FIELDS }] })
+	})
+
+	// spec: XMP-003.20
+	it('joins the fields of the waiting steps and keeps the sidecar\'s other fields', async () => {
+		const { sidecars, saves, release } = sync()
+		release()
+		const decision: Decision = { rating: 5, colourLabel: 'red', flag: 'picked', keepRaw: false }
+
+		await Promise.all([sidecars.write([SINGLE], () => decision, ['flag']), sidecars.write([SINGLE], () => decision, ['colourLabel'])])
+
+		expect(saves).toHaveLength(1)
+		expect(sidecarDecision(readXmp(saves[0]![0]!.bytes), false)).toEqual({ ...decision, rating: 3 })
+	})
+
+	// spec: XMP-003.20, XMP-003.13
+	it('retries a failed sidecar with the fields its write changed, valued as they are then', async () => {
+		const answers = [(): SidecarSaveAnswer => ({ result: 'notPermitted' })]
+		const { sidecars, saves, release } = sync((item) => (answers.shift() ?? (() => saved('fileId' in item ? item.fileId : 30)))())
+		release()
+
+		const { failed } = await sidecars.write([SINGLE], () => rated(4), ['rating'])
+		await sidecars.retry(failed, () => ({ ...rated(2), colourLabel: 'red' }))
+
+		expect(failed.map(({ fields }) => fields)).toEqual([['rating']])
+		expect(sidecarDecision(readXmp(saves.at(-1)![0]!.bytes), false)).toEqual(rated(2))
 	})
 
 	// spec: XMP-003.16, XMP-003.13
@@ -95,7 +121,7 @@ describe('useSidecarSync: passes', () => {
 		const failed = results[1].failed
 		await sidecars.retry(failed, () => rated(4))
 
-		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: SINGLE, reason: 'notPermitted', tags: wedding, decision: true }])
+		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: SINGLE, reason: 'notPermitted', tags: wedding, fields: DECISION_FIELDS }])
 		const retried = readXmp(saves.at(-1)![0]!.bytes)
 		expect([textOf(retried, 'xmp:Rating'), itemsOf(retried, 'digiKam:TagsList')]).toEqual(['4', ['Events/Wedding', 'Places/Lisbon']])
 	})

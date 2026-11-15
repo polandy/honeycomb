@@ -7,22 +7,22 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\InvalidPositionException;
 use OCA\Honeycomb\Service\PositionService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
-use OCP\IUserSession;
+use OCP\IUser;
 
 /** @psalm-suppress UnusedClass Routed by its attributes. */
 final class PositionController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IUserSession $userSession,
+		private ApiResponse $api,
 		private PositionService $positions,
 	) {
 		parent::__construct($appName, $request);
@@ -31,26 +31,15 @@ final class PositionController extends Controller {
 	/** The user's resume positions, the latest saved first (ADR 0012). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/positions')]
-	public function index(): JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse([], Http::STATUS_UNAUTHORIZED);
-		}
-		return new JSONResponse(['positions' => $this->positions->recent($user)]);
+	public function index(): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(['positions' => $this->positions->recent($user)]));
 	}
 
 	/** Stores where the user stands in the folder set (ADR 0012). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/positions')]
-	public function save(array $folderSet = [], int $fileId = 0, int $decided = 0, int $total = 0): JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse([], Http::STATUS_UNAUTHORIZED);
-		}
-		try {
-			return new JSONResponse($this->positions->save($user, $folderSet, $fileId, $decided, $total));
-		} catch (InvalidPositionException) {
-			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
-		}
+	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
+	public function save(array $folderSet = [], int $fileId = 0, int $decided = 0, int $total = 0): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->positions->save($user, $folderSet, $fileId, $decided, $total)));
 	}
 }

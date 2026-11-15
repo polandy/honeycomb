@@ -55,6 +55,15 @@ describe('ConfirmDialog', () => {
 		expect(mountDialog({ confirmDisabled: true }).find('button').attributes('disabled')).toBeDefined()
 	})
 
+	// spec: DELETE-002.13, MOVE-004.17
+	it('shows how many photos were sent while a send runs, and nothing otherwise', () => {
+		const bar = mountDialog({ progress: { done: 50, total: 120 } }).find('[role="progressbar"]')
+
+		expect(bar.attributes()).toMatchObject({ 'aria-valuenow': '50', 'aria-valuemax': '120', 'aria-label': expect.stringMatching(/^\[de\] .*50 of 120 photos sent$/) })
+		expect(mountDialog({ progress: { done: 50, total: 120 } }).text()).toContain('50 of 120 photos sent')
+		expect(mountDialog({ progress: null }).find('[role="progressbar"]').exists()).toBe(false)
+	})
+
 	it('can be closed only when it can be cancelled', () => {
 		expect(mountDialog({ cancel: true }).find('[role="dialog"]').attributes('data-no-close')).toBe('false')
 		expect(mountDialog().find('[role="dialog"]').attributes('data-no-close')).toBe('true')

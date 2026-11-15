@@ -4,6 +4,7 @@
 -->
 <script setup lang="ts">
 import type { FolderSet } from '../logic/folder-set.ts'
+import type { SendProgress } from '../logic/request-chunks.ts'
 import type { TrashReport } from '../logic/trash-report.ts'
 
 import { n, t } from '@nextcloud/l10n'
@@ -19,6 +20,8 @@ const props = defineProps<{
 	folderSet: FolderSet
 	/** Whether a retry runs. */
 	busy: boolean
+	/** How many photos the running delete has sent. */
+	progress?: SendProgress | null | undefined
 }>()
 
 const emit = defineEmits<{
@@ -37,6 +40,7 @@ const stats = computed(() => [
 	<ConfirmDialog
 		:title="t('honeycomb', 'Deletion finished with errors')"
 		:confirmLabel="t('honeycomb', 'Retry failed files')"
+		:progress="props.progress"
 		:confirmDisabled="props.busy"
 		:cancelLabel="t('honeycomb', 'Close')"
 		cancel

@@ -10,7 +10,6 @@ namespace OCA\Honeycomb\Service;
 use OCP\App\IAppManager;
 use OCP\Files\File;
 use OCP\Files\Folder;
-use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IUser;
@@ -20,8 +19,9 @@ use Psr\Log\LoggerInterface;
 /** Moves whole pictures into the trash bin: each checked whole, then trashed file by file (ADR 0013). */
 final class TrashService {
 	public function __construct(
-		private IRootFolder $rootFolder,
+		private UserPhotos $photos,
 		private IAppManager $appManager,
+		private TrashBinGuard $trashBinGuard,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -38,16 +38,16 @@ final class TrashService {
 		if (!$this->appManager->isEnabledForUser('files_trashbin', $user)) {
 			throw new TrashBinDisabledException('The trash bin is disabled for the user');
 		}
-		$userFolder = $this->rootFolder->getUserFolder($user->getUID());
-		return array_map(fn (array $picture): array => $this->trashPicture($userFolder, $picture), $pictures);
+		$userFolder = $this->photos->userFolder($user);
+		return array_map(fn (array $picture): array => $this->trashPicture($user, $userFolder, $picture), $pictures);
 	}
 
 	/**
 	 * @param non-empty-list<array{fileId: int, etag: string}> $picture
 	 * @return list<array{fileId: int, result: TrashResult}>
 	 */
-	private function trashPicture(Folder $userFolder, array $picture): array {
-		$checked = array_map(fn (array $file): File|TrashResult => $this->check($userFolder, $file['fileId'], $file['etag']), $picture);
+	private function trashPicture(IUser $user, Folder $userFolder, array $picture): array {
+		$checked = array_map(fn (array $file): File|TrashResult => $this->check($user, $userFolder, $file['fileId'], $file['etag']), $picture);
 		$files = array_filter($checked, static fn (File|TrashResult $node): bool => $node instanceof File);
 		$results = count($files) === count($checked)
 			? $this->trashInOrder($files)
@@ -89,9 +89,9 @@ final class TrashService {
 	}
 
 	/** The file to trash, or why it may not be trashed. */
-	private function check(Folder $userFolder, int $fileId, string $etag): File|TrashResult {
-		$node = $userFolder->getFirstNodeById($fileId);
-		if (!$node instanceof File || !ListingService::isListedType($node)) {
+	private function check(IUser $user, Folder $userFolder, int $fileId, string $etag): File|TrashResult {
+		$node = $this->photos->listed($userFolder, $fileId);
+		if ($node === null) {
 			return TrashResult::NotFound;
 		}
 		if ($node->getEtag() !== $etag) {
@@ -99,6 +99,9 @@ final class TrashService {
 		}
 		if (!$node->isDeletable()) {
 			return TrashResult::NotPermitted;
+		}
+		if (!$this->trashBinGuard->keeps($user->getUID(), $node)) {
+			return TrashResult::NoTrashBin;
 		}
 		return $node;
 	}
@@ -112,7 +115,7 @@ final class TrashService {
 		if (!array_is_list($pictures)) {
 			throw new InvalidTrashRequestException('pictures must be a list');
 		}
-		$seen = [];
+		$fileIds = [];
 		foreach ($pictures as $picture) {
 			if (!is_array($picture) || $picture === [] || !array_is_list($picture)) {
 				throw new InvalidTrashRequestException('Each picture must be a non-empty list of files');
@@ -124,14 +127,12 @@ final class TrashService {
 				if (!is_int($fileId) || $fileId < 1 || !is_string($etag) || $etag === '') {
 					throw new InvalidTrashRequestException('Each file must have a positive fileId and an etag');
 				}
-				if (isset($seen[$fileId])) {
-					throw new InvalidTrashRequestException("File $fileId is given twice");
-				}
-				$seen[$fileId] = true;
+				$fileIds[] = $fileId;
 			}
 		}
-		if (count($seen) > ListingService::ENTRY_LIMIT) {
-			throw new InvalidTrashRequestException('At most ' . ListingService::ENTRY_LIMIT . ' files');
+		FileIds::eachOnce($fileIds, InvalidTrashRequestException::class);
+		if (count($fileIds) > PictureRequestLimit::FILES) {
+			throw new InvalidTrashRequestException('At most ' . PictureRequestLimit::FILES . ' files');
 		}
 		/** @var list<non-empty-list<array{fileId: int, etag: string}>> $pictures */
 		return $pictures;

@@ -93,4 +93,34 @@ final class UserPhotosTest extends TestCase {
 	public function testAnswersNoPhotosForNoFileIds(): void {
 		$this->assertSame([], $this->photos()->photos($this->user(), []));
 	}
+
+	public function testFindsAPhotoInTheUsersFolder(): void {
+		$raw = $this->file(8, '/P/B.CR3', 'application/octet-stream');
+		$photos = $this->photos($raw, $this->file(9, '/P/B.CR3.xmp', 'application/octet-stream'));
+		$userFolder = $photos->userFolder($this->user());
+
+		$this->assertSame($raw, $photos->photo($userFolder, 8));
+		$this->assertNull($photos->photo($userFolder, 9));
+		$this->assertNull($photos->photo($userFolder, 404));
+	}
+
+	public function testFindsASidecarButNoPhotoAsASidecar(): void {
+		$sidecar = $this->file(9, '/P/B.CR3.xmp', 'application/octet-stream');
+		$photos = $this->photos($this->file(7, '/P/A.JPG'), $sidecar);
+		$userFolder = $photos->userFolder($this->user());
+
+		$this->assertSame($sidecar, $photos->sidecar($userFolder, 9));
+		$this->assertNull($photos->sidecar($userFolder, 7));
+	}
+
+	public function testFindsPhotosAndSidecarsAsListedFilesButNoOtherFileOrFolder(): void {
+		$jpeg = $this->file(7, '/P/A.JPG');
+		$sidecar = $this->file(9, '/P/A.JPG.xmp', 'application/octet-stream');
+		$folder = $this->folder('/P/Sub');
+		$folder->method('getId')->willReturn(5);
+		$photos = $this->photos($jpeg, $sidecar, $this->file(10, '/P/notes.txt', 'text/plain'), $folder);
+		$userFolder = $photos->userFolder($this->user());
+
+		$this->assertSame([$jpeg, $sidecar, null, null, null], array_map(static fn (int $id) => $photos->listed($userFolder, $id), [7, 9, 10, 5, 404]));
+	}
 }

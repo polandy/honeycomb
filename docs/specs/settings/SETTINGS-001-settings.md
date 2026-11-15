@@ -29,11 +29,18 @@ back to its default, so an unknown, missing or invalid field never breaks the ap
 | Vi keys | Off |
 | Name template for moved photos | *By day* (`docs/05-name-templates.md` Default and presets) |
 | Favourite targets | None |
+| Write decisions to XMP sidecars | Off; can be only existing sidecars, or existing and new ones |
 
 *Settings* in the grid's ⋯ menu opens a dialog with the sections *File types*, *Folder layout*,
-*Loupe gestures*, *Keyboard* and *Moving photos*. Each change applies at once and saves the whole
-object; there is no OK button. What a setting does elsewhere is specified where it acts
-(LISTING-002, LOUPE-001, LOUPE-002, KEYS-001, MOVE-004).
+*Loupe gestures*, *Keyboard*, *Moving photos*, *XMP sidecars* and *Cache*. Each change applies at
+once and saves the whole object; there is no OK button. What a setting does elsewhere is specified
+where it acts (LISTING-002, LOUPE-001, LOUPE-002, KEYS-001, MOVE-004, XMP-003).
+
+*XMP sidecars* offers *Off*, *Only existing sidecars* and *Existing and new sidecars*, each with a
+line that says what it changes. Leaving *Off* asks first: a dialog explains what is written where
+and what other programs and the Nextcloud versions see, and only *Write to sidecars* applies the
+choice; *Cancel* keeps *Off*. Switching between the two other choices, or back to *Off*, applies
+at once.
 
 *Moving photos* holds the name template: three presets, a text field and a live preview that
 renders the template on five fixed sample pictures, chosen to show the template's edge cases (two
@@ -86,7 +93,7 @@ Below it, the favourite targets the move dialog starred, each with a ✕ to remo
 
 - **Given** the grid
 - **When** the user chooses *Settings* in the ⋯ menu
-- **Then** the dialog opens with the stored settings in its four sections, every string translated,
+- **Then** the dialog opens with the stored settings in its sections, every string translated,
   and closes again
 
 ### SETTINGS-001.8 – Extensions
@@ -203,6 +210,21 @@ Below it, the favourite targets the move dialog starred, each with a ✕ to remo
 - **When** a section shows a hint, a sub-heading such as *RAW extensions* or a row label
 - **Then** its text starts at the x of the section heading's text, in every section
 
+### SETTINGS-001.24 – Writing to sidecars is opted into
+
+- **Given** the *XMP sidecars* section with *Off*
+- **When** the user chooses *Only existing sidecars* or *Existing and new sidecars*
+- **Then** a dialog explains what will be written; *Write to sidecars* applies and saves the
+  choice, *Cancel* or closing keeps *Off*; from either choice, another choice or *Off* applies at
+  once without asking; a stored value other than the three reads as *Off*
+
+### SETTINGS-001.25 – Clear cache
+
+- **Given** the *Cache* section
+- **When** the user taps *Clear cache*
+- **Then** the user's XMP cache and visual hashes are removed (XMP-006.5) without asking, and a
+  toast says *Cache cleared*; when it fails, the toast says the cache could not be cleared
+
 ## Out of scope
 
 What the swipes, auto-advance and flag buttons do in the loupe: LOUPE-002. The vi keys: KEYS-001.
@@ -218,3 +240,5 @@ Pairing itself: LISTING-002.
 | 2026-11-12 | .10 *Pin the filmstrip* and *Pin the rating row* (LOUPE-001.20) |
 | 2026-11-11 | .22 show the gesture guide again (UX review L6) |
 | 2026-11-13 | .23 text lines up with the section heading (UX L4) |
+| 2026-11-15 | .24 *Write decisions to XMP sidecars*, opted into after a dialog (risk review R1) |
+| 2026-11-15 | .25 *Clear cache* (ADR 0032) |

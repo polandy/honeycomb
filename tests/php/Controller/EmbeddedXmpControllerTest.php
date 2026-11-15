@@ -8,9 +8,12 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\EmbeddedXmpController;
 use OCA\Honeycomb\Service\EmbeddedXmpReader;
 use OCA\Honeycomb\Service\JpegXmp;
+use OCA\Honeycomb\Service\UserFolderResolver;
+use OCA\Honeycomb\Service\UserPhotos;
 use OCA\Honeycomb\Tests\Service\MemoryStream;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -41,8 +44,8 @@ final class EmbeddedXmpControllerTest extends TestCase {
 		$user->method('getUID')->willReturn('alice');
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
-		$reader = new EmbeddedXmpReader($root, new JpegXmp(), $this->createStub(LoggerInterface::class));
-		return new EmbeddedXmpController(Application::APP_ID, $this->createStub(IRequest::class), $session, $reader);
+		$reader = new EmbeddedXmpReader(new UserPhotos(new UserFolderResolver($root)), new JpegXmp(), $this->createStub(LoggerInterface::class));
+		return new EmbeddedXmpController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $reader);
 	}
 
 	// spec: XMP-005.1

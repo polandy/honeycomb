@@ -9,12 +9,11 @@ import type { StoredVisualHash } from './logic/visual-hash.ts'
 
 import { computed, ref, shallowRef, triggerRef, watch } from 'vue'
 import { removeStored } from './browser-storage.ts'
-import { drawHash } from './hash-drawing.ts'
 import { logger } from './logger.ts'
 import { hashProgress } from './logic/hash-progress.ts'
 import { imageMember, smallSource } from './logic/image-tiers.ts'
+import { sendLimited } from './logic/retry-after.ts'
 import { hashablePictures } from './logic/series.ts'
-import { HASH_COLUMNS, HASH_ROWS } from './logic/visual-hash.ts'
 
 /** The browser storage key under which earlier versions kept the visual hashes (ADR 0021); removed when a cull opens. */
 export const VISUAL_HASHES_KEY = 'honeycomb.visualHashes'
@@ -31,24 +30,23 @@ export type SaveVisualHashes = (hashes: readonly StoredVisualHash[]) => Promise<
 /** A file version: a new etag means new pixels. */
 const versionKey = (member: ListingEntry) => `${member.fileId}:${member.etag}`
 
-/** A hasher that draws the member's small grid preview, already in the browser's cache, at the hash size. */
-export function hashPreview(urlFor: ImageUrlFor): HashImage {
-	return async (member) => {
-		const image = new Image()
-		image.src = smallSource(member, urlFor)
-		await image.decode()
-		const canvas = document.createElement('canvas')
-		canvas.width = HASH_COLUMNS
-		canvas.height = HASH_ROWS
-		return drawHash(image, canvas.getContext('2d', { willReadFrequently: true }))
-	}
+/** What the cull's visual hashes need: the hasher, the save and a wait of seconds for a limited save (ADR 0026). */
+export interface VisualHashApi {
+	readonly hashImage: HashImage
+	readonly saveVisualHashes: SaveVisualHashes
+	readonly wait: (seconds: number) => Promise<void>
+}
+
+/** A hasher that hands the small grid preview's URL, already in the browser's cache, to the hash workers (SERIES-003.26). */
+export function hashInWorkers(workers: { readonly hash: (url: string) => Promise<string> }, urlFor: ImageUrlFor) {
+	return (member: Pick<ListingEntry, 'fileId' | 'mtime'>) => workers.hash(smallSource(member, urlFor))
 }
 
 /**
  * The visual hashes of the shown pictures: those the listing delivered, and the missing ones computed in the background one at
- * a time and saved to the server (SERIES-001.17, SERIES-003.12); a failed file version is not hashed again in this visit.
+ * a time in tile order and saved to the server (SERIES-001.17, SERIES-003.12); a failed file version is not hashed again in this visit.
  */
-export function useVisualHashes(api: { readonly hashImage: HashImage, readonly saveVisualHashes: SaveVisualHashes }, storage: BrowserStorage, pictures: () => readonly Picture<ListingEntry>[]) {
+export function useVisualHashes(api: VisualHashApi, storage: BrowserStorage, pictures: () => readonly Picture<ListingEntry>[]) {
 	removeStored(storage, VISUAL_HASHES_KEY)
 	const hashed = shallowRef(new Map<string, string>())
 	const failed = shallowRef(new Set<string>())
@@ -57,8 +55,9 @@ export function useVisualHashes(api: { readonly hashImage: HashImage, readonly s
 	const hashable = computed(() => hashablePictures(pictures()).map(imageMember))
 	const hashableKeys = computed(() => new Set(hashable.value.map(versionKey)))
 	let pending: ListingEntry[] = []
-	let unsaved: StoredVisualHash[] = []
+	const unsaved: StoredVisualHash[] = []
 	let running = false
+	let saving = false
 	let held = false
 
 	/** Makes the computed hashes count for the series. */
@@ -66,47 +65,54 @@ export function useVisualHashes(api: { readonly hashImage: HashImage, readonly s
 		published.value = new Map(hashed.value)
 	}
 
-	/** Saves the hashes computed since the last save; a failure is logged and the hashes still count for this visit (SERIES-003.13). */
+	/**
+	 * Saves the computed hashes one save at a time, full batches while hashing goes on and the rest once it stops; a limited save
+	 * waits and is sent again (SERIES-003.27), a failed one is logged and its hashes still count for this visit (SERIES-003.13).
+	 */
 	async function save() {
-		const batch = unsaved
-		unsaved = []
-		if (batch.length === 0) {
+		if (saving) {
 			return
 		}
+		saving = true
+		while (unsaved.length >= SAVE_BATCH || (!running && unsaved.length > 0)) {
+			const batch = unsaved.splice(0, SAVE_BATCH)
+			try {
+				await sendLimited(() => api.saveVisualHashes(batch), api.wait)
+				saveFailed.value = false
+			} catch (error) {
+				saveFailed.value = true
+				logger.warn('Could not save the visual hashes', { error, count: batch.length })
+			}
+		}
+		saving = false
+	}
+
+	/** Hashes one member; a failure is logged and the file version is not hashed again. */
+	async function hashOne(member: ListingEntry) {
 		try {
-			await api.saveVisualHashes(batch)
-			saveFailed.value = false
+			const hash = await api.hashImage(member)
+			hashed.value.set(versionKey(member), hash)
+			triggerRef(hashed)
+			unsaved.push({ fileId: member.fileId, etag: member.etag, hash })
+			if (!held) {
+				publish()
+			}
 		} catch (error) {
-			saveFailed.value = true
-			logger.warn('Could not save the visual hashes', { error, count: batch.length })
+			failed.value.add(versionKey(member))
+			triggerRef(failed)
+			logger.warn('Could not hash the preview', { error, fileId: member.fileId })
 		}
 	}
 
-	/** Hashes the pending members in turn, saving every batch and what is left once none is pending. */
+	/** Hashes the pending members in turn, so the tile loads keep their priority (SERIES-003.26), saving as it goes. */
 	async function drain() {
 		running = true
-		while (pending.length > 0) {
-			for (let member = pending.shift(); member !== undefined; member = pending.shift()) {
-				try {
-					const hash = await api.hashImage(member)
-					hashed.value.set(versionKey(member), hash)
-					triggerRef(hashed)
-					unsaved.push({ fileId: member.fileId, etag: member.etag, hash })
-					if (!held) {
-						publish()
-					}
-				} catch (error) {
-					failed.value.add(versionKey(member))
-					triggerRef(failed)
-					logger.warn('Could not hash the preview', { error, fileId: member.fileId })
-				}
-				if (unsaved.length >= SAVE_BATCH) {
-					await save()
-				}
-			}
-			await save()
+		for (let member = pending.shift(); member !== undefined; member = pending.shift()) {
+			await hashOne(member)
+			void save()
 		}
 		running = false
+		void save()
 	}
 
 	/** The hash state of a member, or null when it is not hashable (SERIES-003.16). */

@@ -24,18 +24,19 @@ export function fakeHasher() {
 	return { calls, hashImage }
 }
 
-/** A `useVisualHashes` over `entries`, with a hasher the test settles and the saves it sent. */
-export function setUp(entries: ListingEntry[] = BURST, stored: Record<string, string> = {}, saveFails = false) {
+/** A `useVisualHashes` over `entries`, with a hasher the test settles, the saves it sent and the failures they meet in turn. */
+export function setUp(entries: ListingEntry[] = BURST, stored: Record<string, string> = {}, failures: Error[] | 'always' = [], wait = async (_seconds: number) => {}) {
 	const hasher = fakeHasher()
 	const saves: StoredVisualHash[][] = []
 	const saveVisualHashes = async (hashes: readonly StoredVisualHash[]) => {
 		saves.push([...hashes])
-		if (saveFails) {
-			throw new Error('offline')
+		const failure = failures === 'always' ? new Error('offline') : failures.shift()
+		if (failure !== undefined) {
+			throw failure
 		}
 	}
 	const pictures = shallowRef<Picture<ListingEntry>[]>(picturesOf(entries))
-	const hashes = useVisualHashes({ hashImage: hasher.hashImage, saveVisualHashes }, fakeStorage(stored), () => pictures.value)
+	const hashes = useVisualHashes({ hashImage: hasher.hashImage, saveVisualHashes, wait }, fakeStorage(stored), () => pictures.value)
 	const byName = (name: string) => pictures.value.find((picture) => picture.baseName === name)!
 	return { ...hasher, saves, pictures, hashes, byName, stored }
 }

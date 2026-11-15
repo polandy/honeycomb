@@ -7,12 +7,17 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\AppInfo;
 
+use DOMDocument;
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\BackgroundJob\RemoveVanishedDecisions;
 use PHPUnit\Framework\TestCase;
 use SimpleXMLElement;
 
 final class InfoXmlTest extends TestCase {
+	private const REPOSITORY = __DIR__ . '/../../../';
+	private const DOCS_URL = 'https://github.com/polandy/honeycomb/blob/main/';
+	private const SCREENSHOT_URL = 'https://raw.githubusercontent.com/polandy/honeycomb-assets/main/';
+
 	private SimpleXMLElement $info;
 
 	#[\Override]
@@ -53,8 +58,34 @@ final class InfoXmlTest extends TestCase {
 		$this->assertSame($package['version'], (string)$this->info->version);
 	}
 
+	public function testValidatesAgainstTheAppStoreSchema(): void {
+		$document = new DOMDocument();
+		$document->load(self::REPOSITORY . 'appinfo/info.xml');
+		$this->assertTrue($document->schemaValidate(self::REPOSITORY . 'tests/fixtures/appstore/info.xsd'));
+	}
+
+	public function testIsListedUnderMultimedia(): void {
+		$this->assertSame(['multimedia'], array_map('strval', iterator_to_array($this->info->category, false)));
+	}
+
+	public function testDocumentationLinksPointToFilesOnMain(): void {
+		foreach (['user', 'admin', 'developer'] as $audience) {
+			$url = (string)$this->info->documentation->{$audience};
+			$this->assertStringStartsWith(self::DOCS_URL, $url, $audience);
+			$this->assertFileExists(self::REPOSITORY . substr($url, strlen(self::DOCS_URL)), $audience);
+		}
+	}
+
+	public function testShowsScreenshotsFromTheAssetsRepository(): void {
+		$screenshots = iterator_to_array($this->info->screenshot, false);
+		$this->assertGreaterThanOrEqual(2, count($screenshots));
+		foreach ($screenshots as $screenshot) {
+			$this->assertMatchesRegularExpression('#^' . preg_quote(self::SCREENSHOT_URL, '#') . '[a-z0-9/-]+\.png$#', (string)$screenshot);
+		}
+	}
+
 	/** @psalm-suppress ForbiddenCode Reads the app's own metadata, not a user file. */
 	private function readRepositoryFile(string $path): string {
-		return (string)file_get_contents(__DIR__ . '/../../../' . $path);
+		return (string)file_get_contents(self::REPOSITORY . $path);
 	}
 }

@@ -24,13 +24,25 @@ test('stores the hashes the browser computed and lists them with the folder', as
 	await createFolder(page, folder)
 	const first = await upload(page, `${folder}/IMG_0001.jpg`, withCaptureTime(JPEG, '2026:11:10 10:00:00'))
 	const second = await upload(page, `${folder}/IMG_0002.jpg`, withCaptureTime(JPEG, '2026:11:10 10:00:10'))
-	const saved = page.waitForResponse((response) => response.url().endsWith('/api/v1/visual-hashes') && response.request().method() === 'PUT')
+	// the client saves whatever it has hashed when its queue runs empty, so the two hashes may take one PUT or two
+	const savedIds = new Set<number>()
+	const allSaved = new Promise<void>((resolve) => {
+		page.on('response', (response) => {
+			if (!response.url().endsWith('/api/v1/visual-hashes') || response.request().method() !== 'PUT') {
+				return
+			}
+			void response.json().then((body: { saved: number[] }) => {
+				body.saved.forEach((id) => savedIds.add(id))
+				if (savedIds.has(first) && savedIds.has(second)) {
+					resolve()
+				}
+			})
+		})
+	})
 
 	await cullFolder(page, folder)
 
-	const response = await saved
-	expect(response.status(), await response.text()).toBe(200)
-	expect(await response.json()).toEqual({ saved: [first, second] })
+	await allSaved
 	const entries = await listed(page, folder)
 	expect(entries.map((entry) => entry.fileId)).toEqual([first, second])
 	entries.forEach((entry) => expect(entry.visualHash).toMatch(HASH))

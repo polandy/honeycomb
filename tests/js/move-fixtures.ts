@@ -4,6 +4,7 @@ import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { MoveRequestFile } from '../../src/logic/move-plan.ts'
 import type { MoveResponseFile } from '../../src/logic/move-report.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
+import type { ChunkLimits } from '../../src/logic/request-chunks.ts'
 import type { Settings } from '../../src/logic/settings.ts'
 import type { ToastAction } from '../../src/toast.ts'
 
@@ -26,14 +27,16 @@ export type Answer = (request: MoveRequestFile[][]) => Promise<MoveResponseFile[
 /** Answers every file as moved to its requested path, with the same id unless `newId` says otherwise. */
 export const allMoved = (newId = (fileId: number) => fileId): Answer => async (request) => request.map((files) => files.map(({ fileId, path }) => ({ fileId, result: 'moved', replaced: false, path, newFileId: newId(fileId), etag: `moved-${fileId}` })))
 
-/** A flow over the entries' pictures, the folder `/Out` holding `held`, with a move endpoint answering `answer`. */
-export function moveFlow(answer: Answer = allMoved(), { held = [] as string[], template = '{name}.{ext}', probe = undefined as (() => Promise<never>) | undefined } = {}) {
+/** A flow over the entries' pictures, the folder `/Out` holding `held`, folders on the `storages` named (else `/`), with a move endpoint answering `answer`. */
+export function moveFlow(answer: Answer = allMoved(), { held = [] as string[], template = '{name}.{ext}', probe = undefined as (() => Promise<never>) | undefined, chunks = undefined as ChunkLimits | undefined, storages = {} as Record<string, string> } = {}) {
 	const entries = shallowRef<ListingEntry[]>(ENTRIES)
 	const pictures = shallowRef<Picture<ListingEntry>[]>(pairPictures(ENTRIES, DEFAULT_PAIRING_SETTINGS))
 	const settings = shallowRef<Settings>({ ...DEFAULT_SETTINGS, moveFavourites: ['/Fav'], moveRecent: ['/Old', '/Fav'], moveTemplate: template })
 	const toasts: { message: string, action: ToastAction | null }[] = []
 	const sent: MoveRequestFile[][][] = []
 	const probed: string[][] = []
+	const sources: string[][] = []
+	const storageOf = (path: string) => storages[path] ?? '/'
 	const listing = ref<object>({})
 	const loupe = ref<{ pictures: readonly Picture<ListingEntry>[], index: number } | null>(null)
 	const moving = useMoveFlow({
@@ -42,9 +45,13 @@ export function moveFlow(answer: Answer = allMoved(), { held = [] as string[], t
 		updateSettings: (patch) => {
 			settings.value = { ...settings.value, ...patch }
 		},
-		probe: probe ?? (async (folders) => {
+		probe: probe ?? (async (folders, from) => {
 			probed.push([...folders])
-			return folders.map((path) => ({ path, children: path === '/Out' ? held.map((name, index) => ({ name, fileId: 90 + index, etag: 'held' })) : [] }))
+			sources.push([...from])
+			return {
+				folders: folders.map((path) => ({ path, storage: storageOf(path), children: path === '/Out' ? held.map((name, index) => ({ name, fileId: 90 + index, etag: 'held' })) : [] })),
+				sources: from.map((path) => ({ path, storage: storageOf(path) })),
+			}
 		}),
 		move: async (request) => {
 			sent.push(request.map((files) => [...files]))
@@ -64,7 +71,8 @@ export function moveFlow(answer: Answer = allMoved(), { held = [] as string[], t
 		listing: () => listing.value,
 		toast: (message, action = null) => toasts.push({ message, action }),
 		offset: () => 0,
+		chunks,
 	})
 	const [pair, single, sunset] = pictures.value as [Picture<ListingEntry>, Picture<ListingEntry>, Picture<ListingEntry>]
-	return { moving, pictures, entries, settings, toasts, sent, probed, loupe, listing, pair, single, sunset }
+	return { moving, pictures, entries, settings, toasts, sent, probed, sources, loupe, listing, pair, single, sunset }
 }

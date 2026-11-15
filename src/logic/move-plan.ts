@@ -19,10 +19,21 @@ export interface TargetChild {
 	readonly etag: string
 }
 
-/** A target folder with what it holds. */
-export interface TargetFolder {
+/** A folder and where its storage is mounted in the user's files, `/` for the user's own (MOVE-002.12). */
+export interface FolderStorage {
 	readonly path: string
+	readonly storage: string
+}
+
+/** A target folder with what it holds. */
+export interface TargetFolder extends FolderStorage {
 	readonly children: readonly TargetChild[]
+}
+
+/** The probe's answer: the target folders and the folders the pictures are in. */
+export interface Probe {
+	readonly folders: readonly TargetFolder[]
+	readonly sources: readonly FolderStorage[]
 }
 
 /** A file or folder at a path a move may want. */
@@ -63,6 +74,23 @@ const FIRST_SUFFIX = 2
 /** The distinct folders the move writes into, in order of first use. */
 export function probeFolders(target: string, candidates: readonly MoveCandidate[]): string[] {
 	return [...new Set(candidates.flatMap(({ rendered }) => rendered.map((file) => joinPath(target, file.folder))))]
+}
+
+/** The distinct folders the candidates' files are in, in order of first use. */
+export function sourceFolders(candidates: readonly MoveCandidate[]): string[] {
+	return [...new Set(candidates.flatMap(({ files }) => files.map((file) => folderOf(file.entry.path))))]
+}
+
+/** Whether each candidate has a file whose target folder is on another storage than its folder, which the server refuses (MOVE-002.11). */
+export function leavesStorage(target: string, candidates: readonly MoveCandidate[], probe: Probe): boolean[] {
+	const storageOf = (folders: readonly FolderStorage[]) => new Map(folders.map((folder) => [folder.path, folder.storage]))
+	const targets = storageOf(probe.folders)
+	const sources = storageOf(probe.sources)
+	return candidates.map(({ files, rendered }) => files.some((file, at) => {
+		const from = sources.get(folderOf(file.entry.path))
+		const to = targets.get(joinPath(target, rendered[at]!.folder))
+		return from !== undefined && to !== undefined && from !== to
+	}))
 }
 
 /** The paths the probed folders hold. */
@@ -136,6 +164,11 @@ function freeSuffix(candidate: MoveCandidate, pathsAt: (suffix: number | null) =
 function joinPath(folder: string, relative: string): string {
 	const base = folder.replace(/\/+$/, '')
 	return relative === '' ? base || '/' : `${base}/${relative}`
+}
+
+/** The folder of a path of the user's files; the root is `/`. */
+function folderOf(path: string): string {
+	return path.slice(0, path.lastIndexOf('/')) || '/'
 }
 
 /** Paths compare case-insensitively (`docs/05-name-templates.md` Collisions). */

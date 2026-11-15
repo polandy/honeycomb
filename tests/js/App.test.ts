@@ -8,7 +8,7 @@ import GridToolbar from '../../src/components/GridToolbar.vue'
 import NoFolderState from '../../src/components/NoFolderState.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import { logger } from '../../src/logger.ts'
-import { ENTRIES, fakeStorage, mountApp, openCull, SET, shownNames } from './app-cull.ts'
+import { ENTRIES, fakeStorage, mountApp, openCull, SET, shownNames, toolbarProps } from './app-cull.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from './l10n/marked-catalogue.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
@@ -55,7 +55,7 @@ describe('App', () => {
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
 		expect(grid.props('folderSet')).toEqual(SET)
 		expect(warmed).toEqual([[1, 4, 2]])
-		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ folderSet: SET, folders: 2, sortOrder: 'capture-time', flags: new Set(['picked', 'unflagged']) })
+		expect(toolbarProps(wrapper)).toMatchObject({ folderSet: SET, folders: 2, sortOrder: 'capture-time', flags: new Set(['picked', 'unflagged']) })
 	})
 
 	// spec: IMAGES-001.11
@@ -108,7 +108,7 @@ describe('App', () => {
 		wrapper.findComponent(PhotoGrid).vm.$emit('update:tileSize', 250.5)
 		await flushPromises()
 
-		expect(wrapper.findComponent(GridToolbar).props('tileSize')).toBe(250.5)
+		expect(toolbarProps(wrapper).tileSize).toBe(250.5)
 		expect(stored['honeycomb.tileSize']).toBe('250.5')
 		wrapper.findComponent(GridToolbar).vm.$emit('update:tileSize', 120)
 		await flushPromises()

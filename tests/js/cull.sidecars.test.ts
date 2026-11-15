@@ -5,7 +5,7 @@ import type { CullSidecars } from '../../src/cull-seams.ts'
 import type { Decision, StoredDecision } from '../../src/logic/decision.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
-import type { Settings } from '../../src/logic/settings.ts'
+import type { Settings, SidecarWrite } from '../../src/logic/settings.ts'
 import type { StoredTags, Tag, TagChange } from '../../src/logic/tag.ts'
 
 import { flushPromises } from '@vue/test-utils'
@@ -20,14 +20,14 @@ import { ENTRIES, fakeStorage, NO_SERIES, SAVED_SERIES, SET, stored } from './ap
 const THREE_REJECTED: Decision = { ...UNDECIDED, rating: 3, flag: 'rejected' }
 
 /** A cull whose sidecar take-over answers `takenOver` and whose writes and saves are recorded. */
-function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<string, Decision>>, saveFails?: boolean, storedTags?: StoredTags[], tagsTakenOver?: Map<string, Tag[]>, tagLookupFails?: boolean } = {}) {
+function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<string, Decision>>, saveFails?: boolean, storedTags?: StoredTags[], tagsTakenOver?: Map<string, Tag[]>, tagLookupFails?: boolean, sidecarWrite?: SidecarWrite } = {}) {
 	const saved: StoredDecision[][] = []
 	const takeOvers: { names: string[], stored: number[], tagged: number[] | null }[] = []
 	const tagWrites: { names: string[], change: TagChange }[] = []
 	const savedTags: StoredTags[][] = []
 	const tagLookups: number[][] = []
-	const writes: { name: string, decision: Decision }[][] = []
-	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
+	const writes: { name: string, decision: Decision, fields: readonly string[] }[][] = []
+	const settings = shallowRef<Settings>({ ...DEFAULT_SETTINGS, sidecarWrite: options.sidecarWrite ?? 'existing-and-new' })
 	const sidecars: CullSidecars = {
 		takeOver: async (pictures, storedIds, taggedIds) => {
 			takeOvers.push({ names: pictures.map((picture) => picture.baseName), stored: [...storedIds].sort((a, b) => a - b), tagged: taggedIds && [...taggedIds].sort((a, b) => a - b) })
@@ -38,8 +38,8 @@ function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<
 				tagged: pictures.filter((picture) => tags.has(picture.baseName)).map((picture) => ({ picture, tags: tags.get(picture.baseName)! })),
 			}
 		},
-		write: async (pictures, decisionOf) => {
-			writes.push(pictures.map((picture) => ({ name: picture.baseName, decision: decisionOf(picture) })))
+		write: async (pictures, decisionOf, fields) => {
+			writes.push(pictures.map((picture) => ({ name: picture.baseName, decision: decisionOf(picture), fields })))
 			return { written: pictures.length, failed: [] }
 		},
 		writeTags: async (pictures, change) => {
@@ -50,6 +50,7 @@ function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
 		saveVisualHashes: async () => undefined,
+		wait: async () => {},
 		warmPreviews: async () => undefined,
 		lookupDecisions: async () => options.stored ?? [],
 		lookupSeries: NO_SERIES,
@@ -152,8 +153,8 @@ describe('useCull: taking over the sidecars\' decision', () => {
 })
 
 describe('useCull: writing through to the sidecars', () => {
-	// spec: XMP-003.6, XMP-003.9
-	it('writes each picture of a stored step with its decision when the save is done', async () => {
+	// spec: XMP-003.6, XMP-003.9, XMP-003.20
+	it('writes each picture of a stored step with its decision and changed fields when the save is done', async () => {
 		const { cull, writes, picture } = cullWith()
 		cull.open(SET, ENTRIES, [])
 		await flushPromises()
@@ -168,6 +169,7 @@ describe('useCull: writing through to the sidecars', () => {
 			[['IMG_2', 'picked'], ['IMG_10', 'picked']],
 			[['IMG_2', 'unflagged'], ['IMG_10', 'unflagged']],
 		])
+		expect(writes.map((write) => write.map(({ fields }) => fields))).toEqual([[['flag'], ['flag']], [['flag'], ['flag']]])
 	})
 
 	// spec: XMP-003.15
@@ -200,8 +202,27 @@ describe('useCull: writing through to the sidecars', () => {
 		expect(writes).toEqual([])
 	})
 
-	// spec: XMP-003.11, XMP-003.14
-	it('writes nothing for a picture in a shared folder and lists the decided ones there', async () => {
+	// spec: XMP-003.18
+	it('writes neither decisions nor tags with writing to sidecars off, and still takes over', async () => {
+		const { cull, writes, tagWrites, takeOvers, settings, picture } = cullWith({ sidecarWrite: 'off' })
+		cull.open(SET, ENTRIES, [])
+		await flushPromises()
+
+		cull.decide({ kind: 'rating', rating: 4 }, [picture('IMG_10')])
+		await cull.tags.change([picture('IMG_10')], { added: ['Anna'], removed: [] })
+		await flushPromises()
+		expect(writes).toEqual([])
+		expect(tagWrites).toEqual([])
+		expect(takeOvers).toHaveLength(1)
+
+		settings.value = { ...settings.value, sidecarWrite: 'existing' }
+		cull.decide({ kind: 'rating', rating: 5 }, [picture('IMG_10')])
+		await flushPromises()
+		expect(writes.map((write) => write.map(({ name }) => name))).toEqual([['IMG_10']])
+	})
+
+	// spec: XMP-003.11, XMP-003.14, XMP-007.5
+	it('writes nothing for a picture in a shared folder and lists the decided ones as legacy rows', async () => {
 		const { cull, writes, picture } = cullWith({ stored: [stored(1, 'picked')] })
 		cull.open(SET, ENTRIES, ['/Trip/A', '/Trip/B'])
 		await flushPromises()
@@ -211,7 +232,7 @@ describe('useCull: writing through to the sidecars', () => {
 
 		expect(writes).toEqual([])
 		expect(cull.sharedPictures.value.map((each) => each.baseName)).toEqual(['IMG_2', 'IMG_10', 'IMG_9'])
-		expect(cull.sharedDecided().map((each) => each.baseName)).toEqual(['IMG_2', 'IMG_9'])
+		expect(cull.legacy.value.map(({ picture, shared }) => [picture.baseName, shared])).toEqual([['IMG_2', true], ['IMG_9', true]])
 
 		cull.open(SET, ENTRIES, [])
 		expect(cull.sharedPictures.value).toEqual([])

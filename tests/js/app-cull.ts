@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { CullSidecars } from '../../src/cull-seams.ts'
 import type { StoredDecision } from '../../src/logic/decision.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
 import type { SeriesWrite } from '../../src/logic/series-edit.ts'
@@ -87,6 +88,11 @@ export function provideSkipActions() {
 /** A series lookup with nothing stored. */
 export const NO_SERIES = async () => ({ series: [], keptOut: [] })
 
+/** Sidecars with nothing to take over, written without a word. */
+export const NO_SIDECARS: CullSidecars = { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) }
+
+/** Legacy endpoints without a legacy row. */
+export const NO_LEGACY = { loadInventory: async () => ({ folders: [], unreachable: 0 }), loadExport: async () => ({ decisions: [], tags: [] }), acknowledge: async () => undefined }
 /** A series save that keeps each series' id and gives a new one 100. */
 export const SAVED_SERIES = async (write: SeriesWrite) => ({ ids: write.series.map(({ id }) => id ?? 100) })
 
@@ -115,6 +121,8 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			lookupSeries: NO_SERIES,
 			saveSeries: SAVED_SERIES,
 			tags: NO_TAGS,
+			legacy: NO_LEGACY,
+			saveFile: () => undefined,
 			loadSettings: async () => ({}),
 			saveSettings: async (settings: object) => { savedSettings.push(settings) },
 			positions: { loadPositions: async () => [], savePosition: async () => undefined },
@@ -148,6 +156,12 @@ export async function openCull(wrapper: AppWrapper, set = SET, entries = ENTRIES
 	}
 	wrapper.findComponent(FolderPicker).vm.$emit('confirm', set, entries, sharedFolders)
 	await flushPromises()
+}
+
+/** The toolbar's groups flattened into one object, as the tests read them. */
+export function toolbarProps(wrapper: AppWrapper) {
+	const { folders, view, progress, selection, tasks } = wrapper.findComponent(GridToolbar).props()
+	return { folderSet: folders.set, folders: folders.count, ...view, ...progress, ...selection, ...tasks }
 }
 
 /** The mounted app. */

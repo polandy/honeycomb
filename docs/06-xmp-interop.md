@@ -1,7 +1,9 @@
 # 6. XMP interop
 
 How honeycomb reads and writes ratings, flags and colour labels in the XMP sidecars that digiKam,
-darktable and Lightroom Classic use (Q2, Q3, milestone M5, ADR 0005). The file rules are Framehive's
+darktable and Lightroom Classic use (Q2, Q3, milestone M5). Since ADR 0032 the sidecar is the
+source of truth and digiKam compatibility comes first; where a rule below has not landed yet, it
+names the pull request of ADR 0032 that brings it. The file rules are Framehive's
 (CORE-009, LIBRARY-001), so a sidecar means the same in both apps; what honeycomb adds is marked.
 The user-facing summary is [`user/ratings-flags-colours.md`](user/ratings-flags-colours.md).
 
@@ -11,8 +13,8 @@ Every field below was checked against these; anything not checked is marked **un
 
 | Key | Source |
 |---|---|
-| digiKam | [digiKam](https://invent.kde.org/graphics/digikam) at `998e0459` (2026-11-09): `core/app/utils/digikam_globals.h`, `core/libs/metadataengine/dmetadata/dmetadata_labels.cpp`, `dmetadatasettingscontainer.cpp`, `engine/metaengine_fileio.cpp` |
-| darktable | [darktable](https://github.com/darktable-org/darktable) at `0c23f000` (2026-11-08): `src/common/exif.cc`, `image.c`, `colorlabels.h` |
+| digiKam | [digiKam](https://invent.kde.org/graphics/digikam) at `998e0459` (2026-11-09): `core/app/utils/digikam_globals.h`, `core/libs/metadataengine/dmetadata/dmetadata_labels.cpp`, `dmetadatasettingscontainer.cpp`, `engine/metaengine_fileio.cpp`; master (2026-11-15): `engine/metaenginesettingscontainer.cpp`, `engine/metaengine_p.cpp`, `core/libs/database/collection/collectionscanner_scan.cpp` |
+| darktable | [darktable](https://github.com/darktable-org/darktable) at `0c23f000` (2026-11-08): `src/common/exif.cc`, `image.c`, `colorlabels.h`; master (2026-11-15): `src/control/crawler.c`, `data/darktableconfig.xml.in` |
 | ExifTool | [ExifTool](https://github.com/exiftool/exiftool) at `9b8664df`: `lib/Image/ExifTool/XMP.pm`, `XMP2.pl` |
 | Lightroom | Adobe community reports on Lightroom Classic 13.2 (Feb 2024): [flags in XMP](https://community.adobe.com/t5/lightroom-classic-discussions/lrc-v13-2-and-flags-in-xmp/m-p/14440118), [`xmpDM:pick` bug](https://community.adobe.com/t5/lightroom-classic-bugs/flag-not-saved-to-xmp-if-xmp-pick-missing-from-file-metadata/idi-p/14479660) |
 | Framehive | `specs/core/CORE-009-xmp-sidecars.md`, `specs/library/LIBRARY-001-raw-jpeg-grouping.md` at `23d08a8` (2026-11-08) |
@@ -36,7 +38,7 @@ Properties are matched by namespace URI, never by prefix (CORE-009.6).
 | honeycomb | digiKam | darktable | Lightroom Classic |
 |---|---|---|---|
 | rating 0–5 | `xmp:Rating` 0–5 | `xmp:Rating` 0–5 | `xmp:Rating` 0–5 |
-| flag *rejected* | `digiKam:PickLabel` 1 | `xmp:Rating` −1 | `xmpDM:pick` −1, `xmpDM:good` `False` (13.2+) |
+| flag *rejected* | `digiKam:PickLabel` 1 | `xmp:Rating` −1 (read only; honeycomb writes digiKam's form, ADR 0032) | `xmpDM:pick` −1, `xmpDM:good` `False` (13.2+) |
 | flag *picked* | `digiKam:PickLabel` 3 | – (no picks) | `xmpDM:pick` 1, `xmpDM:good` `True` (13.2+) |
 | flag *unflagged* | `digiKam:PickLabel` 0 or absent | rating ≥ 0 | `xmpDM:pick` 0 or absent |
 | (digiKam's *pending*) | `digiKam:PickLabel` 2 | – | – |
@@ -86,6 +88,22 @@ Evidence, one line per claim:
   the default set's names `Red`, `Yellow`, `Green`, `Blue`, `Purple` are what darktable and
   digiKam exchange with it (`exif.cc:698`, `dmetadata_labels.cpp:429`). How Lightroom shows a
   text outside its set is **unverified**.
+- **digiKam reads sidecars only when told to:** *Read from sidecar files* is off by default, and
+  digiKam writes nothing by default; switched on, the target is *file only*
+  (`metaenginesettingscontainer.cpp:34–56`). Once it reads a sidecar it ignores the embedded XMP
+  completely (`metaengine_p.cpp:1036–1045`), which is honeycomb's "sidecar before embedded". Without
+  reading, its own sidecar write replaces the file from memory, so foreign properties such as
+  `honeycomb:KeepRaw` and darktable's history are lost (`metaengine_p.cpp:154–190, 406`).
+- **digiKam rescans** a sidecar whose mtime is newer than its image's
+  (`collectionscanner_scan.cpp:936–975`), so honeycomb's writes arrive at its next scan.
+- **digiKam's extra copies:** it also writes the rating to `MicrosoftPhoto:Rating` and
+  `acdsee:rating`, the colour to `photoshop:Urgency` and tags to five more fields
+  (`dmetadata_labels.cpp:473–475`, `dmetadatasettingscontainer.cpp:305–380`). honeycomb leaves
+  them as they are; digiKam reads `xmp:Rating`, `ColorLabel` and `TagsList` first, so a stale copy
+  is not seen.
+- **darktable rereads** a changed sidecar only through its crawler (`run_crawler_on_start`, off by
+  default) and after the user confirms it in a dialog; its next own write sets `xmp:Rating` from
+  its database again (`crawler.c:276, 1378–1391`, `exif.cc:5704`, `darktableconfig.xml.in:4084`).
 - **Lightroom sidecar name:** Lightroom uses `IMG_0001.xmp` for proprietary RAW files and embeds
   XMP in JPEG, so it does not read `IMG_0001.NEF.xmp` or `IMG_0001.JPG.xmp`. **Unverified**
   against Adobe docs.
@@ -101,10 +119,14 @@ Same as Framehive (CORE-009 "Sidecar names", LIBRARY-001 "Metadata"):
   Framehive: digiKam `metaengine_fileio.cpp:42–59`, darktable `image.c:2104`) and `IMG_0001.xmp`
   (without; digiKam's "compatible file name", Adobe's convention). In the second, the members of a
   pair share one sidecar, which counts as the sidecar of each.
-- **Reading** looks for both, extension `xmp` in any case (CORE-009.20).
-- **Writing** goes to every sidecar of the picture that exists, so none is left stale. When a
-  member has none, honeycomb creates `<member file>.xmp` (CORE-009.21, `original_with_extension`),
-  one per member (LIBRARY-001.6).
+- **Reading** looks for both, extension `xmp` in any case (CORE-009.20). digiKam reads exactly
+  one: the name its *compatible file name* setting gives, with no fallback to the other
+  (`metaengine_fileio.cpp:42–59`, `collectionscanner_scan.cpp:716–733`).
+- **Writing** is off until the user opts in (setting *Write decisions to XMP sidecars*,
+  XMP-003). It then goes to every sidecar of the picture that exists, so none is left stale. When
+  a member has none, honeycomb creates `<member file>.xmp` (CORE-009.21, `original_with_extension`,
+  digiKam's default), one per member (LIBRARY-001.6). ADR 0032 PR 6 leaves *Off* and *On*; until
+  then *Only existing sidecars* creates none.
 - darktable's duplicates (`IMG_0001_01.NEF.xmp`, `image.c:930`) belong to darktable versions,
   not to members: honeycomb neither reads nor writes them, and deletes them with the picture.
   *Added; Framehive does not mention them.*
@@ -118,10 +140,12 @@ Same as Framehive (CORE-009 "Sidecar names", LIBRARY-001 "Metadata"):
 
 ## Reading
 
-**When.** The database is the working state (Q2 (c)). A picture's sidecars are read when the
-user first lists it and honeycomb has no decision stored for it; afterwards honeycomb's own state
-wins. Re-reading a sidecar that another program changed later is out of scope, as in Framehive
-(S6).
+**When.** The sidecar is the source of truth (ADR 0032). Every source file is read once per
+ETag: a per-user cache (`honeycomb_xmp_cache`, XMP-006) holds the values derived from each
+sidecar or embedded packet, and a file is read again when its listed ETag differs, so a change in
+digiKam shows at the next folder visit. A sidecar that is read hides the JPEG's embedded XMP
+completely, as in digiKam. Until ADR 0032 PR 6, the database is still the working state: a
+picture's sidecars are read only when honeycomb has no decision stored for it.
 
 **Parsing** follows CORE-009 "Reading": every RDF form (attributes, elements, nested and several
 `rdf:Description`, `rdf:parseType="Resource"`, `<?xpacket?>` wrapper or none, bare `rdf:RDF`).
@@ -148,9 +172,16 @@ darktable index (red, yellow, green, blue, purple), which does not depend on the
 happens to write them in. The others stay in the sidecar until the user changes the colour label
 in honeycomb (see Writing).
 
+**The embedded XMP.** A JPEG without a sidecar of its own (neither `<JPEG file>.xmp` nor the
+shared `<base name>.xmp`) states its values through its embedded XMP packet (ADR 0023): it is read
+by the same rules, as the JPEG's sidecar with the JPEG's modification time, and never written.
+When honeycomb creates the JPEG's sidecar, the new sidecar starts from the decision the embedded
+XMP states, so digiKam, which then reads only the sidecar, loses no value (see Writing).
+
 **Several sidecars of one picture.** When they disagree, the most recently modified sidecar wins
 as a whole, a tie goes to the RAW member's sidecar, and the conflict is logged (LIBRARY-001.8).
-The modification time comes from `OCP\Files` (`Node::getMTime()`). Framehive's conflict badge is
+The embedded XMP counts as one of them. The modification time comes from `OCP\Files`
+(`Node::getMTime()`). Framehive's conflict badge is
 a UI choice honeycomb has not made.
 
 ## Writing
@@ -161,7 +192,7 @@ Camera Raw settings and unknown namespaces (CORE-009.3, .23).
 
 | Property | Written | Value |
 |---|---|---|
-| `xmp:Rating` | always | rating 0–5; −1 when *rejected* (darktable's only reject) |
+| `xmp:Rating` | always | rating 0–5, also when *rejected*; never −1 (ADR 0032) |
 | `digiKam:PickLabel` | always | 3 *picked*, 1 *rejected*; *unflagged* removes it, but an existing 2 (pending) stays |
 | `xmpDM:pick` | always | 1 *picked*, −1 *rejected*; removed when *unflagged*, as digiKam does |
 | `xmpDM:good` | always | `True` *picked*, `False` *rejected*; removed when *unflagged* |
@@ -180,14 +211,24 @@ because digiKam is the target of M5; darktable's only where darktable already wr
 - A changed colour label replaces darktable's whole list with one label, so what darktable shows
   is what honeycomb shows. The label counts as changed when it differs from the one the sidecar
   states (Reading); an unchanged one leaves the list alone.
-- A rejected picture's stars stay in honeycomb's database; in the sidecar `xmp:Rating` is −1.
+- A rejected picture keeps its stars in `xmp:Rating` and is rejected through the pick fields,
+  digiKam's way, also in a darktable sidecar; darktable then does not see the reject (owner,
+  2026-11-15). A sidecar with `xmp:Rating` −1 gets the picture's stars 0–5 on any write, and a
+  reject that stays moves to the pick fields.
+- **Deltas** (ADR 0032): a change carries only the fields it sets; per sidecar it is applied
+  to the decision that sidecar reads as, and the whole set above is written from the result, so
+  fields the change does not touch keep each sidecar's own value. A new sidecar reads as what the
+  picture's sources state; the JPEG's new sidecar reads as its embedded XMP, while that has a
+  packet. A new sidecar gets the decision fields also from a tag change.
 
 **Serializing and saving** follow CORE-009 "Writing" and "Saving", so honeycomb and Framehive
 write the same bytes for the same model: Framehive's canonical form (CORE-009.4, .5), preferred
 prefixes and a clashing prefix renamed (CORE-009.6, .7), `xmp:MetadataDate` set on every write
 from the injected clock, never `xmp:CreatorTool`, `xmp:ModifyDate` or `xmpMM:History`
 (CORE-009.10). Saving goes through `OCP\Files` (CLAUDE.md rule 1): write `<name>.part`, check the
-target has not appeared or changed since it was read, rename (CORE-009.16–.19). *Differs:* the
+target has not appeared or changed since it was read, rename (CORE-009.16–.19). An existing
+sidecar is replaced only while the Versions app is enabled for the user, so the bytes another
+program wrote can be restored; without it the save answers `noVersions` (XMP-002.10). *Differs:* the
 check uses the Nextcloud ETag and size in place of BLAKE3. Reading, the mapping and serializing
 are a pure TypeScript module, `src/logic/xmp/` (XMP-001); the backend only reads the bytes and
 does the checked save (ADR 0006, endpoints in ADR 0017 and XMP-002). `@xmldom/xmldom` turns
@@ -210,6 +251,17 @@ Synthetic sidecars written from the sources above, not exported from the program
 | `lightroom.xmp` | elements form, `xmpDM:pick` −1, `crs:` settings | 4 | rejected | yellow |
 | `lightroom-no-flag.xmp` | real rating 2.5, custom label text | 2 | unflagged | none |
 | `conflict.xmp` | two `rdf:Description` with ratings 2 and 4 | refused | | |
+| `corpus/lightroom-classic.xmp` | Lightroom Classic: `<?xpacket?>` with padding, `crs:` settings, `crs:Look` struct, `xmpMM:History` | 3 | unflagged | red |
+| `corpus/capture-one.xmp` | Capture One: IPTC contact struct as `rdf:parseType="Resource"`, a two-language `dc:description` | 5 | unflagged | green |
+| `corpus/on1.xmp` | ON1 Photo RAW: elements form, `dc:title`, `lr:hierarchicalSubject` | 2 | unflagged | blue |
+| `corpus/photo-mechanic.xmp` | Photo Mechanic: `photomechanic:` color class and tag, `photoshop:Urgency` beside `xmp:Label` | 1 | unflagged | yellow |
+| `corpus/darktable-history.xmp` | darktable with four history items, a mask and its hashes | 4 | unflagged | magenta |
+
+The corpus under `corpus/` is synthetic too, written after each program's documented fields;
+XMP-001.22 writes three decisions in turn into each and checks that every property honeycomb does
+not write keeps its value and qualifiers. The bytes still change: honeycomb writes its canonical
+form, without the wrapper, padding, `x:xmptk` or comments, which is why a replace needs file
+versions.
 
 Write cases for M5, on top of CORE-009's:
 

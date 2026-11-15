@@ -19,10 +19,13 @@ on the selection and the `Delete` key on the focused tile or the loupe's photo g
 summary.
 
 The summary counts photos, files, bytes, pairs and singles, lists the folders and every file, and
-says the files go to the Nextcloud trash bin. Confirming sends every member and sidecar of each
-picture to the trash endpoint. The pictures that went leave the listing and the loupe; a toast
-says what was freed. Failed files end in the delete report, with a reason per file, *Close* and
-*Retry failed files*. Deleting is not undone by `Ctrl+Z`; the trash bin restores.
+says the files go to the Nextcloud trash bin, that the trash bin empties itself after its
+retention time or sooner when space runs short, and to keep a backup. Confirming sends every
+member and sidecar of each picture to the trash endpoint. The pictures that went leave the listing
+and the loupe; a toast says what was freed. Failed files end in the delete report, with a reason
+per file, *Close* and *Retry failed files*. Deleting is not undone by `Ctrl+Z`; the trash bin
+restores. A delete, a *Remove RAWs* and a retry send at most 50 pictures and 500 files per
+request, one request after another, and the dialog shows how many photos were sent (ADR 0029).
 
 ## Acceptance criteria
 
@@ -63,7 +66,8 @@ says what was freed. Failed files end in the delete report, with a reason per fi
 - **Given** pictures to delete
 - **When** the summary opens
 - **Then** it shows photos, files, bytes, pairs and singles, the folders in first-seen order, every
-  file (rendered member, RAW member, every sidecar form) and the trash-bin note
+  file (rendered member, RAW member, every sidecar form) and the trash-bin note, which names the
+  retention and space risk and advises a backup
 
 ### DELETE-002.7 – Back, and one request at a time
 
@@ -105,6 +109,22 @@ says what was freed. Failed files end in the delete report, with a reason per fi
 - **When** the user presses `Ctrl+Z`
 - **Then** the pictures do not come back; the undo history holds only decisions
 
+### DELETE-002.13 – Requests in chunks
+
+- **Given** a delete of more pictures than one request carries
+- **When** the user confirms
+- **Then** each request carries at most 50 whole pictures and 500 files, a picture never spans two
+  requests, the next is sent when the last is answered, and the dialog shows how many of the
+  photos were sent until the last answer arrives
+
+### DELETE-002.14 – A later request fails
+
+- **Given** a delete whose first requests were answered
+- **When** a later request fails
+- **Then** what was trashed leaves the grid, the pictures not sent stay whole, the error is logged,
+  the delete report lists their files as failed for *Retry failed files*, and the toast counts
+  moved and failed files
+
 ## Out of scope
 
 The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
@@ -115,3 +135,5 @@ The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
 |---|---|
 | 2026-11-10 | Written from the merged M4.2 (#52) |
 | 2026-11-10 | DELETE-002.12 proven by a Vitest test |
+| 2026-11-15 | Requests in chunks with progress (DELETE-002.13, DELETE-002.14, ADR 0029) |
+| 2026-11-15 | The trash-bin note names the retention and space risk and advises a backup; `noTrashBin` has its reason (DELETE-002.6, DELETE-002.9) |

@@ -11,6 +11,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **rendered file** | A camera-rendered image file (JPEG or HEIF; the extensions are a setting, Q15). Shown in the app. |
 | **RAW file** | A camera RAW file, recognised by its extension (configurable list). |
 | **sidecar** | An `.xmp` file that holds metadata for a member; deleted together with its picture. |
+| **XMP cache** | The values honeycomb derived from one sidecar or one JPEG's embedded XMP, kept per user and ETag so a folder visit reads only changed files; rebuilt at any time (ADR 0032). |
 | **base name** | The file name up to the last `.`, compared case-insensitively. |
 | **folder mode** | *Same folder* (pairs side by side) or *separate subfolders* (e.g. `RAW/`, `JPG/`). |
 | **rating** | 0 to 5 stars. 0 means unrated. |

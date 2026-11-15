@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { StoredDecision } from '../../src/logic/decision.ts'
-import type { MoveRequestFile, TargetFolder } from '../../src/logic/move-plan.ts'
+import type { MoveRequestFile, Probe } from '../../src/logic/move-plan.ts'
 import type { MoveFlow } from '../../src/move-flow.ts'
 import type { AppWrapper } from './app-cull.ts'
 
@@ -17,7 +17,7 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { TrashBinOffError } from '../../src/api.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
-import { mountApp, openCull, shownNames, stored } from './app-cull.ts'
+import { mountApp, openCull, shownNames, stored, toolbarProps } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
 import { allMoved } from './move-fixtures.ts'
@@ -25,7 +25,7 @@ import { allMoved } from './move-fixtures.ts'
 type Move = (request: MoveRequestFile[][]) => Promise<unknown>
 
 /** The app on the cull with the stored settings, its probe finding `/Out` empty and its move endpoint answering `move`. */
-async function openApp(decisions: StoredDecision[] = [], move: Move = allMoved(), probeTargets = async (folders: readonly string[]): Promise<TargetFolder[]> => folders.map((path) => ({ path, children: [] })), settings: object = {}) {
+async function openApp(decisions: StoredDecision[] = [], move: Move = allMoved(), probeTargets = async (folders: readonly string[], sources: readonly string[]): Promise<Probe> => ({ folders: folders.map((path) => ({ path, storage: '/', children: [] })), sources: sources.map((path) => ({ path, storage: '/' })) }), settings: object = {}) {
 	const sent: MoveRequestFile[][][] = []
 	const movePictures = async (request: MoveRequestFile[][]) => {
 		sent.push(request)
@@ -87,7 +87,7 @@ describe('App: opening the move dialog', () => {
 	it('opens on the picks from the More menu, and on the view while a filter is on', async () => {
 		const { wrapper } = await openApp([stored(1, 'picked'), stored(4, 'picked')])
 		const toolbar = wrapper.findComponent(GridToolbar)
-		expect(toolbar.props('movable')).toBe(2)
+		expect(toolbarProps(wrapper).movable).toBe(2)
 		toolbar.vm.$emit('move')
 		await flushPromises()
 		expect(opened(wrapper)).toEqual(['IMG_2', 'IMG_9'])
@@ -97,7 +97,7 @@ describe('App: opening the move dialog', () => {
 		await flushPromises()
 		wrapper.findComponent(FilterBar).vm.$emit('update:filters', { ...DEFAULT_FILTERS, folders: new Set(['/Trip/A']) })
 		await flushPromises()
-		expect(toolbar.props('movable')).toBe(2)
+		expect(toolbarProps(wrapper).movable).toBe(2)
 		toolbar.vm.$emit('move')
 		await flushPromises()
 		expect(opened(wrapper)).toEqual(['IMG_9', 'IMG_10'])

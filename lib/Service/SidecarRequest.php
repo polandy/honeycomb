@@ -11,19 +11,12 @@ namespace OCA\Honeycomb\Service;
 final class SidecarRequest {
 	/**
 	 * @param array<array-key, mixed> $fileIds
-	 * @return list<positive-int>
+	 * @return list<int>
 	 * @throws InvalidSidecarRequestException
 	 */
 	public static function fileIds(array $fileIds): array {
-		self::checkList($fileIds);
-		foreach ($fileIds as $fileId) {
-			if (!is_int($fileId) || $fileId < 1) {
-				throw new InvalidSidecarRequestException('Each file id must be a positive integer');
-			}
-		}
-		/** @var list<positive-int> $fileIds */
-		self::checkUnique($fileIds);
-		return $fileIds;
+		$parsed = FileIds::parse($fileIds, SidecarLimits::MAX_ITEMS, InvalidSidecarRequestException::class);
+		return FileIds::eachOnce($parsed, InvalidSidecarRequestException::class);
 	}
 
 	/**
@@ -32,8 +25,7 @@ final class SidecarRequest {
 	 * @throws InvalidSidecarRequestException
 	 */
 	public static function sidecars(array $sidecars): array {
-		self::checkList($sidecars);
-		$parsed = array_values(array_map(self::sidecar(...), $sidecars));
+		$parsed = array_map(self::sidecar(...), FileIds::items($sidecars, SidecarLimits::MAX_ITEMS, InvalidSidecarRequestException::class));
 		self::checkUnique(array_map(static fn (ExistingSidecar|NewSidecar $sidecar): int|string => $sidecar instanceof NewSidecar ? $sidecar->path : $sidecar->fileId, $parsed));
 		return $parsed;
 	}
@@ -76,16 +68,6 @@ final class SidecarRequest {
 			throw new InvalidSidecarRequestException('A new sidecar\'s path must be absolute and name an image plus .xmp');
 		}
 		return $path;
-	}
-
-	/**
-	 * @param array<array-key, mixed> $items
-	 * @throws InvalidSidecarRequestException
-	 */
-	private static function checkList(array $items): void {
-		if (!array_is_list($items) || count($items) > SidecarLimits::MAX_ITEMS) {
-			throw new InvalidSidecarRequestException('The request must be a list of at most ' . SidecarLimits::MAX_ITEMS . ' items');
-		}
 	}
 
 	/**

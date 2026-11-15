@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ColourLabel, Decision, Flag, StoredDecision } from './decision.ts'
+import type { ColourLabel, Decision, DecisionField, Flag, StoredDecision } from './decision.ts'
 import type { Picture } from './pairing.ts'
 
-import { sameDecision } from './decision.ts'
+import { DECISION_FIELDS, sameDecision, UNDECIDED } from './decision.ts'
 
 /** A picture with its current decision. */
 export interface Decided {
@@ -80,6 +80,11 @@ export function changedRows(pictures: readonly Decided[], change: DecisionChange
 		const unchanged = (Object.keys(change) as (keyof Decision)[]).every((key) => decision[key] === next[key])
 		return unchanged ? [] : [picture.rendered, picture.raw].filter((member) => member !== null).map(({ fileId }) => ({ fileId, ...next }))
 	})
+}
+
+/** The fields the rows change against the decisions they replace, undecided where none was stored. */
+export function changedFields(rows: readonly StoredDecision[], before: ReadonlyMap<number, Decision>): DecisionField[] {
+	return DECISION_FIELDS.filter((field) => rows.some((row) => row[field] !== (before.get(row.fileId) ?? UNDECIDED)[field]))
 }
 
 /** The decisions with the rows put over them. */

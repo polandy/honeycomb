@@ -27,6 +27,8 @@ expect e2e-spec "markdown=false php=false ts=true app=true" tests/e2e/grid.spec.
 expect playwright-config "markdown=false php=false ts=true app=true" playwright.config.ts
 expect e2e-container-hook "markdown=false php=false ts=false app=true" tests/e2e/nextcloud/post-installation/enable-honeycomb.sh
 expect e2e-server "markdown=false php=false ts=false app=true" scripts/e2e-server.sh
+expect nextcloud-images "markdown=false php=false ts=false app=true" scripts/nextcloud-images.sh
+expect upgrade-test "markdown=false php=false ts=false app=true" scripts/upgrade-test.sh
 expect db-test "markdown=false php=true ts=false app=true" tests/php-db/SeriesMapperTest.php
 expect db-test-runner "markdown=false php=true ts=false app=true" scripts/php-db-tests.sh
 expect info-xml "markdown=false php=true ts=false app=true" appinfo/info.xml

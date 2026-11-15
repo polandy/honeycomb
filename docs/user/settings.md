@@ -48,6 +48,16 @@ Changing a list pairs the open folders again at once; your decisions stay.
   `/` opens the filters. `g` then no longer opens the grid: `Esc` does. See
   [keyboard shortcuts](keyboard-shortcuts.md#vi-keys).
 
+## XMP sidecars
+
+- **Write decisions to XMP sidecars:** whether your ratings, flags, colour labels, *Keep RAW* and
+  tags also go into the XMP sidecars next to your photos, where digiKam, darktable and Lightroom
+  read them. *Off* (the default) changes no file; *Only existing sidecars* updates the sidecars
+  another program already wrote and creates none; *Existing and new sidecars* also gives each file
+  without one a new sidecar, like `IMG_0001.NEF.xmp`. Leaving *Off* first asks you to confirm and
+  explains what changes; *Cancel* keeps it off. Reading sidecars works with every choice. See
+  [ratings, flags and colour labels](ratings-flags-colours.md).
+
 ## Moving photos
 
 - **Name template:** how a moved photo is named, relative to the folder you move it to. All files
@@ -60,3 +70,10 @@ Changing a list pairs the open folders again at once; your decisions stay.
   without a camera model (`unknown`).
 - **Favourite folders:** the folders you starred in the move dialog. ✕ removes one; add them in
   the move dialog.
+
+## Cache
+
+- **Clear cache:** honeycomb remembers what it read from your XMP sidecars and JPEGs, and the
+  visual hashes of your photos, so a folder opens fast. *Clear cache* removes that at once; the
+  next visit of a folder reads its files again. Your sidecars, decisions and tags stay. A message
+  says when the cache is cleared or could not be.

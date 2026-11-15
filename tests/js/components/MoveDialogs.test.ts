@@ -180,6 +180,44 @@ describe('MoveDialogs: summary', () => {
 	})
 })
 
+describe('MoveDialogs: progress', () => {
+	// spec: MOVE-004.17
+	it('shows how many photos were sent while the move runs', async () => {
+		let release = () => {}
+		const { wrapper, moving, pair } = mountDialogs({}, (request) => new Promise((resolve) => {
+			release = () => void allMoved()(request).then(resolve)
+		}))
+		moving.open([pair])
+		moving.choose('/Out')
+		await flushPromises()
+
+		const done = moving.confirm()
+		await flushPromises()
+		expect(wrapper.findComponent(ConfirmDialog).props('progress')).toEqual({ done: 0, total: 1 })
+		release()
+		await done
+		wrapper.unmount()
+	})
+})
+
+describe('MoveDialogs: storages', () => {
+	// spec: MOVE-004.16
+	it('lists a picture that would leave its shared folder or storage, not moved', async () => {
+		const { wrapper, moving, pair, single } = mountDialogs({ storages: { '/Trip': '/Trip' } })
+		moving.open([pair, single])
+		moving.choose('/Out')
+		await flushPromises()
+
+		expect(wrapper.findAll('.move-summary__unnamed').map((row) => row.text())).toEqual([
+			'IMG_1 is not moved: the target is outside its shared folder or storage',
+			'IMG_2 is not moved: the target is outside its shared folder or storage',
+		])
+		expect(wrapper.find('.delete-stats').text()).toBe('0photos0files0conflicts')
+		expect(confirmButton(wrapper).attributes('disabled')).toBeDefined()
+		wrapper.unmount()
+	})
+})
+
 describe('MoveDialogs: report', () => {
 	// spec: MOVE-004.12
 	it('lists each failed file with its reason and closes', async () => {

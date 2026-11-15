@@ -12,8 +12,8 @@ export interface FetchedHashSeams {
 	readonly canvas: (width: number, height: number) => OffscreenCanvas
 }
 
-/** Draws `image` at the hash size, smoothed, and hashes the pixels; the grid and the workers share it (SERIES-004.7). */
-export function drawHash(image: CanvasImageSource, context: HashContext | null): string {
+/** Draws `image` at the hash size, smoothed, and hashes the pixels (SERIES-004.7). */
+function drawHash(image: CanvasImageSource, context: HashContext | null): string {
 	if (context === null) {
 		throw new Error('No 2D canvas to hash the preview')
 	}

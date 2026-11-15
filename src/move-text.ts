@@ -25,6 +25,8 @@ export function moveFailureReason(result: MoveFailure): string {
 			return t('honeycomb', 'Not tried, because another file of this photo failed')
 		case 'movedBack':
 			return t('honeycomb', 'Moved back, because another file of this photo failed')
+		case 'otherStorage':
+			return t('honeycomb', 'Not moved: the target is outside the shared folder or storage the file is on')
 		default:
 			return t('honeycomb', 'Could not move the file')
 	}
@@ -64,6 +66,11 @@ export function moveNote(replace: boolean): string {
 	return replace
 		? t('honeycomb', 'Moved on the server: shares, tags, comments and decisions stay with the files. Undo moves them back; replaced files stay in the Nextcloud trash bin.')
 		: t('honeycomb', 'Moved on the server: shares, tags, comments and decisions stay with the files. Undo moves them back.')
+}
+
+/** Why the move summary keeps a picture out: it would leave its storage (MOVE-004.16). */
+export function leavesStorageText(): string {
+	return t('honeycomb', 'is not moved: the target is outside its shared folder or storage')
 }
 
 /** Why the name template cannot name a picture. */

@@ -20,11 +20,16 @@ token. `path` is relative to the user's files; empty is the root. The answer is
 and `visualHash`, the user's stored visual hash of the file's current version or `null`
 (SERIES-003).
 `folders` has one item per folder
-that holds an entry, `{"path": "/Photos", "shared": <bool>}`: shared when another user or a
+that holds an entry, `{"path": "/Photos", "shared": <bool>, "permissions": 31, "versions": <bool>}`:
+shared when another user or a
 federated user has access to it or to a folder above it, when it lies in a folder shared with the
 user, when it or a folder above it is shared by public link or by mail, when it lies in a group
 folder, or when it lies on external storage
-mounted for another user too (ADR 0017).
+mounted for another user too (ADR 0017). `permissions` are Nextcloud's bits of the folder for the
+user (READ 1, UPDATE 2, CREATE 4, DELETE 8, SHARE 16), with the share mask, reshares, ACLs and
+read-only mounts in them. `versions` is true when the Versions app keeps the folder's file
+versions: `files_versions` is enabled for the folder's owner, a versions backend exists for its
+storage, and it is not on external storage (ADR 0032).
 
 Listed are files whose mime type is `image/*` or whose name ends in `.xmp`, `.cr3` or `.srw`
 (case-insensitive): Nextcloud types Canon and Samsung RAW files `application/octet-stream`. Without
@@ -130,6 +135,20 @@ ticked parent with subfolders and a ticked child both hold it.
 - **When** their folder is listed, with or without `subfolders`
 - **Then** the `.CR3` and `.SRW` files are entries and the other file is not
 
+### LISTING-001.14 – Each folder names the user's permissions
+
+- **Given** entries in a folder of the user's own and in a folder shared with the user read-only
+- **When** the client lists them
+- **Then** each folder's `permissions` are its bits for the user: all of them for the own folder,
+  READ without UPDATE and CREATE for the read-only share
+
+### LISTING-001.15 – Each folder says whether it keeps versions
+
+- **Given** entries in a folder of the user's own, in a folder whose owner has the Versions app
+  disabled, in a folder whose storage has no versions backend, and on external storage
+- **When** the client lists them
+- **Then** `versions` is true only for the user's own folder
+
 ## Out of scope
 
 - Grouping entries into pictures: LISTING-002.
@@ -145,3 +164,4 @@ ticked parent with subfolders and a ticked child both hold it.
 | 2026-11-11 | `.cr3` and `.srw` files are listed by name (`TODO.md`, owner 2026-11-10) |
 | 2026-11-14 | A folder shared with the user is shared without asking the share manager |
 | 2026-11-14 | `visualHash` on every entry (SERIES-003, ADR 0024) |
+| 2026-11-15 | `permissions` and `versions` per folder (.14, .15; ADR 0032) |

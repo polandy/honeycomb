@@ -3,7 +3,7 @@
 import type { Decision } from '../../../src/logic/decision.ts'
 
 import { describe, expect, it } from 'vitest'
-import { changedRows, commonDecision, resolveChange, revertRows, withRows } from '../../../src/logic/decision-change.ts'
+import { changedFields, changedRows, commonDecision, resolveChange, revertRows, withRows } from '../../../src/logic/decision-change.ts'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
@@ -106,5 +106,15 @@ describe('withRows and revertRows', () => {
 		const later = withRows(withRows(before, rows), [{ fileId: 2, ...decided({ flag: 'rejected' }) }])
 
 		expect([...revertRows(later, rows, before)]).toEqual([[1, decided({ rating: 1 })], [9, decided({ flag: 'picked' })], [2, decided({ flag: 'rejected' })]])
+	})
+})
+
+describe('changedFields', () => {
+	// spec: XMP-003.20
+	it('names the fields the rows change against what they replace, in the decision\'s order', () => {
+		const before = new Map([[1, decided({ rating: 2 })]])
+
+		expect(changedFields([{ fileId: 1, ...decided({ rating: 2, flag: 'picked' }) }, { fileId: 2, ...decided({ colourLabel: 'red' }) }], before)).toEqual(['colourLabel', 'flag'])
+		expect(changedFields([{ fileId: 1, ...decided({ rating: 2 }) }], before)).toEqual([])
 	})
 })

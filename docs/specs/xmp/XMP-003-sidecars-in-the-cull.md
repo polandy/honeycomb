@@ -9,47 +9,60 @@
 ## Purpose
 
 Brings the sidecars into the cull: a picture honeycomb has no decision for takes over the decision
-its sidecars state, and every decision the user makes is written through to the picture's
-sidecars, so digiKam, darktable and Lightroom see it. In a shared folder nothing is written on its
-own; the user writes there explicitly, after being asked.
+its sidecars state, and, once the user opts in, every decision the user makes is written through
+to the picture's sidecars, so digiKam, darktable and Lightroom see it. By default nothing is
+written. In a shared folder nothing is written on its own; the user writes there explicitly, after
+being asked.
 
 ## Behaviour
 
 **Taking over.** When a cull opens, and again when the pairing settings change, the stored
 decisions are read first. Each picture with no stored decision for any member and with sidecars
-(darktable duplicates excepted) has them looked up; their decision follows
+(darktable duplicates excepted) or a JPEG whose embedded XMP counts (TAGS-002) has them looked up;
+the embedded XMP is read as the JPEG's sidecar, at the JPEG's modification time; their decision follows
 [`06-xmp-interop.md`](../../06-xmp-interop.md#reading) (newest wins as a whole, a tie goes to the
 RAW member's sidecar). A decision other than undecided is shown and stored for every member, as one
 save that is neither an undo step nor written back to the sidecars. A picture the user decided
 meanwhile keeps the user's decision. A refused or unreadable sidecar, a disagreement between
-sidecars and a failed lookup are logged as warnings; the picture keeps what it shows.
+sidecars and a failed lookup are logged as warnings; the picture keeps what it shows, or takes over
+what the sources that were read state.
+
+**The setting.** *Write decisions to XMP sidecars* (SETTINGS-001.24) is *Off* by default, for
+every user, also one who culled before it existed. Off, no decision or tag is written through;
+taking over still reads the sidecars. *Only existing sidecars* writes through to the sidecars that
+exist and creates none. *Existing and new sidecars* writes through as below.
 
 **Writing through.** As soon as any attribute is set on a photo — a flag, a rating, a colour label,
 *Keep RAW*, or an undo or redo of one — and the step is stored, each picture the step touched is
 written to its sidecars unless a member lies in a shared folder; a picture no step touched gets no
-sidecar: every existing sidecar
-(darktable duplicates excepted) and, for each member without one, a new `<member file>.xmp`
-(`docs/06-xmp-interop.md` Sidecar names). An existing sidecar is read before it is merged, unless
-honeycomb saved it itself and still holds its bytes; it is saved with the ETag and size read. A
-sidecar answering `changed` is read, merged and saved once more. The colour label counts as changed
-for darktable's list when it differs from the one the sidecar states. Writes run in passes, one
-pass at a time: the steps that come while a pass runs wait and are written together by the next
-pass, so each sidecar is saved at most once per pass, with the picture's decision when the pass
-starts and the tag changes of its steps in order (TAGS-002). A sidecar the pass would leave as it
-is, apart from `xmp:MetadataDate`, is not saved. A step whose save fails writes nothing.
+sidecar: every existing sidecar (darktable duplicates excepted) and, with *Existing and new
+sidecars*, for each member without one a new `<member file>.xmp` (`docs/06-xmp-interop.md` Sidecar
+names), started from what the picture's other sidecars and embedded XMP state, the JPEG's from
+what its embedded XMP states while that counts (XMP-003.23). A picture whose embedded XMP counts
+has it looked up for every write; when that fails, nothing is written for the picture and its
+sidecars fail as when they cannot be read. An existing sidecar is read before it
+is merged, unless honeycomb saved it itself and still holds its bytes; it is saved with the ETag and
+size read. A sidecar answering `changed` is read, merged and saved once more. The colour label
+counts as changed for darktable's list when it differs from the one the sidecar states. Writes run
+in passes, one pass at a time: the steps that come while a pass runs wait and are written together
+by the next pass, so each sidecar is saved at most once per pass, with the decision fields its steps
+changed, valued as the picture's decision when the pass starts, and the tag changes of its steps in
+order (TAGS-002). Those fields are a delta: per sidecar it is applied to the decision that sidecar
+states, so a field no step changed keeps each sidecar's own value (`06-xmp-interop.md` Writing, ADR
+0032). A sidecar the pass would leave as it is, apart from `xmp:MetadataDate`, is not saved. A step
+whose save fails writes nothing.
 
 **Shared folders.** The listing says per folder whether it is shared (ADR 0017). When a picture of
-the cull lies in a shared folder, the grid's ⋯ menu offers *Write decisions to sidecars…*. It asks
-first, names the number of photos and their folders, and on *Write to sidecars* writes every
-picture in a shared folder that has a stored decision, as above. Success says *Wrote the decisions
-of %n photos to sidecars*.
+the cull lies in a shared folder, nothing is written through for it. The grid's ⋯ menu entry
+*Write decisions to sidecars…* writes it after asking, with every picture that has legacy rows
+(XMP-007).
 
 **Failure report.** A sidecar that could not be written — refused when read (not UTF-8, malformed,
 a `<!DOCTYPE>`, a property given twice), a lookup or save answer other than `read` or `saved`, or a
 request that failed — is reported per file. After a write with failures a toast says *Could not
 write %n sidecars* with the action *Details*, which opens a dialog listing each file and its reason
 and offering *Retry failed sidecars*; a retry writes the failed files again, each with its
-picture's decision when it runs. A refused sidecar is never overwritten.
+picture's decision when it runs, for the fields its write changed. A refused sidecar is never overwritten.
 
 ## Acceptance criteria
 
@@ -88,13 +101,13 @@ picture's decision when it runs. A refused sidecar is never overwritten.
 
 ### XMP-003.6 – A decision is written through to every existing sidecar
 
-- **Given** a pair outside a shared folder with `IMG_0001.NEF.xmp` and `IMG_0001.JPG.xmp`
+- **Given** writing to sidecars on, a pair outside a shared folder with `IMG_0001.NEF.xmp` and `IMG_0001.JPG.xmp`
 - **When** the user picks it and the decision is stored
 - **Then** both sidecars are read, merged with the pick and saved with the ETag and size read
 
 ### XMP-003.7 – A member without a sidecar gets `<member file>.xmp`
 
-- **Given** a pair outside a shared folder without sidecars
+- **Given** *Existing and new sidecars*, a pair outside a shared folder without sidecars
 - **When** the user rates it
 - **Then** `IMG_0001.NEF.xmp` and `IMG_0001.JPG.xmp` are created with the rating, and the next
   write to them saves over the created files without looking them up
@@ -137,13 +150,10 @@ picture's decision when it runs. A refused sidecar is never overwritten.
 - **When** the user decides it
 - **Then** the decision is stored and no sidecar is looked up or saved
 
-### XMP-003.12 – The ⋯ menu writes to sidecars in shared folders after asking
+### XMP-003.12 – The ⋯ menu writes to sidecars in shared folders after asking (removed)
 
-- **Given** a cull with pictures in a shared folder, some with a stored decision
-- **When** the user chooses *Write decisions to sidecars…* and confirms *Write to sidecars*
-- **Then** the decided pictures in shared folders are written to their sidecars and a toast says
-  how many; the entry is absent when no picture lies in a shared folder, and *Cancel* writes
-  nothing
+Replaced by XMP-007.5: the ⋯ entry now writes every picture with legacy rows, in shared folders
+and elsewhere.
 
 ### XMP-003.13 – A failed sidecar is reported per file
 
@@ -162,16 +172,71 @@ picture's decision when it runs. A refused sidecar is never overwritten.
 
 ### XMP-003.15 – Every attribute writes through, and only for the touched picture
 
-- **Given** a cull outside a shared folder
+- **Given** writing to sidecars on, a cull outside a shared folder
 - **When** the user flags, rates, labels or keeps the RAW of one picture
 - **Then** that picture alone is written to its sidecars; the others get none
+
+### XMP-003.18 – Off by default, nothing is written through
+
+- **Given** a user without the setting stored, or with *Off*
+- **When** the user decides a picture outside a shared folder or changes its tags
+- **Then** the change is stored and no sidecar is looked up or saved; a picture without a stored
+  decision still takes over its sidecars' decision
+
+### XMP-003.19 – *Only existing sidecars* creates none
+
+- **Given** *Only existing sidecars*, a pair with `IMG_0001.NEF.xmp` and no sidecar for the JPEG
+- **When** the user picks it, a tag change is written, a failed sidecar is retried, or the ⋯ menu
+  writes a shared folder
+- **Then** `IMG_0001.NEF.xmp` is saved with the pick and no `IMG_0001.JPG.xmp` is created
+
+### XMP-003.20 – A step writes only the fields it changed
+
+- **Given** writing to sidecars on, a picture whose sidecar states green while honeycomb stores no
+  colour label
+- **When** the user rates it, then undoes the rating
+- **Then** each write carries only the rating, and the sidecar keeps green
+
+### XMP-003.21 – A new sidecar starts from what the picture's sidecars state
+
+- **Given** *Existing and new sidecars*, a pair whose `IMG_0001.NEF.xmp` states three stars and red,
+  and no `IMG_0001.JPG.xmp`
+- **When** the user rejects it
+- **Then** `IMG_0001.JPG.xmp` is created with three stars, red and rejected; held bytes honeycomb
+  saved count before read ones, and without any sidecar the delta applies to undecided
+
+### XMP-003.22 – The JPEG's embedded XMP is a source of the decision taken over
+
+- **Given** a JPEG without a sidecar whose embedded XMP states three stars and red, and a pair
+  whose `IMG_0001.NEF.xmp` states one star and whose JPEG, modified later, embeds four stars and
+  picked
+- **When** the cull opens
+- **Then** the JPEG shows three stars and red and the pair four stars and picked, also while the
+  stored tags are unknown; with the sidecar modified later the pair shows one star; an embedded
+  XMP that is refused or not read is logged as a warning, and the picture takes over what its
+  sidecars state
+
+### XMP-003.23 – A new JPEG sidecar takes over the embedded decision
+
+- **Given** *Existing and new sidecars*, a pair whose `IMG_0001.NEF.xmp` states one star and whose
+  JPEG embeds four stars and green, without `IMG_0001.JPG.xmp`
+- **When** the user picks it
+- **Then** `IMG_0001.NEF.xmp` gets one star and picked, and `IMG_0001.JPG.xmp` is created with four
+  stars, green and picked; a new RAW sidecar of a pair with only the embedded XMP starts from it,
+  and a tag change that creates the JPEG's sidecar writes the embedded decision into it
+
+### XMP-003.24 – A failed embedded lookup writes nothing for the picture
+
+- **Given** a decision for a picture whose JPEG has no sidecar and whose embedded XMP lookup fails
+- **When** it is written through
+- **Then** no sidecar of the picture is saved, and each is reported with the lookup's reason
 
 ## Out of scope
 
 - Re-reading a sidecar that another program changed after the take-over (`06-xmp-interop.md`
-  Reading).
-- The *Storage* setting of the mockup (database, sidecars or both); M5.3 always writes through
-  outside shared folders.
+  Reading); ADR 0032 replaces the take-over with the XMP cache (XMP-006) in its PR 6.
+- The *Storage* setting of the mockup (database, sidecars or both); the database always holds the
+  decisions, and *Write decisions to XMP sidecars* says whether they also go to the sidecars.
 
 ## History
 
@@ -180,3 +245,7 @@ picture's decision when it runs. A refused sidecar is never overwritten.
 | 2026-11-10 | Written with M5.3 |
 | 2026-11-10 | Any attribute writes through, never for an untouched picture; shared folders widened (owner review) |
 | 2026-11-14 | Writes waiting behind a pass are written together; an unchanged sidecar is not saved (.16, .17) |
+| 2026-11-15 | Writing through is opt-in, *Off* by default; *Only existing sidecars* creates none (.18, .19; risk review R1, R9) |
+| 2026-11-15 | A step writes the fields it changed, as a delta on each sidecar's decision (.20, .21, ADR 0032) |
+| 2026-11-15 | The JPEG's embedded XMP is a source of the decision; a new JPEG sidecar takes it over (.22–.24, ADR 0032 PR 3) |
+| 2026-11-15 | The ⋯ entry migrates every picture with legacy rows (.12 removed, XMP-007, ADR 0032 PR 5) |

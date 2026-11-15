@@ -28,25 +28,27 @@ of a picture in sort order) is left out and logged as a warning.
 
 **The embedded XMP** of the picture's JPEG (`image/jpeg`) is one more source (D1) while the JPEG
 has no sidecar of its own, neither `<JPEG file>.xmp` nor the shared `<base name>.xmp`; one that
-exists replaces it, as in digiKam. It is looked up only for pictures that take tags over and for
-tag writes, and never written. A picture whose embedded XMP cannot be looked up takes no tags over
-and is not written through; its sidecars fail as when they cannot be read.
+exists replaces it, as in digiKam. It is looked up for pictures that take a decision or tags over
+and for every write (XMP-003.22), and never written. A picture whose embedded XMP cannot be
+looked up takes no tags over and is not written through; its sidecars fail as when they cannot be
+read.
 
 **A tag change** (tags added, tags removed) applies to each chosen picture's tags; the result is
 shown at once and stored for every member in one save. Saves go one at a time and wait for the
 one in flight, as decisions do (DECISIONS-001.14, .15). A failed save puts back what it replaced,
 except the files a later save stored, and writes no sidecar.
 
-**Writing through.** After the save, each changed picture outside a shared folder gets the change
-written to its sidecars, in the same passes as the decisions (XMP-003): every sidecar is read unless
-honeycomb holds its bytes, the change is applied to the union of their tags as they are then, and
-that set is written to every sidecar, and to a new `<member file>.xmp` for each member without one
-while any tag is left. The JPEG gets its new sidecar also when no tag is left but its embedded XMP
-held tags, so the removal lasts. Only the three tag fields change (XMP-004); the decision fields
-stay as the sidecar holds them. Changes waiting for the same pass are applied in order and saved
-once (XMP-003.16). A sidecar answering `changed` is read again and gets the change once more. A
-sidecar that cannot be written is reported like a decision's (XMP-003.13); *Retry failed
-sidecars* applies the same change again.
+**Writing through.** After the save, while writing to sidecars is on (XMP-003 The setting), each
+changed picture outside a shared folder gets the change written to its sidecars, in the same passes
+as the decisions (XMP-003): every sidecar is read unless honeycomb holds its bytes, the change is
+applied to the union of their tags as they are then, and that set is written to every sidecar, and,
+with *Existing and new sidecars*, to a new `<member file>.xmp` for each member without one while
+any tag is left. The JPEG gets its new sidecar also when no tag is left but its embedded XMP held
+tags, so the removal lasts, again only with *Existing and new sidecars*. Only the three tag
+fields change (XMP-004); the decision fields stay as the sidecar holds them. Changes waiting for
+the same pass are applied in order and saved once (XMP-003.16). A sidecar answering `changed` is
+read again and gets the change once more. A sidecar that cannot be written is reported like a
+decision's (XMP-003.13); *Retry failed sidecars* applies the same change again.
 
 **Files moved back.** Files put back into the cull (an undone delete) have their stored tags read.
 
@@ -159,7 +161,7 @@ sidecars* applies the same change again.
 ### TAGS-002.16 – A sidecar of the JPEG replaces its embedded XMP
 
 - **Given** pictures without a stored decision or tags, one with `<JPEG file>.xmp`, one with the
-  shared `<base name>.xmp`, one a RAW alone, one a HEIC, and one with stored tags
+  shared `<base name>.xmp`, one a RAW alone, one a HEIC, and one with a stored decision
 - **When** the cull opens
 - **Then** no embedded XMP is looked up
 
@@ -216,3 +218,4 @@ sidecars* applies the same change again.
 | 2026-11-13 | The JPEG's embedded XMP as one more source (*Tags 1b*, .15–.20) |
 | 2026-11-14 | Tag saves go one at a time, the newest tags per file (.21) |
 | 2026-11-14 | Tag changes waiting for one sidecar pass are saved once (XMP-003.16) |
+| 2026-11-15 | The embedded XMP is looked up for the decision too, also with stored tags (XMP-003.22) |

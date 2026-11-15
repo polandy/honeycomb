@@ -8,5 +8,5 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 /** A trash request is malformed: no file of it is touched. */
-final class InvalidTrashRequestException extends \InvalidArgumentException {
+final class InvalidTrashRequestException extends InvalidRequestException {
 }

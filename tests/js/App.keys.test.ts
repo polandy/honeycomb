@@ -14,7 +14,7 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import ShortcutSheet from '../../src/components/ShortcutSheet.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
-import { mountApp, openCull, shownNames } from './app-cull.ts'
+import { mountApp, openCull, shownNames, toolbarProps } from './app-cull.ts'
 
 /** Presses a key on the page and returns whether the app handled it. */
 async function press(key: string, fields: KeyboardEventInit = {}) {
@@ -80,7 +80,7 @@ describe('App: keys on the grid', () => {
 			[[1, 3], [4, 3], [2, 3], [3, 3]],
 			[[1, 4], [4, 4], [2, 4], [3, 4]],
 		])
-		expect(wrapper.findComponent(GridToolbar).props('selected')).toBe(3)
+		expect(toolbarProps(wrapper).selected).toBe(3)
 	})
 
 	// spec: KEYS-001.6
@@ -148,7 +148,7 @@ describe('App: keys on the grid', () => {
 		await press('\\')
 		wrapper.findComponent(FilterBar).vm.$emit('update:filters', { ...DEFAULT_FILTERS, rating: 3 })
 		await flushPromises()
-		const active = () => wrapper.findComponent(GridToolbar).props('activeFilters')
+		const active = () => toolbarProps(wrapper).activeFilters
 
 		await press('l', { ctrlKey: true })
 		expect(active()).toBe(0)

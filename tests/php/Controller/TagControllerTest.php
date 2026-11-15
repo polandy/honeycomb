@@ -8,9 +8,11 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\TagController;
 use OCA\Honeycomb\Service\TagService;
 use OCA\Honeycomb\Tests\Service\FakeTagStore;
+use OCA\Honeycomb\Tests\Service\FakeUserPhotos;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -23,6 +25,8 @@ use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
 final class TagControllerTest extends TestCase {
+	use FakeUserPhotos;
+
 	private const array TAGGED = ['fileId' => 7, 'tags' => ['People/Anna', 'Places/Italy']];
 
 	private FakeTagStore $store;
@@ -37,7 +41,7 @@ final class TagControllerTest extends TestCase {
 		$user->method('getUID')->willReturn('alice');
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
-		return new TagController(Application::APP_ID, $this->createStub(IRequest::class), $session, new TagService($this->store));
+		return new TagController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new TagService($this->store, $this->userPhotos(7)));
 	}
 
 	// spec: TAGS-001.1, TAGS-001.5

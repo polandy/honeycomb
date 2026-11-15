@@ -1,0 +1,69 @@
+# SPDX-FileCopyrightText: 2026 honeycomb contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Bug report
+description: Something in honeycomb does not work as described.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not report security problems here; use the private link on the issue chooser or
+        [SECURITY.md](https://github.com/polandy/honeycomb/blob/main/SECURITY.md).
+        Please remove file paths, folder names and user names from everything you paste.
+  - type: input
+    id: honeycomb-version
+    attributes:
+      label: honeycomb version
+      description: Shown in Apps, or in appinfo/info.xml.
+    validations:
+      required: true
+  - type: input
+    id: nextcloud-version
+    attributes:
+      label: Nextcloud and PHP version
+      description: For example Nextcloud 35.0.2, PHP 8.3.
+    validations:
+      required: true
+  - type: dropdown
+    id: storage
+    attributes:
+      label: Where the photos are stored
+      options:
+        - Local storage (the user's home folder)
+        - External storage (SMB, SFTP, S3 or similar)
+        - Group folder
+        - Shared folder (shared with the user)
+        - Other or mixed
+    validations:
+      required: true
+  - type: dropdown
+    id: trash
+    attributes:
+      label: Trash bin app enabled
+      options:
+        - "Yes"
+        - "No"
+        - I don't know
+    validations:
+      required: true
+  - type: input
+    id: client
+    attributes:
+      label: Browser and device
+      description: For example Safari on iPadOS 19, or Firefox on Linux.
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What you did, what you expected and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log lines
+      description: |
+        Relevant lines of nextcloud.log or the browser console. Replace every path, folder and user
+        name with a placeholder such as `<path>`. honeycomb logs can contain full file paths.
+      render: text

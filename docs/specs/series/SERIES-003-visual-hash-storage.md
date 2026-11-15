@@ -24,8 +24,9 @@ server keeps the hashes the browser computed and hands them out with the listing
   positive integer `fileId`, with an `etag` that is not a string of 1 to 40 characters, with a
   `hash` that is not 16 lower-case hex digits, or a file id given twice. `401` without a user.
 - A user may save at most 300 times a minute (`#[UserRateLimit]`, ADR 0026); a save beyond that
-  is answered `429` by Nextcloud, without a `Retry-After` header, and writes nothing. In the
-  cull, a limited save is a failed save (SERIES-003.13).
+  is answered `429` by Nextcloud, without a `Retry-After` header, and writes nothing. The cull
+  waits as long as the similarity page does (SERIES-004.14) and sends the same hashes again;
+  hashing goes on meanwhile and no other save is sent (SERIES-003.27).
 - The browser hashes only the hashable pictures (SERIES-001.17) whose shown member has no
   `visualHash`, and sends what it computed with `saveVisualHashes` in `src/api.ts`: every 100
   hashes and when no picture is left to hash; it resolves to the `saved` file ids, which the
@@ -34,7 +35,9 @@ server keeps the hashes the browser computed and hands them out with the listing
   `honeycomb.visualHashes` of earlier versions is removed when a cull opens.
 - The browser hashes a picture's shown member from the small grid tier, the very URL the grid
   tile loads first (`smallSource`), so the browser's cache serves it: a pair by its JPEG, a
-  RAW-only picture by the JPEG embedded in the RAW (IMAGES-001.6).
+  RAW-only picture by the JPEG embedded in the RAW (IMAGES-001.6). It hashes in the Web Workers
+  of the similarity page (SERIES-004), not on the main thread, one picture at a time in the
+  order of the tiles, so the six tile loads (GRID-001.15) keep their priority (SERIES-003.26).
 - Each hashable picture has a hash state: *hashed* (delivered or computed), *pending* or *failed*
   (its preview could not be loaded or hashed). A failed file version is not hashed again in this
   visit; the next visit tries it once more. A picture that is not hashable has no hash state.
@@ -214,6 +217,22 @@ server keeps the hashes the browser computed and hands them out with the listing
 - **Then** their series badge has a dashed outline, and its tooltip and the tile's label add
   *Series may still change*; once no member is pending, the badge is plain again
 
+### SERIES-003.26 – The cull hashes in a worker
+
+- **Given** an open cull with pictures to hash
+- **When** they are hashed
+- **Then** a Web Worker of the pool the similarity page uses (SERIES-004.15, .16) hashes each
+  from its small grid tier URL, one picture at a time and in the order of the tiles; the cull's
+  page allows workers from its own origin
+
+### SERIES-003.27 – A limited save in the cull waits
+
+- **Given** computed hashes in an open cull
+- **When** the server limits their save (`429`)
+- **Then** the cull waits as long as the server asks, 60 s without a header, and sends the same
+  hashes again; it keeps hashing meanwhile, sends no other save, and the save does not count as
+  failed
+
 ## Out of scope
 
 - The hash, the link rule and when a picture is hashed: SERIES-001.
@@ -228,3 +247,4 @@ server keeps the hashes the browser computed and hands them out with the listing
 | 2026-11-14 | `saveVisualHashes` resolves to the saved file ids, for the similarity page (SERIES-004) |
 | 2026-11-14 | Saves limited to 300 a minute per user (ADR 0026) |
 | 2026-11-14 | The similarity moves from the toolbar to a strip over the grid; a series that may still change has a dashed badge (owner decision #181) |
+| 2026-11-15 | The cull hashes in the similarity page's workers, and a limited save waits (review R12 b) |

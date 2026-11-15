@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Decision } from './decision.ts'
+import type { Decision, DecisionDelta, DecisionField } from './decision.ts'
 import type { EmbeddedXmpAnswer } from './embedded-xmp.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
@@ -14,7 +14,7 @@ import { parseFileName, splitFolder } from './file-name.ts'
 import { pictureMembers } from './pairing.ts'
 import { isMemberSidecar } from './sidecars.ts'
 import { pictureSidecarDecision, sidecarDecision } from './xmp/decision.ts'
-import { mergeDecision } from './xmp/merge.ts'
+import { mergeDelta } from './xmp/merge.ts'
 import { EMPTY_PACKET, XmpError } from './xmp/model.ts'
 import { readableXmp, readXmp } from './xmp/parse.ts'
 import { serializeXmp } from './xmp/serialize.ts'
@@ -25,7 +25,7 @@ import { sidecarTargets } from './xmp/targets.ts'
 export type SidecarLookupFailure = 'notFound' | 'tooLarge' | 'notPermitted' | 'locked' | 'failed'
 
 /** What the save endpoint answers for a sidecar it did not save (XMP-002). */
-export type SidecarSaveFailure = 'notFound' | 'changed' | 'notPermitted' | 'locked' | 'failed'
+export type SidecarSaveFailure = 'notFound' | 'changed' | 'noVersions' | 'notPermitted' | 'locked' | 'failed'
 
 /** The lookup endpoint's answer for one sidecar. */
 export type SidecarLookupAnswer
@@ -51,16 +51,16 @@ export interface SidecarFailure {
 	readonly picture: Picture<ListingEntry>
 	readonly reason: SidecarFailureReason
 	readonly tags?: TagChange
-	readonly decision?: true
+	readonly fields?: readonly DecisionField[]
 }
 
-/** What a write changes in a picture's sidecars: the decision fields, the tag fields by a change, or both. */
-export type SidecarEdit = { readonly decision: Decision, readonly tags?: TagChange } | { readonly decision?: Decision, readonly tags: TagChange }
+/** What a write changes in a picture's sidecars: a decision delta, the tag fields by a change, or both. */
+export type SidecarEdit = { readonly decision: DecisionDelta, readonly tags?: TagChange } | { readonly decision?: DecisionDelta, readonly tags: TagChange }
 
 /** A sidecar honeycomb knows by path: its file id and, while nobody else changed it, what honeycomb saved. */
 export interface KnownSidecar {
 	readonly fileId: number
-	readonly saved: { readonly etag: string, readonly size: number, readonly bytes: Uint8Array } | null
+	readonly saved: { readonly etag: string, readonly size: number, readonly mtime: number, readonly bytes: Uint8Array } | null
 }
 
 /** A picture whose sidecars' decision is looked up, and those sidecars. */
@@ -77,6 +77,7 @@ export interface PlannedSave {
 }
 
 type Answers = ReadonlyMap<number, SidecarLookupAnswer>
+type Embedded = ReadonlyMap<number, EmbeddedXmpAnswer>
 type Known = ReadonlyMap<string, KnownSidecar>
 
 /** The pictures without a stored decision for any member that have sidecars or an embedded XMP to take one or tags from. */
@@ -87,19 +88,34 @@ export function takeOverLookups(pictures: readonly Picture<ListingEntry>[], stor
 		.filter(({ picture, sidecars }) => sidecars.length > 0 || embeddedXmpSource(picture) !== null)
 }
 
-/** The decision each picture takes over from its sidecars, other than undecided, and what to warn about. */
-export function takeOverDecisions(lookups: readonly TakeOverLookup[], answers: Answers) {
+/** The file ids of the JPEGs whose embedded XMP counts for the looked-up pictures (XMP-003.22, TAGS-002.15). */
+export function embeddedLookups(lookups: readonly TakeOverLookup[]): number[] {
+	return lookups.flatMap(({ picture }) => embeddedXmpSource(picture)?.fileId ?? [])
+}
+
+/** The decision each picture takes over from its sidecars and embedded XMP, other than undecided, and what to warn about. */
+export function takeOverDecisions(lookups: readonly TakeOverLookup[], answers: Answers, embedded: Embedded = new Map()) {
 	const decided: { readonly picture: Picture<ListingEntry>, readonly decision: Decision }[] = []
 	const warnings: { readonly path: string, readonly reason: SidecarFailureReason | 'disagrees' }[] = []
 	for (const { picture, sidecars } of lookups) {
-		const rawName = picture.raw === null ? null : parseFileName(picture.raw.path).name
 		const read: SidecarBytes[] = []
 		for (const sidecar of sidecars) {
 			const answer = answers.get(sidecar.fileId)
 			if (answer?.result === 'read') {
-				read.push({ name: sidecar.path, mtime: answer.mtime, ofRaw: rawName !== null && isMemberSidecar(parseFileName(sidecar.path), rawName), bytes: answer.bytes })
+				read.push(sidecarBytes(picture, sidecar.path, answer))
 			} else {
 				warnings.push({ path: sidecar.path, reason: answer?.result ?? 'unreachable' })
+			}
+		}
+		const jpeg = embeddedXmpSource(picture)
+		if (jpeg !== null) {
+			const inJpeg = embedded.get(jpeg.fileId)
+			if (inJpeg === undefined) {
+				warnings.push({ path: jpeg.path, reason: 'unreachable' })
+			} else if (inJpeg.result === 'read') {
+				read.push(embeddedBytes(jpeg, inJpeg.bytes))
+			} else if (inJpeg.result !== 'none') {
+				warnings.push({ path: jpeg.path, reason: inJpeg.result })
 			}
 		}
 		const { winner, disagreeing, refused } = pictureSidecarDecision(read, isPair(picture))
@@ -116,24 +132,29 @@ export function writeLookups(picture: Picture<ListingEntry>, known: Known, paths
 	return targetsOf(picture, known, paths).flatMap(({ fileId, saved }) => (saved === null && fileId !== null ? [fileId] : []))
 }
 
-/** The saves that write the edit to the picture's sidecars (to `paths` only, when given), and the sidecars that cannot be written; a tag edit needs the embedded XMP's answers. */
-export function planSaves(picture: Picture<ListingEntry>, edit: SidecarEdit, known: Known, answers: Answers, time: XmpTime, paths?: ReadonlySet<string>, embedded: ReadonlyMap<number, EmbeddedXmpAnswer> = new Map()) {
+/** The saves that write the edit to the picture's sidecars (to `paths` only, when given), and the sidecars that cannot be written; it needs the answer of the JPEG's embedded XMP while that counts. */
+export function planSaves(picture: Picture<ListingEntry>, edit: SidecarEdit, known: Known, answers: Answers, time: XmpTime, paths?: ReadonlySet<string>, embedded: Embedded = new Map()) {
 	const saves: PlannedSave[] = []
 	const failed: SidecarFailure[] = []
 	const targets = targetsOf(picture, known).map((target) => {
 		const answer = target.saved === null && target.fileId !== null ? answers.get(target.fileId) : undefined
 		return { ...target, answer, source: target.saved ?? (answer?.result === 'read' ? answer : null) }
 	})
-	const jpeg = edit.tags === undefined ? null : embeddedXmpSource(picture, known)
-	const inEmbedded = jpeg === null ? { packet: null } : embeddedSourceOf(embedded.get(jpeg.fileId))
+	const jpeg = embeddedXmpSource(picture, known)
+	const inJpeg = jpeg === null ? undefined : embedded.get(jpeg.fileId)
+	const inEmbedded = jpeg === null ? { packet: null } : embeddedSourceOf(inJpeg)
 	const written = targets.filter((target) => paths === undefined || paths.has(target.path))
 	if ('failure' in inEmbedded) {
 		return { saves, failed: written.map(({ path }) => ({ path, picture, reason: inEmbedded.failure })) }
 	}
 	const embeddedPackets = inEmbedded.packet === null ? [] : [inEmbedded.packet]
+	const sources = targets.flatMap(({ path, source }) => (source === null ? [] : [sidecarBytes(picture, path, source)]))
+	const stated = pictureSidecarDecision(jpeg !== null && inJpeg?.result === 'read' ? [...sources, embeddedBytes(jpeg, inJpeg.bytes)] : sources, isPair(picture)).winner?.decision ?? UNDECIDED
 	const { change, creates } = editorOf(edit, isPair(picture), [...targets.flatMap(({ source }) => (source === null ? [] : readableXmp(source.bytes) ?? [])), ...embeddedPackets])
+	const embeddedPath = jpeg === null ? null : embeddedSidecarPath(jpeg)
 	// A JPEG sidecar without tags keeps removed embedded tags removed (TAGS-002.19).
-	const replacesEmbedded = jpeg !== null && pictureTags(embeddedPackets).length > 0 ? embeddedSidecarPath(jpeg) : null
+	const replacesEmbedded = pictureTags(embeddedPackets).length > 0 ? embeddedPath : null
+	const baseOf = (path: string) => (path === embeddedPath && inEmbedded.packet !== null ? sidecarDecision(inEmbedded.packet, isPair(picture)) : stated)
 	for (const { path, fileId, answer, source } of written) {
 		if (fileId !== null && source === null) {
 			failed.push({ path, picture, reason: (answer?.result ?? 'unreachable') as SidecarFailureReason })
@@ -144,7 +165,7 @@ export function planSaves(picture: Picture<ListingEntry>, edit: SidecarEdit, kno
 		}
 		try {
 			const packet = source === null ? EMPTY_PACKET : readXmp(source.bytes)
-			const bytes = serializeXmp(change(packet), time)
+			const bytes = serializeXmp(change(packet, source === null ? baseOf(path) : null), time)
 			if (source !== null && sameBytes(bytes, serializeXmp(packet, time))) {
 				continue
 			}
@@ -168,7 +189,7 @@ export function applySaves(saves: readonly PlannedSave[], answers: readonly Side
 		const answer = answers?.[index]
 		const fileId = 'fileId' in save.item ? save.item.fileId : null
 		if (answer?.result === 'saved') {
-			known.set(save.path, { fileId: answer.fileId, saved: { etag: answer.etag, size: answer.size, bytes: save.item.bytes } })
+			known.set(save.path, { fileId: answer.fileId, saved: { etag: answer.etag, size: answer.size, mtime: answer.mtime, bytes: save.item.bytes } })
 			return
 		}
 		if (fileId === null || answer?.result === 'notFound') {
@@ -183,6 +204,11 @@ export function applySaves(saves: readonly PlannedSave[], answers: readonly Side
 		}
 	})
 	return { known, failed, changed }
+}
+
+/** The saves without those that would create a sidecar (XMP-003.19). */
+export function existingOnly(saves: readonly PlannedSave[]): PlannedSave[] {
+	return saves.filter((save) => 'fileId' in save.item)
 }
 
 /** Whether a member of the picture lies in one of the shared folders. */
@@ -205,17 +231,26 @@ function targetsOf(picture: Picture<ListingEntry>, known: Known, paths?: Readonl
 		})
 }
 
-/** How the edit changes a sidecar, and whether it creates missing ones: a decision always does; a tag change applies to the union of the sidecars read, and creates them only while tags are left. */
-function editorOf(edit: SidecarEdit, pair: boolean, sources: readonly XmpPacket[]): { change: (packet: XmpPacket) => XmpPacket, creates: boolean } {
+/** How the edit changes a sidecar, a new one (with a `base`) starting from that decision, and whether it creates missing ones: a decision always does; a tag change applies to the union of the sources read, and creates them only while tags are left. */
+function editorOf(edit: SidecarEdit, pair: boolean, sources: readonly XmpPacket[]): { change: (packet: XmpPacket, base: Decision | null) => XmpPacket, creates: boolean } {
 	const { decision, tags } = edit
 	const write = tags === undefined ? null : tagWrite(sources, tags)
-	const decide = (packet: XmpPacket) => (decision === undefined
-		? packet
-		: mergeDecision(packet, decision, { isPair: pair, colourLabelChanged: sidecarDecision(packet, pair).colourLabel !== decision.colourLabel }))
+	const decide = (packet: XmpPacket, base: Decision | null) => (base !== null ? mergeDelta(packet, decision ?? {}, pair, base) : (decision === undefined ? packet : mergeDelta(packet, decision, pair)))
 	return {
-		change: (packet) => (write === null ? decide(packet) : mergeTags(decide(packet), write)),
+		change: (packet, base) => (write === null ? decide(packet, base) : mergeTags(decide(packet, base), write)),
 		creates: decision !== undefined || (write !== null && write.tags.length > 0),
 	}
+}
+
+/** A sidecar of the picture as the reading rules take it. */
+function sidecarBytes(picture: Picture<ListingEntry>, path: string, { mtime, bytes }: { readonly mtime: number, readonly bytes: Uint8Array }): SidecarBytes {
+	const rawName = picture.raw === null ? null : parseFileName(picture.raw.path).name
+	return { name: path, mtime, ofRaw: rawName !== null && isMemberSidecar(parseFileName(path), rawName), bytes }
+}
+
+/** The JPEG's embedded XMP as the reading rules take it: the JPEG's own sidecar, at the JPEG's modification time. */
+function embeddedBytes(jpeg: ListingEntry, bytes: Uint8Array): SidecarBytes {
+	return { name: jpeg.path, mtime: jpeg.mtime, ofRaw: false, bytes }
 }
 
 /** Whether the two byte arrays hold the same bytes. */

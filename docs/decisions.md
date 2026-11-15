@@ -1150,6 +1150,142 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   pending; its members are still hashed for the similarity page (#185 PR 2).
 - 2026-11-14: The series lookup lives in `src/series-api.ts`, because `api.ts` is at the
   300-line limit; it shares `API` and `isRecord` with `api.ts` (#185 PR 2).
+- 2026-11-15: The grid screen reads the cull from a context App provides (ADR 0028, review R8a):
+  one `CullContext` holding the cull and the selection whole and each flow as a `Pick` of what a
+  screen uses, so a test fakes a flow in a line; the toolbar's 22 props become the groups
+  `folders`, `view`, `progress`, `selection` and `tasks`; its events stay as they were.
+- 2026-11-15: Writing decisions to XMP sidecars is opt-in (XMP-003, risk review R1/R9): a
+  setting *Off* (default for every user, no migration) / *Only existing sidecars* / *Existing and
+  new sidecars*. The opt-in dialog opens when the user leaves *Off* in the settings, not as a
+  prompt at start. Take-over reading runs with every choice; the ⋯ menu write in a shared folder
+  works with every choice and creates no sidecar under *Only existing sidecars*, nor does a retry
+  or the embedded-JPEG tag sidecar.
+- 2026-11-15: An existing XMP sidecar is overwritten only while `files_versions` is enabled for
+  the user, otherwise the save answers `noVersions` (XMP-002.10, risk review R2, ADR 0017
+  amendment). Chosen over a one-time `.xmp.orig` copy, which would add synced files other
+  programs may read and keep only the first version. The check is per user, like the trash bin
+  check; a storage that keeps no versions despite the app is not detected.
+- 2026-11-15: Move and trash requests go in chunks of at most 50 whole pictures and 500 files;
+  the endpoints refuse more than 500 files (ADR 0029, risk review R4, R15). Chosen over a server
+  job queue or a move journal, both a new table. A later failed chunk keeps what earlier ones did
+  and lists the unsent files as `failed`, so *Retry failed files* and *Undo* cover them; the
+  progress shows as "N of M photos sent" in the dialog's footer.
+- 2026-11-15: A file the trash bin would not keep (storage without the trash bin wrapper, or at
+  least as large as `trashbin_size`, outside a Team folder) is refused as `noTrashBin` before its
+  picture is touched (ADR 0030, DELETE-001.9, risk review R6). Chosen over checking after the
+  delete (too late) or the trash manager (no public API). Team folders and local External
+  Storage are proven in e2e with a pinned Team folders 23.0.1 release; the summaries' note now
+  names retention and space and advises a backup.
+- 2026-11-15: Decision and tag saves skip file ids the user does not reach as a photo instead of
+  refusing the save, as the series and visual hash saves do, so one vanished file never fails the
+  rest; every write route is limited to 600 requests a minute per user, one shared limit far above
+  a person culling, the visual hash save keeps 300 (ADR 0031, risk review R10). Preview warming is
+  not limited: it reads and renders cached previews, 16 file ids a request.
+- 2026-11-15: The supported Nextcloud range stays 35 only (`min-version` = `max-version` = 35,
+  the owner's Q1 answer); 36 is not released, so there is nothing to test it on. e2e runs on
+  35.0.0, the first release `min-version` admits, and on the newest 35 release it passes on
+  instead of every patch release, and `scripts/nextcloud-versions.sh` ties both to `info.xml`. The
+  update test starts from v0.1.0, the first release, so it runs every migration added since, and
+  saves through that release's own API instead of writing rows, so it checks what a real user had
+  stored (R14).
+  The newest image stays 35.0.2: on 35.0.3 a `.part` node has no cache entry and permissions 0,
+  so moving the sidecar part file into place fails; the fix revises ADR 0017 and is its own
+  TODO.md item instead of growing this change.
+- 2026-11-15: The App Store package is built by `scripts/package.sh`, not krankerl or a Makefile:
+  the repository's tooling is shell scripts under `scripts/` with table tests, krankerl is one
+  more pinned binary for CI, and an allowlist of app folders keeps tests, sources and `vendor/`
+  out of the tarball. Code signing runs `occ integrity:sign-app` in the pinned Nextcloud image
+  (`scripts/sign-app.sh`), so it needs only Docker, the key and the certificate.
+- 2026-11-15: The release job signs and uploads to the App Store only when the secrets
+  `APP_SIGNING_KEY`, `APP_SIGNING_CERT` and `APPSTORE_TOKEN` exist; without them it attaches an
+  unsigned tarball to the GitHub release, so releases keep working until the owner has the
+  certificate (R16).
+- 2026-11-15: The App Store screenshots point at the synthetic-photo screenshots of
+  `docs/ux-review-2026-11.md` in `polandy/honeycomb-assets` (`ux-review-2026-11/`, kept for the
+  review): grid, loupe and series compare on the iPad. Fresh screenshots replace them in
+  `appinfo/info.xml` when the UI changes enough to mislead.
+- 2026-11-15: The preview warm-up parses its file ids in `ImageService::warm()` through
+  `FileIds` and throws the new `InvalidPreviewRequestException`, like every other list of file
+  ids; the move, trash and sidecar exceptions now extend `InvalidRequestException` so `FileIds`
+  can throw them (R5b of the architecture review).
+- 2026-11-15: Every controller action answers through `ApiResponse::forUser`, which answers
+  401 without a user and maps the service exceptions to their status by one table (R9 of the
+  architecture review). The cursor, position, settings and view-state exceptions now extend
+  `InvalidRequestException` too. The status codes are unchanged; the few routes that answered
+  an error with an empty body now answer `[]` like all the others.
+- 2026-11-15: A move that would leave its storage (out of or into an incoming share, a group
+  folder or external storage) is refused with the new result `otherStorage`, and the move summary
+  lists such pictures as not moved (MOVE-002.11, MOVE-004.16, risk review R3, ADR 0018
+  amendment). Chosen over allowing it after a confirmation, since the owner who loses the files is
+  not the one who confirms; there is no setting to allow it.
+- 2026-11-15: ADR 0032 supersedes ADR 0005 and 0012 and amends 0017, 0022 and 0023, rather than
+  superseding all five, since the sidecar endpoints, the tag list and the embedded XMP endpoint
+  stay.
+- 2026-11-15: honeycomb does not keep digiKam's extra copies (`MicrosoftPhoto:Rating`,
+  `acdsee:rating`, `photoshop:Urgency`) in step (ADR 0032, review F20): digiKam reads `xmp:Rating`,
+  `ColorLabel` and `TagsList` first, so a stale copy is not seen, and fewer written fields mean
+  fewer foreign bytes changed.
+- 2026-11-15: The XMP cache is per user, not shared per file id and ETag (ADR 0032, review F21):
+  the pattern of ADR 0012 and the simpler access rule; the shared cache stays an option.
+- 2026-11-15: *Remove RAWs* skips, with a hint, a pair whose JPEG sidecar cannot be written before
+  the RAW's sidecar goes (ADR 0032, review F22), rather than warning and going on: a JPEG never
+  loses its values, as with the owner's rule for *Delete rejected* (Q3).
+- 2026-11-15: *Clear cache* is one `DELETE /api/v1/xmp-cache` that also removes the visual hashes
+  (XMP-006), since the owner's decision clears both together and a second endpoint would add
+  nothing.
+- 2026-11-15: The work of ADR 0032 is one milestone (M8) and one `TODO.md` item listing its pull
+  requests in order, like the stored series item.
+- 2026-11-15: A sidecar write step carries the decision fields it changed, valued when its pass
+  starts (XMP-003.20); a pass joins the fields of its steps, and a retry writes the failed fields
+  as they are then.
+- 2026-11-15: The explicit *Write decisions to sidecars…* write sends every decision field, so the
+  stored decision wins there, as ADR 0032's migration rule asks.
+- 2026-11-15: A new sidecar starts from the decision the picture's other sidecars state, newest
+  first, else from *undecided*; values only the database holds come over in the migration (PR 5).
+- 2026-11-15: The JPEG's new sidecar takes over the embedded decision values (rating, flag, colour
+  label, *Keep RAW*), not a copy of the whole embedded packet: Lightroom's embedded history can
+  outgrow the sidecar lookup limit, and honeycomb writes only its own fields (ADR 0032 PR 3).
+- 2026-11-15: An embedded XMP that is not read is a warning in the take-over, like a sidecar not
+  read; in a write it fails the picture, since the JPEG's new sidecar would hide unknown values.
+- 2026-11-15: *Clear cache* ships with the cache API (ADR 0032 PR 4), not with the switch in PR 6,
+  and asks for no confirmation: it loses nothing that the next folder visit does not read again.
+- 2026-11-15: The XMP cache save checks only that the user reaches the file as its kind (a
+  sidecar, or a JPEG for embedded XMP), not its ETag; the client compares the ETag on lookup.
+- 2026-11-15: A refused XMP cache row carries a reason of 1 to 32 lower-case letters, digits or
+  dashes, such as `not-utf-8`; the tags follow the rules of the tag API and are stored as JSON.
+- 2026-11-15: Whether a folder keeps versions is asked per node: the owner's `files_versions`, a
+  versions backend for the storage, and external storage counts as none; the sidecar save uses
+  the same check (XMP-002.10).
+- 2026-11-15: The XMP cache lookup is a POST without a rate limit, like the other lookups; the
+  save and the clear are rate limited like every write.
+- 2026-11-15: The legacy migration needs *Existing and new sidecars*, so every picture gets a
+  sidecar; *On* comes with ADR 0032 PR 6 (XMP-007.7).
+- 2026-11-15: Acknowledging legacy rows writes no XMP cache row; the cull reads a file without one
+  from ADR 0032 PR 6 anyway.
+- 2026-11-15: The migration leaves the versions check to the sidecar save (`noVersions`); the
+  client does not check versions before writing.
+- 2026-11-15: The export of unreachable legacy rows is its own endpoint,
+  `GET /api/v1/legacy/export`; *Discard* acknowledges the exported ids, and a retry after a failed
+  run does not acknowledge, the next run does.
+- 2026-11-15: The legacy notice shows, and its inventory is read, only while writing is set to
+  *Existing and new sidecars*, as the inventory looks up every file id with a row.
+- 2026-11-15: The migration acknowledges the member ids of the saved pictures in one request,
+  sorted, and sends none when no picture was saved.
+- 2026-11-15: The loupe reads the cull from the context (ADR 0028, review R8b) through a new
+  screen root `LoupeScreen`, not by `PhotoLoupe` injecting it: `PhotoLoupe` keeps its props, so
+  its eight test files mount it unchanged, and only the screen root injects, as for the grid.
+- 2026-11-15: The series compare and its viewer read the cull from the context (ADR 0028, review
+  R8c) through `SeriesCompareFlow`, renamed `SeriesCompareScreen` like the other screen roots; the
+  context holds the compare flow whole instead of a `Pick` of nearly all its members.
+- 2026-11-15: Review R12 is split in two PRs. a) the pool starts its workers when needed and
+  survives a crash, and the similarity page takes it from `browserHashWorkers()`; b) the cull
+  hashes in the same pool, its saves wait on a `429` like the run's (ADR 0026), with the tile
+  order kept and hashing still behind the tile loads. The cull's `429` belongs to b, as the cull
+  page's save path changes only there.
+- 2026-11-15: The cull hashes in the worker pool one picture at a time, not as many as the pool
+  holds (review R12 b): one hash beside the six tile loads keeps the tiles first without coupling
+  the hashing to the grid's load queue; the main thread no longer draws previews. A save the
+  server limits waits silently in the cull: the strip shows the hash progress, not the save.
 - 2026-11-15: A new series gets a local id below 0 until the series write answers its real id;
   later writes, undo and redo then use the answered id, also when the server replaced a vanished
   one (#185 PR 3).

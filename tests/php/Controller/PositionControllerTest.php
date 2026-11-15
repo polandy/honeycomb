@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\PositionController;
 use OCA\Honeycomb\Service\PositionService;
 use OCA\Honeycomb\Tests\Service\FakePositionStore;
@@ -34,7 +35,7 @@ final class PositionControllerTest extends TestCase {
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
 		$time = $this->createStub(ITimeFactory::class);
 		$time->method('getTime')->willReturn(self::NOW);
-		return new PositionController(Application::APP_ID, $this->createStub(IRequest::class), $session, new PositionService(new FakePositionStore(), $time));
+		return new PositionController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new PositionService(new FakePositionStore(), $time));
 	}
 
 	// spec: DECISIONS-002.1

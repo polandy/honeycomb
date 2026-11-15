@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_SWIPES } from '../../../src/logic/loupe-gesture.ts'
 import { DEFAULT_NAME_TEMPLATE } from '../../../src/logic/name-template/presets.ts'
 import { DEFAULT_PAIRING_SETTINGS, pairPictures } from '../../../src/logic/pairing.ts'
-import { addExtension, DEFAULT_SETTINGS, DEFAULT_SUBFOLDERS, folderMode, pairingSettings, parseSettings, removeExtension } from '../../../src/logic/settings.ts'
+import { addExtension, asksBeforeSidecarWrite, DEFAULT_SETTINGS, DEFAULT_SUBFOLDERS, folderMode, pairingSettings, parseSettings, removeExtension } from '../../../src/logic/settings.ts'
 
 describe('DEFAULT_SETTINGS', () => {
 	// spec: SETTINGS-001.6
@@ -34,6 +34,7 @@ describe('parseSettings', () => {
 			moveFavourites: ['/Archive'],
 			moveRecent: ['/Archive', '/Best'],
 			moveTemplate: '{name:lower}.{ext}',
+			sidecarWrite: 'existing',
 		}
 
 		expect(parseSettings(JSON.parse(JSON.stringify(settings)))).toEqual(settings)
@@ -88,6 +89,26 @@ describe('parseSettings', () => {
 	// spec: SETTINGS-001.6
 	it('takes the default swipes when they are no object', () => {
 		expect(parseSettings({ swipes: 'up' }).swipes).toEqual(DEFAULT_SWIPES)
+	})
+})
+
+describe('sidecarWrite', () => {
+	// spec: XMP-003.18, SETTINGS-001.24
+	it('is off by default and for a value other than the three', () => {
+		expect(DEFAULT_SETTINGS.sidecarWrite).toBe('off')
+		expect(parseSettings({}).sidecarWrite).toBe('off')
+		expect(parseSettings({ sidecarWrite: 'always' }).sidecarWrite).toBe('off')
+		expect(parseSettings({ sidecarWrite: true }).sidecarWrite).toBe('off')
+		expect(parseSettings({ sidecarWrite: 'existing-and-new' }).sidecarWrite).toBe('existing-and-new')
+	})
+
+	// spec: SETTINGS-001.24
+	it('asks only when leaving off', () => {
+		expect(asksBeforeSidecarWrite('off', 'existing')).toBe(true)
+		expect(asksBeforeSidecarWrite('off', 'existing-and-new')).toBe(true)
+		expect(asksBeforeSidecarWrite('off', 'off')).toBe(false)
+		expect(asksBeforeSidecarWrite('existing', 'existing-and-new')).toBe(false)
+		expect(asksBeforeSidecarWrite('existing-and-new', 'off')).toBe(false)
 	})
 })
 

@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { Decision } from '../../src/logic/decision.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 import type { TrashResponseFile } from '../../src/logic/trash-report.ts'
@@ -15,44 +14,8 @@ import { UNDECIDED } from '../../src/logic/decision.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../../src/logic/pairing.ts'
 import { withoutFiles } from '../../src/logic/trash-report.ts'
 import { failureReason } from '../../src/trash-text.ts'
+import { allTrashed, flow, OTHER, PAIR, SINGLE } from './delete-fixtures.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
-
-const [PAIR, SINGLE, OTHER] = picturesOf([
-	listingEntry(1, '/Trip/IMG_1.CR3', { mime: 'image/x-dcraw', size: 2048 }),
-	listingEntry(2, '/Trip/IMG_1.JPG', { size: 1024 }),
-	listingEntry(4, '/Trip/IMG_2.JPG', { size: 1024 }),
-	listingEntry(5, '/Trip/IMG_3.JPG', { size: 1024 }),
-]) as Picture<ListingEntry>[]
-
-/** A flow over the three pictures, PAIR and OTHER rejected, with a trash endpoint answering `answer`. */
-function flow(answer: (request: { fileId: number }[][]) => Promise<TrashResponseFile[][]>) {
-	const pictures = shallowRef<readonly Picture<ListingEntry>[]>([PAIR!, SINGLE!, OTHER!])
-	const flags = new Map([[PAIR, 'rejected'], [OTHER, 'rejected']])
-	const toasts: string[] = []
-	const decided: unknown[] = []
-	const sent: { fileId: number }[][][] = []
-	const loupe = ref<{ pictures: readonly Picture<ListingEntry>[], index: number } | null>({ pictures: [PAIR!, SINGLE!], index: 0 })
-	const deleting = useDeleteFlow({
-		pictures: () => pictures.value,
-		view: () => pictures.value,
-		decisionOf: (picture) => ({ ...UNDECIDED, flag: flags.get(picture) ?? 'unflagged' } as Decision),
-		decide: (intent, chosen) => decided.push([intent, chosen]),
-		trash: async (request) => {
-			sent.push(request.map((files) => [...files]))
-			return answer(request.map((files) => [...files]))
-		},
-		removeFiles: (fileIds) => {
-			const { pictures: left, replaced } = withoutFiles(pictures.value, fileIds, DEFAULT_PAIRING_SETTINGS)
-			pictures.value = left
-			return replaced
-		},
-		loupe,
-		toast: (message) => toasts.push(message),
-	})
-	return { deleting, pictures, toasts, decided, sent, loupe }
-}
-
-const allTrashed = async (request: { fileId: number }[][]) => request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'trashed' })))
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -259,6 +222,7 @@ describe('failureReason', () => {
 		['notFound', 'File is gone or no longer a photo; reload the folder'],
 		['changed', 'File changed since the folder was listed; reload the folder, then delete again'],
 		['notPermitted', 'You may not delete this file'],
+		['noTrashBin', 'Not deleted: no trash bin on this storage, or the file is larger than the trash bin allows'],
 		['skipped', 'Not tried, because another file of this photo failed'],
 		['failed', 'Could not move the file to the trash bin'],
 	] as const)('words %s', (result, reason) => {

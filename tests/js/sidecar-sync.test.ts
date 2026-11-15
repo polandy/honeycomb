@@ -10,7 +10,7 @@ import type { TagChange } from '../../src/logic/tag.ts'
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { logger } from '../../src/logger.ts'
-import { UNDECIDED } from '../../src/logic/decision.ts'
+import { DECISION_FIELDS, UNDECIDED } from '../../src/logic/decision.ts'
 import { readXmp } from '../../src/logic/xmp/parse.ts'
 import { serializeXmp } from '../../src/logic/xmp/serialize.ts'
 import { useSidecarSync } from '../../src/sidecar-sync.ts'
@@ -31,8 +31,8 @@ function deferred<T>() {
 	return { promise, resolve, reject }
 }
 
-/** A sync whose lookups answer `read` with BYTES unless told otherwise, and whose saves answer as `answer` says. */
-function sync(answer: (item: SidecarSaveItem, call: number) => SidecarSaveAnswer | Promise<never> = () => saved(40)) {
+/** A sync whose lookups answer `read` with BYTES unless told otherwise, whose saves answer as `answer` says, and that creates sidecars while `createsNew` says so. */
+function sync(answer: (item: SidecarSaveItem, call: number) => SidecarSaveAnswer | Promise<never> = () => saved(40), createsNew = () => true) {
 	const lookups: number[][] = []
 	const saves: SidecarSaveItem[][] = []
 	const failures: SidecarFailure[][] = []
@@ -49,7 +49,7 @@ function sync(answer: (item: SidecarSaveItem, call: number) => SidecarSaveAnswer
 			const answers = items.map((item) => answer(item, call))
 			return Promise.all(answers)
 		},
-	}, () => CANONICAL_TIME, (failed) => failures.push([...failed]))
+	}, () => CANONICAL_TIME, (failed) => failures.push([...failed]), createsNew)
 	return { sidecars, lookups, saves, failures, lookupAnswer }
 }
 
@@ -94,7 +94,7 @@ describe('useSidecarSync: write', () => {
 		const { written, failed } = await sidecars.write([PAIR], decisionOf(UNDECIDED))
 
 		expect(written).toBe(0)
-		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'changed' }])
+		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'changed', fields: DECISION_FIELDS }])
 		expect(failures).toEqual([failed])
 	})
 
@@ -151,8 +151,35 @@ describe('useSidecarSync: write', () => {
 
 		const { failed } = await sidecars.write([PAIR], decisionOf(UNDECIDED))
 
-		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'unreachable' }])
+		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'unreachable', fields: DECISION_FIELDS }])
 		expect(saves[0]!.map((item) => 'path' in item && item.path)).toEqual(['/P/IMG_0001.JPG.xmp'])
+	})
+})
+
+describe('useSidecarSync: only existing sidecars', () => {
+	const paths = (items: readonly SidecarSaveItem[] | undefined) => (items ?? []).map((item) => ('fileId' in item ? item.fileId : item.path))
+
+	// spec: XMP-003.19
+	it('saves the existing sidecar of a decision, a tag change and a retry, and creates none', async () => {
+		const { sidecars, saves } = sync((item, call) => (call === 1 ? { result: 'locked' } : saved('fileId' in item ? item.fileId : 30)), () => false)
+
+		const { failed } = await sidecars.write([PAIR], decisionOf({ ...UNDECIDED, flag: 'picked' }))
+		await sidecars.retry(failed, decisionOf({ ...UNDECIDED, flag: 'picked' }))
+		await sidecars.writeTags([PAIR], { added: ['Birds'], removed: [] })
+
+		expect(saves.map(paths)).toEqual([[11], [11], [11]])
+	})
+
+	// spec: XMP-003.19
+	it('creates sidecars again once the setting allows it', async () => {
+		const creates = { current: false }
+		const { sidecars, saves } = sync((item) => saved('fileId' in item ? item.fileId : 30), () => creates.current)
+
+		await sidecars.write([PAIR], decisionOf({ ...UNDECIDED, rating: 2 }))
+		creates.current = true
+		await sidecars.write([PAIR], decisionOf({ ...UNDECIDED, rating: 3 }))
+
+		expect(saves.map(paths)).toEqual([[11], [11, '/P/IMG_0001.JPG.xmp']])
 	})
 })
 

@@ -31,7 +31,7 @@ final class ListingServiceTest extends TestCase {
 		$manager->method('getMetadataForFiles')->willReturnCallback(
 			static fn (array $ids): array => array_intersect_key($metadata, array_flip($ids)),
 		);
-		return new ListingService(new UserFolderResolver($root), new EntryFactory($manager, $hashes), new SharedFolders($this->createStub(IShareManager::class), $this->createStub(IUserMountCache::class)), $entryLimit);
+		return new ListingService(new UserFolderResolver($root), new EntryFactory($manager, $hashes), new SharedFolders($this->createStub(IShareManager::class), $this->createStub(IUserMountCache::class)), $this->fileVersions(), $entryLimit);
 	}
 
 	// spec: LISTING-001.1
@@ -51,7 +51,7 @@ final class ListingServiceTest extends TestCase {
 		$this->assertSame([1, 2, 3], array_column($this->entriesOf($listing), 'fileId'));
 		$this->assertFalse($listing->jsonSerialize()['truncated']);
 		// spec: LISTING-001.12
-		$this->assertSame([['path' => '/Photos', 'shared' => false]], $listing->jsonSerialize()['folders']);
+		$this->assertSame([['path' => '/Photos', 'shared' => false, 'permissions' => 31, 'versions' => true]], $listing->jsonSerialize()['folders']);
 	}
 
 	// spec: LISTING-001.13

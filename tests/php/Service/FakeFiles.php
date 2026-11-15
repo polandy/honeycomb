@@ -7,12 +7,17 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Service\FileVersions;
 use OCA\Honeycomb\Service\Listing;
+use OCA\Honeycomb\Service\VersionBackends;
+use OCP\App\IAppManager;
+use OCP\Constants;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\Mount\IMountPoint;
 use OCP\Files\Node;
+use OCP\Files\Storage\IStorage;
 use OCP\FilesMetadata\Exceptions\FilesMetadataNotFoundException;
 use OCP\FilesMetadata\Model\IFilesMetadata;
 use OCP\IUser;
@@ -50,11 +55,14 @@ trait FakeFiles {
 	}
 
 	/** A folder at `$path` below the user's files. */
-	private function folder(string $path, bool $readable = true, string $mountType = ''): Folder&Stub {
+	private function folder(string $path, bool $readable = true, string $mountType = '', int $permissions = Constants::PERMISSION_ALL): Folder&Stub {
 		$mount = $this->createStub(IMountPoint::class);
 		$mount->method('getMountType')->willReturn($mountType);
 		$folder = $this->createStub(Folder::class);
 		$folder->method('getMountPoint')->willReturn($mount);
+		$folder->method('getPermissions')->willReturn($permissions);
+		$folder->method('getOwner')->willReturn($this->user());
+		$folder->method('getStorage')->willReturn($this->createStub(IStorage::class));
 		$absolute = rtrim(self::USER_ROOT . $path, '/');
 		$folder->method('getPath')->willReturn($absolute);
 		$folder->method('getName')->willReturn(basename($absolute));
@@ -67,6 +75,15 @@ trait FakeFiles {
 			},
 		);
 		return $folder;
+	}
+
+	/** The versions check, with `files_versions` on for every user and a versions backend for every storage or none. */
+	private function fileVersions(bool $backends = true): FileVersions {
+		$apps = $this->createStub(IAppManager::class);
+		$apps->method('isEnabledForUser')->willReturn(true);
+		$versionBackends = $this->createStub(VersionBackends::class);
+		$versionBackends->method('existFor')->willReturn($backends);
+		return new FileVersions($apps, $versionBackends);
 	}
 
 	/**

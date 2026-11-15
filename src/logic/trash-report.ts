@@ -8,7 +8,7 @@ import { filesOf } from './delete-summary.ts'
 import { pairPictures } from './pairing.ts'
 
 /** Why the trash endpoint left a file where it was (ADR 0013). */
-export type TrashFailure = 'notFound' | 'changed' | 'notPermitted' | 'locked' | 'failed' | 'skipped'
+export type TrashFailure = 'notFound' | 'changed' | 'notPermitted' | 'noTrashBin' | 'locked' | 'failed' | 'skipped'
 
 /** The files of each picture to send, a picture per list. */
 export type TrashBatch = readonly (readonly PictureFile[])[]
@@ -39,7 +39,7 @@ export interface TrashReport {
 	readonly bytes: number
 }
 
-const FAILURES: ReadonlySet<string> = new Set<TrashFailure>(['notFound', 'changed', 'notPermitted', 'locked', 'failed', 'skipped'])
+const FAILURES: ReadonlySet<string> = new Set<TrashFailure>(['notFound', 'changed', 'notPermitted', 'noTrashBin', 'locked', 'failed', 'skipped'])
 
 /** Every file of each picture. */
 export function wholePictures(pictures: readonly Picture<ListingEntry>[]): PictureFile[][] {

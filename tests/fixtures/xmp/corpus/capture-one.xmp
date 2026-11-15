@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 5.6-c140 79.160451, 2017/05/06-01:08:21        ">
+ <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about=""
+    xmlns:xmp="http://ns.adobe.com/xap/1.0/"
+    xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/"
+    xmlns:Iptc4xmpCore="http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/"
+    xmlns:exif="http://ns.adobe.com/exif/1.0/"
+    xmlns:tiff="http://ns.adobe.com/tiff/1.0/"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmp:Rating="5"
+   xmp:Label="Green"
+   xmp:CreatorTool="Capture One 16.4 Macintosh"
+   xmp:MetadataDate="2026-07-02T21:05:33+02:00"
+   photoshop:City="Porto"
+   photoshop:State="Porto"
+   photoshop:Country="Portugal"
+   photoshop:Headline="Ribeira at dusk"
+   photoshop:Credit="Example Studio"
+   Iptc4xmpCore:Location="Ribeira"
+   Iptc4xmpCore:CountryCode="PT"
+   exif:GPSLatitude="41,8.4N"
+   exif:GPSLongitude="8,36.8W"
+   exif:GPSAltitude="12/1"
+   tiff:Orientation="1">
+   <Iptc4xmpCore:CreatorContactInfo rdf:parseType="Resource">
+    <Iptc4xmpCore:CiEmailWork>photos@example.org</Iptc4xmpCore:CiEmailWork>
+    <Iptc4xmpCore:CiUrlWork>https://example.org</Iptc4xmpCore:CiUrlWork>
+    <Iptc4xmpCore:CiAdrCity>Porto</Iptc4xmpCore:CiAdrCity>
+   </Iptc4xmpCore:CreatorContactInfo>
+   <dc:creator>
+    <rdf:Seq>
+     <rdf:li>Example Photographer</rdf:li>
+    </rdf:Seq>
+   </dc:creator>
+   <dc:rights>
+    <rdf:Alt>
+     <rdf:li xml:lang="x-default">© 2026 Example Photographer</rdf:li>
+    </rdf:Alt>
+   </dc:rights>
+   <dc:description>
+    <rdf:Alt>
+     <rdf:li xml:lang="x-default">The Dom Luís I bridge from the Ribeira</rdf:li>
+     <rdf:li xml:lang="pt-PT">A ponte Dom Luís I vista da Ribeira</rdf:li>
+    </rdf:Alt>
+   </dc:description>
+   <dc:subject>
+    <rdf:Bag>
+     <rdf:li>bridge</rdf:li>
+     <rdf:li>river</rdf:li>
+    </rdf:Bag>
+   </dc:subject>
+  </rdf:Description>
+ </rdf:RDF>
+</x:xmpmeta>

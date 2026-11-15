@@ -1,6 +1,6 @@
 # 0012 – Decision storage: per file id and user, written as whole states
 
-- Status: accepted
+- Status: superseded by [0032](0032-sidecar-is-the-source-of-truth.md)
 - Date: 2026-11-10
 
 ## Context

@@ -20,7 +20,7 @@ merged code does. Spec, tests and code change in the same pull request.
 | `series/` | [SERIES-001](series/SERIES-001-series-compare.md) series compare, [SERIES-002](series/SERIES-002-series-viewer.md) series viewer and series badge, [SERIES-003](series/SERIES-003-visual-hash-storage.md) visual hash storage, [SERIES-004](series/SERIES-004-similarity-page.md) similarity page, [SERIES-005](series/SERIES-005-stored-series.md) stored series |
 | `tags/` | [TAGS-001](tags/TAGS-001-tag-storage.md) tag storage and tag list, [TAGS-002](tags/TAGS-002-tags-in-the-cull.md) tags in the cull, [TAGS-003](tags/TAGS-003-tag-entry.md) tag entry, [TAGS-004](tags/TAGS-004-tag-filter-and-tile.md) tag filter, the tile's tags and the info panel |
 | `settings/` | [SETTINGS-001](settings/SETTINGS-001-settings.md) per-user settings |
-| `xmp/` | [XMP-001](xmp/XMP-001-sidecar-model-and-mapping.md) sidecar model and decision mapping, [XMP-002](xmp/XMP-002-sidecar-endpoints.md) sidecar endpoints, [XMP-003](xmp/XMP-003-sidecars-in-the-cull.md) sidecars in the cull, [XMP-004](xmp/XMP-004-tags-in-sidecars.md) tags in sidecars, [XMP-005](xmp/XMP-005-embedded-xmp-endpoint.md) embedded XMP endpoint |
+| `xmp/` | [XMP-001](xmp/XMP-001-sidecar-model-and-mapping.md) sidecar model and decision mapping, [XMP-002](xmp/XMP-002-sidecar-endpoints.md) sidecar endpoints, [XMP-003](xmp/XMP-003-sidecars-in-the-cull.md) sidecars in the cull, [XMP-004](xmp/XMP-004-tags-in-sidecars.md) tags in sidecars, [XMP-005](xmp/XMP-005-embedded-xmp-endpoint.md) embedded XMP endpoint, [XMP-006](xmp/XMP-006-xmp-cache.md) XMP cache, [XMP-007](xmp/XMP-007-legacy-migration.md) migration of the legacy rows |
 
 ## IDs and status
 

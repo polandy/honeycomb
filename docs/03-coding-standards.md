@@ -22,7 +22,9 @@ dependencies — are in [`conventions.md`](conventions.md). This file adds the s
 - A new table of rows per file id is a `FileRowStore`, registered in `FileRowStores`; one of rows
   per user is a `UserRowStore`, registered in `UserRowStores`. The vanished-file sweep, the
   clean-up of a deleted user and the carry-over on a move read those lists, so nothing else changes.
-- Errors: domain exceptions per service; controllers map them to HTTP status codes. Logging
+- Errors: domain exceptions per service; a malformed request throws a subclass of
+  `InvalidRequestException`. Every controller action answers through `ApiResponse::forUser`,
+  which answers 401 without a user and maps each known exception to its status. Logging
   through the injected `Psr\Log\LoggerInterface` ([`conventions.md`](conventions.md) §3).
 - Classes `final`, properties `private`, constructor property promotion, `#[\Override]` on
   overrides.
@@ -59,8 +61,10 @@ dependencies — are in [`conventions.md`](conventions.md). This file adds the s
 - Tools: `@nextcloud/eslint-config` plus type-aware `typescript-eslint` rules and the bans of
   [`conventions.md`](conventions.md) through eslint, `vue-tsc`, Vitest with coverage and
   `@vue/test-utils` for tests under `tests/js/`, Playwright under `tests/e2e/`.
-- Playwright runs against a fresh Nextcloud 35 container (`scripts/e2e-server.sh`, image pinned
-  by digest) with this checkout mounted as the app; a setup project logs in once through the
+- Playwright runs against a fresh Nextcloud container (`scripts/e2e-server.sh`) with this
+  checkout mounted as the app: the newest supported release, or with
+  `HONEYCOMB_E2E_NEXTCLOUD=oldest` the first release of `min-version`
+  (`scripts/nextcloud-images.sh`, images pinned by digest); a setup project logs in once through the
   login form and shares the session. Cases use `reducedMotion: 'reduce'` and wait on a visible
   state. Each run starts its own container on `HONEYCOMB_E2E_PORT` (default 8180), so parallel
   worktrees pick different ports.

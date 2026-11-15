@@ -8,5 +8,5 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 /** A sidecar request is malformed: no file of it is read or written. */
-final class InvalidSidecarRequestException extends \InvalidArgumentException {
+final class InvalidSidecarRequestException extends InvalidRequestException {
 }
