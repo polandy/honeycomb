@@ -10,7 +10,7 @@ import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import { logger } from '../../src/logger.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
-import { ENTRIES, mountApp, openCull, SET, shownNames, stored } from './app-cull.ts'
+import { ENTRIES, mountApp, openCull, SET, shownNames, stored, toolbarProps } from './app-cull.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue } from './l10n/marked-catalogue.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
@@ -48,12 +48,12 @@ describe('App: decisions, flag filter, filters and sort', () => {
 
 		expect(lookedUp.map((ids) => [...ids].sort((a, b) => a - b))).toEqual([[1, 2, 3, 4]])
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9'])
-		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ decided: 1, total: 2, filtered: true })
+		expect(toolbarProps(wrapper)).toMatchObject({ decided: 1, total: 2, filtered: true })
 
 		wrapper.findComponent(GridToolbar).vm.$emit('update:flags', new Set())
 		await flushPromises()
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
-		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ decided: 2, total: 3, filtered: false })
+		expect(toolbarProps(wrapper)).toMatchObject({ decided: 2, total: 3, filtered: false })
 	})
 
 	// spec: DECISIONS-001.9
@@ -82,7 +82,7 @@ describe('App: decisions, flag filter, filters and sort', () => {
 
 		expect(error).toHaveBeenCalledOnce()
 		expect(shownNames(wrapper)).toHaveLength(3)
-		expect(wrapper.findComponent(GridToolbar).props('decided')).toBe(0)
+		expect(toolbarProps(wrapper).decided).toBe(0)
 	})
 
 	it('opens the filter bar from the toolbar and shows what passes its filters', async () => {
@@ -99,7 +99,7 @@ describe('App: decisions, flag filter, filters and sort', () => {
 		await flushPromises()
 		expect(shownNames(wrapper)).toEqual(['IMG_9', 'IMG_10'])
 		expect(wrapper.findComponent(FilterBar).props('shown')).toBe(2)
-		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ activeFilters: 1, filtersOpen: true })
+		expect(toolbarProps(wrapper)).toMatchObject({ activeFilters: 1, filtersOpen: true })
 	})
 
 	// spec: GRID-002.2
@@ -111,7 +111,7 @@ describe('App: decisions, flag filter, filters and sort', () => {
 
 		wrapper.findComponent(FilterBar).vm.$emit('update:filters', { ...DEFAULT_FILTERS, flags: new Set(['unflagged']) })
 		await flushPromises()
-		expect(wrapper.findComponent(GridToolbar).props('flags')).toEqual(new Set(['unflagged']))
+		expect(toolbarProps(wrapper).flags).toEqual(new Set(['unflagged']))
 
 		wrapper.findComponent(GridToolbar).vm.$emit('update:flags', new Set(['picked', 'rejected']))
 		await flushPromises()
@@ -128,7 +128,7 @@ describe('App: decisions, flag filter, filters and sort', () => {
 
 		await openCull(wrapper)
 
-		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ flags: new Set(['picked', 'unflagged']), sortOrder: 'capture-time' })
+		expect(toolbarProps(wrapper)).toMatchObject({ flags: new Set(['picked', 'unflagged']), sortOrder: 'capture-time' })
 	})
 
 	// spec: GRID-002.11
@@ -151,7 +151,7 @@ describe('App: decisions, flag filter, filters and sort', () => {
 		await wrapper.findAll('button').find((button) => button.text() === `${MARK}Show all`)!.trigger('click')
 
 		expect(shownNames(wrapper)).toHaveLength(3)
-		expect(wrapper.findComponent(GridToolbar).props('flags')).toEqual(new Set())
+		expect(toolbarProps(wrapper).flags).toEqual(new Set())
 	})
 
 	// spec: GRID-002.11
@@ -167,6 +167,6 @@ describe('App: decisions, flag filter, filters and sort', () => {
 		await wrapper.findAll('button').find((button) => button.text() === `${MARK}Clear filters`)!.trigger('click')
 
 		expect(shownNames(wrapper)).toHaveLength(3)
-		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ flags: new Set(['picked', 'unflagged']), activeFilters: 0 })
+		expect(toolbarProps(wrapper)).toMatchObject({ flags: new Set(['picked', 'unflagged']), activeFilters: 0 })
 	})
 })

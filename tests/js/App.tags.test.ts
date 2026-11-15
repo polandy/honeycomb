@@ -15,7 +15,7 @@ import SeriesCompareFlow from '../../src/components/SeriesCompareFlow.vue'
 import TagEntry from '../../src/components/TagEntry.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
-import { mountApp, openCull, shownNames } from './app-cull.ts'
+import { mountApp, openCull, shownNames, toolbarProps } from './app-cull.ts'
 
 /** Presses a key on the page and returns whether the app handled it. */
 async function press(key: string) {
@@ -143,7 +143,7 @@ describe('App: tag filter and tile', () => {
 		await flushPromises()
 
 		expect(shownNames(wrapper)).toEqual(['IMG_10'])
-		expect(wrapper.findComponent(GridToolbar).props('activeFilters')).toBe(2)
+		expect(toolbarProps(wrapper).activeFilters).toBe(2)
 	})
 
 	// spec: TAGS-004.7

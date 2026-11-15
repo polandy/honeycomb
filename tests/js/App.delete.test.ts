@@ -16,7 +16,7 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import RawRemovalSummary from '../../src/components/RawRemovalSummary.vue'
 import RejectReview from '../../src/components/RejectReview.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
-import { mountApp, openCull, shownNames, stored } from './app-cull.ts'
+import { mountApp, openCull, shownNames, stored, toolbarProps } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
 
@@ -56,7 +56,7 @@ describe('App: deleting rejects', () => {
 	it('reviews the rejects from the toolbar, rescues one, and moves the rest to the trash bin', async () => {
 		const { wrapper, sent } = await openApp()
 		const toolbar = wrapper.findComponent(GridToolbar)
-		expect(toolbar.props('rejected')).toBe(2)
+		expect(toolbarProps(wrapper).rejected).toBe(2)
 
 		toolbar.vm.$emit('reviewRejects')
 		await flushPromises()
@@ -75,8 +75,8 @@ describe('App: deleting rejects', () => {
 
 		expect(sent).toEqual([[[{ fileId: 2, etag: 'etag-2' }, { fileId: 3, etag: 'etag-3' }]]])
 		expect(summaryOf(wrapper).exists()).toBe(false)
-		expect(toolbar.props('rejected')).toBe(0)
-		expect(toolbar.props('total')).toBe(2)
+		expect(toolbarProps(wrapper).rejected).toBe(0)
+		expect(toolbarProps(wrapper).total).toBe(2)
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9'])
 		expect(toastText(wrapper)).toContain('Moved 1 photo · 2 files')
 	})
@@ -164,7 +164,7 @@ describe('App: removing RAWs', () => {
 	it('removes the RAWs of the view from the More menu, after a Keep RAW toggled there and back', async () => {
 		const { wrapper, sent } = await openApp([])
 		const toolbar = wrapper.findComponent(GridToolbar)
-		expect(toolbar.props('rawRemovable')).toBe(1)
+		expect(toolbarProps(wrapper).rawRemovable).toBe(1)
 
 		toolbar.vm.$emit('removeRaws')
 		await flushPromises()
@@ -173,7 +173,7 @@ describe('App: removing RAWs', () => {
 		summary.vm.$emit('toggle', pair)
 		await flushPromises()
 		expect(names(summary.props('removal').kept)).toEqual(['IMG_10'])
-		expect(toolbar.props('rawRemovable')).toBe(0)
+		expect(toolbarProps(wrapper).rawRemovable).toBe(0)
 		expect(toastText(wrapper)).toContain('Marked IMG_10 Keep RAW')
 		summary.vm.$emit('toggle', pair)
 		await flushPromises()
@@ -183,7 +183,7 @@ describe('App: removing RAWs', () => {
 
 		expect(sent).toEqual([[[{ fileId: 3, etag: 'etag-3' }]]])
 		expect(wrapper.findComponent(RawRemovalSummary).exists()).toBe(false)
-		expect(toolbar.props('rawRemovable')).toBe(0)
+		expect(toolbarProps(wrapper).rawRemovable).toBe(0)
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
 		expect(toastText(wrapper)).toContain('Removed the RAWs of 1 photo · 1 file')
 	})
@@ -207,10 +207,10 @@ describe('App: removing RAWs', () => {
 		await flushPromises()
 		raws.wrapper.findComponent(RawRemovalSummary).vm.$emit('confirm')
 		await flushPromises()
-		expect(raws.wrapper.findComponent(GridToolbar).props('rawRemovable')).toBe(0)
+		expect(toolbarProps(raws.wrapper).rawRemovable).toBe(0)
 
 		await press('z', { ctrlKey: true })
-		expect(raws.wrapper.findComponent(GridToolbar).props('rawRemovable')).toBe(0)
+		expect(toolbarProps(raws.wrapper).rawRemovable).toBe(0)
 		expect(shownNames(raws.wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
 	})
 })

@@ -17,7 +17,7 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { TrashBinOffError } from '../../src/api.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
-import { mountApp, openCull, shownNames, stored } from './app-cull.ts'
+import { mountApp, openCull, shownNames, stored, toolbarProps } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
 import { allMoved } from './move-fixtures.ts'
@@ -87,7 +87,7 @@ describe('App: opening the move dialog', () => {
 	it('opens on the picks from the More menu, and on the view while a filter is on', async () => {
 		const { wrapper } = await openApp([stored(1, 'picked'), stored(4, 'picked')])
 		const toolbar = wrapper.findComponent(GridToolbar)
-		expect(toolbar.props('movable')).toBe(2)
+		expect(toolbarProps(wrapper).movable).toBe(2)
 		toolbar.vm.$emit('move')
 		await flushPromises()
 		expect(opened(wrapper)).toEqual(['IMG_2', 'IMG_9'])
@@ -97,7 +97,7 @@ describe('App: opening the move dialog', () => {
 		await flushPromises()
 		wrapper.findComponent(FilterBar).vm.$emit('update:filters', { ...DEFAULT_FILTERS, folders: new Set(['/Trip/A']) })
 		await flushPromises()
-		expect(toolbar.props('movable')).toBe(2)
+		expect(toolbarProps(wrapper).movable).toBe(2)
 		toolbar.vm.$emit('move')
 		await flushPromises()
 		expect(opened(wrapper)).toEqual(['IMG_9', 'IMG_10'])

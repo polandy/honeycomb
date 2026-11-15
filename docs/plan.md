@@ -927,7 +927,8 @@ honeycomb/
 │   │                           filter, sort, name templates, xmp, undo, gestures, hotkeys, ...
 │   ├── components/             Vue components and their CSS; there is no `views/` folder
 │   ├── main.ts, similarity-main.ts   the two entry points: cull app, similarity page
-│   ├── App.vue                 the cull app: grid, loupe and series viewer in one tree
+│   ├── App.vue                 the cull app: grid, loupe and series viewer in one tree; it
+│   │                           provides the screens their `CullContext` (ADR 0028)
 │   ├── cull.ts                 the cull's state as one composable; no Pinia, no store folder
 │   ├── view-options.ts         how the cull is shown (filters, sort, grouping, tile size,
 │   │                           panels); `cull.ts` hands it on unchanged

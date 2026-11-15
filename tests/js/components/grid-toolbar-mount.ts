@@ -29,8 +29,15 @@ const CULL: { flags: ReadonlySet<Flag>, decided: number, total: number, filtered
 
 /** Mounts the toolbar on the folder set with the cull changed by `cull`, the popover in place. */
 export function mountToolbar(folderSet: FolderSet, folders = 1, cull: Partial<typeof CULL> = {}) {
+	const { flags, decided, total, filtered, activeFilters, filtersOpen, sortOrder, selecting, selected, ...tasks } = { ...CULL, ...cull }
 	return mount(GridToolbar, {
-		props: { folderSet, folders, tileSize: 150.4, groupByFolder: false, ...CULL, ...cull },
+		props: {
+			folders: { set: folderSet, count: folders },
+			view: { tileSize: 150.4, groupByFolder: false, sortOrder, flags, filtersOpen, activeFilters },
+			progress: { decided, total, filtered },
+			selection: { selecting, selected },
+			tasks,
+		},
 		global: { stubs: { NcPopover: PopoverStub } },
 	})
 }
