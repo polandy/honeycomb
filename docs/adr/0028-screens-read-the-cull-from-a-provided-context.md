@@ -25,7 +25,7 @@ App provides one **`CullContext`** (`src/cull-context.ts`) with `provideCullCont
 root component reads it with `useCullContext`, which throws when no parent provides it. The
 injection key stays private to the module.
 
-- Only **screen roots** inject (`GridScreen` first; the loupe and the series compare follow).
+- Only **screen roots** inject (`GridScreen`, then `LoupeScreen`; the series compare follows).
   The components below a root keep plain props and events, so they stay testable on their own.
 - The context holds the cull and the selection whole, and of each flow only the members a screen
   uses (`Pick<…>`), so a test fakes a flow in a line. A screen that needs more widens the `Pick`.
@@ -40,4 +40,6 @@ injection key stays private to the module.
   reaches the grid and the filter bar through the screen's exposed refs for its hotkeys.
 - A screen's dependencies are no longer visible in App's template; they are listed in the
   `CullContext` type instead.
-- The loupe and the series compare move to the context in their own PRs (review R8 b and c).
+- App renders `<LoupeScreen>` instead of the loupe's ten props and ten events; the screen binds them
+  from the context, and `PhotoLoupe` keeps its props, so its own tests mount it unchanged (R8 b).
+- The series compare moves to the context in its own PR (review R8 c).
