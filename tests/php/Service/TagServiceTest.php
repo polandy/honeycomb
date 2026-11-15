@@ -17,13 +17,18 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class TagServiceTest extends TestCase {
+	use FakeUserPhotos;
+
+	/** The file ids every user reaches as photos. */
+	private const array PHOTOS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
 	private FakeTagStore $store;
 	private TagService $service;
 
 	#[\Override]
 	protected function setUp(): void {
 		$this->store = new FakeTagStore();
-		$this->service = new TagService($this->store);
+		$this->service = new TagService($this->store, $this->userPhotos(...self::PHOTOS));
 	}
 
 	private function user(string $uid): IUser {
@@ -120,6 +125,19 @@ final class TagServiceTest extends TestCase {
 		$this->assertSame([], $this->service->lookup($this->user('alice'), [1]));
 	}
 
+	// spec: TAGS-001.14
+	public function testSkipsTheFilesTheUserDoesNotReachAsPhotos(): void {
+		$this->service->save($this->user('alice'), [self::item(1, ['Sunrise']), self::item(self::TEXT_FILE, ['Sunset']), self::item(99, ['Sunset'])]);
+
+		$this->assertSame([1], array_map(static fn (object $row): int => $row->fileId, $this->service->lookup($this->user('alice'), [1, 2, 3, self::TEXT_FILE, 99])));
+	}
+
+	// spec: TAGS-001.14
+	public function testWritesNothingWhenNoFileIsTheUsersPhoto(): void {
+		$this->service->save($this->user('alice'), [self::item(self::TEXT_FILE, ['Sunset']), self::item(99, ['Sunset'])]);
+
+		$this->assertSame(0, $this->store->replaceCalls);
+	}
 	/** @return array<string, array{array<array-key, mixed>}> */
 	public static function malformedFileIds(): array {
 		return [
