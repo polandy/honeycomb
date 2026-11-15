@@ -15,7 +15,7 @@ import { UNDECIDED } from '../../src/logic/decision.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../../src/logic/pairing.ts'
 import { withoutFiles } from '../../src/logic/trash-report.ts'
 import { failureReason } from '../../src/trash-text.ts'
-import { allTrashed, flow, OTHER, PAIR, SINGLE } from './delete-fixtures.ts'
+import { allPass, allTrashed, flow, OTHER, PAIR, SINGLE } from './delete-fixtures.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
 
 afterEach(() => vi.restoreAllMocks())
@@ -176,6 +176,7 @@ describe('useDeleteFlow: Remove RAWs', () => {
 				marked.value = next
 			},
 			flush: async () => {},
+			check: allPass,
 			trash: async (request) => {
 				sent.push(request.map((files) => [...files]))
 				return answer(request.map((files) => [...files]))
