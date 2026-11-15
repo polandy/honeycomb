@@ -41,6 +41,8 @@ export interface DeleteFlowContext {
 	readonly view: () => Pictures
 	readonly decisionOf: (picture: Picture<ListingEntry>) => Decision
 	readonly decide: (intent: DecisionIntent, chosen: Pictures) => void
+	/** Writes the waiting sidecars and waits for every write in flight (XMP-003.30). */
+	readonly flush: () => Promise<void>
 	readonly trash: (pictures: readonly (readonly TrashRequestFile[])[]) => Promise<TrashResponseFile[][]>
 	/** Takes the files out of the listing; returns what each affected picture became. */
 	readonly removeFiles: (fileIds: ReadonlySet<number>) => ReadonlyMap<Picture<ListingEntry>, Picture<ListingEntry> | null>
@@ -101,10 +103,11 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 	/** Sends the batch in chunks, takes the trashed files out of the listing and the loupe, and reports. */
 	async function send(batch: TrashBatch, done: (report: TrashReport) => string) {
 		busy.value = true
+		const onProgress = (count: number) => (progress.value = { done: count, total: batch.length })
+		onProgress(0)
 		try {
-			const sent = await sendInChunks(trashRequest(batch), context.trash, (count) => {
-				progress.value = { done: count, total: batch.length }
-			}, context.chunks)
+			await context.flush()
+			const sent = await sendInChunks(trashRequest(batch), context.trash, onProgress, context.chunks)
 			if (sent.failure !== null && sent.answers.length === 0) {
 				throw sent.failure.error
 			}

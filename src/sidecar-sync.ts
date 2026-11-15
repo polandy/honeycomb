@@ -18,7 +18,7 @@ import { takeOverTags } from './logic/sidecar-tags.ts'
 
 /** The sidecar endpoints (ADR 0017) and the embedded XMP endpoint (ADR 0023). */
 export interface SidecarApi {
-	lookupSidecars(fileIds: readonly number[]): Promise<SidecarLookupAnswer[]>
+	lookupSidecars(fileIds: readonly number[], sizes?: ReadonlyMap<number, number>): Promise<SidecarLookupAnswer[]>
 	lookupEmbeddedXmp(fileIds: readonly number[]): Promise<EmbeddedXmpAnswer[]>
 	saveSidecars(items: readonly SidecarSaveItem[]): Promise<SidecarSaveAnswer[]>
 }
@@ -51,7 +51,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		}
 		let answers: Map<number, SidecarLookupAnswer>
 		try {
-			answers = await answersById(fileIds, api.lookupSidecars)
+			answers = await answersById(fileIds, (ids) => api.lookupSidecars(ids, sizesOf(pictures)))
 		} catch (error) {
 			logger.warn('Could not look up the sidecars; nothing is taken over', { error })
 			return { decided: [], tagged: [] }
@@ -132,7 +132,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 
 	/** Reads the sidecars honeycomb holds no bytes of, merges the edits and saves them in one request each. */
 	async function round(pictures: Pictures, editOf: EditOf, paths?: Paths) {
-		const answers = await lookUp(pictures.flatMap((picture) => writeLookups(picture, known, paths?.get(picture))), api.lookupSidecars, 'Could not look up the sidecars to write')
+		const answers = await lookUp(pictures.flatMap((picture) => writeLookups(picture, known, paths?.get(picture))), (ids) => api.lookupSidecars(ids, sizesOf(pictures)), 'Could not look up the sidecars to write')
 		const embeddedIds = pictures.flatMap((picture) => embeddedXmpSource(picture, known)?.fileId ?? [])
 		const embedded = await lookUp(embeddedIds, api.lookupEmbeddedXmp, 'Could not look up the embedded XMP to write')
 		const time = now()
@@ -178,4 +178,9 @@ async function answersById<T>(fileIds: readonly number[], request: (fileIds: rea
 	}
 	const answers = await request(fileIds)
 	return new Map(fileIds.map((fileId, index) => [fileId, answers[index]!]))
+}
+
+/** The listed size of each sidecar of the pictures, by file id, which the lookup packs its requests by. */
+function sizesOf(pictures: Pictures): Map<number, number> {
+	return new Map(pictures.flatMap((picture) => picture.sidecars.map(({ fileId, size }): [number, number] => [fileId, size])))
 }

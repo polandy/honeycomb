@@ -62,3 +62,24 @@ export async function sendInChunks<F, R>(
 	}
 	return { answers, unsent: [], failure: null }
 }
+
+/** How many items and bytes one sidecar request carries at most (ADR 0032). */
+export const PACK_LIMITS = { items: 1000, bytes: 8 * 1024 * 1024 }
+
+/** The items cut, in order, into requests within the limits; an item over the bytes goes alone. */
+export function packRequests<T>(items: readonly T[], sizeOf: (item: T) => number, limits = PACK_LIMITS): T[][] {
+	const packs: T[][] = []
+	let bytes = 0
+	for (const item of items) {
+		const size = sizeOf(item)
+		const last = packs.at(-1)
+		if (last !== undefined && last.length < limits.items && bytes + size <= limits.bytes) {
+			last.push(item)
+			bytes += size
+		} else {
+			packs.push([item])
+			bytes = size
+		}
+	}
+	return packs
+}

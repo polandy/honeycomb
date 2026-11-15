@@ -8,10 +8,10 @@ afterEach(() => vi.restoreAllMocks())
 
 describe('onBrowserPageHide', () => {
 	// spec: XMP-003.29
-	it('runs when the page turns hidden or is left, not when it turns visible', () => {
+	it('runs when the page turns hidden or is left, not when it turns visible nor once stopped', () => {
 		const run = vi.fn()
 		const state = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible')
-		onBrowserPageHide(run)
+		const stop = onBrowserPageHide(run)
 
 		document.dispatchEvent(new Event('visibilitychange'))
 		expect(run).not.toHaveBeenCalled()
@@ -19,6 +19,9 @@ describe('onBrowserPageHide', () => {
 		document.dispatchEvent(new Event('visibilitychange'))
 		window.dispatchEvent(new Event('pagehide'))
 
+		expect(run).toHaveBeenCalledTimes(2)
+		stop()
+		window.dispatchEvent(new Event('pagehide'))
 		expect(run).toHaveBeenCalledTimes(2)
 	})
 })

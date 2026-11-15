@@ -51,7 +51,7 @@ describe('App: sidecar writes bundled per picture', () => {
 		const { wrapper, saves } = await openLoupe()
 
 		await press('3')
-		await press('p')
+		await press('4')
 		expect(saves).toEqual([])
 		expect(unsaved(wrapper)).toBe('IMG_9')
 

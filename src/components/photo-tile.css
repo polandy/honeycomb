@@ -138,3 +138,11 @@
 	outline: 2px dashed var(--color-warning);
 	outline-offset: 1px;
 }
+
+/* A ring, so it never reads as a colour label's filled swatch. */
+.photo-tile__unsaved {
+	width: 10px;
+	height: 10px;
+	border: 2px solid var(--color-warning);
+	border-radius: 50%;
+}

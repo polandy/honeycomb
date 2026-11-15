@@ -35,7 +35,10 @@ function bundled() {
 			return items.map((item) => ({ result: 'saved', fileId: 'fileId' in item ? item.fileId : 30, etag: 'saved', size: 1, mtime: 1 }))
 		},
 	}, () => CANONICAL_TIME, () => {})
-	const sidecars = useBundledSidecars(sync, scheduler.schedule, (run) => (hide = run))
+	const sidecars = useBundledSidecars(sync, scheduler.schedule, (run) => {
+		hide = run
+		return () => {}
+	})
 	const decision = { current: { ...UNDECIDED, rating: 4 } as Decision }
 	const rate = (pictures = [PAIR]) => sidecars.write(pictures, () => decision.current, ['rating'])
 	return { scheduler, lookups, saves, sidecars, decision, rate, hide: () => hide() }

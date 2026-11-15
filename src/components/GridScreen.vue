@@ -20,7 +20,7 @@ import { hasLegacyRows } from '../logic/legacy.ts'
 import { DEFAULT_FILTERS } from '../logic/picture-filter.ts'
 import { seriesOffer } from '../logic/series-menu.ts'
 
-const { cull, selection, decide, editSeries, deleting, moving, resume, seriesCompare, sidecars, legacy, tagEntry, headerShown, openLoupe, openSettings } = useCullContext()
+const { cull, selection, decide, editSeries, deleting, moving, resume, seriesCompare, sidecars, legacy, tagEntry, headerShown, openLoupe, openSettings, unsaved } = useCullContext()
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
 const { selecting, selected } = selection
 const { rejected, rawRemovable } = deleting
@@ -98,6 +98,7 @@ defineExpose({ grid, filterBar })
 			:tagsOf="cull.tags.tagsOf"
 			:seriesSizes="cull.seriesSizes.value"
 			:openSeries="cull.openSeries.value"
+			:unsaved="unsaved"
 			@update:tileSize="cull.setTileSize"
 			@update:selecting="selection.setSelecting"
 			@update:selection="selection.select"
