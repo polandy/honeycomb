@@ -60,6 +60,7 @@ export function useVisualHashes(api: VisualHashApi, storage: BrowserStorage, pic
 	const queue = saveQueue<StoredVisualHash, number>(async (hashes) => {
 		await api.saveVisualHashes(hashes)
 	}, { key: byFileId, wait: api.wait })
+	let saving = false
 	let held = false
 
 	/** Makes the computed hashes count for the series. */
@@ -72,15 +73,19 @@ export function useVisualHashes(api: VisualHashApi, storage: BrowserStorage, pic
 	 * waits and is sent again (SERIES-003.27), a failed one is logged and its hashes still count for this visit (SERIES-003.13).
 	 */
 	function save() {
-		while (unsaved.length >= SAVE_BATCH || (!running && unsaved.length > 0)) {
-			const batch = unsaved.splice(0, SAVE_BATCH)
-			void queue(batch).then((result) => {
-				saveFailed.value = !result.ok
-				if (!result.ok) {
-					logger.warn('Could not save the visual hashes', { error: result.error, count: batch.length })
-				}
-			})
+		if (saving || !(unsaved.length >= SAVE_BATCH || (!running && unsaved.length > 0))) {
+			return
 		}
+		saving = true
+		const batch = unsaved.splice(0, SAVE_BATCH)
+		void queue(batch).then((result) => {
+			saveFailed.value = !result.ok
+			if (!result.ok) {
+				logger.warn('Could not save the visual hashes', { error: result.error, count: batch.length })
+			}
+			saving = false
+			save()
+		})
 	}
 
 	/** Hashes one member; a failure is logged and the file version is not hashed again. */
