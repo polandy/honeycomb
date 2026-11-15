@@ -34,18 +34,18 @@ exist and creates none. *Existing and new sidecars* writes through as below.
 *Keep RAW*, or an undo or redo of one — and the step is stored, each picture the step touched is
 written to its sidecars unless a member lies in a shared folder; a picture no step touched gets no
 sidecar: every existing sidecar (darktable duplicates excepted) and, with *Existing and new
-sidecars*, for each member without one a new `<member file>.xmp` (`docs/06-xmp-interop.md`
-Sidecar names), started from what the picture's other sidecars state. An existing sidecar is
-read before it is merged, unless honeycomb saved it itself and still holds its bytes; it is saved with the ETag and size read. A
-sidecar answering `changed` is read, merged and saved once more. The colour label counts as changed
-for darktable's list when it differs from the one the sidecar states. Writes run in passes, one
-pass at a time: the steps that come while a pass runs wait and are written together by the next
-pass, so each sidecar is saved at most once per pass, with the decision fields its steps changed,
-valued as the picture's decision when the pass starts, and the tag changes of its steps in order
-(TAGS-002). Those fields are a delta: per sidecar it is applied to the decision that sidecar
-states, so a field no step changed keeps each sidecar's own value (`06-xmp-interop.md` Writing,
-ADR 0032). A sidecar the pass would leave as it
-is, apart from `xmp:MetadataDate`, is not saved. A step whose save fails writes nothing.
+sidecars*, for each member without one a new `<member file>.xmp` (`docs/06-xmp-interop.md` Sidecar
+names), started from what the picture's other sidecars state. An existing sidecar is read before it
+is merged, unless honeycomb saved it itself and still holds its bytes; it is saved with the ETag and
+size read. A sidecar answering `changed` is read, merged and saved once more. The colour label
+counts as changed for darktable's list when it differs from the one the sidecar states. Writes run
+in passes, one pass at a time: the steps that come while a pass runs wait and are written together
+by the next pass, so each sidecar is saved at most once per pass, with the decision fields its steps
+changed, valued as the picture's decision when the pass starts, and the tag changes of its steps in
+order (TAGS-002). Those fields are a delta: per sidecar it is applied to the decision that sidecar
+states, so a field no step changed keeps each sidecar's own value (`06-xmp-interop.md` Writing, ADR
+0032). A sidecar the pass would leave as it is, apart from `xmp:MetadataDate`, is not saved. A step
+whose save fails writes nothing.
 
 **Shared folders.** The listing says per folder whether it is shared (ADR 0017). When a picture of
 the cull lies in a shared folder, the grid's ⋯ menu offers *Write decisions to sidecars…*. It asks

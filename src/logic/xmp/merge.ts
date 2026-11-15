@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Decision } from '../decision.ts'
+import type { Decision, DecisionDelta } from '../decision.ts'
 import type { XmpNode, XmpPacket, XmpTime } from './model.ts'
 
+import { sidecarDecision } from './decision.ts'
 import { colourLabelIndex, DARKTABLE_LABELS, LABEL_TEXTS, PICK_LABEL, PROPERTY, simpleText, XMP_FALSE, XMP_TRUE } from './fields.ts'
 import { EMPTY_PACKET, textNode } from './model.ts'
 import { readXmp } from './parse.ts'
@@ -14,7 +15,6 @@ export interface MergeContext {
 	readonly colourLabelChanged: boolean
 }
 
-const REJECTED_RATING = '-1'
 const PICK = { picked: '1', rejected: '-1' } as const
 
 /** Sets honeycomb's properties to the decision and keeps everything else (`docs/06-xmp-interop.md` Writing). */
@@ -28,7 +28,7 @@ export function mergeDecision(packet: XmpPacket, decision: Decision, context: Me
 		}
 	}
 	const { flag } = decision
-	set(PROPERTY.rating, flag === 'rejected' ? REJECTED_RATING : String(decision.rating))
+	set(PROPERTY.rating, String(decision.rating))
 	set(PROPERTY.pickLabel, flag === 'unflagged' ? pendingPickLabel(packet) : String(flag === 'picked' ? PICK_LABEL.accepted : PICK_LABEL.rejected))
 	set(PROPERTY.pick, flag === 'unflagged' ? undefined : PICK[flag])
 	set(PROPERTY.good, flag === 'unflagged' ? undefined : (flag === 'picked' ? XMP_TRUE : XMP_FALSE))
@@ -52,10 +52,17 @@ export function mergeDecision(packet: XmpPacket, decision: Decision, context: Me
 	return { properties, prefixes: packet.prefixes }
 }
 
-/** Merges the decision into a sidecar's bytes, or a new one, and writes it at the time; a refused sidecar throws its `XmpError`. */
-export function writeSidecar(existing: Uint8Array | null, decision: Decision, context: MergeContext, time: XmpTime): Uint8Array {
+/** Applies the delta to the decision the sidecar states and sets honeycomb's properties to the result (ADR 0032). */
+export function mergeDelta(packet: XmpPacket, delta: DecisionDelta, isPair: boolean, base: Decision = sidecarDecision(packet, isPair)): XmpPacket {
+	const stated = sidecarDecision(packet, isPair)
+	const decision = { ...base, ...delta }
+	return mergeDecision(packet, decision, { isPair, colourLabelChanged: stated.colourLabel !== decision.colourLabel })
+}
+
+/** Merges the delta into a sidecar's bytes, or a new one, and writes it at the time; a refused sidecar throws its `XmpError`. */
+export function writeSidecar(existing: Uint8Array | null, delta: DecisionDelta, isPair: boolean, time: XmpTime): Uint8Array {
 	const packet = existing === null ? EMPTY_PACKET : readXmp(existing)
-	return serializeXmp(mergeDecision(packet, decision, context), time)
+	return serializeXmp(mergeDelta(packet, delta, isPair), time)
 }
 
 /** digiKam's pending pick label when the sidecar has it, so an unflagged picture keeps it. */

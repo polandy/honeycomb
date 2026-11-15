@@ -82,7 +82,7 @@ describe('useSidecarSync: passes', () => {
 
 		await running
 		expect(await mine).toEqual({ written: 1, failed: [] })
-		expect(await theirs).toEqual({ written: 1, failed: [{ path: '/P/B.NEF.xmp', picture: OTHER, reason: 'locked' }] })
+		expect(await theirs).toEqual({ written: 1, failed: [{ path: '/P/B.NEF.xmp', picture: OTHER, reason: 'locked', fields: DECISION_FIELDS }] })
 	})
 
 	// spec: XMP-003.20

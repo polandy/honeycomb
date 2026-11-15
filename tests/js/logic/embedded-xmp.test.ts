@@ -122,7 +122,7 @@ describe('planSaves with the embedded XMP', () => {
 
 	// spec: TAGS-002.19
 	it('leaves the embedded XMP out once the JPEG\'s sidecar exists', () => {
-		const known = new Map<string, KnownSidecar>([['/P/B.JPG.xmp', { fileId: 23, saved: { etag: 'c', size: 1, bytes: tagged([]) } }]])
+		const known = new Map<string, KnownSidecar>([['/P/B.JPG.xmp', { fileId: 23, saved: { etag: 'c', size: 1, mtime: 1, bytes: tagged([]) } }]])
 
 		const { saves, failed } = planSaves(ALONE, WEDDING, known, new Map(), CANONICAL_TIME)
 

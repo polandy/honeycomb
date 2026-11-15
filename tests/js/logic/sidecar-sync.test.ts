@@ -3,7 +3,7 @@
 import type { Decision } from '../../../src/logic/decision.ts'
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
-import type { KnownSidecar, SidecarLookupAnswer } from '../../../src/logic/sidecar-sync.ts'
+import type { KnownSidecar } from '../../../src/logic/sidecar-sync.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
@@ -12,6 +12,7 @@ import { sidecarDecision } from '../../../src/logic/xmp/decision.ts'
 import { readXmp } from '../../../src/logic/xmp/parse.ts'
 import { serializeXmp } from '../../../src/logic/xmp/serialize.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
+import { read, xmp } from './sidecar-answers.ts'
 import { CANONICAL_TIME, fixtureBytes, itemsOf, packetOf, seq, textOf } from './xmp/xmp-builders.ts'
 
 const NEF = listingEntry(1, '/P/IMG_0001.NEF')
@@ -20,16 +21,6 @@ const NEF_XMP = listingEntry(11, '/P/IMG_0001.NEF.xmp')
 const JPG_XMP = listingEntry(12, '/P/IMG_0001.JPG.xmp')
 const PICKED: Decision = { ...UNDECIDED, rating: 2, flag: 'picked' }
 const LATER = { ...CANONICAL_TIME, epochMs: CANONICAL_TIME.epochMs + 60_000 }
-
-/** The bytes of a sidecar with the properties, each written as `prefix:Name`. */
-function xmp(properties: Record<string, string>): Uint8Array {
-	return serializeXmp(packetOf(properties), CANONICAL_TIME)
-}
-
-/** A `read` lookup answer of the bytes at the mtime. */
-function read(bytes: Uint8Array, mtime = 100): SidecarLookupAnswer {
-	return { result: 'read', bytes, etag: `etag-${mtime}`, size: bytes.length, mtime }
-}
 
 describe('takeOverLookups', () => {
 	// spec: XMP-003.2
@@ -90,7 +81,7 @@ describe('writeLookups', () => {
 		expect(writeLookups(pair, new Map())).toEqual([11])
 		expect(writeLookups(pair, known)).toEqual([11, 20])
 		expect(writeLookups(pair, known, new Set(['/P/IMG_0001.JPG.xmp']))).toEqual([20])
-		expect(writeLookups(pair, new Map([['/P/IMG_0001.NEF.xmp', { fileId: 11, saved: { etag: 'e', size: 1, bytes: new Uint8Array() } }]]))).toEqual([])
+		expect(writeLookups(pair, new Map([['/P/IMG_0001.NEF.xmp', { fileId: 11, saved: { etag: 'e', size: 1, mtime: 1, bytes: new Uint8Array() } }]]))).toEqual([])
 	})
 })
 

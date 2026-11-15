@@ -1235,3 +1235,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   nothing.
 - 2026-11-15: The work of ADR 0032 is one milestone (M8) and one `TODO.md` item listing its pull
   requests in order, like the stored series item.
+- 2026-11-15: A sidecar write step carries the decision fields it changed, valued when its pass
+  starts (XMP-003.20); a pass joins the fields of its steps, and a retry writes the failed fields
+  as they are then.
+- 2026-11-15: The explicit *Write decisions to sidecars…* write sends every decision field, so the
+  stored decision wins there, as ADR 0032's migration rule asks.
+- 2026-11-15: A new sidecar starts from the decision the picture's other sidecars state, newest
+  first, else from *undecided*; values only the database holds come over in the migration (PR 5).

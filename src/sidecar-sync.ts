@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Decision } from './logic/decision.ts'
+import type { Decision, DecisionField } from './logic/decision.ts'
 import type { EmbeddedXmpAnswer } from './logic/embedded-xmp.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
@@ -10,6 +10,7 @@ import type { TagChange } from './logic/tag.ts'
 import type { XmpTime } from './logic/xmp/model.ts'
 
 import { logger } from './logger.ts'
+import { DECISION_FIELDS } from './logic/decision.ts'
 import { embeddedXmpSource } from './logic/embedded-xmp.ts'
 import { failureOf, passOf, retryStep, stepResult } from './logic/sidecar-pass.ts'
 import { applySaves, existingOnly, planSaves, takeOverDecisions, takeOverLookups, writeLookups } from './logic/sidecar-sync.ts'
@@ -72,9 +73,9 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		return { decided, tagged }
 	}
 
-	/** Writes each picture's decision, read when the write starts, to its sidecars; `paths` limits a picture to those sidecars. */
-	function write(pictures: Pictures, decisionOf: (picture: Picture<ListingEntry>) => Decision, paths?: Paths) {
-		return queued({ pictures, decisionOf, tags: null, paths })
+	/** Writes the fields of each picture's decision, read when the write starts, to its sidecars as a delta; `paths` limits a picture to those sidecars. */
+	function write(pictures: Pictures, decisionOf: (picture: Picture<ListingEntry>) => Decision, fields: readonly DecisionField[] = DECISION_FIELDS, paths?: Paths) {
+		return queued({ pictures, decisionOf, fields, tags: null, paths })
 	}
 
 	/** Writes the tag change to each picture's sidecars, applied to their tags when the write starts; `paths` limits a picture to those sidecars. */
@@ -82,7 +83,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		return queued({ pictures, decisionOf: null, tags: change, paths })
 	}
 
-	/** Writes the failed sidecars once more: a decision as it is now, a tag change as it was. */
+	/** Writes the failed sidecars once more: the decision fields as they are now, a tag change as it was. */
 	function retry(failed: readonly SidecarFailure[], decisionOf: (picture: Picture<ListingEntry>) => Decision) {
 		return Promise.all(failed.map((failure) => queued(retryStep(failure, decisionOf))))
 	}

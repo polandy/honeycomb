@@ -175,7 +175,7 @@ describe('writeSidecar', () => {
 
 	// spec: XMP-001.21
 	it('fails with the reason and no bytes when the target cannot be read', () => {
-		expect(() => writeSidecar(fixtureBytes('conflict.xmp'), decided({ rating: 1 }), UNCHANGED, CANONICAL_TIME)).toThrow(XmpError)
-		expect(() => writeSidecar(fixtureBytes('conflict.xmp'), decided({ rating: 1 }), UNCHANGED, CANONICAL_TIME)).toThrow('conflicting values for xmp:Rating')
+		expect(() => writeSidecar(fixtureBytes('conflict.xmp'), decided({ rating: 1 }), true, CANONICAL_TIME)).toThrow(XmpError)
+		expect(() => writeSidecar(fixtureBytes('conflict.xmp'), decided({ rating: 1 }), true, CANONICAL_TIME)).toThrow('conflicting values for xmp:Rating')
 	})
 })

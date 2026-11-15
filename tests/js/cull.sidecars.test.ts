@@ -151,8 +151,8 @@ describe('useCull: taking over the sidecars\' decision', () => {
 })
 
 describe('useCull: writing through to the sidecars', () => {
-	// spec: XMP-003.6, XMP-003.9
-	it('writes each picture of a stored step with its decision when the save is done', async () => {
+	// spec: XMP-003.6, XMP-003.9, XMP-003.20
+	it('writes each picture of a stored step with its decision and changed fields when the save is done', async () => {
 		const { cull, writes, picture } = cullWith()
 		cull.open(SET, ENTRIES, [])
 		await flushPromises()
@@ -167,6 +167,7 @@ describe('useCull: writing through to the sidecars', () => {
 			[['IMG_2', 'picked'], ['IMG_10', 'picked']],
 			[['IMG_2', 'unflagged'], ['IMG_10', 'unflagged']],
 		])
+		expect(writes.map((write) => write.map(({ fields }) => fields))).toEqual([[['flag'], ['flag']], [['flag'], ['flag']]])
 	})
 
 	// spec: XMP-003.15
@@ -184,22 +185,6 @@ describe('useCull: writing through to the sidecars', () => {
 		await flushPromises()
 
 		expect(writes.map((write) => write.map(({ name }) => name))).toEqual([['IMG_10']])
-	})
-
-	// spec: XMP-003.20
-	it('writes only the fields a step and its undo change', async () => {
-		const { cull, writes, picture } = cullWith()
-		cull.open(SET, ENTRIES, [])
-		await flushPromises()
-
-		cull.decide({ kind: 'rating', rating: 4 }, [picture('IMG_10')])
-		await flushPromises()
-		cull.undo()
-		await flushPromises()
-		cull.decide({ kind: 'keepRaw' }, [picture('IMG_10')])
-		await flushPromises()
-
-		expect(writes.map((write) => write.map(({ fields }) => fields))).toEqual([[['rating']], [['rating']], [['keepRaw']]])
 	})
 
 	// spec: XMP-003.10
