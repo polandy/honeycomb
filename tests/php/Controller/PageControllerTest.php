@@ -40,6 +40,16 @@ final class PageControllerTest extends TestCase {
 		$this->assertCount(1, $method->getAttributes(NoCSRFRequired::class));
 	}
 
+	// spec: SERIES-003.26
+	public function testIndexAllowsTheHashWorkers(): void {
+		$controller = new PageController(Application::APP_ID, $this->createStub(IRequest::class));
+
+		$policy = $controller->index()->getContentSecurityPolicy();
+
+		$this->assertNotNull($policy);
+		$this->assertStringContainsString("worker-src 'self'", $policy->buildPolicy());
+	}
+
 	// spec: SERIES-004.13
 	public function testSimilarityRendersItsTemplateAndAllowsItsWorkers(): void {
 		$controller = new PageController(Application::APP_ID, $this->createStub(IRequest::class));

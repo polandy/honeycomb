@@ -19,6 +19,7 @@ async function waitingCull() {
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
 		saveVisualHashes: async () => undefined,
+		wait: async () => {},
 		warmPreviews: async () => undefined,
 		lookupDecisions: async () => [],
 		saveDecisions: (rows) => new Promise<void>((resolve, reject) => {

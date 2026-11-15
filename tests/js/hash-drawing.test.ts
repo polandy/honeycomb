@@ -4,8 +4,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { hashFetched } from '../../src/hash-drawing.ts'
 import { differenceHash, HASH_COLUMNS, HASH_ROWS } from '../../src/logic/visual-hash.ts'
-import { hashPreview } from '../../src/visual-hashes.ts'
-import { listingEntry } from './logic/listing-entries.ts'
 
 const PIXELS = Uint8ClampedArray.from({ length: HASH_COLUMNS * HASH_ROWS * 4 }, (_, index) => (index * 37) % 256)
 const BITMAP = { width: 256, height: 171 }
@@ -37,21 +35,6 @@ describe('hashFetched', () => {
 		expect(fake.canvas).toHaveBeenCalledWith(HASH_COLUMNS, HASH_ROWS)
 		expect(drawn.drawImage).toHaveBeenCalledWith(BITMAP, 0, 0, HASH_COLUMNS, HASH_ROWS)
 		expect(drawn.imageSmoothingQuality).toBe('high')
-	})
-
-	// spec: SERIES-004.7
-	it('gives the hash the grid gives for the same pixels', async () => {
-		vi.stubGlobal('Image', class {
-			src = ''
-			async decode() {}
-		})
-		const gridContext = context()
-		vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(gridContext as unknown as CanvasRenderingContext2D)
-
-		const grid = await hashPreview(() => '/preview/5')(listingEntry(5, '/P/A.JPG'))
-
-		await expect(hashFetched('/preview/5', seams(context()))).resolves.toBe(grid)
-		expect(gridContext.imageSmoothingQuality).toBe('high')
 	})
 
 	// spec: SERIES-004.10

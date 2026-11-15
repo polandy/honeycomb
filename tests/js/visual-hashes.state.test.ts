@@ -3,12 +3,9 @@
 // @vitest-environment happy-dom
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { shallowRef } from 'vue'
 import { logger } from '../../src/logger.ts'
-import { useVisualHashes } from '../../src/visual-hashes.ts'
-import { fakeStorage } from './app-cull.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
-import { BURST, fakeHasher, setUp } from './visual-hash-fakes.ts'
+import { BURST, setUp } from './visual-hash-fakes.ts'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -137,24 +134,16 @@ describe('useVisualHashes states and progress', () => {
 	// spec: SERIES-003.19
 	it('clears the failed save once a later save succeeds', async () => {
 		vi.spyOn(logger, 'warn').mockImplementation(() => {})
-		let fails = true
-		const hasher = fakeHasher()
-		const pictures = shallowRef(picturesOf(BURST))
-		const hashes = useVisualHashes({ hashImage: hasher.hashImage, saveVisualHashes: async () => {
-			if (fails) {
-				throw new Error('offline')
-			}
-		} }, fakeStorage({}), () => pictures.value)
-		hasher.calls[0]!.resolve('0000000000000001')
+		const { calls, pictures, hashes } = setUp(BURST, {}, [new Error('offline')])
+		calls[0]!.resolve('0000000000000001')
 		await flushPromises()
-		hasher.calls[1]!.resolve('0000000000000003')
+		calls[1]!.resolve('0000000000000003')
 		await flushPromises()
 		expect(hashes.progress.value.phase).toBe('failed')
 
-		fails = false
 		pictures.value = picturesOf([{ ...BURST[0]!, etag: 'etag-new' }, ...BURST.slice(1)])
 		await flushPromises()
-		hasher.calls[2]!.resolve('0000000000000002')
+		calls[2]!.resolve('0000000000000002')
 		await flushPromises()
 		expect(hashes.progress.value.phase).toBe('done')
 	})
