@@ -40,6 +40,7 @@ const deleting = props.deleting
 		:folderSet="props.folderSet"
 		:folders="props.folders"
 		:busy="deleting.busy.value"
+		:progress="deleting.progress.value"
 		:container="props.container"
 		@rescue="deleting.rescue"
 		@toggleKeepRaw="deleting.toggleKeepRaw"

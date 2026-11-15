@@ -180,6 +180,26 @@ describe('MoveDialogs: summary', () => {
 	})
 })
 
+describe('MoveDialogs: progress', () => {
+	// spec: MOVE-004.17
+	it('shows how many photos were sent while the move runs', async () => {
+		let release = () => {}
+		const { wrapper, moving, pair } = mountDialogs({}, (request) => new Promise((resolve) => {
+			release = () => void allMoved()(request).then(resolve)
+		}))
+		moving.open([pair])
+		moving.choose('/Out')
+		await flushPromises()
+
+		const done = moving.confirm()
+		await flushPromises()
+		expect(wrapper.findComponent(ConfirmDialog).props('progress')).toEqual({ done: 0, total: 1 })
+		release()
+		await done
+		wrapper.unmount()
+	})
+})
+
 describe('MoveDialogs: report', () => {
 	// spec: MOVE-004.12
 	it('lists each failed file with its reason and closes', async () => {

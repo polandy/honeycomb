@@ -164,6 +164,22 @@ trash bin refuses (`409`, a *Replace* with the trash bin off) says the trash bin
 - **When** the summary is shown
 - **Then** the picture is listed with the reason and is not part of the count or the request
 
+### MOVE-004.17 – Requests in chunks
+
+- **Given** a move, or its undo, of more pictures than one request carries
+- **When** the user confirms, or taps *Undo*
+- **Then** each request carries at most 50 whole pictures and 500 files, a picture never spans two
+  requests, the next is sent when the last is answered, and the move summary shows how many of
+  the photos were sent until the last answer arrives
+
+### MOVE-004.18 – A later request fails
+
+- **Given** a move, or its undo, whose first requests were answered
+- **When** a later request fails
+- **Then** what moved leaves the grid (or comes back), the pictures not sent stay whole where they
+  were, the error is logged, the move report lists their files as failed, the toast counts moved
+  and failed files, and a move still offers *Undo* for what moved
+
 ## Out of scope
 
 The name template setting, its presets and the favourite targets list in the settings:
@@ -175,3 +191,4 @@ SETTINGS-001. The endpoints: MOVE-002. The plan, conflicts, report and undo requ
 |---|---|
 | 2026-11-10 | Written for M7.3. |
 | 2026-11-10 | Decisions follow the files across storages; the toast no longer warns (MOVE-004.14). |
+| 2026-11-15 | Requests in chunks with progress (MOVE-004.17, MOVE-004.18, ADR 0029). |

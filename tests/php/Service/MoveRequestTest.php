@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\InvalidMoveRequestException;
-use OCA\Honeycomb\Service\ListingService;
 use OCA\Honeycomb\Service\MoveRequest;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -45,7 +44,7 @@ final class MoveRequestTest extends TestCase {
 			'a replace of a file of the request' => [[[$file, self::to(2, '/Out/X.JPG') + ['replace' => ['fileId' => 1, 'etag' => 'etag-1']]]]],
 			'a file id in two pictures' => [[[$file], [$file]]],
 			'a target path twice, in another case' => [[[$file], [self::to(2, '/out/x.raf')]]],
-			'more files than the limit' => [[array_map(static fn (int $id): array => self::to($id, "/Out/$id.JPG"), range(1, ListingService::ENTRY_LIMIT + 1))]],
+			'more files than the limit' => [[array_map(static fn (int $id): array => self::to($id, "/Out/$id.JPG"), range(1, 501))]],
 		];
 	}
 
@@ -59,8 +58,8 @@ final class MoveRequestTest extends TestCase {
 
 	// spec: MOVE-002.8
 	public function testTheLimitItselfIsAccepted(): void {
-		$request = [array_map(static fn (int $id): array => self::to($id, "/Out/$id.JPG"), range(1, ListingService::ENTRY_LIMIT))];
+		$request = [array_map(static fn (int $id): array => self::to($id, "/Out/$id.JPG"), range(1, 500))];
 
-		$this->assertCount(ListingService::ENTRY_LIMIT, MoveRequest::pictures($request)[0]);
+		$this->assertCount(500, MoveRequest::pictures($request)[0]);
 	}
 }

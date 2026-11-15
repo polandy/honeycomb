@@ -20,8 +20,8 @@ final class MoveRequest {
 		}
 		$parsed = array_map(self::picture(...), $pictures);
 		$files = array_merge(...$parsed);
-		if (count($files) > ListingService::ENTRY_LIMIT) {
-			throw new InvalidMoveRequestException('At most ' . ListingService::ENTRY_LIMIT . ' files');
+		if (count($files) > PictureRequestLimit::FILES) {
+			throw new InvalidMoveRequestException('At most ' . PictureRequestLimit::FILES . ' files');
 		}
 		self::refuseTwice(array_map(static fn (MoveFile $file): int => $file->fileId, $files), 'file id');
 		self::refuseTwice(array_map(static fn (MoveFile $file): string => mb_strtolower($file->path), $files), 'target path');

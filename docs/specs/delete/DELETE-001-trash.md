@@ -13,8 +13,9 @@ the result of each file, so a partial failure leaves a state the user can trace.
 ## Behaviour
 
 `POST /apps/honeycomb/api/v1/trash` takes `{"pictures": [[{"fileId": 7, "etag": "…"}, …], …]}`:
-a list of pictures, each the list of its files with the ETag from the listing, at most 60,000
-files. The server does not pair; it checks each file and trashes through `OCP\Files`.
+a list of pictures, each the list of its files with the ETag from the listing, at most 500
+files, so one request ends well inside a proxy or PHP timeout (ADR 0029). The server does not
+pair; it checks each file and trashes through `OCP\Files`.
 
 For each picture:
 
@@ -80,7 +81,7 @@ sent. `result` is one of:
 
 - **Given** a body that is no list, a picture that is no list or empty, a file that is no object,
   a file id that is no positive integer, a missing or empty ETag, a file id given twice, or more
-  files than the limit
+  files than the limit of 500
 - **When** the client posts it
 - **Then** the answer is `400` and nothing is touched; a request of exactly the limit is accepted
 
@@ -108,3 +109,4 @@ Choosing what to delete, the summary and the report: DELETE-002. Removing only R
 | 2026-11-10 | Written from the merged M4.1 (#51) |
 | 2026-11-10 | DELETE-001.8 proven by an e2e test |
 | 2026-11-11 | `.cr3` and `.srw` files Nextcloud does not type are trashed like any picture file |
+| 2026-11-15 | At most 500 files per request instead of 60,000 (ADR 0029) |

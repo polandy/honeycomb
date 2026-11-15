@@ -4,6 +4,7 @@ import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { MoveRequestFile } from '../../src/logic/move-plan.ts'
 import type { MoveResponseFile } from '../../src/logic/move-report.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
+import type { ChunkLimits } from '../../src/logic/request-chunks.ts'
 import type { Settings } from '../../src/logic/settings.ts'
 import type { ToastAction } from '../../src/toast.ts'
 
@@ -27,7 +28,7 @@ export type Answer = (request: MoveRequestFile[][]) => Promise<MoveResponseFile[
 export const allMoved = (newId = (fileId: number) => fileId): Answer => async (request) => request.map((files) => files.map(({ fileId, path }) => ({ fileId, result: 'moved', replaced: false, path, newFileId: newId(fileId), etag: `moved-${fileId}` })))
 
 /** A flow over the entries' pictures, the folder `/Out` holding `held`, with a move endpoint answering `answer`. */
-export function moveFlow(answer: Answer = allMoved(), { held = [] as string[], template = '{name}.{ext}', probe = undefined as (() => Promise<never>) | undefined } = {}) {
+export function moveFlow(answer: Answer = allMoved(), { held = [] as string[], template = '{name}.{ext}', probe = undefined as (() => Promise<never>) | undefined, chunks = undefined as ChunkLimits | undefined } = {}) {
 	const entries = shallowRef<ListingEntry[]>(ENTRIES)
 	const pictures = shallowRef<Picture<ListingEntry>[]>(pairPictures(ENTRIES, DEFAULT_PAIRING_SETTINGS))
 	const settings = shallowRef<Settings>({ ...DEFAULT_SETTINGS, moveFavourites: ['/Fav'], moveRecent: ['/Old', '/Fav'], moveTemplate: template })
@@ -64,6 +65,7 @@ export function moveFlow(answer: Answer = allMoved(), { held = [] as string[], t
 		listing: () => listing.value,
 		toast: (message, action = null) => toasts.push({ message, action }),
 		offset: () => 0,
+		chunks,
 	})
 	const [pair, single, sunset] = pictures.value as [Picture<ListingEntry>, Picture<ListingEntry>, Picture<ListingEntry>]
 	return { moving, pictures, entries, settings, toasts, sent, probed, loupe, listing, pair, single, sunset }
