@@ -9,6 +9,8 @@ namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\SidecarResult;
 use OCA\Honeycomb\Service\SidecarWriter;
+use OCA\Honeycomb\Service\UserFolderResolver;
+use OCA\Honeycomb\Service\UserPhotos;
 use OCP\App\IAppManager;
 use OCP\Files\File;
 use OCP\Files\Folder;
@@ -118,7 +120,7 @@ final class SidecarWriterTest extends TestCase {
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturnCallback(fn (string $app): bool => $app === 'files_versions' && $this->versions);
-		return new SidecarWriter($root, $apps, $logger ?? $this->createStub(LoggerInterface::class));
+		return new SidecarWriter(new UserPhotos(new UserFolderResolver($root)), $apps, $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
 	private function existing(string $content, ?string $etag = null, ?int $size = null): array {

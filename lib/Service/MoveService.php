@@ -11,7 +11,6 @@ use OCP\App\IAppManager;
 use OCP\Files\AlreadyExistsException;
 use OCP\Files\File;
 use OCP\Files\Folder;
-use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
@@ -27,7 +26,7 @@ use Psr\Log\LoggerInterface;
  */
 final class MoveService {
 	public function __construct(
-		private IRootFolder $rootFolder,
+		private UserPhotos $photos,
 		private IAppManager $appManager,
 		private FileRowStores $fileRows,
 		private LoggerInterface $logger,
@@ -47,7 +46,7 @@ final class MoveService {
 		if ($replaces !== [] && !$this->appManager->isEnabledForUser('files_trashbin', $user)) {
 			throw new TrashBinDisabledException('The trash bin is disabled for the user');
 		}
-		$userFolder = $this->rootFolder->getUserFolder($user->getUID());
+		$userFolder = $this->photos->userFolder($user);
 		return array_map(fn (array $picture): array => $this->movePicture($user->getUID(), $userFolder, $picture), $pictures);
 	}
 
@@ -174,8 +173,8 @@ final class MoveService {
 
 	/** The move to make, or why the file may not move. */
 	private function check(Folder $userFolder, MoveFile $file): CheckedMove|MoveResult {
-		$source = $userFolder->getFirstNodeById($file->fileId);
-		if (!$source instanceof File || !ListingService::isListedType($source)) {
+		$source = $this->photos->listed($userFolder, $file->fileId);
+		if ($source === null) {
 			return MoveResult::NotFound;
 		}
 		if ($source->getEtag() !== $file->etag) {

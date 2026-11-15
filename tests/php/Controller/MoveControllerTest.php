@@ -12,6 +12,8 @@ use OCA\Honeycomb\Controller\MoveController;
 use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\MoveService;
 use OCA\Honeycomb\Service\MoveTargetService;
+use OCA\Honeycomb\Service\UserFolderResolver;
+use OCA\Honeycomb\Service\UserPhotos;
 use OCA\Honeycomb\Tests\Service\FakeDecisionStore;
 use OCA\Honeycomb\Tests\Service\FakeSeriesStore;
 use OCA\Honeycomb\Tests\Service\FakeTagStore;
@@ -38,7 +40,7 @@ final class MoveControllerTest extends TestCase {
 		$apps->method('isEnabledForUser')->willReturn($trashBin);
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $this->treeUser() : null);
-		$move = new MoveService($this->treeRoot(), $apps, new FileRowStores(new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore(), new FakeSeriesStore()), $this->createStub(LoggerInterface::class));
+		$move = new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores(new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore(), new FakeSeriesStore()), $this->createStub(LoggerInterface::class));
 		return new MoveController(Application::APP_ID, $this->createStub(IRequest::class), $session, $move, new MoveTargetService($this->treeRoot()));
 	}
 

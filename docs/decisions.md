@@ -1204,3 +1204,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `docs/ux-review-2026-11.md` in `polandy/honeycomb-assets` (`ux-review-2026-11/`, kept for the
   review): grid, loupe and series compare on the iPad. Fresh screenshots replace them in
   `appinfo/info.xml` when the UI changes enough to mislead.
+- 2026-11-15: The preview warm-up parses its file ids in `ImageService::warm()` through
+  `FileIds` and throws the new `InvalidPreviewRequestException`, like every other list of file
+  ids; the move, trash and sidecar exceptions now extend `InvalidRequestException` so `FileIds`
+  can throw them (R5b of the architecture review).

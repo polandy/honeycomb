@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 use OCP\Files\File;
-use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\SimpleFS\ISimpleFile;
 use OCP\IPreview;
@@ -27,7 +26,7 @@ final class ImageService {
 	public const int WARM_LIMIT = 16;
 
 	public function __construct(
-		private IRootFolder $rootFolder,
+		private UserPhotos $photos,
 		private IPreview $preview,
 		private LoggerInterface $logger,
 	) {
@@ -39,8 +38,8 @@ final class ImageService {
 	 * @throws ImageNotReadableException when the user may not read it
 	 */
 	public function find(IUser $user, int $fileId): File {
-		$node = $this->rootFolder->getUserFolder($user->getUID())->getFirstNodeById($fileId);
-		if (!$node instanceof File || !ListingService::isPhoto($node)) {
+		$node = $this->photos->photo($this->photos->userFolder($user), $fileId);
+		if ($node === null) {
 			throw new ImageNotFoundException("No image file $fileId in the user's files");
 		}
 		if (!$node->isReadable()) {
@@ -78,9 +77,11 @@ final class ImageService {
 
 	/**
 	 * Renders every tier of the user's files into the preview cache, skipping what it cannot render.
-	 * @param list<int> $fileIds
+	 * @param array<array-key, mixed> $fileIds
+	 * @throws InvalidPreviewRequestException for a malformed request; nothing is rendered
 	 */
 	public function warm(IUser $user, array $fileIds): void {
+		$fileIds = FileIds::parse($fileIds, self::WARM_LIMIT, InvalidPreviewRequestException::class);
 		$specifications = array_map(
 			static fn (int $tier): array => ['width' => $tier, 'height' => $tier, 'crop' => false, 'mode' => IPreview::MODE_FILL],
 			self::TIERS,

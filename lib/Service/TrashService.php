@@ -10,7 +10,6 @@ namespace OCA\Honeycomb\Service;
 use OCP\App\IAppManager;
 use OCP\Files\File;
 use OCP\Files\Folder;
-use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IUser;
@@ -20,7 +19,7 @@ use Psr\Log\LoggerInterface;
 /** Moves whole pictures into the trash bin: each checked whole, then trashed file by file (ADR 0013). */
 final class TrashService {
 	public function __construct(
-		private IRootFolder $rootFolder,
+		private UserPhotos $photos,
 		private IAppManager $appManager,
 		private TrashBinGuard $trashBinGuard,
 		private LoggerInterface $logger,
@@ -39,7 +38,7 @@ final class TrashService {
 		if (!$this->appManager->isEnabledForUser('files_trashbin', $user)) {
 			throw new TrashBinDisabledException('The trash bin is disabled for the user');
 		}
-		$userFolder = $this->rootFolder->getUserFolder($user->getUID());
+		$userFolder = $this->photos->userFolder($user);
 		return array_map(fn (array $picture): array => $this->trashPicture($user, $userFolder, $picture), $pictures);
 	}
 
@@ -91,8 +90,8 @@ final class TrashService {
 
 	/** The file to trash, or why it may not be trashed. */
 	private function check(IUser $user, Folder $userFolder, int $fileId, string $etag): File|TrashResult {
-		$node = $userFolder->getFirstNodeById($fileId);
-		if (!$node instanceof File || !ListingService::isListedType($node)) {
+		$node = $this->photos->listed($userFolder, $fileId);
+		if ($node === null) {
 			return TrashResult::NotFound;
 		}
 		if ($node->getEtag() !== $etag) {
@@ -116,7 +115,7 @@ final class TrashService {
 		if (!array_is_list($pictures)) {
 			throw new InvalidTrashRequestException('pictures must be a list');
 		}
-		$seen = [];
+		$fileIds = [];
 		foreach ($pictures as $picture) {
 			if (!is_array($picture) || $picture === [] || !array_is_list($picture)) {
 				throw new InvalidTrashRequestException('Each picture must be a non-empty list of files');
@@ -128,13 +127,11 @@ final class TrashService {
 				if (!is_int($fileId) || $fileId < 1 || !is_string($etag) || $etag === '') {
 					throw new InvalidTrashRequestException('Each file must have a positive fileId and an etag');
 				}
-				if (isset($seen[$fileId])) {
-					throw new InvalidTrashRequestException("File $fileId is given twice");
-				}
-				$seen[$fileId] = true;
+				$fileIds[] = $fileId;
 			}
 		}
-		if (count($seen) > PictureRequestLimit::FILES) {
+		FileIds::eachOnce($fileIds, InvalidTrashRequestException::class);
+		if (count($fileIds) > PictureRequestLimit::FILES) {
 			throw new InvalidTrashRequestException('At most ' . PictureRequestLimit::FILES . ' files');
 		}
 		/** @var list<non-empty-list<array{fileId: int, etag: string}>> $pictures */

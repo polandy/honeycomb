@@ -12,6 +12,8 @@ use OCA\Honeycomb\Service\InvalidSidecarRequestException;
 use OCA\Honeycomb\Service\JpegXmp;
 use OCA\Honeycomb\Service\SidecarLimits;
 use OCA\Honeycomb\Service\SidecarResult;
+use OCA\Honeycomb\Service\UserFolderResolver;
+use OCA\Honeycomb\Service\UserPhotos;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -61,7 +63,7 @@ final class EmbeddedXmpReaderTest extends TestCase {
 		$userFolder->method('getFirstNodeById')->willReturnCallback(static fn (int $id): ?Node => $nodes[$id] ?? null);
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
-		return new EmbeddedXmpReader($root, new JpegXmp(), $logger ?? $this->createStub(LoggerInterface::class));
+		return new EmbeddedXmpReader(new UserPhotos(new UserFolderResolver($root)), new JpegXmp(), $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
 	// spec: XMP-005.1, XMP-005.2
@@ -147,6 +149,6 @@ final class EmbeddedXmpReaderTest extends TestCase {
 		$root->method('getUserFolder')->willReturn($userFolder);
 
 		$this->expectException(InvalidSidecarRequestException::class);
-		(new EmbeddedXmpReader($root, new JpegXmp(), $this->createStub(LoggerInterface::class)))->lookup($this->user(), $fileIds);
+		(new EmbeddedXmpReader(new UserPhotos(new UserFolderResolver($root)), new JpegXmp(), $this->createStub(LoggerInterface::class)))->lookup($this->user(), $fileIds);
 	}
 }

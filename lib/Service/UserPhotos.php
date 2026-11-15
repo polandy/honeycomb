@@ -11,7 +11,7 @@ use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\IUser;
 
-/** The one check whether a file id is a photo in the user's files, at a given version. */
+/** The one check whether a file id is a photo, sidecar or listed file in the user's files, at a given version. */
 final class UserPhotos {
 	public function __construct(
 		private UserFolderResolver $userFolders,
@@ -27,10 +27,10 @@ final class UserPhotos {
 		if ($etags === []) {
 			return [];
 		}
-		$userFolder = $this->userFolders->userFolder($user);
+		$userFolder = $this->userFolder($user);
 		$current = [];
 		foreach ($etags as $fileId => $etag) {
-			if (self::photo($userFolder, $fileId)?->getEtag() === $etag) {
+			if ($this->photo($userFolder, $fileId)?->getEtag() === $etag) {
 				$current[] = $fileId;
 			}
 		}
@@ -46,12 +46,33 @@ final class UserPhotos {
 		if ($fileIds === []) {
 			return [];
 		}
-		$userFolder = $this->userFolders->userFolder($user);
-		return array_values(array_filter($fileIds, static fn (int $fileId): bool => self::photo($userFolder, $fileId) !== null));
+		$userFolder = $this->userFolder($user);
+		return array_values(array_filter($fileIds, fn (int $fileId): bool => $this->photo($userFolder, $fileId) !== null));
 	}
 
-	private static function photo(Folder $userFolder, int $fileId): ?File {
+	/** The user's folder, to look up many file ids in one request. */
+	public function userFolder(IUser $user): Folder {
+		return $this->userFolders->userFolder($user);
+	}
+
+	/** The photo with `$fileId` in `$userFolder`, or null for a missing, foreign, folder or other id. */
+	public function photo(Folder $userFolder, int $fileId): ?File {
+		return self::fileOf($userFolder, $fileId, ListingService::isPhoto(...));
+	}
+
+	/** The XMP sidecar with `$fileId` in `$userFolder`, or null for a missing, foreign, folder or other id. */
+	public function sidecar(Folder $userFolder, int $fileId): ?File {
+		return self::fileOf($userFolder, $fileId, ListingService::isSidecar(...));
+	}
+
+	/** The photo or sidecar with `$fileId` in `$userFolder`, or null for a missing, foreign, folder or other id. */
+	public function listed(Folder $userFolder, int $fileId): ?File {
+		return self::fileOf($userFolder, $fileId, ListingService::isListedType(...));
+	}
+
+	/** @param \Closure(File): bool $isType */
+	private static function fileOf(Folder $userFolder, int $fileId, \Closure $isType): ?File {
 		$node = $userFolder->getFirstNodeById($fileId);
-		return $node instanceof File && ListingService::isPhoto($node) ? $node : null;
+		return $node instanceof File && $isType($node) ? $node : null;
 	}
 }

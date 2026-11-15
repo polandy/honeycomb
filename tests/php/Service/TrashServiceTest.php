@@ -11,6 +11,8 @@ use OCA\Honeycomb\Service\InvalidTrashRequestException;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
 use OCA\Honeycomb\Service\TrashBinGuard;
 use OCA\Honeycomb\Service\TrashService;
+use OCA\Honeycomb\Service\UserFolderResolver;
+use OCA\Honeycomb\Service\UserPhotos;
 use OCP\App\IAppManager;
 use OCP\Config\IUserConfig;
 use OCP\Files\File;
@@ -71,7 +73,7 @@ final class TrashServiceTest extends TestCase {
 		$appConfig = $this->createStub(IAppConfig::class);
 		$appConfig->method('getValueString')->willReturn('1000');
 		$guard = new TrashBinGuard($userConfig, $appConfig);
-		return new TrashService($root, $apps, $guard, $logger ?? $this->createStub(LoggerInterface::class));
+		return new TrashService(new UserPhotos(new UserFolderResolver($root)), $apps, $guard, $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
 	/**
