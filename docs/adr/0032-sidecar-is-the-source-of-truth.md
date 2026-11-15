@@ -233,9 +233,10 @@ picture decided again gets legacy rows again (XMP-007).
 ## Amendment 2026-11-15: the switch as built (PR 6)
 
 PR 6 builds *Writability and permissions* and leaves the cull reading through the cache
-(XMP-006.7) to a later PR; the cull still takes over from the sidecars and stores into the tables. A step whose
-pictures are not all writable decides none of them (XMP-008.7): `off` and `shared` ask in one
-dialog and take the step after *Write to sidecars*, the other reasons show a toast. Undo and redo
+(XMP-006.7) to a later PR; the cull still takes over from the sidecars and stores into the
+tables. A step whose pictures are not all writable decides none of them (XMP-008.7): `off` and
+`shared` ask in one dialog and take the step after *Write to sidecars*, the other reasons show a
+toast. Undo and redo
 are not gated; the server checks every save. A folder the listing does not name counts as
 writable. `refused` covers the sidecars a write of this visit refused, and opening a folder set
 clears it. The listing adds the opened folder's `fileId`, the key of a confirmation; the settings
