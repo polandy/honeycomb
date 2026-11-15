@@ -59,7 +59,7 @@ final class PageControllerTest extends TestCase {
 
 	// spec: SERIES-003.26
 	public function testIndexAllowsTheHashWorkers(): void {
-		$controller = new PageController(Application::APP_ID, $this->createStub(IRequest::class));
+		$controller = $this->controller(true);
 
 		$policy = $controller->index()->getContentSecurityPolicy();
 
