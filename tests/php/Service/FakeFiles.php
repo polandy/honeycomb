@@ -55,12 +55,13 @@ trait FakeFiles {
 	}
 
 	/** A folder at `$path` below the user's files. */
-	private function folder(string $path, bool $readable = true, string $mountType = '', int $permissions = Constants::PERMISSION_ALL): Folder&Stub {
+	private function folder(string $path, bool $readable = true, string $mountType = '', int $permissions = Constants::PERMISSION_ALL, int $fileId = 1): Folder&Stub {
 		$mount = $this->createStub(IMountPoint::class);
 		$mount->method('getMountType')->willReturn($mountType);
 		$folder = $this->createStub(Folder::class);
 		$folder->method('getMountPoint')->willReturn($mount);
 		$folder->method('getPermissions')->willReturn($permissions);
+		$folder->method('getId')->willReturn($fileId);
 		$folder->method('getOwner')->willReturn($this->user());
 		$folder->method('getStorage')->willReturn($this->createStub(IStorage::class));
 		$absolute = rtrim(self::USER_ROOT . $path, '/');

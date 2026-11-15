@@ -56,8 +56,7 @@ final class ListingServiceTest extends TestCase {
 
 	// spec: XMP-008.4
 	public function testNamesTheListedFolderByItsFileId(): void {
-		$folder = $this->folder('/Photos');
-		$folder->method('getId')->willReturn(42);
+		$folder = $this->folder('/Photos', fileId: 42);
 		$folder->method('getDirectoryListing')->willReturn([]);
 
 		$listing = $this->service($this->rootWith(['/Photos' => $folder]))->list($this->user(), 'Photos', false);

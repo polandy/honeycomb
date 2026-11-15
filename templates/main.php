@@ -9,4 +9,4 @@ declare(strict_types=1);
 
 /** @var array{versionsApp: bool} $_ */
 ?>
-<div id="honeycomb" data-versions-app="<?php p($_['versionsApp'] ? 'true' : 'false'); ?>"></div>
+<div id="honeycomb" data-versions-app="<?php echo $_['versionsApp'] ? 'true' : 'false'; ?>"></div>
