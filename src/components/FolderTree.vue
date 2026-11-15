@@ -4,15 +4,16 @@
 -->
 <script setup lang="ts">
 import type { Folder } from '../api.ts'
+import type { Branch, TreeNote } from '../logic/folder-tree.ts'
 
 import { t } from '@nextcloud/l10n'
-import { computed, ref } from 'vue'
-import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
+import { computed, nextTick, ref } from 'vue'
 import AppIcon from './AppIcon.vue'
 import { listFolders as apiListFolders } from '../api.ts'
 import { nameComparer, PLAIN_TEXT } from '../l10n.ts'
 import { logger } from '../logger.ts'
-import { breadcrumbs, isHiddenFolder } from '../logic/folder-set.ts'
+import { isHiddenFolder } from '../logic/folder-set.ts'
+import { foldersToExpand, ROOT, treeKey, visibleRows } from '../logic/folder-tree.ts'
 import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
@@ -32,115 +33,218 @@ const emit = defineEmits<{
 	toggle: [path: string]
 }>()
 
-const cwd = ref('')
-const folders = ref<Folder[]>([])
-const failed = ref(false)
-const crumbs = computed(() => breadcrumbs(cwd.value))
-const compareNames = nameComparer()
+const NOTES: Record<TreeNote, () => string> = {
+	loading: () => t('honeycomb', 'Loading…'),
+	failed: () => t('honeycomb', 'Could not load this folder.'),
+	empty: () => t('honeycomb', 'This folder has no subfolders.'),
+}
 
-let latestLoad = 0
-/** Shows the child folders of `path`; an answer for a folder opened before is dropped. */
-async function open(path: string) {
-	const load = ++latestLoad
-	cwd.value = path
-	let children: Folder[] | null = null
+const branches = ref(new Map<string, Branch>())
+const expanded = ref(new Set<string>())
+const focusedPath = ref<string | null>(null)
+const treeEl = ref<HTMLElement | null>(null)
+const rows = computed(() => visibleRows(branches.value, expanded.value))
+const compareNames = nameComparer()
+/** The one folder row in the tab order: the focused one while shown, else the first. */
+const tabStop = computed(() => {
+	const folders = rows.value.flatMap((row) => (row.kind === 'folder' ? [row.folder.path] : []))
+	return folders.find((path) => path === focusedPath.value) ?? folders[0]
+})
+
+/** Stores the state of the child folders of `path`. */
+function setBranch(path: string, branch: Branch) {
+	branches.value = new Map(branches.value).set(path, branch)
+}
+
+/** Loads the child folders of `path`, sorted with digits by value. */
+async function load(path: string) {
+	setBranch(path, { state: 'loading' })
 	try {
-		children = await props.listFolders(path)
+		const children = await props.listFolders(path)
+		setBranch(path, { state: 'loaded', folders: children.toSorted((a, b) => compareNames(a.name, b.name)) })
 	} catch (error) {
-		if (load === latestLoad) {
-			logger.error('Could not load the folders', { path, error })
-		}
+		logger.error('Could not load the folders', { path, error })
+		setBranch(path, { state: 'failed' })
 	}
-	if (load === latestLoad) {
-		failed.value = children === null
-		folders.value = (children ?? []).toSorted((a, b) => compareNames(a.name, b.name))
+}
+
+/** Shows the child folders of `path`, loading them unless known or on the way. */
+function expand(path: string) {
+	expanded.value = new Set(expanded.value).add(path)
+	const state = branches.value.get(path)?.state
+	if (state === undefined || state === 'failed') {
+		void load(path)
+	}
+}
+
+/** Hides the child folders of `path`. */
+function collapse(path: string) {
+	const next = new Set(expanded.value)
+	next.delete(path)
+	expanded.value = next
+}
+
+/** Expands a collapsed folder and collapses an expanded one. */
+function flip(folder: Folder) {
+	focusedPath.value = folder.path
+	if (expanded.value.has(folder.path)) {
+		collapse(folder.path)
+	} else {
+		expand(folder.path)
 	}
 }
 
 /** Ticks or unticks a folder the cull can include. */
 function toggle(folder: Folder) {
+	focusedPath.value = folder.path
 	if (!isHiddenFolder(folder.name) && !props.blocked.includes(folder.path)) {
 		emit('toggle', folder.path)
 	}
 }
 
-void open('')
+/** Moves the focus, expands or collapses after the WAI-ARIA tree keys. */
+async function onKey(event: KeyboardEvent, folder: Folder) {
+	if (event.key === 'Enter' || event.key === ' ') {
+		event.preventDefault()
+		toggle(folder)
+		return
+	}
+	const move = treeKey(rows.value, folder.path, event.key)
+	if (move === null) {
+		return
+	}
+	event.preventDefault()
+	if ('expand' in move) {
+		expand(move.expand)
+	} else if ('collapse' in move) {
+		collapse(move.collapse)
+	} else {
+		focusedPath.value = move.focus
+		await nextTick()
+		treeEl.value?.querySelector<HTMLElement>('[role="treeitem"][tabindex="0"]')?.focus()
+	}
+}
+
+/** Whether a folder is shown disabled. */
+const isDisabled = (folder: Folder) => isHiddenFolder(folder.name) || props.blocked.includes(folder.path)
+
+for (const path of [ROOT, ...foldersToExpand(props.ticked)]) {
+	expand(path)
+}
 </script>
 
 <template>
-	<div class="folder-list">
-		<nav class="folder-list__crumbs" :aria-label="t('honeycomb', 'Folder path')">
-			<template v-for="(crumb, index) in crumbs" :key="crumb.path">
-				<span v-if="index > 0" class="folder-list__separator" aria-hidden="true">/</span>
+	<ul
+		ref="treeEl"
+		class="folder-tree"
+		role="tree"
+		:aria-multiselectable="!props.single"
+		:aria-label="t('honeycomb', 'Folders')">
+		<template v-for="row in rows" :key="row.kind === 'folder' ? row.folder.path : `${row.parent}\0${row.note}`">
+			<li
+				v-if="row.kind === 'folder'"
+				role="treeitem"
+				class="folder-tree__item"
+				:style="{ '--folder-tree-level': row.level - 1 }"
+				:tabindex="row.folder.path === tabStop ? 0 : -1"
+				:aria-level="row.level"
+				:aria-expanded="row.folder.hasSubfolders ? row.expanded : undefined"
+				:aria-selected="props.ticked.includes(row.folder.path)"
+				:aria-disabled="isDisabled(row.folder) || undefined"
+				@click="toggle(row.folder)"
+				@keydown.self="onKey($event, row.folder)">
 				<button
+					v-if="row.folder.hasSubfolders"
 					type="button"
-					:aria-current="index === crumbs.length - 1 ? 'location' : undefined"
-					@click="open(crumb.path)">
-					{{ index === 0 ? t('honeycomb', 'Home') : crumb.name }}
+					class="folder-tree__twisty"
+					tabindex="-1"
+					aria-hidden="true"
+					v-bind="tip(row.expanded
+						? t('honeycomb', 'Collapse {name}', { name: row.folder.name }, undefined, PLAIN_TEXT)
+						: t('honeycomb', 'Expand {name}', { name: row.folder.name }, undefined, PLAIN_TEXT))"
+					@click.stop="flip(row.folder)">
+					<AppIcon name="chevronRight" />
 				</button>
-			</template>
-		</nav>
-		<NcNoteCard v-if="failed" type="error">
-			{{ t('honeycomb', 'Could not load this folder.') }}
-		</NcNoteCard>
-		<template v-else>
-			<ul
-				v-if="folders.length > 0"
-				class="folder-list__options"
-				role="listbox"
-				:aria-multiselectable="!props.single"
-				:aria-label="t('honeycomb', 'Folders')">
-				<li
-					v-for="folder in folders"
-					:key="folder.path"
-					role="option"
-					tabindex="0"
-					class="folder-list__option"
-					:aria-selected="props.ticked.includes(folder.path)"
-					:aria-disabled="isHiddenFolder(folder.name) || props.blocked.includes(folder.path) || undefined"
-					@click="toggle(folder)"
-					@keydown.enter.space.prevent.self="toggle(folder)">
-					<span class="folder-list__box" aria-hidden="true">
-						<AppIcon v-if="props.ticked.includes(folder.path)" name="check" />
-					</span>
-					<AppIcon name="folder" />
-					<span class="folder-list__label">
-						<span class="folder-list__name">{{ folder.name }}</span>
-						<span v-if="isHiddenFolder(folder.name)" class="folder-list__meta">{{ t('honeycomb', 'Hidden folder, always skipped') }}</span>
-						<span v-else-if="props.blocked.includes(folder.path)" class="folder-list__meta">{{ t('honeycomb', 'Open folder, cannot be the target') }}</span>
-					</span>
-					<button
-						v-if="folder.hasSubfolders"
-						type="button"
-						class="folder-list__open"
-						:aria-label="t('honeycomb', 'Open {name}', { name: folder.name }, undefined, PLAIN_TEXT)"
-						v-bind="tip(t('honeycomb', 'Open {name}', { name: folder.name }, undefined, PLAIN_TEXT))"
-						@click.stop="open(folder.path)"
-						@keydown.stop>
-						<AppIcon name="chevronRight" />
-					</button>
-				</li>
-			</ul>
-			<p v-else class="folder-list__empty">
-				{{ t('honeycomb', 'This folder has no subfolders.') }}
-			</p>
+				<span v-else class="folder-tree__twisty" aria-hidden="true" />
+				<span class="folder-tree__box" aria-hidden="true">
+					<AppIcon v-if="props.ticked.includes(row.folder.path)" name="check" />
+				</span>
+				<AppIcon name="folder" />
+				<span class="folder-tree__label">
+					<span class="folder-tree__name">{{ row.folder.name }}</span>
+					<span v-if="isHiddenFolder(row.folder.name)" class="folder-tree__meta">{{ t('honeycomb', 'Hidden folder, always skipped') }}</span>
+					<span v-else-if="props.blocked.includes(row.folder.path)" class="folder-tree__meta">{{ t('honeycomb', 'Open folder, cannot be the target') }}</span>
+				</span>
+			</li>
+			<li
+				v-else
+				role="none"
+				class="folder-tree__note"
+				:class="{ 'folder-tree__note--failed': row.note === 'failed' }"
+				:style="{ '--folder-tree-level': row.level - 1 }">
+				{{ NOTES[row.note]() }}
+			</li>
 		</template>
-	</div>
+	</ul>
 </template>
 
 <style scoped>
-.folder-list__crumbs {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: var(--default-grid-baseline);
+.folder-tree {
+	--folder-tree-indent: calc(4 * var(--default-grid-baseline));
+	--folder-tree-target: 34px;
+	margin-top: calc(2 * var(--default-grid-baseline));
 }
 
-.folder-list__crumbs button,
-.folder-list__open {
-	min-width: 34px;
-	min-height: 34px;
-	padding: 0 calc(2 * var(--default-grid-baseline));
+.folder-tree__item,
+.folder-tree__note {
+	display: flex;
+	align-items: center;
+	gap: calc(2 * var(--default-grid-baseline));
+	min-height: var(--folder-tree-target);
+	padding-block: 0;
+	padding-inline: calc(var(--folder-tree-level) * var(--folder-tree-indent)) calc(2 * var(--default-grid-baseline));
+	border-radius: var(--border-radius-element);
+}
+
+.folder-tree__item {
+	cursor: pointer;
+}
+
+/* The note lines up with the names of the folders beside it. */
+.folder-tree__note {
+	padding-inline-start: calc(var(--folder-tree-level) * var(--folder-tree-indent) + var(--folder-tree-target) + 2 * var(--default-grid-baseline));
+	color: var(--color-text-maxcontrast);
+}
+
+.folder-tree__note--failed {
+	color: var(--color-error-text);
+}
+
+.folder-tree__item[aria-selected='true'] {
+	background-color: var(--color-primary-element-light);
+}
+
+.folder-tree__item[aria-disabled='true'] {
+	color: var(--color-text-maxcontrast);
+	cursor: default;
+}
+
+.folder-tree__item:focus-visible {
+	outline: 2px solid var(--color-primary-element);
+	outline-offset: -2px;
+}
+
+.folder-tree__twisty {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: var(--folder-tree-target);
+	height: var(--folder-tree-target);
+	min-height: 0;
+	/* Outranks Nextcloud's global button margin, which would make the row taller. */
+	margin: 0;
+	padding: 0;
 	border: none;
 	border-radius: var(--border-radius-element);
 	background: none;
@@ -148,47 +252,13 @@ void open('')
 	cursor: pointer;
 }
 
-.folder-list__crumbs button[aria-current] {
-	font-weight: bold;
+.folder-tree__item[aria-expanded='true'] .folder-tree__twisty :deep(svg) {
+	transform: rotate(90deg);
 }
 
-.folder-list__separator {
-	color: var(--color-text-maxcontrast);
-}
-
-.folder-list__options {
-	margin-top: calc(2 * var(--default-grid-baseline));
-}
-
-.folder-list__option {
+.folder-tree__box {
 	display: flex;
-	align-items: center;
-	gap: calc(2 * var(--default-grid-baseline));
-	min-height: 34px;
-	/* No vertical padding, so the open arrow does not make its row taller. */
-	padding: 0 calc(2 * var(--default-grid-baseline));
-	border-radius: var(--border-radius-element);
-	cursor: pointer;
-}
-
-.folder-list__option[aria-selected='true'] {
-	background-color: var(--color-primary-element-light);
-}
-
-.folder-list__option[aria-disabled='true'] {
-	color: var(--color-text-maxcontrast);
-	cursor: default;
-}
-
-.folder-list__option:focus-visible,
-.folder-list__crumbs button:focus-visible,
-.folder-list__open:focus-visible {
-	outline: 2px solid var(--color-primary-element);
-	outline-offset: -2px;
-}
-
-.folder-list__box {
-	display: flex;
+	flex: none;
 	align-items: center;
 	justify-content: center;
 	width: 20px;
@@ -197,48 +267,32 @@ void open('')
 	border-radius: var(--border-radius-small);
 }
 
-.folder-list__option[aria-selected='true'] .folder-list__box {
+.folder-tree__item[aria-selected='true'] .folder-tree__box {
 	border-color: var(--color-primary-element);
 	background-color: var(--color-primary-element);
 	color: var(--color-primary-element-text);
 }
 
-.folder-list__label {
+.folder-tree__label {
 	display: flex;
 	flex: 1;
 	flex-direction: column;
 	min-width: 0;
 }
 
-.folder-list__name {
+.folder-tree__name {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-.folder-list__meta,
-.folder-list__empty {
+.folder-tree__meta {
 	color: var(--color-text-maxcontrast);
 }
 
-.folder-list__open {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	margin-inline-start: auto;
-}
-
-/* Outranks Nextcloud's global button margin, which would make the row taller. */
-.folder-list__option .folder-list__open {
-	margin-block: 0;
-}
-
 @media (pointer: coarse) {
-	.folder-list__option,
-	.folder-list__crumbs button,
-	.folder-list__open {
-		min-width: 44px;
-		min-height: 44px;
+	.folder-tree {
+		--folder-tree-target: 44px;
 	}
 }
 </style>
