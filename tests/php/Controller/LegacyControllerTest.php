@@ -76,8 +76,7 @@ final class LegacyControllerTest extends TestCase {
 		$this->tags->replace($userId, [], [new PictureTags($fileId, ['Anna'])]);
 	}
 
-	/** @return array<string, mixed> */
-	private static function body(Response $response): array {
+	private static function body(Response $response): mixed {
 		return json_decode($response->render(), true, flags: JSON_THROW_ON_ERROR);
 	}
 

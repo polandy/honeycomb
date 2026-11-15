@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 /** Where the tags of each user are kept, by file id, with the user's tag list (ADR 0022). */
-interface TagStore extends FileRowStore {
+interface TagStore extends FileRowStore, LegacyRowStore {
 	/**
 	 * The stored tags among `$fileIds`, in file id order.
 	 * @param list<int> $fileIds
