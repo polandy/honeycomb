@@ -26,7 +26,7 @@ function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<
 	const tagWrites: { names: string[], change: TagChange }[] = []
 	const savedTags: StoredTags[][] = []
 	const tagLookups: number[][] = []
-	const writes: { name: string, decision: Decision }[][] = []
+	const writes: { name: string, decision: Decision, fields: readonly string[] }[][] = []
 	const settings = shallowRef<Settings>({ ...DEFAULT_SETTINGS, sidecarWrite: options.sidecarWrite ?? 'existing-and-new' })
 	const sidecars: CullSidecars = {
 		takeOver: async (pictures, storedIds, taggedIds) => {
@@ -38,8 +38,8 @@ function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<
 				tagged: pictures.filter((picture) => tags.has(picture.baseName)).map((picture) => ({ picture, tags: tags.get(picture.baseName)! })),
 			}
 		},
-		write: async (pictures, decisionOf) => {
-			writes.push(pictures.map((picture) => ({ name: picture.baseName, decision: decisionOf(picture) })))
+		write: async (pictures, decisionOf, fields) => {
+			writes.push(pictures.map((picture) => ({ name: picture.baseName, decision: decisionOf(picture), fields })))
 			return { written: pictures.length, failed: [] }
 		},
 		writeTags: async (pictures, change) => {
@@ -184,6 +184,22 @@ describe('useCull: writing through to the sidecars', () => {
 		await flushPromises()
 
 		expect(writes.map((write) => write.map(({ name }) => name))).toEqual([['IMG_10']])
+	})
+
+	// spec: XMP-003.20
+	it('writes only the fields a step and its undo change', async () => {
+		const { cull, writes, picture } = cullWith()
+		cull.open(SET, ENTRIES, [])
+		await flushPromises()
+
+		cull.decide({ kind: 'rating', rating: 4 }, [picture('IMG_10')])
+		await flushPromises()
+		cull.undo()
+		await flushPromises()
+		cull.decide({ kind: 'keepRaw' }, [picture('IMG_10')])
+		await flushPromises()
+
+		expect(writes.map((write) => write.map(({ fields }) => fields))).toEqual([[['rating']], [['rating']], [['keepRaw']]])
 	})
 
 	// spec: XMP-003.10
