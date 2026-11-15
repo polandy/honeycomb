@@ -18,7 +18,8 @@ sync client, a storage error.
 
 - **Shape:** `POST /apps/honeycomb/api/v1/trash`, logged in, with the usual CSRF token, and
   `{"pictures": [[{"fileId": 7, "etag": "…"}, …], …]}`: a list of pictures, each the list of its
-  files with the ETag from the listing. At most 60,000 files (the listing's limit, ADR 0009).
+  files with the ETag from the listing. At most 500 files since ADR 0029,
+  before that 60,000 (the listing's limit, ADR 0009).
 - **The server checks, it does not pair.** Each file is looked up by id in the user's files and
   must be a file whose mime type is `image/*` or whose name ends in `.xmp` (what the listing
   lists), with the given ETag (unchanged since the listing) and deletable by the user.

@@ -14,7 +14,8 @@ the result of each file, so a partial failure leaves a state the user can trace.
 
 `POST /apps/honeycomb/api/v1/trash` takes `{"pictures": [[{"fileId": 7, "etag": "…"}, …], …]}`:
 a list of pictures, each the list of its files with the ETag from the listing, at most 500
-files, so one request ends well inside a proxy or PHP timeout (ADR 0029). The server does not pair; it checks each file and trashes through `OCP\Files`.
+files, so one request ends well inside a proxy or PHP timeout (ADR 0029). The server does not
+pair; it checks each file and trashes through `OCP\Files`.
 
 For each picture:
 

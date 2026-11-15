@@ -169,8 +169,8 @@ trash bin refuses (`409`, a *Replace* with the trash bin off) says the trash bin
 - **Given** a move, or its undo, of more pictures than one request carries
 - **When** the user confirms, or taps *Undo*
 - **Then** each request carries at most 50 whole pictures and 500 files, a picture never spans two
-  requests, the next is sent when the last is answered, and the dialog shows how many of the
-  photos were sent until the last answer arrives
+  requests, the next is sent when the last is answered, and the move summary shows how many of
+  the photos were sent until the last answer arrives
 
 ### MOVE-004.18 – A later request fails
 

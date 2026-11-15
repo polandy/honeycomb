@@ -6,6 +6,7 @@
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { SendProgress } from '../logic/request-chunks.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
@@ -24,6 +25,8 @@ const props = defineProps<{
 	fromReview: boolean
 	/** Whether a delete runs. */
 	busy: boolean
+	/** How many photos the running delete has sent. */
+	progress?: SendProgress | null | undefined
 }>()
 
 const emit = defineEmits<{
@@ -59,6 +62,7 @@ const scope = computed(() => {
 	<ConfirmDialog
 		:title="n('honeycomb', 'Delete {count} photo', 'Delete {count} photos', summary.pictures, { count: formatNumber(summary.pictures) }, PLAIN_TEXT)"
 		:confirmLabel="n('honeycomb', 'Move {count} file to trash', 'Move {count} files to trash', summary.files, { count: formatNumber(summary.files) }, PLAIN_TEXT)"
+		:progress="props.progress"
 		:confirmDisabled="props.busy"
 		:back="props.fromReview"
 		:backLabel="t('honeycomb', 'Back to review')"

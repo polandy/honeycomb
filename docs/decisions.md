@@ -1165,3 +1165,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   amendment). Chosen over a one-time `.xmp.orig` copy, which would add synced files other
   programs may read and keep only the first version. The check is per user, like the trash bin
   check; a storage that keeps no versions despite the app is not detected.
+- 2026-11-15: Move and trash requests go in chunks of at most 50 whole pictures and 500 files;
+  the endpoints refuse more than 500 files (ADR 0029, risk review R4, R15). Chosen over a server
+  job queue or a move journal, both a new table. A later failed chunk keeps what earlier ones did
+  and lists the unsent files as `failed`, so *Retry failed files* and *Undo* cover them; the
+  progress shows as "N of M photos sent" in the dialog's footer.

@@ -8,6 +8,7 @@ import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { RawRemoval } from '../logic/raw-removal.ts'
+import type { SendProgress } from '../logic/request-chunks.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
@@ -24,6 +25,8 @@ const props = withDefaults(defineProps<{
 	folderSet: FolderSet
 	/** Whether the removal runs. */
 	busy: boolean
+	/** How many photos the running delete has sent. */
+	progress?: SendProgress | null | undefined
 	imageUrl?: ImageUrlFor
 }>(), { imageUrl: apiImageUrl })
 
@@ -71,6 +74,7 @@ const groups = computed(() => [
 	<ConfirmDialog
 		:title="n('honeycomb', 'Remove the RAW of {count} photo', 'Remove the RAWs of {count} photos', props.removal.removed.length, { count: formatNumber(props.removal.removed.length) }, PLAIN_TEXT)"
 		:confirmLabel="n('honeycomb', 'Move {count} file to trash', 'Move {count} files to trash', files.length, { count: formatNumber(files.length) }, PLAIN_TEXT)"
+		:progress="props.progress"
 		:confirmDisabled="props.busy || files.length === 0"
 		cancel
 		wide

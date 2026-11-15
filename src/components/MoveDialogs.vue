@@ -93,6 +93,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 		v-else-if="flow.pictures.value !== null"
 		:title="n('honeycomb', 'Move {count} photo', 'Move {count} photos', pictures, { count: formatNumber(pictures) }, PLAIN_TEXT)"
 		:confirmLabel="confirmLabel"
+		:progress="flow.progress.value"
 		:confirmDisabled="flow.plan.value === null || flow.counts.value.files === 0 || flow.busy.value"
 		:container="props.container"
 		cancel

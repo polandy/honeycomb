@@ -3,9 +3,14 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import { t } from '@nextcloud/l10n'
+import type { SendProgress } from '../logic/request-chunks.ts'
+
+import { n, t } from '@nextcloud/l10n'
+import { computed } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
+import ProgressBar from './ProgressBar.vue'
+import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 
 const props = defineProps<{
 	/** The dialog's heading. */
@@ -29,6 +34,8 @@ const props = defineProps<{
 	secondary?: boolean
 	/** Where the dialog opens, e.g. inside the loupe; the page body by default. */
 	container?: string | undefined
+	/** How many photos a running send has sent, shown in the footer (ADR 0029). */
+	progress?: SendProgress | null | undefined
 }>()
 
 const emit = defineEmits<{
@@ -36,6 +43,11 @@ const emit = defineEmits<{
 	cancel: []
 	confirm: []
 }>()
+
+/** "50 of 120 photos sent". */
+const progressText = computed(() => (props.progress
+	? n('honeycomb', '{done} of {total} photo sent', '{done} of {total} photos sent', props.progress.total, { done: formatNumber(props.progress.done), total: formatNumber(props.progress.total) }, PLAIN_TEXT)
+	: ''))
 
 /** Closing the dialog by its close button or Escape cancels it. */
 function onOpen(open: boolean) {
@@ -55,6 +67,10 @@ function onOpen(open: boolean) {
 		@update:open="onOpen">
 		<slot />
 		<template #actions>
+			<span v-if="props.progress" class="confirm-dialog__progress">
+				<ProgressBar :label="progressText" :value="props.progress.done" :max="props.progress.total" />
+				{{ progressText }}
+			</span>
 			<NcButton v-if="props.back" variant="tertiary" @click="emit('back')">
 				{{ props.backLabel ?? t('honeycomb', 'Back') }}
 			</NcButton>
@@ -67,6 +83,16 @@ function onOpen(open: boolean) {
 		</template>
 	</NcDialog>
 </template>
+
+<style scoped>
+.confirm-dialog__progress {
+	display: flex;
+	align-items: center;
+	gap: var(--default-grid-baseline);
+	margin-inline-end: auto;
+	color: var(--color-text-maxcontrast);
+}
+</style>
 
 <style>
 /* Unscoped: NcModal teleports the dialog out of this component; the mockup's phone breakpoint. */

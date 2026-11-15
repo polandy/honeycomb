@@ -130,8 +130,8 @@ final class TrashService {
 				$seen[$fileId] = true;
 			}
 		}
-		if (count($seen) > ListingService::ENTRY_LIMIT) {
-			throw new InvalidTrashRequestException('At most ' . ListingService::ENTRY_LIMIT . ' files');
+		if (count($seen) > PictureRequestLimit::FILES) {
+			throw new InvalidTrashRequestException('At most ' . PictureRequestLimit::FILES . ' files');
 		}
 		/** @var list<non-empty-list<array{fileId: int, etag: string}>> $pictures */
 		return $pictures;

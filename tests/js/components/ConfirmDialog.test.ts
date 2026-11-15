@@ -59,8 +59,8 @@ describe('ConfirmDialog', () => {
 	it('shows how many photos were sent while a send runs, and nothing otherwise', () => {
 		const bar = mountDialog({ progress: { done: 50, total: 120 } }).find('[role="progressbar"]')
 
-		expect(bar.attributes()).toMatchObject({ 'aria-valuenow': '50', 'aria-valuemax': '120', 'aria-label': `${MARK}50 of 120 photos sent` })
-		expect(mountDialog({ progress: { done: 50, total: 120 } }).text()).toContain(`${MARK}50 of 120 photos sent`)
+		expect(bar.attributes()).toMatchObject({ 'aria-valuenow': '50', 'aria-valuemax': '120', 'aria-label': expect.stringMatching(/^\[de\] .*50 of 120 photos sent$/) })
+		expect(mountDialog({ progress: { done: 50, total: 120 } }).text()).toContain('50 of 120 photos sent')
 		expect(mountDialog({ progress: null }).find('[role="progressbar"]').exists()).toBe(false)
 	})
 

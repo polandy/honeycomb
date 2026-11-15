@@ -5,6 +5,7 @@ import type { DecisionIntent } from './logic/decision-change.ts'
 import type { Decision } from './logic/decision.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
+import type { ChunkLimits, SendProgress } from './logic/request-chunks.ts'
 import type { TrashBatch, TrashReport, TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
 import type { ToastAction } from './toast.ts'
 
@@ -14,6 +15,7 @@ import { TrashBinOffError } from './api.ts'
 import { logger } from './logger.ts'
 import { rejectedPictures } from './logic/delete-summary.ts'
 import { rawBatch, rawRemoval } from './logic/raw-removal.ts'
+import { sendInChunks } from './logic/request-chunks.ts'
 import { followReplaced, retryBatch, trashReport, trashRequest, wholePictures } from './logic/trash-report.ts'
 import { deletedText, removedRawsText } from './trash-text.ts'
 
@@ -44,12 +46,15 @@ export interface DeleteFlowContext {
 	readonly removeFiles: (fileIds: ReadonlySet<number>) => ReadonlyMap<Picture<ListingEntry>, Picture<ListingEntry> | null>
 	readonly loupe: Ref<LoupeSnapshot | null>
 	readonly toast: (message: string, action?: ToastAction | null) => void
+	/** Overrides the request size of ADR 0029, for tests. */
+	readonly chunks?: ChunkLimits | undefined
 }
 
 /** Reject review, delete summary, *Remove RAWs* and delete report (`docs/plan.md` Culling workflow, Keep RAW and Remove RAWs, Q11). */
 export function useDeleteFlow(context: DeleteFlowContext) {
 	const dialog = shallowRef<DeleteDialog | null>(null)
 	const busy = ref(false)
+	const progress = shallowRef<SendProgress | null>(null)
 	const rejected = computed(() => rejectedPictures(context.pictures(), context.decisionOf))
 	const removable = computed(() => rawRemoval(context.view(), context.decisionOf).removed.length)
 	const removal = computed(() => (dialog.value?.kind === 'raws' ? rawRemoval(dialog.value.pictures, context.decisionOf) : null))
@@ -93,11 +98,20 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 		context.decide({ kind: 'flag', flag: 'unflagged' }, [picture])
 	}
 
-	/** Sends the batch, takes the trashed files out of the listing and the loupe, and reports. */
+	/** Sends the batch in chunks, takes the trashed files out of the listing and the loupe, and reports. */
 	async function send(batch: TrashBatch, done: (report: TrashReport) => string) {
 		busy.value = true
 		try {
-			const report = trashReport(batch, await context.trash(trashRequest(batch)))
+			const sent = await sendInChunks(trashRequest(batch), context.trash, (count) => {
+				progress.value = { done: count, total: batch.length }
+			}, context.chunks)
+			if (sent.failure !== null && sent.answers.length === 0) {
+				throw sent.failure.error
+			}
+			if (sent.failure !== null) {
+				logger.error('Stopped the delete after a failed request', { error: sent.failure.error })
+			}
+			const report = trashReport(batch, sent.answers)
 			const replaced = context.removeFiles(new Set(report.trashed.map((file) => file.entry.fileId)))
 			const loupe = toRaw(context.loupe.value)
 			context.loupe.value = loupe === null ? null : followReplaced(loupe.pictures, loupe.index, replaced)
@@ -111,6 +125,7 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 				: t('honeycomb', 'Could not delete the photos; reload the folder to see what changed.'))
 		} finally {
 			busy.value = false
+			progress.value = null
 		}
 	}
 
@@ -139,6 +154,7 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 	return {
 		dialog,
 		busy,
+		progress,
 		rejected,
 		rawRemovable: removable,
 		rawRemoval: removal,

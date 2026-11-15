@@ -52,9 +52,10 @@ file id. Restoring a file from the trash bin is not public API (ADR 0013).
   the move created stay.
 - **Errors:** `400` for a malformed body, an empty picture, a path that is not absolute or holds an
   empty, `.` or `..` segment, a backslash or a NUL, a file id or target path given twice
-  (case-insensitively), a `replace` that names a file of the request, or more than 60,000 files or
-  folders; nothing is touched. `409` when a file is to be replaced and the trash bin app is off for
-  the user, since replacing would delete for good; nothing is touched. `401` without a user.
+  (case-insensitively), a `replace` that names a file of the request, or more than 500 files
+  (ADR 0029) or 60,000 folders; nothing is touched. `409` when a file is to be replaced and the
+  trash bin app is off for the user, since replacing would delete for good; nothing is touched.
+  `401` without a user.
 
 ## Consequences
 
