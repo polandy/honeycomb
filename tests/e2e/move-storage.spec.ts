@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { type APIRequestContext, expect, request, test } from '@playwright/test'
+import type { APIRequestContext } from '@playwright/test'
+
+import { expect, request, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
 import { cullFolder } from './cull.ts'
