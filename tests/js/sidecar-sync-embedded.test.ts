@@ -10,9 +10,9 @@ import { readXmp } from '../../src/logic/xmp/parse.ts'
 import { serializeXmp } from '../../src/logic/xmp/serialize.ts'
 import { useSidecarSync } from '../../src/sidecar-sync.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
-import { CANONICAL_TIME, itemsOf, packetOf, seq } from './logic/xmp/xmp-builders.ts'
+import { CANONICAL_TIME, itemsOf, packetOf, seq, textOf } from './logic/xmp/xmp-builders.ts'
 
-const PAIR = pictureOf(listingEntry(1, '/P/IMG_0001.NEF', { mime: 'image/x-nikon-nef' }), listingEntry(2, '/P/IMG_0001.JPG'), listingEntry(11, '/P/IMG_0001.NEF.xmp'))
+const PAIR = pictureOf(listingEntry(1, '/P/IMG_0001.NEF', { mime: 'image/x-nikon-nef' }), listingEntry(2, '/P/IMG_0001.JPG', { mtime: 50 }), listingEntry(11, '/P/IMG_0001.NEF.xmp'))
 const ALONE = pictureOf(listingEntry(3, '/P/B.JPG'))
 const WEDDING = { added: ['Events/Wedding'], removed: [] }
 
@@ -63,12 +63,14 @@ describe('useSidecarSync: the embedded XMP in the take-over', () => {
 		expect(taken).toEqual([{ picture: PAIR, tags: ['People/Anna', 'Places/Lisbon'] }, { picture: ALONE, tags: ['Kids'] }])
 	})
 
-	// spec: TAGS-002.16
-	it('looks nothing up while the stored tags are unknown, and no sidecars for a JPEG alone', async () => {
-		const { sidecars, lookups, embeddedLookups } = sync(() => ({ result: 'none' }))
+	// spec: XMP-003.22
+	it('takes the embedded decision over also while the stored tags are unknown, and looks up no sidecars for a JPEG alone', async () => {
+		const { sidecars, lookups, embeddedLookups } = sync(() => ({ result: 'read', bytes: tagged(['Kids'], '2') }))
 
-		expect(await sidecars.takeOver([ALONE], new Set(), null)).toEqual({ decided: [], tagged: [] })
-		expect(await sidecars.takeOver([ALONE], new Set(), new Set())).toEqual({ decided: [], tagged: [] })
+		const { decided, tagged: taken } = await sidecars.takeOver([ALONE], new Set(), null)
+
+		expect(decided.map(({ picture, decision }) => [picture, decision.rating])).toEqual([[ALONE, 2]])
+		expect(taken).toEqual([])
 		expect(lookups).toEqual([])
 		expect(embeddedLookups).toEqual([[3]])
 	})
@@ -85,6 +87,30 @@ describe('useSidecarSync: the embedded XMP in the take-over', () => {
 		expect(warn).toHaveBeenCalledWith('Could not look up the embedded XMP; its pictures take no tags over', expect.anything())
 		expect(warn).toHaveBeenCalledWith('Could not read the embedded XMP; the picture takes no tags over', { path: '/P/IMG_0001.JPG', reason: 'unreachable' })
 		warn.mockRestore()
+	})
+})
+
+describe('useSidecarSync: the embedded XMP in a decision write', () => {
+	// spec: XMP-003.23
+	it('starts the JPEG\'s new sidecar from the embedded decision', async () => {
+		const { sidecars, embeddedLookups, saves } = sync(() => ({ result: 'read', bytes: tagged([], '4') }))
+
+		await sidecars.write([ALONE], () => ({ rating: 4, flag: 'picked', colourLabel: null, keepRaw: false }), ['flag'])
+
+		expect(embeddedLookups).toEqual([[3]])
+		expect(saves.map((items) => items.map((item) => [textOf(readXmp(item.bytes), 'xmp:Rating'), textOf(readXmp(item.bytes), 'digiKam:PickLabel')]))).toEqual([[['4', '3']]])
+	})
+
+	// spec: XMP-003.24
+	it('writes nothing for a picture whose embedded lookup failed', async () => {
+		const error = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
+		const { sidecars, saves, failures } = sync(() => null)
+
+		await sidecars.write([ALONE], () => ({ rating: 1, flag: 'unflagged', colourLabel: null, keepRaw: false }), ['rating'])
+
+		expect(saves).toEqual([])
+		expect(failures).toEqual([[{ path: '/P/B.JPG.xmp', picture: ALONE, reason: 'unreachable', fields: ['rating'] }]])
+		error.mockRestore()
 	})
 })
 

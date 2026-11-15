@@ -28,8 +28,8 @@ of a picture in sort order) is left out and logged as a warning.
 
 **The embedded XMP** of the picture's JPEG (`image/jpeg`) is one more source (D1) while the JPEG
 has no sidecar of its own, neither `<JPEG file>.xmp` nor the shared `<base name>.xmp`; one that
-exists replaces it, as in digiKam. It is looked up only for pictures that take tags over and for
-tag writes, and never written. A picture whose embedded XMP cannot be looked up takes no tags over
+exists replaces it, as in digiKam. It is looked up for pictures that take a decision or tags over
+and for every write (XMP-003.22), and never written. A picture whose embedded XMP cannot be looked up takes no tags over
 and is not written through; its sidecars fail as when they cannot be read.
 
 **A tag change** (tags added, tags removed) applies to each chosen picture's tags; the result is
@@ -160,7 +160,7 @@ decision's (XMP-003.13); *Retry failed sidecars* applies the same change again.
 ### TAGS-002.16 – A sidecar of the JPEG replaces its embedded XMP
 
 - **Given** pictures without a stored decision or tags, one with `<JPEG file>.xmp`, one with the
-  shared `<base name>.xmp`, one a RAW alone, one a HEIC, and one with stored tags
+  shared `<base name>.xmp`, one a RAW alone, one a HEIC, and one with a stored decision
 - **When** the cull opens
 - **Then** no embedded XMP is looked up
 
@@ -217,3 +217,4 @@ decision's (XMP-003.13); *Retry failed sidecars* applies the same change again.
 | 2026-11-13 | The JPEG's embedded XMP as one more source (*Tags 1b*, .15–.20) |
 | 2026-11-14 | Tag saves go one at a time, the newest tags per file (.21) |
 | 2026-11-14 | Tag changes waiting for one sidecar pass are saved once (XMP-003.16) |
+| 2026-11-15 | The embedded XMP is looked up for the decision too, also with stored tags (XMP-003.22) |
