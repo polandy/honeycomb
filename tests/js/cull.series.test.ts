@@ -186,4 +186,22 @@ describe('useCull: series edits', () => {
 		expect(names(cull)).toEqual([['A', 'B', 'C', 'D']])
 		expect(cull.series.value[0]!.stored?.id).toBe(12)
 	})
+
+	// spec: SERIES-005.8, SERIES-005.9
+	it('merges two series under the first one\'s id as one undo step, open unless both were done', async () => {
+		const { cull, written } = editedCull({ lookupSeries: async () => ({ series: [{ id: 12, status: 'done' as const, fileIds: [1, 2] }, { id: 13, status: 'open' as const, fileIds: [3, 4] }].map((series) => ({ ...series, elsewhere: false })), keptOut: [] }) })
+		await flushPromises()
+
+		const step = cull.mergeSeries(cull.everySeries.value)
+		await flushPromises()
+
+		expect(step).toMatchObject({ kind: 'series', edit: 'merge', names: ['A', 'B', 'C', 'D'], series: 2 })
+		expect(written).toEqual([{ series: [{ id: 12, status: 'open', fileIds: [1, 2, 3, 4] }], keptOut: [], released: [] }])
+		expect(names(cull)).toEqual([['A', 'B', 'C', 'D']])
+
+		cull.undo()
+		await flushPromises()
+		expect(written.at(-1)).toEqual({ series: [{ id: 12, status: 'done', fileIds: [1, 2] }, { id: 13, status: 'open', fileIds: [3, 4] }], keptOut: [], released: [] })
+	})
 })
+

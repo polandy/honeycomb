@@ -117,4 +117,15 @@ describe('useSeriesCompare: opened from the loupe', () => {
 		expect(compare.open.value).toBe(false)
 		expect(landings).toEqual(['on E'])
 	})
+
+	// spec: SERIES-005.8
+	it('merges its one series with the series before it and holds the merged series', () => {
+		const { compare, calls, shown } = fromLoupe(['C', 'D'], 'D', ['A', 'B'])
+
+		expect(compare.neighbours.value.next).toBeNull()
+		compare.merge('previous')
+		expect(calls).toEqual(['merge A B + C D'])
+		expect(shown()).toEqual(['A', 'B', 'C', 'D'])
+		expect([compare.oneSeries.value, compare.count.value, compare.active.value]).toEqual([true, 1, 3])
+	})
 })

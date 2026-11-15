@@ -237,4 +237,18 @@ describe('App: series compare', () => {
 		expect(toastText(wrapper)).toContain('Undid: Dissolved the series · 2 photos')
 		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_3'])
 	})
+
+	// spec: SERIES-005.8
+	it('merges the series with the next one from the compare, with a toast and undo', async () => {
+		const { wrapper } = await openApp()
+		await press('n')
+
+		compare(wrapper).vm.$emit('merge', 'next')
+		await flushPromises()
+		expect(toastText(wrapper)).toContain('Merged 2 series · 5 photos')
+		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_2', 'IMG_3', 'IMG_4', 'IMG_5'])
+		await press('z', { ctrlKey: true })
+		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_2', 'IMG_3'])
+	})
 })
+

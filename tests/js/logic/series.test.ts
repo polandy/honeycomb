@@ -7,7 +7,7 @@ import type { Series } from '../../../src/logic/series.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { allSeries, findSeries, hashablePictures, openSeries, SERIES_GAP_SECONDS, SERIES_SPAN_SECONDS, seriesCandidates, seriesMembers, seriesSizes, visibleMembers, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
+import { allSeries, findSeries, hashablePictures, openSeries, SERIES_GAP_SECONDS, SERIES_SPAN_SECONDS, seriesCandidates, seriesMembers, seriesNeighbours, seriesSizes, visibleMembers, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
 /** Pictures named `/<folder>/<name>.JPG`, shot at `time` by `camera`. */
@@ -232,5 +232,22 @@ describe('openSeries', () => {
 		const open = openSeries([{ key: 1, members: ['A', 'B'] }, { key: 3, members: ['C', 'D'] }], (picture) => picture === 'D')
 
 		expect([...open]).toEqual(['C', 'D'])
+	})
+})
+
+describe('seriesNeighbours', () => {
+	const series = [1, 5, 9].map((key) => ({ key, members: [key, key + 1] }))
+
+	// spec: SERIES-005.8
+	it('finds the series before and after the one with the key, none at either end', () => {
+		expect(seriesNeighbours(series, 5)).toEqual({ previous: series[0], next: series[2] })
+		expect(seriesNeighbours(series, 1)).toEqual({ previous: null, next: series[1] })
+		expect(seriesNeighbours(series, 9)).toEqual({ previous: series[1], next: null })
+	})
+
+	// spec: SERIES-005.8
+	it('finds none for a series that is not among them', () => {
+		expect(seriesNeighbours(series, 3)).toEqual({ previous: null, next: null })
+		expect(seriesNeighbours(series, null)).toEqual({ previous: null, next: null })
 	})
 })
