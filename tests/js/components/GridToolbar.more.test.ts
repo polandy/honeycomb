@@ -13,16 +13,31 @@ describe('GridToolbar More menu', () => {
 	afterEach(uninstallMarkedCatalogue)
 
 	// spec: GRID-001.17
-	it.each([['Review rejects', 'rejected', 'reviewRejects'], ['Compare series', 'series', 'compareSeries']] as const)('keeps %s in the toolbar from 900 px and in the More menu below, with its count, held at 0', async (label, count, event) => {
+	it('keeps Compare series in the toolbar from 900 px and in the More menu below, with its count, held at 0', async () => {
 		const set = { paths: ['/Trip'], subfolders: false }
-		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('.grid-more-menu__narrow').find((button) => button.text().includes(label))!
-		const wrapper = mountToolbar(set, 1, { [count]: 4 })
+		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('.grid-more-menu__narrow').find((button) => button.text().includes('Compare series'))!
+		const wrapper = mountToolbar(set, 1, { series: 4 })
 
-		expect(wrapper.find(`[aria-label*="${label}"]`).classes()).toContain('grid-toolbar__wide')
+		expect(wrapper.find('[aria-label*="Compare series"]').classes()).toContain('grid-toolbar__wide')
 		expect(item(mountToolbar(set)).attributes('disabled')).toBeDefined()
-		expect(item(wrapper).text().replaceAll(MARK, '')).toBe(`${label} 4`)
+		expect(item(wrapper).text().replaceAll(MARK, '')).toBe('Compare series 4')
 		await item(wrapper).trigger('click')
-		expect(wrapper.emitted(event)).toHaveLength(1)
+		expect(wrapper.emitted('compareSeries')).toHaveLength(1)
+	})
+
+	// spec: GRID-001.17, DELETE-002.19
+	it('reviews the rejects from the More menu at every width, with its count and Ctrl+Backspace, held at 0', async () => {
+		const set = { paths: ['/Trip'], subfolders: false }
+		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('.grid-more-menu button').find((button) => button.text().includes('Review rejects'))!
+		const wrapper = mountToolbar(set, 1, { rejected: 4 })
+
+		expect(wrapper.find('[aria-label*="Review rejects"]').classes()).toContain('grid-toolbar__wide')
+		expect(item(mountToolbar(set)).attributes('disabled')).toBeDefined()
+		expect(item(wrapper).classes()).not.toContain('grid-more-menu__narrow')
+		expect(item(wrapper).text().replaceAll(MARK, '')).toBe('Review rejects 4Ctrl+Backspace')
+		expect(item(wrapper).find('kbd').text()).toBe('Ctrl+Backspace')
+		await item(wrapper).trigger('click')
+		expect(wrapper.emitted('reviewRejects')).toHaveLength(1)
 	})
 
 	it('removes RAWs from the More menu with their count, held while there are none', async () => {
