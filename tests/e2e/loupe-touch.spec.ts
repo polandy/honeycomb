@@ -87,8 +87,11 @@ test('pins the filmstrip by the pin at its own end in landscape, and offers none
 		expect(pinBox.y).toBeCloseTo(stripBox.y, 0)
 		expect(pinBox.x).toBeGreaterThanOrEqual(stripBox.x + stripBox.width - 1)
 
+		// The reset in finally must land after the pin's own save, or the pin outlives this test.
+		const saved = page.waitForResponse((response) => response.url().endsWith('/api/v1/settings') && response.request().method() === 'PUT' && response.request().postDataJSON().settings.filmstripPinned === true && response.ok())
 		await pin.tap()
 		await expect(pin).toHaveAttribute('aria-pressed', 'true')
+		await saved
 		const stage = (await loupe.locator('.loupe-stage').boundingBox())!
 		expect(stage.y + stage.height).toBeLessThanOrEqual((await strip.boundingBox())!.y)
 
