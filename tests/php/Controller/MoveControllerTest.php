@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\MoveController;
 use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\MoveService;
@@ -41,7 +42,7 @@ final class MoveControllerTest extends TestCase {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $this->treeUser() : null);
 		$move = new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores(new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore(), new FakeSeriesStore()), $this->createStub(LoggerInterface::class));
-		return new MoveController(Application::APP_ID, $this->createStub(IRequest::class), $session, $move, new MoveTargetService($this->treeRoot()));
+		return new MoveController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $move, new MoveTargetService($this->treeRoot()));
 	}
 
 	// spec: MOVE-002.1

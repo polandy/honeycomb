@@ -7,20 +7,16 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\FolderNotFoundException;
-use OCA\Honeycomb\Service\FolderNotReadableException;
-use OCA\Honeycomb\Service\InvalidCursorException;
-use OCA\Honeycomb\Service\InvalidVisualHashException;
 use OCA\Honeycomb\Service\MissingVisualHashes;
 use OCA\Honeycomb\Service\VisualHashService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
-use OCP\IUserSession;
+use OCP\IUser;
 
 /** @psalm-suppress UnusedClass Routed by its attributes. */
 final class VisualHashController extends Controller {
@@ -32,7 +28,7 @@ final class VisualHashController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IUserSession $userSession,
+		private ApiResponse $api,
 		private VisualHashService $service,
 		private MissingVisualHashes $missing,
 	) {
@@ -43,34 +39,14 @@ final class VisualHashController extends Controller {
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/visual-hashes')]
 	#[UserRateLimit(limit: self::SAVES_PER_PERIOD, period: self::SAVE_PERIOD_SECONDS)]
-	public function save(array $hashes = []): JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse([], Http::STATUS_UNAUTHORIZED);
-		}
-		try {
-			return new JSONResponse(['saved' => $this->service->save($user, $hashes)]);
-		} catch (InvalidVisualHashException) {
-			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
-		}
+	public function save(array $hashes = []): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(['saved' => $this->service->save($user, $hashes)]));
 	}
 
 	/** The next page of the user's photos below `$path` without a hash of their current etag (ADR 0025). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/visual-hashes/missing')]
-	public function missing(string $path = '', string $after = ''): JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse([], Http::STATUS_UNAUTHORIZED);
-		}
-		try {
-			return new JSONResponse($this->missing->page($user, $path, $after));
-		} catch (FolderNotFoundException) {
-			return new JSONResponse([], Http::STATUS_NOT_FOUND);
-		} catch (FolderNotReadableException) {
-			return new JSONResponse([], Http::STATUS_FORBIDDEN);
-		} catch (InvalidCursorException) {
-			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
-		}
+	public function missing(string $path = '', string $after = ''): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->missing->page($user, $path, $after)));
 	}
 }

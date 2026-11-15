@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\ViewStateController;
 use OCA\Honeycomb\Service\ViewStateService;
 use OCP\AppFramework\Http;
@@ -38,7 +39,7 @@ final class ViewStateControllerTest extends TestCase {
 			$this->stored[$key] = $value;
 			return true;
 		});
-		return new ViewStateController(Application::APP_ID, $this->createStub(IRequest::class), $session, new ViewStateService($config));
+		return new ViewStateController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new ViewStateService($config));
 	}
 
 	// spec: LOUPE-003.1

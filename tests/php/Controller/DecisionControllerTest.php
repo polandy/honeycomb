@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\DecisionController;
 use OCA\Honeycomb\Service\DecisionService;
 use OCA\Honeycomb\Tests\Service\FakeDecisionStore;
@@ -33,7 +34,7 @@ final class DecisionControllerTest extends TestCase {
 		$user->method('getUID')->willReturn('alice');
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
-		return new DecisionController(Application::APP_ID, $this->createStub(IRequest::class), $session, new DecisionService(new FakeDecisionStore(), $this->userPhotos(7)));
+		return new DecisionController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new DecisionService(new FakeDecisionStore(), $this->userPhotos(7)));
 	}
 
 	// spec: DECISIONS-001.1

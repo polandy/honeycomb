@@ -7,25 +7,23 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\InvalidSidecarRequestException;
 use OCA\Honeycomb\Service\SidecarReader;
 use OCA\Honeycomb\Service\SidecarWriter;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
 use OCP\IUser;
-use OCP\IUserSession;
 
 /** @psalm-suppress UnusedClass Routed by its attributes. */
 final class SidecarController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IUserSession $userSession,
+		private ApiResponse $api,
 		private SidecarReader $reader,
 		private SidecarWriter $writer,
 	) {
@@ -35,7 +33,7 @@ final class SidecarController extends Controller {
 	/** Answers the bytes of each listed sidecar (ADR 0017). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'POST', url: '/api/v1/sidecars/lookup')]
-	public function lookup(array $fileIds = []): JSONResponse {
+	public function lookup(array $fileIds = []): Response {
 		return $this->answer(fn (IUser $user): array => $this->reader->lookup($user, $fileIds));
 	}
 
@@ -43,20 +41,12 @@ final class SidecarController extends Controller {
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/sidecars')]
 	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
-	public function save(array $sidecars = []): JSONResponse {
+	public function save(array $sidecars = []): Response {
 		return $this->answer(fn (IUser $user): array => $this->writer->save($user, $sidecars));
 	}
 
 	/** @param \Closure(IUser): list<array<string, mixed>> $handle */
-	private function answer(\Closure $handle): JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse([], Http::STATUS_UNAUTHORIZED);
-		}
-		try {
-			return new JSONResponse(['sidecars' => $handle($user)]);
-		} catch (InvalidSidecarRequestException) {
-			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
-		}
+	private function answer(\Closure $handle): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(['sidecars' => $handle($user)]));
 	}
 }

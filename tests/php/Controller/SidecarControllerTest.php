@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\SidecarController;
 use OCA\Honeycomb\Service\SidecarReader;
 use OCA\Honeycomb\Service\SidecarWriter;
@@ -51,7 +52,7 @@ final class SidecarControllerTest extends TestCase {
 		$logger = $this->createStub(LoggerInterface::class);
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturn(true);
-		return new SidecarController(Application::APP_ID, $this->createStub(IRequest::class), $session, new SidecarReader(new UserPhotos(new UserFolderResolver($root)), $logger), new SidecarWriter(new UserPhotos(new UserFolderResolver($root)), $apps, $logger));
+		return new SidecarController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new SidecarReader(new UserPhotos(new UserFolderResolver($root)), $logger), new SidecarWriter(new UserPhotos(new UserFolderResolver($root)), $apps, $logger));
 	}
 
 	// spec: XMP-002.1

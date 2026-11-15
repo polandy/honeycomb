@@ -7,23 +7,22 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\InvalidSeriesException;
 use OCA\Honeycomb\Service\SeriesService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
-use OCP\IUserSession;
+use OCP\IUser;
 
 /** @psalm-suppress UnusedClass Routed by its attributes. */
 final class SeriesController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IUserSession $userSession,
+		private ApiResponse $api,
 		private SeriesService $service,
 	) {
 		parent::__construct($appName, $request);
@@ -32,31 +31,15 @@ final class SeriesController extends Controller {
 	/** The user's stored series and kept-out files among the file ids (ADR 0027). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'POST', url: '/api/v1/series/lookup')]
-	public function lookup(array $fileIds = []): JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse([], Http::STATUS_UNAUTHORIZED);
-		}
-		try {
-			return new JSONResponse($this->service->lookup($user, $fileIds));
-		} catch (InvalidSeriesException) {
-			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
-		}
+	public function lookup(array $fileIds = []): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->service->lookup($user, $fileIds)));
 	}
 
 	/** Writes the whole states of the series, kept-out and released files given (ADR 0027). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/series')]
 	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
-	public function save(array $series = [], array $keptOut = [], array $released = []): JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse([], Http::STATUS_UNAUTHORIZED);
-		}
-		try {
-			return new JSONResponse($this->service->save($user, $series, $keptOut, $released));
-		} catch (InvalidSeriesException) {
-			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
-		}
+	public function save(array $series = [], array $keptOut = [], array $released = []): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->service->save($user, $series, $keptOut, $released)));
 	}
 }

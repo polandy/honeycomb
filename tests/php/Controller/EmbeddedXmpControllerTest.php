@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\EmbeddedXmpController;
 use OCA\Honeycomb\Service\EmbeddedXmpReader;
 use OCA\Honeycomb\Service\JpegXmp;
@@ -44,7 +45,7 @@ final class EmbeddedXmpControllerTest extends TestCase {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
 		$reader = new EmbeddedXmpReader(new UserPhotos(new UserFolderResolver($root)), new JpegXmp(), $this->createStub(LoggerInterface::class));
-		return new EmbeddedXmpController(Application::APP_ID, $this->createStub(IRequest::class), $session, $reader);
+		return new EmbeddedXmpController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $reader);
 	}
 
 	// spec: XMP-005.1

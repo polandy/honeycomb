@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Controller;
 
 use OCA\Honeycomb\Service\DecisionService;
-use OCA\Honeycomb\Service\InvalidDecisionException;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -17,14 +16,14 @@ use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
-use OCP\IUserSession;
+use OCP\IUser;
 
 /** @psalm-suppress UnusedClass Routed by its attributes. */
 final class DecisionController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IUserSession $userSession,
+		private ApiResponse $api,
 		private DecisionService $decisions,
 	) {
 		parent::__construct($appName, $request);
@@ -33,16 +32,8 @@ final class DecisionController extends Controller {
 	/** The user's stored decisions among the file ids (ADR 0012). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'POST', url: '/api/v1/decisions/lookup')]
-	public function lookup(array $fileIds = []): JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse([], Http::STATUS_UNAUTHORIZED);
-		}
-		try {
-			return new JSONResponse(['decisions' => $this->decisions->lookup($user, $fileIds)]);
-		} catch (InvalidDecisionException) {
-			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
-		}
+	public function lookup(array $fileIds = []): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(['decisions' => $this->decisions->lookup($user, $fileIds)]));
 	}
 
 	/** Replaces the user's decisions on the files with the whole states given (ADR 0012). */
@@ -50,15 +41,9 @@ final class DecisionController extends Controller {
 	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/decisions')]
 	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
 	public function save(array $decisions = []): Response {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new Response(Http::STATUS_UNAUTHORIZED);
-		}
-		try {
+		return $this->api->forUser(function (IUser $user) use ($decisions): Response {
 			$this->decisions->save($user, $decisions);
 			return new Response(Http::STATUS_NO_CONTENT);
-		} catch (InvalidDecisionException) {
-			return new Response(Http::STATUS_BAD_REQUEST);
-		}
+		});
 	}
 }

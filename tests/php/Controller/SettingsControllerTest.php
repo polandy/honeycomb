@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\SettingsController;
 use OCA\Honeycomb\Service\SettingsService;
 use OCP\AppFramework\Http;
@@ -36,7 +37,7 @@ final class SettingsControllerTest extends TestCase {
 			$this->stored = $value;
 			return true;
 		});
-		return new SettingsController(Application::APP_ID, $this->createStub(IRequest::class), $session, new SettingsService($config));
+		return new SettingsController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new SettingsService($config));
 	}
 
 	// spec: SETTINGS-001.1

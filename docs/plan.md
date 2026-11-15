@@ -915,7 +915,8 @@ honeycomb/
 │   ├── AppInfo/Application.php
 │   ├── Controller/             one thin controller per resource: Page, Entry, Folder, Image,
 │   │                           Decision, Tag, Position, ViewState, Settings, Trash, Move,
-│   │                           Sidecar, EmbeddedXmp, VisualHash
+│   │                           Sidecar, EmbeddedXmp, VisualHash; `ApiResponse` maps the
+│   │                           missing user and the service exceptions to HTTP status codes
 │   ├── Service/                one service per resource (`ListingService`, `DecisionService`,
 │   │                           `TrashService`, `MoveService`, ...), its request and result
 │   │                           values, and one typed `Invalid*Exception` per request kind

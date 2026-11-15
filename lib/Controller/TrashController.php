@@ -7,24 +7,22 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\InvalidTrashRequestException;
-use OCA\Honeycomb\Service\TrashBinDisabledException;
 use OCA\Honeycomb\Service\TrashService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
-use OCP\IUserSession;
+use OCP\IUser;
 
 /** @psalm-suppress UnusedClass Routed by its attributes. */
 final class TrashController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IUserSession $userSession,
+		private ApiResponse $api,
 		private TrashService $trash,
 	) {
 		parent::__construct($appName, $request);
@@ -34,17 +32,7 @@ final class TrashController extends Controller {
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'POST', url: '/api/v1/trash')]
 	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
-	public function trash(array $pictures = []): JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse([], Http::STATUS_UNAUTHORIZED);
-		}
-		try {
-			return new JSONResponse(['pictures' => $this->trash->trash($user, $pictures)]);
-		} catch (InvalidTrashRequestException) {
-			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
-		} catch (TrashBinDisabledException) {
-			return new JSONResponse([], Http::STATUS_CONFLICT);
-		}
+	public function trash(array $pictures = []): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(['pictures' => $this->trash->trash($user, $pictures)]));
 	}
 }
