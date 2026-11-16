@@ -42,7 +42,7 @@ final class SeriesWriteLockTest extends DbTestCase {
 				$this->lockedAfterFirstStatement = $this->writeLockTaken();
 			}
 		};
-		$db = $this->createMock(IDBConnection::class);
+		$db = $this->createStub(IDBConnection::class);
 		$db->method('beginTransaction')->willReturnCallback(fn () => $this->db->beginTransaction());
 		$db->method('commit')->willReturnCallback(fn () => $this->db->commit());
 		$db->method('rollBack')->willReturnCallback(fn () => $this->db->rollBack());
