@@ -235,6 +235,14 @@ through every new visual hash.
 - **When** the cull opens
 - **Then** the error is logged, every series is automatic, and decisions and tags still load
 
+### SERIES-005.27 – Write beside another save
+
+- **Given** a series write while another save of the same user commits, such as the resume
+  position on SQLite
+- **When** it is written
+- **Then** it waits for that save instead of failing: its first statement is a write, so the
+  transaction never reads a state another save changes before it writes
+
 ## Out of scope
 
 - A hint that a new photo looks like a stored series (D2; can come later).
