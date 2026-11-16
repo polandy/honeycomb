@@ -1395,3 +1395,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   is the first picker on opening, but Nextcloud caches app scripts for six months under the app
   version, which a test build does not change. The entry scripts now carry a content hash that the
   build writes to `js/scripts.php` (ADR 0033), instead of a version bump per build or a hard reload.
+- 2026-11-16: The folder tree marks every folder above a ticked one with an "*n* inside" badge
+  (owner, concept LISTING-003, E1–E4 A): its checkbox keeps showing only its own tick, and the
+  tree uses no `aria-checked="mixed"`, since a tick never ticks the folders below (*Include
+  subfolders* does that on listing); the count goes into the folder's accessible name instead.

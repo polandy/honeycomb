@@ -12,6 +12,9 @@ folder, shared folders included. A folder with subfolders has an arrow before it
   expand a folder; if they cannot be loaded, expand it again to retry.
 - **Tick:** tap or click the folder itself. Tick several folders to cull them together; the
   picker shows how many photos they hold before you open them.
+- **Ticked below:** a folder with ticked folders somewhere inside it shows "*n* inside" after its
+  name, also while it is collapsed, so you can find your ticks. The move dialog's *Browse…* marks
+  the folders above the chosen one the same way.
 - **Include subfolders:** the switch above the tree adds every subfolder of a ticked folder, at
   any depth. Hidden folders (starting with a dot) are always skipped and cannot be ticked.
 
