@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-/** The ticked folders of one cull, sorted and each once; every folder below them too with `subfolders`, but the excluded ones (ADR 0035). */
+/** The ticked folders of one cull, sorted and unique; with `subfolders` all below but excluded. */
 final readonly class FolderSet implements \JsonSerializable {
 	/** Bounds the stored JSON; a picker never ticks this many. */
 	public const int MAX_FOLDERS = 1_000;
@@ -15,7 +15,7 @@ final readonly class FolderSet implements \JsonSerializable {
 	/** @var list<string> */
 	public array $paths;
 
-	/** @var list<string> Folders *Include subfolders* leaves out, each with everything below it but the ticked folders there. */
+	/** @var list<string> Folders left out with all below them but ticked ones (ADR 0035). */
 	public array $excluded;
 
 	/**
@@ -53,7 +53,7 @@ final readonly class FolderSet implements \JsonSerializable {
 	}
 
 	/**
-	 * The folder paths `$value` lists, at most `MAX_FOLDERS`, each without `..` or a NUL byte; null for anything else.
+	 * The folder paths `$value` lists, at most `MAX_FOLDERS`, without `..` or NUL; else null.
 	 * @return list<string>|null
 	 */
 	public static function folderPaths(mixed $value): ?array {

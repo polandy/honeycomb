@@ -29,7 +29,7 @@ final class EntryController extends Controller {
 		parent::__construct($appName, $request);
 	}
 
-	/** The entries of the folder at `path`, with `subfolders=1` of every folder below too but the `excluded[]` ones. */
+	/** The entries of `path`, with `subfolders=1` of every folder below but the `excluded[]` ones. */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/entries')]
 	public function index(string $path = '', bool $subfolders = false): Response {
