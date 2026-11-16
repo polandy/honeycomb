@@ -10,3 +10,5 @@ php /var/www/html/occ app:enable groupfolders files_external
 mkdir -p /tmp/honeycomb-e2e-external
 # A mount a test adds through occ shows up at once, not after the 5-minute mount cache.
 php /var/www/html/occ config:system:set fs_mount_cache_duration --type=integer --value=0
+# Server errors go to the container's output, which Playwright prints, so a red e2e run shows its cause.
+php /var/www/html/occ config:system:set log_type --value=errorlog
