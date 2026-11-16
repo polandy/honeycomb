@@ -114,6 +114,17 @@ final class ListingServiceSubfoldersTest extends TestCase {
 		$this->assertFalse($listing->jsonSerialize()['truncated']);
 	}
 
+	// spec: LISTING-001.16
+	public function testLeavesOutTheExcludedFoldersWithoutOpeningThem(): void {
+		$paths = ['/Photos/IMG_1.JPG', '/Photos/Raw/IMG_2.JPG', '/Photos/Raw/Best/IMG_3.JPG', '/Photos/Raws/IMG_4.JPG', '/Photos/A/Old/IMG_5.JPG', '/Photos/A/IMG_6.JPG'];
+		$files = array_map(fn (int $id): File => $this->file($id, $paths[$id - 1]), range(1, count($paths)));
+
+		$listing = $this->service($this->rootWith(['/Photos' => $this->treeOf($files)]))->list($this->user(), 'Photos', true, ['/Photos/Raw', '/Photos/A/Old', '/Other']);
+
+		$this->assertSame([1, 6, 4], array_column($this->entriesOf($listing), 'fileId'));
+		$this->assertSame(['/Photos', '/Photos/A', '/Photos/Raws'], $this->listed);
+	}
+
 	// spec: LISTING-001.4
 	public function testLeavesOutAFolderBelowTheUserMayNotRead(): void {
 		$files = [$this->file(1, '/Photos/Locked/IMG_1.JPG'), $this->file(2, '/Photos/Open/IMG_2.JPG')];

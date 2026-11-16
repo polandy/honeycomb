@@ -21,6 +21,13 @@ describe('parsePositions', () => {
 		])
 	})
 
+	// spec: DECISIONS-002.16
+	it('keeps the excluded folders of a folder set, and a position stored without them', () => {
+		const excluding = { ...position, folderSet: { paths: ['/P'], subfolders: true, excluded: ['/P/Raw'] } }
+
+		expect(parsePositions([excluding, position]).map(({ folderSet }) => folderSet)).toEqual([excluding.folderSet, position.folderSet])
+	})
+
 	it('drops malformed positions and answers nothing for an answer that is no list', () => {
 		const malformed = [
 			null,
@@ -29,6 +36,8 @@ describe('parsePositions', () => {
 			{ ...position, folderSet: { paths: '/P', subfolders: false } },
 			{ ...position, folderSet: { paths: [1], subfolders: false } },
 			{ ...position, folderSet: { paths: ['/P'] } },
+			{ ...position, folderSet: { paths: ['/P'], subfolders: true, excluded: '/P/Raw' } },
+			{ ...position, folderSet: { paths: ['/P'], subfolders: true, excluded: [1] } },
 			{ ...position, fileId: 0 },
 			{ ...position, fileId: 1.5 },
 			{ ...position, decided: -1 },
