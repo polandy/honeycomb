@@ -1403,3 +1403,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   another ticked one (concept LISTING-003 M3, ADR 0034); positions stored under the older key are
   re-keyed when the list is read, and of two that become one set the newer stays (orchestrator's
   recommendation over keeping both entries, which would show one set twice under *Recent*).
+- 2026-11-16: With *Include subfolders* on, the folders below a ticked one show a dashed tick and
+  "included" (owner, concept LISTING-003 M2, E3 A); the spoken name is the nearest ticked folder
+  above, the one the listing reaches it from, and only the picker shows it, since the move dialog
+  and the similarity page have no such switch.

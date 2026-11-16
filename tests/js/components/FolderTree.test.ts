@@ -17,20 +17,16 @@ const FOLDERS: Record<string, Folder[]> = {
 		{ name: 'Day 10', path: '/Day 10', hasSubfolders: false },
 		{ name: 'Day 9', path: '/Day 9', hasSubfolders: false },
 	],
-	'/Photos': [
-		{ name: '2026', path: '/Photos/2026', hasSubfolders: true },
-		{ name: '2025', path: '/Photos/2025', hasSubfolders: false },
-		{ name: '.cache', path: '/Photos/.cache', hasSubfolders: false },
-	],
+	'/Photos': [{ name: '2026', path: '/Photos/2026', hasSubfolders: true }, { name: '2025', path: '/Photos/2025', hasSubfolders: false }],
 	// The server saw a subfolder that is gone by the time the folder opens.
 	'/Photos/2026': [],
 }
 
 /** A folder endpoint over FOLDERS whose answers the test settles per path. */
-function fakeFolders() {
+function fakeFolders(folders = FOLDERS) {
 	const pending: { path: string, settle: () => void, fail: () => void }[] = []
 	const listFolders = (path: string) => new Promise<Folder[]>((resolve, reject) => {
-		pending.push({ path, settle: () => resolve(FOLDERS[path]!), fail: () => reject(new Error(`no ${path}`)) })
+		pending.push({ path, settle: () => resolve(folders[path]!), fail: () => reject(new Error(`no ${path}`)) })
 	})
 	/** Answers the oldest request for `path`. */
 	const answer = async (path: string, outcome: 'settle' | 'fail' = 'settle') => {
@@ -41,8 +37,8 @@ function fakeFolders() {
 	return { pending, listFolders, answer }
 }
 
-async function mountTree(ticked: string[] = [], subfolders = false) {
-	const folders = fakeFolders()
+async function mountTree(ticked: string[] = [], subfolders = false, tree = FOLDERS) {
+	const folders = fakeFolders(tree)
 	const wrapper = mount(FolderTree, { props: { ticked, subfolders, listFolders: folders.listFolders }, attachTo: document.body })
 	await folders.answer('')
 	return { wrapper, ...folders }
@@ -110,7 +106,7 @@ describe('FolderTree', () => {
 
 		expect(wrapper.emitted('toggle')).toBeUndefined()
 		expect(item(wrapper, 'Photos').attributes('aria-expanded')).toBe('true')
-		expect(shown(wrapper)).toEqual(['.hidden@1', 'Day 9@1', 'Day 10@1', 'Photos@1', '.cache@2', '2025@2', '2026@2'])
+		expect(shown(wrapper)).toEqual(['.hidden@1', 'Day 9@1', 'Day 10@1', 'Photos@1', '2025@2', '2026@2'])
 		expect(twisty(wrapper, 'Photos').attributes('data-tip')).toBe(`${MARK}Collapse Photos`)
 
 		await twisty(wrapper, 'Photos').trigger('click')
@@ -192,7 +188,9 @@ describe('FolderTree', () => {
 
 	// spec: LISTING-003.18
 	it('marks the folders below a ticked one as included while Include subfolders is on, still tappable', async () => {
-		const { wrapper, answer } = await mountTree(['/Photos'], true)
+		const hidden = { name: '.cache', path: '/Photos/.cache', hasSubfolders: false }
+		const { wrapper, answer } = await mountTree(['/Photos'], true, { ...FOLDERS, '/Photos': [...FOLDERS['/Photos']!, hidden] })
+		await twisty(wrapper, 'Photos').trigger('click')
 		await answer('/Photos')
 		const included = (name: string) => item(wrapper, name).find('.folder-tree__included')
 
@@ -211,6 +209,7 @@ describe('FolderTree', () => {
 	// spec: LISTING-003.18
 	it('marks no folder as included while Include subfolders is off', async () => {
 		const { wrapper, answer } = await mountTree(['/Photos'])
+		await twisty(wrapper, 'Photos').trigger('click')
 		await answer('/Photos')
 
 		expect(wrapper.find('.folder-tree__included').exists()).toBe(false)

@@ -13,7 +13,7 @@ import { listFolders as apiListFolders } from '../api.ts'
 import { formatNumber, nameComparer, PLAIN_TEXT } from '../l10n.ts'
 import { logger } from '../logger.ts'
 import { isHiddenFolder } from '../logic/folder-set.ts'
-import { foldersToExpand, ROOT, tickedBelow, treeKey, visibleRows } from '../logic/folder-tree.ts'
+import { foldersToExpand, includedBy, ROOT, tickedBelow, treeKey, visibleRows } from '../logic/folder-tree.ts'
 import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
@@ -24,6 +24,8 @@ const props = withDefaults(defineProps<{
 	single?: boolean
 	/** Folders that cannot be chosen, e.g. the open folder set's as a move target. */
 	blocked?: readonly string[]
+	/** *Include subfolders* is on: the folders below a ticked one come along. */
+	subfolders?: boolean
 }>(), {
 	listFolders: apiListFolders,
 	blocked: () => [],
@@ -119,6 +121,16 @@ const badges = computed(() => new Map(rows.value.flatMap((row) => {
 	return shown === null ? [] : [[row.folder.path, shown] as const]
 })))
 
+/** The spoken note of the shown folders *Include subfolders* takes along, by path. */
+const included = computed(() => new Map(props.subfolders
+	? rows.value.flatMap((row) => {
+			const by = row.kind === 'folder' ? includedBy(props.ticked, row.folder.path) : null
+			return row.kind === 'folder' && by !== null
+				? [[row.folder.path, t('honeycomb', 'included with {name}', { name: by.split('/').at(-1)! }, undefined, PLAIN_TEXT)] as const]
+				: []
+		})
+	: []))
+
 /** Ticks or unticks a folder the cull can include. */
 function toggle(folder: Folder) {
 	focusedPath.value = folder.path
@@ -188,14 +200,18 @@ for (const path of [ROOT, ...foldersToExpand(props.ticked)]) {
 					<AppIcon name="chevronRight" />
 				</button>
 				<span v-else class="folder-tree__spacer" aria-hidden="true" />
-				<span class="folder-tree__box" aria-hidden="true">
-					<AppIcon v-if="props.ticked.includes(row.folder.path)" name="check" />
+				<span class="folder-tree__box" :class="{ 'folder-tree__box--included': included.has(row.folder.path) }" aria-hidden="true">
+					<AppIcon v-if="props.ticked.includes(row.folder.path) || included.has(row.folder.path)" name="check" />
 				</span>
 				<AppIcon name="folder" />
 				<span class="folder-tree__label">
 					<span class="folder-tree__name">{{ row.folder.name }}</span>
 					<span v-if="isHiddenFolder(row.folder.name)" class="folder-tree__meta">{{ t('honeycomb', 'Hidden folder, always skipped') }}</span>
 					<span v-else-if="props.blocked.includes(row.folder.path)" class="folder-tree__meta">{{ t('honeycomb', 'Open folder, cannot be the target') }}</span>
+				</span>
+				<span v-if="included.has(row.folder.path)" class="folder-tree__included">
+					<span aria-hidden="true">{{ t('honeycomb', 'included') }}</span>
+					<span class="hidden-visually">{{ included.get(row.folder.path) }}</span>
 				</span>
 				<span v-if="badges.has(row.folder.path)" class="folder-tree__badge">
 					<span aria-hidden="true">{{ badges.get(row.folder.path)?.shown }}</span>

@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { breadcrumbs } from './folder-set.ts'
+import { breadcrumbs, isHiddenFolder } from './folder-set.ts'
 
 /** The path of the user's home folder, the tree's root. */
 export const ROOT = ''
@@ -92,4 +92,20 @@ export function foldersToExpand(paths: readonly string[]): string[] {
 /** How many of the ticked folders lie at any depth below `path`. */
 export function tickedBelow(ticked: readonly string[], path: string): number {
 	return ticked.filter((each) => each.startsWith(`${path}/`)).length
+}
+
+/** The nearest ticked folder above `path` that *Include subfolders* takes it along with; null when none or when `path` is ticked or hidden. */
+export function includedBy(ticked: readonly string[], path: string): string | null {
+	if (ticked.includes(path)) {
+		return null
+	}
+	for (const crumb of breadcrumbs(path).slice(1).reverse()) {
+		if (ticked.includes(crumb.path)) {
+			return crumb.path
+		}
+		if (isHiddenFolder(crumb.name)) {
+			return null
+		}
+	}
+	return null
 }
