@@ -12,10 +12,10 @@ show them, from one request per folder. The server lists; it never pairs (ADR 00
 
 ## Behaviour
 
-`GET /apps/honeycomb/api/v1/entries?path=<folder>[&subfolders=1][&excluded[]=<folder>...]`, logged in, with the CSRF
-token. `path` is relative to the user's files; empty is the root. The answer is
-`{"entries": [...], "truncated": <bool>, "folders": [...], "fileId": <n>}`, `fileId` being the listed
-folder's (XMP-008.4). An entry has `fileId`, `path`
+`GET /apps/honeycomb/api/v1/entries?path=<folder>[&subfolders=1][&excluded[]=<folder>...]`,
+logged in, with the CSRF token. `path` is relative to the user's files; empty is the root. The
+answer is `{"entries": [...], "truncated": <bool>, "folders": [...], "fileId": <n>}`, `fileId`
+being the listed folder's (XMP-008.4). An entry has `fileId`, `path`
 (from the user's files, leading `/`), `size`, `mtime`, `etag`, `mime` and `captureTime`,
 `orientation`, `width`, `height` from Nextcloud's file metadata, each `null` where it has none,
 and `visualHash`, the user's stored visual hash of the file's current version or `null`
