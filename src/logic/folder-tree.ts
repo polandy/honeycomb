@@ -88,3 +88,8 @@ export function foldersToExpand(paths: readonly string[]): string[] {
 	const above = paths.flatMap((path) => breadcrumbs(path).slice(1, -1).map((crumb) => crumb.path))
 	return [...new Set(above)].sort((a, b) => a.split('/').length - b.split('/').length)
 }
+
+/** How many of the ticked folders lie at any depth below `path`. */
+export function tickedBelow(ticked: readonly string[], path: string): number {
+	return ticked.filter((each) => each.startsWith(`${path}/`)).length
+}

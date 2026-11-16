@@ -174,15 +174,15 @@ describe('FolderTree', () => {
 		const { wrapper, answer } = await mountTree(['/Photos', '/Photos/2026', '/Photos/2025'])
 		const badge = () => item(wrapper, 'Photos').find('.folder-tree__badge')
 
-		expect(badge().find('[aria-hidden="true"]').text()).toBe(`${MARK}2 inside`)
-		expect(badge().find('.hidden-visually').text()).toBe(`${MARK}2 ticked folders inside`)
+		expect(badge().find('[aria-hidden="true"]').text()).toBe(`${MARK}${MARK}2 inside`)
+		expect(badge().find('.hidden-visually').text()).toBe(`${MARK}${MARK}2 ticked folders inside`)
 		expect(item(wrapper, 'Photos').attributes('aria-selected')).toBe('true')
 		expect(item(wrapper, 'Day 9').find('.folder-tree__badge').exists()).toBe(false)
 
 		await answer('/Photos')
 		await twisty(wrapper, 'Photos').trigger('click')
 		expect(item(wrapper, 'Photos').attributes('aria-expanded')).toBe('false')
-		expect(badge().find('[aria-hidden="true"]').text()).toBe(`${MARK}2 inside`)
+		expect(badge().find('[aria-hidden="true"]').text()).toBe(`${MARK}${MARK}2 inside`)
 		expect(item(wrapper, 'Photos').attributes('aria-checked')).toBeUndefined()
 	})
 
@@ -246,6 +246,6 @@ describe('FolderTree: one folder', () => {
 		const wrapper = mount(FolderTree, { props: { ticked: ['/Photos/2025'], listFolders: folders.listFolders, single: true } })
 		await folders.answer('')
 
-		expect(item(wrapper, 'Photos').find('.folder-tree__badge .hidden-visually').text()).toBe(`${MARK}1 chosen folder inside`)
+		expect(item(wrapper, 'Photos').find('.folder-tree__badge .hidden-visually').text()).toBe('1 chosen folder inside')
 	})
 })

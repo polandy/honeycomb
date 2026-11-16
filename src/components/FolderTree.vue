@@ -6,14 +6,14 @@
 import type { Folder } from '../api.ts'
 import type { Branch, TreeNote } from '../logic/folder-tree.ts'
 
-import { t } from '@nextcloud/l10n'
+import { n, t } from '@nextcloud/l10n'
 import { computed, nextTick, ref } from 'vue'
 import AppIcon from './AppIcon.vue'
 import { listFolders as apiListFolders } from '../api.ts'
-import { nameComparer, PLAIN_TEXT } from '../l10n.ts'
+import { formatNumber, nameComparer, PLAIN_TEXT } from '../l10n.ts'
 import { logger } from '../logger.ts'
 import { isHiddenFolder } from '../logic/folder-set.ts'
-import { foldersToExpand, ROOT, treeKey, visibleRows } from '../logic/folder-tree.ts'
+import { foldersToExpand, ROOT, tickedBelow, treeKey, visibleRows } from '../logic/folder-tree.ts'
 import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
@@ -95,6 +95,30 @@ function flip(folder: Folder) {
 /** Whether a folder is shown disabled. */
 const isDisabled = (folder: Folder) => isHiddenFolder(folder.name) || props.blocked.includes(folder.path)
 
+/** The badge of a folder above ticked ones, shown and spoken; null when none lies below. */
+function badge(folder: Folder) {
+	const count = tickedBelow(props.ticked, folder.path)
+	if (count === 0) {
+		return null
+	}
+	const vars = { count: formatNumber(count) }
+	return {
+		shown: n('honeycomb', '{count} inside', '{count} inside', count, vars, PLAIN_TEXT),
+		spoken: props.single
+			? n('honeycomb', '{count} chosen folder inside', '{count} chosen folders inside', count, vars, PLAIN_TEXT)
+			: n('honeycomb', '{count} ticked folder inside', '{count} ticked folders inside', count, vars, PLAIN_TEXT),
+	}
+}
+
+/** The badges of the folders shown, by path. */
+const badges = computed(() => new Map(rows.value.flatMap((row) => {
+	if (row.kind !== 'folder') {
+		return []
+	}
+	const shown = badge(row.folder)
+	return shown === null ? [] : [[row.folder.path, shown] as const]
+})))
+
 /** Ticks or unticks a folder the cull can include. */
 function toggle(folder: Folder) {
 	focusedPath.value = folder.path
@@ -173,6 +197,10 @@ for (const path of [ROOT, ...foldersToExpand(props.ticked)]) {
 					<span v-if="isHiddenFolder(row.folder.name)" class="folder-tree__meta">{{ t('honeycomb', 'Hidden folder, always skipped') }}</span>
 					<span v-else-if="props.blocked.includes(row.folder.path)" class="folder-tree__meta">{{ t('honeycomb', 'Open folder, cannot be the target') }}</span>
 				</span>
+				<span v-if="badges.has(row.folder.path)" class="folder-tree__badge">
+					<span aria-hidden="true">{{ badges.get(row.folder.path)?.shown }}</span>
+					<span class="hidden-visually">{{ badges.get(row.folder.path)?.spoken }}</span>
+				</span>
 			</li>
 			<li
 				v-else
@@ -186,114 +214,4 @@ for (const path of [ROOT, ...foldersToExpand(props.ticked)]) {
 	</ul>
 </template>
 
-<style scoped>
-.folder-tree {
-	--folder-tree-indent: calc(4 * var(--default-grid-baseline));
-	--folder-tree-target: 34px;
-	margin-top: calc(2 * var(--default-grid-baseline));
-}
-
-.folder-tree__item,
-.folder-tree__note {
-	display: flex;
-	align-items: center;
-	gap: calc(2 * var(--default-grid-baseline));
-	min-height: var(--folder-tree-target);
-	padding-block: 0;
-	padding-inline: calc(var(--folder-tree-level) * var(--folder-tree-indent)) calc(2 * var(--default-grid-baseline));
-	border-radius: var(--border-radius-element);
-}
-
-.folder-tree__note {
-	padding-inline-start: calc(var(--folder-tree-level) * var(--folder-tree-indent) + var(--folder-tree-target) + 2 * var(--default-grid-baseline));
-}
-
-.folder-tree__note,
-.folder-tree__meta {
-	color: var(--color-text-maxcontrast);
-}
-
-.folder-tree__note--failed {
-	color: var(--color-error-text);
-}
-
-.folder-tree__item {
-	cursor: pointer;
-}
-
-.folder-tree__item[aria-selected='true'] {
-	background-color: var(--color-primary-element-light);
-}
-
-.folder-tree__item[aria-disabled='true'] {
-	color: var(--color-text-maxcontrast);
-	cursor: default;
-}
-
-.folder-tree__item:focus-visible {
-	outline: 2px solid var(--color-primary-element);
-	outline-offset: -2px;
-}
-
-.folder-tree__twisty,
-.folder-tree__spacer {
-	flex: none;
-	width: var(--folder-tree-target);
-}
-
-/* Outranks Nextcloud's global button margin, which would make the row taller. */
-.folder-tree .folder-tree__item > .folder-tree__twisty {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	height: var(--folder-tree-target);
-	min-height: 0;
-	margin: 0;
-	padding: 0;
-	border: none;
-	border-radius: var(--border-radius-element);
-	background: none;
-	color: var(--color-main-text);
-	cursor: pointer;
-}
-
-.folder-tree__item[aria-expanded='true'] .folder-tree__twisty :deep(svg) {
-	transform: rotate(90deg);
-}
-
-.folder-tree__box {
-	display: flex;
-	flex: none;
-	align-items: center;
-	justify-content: center;
-	width: 20px;
-	height: 20px;
-	border: 2px solid var(--color-border-maxcontrast);
-	border-radius: var(--border-radius-small);
-}
-
-.folder-tree__item[aria-selected='true'] .folder-tree__box {
-	border-color: var(--color-primary-element);
-	background-color: var(--color-primary-element);
-	color: var(--color-primary-element-text);
-}
-
-.folder-tree__label {
-	display: flex;
-	flex: 1;
-	flex-direction: column;
-	min-width: 0;
-}
-
-.folder-tree__name {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-@media (pointer: coarse) {
-	.folder-tree {
-		--folder-tree-target: 44px;
-	}
-}
-</style>
+<style scoped src="./folder-tree.css" />
