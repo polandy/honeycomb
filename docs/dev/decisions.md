@@ -1391,3 +1391,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   confirm button of a delete reads *Checking the photos…*, then *Moving to trash…*, because a
   delete of 40 rejects on nc-test showed no change for its whole run; the per-file cost is
   Nextcloud's own trash move (ADR 0029 amendment).
+- 2026-11-16: The owner did not find the folder tree of #234 on nc-test, which serves it: the tree
+  is the first picker on opening, but Nextcloud caches app scripts for six months under the app
+  version, which a test build does not change. The entry scripts now carry a content hash that the
+  build writes to `js/scripts.php` (ADR 0033), instead of a version bump per build or a hard reload.

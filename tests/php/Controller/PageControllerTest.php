@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\PageController;
+use OCA\Honeycomb\Service\ScriptManifest;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -32,8 +33,16 @@ final class PageControllerTest extends TestCase {
 
 	// spec: SETTINGS-001.26
 	public function testIndexTellsThePageWhetherTheVersionsAppIsOnForTheUser(): void {
-		$this->assertSame(['versionsApp' => true], $this->controller(true)->index()->getParams());
-		$this->assertSame(['versionsApp' => false], $this->controller(false)->index()->getParams());
+		$this->assertTrue($this->controller(true)->index()->getParams()['versionsApp']);
+		$this->assertFalse($this->controller(false)->index()->getParams()['versionsApp']);
+	}
+
+	// spec: APP-001.10
+	public function testEachPageLoadsItsBuiltScriptByItsHashedName(): void {
+		$controller = $this->controller(true);
+
+		$this->assertSame('honeycomb-main-Ab1_cD2e', $controller->index()->getParams()['script']);
+		$this->assertSame(['script' => 'honeycomb-similarity-Xy9-Zw8v'], $controller->similarity()->getParams());
 	}
 
 	/** The controller for a logged-in user with `files_versions` on or off for them. */
@@ -43,7 +52,8 @@ final class PageControllerTest extends TestCase {
 		$session->method('getUser')->willReturn($user);
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturnCallback(static fn (string $app, ?IUser $for): bool => $app === 'files_versions' && $for === $user && $versionsApp);
-		return new PageController(Application::APP_ID, $this->createStub(IRequest::class), $apps, $session);
+		$apps->method('getAppPath')->willReturn(__DIR__ . '/../../fixtures/script-manifest/built');
+		return new PageController(Application::APP_ID, $this->createStub(IRequest::class), $apps, $session, new ScriptManifest($apps));
 	}
 
 	// spec: APP-001.1

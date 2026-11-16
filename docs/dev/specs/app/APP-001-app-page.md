@@ -29,6 +29,10 @@ Every route that writes is limited to 600 requests a minute per user, the visual
 300 (SERIES-003.23); Nextcloud answers a request beyond the limit `429` without running it
 (ADR 0031). The routes that only read are not limited.
 
+Each page loads its script by the name the build gave it, which carries a hash of its content
+(ADR 0033), so a new build reaches the browser on the next page load even when the app version
+stays the same.
+
 ## Acceptance criteria
 
 ### APP-001.1 – The navigation opens the app page
@@ -91,6 +95,13 @@ Every route that writes is limited to 600 requests a minute per user, the visual
 - **When** one user sends it more than 600 times within a minute (300 for the visual hash save)
 - **Then** Nextcloud answers the further requests `429` and runs none of them
 
+### APP-001.10 – A new build reaches the browser
+
+- **Given** a build of honeycomb, deployed with the same app version as the one before
+- **When** a user opens the app page or the similarity page
+- **Then** the page loads its script by the content-hashed name the build wrote, so the
+  browser fetches the new script instead of a cached one; without a build the page fails loud
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -104,3 +115,4 @@ Every route that writes is limited to 600 requests a minute per user, the visual
 | 2026-11-10 | A confirm dialog is a bottom sheet on a phone (APP-001.6) |
 | 2026-11-13 | The navigation starts closed below 1280 px and remembers the user's choice (APP-001.7, APP-001.8; UX L3) |
 | 2026-11-15 | Every write route is rate limited per user (APP-001.9, ADR 0031, risk review R10) |
+| 2026-11-16 | Each page loads its script by its content-hashed name (APP-001.10, ADR 0033) |

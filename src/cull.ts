@@ -161,7 +161,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	function storeTags(chosen: readonly Picture<ListingEntry>[], change: TagChange) {
 		const opened = opening
 		saveFailed.value = false
-		void tags.change(chosen, change).then((saved) => {
+		void sidecars.hold(tags.change(chosen, change)).then((saved) => {
 			if (!saved && opening === opened) {
 				saveFailed.value = true
 			}
@@ -174,7 +174,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		const opened = opening
 		decisions.value = withRows(before, rows)
 		saveFailed.value = false
-		void saveDecisions(rows).then((saved) => {
+		// Held from the start, so a delete or move flushes the sidecar write the save leads to (XMP-003.30).
+		void sidecars.hold(saveDecisions(rows).then((saved) => {
 			if (saved.ok) {
 				writeThrough(rows, changedFields(rows, before), opened)
 				return
@@ -184,7 +185,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 				decisions.value = revertRows(decisions.value, saved.unsaved, before)
 				saveFailed.value = true
 			}
-		})
+		}))
 	}
 
 	/** Writes the changed fields of the rows' pictures to their sidecars where they write through (XMP-003.6, .20, XMP-008.1). */
