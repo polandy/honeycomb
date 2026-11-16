@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
-use OCA\Honeycomb\Service\SeriesItem;
 use OCA\Honeycomb\Service\SeriesLookup;
 use OCA\Honeycomb\Service\SeriesStatus;
 use OCA\Honeycomb\Service\SeriesStore;
@@ -67,12 +66,12 @@ final class SeriesMapper implements SeriesStore {
 
 	#[\Override]
 	public function write(string $userId, SeriesWrite $write): array {
+		// Only writes, so SQLite takes the write lock at once rather than failing after another save commits.
 		return $this->atomic(function () use ($userId, $write): array {
-			$own = array_flip($this->ownSeriesIds($userId, array_values(array_filter(array_map(static fn (SeriesItem $item): ?int => $item->id, $write->series), static fn (?int $id): bool => $id !== null))));
 			$rows = [];
 			$ids = [];
 			foreach ($write->series as $item) {
-				$id = $item->id !== null && isset($own[$item->id]) ? $this->updateStatus($item->id, $item->status) : $this->insertSeries($userId, $item->status);
+				$id = $item->id !== null && $this->updateStatus($userId, $item->id, $item->status) ? $item->id : $this->insertSeries($userId, $item->status);
 				foreach ($item->fileIds as $fileId) {
 					$rows[] = ['user_id' => $userId, 'file_id' => $fileId, 'series_id' => $id];
 				}
@@ -127,31 +126,14 @@ final class SeriesMapper implements SeriesStore {
 		}, $this->db);
 	}
 
-	/**
-	 * The ids among `$ids` that are series of the user.
-	 * @param list<int> $ids
-	 * @return list<int>
-	 */
-	private function ownSeriesIds(string $userId, array $ids): array {
-		$own = [];
-		foreach (array_chunk($ids, self::IN_CHUNK) as $chunk) {
-			$query = $this->db->getQueryBuilder();
-			$query->select('id')
-				->from(self::SERIES_TABLE)
-				->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
-				->andWhere($query->expr()->in('id', $query->createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)));
-			array_push($own, ...$this->column($query));
-		}
-		return $own;
-	}
-
-	private function updateStatus(int $id, SeriesStatus $status): int {
+	/** Whether the user has the series; Nextcloud counts matched rows on MySQL too. */
+	private function updateStatus(string $userId, int $id, SeriesStatus $status): bool {
 		$query = $this->db->getQueryBuilder();
-		$query->update(self::SERIES_TABLE)
+		return $query->update(self::SERIES_TABLE)
 			->set('status', $query->createNamedParameter($status->value))
 			->where($query->expr()->eq('id', $query->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
-			->executeStatement();
-		return $id;
+			->andWhere($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
+			->executeStatement() > 0;
 	}
 
 	private function insertSeries(string $userId, SeriesStatus $status): int {
