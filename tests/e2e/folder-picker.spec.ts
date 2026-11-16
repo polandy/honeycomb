@@ -79,6 +79,25 @@ test('expands the folder tree by its arrow and the arrow keys and ticks a subfol
 	await expect(item(root)).toHaveAttribute('aria-selected', 'false')
 })
 
+// spec: LISTING-003.18
+test('marks the folders below a ticked one as included while Include subfolders is on', async ({ page }) => {
+	const { root, item } = await treeFixture(page)
+	const picker = page.getByRole('dialog', { name: 'Choose folders' })
+
+	await item(root).click()
+	await item(root).locator('.folder-tree__twisty').click()
+	await expect(item('2026').locator('.folder-tree__included')).toHaveCount(0)
+	await picker.getByText('Include subfolders', { exact: true }).click()
+
+	await expect(item('2026')).toHaveAccessibleName(/^2026\s*included with Tree [0-9a-f]+$/)
+	await expect(item('2026')).toHaveAttribute('aria-selected', 'false')
+	await expect(item('2026').locator('.folder-tree__box--included')).toBeVisible()
+	await expect(picker.getByText('1 photo in 1 folder')).toBeVisible()
+	await item('2026').click()
+	await expect(item('2026')).toHaveAttribute('aria-selected', 'true')
+	await expect(item('2026').locator('.folder-tree__included')).toHaveCount(0)
+})
+
 // spec: LISTING-003.16
 test('fits the folder tree on the reference devices with 44 px touch targets', async ({ browser }, testInfo) => {
 	const context = await browser.newContext({ baseURL: `http://localhost:${PORT}`, storageState: ADMIN_STATE, isMobile: true, hasTouch: true, viewport: SCREENSHOT_VIEWPORTS['ipad-mini-portrait'] })

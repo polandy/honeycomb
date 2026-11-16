@@ -134,6 +134,16 @@ describe('FolderPicker', () => {
 		expect(confirmButton(picker).text()).toBe(`${MARK}${MARK}Cull 2 folders`)
 	})
 
+	// spec: LISTING-003.18
+	it('tells the folder tree whether the subfolders are included', async () => {
+		const picker = await mountPicker()
+		expect(picker.wrapper.findComponent(FolderTree).props('subfolders')).toBe(false)
+
+		await subfoldersSwitch(picker).setValue(true)
+
+		expect(picker.wrapper.findComponent(FolderTree).props('subfolders')).toBe(true)
+	})
+
 	// spec: LISTING-003.7
 	it('puts the subfolders switch above the folder list, so a long list cannot push it out of sight', async () => {
 		const picker = await mountPicker()

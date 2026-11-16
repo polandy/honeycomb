@@ -17,7 +17,11 @@ const FOLDERS: Record<string, Folder[]> = {
 		{ name: 'Day 10', path: '/Day 10', hasSubfolders: false },
 		{ name: 'Day 9', path: '/Day 9', hasSubfolders: false },
 	],
-	'/Photos': [{ name: '2026', path: '/Photos/2026', hasSubfolders: true }, { name: '2025', path: '/Photos/2025', hasSubfolders: false }],
+	'/Photos': [
+		{ name: '2026', path: '/Photos/2026', hasSubfolders: true },
+		{ name: '2025', path: '/Photos/2025', hasSubfolders: false },
+		{ name: '.cache', path: '/Photos/.cache', hasSubfolders: false },
+	],
 	// The server saw a subfolder that is gone by the time the folder opens.
 	'/Photos/2026': [],
 }
@@ -37,9 +41,9 @@ function fakeFolders() {
 	return { pending, listFolders, answer }
 }
 
-async function mountTree(ticked: string[] = []) {
+async function mountTree(ticked: string[] = [], subfolders = false) {
 	const folders = fakeFolders()
-	const wrapper = mount(FolderTree, { props: { ticked, listFolders: folders.listFolders }, attachTo: document.body })
+	const wrapper = mount(FolderTree, { props: { ticked, subfolders, listFolders: folders.listFolders }, attachTo: document.body })
 	await folders.answer('')
 	return { wrapper, ...folders }
 }
@@ -106,7 +110,7 @@ describe('FolderTree', () => {
 
 		expect(wrapper.emitted('toggle')).toBeUndefined()
 		expect(item(wrapper, 'Photos').attributes('aria-expanded')).toBe('true')
-		expect(shown(wrapper)).toEqual(['.hidden@1', 'Day 9@1', 'Day 10@1', 'Photos@1', '2025@2', '2026@2'])
+		expect(shown(wrapper)).toEqual(['.hidden@1', 'Day 9@1', 'Day 10@1', 'Photos@1', '.cache@2', '2025@2', '2026@2'])
 		expect(twisty(wrapper, 'Photos').attributes('data-tip')).toBe(`${MARK}Collapse Photos`)
 
 		await twisty(wrapper, 'Photos').trigger('click')
@@ -184,6 +188,33 @@ describe('FolderTree', () => {
 		expect(item(wrapper, 'Photos').attributes('aria-expanded')).toBe('false')
 		expect(badge().find('[aria-hidden="true"]').text()).toBe(`${MARK}${MARK}2 inside`)
 		expect(item(wrapper, 'Photos').attributes('aria-checked')).toBeUndefined()
+	})
+
+	// spec: LISTING-003.18
+	it('marks the folders below a ticked one as included while Include subfolders is on, still tappable', async () => {
+		const { wrapper, answer } = await mountTree(['/Photos'], true)
+		await answer('/Photos')
+		const included = (name: string) => item(wrapper, name).find('.folder-tree__included')
+
+		expect(included('2025').find('[aria-hidden="true"]').text()).toBe(`${MARK}included`)
+		expect(included('2025').find('.hidden-visually').text()).toBe(`${MARK}included with Photos`)
+		expect(item(wrapper, '2025').find('.folder-tree__box--included').exists()).toBe(true)
+		expect(item(wrapper, '2025').attributes('aria-selected')).toBe('false')
+		expect(included('Photos').exists()).toBe(false)
+		expect(included('.cache').exists()).toBe(false)
+		expect(item(wrapper, '.cache').find('.folder-tree__box--included').exists()).toBe(false)
+
+		await item(wrapper, '2025').trigger('click')
+		expect(wrapper.emitted('toggle')).toEqual([['/Photos/2025']])
+	})
+
+	// spec: LISTING-003.18
+	it('marks no folder as included while Include subfolders is off', async () => {
+		const { wrapper, answer } = await mountTree(['/Photos'])
+		await answer('/Photos')
+
+		expect(wrapper.find('.folder-tree__included').exists()).toBe(false)
+		expect(wrapper.find('.folder-tree__box--included').exists()).toBe(false)
 	})
 
 	// spec: LISTING-003.16

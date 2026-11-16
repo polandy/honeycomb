@@ -41,8 +41,11 @@ the ticked folders at any depth below it, whether it is expanded or collapsed, t
 not, and before its subfolders were ever loaded; its own checkbox still shows only its own tick.
 A screen reader hears it as part of the folder, "*n* ticked folders inside"; the folder is not
 announced as half ticked. The one-folder tree of the move dialog (MOVE-004) marks the folders
-above the chosen one the same way. Confirming hands the folder set and its merged entries to the
-grid.
+above the chosen one the same way. While *Include subfolders* is on, every shown folder below a
+ticked one that is not ticked itself shows a dashed tick and "included" after its name, read out
+as "included with <the nearest ticked folder above>"; it is not selected and a tap ticks it.
+Hidden folders, and the folders inside them, stay without it, since the listing skips them.
+Confirming hands the folder set and its merged entries to the grid.
 
 | State | Picker shows |
 |---|---|
@@ -183,6 +186,14 @@ starts from that folder set and *Cancel* returns to it.
   "*n* ticked folders inside" (or "chosen" for the one folder of the move dialog); its checkbox
   and selected state show only its own tick
 
+### LISTING-003.18 – Folders included by *Include subfolders*
+
+- **Given** *Include subfolders* is on and a ticked folder is expanded
+- **When** the tree shows the folders below it
+- **Then** each one not ticked itself shows a dashed tick and "included", read out as "included
+  with <the nearest ticked folder above>", is not selected and ticks on a tap; hidden folders and
+  those inside them do not, and with the switch off none does
+
 ## Out of scope
 
 - The grid and its folder headers: GRID-001. The resume position: DECISIONS-002.
@@ -198,3 +209,4 @@ starts from that folder set and *Cancel* returns to it.
 | 2026-11-14 | .13/.15 *Recent* below the folders, three rows and *Show all* (owner, #180 variant C) |
 | 2026-11-16 | .4/.9/.10/.11 the picker as an expandable tree, .16 its keys and touch targets (owner) |
 | 2026-11-16 | .17 a badge on every folder above a ticked one (owner, E1–E4 A) |
+| 2026-11-16 | .18 the folders included by *Include subfolders* (owner, E3 A) |

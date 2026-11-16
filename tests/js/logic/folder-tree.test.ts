@@ -3,7 +3,7 @@
 import type { Branch, TreeFolder } from '../../../src/logic/folder-tree.ts'
 
 import { describe, expect, it } from 'vitest'
-import { foldersToExpand, ROOT, tickedBelow, treeKey, visibleRows } from '../../../src/logic/folder-tree.ts'
+import { foldersToExpand, includedBy, ROOT, tickedBelow, treeKey, visibleRows } from '../../../src/logic/folder-tree.ts'
 
 const folder = (path: string, hasSubfolders = false): TreeFolder => ({ name: path.split('/').pop()!, path, hasSubfolders })
 const loaded = (...folders: TreeFolder[]): Branch => ({ state: 'loaded', folders })
@@ -111,5 +111,26 @@ describe('tickedBelow', () => {
 
 	it('does not count a folder whose name only starts with the same letters', () => {
 		expect(tickedBelow(['/AB', '/AB/1'], '/A')).toBe(0)
+	})
+})
+
+describe('includedBy', () => {
+	// spec: LISTING-003.18
+	it('names the nearest ticked folder above a folder that is not ticked itself', () => {
+		expect(includedBy(['/A', '/A/1'], '/A/1/x/y')).toBe('/A/1')
+		expect(includedBy(['/A'], '/A/1')).toBe('/A')
+	})
+
+	// spec: LISTING-003.18
+	it('leaves out a ticked folder, one with no ticked folder above it, and a look-alike name', () => {
+		expect(includedBy(['/A', '/A/1'], '/A/1')).toBeNull()
+		expect(includedBy(['/A/1'], '/A')).toBeNull()
+		expect(includedBy(['/A'], '/AB/1')).toBeNull()
+	})
+
+	// spec: LISTING-003.18
+	it('leaves out a hidden folder and every folder inside one, which the listing skips', () => {
+		expect(includedBy(['/A'], '/A/.cache')).toBeNull()
+		expect(includedBy(['/A'], '/A/.cache/1')).toBeNull()
 	})
 })
