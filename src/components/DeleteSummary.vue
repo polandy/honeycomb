@@ -16,7 +16,7 @@ import TrashFileList from './TrashFileList.vue'
 import { formatFileSize, formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { deleteSummary, filesOf } from '../logic/delete-summary.ts'
-import { trashBinNote } from '../trash-text.ts'
+import { runningText, trashBinNote } from '../trash-text.ts'
 
 const props = defineProps<{
 	/** The pictures to delete, each with all of its files. */
@@ -62,7 +62,7 @@ const scope = computed(() => {
 <template>
 	<ConfirmDialog
 		:title="n('honeycomb', 'Delete {count} photo', 'Delete {count} photos', summary.pictures, { count: formatNumber(summary.pictures) }, PLAIN_TEXT)"
-		:confirmLabel="n('honeycomb', 'Move {count} file to trash', 'Move {count} files to trash', summary.files, { count: formatNumber(summary.files) }, PLAIN_TEXT)"
+		:confirmLabel="props.busy ? runningText(props.progress) : n('honeycomb', 'Move {count} file to trash', 'Move {count} files to trash', summary.files, { count: formatNumber(summary.files) }, PLAIN_TEXT)"
 		:progress="props.progress"
 		:confirmDisabled="props.busy"
 		:back="props.fromReview"

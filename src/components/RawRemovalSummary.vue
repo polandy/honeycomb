@@ -19,7 +19,7 @@ import TrashFileList from './TrashFileList.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
 import { formatFileSize, formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { rawFilesOf } from '../logic/raw-removal.ts'
-import { trashBinNote } from '../trash-text.ts'
+import { runningText, trashBinNote } from '../trash-text.ts'
 
 const props = withDefaults(defineProps<{
 	removal: RawRemoval
@@ -74,7 +74,7 @@ const groups = computed(() => [
 <template>
 	<ConfirmDialog
 		:title="n('honeycomb', 'Remove the RAW of {count} photo', 'Remove the RAWs of {count} photos', props.removal.removed.length, { count: formatNumber(props.removal.removed.length) }, PLAIN_TEXT)"
-		:confirmLabel="n('honeycomb', 'Move {count} file to trash', 'Move {count} files to trash', files.length, { count: formatNumber(files.length) }, PLAIN_TEXT)"
+		:confirmLabel="props.busy ? runningText(props.progress) : n('honeycomb', 'Move {count} file to trash', 'Move {count} files to trash', files.length, { count: formatNumber(files.length) }, PLAIN_TEXT)"
 		:progress="props.progress"
 		:confirmDisabled="props.busy || files.length === 0"
 		cancel

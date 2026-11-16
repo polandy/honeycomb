@@ -3,12 +3,14 @@
 
 /** How many pictures and files one move or trash request carries at most. */
 export interface ChunkLimits {
+	/** The pictures of the first request, doubled for each next one up to `pictures`; `pictures` from the start without it. */
+	readonly first?: number
 	readonly pictures: number
 	readonly files: number
 }
 
-/** 50 pictures, and the endpoints' 500 files, so a request ends well inside a timeout (ADR 0029). */
-export const CHUNK_LIMITS: ChunkLimits = { pictures: 50, files: 500 }
+/** 5 pictures first, doubling up to 50, and the endpoints' 500 files, so a request ends well inside a timeout and the count moves early (ADR 0029). */
+export const CHUNK_LIMITS: ChunkLimits = { first: 5, pictures: 50, files: 500 }
 
 /** How many of the pictures of a running send were answered. */
 export interface SendProgress {
@@ -29,7 +31,8 @@ export function requestChunks<F>(pictures: readonly (readonly F[])[], limits: Ch
 	let files = 0
 	for (const picture of pictures) {
 		const last = chunks.at(-1)
-		if (last !== undefined && last.length < limits.pictures && files + picture.length <= limits.files) {
+		const most = Math.min(limits.pictures, (limits.first ?? limits.pictures) * 2 ** Math.max(chunks.length - 1, 0))
+		if (last !== undefined && last.length < most && files + picture.length <= limits.files) {
 			last.push(picture)
 			files += picture.length
 		} else {

@@ -1387,3 +1387,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   user_id` and its matched-row count (Nextcloud sets `FOUND_ROWS` on MySQL), not by a `SELECT`
   first, so on SQLite the transaction starts with a write and waits for a concurrent save instead
   of failing with "database is locked".
+- 2026-11-16: Move and trash requests start at 5 pictures and double up to 50, and the held
+  confirm button of a delete reads *Checking the photos…*, then *Moving to trash…*, because a
+  delete of 40 rejects on nc-test showed no change for its whole run; the per-file cost is
+  Nextcloud's own trash move (ADR 0029 amendment).

@@ -42,3 +42,21 @@ The options:
   for a big folder.
 - A picture whose files the server never answered after a timeout may have moved anyway; the
   report says *failed*, a retry finds the file changed or gone, and reloading the folder shows it.
+
+## Amendment 2026-11-16: small first requests
+
+A delete of rejects on the owner's test server waited long with nothing moving: the footer read
+*0 of 40 photos sent* through the fresh check and the single request of up to 50 pictures.
+Measured on the e2e container (Nextcloud 35, SQLite, no Redis), `File::delete()` into the trash
+bin costs 25–40 ms a file, more in deeper folders: about 100 queries of Nextcloud's own (file
+locks, cache moves, size and ETag propagation to every parent, shares, activity, versions,
+previews); finding the file costs 0.3 ms and honeycomb's request about 120 ms. Batching the
+parents' propagation (`IPropagator::beginBatch`) saved 6 % and needs one batch per storage; one
+database transaction around the loop saved two thirds but would hold file locks and roll back cache
+rows of files already moved, so neither is taken.
+
+- The first request carries at most 5 pictures, each next one twice as many, up to 50: the count
+  moves within about a second, and a big delete adds only a few requests.
+- The confirm button is held and names the step: *Checking the photos…* while the waiting sidecars
+  are written and the photos checked afresh, then *Moving to trash…*; the count starts from the
+  photos that passed the check.
