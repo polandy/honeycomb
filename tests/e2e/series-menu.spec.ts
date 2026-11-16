@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { cullFolder } from './cull.ts'
+import { cullFolder, resetViewState } from './cull.ts'
 import { createFolder, JPEG, upload, withCaptureTime } from './files.ts'
 
 /** Pixel 9 Pro in portrait. */
@@ -14,9 +14,10 @@ const DESKTOP = { width: 1440, height: 900 }
 /** A burst of three photos a second apart, and two loose photos hours later. */
 const PHOTOS = [['IMG_0001', '10:00:01'], ['IMG_0002', '10:00:02'], ['IMG_0003', '10:00:03'], ['IMG_0004', '13:00:00'], ['IMG_0005', '16:00:00']] as const
 
-/** Culls a new folder of the photos. */
+/** Culls a new folder of the photos from the view state every test starts from. */
 async function cullPhotos(page: Page): Promise<string> {
 	await page.goto('/index.php/apps/honeycomb/')
+	await resetViewState(page)
 	const folder = `Series menu ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
 	for (const [name, time] of PHOTOS) {
@@ -103,6 +104,7 @@ test('marks a series done from the compare\'s menu, its photos counted as decide
 	await expect(progress).toHaveText('3 / 5 decided')
 	await page.getByRole('gridcell', { name: /^IMG_0001/ }).click()
 	const loupe = page.getByRole('dialog', { name: 'Loupe' })
+	await loupe.getByRole('dialog', { name: 'How to cull' }).getByRole('button', { name: 'Got it' }).click()
 	await loupe.getByRole('button', { name: 'Photo 1 of a series of 3 – compare' }).click()
 	await page.getByRole('button', { name: 'Series menu', exact: true }).click()
 	await page.getByRole('menuitemcheckbox', { name: /Series done/, checked: true }).click()
