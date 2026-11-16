@@ -127,9 +127,11 @@ test('skips a reject whose sidecar was changed elsewhere to picked, and reports 
 test('a picture restored from the trash bin keeps its file id and its decision', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const requesttoken = await requestToken(page)
-	const folder = `Restore ${randomUUID().slice(0, 8)}`
+	const id = randomUUID().slice(0, 8)
+	const folder = `Restore ${id}`
 	await createFolder(page, folder)
-	const path = `${folder}/IMG_0001.jpg`
+	// Nextcloud puts a second file of one name trashed in the same second over the first (TODO.md).
+	const path = `${folder}/IMG_${id}.jpg`
 	const fileId = await upload(page, path, JPEG)
 	const file = `/remote.php/dav/files/${ADMIN.username}/${path}`
 	const etag = await etagOf(page, path)
