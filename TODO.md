@@ -13,6 +13,7 @@ Add items with `/todo`.
 - [ ] Sidecar saving fails on Nextcloud 35.0.3: a `.part` file made with `Folder::newFile()` has no cache entry and permissions 0, so `SidecarWriter` cannot move it into place (`notPermitted`, e2e `sidecars.spec.ts` XMP-002.9). Pick a temporary name 35.0.3 caches, revise ADR 0017, then raise `NEWEST_NEXTCLOUD_IMAGE` in `scripts/nextcloud-images.sh` to 35.0.3 (2026-11-15)
 - [ ] Stored series (#185, ADR 0027, SERIES-005): SERIES-005.17 badges with pin and check and the compare's "edited by hand" subtitle, SERIES-005.18 the "Also in other folders" subtitle (2026-11-15)
 - [ ] Sidecar is the source of truth (M8, ADR 0032, #187), in this order: the cull reads through the cache (XMP-006.7, split from PR 6); PR 9 drop the legacy tables a release after PR 6 (2026-11-15)
+- [ ] Folder tree, concept LISTING-003 (owner, E1–E4 A): M3 `folderSetKey` and the backend `FolderSet` drop a ticked path whose ancestor is ticked while *Include subfolders* is on, so one set has one *Recent* entry; then M2 with the switch on, the folders below a ticked one show a dashed tick and "included", still tappable (2026-11-16)
 
 ## Later
 

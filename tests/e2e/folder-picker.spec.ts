@@ -22,7 +22,9 @@ async function treeFixture(page: Page) {
 	await upload(page, `${root}/2026/Day 1/IMG_0001.jpg`, JPEG)
 	await page.reload()
 	const tree = page.getByRole('dialog', { name: 'Choose folders' }).getByRole('tree', { name: 'Folders' })
-	return { root, tree, item: (name: string) => tree.getByRole('treeitem', { name, exact: true }) }
+	// By the folder name alone: a badge adds to the treeitem's accessible name.
+	const item = (name: string) => tree.getByRole('treeitem').filter({ has: page.locator('.folder-tree__name').getByText(name, { exact: true }) })
+	return { root, tree, item }
 }
 
 // spec: LISTING-003.14
@@ -52,7 +54,7 @@ test('keeps the status line quiet and every folder row one height', async ({ pag
 	expect(parent.height).toBe(leaf.height)
 })
 
-// spec: LISTING-003.4, LISTING-003.16
+// spec: LISTING-003.4, LISTING-003.16, LISTING-003.17
 test('expands the folder tree by its arrow and the arrow keys and ticks a subfolder', async ({ page }) => {
 	const { root, item } = await treeFixture(page)
 
@@ -72,6 +74,9 @@ test('expands the folder tree by its arrow and the arrow keys and ticks a subfol
 	await expect(item('2026')).toBeFocused()
 	await page.keyboard.press('ArrowLeft')
 	await expect(item('Day 1')).toBeHidden()
+	await expect(item('2026')).toHaveAccessibleName(/^2026\s*1 ticked folder inside$/)
+	await expect(item(root).locator('.folder-tree__badge > [aria-hidden="true"]')).toHaveText('1 inside')
+	await expect(item(root)).toHaveAttribute('aria-selected', 'false')
 })
 
 // spec: LISTING-003.16

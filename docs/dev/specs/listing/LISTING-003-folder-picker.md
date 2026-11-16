@@ -36,7 +36,12 @@ On every tick the picker lists the ticked folders (LISTING-001), pairs them with
 pairing settings (LISTING-002) and shows the count, "*n* photos in *m* folders"; the button reads
 "Cull <folder>" or "Cull *m* folders". Each folder is listed once per switch position; only the
 latest ticks' count is shown. Opened with ticked folders, the folders above them start
-expanded. Confirming hands the folder set and its merged entries to the
+expanded. Every folder above a ticked one shows a badge after its name, "*n* inside", counting
+the ticked folders at any depth below it, whether it is expanded or collapsed, ticked itself or
+not, and before its subfolders were ever loaded; its own checkbox still shows only its own tick.
+A screen reader hears it as part of the folder, "*n* ticked folders inside"; the folder is not
+announced as half ticked. The one-folder tree of the move dialog (MOVE-004) marks the folders
+above the chosen one the same way. Confirming hands the folder set and its merged entries to the
 grid.
 
 | State | Picker shows |
@@ -170,6 +175,14 @@ starts from that folder set and *Cancel* returns to it.
   pattern, every arrow and row is at least 44 px on a touch screen, and the tree fits the width
   of every reference device
 
+### LISTING-003.17 – Ticks below a folder
+
+- **Given** ticked folders inside a folder, expanded or collapsed, ticked itself or not
+- **When** the tree shows that folder, in the picker or in the move dialog
+- **Then** a badge after its name counts the ticked folders below it, "*n* inside", read out as
+  "*n* ticked folders inside" (or "chosen" for the one folder of the move dialog); its checkbox
+  and selected state show only its own tick
+
 ## Out of scope
 
 - The grid and its folder headers: GRID-001. The resume position: DECISIONS-002.
@@ -184,3 +197,4 @@ starts from that folder set and *Cancel* returns to it.
 | 2026-11-13 | .14 a quiet status line and even rows (UX L2) |
 | 2026-11-14 | .13/.15 *Recent* below the folders, three rows and *Show all* (owner, #180 variant C) |
 | 2026-11-16 | .4/.9/.10/.11 the picker as an expandable tree, .16 its keys and touch targets (owner) |
+| 2026-11-16 | .17 a badge on every folder above a ticked one (owner, E1–E4 A) |

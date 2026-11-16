@@ -169,6 +169,23 @@ describe('FolderTree', () => {
 		expect(item(wrapper, '2026').attributes('aria-selected')).toBe('true')
 	})
 
+	// spec: LISTING-003.17
+	it('counts the ticked folders below a folder, collapsed or not, without ticking it', async () => {
+		const { wrapper, answer } = await mountTree(['/Photos', '/Photos/2026', '/Photos/2025'])
+		const badge = () => item(wrapper, 'Photos').find('.folder-tree__badge')
+
+		expect(badge().find('[aria-hidden="true"]').text()).toBe(`${MARK}${MARK}2 inside`)
+		expect(badge().find('.hidden-visually').text()).toBe(`${MARK}${MARK}2 ticked folders inside`)
+		expect(item(wrapper, 'Photos').attributes('aria-selected')).toBe('true')
+		expect(item(wrapper, 'Day 9').find('.folder-tree__badge').exists()).toBe(false)
+
+		await answer('/Photos')
+		await twisty(wrapper, 'Photos').trigger('click')
+		expect(item(wrapper, 'Photos').attributes('aria-expanded')).toBe('false')
+		expect(badge().find('[aria-hidden="true"]').text()).toBe(`${MARK}${MARK}2 inside`)
+		expect(item(wrapper, 'Photos').attributes('aria-checked')).toBeUndefined()
+	})
+
 	// spec: LISTING-003.16
 	it('has one tab stop and moves it with the arrow keys', async () => {
 		const { wrapper, answer } = await mountTree()
@@ -221,5 +238,14 @@ describe('FolderTree: one folder', () => {
 		await item(wrapper, 'Day 10').trigger('click')
 
 		expect(wrapper.emitted('toggle')).toEqual([['/Day 10']])
+	})
+
+	// spec: LISTING-003.17, MOVE-004.4
+	it('marks the folders above the chosen one', async () => {
+		const folders = fakeFolders()
+		const wrapper = mount(FolderTree, { props: { ticked: ['/Photos/2025'], listFolders: folders.listFolders, single: true } })
+		await folders.answer('')
+
+		expect(item(wrapper, 'Photos').find('.folder-tree__badge .hidden-visually').text()).toBe('1 chosen folder inside')
 	})
 })
