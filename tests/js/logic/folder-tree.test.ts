@@ -5,7 +5,7 @@ import type { Branch, TreeFolder } from '../../../src/logic/folder-tree.ts'
 import { describe, expect, it } from 'vitest'
 import { foldersToExpand, includedBy, ROOT, tickedBelow, treeKey, visibleRows } from '../../../src/logic/folder-tree.ts'
 
-const folder = (path: string, hasSubfolders = false): TreeFolder => ({ name: path.split('/').pop()!, path, hasSubfolders })
+const folder = (path: string, hasSubfolders = false): TreeFolder => ({ name: path.split('/').pop()!, path, hasSubfolders, photoFiles: 0 })
 const loaded = (...folders: TreeFolder[]): Branch => ({ state: 'loaded', folders })
 
 const BRANCHES = new Map<string, Branch>([

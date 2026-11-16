@@ -10,6 +10,8 @@ export interface TreeFolder {
 	readonly name: string
 	readonly path: string
 	readonly hasSubfolders: boolean
+	/** Photo files of its own, null for a hidden or unlistable folder. */
+	readonly photoFiles: number | null
 }
 
 /** What the tree knows of one folder's child folders. */
