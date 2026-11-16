@@ -185,8 +185,8 @@ describe('RawRemovalSummary', () => {
 		const progress = { done: 5, total: 40 }
 		const report = trashReport(wholePictures([PAIR!]), [[{ fileId: 2, result: 'locked' }, { fileId: 1, result: 'skipped' }, { fileId: 3, result: 'skipped' }]])
 		const label = (wrapper: ReturnType<typeof mount>) => wrapper.findComponent(ConfirmDialog).props('confirmLabel') as string
-		const deleteSummary = (props: Record<string, unknown>) => mount(DeleteSummary, { props: { pictures: [PAIR!], folderSet: SET, fromReview: false, ...props }, global })
-		const deleteReport = (props: Record<string, unknown>) => mount(DeleteReport, { props: { report, skipped: [], folderSet: SET, ...props }, global })
+		const deleteSummary = (props: Record<string, unknown>) => mount(DeleteSummary, { props: { pictures: [PAIR!], folderSet: SET, fromReview: false, busy: false, ...props }, global })
+		const deleteReport = (props: Record<string, unknown>) => mount(DeleteReport, { props: { report, skipped: [], folderSet: SET, busy: false, ...props }, global })
 
 		expect([summary({ busy: true }), deleteSummary({ busy: true }), deleteReport({ busy: true })].map(label)).toEqual(['Checking the photos…', 'Checking the photos…', 'Checking the photos…'])
 		expect([summary({ busy: true, progress }), deleteSummary({ busy: true, progress }), deleteReport({ busy: true, progress })].map(label)).toEqual(['Moving to trash…', 'Moving to trash…', 'Moving to trash…'])
