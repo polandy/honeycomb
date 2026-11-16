@@ -112,7 +112,12 @@ function onOpen(open: boolean) {
 	}
 
 	.confirm-dialog.modal-mask .dialog__actions {
+		flex-wrap: wrap;
 		padding-bottom: env(safe-area-inset-bottom, 0px);
+	}
+
+	.confirm-dialog.modal-mask .confirm-dialog__progress {
+		flex-basis: 100%;
 	}
 }
 </style>
