@@ -49,7 +49,10 @@ final class FileCachePhotoFilesTest extends DbTestCase {
 		return new FileCachePhotoFiles($this->db, Server::get(IMimeTypeLoader::class), $manager);
 	}
 
-	/** Creates the files at `$paths` in the user's files, with their folders. */
+	/**
+	 * Creates the files at `$paths` in the user's files, with their folders.
+	 * @param list<string> $paths
+	 */
 	private function files(string $uid, array $paths): Folder {
 		$home = Server::get(IRootFolder::class)->getUserFolder($uid);
 		foreach ($paths as $path) {

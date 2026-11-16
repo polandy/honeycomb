@@ -22,7 +22,7 @@ final class FakePhotoFilesBelow implements PhotoFilesBelow {
 	#[\Override]
 	public function count(Folder $folder): ?int {
 		if ($this->fails) {
-			throw new FakeDbException('database gone');
+			throw new FakeDbException(\OCP\DB\Exception::REASON_CONNECTION_LOST);
 		}
 		return array_key_exists($folder->getPath(), $this->counts) ? $this->counts[$folder->getPath()] : 0;
 	}

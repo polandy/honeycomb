@@ -33,6 +33,22 @@ the ticked folders.
   as `hasSubfolders`, so the tree can show a count beside each folder without a request or a
   recursive walk per row. Files, not pictures: pairing stays in TypeScript (ADR 0006), and
   counting pictures would need every file name in the browser.
+- **Photo files below (amended 2026-11-16):** each item also carries `photoFilesBelow`, the photo
+  files in the child and in every folder below it, so a collapsed folder can count its subfolders
+  (as digiKam). It is counted in Nextcloud's file cache, not by a walk: one `COUNT` per storage
+  through `IDBConnection`, by storage and path prefix, image mimepart or an untyped RAW name, and
+  no path with a hidden name. The child's storage and path come from its file cache row, so a
+  share or group folder counts the subtree it exposes; each storage mounted below the child
+  (`IMountManager::findIn`) adds its own subtree, unless it is hidden, not scanned yet or already
+  counted. No cache of our own: measured with 100,000 photo files in one user's storage (NC 35),
+  one count of the whole tree took 27 ms on PostgreSQL 17, 39 ms on MariaDB 11.4 and 29 ms on
+  SQLite; a level of 10 to 20 child folders took up to 300 ms (PostgreSQL), 215 ms (MariaDB) and
+  50 ms (SQLite). PostgreSQL has no path-prefix index in Nextcloud and filters the storage's rows
+  through `fs_storage_mimepart`; MariaDB and SQLite use the storage indexes or a table scan.
+- **Exactness of the count below:** it is what Nextcloud's file cache knows: files not scanned yet
+  (an external storage changed outside Nextcloud) are missing, and a group folder's advanced
+  permissions are not applied, so a hidden subfolder there can count. The tree shows it like the
+  own count; the user docs say so.
 
 ## Consequences
 
@@ -40,4 +56,8 @@ the ticked folders.
 - `hasSubfolders` and `photoFiles` read one unfiltered directory listing per child folder; a
   folder with thousands of child folders, or children with thousands of files, answers slower,
   which the picker shows as loading.
+- `photoFilesBelow` adds one count query per child and per storage mounted below it; on
+  PostgreSQL each one reads the rows of the child's whole storage, so a level's cost grows with
+  its child folders times the storage's files. A cache with invalidation is the next step if
+  that gets slow.
 - A new field is added, never renamed or removed, without a new version in the path.

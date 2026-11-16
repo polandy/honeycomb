@@ -12,6 +12,8 @@ export interface TreeFolder {
 	readonly hasSubfolders: boolean
 	/** Photo files of its own, null for a hidden or unlistable folder. */
 	readonly photoFiles: number | null
+	/** Photo files of its own and of every folder below it, null for a hidden folder or an unknown count. */
+	readonly photoFilesBelow: number | null
 }
 
 /** What the tree knows of one folder's child folders. */
@@ -110,4 +112,11 @@ export function includedBy(ticked: readonly string[], path: string): string | nu
 		}
 	}
 	return null
+}
+
+/** The photo files a folder row shows: its own while expanded or without subfolders, else all below it; null for none or unknown. */
+export function rowPhotoFiles(folder: TreeFolder, expanded: boolean): { readonly count: number, readonly below: boolean } | null {
+	const below = folder.hasSubfolders && !expanded
+	const count = below ? folder.photoFilesBelow : folder.photoFiles
+	return count === null || count === 0 ? null : { count, below }
 }

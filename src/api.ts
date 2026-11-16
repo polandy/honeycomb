@@ -31,6 +31,7 @@ export interface Folder {
 	readonly path: string
 	readonly hasSubfolders: boolean
 	readonly photoFiles: number | null
+	readonly photoFilesBelow: number | null
 }
 
 /** Thrown when an endpoint answers with a body of the wrong shape. */

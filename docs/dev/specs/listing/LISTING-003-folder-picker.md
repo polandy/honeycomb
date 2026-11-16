@@ -14,11 +14,15 @@ The picker shows how many photos the set holds before it opens.
 
 **Folder endpoint.** `GET /apps/honeycomb/api/v1/folders?path=<folder>`, logged in, with the
 CSRF token, answers `{"folders": [...]}`: one item per direct child folder with `name`, `path`
-(from the user's files, leading `/`), `hasSubfolders` and `photoFiles`. Hidden folders are
-included; files are not. `hasSubfolders` is false when the child holds no folder or may not be
-listed. `photoFiles` counts the child's own photo files, the types LISTING-001 lists without
-sidecars and hidden files, its subfolders left out; it is `null` for a hidden child or one that
-may not be listed. Both come from one listing of the child. Errors as
+(from the user's files, leading `/`), `hasSubfolders`, `photoFiles` and `photoFilesBelow`.
+Hidden folders are included; files are not. `hasSubfolders` is false when the child holds no
+folder or may not be listed. `photoFiles` counts the child's own photo files, the types
+LISTING-001 lists without sidecars and hidden files, its subfolders left out; both come from one
+listing of the child. `photoFilesBelow` counts the same types in the child and in every folder
+below it, hidden folders left out and the storages mounted below it (shares, external storages)
+added, from Nextcloud's file cache in one query per storage, without walking the folders. Both
+counts are `null` for a hidden child or one that may not be listed; `photoFilesBelow` also when
+the file cache does not know the child or the database fails (logged). Errors as
 LISTING-001: `404` for a foreign, vanished or file path, `403` for an unreadable folder, `401`
 without a user.
 
@@ -49,8 +53,10 @@ ticked one that is not ticked itself shows a dashed tick and "included" after it
 as "included with <the nearest ticked folder above>"; it is not selected and a tap ticks it.
 Hidden folders, and the folders inside them, stay without it, since the listing skips them.
 Every folder with photo files shows their count last in its row, in the muted colour with digits
-of even width, the same whether it is expanded or collapsed; a screen reader hears it as part of
-the folder, "*n* photo files". A folder without any, a hidden one and one that cannot be listed
+of even width. A collapsed folder with subfolders counts the photo files in it and in all folders
+below it, read out as "*n* photo files with subfolders"; once expanded, and for a folder without
+subfolders, it counts only its own, read out as "*n* photo files" (as digiKam). A folder without
+any, a hidden one, one that cannot be listed and a collapsed one whose count below is unknown
 show none. The count comes with the folder, so the row never grows when it arrives. The move
 dialog's tree shows it too.
 Confirming hands the folder set and its merged entries to the grid.
@@ -205,9 +211,18 @@ starts from that folder set and *Cancel* returns to it.
 ### LISTING-003.19 – Photo files of each folder
 
 - **Given** folders with and without photo files, hidden ones, and one that cannot be listed
-- **When** the tree shows them, in the picker or in the move dialog, expanded or collapsed
+- **When** the tree shows them expanded or without subfolders, in the picker or in the move
+  dialog
 - **Then** each one with photo files shows the count of its own (subfolders, sidecars and hidden
   files left out) last in its row, read out as "*n* photo files"; the others show none
+
+### LISTING-003.20 – Photo files below a collapsed folder
+
+- **Given** a collapsed folder with subfolders, some hidden, and a storage mounted below it
+- **When** the tree shows it, in the picker or in the move dialog
+- **Then** its count adds the photo files of all folders below it and of the mounted storage,
+  hidden folders and files left out, read out as "*n* photo files with subfolders"; expanding it
+  shows its own count again, and a count the file cache cannot give shows none
 
 ## Out of scope
 
@@ -226,3 +241,4 @@ starts from that folder set and *Cancel* returns to it.
 | 2026-11-16 | .17 a badge on every folder above a ticked one (owner, E1–E4 A) |
 | 2026-11-16 | .18 the folders included by *Include subfolders* (owner, E3 A) |
 | 2026-11-16 | .1/.19 the photo files of each folder in the tree (owner, after digiKam) |
+| 2026-11-16 | .1/.20 a collapsed folder counts its subfolders too (owner, digiKam) |
