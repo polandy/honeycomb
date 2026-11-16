@@ -12,12 +12,12 @@ import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untr
 const MARK = TRANSLATED_MARK
 const FOLDERS: Record<string, Folder[]> = {
 	'': [
-		{ name: 'Photos', path: '/Photos', hasSubfolders: true, photoFiles: 3 },
-		{ name: '.hidden', path: '/.hidden', hasSubfolders: false, photoFiles: null },
-		{ name: 'Day 10', path: '/Day 10', hasSubfolders: false, photoFiles: 0 },
-		{ name: 'Day 9', path: '/Day 9', hasSubfolders: false, photoFiles: 1 },
+		{ name: 'Photos', path: '/Photos', hasSubfolders: true, photoFiles: 3, photoFilesBelow: 1203 },
+		{ name: '.hidden', path: '/.hidden', hasSubfolders: false, photoFiles: null, photoFilesBelow: null },
+		{ name: 'Day 10', path: '/Day 10', hasSubfolders: false, photoFiles: 0, photoFilesBelow: 0 },
+		{ name: 'Day 9', path: '/Day 9', hasSubfolders: false, photoFiles: 1, photoFilesBelow: 1 },
 	],
-	'/Photos': [{ name: '2026', path: '/Photos/2026', hasSubfolders: true, photoFiles: 0 }, { name: '2025', path: '/Photos/2025', hasSubfolders: false, photoFiles: 1200 }],
+	'/Photos': [{ name: '2026', path: '/Photos/2026', hasSubfolders: true, photoFiles: 0, photoFilesBelow: 0 }, { name: '2025', path: '/Photos/2025', hasSubfolders: false, photoFiles: 1200, photoFilesBelow: 1200 }],
 	// The server saw a subfolder that is gone by the time the folder opens.
 	'/Photos/2026': [],
 }
@@ -188,7 +188,7 @@ describe('FolderTree', () => {
 
 	// spec: LISTING-003.18
 	it('marks the folders below a ticked one as included while Include subfolders is on, still tappable', async () => {
-		const hidden = { name: '.cache', path: '/Photos/.cache', hasSubfolders: false, photoFiles: null }
+		const hidden = { name: '.cache', path: '/Photos/.cache', hasSubfolders: false, photoFiles: null, photoFilesBelow: null }
 		const { wrapper, answer } = await mountTree(['/Photos'], true, { ...FOLDERS, '/Photos': [...FOLDERS['/Photos']!, hidden] })
 		await twisty(wrapper, 'Photos').trigger('click')
 		await answer('/Photos')
@@ -232,6 +232,24 @@ describe('FolderTree', () => {
 		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('3')
 		expect(count('2025').find('[aria-hidden="true"]').text()).toBe('1,200')
 		expect(count('2026').exists()).toBe(false)
+	})
+
+	// spec: LISTING-003.20
+	it('shows the photo files below a collapsed folder and its own once it is expanded', async () => {
+		const { wrapper, answer } = await mountTree()
+		const count = (name: string) => item(wrapper, name).find('.folder-tree__count')
+
+		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('1,203')
+		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1,203 photo files with subfolders`)
+		expect(count('Day 9').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1 photo file`)
+
+		await twisty(wrapper, 'Photos').trigger('click')
+		await answer('/Photos')
+		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('3')
+		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}3 photo files`)
+
+		await twisty(wrapper, 'Photos').trigger('click')
+		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('1,203')
 	})
 
 	// spec: LISTING-003.16
