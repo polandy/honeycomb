@@ -116,7 +116,11 @@ function onConfirm() {
 			@update:modelValue="onSubfolders">
 			{{ t('honeycomb', 'Include subfolders') }}
 		</NcCheckboxRadioSwitch>
-		<FolderTree :ticked="set.paths" :subfolders="set.subfolders" :listFolders="props.listFolders" @toggle="onToggle" />
+		<FolderTree
+			:ticked="set.paths"
+			:subfolders="set.subfolders"
+			:listFolders="props.listFolders"
+			@toggle="onToggle" />
 		<p class="folder-picker__count" aria-live="polite">
 			{{ summary }}
 		</p>
