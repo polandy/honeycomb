@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { breadcrumbs, isHiddenFolder } from './folder-set.ts'
+import type { FolderSet } from './folder-set.ts'
+
+import { breadcrumbs, effectiveExclusions, isHiddenFolder, tickAbove } from './folder-set.ts'
 
 /** The path of the user's home folder, the tree's root. */
 export const ROOT = ''
@@ -98,20 +100,30 @@ export function tickedBelow(ticked: readonly string[], path: string): number {
 	return ticked.filter((each) => each.startsWith(`${path}/`)).length
 }
 
-/** The nearest ticked folder above `path` that *Include subfolders* takes it along with; null when none or when `path` is ticked or hidden. */
-export function includedBy(ticked: readonly string[], path: string): string | null {
-	if (ticked.includes(path)) {
+/** The nearest ticked folder above `path` that *Include subfolders* takes it along with; null when none or when `path` is ticked, hidden or excluded. */
+export function includedBy(set: Pick<FolderSet, 'paths' | 'excluded'>, path: string): string | null {
+	if (set.paths.includes(path)) {
 		return null
 	}
 	for (const crumb of breadcrumbs(path).slice(1).reverse()) {
-		if (ticked.includes(crumb.path)) {
+		if (set.paths.includes(crumb.path)) {
 			return crumb.path
 		}
-		if (isHiddenFolder(crumb.name)) {
+		if (isHiddenFolder(crumb.name) || set.excluded?.includes(crumb.path)) {
 			return null
 		}
 	}
 	return null
+}
+
+/** The ticked folder an excluded folder at `path` is left out of; null when it leaves nothing out. */
+export function excludedFrom(set: FolderSet, path: string): string | null {
+	return effectiveExclusions(set).includes(path) ? tickAbove(set, path) : null
+}
+
+/** How many of the excluded folders that leave something out lie at any depth below `path`. */
+export function excludedBelow(set: FolderSet, path: string): number {
+	return effectiveExclusions(set).filter((each) => each.startsWith(`${path}/`)).length
 }
 
 /** The photo files a folder row shows: its own while expanded or without subfolders, else all below it; null for none or unknown. */

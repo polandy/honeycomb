@@ -46,18 +46,18 @@ describe('FolderPicker excluded folders', () => {
 	// spec: LISTING-003.21
 	it('excludes an included folder on a tap, counts without it, and includes it again on the next', async () => {
 		const picker = await mountPicker({ paths: ['/Trip'], subfolders: true })
-		expect(picker.countLine()).toBe(`${MARK}${MARK}2 photos in ${MARK}2 folders`)
+		expect(picker.countLine()).toBe(`${MARK}2 photos in 2 folders`)
 
 		await picker.tap('/Trip/Day 2')
 
 		expect(picker.wrapper.findComponent(FolderTree).props('excluded')).toEqual(['/Trip/Day 2'])
 		expect(picker.calls.at(-1)).toEqual(['/Trip', true, ['/Trip/Day 2']])
-		expect(picker.countLine()).toBe(`${MARK}${MARK}1 photo in ${MARK}1 folder`)
+		expect(picker.countLine()).toBe(`${MARK}1 photo in 1 folder`)
 
 		await picker.tap('/Trip/Day 2')
 
 		expect(picker.wrapper.findComponent(FolderTree).props('excluded')).toEqual([])
-		expect(picker.countLine()).toBe(`${MARK}${MARK}2 photos in ${MARK}2 folders`)
+		expect(picker.countLine()).toBe(`${MARK}2 photos in 2 folders`)
 		expect(picker.calls).toHaveLength(2)
 	})
 

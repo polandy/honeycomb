@@ -74,7 +74,7 @@ final class FolderSetTest extends TestCase {
 		FolderSet::fromRequest(['paths' => ['/Trip'], 'subfolders' => true, 'excluded' => $excluded]);
 	}
 
-	/** @return array<string, array{mixed}> */
+	/** @return array<string, array{mixed, ?list<string>}> */
 	public static function folderPathLists(): array {
 		return [
 			'none' => [[], []],
@@ -86,6 +86,7 @@ final class FolderSetTest extends TestCase {
 	}
 
 	// spec: LISTING-001.16
+	/** @param ?list<string> $expected */
 	#[DataProvider('folderPathLists')]
 	public function testReadsAListOfFolderPaths(mixed $value, ?array $expected): void {
 		$this->assertSame($expected, FolderSet::folderPaths($value));

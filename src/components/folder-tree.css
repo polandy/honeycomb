@@ -99,6 +99,11 @@
 	color: var(--color-primary-element-light-text);
 }
 
+.folder-tree__box--excluded {
+	border-color: var(--color-text-maxcontrast);
+	color: var(--color-text-maxcontrast);
+}
+
 .folder-tree__count {
 	flex: none;
 	color: var(--color-text-maxcontrast);
@@ -107,7 +112,8 @@
 	white-space: nowrap;
 }
 
-.folder-tree__included {
+.folder-tree__included,
+.folder-tree__excluded {
 	flex: none;
 	color: var(--color-text-maxcontrast);
 	font-size: var(--font-size-small, 13px);
@@ -127,6 +133,11 @@
 	white-space: nowrap;
 }
 
+.folder-tree__name--excluded {
+	color: var(--color-text-maxcontrast);
+	text-decoration: line-through;
+}
+
 .folder-tree__badge {
 	flex: none;
 	padding: 0 calc(2 * var(--default-grid-baseline));
@@ -135,6 +146,11 @@
 	color: var(--color-primary-element-light-text);
 	font-size: var(--font-size-small, 13px);
 	white-space: nowrap;
+}
+
+.folder-tree__badge--excluded {
+	border-color: var(--color-text-maxcontrast);
+	color: var(--color-text-maxcontrast);
 }
 
 @media (pointer: coarse) {

@@ -33,8 +33,8 @@ export type Folder = TreeFolder
 export class ApiResponseError extends Error {}
 
 /** The image files of a folder, with every folder below it when `subfolders` (ADR 0009), and the folders that are shared (ADR 0017). */
-export async function listEntries(path: string, subfolders: boolean): Promise<Required<Listing>> {
-	const params = subfolders ? { path, subfolders: 1 } : { path }
+export async function listEntries(path: string, subfolders: boolean, excluded: readonly string[] = []): Promise<Required<Listing>> {
+	const params = { path, ...(subfolders ? { subfolders: 1 } : {}), ...(excluded.length > 0 ? { excluded } : {}) }
 	const { data } = await axios.get<unknown>(generateUrl(`${API}/entries`), { params })
 	if (!isRecord(data) || !Array.isArray(data.entries) || typeof data.truncated !== 'boolean') {
 		throw new ApiResponseError(`The listing of "${path}" has no entries array and truncated flag; check the server's version.`)

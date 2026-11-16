@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
+use OCA\Honeycomb\Service\FolderSet;
+use OCA\Honeycomb\Service\InvalidListingRequestException;
 use OCA\Honeycomb\Service\ListingService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -27,10 +29,14 @@ final class EntryController extends Controller {
 		parent::__construct($appName, $request);
 	}
 
-	/** The entries of the folder at `path`, with `subfolders=1` of every folder below too. */
+	/** The entries of the folder at `path`, with `subfolders=1` of every folder below too but the `excluded[]` ones. */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/entries')]
 	public function index(string $path = '', bool $subfolders = false): Response {
-		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->listingService->list($user, $path, $subfolders)));
+		return $this->api->forUser(function (IUser $user) use ($path, $subfolders): Response {
+			$excluded = FolderSet::folderPaths($this->request->getParam('excluded', []))
+				?? throw new InvalidListingRequestException('excluded must list at most ' . FolderSet::MAX_FOLDERS . ' folder paths without ..');
+			return new JSONResponse($this->listingService->list($user, $path, $subfolders, $excluded));
+		});
 	}
 }

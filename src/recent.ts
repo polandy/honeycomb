@@ -10,6 +10,7 @@ import type { ResumeApi } from './resume.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, ref, shallowRef } from 'vue'
+import { listFolderSet } from './folder-count.ts'
 import { PLAIN_TEXT } from './l10n.ts'
 import { logger } from './logger.ts'
 import { countFolderSet } from './logic/cull.ts'
@@ -63,7 +64,7 @@ export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: Recent
 		const opened = ++opening
 		listing.value = true
 		try {
-			const listings = await Promise.all(folderSet.paths.map((path) => listEntries(path, folderSet.subfolders)))
+			const listings = await listFolderSet(folderSet, listEntries)
 			if (opened === opening) {
 				const { entries, access } = countFolderSet(listings, cull.pairing())
 				opener.open(folderSet, entries, access)
