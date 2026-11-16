@@ -48,9 +48,20 @@ final readonly class FolderSet implements \JsonSerializable {
 		return new self($paths, $subfolders);
 	}
 
-	/** The SHA-256 of `folderSetKey()` in `src/logic/folder-set.ts`: the same set gives the same key. */
+	/** The SHA-256 of `folderSetKey()` in `src/logic/folder-set.ts`: the same set gives the same key (ADR 0034). */
 	public function key(): string {
-		return hash('sha256', json_encode([$this->paths, $this->subfolders], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+		$paths = $this->subfolders ? array_values(array_filter($this->paths, $this->uncovered(...))) : $this->paths;
+		return hash('sha256', json_encode([$paths, $this->subfolders], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+	}
+
+	/** Whether no other ticked path holds this one, so *Include subfolders* does not list it already. */
+	private function uncovered(string $path): bool {
+		foreach ($this->paths as $other) {
+			if (str_starts_with($path, $other . '/')) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/** @return array{paths: list<string>, subfolders: bool} */
