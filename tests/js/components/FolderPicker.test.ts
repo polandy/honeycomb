@@ -21,9 +21,9 @@ import { DialogStub } from './stubs.ts'
 
 const MARK = TRANSLATED_MARK
 const ROOT: Folder[] = [
-	{ name: 'Trip', path: '/Trip', hasSubfolders: true },
-	{ name: 'Empty', path: '/Empty', hasSubfolders: false },
-	{ name: 'Home', path: '/Home', hasSubfolders: false },
+	{ name: 'Trip', path: '/Trip', hasSubfolders: true, photoFiles: 0 },
+	{ name: 'Empty', path: '/Empty', hasSubfolders: false, photoFiles: 0 },
+	{ name: 'Home', path: '/Home', hasSubfolders: false, photoFiles: 0 },
 ]
 
 /** Two pairs in /Trip, one more picture in /Trip/Day 2 with subfolders, 20 001 in /Home. */

@@ -44,8 +44,8 @@ final class FolderServiceTest extends TestCase {
 		$folders = $this->service($this->rootWith(['/' => $root]))->children($this->user(), '');
 
 		$this->assertSame([
-			['name' => 'Photos', 'path' => '/Photos', 'hasSubfolders' => false],
-			['name' => 'Documents', 'path' => '/Documents', 'hasSubfolders' => false],
+			['name' => 'Photos', 'path' => '/Photos', 'hasSubfolders' => false, 'photoFiles' => 0],
+			['name' => 'Documents', 'path' => '/Documents', 'hasSubfolders' => false, 'photoFiles' => 0],
 		], $folders);
 	}
 
@@ -56,7 +56,7 @@ final class FolderServiceTest extends TestCase {
 
 		$folders = $this->service($this->rootWith(['/Photos/2024' => $year]))->children($this->user(), '/Photos/2024');
 
-		$this->assertSame([['name' => 'Trip', 'path' => '/Photos/2024/Trip', 'hasSubfolders' => false]], $folders);
+		$this->assertSame([['name' => 'Trip', 'path' => '/Photos/2024/Trip', 'hasSubfolders' => false, 'photoFiles' => 0]], $folders);
 	}
 
 	// spec: LISTING-003.1
@@ -69,7 +69,7 @@ final class FolderServiceTest extends TestCase {
 
 		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
 
-		$this->assertSame([['name' => '.thumbnails', 'path' => '/Photos/.thumbnails', 'hasSubfolders' => false]], $folders);
+		$this->assertSame([['name' => '.thumbnails', 'path' => '/Photos/.thumbnails', 'hasSubfolders' => false, 'photoFiles' => null]], $folders);
 	}
 
 	// spec: LISTING-003.2
@@ -91,11 +91,38 @@ final class FolderServiceTest extends TestCase {
 
 		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
 
-		$this->assertSame([['name' => 'Locked', 'path' => '/Photos/Locked', 'hasSubfolders' => false]], $folders);
+		$this->assertSame([['name' => 'Locked', 'path' => '/Photos/Locked', 'hasSubfolders' => false, 'photoFiles' => null]], $folders);
 	}
 
-	// spec: LISTING-003.2
-	public function testAsksAChildForItsFoldersOnly(): void {
+	// spec: LISTING-003.19
+	public function testCountsThePhotoFilesOfEachChildWithoutItsSubfolders(): void {
+		$day = $this->folderWith('/Photos/Day', [
+			$this->file(1, '/Photos/Day/IMG_1.JPG'),
+			$this->file(2, '/Photos/Day/IMG_1.CR3', 'application/octet-stream'),
+			$this->file(3, '/Photos/Day/IMG_1.xmp', 'application/octet-stream'),
+			$this->file(4, '/Photos/Day/notes.txt', 'text/plain'),
+			$this->file(5, '/Photos/Day/.IMG_2.JPG'),
+			$this->folderWith('/Photos/Day/Edits', [$this->file(6, '/Photos/Day/Edits/IMG_3.JPG')]),
+		]);
+		$photos = $this->folderWith('/Photos', [$day, $this->folderWith('/Photos/Empty')]);
+
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
+
+		$this->assertSame([2, 0], array_column($folders, 'photoFiles'));
+	}
+
+	// spec: LISTING-003.19
+	public function testAHiddenChildHasNoCount(): void {
+		$hidden = $this->folderWith('/Photos/.cache', [$this->file(1, '/Photos/.cache/IMG_1.JPG')]);
+		$photos = $this->folderWith('/Photos', [$hidden]);
+
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
+
+		$this->assertSame([null], array_column($folders, 'photoFiles'));
+	}
+
+	// spec: LISTING-003.2, LISTING-003.19
+	public function testListsEachChildOnce(): void {
 		$filters = [];
 		$year = $this->folder('/Photos/2024');
 		$year->method('getDirectoryListing')->willReturnCallback(function (?string $mime = null) use (&$filters): array {
@@ -107,7 +134,7 @@ final class FolderServiceTest extends TestCase {
 		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
 
 		$this->assertSame([true], array_column($folders, 'hasSubfolders'));
-		$this->assertSame([FileInfo::MIMETYPE_FOLDER], $filters);
+		$this->assertSame([null], $filters);
 	}
 
 	// spec: LISTING-003.2
@@ -118,7 +145,7 @@ final class FolderServiceTest extends TestCase {
 
 		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
 
-		$this->assertSame([['name' => 'Gone', 'path' => '/Photos/Gone', 'hasSubfolders' => false]], $folders);
+		$this->assertSame([['name' => 'Gone', 'path' => '/Photos/Gone', 'hasSubfolders' => false, 'photoFiles' => null]], $folders);
 	}
 
 	/** @return array<string, array{string}> */
