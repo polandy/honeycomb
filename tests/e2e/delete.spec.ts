@@ -24,7 +24,7 @@ async function trashLocations(page: Page): Promise<string> {
 	return trash.text()
 }
 
-// spec: DELETE-002.1, DELETE-002.8, DELETE-002.15
+// spec: DELETE-002.1, DELETE-002.8, DELETE-002.13, DELETE-002.15
 test('reviews the rejects, rescues one and moves the rest with their sidecars to the Nextcloud trash bin', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Delete ${randomUUID().slice(0, 8)}`
@@ -53,7 +53,16 @@ test('reviews the rejects, rescues one and moves the rest with their sidecars to
 
 	const summary = page.getByRole('dialog', { name: 'Delete 2 photos' })
 	await expect(summary.getByRole('list', { name: 'Files that will be deleted' }).getByRole('listitem')).toHaveCount(3)
+	let release = () => {}
+	const held = new Promise<void>((resolve) => (release = resolve))
+	await page.route('**/apps/honeycomb/api/v1/trash', async (route) => {
+		await held
+		await route.continue()
+	})
 	await summary.getByRole('button', { name: 'Move 3 files to trash' }).click()
+	await expect(summary.getByRole('button', { name: 'Moving to trash…' })).toBeDisabled()
+	await expect(summary.getByText('0 of 2 photos sent')).toBeVisible()
+	release()
 
 	await expect(summary).toBeHidden()
 	await expect(page.getByRole('status').filter({ hasText: 'Moved 2 photos · 6 files' })).toBeVisible()

@@ -125,15 +125,13 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 		}
 	}
 
-	/** Writes the waiting sidecars, plans and sends the batch in chunks, takes the trashed files out of the listing and the loupe, and reports. */
-	async function send(total: number, plan: Plan, done: (report: TrashReport) => string) {
+	/** Writes the waiting sidecars, plans and sends the batch in chunks, takes the trashed files out of the listing and the loupe, and reports; counts from the planned batch. */
+	async function send(plan: Plan, done: (report: TrashReport) => string) {
 		busy.value = true
-		let onProgress = (count: number) => (progress.value = { done: count, total })
-		onProgress(0)
 		try {
 			await context.flush()
 			const { batch, skipped } = await plan()
-			onProgress = (count: number) => (progress.value = { done: count, total: batch.length })
+			const onProgress = (count: number) => (progress.value = { done: count, total: batch.length })
 			const sent = batch.length === 0 ? { answers: [], failure: null } : await sendInChunks(trashRequest(batch), context.trash, onProgress, context.chunks)
 			if (sent.failure !== null && sent.answers.length === 0) {
 				throw sent.failure.error
@@ -167,10 +165,10 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 		const open = dialog.value
 		if (open?.kind === 'summary') {
 			const plan = open.fromReview ? checked(open.pictures, 'rejects', wholePictures) : async () => ({ batch: wholePictures(open.pictures.map(context.current)), skipped: [] })
-			return send(open.pictures.length, plan, (report) => deletedText(report, false))
+			return send(plan, (report) => deletedText(report, false))
 		}
 		const removed = removal.value?.removed
-		return removed === undefined ? Promise.resolve() : send(removed.length, checked(removed, 'raws', rawBatch), removedRawsText)
+		return removed === undefined ? Promise.resolve() : send(checked(removed, 'raws', rawBatch), removedRawsText)
 	}
 
 	/** Sends the failed and skipped files of the report again. */
@@ -180,7 +178,7 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 			return Promise.resolve()
 		}
 		const batch = retryBatch(open.report)
-		return send(batch.length, planned(batch), (report) => deletedText(report, true))
+		return send(planned(batch), (report) => deletedText(report, true))
 	}
 
 	/** Says the loupe left nothing undecided, and offers the reject review. */

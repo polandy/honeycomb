@@ -15,7 +15,7 @@ import DeleteStats from './DeleteStats.vue'
 import TrashFileList from './TrashFileList.vue'
 import { formatNumber } from '../l10n.ts'
 import { filesOf } from '../logic/delete-summary.ts'
-import { failureReason, skipReason } from '../trash-text.ts'
+import { failureReason, runningText, skipReason } from '../trash-text.ts'
 
 const props = defineProps<{
 	report: TrashReport
@@ -46,7 +46,7 @@ const stats = computed(() => [
 <template>
 	<ConfirmDialog
 		:title="failed ? t('honeycomb', 'Deletion finished with errors') : t('honeycomb', 'Some photos were skipped')"
-		:confirmLabel="t('honeycomb', 'Retry failed files')"
+		:confirmLabel="props.busy ? runningText(props.progress) : t('honeycomb', 'Retry failed files')"
 		:progress="props.progress"
 		:confirmDisabled="props.busy || !failed"
 		:cancelLabel="t('honeycomb', 'Close')"

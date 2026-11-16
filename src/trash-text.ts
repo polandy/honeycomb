@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { SkipReason } from './logic/fresh-check.ts'
+import type { SendProgress } from './logic/request-chunks.ts'
 import type { TrashFailure, TrashReport } from './logic/trash-report.ts'
 
 import { n, t } from '@nextcloud/l10n'
@@ -29,6 +30,11 @@ export function failureReason(result: TrashFailure): string {
 /** The summaries' note on where deleted files go and how long the trash bin keeps them. */
 export function trashBinNote(): string {
 	return t('honeycomb', 'Files move to the Nextcloud trash bin and can be restored from there until it empties itself: after its retention time, or sooner when space runs short. Keep a backup of photos you cannot afford to lose.')
+}
+
+/** The held confirm button of a running delete: checking the photos until the first request goes, then moving them. */
+export function runningText(progress: SendProgress | null | undefined): string {
+	return progress ? t('honeycomb', 'Moving to trash…') : t('honeycomb', 'Checking the photos…')
 }
 
 /** "%n file" with the count formatted. */

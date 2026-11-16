@@ -25,7 +25,8 @@ member and sidecar of each picture to the trash endpoint. The pictures that went
 and the loupe; a toast says what was freed. Failed files end in the delete report, with a reason
 per file, *Close* and *Retry failed files*. Deleting is not undone by `Ctrl+Z`; the trash bin
 restores. A delete, a *Remove RAWs* and a retry send at most 50 pictures and 500 files per
-request, one request after another, and the dialog shows how many photos were sent (ADR 0029).
+request, starting with 5 and doubling, one request after another; the held confirm button names
+the running step and the dialog shows how many photos were sent (ADR 0029).
 
 **Deleting by decision** (ADR 0032). Confirming the summary that came from the review first writes
 the waiting sidecars (XMP-003.30), lists the pictures' folders again and reads every sidecar of each
@@ -128,9 +129,11 @@ honeycomb's write, keeps the listing's ETag and holds its picture as `changed`.
 
 - **Given** a delete of more pictures than one request carries
 - **When** the user confirms
-- **Then** each request carries at most 50 whole pictures and 500 files, a picture never spans two
-  requests, the next is sent when the last is answered, and the dialog shows how many of the
-  photos were sent until the last answer arrives
+- **Then** the first request carries at most 5 whole pictures and each next one twice as many, up
+  to 50 pictures and 500 files, a picture never spans two requests, and the next is sent when the
+  last is answered; the confirm button is held and reads *Checking the photos…* while the waiting
+  sidecars are written and the photos checked, then *Moving to trash…*, and the dialog shows how
+  many of the photos that passed were sent until the last answer arrives
 
 ### DELETE-002.14 – A later request fails
 
@@ -195,3 +198,4 @@ The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
 | 2026-11-15 | Deleting by decision checks the sidecars afresh and reports the skipped photos (DELETE-002.15, DELETE-002.16, ADR 0032 PR 8) |
 | 2026-11-15 | *Review rejects* in the ⋯ menu at every width, with its key (DELETE-002.19, owner) |
 | 2026-11-15 | *Delete…* sends the sidecars as honeycomb last saved or created them; only another program's change holds a picture (DELETE-002.17, DELETE-002.18) |
+| 2026-11-16 | The confirm button names the running step, and requests start at 5 pictures and double, so the count moves early (DELETE-002.13, ADR 0029) |
