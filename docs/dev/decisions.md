@@ -1413,3 +1413,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   files too); only the folder's own files, also while collapsed (digiKam adds the subfolders of a
   collapsed folder, which needs a walk per row); no on/off setting (the owner asked for it, the
   number is quiet); no number for zero (keeps folders like *Documents* quiet).
+- 2026-11-16: A collapsed folder in the folder tree counts the photo files of all its subfolders
+  too, an expanded one only its own (owner, digiKam; replaces departure 2 of the entry above).
+  Counted in Nextcloud's file cache, one query per storage, without a walk and without a cache
+  of our own: 100,000 photo files took 27 to 39 ms per count, at most 300 ms per tree level
+  (ADR 0011). Shown without a "~": it is exact to the file cache; unscanned files and group
+  folder advanced permissions are the known gaps, named in the user docs and ADR 0011. Spoken
+  "*n* photo files with subfolders" while collapsed, so a screen reader hears which count it is.

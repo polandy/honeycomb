@@ -13,7 +13,7 @@ import { listFolders as apiListFolders } from '../api.ts'
 import { formatNumber, nameComparer, PLAIN_TEXT } from '../l10n.ts'
 import { logger } from '../logger.ts'
 import { isHiddenFolder } from '../logic/folder-set.ts'
-import { foldersToExpand, includedBy, ROOT, tickedBelow, treeKey, visibleRows } from '../logic/folder-tree.ts'
+import { foldersToExpand, includedBy, ROOT, rowPhotoFiles, tickedBelow, treeKey, visibleRows } from '../logic/folder-tree.ts'
 import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
@@ -121,19 +121,24 @@ const badges = computed(() => new Map(rows.value.flatMap((row) => {
 	return shown === null ? [] : [[row.folder.path, shown] as const]
 })))
 
-/** The photo-file count of a folder, shown and spoken; null when it holds none or is unknown. */
-function photoCount(folder: Folder) {
-	const count = folder.photoFiles
-	if (count === null || count === 0) {
+/** The photo-file count of a folder row, shown and spoken; null when it holds none or is unknown. */
+function photoCount(folder: Folder, expanded: boolean) {
+	const files = rowPhotoFiles(folder, expanded)
+	if (files === null) {
 		return null
 	}
-	const shown = formatNumber(count)
-	return { shown, spoken: n('honeycomb', '{count} photo file', '{count} photo files', count, { count: shown }, PLAIN_TEXT) }
+	const vars = { count: formatNumber(files.count) }
+	return {
+		shown: vars.count,
+		spoken: files.below
+			? n('honeycomb', '{count} photo file with subfolders', '{count} photo files with subfolders', files.count, vars, PLAIN_TEXT)
+			: n('honeycomb', '{count} photo file', '{count} photo files', files.count, vars, PLAIN_TEXT),
+	}
 }
 
 /** The photo-file counts of the folders shown, by path. */
 const counts = computed(() => new Map(rows.value.flatMap((row) => {
-	const count = row.kind === 'folder' ? photoCount(row.folder) : null
+	const count = row.kind === 'folder' ? photoCount(row.folder, row.expanded) : null
 	return row.kind === 'folder' && count !== null ? [[row.folder.path, count] as const] : []
 })))
 

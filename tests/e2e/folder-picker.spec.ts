@@ -54,7 +54,7 @@ test('keeps the status line quiet and every folder row one height', async ({ pag
 	expect(parent.height).toBe(leaf.height)
 })
 
-// spec: LISTING-003.4, LISTING-003.16, LISTING-003.17
+// spec: LISTING-003.4, LISTING-003.16, LISTING-003.17, LISTING-003.20
 test('expands the folder tree by its arrow and the arrow keys and ticks a subfolder', async ({ page }) => {
 	const { root, item } = await treeFixture(page)
 
@@ -74,7 +74,7 @@ test('expands the folder tree by its arrow and the arrow keys and ticks a subfol
 	await expect(item('2026')).toBeFocused()
 	await page.keyboard.press('ArrowLeft')
 	await expect(item('Day 1')).toBeHidden()
-	await expect(item('2026')).toHaveAccessibleName(/^2026\s*1 ticked folder inside$/)
+	await expect(item('2026')).toHaveAccessibleName(/^2026\s*1 ticked folder inside 1 photo file with subfolders$/)
 	await expect(item(root).locator('.folder-tree__badge > [aria-hidden="true"]')).toHaveText('1 inside')
 	await expect(item(root)).toHaveAttribute('aria-selected', 'false')
 })
@@ -89,7 +89,7 @@ test('marks the folders below a ticked one as included while Include subfolders 
 	await expect(item('2026').locator('.folder-tree__included')).toHaveCount(0)
 	await picker.getByText('Include subfolders', { exact: true }).click()
 
-	await expect(item('2026')).toHaveAccessibleName(/^2026\s*included with Tree [0-9a-f]+$/)
+	await expect(item('2026')).toHaveAccessibleName(/^2026\s*included with Tree [0-9a-f]+ 1 photo file with subfolders$/)
 	await expect(item('2026')).toHaveAttribute('aria-selected', 'false')
 	await expect(item('2026').locator('.folder-tree__box--included')).toBeVisible()
 	await expect(picker.getByText('1 photo in 1 folder')).toBeVisible()

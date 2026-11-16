@@ -3,9 +3,9 @@
 import type { Branch, TreeFolder } from '../../../src/logic/folder-tree.ts'
 
 import { describe, expect, it } from 'vitest'
-import { foldersToExpand, includedBy, ROOT, tickedBelow, treeKey, visibleRows } from '../../../src/logic/folder-tree.ts'
+import { foldersToExpand, includedBy, ROOT, rowPhotoFiles, tickedBelow, treeKey, visibleRows } from '../../../src/logic/folder-tree.ts'
 
-const folder = (path: string, hasSubfolders = false): TreeFolder => ({ name: path.split('/').pop()!, path, hasSubfolders, photoFiles: 0 })
+const folder = (path: string, hasSubfolders = false): TreeFolder => ({ name: path.split('/').pop()!, path, hasSubfolders, photoFiles: 0, photoFilesBelow: 0 })
 const loaded = (...folders: TreeFolder[]): Branch => ({ state: 'loaded', folders })
 
 const BRANCHES = new Map<string, Branch>([
@@ -132,5 +132,28 @@ describe('includedBy', () => {
 	it('leaves out a hidden folder and every folder inside one, which the listing skips', () => {
 		expect(includedBy(['/A'], '/A/.cache')).toBeNull()
 		expect(includedBy(['/A'], '/A/.cache/1')).toBeNull()
+	})
+})
+
+describe('rowPhotoFiles', () => {
+	const counted = (hasSubfolders: boolean, photoFiles: number | null, photoFilesBelow: number | null): TreeFolder => ({ name: 'A', path: '/A', hasSubfolders, photoFiles, photoFilesBelow })
+
+	// spec: LISTING-003.20
+	it('counts the files below a collapsed folder with subfolders', () => {
+		expect(rowPhotoFiles(counted(true, 3, 1203), false)).toEqual({ count: 1203, below: true })
+	})
+
+	// spec: LISTING-003.20
+	it('counts its own files while expanded or without subfolders', () => {
+		expect(rowPhotoFiles(counted(true, 3, 1203), true)).toEqual({ count: 3, below: false })
+		expect(rowPhotoFiles(counted(false, 2, 2), false)).toEqual({ count: 2, below: false })
+	})
+
+	// spec: LISTING-003.19, LISTING-003.20
+	it('counts nothing for none or an unknown count', () => {
+		expect(rowPhotoFiles(counted(true, 3, 0), false)).toBeNull()
+		expect(rowPhotoFiles(counted(true, 3, null), false)).toBeNull()
+		expect(rowPhotoFiles(counted(true, 0, 9), true)).toBeNull()
+		expect(rowPhotoFiles(counted(false, null, null), false)).toBeNull()
 	})
 })
