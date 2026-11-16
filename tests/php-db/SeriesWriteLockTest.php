@@ -10,6 +10,7 @@ namespace OCA\Honeycomb\DbTests;
 use OCA\Honeycomb\Db\SeriesMapper;
 use OCA\Honeycomb\Service\SeriesStatus;
 use OCA\Honeycomb\Service\SeriesWrite;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Server;
@@ -17,6 +18,7 @@ use OCP\Server;
 /**
  * A series write takes SQLite's write lock with its first statement: a transaction that reads first
  * fails at once with "database is locked" when another save commits before its first write.
+ * @psalm-suppress PossiblyUndefinedArrayOffset The test destructures the id a write returns, one per series item.
  */
 final class SeriesWriteLockTest extends DbTestCase {
 	/** Whether a second connection found the write lock taken right after the write's first statement. */
@@ -46,8 +48,8 @@ final class SeriesWriteLockTest extends DbTestCase {
 		$db->method('beginTransaction')->willReturnCallback(fn () => $this->db->beginTransaction());
 		$db->method('commit')->willReturnCallback(fn () => $this->db->commit());
 		$db->method('rollBack')->willReturnCallback(fn () => $this->db->rollBack());
-		$db->method('getDatabaseProvider')->willReturnCallback(fn () => $this->db->getDatabaseProvider());
-		$db->method('getQueryBuilder')->willReturnCallback(function () use ($probe) {
+		$db->method('getDatabaseProvider')->willReturnCallback(fn (): string => $this->db->getDatabaseProvider());
+		$db->method('getQueryBuilder')->willReturnCallback(function () use ($probe): IQueryBuilder {
 			$probe();
 			return $this->db->getQueryBuilder();
 		});
