@@ -280,10 +280,11 @@ sidecars* reads as *Off* (SETTINGS-001.26).
 
 ### XMP-003.30 – Deleting and moving write first
 
-- **Given** a step waiting on one picture, or a write in flight
+- **Given** a step waiting on one picture, a write in flight, or a step whose decision or tag save
+  has not answered yet
 - **When** the user confirms a delete, *Remove RAWs* or a move
 - **Then** the waiting picture is written and every write has finished before the trash or move
-  request is sent
+  request is sent; a step still saving is written once its save answered
 
 ### XMP-003.31 – A step undone while it waits saves no sidecar
 
@@ -318,3 +319,4 @@ sidecars* reads as *Off* (SETTINGS-001.26).
 | 2026-11-15 | The ⋯ entry migrates every picture with legacy rows (.12 removed, XMP-007, ADR 0032 PR 5) |
 | 2026-11-15 | *Off* and *On*; a locked picture is not decided, a shared folder is confirmed (.11, .18 changed, .19 removed, XMP-008, ADR 0032 PR 6) |
 | 2026-11-15 | Steps are written per picture when the user leaves it or after 2 s; requests packed by count and size (.25–.32, ADR 0032 PR 7) |
+| 2026-11-16 | A delete or move also waits for the write of a step whose save has not answered (.30) |

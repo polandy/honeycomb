@@ -51,6 +51,7 @@ export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promi
 			tagWrites.push({ names: pictures.map((picture) => picture.baseName), change })
 			return { written: pictures.length, failed: [] }
 		},
+		hold: (pending) => pending,
 	}
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),

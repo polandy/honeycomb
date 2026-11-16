@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest'
 import { useCull } from '../../src/cull.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { ENTRIES, fakeStorage, NO_SERIES, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
+import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
 describe('useCull: warm-up', () => {
@@ -21,7 +21,7 @@ describe('useCull: warm-up', () => {
 			lookupSeries: NO_SERIES,
 			saveSeries: SAVED_SERIES,
 			tags: NO_TAGS,
-		}, fakeStorage(), () => DEFAULT_SETTINGS, { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) }, () => undefined)
+		}, fakeStorage(), () => DEFAULT_SETTINGS, NO_SIDECARS, () => undefined)
 
 		cull.open(SET, ENTRIES)
 		cull.open(SET, [listingEntry(50, '/A/IMG_50.JPG')])
