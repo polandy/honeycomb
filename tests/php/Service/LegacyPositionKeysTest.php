@@ -18,6 +18,7 @@ final class LegacyPositionKeysTest extends TestCase {
 		return hash('sha256', json_encode([$set->paths, $set->subfolders], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
 	}
 
+	/** @param list<string> $paths */
 	private static function position(array $paths, bool $subfolders, int $fileId): ResumePosition {
 		return new ResumePosition(new FolderSet($paths, $subfolders), $fileId, 0, 1, 0);
 	}
