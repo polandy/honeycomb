@@ -18,7 +18,8 @@ folder, shared folders included. A folder with subfolders has an arrow before it
 - **Include subfolders:** the switch above the tree adds every subfolder of a ticked folder, at
   any depth. Hidden folders (starting with a dot) are always skipped and cannot be ticked. With
   the switch on, ticking a subfolder of a ticked folder changes nothing: **Recent** keeps one
-  entry and one position for both.
+  entry and one position for both. While it is on, the folders below a ticked one show a dashed
+  tick and "included"; tap one to tick it as well.
 
 When you reopen the picker from a cull, the folders above the ticked ones start expanded, so you
 see what you culled.

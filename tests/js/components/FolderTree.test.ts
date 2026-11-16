@@ -23,10 +23,10 @@ const FOLDERS: Record<string, Folder[]> = {
 }
 
 /** A folder endpoint over FOLDERS whose answers the test settles per path. */
-function fakeFolders() {
+function fakeFolders(folders = FOLDERS) {
 	const pending: { path: string, settle: () => void, fail: () => void }[] = []
 	const listFolders = (path: string) => new Promise<Folder[]>((resolve, reject) => {
-		pending.push({ path, settle: () => resolve(FOLDERS[path]!), fail: () => reject(new Error(`no ${path}`)) })
+		pending.push({ path, settle: () => resolve(folders[path]!), fail: () => reject(new Error(`no ${path}`)) })
 	})
 	/** Answers the oldest request for `path`. */
 	const answer = async (path: string, outcome: 'settle' | 'fail' = 'settle') => {
@@ -37,9 +37,9 @@ function fakeFolders() {
 	return { pending, listFolders, answer }
 }
 
-async function mountTree(ticked: string[] = []) {
-	const folders = fakeFolders()
-	const wrapper = mount(FolderTree, { props: { ticked, listFolders: folders.listFolders }, attachTo: document.body })
+async function mountTree(ticked: string[] = [], subfolders = false, tree = FOLDERS) {
+	const folders = fakeFolders(tree)
+	const wrapper = mount(FolderTree, { props: { ticked, subfolders, listFolders: folders.listFolders }, attachTo: document.body })
 	await folders.answer('')
 	return { wrapper, ...folders }
 }
@@ -184,6 +184,36 @@ describe('FolderTree', () => {
 		expect(item(wrapper, 'Photos').attributes('aria-expanded')).toBe('false')
 		expect(badge().find('[aria-hidden="true"]').text()).toBe(`${MARK}${MARK}2 inside`)
 		expect(item(wrapper, 'Photos').attributes('aria-checked')).toBeUndefined()
+	})
+
+	// spec: LISTING-003.18
+	it('marks the folders below a ticked one as included while Include subfolders is on, still tappable', async () => {
+		const hidden = { name: '.cache', path: '/Photos/.cache', hasSubfolders: false }
+		const { wrapper, answer } = await mountTree(['/Photos'], true, { ...FOLDERS, '/Photos': [...FOLDERS['/Photos']!, hidden] })
+		await twisty(wrapper, 'Photos').trigger('click')
+		await answer('/Photos')
+		const included = (name: string) => item(wrapper, name).find('.folder-tree__included')
+
+		expect(included('2025').find('[aria-hidden="true"]').text()).toBe(`${MARK}included`)
+		expect(included('2025').find('.hidden-visually').text()).toBe(`${MARK}included with Photos`)
+		expect(item(wrapper, '2025').find('.folder-tree__box--included').exists()).toBe(true)
+		expect(item(wrapper, '2025').attributes('aria-selected')).toBe('false')
+		expect(included('Photos').exists()).toBe(false)
+		expect(included('.cache').exists()).toBe(false)
+		expect(item(wrapper, '.cache').find('.folder-tree__box--included').exists()).toBe(false)
+
+		await item(wrapper, '2025').trigger('click')
+		expect(wrapper.emitted('toggle')).toEqual([['/Photos/2025']])
+	})
+
+	// spec: LISTING-003.18
+	it('marks no folder as included while Include subfolders is off', async () => {
+		const { wrapper, answer } = await mountTree(['/Photos'])
+		await twisty(wrapper, 'Photos').trigger('click')
+		await answer('/Photos')
+
+		expect(wrapper.find('.folder-tree__included').exists()).toBe(false)
+		expect(wrapper.find('.folder-tree__box--included').exists()).toBe(false)
 	})
 
 	// spec: LISTING-003.16

@@ -93,6 +93,19 @@
 	color: var(--color-primary-element-text);
 }
 
+.folder-tree__box--included {
+	border-style: dashed;
+	border-color: var(--color-primary-element);
+	color: var(--color-primary-element-light-text);
+}
+
+.folder-tree__included {
+	flex: none;
+	color: var(--color-text-maxcontrast);
+	font-size: var(--font-size-small, 13px);
+	white-space: nowrap;
+}
+
 .folder-tree__label {
 	display: flex;
 	flex: 1;
