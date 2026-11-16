@@ -6,7 +6,7 @@ import type { Folder } from '../../../src/api.ts'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import ConfirmDialog from '../../../src/components/ConfirmDialog.vue'
-import FolderList from '../../../src/components/FolderList.vue'
+import FolderTree from '../../../src/components/FolderTree.vue'
 import MoveDialogs from '../../../src/components/MoveDialogs.vue'
 import { allMoved, moveFlow } from '../move-fixtures.ts'
 import { DialogStub } from './stubs.ts'
@@ -69,7 +69,7 @@ describe('MoveDialogs: target', () => {
 
 		await wrapper.find('.move-dialog__browse').trigger('click')
 		await flushPromises()
-		const list = wrapper.findComponent(FolderList)
+		const list = wrapper.findComponent(FolderTree)
 		expect(list.props()).toMatchObject({ single: true, blocked: ['/Trip'] })
 		expect(confirmButton(wrapper).attributes('disabled')).toBeDefined()
 

@@ -1,8 +1,29 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Page } from '@playwright/test'
+
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { createFolder } from './files.ts'
+import { ADMIN_STATE } from './admin.ts'
+import { createFolder, JPEG, upload } from './files.ts'
+import { PORT } from './server.ts'
+
+// The reference devices the folder tree is captured on (docs/plan.md Reference devices).
+const SCREENSHOT_VIEWPORTS = { desktop: { width: 1440, height: 900 }, 'ipad-mini-portrait': { width: 744, height: 1133 }, 'ipad-mini-landscape': { width: 1133, height: 744 }, 'pixel-portrait': { width: 427, height: 952 } }
+const TOUCH_TARGET = 44
+
+/** Creates `Tree <id>/2026/Day 1` with one photo and opens the picker on it. */
+async function treeFixture(page: Page) {
+	const root = `Tree ${randomUUID().slice(0, 8)}`
+	await page.goto('/index.php/apps/honeycomb/')
+	await createFolder(page, root)
+	await createFolder(page, `${root}/2026`)
+	await createFolder(page, `${root}/2026/Day 1`)
+	await upload(page, `${root}/2026/Day 1/IMG_0001.jpg`, JPEG)
+	await page.reload()
+	const tree = page.getByRole('dialog', { name: 'Choose folders' }).getByRole('tree', { name: 'Folders' })
+	return { root, tree, item: (name: string) => tree.getByRole('treeitem', { name, exact: true }) }
+}
 
 // spec: LISTING-003.14
 test('keeps the status line quiet and every folder row one height', async ({ page }) => {
@@ -26,7 +47,52 @@ test('keeps the status line quiet and every folder row one height', async ({ pag
 	await expect(status).toHaveCSS('font-weight', '400')
 	await expect(status).toHaveCSS('color', muted)
 
-	const parent = (await picker.getByRole('option', { name: `Rows ${id} parent` }).boundingBox())!
-	const leaf = (await picker.getByRole('option', { name: `Rows ${id} leaf` }).boundingBox())!
+	const parent = (await picker.getByRole('treeitem', { name: `Rows ${id} parent` }).boundingBox())!
+	const leaf = (await picker.getByRole('treeitem', { name: `Rows ${id} leaf` }).boundingBox())!
 	expect(parent.height).toBe(leaf.height)
+})
+
+// spec: LISTING-003.4, LISTING-003.16
+test('expands the folder tree by its arrow and the arrow keys and ticks a subfolder', async ({ page }) => {
+	const { root, item } = await treeFixture(page)
+
+	await item(root).locator('.folder-tree__twisty').click()
+	await expect(item('2026')).toHaveAttribute('aria-level', '2')
+	await expect(item(root)).toHaveAttribute('aria-selected', 'false')
+	await item('2026').focus()
+	await page.keyboard.press('ArrowRight')
+	await expect(item('Day 1')).toHaveAttribute('aria-level', '3')
+	await page.keyboard.press('ArrowRight')
+	await expect(item('Day 1')).toBeFocused()
+	await page.keyboard.press('Space')
+
+	await expect(item('Day 1')).toHaveAttribute('aria-selected', 'true')
+	await expect(page.getByText('1 photo in 1 folder')).toBeVisible()
+	await page.keyboard.press('ArrowLeft')
+	await expect(item('2026')).toBeFocused()
+	await page.keyboard.press('ArrowLeft')
+	await expect(item('Day 1')).toBeHidden()
+})
+
+// spec: LISTING-003.16
+test('fits the folder tree on the reference devices with 44 px touch targets', async ({ browser }, testInfo) => {
+	const context = await browser.newContext({ baseURL: `http://localhost:${PORT}`, storageState: ADMIN_STATE, isMobile: true, hasTouch: true, viewport: SCREENSHOT_VIEWPORTS['ipad-mini-portrait'] })
+	const page = await context.newPage()
+	const { root, tree, item } = await treeFixture(page)
+	await item(root).locator('.folder-tree__twisty').tap()
+	await item('2026').locator('.folder-tree__twisty').tap()
+	await item('Day 1').tap()
+	await expect(item('Day 1')).toHaveAttribute('aria-selected', 'true')
+
+	for (const target of [item('Day 1'), item('2026').locator('.folder-tree__twisty')]) {
+		const box = (await target.boundingBox())!
+		expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(TOUCH_TARGET)
+	}
+	for (const [device, viewport] of Object.entries(SCREENSHOT_VIEWPORTS)) {
+		await page.setViewportSize(viewport)
+		await item('Day 1').scrollIntoViewIfNeeded()
+		expect(await tree.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+		await page.screenshot({ path: testInfo.outputPath(`folder-tree-${device}.png`), animations: 'disabled' })
+	}
+	await context.close()
 })

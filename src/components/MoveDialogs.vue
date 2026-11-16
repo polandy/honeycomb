@@ -11,7 +11,7 @@ import { n, t } from '@nextcloud/l10n'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import DeleteStats from './DeleteStats.vue'
-import FolderList from './FolderList.vue'
+import FolderTree from './FolderTree.vue'
 import MoveSummary from './MoveSummary.vue'
 import TrashFileList from './TrashFileList.vue'
 import { listFolders as apiListFolders } from '../api.ts'
@@ -82,7 +82,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 		@back="flow.browsing.value = false"
 		@cancel="flow.close()"
 		@confirm="flow.choose(browsed!)">
-		<FolderList
+		<FolderTree
 			:ticked="browsed === null ? [] : [browsed]"
 			:listFolders="props.listFolders"
 			single

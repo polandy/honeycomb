@@ -17,7 +17,7 @@ import { computed, ref } from 'vue'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import ConfirmDialog from './ConfirmDialog.vue'
-import FolderList from './FolderList.vue'
+import FolderTree from './FolderTree.vue'
 import PickerRecentSets from './PickerRecentSets.vue'
 import { listEntries as apiListEntries, listFolders as apiListFolders } from '../api.ts'
 import { useFolderCount } from '../folder-count.ts'
@@ -116,7 +116,7 @@ function onConfirm() {
 			@update:modelValue="onSubfolders">
 			{{ t('honeycomb', 'Include subfolders') }}
 		</NcCheckboxRadioSwitch>
-		<FolderList :ticked="set.paths" :listFolders="props.listFolders" @toggle="onToggle" />
+		<FolderTree :ticked="set.paths" :listFolders="props.listFolders" @toggle="onToggle" />
 		<p class="folder-picker__count" aria-live="polite">
 			{{ summary }}
 		</p>

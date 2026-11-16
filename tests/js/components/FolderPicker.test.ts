@@ -10,8 +10,8 @@ import type { ListedAccess } from '../../../src/logic/writability.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import FolderList from '../../../src/components/FolderList.vue'
 import FolderPicker from '../../../src/components/FolderPicker.vue'
+import FolderTree from '../../../src/components/FolderTree.vue'
 import PickerRecentSets from '../../../src/components/PickerRecentSets.vue'
 import { DEFAULT_PAIRING_SETTINGS } from '../../../src/logic/pairing.ts'
 import { NO_ACCESS } from '../../../src/logic/writability.ts'
@@ -65,7 +65,7 @@ async function mountPicker(current: FolderSet | null = null, pairing: PairingSet
 type Picker = Awaited<ReturnType<typeof mountPicker>>
 
 async function tick({ wrapper }: Picker, name: string) {
-	await wrapper.findAll('[role="option"]').find((option) => option.text().includes(name))!.trigger('click')
+	await wrapper.findAll('[role="treeitem"]').find((option) => option.text().includes(name))!.trigger('click')
 }
 
 async function settleAll({ pending }: Picker) {
@@ -137,7 +137,7 @@ describe('FolderPicker', () => {
 	// spec: LISTING-003.7
 	it('puts the subfolders switch above the folder list, so a long list cannot push it out of sight', async () => {
 		const picker = await mountPicker()
-		const list = picker.wrapper.findComponent(FolderList).element
+		const list = picker.wrapper.findComponent(FolderTree).element
 
 		expect(subfoldersSwitch(picker).element.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 	})
@@ -253,8 +253,8 @@ describe('FolderPicker', () => {
 		const picker = await mountPicker(null, DEFAULT_PAIRING_SETTINGS, [{ position, current: false, decided: 1, total: 3 }])
 		const html = picker.wrapper.html()
 
-		expect(html.indexOf('folder-list')).toBeGreaterThan(-1)
-		expect(html.indexOf('folder-list')).toBeLessThan(html.indexOf('picker-recent-sets'))
+		expect(html.indexOf('folder-tree')).toBeGreaterThan(-1)
+		expect(html.indexOf('folder-tree')).toBeLessThan(html.indexOf('picker-recent-sets'))
 		expect(picker.wrapper.text()).not.toContain(`${MARK}Folders`)
 	})
 

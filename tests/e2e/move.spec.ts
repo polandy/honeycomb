@@ -27,7 +27,7 @@ test('moves the selection to a folder chosen by Browse… and brings it back by 
 	const dialog = page.getByRole('dialog', { name: 'Move 1 photo' })
 	await dialog.getByRole('button', { name: 'Browse…' }).click()
 	const browse = page.getByRole('dialog', { name: 'Choose the target folder' })
-	await browse.getByRole('option', { name: target }).click()
+	await browse.getByRole('treeitem', { name: target }).click()
 	await browse.getByRole('button', { name: 'Choose' }).click()
 	await expect(dialog.getByText(`Moving to /${target}`)).toBeVisible()
 	await dialog.getByRole('button', { name: 'Move 2 files' }).click()

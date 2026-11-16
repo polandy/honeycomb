@@ -1375,3 +1375,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-15: The owner's "delete all rejected" menu entry is the existing *Review rejects* (the
   reject review), now in the ⋯ menu at every width with `Ctrl+Backspace`; it keeps the glossary's
   name instead of a synonym like *Delete rejected*, and takes every reject whatever the filter.
+- 2026-11-16: The folder picker is a WAI-ARIA tree with the root's folders as the top level and
+  the arrow as the only way to expand, so a click on a row still ticks it as before; Left and
+  Right expand and collapse, and reopening expands the folders above the ticked ones.
+- 2026-11-16: The tree's arrow and rows are 34 px with a mouse and 44 px on a touch screen
+  (`pointer: coarse`), as the flat list was, so the desktop tree stays compact.

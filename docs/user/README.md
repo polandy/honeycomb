@@ -5,6 +5,7 @@ the [README](../../README.md).
 
 | Page | Contents |
 |---|---|
+| [Choosing folders](choosing-folders.md) | The folder tree: expanding, ticking several folders, subfolders |
 | [Keyboard shortcuts](keyboard-shortcuts.md) | Every key in the grid, the loupe and the series compare |
 | [Ratings, flags and colour labels](ratings-flags-colours.md) | How digiKam, darktable and Lightroom show honeycomb's decisions |
 | [Deleting photos](deleting.md) | Deleting every rejected photo, or the ones you choose |

@@ -32,7 +32,7 @@ Controls with a tooltip:
 | Where | Controls (key) |
 |---|---|
 | Grid toolbar | *Change folders*, *Filter* (`\`), *Select*, *Review rejects* (Ctrl+Backspace), *Compare series* (`N`), *More* |
-| Folder picker | *Open {name}* |
+| Folder picker | *Expand {name}*, *Collapse {name}* |
 | Loupe and series viewer title row | *Close* (Esc), *Fit / 100 %* (`Z`), *Move this photo* (`M`), *Flag buttons* (`B`), *Info panel* (`I`), *Fullscreen*, *Filmstrip*, *Nextcloud navigation* |
 | Loupe and series viewer | *Previous* (`←`), *Next* (`→`) |
 | Action bar, loupe, series compare | *Pick* (`P`), *Reject* (`X`), *Unflag* (`U`), the stars (`0`–`5`), the colour swatches (`6`–`9` for the first four), *Pick this, reject the rest* (Shift+K) |
@@ -119,3 +119,4 @@ Controls with a tooltip:
 |---|---|
 | 2026-11-10 | The shared tooltip for the icon-only controls built so far |
 | 2026-11-14 | The undo toast's *Reject the other N* names `Shift+K` (series concept step 10) |
+| 2026-11-16 | The folder tree's arrow: *Expand {name}* and *Collapse {name}* |
