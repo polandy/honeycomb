@@ -4,6 +4,7 @@ import type { MissingPage, MissingPicture } from './hash-run.ts'
 import type { Listing } from './logic/cull.ts'
 import type { StoredDecision } from './logic/decision.ts'
 import type { EmbeddedXmpAnswer } from './logic/embedded-xmp.ts'
+import type { TreeFolder } from './logic/folder-tree.ts'
 import type { MoveRequestFile, Probe } from './logic/move-plan.ts'
 import type { MoveResponseFile } from './logic/move-report.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
@@ -26,13 +27,7 @@ export const API = '/apps/honeycomb/api/v1'
 const CHARACTER_CHUNK = 0x8000
 
 /** A child folder as the folder endpoint returns it (ADR 0011). */
-export interface Folder {
-	readonly name: string
-	readonly path: string
-	readonly hasSubfolders: boolean
-	readonly photoFiles: number | null
-	readonly photoFilesBelow: number | null
-}
+export type Folder = TreeFolder
 
 /** Thrown when an endpoint answers with a body of the wrong shape. */
 export class ApiResponseError extends Error {}

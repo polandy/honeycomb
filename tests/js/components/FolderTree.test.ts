@@ -1,54 +1,14 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { VueWrapper } from '@vue/test-utils'
-import type { Folder } from '../../../src/api.ts'
 
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import FolderTree from '../../../src/components/FolderTree.vue'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
+import { fakeFolders, focused, FOLDERS, item, items, mountTree, shown, twisty } from './folder-tree-fixture.ts'
 
 const MARK = TRANSLATED_MARK
-const FOLDERS: Record<string, Folder[]> = {
-	'': [
-		{ name: 'Photos', path: '/Photos', hasSubfolders: true, photoFiles: 3, photoFilesBelow: 1203 },
-		{ name: '.hidden', path: '/.hidden', hasSubfolders: false, photoFiles: null, photoFilesBelow: null },
-		{ name: 'Day 10', path: '/Day 10', hasSubfolders: false, photoFiles: 0, photoFilesBelow: 0 },
-		{ name: 'Day 9', path: '/Day 9', hasSubfolders: false, photoFiles: 1, photoFilesBelow: 1 },
-	],
-	'/Photos': [{ name: '2026', path: '/Photos/2026', hasSubfolders: true, photoFiles: 0, photoFilesBelow: 0 }, { name: '2025', path: '/Photos/2025', hasSubfolders: false, photoFiles: 1200, photoFilesBelow: 1200 }],
-	// The server saw a subfolder that is gone by the time the folder opens.
-	'/Photos/2026': [],
-}
-
-/** A folder endpoint over FOLDERS whose answers the test settles per path. */
-function fakeFolders(folders = FOLDERS) {
-	const pending: { path: string, settle: () => void, fail: () => void }[] = []
-	const listFolders = (path: string) => new Promise<Folder[]>((resolve, reject) => {
-		pending.push({ path, settle: () => resolve(folders[path]!), fail: () => reject(new Error(`no ${path}`)) })
-	})
-	/** Answers the oldest request for `path`. */
-	const answer = async (path: string, outcome: 'settle' | 'fail' = 'settle') => {
-		const index = pending.findIndex((each) => each.path === path)
-		pending.splice(index, 1)[0]![outcome]()
-		await flushPromises()
-	}
-	return { pending, listFolders, answer }
-}
-
-async function mountTree(ticked: string[] = [], subfolders = false, tree = FOLDERS) {
-	const folders = fakeFolders(tree)
-	const wrapper = mount(FolderTree, { props: { ticked, subfolders, listFolders: folders.listFolders }, attachTo: document.body })
-	await folders.answer('')
-	return { wrapper, ...folders }
-}
-
-const items = (wrapper: VueWrapper) => wrapper.findAll('[role="treeitem"]')
-const item = (wrapper: VueWrapper, name: string) => items(wrapper).find((each) => each.find('.folder-tree__name').text() === name)!
-const shown = (wrapper: VueWrapper) => items(wrapper).map((each) => `${each.find('.folder-tree__name').text()}@${each.attributes('aria-level')}`)
-const twisty = (wrapper: VueWrapper, name: string) => item(wrapper, name).find('.folder-tree__twisty')
-const focused = () => document.activeElement?.querySelector('.folder-tree__name')?.textContent
 
 describe('FolderTree', () => {
 	beforeEach(installMarkedCatalogue)
