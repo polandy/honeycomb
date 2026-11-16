@@ -14,6 +14,14 @@ test('opens on the empty state while no folder is chosen', async ({ page }) => {
 	await expect(emptyState.getByText('Pick a folder to start culling.')).toBeVisible()
 })
 
+// spec: APP-001.10
+test('loads its script by the hashed name of the build and opens on the folder tree', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+
+	await expect(page.locator('script[src*="/js/honeycomb-main-"]')).toHaveCount(1)
+	await expect(page.getByRole('dialog', { name: 'Choose folders' }).getByRole('tree', { name: 'Folders' })).toBeVisible()
+})
+
 // spec: APP-001.6
 test('shows a dialog as a bottom sheet on a phone', async ({ page }) => {
 	const phone = { width: 390, height: 844 }
