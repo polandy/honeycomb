@@ -3,7 +3,7 @@
 import type { Branch, TreeFolder } from '../../../src/logic/folder-tree.ts'
 
 import { describe, expect, it } from 'vitest'
-import { foldersToExpand, ROOT, treeKey, visibleRows } from '../../../src/logic/folder-tree.ts'
+import { foldersToExpand, ROOT, tickedBelow, treeKey, visibleRows } from '../../../src/logic/folder-tree.ts'
 
 const folder = (path: string, hasSubfolders = false): TreeFolder => ({ name: path.split('/').pop()!, path, hasSubfolders })
 const loaded = (...folders: TreeFolder[]): Branch => ({ state: 'loaded', folders })
@@ -100,5 +100,16 @@ describe('foldersToExpand', () => {
 
 	it('expands nothing for root folders', () => {
 		expect(foldersToExpand(['/A'])).toEqual([])
+	})
+})
+
+describe('tickedBelow', () => {
+	// spec: LISTING-003.17
+	it('counts the ticked folders at any depth below a folder, but not the folder itself', () => {
+		expect(tickedBelow(['/A', '/A/1', '/A/1/x', '/B/1'], '/A')).toBe(2)
+	})
+
+	it('does not count a folder whose name only starts with the same letters', () => {
+		expect(tickedBelow(['/AB', '/AB/1'], '/A')).toBe(0)
 	})
 })
