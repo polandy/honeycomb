@@ -45,7 +45,7 @@ final class FolderControllerTest extends TestCase {
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame(
-			['folders' => [['name' => '2024', 'path' => '/Photos/2024', 'hasSubfolders' => false]]],
+			['folders' => [['name' => '2024', 'path' => '/Photos/2024', 'hasSubfolders' => false, 'photoFiles' => 0]]],
 			json_decode($response->render(), true, flags: JSON_THROW_ON_ERROR),
 		);
 	}

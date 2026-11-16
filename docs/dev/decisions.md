@@ -1407,3 +1407,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   "included" (owner, concept LISTING-003 M2, E3 A); the spoken name is the nearest ticked folder
   above, the one the listing reaches it from, and only the picker shows it, since the move dialog
   and the similarity page have no such switch.
+- 2026-11-16: The folder tree shows each folder's photo files after digiKam's *Show a count of
+  items in Tree Views* (owner), with four departures: it counts files, not pictures (pairing
+  stays in TypeScript, and pictures would need every file name in the browser; digiKam counts
+  files too); only the folder's own files, also while collapsed (digiKam adds the subfolders of a
+  collapsed folder, which needs a walk per row); no on/off setting (the owner asked for it, the
+  number is quiet); no number for zero (keeps folders like *Documents* quiet).

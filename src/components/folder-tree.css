@@ -99,6 +99,14 @@
 	color: var(--color-primary-element-light-text);
 }
 
+.folder-tree__count {
+	flex: none;
+	color: var(--color-text-maxcontrast);
+	font-size: var(--font-size-small, 13px);
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
 .folder-tree__included {
 	flex: none;
 	color: var(--color-text-maxcontrast);

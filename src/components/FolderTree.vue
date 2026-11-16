@@ -121,6 +121,22 @@ const badges = computed(() => new Map(rows.value.flatMap((row) => {
 	return shown === null ? [] : [[row.folder.path, shown] as const]
 })))
 
+/** The photo-file count of a folder, shown and spoken; null when it holds none or is unknown. */
+function photoCount(folder: Folder) {
+	const count = folder.photoFiles
+	if (count === null || count === 0) {
+		return null
+	}
+	const shown = formatNumber(count)
+	return { shown, spoken: n('honeycomb', '{count} photo file', '{count} photo files', count, { count: shown }, PLAIN_TEXT) }
+}
+
+/** The photo-file counts of the folders shown, by path. */
+const counts = computed(() => new Map(rows.value.flatMap((row) => {
+	const count = row.kind === 'folder' ? photoCount(row.folder) : null
+	return row.kind === 'folder' && count !== null ? [[row.folder.path, count] as const] : []
+})))
+
 /** The spoken note of the shown folders *Include subfolders* takes along, by path. */
 const included = computed(() => new Map(props.subfolders
 	? rows.value.flatMap((row) => {
@@ -216,6 +232,10 @@ for (const path of [ROOT, ...foldersToExpand(props.ticked)]) {
 				<span v-if="badges.has(row.folder.path)" class="folder-tree__badge">
 					<span aria-hidden="true">{{ badges.get(row.folder.path)?.shown }}</span>
 					<span class="hidden-visually">{{ badges.get(row.folder.path)?.spoken }}</span>
+				</span>
+				<span v-if="counts.has(row.folder.path)" class="folder-tree__count">
+					<span aria-hidden="true">{{ counts.get(row.folder.path)?.shown }}</span>
+					<span class="hidden-visually">{{ counts.get(row.folder.path)?.spoken }}</span>
 				</span>
 			</li>
 			<li
