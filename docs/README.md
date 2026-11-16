@@ -1,7 +1,7 @@
 # Documentation
 
 Open only the file, or the section, a change touches. `docs/` has two folders: [`user/`](user/) for
-users and Nextcloud admins, [`dev/`](dev/) for everyone who builds honeycomb.
+users and Nextcloud admins, [`dev/`](dev/README.md) for everyone who builds honeycomb.
 
 | File | Contents |
 |---|---|
@@ -13,8 +13,8 @@ users and Nextcloud admins, [`dev/`](dev/) for everyone who builds honeycomb.
 | [`dev/05-name-templates.md`](dev/05-name-templates.md) | Name templates for moved pictures: syntax, tokens, sanitising, collisions |
 | [`dev/06-xmp-interop.md`](dev/06-xmp-interop.md) | XMP sidecars: digiKam, darktable and Lightroom fields, precedence, write rules, test vectors |
 | [`dev/07-tags.md`](dev/07-tags.md) | Tags like digiKam's (concept): XMP fields, tag entry, bulk tagging, tag filter, decisions |
-| [`user/`](user/) | Documentation for users, e.g. [ratings, flags and colours in other programs](user/ratings-flags-colours.md), [tags](user/tags.md), [keyboard shortcuts](user/keyboard-shortcuts.md), [settings](user/settings.md), [similarity](user/similarity.md) |
-| [`user/admin/`](user/admin/) | Documentation for Nextcloud admins: [updating](user/admin/updating.md), the one-time migration for early installs, file locking, [removing](user/admin/removing.md), [releasing](user/admin/releasing.md) (package, signatures, App Store, the owner's certificate steps) |
+| [`user/`](user/) | Documentation for users, e.g. [culling a shoot](user/culling.md), [sidecars](user/sidecars.md), [shared folders](user/shared-folders.md), [ratings, flags and colours in other programs](user/ratings-flags-colours.md), [tags](user/tags.md), [keyboard shortcuts](user/keyboard-shortcuts.md), [settings](user/settings.md), [similarity](user/similarity.md) |
+| [`user/admin/`](user/admin/) | Documentation for Nextcloud admins: [apps and commands](user/admin/apps-and-commands.md), [updating](user/admin/updating.md), the one-time migration for early installs, file locking, [removing](user/admin/removing.md), [releasing](user/admin/releasing.md) (package, signatures, App Store, the owner's certificate steps) |
 | [`dev/specs/`](dev/specs/) | What the merged code does, one spec per feature, coupled to the tests (ADR 0015) |
 | [`dev/plan.md`](dev/plan.md) | Milestones, project structure, target versions, open questions |
 | [`dev/mockup/index.html`](dev/mockup/index.html) | The interactive mockup (milestone M0), with the tag entry (`T`) and the tag filter; open it in a browser |

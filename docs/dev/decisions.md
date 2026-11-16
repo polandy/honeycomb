@@ -1381,6 +1381,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   Right expand and collapse, and reopening expands the folders above the ticked ones.
 - 2026-11-16: The tree's arrow and rows are 34 px with a mouse and 44 px on a touch screen
   (`pointer: coarse`), as the flat list was, so the desktop tree stays compact.
+- 2026-11-16: `appinfo/info.xml` links developers to a short new `docs/dev/README.md`, since
+  `InfoXmlTest` needs a file and `docs/README.md` stays the agents' full index.
 - 2026-11-16: A series write checks that a series id is the user's by an `UPDATE … WHERE id AND
   user_id` and its matched-row count (Nextcloud sets `FOUND_ROWS` on MySQL), not by a `SELECT`
   first, so on SQLite the transaction starts with a write and waits for a concurrent save instead
