@@ -84,7 +84,7 @@ describe('DeleteSummary', () => {
 	it('goes back to the review when it came from there, and holds the confirm button while a delete runs', async () => {
 		const wrapper = summary({ fromReview: true, busy: true })
 
-		expect(buttons(wrapper)).toEqual(['Back to review', 'Cancel', 'Move 4 files to trash'])
+		expect(buttons(wrapper)).toEqual(['Back to review', 'Cancel', 'Checking the photos…'])
 		expect(wrapper.findComponent(ConfirmDialog).props('confirmDisabled')).toBe(true)
 		await wrapper.findAll('button')[0]!.trigger('click')
 		expect(wrapper.emitted('back')).toHaveLength(1)
@@ -178,6 +178,19 @@ describe('RawRemovalSummary', () => {
 		expect(summary({ progress }).findComponent(ConfirmDialog).props('progress')).toEqual(progress)
 		expect(mount(DeleteSummary, { props: { pictures: [PAIR!], folderSet: SET, fromReview: false, busy: true, progress }, global }).findComponent(ConfirmDialog).props('progress')).toEqual(progress)
 		expect(mount(DeleteReport, { props: { report, skipped: [], folderSet: SET, busy: true, progress }, global }).findComponent(ConfirmDialog).props('progress')).toEqual(progress)
+	})
+
+	// spec: DELETE-002.13
+	it('names the running step on the held confirm button of each dialog that sends: checking the photos, then moving them', () => {
+		const progress = { done: 5, total: 40 }
+		const report = trashReport(wholePictures([PAIR!]), [[{ fileId: 2, result: 'locked' }, { fileId: 1, result: 'skipped' }, { fileId: 3, result: 'skipped' }]])
+		const label = (wrapper: ReturnType<typeof mount>) => wrapper.findComponent(ConfirmDialog).props('confirmLabel') as string
+		const deleteSummary = (props: Record<string, unknown>) => mount(DeleteSummary, { props: { pictures: [PAIR!], folderSet: SET, fromReview: false, ...props }, global })
+		const deleteReport = (props: Record<string, unknown>) => mount(DeleteReport, { props: { report, skipped: [], folderSet: SET, ...props }, global })
+
+		expect([summary({ busy: true }), deleteSummary({ busy: true }), deleteReport({ busy: true })].map(label)).toEqual(['Checking the photos…', 'Checking the photos…', 'Checking the photos…'])
+		expect([summary({ busy: true, progress }), deleteSummary({ busy: true, progress }), deleteReport({ busy: true, progress })].map(label)).toEqual(['Moving to trash…', 'Moving to trash…', 'Moving to trash…'])
+		expect([summary({ busy: false }), deleteSummary({ busy: false }), deleteReport({ busy: false })].map(label)).toEqual(['Move 2 files to trash', 'Move 3 files to trash', 'Retry failed files'])
 	})
 
 	// spec: DELETE-003.5

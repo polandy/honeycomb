@@ -18,7 +18,14 @@ describe('requestChunks', () => {
 
 	it('sends nothing for no pictures and keeps the default limits inside the endpoints\' 500 files', () => {
 		expect(requestChunks([], LIMITS)).toEqual([])
-		expect(CHUNK_LIMITS).toEqual({ pictures: 50, files: 500 })
+		expect(CHUNK_LIMITS).toEqual({ first: 5, pictures: 50, files: 500 })
+	})
+
+	// spec: DELETE-002.13, MOVE-004.17
+	it('starts with a small request and doubles each next one up to the picture limit, so the count moves early', () => {
+		const pictures = Array.from({ length: 12 }, (_, index) => [index])
+
+		expect(requestChunks(pictures, { first: 1, pictures: 4, files: 500 }).map((chunk) => chunk.length)).toEqual([1, 2, 4, 4, 1])
 	})
 })
 
