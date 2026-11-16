@@ -29,8 +29,8 @@ Vite names each entry `js/honeycomb-<entry>-<hash>.mjs`, and a plugin in `vite.c
 `js/scripts.php`, which returns the script name of each entry (`main`, `similarity`).
 `ScriptManifest` loads it with `require` and returns the name of an entry; `PageController`
 passes it to the page template, which adds it with `Util::addScript()`. A missing file or entry
-throws `ScriptManifestException`, so an unbuilt app fails loud instead of rendering an empty page. `npm run build` empties `js/` first, so no
-script of an older build is packed.
+throws `ScriptManifestException`, so an unbuilt app fails loud instead of rendering an empty
+page. `npm run build` empties `js/` first, so no script of an older build is packed.
 
 ## Consequences
 
