@@ -32,9 +32,10 @@ export function breadcrumbs(path: string): Breadcrumb[] {
 	return crumbs
 }
 
-/** A key that names the same folder set whatever the order of its paths. */
+/** A key that names the same folder set whatever the order of its paths and, with subfolders, its covered ticks (ADR 0034). */
 export function folderSetKey(set: FolderSet): string {
-	return JSON.stringify([[...set.paths].sort(), set.subfolders])
+	const paths = set.subfolders ? set.paths.filter((path) => !set.paths.some((other) => path.startsWith(`${other}/`))) : set.paths
+	return JSON.stringify([[...paths].sort(), set.subfolders])
 }
 
 /** How many pictures and distinct folders the picker reports for a folder set. */

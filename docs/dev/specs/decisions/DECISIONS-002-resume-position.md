@@ -16,7 +16,12 @@ continues on another, and *Recent* can list the last folder sets with their prog
   `decided` and `total`; the answer repeats it with `updatedAt` (Unix seconds).
   `GET /apps/honeycomb/api/v1/positions` lists the user's positions, newest first.
 - A folder set is its sorted paths and the subfolders switch: the same paths in another order are
-  the same set, without subfolders another one. The root folder is the path `""`.
+  the same set, without subfolders another one. The root folder is the path `""`. With
+  subfolders, a ticked folder inside another ticked folder adds nothing, so it does not count
+  (ADR 0034): `/Trip` and `/Trip/Day 2` with subfolders is the same set as `/Trip` with
+  subfolders. The stored `paths` keep every tick, so switching subfolders off loses none.
+  Positions stored under the older key, which counted every tick, take the new key when the
+  list is read; when two of them become one set, the newer position stays.
 - Only the 20 most recent positions per user are kept; each user's positions are their own.
   Deleting a user removes their positions. A position whose picture is deleted for good stays,
   so *Recent* still lists its folder set.
@@ -126,6 +131,14 @@ continues on another, and *Recent* can list the last folder sets with their prog
 - **When** the user opens a photo, decides or scrolls the grid
 - **Then** the toast closes; *Resume* in the More menu stays
 
+### DECISIONS-002.15 – A ticked folder inside another
+
+- **Given** a saved position of a folder set with subfolders
+- **When** the same set is saved with a folder below one of its folders ticked as well, or the
+  list holds positions stored under the older key that become one set
+- **Then** it is one folder set with one position, the newest, under *Recent*; without
+  subfolders the extra folder makes another set, and the saved paths keep every tick
+
 ## Out of scope
 
 The progress of the open cull (GRID-002).
@@ -140,3 +153,4 @@ The progress of the open cull (GRID-002).
 | 2026-11-10 | The navigation closes after a tap on a narrow screen (DECISIONS-002.12) |
 | 2026-11-10 | Positions of a deleted user are removed (DECISIONS-002.13) |
 | 2026-11-13 | The toast closes when the user opens a photo, decides or scrolls (DECISIONS-002.14) |
+| 2026-11-16 | A ticked folder inside another with subfolders is the same set (DECISIONS-002.15, ADR 0034) |

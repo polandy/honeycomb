@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
+use OCA\Honeycomb\Service\LegacyPositionKeys;
 use OCA\Honeycomb\Service\PositionStore;
 use OCA\Honeycomb\Service\ResumePosition;
 use OCP\AppFramework\Db\QBMapper;
@@ -23,6 +24,7 @@ final class PositionMapper extends QBMapper implements PositionStore {
 		parent::__construct($db, 'honeycomb_positions', Position::class);
 	}
 
+	/** Re-keys rows stored under an older folder set key first (ADR 0034). */
 	#[\Override]
 	public function all(string $userId): array {
 		$query = $this->db->getQueryBuilder();
@@ -31,7 +33,18 @@ final class PositionMapper extends QBMapper implements PositionStore {
 			->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
 			->orderBy('updated_at', 'DESC')
 			->addOrderBy('id', 'DESC');
-		return array_map(static fn (Position $row): ResumePosition => $row->toPosition(), $this->findEntities($query));
+		$repair = LegacyPositionKeys::repair(array_map(static fn (Position $row): array => [$row->getFolderSetKey(), $row->toPosition()], $this->findEntities($query)));
+		if ($repair['forget'] !== [] || $repair['rekey'] !== []) {
+			$this->atomic(function () use ($userId, $repair): void {
+				if ($repair['forget'] !== []) {
+					$this->forget($userId, $repair['forget']);
+				}
+				foreach ($repair['rekey'] as [$from, $to]) {
+					$this->rekey($userId, $from, $to);
+				}
+			}, $this->db);
+		}
+		return $repair['keep'];
 	}
 
 	/** Deletes and inserts, so a new id orders the latest save first within the same second. */
@@ -49,6 +62,15 @@ final class PositionMapper extends QBMapper implements PositionStore {
 		$query->delete($this->getTableName())
 			->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
 			->andWhere($query->expr()->in('folder_set_key', $query->createNamedParameter($folderSetKeys, IQueryBuilder::PARAM_STR_ARRAY)))
+			->executeStatement();
+	}
+
+	private function rekey(string $userId, string $from, string $to): void {
+		$query = $this->db->getQueryBuilder();
+		$query->update($this->getTableName())
+			->set('folder_set_key', $query->createNamedParameter($to))
+			->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
+			->andWhere($query->expr()->eq('folder_set_key', $query->createNamedParameter($from)))
 			->executeStatement();
 	}
 

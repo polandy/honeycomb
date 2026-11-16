@@ -1399,3 +1399,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (owner, concept LISTING-003, E1–E4 A): its checkbox keeps showing only its own tick, and the
   tree uses no `aria-checked="mixed"`, since a tick never ticks the folders below (*Include
   subfolders* does that on listing); the count goes into the folder's accessible name instead.
+- 2026-11-16: With *Include subfolders*, the folder set key leaves out a ticked folder inside
+  another ticked one (concept LISTING-003 M3, ADR 0034); positions stored under the older key are
+  re-keyed when the list is read, and of two that become one set the newer stays (orchestrator's
+  recommendation over keeping both entries, which would show one set twice under *Recent*).

@@ -16,7 +16,9 @@ folder, shared folders included. A folder with subfolders has an arrow before it
   name, also while it is collapsed, so you can find your ticks. The move dialog's *Browse…* marks
   the folders above the chosen one the same way.
 - **Include subfolders:** the switch above the tree adds every subfolder of a ticked folder, at
-  any depth. Hidden folders (starting with a dot) are always skipped and cannot be ticked.
+  any depth. Hidden folders (starting with a dot) are always skipped and cannot be ticked. With
+  the switch on, ticking a subfolder of a ticked folder changes nothing: **Recent** keeps one
+  entry and one position for both.
 
 When you reopen the picker from a cull, the folders above the ticked ones start expanded, so you
 see what you culled.

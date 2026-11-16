@@ -62,6 +62,29 @@ describe('folderSetKey', () => {
 	])('differs by %s', (_case, first, second) => {
 		expect(folderSetKey(first)).not.toBe(folderSetKey(second))
 	})
+
+	// spec: DECISIONS-002.15
+	it.each([
+		['a ticked subfolder', ['/Trip/Day 2', '/Trip'], ['/Trip']],
+		['a ticked folder deeper down', ['/Trip', '/Trip/Day 2/Raw'], ['/Trip']],
+		['every folder below the root', ['', '/Trip'], ['']],
+	])('leaves out %s of a ticked folder with subfolders', (_case, paths, covering) => {
+		expect(folderSetKey({ paths, subfolders: true })).toBe(folderSetKey({ paths: covering, subfolders: true }))
+	})
+
+	// spec: DECISIONS-002.15
+	it.each([
+		['without subfolders', ['/Trip', '/Trip/Day 2'], false],
+		['for a sibling that starts with the same name', ['/Trip', '/Trip 2'], true],
+		['for a folder that only starts with the same name', ['/Trip', '/Trips/Day 1'], true],
+	])('keeps every folder %s', (_case, paths, subfolders) => {
+		expect(folderSetKey({ paths, subfolders })).not.toBe(folderSetKey({ paths: ['/Trip'], subfolders }))
+	})
+
+	// spec: DECISIONS-002.15
+	it('is the form the server hashes, FolderSet::key()', () => {
+		expect(folderSetKey({ paths: ['/Trip/Day 2', '/Fotos/ä', '/Trip'], subfolders: true })).toBe('[["/Fotos/ä","/Trip"],true]')
+	})
 })
 
 describe('summarise', () => {

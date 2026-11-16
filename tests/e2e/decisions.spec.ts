@@ -51,11 +51,11 @@ test('keeps the most recent resume positions, newest first', async ({ page }) =>
 	await page.goto('/index.php/apps/honeycomb/')
 
 	for (let folder = 0; folder <= RECENT_LIMIT; folder++) {
-		const folderSet = { paths: [`/Resume/${folder}`, '/Resume'], subfolders: true }
+		const folderSet = { paths: [`/Resume/${folder}`, '/Album'], subfolders: true }
 		const saved = await send(page, 'PUT', '/positions', { folderSet, fileId: folder + 1, decided: folder, total: RECENT_LIMIT })
 		expect(saved.status()).toBe(200)
 	}
-	const again = { folderSet: { paths: ['/Resume', `/Resume/${RECENT_LIMIT}`], subfolders: true }, fileId: 99, decided: 1, total: 2 }
+	const again = { folderSet: { paths: ['/Album', `/Resume/${RECENT_LIMIT}`], subfolders: true }, fileId: 99, decided: 1, total: 2 }
 	expect((await send(page, 'PUT', '/positions', again)).status()).toBe(200)
 
 	const recent = await send(page, 'GET', '/positions')
@@ -64,4 +64,17 @@ test('keeps the most recent resume positions, newest first', async ({ page }) =>
 	expect(positions).toHaveLength(RECENT_LIMIT)
 	expect(positions[0]).toMatchObject({ fileId: 99, folderSet: again.folderSet })
 	expect(positions.map((position) => position.fileId)).not.toContain(1)
+})
+
+// spec: DECISIONS-002.15
+test('keeps one resume position for a ticked folder inside another with subfolders', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+
+	expect((await send(page, 'PUT', '/positions', { folderSet: { paths: ['/Covered'], subfolders: true }, fileId: 5, decided: 0, total: 2 })).status()).toBe(200)
+	const inside = { paths: ['/Covered', '/Covered/Day 2'], subfolders: true }
+	expect((await send(page, 'PUT', '/positions', { folderSet: inside, fileId: 6, decided: 1, total: 2 })).status()).toBe(200)
+
+	const { positions } = await (await send(page, 'GET', '/positions')).json() as { positions: { fileId: number, folderSet: { paths: string[] } }[] }
+	const covered = positions.filter((position) => position.folderSet.paths.includes('/Covered'))
+	expect(covered).toEqual([expect.objectContaining({ fileId: 6, folderSet: inside })])
 })
