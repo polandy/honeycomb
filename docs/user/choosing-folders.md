@@ -15,6 +15,10 @@ folder, shared folders included. A folder with subfolders has an arrow before it
 - **Ticked below:** a folder with ticked folders somewhere inside it shows "*n* inside" after its
   name, also while it is collapsed, so you can find your ticks. The move dialog's *Browse…* marks
   the folders above the chosen one the same way.
+- **Photo files:** the number at the end of a folder's row counts the photo files directly in
+  it, not in its subfolders; a RAW and a JPEG of one shot count as two, so it can be twice the
+  number of photos the picker shows once you tick the folder. Folders without photo files show
+  no number.
 - **Include subfolders:** the switch above the tree adds every subfolder of a ticked folder, at
   any depth. Hidden folders (starting with a dot) are always skipped and cannot be ticked. With
   the switch on, ticking a subfolder of a ticked folder changes nothing: **Recent** keeps one

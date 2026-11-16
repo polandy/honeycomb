@@ -30,6 +30,8 @@ export interface Folder {
 	readonly name: string
 	readonly path: string
 	readonly hasSubfolders: boolean
+	/** Photo files of its own, null for a hidden or unlistable folder. */
+	readonly photoFiles: number | null
 }
 
 /** Thrown when an endpoint answers with a body of the wrong shape. */

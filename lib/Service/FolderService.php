@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-use OCP\Files\FileInfo;
+use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
@@ -21,8 +21,9 @@ final class FolderService {
 	}
 
 	/**
-	 * The direct child folders of the folder at `$path`, hidden ones included, unsorted.
-	 * @return list<array{name: string, path: string, hasSubfolders: bool}>
+	 * The direct child folders of the folder at `$path`, hidden ones included, unsorted, each with
+	 * the count of its own photo files (null for a hidden or unlistable child).
+	 * @return list<array{name: string, path: string, hasSubfolders: bool, photoFiles: ?int}>
 	 * @throws FolderNotFoundException for a foreign, vanished or non-folder path
 	 * @throws FolderNotReadableException when the user may not read the folder
 	 */
@@ -38,17 +39,30 @@ final class FolderService {
 		foreach ($nodes as $node) {
 			$relative = $userFolder->getRelativePath($node->getPath());
 			if ($node instanceof Folder && $relative !== null) {
-				$children[] = ['name' => $node->getName(), 'path' => $relative, 'hasSubfolders' => $this->hasSubfolders($node)];
+				$children[] = ['name' => $node->getName(), 'path' => $relative, ...$this->contents($node)];
 			}
 		}
 		return $children;
 	}
 
-	private function hasSubfolders(Folder $folder): bool {
+	/**
+	 * Whether `$folder` holds a folder and how many photo files of its own, from one listing.
+	 * @return array{hasSubfolders: bool, photoFiles: ?int}
+	 */
+	private function contents(Folder $folder): array {
 		try {
-			return $folder->getDirectoryListing(FileInfo::MIMETYPE_FOLDER) !== [];
+			$nodes = $folder->getDirectoryListing();
 		} catch (NotPermittedException|NotFoundException) {
-			return false;
+			return ['hasSubfolders' => false, 'photoFiles' => null];
 		}
+		$hasSubfolders = false;
+		$photoFiles = 0;
+		foreach ($nodes as $node) {
+			$hasSubfolders = $hasSubfolders || $node instanceof Folder;
+			if ($node instanceof File && !str_starts_with($node->getName(), '.') && ListingService::isPhoto($node)) {
+				$photoFiles++;
+			}
+		}
+		return ['hasSubfolders' => $hasSubfolders, 'photoFiles' => str_starts_with($folder->getName(), '.') ? null : $photoFiles];
 	}
 }

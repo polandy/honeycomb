@@ -24,13 +24,20 @@ the ticked folders.
 - **Errors:** as ADR 0009: `404` for a path with `..`, a vanished folder, a file or a folder
   outside the user's files; `403` when the user may not read the folder; `401` without a user.
   The body is empty.
-- **Counts:** the endpoint counts nothing. The picker lists the ticked folders through the
-  listing endpoint and pairs them in TypeScript, so the count it shows is the one the grid will
-  show, and the listing is reused when the cull opens.
+- **Counts:** the picker's count of the ticked folders comes from the listing endpoint, paired
+  in TypeScript, so it is the one the grid will show, and the listing is reused when the cull
+  opens.
+- **Photo files (amended 2026-11-16):** each item also carries `photoFiles`, the count of the
+  child's own photo files (the listing's photo types, no sidecars, no hidden files), or `null`
+  for a hidden child or one that may not be listed. It comes from the same one listing per child
+  as `hasSubfolders`, so the tree can show a count beside each folder without a request or a
+  recursive walk per row. Files, not pictures: pairing stays in TypeScript (ADR 0006), and
+  counting pictures would need every file name in the browser.
 
 ## Consequences
 
 - One request per folder level the user opens, plus one listing per ticked folder.
-- `hasSubfolders` reads one directory listing per child folder; a folder with thousands of child
-  folders answers slower, which the picker shows as loading.
+- `hasSubfolders` and `photoFiles` read one unfiltered directory listing per child folder; a
+  folder with thousands of child folders, or children with thousands of files, answers slower,
+  which the picker shows as loading.
 - A new field is added, never renamed or removed, without a new version in the path.

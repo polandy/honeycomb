@@ -222,9 +222,9 @@ describe('FolderTree', () => {
 		const count = (name: string) => item(wrapper, name).find('.folder-tree__count')
 
 		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('3')
-		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}3 photo files`)
+		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}3 photo files`)
 		expect(item(wrapper, 'Photos').element.lastElementChild?.classList).toContain('folder-tree__count')
-		expect(count('Day 9').find('.hidden-visually').text()).toBe(`${MARK}1 photo file`)
+		expect(count('Day 9').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1 photo file`)
 		expect(count('Day 10').exists()).toBe(false)
 		expect(count('.hidden').exists()).toBe(false)
 

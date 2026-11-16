@@ -14,8 +14,11 @@ The picker shows how many photos the set holds before it opens.
 
 **Folder endpoint.** `GET /apps/honeycomb/api/v1/folders?path=<folder>`, logged in, with the
 CSRF token, answers `{"folders": [...]}`: one item per direct child folder with `name`, `path`
-(from the user's files, leading `/`) and `hasSubfolders`. Hidden folders are included; files are
-not. `hasSubfolders` is false when the child holds no folder or may not be listed. Errors as
+(from the user's files, leading `/`), `hasSubfolders` and `photoFiles`. Hidden folders are
+included; files are not. `hasSubfolders` is false when the child holds no folder or may not be
+listed. `photoFiles` counts the child's own photo files, the types LISTING-001 lists without
+sidecars and hidden files, its subfolders left out; it is `null` for a hidden child or one that
+may not be listed. Both come from one listing of the child. Errors as
 LISTING-001: `404` for a foreign, vanished or file path, `403` for an unreadable folder, `401`
 without a user.
 
@@ -45,6 +48,11 @@ above the chosen one the same way. While *Include subfolders* is on, every shown
 ticked one that is not ticked itself shows a dashed tick and "included" after its name, read out
 as "included with <the nearest ticked folder above>"; it is not selected and a tap ticks it.
 Hidden folders, and the folders inside them, stay without it, since the listing skips them.
+Every folder with photo files shows their count last in its row, in the muted colour with digits
+of even width, the same whether it is expanded or collapsed; a screen reader hears it as part of
+the folder, "*n* photo files". A folder without any, a hidden one and one that cannot be listed
+show none. The count comes with the folder, so the row never grows when it arrives. The move
+dialog's tree shows it too.
 Confirming hands the folder set and its merged entries to the grid.
 
 | State | Picker shows |
@@ -194,6 +202,13 @@ starts from that folder set and *Cancel* returns to it.
   with <the nearest ticked folder above>", is not selected and ticks on a tap; hidden folders and
   those inside them do not, and with the switch off none does
 
+### LISTING-003.19 – Photo files of each folder
+
+- **Given** folders with and without photo files, hidden ones, and one that cannot be listed
+- **When** the tree shows them, in the picker or in the move dialog, expanded or collapsed
+- **Then** each one with photo files shows the count of its own (subfolders, sidecars and hidden
+  files left out) last in its row, read out as "*n* photo files"; the others show none
+
 ## Out of scope
 
 - The grid and its folder headers: GRID-001. The resume position: DECISIONS-002.
@@ -210,3 +225,4 @@ starts from that folder set and *Cancel* returns to it.
 | 2026-11-16 | .4/.9/.10/.11 the picker as an expandable tree, .16 its keys and touch targets (owner) |
 | 2026-11-16 | .17 a badge on every folder above a ticked one (owner, E1–E4 A) |
 | 2026-11-16 | .18 the folders included by *Include subfolders* (owner, E3 A) |
+| 2026-11-16 | .1/.19 the photo files of each folder in the tree (owner, after digiKam) |
