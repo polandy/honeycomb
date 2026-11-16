@@ -19,21 +19,22 @@ The options:
   deploy, and the version would no longer be release-please's.
 - **Tell testers to reload without cache:** easy to forget, and the stale page looks like a bug
   in the new build.
-- **Hash the entry names and read them from the build manifest:** every build that changes a
-  script gets a new URL, whatever the version.
+- **Hash the entry names and let the build tell PHP the names:** every build that changes a
+  script gets a new URL, whatever the version. Vite's JSON manifest would need
+  `file_get_contents`, which psalm forbids (CLAUDE.md rule 1), so the build writes a PHP file.
 
 ## Decision
 
-Vite names each entry `js/honeycomb-<entry>-<hash>.mjs` and writes `js/manifest.json`.
-`ScriptManifest` reads the built name of an entry (`src/main.ts`, `src/similarity-main.ts`) from
-that manifest; `PageController` passes it to the page template, which adds it with
-`Util::addScript()`. A missing manifest or entry throws `ScriptManifestException`, so an unbuilt
-app fails loud instead of rendering an empty page. `npm run build` empties `js/` first, so no
+Vite names each entry `js/honeycomb-<entry>-<hash>.mjs`, and a plugin in `vite.config.ts` writes
+`js/scripts.php`, which returns the script name of each entry (`main`, `similarity`).
+`ScriptManifest` loads it with `require` and returns the name of an entry; `PageController`
+passes it to the page template, which adds it with `Util::addScript()`. A missing file or entry
+throws `ScriptManifestException`, so an unbuilt app fails loud instead of rendering an empty page. `npm run build` empties `js/` first, so no
 script of an older build is packed.
 
 ## Consequences
 
 - A deploy shows the new UI on the next page load, with or without a version change; unchanged
   scripts keep their name and stay cached.
-- The page reads one small JSON file per page load.
-- `js/manifest.json` is packed and served with the app; it lists only the built file names.
+- The page loads one small generated PHP file per page load; OPcache keeps it.
+- `js/scripts.php` is packed with the app; it lists only the built file names.

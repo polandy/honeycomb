@@ -99,7 +99,7 @@ stays the same.
 
 - **Given** a build of honeycomb, deployed with the same app version as the one before
 - **When** a user opens the app page or the similarity page
-- **Then** the page loads its script by the content-hashed name from the build manifest, so the
+- **Then** the page loads its script by the content-hashed name the build wrote, so the
   browser fetches the new script instead of a cached one; without a build the page fails loud
 
 ## Out of scope

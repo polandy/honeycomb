@@ -35,7 +35,7 @@ final class ScriptManifestTest extends TestCase {
 	public function testFailsLoudForAnEntryTheBuildLacks(): void {
 		$this->expectException(ScriptManifestException::class);
 
-		$this->manifest('built')->script('src/missing.ts');
+		$this->manifest('built')->script('missing');
 	}
 
 	/** The manifest of the app installed at the fixture folder `$app`. */

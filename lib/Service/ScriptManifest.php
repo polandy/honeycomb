@@ -10,12 +10,12 @@ namespace OCA\Honeycomb\Service;
 use OCA\Honeycomb\AppInfo\Application;
 use OCP\App\IAppManager;
 
-/** Names the built script of a page entry from the Vite manifest, whose content hash busts the browser cache (ADR 0033). */
+/** Names the built script of a page entry, whose content hash busts the browser cache (ADR 0033). */
 final class ScriptManifest {
-	public const string MAIN = 'src/main.ts';
-	public const string SIMILARITY = 'src/similarity-main.ts';
-	private const string PATH = '/js/manifest.json';
-	private const string SCRIPT = '#^js/(.+)\.mjs$#';
+	public const string MAIN = 'main';
+	public const string SIMILARITY = 'similarity';
+	/** Written by the build: entry name => script name. */
+	private const string PATH = '/js/scripts.php';
 
 	public function __construct(
 		private IAppManager $apps,
@@ -23,24 +23,23 @@ final class ScriptManifest {
 	}
 
 	/**
-	 * The script name `Util::addScript()` takes for the entry `$source`, e.g. `honeycomb-main-Ab1cD2e`.
+	 * The script name `Util::addScript()` takes for the entry `$entry`, e.g. `honeycomb-main-Ab1cD2e`.
 	 * @throws ScriptManifestException when the app is not built or the build lacks the entry
 	 */
-	public function script(string $source): string {
+	public function script(string $entry): string {
 		$path = $this->apps->getAppPath(Application::APP_ID) . self::PATH;
-		$json = is_file($path) ? file_get_contents($path) : false;
-		if ($json === false) {
-			throw new ScriptManifestException("No build manifest at $path");
+		if (!is_file($path)) {
+			throw new ScriptManifestException("No build at $path");
 		}
-		try {
-			$manifest = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
-		} catch (\JsonException $error) {
-			throw new ScriptManifestException("Unreadable build manifest at $path", previous: $error);
+		/**
+		 * @psalm-suppress UnresolvableInclude The build writes it.
+		 * @var array<string, string>|false $scripts
+		 */
+		$scripts = require $path;
+		$script = is_array($scripts) ? ($scripts[$entry] ?? null) : null;
+		if (!is_string($script)) {
+			throw new ScriptManifestException("The build has no script for $entry");
 		}
-		$file = is_array($manifest) && is_array($manifest[$source] ?? null) ? ($manifest[$source]['file'] ?? null) : null;
-		if (!is_string($file) || preg_match(self::SCRIPT, $file, $match) !== 1) {
-			throw new ScriptManifestException("The build manifest has no script for $source");
-		}
-		return $match[1];
+		return $script;
 	}
 }
