@@ -64,7 +64,7 @@ export interface DeleteFlowContext {
 	readonly chunks?: ChunkLimits | undefined
 }
 
-/** Reject review, delete summary, *Remove RAWs* and delete report (`docs/plan.md` Culling workflow, Keep RAW and Remove RAWs, Q11). */
+/** Reject review, delete summary, *Remove RAWs* and delete report (`docs/dev/plan.md` Culling workflow, Keep RAW and Remove RAWs, Q11). */
 export function useDeleteFlow(context: DeleteFlowContext) {
 	const dialog = shallowRef<DeleteDialog | null>(null)
 	const busy = ref(false)

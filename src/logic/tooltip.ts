@@ -4,7 +4,7 @@ import type { Schedule } from './long-press.ts'
 
 import { longPress } from './long-press.ts'
 
-/** How long the mouse rests on a control before its tooltip shows (`docs/plan.md` Tooltip). */
+/** How long the mouse rests on a control before its tooltip shows (`docs/dev/plan.md` Tooltip). */
 export const TIP_DELAY_MS = 400
 
 /** How soon after a tooltip hid the next one shows without the delay. */

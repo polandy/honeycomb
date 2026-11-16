@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Fails when behaviour and spec change apart without a trailer saying why (docs/specs/README.md).
+# Fails when behaviour and spec change apart without a trailer saying why (docs/dev/specs/README.md).
 set -uo pipefail
 
-SPECS=${SPECS_DIR:-docs/specs}
+SPECS=${SPECS_DIR:-docs/dev/specs}
 # Release pull requests (release-please) carry no spec by design; the workflow leaves this empty for forks.
 # It drains stdin first so the producer of the file list is not killed by SIGPIPE (exit 141).
 case ${SPEC_HEAD_REF-} in release-please--branches--*) cat >/dev/null; exit 0 ;; esac

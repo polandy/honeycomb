@@ -37,7 +37,7 @@ export interface GridHotkeyTargets {
 	toggleFullscreen: () => void
 }
 
-/** The grid's keys (`docs/plan.md` Keyboard shortcuts). */
+/** The grid's keys (`docs/dev/plan.md` Keyboard shortcuts). */
 export function gridHotkeys(targets: GridHotkeyTargets): HotkeyHandlers {
 	const { grid, view, selection, headerShown, filtersOpen } = targets
 	const focusedIndex = () => grid()?.focusedIndex() ?? 0

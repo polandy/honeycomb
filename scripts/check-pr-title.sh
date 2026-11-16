@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Checks that PULL_REQUEST_TITLE is a Conventional Commit subject (docs/02-workflow.md §2.5).
+# Checks that PULL_REQUEST_TITLE is a Conventional Commit subject (docs/dev/02-workflow.md §2.5).
 set -euo pipefail
 
 title=${PULL_REQUEST_TITLE:?PULL_REQUEST_TITLE is not set}

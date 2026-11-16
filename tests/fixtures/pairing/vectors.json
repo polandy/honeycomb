@@ -1,5 +1,5 @@
 {
-  "description": "Pairing test vectors: entry paths in, pictures out (docs/plan.md Pairing and file types). Cases with sharedWithFramehive true follow Framehive's LIBRARY-001 too; the others are honeycomb's rules (case-insensitive base names, separate subfolders, darktable duplicates). A case's settings override the defaults field by field. Pictures are listed in the order of their first member in the input; sidecars in input order.",
+  "description": "Pairing test vectors: entry paths in, pictures out (docs/dev/plan.md Pairing and file types). Cases with sharedWithFramehive true follow Framehive's LIBRARY-001 too; the others are honeycomb's rules (case-insensitive base names, separate subfolders, darktable duplicates). A case's settings override the defaults field by field. Pictures are listed in the order of their first member in the input; sidecars in input order.",
   "defaults": {
     "rawExtensions": ["nef", "cr2", "cr3", "arw", "raf", "orf", "rw2", "dng", "pef", "srw"],
     "renderedExtensions": ["jpg", "jpeg", "heic", "heif", "hif"],

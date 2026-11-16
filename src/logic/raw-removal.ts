@@ -18,7 +18,7 @@ export interface RawRemoval {
 	readonly singles: number
 }
 
-/** The RAW member and its own sidecars; the JPEG's and a shared sidecar stay (`docs/plan.md` Keep RAW and Remove RAWs). */
+/** The RAW member and its own sidecars; the JPEG's and a shared sidecar stay (`docs/dev/plan.md` Keep RAW and Remove RAWs). */
 export function rawFilesOf(picture: Picture<ListingEntry>): PictureFile[] {
 	if (picture.raw === null) {
 		return []

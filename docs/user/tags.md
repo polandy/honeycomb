@@ -3,7 +3,7 @@
 A **tag** is a path of names, such as `Places/Italy/Dolomites`, that you give to a photo. honeycomb
 works with tags the way digiKam does: they have levels, they are stored in the photo's XMP sidecar
 files, and digiKam, darktable and Lightroom Classic read them there. The technical details are in
-[`../07-tags.md`](../07-tags.md).
+[`../07-tags.md`](../dev/07-tags.md).
 
 ## Add and remove tags
 

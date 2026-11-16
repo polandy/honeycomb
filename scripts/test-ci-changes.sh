@@ -16,8 +16,8 @@ expect() {
   fi
 }
 
-expect docs-only "markdown=true php=false ts=false app=false" docs/plan.md
-expect mockup-only "markdown=false php=false ts=false app=false" docs/mockup/index.html
+expect docs-only "markdown=true php=false ts=false app=false" docs/dev/plan.md
+expect mockup-only "markdown=false php=false ts=false app=false" docs/dev/mockup/index.html
 expect php-only "markdown=false php=true ts=false app=true" lib/Controller/PageController.php
 expect composer-lock "markdown=false php=true ts=false app=true" composer.lock
 expect ts-only "markdown=false php=false ts=true app=true" src/logic/pairing.ts

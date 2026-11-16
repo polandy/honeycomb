@@ -16,7 +16,7 @@ use Psr\Log\LoggerInterface;
 
 /** Finds a user's image files by id and renders and warms their preview tiers (ADR 0010). */
 final class ImageService {
-	/** Long edge in pixels: grid tiles, large grid tiles, loupe (`docs/plan.md` Image delivery). */
+	/** Long edge in pixels: grid tiles, large grid tiles, loupe (`docs/dev/plan.md` Image delivery). */
 	public const array TIERS = [256, 1024, 4096];
 	/** The tier of the full image, for the loupe's 100 % zoom; no long-edge limit. */
 	public const int FULL = 0;

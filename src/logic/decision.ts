@@ -44,7 +44,7 @@ export function decisionsByFileId(rows: readonly StoredDecision[]): Map<number, 
 	return new Map(rows.map(({ fileId, ...decision }) => [fileId, decision]))
 }
 
-/** The rendered member's decision, else the RAW member's, else undecided (`docs/decisions.md`). */
+/** The rendered member's decision, else the RAW member's, else undecided (`docs/dev/decisions.md`). */
 export function pictureDecision(picture: Picture<{ readonly fileId: number }>, byFileId: ReadonlyMap<number, Decision>): Decision {
 	return (picture.rendered && byFileId.get(picture.rendered.fileId))
 		?? (picture.raw && byFileId.get(picture.raw.fileId))

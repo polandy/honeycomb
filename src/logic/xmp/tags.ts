@@ -12,7 +12,7 @@ export interface TagWrite {
 	readonly removed: readonly Tag[]
 }
 
-/** The tag fields honeycomb reads and writes (`docs/07-tags.md` Reading). */
+/** The tag fields honeycomb reads and writes (`docs/dev/07-tags.md` Reading). */
 const TAG_FIELD = {
 	tagsList: xmpKey(NAMESPACE.digiKam, 'TagsList'),
 	hierarchicalSubject: xmpKey(NAMESPACE.lr, 'hierarchicalSubject'),
@@ -50,7 +50,7 @@ export function tagWrite(sources: readonly XmpPacket[], change: TagChange): TagW
 	return { tags: changedTags(pictureTags(sources), change), removed: change.removed }
 }
 
-/** Sets the three tag fields to the write and keeps every other property (`docs/07-tags.md` Writing). */
+/** Sets the three tag fields to the write and keeps every other property (`docs/dev/07-tags.md` Writing). */
 export function mergeTags(packet: XmpPacket, write: TagWrite): XmpPacket {
 	const properties = new Map(packet.properties)
 	const set = (key: string, node: XmpNode | null): void => {

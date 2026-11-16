@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto'
 import { cullFolder, E2E_SETTINGS, openLoupe, putSettings } from './cull.ts'
 import { createFolder, JPEG, RAW, upload } from './files.ts'
 
-// The reference devices the opt-in dialog is captured on (docs/plan.md Reference devices).
+// The reference devices the opt-in dialog is captured on (docs/dev/plan.md Reference devices).
 const SCREENSHOT_VIEWPORTS = { 'pixel-portrait': { width: 427, height: 952 }, 'ipad-mini-portrait': { width: 744, height: 1133 }, 'ipad-mini-landscape': { width: 1133, height: 744 } }
 
 test.afterEach(async ({ page }) => {

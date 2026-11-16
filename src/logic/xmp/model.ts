@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/** The namespace URIs honeycomb reads, writes or structures a packet with (`docs/06-xmp-interop.md`). */
+/** The namespace URIs honeycomb reads, writes or structures a packet with (`docs/dev/06-xmp-interop.md`). */
 export const NAMESPACE = {
 	x: 'adobe:ns:meta/',
 	rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',

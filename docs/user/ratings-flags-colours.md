@@ -22,7 +22,7 @@ skipped and the report says why; reload the folder to see its current state. A d
 its sidecars into the trash bin with it. Before a RAW goes, its values are copied into the JPEG's
 own sidecar, so nothing you decided is lost; if that sidecar cannot be written, the RAW stays.
 
-The technical details are in [`../06-xmp-interop.md`](../06-xmp-interop.md).
+The technical details are in [`../06-xmp-interop.md`](../dev/06-xmp-interop.md).
 
 ## What each program sees
 

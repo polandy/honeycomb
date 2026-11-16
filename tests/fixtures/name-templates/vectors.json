@@ -1,5 +1,5 @@
 {
-  "description": "Name template test vectors (docs/05-name-templates.md). Columns count from 1. A render case's picture overrides the defaults field by field; times are Unix seconds, the capture time as stored (the camera's clock), the modification time with its UTC offset in minutes. A file is its extension, or an object with its subfolder. Pictures are in view order; existing paths are already in the target folder.",
+  "description": "Name template test vectors (docs/dev/05-name-templates.md). Columns count from 1. A render case's picture overrides the defaults field by field; times are Unix seconds, the capture time as stored (the camera's clock), the modification time with its UTC offset in minutes. A file is its extension, or an object with its subfolder. Pictures are in view order; existing paths are already in the target folder.",
   "defaults": {
     "baseName": "DSCF1234",
     "captureTime": 1794234725,

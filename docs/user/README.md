@@ -13,3 +13,4 @@ the [README](../../README.md).
 | [Settings](settings.md) | The per-user settings and what each one does |
 | [Similarity](similarity.md) | How similar pictures are grouped into series |
 | [Clearing the cache](cache.md) | For admins: `occ honeycomb:cache:clear` for one user or every user |
+| [Administering honeycomb](admin/README.md) | For Nextcloud admins: updating, removing, releasing |

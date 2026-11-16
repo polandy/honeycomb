@@ -1,7 +1,7 @@
 #!/bin/sh
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# PostToolUse(Edit|Write) formatter; behaviour documented in docs/03-coding-standards.md §Formatting.
+# PostToolUse(Edit|Write) formatter; behaviour documented in docs/dev/03-coding-standards.md §Formatting.
 input=$(cat)
 
 warn_once() {
@@ -19,7 +19,7 @@ file=$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty')
 
 case "$file" in
   "$CLAUDE_PROJECT_DIR"/vendor/* | "$CLAUDE_PROJECT_DIR"/node_modules/* | "$CLAUDE_PROJECT_DIR"/js/*) exit 0 ;;
-  "$CLAUDE_PROJECT_DIR"/docs/mockup/*) exit 0 ;;
+  "$CLAUDE_PROJECT_DIR"/docs/dev/mockup/*) exit 0 ;;
   "$CLAUDE_PROJECT_DIR"/*) ;;
   *) exit 0 ;;
 esac
