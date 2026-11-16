@@ -146,4 +146,34 @@ final class PositionServiceTest extends TestCase {
 
 		$this->assertSame(hash('sha256', '[["/Fotos/ä","/Photos/2023"],true]'), $set->key());
 	}
+
+	// spec: DECISIONS-002.15
+	public function testTheKeyLeavesOutAFolderInsideATickedOneWithSubfolders(): void {
+		$set = new FolderSet(['/Trip/Day 2', '/Fotos/ä', '/Trip', '/Trip 2', '/Trips/Day 1/Raw', '/Trip/Day 2/Raw'], true);
+
+		$this->assertSame(hash('sha256', '[["/Fotos/ä","/Trip","/Trip 2","/Trips/Day 1/Raw"],true]'), $set->key());
+		$this->assertSame((new FolderSet([''], true))->key(), (new FolderSet(['', '/Trip'], true))->key());
+	}
+
+	// spec: DECISIONS-002.15
+	public function testATickedFolderInsideAnotherWithSubfoldersIsTheSameFolderSet(): void {
+		$this->service()->save($this->user('alice'), ['paths' => ['/Trip'], 'subfolders' => true], 12, 3, 10);
+		$this->now++;
+
+		$this->service()->save($this->user('alice'), ['paths' => ['/Trip', '/Trip/Day 2'], 'subfolders' => true], 14, 4, 10);
+
+		$recent = $this->service()->recent($this->user('alice'));
+		$this->assertCount(1, $recent);
+		$this->assertSame(14, $recent[0]->fileId);
+		$this->assertSame(['/Trip', '/Trip/Day 2'], $recent[0]->folderSet->paths);
+	}
+
+	// spec: DECISIONS-002.15
+	public function testWithoutSubfoldersATickedFolderInsideAnotherIsAnotherFolderSet(): void {
+		$this->service()->save($this->user('alice'), ['paths' => ['/Trip'], 'subfolders' => false], 12, 3, 10);
+
+		$this->service()->save($this->user('alice'), ['paths' => ['/Trip', '/Trip/Day 2'], 'subfolders' => false], 14, 4, 10);
+
+		$this->assertCount(2, $this->service()->recent($this->user('alice')));
+	}
 }
