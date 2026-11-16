@@ -1,0 +1,14 @@
+{
+  "src/main.ts": {
+    "file": "js/honeycomb-main-Ab1_cD2e.mjs",
+    "name": "main",
+    "src": "src/main.ts",
+    "isEntry": true
+  },
+  "src/similarity-main.ts": {
+    "file": "js/honeycomb-similarity-Xy9-Zw8v.mjs",
+    "name": "similarity",
+    "src": "src/similarity-main.ts",
+    "isEntry": true
+  }
+}
