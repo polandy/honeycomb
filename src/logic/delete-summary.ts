@@ -32,7 +32,7 @@ export interface DeleteSummary {
 	readonly folders: readonly FolderCount[]
 }
 
-/** Every file of a picture: its members, then every sidecar form (`docs/plan.md` Culling workflow). */
+/** Every file of a picture: its members, then every sidecar form (`docs/dev/plan.md` Culling workflow). */
 export function filesOf(picture: Picture<ListingEntry>): PictureFile[] {
 	const members: [FileRole, ListingEntry | null][] = [['rendered', picture.rendered], ['raw', picture.raw]]
 	return [

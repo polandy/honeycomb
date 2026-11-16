@@ -46,7 +46,7 @@ export interface KeymapEntry {
 	readonly range?: boolean
 }
 
-/** The keys honeycomb has a function for (`docs/plan.md` Keyboard shortcuts); a later milestone adds its keys here. */
+/** The keys honeycomb has a function for (`docs/dev/plan.md` Keyboard shortcuts); a later milestone adds its keys here. */
 export const KEYMAP: readonly KeymapEntry[] = [
 	{ id: 'pick', group: 'flags', caps: ['P'] },
 	{ id: 'reject', group: 'flags', caps: ['X'] },
@@ -191,7 +191,7 @@ function viKey(event: HotkeyEvent, key: string, pendingG: boolean): HotkeyAction
 	return event.shiftKey ? null : command(VI_COMMANDS[key])
 }
 
-/** What a key does (`docs/plan.md` Keyboard shortcuts, Vi keys) and the state for the next key. */
+/** What a key does (`docs/dev/plan.md` Keyboard shortcuts, Vi keys) and the state for the next key. */
 export function hotkey(event: HotkeyEvent, state: HotkeyState): { action: HotkeyAction | null, state: HotkeyState } {
 	if (MODIFIERS.has(event.key)) {
 		return { action: null, state }

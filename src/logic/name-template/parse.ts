@@ -42,7 +42,7 @@ const NUMBER_DIGITS = /^[1-6]$/
 const WHITESPACE = /^\s$/
 const DOT_FOLDERS: readonly string[] = ['.', '..']
 
-/** Parses and checks a name template (`docs/05-name-templates.md`); text before structure. */
+/** Parses and checks a name template (`docs/dev/05-name-templates.md`); text before structure. */
 export function parseNameTemplate(text: string): ParsedTemplate {
 	const folders = lex(text)
 	return Array.isArray(folders) ? structure(folders, text.length + 1) : folders

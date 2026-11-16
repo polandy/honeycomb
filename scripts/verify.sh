@@ -30,7 +30,7 @@ step source-sizes scripts/source-sizes.sh
 step pins scripts/pins.sh
 step specs scripts/specs.sh
 step "nextcloud versions" scripts/nextcloud-versions.sh
-# The branch's commit messages stand in for the description CI judges (docs/specs/README.md).
+# The branch's commit messages stand in for the description CI judges (docs/dev/specs/README.md).
 step "spec trailers" sh -c 'git diff --name-only origin/main...HEAD |
   SPEC_MESSAGE="$(git log --format=%B origin/main..HEAD)" scripts/spec-trailers.sh'
 step markdownlint npx --yes "markdownlint-cli2@$MARKDOWNLINT_CLI2_VERSION"

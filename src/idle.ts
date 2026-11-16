@@ -4,7 +4,7 @@ import type { Schedule } from './logic/long-press.ts'
 
 import { onBeforeUnmount, readonly, ref } from 'vue'
 
-/** How long the loupe's overlays stay after the last touch (`docs/plan.md` Loupe layout). */
+/** How long the loupe's overlays stay after the last touch (`docs/dev/plan.md` Loupe layout). */
 export const LOUPE_IDLE_MS = 2500
 
 /** Overlays that hide `ms` after the last wake unless `keepAwake` holds then. */

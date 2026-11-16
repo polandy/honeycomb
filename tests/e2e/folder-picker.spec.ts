@@ -8,7 +8,7 @@ import { ADMIN_STATE } from './admin.ts'
 import { createFolder, JPEG, upload } from './files.ts'
 import { PORT } from './server.ts'
 
-// The reference devices the folder tree is captured on (docs/plan.md Reference devices).
+// The reference devices the folder tree is captured on (docs/dev/plan.md Reference devices).
 const SCREENSHOT_VIEWPORTS = { desktop: { width: 1440, height: 900 }, 'ipad-mini-portrait': { width: 744, height: 1133 }, 'ipad-mini-landscape': { width: 1133, height: 744 }, 'pixel-portrait': { width: 427, height: 952 } }
 const TOUCH_TARGET = 44
 

@@ -12,7 +12,7 @@ export interface SidecarTargets<T> {
 	readonly created: readonly string[]
 }
 
-/** Every sidecar of the picture but darktable's duplicates; `<member file>.xmp` for each member without one, unless a shared one exists (`docs/06-xmp-interop.md` Sidecar names). */
+/** Every sidecar of the picture but darktable's duplicates; `<member file>.xmp` for each member without one, unless a shared one exists (`docs/dev/06-xmp-interop.md` Sidecar names). */
 export function sidecarTargets<T extends PairingEntry>(picture: Picture<T>): SidecarTargets<T> {
 	const members = pictureMembers(picture)
 	const names = members.map((member) => parseFileName(member.path).name)

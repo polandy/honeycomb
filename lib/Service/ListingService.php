@@ -16,7 +16,7 @@ use OCP\IUser;
 
 /** Lists the files of one picked folder from the file cache: members and sidecars, unpaired. */
 final class ListingService {
-	/** 20,000 pictures of a RAW, a JPEG and a sidecar each (`docs/plan.md` Multiple folders). */
+	/** 20,000 pictures of a RAW, a JPEG and a sidecar each (`docs/dev/plan.md` Multiple folders). */
 	public const ENTRY_LIMIT = 60_000;
 	public const METADATA_BATCH = 1_000;
 

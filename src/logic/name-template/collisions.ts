@@ -22,7 +22,7 @@ export function collisionSuffixes(pictures: readonly (readonly RenderedFile[])[]
 	})
 }
 
-/** Paths compare case-insensitively (`docs/05-name-templates.md` Collisions). */
+/** Paths compare case-insensitively (`docs/dev/05-name-templates.md` Collisions). */
 function pathKey(path: string): string {
 	return path.toLowerCase()
 }

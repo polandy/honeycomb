@@ -14,7 +14,7 @@ lines 301 src/logic/over-limit.ts
 lines 301 lib/Service/Big.php
 lines 301 src/components/Big.vue
 lines 900 tests/fixtures/pairing/vectors.ts
-lines 900 docs/mockup/app.js
+lines 900 docs/dev/mockup/app.js
 lines 900 README.md
 
 failed=0
@@ -33,7 +33,7 @@ expect ts-over-limit fail src/logic/over-limit.ts
 expect php-over-limit fail lib/Service/Big.php
 expect vue-over-limit fail src/components/Big.vue
 expect fixture-exempt pass tests/fixtures/pairing/vectors.ts
-expect mockup-exempt pass docs/mockup/app.js
+expect mockup-exempt pass docs/dev/mockup/app.js
 expect markdown-exempt pass README.md
 expect one-over-among-many fail src/logic/at-limit.ts src/logic/over-limit.ts
 

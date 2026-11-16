@@ -6,7 +6,7 @@ const ALLOWED_CHARACTER = new RegExp(`^[${ALLOWED}]$`)
 const OTHER_CHARACTERS = new RegExp(`[^${ALLOWED}]+`, 'g')
 const UMLAUTS: Readonly<Record<string, string>> = { ä: 'ae', ö: 'oe', ü: 'ue', ß: 'ss', Ä: 'Ae', Ö: 'Oe', Ü: 'Ue', ẞ: 'SS' }
 
-/** Whether a character may stand in a name template's path (`docs/05-name-templates.md`). */
+/** Whether a character may stand in a name template's path (`docs/dev/05-name-templates.md`). */
 export function isAllowedCharacter(character: string): boolean {
 	return ALLOWED_CHARACTER.test(character)
 }

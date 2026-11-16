@@ -8,7 +8,7 @@ import type { Tag, TagChange } from './tag.ts'
 import { changedRows } from './decision-change.ts'
 import { changedTags, sameTags } from './tag.ts'
 
-/** How many steps the undo history keeps (`docs/plan.md` M3.2). */
+/** How many steps the undo history keeps (`docs/dev/plan.md` M3.2). */
 export const UNDO_LIMIT = 50
 
 /** What each kind of undo step changed, by its kind. */

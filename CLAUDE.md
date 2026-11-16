@@ -16,26 +16,26 @@ only. **Don't grow it**: move detail into `docs/` and keep a pointer here.
 - Open work: `TODO.md`. `/todo` adds, `/next` plans, `/status` and `/review` check, skill
   `pr-review` reviews a PR. Subagents: `honeycomb-implementer` (one task),
   `honeycomb-reviewer` (one change). Red CI: `gh run view <run> --log-failed`.
-- The interactive mockup: open `docs/mockup/index.html` in a browser; no build.
+- The interactive mockup: open `docs/dev/mockup/index.html` in a browser; no build.
 
 ## Read first
 
 | Topic | Document |
 |---|---|
-| What we build | `docs/01-requirements.md` |
-| What the merged code does, per feature | `docs/specs/` (rules in its `README.md`) |
-| Plan, milestones, open questions | `docs/plan.md` |
-| Branch, test, PR, review | `docs/02-workflow.md` — **binding**, read before the first commit |
-| How code is written here | `docs/conventions.md` (every language), `docs/03-coding-standards.md` (stack) |
-| Words we use | `docs/04-glossary.md` |
-| Why decisions were made | `docs/adr/` |
+| What we build | `docs/dev/01-requirements.md` |
+| What the merged code does, per feature | `docs/dev/specs/` (rules in its `README.md`) |
+| Plan, milestones, open questions | `docs/dev/plan.md` |
+| Branch, test, PR, review | `docs/dev/02-workflow.md` — **binding**, read before the first commit |
+| How code is written here | `docs/dev/conventions.md` (every language), `docs/dev/03-coding-standards.md` (stack) |
+| Words we use | `docs/dev/04-glossary.md` |
+| Why decisions were made | `docs/dev/adr/` |
 
 ## Reading budget
 
 Every tool result is re-read, and paid for, on each later turn.
 
 - **Open only the section a change touches.** Start from `docs/README.md`, never read the set.
-  `docs/mockup/index.html` is large: grep it, read by offset.
+  `docs/dev/mockup/index.html` is large: grep it, read by offset.
 - **Grep before you read**, and read a large file by offset.
 - **Bundle independent commands into one call.** Never repeat a check whose answer cannot have
   changed.
@@ -57,23 +57,23 @@ Every tool result is re-read, and paid for, on each later turn.
 4. **Test first.** The failing test is its own commit before the implementation. Tests are
    deterministic: no sleep, no timing waits, no wall clock, no network. Never skip or retry a
    failing test; fix the cause. Vitest coverage gate: logic modules 95 % lines and 90 % branches
-   (ADR 0006, `docs/02-workflow.md` §2.3).
+   (ADR 0006, `docs/dev/02-workflow.md` §2.3).
 5. **Pinned and locked.** `composer.lock` and `package-lock.json` are committed and never edited
    by hand; Actions are pinned by full commit SHA.
 6. **Write an ADR before an architectural choice:** storage format, new dependency, new table,
    public API shape (ADR 0001).
-7. **Use the glossary's words** (`docs/04-glossary.md`); no synonyms. New UI uses its UI words
-   and the shared components (`docs/plan.md` Shared UI components) before adding new ones.
+7. **Use the glossary's words** (`docs/dev/04-glossary.md`); no synonyms. New UI uses its UI words
+   and the shared components (`docs/dev/plan.md` Shared UI components) before adding new ones.
 8. **Everything in the repository is English** — code, docs, UI strings, commits, PRs, issues —
    even when the owner writes in another language.
 9. **REUSE compliant.** A new file carries an SPDX header or is covered by `REUSE.toml`.
 10. **Spec and code stay in sync** (ADR 0015). A behaviour change updates its spec in
-    `docs/specs/` in the same PR, or the PR description says `Spec-Unchanged: <reason>`. A test
+    `docs/dev/specs/` in the same PR, or the PR description says `Spec-Unchanged: <reason>`. A test
     that proves a criterion is marked `// spec: <ID>.<n>`. `scripts/specs.sh` checks.
 
 ## Code style
 
-Binding: `docs/conventions.md`. In short:
+Binding: `docs/dev/conventions.md`. In short:
 
 - Single responsibility, small public surface, files of at most 300 lines; side effects (files,
   clock, randomness) injected, never global or static.
@@ -89,11 +89,11 @@ Binding: `docs/conventions.md`. In short:
 ## Workflow
 
 1. Understand the task; read only the docs it touches, and the spec of the feature.
-2. Update or add the spec (`docs/specs/`), then write or extend the tests first, at the lowest
+2. Update or add the spec (`docs/dev/specs/`), then write or extend the tests first, at the lowest
    layer that can express the behaviour, with their `// spec:` markers.
 3. Implement the smallest change that makes them pass.
 4. `scripts/verify.sh` is green.
 5. Update the docs the change touches and delete the finished item from `TODO.md`.
    `CHANGELOG.md` is written by release-please, never by hand.
 6. Conventional Commits in English, body explains why. No `Co-Authored-By` or "Generated with"
-   lines. `main` changes only by pull request (`docs/02-workflow.md`).
+   lines. `main` changes only by pull request (`docs/dev/02-workflow.md`).

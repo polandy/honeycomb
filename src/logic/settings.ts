@@ -10,7 +10,7 @@ import { DEFAULT_NAME_TEMPLATE } from './name-template/presets.ts'
 import { DEFAULT_PAIRING_SETTINGS } from './pairing.ts'
 import { SIDECAR_EXTENSION } from './sidecars.ts'
 
-/** The per-user settings (`docs/plan.md` M4 item 4, ADR 0014). */
+/** The per-user settings (`docs/dev/plan.md` M4 item 4, ADR 0014). */
 export interface Settings extends PairingSettings {
 	readonly showSingles: boolean
 	readonly swipes: SwipeSetting

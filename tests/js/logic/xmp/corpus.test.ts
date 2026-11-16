@@ -10,7 +10,7 @@ import { writeSidecar } from '../../../../src/logic/xmp/merge.ts'
 import { readXmp } from '../../../../src/logic/xmp/parse.ts'
 import { CANONICAL_TIME, fixtureBytes, key } from './xmp-builders.ts'
 
-/** Sidecars in the style of other programs' exports (`docs/06-xmp-interop.md` Test vectors). */
+/** Sidecars in the style of other programs' exports (`docs/dev/06-xmp-interop.md` Test vectors). */
 const CORPUS = ['lightroom-classic', 'capture-one', 'on1', 'photo-mechanic', 'darktable-history'].map((name) => `corpus/${name}.xmp`)
 
 /** The properties honeycomb writes, which a merge may change. */

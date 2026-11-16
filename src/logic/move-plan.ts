@@ -43,7 +43,7 @@ export interface ExistingFile {
 	readonly etag: string
 }
 
-/** How the user resolves a picture's conflict (`docs/plan.md` Moving pictures item 4). */
+/** How the user resolves a picture's conflict (`docs/dev/plan.md` Moving pictures item 4). */
 export type ConflictChoice = 'suffix' | 'skip' | 'replace'
 
 /** A file's new path, the existing file its unsuffixed path hits, and the file it replaces. */
@@ -171,7 +171,7 @@ function folderOf(path: string): string {
 	return path.slice(0, path.lastIndexOf('/')) || '/'
 }
 
-/** Paths compare case-insensitively (`docs/05-name-templates.md` Collisions). */
+/** Paths compare case-insensitively (`docs/dev/05-name-templates.md` Collisions). */
 function pathKey(path: string): string {
 	return path.toLowerCase()
 }

@@ -9,7 +9,7 @@ agent: general-purpose
 # PR quality review
 
 Review the pull request in `$ARGUMENTS` (a number or a branch; without one, the pull request of the
-current branch). The procedure around it is `docs/02-workflow.md`. Hunt for real findings rather
+current branch). The procedure around it is `docs/dev/02-workflow.md`. Hunt for real findings rather
 than rubber-stamping, fix what the rules below say to fix, and finish with a verdict.
 
 You run in a forked context: `CLAUDE.md` but none of the author's conversation, so you judge the
@@ -33,7 +33,7 @@ higher one.
 ## Rules for every tier
 
 - Read the diff before any file, and open a doc *section* (`grep -n` its heading, then read that
-  range), never a whole directory. `docs/mockup/index.html` is large: grep it, read by offset.
+  range), never a whole directory. `docs/dev/mockup/index.html` is large: grep it, read by offset.
 - `CLAUDE.md` and the docs it points to are binding; these checks distill them, and the *files*
   win where they disagree.
 - Trust a green CI: it ran `scripts/verify.sh`'s tools on the head commit. Run `scripts/verify.sh`
@@ -54,7 +54,7 @@ higher one.
   (add `commits` from Standard on) and `gh pr diff <PR>` in one call. Review the change against
   the intent the description states, and the `TODO.md` item or issue it names.
 - The title must be a Conventional Commit subject, and the description pure commit-body text,
-  because both become the squash commit (`docs/02-workflow.md` §2.5). The type follows
+  because both become the squash commit (`docs/dev/02-workflow.md` §2.5). The type follows
   *user-facing* impact: a user-visible change as `chore:` or `docs:` vanishes from the release
   notes (§2.10).
 - A UI change needs its `## Screenshots` comment (§2.7); missing screenshots block the verdict.
@@ -82,7 +82,7 @@ carries a second change, and that one ships without tests.
 
 ## Spec in sync (every tier)
 
-ADR 0015, `docs/specs/README.md`. The `spec trailers` check only sees *that* a spec changed or a
+ADR 0015, `docs/dev/specs/README.md`. The `spec trailers` check only sees *that* a spec changed or a
 trailer was given; you judge whether the content is right.
 
 - Every behaviour the diff adds, changes or removes is stated in its spec's criteria, in the same
@@ -96,21 +96,22 @@ trailer was given; you judge whether the content is right.
 ## Light checks
 
 - The text is correct, English, uses the glossary's words, and is consistent with the files it
-  describes; no doc contradicts another (`CLAUDE.md`, `docs/02`, `docs/03`, `docs/plan.md`, ADRs).
+  describes; no doc contradicts another (`CLAUDE.md`, `docs/dev/02`, `docs/dev/03`,
+  `docs/dev/plan.md`, ADRs).
 - A changed rule moves everywhere it is stated, and a finished `TODO.md` item is deleted.
 - A mockup change still loads without console errors, builds its controls from the shared
-  renderers (`docs/plan.md` Shared UI components), and is checked on the reference devices.
+  renderers (`docs/dev/plan.md` Shared UI components), and is checked on the reference devices.
 - A new decision is logged: an ADR for an architectural choice (rule 6), otherwise one dated line
-  in `docs/decisions.md`.
+  in `docs/dev/decisions.md`.
 
 ## Standard checks
 
 One line per check; `references/full-tier.md` §1–§5 holds each in depth for the Full tier.
 
-- **Docs move with the change** (§1): the owning section of `docs/plan.md`, `docs/0x-*.md`, the
-  user docs in `docs/user/` and the glossary; no doc still describes removed behaviour.
-- **Decisions** (§2): an ADR for an architectural choice, a dated line in `docs/decisions.md` for a
-  smaller one; nothing contradicts an existing ADR.
+- **Docs move with the change** (§1): the owning section of `docs/dev/plan.md`, `docs/dev/0x-*.md`,
+  the user docs in `docs/user/` and the glossary; no doc still describes removed behaviour.
+- **Decisions** (§2): an ADR for an architectural choice, a dated line in `docs/dev/decisions.md`
+  for a smaller one; nothing contradicts an existing ADR.
 - **Project standard** (§3): `src/logic/` stays pure (no DOM, network, `@nextcloud/*`, ambient
   clock or randomness); thin controllers; strict types; no magic literal, dead code or narrating
   comment; DRY across grid, loupe and series viewer; small public surfaces (encapsulation).

@@ -6,19 +6,19 @@ Opened by `SKILL.md` only when its tier is **Full**. Work through §1–§5 in o
 ## 1. Docs move with the change
 
 Every behaviour change is reflected in its doc **in the same pull request**, never as a follow-up
-(`docs/02-workflow.md` §2.4). Open the section the change owns, not the file.
+(`docs/dev/02-workflow.md` §2.4). Open the section the change owns, not the file.
 
 | Change | Doc that moves with it |
 |---|---|
-| Any observable behaviour | its spec in `docs/specs/` and the `// spec:` markers (ADR 0015) |
-| Culling behaviour, filters, sort, series, gestures, keys | its section of `docs/plan.md` |
-| A word, an icon, a colour or an order in the UI | `docs/04-glossary.md` |
-| XMP fields, precedence, write rules | `docs/06-xmp-interop.md`, and its test vectors |
-| Name templates | `docs/05-name-templates.md` |
+| Any observable behaviour | its spec in `docs/dev/specs/` and the `// spec:` markers (ADR 0015) |
+| Culling behaviour, filters, sort, series, gestures, keys | its section of `docs/dev/plan.md` |
+| A word, an icon, a colour or an order in the UI | `docs/dev/04-glossary.md` |
+| XMP fields, precedence, write rules | `docs/dev/06-xmp-interop.md`, and its test vectors |
+| Name templates | `docs/dev/05-name-templates.md` |
 | Something a user does or sees differently | `docs/user/`, and `README.md` if it is on the front page |
-| Tools, test layers, procedure | `docs/conventions.md`, `docs/03-coding-standards.md`, `docs/02-workflow.md`, `CLAUDE.md` |
-| An architectural choice | a new ADR in `docs/adr/` |
-| A smaller decision taken on the way | one dated line in `docs/decisions.md` |
+| Tools, test layers, procedure | `docs/dev/conventions.md`, `docs/dev/03-coding-standards.md`, `docs/dev/02-workflow.md`, `CLAUDE.md` |
+| An architectural choice | a new ADR in `docs/dev/adr/` |
+| A smaller decision taken on the way | one dated line in `docs/dev/decisions.md` |
 | A finished item | its line deleted from `TODO.md` |
 
 - Check the reverse too: no doc still describes behaviour the pull request removed or changed. A
@@ -33,15 +33,15 @@ Every behaviour change is reflected in its doc **in the same pull request**, nev
   ADR (CLAUDE.md rule 6) with its options and the reason for the one taken. Its decision section
   matches what the code does.
 - A smaller tradeoff the author decided alone (the owner's overnight rule) is one dated line in
-  `docs/decisions.md` and in the PR body. Additive fields, a route following an existing pattern
+  `docs/dev/decisions.md` and in the PR body. Additive fields, a route following an existing pattern
   and mechanical refactors need neither.
 - A pull request that contradicts an ADR or a logged decision changes it explicitly, or changes
   itself.
 
 ## 3. Implementation quality
 
-Apply `CLAUDE.md`, `docs/conventions.md` and `docs/03-coding-standards.md` to the diff rather than
-re-deriving them. Flag freshly introduced violations.
+Apply `CLAUDE.md`, `docs/dev/conventions.md` and `docs/dev/03-coding-standards.md` to the diff
+rather than re-deriving them. Flag freshly introduced violations.
 
 - **Files only through `OCP\Files`** (rule 1): no `fopen`, `file_put_contents`, `unlink`, `rename`,
   `scandir` or `\OC\` class on user data. One direct file-system call is a **blocker**.
@@ -64,13 +64,13 @@ re-deriving them. Flag freshly introduced violations.
   services keep helpers private and take collaborators by constructor injection, no setters, no
   static state.
 - **DRY — shared components and one key map**: the grid, the loupe and the series viewer build a
-  decision from the shared components (`docs/plan.md` Shared UI components) and one key map
+  decision from the shared components (`docs/dev/plan.md` Shared UI components) and one key map
   (`hotkeys`); a near-copy of a component with a tweak, a second key table, or one rule
   re-implemented per screen is a finding. A variant is a prop, not a copy.
 - **Breaking changes and the upgrade path.** Ask every time: does an existing installation, a
   stored row, or a sidecar on the user's disk break against this change? XMP bytes are read by
   digiKam, darktable and Lightroom: a change to what or how honeycomb writes keeps every property
-  it does not own (`docs/06-xmp-interop.md` Writing) and is shown by a fixture. A migration is
+  it does not own (`docs/dev/06-xmp-interop.md` Writing) and is shown by a fixture. A migration is
   additive (`lib/Migration/`); a change in a stored column's meaning needs a written upgrade step.
   The verdict says which case applies.
 - Strict types (`declare(strict_types=1);`, TypeScript strict, no `any`); domain exceptions
@@ -93,7 +93,7 @@ that fails without it.
   says. Playwright drives a built bundle: rebuild between the two runs.
 - **Naming as specification**: the name says which rule would break
   (`keeps the pair together when the RAW is missing`, not `test pairing 2`).
-- **The right layer** (ADR 0006, `docs/02-workflow.md` §2.3): Vitest for `src/logic/` and, with
+- **The right layer** (ADR 0006, `docs/dev/02-workflow.md` §2.3): Vitest for `src/logic/` and, with
   `@vue/test-utils`, for components; PHPUnit for every endpoint and service; Playwright for flows
   across both. Shared vectors (pairing, XMP, name templates) are read from `tests/fixtures/`, never
   copied into a test.
@@ -115,22 +115,22 @@ that fails without it.
 
 If the pull request touches `src/components/`, `src/views/` or another Vue file:
 
-- **The mockup is the UX spec.** The change matches `docs/mockup/` as signed off (ADR 0003) and
-  `docs/plan.md`. A UI decision neither of them makes is logged in `docs/decisions.md` with its
-  reason, or, when the owner must make it, has an answered `needs-owner` issue. The UI ships with
-  the feature; "UI in a follow-up" is a blocker.
+- **The mockup is the UX spec.** The change matches `docs/dev/mockup/` as signed off (ADR 0003) and
+  `docs/dev/plan.md`. A UI decision neither of them makes is logged in `docs/dev/decisions.md` with
+  its reason, or, when the owner must make it, has an answered `needs-owner` issue. The UI ships
+  with the feature; "UI in a follow-up" is a blocker.
 - **Shared components and words**: built from the shared components, glossary words and order,
   every string through `t('honeycomb', …)`, counts through `n()`, numbers and dates through `Intl`.
 - **Touch-first**: works by touch alone, nothing reachable only by hover, hit targets per
-  `docs/03-coding-standards.md` §3.3, every action also by keyboard; no re-render between
+  `docs/dev/03-coding-standards.md` §3.3, every action also by keyboard; no re-render between
   `touchstart` and `click`.
 - **Theming**: colours, spacing and radii from Nextcloud CSS variables; checked in light and dark.
-- **Never judge layout from the source.** Render it on the reference devices (`docs/plan.md`
+- **Never judge layout from the source.** Render it on the reference devices (`docs/dev/plan.md`
   Reference devices), portrait and landscape, and measure where a claim is about pixels; the
   `## Screenshots` comment shows it.
 - **e2e** (once `tests/e2e/` exists): a new flow adds or extends a Playwright case in
   `tests/e2e/`, runs in CI, and does not depend on another case's data. Read the spec's promises
-  against the test body, sentence by sentence: a `docs/plan.md` sentence such as "picks the
+  against the test body, sentence by sentence: a `docs/dev/plan.md` sentence such as "picks the
   picture and advances" is two promises, and each must be an assertion. Where a promise cannot be
   asserted through the UI, the sentence changes. Check the claim against the screen too: a doc
   promising a path the built screen does not offer is a wrong doc sentence.

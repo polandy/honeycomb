@@ -12,11 +12,11 @@ trap 'rm -rf "$work"' EXIT
 spec() {
   local status=$1 n=0 suffix
   shift
-  mkdir -p "$work/case/docs/specs/grid"
+  mkdir -p "$work/case/docs/dev/specs/grid"
   {
     printf '# GRID-001 – Grid\n\n- Status: %s\n- Area: grid\n- Origin: plan.md\n- Depends on: –\n\n' "$status"
     for suffix in "$@"; do n=$((n + 1)); printf '### GRID-001.%d – Rule%s\n\n' "$n" "$suffix"; done
-  } >"$work/case/docs/specs/grid/GRID-001-grid.md"
+  } >"$work/case/docs/dev/specs/grid/GRID-001-grid.md"
 }
 markers() { mkdir -p "$work/case/tests"; printf '%s\n' "$@" >"$work/case/tests/grid.test.ts"; }
 todo() { printf '%s\n' "$@" >"$work/case/TODO.md"; }
@@ -46,13 +46,13 @@ spec finished ''; markers '// spec: GRID-001.1'; todo; expect bad-status fail
 spec implemented '' ''; markers '// spec: GRID-001.1' '# spec: GRID-001.2'; todo; expect hash-marker pass
 spec implemented ''; markers '// spec: GRID-001.1'; todo
 printf '# GRID-001 – Twin\n\n- Status: accepted\n- Area: a\n- Origin: o\n- Depends on: –\n' \
-  >"$work/case/docs/specs/grid/GRID-001-twin.md"
+  >"$work/case/docs/dev/specs/grid/GRID-001-twin.md"
 expect duplicate-id fail
 spec implemented ''; markers '// spec: GRID-001.1'; todo
-sed -i 's/^### GRID-001.1 – /### GRID-1 /' "$work/case/docs/specs/grid/GRID-001-grid.md"
+sed -i 's/^### GRID-001.1 – /### GRID-1 /' "$work/case/docs/dev/specs/grid/GRID-001-grid.md"
 expect bad-heading fail
 spec implemented ''; markers '// spec: GRID-001.1'; todo
-sed -i '/^- Origin/d' "$work/case/docs/specs/grid/GRID-001-grid.md"
+sed -i '/^- Origin/d' "$work/case/docs/dev/specs/grid/GRID-001-grid.md"
 expect missing-field fail
 
 exit $failed

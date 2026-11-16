@@ -17,7 +17,7 @@ export interface MergeContext {
 
 const PICK = { picked: '1', rejected: '-1' } as const
 
-/** Sets honeycomb's properties to the decision and keeps everything else (`docs/06-xmp-interop.md` Writing). */
+/** Sets honeycomb's properties to the decision and keeps everything else (`docs/dev/06-xmp-interop.md` Writing). */
 export function mergeDecision(packet: XmpPacket, decision: Decision, context: MergeContext): XmpPacket {
 	const properties = new Map(packet.properties)
 	const set = (key: string, text: string | undefined): void => {

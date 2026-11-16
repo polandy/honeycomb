@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Fails unless CI runs the Nextcloud versions appinfo/info.xml declares (docs/admin/updating.md).
+# Fails unless CI runs the Nextcloud versions appinfo/info.xml declares (docs/user/admin/updating.md).
 set -uo pipefail
 
 IMAGES=scripts/nextcloud-images.sh

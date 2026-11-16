@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/** How many pictures ahead of the shown one the loupe loads (`docs/plan.md` Image delivery). */
+/** How many pictures ahead of the shown one the loupe loads (`docs/dev/plan.md` Image delivery). */
 const PREFETCH_AHEAD = 3
 
 /** How many pictures behind the shown one the loupe loads. */

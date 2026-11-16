@@ -35,7 +35,7 @@ make_tree() {
     printf '<info>\n\t<id>honeycomb</id>\n\t<version>1.2.3</version>\n</info>\n' >appinfo/info.xml
     touch img/app.svg js/honeycomb-main.mjs l10n/de.json lib/Service/A.php templates/main.php \
       LICENSE README.md CHANGELOG.md src/main.ts tests/php/ATest.php node_modules/vue/index.js \
-      docs/plan.md vendor/bin/psalm .git/HEAD package.json composer.json
+      docs/dev/plan.md vendor/bin/psalm .git/HEAD package.json composer.json
   )
 }
 

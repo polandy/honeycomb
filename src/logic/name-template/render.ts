@@ -45,7 +45,7 @@ const SECONDS_PER_MINUTE = 60
 const MS_PER_DAY = 86_400_000
 const TRAILING_DIGITS = /\d+$/
 
-/** Renders every file of a picture from the picture's one set of values (`docs/05-name-templates.md`). */
+/** Renders every file of a picture from the picture's one set of values (`docs/dev/05-name-templates.md`). */
 export function renderPicture(template: NameTemplate, facts: PictureFacts, files: readonly MemberFile[]): RenderedPicture {
 	const number = TRAILING_DIGITS.exec(facts.baseName)?.[0] ?? null
 	const parts = [...template.folders.flat(), ...template.name]

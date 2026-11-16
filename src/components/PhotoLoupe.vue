@@ -151,7 +151,7 @@ function pickRest() {
 	}
 }
 
-/** The loupe's keys (`docs/plan.md` Keyboard shortcuts); the app's dispatcher runs them. */
+/** The loupe's keys (`docs/dev/plan.md` Keyboard shortcuts); the app's dispatcher runs them. */
 const hotkeys: HotkeyHandlers = {
 	previous: () => go(props.index - 1),
 	next: () => go(props.index + 1),

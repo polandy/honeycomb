@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/** A path of names, `Places/Italy/Dolomites`, as `digiKam:TagsList` writes it (`docs/07-tags.md` Model). */
+/** A path of names, `Places/Italy/Dolomites`, as `digiKam:TagsList` writes it (`docs/dev/07-tags.md` Model). */
 export type Tag = string
 
 /** The stored tags of one file, sorted (ADR 0022). */
@@ -27,7 +27,7 @@ export function leafOf(tag: Tag): string {
 	return tag.slice(tag.lastIndexOf(TAG_SEPARATOR) + 1)
 }
 
-/** Whether the tags have each chosen tag or one beneath it (`docs/07-tags.md` D4, D5). */
+/** Whether the tags have each chosen tag or one beneath it (`docs/dev/07-tags.md` D4, D5). */
 export function hasEveryTag(tags: readonly Tag[], chosen: Iterable<Tag>): boolean {
 	return [...chosen].every((wanted) => tags.some((tag) => tag === wanted || tag.startsWith(wanted + TAG_SEPARATOR)))
 }

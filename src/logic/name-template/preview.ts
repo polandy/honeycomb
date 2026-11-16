@@ -48,7 +48,7 @@ export const SAMPLE_PICTURES: readonly SamplePicture[] = [
 	sample('Übersicht März', ['jpg'], null, null, null, AT_18_02_41),
 ]
 
-/** The template rendered on the samples in order, suffixed as one move would (`docs/plan.md` Moving pictures). */
+/** The template rendered on the samples in order, suffixed as one move would (`docs/dev/plan.md` Moving pictures). */
 export function templatePreview(text: string): TemplatePreview {
 	const parsed = parseNameTemplate(text)
 	if (!parsed.ok) {

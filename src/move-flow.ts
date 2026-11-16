@@ -52,7 +52,7 @@ export interface MoveApi {
 	readonly movePictures: MoveFlowContext['move']
 }
 
-/** The move dialog, its move summary, the move and its undo (`docs/plan.md` Moving pictures, MOVE-004). */
+/** The move dialog, its move summary, the move and its undo (`docs/dev/plan.md` Moving pictures, MOVE-004). */
 export function useMoveFlow(context: MoveFlowContext) {
 	const pictures = shallowRef<Pictures | null>(null)
 	const browsing = ref(false)

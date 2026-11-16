@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script lang="ts">
-/** The mockup's stroke icons (docs/mockup/index.html, IC), drawn in the current text colour. */
+/** The mockup's stroke icons (docs/dev/mockup/index.html, IC), drawn in the current text colour. */
 const PATHS = {
 	back: 'M19 12H5M11 6l-6 6 6 6',
 	check: 'M5 12l5 5 9-10',
