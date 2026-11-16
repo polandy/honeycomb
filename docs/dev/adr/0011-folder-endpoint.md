@@ -27,6 +27,10 @@ the ticked folders.
 - **Counts:** the picker's count of the ticked folders comes from the listing endpoint, paired
   in TypeScript, so it is the one the grid will show, and the listing is reused when the cull
   opens.
+- **Excluded folders (amended 2026-11-17):** with *Include subfolders* on, a tap on an included
+  folder excludes it (ADR 0035); the count then lists each ticked folder with `excluded[]` for
+  the excluded folders below it. The photo-file counts of a row stay facts of the folder and do
+  not drop excluded folders, so a row reads the same whatever is ticked.
 - **Photo files (amended 2026-11-16):** each item also carries `photoFiles`, the count of the
   child's own photo files (the listing's photo types, no sidecars, no hidden files), or `null`
   for a hidden child or one that may not be listed. It comes from the same one listing per child
