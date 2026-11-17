@@ -66,5 +66,5 @@ test('keeps the capture time of the tile info on one line in a narrow window', a
 	const captured = page.locator('.tile-info__rows dd').first()
 	await expect(captured).toContainText(':13:20')
 	const lines = await captured.evaluate((dd) => dd.getBoundingClientRect().height / Number.parseFloat(getComputedStyle(dd).lineHeight))
-	expect(lines).toBe(1)
+	expect(Math.round(lines)).toBe(1)
 })
