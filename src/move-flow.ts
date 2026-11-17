@@ -34,6 +34,8 @@ export interface MoveFlowContext {
 	readonly move: (pictures: readonly (readonly MoveRequestFile[])[]) => Promise<MoveResponseFile[][]>
 	/** Writes the waiting sidecars and waits for every write in flight (XMP-003.30). */
 	readonly flush: () => Promise<void>
+	/** The picture with its sidecars as honeycomb last saved them since the listing (MOVE-004.19). */
+	readonly current: (picture: Picture<ListingEntry>) => Picture<ListingEntry>
 	/** Takes the files out of the listing; returns what each affected picture became. */
 	readonly removeFiles: (fileIds: ReadonlySet<number>) => ReadonlyMap<Picture<ListingEntry>, Picture<ListingEntry> | null>
 	readonly restoreFiles: (entries: readonly ListingEntry[]) => void
@@ -55,6 +57,7 @@ export interface MoveApi {
 /** The move dialog, its move summary, the move and its undo (`docs/dev/plan.md` Moving pictures, MOVE-004). */
 export function useMoveFlow(context: MoveFlowContext) {
 	const pictures = shallowRef<Pictures | null>(null)
+	const latest = shallowRef<ReadonlyMap<Picture<ListingEntry>, Picture<ListingEntry>>>(new Map())
 	const browsing = ref(false)
 	const target = ref<string | null>(null)
 	const existing = shallowRef<ExistingFile[] | null>(null)
@@ -73,7 +76,11 @@ export function useMoveFlow(context: MoveFlowContext) {
 		}
 		return { text, parsed: parsed.template }
 	})
-	const named = computed(() => nameCandidates(pictures.value ?? [], template.value.parsed, context.offset ?? browserOffset))
+	const named = computed(() => {
+		const shown = pictures.value ?? []
+		const named = nameCandidates(shown.map((picture) => latest.value.get(picture) ?? picture), template.value.parsed, context.offset ?? browserOffset)
+		return named.map((each, index) => ({ ...each, picture: shown[index]! }))
+	})
 	const nameable = computed(() => named.value.flatMap((each) => (each.candidate === null ? [] : [{ picture: each.picture, candidate: each.candidate }])))
 	const candidates = computed(() => nameable.value.filter((each) => !leaving.value.has(each.picture)))
 	const plan = computed(() => (target.value === null || existing.value === null
@@ -94,6 +101,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 			return
 		}
 		pictures.value = inViewOrder(chosen, context.view())
+		refresh()
 		target.value = null
 		existing.value = null
 		choices.value = new Map()
@@ -105,6 +113,11 @@ export function useMoveFlow(context: MoveFlowContext) {
 		const loupe = context.loupe.value
 		const shown = loupe === null ? context.view()[focused()] : toRaw(loupe.pictures[loupe.index])
 		open(loupe === null && chosen.length > 0 ? chosen : [shown].filter((each) => each !== undefined))
+	}
+
+	/** Takes in honeycomb's sidecar saves since the listing; the dialog keeps the pictures it opened on (MOVE-004.19). */
+	function refresh() {
+		latest.value = new Map((pictures.value ?? []).map((picture) => [picture, context.current(picture)]))
 	}
 
 	/** Closes the dialog. */
@@ -149,9 +162,8 @@ export function useMoveFlow(context: MoveFlowContext) {
 		context.toast(moveFailedText(error))
 	}
 
-	/** Sends the pictures in chunks once the waiting sidecars are written; throws when the first request fails, logs a later failure (ADR 0029). */
+	/** Sends the pictures in chunks; throws when the first request fails, logs a later failure (ADR 0029). */
 	async function send(request: readonly (readonly MoveRequestFile[])[], what: string, onProgress: (done: number) => void = () => {}) {
-		await context.flush()
 		const sent = await sendInChunks(request, context.move, onProgress, context.chunks)
 		if (sent.failure !== null && sent.answers.length === 0) {
 			throw sent.failure.error
@@ -164,14 +176,16 @@ export function useMoveFlow(context: MoveFlowContext) {
 
 	/** Sends the plan, takes the moved files out of the listing and the loupe, and offers *Undo*. */
 	async function confirm() {
-		const planned = plan.value
-		if (busy.value || planned === null || counts.value.files === 0) {
+		if (busy.value || plan.value === null || counts.value.files === 0) {
 			return
 		}
 		busy.value = true
 		const to = target.value!
 		const listing = context.listing?.()
 		try {
+			await context.flush()
+			refresh()
+			const planned = plan.value!
 			const sent = planned.filter((picture) => picture.sent).map((picture) => picture.files.map(({ file }) => file))
 			const request = moveRequest(planned)
 			const { answers } = await send(request, 'move', (count) => {
@@ -199,6 +213,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 	/** Moves the files of the move back and shows them again, if the listing is still the one they left. */
 	async function undo(done: MoveReport, listing: unknown) {
 		try {
+			await context.flush()
 			const { answers, unsent } = await send(undoRequest(done), 'undo')
 			const { entries, failed } = undoneEntries(done, answers)
 			if (context.listing?.() === listing) {
