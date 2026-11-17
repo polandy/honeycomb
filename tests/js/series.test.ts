@@ -38,7 +38,7 @@ describe('useSeries', () => {
 
 		decisions.value = new Map([[byName('B'), { ...UNDECIDED, flag: 'rejected' }]])
 		expect(names()).toEqual([['A', 'C']])
-		expect([byName('A'), byName('B')].map((each) => series.seriesSizes.value.get(each))).toEqual([2, undefined])
+		expect(series.seriesOf.value.has(byName('B'))).toBe(false)
 		expect(series.seriesOf.value.get(byName('A'))?.members.map((member) => member.baseName)).toEqual(['A', 'C'])
 	})
 
@@ -61,6 +61,18 @@ describe('useSeries', () => {
 		expect(names()).toEqual([['A', 'B', 'C']])
 		expect(series.openSeries.value.size).toBe(0)
 		expect(series.seriesOf.value.get(byName('C'))?.members).toHaveLength(3)
+	})
+
+	// spec: SERIES-002.12, SERIES-003.25
+	it('keeps a settled series open while its hashes are pending, so its bracket stays dashed', () => {
+		const { series, decisions, byName } = setUp([
+			listingEntry(1, '/Trip/A.JPG', { captureTime: 0 }),
+			listingEntry(2, '/Trip/B.JPG', { captureTime: 1 }),
+		])
+		decisions.value = new Map(['A', 'B'].map((name) => [byName(name), { ...UNDECIDED, flag: 'picked' }]))
+
+		expect(series.series.value).toEqual([])
+		expect([...series.openSeries.value].map((each) => each.baseName)).toEqual(['A', 'B'])
 	})
 
 	// spec: SERIES-001.18

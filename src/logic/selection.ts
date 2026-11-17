@@ -39,6 +39,12 @@ export function addSelected(selection: Selection, id: number): Selection {
 	return selection.ids.has(id) && selection.anchor === id ? selection : { ids: new Set([...selection.ids, id]), anchor: id }
 }
 
+/** The selection with the whole group added, or taken out when every picture of it is already selected (SERIES-002.14). */
+export function toggleGroup(selection: Selection, ids: readonly number[]): Selection {
+	const all = ids.every((id) => selection.ids.has(id))
+	return { ids: all ? new Set([...selection.ids].filter((id) => !ids.includes(id))) : new Set([...selection.ids, ...ids]), anchor: selection.anchor }
+}
+
 /** Every shown picture selected. */
 export function selectAll(selection: Selection, order: readonly number[]): Selection {
 	return { ids: new Set(order), anchor: selection.anchor }

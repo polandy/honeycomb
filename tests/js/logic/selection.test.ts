@@ -3,7 +3,7 @@
 import type { Selection } from '../../../src/logic/selection.ts'
 
 import { describe, expect, it } from 'vitest'
-import { addSelected, dragSelection, keepShown, NO_SELECTION, selectAll, selectionAfterClick } from '../../../src/logic/selection.ts'
+import { addSelected, dragSelection, keepShown, NO_SELECTION, selectAll, selectionAfterClick, toggleGroup } from '../../../src/logic/selection.ts'
 
 const ORDER = [10, 20, 30, 40, 50]
 const selection = (ids: number[], anchor: number | null = null): Selection => ({ ids: new Set(ids), anchor })
@@ -58,6 +58,15 @@ describe('selectAll', () => {
 	// spec: GRID-003.4
 	it('selects every shown picture and keeps the anchor', () => {
 		expect(selectAll(selection([20], 20), ORDER)).toEqual(selection(ORDER, 20))
+	})
+})
+
+describe('toggleGroup', () => {
+	// spec: SERIES-002.14
+	it('adds the whole group unless every picture of it is selected, then takes it out', () => {
+		expect(toggleGroup(selection([10], 10), [20, 30])).toEqual(selection([10, 20, 30], 10))
+		expect(toggleGroup(selection([10, 20], 10), [20, 30])).toEqual(selection([10, 20, 30], 10))
+		expect(toggleGroup(selection([10, 20, 30], 10), [20, 30])).toEqual(selection([10], 10))
 	})
 })
 

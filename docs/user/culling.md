@@ -26,7 +26,16 @@ filter bar for rating, colour label, pairing, *Keep RAW*, tags and folder. The �
 thumbnail size and the sort order (*File name* or *Capture time*).
 
 A tile shows its stars, colour label and flag once you decided it, and badges for a photo without
-a partner (*JPG only*), a pair marked *Keep RAW* and a series (*⧉ 3*).
+a partner (*JPG only*) and a pair marked *Keep RAW*.
+
+A honey **bracket** above the tiles marks every series ([similarity](similarity.md)), like the
+frame in the loupe's filmstrip: it spans the gaps between the tiles, continues onto the next row
+and has a cap at the series' first and last photo. A series you have finished (every photo flagged,
+or *Series done*) keeps a faded bracket; a dashed one may still change while the photos are
+compared. The first tile under a bracket shows a badge, *⧉ 5* for a series of five, or *⧉ 2 of 5*
+when another sort order or a filter splits it and only two of its photos stand together. A tap on
+the badge opens the series compare on that series; in selection mode it selects the whole series,
+and a second tap deselects it. `Alt+←` and `Alt+→` move the focus to the previous or next series.
 
 **⋯ → Show file names** (or `Shift+J`) puts each photo's name above its tile; the setting is kept
 for your account. With a mouse, rest the pointer on a tile for a moment to see its full name, the

@@ -12,15 +12,18 @@ import type { ListingEntry } from '../logic/listing.ts'
 import type { Schedule } from '../logic/long-press.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Selection } from '../logic/selection.ts'
+import type { Series } from '../logic/series.ts'
 import type { Tag } from '../logic/tag.ts'
 import type { ObserveSize } from '../observe-size.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useSlots, useTemplateRef, watch } from 'vue'
 import PhotoTile from './PhotoTile.vue'
+import SeriesBrackets from './SeriesBrackets.vue'
 import TileInfo from './TileInfo.vue'
 import { browserFrame } from '../auto-scroll.ts'
 import { useGridPinch } from '../grid-pinch.ts'
+import { useGridSeries } from '../grid-series.ts'
 import { formatNumber } from '../l10n.ts'
 import { autoScrollStep } from '../logic/auto-scroll.ts'
 import { folderLabel } from '../logic/cull.ts'
@@ -56,7 +59,10 @@ const props = withDefaults(defineProps<{
 	schedule?: Schedule
 	/** Times the auto-scroll of a drag selection. */
 	frame?: Frame
-	seriesSizes?: ReadonlyMap<Picture<ListingEntry>, number>
+	/** Every picture's series, offered or settled (SERIES-002.12). */
+	seriesOf?: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>
+	/** The keys of the series the compare offers; the others are settled. */
+	offeredSeries?: ReadonlySet<number>
 	/** The pictures of a series that may still change (SERIES-003.25). */
 	openSeries?: ReadonlySet<Picture<ListingEntry>>
 	/** The picture whose sidecar writes still wait (XMP-003.28). */
@@ -81,6 +87,7 @@ const emit = defineEmits<{
 	'update:selecting': [selecting: boolean]
 	'update:selection': [selection: Selection]
 	open: [index: number]
+	compareSeries: [series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>]
 	/** The user scrolled the grid; a scroll it made itself does not count. */
 	scroll: []
 }>()
@@ -96,7 +103,7 @@ const width = ref(0)
 const height = ref(0)
 const scrollTop = ref(0)
 const focused = ref(0)
-// The overlay keeps its band free so it covers no tile at the top.
+// The overlay keeps its band free, and a gap below it holds the first row's series bracket.
 const overlayHeight = useSlots().default === undefined ? 0 : OVERLAY_HEIGHT
 
 const groups = computed(() => (props.groupByFolder
@@ -109,9 +116,10 @@ const layout = computed(() => gridLayout({
 	headerHeight: HEADER_HEIGHT,
 	groups: groups.value.map((group) => group.count),
 	showHeaders: props.groupByFolder,
-	top: overlayHeight,
+	top: overlayHeight + GAP,
 	nameBar: props.fileNames ? NAME_BAR : 0,
 }))
+const series = useGridSeries({ pictures: () => props.pictures, seriesOf: () => props.seriesOf, offered: () => props.offeredSeries, open: () => props.openSeries, groupStarts: () => groups.value.map((group) => group.start) })
 const loads = createLoadQueue(props.loadImage, IMAGE_LOADS_IN_FLIGHT)
 const sticky = computed(() => stickyHeader(layout.value, scrollTop.value))
 const order = computed(() => props.pictures.map((picture) => imageMember(picture).fileId))
@@ -213,6 +221,8 @@ defineExpose({
 	focusedIndex: () => focused.value,
 	/** Moves the focus one step, as an arrow, Home or End key does. */
 	step: (move: FocusMove) => reveal(focusStep(layout.value, focused.value, move)),
+	/** Moves the focus to the first photo of the previous or next series; it stays at either end (SERIES-002.15). */
+	jumpSeries: (direction: 'previous' | 'next') => reveal(series.jump(focused.value, direction) ?? focused.value),
 })
 </script>
 
@@ -249,6 +259,7 @@ defineExpose({
 						role="row"
 						class="photo-grid__row"
 						:style="{ top: `${row.top}px`, height: `${row.height}px` }">
+						<SeriesBrackets :brackets="series.brackets(row.first, row.count, layout.tileWidth + GAP, GAP)" />
 						<PhotoTile
 							v-for="{ picture, index, column } in rowPictures(row.first, row.count)"
 							:key="imageMember(picture).fileId"
@@ -267,11 +278,12 @@ defineExpose({
 							:selected="props.selection.ids.has(imageMember(picture).fileId)"
 							:loads="loads"
 							:offscreen="row.offscreen"
-							v-bind="{ ...(props.imageUrl && { imageUrl: props.imageUrl }), series: props.seriesSizes?.get(picture) ?? 0, seriesOpen: props.openSeries?.has(picture) ?? false }"
+							v-bind="{ ...(props.imageUrl && { imageUrl: props.imageUrl }), ...series.tileProps(index, picture) }"
 							@focus="focused = index"
 							@click="tiles.onClick(imageMember(picture).fileId, $event)"
 							@keydown="tiles.onKeydown(imageMember(picture).fileId, $event)"
-							@pointerdown="tiles.onPointerDown(imageMember(picture).fileId, $event)" />
+							@pointerdown="tiles.onPointerDown(imageMember(picture).fileId, $event)"
+							@compareSeries="emit('compareSeries', props.seriesOf!.get(picture)!, picture)" />
 					</div>
 				</template>
 			</div>

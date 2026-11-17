@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Series } from './series.ts'
 
+import { seriesRuns } from './series-runs.ts'
+
 /** The side of a filmstrip photo in CSS pixels; the strip is as high. */
 export const FILMSTRIP_THUMB = 56
 
@@ -46,18 +48,5 @@ export interface FilmstripFrame {
 
 /** The frames around each run of neighbouring photos that share a series; a picture outside every series breaks a run. */
 export function filmstripFrames<P>(pictures: readonly P[], seriesOf: ReadonlyMap<P, Series<P>>): FilmstripFrame[] {
-	const frames: FilmstripFrame[] = []
-	pictures.forEach((picture, index) => {
-		const series = seriesOf.get(picture)
-		const last = frames.at(-1)
-		if (series === undefined) {
-			return
-		}
-		if (last !== undefined && last.end === index && seriesOf.get(pictures[index - 1]!)?.key === series.key) {
-			frames[frames.length - 1] = { ...last, end: index + 1 }
-		} else {
-			frames.push({ first: index, end: index + 1, count: series.members.length })
-		}
-	})
-	return frames
+	return seriesRuns(pictures, seriesOf).map(({ first, end, series }) => ({ first, end, count: series.members.length }))
 }

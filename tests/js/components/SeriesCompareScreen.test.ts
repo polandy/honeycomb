@@ -27,7 +27,7 @@ async function mountScreen(stubs: Record<string, Component | boolean> = {}) {
 	const series = { key: 1, members: [pictures[0]!, pictures[1]!] }
 	/** Opens the compare on the series from the loupe, as its chip does. */
 	const openOnSeries = async () => {
-		fake.flow.startOn(series, pictures[1]!, fake.opening.land)
+		fake.flow.startOn(series, pictures[1]!, fake.opening.land, 'loupe')
 		await flushPromises()
 	}
 	return { ...fake, wrapper, pictures, series, openOnSeries, compare: () => wrapper.findComponent(SeriesCompare), viewer: () => wrapper.findComponent(SeriesViewer) }
@@ -48,6 +48,16 @@ describe('SeriesCompareScreen', () => {
 		await flushPromises()
 
 		expect(compare().props()).toMatchObject({ oneSeries: false, container: 'body' })
+	})
+
+	// spec: SERIES-002.13
+	it('shows a series opened from its grid badge over the page', async () => {
+		const { compare, flow, series, pictures, opening } = await mountScreen()
+
+		flow.startOn(series, pictures[1]!, opening.land, 'grid')
+		await flushPromises()
+
+		expect(compare().props()).toMatchObject({ series, oneSeries: true, container: 'body' })
 	})
 
 	it('shows the opened series inside the loupe with the cull\'s decisions', async () => {

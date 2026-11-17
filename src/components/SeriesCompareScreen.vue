@@ -13,7 +13,7 @@ import { useCullContext } from '../cull-context.ts'
 const { cull, seriesCompare: flow, tagEntry } = useCullContext()
 const viewer = useTemplateRef<InstanceType<typeof SeriesViewer>>('viewer')
 /** Where the compare and its viewer mount: inside the loupe when opened from it. */
-const container = computed(() => (flow.oneSeries.value ? '.photo-loupe' : 'body'))
+const container = computed(() => (flow.inLoupe.value ? '.photo-loupe' : 'body'))
 
 /** The keys of the series viewer while it is open, else those of the compare. */
 function hotkeys(): HotkeyHandlers {

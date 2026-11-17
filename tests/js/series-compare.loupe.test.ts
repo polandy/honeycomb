@@ -13,7 +13,7 @@ function fromLoupe(names: string[], active: string, ...grid: string[][]) {
 	const land = (landing: CompareLanding<Shot>) => landings.push(landing.kind === 'on'
 		? `on ${landing.picture.name}`
 		: `after ${landing.series.members.map((shot) => shot.name).join(' ')}, picked ${landing.picked.name}`)
-	fixture.compare.startOn(fixture.seriesOf(names), fixture.shot(active), land)
+	fixture.compare.startOn(fixture.seriesOf(names), fixture.shot(active), land, 'loupe')
 	return { ...fixture, landings }
 }
 

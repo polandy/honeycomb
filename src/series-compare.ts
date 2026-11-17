@@ -47,6 +47,9 @@ function shownSeries<P>(series: readonly Series<P>[], decisionOf: (picture: P) =
 /** Where the loupe lands once a compare opened from it closes: on a picture, or after a series (SERIES-001.24). */
 export type CompareLanding<P> = { readonly kind: 'on', readonly picture: P } | { readonly kind: 'after', readonly series: Series<P>, readonly picked: P }
 
+/** Where a compare on one series was opened: the loupe hosts it, the grid leaves it over the page. */
+export type CompareHost = 'loupe' | 'grid'
+
 /** The series compare dialog's state: which series it shows, which picture is active, and its keys (SERIES-001). */
 export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	const open = ref(false)
@@ -56,6 +59,7 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	const anchor = shallowRef<readonly P[]>([])
 	const columns = ref(1)
 	const single = shallowRef<Series<P> | null>(null)
+	const inLoupe = ref(false)
 	let land: ((landing: CompareLanding<P>) => void) | null = null
 
 	const oneSeries = computed(() => single.value !== null)
@@ -102,9 +106,10 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 		show(0)
 	}
 
-	/** Opens the compare from the loupe on one series, the picture active; `onLand` gets where the loupe lands on closing (SERIES-001.24). */
-	function startOn(series: Series<P>, picture: P, onLand: (landing: CompareLanding<P>) => void) {
+	/** Opens the compare on one series from the `host`, the picture active; `onLand` gets where the host lands on closing (SERIES-001.24). */
+	function startOn(series: Series<P>, picture: P, onLand: (landing: CompareLanding<P>) => void, host: CompareHost) {
 		single.value = series
+		inLoupe.value = host === 'loupe'
 		land = onLand
 		start()
 		setActive(Math.max(0, current.value?.members.indexOf(picture) ?? 0))
@@ -118,6 +123,7 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 		const onLand = land
 		open.value = false
 		single.value = null
+		inLoupe.value = false
 		land = null
 		context.holdHashes(false)
 		if (onLand !== null && landing !== null) {
@@ -272,7 +278,7 @@ export function useSeriesCompare<P>(context: SeriesCompareContext<P>) {
 	}
 
 	const { settings, updateSettings, toast } = context
-	return { open, oneSeries, current, position, count, active, neighbours, setActive, setColumns, start, startOn, close, skip, decide, decideInViewer, pickRest, pickRestAndLand, removeFromSeries, dissolve, merge, markDone, hotkeys, viewer, view, settings, updateSettings, toast }
+	return { open, oneSeries, inLoupe, current, position, count, active, neighbours, setActive, setColumns, start, startOn, close, skip, decide, decideInViewer, pickRest, pickRestAndLand, removeFromSeries, dissolve, merge, markDone, hotkeys, viewer, view, settings, updateSettings, toast }
 }
 
 export type SeriesCompareFlow<P> = ReturnType<typeof useSeriesCompare<P>>

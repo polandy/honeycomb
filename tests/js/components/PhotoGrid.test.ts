@@ -27,7 +27,7 @@ describe('PhotoGrid', () => {
 		await resize(432, 220)
 
 		expect(wrapper.findAll('[role="gridcell"]')).toHaveLength(16)
-		expect(wrapper.find('.photo-grid__spacer').attributes('style')).toContain(`height: ${25 * 102 + 24 * 8}px`)
+		expect(wrapper.find('.photo-grid__spacer').attributes('style')).toContain(`height: ${8 + 25 * 102 + 24 * 8}px`)
 	})
 
 	// spec: DECISIONS-002.14
@@ -70,7 +70,7 @@ describe('PhotoGrid', () => {
 		await resize(432, 220)
 
 		const second = wrapper.findAll('[role="row"]')[1]!
-		expect(second.attributes('style')).toContain('top: 110px')
+		expect(second.attributes('style')).toContain('top: 118px')
 		expect(second.findAll('[role="gridcell"]')[1]!.attributes('style')).toContain('left: 110px')
 	})
 

@@ -47,6 +47,7 @@ const LABELS: Readonly<Record<string, string>> = {
 	tag: t('honeycomb', 'Tag entry: add or remove tags'),
 	arrows: t('honeycomb', 'Grid and series compare: move focus. Loupe: switch photo'),
 	'first-last': t('honeycomb', 'First photo, last photo'),
+	'series-jump': t('honeycomb', 'Grid: previous series, next series'),
 	open: t('honeycomb', 'Open the loupe; series compare: view full screen'),
 	grid: t('honeycomb', 'Grid'),
 	loupe: t('honeycomb', 'Loupe'),

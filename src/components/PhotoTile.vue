@@ -36,8 +36,10 @@ const props = withDefaults(defineProps<{
 	decision?: Decision
 	selecting?: boolean
 	selected?: boolean
-	/** The size of the offered series the picture is in, 0 outside one (SERIES-002.10). */
-	series?: number
+	/** The picture's place in its series and, on the first tile of a run, the run's length; null outside a series (SERIES-002.10). */
+	series?: { readonly position: number, readonly size: number, readonly run: number | null } | null
+	/** Whether the series is settled, so the compare no longer offers it (SERIES-002.10). */
+	seriesSettled?: boolean
 	/** Whether a member of the series is still without its visual hash (SERIES-003.25). */
 	seriesOpen?: boolean
 	/** How many tags the picture has (TAGS-004.7). */
@@ -48,7 +50,8 @@ const props = withDefaults(defineProps<{
 	nameBar?: boolean
 }>(), {
 	decision: () => UNDECIDED,
-	series: 0,
+	series: null,
+	seriesSettled: false,
 	seriesOpen: false,
 	tags: 0,
 	unsaved: false,
@@ -59,6 +62,11 @@ const props = withDefaults(defineProps<{
 	imageUrl: apiImageUrl,
 	devicePixelRatio: () => window.devicePixelRatio,
 })
+
+const emit = defineEmits<{
+	/** The badge was tapped: compare the series, or select it in selection mode (SERIES-002.13). */
+	compareSeries: []
+}>()
 
 const member = computed(() => imageMember(props.picture))
 const name = computed(() => nameParts(props.picture.baseName))
@@ -104,19 +112,32 @@ const decisionLabel = computed(() => {
 /** Whether the tile shows a flag, a colour label, stars, tags or the *Not saved yet* marker. */
 const marked = computed(() => isDecided(props.decision) || props.decision.colourLabel !== null || props.decision.rating > 0 || props.tags > 0 || props.unsaved)
 
-const seriesText = computed(() => [
-	n('honeycomb', 'Series of {count}', 'Series of {count}', props.series, { count: formatNumber(props.series) }),
-	...(props.seriesOpen ? [t('honeycomb', 'Series may still change')] : []),
-].join(', '))
+/** The tile's place in its series as the label says it (SERIES-002.10). */
+const seriesText = computed(() => props.series === null
+	? []
+	: [
+			t('honeycomb', 'Series, photo {position} of {size}', { position: formatNumber(props.series.position), size: formatNumber(props.series.size) }, undefined, PLAIN_TEXT),
+			...(props.seriesOpen ? [t('honeycomb', 'Series may still change')] : []),
+		])
 
-/** The badge's symbol and the series' size, as the mockup draws it. */
-const seriesBadge = computed(() => `⧉ ${formatNumber(props.series)}`)
+/** The badge on the first tile of a run: the series' size, or the run's length of it when the series is split. */
+const seriesBadge = computed(() => {
+	const series = props.series
+	if (series === null || series.run === null) {
+		return null
+	}
+	const size = formatNumber(series.size)
+	return {
+		text: series.run < series.size ? t('honeycomb', '⧉ {run} of {size}', { run: formatNumber(series.run), size }, undefined, PLAIN_TEXT) : `⧉ ${size}`,
+		label: n('honeycomb', 'Series of {count} – compare', 'Series of {count} – compare', series.size, { count: size }, PLAIN_TEXT),
+	}
+})
 
 const label = computed(() => [
 	props.picture.baseName,
 	members.value.name,
 	...(props.picture.ambiguous ? [t('honeycomb', 'ambiguous name')] : []),
-	...(props.series > 1 ? [seriesText.value] : []),
+	...seriesText.value,
 	...decisionLabel.value,
 	...(props.tags > 0 ? [n('honeycomb', '{count} tag', '{count} tags', props.tags, { count: formatNumber(props.tags) })] : []),
 	...(props.unsaved ? [t('honeycomb', 'Not saved yet')] : []),
@@ -182,12 +203,18 @@ onBeforeUnmount(() => pending?.load.cancel())
 				:src="shown">
 			<span v-if="badge !== null" class="photo-tile__pair" :class="{ 'photo-tile__pair--single': badge.single, 'photo-tile__pair--keep-raw': badge.keepRaw }">{{ badge.text }}</span>
 			<span v-if="props.picture.ambiguous" class="photo-tile__ambiguous" aria-hidden="true">!</span>
-			<span
-				v-if="props.series > 1"
+			<button
+				v-if="seriesBadge !== null"
+				type="button"
 				class="photo-tile__series"
-				:class="{ 'photo-tile__series--open': props.seriesOpen }"
-				aria-hidden="true"
-				v-bind="tip(seriesText)">{{ seriesBadge }}</span>
+				:class="{ 'photo-tile__series--settled': props.seriesSettled, 'photo-tile__series--open': props.seriesOpen }"
+				tabindex="-1"
+				:aria-label="seriesBadge.label"
+				v-bind="tip(t('honeycomb', 'Compare this series'))"
+				@pointerdown.stop
+				@click.stop="emit('compareSeries')">
+				{{ seriesBadge.text }}
+			</button>
 			<span v-if="props.selecting" class="photo-tile__check" aria-hidden="true"><AppIcon v-if="props.selected" name="check" /></span>
 			<span v-if="marked" class="photo-tile__marks">
 				<FlagMark v-if="isDecided(props.decision)" :flag="props.decision.flag" :class="`photo-tile__flag photo-tile__flag--${props.decision.flag}`" />

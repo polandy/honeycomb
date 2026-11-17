@@ -66,9 +66,9 @@ export function stored(fileId: number, flag: StoredDecision['flag']): StoredDeci
 
 /** A grid that records the moves and reveals it is asked for and has its focus where the test puts it. */
 export function gridStub() {
-	const calls = { steps: [] as string[], revealed: [] as number[], focused: 0 }
+	const calls = { steps: [] as string[], revealed: [] as number[], jumps: [] as string[], focused: 0 }
 	const component = defineComponent({
-		props: ['pictures', 'folderSet', 'groupByFolder', 'tileSize', 'selecting', 'selection', 'decisionOf', 'tagsOf', 'seriesSizes', 'openSeries', 'unsaved', 'fileNames'],
+		props: ['pictures', 'folderSet', 'groupByFolder', 'tileSize', 'selecting', 'selection', 'decisionOf', 'tagsOf', 'seriesOf', 'offeredSeries', 'openSeries', 'unsaved', 'fileNames'],
 		setup(_props, { expose, slots }) {
 			expose({
 				reveal: async (index: number) => {
@@ -78,6 +78,9 @@ export function gridStub() {
 					calls.steps.push(move)
 				},
 				focusedIndex: () => calls.focused,
+				jumpSeries: async (direction: string) => {
+					calls.jumps.push(direction)
+				},
 			})
 			return () => h('div', slots.default?.())
 		},

@@ -142,11 +142,6 @@ function compare(a: string, b: string): number {
 	return a < b ? -1 : a > b ? 1 : 0
 }
 
-/** Each picture of the given series mapped to the size of its series, for the series badge (SERIES-002.10). */
-export function seriesSizes<P>(series: readonly Series<P>[]): Map<P, number> {
-	return new Map(series.flatMap(({ members }) => members.map((picture) => [picture, members.length] as const)))
-}
-
 /** Each picture of the given series mapped to its whole series, for the filmstrip's frame (LOUPE-001.19). */
 export function seriesMembers<P>(series: readonly Series<P>[]): Map<P, Series<P>> {
 	return new Map(series.flatMap((each) => each.members.map((picture) => [picture, each] as const)))

@@ -225,32 +225,6 @@ describe('PhotoTile', () => {
 		expect(wrapper.find('.photo-tile__pair--keep-raw').exists()).toBe(false)
 	})
 
-	// spec: SERIES-002.10
-	it('shows a read-only series badge with its size, in the label too, and none outside a series', () => {
-		const wrapper = mountTile(PAIR, { series: 3 })
-		const badge = wrapper.find('.photo-tile__series')
-
-		expect(badge.text()).toBe('⧉ 3')
-		expect(badge.attributes('data-tip')!.startsWith(MARK)).toBe(true)
-		expect(badge.attributes('data-tip')!.replaceAll(MARK, '')).toBe('Series of 3')
-		expect(badge.attributes('title')).toBeUndefined()
-		expect(wrapper.attributes('data-tip-hover-only')).toBeDefined()
-		expect(badge.attributes('aria-hidden')).toBe('true')
-		expect(wrapper.attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3, Series of 3')
-		expect(mountTile(PAIR).find('.photo-tile__series').exists()).toBe(false)
-	})
-
-	// spec: SERIES-003.25
-	it('outlines the badge of a series that may still change and says so in its tooltip and the label', () => {
-		const wrapper = mountTile(PAIR, { series: 3, seriesOpen: true })
-		const badge = wrapper.find('.photo-tile__series')
-
-		expect(badge.classes()).toContain('photo-tile__series--open')
-		expect(badge.attributes('data-tip')!.replaceAll(MARK, '')).toBe('Series of 3, Series may still change')
-		expect(wrapper.attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3, Series of 3, Series may still change')
-		expect(mountTile(PAIR, { series: 3 }).find('.photo-tile__series').classes()).not.toContain('photo-tile__series--open')
-	})
-
 	it('shows the selection check only in selection mode and marks a selected tile', async () => {
 		const wrapper = mountTile(PAIR)
 		expect(wrapper.find('.photo-tile__check').exists()).toBe(false)

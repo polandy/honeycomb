@@ -7,7 +7,7 @@ import type { Series } from '../../../src/logic/series.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { allSeries, findSeries, hashablePictures, openSeries, SERIES_GAP_SECONDS, SERIES_SPAN_SECONDS, seriesCandidates, seriesMembers, seriesNeighbours, seriesSizes, visibleMembers, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
+import { allSeries, findSeries, hashablePictures, openSeries, SERIES_GAP_SECONDS, SERIES_SPAN_SECONDS, seriesCandidates, seriesMembers, seriesNeighbours, visibleMembers, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
 /** Pictures named `/<folder>/<name>.JPG`, shot at `time` by `camera`. */
@@ -188,15 +188,6 @@ describe('hashablePictures', () => {
 		const pictures = shots(['P/A', 0], ['P/B', VISUAL_SERIES_GAP_SECONDS], ['P/C', 3 * VISUAL_SERIES_GAP_SECONDS, 'X'], ['P/D', 3 * VISUAL_SERIES_GAP_SECONDS + 1, 'Y'], ['P/E', null])
 
 		expect(hashablePictures(pictures).map((picture) => picture.baseName)).toEqual(['A', 'B'])
-	})
-})
-
-describe('seriesSizes', () => {
-	// spec: SERIES-002.10
-	it('maps each picture of a series to the size of its series', () => {
-		const sizes = seriesSizes([{ key: 1, members: ['A', 'B', 'C'] }, { key: 4, members: ['D', 'E'] }])
-
-		expect([...sizes]).toEqual([['A', 3], ['B', 3], ['C', 3], ['D', 2], ['E', 2]])
 	})
 })
 

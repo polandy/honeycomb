@@ -80,6 +80,36 @@ describe('GridScreen', () => {
 		expect(calls).toEqual([['openLoupe', 2], ['dismissResume']])
 	})
 
+	// spec: SERIES-002.13
+	it('opens the compare on a tapped badge\'s series and lands the grid where the compare closes', async () => {
+		const { wrapper, context, calls, grid } = await mountScreen()
+		const [first, second] = context.cull.view.value
+		const series = { key: 1, members: [first!, second!] }
+
+		wrapper.findComponent(PhotoGrid).vm.$emit('compareSeries', series, second)
+		expect(calls).toEqual([['compareSeriesOn', series, second, expect.any(Function), 'grid']])
+		const land = calls[0]![3] as (landing: unknown) => void
+		land({ kind: 'on', picture: second })
+		land({ kind: 'after', series, picked: first })
+		await flushPromises()
+
+		expect(grid.revealed).toEqual([1, 2])
+	})
+
+	// spec: SERIES-002.14
+	it('selects or deselects a tapped badge\'s series in selection mode', async () => {
+		const { wrapper, context, calls } = await mountScreen(({ context }) => context.selection.setSelecting(true))
+		const [first, second] = context.cull.view.value
+		const series = { key: 1, members: [first!, second!] }
+		const badge = () => wrapper.findComponent(PhotoGrid).vm.$emit('compareSeries', series, first)
+
+		badge()
+		expect(context.selection.selected.value).toEqual([first, second])
+		badge()
+		expect(context.selection.selected.value).toEqual([])
+		expect(calls).toEqual([])
+	})
+
 	it('decides, tags, moves and deletes the selection from the selection bar', async () => {
 		const { wrapper, context, calls } = await mountScreen(({ context }) => {
 			context.selection.setSelecting(true)

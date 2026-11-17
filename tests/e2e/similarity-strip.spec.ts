@@ -35,8 +35,9 @@ for (const [width, viewport] of Object.entries(WIDTHS)) {
 		await expect(strip.getByRole('progressbar', { name: 'Similarity' })).toBeVisible()
 		await expect(strip).toContainText('Comparing photos 0/2')
 		await expect(page.locator('.grid-toolbar').getByRole('progressbar', { name: 'Similarity' })).toHaveCount(0)
-		await expect(firstTile).toHaveAccessibleName(/Series of 2, Series may still change/)
-		await expect(page.locator('.photo-tile__series--open')).toHaveCount(2)
+		await expect(firstTile).toHaveAccessibleName(/Series, photo 1 of 2, Series may still change/)
+		await expect(page.locator('.photo-tile__series--open')).toHaveCount(1)
+		await expect(page.locator('.photo-grid__bracket--open')).toHaveCount(1)
 		const before = await firstTile.boundingBox()
 		const band = (await strip.boundingBox())!
 		expect(before!.y).toBeGreaterThanOrEqual(band.y + band.height)
@@ -47,7 +48,8 @@ for (const [width, viewport] of Object.entries(WIDTHS)) {
 		await expect(strip).toBeHidden()
 		expect(await firstTile.boundingBox()).toEqual(before)
 		await expect(page.locator('.photo-tile__series--open')).toHaveCount(0)
-		await expect(firstTile).toHaveAccessibleName(/Series of 2$/)
+		await expect(page.locator('.photo-grid__bracket--open')).toHaveCount(0)
+		await expect(firstTile).toHaveAccessibleName(/Series, photo 1 of 2$/)
 	})
 
 	// spec: SERIES-003.19

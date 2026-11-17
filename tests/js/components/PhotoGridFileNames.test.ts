@@ -55,7 +55,7 @@ describe('PhotoGrid with file names', () => {
 		await resize(432, 220)
 
 		expect(wrapper.find('.photo-grid__row').attributes('style')).toContain('height: 126px')
-		expect(wrapper.find('.photo-grid__spacer').attributes('style')).toContain(`height: ${25 * 126 + 24 * 8}px`)
+		expect(wrapper.find('.photo-grid__spacer').attributes('style')).toContain(`height: ${8 + 25 * 126 + 24 * 8}px`)
 		expect(wrapper.findAll('.photo-tile__name').map((bar) => bar.text()).slice(0, 2)).toEqual(['IMG_0', 'IMG_1'])
 	})
 
@@ -127,7 +127,8 @@ describe('PhotoGrid tile info', () => {
 	// spec: GRID-004.7
 	it('never shows on a control with its own tooltip', async () => {
 		const shown = await mountShown()
-		await shown.wrapper.setProps({ seriesSizes: new Map([[shown.wrapper.props('pictures')[0]!, 2]]) })
+		const series = { key: 1, members: shown.wrapper.props('pictures').slice(0, 2) }
+		await shown.wrapper.setProps({ seriesOf: new Map(series.members.map((picture) => [picture, series])) })
 		await pointer(tile(shown, 0).find<HTMLElement>('[data-tip]'), 'pointerover')
 
 		shown.fire()
