@@ -10,7 +10,7 @@ import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
-import { mountApp, openCull, SET, shownNames } from './app-cull.ts'
+import { mountApp, openCull, SET, shownNames, toolbarProps } from './app-cull.ts'
 
 /** The app over a server that holds `stored` and records each saved position. */
 async function openApp(stored: unknown[]) {
@@ -34,7 +34,7 @@ describe('App: the resume position', () => {
 		const at = shownNames(wrapper).indexOf('IMG_9')
 
 		expect(wrapper.findComponent(UndoToast).text()).toContain('Continue where you left off')
-		expect(wrapper.findComponent(GridToolbar).props('resumeName')).toBe('IMG_9')
+		expect(toolbarProps(wrapper).resumeName).toBe('IMG_9')
 		await wrapper.findComponent(UndoToast).find('button').trigger('click')
 		expect(wrapper.findComponent(PhotoLoupe).props('index')).toBe(at)
 

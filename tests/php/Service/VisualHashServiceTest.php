@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\InvalidVisualHashException;
 use OCA\Honeycomb\Service\UserFolderResolver;
+use OCA\Honeycomb\Service\UserPhotos;
 use OCA\Honeycomb\Service\VisualHash;
 use OCA\Honeycomb\Service\VisualHashService;
 use OCP\Files\IRootFolder;
@@ -38,7 +39,7 @@ final class VisualHashServiceTest extends TestCase {
 		$userFolder->method('getFirstNodeById')->willReturnCallback(static fn (int $id): ?Node => $byId[$id] ?? null);
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
-		return new VisualHashService($this->store, new UserFolderResolver($root));
+		return new VisualHashService($this->store, new UserPhotos(new UserFolderResolver($root)));
 	}
 
 	/** @return array{fileId: mixed, etag: mixed, hash: mixed} */

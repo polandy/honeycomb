@@ -7,8 +7,6 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\ImageNotFoundException;
-use OCA\Honeycomb\Service\ImageNotReadableException;
 use OCA\Honeycomb\Service\ImageService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -19,7 +17,7 @@ use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
-use OCP\IUserSession;
+use OCP\IUser;
 
 /** @psalm-suppress UnusedClass Routed by its attributes. */
 final class ImageController extends Controller {
@@ -29,7 +27,7 @@ final class ImageController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IUserSession $userSession,
+		private ApiResponse $api,
 		private ImageService $images,
 	) {
 		parent::__construct($appName, $request);
@@ -40,14 +38,10 @@ final class ImageController extends Controller {
 	#[NoCSRFRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/images/{fileId}', requirements: ['fileId' => '\d+'])]
 	public function show(int $fileId, int $size = -1, int $v = 0): Response {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new Response(Http::STATUS_UNAUTHORIZED);
-		}
-		if ($size !== ImageService::FULL && !in_array($size, ImageService::TIERS, true)) {
-			return new Response(Http::STATUS_BAD_REQUEST);
-		}
-		try {
+		return $this->api->forUser(function (IUser $user) use ($fileId, $size, $v): Response {
+			if ($size !== ImageService::FULL && !in_array($size, ImageService::TIERS, true)) {
+				return new Response(Http::STATUS_BAD_REQUEST);
+			}
 			$file = $this->images->find($user, $fileId);
 			$etag = "$fileId-{$file->getMTime()}-$size";
 			$cacheControl = $v === $file->getMTime() ? self::IMMUTABLE : self::REVALIDATE;
@@ -59,28 +53,16 @@ final class ImageController extends Controller {
 			}
 			$response->setETag($etag);
 			return $response;
-		} catch (ImageNotFoundException) {
-			return new Response(Http::STATUS_NOT_FOUND);
-		} catch (ImageNotReadableException) {
-			return new Response(Http::STATUS_FORBIDDEN);
-		}
+		});
 	}
 
 	/** Renders the preview tiers of the files, in the given order, before it answers. */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'POST', url: '/api/v1/previews')]
-	public function warm(array $fileIds = []): JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse([], Http::STATUS_UNAUTHORIZED);
-		}
-		$valid = array_is_list($fileIds) && count($fileIds) <= ImageService::WARM_LIMIT
-			&& array_filter($fileIds, static fn (mixed $id): bool => is_int($id) && $id > 0) === $fileIds;
-		if (!$valid) {
-			return new JSONResponse([], Http::STATUS_BAD_REQUEST);
-		}
-		/** @var list<int> $fileIds */
-		$this->images->warm($user, $fileIds);
-		return new JSONResponse([]);
+	public function warm(array $fileIds = []): Response {
+		return $this->api->forUser(function (IUser $user) use ($fileIds): Response {
+			$this->images->warm($user, $fileIds);
+			return new JSONResponse([]);
+		});
 	}
 }

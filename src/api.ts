@@ -4,7 +4,8 @@ import type { MissingPage, MissingPicture } from './hash-run.ts'
 import type { Listing } from './logic/cull.ts'
 import type { StoredDecision } from './logic/decision.ts'
 import type { EmbeddedXmpAnswer } from './logic/embedded-xmp.ts'
-import type { MoveRequestFile, TargetFolder } from './logic/move-plan.ts'
+import type { TreeFolder } from './logic/folder-tree.ts'
+import type { MoveRequestFile, Probe } from './logic/move-plan.ts'
 import type { MoveResponseFile } from './logic/move-report.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
 import type { SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from './logic/sidecar-sync.ts'
@@ -16,33 +17,30 @@ import type { WarmOptions } from './preview-warmer.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
+import { packRequests } from './logic/request-chunks.ts'
 import { asRateLimited } from './logic/retry-after.ts'
+import { listedFolders } from './logic/writability.ts'
 
-const API = '/apps/honeycomb/api/v1'
-/** The most sidecars one request reads or saves (ADR 0017). */
-const SIDECAR_BATCH = 1000
+/** The base path of honeycomb's endpoints. */
+export const API = '/apps/honeycomb/api/v1'
 /** The most bytes handed to `String.fromCharCode` at once, well under the engines' argument limits. */
 const CHARACTER_CHUNK = 0x8000
 
 /** A child folder as the folder endpoint returns it (ADR 0011). */
-export interface Folder {
-	readonly name: string
-	readonly path: string
-	readonly hasSubfolders: boolean
-}
+export type Folder = TreeFolder
 
 /** Thrown when an endpoint answers with a body of the wrong shape. */
 export class ApiResponseError extends Error {}
 
 /** The image files of a folder, with every folder below it when `subfolders` (ADR 0009), and the folders that are shared (ADR 0017). */
-export async function listEntries(path: string, subfolders: boolean): Promise<Required<Listing>> {
-	const params = subfolders ? { path, subfolders: 1 } : { path }
+export async function listEntries(path: string, subfolders: boolean, excluded: readonly string[] = []): Promise<Required<Listing>> {
+	const params = { path, ...(subfolders ? { subfolders: 1 } : {}), ...(excluded.length > 0 ? { excluded } : {}) }
 	const { data } = await axios.get<unknown>(generateUrl(`${API}/entries`), { params })
 	if (!isRecord(data) || !Array.isArray(data.entries) || typeof data.truncated !== 'boolean') {
 		throw new ApiResponseError(`The listing of "${path}" has no entries array and truncated flag; check the server's version.`)
 	}
-	const folders = Array.isArray(data.folders) ? data.folders as { path: string, shared: boolean }[] : []
-	return { entries: data.entries as Listing['entries'], truncated: data.truncated, sharedFolders: folders.filter((folder) => folder.shared).map((folder) => folder.path) }
+	const opened = typeof data.fileId === 'number' ? { path, fileId: data.fileId } : null
+	return { entries: data.entries as Listing['entries'], truncated: data.truncated, folders: listedFolders(data.folders), opened }
 }
 
 /** The direct child folders of a folder (ADR 0011). */
@@ -200,21 +198,21 @@ export async function savePosition(position: ResumePosition): Promise<void> {
 	await axios.put(generateUrl(`${API}/positions`), position)
 }
 
-/** The bytes, ETag, size and mtime of each sidecar, or why it could not be read, in the order asked (ADR 0017). */
-export async function lookupSidecars(fileIds: readonly number[]): Promise<SidecarLookupAnswer[]> {
-	const answers = await inBatches(fileIds, async (batch) => answersOf(await axios.post<unknown>(generateUrl(`${API}/sidecars/lookup`), { fileIds: batch }), 'sidecars', batch.length))
+/** The bytes, ETag, size and mtime of each sidecar, or why it could not be read, in the order asked, packed by the listed `sizes` (ADR 0017, ADR 0032). */
+export async function lookupSidecars(fileIds: readonly number[], sizes: ReadonlyMap<number, number> = new Map()): Promise<SidecarLookupAnswer[]> {
+	const answers = await inPacks(packRequests(fileIds, (fileId) => sizes.get(fileId) ?? 0), async (batch) => answersOf(await axios.post<unknown>(generateUrl(`${API}/sidecars/lookup`), { fileIds: batch }), 'sidecars', batch.length))
 	return answers.map((answer) => (answer.result === 'read' ? { result: 'read', bytes: fromBase64(answer.content as string), etag: answer.etag, size: answer.size, mtime: answer.mtime } : { result: answer.result }) as SidecarLookupAnswer)
 }
 
 /** The XMP packet each JPEG embeds, or why there is none, in the order asked (ADR 0023). */
 export async function lookupEmbeddedXmp(fileIds: readonly number[]): Promise<EmbeddedXmpAnswer[]> {
-	const answers = await inBatches(fileIds, async (batch) => answersOf(await axios.post<unknown>(generateUrl(`${API}/embedded-xmp/lookup`), { fileIds: batch }), 'packets', batch.length))
+	const answers = await inPacks(packRequests(fileIds, () => 0), async (batch) => answersOf(await axios.post<unknown>(generateUrl(`${API}/embedded-xmp/lookup`), { fileIds: batch }), 'packets', batch.length))
 	return answers.map((answer) => (answer.result === 'read' ? { result: 'read', bytes: fromBase64(answer.content as string) } : { result: answer.result }) as EmbeddedXmpAnswer)
 }
 
 /** Saves each sidecar, existing ones only unchanged since read, and answers each one's result in order (ADR 0017). */
 export async function saveSidecars(items: readonly SidecarSaveItem[]): Promise<SidecarSaveAnswer[]> {
-	const answers = await inBatches(items, async (batch) => {
+	const answers = await inPacks(packRequests(items, ({ bytes }) => bytes.length), async (batch) => {
 		const sidecars = batch.map(({ bytes, ...item }) => ({ ...item, content: toBase64(bytes) }))
 		return answersOf(await axios.put<unknown>(generateUrl(`${API}/sidecars`), { sidecars }), 'sidecars', batch.length)
 	})
@@ -235,13 +233,13 @@ export async function trashPictures(pictures: readonly (readonly TrashRequestFil
 	return data.pictures as TrashResponseFile[][]
 }
 
-/** What each target folder of a move already holds (ADR 0018). */
-export async function probeTargets(folders: readonly string[]): Promise<TargetFolder[]> {
-	const { data } = await axios.post<unknown>(generateUrl(`${API}/move/targets`), { folders })
-	if (!isRecord(data) || !Array.isArray(data.folders)) {
-		throw new ApiResponseError('The move target response came without a folders array; check the server\'s version.')
+/** What each target folder of a move already holds, and the storage of each target and source folder (ADR 0018). */
+export async function probeTargets(folders: readonly string[], sources: readonly string[]): Promise<Probe> {
+	const { data } = await axios.post<unknown>(generateUrl(`${API}/move/targets`), { folders, sources })
+	if (!isRecord(data) || !Array.isArray(data.folders) || !Array.isArray(data.sources)) {
+		throw new ApiResponseError('The move target response came without a folders and a sources array; check the server\'s version.')
 	}
-	return data.folders as TargetFolder[]
+	return { folders: data.folders as Probe['folders'], sources: data.sources as Probe['sources'] }
 }
 
 /** Moves each picture's files to their new paths and returns the result of every file (ADR 0018). */
@@ -260,11 +258,11 @@ export function imageUrl(fileId: number, size: number, mtime: number): string {
 	return `${generateUrl(`${API}/images/{fileId}`, { fileId })}?size=${size}&v=${mtime}`
 }
 
-/** The items sent in requests of at most SIDECAR_BATCH, one after another, their answers joined. */
-async function inBatches<T, A>(items: readonly T[], send: (batch: readonly T[]) => Promise<A[]>): Promise<A[]> {
+/** The packs sent one after another, their answers joined. */
+async function inPacks<T, A>(packs: readonly (readonly T[])[], send: (batch: readonly T[]) => Promise<A[]>): Promise<A[]> {
 	const answers: A[] = []
-	for (let start = 0; start < items.length; start += SIDECAR_BATCH) {
-		answers.push(...await send(items.slice(start, start + SIDECAR_BATCH)))
+	for (const pack of packs) {
+		answers.push(...await send(pack))
 	}
 	return answers
 }
@@ -293,6 +291,6 @@ function fromBase64(text: string): Uint8Array {
 }
 
 /** Whether a response body is a JSON object. */
-function isRecord(data: unknown): data is Record<string, unknown> {
+export function isRecord(data: unknown): data is Record<string, unknown> {
 	return typeof data === 'object' && data !== null
 }

@@ -5,7 +5,7 @@ import type { PinchCentre } from './loupe-zoom.ts'
 
 import { doubleTaps } from './double-tap.ts'
 
-/** Each outer tap zone's share of the stage width (`docs/plan.md` Tap zones). */
+/** Each outer tap zone's share of the stage width (`docs/dev/plan.md` Tap zones). */
 const TAP_ZONE = 0.3
 
 /** The longest touch that is a tap, the tooltip's long-press time. */
@@ -45,7 +45,7 @@ export type SwipeDirection = 'up' | 'down'
 /** The flag each swipe direction sets, or null where it does nothing. */
 export type SwipeSetting = Readonly<Record<SwipeDirection, Flag | null>>
 
-/** Swipe up picks, swipe down rejects (`docs/plan.md` Q6). */
+/** Swipe up picks, swipe down rejects (`docs/dev/plan.md` Q6). */
 export const DEFAULT_SWIPES: SwipeSetting = { up: 'picked', down: 'rejected' }
 
 /** What a gesture asks the loupe to do. */

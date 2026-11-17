@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: 2026 honeycomb contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/polandy/honeycomb/security/advisories/new
+    about: Report it privately here, never in a public issue.

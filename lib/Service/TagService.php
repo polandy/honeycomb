@@ -13,6 +13,7 @@ use OCP\IUser;
 final class TagService {
 	public function __construct(
 		private TagStore $store,
+		private UserPhotos $photos,
 	) {
 	}
 
@@ -23,29 +24,23 @@ final class TagService {
 	 * @throws InvalidTagsException for anything but a list of positive file ids within the limit
 	 */
 	public function lookup(IUser $user, array $fileIds): array {
-		$this->checkSize($fileIds);
-		foreach ($fileIds as $fileId) {
-			if (!is_int($fileId) || $fileId < 1) {
-				throw new InvalidTagsException('fileIds must be positive integers');
-			}
-		}
-		/** @var list<int> $fileIds */
+		$fileIds = FileIds::parse($fileIds, ListingService::ENTRY_LIMIT, InvalidTagsException::class);
 		return $this->store->find($user->getUID(), $fileIds);
 	}
 
 	/**
-	 * Replaces the user's tags with the whole lists in `$items`, all or nothing.
+	 * Replaces the user's tags with the whole lists in `$items`, all or nothing, skipping file ids that are not the user's photos.
 	 * @param array<array-key, mixed> $items
 	 * @throws InvalidTagsException for a malformed item or a file id given twice
 	 */
 	public function save(IUser $user, array $items): void {
-		$this->checkSize($items);
-		$pictures = array_map(PictureTags::fromRequest(...), $items);
-		$fileIds = array_map(static fn (PictureTags $picture): int => $picture->fileId, $pictures);
-		if (count(array_unique($fileIds)) !== count($fileIds)) {
-			throw new InvalidTagsException('Each file id may appear only once');
+		$pictures = array_map(PictureTags::fromRequest(...), FileIds::items($items, ListingService::ENTRY_LIMIT, InvalidTagsException::class));
+		$fileIds = $this->photos->photos($user, FileIds::eachOnce(array_map(static fn (PictureTags $picture): int => $picture->fileId, $pictures), InvalidTagsException::class));
+		if ($fileIds === []) {
+			return;
 		}
-		$stored = array_values(array_filter($pictures, static fn (PictureTags $picture): bool => $picture->tags !== []));
+		$isPhoto = array_flip($fileIds);
+		$stored = array_values(array_filter($pictures, static fn (PictureTags $picture): bool => isset($isPhoto[$picture->fileId]) && $picture->tags !== []));
 		RetryOnConflict::run(fn () => $this->store->replace($user->getUID(), $fileIds, $stored));
 	}
 
@@ -55,15 +50,5 @@ final class TagService {
 	 */
 	public function tagList(IUser $user): array {
 		return $this->store->tagList($user->getUID());
-	}
-
-	/**
-	 * @param array<array-key, mixed> $list
-	 * @psalm-assert list<mixed> $list
-	 */
-	private function checkSize(array $list): void {
-		if (!array_is_list($list) || count($list) > ListingService::ENTRY_LIMIT) {
-			throw new InvalidTagsException('Expected a list of at most ' . ListingService::ENTRY_LIMIT . ' items');
-		}
 	}
 }

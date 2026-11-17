@@ -34,6 +34,7 @@ every screen; each button's tooltip names its key.
 |---|---|
 | `←` `→` `↑` `↓` | Grid and series compare: move the focus, `↑` `↓` by a row. Loupe and series viewer: switch to the previous or next photo. |
 | `Home` and `End` | Go to the first or last photo. |
+| `Alt+←` and `Alt+→` | Grid: move the focus to the first photo of the previous or next series. |
 | `Enter` | Open the focused photo in the loupe. In the series compare: view the active photo full screen. |
 | `G` | Back to the grid. |
 | `E` | Open the loupe. |
@@ -46,6 +47,7 @@ every screen; each button's tooltip names its key.
 | `I` | Loupe: show or hide the info panel. |
 | `Esc` | Close the loupe, dialog or selection mode. While the first-series hint shows in the loupe, `Esc` dismisses it first. |
 | `B` | Show or hide the flag buttons in the loupe and the series viewer. The keys and swipes keep working. |
+| `Shift+J` | Grid: show or hide the file names above the photos. |
 
 ## Filter and select
 
@@ -78,6 +80,9 @@ such as "⧉ Series 2/5" (on a phone "⧉ 2/5"): the photo is the second of five
 series, decided photos included, with the shown photo active. `Esc` or the close button returns to
 the loupe on the active photo. *Pick this, reject the rest* returns to the loupe on the first photo
 after the series, or stays on the picked one when the series is the last.
+In the grid a bracket marks each series, and the badge on its first tile opens the compare the same
+way; the grid then lands on the active photo. `Alt+←` and `Alt+→` jump to the previous or next
+series.
 
 The first time the loupe shows a photo of a series, the chip pulses twice and a hint under it
 explains the chip, `N` and `Shift+K`. *Got it* or `Esc` dismisses it for good, on every device;
@@ -114,11 +119,12 @@ where you zoom with `Z`, page through the series with `←` `→` and decide. *B
 | `Ctrl+Z` | Undo. |
 | `Ctrl+Shift+Z` | Redo. |
 | `Delete` | Show the delete summary for the selection, else the focused photo; in the loupe, for the photo shown. |
-| `Ctrl+Backspace` | Review the rejected photos before deleting them; closes the loupe first. |
+| `Ctrl+Backspace` | Review the rejected photos before deleting them; closes the loupe first. The ⋯ menu has it too, as *Review rejects*. |
 | `M` | Move the selection, else the focused photo, to another folder; in the loupe, the photo shown. In that dialog, `1`–`9` choose a favourite or recent folder and `Enter` moves. |
 | `Ctrl+/` | Show the shortcut help. `?` does the same. |
 
-Deleted photos always go to the Nextcloud trash bin, where you can restore them.
+Deleted photos go to the Nextcloud trash bin, where you can restore them until it empties itself.
+A file the trash bin would not keep is not deleted. More in [Deleting photos](deleting.md).
 
 ## Vi keys
 

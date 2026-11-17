@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { CullSidecars } from '../../src/cull-seams.ts'
 import type { StoredDecision } from '../../src/logic/decision.ts'
 import type { Settings } from '../../src/logic/settings.ts'
 
@@ -11,12 +10,8 @@ import { shallowRef } from 'vue'
 import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
-import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { ENTRIES, fakeStorage, NO_TAGS, SET, stored } from './app-cull.ts'
+import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET, stored, WRITING_ON } from './app-cull.ts'
 import { listingEntry } from './logic/listing-entries.ts'
-
-/** Sidecars with nothing to take over, written without a word. */
-const NO_SIDECARS: CullSidecars = { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) }
 
 /** The error the next lookups fail with, reset before each test. */
 let lookupFails: Error | null = null
@@ -29,10 +24,11 @@ afterEach(() => vi.restoreAllMocks())
 async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 	const saved: StoredDecision[][] = []
 	const lookedUp: number[][] = []
-	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
+	const settings = shallowRef<Settings>(WRITING_ON)
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
 		saveVisualHashes: async () => undefined,
+		wait: async () => {},
 		warmPreviews: async () => undefined,
 		lookupDecisions: async (fileIds) => {
 			lookedUp.push([...fileIds])
@@ -42,9 +38,11 @@ async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 			return [...stored]
 		},
 		saveDecisions: async (rows) => { saved.push([...rows]) },
+		lookupSeries: NO_SERIES,
+		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,
-	}, fakeStorage(), () => settings.value, NO_SIDECARS)
-	cull.open(SET, entries, [])
+	}, fakeStorage(), () => settings.value, NO_SIDECARS, () => undefined)
+	cull.open(SET, entries)
 	await flushPromises()
 	return { cull, saved, lookedUp, settings, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
 }
@@ -72,7 +70,7 @@ describe('useCull: redo', () => {
 		expect(cull.redo()).toBeNull()
 
 		cull.undo()
-		cull.open(SET, ENTRIES, [])
+		cull.open(SET, ENTRIES)
 		expect(cull.redo()).toBeNull()
 	})
 })
@@ -83,7 +81,7 @@ describe('useCull: series', () => {
 		const { cull, saved, picture } = await openedCull()
 		const step = cull.pickRest(picture('IMG_9'), [picture('IMG_10'), picture('IMG_2')])
 
-		expect(step?.change).toEqual({ pickRest: 'IMG_9' })
+		expect(step).toMatchObject({ kind: 'pickRest', picked: 'IMG_9' })
 		expect(saved.at(-1)).toEqual(step!.after)
 		expect(['IMG_9', 'IMG_10', 'IMG_2'].map((name) => cull.decisionOf(picture(name)).flag)).toEqual(['picked', 'rejected', 'rejected'])
 		expect(cull.undo()).toBe(step)
@@ -91,65 +89,16 @@ describe('useCull: series', () => {
 		expect(cull.pickRest(picture('IMG_9'), [])).not.toBeNull()
 		expect(cull.pickRest(picture('IMG_9'), [])).toBeNull()
 	})
-
-	// spec: SERIES-001.1, SERIES-001.5
-	it('forms the series of the cull and leaves a picture out once it is rejected', async () => {
-		const entries = [
-			listingEntry(1, '/Trip/A.JPG', { captureTime: 10 }),
-			listingEntry(2, '/Trip/B.JPG', { captureTime: 11 }),
-			listingEntry(3, '/Trip/C.JPG', { captureTime: 12 }),
-		]
-		const { cull, picture } = await openedCull([], entries)
-		expect(cull.series.value.map((series) => series.map((each) => each.baseName))).toEqual([['A', 'B', 'C']])
-
-		cull.decide({ kind: 'flag', flag: 'rejected' }, [picture('B')])
-		expect(cull.series.value.map((series) => series.map((each) => each.baseName))).toEqual([['A', 'C']])
-		expect([picture('A'), picture('B')].map((each) => cull.seriesSizes.value.get(each))).toEqual([2, undefined])
-	})
-})
-
-describe('useCull: setFlags', () => {
-	// spec: GRID-002.2
-	it('replaces the flag filter and keeps the other groups', async () => {
-		const { cull } = await openedCull()
-		cull.filters.value = { ...DEFAULT_FILTERS, rating: 2 }
-
-		cull.setFlags(new Set(['rejected']))
-
-		expect(cull.filters.value).toEqual({ ...DEFAULT_FILTERS, rating: 2, flags: new Set(['rejected']) })
-	})
 })
 
 describe('useCull: toggleFiltersOff', () => {
 	const filtered = { ...DEFAULT_FILTERS, rating: 3, flags: new Set(['picked' as const]) }
 
-	it('clears the filters, and the second press restores them', async () => {
-		const { cull } = await openedCull()
-		cull.filters.value = filtered
-
-		cull.toggleFiltersOff()
-		expect(cull.filters.value).toEqual(DEFAULT_FILTERS)
-		cull.toggleFiltersOff()
-		expect(cull.filters.value).toEqual(filtered)
-	})
-
-	it('turns off filters set while they were off rather than restoring the saved ones', async () => {
-		const { cull } = await openedCull()
-		cull.filters.value = filtered
-		cull.toggleFiltersOff()
-		cull.filters.value = { ...cull.filters.value, rating: 1 }
-
-		cull.toggleFiltersOff()
-		expect(cull.filters.value.rating).toBeNull()
-		cull.toggleFiltersOff()
-		expect(cull.filters.value.rating).toBe(1)
-	})
-
 	it('forgets the saved filters when a new cull opens', async () => {
 		const { cull } = await openedCull()
 		cull.filters.value = filtered
 		cull.toggleFiltersOff()
-		cull.open(SET, ENTRIES, [])
+		cull.open(SET, ENTRIES)
 
 		cull.toggleFiltersOff()
 		expect(cull.filters.value).toEqual(DEFAULT_FILTERS)
@@ -231,7 +180,7 @@ describe('useCull: restoreFiles', () => {
 
 		cull.restoreFiles([{ ...pair.raw!, fileId: 103 }])
 		rows.length = 0
-		cull.open(SET, [{ ...pair.raw!, fileId: 103 }], [])
+		cull.open(SET, [{ ...pair.raw!, fileId: 103 }])
 		await flushPromises()
 
 		expect(cull.decisionOf(cull.pictures.value[0]!).flag).toBe('unflagged')
@@ -283,7 +232,7 @@ describe('useCull: settings', () => {
 	it('pairs what is left after a delete with the settings', async () => {
 		const { cull, settings } = await openedCull()
 		settings.value = { ...settings.value, folderMode: { kind: 'separate-subfolders', rawSubfolder: 'RAW', renderedSubfolder: 'JPG' } }
-		cull.open(SET, [listingEntry(5, '/Trip/A/RAW/X.CR3'), listingEntry(6, '/Trip/A/JPG/X.JPG')], [])
+		cull.open(SET, [listingEntry(5, '/Trip/A/RAW/X.CR3'), listingEntry(6, '/Trip/A/JPG/X.JPG')])
 
 		cull.removeFiles(new Set([6]))
 

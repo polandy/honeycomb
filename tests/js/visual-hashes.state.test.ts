@@ -3,12 +3,10 @@
 // @vitest-environment happy-dom
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { shallowRef } from 'vue'
 import { logger } from '../../src/logger.ts'
-import { useVisualHashes } from '../../src/visual-hashes.ts'
-import { fakeStorage } from './app-cull.ts'
+import { RateLimitedError } from '../../src/logic/retry-after.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
-import { BURST, fakeHasher, setUp } from './visual-hash-fakes.ts'
+import { BURST, setUp } from './visual-hash-fakes.ts'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -110,6 +108,23 @@ describe('useVisualHashes states and progress', () => {
 		expect(saves.map((batch) => batch.length)).toEqual([100, 1])
 	})
 
+	// spec: SERIES-003.12
+	it('keeps saving 100 hashes at a time when they piled up behind a limited save', async () => {
+		let waited = () => {}
+		const wait = () => new Promise<void>((resolve) => (waited = resolve))
+		const entries = Array.from({ length: 250 }, (_, index) => listingEntry(index + 1, `/P/${index}.JPG`, { captureTime: index }))
+		const { calls, saves } = setUp(entries, {}, [new RateLimitedError(1)], wait)
+		for (let index = 0; index < 250; index++) {
+			calls[index]!.resolve('0000000000000000')
+			await flushPromises()
+		}
+
+		waited()
+		await flushPromises()
+
+		expect(saves.map((batch) => batch.length)).toEqual([100, 100, 100, 50])
+	})
+
 	// spec: SERIES-001.17, SERIES-003.12
 	it('uses the hashes the listing delivered at once and hashes only the rest', async () => {
 		const { calls, saves, hashes, byName } = setUp([{ ...BURST[0]!, visualHash: '00000000000000aa' }, ...BURST.slice(1)])
@@ -137,24 +152,16 @@ describe('useVisualHashes states and progress', () => {
 	// spec: SERIES-003.19
 	it('clears the failed save once a later save succeeds', async () => {
 		vi.spyOn(logger, 'warn').mockImplementation(() => {})
-		let fails = true
-		const hasher = fakeHasher()
-		const pictures = shallowRef(picturesOf(BURST))
-		const hashes = useVisualHashes({ hashImage: hasher.hashImage, saveVisualHashes: async () => {
-			if (fails) {
-				throw new Error('offline')
-			}
-		} }, fakeStorage({}), () => pictures.value)
-		hasher.calls[0]!.resolve('0000000000000001')
+		const { calls, pictures, hashes } = setUp(BURST, {}, [new Error('offline')])
+		calls[0]!.resolve('0000000000000001')
 		await flushPromises()
-		hasher.calls[1]!.resolve('0000000000000003')
+		calls[1]!.resolve('0000000000000003')
 		await flushPromises()
 		expect(hashes.progress.value.phase).toBe('failed')
 
-		fails = false
 		pictures.value = picturesOf([{ ...BURST[0]!, etag: 'etag-new' }, ...BURST.slice(1)])
 		await flushPromises()
-		hasher.calls[2]!.resolve('0000000000000002')
+		calls[2]!.resolve('0000000000000002')
 		await flushPromises()
 		expect(hashes.progress.value.phase).toBe('done')
 	})

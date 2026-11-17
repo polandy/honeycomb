@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script lang="ts">
-/** The mockup's stroke icons (docs/mockup/index.html, IC), drawn in the current text colour. */
+/** The mockup's stroke icons (docs/dev/mockup/index.html, IC), drawn in the current text colour. */
 const PATHS = {
 	back: 'M19 12H5M11 6l-6 6 6 6',
 	check: 'M5 12l5 5 9-10',
@@ -24,10 +24,14 @@ const PATHS = {
 	home: 'M4 11l8-7 8 7v9H4zM10 20v-6h4v6',
 	info: 'M12 11v6M12 7.5h.01M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z',
 	menu: 'M4 6h16M4 12h16M4 18h16',
+	merge: 'M6 4v6a4 4 0 0 0 4 4h8M14 10l4 4-4 4M6 20v-4',
+	minus: 'M5 12h14',
 	more: 'M5 12h.01M12 12h.01M19 12h.01',
 	pin: 'M9 4h6M10 4v6l-3 4h10l-3-4V4M12 14v7',
+	plus: 'M12 5v14M5 12h14',
 	move: 'M3 12h14M13 7l5 5-5 5M21 5v14',
 	select: 'M4 4h16v16H4zM8 12l3 3 5-6',
+	series: 'M3 7h11v11H3zM7 3h11v11',
 	tag: 'M3 12V4h8l10 10-8 8zM7.5 8h.01',
 	settings: 'M4 7h10M18 7h2M4 17h2M10 17h10M16 7m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0M8 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0',
 	zoom: 'M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM15.5 15.5 20 20M8 10.5h5M10.5 8v5',

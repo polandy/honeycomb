@@ -26,7 +26,7 @@ function openApp() {
 			positions: { loadPositions: async () => [trip, other], savePosition: async () => undefined },
 			listEntries: async (path: string, subfolders: boolean) => {
 				listed.push(`${path}${subfolders ? ' +' : ''}`)
-				return { entries: path === '/Trip' ? ENTRIES : [], truncated: false, sharedFolders: [] }
+				return { entries: path === '/Trip' ? ENTRIES : [], truncated: false, folders: [], opened: null }
 			},
 		}),
 	}
@@ -86,7 +86,7 @@ describe('App: Recent', () => {
 		const answers: (() => void)[] = []
 		const wrapper = mountApp({
 			positions: { loadPositions: async () => [trip], savePosition: async () => undefined },
-			listEntries: (path: string) => new Promise((resolve) => answers.push(() => resolve({ entries: path === '/Trip' ? ENTRIES : [], truncated: false, sharedFolders: [] }))),
+			listEntries: (path: string) => new Promise((resolve) => answers.push(() => resolve({ entries: path === '/Trip' ? ENTRIES : [], truncated: false, folders: [], opened: null }))),
 		}).wrapper
 		await flushPromises()
 

@@ -17,8 +17,9 @@ import StarRating from './StarRating.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
 import { COLOUR_LABEL_SWATCHES, colourLabelName } from '../colour-labels.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
-import { UNDECIDED } from '../logic/decision.ts'
+import { isDecided, UNDECIDED } from '../logic/decision.ts'
 import { GRID_TIERS, imageMember, loadPriority, sharpTier, smallSource, tierSource } from '../logic/image-tiers.ts'
+import { nameParts } from '../logic/name-bar.ts'
 import { pairBadge } from '../logic/pair-badge.ts'
 import { tip } from '../tooltip.ts'
 
@@ -35,14 +36,26 @@ const props = withDefaults(defineProps<{
 	decision?: Decision
 	selecting?: boolean
 	selected?: boolean
-	/** The size of the offered series the picture is in, 0 outside one (SERIES-002.10). */
-	series?: number
+	/** The picture's place in its series and, on the first tile of a run, the run's length; null outside a series (SERIES-002.10). */
+	series?: { readonly position: number, readonly size: number, readonly run: number | null } | null
+	/** Whether the series is settled, so the compare no longer offers it (SERIES-002.10). */
+	seriesSettled?: boolean
+	/** Whether a member of the series is still without its visual hash (SERIES-003.25). */
+	seriesOpen?: boolean
 	/** How many tags the picture has (TAGS-004.7). */
 	tags?: number
+	/** Whether the picture's sidecar writes still wait (XMP-003.28). */
+	unsaved?: boolean
+	/** Whether the name bar above the photo shows the base name (GRID-004.4). */
+	nameBar?: boolean
 }>(), {
 	decision: () => UNDECIDED,
-	series: 0,
+	series: null,
+	seriesSettled: false,
+	seriesOpen: false,
 	tags: 0,
+	unsaved: false,
+	nameBar: false,
 	selecting: false,
 	selected: false,
 	offscreen: false,
@@ -50,7 +63,13 @@ const props = withDefaults(defineProps<{
 	devicePixelRatio: () => window.devicePixelRatio,
 })
 
+const emit = defineEmits<{
+	/** The badge was tapped: compare the series, or select it in selection mode (SERIES-002.13). */
+	compareSeries: []
+}>()
+
 const member = computed(() => imageMember(props.picture))
+const name = computed(() => nameParts(props.picture.baseName))
 const small = computed(() => smallSource(member.value, props.imageUrl))
 const sharp = computed(() => {
 	const tier = sharpTier(props.size, props.devicePixelRatio)
@@ -90,21 +109,38 @@ const decisionLabel = computed(() => {
 	].filter((part) => part !== null)
 })
 
-/** Whether the tile shows a flag, a colour label or stars. */
-const marked = computed(() => props.decision.flag !== 'unflagged' || props.decision.colourLabel !== null || props.decision.rating > 0 || props.tags > 0)
+/** Whether the tile shows a flag, a colour label, stars, tags or the *Not saved yet* marker. */
+const marked = computed(() => isDecided(props.decision) || props.decision.colourLabel !== null || props.decision.rating > 0 || props.tags > 0 || props.unsaved)
 
-const seriesText = computed(() => n('honeycomb', 'Series of {count}', 'Series of {count}', props.series, { count: formatNumber(props.series) }))
+/** The tile's place in its series as the label says it (SERIES-002.10). */
+const seriesText = computed(() => props.series === null
+	? []
+	: [
+			t('honeycomb', 'Series, photo {position} of {size}', { position: formatNumber(props.series.position), size: formatNumber(props.series.size) }, undefined, PLAIN_TEXT),
+			...(props.seriesOpen ? [t('honeycomb', 'Series may still change')] : []),
+		])
 
-/** The badge's symbol and the series' size, as the mockup draws it. */
-const seriesBadge = computed(() => `⧉ ${formatNumber(props.series)}`)
+/** The badge on the first tile of a run: the series' size, or the run's length of it when the series is split. */
+const seriesBadge = computed(() => {
+	const series = props.series
+	if (series === null || series.run === null) {
+		return null
+	}
+	const size = formatNumber(series.size)
+	return {
+		text: series.run < series.size ? t('honeycomb', '⧉ {run} of {size}', { run: formatNumber(series.run), size }, undefined, PLAIN_TEXT) : `⧉ ${size}`,
+		label: n('honeycomb', 'Series of {count} – compare', 'Series of {count} – compare', series.size, { count: size }, PLAIN_TEXT),
+	}
+})
 
 const label = computed(() => [
 	props.picture.baseName,
 	members.value.name,
 	...(props.picture.ambiguous ? [t('honeycomb', 'ambiguous name')] : []),
-	...(props.series > 1 ? [seriesText.value] : []),
+	...seriesText.value,
 	...decisionLabel.value,
 	...(props.tags > 0 ? [n('honeycomb', '{count} tag', '{count} tags', props.tags, { count: formatNumber(props.tags) })] : []),
+	...(props.unsaved ? [t('honeycomb', 'Not saved yet')] : []),
 ].join(', '))
 
 let pending: { load: QueuedLoad, sharp: boolean } | null = null
@@ -155,30 +191,43 @@ onBeforeUnmount(() => pending?.load.cancel())
 		:aria-label="label"
 		data-tip-hover-only
 		:aria-selected="props.selecting ? props.selected : undefined">
-		<img
-			v-if="shown !== null"
-			class="photo-tile__image"
-			alt=""
-			draggable="false"
-			:src="shown">
-		<span v-if="badge !== null" class="photo-tile__pair" :class="{ 'photo-tile__pair--single': badge.single, 'photo-tile__pair--keep-raw': badge.keepRaw }">{{ badge.text }}</span>
-		<span v-if="props.picture.ambiguous" class="photo-tile__ambiguous" aria-hidden="true">!</span>
-		<span
-			v-if="props.series > 1"
-			class="photo-tile__series"
-			aria-hidden="true"
-			v-bind="tip(seriesText)">{{ seriesBadge }}</span>
-		<span v-if="props.selecting" class="photo-tile__check" aria-hidden="true"><AppIcon v-if="props.selected" name="check" /></span>
-		<span v-if="marked" class="photo-tile__marks">
-			<FlagMark v-if="props.decision.flag !== 'unflagged'" :flag="props.decision.flag" :class="`photo-tile__flag photo-tile__flag--${props.decision.flag}`" />
-			<StarRating
-				v-if="props.decision.rating > 0"
-				readonly
-				class="photo-tile__stars"
-				:rating="props.decision.rating" />
-			<span v-if="props.decision.colourLabel !== null" class="photo-tile__colour" :style="{ backgroundColor: COLOUR_LABEL_SWATCHES[props.decision.colourLabel] }" />
-			<span v-if="props.tags > 0" class="photo-tile__tags" aria-hidden="true"><AppIcon name="tag" />{{ formatNumber(props.tags) }}</span>
-		</span>
+		<div v-if="props.nameBar" class="photo-tile__name" aria-hidden="true">
+			<span class="photo-tile__name-head">{{ name.head }}</span><span class="photo-tile__name-tail">{{ name.tail }}</span>
+		</div>
+		<div class="photo-tile__photo">
+			<img
+				v-if="shown !== null"
+				class="photo-tile__image"
+				alt=""
+				draggable="false"
+				:src="shown">
+			<span v-if="badge !== null" class="photo-tile__pair" :class="{ 'photo-tile__pair--single': badge.single, 'photo-tile__pair--keep-raw': badge.keepRaw }">{{ badge.text }}</span>
+			<span v-if="props.picture.ambiguous" class="photo-tile__ambiguous" aria-hidden="true">!</span>
+			<button
+				v-if="seriesBadge !== null"
+				type="button"
+				class="photo-tile__series"
+				:class="{ 'photo-tile__series--settled': props.seriesSettled, 'photo-tile__series--open': props.seriesOpen }"
+				tabindex="-1"
+				:aria-label="seriesBadge.label"
+				v-bind="tip(t('honeycomb', 'Compare this series'))"
+				@pointerdown.stop
+				@click.stop="emit('compareSeries')">
+				{{ seriesBadge.text }}
+			</button>
+			<span v-if="props.selecting" class="photo-tile__check" aria-hidden="true"><AppIcon v-if="props.selected" name="check" /></span>
+			<span v-if="marked" class="photo-tile__marks">
+				<FlagMark v-if="isDecided(props.decision)" :flag="props.decision.flag" :class="`photo-tile__flag photo-tile__flag--${props.decision.flag}`" />
+				<StarRating
+					v-if="props.decision.rating > 0"
+					readonly
+					class="photo-tile__stars"
+					:rating="props.decision.rating" />
+				<span v-if="props.decision.colourLabel !== null" class="photo-tile__colour" :style="{ backgroundColor: COLOUR_LABEL_SWATCHES[props.decision.colourLabel] }" />
+				<span v-if="props.tags > 0" class="photo-tile__tags" aria-hidden="true"><AppIcon name="tag" />{{ formatNumber(props.tags) }}</span>
+				<span v-if="props.unsaved" class="photo-tile__unsaved" aria-hidden="true" />
+			</span>
+		</div>
 	</div>
 </template>
 

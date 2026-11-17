@@ -40,6 +40,15 @@
 	font-weight: normal;
 }
 
+/* Above the sticky header; taps pass through to the tiles. */
+.photo-grid__overlay {
+	position: absolute;
+	z-index: 2;
+	top: 0;
+	inset-inline: 0;
+	pointer-events: none;
+}
+
 .photo-grid__sticky {
 	position: absolute;
 	z-index: 1;

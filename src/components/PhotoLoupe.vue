@@ -12,8 +12,10 @@ import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Schedule } from '../logic/long-press.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { Series } from '../logic/series.ts'
 import type { Settings } from '../logic/settings.ts'
 import type { Tag } from '../logic/tag.ts'
+import type { Writability } from '../logic/writability.ts'
 import type { ObserveSize } from '../observe-size.ts'
 import type { Toast } from '../toast.ts'
 import type { ViewStateStore } from '../view-state.ts'
@@ -48,12 +50,13 @@ const props = withDefaults(defineProps<{
 	index: number
 	folderSet: FolderSet
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
+	/** Whether the picture counts as decided, by its flag unless given (SERIES-005.14). */
+	decidedOf?: (picture: Picture<ListingEntry>) => boolean
 	/** Each picture of a series mapped to its whole series, for the filmstrip's frame (LOUPE-001.19). */
-	seriesOf?: ReadonlyMap<Picture<ListingEntry>, readonly Picture<ListingEntry>[]>
+	seriesOf?: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>
 	/** The picture's tags for the info panel (TAGS-004.8). */
 	tagsOf?: (picture: Picture<ListingEntry>) => readonly Tag[]
-	/** Whether the picture's tag changes are written to its sidecars (TAGS-004.9). */
-	writesSidecars?: (picture: Picture<ListingEntry>) => boolean
+	writabilityOf?: (picture: Picture<ListingEntry>) => Writability
 	storage: BrowserStorage
 	viewState: ViewStateStore
 	settings: Settings
@@ -66,7 +69,7 @@ const props = withDefaults(defineProps<{
 }>(), {
 	seriesOf: () => new Map(),
 	tagsOf: () => [],
-	writesSidecars: () => true,
+	writabilityOf: (): Writability => 'off',
 	imageUrl: apiImageUrl,
 	decode: decodeSource,
 	schedule: browserSchedule,
@@ -84,9 +87,9 @@ const emit = defineEmits<{
 	updateSettings: [patch: Partial<Settings>]
 	tag: [picture: Picture<ListingEntry>]
 	/** Opens the compare on the series with the picture active (LOUPE-001.25). */
-	compareSeries: [series: readonly Picture<ListingEntry>[], picture: Picture<ListingEntry>]
+	compareSeries: [series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>]
 	/** Picks the shown picture and rejects the rest of its series (LOUPE-002.15). */
-	pickRest: [series: readonly Picture<ListingEntry>[], picture: Picture<ListingEntry>]
+	pickRest: [series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>]
 	close: []
 }>()
 
@@ -105,6 +108,7 @@ const decisions = useLoupeDecisions({
 	pictures: () => props.pictures,
 	index: () => props.index,
 	decisionOf: props.decisionOf,
+	decidedOf: props.decidedOf,
 	decide: (intent, shown) => emit('decide', intent, shown),
 	go: (index) => go(index),
 	setFlagButtonsShown: (shown) => emit('updateSettings', { flagButtonsShown: shown }),
@@ -116,7 +120,7 @@ const decisions = useLoupeDecisions({
 
 const picture = computed(() => props.pictures[props.index]!)
 const series = computed(() => props.seriesOf.get(picture.value) ?? null)
-const seriesPlace = computed(() => (series.value === null ? null : { position: series.value.indexOf(picture.value) + 1, count: series.value.length }))
+const seriesPlace = computed(() => (series.value === null ? null : { position: series.value.members.indexOf(picture.value) + 1, count: series.value.members.length }))
 const sourcesAt = (index: number) => loupeSources(imageMember(props.pictures[index]!), props.imageUrl)
 
 watch(() => props.index, (index) => prefetcher.prefetchAround(index, props.pictures.length, sourcesAt), { immediate: true })
@@ -132,10 +136,10 @@ function go(index: number) {
 /** Opens the compare on the series of the picture at `index`, the shown picture active while it is in it, else that one. */
 function compareSeriesOf(index: number) {
 	const at = props.pictures[index]!
-	const members = props.seriesOf.get(at)
-	if (members !== undefined) {
+	const series = props.seriesOf.get(at)
+	if (series !== undefined) {
 		seriesHint.dismiss()
-		emit('compareSeries', members, members.includes(picture.value) ? picture.value : at)
+		emit('compareSeries', series, series.members.includes(picture.value) ? picture.value : at)
 	}
 }
 
@@ -147,7 +151,7 @@ function pickRest() {
 	}
 }
 
-/** The loupe's keys (`docs/plan.md` Keyboard shortcuts); the app's dispatcher runs them. */
+/** The loupe's keys (`docs/dev/plan.md` Keyboard shortcuts); the app's dispatcher runs them. */
 const hotkeys: HotkeyHandlers = {
 	previous: () => go(props.index - 1),
 	next: () => go(props.index + 1),
@@ -172,15 +176,9 @@ const hotkeys: HotkeyHandlers = {
 
 defineExpose({ hotkeys })
 
-/** Remembers the gesture guide as seen and gives the keys back to the loupe. */
-function dismissGestureGuide() {
-	panels.dismissGestureGuide()
-	root.value!.focus()
-}
-
-/** *Got it* in the first-series hint gives the keys back to the loupe. */
-function gotSeriesHint() {
-	seriesHint.dismiss()
+/** Dismisses the gesture guide or the first-series hint and gives the keys back to the loupe. */
+function dismissAndFocus(dismiss: () => void) {
+	dismiss()
 	root.value!.focus()
 }
 
@@ -215,7 +213,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:seriesHint="seriesHint.shown.value"
 			@pointerdown="overlays.wake"
 			@compareSeries="compareSeriesOf(props.index)"
-			@dismissSeriesHint="gotSeriesHint"
+			@dismissSeriesHint="dismissAndFocus(seriesHint.dismiss)"
 			@close="emit('close')"
 			@move="emit('move')"
 			@toggleZoom="stage!.toggleZoom()"
@@ -260,7 +258,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 					:folderSet="props.folderSet"
 					:decision="props.decisionOf(picture)"
 					:tags="props.tagsOf(picture)"
-					:writesSidecars="props.writesSidecars(picture)" />
+					:writability="props.writabilityOf(picture)" />
 			</template>
 		</div>
 		<LoupeFilmstrip
@@ -292,7 +290,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 				<PickRestButton class="photo-loupe__pick-rest" secondary @pick="pickRest" />
 			</template>
 		</ActionBar>
-		<GestureGuide v-if="!gestureGuideSeen" :swipes="settings.swipes" @dismiss="dismissGestureGuide" />
+		<GestureGuide v-if="!gestureGuideSeen" :swipes="settings.swipes" @dismiss="dismissAndFocus(panels.dismissGestureGuide)" />
 	</div>
 </template>
 

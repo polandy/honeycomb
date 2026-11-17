@@ -1,0 +1,207 @@
+# MOVE-004 – Move dialog and move summary
+
+- Status: implemented
+- Area: move
+- Origin: `docs/dev/plan.md` Moving pictures, M7.3, mockup move dialog (`dlgMove`)
+- Depends on: MOVE-001, MOVE-002, MOVE-003, SETTINGS-001, KEYS-001
+
+## Purpose
+
+Lets the user move one picture, the selection or a filter result into another folder: choose the
+target folder, check every file's new path and each conflict in the move summary, move, and undo
+the move from its toast.
+
+## Behaviour
+
+**Opening.** The move dialog opens on
+
+| From | Pictures |
+|---|---|
+| *Move…* in the selection's action bar | the selected pictures |
+| `M` in the grid | the selected pictures, else the focused tile's |
+| the *Move this photo* icon in the loupe's title row, `M` in the loupe | the loupe's photo |
+| *Move picks* in the toolbar's More menu | every picked picture of the cull |
+| *Move filtered* in the More menu, shown instead while a filter is on | the pictures of the view |
+
+Pictures are taken in view order. The More menu item shows its count and is disabled at 0. The
+cull keys do nothing while the dialog is open.
+
+**Target folder.** The dialog title counts the photos. Chips offer the favourite targets first,
+then the recent targets that are not favourites, at most 9, numbered `1`–`9`; a chip or its key
+chooses that folder. *Browse…* opens the folder picker for one folder; a folder of the open folder
+set cannot be chosen. Once a target is chosen, the dialog names it and offers *☆ Add to favourites*
+or *★ Favourite*, which adds or removes it from the favourite targets.
+
+**Move summary.** With a target, the client probes the target folders (MOVE-002) and plans the move
+(MOVE-003) with the user's name template (SETTINGS-001.21), by default *By day* (`docs/dev/plan.md`
+Moving pictures). The summary counts photos, files and conflicts, shows the template, and
+lists every file with its folder, name, new path and size. A picture that cannot be named is listed
+with the reason and is not moved, and so is a picture whose target is outside the shared folder
+or storage it is on: "*{name}* is not moved: the target is outside its shared folder or storage"
+(MOVE-002.11). A picture in conflict is headed by "*{name}*: a file with this
+name is already in *{folder}*" and an *Add suffix* · *Skip* · *Replace* choice, *Add suffix* first;
+with more than one conflict, *All conflicts:* sets every one. Notes per picture: the suffix added,
+"replaces the existing file", "skipped". A note says the move keeps shares, tags, comments and
+decisions on the same storage and that *Undo* moves the files back; with a *Replace*, that replaced
+files stay in the Nextcloud trash bin. The confirm button says "Move *N* files" and is disabled
+without a target or at 0 files; `Enter` confirms.
+
+**Moving.** Confirming sends the plan's request. The files that moved leave the listing, the
+selection and the loupe; the target becomes the first recent target (5 kept). The toast says
+"Moved *{name}* to *{folder}*" or "Moved *N* photos to *{folder}*", with *Undo*; decisions follow
+the files, also to a new file id (MOVE-002.10). When a file failed, the move report lists each
+failed file with its reason, and the toast counts moved and failed files.
+
+**Undo.** *Undo* in the toast sends the undo request (MOVE-003). The files that came back return to
+the listing at their old paths, with their decisions, unless another folder set was opened since;
+then they only move back. A file back under a new file id has its decision read again. `Ctrl+Z`
+does not undo a move; the undo history holds only decisions.
+
+**Failures.** A probe or move request that fails changes nothing and says so in a toast; a move the
+trash bin refuses (`409`, a *Replace* with the trash bin off) says the trash bin is off.
+
+## Acceptance criteria
+
+### MOVE-004.1 – Opening from the selection, the grid and the loupe
+
+- **Given** a selection, a focused tile without a selection, and the loupe on a photo
+- **When** the user taps *Move…* in the action bar or presses `M`, in the grid and in the loupe
+- **Then** the move dialog opens on the selected pictures in view order, on the focused tile's
+  picture, and on the loupe's photo; the cull keys do nothing while it is open
+
+### MOVE-004.2 – Move picks and Move filtered
+
+- **Given** a cull with picked pictures, without and with an active filter
+- **When** the user opens the More menu
+- **Then** it offers *Move picks* with the number of picked pictures, or *Move filtered* with the
+  number of pictures in the view, disabled at 0, and each opens the dialog on those pictures
+
+### MOVE-004.3 – Favourite and recent targets as chips and keys
+
+- **Given** stored favourite and recent targets, some in both lists, more than 9 together
+- **When** the dialog opens and the user presses `2`
+- **Then** the chips show the favourites with ★ first, then the recent targets that are not
+  favourites, at most 9, numbered from 1, and the second chip's folder is the target
+
+### MOVE-004.4 – Browse for a target
+
+- **Given** the move dialog
+- **When** the user chooses *Browse…*, opens folders and chooses one
+- **Then** the dialog shows that folder as the target; the open folder set's folders cannot be
+  chosen
+
+### MOVE-004.5 – Add and remove a favourite target
+
+- **Given** a chosen target that is not a favourite
+- **When** the user taps *☆ Add to favourites* and then *★ Favourite*
+- **Then** the target is added to the stored favourite targets and then removed again
+
+### MOVE-004.6 – The move summary
+
+- **Given** a chosen target and pictures with a RAW member, a rendered member and sidecars
+- **When** the target folders have been probed
+- **Then** the summary counts photos, files and conflicts, shows the template, and lists every file
+  with its new path below the target folder
+
+### MOVE-004.7 – Conflict choices
+
+- **Given** two pictures in conflict
+- **When** the user picks *Skip* on one, then *Replace* under *All conflicts:*
+- **Then** the first is marked skipped and its files leave the count, then both say they replace
+  the existing file and the note says replaced files stay in the trash bin
+
+### MOVE-004.8 – Confirm button
+
+- **Given** the dialog without a target, and with a target whose every picture is skipped
+- **When** it is shown
+- **Then** the confirm button is disabled; with files to move it says "Move *N* files" and `Enter`
+  moves them
+
+### MOVE-004.9 – The move and its toast
+
+- **Given** a move the server answers with every file moved
+- **When** the user confirms
+- **Then** the request carries the plan, the pictures leave the grid, the selection and the loupe,
+  the target is the first recent target, and the toast names the picture or counts the photos and
+  names the folder, with *Undo*
+
+### MOVE-004.10 – Recent targets keep the last 5
+
+- **Given** 5 recent targets
+- **When** a move to a sixth folder, and then to the third recent target, succeeds
+- **Then** the sixth folder is first and the oldest is gone, then the third moves to the front
+  without repeating
+
+### MOVE-004.11 – Undo from the toast
+
+- **Given** a move that succeeded
+- **When** the user taps *Undo* in its toast
+- **Then** the undo request sends the moved files back, they reappear in the grid with their
+  decisions, and a toast says so; `Ctrl+Z` after a move undoes the latest decision instead
+
+### MOVE-004.12 – Failed files are reported
+
+- **Given** a move the server answers with some files failed
+- **When** the user confirms
+- **Then** the moved files leave the grid, the move report lists each failed file with its reason,
+  and the toast counts moved and failed files
+
+### MOVE-004.13 – A failed request changes nothing
+
+- **Given** a probe or a move request that fails, or a move refused with `409`
+- **When** the user chooses a target or confirms
+- **Then** the grid is unchanged, the dialog closes and a toast says the move failed, or that the
+  trash bin is off
+
+### MOVE-004.14 – Across storages
+
+- **Given** a move the server answers with a new file id for a file
+- **When** the move ends, and when it is undone
+- **Then** the toast says nothing about decisions, and the files that come back show their
+  decisions, read under their new file ids
+
+### MOVE-004.15 – A picture that cannot be named
+
+- **Given** a picture the name template cannot render
+- **When** the summary is shown
+- **Then** the picture is listed with the reason and is not part of the count or the request
+
+### MOVE-004.16 – A picture that would leave its storage
+
+- **Given** pictures in a shared folder and a target outside it, and a picture whose target is on
+  its own storage
+- **When** the target folders and the pictures' folders have been probed
+- **Then** the summary lists each leaving picture as not moved with the reason, it is not part of
+  the count or the request, and the other picture moves
+
+### MOVE-004.17 – Requests in chunks
+
+- **Given** a move, or its undo, of more pictures than one request carries
+- **When** the user confirms, or taps *Undo*
+- **Then** the first request carries at most 5 whole pictures and each next one twice as many, up
+  to 50 pictures and 500 files, a picture never spans two requests, the next is sent when the
+  last is answered, and the move summary shows how many of the photos were sent until the last
+  answer arrives
+
+### MOVE-004.18 – A later request fails
+
+- **Given** a move, or its undo, whose first requests were answered
+- **When** a later request fails
+- **Then** what moved leaves the grid (or comes back), the pictures not sent stay whole where they
+  were, the error is logged, the move report lists their files as failed, the toast counts moved
+  and failed files, and a move still offers *Undo* for what moved
+
+## Out of scope
+
+The name template setting, its presets and the favourite targets list in the settings:
+SETTINGS-001. The endpoints: MOVE-002. The plan, conflicts, report and undo request: MOVE-003.
+
+## History
+
+| Date | Change |
+|---|---|
+| 2026-11-10 | Written for M7.3. |
+| 2026-11-10 | Decisions follow the files across storages; the toast no longer warns (MOVE-004.14). |
+| 2026-11-15 | Requests in chunks with progress (MOVE-004.17, MOVE-004.18, ADR 0029). |
+| 2026-11-15 | A picture that would leave its storage is listed, not moved (MOVE-004.16). |
+| 2026-11-16 | Requests start at 5 pictures and double up to 50, so the count moves early (MOVE-004.17, ADR 0029). |

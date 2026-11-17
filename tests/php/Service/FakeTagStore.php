@@ -14,6 +14,7 @@ use OCP\DB\Exception as DbException;
 /** Keeps tags and tag lists in memory, by user and file id. */
 final class FakeTagStore implements TagStore {
 	use FakeFileRows;
+	use FakeLegacyRows;
 
 	/** @var array<string, array<int, PictureTags>> */
 	public array $rows = [];

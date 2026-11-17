@@ -1,0 +1,168 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 honeycomb contributors -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>honeycomb mockup – editing series</title>
+<link rel="icon" href="data:,">
+<style>
+*{box-sizing:border-box}
+:root{--ink:#1b1b1b;--paper:#f7f7f7;--honey:#F4A51C;--on-honey:#1b1b1b;--bg:#f7f7f7;--card:#fff;--card-2:#f0f0f0;--text:#1b1b1b;--muted:#5e5e5e;--border:#dcdcdc;--honey-soft:#fdecc8;--danger:#c62f2b;--shadow:0 4px 18px rgba(0,0,0,.14);--tile-bg:#e6e6e6;--stage:#111;--stage-2:#1d1d1d;--stage-text:#f2f2f2;--stage-muted:#b0b0b0;--scrim:rgba(0,0,0,.5);--hit:44px}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif}
+button{font:inherit;color:inherit}
+svg.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.app{position:fixed;inset:0;display:flex;flex-direction:column}
+.tb{flex:none;display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--card);border-bottom:1px solid var(--border);min-height:56px}
+.tb .ttl{flex:1;min-width:0}.tb .ttl b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tb .ttl span{font-size:12px;color:var(--muted)}
+.ib{position:relative;width:var(--hit);height:var(--hit);border:0;border-radius:10px;background:none;display:inline-flex;align-items:center;justify-content:center}
+.ib[aria-pressed=true]{background:var(--honey-soft)}
+.ib .bd{position:absolute;right:0;top:2px;min-width:18px;height:18px;border-radius:9px;background:var(--honey);color:var(--on-honey);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.main{flex:1;min-height:0;overflow:hidden;padding:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--ts),1fr));gap:8px}
+.tile{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--tile-bg)}
+.ph{position:absolute;inset:0}
+.ph i{position:absolute;border-radius:50%}
+.tile .pair{position:absolute;left:6px;top:6px;font-size:11px;font-weight:700;border-radius:6px;padding:2px 6px;background:#fff;color:#1b1b1b}
+.tile .burst{position:absolute;left:6px;top:30px;font-size:11px;font-weight:700;border-radius:6px;padding:2px 6px;background:rgba(0,0,0,.62);color:#fff;display:inline-flex;gap:3px;align-items:center}
+.burst svg{width:11px;height:11px;stroke-width:2.6}
+.tile .ov{position:absolute;left:0;right:0;bottom:0;padding:16px 6px 5px;background:linear-gradient(transparent,rgba(0,0,0,.7));color:#fff;font-size:12px;display:flex}
+.tile .chk{position:absolute;right:6px;top:6px;width:26px;height:26px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.25)}
+.tile.sel{box-shadow:inset 0 0 0 4px var(--honey)}.tile.sel .chk{background:var(--honey) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12l5 5L20 7' fill='none' stroke='%231b1b1b' stroke-width='3'/%3E%3C/svg%3E") center/16px no-repeat;border-color:var(--honey)}
+.tile.inser{outline:2px solid var(--honey);outline-offset:-2px}
+.actionbar{flex:none;background:var(--card);border-top:1px solid var(--border);padding:8px 12px;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;box-shadow:0 -4px 14px rgba(0,0,0,.08)}
+.count{font-weight:600;margin-right:auto}
+.btn{min-height:var(--hit);padding:0 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn.primary{background:var(--honey);border-color:var(--honey);color:var(--on-honey);font-weight:600}
+.btn.danger{background:var(--danger);border-color:var(--danger);color:#fff;font-weight:600}
+.btn[aria-expanded=true]{background:var(--honey-soft);border-color:var(--honey)}
+.menu{position:fixed;z-index:20;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:6px;width:min(330px,calc(100% - 16px))}
+.menu .mh{font-size:12px;color:var(--muted);padding:6px 10px 2px}
+.mi{display:flex;align-items:center;gap:10px;width:100%;min-height:var(--hit);padding:6px 10px;border:0;border-radius:8px;background:none;text-align:left}
+.mi small{display:block;color:var(--muted);font-size:12px;line-height:1.25}
+.mi.dis{opacity:.45}
+.mi:first-of-type{background:var(--card-2)}
+.sep{height:1px;background:var(--border);margin:4px 6px}
+.toasts{position:fixed;left:0;right:0;bottom:16px;display:flex;justify-content:center;z-index:30;pointer-events:none}
+.toast{background:var(--ink);color:var(--paper);border-radius:12px;padding:4px 6px 4px 16px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);max-width:92%;min-height:48px}
+.toast button{min-height:var(--hit);padding:0 14px;border:0;background:none;color:var(--honey);font-weight:700}
+/* compare */
+.cmpd{position:fixed;inset:0;background:var(--stage);color:var(--stage-text);display:flex;flex-direction:column}
+.cmpd .tb{background:var(--stage-2);border-color:#333}.cmpd .tb .ttl span{color:var(--stage-muted)}.cmpd .ib{color:var(--stage-text)}
+.cards{flex:1;min-height:0;display:grid;gap:8px;padding:8px;grid-template-columns:repeat(var(--cols),1fr);align-content:start}
+.cm{position:relative;display:flex;flex-direction:column;gap:6px;border-radius:12px;padding:4px 4px 6px;background:#262626}
+.cm.active{outline:3px solid var(--honey);outline-offset:1px}
+.cm .img{position:relative;height:var(--ih);border-radius:8px;overflow:hidden}
+.cmpd .btn{background:#2e2e2e;border-color:#444;color:#eee}.cmpd .btn.primary{background:var(--honey);color:var(--on-honey);border-color:var(--honey)}
+.cm .fs,.cm .more{position:absolute;top:6px;width:var(--hit);height:var(--hit);border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;display:flex;align-items:center;justify-content:center}
+.cm .fs{right:6px}.cm .more{left:6px}
+.cm .nm{font-weight:700;font-size:13px;padding:0 4px}
+.cm .fl{display:flex;gap:4px}.cm .fl button{flex:1;min-height:40px;border-radius:8px;border:1px solid #444;background:#2e2e2e;color:#eee;font-size:13px}
+.bbar{flex:none;display:flex;gap:8px;align-items:center;padding:8px 12px;background:var(--stage-2);border-top:1px solid #333}
+.bbar .hint{flex:1;color:var(--stage-muted);font-size:13px}
+.cmpd .menu{background:#262626;border-color:#444;color:#eee}.cmpd .mi:first-of-type{background:#333}.cmpd .menu .mh,.cmpd .mi small{color:#aaa}
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:15}
+.dlg{position:fixed;z-index:25;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100% - 24px));background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:16px}
+.dlg h2{margin:0 0 8px;font-size:18px}.dlg p{margin:0 0 12px;color:var(--muted)}
+.strip{display:flex;gap:4px;margin:8px 0 14px;flex-wrap:wrap}.strip .t{position:relative;width:48px;height:48px;border-radius:6px;overflow:hidden}
+.strip .gap{width:10px}
+.dlg .row{display:flex;gap:8px;justify-content:flex-end}
+#mock{position:fixed;z-index:40;left:0;right:0;top:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 10px;background:var(--card);border-bottom:2px dashed #b8860b;font-size:13px}#mock a{padding:4px 8px;border-radius:8px;border:1px solid var(--border);color:inherit;text-decoration:none}#mock a[aria-current=page]{background:var(--honey-soft);border-color:var(--honey)}#mock span{color:var(--muted)}
+.app,.cmpd{top:var(--mock-h,40px)}
+@media (max-width:520px){.hide-phone{display:none}.btn{padding:0 12px}}
+</style>
+</head>
+<body>
+<nav id="mock"></nav>
+<div id="root"></div>
+<script>
+'use strict'
+const P = (hue, x, y, k) => `<div class="ph" style="background:linear-gradient(${160 + k * 7}deg,hsl(${hue} 45% ${62 - k * 2}%),hsl(${hue + 30} 35% ${30 + k}%))"><i style="left:${x + k * 3}%;top:${y}%;width:34%;height:34%;background:hsl(${hue + 180} 30% 85% / .85)"></i><i style="left:${x - 10}%;top:${y + 30}%;width:60%;height:50%;background:hsl(${hue} 30% 22% / .7)"></i></div>`
+const ic = { series:'M3 7h11v11H3zM7 3h11v11', more:'M5 12h.01M12 12h.01M19 12h.01', fs:'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5', close:'M6 6l12 12M18 6L6 18', pin:'M12 3l4 4-2 2 3 5-3 1-4-4-5 5M9 8l-2-2', select:'M4 4h16v16H4zM8 12l3 3 5-6', back:'M15 6l-6 6 6 6', merge:'M6 4v6a4 4 0 0 0 4 4h8M14 10l4 4-4 4M6 20v-4', minus:'M5 12h14', plus:'M12 5v14M5 12h14', check:'M5 12l5 5L20 7' }
+const svg = (k) => `<svg class="ic" viewBox="0 0 24 24"><path d="${ic[k]}"/></svg>`
+// photos: [name, hue, x, y, seriesKey, fixed]
+const photos = [
+	['IMG_0401', 30, 30, 20, 'A', true], ['IMG_0402', 30, 33, 21, 'A', true], ['IMG_0403', 30, 36, 20, 'A', true], ['IMG_0404', 30, 38, 22, 'A', true],
+	['IMG_0405', 200, 50, 30, null], ['IMG_0406', 120, 20, 40, null],
+	['IMG_0407', 210, 40, 25, 'B'], ['IMG_0408', 210, 43, 25, 'B'], ['IMG_0409', 210, 45, 26, 'B'],
+	['IMG_0410', 340, 25, 35, null], ['IMG_0411', 90, 55, 15, null], ['IMG_0412', 260, 35, 30, null], ['IMG_0413', 15, 45, 40, null],
+	['IMG_0414', 170, 30, 25, null], ['IMG_0415', 50, 60, 35, null], ['IMG_0416', 290, 40, 20, null],
+]
+let done = new Set()
+const size = (s) => photos.filter((p) => p[4] === s).length
+const tile = (p, i, sel) => `<div class="tile${sel.has(i) ? ' sel' : ''}">${P(p[1], p[2], p[3], i % 4)}<span class="pair">RAW+JPG</span>${p[4] ? `<span class="burst">⧉ ${size(p[4])}${done.has(p[4]) ? svg('check') : p[5] ? svg('pin') : ''}</span>` : ''}${sel.size ? '<span class="chk"></span>' : ''}<div class="ov">${p[0]}</div></div>`
+const phone = () => innerWidth <= 520
+const toolbar = (n) => `<div class="tb"><button class="ib">${svg('back')}</button><div class="ttl"><b>Hike 2026-10</b><span>16 photos · ${done.size ? 7 : 3} decided</span></div><button class="ib" aria-pressed="${n > 0}">${svg('select')}${n ? `<span class="bd">${n}</span>` : ''}</button><button class="ib">${svg('series')}<span class="bd">2</span></button><button class="ib">${svg('more')}</button></div>`
+const actionbar = (n) => `<div class="actionbar"><span class="count">${n} selected</span><button class="btn" id="seriesBtn" aria-expanded="true">${svg('series')}Series…</button><button class="btn hide-phone">Tags</button><button class="btn hide-phone">Move…</button><button class="btn danger">Delete…</button><button class="btn primary hide-phone">Done</button></div>`
+const menuItem = (icon, label, note, dis) => `<button class="mi${dis ? ' dis' : ''}">${svg(icon)}<span>${label}${note ? `<small>${note}</small>` : ''}</span></button>`
+function grid(sel, menu, extra = '', toast = '') {
+	return `<div class="app">${toolbar(sel.size)}<div class="main"><div class="grid" style="--ts:${phone() ? 110 : 170}px">${photos.map((p, i) => tile(p, i, sel)).join('')}</div></div>${sel.size ? actionbar(sel.size) : ''}</div>${menu}${extra}${toast ? `<div class="toasts"><div class="toast">${toast}<button>Undo</button></div></div>` : ''}`
+}
+function placeMenu() {
+	const b = document.getElementById('seriesBtn'), m = document.querySelector('.menu.at-btn')
+	if (!b || !m) return
+	const r = b.getBoundingClientRect()
+	m.style.left = Math.max(8, Math.min(r.left, innerWidth - m.offsetWidth - 8)) + 'px'
+	m.style.top = (r.top - m.offsetHeight - 6) + 'px'
+}
+const cards = (names, menuAt, toast) => {
+	const cols = phone() ? 2 : Math.min(3, names.length), rows = Math.ceil(names.length / cols), ih = Math.floor((innerHeight - 150 - document.getElementById('mock').offsetHeight) / rows - 112)
+	return `<div class="cmpd"><div class="tb"><div class="ttl"><b>Compare series 1 of 2 · photo 2 of ${names.length}</b><span>14:02:31–14:02:52 · edited by hand</span></div><button class="ib" id="hdrMore" aria-expanded="${menuAt === 'hdr'}">${svg('more')}</button><button class="ib">${svg('close')}</button></div>
+	<div class="cards" style="--cols:${cols};--ih:${ih}px">${names.map((p, k) => `<div class="cm${k === 1 ? ' active' : ''}"><div class="img">${P(p[1], p[2], p[3], k)}<button class="more" ${k === 1 ? 'id="cardMore"' : ''}>${svg('more')}</button><button class="fs">${svg('fs')}</button></div><span class="nm">${k + 1} · ${p[0]}</span><div class="fl"><button>Pick</button><button>Unflag</button><button>Reject</button></div></div>`).join('')}</div>
+	<div class="bbar"><span class="hint hide-phone">← → choose · P X U decide · Shift+K pick this, reject the rest</span><button class="btn">Skip</button><button class="btn primary">Pick this, reject the rest</button></div></div>${toast ? `<div class="toasts"><div class="toast">${toast}<button>Undo</button></div></div>` : ''}`
+}
+function placeAt(anchorId, m, below) {
+	const a = document.getElementById(anchorId)
+	if (!a || !m) return
+	const r = a.getBoundingClientRect()
+	m.style.left = Math.max(8, Math.min(r.left, innerWidth - m.offsetWidth - 8)) + 'px'
+	m.style.top = (below ? r.bottom + 6 : r.top - m.offsetHeight - 6) + 'px'
+}
+const scenes = {
+	// New series from a selection of loose photos
+	new() {
+		const sel = new Set([9, 10, 11, 12])
+		return grid(sel, `<div class="menu at-btn"><div class="mh">4 photos, none in a series</div>${menuItem('plus', 'New series from 4 photos', 'They stay together; the automatic grouping leaves them alone')}${menuItem('merge', 'Add to a series…', 'Select a photo of the series too', true)}${menuItem('minus', 'Remove from their series', 'None of them is in a series', true)}</div>`)
+	},
+	// Merge: the selection touches two series
+	merge() {
+		const sel = new Set([3, 6, 4])
+		return grid(sel, `<div class="menu at-btn"><div class="mh">3 photos in 2 series, 1 loose</div>${menuItem('merge', 'Merge 2 series · 8 photos', 'Series ⧉ 4 and ⧉ 3, plus IMG_0405')}${menuItem('plus', 'New series from these 3 photos', 'Takes them out of their series')}${menuItem('minus', 'Remove 2 photos from their series', 'They are never grouped again automatically')}</div>`)
+	},
+	// Add loose photos to the one series the selection touches
+	add() {
+		const sel = new Set([0, 4, 5])
+		return grid(sel, `<div class="menu at-btn"><div class="mh">3 photos: 1 in series ⧉ 4, 2 loose</div>${menuItem('merge', 'Add 2 photos to series ⧉ 4', 'IMG_0405 and IMG_0406')}${menuItem('plus', 'New series from 3 photos', 'Takes IMG_0401 out of its series')}${menuItem('minus', 'Remove 1 photo from its series', 'It is never grouped again automatically')}</div>`)
+	},
+	// After Series done: the badge carries a check, undo in the toast
+	done() {
+		done = new Set(['A'])
+		return grid(new Set(), '', '', 'Marked the series done')
+	},
+	// Series compare: header menu, with merge with the next series
+	cmpmerge() {
+		return cards(photos.filter((p) => p[4] === 'A'), 'hdr') + `<div class="menu at-hdr"><div class="mh">This series · ⧉ 4</div>${menuItem('merge', 'Merge with the next series', 'Series 2 · ⧉ 3 · starts 14:03:40')}${menuItem('merge', 'Merge with the previous series', 'None before this one', true)}<div class="sep"></div>${menuItem('check', 'Series done', 'Its unflagged photos count as decided')}${menuItem('minus', 'Dissolve this series', 'Its photos are never grouped again automatically')}</div>`
+	},
+	// Series compare: remove one photo from the series
+	remove() {
+		return cards(photos.filter((p) => p[4] === 'A'), 'card') + `<div class="menu at-card"><div class="mh">IMG_0402</div>${menuItem('minus', 'Remove from this series', 'It stays in the folder, with its flags')}${menuItem('fs', 'View full screen')}</div>`
+	},
+	// After removing: the series shrinks, undo in the toast
+	removed() {
+		const a = photos.filter((p) => p[4] === 'A' && p[0] !== 'IMG_0402')
+		return cards(a, null, 'Removed IMG_0402 from the series')
+	},
+}
+const labels = { new: 'New series', add: 'Add to a series', merge: 'Merge from the grid', cmpmerge: 'Compare menu', remove: 'Remove a photo', removed: 'After removing', done: 'Series done' }
+const scene = scenes[location.hash.slice(1)] ? location.hash.slice(1) : 'new'
+document.getElementById('mock').innerHTML = '<span>Mockup · SERIES-005 · ADR 0027:</span>' + Object.keys(labels).map((k) => `<a href="#${k}"${k === scene ? ' aria-current="page"' : ''}>${labels[k]}</a>`).join('')
+document.documentElement.style.setProperty('--mock-h', document.getElementById('mock').offsetHeight + 'px')
+addEventListener('hashchange', () => location.reload())
+document.getElementById('root').innerHTML = scenes[scene]()
+placeMenu()
+placeAt('hdrMore', document.querySelector('.menu.at-hdr'), true)
+placeAt('cardMore', document.querySelector('.menu.at-card'), true)
+</script>
+</body>
+</html>

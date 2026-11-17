@@ -7,7 +7,7 @@ description: Add, finish or list items on the open-work list (`TODO.md` in the r
 
 `TODO.md` in the repository root holds open work. It holds open items only; a finished item is
 deleted, and Git keeps the history. Its `## Milestones` section is ordered (the order of
-`docs/plan.md`); `## Later` collects everything else. An open question belongs in `docs/plan.md`
+`docs/dev/plan.md`); `## Later` collects everything else. An open question belongs in `docs/dev/plan.md`
 (Open questions) or in a `needs-owner` issue, a decision in an ADR.
 
 ## Add

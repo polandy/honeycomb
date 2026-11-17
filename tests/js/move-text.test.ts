@@ -9,7 +9,7 @@ import { filesOf } from '../../src/logic/delete-summary.ts'
 import { movedBackText, movedText, moveFailedText, moveFailureReason, moveNote, namingProblemText } from '../../src/move-text.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 
-const FAILURES: MoveFailure[] = ['notFound', 'changed', 'notPermitted', 'locked', 'exists', 'failed', 'skipped', 'movedBack']
+const FAILURES: MoveFailure[] = ['notFound', 'changed', 'notPermitted', 'locked', 'exists', 'failed', 'skipped', 'movedBack', 'otherStorage']
 const [FILE] = filesOf(pictureOf(listingEntry(1, '/In/DSC_1.JPG')))
 const moved = { file: FILE!, from: '/In/DSC_1.JPG', path: '/Out/DSC_1.JPG', fileId: 1, etag: 'e' }
 
@@ -27,6 +27,11 @@ describe('move texts', () => {
 	// spec: MOVE-004.12
 	it('names each reason a file did not move in its own words', () => {
 		expect(new Set(FAILURES.map(moveFailureReason)).size).toBe(FAILURES.length)
+	})
+
+	// spec: MOVE-002.11
+	it('says a file stays inside its shared folder or storage', () => {
+		expect(moveFailureReason('otherStorage')).toBe('Not moved: the target is outside the shared folder or storage the file is on')
 	})
 
 	// spec: MOVE-004.9

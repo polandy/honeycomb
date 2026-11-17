@@ -1,0 +1,56 @@
+/*
+ * SPDX-FileCopyrightText: 2026 honeycomb contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/* The bubble of the tooltip and the tile info, placed by placeTip with its arrow at --tip-arrow. */
+.tip-bubble {
+	--tip-bg: var(--color-main-text);
+	--tip-fg: var(--color-main-background);
+	position: fixed;
+	z-index: 10002;
+	max-width: min(280px, calc(100vw - 16px));
+	padding: 6px 10px;
+	border-radius: var(--border-radius-large, 8px);
+	background-color: var(--tip-bg);
+	color: var(--tip-fg);
+	box-shadow: 0 2px 8px var(--color-box-shadow);
+	font-size: 13px;
+	line-height: 1.3;
+}
+
+.tip-bubble__arrow {
+	position: absolute;
+	width: 10px;
+	height: 10px;
+	background-color: inherit;
+	transform: rotate(45deg);
+}
+
+.tip-bubble[data-side='bottom'] .tip-bubble__arrow,
+.tip-bubble[data-side='top'] .tip-bubble__arrow {
+	left: var(--tip-arrow);
+	margin-left: -5px;
+}
+
+.tip-bubble[data-side='right'] .tip-bubble__arrow,
+.tip-bubble[data-side='left'] .tip-bubble__arrow {
+	top: var(--tip-arrow);
+	margin-top: -5px;
+}
+
+.tip-bubble[data-side='bottom'] .tip-bubble__arrow {
+	top: -5px;
+}
+
+.tip-bubble[data-side='top'] .tip-bubble__arrow {
+	bottom: -5px;
+}
+
+.tip-bubble[data-side='right'] .tip-bubble__arrow {
+	left: -5px;
+}
+
+.tip-bubble[data-side='left'] .tip-bubble__arrow {
+	right: -5px;
+}

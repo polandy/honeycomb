@@ -8,5 +8,5 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 /** A tag request is malformed: nothing of it is written. */
-final class InvalidTagsException extends \InvalidArgumentException {
+final class InvalidTagsException extends InvalidRequestException {
 }

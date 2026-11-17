@@ -22,14 +22,17 @@ const props = defineProps<{
 	flow: SidecarFlow
 	folderSet: FolderSet
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
+	/** Whether writing creates new sidecars, which the migration needs (XMP-007.7). */
+	ready: boolean
 }>()
 
 const asking = computed(() => props.flow.asking.value)
 const report = computed(() => props.flow.report.value)
 
+const shared = computed(() => props.ready && (asking.value ?? []).some((write) => write.shared))
 const askedText = computed(() => {
 	const chosen = asking.value ?? []
-	const folders = [...new Set(chosen.map((picture) => folderLabel(picture.folder, props.folderSet)))].join(', ')
+	const folders = [...new Set(chosen.map(({ picture }) => folderLabel(picture.folder, props.folderSet)))].join(', ')
 	return n('honeycomb', '{count} photo in {folders}', '{count} photos in {folders}', chosen.length, { count: formatNumber(chosen.length), folders }, PLAIN_TEXT)
 })
 
@@ -45,16 +48,18 @@ function shownPath(path: string): string {
 		v-if="asking !== null"
 		:title="t('honeycomb', 'Write decisions to sidecars')"
 		:confirmLabel="t('honeycomb', 'Write to sidecars')"
-		:confirmDisabled="asking.length === 0"
+		:confirmDisabled="!props.ready || asking.length === 0"
 		cancel
 		@cancel="props.flow.close"
 		@confirm="props.flow.confirm(props.decisionOf)">
 		<p class="sidecar-dialogs__intro">
-			{{ t('honeycomb', 'This folder is shared. honeycomb keeps your decisions to yourself and writes nothing next to the files on its own.') }}
+			{{ t('honeycomb', 'honeycomb still keeps these decisions and tags in its database. The XMP sidecar of each file gets the stored rating, colour label, flag and Keep RAW mark.') }}
+			{{ t('honeycomb', 'Where a sidecar says otherwise, the stored value wins; stored tags are added to the sidecar\'s.') }}
 		</p>
-		<NcNoteCard type="warning" :text="t('honeycomb', 'Every user of this folder, and digiKam, darktable and Lightroom, will see these decisions.')" />
+		<NcNoteCard v-if="!props.ready" type="info" :text="t('honeycomb', 'Turn on Write decisions to XMP sidecars in the settings first.')" />
+		<NcNoteCard v-if="shared" type="warning" :text="t('honeycomb', 'Every user of a shared folder, and digiKam, darktable and Lightroom, will see these decisions.')" />
 		<p class="sidecar-dialogs__hint">
-			{{ t('honeycomb', 'The XMP sidecar of each file gets its rating, colour label and flag.') }} {{ askedText }}
+			{{ askedText }}
 		</p>
 	</ConfirmDialog>
 	<ConfirmDialog

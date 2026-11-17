@@ -1,10 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Decision } from './decision.ts'
 import type { FolderSet } from './folder-set.ts'
 import type { Picture } from './pairing.ts'
 
-import { isDecided } from './decision.ts'
 import { folderSetKey } from './folder-set.ts'
 
 /** Where a user stands in a folder set, as the positions endpoint stores it (ADR 0012). */
@@ -20,7 +18,7 @@ export function parsePositions(answer: unknown): ResumePosition[] {
 	if (!Array.isArray(answer)) {
 		return []
 	}
-	return answer.filter(isPosition).map(({ folderSet, fileId, decided, total }) => ({ folderSet: { paths: folderSet.paths, subfolders: folderSet.subfolders }, fileId, decided, total }))
+	return answer.filter(isPosition).map(({ folderSet: { paths, subfolders, excluded }, fileId, decided, total }) => ({ folderSet: excluded === undefined ? { paths, subfolders } : { paths, subfolders, excluded }, fileId, decided, total }))
 }
 
 /** The position of the folder set, whatever the order of its paths, or null. */
@@ -40,12 +38,12 @@ export function pictureHolding<P extends Picture<{ readonly fileId: number }>>(p
 }
 
 /** Where the loupe resumes: at the picture, else at the first undecided one of the view, else at the first; -1 for an empty view. */
-export function resumeIndex<P>(view: readonly P[], picture: P, decisionOf: (picture: P) => Decision): number {
+export function resumeIndex<P>(view: readonly P[], picture: P, decidedOf: (picture: P) => boolean): number {
 	const at = view.indexOf(picture)
 	if (at >= 0) {
 		return at
 	}
-	const undecided = view.findIndex((shown) => !isDecided(decisionOf(shown)))
+	const undecided = view.findIndex((shown) => !decidedOf(shown))
 	return undecided >= 0 ? undecided : view.length > 0 ? 0 : -1
 }
 
@@ -58,6 +56,12 @@ function isPosition(value: unknown): value is ResumePosition {
 	return typeof folderSet === 'object' && folderSet !== null
 		&& Array.isArray((folderSet as FolderSet).paths) && (folderSet as FolderSet).paths.every((path) => typeof path === 'string')
 		&& typeof (folderSet as FolderSet).subfolders === 'boolean'
+		&& isPathsOrMissing((folderSet as Record<string, unknown>).excluded)
 		&& Number.isInteger(fileId) && (fileId as number) >= 1
 		&& Number.isInteger(total) && Number.isInteger(decided) && (decided as number) >= 0 && (decided as number) <= (total as number)
+}
+
+/** Whether `value` is left out or a list of paths, as a folder set's excluded folders are. */
+function isPathsOrMissing(value: unknown): boolean {
+	return value === undefined || (Array.isArray(value) && value.every((path) => typeof path === 'string'))
 }

@@ -3,7 +3,8 @@
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
-import { requestToken } from './files.ts'
+import { randomUUID } from 'node:crypto'
+import { createFolder, JPEG, requestToken, upload } from './files.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
 const RECENT_LIMIT = 20
@@ -13,20 +14,24 @@ async function send(page: Page, method: 'GET' | 'POST' | 'PUT', path: string, da
 	return page.request.fetch(`${API}${path}`, { method, data, headers: { requesttoken: await requestToken(page) } })
 }
 
-// spec: DECISIONS-001.1, DECISIONS-001.2, DECISIONS-001.3
+// spec: DECISIONS-001.1, DECISIONS-001.2, DECISIONS-001.3, DECISIONS-001.19
 test('stores, overwrites and clears decisions per file id', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
-	const picked = { fileId: 900_001, rating: 4, colourLabel: 'green', flag: 'picked', keepRaw: true }
-	const rejected = { fileId: 900_002, rating: 0, colourLabel: null, flag: 'rejected', keepRaw: false }
+	const folder = `Decisions ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	const [first, second] = [await upload(page, `${folder}/A.JPG`, JPEG), await upload(page, `${folder}/B.JPG`, JPEG)]
+	const picked = { fileId: first, rating: 4, colourLabel: 'green', flag: 'picked', keepRaw: true }
+	const rejected = { fileId: second, rating: 0, colourLabel: null, flag: 'rejected', keepRaw: false }
+	const unreachable = { ...picked, fileId: 900_001 }
 
-	expect((await send(page, 'PUT', '/decisions', { decisions: [picked, rejected] })).status()).toBe(204)
-	const stored = await send(page, 'POST', '/decisions/lookup', { fileIds: [900_001, 900_002, 900_003] })
+	expect((await send(page, 'PUT', '/decisions', { decisions: [picked, rejected, unreachable] })).status()).toBe(204)
+	const stored = await send(page, 'POST', '/decisions/lookup', { fileIds: [first, second, 900_001] })
 	expect(stored.status()).toBe(200)
 	expect(await stored.json()).toEqual({ decisions: [picked, rejected] })
 
 	const unflagged = { ...rejected, flag: 'unflagged' }
 	expect((await send(page, 'PUT', '/decisions', { decisions: [{ ...picked, rating: 2 }, unflagged] })).status()).toBe(204)
-	const overwritten = await send(page, 'POST', '/decisions/lookup', { fileIds: [900_001, 900_002] })
+	const overwritten = await send(page, 'POST', '/decisions/lookup', { fileIds: [first, second] })
 	expect(await overwritten.json()).toEqual({ decisions: [{ ...picked, rating: 2 }] })
 })
 
@@ -46,11 +51,11 @@ test('keeps the most recent resume positions, newest first', async ({ page }) =>
 	await page.goto('/index.php/apps/honeycomb/')
 
 	for (let folder = 0; folder <= RECENT_LIMIT; folder++) {
-		const folderSet = { paths: [`/Resume/${folder}`, '/Resume'], subfolders: true }
+		const folderSet = { paths: [`/Resume/${folder}`, '/Album'], subfolders: true }
 		const saved = await send(page, 'PUT', '/positions', { folderSet, fileId: folder + 1, decided: folder, total: RECENT_LIMIT })
 		expect(saved.status()).toBe(200)
 	}
-	const again = { folderSet: { paths: ['/Resume', `/Resume/${RECENT_LIMIT}`], subfolders: true }, fileId: 99, decided: 1, total: 2 }
+	const again = { folderSet: { paths: ['/Album', `/Resume/${RECENT_LIMIT}`], subfolders: true }, fileId: 99, decided: 1, total: 2 }
 	expect((await send(page, 'PUT', '/positions', again)).status()).toBe(200)
 
 	const recent = await send(page, 'GET', '/positions')
@@ -59,4 +64,17 @@ test('keeps the most recent resume positions, newest first', async ({ page }) =>
 	expect(positions).toHaveLength(RECENT_LIMIT)
 	expect(positions[0]).toMatchObject({ fileId: 99, folderSet: again.folderSet })
 	expect(positions.map((position) => position.fileId)).not.toContain(1)
+})
+
+// spec: DECISIONS-002.15
+test('keeps one resume position for a ticked folder inside another with subfolders', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+
+	expect((await send(page, 'PUT', '/positions', { folderSet: { paths: ['/Covered'], subfolders: true }, fileId: 5, decided: 0, total: 2 })).status()).toBe(200)
+	const inside = { paths: ['/Covered', '/Covered/Day 2'], subfolders: true }
+	expect((await send(page, 'PUT', '/positions', { folderSet: inside, fileId: 6, decided: 1, total: 2 })).status()).toBe(200)
+
+	const { positions } = await (await send(page, 'GET', '/positions')).json() as { positions: { fileId: number, folderSet: { paths: string[] } }[] }
+	const covered = positions.filter((position) => position.folderSet.paths.includes('/Covered'))
+	expect(covered).toEqual([expect.objectContaining({ fileId: 6, folderSet: inside })])
 })

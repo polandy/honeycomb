@@ -12,8 +12,8 @@ function fromLoupe(names: string[], active: string, ...grid: string[][]) {
 	const landings: string[] = []
 	const land = (landing: CompareLanding<Shot>) => landings.push(landing.kind === 'on'
 		? `on ${landing.picture.name}`
-		: `after ${landing.series.map((shot) => shot.name).join(' ')}, picked ${landing.picked.name}`)
-	fixture.compare.startOn(names.map(fixture.shot), fixture.shot(active), land)
+		: `after ${landing.series.members.map((shot) => shot.name).join(' ')}, picked ${landing.picked.name}`)
+	fixture.compare.startOn(fixture.seriesOf(names), fixture.shot(active), land, 'loupe')
 	return { ...fixture, landings }
 }
 
@@ -74,13 +74,13 @@ describe('useSeriesCompare: opened from the loupe', () => {
 
 	// spec: LOUPE-002.15
 	it('picks for the loupe without opening and lands after the series', () => {
-		const { compare, calls, shot } = compareOf(['C', 'D', 'E'])
+		const { compare, calls, shot, seriesOf } = compareOf(['C', 'D', 'E'])
 		const landings: string[] = []
-		compare.pickRestAndLand(['C', 'D', 'E'].map(shot), shot('E'), (landing) => landings.push(landing.kind === 'after' ? `after ${landing.series.map(({ name }) => name).join(' ')}, picked ${landing.picked.name}` : 'on'))
+		compare.pickRestAndLand(seriesOf(['C', 'D', 'E']), shot('E'), (landing) => landings.push(landing.kind === 'after' ? `after ${landing.series.key}: ${landing.series.members.map(({ name }) => name).join(' ')}, picked ${landing.picked.name}` : 'on'))
 
 		expect(calls).toEqual(['pick E, reject C D'])
 		expect(compare.open.value).toBe(false)
-		expect(landings).toEqual(['after C D E, picked E'])
+		expect(landings).toEqual([`after ${seriesOf(['C', 'D', 'E']).key}: C D E, picked E`])
 	})
 
 	// spec: SERIES-001.6
@@ -94,5 +94,51 @@ describe('useSeriesCompare: opened from the loupe', () => {
 		expect(compare.count.value).toBe(2)
 		compare.close()
 		expect(landings).toEqual(['on C'])
+	})
+
+	// spec: SERIES-005.10
+	it('removes a picture from the one series it holds and closes once one picture is left', () => {
+		const { compare, calls, shown, shot, landings } = fromLoupe(['C', 'D', 'E'], 'D')
+		compare.removeFromSeries()
+
+		expect(calls).toEqual(['remove D from C D E'])
+		expect(shown()).toEqual(['C', 'E'])
+		compare.removeFromSeries(shot('C'))
+		expect(compare.open.value).toBe(false)
+		expect(landings).toEqual([])
+	})
+
+	// spec: SERIES-005.13
+	it('closes on dissolving its series and lands on the active picture', () => {
+		const { compare, calls, landings } = fromLoupe(['C', 'D', 'E'], 'E')
+		compare.dissolve()
+
+		expect(calls).toEqual(['dissolve C D E'])
+		expect(compare.open.value).toBe(false)
+		expect(landings).toEqual(['on E'])
+	})
+
+	// spec: SERIES-005.8
+	it('merges its one series with the series before it and holds the merged series', () => {
+		const { compare, calls, shown } = fromLoupe(['C', 'D'], 'D', ['A', 'B'])
+
+		expect(compare.neighbours.value.next).toBeNull()
+		compare.merge('previous')
+		expect(calls).toEqual(['merge A B + C D'])
+		expect(shown()).toEqual(['A', 'B', 'C', 'D'])
+		expect([compare.oneSeries.value, compare.count.value, compare.active.value]).toEqual([true, 1, 3])
+	})
+
+	// spec: SERIES-005.14, SERIES-005.15
+	it('marks its one series done and keeps showing it, then reopens it', () => {
+		const { compare, calls, shown } = fromLoupe(['C', 'D'], 'D', ['A', 'B'])
+		compare.markDone(true)
+
+		expect(shown()).toEqual(['C', 'D'])
+		expect(compare.current.value?.stored?.status).toBe('done')
+		compare.markDone(false)
+		expect(calls).toEqual(['done C D', 'reopen C D'])
+		expect(compare.current.value?.stored).toBeUndefined()
+		expect(compare.active.value).toBe(1)
 	})
 })

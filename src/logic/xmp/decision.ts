@@ -28,7 +28,7 @@ const REJECTED_RATING = -1
 const MAX_PICK_LABEL = PICK_LABEL.accepted
 const PICK = { accepted: 1, rejected: -1 } as const
 
-/** The decision one sidecar states, each value from its first valid source (`docs/06-xmp-interop.md` Reading). */
+/** The decision one sidecar states, each value from its first valid source (`docs/dev/06-xmp-interop.md` Reading). */
 export function sidecarDecision(packet: XmpPacket, isPair: boolean): Decision {
 	return {
 		rating: readRating(packet),

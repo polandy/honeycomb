@@ -20,6 +20,8 @@ export interface LoupeDecisionsContext<P extends Picture<{ readonly fileId: numb
 	readonly pictures: () => readonly P[]
 	readonly index: () => number
 	readonly decisionOf: (picture: P) => Decision
+	/** Whether the picture counts as decided, by its flag unless given (SERIES-005.14). */
+	readonly decidedOf?: ((picture: P) => boolean) | undefined
 	/** Decides the picture, at once, as the cull does. */
 	readonly decide: (intent: DecisionIntent, picture: P) => void
 	readonly go: (index: number) => void
@@ -36,16 +38,17 @@ export interface LoupeDecisionsContext<P extends Picture<{ readonly fileId: numb
 /** The shown picture's decision controls: with auto-advance on, a pick or reject moves on to the next undecided picture. */
 export function useLoupeDecisions<P extends Picture<{ readonly fileId: number }>>(context: LoupeDecisionsContext<P>) {
 	const shown = () => context.pictures()[context.index()]!
+	const decidedOf = context.decidedOf ?? ((picture: P) => isDecided(context.decisionOf(picture)))
 	const common = computed(() => commonDecision([{ picture: shown(), decision: context.decisionOf(shown()) }]))
 
 	/** Decides the shown picture, then advances when it set a flag; returns whether it moved. */
 	function decide(intent: DecisionIntent): boolean {
 		const picture = shown()
 		context.decide(intent, picture)
-		const next = intent.kind === 'flag' && context.autoAdvance() && isDecided(context.decisionOf(picture)) ? nextUndecided(context.pictures(), context.index(), context.decisionOf) : null
+		const next = intent.kind === 'flag' && context.autoAdvance() && isDecided(context.decisionOf(picture)) ? nextUndecided(context.pictures(), context.index(), decidedOf) : null
 		if (next !== null) {
 			context.go(next)
-		} else if (intent.kind === 'flag' && context.pictures().every((each) => isDecided(context.decisionOf(each)))) {
+		} else if (intent.kind === 'flag' && context.pictures().every(decidedOf)) {
 			context.allDecided()
 		}
 		return next !== null

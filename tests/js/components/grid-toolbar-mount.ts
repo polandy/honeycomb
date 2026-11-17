@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Flag } from '../../../src/logic/decision.ts'
 import type { FolderSet } from '../../../src/logic/folder-set.ts'
-import type { HashProgress } from '../../../src/logic/hash-progress.ts'
 import type { SortOrder } from '../../../src/logic/picture-order.ts'
 
 import { mount } from '@vue/test-utils'
@@ -10,14 +9,14 @@ import GridToolbar from '../../../src/components/GridToolbar.vue'
 import { PopoverStub } from './stubs.ts'
 
 /** A cull that shows the toolbar with nothing to review, compare or move. */
-const CULL: { flags: ReadonlySet<Flag>, decided: number, total: number, filtered: boolean, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number, series: number, rawRemovable: number, sidecarsShared: boolean, movable: number, resumeName: string | null, similarity: HashProgress } = {
+const CULL: { flags: ReadonlySet<Flag>, decided: number, total: number, filtered: boolean, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number, series: number, rawRemovable: number, legacyRows: boolean, movable: number, resumeName: string | null } = {
 	movable: 0,
 	resumeName: null,
 	selecting: false,
 	rejected: 0,
 	series: 0,
 	rawRemovable: 0,
-	sidecarsShared: false,
+	legacyRows: false,
 	selected: 0,
 	flags: new Set(['picked', 'unflagged']),
 	decided: 1840,
@@ -26,13 +25,19 @@ const CULL: { flags: ReadonlySet<Flag>, decided: number, total: number, filtered
 	activeFilters: 0,
 	filtersOpen: false,
 	sortOrder: 'file-name',
-	similarity: { phase: 'done', hashed: 0, failed: 0, total: 0 },
 }
 
 /** Mounts the toolbar on the folder set with the cull changed by `cull`, the popover in place. */
 export function mountToolbar(folderSet: FolderSet, folders = 1, cull: Partial<typeof CULL> = {}) {
+	const { flags, decided, total, filtered, activeFilters, filtersOpen, sortOrder, selecting, selected, ...tasks } = { ...CULL, ...cull }
 	return mount(GridToolbar, {
-		props: { folderSet, folders, tileSize: 150.4, groupByFolder: false, ...CULL, ...cull },
+		props: {
+			folders: { set: folderSet, count: folders },
+			view: { tileSize: 150.4, groupByFolder: false, fileNames: false, sortOrder, flags, filtersOpen, activeFilters },
+			progress: { decided, total, filtered },
+			selection: { selecting, selected },
+			tasks,
+		},
 		global: { stubs: { NcPopover: PopoverStub } },
 	})
 }

@@ -7,7 +7,7 @@ import type { StoredTags, Tag, TagChange } from './logic/tag.ts'
 import { computed, shallowRef } from 'vue'
 import { logger } from './logger.ts'
 import { memberIds, pictureMembers } from './logic/pairing.ts'
-import { saveQueue } from './logic/save-queue.ts'
+import { byFileId, saveQueue } from './logic/save-queue.ts'
 import { withLevels } from './logic/tag-entry.ts'
 import { changedTags, revertTagRows, sortedTags, withTagRows } from './logic/tag.ts'
 
@@ -24,7 +24,7 @@ type Pictures = readonly Picture<ListingEntry>[]
 export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, change: TagChange) => Promise<unknown>, current: () => unknown, writable: (picture: Picture<ListingEntry>) => boolean) {
 	const tags = shallowRef<ReadonlyMap<number, readonly Tag[]>>(new Map())
 	const list = shallowRef<readonly Tag[]>([])
-	const saveTags = saveQueue(api.saveTags)
+	const saveTags = saveQueue(api.saveTags, { key: byFileId })
 	const known = computed(() => withLevels([...list.value, ...[...tags.value.values()].flat()]))
 
 	/** Reads the user's tag list for the tag entry (TAGS-003.13). */
@@ -108,5 +108,5 @@ export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, ch
 		}
 	}
 
-	return { tags, known, reset, loadList, tagsOf, writable, load, takeOver, change, restore }
+	return { tags, known, reset, loadList, tagsOf, load, takeOver, change, restore }
 }

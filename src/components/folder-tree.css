@@ -1,0 +1,160 @@
+/*
+ * SPDX-FileCopyrightText: 2026 honeycomb contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+.folder-tree {
+	--folder-tree-indent: calc(4 * var(--default-grid-baseline));
+	--folder-tree-target: 34px;
+	margin-top: calc(2 * var(--default-grid-baseline));
+}
+
+.folder-tree__item,
+.folder-tree__note {
+	display: flex;
+	align-items: center;
+	gap: calc(2 * var(--default-grid-baseline));
+	min-height: var(--folder-tree-target);
+	padding-block: 0;
+	padding-inline: calc(var(--folder-tree-level) * var(--folder-tree-indent)) calc(2 * var(--default-grid-baseline));
+	border-radius: var(--border-radius-element);
+}
+
+.folder-tree__note {
+	padding-inline-start: calc(var(--folder-tree-level) * var(--folder-tree-indent) + var(--folder-tree-target) + 2 * var(--default-grid-baseline));
+}
+
+.folder-tree__note,
+.folder-tree__meta {
+	color: var(--color-text-maxcontrast);
+}
+
+.folder-tree__note--failed {
+	color: var(--color-error-text);
+}
+
+.folder-tree__item {
+	cursor: pointer;
+}
+
+.folder-tree__item[aria-selected='true'] {
+	background-color: var(--color-primary-element-light);
+}
+
+.folder-tree__item[aria-disabled='true'] {
+	color: var(--color-text-maxcontrast);
+	cursor: default;
+}
+
+.folder-tree__item:focus-visible {
+	outline: 2px solid var(--color-primary-element);
+	outline-offset: -2px;
+}
+
+.folder-tree__twisty,
+.folder-tree__spacer {
+	flex: none;
+	width: var(--folder-tree-target);
+}
+
+/* Outranks Nextcloud's global button margin, which would make the row taller. */
+.folder-tree .folder-tree__item > .folder-tree__twisty {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: var(--folder-tree-target);
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	border: none;
+	border-radius: var(--border-radius-element);
+	background: none;
+	color: var(--color-main-text);
+	cursor: pointer;
+}
+
+.folder-tree__item[aria-expanded='true'] .folder-tree__twisty :deep(svg) {
+	transform: rotate(90deg);
+}
+
+.folder-tree__box {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	border: 2px solid var(--color-border-maxcontrast);
+	border-radius: var(--border-radius-small);
+}
+
+.folder-tree__item[aria-selected='true'] .folder-tree__box {
+	border-color: var(--color-primary-element);
+	background-color: var(--color-primary-element);
+	color: var(--color-primary-element-text);
+}
+
+.folder-tree__box--included {
+	border-style: dashed;
+	border-color: var(--color-primary-element);
+	color: var(--color-primary-element-light-text);
+}
+
+.folder-tree__box--excluded {
+	border-color: var(--color-text-maxcontrast);
+	color: var(--color-text-maxcontrast);
+}
+
+.folder-tree__count {
+	flex: none;
+	color: var(--color-text-maxcontrast);
+	font-size: var(--font-size-small, 13px);
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.folder-tree__included,
+.folder-tree__excluded {
+	flex: none;
+	color: var(--color-text-maxcontrast);
+	font-size: var(--font-size-small, 13px);
+	white-space: nowrap;
+}
+
+.folder-tree__label {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.folder-tree__name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.folder-tree__name--excluded {
+	color: var(--color-text-maxcontrast);
+	text-decoration: line-through;
+}
+
+.folder-tree__badge {
+	flex: none;
+	padding: 0 calc(2 * var(--default-grid-baseline));
+	border: 1px solid var(--color-primary-element);
+	border-radius: var(--border-radius-pill);
+	color: var(--color-primary-element-light-text);
+	font-size: var(--font-size-small, 13px);
+	white-space: nowrap;
+}
+
+.folder-tree__badge--excluded {
+	border-color: var(--color-text-maxcontrast);
+	color: var(--color-text-maxcontrast);
+}
+
+@media (pointer: coarse) {
+	.folder-tree {
+		--folder-tree-target: 44px;
+	}
+}

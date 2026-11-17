@@ -32,6 +32,22 @@ describe('hotkey', () => {
 		expect(action(press('k'))).toBeNull()
 	})
 
+	// spec: SERIES-002.15
+	it('jumps to the previous or next series with Alt+← and Alt+→, and leaves other Alt keys alone', () => {
+		expect(action(press('ArrowLeft', { altKey: true }))).toEqual({ kind: 'previous-series' })
+		expect(action(press('ArrowRight', { altKey: true }), VI)).toEqual({ kind: 'next-series' })
+		expect(action(press('ArrowUp', { altKey: true }))).toBeNull()
+		expect(action(press('ArrowLeft', { altKey: true, shiftKey: true }))).toBeNull()
+	})
+
+	// spec: GRID-004.3
+	it('toggles the file names with Shift+J, with or without vi keys, but not with Caps Lock alone', () => {
+		expect(action(press('J', { shiftKey: true }))).toEqual({ kind: 'file-names' })
+		expect(action(press('J', { shiftKey: true }), VI)).toEqual({ kind: 'file-names' })
+		expect(action(press('J', { capsLock: true }))).toBeNull()
+		expect(action(press('J', { capsLock: true }), VI)).toEqual({ kind: 'down' })
+	})
+
 	// spec: KEYS-001.3
 	it('rates by a digit, and by Shift and the digit key whatever the layout prints', () => {
 		expect(action(press('3'))).toEqual({ kind: 'decide', intent: { kind: 'rating', rating: 3 }, advance: false })
@@ -180,6 +196,11 @@ describe('KEYMAP', () => {
 	// spec: TAGS-003.1
 	it('lists T for the tag entry', () => {
 		expect(KEYMAP.find((entry) => entry.id === 'tag')?.caps).toEqual(['T'])
+	})
+
+	// spec: GRID-004.3
+	it('lists Shift+J for the file names among the views', () => {
+		expect(KEYMAP.find((entry) => entry.id === 'file-names')).toEqual({ id: 'file-names', group: 'views', caps: ['Shift+J'] })
 	})
 
 	// spec: KEYS-001.12

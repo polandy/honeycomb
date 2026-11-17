@@ -12,10 +12,18 @@
 	<licence>agpl</licence>
 	<author>Andy Pollari</author>
 	<namespace>Honeycomb</namespace>
+	<documentation>
+		<user>https://github.com/polandy/honeycomb/blob/main/docs/user/README.md</user>
+		<admin>https://github.com/polandy/honeycomb/blob/main/docs/user/admin/README.md</admin>
+		<developer>https://github.com/polandy/honeycomb/blob/main/docs/dev/README.md</developer>
+	</documentation>
 	<category>multimedia</category>
 	<website>https://github.com/polandy/honeycomb</website>
 	<bugs>https://github.com/polandy/honeycomb/issues</bugs>
 	<repository type="git">https://github.com/polandy/honeycomb.git</repository>
+	<screenshot>https://raw.githubusercontent.com/polandy/honeycomb-assets/main/ux-review-2026-11/grid-ipad-land-light.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/polandy/honeycomb-assets/main/ux-review-2026-11/loupe-ipad-land-light.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/polandy/honeycomb-assets/main/ux-review-2026-11/series-compare-ipad-port-light.png</screenshot>
 	<dependencies>
 		<php min-version="8.3"/>
 		<nextcloud min-version="35" max-version="35"/>
@@ -23,6 +31,9 @@
 	<background-jobs>
 		<job>OCA\Honeycomb\BackgroundJob\RemoveVanishedDecisions</job>
 	</background-jobs>
+	<commands>
+		<command>OCA\Honeycomb\Command\ClearCache</command>
+	</commands>
 	<navigations>
 		<navigation>
 			<id>honeycomb</id>

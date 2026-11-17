@@ -6,13 +6,13 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_SWIPES } from '../../../src/logic/loupe-gesture.ts'
 import { DEFAULT_NAME_TEMPLATE } from '../../../src/logic/name-template/presets.ts'
 import { DEFAULT_PAIRING_SETTINGS, pairPictures } from '../../../src/logic/pairing.ts'
-import { addExtension, DEFAULT_SETTINGS, DEFAULT_SUBFOLDERS, folderMode, pairingSettings, parseSettings, removeExtension } from '../../../src/logic/settings.ts'
+import { addExtension, asksBeforeSidecarWrite, CONFIRMED_FOLDER_CAP, DEFAULT_SETTINGS, DEFAULT_SUBFOLDERS, folderMode, pairingSettings, parseSettings, removeExtension, withConfirmedFolders } from '../../../src/logic/settings.ts'
 
 describe('DEFAULT_SETTINGS', () => {
-	// spec: SETTINGS-001.6
+	// spec: SETTINGS-001.6, GRID-004.1
 	it('pairs as the pairing defaults and turns on all but the vi keys', () => {
 		expect(pairingSettings(DEFAULT_SETTINGS)).toEqual(DEFAULT_PAIRING_SETTINGS)
-		expect(DEFAULT_SETTINGS).toMatchObject({ showSingles: true, swipes: DEFAULT_SWIPES, autoAdvance: true, flagButtonsShown: true, filmstripPinned: false, ratingRowPinned: false, viKeys: false })
+		expect(DEFAULT_SETTINGS).toMatchObject({ showSingles: true, swipes: DEFAULT_SWIPES, autoAdvance: true, flagButtonsShown: true, filmstripPinned: false, ratingRowPinned: false, viKeys: false, showFileNames: false })
 		expect(DEFAULT_SUBFOLDERS).toEqual({ rawSubfolder: 'RAW', renderedSubfolder: 'JPG' })
 	})
 })
@@ -31,9 +31,13 @@ describe('parseSettings', () => {
 			filmstripPinned: true,
 			ratingRowPinned: true,
 			viKeys: true,
+			showFileNames: true,
 			moveFavourites: ['/Archive'],
 			moveRecent: ['/Archive', '/Best'],
 			moveTemplate: '{name:lower}.{ext}',
+			sidecarWrite: 'on',
+			sidecarExistingHint: true,
+			confirmedSharedFolders: [7, 12],
 		}
 
 		expect(parseSettings(JSON.parse(JSON.stringify(settings)))).toEqual(settings)
@@ -44,9 +48,9 @@ describe('parseSettings', () => {
 		expect(parseSettings(value)).toEqual(DEFAULT_SETTINGS)
 	})
 
-	// spec: SETTINGS-001.6
+	// spec: SETTINGS-001.6, GRID-004.1
 	it('takes the default of each missing or invalid field and keeps the rest', () => {
-		expect(parseSettings({ showSingles: 'no', autoAdvance: false, viKeys: 1, swipes: { up: 'rejected', down: 'maybe' } })).toEqual({
+		expect(parseSettings({ showSingles: 'no', autoAdvance: false, viKeys: 1, showFileNames: 'yes', swipes: { up: 'rejected', down: 'maybe' } })).toEqual({
 			...DEFAULT_SETTINGS,
 			autoAdvance: false,
 			swipes: { up: 'rejected', down: 'rejected' },
@@ -88,6 +92,54 @@ describe('parseSettings', () => {
 	// spec: SETTINGS-001.6
 	it('takes the default swipes when they are no object', () => {
 		expect(parseSettings({ swipes: 'up' }).swipes).toEqual(DEFAULT_SWIPES)
+	})
+})
+
+describe('sidecarWrite', () => {
+	// spec: XMP-003.18, SETTINGS-001.24
+	it('is off by default and for a value other than off and on', () => {
+		expect(DEFAULT_SETTINGS.sidecarWrite).toBe('off')
+		expect(parseSettings({}).sidecarWrite).toBe('off')
+		expect(parseSettings({ sidecarWrite: 'always' }).sidecarWrite).toBe('off')
+		expect(parseSettings({ sidecarWrite: true }).sidecarWrite).toBe('off')
+		expect(parseSettings({ sidecarWrite: 'on' }).sidecarWrite).toBe('on')
+	})
+
+	// spec: SETTINGS-001.26
+	// spec: SETTINGS-001.24
+	it('reads a stored name of an object property as off, not as a mode', () => {
+		expect(parseSettings({ sidecarWrite: 'constructor' }).sidecarWrite).toBe('off')
+		expect(parseSettings({ sidecarWrite: '__proto__' }).sidecarWrite).toBe('off')
+	})
+
+	it('reads a stored existing as off with the hint, and existing and new as on', () => {
+		expect(parseSettings({ sidecarWrite: 'existing' })).toMatchObject({ sidecarWrite: 'off', sidecarExistingHint: true })
+		expect(parseSettings({ sidecarWrite: 'existing-and-new' })).toMatchObject({ sidecarWrite: 'on', sidecarExistingHint: false })
+		expect(parseSettings({ sidecarWrite: 'off', sidecarExistingHint: 'yes' }).sidecarExistingHint).toBe(false)
+	})
+
+	// spec: SETTINGS-001.24
+	it('asks only when turning on', () => {
+		expect(asksBeforeSidecarWrite('off', 'on')).toBe(true)
+		expect(asksBeforeSidecarWrite('off', 'off')).toBe(false)
+		expect(asksBeforeSidecarWrite('on', 'off')).toBe(false)
+	})
+})
+
+describe('confirmedSharedFolders', () => {
+	// spec: XMP-008.4
+	it('keeps positive whole file ids once, the newest last, at most the cap', () => {
+		expect(parseSettings({ confirmedSharedFolders: [3, 3, -1, 2.5, '4', 5] }).confirmedSharedFolders).toEqual([3, 5])
+		expect(parseSettings({ confirmedSharedFolders: 'all' }).confirmedSharedFolders).toEqual([])
+		const many = Array.from({ length: CONFIRMED_FOLDER_CAP + 2 }, (_, index) => index + 1)
+		expect(parseSettings({ confirmedSharedFolders: many }).confirmedSharedFolders).toEqual(many.slice(2))
+	})
+
+	// spec: XMP-008.4
+	it('adds confirmed folders once, dropping the oldest past the cap', () => {
+		expect(withConfirmedFolders([3, 5], [5, 8])).toEqual([3, 5, 8])
+		const full = Array.from({ length: CONFIRMED_FOLDER_CAP }, (_, index) => index + 1)
+		expect(withConfirmedFolders(full, [999])).toEqual([...full.slice(1), 999])
 	})
 })
 

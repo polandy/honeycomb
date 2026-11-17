@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Refuses reading the text of a caught error or a rejection, so it cannot reach the user (docs/conventions.md §3).
+// Refuses reading the text of a caught error or a rejection, so it cannot reach the user (docs/dev/conventions.md §3).
 
 const TEXT_PROPERTIES = new Set(['message', 'stack', 'toString'])
 const WRAPPERS = new Set(['TSAsExpression', 'TSNonNullExpression', 'TSTypeAssertion', 'TSSatisfiesExpression'])
 const TEXT_FUNCTIONS = new Set(['String', 'JSON.stringify'])
-const MESSAGE = 'Raw error text never reaches the user: log the error and show a t() sentence (docs/conventions.md §3).'
+const MESSAGE = 'Raw error text never reaches the user: log the error and show a t() sentence (docs/dev/conventions.md §3).'
 
 /**
  * The dotted name of a called function, such as `JSON.stringify`.

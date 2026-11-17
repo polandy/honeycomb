@@ -4,10 +4,12 @@
 -->
 <script setup lang="ts">
 import type { AppSeams } from './app-seams.ts'
+import type { CullStep } from './cull.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
+import type { SidecarFailure } from './logic/sidecar-sync.ts'
 
 import { computed, ref, useTemplateRef, watch } from 'vue'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
@@ -15,27 +17,27 @@ import NcContent from '@nextcloud/vue/components/NcContent'
 import AppNavigation from './components/AppNavigation.vue'
 import AppTooltip from './components/AppTooltip.vue'
 import CullDialogs from './components/CullDialogs.vue'
-import CullEmptyState from './components/CullEmptyState.vue'
-import FilterBar from './components/FilterBar.vue'
 import FolderPicker from './components/FolderPicker.vue'
-import GridNotices from './components/GridNotices.vue'
+import GridScreen from './components/GridScreen.vue'
 import GridSkeleton from './components/GridSkeleton.vue'
-import GridToolbar from './components/GridToolbar.vue'
+import LoupeScreen from './components/LoupeScreen.vue'
 import NoFolderState from './components/NoFolderState.vue'
-import PhotoGrid from './components/PhotoGrid.vue'
-import PhotoLoupe from './components/PhotoLoupe.vue'
-import SelectionBar from './components/SelectionBar.vue'
-import SeriesCompareFlow from './components/SeriesCompareFlow.vue'
+import SeriesCompareScreen from './components/SeriesCompareScreen.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutSheet from './components/ShortcutSheet.vue'
 import TagEntry from './components/TagEntry.vue'
 import UndoToast from './components/UndoToast.vue'
+import WriteOnDialog from './components/WriteOnDialog.vue'
 import { APP_SEAMS } from './app-seams.ts'
+import { clearCacheWithToast } from './cache-clear.ts'
+import { provideCullContext } from './cull-context.ts'
 import { useCull } from './cull.ts'
 import { useDeleteFlow } from './delete-flow.ts'
+import { freshCheck, sidecarSaver } from './fresh-check.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
-import { DEFAULT_FILTERS } from './logic/picture-filter.ts'
+import { useLegacy } from './legacy.ts'
+import { waitSeconds } from './logic/retry-after.ts'
 import { useLoupeOpening } from './loupe-opening.ts'
 import { useMoveFlow } from './move-flow.ts'
 import { useRecent } from './recent.ts'
@@ -44,11 +46,13 @@ import { useResume } from './resume.ts'
 import { useSelectionMode } from './selection-mode.ts'
 import { useSeriesCompare } from './series-compare.ts'
 import { useSettings } from './settings.ts'
+import { useBundledSidecars } from './sidecar-bundle.ts'
 import { useSidecarFlow } from './sidecar-flow.ts'
 import { useTagEntryTargets } from './tag-entry-targets.ts'
 import { useToast } from './toast.ts'
 import { useToastedDecisions } from './toasted-decisions.ts'
 import { useViewState } from './view-state.ts'
+import { useWriteLock } from './write-lock.ts'
 
 const props = withDefaults(defineProps<AppSeams>(), APP_SEAMS)
 
@@ -56,37 +60,51 @@ const toast = useToast(props.schedule)
 const { settings, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, (message) => toast.show(message))
 const viewState = useViewState(props.viewState, props.storage)
 const settingsOpen = ref(false)
-const sidecarFlow = useSidecarFlow(props.sidecars, toast.show)
-const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions, tags: props.tags }, props.storage, () => settings.value, sidecarFlow.sync)
-const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
-const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
-const { loupe, shown: loupeShown, picture: shownInLoupe, page: pageLoupe, land: landInLoupe, close: closeLoupe } = useLoupeOpening((index) => grid.value?.reveal(index), cull.passes)
-const loupeView = useTemplateRef<InstanceType<typeof PhotoLoupe>>('loupeView')
-const filterBar = useTemplateRef<InstanceType<typeof FilterBar>>('filterBar')
+const sidecarsReady = computed(() => settings.value.sidecarWrite === 'on')
+const legacy = useLegacy(props.legacy, props.saveFile, (message) => toast.show(message), () => sidecarsReady.value)
+const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, refuseFailed, legacy.acknowledge)
+const sidecars = useBundledSidecars(sidecarFlow.sync, props.schedule, props.onPageHide)
+const writeLock = useWriteLock(() => settings.value, updateSettings, toast.show, retryLocked)
+const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, wait: waitSeconds(props.schedule), warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions, lookupSeries: props.lookupSeries, saveSeries: props.saveSeries, tags: props.tags }, props.storage, () => settings.value, sidecars, writeLock.locked)
+/** Locks the pictures whose sidecar a write refused (XMP-008.6). */
+function refuseFailed(failed: readonly SidecarFailure[]) {
+	cull.refuse(failed)
+}
+const { folderSet, pictures, folders, view, progress, filtersOpen, pickerOpen, tileSize } = cull
+const gridScreen = useTemplateRef<InstanceType<typeof GridScreen>>('gridScreen')
+const grid = computed(() => gridScreen.value?.grid ?? null)
+const loupeOpening = useLoupeOpening((index) => grid.value?.reveal(index), cull.passes)
+const { loupe, picture: shownInLoupe, land: landInLoupe } = loupeOpening
+watch(shownInLoupe, sidecars.leave)
+const loupeScreen = useTemplateRef<InstanceType<typeof LoupeScreen>>('loupeScreen')
 const headerShown = ref(true)
 /** Opens the loupe on the shown picture at the index. */
 const openLoupe = (index: number) => (loupe.value = { pictures: view.value, index })
 const shortcutsOpen = ref(false)
 const selection = useSelectionMode(() => view.value, pictures)
-const { selecting, selected } = selection
-const common = computed(() => cull.common(selected.value))
+const { selected } = selection
 watch(cull.pairing, selection.selectNone)
 
-const { decide, pickRest, tag, undo, redo } = useToastedDecisions(cull, toast.show)
+const { decide, pickRest, tag, removeFromSeries, dissolveSeries, mergeSeries, markSeries, editSelection, undo, redo, toastChange } = useToastedDecisions(cull, toast.show)
+/** Toasts a step taken once its lock was lifted (XMP-008.7). */
+function retryLocked(step: CullStep | null) {
+	toastChange(step)
+}
 const tagEntry = useTagEntryTargets()
-const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: decideInCompare, pickRest, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })
+const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: decideInCompare, pickRest, removeFromSeries, dissolve: dissolveSeries, everySeries: () => cull.everySeries.value, merge: mergeSeries, markSeries, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })
 const restOffer = useRestOffer({ seriesOf: () => cull.seriesOf.value, decisionOf: cull.decisionOf, compare: seriesCompare, shown: shownInLoupe, land: landInLoupe })
 /** Decides in the series compare, offering *Reject the other N* after a Pick in its viewer. */
 function decideInCompare(intent: DecisionIntent, picture: Picture<ListingEntry>, inViewer: boolean) {
 	decide(intent, [picture], () => (inViewer ? restOffer(intent, picture) : null))
 }
-const seriesFlow = useTemplateRef<InstanceType<typeof SeriesCompareFlow>>('seriesFlow')
+const seriesScreen = useTemplateRef<InstanceType<typeof SeriesCompareScreen>>('seriesScreen')
 const overlayScreen = computed(() => (loupe.value !== null ? '.photo-loupe' : seriesCompare.viewer.open.value ? '.series-viewer' : undefined))
-const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
-const { dialog: deleteDialog, rejected, rawRemovable } = deleting
-const moving = useMoveFlow({ view: () => view.value, settings: () => settings.value, updateSettings, probe: props.move.probeTargets, move: props.move.movePictures, removeFiles: cull.removeFiles, restoreFiles: cull.restoreFiles, listing: () => folderSet.value, loupe, toast: toast.show })
+const check = freshCheck({ listEntries: props.listEntries, ...props.sidecars }, { pairing: () => cull.pairing.value, writable: (picture) => cull.writabilityOf(picture) === 'writable', writeSidecar: sidecarSaver(sidecarFlow.sync) })
+const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, flush: sidecars.flush, current: sidecarFlow.sync.current, check, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
+const { dialog: deleteDialog } = deleting
+const moving = useMoveFlow({ view: () => view.value, settings: () => settings.value, updateSettings, probe: props.move.probeTargets, move: props.move.movePictures, flush: sidecars.flush, removeFiles: cull.removeFiles, restoreFiles: cull.restoreFiles, listing: () => folderSet.value, loupe, toast: toast.show })
 const recent = useRecent(props.positions, props.listEntries, { folderSet: () => folderSet.value, progress: () => progress.value, pairing: () => cull.pairing.value }, (message) => toast.show(message))
-const resume = useResume(recent.positions, { folderSet: () => folderSet.value, pictures: () => pictures.value, view: () => view.value, progress: () => progress.value, decisionOf: cull.decisionOf, shown: shownInLoupe, openLoupe }, toast.show)
+const resume = useResume(recent.positions, { folderSet: () => folderSet.value, pictures: () => pictures.value, view: () => view.value, progress: () => progress.value, decidedOf: cull.decidedOf, shown: shownInLoupe, openLoupe }, toast.show)
 /** Opens a folder set from *Recent* at its position. */
 function openRecent(position: ResumePosition) {
 	void recent.open(position, { open: cull.open, resumeAt: resume.resumeAt, resumeOpen: () => {
@@ -96,28 +114,31 @@ function openRecent(position: ResumePosition) {
 }
 recent.refresh()
 watch(pickerOpen, (open) => open && recent.refresh())
-const movable = computed(() => (activeFilters.value > 0 ? view.value : pictures.value.filter((picture) => cull.decisionOf(picture).flag === 'picked')))
 
-const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => filterBar.value?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
+const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => gridScreen.value?.filterBar?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
+
+provideCullContext({ cull, selection, decide, editSeries: editSelection, deleting, moving, resume, seriesCompare, sidecars: sidecarFlow, unsaved: sidecars.waiting, legacy, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage })
 
 /** Opens the confirmed folder set and offers its resume position. */
 function openFolderSet(...opened: Parameters<typeof cull.open>) {
 	cull.open(...opened)
 	resume.offer()
 }
+/** Shows or hides the file names above the grid's tiles (GRID-004.3). */
+const toggleFileNames = () => updateSettings({ showFileNames: !settings.value.showFileNames })
 /** Opens or closes the shortcut sheet. */
 const toggleShortcuts = () => (shortcutsOpen.value = !shortcutsOpen.value)
 useHotkeys(() => {
-	if (pickerOpen.value || settingsOpen.value || tagEntry.targets.value !== null || deleteDialog.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
+	if (pickerOpen.value || settingsOpen.value || tagEntry.targets.value !== null || deleteDialog.value !== null || sidecarFlow.open.value || writeLock.asking.value !== null || moving.pictures.value !== null || moving.report.value !== null) {
 		return null
 	}
 	if (shortcutsOpen.value || folderSet.value === null) {
 		return { shortcuts: toggleShortcuts }
 	}
 	if (seriesCompare.open.value) {
-		return { undo, redo, shortcuts: toggleShortcuts, ...(seriesFlow.value?.hotkeys() ?? seriesCompare.hotkeys) }
+		return { undo, redo, shortcuts: toggleShortcuts, ...(seriesScreen.value?.hotkeys() ?? seriesCompare.hotkeys) }
 	}
-	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: () => deleting.summariseShown(selected.value, () => grid.value?.focusedIndex() ?? 0), move: () => moving.openShown(selected.value, () => grid.value?.focusedIndex() ?? 0), ...(loupe.value === null ? { ...gridKeys, compare: seriesCompare.start } : loupeView.value?.hotkeys) }
+	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: () => deleting.summariseShown(selected.value, () => grid.value?.focusedIndex() ?? 0), move: () => moving.openShown(selected.value, () => grid.value?.focusedIndex() ?? 0), ...(loupe.value === null ? { ...gridKeys, compare: seriesCompare.start, 'file-names': toggleFileNames } : loupeScreen.value?.loupe?.hotkeys) }
 }, () => settings.value.viKeys)
 </script>
 
@@ -131,90 +152,7 @@ useHotkeys(() => {
 			@openSettings="settingsOpen = true" />
 		<NcAppContent class="honeycomb">
 			<GridSkeleton v-if="recent.listing.value" class="honeycomb__grid" :tileSize="tileSize" />
-			<template v-else-if="folderSet !== null">
-				<GridToolbar
-					v-if="headerShown"
-					:folderSet="folderSet"
-					:folders="folders"
-					:tileSize="tileSize"
-					:groupByFolder="groupByFolder"
-					:flags="filters.flags"
-					:decided="shownProgress.decided"
-					:total="shownProgress.total"
-					:filtered="shownProgress.total < progress.total"
-					:activeFilters="activeFilters"
-					:filtersOpen="filtersOpen"
-					:sortOrder="sortOrder"
-					:selecting="selecting"
-					:selected="selected.length"
-					:rejected="rejected.length"
-					:series="cull.series.value.length"
-					:rawRemovable="rawRemovable"
-					:movable="movable.length"
-					:sidecarsShared="cull.sharedPictures.value.length > 0"
-					:resumeName="resume.resumeName.value"
-					:similarity="cull.hashProgress.value"
-					@changeFolders="pickerOpen = true"
-					@update:tileSize="cull.setTileSize"
-					@update:groupByFolder="groupByFolder = $event"
-					@update:flags="cull.setFlags"
-					@update:filtersOpen="filtersOpen = $event"
-					@update:sortOrder="sortOrder = $event"
-					@update:selecting="selection.setSelecting"
-					@selectAll="selection.selectAll"
-					@selectNone="selection.selectNone"
-					@reviewRejects="deleting.review"
-					@compareSeries="seriesCompare.start"
-					@removeRaws="deleting.removeRaws"
-					@move="moving.open(movable)"
-					@resume="resume.resume"
-					@writeSidecars="sidecarFlow.ask(cull.sharedDecided())"
-					@openSettings="settingsOpen = true" />
-				<FilterBar
-					v-if="filtersOpen && headerShown"
-					ref="filterBar"
-					:filters="filters"
-					:folders="folderPaths"
-					:folderSet="folderSet"
-					:shown="view.length"
-					:total="pictures.length"
-					:known="cull.tags.known.value"
-					@update:filters="filters = $event" />
-				<GridNotices :pictures="view" :saveFailed="saveFailed" />
-				<PhotoGrid
-					v-if="view.length > 0"
-					ref="grid"
-					class="honeycomb__grid"
-					:pictures="view"
-					:folderSet="folderSet"
-					:groupByFolder="grouped"
-					:tileSize="tileSize"
-					:selecting="selecting"
-					:selection="selection.selection.value"
-					:decisionOf="cull.decisionOf"
-					:tagsOf="cull.tags.tagsOf"
-					:seriesSizes="cull.seriesSizes.value"
-					@update:tileSize="cull.setTileSize"
-					@update:selecting="selection.setSelecting"
-					@update:selection="selection.select"
-					@open="openLoupe"
-					@scroll="resume.dismiss" />
-				<CullEmptyState
-					v-else
-					:reason="empty"
-					:rejected="rejected.length"
-					@clearFilters="filters = DEFAULT_FILTERS"
-					@showAll="cull.setFlags(new Set())"
-					@reviewRejects="deleting.review" />
-				<SelectionBar
-					v-if="selecting"
-					:common="common"
-					:selected="selected.length"
-					@decide="decide($event, selected)"
-					@tag="tagEntry.open(selected)"
-					@move="moving.open(selected)"
-					@delete="deleting.summarise(selected)" />
-			</template>
+			<GridScreen v-else-if="folderSet !== null" ref="gridScreen" />
 			<NoFolderState v-else @chooseFolder="pickerOpen = true" />
 			<FolderPicker
 				v-if="pickerOpen"
@@ -231,47 +169,31 @@ useHotkeys(() => {
 				:deleting="deleting"
 				:moving="moving"
 				:sidecars="sidecarFlow"
+				:sidecarsReady="sidecarsReady"
 				:folderSet="folderSet"
 				:folders="folders"
 				:decisionOf="cull.decisionOf"
 				:listFolders="props.listFolders"
 				:container="loupe !== null ? '.photo-loupe' : undefined" />
-			<SeriesCompareFlow
-				ref="seriesFlow"
-				:flow="seriesCompare"
-				:container="seriesCompare.oneSeries.value ? '.photo-loupe' : 'body'"
-				:decisionOf="cull.decisionOf"
-				@tag="tagEntry.open([$event])" />
+			<SeriesCompareScreen ref="seriesScreen" />
 			<SettingsDialog
 				v-model:open="settingsOpen"
 				:settings="settings"
 				:gestureGuideSeen="viewState.gestureGuideSeen.value"
+				:versionsApp="props.versionsApp"
 				@update="updateSettings"
-				@showGestureGuide="viewState.showGestureGuide" />
+				@showGestureGuide="viewState.showGestureGuide"
+				@clearCache="clearCacheWithToast(props.clearCache, toast.show)" />
+			<WriteOnDialog
+				v-if="writeLock.asking.value !== null"
+				:turnsOn="writeLock.turnsOn.value"
+				:sharedNames="writeLock.sharedNames.value"
+				:versionsApp="props.versionsApp"
+				:container="loupe !== null ? '.photo-loupe' : undefined"
+				@cancel="writeLock.cancel"
+				@confirm="writeLock.confirm" />
 			<Teleport to="body">
-				<PhotoLoupe
-					v-if="loupeShown !== null && folderSet !== null"
-					ref="loupeView"
-					:index="loupeShown.index"
-					:pictures="loupeShown.pictures"
-					:folderSet="folderSet"
-					:decisionOf="cull.decisionOf"
-					:seriesOf="cull.seriesOf.value"
-					:tagsOf="cull.tags.tagsOf"
-					:writesSidecars="cull.tags.writable"
-					:storage="props.storage"
-					:viewState="viewState"
-					:settings="settings"
-					@update:index="pageLoupe"
-					@updateSettings="updateSettings"
-					@decide="(intent, picture) => decide(intent, [picture], () => restOffer(intent, picture))"
-					@toast="toast.show($event.message, $event.action)"
-					@allDecided="deleting.allDecided"
-					@move="moving.openShown([], () => 0)"
-					@tag="tagEntry.open([$event])"
-					@compareSeries="(series, picture) => seriesCompare.startOn(series, picture, landInLoupe)"
-					@pickRest="(series, picture) => seriesCompare.pickRestAndLand(series, picture, landInLoupe)"
-					@close="closeLoupe" />
+				<LoupeScreen ref="loupeScreen" />
 				<TagEntry
 					v-if="tagEntry.targets.value !== null"
 					:targets="tagEntry.targets.value.map(cull.tags.tagsOf)"
@@ -291,5 +213,7 @@ useHotkeys(() => {
 </template>
 
 <style src="./flag-fills.css" />
+
+<style src="./navigation-toggle.css" />
 
 <style scoped src="./app.css" />

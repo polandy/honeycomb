@@ -28,6 +28,8 @@ export function sidecarFailureReason(reason: SidecarFailureReason): string {
 			return t('honeycomb', 'The sidecar is locked (another process is writing to it)')
 		case 'changed':
 			return t('honeycomb', 'The sidecar changed again while honeycomb wrote it')
+		case 'noVersions':
+			return t('honeycomb', 'File versions are off, so honeycomb does not overwrite an existing sidecar')
 		case 'unreachable':
 			return t('honeycomb', 'Could not reach the server')
 		default:

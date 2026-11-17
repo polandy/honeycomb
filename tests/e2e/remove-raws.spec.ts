@@ -6,7 +6,7 @@ import { ADMIN } from './admin.ts'
 import { cullFolder } from './cull.ts'
 import { createFolder, JPEG, RAW, requestToken, upload } from './files.ts'
 
-const SIDECAR = Buffer.from('<x:xmpmeta xmlns:x="adobe:ns:meta/"/>')
+const SIDECAR = Buffer.from('<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/></x:xmpmeta>')
 
 // spec: DELETE-003.4, DELETE-003.6
 test('removes only the RAW and its own sidecar of each pair not kept, after one is kept in the summary', async ({ page }) => {

@@ -48,15 +48,34 @@ Changing a list pairs the open folders again at once; your decisions stay.
   `/` opens the filters. `g` then no longer opens the grid: `Esc` does. See
   [keyboard shortcuts](keyboard-shortcuts.md#vi-keys).
 
+## XMP sidecars
+
+- **Write decisions to XMP sidecars:** whether your ratings, flags, colour labels, *Keep RAW* and
+  tags also go into the XMP sidecars next to your photos, where digiKam, darktable and Lightroom
+  read them. honeycomb rates only what it can write, so with *Off* (the default) you can view,
+  compare, move and delete, but not rate. *On* updates every sidecar and gives each file without
+  one a new sidecar, like `IMG_0001.NEF.xmp`. Turning it *On*, here or at your first rating, asks
+  you to confirm and explains what changes; *Cancel* keeps it off. *On* needs the Versions app, so
+  that every write can be undone; without it ask your administrator. If you had chosen *Only
+  existing sidecars* before, that choice is gone and writing is *Off* until you turn it *On*.
+  Reading sidecars works either way. See [ratings, flags and colour labels](ratings-flags-colours.md).
+
 ## Moving photos
 
 - **Name template:** how a moved photo is named, relative to the folder you move it to. All files
   of a photo, sidecars included, get the same new name. Choose a preset (*By day*, *By day, full
   date in the name*, *Keep names*) or type your own; the tokens are described in
-  [name templates](../05-name-templates.md). A valid template is saved as you type. An invalid one
+  [name templates](../dev/05-name-templates.md). A valid template is saved as you type. An invalid one
   is marked where the problem is, and moving keeps using the last valid template.
 - **Preview:** five sample photos show the names the template gives. Notes mark a name that
   collides and gets a `-2` suffix, a photo without an EXIF time (its file time is used) and one
   without a camera model (`unknown`).
 - **Favourite folders:** the folders you starred in the move dialog. ✕ removes one; add them in
   the move dialog.
+
+## Cache
+
+- **Clear cache:** honeycomb remembers what it read from your XMP sidecars and JPEGs, and the
+  visual hashes of your photos, so a folder opens fast. *Clear cache* removes that at once; the
+  next visit of a folder reads its files again. Your sidecars, decisions and tags stay. A message
+  says when the cache is cleared or could not be.

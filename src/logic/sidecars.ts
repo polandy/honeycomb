@@ -5,7 +5,7 @@ import type { FileName } from './file-name.ts'
 /** The extension of a sidecar, compared in lower case. */
 export const SIDECAR_EXTENSION = 'xmp'
 
-/** darktable names a duplicate's sidecar `IMG_0001_01.NEF.xmp` (`docs/06-xmp-interop.md`). */
+/** darktable names a duplicate's sidecar `IMG_0001_01.NEF.xmp` (`docs/dev/06-xmp-interop.md`). */
 const DARKTABLE_DUPLICATE = /^(.+)_\d+(\.[^.]+)$/
 
 /** A picture as sidecars see it: its pairing folder, base name and member file names. */
@@ -16,7 +16,7 @@ export interface SidecarOwner {
 	readonly ambiguous: boolean
 }
 
-/** Finds a sidecar's owner by member file name, darktable duplicate or shared base name (`docs/decisions.md`). */
+/** Finds a sidecar's owner by member file name, darktable duplicate or shared base name (`docs/dev/decisions.md`). */
 export function sidecarOwnerFinder(owners: readonly SidecarOwner[]): (sidecar: FileName) => number | undefined {
 	const exact = new Map<string, number[]>()
 	const ignoringCase = new Map<string, number[]>()

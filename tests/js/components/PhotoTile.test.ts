@@ -225,21 +225,6 @@ describe('PhotoTile', () => {
 		expect(wrapper.find('.photo-tile__pair--keep-raw').exists()).toBe(false)
 	})
 
-	// spec: SERIES-002.10
-	it('shows a read-only series badge with its size, in the label too, and none outside a series', () => {
-		const wrapper = mountTile(PAIR, { series: 3 })
-		const badge = wrapper.find('.photo-tile__series')
-
-		expect(badge.text()).toBe('⧉ 3')
-		expect(badge.attributes('data-tip')!.startsWith(MARK)).toBe(true)
-		expect(badge.attributes('data-tip')!.replaceAll(MARK, '')).toBe('Series of 3')
-		expect(badge.attributes('title')).toBeUndefined()
-		expect(wrapper.attributes('data-tip-hover-only')).toBeDefined()
-		expect(badge.attributes('aria-hidden')).toBe('true')
-		expect(wrapper.attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3, Series of 3')
-		expect(mountTile(PAIR).find('.photo-tile__series').exists()).toBe(false)
-	})
-
 	it('shows the selection check only in selection mode and marks a selected tile', async () => {
 		const wrapper = mountTile(PAIR)
 		expect(wrapper.find('.photo-tile__check').exists()).toBe(false)
@@ -263,5 +248,17 @@ describe('PhotoTile', () => {
 		expect(wrapper.attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3, 2 tags')
 		expect(mountTile(PAIR).find('.photo-tile__tags').exists()).toBe(false)
 		expect(mountTile(PAIR, { tags: 0 }).find('.photo-tile__marks').exists()).toBe(false)
+	})
+
+	// spec: XMP-003.28
+	it('marks a picture whose sidecars are not saved yet in the marks shade and the label, nothing once saved', async () => {
+		const wrapper = mountTile(PAIR, { unsaved: true })
+
+		expect(wrapper.find('.photo-tile__marks .photo-tile__unsaved').exists()).toBe(true)
+		expect(wrapper.attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3, Not saved yet')
+
+		await wrapper.setProps({ unsaved: false })
+		expect(wrapper.find('.photo-tile__marks').exists()).toBe(false)
+		expect(wrapper.attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3')
 	})
 })

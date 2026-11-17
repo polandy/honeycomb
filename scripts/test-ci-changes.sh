@@ -16,8 +16,8 @@ expect() {
   fi
 }
 
-expect docs-only "markdown=true php=false ts=false app=false" docs/plan.md
-expect mockup-only "markdown=false php=false ts=false app=false" docs/mockup/index.html
+expect docs-only "markdown=true php=false ts=false app=false" docs/dev/plan.md
+expect mockup-only "markdown=false php=false ts=false app=false" docs/dev/mockup/index.html
 expect php-only "markdown=false php=true ts=false app=true" lib/Controller/PageController.php
 expect composer-lock "markdown=false php=true ts=false app=true" composer.lock
 expect ts-only "markdown=false php=false ts=true app=true" src/logic/pairing.ts
@@ -27,6 +27,10 @@ expect e2e-spec "markdown=false php=false ts=true app=true" tests/e2e/grid.spec.
 expect playwright-config "markdown=false php=false ts=true app=true" playwright.config.ts
 expect e2e-container-hook "markdown=false php=false ts=false app=true" tests/e2e/nextcloud/post-installation/enable-honeycomb.sh
 expect e2e-server "markdown=false php=false ts=false app=true" scripts/e2e-server.sh
+expect nextcloud-images "markdown=false php=false ts=false app=true" scripts/nextcloud-images.sh
+expect upgrade-test "markdown=false php=false ts=false app=true" scripts/upgrade-test.sh
+expect db-test "markdown=false php=true ts=false app=true" tests/php-db/SeriesMapperTest.php
+expect db-test-runner "markdown=false php=true ts=false app=true" scripts/php-db-tests.sh
 expect info-xml "markdown=false php=true ts=false app=true" appinfo/info.xml
 expect workflow "markdown=true php=true ts=true app=true" .github/workflows/ci.yml
 expect verify-script "markdown=true php=true ts=true app=true" scripts/verify.sh

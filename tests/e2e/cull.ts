@@ -12,7 +12,7 @@ const SETTINGS_URL = '/index.php/apps/honeycomb/api/v1/settings'
 export async function cullFolder(page: Page, folder: string): Promise<void> {
 	await page.goto('/index.php/apps/honeycomb/')
 	const picker = page.getByRole('dialog', { name: 'Choose folders' })
-	await picker.getByRole('option', { name: folder }).click()
+	await picker.getByRole('treeitem', { name: folder }).click()
 	await picker.getByRole('button', { name: `Cull ${folder}` }).click()
 }
 
@@ -48,7 +48,10 @@ export async function openLoupe(page: Page): Promise<Locator> {
 	return loupe
 }
 
-/** Stores the settings for the user, `{}` putting back the defaults. */
+/** The settings every test starts from: the defaults with writing to sidecars on, so a test may decide. */
+export const E2E_SETTINGS = { sidecarWrite: 'on' }
+
+/** Stores the settings for the user, `E2E_SETTINGS` putting back the ones every test starts from. */
 export async function putSettings(page: Page, settings: Record<string, unknown>): Promise<void> {
 	const response = await page.request.put(SETTINGS_URL, { data: { settings }, headers: { requesttoken: await requestToken(page) } })
 	expect(response.status(), await response.text()).toBe(200)

@@ -40,12 +40,12 @@ describe('moveReport', () => {
 	// spec: MOVE-003.6
 	it('reports each failed file with its result, unknown and incomplete answers as failed', () => {
 		const report = moveReport(SENT, [
-			[{ fileId: 2, result: 'movedBack', replaced: true }, { fileId: 1, result: 'locked', replaced: false }, { fileId: 3, result: 'skipped', replaced: false }],
+			[{ fileId: 2, result: 'movedBack', replaced: true }, { fileId: 1, result: 'otherStorage', replaced: false }, { fileId: 3, result: 'skipped', replaced: false }],
 			[{ fileId: 4, result: 'moved', replaced: false, path: '/Out/B.JPG' }],
 			[{ fileId: 5, result: 'teleported', replaced: false }],
 		])
 
-		expect(report.failed.map(({ file, result }) => [file.entry.fileId, result])).toEqual([[2, 'movedBack'], [1, 'locked'], [3, 'skipped'], [4, 'failed'], [5, 'failed']])
+		expect(report.failed.map(({ file, result }) => [file.entry.fileId, result])).toEqual([[2, 'movedBack'], [1, 'otherStorage'], [3, 'skipped'], [4, 'failed'], [5, 'failed']])
 		expect(report).toMatchObject({ moved: [], pictures: 0, replaced: 1 })
 	})
 

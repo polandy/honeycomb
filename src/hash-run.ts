@@ -6,7 +6,7 @@ import type { StoredVisualHash } from './logic/visual-hash.ts'
 import { computed, ref, shallowRef, triggerRef } from 'vue'
 import { logger } from './logger.ts'
 import { hashProgress } from './logic/hash-progress.ts'
-import { RateLimitedError } from './logic/retry-after.ts'
+import { sendLimited } from './logic/retry-after.ts'
 
 /** How many computed hashes one save of a run carries at most (SERIES-004.5). */
 export const HASH_RUN_SAVE_BATCH = 250
@@ -147,32 +147,15 @@ export function useHashRun(seams: HashRunSeams) {
 		}
 	}
 
-	/** Sends one batch, and again after each wait a limited save asks for; a run started meanwhile drops it. */
-	async function send(of: number, batch: readonly StoredVisualHash[]): Promise<number[]> {
-		for (;;) {
-			try {
-				return await seams.save(batch)
-			} catch (error) {
-				if (!(error instanceof RateLimitedError) || of !== run) {
-					throw error
-				}
-				waiting.value = error.seconds
-				await seams.wait(error.seconds)
-				if (of !== run) {
-					return []
-				}
-				waiting.value = null
-			}
-		}
-	}
-
 	/** Saves one batch; a failed save puts it back and pauses the run. */
 	async function save(of: number) {
 		saving = true
 		const batch = unsaved.slice(0, saveBatch)
 		unsaved = unsaved.slice(saveBatch)
 		try {
-			const saved = new Set(await send(of, batch))
+			const saved = new Set(await sendLimited(() => seams.save(batch), seams.wait, (seconds) => {
+				waiting.value = seconds
+			}, () => of === run) ?? [])
 			if (of === run) {
 				batch.filter((each) => !saved.has(each.fileId)).forEach((each) => mark(each.fileId, 'failed'))
 			}

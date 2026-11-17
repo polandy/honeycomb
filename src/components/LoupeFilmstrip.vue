@@ -7,6 +7,7 @@ import type { Decision } from '../logic/decision.ts'
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { Series } from '../logic/series.ts'
 import type { ObserveSize } from '../observe-size.ts'
 
 import { n, t } from '@nextcloud/l10n'
@@ -15,6 +16,7 @@ import AppIcon from './AppIcon.vue'
 import FlagMark from './FlagMark.vue'
 import { keyCap } from '../hotkeys.ts'
 import { formatNumber } from '../l10n.ts'
+import { isDecided, isRejected } from '../logic/decision.ts'
 import { FILMSTRIP_THUMB, filmstripFrames, filmstripLayout } from '../logic/filmstrip.ts'
 import { imageMember, smallSource } from '../logic/image-tiers.ts'
 import { observeElementSize } from '../observe-size.ts'
@@ -25,7 +27,7 @@ const props = withDefaults(defineProps<{
 	index: number
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
 	/** Each picture of a series mapped to its whole series; each run in the strip gets a frame. */
-	seriesOf: ReadonlyMap<Picture<ListingEntry>, readonly Picture<ListingEntry>[]>
+	seriesOf: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>
 	imageUrl: ImageUrlFor
 	/** Whether *Pin the filmstrip* is on; its toggle sits at the strip's end. */
 	pinned: boolean
@@ -81,7 +83,7 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 					class="loupe-filmstrip__photo"
 					:class="{
 						'loupe-filmstrip__photo--current': item.index === props.index,
-						'loupe-filmstrip__photo--dimmed': item.flag === 'rejected' && item.index !== props.index,
+						'loupe-filmstrip__photo--dimmed': isRejected(item) && item.index !== props.index,
 						'loupe-filmstrip__photo--framed': item.framed,
 					}"
 					:style="{ left: `${item.left}px` }"
@@ -89,7 +91,7 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 					:aria-current="item.index === props.index ? 'true' : undefined"
 					@click="emit('select', item.index)">
 					<img alt="" draggable="false" :src="smallSource(item.member, props.imageUrl)">
-					<FlagMark v-if="item.flag !== 'unflagged'" class="loupe-filmstrip__flag" :flag="item.flag" />
+					<FlagMark v-if="isDecided(item)" class="loupe-filmstrip__flag" :flag="item.flag" />
 				</button>
 				<div
 					v-for="frame in frames"

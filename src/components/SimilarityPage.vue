@@ -14,7 +14,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcContent from '@nextcloud/vue/components/NcContent'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import AppIcon from './AppIcon.vue'
-import FolderList from './FolderList.vue'
+import FolderTree from './FolderTree.vue'
 import ProgressBar from './ProgressBar.vue'
 import { useHashRun } from '../hash-run.ts'
 
@@ -53,7 +53,7 @@ function choose(path: string) {
 				</NcButton>
 				<h2>{{ t('honeycomb', 'Similarity') }}</h2>
 				<p>{{ t('honeycomb', 'Compares every photo in a folder and its subfolders ahead of the cull, so series show at once on any device.') }}</p>
-				<FolderList
+				<FolderTree
 					:ticked="chosen === null ? [] : [chosen]"
 					:listFolders="props.listFolders"
 					single

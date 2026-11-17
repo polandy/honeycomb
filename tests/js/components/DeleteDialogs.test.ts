@@ -76,7 +76,7 @@ describe('DeleteSummary', () => {
 			'XMPA/IMG_1.xmp1 kB',
 			'JPGB/IMG_2.JPG1 kB',
 		])
-		expect(wrapper.text()).toContain('Files move to the Nextcloud trash bin and can be restored from there.')
+		expect(wrapper.text()).toContain('Files move to the Nextcloud trash bin and can be restored from there until it empties itself: after its retention time, or sooner when space runs short. Keep a backup of photos you cannot afford to lose.')
 		expect(buttons(wrapper)).toEqual(['Cancel', 'Move 4 files to trash'])
 	})
 
@@ -84,7 +84,7 @@ describe('DeleteSummary', () => {
 	it('goes back to the review when it came from there, and holds the confirm button while a delete runs', async () => {
 		const wrapper = summary({ fromReview: true, busy: true })
 
-		expect(buttons(wrapper)).toEqual(['Back to review', 'Cancel', 'Move 4 files to trash'])
+		expect(buttons(wrapper)).toEqual(['Back to review', 'Cancel', 'Checking the photos…'])
 		expect(wrapper.findComponent(ConfirmDialog).props('confirmDisabled')).toBe(true)
 		await wrapper.findAll('button')[0]!.trigger('click')
 		expect(wrapper.emitted('back')).toHaveLength(1)
@@ -95,7 +95,7 @@ describe('DeleteReport', () => {
 	// spec: DELETE-002.9, DELETE-002.10
 	it('lists the failed files with their reasons and offers Close and Retry failed files', async () => {
 		const report = trashReport(wholePictures([PAIR!]), [[{ fileId: 2, result: 'trashed' }, { fileId: 1, result: 'locked' }, { fileId: 3, result: 'skipped' }]])
-		const wrapper = mount(DeleteReport, { props: { report, folderSet: SET, busy: false }, global })
+		const wrapper = mount(DeleteReport, { props: { report, skipped: [], folderSet: SET, busy: false }, global })
 
 		expect(wrapper.find('[role="dialog"]').attributes('name')).toBe('Deletion finished with errors')
 		expect(wrapper.find('.delete-stats').text()).toBe('1file moved to trash2failed')
@@ -108,6 +108,20 @@ describe('DeleteReport', () => {
 		await wrapper.findAll('button')[0]!.trigger('click')
 		expect(wrapper.emitted('retry')).toHaveLength(1)
 		expect(wrapper.emitted('close')).toHaveLength(1)
+	})
+
+	// spec: DELETE-002.16
+	it('lists the skipped photos with their reasons and holds the retry while no file failed', () => {
+		const report = trashReport(wholePictures([PAIR!]), [[{ fileId: 1, result: 'trashed' }, { fileId: 2, result: 'trashed' }, { fileId: 3, result: 'trashed' }]])
+		const skipped = [{ picture: SINGLE!, reason: 'notRejected' as const }]
+		const wrapper = mount(DeleteReport, { props: { report, skipped, folderSet: SET, busy: false }, global })
+
+		expect(wrapper.find('[role="dialog"]').attributes('name')).toBe('Some photos were skipped')
+		expect(wrapper.find('.delete-stats').text()).toBe('3files moved to trash0failed1photo skipped')
+		expect(wrapper.findAll('.trash-files__row').map((row) => row.text())).toEqual([
+			'JPGB/IMG_2.JPGIts sidecars do not say rejected1 kB',
+		])
+		expect(wrapper.findComponent(ConfirmDialog).props('confirmDisabled')).toBe(true)
 	})
 })
 
@@ -134,7 +148,7 @@ describe('RawRemovalSummary', () => {
 		expect(wrapper.text()).toContain('Only the RAW file and its own sidecar go. The JPEG, its sidecar and a shared sidecar stay, and every photo keeps its rating, label and flag. Skipped: 1 marked Keep RAW · 6 rejected · 30 singles.')
 		expect(wrapper.find('details').attributes('open')).toBeUndefined()
 		expect(wrapper.findAll('details .trash-files__row').map((row) => row.text())).toEqual(['NEFA/IMG_3.NEF2 kB', 'XMPA/IMG_3.NEF.xmp1 kB'])
-		expect(wrapper.text()).toContain('Files move to the Nextcloud trash bin and can be restored from there.')
+		expect(wrapper.text()).toContain('Files move to the Nextcloud trash bin and can be restored from there until it empties itself: after its retention time, or sooner when space runs short. Keep a backup of photos you cannot afford to lose.')
 		expect(buttons(wrapper).slice(-2)).toEqual(['Cancel', 'Move 2 files to trash'])
 	})
 
@@ -154,6 +168,29 @@ describe('RawRemovalSummary', () => {
 		await tiles[1]!.trigger('click')
 
 		expect(wrapper.emitted('toggle')).toEqual([[DROP], [KEEP]])
+	})
+
+	// spec: DELETE-002.13
+	it('shows the progress of a running delete in each dialog that sends', () => {
+		const progress = { done: 1, total: 2 }
+		const report = trashReport(wholePictures([PAIR!]), [])
+
+		expect(summary({ progress }).findComponent(ConfirmDialog).props('progress')).toEqual(progress)
+		expect(mount(DeleteSummary, { props: { pictures: [PAIR!], folderSet: SET, fromReview: false, busy: true, progress }, global }).findComponent(ConfirmDialog).props('progress')).toEqual(progress)
+		expect(mount(DeleteReport, { props: { report, skipped: [], folderSet: SET, busy: true, progress }, global }).findComponent(ConfirmDialog).props('progress')).toEqual(progress)
+	})
+
+	// spec: DELETE-002.13
+	it('names the running step on the held confirm button of each dialog that sends: checking the photos, then moving them', () => {
+		const progress = { done: 5, total: 40 }
+		const report = trashReport(wholePictures([PAIR!]), [[{ fileId: 2, result: 'locked' }, { fileId: 1, result: 'skipped' }, { fileId: 3, result: 'skipped' }]])
+		const label = (wrapper: ReturnType<typeof mount>) => wrapper.findComponent(ConfirmDialog).props('confirmLabel') as string
+		const deleteSummary = (props: Record<string, unknown>) => mount(DeleteSummary, { props: { pictures: [PAIR!], folderSet: SET, fromReview: false, busy: false, ...props }, global })
+		const deleteReport = (props: Record<string, unknown>) => mount(DeleteReport, { props: { report, skipped: [], folderSet: SET, busy: false, ...props }, global })
+
+		expect([summary({ busy: true }), deleteSummary({ busy: true }), deleteReport({ busy: true })].map(label)).toEqual(['Checking the photos…', 'Checking the photos…', 'Checking the photos…'])
+		expect([summary({ busy: true, progress }), deleteSummary({ busy: true, progress }), deleteReport({ busy: true, progress })].map(label)).toEqual(['Moving to trash…', 'Moving to trash…', 'Moving to trash…'])
+		expect([summary({ busy: false }), deleteSummary({ busy: false }), deleteReport({ busy: false })].map(label)).toEqual(['Move 2 files to trash', 'Move 3 files to trash', 'Retry failed files'])
 	})
 
 	// spec: DELETE-003.5

@@ -3,7 +3,7 @@
 A **tag** is a path of names, such as `Places/Italy/Dolomites`, that you give to a photo. honeycomb
 works with tags the way digiKam does: they have levels, they are stored in the photo's XMP sidecar
 files, and digiKam, darktable and Lightroom Classic read them there. The technical details are in
-[`../07-tags.md`](../07-tags.md).
+[`../07-tags.md`](../dev/07-tags.md).
 
 ## Add and remove tags
 
@@ -61,14 +61,15 @@ they are written to.
 
 ## Where tags are stored
 
-When you change a tag, honeycomb writes it into the sidecar files of the photo, so it is the same
-tag in digiKam:
+When writing to sidecars is on (**Settings → XMP sidecars**, off by default) and you change a tag,
+honeycomb writes it into the sidecar files of the photo, so it is the same tag in digiKam:
 
 - `digiKam:TagsList`, which digiKam reads first;
 - `lr:hierarchicalSubject`, which Lightroom Classic and darktable read;
 - `dc:subject`, which holds the last name of each tag, for programs that know no levels.
 
-A photo without a sidecar gets one when you tag it, like `IMG_0001.NEF.xmp`. Keywords that other
+A photo without a sidecar gets one when you tag it, like
+`IMG_0001.NEF.xmp`. Keywords that other
 programs have written into `dc:subject` stay as they are.
 
 - **Tags you already have.** When honeycomb opens a folder it takes over the tags that digiKam,
@@ -78,7 +79,8 @@ programs have written into `dc:subject` stay as they are.
 - **The tag list.** The tags offered are those found in your sidecars plus those you created, kept
   per user.
 - **Shared folders.** In a shared folder honeycomb writes no sidecars on its own; the info panel
-  says *Not written, shared folder*. **⋯ → Write decisions to sidecars…** writes them
-  ([ratings, flags and colours](ratings-flags-colours.md#shared-folders)).
+  says *Not written, shared folder* ([ratings, flags and colours](ratings-flags-colours.md#shared-folders)).
+  **⋯ → Write decisions to sidecars…** moves stored tags into the sidecars
+  ([moving stored decisions](ratings-flags-colours.md#moving-stored-decisions-into-sidecars)).
 - **Not yet.** Renaming, moving or deleting a tag across all photos is not in honeycomb; do it in
   digiKam.

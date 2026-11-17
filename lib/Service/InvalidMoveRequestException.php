@@ -8,5 +8,5 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 /** A move or probe request is malformed: no file of it is touched. */
-final class InvalidMoveRequestException extends \InvalidArgumentException {
+final class InvalidMoveRequestException extends InvalidRequestException {
 }

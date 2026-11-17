@@ -16,7 +16,7 @@ use OCP\IUser;
 
 /** Lists the files of one picked folder from the file cache: members and sidecars, unpaired. */
 final class ListingService {
-	/** 20,000 pictures of a RAW, a JPEG and a sidecar each (`docs/plan.md` Multiple folders). */
+	/** 20,000 pictures of a RAW, a JPEG and a sidecar each (`docs/dev/plan.md` Multiple folders). */
 	public const ENTRY_LIMIT = 60_000;
 	public const METADATA_BATCH = 1_000;
 
@@ -24,21 +24,23 @@ final class ListingService {
 		private UserFolderResolver $folders,
 		private EntryFactory $entryFactory,
 		private SharedFolders $sharedFolders,
+		private FileVersions $versions,
 		private int $entryLimit = self::ENTRY_LIMIT,
 	) {
 	}
 
 	/**
 	 * Entries of the folder at `$path` in the user's files, with `$subfolders` of every folder below
-	 * except hidden ones, at most the entry limit.
+	 * except hidden and `$excluded` ones, at most the entry limit.
+	 * @param list<string> $excluded user-relative folder paths
 	 * @throws FolderNotFoundException for a foreign, vanished or non-folder path
 	 * @throws FolderNotReadableException when the user may not read the folder
 	 */
-	public function list(IUser $user, string $path, bool $subfolders): Listing {
+	public function list(IUser $user, string $path, bool $subfolders, array $excluded = []): Listing {
 		$folder = $this->folders->folder($user, $path);
 		$userFolder = $this->folders->userFolder($user);
 		try {
-			return $this->collect($user, $userFolder, $folder, $subfolders ? $this->walkBelow($folder) : $folder->getDirectoryListing());
+			return $this->collect($user, $userFolder, $folder, $subfolders ? $this->walkBelow($userFolder, $folder, array_flip($excluded)) : $folder->getDirectoryListing());
 		} catch (NotPermittedException) {
 			throw new FolderNotReadableException($path);
 		}
@@ -54,7 +56,7 @@ final class ListingService {
 				continue;
 			}
 			if (count($entries) + count($batch) === $this->entryLimit) {
-				return new Listing([...$entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch)], true, array_values($folders));
+				return new Listing([...$entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch)], true, array_values($folders), $folder->getId());
 			}
 			$batch[] = $node;
 			$folders[dirname($node->getPath())] ??= $this->folderOf($user, $userFolder, $node);
@@ -63,13 +65,14 @@ final class ListingService {
 				$batch = [];
 			}
 		}
-		return new Listing([...$entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch)], false, array_values($folders));
+		return new Listing([...$entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch)], false, array_values($folders), $folder->getId());
 	}
 
-	/** @return array{path: string, shared: bool} */
+	/** @return array{path: string, shared: bool, permissions: int, versions: bool} */
 	private function folderOf(IUser $user, Folder $userFolder, File $node): array {
 		$path = $userFolder->getRelativePath(dirname($node->getPath())) ?? '/';
-		return ['path' => $path, 'shared' => $this->sharedFolders->isShared($user, $node->getParent())];
+		$parent = $node->getParent();
+		return ['path' => $path, 'shared' => $this->sharedFolders->isShared($user, $parent), 'permissions' => $parent->getPermissions(), 'versions' => $this->versions->keeps($parent)];
 	}
 
 	/** @psalm-assert-if-true File $node */
@@ -100,17 +103,18 @@ final class ListingService {
 
 	/**
 	 * The files of `$folder` and of every folder below it, depth first, one listing per folder;
-	 * hidden folders and those the user may not read are never opened.
+	 * hidden, excluded folders and those the user may not read are never opened.
+	 * @param array<string, int> $excluded user-relative folder paths as keys
 	 * @return \Generator<Node>
 	 */
-	private function walkBelow(Folder $folder): \Generator {
+	private function walkBelow(Folder $userFolder, Folder $folder, array $excluded): \Generator {
 		$pending = [$folder];
 		while (($current = array_pop($pending)) !== null) {
 			$subfolders = [];
 			foreach ($current->getDirectoryListing() as $node) {
 				if (!$node instanceof Folder) {
 					yield $node;
-				} elseif (!str_starts_with($node->getName(), '.') && $node->isReadable()) {
+				} elseif (!str_starts_with($node->getName(), '.') && $node->isReadable() && !isset($excluded[(string)$userFolder->getRelativePath($node->getPath())])) {
 					$subfolders[] = $node;
 				}
 			}

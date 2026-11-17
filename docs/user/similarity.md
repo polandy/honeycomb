@@ -22,3 +22,24 @@ whose similarity is already known are skipped too, so a second run is quick.
 - If saving or loading fails, the run pauses and says so. **Resume** tries again.
 - A photo that cannot be compared, for example because it has no preview, is listed under
   *Photos that could not be compared* and is not tried again in this run.
+
+## Correct a series
+
+In the grid, press **Select**, select photos and open **Series…** in the action bar. Its heading
+says how many of the selected photos are in a series. Then choose:
+
+- **New series from n photos** makes one series of the selection, taking the photos out of their
+  series.
+- **Add n photos to series ⧉ k** adds the selected photos outside the series to the one series the
+  selection touches.
+- **Merge k series · m photos**, offered when the selection touches two series or more, makes one
+  series of their whole series and the other selected photos.
+- **Remove n photos from their series** takes the photos out; they are never grouped
+  automatically again.
+
+An entry that does not fit the selection is greyed out and says why. Every change shows a message
+with **Undo**, and a series you changed stays as you made it.
+
+In the series compare, the **⋯** menu above the photos offers **Merge with the next series** and
+**Merge with the previous series**, for a burst that was cut in two. Each says how many photos the
+other series has and when it starts; the compare then shows the merged series.

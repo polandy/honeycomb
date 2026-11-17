@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/** How long a finger stays down on a tile to select it (`docs/plan.md` Tooltip, Gestures). */
+/** How long a finger stays down on a tile to select it (`docs/dev/plan.md` Tooltip, Gestures). */
 export const LONG_PRESS_MS = 480
 
 /** How far the finger may move before the long-press is cancelled, in CSS pixels. */

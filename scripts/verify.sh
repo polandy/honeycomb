@@ -25,11 +25,12 @@ step() {
 }
 
 step ci-changes scripts/test-ci-changes.sh
-step "gate tests" sh -c 'scripts/test-source-sizes.sh && scripts/test-pins.sh && scripts/test-specs.sh && scripts/test-spec-trailers.sh'
+step "gate tests" sh -c 'scripts/test-source-sizes.sh && scripts/test-pins.sh && scripts/test-specs.sh && scripts/test-spec-trailers.sh && scripts/test-nextcloud-versions.sh && scripts/test-package.sh'
 step source-sizes scripts/source-sizes.sh
 step pins scripts/pins.sh
 step specs scripts/specs.sh
-# The branch's commit messages stand in for the description CI judges (docs/specs/README.md).
+step "nextcloud versions" scripts/nextcloud-versions.sh
+# The branch's commit messages stand in for the description CI judges (docs/dev/specs/README.md).
 step "spec trailers" sh -c 'git diff --name-only origin/main...HEAD |
   SPEC_MESSAGE="$(git log --format=%B origin/main..HEAD)" scripts/spec-trailers.sh'
 step markdownlint npx --yes "markdownlint-cli2@$MARKDOWNLINT_CLI2_VERSION"
@@ -38,6 +39,7 @@ step "composer install" scripts/php.sh composer install --no-interaction --no-pr
 step php-cs-fixer scripts/php.sh vendor/bin/php-cs-fixer fix --dry-run --diff
 step psalm scripts/php.sh vendor/bin/psalm --no-cache --threads=1 --no-progress
 step phpunit scripts/php.sh vendor/bin/phpunit
+step "phpunit db" scripts/php-db-tests.sh
 step "npm ci" npm ci
 step unused-exports scripts/unused-exports.sh
 step eslint npx eslint
@@ -45,5 +47,7 @@ step vue-tsc npx vue-tsc
 step vitest npx vitest run --coverage
 step build npx vite build
 step e2e npx playwright test
+step "e2e oldest" env HONEYCOMB_E2E_NEXTCLOUD=oldest npx playwright test
+step "upgrade test" scripts/upgrade-test.sh
 
 exit $failed

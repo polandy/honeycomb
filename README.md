@@ -18,7 +18,10 @@ quick to go through on an iPad.
 
 **Status:** pre-release. The grid, the loupe, deciding, deleting and the settings work; nothing
 is released yet, so see [Installation](#installation) for how it will be installed. XMP sidecars
-are read and written in a later milestone ([`docs/plan.md`](docs/plan.md)).
+are read; writing your decisions into them is off until you turn it on in the settings
+([`docs/dev/06-xmp-interop.md`](docs/dev/06-xmp-interop.md)). Read [What honeycomb changes in your
+files](#what-honeycomb-changes-in-your-files) and [Back up first](#back-up-first) before you
+use it on photos you cannot replace.
 
 ## Features
 
@@ -46,9 +49,58 @@ are read and written in a later milestone ([`docs/plan.md`](docs/plan.md)).
 How ratings, flags and colour labels appear in digiKam, darktable and Lightroom:
 [`docs/user/ratings-flags-colours.md`](docs/user/ratings-flags-colours.md); tags:
 [`docs/user/tags.md`](docs/user/tags.md). The words the app uses
-(Pick, Reject, Unflag, series and more) are in the [glossary](docs/04-glossary.md). The interactive
-mockup in [`docs/mockup/index.html`](docs/mockup/index.html) shows the intended design; plan,
-milestones and open questions are in [`docs/plan.md`](docs/plan.md).
+(Pick, Reject, Unflag, series and more) are in the [glossary](docs/dev/04-glossary.md). The interactive
+mockup in [`docs/dev/mockup/index.html`](docs/dev/mockup/index.html) shows the intended design; plan,
+milestones and open questions are in [`docs/dev/plan.md`](docs/dev/plan.md).
+
+## What honeycomb changes in your files
+
+honeycomb reads your photos and changes files only through Nextcloud's file API, so permissions,
+file versions and the trash bin apply.
+
+- **Deleting** moves every file of a rejected picture (JPEG, RAW and sidecars) into the
+  Nextcloud trash bin. It needs the trash bin to be on and refuses otherwise, and it leaves a
+  picture alone when the trash bin would not keep one of its files: a storage without a trash
+  bin, or a file larger than the trash bin size (`trashbin_size`).
+- **Moving** renames and moves the files of a picture into the folder you choose, by a name
+  template ([`docs/dev/05-name-templates.md`](docs/dev/05-name-templates.md)). A picture is moved whole
+  or not at all, and the move can be undone. It stays on its storage: honeycomb does not move
+  files out of or into a share, a group folder or external storage.
+- **XMP sidecars** (`<file>.xmp`) are written only once you turn on *Write decisions to XMP
+  sidecars* in the settings (off by default). Then every decision you make — rating, flag,
+  colour label, tags — updates the sidecars next to the photo and, with *Existing and new
+  sidecars*, creates one where none exists. An existing sidecar is merged, so what other
+  programs wrote stays, and it is rewritten in honeycomb's layout (formatting, comments and the
+  packet wrapper change). It is only replaced while Nextcloud's file versions are on, so the
+  previous version can be restored. In a shared folder nothing is written unless you ask. The photos
+  themselves are never modified.
+- **Everything else** (decisions, tags, positions, similarity) lives in honeycomb's own tables,
+  not in your files.
+
+## Back up first
+
+honeycomb is pre-release software and moves, trashes and writes files. Keep a backup of photos you
+cannot replace before you cull them. The trash bin keeps files only for its retention time
+(`trashbin_retention_obligation`) and empties itself sooner when space runs short, so a deleted
+photo is not safe there for ever. The licence ([`LICENSE`](LICENSE)) excludes any
+warranty.
+
+## Privacy
+
+honeycomb sends nothing out: no telemetry and no outgoing requests. It stores, per user, in
+the Nextcloud database:
+
+- ratings, flags, colour labels and *Keep RAW* per picture, tags, and the position where you
+  stopped a cull;
+- visual hashes and series of your pictures (for similarity);
+- your settings and view state.
+
+It stores file ids, not file names. The Nextcloud log can contain full file paths when a sidecar
+cannot be saved, so remove them before you share a log. Deleting a user deletes their honeycomb
+data. There is no per-user export. `occ app:remove` leaves the tables in place; see
+[`docs/user/admin/removing.md`](docs/user/admin/removing.md) to delete them.
+
+Report a security problem privately: [`SECURITY.md`](SECURITY.md).
 
 ## Screenshots
 
@@ -64,7 +116,7 @@ Placeholders until the first release; the images will live in the
 ## Installation
 
 Nothing is released yet; this is how honeycomb will be installed. It needs Nextcloud 35 and PHP
-8.3 or newer ([`docs/plan.md`](docs/plan.md#target-versions)).
+8.3 or newer ([`docs/dev/plan.md`](docs/dev/plan.md#target-versions)).
 
 **Recommended apps.** Both are optional, and honeycomb works without them.
 
@@ -93,16 +145,18 @@ A Git checkout needs a build first (`composer install --no-dev`, `npm ci`, `npm 
 **Updating.** Every release needs `occ app:update honeycomb` (App Store) or `occ upgrade` (after
 unpacking a tarball), so its database migrations run. An instance installed from a Git checkout
 before tag storage (#119) also needs `occ migrations:migrate honeycomb` once, in debug mode. Use
-Redis for file locking. Details: [`docs/admin/updating.md`](docs/admin/updating.md).
+Redis for file locking. Details: [`docs/user/admin/updating.md`](docs/user/admin/updating.md).
 
 **Removing.** `occ app:remove honeycomb` keeps honeycomb's tables and settings, so a new install
 shows the old decisions and tags again. What stays and how to delete it:
-[`docs/admin/removing.md`](docs/admin/removing.md).
+[`docs/user/admin/removing.md`](docs/user/admin/removing.md).
 
-**Signing.** Release tarballs carry `appinfo/signature.json`, made with the app's App Store
-certificate (`occ integrity:sign-app`). Nextcloud's code integrity check verifies it and warns
-in *Administration settings → Overview* when a file was changed, added or removed; do not edit
-an installed release. A Git checkout has no signature and is not checked.
+**Signing.** Once the app's App Store certificate exists, release tarballs carry
+`appinfo/signature.json`, made with it (`occ integrity:sign-app`); until then they are unsigned
+and on GitHub only ([`docs/user/admin/releasing.md`](docs/user/admin/releasing.md)). Nextcloud's code
+integrity check verifies it and warns in *Administration settings → Overview* when a file was
+changed, added or removed; do not edit an installed release. A Git checkout has no signature and
+is not checked.
 
 ## Sister project
 
@@ -114,7 +168,7 @@ handling as a reference — concepts and test cases, not code — and shares its
 ## Development
 
 The project is developed by AI agents under the rules in [`CLAUDE.md`](CLAUDE.md); the workflow is
-[`docs/02-workflow.md`](docs/02-workflow.md). `scripts/verify.sh` runs the same checks as CI.
+[`docs/dev/02-workflow.md`](docs/dev/02-workflow.md). `scripts/verify.sh` runs the same checks as CI.
 
 ## Licence
 

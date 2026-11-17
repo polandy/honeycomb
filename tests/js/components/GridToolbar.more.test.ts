@@ -13,16 +13,31 @@ describe('GridToolbar More menu', () => {
 	afterEach(uninstallMarkedCatalogue)
 
 	// spec: GRID-001.17
-	it.each([['Review rejects', 'rejected', 'reviewRejects'], ['Compare series', 'series', 'compareSeries']] as const)('keeps %s in the toolbar from 900 px and in the More menu below, with its count, held at 0', async (label, count, event) => {
+	it('keeps Compare series in the toolbar from 900 px and in the More menu below, with its count, held at 0', async () => {
 		const set = { paths: ['/Trip'], subfolders: false }
-		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('.grid-more-menu__narrow').find((button) => button.text().includes(label))!
-		const wrapper = mountToolbar(set, 1, { [count]: 4 })
+		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('.grid-more-menu__narrow').find((button) => button.text().includes('Compare series'))!
+		const wrapper = mountToolbar(set, 1, { series: 4 })
 
-		expect(wrapper.find(`[aria-label*="${label}"]`).classes()).toContain('grid-toolbar__wide')
+		expect(wrapper.find('[aria-label*="Compare series"]').classes()).toContain('grid-toolbar__wide')
 		expect(item(mountToolbar(set)).attributes('disabled')).toBeDefined()
-		expect(item(wrapper).text().replaceAll(MARK, '')).toBe(`${label} 4`)
+		expect(item(wrapper).text().replaceAll(MARK, '')).toBe('Compare series 4')
 		await item(wrapper).trigger('click')
-		expect(wrapper.emitted(event)).toHaveLength(1)
+		expect(wrapper.emitted('compareSeries')).toHaveLength(1)
+	})
+
+	// spec: GRID-001.17, DELETE-002.19
+	it('reviews the rejects from the More menu at every width, with its count and Ctrl+Backspace, held at 0', async () => {
+		const set = { paths: ['/Trip'], subfolders: false }
+		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('.grid-more-menu button').find((button) => button.text().includes('Review rejects'))!
+		const wrapper = mountToolbar(set, 1, { rejected: 4 })
+
+		expect(wrapper.find('[aria-label*="Review rejects"]').classes()).toContain('grid-toolbar__wide')
+		expect(item(mountToolbar(set)).attributes('disabled')).toBeDefined()
+		expect(item(wrapper).classes()).not.toContain('grid-more-menu__narrow')
+		expect(item(wrapper).text().replaceAll(MARK, '')).toBe('Review rejects 4Ctrl+Backspace')
+		expect(item(wrapper).find('kbd').text()).toBe('Ctrl+Backspace')
+		await item(wrapper).trigger('click')
+		expect(wrapper.emitted('reviewRejects')).toHaveLength(1)
 	})
 
 	it('removes RAWs from the More menu with their count, held while there are none', async () => {
@@ -62,11 +77,11 @@ describe('GridToolbar More menu', () => {
 		expect(filtered.emitted('move')).toHaveLength(1)
 	})
 
-	// spec: XMP-003.12
-	it('offers writing to sidecars in the More menu only with photos in a shared folder', async () => {
+	// spec: XMP-007.7
+	it('offers writing to sidecars in the More menu only with legacy rows', async () => {
 		const set = { paths: ['/Trip'], subfolders: false }
 		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('button').find((button) => button.text().includes('Write decisions to sidecars'))
-		const wrapper = mountToolbar(set, 1, { sidecarsShared: true })
+		const wrapper = mountToolbar(set, 1, { legacyRows: true })
 
 		expect(item(mountToolbar(set))).toBeUndefined()
 		expect(item(wrapper)!.text().replaceAll(MARK, '')).toBe('Write decisions to sidecars…')
@@ -108,7 +123,7 @@ describe('GridToolbar More menu', () => {
 
 	// spec: GRID-001.18
 	it.each(['Review rejects', 'Compare series', 'Remove RAWs', 'Move picks', 'Resume at', 'Write decisions to sidecars', 'Settings'])('closes the More menu when %s is chosen', async (label) => {
-		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { rejected: 1, series: 1, rawRemovable: 1, movable: 1, resumeName: 'IMG_9', sidecarsShared: true })
+		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { rejected: 1, series: 1, rawRemovable: 1, movable: 1, resumeName: 'IMG_9', legacyRows: true })
 		const popover = wrapper.findComponent(PopoverStub)
 		await popover.vm.$emit('update:shown', true)
 		expect(popover.props('shown')).toBe(true)
@@ -140,6 +155,18 @@ describe('GridToolbar More menu', () => {
 
 		expect(wrapper.text()).toContain(`${MARK}Group by folder`)
 		expect(wrapper.emitted('update:groupByFolder')).toEqual([[true]])
+	})
+
+	// spec: GRID-004.2
+	it('offers Show file names with its key below Group by folder, also for one folder', async () => {
+		const wrapper = mountToolbar({ paths: ['/A'], subfolders: true }, 1)
+		const box = wrapper.findAll('.grid-more-menu .checkbox-radio-switch').find((option) => option.text().includes('Show file names'))!
+
+		expect(box.text()).toContain('Shift+J')
+		await box.find('input[type="checkbox"]').setValue(true)
+		expect(wrapper.emitted('update:fileNames')).toEqual([[true]])
+		const labels = mountToolbar({ paths: ['/A', '/B'], subfolders: false }, 2).findAll('.grid-more-menu .checkbox-radio-switch').map((option) => option.text())
+		expect(labels.findIndex((label) => label.includes('Show file names'))).toBe(labels.findIndex((label) => label.includes('Group by folder')) + 1)
 	})
 
 	// spec: GRID-002.8

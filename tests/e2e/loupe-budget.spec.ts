@@ -81,6 +81,8 @@ function startTiming(page: Page, alt: string) {
 
 // spec: LOUPE-001.12
 test('shows a prefetched 24 MP neighbour without a request when paging', async ({ page }) => {
+	// Rendering three 24 MP previews outlasts the default 30 s on a busy host; the 60 s polls below bound each wait.
+	test.slow()
 	await page.goto('/index.php/apps/honeycomb/')
 	await resetViewState(page)
 	const folder = `Budget ${randomUUID().slice(0, 8)}`

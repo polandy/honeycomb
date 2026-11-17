@@ -8,7 +8,9 @@ import type { Decision } from '../logic/decision.ts'
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { Series } from '../logic/series.ts'
 import type { ObserveSize } from '../observe-size.ts'
+import type { MergeDirection } from '../series-compare.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
@@ -17,6 +19,7 @@ import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import PickRestButton from './PickRestButton.vue'
 import SeriesCompareCard from './SeriesCompareCard.vue'
+import SeriesCompareMenu from './SeriesCompareMenu.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { CARD_FRAME, CARD_GAP, compareGrid } from '../logic/compare-grid.ts'
@@ -27,7 +30,7 @@ import { observeElementSize } from '../observe-size.ts'
 
 const props = withDefaults(defineProps<{
 	/** The shown series, or null once none is left. */
-	series: readonly Picture<ListingEntry>[] | null
+	series: Series<Picture<ListingEntry>> | null
 	/** The shown series' place among `count`, from 0. */
 	position: number
 	count: number
@@ -42,11 +45,22 @@ const props = withDefaults(defineProps<{
 	oneSeries?: boolean
 	/** Where the dialog mounts: inside the loupe when opened from it. */
 	container?: string
-}>(), { imageUrl: apiImageUrl, observeSize: observeElementSize, now: () => performance.now(), oneSeries: false, container: 'body' })
+	/** The series before and after the shown one, which its title row's menu merges with (SERIES-005.8). */
+	previous?: Series<Picture<ListingEntry>> | null
+	next?: Series<Picture<ListingEntry>> | null
+}>(), { previous: null, next: null, imageUrl: apiImageUrl, observeSize: observeElementSize, now: () => performance.now(), oneSeries: false, container: 'body' })
 
 const emit = defineEmits<{
 	decide: [intent: DecisionIntent, picture: Picture<ListingEntry>]
 	pickRest: [picture: Picture<ListingEntry>]
+	/** *Remove from this series* in a card's menu (SERIES-005.10). */
+	remove: [picture: Picture<ListingEntry>]
+	/** *Dissolve this series* in the title row's menu (SERIES-005.13). */
+	dissolve: []
+	/** Marks the shown series done, or reopens it when false (SERIES-005.14, .15). */
+	markDone: [done: boolean]
+	/** *Merge with the next* or *previous series* in the title row's menu (SERIES-005.8). */
+	merge: [direction: MergeDirection]
 	/** A single tap made the card at `index` active. */
 	activate: [index: number]
 	view: [index: number]
@@ -59,12 +73,12 @@ const emit = defineEmits<{
 const title = computed(() => (props.series === null
 	? t('honeycomb', 'Compare series')
 	: props.oneSeries
-		? t('honeycomb', 'Series of {photos} · photo {photo}', { photos: formatNumber(props.series.length), photo: formatNumber(props.active + 1) }, undefined, PLAIN_TEXT)
+		? t('honeycomb', 'Series of {photos} · photo {photo}', { photos: formatNumber(props.series.members.length), photo: formatNumber(props.active + 1) }, undefined, PLAIN_TEXT)
 		: t('honeycomb', 'Compare series {i} of {count} · photo {photo} of {photos}', {
 				i: formatNumber(props.position + 1),
 				count: formatNumber(props.count),
 				photo: formatNumber(props.active + 1),
-				photos: formatNumber(props.series.length),
+				photos: formatNumber(props.series.members.length),
 			}, undefined, PLAIN_TEXT)))
 
 const grid = useTemplateRef<HTMLUListElement>('grid')
@@ -76,7 +90,7 @@ watch(grid, (element, _, onCleanup) => {
 		}))
 	}
 }, { flush: 'post' })
-const layout = computed(() => (area.value === null || props.series === null ? null : compareGrid({ count: props.series.length, ...area.value })))
+const layout = computed(() => (area.value === null || props.series === null ? null : compareGrid({ count: props.series.members.length, ...area.value })))
 const photoWidth = computed(() => (layout.value === null ? null : Math.floor(layout.value.photoWidth)))
 const gridStyle = computed(() => (layout.value === null || photoWidth.value === null
 	? { '--series-compare-gap': `${CARD_GAP}px` }
@@ -98,6 +112,16 @@ function showActive() {
 }
 // The focus trap keeps focus that is already inside; else it focuses card 1 and scrolls back to it.
 onMounted(() => photoAt(props.active)?.focus({ preventScroll: true }))
+// NcModal closes on any Escape while it tops the focus trap stack, and a menu adds no trap of its own.
+const openMenus = shallowRef(0)
+/** Counts the open menus, so that Escape in one closes only the menu. */
+function onMenuOpen(open: boolean) {
+	openMenus.value += open ? 1 : -1
+}
+// An edit can unmount a menu before it reports closing.
+watch(() => props.series, () => {
+	openMenus.value = 0
+})
 watch([() => props.active, () => props.series, () => layout.value?.columns], showActive, { flush: 'post' })
 
 const taps = doubleTaps()
@@ -113,7 +137,7 @@ function onPhotoTap(index: number, event: MouseEvent) {
 
 /** Picks the active picture and rejects the rest (SERIES-001.9). */
 function pickActive() {
-	const picture = props.series?.[props.active]
+	const picture = props.series?.members[props.active]
 	if (picture !== undefined) {
 		emit('pickRest', picture)
 	}
@@ -133,18 +157,30 @@ function onOpen(open: boolean) {
 		:name="title"
 		size="full"
 		:container="props.container"
+		:noClose="openMenus > 0"
 		@update:open="onOpen">
 		<NcEmptyContent
 			v-if="props.series === null"
 			:name="t('honeycomb', 'All series compared')"
 			:description="n('honeycomb', 'No more photos taken within {count} second of each other are left to decide.', 'No more photos taken within {count} seconds of each other are left to decide.', SERIES_GAP_SECONDS, { count: formatNumber(SERIES_GAP_SECONDS) }, PLAIN_TEXT)" />
+		<div v-if="props.series !== null" class="series-compare__head">
+			<SeriesCompareMenu
+				:series="props.series"
+				:previous="props.previous"
+				:next="props.next"
+				:container="props.container"
+				@merge="emit('merge', $event)"
+				@dissolve="emit('dissolve')"
+				@markDone="emit('markDone', $event)"
+				@menu="onMenuOpen" />
+		</div>
 		<ul
-			v-else
+			v-if="props.series !== null"
 			ref="grid"
 			class="series-compare"
 			:style="gridStyle">
 			<SeriesCompareCard
-				v-for="(picture, index) in props.series"
+				v-for="(picture, index) in props.series.members"
 				:key="imageMember(picture).fileId"
 				:picture="picture"
 				:index="index"
@@ -152,8 +188,11 @@ function onOpen(open: boolean) {
 				:decision="props.decisionOf(picture)"
 				:imageUrl="props.imageUrl"
 				:photoWidth="photoWidth"
+				:container="props.container"
 				@tap="onPhotoTap(index, $event)"
 				@view="emit('view', index)"
+				@remove="emit('remove', picture)"
+				@menu="onMenuOpen"
 				@flag="emit('decide', { kind: 'flag', flag: $event }, picture)" />
 		</ul>
 		<template #actions>
@@ -190,6 +229,16 @@ function onOpen(open: boolean) {
 	overflow: hidden auto;
 	scrollbar-gutter: stable;
 	list-style: none;
+}
+
+.series-compare__head {
+	display: flex;
+	justify-content: flex-end;
+	height: var(--default-clickable-area);
+}
+
+.series-compare__head + .series-compare {
+	height: calc(100% - var(--default-clickable-area));
 }
 
 .series-compare__bar {

@@ -7,8 +7,6 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-use InvalidArgumentException;
-
 /** The settings are not a JSON object or are too large to store (ADR 0014). */
-final class InvalidSettingsException extends InvalidArgumentException {
+final class InvalidSettingsException extends InvalidRequestException {
 }

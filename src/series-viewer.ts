@@ -1,8 +1,10 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Decision } from './logic/decision.ts'
+import type { Series } from './logic/series.ts'
 
 import { computed, shallowRef, watch } from 'vue'
+import { visibleMembers } from './logic/series.ts'
 
 /** What the series viewer reads from the cull and hands back on closing. */
 export interface SeriesViewerContext<P> {
@@ -15,14 +17,14 @@ export function useSeriesViewer<P>(context: SeriesViewerContext<P>) {
 	const members = shallowRef<readonly P[]>([])
 	const shown = shallowRef<P | null>(null)
 
-	const pictures = computed(() => members.value.filter((picture) => context.decisionOf(picture).flag !== 'rejected'))
+	const pictures = computed(() => visibleMembers(members.value, context.decisionOf))
 	const open = computed(() => shown.value !== null)
 	const index = computed(() => (shown.value === null ? 0 : Math.max(0, pictures.value.indexOf(shown.value))))
 
 	/** Opens the viewer on the picture at `at` of the series, the first one if `at` is outside it. */
-	function openAt(series: readonly P[], at: number) {
-		members.value = series
-		shown.value = series[at] ?? series[0] ?? null
+	function openAt(series: Series<P>, at: number) {
+		members.value = series.members
+		shown.value = series.members[at] ?? series.members[0] ?? null
 	}
 
 	/** Shows the picture at `at`; ignored outside the shown pictures. */

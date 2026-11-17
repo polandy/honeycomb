@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/** The namespace URIs honeycomb reads, writes or structures a packet with (`docs/06-xmp-interop.md`). */
+/** The namespace URIs honeycomb reads, writes or structures a packet with (`docs/dev/06-xmp-interop.md`). */
 export const NAMESPACE = {
 	x: 'adobe:ns:meta/',
 	rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
@@ -81,8 +81,11 @@ export interface XmpTime {
 	readonly offsetMinutes: number
 }
 
+/** Every reason a sidecar is refused. */
+export const XMP_REFUSALS = ['not-utf-8', 'malformed', 'doctype', 'conflict', 'not-xmp'] as const
+
 /** Why a sidecar was refused. */
-export type XmpRefusal = 'not-utf-8' | 'malformed' | 'doctype' | 'conflict' | 'not-xmp'
+export type XmpRefusal = typeof XMP_REFUSALS[number]
 
 /** A line and column in a sidecar, both from 1. */
 export interface XmlPosition {

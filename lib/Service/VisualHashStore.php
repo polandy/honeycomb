@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 /** Where the visual hashes of each user are kept, by file id with the etag they were taken from (ADR 0024). */
-interface VisualHashStore extends FileRowStore {
+interface VisualHashStore extends FileRowStore, CacheRows {
 	/**
 	 * The stored hashes among `$fileIds`, by file id.
 	 * @param list<int> $fileIds

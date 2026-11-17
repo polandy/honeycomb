@@ -6,7 +6,7 @@ import type { XmpPacket } from './model.ts'
 import { COLOUR_LABELS } from '../decision.ts'
 import { NAMESPACE, xmpKey } from './model.ts'
 
-/** The properties honeycomb reads and writes (`docs/06-xmp-interop.md` Field mapping). */
+/** The properties honeycomb reads and writes (`docs/dev/06-xmp-interop.md` Field mapping). */
 export const PROPERTY = {
 	rating: xmpKey(NAMESPACE.xmp, 'Rating'),
 	label: xmpKey(NAMESPACE.xmp, 'Label'),

@@ -57,7 +57,7 @@ test('lists at most three recent folder sets under the folder tree on a phone an
 	const picker = page.getByRole('dialog', { name: 'Choose folders' })
 	const rows = picker.locator('.picker-recent-sets__row')
 	await expect(rows).toHaveCount(3)
-	const tree = (await picker.getByRole('option').first().boundingBox())!
+	const tree = (await picker.getByRole('treeitem').first().boundingBox())!
 	const first = (await rows.first().boundingBox())!
 	expect(first.y).toBeGreaterThan(tree.y)
 	expect(first.height).toBeGreaterThanOrEqual(44)

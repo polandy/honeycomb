@@ -113,7 +113,7 @@ function decideByKey(intent: HotkeyIntent, advance: boolean) {
 	decisions.decideByKey(intent, advance && !(intent.kind === 'flag' && intent.flag === 'rejected'))
 }
 
-/** The viewer's keys (`docs/plan.md` Keyboard shortcuts); the app's dispatcher runs them. */
+/** The viewer's keys (`docs/dev/plan.md` Keyboard shortcuts); the app's dispatcher runs them. */
 const hotkeys: HotkeyHandlers = {
 	previous: () => go(props.index - 1),
 	next: () => go(props.index + 1),

@@ -8,13 +8,19 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\MoveController;
+use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\MoveService;
 use OCA\Honeycomb\Service\MoveTargetService;
+use OCA\Honeycomb\Service\UserFolderResolver;
+use OCA\Honeycomb\Service\UserPhotos;
 use OCA\Honeycomb\Tests\Service\FakeDecisionStore;
+use OCA\Honeycomb\Tests\Service\FakeSeriesStore;
 use OCA\Honeycomb\Tests\Service\FakeTagStore;
 use OCA\Honeycomb\Tests\Service\FakeTree;
 use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
+use OCA\Honeycomb\Tests\Service\FakeXmpCacheStore;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -36,16 +42,19 @@ final class MoveControllerTest extends TestCase {
 		$apps->method('isEnabledForUser')->willReturn($trashBin);
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $this->treeUser() : null);
-		$move = new MoveService($this->treeRoot(), $apps, new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore(), $this->createStub(LoggerInterface::class));
-		return new MoveController(Application::APP_ID, $this->createStub(IRequest::class), $session, $move, new MoveTargetService($this->treeRoot()));
+		$move = new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores(new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore()), $this->createStub(LoggerInterface::class));
+		return new MoveController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $move, new MoveTargetService($this->treeRoot()));
 	}
 
 	// spec: MOVE-002.1
 	public function testTheProbeAnswersTheChildrenOfEachFolder(): void {
-		$response = $this->controller()->targets(['/Out']);
+		$response = $this->controller()->targets(['/Out'], ['/In']);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame(['folders' => [['path' => '/Out', 'children' => [['name' => 'A.JPG', 'fileId' => 9, 'etag' => 'etag-9']]]]], json_decode($response->render(), true));
+		$this->assertSame([
+			'folders' => [['path' => '/Out', 'storage' => '/', 'children' => [['name' => 'A.JPG', 'fileId' => 9, 'etag' => 'etag-9']]]],
+			'sources' => [['path' => '/In', 'storage' => '/']],
+		], json_decode($response->render(), true));
 	}
 
 	// spec: MOVE-002.2

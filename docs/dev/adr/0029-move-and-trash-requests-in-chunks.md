@@ -1,0 +1,62 @@
+# 0029 – Move and trash requests in chunks
+
+- Status: accepted
+- Date: 2026-11-15
+- Extends: [0013](0013-trash-endpoint-and-pair-atomicity.md), [0018](0018-move-endpoint-and-pair-atomicity.md)
+
+## Context
+
+The trash endpoint (ADR 0013) and the move endpoint (ADR 0018) took up to 60,000 files a request,
+the listing's limit. Across storages a move copies and deletes; trashing thousands of RAWs on
+external storage takes minutes. A proxy or PHP timeout then ends the request: the client says it
+failed while the server goes on, or PHP is killed in the middle of a picture, after its JPEG moved
+and before its RAW did. The rollback of ADR 0018 runs only on an exception, not on a kill, so the
+pair is split and the decision rows of the moved file are not carried over.
+
+The options:
+
+- **Keep one request, add a job queue on the server:** the work survives the request, but it needs
+  a new table, a background job and polling; a large change for a rare case.
+- **A move journal in the database to clean up after a kill:** also a new table, and it only
+  repairs after the fact.
+- **Chunks from the client:** many small requests, each well inside any timeout, so a kill hits at
+  most the picture in flight of one small request. No new table, the API shape stays.
+
+## Decision
+
+- **Server limit:** both endpoints refuse more than 500 files a request with `400`. The probe of
+  move targets keeps the listing's limit; it only reads.
+- **Client chunks:** a move, its undo, a delete, *Remove RAWs* and a retry send at most 50
+  pictures and 500 files a request, whole pictures only: a picture never spans two requests. A
+  single picture of more than 500 files is sent alone and refused.
+- **One after another:** the next request is sent when the last is answered. The dialog shows how
+  many of the photos were sent.
+- **A later request fails:** sending stops. What earlier requests did is kept and shown; the files
+  not sent count as `failed` in the report, so *Retry failed files* and the move's *Undo* work as
+  for any failed file. When the first request fails, nothing changed, as before.
+
+## Consequences
+
+- A timeout or kill can split at most the one picture in flight; the request around it is small.
+- A large move or delete needs more round trips; 50 pictures a request keeps that to a few dozen
+  for a big folder.
+- A picture whose files the server never answered after a timeout may have moved anyway; the
+  report says *failed*, a retry finds the file changed or gone, and reloading the folder shows it.
+
+## Amendment 2026-11-16: small first requests
+
+A delete of rejects on the owner's test server waited long with nothing moving: the footer read
+*0 of 40 photos sent* through the fresh check and the single request of up to 50 pictures.
+Measured on the e2e container (Nextcloud 35, SQLite, no Redis), `File::delete()` into the trash
+bin costs 25–40 ms a file, more in deeper folders: about 100 queries of Nextcloud's own (file
+locks, cache moves, size and ETag propagation to every parent, shares, activity, versions,
+previews); finding the file costs 0.3 ms and honeycomb's request about 120 ms. Batching the
+parents' propagation (`IPropagator::beginBatch`) saved 6 % and needs one batch per storage; one
+database transaction around the loop saved two thirds but would hold file locks and roll back cache
+rows of files already moved, so neither is taken.
+
+- The first request carries at most 5 pictures, each next one twice as many, up to 50: the count
+  moves within about a second, and a big delete adds only a few requests.
+- The confirm button is held and names the step: *Checking the photos…* while the waiting sidecars
+  are written and the photos checked afresh, then *Moving to trash…*; the count starts from the
+  photos that passed the check.

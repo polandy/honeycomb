@@ -8,24 +8,30 @@ import type { PairingSettings } from './logic/pairing.ts'
 import { ref, watch } from 'vue'
 import { logger } from './logger.ts'
 import { countFolderSet } from './logic/cull.ts'
+import { folderListings } from './logic/folder-set.ts'
 
-/** Lists one folder, with every folder below it when `subfolders`. */
-export type ListEntries = (path: string, subfolders: boolean) => Promise<Listing>
+/** Lists one folder, with every folder below it but the `excluded` ones when `subfolders`. */
+export type ListEntries = (path: string, subfolders: boolean, excluded?: readonly string[]) => Promise<Listing>
+
+/** The listings of every ticked folder of `set`, each without the excluded folders below it. */
+export function listFolderSet(set: FolderSet, listEntries: ListEntries): Promise<Listing[]> {
+	return Promise.all(folderListings(set).map(({ path, excluded }) => listEntries(path, set.subfolders, excluded)))
+}
 
 /**
  * The count of the folder set `set` holds as `pairing` pairs it, kept current as either changes.
- * Each folder is listed once per switch position; a failed listing is asked again next time.
+ * Each folder is listed once per switch position and exclusions; a failed listing is asked again next time.
  */
 export function useFolderCount(set: Ref<FolderSet>, listEntries: ListEntries, pairing: () => PairingSettings) {
 	const cache = new Map<string, Promise<Listing>>()
 	const count = ref<FolderSetCount | null>(null)
 	const failed = ref(false)
 
-	const listing = (path: string, subfolders: boolean) => {
-		const key = JSON.stringify([path, subfolders])
+	const listing: ListEntries = (path, subfolders, excluded = []) => {
+		const key = JSON.stringify([path, subfolders, excluded])
 		let answer = cache.get(key)
 		if (answer === undefined) {
-			answer = listEntries(path, subfolders)
+			answer = listEntries(path, subfolders, excluded)
 			answer.catch(() => cache.delete(key))
 			cache.set(key, answer)
 		}
@@ -33,7 +39,8 @@ export function useFolderCount(set: Ref<FolderSet>, listEntries: ListEntries, pa
 	}
 
 	let latestCount = 0
-	watch([set, pairing], async ([{ paths, subfolders }, settings]) => {
+	watch([set, pairing], async ([folderSet, settings]) => {
+		const { paths, subfolders } = folderSet
 		const counting = ++latestCount
 		count.value = null
 		failed.value = false
@@ -41,7 +48,7 @@ export function useFolderCount(set: Ref<FolderSet>, listEntries: ListEntries, pa
 			return
 		}
 		try {
-			const listings = await Promise.all(paths.map((path) => listing(path, subfolders)))
+			const listings = await listFolderSet(folderSet, listing)
 			if (counting === latestCount) {
 				count.value = countFolderSet(listings, settings)
 			}

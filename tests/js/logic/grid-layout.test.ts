@@ -3,10 +3,10 @@
 import type { GridLayoutInput } from '../../../src/logic/grid-layout.ts'
 
 import { describe, expect, it } from 'vitest'
-import { focusStep, gridLayout, revealScrollTop, rowOfItem, stickyHeader, tileAt, visibleRows } from '../../../src/logic/grid-layout.ts'
+import { anchoredScrollTop, focusStep, gridLayout, revealScrollTop, rowOfItem, stickyHeader, tileAt, visibleRows } from '../../../src/logic/grid-layout.ts'
 
 // Two columns of 100 px tiles with a 10 px gap, two groups of 3 and 5 pictures.
-const GROUPED: GridLayoutInput = { width: 210, tileSize: 100, gap: 10, headerHeight: 30, groups: [3, 5], showHeaders: true }
+const GROUPED: GridLayoutInput = { width: 210, tileSize: 100, gap: 10, headerHeight: 30, groups: [3, 5], showHeaders: true, top: 0, nameBar: 0 }
 
 describe('gridLayout', () => {
 	it.each([
@@ -18,6 +18,23 @@ describe('gridLayout', () => {
 
 		expect(layout.columns).toBe(columns)
 		expect(layout.tileWidth).toBeCloseTo(tileWidth)
+	})
+
+	// spec: GRID-004.4
+	it('makes every tile row taller by the name bar and leaves the headers alone', () => {
+		const layout = gridLayout({ ...GROUPED, nameBar: 24 })
+
+		expect(layout.rows.map((row) => [row.top, row.height])).toEqual([[0, 30], [40, 124], [174, 124], [308, 30], [348, 124], [482, 124], [616, 124]])
+		expect(layout.tileWidth).toBe(100)
+		expect(layout.totalHeight).toBe(740)
+	})
+
+	// spec: SERIES-003.18
+	it('keeps the top free above the first row', () => {
+		const layout = gridLayout({ ...GROUPED, groups: [3], top: 22 })
+
+		expect(layout.rows.map((row) => row.top)).toEqual([22, 62, 172])
+		expect(layout.totalHeight).toBe(272)
 	})
 
 	it('puts a header above each group and breaks rows at a group\'s end', () => {
@@ -127,8 +144,33 @@ describe('revealScrollTop', () => {
 	})
 })
 
+describe('anchoredScrollTop', () => {
+	const without = gridLayout(GROUPED)
+	const withBar = gridLayout({ ...GROUPED, nameBar: 24 })
+
+	// spec: GRID-004.6
+	it('keeps the focused tile in its place while it is in view', () => {
+		expect(anchoredScrollTop(without, withBar, 280, 200, 5)).toBe(352)
+	})
+
+	// spec: GRID-004.6
+	it.each([['out of view', 0], ['none', null]])('keeps the row at the top in its place with the focused tile %s', (_case, focused) => {
+		expect(anchoredScrollTop(without, withBar, 280, 200, focused)).toBe(328)
+	})
+
+	// spec: GRID-004.6
+	it('stops at the end of the shorter grid', () => {
+		expect(anchoredScrollTop(withBar, without, 540, 200, null)).toBe(420)
+	})
+
+	// spec: GRID-004.6
+	it('stays at the top of an empty grid', () => {
+		expect(anchoredScrollTop(gridLayout({ ...GROUPED, groups: [] }), gridLayout({ ...GROUPED, groups: [], nameBar: 24 }), 0, 200, null)).toBe(0)
+	})
+})
+
 describe('a grid of 20,000 pictures in 100 folders', () => {
-	const layout = gridLayout({ width: 1000, tileSize: 160, gap: 4, headerHeight: 40, groups: Array.from({ length: 100 }, () => 200), showHeaders: true })
+	const layout = gridLayout({ width: 1000, tileSize: 160, gap: 4, headerHeight: 40, groups: Array.from({ length: 100 }, () => 200), showHeaders: true, top: 0, nameBar: 0 })
 
 	it('holds every picture once', () => {
 		const tiles = layout.rows.filter((row) => row.kind === 'tiles')

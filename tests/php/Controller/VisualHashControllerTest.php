@@ -8,9 +8,11 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\VisualHashController;
 use OCA\Honeycomb\Service\MissingVisualHashes;
 use OCA\Honeycomb\Service\UserFolderResolver;
+use OCA\Honeycomb\Service\UserPhotos;
 use OCA\Honeycomb\Service\VisualHashService;
 use OCA\Honeycomb\Tests\Service\FakeFiles;
 use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
@@ -48,7 +50,7 @@ final class VisualHashControllerTest extends TestCase {
 			$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
 		}
 		$folders = new UserFolderResolver($root);
-		return new VisualHashController(Application::APP_ID, $this->createStub(IRequest::class), $session, new VisualHashService($this->store, $folders), new MissingVisualHashes($folders, $this->store));
+		return new VisualHashController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new VisualHashService($this->store, new UserPhotos($folders)), new MissingVisualHashes($folders, $this->store));
 	}
 
 	// spec: SERIES-003.3, SERIES-003.4

@@ -7,9 +7,9 @@ cd "$(dirname "$0")" || exit 1
 
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
-mkdir -p "$work/docs/specs/grid"
-printf -- '- Status: implemented\n' >"$work/docs/specs/grid/GRID-001-grid.md"
-printf -- '- Status: accepted\n' >"$work/docs/specs/grid/GRID-002-later.md"
+mkdir -p "$work/docs/dev/specs/grid"
+printf -- '- Status: implemented\n' >"$work/docs/dev/specs/grid/GRID-001-grid.md"
+printf -- '- Status: accepted\n' >"$work/docs/dev/specs/grid/GRID-002-later.md"
 
 failed=0
 expect() {
@@ -23,9 +23,9 @@ expect() {
   fi
 }
 
-spec=docs/specs/grid/GRID-001-grid.md
+spec=docs/dev/specs/grid/GRID-001-grid.md
 expect nothing pass ''
-expect docs-only pass '' docs/plan.md
+expect docs-only pass '' docs/dev/plan.md
 expect code-without-spec fail '' src/logic/cull.ts
 expect php-without-spec fail '' lib/Service/TrashService.php
 expect code-with-spec pass '' src/logic/cull.ts "$spec"
@@ -37,10 +37,10 @@ expect tests-only pass '' tests/js/logic/cull.test.ts
 expect spec-alone fail '' "$spec"
 expect spec-with-tests pass '' "$spec" tests/js/logic/cull.test.ts
 expect spec-with-trailer pass 'Spec-Only: wording' "$spec"
-expect accepted-spec-alone pass '' docs/specs/grid/GRID-002-later.md
-expect deleted-spec-alone fail '' docs/specs/grid/GRID-009-gone.md
-expect readme-alone pass '' docs/specs/README.md
-expect readme-not-a-spec fail '' docs/specs/README.md src/App.vue
+expect accepted-spec-alone pass '' docs/dev/specs/grid/GRID-002-later.md
+expect deleted-spec-alone fail '' docs/dev/specs/grid/GRID-009-gone.md
+expect readme-alone pass '' docs/dev/specs/README.md
+expect readme-not-a-spec fail '' docs/dev/specs/README.md src/App.vue
 
 release=release-please--branches--main--components--honeycomb
 HEAD_REF=$release expect release-pr-exempt pass '' appinfo/info.xml package.json

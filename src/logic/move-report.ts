@@ -5,7 +5,7 @@ import type { ListingEntry } from './listing.ts'
 import type { MoveRequestFile } from './move-plan.ts'
 
 /** Why the move endpoint left a file where it was, or put it back (ADR 0018). */
-export type MoveFailure = 'notFound' | 'changed' | 'notPermitted' | 'locked' | 'exists' | 'failed' | 'skipped' | 'movedBack'
+export type MoveFailure = 'notFound' | 'changed' | 'notPermitted' | 'locked' | 'exists' | 'failed' | 'skipped' | 'movedBack' | 'otherStorage'
 
 /** One file of the move response; `result` is checked here. */
 export interface MoveResponseFile {
@@ -40,7 +40,7 @@ export interface MoveReport {
 	readonly replaced: number
 }
 
-const FAILURES: ReadonlySet<string> = new Set<MoveFailure>(['notFound', 'changed', 'notPermitted', 'locked', 'exists', 'failed', 'skipped', 'movedBack'])
+const FAILURES: ReadonlySet<string> = new Set<MoveFailure>(['notFound', 'changed', 'notPermitted', 'locked', 'exists', 'failed', 'skipped', 'movedBack', 'otherStorage'])
 
 /** The report of a response; a file it leaves out, answers with an unknown result or moves without its new place counts as failed. */
 export function moveReport(sent: readonly (readonly PictureFile[])[], response: readonly (readonly MoveResponseFile[])[]): MoveReport {

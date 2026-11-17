@@ -22,14 +22,37 @@ final class MoveTargetService {
 	}
 
 	/**
-	 * Every child of each folder, in the order sent; a missing, unreadable or non-folder path has none.
+	 * Every child of each folder and the storage of each folder and source folder, in the order sent; a missing, unreadable or non-folder path has no children.
 	 * @param array<array-key, mixed> $folders
-	 * @return list<array{path: string, children: list<array{name: string, fileId: int, etag: string}>}>
+	 * @param array<array-key, mixed> $sources
+	 * @return array{folders: list<array{path: string, storage: string, children: list<array{name: string, fileId: int, etag: string}>}>, sources: list<array{path: string, storage: string}>}
 	 * @throws InvalidMoveRequestException
 	 */
-	public function targets(IUser $user, array $folders): array {
+	public function targets(IUser $user, array $folders, array $sources = []): array {
+		$folders = MoveRequest::folders($folders);
+		$sources = MoveRequest::folders($sources);
 		$userFolder = $this->rootFolder->getUserFolder($user->getUID());
-		return array_map(fn (string $path): array => ['path' => $path, 'children' => $this->children($userFolder, $path)], MoveRequest::folders($folders));
+		return [
+			'folders' => array_map(fn (string $path): array => ['path' => $path, 'storage' => $this->storage($userFolder, $path), 'children' => $this->children($userFolder, $path)], $folders),
+			'sources' => array_map(fn (string $path): array => ['path' => $path, 'storage' => $this->storage($userFolder, $path)], $sources),
+		];
+	}
+
+	/** The storage of the deepest folder on the path that exists and may be read, where a move into it would land. */
+	private function storage(Folder $userFolder, string $path): string {
+		$folder = $userFolder;
+		foreach (array_filter(explode('/', $path), static fn (string $name): bool => $name !== '') as $name) {
+			try {
+				$node = $folder->get($name);
+			} catch (NotFoundException|NotPermittedException) {
+				break;
+			}
+			if (!$node instanceof Folder) {
+				break;
+			}
+			$folder = $node;
+		}
+		return StorageRoot::of($userFolder, $folder);
 	}
 
 	/** @return list<array{name: string, fileId: int, etag: string}> */

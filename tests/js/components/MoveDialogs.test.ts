@@ -6,13 +6,13 @@ import type { Folder } from '../../../src/api.ts'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import ConfirmDialog from '../../../src/components/ConfirmDialog.vue'
-import FolderList from '../../../src/components/FolderList.vue'
+import FolderTree from '../../../src/components/FolderTree.vue'
 import MoveDialogs from '../../../src/components/MoveDialogs.vue'
 import { allMoved, moveFlow } from '../move-fixtures.ts'
 import { DialogStub } from './stubs.ts'
 
 const SET = { paths: ['/Trip'], subfolders: false }
-const FOLDERS: Folder[] = [{ name: 'Trip', path: '/Trip', hasSubfolders: false }, { name: 'Out', path: '/Out', hasSubfolders: false }]
+const FOLDERS: Folder[] = [{ name: 'Trip', path: '/Trip', hasSubfolders: false, photoFiles: 0, photoFilesBelow: 0 }, { name: 'Out', path: '/Out', hasSubfolders: false, photoFiles: 0, photoFilesBelow: 0 }]
 
 /** The dialogs over a move flow from the fixtures, its dialog open on `chosen` of its pictures. */
 function mountDialogs(options: Parameters<typeof moveFlow>[1] = {}, answer = allMoved()) {
@@ -69,7 +69,7 @@ describe('MoveDialogs: target', () => {
 
 		await wrapper.find('.move-dialog__browse').trigger('click')
 		await flushPromises()
-		const list = wrapper.findComponent(FolderList)
+		const list = wrapper.findComponent(FolderTree)
 		expect(list.props()).toMatchObject({ single: true, blocked: ['/Trip'] })
 		expect(confirmButton(wrapper).attributes('disabled')).toBeDefined()
 
@@ -176,6 +176,44 @@ describe('MoveDialogs: summary', () => {
 		expect(wrapper.find('.move-summary__unnamed').text()).toBe('sunset cannot be named: its file name does not end in digits for {number}')
 		expect(wrapper.find('.delete-stats').text()).toBe('1photo2files0conflicts')
 		expect(confirmButton(wrapper).text()).toBe('Move 2 files')
+		wrapper.unmount()
+	})
+})
+
+describe('MoveDialogs: progress', () => {
+	// spec: MOVE-004.17
+	it('shows how many photos were sent while the move runs', async () => {
+		let release = () => {}
+		const { wrapper, moving, pair } = mountDialogs({}, (request) => new Promise((resolve) => {
+			release = () => void allMoved()(request).then(resolve)
+		}))
+		moving.open([pair])
+		moving.choose('/Out')
+		await flushPromises()
+
+		const done = moving.confirm()
+		await flushPromises()
+		expect(wrapper.findComponent(ConfirmDialog).props('progress')).toEqual({ done: 0, total: 1 })
+		release()
+		await done
+		wrapper.unmount()
+	})
+})
+
+describe('MoveDialogs: storages', () => {
+	// spec: MOVE-004.16
+	it('lists a picture that would leave its shared folder or storage, not moved', async () => {
+		const { wrapper, moving, pair, single } = mountDialogs({ storages: { '/Trip': '/Trip' } })
+		moving.open([pair, single])
+		moving.choose('/Out')
+		await flushPromises()
+
+		expect(wrapper.findAll('.move-summary__unnamed').map((row) => row.text())).toEqual([
+			'IMG_1 is not moved: the target is outside its shared folder or storage',
+			'IMG_2 is not moved: the target is outside its shared folder or storage',
+		])
+		expect(wrapper.find('.delete-stats').text()).toBe('0photos0files0conflicts')
+		expect(confirmButton(wrapper).attributes('disabled')).toBeDefined()
 		wrapper.unmount()
 	})
 })

@@ -10,7 +10,7 @@ import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import { logger } from '../../src/logger.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
-import { mountApp, openCull, shownNames } from './app-cull.ts'
+import { mountApp, openCull, shownNames, toolbarProps } from './app-cull.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue } from './l10n/marked-catalogue.ts'
 
 const MARK = TRANSLATED_MARK
@@ -46,7 +46,7 @@ describe('App: selection mode and bulk decisions', () => {
 
 		expect(wrapper.findComponent(PhotoGrid).props('selecting')).toBe(true)
 		expect(wrapper.findComponent(ActionBar).props('disabled')).toBe(true)
-		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ selecting: true, selected: 0 })
+		expect(toolbarProps(wrapper)).toMatchObject({ selecting: true, selected: 0 })
 	})
 
 	// spec: GRID-003.5
@@ -54,7 +54,7 @@ describe('App: selection mode and bulk decisions', () => {
 		const { wrapper, saved } = mountApp()
 		await openCull(wrapper)
 		await select(wrapper, [1, 2])
-		expect(wrapper.findComponent(GridToolbar).props('selected')).toBe(2)
+		expect(toolbarProps(wrapper).selected).toBe(2)
 		expect(wrapper.findComponent(ActionBar).props('common')).toMatchObject({ rating: 0, canKeepRaw: true })
 
 		wrapper.findComponent(ActionBar).vm.$emit('decide', { kind: 'rating', rating: 3 })
@@ -78,7 +78,7 @@ describe('App: selection mode and bulk decisions', () => {
 
 		expect(shownNames(wrapper)).toEqual(['IMG_2'])
 		expect(selectedIds(wrapper)).toEqual([])
-		expect(wrapper.findComponent(GridToolbar).props()).toMatchObject({ decided: 0, total: 1 })
+		expect(toolbarProps(wrapper)).toMatchObject({ decided: 0, total: 1 })
 	})
 
 	// spec: GRID-003.9
@@ -178,10 +178,10 @@ describe('App: selection mode and bulk decisions', () => {
 
 		toolbar.vm.$emit('selectAll')
 		await flushPromises()
-		expect(toolbar.props('selected')).toBe(3)
+		expect(toolbarProps(wrapper).selected).toBe(3)
 		toolbar.vm.$emit('selectNone')
 		await flushPromises()
-		expect(toolbar.props('selected')).toBe(0)
+		expect(toolbarProps(wrapper).selected).toBe(0)
 		toolbar.vm.$emit('update:selecting', false)
 		await flushPromises()
 

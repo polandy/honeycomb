@@ -3,10 +3,11 @@
 import type { Decision, Flag } from '../../../src/logic/decision.ts'
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
+import type { Series } from '../../../src/logic/series.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { allSeries, findSeries, hashablePictures, SERIES_GAP_SECONDS, SERIES_SPAN_SECONDS, seriesCandidates, seriesMembers, seriesSizes, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
+import { allSeries, findSeries, hashablePictures, openSeries, SERIES_GAP_SECONDS, SERIES_SPAN_SECONDS, seriesCandidates, seriesMembers, seriesNeighbours, visibleMembers, VISUAL_DISTANCE_LIMIT, VISUAL_SERIES_GAP_SECONDS } from '../../../src/logic/series.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
 /** Pictures named `/<folder>/<name>.JPG`, shot at `time` by `camera`. */
@@ -14,12 +15,12 @@ function shots(...specs: [name: string, time: number | null, camera?: string | n
 	return picturesOf(specs.map(([name, time, camera = 'Canon EOS R5'], index) => listingEntry(index + 1, `/${name}.JPG`, { captureTime: time, camera, mtime: 5000 })))
 }
 
-const names = (series: readonly (readonly Picture<ListingEntry>[])[]) => series.map((each) => each.map((picture) => picture.baseName))
+const names = (series: readonly Series<Picture<ListingEntry>>[]) => series.map(({ members }) => members.map((picture) => picture.baseName))
 
 /** The series of the pictures with the given flags by base name, undecided otherwise. */
 function seriesOf(pictures: readonly Picture<ListingEntry>[], flags: Record<string, Flag> = {}) {
 	const decisionOf = (picture: Picture<ListingEntry>): Decision => ({ ...UNDECIDED, flag: flags[picture.baseName] ?? 'unflagged' })
-	return names(findSeries(seriesCandidates(pictures), decisionOf))
+	return names(findSeries(allSeries(seriesCandidates(pictures), decisionOf), decisionOf))
 }
 
 describe('findSeries', () => {
@@ -91,8 +92,23 @@ const hash = (bits: number) => (2n ** BigInt(bits) - 1n).toString(16).padStart(1
 function visualSeries(pictures: readonly Picture<ListingEntry>[], hashes: Record<string, string>, flags: Record<string, Flag> = {}) {
 	const decisionOf = (picture: Picture<ListingEntry>): Decision => ({ ...UNDECIDED, flag: flags[picture.baseName] ?? 'unflagged' })
 	const hashOf = (picture: Picture<ListingEntry>) => hashes[picture.baseName] ?? null
-	return names(findSeries(seriesCandidates(pictures, hashOf), decisionOf, hashOf))
+	return names(findSeries(allSeries(seriesCandidates(pictures, hashOf), decisionOf, hashOf), decisionOf))
 }
+
+describe('findSeries with stored series', () => {
+	const [A, B, C, D] = shots(['P/A', 0], ['P/B', 1], ['P/C', 100], ['P/D', 101])
+	const decisionOf = () => UNDECIDED
+
+	// spec: SERIES-005.14
+	it('no longer offers a done series, and offers an open stored one', () => {
+		const series: Series<Picture<ListingEntry>>[] = [
+			{ key: 1, members: [A!, B!], stored: { id: 5, status: 'done', elsewhere: false } },
+			{ key: 3, members: [C!, D!], stored: { id: 6, status: 'open', elsewhere: false } },
+		]
+
+		expect(names(findSeries(series, decisionOf))).toEqual([['C', 'D']])
+	})
+})
 
 describe('findSeries with visual hashes', () => {
 	// spec: SERIES-001.14
@@ -175,15 +191,6 @@ describe('hashablePictures', () => {
 	})
 })
 
-describe('seriesSizes', () => {
-	// spec: SERIES-002.10
-	it('maps each picture of a series to the size of its series', () => {
-		const sizes = seriesSizes([['A', 'B', 'C'], ['D', 'E']])
-
-		expect([...sizes]).toEqual([['A', 3], ['B', 3], ['C', 3], ['D', 2], ['E', 2]])
-	})
-})
-
 describe('allSeries', () => {
 	// spec: LOUPE-001.19
 	it('keeps every series of two or more pictures that are not rejected, decided or not', () => {
@@ -192,15 +199,61 @@ describe('allSeries', () => {
 
 		expect(names(allSeries(seriesCandidates(pictures), decisionOf))).toEqual([['A', 'B', 'C']])
 	})
+
+	it('keys each series by the smallest member file ID of its first picture', () => {
+		const pictures = picturesOf([
+			listingEntry(7, '/P/A.JPG', { captureTime: 0 }),
+			listingEntry(3, '/P/A.CR3', { captureTime: 0 }),
+			listingEntry(5, '/P/B.JPG', { captureTime: 1 }),
+			listingEntry(9, '/P/C.JPG', { captureTime: 10 }),
+			listingEntry(8, '/P/D.JPG', { captureTime: 11 }),
+		])
+
+		expect(allSeries(seriesCandidates(pictures), () => UNDECIDED).map((series) => series.key)).toEqual([3, 9])
+	})
+})
+
+describe('visibleMembers', () => {
+	it('leaves out the rejected pictures and keeps the order', () => {
+		const flags: Record<string, Flag> = { A: 'picked', B: 'rejected', C: 'unflagged' }
+
+		expect(visibleMembers(['A', 'B', 'C'], (picture) => ({ ...UNDECIDED, flag: flags[picture]! }))).toEqual(['A', 'C'])
+	})
 })
 
 describe('seriesMembers', () => {
 	// spec: LOUPE-001.19
 	it('maps each picture of a series to its whole series', () => {
-		const first = ['A', 'B']
-		const second = ['C', 'D']
+		const first = { key: 1, members: ['A', 'B'] }
+		const second = { key: 3, members: ['C', 'D'] }
 		const members = seriesMembers([first, second])
 
 		expect([...members]).toEqual([['A', first], ['B', first], ['C', second], ['D', second]])
+	})
+})
+
+describe('openSeries', () => {
+	// spec: SERIES-003.25
+	it('holds each picture of a series with a pending member, and none of a series without', () => {
+		const open = openSeries([{ key: 1, members: ['A', 'B'] }, { key: 3, members: ['C', 'D'] }], (picture) => picture === 'D')
+
+		expect([...open]).toEqual(['C', 'D'])
+	})
+})
+
+describe('seriesNeighbours', () => {
+	const series = [1, 5, 9].map((key) => ({ key, members: [key, key + 1] }))
+
+	// spec: SERIES-005.8
+	it('finds the series before and after the one with the key, none at either end', () => {
+		expect(seriesNeighbours(series, 5)).toEqual({ previous: series[0], next: series[2] })
+		expect(seriesNeighbours(series, 1)).toEqual({ previous: null, next: series[1] })
+		expect(seriesNeighbours(series, 9)).toEqual({ previous: series[1], next: null })
+	})
+
+	// spec: SERIES-005.8
+	it('finds none for a series that is not among them', () => {
+		expect(seriesNeighbours(series, 3)).toEqual({ previous: null, next: null })
+		expect(seriesNeighbours(series, null)).toEqual({ previous: null, next: null })
 	})
 })

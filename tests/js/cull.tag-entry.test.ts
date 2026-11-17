@@ -1,17 +1,13 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { CullSidecars } from '../../src/cull-seams.ts'
 import type { StoredTags, Tag } from '../../src/logic/tag.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
-import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { ENTRIES, fakeStorage, SET } from './app-cull.ts'
-
-const NO_SIDECARS: CullSidecars = { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) }
+import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, SAVED_SERIES, SET, WRITING_ON } from './app-cull.ts'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -22,9 +18,12 @@ async function taggedCull(stored: StoredTags[], tagList: () => Promise<Tag[]> = 
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
 		saveVisualHashes: async () => undefined,
+		wait: async () => {},
 		warmPreviews: async () => undefined,
 		lookupDecisions: async () => [],
 		saveDecisions: async () => undefined,
+		lookupSeries: NO_SERIES,
+		saveSeries: SAVED_SERIES,
 		tags: {
 			lookupTags: async (fileIds) => stored.filter((row) => fileIds.includes(row.fileId)),
 			saveTags: async (rows) => {
@@ -35,8 +34,8 @@ async function taggedCull(stored: StoredTags[], tagList: () => Promise<Tag[]> = 
 			},
 			loadTagList: tagList,
 		},
-	}, fakeStorage(), () => DEFAULT_SETTINGS, NO_SIDECARS)
-	cull.open(SET, ENTRIES, [])
+	}, fakeStorage(), () => WRITING_ON, NO_SIDECARS, () => undefined)
+	cull.open(SET, ENTRIES)
 	await flushPromises()
 	return { cull, saved, saving, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
 }

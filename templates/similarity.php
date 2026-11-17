@@ -5,7 +5,8 @@
 
 declare(strict_types=1);
 
-\OCP\Util::addScript('honeycomb', 'honeycomb-similarity');
+/** @var array{script: string} $_ */
+\OCP\Util::addScript('honeycomb', $_['script']);
 
 ?>
 <div id="honeycomb-similarity"></div>

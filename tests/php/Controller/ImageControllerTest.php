@@ -8,8 +8,11 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\ImageController;
 use OCA\Honeycomb\Service\ImageService;
+use OCA\Honeycomb\Service\UserFolderResolver;
+use OCA\Honeycomb\Service\UserPhotos;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -45,11 +48,11 @@ final class ImageControllerTest extends TestCase {
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
 		$images = new ImageService(
-			$root,
+			new UserPhotos(new UserFolderResolver($root)),
 			$preview ?? $this->previewOf('image/jpeg'),
 			$this->createStub(LoggerInterface::class),
 		);
-		return new ImageController(Application::APP_ID, $request, $session, $images);
+		return new ImageController(Application::APP_ID, $request, new ApiResponse($session), $images);
 	}
 
 	private function image(bool $readable = true): File {

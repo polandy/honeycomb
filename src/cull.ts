@@ -3,47 +3,47 @@
 import type { BrowserStorage } from './browser-storage.ts'
 import type { CullApi, CullSidecars } from './cull-seams.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
-import type { Decision, StoredDecision } from './logic/decision.ts'
+import type { Decision, DecisionField, StoredDecision } from './logic/decision.ts'
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { PairingSettings, Picture } from './logic/pairing.ts'
-import type { Filters } from './logic/picture-filter.ts'
-import type { SortOrder } from './logic/picture-order.ts'
 import type { Settings } from './logic/settings.ts'
 import type { TagChange } from './logic/tag.ts'
-import type { TagStep, UndoEntry } from './logic/undo.ts'
+import type { DecisionStep, PickRestStep, StepEffects, TagStep, UndoStep } from './logic/undo.ts'
+import type { ListedAccess, WriteLock } from './logic/writability.ts'
 
 import { computed, ref, shallowRef, watch } from 'vue'
-import { readStored, writeStored } from './browser-storage.ts'
+import { useCullAccess } from './cull-access.ts'
 import { useCullHistory } from './cull-history.ts'
 import { useCullTags } from './cull-tags.ts'
 import { nameComparer } from './l10n.ts'
 import { logger } from './logger.ts'
 import { prepareCull, warmMembers } from './logic/cull.ts'
-import { commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
-import { decisionsByFileId, pictureDecision } from './logic/decision.ts'
+import { changedFields, commonDecision, resolveChange, revertRows, withRows } from './logic/decision-change.ts'
+import { countsAsDecided, decisionsByFileId, pictureDecision } from './logic/decision.ts'
+import { legacyWrites } from './logic/legacy.ts'
 import { memberIds } from './logic/pairing.ts'
-import { activeFilterCount, DEFAULT_FILTERS, emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
-import { defaultSortOrder, sortPictures } from './logic/picture-order.ts'
-import { saveQueue } from './logic/save-queue.ts'
-import { allSeries, findSeries, seriesCandidates, seriesMembers, seriesSizes as sizesOf } from './logic/series.ts'
+import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
+import { sortPictures } from './logic/picture-order.ts'
+import { byFileId, saveQueue } from './logic/save-queue.ts'
 import { pairingSettings } from './logic/settings.ts'
 import { inSharedFolder } from './logic/sidecar-sync.ts'
+import { inDoneSeries } from './logic/stored-series.ts'
 import { inverseChange } from './logic/tag.ts'
-import { parseTileSize } from './logic/tile-size.ts'
 import { withoutFiles } from './logic/trash-report.ts'
-import { pickRestEntry, tagStep, undoEntry } from './logic/undo.ts'
+import { applyStep, pickRestEntry, tagStep, undoEntry } from './logic/undo.ts'
+import { NO_ACCESS } from './logic/writability.ts'
 import { usePreviewWarmer } from './preview-warmer.ts'
-import { useVisualHashes } from './visual-hashes.ts'
+import { useSeriesEdits } from './series-edits.ts'
+import { useSeries } from './series.ts'
+import { useStoredSeries } from './stored-series.ts'
+import { useViewOptions } from './view-options.ts'
 
-/** The browser storage key of the thumbnail size. */
-const TILE_SIZE_KEY = 'honeycomb.tileSize'
+/** A step of the cull's undo history. */
+export type CullStep = UndoStep<Picture<ListingEntry>>
 
-/** A step of the cull's undo history: decisions or tags. */
-export type CullStep = UndoEntry | TagStep<Picture<ListingEntry>>
-
-/** The open cull, its view settings and the folder picker's state; it pairs and shows singles as the settings say. */
-export function useCull(api: CullApi, storage: BrowserStorage, settings: () => Settings, sidecars: CullSidecars) {
+/** The open cull, its view settings and the folder picker's state; it pairs and shows singles as the settings say, and reports a step it may not write in `onLocked`. */
+export function useCull(api: CullApi, storage: BrowserStorage, settings: () => Settings, sidecars: CullSidecars, onLocked: (lock: WriteLock<CullStep>) => void) {
 	const compareNames = nameComparer()
 	const folderSet = ref<FolderSet | null>(null)
 	const entries = shallowRef<readonly ListingEntry[]>([])
@@ -52,53 +52,53 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const pairing = computed(() => JSON.parse(pairingKey.value) as PairingSettings)
 	const pictures = computed(() => (settings().showSingles ? paired.value : paired.value.filter((picture) => picture.raw !== null && picture.rendered !== null)))
 	const decisions = shallowRef<ReadonlyMap<number, Decision>>(new Map())
-	const filters = shallowRef<Filters>(DEFAULT_FILTERS)
-	const sortOrder = ref<SortOrder>('file-name')
-	const filtersOpen = ref(false)
-	const pickerOpen = ref(true)
-	const groupByFolder = ref(false)
-	const tileSize = ref(parseTileSize(readStored(storage, TILE_SIZE_KEY)))
 	const saveFailed = ref(false)
-	const saveDecisions = saveQueue(api.saveDecisions)
-	const sharedFolders = shallowRef<ReadonlySet<string>>(new Set())
+	const saveDecisions = saveQueue(api.saveDecisions, { key: byFileId })
+	const access = useCullAccess(settings, onLocked)
 	let opening = 0
-	const history = useCullHistory<CullStep>(apply)
-	const tags = useCullTags(api.tags, sidecars.writeTags, () => opening, (picture) => !inSharedFolder(picture, sharedFolders.value))
-	let filtersOff: Filters | null = null
+	const storedSeries = useStoredSeries(api, () => opening)
+	/** Puts each kind of step into effect, or takes it back when `back`. */
+	const effects: StepEffects<Picture<ListingEntry>> = {
+		decision: (step, back) => store(back ? step.before : step.after),
+		pickRest: (step, back) => store(back ? step.before : step.after),
+		tags: (step, back) => storeTags(step.pictures, back ? inverseChange(step.change) : step.change),
+		series: (step, back) => void storedSeries.store(back ? step.before : step.after),
+	}
+	const history = useCullHistory<CullStep>((step, back) => applyStep(effects, step, back))
+	/** Whether a step on the picture is written through to its sidecars (XMP-008.1). */
+	const writesThrough = (picture: Picture<ListingEntry>) => access.writabilityOf(picture) === 'writable'
+	const tags = useCullTags(api.tags, sidecars.writeTags, () => opening, writesThrough)
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
 	const folders = computed(() => folderPaths.value.length)
-	const grouped = computed(() => groupByFolder.value && folders.value > 1)
+	const options = useViewOptions(storage, () => folders.value)
+	const { filters, sortOrder, grouped } = options
 	const decisionOf = (picture: Picture<ListingEntry>) => pictureDecision(picture, decisions.value)
 	const passes = (picture: Picture<ListingEntry>) => matchesFilters(picture, decisionOf(picture), tags.tagsOf(picture), filters.value)
 	const view = computed(() => sortPictures(filterPictures(pictures.value, decisionOf, tags.tagsOf, filters.value), sortOrder.value, compareNames, grouped.value))
-	const cullProgress = computed(() => progress(pictures.value, decisionOf))
-	const shownProgress = computed(() => progress(view.value, decisionOf))
-	const activeFilters = computed(() => activeFilterCount(filters.value))
+	/** Whether the picture counts as decided, an unflagged one in a done series too (SERIES-005.14). */
+	const decidedOf = (picture: Picture<ListingEntry>) => countsAsDecided(decisionOf(picture), inDoneSeries(picture, storedSeries.rows.value))
+	const cullProgress = computed(() => progress(pictures.value, decidedOf))
+	const shownProgress = computed(() => progress(view.value, decidedOf))
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
-	const hashes = useVisualHashes(api, storage, () => pictures.value)
+	const seriesState = useSeries(api, storage, () => pictures.value, decisionOf, () => storedSeries.rows.value)
 	const warmer = usePreviewWarmer(api.warmPreviews, storage)
-	const candidates = computed(() => seriesCandidates(pictures.value, hashes.hashOf))
-	const series = computed(() => findSeries(candidates.value, decisionOf, hashes.hashOf))
-	const seriesSizes = computed(() => sizesOf(series.value))
-	const seriesOf = computed(() => seriesMembers(allSeries(candidates.value, decisionOf, hashes.hashOf)))
-	const sharedPictures = computed(() => pictures.value.filter((picture) => inSharedFolder(picture, sharedFolders.value)))
+	const sharedPictures = computed(() => pictures.value.filter((picture) => inSharedFolder(picture, access.sharedFolders.value)))
+	const seriesEdits = useSeriesEdits({ record: history.record, rows: () => storedSeries.rows.value, newId: storedSeries.newId, seriesOf: () => seriesState.seriesOf.value })
 
 	/** Shows the pictures of the confirmed folders with fresh filters, then their stored decisions. */
-	function open(set: FolderSet, listed: readonly ListingEntry[], shared: readonly string[]) {
+	function open(set: FolderSet, listed: readonly ListingEntry[], listedAccess: ListedAccess = NO_ACCESS) {
 		folderSet.value = set
-		sharedFolders.value = new Set(shared)
+		access.open(listedAccess)
 		opening++
 		entries.value = listed
 		paired.value = prepareCull(listed, pairing.value).pictures
 		decisions.value = new Map()
 		tags.reset()
+		storedSeries.reset()
 		tags.loadList()
 		history.reset()
-		filtersOff = null
 		saveFailed.value = false
-		filters.value = DEFAULT_FILTERS
-		sortOrder.value = defaultSortOrder(folders.value)
-		pickerOpen.value = false
+		options.reset()
 		warmer.warm(warmMembers(view.value))
 		loadDecisions(paired.value)
 	}
@@ -108,9 +108,10 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		loadDecisions(paired.value)
 	})
 
-	/** Reads the decisions and tags of every member, then takes the sidecars' over; they apply only while the same pictures are open, under changes made meanwhile. */
+	/** Reads the decisions, tags and stored series of every member, then takes the sidecars' over; they apply only while the same pictures are open, under changes made meanwhile. */
 	function loadDecisions(opened: readonly Picture<ListingEntry>[]) {
 		const storedTags = tags.load(opened)
+		storedSeries.load(opened)
 		api.lookupDecisions(opened.flatMap(memberIds)).then(async (rows) => {
 			if (paired.value !== opened) {
 				return
@@ -141,35 +142,26 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	/** What the pictures share, for the action bar. */
 	const common = (chosen: readonly Picture<ListingEntry>[]) => commonDecision(decided(chosen))
 
-	/** Decides the pictures, keeps the step for undo and returns it, or null when nothing changes. */
-	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]): UndoEntry | null {
-		return history.record(undoEntry(decided(chosen), resolveChange(intent, decided(chosen))))
+	/** Decides the pictures, keeps the step for undo and returns it, or null when nothing changes or a picture is locked. */
+	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]): DecisionStep | null {
+		return access.gate(chosen, () => history.record(undoEntry(decided(chosen), resolveChange(intent, decided(chosen)))))
 	}
 
 	/** Picks one picture and rejects the rest as one undo step (SERIES-001.9), or null when nothing changes. */
-	function pickRest(picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]): UndoEntry | null {
-		return history.record(pickRestEntry(decided([picked])[0]!, decided(rest)))
+	function pickRest(picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]): PickRestStep | null {
+		return access.gate([picked, ...rest], () => history.record(pickRestEntry(decided([picked])[0]!, decided(rest))))
 	}
 
 	/** Applies the tag change to the pictures as one undo step and returns it, or null when nothing changes (TAGS-003.10, .11). */
 	function tag(change: TagChange, chosen: readonly Picture<ListingEntry>[]): TagStep<Picture<ListingEntry>> | null {
-		return history.record(tagStep(chosen, tags.tagsOf, change))
-	}
-
-	/** Puts a step into effect, or takes it back when `back`. */
-	function apply(step: CullStep, back: boolean) {
-		if ('pictures' in step) {
-			storeTags(step.pictures, back ? inverseChange(step.change) : step.change)
-		} else {
-			store(back ? step.before : step.after)
-		}
+		return access.gate(chosen, () => history.record(tagStep(chosen, tags.tagsOf, change)))
 	}
 
 	/** Changes the pictures' tags and says in the grid when the save failed. */
 	function storeTags(chosen: readonly Picture<ListingEntry>[], change: TagChange) {
 		const opened = opening
 		saveFailed.value = false
-		void tags.change(chosen, change).then((saved) => {
+		void sidecars.hold(tags.change(chosen, change)).then((saved) => {
 			if (!saved && opening === opened) {
 				saveFailed.value = true
 			}
@@ -182,9 +174,10 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		const opened = opening
 		decisions.value = withRows(before, rows)
 		saveFailed.value = false
-		void saveDecisions(rows).then((saved) => {
+		// Held from the start, so a delete or move flushes the sidecar write the save leads to (XMP-003.30).
+		void sidecars.hold(saveDecisions(rows).then((saved) => {
 			if (saved.ok) {
-				writeThrough(rows, opened)
+				writeThrough(rows, changedFields(rows, before), opened)
 				return
 			}
 			logger.error('Could not save the decisions', { error: saved.error })
@@ -192,20 +185,20 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 				decisions.value = revertRows(decisions.value, saved.unsaved, before)
 				saveFailed.value = true
 			}
-		})
+		}))
 	}
 
-	/** Writes the decisions of the rows' pictures outside shared folders to their sidecars (XMP-003.6, .11). */
-	function writeThrough(rows: readonly StoredDecision[], opened: number) {
+	/** Writes the changed fields of the rows' pictures to their sidecars where they write through (XMP-003.6, .20, XMP-008.1). */
+	function writeThrough(rows: readonly StoredDecision[], fields: readonly DecisionField[], opened: number) {
 		const fileIds = new Set(rows.map((row) => row.fileId))
-		const written = paired.value.filter((picture) => memberIds(picture).some((fileId) => fileIds.has(fileId)) && !inSharedFolder(picture, sharedFolders.value))
-		if (opening === opened && written.length > 0) {
-			void sidecars.write(written, decisionOf)
+		const written = paired.value.filter((picture) => memberIds(picture).some((fileId) => fileIds.has(fileId)) && writesThrough(picture))
+		if (opening === opened && written.length > 0 && fields.length > 0) {
+			void sidecars.write(written, decisionOf, fields)
 		}
 	}
 
-	/** The pictures in shared folders with a stored decision, for an explicit write (XMP-003.12). */
-	const sharedDecided = () => sharedPictures.value.filter((picture) => memberIds(picture).some((fileId) => decisions.value.has(fileId)))
+	/** The pictures with legacy rows, for *Write decisions to sidecars…* (XMP-007.5). */
+	const legacy = computed(() => legacyWrites(paired.value, decisions.value, tags.tagsOf, (picture) => inSharedFolder(picture, access.sharedFolders.value)))
 
 	/** Takes trashed files out of the pictures; returns what each affected picture became (ADR 0013). */
 	function removeFiles(fileIds: ReadonlySet<number>) {
@@ -220,6 +213,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		entries.value = [...entries.value, ...restored]
 		paired.value = prepareCull(entries.value, pairing.value).pictures
 		tags.restore(restored.map((entry) => entry.fileId))
+		storedSeries.restore(restored.map((entry) => entry.fileId))
 		const unknown = restored.map((entry) => entry.fileId).filter((fileId) => !decisions.value.has(fileId))
 		const opened = opening
 		if (unknown.length > 0) {
@@ -231,29 +225,9 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		}
 	}
 
-	/** Replaces the flag filter and keeps the other groups. */
-	function setFlags(flags: Filters['flags']) {
-		filters.value = { ...filters.value, flags }
-	}
-
-	/** Turns the filters off; the next press turns them back on unless others were set meanwhile. */
-	function toggleFiltersOff() {
-		if (filtersOff !== null && activeFilters.value === 0) {
-			filters.value = filtersOff
-			filtersOff = null
-		} else {
-			filtersOff = filters.value
-			filters.value = DEFAULT_FILTERS
-		}
-	}
-
-	/** Sets the thumbnail size and keeps it for the next visit. */
-	function setTileSize(size: number) {
-		tileSize.value = size
-		writeStored(storage, TILE_SIZE_KEY, String(size))
-	}
-
 	return {
+		writabilityOf: access.writabilityOf,
+		refuse: access.refuse,
 		folderSet,
 		pictures,
 		pairing,
@@ -264,35 +238,38 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		progress: cullProgress,
 		shownProgress,
 		filters,
-		activeFilters,
+		activeFilters: options.activeFilters,
 		empty,
 		sortOrder,
-		filtersOpen,
-		pickerOpen,
-		groupByFolder,
-		tileSize,
+		filtersOpen: options.filtersOpen,
+		pickerOpen: options.pickerOpen,
+		groupByFolder: options.groupByFolder,
+		tileSize: options.tileSize,
 		saveFailed,
 		sharedPictures,
-		sharedDecided,
+		legacy,
 		tags,
 		decisionOf,
+		decidedOf,
 		passes,
 		common,
-		series,
-		seriesSizes,
-		seriesOf,
-		holdHashes: hashes.hold,
-		hashProgress: hashes.progress,
+		series: seriesState.series,
+		everySeries: seriesState.everySeries,
+		seriesOf: seriesState.seriesOf,
+		openSeries: seriesState.openSeries,
+		holdHashes: seriesState.holdHashes,
+		hashProgress: seriesState.hashProgress,
 		decide,
 		pickRest,
 		tag,
+		...seriesEdits,
 		undo: history.undo,
 		redo: history.redo,
 		open,
 		removeFiles,
 		restoreFiles,
-		setFlags,
-		toggleFiltersOff,
-		setTileSize,
+		setFlags: options.setFlags,
+		toggleFiltersOff: options.toggleFiltersOff,
+		setTileSize: options.setTileSize,
 	}
 }

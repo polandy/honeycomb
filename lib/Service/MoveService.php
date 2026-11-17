@@ -11,7 +11,6 @@ use OCP\App\IAppManager;
 use OCP\Files\AlreadyExistsException;
 use OCP\Files\File;
 use OCP\Files\Folder;
-use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
@@ -20,18 +19,16 @@ use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
 
 /**
- * Moves whole pictures to the paths the client rendered: each checked whole, moved file by file
+ * Moves whole pictures to the paths the client rendered, within their storage: each checked whole, moved file by file
  * and moved back when one of its files fails (ADR 0018); decisions and tags follow a new file id (MOVE-002.10, TAGS-001.10).
  *
  * @psalm-type Outcome = array{fileId: int, result: MoveResult, replaced: bool, path?: string, newFileId?: int, etag?: string}
  */
 final class MoveService {
 	public function __construct(
-		private IRootFolder $rootFolder,
+		private UserPhotos $photos,
 		private IAppManager $appManager,
-		private DecisionStore $decisions,
-		private TagStore $tags,
-		private VisualHashStore $visualHashes,
+		private FileRowStores $fileRows,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -49,7 +46,7 @@ final class MoveService {
 		if ($replaces !== [] && !$this->appManager->isEnabledForUser('files_trashbin', $user)) {
 			throw new TrashBinDisabledException('The trash bin is disabled for the user');
 		}
-		$userFolder = $this->rootFolder->getUserFolder($user->getUID());
+		$userFolder = $this->photos->userFolder($user);
 		return array_map(fn (array $picture): array => $this->movePicture($user->getUID(), $userFolder, $picture), $pictures);
 	}
 
@@ -145,7 +142,7 @@ final class MoveService {
 		if ($newFileId === $fileId) {
 			return;
 		}
-		foreach ([$this->decisions, $this->tags, $this->visualHashes] as $store) {
+		foreach ($this->fileRows->stores() as $store) {
 			try {
 				$store->carryOver($userId, $fileId, $newFileId);
 			} catch (\Exception $e) {
@@ -176,8 +173,8 @@ final class MoveService {
 
 	/** The move to make, or why the file may not move. */
 	private function check(Folder $userFolder, MoveFile $file): CheckedMove|MoveResult {
-		$source = $userFolder->getFirstNodeById($file->fileId);
-		if (!$source instanceof File || !ListingService::isListedType($source)) {
+		$source = $this->photos->listed($userFolder, $file->fileId);
+		if ($source === null) {
 			return MoveResult::NotFound;
 		}
 		if ($source->getEtag() !== $file->etag) {
@@ -197,6 +194,10 @@ final class MoveService {
 		}
 		if ($parent === null) {
 			return MoveResult::Exists;
+		}
+		$storage = StorageRoot::of($userFolder, $source);
+		if (StorageRoot::of($userFolder, $parent) !== $storage || ($target !== null && StorageRoot::of($userFolder, $target) !== $storage)) {
+			return MoveResult::OtherStorage;
 		}
 		if (!$parent->isCreatable()) {
 			return MoveResult::NotPermitted;

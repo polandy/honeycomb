@@ -4,9 +4,10 @@ import type { Ref } from 'vue'
 import type { LoupeSnapshot } from './delete-flow.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { MtimeOffset } from './logic/move-candidates.ts'
-import type { ConflictChoice, ExistingFile, MoveRequestFile, TargetFolder } from './logic/move-plan.ts'
+import type { ConflictChoice, ExistingFile, MoveRequestFile, Probe } from './logic/move-plan.ts'
 import type { MoveReport, MoveResponseFile } from './logic/move-report.ts'
 import type { Picture } from './logic/pairing.ts'
+import type { ChunkLimits, SendProgress } from './logic/request-chunks.ts'
 import type { Settings } from './logic/settings.ts'
 import type { ToastAction } from './toast.ts'
 
@@ -14,10 +15,11 @@ import { t } from '@nextcloud/l10n'
 import { computed, ref, shallowRef, toRaw } from 'vue'
 import { logger } from './logger.ts'
 import { browserOffset, inViewOrder, moveCounts, nameCandidates } from './logic/move-candidates.ts'
-import { existingFiles, moveRequest, planMove, probeFolders } from './logic/move-plan.ts'
+import { existingFiles, leavesStorage, moveRequest, planMove, probeFolders, sourceFolders } from './logic/move-plan.ts'
 import { moveReport, undoneEntries, undoRequest } from './logic/move-report.ts'
 import { addRecent, targetChips, toggleFavourite as toggled } from './logic/move-targets.ts'
 import { parseNameTemplate } from './logic/name-template/parse.ts'
+import { sendInChunks } from './logic/request-chunks.ts'
 import { followReplaced } from './logic/trash-report.ts'
 import { movedBackText, movedText, moveFailedText } from './move-text.ts'
 
@@ -28,8 +30,10 @@ export interface MoveFlowContext {
 	readonly view: () => Pictures
 	readonly settings: () => Settings
 	readonly updateSettings: (patch: Partial<Settings>) => void
-	readonly probe: (folders: readonly string[]) => Promise<TargetFolder[]>
+	readonly probe: (folders: readonly string[], sources: readonly string[]) => Promise<Probe>
 	readonly move: (pictures: readonly (readonly MoveRequestFile[])[]) => Promise<MoveResponseFile[][]>
+	/** Writes the waiting sidecars and waits for every write in flight (XMP-003.30). */
+	readonly flush: () => Promise<void>
 	/** Takes the files out of the listing; returns what each affected picture became. */
 	readonly removeFiles: (fileIds: ReadonlySet<number>) => ReadonlyMap<Picture<ListingEntry>, Picture<ListingEntry> | null>
 	readonly restoreFiles: (entries: readonly ListingEntry[]) => void
@@ -38,6 +42,8 @@ export interface MoveFlowContext {
 	readonly loupe: Ref<LoupeSnapshot | null>
 	readonly toast: (message: string, action?: ToastAction | null) => void
 	readonly offset?: MtimeOffset
+	/** Overrides the request size of ADR 0029, for tests. */
+	readonly chunks?: ChunkLimits | undefined
 }
 
 /** The endpoints a move uses (ADR 0018). */
@@ -46,15 +52,17 @@ export interface MoveApi {
 	readonly movePictures: MoveFlowContext['move']
 }
 
-/** The move dialog, its move summary, the move and its undo (`docs/plan.md` Moving pictures, MOVE-004). */
+/** The move dialog, its move summary, the move and its undo (`docs/dev/plan.md` Moving pictures, MOVE-004). */
 export function useMoveFlow(context: MoveFlowContext) {
 	const pictures = shallowRef<Pictures | null>(null)
 	const browsing = ref(false)
 	const target = ref<string | null>(null)
 	const existing = shallowRef<ExistingFile[] | null>(null)
+	const leaving = shallowRef<ReadonlySet<Picture<ListingEntry>>>(new Set())
 	const choices = shallowRef<ReadonlyMap<Picture<ListingEntry>, ConflictChoice>>(new Map())
 	const report = shallowRef<MoveReport | null>(null)
 	const busy = ref(false)
+	const progress = shallowRef<SendProgress | null>(null)
 	let probing = 0
 
 	const template = computed(() => {
@@ -66,7 +74,8 @@ export function useMoveFlow(context: MoveFlowContext) {
 		return { text, parsed: parsed.template }
 	})
 	const named = computed(() => nameCandidates(pictures.value ?? [], template.value.parsed, context.offset ?? browserOffset))
-	const candidates = computed(() => named.value.flatMap((each) => (each.candidate === null ? [] : [{ picture: each.picture, candidate: each.candidate }])))
+	const nameable = computed(() => named.value.flatMap((each) => (each.candidate === null ? [] : [{ picture: each.picture, candidate: each.candidate }])))
+	const candidates = computed(() => nameable.value.filter((each) => !leaving.value.has(each.picture)))
 	const plan = computed(() => (target.value === null || existing.value === null
 		? null
 		: planMove(target.value, candidates.value.map((each) => each.candidate), existing.value, (index) => choices.value.get(candidates.value[index]!.picture) ?? 'suffix')))
@@ -109,11 +118,16 @@ export function useMoveFlow(context: MoveFlowContext) {
 		const probe = ++probing
 		target.value = path
 		existing.value = null
+		leaving.value = new Set()
 		choices.value = new Map()
 		browsing.value = false
-		context.probe(probeFolders(path, candidates.value.map((each) => each.candidate))).then((folders) => {
+		const all = nameable.value
+		const moved = all.map((each) => each.candidate)
+		context.probe(probeFolders(path, moved), sourceFolders(moved)).then((answer) => {
 			if (probe === probing) {
-				existing.value = existingFiles(folders)
+				const leaves = leavesStorage(path, moved, answer)
+				leaving.value = new Set(all.filter((_, index) => leaves[index]).map((each) => each.picture))
+				existing.value = existingFiles(answer.folders)
 			}
 		}, (error: unknown) => {
 			logger.error('Could not probe the move target folders', { error })
@@ -135,6 +149,19 @@ export function useMoveFlow(context: MoveFlowContext) {
 		context.toast(moveFailedText(error))
 	}
 
+	/** Sends the pictures in chunks once the waiting sidecars are written; throws when the first request fails, logs a later failure (ADR 0029). */
+	async function send(request: readonly (readonly MoveRequestFile[])[], what: string, onProgress: (done: number) => void = () => {}) {
+		await context.flush()
+		const sent = await sendInChunks(request, context.move, onProgress, context.chunks)
+		if (sent.failure !== null && sent.answers.length === 0) {
+			throw sent.failure.error
+		}
+		if (sent.failure !== null) {
+			logger.error(`Stopped the ${what} after a failed request`, { error: sent.failure.error })
+		}
+		return sent
+	}
+
 	/** Sends the plan, takes the moved files out of the listing and the loupe, and offers *Undo*. */
 	async function confirm() {
 		const planned = plan.value
@@ -146,7 +173,11 @@ export function useMoveFlow(context: MoveFlowContext) {
 		const listing = context.listing?.()
 		try {
 			const sent = planned.filter((picture) => picture.sent).map((picture) => picture.files.map(({ file }) => file))
-			const done = moveReport(sent, await context.move(moveRequest(planned)))
+			const request = moveRequest(planned)
+			const { answers } = await send(request, 'move', (count) => {
+				progress.value = { done: count, total: request.length }
+			})
+			const done = moveReport(sent, answers)
 			const replaced = context.removeFiles(new Set(done.moved.filter((file) => file.path !== file.from).map((file) => file.file.entry.fileId)))
 			const loupe = toRaw(context.loupe.value)
 			context.loupe.value = loupe === null ? null : followReplaced(loupe.pictures, loupe.index, replaced)
@@ -161,17 +192,19 @@ export function useMoveFlow(context: MoveFlowContext) {
 			fail(error)
 		} finally {
 			busy.value = false
+			progress.value = null
 		}
 	}
 
 	/** Moves the files of the move back and shows them again, if the listing is still the one they left. */
 	async function undo(done: MoveReport, listing: unknown) {
 		try {
-			const { entries, failed } = undoneEntries(done, await context.move(undoRequest(done)))
+			const { answers, unsent } = await send(undoRequest(done), 'undo')
+			const { entries, failed } = undoneEntries(done, answers)
 			if (context.listing?.() === listing) {
 				context.restoreFiles(entries)
 			}
-			context.toast(movedBackText(entries.length, failed))
+			context.toast(movedBackText(entries.length, failed + unsent.flat().length))
 		} catch (error) {
 			logger.error('Could not move the photos back', { error })
 			context.toast(moveFailedText(error))
@@ -183,6 +216,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 		browsing,
 		target,
 		named,
+		leaving,
 		plan,
 		counts,
 		allChoice,
@@ -190,6 +224,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 		favourite,
 		report,
 		busy,
+		progress,
 		templateText: computed(() => template.value.text),
 		open,
 		openShown,

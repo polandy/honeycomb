@@ -78,9 +78,12 @@ jobs:
       - run: scripts/test-pins.sh
       - run: scripts/test-specs.sh
       - run: scripts/test-spec-trailers.sh
+      - run: scripts/test-nextcloud-versions.sh
+      - run: scripts/test-package.sh
       - run: scripts/source-sizes.sh
       - run: scripts/pins.sh
       - run: scripts/specs.sh
+      - run: scripts/nextcloud-versions.sh
 
   php:
     name: PHP ${{ matrix.php }}
@@ -113,6 +116,24 @@ jobs:
       - run: vendor/bin/psalm --no-cache --threads=1 --no-progress
       - run: vendor/bin/phpunit
 
+  php-db:
+    name: PHP mappers on SQLite
+    needs: changes
+    if: needs.changes.outputs.php == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: none
+      - run: composer install --no-interaction --no-progress
+      - run: scripts/php-db-tests.sh
+
   typescript:
     name: TypeScript
     needs: changes
@@ -134,11 +155,17 @@ jobs:
       - run: npx vitest run --coverage
 
   e2e:
-    name: Build and e2e
+    name: Build and e2e on the ${{ matrix.nextcloud }} Nextcloud
     needs: changes
     if: needs.changes.outputs.app == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        nextcloud: [oldest, newest]
+    env:
+      HONEYCOMB_E2E_NEXTCLOUD: ${{ matrix.nextcloud }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -154,13 +181,25 @@ jobs:
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: playwright-traces
+          name: playwright-traces-${{ matrix.nextcloud }}
           path: test-results/
           retention-days: 7
 
+  upgrade:
+    name: Update from the first release
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: scripts/upgrade-test.sh
+
   gate:
     name: CI gate
-    needs: [changes, markdown, reuse, conventions, php, typescript, e2e]
+    needs: [changes, markdown, reuse, conventions, php, php-db, typescript, e2e, upgrade]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 5

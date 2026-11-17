@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Decision } from '../../src/logic/decision.ts'
+import type { Series } from '../../src/logic/series.ts'
 import type { CompareLanding } from '../../src/series-compare.ts'
 
 import { describe, expect, it } from 'vitest'
@@ -19,22 +20,25 @@ function offerOf(series: string[], shownName: string | null = null) {
 	const decisions = shallowRef(new Map<string, Decision>())
 	const calls: string[] = []
 	const open = ref(false)
-	const current = shallowRef<Shot[] | null>(null)
+	const current = shallowRef<Series<Shot> | null>(null)
 	const shown = shallowRef(shownName === null ? null : shot(shownName))
 	const setFlag = (name: string, flag: Decision['flag']) => {
 		decisions.value = new Map([...decisions.value, [name, { ...UNDECIDED, flag }]])
 	}
 	const members = series.map(shot)
 	const offer = useRestOffer<Shot>({
-		seriesOf: () => new Map(members.filter((member) => decisions.value.get(member.name)?.flag !== 'rejected').map((member, _, kept) => [member, kept])),
+		seriesOf: () => {
+			const series = { key: 1, members: members.filter((member) => decisions.value.get(member.name)?.flag !== 'rejected') }
+			return new Map(series.members.map((member) => [member, series]))
+		},
 		decisionOf: (picture) => decisions.value.get(picture.name) ?? UNDECIDED,
 		compare: {
 			open,
 			current: computed(() => current.value),
 			pickRest: (picked) => calls.push(`compare pick ${picked!.name}`),
-			pickRestAndLand: (rest, picked, land) => {
-				calls.push(`pick ${picked.name}, reject ${rest.filter((member) => member !== picked).map((member) => member.name).join(' ')}`)
-				land({ kind: 'after', series: rest, picked })
+			pickRestAndLand: (series, picked, land) => {
+				calls.push(`pick ${picked.name}, reject ${series.members.filter((member) => member !== picked).map((member) => member.name).join(' ')}`)
+				land({ kind: 'after', series, picked })
 			},
 		},
 		shown: () => shown.value,
@@ -88,7 +92,7 @@ describe('useRestOffer', () => {
 		const { offer, setFlag, shot, calls, open, current } = offerOf(['A', 'B', 'C'])
 		setFlag('A', 'picked')
 		open.value = true
-		current.value = [shot('A'), shot('B'), shot('C')]
+		current.value = { key: 1, members: [shot('A'), shot('B'), shot('C')] }
 
 		offer(PICK, shot('A'))!.run()
 		expect(calls).toEqual(['compare pick A'])

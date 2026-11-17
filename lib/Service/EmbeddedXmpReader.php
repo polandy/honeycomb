@@ -9,16 +9,14 @@ namespace OCA\Honeycomb\Service;
 
 use OCP\Files\File;
 use OCP\Files\Folder;
-use OCP\Files\IRootFolder;
 use OCP\IUser;
 use Psr\Log\LoggerInterface;
 
 /** Hands the client the XMP packet each listed JPEG embeds (ADR 0023). */
 final class EmbeddedXmpReader {
-	private const string JPEG_MIME = 'image/jpeg';
 
 	public function __construct(
-		private IRootFolder $rootFolder,
+		private UserPhotos $photos,
 		private JpegXmp $jpegXmp,
 		private LoggerInterface $logger,
 	) {
@@ -32,14 +30,14 @@ final class EmbeddedXmpReader {
 	 */
 	public function lookup(IUser $user, array $fileIds): array {
 		$fileIds = SidecarRequest::fileIds($fileIds);
-		$userFolder = $this->rootFolder->getUserFolder($user->getUID());
+		$userFolder = $this->photos->userFolder($user);
 		return array_map(fn (int $fileId): array => ['fileId' => $fileId, ...$this->read($userFolder, $fileId)], $fileIds);
 	}
 
 	/** @return array{result: SidecarResult, content?: string} */
 	private function read(Folder $userFolder, int $fileId): array {
-		$node = $userFolder->getFirstNodeById($fileId);
-		if (!$node instanceof File || $node->getMimetype() !== self::JPEG_MIME) {
+		$node = $this->photos->jpeg($userFolder, $fileId);
+		if ($node === null) {
 			return ['result' => SidecarResult::NotFound];
 		}
 		if (!$node->isReadable()) {

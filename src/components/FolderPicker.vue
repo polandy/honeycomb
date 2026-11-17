@@ -10,18 +10,19 @@ import type { ListingEntry } from '../logic/listing.ts'
 import type { PairingSettings } from '../logic/pairing.ts'
 import type { RecentFolderSet } from '../logic/recent.ts'
 import type { ResumePosition } from '../logic/resume-position.ts'
+import type { ListedAccess } from '../logic/writability.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import ConfirmDialog from './ConfirmDialog.vue'
-import FolderList from './FolderList.vue'
+import FolderTree from './FolderTree.vue'
 import PickerRecentSets from './PickerRecentSets.vue'
 import { listEntries as apiListEntries, listFolders as apiListFolders } from '../api.ts'
 import { useFolderCount } from '../folder-count.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
-import { toggleFolder } from '../logic/folder-set.ts'
+import { tapFolder } from '../logic/folder-set.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../logic/pairing.ts'
 import { PICTURE_CAP } from '../logic/picture-order.ts'
 
@@ -42,7 +43,7 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-	confirm: [set: FolderSet, entries: ListingEntry[], sharedFolders: string[]]
+	confirm: [set: FolderSet, entries: ListingEntry[], access: ListedAccess]
 	cancel: []
 	openRecent: [position: ResumePosition]
 }>()
@@ -78,9 +79,9 @@ const confirmLabel = computed(() => {
 		: n('honeycomb', 'Cull {count} folder', 'Cull {count} folders', folders, { count: formatNumber(folders) })
 })
 
-/** Ticks or unticks a folder. */
+/** Ticks, unticks, excludes or includes again a folder. */
 function onToggle(path: string) {
-	set.value = { ...set.value, paths: toggleFolder(set.value.paths, path) }
+	set.value = tapFolder(set.value, path)
 }
 
 /** Turns *Include subfolders* on or off. */
@@ -91,7 +92,7 @@ function onSubfolders(subfolders: boolean) {
 /** Starts the cull of the counted folders. */
 function onConfirm() {
 	if (canCull.value) {
-		emit('confirm', set.value, count.value!.entries, count.value!.sharedFolders)
+		emit('confirm', set.value, count.value!.entries, count.value!.access)
 	}
 }
 </script>
@@ -115,7 +116,12 @@ function onConfirm() {
 			@update:modelValue="onSubfolders">
 			{{ t('honeycomb', 'Include subfolders') }}
 		</NcCheckboxRadioSwitch>
-		<FolderList :ticked="set.paths" :listFolders="props.listFolders" @toggle="onToggle" />
+		<FolderTree
+			:ticked="set.paths"
+			:subfolders="set.subfolders"
+			:excluded="set.excluded ?? []"
+			:listFolders="props.listFolders"
+			@toggle="onToggle" />
 		<p class="folder-picker__count" aria-live="polite">
 			{{ summary }}
 		</p>

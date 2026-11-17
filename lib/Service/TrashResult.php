@@ -13,6 +13,7 @@ enum TrashResult: string {
 	case NotFound = 'notFound';
 	case Changed = 'changed';
 	case NotPermitted = 'notPermitted';
+	case NoTrashBin = 'noTrashBin';
 	case Locked = 'locked';
 	case Failed = 'failed';
 	case Skipped = 'skipped';

@@ -8,6 +8,7 @@ import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { RawRemoval } from '../logic/raw-removal.ts'
+import type { SendProgress } from '../logic/request-chunks.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
@@ -18,12 +19,15 @@ import TrashFileList from './TrashFileList.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
 import { formatFileSize, formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { rawFilesOf } from '../logic/raw-removal.ts'
+import { runningText, trashBinNote } from '../trash-text.ts'
 
 const props = withDefaults(defineProps<{
 	removal: RawRemoval
 	folderSet: FolderSet
 	/** Whether the removal runs. */
 	busy: boolean
+	/** How many photos the running delete has sent. */
+	progress?: SendProgress | null | undefined
 	imageUrl?: ImageUrlFor
 }>(), { imageUrl: apiImageUrl })
 
@@ -70,7 +74,8 @@ const groups = computed(() => [
 <template>
 	<ConfirmDialog
 		:title="n('honeycomb', 'Remove the RAW of {count} photo', 'Remove the RAWs of {count} photos', props.removal.removed.length, { count: formatNumber(props.removal.removed.length) }, PLAIN_TEXT)"
-		:confirmLabel="n('honeycomb', 'Move {count} file to trash', 'Move {count} files to trash', files.length, { count: formatNumber(files.length) }, PLAIN_TEXT)"
+		:confirmLabel="props.busy ? runningText(props.progress) : n('honeycomb', 'Move {count} file to trash', 'Move {count} files to trash', files.length, { count: formatNumber(files.length) }, PLAIN_TEXT)"
+		:progress="props.progress"
 		:confirmDisabled="props.busy || files.length === 0"
 		cancel
 		wide
@@ -103,7 +108,7 @@ const groups = computed(() => [
 			<TrashFileList :rows="files.map((file) => ({ file }))" :folderSet="props.folderSet" :label="t('honeycomb', 'Files that will be deleted')" />
 		</details>
 		<p class="raw-removal__hint">
-			{{ t('honeycomb', 'Files move to the Nextcloud trash bin and can be restored from there. Nothing is deleted for good; the space returns when the trash bin is emptied.') }}
+			{{ trashBinNote() }}
 		</p>
 	</ConfirmDialog>
 </template>

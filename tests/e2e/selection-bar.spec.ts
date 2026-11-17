@@ -15,6 +15,8 @@ const TABLET = { width: 744, height: 1133 }
 const ROW_TOLERANCE_PX = 12
 const FIRST_ROW = ['Move…', 'Delete…']
 const DECISIONS = [/^Colour label/, /^Keep RAW/, /^Tags$/]
+/** Follows the decisions, in their row where it fits, else in the next one. */
+const SERIES = /^Series…$/
 
 test.use({ hasTouch: true })
 
@@ -62,6 +64,7 @@ test('puts the flags, Move and Delete first and the decisions in a second row on
 	for (const name of DECISIONS) {
 		expect(Math.abs(await centre(bar.getByRole('button', { name })) - second), String(name)).toBeLessThan(ROW_TOLERANCE_PX)
 	}
+	expect(await centre(bar.getByRole('button', { name: SERIES }))).toBeGreaterThan(second - ROW_TOLERANCE_PX)
 })
 
 // spec: GRID-003.14
@@ -71,7 +74,7 @@ test('puts the flags, Move and Delete first on a phone, the decisions below them
 
 	const first = await firstRow(bar)
 	expect(await centre(bar.getByRole('group', { name: 'Rating' }))).toBeGreaterThan(first + ROW_TOLERANCE_PX)
-	for (const name of DECISIONS) {
+	for (const name of [...DECISIONS, SERIES]) {
 		expect(await centre(bar.getByRole('button', { name })), String(name)).toBeGreaterThan(first + ROW_TOLERANCE_PX)
 	}
 })

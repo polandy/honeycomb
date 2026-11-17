@@ -7,16 +7,14 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-use OCP\Files\File;
 use OCP\Files\Folder;
-use OCP\Files\IRootFolder;
 use OCP\IUser;
 use Psr\Log\LoggerInterface;
 
 /** Hands the client the bytes of listed sidecars (ADR 0017). */
 final class SidecarReader {
 	public function __construct(
-		private IRootFolder $rootFolder,
+		private UserPhotos $photos,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -29,14 +27,14 @@ final class SidecarReader {
 	 */
 	public function lookup(IUser $user, array $fileIds): array {
 		$fileIds = SidecarRequest::fileIds($fileIds);
-		$userFolder = $this->rootFolder->getUserFolder($user->getUID());
+		$userFolder = $this->photos->userFolder($user);
 		return array_map(fn (int $fileId): array => ['fileId' => $fileId, ...$this->read($userFolder, $fileId)], $fileIds);
 	}
 
 	/** @return array{result: SidecarResult, content?: string, etag?: string, size?: int|float, mtime?: int} */
 	private function read(Folder $userFolder, int $fileId): array {
-		$node = $userFolder->getFirstNodeById($fileId);
-		if (!$node instanceof File || !ListingService::isSidecar($node)) {
+		$node = $this->photos->sidecar($userFolder, $fileId);
+		if ($node === null) {
 			return ['result' => SidecarResult::NotFound];
 		}
 		if (!$node->isReadable()) {

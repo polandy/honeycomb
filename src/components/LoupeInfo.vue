@@ -8,6 +8,7 @@ import type { FolderSet } from '../logic/folder-set.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Tag } from '../logic/tag.ts'
+import type { Writability } from '../logic/writability.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
@@ -25,11 +26,11 @@ const props = withDefaults(defineProps<{
 	decision: Decision
 	/** The picture's tags, sorted (TAGS-004.8). */
 	tags?: readonly Tag[]
-	/** Whether tag changes are written through to the sidecars; false in a shared folder (TAGS-004.9). */
-	writesSidecars?: boolean
+	/** Whether the picture's decisions and tags are written to its sidecars, or why not (TAGS-004.9, XMP-008). */
+	writability?: Writability
 }>(), {
 	tags: () => [],
-	writesSidecars: true,
+	writability: 'off',
 })
 
 /** Shown for a fact the picture lacks. */
@@ -59,11 +60,19 @@ const decisionRows = computed(() => {
 		...(props.picture.raw !== null && props.picture.rendered !== null ? [{ term: t('honeycomb', 'Keep RAW'), value: keepRaw ? t('honeycomb', 'yes') : t('honeycomb', 'no') }] : []),
 	]
 })
+const NOT_WRITTEN: Record<Exclude<Writability, 'writable'>, () => string> = {
+	off: () => t('honeycomb', 'Not written, off in the settings'),
+	readOnly: () => t('honeycomb', 'Not written, read-only folder'),
+	shared: () => t('honeycomb', 'Not written, shared folder not confirmed'),
+	noVersions: () => t('honeycomb', 'Not written, the folder keeps no versions'),
+	refused: () => t('honeycomb', 'Not written, a sidecar was refused'),
+}
 const writtenTo = computed(() => {
+	if (props.writability !== 'writable') {
+		return NOT_WRITTEN[props.writability]()
+	}
 	const { existing, created } = sidecarTargets(props.picture)
-	return props.writesSidecars
-		? [...existing.map(({ path }) => path), ...created].map((path) => parseFileName(path).name).join(', ')
-		: t('honeycomb', 'Not written, shared folder')
+	return [...existing.map(({ path }) => path), ...created].map((path) => parseFileName(path).name).join(', ')
 })
 </script>
 

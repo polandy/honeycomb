@@ -6,22 +6,24 @@ import type { FolderSet } from '../../../src/logic/folder-set.ts'
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { PairingSettings } from '../../../src/logic/pairing.ts'
 import type { RecentFolderSet } from '../../../src/logic/recent.ts'
+import type { ListedAccess } from '../../../src/logic/writability.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import FolderList from '../../../src/components/FolderList.vue'
 import FolderPicker from '../../../src/components/FolderPicker.vue'
+import FolderTree from '../../../src/components/FolderTree.vue'
 import PickerRecentSets from '../../../src/components/PickerRecentSets.vue'
 import { DEFAULT_PAIRING_SETTINGS } from '../../../src/logic/pairing.ts'
+import { NO_ACCESS } from '../../../src/logic/writability.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { listingEntry } from '../logic/listing-entries.ts'
 import { DialogStub } from './stubs.ts'
 
 const MARK = TRANSLATED_MARK
 const ROOT: Folder[] = [
-	{ name: 'Trip', path: '/Trip', hasSubfolders: true },
-	{ name: 'Empty', path: '/Empty', hasSubfolders: false },
-	{ name: 'Home', path: '/Home', hasSubfolders: false },
+	{ name: 'Trip', path: '/Trip', hasSubfolders: true, photoFiles: 0, photoFilesBelow: 0 },
+	{ name: 'Empty', path: '/Empty', hasSubfolders: false, photoFiles: 0, photoFilesBelow: 0 },
+	{ name: 'Home', path: '/Home', hasSubfolders: false, photoFiles: 0, photoFilesBelow: 0 },
 ]
 
 /** Two pairs in /Trip, one more picture in /Trip/Day 2 with subfolders, 20 001 in /Home. */
@@ -63,7 +65,7 @@ async function mountPicker(current: FolderSet | null = null, pairing: PairingSet
 type Picker = Awaited<ReturnType<typeof mountPicker>>
 
 async function tick({ wrapper }: Picker, name: string) {
-	await wrapper.findAll('[role="option"]').find((option) => option.text().includes(name))!.trigger('click')
+	await wrapper.findAll('[role="treeitem"]').find((option) => option.text().includes(name))!.trigger('click')
 }
 
 async function settleAll({ pending }: Picker) {
@@ -132,10 +134,20 @@ describe('FolderPicker', () => {
 		expect(confirmButton(picker).text()).toBe(`${MARK}${MARK}Cull 2 folders`)
 	})
 
+	// spec: LISTING-003.18
+	it('tells the folder tree whether the subfolders are included', async () => {
+		const picker = await mountPicker()
+		expect(picker.wrapper.findComponent(FolderTree).props('subfolders')).toBe(false)
+
+		await subfoldersSwitch(picker).setValue(true)
+
+		expect(picker.wrapper.findComponent(FolderTree).props('subfolders')).toBe(true)
+	})
+
 	// spec: LISTING-003.7
 	it('puts the subfolders switch above the folder list, so a long list cannot push it out of sight', async () => {
 		const picker = await mountPicker()
-		const list = picker.wrapper.findComponent(FolderList).element
+		const list = picker.wrapper.findComponent(FolderTree).element
 
 		expect(subfoldersSwitch(picker).element.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 	})
@@ -208,17 +220,17 @@ describe('FolderPicker', () => {
 	})
 
 	// spec: LISTING-003.12, XMP-003.14
-	it('emits the folder set, its merged entries and its shared folders on confirm', async () => {
+	it('emits the folder set, its merged entries and its folders\' access on confirm', async () => {
 		const picker = await mountPicker()
 		await tick(picker, 'Trip')
 		await settleAll(picker)
 
 		await confirmButton(picker).trigger('click')
 
-		const [set, entries, shared] = picker.wrapper.emitted('confirm')![0] as [FolderSet, ListingEntry[], string[]]
+		const [set, entries, access] = picker.wrapper.emitted('confirm')![0] as [FolderSet, ListingEntry[], ListedAccess]
 		expect(set).toEqual({ paths: ['/Trip'], subfolders: false })
 		expect(entries.map((entry) => entry.fileId)).toEqual([1, 2, 3])
-		expect(shared).toEqual([])
+		expect(access).toEqual(NO_ACCESS)
 	})
 
 	// spec: LISTING-003.11
@@ -251,8 +263,8 @@ describe('FolderPicker', () => {
 		const picker = await mountPicker(null, DEFAULT_PAIRING_SETTINGS, [{ position, current: false, decided: 1, total: 3 }])
 		const html = picker.wrapper.html()
 
-		expect(html.indexOf('folder-list')).toBeGreaterThan(-1)
-		expect(html.indexOf('folder-list')).toBeLessThan(html.indexOf('picker-recent-sets'))
+		expect(html.indexOf('folder-tree')).toBeGreaterThan(-1)
+		expect(html.indexOf('folder-tree')).toBeLessThan(html.indexOf('picker-recent-sets'))
 		expect(picker.wrapper.text()).not.toContain(`${MARK}Folders`)
 	})
 

@@ -28,7 +28,8 @@ export type HotkeyCommand
 	= | 'previous' | 'next' | 'up' | 'down' | 'first' | 'last'
 		| 'grid' | 'loupe' | 'zoom' | 'zoom-in' | 'zoom-out' | 'fullscreen' | 'header' | 'info' | 'close' | 'flag-buttons'
 		| 'filter-bar' | 'filters-off' | 'filter-focus' | 'select-all' | 'select-none'
-		| 'undo' | 'redo' | 'shortcuts' | 'delete' | 'move' | 'review-rejects' | 'compare' | 'pick-rest' | 'tag'
+		| 'undo' | 'redo' | 'shortcuts' | 'delete' | 'move' | 'review-rejects' | 'compare' | 'pick-rest' | 'tag' | 'file-names'
+		| 'previous-series' | 'next-series'
 
 /** What a key does: decide (and maybe go to the next photo) or run a command. */
 export type HotkeyAction
@@ -46,7 +47,7 @@ export interface KeymapEntry {
 	readonly range?: boolean
 }
 
-/** The keys honeycomb has a function for (`docs/plan.md` Keyboard shortcuts); a later milestone adds its keys here. */
+/** The keys honeycomb has a function for (`docs/dev/plan.md` Keyboard shortcuts); a later milestone adds its keys here. */
 export const KEYMAP: readonly KeymapEntry[] = [
 	{ id: 'pick', group: 'flags', caps: ['P'] },
 	{ id: 'reject', group: 'flags', caps: ['X'] },
@@ -65,6 +66,7 @@ export const KEYMAP: readonly KeymapEntry[] = [
 	{ id: 'tag', group: 'rating', caps: ['T'] },
 	{ id: 'arrows', group: 'views', caps: ['←', '→', '↑', '↓'] },
 	{ id: 'first-last', group: 'views', caps: ['Home', 'End'] },
+	{ id: 'series-jump', group: 'views', caps: ['Alt+←', 'Alt+→'] },
 	{ id: 'open', group: 'views', caps: ['Enter'] },
 	{ id: 'grid', group: 'views', caps: ['G'] },
 	{ id: 'loupe', group: 'views', caps: ['E'] },
@@ -75,6 +77,7 @@ export const KEYMAP: readonly KeymapEntry[] = [
 	{ id: 'fullscreen', group: 'views', caps: ['F'] },
 	{ id: 'header', group: 'views', caps: ['Tab'] },
 	{ id: 'info', group: 'views', caps: ['I'] },
+	{ id: 'file-names', group: 'views', caps: ['Shift+J'] },
 	{ id: 'close', group: 'views', caps: ['Esc'] },
 	{ id: 'filter-bar', group: 'filter', caps: ['\\'] },
 	{ id: 'filters-off', group: 'filter', caps: ['Ctrl+L'] },
@@ -140,6 +143,7 @@ const COMMANDS: Readonly<Record<string, HotkeyCommand>> = {
 	t: 'tag',
 }
 const CTRL_COMMANDS: Readonly<Record<string, HotkeyCommand>> = { a: 'select-all', d: 'select-none', l: 'filters-off', z: 'undo', '=': 'zoom-in', '+': 'zoom-in', '-': 'zoom-out', '/': 'shortcuts', Backspace: 'review-rejects' }
+const ALT_COMMANDS: Readonly<Record<string, HotkeyCommand>> = { ArrowLeft: 'previous-series', ArrowRight: 'next-series' }
 const VI_COMMANDS: Readonly<Record<string, HotkeyCommand>> = { h: 'previous', l: 'next', j: 'down', k: 'up', '/': 'filter-focus' }
 
 const decide = (intent: HotkeyIntent, advance: boolean): HotkeyAction => ({ kind: 'decide', intent, advance })
@@ -153,9 +157,9 @@ function ctrlKey(event: HotkeyEvent, key: string): HotkeyAction | null {
 	return event.shiftKey && !['+', '/'].includes(key) ? null : command(CTRL_COMMANDS[key])
 }
 
-const SHIFT_COMMANDS: Readonly<Record<string, HotkeyCommand>> = { '?': 'shortcuts', k: 'pick-rest' }
+const SHIFT_COMMANDS: Readonly<Record<string, HotkeyCommand>> = { '?': 'shortcuts', k: 'pick-rest', j: 'file-names' }
 
-/** The action of a key with Shift: decide and go to the next photo, pick-rest or the help sheet. */
+/** The action of a key with Shift: decide and go to the next photo, pick-rest, the file names or the help sheet. */
 function shiftKey(event: HotkeyEvent, key: string): HotkeyAction | null {
 	const digit = /^Digit([0-5])$/.exec(event.code)
 	if (digit !== null) {
@@ -191,7 +195,7 @@ function viKey(event: HotkeyEvent, key: string, pendingG: boolean): HotkeyAction
 	return event.shiftKey ? null : command(VI_COMMANDS[key])
 }
 
-/** What a key does (`docs/plan.md` Keyboard shortcuts, Vi keys) and the state for the next key. */
+/** What a key does (`docs/dev/plan.md` Keyboard shortcuts, Vi keys) and the state for the next key. */
 export function hotkey(event: HotkeyEvent, state: HotkeyState): { action: HotkeyAction | null, state: HotkeyState } {
 	if (MODIFIERS.has(event.key)) {
 		return { action: null, state }
@@ -199,7 +203,7 @@ export function hotkey(event: HotkeyEvent, state: HotkeyState): { action: Hotkey
 	const next = { ...state, pendingG: false }
 	const key = event.key.length === 1 ? event.key.toLowerCase() : event.key
 	if (event.altKey) {
-		return { action: null, state: next }
+		return { action: event.shiftKey || event.ctrlKey || event.metaKey ? null : command(ALT_COMMANDS[key]), state: next }
 	}
 	if (event.ctrlKey || event.metaKey) {
 		return { action: ctrlKey(event, key), state: next }

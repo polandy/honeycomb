@@ -6,6 +6,7 @@
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { SendProgress } from '../logic/request-chunks.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
@@ -15,6 +16,7 @@ import TrashFileList from './TrashFileList.vue'
 import { formatFileSize, formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { deleteSummary, filesOf } from '../logic/delete-summary.ts'
+import { runningText, trashBinNote } from '../trash-text.ts'
 
 const props = defineProps<{
 	/** The pictures to delete, each with all of its files. */
@@ -24,6 +26,8 @@ const props = defineProps<{
 	fromReview: boolean
 	/** Whether a delete runs. */
 	busy: boolean
+	/** How many photos the running delete has sent. */
+	progress?: SendProgress | null | undefined
 }>()
 
 const emit = defineEmits<{
@@ -58,7 +62,8 @@ const scope = computed(() => {
 <template>
 	<ConfirmDialog
 		:title="n('honeycomb', 'Delete {count} photo', 'Delete {count} photos', summary.pictures, { count: formatNumber(summary.pictures) }, PLAIN_TEXT)"
-		:confirmLabel="n('honeycomb', 'Move {count} file to trash', 'Move {count} files to trash', summary.files, { count: formatNumber(summary.files) }, PLAIN_TEXT)"
+		:confirmLabel="props.busy ? runningText(props.progress) : n('honeycomb', 'Move {count} file to trash', 'Move {count} files to trash', summary.files, { count: formatNumber(summary.files) }, PLAIN_TEXT)"
+		:progress="props.progress"
 		:confirmDisabled="props.busy"
 		:back="props.fromReview"
 		:backLabel="t('honeycomb', 'Back to review')"
@@ -72,7 +77,7 @@ const scope = computed(() => {
 		<p>{{ scope }}</p>
 		<TrashFileList :rows="rows" :folderSet="props.folderSet" :label="t('honeycomb', 'Files that will be deleted')" />
 		<p class="delete-summary__note">
-			{{ t('honeycomb', 'Files move to the Nextcloud trash bin and can be restored from there. Nothing is deleted for good; the space returns when the trash bin is emptied.') }}
+			{{ trashBinNote() }}
 		</p>
 	</ConfirmDialog>
 </template>

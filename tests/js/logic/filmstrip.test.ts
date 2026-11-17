@@ -52,9 +52,9 @@ describe('filmstripLayout', () => {
 })
 
 describe('filmstripFrames', () => {
-	const first = ['B', 'C', 'D']
-	const second = ['F', 'G']
-	const members = new Map([...first.map((name) => [name, first] as const), ...second.map((name) => [name, second] as const)])
+	const first = { key: 2, members: ['B', 'C', 'D'] }
+	const second = { key: 6, members: ['F', 'G'] }
+	const members = new Map([first, second].flatMap((series) => series.members.map((name) => [name, series] as const)))
 
 	// spec: LOUPE-001.19
 	it('frames each run of neighbours in one series with the size of the series', () => {

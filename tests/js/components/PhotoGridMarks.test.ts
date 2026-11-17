@@ -27,4 +27,11 @@ describe('PhotoGrid tile marks', () => {
 		expect(tile(wrapper, 1).find('.photo-tile__tags').text()).toBe('2')
 		expect(tile(wrapper, 0).find('.photo-tile__tags').exists()).toBe(false)
 	})
+
+	// spec: SERIES-003.18
+	it('lays what it is given over the top of the grid', () => {
+		const { wrapper } = mountGrid({}, false, { default: '<p class="strip">Comparing</p>' })
+
+		expect(wrapper.find('.photo-grid__overlay .strip').text()).toBe('Comparing')
+	})
 })

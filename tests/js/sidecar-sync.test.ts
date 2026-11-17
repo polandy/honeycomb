@@ -10,7 +10,7 @@ import type { TagChange } from '../../src/logic/tag.ts'
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { logger } from '../../src/logger.ts'
-import { UNDECIDED } from '../../src/logic/decision.ts'
+import { DECISION_FIELDS, UNDECIDED } from '../../src/logic/decision.ts'
 import { readXmp } from '../../src/logic/xmp/parse.ts'
 import { serializeXmp } from '../../src/logic/xmp/serialize.ts'
 import { useSidecarSync } from '../../src/sidecar-sync.ts'
@@ -31,15 +31,17 @@ function deferred<T>() {
 	return { promise, resolve, reject }
 }
 
-/** A sync whose lookups answer `read` with BYTES unless told otherwise, and whose saves answer as `answer` says. */
+/** A sync whose lookups answer `read` with BYTES unless told otherwise and whose saves answer as `answer` says. */
 function sync(answer: (item: SidecarSaveItem, call: number) => SidecarSaveAnswer | Promise<never> = () => saved(40)) {
 	const lookups: number[][] = []
+	const sized: [number, number][][] = []
 	const saves: SidecarSaveItem[][] = []
 	const failures: SidecarFailure[][] = []
 	const lookupAnswer = { current: (_fileId: number): SidecarLookupAnswer => ({ result: 'read', bytes: BYTES, etag: `etag-${lookups.length}`, size: BYTES.length, mtime: 100 }) }
 	const sidecars = useSidecarSync({
-		lookupSidecars: async (fileIds) => {
+		lookupSidecars: async (fileIds, sizes) => {
 			lookups.push([...fileIds])
+			sized.push([...sizes ?? []])
 			return fileIds.map((fileId) => lookupAnswer.current(fileId))
 		},
 		lookupEmbeddedXmp: async (fileIds) => fileIds.map(() => ({ result: 'none' })),
@@ -50,7 +52,7 @@ function sync(answer: (item: SidecarSaveItem, call: number) => SidecarSaveAnswer
 			return Promise.all(answers)
 		},
 	}, () => CANONICAL_TIME, (failed) => failures.push([...failed]))
-	return { sidecars, lookups, saves, failures, lookupAnswer }
+	return { sidecars, lookups, sized, saves, failures, lookupAnswer }
 }
 
 /** A `saved` answer for the file id. */
@@ -74,6 +76,31 @@ describe('useSidecarSync: write', () => {
 		expect(textOf(readXmp(saves[1]![1]!.bytes), 'xmp:Rating')).toBe('4')
 	})
 
+	// spec: DELETE-002.17
+	it('gives a picture the sidecars it saved and created, which a delete sends', async () => {
+		const { sidecars, lookupAnswer } = sync((item) => saved('fileId' in item ? item.fileId : 30))
+		lookupAnswer.current = () => ({ result: 'read', bytes: BYTES, etag: 'etag-11', size: BYTES.length, mtime: 100 })
+
+		expect(sidecars.current(PAIR)).toBe(PAIR)
+		await sidecars.write([PAIR], decisionOf({ ...UNDECIDED, flag: 'picked' }))
+
+		expect(sidecars.current(PAIR).sidecars.map(({ fileId, path, etag }) => [fileId, path, etag])).toEqual([
+			[11, '/P/IMG_0001.NEF.xmp', 'saved-11'],
+			[30, '/P/IMG_0001.JPG.xmp', 'saved-30'],
+		])
+	})
+
+	// spec: XMP-003.32
+	it('looks the sidecars up with the sizes the listing states, so the client packs the requests', async () => {
+		const listed = pictureOf(listingEntry(1, '/P/IMG_0002.NEF'), listingEntry(12, '/P/IMG_0002.NEF.xmp', { size: 4096 }))
+		const { sidecars, sized } = sync()
+
+		await sidecars.write([listed], decisionOf({ ...UNDECIDED, rating: 1 }))
+		await sidecars.takeOver([listed], new Set(), null)
+
+		expect(sized).toEqual([[[12, 4096]], [[12, 4096]]])
+	})
+
 	// spec: XMP-003.8
 	it('reads, merges and saves a changed sidecar once more', async () => {
 		const { sidecars, lookups, saves } = sync((item, call) => (call === 1 && 'fileId' in item ? { result: 'changed' } : saved(11)))
@@ -94,7 +121,7 @@ describe('useSidecarSync: write', () => {
 		const { written, failed } = await sidecars.write([PAIR], decisionOf(UNDECIDED))
 
 		expect(written).toBe(0)
-		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'changed' }])
+		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'changed', fields: DECISION_FIELDS }])
 		expect(failures).toEqual([failed])
 	})
 
@@ -151,7 +178,7 @@ describe('useSidecarSync: write', () => {
 
 		const { failed } = await sidecars.write([PAIR], decisionOf(UNDECIDED))
 
-		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'unreachable' }])
+		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'unreachable', fields: DECISION_FIELDS }])
 		expect(saves[0]!.map((item) => 'path' in item && item.path)).toEqual(['/P/IMG_0001.JPG.xmp'])
 	})
 })

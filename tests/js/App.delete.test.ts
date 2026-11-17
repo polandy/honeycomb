@@ -16,20 +16,29 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import RawRemovalSummary from '../../src/components/RawRemovalSummary.vue'
 import RejectReview from '../../src/components/RejectReview.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
-import { mountApp, openCull, shownNames, stored } from './app-cull.ts'
+import { ENTRIES, mountApp, openCull, shownNames, stored, toolbarProps } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
+import { xmp } from './logic/sidecar-answers.ts'
 
 const REJECTED = [stored(1, 'rejected'), stored(2, 'rejected'), stored(3, 'rejected')]
 
-/** The app on a cull with IMG_2 and IMG_10 rejected, so the grid shows IMG_9; the trash endpoint trashes every file. */
+/** The app on a cull with IMG_2 and IMG_10 rejected, so the grid shows IMG_9; a fresh listing answers the same files, each JPEG embeds its decision's flag, and the trash endpoint trashes every file. */
 async function openApp(decisions: StoredDecision[] = REJECTED) {
 	const sent: TrashRequestFile[][][] = []
 	const trashPictures = async (request: TrashRequestFile[][]) => {
 		sent.push(request)
 		return request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'trashed' })))
 	}
-	const mounted = mountApp({ trashPictures, schedule: fakeScheduler().schedule }, decisions, { NcDialog: DialogStub })
+	const flags = new Map(decisions.map(({ fileId, flag }) => [fileId, flag]))
+	const sidecars = {
+		lookupSidecars: async (ids: readonly number[]) => ids.map(() => ({ result: 'notFound' })),
+		lookupEmbeddedXmp: async (ids: readonly number[]) => ids.map((id) => (flags.get(id) === 'rejected' ? { result: 'read', bytes: xmp({ 'digiKam:PickLabel': '1' }) } : { result: 'none' })),
+		saveSidecars: async (items: readonly unknown[]) => items.map((_, index) => ({ result: 'saved', fileId: 100 + index, etag: 'e', size: 1, mtime: 1 })),
+		now: () => ({ epochMs: 0, offsetMinutes: 0 }),
+	}
+	const listEntries = async () => ({ entries: ENTRIES })
+	const mounted = mountApp({ trashPictures, sidecars, listEntries, schedule: fakeScheduler().schedule }, decisions, { NcDialog: DialogStub })
 	await openCull(mounted.wrapper)
 	return { ...mounted, sent }
 }
@@ -56,7 +65,7 @@ describe('App: deleting rejects', () => {
 	it('reviews the rejects from the toolbar, rescues one, and moves the rest to the trash bin', async () => {
 		const { wrapper, sent } = await openApp()
 		const toolbar = wrapper.findComponent(GridToolbar)
-		expect(toolbar.props('rejected')).toBe(2)
+		expect(toolbarProps(wrapper).rejected).toBe(2)
 
 		toolbar.vm.$emit('reviewRejects')
 		await flushPromises()
@@ -75,8 +84,8 @@ describe('App: deleting rejects', () => {
 
 		expect(sent).toEqual([[[{ fileId: 2, etag: 'etag-2' }, { fileId: 3, etag: 'etag-3' }]]])
 		expect(summaryOf(wrapper).exists()).toBe(false)
-		expect(toolbar.props('rejected')).toBe(0)
-		expect(toolbar.props('total')).toBe(2)
+		expect(toolbarProps(wrapper).rejected).toBe(0)
+		expect(toolbarProps(wrapper).total).toBe(2)
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9'])
 		expect(toastText(wrapper)).toContain('Moved 1 photo · 2 files')
 	})
@@ -164,7 +173,7 @@ describe('App: removing RAWs', () => {
 	it('removes the RAWs of the view from the More menu, after a Keep RAW toggled there and back', async () => {
 		const { wrapper, sent } = await openApp([])
 		const toolbar = wrapper.findComponent(GridToolbar)
-		expect(toolbar.props('rawRemovable')).toBe(1)
+		expect(toolbarProps(wrapper).rawRemovable).toBe(1)
 
 		toolbar.vm.$emit('removeRaws')
 		await flushPromises()
@@ -173,7 +182,7 @@ describe('App: removing RAWs', () => {
 		summary.vm.$emit('toggle', pair)
 		await flushPromises()
 		expect(names(summary.props('removal').kept)).toEqual(['IMG_10'])
-		expect(toolbar.props('rawRemovable')).toBe(0)
+		expect(toolbarProps(wrapper).rawRemovable).toBe(0)
 		expect(toastText(wrapper)).toContain('Marked IMG_10 Keep RAW')
 		summary.vm.$emit('toggle', pair)
 		await flushPromises()
@@ -183,7 +192,7 @@ describe('App: removing RAWs', () => {
 
 		expect(sent).toEqual([[[{ fileId: 3, etag: 'etag-3' }]]])
 		expect(wrapper.findComponent(RawRemovalSummary).exists()).toBe(false)
-		expect(toolbar.props('rawRemovable')).toBe(0)
+		expect(toolbarProps(wrapper).rawRemovable).toBe(0)
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
 		expect(toastText(wrapper)).toContain('Removed the RAWs of 1 photo · 1 file')
 	})
@@ -207,10 +216,10 @@ describe('App: removing RAWs', () => {
 		await flushPromises()
 		raws.wrapper.findComponent(RawRemovalSummary).vm.$emit('confirm')
 		await flushPromises()
-		expect(raws.wrapper.findComponent(GridToolbar).props('rawRemovable')).toBe(0)
+		expect(toolbarProps(raws.wrapper).rawRemovable).toBe(0)
 
 		await press('z', { ctrlKey: true })
-		expect(raws.wrapper.findComponent(GridToolbar).props('rawRemovable')).toBe(0)
+		expect(toolbarProps(raws.wrapper).rawRemovable).toBe(0)
 		expect(shownNames(raws.wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
 	})
 })

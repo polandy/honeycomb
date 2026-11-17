@@ -4,11 +4,41 @@
  */
 .photo-tile {
 	position: relative;
+	display: flex;
+	flex-direction: column;
 	overflow: hidden;
 	width: 100%;
 	height: 100%;
 	border-radius: var(--border-radius-large);
 	background-color: var(--color-background-dark);
+}
+
+.photo-tile__photo {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+}
+
+/* The name bar's head shortens with an ellipsis; its tail, the trailing number, always shows (GRID-004.5). */
+.photo-tile__name {
+	display: flex;
+	flex: none;
+	align-items: center;
+	height: 24px;
+	padding: 0 8px;
+	color: var(--color-main-text);
+	font-size: 12px;
+	white-space: nowrap;
+}
+
+.photo-tile__name-head {
+	overflow: hidden;
+	min-width: 0;
+	text-overflow: ellipsis;
+}
+
+.photo-tile__name-tail {
+	flex: none;
 }
 
 .photo-tile__image {
@@ -81,18 +111,42 @@
 	height: 16px;
 }
 
-.photo-tile__series {
+/* The filmstrip frame's tab; Nextcloud's own button sizes outrank a single class. */
+.photo-tile .photo-tile__series {
 	position: absolute;
 	top: 30px;
 	inset-inline-end: 6px;
-	padding: 2px 6px;
-	border-radius: var(--border-radius);
-	background-color: var(--color-main-background-blur);
-	color: var(--color-main-text);
-	font-size: 11px;
+	min-width: 0;
+	height: 20px;
+	min-height: 0;
+	margin: 0;
+	padding: 0 7px;
+	border: 0;
+	border-radius: 10px;
+	background: var(--color-primary-element);
+	color: var(--color-primary-element-text);
+	font-size: 12px;
 	font-weight: bold;
-	line-height: 1.3;
-	pointer-events: none;
+	line-height: 20px;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+/* The hit area reaches 44 px, 34 px with a fine pointer. */
+.photo-tile__series::before {
+	content: '';
+	position: absolute;
+	inset: -12px -8px;
+}
+
+@media (pointer: fine) {
+	.photo-tile__series::before {
+		inset: -7px -4px;
+	}
+}
+
+.photo-tile .photo-tile__series--settled {
+	opacity: 0.55;
 }
 
 .photo-tile__marks {
@@ -132,4 +186,17 @@
 .photo-tile__tags .app-icon {
 	width: 14px;
 	height: 14px;
+}
+
+.photo-tile__series--open {
+	outline: 2px dashed var(--color-warning);
+	outline-offset: 1px;
+}
+
+/* A white ring like the stars on the dark scrim, so it never reads as a colour label's filled swatch. */
+.photo-tile__unsaved {
+	width: 10px;
+	height: 10px;
+	border: 2px solid #fff;
+	border-radius: 50%;
 }

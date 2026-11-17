@@ -6,7 +6,7 @@ import type { SidecarFailureReason } from '../../src/logic/sidecar-sync.ts'
 import { describe, expect, it } from 'vitest'
 import { notWrittenText, sidecarFailureReason, writtenText } from '../../src/sidecar-text.ts'
 
-const REASONS: SidecarFailureReason[] = ['malformed', 'not-utf-8', 'doctype', 'conflict', 'not-xmp', 'notFound', 'tooLarge', 'notPermitted', 'locked', 'changed', 'unreachable', 'failed']
+const REASONS: SidecarFailureReason[] = ['malformed', 'not-utf-8', 'doctype', 'conflict', 'not-xmp', 'notFound', 'tooLarge', 'notPermitted', 'locked', 'changed', 'noVersions', 'unreachable', 'failed']
 
 describe('sidecar texts', () => {
 	// spec: XMP-003.13
@@ -15,6 +15,11 @@ describe('sidecar texts', () => {
 
 		expect(new Set(texts).size).toBe(REASONS.length)
 		expect(sidecarFailureReason('failed')).toBe('The server could not write the sidecar')
+	})
+
+	// spec: XMP-002.10
+	it('says why a sidecar is not overwritten without file versions', () => {
+		expect(sidecarFailureReason('noVersions')).toBe('File versions are off, so honeycomb does not overwrite an existing sidecar')
 	})
 
 	it('counts sidecars and photos', () => {

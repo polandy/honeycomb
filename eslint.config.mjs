@@ -30,7 +30,7 @@ const FORBIDDEN_PROPERTIES = [
 ]
 
 export default [
-	{ ignores: ['docs/mockup/**', 'vendor/**', 'coverage/**', 'js/**'] },
+	{ ignores: ['docs/dev/mockup/**', 'vendor/**', 'coverage/**', 'js/**'] },
 	...recommended,
 	{
 		files: TYPESCRIPT_FILES,

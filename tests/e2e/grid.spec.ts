@@ -27,7 +27,7 @@ test('culls a ticked folder in a grid of pairs and singles', async ({ page }) =>
 	await upload(page, `${folder}/IMG_0002.jpg`, JPEG)
 
 	const picker = await openPicker(page)
-	await picker.getByRole('option', { name: folder }).click()
+	await picker.getByRole('treeitem', { name: folder }).click()
 	await expect(picker.getByText('2 photos in 1 folder')).toBeVisible()
 	await picker.getByRole('button', { name: `Cull ${folder}` }).click()
 
@@ -49,7 +49,7 @@ test('culls a folder with its subfolders and groups the grid by folder', async (
 	await upload(page, `${folder}/Day 2/IMG_0002.jpg`, JPEG)
 
 	const picker = await openPicker(page)
-	await picker.getByRole('option', { name: folder }).click()
+	await picker.getByRole('treeitem', { name: folder }).click()
 	await picker.getByText('Include subfolders', { exact: true }).click()
 	await expect(picker.getByRole('switch', { name: 'Include subfolders' })).toBeChecked()
 	await expect(picker.getByText('2 photos in 2 folders')).toBeVisible()
@@ -80,7 +80,7 @@ test('hides a rejected photo by default and shows it under Rejected', async ({ p
 	expect(saved.status()).toBe(204)
 
 	const picker = await openPicker(page)
-	await picker.getByRole('option', { name: folder }).click()
+	await picker.getByRole('treeitem', { name: folder }).click()
 	await picker.getByRole('button', { name: `Cull ${folder}` }).click()
 
 	const grid = page.getByRole('grid', { name: 'Photos' })
@@ -110,7 +110,7 @@ test('combines the flag chips at iPad width and shares them with the filter bar'
 	expect(saved.status()).toBe(204)
 
 	const picker = await openPicker(page)
-	await picker.getByRole('option', { name: folder }).click()
+	await picker.getByRole('treeitem', { name: folder }).click()
 	await picker.getByRole('button', { name: `Cull ${folder}` }).click()
 
 	const chips = page.locator('.flag-filter')
@@ -158,7 +158,7 @@ test('rates and rejects selected photos and keeps the decisions over a reload', 
 	await upload(page, `${folder}/IMG_0002.jpg`, JPEG)
 	const cull = async () => {
 		const picker = await openPicker(page)
-		await picker.getByRole('option', { name: folder }).click()
+		await picker.getByRole('treeitem', { name: folder }).click()
 		await picker.getByRole('button', { name: `Cull ${folder}` }).click()
 		await expect(picker).toBeHidden()
 		return page.getByRole('grid', { name: 'Photos' })
@@ -173,8 +173,10 @@ test('rates and rejects selected photos and keeps the decisions over a reload', 
 	await page.getByRole('button', { name: 'Keep RAW', exact: true }).click()
 	await grid.getByRole('gridcell', { name: /^IMG_0001/ }).click()
 	await expect(page.getByText('1 selected')).toBeVisible()
+	const rejected = page.waitForResponse((response) => response.url().endsWith('/api/v1/decisions') && response.request().method() === 'PUT' && response.request().postDataJSON().decisions.some((decision: { flag: string }) => decision.flag === 'rejected') && response.ok())
 	await page.getByRole('button', { name: 'Reject', exact: true }).click()
 	await expect(grid.getByRole('gridcell')).toHaveCount(1)
+	await rejected
 
 	await page.reload()
 	const again = await cull()
@@ -190,7 +192,7 @@ test('colours a toolbar count badge only while its button is pressed', async ({ 
 	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
 	await upload(page, `${folder}/IMG_0002.jpg`, JPEG)
 	const picker = await openPicker(page)
-	await picker.getByRole('option', { name: folder }).click()
+	await picker.getByRole('treeitem', { name: folder }).click()
 	await picker.getByRole('button', { name: `Cull ${folder}` }).click()
 	const grid = page.getByRole('grid', { name: 'Photos' })
 	const background = (label: string) => page.locator(`button[aria-label^="${label}"] .grid-toolbar__badge`)

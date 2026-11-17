@@ -9,7 +9,6 @@ namespace OCA\Honeycomb\Service;
 
 use OCP\Files\File;
 use OCP\Files\Folder;
-use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IUser;
@@ -19,7 +18,8 @@ use Psr\Log\LoggerInterface;
 /** Saves sidecars by the checked save: check, write a part file, check again, rename (ADR 0017). */
 final class SidecarWriter {
 	public function __construct(
-		private IRootFolder $rootFolder,
+		private UserPhotos $photos,
+		private FileVersions $versions,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -32,7 +32,7 @@ final class SidecarWriter {
 	 */
 	public function save(IUser $user, array $sidecars): array {
 		$sidecars = SidecarRequest::sidecars($sidecars);
-		$userFolder = $this->rootFolder->getUserFolder($user->getUID());
+		$userFolder = $this->photos->userFolder($user);
 		return array_map(fn (ExistingSidecar|NewSidecar $sidecar): array => $this->saveOne($userFolder, $sidecar), $sidecars);
 	}
 
@@ -42,7 +42,11 @@ final class SidecarWriter {
 		if ($target instanceof SidecarResult) {
 			return ['result' => $target];
 		}
-		[$folder, $name] = $target;
+		[$folder, $name, $existing] = $target;
+		// Without versions the replaced bytes of another program could not be restored (XMP-002.10).
+		if ($existing !== null && !$this->versions->keeps($existing)) {
+			return ['result' => SidecarResult::NoVersions];
+		}
 		$part = null;
 		try {
 			$part = $folder->newFile("$name.part", $sidecar->bytes);
@@ -62,15 +66,15 @@ final class SidecarWriter {
 	}
 
 	/**
-	 * The folder and name to save to, or why the sidecar may not be saved.
-	 * @return array{Folder, string}|SidecarResult
+	 * The folder and name to save to with the sidecar it replaces, or why the sidecar may not be saved.
+	 * @return array{Folder, string, ?File}|SidecarResult
 	 */
 	private function check(Folder $userFolder, ExistingSidecar|NewSidecar $sidecar): array|SidecarResult {
 		if ($sidecar instanceof NewSidecar) {
 			return $this->checkNew($userFolder, $sidecar->path);
 		}
-		$node = $userFolder->getFirstNodeById($sidecar->fileId);
-		if (!$node instanceof File || !ListingService::isSidecar($node)) {
+		$node = $this->photos->sidecar($userFolder, $sidecar->fileId);
+		if ($node === null) {
 			return SidecarResult::NotFound;
 		}
 		if ($node->getEtag() !== $sidecar->etag || $node->getSize() !== $sidecar->size) {
@@ -80,10 +84,10 @@ final class SidecarWriter {
 		if (!$node->isUpdateable() || !$folder->isCreatable()) {
 			return SidecarResult::NotPermitted;
 		}
-		return [$folder, $node->getName()];
+		return [$folder, $node->getName(), $node];
 	}
 
-	/** @return array{Folder, string}|SidecarResult */
+	/** @return array{Folder, string, null}|SidecarResult */
 	private function checkNew(Folder $userFolder, string $path): array|SidecarResult {
 		try {
 			$image = $userFolder->get(substr($path, 0, -strlen('.xmp')));
@@ -98,7 +102,7 @@ final class SidecarWriter {
 		if ($folder->nodeExists($name)) {
 			return SidecarResult::Changed;
 		}
-		return $folder->isCreatable() ? [$folder, $name] : SidecarResult::NotPermitted;
+		return $folder->isCreatable() ? [$folder, $name, null] : SidecarResult::NotPermitted;
 	}
 
 	private function deletePart(File $part): void {

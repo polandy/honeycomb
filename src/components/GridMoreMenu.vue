@@ -9,6 +9,7 @@ import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import AppIcon from './AppIcon.vue'
+import { keyCap } from '../hotkeys.ts'
 import { formatNumber } from '../l10n.ts'
 import { MAX_TILE_SIZE, MIN_TILE_SIZE } from '../logic/tile-size.ts'
 
@@ -17,11 +18,12 @@ defineProps<{
 	folders: number
 	tileSize: number
 	groupByFolder: boolean
+	fileNames: boolean
 	sortOrder: SortOrder
 	/** How many pictures of the view would lose their RAW to *Remove RAWs*. */
 	rawRemovable: number
 	/** Whether pictures of the cull lie in a shared folder, where decisions reach the sidecars only on request. */
-	sidecarsShared: boolean
+	legacyRows: boolean
 	/** How many pictures the move item opens the move dialog on. */
 	movable: number
 	/** Whether a filter is on, which makes *Move picks* *Move filtered*. */
@@ -37,6 +39,7 @@ defineProps<{
 const emit = defineEmits<{
 	'update:tileSize': [size: number]
 	'update:groupByFolder': [group: boolean]
+	'update:fileNames': [shown: boolean]
 	'update:sortOrder': [order: SortOrder]
 	removeRaws: []
 	move: []
@@ -67,6 +70,12 @@ const emit = defineEmits<{
 			@update:modelValue="emit('update:groupByFolder', $event)">
 			{{ t('honeycomb', 'Group by folder') }}
 		</NcCheckboxRadioSwitch>
+		<NcCheckboxRadioSwitch
+			:modelValue="fileNames"
+			@update:modelValue="emit('update:fileNames', $event)">
+			{{ t('honeycomb', 'Show file names') }}
+			<kbd class="grid-more-menu__key" translate="no">{{ keyCap('file-names') }}</kbd>
+		</NcCheckboxRadioSwitch>
 		<fieldset class="grid-more-menu__sort">
 			<legend>{{ t('honeycomb', 'Sort by') }}</legend>
 			<NcCheckboxRadioSwitch
@@ -88,7 +97,6 @@ const emit = defineEmits<{
 		</fieldset>
 		<hr class="grid-more-menu__separator">
 		<NcButton
-			class="grid-more-menu__narrow"
 			variant="tertiary"
 			alignment="start"
 			wide
@@ -99,6 +107,7 @@ const emit = defineEmits<{
 			</template>
 			{{ t('honeycomb', 'Review rejects') }}
 			<span class="grid-more-menu__count">{{ formatNumber(rejected) }}</span>
+			<kbd class="grid-more-menu__key" translate="no">{{ keyCap('review-rejects') }}</kbd>
 		</NcButton>
 		<NcButton
 			class="grid-more-menu__narrow"
@@ -149,7 +158,7 @@ const emit = defineEmits<{
 			{{ t('honeycomb', 'Resume at {name}', { name: resumeName }) }}
 		</NcButton>
 		<NcButton
-			v-if="sidecarsShared"
+			v-if="legacyRows"
 			variant="tertiary"
 			alignment="start"
 			wide
@@ -183,6 +192,12 @@ const emit = defineEmits<{
 .grid-more-menu__count {
 	margin-inline-start: calc(2 * var(--default-grid-baseline));
 	color: var(--color-text-maxcontrast);
+}
+
+.grid-more-menu__key {
+	margin-inline-start: calc(2 * var(--default-grid-baseline));
+	color: var(--color-text-maxcontrast);
+	font-family: inherit;
 }
 
 .grid-more-menu__separator {

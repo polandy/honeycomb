@@ -1,0 +1,21 @@
+/*
+ * SPDX-FileCopyrightText: 2026 honeycomb contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+/* Nextcloud's toggle floats over the content: the toolbar row keeps a gutter for it and centres it. */
+:root {
+	--honeycomb-toolbar-height: 44px;
+	--honeycomb-toggle-gutter: calc(var(--default-clickable-area) + 3 * var(--default-grid-baseline));
+}
+
+div.app-navigation .app-navigation-toggle-wrapper {
+	top: 0;
+	display: flex;
+	align-items: center;
+	height: var(--honeycomb-toolbar-height);
+}
+
+/* Nextcloud's own hover tint is translucent, which shows the toolbar through the toggle. */
+button.app-navigation-toggle:hover {
+	background-color: var(--color-background-dark);
+}

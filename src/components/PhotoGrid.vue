@@ -12,25 +12,30 @@ import type { ListingEntry } from '../logic/listing.ts'
 import type { Schedule } from '../logic/long-press.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Selection } from '../logic/selection.ts'
+import type { Series } from '../logic/series.ts'
 import type { Tag } from '../logic/tag.ts'
 import type { ObserveSize } from '../observe-size.ts'
 
 import { t } from '@nextcloud/l10n'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useSlots, useTemplateRef, watch } from 'vue'
 import PhotoTile from './PhotoTile.vue'
+import SeriesBrackets from './SeriesBrackets.vue'
+import TileInfo from './TileInfo.vue'
 import { browserFrame } from '../auto-scroll.ts'
+import { useGridPinch } from '../grid-pinch.ts'
+import { useGridSeries } from '../grid-series.ts'
 import { formatNumber } from '../l10n.ts'
 import { autoScrollStep } from '../logic/auto-scroll.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { UNDECIDED } from '../logic/decision.ts'
-import { focusStep, gridLayout, revealScrollTop, rowOfItem, stickyHeader, tileAt, visibleRows } from '../logic/grid-layout.ts'
+import { anchoredScrollTop, focusStep, gridLayout, revealScrollTop, rowOfItem, stickyHeader, tileAt, visibleRows } from '../logic/grid-layout.ts'
 import { IMAGE_LOADS_IN_FLIGHT, imageMember } from '../logic/image-tiers.ts'
 import { createLoadQueue } from '../logic/load-queue.ts'
 import { groupByFolder as folderGroups } from '../logic/picture-order.ts'
 import { NO_SELECTION } from '../logic/selection.ts'
-import { pinchTileSize, wheelTileSize } from '../logic/tile-size.ts'
 import { decodeSource } from '../loupe-prefetch.ts'
 import { observeElementSize } from '../observe-size.ts'
+import { useTileInfo } from '../tile-info.ts'
 import { browserSchedule, useTileSelection } from '../tile-selection.ts'
 
 const props = withDefaults(defineProps<{
@@ -50,11 +55,20 @@ const props = withDefaults(defineProps<{
 	decisionOf?: (picture: Picture<ListingEntry>) => Decision
 	/** The picture's tags, counted on its tile. */
 	tagsOf?: (picture: Picture<ListingEntry>) => readonly Tag[]
-	/** Times the long-press. */
+	/** Times the long-press and the tile info's delay. */
 	schedule?: Schedule
 	/** Times the auto-scroll of a drag selection. */
 	frame?: Frame
-	seriesSizes?: ReadonlyMap<Picture<ListingEntry>, number>
+	/** Every picture's series, offered or settled (SERIES-002.12). */
+	seriesOf?: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>
+	/** The keys of the series the compare offers; the others are settled. */
+	offeredSeries?: ReadonlySet<number>
+	/** The pictures of a series that may still change (SERIES-003.25). */
+	openSeries?: ReadonlySet<Picture<ListingEntry>>
+	/** The picture whose sidecar writes still wait (XMP-003.28). */
+	unsaved?: Picture<ListingEntry> | null
+	/** Shows a name bar above each tile (GRID-004.4). */
+	fileNames?: boolean
 }>(), {
 	observeSize: observeElementSize,
 	loadImage: decodeSource,
@@ -62,6 +76,8 @@ const props = withDefaults(defineProps<{
 	selection: () => NO_SELECTION,
 	decisionOf: () => UNDECIDED,
 	tagsOf: () => [],
+	unsaved: null,
+	fileNames: false,
 	schedule: browserSchedule,
 	frame: browserFrame,
 })
@@ -71,12 +87,15 @@ const emit = defineEmits<{
 	'update:selecting': [selecting: boolean]
 	'update:selection': [selection: Selection]
 	open: [index: number]
+	compareSeries: [series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>]
 	/** The user scrolled the grid; a scroll it made itself does not count. */
 	scroll: []
 }>()
 
 const GAP = 8
 const HEADER_HEIGHT = 40
+const OVERLAY_HEIGHT = 22
+const NAME_BAR = 24
 
 const scroller = useTemplateRef<HTMLElement>('scroller')
 const spacer = useTemplateRef<HTMLElement>('spacer')
@@ -84,6 +103,8 @@ const width = ref(0)
 const height = ref(0)
 const scrollTop = ref(0)
 const focused = ref(0)
+// The overlay keeps its band free, and a gap below it holds the first row's series bracket.
+const overlayHeight = useSlots().default === undefined ? 0 : OVERLAY_HEIGHT
 
 const groups = computed(() => (props.groupByFolder
 	? folderGroups(props.pictures)
@@ -95,7 +116,10 @@ const layout = computed(() => gridLayout({
 	headerHeight: HEADER_HEIGHT,
 	groups: groups.value.map((group) => group.count),
 	showHeaders: props.groupByFolder,
+	top: overlayHeight + GAP,
+	nameBar: props.fileNames ? NAME_BAR : 0,
 }))
+const series = useGridSeries({ pictures: () => props.pictures, seriesOf: () => props.seriesOf, offered: () => props.offeredSeries, open: () => props.openSeries, groupStarts: () => groups.value.map((group) => group.start) })
 const loads = createLoadQueue(props.loadImage, IMAGE_LOADS_IN_FLIGHT)
 const sticky = computed(() => stickyHeader(layout.value, scrollTop.value))
 const order = computed(() => props.pictures.map((picture) => imageMember(picture).fileId))
@@ -157,40 +181,21 @@ function onScroll(event: Event) {
 	}
 }
 
-/** Resizes the tiles on a trackpad pinch, which arrives as a wheel event with Ctrl. */
-function onWheel(event: WheelEvent) {
-	if (event.ctrlKey) {
-		event.preventDefault()
-		emit('update:tileSize', wheelTileSize(props.tileSize, event.deltaY))
-	}
-}
+const { onTouchStart, onTouchEnd } = useGridPinch({
+	scroller: () => scroller.value,
+	tileSize: () => props.tileSize,
+	dragging: () => tiles.dragOrigin.value !== null,
+	resize: (size) => emit('update:tileSize', size),
+})
+const info = useTileInfo(() => scroller.value, props.schedule)
 
-let pinch: { size: number, distance: number } | null = null
-const fingerDistance = (touches: TouchList) => Math.hypot(touches[0]!.clientX - touches[1]!.clientX, touches[0]!.clientY - touches[1]!.clientY)
-
-/** Starts a two-finger pinch that resizes the tiles. */
-function onTouchStart(event: TouchEvent) {
-	if (event.touches.length === 2) {
-		pinch = { size: props.tileSize, distance: fingerDistance(event.touches) }
+// Toggling the name bars keeps the focused or the top tile in place (GRID-004.6).
+watch([layout, () => props.fileNames], ([next, names], [previous, hadNames]) => {
+	if (names !== hadNames) {
+		const anchor = focused.value < props.pictures.length ? focused.value : null
+		scroller.value!.scrollTop = scrollTop.value = anchoredScrollTop(previous, next, scrollTop.value, height.value, anchor)
 	}
-}
-
-/** Resizes the tiles while the pinch lasts. */
-function onTouchMove(event: TouchEvent) {
-	if (tiles.dragOrigin.value !== null) {
-		event.preventDefault()
-	} else if (pinch !== null && event.touches.length === 2) {
-		event.preventDefault()
-		emit('update:tileSize', pinchTileSize(pinch.size, pinch.distance, fingerDistance(event.touches)))
-	}
-}
-
-/** Ends the pinch when fewer than two fingers remain. */
-function onTouchEnd(event: TouchEvent) {
-	if (event.touches.length < 2) {
-		pinch = null
-	}
-}
+}, { flush: 'post' })
 
 let stopObserving = () => undefined as void
 onMounted(() => {
@@ -199,8 +204,6 @@ onMounted(() => {
 		width.value = newWidth
 		height.value = newHeight
 	})
-	element.addEventListener('wheel', onWheel, { passive: false })
-	element.addEventListener('touchmove', onTouchMove, { passive: false })
 })
 onBeforeUnmount(() => stopObserving())
 
@@ -218,11 +221,14 @@ defineExpose({
 	focusedIndex: () => focused.value,
 	/** Moves the focus one step, as an arrow, Home or End key does. */
 	step: (move: FocusMove) => reveal(focusStep(layout.value, focused.value, move)),
+	/** Moves the focus to the first photo of the previous or next series; it stays at either end (SERIES-002.15). */
+	jumpSeries: (direction: 'previous' | 'next') => reveal(series.jump(focused.value, direction) ?? focused.value),
 })
 </script>
 
 <template>
 	<div class="photo-grid">
+		<div class="photo-grid__overlay" :style="{ height: `${overlayHeight}px` }"><slot /></div>
 		<div v-if="sticky !== null" class="photo-grid__sticky" aria-hidden="true">
 			{{ groupName(sticky) }}
 		</div>
@@ -253,6 +259,7 @@ defineExpose({
 						role="row"
 						class="photo-grid__row"
 						:style="{ top: `${row.top}px`, height: `${row.height}px` }">
+						<SeriesBrackets :brackets="series.brackets(row.first, row.count, layout.tileWidth + GAP, GAP)" />
 						<PhotoTile
 							v-for="{ picture, index, column } in rowPictures(row.first, row.count)"
 							:key="imageMember(picture).fileId"
@@ -260,23 +267,33 @@ defineExpose({
 							class="photo-grid__tile"
 							:tabindex="index === focused ? 0 : -1"
 							:style="{ left: `${column * (layout.tileWidth + GAP)}px`, width: `${layout.tileWidth}px` }"
+							:data-index="index"
 							:picture="picture"
 							:size="layout.tileWidth"
+							:nameBar="props.fileNames"
 							:decision="props.decisionOf(picture)"
 							:tags="props.tagsOf(picture).length"
+							:unsaved="picture === props.unsaved"
 							:selecting="props.selecting"
 							:selected="props.selection.ids.has(imageMember(picture).fileId)"
 							:loads="loads"
 							:offscreen="row.offscreen"
-							v-bind="{ ...(props.imageUrl && { imageUrl: props.imageUrl }), series: props.seriesSizes?.get(picture) ?? 0 }"
+							v-bind="{ ...(props.imageUrl && { imageUrl: props.imageUrl }), ...series.tileProps(index, picture) }"
 							@focus="focused = index"
 							@click="tiles.onClick(imageMember(picture).fileId, $event)"
 							@keydown="tiles.onKeydown(imageMember(picture).fileId, $event)"
-							@pointerdown="tiles.onPointerDown(imageMember(picture).fileId, $event)" />
+							@pointerdown="tiles.onPointerDown(imageMember(picture).fileId, $event)"
+							@compareSeries="emit('compareSeries', props.seriesOf!.get(picture)!, picture)" />
 					</div>
 				</template>
 			</div>
 		</div>
+		<TileInfo
+			v-if="info !== null"
+			:key="info.index"
+			:picture="props.pictures[info.index]!"
+			:decision="props.decisionOf(props.pictures[info.index]!)"
+			:anchor="info.anchor" />
 	</div>
 </template>
 

@@ -31,7 +31,7 @@ describe('useSeriesViewer', () => {
 	it('opens on the given picture of the series', () => {
 		const { viewer, shots, shown, current } = viewerOf('A', 'B', 'C')
 		expect(viewer.open.value).toBe(false)
-		viewer.openAt(shots, 1)
+		viewer.openAt({ key: 1, members: shots }, 1)
 
 		expect(viewer.open.value).toBe(true)
 		expect(shown()).toEqual(['A', 'B', 'C'])
@@ -42,7 +42,7 @@ describe('useSeriesViewer', () => {
 	// spec: SERIES-002.2
 	it('pages within the series and not beyond its ends', () => {
 		const { viewer, shots, current } = viewerOf('A', 'B', 'C')
-		viewer.openAt(shots, 0)
+		viewer.openAt({ key: 1, members: shots }, 0)
 		viewer.go(-1)
 		expect(current()).toBe('A')
 		viewer.go(2)
@@ -54,7 +54,7 @@ describe('useSeriesViewer', () => {
 	// spec: SERIES-002.6
 	it('moves to the next picture when the shown one is rejected, the previous after the last', () => {
 		const { viewer, shots, setFlag, shown, current } = viewerOf('A', 'B', 'C', 'D')
-		viewer.openAt(shots, 1)
+		viewer.openAt({ key: 1, members: shots }, 1)
 		setFlag('B', 'rejected')
 		expect(shown()).toEqual(['A', 'C', 'D'])
 		expect(current()).toBe('C')
@@ -67,7 +67,7 @@ describe('useSeriesViewer', () => {
 	// spec: SERIES-002.6
 	it('shows a picture an undo brings back, and keeps the shown one when another leaves', () => {
 		const { viewer, shots, setFlag, shown, current } = viewerOf('A', 'B', 'C')
-		viewer.openAt(shots, 2)
+		viewer.openAt({ key: 1, members: shots }, 2)
 		setFlag('A', 'rejected')
 		expect(current()).toBe('C')
 
@@ -81,7 +81,7 @@ describe('useSeriesViewer', () => {
 	// spec: SERIES-002.8
 	it('closes once fewer than two pictures are left, handing back the shown one', () => {
 		const { viewer, shots, setFlag, closed } = viewerOf('A', 'B')
-		viewer.openAt(shots, 0)
+		viewer.openAt({ key: 1, members: shots }, 0)
 		setFlag('A', 'rejected')
 
 		expect(viewer.open.value).toBe(false)
@@ -93,7 +93,7 @@ describe('useSeriesViewer', () => {
 	// spec: SERIES-002.9
 	it('closes with the shown picture, once, and ignores paging while closed', () => {
 		const { viewer, shots, closed } = viewerOf('A', 'B', 'C')
-		viewer.openAt(shots, 0)
+		viewer.openAt({ key: 1, members: shots }, 0)
 		viewer.go(1)
 		viewer.close()
 		viewer.close()
@@ -108,7 +108,7 @@ describe('useSeriesViewer', () => {
 	// spec: SERIES-002.1
 	it('opens on the first picture when the given one is not in the series', () => {
 		const { viewer, shots, current } = viewerOf('A', 'B')
-		viewer.openAt(shots, 5)
+		viewer.openAt({ key: 1, members: shots }, 5)
 
 		expect(current()).toBe('A')
 	})

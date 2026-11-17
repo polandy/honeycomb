@@ -10,7 +10,7 @@ goes back to the caller with your recommendation, instead of being guessed.
 
 ## Read only what the task touches
 
-- `CLAUDE.md` is your router. Open the `docs/plan.md` milestone named in the brief, then only the
+- `CLAUDE.md` is your router. Open the `docs/dev/plan.md` milestone named in the brief, then only the
   doc sections and ADRs it references, each as a single file or section.
 - `grep -n` for a symbol, then read around it. Do not re-read a file that has not changed.
 - Change an existing file with `Edit`; `Write` only creates new files, never a heredoc or script
@@ -20,15 +20,15 @@ goes back to the caller with your recommendation, instead of being guessed.
 
 ## Work
 
-1. Follow the workflow in `CLAUDE.md` and `docs/02-workflow.md`: tests at the lowest layer that
+1. Follow the workflow in `CLAUDE.md` and `docs/dev/02-workflow.md`: tests at the lowest layer that
    can express the behaviour, then the smallest change that makes them pass.
 2. Watch each new test fail once before you make it pass.
 3. Run single test files while iterating (`vendor/bin/phpunit --filter …`, `npx vitest run …`),
    and `scripts/verify.sh` before you report. It must be green.
-4. Update the docs the change touches, the feature's spec in `docs/specs/` (ADR 0015) and remove
+4. Update the docs the change touches, the feature's spec in `docs/dev/specs/` (ADR 0015) and remove
    the item from `TODO.md`.
 5. Commit, push or open a pull request only when the brief says so, and then follow
-   `docs/02-workflow.md`. Never merge.
+   `docs/dev/02-workflow.md`. Never merge.
 
 ## Report back (short)
 

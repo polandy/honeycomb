@@ -4,7 +4,7 @@ import type { Locator, Page, TestInfo } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { cullFolder, putSettings, resetViewState } from './cull.ts'
+import { cullFolder, E2E_SETTINGS, putSettings, resetViewState } from './cull.ts'
 import { createFolder, JPEG, RAW, upload, withCaptureTime } from './files.ts'
 
 const IPAD_LANDSCAPE = { width: 1180, height: 820 }
@@ -109,7 +109,7 @@ test('goes fullscreen by the button, keeps one photo and Pick, and leaves by the
 test('puts the pinned filmstrip and rating row below the one photo in landscape', async ({ page }, testInfo) => {
 	await page.setViewportSize(IPAD_LANDSCAPE)
 	await page.goto('/index.php/apps/honeycomb/')
-	await putSettings(page, { filmstripPinned: true, ratingRowPinned: true })
+	await putSettings(page, { ...E2E_SETTINGS, filmstripPinned: true, ratingRowPinned: true })
 	try {
 		const loupe = await openRotatedPair(page)
 		await expectRotatedAlone(page, loupe, testInfo, 'loupe-pinned.png')
@@ -119,7 +119,7 @@ test('puts the pinned filmstrip and rating row below the one photo in landscape'
 		expect(strip.y).toBeGreaterThanOrEqual(stage.y + stage.height)
 		expect(row.y).toBeGreaterThanOrEqual(strip.y + strip.height)
 	} finally {
-		await putSettings(page, {})
+		await putSettings(page, E2E_SETTINGS)
 	}
 })
 
@@ -127,7 +127,7 @@ test('puts the pinned filmstrip and rating row below the one photo in landscape'
 test('fits the photo between the title row and the pinned filmstrip in landscape', async ({ page }) => {
 	await page.setViewportSize(IPAD_LANDSCAPE)
 	await page.goto('/index.php/apps/honeycomb/')
-	await putSettings(page, { filmstripPinned: true })
+	await putSettings(page, { ...E2E_SETTINGS, filmstripPinned: true })
 	try {
 		const loupe = await openRotatedPair(page)
 		const title = (await loupe.locator('.photo-loupe__top').boundingBox())!
@@ -136,7 +136,7 @@ test('fits the photo between the title row and the pinned filmstrip in landscape
 		expect(stage.y).toBeGreaterThanOrEqual(title.y + title.height)
 		expect(stage.y + stage.height).toBeLessThanOrEqual(strip.y)
 	} finally {
-		await putSettings(page, {})
+		await putSettings(page, E2E_SETTINGS)
 	}
 })
 
@@ -144,7 +144,7 @@ test('fits the photo between the title row and the pinned filmstrip in landscape
 test('hides the pinned title row and filmstrip in the chrome-free mode', async ({ page }) => {
 	await page.setViewportSize(IPAD_LANDSCAPE)
 	await page.goto('/index.php/apps/honeycomb/')
-	await putSettings(page, { filmstripPinned: true })
+	await putSettings(page, { ...E2E_SETTINGS, filmstripPinned: true })
 	try {
 		const loupe = await openRotatedPair(page)
 		await expect(loupe.locator('.photo-loupe__top')).toBeVisible()
@@ -152,7 +152,7 @@ test('hides the pinned title row and filmstrip in the chrome-free mode', async (
 		await expect(loupe.locator('.photo-loupe__top')).toBeHidden()
 		await expect(loupe.getByRole('navigation', { name: 'Filmstrip' })).toBeHidden()
 	} finally {
-		await putSettings(page, {})
+		await putSettings(page, E2E_SETTINGS)
 	}
 })
 

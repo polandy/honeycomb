@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
+import type { ListEntries } from '../../src/folder-count.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { ResumePosition } from '../../src/logic/resume-position.ts'
@@ -26,16 +27,16 @@ const LISTINGS: Record<string, ListingEntry[]> = {
 }
 
 /** The recent folder sets over a fake server whose answers the test gives as functions. */
-function recentOn(positions: () => Promise<unknown>, listEntries = async (path: string) => ({ entries: LISTINGS[path] ?? [], truncated: false, sharedFolders: path === '/Day' ? ['/Day'] : [] })) {
+function recentOn(positions: () => Promise<unknown>, listEntries: ListEntries = async (path: string) => ({ entries: LISTINGS[path] ?? [], truncated: false, folders: [{ path: '/Day', shared: path === '/Day', permissions: 31, versions: true }], opened: { path, fileId: path.length } })) {
 	const opened: unknown[][] = []
 	const toasts: string[] = []
 	const listed: string[] = []
 	let resumed = 0
 	const folderSet = ref<FolderSet | null>(null)
 	const progress = ref({ decided: 0, total: 0 })
-	const recent = useRecent({ loadPositions: positions, savePosition: async () => undefined }, (path, subfolders) => {
-		listed.push(`${path}${subfolders ? ' +' : ''}`)
-		return listEntries(path)
+	const recent = useRecent({ loadPositions: positions, savePosition: async () => undefined }, (path, subfolders, excluded = []) => {
+		listed.push(`${path}${subfolders ? ' +' : ''}${excluded.map((each) => ` -${each}`).join('')}`)
+		return listEntries(path, subfolders, excluded)
 	}, {
 		folderSet: () => folderSet.value,
 		progress: () => progress.value,
@@ -65,7 +66,17 @@ describe('useRecent', () => {
 		await flushPromises()
 
 		expect(recent.listed).toEqual(['/Trip', '/Day'])
-		expect(recent.opened).toEqual([[TRIP, [...LISTINGS['/Trip']!, ...LISTINGS['/Day']!], ['/Day'], 2]])
+		expect(recent.opened).toEqual([[TRIP, [...LISTINGS['/Trip']!, ...LISTINGS['/Day']!], { folders: [{ path: '/Day', shared: false, permissions: 31, versions: true }], opened: [{ path: '/Trip', fileId: 5 }, { path: '/Day', fileId: 4 }] }, 2]])
+	})
+
+	// spec: DECISIONS-002.16
+	it('lists a recent folder set without its excluded folders', async () => {
+		const recent = recentOn(async () => [])
+
+		await recent.open({ ...trip, folderSet: { paths: ['/Trip', '/Trip/Raw/Best'], subfolders: true, excluded: ['/Trip/Raw'] } })
+		await flushPromises()
+
+		expect(recent.listed).toEqual(['/Trip + -/Trip/Raw', '/Trip/Raw/Best +'])
 	})
 
 	// spec: DECISIONS-002.8
@@ -82,7 +93,7 @@ describe('useRecent', () => {
 
 	it('opens only the folder set chosen last', async () => {
 		const answers: (() => void)[] = []
-		const recent = recentOn(async () => [], (path) => new Promise((resolve) => answers.push(() => resolve({ entries: LISTINGS[path] ?? [], truncated: false, sharedFolders: [] }))))
+		const recent = recentOn(async () => [], (path) => new Promise((resolve) => answers.push(() => resolve({ entries: LISTINGS[path] ?? [], truncated: false, folders: [], opened: null }))))
 
 		void recent.open(trip)
 		void recent.open(home)
@@ -95,7 +106,7 @@ describe('useRecent', () => {
 	// spec: GRID-001.13
 	it('says it is listing until the folder set chosen last opened', async () => {
 		const answers: (() => void)[] = []
-		const recent = recentOn(async () => [], (path) => new Promise((resolve) => answers.push(() => resolve({ entries: LISTINGS[path] ?? [], truncated: false, sharedFolders: [] }))))
+		const recent = recentOn(async () => [], (path) => new Promise((resolve) => answers.push(() => resolve({ entries: LISTINGS[path] ?? [], truncated: false, folders: [], opened: null }))))
 		expect(recent.listing.value).toBe(false)
 
 		void recent.open(trip)

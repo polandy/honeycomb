@@ -15,7 +15,7 @@ import { listingEntry, picturesOf } from './logic/listing-entries.ts'
 const PICTURES = picturesOf([1, 2, 3].map((id) => listingEntry(id, `/P/IMG_${id}.JPG`)))
 
 /** The loupe's decisions at `index`, with the decisions stored in a map and every call recorded. */
-function loupeDecisions(index: number, decided: Record<string, Decision> = {}, settings: { swipes?: SwipeSetting, autoAdvance?: boolean } = {}) {
+function loupeDecisions(index: number, decided: Record<string, Decision> = {}, settings: { swipes?: SwipeSetting, autoAdvance?: boolean } = {}, inDoneSeries: readonly string[] = []) {
 	const went: number[] = []
 	const shown: boolean[] = []
 	const toasts: Toast[] = []
@@ -37,6 +37,7 @@ function loupeDecisions(index: number, decided: Record<string, Decision> = {}, s
 		allDecided: () => allDecided++,
 		swipes: () => settings.swipes ?? DEFAULT_SWIPES,
 		autoAdvance: () => settings.autoAdvance ?? true,
+		decidedOf: (picture) => inDoneSeries.includes(picture.baseName) || (decided[picture.baseName] ?? UNDECIDED).flag !== 'unflagged',
 	})
 	return { decisions, went, shown, toasts, intents, allDecided: () => allDecided }
 }
@@ -47,6 +48,16 @@ describe('useLoupeDecisions: decide', () => {
 		const { decisions, went } = loupeDecisions(0, { IMG_2: { ...UNDECIDED, flag: 'picked' } })
 		expect(decisions.decide({ kind: 'flag', flag: 'rejected' })).toBe(true)
 		expect(went).toEqual([2])
+	})
+
+	// spec: SERIES-005.14
+	it('skips the photos the cull counts as decided and says when none is left', () => {
+		const { decisions, went } = loupeDecisions(0, {}, {}, ['IMG_2'])
+		expect(decisions.decide({ kind: 'flag', flag: 'picked' })).toBe(true)
+		expect(went).toEqual([2])
+		const last = loupeDecisions(0, {}, {}, ['IMG_2', 'IMG_3'])
+		expect(last.decisions.decide({ kind: 'flag', flag: 'picked' })).toBe(false)
+		expect(last.allDecided()).toBe(1)
 	})
 
 	it.each([

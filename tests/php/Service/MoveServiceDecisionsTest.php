@@ -8,11 +8,15 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\DecisionStore;
+use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\MoveService;
 use OCA\Honeycomb\Service\PictureDecision;
 use OCA\Honeycomb\Service\PictureTags;
+use OCA\Honeycomb\Service\SeriesStatus;
 use OCA\Honeycomb\Service\TagStore;
+use OCA\Honeycomb\Service\UserFolderResolver;
+use OCA\Honeycomb\Service\UserPhotos;
 use OCA\Honeycomb\Service\VisualHash;
 use OCP\App\IAppManager;
 use OCP\Files\NotPermittedException;
@@ -25,19 +29,21 @@ final class MoveServiceDecisionsTest extends TestCase {
 	private FakeDecisionStore $store;
 	private FakeTagStore $tags;
 	private FakeVisualHashStore $hashes;
+	private FakeSeriesStore $series;
 
 	#[\Override]
 	protected function setUp(): void {
 		$this->store = new FakeDecisionStore();
 		$this->tags = new FakeTagStore();
 		$this->hashes = new FakeVisualHashStore();
+		$this->series = new FakeSeriesStore();
 		$this->addFiles([1 => '/In/A.RAF', 2 => '/In/A.JPG']);
 	}
 
 	private function service(?DecisionStore $store = null, ?LoggerInterface $logger = null, ?TagStore $tags = null): MoveService {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturn(true);
-		return new MoveService($this->treeRoot(), $apps, $store ?? $this->store, $tags ?? $this->tags, $this->hashes, $logger ?? $this->createStub(LoggerInterface::class));
+		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores($store ?? $this->store, $tags ?? $this->tags, $this->hashes, $this->series, new FakeXmpCacheStore()), $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
 	private static function decision(int $fileId): PictureDecision {
@@ -129,5 +135,16 @@ final class MoveServiceDecisionsTest extends TestCase {
 		$this->service()->move($this->treeUser(), self::request());
 
 		$this->assertEquals(['alice' => [20 => new VisualHash(20, 'etag-2', '00ff00ff00ff00ff')]], $this->hashes->rows);
+	}
+
+	// spec: SERIES-005.25
+	public function testASeriesMemberFollowsItsFileToANewFileId(): void {
+		$this->addFolder('/Out');
+		$this->newIds[2] = 20;
+		$id = $this->series->add('alice', SeriesStatus::Open, 1, 2);
+
+		$this->service()->move($this->treeUser(), self::request());
+
+		$this->assertSame(['alice' => [1 => $id, 20 => $id]], $this->series->rows);
 	}
 }

@@ -3,9 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
+import type { ToolbarFolders, ToolbarProgress, ToolbarSelection, ToolbarTasks, ToolbarView } from '../grid-toolbar.ts'
 import type { Flag } from '../logic/decision.ts'
-import type { FolderSet } from '../logic/folder-set.ts'
-import type { HashProgress } from '../logic/hash-progress.ts'
 import type { SortOrder } from '../logic/picture-order.ts'
 
 import { n, t } from '@nextcloud/l10n'
@@ -21,42 +20,18 @@ import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { tip } from '../tooltip.ts'
 
 const props = defineProps<{
-	folderSet: FolderSet
-	/** How many folders the cull's pictures are in. */
-	folders: number
-	tileSize: number
-	groupByFolder: boolean
-	/** The pressed flags of the flag filter. */
-	flags: ReadonlySet<Flag>
-	decided: number
-	total: number
-	/** Whether the filters hide photos of the cull. */
-	filtered: boolean
-	/** How many filter groups have a choice, each chosen tag counting as one. */
-	activeFilters: number
-	filtersOpen: boolean
-	sortOrder: SortOrder
-	selecting: boolean
-	/** How many pictures are selected. */
-	selected: number
-	/** How many pictures are rejected. */
-	rejected: number
-	/** How many series are left to compare. */
-	series: number
-	rawRemovable: number
-	sidecarsShared: boolean
-	/** How many pictures *Move picks* or, while a filter is on, *Move filtered* opens the move dialog on. */
-	movable: number
-	/** The base name of the picture *Resume* opens the loupe at, null when there is none. */
-	resumeName: string | null
-	/** How far the visual hashes of the cull are. */
-	similarity: HashProgress
+	folders: ToolbarFolders
+	view: ToolbarView
+	progress: ToolbarProgress
+	selection: ToolbarSelection
+	tasks: ToolbarTasks
 }>()
 
 const emit = defineEmits<{
 	changeFolders: []
 	'update:tileSize': [size: number]
 	'update:groupByFolder': [group: boolean]
+	'update:fileNames': [shown: boolean]
 	'update:flags': [flags: ReadonlySet<Flag>]
 	'update:filtersOpen': [open: boolean]
 	'update:sortOrder': [order: SortOrder]
@@ -80,12 +55,12 @@ function fromMenu(action: () => void) {
 	action()
 }
 
-const filtersLabel = computed(() => (props.activeFilters > 0
-	? t('honeycomb', 'Filters ({count})', { count: formatNumber(props.activeFilters) })
+const filtersLabel = computed(() => (props.view.activeFilters > 0
+	? t('honeycomb', 'Filters ({count})', { count: formatNumber(props.view.activeFilters) })
 	: t('honeycomb', 'Filters')))
 
 const setName = computed(() => {
-	const { paths, subfolders } = props.folderSet
+	const { paths, subfolders } = props.folders.set
 	if (paths.length === 1) {
 		const name = paths[0]!.split('/').pop()!
 		return subfolders ? t('honeycomb', '{name} + subfolders', { name }, undefined, PLAIN_TEXT) : name
@@ -113,69 +88,65 @@ const setName = computed(() => {
 			<button
 				type="button"
 				class="grid-toolbar__set"
-				:aria-label="t('honeycomb', 'Change folders: {paths}', { paths: props.folderSet.paths.join(', ') }, undefined, PLAIN_TEXT)"
+				:aria-label="t('honeycomb', 'Change folders: {paths}', { paths: props.folders.set.paths.join(', ') }, undefined, PLAIN_TEXT)"
 				@click="emit('changeFolders')">
 				{{ setName }}
 			</button>
 		</nav>
-		<FlagFilter :flags="props.flags" @update:flags="emit('update:flags', $event)" />
-		<CullProgress
-			:decided="props.decided"
-			:total="props.total"
-			:filtered="props.filtered"
-			:similarity="props.similarity" />
+		<FlagFilter :flags="props.view.flags" @update:flags="emit('update:flags', $event)" />
+		<CullProgress v-bind="props.progress" />
 		<NcButton
 			variant="tertiary"
 			:ariaLabel="filtersLabel"
 			v-bind="tip(t('honeycomb', 'Filter'), keyCap('filter-bar'))"
-			:aria-pressed="props.filtersOpen"
-			:aria-expanded="props.filtersOpen"
-			@click="emit('update:filtersOpen', !props.filtersOpen)">
+			:aria-pressed="props.view.filtersOpen"
+			:aria-expanded="props.view.filtersOpen"
+			@click="emit('update:filtersOpen', !props.view.filtersOpen)">
 			<template #icon>
 				<AppIcon name="filter" />
 			</template>
 			<span
-				v-if="props.activeFilters > 0"
+				v-if="props.view.activeFilters > 0"
 				class="grid-toolbar__badge"
-				:class="{ 'grid-toolbar__badge--pressed': props.filtersOpen }"
+				:class="{ 'grid-toolbar__badge--pressed': props.view.filtersOpen }"
 				aria-hidden="true">
-				{{ formatNumber(props.activeFilters) }}
+				{{ formatNumber(props.view.activeFilters) }}
 			</span>
 		</NcButton>
 		<NcButton
 			variant="tertiary"
 			:ariaLabel="t('honeycomb', 'Select')"
 			v-bind="tip(t('honeycomb', 'Select'))"
-			:aria-pressed="props.selecting"
-			@click="emit('update:selecting', !props.selecting)">
+			:aria-pressed="props.selection.selecting"
+			@click="emit('update:selecting', !props.selection.selecting)">
 			<template #icon>
 				<AppIcon name="select" />
 			</template>
-			<span v-if="props.selecting && props.selected > 0" class="grid-toolbar__badge grid-toolbar__badge--pressed" aria-hidden="true">{{ formatNumber(props.selected) }}</span>
+			<span v-if="props.selection.selecting && props.selection.selected > 0" class="grid-toolbar__badge grid-toolbar__badge--pressed" aria-hidden="true">{{ formatNumber(props.selection.selected) }}</span>
 		</NcButton>
 		<NcButton
 			class="grid-toolbar__wide"
 			variant="tertiary"
-			:ariaLabel="props.rejected > 0 ? t('honeycomb', 'Review rejects ({count})', { count: formatNumber(props.rejected) }) : t('honeycomb', 'Review rejects')"
+			:ariaLabel="props.tasks.rejected > 0 ? t('honeycomb', 'Review rejects ({count})', { count: formatNumber(props.tasks.rejected) }) : t('honeycomb', 'Review rejects')"
 			v-bind="tip(t('honeycomb', 'Review rejects'), keyCap('review-rejects'))"
-			:disabled="props.rejected === 0"
+			:disabled="props.tasks.rejected === 0"
 			@click="emit('reviewRejects')">
 			<template #icon>
 				<AppIcon name="trash" />
 			</template>
-			<span v-if="props.rejected > 0" class="grid-toolbar__badge" aria-hidden="true">{{ formatNumber(props.rejected) }}</span>
+			<span v-if="props.tasks.rejected > 0" class="grid-toolbar__badge" aria-hidden="true">{{ formatNumber(props.tasks.rejected) }}</span>
 		</NcButton>
 		<NcButton
 			class="grid-toolbar__wide"
 			variant="tertiary"
-			:ariaLabel="props.series > 0 ? t('honeycomb', 'Compare series ({count})', { count: formatNumber(props.series) }) : t('honeycomb', 'Compare series')"
+			:ariaLabel="props.tasks.series > 0 ? t('honeycomb', 'Compare series ({count})', { count: formatNumber(props.tasks.series) }) : t('honeycomb', 'Compare series')"
 			v-bind="tip(t('honeycomb', 'Compare series'), keyCap('compare'))"
-			:disabled="props.series === 0"
+			:disabled="props.tasks.series === 0"
 			@click="emit('compareSeries')">
 			<template #icon>
 				<AppIcon name="compare" />
 			</template>
-			<span v-if="props.series > 0" class="grid-toolbar__badge" aria-hidden="true">{{ formatNumber(props.series) }}</span>
+			<span v-if="props.tasks.series > 0" class="grid-toolbar__badge" aria-hidden="true">{{ formatNumber(props.tasks.series) }}</span>
 		</NcButton>
 		<NcPopover v-model:shown="moreShown">
 			<template #trigger>
@@ -186,19 +157,21 @@ const setName = computed(() => {
 				</NcButton>
 			</template>
 			<GridMoreMenu
-				:folders="props.folders"
-				:tileSize="props.tileSize"
-				:groupByFolder="props.groupByFolder"
-				:sortOrder="props.sortOrder"
-				:rawRemovable="props.rawRemovable"
-				:sidecarsShared="props.sidecarsShared"
-				:movable="props.movable"
-				:moveFiltered="props.activeFilters > 0"
-				:resumeName="props.resumeName"
-				:rejected="props.rejected"
-				:series="props.series"
+				:folders="props.folders.count"
+				:tileSize="props.view.tileSize"
+				:groupByFolder="props.view.groupByFolder"
+				:fileNames="props.view.fileNames"
+				:sortOrder="props.view.sortOrder"
+				:rawRemovable="props.tasks.rawRemovable"
+				:legacyRows="props.tasks.legacyRows"
+				:movable="props.tasks.movable"
+				:moveFiltered="props.view.activeFilters > 0"
+				:resumeName="props.tasks.resumeName"
+				:rejected="props.tasks.rejected"
+				:series="props.tasks.series"
 				@update:tileSize="emit('update:tileSize', $event)"
 				@update:groupByFolder="emit('update:groupByFolder', $event)"
+				@update:fileNames="emit('update:fileNames', $event)"
 				@update:sortOrder="emit('update:sortOrder', $event)"
 				@removeRaws="fromMenu(() => emit('removeRaws'))"
 				@move="fromMenu(() => emit('move'))"
@@ -208,8 +181,8 @@ const setName = computed(() => {
 				@writeSidecars="fromMenu(() => emit('writeSidecars'))"
 				@openSettings="fromMenu(() => emit('openSettings'))" />
 		</NcPopover>
-		<div v-if="props.selecting" class="grid-toolbar__selection">
-			<span class="grid-toolbar__count">{{ n('honeycomb', '{count} selected', '{count} selected', props.selected, { count: formatNumber(props.selected) }) }}</span>
+		<div v-if="props.selection.selecting" class="grid-toolbar__selection">
+			<span class="grid-toolbar__count">{{ n('honeycomb', '{count} selected', '{count} selected', props.selection.selected, { count: formatNumber(props.selection.selected) }) }}</span>
 			<NcButton variant="tertiary" @click="emit('selectAll')">
 				{{ t('honeycomb', 'Select all (filtered)') }}
 			</NcButton>

@@ -3,15 +3,18 @@
 // @vitest-environment happy-dom
 import type { ViewState } from '../../src/logic/view-state.ts'
 
-import { flushPromises } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
+import { afterEach, describe, expect, it } from 'vitest'
 import FolderPicker from '../../src/components/FolderPicker.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import SettingsDialog from '../../src/components/SettingsDialog.vue'
+import UndoToast from '../../src/components/UndoToast.vue'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { mountApp, openCull, shownNames } from './app-cull.ts'
+import { mountApp, openCull, shownNames, WRITING_ON } from './app-cull.ts'
+
+enableAutoUnmount(afterEach)
 
 describe('App: the settings', () => {
 	// spec: SETTINGS-001.7
@@ -41,7 +44,7 @@ describe('App: the settings', () => {
 		await flushPromises()
 
 		expect(shownNames(wrapper)).toEqual(['IMG_10'])
-		expect(savedSettings).toEqual([{ ...DEFAULT_SETTINGS, showSingles: false }])
+		expect(savedSettings).toEqual([{ ...WRITING_ON, showSingles: false }])
 	})
 
 	// spec: SETTINGS-001.22
@@ -91,12 +94,41 @@ describe('App: the settings', () => {
 		wrapper.findComponent(PhotoGrid).vm.$emit('open', 0)
 		await flushPromises()
 		const loupe = wrapper.findComponent(PhotoLoupe)
-		expect(loupe.props('settings')).toEqual(DEFAULT_SETTINGS)
+		expect(loupe.props('settings')).toEqual(WRITING_ON)
 
 		loupe.vm.$emit('updateSettings', { flagButtonsShown: false })
 		await flushPromises()
 
-		expect(wrapper.findComponent(PhotoLoupe).props('settings')).toEqual({ ...DEFAULT_SETTINGS, flagButtonsShown: false })
-		expect(savedSettings).toEqual([{ ...DEFAULT_SETTINGS, flagButtonsShown: false }])
+		expect(wrapper.findComponent(PhotoLoupe).props('settings')).toEqual({ ...WRITING_ON, flagButtonsShown: false })
+		expect(savedSettings).toEqual([{ ...WRITING_ON, flagButtonsShown: false }])
+	})
+
+	// spec: SETTINGS-001.25
+	it('clears the cache from the dialog and says so', async () => {
+		let cleared = 0
+		const { wrapper } = mountApp({ clearCache: async () => void cleared++ })
+		await openCull(wrapper)
+
+		wrapper.findComponent(SettingsDialog).vm.$emit('clearCache')
+		await flushPromises()
+
+		expect(cleared).toBe(1)
+		expect(wrapper.findComponent(UndoToast).text()).toContain('Cache cleared')
+	})
+	// spec: GRID-004.1, GRID-004.2, GRID-004.3
+	it('shows the file names from the More menu and by Shift+J, saving the setting', async () => {
+		const { wrapper, savedSettings } = mountApp()
+		await openCull(wrapper)
+		expect(wrapper.findComponent(PhotoGrid).props('fileNames')).toBe(false)
+
+		wrapper.findComponent(GridToolbar).vm.$emit('update:fileNames', true)
+		await flushPromises()
+		expect(wrapper.findComponent(PhotoGrid).props('fileNames')).toBe(true)
+		expect(wrapper.findComponent(GridToolbar).props('view').fileNames).toBe(true)
+
+		document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'J', shiftKey: true, bubbles: true, cancelable: true }))
+		await flushPromises()
+		expect(wrapper.findComponent(PhotoGrid).props('fileNames')).toBe(false)
+		expect(savedSettings).toEqual([{ ...WRITING_ON, showFileNames: true }, { ...WRITING_ON, showFileNames: false }])
 	})
 })

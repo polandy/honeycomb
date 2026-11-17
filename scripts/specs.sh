@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Checks docs/specs/ against the tests and TODO.md (docs/specs/README.md, ADR 0015).
+# Checks docs/dev/specs/ against the tests and TODO.md (docs/dev/specs/README.md, ADR 0015).
 set -uo pipefail
 
-SPECS=${SPECS_DIR:-docs/specs}
+SPECS=${SPECS_DIR:-docs/dev/specs}
 TESTS=${TESTS_DIR:-tests}
 TODO=${TODO_FILE:-TODO.md}
 STATUSES='draft|accepted|implemented|removed'

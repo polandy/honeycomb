@@ -84,6 +84,18 @@ export async function upload(page: Page, path: string, content: Buffer): Promise
 	return Number(fileId)
 }
 
+/** The ETag of the admin's file at `path`, as the listing reports it. */
+export async function etagOf(page: Page, path: string): Promise<string> {
+	const response = await page.request.fetch(davUrl(path), {
+		method: 'PROPFIND',
+		headers: { requesttoken: await requestToken(page), Depth: '0' },
+		data: '<d:propfind xmlns:d="DAV:"><d:prop><d:getetag/></d:prop></d:propfind>',
+	})
+	const etag = /<d:getetag>&quot;(.+?)&quot;<\/d:getetag>/.exec(await response.text())?.[1]
+	expect(etag).toBeDefined()
+	return etag as string
+}
+
 /** The trash bin URL of the admin's file deleted from `path`. */
 export async function trashEntry(page: Page, path: string): Promise<string> {
 	const trash = await page.request.fetch(`/remote.php/dav/trashbin/${ADMIN.username}/trash`, {

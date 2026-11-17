@@ -15,15 +15,18 @@ import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwit
 import AppIcon from './AppIcon.vue'
 import LoupeGestureSettings from './LoupeGestureSettings.vue'
 import MoveSettings from './MoveSettings.vue'
+import SidecarSettings from './SidecarSettings.vue'
 import { addExtension, DEFAULT_SUBFOLDERS, folderMode, removeExtension } from '../logic/settings.ts'
 import { tip } from '../tooltip.ts'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	open: boolean
 	settings: Settings
 	/** Whether the gesture guide counts as seen, which its hint tells. */
 	gestureGuideSeen: boolean
-}>()
+	/** Whether the Versions app is enabled; writing to sidecars needs it. */
+	versionsApp?: boolean
+}>(), { versionsApp: true })
 
 const emit = defineEmits<{
 	'update:open': [open: boolean]
@@ -31,6 +34,8 @@ const emit = defineEmits<{
 	update: [patch: Partial<Settings>]
 	/** The user wants the gesture guide on the next loupe opening. */
 	showGestureGuide: []
+	/** The user wants honeycomb to forget the sidecars and photos it read. */
+	clearCache: []
 }>()
 
 const LISTS = [
@@ -213,6 +218,17 @@ function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 		</NcAppSettingsSection>
 		<NcAppSettingsSection id="moving-photos" :name="t('honeycomb', 'Moving photos')">
 			<MoveSettings :settings="settings" @update="emit('update', $event)" />
+		</NcAppSettingsSection>
+		<NcAppSettingsSection id="xmp-sidecars" :name="t('honeycomb', 'XMP sidecars')">
+			<SidecarSettings :settings="settings" :versionsApp="props.versionsApp" @update="emit('update', $event)" />
+		</NcAppSettingsSection>
+		<NcAppSettingsSection id="cache" :name="t('honeycomb', 'Cache')">
+			<p id="clear-cache-hint" class="settings-dialog__hint settings-text">
+				{{ t('honeycomb', 'Removes what honeycomb remembers of the sidecars and photos it read; it reads them again on the next visit. Sidecars and decisions stay.') }}
+			</p>
+			<NcButton aria-describedby="clear-cache-hint" @click="emit('clearCache')">
+				{{ t('honeycomb', 'Clear cache') }}
+			</NcButton>
 		</NcAppSettingsSection>
 	</NcAppSettingsDialog>
 </template>

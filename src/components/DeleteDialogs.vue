@@ -8,6 +8,7 @@ import type { FolderSet } from '../logic/folder-set.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { RawRemoval } from '../logic/raw-removal.ts'
+import type { SendProgress } from '../logic/request-chunks.ts'
 
 import DeleteReport from './DeleteReport.vue'
 import DeleteSummary from './DeleteSummary.vue'
@@ -24,6 +25,8 @@ const props = defineProps<{
 	/** How many folders the cull shows. */
 	folders: number
 	busy: boolean
+	/** How many photos the running delete has sent. */
+	progress?: SendProgress | null | undefined
 	/** Where the dialogs open, e.g. inside the loupe; the page body by default. */
 	container?: string | undefined
 }>()
@@ -55,6 +58,7 @@ const emit = defineEmits<{
 		:folderSet="props.folderSet"
 		:fromReview="props.dialog.fromReview"
 		:busy="props.busy"
+		:progress="props.progress"
 		:container="props.container"
 		@back="emit('back')"
 		@cancel="emit('close')"
@@ -64,6 +68,7 @@ const emit = defineEmits<{
 		:removal="props.rawRemoval"
 		:folderSet="props.folderSet"
 		:busy="props.busy"
+		:progress="props.progress"
 		:container="props.container"
 		@toggle="emit('toggleKeepRaw', $event)"
 		@cancel="emit('close')"
@@ -71,8 +76,10 @@ const emit = defineEmits<{
 	<DeleteReport
 		v-else-if="props.dialog?.kind === 'report'"
 		:report="props.dialog.report"
+		:skipped="props.dialog.skipped"
 		:folderSet="props.folderSet"
 		:busy="props.busy"
+		:progress="props.progress"
 		:container="props.container"
 		@close="emit('close')"
 		@retry="emit('retry')" />

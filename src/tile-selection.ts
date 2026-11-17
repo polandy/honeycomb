@@ -40,7 +40,7 @@ export const browserSchedule: Schedule = (run, ms) => {
 	return () => window.clearTimeout(timer)
 }
 
-/** A tile's clicks, keys, long-press and drag as selection changes or opening (`docs/plan.md` Selection mode). */
+/** A tile's clicks, keys, long-press and drag as selection changes or opening (`docs/dev/plan.md` Selection mode). */
 export function useTileSelection(state: TileSelectionState, schedule: Schedule, frame: Frame) {
 	const press = longPress(schedule)
 	const drag = shallowRef<Drag | null>(null)

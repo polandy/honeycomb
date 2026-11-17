@@ -1,3 +1,4 @@
+import type { Series } from '../../src/logic/series.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
@@ -11,8 +12,9 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import SeriesCompare from '../../src/components/SeriesCompare.vue'
 import SeriesViewer from '../../src/components/SeriesViewer.vue'
 import ShortcutSheet from '../../src/components/ShortcutSheet.vue'
+import SimilarityStrip from '../../src/components/SimilarityStrip.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
-import { mountApp, openCull, SET } from './app-cull.ts'
+import { mountApp, openCull, SET, toolbarProps } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
@@ -36,13 +38,20 @@ async function press(key: string, fields: KeyboardEventInit = {}) {
 }
 
 const compare = (wrapper: AppWrapper) => wrapper.findComponent(SeriesCompare)
-const pictures = (wrapper: AppWrapper) => compare(wrapper).props('series')!
-const shown = (wrapper: AppWrapper) => compare(wrapper).props('series')?.map((picture: { baseName: string }) => picture.baseName) ?? null
+const pictures = (wrapper: AppWrapper) => compare(wrapper).props('series')!.members
+const shown = (wrapper: AppWrapper) => compare(wrapper).props('series')?.members.map((picture: { baseName: string }) => picture.baseName) ?? null
 const viewer = (wrapper: AppWrapper) => wrapper.findComponent(SeriesViewer)
 /** The viewer's pictures by name and the shown one's name. */
 function viewed(wrapper: AppWrapper) {
 	const { pictures: shownPictures, index } = viewer(wrapper).props()
 	return [shownPictures.map((picture) => picture.baseName), shownPictures[index]!.baseName]
+}
+/** The grid's series by picture name, size and whether the series is offered. */
+function gridSeries(wrapper: AppWrapper) {
+	const grid = wrapper.findComponent(PhotoGrid)
+	const members = grid.props('seriesOf') as ReadonlyMap<{ baseName: string }, Series<{ baseName: string }>>
+	const offered = grid.props('offeredSeries') as ReadonlySet<number>
+	return [...members].map(([picture, series]) => `${picture.baseName} ${series.members.length} ${offered.has(series.key) ? 'offered' : 'settled'}`)
 }
 const toastText = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast).text()
 
@@ -53,7 +62,7 @@ describe('App: series compare', () => {
 	it('counts the series on the toolbar and opens the compare from it', async () => {
 		const { wrapper } = await openApp()
 		const toolbar = wrapper.findComponent(GridToolbar)
-		expect(toolbar.props('series')).toBe(2)
+		expect(toolbarProps(wrapper).series).toBe(2)
 
 		toolbar.vm.$emit('compareSeries')
 		await flushPromises()
@@ -169,11 +178,19 @@ describe('App: series compare', () => {
 	})
 
 	// spec: SERIES-002.10
-	it('hands the grid the size of each picture\'s series for its badge', async () => {
+	it('hands the grid each picture\'s series and the offered ones for its brackets and badges', async () => {
 		const { wrapper } = await openApp()
-		const sizes = wrapper.findComponent(PhotoGrid).props('seriesSizes') as ReadonlyMap<{ baseName: string }, number>
 
-		expect([...sizes].map(([picture, size]) => `${picture.baseName} ${size}`)).toEqual(['IMG_1 3', 'IMG_2 3', 'IMG_3 3', 'IMG_4 2', 'IMG_5 2'])
+		expect(gridSeries(wrapper)).toEqual(['IMG_1 3 offered', 'IMG_2 3 offered', 'IMG_3 3 offered', 'IMG_4 2 offered', 'IMG_5 2 offered'])
+	})
+
+	// spec: SERIES-003.18, SERIES-003.25
+	it('lays the similarity strip over the grid and hands it the series still without every hash', async () => {
+		const { wrapper } = await openApp()
+		const open = wrapper.findComponent(PhotoGrid).props('openSeries') as ReadonlySet<{ baseName: string }>
+
+		expect(wrapper.findComponent(PhotoGrid).findComponent(SimilarityStrip).props('progress')).toEqual({ phase: 'running', hashed: 0, failed: 0, total: 5 })
+		expect([...open].map((picture) => picture.baseName)).toEqual(['IMG_1', 'IMG_2', 'IMG_3', 'IMG_4', 'IMG_5'])
 	})
 
 	// spec: LOUPE-001.19
@@ -186,9 +203,9 @@ describe('App: series compare', () => {
 			loupe.vm.$emit('decide', { kind: 'flag', flag: 'picked' }, picture)
 		}
 		await flushPromises()
-		const members = loupe.props('seriesOf') as ReadonlyMap<{ baseName: string }, readonly { baseName: string }[]>
+		const members = loupe.props('seriesOf') as ReadonlyMap<{ baseName: string }, Series<{ baseName: string }>>
 
-		expect([...members].map(([picture, series]) => `${picture.baseName} ${series.length}`)).toEqual(['IMG_1 3', 'IMG_2 3', 'IMG_3 3', 'IMG_4 2', 'IMG_5 2'])
+		expect([...members].map(([picture, series]) => `${picture.baseName} ${series.key} ${series.members.length}`)).toEqual(['IMG_1 1 3', 'IMG_2 1 3', 'IMG_3 1 3', 'IMG_4 4 2', 'IMG_5 4 2'])
 		expect(loupe.props('pictures').filter((picture: { baseName: string }) => members.has(picture))).toHaveLength(5)
 	})
 
@@ -205,7 +222,52 @@ describe('App: series compare', () => {
 		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_2', 'IMG_3'])
 
 		await press('Escape')
-		const sizes = wrapper.findComponent(PhotoGrid).props('seriesSizes') as ReadonlyMap<{ baseName: string }, number>
-		expect([...sizes].map(([picture, size]) => `${picture.baseName} ${size}`)).toEqual(['IMG_1 2', 'IMG_2 2', 'IMG_4 2', 'IMG_5 2'])
+		expect(gridSeries(wrapper)).toEqual(['IMG_1 2 offered', 'IMG_2 2 offered', 'IMG_4 2 offered', 'IMG_5 2 offered'])
+	})
+
+	// spec: SERIES-005.10, SERIES-005.13
+	it('removes a photo from the series and dissolves the series from the compare, each with a toast and undo', async () => {
+		const { wrapper } = await openApp()
+		await press('n')
+
+		compare(wrapper).vm.$emit('remove', pictures(wrapper)[1])
+		await flushPromises()
+		expect(toastText(wrapper)).toContain('Removed IMG_2 from the series')
+		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_3'])
+		compare(wrapper).vm.$emit('dissolve')
+		await flushPromises()
+		expect(toastText(wrapper)).toContain('Dissolved the series · 2 photos')
+		expect(shown(wrapper)).toEqual(['IMG_4', 'IMG_5'])
+		await press('z', { ctrlKey: true })
+		expect(toastText(wrapper)).toContain('Undid: Dissolved the series · 2 photos')
+		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_3'])
+	})
+
+	// spec: SERIES-005.8
+	it('merges the series with the next one from the compare, with a toast and undo', async () => {
+		const { wrapper } = await openApp()
+		await press('n')
+
+		compare(wrapper).vm.$emit('merge', 'next')
+		await flushPromises()
+		expect(toastText(wrapper)).toContain('Merged 2 series · 5 photos')
+		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_2', 'IMG_3', 'IMG_4', 'IMG_5'])
+		await press('z', { ctrlKey: true })
+		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_2', 'IMG_3'])
+	})
+
+	// spec: SERIES-005.14
+	it('marks the series done from the compare: its photos count as decided, with a toast and undo', async () => {
+		const { wrapper } = await openApp()
+		await press('n')
+
+		compare(wrapper).vm.$emit('markDone', true)
+		await flushPromises()
+		expect(toastText(wrapper)).toContain('Marked the series done')
+		expect(toolbarProps(wrapper)).toMatchObject({ decided: 3, total: 5 })
+		expect(shown(wrapper)).toEqual(['IMG_4', 'IMG_5'])
+		await press('z', { ctrlKey: true })
+		expect(toolbarProps(wrapper).decided).toBe(0)
+		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_2', 'IMG_3'])
 	})
 })

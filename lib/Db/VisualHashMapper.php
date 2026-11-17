@@ -62,6 +62,11 @@ final class VisualHashMapper implements VisualHashStore {
 	}
 
 	#[\Override]
+	public function clear(?string $userId): int {
+		return $this->clearRows($userId);
+	}
+
+	#[\Override]
 	public function forgetUser(string $userId): void {
 		$this->deleteUserRows(self::TABLE, $userId);
 	}

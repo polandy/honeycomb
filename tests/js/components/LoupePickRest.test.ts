@@ -3,6 +3,7 @@
 // @vitest-environment happy-dom
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
+import type { Series } from '../../../src/logic/series.ts'
 
 import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -13,12 +14,12 @@ import { mountLoupe, PICTURES } from './mount-loupe.ts'
 enableAutoUnmount(afterEach)
 
 const SERIES = PICTURES.slice(3, 6)
-const SERIES_OF = new Map(SERIES.map((picture) => [picture, SERIES] as const))
+const SERIES_OF = new Map(SERIES.map((picture) => [picture, { key: 4, members: SERIES }] as const))
 
 /** The pick-rest requests the loupe emitted, as the series' names and the picked one's. */
 function requests(wrapper: Awaited<ReturnType<typeof mountLoupe>>['wrapper']) {
-	return (wrapper.emitted('pickRest') as [readonly Picture<ListingEntry>[], Picture<ListingEntry>][] | undefined)
-		?.map(([series, picked]) => `${series.map((picture) => picture.baseName).join(' ')}: ${picked.baseName}`)
+	return (wrapper.emitted('pickRest') as [Series<Picture<ListingEntry>>, Picture<ListingEntry>][] | undefined)
+		?.map(([series, picked]) => `${series.members.map((picture) => picture.baseName).join(' ')}: ${picked.baseName}`)
 }
 
 describe('PhotoLoupe: Pick this, reject the rest', () => {

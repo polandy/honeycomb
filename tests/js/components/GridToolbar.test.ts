@@ -83,10 +83,10 @@ describe('GridToolbar', () => {
 	})
 
 	// spec: SERIES-003.18
-	it('shows the similarity beside the decided count while hashing', () => {
-		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { similarity: { phase: 'running', hashed: 1, failed: 0, total: 4 } })
+	it('shows no similarity, which the strip over the grid shows', () => {
+		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false })
 
-		expect(wrapper.find('.cull-progress .similarity-progress').text()).toBe(`${MARK}Similarity 1/4`)
+		expect(wrapper.findAll('[role="progressbar"]').map((bar) => bar.attributes('aria-label'))).toEqual([`${MARK}Decided`])
 	})
 
 	// spec: GRID-002.6
@@ -132,7 +132,7 @@ describe('GridToolbar', () => {
 		expect(wrapper.find('.grid-toolbar__selection').exists()).toBe(false)
 
 		await select.trigger('click')
-		await wrapper.setProps({ selecting: true })
+		await wrapper.setProps({ selection: { selecting: true, selected: 0 } })
 		await wrapper.find(`[aria-label="${MARK}Select"]`).trigger('click')
 
 		expect(wrapper.emitted('update:selecting')).toEqual([[true], [false]])

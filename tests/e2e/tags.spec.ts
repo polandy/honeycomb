@@ -5,7 +5,7 @@ import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { openLoupe } from './cull.ts'
-import { requestToken } from './files.ts'
+import { createFolder, JPEG, requestToken, upload } from './files.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
 
@@ -14,23 +14,28 @@ async function send(page: Page, method: 'GET' | 'POST' | 'PUT', path: string, da
 	return page.request.fetch(`${API}${path}`, { method, data, headers: { requesttoken: await requestToken(page) } })
 }
 
-// spec: TAGS-001.1, TAGS-001.2, TAGS-001.3, TAGS-001.5
+// spec: TAGS-001.1, TAGS-001.2, TAGS-001.3, TAGS-001.5, TAGS-001.14
 test('stores, overwrites and clears tags per file id and keeps the tag list', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
-	const anna = { fileId: 910_001, tags: ['People/Anna', 'Places/Italy/Dolomites'] }
-	const sunrise = { fileId: 910_002, tags: ['e2e-Sunrise'] }
+	const folder = `Tags ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	const [first, second] = [await upload(page, `${folder}/A.JPG`, JPEG), await upload(page, `${folder}/B.JPG`, JPEG)]
+	const anna = { fileId: first, tags: ['People/Anna', 'Places/Italy/Dolomites'] }
+	const sunrise = { fileId: second, tags: ['e2e-Sunrise'] }
+	const unreachable = { fileId: 910_001, tags: ['e2e-Unreachable'] }
 
-	expect((await send(page, 'PUT', '/tags', { tags: [sunrise, { ...anna, tags: [...anna.tags].reverse() }] })).status()).toBe(204)
-	const stored = await send(page, 'POST', '/tags/lookup', { fileIds: [910_001, 910_002, 910_003] })
+	expect((await send(page, 'PUT', '/tags', { tags: [sunrise, { ...anna, tags: [...anna.tags].reverse() }, unreachable] })).status()).toBe(204)
+	const stored = await send(page, 'POST', '/tags/lookup', { fileIds: [first, second, 910_001] })
 	expect(stored.status()).toBe(200)
 	expect(await stored.json()).toEqual({ tags: [anna, sunrise] })
 
 	expect((await send(page, 'PUT', '/tags', { tags: [{ ...anna, tags: ['People/anna'] }, { ...sunrise, tags: [] }] })).status()).toBe(204)
-	const overwritten = await send(page, 'POST', '/tags/lookup', { fileIds: [910_001, 910_002] })
+	const overwritten = await send(page, 'POST', '/tags/lookup', { fileIds: [first, second] })
 	expect(await overwritten.json()).toEqual({ tags: [{ ...anna, tags: ['People/anna'] }] })
 
 	const { tagList } = await (await send(page, 'GET', '/tags/list')).json()
 	expect(tagList).toEqual(expect.arrayContaining(['People/Anna', 'People/anna', 'Places/Italy/Dolomites', 'e2e-Sunrise']))
+	expect(tagList).not.toContain('e2e-Unreachable')
 	expect(new Set(tagList).size).toBe(tagList.length)
 })
 
@@ -124,6 +129,8 @@ test('narrows the grid to a picked tag and counts the tags on the tile', async (
 	await page.setViewportSize({ width: 427, height: 952 })
 	await page.screenshot({ path: testInfo.outputPath('tag-filter-phone-dark.png') })
 	await page.emulateMedia({ colorScheme: 'light' })
+	// on the phone the open filter bar and the stored-decisions note leave the grid no height to render cells in
+	await page.setViewportSize({ width: 1440, height: 900 })
 
 	await group.getByRole('button', { name: `Remove ${tag} from the filter` }).click()
 	await expect(grid.getByRole('gridcell')).toHaveCount(2)

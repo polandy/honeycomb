@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Page, Route } from '@playwright/test'
+import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
@@ -26,7 +26,7 @@ async function cullTwo(page: Page) {
 /** How many rows the toolbar's visible controls take. */
 async function toolbarRows(page: Page): Promise<number> {
 	return page.locator('.grid-toolbar').evaluate((toolbar, tolerance) => {
-		const centres = [...toolbar.querySelectorAll('button, .cull-progress__count, .progress-bar, .similarity-progress')]
+		const centres = [...toolbar.querySelectorAll('button, .cull-progress__count, .progress-bar')]
 			.map((element) => element.getBoundingClientRect())
 			.filter((box) => box.width > 0 && box.height > 0)
 			.map((box) => box.top + box.height / 2)
@@ -48,8 +48,8 @@ test('takes at most two rows on a phone, with Review rejects and Compare series 
 	await expect(page.getByRole('button', { name: /^Compare series \d/ })).toBeVisible()
 })
 
-// spec: GRID-001.17
-test('keeps Review rejects and Compare series in the toolbar on a desktop', async ({ page }) => {
+// spec: GRID-001.17, DELETE-002.19
+test('keeps Review rejects and Compare series in the toolbar on a desktop, and Review rejects in the More menu too', async ({ page }) => {
 	await page.setViewportSize(DESKTOP)
 	await cullTwo(page)
 
@@ -57,7 +57,8 @@ test('keeps Review rejects and Compare series in the toolbar on a desktop', asyn
 	await expect(page.getByRole('button', { name: 'Compare series' })).toBeVisible()
 	await page.getByRole('button', { name: 'More', exact: true }).click()
 	await expect(page.getByRole('button', { name: 'Remove RAWs… 0' })).toBeVisible()
-	await expect(page.getByRole('button', { name: /^Review rejects \d/ })).toBeHidden()
+	await expect(page.getByRole('button', { name: /^Review rejects 0/ })).toBeDisabled()
+	await expect(page.getByRole('button', { name: /^Compare series \d/ })).toBeHidden()
 })
 
 // spec: GRID-001.18
@@ -74,30 +75,42 @@ test('closes the More menu when an item opens the settings dialog', async ({ pag
 	await expect(size).toBeHidden()
 })
 
-const PREVIEWS = '**/api/v1/images/**'
-
-// spec: SERIES-003.18
-test('keeps two rows on a phone while the similarity is hashing', async ({ page }) => {
-	await page.setViewportSize(PHONE)
-	const held: Route[] = []
-	await page.route(PREVIEWS, (route) => {
-		held.push(route)
+/** The toolbar's first row (its breadcrumbs), the navigation toggle's box and what sits at the toggle's centre. */
+async function toggleGeometry(page: Page) {
+	return page.evaluate(() => {
+		const toggle = document.querySelector('.app-navigation-toggle')!.getBoundingClientRect()
+		const toolbar = document.querySelector('.grid-toolbar__crumbs')!.getBoundingClientRect()
+		const x = toggle.left + toggle.width / 2
+		const y = toggle.top + toggle.height / 2
+		const hit = document.elementFromPoint(x, y)
+		return {
+			toggleCentre: y,
+			toolbarCentre: toolbar.top + toolbar.height / 2,
+			hitIsToggle: !!hit?.closest('.app-navigation-toggle'),
+			toggles: document.querySelectorAll('.app-navigation-toggle').length,
+		}
 	})
-	await cullTwo(page)
+}
 
-	await expect(page.getByRole('progressbar', { name: 'Similarity' })).toBeVisible()
-	await expect(page.locator('.similarity-progress__text')).toHaveText('Similarity 0/2')
-	expect(await toolbarRows(page)).toBeLessThanOrEqual(2)
-	await Promise.all(held.map((route) => route.continue()))
-})
-
-// spec: SERIES-003.19
-test('keeps two rows on a phone with the photos not compared', async ({ page }) => {
-	await page.setViewportSize(PHONE)
-	await page.route(PREVIEWS, (route) => route.fulfill({ status: 404 }))
-	await cullTwo(page)
-
-	await expect(page.locator('.similarity-progress__short')).toHaveText('⚠ 2')
-	await expect(page.locator('.similarity-progress__text')).toHaveText('Similarity: 2 photos not compared')
-	expect(await toolbarRows(page)).toBeLessThanOrEqual(2)
-})
+for (const [name, viewport] of [['desktop', DESKTOP], ['iPad', { width: 1024, height: 768 }]] as const) {
+	// spec: APP-001.11
+	test(`keeps one navigation toggle, centred in the toolbar row and opaque on hover on ${name}`, async ({ page }) => {
+		await page.setViewportSize(viewport)
+		await cullTwo(page)
+		const toggle = page.locator('.app-navigation-toggle')
+		for (const click of [false, true]) {
+			if (click) {
+				const expanded = await toggle.getAttribute('aria-expanded')
+				await toggle.click()
+				await expect(toggle).not.toHaveAttribute('aria-expanded', expanded!)
+			}
+			const geometry = await toggleGeometry(page)
+			expect(geometry.toggles).toBe(1)
+			expect(geometry.hitIsToggle).toBe(true)
+			expect(Math.abs(geometry.toggleCentre - geometry.toolbarCentre)).toBeLessThanOrEqual(1)
+			await toggle.hover()
+			await expect(toggle).toHaveCSS('opacity', '1')
+			await expect(toggle).not.toHaveCSS('background-color', /rgba|transparent/)
+		}
+	})
+}
