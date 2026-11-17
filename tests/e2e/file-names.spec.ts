@@ -54,7 +54,7 @@ test('shows the file names from the More menu, hides them by Shift+J and shows t
 })
 
 // spec: GRID-004.9
-test('keeps the capture time of the tile info on one line where the text is wide', async ({ page }) => {
+test('keeps the capture time of the tile info on one line where the text is wide', async ({ page }, testInfo) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Names ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
@@ -65,10 +65,11 @@ test('keeps the capture time of the tile info on one line where the text is wide
 	await page.setViewportSize(SCREENSHOT_VIEWPORTS['pixel-portrait'])
 
 	// A font wider than the headless one stands in for the owner's, where the line wrapped before the time's "PM".
-	await page.addStyleTag({ content: '.tile-info { font-size: 20px }' })
+	await page.addStyleTag({ content: '.tile-info.tip-bubble { font-size: 20px }' })
 	await page.getByRole('gridcell', { name: /IMG_0003/ }).hover()
 	const captured = page.locator('.tile-info__rows dd').first()
 	await expect(captured).toContainText(':13:20')
 	const lines = await captured.evaluate((dd) => dd.getBoundingClientRect().height / Number.parseFloat(getComputedStyle(dd).lineHeight))
 	expect(Math.round(lines)).toBe(1)
+	await page.screenshot({ path: testInfo.outputPath('tile-info-one-line.png'), animations: 'disabled' })
 })
