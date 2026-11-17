@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { CullStep } from './cull.ts'
 import type { Settings } from './logic/settings.ts'
-import type { WriteLock } from './logic/writability.ts'
+import type { OpenedFolder, WriteLock } from './logic/writability.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, shallowRef } from 'vue'
@@ -39,8 +39,18 @@ export function useWriteLock(settings: () => Settings, update: (patch: Partial<S
 			return
 		}
 		const confirmed = lock.folders.map(({ fileId }) => fileId)
-		update({ sidecarWrite: 'on', ...(confirmed.length > 0 ? { confirmedSharedFolders: withConfirmedFolders(settings().confirmedSharedFolders, confirmed) } : {}) })
+		update({ sidecarWrite: 'on', ...(confirmed.length > 0 ? confirmedPatch(confirmed) : {}) })
 		retried(lock.retry())
+	}
+
+	/** The settings change that confirms the opened folders. */
+	function confirmedPatch(fileIds: readonly number[]): Partial<Settings> {
+		return { confirmedSharedFolders: withConfirmedFolders(settings().confirmedSharedFolders, fileIds) }
+	}
+
+	/** Confirms one opened folder's shared folders, as the migration dialog offers (XMP-007.13). */
+	function confirmFolder(folder: OpenedFolder) {
+		update(confirmedPatch([folder.fileId]))
 	}
 
 	/** Leaves the step untaken. */
@@ -48,5 +58,5 @@ export function useWriteLock(settings: () => Settings, update: (patch: Partial<S
 		asking.value = null
 	}
 
-	return { asking, turnsOn, sharedNames, locked, confirm, cancel }
+	return { asking, turnsOn, sharedNames, locked, confirm, confirmFolder, cancel }
 }

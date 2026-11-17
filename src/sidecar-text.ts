@@ -48,3 +48,11 @@ export const photosNotWrittenText = (failed: number, count: number) => n('honeyc
 
 /** The result of a migration run without photos (XMP-007.12). */
 export const nothingToWriteText = () => t('honeycomb', 'No stored decisions to write here')
+
+/** A migration run's result and how many photos it skipped in shared folders not confirmed (XMP-007.13). */
+export const withSkippedText = (result: string, skipped: number) => (skipped === 0
+	? result
+	: n('honeycomb', '{result}; skipped {count} photo in a shared folder not confirmed', '{result}; skipped {count} photos in shared folders not confirmed', skipped, { result, count: formatNumber(skipped) }, PLAIN_TEXT))
+
+/** "1 photo in a shared folder you have not confirmed is skipped.", the migration dialog's note (XMP-007.13). */
+export const skippedNoteText = (skipped: number) => n('honeycomb', '{count} photo in a shared folder you have not confirmed is skipped.', '{count} photos in shared folders you have not confirmed are skipped.', skipped, { count: formatNumber(skipped) }, PLAIN_TEXT)

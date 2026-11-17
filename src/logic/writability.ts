@@ -85,13 +85,18 @@ export function writability(picture: Picture<ListingEntry>, context: WriteContex
 	if (folders.some((folder) => (folder.permissions & needed) !== needed)) {
 		return 'readOnly'
 	}
-	if (folders.some((folder) => folder.shared && !isConfirmed(folder.path, context))) {
+	if (unconfirmedShared(picture, context)) {
 		return 'shared'
 	}
 	if (folders.some((folder) => !folder.versions)) {
 		return 'noVersions'
 	}
 	return context.refused(picture) ? 'refused' : 'writable'
+}
+
+/** Whether a member folder of the picture is shared and its opened folder not confirmed (XMP-008.4, XMP-007.13). */
+export function unconfirmedShared(picture: Picture<ListingEntry>, context: WriteContext): boolean {
+	return memberFolders(picture).some((path) => context.folders.get(path)?.shared === true && !isConfirmed(path, context))
 }
 
 /** The first reason one of the pictures is locked, or null when every one is writable (XMP-008.7). */

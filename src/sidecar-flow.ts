@@ -13,9 +13,9 @@ import type { ToastAction } from './toast.ts'
 import { t } from '@nextcloud/l10n'
 import { computed, shallowRef } from 'vue'
 import { logger } from './logger.ts'
-import { acknowledgedIds } from './logic/legacy.ts'
+import { acknowledgedIds, withoutUnconfirmed } from './logic/legacy.ts'
 import { useSidecarSync } from './sidecar-sync.ts'
-import { nothingToWriteText, notWrittenText, photosNotWrittenText, writtenText } from './sidecar-text.ts'
+import { nothingToWriteText, notWrittenText, photosNotWrittenText, withSkippedText, writtenText } from './sidecar-text.ts'
 
 /** How many photos one part of a migration run writes, so its progress moves and its rows go early (XMP-007.11). */
 export const MIGRATION_PART = 20
@@ -69,12 +69,12 @@ export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, act
 		report.value = null
 	}
 
-	/** Writes the stored decisions and adds the stored tags part by part, acknowledges each picture saved in full, then tells the result. */
-	async function confirm(decisionOf: (picture: Picture<ListingEntry>) => Decision) {
-		const chosen = asking.value ?? []
+	/** Writes the stored decisions and adds the stored tags part by part, skipping shared folders not confirmed, acknowledges each picture saved in full, then tells the result. */
+	async function confirm(decisionOf: (picture: Picture<ListingEntry>) => Decision, unconfirmed: (picture: Picture<ListingEntry>) => boolean) {
+		const { written: chosen, skipped } = withoutUnconfirmed(asking.value ?? [], unconfirmed)
 		if (chosen.length === 0) {
 			asking.value = null
-			toast(nothingToWriteText())
+			toast(withSkippedText(nothingToWriteText(), skipped))
 			return
 		}
 		const failed: SidecarFailure[] = []
@@ -102,9 +102,9 @@ export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, act
 			asking.value = null
 		}
 		if (failedPictures === 0) {
-			toast(writtenText(chosen.length))
+			toast(withSkippedText(writtenText(chosen.length), skipped))
 		} else {
-			toastFailed(photosNotWrittenText(failedPictures, chosen.length), failed)
+			toastFailed(withSkippedText(photosNotWrittenText(failedPictures, chosen.length), skipped), failed)
 		}
 	}
 

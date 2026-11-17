@@ -25,6 +25,7 @@ enableAutoUnmount(afterEach)
 const WITH_SIDECARS = [...ENTRIES, listingEntry(5, '/Trip/A/IMG_9.JPG.xmp'), listingEntry(6, '/Trip/A/IMG_10.CR3.xmp')]
 const GOOD = serializeXmp(packetOf({ 'xmp:Rating': '1' }), CANONICAL_TIME)
 const RATED_AND_TAGGED = serializeXmp(packetOf({ 'xmp:Rating': '1', 'digiKam:TagsList': seq(['Ben']) }), CANONICAL_TIME)
+const UNRATED = serializeXmp(packetOf({}), CANONICAL_TIME)
 const DECIDED: StoredDecision = { fileId: 2, rating: 4, colourLabel: 'green', flag: 'picked', keepRaw: true }
 
 /** The app on a cull whose folders in `shared` are shared, with the stored rows given; the sidecar endpoints answer as told. */
@@ -55,6 +56,7 @@ async function openWith(options: { lookup: (fileId: number) => SidecarLookupAnsw
 }
 
 const read = (bytes: Uint8Array): SidecarLookupAnswer => ({ result: 'read', bytes, etag: 'e', size: bytes.length, mtime: 1 })
+const unratedNine = (fileId: number) => read(fileId === 5 ? UNRATED : GOOD)
 const saved = (): SidecarSaveAnswer => ({ result: 'saved', fileId: 50, etag: 's', size: 1, mtime: 2 })
 const dialog = (wrapper: AppWrapper, name: string) => wrapper.find(`[role="dialog"][name="${name}"]`)
 const button = (wrapper: AppWrapper, text: string) => wrapper.findAll('button').find((each) => each.text() === text)!
@@ -189,7 +191,7 @@ describe('App: migrating the stored decisions and tags to sidecars', () => {
 
 	// spec: XMP-007.13
 	it('skips a shared folder not confirmed, and writes it in the next run once confirmed', async () => {
-		const { wrapper, saves, acknowledged, savedSettings } = await openWith({ lookup: () => read(GOOD), save: saved, decisions: [stored(1, 'picked'), stored(2, 'picked')] })
+		const { wrapper, saves, acknowledged, savedSettings } = await openWith({ lookup: unratedNine, save: saved, decisions: [stored(1, 'picked'), stored(2, 'picked')] })
 
 		await askToWrite(wrapper)
 		expect(dialog(wrapper, 'Write decisions to sidecars').text()).toContain('1 photo in a shared folder you have not confirmed is skipped.')
@@ -213,7 +215,7 @@ describe('App: migrating the stored decisions and tags to sidecars', () => {
 
 	// spec: XMP-007.13
 	it('cannot write when every picture lies in a shared folder not confirmed', async () => {
-		const { wrapper, saves } = await openWith({ lookup: () => read(GOOD), save: saved, decisions: [stored(2, 'picked')] })
+		const { wrapper, saves } = await openWith({ lookup: unratedNine, save: saved, decisions: [stored(2, 'picked')] })
 
 		await askToWrite(wrapper)
 		expect(dialog(wrapper, 'Write decisions to sidecars').text()).toContain('1 photo in a shared folder you have not confirmed is skipped.')

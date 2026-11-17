@@ -9,6 +9,7 @@ import type { Decision } from '../logic/decision.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { OpenedFolder } from '../logic/writability.ts'
 import type { MoveFlow } from '../move-flow.ts'
 import type { SidecarFlow } from '../sidecar-flow.ts'
 
@@ -26,9 +27,16 @@ const props = defineProps<{
 	/** How many folders the cull shows. */
 	folders: number
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
+	/** Whether the picture lies in a shared folder not confirmed (XMP-007.13). */
+	unconfirmed: (picture: Picture<ListingEntry>) => boolean
+	confirmationFolders: (pictures: readonly Picture<ListingEntry>[]) => readonly OpenedFolder[]
 	listFolders: (path: string) => Promise<Folder[]>
 	/** Where the dialogs open, e.g. inside the loupe; the page body by default. */
 	container?: string | undefined
+}>()
+
+const emit = defineEmits<{
+	confirmFolder: [folder: OpenedFolder]
 }>()
 
 const deleting = props.deleting
@@ -55,7 +63,10 @@ const deleting = props.deleting
 		:flow="props.sidecars"
 		:folderSet="props.folderSet"
 		:decisionOf="props.decisionOf"
-		:ready="props.sidecarsReady" />
+		:ready="props.sidecarsReady"
+		:unconfirmed="props.unconfirmed"
+		:confirmationFolders="props.confirmationFolders"
+		@confirmFolder="emit('confirmFolder', $event)" />
 	<MoveDialogs
 		:flow="props.moving"
 		:folderSet="props.folderSet"
