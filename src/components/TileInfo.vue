@@ -74,6 +74,7 @@ const style = computed(() => placement.value === null
 </template>
 
 <style scoped src="./tip-bubble.css" />
+
 <style scoped>
 .tile-info__name {
 	font-weight: 600;
