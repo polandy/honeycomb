@@ -13,8 +13,9 @@ const SAVED = listingEntry(11, '/Trip/IMG_1.CR3.xmp', { etag: 'saved-11' })
 const CREATED = listingEntry(30, '/Trip/IMG_1.JPG.xmp', { etag: 'created-30' })
 
 /** The picture with the sidecars added when it holds `/Trip/IMG_1.CR3`, as `current` gives honeycomb's saves. */
-const withSidecars = (...sidecars: ListingEntry[]) => (picture: Picture<ListingEntry>) =>
-	(picture.raw?.path === '/Trip/IMG_1.CR3' ? { ...picture, sidecars: [...picture.sidecars, ...sidecars] } : picture)
+function withSidecars(...sidecars: ListingEntry[]) {
+	return (picture: Picture<ListingEntry>) => (picture.raw?.path === '/Trip/IMG_1.CR3' ? { ...picture, sidecars: [...picture.sidecars, ...sidecars] } : picture)
+}
 
 describe('useMoveFlow: honeycomb\'s own sidecar saves', () => {
 	// spec: MOVE-004.19
