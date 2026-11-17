@@ -75,6 +75,7 @@ describe('App: migrating the stored decisions and tags to sidecars', () => {
 			save: saved,
 			decisions: [DECIDED],
 			tags: [{ fileId: 4, tags: ['Anna'] }],
+			shared: [],
 		})
 		expect(toolbarProps(wrapper).legacyRows).toBe(true)
 		expect(saves).toEqual([])
@@ -82,7 +83,7 @@ describe('App: migrating the stored decisions and tags to sidecars', () => {
 		await askToWrite(wrapper)
 		const asked = dialog(wrapper, 'Write decisions to sidecars')
 		expect(asked.text()).toContain('Where a sidecar says otherwise, the stored value wins; stored tags are added to the sidecar\'s.')
-		expect(asked.text()).toContain('Every user of a shared folder, and digiKam, darktable and Lightroom, will see these decisions.')
+		expect(asked.text()).not.toContain('not confirmed')
 		expect(asked.text()).toContain('2 photos in A')
 		await button(wrapper, 'Write to sidecars').trigger('click')
 		await flushPromises()
@@ -102,6 +103,7 @@ describe('App: migrating the stored decisions and tags to sidecars', () => {
 		const { wrapper, saves, lookups, acknowledged } = await openWith({
 			lookup: (fileId) => read(fileId === 5 ? fixtureBytes('refused/unclosed.xmp') : GOOD),
 			save: (item) => ('path' in item ? { result: 'notPermitted' } : saved()),
+			shared: [],
 		})
 
 		await askToWrite(wrapper)
@@ -170,7 +172,7 @@ describe('App: migrating the stored decisions and tags to sidecars', () => {
 		await askToWrite(wrapper)
 		const asked = dialog(wrapper, 'Write decisions to sidecars')
 		expect(asked.text()).toContain('Turn on Write decisions to XMP sidecars in the settings first.')
-		expect(asked.text()).not.toContain('Every user of a shared folder')
+		expect(asked.text()).not.toContain('not confirmed')
 		expect(button(wrapper, 'Write to sidecars').attributes('disabled')).toBeDefined()
 		await button(wrapper, 'Cancel').trigger('click')
 		await flushPromises()
@@ -183,5 +185,39 @@ describe('App: migrating the stored decisions and tags to sidecars', () => {
 		const { wrapper } = await openWith({ lookup: () => ({ result: 'notFound' }), save: saved, decisions: [], shared: [] })
 
 		expect(toolbarProps(wrapper).legacyRows).toBe(false)
+	})
+
+	// spec: XMP-007.13
+	it('skips a shared folder not confirmed, and writes it in the next run once confirmed', async () => {
+		const { wrapper, saves, acknowledged, savedSettings } = await openWith({ lookup: () => read(GOOD), save: saved, decisions: [stored(1, 'picked'), stored(2, 'picked')] })
+
+		await askToWrite(wrapper)
+		expect(dialog(wrapper, 'Write decisions to sidecars').text()).toContain('1 photo in a shared folder you have not confirmed is skipped.')
+		expect(button(wrapper, 'Confirm Trip').exists()).toBe(true)
+		await button(wrapper, 'Write to sidecars').trigger('click')
+		await flushPromises()
+		expect(saves.map(savedPaths)).toEqual([['/Trip/B/IMG_2.JPG.xmp']])
+		expect(acknowledged).toEqual([[1]])
+		expect(toastText(wrapper)).toBe('Wrote the decisions of 1 photo to sidecars; skipped 1 photo in a shared folder not confirmed')
+
+		await askToWrite(wrapper)
+		await button(wrapper, 'Confirm Trip').trigger('click')
+		await flushPromises()
+		expect(savedSettings.at(-1)).toMatchObject({ confirmedSharedFolders: [7] })
+		expect(dialog(wrapper, 'Write decisions to sidecars').text()).not.toContain('not confirmed')
+		await button(wrapper, 'Write to sidecars').trigger('click')
+		await flushPromises()
+		expect(saves.slice(1).flatMap(savedPaths)).toEqual(expect.arrayContaining([6, '/Trip/A/IMG_10.JPG.xmp']))
+		expect(acknowledged.at(-1)).toEqual([1, 2, 3])
+	})
+
+	// spec: XMP-007.13
+	it('cannot write when every picture lies in a shared folder not confirmed', async () => {
+		const { wrapper, saves } = await openWith({ lookup: () => read(GOOD), save: saved, decisions: [stored(2, 'picked')] })
+
+		await askToWrite(wrapper)
+		expect(dialog(wrapper, 'Write decisions to sidecars').text()).toContain('1 photo in a shared folder you have not confirmed is skipped.')
+		expect(button(wrapper, 'Write to sidecars').attributes('disabled')).toBeDefined()
+		expect(saves).toEqual([])
 	})
 })

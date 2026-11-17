@@ -5,7 +5,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 import type { FolderAccess, WriteContext } from '../../../src/logic/writability.ts'
 
 import { describe, expect, it } from 'vitest'
-import { confirmationFolders, folderAccess, lockReason, writability } from '../../../src/logic/writability.ts'
+import { confirmationFolders, folderAccess, lockReason, unconfirmedShared, writability } from '../../../src/logic/writability.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const ALL = 31
@@ -98,5 +98,16 @@ describe('confirmationFolders', () => {
 		expect(confirmationFolders([AT_ROOT], shared)).toEqual([{ path: '/', fileId: 1 }])
 		expect(confirmationFolders([SPLIT, other], { ...shared, confirmed: [7, 9] })).toEqual([])
 		expect(confirmationFolders([SPLIT], context([folder('/P/RAW', { shared: true })], { opened: [] }))).toEqual([])
+	})
+})
+
+describe('unconfirmedShared', () => {
+	// spec: XMP-007.13
+	it('is true while a shared member folder is not confirmed, whatever else locks the picture', () => {
+		const shared = [folder('/P'), folder('/P/RAW', { shared: true, versions: false })]
+		expect(unconfirmedShared(SPLIT, context(shared, { setting: 'off' }))).toBe(true)
+		expect(unconfirmedShared(SPLIT, context(shared, { confirmed: [7] }))).toBe(false)
+		expect(unconfirmedShared(SPLIT, context([folder('/P'), folder('/P/RAW')]))).toBe(false)
+		expect(unconfirmedShared(AT_ROOT, context([]))).toBe(false)
 	})
 })
