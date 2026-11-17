@@ -46,6 +46,13 @@ function viewed(wrapper: AppWrapper) {
 	const { pictures: shownPictures, index } = viewer(wrapper).props()
 	return [shownPictures.map((picture) => picture.baseName), shownPictures[index]!.baseName]
 }
+/** The grid's series by picture name, size and whether the series is offered. */
+function gridSeries(wrapper: AppWrapper) {
+	const grid = wrapper.findComponent(PhotoGrid)
+	const members = grid.props('seriesOf') as ReadonlyMap<{ baseName: string }, Series<{ baseName: string }>>
+	const offered = grid.props('offeredSeries') as ReadonlySet<number>
+	return [...members].map(([picture, series]) => `${picture.baseName} ${series.members.length} ${offered.has(series.key) ? 'offered' : 'settled'}`)
+}
 const toastText = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast).text()
 
 enableAutoUnmount(afterEach)
@@ -171,11 +178,10 @@ describe('App: series compare', () => {
 	})
 
 	// spec: SERIES-002.10
-	it('hands the grid the size of each picture\'s series for its badge', async () => {
+	it('hands the grid each picture\'s series and the offered ones for its brackets and badges', async () => {
 		const { wrapper } = await openApp()
-		const sizes = wrapper.findComponent(PhotoGrid).props('seriesSizes') as ReadonlyMap<{ baseName: string }, number>
 
-		expect([...sizes].map(([picture, size]) => `${picture.baseName} ${size}`)).toEqual(['IMG_1 3', 'IMG_2 3', 'IMG_3 3', 'IMG_4 2', 'IMG_5 2'])
+		expect(gridSeries(wrapper)).toEqual(['IMG_1 3 offered', 'IMG_2 3 offered', 'IMG_3 3 offered', 'IMG_4 2 offered', 'IMG_5 2 offered'])
 	})
 
 	// spec: SERIES-003.18, SERIES-003.25
@@ -216,8 +222,7 @@ describe('App: series compare', () => {
 		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_2', 'IMG_3'])
 
 		await press('Escape')
-		const sizes = wrapper.findComponent(PhotoGrid).props('seriesSizes') as ReadonlyMap<{ baseName: string }, number>
-		expect([...sizes].map(([picture, size]) => `${picture.baseName} ${size}`)).toEqual(['IMG_1 2', 'IMG_2 2', 'IMG_4 2', 'IMG_5 2'])
+		expect(gridSeries(wrapper)).toEqual(['IMG_1 2 offered', 'IMG_2 2 offered', 'IMG_4 2 offered', 'IMG_5 2 offered'])
 	})
 
 	// spec: SERIES-005.10, SERIES-005.13

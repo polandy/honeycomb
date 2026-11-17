@@ -55,6 +55,16 @@ describe('App: keys on the grid', () => {
 		expect(grid.steps).toEqual([])
 	})
 
+	// spec: SERIES-002.15
+	it('jumps to the previous or next series with Alt and an arrow, keeping the browser from going back', async () => {
+		const { grid } = await openApp()
+
+		expect([await press('ArrowRight', { altKey: true }), await press('ArrowLeft', { altKey: true })]).toEqual([true, true])
+
+		expect(grid.jumps).toEqual(['next', 'previous'])
+		expect(grid.steps).toEqual([])
+	})
+
 	// spec: KEYS-001.4
 	it('moves the focus on after Shift and a decision, unless the photo left the view', async () => {
 		const { wrapper, grid } = await openApp()

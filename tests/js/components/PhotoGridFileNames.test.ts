@@ -127,7 +127,8 @@ describe('PhotoGrid tile info', () => {
 	// spec: GRID-004.7
 	it('never shows on a control with its own tooltip', async () => {
 		const shown = await mountShown()
-		await shown.wrapper.setProps({ seriesSizes: new Map([[shown.wrapper.props('pictures')[0]!, 2]]) })
+		const series = { key: 1, members: shown.wrapper.props('pictures').slice(0, 2) }
+		await shown.wrapper.setProps({ seriesOf: new Map(series.members.map((picture) => [picture, series])) })
 		await pointer(tile(shown, 0).find<HTMLElement>('[data-tip]'), 'pointerover')
 
 		shown.fire()

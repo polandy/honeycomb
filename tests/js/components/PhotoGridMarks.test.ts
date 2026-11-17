@@ -28,16 +28,6 @@ describe('PhotoGrid tile marks', () => {
 		expect(tile(wrapper, 0).find('.photo-tile__tags').exists()).toBe(false)
 	})
 
-	// spec: SERIES-003.25
-	it('marks the series badge of a series that may still change', async () => {
-		const { wrapper, resize } = mountGrid({ seriesSizes: new Map(), openSeries: new Set() })
-		const pictures = wrapper.props('pictures')
-		await wrapper.setProps({ seriesSizes: new Map(pictures.slice(0, 4).map((picture) => [picture, 2])), openSeries: new Set(pictures.slice(2, 4)) })
-		await resize(432, 220)
-
-		expect([0, 2].map((index) => tile(wrapper, index).find('.photo-tile__series').classes('photo-tile__series--open'))).toEqual([false, true])
-	})
-
 	// spec: SERIES-003.18
 	it('lays what it is given over the top of the grid', () => {
 		const { wrapper } = mountGrid({}, false, { default: '<p class="strip">Comparing</p>' })

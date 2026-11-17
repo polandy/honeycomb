@@ -1,16 +1,18 @@
-# SERIES-002 – Series viewer and series badge
+# SERIES-002 – Series viewer, series bracket and series badge
 
 - Status: implemented
 - Area: series
 - Origin: plan.md M6, Compact header and series viewer 4 and 5, Loupe layout, Tap zones,
-  Keyboard shortcuts; mockup screens *Compare series* and *Series viewer*
+  Keyboard shortcuts; mockup screens *Compare series* and *Series viewer*; owner decision
+  2026-11-17 *Series in the grid*, variant B
 - Depends on: SERIES-001, LOUPE-001, DECISIONS-001, KEYS-001
 
 ## Purpose
 
 Photos of a series differ in small details such as focus or a blink. The series viewer shows one
 series fullscreen, one photo at a time, at the same zoom and spot on every photo, so paging
-compares the same detail; the series badge shows in the grid which photos form a series.
+compares the same detail; the series bracket and badge show in the grid which photos form a
+series.
 
 ## Behaviour
 
@@ -54,8 +56,21 @@ the flag only. *Back to the series* or `Esc` returns to the compare's grid with 
 | `Ctrl+Z`, `Ctrl+Shift+Z` | Undo, redo |
 | `Esc` | Back to the series |
 
-A tile in the grid whose picture is in a series offered by the compare shows a read-only badge
-"⧉ 3", labelled "Series of 3".
+In the grid, a bracket in the primary colour runs above every stretch of neighbouring tiles of
+one series, a *run*, as the filmstrip frames them (LOUPE-001.19). It bridges the gap between the
+tiles of a row and continues over a row wrap; a cap marks where the run starts and where it ends.
+Every series is bracketed: one the compare still offers in full colour, a settled one (every
+photo decided or marked done) faded. A rejected photo is in no series. Members that lie apart,
+sorted by name or split by *Group by folder*, form a run each. While a series may still change
+(SERIES-003.25) its bracket and badge are dashed. The bracket sits in the gap above the tiles, so
+it never moves a tile or the scroll position.
+
+The first tile of each run carries the badge "⧉ 5" when the run holds the whole series, else
+"⧉ 2 of 5". A tap opens the series compare on that series, the tapped photo active, and the
+grid lands on the compare's active photo when it closes; in selection mode the tap selects the
+whole series, or takes it out of the selection when every photo of it is selected. Each tile of
+a series says "Series, photo 2 of 5" in its label. `Alt+←` `Alt+→` move the grid's focus to the
+first photo of the previous or next run.
 
 ## Acceptance criteria
 
@@ -125,8 +140,10 @@ A tile in the grid whose picture is in a series offered by the compare shows a r
 ### SERIES-002.10 – The series badge
 
 - **Given** an open cull
-- **When** a picture is in a series the compare offers
-- **Then** its tile shows "⧉ 3" labelled "Series of 3"; a tile of any other picture has no badge
+- **When** a picture is in a series, offered or settled
+- **Then** its tile's label says "Series, photo 2 of 5"; the first tile of each run shows the
+  badge "⧉ 5" when the run holds the whole series, else "⧉ 2 of 5", faded for a settled series;
+  a tile outside every series has neither
 
 ### SERIES-002.11 – Reject the other N after a Pick in the viewer
 
@@ -135,6 +152,36 @@ A tile in the grid whose picture is in a series offered by the compare shows a r
 - **Then** the toast offers *Reject the other N* as in the loupe (LOUPE-002.16); a tap does what
   the viewer's *Pick this, reject the rest* does (SERIES-002.7), and opened from the loupe the
   compare closes and the loupe lands after the series (SERIES-001.24)
+
+### SERIES-002.12 – The series bracket
+
+- **Given** the grid shows pictures of a series
+- **When** they are neighbours in the grid's order
+- **Then** a bracket runs above them, bridging the tile gaps and continuing over a row wrap, with
+  a cap at the run's start and end; another series, a picture outside every series or the start
+  of a folder group ends the run; a settled series' bracket is faded, the bracket moves no tile
+
+### SERIES-002.13 – The badge opens the compare
+
+- **Given** the grid outside selection mode
+- **When** the user taps a series badge
+- **Then** the series compare opens on that series alone, the tapped photo active; closing it
+  focuses the compare's active photo in the grid, after *Pick this, reject the rest* the first
+  photo after the series
+
+### SERIES-002.14 – The badge selects the series
+
+- **Given** selection mode
+- **When** the user taps a series badge
+- **Then** every shown photo of the series is selected; when all of them already were, they are
+  taken out of the selection
+
+### SERIES-002.15 – Jump to a series
+
+- **Given** the grid has the focus
+- **When** the user presses `Alt+→` or `Alt+←`
+- **Then** the focus moves to the first photo of the next run, or of the run before the focused
+  photo's run; at either end the focus stays and the browser does not go back
 
 ## Out of scope
 
@@ -150,3 +197,4 @@ loupe, fit or 100 %.
 | 2026-11-14 | The flag buttons run *Pick*, *Unflag*, *Reject*, *Unflag* bottom centre in landscape (series concept step 4). |
 | 2026-11-14 | Opened by *View full screen*, a double tap or `Enter` instead of a single tap; the close button becomes *Back to the series*; *Pick this, reject the rest* leaves the compare on the next series (series concept step 6, owner point 4). |
 | 2026-11-14 | .11 *Reject the other N* in the undo toast after a *Pick* in the viewer (series concept step 10). |
+| 2026-11-17 | .10 badge on the first tile of a run, for every series; .12 to .15 bracket, badge tap and `Alt+←` `Alt+→` (owner decision *Series in the grid*, variant B). |

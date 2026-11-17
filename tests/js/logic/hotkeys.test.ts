@@ -32,6 +32,14 @@ describe('hotkey', () => {
 		expect(action(press('k'))).toBeNull()
 	})
 
+	// spec: SERIES-002.15
+	it('jumps to the previous or next series with Alt+← and Alt+→, and leaves other Alt keys alone', () => {
+		expect(action(press('ArrowLeft', { altKey: true }))).toEqual({ kind: 'previous-series' })
+		expect(action(press('ArrowRight', { altKey: true }), VI)).toEqual({ kind: 'next-series' })
+		expect(action(press('ArrowUp', { altKey: true }))).toBeNull()
+		expect(action(press('ArrowLeft', { altKey: true, shiftKey: true }))).toBeNull()
+	})
+
 	// spec: GRID-004.3
 	it('toggles the file names with Shift+J, with or without vi keys, but not with Caps Lock alone', () => {
 		expect(action(press('J', { shiftKey: true }))).toEqual({ kind: 'file-names' })
