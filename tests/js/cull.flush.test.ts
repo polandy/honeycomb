@@ -1,16 +1,20 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
+import type { SidecarWrites } from '../../src/cull-seams.ts'
+
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { useCull } from '../../src/cull.ts'
 import { useBundledSidecars } from '../../src/sidecar-bundle.ts'
+import { useSidecarSync } from '../../src/sidecar-sync.ts'
 import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET, WRITING_ON } from './app-cull.ts'
 import { access } from './cull-sidecars-fake.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
+import { CANONICAL_TIME } from './logic/xmp/xmp-builders.ts'
 
-/** A cull over bundled sidecars whose decision and tag saves wait until the test settles them, and the names of the pictures each sidecar write got. */
-async function bundledCull() {
+/** A cull over bundled sidecars whose decision and tag saves wait until the test settles them, and the names of the pictures each sidecar write got; `over` replaces the recording writes. */
+async function bundledCull(over?: SidecarWrites) {
 	const settle: (() => void)[] = []
 	const writes: string[][] = []
 	const save = () => new Promise<void>((resolve) => settle.push(resolve))
@@ -18,7 +22,7 @@ async function bundledCull() {
 		writes.push(pictures.map((picture) => picture.baseName))
 		return { written: pictures.length, failed: [] }
 	}
-	const sidecars = useBundledSidecars({
+	const sidecars = useBundledSidecars(over ?? {
 		...NO_SIDECARS,
 		write: record,
 		writeTags: record,
@@ -68,5 +72,21 @@ describe('useCull: flushing the sidecar writes', () => {
 		settle[0]!()
 		await flush
 		expect(writes).toEqual([['IMG_9', 'IMG_2']])
+	})
+
+	// spec: XMP-003.30, DELETE-002.17, MOVE-004.19
+	it('gives a flushed picture the sidecar honeycomb created after a decision save that was still on the way', async () => {
+		const sync = useSidecarSync({
+			lookupSidecars: async () => [],
+			lookupEmbeddedXmp: async (fileIds) => fileIds.map(() => ({ result: 'none' as const })),
+			saveSidecars: async (items) => items.map(() => ({ result: 'saved' as const, fileId: 50, etag: 'created-50', size: 1, mtime: 1 })),
+		}, () => CANONICAL_TIME, () => {})
+		const { cull, sidecars, settle, picture } = await bundledCull(sync)
+		cull.decide({ kind: 'flag', flag: 'picked' }, [picture('IMG_2')])
+		const flush = sidecars.flush()
+
+		settle[0]!()
+		await flush
+		expect(sync.current(picture('IMG_2')).sidecars.map(({ fileId, path, etag }) => [fileId, path, etag])).toEqual([[50, '/Trip/B/IMG_2.JPG.xmp', 'created-50']])
 	})
 })
