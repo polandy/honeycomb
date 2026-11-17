@@ -74,3 +74,43 @@ test('closes the More menu when an item opens the settings dialog', async ({ pag
 	await expect(page.getByRole('dialog', { name: 'Settings' })).toBeVisible()
 	await expect(size).toBeHidden()
 })
+
+/** The toolbar's first row (its breadcrumbs), the navigation toggle's box and what sits at the toggle's centre. */
+async function toggleGeometry(page: Page) {
+	return page.evaluate(() => {
+		const toggle = document.querySelector('.app-navigation-toggle')!.getBoundingClientRect()
+		const toolbar = document.querySelector('.grid-toolbar__crumbs')!.getBoundingClientRect()
+		const x = toggle.left + toggle.width / 2
+		const y = toggle.top + toggle.height / 2
+		const hit = document.elementFromPoint(x, y)
+		return {
+			toggleCentre: y,
+			toolbarCentre: toolbar.top + toolbar.height / 2,
+			hitIsToggle: !!hit?.closest('.app-navigation-toggle'),
+			toggles: document.querySelectorAll('.app-navigation-toggle').length,
+		}
+	})
+}
+
+for (const [name, viewport] of [['desktop', DESKTOP], ['iPad', { width: 1024, height: 768 }]] as const) {
+	// spec: APP-001.11
+	test(`keeps one navigation toggle, centred in the toolbar row and opaque on hover on ${name}`, async ({ page }) => {
+		await page.setViewportSize(viewport)
+		await cullTwo(page)
+		const toggle = page.locator('.app-navigation-toggle')
+		for (const click of [false, true]) {
+			if (click) {
+				const expanded = await toggle.getAttribute('aria-expanded')
+				await toggle.click()
+				await expect(toggle).not.toHaveAttribute('aria-expanded', expanded!)
+			}
+			const geometry = await toggleGeometry(page)
+			expect(geometry.toggles).toBe(1)
+			expect(geometry.hitIsToggle).toBe(true)
+			expect(Math.abs(geometry.toggleCentre - geometry.toolbarCentre)).toBeLessThanOrEqual(1)
+			await toggle.hover()
+			await expect(toggle).toHaveCSS('opacity', '1')
+			await expect(toggle).not.toHaveCSS('background-color', /rgba|transparent/)
+		}
+	})
+}

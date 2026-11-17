@@ -8,6 +8,7 @@
 	align-items: center;
 	gap: var(--default-grid-baseline);
 	padding: 0 calc(2 * var(--default-grid-baseline));
+	padding-inline-start: var(--honeycomb-toggle-gutter);
 	font-size: 13px;
 	--default-clickable-area: 32px;
 }
@@ -23,6 +24,7 @@
 	align-items: center;
 	gap: var(--default-grid-baseline);
 	min-width: 0;
+	min-height: var(--honeycomb-toolbar-height);
 }
 
 .grid-toolbar__separator {
