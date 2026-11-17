@@ -3,7 +3,7 @@
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { cullFolder, E2E_SETTINGS, putSettings } from './cull.ts'
-import { createFolder, JPEG, RAW, upload } from './files.ts'
+import { createFolder, JPEG, RAW, upload, withCaptureTime } from './files.ts'
 
 // The reference devices the name bar and tile info are captured on (docs/dev/plan.md Reference devices).
 const SCREENSHOT_VIEWPORTS = { 'pixel-portrait': { width: 427, height: 952 }, 'ipad-mini-landscape': { width: 1133, height: 744 } }
@@ -51,4 +51,20 @@ test('shows the file names from the More menu, hides them by Shift+J and shows t
 	await expect(info).toBeHidden()
 	await page.keyboard.press('Shift+J')
 	await expect(grid.locator('.photo-tile__name')).toHaveCount(0)
+})
+
+// spec: GRID-004.9
+test('keeps the capture time of the tile info on one line in a narrow window', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = `Names ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	await upload(page, `${folder}/IMG_0001.jpg`, withCaptureTime(JPEG, '2023:11:14 23:13:20'))
+	await cullFolder(page, folder)
+	await page.setViewportSize(SCREENSHOT_VIEWPORTS['pixel-portrait'])
+
+	await page.getByRole('gridcell', { name: /IMG_0001/ }).hover()
+	const captured = page.locator('.tile-info__rows dd').first()
+	await expect(captured).toContainText('11:13:20')
+	const lines = await captured.evaluate((dd) => dd.getBoundingClientRect().height / Number.parseFloat(getComputedStyle(dd).lineHeight))
+	expect(lines).toBe(1)
 })
