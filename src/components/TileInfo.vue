@@ -34,9 +34,9 @@ const members = computed(() => {
 const rows = computed(() => {
 	const { captureTime, camera } = imageMember(props.picture)
 	return [
-		...(captureTime === null ? [] : [{ term: t('honeycomb', 'Captured'), value: formatDateTimeSeconds(captureTime) }]),
-		...(camera === null ? [] : [{ term: t('honeycomb', 'Camera'), value: camera }]),
-		{ term: t('honeycomb', 'Rating'), value: ratingStars(props.decision.rating) },
+		...(captureTime === null ? [] : [{ term: t('honeycomb', 'Captured'), value: formatDateTimeSeconds(captureTime), nowrap: true }]),
+		...(camera === null ? [] : [{ term: t('honeycomb', 'Camera'), value: camera, nowrap: false }]),
+		{ term: t('honeycomb', 'Rating'), value: ratingStars(props.decision.rating), nowrap: false },
 	]
 })
 
@@ -65,7 +65,9 @@ const style = computed(() => placement.value === null
 			<dl class="tile-info__rows">
 				<template v-for="row in rows" :key="row.term">
 					<dt>{{ row.term }}</dt>
-					<dd>{{ row.value }}</dd>
+					<dd :class="{ 'tile-info__nowrap': row.nowrap }">
+						{{ row.value }}
+					</dd>
 				</template>
 			</dl>
 			<i class="tip-bubble__arrow" />
@@ -84,6 +86,14 @@ const style = computed(() => placement.value === null
 
 .tile-info__members {
 	font-weight: normal;
+	white-space: nowrap;
+}
+
+.tile-info {
+	max-width: min(320px, calc(100vw - 16px));
+}
+
+.tile-info__nowrap {
 	white-space: nowrap;
 }
 
