@@ -4,6 +4,9 @@
 -->
 <script setup lang="ts">
 import type { ToolbarFolders, ToolbarProgress, ToolbarSelection, ToolbarTasks, ToolbarView } from '../grid-toolbar.ts'
+import type { ListingEntry } from '../logic/listing.ts'
+import type { Picture } from '../logic/pairing.ts'
+import type { Series } from '../logic/series.ts'
 
 import { computed, useTemplateRef } from 'vue'
 import CullEmptyState from './CullEmptyState.vue'
@@ -16,8 +19,11 @@ import SelectionBar from './SelectionBar.vue'
 import SimilarityStrip from './SimilarityStrip.vue'
 import { useCullContext } from '../cull-context.ts'
 import { isPicked } from '../logic/decision.ts'
+import { imageMember } from '../logic/image-tiers.ts'
 import { hasLegacyRows } from '../logic/legacy.ts'
+import { landingTarget } from '../logic/loupe-pictures.ts'
 import { DEFAULT_FILTERS } from '../logic/picture-filter.ts'
+import { toggleGroup } from '../logic/selection.ts'
 import { seriesOffer } from '../logic/series-menu.ts'
 
 const { cull, selection, decide, editSeries, deleting, moving, resume, seriesCompare, sidecars, legacy, tagEntry, headerShown, openLoupe, openSettings, unsaved, settings, updateSettings } = useCullContext()
@@ -43,6 +49,23 @@ const toolbarTasks = computed<ToolbarTasks>(() => ({
 	legacyRows: hasLegacyRows(cull.legacy.value),
 	resumeName: resume.resumeName.value,
 }))
+
+const offeredSeries = computed(() => new Set(cull.series.value.map((series) => series.key)))
+
+/** A badge tap opens the compare on its series and lands the grid where it closes; in selection mode it selects the series instead (SERIES-002.13, SERIES-002.14). */
+function onCompareSeries(series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>) {
+	if (selecting.value) {
+		const shown = series.members.filter((member) => view.value.includes(member))
+		selection.select(toggleGroup(selection.selection.value, shown.map((member) => imageMember(member).fileId)))
+		return
+	}
+	seriesCompare.startOn(series, picture, (landing) => {
+		const at = view.value.indexOf(landingTarget(view.value, view.value, landing))
+		if (at >= 0) {
+			void grid.value?.reveal(at)
+		}
+	})
+}
 
 defineExpose({ grid, filterBar })
 </script>
@@ -98,13 +121,15 @@ defineExpose({ grid, filterBar })
 			:selection="selection.selection.value"
 			:decisionOf="cull.decisionOf"
 			:tagsOf="cull.tags.tagsOf"
-			:seriesSizes="cull.seriesSizes.value"
+			:seriesOf="cull.seriesOf.value"
+			:offeredSeries="offeredSeries"
 			:openSeries="cull.openSeries.value"
 			:unsaved="unsaved"
 			@update:tileSize="cull.setTileSize"
 			@update:selecting="selection.setSelecting"
 			@update:selection="selection.select"
 			@open="openLoupe"
+			@compareSeries="onCompareSeries"
 			@scroll="resume.dismiss">
 			<SimilarityStrip :progress="cull.hashProgress.value" />
 		</PhotoGrid>

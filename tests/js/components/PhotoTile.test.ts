@@ -243,7 +243,7 @@ describe('PhotoTile', () => {
 
 	// spec: SERIES-002.10
 	it('counts the run against the series when the run holds only part of it, and shows no badge further into a run', () => {
-		expect(mountTile(PAIR, { series: { position: 4, size: 5, run: 2 } }).find('.photo-tile__series').text()).toBe('⧉ 2 of 5')
+		expect(mountTile(PAIR, { series: { position: 4, size: 5, run: 2 } }).find('.photo-tile__series').text().replaceAll(MARK, '')).toBe('⧉ 2 of 5')
 		const inside = mountTile(PAIR, { series: { position: 2, size: 5, run: null } })
 
 		expect(inside.find('.photo-tile__series').exists()).toBe(false)

@@ -20,12 +20,15 @@ function seriesOf(pictures: readonly P[], key: number, first: number, end: numbe
 	return new Map(series.members.map((picture) => [picture, series]))
 }
 
-const brackets = (wrapper: ReturnType<typeof mountGrid>['wrapper']) => wrapper.findAll('.photo-grid__bracket').map((bracket) => ({
-	row: bracket.element.parentElement!.style.top,
-	left: bracket.attributes('style')!.match(/left: ([\d.]+)px/)![1],
-	width: bracket.attributes('style')!.match(/width: ([\d.]+)px/)![1],
-	classes: bracket.classes().filter((name) => name !== 'photo-grid__bracket'),
-}))
+/** Each bracket's row, offset, width and modifiers. */
+function brackets(wrapper: ReturnType<typeof mountGrid>['wrapper']) {
+	return wrapper.findAll('.photo-grid__bracket').map((bracket) => ({
+		row: bracket.element.parentElement!.style.top,
+		left: bracket.attributes('style')!.match(/left: ([\d.]+)px/)![1],
+		width: bracket.attributes('style')!.match(/width: ([\d.]+)px/)![1],
+		classes: bracket.classes().filter((name) => name !== 'photo-grid__bracket'),
+	}))
+}
 const tile = (wrapper: ReturnType<typeof mountGrid>['wrapper'], index: number) => wrapper.find(`[data-index="${index}"]`)
 
 describe('PhotoGrid series', () => {

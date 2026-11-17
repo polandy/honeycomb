@@ -17,3 +17,8 @@ export function firstAfter<P>(pictures: readonly P[], shown: readonly P[], serie
 	const last = Math.max(...series.map((picture) => pictures.indexOf(picture)))
 	return pictures.slice(last + 1).find((picture) => shown.includes(picture)) ?? null
 }
+
+/** Where a closed compare lands: on the active picture, or on the first shown picture after the series, else on the pick (SERIES-001.24). */
+export function landingTarget<P>(pictures: readonly P[], shown: readonly P[], landing: { readonly kind: 'on', readonly picture: P } | { readonly kind: 'after', readonly series: { readonly members: readonly P[] }, readonly picked: P }): P {
+	return landing.kind === 'on' ? landing.picture : firstAfter(pictures, shown, landing.series.members) ?? landing.picked
+}

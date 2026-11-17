@@ -19,6 +19,7 @@ export interface GridFocus {
 	focusedIndex: () => number
 	step: (move: FocusMove) => unknown
 	reveal: (index: number) => unknown
+	jumpSeries: (direction: 'previous' | 'next') => unknown
 }
 
 /** What the grid's keys act on. */
@@ -95,6 +96,12 @@ export function gridHotkeys(targets: GridHotkeyTargets): HotkeyHandlers {
 		down: step('down'),
 		first: step('first'),
 		last: step('last'),
+		'previous-series': () => {
+			grid()?.jumpSeries('previous')
+		},
+		'next-series': () => {
+			grid()?.jumpSeries('next')
+		},
 		loupe: () => {
 			if (view().length === 0) {
 				return false

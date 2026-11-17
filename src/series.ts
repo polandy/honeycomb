@@ -8,7 +8,7 @@ import type { StoredRows } from './logic/stored-series.ts'
 import type { VisualHashApi } from './visual-hashes.ts'
 
 import { computed } from 'vue'
-import { allSeries, findSeries, openSeries, seriesCandidates, seriesMembers, seriesSizes as sizesOf } from './logic/series.ts'
+import { allSeries, findSeries, openSeries, seriesCandidates, seriesMembers } from './logic/series.ts'
 import { splitByStoredRows } from './logic/stored-series.ts'
 import { useVisualHashes } from './visual-hashes.ts'
 
@@ -22,9 +22,8 @@ export function useSeries(api: VisualHashApi, storage: BrowserStorage, pictures:
 	return {
 		series,
 		everySeries,
-		seriesSizes: computed(() => sizesOf(series.value)),
 		seriesOf: computed(() => seriesMembers(everySeries.value)),
-		openSeries: computed(() => openSeries(series.value, (picture) => hashes.stateOf(picture) === 'pending')),
+		openSeries: computed(() => openSeries(everySeries.value, (picture) => hashes.stateOf(picture) === 'pending')),
 		holdHashes: hashes.hold,
 		hashProgress: hashes.progress,
 	}

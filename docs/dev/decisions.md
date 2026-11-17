@@ -1443,3 +1443,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   as `J` is the vi keys' down; the name bar shows the base name for pairs and singles. The tile
   info answers only a mouse, so touch, pen and keyboard focus never show it, and controls with
   their own tooltip keep theirs; an `Esc` hides one bubble at a time, the tooltip first.
+- 2026-11-17: Series brackets in the grid (SERIES-002.12–.15, variant B): the bracket uses the
+  filmstrip frame's `--color-primary-element` and sits in the row gap, so no tile moves; runs also
+  break at a folder group's start; `Alt+←` goes to the start of the run before the focused one;
+  Alt+arrows are always handled in the grid so the browser never goes back; in selection mode a
+  badge tap toggles the series' shown photos; the compare opened from the grid lands the grid
+  focus as the loupe does; the badge keeps `tabindex="-1"`, as the tiles hold the roving focus;
+  the dashed state now covers settled series too.
