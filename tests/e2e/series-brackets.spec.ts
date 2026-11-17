@@ -53,9 +53,9 @@ test('opens the compare on the series from its badge', async ({ page }) => {
 	await cullShots(page, ['10:00:00', '10:00:01', '10:00:02'])
 
 	await page.getByRole('button', { name: 'Series of 3 – compare' }).click()
-	await expect(page.getByRole('dialog', { name: /^Compare series/ })).toBeVisible()
+	await expect(page.getByRole('dialog', { name: 'Series of 3 · photo 1' })).toBeVisible()
 	await page.keyboard.press('Escape')
-	await expect(page.getByRole('dialog', { name: /^Compare series/ })).toBeHidden()
+	await expect(page.getByRole('dialog', { name: 'Series of 3 · photo 1' })).toBeHidden()
 })
 
 // spec: SERIES-002.15
