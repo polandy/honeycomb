@@ -125,6 +125,29 @@ describe('App: migrating the stored decisions and tags to sidecars', () => {
 		expect(dialog(wrapper, 'Some sidecars could not be written').exists()).toBe(false)
 	})
 
+	// spec: XMP-007.11
+	it('keeps the dialog open with its progress and without Cancel while it writes', async () => {
+		const seen: string[] = []
+		let mounted: AppWrapper | null = null
+		const { wrapper } = await openWith({
+			lookup: () => read(GOOD),
+			save: () => {
+				seen.push(`${dialog(mounted!, 'Write decisions to sidecars').text()} ${String(button(mounted!, 'Cancel') !== undefined)}`)
+				return saved()
+			},
+			shared: [],
+		})
+		mounted = wrapper
+
+		await askToWrite(wrapper)
+		await button(wrapper, 'Write to sidecars').trigger('click')
+		await flushPromises()
+
+		expect(seen[0]).toContain('0 of 2 photos sent')
+		expect(seen[0]).toMatch(/false$/)
+		expect(dialog(wrapper, 'Write decisions to sidecars').exists()).toBe(false)
+	})
+
 	// spec: XMP-007.6
 	it('acknowledges the saved picture beside a failed one', async () => {
 		const { wrapper, acknowledged } = await openWith({

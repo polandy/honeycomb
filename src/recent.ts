@@ -61,20 +61,33 @@ export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: Recent
 			opener.resumeOpen()
 			return
 		}
-		const opened = ++opening
+		await list(folderSet, opener.open, () => opener.resumeAt(fileId))
+	}
+
+	/** Lists the folder set and opens its cull without a position; the open one stays (XMP-007.10). */
+	async function openSet(folderSet: FolderSet, openCull: RecentOpener['open']) {
+		const current = cull.folderSet()
+		if (current === null || folderSetKey(current) !== folderSetKey(folderSet)) {
+			await list(folderSet, openCull, () => {})
+		}
+	}
+
+	/** Lists the folder set and opens its cull, unless another was chosen meanwhile; a failure keeps the cull. */
+	async function list(folderSet: FolderSet, openCull: RecentOpener['open'], opened: () => void) {
+		const listed = ++opening
 		listing.value = true
 		try {
 			const listings = await listFolderSet(folderSet, listEntries)
-			if (opened === opening) {
+			if (listed === opening) {
 				const { entries, access } = countFolderSet(listings, cull.pairing())
-				opener.open(folderSet, entries, access)
-				opener.resumeAt(fileId)
+				openCull(folderSet, entries, access)
+				opened()
 			}
 		} catch (error) {
 			logger.error('Could not list the recent folder set', { folderSet, error })
 			toast(t('honeycomb', 'Could not open {name}.', { name: folderSetName(folderSet) }, undefined, PLAIN_TEXT))
 		} finally {
-			if (opened === opening) {
+			if (listed === opening) {
 				listing.value = false
 			}
 		}
@@ -84,6 +97,7 @@ export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: Recent
 		items: computed(() => recentFolderSets(positions.value, cull.folderSet(), cull.progress())),
 		refresh,
 		open,
+		openSet,
 		listing,
 		/** The positions API for the resume flow; a saved position is listed first. */
 		positions: {

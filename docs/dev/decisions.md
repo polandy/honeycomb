@@ -1454,3 +1454,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   as from the loupe.
 - 2026-11-14: The scale measurement calls the services inside the e2e container instead of the
   HTTP endpoints, since a scripted login gets `401` there; HTTP adds the same JSON encoding once.
+- 2026-11-17: The notice of stored decisions (XMP-007.8, .10) opens a folder alone, without
+  subfolders, since the inventory counts each folder on its own; *Export* and *Discard* became
+  *Save a copy* and *Forget…*, since the glossary avoids *discard* and users read *Export* as
+  writing sidecars.
+- 2026-11-17: The migration run (XMP-007.11) writes 20 photos at a time and acknowledges each part
+  as it ends, so the dialog's progress moves and the notice's counts fall during the run; it
+  collects the failures of its passes into one result toast instead of one toast per pass.

@@ -61,7 +61,7 @@ const { settings, update: updateSettings } = useSettings({ loadSettings: props.l
 const viewState = useViewState(props.viewState, props.storage)
 const settingsOpen = ref(false)
 const sidecarsReady = computed(() => settings.value.sidecarWrite === 'on')
-const legacy = useLegacy(props.legacy, props.saveFile, (message) => toast.show(message), () => sidecarsReady.value)
+const legacy = useLegacy(props.legacy, props.saveFile, (message) => toast.show(message), () => sidecarsReady.value, (set) => void recent.openSet(set, openFolderSet))
 const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, refuseFailed, legacy.acknowledge)
 const sidecars = useBundledSidecars(sidecarFlow.sync, props.schedule, props.onPageHide)
 const writeLock = useWriteLock(() => settings.value, updateSettings, toast.show, retryLocked)

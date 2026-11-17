@@ -19,41 +19,49 @@ const props = defineProps<{
 const folders = computed(() => props.legacy.inventory.value?.folders ?? [])
 const unreachable = computed(() => props.legacy.inventory.value?.unreachable ?? 0)
 
-const foldersText = computed(() => {
+const heading = computed(() => {
 	const photos = folders.value.reduce((sum, folder) => sum + folder.files, 0)
-	const listed = folders.value.map((folder) => `${folder.path} (${formatNumber(folder.files)})`).join(', ')
-	return n('honeycomb', 'honeycomb still stores decisions and tags of {count} photo in its database. Open each folder and choose Write decisions to sidecars… in the ⋯ menu: {folders}', 'honeycomb still stores decisions and tags of {count} photos in its database. Open each folder and choose Write decisions to sidecars… in the ⋯ menu: {folders}', photos, { count: formatNumber(photos), folders: listed }, PLAIN_TEXT)
+	return photos === 0 ? undefined : n('honeycomb', 'Move the decisions of {count} photo into its sidecars', 'Move the decisions of {count} photos into their sidecars', photos, { count: formatNumber(photos) }, PLAIN_TEXT)
 })
 
-const unreachableText = computed(() => n('honeycomb', '{count} file with stored decisions is gone or no longer shared with you.', '{count} files with stored decisions are gone or no longer shared with you.', unreachable.value, { count: formatNumber(unreachable.value) }, PLAIN_TEXT))
+const unreachableText = computed(() => n('honeycomb', '{count} file with stored decisions was deleted or is no longer shared with you, so its sidecar cannot be written. Save a copy of its decisions, or forget them.', '{count} files with stored decisions were deleted or are no longer shared with you, so their sidecars cannot be written. Save a copy of their decisions, or forget them.', unreachable.value, { count: formatNumber(unreachable.value) }, PLAIN_TEXT))
+
+const forgetText = computed(() => n('honeycomb', 'honeycomb removes the stored decisions and tags of {count} file from its database for good. Save a copy first to keep them.', 'honeycomb removes the stored decisions and tags of {count} files from its database for good. Save a copy first to keep them.', unreachable.value, { count: formatNumber(unreachable.value) }, PLAIN_TEXT))
 </script>
 
 <template>
-	<NcNoteCard class="legacy-notice" type="info">
-		<p v-if="folders.length > 0">
-			{{ foldersText }}
-		</p>
+	<NcNoteCard class="legacy-notice" type="info" :heading="heading">
+		<template v-if="folders.length > 0">
+			<p>{{ t('honeycomb', 'honeycomb keeps them in its database, where digiKam, darktable and Lightroom cannot see them. Open a folder and choose ⋯ → Write decisions to sidecars…') }}</p>
+			<ul class="legacy-notice__folders">
+				<li v-for="folder in folders" :key="folder.path">
+					<NcButton variant="tertiary" @click="props.legacy.openFolder(folder.path)">
+						{{ `${folder.path} (${formatNumber(folder.files)})` }}
+					</NcButton>
+				</li>
+			</ul>
+		</template>
 		<template v-if="unreachable > 0">
 			<p>{{ unreachableText }}</p>
 			<div class="legacy-notice__actions">
 				<NcButton variant="secondary" @click="props.legacy.exportRows">
-					{{ t('honeycomb', 'Export') }}
+					{{ t('honeycomb', 'Save a copy') }}
 				</NcButton>
-				<NcButton variant="tertiary" @click="props.legacy.askDiscard">
-					{{ t('honeycomb', 'Discard') }}
+				<NcButton variant="tertiary" @click="props.legacy.askForget">
+					{{ t('honeycomb', 'Forget…') }}
 				</NcButton>
 			</div>
 		</template>
 	</NcNoteCard>
 	<ConfirmDialog
-		v-if="props.legacy.discarding.value"
-		:title="t('honeycomb', 'Discard the stored decisions of missing files')"
-		:confirmLabel="t('honeycomb', 'Discard stored decisions')"
+		v-if="props.legacy.forgetting.value"
+		:title="t('honeycomb', 'Forget the decisions of missing files')"
+		:confirmLabel="t('honeycomb', 'Forget')"
 		danger
 		cancel
-		@cancel="props.legacy.cancelDiscard"
-		@confirm="props.legacy.discard">
-		<p>{{ unreachableText }} {{ t('honeycomb', 'Their decisions and tags are removed from the database for good. Export them first to keep them.') }}</p>
+		@cancel="props.legacy.cancelForget"
+		@confirm="props.legacy.forget">
+		<p>{{ forgetText }}</p>
 	</ConfirmDialog>
 </template>
 
@@ -62,6 +70,14 @@ const unreachableText = computed(() => n('honeycomb', '{count} file with stored 
 .legacy-notice {
 	max-height: 30dvh;
 	overflow-y: auto;
+}
+
+.legacy-notice__folders {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--default-grid-baseline);
+	padding: 0;
+	list-style: none;
 }
 
 .legacy-notice__actions {
