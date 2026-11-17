@@ -243,3 +243,13 @@ clears it. The listing adds the opened folder's `fileId`, the key of a confirmat
 keep at most 200. Whether the Versions app is on for the user comes with the page
 (`data-versions-app`). The migration (XMP-007) keeps its own dialog and still writes to shared
 folders without a confirmation of its own.
+
+## Amendment 2026-11-18: the migration needs the shared confirmation
+
+The owner (#187, 2026-11-17) lifts decision 9 of #221: the migration (XMP-007) no longer writes
+to shared folders on its own dialog's warning. It takes the confirmation of *Writability and
+permissions* 6, per opened folder by its `fileId`, as *App state and migration* 2 asked from the
+start. A run skips the pictures in shared folders not confirmed and keeps their rows; its dialog
+names how many and offers a confirmation per opened folder, and the result says how many it
+skipped. A folder confirmed later, in the dialog or by deciding there, is written by the next run.
+The notice does not mark these folders, as the inventory does not know which folders are shared.
