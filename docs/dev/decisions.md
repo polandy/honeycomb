@@ -1449,4 +1449,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   Alt+arrows are always handled in the grid so the browser never goes back; in selection mode a
   badge tap toggles the series' shown photos; the compare opened from the grid lands the grid
   focus as the loupe does; the badge keeps `tabindex="-1"`, as the tiles hold the roving focus;
-  the dashed state now covers settled series too.
+  the dashed state now covers settled series too; the grid always keeps one 8 px gap above its
+  first row for that row's bracket; a badge opens the one-series compare over the page, titled
+  as from the loupe.

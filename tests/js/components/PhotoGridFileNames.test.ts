@@ -55,7 +55,7 @@ describe('PhotoGrid with file names', () => {
 		await resize(432, 220)
 
 		expect(wrapper.find('.photo-grid__row').attributes('style')).toContain('height: 126px')
-		expect(wrapper.find('.photo-grid__spacer').attributes('style')).toContain(`height: ${25 * 126 + 24 * 8}px`)
+		expect(wrapper.find('.photo-grid__spacer').attributes('style')).toContain(`height: ${8 + 25 * 126 + 24 * 8}px`)
 		expect(wrapper.findAll('.photo-tile__name').map((bar) => bar.text()).slice(0, 2)).toEqual(['IMG_0', 'IMG_1'])
 	})
 

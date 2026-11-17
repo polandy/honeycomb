@@ -103,7 +103,7 @@ const width = ref(0)
 const height = ref(0)
 const scrollTop = ref(0)
 const focused = ref(0)
-// The overlay keeps its band free so it covers no tile at the top.
+// The overlay keeps its band free, and a gap below it holds the first row's series bracket.
 const overlayHeight = useSlots().default === undefined ? 0 : OVERLAY_HEIGHT
 
 const groups = computed(() => (props.groupByFolder
@@ -116,7 +116,7 @@ const layout = computed(() => gridLayout({
 	headerHeight: HEADER_HEIGHT,
 	groups: groups.value.map((group) => group.count),
 	showHeaders: props.groupByFolder,
-	top: overlayHeight,
+	top: overlayHeight + GAP,
 	nameBar: props.fileNames ? NAME_BAR : 0,
 }))
 const series = useGridSeries({ pictures: () => props.pictures, seriesOf: () => props.seriesOf, offered: () => props.offeredSeries, open: () => props.openSeries, groupStarts: () => groups.value.map((group) => group.start) })

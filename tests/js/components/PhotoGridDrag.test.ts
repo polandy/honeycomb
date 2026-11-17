@@ -98,9 +98,10 @@ describe('PhotoGrid drag selection', () => {
 		expect(drag.last()).toEqual(keys(2, 5))
 
 		drag.frames.fire()
+		drag.frames.fire()
 		await drag.wrapper.vm.$nextTick()
 
-		expect(drag.scroller.element.scrollTop).toBe(AUTO_SCROLL_MAX_STEP * 3 / 4)
+		expect(drag.scroller.element.scrollTop).toBe(2 * AUTO_SCROLL_MAX_STEP * 3 / 4)
 		expect(drag.last()).toEqual(keys(2, 9))
 	})
 
@@ -140,7 +141,7 @@ describe('PhotoGrid drag selection', () => {
 		Array.from({ length: 200 }, drag.frames.fire)
 		await drag.wrapper.vm.$nextTick()
 
-		expect(drag.scroller.element.scrollTop).toBe(24 * ROW + 102 - 220)
+		expect(drag.scroller.element.scrollTop).toBe(8 + 24 * ROW + 102 - 220)
 		expect(drag.last()).toEqual(keys(2, 97))
 		expect(drag.frames.timers.filter((timer) => !timer.cancelled)).toEqual([])
 	})
