@@ -42,3 +42,9 @@ export const notWrittenText = (count: number) => n('honeycomb', 'Could not write
 
 /** "Wrote the decisions of 2 photos to sidecars", the toast of an explicit write. */
 export const writtenText = (count: number) => n('honeycomb', 'Wrote the decisions of {count} photo to sidecars', 'Wrote the decisions of {count} photos to sidecars', count, { count: formatNumber(count) }, PLAIN_TEXT)
+
+/** "Could not write 1 of 2 photos", the result of a migration run with failures (XMP-007.12). */
+export const photosNotWrittenText = (failed: number, count: number) => n('honeycomb', 'Could not write {failed} of {count} photo', 'Could not write {failed} of {count} photos', count, { failed: formatNumber(failed), count: formatNumber(count) }, PLAIN_TEXT)
+
+/** The result of a migration run without photos (XMP-007.12). */
+export const nothingToWriteText = () => t('honeycomb', 'No stored decisions to write here')

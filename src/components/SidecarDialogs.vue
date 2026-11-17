@@ -48,8 +48,9 @@ function shownPath(path: string): string {
 		v-if="asking !== null"
 		:title="t('honeycomb', 'Write decisions to sidecars')"
 		:confirmLabel="t('honeycomb', 'Write to sidecars')"
-		:confirmDisabled="!props.ready || asking.length === 0"
-		cancel
+		:confirmDisabled="!props.ready || asking.length === 0 || props.flow.progress.value !== null"
+		:cancel="props.flow.progress.value === null"
+		:progress="props.flow.progress.value"
 		@cancel="props.flow.close"
 		@confirm="props.flow.confirm(props.decisionOf)">
 		<p class="sidecar-dialogs__intro">

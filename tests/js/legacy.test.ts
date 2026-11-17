@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
+import type { FolderSet } from '../../src/logic/folder-set.ts'
 import type { LegacyExport, LegacyInventory } from '../../src/logic/legacy.ts'
 
 import { flushPromises } from '@vue/test-utils'
@@ -23,6 +24,7 @@ function legacyWith(options: { inventory?: () => Promise<LegacyInventory>, expor
 	const acknowledged: number[][] = []
 	const saved: { name: string, text: string }[] = []
 	const toasts: string[] = []
+	const opened: FolderSet[] = []
 	const legacy = useLegacy({
 		loadInventory: options.inventory ?? (async () => {
 			reads.push(1)
@@ -40,8 +42,8 @@ function legacyWith(options: { inventory?: () => Promise<LegacyInventory>, expor
 			}
 			acknowledged.push([...fileIds])
 		},
-	}, (name, text) => void saved.push({ name, text }), (message) => void toasts.push(message), () => active.value)
-	return { legacy, active, reads, acknowledged, saved, toasts }
+	}, (name, text) => void saved.push({ name, text }), (message) => void toasts.push(message), () => active.value, (folderSet) => void opened.push(folderSet))
+	return { legacy, active, reads, acknowledged, saved, toasts, opened }
 }
 
 describe('useLegacy', () => {
@@ -85,33 +87,44 @@ describe('useLegacy', () => {
 	})
 
 	// spec: XMP-007.8
-	it('saves the export as a file and reads the inventory again', async () => {
-		const { legacy, saved, reads } = legacyWith()
+	it('saves the export as a file, says so and reads the inventory again', async () => {
+		const { legacy, saved, reads, toasts } = legacyWith()
 		await flushPromises()
 
 		await legacy.exportRows()
 
 		expect(saved).toEqual([{ name: LEGACY_EXPORT_NAME, text: JSON.stringify(EXPORTED, null, '\t') }])
 		expect(LEGACY_EXPORT_NAME).toBe('honeycomb-legacy-rows.json')
+		expect(toasts).toEqual(['Saved a copy as honeycomb-legacy-rows.json'])
 		expect(reads).toEqual([1, 1])
 	})
 
 	// spec: XMP-007.8
-	it('discards the exported file ids only on confirm', async () => {
-		const { legacy, acknowledged, reads } = legacyWith()
+	it('forgets the exported file ids only on confirm and says how many', async () => {
+		const { legacy, acknowledged, reads, toasts } = legacyWith()
 		await flushPromises()
 
-		legacy.askDiscard()
-		expect(legacy.discarding.value).toBe(true)
-		legacy.cancelDiscard()
-		expect(legacy.discarding.value).toBe(false)
+		legacy.askForget()
+		expect(legacy.forgetting.value).toBe(true)
+		legacy.cancelForget()
+		expect(legacy.forgetting.value).toBe(false)
 		expect(acknowledged).toEqual([])
 
-		legacy.askDiscard()
-		await legacy.discard()
-		expect(legacy.discarding.value).toBe(false)
+		legacy.askForget()
+		await legacy.forget()
+		expect(legacy.forgetting.value).toBe(false)
 		expect(acknowledged).toEqual([[7, 8, 9]])
+		expect(toasts).toEqual(['Forgot the stored decisions of 3 files'])
 		expect(reads).toEqual([1, 1])
+	})
+
+	// spec: XMP-007.10
+	it('opens a folder of the notice alone, without subfolders', () => {
+		const { legacy, opened } = legacyWith()
+
+		legacy.openFolder('/Photos/B')
+
+		expect(opened).toEqual([{ paths: ['/Photos/B'], subfolders: false }])
 	})
 
 	// spec: XMP-007.5
@@ -126,15 +139,15 @@ describe('useLegacy', () => {
 	})
 
 	// spec: XMP-007.6
-	it('logs and tells when the rows could not be removed or exported', async () => {
+	it('logs and tells when the rows could not be removed, exported or forgotten', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => {})
 		const { legacy, toasts, saved } = legacyWith({ acknowledgeFails: true, exportFails: true })
 		await flushPromises()
 
 		await legacy.acknowledge([3])
 		await legacy.exportRows()
-		legacy.askDiscard()
-		await legacy.discard()
+		legacy.askForget()
+		await legacy.forget()
 
 		expect(saved).toEqual([])
 		expect(toasts).toEqual([
@@ -143,5 +156,17 @@ describe('useLegacy', () => {
 			'Could not export the stored decisions.',
 		])
 		expect(error).toHaveBeenCalledTimes(3)
+	})
+
+	// spec: XMP-007.8
+	it('says nothing was forgotten when the rows could not be removed', async () => {
+		vi.spyOn(logger, 'error').mockImplementation(() => {})
+		const { legacy, toasts } = legacyWith({ acknowledgeFails: true })
+		await flushPromises()
+
+		legacy.askForget()
+		await legacy.forget()
+
+		expect(toasts).toEqual(['Could not remove the stored decisions; run it again later.'])
 	})
 })

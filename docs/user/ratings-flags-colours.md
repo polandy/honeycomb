@@ -108,16 +108,21 @@ rated: a message says why, and the loupe's info panel names the reason under *Wr
 ## Moving stored decisions into sidecars
 
 Earlier versions kept ratings, flags, colour labels, *Keep RAW* marks and tags in honeycomb's
-database. To move them into the sidecars, where digiKam, darktable and Lightroom see them, set
-**Write decisions to XMP sidecars** to *On*. The grid then names the folders
-that still hold stored decisions. Open each one and choose **⋯ → Write decisions to sidecars…**:
+database, where digiKam, darktable and Lightroom cannot see them. To move them into the sidecars,
+set **Write decisions to XMP sidecars** to *On*. The grid then shows *Move the decisions of 81
+photos into their sidecars* with one button per folder that still holds stored decisions, such as
+`/Big (10)`. A button opens that folder; there choose **⋯ → Write decisions to sidecars…**.
 honeycomb names the photos and folders, warns if one lies in a shared folder, and once you confirm
-writes the stored values into each photo's sidecars. Where a sidecar says otherwise, the stored
-value wins; stored tags are added to the sidecar's. A photo whose sidecars were all written leaves
-the database; one that failed stays and is written again the next time.
+writes the stored values into each photo's sidecars, 20 photos at a time: the dialog shows how
+many were sent, and the numbers in the grid's notice fall as each part is done. Where a sidecar
+says otherwise, the stored value wins; stored tags are added to the sidecar's. A photo whose
+sidecars were all written leaves the database; one that failed stays and is written again the
+next time. At the end a message says how many photos were written, or *Could not write 2 of 81
+photos* with **Details**, which lists each sidecar with the reason and can retry.
 
-Stored decisions of files that are gone or no longer shared with you cannot be written. **Export**
-saves them as `honeycomb-legacy-rows.json`; **Discard** removes them for good.
+Stored decisions of files that were deleted or are no longer shared with you cannot be written.
+**Save a copy** saves them as `honeycomb-legacy-rows.json`; **Forget…** asks, then removes them
+from the database for good.
 
 ## When a sidecar cannot be written
 

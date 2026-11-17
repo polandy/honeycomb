@@ -39,15 +39,25 @@ disabled. On confirm, every decided picture's sidecars get all four decision fie
 stored decision, every tagged picture's sidecars get its stored tags added (the union), in one
 pass (XMP-003.16). The server keeps refusing what it refuses (XMP-002), among them an overwrite
 without file versions. A picture whose every sidecar answered `saved`, or needed no save, is
-acknowledged; a failed picture keeps its rows, is reported as in XMP-003.13, and is written again
-by the next run, so a run can resume. The cull keeps showing every picture as it did.
+acknowledged; a failed picture keeps its rows and is written again by the next run, so a run can
+resume. The cull keeps showing every picture as it did.
 
-**The notice.** While writing is *On* and legacy rows remain, the
-grid shows a notice that names the folders still holding them, to open each and use the ⋯ entry.
-With unreachable rows it says how many files and offers *Export* and *Discard*: *Export* saves
-the export as `honeycomb-legacy-rows.json`; *Discard* asks first, then acknowledges the exported
-file ids. The notice is read when the app opens and after each run, export or discard; a failed
-read shows no notice and is logged.
+**The run.** The run writes 20 photos at a time. Until it ends the dialog stays open without
+*Cancel*, its footer shows how many photos were written, and each part's saved pictures are
+acknowledged as the part ends, so the notice's counts fall while it runs. It ends with one toast:
+how many photos were written, or how many of them could not be written with *Details*, which
+lists each failed sidecar with its reason and offers a retry (XMP-003.13). A run that stops on
+an error says so, and a run without photos says there is nothing to write.
+
+**The notice.** While writing is *On* and legacy rows remain, the grid shows a notice. Its
+heading says how many photos have decisions not yet in their sidecars; its text says that
+digiKam, darktable and Lightroom cannot see them and to open a folder and choose the ⋯ entry; one
+button per folder, `/Photos/A (2)`, opens that folder alone, without subfolders. With unreachable
+rows it says how many files were deleted or are no longer shared, that their sidecars cannot be
+written, and offers *Save a copy* and *Forget…*: *Save a copy* saves the export as
+`honeycomb-legacy-rows.json` and says so in a toast; *Forget…* asks first, then acknowledges the
+exported file ids and says how many files it forgot. The notice is read when the app opens and
+after each part of a run, a copy or a forget; a failed read shows no notice and is logged.
 
 ## Acceptance criteria
 
@@ -102,13 +112,15 @@ read shows no notice and is logged.
 - **Then** the dialog says to turn on *Write decisions to XMP sidecars* in the settings and *Write to
   sidecars* is disabled; in the cull without legacy rows the entry is absent
 
-### XMP-007.8 – The notice names the folders and offers export and discard
+### XMP-007.8 – The notice names the folders and offers a copy and forgetting
 
 - **Given** writing *On* and an inventory of two folders and 3 unreachable files
-- **When** the grid shows, and the user chooses *Export*, then *Discard* and confirms
-- **Then** the notice names both folders and the 3 files, *Export* saves the export as
-  `honeycomb-legacy-rows.json`, *Discard* acknowledges the exported file ids and the notice is
-  read again; *Cancel* discards nothing, and without rows or with writing *Off* no notice shows
+- **When** the grid shows, and the user chooses *Save a copy*, then *Forget…* and confirms
+- **Then** the notice names both folders and the 3 files, *Save a copy* saves the export as
+  `honeycomb-legacy-rows.json` and toasts *Saved a copy as honeycomb-legacy-rows.json*, *Forget*
+  acknowledges the exported file ids, toasts *Forgot the stored decisions of 3 files* and the
+  notice is read again; *Cancel* forgets nothing, and without rows or with writing *Off* no notice
+  shows
 - **And** a long folder list scrolls inside the notice, which takes at most 30 % of the screen's
   height, so the grid keeps room on a phone
 
@@ -117,6 +129,30 @@ read shows no notice and is logged.
 - **Given** an inventory request that fails
 - **When** the app opens
 - **Then** no notice shows and the failure is logged
+
+### XMP-007.10 – A folder of the notice opens that folder
+
+- **Given** the notice naming `/Photos/B (1)` while another folder is open
+- **When** the user chooses `/Photos/B (1)`
+- **Then** honeycomb lists `/Photos/B` without subfolders and opens its cull; a failed listing
+  toasts *Could not open B.* and keeps the open cull
+
+### XMP-007.11 – The run shows its progress and ends with one result
+
+- **Given** 45 pictures with stored decisions
+- **When** the ⋯ entry writes them
+- **Then** they are written in parts of 20, 20 and 5 photos, the dialog shows *20 of 45 photos
+  sent* after the first part, each part's pictures are acknowledged as it ends and the notice read
+  again, and one toast says *Wrote the decisions of 45 photos to sidecars*
+
+### XMP-007.12 – A run with failures ends with how many failed and why
+
+- **Given** two pictures, one of whose sidecars cannot be saved, or a write that stops on an
+  error, or no picture to write
+- **When** the ⋯ entry writes them
+- **Then** one toast says *Could not write 1 of 2 photos* with *Details* naming the sidecar and its
+  reason; after an error it says *Could not write the sidecars; run it again later.* and
+  acknowledges nothing; without pictures it says *No stored decisions to write here*
 
 ## Out of scope
 
@@ -132,3 +168,4 @@ read shows no notice and is logged.
 | Date | Change |
 |---|---|
 | 2026-11-15 | Written with ADR 0032 PR 5 |
+| 2026-11-17 | Clearer notice with folder buttons, *Save a copy* and *Forget…*; the run shows progress and one result (XMP-007.10–.12) |
