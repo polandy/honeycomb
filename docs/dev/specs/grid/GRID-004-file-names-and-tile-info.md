@@ -96,7 +96,7 @@ leaves its line out. Screen readers hear the tile as before; the bubble is hidde
 - **When** its tile info shows
 - **Then** it says the base name with the members (`JPG + CR3`, or `JPG only` for a single), the
   capture time with seconds, the camera and the rating as five stars; without a capture time or
-  camera the line is left out
+  camera the line is left out; the capture time stays on one line in every locale
 
 ### GRID-004.10 – Placed like the tooltip
 
