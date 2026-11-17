@@ -19,6 +19,7 @@ export interface Settings extends PairingSettings {
 	readonly filmstripPinned: boolean
 	readonly ratingRowPinned: boolean
 	readonly viKeys: boolean
+	readonly showFileNames: boolean
 	readonly moveFavourites: readonly string[]
 	readonly moveRecent: readonly string[]
 	readonly moveTemplate: string
@@ -59,6 +60,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	filmstripPinned: false,
 	ratingRowPinned: false,
 	viKeys: false,
+	showFileNames: false,
 	moveFavourites: [],
 	moveRecent: [],
 	moveTemplate: DEFAULT_NAME_TEMPLATE,
@@ -73,7 +75,7 @@ const SWIPE_FLAGS: readonly (Flag | null)[] = ['picked', 'rejected', null]
 /** The settings as stored, each missing or invalid field at its default; pairing never fails on them. */
 export function parseSettings(value: unknown): Settings {
 	const stored: Record<string, unknown> = isObject(value) ? value : {}
-	const boolean = (key: 'showSingles' | 'autoAdvance' | 'flagButtonsShown' | 'filmstripPinned' | 'ratingRowPinned' | 'viKeys') => (typeof stored[key] === 'boolean' ? stored[key] : DEFAULT_SETTINGS[key])
+	const boolean = (key: 'showSingles' | 'autoAdvance' | 'flagButtonsShown' | 'filmstripPinned' | 'ratingRowPinned' | 'viKeys' | 'showFileNames') => (typeof stored[key] === 'boolean' ? stored[key] : DEFAULT_SETTINGS[key])
 	return {
 		...extensionLists(stored.rawExtensions, stored.renderedExtensions),
 		folderMode: parseFolderMode(stored.folderMode),
@@ -84,6 +86,7 @@ export function parseSettings(value: unknown): Settings {
 		filmstripPinned: boolean('filmstripPinned'),
 		ratingRowPinned: boolean('ratingRowPinned'),
 		viKeys: boolean('viKeys'),
+		showFileNames: boolean('showFileNames'),
 		moveFavourites: parsePaths(stored.moveFavourites),
 		moveRecent: parsePaths(stored.moveRecent),
 		moveTemplate: typeof stored.moveTemplate === 'string' && parseNameTemplate(stored.moveTemplate).ok ? stored.moveTemplate : DEFAULT_NAME_TEMPLATE,

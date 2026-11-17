@@ -28,7 +28,7 @@ describe('the tooltips of the icon-only controls', () => {
 		const wrapper = mount(GridToolbar, {
 			props: {
 				folders: { set: { paths: ['/Trip'], subfolders: false }, count: 1 },
-				view: { tileSize: 150, groupByFolder: false, sortOrder: 'file-name', flags: new Set<Flag>(['picked', 'unflagged']), filtersOpen: false, activeFilters: 0 },
+				view: { tileSize: 150, groupByFolder: false, fileNames: false, sortOrder: 'file-name', flags: new Set<Flag>(['picked', 'unflagged']), filtersOpen: false, activeFilters: 0 },
 				progress: { decided: 0, total: 1, filtered: false },
 				selection: { selecting: false, selected: 0 },
 				tasks: { rejected: 2, series: 1, rawRemovable: 0, legacyRows: false, movable: 0, resumeName: null },

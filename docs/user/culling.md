@@ -28,6 +28,10 @@ thumbnail size and the sort order (*File name* or *Capture time*).
 A tile shows its stars, colour label and flag once you decided it, and badges for a photo without
 a partner (*JPG only*), a pair marked *Keep RAW* and a series (*⧉ 3*).
 
+**⋯ → Show file names** (or `Shift+J`) puts each photo's name above its tile; the setting is kept
+for your account. With a mouse, rest the pointer on a tile for a moment to see its full name, the
+capture time, the camera and the rating; moving away, clicking, scrolling or `Esc` hides it.
+
 To decide many photos at once, press **Select** (or long-press a tile), select photos and use the
 action bar: flag, rating, colour label, *Keep RAW*, **Tags**, **Series…**, **Move…** and
 **Delete**. **Done** leaves the selection.

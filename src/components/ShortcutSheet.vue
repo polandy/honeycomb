@@ -57,6 +57,7 @@ const LABELS: Readonly<Record<string, string>> = {
 	fullscreen: t('honeycomb', 'Fullscreen'),
 	header: t('honeycomb', 'Show or hide the header (loupe: the controls)'),
 	info: t('honeycomb', 'Show or hide the info panel'),
+	'file-names': t('honeycomb', 'Grid: show or hide the file names'),
 	close: t('honeycomb', 'Close loupe / dialog / selection / hint'),
 	'filter-bar': t('honeycomb', 'Show or hide the filter bar'),
 	'filters-off': t('honeycomb', 'Filters off / on'),

@@ -15,6 +15,8 @@ export interface ToolbarFolders {
 export interface ToolbarView {
 	readonly tileSize: number
 	readonly groupByFolder: boolean
+	/** Whether each tile has its name bar (GRID-004). */
+	readonly fileNames: boolean
 	readonly sortOrder: SortOrder
 	/** The pressed flags of the flag filter. */
 	readonly flags: ReadonlySet<Flag>

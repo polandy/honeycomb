@@ -33,7 +33,7 @@ export function mountToolbar(folderSet: FolderSet, folders = 1, cull: Partial<ty
 	return mount(GridToolbar, {
 		props: {
 			folders: { set: folderSet, count: folders },
-			view: { tileSize: 150.4, groupByFolder: false, sortOrder, flags, filtersOpen, activeFilters },
+			view: { tileSize: 150.4, groupByFolder: false, fileNames: false, sortOrder, flags, filtersOpen, activeFilters },
 			progress: { decided, total, filtered },
 			selection: { selecting, selected },
 			tasks,

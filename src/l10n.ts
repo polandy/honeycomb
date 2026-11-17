@@ -33,3 +33,8 @@ export function formatTime(seconds: number): string {
 export function formatDateTime(seconds: number): string {
 	return new Intl.DateTimeFormat(getCanonicalLocale(), { dateStyle: 'medium', timeStyle: 'short' }).format(seconds * 1000)
 }
+
+/** A Unix time in seconds as a date and a time with seconds in the user's locale. */
+export function formatDateTimeSeconds(seconds: number): string {
+	return new Intl.DateTimeFormat(getCanonicalLocale(), { dateStyle: 'medium', timeStyle: 'medium' }).format(seconds * 1000)
+}

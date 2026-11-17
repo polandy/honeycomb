@@ -25,6 +25,7 @@ back to its default, so an unknown, missing or invalid field never breaks the ap
 | Swipe up, swipe down | Pick, reject; each can be pick, reject or nothing |
 | Auto-advance to the next undecided photo | On |
 | Show flag buttons | On |
+| Show file names | Off (GRID-004) |
 | Pin the filmstrip, pin the rating row | Off |
 | Vi keys | Off |
 | Name template for moved photos | *By day* (`docs/dev/05-name-templates.md` Default and presets) |
@@ -254,3 +255,4 @@ Pairing itself: LISTING-002.
 | 2026-11-15 | .24 *Write decisions to XMP sidecars*, opted into after a dialog (risk review R1) |
 | 2026-11-15 | .25 *Clear cache* (ADR 0032) |
 | 2026-11-15 | .24 *Off* and *On*; .26 the Versions app and the old values (ADR 0032 PR 6) |
+| 2026-11-17 | *Show file names* in the defaults (GRID-004) |

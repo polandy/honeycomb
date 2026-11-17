@@ -1439,3 +1439,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   of the folder like the counts in digiKam. The status line counts without the excluded folders.
 - 2026-11-17: The name of a folder set under *Recent* and in the toolbar does not mention
   exclusions ("Trip + subfolders"): short names; the picker shows them when reopened.
+- 2026-11-17: File names in the grid (GRID-004, #187): `Shift+J` toggles them in the grid only,
+  as `J` is the vi keys' down; the name bar shows the base name for pairs and singles. The tile
+  info answers only a mouse, so touch, pen and keyboard focus never show it, and controls with
+  their own tooltip keep theirs; an `Esc` hides one bubble at a time, the tooltip first.

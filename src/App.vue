@@ -124,6 +124,8 @@ function openFolderSet(...opened: Parameters<typeof cull.open>) {
 	cull.open(...opened)
 	resume.offer()
 }
+/** Shows or hides the file names above the grid's tiles (GRID-004.3). */
+const toggleFileNames = () => updateSettings({ showFileNames: !settings.value.showFileNames })
 /** Opens or closes the shortcut sheet. */
 const toggleShortcuts = () => (shortcutsOpen.value = !shortcutsOpen.value)
 useHotkeys(() => {
@@ -136,7 +138,7 @@ useHotkeys(() => {
 	if (seriesCompare.open.value) {
 		return { undo, redo, shortcuts: toggleShortcuts, ...(seriesScreen.value?.hotkeys() ?? seriesCompare.hotkeys) }
 	}
-	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: () => deleting.summariseShown(selected.value, () => grid.value?.focusedIndex() ?? 0), move: () => moving.openShown(selected.value, () => grid.value?.focusedIndex() ?? 0), ...(loupe.value === null ? { ...gridKeys, compare: seriesCompare.start } : loupeScreen.value?.loupe?.hotkeys) }
+	return { undo, redo, shortcuts: toggleShortcuts, 'review-rejects': deleting.review, delete: () => deleting.summariseShown(selected.value, () => grid.value?.focusedIndex() ?? 0), move: () => moving.openShown(selected.value, () => grid.value?.focusedIndex() ?? 0), ...(loupe.value === null ? { ...gridKeys, compare: seriesCompare.start, 'file-names': toggleFileNames } : loupeScreen.value?.loupe?.hotkeys) }
 }, () => settings.value.viKeys)
 </script>
 
