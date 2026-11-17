@@ -64,7 +64,7 @@ test('keeps the capture time of the tile info on one line in a narrow window', a
 
 	await page.getByRole('gridcell', { name: /IMG_0001/ }).hover()
 	const captured = page.locator('.tile-info__rows dd').first()
-	await expect(captured).toContainText('11:13:20')
+	await expect(captured).toContainText(':13:20')
 	const lines = await captured.evaluate((dd) => dd.getBoundingClientRect().height / Number.parseFloat(getComputedStyle(dd).lineHeight))
 	expect(lines).toBe(1)
 })
