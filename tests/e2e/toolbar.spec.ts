@@ -75,11 +75,11 @@ test('closes the More menu when an item opens the settings dialog', async ({ pag
 	await expect(size).toBeHidden()
 })
 
-/** The toolbar row's box, the navigation toggle's box and what sits at the toggle's centre. */
+/** The toolbar's first row (its breadcrumbs), the navigation toggle's box and what sits at the toggle's centre. */
 async function toggleGeometry(page: Page) {
 	return page.evaluate(() => {
 		const toggle = document.querySelector('.app-navigation-toggle')!.getBoundingClientRect()
-		const toolbar = document.querySelector('.grid-toolbar')!.getBoundingClientRect()
+		const toolbar = document.querySelector('.grid-toolbar__crumbs')!.getBoundingClientRect()
 		const x = toggle.left + toggle.width / 2
 		const y = toggle.top + toggle.height / 2
 		const hit = document.elementFromPoint(x, y)
@@ -98,10 +98,11 @@ for (const [name, viewport] of [['desktop', DESKTOP], ['iPad', { width: 1024, he
 		await page.setViewportSize(viewport)
 		await cullTwo(page)
 		const toggle = page.locator('.app-navigation-toggle')
-		for (const open of [false, true]) {
-			if (open) {
+		for (const click of [false, true]) {
+			if (click) {
+				const expanded = await toggle.getAttribute('aria-expanded')
 				await toggle.click()
-				await expect(toggle).toHaveAttribute('aria-expanded', 'true')
+				await expect(toggle).not.toHaveAttribute('aria-expanded', expanded!)
 			}
 			const geometry = await toggleGeometry(page)
 			expect(geometry.toggles).toBe(1)
@@ -109,7 +110,7 @@ for (const [name, viewport] of [['desktop', DESKTOP], ['iPad', { width: 1024, he
 			expect(Math.abs(geometry.toggleCentre - geometry.toolbarCentre)).toBeLessThanOrEqual(1)
 			await toggle.hover()
 			await expect(toggle).toHaveCSS('opacity', '1')
-			expect(await toggle.evaluate((element) => getComputedStyle(element.closest('.app-navigation-toggle-wrapper') ?? element).opacity)).toBe('1')
+			await expect(toggle).not.toHaveCSS('background-color', /rgba|transparent/)
 		}
 	})
 }
