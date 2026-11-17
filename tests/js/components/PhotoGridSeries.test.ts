@@ -33,7 +33,7 @@ const tile = (wrapper: ReturnType<typeof mountGrid>['wrapper'], index: number) =
 
 describe('PhotoGrid series', () => {
 	// spec: SERIES-002.12
-	it('brackets a run over the tile gaps and a row wrap, capped at its start and end, and moves no tile', async () => {
+	it('brackets a run over the tile gaps and a row wrap, capped at its start and end, a gap below the top, and moves no tile', async () => {
 		const pictures = picturesIn({ '/P': 12 })
 		const { wrapper, resize } = mountGrid({ pictures })
 		await resize(WIDTH, 400)
@@ -41,8 +41,8 @@ describe('PhotoGrid series', () => {
 		await wrapper.setProps({ seriesOf: seriesOf(pictures, 7, 2, 6), offeredSeries: new Set([7]) })
 
 		expect(brackets(wrapper)).toEqual([
-			{ row: '0px', left: String(2 * PITCH), width: String(PITCH + 102), classes: ['photo-grid__bracket--start'] },
-			{ row: `${PITCH}px`, left: '0', width: String(PITCH + 102), classes: ['photo-grid__bracket--end'] },
+			{ row: '8px', left: String(2 * PITCH), width: String(PITCH + 102), classes: ['photo-grid__bracket--start'] },
+			{ row: `${8 + PITCH}px`, left: '0', width: String(PITCH + 102), classes: ['photo-grid__bracket--end'] },
 		])
 		expect(wrapper.findAll('[role="gridcell"]').map((cell) => cell.attributes('style'))).toEqual(before)
 	})
