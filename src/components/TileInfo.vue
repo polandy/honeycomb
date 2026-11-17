@@ -77,6 +77,7 @@ const style = computed(() => placement.value === null
 
 <style scoped>
 .tile-info__name {
+	margin: 0;
 	font-weight: 600;
 	overflow-wrap: anywhere;
 }
@@ -93,7 +94,9 @@ const style = computed(() => placement.value === null
 	margin: 4px 0 0;
 }
 
+.tile-info__rows dt,
 .tile-info__rows dd {
 	margin: 0;
+	padding: 0;
 }
 </style>
