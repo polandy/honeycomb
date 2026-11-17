@@ -287,4 +287,25 @@ describe('PhotoTile', () => {
 		expect(wrapper.find('.photo-tile__marks').exists()).toBe(false)
 		expect(wrapper.attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3')
 	})
+	// spec: GRID-004.4, GRID-004.11
+	it('shows the base name in a name bar above the photo only when asked, its label unchanged', async () => {
+		const wrapper = mountTile(PAIR)
+		expect(wrapper.find('.photo-tile__name').exists()).toBe(false)
+
+		await wrapper.setProps({ nameBar: true })
+		const bar = wrapper.find('.photo-tile__name')
+		expect(bar.text()).toBe('IMG_0001')
+		expect(bar.attributes('aria-hidden')).toBe('true')
+		expect(wrapper.element.firstElementChild).toBe(bar.element)
+		expect(wrapper.find('.photo-tile__photo .photo-tile__image').exists()).toBe(true)
+		expect(wrapper.attributes('aria-label')).toBe('IMG_0001, JPG+CR3')
+	})
+
+	// spec: GRID-004.5
+	it('splits the name so the trailing number stays when the bar shortens it', () => {
+		const wrapper = mountTile(pictureOf(listingEntry(3, '/A/2026-11-17 wedding_0042.JPG')), { nameBar: true })
+
+		expect(wrapper.find('.photo-tile__name-head').text()).toBe('2026-11-17 wedding')
+		expect(wrapper.find('.photo-tile__name-tail').text()).toBe('_0042')
+	})
 })

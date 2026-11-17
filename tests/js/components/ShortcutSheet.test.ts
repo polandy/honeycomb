@@ -45,6 +45,11 @@ describe('ShortcutSheet', () => {
 		expect(rows(mountSheet()).find(([caps]) => caps?.[0] === 'Shift+K')).toEqual([['Shift+K'], 'Series: pick this, reject the rest'])
 	})
 
+	// spec: GRID-004.3
+	it('names Shift+J for the file names in the grid', () => {
+		expect(rows(mountSheet()).find(([caps]) => caps?.[0] === 'Shift+J')).toEqual([['Shift+J'], 'Grid: show or hide the file names'])
+	})
+
 	// spec: KEYS-001.12
 	it('lays out every group in one table, so all groups share the key column', () => {
 		const wrapper = mountSheet()

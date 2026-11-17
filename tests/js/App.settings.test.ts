@@ -113,4 +113,20 @@ describe('App: the settings', () => {
 		expect(cleared).toBe(1)
 		expect(wrapper.findComponent(UndoToast).text()).toContain('Cache cleared')
 	})
+	// spec: GRID-004.1, GRID-004.2, GRID-004.3
+	it('shows the file names from the More menu and by Shift+J, saving the setting', async () => {
+		const { wrapper, savedSettings } = mountApp()
+		await openCull(wrapper)
+		expect(wrapper.findComponent(PhotoGrid).props('fileNames')).toBe(false)
+
+		wrapper.findComponent(GridToolbar).vm.$emit('update:fileNames', true)
+		await flushPromises()
+		expect(wrapper.findComponent(PhotoGrid).props('fileNames')).toBe(true)
+		expect(wrapper.findComponent(GridToolbar).props('view').fileNames).toBe(true)
+
+		document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'J', shiftKey: true, bubbles: true, cancelable: true }))
+		await flushPromises()
+		expect(wrapper.findComponent(PhotoGrid).props('fileNames')).toBe(false)
+		expect(savedSettings).toEqual([{ ...WRITING_ON, showFileNames: true }, { ...WRITING_ON, showFileNames: false }])
+	})
 })

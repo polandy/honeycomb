@@ -157,6 +157,18 @@ describe('GridToolbar More menu', () => {
 		expect(wrapper.emitted('update:groupByFolder')).toEqual([[true]])
 	})
 
+	// spec: GRID-004.2
+	it('offers Show file names with its key below Group by folder, also for one folder', async () => {
+		const wrapper = mountToolbar({ paths: ['/A'], subfolders: true }, 1)
+		const box = wrapper.findAll('.grid-more-menu .checkbox-radio-switch').find((option) => option.text().includes('Show file names'))!
+
+		expect(box.text()).toContain('Shift+J')
+		await box.find('input[type="checkbox"]').setValue(true)
+		expect(wrapper.emitted('update:fileNames')).toEqual([[true]])
+		const labels = mountToolbar({ paths: ['/A', '/B'], subfolders: false }, 2).findAll('.grid-more-menu .checkbox-radio-switch').map((option) => option.text())
+		expect(labels.findIndex((label) => label.includes('Show file names'))).toBe(labels.findIndex((label) => label.includes('Group by folder')) + 1)
+	})
+
 	// spec: GRID-002.8
 	it('chooses the sort order in the More menu', async () => {
 		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false })

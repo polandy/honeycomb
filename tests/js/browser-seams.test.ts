@@ -4,7 +4,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { APP_SEAMS } from '../../src/app-seams.ts'
 import { fullscreenAvailable, toggleBrowserFullscreen } from '../../src/fullscreen.ts'
-import { formatDateTime, formatFileSize, formatTime } from '../../src/l10n.ts'
+import { formatDateTime, formatDateTimeSeconds, formatFileSize, formatTime } from '../../src/l10n.ts'
 import { observeElementSize } from '../../src/observe-size.ts'
 
 afterEach(() => {
@@ -103,6 +103,11 @@ describe('formatFileSize, formatDateTime and formatTime', () => {
 
 	it('shows a capture time with its year', () => {
 		expect(formatDateTime(Date.UTC(2026, 10, 10, 12) / 1000)).toContain('2026')
+	})
+
+	// spec: GRID-004.9
+	it('shows a capture time with its year and seconds for the tile info', () => {
+		expect(formatDateTimeSeconds(Date.UTC(2026, 10, 10, 12, 3, 47) / 1000)).toMatch(/2026.*:47\b/)
 	})
 
 	it('shows a time of day with its seconds, which tell the shots of a burst apart', () => {
