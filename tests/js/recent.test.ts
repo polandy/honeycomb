@@ -34,9 +34,9 @@ function recentOn(positions: () => Promise<unknown>, listEntries: ListEntries = 
 	let resumed = 0
 	const folderSet = ref<FolderSet | null>(null)
 	const progress = ref({ decided: 0, total: 0 })
-	const recent = useRecent({ loadPositions: positions, savePosition: async () => undefined }, (path, subfolders) => {
-		listed.push(`${path}${subfolders ? ' +' : ''}`)
-		return listEntries(path, subfolders)
+	const recent = useRecent({ loadPositions: positions, savePosition: async () => undefined }, (path, subfolders, excluded = []) => {
+		listed.push(`${path}${subfolders ? ' +' : ''}${excluded.map((each) => ` -${each}`).join('')}`)
+		return listEntries(path, subfolders, excluded)
 	}, {
 		folderSet: () => folderSet.value,
 		progress: () => progress.value,
@@ -67,6 +67,16 @@ describe('useRecent', () => {
 
 		expect(recent.listed).toEqual(['/Trip', '/Day'])
 		expect(recent.opened).toEqual([[TRIP, [...LISTINGS['/Trip']!, ...LISTINGS['/Day']!], { folders: [{ path: '/Day', shared: false, permissions: 31, versions: true }], opened: [{ path: '/Trip', fileId: 5 }, { path: '/Day', fileId: 4 }] }, 2]])
+	})
+
+	// spec: DECISIONS-002.16
+	it('lists a recent folder set without its excluded folders', async () => {
+		const recent = recentOn(async () => [])
+
+		await recent.open({ ...trip, folderSet: { paths: ['/Trip', '/Trip/Raw/Best'], subfolders: true, excluded: ['/Trip/Raw'] } })
+		await flushPromises()
+
+		expect(recent.listed).toEqual(['/Trip + -/Trip/Raw', '/Trip/Raw/Best +'])
 	})
 
 	// spec: DECISIONS-002.8

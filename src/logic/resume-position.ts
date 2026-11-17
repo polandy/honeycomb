@@ -18,7 +18,7 @@ export function parsePositions(answer: unknown): ResumePosition[] {
 	if (!Array.isArray(answer)) {
 		return []
 	}
-	return answer.filter(isPosition).map(({ folderSet, fileId, decided, total }) => ({ folderSet: { paths: folderSet.paths, subfolders: folderSet.subfolders }, fileId, decided, total }))
+	return answer.filter(isPosition).map(({ folderSet: { paths, subfolders, excluded }, fileId, decided, total }) => ({ folderSet: excluded === undefined ? { paths, subfolders } : { paths, subfolders, excluded }, fileId, decided, total }))
 }
 
 /** The position of the folder set, whatever the order of its paths, or null. */
@@ -56,6 +56,12 @@ function isPosition(value: unknown): value is ResumePosition {
 	return typeof folderSet === 'object' && folderSet !== null
 		&& Array.isArray((folderSet as FolderSet).paths) && (folderSet as FolderSet).paths.every((path) => typeof path === 'string')
 		&& typeof (folderSet as FolderSet).subfolders === 'boolean'
+		&& isPathsOrMissing((folderSet as Record<string, unknown>).excluded)
 		&& Number.isInteger(fileId) && (fileId as number) >= 1
 		&& Number.isInteger(total) && Number.isInteger(decided) && (decided as number) >= 0 && (decided as number) <= (total as number)
+}
+
+/** Whether `value` is left out or a list of paths, as a folder set's excluded folders are. */
+function isPathsOrMissing(value: unknown): boolean {
+	return value === undefined || (Array.isArray(value) && value.every((path) => typeof path === 'string'))
 }

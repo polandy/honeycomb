@@ -33,9 +33,9 @@ export function fakeFolders(folders = FOLDERS) {
 	return { pending, listFolders, answer }
 }
 
-export async function mountTree(ticked: string[] = [], subfolders = false, tree = FOLDERS) {
+export async function mountTree(ticked: string[] = [], subfolders = false, tree = FOLDERS, excluded: string[] = []) {
 	const folders = fakeFolders(tree)
-	const wrapper = mount(FolderTree, { props: { ticked, subfolders, listFolders: folders.listFolders }, attachTo: document.body })
+	const wrapper = mount(FolderTree, { props: { ticked, subfolders, excluded, listFolders: folders.listFolders }, attachTo: document.body })
 	await folders.answer('')
 	return { wrapper, ...folders }
 }

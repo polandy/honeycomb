@@ -22,7 +22,7 @@ import PickerRecentSets from './PickerRecentSets.vue'
 import { listEntries as apiListEntries, listFolders as apiListFolders } from '../api.ts'
 import { useFolderCount } from '../folder-count.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
-import { toggleFolder } from '../logic/folder-set.ts'
+import { tapFolder } from '../logic/folder-set.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../logic/pairing.ts'
 import { PICTURE_CAP } from '../logic/picture-order.ts'
 
@@ -79,9 +79,9 @@ const confirmLabel = computed(() => {
 		: n('honeycomb', 'Cull {count} folder', 'Cull {count} folders', folders, { count: formatNumber(folders) })
 })
 
-/** Ticks or unticks a folder. */
+/** Ticks, unticks, excludes or includes again a folder. */
 function onToggle(path: string) {
-	set.value = { ...set.value, paths: toggleFolder(set.value.paths, path) }
+	set.value = tapFolder(set.value, path)
 }
 
 /** Turns *Include subfolders* on or off. */
@@ -119,6 +119,7 @@ function onConfirm() {
 		<FolderTree
 			:ticked="set.paths"
 			:subfolders="set.subfolders"
+			:excluded="set.excluded ?? []"
 			:listFolders="props.listFolders"
 			@toggle="onToggle" />
 		<p class="folder-picker__count" aria-live="polite">

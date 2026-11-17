@@ -22,6 +22,11 @@ continues on another, and *Recent* can list the last folder sets with their prog
   subfolders. The stored `paths` keep every tick, so switching subfolders off loses none.
   Positions stored under the older key, which counted every tick, take the new key when the
   list is read; when two of them become one set, the newer position stays.
+- With subfolders, a folder set may name `excluded` folders it leaves out (LISTING-003.21,
+  ADR 0035). The key names them after the paths only when they leave something out: one with no
+  ticked folder above it, one inside another excluded folder, one ticked itself and any without
+  subfolders do not count. A tick inside an excluded folder counts again. A position stored
+  without `excluded` keeps its key and shape; *Recent* lists a set without its excluded folders.
 - Only the 20 most recent positions per user are kept; each user's positions are their own.
   Deleting a user removes their positions. A position whose picture is deleted for good stays,
   so *Recent* still lists its folder set.
@@ -139,6 +144,15 @@ continues on another, and *Recent* can list the last folder sets with their prog
 - **Then** it is one folder set with one position, the newest, under *Recent*; without
   subfolders the extra folder makes another set, and the saved paths keep every tick
 
+### DECISIONS-002.16 – Excluded folders
+
+- **Given** a saved position of a folder set with subfolders and an excluded folder, and one
+  stored before folder sets had exclusions
+- **When** the list is read, the same set is saved with its exclusions in another order or with
+  exclusions that leave nothing out, or a *Recent* set with exclusions is opened
+- **Then** both positions keep their key; the same set is one position; malformed `excluded` is
+  a `400`; opening lists each ticked folder without the excluded folders below it
+
 ## Out of scope
 
 The progress of the open cull (GRID-002).
@@ -154,3 +168,4 @@ The progress of the open cull (GRID-002).
 | 2026-11-10 | Positions of a deleted user are removed (DECISIONS-002.13) |
 | 2026-11-13 | The toast closes when the user opens a photo, decides or scrolls (DECISIONS-002.14) |
 | 2026-11-16 | A ticked folder inside another with subfolders is the same set (DECISIONS-002.15, ADR 0034) |
+| 2026-11-17 | Excluded folders in the folder set and its key (DECISIONS-002.16, ADR 0035) |

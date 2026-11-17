@@ -12,10 +12,10 @@ show them, from one request per folder. The server lists; it never pairs (ADR 00
 
 ## Behaviour
 
-`GET /apps/honeycomb/api/v1/entries?path=<folder>[&subfolders=1]`, logged in, with the CSRF
-token. `path` is relative to the user's files; empty is the root. The answer is
-`{"entries": [...], "truncated": <bool>, "folders": [...], "fileId": <n>}`, `fileId` being the listed
-folder's (XMP-008.4). An entry has `fileId`, `path`
+`GET /apps/honeycomb/api/v1/entries?path=<folder>[&subfolders=1][&excluded[]=<folder>...]`,
+logged in, with the CSRF token. `path` is relative to the user's files; empty is the root. The
+answer is `{"entries": [...], "truncated": <bool>, "folders": [...], "fileId": <n>}`, `fileId`
+being the listed folder's (XMP-008.4). An entry has `fileId`, `path`
 (from the user's files, leading `/`), `size`, `mtime`, `etag`, `mime` and `captureTime`,
 `orientation`, `width`, `height` from Nextcloud's file metadata, each `null` where it has none,
 and `visualHash`, the user's stored visual hash of the file's current version or `null`
@@ -35,13 +35,15 @@ storage, and it is not on external storage (ADR 0032).
 Listed are files whose mime type is `image/*` or whose name ends in `.xmp`, `.cr3` or `.srw`
 (case-insensitive): Nextcloud types Canon and Samsung RAW files `application/octet-stream`. Without
 `subfolders` only the folder's own files; with it every folder below, through every mount inside,
-except hidden folders and files (a segment starting with `.`) below the picked folder. Folders
+except hidden folders and files (a segment starting with `.`) below the picked folder and the
+`excluded` folders (paths like `path`, at most 1,000), which are never opened (ADR 0035). Folders
 outside the user's files (trash bin, preview folders) never match. The listing stops at 60,000
 entries and then sets `truncated`.
 
 | Case | Answer |
 |---|---|
 | Path with `..`, a vanished folder, a file, a folder outside the user's files | `404`, empty body |
+| `excluded` not a list of paths, a path with `..`, more than 1,000 | `400` |
 | A folder the user may not read | `403`, empty body |
 | No logged-in user | `401` |
 
@@ -150,6 +152,13 @@ ticked parent with subfolders and a ticked child both hold it.
 - **When** the client lists them
 - **Then** `versions` is true only for the user's own folder
 
+### LISTING-001.16 – Excluded folders are left out
+
+- **Given** a folder with subfolders, two of them excluded, one of those nested deeper
+- **When** the client lists it with `subfolders=1` and `excluded[]`, or with a malformed `excluded`
+- **Then** the excluded folders and everything below them are neither listed nor opened, the
+  others are; a malformed `excluded` answers `400`
+
 ## Out of scope
 
 - Grouping entries into pictures: LISTING-002.
@@ -167,3 +176,4 @@ ticked parent with subfolders and a ticked child both hold it.
 | 2026-11-14 | `visualHash` on every entry (SERIES-003, ADR 0024) |
 | 2026-11-15 | `permissions` and `versions` per folder (.14, .15; ADR 0032) |
 | 2026-11-15 | The listed folder's `fileId` (XMP-008.4) |
+| 2026-11-17 | `excluded` folders left out (.16; ADR 0035) |

@@ -1420,3 +1420,22 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (ADR 0011). Shown without a "~": it is exact to the file cache; unscanned files and group
   folder advanced permissions are the known gaps, named in the user docs and ADR 0011. Spoken
   "*n* photo files with subfolders" while collapsed, so a screen reader hears which count it is.
+- 2026-11-17: With *Include subfolders* on, a tap, Enter or Space on an included folder excludes
+  it with everything inside it, and again includes it again (owner, #187); this replaces the tap
+  that ticked it (E3 A). A folder ticked inside an excluded one is back in (owner). ADR 0035.
+- 2026-11-17: The listing passes the excluded folders to the server (`excluded[]`), which never
+  opens them, rather than filtering on the client: they cost no walk and no share of the
+  60,000-entry limit. No migration: `excluded` is stored only when not empty (ADR 0035).
+- 2026-11-17: The folder set key appends only the exclusions that leave something out; without
+  them it keeps its old form, so stored positions keep their key. An exclusion with no ticked
+  folder above, inside another excluded folder, ticked itself or with the switch off is dropped
+  from the key, as covered ticks are (ADR 0034).
+- 2026-11-17: Unticking a folder drops the exclusions no ticked folder holds any more; turning
+  *Include subfolders* off keeps them, unshown and without effect, as it keeps covered ticks.
+- 2026-11-17: An excluded folder inside another excluded one stays excluded when the outer one
+  is included again: the user excluded it on purpose.
+- 2026-11-17: Folders above an excluded one show "*n* excluded" beside "*n* inside", spoken
+  "*n* excluded folders inside"; the photo file counts of the rows do not change, they are facts
+  of the folder like the counts in digiKam. The status line counts without the excluded folders.
+- 2026-11-17: The name of a folder set under *Recent* and in the toolbar does not mention
+  exclusions ("Trip + subfolders"): short names; the picker shows them when reopened.

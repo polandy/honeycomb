@@ -39,6 +39,13 @@ is shown disabled with the reason. *Include subfolders* (any depth; hidden folde
 and preview folders skipped) is a switch above the folder list, so a long list cannot push it out
 of sight.
 
+**Excluded folders.** With *Include subfolders* on, a tap, Enter or Space on an included folder
+excludes it: the folder set leaves it out with everything below it, except folders ticked inside
+it, which are back in (ADR 0035). The same tap on an excluded folder includes it again. The
+picker lists each ticked folder without the excluded folders below it (LISTING-001.16), so the
+status line counts without them. Unticking a folder drops the exclusions no ticked folder holds
+any more. Exclusions kept while the switch is off leave nothing out and are not shown.
+
 On every tick the picker lists the ticked folders (LISTING-001), pairs them with the user's
 pairing settings (LISTING-002) and shows the count, "*n* photos in *m* folders"; the button reads
 "Cull <folder>" or "Cull *m* folders". Each folder is listed once per switch position; only the
@@ -205,8 +212,9 @@ starts from that folder set and *Cancel* returns to it.
 - **Given** *Include subfolders* is on and a ticked folder is expanded
 - **When** the tree shows the folders below it
 - **Then** each one not ticked itself shows a dashed tick and "included", read out as "included
-  with <the nearest ticked folder above>", is not selected and ticks on a tap; hidden folders and
-  those inside them do not, and with the switch off none does
+  with <the nearest ticked folder above>", is not selected and is excluded on a tap
+  (LISTING-003.21); hidden and excluded folders and those inside them do not, and with the switch
+  off none does
 
 ### LISTING-003.19 – Photo files of each folder
 
@@ -223,6 +231,24 @@ starts from that folder set and *Cancel* returns to it.
 - **Then** its count adds the photo files of all folders below it and of the mounted storage,
   hidden folders and files left out, read out as "*n* photo files with subfolders"; expanding it
   shows its own count again, and a count the file cache cannot give shows none
+
+### LISTING-003.21 – Exclude an included folder
+
+- **Given** *Include subfolders* is on and a ticked folder holds two folders with photos
+- **When** the user taps, or presses Enter or Space on, one of them, and then again
+- **Then** the first time it shows a minus, its name struck through and "excluded", read out as
+  "excluded from <the ticked folder>", is not selected, folders inside it show no mark, and the
+  status line counts without its photos; the second time it is included again; a folder ticked
+  inside an excluded one is listed, and *Choose* hands the excluded folders to the cull
+
+### LISTING-003.22 – Excluded folders inside a folder
+
+- **Given** excluded folders below a ticked one
+- **When** the tree shows the folders above them, collapsed or expanded, or the user unticks the
+  ticked folder, or turns *Include subfolders* off
+- **Then** each folder above shows a badge "*n* excluded", read out as "*n* excluded folders
+  inside", and the tree opens down to them; unticking drops the exclusions no ticked folder holds;
+  with the switch off no folder shows an exclusion or its badge
 
 ## Out of scope
 
@@ -242,3 +268,4 @@ starts from that folder set and *Cancel* returns to it.
 | 2026-11-16 | .18 the folders included by *Include subfolders* (owner, E3 A) |
 | 2026-11-16 | .1/.19 the photo files of each folder in the tree (owner, after digiKam) |
 | 2026-11-16 | .1/.20 a collapsed folder counts its subfolders too (owner, digiKam) |
+| 2026-11-17 | .18 a tap excludes an included folder, .21/.22 excluded folders (owner, #187) |

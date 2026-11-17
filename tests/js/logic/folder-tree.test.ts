@@ -3,7 +3,7 @@
 import type { Branch, TreeFolder } from '../../../src/logic/folder-tree.ts'
 
 import { describe, expect, it } from 'vitest'
-import { foldersToExpand, includedBy, ROOT, rowPhotoFiles, tickedBelow, treeKey, visibleRows } from '../../../src/logic/folder-tree.ts'
+import { excludedBelow, excludedFrom, foldersToExpand, includedBy, ROOT, rowPhotoFiles, tickedBelow, treeKey, visibleRows } from '../../../src/logic/folder-tree.ts'
 
 const folder = (path: string, hasSubfolders = false): TreeFolder => ({ name: path.split('/').pop()!, path, hasSubfolders, photoFiles: 0, photoFilesBelow: 0 })
 const loaded = (...folders: TreeFolder[]): Branch => ({ state: 'loaded', folders })
@@ -117,21 +117,60 @@ describe('tickedBelow', () => {
 describe('includedBy', () => {
 	// spec: LISTING-003.18
 	it('names the nearest ticked folder above a folder that is not ticked itself', () => {
-		expect(includedBy(['/A', '/A/1'], '/A/1/x/y')).toBe('/A/1')
-		expect(includedBy(['/A'], '/A/1')).toBe('/A')
+		expect(includedBy({ paths: ['/A', '/A/1'] }, '/A/1/x/y')).toBe('/A/1')
+		expect(includedBy({ paths: ['/A'] }, '/A/1')).toBe('/A')
 	})
 
 	// spec: LISTING-003.18
 	it('leaves out a ticked folder, one with no ticked folder above it, and a look-alike name', () => {
-		expect(includedBy(['/A', '/A/1'], '/A/1')).toBeNull()
-		expect(includedBy(['/A/1'], '/A')).toBeNull()
-		expect(includedBy(['/A'], '/AB/1')).toBeNull()
+		expect(includedBy({ paths: ['/A', '/A/1'] }, '/A/1')).toBeNull()
+		expect(includedBy({ paths: ['/A/1'] }, '/A')).toBeNull()
+		expect(includedBy({ paths: ['/A'] }, '/AB/1')).toBeNull()
 	})
 
 	// spec: LISTING-003.18
 	it('leaves out a hidden folder and every folder inside one, which the listing skips', () => {
-		expect(includedBy(['/A'], '/A/.cache')).toBeNull()
-		expect(includedBy(['/A'], '/A/.cache/1')).toBeNull()
+		expect(includedBy({ paths: ['/A'] }, '/A/.cache')).toBeNull()
+		expect(includedBy({ paths: ['/A'] }, '/A/.cache/1')).toBeNull()
+	})
+
+	// spec: LISTING-003.21
+	it('leaves out an excluded folder and every folder inside it, but not a ticked one inside it', () => {
+		const set = { paths: ['/A', '/A/1/x'], excluded: ['/A/1'] }
+
+		expect(includedBy(set, '/A/1')).toBeNull()
+		expect(includedBy(set, '/A/1/y')).toBeNull()
+		expect(includedBy(set, '/A/1/x/z')).toBe('/A/1/x')
+		expect(includedBy(set, '/A/2')).toBe('/A')
+	})
+})
+
+describe('excludedFrom', () => {
+	// spec: LISTING-003.21
+	it('names the ticked folder an excluded folder is left out of', () => {
+		expect(excludedFrom({ paths: ['/A'], subfolders: true, excluded: ['/A/1/x'] }, '/A/1/x')).toBe('/A')
+	})
+
+	// spec: LISTING-003.22
+	it.each([
+		['a folder not excluded', { paths: ['/A'], subfolders: true, excluded: ['/A/1'] }, '/A/2'],
+		['the switch off', { paths: ['/A'], subfolders: false, excluded: ['/A/1'] }, '/A/1'],
+		['no ticked folder above', { paths: ['/B'], subfolders: true, excluded: ['/A/1'] }, '/A/1'],
+		['an excluded folder above', { paths: ['/A'], subfolders: true, excluded: ['/A/1', '/A/1/x'] }, '/A/1/x'],
+	])('gives none for %s', (_case, set, path) => {
+		expect(excludedFrom(set, path)).toBeNull()
+	})
+})
+
+describe('excludedBelow', () => {
+	// spec: LISTING-003.22
+	it('counts the excluded folders that leave something out at any depth below a folder, but not the folder itself', () => {
+		const set = { paths: ['/A', '/B'], subfolders: true, excluded: ['/A/1', '/A/1/x', '/A/2/y', '/B', '/C/1'] }
+
+		expect(excludedBelow(set, '/A')).toBe(2)
+		expect(excludedBelow(set, '/A/1')).toBe(0)
+		expect(excludedBelow(set, '')).toBe(2)
+		expect(excludedBelow({ ...set, subfolders: false }, '/A')).toBe(0)
 	})
 })
 

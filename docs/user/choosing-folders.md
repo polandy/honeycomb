@@ -26,7 +26,12 @@ folder, shared folders included. A folder with subfolders has an arrow before it
   any depth. Hidden folders (starting with a dot) are always skipped and cannot be ticked. With
   the switch on, ticking a subfolder of a ticked folder changes nothing: **Recent** keeps one
   entry and one position for both. While it is on, the folders below a ticked one show a dashed
-  tick and "included"; tap one to tick it as well.
+  tick and "included".
+- **Exclude a subfolder:** with **Include subfolders** on, tap an included folder to leave it
+  out, with everything inside it. It shows a minus, its name struck through and "excluded"; the
+  folders above it show "*n* excluded", and the photo count below the tree drops its photos. Tap
+  it again to include it again. A folder you tick inside an excluded one is back in. The photo
+  file counts beside the folders do not change. With the switch off, nothing is excluded.
 
 When you reopen the picker from a cull, the folders above the ticked ones start expanded, so you
 see what you culled.
@@ -41,4 +46,4 @@ The tree is one stop in the tab order.
 | Home, End | Move to the first or last folder shown |
 | Right | Expand the folder, or move to its first subfolder when it is expanded |
 | Left | Collapse the folder, or move to the folder above it when it is collapsed |
-| Enter, Space | Tick or untick the folder |
+| Enter, Space | Tick or untick the folder; with **Include subfolders**, exclude or include again an included one |

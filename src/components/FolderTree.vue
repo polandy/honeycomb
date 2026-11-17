@@ -12,8 +12,8 @@ import AppIcon from './AppIcon.vue'
 import { listFolders as apiListFolders } from '../api.ts'
 import { formatNumber, nameComparer, PLAIN_TEXT } from '../l10n.ts'
 import { logger } from '../logger.ts'
-import { isHiddenFolder } from '../logic/folder-set.ts'
-import { foldersToExpand, includedBy, ROOT, rowPhotoFiles, tickedBelow, treeKey, visibleRows } from '../logic/folder-tree.ts'
+import { effectiveExclusions, isHiddenFolder } from '../logic/folder-set.ts'
+import { excludedBelow, excludedFrom, foldersToExpand, includedBy, ROOT, rowPhotoFiles, tickedBelow, treeKey, visibleRows } from '../logic/folder-tree.ts'
 import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
@@ -26,14 +26,20 @@ const props = withDefaults(defineProps<{
 	blocked?: readonly string[]
 	/** *Include subfolders* is on: the folders below a ticked one come along. */
 	subfolders?: boolean
+	/** The folders *Include subfolders* leaves out. */
+	excluded?: readonly string[]
 }>(), {
 	listFolders: apiListFolders,
 	blocked: () => [],
+	excluded: () => [],
 })
 
 const emit = defineEmits<{
 	toggle: [path: string]
 }>()
+
+/** The folder set the tree shows. */
+const folderSet = computed(() => ({ paths: props.ticked, subfolders: props.subfolders, excluded: props.excluded }))
 
 const NOTES: Record<TreeNote, () => string> = {
 	loading: () => t('honeycomb', 'Loading…'),
@@ -97,29 +103,31 @@ function flip(folder: Folder) {
 /** Whether a folder is shown disabled. */
 const isDisabled = (folder: Folder) => isHiddenFolder(folder.name) || props.blocked.includes(folder.path)
 
-/** The badge of a folder above ticked ones, shown and spoken; null when none lies below. */
-function badge(folder: Folder) {
-	const count = tickedBelow(props.ticked, folder.path)
-	if (count === 0) {
-		return null
-	}
-	const vars = { count: formatNumber(count) }
-	return {
-		shown: n('honeycomb', '{count} inside', '{count} inside', count, vars, PLAIN_TEXT),
-		spoken: props.single
-			? n('honeycomb', '{count} chosen folder inside', '{count} chosen folders inside', count, vars, PLAIN_TEXT)
-			: n('honeycomb', '{count} ticked folder inside', '{count} ticked folders inside', count, vars, PLAIN_TEXT),
-	}
+/** The badges of a folder above ticked or excluded ones, shown and spoken. */
+function badges(folder: Folder) {
+	const ticked = tickedBelow(props.ticked, folder.path)
+	const excluded = excludedBelow(folderSet.value, folder.path)
+	const tickedVars = { count: formatNumber(ticked) }
+	const excludedVars = { count: formatNumber(excluded) }
+	return [
+		...(ticked === 0
+			? []
+			: [{
+					excluded: false,
+					shown: n('honeycomb', '{count} inside', '{count} inside', ticked, tickedVars, PLAIN_TEXT),
+					spoken: props.single
+						? n('honeycomb', '{count} chosen folder inside', '{count} chosen folders inside', ticked, tickedVars, PLAIN_TEXT)
+						: n('honeycomb', '{count} ticked folder inside', '{count} ticked folders inside', ticked, tickedVars, PLAIN_TEXT),
+				}]),
+		...(excluded === 0
+			? []
+			: [{
+					excluded: true,
+					shown: n('honeycomb', '{count} excluded', '{count} excluded', excluded, excludedVars, PLAIN_TEXT),
+					spoken: n('honeycomb', '{count} excluded folder inside', '{count} excluded folders inside', excluded, excludedVars, PLAIN_TEXT),
+				}]),
+	]
 }
-
-/** The badges of the folders shown, by path. */
-const badges = computed(() => new Map(rows.value.flatMap((row) => {
-	if (row.kind !== 'folder') {
-		return []
-	}
-	const shown = badge(row.folder)
-	return shown === null ? [] : [[row.folder.path, shown] as const]
-})))
 
 /** The photo-file count of a folder row, shown and spoken; null when it holds none or is unknown. */
 function photoCount(folder: Folder, expanded: boolean) {
@@ -142,15 +150,21 @@ const counts = computed(() => new Map(rows.value.flatMap((row) => {
 	return row.kind === 'folder' && count !== null ? [[row.folder.path, count] as const] : []
 })))
 
-/** The spoken note of the shown folders *Include subfolders* takes along, by path. */
-const included = computed(() => new Map(props.subfolders
-	? rows.value.flatMap((row) => {
-			const by = row.kind === 'folder' ? includedBy(props.ticked, row.folder.path) : null
-			return row.kind === 'folder' && by !== null
-				? [[row.folder.path, t('honeycomb', 'included with {name}', { name: by.split('/').at(-1)! }, undefined, PLAIN_TEXT)] as const]
-				: []
-		})
-	: []))
+/** The spoken note of a folder *Include subfolders* takes along or leaves out; null for neither. */
+function mark(path: string) {
+	const from = excludedFrom(folderSet.value, path)
+	if (from !== null) {
+		return { excluded: true, spoken: t('honeycomb', 'excluded from {name}', { name: from.split('/').at(-1)! }, undefined, PLAIN_TEXT) }
+	}
+	const by = props.subfolders ? includedBy(folderSet.value, path) : null
+	return by === null ? null : { excluded: false, spoken: t('honeycomb', 'included with {name}', { name: by.split('/').at(-1)! }, undefined, PLAIN_TEXT) }
+}
+
+/** The marks of the folders shown, by path. */
+const marks = computed(() => new Map(rows.value.flatMap((row) => {
+	const shown = row.kind === 'folder' ? mark(row.folder.path) : null
+	return row.kind === 'folder' && shown !== null ? [[row.folder.path, shown] as const] : []
+})))
 
 /** Ticks or unticks a folder the cull can include. */
 function toggle(folder: Folder) {
@@ -183,7 +197,7 @@ async function onKey(event: KeyboardEvent, folder: Folder) {
 	}
 }
 
-for (const path of [ROOT, ...foldersToExpand(props.ticked)]) {
+for (const path of [ROOT, ...foldersToExpand([...props.ticked, ...effectiveExclusions(folderSet.value)])]) {
 	expand(path)
 }
 </script>
@@ -221,22 +235,30 @@ for (const path of [ROOT, ...foldersToExpand(props.ticked)]) {
 					<AppIcon name="chevronRight" />
 				</button>
 				<span v-else class="folder-tree__spacer" aria-hidden="true" />
-				<span class="folder-tree__box" :class="{ 'folder-tree__box--included': included.has(row.folder.path) }" aria-hidden="true">
-					<AppIcon v-if="props.ticked.includes(row.folder.path) || included.has(row.folder.path)" name="check" />
+				<span
+					class="folder-tree__box"
+					:class="{ 'folder-tree__box--included': marks.get(row.folder.path)?.excluded === false, 'folder-tree__box--excluded': marks.get(row.folder.path)?.excluded }"
+					aria-hidden="true">
+					<AppIcon v-if="marks.get(row.folder.path)?.excluded" name="minus" />
+					<AppIcon v-else-if="props.ticked.includes(row.folder.path) || marks.has(row.folder.path)" name="check" />
 				</span>
 				<AppIcon name="folder" />
 				<span class="folder-tree__label">
-					<span class="folder-tree__name">{{ row.folder.name }}</span>
+					<span class="folder-tree__name" :class="{ 'folder-tree__name--excluded': marks.get(row.folder.path)?.excluded }">{{ row.folder.name }}</span>
 					<span v-if="isHiddenFolder(row.folder.name)" class="folder-tree__meta">{{ t('honeycomb', 'Hidden folder, always skipped') }}</span>
 					<span v-else-if="props.blocked.includes(row.folder.path)" class="folder-tree__meta">{{ t('honeycomb', 'Open folder, cannot be the target') }}</span>
 				</span>
-				<span v-if="included.has(row.folder.path)" class="folder-tree__included">
-					<span aria-hidden="true">{{ t('honeycomb', 'included') }}</span>
-					<span class="hidden-visually">{{ included.get(row.folder.path) }}</span>
+				<span v-if="marks.has(row.folder.path)" :class="marks.get(row.folder.path)?.excluded ? 'folder-tree__excluded' : 'folder-tree__included'">
+					<span aria-hidden="true">{{ marks.get(row.folder.path)?.excluded ? t('honeycomb', 'excluded') : t('honeycomb', 'included') }}</span>
+					<span class="hidden-visually">{{ marks.get(row.folder.path)?.spoken }}</span>
 				</span>
-				<span v-if="badges.has(row.folder.path)" class="folder-tree__badge">
-					<span aria-hidden="true">{{ badges.get(row.folder.path)?.shown }}</span>
-					<span class="hidden-visually">{{ badges.get(row.folder.path)?.spoken }}</span>
+				<span
+					v-for="badge in badges(row.folder)"
+					:key="String(badge.excluded)"
+					class="folder-tree__badge"
+					:class="{ 'folder-tree__badge--excluded': badge.excluded }">
+					<span aria-hidden="true">{{ badge.shown }}</span>
+					<span class="hidden-visually">{{ badge.spoken }}</span>
 				</span>
 				<span v-if="counts.has(row.folder.path)" class="folder-tree__count">
 					<span aria-hidden="true">{{ counts.get(row.folder.path)?.shown }}</span>

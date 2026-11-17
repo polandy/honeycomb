@@ -31,15 +31,16 @@ final class ListingService {
 
 	/**
 	 * Entries of the folder at `$path` in the user's files, with `$subfolders` of every folder below
-	 * except hidden ones, at most the entry limit.
+	 * except hidden and `$excluded` ones, at most the entry limit.
+	 * @param list<string> $excluded user-relative folder paths
 	 * @throws FolderNotFoundException for a foreign, vanished or non-folder path
 	 * @throws FolderNotReadableException when the user may not read the folder
 	 */
-	public function list(IUser $user, string $path, bool $subfolders): Listing {
+	public function list(IUser $user, string $path, bool $subfolders, array $excluded = []): Listing {
 		$folder = $this->folders->folder($user, $path);
 		$userFolder = $this->folders->userFolder($user);
 		try {
-			return $this->collect($user, $userFolder, $folder, $subfolders ? $this->walkBelow($folder) : $folder->getDirectoryListing());
+			return $this->collect($user, $userFolder, $folder, $subfolders ? $this->walkBelow($userFolder, $folder, array_flip($excluded)) : $folder->getDirectoryListing());
 		} catch (NotPermittedException) {
 			throw new FolderNotReadableException($path);
 		}
@@ -102,17 +103,18 @@ final class ListingService {
 
 	/**
 	 * The files of `$folder` and of every folder below it, depth first, one listing per folder;
-	 * hidden folders and those the user may not read are never opened.
+	 * hidden, excluded folders and those the user may not read are never opened.
+	 * @param array<string, int> $excluded user-relative folder paths as keys
 	 * @return \Generator<Node>
 	 */
-	private function walkBelow(Folder $folder): \Generator {
+	private function walkBelow(Folder $userFolder, Folder $folder, array $excluded): \Generator {
 		$pending = [$folder];
 		while (($current = array_pop($pending)) !== null) {
 			$subfolders = [];
 			foreach ($current->getDirectoryListing() as $node) {
 				if (!$node instanceof Folder) {
 					yield $node;
-				} elseif (!str_starts_with($node->getName(), '.') && $node->isReadable()) {
+				} elseif (!str_starts_with($node->getName(), '.') && $node->isReadable() && !isset($excluded[(string)$userFolder->getRelativePath($node->getPath())])) {
 					$subfolders[] = $node;
 				}
 			}
