@@ -87,7 +87,7 @@ describe('GridScreen', () => {
 		const series = { key: 1, members: [first!, second!] }
 
 		wrapper.findComponent(PhotoGrid).vm.$emit('compareSeries', series, second)
-		expect(calls).toEqual([['compareSeriesOn', series, second, expect.any(Function)]])
+		expect(calls).toEqual([['compareSeriesOn', series, second, expect.any(Function), 'grid']])
 		const land = calls[0]![3] as (landing: unknown) => void
 		land({ kind: 'on', picture: second })
 		land({ kind: 'after', series, picked: first })

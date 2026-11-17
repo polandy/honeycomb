@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto'
 import { cullFolder } from './cull.ts'
 import { createFolder, JPEG, upload, withCaptureTime } from './files.ts'
 
-const PHONE = { width: 320, height: 640 }
+const IPAD_MINI_PORTRAIT = { width: 744, height: 1133 }
 const DESKTOP = { width: 1440, height: 900 }
 const SCREENSHOT_VIEWPORTS = { 'pixel-portrait': { width: 427, height: 952 }, 'ipad-mini-landscape': { width: 1133, height: 744 } }
 
@@ -25,8 +25,8 @@ async function cullShots(page: Page, times: readonly string[]) {
 
 // spec: SERIES-002.12
 test('brackets a series across a row wrap with a cap at either end', async ({ page }, testInfo) => {
-	await page.setViewportSize(PHONE)
-	await cullShots(page, ['10:00:00', '10:00:01', '10:00:02', '10:00:03', '10:00:04'])
+	await page.setViewportSize(IPAD_MINI_PORTRAIT)
+	await cullShots(page, ['10:00:00', '10:00:01', '10:00:02', '10:00:03', '10:00:04', '10:00:05', '10:00:06', '10:00:07', '10:00:08'])
 	const tops = await page.getByRole('gridcell').evaluateAll((cells) => cells.map((cell) => Math.round(cell.getBoundingClientRect().top)))
 	const rows = new Set(tops).size
 	expect(rows).toBeGreaterThan(1)
@@ -37,7 +37,7 @@ test('brackets a series across a row wrap with a cap at either end', async ({ pa
 	await expect(brackets.first()).not.toHaveClass(/photo-grid__bracket--end/)
 	await expect(brackets.last()).toHaveClass(/photo-grid__bracket--end/)
 	await expect(page.locator('.photo-tile__series')).toHaveCount(1)
-	await expect(page.getByRole('gridcell').nth(1)).toHaveAccessibleName(/Series, photo 2 of 5/)
+	await expect(page.getByRole('gridcell').nth(1)).toHaveAccessibleName(/Series, photo 2 of 9/)
 	for (const scheme of ['light', 'dark'] as const) {
 		await page.emulateMedia({ colorScheme: scheme })
 		for (const [device, viewport] of Object.entries(SCREENSHOT_VIEWPORTS)) {

@@ -64,7 +64,7 @@ function onCompareSeries(series: Series<Picture<ListingEntry>>, picture: Picture
 		if (at >= 0) {
 			void grid.value?.reveal(at)
 		}
-	})
+	}, 'grid')
 }
 
 defineExpose({ grid, filterBar })

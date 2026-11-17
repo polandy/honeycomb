@@ -88,7 +88,7 @@ describe('LoupeScreen', () => {
 			['moveShown', [], expect.any(Function)],
 			['tag', [pictures[1]]],
 			['updateSettings', { autoAdvance: false }],
-			['compareSeriesOn', series, pictures[1], opening.land],
+			['compareSeriesOn', series, pictures[1], opening.land, 'loupe'],
 			['pickRestAndLand', series, pictures[1], opening.land],
 		])
 	})

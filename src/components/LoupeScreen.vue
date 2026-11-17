@@ -46,7 +46,7 @@ defineExpose({ loupe: photoLoupe })
 		@allDecided="deleting.allDecided"
 		@move="moving.openShown([], () => 0)"
 		@tag="tagEntry.open([$event])"
-		@compareSeries="(series, picture) => seriesCompare.startOn(series, picture, loupe.land)"
+		@compareSeries="(series, picture) => seriesCompare.startOn(series, picture, loupe.land, 'loupe')"
 		@pickRest="(series, picture) => seriesCompare.pickRestAndLand(series, picture, loupe.land)"
 		@close="loupe.close" />
 </template>
