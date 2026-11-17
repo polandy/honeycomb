@@ -102,6 +102,12 @@ stays the same.
 - **Then** the page loads its script by the content-hashed name the build wrote, so the
   browser fetches the new script instead of a cached one; without a build the page fails loud
 
+### APP-001.11 – The navigation toggle sits in the toolbar row
+
+- **Given** the grid with its toolbar, from an iPad width on, the navigation open or closed
+- **Then** exactly one toggle shows, centred vertically in the toolbar row, with no toolbar
+  control under it; hovering it keeps it fully opaque and tints its background
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -116,3 +122,4 @@ stays the same.
 | 2026-11-13 | The navigation starts closed below 1280 px and remembers the user's choice (APP-001.7, APP-001.8; UX L3) |
 | 2026-11-15 | Every write route is rate limited per user (APP-001.9, ADR 0031, risk review R10) |
 | 2026-11-16 | Each page loads its script by its content-hashed name (APP-001.10, ADR 0033) |
+| 2026-11-17 | The navigation toggle is centred in the toolbar row, alone and opaque on hover (APP-001.11) |
