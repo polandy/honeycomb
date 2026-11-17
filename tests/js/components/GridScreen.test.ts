@@ -30,7 +30,7 @@ describe('GridScreen', () => {
 
 		expect(wrapper.findComponent(GridToolbar).props()).toEqual({
 			folders: { set: SET, count: 2 },
-			view: { tileSize: expect.any(Number), groupByFolder: false, sortOrder: 'capture-time', flags: new Set(['picked', 'unflagged']), filtersOpen: false, activeFilters: 0 },
+			view: { tileSize: expect.any(Number), groupByFolder: false, fileNames: false, sortOrder: 'capture-time', flags: new Set(['picked', 'unflagged']), filtersOpen: false, activeFilters: 0 },
 			progress: { decided: 0, total: 3, filtered: false },
 			selection: { selecting: false, selected: 0 },
 			tasks: { rejected: 1, series: 0, rawRemovable: 1, movable: 0, legacyRows: false, resumeName: 'IMG_9' },

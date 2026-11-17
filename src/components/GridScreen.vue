@@ -20,7 +20,7 @@ import { hasLegacyRows } from '../logic/legacy.ts'
 import { DEFAULT_FILTERS } from '../logic/picture-filter.ts'
 import { seriesOffer } from '../logic/series-menu.ts'
 
-const { cull, selection, decide, editSeries, deleting, moving, resume, seriesCompare, sidecars, legacy, tagEntry, headerShown, openLoupe, openSettings, unsaved } = useCullContext()
+const { cull, selection, decide, editSeries, deleting, moving, resume, seriesCompare, sidecars, legacy, tagEntry, headerShown, openLoupe, openSettings, unsaved, settings, updateSettings } = useCullContext()
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
 const { selecting, selected } = selection
 const { rejected, rawRemovable } = deleting
@@ -32,7 +32,7 @@ const offer = computed(() => seriesOffer(selected.value, cull.seriesOf.value))
 const movable = computed(() => (activeFilters.value > 0 ? view.value : pictures.value.filter((picture) => isPicked(cull.decisionOf(picture)))))
 
 const toolbarFolders = computed<ToolbarFolders | null>(() => folderSet.value && { set: folderSet.value, count: folders.value })
-const toolbarView = computed<ToolbarView>(() => ({ tileSize: tileSize.value, groupByFolder: groupByFolder.value, sortOrder: sortOrder.value, flags: filters.value.flags, filtersOpen: filtersOpen.value, activeFilters: activeFilters.value }))
+const toolbarView = computed<ToolbarView>(() => ({ tileSize: tileSize.value, groupByFolder: groupByFolder.value, fileNames: settings.value.showFileNames, sortOrder: sortOrder.value, flags: filters.value.flags, filtersOpen: filtersOpen.value, activeFilters: activeFilters.value }))
 const toolbarProgress = computed<ToolbarProgress>(() => ({ decided: shownProgress.value.decided, total: shownProgress.value.total, filtered: shownProgress.value.total < progress.value.total }))
 const toolbarSelection = computed<ToolbarSelection>(() => ({ selecting: selecting.value, selected: selected.value.length }))
 const toolbarTasks = computed<ToolbarTasks>(() => ({
@@ -59,6 +59,7 @@ defineExpose({ grid, filterBar })
 			@changeFolders="pickerOpen = true"
 			@update:tileSize="cull.setTileSize"
 			@update:groupByFolder="groupByFolder = $event"
+			@update:fileNames="updateSettings({ showFileNames: $event })"
 			@update:flags="cull.setFlags"
 			@update:filtersOpen="filtersOpen = $event"
 			@update:sortOrder="sortOrder = $event"
@@ -91,6 +92,7 @@ defineExpose({ grid, filterBar })
 			:pictures="view"
 			:folderSet="folderSet"
 			:groupByFolder="grouped"
+			:fileNames="settings.showFileNames"
 			:tileSize="tileSize"
 			:selecting="selecting"
 			:selection="selection.selection.value"

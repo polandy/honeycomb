@@ -562,6 +562,7 @@ against it. `Ctrl` on Windows and Linux is `⌘` on a Mac.
 | `Delete` | delete summary for the selection or focused picture | |
 | `M` | *Move to…* (honeycomb only) | |
 | `Shift+K` | *Pick this, reject the rest* in the series compare, the series viewer and the loupe on a series photo, which the undo toast's *Reject the other N* also names (honeycomb only; was `K`, which the vi keys need) | |
+| `Shift+J` | show or hide the file names in the grid (honeycomb only; `J` is the vi keys' down) | differs: `J` cycles the grid's tile info in Lightroom |
 | `B` | show or hide the flag buttons in the loupe and the series viewer (honeycomb only) | differs: `B` adds to the Quick Collection in Lightroom, which honeycomb does not have |
 | `1`–`9` | move dialog: choose a favourite or recent folder (honeycomb only) | |
 

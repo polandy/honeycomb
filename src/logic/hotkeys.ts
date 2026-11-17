@@ -28,7 +28,7 @@ export type HotkeyCommand
 	= | 'previous' | 'next' | 'up' | 'down' | 'first' | 'last'
 		| 'grid' | 'loupe' | 'zoom' | 'zoom-in' | 'zoom-out' | 'fullscreen' | 'header' | 'info' | 'close' | 'flag-buttons'
 		| 'filter-bar' | 'filters-off' | 'filter-focus' | 'select-all' | 'select-none'
-		| 'undo' | 'redo' | 'shortcuts' | 'delete' | 'move' | 'review-rejects' | 'compare' | 'pick-rest' | 'tag'
+		| 'undo' | 'redo' | 'shortcuts' | 'delete' | 'move' | 'review-rejects' | 'compare' | 'pick-rest' | 'tag' | 'file-names'
 
 /** What a key does: decide (and maybe go to the next photo) or run a command. */
 export type HotkeyAction
@@ -75,6 +75,7 @@ export const KEYMAP: readonly KeymapEntry[] = [
 	{ id: 'fullscreen', group: 'views', caps: ['F'] },
 	{ id: 'header', group: 'views', caps: ['Tab'] },
 	{ id: 'info', group: 'views', caps: ['I'] },
+	{ id: 'file-names', group: 'views', caps: ['Shift+J'] },
 	{ id: 'close', group: 'views', caps: ['Esc'] },
 	{ id: 'filter-bar', group: 'filter', caps: ['\\'] },
 	{ id: 'filters-off', group: 'filter', caps: ['Ctrl+L'] },
@@ -153,9 +154,9 @@ function ctrlKey(event: HotkeyEvent, key: string): HotkeyAction | null {
 	return event.shiftKey && !['+', '/'].includes(key) ? null : command(CTRL_COMMANDS[key])
 }
 
-const SHIFT_COMMANDS: Readonly<Record<string, HotkeyCommand>> = { '?': 'shortcuts', k: 'pick-rest' }
+const SHIFT_COMMANDS: Readonly<Record<string, HotkeyCommand>> = { '?': 'shortcuts', k: 'pick-rest', j: 'file-names' }
 
-/** The action of a key with Shift: decide and go to the next photo, pick-rest or the help sheet. */
+/** The action of a key with Shift: decide and go to the next photo, pick-rest, the file names or the help sheet. */
 function shiftKey(event: HotkeyEvent, key: string): HotkeyAction | null {
 	const digit = /^Digit([0-5])$/.exec(event.code)
 	if (digit !== null) {

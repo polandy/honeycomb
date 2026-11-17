@@ -18,19 +18,21 @@ import type { ObserveSize } from '../observe-size.ts'
 import { t } from '@nextcloud/l10n'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useSlots, useTemplateRef, watch } from 'vue'
 import PhotoTile from './PhotoTile.vue'
+import TileInfo from './TileInfo.vue'
 import { browserFrame } from '../auto-scroll.ts'
 import { formatNumber } from '../l10n.ts'
 import { autoScrollStep } from '../logic/auto-scroll.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { UNDECIDED } from '../logic/decision.ts'
-import { focusStep, gridLayout, revealScrollTop, rowOfItem, stickyHeader, tileAt, visibleRows } from '../logic/grid-layout.ts'
+import { anchoredScrollTop, focusStep, gridLayout, revealScrollTop, rowOfItem, stickyHeader, tileAt, visibleRows } from '../logic/grid-layout.ts'
 import { IMAGE_LOADS_IN_FLIGHT, imageMember } from '../logic/image-tiers.ts'
 import { createLoadQueue } from '../logic/load-queue.ts'
 import { groupByFolder as folderGroups } from '../logic/picture-order.ts'
 import { NO_SELECTION } from '../logic/selection.ts'
-import { pinchTileSize, wheelTileSize } from '../logic/tile-size.ts'
+import { useGridPinch } from '../grid-pinch.ts'
 import { decodeSource } from '../loupe-prefetch.ts'
 import { observeElementSize } from '../observe-size.ts'
+import { useTileInfo } from '../tile-info.ts'
 import { browserSchedule, useTileSelection } from '../tile-selection.ts'
 
 const props = withDefaults(defineProps<{
@@ -50,7 +52,7 @@ const props = withDefaults(defineProps<{
 	decisionOf?: (picture: Picture<ListingEntry>) => Decision
 	/** The picture's tags, counted on its tile. */
 	tagsOf?: (picture: Picture<ListingEntry>) => readonly Tag[]
-	/** Times the long-press. */
+	/** Times the long-press and the tile info's delay. */
 	schedule?: Schedule
 	/** Times the auto-scroll of a drag selection. */
 	frame?: Frame
@@ -59,6 +61,8 @@ const props = withDefaults(defineProps<{
 	openSeries?: ReadonlySet<Picture<ListingEntry>>
 	/** The picture whose sidecar writes still wait (XMP-003.28). */
 	unsaved?: Picture<ListingEntry> | null
+	/** Shows a name bar above each tile (GRID-004.4). */
+	fileNames?: boolean
 }>(), {
 	observeSize: observeElementSize,
 	loadImage: decodeSource,
@@ -67,6 +71,7 @@ const props = withDefaults(defineProps<{
 	decisionOf: () => UNDECIDED,
 	tagsOf: () => [],
 	unsaved: null,
+	fileNames: false,
 	schedule: browserSchedule,
 	frame: browserFrame,
 })
@@ -83,6 +88,7 @@ const emit = defineEmits<{
 const GAP = 8
 const HEADER_HEIGHT = 40
 const OVERLAY_HEIGHT = 22
+const NAME_BAR = 24
 
 const scroller = useTemplateRef<HTMLElement>('scroller')
 const spacer = useTemplateRef<HTMLElement>('spacer')
@@ -104,6 +110,7 @@ const layout = computed(() => gridLayout({
 	groups: groups.value.map((group) => group.count),
 	showHeaders: props.groupByFolder,
 	top: overlayHeight,
+	nameBar: props.fileNames ? NAME_BAR : 0,
 }))
 const loads = createLoadQueue(props.loadImage, IMAGE_LOADS_IN_FLIGHT)
 const sticky = computed(() => stickyHeader(layout.value, scrollTop.value))
@@ -166,40 +173,21 @@ function onScroll(event: Event) {
 	}
 }
 
-/** Resizes the tiles on a trackpad pinch, which arrives as a wheel event with Ctrl. */
-function onWheel(event: WheelEvent) {
-	if (event.ctrlKey) {
-		event.preventDefault()
-		emit('update:tileSize', wheelTileSize(props.tileSize, event.deltaY))
-	}
-}
+const { onTouchStart, onTouchEnd } = useGridPinch({
+	scroller: () => scroller.value,
+	tileSize: () => props.tileSize,
+	dragging: () => tiles.dragOrigin.value !== null,
+	resize: (size) => emit('update:tileSize', size),
+})
+const info = useTileInfo(() => scroller.value, props.schedule)
 
-let pinch: { size: number, distance: number } | null = null
-const fingerDistance = (touches: TouchList) => Math.hypot(touches[0]!.clientX - touches[1]!.clientX, touches[0]!.clientY - touches[1]!.clientY)
-
-/** Starts a two-finger pinch that resizes the tiles. */
-function onTouchStart(event: TouchEvent) {
-	if (event.touches.length === 2) {
-		pinch = { size: props.tileSize, distance: fingerDistance(event.touches) }
+// Toggling the name bars keeps the focused or the top tile in place (GRID-004.6).
+watch([layout, () => props.fileNames], ([next, names], [previous, hadNames]) => {
+	if (names !== hadNames) {
+		const anchor = focused.value < props.pictures.length ? focused.value : null
+		scroller.value!.scrollTop = scrollTop.value = anchoredScrollTop(previous, next, scrollTop.value, height.value, anchor)
 	}
-}
-
-/** Resizes the tiles while the pinch lasts. */
-function onTouchMove(event: TouchEvent) {
-	if (tiles.dragOrigin.value !== null) {
-		event.preventDefault()
-	} else if (pinch !== null && event.touches.length === 2) {
-		event.preventDefault()
-		emit('update:tileSize', pinchTileSize(pinch.size, pinch.distance, fingerDistance(event.touches)))
-	}
-}
-
-/** Ends the pinch when fewer than two fingers remain. */
-function onTouchEnd(event: TouchEvent) {
-	if (event.touches.length < 2) {
-		pinch = null
-	}
-}
+}, { flush: 'post' })
 
 let stopObserving = () => undefined as void
 onMounted(() => {
@@ -208,8 +196,6 @@ onMounted(() => {
 		width.value = newWidth
 		height.value = newHeight
 	})
-	element.addEventListener('wheel', onWheel, { passive: false })
-	element.addEventListener('touchmove', onTouchMove, { passive: false })
 })
 onBeforeUnmount(() => stopObserving())
 
@@ -270,8 +256,10 @@ defineExpose({
 							class="photo-grid__tile"
 							:tabindex="index === focused ? 0 : -1"
 							:style="{ left: `${column * (layout.tileWidth + GAP)}px`, width: `${layout.tileWidth}px` }"
+							:data-index="index"
 							:picture="picture"
 							:size="layout.tileWidth"
+							:nameBar="props.fileNames"
 							:decision="props.decisionOf(picture)"
 							:tags="props.tagsOf(picture).length"
 							:unsaved="picture === props.unsaved"
@@ -288,6 +276,12 @@ defineExpose({
 				</template>
 			</div>
 		</div>
+		<TileInfo
+			v-if="info !== null"
+			:key="info.index"
+			:picture="props.pictures[info.index]!"
+			:decision="props.decisionOf(props.pictures[info.index]!)"
+			:anchor="info.anchor" />
 	</div>
 </template>
 

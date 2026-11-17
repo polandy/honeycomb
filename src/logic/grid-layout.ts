@@ -11,9 +11,11 @@ export interface GridLayoutInput {
 	readonly showHeaders: boolean
 	/** Space kept free above the first row. */
 	readonly top: number
+	/** The height of the name bar above each square tile, 0 without (GRID-004.4). */
+	readonly nameBar: number
 }
 
-/** A group's header or one row of its square tiles; `first` counts pictures across groups. */
+/** A group's header or one row of its square tiles, each with its name bar; `first` counts pictures across groups. */
 export type GridRow
 	= | { readonly kind: 'header', readonly group: number, readonly top: number, readonly height: number }
 		| { readonly kind: 'tiles', readonly group: number, readonly first: number, readonly count: number, readonly top: number, readonly height: number }
@@ -44,7 +46,7 @@ export function gridLayout(input: GridLayoutInput): GridLayout {
 			add({ kind: 'header', group, top, height: headerHeight })
 		}
 		for (let offset = 0; offset < count; offset += columns) {
-			add({ kind: 'tiles', group, first: first + offset, count: Math.min(columns, count - offset), top, height: tileWidth })
+			add({ kind: 'tiles', group, first: first + offset, count: Math.min(columns, count - offset), top, height: tileWidth + input.nameBar })
 		}
 		first += count
 	})
@@ -87,6 +89,16 @@ export function revealScrollTop(layout: GridLayout, index: number, scrollTop: nu
 	const row = layout.rows[rowOfItem(layout, index)]!
 	const inView = row.top >= scrollTop && row.top + row.height <= scrollTop + viewportHeight
 	return inView ? scrollTop : Math.max(0, row.top - (viewportHeight - row.height) / 2)
+}
+
+/** The scroll offset after a relayout of the same rows: the focused tile's row stays put while in view, else the top row (GRID-004.6). */
+export function anchoredScrollTop(before: GridLayout, after: GridLayout, scrollTop: number, viewportHeight: number, focused: number | null): number {
+	const focusedRow = focused === null ? -1 : rowOfItem(before, focused)
+	const row = before.rows[focusedRow]
+	const inView = row !== undefined && row.top < scrollTop + viewportHeight && row.top + row.height > scrollTop
+	const anchor = inView ? focusedRow : firstRowWhere(before.rows, (candidate) => candidate.top + candidate.height > scrollTop)
+	const next = after.rows[anchor] === undefined ? scrollTop : after.rows[anchor].top + scrollTop - before.rows[anchor]!.top
+	return Math.max(0, Math.min(next, after.totalHeight - viewportHeight))
 }
 
 /** The picture at a point of the grid's content, `gap` apart; a gap or a short row's end counts as the tile before it. */

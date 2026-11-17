@@ -3,7 +3,7 @@
 // @vitest-environment happy-dom
 import type { DOMWrapper } from '@vue/test-utils'
 
-import { flushPromises } from '@vue/test-utils'
+import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { formatDateTimeSeconds } from '../../../src/l10n.ts'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
@@ -45,10 +45,8 @@ async function rest(shown: Awaited<ReturnType<typeof mountShown>>, index: number
 	await flushPromises()
 }
 
-afterEach(() => {
-	document.body.replaceChildren()
-	vi.restoreAllMocks()
-})
+enableAutoUnmount(afterEach)
+afterEach(() => vi.restoreAllMocks())
 
 describe('PhotoGrid with file names', () => {
 	// spec: GRID-004.4
@@ -79,8 +77,7 @@ describe('PhotoGrid with file names', () => {
 		const shown = await mountShown()
 		shown.scroller.element.scrollTop = 110 * 10
 		await shown.scroller.trigger('scroll')
-		await tile(shown, 9).trigger('focus')
-		expect(tile(shown, 9).attributes('aria-label')).toMatch(/^IMG_45,/)
+		await shown.wrapper.find('[aria-label^="IMG_45,"]').trigger('focus')
 
 		await shown.wrapper.setProps({ fileNames: true })
 
@@ -156,7 +153,7 @@ describe('PhotoGrid tile info', () => {
 	it('keeps a mouse move within the tile and drops a waiting tile info on leaving', async () => {
 		const shown = await mountShown()
 		await rest(shown, 0)
-		await pointer(tile(shown, 0).find<HTMLElement>('img'), 'pointerout', { relatedTarget: tile(shown, 0).element })
+		await pointer(tile(shown, 0).find<HTMLElement>('.photo-tile__photo'), 'pointerout', { relatedTarget: tile(shown, 0).element })
 		expect(bubble()).not.toBeNull()
 
 		await pointer(tile(shown, 1), 'pointerover')
@@ -170,7 +167,8 @@ describe('PhotoGrid tile info', () => {
 	it('hides on Esc, which then goes no further, and lets the next Esc through', async () => {
 		const shown = await mountShown()
 		const reached: string[] = []
-		window.addEventListener('keydown', (event) => reached.push(event.key))
+		const record = (event: KeyboardEvent) => reached.push(event.key)
+		window.addEventListener('keydown', record)
 		await rest(shown, 0)
 
 		window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
@@ -179,6 +177,7 @@ describe('PhotoGrid tile info', () => {
 		expect(reached).toEqual([])
 		window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
 		expect(reached).toEqual(['Escape'])
+		window.removeEventListener('keydown', record)
 	})
 
 	// spec: GRID-004.9

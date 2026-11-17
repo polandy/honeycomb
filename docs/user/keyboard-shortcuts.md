@@ -46,6 +46,7 @@ every screen; each button's tooltip names its key.
 | `I` | Loupe: show or hide the info panel. |
 | `Esc` | Close the loupe, dialog or selection mode. While the first-series hint shows in the loupe, `Esc` dismisses it first. |
 | `B` | Show or hide the flag buttons in the loupe and the series viewer. The keys and swipes keep working. |
+| `Shift+J` | Grid: show or hide the file names above the photos. |
 
 ## Filter and select
 

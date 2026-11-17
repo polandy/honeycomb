@@ -297,7 +297,7 @@ describe('PhotoTile', () => {
 		expect(bar.text()).toBe('IMG_0001')
 		expect(bar.attributes('aria-hidden')).toBe('true')
 		expect(wrapper.element.firstElementChild).toBe(bar.element)
-		expect(wrapper.find('.photo-tile__photo .photo-tile__image').exists()).toBe(true)
+		expect(bar.element.nextElementSibling!.classList).toContain('photo-tile__photo')
 		expect(wrapper.attributes('aria-label')).toBe('IMG_0001, JPG+CR3')
 	})
 

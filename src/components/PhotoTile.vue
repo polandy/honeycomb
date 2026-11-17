@@ -19,6 +19,7 @@ import { COLOUR_LABEL_SWATCHES, colourLabelName } from '../colour-labels.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { isDecided, UNDECIDED } from '../logic/decision.ts'
 import { GRID_TIERS, imageMember, loadPriority, sharpTier, smallSource, tierSource } from '../logic/image-tiers.ts'
+import { nameParts } from '../logic/name-bar.ts'
 import { pairBadge } from '../logic/pair-badge.ts'
 import { tip } from '../tooltip.ts'
 
@@ -43,12 +44,15 @@ const props = withDefaults(defineProps<{
 	tags?: number
 	/** Whether the picture's sidecar writes still wait (XMP-003.28). */
 	unsaved?: boolean
+	/** Whether the name bar above the photo shows the base name (GRID-004.4). */
+	nameBar?: boolean
 }>(), {
 	decision: () => UNDECIDED,
 	series: 0,
 	seriesOpen: false,
 	tags: 0,
 	unsaved: false,
+	nameBar: false,
 	selecting: false,
 	selected: false,
 	offscreen: false,
@@ -57,6 +61,7 @@ const props = withDefaults(defineProps<{
 })
 
 const member = computed(() => imageMember(props.picture))
+const name = computed(() => nameParts(props.picture.baseName))
 const small = computed(() => smallSource(member.value, props.imageUrl))
 const sharp = computed(() => {
 	const tier = sharpTier(props.size, props.devicePixelRatio)
@@ -165,32 +170,37 @@ onBeforeUnmount(() => pending?.load.cancel())
 		:aria-label="label"
 		data-tip-hover-only
 		:aria-selected="props.selecting ? props.selected : undefined">
-		<img
-			v-if="shown !== null"
-			class="photo-tile__image"
-			alt=""
-			draggable="false"
-			:src="shown">
-		<span v-if="badge !== null" class="photo-tile__pair" :class="{ 'photo-tile__pair--single': badge.single, 'photo-tile__pair--keep-raw': badge.keepRaw }">{{ badge.text }}</span>
-		<span v-if="props.picture.ambiguous" class="photo-tile__ambiguous" aria-hidden="true">!</span>
-		<span
-			v-if="props.series > 1"
-			class="photo-tile__series"
-			:class="{ 'photo-tile__series--open': props.seriesOpen }"
-			aria-hidden="true"
-			v-bind="tip(seriesText)">{{ seriesBadge }}</span>
-		<span v-if="props.selecting" class="photo-tile__check" aria-hidden="true"><AppIcon v-if="props.selected" name="check" /></span>
-		<span v-if="marked" class="photo-tile__marks">
-			<FlagMark v-if="isDecided(props.decision)" :flag="props.decision.flag" :class="`photo-tile__flag photo-tile__flag--${props.decision.flag}`" />
-			<StarRating
-				v-if="props.decision.rating > 0"
-				readonly
-				class="photo-tile__stars"
-				:rating="props.decision.rating" />
-			<span v-if="props.decision.colourLabel !== null" class="photo-tile__colour" :style="{ backgroundColor: COLOUR_LABEL_SWATCHES[props.decision.colourLabel] }" />
-			<span v-if="props.tags > 0" class="photo-tile__tags" aria-hidden="true"><AppIcon name="tag" />{{ formatNumber(props.tags) }}</span>
-			<span v-if="props.unsaved" class="photo-tile__unsaved" aria-hidden="true" />
-		</span>
+		<div v-if="props.nameBar" class="photo-tile__name" aria-hidden="true">
+			<span class="photo-tile__name-head">{{ name.head }}</span><span class="photo-tile__name-tail">{{ name.tail }}</span>
+		</div>
+		<div class="photo-tile__photo">
+			<img
+				v-if="shown !== null"
+				class="photo-tile__image"
+				alt=""
+				draggable="false"
+				:src="shown">
+			<span v-if="badge !== null" class="photo-tile__pair" :class="{ 'photo-tile__pair--single': badge.single, 'photo-tile__pair--keep-raw': badge.keepRaw }">{{ badge.text }}</span>
+			<span v-if="props.picture.ambiguous" class="photo-tile__ambiguous" aria-hidden="true">!</span>
+			<span
+				v-if="props.series > 1"
+				class="photo-tile__series"
+				:class="{ 'photo-tile__series--open': props.seriesOpen }"
+				aria-hidden="true"
+				v-bind="tip(seriesText)">{{ seriesBadge }}</span>
+			<span v-if="props.selecting" class="photo-tile__check" aria-hidden="true"><AppIcon v-if="props.selected" name="check" /></span>
+			<span v-if="marked" class="photo-tile__marks">
+				<FlagMark v-if="isDecided(props.decision)" :flag="props.decision.flag" :class="`photo-tile__flag photo-tile__flag--${props.decision.flag}`" />
+				<StarRating
+					v-if="props.decision.rating > 0"
+					readonly
+					class="photo-tile__stars"
+					:rating="props.decision.rating" />
+				<span v-if="props.decision.colourLabel !== null" class="photo-tile__colour" :style="{ backgroundColor: COLOUR_LABEL_SWATCHES[props.decision.colourLabel] }" />
+				<span v-if="props.tags > 0" class="photo-tile__tags" aria-hidden="true"><AppIcon name="tag" />{{ formatNumber(props.tags) }}</span>
+				<span v-if="props.unsaved" class="photo-tile__unsaved" aria-hidden="true" />
+			</span>
+		</div>
 	</div>
 </template>
 

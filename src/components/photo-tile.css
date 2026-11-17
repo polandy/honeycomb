@@ -4,11 +4,41 @@
  */
 .photo-tile {
 	position: relative;
+	display: flex;
+	flex-direction: column;
 	overflow: hidden;
 	width: 100%;
 	height: 100%;
 	border-radius: var(--border-radius-large);
 	background-color: var(--color-background-dark);
+}
+
+.photo-tile__photo {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+}
+
+/* The name bar's head shortens with an ellipsis; its tail, the trailing number, always shows (GRID-004.5). */
+.photo-tile__name {
+	display: flex;
+	flex: none;
+	align-items: center;
+	height: 24px;
+	padding: 0 8px;
+	color: var(--color-main-text);
+	font-size: 12px;
+	white-space: nowrap;
+}
+
+.photo-tile__name-head {
+	overflow: hidden;
+	min-width: 0;
+	text-overflow: ellipsis;
+}
+
+.photo-tile__name-tail {
+	flex: none;
 }
 
 .photo-tile__image {

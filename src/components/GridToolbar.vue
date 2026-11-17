@@ -31,6 +31,7 @@ const emit = defineEmits<{
 	changeFolders: []
 	'update:tileSize': [size: number]
 	'update:groupByFolder': [group: boolean]
+	'update:fileNames': [shown: boolean]
 	'update:flags': [flags: ReadonlySet<Flag>]
 	'update:filtersOpen': [open: boolean]
 	'update:sortOrder': [order: SortOrder]
@@ -159,6 +160,7 @@ const setName = computed(() => {
 				:folders="props.folders.count"
 				:tileSize="props.view.tileSize"
 				:groupByFolder="props.view.groupByFolder"
+				:fileNames="props.view.fileNames"
 				:sortOrder="props.view.sortOrder"
 				:rawRemovable="props.tasks.rawRemovable"
 				:legacyRows="props.tasks.legacyRows"
@@ -169,6 +171,7 @@ const setName = computed(() => {
 				:series="props.tasks.series"
 				@update:tileSize="emit('update:tileSize', $event)"
 				@update:groupByFolder="emit('update:groupByFolder', $event)"
+				@update:fileNames="emit('update:fileNames', $event)"
 				@update:sortOrder="emit('update:sortOrder', $event)"
 				@removeRaws="fromMenu(() => emit('removeRaws'))"
 				@move="fromMenu(() => emit('move'))"

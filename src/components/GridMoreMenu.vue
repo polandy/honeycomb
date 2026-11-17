@@ -18,6 +18,7 @@ defineProps<{
 	folders: number
 	tileSize: number
 	groupByFolder: boolean
+	fileNames: boolean
 	sortOrder: SortOrder
 	/** How many pictures of the view would lose their RAW to *Remove RAWs*. */
 	rawRemovable: number
@@ -38,6 +39,7 @@ defineProps<{
 const emit = defineEmits<{
 	'update:tileSize': [size: number]
 	'update:groupByFolder': [group: boolean]
+	'update:fileNames': [shown: boolean]
 	'update:sortOrder': [order: SortOrder]
 	removeRaws: []
 	move: []
@@ -67,6 +69,12 @@ const emit = defineEmits<{
 			:modelValue="groupByFolder"
 			@update:modelValue="emit('update:groupByFolder', $event)">
 			{{ t('honeycomb', 'Group by folder') }}
+		</NcCheckboxRadioSwitch>
+		<NcCheckboxRadioSwitch
+			:modelValue="fileNames"
+			@update:modelValue="emit('update:fileNames', $event)">
+			{{ t('honeycomb', 'Show file names') }}
+			<kbd class="grid-more-menu__key" translate="no">{{ keyCap('file-names') }}</kbd>
 		</NcCheckboxRadioSwitch>
 		<fieldset class="grid-more-menu__sort">
 			<legend>{{ t('honeycomb', 'Sort by') }}</legend>

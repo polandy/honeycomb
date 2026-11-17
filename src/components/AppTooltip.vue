@@ -69,13 +69,13 @@ const style = computed(() => placement.value === null
 			v-show="anchor !== null"
 			:id="TIP_ID"
 			ref="bubble"
-			class="app-tooltip"
+			class="tip-bubble app-tooltip"
 			role="tooltip"
 			:data-side="placement?.side"
 			:style="style">
 			<span class="app-tooltip__label">{{ label }}</span>
 			<kbd v-if="key !== undefined">{{ key }}</kbd>
-			<i class="app-tooltip__arrow" aria-hidden="true" />
+			<i class="tip-bubble__arrow" aria-hidden="true" />
 		</div>
 	</Teleport>
 </template>
@@ -89,22 +89,10 @@ const style = computed(() => placement.value === null
 }
 
 .app-tooltip {
-	--tip-bg: var(--color-main-text);
-	--tip-fg: var(--color-main-background);
-	position: fixed;
-	z-index: 10002;
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	max-width: min(280px, calc(100vw - 16px));
-	padding: 6px 10px;
-	border-radius: var(--border-radius-large, 8px);
-	background-color: var(--tip-bg);
-	color: var(--tip-fg);
-	box-shadow: 0 2px 8px var(--color-box-shadow);
-	font-size: 13px;
 	font-weight: 600;
-	line-height: 1.3;
 }
 
 .app-tooltip kbd {
@@ -115,40 +103,5 @@ const style = computed(() => placement.value === null
 	font-family: inherit;
 	text-align: center;
 }
-
-.app-tooltip__arrow {
-	position: absolute;
-	width: 10px;
-	height: 10px;
-	background-color: inherit;
-	transform: rotate(45deg);
-}
-
-.app-tooltip[data-side='bottom'] .app-tooltip__arrow,
-.app-tooltip[data-side='top'] .app-tooltip__arrow {
-	left: var(--tip-arrow);
-	margin-left: -5px;
-}
-
-.app-tooltip[data-side='right'] .app-tooltip__arrow,
-.app-tooltip[data-side='left'] .app-tooltip__arrow {
-	top: var(--tip-arrow);
-	margin-top: -5px;
-}
-
-.app-tooltip[data-side='bottom'] .app-tooltip__arrow {
-	top: -5px;
-}
-
-.app-tooltip[data-side='top'] .app-tooltip__arrow {
-	bottom: -5px;
-}
-
-.app-tooltip[data-side='right'] .app-tooltip__arrow {
-	left: -5px;
-}
-
-.app-tooltip[data-side='left'] .app-tooltip__arrow {
-	right: -5px;
-}
 </style>
+<style scoped src="./tip-bubble.css" />
