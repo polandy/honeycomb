@@ -67,7 +67,7 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 			calls.push(['tag', chosen])
 			return true
 		} },
-		legacy: useLegacy(NO_LEGACY, record('saveFile'), record('toast'), () => false),
+		legacy: useLegacy(NO_LEGACY, record('saveFile'), record('toast'), () => false, record('openFolderSet')),
 		headerShown: ref(true),
 		openLoupe: record('openLoupe'),
 		openSettings: record('openSettings'),

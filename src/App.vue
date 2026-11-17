@@ -6,6 +6,7 @@
 import type { AppSeams } from './app-seams.ts'
 import type { CullStep } from './cull.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
+import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
@@ -61,7 +62,7 @@ const { settings, update: updateSettings } = useSettings({ loadSettings: props.l
 const viewState = useViewState(props.viewState, props.storage)
 const settingsOpen = ref(false)
 const sidecarsReady = computed(() => settings.value.sidecarWrite === 'on')
-const legacy = useLegacy(props.legacy, props.saveFile, (message) => toast.show(message), () => sidecarsReady.value, (set) => void recent.openSet(set, openFolderSet))
+const legacy = useLegacy(props.legacy, props.saveFile, (message) => toast.show(message), () => sidecarsReady.value, openLegacyFolder)
 const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, refuseFailed, legacy.acknowledge)
 const sidecars = useBundledSidecars(sidecarFlow.sync, props.schedule, props.onPageHide)
 const writeLock = useWriteLock(() => settings.value, updateSettings, toast.show, retryLocked)
@@ -119,6 +120,10 @@ const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, s
 
 provideCullContext({ cull, selection, decide, editSeries: editSelection, deleting, moving, resume, seriesCompare, sidecars: sidecarFlow, unsaved: sidecars.waiting, legacy, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage })
 
+/** Opens a folder of the notice of stored decisions (XMP-007.10). */
+function openLegacyFolder(set: FolderSet) {
+	void recent.openSet(set, openFolderSet)
+}
 /** Opens the confirmed folder set and offers its resume position. */
 function openFolderSet(...opened: Parameters<typeof cull.open>) {
 	cull.open(...opened)

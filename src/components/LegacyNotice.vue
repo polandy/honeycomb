@@ -21,7 +21,7 @@ const unreachable = computed(() => props.legacy.inventory.value?.unreachable ?? 
 
 const heading = computed(() => {
 	const photos = folders.value.reduce((sum, folder) => sum + folder.files, 0)
-	return photos === 0 ? undefined : n('honeycomb', 'Move the decisions of {count} photo into its sidecars', 'Move the decisions of {count} photos into their sidecars', photos, { count: formatNumber(photos) }, PLAIN_TEXT)
+	return photos === 0 ? '' : n('honeycomb', 'Move the decisions of {count} photo into its sidecars', 'Move the decisions of {count} photos into their sidecars', photos, { count: formatNumber(photos) }, PLAIN_TEXT)
 })
 
 const unreachableText = computed(() => n('honeycomb', '{count} file with stored decisions was deleted or is no longer shared with you, so its sidecar cannot be written. Save a copy of its decisions, or forget them.', '{count} files with stored decisions were deleted or are no longer shared with you, so their sidecars cannot be written. Save a copy of their decisions, or forget them.', unreachable.value, { count: formatNumber(unreachable.value) }, PLAIN_TEXT))
