@@ -38,8 +38,8 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 2. **Listing backend:** `GET /api/v1/entries?path=…` (ADR 0009) returns the folder's files as flat
    entries — file id, path, size, mtime, ETag, mime type and EXIF basics (capture time,
    orientation, dimensions) where Nextcloud's file metadata has them ([Sort order](#sort-order))
-   — from one file-cache query
-   by path prefix and mime type, for the user's folder only. No pairing on the server. With
+   — from the file cache, one directory listing per folder, for the user's folder only. No
+   pairing on the server. With
    `?subfolders=1` the same query covers every folder below, minus the skipped ones
    ([Multiple folders](#multiple-folders)), capped at 60,000 entries (20,000 pictures). PHPUnit
    first, with the failure paths: a foreign path, a vanished folder, no permission; 2,000+ pairs
@@ -253,9 +253,21 @@ folder with all its subfolders. That set of folders is the *folder set*.
    show each picture's folder.
 7. **Moving.** Moving pictures into a folder of the folder set still removes them from the view.
 8. **Recent.** A folder set is listed under *Recent* with its own resume position and progress.
-9. **Performance.** The server lists the whole folder set with one file-cache query by path
-   prefix and mime type, never a WebDAV walk. The grid is virtualised. Above 20,000 pictures the
-   picker shows a notice and the grid shows the first 20,000 by capture time.
+9. **Performance.** The server lists the whole folder set from the file cache, never a WebDAV
+   walk. The grid is virtualised. Above 20,000 pictures the picker shows a notice and the grid
+   shows the first 20,000 by capture time.
+   **Measured** on 2026-11-14 with `scripts/measure-scale.sh` (100,000 empty photo files in 1,000
+   folders, the e2e container on SQLite, the services called without HTTP): the subfolder
+   listing costs 5 queries per folder (one directory listing and 4 share lookups of
+   `SharedFolders::isShared`) and 2 per 1,000 entries (file metadata, visual hashes). 10,000
+   entries in 100 folders took 525 queries and 0.17 s; the 60,000 entry cap, reached after 600
+   folders, 3,132 queries, 1.0 s and 135 MB of PHP memory. Re-measured on 2026-11-17 after
+   the folder permissions, versions and XMP cache (#219–#245): the listing numbers are unchanged.
+   A bulk save costs 3 queries per item, since `UserPhotos::photos` looks every file id up on its
+   own: 2,000 decisions or tag lists took 6,000 queries in 0.67 s, 60,000 took 180,000 queries in
+   19.5 s and ~250 MB. On MySQL or
+   PostgreSQL each query adds a network round trip, so the share lookups dominate a deep tree and
+   the per-item lookups a large save.
 
 Where the work lands: M1.2 (listing with subfolders), M2.3 (picker, grid headers), M2.4 (resume
 per folder set), M2.5 (folder filter), M6 (series per camera).
@@ -697,7 +709,7 @@ honeycomb is a classic PHP Nextcloud app, not an AppAPI ExApp (ADR 0006).
 
 | Backend (PHP, thin) | Frontend (pure TypeScript modules in `src/logic/`) |
 |---|---|
-| List a folder set: one file-cache query by path prefix and mime type, flat entries with EXIF basics | Pairing, series |
+| List a folder set: one directory listing per folder, flat entries with EXIF basics | Pairing, series |
 | Move and trash files through `OCP\Files` | Filters, sort, the flag filter and progress |
 | Write the XMP bytes the client produced, with the checked save | XMP read and write mapping, serialized form |
 | Store per-user decisions, resume position and settings | Name templates and move conflicts |

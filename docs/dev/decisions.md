@@ -1452,3 +1452,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the dashed state now covers settled series too; the grid always keeps one 8 px gap above its
   first row for that row's bracket; a badge opens the one-series compare over the page, titled
   as from the loupe.
+- 2026-11-14: The scale measurement calls the services inside the e2e container instead of the
+  HTTP endpoints, since a scripted login gets `401` there; HTTP adds the same JSON encoding once.
