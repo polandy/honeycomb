@@ -43,7 +43,7 @@ function recentOn(positions: () => Promise<unknown>, listEntries: ListEntries = 
 		pairing: () => DEFAULT_PAIRING_SETTINGS,
 	}, (message) => toasts.push(message))
 	const opener = { open: (...args: unknown[]) => opened.push(args), resumeAt: (fileId: number) => opened.at(-1)!.push(fileId), resumeOpen: () => resumed++ }
-	return { ...recent, open: (position: ResumePosition) => recent.open(position, opener), opened, toasts, listed, folderSet, progress, resumed: () => resumed }
+	return { ...recent, open: (position: ResumePosition) => recent.open(position, opener), openSet: (set: FolderSet) => recent.openSet(set, opener.open), opened, toasts, listed, folderSet, progress, resumed: () => resumed }
 }
 
 describe('useRecent', () => {
@@ -67,6 +67,19 @@ describe('useRecent', () => {
 
 		expect(recent.listed).toEqual(['/Trip', '/Day'])
 		expect(recent.opened).toEqual([[TRIP, [...LISTINGS['/Trip']!, ...LISTINGS['/Day']!], { folders: [{ path: '/Day', shared: false, permissions: 31, versions: true }], opened: [{ path: '/Trip', fileId: 5 }, { path: '/Day', fileId: 4 }] }, 2]])
+	})
+
+	// spec: XMP-007.10
+	it('lists a folder set and opens it without a position; the open one stays', async () => {
+		const recent = recentOn(async () => [])
+
+		await recent.openSet({ paths: ['/Day'], subfolders: false })
+		recent.folderSet.value = { paths: ['/Day'], subfolders: false }
+		await recent.openSet({ paths: ['/Day'], subfolders: false })
+
+		expect(recent.listed).toEqual(['/Day'])
+		expect(recent.opened).toEqual([[{ paths: ['/Day'], subfolders: false }, LISTINGS['/Day'], { folders: [{ path: '/Day', shared: true, permissions: 31, versions: true }], opened: [{ path: '/Day', fileId: 4 }] }]])
+		expect(recent.resumed()).toBe(0)
 	})
 
 	// spec: DECISIONS-002.16

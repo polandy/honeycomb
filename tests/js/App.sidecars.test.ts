@@ -108,7 +108,7 @@ describe('App: migrating the stored decisions and tags to sidecars', () => {
 		await button(wrapper, 'Write to sidecars').trigger('click')
 		await flushPromises()
 		expect(saves.map(savedPaths)).toEqual([[6, '/Trip/A/IMG_10.JPG.xmp']])
-		expect(toastText(wrapper)).toBe('Could not write 2 sidecars·Details')
+		expect(toastText(wrapper)).toBe('Could not write 2 of 2 photos·Details')
 		expect(acknowledged).toEqual([])
 
 		await wrapper.findComponent(UndoToast).find('button').trigger('click')
