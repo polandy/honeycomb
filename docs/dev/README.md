@@ -11,3 +11,4 @@ For everyone who builds honeycomb. The rules for agents and humans are in
 | [`specs/`](specs/) | What the merged code does, one spec per feature |
 | [`adr/`](adr/) | Why decisions were made |
 | [`plan.md`](plan.md) | Milestones, project structure, target versions |
+| [`releasing.md`](releasing.md) | The release tarball, its signatures and the App Store upload, with the owner's one-time steps |
