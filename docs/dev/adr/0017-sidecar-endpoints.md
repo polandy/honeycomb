@@ -1,6 +1,6 @@
-# 0017 – The sidecar endpoints: bytes in base64, a checked save through a part file
+# 0017 – The sidecar endpoints: bytes in base64, a checked save
 
-- Status: accepted, amended by [0032](0032-sidecar-is-the-source-of-truth.md)
+- Status: accepted, amended by [0032](0032-sidecar-is-the-source-of-truth.md) and on 2026-11-18
 - Date: 2026-11-10
 
 ## Context
@@ -37,16 +37,14 @@ The options for the transfer:
   "content": "<base64>"}` with the ETag and size the client read, or a new one, `{"path":
   "/Photos/IMG_0001.NEF.xmp", "content": "<base64>"}`, whose path ends in `.xmp` (any case) and
   names an image file plus `.xmp`.
-- **The checked save** (CORE-009.16–.19, ETag and size in place of BLAKE3):
+- **The checked save** (CORE-009.16–.19, ETag and size in place of BLAKE3; in place since
+  2026-11-18):
   1. The target is checked: an existing sidecar must still have the given ETag and size and be
      updateable; a new one must not exist yet, and its folder must allow creating files.
-  2. The bytes are written to `<name>.part` beside the target with `Folder::newFile()`.
-  3. The target is checked again, and the part file is renamed onto it with `Node::move()`.
-     Nextcloud treats the rename of a part file onto a regular file as a write
-     (`OC\Files\View::rename()`), so an existing sidecar keeps its file id, gets a version and
-     fires the write events; a crash leaves the old sidecar whole and at most a part file, which
-     Nextcloud's scanner ignores.
-  4. When a step fails, the part file is deleted again.
+  2. Right after the check the bytes are written: an existing sidecar in place with
+     `File::putContent()`, so it keeps its file id, the Versions app keeps the replaced bytes as a
+     version and the write events fire; a new one with `Folder::newFile()`. No other file is
+     written.
 - **Save answer:** `200` with `{"sidecars": [{"result": "saved", "fileId": 9, "etag": "…",
   "size": 830, "mtime": 1700000100}, …]}` in the order sent, so the client can save the same
   sidecar again without listing. `result` is `saved`, `notFound` (an existing sidecar vanished or
@@ -72,8 +70,11 @@ The options for the transfer:
   reading and merging.
 - The check before the rename and the rename are two steps; a write by another program in between
   is lost. Nextcloud's own uploads have the same window.
-- A part file needs the right to create files in the folder, also when an existing sidecar is
-  replaced; a share that allows only updating answers `notPermitted`.
+- Replacing an existing sidecar needs only the right to update it; creating a new one needs the
+  right to create files in its folder.
+- A crash in the middle of a write can leave a sidecar half written. An existing one is replaced
+  only while its folder keeps versions (amendment 2026-11-15), so its previous bytes can be
+  restored; a new one had none.
 - External storage counts as mounted for another user only once that user's mounts are known to
   Nextcloud's mount cache, that is after their first login since it was configured.
 - A new result or field is added, never renamed or removed, without a new version in the path.
@@ -93,3 +94,21 @@ honeycomb's canonical form and loses what the model does not hold (the `<?xpacke
 answers the new result `noVersions` and keeps its bytes. A new sidecar is created either way.
 A one-time `<name>.xmp.orig` copy was rejected: it adds files to the user's folders that sync to
 every desktop and that other programs may read, and it keeps only the first version.
+
+## Amendment 2026-11-18
+
+Nextcloud 35.0.3 checks the rename right in `Node::move()` (`DavUtil::canRename()`). A part file
+made with `Folder::newFile()` has only a stub cache entry with permissions 0, so moving it onto
+the sidecar answered `notPermitted` and no sidecar could be saved. The options:
+
+- **A cached temporary name** (not `.part`): Nextcloud moves it like any file, so the sidecar
+  would take the temporary file's id and the replaced bytes would not become a version of it;
+  every save would also add a file to the folder that desktop clients sync.
+- **Nextcloud's own upload path** (`OC\Files\View::rename()` of a part file): private API,
+  against CLAUDE.md rule 1.
+- **Write in place right after the check** (chosen): public API only, the file id and the version
+  come from Nextcloud's own write, it needs no create right in the folder and leaves no part
+  file behind. It gives up the all-or-nothing rename; the version taken before the write covers an
+  existing sidecar, and the window between check and write shrinks to the versions lookup.
+
+The ETag and size check stays, now once, right before the write.

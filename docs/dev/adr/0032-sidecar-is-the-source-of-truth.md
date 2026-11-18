@@ -43,7 +43,7 @@ entry is visible without another request. Sidecars are per file, not per user.
    sidecar that is read hides the embedded XMP completely, exactly as digiKam does, so a new JPEG
    sidecar takes over every value of the embedded XMP when it is created, not only the delta.
 2. **Saving means saving the sidecar.** A change is saved when every target sidecar of the
-   picture answers `saved`; the checked save through a part file stays (ADR 0017). The UI shows
+   picture answers `saved`; the checked save stays (ADR 0017). The UI shows
    the change at once and takes it back for the pictures that were not saved.
 3. **Edits are deltas, applied to the state each sidecar states.** A step carries only the fields
    it changes (`{rating: 4}`, `{flag: 'rejected'}`, a tag change). Per target sidecar the delta is
@@ -214,8 +214,8 @@ on values not yet saved). 9 comes a release after 6.
 - A picture with a refused sidecar cannot be decided on in honeycomb.
 - Moves need no `carryOver` for decisions and tags: the sidecar moves with the picture and, since
   #208, keeps its file id.
-- Known limits: without DELETE permission a failed save leaves its `.part` file; the flush on
-  hide is best effort.
+- Known limits: the flush on hide is best effort. (A failed save no longer leaves a `.part` file
+  without DELETE permission: the save writes in place since ADR 0017's amendment of 2026-11-18.)
 
 ## Amendment 2026-11-15: the migration as built (PR 5)
 

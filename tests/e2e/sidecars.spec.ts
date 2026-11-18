@@ -4,6 +4,7 @@ import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
+import { ADMIN } from './admin.ts'
 import { createFolder, requestToken, upload } from './files.ts'
 
 const api = '/index.php/apps/honeycomb/api/v1/sidecars'
@@ -14,8 +15,18 @@ async function lookup(page: Page, fileId: number) {
 	return (await response.json()).sidecars[0]
 }
 
+/** The bytes of each version the Versions app keeps of the file. */
+async function versionContents(page: Page, fileId: number): Promise<string[]> {
+	const requesttoken = await requestToken(page)
+	const url = `/remote.php/dav/versions/${ADMIN.username}/versions/${fileId}`
+	const propfind = await page.request.fetch(url, { method: 'PROPFIND', headers: { requesttoken, Depth: '1' } })
+	expect(propfind.status(), await propfind.text()).toBe(207)
+	const hrefs = [...(await propfind.text()).matchAll(/<d:href>([^<]+)<\/d:href>/g)].flatMap(([, href]) => href === undefined || href.endsWith(`/${fileId}/`) ? [] : [href])
+	return Promise.all(hrefs.map(async (href) => (await page.request.get(href, { headers: { requesttoken } })).text()))
+}
+
 // spec: XMP-002.9
-test('saves new bytes to a sidecar under the same file id', async ({ page }) => {
+test('saves new bytes to a sidecar under the same file id and keeps the old ones as a version', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Sidecars ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
@@ -33,4 +44,5 @@ test('saves new bytes to a sidecar under the same file id', async ({ page }) => 
 	expect(saved).toMatchObject({ result: 'saved', fileId })
 
 	expect(await lookup(page, fileId)).toMatchObject({ result: 'read', fileId, content, etag: saved.etag })
+	expect(await versionContents(page, fileId)).toContain('<x:xmpmeta/>')
 })

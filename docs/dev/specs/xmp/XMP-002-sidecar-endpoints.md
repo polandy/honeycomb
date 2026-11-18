@@ -21,8 +21,9 @@ answers `{"sidecars": [{"fileId": 9, "result": "read", "content": "<base64>", "e
 `PUT /apps/honeycomb/api/v1/sidecars` takes `{"sidecars": [...]}`, at most 1,000, each either an
 existing sidecar `{"fileId": 9, "etag": "…", "size": 812, "content": "<base64>"}` or a new one
 `{"path": "/Photos/IMG_0001.NEF.xmp", "content": "<base64>"}`, content at most 1 MiB. Each is
-saved by the checked save: target checked, bytes written to `<name>.part` beside it, target
-checked again, part file renamed onto it; a failure deletes the part file. The answer is
+saved by the checked save: the target is checked, then written at once, an existing sidecar in
+place with `File::putContent()` and a new one with `Folder::newFile()`, so a sidecar keeps its
+file id and the replaced bytes become a version; no file is written beside it. The answer is
 `{"sidecars": [{"result": "saved", "fileId": 9, "etag": "…", "size": 830, "mtime": …}, …]}` in
 the order sent.
 
@@ -39,7 +40,7 @@ restored from the file's versions; a new sidecar has nothing to lose and is crea
 | `changed` | – | Another ETag or size, or a new one that exists meanwhile |
 | `noVersions` | – | An existing sidecar whose folder keeps no versions |
 | `tooLarge` | Over 1 MiB | – |
-| `notPermitted` | The user may not read it | The user may not update it or create files in its folder |
+| `notPermitted` | The user may not read it | The user may not update it; for a new one, create files in its folder |
 | `locked` | Locked by another process | Locked by another process |
 | `failed` | Any other error, logged as a warning | Any other error, logged as a warning |
 
@@ -65,36 +66,37 @@ restored from the file's versions; a new sidecar has nothing to lose and is crea
 - **Then** they answer `notFound`, `notFound`, `tooLarge`, `notPermitted`, `locked` and `failed`
   without bytes, the broken one is logged, and the others still answer `read`
 
-### XMP-002.3 – An existing sidecar is saved through a part file
+### XMP-002.3 – An existing sidecar is saved in place
 
-- **Given** an existing sidecar with the ETag and size the client sends
+- **Given** an existing sidecar with the ETag and size the client sends, in a folder that allows
+  updating files but not creating them
 - **When** the client saves new bytes to it
-- **Then** the bytes go to `<name>.part` in its folder, the part file is renamed onto the sidecar,
-  and the answer is `saved` with the new ETag, size and mtime
+- **Then** the bytes are written into the sidecar itself, no file is written beside it, and the
+  answer is `saved` with the same file id and the new ETag, size and mtime
 
 ### XMP-002.4 – A new sidecar is created beside its image
 
 - **Given** an image `/Photos/IMG_0001.NEF` without `/Photos/IMG_0001.NEF.xmp`
 - **When** the client saves bytes to the path `/Photos/IMG_0001.NEF.xmp`
-- **Then** the sidecar is created through a part file and the answer is `saved` with its new file
-  id
+- **Then** the sidecar is created with the bytes, no other file is written, and the answer is
+  `saved` with its new file id
 
 ### XMP-002.5 – A sidecar changed since it was read is not overwritten
 
 - **Given** an existing sidecar with another ETag or size than the client sends, or a new path
-  that exists, before the part file is written or before it is renamed
+  that exists, when the save checks it right before writing
 - **When** the client saves it
-- **Then** it answers `changed`, the sidecar keeps its bytes and no part file is left
+- **Then** it answers `changed`, the sidecar keeps its bytes and nothing is written
 
 ### XMP-002.6 – Save reports what it cannot write
 
 - **Given** a vanished existing sidecar, an id of an image, a new path whose image is missing, a
-  sidecar the user may not update, a folder that does not allow creating files, a lock and a
-  storage error while writing or renaming
+  sidecar the user may not update, a new sidecar in a folder that does not allow creating files,
+  and a refusal, a lock, a vanished file and a storage error while writing
 - **When** the client saves them with a valid sidecar
 - **Then** they answer `notFound`, `notFound`, `notFound`, `notPermitted`, `notPermitted`,
-  `locked` and `failed`, no part file is left, the storage error is logged, and the valid sidecar
-  is `saved`
+  `notPermitted`, `locked`, `notFound` and `failed`, no other file is written, the storage error is
+  logged, and the valid sidecar is `saved`
 
 ### XMP-002.7 – A malformed request touches nothing
 
@@ -111,9 +113,11 @@ restored from the file's versions; a new sidecar has nothing to lose and is crea
 
 ### XMP-002.9 – The save keeps the file id against a real Nextcloud
 
-- **Given** a sidecar uploaded to a real Nextcloud
+- **Given** a sidecar uploaded to a real Nextcloud, on the oldest and the newest Nextcloud e2e runs
+  on
 - **When** the client saves new bytes to it and looks it up
-- **Then** the lookup answers the new bytes under the same file id
+- **Then** the lookup answers the new bytes under the same file id, and the file's versions hold
+  the old bytes
 
 ### XMP-002.10 – No existing sidecar is overwritten without file versions
 
@@ -137,3 +141,4 @@ restored from the file's versions; a new sidecar has nothing to lose and is crea
 | 2026-11-10 | Written with the endpoints (ADR 0017) |
 | 2026-11-15 | No overwrite without file versions (XMP-002.10) |
 | 2026-11-15 | Versions checked per folder, by owner and storage (ADR 0032) |
+| 2026-11-18 | Saved in place instead of through a part file, which Nextcloud 35.0.3 refuses to move (ADR 0017) |
