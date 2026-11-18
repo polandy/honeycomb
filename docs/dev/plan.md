@@ -345,14 +345,16 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    mockup's language switch live in a **⋯ more menu** (arrow keys, one separator per group).
    The flag filter (*Picked*, *Unflagged*, *Rejected* chips, no filter icon before them) and the
    progress share the toolbar and wrap onto a second line rather than squeezing the breadcrumb
-   (the mockup still shows the older scope control). Every control keeps a 44 px hit target.
+   (the mockup shows them: chips with icon and label, icon only below 520 px). Every control keeps
+   a 44 px hit target.
 2. **The key actions move into the app bar while scrolling** (owner, 2026-11-09, correcting the
    slim-row version). Nothing stays below the app bar: when the toolbar hides, all of it, the
    slim row included, slides away, and the most used actions appear in the top app bar
    (`.hdr`, where *Undo* and *Redo* are), between the logo and *Undo*: the flag filter as three icon
-   buttons, the *decided* count with a thin progress line on the bar's bottom edge, *Review
-   rejects* with its badge and the ⋯ menu. When the toolbar returns they leave the app bar again;
-   there are never two copies at once (the hidden toolbar is inert). Every target keeps 44 px.
+   buttons (pressed ones tinted, drawn in the mockup), the *decided* count with a thin progress
+   line on the bar's bottom edge, *Review rejects* with its badge and the ⋯ menu. When the toolbar
+   returns they leave the app bar again; there are never two copies at once (the hidden
+   toolbar is inert). Every target keeps 44 px.
    On a phone the logo shrinks to the mark, and to make room the navigation toggle and the count
    figures give way while the actions are in the app bar (the thin line stays), *Redo* moves into
    the ⋯ menu and *Undo* stays in the bar (owner, 2026-11-10; Ctrl+Shift+Z and Ctrl+Y are
