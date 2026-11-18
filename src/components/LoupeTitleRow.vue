@@ -69,7 +69,11 @@ const SERIES_MARK = '⧉'
 		<h2 class="loupe-title-row__name">
 			{{ props.name }}
 		</h2>
-		<span v-if="props.unsaved" class="loupe-title-row__unsaved" role="img" :aria-label="t('honeycomb', 'Not saved yet')" />
+		<span
+			v-if="props.unsaved"
+			class="loupe-title-row__unsaved"
+			role="img"
+			:aria-label="t('honeycomb', 'Not saved yet')" />
 		<span class="loupe-title-row__count">{{ t('honeycomb', '{position} of {count}', { position: formatNumber(props.index + 1), count: formatNumber(props.count) }, undefined, PLAIN_TEXT) }}</span>
 		<span v-if="props.series !== null" class="loupe-title-row__series-anchor">
 			<button
