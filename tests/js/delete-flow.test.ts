@@ -253,14 +253,14 @@ describe('useDeleteFlow: Remove RAWs', () => {
 	})
 })
 
-// spec: DELETE-002.9
+// spec: DELETE-002.9, DELETE-002.22
 describe('failureReason', () => {
 	it.each([
 		['notFound', 'File is gone or no longer a photo; reload the folder'],
 		['changed', 'File changed since the folder was listed; reload the folder, then delete again'],
 		['notPermitted', 'You may not delete this file'],
-		['noTrashBin', 'Not deleted: no trash bin on this storage'],
-		['tooLarge', 'Not deleted: larger than the trash bin allows'],
+		['noTrashBin', 'No trash bin on this storage'],
+		['tooLarge', 'Larger than the trash bin allows'],
 		['skipped', 'Not tried, because another file of this photo failed'],
 		['failed', 'Could not move the file to the trash bin'],
 	] as const)('words %s', (result, reason) => {

@@ -155,7 +155,7 @@ test('trashes a Team folder pair past the trash bin size, since a Team folder ke
 	})
 })
 
-// spec: DELETE-002.20, DELETE-002.21
+// spec: DELETE-002.20, DELETE-002.21, DELETE-002.24
 test('warns before deleting a photo the trash bin would not keep, with Cancel focused, then deletes it for good', async ({ page }) => {
 	const mount = `External ${randomUUID().slice(0, 8)}`
 	await withExternalStorage(mount, async () => {
@@ -171,6 +171,11 @@ test('warns before deleting a photo the trash bin would not keep, with Cancel fo
 			const warning = page.getByRole('dialog', { name: '1 file will be deleted permanently' })
 			await expect(warning.getByRole('listitem')).toHaveText([/IMG_0001\.jpg.*Larger than the trash bin allows/])
 			await expect(warning.getByRole('button', { name: 'Cancel' })).toBeFocused()
+			for (const key of ['Delete', 'Control+Backspace', 'p', 'x']) {
+				await page.keyboard.press(key)
+			}
+			await expect(warning).toBeVisible()
+			expect(await exists(page, `${mount}/IMG_0001.jpg`)).toBe(true)
 			await warning.getByRole('button', { name: 'Delete permanently' }).click()
 
 			await expect(warning).toBeHidden()
@@ -178,5 +183,31 @@ test('warns before deleting a photo the trash bin would not keep, with Cancel fo
 			await expect(grid.getByRole('gridcell')).toHaveCount(0)
 		})
 		expect(await exists(page, `${mount}/IMG_0001.jpg`)).toBe(false)
+	})
+})
+
+// spec: DELETE-002.22, DELETE-002.24
+test('cancels the warning on Enter, which acts on the focused Cancel, and reports the file with the warning\'s reason', async ({ page }) => {
+	const mount = `External ${randomUUID().slice(0, 8)}`
+	await withExternalStorage(mount, async () => {
+		await upload(page, `${mount}/IMG_0001.jpg`, JPEG)
+		await withSmallTrashBin(async () => {
+			await cullFolder(page, mount)
+			const grid = page.getByRole('grid', { name: 'Photos' })
+			await page.getByRole('button', { name: 'Select', exact: true }).click()
+			await grid.getByRole('gridcell', { name: 'IMG_0001, JPG only' }).click()
+			await page.getByRole('button', { name: 'Delete…', exact: true }).click()
+			await page.getByRole('dialog', { name: 'Delete 1 photo' }).getByRole('button', { name: /^Move \d+ files? to trash$/ }).click()
+
+			const warning = page.getByRole('dialog', { name: '1 file will be deleted permanently' })
+			await expect(warning.getByRole('button', { name: 'Cancel' })).toBeFocused()
+			await page.keyboard.press('Enter')
+
+			await expect(warning).toBeHidden()
+			await expect(page.getByRole('dialog', { name: 'Deletion finished with errors' })).toContainText('Larger than the trash bin allows')
+			await expect(grid.getByRole('gridcell')).toHaveCount(1)
+		})
+		expect(await exists(page, `${mount}/IMG_0001.jpg`)).toBe(true)
+		await trashEntry(page, `${mount}/IMG_0001.jpg`)
 	})
 })
