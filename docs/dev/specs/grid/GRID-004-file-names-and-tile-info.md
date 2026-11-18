@@ -32,6 +32,12 @@ scroll of the grid and `Esc`. Its lines: the base name with the members (`JPG + 
 *Captured* with seconds, *Camera* and *Rating* as five stars; a missing capture time or camera
 leaves its line out. Screen readers hear the tile as before; the bubble is hidden from them.
 
+On a coarse pointer (touch) the tile info is reached by an ⓘ button in the name bar's right end,
+shown while the name bar is. The button's hit area is at least 44 × 44 px; a tap opens the same
+bubble for that tile, a tap on the button again, anywhere else, a scroll of the grid or `Esc`
+closes it. The button takes the tap alone: it neither selects the tile nor starts a long-press,
+and a long-press elsewhere on the tile stays selection (GRID-003.2). A fine pointer shows no button.
+
 ## Acceptance criteria
 
 ### GRID-004.1 – Off by default, kept per user
@@ -112,6 +118,16 @@ leaves its line out. Screen readers hear the tile as before; the bubble is hidde
 - **Then** its label is unchanged, the tile info is hidden from it, and keyboard focus never shows
   the tile info
 
+### GRID-004.12 – On touch an ⓘ button opens the tile info
+
+- **Given** a coarse pointer and *Show file names* on
+- **When** the grid shows its tiles
+- **Then** each tile's name bar ends in an ⓘ button with a hit area of at least 44 × 44 px, named
+  *Tile info*; with a fine pointer or without the name bar there is none; a tap on the button
+  opens the tile info of that tile without selecting it or opening the loupe, also in selection
+  mode; a second tap on it, a tap elsewhere, a scroll of the grid or `Esc` closes it; opening it for
+  another tile moves it there
+
 ## Out of scope
 
 The tooltip of controls (APP-002), the loupe's info panel (LOUPE-001), the tile's badges and marks
@@ -122,3 +138,4 @@ The tooltip of controls (APP-002), the loupe's info panel (LOUPE-001), the tile'
 | Date | Change |
 |---|---|
 | 2026-11-17 | Created: name bar, `Shift+J`, tile info (owner decisions E1–E8) |
+| 2026-11-18 | ⓘ button for the tile info on touch (GRID-004.12, decision log #187 item 9, #246) |
