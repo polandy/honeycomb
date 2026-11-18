@@ -3,22 +3,9 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { BrowserStorage } from '../browser-storage.ts'
 import type { HotkeyHandlers } from '../hotkeys.ts'
-import type { DecisionIntent } from '../logic/decision-change.ts'
-import type { Decision } from '../logic/decision.ts'
-import type { FolderSet } from '../logic/folder-set.ts'
-import type { ImageUrlFor } from '../logic/image-tiers.ts'
-import type { ListingEntry } from '../logic/listing.ts'
-import type { Schedule } from '../logic/long-press.ts'
-import type { Picture } from '../logic/pairing.ts'
-import type { Series } from '../logic/series.ts'
-import type { Settings } from '../logic/settings.ts'
-import type { Tag } from '../logic/tag.ts'
 import type { Writability } from '../logic/writability.ts'
-import type { ObserveSize } from '../observe-size.ts'
-import type { Toast } from '../toast.ts'
-import type { ViewStateStore } from '../view-state.ts'
+import type { PhotoLoupeEmits, PhotoLoupeProps } from '../photo-loupe-props.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue'
@@ -40,35 +27,12 @@ import { DIVIDER_WIDTH, FLAG_RAIL, INFO_PANEL } from '../logic/panel-width.ts'
 import { useLoupeDecisions } from '../loupe-decisions.ts'
 import { useLoupePanels } from '../loupe-panels.ts'
 import { decodeSource, usePrefetch } from '../loupe-prefetch.ts'
+import { useLoupeSeries } from '../loupe-series.ts'
 import { observeElementSize } from '../observe-size.ts'
 import { useSeriesHint } from '../series-hint.ts'
 import { browserSchedule } from '../tile-selection.ts'
 
-const props = withDefaults(defineProps<{
-	/** The pictures the loupe pages through, the grid's order when it opened. */
-	pictures: readonly Picture<ListingEntry>[]
-	index: number
-	folderSet: FolderSet
-	decisionOf: (picture: Picture<ListingEntry>) => Decision
-	/** Whether the picture counts as decided, by its flag unless given (SERIES-005.14). */
-	decidedOf?: (picture: Picture<ListingEntry>) => boolean
-	/** Each picture of a series mapped to its whole series, for the filmstrip's frame (LOUPE-001.19). */
-	seriesOf?: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>
-	/** The picture's tags for the info panel (TAGS-004.8). */
-	tagsOf?: (picture: Picture<ListingEntry>) => readonly Tag[]
-	writabilityOf?: (picture: Picture<ListingEntry>) => Writability
-	/** The picture whose sidecar save waits, shown as a ring in the title row (LOUPE-001.27). */
-	unsaved?: Picture<ListingEntry> | null
-	storage: BrowserStorage
-	viewState: ViewStateStore
-	settings: Settings
-	imageUrl?: ImageUrlFor
-	decode?: (src: string) => Promise<void>
-	schedule?: Schedule
-	toggleFullscreen?: (element: HTMLElement) => void
-	devicePixelRatio?: number
-	observeSize?: ObserveSize
-}>(), {
+const props = withDefaults(defineProps<PhotoLoupeProps>(), {
 	seriesOf: () => new Map(),
 	tagsOf: () => [],
 	writabilityOf: (): Writability => 'off',
@@ -80,20 +44,7 @@ const props = withDefaults(defineProps<{
 	observeSize: observeElementSize,
 })
 
-const emit = defineEmits<{
-	'update:index': [index: number]
-	decide: [intent: DecisionIntent, picture: Picture<ListingEntry>]
-	toast: [toast: Toast]
-	allDecided: []
-	move: []
-	updateSettings: [patch: Partial<Settings>]
-	tag: [picture: Picture<ListingEntry>]
-	/** Opens the compare on the series with the picture active (LOUPE-001.25). */
-	compareSeries: [series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>]
-	/** Picks the shown picture and rejects the rest of its series (LOUPE-002.15). */
-	pickRest: [series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>]
-	close: []
-}>()
+const emit = defineEmits<PhotoLoupeEmits>()
 
 const root = useTemplateRef<HTMLElement>('root')
 const stage = useTemplateRef<InstanceType<typeof LoupeStage>>('stage')
@@ -121,8 +72,14 @@ const decisions = useLoupeDecisions({
 })
 
 const picture = computed(() => props.pictures[props.index]!)
-const series = computed(() => props.seriesOf.get(picture.value) ?? null)
-const seriesPlace = computed(() => (series.value === null ? null : { position: series.value.members.indexOf(picture.value) + 1, count: series.value.members.length }))
+const loupeSeries = useLoupeSeries({
+	pictures: () => props.pictures,
+	picture: () => picture.value,
+	seriesOf: () => props.seriesOf,
+	dismissHint: () => seriesHint.dismiss(),
+	compare: (series, shown) => emit('compareSeries', series, shown),
+	pickRest: (series, shown) => emit('pickRest', series, shown),
+})
 const sourcesAt = (index: number) => loupeSources(imageMember(props.pictures[index]!), props.imageUrl)
 
 watch(() => props.index, (index) => prefetcher.prefetchAround(index, props.pictures.length, sourcesAt), { immediate: true })
@@ -132,24 +89,6 @@ watch(seriesHint.shown, (shown) => shown && overlays.wake())
 function go(index: number) {
 	if (index >= 0 && index < props.pictures.length && index !== props.index) {
 		emit('update:index', index)
-	}
-}
-
-/** Opens the compare on the series of the picture at `index`, the shown picture active while it is in it, else that one. */
-function compareSeriesOf(index: number) {
-	const at = props.pictures[index]!
-	const series = props.seriesOf.get(at)
-	if (series !== undefined) {
-		seriesHint.dismiss()
-		emit('compareSeries', series, series.members.includes(picture.value) ? picture.value : at)
-	}
-}
-
-/** Asks to pick the shown picture and reject the rest of its series, if it is in one. */
-function pickRest() {
-	if (series.value !== null) {
-		seriesHint.dismiss()
-		emit('pickRest', series.value, picture.value)
 	}
 }
 
@@ -171,8 +110,8 @@ const hotkeys: HotkeyHandlers = {
 	info: () => panels.setInfoOpen(!infoOpen.value),
 	'flag-buttons': () => decisions.setFlagButtonsShown(!props.settings.flagButtonsShown, true),
 	tag: () => emit('tag', picture.value),
-	compare: () => compareSeriesOf(props.index),
-	'pick-rest': pickRest,
+	compare: () => loupeSeries.compareAt(props.index),
+	'pick-rest': loupeSeries.pickRest,
 	decide: decisions.decideByKey,
 }
 
@@ -211,11 +150,11 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:filmstripOpen="filmstripOpen"
 			:navigationShown="navigationShown"
 			:flagButtonsShown="settings.flagButtonsShown"
-			:series="seriesPlace"
+			:series="loupeSeries.place.value"
 			:seriesHint="seriesHint.shown.value"
 			:unsaved="picture === props.unsaved"
 			@pointerdown="overlays.wake"
-			@compareSeries="compareSeriesOf(props.index)"
+			@compareSeries="loupeSeries.compareAt(props.index)"
 			@dismissSeriesHint="dismissAndFocus(seriesHint.dismiss)"
 			@close="emit('close')"
 			@move="emit('move')"
@@ -275,7 +214,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:imageUrl="props.imageUrl"
 			:observeSize="props.observeSize"
 			:pinned="settings.filmstripPinned"
-			:onCompareSeries="compareSeriesOf"
+			:onCompareSeries="loupeSeries.compareAt"
 			@pointerdown="overlays.wake"
 			@select="go"
 			@update:pinned="emit('updateSettings', { filmstripPinned: $event })" />
@@ -289,8 +228,8 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			@pointerdown="overlays.wake"
 			@decide="decisions.decide"
 			@tag="emit('tag', picture)">
-			<template v-if="series !== null" #end>
-				<PickRestButton class="photo-loupe__pick-rest" secondary @pick="pickRest" />
+			<template v-if="loupeSeries.series.value !== null" #end>
+				<PickRestButton class="photo-loupe__pick-rest" secondary @pick="loupeSeries.pickRest" />
 			</template>
 		</ActionBar>
 		<GestureGuide v-if="!gestureGuideSeen" :swipes="settings.swipes" @dismiss="dismissAndFocus(panels.dismissGestureGuide)" />

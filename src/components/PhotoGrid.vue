@@ -3,18 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { Frame } from '../auto-scroll.ts'
-import type { Decision } from '../logic/decision.ts'
-import type { FolderSet } from '../logic/folder-set.ts'
 import type { FocusMove } from '../logic/grid-layout.ts'
-import type { ImageUrlFor } from '../logic/image-tiers.ts'
-import type { ListingEntry } from '../logic/listing.ts'
-import type { Schedule } from '../logic/long-press.ts'
-import type { Picture } from '../logic/pairing.ts'
-import type { Selection } from '../logic/selection.ts'
-import type { Series } from '../logic/series.ts'
-import type { Tag } from '../logic/tag.ts'
-import type { ObserveSize } from '../observe-size.ts'
+import type { PhotoGridEmits, PhotoGridProps } from '../photo-grid-props.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useSlots, useTemplateRef, watch } from 'vue'
@@ -38,40 +28,7 @@ import { observeElementSize } from '../observe-size.ts'
 import { useTileInfo } from '../tile-info.ts'
 import { browserSchedule, useTileSelection } from '../tile-selection.ts'
 
-const props = withDefaults(defineProps<{
-	/** The pictures in the grid's order. */
-	pictures: readonly Picture<ListingEntry>[]
-	folderSet: FolderSet
-	groupByFolder: boolean
-	/** The target tile size in CSS pixels. */
-	tileSize: number
-	observeSize?: ObserveSize
-	imageUrl?: ImageUrlFor
-	/** Resolves once the image at the URL is decoded, rejects if it cannot be. */
-	loadImage?: (url: string) => Promise<void>
-	selecting?: boolean
-	/** The selected pictures by grid key, the file id of the member the tile shows. */
-	selection?: Selection
-	decisionOf?: (picture: Picture<ListingEntry>) => Decision
-	/** The picture's tags, counted on its tile. */
-	tagsOf?: (picture: Picture<ListingEntry>) => readonly Tag[]
-	/** Times the long-press and the tile info's delay. */
-	schedule?: Schedule
-	/** Times the auto-scroll of a drag selection. */
-	frame?: Frame
-	/** Every picture's series, offered or settled (SERIES-002.12). */
-	seriesOf?: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>
-	/** The keys of the series the compare offers; the others are settled. */
-	offeredSeries?: ReadonlySet<number>
-	/** The pictures of a series that may still change (SERIES-003.25). */
-	openSeries?: ReadonlySet<Picture<ListingEntry>>
-	/** The picture whose sidecar writes still wait (XMP-003.28). */
-	unsaved?: Picture<ListingEntry> | null
-	/** Shows a name bar above each tile (GRID-004.4). */
-	fileNames?: boolean
-	/** Whether the pointer is coarse, so the name bar offers the ⓘ button (GRID-004.12). */
-	touch?: boolean
-}>(), {
+const props = withDefaults(defineProps<PhotoGridProps>(), {
 	observeSize: observeElementSize,
 	loadImage: decodeSource,
 	selecting: false,
@@ -85,15 +42,7 @@ const props = withDefaults(defineProps<{
 	frame: browserFrame,
 })
 
-const emit = defineEmits<{
-	'update:tileSize': [size: number]
-	'update:selecting': [selecting: boolean]
-	'update:selection': [selection: Selection]
-	open: [index: number]
-	compareSeries: [series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>]
-	/** The user scrolled the grid; a scroll it made itself does not count. */
-	scroll: []
-}>()
+const emit = defineEmits<PhotoGridEmits>()
 
 const GAP = 8
 const HEADER_HEIGHT = 40
@@ -223,7 +172,9 @@ defineExpose({
 
 <template>
 	<div class="photo-grid">
-		<div class="photo-grid__overlay" :style="{ height: `${overlayHeight}px` }"><slot /></div>
+		<div class="photo-grid__overlay" :style="{ height: `${overlayHeight}px` }">
+			<slot />
+		</div>
 		<div v-if="sticky !== null" class="photo-grid__sticky" aria-hidden="true">
 			{{ groupName(sticky) }}
 		</div>
