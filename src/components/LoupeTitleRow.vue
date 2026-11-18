@@ -30,7 +30,9 @@ const props = withDefaults(defineProps<{
 	series?: { position: number, count: number } | null
 	/** Whether the first-series hint shows under the chip, which then pulses (LOUPE-001.26). */
 	seriesHint?: boolean
-}>(), { series: null, seriesHint: false })
+	/** Whether the shown picture's sidecar save still waits (LOUPE-001.27). */
+	unsaved?: boolean
+}>(), { series: null, seriesHint: false, unsaved: false })
 
 const emit = defineEmits<{
 	close: []
@@ -67,6 +69,7 @@ const SERIES_MARK = '⧉'
 		<h2 class="loupe-title-row__name">
 			{{ props.name }}
 		</h2>
+		<span v-if="props.unsaved" class="loupe-title-row__unsaved" role="img" :aria-label="t('honeycomb', 'Not saved yet')" />
 		<span class="loupe-title-row__count">{{ t('honeycomb', '{position} of {count}', { position: formatNumber(props.index + 1), count: formatNumber(props.count) }, undefined, PLAIN_TEXT) }}</span>
 		<span v-if="props.series !== null" class="loupe-title-row__series-anchor">
 			<button
@@ -222,6 +225,14 @@ const SERIES_MARK = '⧉'
 	font-size: inherit;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+
+.loupe-title-row__unsaved {
+	flex-shrink: 0;
+	width: 10px;
+	height: 10px;
+	border: 2px solid var(--color-main-text);
+	border-radius: 50%;
 }
 
 .loupe-title-row__count {
