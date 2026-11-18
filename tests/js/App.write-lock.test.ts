@@ -10,7 +10,7 @@ import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { NO_ACCESS } from '../../src/logic/writability.ts'
-import { mountApp, openCull, SET, sharedAccess, shownNames, stored } from './app-cull.ts'
+import { decidedFlags, decidedRows, mountApp, openCull, SET, sharedAccess, shownNames } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
 
@@ -36,19 +36,18 @@ async function reject(opened: Awaited<ReturnType<typeof openLoupe>>) {
 const dialog = (wrapper: AppWrapper) => wrapper.find('[role="dialog"]')
 const button = (wrapper: AppWrapper, text: string) => dialog(wrapper).findAll('button').find((each) => each.text() === text)!
 const toastMessage = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast).props('toast').message
-const rejected = [stored(2, 'rejected'), stored(3, 'rejected')]
 
 describe('App: deciding needs writing', () => {
 	// spec: XMP-008.7, XMP-003.18, SETTINGS-001.24
 	it('asks to turn writing On at the first decision, then saves it and the decision', async () => {
 		const scheduler = fakeScheduler()
 		const opened = await openLoupe({}, NO_ACCESS, { schedule: scheduler.schedule })
-		const { wrapper, saved, savedSettings, sidecarSaves } = opened
+		const { wrapper, savedSettings, sidecarSaves } = opened
 
 		await reject(opened)
 		expect(dialog(wrapper).attributes('name')).toBe('Write decisions to XMP sidecars?')
 		expect(dialog(wrapper).text()).toContain('IMG_0001.NEF.xmp')
-		expect(saved).toEqual([])
+		expect(sidecarSaves).toEqual([])
 
 		await button(wrapper, 'Write to sidecars').trigger('click')
 		await flushPromises()
@@ -56,7 +55,7 @@ describe('App: deciding needs writing', () => {
 		await flushPromises()
 
 		expect(savedSettings.at(-1)).toMatchObject({ sidecarWrite: 'on' })
-		expect(saved).toEqual([rejected])
+		expect(decidedFlags(wrapper)).toEqual(['2 rejected', '3 rejected'])
 		expect(sidecarSaves).toHaveLength(1)
 		expect(dialog(wrapper).exists()).toBe(false)
 	})
@@ -64,14 +63,14 @@ describe('App: deciding needs writing', () => {
 	// spec: XMP-008.7
 	it('decides nothing and keeps writing Off on Cancel', async () => {
 		const opened = await openLoupe({})
-		const { wrapper, saved, savedSettings } = opened
+		const { wrapper, savedSettings, sidecarSaves } = opened
 
 		await reject(opened)
 		await button(wrapper, 'Cancel').trigger('click')
 		await flushPromises()
 
 		expect(savedSettings).toEqual([])
-		expect(saved).toEqual([])
+		expect(sidecarSaves).toEqual([])
 		expect(opened.loupe.props('decisionOf')(opened.picture).flag).toBe('unflagged')
 		expect(dialog(wrapper).exists()).toBe(false)
 	})
@@ -79,7 +78,7 @@ describe('App: deciding needs writing', () => {
 	// spec: XMP-008.4, XMP-008.7
 	it('asks once for a shared opened folder, remembers it, and asks no more', async () => {
 		const opened = await openLoupe({ sidecarWrite: 'on' }, sharedAccess(['/Trip/A']))
-		const { wrapper, saved, savedSettings } = opened
+		const { wrapper, savedSettings } = opened
 
 		await reject(opened)
 		expect(dialog(wrapper).attributes('name')).toBe('Write to a shared folder?')
@@ -87,12 +86,12 @@ describe('App: deciding needs writing', () => {
 		await button(wrapper, 'Write to sidecars').trigger('click')
 		await flushPromises()
 		expect(savedSettings.at(-1)).toMatchObject({ sidecarWrite: 'on', confirmedSharedFolders: [7] })
-		expect(saved).toEqual([rejected])
+		expect(decidedFlags(wrapper)).toEqual(['2 rejected', '3 rejected'])
 
 		opened.loupe.vm.$emit('decide', { kind: 'rating', rating: 2 }, opened.picture)
 		await flushPromises()
 		expect(dialog(wrapper).exists()).toBe(false)
-		expect(saved).toHaveLength(2)
+		expect(decidedRows(wrapper).map(({ fileId, rating }) => [fileId, rating])).toEqual([[2, 2], [3, 2]])
 	})
 
 	// spec: XMP-008.4, XMP-008.7
@@ -128,12 +127,12 @@ describe('App: deciding needs writing', () => {
 	])('names the reason in a toast for a %s folder and asks nothing', async (_case, change, text) => {
 		const access: ListedAccess = { folders: [{ path: '/Trip/A', shared: false, permissions: 31, versions: true, ...change }], opened: [{ path: '/Trip', fileId: 7 }] }
 		const opened = await openLoupe({ sidecarWrite: 'on' }, access)
-		const { wrapper, saved } = opened
+		const { wrapper, sidecarSaves } = opened
 
 		await reject(opened)
 
 		expect(dialog(wrapper).exists()).toBe(false)
 		expect(toastMessage(wrapper)).toBe(text)
-		expect(saved).toEqual([])
+		expect(sidecarSaves).toEqual([])
 	})
 })

@@ -8,12 +8,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ActionBar from '../../src/components/ActionBar.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
-import { logger } from '../../src/logger.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
-import { mountApp, openCull, shownNames, toolbarProps } from './app-cull.ts'
-import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue } from './l10n/marked-catalogue.ts'
-
-const MARK = TRANSLATED_MARK
+import { decidedRows, mountApp, openCull, shownNames, toolbarProps } from './app-cull.ts'
+import { installMarkedCatalogue, uninstallMarkedCatalogue } from './l10n/marked-catalogue.ts'
 
 /** Enters selection mode from the toolbar and selects the grid keys. */
 async function select(wrapper: AppWrapper, ids: number[]) {
@@ -51,7 +48,7 @@ describe('App: selection mode and bulk decisions', () => {
 
 	// spec: GRID-003.5
 	it('rates every member of the selected pictures, stores it and shows it', async () => {
-		const { wrapper, saved } = mountApp()
+		const { wrapper } = mountApp()
 		await openCull(wrapper)
 		await select(wrapper, [1, 2])
 		expect(toolbarProps(wrapper).selected).toBe(2)
@@ -60,7 +57,7 @@ describe('App: selection mode and bulk decisions', () => {
 		wrapper.findComponent(ActionBar).vm.$emit('decide', { kind: 'rating', rating: 3 })
 		await flushPromises()
 
-		expect(saved).toEqual([[1, 2, 3].map((fileId) => ({ fileId, ...UNDECIDED, rating: 3 }))])
+		expect(decidedRows(wrapper)).toEqual([1, 2, 3].map((fileId) => ({ fileId, ...UNDECIDED, rating: 3 })))
 		const decisionOf = wrapper.findComponent(PhotoGrid).props('decisionOf')!
 		const pair = wrapper.findComponent(PhotoGrid).props('pictures').find((picture) => picture.baseName === 'IMG_10')!
 		expect(decisionOf(pair)).toMatchObject({ rating: 3 })
@@ -81,21 +78,6 @@ describe('App: selection mode and bulk decisions', () => {
 		expect(toolbarProps(wrapper)).toMatchObject({ decided: 0, total: 1 })
 	})
 
-	// spec: GRID-003.9
-	it('reverts a change the server did not store and says so', async () => {
-		const error = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
-		const { wrapper } = mountApp({ saveDecisions: () => Promise.reject(new Error('down')) })
-		await openCull(wrapper)
-		await select(wrapper, [1])
-
-		wrapper.findComponent(ActionBar).vm.$emit('decide', { kind: 'colourLabel', colourLabel: 'red' })
-		await flushPromises()
-
-		expect(error).toHaveBeenCalledOnce()
-		expect(wrapper.findComponent(ActionBar).props('common')).toMatchObject({ colourLabel: null })
-		expect(wrapper.text()).toContain(`${MARK}Could not save the change; the photos show what is stored.`)
-	})
-
 	// spec: GRID-003.10
 	it('keeps a change made before the stored decisions arrive', async () => {
 		let resolveLookup: (rows: never[]) => void = () => undefined
@@ -114,32 +96,14 @@ describe('App: selection mode and bulk decisions', () => {
 
 	// spec: GRID-003.10
 	it('sends nothing for a change that alters no picture', async () => {
-		const { wrapper, saved } = mountApp()
+		const { wrapper, sidecarSaves } = mountApp()
 		await openCull(wrapper)
 		await select(wrapper, [1])
 
 		wrapper.findComponent(ActionBar).vm.$emit('decide', { kind: 'rating', rating: 0 })
 		await flushPromises()
 
-		expect(saved).toEqual([])
-	})
-
-	// spec: GRID-003.9
-	it('says nothing about a failed save once another folder set is open', async () => {
-		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
-		let rejectSave: (error: Error) => void = () => undefined
-		const { wrapper } = mountApp({ saveDecisions: () => new Promise((_, reject) => {
-			rejectSave = reject
-		}) })
-		await openCull(wrapper)
-		await select(wrapper, [1])
-		wrapper.findComponent(ActionBar).vm.$emit('decide', { kind: 'rating', rating: 3 })
-
-		await openCull(wrapper)
-		rejectSave(new Error('down'))
-		await flushPromises()
-
-		expect(wrapper.text()).not.toContain('Could not save the change')
+		expect(sidecarSaves).toEqual([])
 	})
 
 	// spec: GRID-003.4

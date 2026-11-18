@@ -11,8 +11,8 @@ import { memberIds } from './logic/pairing.ts'
 import { confirmationFolders, folderAccess, NO_ACCESS, splitLocks, unconfirmedShared, writability } from './logic/writability.ts'
 import { XMP_REFUSALS } from './logic/xmp/model.ts'
 
-/** Whether the open cull may write each picture's sidecars, and the gate a step passes before it decides (XMP-008). */
-export function useCullAccess<T>(settings: () => Settings, onLocked: (lock: WriteLock<T>) => void) {
+/** Whether the open cull may write each picture's sidecars, and the gate a step passes before it decides (XMP-008); `legacy` names a picture with legacy rows (XMP-008.11). */
+export function useCullAccess<T>(settings: () => Settings, onLocked: (lock: WriteLock<T>) => void, legacy: (picture: Picture<ListingEntry>) => boolean) {
 	const access = shallowRef<ListedAccess>(NO_ACCESS)
 	const folders = computed(() => folderAccess(access.value.folders))
 	const refusedIds = shallowRef<ReadonlySet<number>>(new Set())
@@ -25,6 +25,7 @@ export function useCullAccess<T>(settings: () => Settings, onLocked: (lock: Writ
 		opened: access.value.opened,
 		confirmed: settings().confirmedSharedFolders,
 		refused: (picture) => memberIds(picture).some((fileId) => refusedIds.value.has(fileId)),
+		legacy,
 	})
 
 	/** Whether a decision on the picture is written to its sidecars, or why not. */

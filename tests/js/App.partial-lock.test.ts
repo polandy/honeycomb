@@ -7,7 +7,7 @@ import type { AppWrapper } from './app-cull.ts'
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import UndoToast from '../../src/components/UndoToast.vue'
-import { ENTRIES, mountApp, openCull, SET } from './app-cull.ts'
+import { decidedFlags, ENTRIES, mountApp, openCull, SET } from './app-cull.ts'
 
 enableAutoUnmount(afterEach)
 
@@ -21,24 +21,23 @@ async function press(key: string, fields: KeyboardEventInit = {}) {
 }
 
 const toast = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast)
-const flags = (saved: { fileId: number, flag: string | null }[][]) => saved.map((rows) => rows.map(({ fileId, flag }) => [fileId, flag]))
 
 describe('App: a step over pictures of which some are locked', () => {
 	// spec: XMP-008.9, XMP-008.10, GRID-003.5
 	it('decides the writable ones, reports the locked ones with Details, and undoes the partial step as one', async () => {
-		const { wrapper, saved } = mountApp()
+		const { wrapper } = mountApp()
 		await openCull(wrapper, SET, ENTRIES, READ_ONLY_A)
 
 		await press('a', { ctrlKey: true })
 		await press('x')
 
-		expect(flags(saved)).toEqual([[[1, 'rejected']]])
+		expect(decidedFlags(wrapper)).toEqual(['1 rejected'])
 		expect(toast(wrapper).props('toast').message).toBe('Rejected IMG_2; 2 photos not changed: you may only read the folder')
 		expect(toast(wrapper).findAll('li').map((item) => item.text())).toEqual(['IMG_9: you may only read the folder', 'IMG_10: you may only read the folder'])
 
 		toast(wrapper).vm.$emit('act')
 		await flushPromises()
-		expect(flags(saved)).toEqual([[[1, 'rejected']], [[1, 'unflagged']]])
+		expect(decidedFlags(wrapper)).toEqual([])
 		expect(toast(wrapper).props('toast').message).toBe('Undid: Rejected IMG_2')
 	})
 })

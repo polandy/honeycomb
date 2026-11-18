@@ -21,9 +21,12 @@ final class XmpCacheServiceTest extends TestCase {
 
 	private FakeXmpCacheStore $store;
 
+	private FakeTagStore $tags;
+
 	#[\Override]
 	protected function setUp(): void {
 		$this->store = new FakeXmpCacheStore();
+		$this->tags = new FakeTagStore();
 	}
 
 	/** A service whose user folder reaches a sidecar 9, a JPEG 7, a RAW 8 and a folder 5. */
@@ -40,7 +43,7 @@ final class XmpCacheServiceTest extends TestCase {
 		$userFolder->method('getFirstNodeById')->willReturnCallback(static fn (int $id): ?Node => $byId[$id] ?? null);
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
-		return new XmpCacheService($this->store, new UserPhotos(new UserFolderResolver($root)));
+		return new XmpCacheService($this->store, $this->tags, new UserPhotos(new UserFolderResolver($root)));
 	}
 
 	private static function row(array $changes = []): XmpCacheRow {
@@ -78,6 +81,19 @@ final class XmpCacheServiceTest extends TestCase {
 
 		$this->assertSame([9], $saved);
 		$this->assertEquals([9 => XmpCacheRow::fromRequest($new)], $this->store->rows['alice']);
+	}
+
+	// spec: XMP-006.9
+	public function testASaveAddsTheTagsOfTheReachedRowsToTheTagList(): void {
+		$this->tags->tagLists['alice'] = ['Trip'];
+
+		$this->service()->save($this->user(), [
+			XmpCacheRowTest::item(['tags' => ['Places/Rome', 'Trip']]),
+			XmpCacheRowTest::item(['fileId' => 404, 'tags' => ['Hidden']]),
+			XmpCacheRowTest::item(['fileId' => 7, 'kind' => 'embedded', 'tags' => null]),
+		]);
+
+		$this->assertSame(['Places/Rome', 'Trip'], $this->tags->tagList('alice'));
 	}
 
 	// spec: XMP-006.3

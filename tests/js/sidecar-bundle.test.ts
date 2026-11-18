@@ -29,6 +29,8 @@ function bundled() {
 			lookups.push([...fileIds])
 			return fileIds.map(() => ({ result: 'read', bytes: BYTES, etag: 'etag', size: BYTES.length, mtime: 100 }))
 		},
+		lookupXmpCache: async () => [],
+		saveXmpCache: async () => undefined,
 		lookupEmbeddedXmp: async (fileIds) => fileIds.map(() => ({ result: 'none' })),
 		saveSidecars: async (items) => {
 			saves.push([...items])

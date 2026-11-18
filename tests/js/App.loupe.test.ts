@@ -96,23 +96,6 @@ describe('App: the loupe', () => {
 		expect(loupe().props('index')).toBe(0)
 	})
 
-	// spec: LOUPE-001.22
-	it('shows a rejected picture again when its decision cannot be saved', async () => {
-		const { wrapper } = await openApp({ saveDecisions: () => Promise.reject(new Error('down')) })
-		wrapper.findComponent(PhotoGrid).vm.$emit('open', 1)
-		await flushPromises()
-		const loupe = () => wrapper.findComponent(PhotoLoupe)
-		const names = () => loupe().props('pictures').map((picture: { baseName: string }) => picture.baseName)
-		const before = names()
-
-		loupe().vm.$emit('decide', { kind: 'flag', flag: 'rejected' }, loupe().props('pictures')[1])
-		loupe().vm.$emit('update:index', 2)
-		await flushPromises()
-
-		expect(names()).toEqual(before)
-		expect(loupe().props('index')).toBe(2)
-	})
-
 	// spec: KEYS-001.9
 	it('keeps the grid\'s selection keys away while it is open', async () => {
 		const { wrapper } = await openApp()

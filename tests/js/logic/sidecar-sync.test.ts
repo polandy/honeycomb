@@ -7,7 +7,7 @@ import type { KnownSidecar } from '../../../src/logic/sidecar-sync.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { applySaves, inSharedFolder, planSaves, takeOverDecisions, takeOverLookups, writeLookups } from '../../../src/logic/sidecar-sync.ts'
+import { applySaves, inSharedFolder, planSaves, writeLookups } from '../../../src/logic/sidecar-sync.ts'
 import { sidecarDecision } from '../../../src/logic/xmp/decision.ts'
 import { readXmp } from '../../../src/logic/xmp/parse.ts'
 import { serializeXmp } from '../../../src/logic/xmp/serialize.ts'
@@ -22,56 +22,6 @@ const JPG_XMP = listingEntry(12, '/P/IMG_0001.JPG.xmp')
 const PICKED: Decision = { ...UNDECIDED, rating: 2, flag: 'picked' }
 const NO_EMBEDDED = new Map([[JPG.fileId, { result: 'none' as const }]])
 const LATER = { ...CANONICAL_TIME, epochMs: CANONICAL_TIME.epochMs + 60_000 }
-
-describe('takeOverLookups', () => {
-	// spec: XMP-003.2
-	it('looks up the sidecars of pictures without a stored decision only', () => {
-		const stored = pictureOf(listingEntry(3, '/P/A.JPG'), listingEntry(13, '/P/A.JPG.xmp'))
-		const bare = pictureOf(listingEntry(4, '/P/B.HEIC', { mime: 'image/heic' }))
-		const pair = pictureOf(NEF, JPG, NEF_XMP, listingEntry(14, '/P/IMG_0001_01.NEF.xmp'))
-
-		const lookups = takeOverLookups([stored, bare, pair], new Set([3]))
-
-		expect(lookups.map(({ picture, sidecars }) => [picture.baseName, sidecars.map((entry) => entry.fileId)])).toEqual([['IMG_0001', [11]]])
-	})
-})
-
-describe('takeOverDecisions', () => {
-	const pair = pictureOf(NEF, JPG, NEF_XMP, JPG_XMP)
-
-	// spec: XMP-003.1
-	it('takes the newest sidecar as a whole, a tie going to the RAW member\'s', () => {
-		const lookups = takeOverLookups([pair], new Set())
-		const rawSays = xmp({ 'xmp:Rating': '3', 'xmpDM:pick': '-1' })
-		const jpgSays = xmp({ 'xmp:Rating': '1' })
-
-		const tie = takeOverDecisions(lookups, new Map([[11, read(rawSays)], [12, read(jpgSays)]]))
-		const newer = takeOverDecisions(lookups, new Map([[11, read(rawSays)], [12, read(jpgSays, 200)]]))
-
-		expect(tie.decided).toEqual([{ picture: pair, decision: { rating: 3, colourLabel: null, flag: 'rejected', keepRaw: false } }])
-		expect(tie.warnings).toEqual([{ path: '/P/IMG_0001.JPG.xmp', reason: 'disagrees' }])
-		expect(newer.decided[0]!.decision.rating).toBe(1)
-	})
-
-	// spec: XMP-003.4
-	it('takes nothing over from an undecided, refused, unread or missing sidecar and warns', () => {
-		const single = (id: number) => pictureOf(listingEntry(id, `/P/S${id}.JPG`), listingEntry(id + 100, `/P/S${id}.JPG.xmp`))
-		const lookups = takeOverLookups([single(1), single(2), single(3), single(4)], new Set())
-
-		const { decided, warnings } = takeOverDecisions(lookups, new Map([
-			[101, read(xmp({ 'xmp:Rating': '0' }))],
-			[102, read(fixtureBytes('refused/doctype.xmp'))],
-			[103, { result: 'locked' }],
-		]))
-
-		expect(decided).toEqual([])
-		expect(warnings).toEqual([
-			{ path: '/P/S2.JPG.xmp', reason: 'doctype' },
-			{ path: '/P/S3.JPG.xmp', reason: 'locked' },
-			{ path: '/P/S4.JPG.xmp', reason: 'unreachable' },
-		])
-	})
-})
 
 describe('writeLookups', () => {
 	// spec: XMP-003.6, XMP-003.7

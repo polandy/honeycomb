@@ -93,12 +93,6 @@ export function withTagRows(tags: ReadonlyMap<number, readonly Tag[]>, rows: rea
 	return next
 }
 
-/** The tags with each row that still stands set back to what it replaced in `before`. */
-export function revertTagRows(tags: ReadonlyMap<number, readonly Tag[]>, rows: readonly StoredTags[], before: ReadonlyMap<number, readonly Tag[]>): Map<number, readonly Tag[]> {
-	const stillStanding = rows.filter(({ fileId, tags: set }) => sameTags(tags.get(fileId) ?? [], set))
-	return withTagRows(tags, stillStanding.map(({ fileId }) => ({ fileId, tags: [...(before.get(fileId) ?? [])] })))
-}
-
 /** Whether two sorted tag lists are the same. */
 export function sameTags(left: readonly Tag[], right: readonly Tag[]): boolean {
 	return left.length === right.length && left.every((tag, index) => tag === right[index])

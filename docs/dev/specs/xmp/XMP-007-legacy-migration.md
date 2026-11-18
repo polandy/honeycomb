@@ -51,7 +51,9 @@ stored decision, every tagged picture's sidecars get its stored tags added (the 
 pass (XMP-003.16). The server keeps refusing what it refuses (XMP-002), among them an overwrite
 without file versions. A picture whose every sidecar answered `saved`, or needed no save, is
 acknowledged; a failed picture keeps its rows and is written again by the next run, so a run can
-resume. The cull keeps showing every picture as it did.
+resume. The cull keeps showing every picture as it did; an acknowledged picture is no longer locked
+(XMP-008.11). The cull stores no legacy rows (XMP-003.1), so a migrated picture never gets them
+back and the notice does not return.
 
 **The run.** The run writes 20 photos at a time. Until it ends the dialog stays open without
 *Cancel*, its footer shows how many photos were written, and each part's saved pictures are
@@ -179,16 +181,19 @@ after each part of a run, a copy or a forget; a failed read shows no notice and 
   longer skips, and the next run writes and acknowledges the shared picture; with every picture
   skipped *Write to sidecars* is disabled
 
+### XMP-007.14 – The notice does not come back after a migration
+
+- **Given** a picture with legacy rows that the ⋯ entry wrote and acknowledged
+- **When** the user decides and tags it, and the cull opens its folder again
+- **Then** no decision or tag is saved to the legacy tables, the picture shows its sidecars' values,
+  and the notice stays away
+
 ## Out of scope
 
 - Marking a folder of the notice as waiting for a confirmation: the inventory does not know which
   folders are shared; the dialog of the ⋯ entry names them.
 
-- Locking a picture that still has legacy rows, and reading the cull through the XMP cache:
-  ADR 0032 PR 6. Until then the cull still stores decisions and tags in the database, so a
-  picture decided again gets legacy rows again.
-- Filling the XMP cache on acknowledgement: the cull reads a file without a cache row anyway
-  (XMP-006), from PR 6.
+- Filling the XMP cache on acknowledgement: the sidecars saved by the run fill it (XMP-006.10).
 - Dropping the tables: ADR 0032 PR 9.
 
 ## History
@@ -198,3 +203,4 @@ after each part of a run, a copy or a forget; a failed read shows no notice and 
 | 2026-11-15 | Written with ADR 0032 PR 5 |
 | 2026-11-17 | Clearer notice with folder buttons, *Save a copy* and *Forget…*; the run shows progress and one result (XMP-007.10–.12) |
 | 2026-11-18 | Shared folders need the confirmation of XMP-008.4; the run skips those not confirmed (XMP-007.13, owner decision #187) |
+| 2026-11-18 | An acknowledged picture is unlocked and gets no legacy rows back, so the notice stays away (XMP-007.14, ADR 0032) |

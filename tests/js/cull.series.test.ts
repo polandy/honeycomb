@@ -22,7 +22,6 @@ function openedCull(entries: readonly ListingEntry[], api: Partial<CullApi> = {}
 		wait: async () => {},
 		warmPreviews: async () => undefined,
 		lookupDecisions: async () => [],
-		saveDecisions: async () => undefined,
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,

@@ -76,8 +76,8 @@ final class TagMapper extends QBMapper implements TagStore {
 		}, $this->db);
 	}
 
-	/** @param list<string> $tags */
-	private function addToTagList(string $userId, array $tags): void {
+	#[\Override]
+	public function addToTagList(string $userId, array $tags): void {
 		$this->insertRows(
 			new InsertStatements(self::TAG_LIST_TABLE, self::TAG_LIST_COLUMNS),
 			array_map(static fn (string $tag): array => ['user_id' => $userId, 'tag' => $tag], array_values(array_diff(array_unique($tags), $this->tagList($userId)))),

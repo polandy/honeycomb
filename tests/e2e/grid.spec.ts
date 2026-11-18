@@ -173,7 +173,8 @@ test('rates and rejects selected photos and keeps the decisions over a reload', 
 	await page.getByRole('button', { name: 'Keep RAW', exact: true }).click()
 	await grid.getByRole('gridcell', { name: /^IMG_0001/ }).click()
 	await expect(page.getByText('1 selected')).toBeVisible()
-	const rejected = page.waitForResponse((response) => response.url().endsWith('/api/v1/decisions') && response.request().method() === 'PUT' && response.request().postDataJSON().decisions.some((decision: { flag: string }) => decision.flag === 'rejected') && response.ok())
+	// The saved sidecar's cache row follows its save, so the reload reads the rejection (XMP-006.10).
+	const rejected = page.waitForResponse((response) => response.url().endsWith('/api/v1/xmp-cache') && response.request().method() === 'PUT' && response.request().postDataJSON().entries.some((row: { flag: string | null }) => row.flag === 'rejected') && response.ok())
 	await page.getByRole('button', { name: 'Reject', exact: true }).click()
 	await expect(grid.getByRole('gridcell')).toHaveCount(1)
 	await rejected

@@ -17,6 +17,7 @@ final class XmpCacheService {
 
 	public function __construct(
 		private XmpCacheStore $store,
+		private TagStore $tags,
 		private UserPhotos $photos,
 	) {
 	}
@@ -33,7 +34,7 @@ final class XmpCacheService {
 	}
 
 	/**
-	 * Stores the rows in `$items` whose file the user reaches as that kind; returns their file ids in request order.
+	 * Stores the rows in `$items` whose file the user reaches as that kind and adds their tags to the tag list (XMP-006.9); returns their file ids in request order.
 	 * @param array<array-key, mixed> $items
 	 * @return list<int>
 	 * @throws InvalidXmpCacheException for a malformed row, a file id given twice or too many rows
@@ -48,6 +49,7 @@ final class XmpCacheService {
 		$reached = array_values(array_filter($rows, fn (XmpCacheRow $row): bool => $this->reaches($userFolder, $row)));
 		if ($reached !== []) {
 			RetryOnConflict::run(fn () => $this->store->replace($user->getUID(), $reached));
+			RetryOnConflict::run(fn () => $this->tags->addToTagList($user->getUID(), array_merge(...array_map(static fn (XmpCacheRow $row): array => $row->tags ?? [], $reached))));
 		}
 		return array_map(static fn (XmpCacheRow $row): int => $row->fileId, $reached);
 	}

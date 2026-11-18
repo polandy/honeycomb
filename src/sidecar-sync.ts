@@ -6,19 +6,22 @@ import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { SidecarStep } from './logic/sidecar-pass.ts'
 import type { KnownSidecar, PlannedSave, SidecarEdit, SidecarFailure, SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from './logic/sidecar-sync.ts'
-import type { TagChange } from './logic/tag.ts'
+import type { Tag, TagChange } from './logic/tag.ts'
+import type { XmpCacheRow, XmpCacheSource } from './logic/xmp-cache.ts'
 import type { XmpTime } from './logic/xmp/model.ts'
 
 import { logger } from './logger.ts'
-import { DECISION_FIELDS } from './logic/decision.ts'
+import { DECISION_FIELDS, sameDecision, UNDECIDED } from './logic/decision.ts'
 import { embeddedXmpSource } from './logic/embedded-xmp.ts'
 import { NO_OWN_SAVES, recordSaves, withOwnSaves } from './logic/own-saves.ts'
 import { failureOf, passOf, retryStep, stepResult } from './logic/sidecar-pass.ts'
-import { applySaves, embeddedLookups, planSaves, takeOverDecisions, takeOverLookups, writeLookups } from './logic/sidecar-sync.ts'
-import { takeOverTags } from './logic/sidecar-tags.ts'
+import { applySaves, planSaves, writeLookups } from './logic/sidecar-sync.ts'
+import { embeddedRow, pictureState, sidecarRow, staleSources, xmpCacheSources } from './logic/xmp-cache.ts'
 
-/** The sidecar endpoints (ADR 0017) and the embedded XMP endpoint (ADR 0023). */
+/** The sidecar endpoints (ADR 0017), the embedded XMP endpoint (ADR 0023) and the XMP cache (ADR 0032). */
 export interface SidecarApi {
+	lookupXmpCache(fileIds: readonly number[]): Promise<XmpCacheRow[]>
+	saveXmpCache(rows: readonly XmpCacheRow[]): Promise<void>
 	lookupSidecars(fileIds: readonly number[], sizes?: ReadonlyMap<number, number>): Promise<SidecarLookupAnswer[]>
 	lookupEmbeddedXmp(fileIds: readonly number[]): Promise<EmbeddedXmpAnswer[]>
 	saveSidecars(items: readonly SidecarSaveItem[]): Promise<SidecarSaveAnswer[]>
@@ -36,43 +39,96 @@ interface Waiting {
 	readonly reject: (error: unknown) => void
 }
 
-/** Takes decisions and tags over from the sidecars and writes them to the sidecars, one pass after another, creating missing ones (XMP-003, TAGS-002). */
+/** Reads decisions and tags from the sidecars through the XMP cache and writes them to the sidecars, one pass after another, creating missing ones (XMP-003, TAGS-002). */
 export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (failed: SidecarFailure[]) => void) {
 	let known = new Map<string, KnownSidecar>()
 	let own = NO_OWN_SAVES
 	let waiting: Waiting[] = []
 	let passing = false
 
-	/** The decision of the sidecars and embedded XMP of each picture without a stored decision for any member, and the tags of those without stored tags; no tags while the stored tags are unknown. */
-	async function takeOver(pictures: Pictures, stored: ReadonlySet<number>, storedTags: ReadonlySet<number> | null) {
-		const lookups = takeOverLookups(pictures, stored)
-		const fileIds = lookups.flatMap(({ sidecars }) => sidecars.map((sidecar) => sidecar.fileId))
-		const embeddedIds = embeddedLookups(lookups)
-		if (fileIds.length === 0 && embeddedIds.length === 0) {
+	/** The decision and tags of each picture from the XMP cache, reading and storing the sources without a valid row (XMP-006.7). */
+	async function read(pictures: Pictures) {
+		const sources = xmpCacheSources(pictures)
+		if (sources.length === 0) {
 			return { decided: [], tagged: [] }
 		}
-		let answers: Map<number, SidecarLookupAnswer>
-		try {
-			answers = await answersById(fileIds, (ids) => api.lookupSidecars(ids, sizesOf(pictures)))
-		} catch (error) {
-			logger.warn('Could not look up the sidecars; nothing is taken over', { error })
-			return { decided: [], tagged: [] }
+		const rows = await cachedRows(sources.map(({ entry }) => entry.fileId))
+		const stale = staleSources(sources, rows)
+		const fresh = await readSources(stale, pictures)
+		fresh.forEach((row) => rows.set(row.fileId, row))
+		if (fresh.length > 0) {
+			await storeRows(fresh)
 		}
-		let embedded = new Map<number, EmbeddedXmpAnswer>()
-		try {
-			embedded = await answersById(embeddedIds, api.lookupEmbeddedXmp)
-		} catch (error) {
-			logger.warn('Could not look up the embedded XMP; its pictures take no tags over and decide without it', { error })
+		const decided: { picture: Picture<ListingEntry>, decision: Decision }[] = []
+		const tagged: { picture: Picture<ListingEntry>, tags: Tag[] }[] = []
+		for (const picture of pictures) {
+			const { decision, tags, warnings } = pictureState(picture, rows)
+			warnings.forEach((warning) => logger.warn('Could not take over the decision of a sidecar', warning))
+			if (!sameDecision(decision, UNDECIDED)) {
+				decided.push({ picture, decision })
+			}
+			if (tags.length > 0) {
+				tagged.push({ picture, tags })
+			}
 		}
-		const { decided, warnings } = takeOverDecisions(lookups, answers, embedded)
-		warnings.forEach((warning) => logger.warn('Could not take over the decision of a sidecar', warning))
-		if (storedTags === null) {
-			return { decided, tagged: [] }
-		}
-		const { tagged, leftOut, unread } = takeOverTags(lookups, answers, storedTags, embedded)
-		leftOut.forEach((tag) => logger.warn('A sidecar tag cannot be stored; it is left out', { tag }))
-		unread.forEach((failure) => logger.warn('Could not read the embedded XMP; the picture takes no tags over', failure))
 		return { decided, tagged }
+	}
+
+	/** The valid and stale rows the cache holds of the files; none, logged, when its lookup failed. */
+	async function cachedRows(fileIds: readonly number[]): Promise<Map<number, XmpCacheRow>> {
+		try {
+			return new Map((await api.lookupXmpCache(fileIds)).map((row) => [row.fileId, row]))
+		} catch (error) {
+			logger.warn('Could not look up the XMP cache; every sidecar is read', { error })
+			return new Map()
+		}
+	}
+
+	/** The rows of the sources read now; a source not read has none. */
+	async function readSources(stale: readonly XmpCacheSource[], pictures: Pictures): Promise<XmpCacheRow[]> {
+		const leftOut = (tag: string) => logger.warn('A sidecar tag cannot be stored; it is left out', { tag })
+		const sidecars = stale.filter(({ kind }) => kind === 'sidecar').map(({ entry }) => entry)
+		const jpegs = stale.filter(({ kind }) => kind === 'embedded').map(({ entry }) => entry)
+		const answers = await readOrWarn(sidecars, (ids) => api.lookupSidecars(ids, sizesOf(pictures)), 'Could not look up the sidecars; their pictures show what the cache holds')
+		const embedded = await readOrWarn(jpegs, api.lookupEmbeddedXmp, 'Could not look up the embedded XMP; its pictures show no tags')
+		const rows: XmpCacheRow[] = []
+		for (const sidecar of sidecars) {
+			const answer = answers.get(sidecar.fileId)
+			if (answer?.result === 'read') {
+				rows.push(sidecarRow(sidecar.fileId, answer.etag, answer.bytes, leftOut))
+			} else if (answer !== undefined) {
+				logger.warn('Could not read a sidecar', { path: sidecar.path, reason: answer.result })
+			}
+		}
+		for (const jpeg of jpegs) {
+			const answer = embedded.get(jpeg.fileId)
+			const row = answer === undefined ? null : embeddedRow(jpeg, answer, leftOut)
+			if (row !== null) {
+				rows.push(row)
+			} else if (answer !== undefined) {
+				logger.warn('Could not read the embedded XMP; the picture shows no tags', { path: jpeg.path, reason: answer.result })
+			}
+		}
+		return rows
+	}
+
+	/** The answers of the files' lookup by file id; none, logged, when the request failed. */
+	async function readOrWarn<T>(entries: readonly ListingEntry[], request: (fileIds: readonly number[]) => Promise<T[]>, failure: string): Promise<Map<number, T>> {
+		try {
+			return await answersById(entries.map(({ fileId }) => fileId), request)
+		} catch (error) {
+			logger.warn(failure, { error })
+			return new Map()
+		}
+	}
+
+	/** Stores the rows in the cache; a failure only means they are read again next time. */
+	async function storeRows(rows: readonly XmpCacheRow[]) {
+		try {
+			await api.saveXmpCache(rows)
+		} catch (error) {
+			logger.warn('Could not save the XMP cache; the sidecars are read again next time', { error })
+		}
 	}
 
 	/** Writes the fields of each picture's decision, read when the write starts, to its sidecars as a delta; `paths` limits a picture to those sidecars. */
@@ -168,6 +224,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		const applied = applySaves(saves, answers, known)
 		known = applied.known
 		own = recordSaves(own, saves, answers)
+		await storeRows(savedRows(saves, answers ?? []))
 		return applied
 	}
 
@@ -176,7 +233,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		return withOwnSaves(picture, own)
 	}
 
-	return { takeOver, write, writeTags, retry, current }
+	return { read, write, writeTags, retry, current }
 }
 
 /** The lookup's answers by file id, without a request for no ids. */
@@ -186,6 +243,18 @@ async function answersById<T>(fileIds: readonly number[], request: (fileIds: rea
 	}
 	const answers = await request(fileIds)
 	return new Map(fileIds.map((fileId, index) => [fileId, answers[index]!]))
+}
+
+/** The cache row of each sidecar saved, once per file: what honeycomb wrote there (XMP-006.10). */
+function savedRows(saves: readonly PlannedSave[], answers: readonly SidecarSaveAnswer[]): XmpCacheRow[] {
+	const rows = new Map<number, XmpCacheRow>()
+	saves.forEach(({ item }, index) => {
+		const answer = answers[index]
+		if (answer?.result === 'saved') {
+			rows.set(answer.fileId, sidecarRow(answer.fileId, answer.etag, item.bytes))
+		}
+	})
+	return [...rows.values()]
 }
 
 /** The listed size of each sidecar of the pictures, by file id, which the lookup packs its requests by. */

@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { CullSidecars, SidecarWrites } from './cull-seams.ts'
+import type { SidecarWrites } from './cull-seams.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Schedule } from './logic/long-press.ts'
 import type { Picture } from './logic/pairing.ts'
@@ -18,8 +18,8 @@ export function useBundledSidecars(sidecars: SidecarWrites, schedule: Schedule, 
 		onScopeDispose(stop)
 	}
 
-	const write: CullSidecars['write'] = (pictures, decisionOf, fields) => bundle.add(pictures, () => sidecars.write(pictures, decisionOf, fields))
-	const writeTags: CullSidecars['writeTags'] = (pictures, change) => bundle.add(pictures, () => sidecars.writeTags(pictures, change))
+	const write: SidecarWrites['write'] = (pictures, decisionOf, fields) => bundle.add(pictures, () => sidecars.write(pictures, decisionOf, fields))
+	const writeTags: SidecarWrites['writeTags'] = (pictures, change) => bundle.add(pictures, () => sidecars.writeTags(pictures, change))
 
-	return { takeOver: sidecars.takeOver, write, writeTags, waiting, leave: bundle.leave, flush: bundle.flush, hold: bundle.hold }
+	return { read: sidecars.read, write, writeTags, waiting, leave: bundle.leave, flush: bundle.flush }
 }

@@ -53,6 +53,11 @@ final class FakeTagStore implements TagStore {
 	}
 
 	#[\Override]
+	public function addToTagList(string $userId, array $tags): void {
+		$this->tagLists[$userId] = array_values(array_unique([...$this->tagLists[$userId] ?? [], ...$tags]));
+	}
+
+	#[\Override]
 	public function tagList(string $userId): array {
 		$tags = $this->tagLists[$userId] ?? [];
 		sort($tags, SORT_STRING);

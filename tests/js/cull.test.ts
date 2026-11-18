@@ -20,9 +20,8 @@ beforeEach(() => {
 })
 afterEach(() => vi.restoreAllMocks())
 
-/** A cull opened on ENTRIES whose saves are recorded. */
+/** A cull opened on ENTRIES whose lookups are recorded. */
 async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
-	const saved: StoredDecision[][] = []
 	const lookedUp: number[][] = []
 	const settings = shallowRef<Settings>(WRITING_ON)
 	const cull = useCull({
@@ -37,25 +36,23 @@ async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 			}
 			return [...stored]
 		},
-		saveDecisions: async (rows) => { saved.push([...rows]) },
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,
 	}, fakeStorage(), () => settings.value, NO_SIDECARS, () => undefined)
 	cull.open(SET, entries)
 	await flushPromises()
-	return { cull, saved, lookedUp, settings, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
+	return { cull, lookedUp, settings, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
 }
 
 describe('useCull: redo', () => {
 	// spec: KEYS-001.10
-	it('puts an undone step again and stores what it wrote', async () => {
-		const { cull, saved, picture } = await openedCull()
+	it('puts an undone step again', async () => {
+		const { cull, picture } = await openedCull()
 		const decided = cull.decide({ kind: 'flag', flag: 'picked' }, [picture('IMG_9')])
 		cull.undo()
 
 		expect(cull.redo()).toBe(decided)
-		expect(saved.at(-1)).toEqual(decided!.after)
 		expect(cull.decisionOf(picture('IMG_9')).flag).toBe('picked')
 		expect(cull.redo()).toBeNull()
 		expect(cull.undo()).toBe(decided)
@@ -78,11 +75,10 @@ describe('useCull: redo', () => {
 describe('useCull: series', () => {
 	// spec: SERIES-001.9
 	it('picks one picture and rejects the rest as one stored undo step', async () => {
-		const { cull, saved, picture } = await openedCull()
+		const { cull, picture } = await openedCull()
 		const step = cull.pickRest(picture('IMG_9'), [picture('IMG_10'), picture('IMG_2')])
 
 		expect(step).toMatchObject({ kind: 'pickRest', picked: 'IMG_9' })
-		expect(saved.at(-1)).toEqual(step!.after)
 		expect(['IMG_9', 'IMG_10', 'IMG_2'].map((name) => cull.decisionOf(picture(name)).flag)).toEqual(['picked', 'rejected', 'rejected'])
 		expect(cull.undo()).toBe(step)
 		expect(['IMG_9', 'IMG_10', 'IMG_2'].map((name) => cull.decisionOf(picture(name)).flag)).toEqual(['unflagged', 'unflagged', 'unflagged'])
@@ -166,7 +162,7 @@ describe('useCull: restoreFiles', () => {
 		cull.restoreFiles([{ ...pair.raw!, fileId: 103 }, { ...pair.rendered!, fileId: 102 }])
 		await flushPromises()
 
-		expect(logged).toHaveBeenCalledWith('Could not read the decisions of the photos moved back', { error })
+		expect(logged).toHaveBeenCalledWith('Could not read the stored decisions; the photos show their sidecars\' decisions', { error })
 		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('unflagged')
 	})
 

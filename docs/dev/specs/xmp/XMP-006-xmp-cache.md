@@ -1,6 +1,6 @@
 # XMP-006 – XMP cache
 
-- Status: accepted
+- Status: implemented
 - Area: xmp
 - Origin: ADR 0032, `docs/dev/06-xmp-interop.md` Reading
 - Depends on: LISTING-001, XMP-002, XMP-005, SETTINGS-001
@@ -27,8 +27,11 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 - A save writes only the file ids the user reaches: a sidecar for `sidecar`, a JPEG for
   `embedded`; any other id is skipped (ADR 0031). Saves and the `DELETE` are rate limited per user
 (APP-001.9).
+- A save adds the tags of the rows it stores to the user's tag list (TAGS-003.13).
 - A row is valid while its `etag` equals the ETag the listing gives the file and its `reader` is
   the current version; the client reads every other listed source again and stores the new row.
+  The cull reads every picture through the cache this way (XMP-003.1), and stores the row of each
+  sidecar it saves, from the bytes saved and the new ETag.
 - `occ honeycomb:cache:clear [<user>]` removes the XMP cache rows and visual hashes of one user,
   or of every user without an argument, and prints how many rows it removed. An unknown user
   fails with a message and removes nothing.
@@ -80,12 +83,13 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 - **Then** the first removes only alice's rows and names the count, the second the rest; an
   unknown user fails with a message and removes nothing
 
-### XMP-006.7 – A stale row is read again (gap)
+### XMP-006.7 – A stale row is read again
 
-- **Given** a cache row whose `etag` differs from the listed ETag, one with an older `reader`, and
-  one valid row
-- **When** the client diffs the cache against the listing
-- **Then** the first two files are read again and the third is not
+- **Given** a cache row whose `etag` differs from the listed ETag, one with an older `reader`, one
+  valid row, and a listed sidecar without a row
+- **When** the cull opens them
+- **Then** the first two and the fourth file are read again and their new rows stored; the third
+  is not read, and its picture shows the row's values
 
 ### XMP-006.8 – Rows of deleted files and users go
 
@@ -93,10 +97,23 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 - **When** the daily job runs and the user is deleted
 - **Then** both sets of rows are removed
 
+### XMP-006.9 – A save adds its tags to the tag list
+
+- **Given** a row with the tags `Places/Rome` and `Trip` for a sidecar the user reaches, and one with
+  the tag `Hidden` for a file the user does not reach
+- **When** both are saved
+- **Then** the user's tag list holds `Places/Rome` and `Trip`, not `Hidden`
+
+### XMP-006.10 – A saved sidecar's row is stored
+
+- **Given** a sidecar the cull saves with a rating of 4
+- **When** the save answers `saved` with a new ETag
+- **Then** the cache stores the sidecar's row with that ETag and the rating 4, so the next visit
+  does not read it
+
 ## Out of scope
 
 - A cache shared between users per file id and ETag (ADR 0032 Consequences).
-- Reading through the cache in the cull, and the client's diff (XMP-006.7): ADR 0032 PR 6.
 
 ## History
 
@@ -104,3 +121,4 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 |---|---|
 | 2026-11-15 | Accepted with ADR 0032 |
 | 2026-11-15 | The endpoints, the command and *Clear cache* (ADR 0032 PR 4); the save answers the ids stored |
+| 2026-11-18 | The cull reads through the cache and stores the rows of the sidecars it saves (XMP-006.7, .10); a save feeds the tag list (.9) |

@@ -8,7 +8,7 @@ import type { TagChange } from './tag.ts'
 import type { SidecarBytes } from './xmp/decision.ts'
 import type { XmpPacket, XmpRefusal, XmpTime } from './xmp/model.ts'
 
-import { sameDecision, UNDECIDED } from './decision.ts'
+import { UNDECIDED } from './decision.ts'
 import { embeddedSidecarPath, embeddedSourceOf, embeddedXmpSource } from './embedded-xmp.ts'
 import { parseFileName, splitFolder } from './file-name.ts'
 import { pictureMembers } from './pairing.ts'
@@ -63,12 +63,6 @@ export interface KnownSidecar {
 	readonly saved: { readonly etag: string, readonly size: number, readonly mtime: number, readonly bytes: Uint8Array } | null
 }
 
-/** A picture whose sidecars' decision is looked up, and those sidecars. */
-export interface TakeOverLookup {
-	readonly picture: Picture<ListingEntry>
-	readonly sidecars: readonly ListingEntry[]
-}
-
 /** A sidecar save of a picture's write. */
 export interface PlannedSave {
 	readonly picture: Picture<ListingEntry>
@@ -79,53 +73,6 @@ export interface PlannedSave {
 type Answers = ReadonlyMap<number, SidecarLookupAnswer>
 type Embedded = ReadonlyMap<number, EmbeddedXmpAnswer>
 type Known = ReadonlyMap<string, KnownSidecar>
-
-/** The pictures without a stored decision for any member that have sidecars or an embedded XMP to take one or tags from. */
-export function takeOverLookups(pictures: readonly Picture<ListingEntry>[], stored: ReadonlySet<number>): TakeOverLookup[] {
-	return pictures
-		.filter((picture) => !pictureMembers(picture).some((member) => stored.has(member.fileId)))
-		.map((picture) => ({ picture, sidecars: sidecarTargets(picture).existing }))
-		.filter(({ picture, sidecars }) => sidecars.length > 0 || embeddedXmpSource(picture) !== null)
-}
-
-/** The file ids of the JPEGs whose embedded XMP counts for the looked-up pictures (XMP-003.22, TAGS-002.15). */
-export function embeddedLookups(lookups: readonly TakeOverLookup[]): number[] {
-	return lookups.flatMap(({ picture }) => embeddedXmpSource(picture)?.fileId ?? [])
-}
-
-/** The decision each picture takes over from its sidecars and embedded XMP, other than undecided, and what to warn about. */
-export function takeOverDecisions(lookups: readonly TakeOverLookup[], answers: Answers, embedded: Embedded = new Map()) {
-	const decided: { readonly picture: Picture<ListingEntry>, readonly decision: Decision }[] = []
-	const warnings: { readonly path: string, readonly reason: SidecarFailureReason | 'disagrees' }[] = []
-	for (const { picture, sidecars } of lookups) {
-		const read: SidecarBytes[] = []
-		for (const sidecar of sidecars) {
-			const answer = answers.get(sidecar.fileId)
-			if (answer?.result === 'read') {
-				read.push(sidecarBytes(picture, sidecar.path, answer))
-			} else {
-				warnings.push({ path: sidecar.path, reason: answer?.result ?? 'unreachable' })
-			}
-		}
-		const jpeg = embeddedXmpSource(picture)
-		if (jpeg !== null) {
-			const inJpeg = embedded.get(jpeg.fileId)
-			if (inJpeg === undefined) {
-				warnings.push({ path: jpeg.path, reason: 'unreachable' })
-			} else if (inJpeg.result === 'read') {
-				read.push(embeddedBytes(jpeg, inJpeg.bytes))
-			} else if (inJpeg.result !== 'none') {
-				warnings.push({ path: jpeg.path, reason: inJpeg.result })
-			}
-		}
-		const { winner, disagreeing, refused } = pictureSidecarDecision(read, isPair(picture))
-		warnings.push(...refused.map(({ name, error }) => ({ path: name, reason: error.reason })), ...disagreeing.map((path) => ({ path, reason: 'disagrees' as const })))
-		if (winner !== null && !sameDecision(winner.decision, UNDECIDED)) {
-			decided.push({ picture, decision: winner.decision })
-		}
-	}
-	return { decided, warnings }
-}
 
 /** The file ids of the picture's sidecars to read before a write: those honeycomb holds no bytes of. */
 export function writeLookups(picture: Picture<ListingEntry>, known: Known, paths?: ReadonlySet<string>): number[] {
@@ -239,8 +186,13 @@ function editorOf(edit: SidecarEdit, pair: boolean, sources: readonly XmpPacket[
 
 /** A sidecar of the picture as the reading rules take it. */
 export function sidecarBytes(picture: Picture<ListingEntry>, path: string, { mtime, bytes }: { readonly mtime: number, readonly bytes: Uint8Array }): SidecarBytes {
+	return { name: path, mtime, ofRaw: isRawSidecar(picture, path), bytes }
+}
+
+/** Whether the sidecar at the path is the picture's RAW member's, which wins a tie. */
+export function isRawSidecar(picture: Picture<ListingEntry>, path: string): boolean {
 	const rawName = picture.raw === null ? null : parseFileName(picture.raw.path).name
-	return { name: path, mtime, ofRaw: rawName !== null && isMemberSidecar(parseFileName(path), rawName), bytes }
+	return rawName !== null && isMemberSidecar(parseFileName(path), rawName)
 }
 
 /** The JPEG's embedded XMP as the reading rules take it: the JPEG's own sidecar, at the JPEG's modification time. */

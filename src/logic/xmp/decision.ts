@@ -16,6 +16,14 @@ export interface SidecarBytes {
 	readonly bytes: Uint8Array
 }
 
+/** What one sidecar states, each value `null` where it states nothing; Keep RAW without the pair rule (ADR 0032). */
+export interface SidecarValues {
+	readonly rating: number | null
+	readonly flag: Flag | null
+	readonly colourLabel: ColourLabel | null
+	readonly keepRaw: boolean | null
+}
+
 /** The decision of a picture's sidecars: the winner, the sidecars that disagree with it and the refused ones. */
 export interface PictureSidecarDecision {
 	readonly winner: { readonly name: string, readonly decision: Decision } | null
@@ -30,12 +38,23 @@ const PICK = { accepted: 1, rejected: -1 } as const
 
 /** The decision one sidecar states, each value from its first valid source (`docs/dev/06-xmp-interop.md` Reading). */
 export function sidecarDecision(packet: XmpPacket, isPair: boolean): Decision {
+	return decisionOfValues(sidecarValues(packet), isPair)
+}
+
+/** What one sidecar states, each value from its first valid source, `null` where none is valid. */
+export function sidecarValues(packet: XmpPacket): SidecarValues {
+	const keepRaw = simpleText(packet, PROPERTY.keepRaw)
 	return {
 		rating: readRating(packet),
-		colourLabel: readColourLabel(packet),
 		flag: readFlag(packet),
-		keepRaw: isPair && simpleText(packet, PROPERTY.keepRaw)?.trim().toLowerCase() === XMP_TRUE.toLowerCase(),
+		colourLabel: readColourLabel(packet),
+		keepRaw: keepRaw === undefined ? null : keepRaw.trim().toLowerCase() === XMP_TRUE.toLowerCase(),
 	}
+}
+
+/** The decision the values make, what they leave out undecided, Keep RAW only for a pair. */
+export function decisionOfValues(values: SidecarValues, isPair: boolean): Decision {
+	return { rating: values.rating ?? 0, colourLabel: values.colourLabel, flag: values.flag ?? 'unflagged', keepRaw: isPair && values.keepRaw === true }
 }
 
 /** The newest readable sidecar decides as a whole, a tie goes to the RAW member's; disagreements and refusals are reported. */
@@ -61,18 +80,18 @@ export function pictureSidecarDecision(sidecars: readonly SidecarBytes[], isPair
 }
 
 /** Whether a sidecar wins over another: newer, or as new and the RAW member's. */
-function isNewer(candidate: SidecarBytes, winner: SidecarBytes): boolean {
+export function isNewer(candidate: Pick<SidecarBytes, 'mtime' | 'ofRaw'>, winner: Pick<SidecarBytes, 'mtime' | 'ofRaw'>): boolean {
 	return candidate.mtime > winner.mtime || (candidate.mtime === winner.mtime && candidate.ofRaw && !winner.ofRaw)
 }
 
-/** `xmp:Rating` 0–5 rounded down; anything else is 0. */
-function readRating(packet: XmpPacket): number {
+/** `xmp:Rating` 0–5 rounded down; anything else is none. */
+function readRating(packet: XmpPacket): number | null {
 	const rating = realOf(simpleText(packet, PROPERTY.rating))
-	return rating !== null && rating >= 0 && rating <= MAX_RATING ? Math.floor(rating) : 0
+	return rating !== null && rating >= 0 && rating <= MAX_RATING ? Math.floor(rating) : null
 }
 
-/** PickLabel, then pick (0 skipped), then good, then rating −1, else unflagged. */
-function readFlag(packet: XmpPacket): Flag {
+/** PickLabel, then pick (0 skipped), then good, then rating −1, else none. */
+function readFlag(packet: XmpPacket): Flag | null {
 	const pickLabel = integerOf(simpleText(packet, PROPERTY.pickLabel))
 	if (pickLabel !== null && pickLabel >= PICK_LABEL.none && pickLabel <= MAX_PICK_LABEL) {
 		return pickLabel === PICK_LABEL.accepted ? 'picked' : (pickLabel === PICK_LABEL.rejected ? 'rejected' : 'unflagged')
@@ -85,7 +104,7 @@ function readFlag(packet: XmpPacket): Flag {
 	if (good === 'true' || good === 'false') {
 		return good === 'true' ? 'picked' : 'rejected'
 	}
-	return realOf(simpleText(packet, PROPERTY.rating)) === REJECTED_RATING ? 'rejected' : 'unflagged'
+	return realOf(simpleText(packet, PROPERTY.rating)) === REJECTED_RATING ? 'rejected' : null
 }
 
 /** ColorLabel, then a known `xmp:Label` text in exact case, then the lowest darktable index, else none. */

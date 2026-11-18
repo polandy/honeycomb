@@ -21,12 +21,10 @@ continues on any device and each user of a shared folder keeps their own.
 - `400` for a malformed body; one malformed item writes nothing. `401` without a user.
 - A save writes only the file ids the user reaches as a photo; any other id is skipped, its row
   neither written nor removed (ADR 0031). Saves are rate limited per user (APP-001.9).
-- The client reads the decisions of every member after the listing and merges them into the
-  picture's decision; a failed lookup is logged and every picture counts as undecided.
-- The client sends the saves of one tab one at a time: changes made while a save is in flight
-  wait and go in the next save together, the newest state of each file winning. A failed save
-  puts back what it replaced, except the files a later save stored; once no save is in flight or
-  waiting, the newest failed save is put back first.
+- Since ADR 0032 the rows are legacy rows (XMP-007): the client reads them for every member after
+  the listing, and a picture shows them, locked, until the ⋯ entry writes them to its sidecars
+  (XMP-003.2, XMP-008.11); a failed lookup is logged and the pictures show their sidecars. The
+  client saves no decision any more; the sidecars and the XMP cache hold them (XMP-006).
 - A daily background job removes the rows of files deleted for good, of every user. A file in the
   trash bin is not deleted for good: restored, it keeps its decision (DELETE-001.8). For each of
   the decision, tag and visual hash tables it reads 1,000 rows at a time in row id order, asks the
@@ -121,20 +119,13 @@ continues on any device and each user of a shared folder keeps their own.
   writer wins); any other database error, or one of these on every attempt, is not repeated
   further and nothing of that save is stored
 
-### DECISIONS-001.14 – One save at a time per tab
+### DECISIONS-001.14 – One save at a time per tab (removed)
 
-- **Given** a save of the cull in flight
-- **When** the user changes the same picture twice and another picture once meanwhile
-- **Then** nothing more is sent until the save settles; then one save follows with the newest state
-  of each changed file
+The cull saves no decision any more (ADR 0032, XMP-006.7).
 
-### DECISIONS-001.15 – A failed save puts back only what no later save stored
+### DECISIONS-001.15 – A failed save puts back only what no later save stored (removed)
 
-- **Given** a failed save whose file a later save of the same tab stored
-- **When** no save is in flight or waiting any more
-- **Then** that file keeps the stored state, the failed save's other files show what they had
-  before it, and the grid says the save failed; when the later save failed too, the file shows
-  what it had before the first
+The cull saves no decision any more (ADR 0032, XMP-006.7).
 
 ### DECISIONS-001.16 – The clean-up goes through a table in chunks
 
@@ -179,3 +170,4 @@ Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XM
 | 2026-11-14 | A deadlock or lock wait timeout is repeated like a unique-key conflict (DECISIONS-001.13) |
 | 2026-11-14 | The clean-up job pages by row id without joining the file cache (DECISIONS-001.16–.18) |
 | 2026-11-15 | A save skips file ids that are not the user's photos (DECISIONS-001.19, ADR 0031, risk review R10) |
+| 2026-11-18 | The cull reads the rows as legacy rows and saves none (.14, .15 removed, ADR 0032, XMP-006.7) |

@@ -68,11 +68,6 @@ export function pictureBundle<P>(schedule: Schedule, onWaiting: (picture: P | nu
 		}
 	}
 
-	/** Keeps a save in flight, so a flush also waits for the writes it leads to. */
-	function hold<T>(pending: Promise<T>): Promise<T> {
-		return start(() => pending)
-	}
-
 	/** Starts the waiting writes and resolves once every write started, and every write those lead to, has settled. */
 	async function flush() {
 		release()
@@ -82,5 +77,5 @@ export function pictureBundle<P>(schedule: Schedule, onWaiting: (picture: P | nu
 		}
 	}
 
-	return { add, leave, flush, hold }
+	return { add, leave, flush }
 }

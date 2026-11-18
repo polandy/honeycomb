@@ -18,9 +18,10 @@ any member's folder: `off` while *Write decisions to XMP sidecars* is *Off*; `re
 folder's permissions (LISTING-001) lack UPDATE (2) or CREATE (4); `shared` when the folder is
 shared and the user has not confirmed the opened folder that holds it; `noVersions` when the
 folder keeps no versions; `refused` when a write of this visit refused one of the picture's
-sidecars (not UTF-8, malformed, a `<!DOCTYPE>`, a property given twice, not XMP). Otherwise it is
-`writable`. A folder the listing does not name counts as writable; the server checks every save
-again (XMP-002).
+sidecars (not UTF-8, malformed, a `<!DOCTYPE>`, a property given twice, not XMP); `legacy` while
+a member has a legacy decision or tag (XMP-007) that the ⋯ entry has not written to its sidecars
+yet. Otherwise it is `writable`. A folder the listing does not name counts as writable; the
+server checks every save again (XMP-002).
 
 **Confirming a shared folder.** The listing names the opened folder by its file id. A
 confirmation is kept per user under the file id of the nearest opened folder that holds the shared
@@ -33,12 +34,13 @@ shared folders too, in one dialog), *Write to a shared folder?* otherwise. *Writ
 saves *On* and the confirmed folders in one settings save and takes the step; *Cancel* takes
 nothing. Without the Versions app *Write to sidecars* is disabled and the dialog says why. The
 step then decides the writable pictures as one undo step and leaves the pictures locked
-`readOnly`, `noVersions` or `refused` as they are: nothing of them is shown, stored or written.
-Its toast says what changed and how many photos were not changed, naming the first reason in the
-order `readOnly`, `noVersions`, `refused`, with *Details* that unfold each such photo and its
-reason. A step whose pictures are all locked takes nothing; its toast names the reason, for one
-photo as *Not changed: …*. *Pick this, reject the rest* takes nothing when the picked picture is
-locked. Undo and redo are not held back; the server refuses what it may not write (XMP-003.13).
+`readOnly`, `noVersions`, `refused` or `legacy` as they are: nothing of them is shown, stored or
+written. Its toast says what changed and how many photos were not changed, naming the first
+reason in the order `readOnly`, `noVersions`, `refused`, `legacy`, with *Details* that unfold each
+such photo and its reason. A step whose pictures are all locked takes nothing; its toast names
+the reason, for one photo as *Not changed: …*. *Pick this, reject the rest* takes nothing when the
+picked picture is locked. Undo and redo are not held back; the server refuses what it may not
+write (XMP-003.13).
 The loupe's info panel says per picture why nothing is written.
 
 **Before the sidecars are read.** A step is taken while the sidecars are still looked up; a
@@ -100,7 +102,8 @@ decision made meanwhile wins (XMP-003.3).
 - **Then** the writable one is decided, stored and written; the locked two are not; the toast says
   *Rejected 1 photo; 2 photos not changed: you may only read the folder* with *Undo* and
   *Details*, which unfold each locked photo's name and reason; with every picture locked nothing is
-  taken and the toast names the first reason in the order `readOnly`, `noVersions`, `refused`
+  taken and the toast names the first reason in the order `readOnly`, `noVersions`, `refused`,
+  `legacy`
 
 ### XMP-008.10 – Undo takes back the partial step as one step
 
@@ -115,10 +118,16 @@ decision made meanwhile wins (XMP-003.3).
 - **When** the user picks a picture
 - **Then** the pick is taken at once and wins over the sidecar's decision when it arrives
 
+### XMP-008.11 – A picture with legacy rows is locked until they are written
+
+- **Given** writing *On*, a picture with a legacy decision and one with legacy tags only
+- **When** the user rates both, then the ⋯ entry writes them to their sidecars
+- **Then** neither is rated, the toast says *2 photos not changed: stored decisions are not yet in
+  the sidecars* and the info panel says *Not written, stored decisions not yet in its sidecars*;
+  once they are acknowledged both show what they showed before and are writable
+
 ## Out of scope
 
-- Reading the decisions through the XMP cache (XMP-006.7); the cull still takes over from the
-  sidecars on opening (XMP-003), a later PR of ADR 0032.
 - Taking a change back when the server answers `notPermitted` (ADR 0032 Writability 9).
 
 ## History
@@ -127,3 +136,4 @@ decision made meanwhile wins (XMP-003.3).
 |---|---|
 | 2026-11-15 | Written with sidecar PR 6 (ADR 0032) |
 | 2026-11-18 | A step decides the writable pictures and reports the locked ones (.7 changed, .9, .10; owner decision on #221 (a)) |
+| 2026-11-18 | A picture with legacy rows is locked until the ⋯ entry writes them (`legacy`, .11; ADR 0032 App state and migration 2) |

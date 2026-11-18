@@ -3,7 +3,7 @@
 import type { ColourLabel, Decision, DecisionField, Flag, StoredDecision } from './decision.ts'
 import type { Picture } from './pairing.ts'
 
-import { DECISION_FIELDS, sameDecision, UNDECIDED } from './decision.ts'
+import { DECISION_FIELDS, UNDECIDED } from './decision.ts'
 
 /** A picture with its current decision. */
 export interface Decided {
@@ -92,24 +92,6 @@ export function withRows(decisions: ReadonlyMap<number, Decision>, rows: readonl
 	const next = new Map(decisions)
 	for (const { fileId, ...decision } of rows) {
 		next.set(fileId, decision)
-	}
-	return next
-}
-
-/** The decisions with each row that still stands set back to what it replaced in `before`. */
-export function revertRows(decisions: ReadonlyMap<number, Decision>, rows: readonly StoredDecision[], before: ReadonlyMap<number, Decision>): Map<number, Decision> {
-	const next = new Map(decisions)
-	for (const { fileId, ...written } of rows) {
-		const current = next.get(fileId)
-		if (current === undefined || !sameDecision(current, written)) {
-			continue
-		}
-		const earlier = before.get(fileId)
-		if (earlier === undefined) {
-			next.delete(fileId)
-		} else {
-			next.set(fileId, earlier)
-		}
 	}
 	return next
 }

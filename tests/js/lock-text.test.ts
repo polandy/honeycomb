@@ -10,11 +10,12 @@ import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 const locked = (name: string, reason: LockedPicture['reason']): LockedPicture => ({ picture: pictureOf(listingEntry(1, `/P/${name}.JPG`)), reason })
 
 describe('lock texts', () => {
-	// spec: XMP-008.3, XMP-008.5
+	// spec: XMP-008.3, XMP-008.5, XMP-008.11
 	it.each([
 		['readOnly', 'Not changed: you may only read this folder'],
 		['noVersions', 'Not changed: this folder keeps no versions'],
 		['refused', 'Not changed: a sidecar of this photo was refused; see Details of the last write'],
+		['legacy', 'Not changed: this photo\'s stored decisions are not yet in its sidecars'],
 	] as const)('names why one photo was not changed (%s)', (reason, text) => {
 		expect(lockedText([locked('A', reason)])).toBe(text)
 	})
@@ -26,6 +27,8 @@ describe('lock texts', () => {
 		expect(lockedText(both)).toBe('2 photos not changed: the folder keeps no versions')
 		expect(lockedText([locked('A', 'refused'), locked('B', 'readOnly')])).toBe('2 photos not changed: you may only read the folder')
 		expect(lockedText([locked('A', 'refused'), locked('B', 'refused')])).toBe('2 photos not changed: a sidecar was refused; see Details of the last write')
+		expect(lockedText([locked('A', 'legacy'), locked('B', 'refused')])).toBe('2 photos not changed: a sidecar was refused; see Details of the last write')
+		expect(lockedText([locked('A', 'legacy'), locked('B', 'legacy')])).toBe('2 photos not changed: stored decisions are not yet in the sidecars')
 	})
 
 	// spec: XMP-008.9

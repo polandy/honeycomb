@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { StoredTags, Tag } from '../../src/logic/tag.ts'
+import type { StoredTags, Tag, TagChange } from '../../src/logic/tag.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -11,46 +11,44 @@ import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, SAVED_SERIES, SET, WRITIN
 
 afterEach(() => vi.restoreAllMocks())
 
-/** A cull opened on ENTRIES with the stored tags, whose tag saves are recorded. */
+/** A cull opened on ENTRIES with the stored tags, whose tag writes are recorded. */
 async function taggedCull(stored: StoredTags[], tagList: () => Promise<Tag[]> = async () => []) {
-	const saved: StoredTags[][] = []
-	const saving = { fails: false }
+	const written: { names: string[], change: TagChange }[] = []
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
 		saveVisualHashes: async () => undefined,
 		wait: async () => {},
 		warmPreviews: async () => undefined,
 		lookupDecisions: async () => [],
-		saveDecisions: async () => undefined,
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
 		tags: {
 			lookupTags: async (fileIds) => stored.filter((row) => fileIds.includes(row.fileId)),
-			saveTags: async (rows) => {
-				if (saving.fails) {
-					throw new Error('down')
-				}
-				saved.push([...rows])
-			},
 			loadTagList: tagList,
 		},
-	}, fakeStorage(), () => WRITING_ON, NO_SIDECARS, () => undefined)
+	}, fakeStorage(), () => WRITING_ON, {
+		...NO_SIDECARS,
+		writeTags: async (pictures, change) => {
+			written.push({ names: pictures.map((picture) => picture.baseName), change })
+			return { written: pictures.length, failed: [] }
+		},
+	}, () => undefined)
 	cull.open(SET, ENTRIES)
 	await flushPromises()
-	return { cull, saved, saving, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
+	return { cull, written, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
 }
 
 describe('useCull: tag', () => {
 	// spec: TAGS-003.10
 	it('records one step over the pictures it alters, and undo and redo apply it to them only', async () => {
-		const { cull, saved, picture } = await taggedCull([{ fileId: 1, tags: ['Dolomites'] }])
+		const { cull, written, picture } = await taggedCull([{ fileId: 1, tags: ['Dolomites'] }])
 		const chosen = [picture('IMG_2'), picture('IMG_9'), picture('IMG_10')]
 
 		const step = cull.tag({ added: ['Dolomites'], removed: [] }, chosen)
 		await flushPromises()
 
 		expect(step).toMatchObject({ change: { added: ['Dolomites'], removed: [] }, names: ['IMG_9', 'IMG_10'] })
-		expect(saved).toEqual([[{ fileId: 4, tags: ['Dolomites'] }, { fileId: 3, tags: ['Dolomites'] }, { fileId: 2, tags: ['Dolomites'] }]])
+		expect(written).toEqual([{ names: ['IMG_9', 'IMG_10'], change: { added: ['Dolomites'], removed: [] } }])
 
 		expect(cull.undo()).toBe(step)
 		await flushPromises()
@@ -71,33 +69,14 @@ describe('useCull: tag', () => {
 		expect(cull.undo()).toBe(decided)
 	})
 
-	// spec: TAGS-003.14
-	it('says a failed tag save, also on undo, and clears it with the next save', async () => {
-		const { cull, saving, picture } = await taggedCull([])
-		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
-		cull.tag({ added: ['Sunrise'], removed: [] }, [picture('IMG_2')])
-		await flushPromises()
-
-		saving.fails = true
-		cull.undo()
-		await flushPromises()
-		expect(cull.saveFailed.value).toBe(true)
-		expect(cull.tags.tagsOf(picture('IMG_2'))).toEqual(['Sunrise'])
-
-		saving.fails = false
-		cull.tag({ added: ['Dusk'], removed: [] }, [picture('IMG_2')])
-		await flushPromises()
-		expect(cull.saveFailed.value).toBe(false)
-	})
-
 	// spec: TAGS-003.11
-	it('records and stores nothing for a change that alters no picture', async () => {
-		const { cull, saved, picture } = await taggedCull([])
+	it('records and writes nothing for a change that alters no picture', async () => {
+		const { cull, written, picture } = await taggedCull([])
 
 		expect(cull.tag({ added: [], removed: ['Sunrise'] }, [picture('IMG_9')])).toBeNull()
 		await flushPromises()
 
-		expect(saved).toEqual([])
+		expect(written).toEqual([])
 		expect(cull.undo()).toBeNull()
 	})
 })

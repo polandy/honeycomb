@@ -21,6 +21,8 @@ async function openLoupe() {
 	const saves: SidecarSaveItem[][] = []
 	const sidecars = {
 		lookupSidecars: async (fileIds: readonly number[]) => fileIds.map(() => ({ result: 'read' as const, bytes: BYTES, etag: 'e', size: BYTES.length, mtime: 1 })),
+		lookupXmpCache: async () => [],
+		saveXmpCache: async () => undefined,
 		lookupEmbeddedXmp: async (fileIds: readonly number[]) => fileIds.map(() => ({ result: 'none' as const })),
 		saveSidecars: async (items: readonly SidecarSaveItem[]) => {
 			saves.push([...items])

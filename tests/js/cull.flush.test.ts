@@ -13,13 +13,13 @@ import { access } from './cull-sidecars-fake.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
 import { CANONICAL_TIME } from './logic/xmp/xmp-builders.ts'
 
-/** A cull over bundled sidecars whose decision and tag saves wait until the test settles them, and the names of the pictures each sidecar write got; `over` replaces the recording writes. */
+/** A cull over bundled sidecars whose writes record the pictures' names and wait until the test settles them; `over` replaces the recording writes. */
 async function bundledCull(over?: SidecarWrites) {
 	const settle: (() => void)[] = []
 	const writes: string[][] = []
-	const save = () => new Promise<void>((resolve) => settle.push(resolve))
 	const record = async (pictures: readonly { baseName: string }[]) => {
 		writes.push(pictures.map((picture) => picture.baseName))
+		await new Promise<void>((resolve) => settle.push(resolve))
 		return { written: pictures.length, failed: [] }
 	}
 	const sidecars = useBundledSidecars(over ?? {
@@ -33,10 +33,9 @@ async function bundledCull(over?: SidecarWrites) {
 		wait: async () => {},
 		warmPreviews: async () => undefined,
 		lookupDecisions: async () => [],
-		saveDecisions: save,
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
-		tags: { ...NO_TAGS, saveTags: save },
+		tags: NO_TAGS,
 	}, fakeStorage(), () => WRITING_ON, sidecars, () => undefined)
 	cull.open(SET, ENTRIES, access())
 	await flushPromises()
@@ -45,7 +44,7 @@ async function bundledCull(over?: SidecarWrites) {
 
 describe('useCull: flushing the sidecar writes', () => {
 	// spec: XMP-003.30
-	it('waits for the sidecar write of a decision whose save is still on the way', async () => {
+	it('waits for the sidecar write of a decision still on the way', async () => {
 		const { cull, sidecars, settle, writes, picture } = await bundledCull()
 		cull.decide({ kind: 'flag', flag: 'picked' }, [picture('IMG_9'), picture('IMG_2')])
 		let flushed = false
@@ -60,7 +59,7 @@ describe('useCull: flushing the sidecar writes', () => {
 	})
 
 	// spec: XMP-003.30
-	it('waits for the sidecar write of a tag change whose save is still on the way', async () => {
+	it('waits for the sidecar write of a tag change still on the way', async () => {
 		const { cull, sidecars, settle, writes, picture } = await bundledCull()
 		cull.tag({ added: ['Anna'], removed: [] }, [picture('IMG_9'), picture('IMG_2')])
 		let flushed = false
@@ -75,17 +74,24 @@ describe('useCull: flushing the sidecar writes', () => {
 	})
 
 	// spec: XMP-003.30, DELETE-002.17, MOVE-004.19
-	it('gives a flushed picture the sidecar honeycomb created after a decision save that was still on the way', async () => {
+	it('gives a flushed picture the sidecar honeycomb created by a write that was still on the way', async () => {
+		const saving: (() => void)[] = []
 		const sync = useSidecarSync({
 			lookupSidecars: async () => [],
+			lookupXmpCache: async () => [],
+			saveXmpCache: async () => undefined,
 			lookupEmbeddedXmp: async (fileIds) => fileIds.map(() => ({ result: 'none' as const })),
-			saveSidecars: async (items) => items.map(() => ({ result: 'saved' as const, fileId: 50, etag: 'created-50', size: 1, mtime: 1 })),
+			saveSidecars: async (items) => {
+				await new Promise<void>((resolve) => saving.push(resolve))
+				return items.map(() => ({ result: 'saved' as const, fileId: 50, etag: 'created-50', size: 1, mtime: 1 }))
+			},
 		}, () => CANONICAL_TIME, () => {})
-		const { cull, sidecars, settle, picture } = await bundledCull(sync)
+		const { cull, sidecars, picture } = await bundledCull(sync)
 		cull.decide({ kind: 'flag', flag: 'picked' }, [picture('IMG_2')])
 		const flush = sidecars.flush()
+		await flushPromises()
 
-		settle[0]!()
+		saving[0]!()
 		await flush
 		expect(sync.current(picture('IMG_2')).sidecars.map(({ fileId, path, etag }) => [fileId, path, etag])).toEqual([[50, '/Trip/B/IMG_2.JPG.xmp', 'created-50']])
 	})

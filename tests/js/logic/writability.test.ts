@@ -20,7 +20,7 @@ function folder(path: string, access: Partial<FolderAccess> = {}): FolderAccess 
 
 /** A context with writing on, the folders given and `/P` opened as file id 7. */
 function context(folders: FolderAccess[], change: Partial<WriteContext> = {}): WriteContext {
-	return { setting: 'on', folders: folderAccess(folders), opened: [{ path: '/P', fileId: 7 }], confirmed: [], refused: () => false, ...change }
+	return { setting: 'on', folders: folderAccess(folders), opened: [{ path: '/P', fileId: 7 }], confirmed: [], refused: () => false, legacy: () => false, ...change }
 }
 
 describe('writability', () => {
@@ -61,6 +61,13 @@ describe('writability', () => {
 		expect(writability(SPLIT, context([], { refused: (picture) => picture === SPLIT }))).toBe('refused')
 	})
 
+	// spec: XMP-008.11
+	it('is legacy while the picture has legacy rows, after every other reason', () => {
+		expect(writability(SPLIT, context([], { legacy: (picture) => picture === SPLIT }))).toBe('legacy')
+		expect(writability(SPLIT, context([], { legacy: () => true, refused: () => true }))).toBe('refused')
+		expect(writability(AT_ROOT, context([], { legacy: (picture) => picture === SPLIT }))).toBe('writable')
+	})
+
 	// spec: XMP-008.1
 	it('reads the root folder as `/` and takes a folder the listing did not name as writable', () => {
 		expect(writability(AT_ROOT, context([folder('/', { permissions: READ })]))).toBe('readOnly')
@@ -96,6 +103,8 @@ describe('firstLock', () => {
 		expect(firstLock([{ picture: SPLIT, reason: 'refused' }, { picture: AT_ROOT, reason: 'noVersions' }])).toBe('noVersions')
 		expect(firstLock([{ picture: SPLIT, reason: 'noVersions' }, { picture: AT_ROOT, reason: 'readOnly' }])).toBe('readOnly')
 		expect(firstLock([{ picture: SPLIT, reason: 'refused' }])).toBe('refused')
+		expect(firstLock([{ picture: SPLIT, reason: 'legacy' }, { picture: AT_ROOT, reason: 'refused' }])).toBe('refused')
+		expect(firstLock([{ picture: SPLIT, reason: 'legacy' }])).toBe('legacy')
 	})
 })
 

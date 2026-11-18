@@ -38,6 +38,8 @@ async function openWith(options: { lookup: (fileId: number) => SidecarLookupAnsw
 			lookups.push([...fileIds])
 			return fileIds.map(options.lookup)
 		},
+		lookupXmpCache: async () => [],
+		saveXmpCache: async () => undefined,
 		lookupEmbeddedXmp: async (fileIds: readonly number[]) => fileIds.map(() => ({ result: 'none' as const })),
 		saveSidecars: async (items: readonly SidecarSaveItem[]) => {
 			saves.push([...items])
@@ -46,7 +48,7 @@ async function openWith(options: { lookup: (fileId: number) => SidecarLookupAnsw
 		now: () => CANONICAL_TIME,
 	}
 	const storedTags = options.tags ?? []
-	const tags = { lookupTags: async (fileIds: readonly number[]) => storedTags.filter((row) => fileIds.includes(row.fileId)), saveTags: async () => undefined, loadTagList: async () => [] }
+	const tags = { lookupTags: async (fileIds: readonly number[]) => storedTags.filter((row) => fileIds.includes(row.fileId)), loadTagList: async () => [] }
 	const legacy = { ...NO_LEGACY, acknowledge: async (fileIds: readonly number[]) => void acknowledged.push([...fileIds]) }
 	const loadSettings = async () => ({ sidecarWrite: options.sidecarWrite ?? 'on' })
 	const mounted = mountApp({ sidecars, tags, legacy, loadSettings, schedule: fakeScheduler().schedule }, options.decisions ?? [stored(2, 'picked'), stored(4, 'rejected')], { NcDialog: DialogStub })
@@ -210,7 +212,7 @@ describe('App: migrating the stored decisions and tags to sidecars', () => {
 		await button(wrapper, 'Write to sidecars').trigger('click')
 		await flushPromises()
 		expect(saves.slice(1).flatMap(savedPaths)).toEqual(expect.arrayContaining([6, '/Trip/A/IMG_10.JPG.xmp']))
-		expect(acknowledged.at(-1)).toEqual([1, 2, 3])
+		expect(acknowledged.at(-1)).toEqual([2, 3])
 	})
 
 	// spec: XMP-007.13

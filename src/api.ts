@@ -121,13 +121,6 @@ export async function saveViewState(viewState: Partial<ViewState>): Promise<void
 	await axios.put(generateUrl(`${API}/view-state`), { viewState })
 }
 
-/** Stores the whole decision of each file in one transaction (ADR 0012). */
-export async function saveDecisions(decisions: readonly StoredDecision[]): Promise<void> {
-	if (decisions.length > 0) {
-		await axios.put(generateUrl(`${API}/decisions`), { decisions })
-	}
-}
-
 /** The stored tags of the files; a file without a row has no tags (ADR 0022). */
 export async function lookupTags(fileIds: readonly number[]): Promise<StoredTags[]> {
 	if (fileIds.length === 0) {
@@ -138,13 +131,6 @@ export async function lookupTags(fileIds: readonly number[]): Promise<StoredTags
 		throw new ApiResponseError('The tag lookup came without a tags array; check the server\'s version.')
 	}
 	return data.tags as StoredTags[]
-}
-
-/** Stores the whole tags of each file in one transaction; an empty list removes them (ADR 0022). */
-export async function saveTags(tags: readonly StoredTags[]): Promise<void> {
-	if (tags.length > 0) {
-		await axios.put(generateUrl(`${API}/tags`), { tags })
-	}
 }
 
 /** Stores visual hashes with the etags they were taken from and answers the file ids stored; the server skips those of changed files (ADR 0024), a `429` rejects with `RateLimitedError`. */

@@ -3,7 +3,7 @@
 import type { Decision } from '../../../src/logic/decision.ts'
 
 import { describe, expect, it } from 'vitest'
-import { changedFields, changedRows, commonDecision, resolveChange, revertRows, withRows } from '../../../src/logic/decision-change.ts'
+import { changedFields, changedRows, commonDecision, resolveChange, withRows } from '../../../src/logic/decision-change.ts'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
@@ -87,7 +87,7 @@ describe('changedRows', () => {
 	})
 })
 
-describe('withRows and revertRows', () => {
+describe('withRows', () => {
 	const before = new Map([[1, decided({ rating: 1 })], [9, decided({ flag: 'picked' })]])
 	const rows = [{ fileId: 1, ...decided({ rating: 4 }) }, { fileId: 2, ...decided({ rating: 4 }) }]
 
@@ -96,16 +96,6 @@ describe('withRows and revertRows', () => {
 
 		expect([...after]).toEqual([[1, decided({ rating: 4 })], [9, decided({ flag: 'picked' })], [2, decided({ rating: 4 })]])
 		expect(before.get(1)).toEqual(decided({ rating: 1 }))
-	})
-
-	it('restores what the rows replaced', () => {
-		expect(revertRows(withRows(before, rows), rows, before)).toEqual(before)
-	})
-
-	it('keeps a file a later change wrote again', () => {
-		const later = withRows(withRows(before, rows), [{ fileId: 2, ...decided({ flag: 'rejected' }) }])
-
-		expect([...revertRows(later, rows, before)]).toEqual([[1, decided({ rating: 1 })], [9, decided({ flag: 'picked' })], [2, decided({ flag: 'rejected' })]])
 	})
 })
 

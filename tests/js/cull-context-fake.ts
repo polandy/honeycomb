@@ -43,7 +43,6 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 		wait: async () => {},
 		warmPreviews: async () => undefined,
 		lookupDecisions: async () => [],
-		saveDecisions: async () => undefined,
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,

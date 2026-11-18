@@ -24,6 +24,12 @@ interface TagStore extends FileRowStore, LegacyRowStore {
 	public function replace(string $userId, array $fileIds, array $pictures): void;
 
 	/**
+	 * Adds the tags the tag list does not hold yet.
+	 * @param list<string> $tags
+	 */
+	public function addToTagList(string $userId, array $tags): void;
+
+	/**
 	 * Every tag the user has had, sorted, each once.
 	 * @return list<string>
 	 */

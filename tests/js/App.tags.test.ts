@@ -1,4 +1,3 @@
-import type { StoredTags } from '../../src/logic/tag.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
@@ -14,7 +13,7 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import TagEntry from '../../src/components/TagEntry.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
-import { mountApp, openCull, sharedAccess, shownNames, toolbarProps } from './app-cull.ts'
+import { decidedRows, mountApp, openCull, sharedAccess, shownNames, toolbarProps } from './app-cull.ts'
 
 /** Presses a key on the page and returns whether the app handled it. */
 async function press(key: string) {
@@ -24,16 +23,12 @@ async function press(key: string) {
 	return event.defaultPrevented
 }
 
-/** The app on an open cull of IMG_2, IMG_9 and IMG_10 whose tag saves are recorded. */
+/** The app on an open cull of IMG_2, IMG_9 and IMG_10. */
 async function openApp(settings: object = { sidecarWrite: 'on' }) {
-	const savedTags: StoredTags[][] = []
-	const saveTags = async (rows: StoredTags[]) => {
-		savedTags.push(rows)
-	}
-	const mounted = mountApp({ tags: { lookupTags: async () => [], saveTags, loadTagList: async () => ['Places/Italy'] }, loadSettings: async () => settings })
+	const mounted = mountApp({ tags: { lookupTags: async () => [], loadTagList: async () => ['Places/Italy'] }, loadSettings: async () => settings })
 	await openCull(mounted.wrapper)
 	expect(shownNames(mounted.wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
-	return { ...mounted, savedTags }
+	return mounted
 }
 
 const entry = (wrapper: AppWrapper) => wrapper.findComponent(TagEntry)
@@ -52,7 +47,7 @@ enableAutoUnmount(afterEach)
 describe('App: tag entry', () => {
 	// spec: TAGS-003.1, TAGS-003.10
 	it('opens by T for the selection, tags it with one toast and keeps the app keys away', async () => {
-		const { wrapper, savedTags, saved } = await openApp()
+		const { wrapper, sidecarSaves } = await openApp()
 		await select(wrapper, 1, 4)
 
 		expect(await press('t')).toBe(true)
@@ -63,8 +58,8 @@ describe('App: tag entry', () => {
 		entry(wrapper).vm.$emit('change', { added: ['Sunrise'], removed: [] })
 		await flushPromises()
 
-		expect(savedTags).toEqual([[{ fileId: 1, tags: ['Sunrise'] }, { fileId: 4, tags: ['Sunrise'] }]])
-		expect(saved).toEqual([])
+		expect(sidecarSaves).toHaveLength(1)
+		expect(decidedRows(wrapper)).toEqual([])
 		expect(wrapper.findComponent(UndoToast).text()).toBe('Tagged 2 photos Sunrise·Undo')
 		expect(entry(wrapper).props('targets')).toEqual([['Sunrise'], ['Sunrise']])
 	})
@@ -122,7 +117,7 @@ describe('App: tag filter and tile', () => {
 	async function openTagged() {
 		const stored = [{ fileId: 1, tags: ['Places/Italyx'] }, { fileId: 2, tags: ['Anna'] }, { fileId: 3, tags: ['Places/Italy/Dolomites'] }]
 		const lookupTags = async (fileIds: readonly number[]) => stored.filter(({ fileId }) => fileIds.includes(fileId))
-		const mounted = mountApp({ tags: { lookupTags, saveTags: async () => {}, loadTagList: async () => [] } })
+		const mounted = mountApp({ tags: { lookupTags, loadTagList: async () => [] } })
 		await openCull(mounted.wrapper)
 		mounted.wrapper.findComponent(GridToolbar).vm.$emit('update:filtersOpen', true)
 		await flushPromises()
@@ -175,7 +170,7 @@ describe('App: tag filter and tile', () => {
 
 	// spec: TAGS-004.9
 	it('tells the loupe that a picture in a shared folder is not written', async () => {
-		const mounted = mountApp({ tags: { lookupTags: async () => [], saveTags: async () => {}, loadTagList: async () => [] }, loadSettings: async () => ({ sidecarWrite: 'on' }) })
+		const mounted = mountApp({ tags: { lookupTags: async () => [], loadTagList: async () => [] }, loadSettings: async () => ({ sidecarWrite: 'on' }) })
 		await openCull(mounted.wrapper, undefined, undefined, sharedAccess(['/Trip/B']))
 		await press('e')
 

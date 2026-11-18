@@ -8,37 +8,36 @@
 
 ## Purpose
 
-Brings the tags into the cull: a picture honeycomb has stored nothing for takes over the tags of its
-sidecars, and every tag change is stored and written through to the picture's sidecars, so digiKam,
-darktable and Lightroom see it.
+Brings the tags into the cull: a picture shows the tags of its sidecars, and every tag change is
+written through to the picture's sidecars, so digiKam, darktable and Lightroom see it.
 
 ## Behaviour
 
-**A picture's tags** are the union of its members' stored tags, sorted. When a cull opens, and
-again when the pairing settings change, the stored tags of every member are read beside the stored
-decisions. A failed read is logged; the pictures show as untagged and take nothing over.
+**A picture's tags** are the union of its members' tags, sorted. When a cull opens, and again when
+the pairing settings change, the legacy tags of every member (`honeycomb_file_tags`, XMP-007) are
+read beside the legacy decisions; a failed read is logged and the pictures show their sidecars'
+tags.
 
-**Taking over.** A picture whose sidecars are looked up for their decision (no stored decision for
-any member, XMP-003) and that has no stored tags for any member takes over the tags of its sidecars,
-read as XMP-004 says: the union of every sidecar answered and not refused, and of the embedded
-XMP while it counts. They are shown and stored
-for every member in one save, which is not written back to the sidecars. A picture tagged meanwhile
-keeps the user's tags. A tag the storage cannot hold (over 255 characters, or beyond the first 100
-of a picture in sort order) is left out and logged as a warning.
+**Reading.** A picture without legacy tags for any member shows the tags of its sidecars, read
+through the XMP cache with its decision (XMP-003, XMP-006) as XMP-004 says: the union of every
+sidecar read and not refused, and of the embedded XMP while it counts. They are not written back,
+and nothing is stored in the legacy tables. A picture with legacy tags shows them until the ⋯ entry
+writes them to its sidecars, locked (XMP-008.11). A picture tagged meanwhile keeps the user's tags.
+A tag the cache cannot hold (over 255 characters, or beyond the first 100 of a picture in sort
+order) is left out and logged as a warning.
 
 **The embedded XMP** of the picture's JPEG (`image/jpeg`) is one more source (D1) while the JPEG
 has no sidecar of its own, neither `<JPEG file>.xmp` nor the shared `<base name>.xmp`; one that
-exists replaces it, as in digiKam. It is looked up for pictures that take a decision or tags over
-and for every write (XMP-003.22), and never written. A picture whose embedded XMP cannot be
-looked up takes no tags over and is not written through; its sidecars fail as when they cannot be
+exists replaces it, as in digiKam. It is read with the sidecars when the cull opens and for every
+write (XMP-003.22), and never written. A picture whose embedded XMP cannot be looked up shows
+no tags from its sidecars and is not written through; its sidecars fail as when they cannot be
 read.
 
 **A tag change** (tags added, tags removed) applies to each chosen picture's tags; the result is
-shown at once and stored for every member in one save. Saves go one at a time and wait for the
-one in flight, as decisions do (DECISIONS-001.14, .15). A failed save puts back what it replaced,
-except the files a later save stored, and writes no sidecar.
+shown at once for every member. Nothing is stored in the database: the sidecars hold it, and the
+XMP cache save of each saved sidecar adds its tags to the tag list (XMP-006.9).
 
-**Writing through.** After the save, while writing to sidecars is on (XMP-003 The setting), each
+**Writing through.** While writing to sidecars is on (XMP-003 The setting), each
 changed picture outside a shared folder gets the change written to its sidecars, in the same passes
 as the decisions (XMP-003): every sidecar is read unless honeycomb holds its bytes, the change is
 applied to the union of their tags as they are then, and that set is written to every sidecar, and,
@@ -50,64 +49,61 @@ the same pass are applied in order and saved once (XMP-003.16). A sidecar answer
 read again and gets the change once more. A sidecar that cannot be written is reported like a
 decision's (XMP-003.13); *Retry failed sidecars* applies the same change again.
 
-**Files moved back.** Files put back into the cull (an undone delete) have their stored tags read.
+**Files moved back.** Files put back into the cull (an undone delete) have their legacy tags and
+sidecars read.
 
 ## Acceptance criteria
 
-### TAGS-002.1 – The stored tags are read when the cull opens
+### TAGS-002.1 – The legacy tags are read when the cull opens
 
-- **Given** a pair whose RAW has the stored tag `Places/Lisbon` and whose JPEG has `People/Anna`
+- **Given** a pair whose RAW has the legacy tag `Places/Lisbon` and whose JPEG has `People/Anna`
 - **When** the cull opens
 - **Then** the picture's tags are `People/Anna` and `Places/Lisbon`, and the tags of every member
   of the cull were looked up in one request
 
-### TAGS-002.2 – A picture with nothing stored takes over its sidecars' tags
+### TAGS-002.2 – A picture shows its sidecars' tags
 
-- **Given** a pair without a stored decision or tags whose RAW's sidecar holds `Places/Lisbon` and
-  whose JPEG's sidecar holds `People/Anna`
+- **Given** a pair without legacy rows whose RAW's sidecar holds `Places/Lisbon` and whose JPEG's
+  sidecar holds `People/Anna`
 - **When** the cull opens
-- **Then** the picture shows both tags, they are stored for both members in one save, and no
-  sidecar is saved
+- **Then** the picture shows both tags, no tags are saved to the legacy tables, and no sidecar is
+  saved
 
-### TAGS-002.3 – Stored tags win
+### TAGS-002.3 – Legacy tags win until they are migrated
 
-- **Given** a picture without a stored decision but with stored tags, and a sidecar with other tags
+- **Given** a picture without a legacy decision but with legacy tags, and a sidecar with other tags
 - **When** the cull opens
-- **Then** the picture keeps its stored tags and nothing is stored for it
+- **Then** the picture shows its legacy tags
 
 ### TAGS-002.4 – Tags given meanwhile win over the sidecars
 
 - **Given** a picture whose sidecar lookup has not answered yet
 - **When** the user tags it and the lookup then answers with other tags
-- **Then** the picture keeps the user's tags and the sidecars' tags are not stored
+- **Then** the picture keeps the user's tags
 
-### TAGS-002.5 – A tag the storage cannot hold is left out
+### TAGS-002.5 – A tag the cache cannot hold is left out
 
 - **Given** sidecar tags of which one is over 255 characters, and a sidecar with 101 tags
-- **When** they are taken over
+- **When** they are read
 - **Then** the long tag and the last tag in sort order are left out and each is logged as a warning;
-  the others are stored
+  the others are shown and cached
 
-### TAGS-002.6 – A failed read takes nothing over
+### TAGS-002.6 – A failed legacy read shows the sidecars' tags
 
-- **Given** a tag lookup that fails
+- **Given** a legacy tag lookup that fails
 - **When** the cull opens
-- **Then** the error is logged, the pictures show as untagged, the decisions still load and no
-  sidecar tags are stored
+- **Then** the error is logged, and the pictures show their sidecars' tags and decisions
 
-### TAGS-002.7 – A tag change is shown and stored for every member
+### TAGS-002.7 – A tag change is shown for every member
 
-- **Given** a pair whose RAW has `Places/Lisbon` and whose JPEG has none
+- **Given** a pair whose RAW's sidecar has `Places/Lisbon` and whose JPEG has none
 - **When** the user adds `Events/Wedding` and removes `Places/Lisbon`
-- **Then** the picture shows `Events/Wedding` at once and both members are stored with it in one
-  save
+- **Then** the picture shows `Events/Wedding` at once and no tags are saved to the legacy tables
 
-### TAGS-002.8 – A failed save puts the tags back and writes nothing
+### TAGS-002.8 – A failed save puts the tags back and writes nothing (removed)
 
-- **Given** a tag change whose save fails
-- **When** the user makes it
-- **Then** the picture shows its tags from before, the error is logged and no sidecar is looked up
-  or saved
+The cull saves no tags to the database any more (ADR 0032, XMP-006.7); a failed sidecar write is
+reported (TAGS-002.13).
 
 ### TAGS-002.9 – A tag change is written through
 
@@ -146,32 +142,31 @@ decision's (XMP-003.13); *Retry failed sidecars* applies the same change again.
 
 ### TAGS-002.14 – Files moved back have their tags read
 
-- **Given** a deleted picture with stored tags
-- **When** its files are put back into the cull
-- **Then** their stored tags are read and the picture shows them
+- **Given** a deleted picture with legacy tags, and one whose sidecar holds tags
+- **When** their files are put back into the cull
+- **Then** their legacy tags and sidecars are read and the pictures show those tags
 
 ### TAGS-002.15 – The JPEG's embedded tags are taken over
 
-- **Given** a pair without a stored decision or tags whose RAW's sidecar holds `People/Anna` and
-  whose JPEG has no sidecar of its own and embeds `Places/Lisbon`
+- **Given** a pair without legacy rows whose RAW's sidecar holds `People/Anna` and whose JPEG has
+  no sidecar of its own and embeds `Places/Lisbon`
 - **When** the cull opens
-- **Then** the picture shows both tags and stores them for both members; only that JPEG's embedded
-  XMP was looked up
+- **Then** the picture shows both tags; only that JPEG's embedded XMP was looked up
 
 ### TAGS-002.16 – A sidecar of the JPEG replaces its embedded XMP
 
-- **Given** pictures without a stored decision or tags, one with `<JPEG file>.xmp`, one with the
-  shared `<base name>.xmp`, one a RAW alone, one a HEIC, and one with a stored decision
+- **Given** pictures, one with `<JPEG file>.xmp`, one with the shared `<base name>.xmp`, one a RAW
+  alone, and one a HEIC
 - **When** the cull opens
 - **Then** no embedded XMP is looked up
 
-### TAGS-002.17 – A failed embedded lookup takes no tags over
+### TAGS-002.17 – A failed embedded lookup shows no tags
 
 - **Given** pictures whose JPEGs embed tags, one answering `notPermitted`, and then a lookup
   request that fails
 - **When** the cull opens
-- **Then** a warning is logged, the picture that failed takes no tags over while the others do,
-  and after the failed request no picture takes tags over while their decisions still are
+- **Then** a warning is logged, the picture that failed shows no tags while the others show theirs,
+  and after the failed request no picture shows tags while their decisions still show
 
 ### TAGS-002.18 – A tag write applies the change to the embedded tags
 
@@ -195,12 +190,9 @@ decision's (XMP-003.13); *Retry failed sidecars* applies the same change again.
 - **Then** none of its sidecars is saved, they are reported as not written, and *Retry failed
   sidecars* looks the embedded XMP up again
 
-### TAGS-002.21 – Tag saves go one at a time
+### TAGS-002.21 – Tag saves go one at a time (removed)
 
-- **Given** a tag save in flight
-- **When** the user changes the same picture's tags twice meanwhile and the first save then fails
-- **Then** one more save follows with the newest tags of each file; once it is stored the picture
-  keeps those tags, and when it fails too the picture shows the tags it had before the first
+The cull saves no tags to the database any more (ADR 0032, XMP-006.7).
 
 ## Out of scope
 
@@ -208,7 +200,7 @@ decision's (XMP-003.13); *Retry failed sidecars* applies the same change again.
   (*Tags 3*); filter, tile and info panel (*Tags 4*).
 - Writing tags in shared folders: the ⋯ menu's *Write decisions to sidecars…* writes decisions
   only.
-- Re-reading sidecars another program changed after the take-over, as for decisions (XMP-003).
+- Re-reading sidecars another program changes while the cull is open, as for decisions (XMP-003).
 
 ## History
 
@@ -219,3 +211,4 @@ decision's (XMP-003.13); *Retry failed sidecars* applies the same change again.
 | 2026-11-14 | Tag saves go one at a time, the newest tags per file (.21) |
 | 2026-11-14 | Tag changes waiting for one sidecar pass are saved once (XMP-003.16) |
 | 2026-11-15 | The embedded XMP is looked up for the decision too, also with stored tags (XMP-003.22) |
+| 2026-11-18 | The cull reads tags through the XMP cache and stores none; legacy tags win, locked, until migrated (.1–.7, .14–.17 changed, .8, .21 removed, ADR 0032) |

@@ -16,7 +16,7 @@ describe('GridNotices', () => {
 
 	// spec: LISTING-002.11
 	it('warns once for each ambiguous base name of a folder', () => {
-		const wrapper = mount(GridNotices, { props: { pictures: pictures(['/P/A.JPG', '/P/a.jpg', '/P/A.NEF', '/P/B.JPG', '/P/x&y.JPG', '/P/x&y.JPEG']), saveFailed: false } })
+		const wrapper = mount(GridNotices, { props: { pictures: pictures(['/P/A.JPG', '/P/a.jpg', '/P/A.NEF', '/P/B.JPG', '/P/x&y.JPG', '/P/x&y.JPEG']) } })
 
 		// The test catalogue marks a plural form twice, once as a form and once as the chosen text.
 		expect(notices(wrapper)).toEqual([
@@ -25,16 +25,9 @@ describe('GridNotices', () => {
 		])
 	})
 
-	it('shows nothing while every base name is unique and the last save succeeded', () => {
-		const wrapper = mount(GridNotices, { props: { pictures: pictures(['/P/A.JPG', '/P/A.NEF']), saveFailed: false } })
+	it('shows nothing while every base name is unique', () => {
+		const wrapper = mount(GridNotices, { props: { pictures: pictures(['/P/A.JPG', '/P/A.NEF']) } })
 
 		expect(notices(wrapper)).toEqual([])
-	})
-
-	it('reports a failed save before the name warnings', () => {
-		const wrapper = mount(GridNotices, { props: { pictures: pictures(['/P/A.JPG', '/P/A.jpg']), saveFailed: true } })
-
-		expect(notices(wrapper)[0]).toBe(`${TRANSLATED_MARK}Could not save the change; the photos show what is stored.`)
-		expect(notices(wrapper)).toHaveLength(2)
 	})
 })

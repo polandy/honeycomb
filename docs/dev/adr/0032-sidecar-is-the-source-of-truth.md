@@ -253,3 +253,18 @@ start. A run skips the pictures in shared folders not confirmed and keeps their 
 names how many and offers a confirmation per opened folder, and the result says how many it
 skipped. A folder confirmed later, in the dialog or by deciding there, is written by the next run.
 The notice does not mark these folders, as the inventory does not know which folders are shared.
+
+## Amendment 2026-11-18: the cull reads through the cache (XMP-006.7)
+
+Split from PR 6, this builds *Cache* 2 and 5 and *App state and migration* 2 in the cull. A visit
+looks up the cache rows of every listed sidecar and counted embedded XMP, reads only the sources
+whose row is missing or stale, and stores their new rows; each sidecar save stores its row from the
+bytes saved and the new ETag. A failed lookup reads every source; a failed save is logged. Rows hold
+each value as the source states it, `null` for nothing, and `keepRaw` without the pair rule, which
+the client applies. Newest-wins uses the listing's modification times. The cull saves no decision
+or tag to the legacy tables any more: it reads them only to show a picture's legacy value, locked
+with the new writability `legacy` until the ⋯ entry acknowledges it. The tag list keeps growing
+from the sidecars: the cache save adds the tags of the rows it stores. The cull does not mark a
+picture as being refreshed while its sources are read (*Cache* 5); the fresh check of PR 8 reads
+the sidecars before a delete anyway. The grid notice of a failed database save goes, as there is
+no such save.

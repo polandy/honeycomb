@@ -31,8 +31,7 @@ touch as well as with a mouse or keyboard.
   follow below; on a phone in portrait they need two more rows, since 44 px targets leave no room
   for all of them in one.
 - A change writes the whole new decision of every member of each changed picture; a picture the
-  change leaves as it is sends nothing. A save the server refuses is reverted and reported,
-  unless another folder set is open by then.
+  change leaves as it is sends nothing. A failed sidecar write is reported (XMP-003.13).
 - A rejected picture leaves the view (default filter) and the selection; the selection keeps only
   shown pictures.
 
@@ -94,18 +93,16 @@ touch as well as with a mouse or keyboard.
 - **When** one is rejected in the default filter, or another folder set opens
 - **Then** it leaves the view and the selection; the selection keeps only shown pictures
 
-### GRID-003.9 – A refused save is reverted
+### GRID-003.9 – A refused save is reverted (removed)
 
-- **Given** a bulk change
-- **When** the server does not store it
-- **Then** the change is reverted and the user is told; once another folder set is open, nothing
-  is said
+The cull stores no decisions in the database any more (ADR 0032, XMP-006.7); a failed sidecar
+write is reported (XMP-003.13).
 
 ### GRID-003.10 – No change sends nothing
 
 - **Given** a bulk change that alters no picture
 - **When** the user applies it
-- **Then** nothing is sent; a change made before the stored decisions arrived is kept
+- **Then** nothing is written; a change made before the stored decisions arrived is kept
 
 ### GRID-003.11 – Drag selects a range
 

@@ -28,6 +28,8 @@ function sync(embedded: (fileId: number) => EmbeddedXmpAnswer | null) {
 	const saves: SidecarSaveItem[][] = []
 	const failures: SidecarFailure[][] = []
 	const sidecars = useSidecarSync({
+		lookupXmpCache: async () => [],
+		saveXmpCache: async () => undefined,
 		lookupSidecars: async (fileIds) => {
 			lookups.push([...fileIds])
 			return fileIds.map(() => ({ result: 'read', bytes: tagged(['Places/Lisbon'], '3'), etag: 'e', size: 1, mtime: 100 }))
@@ -49,46 +51,6 @@ function sync(embedded: (fileId: number) => EmbeddedXmpAnswer | null) {
 }
 
 const tagsOf = (item: SidecarSaveItem) => itemsOf(readXmp(item.bytes), 'digiKam:TagsList')
-
-describe('useSidecarSync: the embedded XMP in the take-over', () => {
-	// spec: TAGS-002.15
-	it('takes the embedded tags over with the sidecars\', also for a JPEG without sidecars', async () => {
-		const { sidecars, lookups, embeddedLookups } = sync((fileId) => ({ result: 'read', bytes: tagged(fileId === 2 ? ['People/Anna'] : ['Kids']) }))
-
-		const { decided, tagged: taken } = await sidecars.takeOver([PAIR, ALONE], new Set(), new Set())
-
-		expect(lookups).toEqual([[11]])
-		expect(embeddedLookups).toEqual([[2, 3]])
-		expect(decided.map(({ picture, decision }) => [picture, decision.rating])).toEqual([[PAIR, 3]])
-		expect(taken).toEqual([{ picture: PAIR, tags: ['People/Anna', 'Places/Lisbon'] }, { picture: ALONE, tags: ['Kids'] }])
-	})
-
-	// spec: XMP-003.22
-	it('takes the embedded decision over also while the stored tags are unknown, and looks up no sidecars for a JPEG alone', async () => {
-		const { sidecars, lookups, embeddedLookups } = sync(() => ({ result: 'read', bytes: tagged(['Kids'], '2') }))
-
-		const { decided, tagged: taken } = await sidecars.takeOver([ALONE], new Set(), null)
-
-		expect(decided.map(({ picture, decision }) => [picture, decision.rating])).toEqual([[ALONE, 2]])
-		expect(taken).toEqual([])
-		expect(lookups).toEqual([])
-		expect(embeddedLookups).toEqual([[3]])
-	})
-
-	// spec: TAGS-002.17
-	it('warns and takes no tags over when the embedded lookup fails, but still the decisions', async () => {
-		const warn = vi.spyOn(logger, 'warn').mockImplementation(() => undefined)
-		const { sidecars } = sync(() => null)
-
-		const { decided, tagged: taken } = await sidecars.takeOver([PAIR], new Set(), new Set())
-
-		expect(decided).toHaveLength(1)
-		expect(taken).toEqual([])
-		expect(warn).toHaveBeenCalledWith('Could not look up the embedded XMP; its pictures take no tags over and decide without it', expect.anything())
-		expect(warn).toHaveBeenCalledWith('Could not read the embedded XMP; the picture takes no tags over', { path: '/P/IMG_0001.JPG', reason: 'unreachable' })
-		warn.mockRestore()
-	})
-})
 
 describe('useSidecarSync: the embedded XMP in a decision write', () => {
 	// spec: XMP-003.23

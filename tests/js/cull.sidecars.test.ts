@@ -4,29 +4,41 @@
 import type { Decision } from '../../src/logic/decision.ts'
 
 import { flushPromises } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
-import { logger } from '../../src/logger.ts'
+import { describe, expect, it } from 'vitest'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { ENTRIES, SET, stored } from './app-cull.ts'
 import { access, cullWith, THREE_REJECTED } from './cull-sidecars-fake.ts'
 
-describe('useCull: taking over the sidecars\' decision', () => {
-	// spec: XMP-003.1, XMP-003.2
-	it('shows and stores the decision of pictures without a stored one, in one save', async () => {
-		const { cull, saved, takeOvers, picture } = cullWith({ stored: [stored(4, 'picked')], takenOver: Promise.resolve(new Map([['IMG_10', THREE_REJECTED]])) })
+describe('useCull: reading the sidecars\' decision', () => {
+	// spec: XMP-003.1, XMP-007.14
+	it('reads every picture\'s sidecars and shows their decision without storing it', async () => {
+		const { cull, reads, writes, picture } = cullWith({ takenOver: Promise.resolve(new Map([['IMG_10', THREE_REJECTED]])) })
 
 		cull.open(SET, ENTRIES)
 		await flushPromises()
 
-		expect(takeOvers).toEqual([{ names: ['IMG_2', 'IMG_10', 'IMG_9'], stored: [4], tagged: [] }])
+		expect(reads).toEqual([['IMG_2', 'IMG_10', 'IMG_9']])
 		expect(cull.decisionOf(picture('IMG_10'))).toEqual(THREE_REJECTED)
-		expect(saved).toEqual([[{ fileId: 3, ...THREE_REJECTED }, { fileId: 2, ...THREE_REJECTED }]])
+		expect(writes).toEqual([])
+	})
+
+	// spec: XMP-003.2, XMP-008.11
+	it('shows a legacy decision over the sidecars\' and locks its picture', async () => {
+		const { cull, picture } = cullWith({ stored: [stored(4, 'picked')], takenOver: Promise.resolve(new Map([['IMG_9', THREE_REJECTED], ['IMG_2', THREE_REJECTED]])) })
+
+		cull.open(SET, ENTRIES)
+		await flushPromises()
+
+		expect(cull.decisionOf(picture('IMG_9')).flag).toBe('picked')
+		expect(cull.decisionOf(picture('IMG_2'))).toEqual(THREE_REJECTED)
+		expect(cull.writabilityOf(picture('IMG_9'))).toBe('legacy')
+		expect(cull.writabilityOf(picture('IMG_2'))).toBe('writable')
 	})
 
 	// spec: XMP-003.3, XMP-008.8
-	it('keeps a decision the user made while the sidecars were looked up', async () => {
+	it('keeps a decision the user made while the sidecars were read', async () => {
 		let answer!: (decisions: Map<string, Decision>) => void
-		const { cull, saved, picture } = cullWith({
+		const { cull, picture } = cullWith({
 			takenOver: new Promise((resolve) => {
 				answer = resolve
 			}),
@@ -39,17 +51,7 @@ describe('useCull: taking over the sidecars\' decision', () => {
 		await flushPromises()
 
 		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('picked')
-		expect(saved.at(-1)).toEqual([{ fileId: 4, ...THREE_REJECTED }])
-	})
-
-	// spec: XMP-003.4
-	it('stores nothing when there is nothing to take over', async () => {
-		const { cull, saved } = cullWith()
-
-		cull.open(SET, ENTRIES)
-		await flushPromises()
-
-		expect(saved).toEqual([])
+		expect(cull.decisionOf(picture('IMG_9'))).toEqual(THREE_REJECTED)
 	})
 
 	// spec: XMP-003.5
@@ -63,38 +65,26 @@ describe('useCull: taking over the sidecars\' decision', () => {
 		expect(writes).toEqual([])
 	})
 
-	it('takes over again when the pairing settings change, and not for a closed cull', async () => {
-		const { cull, takeOvers, settings, saved } = cullWith({ takenOver: Promise.resolve(new Map([['IMG_9', THREE_REJECTED]])) })
+	it('reads again when the pairing settings change', async () => {
+		const { cull, reads, settings } = cullWith({ takenOver: Promise.resolve(new Map([['IMG_9', THREE_REJECTED]])) })
 		cull.open(SET, ENTRIES)
 		await flushPromises()
 		settings.value = { ...DEFAULT_SETTINGS, showSingles: false, rawExtensions: ['cr3', 'nef'] }
 		await flushPromises()
 
-		expect(takeOvers).toHaveLength(2)
-		expect(saved).toHaveLength(1)
-	})
-
-	it('logs a failed save of the taken-over decision', async () => {
-		const error = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
-		const { cull } = cullWith({ takenOver: Promise.resolve(new Map([['IMG_9', THREE_REJECTED]])), saveFails: true })
-
-		cull.open(SET, ENTRIES)
-		await flushPromises()
-
-		expect(error).toHaveBeenCalledWith('Could not save the decisions taken over from the sidecars', expect.anything())
+		expect(reads).toHaveLength(2)
 	})
 })
 
 describe('useCull: writing through to the sidecars', () => {
 	// spec: XMP-003.6, XMP-003.9, XMP-003.20
-	it('writes each picture of a stored step with its decision and changed fields when the save is done', async () => {
+	it('writes each picture of a step with its decision and changed fields at once', async () => {
 		const { cull, writes, picture } = cullWith()
 		cull.open(SET, ENTRIES)
 		await flushPromises()
 
 		cull.decide({ kind: 'flag', flag: 'picked' }, [picture('IMG_10'), picture('IMG_2')])
-		expect(writes).toEqual([])
-		await flushPromises()
+		expect(writes).toHaveLength(1)
 		cull.undo()
 		await flushPromises()
 
@@ -122,32 +112,18 @@ describe('useCull: writing through to the sidecars', () => {
 		expect(writes.map((write) => write.map(({ name }) => name))).toEqual([['IMG_10']])
 	})
 
-	// spec: XMP-003.10
-	it('writes nothing when the save fails', async () => {
-		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
-		const { cull, writes, picture } = cullWith({ saveFails: true })
-		cull.open(SET, ENTRIES)
-		await flushPromises()
-
-		cull.decide({ kind: 'rating', rating: 4 }, [picture('IMG_9')])
-		await flushPromises()
-
-		expect(writes).toEqual([])
-	})
-
 	// spec: XMP-003.18, XMP-008.7
-	it('decides nothing and writes neither decisions nor tags with writing to sidecars off, and still takes over', async () => {
-		const { cull, writes, tagWrites, takeOvers, settings, picture, saved, locks } = cullWith({ sidecarWrite: 'off' })
+	it('decides nothing and writes neither decisions nor tags with writing to sidecars off, and still reads', async () => {
+		const { cull, writes, tagWrites, reads, settings, picture, locks } = cullWith({ sidecarWrite: 'off' })
 		cull.open(SET, ENTRIES)
 		await flushPromises()
 
 		expect(cull.decide({ kind: 'rating', rating: 4 }, [picture('IMG_10')])).toBeNull()
-		await cull.tags.change([picture('IMG_10')], { added: ['Anna'], removed: [] })
+		cull.tags.change([picture('IMG_10')], { added: ['Anna'], removed: [] })
 		await flushPromises()
 		expect(writes).toEqual([])
 		expect(tagWrites).toEqual([])
-		expect(saved).toEqual([])
-		expect(takeOvers).toHaveLength(1)
+		expect(reads).toHaveLength(1)
 		expect(locks.map(({ reason, folders }) => [reason, folders])).toEqual([['off', []]])
 
 		settings.value = { ...settings.value, sidecarWrite: 'on' }
@@ -181,7 +157,7 @@ describe('useCull: writing through to the sidecars', () => {
 
 	// spec: XMP-008.3, XMP-008.5, XMP-008.9
 	it('takes nothing when every picture of a step is locked, nor when the picked one is, and names why', async () => {
-		const { cull, writes, saved, picture, locks } = cullWith()
+		const { cull, writes, picture, locks } = cullWith()
 		cull.open(SET, ENTRIES, access({ '/Trip/A': { permissions: 1 }, '/Trip/B': { versions: false } }))
 		await flushPromises()
 
@@ -198,12 +174,11 @@ describe('useCull: writing through to the sidecars', () => {
 		expect(cull.takeSkipped()).toEqual([])
 		expect(locks).toEqual([])
 		expect(writes).toEqual([])
-		expect(saved).toEqual([])
 	})
 
 	// spec: XMP-008.9, XMP-008.10
 	it('decides the writable pictures of a step as one undo step and leaves the locked ones', async () => {
-		const { cull, writes, saved, picture } = cullWith()
+		const { cull, writes, picture } = cullWith()
 		cull.open(SET, ENTRIES, access({ '/Trip/A': { permissions: 1 } }))
 		await flushPromises()
 
@@ -212,7 +187,6 @@ describe('useCull: writing through to the sidecars', () => {
 
 		expect(step?.names).toEqual(['IMG_2'])
 		expect(cull.takeSkipped().map(({ picture, reason }) => [picture.baseName, reason])).toEqual([['IMG_10', 'readOnly'], ['IMG_9', 'readOnly']])
-		expect(saved.map((rows) => rows.map(({ fileId, flag }) => [fileId, flag]))).toEqual([[[1, 'rejected']]])
 		expect(writes.map((write) => write.map(({ name }) => name))).toEqual([['IMG_2']])
 		expect(cull.pickRest(picture('IMG_2'), [picture('IMG_9')])?.names).toEqual(['IMG_2'])
 
@@ -220,7 +194,7 @@ describe('useCull: writing through to the sidecars', () => {
 		await flushPromises()
 		cull.undo()
 		await flushPromises()
-		expect(saved.slice(2).map((rows) => rows.map(({ fileId, flag }) => [fileId, flag]))).toEqual([[[1, 'rejected']], [[1, 'unflagged']]])
+		expect(writes.slice(2).map((write) => write.map(({ name, decision }) => [name, decision.flag]))).toEqual([[['IMG_2', 'rejected']], [['IMG_2', 'unflagged']]])
 		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('unflagged')
 		expect(cull.undo()).toBeNull()
 	})

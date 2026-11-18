@@ -1,8 +1,10 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { CullSidecars } from '../../src/cull-seams.ts'
-import type { StoredDecision } from '../../src/logic/decision.ts'
+import type { SidecarWrites } from '../../src/cull-seams.ts'
+import type { Decision, StoredDecision } from '../../src/logic/decision.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
+import type { ListingEntry } from '../../src/logic/listing.ts'
+import type { Picture } from '../../src/logic/pairing.ts'
 import type { SeriesWrite } from '../../src/logic/series-edit.ts'
 import type { Settings } from '../../src/logic/settings.ts'
 import type { SidecarSaveItem } from '../../src/logic/sidecar-sync.ts'
@@ -15,6 +17,8 @@ import App from '../../src/App.vue'
 import FolderPicker from '../../src/components/FolderPicker.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
+import { sameDecision, UNDECIDED } from '../../src/logic/decision.ts'
+import { DEFAULT_PAIRING_SETTINGS, memberIds, pairPictures } from '../../src/logic/pairing.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { NO_ACCESS } from '../../src/logic/writability.ts'
 import { useViewState } from '../../src/view-state.ts'
@@ -98,8 +102,8 @@ export function provideSkipActions() {
 /** A series lookup with nothing stored. */
 export const NO_SERIES = async () => ({ series: [], keptOut: [] })
 
-/** Sidecars with nothing to take over, written without a word. */
-export const NO_SIDECARS: CullSidecars = { takeOver: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }), hold: (pending) => pending }
+/** Sidecars with nothing to read, written without a word. */
+export const NO_SIDECARS: SidecarWrites = { read: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) }
 
 /** Legacy endpoints without a legacy row. */
 export const NO_LEGACY = { loadInventory: async () => ({ folders: [], unreachable: 0 }), loadExport: async () => ({ decisions: [], tags: [] }), acknowledge: async () => undefined }
@@ -107,13 +111,12 @@ export const NO_LEGACY = { loadInventory: async () => ({ folders: [], unreachabl
 export const SAVED_SERIES = async (write: SeriesWrite) => ({ ids: write.series.map(({ id }) => id ?? 100) })
 
 /** Tag endpoints that store nothing. */
-export const NO_TAGS = { lookupTags: async () => [], saveTags: async () => undefined, loadTagList: async () => [] }
+export const NO_TAGS = { lookupTags: async () => [], loadTagList: async () => [] }
 
 export function mountApp(props: Record<string, unknown> = {}, decisions: StoredDecision[] = [], stubs: Record<string, unknown> = {}) {
 	provideSkipActions()
 	const warmed: number[][] = []
 	const lookedUp: number[][] = []
-	const saved: StoredDecision[][] = []
 	const savedSettings: object[] = []
 	const sidecarSaves: SidecarSaveItem[][] = []
 	const grid = gridStub()
@@ -127,7 +130,6 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 				lookedUp.push([...ids])
 				return decisions
 			},
-			saveDecisions: async (rows: readonly StoredDecision[]) => { saved.push([...rows]) },
 			lookupSeries: NO_SERIES,
 			saveSeries: SAVED_SERIES,
 			tags: NO_TAGS,
@@ -139,6 +141,8 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			viewState: { loadViewState: async () => ({ infoPanelOpen: null, gestureGuideSeen: true, seriesHintSeen: true }), saveViewState: async () => undefined },
 			sidecars: {
 				lookupSidecars: async (ids: readonly number[]) => ids.map(() => ({ result: 'notFound' })),
+				lookupXmpCache: async () => [],
+				saveXmpCache: async () => undefined,
 				lookupEmbeddedXmp: async (ids: readonly number[]) => ids.map(() => ({ result: 'none' })),
 				saveSidecars: async (items: readonly SidecarSaveItem[]) => {
 					sidecarSaves.push([...items])
@@ -150,7 +154,21 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 		},
 		global: { stubs: { AppNavigation: true, FolderPicker: true, PhotoGrid: grid.component, GridToolbar: true, FilterBar: true, PhotoLoupe: true, SettingsDialog: true, ...stubs } },
 	})
-	return { wrapper, warmed, lookedUp, saved, savedSettings, sidecarSaves, grid: grid.calls }
+	return { wrapper, warmed, lookedUp, savedSettings, sidecarSaves, grid: grid.calls }
+}
+
+/** Each member of a decided picture of the entries as `fileId flag`, by file id. */
+export function decidedFlags(wrapper: AppWrapper, entries: readonly ListingEntry[] = ENTRIES): string[] {
+	return decidedRows(wrapper, entries).map(({ fileId, flag }) => `${fileId} ${flag}`)
+}
+
+/** Each member of a decided picture of the entries with the decision the cull holds, shown or not, by file id. */
+export function decidedRows(wrapper: AppWrapper, entries: readonly ListingEntry[] = ENTRIES): StoredDecision[] {
+	const decisionOf = wrapper.findComponent(PhotoGrid).props('decisionOf') as (picture: Picture<ListingEntry>) => Decision
+	return pairPictures(entries, DEFAULT_PAIRING_SETTINGS)
+		.filter((picture) => !sameDecision(decisionOf(picture), UNDECIDED))
+		.flatMap((picture) => memberIds(picture).map((fileId) => ({ fileId, ...decisionOf(picture) })))
+		.sort((a, b) => a.fileId - b.fileId)
 }
 
 /** The base names of the pictures the grid shows, in its order. */

@@ -8,29 +8,29 @@ import { ENTRIES, SET, stored } from './app-cull.ts'
 import { access, cullWith } from './cull-sidecars-fake.ts'
 
 describe('useCull: tags', () => {
-	// spec: TAGS-002.1, TAGS-002.2
-	it('reads the stored tags, then shows and stores the sidecars\' tags of the pictures without', async () => {
-		const { cull, takeOvers, savedTags, tagLookups, picture } = cullWith({ storedTags: [{ fileId: 4, tags: ['Anna'] }], tagsTakenOver: new Map([['IMG_10', ['Places/Lisbon']]]) })
+	// spec: TAGS-002.1, TAGS-002.2, TAGS-002.3, XMP-003.2
+	it('reads the legacy tags with the sidecars and shows the sidecars\' tags of the pictures without', async () => {
+		const { cull, reads, tagLookups, picture } = cullWith({ storedTags: [{ fileId: 4, tags: ['Anna'] }], tagsTakenOver: new Map([['IMG_10', ['Places/Lisbon']], ['IMG_9', ['Old']]]) })
 
 		cull.open(SET, ENTRIES)
 		await flushPromises()
 
 		expect(tagLookups).toEqual([[1, 3, 2, 4]])
-		expect(takeOvers.map(({ tagged }) => tagged)).toEqual([[4]])
+		expect(reads).toHaveLength(1)
 		expect(cull.tags.tagsOf(picture('IMG_9'))).toEqual(['Anna'])
 		expect(cull.tags.tagsOf(picture('IMG_10'))).toEqual(['Places/Lisbon'])
-		expect(savedTags).toEqual([[{ fileId: 3, tags: ['Places/Lisbon'] }, { fileId: 2, tags: ['Places/Lisbon'] }]])
+		expect(cull.writabilityOf(picture('IMG_9'))).toBe('legacy')
 	})
 
 	// spec: TAGS-002.6
-	it('takes no tags over when their read fails, and still loads the decisions', async () => {
+	it('shows the sidecars\' tags when the legacy read fails, and still loads the decisions', async () => {
 		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
-		const { cull, takeOvers, picture } = cullWith({ stored: [stored(4, 'picked')], tagLookupFails: true })
+		const { cull, picture } = cullWith({ stored: [stored(4, 'picked')], tagLookupFails: true, tagsTakenOver: new Map([['IMG_9', ['Trip']]]) })
 
 		cull.open(SET, ENTRIES)
 		await flushPromises()
 
-		expect(takeOvers.map(({ tagged }) => tagged)).toEqual([null])
+		expect(cull.tags.tagsOf(picture('IMG_9'))).toEqual(['Trip'])
 		expect(cull.decisionOf(picture('IMG_9')).flag).toBe('picked')
 	})
 
@@ -41,7 +41,7 @@ describe('useCull: tags', () => {
 		cull.open(SET, ENTRIES, access({ '/Trip/B': { shared: true } }))
 		await flushPromises()
 
-		await cull.tags.change([picture('IMG_2'), picture('IMG_10')], change)
+		cull.tags.change([picture('IMG_2'), picture('IMG_10')], change)
 
 		expect(tagWrites).toEqual([{ names: ['IMG_10'], change }])
 	})

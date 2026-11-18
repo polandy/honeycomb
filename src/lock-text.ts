@@ -11,6 +11,7 @@ const ONE_LOCKED: Readonly<Record<FixedLock, () => string>> = {
 	readOnly: () => t('honeycomb', 'Not changed: you may only read this folder'),
 	noVersions: () => t('honeycomb', 'Not changed: this folder keeps no versions'),
 	refused: () => t('honeycomb', 'Not changed: a sidecar of this photo was refused; see Details of the last write'),
+	legacy: () => t('honeycomb', 'Not changed: this photo\'s stored decisions are not yet in its sidecars'),
 }
 
 /** Why a photo was not changed, after a count or a name (XMP-008.9). */
@@ -18,6 +19,7 @@ const LOCK_REASON: Readonly<Record<FixedLock, () => string>> = {
 	readOnly: () => t('honeycomb', 'you may only read the folder'),
 	noVersions: () => t('honeycomb', 'the folder keeps no versions'),
 	refused: () => t('honeycomb', 'a sidecar was refused; see Details of the last write'),
+	legacy: () => t('honeycomb', 'stored decisions are not yet in the sidecars'),
 }
 
 /** "2 photos not changed: you may only read the folder", naming the first reason. */

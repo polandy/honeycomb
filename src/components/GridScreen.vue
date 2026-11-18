@@ -27,7 +27,7 @@ import { toggleGroup } from '../logic/selection.ts'
 import { seriesOffer } from '../logic/series-menu.ts'
 
 const { cull, selection, decide, editSeries, deleting, moving, resume, seriesCompare, sidecars, legacy, tagEntry, headerShown, openLoupe, openSettings, unsaved, settings, updateSettings } = useCullContext()
-const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize, saveFailed } = cull
+const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize } = cull
 const { selecting, selected } = selection
 const { rejected, rawRemovable } = deleting
 const grid = useTemplateRef<InstanceType<typeof PhotoGrid>>('grid')
@@ -106,7 +106,7 @@ defineExpose({ grid, filterBar })
 			:total="pictures.length"
 			:known="cull.tags.known.value"
 			@update:filters="filters = $event" />
-		<GridNotices :pictures="view" :saveFailed="saveFailed" />
+		<GridNotices :pictures="view" />
 		<LegacyNotice v-if="legacy.shown.value" :legacy="legacy" />
 		<PhotoGrid
 			v-if="view.length > 0"
