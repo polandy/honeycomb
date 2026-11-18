@@ -83,3 +83,21 @@ describe('PhotoLoupe: the series chip and N', () => {
 		expect(openings(wrapper)).toEqual(['IMG_4 IMG_5 IMG_6: IMG_5', 'IMG_1 IMG_2: IMG_1'])
 	})
 })
+
+describe('LoupeTitleRow: the Not saved yet ring', () => {
+	const mountRow = (unsaved: boolean) => mount(LoupeTitleRow, {
+		props: { name: 'IMG_7', index: 6, count: 120, zoom: null, infoOpen: false, filmstripOpen: true, navigationShown: false, flagButtonsShown: true, unsaved },
+	})
+
+	// spec: LOUPE-001.27
+	it('follows the name with a labelled ring while the picture waits and goes with it', async () => {
+		const wrapper = mountRow(true)
+		const ring = wrapper.find('.loupe-title-row__unsaved')
+
+		expect(wrapper.find('.loupe-title-row__name + .loupe-title-row__unsaved').exists()).toBe(true)
+		expect(ring.attributes('role')).toBe('img')
+		expect(ring.attributes('aria-label')).toBe('Not saved yet')
+		await wrapper.setProps({ unsaved: false })
+		expect(wrapper.find('.loupe-title-row__unsaved').exists()).toBe(false)
+	})
+})

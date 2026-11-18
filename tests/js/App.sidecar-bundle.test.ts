@@ -59,4 +59,17 @@ describe('App: sidecar writes bundled per picture', () => {
 		expect(saves).toHaveLength(1)
 		expect(unsaved(wrapper)).toBeNull()
 	})
+
+	// spec: LOUPE-001.27
+	it('shows the ring in the loupe while the shown picture waits and not at the next', async () => {
+		const { wrapper } = await openLoupe()
+		const ring = () => wrapper.find('.loupe-title-row__unsaved').exists()
+
+		expect(ring()).toBe(false)
+		await press('3')
+		expect(ring()).toBe(true)
+
+		await press('ArrowRight')
+		expect(ring()).toBe(false)
+	})
 })
