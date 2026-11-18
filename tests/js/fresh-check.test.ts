@@ -84,7 +84,7 @@ describe('freshCheck', () => {
 	// spec: DELETE-002.23
 	it('sends the pictures whose sidecar lookup fails as known, and keeps the verdict of those read', async () => {
 		const listed = picturesOf([JPEG, OTHER, OTHER_SIDECAR])
-		const { seam } = api([JPEG, OTHER, OTHER_SIDECAR], new Map(), new Map([[2, read(xmp({ 'digiKam:PickLabel': '3' }))]]))
+		const { seam } = api([JPEG, OTHER, OTHER_SIDECAR], new Map(), new Map([[2, { result: 'read', bytes: xmp({ 'digiKam:PickLabel': '3' }) }]]))
 		const failing: FreshCheckApi = { ...seam, lookupSidecars: async () => Promise.reject(new Error('offline')) }
 
 		const result = await freshCheck(failing, context().context)(listed, 'rejects')
