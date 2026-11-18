@@ -43,7 +43,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **view state** | The loupe's per-user state that is not a setting: whether the info panel is open and whether the gesture guide was dismissed. Stored on the server (ADR 0019). |
 | **tap zone** | The left or right 30 % of the whole photo area in the loupe and series viewer, margins beside, above and below the photo included; a tap there goes to the previous or next photo. The middle shows or hides the overlays (`plan.md`, *Tap zones*). |
 | **name bar** | The strip above a grid tile that shows its picture's base name, when *Show file names* is on. |
-| **tile info** | The bubble with a tile's full name, capture time, camera and rating, shown when the mouse rests on the tile. Not the tooltip. |
+| **tile info** | The bubble with a tile's full name, capture time, camera and rating, shown when the mouse rests on the tile. On touch the ⓘ button in the tile's name bar opens it. Not the tooltip. |
 | **tooltip** | The bubble that names a control and its key, on hover, keyboard focus or long-press. One for the whole app; not the browser's `title`. |
 | **filter** | A condition on rating, colour label, flag, pairing, *Keep RAW* or folder that narrows the grid and loupe. |
 | **flag filter** | The toolbar chips *Picked*, *Unflagged* and *Rejected*, the same state as the *Flag* group of the filter bar. They combine; none pressed shows every picture; picked and unflagged are pressed by default. |

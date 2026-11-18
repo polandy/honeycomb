@@ -43,6 +43,15 @@ export function tileInfoTimer<T>(schedule: Schedule, show: (tile: T | null) => v
 				show(tile)
 			}, TILE_INFO_DELAY_MS)
 		},
+		/** A tap on a tile's ⓘ button: shows its tile info at once, or hides it when it already shows. */
+		toggle(tile: T) {
+			const wasShown = tile === shown
+			hide()
+			if (!wasShown) {
+				shown = tile
+				show(tile)
+			}
+		},
 		hide,
 	}
 }

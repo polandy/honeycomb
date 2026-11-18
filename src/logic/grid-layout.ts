@@ -64,6 +64,15 @@ export function visibleRows(layout: GridLayout, scrollTop: number, viewportHeigh
 		: { start, end: start }
 }
 
+/** The rows to render: the visible ones with `overscan` on each side, marked `offscreen` outside the viewport, and the row of `pinned` kept. */
+export function renderedRows(layout: GridLayout, scrollTop: number, viewportHeight: number, overscan: number, pinned: number | null): (GridRow & { offscreen: boolean })[] {
+	const { start, end } = visibleRows(layout, scrollTop, viewportHeight, overscan)
+	const shown = visibleRows(layout, scrollTop, viewportHeight, 0)
+	const rows = layout.rows.slice(start, end).map((row, offset) => ({ ...row, offscreen: start + offset < shown.start || start + offset >= shown.end }))
+	const pinnedRow = pinned === null ? -1 : rowOfItem(layout, pinned)
+	return pinnedRow >= 0 && (pinnedRow < start || pinnedRow >= end) ? [...rows, { ...layout.rows[pinnedRow]!, offscreen: true }] : rows
+}
+
 /** The group whose header sticks at the top of the viewport; null without headers. */
 export function stickyHeader(layout: GridLayout, scrollTop: number): number | null {
 	if (!layout.showHeaders || layout.rows.length === 0) {

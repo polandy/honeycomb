@@ -26,6 +26,13 @@ export function useTileInfo(scroller: () => HTMLElement | null, schedule: Schedu
 		timer.hide()
 	}
 
+	/** A press anywhere hides it, but not on an ⓘ button, whose click toggles it. */
+	function onPress(event: PointerEvent) {
+		if (!(event.target instanceof Element && event.target.closest('[data-tile-info-button]') !== null)) {
+			timer.hide()
+		}
+	}
+
 	/** The mouse came onto a tile, or onto a control of it with its own tooltip. */
 	function onPointerOver(event: PointerEvent) {
 		const tile = tileOf(event.target)
@@ -54,16 +61,18 @@ export function useTileInfo(scroller: () => HTMLElement | null, schedule: Schedu
 		}
 	}
 
-	const listeners = { pointerover: onPointerOver, pointerout: onPointerOut, pointerdown: hide, scroll: hide } as const
+	const listeners = { pointerover: onPointerOver, pointerout: onPointerOut, scroll: hide } as const
 	onMounted(() => {
 		const element = scroller()!
 		Object.entries(listeners).forEach(([type, listener]) => element.addEventListener(type, listener as EventListener))
 		window.addEventListener('keydown', onKeydown, true)
+		window.addEventListener('pointerdown', onPress, true)
 	})
 	onBeforeUnmount(() => {
 		window.removeEventListener('keydown', onKeydown, true)
+		window.removeEventListener('pointerdown', onPress, true)
 		timer.hide()
 	})
 
-	return shown
+	return { shown, toggle: (tile: HTMLElement) => timer.toggle(tile) }
 }

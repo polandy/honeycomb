@@ -41,6 +41,35 @@
 	flex: none;
 }
 
+.photo-tile__name--info {
+	padding-inline-end: 44px;
+}
+
+/* A 44 px target whose icon sits in the bar's right end; Nextcloud's own button sizes outrank a single class. */
+.photo-tile .photo-tile__info {
+	position: absolute;
+	top: 0;
+	inset-inline-end: 0;
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	width: 44px;
+	min-width: 0;
+	height: 44px;
+	min-height: 0;
+	margin: 0;
+	padding: 4px 0 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	cursor: pointer;
+}
+
+.photo-tile__info .app-icon {
+	width: 16px;
+	height: 16px;
+}
+
 .photo-tile__image {
 	display: block;
 	width: 100%;

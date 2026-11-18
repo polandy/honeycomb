@@ -72,6 +72,29 @@ describe('tileInfoTimer', () => {
 	})
 })
 
+describe('tileInfoTimer toggle', () => {
+	// spec: GRID-004.12
+	it('shows a tile at once, and hides it on the next toggle', () => {
+		const { info, timers, shown } = timer()
+		info.toggle('a')
+		info.toggle('a')
+
+		expect(shown).toEqual(['a', null])
+		expect(timers).toEqual([])
+	})
+
+	// spec: GRID-004.12
+	it('moves the shown tile to another and drops a waiting one', () => {
+		const { info, fire, shown } = timer()
+		info.rest('w')
+		info.toggle('a')
+		info.toggle('b')
+		fire()
+
+		expect(shown).toEqual(['a', null, 'b'])
+	})
+})
+
 describe('tileInfoMembers', () => {
 	// spec: GRID-004.9
 	it('names a pair\'s members, the JPEG first, and a single\'s one', () => {

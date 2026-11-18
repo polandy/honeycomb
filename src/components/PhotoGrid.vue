@@ -28,7 +28,7 @@ import { formatNumber } from '../l10n.ts'
 import { autoScrollStep } from '../logic/auto-scroll.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { UNDECIDED } from '../logic/decision.ts'
-import { anchoredScrollTop, focusStep, gridLayout, revealScrollTop, rowOfItem, stickyHeader, tileAt, visibleRows } from '../logic/grid-layout.ts'
+import { anchoredScrollTop, focusStep, gridLayout, renderedRows, revealScrollTop, stickyHeader, tileAt } from '../logic/grid-layout.ts'
 import { IMAGE_LOADS_IN_FLIGHT, imageMember } from '../logic/image-tiers.ts'
 import { createLoadQueue } from '../logic/load-queue.ts'
 import { groupByFolder as folderGroups } from '../logic/picture-order.ts'
@@ -69,6 +69,8 @@ const props = withDefaults(defineProps<{
 	unsaved?: Picture<ListingEntry> | null
 	/** Shows a name bar above each tile (GRID-004.4). */
 	fileNames?: boolean
+	/** Whether the pointer is coarse, so the name bar offers the ⓘ button (GRID-004.12). */
+	touch?: boolean
 }>(), {
 	observeSize: observeElementSize,
 	loadImage: decodeSource,
@@ -78,6 +80,7 @@ const props = withDefaults(defineProps<{
 	tagsOf: () => [],
 	unsaved: null,
 	fileNames: false,
+	touch: () => window.matchMedia('(pointer: coarse)').matches,
 	schedule: browserSchedule,
 	frame: browserFrame,
 })
@@ -145,16 +148,8 @@ function scrollBy(step: number): boolean {
 	return true
 }
 
-const rendered = computed(() => {
-	const overscan = Math.ceil(height.value / (layout.value.tileWidth + GAP))
-	const { start, end } = visibleRows(layout.value, scrollTop.value, height.value, overscan)
-	const shown = visibleRows(layout.value, scrollTop.value, height.value, 0)
-	const rows = layout.value.rows.slice(start, end).map((row, offset) => ({ ...row, offscreen: start + offset < shown.start || start + offset >= shown.end }))
-	const origin = tiles.dragOrigin.value
-	const pinned = origin === null ? -1 : rowOfItem(layout.value, origin)
-	// The drag's pressed tile stays in the DOM: a touch's events keep going to the element it started on.
-	return pinned >= 0 && (pinned < start || pinned >= end) ? [...rows, { ...layout.value.rows[pinned]!, offscreen: true }] : rows
-})
+// The drag's pressed tile stays in the DOM: a touch's events keep going to the element it started on.
+const rendered = computed(() => renderedRows(layout.value, scrollTop.value, height.value, Math.ceil(height.value / (layout.value.tileWidth + GAP)), tiles.dragOrigin.value))
 
 watch(() => props.pictures, () => {
 	scroller.value!.scrollTop = 0
@@ -187,7 +182,7 @@ const { onTouchStart, onTouchEnd } = useGridPinch({
 	dragging: () => tiles.dragOrigin.value !== null,
 	resize: (size) => emit('update:tileSize', size),
 })
-const info = useTileInfo(() => scroller.value, props.schedule)
+const { shown: info, toggle: toggleInfo } = useTileInfo(() => scroller.value, props.schedule)
 
 // Toggling the name bars keeps the focused or the top tile in place (GRID-004.6).
 watch([layout, () => props.fileNames], ([next, names], [previous, hadNames]) => {
@@ -271,6 +266,7 @@ defineExpose({
 							:picture="picture"
 							:size="layout.tileWidth"
 							:nameBar="props.fileNames"
+							:infoButton="props.fileNames && props.touch"
 							:decision="props.decisionOf(picture)"
 							:tags="props.tagsOf(picture).length"
 							:unsaved="picture === props.unsaved"
@@ -283,6 +279,7 @@ defineExpose({
 							@click="tiles.onClick(imageMember(picture).fileId, $event)"
 							@keydown="tiles.onKeydown(imageMember(picture).fileId, $event)"
 							@pointerdown="tiles.onPointerDown(imageMember(picture).fileId, $event)"
+							@info="toggleInfo"
 							@compareSeries="emit('compareSeries', props.seriesOf!.get(picture)!, picture)" />
 					</div>
 				</template>
