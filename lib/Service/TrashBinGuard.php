@@ -27,19 +27,19 @@ final class TrashBinGuard {
 	}
 
 	/**
-	 * Whether deleting `$file` for `$userId` lands in a trash bin, by the rules of `files_trashbin` and Team folders.
+	 * Why deleting `$file` for `$userId` would not land in a trash bin, by the rules of `files_trashbin` and Team folders; null when it would.
 	 * @psalm-suppress ArgumentTypeCoercion The storage classes belong to other apps, which psalm does not load.
 	 */
-	public function keeps(string $userId, File $file): bool {
+	public function refusal(string $userId, File $file): ?TrashResult {
 		$storage = $file->getStorage();
 		if (!$storage->instanceOfStorage(self::TRASH_BIN_STORAGE)) {
-			return false;
+			return TrashResult::NoTrashBin;
 		}
 		if ($storage->instanceOfStorage(self::TEAM_FOLDER_STORAGE)) {
-			return true;
+			return null;
 		}
 		$limit = $this->sizeLimit($file->getOwner()?->getUID() ?? $userId);
-		return $limit === null || $file->getSize() < $limit;
+		return $limit === null || $file->getSize() < $limit ? null : TrashResult::TooLarge;
 	}
 
 	/** The owner's trash bin size, else the server's, as `files_trashbin` reads them; null for none. */

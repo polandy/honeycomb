@@ -15,7 +15,8 @@ bin would not keep is deleted for good only when the request says so for that fi
 
 `POST /apps/honeycomb/api/v1/trash` takes `{"pictures": [[{"fileId": 7, "etag": "…"}, …], …]}`:
 a list of pictures, each the list of its files with the ETag from the listing, at most 500
-files, and optionally `"permanent": true` on a file the user confirmed to delete for good, so one request ends well inside a proxy or PHP timeout (ADR 0029). The server does not
+files, so one request ends well inside a proxy or PHP timeout (ADR 0029). A file the user
+confirmed to delete for good also carries `"permanent": true` (ADR 0036). The server does not
 pair; it checks each file and trashes through `OCP\Files`.
 
 For each picture:

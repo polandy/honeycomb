@@ -6,7 +6,7 @@
 import type { SendProgress } from '../logic/request-chunks.ts'
 
 import { n, t } from '@nextcloud/l10n'
-import { computed } from 'vue'
+import { computed, nextTick, onMounted, useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import ProgressBar from './ProgressBar.vue'
@@ -30,6 +30,8 @@ const props = defineProps<{
 	wide?: boolean
 	/** The confirm button warns, for an action that removes files. */
 	danger?: boolean
+	/** The focus starts on *Cancel*, for a confirm that cannot be undone. */
+	focusCancel?: boolean
 	/** The confirm button is secondary, where the dialog's body holds the primary action. */
 	secondary?: boolean
 	/** Where the dialog opens, e.g. inside the loupe; the page body by default. */
@@ -48,6 +50,17 @@ const emit = defineEmits<{
 const progressText = computed(() => (props.progress
 	? n('honeycomb', '{done} of {total} photo sent', '{done} of {total} photos sent', props.progress.total, { done: formatNumber(props.progress.done), total: formatNumber(props.progress.total) }, PLAIN_TEXT)
 	: ''))
+
+const cancelButton = useTemplateRef<InstanceType<typeof NcButton>>('cancelButton')
+
+onMounted(async () => {
+	if (props.focusCancel) {
+		// After the modal's own mount; its focus trap keeps a focus already inside it.
+		await nextTick()
+		const button = cancelButton.value?.$el as HTMLElement | undefined
+		button?.focus()
+	}
+})
 
 /** Closing the dialog by its close button or Escape cancels it. */
 function onOpen(open: boolean) {
@@ -74,7 +87,11 @@ function onOpen(open: boolean) {
 			<NcButton v-if="props.back" variant="tertiary" @click="emit('back')">
 				{{ props.backLabel ?? t('honeycomb', 'Back') }}
 			</NcButton>
-			<NcButton v-if="props.cancel" variant="tertiary" @click="emit('cancel')">
+			<NcButton
+				v-if="props.cancel"
+				ref="cancelButton"
+				variant="tertiary"
+				@click="emit('cancel')">
 				{{ props.cancelLabel ?? t('honeycomb', 'Cancel') }}
 			</NcButton>
 			<NcButton :variant="props.danger ? 'error' : props.secondary ? 'secondary' : 'primary'" :disabled="props.confirmDisabled" @click="emit('confirm')">

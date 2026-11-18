@@ -8,15 +8,19 @@ import { filesOf } from './delete-summary.ts'
 import { pairPictures } from './pairing.ts'
 
 /** Why the trash endpoint left a file where it was (ADR 0013). */
-export type TrashFailure = 'notFound' | 'changed' | 'notPermitted' | 'noTrashBin' | 'locked' | 'failed' | 'skipped'
+export type TrashFailure = 'notFound' | 'changed' | 'notPermitted' | 'noTrashBin' | 'tooLarge' | 'locked' | 'failed' | 'skipped'
+
+/** The failures of a file the trash bin would not keep, which the user may delete permanently (ADR 0036). */
+export type UnkeptFailure = 'noTrashBin' | 'tooLarge'
 
 /** The files of each picture to send, a picture per list. */
 export type TrashBatch = readonly (readonly PictureFile[])[]
 
-/** One file of the trash request, with the ETag from the listing. */
+/** One file of the trash request, with the ETag from the listing; `permanent` once the user confirmed deleting it for good. */
 export interface TrashRequestFile {
 	readonly fileId: number
 	readonly etag: string
+	readonly permanent?: true
 }
 
 /** One file of the trash response; `result` is checked here. */
@@ -31,51 +35,94 @@ export interface FailedFile {
 	readonly result: TrashFailure
 }
 
-/** What a delete did: the files in the trash bin, the failed ones, the pictures whose sent members all went and the bytes freed. */
+/** A file the trash bin would not keep, and why. */
+export interface UnkeptFile {
+	readonly file: PictureFile
+	readonly result: UnkeptFailure
+}
+
+/** What a delete did: the files in the trash bin, those deleted permanently, the failed ones, the pictures whose sent members all went and the bytes freed. */
 export interface TrashReport {
 	readonly trashed: readonly PictureFile[]
+	readonly deleted: readonly PictureFile[]
 	readonly failed: readonly FailedFile[]
 	readonly removed: number
 	readonly bytes: number
 }
 
-const FAILURES: ReadonlySet<string> = new Set<TrashFailure>(['notFound', 'changed', 'notPermitted', 'noTrashBin', 'locked', 'failed', 'skipped'])
+const FAILURES: ReadonlySet<string> = new Set<TrashFailure>(['notFound', 'changed', 'notPermitted', 'noTrashBin', 'tooLarge', 'locked', 'failed', 'skipped'])
+
+const UNKEPT: ReadonlySet<TrashFailure> = new Set<UnkeptFailure>(['noTrashBin', 'tooLarge'])
 
 /** Every file of each picture. */
 export function wholePictures(pictures: readonly Picture<ListingEntry>[]): PictureFile[][] {
 	return pictures.map(filesOf)
 }
 
-/** The request body's pictures (ADR 0013). */
-export function trashRequest(batch: TrashBatch): TrashRequestFile[][] {
-	return batch.map((files) => files.map(({ entry }) => ({ fileId: entry.fileId, etag: entry.etag })))
+/** The request body's pictures (ADR 0013), with `permanent` on the files given (ADR 0036). */
+export function trashRequest(batch: TrashBatch, permanent: ReadonlySet<number> = new Set()): TrashRequestFile[][] {
+	return batch.map((files) => files.map(({ entry }) => (permanent.has(entry.fileId)
+		? { fileId: entry.fileId, etag: entry.etag, permanent: true }
+		: { fileId: entry.fileId, etag: entry.etag })))
 }
 
 /** The report of a response; a file it leaves out or answers with an unknown result counts as failed. */
 export function trashReport(batch: TrashBatch, response: readonly (readonly TrashResponseFile[])[]): TrashReport {
 	const results = new Map(response.flat().map((file) => [file.fileId, file.result]))
 	const trashed: PictureFile[] = []
+	const deleted: PictureFile[] = []
 	const failed: FailedFile[] = []
 	for (const file of batch.flat()) {
 		const result = results.get(file.entry.fileId) ?? 'failed'
 		if (result === 'trashed') {
 			trashed.push(file)
+		} else if (result === 'deleted') {
+			deleted.push(file)
 		} else {
 			failed.push({ file, result: FAILURES.has(result) ? result as TrashFailure : 'failed' })
 		}
 	}
-	const gone = new Set(trashed.map((file) => file.entry))
-	const removed = batch.filter((files) => files.some((file) => file.role !== 'sidecar') && files.every((file) => file.role === 'sidecar' || gone.has(file.entry))).length
-	return { trashed, failed, removed, bytes: trashed.reduce((sum, file) => sum + file.entry.size, 0) }
+	const gone = [...trashed, ...deleted]
+	const goneEntries = new Set(gone.map((file) => file.entry))
+	const removed = batch.filter((files) => files.some((file) => file.role !== 'sidecar') && files.every((file) => file.role === 'sidecar' || goneEntries.has(file.entry))).length
+	return { trashed, deleted, failed, removed, bytes: gone.reduce((sum, file) => sum + file.entry.size, 0) }
+}
+
+/** The failed files grouped by their picture. */
+function byPicture(failed: readonly FailedFile[]): PictureFile[][] {
+	const grouped = new Map<Picture<ListingEntry>, PictureFile[]>()
+	for (const { file } of failed) {
+		grouped.set(file.picture, [...(grouped.get(file.picture) ?? []), file])
+	}
+	return [...grouped.values()]
 }
 
 /** The failed and skipped files of a report again, grouped by their picture. */
 export function retryBatch(report: TrashReport): PictureFile[][] {
-	const byPicture = new Map<Picture<ListingEntry>, PictureFile[]>()
-	for (const { file } of report.failed) {
-		byPicture.set(file.picture, [...(byPicture.get(file.picture) ?? []), file])
+	return byPicture(report.failed)
+}
+
+/** The files of a report the trash bin would not keep (ADR 0036). */
+export function unkeptFiles(report: TrashReport): UnkeptFile[] {
+	return report.failed.filter((failed): failed is UnkeptFile => UNKEPT.has(failed.result))
+}
+
+/** The failed files of the pictures with a file the trash bin would not keep, grouped by their picture, to send again. */
+export function permanentBatch(report: TrashReport): PictureFile[][] {
+	const pictures = new Set(unkeptFiles(report).map(({ file }) => file.picture))
+	return byPicture(report.failed.filter(({ file }) => pictures.has(file.picture)))
+}
+
+/** Both requests of a delete as one report; a file sent again counts only by its second result. */
+export function mergeReports(first: TrashReport, second: TrashReport): TrashReport {
+	const resent = new Set([...second.trashed, ...second.deleted, ...second.failed.map(({ file }) => file)].map((file) => file.entry))
+	return {
+		trashed: [...first.trashed, ...second.trashed],
+		deleted: [...first.deleted, ...second.deleted],
+		failed: [...first.failed.filter(({ file }) => !resent.has(file.entry)), ...second.failed],
+		removed: first.removed + second.removed,
+		bytes: first.bytes + second.bytes,
 	}
-	return [...byPicture.values()]
 }
 
 /** The pictures without the files; an affected picture is paired again from what is left, or dropped. */

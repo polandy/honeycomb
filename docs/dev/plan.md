@@ -740,7 +740,7 @@ takes its sizes from the pointer type ([Control sizes](#control-sizes)), not fro
 | `FlagButtonsToggle` (`flagBtnsToggle`) | the title-row icon button that shows or hides the large flag buttons ([Flag buttons and vi keys](#flag-buttons-and-vi-keys)) | loupe, series viewer | — |
 | `PickRestButton` (`pickRestBtn`) | *Pick this, reject the rest* | series compare bottom bar, series viewer, loupe on a series photo | `series` |
 | `UndoToast` (`toast`) | the change in words, *Undo*, an optional offer before it (*Reject the other N* after a plain *Pick* on a series photo); focus or a press holds it, letting go restarts its time (WCAG 2.2.1) | every undoable change | `undo`: entries and their text |
-| `ConfirmDialog` (`confirmDialog`) | title, body, footer *Back* · *Cancel* · confirm; a bottom sheet on a phone | delete summary, reject review, move summary, folder picker, delete report | — |
+| `ConfirmDialog` (`confirmDialog`) | title, body, footer *Back* · *Cancel* · confirm, the focus on *Cancel* on request; a bottom sheet on a phone | delete summary, reject review, move summary, folder picker, delete report, permanent delete warning | — |
 | `PhotoTile` (`tileInner`, `updateTile`) | thumbnail, pair and series badges (a complete pair quiet, a single highlighted), stars once rated, colour dot, flag mark (a bottom shade only behind these), selection check | grid | `pairing` |
 | `Tooltip` (`tip`, `tipShow`, `bindTips`) | the bubble tooltip of a control: its label in glossary words and its key from `HOTKEY`, e.g. "Pick `P`" | every icon and icon-only control on every screen | `hotkeys` |
 

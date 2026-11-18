@@ -38,6 +38,7 @@ const skippedRows = computed(() => props.skipped.flatMap(({ picture, reason }) =
 const failed = computed(() => props.report.failed.length > 0)
 const stats = computed(() => [
 	{ value: formatNumber(props.report.trashed.length), label: n('honeycomb', 'file moved to trash', 'files moved to trash', props.report.trashed.length) },
+	...(props.report.deleted.length > 0 ? [{ value: formatNumber(props.report.deleted.length), label: n('honeycomb', 'file deleted permanently', 'files deleted permanently', props.report.deleted.length) }] : []),
 	{ value: formatNumber(props.report.failed.length), label: t('honeycomb', 'failed') },
 	...(props.skipped.length > 0 ? [{ value: formatNumber(props.skipped.length), label: n('honeycomb', 'photo skipped', 'photos skipped', props.skipped.length) }] : []),
 ])

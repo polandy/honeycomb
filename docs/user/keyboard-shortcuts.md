@@ -124,7 +124,7 @@ where you zoom with `Z`, page through the series with `←` `→` and decide. *B
 | `Ctrl+/` | Show the shortcut help. `?` does the same. |
 
 Deleted photos go to the Nextcloud trash bin, where you can restore them until it empties itself.
-A file the trash bin would not keep is not deleted. More in [Deleting photos](deleting.md).
+A file the trash bin would not keep is deleted for good only after a warning. More in [Deleting photos](deleting.md).
 
 ## Vi keys
 

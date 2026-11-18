@@ -59,9 +59,10 @@ honeycomb reads your photos and changes files only through Nextcloud's file API,
 file versions and the trash bin apply.
 
 - **Deleting** moves every file of a rejected picture (JPEG, RAW and sidecars) into the
-  Nextcloud trash bin. It needs the trash bin to be on and refuses otherwise, and it leaves a
-  picture alone when the trash bin would not keep one of its files: a storage without a trash
-  bin, or a file larger than the trash bin size (`trashbin_size`).
+  Nextcloud trash bin. It needs the trash bin to be on and refuses otherwise. A file the trash bin
+  would not keep (a storage without a trash bin, or a file larger than the trash bin size
+  `trashbin_size`) is deleted for good only after a warning that names it; cancelled, its picture
+  stays.
 - **Moving** renames and moves the files of a picture into the folder you choose, by a name
   template ([`docs/dev/05-name-templates.md`](docs/dev/05-name-templates.md)). A picture is moved whole
   or not at all, and the move can be undone. It stays on its storage: honeycomb does not move

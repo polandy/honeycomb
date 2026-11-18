@@ -1,8 +1,9 @@
 # Deleting photos
 
-honeycomb never deletes a file for good: every photo you delete goes to the Nextcloud trash bin,
-with all its files (JPEG, RAW and their sidecars), where you can restore it until the trash bin
-empties itself. Keep a backup all the same.
+Every photo you delete goes to the Nextcloud trash bin, with all its files (JPEG, RAW and their
+sidecars), where you can restore it until the trash bin empties itself. Keep a backup all the same.
+honeycomb deletes a file for good only after you confirm a warning that names it (see
+[Files the trash bin would not keep](#files-the-trash-bin-would-not-keep)).
 
 ## Delete every rejected photo
 
@@ -20,6 +21,16 @@ Photos* and takes every rejected photo of the folders you cull, even the ones th
    reads *Checking the photos…*, then *Moving to trash…*, and the footer counts the photos sent.
    Each file takes the server a moment, so a large delete takes a while; the toast says how many
    photos moved, and the report lists every file that could not move, with the reason.
+
+## Files the trash bin would not keep
+
+A storage without a trash bin (for example some external storages), or a file larger than the
+trash bin allows (`trashbin_size`), cannot go to the trash bin. Instead of the report, a warning
+opens first: *N files will be deleted permanently*, each file with its reason. The focus is on
+**Cancel**: it sends nothing more, the files stay and the report lists them as before.
+**Delete permanently** deletes them for good, with the other files of their photos; they cannot be
+restored. The toast then also counts the files deleted permanently. Team folders have their own
+trash bin and keep every file.
 
 ## Delete the photos you choose
 

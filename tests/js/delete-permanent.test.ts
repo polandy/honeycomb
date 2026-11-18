@@ -85,9 +85,13 @@ describe('deleting for good', () => {
 	// spec: DELETE-002.21
 	it('sends nothing while a request runs', async () => {
 		let release = () => {}
-		const held: Answer = (request) => new Promise((resolve) => {
-			release = () => resolve(request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'deleted' }))))
+		const released = new Promise<void>((resolve) => {
+			release = resolve
 		})
+		const held: Answer = async (request) => {
+			await released
+			return request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'deleted' })))
+		}
 		const first = answers({ 4: 'noTrashBin' })
 		const queue = [first, held]
 		const { deleting, sent } = flow((request) => queue.shift()!(request))
