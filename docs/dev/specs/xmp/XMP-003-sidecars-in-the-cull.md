@@ -16,24 +16,26 @@ being asked.
 
 ## Behaviour
 
-**Taking over.** When a cull opens, and again when the pairing settings change, the stored
-decisions are read first. Each picture with no stored decision for any member and with sidecars
-(darktable duplicates excepted) or a JPEG whose embedded XMP counts (TAGS-002) has them looked up;
-the embedded XMP is read as the JPEG's sidecar, at the JPEG's modification time; their decision follows
-[`06-xmp-interop.md`](../../06-xmp-interop.md#reading) (newest wins as a whole, a tie goes to the
-RAW member's sidecar). A decision other than undecided is shown and stored for every member, as one
-save that is neither an undo step nor written back to the sidecars. A picture the user decided
-meanwhile keeps the user's decision. A refused or unreadable sidecar, a disagreement between
-sidecars and a failed lookup are logged as warnings; the picture keeps what it shows, or takes over
-what the sources that were read state.
+**Reading.** When a cull opens, and again when the pairing settings change, each picture's
+sidecars (darktable duplicates excepted) and the JPEG whose embedded XMP counts (TAGS-002) are read
+through the XMP cache (XMP-006): only a source without a valid row is looked up, and its new row is
+stored. The embedded XMP is read as the JPEG's sidecar, at the JPEG's modification time; the
+decision follows [`06-xmp-interop.md`](../../06-xmp-interop.md#reading) (newest wins as a whole, a
+tie goes to the RAW member's sidecar), by the modification times the listing gives. A decision
+other than undecided is shown for every member; it is neither an undo step nor written back, and
+nothing is stored in the legacy tables. A picture with legacy rows shows them until the ⋯ entry
+writes them to its sidecars (XMP-007), locked (XMP-008). A picture the user decided meanwhile keeps
+the user's decision. A refused or unreadable sidecar, a disagreement between sidecars and a failed
+lookup are logged as warnings; the picture keeps what it shows, or takes what the sources that were
+read state. A failed cache lookup reads every source; a failed cache save is logged.
 
 **The setting.** *Write decisions to XMP sidecars* (SETTINGS-001.24) is *Off* by default, for
 every user, also one who culled before it existed. Off, no decision or tag is made: the first
-attempt asks to turn it *On* (XMP-008); taking over still reads the sidecars. *On* writes through
-as below.
+attempt asks to turn it *On* (XMP-008); the cull still shows what the sidecars state. *On* writes
+through as below.
 
 **Writing through.** As soon as any attribute is set on a photo — a flag, a rating, a colour label,
-*Keep RAW*, or an undo or redo of one — and the step is stored, each picture the step touched is
+*Keep RAW*, or an undo or redo of one — each picture the step touched is
 written to its sidecars; a picture no step touched gets no
 sidecar: every existing sidecar (darktable duplicates excepted) and, for each member without one,
 a new `<member file>.xmp` (`docs/dev/06-xmp-interop.md` Sidecar
@@ -49,8 +51,8 @@ by the next pass, so each sidecar is saved at most once per pass, with the decis
 changed, valued as the picture's decision when the pass starts, and the tag changes of its steps in
 order (TAGS-002). Those fields are a delta: per sidecar it is applied to the decision that sidecar
 states, so a field no step changed keeps each sidecar's own value (`06-xmp-interop.md` Writing, ADR
-0032). A sidecar the pass would leave as it is, apart from `xmp:MetadataDate`, is not saved. A step
-whose save fails writes nothing.
+0032). A sidecar the pass would leave as it is, apart from `xmp:MetadataDate`, is not saved. Each
+saved sidecar's row is stored in the XMP cache (XMP-006.10).
 
 **Bundling per picture.** The steps on one picture wait and are written together, in one pass, when
 the user leaves the picture — a step on another picture, or the loupe showing another picture or
@@ -83,18 +85,18 @@ picture's decision when it runs, for the fields its write changed. A refused sid
 
 ## Acceptance criteria
 
-### XMP-003.1 – A picture without a stored decision takes over its sidecars' decision
+### XMP-003.1 – A picture shows its sidecars' decision
 
-- **Given** a pair without a stored decision whose sidecar says three stars and rejected
+- **Given** a pair without legacy rows whose sidecar says three stars and rejected
 - **When** the cull opens
-- **Then** the picture shows three stars and rejected, and that decision is stored for both
-  members in one save
+- **Then** the picture shows three stars and rejected for both members, and no decision or tag is
+  saved to the legacy tables
 
-### XMP-003.2 – A stored decision wins
+### XMP-003.2 – A legacy row wins until it is migrated
 
-- **Given** a picture with a stored decision and a sidecar that says otherwise
+- **Given** a picture with a legacy decision and a sidecar that says otherwise
 - **When** the cull opens
-- **Then** its sidecars are not looked up and it shows the stored decision
+- **Then** it shows the legacy decision, locked (XMP-008.11)
 
 ### XMP-003.3 – A decision made meanwhile wins over the sidecar
 
@@ -107,19 +109,18 @@ picture's decision when it runs, for the fields its write changed. A refused sid
 - **Given** pictures whose sidecars state undecided, are refused, answer other than `read`, or
   whose lookup fails
 - **When** the cull opens
-- **Then** they stay undecided, nothing is stored for them, and refusals, failures and
-  disagreements are logged as warnings
+- **Then** they stay undecided, and refusals, failures and disagreements are logged as warnings
 
-### XMP-003.5 – A taken-over decision is not an undo step and is not written back
+### XMP-003.5 – A decision read is not an undo step and is not written back
 
-- **Given** a picture that took over its sidecar's decision
-- **When** the user presses undo, and when the take-over is stored
+- **Given** a picture that shows its sidecar's decision
+- **When** the user presses undo
 - **Then** undo has nothing to take back and no sidecar is saved
 
 ### XMP-003.6 – A decision is written through to every existing sidecar
 
 - **Given** writing to sidecars on, a pair outside a shared folder with `IMG_0001.NEF.xmp` and `IMG_0001.JPG.xmp`
-- **When** the user picks it and the decision is stored
+- **When** the user picks it
 - **Then** both sidecars are read, merged with the pick and saved with the ETag and size read
 
 ### XMP-003.7 – A member without a sidecar gets `<member file>.xmp`
@@ -155,17 +156,16 @@ picture's decision when it runs, for the fields its write changed. A refused sid
 - **When** the decision or the tag change is written through
 - **Then** that sidecar is not saved and counts as written; a sidecar that differs is saved
 
-### XMP-003.10 – A failed decision save writes nothing
+### XMP-003.10 – A failed decision save writes nothing (removed)
 
-- **Given** a decision whose save fails
-- **When** the user makes it
-- **Then** no sidecar is looked up or saved
+The cull saves no decision to the database any more (ADR 0032, XMP-006.7); a failed sidecar write
+is reported (XMP-003.13).
 
 ### XMP-003.11 – Nothing is written in an unconfirmed shared folder
 
 - **Given** a picture with a member in a shared folder the user has not confirmed
 - **When** the user decides it
-- **Then** nothing is stored and no sidecar is looked up or saved until the user confirms the
+- **Then** nothing is shown and no sidecar is looked up or saved until the user confirms the
   folder (XMP-008.4); then the decision is written through
 
 ### XMP-003.12 – The ⋯ menu writes to sidecars in shared folders after asking (removed)
@@ -198,8 +198,8 @@ and elsewhere.
 
 - **Given** a user without the setting stored, or with *Off*
 - **When** the user decides a picture outside a shared folder or changes its tags
-- **Then** nothing is stored and no sidecar is looked up or saved until the user turns writing
-  *On* (XMP-008.7); a picture without a stored decision still takes over its sidecars' decision
+- **Then** nothing is shown and no sidecar is looked up or saved until the user turns writing
+  *On* (XMP-008.7); a picture still shows its sidecars' decision
 
 ### XMP-003.19 – *Only existing sidecars* creates none (removed)
 
@@ -208,7 +208,7 @@ sidecars* reads as *Off* (SETTINGS-001.26).
 
 ### XMP-003.20 – A step writes only the fields it changed
 
-- **Given** writing to sidecars on, a picture whose sidecar states green while honeycomb stores no
+- **Given** writing to sidecars on, a picture whose sidecar states green while honeycomb shows no
   colour label
 - **When** the user rates it, then undoes the rating
 - **Then** each write carries only the rating, and the sidecar keeps green
@@ -228,7 +228,7 @@ sidecars* reads as *Off* (SETTINGS-001.26).
   picked
 - **When** the cull opens
 - **Then** the JPEG shows three stars and red and the pair four stars and picked, also while the
-  stored tags are unknown; with the sidecar modified later the pair shows one star; an embedded
+  legacy tags are unknown; with the sidecar modified later the pair shows one star; an embedded
   XMP that is refused or not read is logged as a warning, and the picture takes over what its
   sidecars state
 
@@ -283,11 +283,10 @@ sidecars* reads as *Off* (SETTINGS-001.26).
 
 ### XMP-003.30 – Deleting and moving write first
 
-- **Given** a step waiting on one picture, a write in flight, or a step whose decision or tag save
-  has not answered yet
+- **Given** a step waiting on one picture, or a write in flight
 - **When** the user confirms a delete, *Remove RAWs* or a move
 - **Then** the waiting picture is written and every write has finished before the trash or move
-  request is sent; a step still saving is written once its save answered
+  request is sent
 
 ### XMP-003.31 – A step undone while it waits saves no sidecar
 
@@ -313,10 +312,10 @@ sidecars* reads as *Off* (SETTINGS-001.26).
 
 ## Out of scope
 
-- Re-reading a sidecar that another program changed after the take-over (`06-xmp-interop.md`
-  Reading); ADR 0032 replaces the take-over with the XMP cache (XMP-006) in its PR 6.
-- The *Storage* setting of the mockup (database, sidecars or both); the database always holds the
-  decisions, and *Write decisions to XMP sidecars* says whether they also go to the sidecars.
+- Re-reading a sidecar that another program changes while the cull is open; the next visit reads
+  it, by its new ETag (XMP-006.7).
+- The *Storage* setting of the mockup (database, sidecars or both); the sidecars hold the decisions
+  (ADR 0032).
 
 ## History
 
@@ -333,3 +332,4 @@ sidecars* reads as *Off* (SETTINGS-001.26).
 | 2026-11-15 | Steps are written per picture when the user leaves it or after 2 s; requests packed by count and size (.25–.32, ADR 0032 PR 7) |
 | 2026-11-16 | A delete or move also waits for the write of a step whose save has not answered (.30) |
 | 2026-11-18 | The failure toast names the reason, one text per reason (.13 changed, .33; owner decision on #221 (c)) |
+| 2026-11-18 | The cull reads through the XMP cache and stores no legacy rows; a legacy row wins, locked, until migrated (.1–.5, .11, .18, .30 changed, .10 removed, ADR 0032) |

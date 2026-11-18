@@ -187,7 +187,8 @@ through every new visual hash.
 - **Given** an edit whose save fails
 - **When** the user makes it
 - **Then** the series show as before the edit, except the files a later save stored, and the error
-  is logged; saves go one at a time, as decisions do (DECISIONS-001.14, .15)
+  is logged; saves go one at a time, the rows changed meanwhile together with the newest state
+  of each file, and a failed save is put back once no save is in flight or waiting, newest first
 
 ### SERIES-005.20 – Lookup
 
