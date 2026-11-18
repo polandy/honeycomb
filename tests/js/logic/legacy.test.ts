@@ -6,7 +6,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { acknowledgedIds, exportedFileIds, hasLegacyRows, legacyWrites } from '../../../src/logic/legacy.ts'
+import { acknowledgedIds, exportedFileIds, hasLegacyRows, legacyWrites, withoutUnconfirmed } from '../../../src/logic/legacy.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const PAIR = pictureOf(listingEntry(1, '/A/IMG_1.JPG'), listingEntry(2, '/A/IMG_1.CR3', { mime: 'image/x-dcraw' }))
@@ -16,31 +16,41 @@ const RESET = pictureOf(listingEntry(5, '/B/IMG_5.JPG'))
 const PICKED: Decision = { ...UNDECIDED, flag: 'picked' }
 
 const tagsOf = (picture: Picture<ListingEntry>) => (picture === SINGLE ? ['Anna'] : [])
-const shared = (picture: Picture<ListingEntry>) => picture === SINGLE
+const unconfirmed = (picture: Picture<ListingEntry>) => picture === SINGLE
 
 describe('legacyWrites', () => {
 	// spec: XMP-007.5
 	it('lists each picture with a stored decision other than undecided or a stored tag, in order', () => {
 		const decisions = new Map([[2, PICKED], [5, UNDECIDED]])
 
-		expect(legacyWrites([PAIR, SINGLE, UNTOUCHED, RESET], decisions, tagsOf, shared)).toEqual([
-			{ picture: PAIR, decided: true, tags: [], shared: false },
-			{ picture: SINGLE, decided: false, tags: ['Anna'], shared: true },
+		expect(legacyWrites([PAIR, SINGLE, UNTOUCHED, RESET], decisions, tagsOf)).toEqual([
+			{ picture: PAIR, decided: true, tags: [] },
+			{ picture: SINGLE, decided: false, tags: ['Anna'] },
 		])
 	})
 
 	// spec: XMP-007.7
 	it('lists nothing without legacy rows', () => {
-		expect(legacyWrites([UNTOUCHED, RESET], new Map([[5, UNDECIDED]]), tagsOf, shared)).toEqual([])
+		expect(legacyWrites([UNTOUCHED, RESET], new Map([[5, UNDECIDED]]), tagsOf)).toEqual([])
 		expect(hasLegacyRows([])).toBe(false)
-		expect(hasLegacyRows([{ picture: PAIR, decided: true, tags: [], shared: false }])).toBe(true)
+		expect(hasLegacyRows([{ picture: PAIR, decided: true, tags: [] }])).toBe(true)
+	})
+})
+
+describe('withoutUnconfirmed', () => {
+	// spec: XMP-007.13
+	it('keeps the pictures to write and counts those in shared folders not confirmed', () => {
+		const writes = legacyWrites([PAIR, SINGLE], new Map([[1, PICKED]]), tagsOf)
+
+		expect(withoutUnconfirmed(writes, unconfirmed)).toEqual({ written: [writes[0]], skipped: 1 })
+		expect(withoutUnconfirmed(writes, () => false)).toEqual({ written: writes, skipped: 0 })
 	})
 })
 
 describe('acknowledgedIds', () => {
 	// spec: XMP-007.6
 	it('takes every member of each picture without a failed sidecar', () => {
-		const writes = legacyWrites([PAIR, SINGLE], new Map([[1, PICKED]]), tagsOf, shared)
+		const writes = legacyWrites([PAIR, SINGLE], new Map([[1, PICKED]]), tagsOf)
 
 		expect(acknowledgedIds(writes, [{ picture: SINGLE }])).toEqual([1, 2])
 		expect(acknowledgedIds(writes, [])).toEqual([1, 2, 3])

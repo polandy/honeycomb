@@ -198,7 +198,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	}
 
 	/** The pictures with legacy rows, for *Write decisions to sidecars…* (XMP-007.5). */
-	const legacy = computed(() => legacyWrites(paired.value, decisions.value, tags.tagsOf, (picture) => inSharedFolder(picture, access.sharedFolders.value)))
+	const legacy = computed(() => legacyWrites(paired.value, decisions.value, tags.tagsOf))
 
 	/** Takes trashed files out of the pictures; returns what each affected picture became (ADR 0013). */
 	function removeFiles(fileIds: ReadonlySet<number>) {
@@ -227,6 +227,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 
 	return {
 		writabilityOf: access.writabilityOf,
+		unconfirmedOf: access.unconfirmedOf,
+		confirmationFoldersOf: access.confirmationFoldersOf,
 		refuse: access.refuse,
 		folderSet,
 		pictures,

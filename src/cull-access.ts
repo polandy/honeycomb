@@ -8,7 +8,7 @@ import type { ListedAccess, WriteContext, WriteLock } from './logic/writability.
 
 import { computed, shallowRef } from 'vue'
 import { memberIds } from './logic/pairing.ts'
-import { confirmationFolders, folderAccess, lockReason, NO_ACCESS, writability } from './logic/writability.ts'
+import { confirmationFolders, folderAccess, lockReason, NO_ACCESS, unconfirmedShared, writability } from './logic/writability.ts'
 import { XMP_REFUSALS } from './logic/xmp/model.ts'
 
 /** Whether the open cull may write each picture's sidecars, and the gate a step passes before it decides (XMP-008). */
@@ -27,6 +27,12 @@ export function useCullAccess<T>(settings: () => Settings, onLocked: (lock: Writ
 
 	/** Whether a decision on the picture is written to its sidecars, or why not. */
 	const writabilityOf = (picture: Picture<ListingEntry>) => writability(picture, context())
+
+	/** Whether the picture lies in a shared folder not confirmed (XMP-007.13). */
+	const unconfirmedOf = (picture: Picture<ListingEntry>) => unconfirmedShared(picture, context())
+
+	/** The opened folders that confirm the pictures' shared folders not confirmed (XMP-008.4). */
+	const confirmationFoldersOf = (pictures: readonly Picture<ListingEntry>[]) => confirmationFolders(pictures, context())
 
 	/** Takes the access of newly opened folders; refusals were for the folders closed. */
 	function open(listed: ListedAccess) {
@@ -54,5 +60,5 @@ export function useCullAccess<T>(settings: () => Settings, onLocked: (lock: Writ
 		return null
 	}
 
-	return { sharedFolders, writabilityOf, open, refuse, gate }
+	return { sharedFolders, writabilityOf, unconfirmedOf, confirmationFoldersOf, open, refuse, gate }
 }

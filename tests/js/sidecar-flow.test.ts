@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
+import type { ListingEntry } from '../../src/logic/listing.ts'
+import type { Picture } from '../../src/logic/pairing.ts'
 import type { SendProgress } from '../../src/logic/request-chunks.ts'
 import type { SidecarSaveAnswer, SidecarSaveItem } from '../../src/logic/sidecar-sync.ts'
 import type { ToastAction } from '../../src/toast.ts'
@@ -26,7 +28,6 @@ function writesOf(count: number) {
 		picture: pictureOf(listingEntry(index + 1, `/P/IMG_${index + 1}.JPG`), listingEntry(1000 + index + 1, `/P/IMG_${index + 1}.JPG.xmp`)),
 		decided: true,
 		tags: [],
-		shared: false,
 	}))
 }
 
@@ -35,11 +36,13 @@ function flowWith(answer: (item: SidecarSaveItem) => SidecarSaveAnswer = () => (
 	const progress: (SendProgress | null)[] = []
 	const acknowledged: number[][] = []
 	const toasts: { message: string, action: ToastAction | null }[] = []
+	const saves: (number | string)[][] = []
 	const flow = useSidecarFlow({
 		lookupSidecars: async (fileIds) => fileIds.map(() => ({ result: 'read', bytes: BYTES, etag: 'e', size: BYTES.length, mtime: 1 })),
 		lookupEmbeddedXmp: async (fileIds) => fileIds.map(() => ({ result: 'none' })),
 		saveSidecars: async (items) => {
 			progress.push(flow.progress.value)
+			saves.push(items.map((item) => ('fileId' in item ? item.fileId : item.path)))
 			if (saveFails) {
 				throw new Error('offline')
 			}
@@ -50,10 +53,11 @@ function flowWith(answer: (item: SidecarSaveItem) => SidecarSaveAnswer = () => (
 		acknowledged.push([...fileIds])
 		return true
 	})
-	return { flow, progress, acknowledged, toasts }
+	return { flow, progress, acknowledged, toasts, saves }
 }
 
 const rated = () => ({ ...UNDECIDED, rating: 3 })
+const NONE_SKIPPED = () => false
 
 describe('useSidecarFlow: the migration run', () => {
 	// spec: XMP-007.11
@@ -61,7 +65,7 @@ describe('useSidecarFlow: the migration run', () => {
 		const { flow, progress, acknowledged, toasts } = flowWith()
 		flow.ask(writesOf(45))
 
-		const running = flow.confirm(rated)
+		const running = flow.confirm(rated, NONE_SKIPPED)
 		expect(flow.open.value).toBe(true)
 		await running
 		await flushPromises()
@@ -80,7 +84,7 @@ describe('useSidecarFlow: the migration run', () => {
 		const { flow, acknowledged, toasts } = flowWith((item) => ('fileId' in item && item.fileId === 1002 ? { result: 'notPermitted' } : { result: 'saved', fileId: 1, etag: 's', size: 1, mtime: 2 }))
 		flow.ask(writesOf(2))
 
-		await flow.confirm(rated)
+		await flow.confirm(rated, NONE_SKIPPED)
 		await flushPromises()
 
 		expect(acknowledged).toEqual([[1]])
@@ -95,7 +99,7 @@ describe('useSidecarFlow: the migration run', () => {
 		const { flow, acknowledged, toasts } = flowWith(undefined, true)
 		flow.ask(writesOf(2))
 
-		await flow.confirm(rated)
+		await flow.confirm(rated, NONE_SKIPPED)
 		await flushPromises()
 
 		expect(acknowledged).toEqual([])
@@ -111,7 +115,7 @@ describe('useSidecarFlow: the migration run', () => {
 
 		await flow.confirm(() => {
 			throw failure
-		})
+		}, NONE_SKIPPED)
 		await flushPromises()
 
 		expect(acknowledged).toEqual([])
@@ -125,10 +129,54 @@ describe('useSidecarFlow: the migration run', () => {
 		const { flow, acknowledged, toasts, progress } = flowWith()
 		flow.ask([])
 
-		await flow.confirm(rated)
+		await flow.confirm(rated, NONE_SKIPPED)
 
 		expect([acknowledged, progress]).toEqual([[], []])
 		expect(toasts.map(({ message }) => message)).toEqual(['No stored decisions to write here'])
 		expect(flow.open.value).toBe(false)
+	})
+
+	// spec: XMP-007.13
+	it('skips the pictures in shared folders not confirmed: saves none of their sidecars, keeps their rows and says how many', async () => {
+		const { flow, acknowledged, toasts, saves } = flowWith()
+		const writes = writesOf(3)
+		const skipped = new Set([writes[0]!.picture, writes[2]!.picture])
+		flow.ask(writes)
+
+		await flow.confirm(rated, (picture) => skipped.has(picture))
+		await flushPromises()
+
+		expect(saves).toEqual([[1002]])
+		expect(acknowledged).toEqual([[2]])
+		expect(toasts.map(({ message }) => message)).toEqual(['Wrote the decisions of 1 photo to sidecars; skipped 2 photos in shared folders not confirmed'])
+	})
+
+	// spec: XMP-007.13
+	it('writes the pictures of a folder confirmed since the last run', async () => {
+		const { flow, acknowledged, toasts } = flowWith()
+		const writes = writesOf(2)
+		let confirmed = false
+		const unconfirmed = (picture: Picture<ListingEntry>) => !confirmed && picture === writes[1]!.picture
+		flow.ask(writes)
+		await flow.confirm(rated, unconfirmed)
+		confirmed = true
+		flow.ask(writes)
+
+		await flow.confirm(rated, unconfirmed)
+		await flushPromises()
+
+		expect(acknowledged).toEqual([[1], [1, 2]])
+		expect(toasts.map(({ message }) => message)).toEqual(['Wrote the decisions of 1 photo to sidecars; skipped 1 photo in a shared folder not confirmed', 'Wrote the decisions of 2 photos to sidecars'])
+	})
+
+	// spec: XMP-007.13
+	it('writes nothing when every picture is skipped and says so', async () => {
+		const { flow, acknowledged, toasts, saves } = flowWith()
+		flow.ask(writesOf(2))
+
+		await flow.confirm(rated, () => true)
+
+		expect([acknowledged, saves]).toEqual([[], []])
+		expect(toasts.map(({ message }) => message)).toEqual(['No stored decisions to write here; skipped 2 photos in shared folders not confirmed'])
 	})
 })

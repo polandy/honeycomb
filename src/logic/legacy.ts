@@ -8,12 +8,11 @@ import type { StoredTags, Tag } from './tag.ts'
 import { sameDecision, UNDECIDED } from './decision.ts'
 import { memberIds } from './pairing.ts'
 
-/** A picture with legacy rows: whether a member has a stored decision, its stored tags, and whether it lies in a shared folder. */
+/** A picture with legacy rows: whether a member has a stored decision, and its stored tags. */
 export interface LegacyWrite {
 	readonly picture: Picture<ListingEntry>
 	readonly decided: boolean
 	readonly tags: readonly Tag[]
-	readonly shared: boolean
 }
 
 /** The folders still holding legacy rows, and how many file ids the user no longer reaches (XMP-007.1). */
@@ -33,7 +32,6 @@ export function legacyWrites(
 	pictures: readonly Picture<ListingEntry>[],
 	decisions: ReadonlyMap<number, Decision>,
 	tagsOf: (picture: Picture<ListingEntry>) => readonly Tag[],
-	shared: (picture: Picture<ListingEntry>) => boolean,
 ): LegacyWrite[] {
 	return pictures.flatMap((picture) => {
 		const decided = memberIds(picture).some((fileId) => {
@@ -41,8 +39,14 @@ export function legacyWrites(
 			return decision !== undefined && !sameDecision(decision, UNDECIDED)
 		})
 		const tags = tagsOf(picture)
-		return decided || tags.length > 0 ? [{ picture, decided, tags, shared: shared(picture) }] : []
+		return decided || tags.length > 0 ? [{ picture, decided, tags }] : []
 	})
+}
+
+/** The pictures a run writes, and how many it skips in shared folders not confirmed (XMP-007.13). */
+export function withoutUnconfirmed(writes: readonly LegacyWrite[], unconfirmed: (picture: Picture<ListingEntry>) => boolean) {
+	const written = writes.filter(({ picture }) => !unconfirmed(picture))
+	return { written, skipped: writes.length - written.length }
 }
 
 /** Whether a picture of the cull has legacy rows to write (XMP-007.7). */

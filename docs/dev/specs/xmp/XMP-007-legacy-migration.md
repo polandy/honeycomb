@@ -32,10 +32,21 @@ rows of files the user no longer reaches until the user exports or discards them
 **The ⋯ entry.** *Write decisions to sidecars…* in the grid's ⋯ menu is offered while a picture
 of the cull has a stored decision other than undecided or a stored tag. It asks first: the dialog
 names how many photos in which folders, says the database value wins where a sidecar says
-otherwise and that tags are added, and warns when a picture lies in a shared folder. It needs
+otherwise and that tags are added. It needs
 *Write decisions to XMP sidecars* set to *On* (SETTINGS-001.24), so every
 picture gets a sidecar; with another setting the dialog says so and *Write to sidecars* is
-disabled. On confirm, every decided picture's sidecars get all four decision fields of the
+disabled.
+
+**Shared folders.** A picture in a shared folder needs the same confirmation as deciding it
+(XMP-008.4): per opened folder including its subfolders, kept in `confirmedSharedFolders`. The
+run skips every picture in a shared folder not confirmed; it keeps its rows. The dialog says how
+many photos it skips, that everyone with access and digiKam, darktable and Lightroom see the
+decisions of a confirmed folder, and offers one *Confirm <folder>* button per opened folder to
+confirm. A confirmed folder's pictures are written by this run, or by the next one when it was
+confirmed later, e.g. by deciding a picture there. With every picture skipped, *Write to
+sidecars* is disabled.
+
+On confirm, every decided picture's sidecars get all four decision fields of the
 stored decision, every tagged picture's sidecars get its stored tags added (the union), in one
 pass (XMP-003.16). The server keeps refusing what it refuses (XMP-002), among them an overwrite
 without file versions. A picture whose every sidecar answered `saved`, or needed no save, is
@@ -46,7 +57,8 @@ resume. The cull keeps showing every picture as it did.
 *Cancel*, its footer shows how many photos were written, and each part's saved pictures are
 acknowledged as the part ends, so the notice's counts fall while it runs. It ends with one toast:
 how many photos were written, or how many of them could not be written with *Details*, which
-lists each failed sidecar with its reason and offers a retry (XMP-003.13). A run that stops on
+lists each failed sidecar with its reason and offers a retry (XMP-003.13); after `;` it adds how
+many photos it skipped in shared folders not confirmed. A run that stops on
 an error says so, and a run without photos says there is nothing to write.
 
 **The notice.** While writing is *On* and legacy rows remain, the grid shows a notice. Its
@@ -154,7 +166,23 @@ after each part of a run, a copy or a forget; a failed read shows no notice and 
   reason; after an error it says *Could not write the sidecars; run it again later.* and
   acknowledges nothing; without pictures it says *No stored decisions to write here*
 
+### XMP-007.13 – A shared folder not confirmed is skipped until confirmed
+
+- **Given** writing *On*, a picture with a stored decision in a shared folder below the opened
+  folder `/Trip` (file id 7) that is not confirmed, and one in a folder that is not shared
+- **When** the user chooses *Write decisions to sidecars…* and confirms *Write to sidecars*
+- **Then** the dialog says *1 photo in a shared folder you have not confirmed is skipped* and
+  offers *Confirm Trip*; only the second picture's sidecars are saved and acknowledged, no
+  sidecar of the shared folder is saved, and the toast says *Wrote the decisions of 1 photo to
+  sidecars; skipped 1 photo in a shared folder not confirmed*
+- **And** after *Confirm Trip* the settings keep 7 in `confirmedSharedFolders`, the dialog no
+  longer skips, and the next run writes and acknowledges the shared picture; with every picture
+  skipped *Write to sidecars* is disabled
+
 ## Out of scope
+
+- Marking a folder of the notice as waiting for a confirmation: the inventory does not know which
+  folders are shared; the dialog of the ⋯ entry names them.
 
 - Locking a picture that still has legacy rows, and reading the cull through the XMP cache:
   ADR 0032 PR 6. Until then the cull still stores decisions and tags in the database, so a
@@ -169,3 +197,4 @@ after each part of a run, a copy or a forget; a failed read shows no notice and 
 |---|---|
 | 2026-11-15 | Written with ADR 0032 PR 5 |
 | 2026-11-17 | Clearer notice with folder buttons, *Save a copy* and *Forget…*; the run shows progress and one result (XMP-007.10–.12) |
+| 2026-11-18 | Shared folders need the confirmation of XMP-008.4; the run skips those not confirmed (XMP-007.13, owner decision #187) |

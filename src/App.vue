@@ -178,8 +178,11 @@ useHotkeys(() => {
 				:folderSet="folderSet"
 				:folders="folders"
 				:decisionOf="cull.decisionOf"
+				:unconfirmed="cull.unconfirmedOf"
+				:confirmationFolders="cull.confirmationFoldersOf"
 				:listFolders="props.listFolders"
-				:container="loupe !== null ? '.photo-loupe' : undefined" />
+				:container="loupe !== null ? '.photo-loupe' : undefined"
+				@confirmFolder="writeLock.confirmFolder" />
 			<SeriesCompareScreen ref="seriesScreen" />
 			<SettingsDialog
 				v-model:open="settingsOpen"

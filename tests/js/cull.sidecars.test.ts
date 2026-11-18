@@ -167,9 +167,10 @@ describe('useCull: writing through to the sidecars', () => {
 		expect(writes).toEqual([])
 		expect(locks.map(({ reason, folders }) => [reason, folders])).toEqual([['shared', [{ path: '/Trip', fileId: 7 }]]])
 		expect(cull.sharedPictures.value.map((each) => each.baseName)).toEqual(['IMG_2', 'IMG_10', 'IMG_9'])
-		expect(cull.legacy.value.map(({ picture, shared }) => [picture.baseName, shared])).toEqual([['IMG_2', true]])
+		expect(cull.legacy.value.map(({ picture }) => [picture.baseName, cull.unconfirmedOf(picture)])).toEqual([['IMG_2', true]])
 
 		settings.value = { ...settings.value, confirmedSharedFolders: [7] }
+		expect(cull.unconfirmedOf(picture('IMG_2'))).toBe(false)
 		locks[0]!.retry()
 		await flushPromises()
 		expect(writes.map((write) => write.map(({ name }) => name))).toEqual([['IMG_9']])
