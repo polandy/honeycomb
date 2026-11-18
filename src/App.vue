@@ -230,6 +230,8 @@ useHotkeys(() => {
 
 <style src="./flag-fills.css" />
 
+<style src="./coarse-controls.css" />
+
 <style src="./navigation-toggle.css" />
 
 <style scoped src="./app.css" />

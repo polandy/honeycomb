@@ -268,6 +268,13 @@ function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 	width: 8em;
 }
 
+@media (pointer: coarse) {
+	.settings-dialog__extension :deep(.button-vue) {
+		min-width: var(--default-clickable-area);
+		min-height: var(--default-clickable-area);
+	}
+}
+
 .settings-dialog__error {
 	color: var(--color-text-error, var(--color-error));
 	margin-block-start: var(--default-grid-baseline);

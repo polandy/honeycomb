@@ -10,7 +10,12 @@
 	padding: 0 calc(2 * var(--default-grid-baseline));
 	padding-inline-start: var(--honeycomb-toggle-gutter);
 	font-size: 13px;
-	--default-clickable-area: 32px;
+}
+
+@media (pointer: fine) {
+	.grid-toolbar {
+		--default-clickable-area: 32px;
+	}
 }
 
 .grid-toolbar :deep(.app-icon) {
@@ -86,17 +91,8 @@
 	}
 }
 
-/* The hit area, not the look, keeps the 44 px touch target. */
 @media (pointer: coarse) {
-	.grid-toolbar__set,
-	.grid-toolbar :deep(.button-vue) {
-		position: relative;
-	}
-
-	.grid-toolbar__set::before,
-	.grid-toolbar :deep(.button-vue)::before {
-		content: "";
-		position: absolute;
-		inset: -6px -2px;
+	.grid-toolbar__set {
+		min-height: var(--default-clickable-area);
 	}
 }

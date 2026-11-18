@@ -58,6 +58,8 @@ test.describe('on a phone', () => {
 		await openMenu(page, ['IMG_0004'], '1 photo, none in a series')
 		await expect(page.getByRole('menuitem', { name: /New series from 1 photo/ })).toBeDisabled()
 		await page.keyboard.press('Escape')
+		// The 44 px controls of a touch screen leave room for four tiles; the fifth renders once scrolled to.
+		await page.getByRole('gridcell').last().scrollIntoViewIfNeeded()
 		await page.getByRole('gridcell', { name: /^IMG_0005/ }).click()
 		await page.getByRole('button', { name: 'Series…', exact: true }).click()
 		await choose(page, /New series from 2 photos/, 'Made a series of 2 photos')

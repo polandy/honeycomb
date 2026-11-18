@@ -59,7 +59,6 @@ const CHIPS: readonly { flag: Flag, label: () => string }[] = [
 	align-items: center;
 	justify-content: center;
 	gap: var(--default-grid-baseline);
-	position: relative;
 	min-width: 28px;
 	min-height: 28px;
 	margin: 0;
@@ -92,10 +91,9 @@ const CHIPS: readonly { flag: Flag, label: () => string }[] = [
 }
 
 @media (pointer: coarse) {
-	.flag-filter__chip::before {
-		content: "";
-		position: absolute;
-		inset: -8px -2px;
+	.flag-filter__chip {
+		min-height: var(--default-clickable-area);
+		border-radius: calc(var(--default-clickable-area) / 2);
 	}
 }
 </style>

@@ -127,7 +127,8 @@ both orientations with its safe areas set, and a Playwright check opened eleven 
 settings, keyboard shortcuts): 99 screens. It flags a control that is clipped, lies in a safe
 area or is smaller than 44 × 44 px. It found two defects, now fixed: the bottom sheets' buttons
 sat under the Pixel's gesture bar, and *Clear filters* under its camera in landscape. All 99
-screens now pass, with no console errors.
+screens now pass, with no console errors. The same 44 px rule is checked in the real app on iPad
+viewports by `tests/e2e/touch-targets.spec.ts` (GRID-001.19).
 
 ### Loupe in landscape, per device
 
