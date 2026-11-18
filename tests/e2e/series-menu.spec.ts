@@ -10,6 +10,8 @@ import { createFolder, JPEG, upload, withCaptureTime } from './files.ts'
 /** Pixel 9 Pro in portrait. */
 const PHONE = { width: 410, height: 914 }
 const DESKTOP = { width: 1440, height: 900 }
+// Top of the compare, within the 1200 px screenshot width (docs/dev/02-workflow.md §2.7)
+const COMPARE_TOP = { x: 0, y: 0, width: 1200, height: 470 }
 
 /** A burst of three photos a second apart, and two loose photos hours later. */
 const PHOTOS = [['IMG_0001', '10:00:01'], ['IMG_0002', '10:00:02'], ['IMG_0003', '10:00:03'], ['IMG_0004', '13:00:00'], ['IMG_0005', '16:00:00']] as const
@@ -71,7 +73,7 @@ test.describe('on a phone', () => {
 })
 
 // spec: SERIES-005.7, SERIES-005.11, SERIES-005.17
-test('merges two series and removes a photo from its series on a desktop, kept after a reload, the series badged and subtitled as edited by hand', async ({ page }) => {
+test('merges two series and removes a photo from its series on a desktop, kept after a reload, the series badged and subtitled as edited by hand', async ({ page }, testInfo) => {
 	await page.setViewportSize(DESKTOP)
 	const folder = await cullPhotos(page)
 
@@ -86,8 +88,10 @@ test('merges two series and removes a photo from its series on a desktop, kept a
 	await cullFolder(page, folder)
 	const first = page.getByRole('gridcell', { name: /^IMG_0001.*Series edited by hand/ })
 	await expect(first.locator('.photo-tile__series .app-icon')).toHaveCount(1)
+	await first.screenshot({ path: testInfo.outputPath('series-badge-pinned.png'), animations: 'disabled' })
 	await first.getByRole('button', { name: 'Series of 4 – compare' }).click()
 	await expect(page.locator('.series-compare__subtitle')).toHaveText(/ · edited by hand$/)
+	await page.screenshot({ path: testInfo.outputPath('series-compare-subtitle.png'), animations: 'disabled', clip: COMPARE_TOP })
 	await page.keyboard.press('Escape')
 	await openMenu(page, ['IMG_0001', 'IMG_0002'], '1 photo in series ⧉ 4 · 1 loose')
 })
