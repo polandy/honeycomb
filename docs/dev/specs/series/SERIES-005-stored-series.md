@@ -38,10 +38,13 @@ through every new visual hash.
   | photos of two or more series | *Merge k series · m photos* (their whole series and the loose selected photos), *New series from n photos* |
   | any photo in a series | *Remove n photos from their series* |
 
-  The menu always shows three entries: *Add* (or *Merge* when the selection touches two series
-  or more), *New series* and *Remove*; *Add* or *Merge* comes first once a photo is in a series.
-  An entry that does not fit is shown disabled with the reason in its second line ("Select two
-  photos or more", "Select photos outside the series too"). A merge keeps the id of the first
+  The menu always shows four entries: *Add* (or *Merge* when the selection touches two series
+  or more), *New series*, *Remove* and, after a separator, *Series done* (*Reopen series* when
+  the series is done); *Add* or *Merge* comes first once a photo is in a series. *Series done*
+  fits when the selection touches exactly one series, stored or automatic, and acts on the whole
+  series as in the compare. An entry that does not fit is shown disabled with the reason in its
+  second line ("Select two photos or more", "Select photos outside the series too", "Select
+  photos of one series only"). A merge keeps the id of the first
   stored series; a touched automatic series keeps its other shown members as a stored series.
 - **Series compare:** the title row's ⋯ menu offers *Merge with the next series*, *Merge with the
   previous series* (next and previous by first capture time among every series of the folder
@@ -243,6 +246,21 @@ through every new visual hash.
 - **Then** it waits for that save instead of failing: its first statement is a write, so the
   transaction never reads a state another save changes before it writes
 
+### SERIES-005.28 – Series done from the grid
+
+- **Given** selection mode with photos of exactly one series, stored or automatic, that is open
+- **When** the user chooses *Series* → *Series done*
+- **Then** the whole series is marked done as in SERIES-005.14, with the toast "Marked the series
+  done · Undo"; when the series is done, the entry reads *Reopen series* and reopens it with the
+  toast "Reopened the series · Undo" (SERIES-005.15)
+
+### SERIES-005.29 – Series done does not fit
+
+- **Given** a selection with no photo in a series, or photos of two series or more
+- **When** the *Series…* menu is open
+- **Then** *Series done* is disabled, with "Select a photo of the series" or "Select photos of one
+  series only" in its second line
+
 ## Out of scope
 
 - A hint that a new photo looks like a stored series (D2; can come later).
@@ -260,3 +278,4 @@ through every new visual hash.
 | 2026-11-15 | SERIES-005.4–.7, .9, .11, .12 and .16 in the grid (#185 PR 4): the selection bar's *Series…* menu after *Tags* makes, adds to, merges and leaves series, each one undo step with a toast. |
 | 2026-11-15 | SERIES-005.8 and .9 in the series compare (#185 PR 5): the title row's ⋯ menu merges with the next or previous series, its second line "⧉ 3 · starts 14:03:40"; the compare then shows the merged series. |
 | 2026-11-15 | SERIES-005.14 and .15 in the series compare (#185 PR 6): the title row's ⋯ menu has the *Series done* toggle after a separator, pressed while done; marking stores an automatic series first, and the compare moves on as after *Skip*, or, opened from the loupe, keeps showing the series. The loupe's auto-advance, its resume position and the progress count a done series' unflagged pictures as decided. SERIES-005.17 and .18 are still open. |
+| 2026-11-18 | SERIES-005.28 and .29 in the grid (#230): the *Series…* menu has *Series done* / *Reopen series* after a separator, for a selection that touches exactly one series. |
