@@ -20,7 +20,7 @@ continues on any device and each user of a shared folder keeps their own.
   removed.
 - `400` for a malformed body; one malformed item writes nothing. `401` without a user.
 - A save writes only the file ids the user reaches as a photo; any other id is skipped, its row
-  neither written nor removed (ADR 0031). Saves are rate limited per user (APP-001.9).
+  neither written nor removed (ADR 0031), looked up 1,000 ids at a time (ADR 0038). Saves are rate limited per user (APP-001.9).
 - Since ADR 0032 the rows are legacy rows (XMP-007): the client reads them for every member after
   the listing, and a picture shows them, locked, until the ⋯ entry writes them to its sidecars
   (XMP-003.2, XMP-008.11); a failed lookup is logged and the pictures show their sidecars. The
@@ -155,6 +155,13 @@ The cull saves no decision any more (ADR 0032, XMP-006.7).
 - **Then** the user's photos in it are stored, nothing is written for that id, and a save of no
   such photo writes nothing
 
+### DECISIONS-001.20 – A save looks its file ids up in batches
+
+- **Given** a save of 2,000 decisions
+- **When** it is stored
+- **Then** its file ids are looked up 1,000 at a time in the user's files, shares included, not
+  one by one, and the same ids are reached as by a lookup of each (ADR 0038)
+
 ## Out of scope
 
 Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XMP sidecars (M5).
@@ -171,3 +178,4 @@ Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XM
 | 2026-11-14 | The clean-up job pages by row id without joining the file cache (DECISIONS-001.16–.18) |
 | 2026-11-15 | A save skips file ids that are not the user's photos (DECISIONS-001.19, ADR 0031, risk review R10) |
 | 2026-11-18 | The cull reads the rows as legacy rows and saves none (.14, .15 removed, ADR 0032, XMP-006.7) |
+| 2026-11-18 | A save looks its file ids up 1,000 at a time (DECISIONS-001.20, ADR 0038) |

@@ -25,7 +25,7 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
   visual hash of the user (SERIES-003).
 - `400` for a malformed body; one malformed item writes nothing. `401` without a user.
 - A save writes only the file ids the user reaches: a sidecar for `sidecar`, a JPEG for
-  `embedded`; any other id is skipped (ADR 0031). Saves and the `DELETE` are rate limited per user
+  `embedded`; any other id is skipped (ADR 0031). The ids are looked up 1,000 at a time (ADR 0038). Saves and the `DELETE` are rate limited per user
 (APP-001.9).
 - A save adds the tags of the rows it stores to the user's tag list (TAGS-003.13).
 - A row is valid while its `etag` equals the ETag the listing gives the file and its `reader` is
@@ -111,6 +111,13 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 - **Then** the cache stores the sidecar's row with that ETag and the rating 4, so the next visit
   does not read it
 
+### XMP-006.11 – A save looks its file ids up in batches
+
+- **Given** a save of 2,000 rows
+- **When** it is stored
+- **Then** its file ids are looked up 1,000 at a time in the user's files, shares included, not
+  one by one, and the same ids are reached as by a lookup of each (ADR 0038)
+
 ## Out of scope
 
 - A cache shared between users per file id and ETag (ADR 0032 Consequences).
@@ -122,3 +129,4 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 | 2026-11-15 | Accepted with ADR 0032 |
 | 2026-11-15 | The endpoints, the command and *Clear cache* (ADR 0032 PR 4); the save answers the ids stored |
 | 2026-11-18 | The cull reads through the cache and stores the rows of the sidecars it saves (XMP-006.7, .10); a save feeds the tag list (.9) |
+| 2026-11-18 | A save looks its file ids up 1,000 at a time (XMP-006.11, ADR 0038) |
