@@ -84,7 +84,7 @@ describe('useDeleteFlow, deleting by decision', () => {
 	})
 
 	// spec: DELETE-002.23
-	it('sends the pictures it could not check afresh as honeycomb saved them, so the server still holds a changed file, and says so', async () => {
+	it('sends the pictures it could not check afresh as honeycomb saved them once Delete anyway confirms, so the server still holds a changed file', async () => {
 		const saved = pictureOf(PAIR!.raw!, { ...PAIR!.rendered!, etag: 'saved-2' })
 		const check = async (): Promise<FreshCheck> => ({ passed: [], skipped: [{ picture: OTHER!, reason: 'notRejected' }], unchecked: [PAIR!] })
 		const answer = async () => [[{ fileId: 2, result: 'changed' }, { fileId: 1, result: 'skipped' }]]
@@ -92,22 +92,54 @@ describe('useDeleteFlow, deleting by decision', () => {
 
 		deleting.continueToSummary()
 		await deleting.confirm()
+		await deleting.confirm()
 
 		expect(sent).toEqual([[[{ fileId: 2, etag: 'saved-2' }, { fileId: 1, etag: 'etag-1' }]]])
 		expect(deleting.dialog.value).toMatchObject({ kind: 'report', report: { failed: [{ result: 'changed' }, { result: 'skipped' }] } })
-		expect(toasts).toEqual(['Moved 0 files to trash · 2 failed · Fresh check not possible for 1 photo · 1 photo skipped'])
+		expect(toasts).toEqual(['Moved 0 files to trash · 2 failed · 1 photo skipped'])
+	})
+
+	// spec: DELETE-002.25
+	it('asks before sending anything when the fresh check fails for some pictures', async () => {
+		const check = async (): Promise<FreshCheck> => ({ passed: [OTHER!], skipped: [], unchecked: [PAIR!] })
+		const { deleting, sent, toasts } = flow(allTrashed, undefined, undefined, check)
+
+		deleting.continueToSummary()
+		await deleting.confirm()
+
+		expect(sent).toEqual([])
+		expect(toasts).toEqual([])
+		expect(deleting.dialog.value).toMatchObject({ kind: 'unchecked', count: 1 })
+		expect(deleting.busy.value).toBe(false)
+	})
+
+	// spec: DELETE-002.25
+	it('sends nothing, the checked pictures neither, when the question is cancelled', async () => {
+		const check = async (): Promise<FreshCheck> => ({ passed: [OTHER!], skipped: [], unchecked: [PAIR!] })
+		const { deleting, sent, toasts } = flow(allTrashed, undefined, undefined, check)
+
+		deleting.continueToSummary()
+		await deleting.confirm()
+		deleting.close()
+
+		expect(sent).toEqual([])
+		expect(toasts).toEqual([])
+		expect(deleting.dialog.value).toBeNull()
 	})
 
 	// spec: DELETE-003.10
-	it('removes the RAWs it could not check afresh as honeycomb knows them, and says so', async () => {
+	it('removes the RAWs it could not check afresh as honeycomb knows them once Delete anyway confirms', async () => {
 		const { deleting, sent, toasts, pictures } = flow(allTrashed, undefined, undefined, async (chosen) => ({ passed: [], skipped: [], unchecked: chosen }))
 		pictures.value = [FRESH_PAIR]
 
 		deleting.removeRaws()
 		await deleting.confirm()
+		expect(sent).toEqual([])
+		expect(deleting.dialog.value).toMatchObject({ kind: 'unchecked', count: 1 })
+		await deleting.confirm()
 
 		expect(sent).toEqual([[[{ fileId: 1, etag: 'etag-1' }, { fileId: 3, etag: 'etag-3' }]]])
-		expect(toasts).toEqual([expect.stringMatching(/^Removed the RAWs of 1 photo .* · Fresh check not possible for 1 photo$/)])
+		expect(toasts).toEqual([expect.stringMatching(/^Removed the RAWs of 1 photo [^·]*$/)])
 	})
 
 	// spec: DELETE-002.15
