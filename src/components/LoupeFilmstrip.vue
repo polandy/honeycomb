@@ -214,15 +214,11 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 	pointer-events: auto;
 }
 
-/* The hit area reaches 44 px, 34 px with a fine pointer. */
-.loupe-filmstrip__tab::before {
-	content: '';
-	position: absolute;
-	inset: -12px -8px;
-}
-
+/* The hit area reaches 34 px with a fine pointer; a finger taps the thumbnail instead. */
 @media (pointer: fine) {
 	.loupe-filmstrip__tab::before {
+		content: '';
+		position: absolute;
 		inset: -7px -4px;
 	}
 }

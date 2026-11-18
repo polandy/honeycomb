@@ -543,9 +543,9 @@ earlier ad-hoc sizes; 1440 × 900 stays as the desktop check.
 Rules for every screen on every reference device:
 
 1. **Fits:** nothing clipped and no horizontal scroll, in both orientations and after a rotation.
-2. **Safe areas:** the page uses `viewport-fit=cover` and pads its edges with
-   `env(safe-area-inset-*)`; no control lies under the camera, the status bar or the home
-   indicator. Backgrounds and the photo may run underneath.
+2. **Safe areas:** no control lies under the camera, the status bar or the home indicator.
+   Nextcloud's layout sets no `viewport-fit=cover`, so the browser keeps the page inside the safe
+   areas; opting in (padding with `env(safe-area-inset-*)`) is an open item in `TODO.md`.
 3. **Thumbs:** *Pick* and *Reject* stay large and reachable without moving the grip
    ([Loupe layout](#loupe-layout)); every touch target is at least 44 × 44 px on a coarse
    pointer ([Control sizes](#control-sizes)).

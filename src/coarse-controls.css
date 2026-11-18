@@ -1,0 +1,11 @@
+/*
+ * SPDX-FileCopyrightText: 2026 honeycomb contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+/* Controls are 44 px on a touch screen (docs/dev/plan.md Control sizes). */
+@media (pointer: coarse) {
+	body {
+		--default-clickable-area: 44px;
+		--honeycomb-toggle-gutter: calc(var(--default-clickable-area) + 3 * var(--default-grid-baseline));
+	}
+}

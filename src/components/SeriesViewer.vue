@@ -278,6 +278,11 @@ onMounted(() => root.value!.focus())
 		bottom: calc(var(--photo-loupe-row, 56px) + var(--default-grid-baseline));
 	}
 
+	/* A full-width button would wrap into a second line and cover the Unflag button above the row. */
+	.series-viewer :deep(.pick-rest-button) {
+		width: auto;
+	}
+
 	.series-viewer__overlay {
 		transition: opacity 0.2s;
 	}
