@@ -115,4 +115,4 @@ release-please opens a release pull request from the Conventional Commits on `ma
 (`initial-version`; release-please defaults to 1.0.0 when no release exists).
 `appinfo/info.xml` and `package.json` are extra files in `release-please-config.json`, so their
 versions move with the release; a PHPUnit test keeps the two equal. The release's tarball, its
-signatures and the App Store upload: [`admin/releasing.md`](../user/admin/releasing.md).
+signatures and the App Store upload: [`releasing.md`](releasing.md).
