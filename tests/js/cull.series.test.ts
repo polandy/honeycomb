@@ -240,4 +240,21 @@ describe('useCull: series edits', () => {
 		expect(cull.progress.value).toEqual({ decided: 0, total: 4 })
 		expect(names(cull)).toEqual([['A', 'B', 'C', 'D']])
 	})
+
+	// spec: SERIES-005.28
+	it('marks the series of the selection done and reopens it, as the compare does', async () => {
+		const { cull } = editedCull()
+		await flushPromises()
+		const [A] = cull.pictures.value
+
+		const marked = cull.editSelection('done', [A!])
+		await flushPromises()
+		expect(marked).toMatchObject({ edit: 'done', names: ['A', 'B', 'C', 'D'], series: 1 })
+		expect(cull.progress.value).toEqual({ decided: 4, total: 4 })
+
+		const reopened = cull.editSelection('done', [A!])
+		await flushPromises()
+		expect(reopened).toMatchObject({ edit: 'reopen', names: ['A', 'B', 'C', 'D'] })
+		expect(cull.progress.value).toEqual({ decided: 0, total: 4 })
+	})
 })

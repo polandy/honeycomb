@@ -35,6 +35,7 @@ describe('menuEntries', () => {
 			{ edit: 'new', blocked: 'tooFew' },
 			{ edit: 'add', blocked: 'noSeries' },
 			{ edit: 'remove', blocked: 'noneInSeries' },
+			{ edit: 'done', blocked: 'noSeries', pressed: false },
 		])
 	})
 
@@ -44,13 +45,22 @@ describe('menuEntries', () => {
 			{ edit: 'add', blocked: null },
 			{ edit: 'new', blocked: null },
 			{ edit: 'remove', blocked: null },
+			{ edit: 'done', blocked: null, pressed: false },
 		])
 		expect(menuEntries(seriesOffer([A, B], seriesOf))[0]).toEqual({ edit: 'add', blocked: 'noLoose' })
 	})
 
 	// spec: SERIES-005.7
 	it('offers a merge when the selection touches two series', () => {
-		expect(menuEntries(seriesOffer([A, C], seriesOf)).map(({ edit }) => edit)).toEqual(['merge', 'new', 'remove'])
+		expect(menuEntries(seriesOffer([A, C], seriesOf)).map(({ edit }) => edit)).toEqual(['merge', 'new', 'remove', 'done'])
+	})
+
+	// spec: SERIES-005.28, SERIES-005.29
+	it('offers series done for exactly one series, pressed when it is done, and says why not', () => {
+		expect(menuEntries(seriesOffer([A, E], seriesOf)).at(-1)).toEqual({ edit: 'done', blocked: null, pressed: false })
+		expect(menuEntries(seriesOffer([A, C], seriesOf)).at(-1)).toEqual({ edit: 'done', blocked: 'manySeries', pressed: false })
+		const done = new Map<P, Series<P>>([[A, { ...first, stored: { id: 7, status: 'done', elsewhere: false } }]])
+		expect(menuEntries(seriesOffer([A], done)).at(-1)).toEqual({ edit: 'done', blocked: null, pressed: true })
 	})
 })
 
