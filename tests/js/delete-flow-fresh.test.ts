@@ -101,12 +101,12 @@ describe('useDeleteFlow, deleting by decision', () => {
 	// spec: DELETE-003.10
 	it('removes the RAWs it could not check afresh as honeycomb knows them, and says so', async () => {
 		const { deleting, sent, toasts, pictures } = flow(allTrashed, undefined, undefined, async (chosen) => ({ passed: [], skipped: [], unchecked: chosen }))
-		pictures.value = [PAIR!]
+		pictures.value = [FRESH_PAIR]
 
 		deleting.removeRaws()
 		await deleting.confirm()
 
-		expect(sent).toEqual([[[{ fileId: 1, etag: 'etag-1' }]]])
+		expect(sent).toEqual([[[{ fileId: 1, etag: 'etag-1' }, { fileId: 3, etag: 'etag-3' }]]])
 		expect(toasts).toEqual([expect.stringMatching(/^Removed the RAWs of 1 photo .* · Fresh check not possible for 1 photo$/)])
 	})
 

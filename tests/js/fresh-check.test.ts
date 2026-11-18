@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// @vitest-environment happy-dom
 import type { FreshCheckApi } from '../../src/fresh-check.ts'
 import type { EmbeddedXmpAnswer } from '../../src/logic/embedded-xmp.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'

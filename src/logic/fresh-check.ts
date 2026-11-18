@@ -100,6 +100,12 @@ export function freshVerdict(flow: DecisionFlow, picture: Picture<ListingEntry>,
 	return { decision, tags, jpegSidecar: flow === 'raws' ? jpegSidecarOf(picture, sources) : null }
 }
 
+/** Whether a picture the fresh check could not read goes as the cull knows it: not a pair whose RAW sidecar's values would have to be copied to a new JPEG sidecar. */
+export function goesUnchecked(flow: DecisionFlow, picture: Picture<ListingEntry>): boolean {
+	const { created, existing } = sidecarTargets(picture)
+	return flow === 'rejects' || picture.rendered === null || existing.length === 0 || !created.includes(embeddedSidecarPath(picture.rendered))
+}
+
 /** Whether one sidecar's decision lets the picture go in the flow. */
 function letsGo(flow: DecisionFlow, decision: Decision): boolean {
 	return flow === 'rejects' ? decision.flag === 'rejected' : decision.flag !== 'rejected' && !decision.keepRaw
