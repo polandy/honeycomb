@@ -140,11 +140,11 @@
 	height: 16px;
 }
 
-/* The filmstrip frame's tab; Nextcloud's own button sizes outrank a single class. */
+/* Under the pair badge, as in the mockup; Nextcloud's own button sizes outrank a single class. */
 .photo-tile .photo-tile__series {
 	position: absolute;
 	top: 30px;
-	inset-inline-end: 6px;
+	inset-inline-start: 6px;
 	min-width: 0;
 	height: 20px;
 	min-height: 0;
