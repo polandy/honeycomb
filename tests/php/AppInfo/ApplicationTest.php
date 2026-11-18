@@ -23,9 +23,11 @@ use OCA\Honeycomb\Preview\RawPreviewProvider;
 use OCA\Honeycomb\Service\DecisionStore;
 use OCA\Honeycomb\Service\ExistingFiles;
 use OCA\Honeycomb\Service\OcpVersionBackends;
+use OCA\Honeycomb\Service\Pause;
 use OCA\Honeycomb\Service\PhotoFilesBelow;
 use OCA\Honeycomb\Service\PositionStore;
 use OCA\Honeycomb\Service\SeriesStore;
+use OCA\Honeycomb\Service\SystemPause;
 use OCA\Honeycomb\Service\TagStore;
 use OCA\Honeycomb\Service\VersionBackends;
 use OCA\Honeycomb\Service\VisualHashStore;
@@ -46,7 +48,7 @@ final class ApplicationTest extends TestCase {
 
 		(new \ReflectionClass(Application::class))->newInstanceWithoutConstructor()->register($context);
 
-		$this->assertSame([JpegDecoder::class => OcpJpegDecoder::class, DecisionStore::class => DecisionMapper::class, PositionStore::class => PositionMapper::class, SeriesStore::class => SeriesMapper::class, TagStore::class => TagMapper::class, VisualHashStore::class => VisualHashMapper::class, XmpCacheStore::class => XmpCacheMapper::class, ExistingFiles::class => FileCacheLookup::class, PhotoFilesBelow::class => FileCachePhotoFiles::class, VersionBackends::class => OcpVersionBackends::class], $aliases);
+		$this->assertSame([JpegDecoder::class => OcpJpegDecoder::class, DecisionStore::class => DecisionMapper::class, PositionStore::class => PositionMapper::class, SeriesStore::class => SeriesMapper::class, TagStore::class => TagMapper::class, VisualHashStore::class => VisualHashMapper::class, XmpCacheStore::class => XmpCacheMapper::class, ExistingFiles::class => FileCacheLookup::class, PhotoFilesBelow::class => FileCachePhotoFiles::class, VersionBackends::class => OcpVersionBackends::class, Pause::class => SystemPause::class], $aliases);
 	}
 
 	// spec: DECISIONS-001.12, DECISIONS-002.13

@@ -139,7 +139,7 @@ test('a picture restored from the trash bin keeps its file id and its decision',
 	const id = randomUUID().slice(0, 8)
 	const folder = `Restore ${id}`
 	await createFolder(page, folder)
-	// Nextcloud puts a second file of one name trashed in the same second over the first (TODO.md).
+	// Nextcloud puts a second file of one name trashed in the same second over the first (ADR 0037).
 	const path = `${folder}/IMG_${id}.jpg`
 	const fileId = await upload(page, path, JPEG)
 	const file = `/remote.php/dav/files/${ADMIN.username}/${path}`
@@ -159,6 +159,31 @@ test('a picture restored from the trash bin keeps its file id and its decision',
 	const back = await page.request.fetch(file, { method: 'PROPFIND', headers: { requesttoken, Depth: '0' }, data: '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><oc:fileid/></d:prop></d:propfind>' })
 	expect(await back.text()).toContain(`<oc:fileid>${fileId}</oc:fileid>`)
 	expect(await lookup()).toEqual({ decisions: [decision] })
+})
+
+// spec: DELETE-001.13
+test('two photos of one name from two folders, trashed in one request, can both be restored', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	const requesttoken = await requestToken(page)
+	const id = randomUUID().slice(0, 8)
+	const files = []
+	for (const folder of [`Same name ${id} A`, `Same name ${id} B`]) {
+		await createFolder(page, folder)
+		const path = `${folder}/IMG_${id}.jpg`
+		files.push({ path, fileId: await upload(page, path, JPEG), etag: await etagOf(page, path) })
+	}
+
+	const pictures = files.map(({ fileId, etag }) => [{ fileId, etag }])
+	const trashed = await page.request.post(`${API}/trash`, { data: { pictures }, headers: { requesttoken } })
+	expect(await trashed.json()).toEqual({ pictures: files.map(({ fileId }) => [{ fileId, result: 'trashed' }]) })
+
+	for (const { path, fileId } of files) {
+		const entry = await trashEntry(page, path)
+		const restored = await page.request.fetch(entry, { method: 'MOVE', headers: { requesttoken, Destination: `${TRASHBIN}/restore/${randomUUID()}` } })
+		expect(restored.status(), await restored.text()).toBe(201)
+		const back = await page.request.fetch(`/remote.php/dav/files/${ADMIN.username}/${path}`, { method: 'PROPFIND', headers: { requesttoken, Depth: '0' }, data: '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><oc:fileid/></d:prop></d:propfind>' })
+		expect(await back.text()).toContain(`<oc:fileid>${fileId}</oc:fileid>`)
+	}
 })
 
 /** Culls a folder of `IMG_0001.jpg` with a sidecar and `IMG_0002.jpg` without, and picks both, which writes both sidecars at once. */

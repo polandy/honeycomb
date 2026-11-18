@@ -22,9 +22,11 @@ use OCA\Honeycomb\Preview\RawPreviewProvider;
 use OCA\Honeycomb\Service\DecisionStore;
 use OCA\Honeycomb\Service\ExistingFiles;
 use OCA\Honeycomb\Service\OcpVersionBackends;
+use OCA\Honeycomb\Service\Pause;
 use OCA\Honeycomb\Service\PhotoFilesBelow;
 use OCA\Honeycomb\Service\PositionStore;
 use OCA\Honeycomb\Service\SeriesStore;
+use OCA\Honeycomb\Service\SystemPause;
 use OCA\Honeycomb\Service\TagStore;
 use OCA\Honeycomb\Service\VersionBackends;
 use OCA\Honeycomb\Service\VisualHashStore;
@@ -56,6 +58,7 @@ final class Application extends App implements IBootstrap {
 		$context->registerServiceAlias(ExistingFiles::class, FileCacheLookup::class);
 		$context->registerServiceAlias(PhotoFilesBelow::class, FileCachePhotoFiles::class);
 		$context->registerServiceAlias(VersionBackends::class, OcpVersionBackends::class);
+		$context->registerServiceAlias(Pause::class, SystemPause::class);
 		$context->registerEventListener(UserDeletedEvent::class, ForgetDeletedUser::class);
 		$context->registerPreviewProvider(RawPreviewProvider::class, RawPreviewProvider::MIME_TYPE_REGEX);
 	}
