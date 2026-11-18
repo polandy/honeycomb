@@ -69,6 +69,8 @@ const props = withDefaults(defineProps<{
 	unsaved?: Picture<ListingEntry> | null
 	/** Shows a name bar above each tile (GRID-004.4). */
 	fileNames?: boolean
+	/** Whether the pointer is coarse, so the name bar offers the ⓘ button (GRID-004.12). */
+	touch?: boolean
 }>(), {
 	observeSize: observeElementSize,
 	loadImage: decodeSource,
@@ -78,6 +80,7 @@ const props = withDefaults(defineProps<{
 	tagsOf: () => [],
 	unsaved: null,
 	fileNames: false,
+	touch: () => window.matchMedia('(pointer: coarse)').matches,
 	schedule: browserSchedule,
 	frame: browserFrame,
 })
@@ -187,7 +190,7 @@ const { onTouchStart, onTouchEnd } = useGridPinch({
 	dragging: () => tiles.dragOrigin.value !== null,
 	resize: (size) => emit('update:tileSize', size),
 })
-const info = useTileInfo(() => scroller.value, props.schedule)
+const { shown: info, toggle: toggleInfo } = useTileInfo(() => scroller.value, props.schedule)
 
 // Toggling the name bars keeps the focused or the top tile in place (GRID-004.6).
 watch([layout, () => props.fileNames], ([next, names], [previous, hadNames]) => {
@@ -271,6 +274,7 @@ defineExpose({
 							:picture="picture"
 							:size="layout.tileWidth"
 							:nameBar="props.fileNames"
+							:infoButton="props.fileNames && props.touch"
 							:decision="props.decisionOf(picture)"
 							:tags="props.tagsOf(picture).length"
 							:unsaved="picture === props.unsaved"
@@ -283,6 +287,7 @@ defineExpose({
 							@click="tiles.onClick(imageMember(picture).fileId, $event)"
 							@keydown="tiles.onKeydown(imageMember(picture).fileId, $event)"
 							@pointerdown="tiles.onPointerDown(imageMember(picture).fileId, $event)"
+							@info="toggleInfo"
 							@compareSeries="emit('compareSeries', props.seriesOf!.get(picture)!, picture)" />
 					</div>
 				</template>

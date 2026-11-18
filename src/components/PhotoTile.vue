@@ -48,6 +48,8 @@ const props = withDefaults(defineProps<{
 	unsaved?: boolean
 	/** Whether the name bar above the photo shows the base name (GRID-004.4). */
 	nameBar?: boolean
+	/** Whether the name bar ends in the ⓘ button that opens the tile info, on touch (GRID-004.12). */
+	infoButton?: boolean
 }>(), {
 	decision: () => UNDECIDED,
 	series: null,
@@ -56,6 +58,7 @@ const props = withDefaults(defineProps<{
 	tags: 0,
 	unsaved: false,
 	nameBar: false,
+	infoButton: false,
 	selecting: false,
 	selected: false,
 	offscreen: false,
@@ -66,6 +69,8 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
 	/** The badge was tapped: compare the series, or select it in selection mode (SERIES-002.13). */
 	compareSeries: []
+	/** The ⓘ button was tapped; the tile's element is where the tile info points (GRID-004.12). */
+	info: [tile: HTMLElement]
 }>()
 
 const member = computed(() => imageMember(props.picture))
@@ -191,7 +196,11 @@ onBeforeUnmount(() => pending?.load.cancel())
 		:aria-label="label"
 		data-tip-hover-only
 		:aria-selected="props.selecting ? props.selected : undefined">
-		<div v-if="props.nameBar" class="photo-tile__name" aria-hidden="true">
+		<div
+			v-if="props.nameBar"
+			class="photo-tile__name"
+			:class="{ 'photo-tile__name--info': props.infoButton }"
+			aria-hidden="true">
 			<span class="photo-tile__name-head">{{ name.head }}</span><span class="photo-tile__name-tail">{{ name.tail }}</span>
 		</div>
 		<div class="photo-tile__photo">
@@ -228,6 +237,17 @@ onBeforeUnmount(() => pending?.load.cancel())
 				<span v-if="props.unsaved" class="photo-tile__unsaved" aria-hidden="true" />
 			</span>
 		</div>
+		<button
+			v-if="props.infoButton"
+			type="button"
+			class="photo-tile__info"
+			data-tile-info-button
+			tabindex="-1"
+			:aria-label="t('honeycomb', 'Tile info')"
+			@pointerdown.stop
+			@click.stop="emit('info', ($event.currentTarget as HTMLElement).closest<HTMLElement>('.photo-tile')!)">
+			<AppIcon name="info" />
+		</button>
 	</div>
 </template>
 

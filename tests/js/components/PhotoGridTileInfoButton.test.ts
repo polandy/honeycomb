@@ -37,11 +37,11 @@ enableAutoUnmount(afterEach)
 
 describe('PhotoGrid tile info button', () => {
 	// spec: GRID-004.12
-	it('puts an ⓘ button in each tile\'s name bar on touch', async () => {
+	it('puts an ⓘ button on each tile at its name bar on touch', async () => {
 		const touch = await mountTouch()
 
 		expect(infoButton(touch, 0).exists()).toBe(true)
-		expect(tile(touch, 0).find('.photo-tile__name button[aria-label="Tile info"]').exists()).toBe(true)
+		expect(tile(touch, 0).find('.photo-tile__name--info').exists()).toBe(true)
 		expect(touch.wrapper.findAll('button[aria-label="Tile info"]').length).toBe(touch.wrapper.findAll('[role="gridcell"]').length)
 	})
 

@@ -73,3 +73,32 @@ test('keeps the capture time of the tile info on one line where the text is wide
 	expect(Math.round(lines)).toBe(1)
 	await page.screenshot({ path: testInfo.outputPath('tile-info-one-line.png'), animations: 'disabled' })
 })
+
+test.describe('on touch', () => {
+	test.use({ hasTouch: true, isMobile: true, viewport: SCREENSHOT_VIEWPORTS['pixel-portrait'] })
+
+	// spec: GRID-004.12
+	test('opens the tile info by a 44 px ⓘ button, closes it by a tap beside', async ({ page }, testInfo) => {
+		await page.goto('/index.php/apps/honeycomb/')
+		await putSettings(page, { ...E2E_SETTINGS, showFileNames: true })
+		await page.reload()
+		const folder = `Names ${randomUUID().slice(0, 8)}`
+		await createFolder(page, folder)
+		await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+		await upload(page, `${folder}/IMG_0002.jpg`, JPEG)
+		await cullFolder(page, folder)
+
+		const button = page.getByRole('gridcell', { name: /^IMG_0001/ }).getByRole('button', { name: 'Tile info' })
+		const box = (await button.boundingBox())!
+		expect(box.width).toBeGreaterThanOrEqual(44)
+		expect(box.height).toBeGreaterThanOrEqual(44)
+
+		const info = page.locator('.tile-info')
+		await button.tap()
+		await expect(info).toContainText('IMG_0001')
+		await page.screenshot({ path: testInfo.outputPath('tile-info-button.png'), animations: 'disabled' })
+		await page.getByRole('grid', { name: 'Photos' }).tap({ position: { x: 4, y: 4 } })
+		await expect(info).toBeHidden()
+		await expect(page.getByRole('gridcell', { name: /^IMG_0001/ })).not.toHaveAttribute('aria-selected')
+	})
+})
