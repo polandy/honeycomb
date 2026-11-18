@@ -265,7 +265,11 @@ folder with all its subfolders. That set of folders is the *folder set*.
    the folder permissions, versions and XMP cache (#219–#245): the listing numbers are unchanged.
    A bulk save costs 3 queries per item, since `UserPhotos::photos` looks every file id up on its
    own: 2,000 decisions or tag lists took 6,000 queries in 0.67 s, 60,000 took 180,000 queries in
-   19.5 s and ~250 MB. On MySQL or
+   19.5 s and ~250 MB. Measured on 2026-11-18 after the cull read through the XMP cache
+   (XMP-006.7): the cache lookup of 5,000 rows took 6 queries and 13 ms, of 50,000 rows 51
+   queries and 0.13 s; saving them on a cold first visit costs the same 3 queries per row,
+   1.7 s and 16.8 s. In the browser, parsing and showing 5,000 sidecars took 0.45 s, 50,000
+   took 3.0 s; with the rows cached, 0.02 s and 0.2 s. On MySQL or
    PostgreSQL each query adds a network round trip, so the share lookups dominate a deep tree and
    the per-item lookups a large save.
 
