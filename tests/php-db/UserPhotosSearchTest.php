@@ -21,18 +21,25 @@ use OCP\Share\IShare;
 /** The batch lookup of `UserPhotos` in a real Nextcloud: the ids a user reaches, shares included (ADR 0038). */
 final class UserPhotosSearchTest extends DbTestCase {
 	private const string USER = 'honeycomb-reach';
-	private const string OTHER = 'honeycomb-reach-other';
 	private const string PASSWORD = 'honeycomb-reach-Passw0rd-long!';
 	private const string QUERY_LOG = '/tmp/honeycomb-reach-queries.log';
 	private const int UNKNOWN_ID = 2_000_000_000;
 
+	private static int $tests = 0;
+
 	private IUserManager $users;
+
+	/** The user and the sharing user of this test, new per test: a user's mounts are set up once per process. */
+	private string $uid;
+	private string $otherUid;
 
 	#[\Override]
 	protected function setUp(): void {
 		parent::setUp();
 		$this->users = Server::get(IUserManager::class);
-		foreach ([self::USER, self::OTHER] as $uid) {
+		$this->uid = self::USER . '-' . ++self::$tests;
+		$this->otherUid = $this->uid . '-other';
+		foreach ([$this->uid, $this->otherUid] as $uid) {
 			$this->users->get($uid)?->delete();
 			$this->users->createUser($uid, self::PASSWORD);
 		}
@@ -41,7 +48,7 @@ final class UserPhotosSearchTest extends DbTestCase {
 	#[\Override]
 	protected function tearDown(): void {
 		Server::get(IConfig::class)->deleteSystemValue('query_log_file');
-		foreach ([self::USER, self::OTHER] as $uid) {
+		foreach ([$this->uid, $this->otherUid] as $uid) {
 			$this->users->get($uid)?->delete();
 		}
 		parent::tearDown();
@@ -52,7 +59,7 @@ final class UserPhotosSearchTest extends DbTestCase {
 	}
 
 	private function user(): IUser {
-		$user = $this->users->get(self::USER);
+		$user = $this->users->get($this->uid);
 		$this->assertNotNull($user);
 		return $user;
 	}
@@ -74,29 +81,34 @@ final class UserPhotosSearchTest extends DbTestCase {
 	private function share(Folder $folder): void {
 		$shares = Server::get(IShareManager::class);
 		$share = $shares->newShare();
-		$share->setNode($folder)->setShareType(IShare::TYPE_USER)->setSharedWith(self::USER)
-			->setSharedBy(self::OTHER)->setShareOwner(self::OTHER)->setPermissions(Constants::PERMISSION_READ);
+		$share->setNode($folder)->setShareType(IShare::TYPE_USER)->setSharedWith($this->uid)
+			->setSharedBy($this->otherUid)->setShareOwner($this->otherUid)->setPermissions(Constants::PERMISSION_READ);
 		$shares->createShare($share);
 	}
 
 	/** How many queries `$run` sends to the database. */
 	private function queries(\Closure $run): int {
-		file_put_contents(self::QUERY_LOG, '');
+		$before = self::loggedQueries();
 		Server::get(IConfig::class)->setSystemValue('query_log_file', self::QUERY_LOG);
 		$run();
 		Server::get(IConfig::class)->deleteSystemValue('query_log_file');
-		return count(file(self::QUERY_LOG) ?: []);
+		return self::loggedQueries() - $before;
+	}
+
+	private static function loggedQueries(): int {
+		$lines = is_file(self::QUERY_LOG) ? file(self::QUERY_LOG) : [];
+		return $lines === false ? 0 : count($lines);
 	}
 
 	// spec: DECISIONS-001.19, TAGS-001.14, XMP-006.3, DECISIONS-001.20, TAGS-001.15, XMP-006.11
 	public function testReachesTheSameIdsAsALookupOfEach(): void {
-		$other = $this->home(self::OTHER);
+		$other = $this->home($this->otherUid);
 		$shared = $this->newFile($other, 'Shared/S.JPG');
 		$sharedFolder = $other->get('Shared');
 		$this->assertInstanceOf(Folder::class, $sharedFolder);
 		$this->share($sharedFolder);
 		$foreign = $this->newFile($other, 'Private/X.JPG');
-		$home = $this->home(self::USER);
+		$home = $this->home($this->uid);
 		$jpeg = $this->newFile($home, 'P/A.JPG');
 		$raw = $this->newFile($home, 'P/A.CR3');
 		$sidecar = $this->newFile($home, 'P/A.CR3.xmp');
@@ -114,7 +126,7 @@ final class UserPhotosSearchTest extends DbTestCase {
 
 	// spec: DECISIONS-001.20, TAGS-001.15, XMP-006.11
 	public function testAddsOneQueryPerThousandIds(): void {
-		$jpeg = $this->newFile($this->home(self::USER), 'P/A.JPG');
+		$jpeg = $this->newFile($this->home($this->uid), 'P/A.JPG');
 		$this->photos()->photos($this->user(), [$jpeg]);
 
 		$one = $this->queries(fn () => $this->assertSame([$jpeg], $this->photos()->photos($this->user(), [$jpeg])));
