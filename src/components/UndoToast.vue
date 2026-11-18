@@ -61,7 +61,28 @@ onBeforeUnmount(() => {
 		@focusin="emit('focus', true)"
 		@focusout="onFocusOut"
 		@pointerdown="onPointerDown">
-		<span>{{ props.toast.message }}</span>
+		<div class="undo-toast__row">
+			<span>{{ props.toast.message }}</span>
+			<span v-if="props.toast.action !== null || props.toast.offer" aria-hidden="true">·</span>
+			<!-- mousedown would move the focus out of the loupe and its keys -->
+			<button
+				v-if="props.toast.offer"
+				type="button"
+				class="undo-toast__action undo-toast__offer"
+				v-bind="tip(props.toast.offer.label, keyCap('pick-rest'))"
+				@mousedown.prevent
+				@click="emit('offer')">
+				{{ props.toast.offer.label }}
+			</button>
+			<button
+				v-if="props.toast.action !== null"
+				type="button"
+				class="undo-toast__action"
+				@mousedown.prevent
+				@click="emit('act')">
+				{{ props.toast.action.label }}
+			</button>
+		</div>
 		<details v-if="props.toast.details" class="undo-toast__details">
 			<summary class="undo-toast__summary">
 				{{ t('honeycomb', 'Details') }}
@@ -72,25 +93,6 @@ onBeforeUnmount(() => {
 				</li>
 			</ul>
 		</details>
-		<span v-if="props.toast.action !== null || props.toast.offer" aria-hidden="true">·</span>
-		<!-- mousedown would move the focus out of the loupe and its keys -->
-		<button
-			v-if="props.toast.offer"
-			type="button"
-			class="undo-toast__action undo-toast__offer"
-			v-bind="tip(props.toast.offer.label, keyCap('pick-rest'))"
-			@mousedown.prevent
-			@click="emit('offer')">
-			{{ props.toast.offer.label }}
-		</button>
-		<button
-			v-if="props.toast.action !== null"
-			type="button"
-			class="undo-toast__action"
-			@mousedown.prevent
-			@click="emit('act')">
-			{{ props.toast.action.label }}
-		</button>
 	</div>
 </template>
 
@@ -101,9 +103,8 @@ onBeforeUnmount(() => {
 	bottom: calc(16px + env(safe-area-inset-bottom, 0px));
 	z-index: 10001;
 	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: calc(2 * var(--default-grid-baseline));
+	flex-direction: column;
+	justify-content: center;
 	width: fit-content;
 	max-width: 92%;
 	min-height: 48px;
@@ -115,9 +116,10 @@ onBeforeUnmount(() => {
 	box-shadow: 0 2px 12px var(--color-box-shadow);
 }
 
-.undo-toast__details {
-	order: 1;
-	flex-basis: 100%;
+.undo-toast__row {
+	display: flex;
+	align-items: center;
+	gap: calc(2 * var(--default-grid-baseline));
 }
 
 .undo-toast__summary {
