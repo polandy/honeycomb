@@ -74,7 +74,8 @@ export function freshCheck(api: FreshCheckApi, context: FreshCheckContext) {
 		const listings = await Promise.all(folders.map((folder) => settled(async () => (await api.listEntries(folder, false)).entries, 'Could not list the folder afresh; deleting as known')))
 		const failed = new Set(folders.filter((_, index) => listings[index] === null))
 		const entries = mergeListings(listings.filter((listing) => listing !== null))
-		const listed = pictures.filter((picture) => !freshFolders([picture]).some((folder) => failed.has(folder)))
+		const unlisted = (picture: Picture<ListingEntry>) => freshFolders([picture]).some((folder) => failed.has(folder))
+		const listed = pictures.filter((picture) => !unlisted(picture))
 		const { matched, skipped } = matchFresh(listed, pairPictures(entries, context.pairing()))
 		const { sidecars, embedded } = freshLookups(matched.map(({ fresh }) => fresh))
 		const sizes = new Map(entries.map((entry) => [entry.fileId, entry.size]))
@@ -90,7 +91,7 @@ export function freshCheck(api: FreshCheckApi, context: FreshCheckContext) {
 		}
 		const passed: Picture<ListingEntry>[] = []
 		const held: SkippedPicture[] = [...skipped]
-		const known = pictures.filter((picture) => !listed.includes(picture))
+		const known = pictures.filter(unlisted)
 		for (const { picture, fresh } of matched) {
 			if (unread(fresh)) {
 				known.push(picture)
