@@ -107,10 +107,11 @@ final class TrashService {
 
 	/** Deletes the file, which the trash bin keeps unless `$done` is `Deleted`, and returns `$done` or the failure; a delete for good is logged without the path (DELETE-001.14). */
 	private function deleteFile(IUser $user, File $file, TrashResult $done): TrashResult {
+		$fileId = $file->getId();
 		try {
 			$file->delete();
 			if ($done === TrashResult::Deleted) {
-				$this->logger->warning('A file was deleted permanently', ['fileId' => $file->getId(), 'user' => $user->getUID()]);
+				$this->logger->warning('A file was deleted permanently', ['fileId' => $fileId, 'user' => $user->getUID()]);
 			}
 			return $done;
 		} catch (NotPermittedException) {
@@ -120,7 +121,7 @@ final class TrashService {
 		} catch (NotFoundException) {
 			return TrashResult::NotFound;
 		} catch (\Exception $e) {
-			$this->logger->warning('A file could not be moved to the trash bin', ['fileId' => $file->getId(), 'exception' => $e]);
+			$this->logger->warning('A file could not be moved to the trash bin', ['fileId' => $fileId, 'exception' => $e]);
 			return TrashResult::Failed;
 		}
 	}

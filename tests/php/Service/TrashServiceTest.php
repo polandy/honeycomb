@@ -129,7 +129,7 @@ final class TrashServiceTest extends TestCase {
 			4 => $this->file(4, 'IMG_0003.JPG'),
 		];
 		$logged = [];
-		$logger = $this->createMock(LoggerInterface::class);
+		$logger = $this->createStub(LoggerInterface::class);
 		$logger->method('warning')->willReturnCallback(static function (string $message, array $context) use (&$logged): void {
 			$logged[] = [$message, $context];
 		});
