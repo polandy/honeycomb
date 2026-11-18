@@ -108,6 +108,14 @@ stays the same.
 - **Then** exactly one toggle shows, centred vertically in the toolbar row, with no toolbar
   control under it; hovering it keeps it fully opaque and tints its background
 
+### APP-001.12 – A dialog closed while it opens logs no error
+
+- **Given** a dialog that is taken away before its opening fade has ended, such as the folder
+  picker confirmed at once, or the series compare opened from the toolbar, the `n` key or a series
+  badge right after
+- **Then** its focus trap is skipped and nothing is logged as an error; any other error is still
+  logged as one (APP-001.5)
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -123,3 +131,4 @@ stays the same.
 | 2026-11-15 | Every write route is rate limited per user (APP-001.9, ADR 0031, risk review R10) |
 | 2026-11-16 | Each page loads its script by its content-hashed name (APP-001.10, ADR 0033) |
 | 2026-11-17 | The navigation toggle is centred in the toolbar row, alone and opaque on hover (APP-001.11) |
+| 2026-11-18 | A dialog closed while it opens logs no focus trap error (APP-001.12) |

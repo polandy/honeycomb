@@ -21,6 +21,21 @@ describe('createHoneycombApp', () => {
 		expect(logger.error).toHaveBeenCalledWith('Unhandled error in the honeycomb UI', { error, info: 'render function' })
 	})
 
+	// spec: APP-001.12
+	it('logs no error for the focus trap of a dialog that was taken away while it opened, and still logs any other', () => {
+		const logger = fakeLogger()
+		const handler = createHoneycombApp(logger, true).config.errorHandler!
+		const vanished = new Error('`fallbackFocus` was specified but was not a node, or did not return a node')
+		const other = new Error('`initialFocus` was specified but was not a node, or did not return a node')
+
+		handler(vanished, null, 'transition hook')
+		handler(other, null, 'transition hook')
+
+		expect(logger.error).toHaveBeenCalledTimes(1)
+		expect(logger.error).toHaveBeenCalledWith('Unhandled error in the honeycomb UI', { error: other, info: 'transition hook' })
+		expect(logger.debug).toHaveBeenCalledWith('A dialog was closed while it opened, its focus trap is skipped', { error: vanished })
+	})
+
 	// spec: SETTINGS-001.26
 	it('reads whether the Versions app is on from the page, on unless it says off', () => {
 		const root = (value?: string) => {
