@@ -9,86 +9,18 @@ namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\InvalidTrashRequestException;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
-use OCA\Honeycomb\Service\TrashBinGuard;
-use OCA\Honeycomb\Service\TrashService;
-use OCA\Honeycomb\Service\UserFolderResolver;
-use OCA\Honeycomb\Service\UserPhotos;
-use OCP\App\IAppManager;
-use OCP\Config\IUserConfig;
 use OCP\Files\File;
 use OCP\Files\Folder;
-use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
-use OCP\Files\Storage\IStorage;
-use OCP\IAppConfig;
-use OCP\IUser;
 use OCP\Lock\LockedException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 final class TrashServiceTest extends TestCase {
-	/** @var list<int> file ids in the order they were trashed */
-	private array $trashed = [];
-
-	private function user(): IUser {
-		$user = $this->createStub(IUser::class);
-		$user->method('getUID')->willReturn('alice');
-		return $user;
-	}
-
-	/** A file of alice's that records its delete, or throws `$failure` instead; `$size` bytes against a trash bin size of 1000. */
-	private function file(int $id, string $name, string $mime = 'image/jpeg', bool $deletable = true, ?\Throwable $failure = null, int $size = 1, bool $trashBin = true): File {
-		$storage = $this->createStub(IStorage::class);
-		$storage->method('instanceOfStorage')->willReturnCallback(static fn (string $class): bool => $trashBin && $class === 'OCA\Files_Trashbin\Storage');
-		$file = $this->createStub(File::class);
-		$file->method('getStorage')->willReturn($storage);
-		$file->method('getSize')->willReturn($size);
-		$file->method('getId')->willReturn($id);
-		$file->method('getName')->willReturn($name);
-		$file->method('getMimetype')->willReturn($mime);
-		$file->method('getEtag')->willReturn("etag-$id");
-		$file->method('isDeletable')->willReturn($deletable);
-		$file->method('delete')->willReturnCallback(function () use ($id, $failure): void {
-			if ($failure !== null) {
-				throw $failure;
-			}
-			$this->trashed[] = $id;
-		});
-		return $file;
-	}
-
-	/** @param array<int, Node> $nodes alice's nodes by file id */
-	private function service(array $nodes, bool $trashBin = true, ?LoggerInterface $logger = null): TrashService {
-		$userFolder = $this->createStub(Folder::class);
-		$userFolder->method('getFirstNodeById')->willReturnCallback(static fn (int $id): ?Node => $nodes[$id] ?? null);
-		$root = $this->createStub(IRootFolder::class);
-		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
-		$apps = $this->createStub(IAppManager::class);
-		$apps->method('isEnabledForUser')->willReturnCallback(static fn (string $app): bool => $app === 'files_trashbin' && $trashBin);
-		$userConfig = $this->createStub(IUserConfig::class);
-		$userConfig->method('getValueString')->willReturnArgument(3);
-		$appConfig = $this->createStub(IAppConfig::class);
-		$appConfig->method('getValueString')->willReturn('1000');
-		$guard = new TrashBinGuard($userConfig, $appConfig);
-		return new TrashService(new UserPhotos(new UserFolderResolver($root)), $apps, $guard, $logger ?? $this->createStub(LoggerInterface::class));
-	}
-
-	/**
-	 * The request form of a picture: each file id with its listed ETag.
-	 * @return list<array{fileId: int, etag: string}>
-	 */
-	private static function picture(int ...$fileIds): array {
-		return array_values(array_map(static fn (int $id): array => ['fileId' => $id, 'etag' => "etag-$id"], $fileIds));
-	}
-
-	/** @return list<list<array{fileId: int, result: string}>> */
-	private static function results(array $pictures): array {
-		/** @var list<list<array{fileId: int, result: string}>> */
-		return json_decode(json_encode($pictures, JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR);
-	}
+	use TrashServiceFixtures;
 
 	/**
 	 * A RAW, a JPEG and the RAW's sidecar, with the sidecar sent first.

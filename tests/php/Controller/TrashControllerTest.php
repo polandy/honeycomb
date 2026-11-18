@@ -11,14 +11,17 @@ use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\TrashController;
 use OCA\Honeycomb\Service\TrashBinGuard;
+use OCA\Honeycomb\Service\TrashNameSpacing;
 use OCA\Honeycomb\Service\TrashService;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
+use OCA\Honeycomb\Tests\Service\FakeClock;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Config\IUserConfig;
 use OCP\Files\File;
 use OCP\Files\Folder;
@@ -58,7 +61,8 @@ final class TrashControllerTest extends TestCase {
 		$appConfig = $this->createStub(IAppConfig::class);
 		$appConfig->method('getValueString')->willReturnArgument(2);
 		$guard = new TrashBinGuard($userConfig, $appConfig);
-		$trash = new TrashService(new UserPhotos(new UserFolderResolver($root)), $apps, $guard, $this->createStub(LoggerInterface::class));
+		$spacing = new TrashNameSpacing($this->createStub(ITimeFactory::class), new FakeClock());
+		$trash = new TrashService(new UserPhotos(new UserFolderResolver($root)), $apps, $guard, $spacing, $this->createStub(LoggerInterface::class));
 		return new TrashController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $trash);
 	}
 
