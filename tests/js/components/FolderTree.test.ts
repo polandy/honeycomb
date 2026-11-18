@@ -214,7 +214,7 @@ describe('FolderTree', () => {
 
 	// spec: LISTING-003.20
 	it('puts a tilde before a collapsed count that may be incomplete and speaks "about", but not on its own count', async () => {
-		const approximate = { ...FOLDERS[''] ![0]!, photoFilesBelowApproximate: true }
+		const approximate = { ...FOLDERS['']![0]!, photoFilesBelowApproximate: true }
 		const { wrapper, answer } = await mountTree([], false, { ...FOLDERS, '': [approximate, ...FOLDERS['']!.slice(1)] })
 		const count = (name: string) => item(wrapper, name).find('.folder-tree__count')
 

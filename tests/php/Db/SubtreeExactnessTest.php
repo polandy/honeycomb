@@ -34,6 +34,11 @@ final class SubtreeExactnessTest extends TestCase {
 	}
 
 	// spec: LISTING-003.20
+	public function testAStorageNobodyCanNameMayMissFiles(): void {
+		$this->assertTrue(SubtreeExactness::mayMissFiles(1024, null));
+	}
+
+	// spec: LISTING-003.20
 	public function testAMountNotScannedYetMayMissFiles(): void {
 		$this->assertTrue(SubtreeExactness::unscannedMount(0));
 		$this->assertTrue(SubtreeExactness::unscannedMount(-1));
