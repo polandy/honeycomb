@@ -88,7 +88,6 @@ async function coldRender(page: Page, fileId: number, size: number): Promise<num
 // The iPad's pixel ratio: the grid's sharp tier is 1024 px there, not the small one.
 test.use({ deviceScaleFactor: 2 })
 
-// spec: IMAGES-001.12
 // spec: GRID-001.15
 test('measures the first sharp image, the six loads in flight and the 4096 px tier', async ({ page }) => {
 	// Uploading and rendering a dozen 24 MP pairs outlasts the default 30 s; the 120 s waits below bound each step.
