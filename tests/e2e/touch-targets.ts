@@ -52,7 +52,7 @@ export function touchTargetFaults(scope: Locator): Promise<string[]> {
 			if (!control.matches(targets) || control.matches(exempt) || !visible(element) || element.closest('[aria-hidden=true], [inert], [disabled]')) {
 				continue
 			}
-			element.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+			element.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' })
 			const box = element.getBoundingClientRect()
 			if (box.width === 0 || box.height === 0) {
 				continue
