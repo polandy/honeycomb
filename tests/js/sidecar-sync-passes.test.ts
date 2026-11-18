@@ -27,6 +27,8 @@ function sync(answer: (item: SidecarSaveItem) => SidecarSaveAnswer = (item) => s
 	})
 	const saves: SidecarSaveItem[][] = []
 	const sidecars = useSidecarSync({
+		lookupXmpCache: async () => [],
+		saveXmpCache: async () => undefined,
 		lookupSidecars: async (fileIds) => fileIds.map(() => ({ result: 'read', bytes: BYTES, etag: 'e', size: BYTES.length, mtime: 1 })),
 		lookupEmbeddedXmp: async (fileIds) => fileIds.map(() => ({ result: 'none' })),
 		saveSidecars: async (items) => {

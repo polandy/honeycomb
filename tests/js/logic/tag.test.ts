@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { changedTags, combinedChange, hasEveryTag, leafOf, revertTagRows, sortedTags, storableTags, tagOf, withTagRows } from '../../../src/logic/tag.ts'
+import { changedTags, combinedChange, hasEveryTag, leafOf, sortedTags, storableTags, tagOf, withTagRows } from '../../../src/logic/tag.ts'
 
 describe('tagOf', () => {
 	// spec: XMP-004.1
@@ -64,19 +64,11 @@ describe('storableTags', () => {
 	})
 })
 
-describe('withTagRows and revertTagRows', () => {
+describe('withTagRows', () => {
 	const before = new Map([[1, ['a']], [2, ['b']]])
 
 	it('sets each row and drops the file of an empty one', () => {
 		expect(withTagRows(before, [{ fileId: 1, tags: [] }, { fileId: 3, tags: ['c'] }])).toEqual(new Map([[2, ['b']], [3, ['c']]]))
-	})
-
-	// spec: TAGS-002.8
-	it('puts back what each row replaced unless a later change set the file since', () => {
-		const rows = [{ fileId: 1, tags: ['x'] }, { fileId: 2, tags: ['y'] }, { fileId: 3, tags: ['z'] }]
-		const later = withTagRows(withTagRows(before, rows), [{ fileId: 2, tags: ['later'] }])
-
-		expect(revertTagRows(later, rows, before)).toEqual(new Map([[1, ['a']], [2, ['later']]]))
 	})
 })
 

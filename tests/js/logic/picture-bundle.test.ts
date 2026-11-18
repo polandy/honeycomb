@@ -93,23 +93,6 @@ describe('pictureBundle', () => {
 		expect(scheduler.timers[0]!.cancelled).toBe(true)
 	})
 
-	// spec: XMP-003.30
-	it('flushes the writes a held save queues once it settles', async () => {
-		const { written, bundle, write } = bundled()
-		let settle = () => {}
-		const save = new Promise<void>((resolve) => (settle = resolve)).then(() => void write(['A'], 'rate'))
-		void bundle.hold(save)
-		let flushed = false
-		void bundle.flush().then(() => (flushed = true))
-		await flushPromises()
-		expect(flushed).toBe(false)
-
-		settle()
-		await flushPromises()
-		expect(written).toEqual(['rate'])
-		expect(flushed).toBe(true)
-	})
-
 	it('flushes nothing and leaves nothing when nothing waits', async () => {
 		const { written, waiting, bundle } = bundled()
 

@@ -10,14 +10,13 @@ import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
-import { logger } from '../../src/logger.ts'
-import { mountApp, openCull, shownNames, stored } from './app-cull.ts'
+import { decidedRows, mountApp, openCull, shownNames } from './app-cull.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
 
 /** The app on a cull with the loupe open on IMG_10, the pair of files 2 and 3. */
-async function openLoupe(saveDecisions?: () => Promise<void>) {
+async function openLoupe() {
 	const scheduler = fakeScheduler()
-	const mounted = mountApp({ schedule: scheduler.schedule, ...(saveDecisions && { saveDecisions }) })
+	const mounted = mountApp({ schedule: scheduler.schedule })
 	await openCull(mounted.wrapper)
 	mounted.wrapper.findComponent(PhotoGrid).vm.$emit('open', shownNames(mounted.wrapper).indexOf('IMG_10'))
 	await flushPromises()
@@ -26,7 +25,6 @@ async function openLoupe(saveDecisions?: () => Promise<void>) {
 }
 
 const toastText = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast).exists() ? wrapper.findComponent(UndoToast).text() : null
-const pair = (flag: Parameters<typeof stored>[1]) => [stored(2, flag), stored(3, flag)]
 
 enableAutoUnmount(afterEach)
 
@@ -35,7 +33,7 @@ describe('App: the undo toast', () => {
 
 	// spec: LOUPE-002.8
 	it('says what a decision in the loupe changed, undoes it by Undo and says so, then goes away', async () => {
-		const { wrapper, loupe, picture, saved, scheduler } = await openLoupe()
+		const { wrapper, loupe, picture, scheduler } = await openLoupe()
 		expect(picture.baseName).toBe('IMG_10')
 
 		loupe.vm.$emit('decide', { kind: 'flag', flag: 'rejected' }, picture)
@@ -46,7 +44,6 @@ describe('App: the undo toast', () => {
 
 		await wrapper.findComponent(UndoToast).find('button').trigger('click')
 		await flushPromises()
-		expect(saved).toEqual([pair('rejected'), pair('unflagged')])
 		expect(loupe.props('decisionOf')(picture).flag).toBe('unflagged')
 		expect(toastText(wrapper)).toBe('Undid: Rejected IMG_10')
 
@@ -57,7 +54,7 @@ describe('App: the undo toast', () => {
 
 	// spec: LOUPE-002.9
 	it('undoes only the latest decision, once', async () => {
-		const { wrapper, loupe, picture, saved } = await openLoupe()
+		const { wrapper, loupe, picture } = await openLoupe()
 		loupe.vm.$emit('decide', { kind: 'flag', flag: 'picked' }, picture)
 		loupe.vm.$emit('decide', { kind: 'rating', rating: 4 }, picture)
 		await flushPromises()
@@ -66,7 +63,7 @@ describe('App: the undo toast', () => {
 		await wrapper.findComponent(UndoToast).find('button').trigger('click')
 		await flushPromises()
 
-		expect(saved.at(-1)!.map((row) => [row.flag, row.rating])).toEqual([['picked', 0], ['picked', 0]])
+		expect(decidedRows(wrapper).map((row) => [row.fileId, row.flag, row.rating])).toEqual([[2, 'picked', 0], [3, 'picked', 0]])
 		expect(wrapper.findComponent(UndoToast).find('button').exists()).toBe(false)
 	})
 
@@ -97,25 +94,5 @@ describe('App: the undo toast', () => {
 
 		expect(toastText(wrapper)).toBe('Picked 2 photos·Undo')
 		expect(wrapper.findComponent(UndoToast).props('top')).toBe(false)
-	})
-
-	// spec: LOUPE-002.10
-	it('puts the decision back when the server does not store the undo, and says so', async () => {
-		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
-		let calls = 0
-		const { wrapper, loupe, picture } = await openLoupe(async () => {
-			calls += 1
-			if (calls > 1) {
-				throw new Error('down')
-			}
-		})
-		loupe.vm.$emit('decide', { kind: 'flag', flag: 'rejected' }, picture)
-		await flushPromises()
-
-		await wrapper.findComponent(UndoToast).find('button').trigger('click')
-		await flushPromises()
-
-		expect(loupe.props('decisionOf')(picture).flag).toBe('rejected')
-		expect(wrapper.text()).toContain('Could not save the change')
 	})
 })

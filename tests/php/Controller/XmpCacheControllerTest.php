@@ -17,6 +17,7 @@ use OCA\Honeycomb\Service\VisualHash;
 use OCA\Honeycomb\Service\XmpCacheRow;
 use OCA\Honeycomb\Service\XmpCacheService;
 use OCA\Honeycomb\Tests\Service\FakeFiles;
+use OCA\Honeycomb\Tests\Service\FakeTagStore;
 use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
 use OCA\Honeycomb\Tests\Service\FakeXmpCacheStore;
 use OCA\Honeycomb\Tests\Service\XmpCacheRowTest;
@@ -53,7 +54,7 @@ final class XmpCacheControllerTest extends TestCase {
 		$userFolder->method('getFirstNodeById')->willReturnCallback(fn (int $id): ?Node => $id === 9 ? $this->file(9, '/P/A.XMP', 'application/octet-stream') : null);
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
-		$service = new XmpCacheService($this->store, new UserPhotos(new UserFolderResolver($root)));
+		$service = new XmpCacheService($this->store, new FakeTagStore(), new UserPhotos(new UserFolderResolver($root)));
 		return new XmpCacheController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $service, new CacheClear($this->store, $this->visualHashes));
 	}
 

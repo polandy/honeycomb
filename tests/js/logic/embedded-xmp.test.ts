@@ -5,8 +5,7 @@ import type { KnownSidecar, SidecarLookupAnswer } from '../../../src/logic/sidec
 
 import { describe, expect, it } from 'vitest'
 import { embeddedSourceOf, embeddedXmpSource } from '../../../src/logic/embedded-xmp.ts'
-import { planSaves, takeOverLookups } from '../../../src/logic/sidecar-sync.ts'
-import { takeOverTags } from '../../../src/logic/sidecar-tags.ts'
+import { planSaves } from '../../../src/logic/sidecar-sync.ts'
 import { readXmp } from '../../../src/logic/xmp/parse.ts'
 import { serializeXmp } from '../../../src/logic/xmp/serialize.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
@@ -60,30 +59,6 @@ describe('embeddedSourceOf', () => {
 		expect(embeddedSourceOf({ result: 'read', bytes: fixtureBytes('refused/unclosed.xmp') })).toEqual({ packet: null })
 		expect(embeddedSourceOf({ result: 'locked' })).toEqual({ failure: 'locked' })
 		expect(embeddedSourceOf(undefined)).toEqual({ failure: 'unreachable' })
-	})
-})
-
-describe('takeOverTags with the embedded XMP', () => {
-	const lookups = takeOverLookups([PAIR, ALONE], new Set())
-
-	// spec: TAGS-002.15
-	it('joins the embedded tags into the union of the sidecars', () => {
-		const { tagged: taken, unread } = takeOverTags(lookups, new Map([[11, read(tagged(['People/Anna']))]]), new Set(), new Map([[2, embedded('Places/Lisbon')], [3, { result: 'none' }]]))
-
-		expect(taken).toEqual([{ picture: PAIR, tags: ['People/Anna', 'Places/Lisbon'] }])
-		expect(unread).toEqual([])
-	})
-
-	// spec: TAGS-002.17
-	it('takes no tags over for a picture whose embedded XMP was not read, nor for one with stored tags', () => {
-		const { tagged: taken, unread } = takeOverTags(lookups, new Map([[11, read(tagged(['People/Anna']))]]), new Set(), new Map([[3, embedded('Kids')], [2, { result: 'notPermitted' }]]))
-		const none = takeOverTags(lookups, new Map([[11, read(tagged(['People/Anna']))]]), new Set(), new Map())
-
-		expect(taken).toEqual([{ picture: ALONE, tags: ['Kids'] }])
-		expect(unread).toEqual([{ path: '/P/IMG_0001.JPG', reason: 'notPermitted' }])
-		expect(none.tagged).toEqual([])
-		expect(none.unread).toEqual([{ path: '/P/IMG_0001.JPG', reason: 'unreachable' }, { path: '/P/B.JPG', reason: 'unreachable' }])
-		expect(takeOverTags(lookups, new Map(), new Set([1, 3]), new Map()).unread).toEqual([])
 	})
 })
 

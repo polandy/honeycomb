@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { Decision } from '../../src/logic/decision.ts'
-import type { ListingEntry } from '../../src/logic/listing.ts'
-import type { Picture } from '../../src/logic/pairing.ts'
 import type { SidecarFailure, SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from '../../src/logic/sidecar-sync.ts'
 import type { TagChange } from '../../src/logic/tag.ts'
 
@@ -39,6 +37,8 @@ function sync(answer: (item: SidecarSaveItem, call: number) => SidecarSaveAnswer
 	const failures: SidecarFailure[][] = []
 	const lookupAnswer = { current: (_fileId: number): SidecarLookupAnswer => ({ result: 'read', bytes: BYTES, etag: `etag-${lookups.length}`, size: BYTES.length, mtime: 100 }) }
 	const sidecars = useSidecarSync({
+		lookupXmpCache: async () => [],
+		saveXmpCache: async () => undefined,
 		lookupSidecars: async (fileIds, sizes) => {
 			lookups.push([...fileIds])
 			sized.push([...sizes ?? []])
@@ -96,7 +96,7 @@ describe('useSidecarSync: write', () => {
 		const { sidecars, sized } = sync()
 
 		await sidecars.write([listed], decisionOf({ ...UNDECIDED, rating: 1 }))
-		await sidecars.takeOver([listed], new Set(), null)
+		await sidecars.read([listed])
 
 		expect(sized).toEqual([[[12, 4096]], [[12, 4096]]])
 	})
@@ -180,66 +180,6 @@ describe('useSidecarSync: write', () => {
 
 		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'unreachable', fields: DECISION_FIELDS }])
 		expect(saves[0]!.map((item) => 'path' in item && item.path)).toEqual(['/P/IMG_0001.JPG.xmp'])
-	})
-})
-
-describe('useSidecarSync: takeOver', () => {
-	const NOTHING = { decided: [], tagged: [] }
-	const single = (id: number): Picture<ListingEntry> => pictureOf(listingEntry(id, `/P/S${id}.JPG`), listingEntry(id + 100, `/P/S${id}.JPG.xmp`))
-
-	// spec: XMP-003.1, XMP-003.2
-	it('returns the decision of the sidecars of each picture without a stored one', async () => {
-		const { sidecars, lookups } = sync()
-
-		const { decided } = await sidecars.takeOver([single(1), single(2)], new Set([2]), null)
-
-		expect(lookups).toEqual([[101]])
-		expect(decided).toEqual([{ picture: single(1), decision: { ...UNDECIDED, rating: 3 } }])
-	})
-
-	// spec: XMP-003.4
-	it('warns about what it could not take over', async () => {
-		const { sidecars, lookupAnswer } = sync()
-		const warn = vi.spyOn(logger, 'warn').mockImplementation(() => undefined)
-		lookupAnswer.current = () => ({ result: 'notPermitted' })
-
-		expect(await sidecars.takeOver([single(1)], new Set(), new Set())).toEqual(NOTHING)
-		expect(warn).toHaveBeenCalledWith('Could not take over the decision of a sidecar', { path: '/P/S1.JPG.xmp', reason: 'notPermitted' })
-
-		lookupAnswer.current = () => {
-			throw new Error('offline')
-		}
-		expect(await sidecars.takeOver([single(1)], new Set(), new Set())).toEqual(NOTHING)
-		expect(warn).toHaveBeenCalledWith('Could not look up the sidecars; nothing is taken over', expect.anything())
-	})
-
-	it('looks nothing up without sidecars to take over', async () => {
-		const { sidecars, lookups } = sync()
-
-		expect(await sidecars.takeOver([single(1)], new Set([1]), new Set())).toEqual(NOTHING)
-		expect(lookups).toEqual([])
-	})
-
-	// spec: TAGS-002.2, TAGS-002.3
-	it('returns the tags of the looked-up pictures without stored tags, and none when the stored tags are unknown', async () => {
-		const { sidecars, lookupAnswer } = sync()
-		const bytes = serializeXmp(packetOf({ 'digiKam:TagsList': seq(['Anna']) }), CANONICAL_TIME)
-		lookupAnswer.current = () => ({ result: 'read', bytes, etag: 'e', size: bytes.length, mtime: 1 })
-
-		expect((await sidecars.takeOver([single(1), single(2)], new Set(), new Set([2]))).tagged).toEqual([{ picture: single(1), tags: ['Anna'] }])
-		expect((await sidecars.takeOver([single(1)], new Set(), null)).tagged).toEqual([])
-	})
-
-	// spec: TAGS-002.5
-	it('warns about each sidecar tag the storage cannot hold', async () => {
-		const { sidecars, lookupAnswer } = sync()
-		const warn = vi.spyOn(logger, 'warn').mockImplementation(() => undefined)
-		const long = 'x'.repeat(256)
-		const bytes = serializeXmp(packetOf({ 'digiKam:TagsList': seq(['Anna', long]) }), CANONICAL_TIME)
-		lookupAnswer.current = () => ({ result: 'read', bytes, etag: 'e', size: bytes.length, mtime: 1 })
-
-		expect((await sidecars.takeOver([single(1)], new Set(), new Set())).tagged).toEqual([{ picture: single(1), tags: ['Anna'] }])
-		expect(warn).toHaveBeenCalledWith('A sidecar tag cannot be stored; it is left out', { tag: long })
 	})
 })
 

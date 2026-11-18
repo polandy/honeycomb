@@ -10,7 +10,7 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import SeriesCompare from '../../src/components/SeriesCompare.vue'
 import SeriesViewer from '../../src/components/SeriesViewer.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
-import { mountApp, openCull, SET } from './app-cull.ts'
+import { decidedFlags, mountApp, openCull, SET } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
@@ -45,7 +45,6 @@ async function takeOffer(wrapper: AppWrapper) {
 	await offer(wrapper).trigger('click')
 	await flushPromises()
 }
-const flags = (saved: { fileId: number, flag: string }[][]) => saved.at(-1)!.map(({ fileId, flag }) => `${fileId} ${flag}`).sort()
 /** Opens the series viewer on the compare's picture at `at`. */
 async function view(wrapper: AppWrapper, at: number) {
 	wrapper.findComponent(SeriesCompare).vm.$emit('view', at)
@@ -62,16 +61,16 @@ enableAutoUnmount(afterEach)
 describe('App: Reject the other N in the undo toast', () => {
 	// spec: LOUPE-002.16
 	it('offers it after a plain Pick in the loupe, rejects the others as one undo step and lands after the series', async () => {
-		const { wrapper, saved } = await openApp(1)
+		const { wrapper } = await openApp(1)
 		await press('p')
 
 		expect(toast(wrapper).text()).toBe('Picked IMG_2·Reject the other 2Undo')
 		await takeOffer(wrapper)
-		expect(flags(saved)).toEqual(['1 rejected', '3 rejected'])
+		expect(decidedFlags(wrapper, SHOTS)).toEqual(['1 rejected', '2 picked', '3 rejected'])
 		expect(toast(wrapper).text()).toContain('Picked IMG_2, rejected the rest')
 		expect(inLoupe(wrapper)).toBe('IMG_4')
 		await press('z', { ctrlKey: true })
-		expect(flags(saved)).toEqual(['1 unflagged', '3 unflagged'])
+		expect(decidedFlags(wrapper, SHOTS)).toEqual(['2 picked'])
 		expect(inLoupe(wrapper)).toBe('IMG_4')
 	})
 
@@ -88,7 +87,7 @@ describe('App: Reject the other N in the undo toast', () => {
 		await press('P', { shiftKey: true })
 		expect(inLoupe(second.wrapper)).toBe('IMG_4')
 		await takeOffer(second.wrapper)
-		expect(flags(second.saved)).toEqual(['1 rejected', '2 rejected'])
+		expect(decidedFlags(second.wrapper, SHOTS)).toEqual(['1 rejected', '2 rejected', '3 picked'])
 		expect(inLoupe(second.wrapper)).toBe('IMG_4')
 	})
 
@@ -108,14 +107,14 @@ describe('App: Reject the other N in the undo toast', () => {
 
 	// spec: SERIES-002.11
 	it('offers it after a Pick in the series viewer opened from the loupe, closes the compare and lands after the series', async () => {
-		const { wrapper, saved } = await openApp(0)
+		const { wrapper } = await openApp(0)
 		await press('n')
 		await view(wrapper, 0)
 		await press('p')
 
 		expect(offer(wrapper).text()).toBe('Reject the other 2')
 		await takeOffer(wrapper)
-		expect(flags(saved)).toEqual(['2 rejected', '3 rejected'])
+		expect(decidedFlags(wrapper, SHOTS)).toEqual(['1 picked', '2 rejected', '3 rejected'])
 		expect(wrapper.findComponent(SeriesViewer).exists()).toBe(false)
 		expect(wrapper.findComponent(SeriesCompare).exists()).toBe(false)
 		expect(inLoupe(wrapper)).toBe('IMG_4')

@@ -17,7 +17,7 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { TrashBinOffError } from '../../src/api.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
-import { mountApp, openCull, shownNames, stored, toolbarProps } from './app-cull.ts'
+import { decidedRows, mountApp, openCull, shownNames, stored, toolbarProps } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
 import { allMoved } from './move-fixtures.ts'
@@ -58,11 +58,11 @@ enableAutoUnmount(afterEach)
 describe('App: opening the move dialog', () => {
 	// spec: MOVE-004.1
 	it('opens on the focused tile by M, on the selection by Move…, and on the loupe\'s photo, holding the cull keys', async () => {
-		const { wrapper, saved } = await openApp()
+		const { wrapper } = await openApp()
 		await press('m')
 		expect(opened(wrapper)).toEqual(['IMG_2'])
 		await press('p')
-		expect(saved).toEqual([])
+		expect(decidedRows(wrapper)).toEqual([])
 		flowOf(wrapper).close()
 		await flushPromises()
 
@@ -119,7 +119,7 @@ describe('App: the name template', () => {
 describe('App: the move', () => {
 	// spec: MOVE-004.9, MOVE-004.11
 	it('takes the moved pictures out of the grid, and Ctrl+Z undoes the latest decision instead', async () => {
-		const { wrapper, sent, saved } = await openApp()
+		const { wrapper, sent } = await openApp()
 		await press('p')
 		await press('m')
 		expect(opened(wrapper)).toEqual(['IMG_2'])
@@ -130,7 +130,7 @@ describe('App: the move', () => {
 		expect(toastText(wrapper)).toContain('Moved IMG_2 to Out')
 
 		await press('z', { ctrlKey: true })
-		expect(saved.at(-1)).toEqual([stored(1, 'unflagged')])
+		expect(decidedRows(wrapper)).toEqual([])
 		expect(shownNames(wrapper)).toEqual(['IMG_9', 'IMG_10'])
 	})
 

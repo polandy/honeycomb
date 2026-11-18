@@ -14,7 +14,7 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import ShortcutSheet from '../../src/components/ShortcutSheet.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
-import { mountApp, openCull, shownNames, toolbarProps } from './app-cull.ts'
+import { decidedRows, mountApp, openCull, shownNames, toolbarProps } from './app-cull.ts'
 
 /** Presses a key on the page and returns whether the app handled it. */
 async function press(key: string, fields: KeyboardEventInit = {}) {
@@ -45,12 +45,12 @@ describe('App: keys on the grid', () => {
 
 	// spec: KEYS-001.5
 	it('decides the focused photo by a key and says so', async () => {
-		const { wrapper, grid, saved } = await openApp()
+		const { wrapper, grid } = await openApp()
 		grid.focused = 1
 
 		expect(await press('p')).toBe(true)
 
-		expect(saved).toEqual([[{ fileId: 4, rating: 0, colourLabel: null, flag: 'picked', keepRaw: false }]])
+		expect(decidedRows(wrapper)).toEqual([{ fileId: 4, rating: 0, colourLabel: null, flag: 'picked', keepRaw: false }])
 		expect(toastText(wrapper)).toBe('Picked IMG_9·Undo')
 		expect(grid.steps).toEqual([])
 	})
@@ -81,25 +81,23 @@ describe('App: keys on the grid', () => {
 
 	// spec: KEYS-001.6
 	it('decides the selection in selection mode, stepping the rating they share', async () => {
-		const { wrapper, saved } = await openApp()
+		const { wrapper, sidecarSaves } = await openApp()
 		await press('a', { ctrlKey: true })
 		await press('3')
 		await press(']')
 
-		expect(saved.map((rows) => rows.map(({ fileId, rating }) => [fileId, rating]))).toEqual([
-			[[1, 3], [4, 3], [2, 3], [3, 3]],
-			[[1, 4], [4, 4], [2, 4], [3, 4]],
-		])
+		expect(sidecarSaves).toHaveLength(2)
+		expect(decidedRows(wrapper).map(({ fileId, rating }) => [fileId, rating])).toEqual([[1, 4], [2, 4], [3, 4], [4, 4]])
 		expect(toolbarProps(wrapper).selected).toBe(3)
 	})
 
 	// spec: KEYS-001.6
 	it('does nothing for a decision key with nothing selected', async () => {
-		const { saved } = await openApp()
+		const { wrapper } = await openApp()
 		await press('a', { ctrlKey: true })
 		await press('d', { ctrlKey: true })
 		expect(await press('p')).toBe(false)
-		expect(saved).toEqual([])
+		expect(decidedRows(wrapper)).toEqual([])
 	})
 
 	// spec: KEYS-001.10
@@ -224,25 +222,25 @@ describe('App: keys on the grid', () => {
 
 	// spec: KEYS-001.9
 	it('acts on no key while the folder picker is open', async () => {
-		const { wrapper, saved } = await openApp()
+		const { wrapper } = await openApp()
 		wrapper.findComponent(GridToolbar).vm.$emit('changeFolders')
 		await flushPromises()
 
 		expect(await press('p')).toBe(false)
-		expect(saved).toEqual([])
+		expect(decidedRows(wrapper)).toEqual([])
 	})
 })
 
 describe('App: the shortcut sheet', () => {
 	// spec: KEYS-001.9, KEYS-001.12
 	it('opens by ? and closes by Ctrl+/, keeping the other keys away while open', async () => {
-		const { wrapper, saved } = await openApp({}, { ShortcutSheet: true })
+		const { wrapper } = await openApp({}, { ShortcutSheet: true })
 		const sheet = () => wrapper.findComponent(ShortcutSheet)
 		expect(await press('?', { shiftKey: true })).toBe(true)
 		expect(sheet().props('container')).toBeUndefined()
 
 		expect(await press('p')).toBe(false)
-		expect(saved).toEqual([])
+		expect(decidedRows(wrapper)).toEqual([])
 		await press('/', { ctrlKey: true })
 		expect(sheet().exists()).toBe(false)
 		await press('/', { metaKey: true })

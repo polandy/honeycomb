@@ -10,7 +10,7 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import PickRestButton from '../../src/components/PickRestButton.vue'
 import SeriesCompare from '../../src/components/SeriesCompare.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
-import { mountApp, openCull, SET } from './app-cull.ts'
+import { decidedFlags, mountApp, openCull, SET } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
@@ -94,23 +94,23 @@ describe('App: the series compare opened from the loupe', () => {
 describe('App: Pick this, reject the rest in the loupe', () => {
 	// spec: LOUPE-002.15
 	it('picks the shown photo by Shift+K, rejects the rest in one step and lands on the first photo after the series', async () => {
-		const { wrapper, saved } = await openLoupe(1)
+		const { wrapper } = await openLoupe(1)
 		await press('K', { shiftKey: true })
 
-		expect(saved.at(-1)!.map(({ fileId, flag }) => `${fileId} ${flag}`)).toEqual(['2 picked', '1 rejected', '3 rejected'])
+		expect(decidedFlags(wrapper, SHOTS)).toEqual(['1 rejected', '2 picked', '3 rejected'])
 		expect(toastText(wrapper)).toContain('Picked IMG_2, rejected the rest')
 		expect(inLoupe(wrapper)).toBe('IMG_4')
 		await press('z', { ctrlKey: true })
-		expect(saved.at(-1)!.map(({ fileId, flag }) => `${fileId} ${flag}`)).toEqual(['2 unflagged', '1 unflagged', '3 unflagged'])
+		expect(decidedFlags(wrapper, SHOTS)).toEqual([])
 	})
 
 	// spec: LOUPE-002.15
 	it('does the same by the rating row\'s button and stays on the picked photo when no photo follows the series', async () => {
-		const { wrapper, saved } = await openLoupe(4)
+		const { wrapper } = await openLoupe(4)
 		await wrapper.findComponent(PickRestButton).trigger('click')
 		await flushPromises()
 
-		expect(saved.at(-1)!.map(({ fileId, flag }) => `${fileId} ${flag}`)).toEqual(['5 picked', '4 rejected'])
+		expect(decidedFlags(wrapper, SHOTS)).toEqual(['4 rejected', '5 picked'])
 		expect(inLoupe(wrapper)).toBe('IMG_5')
 	})
 })

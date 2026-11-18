@@ -17,7 +17,6 @@ describe('useCull: warm-up', () => {
 			wait: async () => {},
 			warmPreviews: async (_fileIds, options) => { signals.push(options.signal!) },
 			lookupDecisions: async () => [],
-			saveDecisions: async () => undefined,
 			lookupSeries: NO_SERIES,
 			saveSeries: SAVED_SERIES,
 			tags: NO_TAGS,

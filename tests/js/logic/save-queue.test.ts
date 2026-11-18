@@ -27,7 +27,7 @@ function recorder() {
 }
 
 describe('saveQueue', () => {
-	// spec: DECISIONS-001.14
+	// spec: SERIES-005.19
 	it('sends one save at a time and then the waiting rows together, the newest per file id', async () => {
 		const sender = fakeSender()
 		const save = saveQueue(sender.send, { key: byFileId })
@@ -49,7 +49,7 @@ describe('saveQueue', () => {
 		expect(sender.sent).toHaveLength(2)
 	})
 
-	// spec: DECISIONS-001.15
+	// spec: SERIES-005.19
 	it('answers a failed save once the queue is idle, without the rows a later save stored', async () => {
 		const sender = fakeSender()
 		const save = saveQueue(sender.send, { key: byFileId })
@@ -67,7 +67,7 @@ describe('saveQueue', () => {
 		expect(results).toEqual([['second', { ok: true }], ['first', { ok: false, error, unsaved: [{ fileId: 2, value: 'a' }] }]])
 	})
 
-	// spec: DECISIONS-001.15
+	// spec: SERIES-005.19
 	it('answers the failed saves newest first, each with its own rows', async () => {
 		const sender = fakeSender()
 		const save = saveQueue(sender.send, { key: byFileId })
@@ -90,7 +90,7 @@ describe('saveQueue', () => {
 		])
 	})
 
-	// spec: DECISIONS-001.14
+	// spec: SERIES-005.19
 	it('sends at once again when the queue went idle', async () => {
 		const sender = fakeSender()
 		const save = saveQueue(sender.send, { key: byFileId })

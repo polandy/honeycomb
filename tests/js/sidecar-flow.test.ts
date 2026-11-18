@@ -39,6 +39,8 @@ function flowWith(answer: (item: SidecarSaveItem) => SidecarSaveAnswer = () => (
 	const saves: (number | string)[][] = []
 	const flow = useSidecarFlow({
 		lookupSidecars: async (fileIds) => fileIds.map(() => ({ result: 'read', bytes: BYTES, etag: 'e', size: BYTES.length, mtime: 1 })),
+		lookupXmpCache: async () => [],
+		saveXmpCache: async () => undefined,
 		lookupEmbeddedXmp: async (fileIds) => fileIds.map(() => ({ result: 'none' })),
 		saveSidecars: async (items) => {
 			progress.push(flow.progress.value)

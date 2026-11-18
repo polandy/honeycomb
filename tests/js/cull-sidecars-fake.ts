@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { CullSidecars } from '../../src/cull-seams.ts'
+import type { SidecarWrites } from '../../src/cull-seams.ts'
 import type { Decision, StoredDecision } from '../../src/logic/decision.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
@@ -23,19 +23,17 @@ export function access(changed: Record<string, Partial<FolderAccess>> = {}): Lis
 	return { folders: ['/Trip/A', '/Trip/B'].map(folder), opened: [{ path: '/Trip', fileId: 7 }] }
 }
 
-/** A cull whose sidecar take-over answers `takenOver` and whose writes and saves are recorded. */
-export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<string, Decision>>, saveFails?: boolean, storedTags?: StoredTags[], tagsTakenOver?: Map<string, Tag[]>, tagLookupFails?: boolean, sidecarWrite?: SidecarWrite } = {}) {
+/** A cull whose sidecars read as `takenOver` and whose writes are recorded. */
+export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<string, Decision>>, storedTags?: StoredTags[], tagsTakenOver?: Map<string, Tag[]>, tagLookupFails?: boolean, sidecarWrite?: SidecarWrite } = {}) {
 	const locks: WriteLock[] = []
-	const saved: StoredDecision[][] = []
-	const takeOvers: { names: string[], stored: number[], tagged: number[] | null }[] = []
+	const reads: string[][] = []
 	const tagWrites: { names: string[], change: TagChange }[] = []
-	const savedTags: StoredTags[][] = []
 	const tagLookups: number[][] = []
 	const writes: { name: string, decision: Decision, fields: readonly string[] }[][] = []
 	const settings = shallowRef<Settings>({ ...DEFAULT_SETTINGS, sidecarWrite: options.sidecarWrite ?? 'on' })
-	const sidecars: CullSidecars = {
-		takeOver: async (pictures, storedIds, taggedIds) => {
-			takeOvers.push({ names: pictures.map((picture) => picture.baseName), stored: [...storedIds].sort((a, b) => a - b), tagged: taggedIds && [...taggedIds].sort((a, b) => a - b) })
+	const sidecars: SidecarWrites = {
+		read: async (pictures) => {
+			reads.push(pictures.map((picture) => picture.baseName))
 			const decisions = await (options.takenOver ?? Promise.resolve(new Map<string, Decision>()))
 			const tags = options.tagsTakenOver ?? new Map<string, Tag[]>()
 			return {
@@ -51,7 +49,6 @@ export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promi
 			tagWrites.push({ names: pictures.map((picture) => picture.baseName), change })
 			return { written: pictures.length, failed: [] }
 		},
-		hold: (pending) => pending,
 	}
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
@@ -61,12 +58,6 @@ export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promi
 		lookupDecisions: async () => options.stored ?? [],
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
-		saveDecisions: async (rows) => {
-			saved.push([...rows])
-			if (options.saveFails) {
-				throw new Error('offline')
-			}
-		},
 		tags: {
 			lookupTags: async (fileIds) => {
 				tagLookups.push([...fileIds])
@@ -75,10 +66,9 @@ export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promi
 				}
 				return (options.storedTags ?? []).filter((row) => fileIds.includes(row.fileId))
 			},
-			saveTags: async (rows) => { savedTags.push([...rows]) },
 			loadTagList: async () => [],
 		},
 	}, fakeStorage(), () => settings.value, sidecars, (lock) => locks.push(lock))
 	const picture = (name: string): Picture<ListingEntry> => cull.pictures.value.find((each) => each.baseName === name)!
-	return { cull, saved, takeOvers, writes, settings, picture, tagWrites, savedTags, tagLookups, locks }
+	return { cull, reads, writes, settings, picture, tagWrites, tagLookups, locks }
 }

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, loadTagList, lookupTags, saveTags } from '../../src/api.ts'
+import { ApiResponseError, loadTagList, lookupTags } from '../../src/api.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({ generateUrl: (url: string) => `/index.php${url}` }))
@@ -33,24 +33,6 @@ describe('lookupTags', () => {
 		vi.mocked(axios.post).mockResolvedValue({ data })
 
 		await expect(lookupTags([1])).rejects.toThrow(ApiResponseError)
-	})
-})
-
-describe('saveTags', () => {
-	// spec: TAGS-001.13
-	it('stores the whole tag list of each file', async () => {
-		vi.mocked(axios.put).mockResolvedValue({ data: '' })
-
-		await saveTags([TAGGED, { fileId: 4, tags: [] }])
-
-		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/tags', { tags: [TAGGED, { fileId: 4, tags: [] }] })
-	})
-
-	// spec: TAGS-001.13
-	it('sends nothing for no files', async () => {
-		await saveTags([])
-
-		expect(axios.put).not.toHaveBeenCalled()
 	})
 })
 

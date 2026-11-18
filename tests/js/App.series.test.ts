@@ -14,7 +14,7 @@ import SeriesViewer from '../../src/components/SeriesViewer.vue'
 import ShortcutSheet from '../../src/components/ShortcutSheet.vue'
 import SimilarityStrip from '../../src/components/SimilarityStrip.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
-import { mountApp, openCull, SET, toolbarProps } from './app-cull.ts'
+import { decidedFlags, mountApp, openCull, SET, toolbarProps } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
@@ -74,7 +74,7 @@ describe('App: series compare', () => {
 
 	// spec: SERIES-001.9, SERIES-001.8
 	it('picks the active photo by Shift+K, rejects the rest in one step, and brings the series back on undo', async () => {
-		const { wrapper, saved } = await openApp()
+		const { wrapper } = await openApp()
 		await press('n')
 		await press('ArrowRight')
 		expect(compare(wrapper).props('active')).toBe(1)
@@ -82,7 +82,7 @@ describe('App: series compare', () => {
 		await press('K', { shiftKey: true })
 
 		expect(toastText(wrapper)).toContain('Picked IMG_2, rejected the rest')
-		expect(saved.at(-1)!.map(({ fileId, flag }) => `${fileId} ${flag}`)).toEqual(['2 picked', '1 rejected', '3 rejected'])
+		expect(decidedFlags(wrapper, SHOTS)).toEqual(['1 rejected', '2 picked', '3 rejected'])
 		expect(shown(wrapper)).toEqual(['IMG_4', 'IMG_5'])
 		await press('z', { ctrlKey: true })
 		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_2', 'IMG_3'])
