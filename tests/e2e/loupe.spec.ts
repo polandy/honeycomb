@@ -76,9 +76,13 @@ test('puts Pick and Reject at the side edges and Unflag bottom centre above the 
 	}
 
 	await page.setViewportSize({ width: 600, height: 900 })
-	const photo = (await loupe.getByRole('img', { name: 'IMG_0001' }).boundingBox())!
+	const photoBottom = async () => {
+		const photo = (await loupe.getByRole('img', { name: 'IMG_0001' }).boundingBox())!
+		return photo.y + photo.height
+	}
 	const [portraitPick, portraitReject, unflag] = [await box('Pick'), await box('Reject'), await box('Unflag')]
-	expect(portraitPick.y).toBeGreaterThanOrEqual(photo.y + photo.height)
+	// The stage refits the photo from its ResizeObserver, a frame after the viewport changes.
+	await expect.poll(photoBottom).toBeLessThanOrEqual(portraitPick.y)
 	expect(portraitReject.y).toBe(portraitPick.y)
 	expect(unflag.y).toBe(portraitPick.y)
 	expect(portraitPick.x).toBeLessThan(unflag.x)
