@@ -52,7 +52,8 @@ Every tool result is re-read, and paid for, on each later turn.
 1. **Files only through `OCP\Files`** (`IRootFolder`, the user's folder). Never touch the
    file system directly, so permissions, versions and the trash bin keep working.
 2. **Deleting moves to the Nextcloud trash bin** and acts on a whole pair (JPEG, RAW, sidecars).
-   A partial failure is reported per file and leaves a traceable state (milestone M4.1).
+   A partial failure is reported per file and leaves a traceable state (milestone M4.1). A file
+   the trash bin would not keep is deleted for good only after a warning naming it (ADR 0036).
 3. **No production code before the owner signs off the mockup** (ADR 0003, milestone M0).
 4. **Test first.** The failing test is its own commit before the implementation. Tests are
    deterministic: no sleep, no timing waits, no wall clock, no network. Never skip or retry a

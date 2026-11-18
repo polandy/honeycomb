@@ -1,6 +1,6 @@
 # 0030 – Trash only where the trash bin keeps the file
 
-- Status: accepted
+- Status: accepted, amended by [0036](0036-delete-for-good-after-an-explicit-warning.md)
 - Date: 2026-11-15
 - Extends: [0013](0013-trash-endpoint-and-pair-atomicity.md)
 
