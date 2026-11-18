@@ -399,8 +399,10 @@ main{overflow:hidden}
 .hkeys{display:flex;align-items:center;gap:4px;margin-left:8px}
 .hkeys>*{flex:none}
 .hkeys[hidden]{display:none}
-.hkeys .seg{background:transparent;border-color:var(--hdr-line)}
-.hkeys .seg button{color:var(--hdr-fg);padding:0 9px;border-right-color:var(--hdr-line)}
+.hkeys .fchips{gap:0}
+.hkeys .fc{background:transparent;border-color:transparent;color:var(--hdr-fg);padding:0}
+.hkeys .fc .sl{display:none}
+.hkeys .fc[aria-pressed="true"]{background:var(--hdr-tint);color:var(--hdr-fg)}
 .hkeys .btn.ghost{color:var(--hdr-fg);border-color:transparent}
 .hkeys .badge-n{background:var(--hdr-tint);color:var(--hdr-fg)}
 .hkeys .count{font-size:14px;white-space:nowrap;margin:0 4px}
@@ -418,11 +420,11 @@ main{overflow:hidden}
 .ib .lb{display:none}
 .ib .badge-n{position:absolute;top:1px;right:1px;min-width:18px;height:18px;font-size:11px;padding:0 4px;border-radius:9px}
 .ib[aria-pressed="true"] .badge-n{background:var(--honey);color:var(--on-honey)}
-.slim{position:relative;display:flex;align-items:center;gap:4px;min-height:var(--hit)}
-.slim .seg button{padding:0 9px;white-space:nowrap}
-.scope-pick{display:none;flex:0 1 auto;min-width:var(--hit);gap:4px;padding:0 8px 0 12px;font-weight:700}
-.scope-pick span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-@container app (max-width:520px){.seg .sl,.slim .seg{display:none}.slim .scope-pick{display:inline-flex}}
+.slim{position:relative;display:flex;align-items:center;gap:4px;min-height:var(--hit);padding-bottom:10px}
+.fchips{display:flex;gap:4px;flex:none}
+.fc{padding:0 12px;white-space:nowrap}
+.fc svg.ic{margin-right:0}
+@container app (max-width:520px){.slim .fc .sl{display:none}.slim .fc{padding:0}}
 .chip svg.ic{width:16px;height:16px;margin-right:4px;vertical-align:-3px}
 .swipe-hint svg.ic{width:20px;height:20px;vertical-align:-5px;margin-right:4px}
 .slim .count{margin:0 auto 0 10px;font-size:14px;white-space:nowrap}
@@ -747,11 +749,7 @@ const DE = {
   'Change folders: {paths}': 'Ordner wechseln: {paths}',
   'Change folders': 'Ordner wechseln',
   'Show': 'Anzeigen',
-  'Not rejected': 'Nicht abgelehnt',
-  'Show: {scope}': 'Anzeigen: {scope}',
-  'Undecided': 'Unentschieden',
-  'All': 'Alle',
-  'The flag filter overrides this': 'Der Markierungsfilter hat Vorrang',
+  'Flag filter': 'Markierungsfilter',
   '{done} / %n<span class="lb"> decided</span>': ['{done} / %n<span class="lb"> entschieden</span>', '{done} / %n<span class="lb"> entschieden</span>'],
   'More': 'Mehr',
   'Decided': 'Entschieden',
@@ -799,7 +797,6 @@ const DE = {
   'Rating: %n star': ['Bewertung: %n Stern', 'Bewertung: %n Sterne'],
   'No folder chosen': 'Kein Ordner gewählt',
   'Pick a folder to start culling.': 'Wähle einen Ordner, um mit dem Aussortieren zu beginnen.',
-  'Every photo is decided': 'Alle Fotos sind entschieden',
   'No photos left to cull': 'Keine Fotos mehr zum Aussortieren',
   'Show all': 'Alle anzeigen',
   'Show all {count}': 'Alle {count} anzeigen',
@@ -1220,8 +1217,9 @@ const TPL_SAMPLES = [
 /* ---------- state ---------- */
 const DEF_SETTINGS = () => ({rawExt:['NEF','CR3','ARW','RAF','DNG'], renderedExt:['JPG','JPEG','HEIC','HEIF','HIF'], folderMode:'same', rawFolder:'RAW', jpgFolder:'JPG',
   showSingles:true, swipeUp:'pick', swipeDown:'reject', autoAdvance:true, flagButtons:true, viKeys:false, storage:'both', moveTemplate:TPL_PRESETS[0][1]});
-const SCOPES = [['notrej', 'Not rejected', 'flagCross'], ['undecided', 'Undecided', 'flag'], ['all', 'All', 'grid']];
-const DEF_FILTERS = () => ({scope:'notrej', ratingOp:'gte', rating:null, labels:new Set(), flags:new Set(), pairs:new Set(), keepRaw:new Set(), folders:new Set(), tags:[]});
+const DEF_FLAGS = ['pick', 'none'];
+const flagsDefault = f => f.flags.size === DEF_FLAGS.length && DEF_FLAGS.every(v => f.flags.has(v));
+const DEF_FILTERS = () => ({ratingOp:'gte', rating:null, labels:new Set(), flags:new Set(DEF_FLAGS), pairs:new Set(), keepRaw:new Set(), folders:new Set(), tags:[]});
 const PREF_KEY = 'honeycomb.mockup.layout';
 const PREF_DEF = {ts:160, navW:248, navOpen:null, infoOpen:false, infoW:300, coachSeen:false};
 function loadPrefs(){ try { return {...PREF_DEF, ...JSON.parse(localStorage.getItem(PREF_KEY) || '{}')}; } catch (e) { return {...PREF_DEF}; } }
@@ -1363,8 +1361,8 @@ const RATING_OPS = {
   lte:{sym:'≤', test:(r, k) => r <= k, one:'At most %n star', many:'At most %n stars', name:'At most', next:'eq'},
   eq:{sym:'=', test:(r, k) => r === k, one:'Exactly %n star', many:'Exactly %n stars', name:'Exactly', next:'gte'},
 };
-function filtersActive(){ const f = S.filters; return f.rating !== null || f.labels.size || f.flags.size || f.pairs.size || f.keepRaw.size || f.folders.size || f.tags.length; }
-function activeFilterCount(){ const f = S.filters; return (f.rating !== null) + (f.labels.size > 0) + (f.flags.size > 0) + (f.pairs.size > 0) + (f.keepRaw.size > 0) + (f.folders.size > 0) + f.tags.length; }
+function filtersActive(){ const f = S.filters; return f.rating !== null || f.labels.size || !flagsDefault(f) || f.pairs.size || f.keepRaw.size || f.folders.size || f.tags.length; }
+function activeFilterCount(){ const f = S.filters; return (f.rating !== null) + (f.labels.size > 0) + (!flagsDefault(f)) + (f.pairs.size > 0) + (f.keepRaw.size > 0) + (f.folders.size > 0) + f.tags.length; }
 /* tags: a path of names; a filter tag matches itself and every tag beneath it, ignoring case */
 const sameTag = (a, b) => a.toLowerCase() === b.toLowerCase();
 const hasTag = (it, x) => it.tags.some(tg => sameTag(tg, x) || tg.toLowerCase().startsWith(x.toLowerCase() + '/'));
@@ -1376,7 +1374,6 @@ const knownTags = () => [...new Set([...S.tagList, ...S.items.flatMap(i => i.tag
 function passes(it){
   const f = S.filters;
   if (!S.settings.showSingles && pairType(it) !== 'pair') return false;
-  if (!f.flags.size && ((f.scope === 'notrej' && it.flag === 'reject') || (f.scope === 'undecided' && it.flag !== 'none'))) return false;
   if (f.rating !== null && !RATING_OPS[f.ratingOp].test(it.rating, f.rating)) return false;
   if (f.labels.size && !f.labels.has(it.label)) return false;
   if (f.flags.size && !f.flags.has(it.flag)) return false;
@@ -1545,8 +1542,7 @@ function renderToolbar(){
   }
   const ib = (act, icon, label, n, extra = '', key = '') => `<button class="btn ghost ib" data-act="${act}" ${extra} aria-label="${esc(label)}${n ? ' (' + nf(n) + ')' : ''}" ${tip(label, key)}>${ic(icon)}<span class="lb">${esc(label)}</span>${n ? `<span class="badge-n" aria-hidden="true">${nf(n)}</span>` : ''}</button>`;
   tb.classList.toggle('selmode', S.selMode);
-  const scopeName = SCOPES.find(([v]) => v === S.filters.scope)[1];
-  const keys = `<div class="seg" role="group" aria-label="${t('Show')}">${SCOPES.map(([v, l, i]) => `<button data-act="scope" data-v="${v}" aria-pressed="${S.filters.scope === v}" aria-label="${t(l)}" ${tip(S.filters.flags.size ? t('The flag filter overrides this') : t(l))} ${S.filters.flags.size ? 'disabled' : ''}>${ic(i)}${S.filters.scope === v ? `<span class="sl">${t(l)}</span>` : ''}</button>`).join('')}</div><button class="btn scope-pick" data-act="scopeMenu" aria-haspopup="menu" aria-label="${esc(t('Show: {scope}', {scope:t(scopeName)}))}" ${tip(S.filters.flags.size ? t('The flag filter overrides this') : t('Show'))} ${S.filters.flags.size ? 'disabled' : ''}><span>${t(scopeName)}</span>${ic('chevD')}</button>
+  const keys = `<div class="fchips" role="group" aria-label="${t('Flag filter')}">${FLAGS.map(f => `<button class="chip fc ${f.v}" data-act="fFlag" data-v="${f.v}" aria-pressed="${S.filters.flags.has(f.v)}" aria-label="${esc(flagName(f.v))}" ${tip(flagName(f.v))}>${ic(f.icon)}<span class="sl">${esc(flagName(f.v))}</span></button>`).join('')}</div>
       <span class="count" aria-live="polite">${n('{done} / %n<span class="lb"> decided</span>', '{done} / %n<span class="lb"> decided</span>', nTot, {done:nf(nDec)})}</span>
       ${ib('delRejected', 'trash', t('Review rejects'), nRej, nRej ? '' : 'disabled', HOTKEY.reviewRejects)}
       <button class="btn ghost ib" data-act="more" aria-haspopup="menu" aria-label="${t('More')}" ${tip(t('More'))}>${ic('more')}</button>
@@ -1609,11 +1605,6 @@ function openMore(anchor){
     <div class="minfo" id="langLbl">${t('Language (mockup)')}</div><div role="group" aria-labelledby="langLbl">${[['en', 'English'], ['de', 'Deutsch']].map(([v, l]) => `<button class="mi" role="menuitemradio" aria-checked="${LANG === v}" data-act="langSet" data-v="${v}" lang="${v}"><span>${l}</span></button>`).join('')}</div>`;
   openMenu(pop, anchor);
 }
-function openScope(anchor){
-  const pop = document.createElement('div'); pop.setAttribute('aria-label', t('Show'));
-  pop.innerHTML = SCOPES.map(([v, l, i]) => `<button class="mi" role="menuitemradio" aria-checked="${S.filters.scope === v}" data-act="scope" data-v="${v}">${ic(i)}<span>${t(l)}</span></button>`).join('');
-  openMenu(pop, anchor);
-}
 function openPath(anchor){
   const segs = S.folderPath.split('/').filter(Boolean), pop = document.createElement('div'); pop.setAttribute('aria-label', t('Full path'));
   pop.innerHTML = menuItem('picker', 'home', t('Home')) + segs.map((s, i) => menuItem('picker', 'folder', esc(s), `data-path="/${esc(segs.slice(0, i + 1).join('/'))}" style="padding-left:${10 + 14 * (i + 1)}px"`)).join('');
@@ -1635,7 +1626,7 @@ function renderFilters(){
   <div class="fgroup"><span class="lbl">${t('Colour')}</span><div class="chips">
     ${LABELS.map(l => `<button class="chip sw" data-act="fLabel" data-v="${l.id}" aria-pressed="${f.labels.has(l.id)}" aria-label="${labelText(l.id)}" ${tip(labelText(l.id))}><span class="dotx" style="background:${l.hex}"></span></button>`).join('')}</div></div>
   <div class="fgroup"><span class="lbl">${t('Flag')}</span><div class="chips">
-    ${ch('fFlag', 'pick', ic('flagPick') + flagName('pick'), f.flags.has('pick'))}${ch('fFlag', 'reject', ic('flagX') + flagName('reject'), f.flags.has('reject'))}${ch('fFlag', 'none', ic('flag') + flagName('none'), f.flags.has('none'))}</div></div>
+    ${FLAGS.map(fl => ch('fFlag', fl.v, ic(fl.icon) + flagName(fl.v), f.flags.has(fl.v))).join('')}</div></div>
   <div class="fgroup"><span class="lbl">${t('Pairing')}</span><div class="chips">
     ${ch('fPair', 'pair', t('Pairs'), f.pairs.has('pair'))}${ch('fPair', 'jpg', t('JPEG only'), f.pairs.has('jpg'))}${ch('fPair', 'raw', t('RAW only'), f.pairs.has('raw'))}</div></div>
   <div class="fgroup"><span class="lbl">${t('Keep RAW')}</span><div class="chips">
@@ -1679,7 +1670,7 @@ function renderGrid(){
   if (S.listing){ g.setAttribute('aria-busy', 'true'); g.innerHTML = `<p class="sr" role="status">${t('Loading photos…')}</p>` + '<div class="tile sk" aria-hidden="true"></div>'.repeat(SKELETON_TILES); return; }
   g.removeAttribute('aria-busy');
   if (!S.folderPath){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">${t('No folder chosen')}</div>${t('Pick a folder to start culling.')}</div>`; return; }
-  if (!S.view.length && S.items.length && !filtersActive() && S.filters.scope !== 'all'){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">${S.filters.scope === 'undecided' ? t('Every photo is decided') : t('No photos left to cull')}</div>${nRejText()}<br><br><button class="btn primary" data-act="delRejected" ${rejectedItems().length ? '' : 'hidden'}>${t('Review rejects')}</button> <button class="btn" data-act="scope" data-v="all">${t('Show all')}</button></div>`; return; }
+  if (!S.view.length && S.items.length && !filtersActive()){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">${t('No photos left to cull')}</div>${nRejText()}<br><br><button class="btn primary" data-act="delRejected" ${rejectedItems().length ? '' : 'hidden'}>${t('Review rejects')}</button> <button class="btn" data-act="fFlagsAll">${t('Show all')}</button></div>`; return; }
   if (!S.view.length){ g.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">${t('Nothing matches these filters')}</div>${multiFolder() ? t('{items} in {folders}.', {items:n('%n item', '%n items', S.items.length), folders:n('%n folder', '%n folders', S.set.folders.length)}) : t('{items} in this folder.', {items:n('%n item', '%n items', S.items.length)})}<br><br><button class="btn" data-act="fClear">${t('Clear filters')}</button></div>`; return; }
   const frag = document.createDocumentFragment();
   io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting){ io.unobserve(e.target); thumbQueue.push(e.target); } pumpThumbs(); }, {root:$('gridWrap'), rootMargin:'500px 0px'});
@@ -2710,7 +2701,7 @@ const A = {
   fPair(el){ toggleSet(S.filters.pairs, el.dataset.v); refreshView(); },
   fKeepRaw(el){ toggleSet(S.filters.keepRaw, el.dataset.v); refreshView(); },
   fFolder(el){ toggleSet(S.filters.folders, el.dataset.path); refreshView(); }, groupFolder(){ S.groupFolder = !S.groupFolder; closeMenu(); refreshView(); },
-  fClear(){ S.filters = {...DEF_FILTERS(), scope:S.filters.scope}; refreshView(); },
+  fClear(){ S.filters = DEF_FILTERS(); refreshView(); },
   fTagAdd(){ openTags([], 'filter'); }, fTagRm(el){ S.filters.tags = S.filters.tags.filter(x => x !== el.dataset.v); refreshView(); },
   tags(el){ openTags(idsForKey(el.dataset.for, el.dataset.id)); },
   tgRow(el){ tagCommit(el.dataset.v); tagRefocus(); }, tgRm(el){ tagRemove(el.dataset.v); tagRefocus(); },
@@ -2719,9 +2710,8 @@ const A = {
   delSel(){ openDelete([...S.sel]); }, delRejected(){ if (S.loupe) closeLoupe(); rejectedItems().length ? openDlg({type:'review'}) : toast(t('No rejected photos')); },
   rawToggle(el){ toggleKeepRaw([el.dataset.id]); renderDlg(); },
   rescue(el){ change([el.dataset.id], 'flag', 'none'); renderDlg(); }, reviewNext(){ openDlg({type:'del', ids:rejectedItems().map(i => i.id), from:'review'}); }, reviewBack(){ openDlg({type:'review'}); },
-  scope(el){ S.filters.scope = el.dataset.v; refreshView(); },
+  fFlagsAll(){ S.filters.flags.clear(); refreshView(); },
   more(el){ if ($('popRoot').firstChild && S.menuAnchor === el) closeMenu(); else openMore(el); }, path(el){ if ($('popRoot').firstChild && S.menuAnchor === el) closeMenu(); else openPath(el); },
-  scopeMenu(el){ if ($('popRoot').firstChild && S.menuAnchor === el) closeMenu(); else openScope(el); },
   sortSet(el){ S.sort = el.dataset.v; refreshView(); }, langSet(el){ setLang(el.dataset.v); },
   writeSidecars(){ openDlg({type:'sidecars'}); },
   rawRm(){ openDlg({type:'rawrm', ids:S.view.map(i => i.id)}); }, rawRmConfirm(){ const res = doRemoveRaws(S.dlg.ids, S.mock.fail); S.lastFailed = res.failed; finishRawRm(res); },
@@ -2756,7 +2746,7 @@ const A = {
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-act]');
   const inPop = e.target.closest('.pop'), act = t && t.dataset.act;
-  if (!inPop && act !== 'palette' && act !== 'more' && act !== 'path' && act !== 'scopeMenu') closePop();
+  if (!inPop && act !== 'palette' && act !== 'more' && act !== 'path') closePop();
   if (e.target.dataset && e.target.dataset.scrim && S.dlg && S.folderPath) closeDlg();
   if (!t) return; if (t.tagName === 'A') e.preventDefault();
   A[t.dataset.act] && A[t.dataset.act](t, e);
@@ -2879,8 +2869,8 @@ function viKey(e){
   return e.key;
 }
 function filtersOffOn(){
-  if (filtersActive()){ S.filterStash = S.filters; S.filters = {...DEF_FILTERS(), scope:S.filters.scope}; toast(t('Filters off')); }
-  else if (S.filterStash){ S.filters = {...S.filterStash, scope:S.filters.scope}; S.filterStash = null; toast(t('Filters on')); } else return;
+  if (filtersActive()){ S.filterStash = S.filters; S.filters = DEF_FILTERS(); toast(t('Filters off')); }
+  else if (S.filterStash){ S.filters = S.filterStash; S.filterStash = null; toast(t('Filters on')); } else return;
   refreshView();
 }
 

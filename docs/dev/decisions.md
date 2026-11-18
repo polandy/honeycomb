@@ -1501,3 +1501,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `fileid IN (...)`, 1,000 ids per search, over two small app classes implementing the OCP search
   interfaces, instead of reading the file cache and mounts directly; the single-file checks keep
   `getFirstNodeById()` (ADR 0038, #187).
+- 2026-11-18: The mockup draws the flag filter as three toggle chips (*Picked*, *Unflagged*,
+  *Rejected*; icon and label, icon only below 520 px and in the app bar) in place of the scope
+  control; the default is Picked and Unflagged pressed (GRID-002). Easy to redo: one render
+  function and its CSS.
