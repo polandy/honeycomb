@@ -6,6 +6,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import AppIcon from '../../../src/components/AppIcon.vue'
 import PhotoTile from '../../../src/components/PhotoTile.vue'
 import { createLoadQueue } from '../../../src/logic/load-queue.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue } from '../l10n/marked-catalogue.ts'
@@ -37,6 +38,19 @@ describe('PhotoTile series badge', () => {
 		expect(wrapper.attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3, Series, photo 1 of 3')
 		expect(mountTile(PAIR).find('.photo-tile__series').exists()).toBe(false)
 		expect(mountTile(PAIR).attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3')
+	})
+
+	// spec: SERIES-005.17
+	it('marks the badge of a stored series with a pin, of a done one with a check, and says so in the tile\'s label', () => {
+		const mark = (stored: string | null) => {
+			const wrapper = mountTile(PAIR, { series: { position: 1, size: 3, run: 3, stored } })
+			const icon = wrapper.find('.photo-tile__series').findComponent(AppIcon)
+			return [wrapper.find('.photo-tile__series').text(), icon.exists() ? icon.props('name') : null, wrapper.attributes('aria-label')!.replaceAll(MARK, '')]
+		}
+
+		expect(mark('open')).toEqual(['⧉ 3', 'pin', 'IMG_0001, JPG+CR3, Series, photo 1 of 3, Series edited by hand'])
+		expect(mark('done')).toEqual(['⧉ 3', 'check', 'IMG_0001, JPG+CR3, Series, photo 1 of 3, Series done'])
+		expect(mark(null)).toEqual(['⧉ 3', null, 'IMG_0001, JPG+CR3, Series, photo 1 of 3'])
 	})
 
 	// spec: SERIES-002.10

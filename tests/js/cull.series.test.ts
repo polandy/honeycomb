@@ -153,6 +153,22 @@ describe('useCull: series edits', () => {
 		expect(names(cull)).toEqual([])
 	})
 
+	// spec: SERIES-005.18
+	it('shows the listed members of a series with members in other folders and edits only them', async () => {
+		const { cull, written } = editedCull({ lookupSeries: async () => ({ series: [{ id: 12, status: 'open', fileIds: [1, 2, 3], elsewhere: true }], keptOut: [] }) })
+		await flushPromises()
+
+		expect(names(cull)).toEqual([['A', 'B', 'C']])
+		expect(cull.series.value[0]!.stored).toEqual({ id: 12, status: 'open', elsewhere: true })
+		const [A, B, , D] = cull.pictures.value
+		cull.removeFromSeries(cull.series.value[0]!, B!)
+		cull.editSelection('add', [A!, D!])
+		await flushPromises()
+
+		expect(written.flatMap(({ series, keptOut, released }) => [...series.flatMap(({ fileIds }) => fileIds), ...keptOut, ...released]).every((fileId) => fileId <= 4)).toBe(true)
+		expect(cull.series.value[0]!.stored?.elsewhere).toBe(true)
+	})
+
 	// spec: SERIES-005.4, SERIES-005.5
 	it('makes a new series of the selected pictures as one undo step, storing the rest of their series', async () => {
 		const { cull, written } = editedCull()

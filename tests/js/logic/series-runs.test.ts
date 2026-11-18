@@ -63,10 +63,17 @@ describe('tileSeries', () => {
 
 	// spec: SERIES-002.10
 	it('gives each tile its place in the series and the first of a run the run\'s length', () => {
-		expect(tileSeries(at, 0, 'A')).toEqual({ series: series.get('A'), position: 1, size: 4, run: 2 })
-		expect(tileSeries(at, 1, 'B')).toEqual({ series: series.get('A'), position: 2, size: 4, run: null })
-		expect(tileSeries(at, 4, 'E')).toEqual({ series: series.get('A'), position: 3, size: 4, run: 2 })
+		expect(tileSeries(at, 0, 'A')).toEqual({ series: series.get('A'), position: 1, size: 4, run: 2, stored: null })
+		expect(tileSeries(at, 1, 'B')).toEqual({ series: series.get('A'), position: 2, size: 4, run: null, stored: null })
+		expect(tileSeries(at, 4, 'E')).toEqual({ series: series.get('A'), position: 3, size: 4, run: 2, stored: null })
 		expect(tileSeries(at, 2, 'C')).toBeNull()
+	})
+
+	// spec: SERIES-005.17
+	it('says whether the tile\'s series is stored open, stored done or automatic', () => {
+		const done = new Map([...'AB'].map((name) => [name, { key: 0, members: ['A', 'B'], stored: { id: 7, status: 'done', elsewhere: false } } as const]))
+
+		expect(tileSeries(runsAt(seriesRuns(['A', 'B'], done), 2), 0, 'A')?.stored).toBe('done')
 	})
 })
 

@@ -70,8 +70,8 @@ test.describe('on a phone', () => {
 	})
 })
 
-// spec: SERIES-005.7, SERIES-005.11
-test('merges two series and removes a photo from its series on a desktop, kept after a reload', async ({ page }) => {
+// spec: SERIES-005.7, SERIES-005.11, SERIES-005.17
+test('merges two series and removes a photo from its series on a desktop, kept after a reload, the series badged and subtitled as edited by hand', async ({ page }) => {
 	await page.setViewportSize(DESKTOP)
 	const folder = await cullPhotos(page)
 
@@ -84,6 +84,11 @@ test('merges two series and removes a photo from its series on a desktop, kept a
 
 	await page.reload()
 	await cullFolder(page, folder)
+	const first = page.getByRole('gridcell', { name: /^IMG_0001.*Series edited by hand/ })
+	await expect(first.locator('.photo-tile__series .app-icon')).toHaveCount(1)
+	await first.getByRole('button', { name: 'Series of 4 – compare' }).click()
+	await expect(page.locator('.series-compare__subtitle')).toHaveText(/ · edited by hand$/)
+	await page.keyboard.press('Escape')
 	await openMenu(page, ['IMG_0001', 'IMG_0002'], '1 photo in series ⧉ 4 · 1 loose')
 })
 
