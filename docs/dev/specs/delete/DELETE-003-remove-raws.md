@@ -29,10 +29,10 @@ decision or tags goes, a pair whose JPEG has no sidecar of its own nor a shared 
 `<jpeg>.xmp` with the picture's decision and tags, so the JPEG keeps its values in digiKam. Where
 that sidecar cannot be written (the picture is not writable, XMP-008, or the save fails), the pair
 is skipped. The delete report lists the skipped photos (DELETE-002.16). When the fresh listing or
-lookup fails, the RAWs go as honeycomb knows them once the user confirms *Delete anyway* (DELETE-002.23,
-DELETE-002.25), except a pair whose JPEG has no
-sidecar of its own nor a shared one while the RAW has one: its values cannot be read to copy, so it
-is skipped as *A sidecar could not be read*.
+lookup fails, the RAWs go as honeycomb knows them once the user confirms *Delete anyway*
+(DELETE-002.23, DELETE-002.25), except a pair whose JPEG has no sidecar of its own nor a shared one
+while the RAW has one: its values cannot be read to copy, so it is skipped as *A sidecar could not
+be read*.
 
 ## Acceptance criteria
 

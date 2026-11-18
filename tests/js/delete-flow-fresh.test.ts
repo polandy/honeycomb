@@ -142,6 +142,20 @@ describe('useDeleteFlow, deleting by decision', () => {
 		expect(toasts).toEqual(['Removed the RAWs of 1 photo · 2 files · 2.1 kB freed to the Nextcloud trash bin'])
 	})
 
+	// spec: DELETE-002.25
+	it('removes no RAW when the question before an unchecked removal is cancelled', async () => {
+		const { deleting, sent, toasts, pictures } = flow(allTrashed, undefined, undefined, async (chosen) => ({ passed: [], skipped: [], unchecked: chosen }))
+		pictures.value = [FRESH_PAIR]
+
+		deleting.removeRaws()
+		await deleting.confirm()
+		deleting.close()
+
+		expect(sent).toEqual([])
+		expect(toasts).toEqual([])
+		expect(deleting.dialog.value).toBeNull()
+	})
+
 	// spec: DELETE-002.15
 	it('changes nothing when the check fails', async () => {
 		const { deleting, sent, toasts } = flow(allTrashed, undefined, undefined, async () => Promise.reject(new Error('offline')))
