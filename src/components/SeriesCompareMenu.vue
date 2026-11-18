@@ -18,6 +18,7 @@ import ActionIcon from './ActionIcon.vue'
 import AppIcon from './AppIcon.vue'
 import { formatNumber, formatTime, PLAIN_TEXT } from '../l10n.ts'
 import { captureTime } from '../logic/picture-order.ts'
+import { useReportedMenu } from '../reported-menu.ts'
 import { tip } from '../tooltip.ts'
 
 const props = defineProps<{
@@ -46,6 +47,7 @@ function mergeDescription(other: Series<Picture<ListingEntry>> | null, none: str
 		: t('honeycomb', '⧉ {count} · starts {time}', { count: formatNumber(other.members.length), time: formatTime(captureTime(other.members[0]!)) }, undefined, PLAIN_TEXT)
 }
 
+const reportMenu = useReportedMenu((open) => emit('menu', open))
 const done = computed(() => props.series.stored?.status === 'done')
 const merges = computed(() => [
 	{ direction: 'next' as const, other: props.next, name: t('honeycomb', 'Merge with the next series'), description: mergeDescription(props.next, t('honeycomb', 'None after this one')) },
@@ -59,7 +61,7 @@ const merges = computed(() => [
 		:container="props.container"
 		:ariaLabel="t('honeycomb', 'Series menu')"
 		v-bind="tip(t('honeycomb', 'More'))"
-		@update:open="emit('menu', $event)">
+		@update:open="reportMenu">
 		<template #icon>
 			<AppIcon name="more" />
 		</template>

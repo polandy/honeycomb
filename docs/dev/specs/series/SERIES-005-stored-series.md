@@ -22,8 +22,10 @@ through every new visual hash.
 - **A stored series** is never cut at 60 s, may hold several cameras, and is ordered by capture
   time, then name. Rejected members stay members and are hidden as in SERIES-001. With fewer than
   two shown pictures it is not shown. Its badge reads `⧉ 4` with a pin, `⧉ 4` with a check when
-  done; the compare's subtitle adds "edited by hand", and "Also in other folders" when it has
-  members outside the folder set.
+  done, and the tile's label adds "Series edited by hand" or "Series done". The compare's title
+  row starts with a subtitle, the series' first and last capture time `14:02:31–14:02:52`; for a
+  stored series it adds "edited by hand", and "Also in other folders" when it has members outside
+  the folder set.
 - **Storage** per user and member file id (ADR 0027): `POST /apps/honeycomb/api/v1/series/lookup`
   reads, `PUT /apps/honeycomb/api/v1/series` writes. An automatic series is stored, with its shown
   members, the moment the user first edits it or marks it done.
@@ -172,8 +174,10 @@ through every new visual hash.
 
 - **Given** a stored open series, a done series and an automatic series
 - **When** the grid and the compare show them
-- **Then** the badges read `⧉ n` with a pin, with a check and plain; the compare's subtitle of a
-  stored series adds "edited by hand"
+- **Then** the badges read `⧉ n` with a pin, with a check and plain, under the pair badge and in
+  line with it, the tiles' labels add
+  "Series edited by hand", "Series done" and nothing; the compare's subtitle reads the series'
+  first and last capture time, and for a stored series adds "edited by hand"
 
 ### SERIES-005.18 – Members in other folders
 
@@ -280,3 +284,4 @@ through every new visual hash.
 | 2026-11-15 | SERIES-005.8 and .9 in the series compare (#185 PR 5): the title row's ⋯ menu merges with the next or previous series, its second line "⧉ 3 · starts 14:03:40"; the compare then shows the merged series. |
 | 2026-11-15 | SERIES-005.14 and .15 in the series compare (#185 PR 6): the title row's ⋯ menu has the *Series done* toggle after a separator, pressed while done; marking stores an automatic series first, and the compare moves on as after *Skip*, or, opened from the loupe, keeps showing the series. The loupe's auto-advance, its resume position and the progress count a done series' unflagged pictures as decided. SERIES-005.17 and .18 are still open. |
 | 2026-11-18 | SERIES-005.28 and .29 in the grid (#230): the *Series…* menu has *Series done* / *Reopen series* after a separator, for a selection that touches exactly one series. |
+| 2026-11-18 | SERIES-005.17 and .18: the grid badge of a stored series carries a pin or, done, a check, and sits under the pair badge; the compare's title row has the subtitle of capture times, "edited by hand" and "Also in other folders". |

@@ -5,45 +5,19 @@ import type { Decision } from '../../../src/logic/decision.ts'
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
 
-import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
+import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import PickRestButton from '../../../src/components/PickRestButton.vue'
-import SeriesCompare from '../../../src/components/SeriesCompare.vue'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue } from '../l10n/marked-catalogue.ts'
-import { listingEntry, picturesOf } from '../logic/listing-entries.ts'
-import { ActionsStub, DialogStub } from './stubs.ts'
+import { mountSeriesCompare, SERIES } from './mount-compare.ts'
+import { DialogStub } from './stubs.ts'
 
 const MARK = TRANSLATED_MARK
-const SERIES = picturesOf([
-	listingEntry(1, '/Trip/IMG_1.JPG'),
-	listingEntry(2, '/Trip/IMG_2.JPG'),
-	listingEntry(3, '/Trip/IMG_3.JPG'),
-]) as Picture<ListingEntry>[]
 const DECISIONS: Record<string, Decision> = { IMG_2: { ...UNDECIDED, rating: 3, flag: 'picked' } }
-
-function mountCompare(series: Picture<ListingEntry>[] | null = SERIES, now = () => 0, oneSeries = false) {
-	return mount(SeriesCompare, {
-		attachTo: document.body,
-		props: {
-			now,
-			oneSeries,
-			series: series === null ? null : { key: 1, members: series },
-			position: 1,
-			count: 4,
-			active: 1,
-			decisionOf: (picture: Picture<ListingEntry>) => DECISIONS[picture.baseName] ?? UNDECIDED,
-			imageUrl: (fileId: number, size: number) => `/image/${fileId}/${size}`,
-			observeSize: (_element: Element, onSize: (width: number, height: number) => void) => {
-				onSize(1416, 760)
-				return () => undefined
-			},
-		},
-		global: { stubs: { NcDialog: DialogStub, NcActions: ActionsStub } },
-	})
-}
+const mountCompare = (series: Picture<ListingEntry>[] | null = SERIES, now = () => 0, oneSeries = false) => mountSeriesCompare(DECISIONS, series, now, oneSeries)
 
 const plain = (text: string | undefined) => text?.replaceAll(MARK, '')
 const cards = (wrapper: ReturnType<typeof mountCompare>) => wrapper.findAll('.series-compare__card')
@@ -275,26 +249,5 @@ describe('SeriesCompare', () => {
 		await menu.findAllComponents(NcActionButton).find((found: { text: () => string }) => plain(found.text())!.startsWith('Series done'))!.find('button').trigger('click')
 		expect(wrapper.emitted('markDone')).toEqual([[true]])
 		expect(mountCompare(null).find('.series-compare__head').exists()).toBe(false)
-	})
-
-	// spec: SERIES-005.10, SERIES-005.13
-	it('keeps the dialog open while a menu is open, so Escape closes only the menu, until the series changes', async () => {
-		const wrapper = mountCompare()
-		const dialog = () => wrapper.findComponent(DialogStub)
-		const [series, card] = wrapper.findAllComponents(ActionsStub)
-
-		series!.vm.$emit('update:open', true)
-		card!.vm.$emit('update:open', true)
-		series!.vm.$emit('update:open', false)
-		await flushPromises()
-		expect(dialog().props('noClose')).toBe(true)
-
-		card!.vm.$emit('update:open', false)
-		await flushPromises()
-		expect(dialog().props('noClose')).toBe(false)
-
-		card!.vm.$emit('update:open', true)
-		await wrapper.setProps({ series: { key: 2, members: SERIES } })
-		expect(dialog().props('noClose')).toBe(false)
 	})
 })

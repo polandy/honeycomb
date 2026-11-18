@@ -8,6 +8,7 @@ import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { LoadQueue, QueuedLoad } from '../logic/load-queue.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { SeriesStatus } from '../logic/stored-series.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
@@ -36,8 +37,8 @@ const props = withDefaults(defineProps<{
 	decision?: Decision
 	selecting?: boolean
 	selected?: boolean
-	/** The picture's place in its series and, on the first tile of a run, the run's length; null outside a series (SERIES-002.10). */
-	series?: { readonly position: number, readonly size: number, readonly run: number | null } | null
+	/** The picture's place in its series, on the first tile of a run the run's length, and a stored series' status; null outside a series (SERIES-002.10, SERIES-005.17). */
+	series?: { readonly position: number, readonly size: number, readonly run: number | null, readonly stored?: SeriesStatus | null } | null
 	/** Whether the series is settled, so the compare no longer offers it (SERIES-002.10). */
 	seriesSettled?: boolean
 	/** Whether a member of the series is still without its visual hash (SERIES-003.25). */
@@ -123,6 +124,8 @@ const seriesText = computed(() => props.series === null
 	: [
 			t('honeycomb', 'Series, photo {position} of {size}', { position: formatNumber(props.series.position), size: formatNumber(props.series.size) }, undefined, PLAIN_TEXT),
 			...(props.seriesOpen ? [t('honeycomb', 'Series may still change')] : []),
+			...(props.series.stored === 'open' ? [t('honeycomb', 'Series edited by hand')] : []),
+			...(props.series.stored === 'done' ? [t('honeycomb', 'Series done')] : []),
 		])
 
 /** The badge on the first tile of a run: the series' size, or the run's length of it when the series is split. */
@@ -134,6 +137,7 @@ const seriesBadge = computed(() => {
 	const size = formatNumber(series.size)
 	return {
 		text: series.run < series.size ? t('honeycomb', '⧉ {run} of {size}', { run: formatNumber(series.run), size }, undefined, PLAIN_TEXT) : `⧉ ${size}`,
+		icon: series.stored === 'done' ? 'check' as const : series.stored === 'open' ? 'pin' as const : null,
 		label: n('honeycomb', 'Series of {count} – compare', 'Series of {count} – compare', series.size, { count: size }, PLAIN_TEXT),
 	}
 })
@@ -222,7 +226,7 @@ onBeforeUnmount(() => pending?.load.cancel())
 				v-bind="tip(t('honeycomb', 'Compare this series'))"
 				@pointerdown.stop
 				@click.stop="emit('compareSeries')">
-				{{ seriesBadge.text }}
+				{{ seriesBadge.text }}<AppIcon v-if="seriesBadge.icon !== null" :name="seriesBadge.icon" />
 			</button>
 			<span v-if="props.selecting" class="photo-tile__check" aria-hidden="true"><AppIcon v-if="props.selected" name="check" /></span>
 			<span v-if="marked" class="photo-tile__marks">

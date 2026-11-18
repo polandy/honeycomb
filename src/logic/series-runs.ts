@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Series } from './series.ts'
+import type { SeriesStatus } from './stored-series.ts'
 
 /** A stretch of neighbouring pictures in one series: `first` up to but not including `end`. */
 export interface SeriesRun<P> {
@@ -18,12 +19,13 @@ export interface RowBracket<P> {
 	readonly ends: boolean
 }
 
-/** A tile's place in its series and, on the first tile of a run, the run's length. */
+/** A tile's place in its series, on the first tile of a run the run's length, and the status of a stored series. */
 export interface TileSeries<P> {
 	readonly series: Series<P>
 	readonly position: number
 	readonly size: number
 	readonly run: number | null
+	readonly stored: SeriesStatus | null
 }
 
 /** The runs of neighbours sharing a series; a picture outside every series, another series or a group start in `breaks` ends a run (SERIES-002.12). */
@@ -76,7 +78,7 @@ export function tileSeries<P>(at: readonly (SeriesRun<P> | undefined)[], index: 
 		return null
 	}
 	const { members } = run.series
-	return { series: run.series, position: members.indexOf(picture) + 1, size: members.length, run: run.first === index ? run.end - run.first : null }
+	return { series: run.series, position: members.indexOf(picture) + 1, size: members.length, run: run.first === index ? run.end - run.first : null, stored: run.series.stored?.status ?? null }
 }
 
 /** The first index of the next run, or of the run before the focused one's, null at either end (SERIES-002.15). */

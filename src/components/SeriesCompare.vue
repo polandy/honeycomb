@@ -27,6 +27,7 @@ import { doubleTaps } from '../logic/double-tap.ts'
 import { imageMember } from '../logic/image-tiers.ts'
 import { SERIES_GAP_SECONDS } from '../logic/series.ts'
 import { observeElementSize } from '../observe-size.ts'
+import { seriesSubtitle } from '../series-subtitle.ts'
 
 const props = withDefaults(defineProps<{
 	/** The shown series, or null once none is left. */
@@ -118,10 +119,6 @@ const openMenus = shallowRef(0)
 function onMenuOpen(open: boolean) {
 	openMenus.value += open ? 1 : -1
 }
-// An edit can unmount a menu before it reports closing.
-watch(() => props.series, () => {
-	openMenus.value = 0
-})
 watch([() => props.active, () => props.series, () => layout.value?.columns], showActive, { flush: 'post' })
 
 const taps = doubleTaps()
@@ -164,6 +161,9 @@ function onOpen(open: boolean) {
 			:name="t('honeycomb', 'All series compared')"
 			:description="n('honeycomb', 'No more photos taken within {count} second of each other are left to decide.', 'No more photos taken within {count} seconds of each other are left to decide.', SERIES_GAP_SECONDS, { count: formatNumber(SERIES_GAP_SECONDS) }, PLAIN_TEXT)" />
 		<div v-if="props.series !== null" class="series-compare__head">
+			<p class="series-compare__subtitle">
+				{{ seriesSubtitle(props.series) }}
+			</p>
 			<SeriesCompareMenu
 				:series="props.series"
 				:previous="props.previous"
@@ -233,8 +233,18 @@ function onOpen(open: boolean) {
 
 .series-compare__head {
 	display: flex;
-	justify-content: flex-end;
+	align-items: center;
 	height: var(--default-clickable-area);
+}
+
+.series-compare__subtitle {
+	flex: 1;
+	min-width: 0;
+	margin: 0;
+	overflow: hidden;
+	color: var(--color-text-maxcontrast);
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .series-compare__head + .series-compare {

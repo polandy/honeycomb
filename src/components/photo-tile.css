@@ -140,11 +140,11 @@
 	height: 16px;
 }
 
-/* The filmstrip frame's tab; Nextcloud's own button sizes outrank a single class. */
+/* Under the pair badge, as in the mockup; Nextcloud's own button sizes outrank a single class. */
 .photo-tile .photo-tile__series {
 	position: absolute;
 	top: 30px;
-	inset-inline-end: 6px;
+	inset-inline-start: 6px;
 	min-width: 0;
 	height: 20px;
 	min-height: 0;
@@ -159,6 +159,14 @@
 	line-height: 20px;
 	white-space: nowrap;
 	cursor: pointer;
+}
+
+/* A stored series' pin or check after the size (SERIES-005.17). */
+.photo-tile__series .app-icon {
+	width: 12px;
+	height: 12px;
+	margin-inline-start: 3px;
+	vertical-align: -2px;
 }
 
 /* The hit area reaches 44 px, 34 px with a fine pointer. */

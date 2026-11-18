@@ -17,11 +17,15 @@ CONTAINER=honeycomb-e2e-$1
 TEAM_FOLDERS_VERSION=23.0.1
 TEAM_FOLDERS_SHA256=3949e6a45947188090c170c6983aae11a1d66134ec317ffe7b7609062f3aecf3
 TEAM_FOLDERS="${XDG_CACHE_HOME:-$HOME/.cache}/honeycomb-e2e/groupfolders-$TEAM_FOLDERS_VERSION"
+# A CI runner's link to github.com drops now and then; retry a short connect instead of failing the run.
+DOWNLOAD_ATTEMPTS=5
+CONNECT_SECONDS=20
 
 # Team folders is no bundled app; fetch the pinned release once, check it every run (ADR 0030).
 if [ ! -f "$TEAM_FOLDERS.tar.gz" ]; then
   mkdir -p "$(dirname "$TEAM_FOLDERS")"
-  curl -fsSL -o "$TEAM_FOLDERS.tar.gz.part" \
+  curl -fsSL --connect-timeout "$CONNECT_SECONDS" --retry "$DOWNLOAD_ATTEMPTS" --retry-all-errors \
+    -o "$TEAM_FOLDERS.tar.gz.part" \
     "https://github.com/nextcloud-releases/groupfolders/releases/download/v$TEAM_FOLDERS_VERSION/groupfolders-v$TEAM_FOLDERS_VERSION.tar.gz"
   mv "$TEAM_FOLDERS.tar.gz.part" "$TEAM_FOLDERS.tar.gz"
 fi

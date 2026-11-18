@@ -21,6 +21,7 @@ import { keyCap } from '../hotkeys.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { isDecided } from '../logic/decision.ts'
 import { gridSrcset, imageMember, smallSource } from '../logic/image-tiers.ts'
+import { useReportedMenu } from '../reported-menu.ts'
 import { tip } from '../tooltip.ts'
 
 const props = defineProps<{
@@ -46,6 +47,8 @@ const emit = defineEmits<{
 	menu: [open: boolean]
 	flag: [flag: Flag]
 }>()
+
+const reportMenu = useReportedMenu((open) => emit('menu', open))
 </script>
 
 <template>
@@ -79,7 +82,7 @@ const emit = defineEmits<{
 				:container="props.container ?? 'body'"
 				:ariaLabel="t('honeycomb', 'Photo {i} menu', { i: formatNumber(props.index + 1) }, undefined, PLAIN_TEXT)"
 				v-bind="tip(t('honeycomb', 'More'))"
-				@update:open="emit('menu', $event)">
+				@update:open="reportMenu">
 				<template #icon>
 					<AppIcon name="more" />
 				</template>

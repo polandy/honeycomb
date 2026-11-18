@@ -1487,3 +1487,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-18: Files of one name in one trash request go into the trash bin in different seconds,
   the pictures without such a clash first; a clash with another request in the same second stays
   open (ADR 0037).
+- 2026-11-18: The series compare's subtitle reads the first and last capture time, as the
+  series-edit mockup shows, then "edited by hand" and "Also in other folders" (SERIES-005.17, .18);
+  the tile's label says "Series edited by hand" or "Series done" for screen readers.
