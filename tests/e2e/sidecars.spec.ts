@@ -21,7 +21,7 @@ async function versionContents(page: Page, fileId: number): Promise<string[]> {
 	const url = `/remote.php/dav/versions/${ADMIN.username}/versions/${fileId}`
 	const propfind = await page.request.fetch(url, { method: 'PROPFIND', headers: { requesttoken, Depth: '1' } })
 	expect(propfind.status(), await propfind.text()).toBe(207)
-	const hrefs = [...(await propfind.text()).matchAll(/<d:href>([^<]+)<\/d:href>/g)].map(([, href]) => href).filter((href) => !href.endsWith(`/${fileId}/`))
+	const hrefs = [...(await propfind.text()).matchAll(/<d:href>([^<]+)<\/d:href>/g)].flatMap(([, href]) => href === undefined || href.endsWith(`/${fileId}/`) ? [] : [href])
 	return Promise.all(hrefs.map(async (href) => (await page.request.get(href, { headers: { requesttoken } })).text()))
 }
 
