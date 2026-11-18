@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Measures the subfolder listing and the bulk saves with a tree of 100,000 empty photo files.
+# Measures the subfolder listing, the bulk saves and the XMP cache with a tree of 100,000 empty photo files.
 # Usage: scripts/measure-scale.sh <port> <admin user>, against a running scripts/e2e-server.sh <port>
 set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
@@ -13,6 +13,7 @@ YEARS=10
 DAYS_PER_YEAR=100
 PAIRS_PER_DAY=50
 SAVED_ITEMS=(2000 60000)
+CACHED_ROWS=(5000 50000)
 
 as_web() { docker exec -u www-data "$CONTAINER" "$@"; }
 
@@ -34,6 +35,11 @@ for path in "$FIXTURE/y1/d1" "$FIXTURE/y1" "$FIXTURE"; do
 done
 for kind in decisions tags; do
   for count in "${SAVED_ITEMS[@]}"; do
+    as_web php /tmp/measure-scale.php "$USER_ID" "$kind" "$count" "$FIXTURE"
+  done
+done
+for count in "${CACHED_ROWS[@]}"; do
+  for kind in xmp-save xmp-lookup; do
     as_web php /tmp/measure-scale.php "$USER_ID" "$kind" "$count" "$FIXTURE"
   done
 done
