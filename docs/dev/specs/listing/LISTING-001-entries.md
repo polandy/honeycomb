@@ -26,7 +26,10 @@ shared when another user or a
 federated user has access to it or to a folder above it, when it lies in a folder shared with the
 user, when it or a folder above it is shared by public link or by mail, when it lies in a group
 folder, or when it lies on external storage
-mounted for another user too (ADR 0017). `permissions` are Nextcloud's bits of the folder for the
+mounted for another user too (ADR 0017). A listing reads the user's shares once, one lookup per
+share type, and asks for the access list only of a folder that carries one of them, with no
+shared folder above it; a folder without a share inherits the answer of the folder above it.
+`permissions` are Nextcloud's bits of the folder for the
 user (READ 1, UPDATE 2, CREATE 4, DELETE 8, SHARE 16), with the share mask, reshares, ACLs and
 read-only mounts in them. `versions` is true when the Versions app keeps the folder's file
 versions: `files_versions` is enabled for the folder's owner, a versions backend exists for its
@@ -159,6 +162,13 @@ ticked parent with subfolders and a ticked child both hold it.
 - **Then** the excluded folders and everything below them are neither listed nor opened, the
   others are; a malformed `excluded` answers `400`
 
+### LISTING-001.17 – The shares are read once per listing
+
+- **Given** a tree of 100 folders of which one carries a share with another user
+- **When** the client lists it with `subfolders`
+- **Then** the share manager is asked for the user's shares once per share type and for one
+  access list, that of the shared folder, and every folder below it is shared
+
 ## Out of scope
 
 - Grouping entries into pictures: LISTING-002.
@@ -177,3 +187,4 @@ ticked parent with subfolders and a ticked child both hold it.
 | 2026-11-15 | `permissions` and `versions` per folder (.14, .15; ADR 0032) |
 | 2026-11-15 | The listed folder's `fileId` (XMP-008.4) |
 | 2026-11-17 | `excluded` folders left out (.16; ADR 0035) |
+| 2026-11-18 | The shares are read once per listing, not per folder (.17; `docs/dev/plan.md` Multiple folders item 9) |

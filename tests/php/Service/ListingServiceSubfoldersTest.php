@@ -21,6 +21,7 @@ use OCP\Files\Node;
 use OCP\Files\NotPermittedException;
 use OCP\FilesMetadata\IFilesMetadataManager;
 use OCP\Share\IManager as IShareManager;
+use OCP\Share\IShare;
 use PHPUnit\Framework\TestCase;
 
 final class ListingServiceSubfoldersTest extends TestCase {
@@ -28,8 +29,12 @@ final class ListingServiceSubfoldersTest extends TestCase {
 
 	/** @var array<string, array> access lists by folder path below the user's files */
 	private array $accessLists = [];
+	/** @var array<int, true> the file ids that carry a share */
+	private array $sharedIds = [];
 	/** @var list<string> the folders whose access list was asked for */
 	private array $lookups = [];
+	/** @var int how often the user's shares were read, once per share type */
+	private int $shareReads = 0;
 
 	private function shares(): IShareManager {
 		$shares = $this->createStub(IShareManager::class);
@@ -37,6 +42,14 @@ final class ListingServiceSubfoldersTest extends TestCase {
 			$path = substr($folder->getPath(), strlen(self::USER_ROOT));
 			$this->lookups[] = $path;
 			return $this->accessLists[$path] ?? [];
+		});
+		$shares->method('getSharesBy')->willReturnCallback(function (string $uid, int $type): array {
+			$this->shareReads++;
+			return $type === IShare::TYPE_USER ? array_map(function (int $fileId): IShare {
+				$share = $this->createStub(IShare::class);
+				$share->method('getNodeId')->willReturn($fileId);
+				return $share;
+			}, array_keys($this->sharedIds)) : [];
 		});
 		return $shares;
 	}
@@ -172,9 +185,12 @@ final class ListingServiceSubfoldersTest extends TestCase {
 
 	// spec: LISTING-001.12
 	public function testSaysOnceForEachFolderWhetherItIsShared(): void {
-		$folders = array_map($this->folder(...), ['/Photos' => '/Photos', '/Photos/Bob' => '/Photos/Bob', '/Photos/Fed/2024' => '/Photos/Fed/2024']);
+		$fed = $this->folder('/Photos/Fed', fileId: 3);
+		$folders = ['/Photos' => $this->folder('/Photos'), '/Photos/Bob' => $this->folder('/Photos/Bob', fileId: 2)];
+		$folders['/Photos/Fed/2024'] = $this->folder('/Photos/Fed/2024', fileId: 4, parent: fn (): Folder => $fed);
 		$folders['/Photos/Team'] = $this->folder('/Photos/Team', mountType: 'group');
-		$this->accessLists = ['/Photos/Bob' => ['users' => ['alice', 'bob']], '/Photos/Fed/2024' => ['users' => ['alice'], 'remote' => true]];
+		$this->accessLists = ['/Photos/Bob' => ['users' => ['alice', 'bob']], '/Photos/Fed' => ['users' => ['alice'], 'remote' => true]];
+		$this->sharedIds = [2 => true, 3 => true];
 		$paths = [1 => '/Photos/IMG_1.JPG', 2 => '/Photos/Bob/IMG_2.JPG', 3 => '/Photos/IMG_3.JPG', 4 => '/Photos/Fed/2024/IMG_4.JPG', 5 => '/Photos/Team/IMG_5.JPG', 6 => '/Photos/Bob/IMG_6.JPG'];
 		$files = [];
 		foreach ($paths as $id => $path) {
@@ -189,7 +205,19 @@ final class ListingServiceSubfoldersTest extends TestCase {
 			['path' => '/Photos/Fed/2024', 'shared' => true, 'permissions' => 31, 'versions' => true],
 			['path' => '/Photos/Team', 'shared' => true, 'permissions' => 31, 'versions' => true],
 		], $listing->jsonSerialize()['folders']);
-		$this->assertSame(['/Photos', '/Photos/Bob', '/Photos/Fed/2024'], $this->lookups);
+		$this->assertSame(['/Photos/Bob', '/Photos/Fed'], $this->lookups);
+	}
+
+	// spec: LISTING-001.17
+	public function testReadsTheSharesOnceForAHundredFolders(): void {
+		$files = array_map(fn (int $day): File => $this->file($day, "/Photos/d$day/IMG_$day.JPG"), range(1, 100));
+		$this->sharedIds = [50 => true];
+
+		$listing = $this->service($this->rootWith(['/Photos' => $this->treeOf($files)]))->list($this->user(), 'Photos', true);
+
+		$this->assertCount(100, $listing->jsonSerialize()['folders']);
+		$this->assertLessThanOrEqual(15, $this->shareReads);
+		$this->assertSame([], $this->lookups);
 	}
 
 	// spec: LISTING-001.14, LISTING-001.15

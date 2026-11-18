@@ -263,6 +263,10 @@ folder with all its subfolders. That set of folders is the *folder set*.
    entries in 100 folders took 525 queries and 0.17 s; the 60,000 entry cap, reached after 600
    folders, 3,132 queries, 1.0 s and 135 MB of PHP memory. Re-measured on 2026-11-17 after
    the folder permissions, versions and XMP cache (#219–#245): the listing numbers are unchanged.
+   Re-measured on 2026-11-18 after the shares were read once per listing (LISTING-001.17): the
+   share lookups no longer grow with the folders, 100 folders took 133 queries and 0.12 s, 600
+   folders 740 queries and 0.68 s (before, on the same container: 525 and 3,132 queries, 0.20 s
+   and 1.0 s); a single folder costs 16 queries instead of 12, one share read per share type.
    A bulk save costs 3 queries per item, since `UserPhotos::photos` looks every file id up on its
    own: 2,000 decisions or tag lists took 6,000 queries in 0.67 s, 60,000 took 180,000 queries in
    19.5 s and ~250 MB. Measured on 2026-11-18 after the cull read through the XMP cache
@@ -270,8 +274,8 @@ folder with all its subfolders. That set of folders is the *folder set*.
    queries and 0.13 s; saving them on a cold first visit costs the same 3 queries per row,
    1.7 s and 16.8 s. In the browser, parsing and showing 5,000 sidecars took 0.45 s, 50,000
    took 3.0 s; with the rows cached, 0.02 s and 0.2 s. On MySQL or
-   PostgreSQL each query adds a network round trip, so the share lookups dominate a deep tree and
-   the per-item lookups a large save.
+   PostgreSQL each query adds a network round trip, so the directory listings dominate a deep tree
+   and the per-item lookups a large save.
 
 Where the work lands: M1.2 (listing with subfolders), M2.3 (picker, grid headers), M2.4 (resume
 per folder set), M2.5 (folder filter), M6 (series per camera).

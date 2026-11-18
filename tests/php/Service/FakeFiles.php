@@ -54,8 +54,11 @@ trait FakeFiles {
 		return $file;
 	}
 
-	/** A folder at `$path` below the user's files. */
-	private function folder(string $path, bool $readable = true, string $mountType = '', int $permissions = Constants::PERMISSION_ALL, int $fileId = 1): Folder&Stub {
+	/**
+	 * A folder at `$path` below the user's files.
+	 * @param ?\Closure(): Folder $parent the folder above, a new one at the parent path without it
+	 */
+	private function folder(string $path, bool $readable = true, string $mountType = '', int $permissions = Constants::PERMISSION_ALL, int $fileId = 1, ?\Closure $parent = null): Folder&Stub {
 		$mount = $this->createStub(IMountPoint::class);
 		$mount->method('getMountType')->willReturn($mountType);
 		$folder = $this->createStub(Folder::class);
@@ -63,6 +66,7 @@ trait FakeFiles {
 		$folder->method('getPermissions')->willReturn($permissions);
 		$folder->method('getId')->willReturn($fileId);
 		$folder->method('getOwner')->willReturn($this->user());
+		$folder->method('getParent')->willReturnCallback(fn (): Folder => $parent !== null ? $parent() : $this->folder(dirname($path)));
 		$folder->method('getStorage')->willReturn($this->createStub(IStorage::class));
 		$absolute = rtrim(self::USER_ROOT . $path, '/');
 		$folder->method('getPath')->willReturn($absolute);
@@ -141,7 +145,9 @@ trait FakeFiles {
 		}
 		$folders = [];
 		foreach (array_keys($children) as $dir) {
-			$folders[$dir] = $this->folder($dir, !in_array($dir, $unreadable, true), $mountTypes[$dir] ?? '');
+			$folders[$dir] = $this->folder($dir, !in_array($dir, $unreadable, true), $mountTypes[$dir] ?? '', parent: function () use (&$folders, $dir): Folder {
+				return $folders[dirname($dir)] ?? $this->folder(dirname($dir));
+			});
 		}
 		foreach ($files as $file) {
 			$children[dirname($this->below($file))][] = $file;
