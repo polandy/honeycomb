@@ -161,6 +161,14 @@
 	cursor: pointer;
 }
 
+/* A stored series' pin or check after the size (SERIES-005.17). */
+.photo-tile__series .app-icon {
+	width: 12px;
+	height: 12px;
+	margin-inline-start: 3px;
+	vertical-align: -2px;
+}
+
 /* The hit area reaches 44 px, 34 px with a fine pointer. */
 .photo-tile__series::before {
 	content: '';

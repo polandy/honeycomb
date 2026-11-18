@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Stored series (#185, ADR 0027, SERIES-005): SERIES-005.17 badges with pin and check and the compare's "edited by hand" subtitle, SERIES-005.18 the "Also in other folders" subtitle (2026-11-15)
 - [ ] Sidecar is the source of truth (M8, ADR 0032, #187): PR 9 drop the legacy tables a release after PR 6 (2026-11-15)
 
 ## Later
