@@ -155,6 +155,13 @@ waits (ADR 0037).
   without such a file go first, the answer keeps the order sent, and every file can be restored
   from the trash bin; a file deleted for good does not wait
 
+### DELETE-001.14 – Every file deleted for good is logged
+
+- **Given** a picture with a file sent with `"permanent": true` that the trash bin would not keep
+- **When** the client posts it and the file is deleted for good
+- **Then** a warning with the file id and the user is logged for that file, never its path or
+  name; a file the trash bin keeps, or one whose delete fails, logs no such entry
+
 ## Out of scope
 
 Choosing what to delete, the summary and the report: DELETE-002. Removing only RAWs: DELETE-003.
@@ -169,4 +176,5 @@ Choosing what to delete, the summary and the report: DELETE-002. Removing only R
 | 2026-11-15 | At most 500 files per request instead of 60,000 (ADR 0029) |
 | 2026-11-15 | A file the trash bin would not keep reports `noTrashBin` (DELETE-001.9, ADR 0030); Team folders and External Storage proven by e2e tests (DELETE-001.10) |
 | 2026-11-18 | `tooLarge` splits from `noTrashBin`; a file with `permanent` the trash bin would not keep is deleted for good (DELETE-001.11, DELETE-001.12, ADR 0036, owner) |
+| 2026-11-18 | Every file deleted for good is logged as a warning with its file id and the user (DELETE-001.14, ADR 0036, owner) |
 | 2026-11-18 | Files of one name are trashed in different seconds, so the trash bin keeps each (DELETE-001.13, ADR 0037) |

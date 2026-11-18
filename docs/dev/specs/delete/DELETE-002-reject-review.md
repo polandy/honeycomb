@@ -31,10 +31,12 @@ the running step and the dialog shows how many photos were sent (ADR 0029).
 **Files the trash bin would not keep** (ADR 0036). When the answer refuses files as `noTrashBin`
 or `tooLarge`, a warning opens before the report or the toast: *N files will be deleted
 permanently*, every such file with its reason (no trash bin on this storage, larger than the trash
-bin allows), *Cancel* with the focus and a separate destructive *Delete permanently*. Confirming
+bin allows), *Cancel* with the focus and a separate destructive *Delete permanently*. No key
+confirms it: the key map is off while it is open, and Enter or Space act on the focused *Cancel*.
+Confirming
 sends those files' pictures again, those files marked `permanent`; the toast and the report then
 count both requests, and the files deleted for good apart. *Cancel* goes on as before: the files
-stay and the report lists them with their reason.
+stay and the report lists them with the warning's words for their reason.
 
 **Deleting by decision** (ADR 0032). Confirming the summary that came from the review first writes
 the waiting sidecars (XMP-003.30), lists the pictures' folders again and reads every sidecar of each
@@ -215,8 +217,8 @@ honeycomb's write, keeps the listing's ETag and holds its picture as `changed`.
 
 - **Given** that warning
 - **When** the user taps *Cancel* or closes it
-- **Then** nothing more is sent, the files stay, and the report lists them with their reason, as
-  without the warning
+- **Then** nothing more is sent, the files stay, and the report lists them with the warning's words
+  for their reason (*No trash bin on this storage*, *Larger than the trash bin allows*)
 
 ### DELETE-002.23 – A failed fresh check deletes what honeycomb knows
 
@@ -227,6 +229,13 @@ honeycomb's write, keeps the listing's ETag and holds its picture as `changed`.
 - **Then** the pictures of the failed folder and the one whose lookup failed go with the files and
   ETags honeycomb knows, the *picked* one is skipped, a file changed since the listing is held by
   the server as `changed`, and the toast adds *Fresh check not possible for 2 photos*
+
+### DELETE-002.24 – No key deletes for good
+
+- **Given** that warning
+- **When** the user presses a key of the key map, e.g. Delete, Ctrl+Backspace or P, or Enter
+- **Then** nothing is deleted for good: the key map's keys do nothing, and Enter acts on the
+  focused *Cancel*, which closes the warning and leaves the files
 
 ## Out of scope
 
@@ -245,4 +254,5 @@ The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
 | 2026-11-15 | *Delete…* sends the sidecars as honeycomb last saved or created them; only another program's change holds a picture (DELETE-002.17, DELETE-002.18) |
 | 2026-11-16 | The confirm button names the running step, and requests start at 5 pictures and double, so the count moves early (DELETE-002.13, ADR 0029) |
 | 2026-11-18 | A warning before deleting for good what the trash bin would not keep (DELETE-002.20 to DELETE-002.22, ADR 0036, owner) |
+| 2026-11-18 | No key confirms the warning, and the report words the reasons as the warning does (DELETE-002.22, DELETE-002.24, ADR 0036, owner) |
 | 2026-11-18 | A failed fresh listing or lookup deletes the rejects honeycomb knows instead of aborting (DELETE-002.15, DELETE-002.23, ADR 0032, owner) |
