@@ -28,6 +28,14 @@ restores. A delete, a *Remove RAWs* and a retry send at most 50 pictures and 500
 request, starting with 5 and doubling, one request after another; the held confirm button names
 the running step and the dialog shows how many photos were sent (ADR 0029).
 
+**Files the trash bin would not keep** (ADR 0036). When the answer refuses files as `noTrashBin`
+or `tooLarge`, a warning opens before the report or the toast: *N files will be deleted
+permanently*, every such file with its reason (no trash bin on this storage, larger than the trash
+bin allows), *Cancel* with the focus and a separate destructive *Delete permanently*. Confirming
+sends those files' pictures again, those files marked `permanent`; the toast and the report then
+count both requests, and the files deleted for good apart. *Cancel* goes on as before: the files
+stay and the report lists them with their reason.
+
 **Deleting by decision** (ADR 0032). Confirming the summary that came from the review first writes
 the waiting sidecars (XMP-003.30), lists the pictures' folders again and reads every sidecar of each
 picture, and the JPEG's embedded XMP while it counts. A picture goes only when every one of them
@@ -183,6 +191,29 @@ honeycomb's write, keeps the listing's ETag and holds its picture as `changed`.
 - **Then** the review opens on every reject of the cull and leads through the same summary and
   fresh check to the trash bin; without rejects the entry is held
 
+### DELETE-002.20 – Warned before deleting for good
+
+- **Given** a delete whose answer refuses files as `noTrashBin` or `tooLarge`
+- **When** the answer arrives
+- **Then** a warning *N files will be deleted permanently* lists each such file with its reason,
+  the focus is on *Cancel*, and the confirm button *Delete permanently* is destructive
+
+### DELETE-002.21 – Confirmed, the files go for good
+
+- **Given** that warning
+- **When** the user taps *Delete permanently*
+- **Then** the refused files' pictures are sent again with `permanent` on exactly those files, the
+  files that went leave the grid, and the toast counts the files moved to the trash bin and those
+  deleted permanently across both requests; a file refused again is reported without a second
+  warning
+
+### DELETE-002.22 – Cancelled, nothing more goes
+
+- **Given** that warning
+- **When** the user taps *Cancel* or closes it
+- **Then** nothing more is sent, the files stay, and the report lists them with their reason, as
+  without the warning
+
 ## Out of scope
 
 The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
@@ -199,3 +230,4 @@ The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
 | 2026-11-15 | *Review rejects* in the ⋯ menu at every width, with its key (DELETE-002.19, owner) |
 | 2026-11-15 | *Delete…* sends the sidecars as honeycomb last saved or created them; only another program's change holds a picture (DELETE-002.17, DELETE-002.18) |
 | 2026-11-16 | The confirm button names the running step, and requests start at 5 pictures and double, so the count moves early (DELETE-002.13, ADR 0029) |
+| 2026-11-18 | A warning before deleting for good what the trash bin would not keep (DELETE-002.20 to DELETE-002.22, ADR 0036, owner) |

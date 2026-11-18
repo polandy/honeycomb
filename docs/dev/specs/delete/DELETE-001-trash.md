@@ -2,27 +2,30 @@
 
 - Status: implemented
 - Area: delete
-- Origin: `docs/dev/plan.md` M4.1, ADR 0013, CLAUDE.md rule 2
+- Origin: `docs/dev/plan.md` M4.1, ADR 0013, ADR 0030, ADR 0036, CLAUDE.md rule 2
 - Depends on: LISTING-001
 
 ## Purpose
 
 Moves whole pictures — every member and sidecar — into the user's Nextcloud trash bin, and reports
-the result of each file, so a partial failure leaves a state the user can trace.
+the result of each file, so a partial failure leaves a state the user can trace. A file the trash
+bin would not keep is deleted for good only when the request says so for that file (ADR 0036).
 
 ## Behaviour
 
 `POST /apps/honeycomb/api/v1/trash` takes `{"pictures": [[{"fileId": 7, "etag": "…"}, …], …]}`:
 a list of pictures, each the list of its files with the ETag from the listing, at most 500
-files, so one request ends well inside a proxy or PHP timeout (ADR 0029). The server does not
+files, so one request ends well inside a proxy or PHP timeout (ADR 0029). A file the user
+confirmed to delete for good also carries `"permanent": true` (ADR 0036). The server does not
 pair; it checks each file and trashes through `OCP\Files`.
 
 For each picture:
 
 1. Every file is checked before any is trashed: it must exist in the user's files, be a file whose
    mime type is `image/*` or whose name ends in `.xmp`, `.cr3` or `.srw`, carry the given ETag,
-   be deletable and be kept by the trash bin (below).
-2. The files are then trashed in order, sidecars (`.xmp`) after the members.
+   be deletable and be kept by the trash bin (below), unless it carries `permanent`.
+2. The files are then trashed in order, sidecars (`.xmp`) after the members. A file with
+   `permanent` that the trash bin would not keep is deleted for good; one it would keep is trashed.
 3. The first failure stops the picture; its remaining files are `skipped`. Files already trashed
    stay in the trash bin. One picture's failure does not stop the others.
 
@@ -32,10 +35,12 @@ sent. `result` is one of:
 | Result | Meaning |
 |---|---|
 | `trashed` | Moved into the trash bin |
+| `deleted` | Deleted for good, as its `permanent` asked |
 | `notFound` | Vanished, foreign, a folder or not a type the listing lists |
 | `changed` | Another ETag than the listing's |
 | `notPermitted` | The user may not delete it |
-| `noTrashBin` | The trash bin would not keep it, so deleting it would be for good |
+| `noTrashBin` | Its storage has no trash bin, so deleting it would be for good |
+| `tooLarge` | It is at least as large as the trash bin size, so deleting it would be for good |
 | `locked` | Locked by another process |
 | `failed` | Any other error, logged as a warning |
 | `skipped` | Not tried, because another file of the picture failed |
@@ -109,14 +114,31 @@ without that size. So before trashing, each file is checked against these rules 
 - **Given** a picture with a file on a storage without the trash bin, or a file at least as large
   as the trash bin size, outside a Team folder
 - **When** the client posts it with another, valid picture
-- **Then** no file of that picture is touched, that file reports `noTrashBin`, its other files
-  `skipped` unless they fail too, and the other picture is trashed
+- **Then** no file of that picture is touched, that file reports `noTrashBin` for the storage or
+  `tooLarge` for the size, its other files `skipped` unless they fail too, and the other picture
+  is trashed
 
 ### DELETE-001.10 – Team folders and External Storage
 
 - **Given** a pair in a Team folder, or on local External Storage
 - **When** the client posts it
 - **Then** both files are trashed and appear in the user's trash bin
+
+### DELETE-001.11 – Deleted for good only when the file asks
+
+- **Given** a picture with a file the trash bin would not keep, sent with `"permanent": true`
+- **When** the client posts it
+- **Then** that file is deleted for good and reports `deleted`, its other files are trashed, and a
+  file the trash bin would keep is trashed and reports `trashed` despite the flag
+
+### DELETE-001.12 – The flag skips only the trash bin check
+
+- **Given** a file with `"permanent": true` that changed since the listing, may not be deleted or
+  vanished, or a picture whose other file the trash bin would not keep without the flag
+- **When** the client posts it
+- **Then** no file of that picture is touched and the files report `changed`, `notPermitted`,
+  `notFound`, `noTrashBin` or `tooLarge` as without the flag; a `permanent` that is not `true` or
+  `false` is a malformed request (`400`)
 
 ## Out of scope
 
@@ -131,3 +153,4 @@ Choosing what to delete, the summary and the report: DELETE-002. Removing only R
 | 2026-11-11 | `.cr3` and `.srw` files Nextcloud does not type are trashed like any picture file |
 | 2026-11-15 | At most 500 files per request instead of 60,000 (ADR 0029) |
 | 2026-11-15 | A file the trash bin would not keep reports `noTrashBin` (DELETE-001.9, ADR 0030); Team folders and External Storage proven by e2e tests (DELETE-001.10) |
+| 2026-11-18 | `tooLarge` splits from `noTrashBin`; a file with `permanent` the trash bin would not keep is deleted for good (DELETE-001.11, DELETE-001.12, ADR 0036, owner) |

@@ -16,7 +16,7 @@ use OCP\IUser;
 use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
 
-/** Moves whole pictures into the trash bin: each checked whole, then trashed file by file (ADR 0013). */
+/** Moves whole pictures into the trash bin: each checked whole, then trashed file by file (ADR 0013); a file marked permanent the trash bin would not keep is deleted for good (ADR 0036). */
 final class TrashService {
 	public function __construct(
 		private UserPhotos $photos,
@@ -43,39 +43,41 @@ final class TrashService {
 	}
 
 	/**
-	 * @param non-empty-list<array{fileId: int, etag: string}> $picture
+	 * @param non-empty-list<array{fileId: int, etag: string, permanent: bool}> $picture
 	 * @return list<array{fileId: int, result: TrashResult}>
 	 */
 	private function trashPicture(IUser $user, Folder $userFolder, array $picture): array {
-		$checked = array_map(fn (array $file): File|TrashResult => $this->check($user, $userFolder, $file['fileId'], $file['etag']), $picture);
-		$files = array_filter($checked, static fn (File|TrashResult $node): bool => $node instanceof File);
+		$checked = array_map(fn (array $file): array|TrashResult => $this->check($user, $userFolder, $file), $picture);
+		/** @var array<int, array{File, TrashResult}> $files */
+		$files = array_filter($checked, is_array(...));
 		$results = count($files) === count($checked)
 			? $this->trashInOrder($files)
-			: array_map(static fn (File|TrashResult $node): TrashResult => $node instanceof File ? TrashResult::Skipped : $node, $checked);
+			: array_map(static fn (array|TrashResult $node): TrashResult => is_array($node) ? TrashResult::Skipped : $node, $checked);
 		return array_map(static fn (array $file, TrashResult $result): array => ['fileId' => $file['fileId'], 'result' => $result], $picture, $results);
 	}
 
 	/**
-	 * Trashes the members, then the sidecars, and stops at the first failure.
-	 * @param array<int, File> $files
+	 * Deletes the members, then the sidecars, and stops at the first failure.
+	 * @param array<int, array{File, TrashResult}> $files each file with its result on success
 	 * @return list<TrashResult> in the order of `$files`
 	 */
 	private function trashInOrder(array $files): array {
-		$sidecars = array_filter($files, ListingService::isSidecar(...));
+		$sidecars = array_filter($files, static fn (array $file): bool => ListingService::isSidecar($file[0]));
 		$results = array_fill_keys(array_keys($files), TrashResult::Skipped);
-		foreach (array_diff_key($files, $sidecars) + $sidecars as $index => $file) {
-			$results[$index] = $this->trashFile($file);
-			if ($results[$index] !== TrashResult::Trashed) {
+		foreach (array_diff_key($files, $sidecars) + $sidecars as $index => [$file, $done]) {
+			$results[$index] = $this->deleteFile($file, $done);
+			if ($results[$index] !== $done) {
 				break;
 			}
 		}
 		return array_values($results);
 	}
 
-	private function trashFile(File $file): TrashResult {
+	/** Deletes the file, which the trash bin keeps unless `$done` is `Deleted`, and returns `$done` or the failure. */
+	private function deleteFile(File $file, TrashResult $done): TrashResult {
 		try {
 			$file->delete();
-			return TrashResult::Trashed;
+			return $done;
 		} catch (NotPermittedException) {
 			return TrashResult::NotPermitted;
 		} catch (LockedException) {
@@ -88,27 +90,32 @@ final class TrashService {
 		}
 	}
 
-	/** The file to trash, or why it may not be trashed. */
-	private function check(IUser $user, Folder $userFolder, int $fileId, string $etag): File|TrashResult {
-		$node = $this->photos->listed($userFolder, $fileId);
+	/**
+	 * The file to delete with its result on success, or why it may not be deleted.
+	 * @param array{fileId: int, etag: string, permanent: bool} $file
+	 * @return array{File, TrashResult}|TrashResult
+	 */
+	private function check(IUser $user, Folder $userFolder, array $file): array|TrashResult {
+		$node = $this->photos->listed($userFolder, $file['fileId']);
 		if ($node === null) {
 			return TrashResult::NotFound;
 		}
-		if ($node->getEtag() !== $etag) {
+		if ($node->getEtag() !== $file['etag']) {
 			return TrashResult::Changed;
 		}
 		if (!$node->isDeletable()) {
 			return TrashResult::NotPermitted;
 		}
-		if (!$this->trashBinGuard->keeps($user->getUID(), $node)) {
-			return TrashResult::NoTrashBin;
+		$refusal = $this->trashBinGuard->refusal($user->getUID(), $node);
+		if ($refusal === null) {
+			return [$node, TrashResult::Trashed];
 		}
-		return $node;
+		return $file['permanent'] ? [$node, TrashResult::Deleted] : $refusal;
 	}
 
 	/**
 	 * @param array<array-key, mixed> $pictures
-	 * @return list<non-empty-list<array{fileId: int, etag: string}>>
+	 * @return list<non-empty-list<array{fileId: int, etag: string, permanent: bool}>>
 	 * @throws InvalidTrashRequestException
 	 */
 	private function parse(array $pictures): array {
@@ -116,25 +123,30 @@ final class TrashService {
 			throw new InvalidTrashRequestException('pictures must be a list');
 		}
 		$fileIds = [];
+		$parsed = [];
 		foreach ($pictures as $picture) {
 			if (!is_array($picture) || $picture === [] || !array_is_list($picture)) {
 				throw new InvalidTrashRequestException('Each picture must be a non-empty list of files');
 			}
+			$files = [];
 			/** @var mixed $file */
 			foreach ($picture as $file) {
 				$fileId = is_array($file) ? $file['fileId'] ?? null : null;
 				$etag = is_array($file) ? $file['etag'] ?? null : null;
-				if (!is_int($fileId) || $fileId < 1 || !is_string($etag) || $etag === '') {
-					throw new InvalidTrashRequestException('Each file must have a positive fileId and an etag');
+				$permanent = is_array($file) ? $file['permanent'] ?? false : false;
+				if (!is_int($fileId) || $fileId < 1 || !is_string($etag) || $etag === '' || !is_bool($permanent)) {
+					throw new InvalidTrashRequestException('Each file must have a positive fileId, an etag and at most a boolean permanent');
 				}
 				$fileIds[] = $fileId;
+				$files[] = ['fileId' => $fileId, 'etag' => $etag, 'permanent' => $permanent];
 			}
+			$parsed[] = $files;
 		}
 		FileIds::eachOnce($fileIds, InvalidTrashRequestException::class);
 		if (count($fileIds) > PictureRequestLimit::FILES) {
 			throw new InvalidTrashRequestException('At most ' . PictureRequestLimit::FILES . ' files');
 		}
-		/** @var list<non-empty-list<array{fileId: int, etag: string}>> $pictures */
-		return $pictures;
+		/** @var list<non-empty-list<array{fileId: int, etag: string, permanent: bool}>> $parsed */
+		return $parsed;
 	}
 }

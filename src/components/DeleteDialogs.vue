@@ -12,6 +12,7 @@ import type { SendProgress } from '../logic/request-chunks.ts'
 
 import DeleteReport from './DeleteReport.vue'
 import DeleteSummary from './DeleteSummary.vue'
+import PermanentDeleteWarning from './PermanentDeleteWarning.vue'
 import RawRemovalSummary from './RawRemovalSummary.vue'
 import RejectReview from './RejectReview.vue'
 
@@ -71,6 +72,15 @@ const emit = defineEmits<{
 		:progress="props.progress"
 		:container="props.container"
 		@toggle="emit('toggleKeepRaw', $event)"
+		@cancel="emit('close')"
+		@confirm="emit('confirm')" />
+	<PermanentDeleteWarning
+		v-else-if="props.dialog?.kind === 'permanent'"
+		:files="props.dialog.files"
+		:folderSet="props.folderSet"
+		:busy="props.busy"
+		:progress="props.progress"
+		:container="props.container"
 		@cancel="emit('close')"
 		@confirm="emit('confirm')" />
 	<DeleteReport

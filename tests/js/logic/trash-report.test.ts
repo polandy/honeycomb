@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import { filesOf } from '../../../src/logic/delete-summary.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../../../src/logic/pairing.ts'
-import { followReplaced, retryBatch, trashReport, trashRequest, wholePictures, withoutFiles } from '../../../src/logic/trash-report.ts'
+import { followReplaced, mergeReports, permanentBatch, retryBatch, trashReport, trashRequest, unkeptFiles, wholePictures, withoutFiles } from '../../../src/logic/trash-report.ts'
 import { listingEntry, pictureOf, picturesOf } from './listing-entries.ts'
 
 const ENTRIES = [
@@ -22,6 +22,14 @@ describe('trashRequest', () => {
 		expect(trashRequest(wholePictures([PAIR, SINGLE]))).toEqual([
 			[{ fileId: 2, etag: 'etag-2' }, { fileId: 1, etag: 'etag-1' }, { fileId: 3, etag: 'etag-3' }],
 			[{ fileId: 4, etag: 'etag-4' }],
+		])
+	})
+
+	// spec: DELETE-002.21
+	it('marks only the files given as permanent', () => {
+		expect(trashRequest(wholePictures([PAIR, SINGLE]), new Set([1, 4]))).toEqual([
+			[{ fileId: 2, etag: 'etag-2' }, { fileId: 1, etag: 'etag-1', permanent: true }, { fileId: 3, etag: 'etag-3' }],
+			[{ fileId: 4, etag: 'etag-4', permanent: true }],
 		])
 	})
 })
@@ -57,7 +65,7 @@ describe('trashReport', () => {
 	})
 
 	// spec: DELETE-002.9
-	it.each(['notFound', 'noTrashBin', 'failed'])('keeps the %s result', (result) => {
+	it.each(['notFound', 'noTrashBin', 'tooLarge', 'failed'])('keeps the %s result', (result) => {
 		const report = trashReport(wholePictures([SINGLE]), results([[4, result]]))
 
 		expect(report.failed.map((failed) => failed.result)).toEqual([result])
@@ -68,6 +76,44 @@ describe('trashReport', () => {
 		const report = trashReport(wholePictures([PAIR]), results([[2, 'trashed'], [1, 'vanished']]))
 
 		expect(report.failed.map(({ file, result }) => [file.entry.fileId, result])).toEqual([[1, 'failed'], [3, 'failed']])
+	})
+
+	// spec: DELETE-002.21
+	it('counts the files deleted permanently apart, and their pictures and bytes as gone', () => {
+		const report = trashReport(wholePictures([PAIR, SINGLE]), results([[2, 'trashed'], [1, 'deleted'], [3, 'trashed']], [[4, 'deleted']]))
+
+		expect(report.trashed.map((file) => file.entry.fileId)).toEqual([2, 3])
+		expect(report.deleted.map((file) => file.entry.fileId)).toEqual([1, 4])
+		expect(report).toMatchObject({ failed: [], removed: 2, bytes: 33 })
+	})
+})
+
+describe('permanentBatch', () => {
+	// spec: DELETE-002.20, DELETE-002.21
+	it('names the files the trash bin would not keep and resends only their pictures, grouped', () => {
+		const report = trashReport(wholePictures([PAIR, SINGLE, OTHER]), results(
+			[[2, 'skipped'], [1, 'tooLarge'], [3, 'skipped']],
+			[[4, 'noTrashBin']],
+			[[5, 'locked']],
+		))
+
+		expect(unkeptFiles(report).map(({ file, result }) => [file.entry.fileId, result])).toEqual([[1, 'tooLarge'], [4, 'noTrashBin']])
+		expect(permanentBatch(report).map((files) => files.map((file) => file.entry.fileId))).toEqual([[2, 1, 3], [4]])
+	})
+})
+
+describe('mergeReports', () => {
+	// spec: DELETE-002.21
+	it('counts both requests, the resent files only by their second result', () => {
+		const first = trashReport(wholePictures([PAIR, SINGLE]), results([[2, 'skipped'], [1, 'tooLarge'], [3, 'skipped']], [[4, 'trashed']]))
+		const second = trashReport(permanentBatch(first), results([[2, 'trashed'], [1, 'deleted'], [3, 'locked']]))
+
+		const merged = mergeReports(first, second)
+
+		expect(merged.trashed.map((file) => file.entry.fileId)).toEqual([4, 2])
+		expect(merged.deleted.map((file) => file.entry.fileId)).toEqual([1])
+		expect(merged.failed.map(({ file, result }) => [file.entry.fileId, result])).toEqual([[3, 'locked']])
+		expect(merged).toMatchObject({ removed: 2, bytes: 32 })
 	})
 })
 

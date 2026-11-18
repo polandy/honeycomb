@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { SkipReason } from './logic/fresh-check.ts'
 import type { SendProgress } from './logic/request-chunks.ts'
-import type { TrashFailure, TrashReport } from './logic/trash-report.ts'
+import type { TrashFailure, TrashReport, UnkeptFailure } from './logic/trash-report.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { formatFileSize, formatNumber, PLAIN_TEXT } from './l10n.ts'
@@ -17,7 +17,9 @@ export function failureReason(result: TrashFailure): string {
 		case 'notPermitted':
 			return t('honeycomb', 'You may not delete this file')
 		case 'noTrashBin':
-			return t('honeycomb', 'Not deleted: no trash bin on this storage, or the file is larger than the trash bin allows')
+			return t('honeycomb', 'Not deleted: no trash bin on this storage')
+		case 'tooLarge':
+			return t('honeycomb', 'Not deleted: larger than the trash bin allows')
 		case 'locked':
 			return t('honeycomb', 'File is locked (another process is writing to it)')
 		case 'skipped':
@@ -25,6 +27,18 @@ export function failureReason(result: TrashFailure): string {
 		default:
 			return t('honeycomb', 'Could not move the file to the trash bin')
 	}
+}
+
+/** Why the trash bin would not keep a file, as the warning before deleting for good lists it. */
+export function unkeptReason(result: UnkeptFailure): string {
+	return result === 'tooLarge'
+		? t('honeycomb', 'Larger than the trash bin allows')
+		: t('honeycomb', 'No trash bin on this storage')
+}
+
+/** "%n file deleted permanently", the toast's part on the files deleted for good (ADR 0036). */
+export function deletedPermanentlyText(count: number): string {
+	return n('honeycomb', '{count} file deleted permanently', '{count} files deleted permanently', count, { count: formatNumber(count) }, PLAIN_TEXT)
 }
 
 /** The summaries' note on where deleted files go and how long the trash bin keeps them. */

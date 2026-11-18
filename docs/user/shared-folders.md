@@ -25,10 +25,13 @@ another server.
 
 ## Deleting
 
-Deleted files go to the Nextcloud trash bin, never for good. Before anything goes, honeycomb checks
+Deleted files go to the Nextcloud trash bin; a file it would not keep goes for good only after a
+warning. Before anything goes, honeycomb checks
 every file of a photo: you must be allowed to delete it, it must not have changed since the folder
 was listed, and the trash bin must keep it. A storage without a trash bin, or a file larger than
-the trash bin allows, keeps the whole photo, and the report says why per file. Team folders have
+the trash bin allows, keeps the whole photo unless you confirm the warning to delete those files
+permanently ([Deleting photos](deleting.md#files-the-trash-bin-would-not-keep)); otherwise the
+report says why per file. Team folders have
 their own trash bin.
 
 ## Moving

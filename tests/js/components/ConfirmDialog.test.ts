@@ -3,6 +3,7 @@
 // @vitest-environment happy-dom
 import { mount, shallowMount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { nextTick } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import ConfirmDialog from '../../../src/components/ConfirmDialog.vue'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
@@ -49,6 +50,15 @@ describe('ConfirmDialog', () => {
 
 		expect(confirmVariant({})).toBe('primary')
 		expect(confirmVariant({ secondary: true })).toBe('secondary')
+	})
+
+	// spec: DELETE-002.20
+	it('puts the focus on Cancel on request', async () => {
+		const wrapper = mount(ConfirmDialog, { props: { title: 'T', confirmLabel: 'Delete', cancel: true, danger: true, focusCancel: true }, global: { stubs: { NcDialog: DialogStub } }, attachTo: document.body })
+		await nextTick()
+
+		expect(document.activeElement?.textContent?.trim()).toBe(`${MARK}Cancel`)
+		wrapper.unmount()
 	})
 
 	it('disables the confirm button on request', () => {

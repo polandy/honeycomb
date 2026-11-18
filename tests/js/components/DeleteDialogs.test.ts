@@ -110,6 +110,14 @@ describe('DeleteReport', () => {
 		expect(wrapper.emitted('close')).toHaveLength(1)
 	})
 
+	// spec: DELETE-002.21
+	it('counts the files deleted permanently apart from those moved to trash', () => {
+		const report = trashReport(wholePictures([PAIR!]), [[{ fileId: 2, result: 'trashed' }, { fileId: 1, result: 'deleted' }, { fileId: 3, result: 'locked' }]])
+		const wrapper = mount(DeleteReport, { props: { report, skipped: [], folderSet: SET, busy: false }, global })
+
+		expect(wrapper.find('.delete-stats').text()).toBe('1file moved to trash1file deleted permanently1failed')
+	})
+
 	// spec: DELETE-002.16
 	it('lists the skipped photos with their reasons and holds the retry while no file failed', () => {
 		const report = trashReport(wholePictures([PAIR!]), [[{ fileId: 1, result: 'trashed' }, { fileId: 2, result: 'trashed' }, { fileId: 3, result: 'trashed' }]])

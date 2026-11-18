@@ -1467,3 +1467,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   step's own toast with **Details**, since only one toast shows at a time.
 - 2026-11-18: A failed sidecar write (#221 c) names the reason of most failures, the first seen on
   a tie, and adds *More reasons in Details.* when they differ; the migration result does the same.
+- 2026-11-18: A file the trash bin would not keep is deleted for good after the permanent delete
+  warning (#210, owner at #187 point 4, ADR 0036): a `permanent` flag per file, set only on files
+  the server refused before; `noTrashBin` splits off `tooLarge`. No Team folder lacks a trash bin
+  in Nextcloud 35, so the e2e proves the dialog on External Storage over the size limit.

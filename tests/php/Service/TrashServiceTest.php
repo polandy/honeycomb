@@ -40,9 +40,9 @@ final class TrashServiceTest extends TestCase {
 	}
 
 	/** A file of alice's that records its delete, or throws `$failure` instead; `$size` bytes against a trash bin size of 1000. */
-	private function file(int $id, string $name, string $mime = 'image/jpeg', bool $deletable = true, ?\Throwable $failure = null, int $size = 1): File {
+	private function file(int $id, string $name, string $mime = 'image/jpeg', bool $deletable = true, ?\Throwable $failure = null, int $size = 1, bool $trashBin = true): File {
 		$storage = $this->createStub(IStorage::class);
-		$storage->method('instanceOfStorage')->willReturnCallback(static fn (string $class): bool => $class === 'OCA\Files_Trashbin\Storage');
+		$storage->method('instanceOfStorage')->willReturnCallback(static fn (string $class): bool => $trashBin && $class === 'OCA\Files_Trashbin\Storage');
 		$file = $this->createStub(File::class);
 		$file->method('getStorage')->willReturn($storage);
 		$file->method('getSize')->willReturn($size);
@@ -123,7 +123,8 @@ final class TrashServiceTest extends TestCase {
 			'a file the listing does not list' => ['unlisted', 'notFound'],
 			'a file changed since the listing' => ['changed', 'changed'],
 			'a file the user may not delete' => ['undeletable', 'notPermitted'],
-			'a file the trash bin would not keep' => ['too large', 'noTrashBin'],
+			'a file on a storage without the trash bin' => ['no trash bin', 'noTrashBin'],
+			'a file larger than the trash bin allows' => ['too large', 'tooLarge'],
 		];
 	}
 
@@ -147,6 +148,7 @@ final class TrashServiceTest extends TestCase {
 			'unlisted' => $this->file(2, 'notes.txt', 'text/plain'),
 			'changed', 'undeletable' => $this->file(2, 'IMG_0001.JPG', deletable: $jpeg !== 'undeletable'),
 			'too large' => $this->file(2, 'IMG_0001.JPG', size: 1000),
+			'no trash bin' => $this->file(2, 'IMG_0001.JPG', trashBin: false),
 		};
 		if ($node !== null) {
 			$nodes[2] = $node;
@@ -160,6 +162,57 @@ final class TrashServiceTest extends TestCase {
 			[['fileId' => 4, 'result' => 'trashed']],
 		], self::results($results));
 		$this->assertSame([4], $this->trashed);
+	}
+
+	// spec: DELETE-001.11
+	public function testAFileMarkedPermanentIsDeletedForGoodOnlyWhereTheTrashBinWouldNotKeepIt(): void {
+		$nodes = [
+			1 => $this->file(1, 'IMG_0001.CR3', 'image/x-canon-cr3', size: 1000),
+			2 => $this->file(2, 'IMG_0001.JPG'),
+			3 => $this->file(3, 'IMG_0002.JPG', trashBin: false),
+			4 => $this->file(4, 'IMG_0003.JPG'),
+		];
+		$pictures = [
+			[['fileId' => 1, 'etag' => 'etag-1', 'permanent' => true], ['fileId' => 2, 'etag' => 'etag-2']],
+			[['fileId' => 3, 'etag' => 'etag-3', 'permanent' => true]],
+			[['fileId' => 4, 'etag' => 'etag-4', 'permanent' => true]],
+		];
+
+		$results = $this->service($nodes)->trash($this->user(), $pictures);
+
+		$this->assertSame([
+			[['fileId' => 1, 'result' => 'deleted'], ['fileId' => 2, 'result' => 'trashed']],
+			[['fileId' => 3, 'result' => 'deleted']],
+			[['fileId' => 4, 'result' => 'trashed']],
+		], self::results($results));
+		$this->assertSame([1, 2, 3, 4], $this->trashed);
+	}
+
+	/** @return array<string, array{array<int, Node>, list<array<string, mixed>>, list<string>}> */
+	public function permanentCheckFailures(): array {
+		$large = static fn (self $test, int $id, bool $deletable = true): File => $test->file($id, "IMG_000$id.JPG", deletable: $deletable, size: 1000);
+		return [
+			'changed since the listing' => [[1 => $large($this, 1)], [['fileId' => 1, 'etag' => 'etag-old', 'permanent' => true]], ['changed']],
+			'not deletable' => [[1 => $large($this, 1, false)], [['fileId' => 1, 'etag' => 'etag-1', 'permanent' => true]], ['notPermitted']],
+			'vanished' => [[], [['fileId' => 1, 'etag' => 'etag-1', 'permanent' => true]], ['notFound']],
+			'another file without the flag' => [
+				[1 => $large($this, 1), 2 => $this->file(2, 'IMG_0002.CR3', 'image/x-canon-cr3', trashBin: false)],
+				[['fileId' => 1, 'etag' => 'etag-1', 'permanent' => true], ['fileId' => 2, 'etag' => 'etag-2', 'permanent' => false]],
+				['skipped', 'noTrashBin'],
+			],
+		];
+	}
+
+	// spec: DELETE-001.12
+	public function testTheFlagSkipsOnlyTheTrashBinCheck(): void {
+		foreach ($this->permanentCheckFailures() as $case => [$nodes, $picture, $expected]) {
+			$this->trashed = [];
+
+			$results = self::results($this->service($nodes)->trash($this->user(), [$picture]));
+
+			$this->assertSame($expected, array_column($results[0], 'result'), $case);
+			$this->assertSame([], $this->trashed, $case);
+		}
 	}
 
 	/** @return array<string, array{\Throwable, string}> */
@@ -220,6 +273,7 @@ final class TrashServiceTest extends TestCase {
 			'a file id twice in one picture' => [[self::picture(1, 1)]],
 			'a file id in two pictures' => [[self::picture(1), self::picture(1)]],
 			'more files than the limit' => [[self::picture(...range(1, 501))]],
+			'a permanent that is no boolean' => [[[['fileId' => 1, 'etag' => 'etag-1', 'permanent' => 'yes']]]],
 		];
 	}
 
