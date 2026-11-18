@@ -89,7 +89,7 @@ for (const orientation of Object.keys(IPAD_MINI) as (keyof typeof IPAD_MINI)[]) 
 		await expect(loupe).toBeHidden()
 
 		const compareButton = page.getByRole('button', { name: /^Compare series \(?\d/ })
-		if (!(await compareButton.isVisible())) await page.getByRole('button', { name: 'More' }).click()
+		if (!(await compareButton.isVisible())) { await page.getByRole('button', { name: 'More' }).click() }
 		await compareButton.click()
 		const compare = page.getByRole('dialog', { name: /^Compare series 1 of 1/ })
 		await expect(compare).toBeVisible()
