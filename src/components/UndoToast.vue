@@ -5,6 +5,7 @@
 <script setup lang="ts">
 import type { Toast } from '../toast.ts'
 
+import { t } from '@nextcloud/l10n'
 import { onBeforeUnmount } from 'vue'
 import { keyCap } from '../hotkeys.ts'
 import { tip } from '../tooltip.ts'
@@ -60,26 +61,38 @@ onBeforeUnmount(() => {
 		@focusin="emit('focus', true)"
 		@focusout="onFocusOut"
 		@pointerdown="onPointerDown">
-		<span>{{ props.toast.message }}</span>
-		<span v-if="props.toast.action !== null || props.toast.offer" aria-hidden="true">·</span>
-		<!-- mousedown would move the focus out of the loupe and its keys -->
-		<button
-			v-if="props.toast.offer"
-			type="button"
-			class="undo-toast__action undo-toast__offer"
-			v-bind="tip(props.toast.offer.label, keyCap('pick-rest'))"
-			@mousedown.prevent
-			@click="emit('offer')">
-			{{ props.toast.offer.label }}
-		</button>
-		<button
-			v-if="props.toast.action !== null"
-			type="button"
-			class="undo-toast__action"
-			@mousedown.prevent
-			@click="emit('act')">
-			{{ props.toast.action.label }}
-		</button>
+		<div class="undo-toast__row">
+			<span>{{ props.toast.message }}</span>
+			<span v-if="props.toast.action !== null || props.toast.offer" aria-hidden="true">·</span>
+			<!-- mousedown would move the focus out of the loupe and its keys -->
+			<button
+				v-if="props.toast.offer"
+				type="button"
+				class="undo-toast__action undo-toast__offer"
+				v-bind="tip(props.toast.offer.label, keyCap('pick-rest'))"
+				@mousedown.prevent
+				@click="emit('offer')">
+				{{ props.toast.offer.label }}
+			</button>
+			<button
+				v-if="props.toast.action !== null"
+				type="button"
+				class="undo-toast__action"
+				@mousedown.prevent
+				@click="emit('act')">
+				{{ props.toast.action.label }}
+			</button>
+		</div>
+		<details v-if="props.toast.details" class="undo-toast__details">
+			<summary class="undo-toast__summary">
+				{{ t('honeycomb', 'Details') }}
+			</summary>
+			<ul class="undo-toast__list">
+				<li v-for="(detail, at) in props.toast.details" :key="at">
+					{{ detail }}
+				</li>
+			</ul>
+		</details>
 	</div>
 </template>
 
@@ -90,8 +103,8 @@ onBeforeUnmount(() => {
 	bottom: calc(16px + env(safe-area-inset-bottom, 0px));
 	z-index: 10001;
 	display: flex;
-	align-items: center;
-	gap: calc(2 * var(--default-grid-baseline));
+	flex-direction: column;
+	justify-content: center;
 	width: fit-content;
 	max-width: 92%;
 	min-height: 48px;
@@ -101,6 +114,28 @@ onBeforeUnmount(() => {
 	background: var(--color-main-text);
 	color: var(--color-main-background);
 	box-shadow: 0 2px 12px var(--color-box-shadow);
+}
+
+.undo-toast__row {
+	display: flex;
+	align-items: center;
+	gap: calc(2 * var(--default-grid-baseline));
+}
+
+.undo-toast__summary {
+	display: flex;
+	align-items: center;
+	min-height: var(--default-clickable-area);
+	color: var(--color-primary-element-light);
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.undo-toast__list {
+	max-height: 30vh;
+	overflow-y: auto;
+	padding-inline-start: calc(4 * var(--default-grid-baseline));
+	list-style: disc;
 }
 
 .undo-toast--top {

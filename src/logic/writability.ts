@@ -37,8 +37,30 @@ export const NO_ACCESS: ListedAccess = { folders: [], opened: [] }
 /** Whether a decision on the picture may be written to its sidecars, or the first reason it may not (XMP-008). */
 export type Writability = 'writable' | 'off' | 'readOnly' | 'shared' | 'noVersions' | 'refused'
 
-/** The reasons a picture is locked, first the one named first (XMP-008.7). */
-const LOCK_ORDER = ['off', 'readOnly', 'shared', 'noVersions', 'refused'] as const
+/** A lock the user lifts in the dialog: turn writing On, confirm a shared folder (XMP-008.7). */
+export type LiftableLock = 'off' | 'shared'
+
+/** A lock the step leaves its picture to (XMP-008.9). */
+export type FixedLock = Exclude<Writability, 'writable' | LiftableLock>
+
+/** The liftable locks, first the one asked first. */
+const LIFTABLE_ORDER: readonly LiftableLock[] = ['off', 'shared']
+
+/** The fixed locks, first the one a toast names first (XMP-008.9). */
+const FIXED_ORDER: readonly FixedLock[] = ['readOnly', 'noVersions', 'refused']
+
+/** A picture a step leaves as it is, and why. */
+export interface LockedPicture {
+	readonly picture: Picture<ListingEntry>
+	readonly reason: FixedLock
+}
+
+/** A step's pictures by lock: the lock to lift first, the writable pictures and the locked ones. */
+export interface LockSplit {
+	readonly liftable: LiftableLock | null
+	readonly writable: readonly Picture<ListingEntry>[]
+	readonly locked: readonly LockedPicture[]
+}
 
 /** What the writability of a picture is read from. */
 export interface WriteContext {
@@ -49,9 +71,9 @@ export interface WriteContext {
 	readonly refused: (picture: Picture<ListingEntry>) => boolean
 }
 
-/** A step not taken because a picture is locked: the reason, the shared folders to confirm, and the step again. */
+/** A step not taken until the user lifts its lock: the reason, the shared folders to confirm, and the step again. */
 export interface WriteLock<T = unknown> {
-	readonly reason: Exclude<Writability, 'writable'>
+	readonly reason: LiftableLock
 	readonly folders: readonly OpenedFolder[]
 	readonly retry: () => T | null
 }
@@ -99,10 +121,23 @@ export function unconfirmedShared(picture: Picture<ListingEntry>, context: Write
 	return memberFolders(picture).some((path) => context.folders.get(path)?.shared === true && !isConfirmed(path, context))
 }
 
-/** The first reason one of the pictures is locked, or null when every one is writable (XMP-008.7). */
-export function lockReason(pictures: readonly Picture<ListingEntry>[], context: WriteContext): WriteLock['reason'] | null {
-	const reasons = new Set(pictures.map((picture) => writability(picture, context)))
-	return LOCK_ORDER.find((reason) => reasons.has(reason)) ?? null
+/** The pictures by lock, each picture in its order; the liftable lock is the first in the order `off`, `shared` (XMP-008.7, .9). */
+export function splitLocks(pictures: readonly Picture<ListingEntry>[], context: WriteContext): LockSplit {
+	const reasons = pictures.map((picture) => ({ picture, reason: writability(picture, context) }))
+	const writable = reasons.filter(({ reason }) => reason === 'writable').map(({ picture }) => picture)
+	const locked = reasons.filter((each): each is LockedPicture => isFixed(each.reason))
+	const liftable = LIFTABLE_ORDER.find((reason) => reasons.some((each) => each.reason === reason)) ?? null
+	return { liftable, writable, locked }
+}
+
+/** Whether the lock is one a step leaves its picture to. */
+function isFixed(reason: Writability): reason is FixedLock {
+	return (FIXED_ORDER as readonly Writability[]).includes(reason)
+}
+
+/** The first reason of the locked pictures in the order `readOnly`, `noVersions`, `refused` (XMP-008.9). */
+export function firstLock(locked: readonly LockedPicture[]): FixedLock {
+	return locked.reduce<FixedLock>((first, { reason }) => (FIXED_ORDER.indexOf(reason) < FIXED_ORDER.indexOf(first) ? reason : first), 'refused')
 }
 
 /** The opened folders that confirm the unconfirmed shared folders of the pictures, each once (XMP-008.4). */

@@ -142,19 +142,19 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	/** What the pictures share, for the action bar. */
 	const common = (chosen: readonly Picture<ListingEntry>[]) => commonDecision(decided(chosen))
 
-	/** Decides the pictures, keeps the step for undo and returns it, or null when nothing changes or a picture is locked. */
+	/** Decides the writable pictures, keeps the step for undo and returns it, or null when nothing changes or all are locked (XMP-008.9). */
 	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]): DecisionStep | null {
-		return access.gate(chosen, () => history.record(undoEntry(decided(chosen), resolveChange(intent, decided(chosen)))))
+		return access.gate(chosen, (writable) => history.record(undoEntry(decided(writable), resolveChange(intent, decided(writable)))))
 	}
 
 	/** Picks one picture and rejects the rest as one undo step (SERIES-001.9), or null when nothing changes. */
 	function pickRest(picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]): PickRestStep | null {
-		return access.gate([picked, ...rest], () => history.record(pickRestEntry(decided([picked])[0]!, decided(rest))))
+		return access.gate([picked, ...rest], (writable) => history.record(pickRestEntry(decided([picked])[0]!, decided(writable.filter((picture) => picture !== picked)))), picked)
 	}
 
 	/** Applies the tag change to the pictures as one undo step and returns it, or null when nothing changes (TAGS-003.10, .11). */
 	function tag(change: TagChange, chosen: readonly Picture<ListingEntry>[]): TagStep<Picture<ListingEntry>> | null {
-		return access.gate(chosen, () => history.record(tagStep(chosen, tags.tagsOf, change)))
+		return access.gate(chosen, (writable) => history.record(tagStep(writable, tags.tagsOf, change)))
 	}
 
 	/** Changes the pictures' tags and says in the grid when the save failed. */
@@ -230,6 +230,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		unconfirmedOf: access.unconfirmedOf,
 		confirmationFoldersOf: access.confirmationFoldersOf,
 		refuse: access.refuse,
+		takeSkipped: access.takeSkipped,
 		folderSet,
 		pictures,
 		pairing,

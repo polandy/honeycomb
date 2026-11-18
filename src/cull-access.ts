@@ -4,11 +4,11 @@ import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { Settings } from './logic/settings.ts'
 import type { SidecarFailure } from './logic/sidecar-sync.ts'
-import type { ListedAccess, WriteContext, WriteLock } from './logic/writability.ts'
+import type { ListedAccess, LockedPicture, WriteContext, WriteLock } from './logic/writability.ts'
 
 import { computed, shallowRef } from 'vue'
 import { memberIds } from './logic/pairing.ts'
-import { confirmationFolders, folderAccess, lockReason, NO_ACCESS, unconfirmedShared, writability } from './logic/writability.ts'
+import { confirmationFolders, folderAccess, NO_ACCESS, splitLocks, unconfirmedShared, writability } from './logic/writability.ts'
 import { XMP_REFUSALS } from './logic/xmp/model.ts'
 
 /** Whether the open cull may write each picture's sidecars, and the gate a step passes before it decides (XMP-008). */
@@ -16,6 +16,8 @@ export function useCullAccess<T>(settings: () => Settings, onLocked: (lock: Writ
 	const access = shallowRef<ListedAccess>(NO_ACCESS)
 	const folders = computed(() => folderAccess(access.value.folders))
 	const refusedIds = shallowRef<ReadonlySet<number>>(new Set())
+	// the pictures the latest step left locked, until its toast takes them
+	let skipped: readonly LockedPicture[] = []
 	const sharedFolders = computed<ReadonlySet<string>>(() => new Set(access.value.folders.filter((folder) => folder.shared).map((folder) => folder.path)))
 	const context = (): WriteContext => ({
 		setting: settings().sidecarWrite,
@@ -49,16 +51,26 @@ export function useCullAccess<T>(settings: () => Settings, onLocked: (lock: Writ
 		}
 	}
 
-	/** Takes the step when every chosen picture is writable; otherwise reports the lock and takes nothing (XMP-008.7). */
-	function gate<S extends T>(chosen: readonly Picture<ListingEntry>[], step: () => S | null): S | null {
+	/** Asks to lift an `off` or `shared` lock first; then takes the step on the writable pictures and keeps the locked ones for its toast (XMP-008.7, .9). `required` locked takes nothing. */
+	function gate<S extends T>(chosen: readonly Picture<ListingEntry>[], step: (writable: readonly Picture<ListingEntry>[]) => S | null, required?: Picture<ListingEntry>): S | null {
 		const now = context()
-		const reason = lockReason(chosen, now)
-		if (reason === null) {
-			return step()
+		const split = splitLocks(chosen, now)
+		skipped = []
+		if (split.liftable !== null) {
+			onLocked({ reason: split.liftable, folders: confirmationFolders(chosen, now), retry: () => gate(chosen, step, required) })
+			return null
 		}
-		onLocked({ reason, folders: confirmationFolders(chosen, now), retry: () => gate(chosen, step) })
-		return null
+		const requiredLock = split.locked.find(({ picture }) => picture === required)
+		skipped = requiredLock === undefined ? split.locked : [requiredLock]
+		return requiredLock === undefined && split.writable.length > 0 ? step(split.writable) : null
 	}
 
-	return { sharedFolders, writabilityOf, unconfirmedOf, confirmationFoldersOf, open, refuse, gate }
+	/** The pictures the latest step left locked, once. */
+	function takeSkipped(): readonly LockedPicture[] {
+		const taken = skipped
+		skipped = []
+		return taken
+	}
+
+	return { sharedFolders, writabilityOf, unconfirmedOf, confirmationFoldersOf, open, refuse, gate, takeSkipped }
 }

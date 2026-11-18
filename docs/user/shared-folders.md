@@ -19,6 +19,9 @@ another server.
   read-only folder*.
 - **Folders without versions.** External storage keeps no file versions, so honeycomb does not
   replace an existing sidecar there: *Not changed: this folder keeps no versions*.
+- **A selection with some of these photos.** A step over several photos changes the ones it may
+  write and leaves the rest: *Rejected 3 photos; 2 photos not changed: you may only read the
+  folder*. **Details** names each photo left, and **Undo** takes the whole step back.
 
 ## Deleting
 

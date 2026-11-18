@@ -1461,3 +1461,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-17: The migration run (XMP-007.11) writes 20 photos at a time and acknowledges each part
   as it ends, so the dialog's progress moves and the notice's counts fall during the run; it
   collects the failures of its passes into one result toast instead of one toast per pass.
+- 2026-11-18: A step over pictures of which some are locked (#221 a) asks first for a lock the
+  user can lift (writing off, shared folder) and only then decides the writable pictures; *Pick
+  rest* with a locked picked picture decides nothing; the locked pictures are reported in the
+  step's own toast with **Details**, since only one toast shows at a time.
+- 2026-11-18: A failed sidecar write (#221 c) names the reason of most failures, the first seen on
+  a tie, and adds *More reasons in Details.* when they differ; the migration result does the same.

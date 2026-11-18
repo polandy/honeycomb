@@ -75,7 +75,9 @@ folders too (XMP-007).
 **Failure report.** A sidecar that could not be written — refused when read (not UTF-8, malformed,
 a `<!DOCTYPE>`, a property given twice), a lookup or save answer other than `read` or `saved`, or a
 request that failed — is reported per file. After a write with failures a toast says *Could not
-write %n sidecars* with the action *Details*, which opens a dialog listing each file and its reason
+write %n sidecars* and the reason of most of them in the user's words, one specific text per
+reason the server or the client gives, and *More reasons in Details* when they differ; its action
+*Details* which opens a dialog listing each file and its reason
 and offering *Retry failed sidecars*; a retry writes the failed files again, each with its
 picture's decision when it runs, for the fields its write changed. A refused sidecar is never overwritten.
 
@@ -175,9 +177,9 @@ and elsewhere.
 
 - **Given** a write where one sidecar is refused as malformed and another answers `notPermitted`
 - **When** the write finishes
-- **Then** the refused sidecar is not saved, a toast says *Could not write 2 sidecars* with
-  *Details*, the dialog lists both files with their reasons, and *Retry failed sidecars* writes
-  their pictures again
+- **Then** the refused sidecar is not saved, a toast says *Could not write 2 sidecars* with the
+  first reason and *More reasons in Details*, with *Details*; the dialog lists both files with
+  their reasons, and *Retry failed sidecars* writes their pictures again
 
 ### XMP-003.14 – The client reads the listing's shared folders
 
@@ -299,6 +301,15 @@ sidecars* reads as *Off* (SETTINGS-001.26).
 - **Then** each carries at most 1,000 sidecars and 8 MiB, by the listed size for a lookup and the
   content for a save, cut in the order given; one sidecar over 8 MiB goes alone
 
+### XMP-003.33 – Every refusal is named in its own words
+
+- **Given** a write that failed for one reason: a save answer (`notFound`, `changed`, `noVersions`,
+  `notPermitted`, `locked`, `failed`), a lookup answer (`tooLarge` too), an XMP refusal or a failed
+  request
+- **When** the toast reports it
+- **Then** it says *Could not write 1 sidecar.* and a text for that reason alone, never a generic
+  one nor the server's raw text
+
 ## Out of scope
 
 - Re-reading a sidecar that another program changed after the take-over (`06-xmp-interop.md`
@@ -320,3 +331,4 @@ sidecars* reads as *Off* (SETTINGS-001.26).
 | 2026-11-15 | *Off* and *On*; a locked picture is not decided, a shared folder is confirmed (.11, .18 changed, .19 removed, XMP-008, ADR 0032 PR 6) |
 | 2026-11-15 | Steps are written per picture when the user leaves it or after 2 s; requests packed by count and size (.25–.32, ADR 0032 PR 7) |
 | 2026-11-16 | A delete or move also waits for the write of a step whose save has not answered (.30) |
+| 2026-11-18 | The failure toast names the reason, one text per reason (.13 changed, .33; owner decision on #221 (c)) |

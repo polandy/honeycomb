@@ -13,11 +13,12 @@ export interface ToastAction {
 	readonly run: () => void
 }
 
-/** One message at the bottom of the screen, with an optional action and an optional offer before it. */
+/** One message at the bottom of the screen, with an optional action, an optional offer before it and details to unfold. */
 export interface Toast {
 	readonly message: string
 	readonly action: ToastAction | null
 	readonly offer?: ToastAction
+	readonly details?: readonly string[]
 }
 
 /** One toast at a time: a new one replaces the shown one and its timer; focus or a press holds it. */
@@ -64,8 +65,8 @@ export function useToast(schedule: Schedule) {
 	}
 
 	/** Shows the message for TOAST_MS and returns a closer that hides it unless another toast replaced it. */
-	function show(message: string, action: ToastAction | null = null, offer?: ToastAction): () => void {
-		const shown = offer === undefined ? { message, action } : { message, action, offer }
+	function show(message: string, action: ToastAction | null = null, offer?: ToastAction, details: readonly string[] = []): () => void {
+		const shown: Toast = { message, action, ...(offer === undefined ? {} : { offer }), ...(details.length === 0 ? {} : { details }) }
 		replace(shown)
 		return () => close(shown)
 	}
