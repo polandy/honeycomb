@@ -53,6 +53,9 @@ for (const orientation of Object.keys(IPAD_MINI) as (keyof typeof IPAD_MINI)[]) 
 			await filters.click()
 		}
 		await expectTouchTargets(content, at('filters'))
+		if (await filters.isVisible()) {
+			await filters.click()
+		}
 
 		await checkDialog(page, page.getByRole('dialog', { name: 'Choose folders' }), at('folder tree'), () => page.getByRole('button', { name: 'Change folders', exact: true }).click())
 		await expect(page.getByRole('gridcell')).toHaveCount(3)
