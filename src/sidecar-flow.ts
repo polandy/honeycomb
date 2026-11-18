@@ -44,7 +44,7 @@ export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, act
 		if (collected !== null) {
 			collected.push(...failed)
 		} else {
-			toastFailed(notWrittenText(failed.length), failed)
+			toastFailed(notWrittenText(failed.map(({ reason }) => reason)), failed)
 		}
 	})
 
@@ -104,7 +104,7 @@ export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, act
 		if (failedPictures === 0) {
 			toast(withSkippedText(writtenText(chosen.length), skipped))
 		} else {
-			toastFailed(withSkippedText(photosNotWrittenText(failedPictures, chosen.length), skipped), failed)
+			toastFailed(withSkippedText(photosNotWrittenText(failedPictures, chosen.length, failed.map(({ reason }) => reason)), skipped), failed)
 		}
 	}
 

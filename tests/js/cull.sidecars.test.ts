@@ -217,10 +217,11 @@ describe('useCull: writing through to the sidecars', () => {
 		expect(cull.pickRest(picture('IMG_2'), [picture('IMG_9')])?.names).toEqual(['IMG_2'])
 
 		cull.undo()
+		await flushPromises()
 		cull.undo()
 		await flushPromises()
-		expect(saved.slice(2).map((rows) => rows.map(({ fileId, flag }) => [fileId, flag]))).toEqual([[[1, 'rejected']], [[1, null]]])
-		expect(cull.decisionOf(picture('IMG_10')).flag).toBeNull()
+		expect(saved.slice(2).map((rows) => rows.map(({ fileId, flag }) => [fileId, flag]))).toEqual([[[1, 'rejected']], [[1, 'unflagged']]])
+		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('unflagged')
 		expect(cull.undo()).toBeNull()
 	})
 

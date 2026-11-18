@@ -35,7 +35,7 @@ async function reject(opened: Awaited<ReturnType<typeof openLoupe>>) {
 
 const dialog = (wrapper: AppWrapper) => wrapper.find('[role="dialog"]')
 const button = (wrapper: AppWrapper, text: string) => dialog(wrapper).findAll('button').find((each) => each.text() === text)!
-const toastText = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast).exists() ? wrapper.findComponent(UndoToast).text() : null
+const toastMessage = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast).props('toast').message
 const rejected = [stored(2, 'rejected'), stored(3, 'rejected')]
 
 describe('App: deciding needs writing', () => {
@@ -133,7 +133,7 @@ describe('App: deciding needs writing', () => {
 		await reject(opened)
 
 		expect(dialog(wrapper).exists()).toBe(false)
-		expect(toastText(wrapper)).toBe(text)
+		expect(toastMessage(wrapper)).toBe(text)
 		expect(saved).toEqual([])
 	})
 })

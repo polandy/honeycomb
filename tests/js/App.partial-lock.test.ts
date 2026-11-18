@@ -38,7 +38,7 @@ describe('App: a step over pictures of which some are locked', () => {
 
 		toast(wrapper).vm.$emit('act')
 		await flushPromises()
-		expect(flags(saved)).toEqual([[[1, 'rejected']], [[1, null]]])
+		expect(flags(saved)).toEqual([[[1, 'rejected']], [[1, 'unflagged']]])
 		expect(toast(wrapper).props('toast').message).toBe('Undid: Rejected IMG_2')
 	})
 })

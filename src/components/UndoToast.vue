@@ -5,6 +5,7 @@
 <script setup lang="ts">
 import type { Toast } from '../toast.ts'
 
+import { t } from '@nextcloud/l10n'
 import { onBeforeUnmount } from 'vue'
 import { keyCap } from '../hotkeys.ts'
 import { tip } from '../tooltip.ts'
@@ -61,6 +62,16 @@ onBeforeUnmount(() => {
 		@focusout="onFocusOut"
 		@pointerdown="onPointerDown">
 		<span>{{ props.toast.message }}</span>
+		<details v-if="props.toast.details" class="undo-toast__details">
+			<summary class="undo-toast__summary">
+				{{ t('honeycomb', 'Details') }}
+			</summary>
+			<ul class="undo-toast__list">
+				<li v-for="(detail, at) in props.toast.details" :key="at">
+					{{ detail }}
+				</li>
+			</ul>
+		</details>
 		<span v-if="props.toast.action !== null || props.toast.offer" aria-hidden="true">·</span>
 		<!-- mousedown would move the focus out of the loupe and its keys -->
 		<button
@@ -90,6 +101,7 @@ onBeforeUnmount(() => {
 	bottom: calc(16px + env(safe-area-inset-bottom, 0px));
 	z-index: 10001;
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: calc(2 * var(--default-grid-baseline));
 	width: fit-content;
@@ -101,6 +113,27 @@ onBeforeUnmount(() => {
 	background: var(--color-main-text);
 	color: var(--color-main-background);
 	box-shadow: 0 2px 12px var(--color-box-shadow);
+}
+
+.undo-toast__details {
+	order: 1;
+	flex-basis: 100%;
+}
+
+.undo-toast__summary {
+	display: flex;
+	align-items: center;
+	min-height: var(--default-clickable-area);
+	color: var(--color-primary-element-light);
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.undo-toast__list {
+	max-height: 30vh;
+	overflow-y: auto;
+	padding-inline-start: calc(4 * var(--default-grid-baseline));
+	list-style: disc;
 }
 
 .undo-toast--top {

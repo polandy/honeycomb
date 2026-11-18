@@ -50,7 +50,9 @@ scan of the folder.
 
 ## When a sidecar cannot be written
 
-A failed write shows *Could not write 2 sidecars*; **Details** lists each file with the reason and
+A failed write names its reason, for example *Could not write 2 sidecars. You may not change this
+sidecar or create files in its folder* (with *More reasons in Details* when they differ);
+**Details** lists each file with the reason and
 **Retry failed sidecars** tries again. honeycomb never overwrites a sidecar it cannot read — not
 well-formed XML, not UTF-8, larger than 1 MiB — and then leaves that photo unchanged until you
 open the folder again. Folders you may only read, and shared folders: [shared

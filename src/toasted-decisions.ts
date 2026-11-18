@@ -8,10 +8,12 @@ import type { SelectionEdit } from './logic/series-menu.ts'
 import type { Series } from './logic/series.ts'
 import type { SeriesStatus } from './logic/stored-series.ts'
 import type { TagChange } from './logic/tag.ts'
+import type { LockedPicture } from './logic/writability.ts'
 import type { ToastAction } from './toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import { changeText, redoneText, undoneText } from './decision-text.ts'
+import { lockDetails, lockedText, partialText } from './lock-text.ts'
 
 /** The cull's recording actions; each returns the step it recorded, whatever its kind, or null. */
 interface Decisions {
@@ -25,10 +27,11 @@ interface Decisions {
 	markSeries: (series: Series<Picture<ListingEntry>>, status: SeriesStatus) => CullStep | null
 	undo: () => CullStep | null
 	redo: () => CullStep | null
+	takeSkipped: () => readonly LockedPicture[]
 }
 
-/** Decide, pick-rest, tag, the series edits, undo and redo that each say in a toast what changed. */
-export function useToastedDecisions(cull: Decisions, show: (message: string, action?: ToastAction | null, offer?: ToastAction) => void) {
+/** Decide, pick-rest, tag, the series edits, undo and redo that each say in a toast what changed and which photos were locked. */
+export function useToastedDecisions(cull: Decisions, show: (message: string, action?: ToastAction | null, offer?: ToastAction, details?: readonly string[]) => void) {
 	/** Decides the pictures and says what changed, with Undo and the offer `offer` makes once they are decided. */
 	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[], offer: () => ToastAction | null = () => null) {
 		toastChange(cull.decide(intent, chosen), offer)
@@ -69,10 +72,13 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 		toastChange(cull.editSelection(edit, chosen))
 	}
 
-	/** Toasts a recorded step with Undo and the offer, if any. */
+	/** Toasts a recorded step with Undo and the offer, if any, and the photos it left locked with their details (XMP-008.9). */
 	function toastChange(entry: CullStep | null, offer: () => ToastAction | null = () => null) {
+		const skipped = cull.takeSkipped()
 		if (entry !== null) {
-			show(changeText(entry), { label: t('honeycomb', 'Undo'), run: undo }, offer() ?? undefined)
+			show(partialText(changeText(entry), skipped), { label: t('honeycomb', 'Undo'), run: undo }, offer() ?? undefined, lockDetails(skipped))
+		} else if (skipped.length > 0) {
+			show(lockedText(skipped), null, undefined, lockDetails(skipped))
 		}
 	}
 

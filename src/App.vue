@@ -65,7 +65,7 @@ const sidecarsReady = computed(() => settings.value.sidecarWrite === 'on')
 const legacy = useLegacy(props.legacy, props.saveFile, (message) => toast.show(message), () => sidecarsReady.value, openLegacyFolder)
 const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, refuseFailed, legacy.acknowledge)
 const sidecars = useBundledSidecars(sidecarFlow.sync, props.schedule, props.onPageHide)
-const writeLock = useWriteLock(() => settings.value, updateSettings, toast.show, retryLocked)
+const writeLock = useWriteLock(() => settings.value, updateSettings, retryLocked)
 const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, wait: waitSeconds(props.schedule), warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions, lookupSeries: props.lookupSeries, saveSeries: props.saveSeries, tags: props.tags }, props.storage, () => settings.value, sidecars, writeLock.locked)
 /** Locks the pictures whose sidecar a write refused (XMP-008.6). */
 function refuseFailed(failed: readonly SidecarFailure[]) {

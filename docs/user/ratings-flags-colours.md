@@ -117,8 +117,8 @@ photo's sidecars, 20 photos at a time: the dialog shows how many were sent, and 
 grid's notice fall as each part is done. Where a sidecar says otherwise, the stored value wins;
 stored tags are added to the sidecar's. A photo whose sidecars were all written leaves the database;
 one that failed stays and is written again the next time. At the end a message says how many photos
-were written, or *Could not write 2 of 81 photos* with **Details**, which lists each sidecar with
-the reason and can retry.
+were written, or *Could not write 2 of 81 photos* and the reason with **Details**, which lists
+each sidecar with the reason and can retry.
 
 A shared folder needs the same answer as your first rating there. Until you give it, honeycomb
 skips its photos and keeps their stored decisions: the dialog says how many it skips and offers
@@ -133,6 +133,6 @@ from the database for good.
 ## When a sidecar cannot be written
 
 If a sidecar cannot be written — you may not change it, it is locked, or it is not valid XML —
-honeycomb says *Could not write 2 sidecars*. **Details** lists each file with the reason, and
-**Retry failed sidecars** tries those files again. honeycomb never overwrites a sidecar it cannot
-read; your decision stays in honeycomb either way.
+honeycomb says *Could not write 2 sidecars* and the reason. **Details** lists each file with the
+reason, and **Retry failed sidecars** tries those files again. honeycomb never overwrites a
+sidecar it cannot read; your decision stays in honeycomb either way.
