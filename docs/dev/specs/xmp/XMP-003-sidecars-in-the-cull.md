@@ -272,7 +272,8 @@ sidecars* reads as *Off* (SETTINGS-001.26).
 
 - **Given** a step waiting on one picture
 - **When** the grid shows it
-- **Then** its tile shows the *Not saved yet* marker, also in its label, until its write starts
+- **Then** its tile shows the *Not saved yet* marker, also in its label, until its write starts;
+  the loupe shows it too (LOUPE-001.27)
 
 ### XMP-003.29 – Hiding the page writes the waiting picture
 

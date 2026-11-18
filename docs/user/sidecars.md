@@ -21,7 +21,8 @@ from the file's versions; without it the option is greyed out — ask your admin
   in the sidecar stays. A new sidecar starts from what the photo's other sidecars, and a JPEG's
   embedded XMP, already say.
 - **When.** Changes to a photo are saved when you go on to another photo, or two seconds after the
-  last change; until then its tile shows *Not saved yet*. Leaving the page saves at once.
+  last change; until then its tile in the grid and the loupe's title row show *Not saved yet*.
+  Leaving the page saves at once.
 - **Versions.** An existing sidecar is only replaced where its folder keeps file versions, so the
   version before honeycomb's write can be restored in Nextcloud's *Versions* tab.
 

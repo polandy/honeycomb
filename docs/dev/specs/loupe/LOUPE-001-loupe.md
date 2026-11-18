@@ -285,3 +285,11 @@ IMAGES-001.
   `Esc`, the chip, `N`, the filmstrip frame's tab or *Pick this, reject the rest*
   (`Shift+K`) dismiss it for good
   (LOUPE-003), *Got it* giving the keys back to the loupe, and `Esc` then not closing the loupe
+
+### LOUPE-001.27 – A waiting picture shows the *Not saved yet* ring
+
+- **Given** the loupe shows the waiting picture (XMP-003.28)
+- **When** the title row shows
+- **Then** a ring in the text colour follows the picture's name, never over the photo, with the
+  label *Not saved yet* for screen readers; it goes when the write starts, and at another
+  picture it shows only if that one is the waiting picture

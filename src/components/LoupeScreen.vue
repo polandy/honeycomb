@@ -11,7 +11,7 @@ import { useTemplateRef } from 'vue'
 import PhotoLoupe from './PhotoLoupe.vue'
 import { useCullContext } from '../cull-context.ts'
 
-const { cull, decide, deleting, moving, seriesCompare, tagEntry, loupe, restOffer, toast, settings, updateSettings, viewState, storage } = useCullContext()
+const { cull, decide, deleting, moving, seriesCompare, unsaved, tagEntry, loupe, restOffer, toast, settings, updateSettings, viewState, storage } = useCullContext()
 const { folderSet } = cull
 const { shown } = loupe
 const photoLoupe = useTemplateRef<InstanceType<typeof PhotoLoupe>>('photoLoupe')
@@ -36,6 +36,7 @@ defineExpose({ loupe: photoLoupe })
 		:seriesOf="cull.seriesOf.value"
 		:tagsOf="cull.tags.tagsOf"
 		:writabilityOf="cull.writabilityOf"
+		:unsaved="unsaved"
 		:storage="storage"
 		:viewState="viewState"
 		:settings="settings"

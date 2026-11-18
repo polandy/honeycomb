@@ -57,6 +57,8 @@ const props = withDefaults(defineProps<{
 	/** The picture's tags for the info panel (TAGS-004.8). */
 	tagsOf?: (picture: Picture<ListingEntry>) => readonly Tag[]
 	writabilityOf?: (picture: Picture<ListingEntry>) => Writability
+	/** The picture whose sidecar save waits, shown as a ring in the title row (LOUPE-001.27). */
+	unsaved?: Picture<ListingEntry> | null
 	storage: BrowserStorage
 	viewState: ViewStateStore
 	settings: Settings
@@ -211,6 +213,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:flagButtonsShown="settings.flagButtonsShown"
 			:series="seriesPlace"
 			:seriesHint="seriesHint.shown.value"
+			:unsaved="picture === props.unsaved"
 			@pointerdown="overlays.wake"
 			@compareSeries="compareSeriesOf(props.index)"
 			@dismissSeriesHint="dismissAndFocus(seriesHint.dismiss)"
