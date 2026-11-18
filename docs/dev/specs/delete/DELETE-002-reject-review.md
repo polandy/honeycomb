@@ -42,8 +42,12 @@ picture, and the JPEG's embedded XMP while it counts. A picture goes only when e
 reads and at least one says *rejected*; the files sent are those of the fresh listing, so a sidecar
 made since the folder was listed goes too. A picture is skipped, and stays, when its members
 changed, a sidecar cannot be read or is not valid XMP, its sidecars disagree, or none says
-*rejected*. The delete report lists the skipped photos with the reason. *Delete…* and the `Delete`
-key delete what the user chose, without this check.
+*rejected*. The delete report lists the skipped photos with the reason. When a folder's fresh
+listing or a sidecar lookup fails, the pictures it would have checked are not checked afresh: they
+go as honeycomb knows them, rejected in the cull, with the files and ETags of the cull's listing and
+honeycomb's own saves, so the server still holds a file changed since then. The failure is logged
+and the toast adds *Fresh check not possible for N photos*; the pictures whose check succeeded keep
+its verdict. *Delete…* and the `Delete` key delete what the user chose, without this check.
 
 **honeycomb's own writes** (ADR 0032). *Delete…* and the `Delete` key also write the waiting
 sidecars first. Each sidecar honeycomb saved since the folder was listed is sent with the ETag of
@@ -214,6 +218,16 @@ honeycomb's write, keeps the listing's ETag and holds its picture as `changed`.
 - **Then** nothing more is sent, the files stay, and the report lists them with their reason, as
   without the warning
 
+### DELETE-002.23 – A failed fresh check deletes what honeycomb knows
+
+- **Given** the summary from the review with rejected pictures in two folders, the fresh listing
+  of one folder failing, and in the other a picture whose sidecar now says *picked* and one whose
+  sidecar lookup fails
+- **When** the user confirms
+- **Then** the pictures of the failed folder and the one whose lookup failed go with the files and
+  ETags honeycomb knows, the *picked* one is skipped, a file changed since the listing is held by
+  the server as `changed`, and the toast adds *Fresh check not possible for 2 photos*
+
 ## Out of scope
 
 The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
@@ -231,3 +245,4 @@ The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
 | 2026-11-15 | *Delete…* sends the sidecars as honeycomb last saved or created them; only another program's change holds a picture (DELETE-002.17, DELETE-002.18) |
 | 2026-11-16 | The confirm button names the running step, and requests start at 5 pictures and double, so the count moves early (DELETE-002.13, ADR 0029) |
 | 2026-11-18 | A warning before deleting for good what the trash bin would not keep (DELETE-002.20 to DELETE-002.22, ADR 0036, owner) |
+| 2026-11-18 | A failed fresh listing or lookup deletes the rejects honeycomb knows instead of aborting (DELETE-002.15, DELETE-002.23, ADR 0032, owner) |

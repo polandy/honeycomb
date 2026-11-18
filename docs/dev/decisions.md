@@ -1471,3 +1471,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   warning (#210, owner at #187 point 4, ADR 0036): a `permanent` flag per file, set only on files
   the server refused before; `noTrashBin` splits off `tooLarge`. No Team folder lacks a trash bin
   in Nextcloud 35, so the e2e proves the dialog on External Storage over the size limit.
+- 2026-11-18: A failed fresh listing or lookup no longer aborts a delete by decision (#229, owner
+  at #187 point 6): per folder and per lookup, the pictures it would have checked go as the cull
+  knows them, with the cull's ETags, and the toast says the fresh check was not possible. *Remove
+  RAWs* skips such a pair when its RAW has a sidecar and its JPEG none, as the values cannot be
+  copied unread.
