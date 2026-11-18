@@ -27,14 +27,19 @@ confirmation is kept per user under the file id of the nearest opened folder tha
 folder, and covers its subfolders. The settings keep at most the 200 latest confirmations.
 
 **A locked step.** A rating, flag, colour label, *Keep RAW*, *Pick this, reject the rest* or tag
-change whose pictures are not all writable decides none of them: nothing is shown, stored or
-written. For `off` or `shared` a dialog asks first: *Write decisions to XMP sidecars?* while
-writing is *Off* (with the shared folders too, in one dialog), *Write to a shared folder?*
-otherwise. *Write to sidecars* saves *On* and the confirmed folders in one settings save and takes
-the step; *Cancel* takes nothing. Without the Versions app *Write to sidecars* is disabled and the
-dialog says why. For `readOnly`, `noVersions` and `refused` a toast names the reason. Undo and redo
-are not held back; the server refuses what it may not write (XMP-003.13). The loupe's info panel
-says per picture why nothing is written.
+change over pictures of which some are locked first asks for the locks the user can lift: for
+`off` or `shared` a dialog asks *Write decisions to XMP sidecars?* while writing is *Off* (with the
+shared folders too, in one dialog), *Write to a shared folder?* otherwise. *Write to sidecars*
+saves *On* and the confirmed folders in one settings save and takes the step; *Cancel* takes
+nothing. Without the Versions app *Write to sidecars* is disabled and the dialog says why. The
+step then decides the writable pictures as one undo step and leaves the pictures locked
+`readOnly`, `noVersions` or `refused` as they are: nothing of them is shown, stored or written.
+Its toast says what changed and how many photos were not changed, naming the first reason in the
+order `readOnly`, `noVersions`, `refused`, with *Details* that unfold each such photo and its
+reason. A step whose pictures are all locked takes nothing; its toast names the reason, for one
+photo as *Not changed: …*. *Pick this, reject the rest* takes nothing when the picked picture is
+locked. Undo and redo are not held back; the server refuses what it may not write (XMP-003.13).
+The loupe's info panel says per picture why nothing is written.
 
 **Before the sidecars are read.** A step is taken while the sidecars are still looked up; a
 decision made meanwhile wins (XMP-003.3).
@@ -81,14 +86,28 @@ decision made meanwhile wins (XMP-003.3).
 - **Then** the first picture is `refused` and the second `writable`; after opening both are
   `writable`
 
-### XMP-008.7 – A locked step decides none of its pictures and says why
+### XMP-008.7 – A lock the user can lift is asked first
 
-- **Given** a step on two pictures, one of them locked
+- **Given** a step on two pictures, one of them `off` or `shared`
 - **When** the user takes it
-- **Then** neither is decided, stored or written; for `off` and `shared` the dialog asks and
-  *Write to sidecars* takes the step, *Cancel* takes nothing; for the other reasons a toast names
-  the first reason in the order `off`, `readOnly`, `shared`, `noVersions`, `refused`; the info
-  panel says *Not written, …* with the picture's reason
+- **Then** the dialog asks before anything is decided; *Write to sidecars* takes the step, *Cancel*
+  takes nothing; the info panel says *Not written, …* with the picture's reason
+
+### XMP-008.9 – A step decides the writable pictures and reports the locked ones
+
+- **Given** a step on three pictures, two of them in a read-only folder
+- **When** the user takes it
+- **Then** the writable one is decided, stored and written; the locked two are not; the toast says
+  *Rejected 1 photo; 2 photos not changed: you may only read the folder* with *Undo* and
+  *Details*, which unfold each locked photo's name and reason; with every picture locked nothing is
+  taken and the toast names the first reason in the order `readOnly`, `noVersions`, `refused`
+
+### XMP-008.10 – Undo takes back the partial step as one step
+
+- **Given** a step that decided the writable part of its pictures
+- **When** the user chooses *Undo*
+- **Then** the writable pictures get back their decisions in one step; the locked ones stay as
+  they were
 
 ### XMP-008.8 – Deciding does not wait for the sidecars
 
@@ -107,3 +126,4 @@ decision made meanwhile wins (XMP-003.3).
 | Date | Change |
 |---|---|
 | 2026-11-15 | Written with sidecar PR 6 (ADR 0032) |
+| 2026-11-18 | A step decides the writable pictures and reports the locked ones (.7 changed, .9, .10; owner decision on #221 (a)) |

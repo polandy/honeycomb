@@ -71,7 +71,8 @@ touch as well as with a mouse or keyboard.
 - **Given** selected pictures
 - **When** the user sets a rating, colour label or flag
 - **Then** every member of each picture gets the whole new decision, it is stored and shown, and
-  survives a reload
+  survives a reload; pictures that may not be written are left as they are and reported in the
+  toast (XMP-008.9)
 
 ### GRID-003.6 – Shared values pressed
 
@@ -158,3 +159,4 @@ Selection keys in detail (KEYS-001), deleting a selection (DELETE-002).
 | 2026-11-13 | Flags, *Move* and *Delete* first when the action bar wraps, UX L6 (.14) |
 | 2026-11-14 | One flag button order *Pick*, *Unflag*, *Reject* (.15, owner decision 2) |
 | 2026-11-15 | *Series…* follows the decisions after *Tags*, wrapping on a narrow tablet; one row from about 1040 px (.14, #185 PR 4) |
+| 2026-11-18 | A bulk decision leaves locked pictures out and reports them (.5, XMP-008.9) |
