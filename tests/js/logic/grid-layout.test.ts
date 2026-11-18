@@ -107,7 +107,7 @@ describe('renderedRows', () => {
 
 		expect(rows.length).toBe(4)
 		expect(rows.at(-1)).toMatchObject({ offscreen: true, group: 1 })
-		expect(offscreen(3)).toEqual([true, false, true])
+		expect(offscreen(2)).toEqual([true, false, true])
 	})
 })
 
