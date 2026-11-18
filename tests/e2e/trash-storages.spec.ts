@@ -208,6 +208,5 @@ test('cancels the warning on Enter, which acts on the focused Cancel, and report
 			await expect(grid.getByRole('gridcell')).toHaveCount(1)
 		})
 		expect(await exists(page, `${mount}/IMG_0001.jpg`)).toBe(true)
-		await trashEntry(page, `${mount}/IMG_0001.jpg`)
 	})
 })
