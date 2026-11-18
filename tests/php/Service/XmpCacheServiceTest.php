@@ -18,6 +18,7 @@ use PHPUnit\Framework\TestCase;
 
 final class XmpCacheServiceTest extends TestCase {
 	use FakeFiles;
+	use FakeFileIdSearch;
 
 	private FakeXmpCacheStore $store;
 
@@ -40,7 +41,8 @@ final class XmpCacheServiceTest extends TestCase {
 			5 => $folder,
 		];
 		$userFolder = $this->folder('');
-		$userFolder->method('getFirstNodeById')->willReturnCallback(static fn (int $id): ?Node => $byId[$id] ?? null);
+		$find = static fn (int $id): ?Node => $byId[$id] ?? null;
+		$userFolder->method('search')->willReturnCallback(self::fileIdSearch($find));
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
 		return new XmpCacheService($this->store, $this->tags, new UserPhotos(new UserFolderResolver($root)));

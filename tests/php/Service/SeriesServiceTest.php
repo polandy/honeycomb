@@ -20,6 +20,7 @@ use PHPUnit\Framework\TestCase;
 
 final class SeriesServiceTest extends TestCase {
 	use FakeFiles;
+	use FakeFileIdSearch;
 
 	/** The file ids `alice` reaches as photos; 50 is a text file. */
 	private const array PHOTOS = [3, 4, 5, 7, 8, 9];
@@ -31,11 +32,12 @@ final class SeriesServiceTest extends TestCase {
 	protected function setUp(): void {
 		$this->store = new FakeSeriesStore();
 		$userFolder = $this->folder('');
-		$userFolder->method('getFirstNodeById')->willReturnCallback(fn (int $id): ?Node => match (true) {
+		$find = fn (int $id): ?Node => match (true) {
 			in_array($id, self::PHOTOS, true) => $this->file($id, "/P/IMG_$id.JPG"),
 			$id === 50 => $this->file($id, '/P/notes.txt', 'text/plain'),
 			default => null,
-		});
+		};
+		$userFolder->method('search')->willReturnCallback(self::fileIdSearch($find));
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturn($userFolder);
 		$this->service = new SeriesService($this->store, new UserPhotos(new UserFolderResolver($root)));

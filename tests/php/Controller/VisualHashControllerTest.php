@@ -14,6 +14,7 @@ use OCA\Honeycomb\Service\MissingVisualHashes;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCA\Honeycomb\Service\VisualHashService;
+use OCA\Honeycomb\Tests\Service\FakeFileIdSearch;
 use OCA\Honeycomb\Tests\Service\FakeFiles;
 use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
 use OCP\AppFramework\Http;
@@ -30,6 +31,7 @@ use ReflectionMethod;
 
 final class VisualHashControllerTest extends TestCase {
 	use FakeFiles;
+	use FakeFileIdSearch;
 
 	private const string HASH = '00ff00ff00ff00ff';
 
@@ -45,7 +47,8 @@ final class VisualHashControllerTest extends TestCase {
 		$session->method('getUser')->willReturn($loggedIn ? $this->user() : null);
 		if ($root === null) {
 			$userFolder = $this->folder('');
-			$userFolder->method('getFirstNodeById')->willReturnCallback(fn (int $id): ?Node => $id === 7 ? $this->file(7, '/P/A.JPG') : null);
+			$find = fn (int $id): ?Node => $id === 7 ? $this->file(7, '/P/A.JPG') : null;
+			$userFolder->method('search')->willReturnCallback(self::fileIdSearch($find));
 			$root = $this->createStub(IRootFolder::class);
 			$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
 		}

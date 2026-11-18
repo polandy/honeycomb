@@ -273,9 +273,14 @@ folder with all its subfolders. That set of folders is the *folder set*.
    (XMP-006.7): the cache lookup of 5,000 rows took 6 queries and 13 ms, of 50,000 rows 51
    queries and 0.13 s; saving them on a cold first visit costs the same 3 queries per row,
    1.7 s and 16.8 s. In the browser, parsing and showing 5,000 sidecars took 0.45 s, 50,000
-   took 3.0 s; with the rows cached, 0.02 s and 0.2 s. On MySQL or
-   PostgreSQL each query adds a network round trip, so the directory listings dominate a deep tree
-   and the per-item lookups a large save.
+   took 3.0 s; with the rows cached, 0.02 s and 0.2 s.
+   Re-measured on 2026-11-18 after the saves looked their file ids up 1,000 at a time through the
+   folder search (ADR 0038), on the same container: 2,000 decisions took 9 queries and 54 ms
+   (before 6,007 and 717 ms), 60,000 183 queries and 1.1 s (before 180,123 and 20.2 s), the same
+   for tag lists; a cold XMP cache save of 5,000 rows 19 queries and 0.13 s (before 15,014 and
+   1.7 s), of 50,000 rows 154 queries and 1.2 s (before 150,104 and 17.3 s). Memory is unchanged,
+   ~250 MB for 60,000 items. On MySQL or PostgreSQL each query adds a network round trip, so the
+   directory listings dominate a deep tree.
 
 Where the work lands: M1.2 (listing with subfolders), M2.3 (picker, grid headers), M2.4 (resume
 per folder set), M2.5 (folder filter), M6 (series per camera).

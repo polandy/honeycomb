@@ -17,4 +17,3 @@ Add items with `/todo`.
 - [ ] Measure the image budgets of `docs/dev/plan.md` Image delivery with real 24 MP RAW+JPEG pairs (IMAGES-001.12), incl. the loupe's 4096 px tier and the six image loads in flight (GRID-001.15) — needs the owner's files (2026-11-10)
 - [ ] Add a `main` ruleset (pull requests only, CI required), with a bypass for `nextcloud-bot` if issue #17 says so, and the `RELEASE_PLEASE_TOKEN` secret — owner (2026-11-09)
 - [ ] Publish to the Nextcloud App Store: request the certificate, register the app and add the secrets `APP_SIGNING_KEY`, `APP_SIGNING_CERT` and `APPSTORE_TOKEN` ([`docs/dev/releasing.md`](docs/dev/releasing.md)) — owner (2026-11-09)
-- [ ] Cut the per-item lookups of the bulk saves: `UserPhotos::photos` looks each file id up on its own (3 queries per item, 60,000 decisions took 180,000 queries and 19.5 s, a cold XMP cache save of 50,000 rows 16.8 s, `docs/dev/plan.md` Multiple folders item 9) (2026-11-17)
