@@ -26,7 +26,7 @@ final class FolderService {
 	/**
 	 * The direct child folders of the folder at `$path`, hidden ones included, unsorted, each with
 	 * the count of its own photo files and of those below it (null for a hidden or unlistable child).
-	 * @return list<array{name: string, path: string, hasSubfolders: bool, photoFiles: ?int, photoFilesBelow: ?int}>
+	 * @return list<array{name: string, path: string, hasSubfolders: bool, photoFiles: ?int, photoFilesBelow: ?int, photoFilesBelowApproximate: bool}>
 	 * @throws FolderNotFoundException for a foreign, vanished or non-folder path
 	 * @throws FolderNotReadableException when the user may not read the folder
 	 */
@@ -51,13 +51,13 @@ final class FolderService {
 	/**
 	 * Whether `$folder` holds a folder and how many photo files of its own, from one listing, and
 	 * how many below it, from the file cache.
-	 * @return array{hasSubfolders: bool, photoFiles: ?int, photoFilesBelow: ?int}
+	 * @return array{hasSubfolders: bool, photoFiles: ?int, photoFilesBelow: ?int, photoFilesBelowApproximate: bool}
 	 */
 	private function contents(Folder $folder): array {
 		try {
 			$nodes = $folder->getDirectoryListing();
 		} catch (NotPermittedException|NotFoundException) {
-			return ['hasSubfolders' => false, 'photoFiles' => null, 'photoFilesBelow' => null];
+			return ['hasSubfolders' => false, 'photoFiles' => null, 'photoFilesBelow' => null, 'photoFilesBelowApproximate' => false];
 		}
 		$hasSubfolders = false;
 		$photoFiles = 0;
@@ -68,13 +68,14 @@ final class FolderService {
 			}
 		}
 		if (str_starts_with($folder->getName(), '.')) {
-			return ['hasSubfolders' => $hasSubfolders, 'photoFiles' => null, 'photoFilesBelow' => null];
+			return ['hasSubfolders' => $hasSubfolders, 'photoFiles' => null, 'photoFilesBelow' => null, 'photoFilesBelowApproximate' => false];
 		}
-		return ['hasSubfolders' => $hasSubfolders, 'photoFiles' => $photoFiles, 'photoFilesBelow' => $this->photoFilesBelow($folder)];
+		$below = $this->photoFilesBelow($folder);
+		return ['hasSubfolders' => $hasSubfolders, 'photoFiles' => $photoFiles, 'photoFilesBelow' => $below?->files, 'photoFilesBelowApproximate' => $below?->approximate ?? false];
 	}
 
 	/** The photo files below `$folder`, or null when the file cache cannot tell. */
-	private function photoFilesBelow(Folder $folder): ?int {
+	private function photoFilesBelow(Folder $folder): ?PhotoCount {
 		try {
 			return $this->below->count($folder);
 		} catch (\OCP\DB\Exception $e) {

@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Db;
 
 use OCA\Honeycomb\Preview\UntypedRaw;
+use OCA\Honeycomb\Service\PhotoCount;
 use OCA\Honeycomb\Service\PhotoFilesBelow;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Files\Folder;
@@ -29,33 +30,40 @@ final class FileCachePhotoFiles implements PhotoFilesBelow {
 	}
 
 	#[\Override]
-	public function count(Folder $folder): ?int {
+	public function count(Folder $folder): ?PhotoCount {
 		$own = $this->location($folder->getId());
 		if ($own === null) {
 			return null;
 		}
-		$subtrees = [$own];
+		$approximate = SubtreeExactness::mayMissFiles($own['size'], $folder->getStorage());
+		$subtrees = [$own['at']];
 		foreach ($this->mounts->findIn($folder->getPath()) as $mount) {
 			$below = substr($mount->getMountPoint(), strlen($folder->getPath()));
+			if (str_contains($below, '/.')) {
+				continue;
+			}
 			$root = $mount->getStorageRootId();
-			$location = !str_contains($below, '/.') && $root > 0 ? $this->location($root) : null;
-			if ($location !== null && !self::within($location, $subtrees)) {
-				$subtrees[] = $location;
+			$location = SubtreeExactness::unscannedMount($root) ? null : $this->location($root);
+			if ($location === null) {
+				$approximate = true;
+			} elseif (!self::within($location['at'], $subtrees)) {
+				$subtrees[] = $location['at'];
+				$approximate = $approximate || SubtreeExactness::mayMissFiles($location['size'], $mount->getStorage());
 			}
 		}
-		return array_sum(array_map(fn (array $subtree): int => $this->photoFiles(...$subtree), $subtrees));
+		return new PhotoCount(array_sum(array_map(fn (array $subtree): int => $this->photoFiles(...$subtree), $subtrees)), $approximate);
 	}
 
-	/** @return ?array{int, string} the storage and the path of a file cache row */
+	/** @return ?array{at: array{int, string}, size: int} the storage, path and size of a file cache row */
 	private function location(int $fileId): ?array {
 		$query = $this->db->getQueryBuilder();
-		$query->select('storage', 'path')
+		$query->select('storage', 'path', 'size')
 			->from('filecache')
 			->where($query->expr()->eq('fileid', $query->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)));
 		$result = $query->executeQuery();
 		$row = $result->fetch();
 		$result->closeCursor();
-		return $row === false ? null : [(int)$row['storage'], (string)$row['path']];
+		return $row === false ? null : ['at' => [(int)$row['storage'], (string)$row['path']], 'size' => (int)$row['size']];
 	}
 
 	/**

@@ -9,7 +9,7 @@ import { FOLDERS, item, mountTree, twisty } from './folder-tree-fixture.ts'
 const MARK = TRANSLATED_MARK
 const TREE = {
 	...FOLDERS,
-	'/Photos/2026': [{ name: 'Raw', path: '/Photos/2026/Raw', hasSubfolders: false, photoFiles: 4, photoFilesBelow: 4 }],
+	'/Photos/2026': [{ name: 'Raw', path: '/Photos/2026/Raw', hasSubfolders: false, photoFiles: 4, photoFilesBelow: 4, photoFilesBelowApproximate: false }],
 }
 
 describe('FolderTree excluded folders', () => {

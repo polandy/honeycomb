@@ -49,10 +49,15 @@ the ticked folders.
   SQLite; a level of 10 to 20 child folders took up to 300 ms (PostgreSQL), 215 ms (MariaDB) and
   50 ms (SQLite). PostgreSQL has no path-prefix index in Nextcloud and filters the storage's rows
   through `fs_storage_mimepart`; MariaDB and SQLite use the storage indexes or a table scan.
-- **Exactness of the count below:** it is what Nextcloud's file cache knows: files not scanned yet
-  (an external storage changed outside Nextcloud) are missing, and a group folder's advanced
-  permissions are not applied, so a hidden subfolder there can count. The tree shows it like the
-  own count; the user docs say so.
+- **Exactness of the count below (amended 2026-11-18, #244):** it is what Nextcloud's file cache
+  knows, so each item also carries `photoFilesBelowApproximate`, true when the count may miss
+  files: a subtree root with an unknown size (`size < 0` in `oc_filecache`: Nextcloud sets it on
+  a folder when any child is not scanned), a storage mounted below that is not scanned yet, or a
+  storage wrapped by a group folder's advanced permissions (`ACLStorageWrapper`, found with
+  `IStorage::instanceOfStorage` by class name, so the app needs no dependency on Team folders; a
+  hidden subfolder there can count). The tree shows "~" before the number and speaks "about". No
+  extra query: the size comes from the row read to find the subtree, the storage from the mount
+  already listed.
 
 ## Consequences
 

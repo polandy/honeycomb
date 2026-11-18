@@ -137,10 +137,12 @@ function photoCount(folder: Folder, expanded: boolean) {
 	}
 	const vars = { count: formatNumber(files.count) }
 	return {
-		shown: vars.count,
-		spoken: files.below
-			? n('honeycomb', '{count} photo file with subfolders', '{count} photo files with subfolders', files.count, vars, PLAIN_TEXT)
-			: n('honeycomb', '{count} photo file', '{count} photo files', files.count, vars, PLAIN_TEXT),
+		shown: files.approximate ? `~${vars.count}` : vars.count,
+		spoken: files.approximate
+			? n('honeycomb', 'about {count} photo file with subfolders', 'about {count} photo files with subfolders', files.count, vars, PLAIN_TEXT)
+			: files.below
+				? n('honeycomb', '{count} photo file with subfolders', '{count} photo files with subfolders', files.count, vars, PLAIN_TEXT)
+				: n('honeycomb', '{count} photo file', '{count} photo files', files.count, vars, PLAIN_TEXT),
 	}
 }
 

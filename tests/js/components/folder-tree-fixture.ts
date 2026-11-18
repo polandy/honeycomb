@@ -8,12 +8,12 @@ import FolderTree from '../../../src/components/FolderTree.vue'
 
 export const FOLDERS: Record<string, Folder[]> = {
 	'': [
-		{ name: 'Photos', path: '/Photos', hasSubfolders: true, photoFiles: 3, photoFilesBelow: 1203 },
-		{ name: '.hidden', path: '/.hidden', hasSubfolders: false, photoFiles: null, photoFilesBelow: null },
-		{ name: 'Day 10', path: '/Day 10', hasSubfolders: false, photoFiles: 0, photoFilesBelow: 0 },
-		{ name: 'Day 9', path: '/Day 9', hasSubfolders: false, photoFiles: 1, photoFilesBelow: 1 },
+		{ name: 'Photos', path: '/Photos', hasSubfolders: true, photoFiles: 3, photoFilesBelow: 1203, photoFilesBelowApproximate: false },
+		{ name: '.hidden', path: '/.hidden', hasSubfolders: false, photoFiles: null, photoFilesBelow: null, photoFilesBelowApproximate: false },
+		{ name: 'Day 10', path: '/Day 10', hasSubfolders: false, photoFiles: 0, photoFilesBelow: 0, photoFilesBelowApproximate: false },
+		{ name: 'Day 9', path: '/Day 9', hasSubfolders: false, photoFiles: 1, photoFilesBelow: 1, photoFilesBelowApproximate: false },
 	],
-	'/Photos': [{ name: '2026', path: '/Photos/2026', hasSubfolders: true, photoFiles: 0, photoFilesBelow: 0 }, { name: '2025', path: '/Photos/2025', hasSubfolders: false, photoFiles: 1200, photoFilesBelow: 1200 }],
+	'/Photos': [{ name: '2026', path: '/Photos/2026', hasSubfolders: true, photoFiles: 0, photoFilesBelow: 0, photoFilesBelowApproximate: false }, { name: '2025', path: '/Photos/2025', hasSubfolders: false, photoFiles: 1200, photoFilesBelow: 1200, photoFilesBelowApproximate: false }],
 	// The server saw a subfolder that is gone by the time the folder opens.
 	'/Photos/2026': [],
 }

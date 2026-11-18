@@ -8,11 +8,13 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\FileCachePhotoFiles;
+use OCA\Honeycomb\Db\SubtreeExactness;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeLoader;
 use OCP\Files\IRootFolder;
 use OCP\Files\Mount\IMountManager;
 use OCP\Files\Mount\IMountPoint;
+use OCP\Files\Storage\IStorage;
 use OCP\IUserManager;
 use OCP\Server;
 
@@ -71,8 +73,9 @@ final class FileCachePhotoFilesTest extends DbTestCase {
 		return $folder;
 	}
 
-	private function mount(string $mountPoint, int $rootId): IMountPoint {
+	private function mount(string $mountPoint, int $rootId, ?IStorage $storage = null): IMountPoint {
 		$mount = $this->createStub(IMountPoint::class);
+		$mount->method('getStorage')->willReturn($storage);
 		$mount->method('getMountPoint')->willReturn($mountPoint);
 		$mount->method('getStorageRootId')->willReturn($rootId);
 		return $mount;
@@ -85,17 +88,17 @@ final class FileCachePhotoFilesTest extends DbTestCase {
 			'Photos/.thumbnails/d.jpg', 'Photos/2024/.e.jpg', 'Photos/2024/e.jpg', 'Photos/2024/Trip/f.png', 'Other/g.jpg',
 		]);
 
-		$this->assertSame(4, $this->counter()->count($this->folderAt($home, 'Photos')));
-		$this->assertSame(2, $this->counter()->count($this->folderAt($home, 'Photos/2024')));
+		$this->assertSame(4, $this->counter()->count($this->folderAt($home, 'Photos'))?->files);
+		$this->assertSame(2, $this->counter()->count($this->folderAt($home, 'Photos/2024'))?->files);
 	}
 
 	// spec: LISTING-003.20
 	public function testCountsNoSiblingThatSharesThePrefixOrMatchesItAsAPattern(): void {
 		$home = $this->files(self::USER, ['Day/a.jpg', 'Day 2/b.jpg', 'Day_1/c.jpg', 'DayA1/d.jpg', '100%/e.jpg', '1000/f.jpg']);
 
-		$this->assertSame(1, $this->counter()->count($this->folderAt($home, 'Day')));
-		$this->assertSame(1, $this->counter()->count($this->folderAt($home, 'Day_1')));
-		$this->assertSame(1, $this->counter()->count($this->folderAt($home, '100%')));
+		$this->assertSame(1, $this->counter()->count($this->folderAt($home, 'Day'))?->files);
+		$this->assertSame(1, $this->counter()->count($this->folderAt($home, 'Day_1'))?->files);
+		$this->assertSame(1, $this->counter()->count($this->folderAt($home, '100%'))?->files);
 	}
 
 	// spec: LISTING-003.20
@@ -112,7 +115,74 @@ final class FileCachePhotoFilesTest extends DbTestCase {
 			$this->mount("$below/Again/", $this->folderAt($home, 'Photos/2024')->getId()),
 		])->count($this->folderAt($home, 'Photos'));
 
-		$this->assertSame(4, $count);
+		$this->assertSame(4, $count?->files);
+		$this->assertTrue($count?->approximate);
+	}
+
+	// spec: LISTING-003.20
+	public function testACompletelyScannedPlainFolderIsExact(): void {
+		$home = $this->files(self::USER, ['Photos/a.jpg', 'Photos/2024/b.jpg']);
+		$holiday = $this->files(self::OTHER, ['Holiday/c.jpg']);
+		$below = '/' . self::USER . '/files/Photos';
+
+		$plain = $this->counter()->count($this->folderAt($home, 'Photos'));
+		$mounted = $this->counter([$this->mount("$below/Shared/", $this->folderAt($holiday, 'Holiday')->getId(), $holiday->getStorage())])->count($this->folderAt($home, 'Photos'));
+
+		$this->assertFalse($plain?->approximate);
+		$this->assertFalse($mounted?->approximate);
+	}
+
+	private function aclStorage(): IStorage {
+		$storage = $this->createStub(IStorage::class);
+		$storage->method('instanceOfStorage')->willReturnCallback(static fn (string $class): bool => $class === SubtreeExactness::ACL_STORAGE);
+		return $storage;
+	}
+
+	// spec: LISTING-003.20
+	public function testAFolderOnAStorageWithAdvancedPermissionsMayMissFiles(): void {
+		$home = $this->files(self::USER, ['Photos/a.jpg']);
+		$photos = $this->folderAt($home, 'Photos');
+		$folder = $this->createStub(Folder::class);
+		$folder->method('getId')->willReturn($photos->getId());
+		$folder->method('getPath')->willReturn($photos->getPath());
+		$folder->method('getStorage')->willReturn($this->aclStorage());
+
+		$this->assertTrue($this->counter()->count($folder)?->approximate);
+	}
+
+	// spec: LISTING-003.20
+	public function testAMountedStorageWithAdvancedPermissionsOrAnUnknownSizeMayMissFiles(): void {
+		$home = $this->files(self::USER, ['Photos/a.jpg']);
+		$other = $this->files(self::OTHER, ['Holiday/c.jpg', 'Other/d.jpg']);
+		$below = '/' . self::USER . '/files/Photos';
+		$holiday = $this->folderAt($other, 'Holiday');
+		$unknown = $this->folderAt($other, 'Other');
+		$update = $this->db->getQueryBuilder();
+		$update->update('filecache')->set('size', $update->createNamedParameter(-1))->where($update->expr()->eq('fileid', $update->createNamedParameter($unknown->getId())))->executeStatement();
+
+		$acl = $this->counter([$this->mount("$below/Team/", $holiday->getId(), $this->aclStorage())])->count($this->folderAt($home, 'Photos'));
+		$size = $this->counter([$this->mount("$below/Size/", $unknown->getId(), $other->getStorage())])->count($this->folderAt($home, 'Photos'));
+
+		$this->assertTrue($acl?->approximate);
+		$this->assertTrue($size?->approximate);
+	}
+
+	// spec: LISTING-003.20
+	public function testAHiddenMountDoesNotMakeTheCountApproximate(): void {
+		$home = $this->files(self::USER, ['Photos/a.jpg']);
+		$mount = $this->mount('/' . self::USER . '/files/Photos/.hidden/Shared/', -1);
+
+		$this->assertFalse($this->counter([$mount])->count($this->folderAt($home, 'Photos'))?->approximate);
+	}
+
+	// spec: LISTING-003.20
+	public function testAFolderWithAnUnknownSizeMayMissFiles(): void {
+		$home = $this->files(self::USER, ['Photos/a.jpg']);
+		$photos = $this->folderAt($home, 'Photos');
+		$update = $this->db->getQueryBuilder();
+		$update->update('filecache')->set('size', $update->createNamedParameter(-1))->where($update->expr()->eq('fileid', $update->createNamedParameter($photos->getId())))->executeStatement();
+
+		$this->assertTrue($this->counter()->count($photos)?->approximate);
 	}
 
 	// spec: LISTING-003.20
@@ -121,6 +191,6 @@ final class FileCachePhotoFilesTest extends DbTestCase {
 		$folder->method('getId')->willReturn(PHP_INT_MAX);
 		$folder->method('getPath')->willReturn('/' . self::USER . '/files/Gone');
 
-		$this->assertNull($this->counter()->count($folder));
+		$this->assertNull($this->counter()->count($folder)?->files);
 	}
 }

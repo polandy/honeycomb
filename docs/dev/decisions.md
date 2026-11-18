@@ -1476,3 +1476,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   knows them, with the cull's ETags, and the toast says the fresh check was not possible. *Remove
   RAWs* skips such a pair when its RAW has a sidecar and its JPEG none, as the values cannot be
   copied unread.
+- 2026-11-18: the "~" on a folder count (#244) marks only the count below a collapsed folder, never
+  the own count (that one is read from a live listing). It is set from the size and storage the
+  count reads anyway, so it costs no query: an unknown size (`-1`), an unscanned mount, or a
+  storage wrapped by Team folders' `ACLStorageWrapper`, found by class name.

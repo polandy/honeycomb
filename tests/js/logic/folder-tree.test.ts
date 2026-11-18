@@ -5,7 +5,7 @@ import type { Branch, TreeFolder } from '../../../src/logic/folder-tree.ts'
 import { describe, expect, it } from 'vitest'
 import { excludedBelow, excludedFrom, foldersToExpand, includedBy, ROOT, rowPhotoFiles, tickedBelow, treeKey, visibleRows } from '../../../src/logic/folder-tree.ts'
 
-const folder = (path: string, hasSubfolders = false): TreeFolder => ({ name: path.split('/').pop()!, path, hasSubfolders, photoFiles: 0, photoFilesBelow: 0 })
+const folder = (path: string, hasSubfolders = false): TreeFolder => ({ name: path.split('/').pop()!, path, hasSubfolders, photoFiles: 0, photoFilesBelow: 0, photoFilesBelowApproximate: false })
 const loaded = (...folders: TreeFolder[]): Branch => ({ state: 'loaded', folders })
 
 const BRANCHES = new Map<string, Branch>([
@@ -175,17 +175,23 @@ describe('excludedBelow', () => {
 })
 
 describe('rowPhotoFiles', () => {
-	const counted = (hasSubfolders: boolean, photoFiles: number | null, photoFilesBelow: number | null): TreeFolder => ({ name: 'A', path: '/A', hasSubfolders, photoFiles, photoFilesBelow })
+	const counted = (hasSubfolders: boolean, photoFiles: number | null, photoFilesBelow: number | null, photoFilesBelowApproximate = false): TreeFolder => ({ name: 'A', path: '/A', hasSubfolders, photoFiles, photoFilesBelow, photoFilesBelowApproximate })
 
 	// spec: LISTING-003.20
 	it('counts the files below a collapsed folder with subfolders', () => {
-		expect(rowPhotoFiles(counted(true, 3, 1203), false)).toEqual({ count: 1203, below: true })
+		expect(rowPhotoFiles(counted(true, 3, 1203), false)).toEqual({ count: 1203, below: true, approximate: false })
 	})
 
 	// spec: LISTING-003.20
 	it('counts its own files while expanded or without subfolders', () => {
-		expect(rowPhotoFiles(counted(true, 3, 1203), true)).toEqual({ count: 3, below: false })
-		expect(rowPhotoFiles(counted(false, 2, 2), false)).toEqual({ count: 2, below: false })
+		expect(rowPhotoFiles(counted(true, 3, 1203), true)).toEqual({ count: 3, below: false, approximate: false })
+		expect(rowPhotoFiles(counted(false, 2, 2), false)).toEqual({ count: 2, below: false, approximate: false })
+	})
+
+	// spec: LISTING-003.20
+	it('marks the count below as approximate, never the own count', () => {
+		expect(rowPhotoFiles(counted(true, 3, 1203, true), false)).toEqual({ count: 1203, below: true, approximate: true })
+		expect(rowPhotoFiles(counted(true, 3, 1203, true), true)).toEqual({ count: 3, below: false, approximate: false })
 	})
 
 	// spec: LISTING-003.19, LISTING-003.20
