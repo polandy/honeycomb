@@ -183,6 +183,15 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
   *Compare series*, *Remove RAWs…*, *Move picks…*, *Resume at*, *Write decisions to sidecars…*,
   *Settings*) closes it, so no menu stays above the dialog or view it opens
 
+### GRID-001.19 – Every control is at least 44 × 44 px on an iPad
+
+- **Given** the real app on an iPad mini viewport, portrait or landscape, with a touch pointer
+- **When** the grid, filters, folder tree, settings, selection, *Move…*, ⋯ menu, reject review,
+  *Delete…*, loupe, series compare and series viewer are open
+- **Then** the hit area of every control (found by hit testing, not by its box) is at least
+  44 × 44 px, no control is clipped or off screen, and none is covered by another; the series tab on
+  a filmstrip thumbnail is the one known exception (`TODO.md`)
+
 ## History
 
 | Date | Change |
@@ -195,3 +204,4 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 | 2026-11-13 | GRID-001.4: no badge on a complete pair, singles and *Keep RAW* keep theirs (UX review M3) |
 | 2026-11-15 | GRID-001.17: *Review rejects* stays in the ⋯ menu from 900 px too (owner, DELETE-002.19) |
 | 2026-11-13 | GRID-001.18: a separator between view options and actions in the ⋯ menu; an action closes it (UX review M7) |
+| 2026-11-18 | GRID-001.19: an e2e check of the 44 px touch targets in the real app on iPad viewports |
