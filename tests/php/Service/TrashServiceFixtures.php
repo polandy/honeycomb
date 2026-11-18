@@ -19,6 +19,7 @@ use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
+use OCP\Files\NotFoundException;
 use OCP\Files\Storage\IStorage;
 use OCP\IAppConfig;
 use OCP\IUser;
@@ -44,14 +45,14 @@ trait TrashServiceFixtures {
 		return $user;
 	}
 
-	/** A file of alice's that records its delete, or throws `$failure` instead; `$size` bytes against a trash bin size of 1000; its delete takes `$seconds`. */
+	/** A file of alice's that records its delete, or throws `$failure` instead, and has no id once deleted, as in Nextcloud; `$size` bytes against a trash bin size of 1000; its delete takes `$seconds`. */
 	private function file(int $id, string $name, string $mime = 'image/jpeg', bool $deletable = true, ?\Throwable $failure = null, int $size = 1, bool $trashBin = true, int $seconds = 0): File {
 		$storage = $this->createStub(IStorage::class);
 		$storage->method('instanceOfStorage')->willReturnCallback(static fn (string $class): bool => $trashBin && $class === 'OCA\Files_Trashbin\Storage');
 		$file = $this->createStub(File::class);
 		$file->method('getStorage')->willReturn($storage);
 		$file->method('getSize')->willReturn($size);
-		$file->method('getId')->willReturn($id);
+		$file->method('getId')->willReturnCallback(fn (): int => in_array($id, $this->trashed, true) ? throw new NotFoundException() : $id);
 		$file->method('getName')->willReturn($name);
 		$file->method('getMimetype')->willReturn($mime);
 		$file->method('getEtag')->willReturn("etag-$id");

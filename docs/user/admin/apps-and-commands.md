@@ -16,8 +16,9 @@ Nextcloud's own apps switch features on:
 Versions count per folder: external storage never keeps versions, so honeycomb does not replace
 an existing sidecar there. The trash bin size (`trashbin_size`) decides which files are too large
 for the trash bin; such a file is deleted for good only after the user confirms a warning, else its
-photo stays whole. Recommended apps for RAW previews and faster first visits:
-the [README](../../../README.md#installation).
+photo stays whole. Each file deleted for good leaves a warning in the Nextcloud log, *A file was
+deleted permanently*, with its file id and the user, never its path. Recommended apps for RAW
+previews and faster first visits: the [README](../../../README.md#installation).
 
 ## occ commands
 

@@ -30,7 +30,8 @@ Photos* and takes every rejected photo of the folders you cull, even the ones th
 A storage without a trash bin (for example some external storages), or a file larger than the
 trash bin allows (`trashbin_size`), cannot go to the trash bin. Instead of the report, a warning
 opens first: *N files will be deleted permanently*, each file with its reason. The focus is on
-**Cancel**: it sends nothing more, the files stay and the report lists them as before.
+**Cancel**: it sends nothing more, the files stay and the report lists them with the same reasons.
+No key confirms the warning: `Enter` acts on the focused **Cancel**.
 **Delete permanently** deletes them for good, with the other files of their photos; they cannot be
 restored. The toast then also counts the files deleted permanently. Team folders have their own
 trash bin and keep every file.

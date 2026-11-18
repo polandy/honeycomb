@@ -69,7 +69,7 @@ final class TrashService {
 		if (count($files) !== count($checked)) {
 			$results = array_map(static fn (array|TrashResult $node): TrashResult => is_array($node) ? TrashResult::Skipped : $node, $checked);
 		} elseif ($this->spacing->clear(self::namesToTrash($files))) {
-			$results = $this->trashInOrder($files);
+			$results = $this->trashInOrder($user, $files);
 		} else {
 			return null;
 		}
@@ -91,13 +91,13 @@ final class TrashService {
 	 * @param array<int, array{File, TrashResult}> $files each file with its result on success
 	 * @return list<TrashResult> in the order of `$files`
 	 */
-	private function trashInOrder(array $files): array {
+	private function trashInOrder(IUser $user, array $files): array {
 		$sidecars = array_filter($files, static fn (array $file): bool => ListingService::isSidecar($file[0]));
 		$results = array_fill_keys(array_keys($files), TrashResult::Skipped);
 		foreach (array_diff_key($files, $sidecars) + $sidecars as $index => [$file, $done]) {
 			$results[$index] = $done === TrashResult::Trashed
-				? $this->spacing->trash($file->getName(), fn (): TrashResult => $this->deleteFile($file, $done))
-				: $this->deleteFile($file, $done);
+				? $this->spacing->trash($file->getName(), fn (): TrashResult => $this->deleteFile($user, $file, $done))
+				: $this->deleteFile($user, $file, $done);
 			if ($results[$index] !== $done) {
 				break;
 			}
@@ -105,10 +105,14 @@ final class TrashService {
 		return array_values($results);
 	}
 
-	/** Deletes the file, which the trash bin keeps unless `$done` is `Deleted`, and returns `$done` or the failure. */
-	private function deleteFile(File $file, TrashResult $done): TrashResult {
+	/** Deletes the file, which the trash bin keeps unless `$done` is `Deleted`, and returns `$done` or the failure; a delete for good is logged without the path (DELETE-001.14). */
+	private function deleteFile(IUser $user, File $file, TrashResult $done): TrashResult {
+		$fileId = $file->getId();
 		try {
 			$file->delete();
+			if ($done === TrashResult::Deleted) {
+				$this->logger->warning('A file was deleted permanently', ['fileId' => $fileId, 'user' => $user->getUID()]);
+			}
 			return $done;
 		} catch (NotPermittedException) {
 			return TrashResult::NotPermitted;
@@ -117,7 +121,7 @@ final class TrashService {
 		} catch (NotFoundException) {
 			return TrashResult::NotFound;
 		} catch (\Exception $e) {
-			$this->logger->warning('A file could not be moved to the trash bin', ['fileId' => $file->getId(), 'exception' => $e]);
+			$this->logger->warning('A file could not be moved to the trash bin', ['fileId' => $fileId, 'exception' => $e]);
 			return TrashResult::Failed;
 		}
 	}

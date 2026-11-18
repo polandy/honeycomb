@@ -40,6 +40,19 @@ describe('PermanentDeleteWarning', () => {
 		expect(wrapper.text()).toContain('The Nextcloud trash bin cannot keep these files. Deleted, they cannot be restored.')
 	})
 
+	// spec: DELETE-002.24
+	it('confirms on no key, neither on the dialog nor on the window', async () => {
+		const wrapper = warning()
+
+		for (const key of ['Enter', ' ', 'Delete', 'Backspace', 'p', 'x']) {
+			await wrapper.trigger('keydown', { key })
+			window.dispatchEvent(new KeyboardEvent('keydown', { key }))
+		}
+
+		expect(wrapper.emitted('confirm')).toBeUndefined()
+		wrapper.unmount()
+	})
+
 	// spec: DELETE-002.21, DELETE-002.22
 	it('emits confirm and cancel, and holds the confirm button while it runs', async () => {
 		const wrapper = warning()

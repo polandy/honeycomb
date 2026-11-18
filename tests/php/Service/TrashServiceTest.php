@@ -120,6 +120,32 @@ final class TrashServiceTest extends TestCase {
 		$this->assertSame([1, 2, 3, 4], $this->trashed);
 	}
 
+	// spec: DELETE-001.14
+	public function testEveryFileDeletedForGoodIsLoggedWithItsIdAndTheUserButNoPath(): void {
+		$nodes = [
+			1 => $this->file(1, 'IMG_0001.CR3', 'image/x-canon-cr3', size: 1000),
+			2 => $this->file(2, 'IMG_0001.JPG', size: 1000),
+			3 => $this->file(3, 'IMG_0002.JPG', trashBin: false, failure: new NotPermittedException()),
+			4 => $this->file(4, 'IMG_0003.JPG'),
+		];
+		$logged = [];
+		$logger = $this->createStub(LoggerInterface::class);
+		$logger->method('warning')->willReturnCallback(static function (string $message, array $context) use (&$logged): void {
+			$logged[] = [$message, $context];
+		});
+
+		$this->service($nodes, logger: $logger)->trash($this->user(), [
+			[['fileId' => 1, 'etag' => 'etag-1', 'permanent' => true], ['fileId' => 2, 'etag' => 'etag-2', 'permanent' => true]],
+			[['fileId' => 3, 'etag' => 'etag-3', 'permanent' => true]],
+			[['fileId' => 4, 'etag' => 'etag-4', 'permanent' => true]],
+		]);
+
+		$this->assertSame([
+			['A file was deleted permanently', ['fileId' => 1, 'user' => 'alice']],
+			['A file was deleted permanently', ['fileId' => 2, 'user' => 'alice']],
+		], $logged);
+	}
+
 	/** @return array<string, array{array<int, Node>, list<array<string, mixed>>, list<string>}> */
 	public function permanentCheckFailures(): array {
 		$large = static fn (self $test, int $id, bool $deletable = true): File => $test->file($id, "IMG_000$id.JPG", deletable: $deletable, size: 1000);

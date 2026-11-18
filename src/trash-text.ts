@@ -17,9 +17,8 @@ export function failureReason(result: TrashFailure): string {
 		case 'notPermitted':
 			return t('honeycomb', 'You may not delete this file')
 		case 'noTrashBin':
-			return t('honeycomb', 'Not deleted: no trash bin on this storage')
 		case 'tooLarge':
-			return t('honeycomb', 'Not deleted: larger than the trash bin allows')
+			return unkeptReason(result)
 		case 'locked':
 			return t('honeycomb', 'File is locked (another process is writing to it)')
 		case 'skipped':
