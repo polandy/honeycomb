@@ -179,21 +179,49 @@ describe('useCull: writing through to the sidecars', () => {
 		expect(cull.sharedPictures.value).toEqual([])
 	})
 
-	// spec: XMP-008.3, XMP-008.5, XMP-008.7
-	it('names why a picture of a step cannot be decided, and decides none of the step', async () => {
+	// spec: XMP-008.3, XMP-008.5, XMP-008.9
+	it('takes nothing when every picture of a step is locked, nor when the picked one is, and names why', async () => {
 		const { cull, writes, saved, picture, locks } = cullWith()
 		cull.open(SET, ENTRIES, access({ '/Trip/A': { permissions: 1 }, '/Trip/B': { versions: false } }))
 		await flushPromises()
 
 		expect(cull.decide({ kind: 'flag', flag: 'picked' }, [picture('IMG_2'), picture('IMG_10')])).toBeNull()
-		expect(cull.pickRest(picture('IMG_2'), [picture('IMG_9')])).toBeNull()
+		expect(cull.takeSkipped().map(({ picture, reason }) => [picture.baseName, reason])).toEqual([['IMG_2', 'noVersions'], ['IMG_10', 'readOnly']])
 		expect(cull.tag({ added: ['Anna'], removed: [] }, [picture('IMG_2')])).toBeNull()
+		expect(cull.takeSkipped().map(({ reason }) => reason)).toEqual(['noVersions'])
+		cull.open(SET, ENTRIES, access({ '/Trip/A': { permissions: 1 } }))
+		await flushPromises()
+		expect(cull.pickRest(picture('IMG_10'), [picture('IMG_2')])).toBeNull()
+		expect(cull.takeSkipped().map(({ picture }) => picture.baseName)).toEqual(['IMG_10'])
 		await flushPromises()
 
-		expect(locks.map(({ reason }) => reason)).toEqual(['readOnly', 'readOnly', 'noVersions'])
-		expect(cull.writabilityOf(picture('IMG_2'))).toBe('noVersions')
+		expect(cull.takeSkipped()).toEqual([])
+		expect(locks).toEqual([])
 		expect(writes).toEqual([])
 		expect(saved).toEqual([])
+	})
+
+	// spec: XMP-008.9, XMP-008.10
+	it('decides the writable pictures of a step as one undo step and leaves the locked ones', async () => {
+		const { cull, writes, saved, picture } = cullWith()
+		cull.open(SET, ENTRIES, access({ '/Trip/A': { permissions: 1 } }))
+		await flushPromises()
+
+		const step = cull.decide({ kind: 'flag', flag: 'rejected' }, [picture('IMG_2'), picture('IMG_10'), picture('IMG_9')])
+		await flushPromises()
+
+		expect(step?.names).toEqual(['IMG_2'])
+		expect(cull.takeSkipped().map(({ picture, reason }) => [picture.baseName, reason])).toEqual([['IMG_10', 'readOnly'], ['IMG_9', 'readOnly']])
+		expect(saved.map((rows) => rows.map(({ fileId, flag }) => [fileId, flag]))).toEqual([[[1, 'rejected']]])
+		expect(writes.map((write) => write.map(({ name }) => name))).toEqual([['IMG_2']])
+		expect(cull.pickRest(picture('IMG_2'), [picture('IMG_9')])?.names).toEqual(['IMG_2'])
+
+		cull.undo()
+		cull.undo()
+		await flushPromises()
+		expect(saved.slice(2).map((rows) => rows.map(({ fileId, flag }) => [fileId, flag]))).toEqual([[[1, 'rejected']], [[1, null]]])
+		expect(cull.decisionOf(picture('IMG_10')).flag).toBeNull()
+		expect(cull.undo()).toBeNull()
 	})
 
 	// spec: XMP-008.6

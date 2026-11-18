@@ -19,6 +19,15 @@ describe('useToast', () => {
 		expect(toast.current.value).toBeNull()
 	})
 
+	// spec: XMP-008.9
+	it('keeps the details a toast unfolds', () => {
+		const toast = useToast(fakeScheduler().schedule)
+
+		toast.show('Rejected IMG_1; 1 photo not changed', null, undefined, ['IMG_2: you may only read the folder'])
+
+		expect(toast.current.value).toEqual({ message: 'Rejected IMG_1; 1 photo not changed', action: null, details: ['IMG_2: you may only read the folder'] })
+	})
+
 	it('replaces the shown toast and its timer with the next one', () => {
 		const scheduler = fakeScheduler()
 		const toast = useToast(scheduler.schedule)

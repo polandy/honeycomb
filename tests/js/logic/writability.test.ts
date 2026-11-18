@@ -5,7 +5,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 import type { FolderAccess, WriteContext } from '../../../src/logic/writability.ts'
 
 import { describe, expect, it } from 'vitest'
-import { confirmationFolders, folderAccess, lockReason, unconfirmedShared, writability } from '../../../src/logic/writability.ts'
+import { confirmationFolders, firstLock, folderAccess, splitLocks, unconfirmedShared, writability } from '../../../src/logic/writability.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const ALL = 31
@@ -68,22 +68,34 @@ describe('writability', () => {
 	})
 })
 
-describe('lockReason', () => {
-	// spec: XMP-008.7
-	it('names the first reason in the order of the reasons, not of the pictures, and null when all are writable', () => {
-		const folders = [folder('/P', { versions: false }), folder('/', { permissions: READ })]
-		expect(lockReason([SPLIT, AT_ROOT], context(folders))).toBe('readOnly')
-		expect(lockReason([SPLIT], context(folders))).toBe('noVersions')
-		expect(lockReason([AT_ROOT], context([]))).toBeNull()
-	})
+describe('splitLocks', () => {
+	const OTHER = pictureOf(listingEntry(4, '/Q/C.JPG'))
 
 	// spec: XMP-008.7
-	it('names a refused picture last, after a picture locked for any other reason', () => {
-		const refused = (picture: Picture<ListingEntry>) => picture === SPLIT
-		expect(lockReason([SPLIT, AT_ROOT], context([folder('/', { versions: false })], { refused }))).toBe('noVersions')
-		expect(lockReason([SPLIT, AT_ROOT], context([folder('/', { permissions: READ })], { refused }))).toBe('readOnly')
-		expect(lockReason([SPLIT, AT_ROOT], context([], { setting: 'off', refused }))).toBe('off')
-		expect(lockReason([SPLIT, AT_ROOT], context([], { refused }))).toBe('refused')
+	it('names a lock the user can lift first, off before shared, whatever else locks the pictures', () => {
+		const shared = [folder('/', { permissions: READ }), folder('/Q', { shared: true })]
+		expect(splitLocks([AT_ROOT, OTHER], context(shared)).liftable).toBe('shared')
+		expect(splitLocks([AT_ROOT, OTHER], context(shared, { setting: 'off' })).liftable).toBe('off')
+		expect(splitLocks([AT_ROOT, OTHER], context([folder('/', { permissions: READ })])).liftable).toBeNull()
+	})
+
+	// spec: XMP-008.9
+	it('splits the pictures into the writable ones and the locked ones with their reasons, in their order', () => {
+		const refused = (picture: Picture<ListingEntry>) => picture === OTHER
+		const split = splitLocks([SPLIT, AT_ROOT, OTHER], context([folder('/', { permissions: READ })], { refused }))
+
+		expect(split.writable).toEqual([SPLIT])
+		expect(split.locked).toEqual([{ picture: AT_ROOT, reason: 'readOnly' }, { picture: OTHER, reason: 'refused' }])
+		expect(splitLocks([SPLIT], context([]))).toEqual({ liftable: null, writable: [SPLIT], locked: [] })
+	})
+})
+
+describe('firstLock', () => {
+	// spec: XMP-008.9
+	it('names the first reason in the order of the reasons, not of the pictures', () => {
+		expect(firstLock([{ picture: SPLIT, reason: 'refused' }, { picture: AT_ROOT, reason: 'noVersions' }])).toBe('noVersions')
+		expect(firstLock([{ picture: SPLIT, reason: 'noVersions' }, { picture: AT_ROOT, reason: 'readOnly' }])).toBe('readOnly')
+		expect(firstLock([{ picture: SPLIT, reason: 'refused' }])).toBe('refused')
 	})
 })
 

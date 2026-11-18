@@ -14,7 +14,18 @@ describe('sidecar texts', () => {
 		const texts = REASONS.map(sidecarFailureReason)
 
 		expect(new Set(texts).size).toBe(REASONS.length)
-		expect(sidecarFailureReason('failed')).toBe('The server could not write the sidecar')
+		expect(sidecarFailureReason('failed')).toBe('The server failed on the sidecar; the Nextcloud log names the cause')
+	})
+
+	// spec: XMP-003.33
+	it.each(REASONS)('names the reason %s in the toast of a failed write, in its own words', (reason) => {
+		expect(notWrittenText([reason])).toBe(`Could not write 1 sidecar. ${sidecarFailureReason(reason)}`)
+	})
+
+	// spec: XMP-003.13
+	it('names the reason of most failed sidecars and points to Details for the others', () => {
+		expect(notWrittenText(['malformed', 'notPermitted', 'notPermitted'])).toBe('Could not write 3 sidecars. You may not change this sidecar or create files in its folder. More reasons in Details.')
+		expect(notWrittenText(['locked', 'notFound'])).toBe('Could not write 2 sidecars. The sidecar is locked (another process is writing to it). More reasons in Details.')
 	})
 
 	// spec: XMP-002.10
@@ -23,7 +34,6 @@ describe('sidecar texts', () => {
 	})
 
 	it('counts sidecars and photos', () => {
-		expect(notWrittenText(1)).toBe('Could not write 1 sidecar')
 		expect(writtenText(1200)).toBe('Wrote the decisions of 1,200 photos to sidecars')
 	})
 })

@@ -59,6 +59,20 @@ function flowWith(answer: (item: SidecarSaveItem) => SidecarSaveAnswer = () => (
 const rated = () => ({ ...UNDECIDED, rating: 3 })
 const NONE_SKIPPED = () => false
 
+describe('useSidecarFlow: writing through', () => {
+	// spec: XMP-003.13, XMP-003.33
+	it('names the reason in the toast of a failed write, and Details names each sidecar', async () => {
+		const { flow, toasts } = flowWith(() => ({ result: 'noVersions' }))
+
+		await flow.sync.write([writesOf(1)[0]!.picture], rated)
+		await flushPromises()
+
+		expect(toasts.map(({ message, action }) => [message, action?.label])).toEqual([['Could not write 1 sidecar. File versions are off, so honeycomb does not overwrite an existing sidecar', 'Details']])
+		toasts[0]!.action!.run()
+		expect(flow.report.value?.map(({ path, reason }) => [path, reason])).toEqual([['/P/IMG_1.JPG.xmp', 'noVersions']])
+	})
+})
+
 describe('useSidecarFlow: the migration run', () => {
 	// spec: XMP-007.11
 	it('writes in parts, shows the progress, acknowledges each part and ends with one toast', async () => {
@@ -88,7 +102,7 @@ describe('useSidecarFlow: the migration run', () => {
 		await flushPromises()
 
 		expect(acknowledged).toEqual([[1]])
-		expect(toasts.map(({ message, action }) => [message, action?.label])).toEqual([['Could not write 1 of 2 photos', 'Details']])
+		expect(toasts.map(({ message, action }) => [message, action?.label])).toEqual([['Could not write 1 of 2 photos. You may not change this sidecar or create files in its folder', 'Details']])
 		toasts[0]!.action!.run()
 		expect(flow.report.value?.map(({ path, reason }) => [path, reason])).toEqual([['/P/IMG_2.JPG.xmp', 'notPermitted']])
 	})
@@ -103,7 +117,7 @@ describe('useSidecarFlow: the migration run', () => {
 		await flushPromises()
 
 		expect(acknowledged).toEqual([])
-		expect(toasts.map(({ message }) => message)).toEqual(['Could not write 2 of 2 photos'])
+		expect(toasts.map(({ message }) => message)).toEqual(['Could not write 2 of 2 photos. Could not reach the server'])
 	})
 
 	// spec: XMP-007.12
