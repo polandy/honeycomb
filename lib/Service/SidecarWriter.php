@@ -15,7 +15,7 @@ use OCP\IUser;
 use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
 
-/** Saves sidecars by the checked save: check, write a part file, check again, rename (ADR 0017). */
+/** Saves sidecars by the checked save: check, then write in place (ADR 0017). */
 final class SidecarWriter {
 	public function __construct(
 		private UserPhotos $photos,
@@ -47,20 +47,10 @@ final class SidecarWriter {
 		if ($existing !== null && !$this->versions->keeps($existing)) {
 			return ['result' => SidecarResult::NoVersions];
 		}
-		$part = null;
 		try {
-			$part = $folder->newFile("$name.part", $sidecar->bytes);
-			$again = $this->check($userFolder, $sidecar);
-			if ($again instanceof SidecarResult) {
-				$this->deletePart($part);
-				return ['result' => $again];
-			}
-			$saved = $part->move($folder->getPath() . "/$name");
+			$saved = $existing === null ? $folder->newFile($name, $sidecar->bytes) : $this->replace($existing, $sidecar->bytes);
 			return ['result' => SidecarResult::Saved, 'fileId' => $saved->getId(), 'etag' => $saved->getEtag(), 'size' => $saved->getSize(), 'mtime' => $saved->getMTime()];
 		} catch (\Exception $e) {
-			if ($part !== null) {
-				$this->deletePart($part);
-			}
 			return ['result' => $this->resultOf($e, $folder->getPath() . "/$name")];
 		}
 	}
@@ -80,11 +70,10 @@ final class SidecarWriter {
 		if ($node->getEtag() !== $sidecar->etag || $node->getSize() !== $sidecar->size) {
 			return SidecarResult::Changed;
 		}
-		$folder = $node->getParent();
-		if (!$node->isUpdateable() || !$folder->isCreatable()) {
+		if (!$node->isUpdateable()) {
 			return SidecarResult::NotPermitted;
 		}
-		return [$folder, $node->getName(), $node];
+		return [$node->getParent(), $node->getName(), $node];
 	}
 
 	/** @return array{Folder, string, null}|SidecarResult */
@@ -105,12 +94,10 @@ final class SidecarWriter {
 		return $folder->isCreatable() ? [$folder, $name, null] : SidecarResult::NotPermitted;
 	}
 
-	private function deletePart(File $part): void {
-		try {
-			$part->delete();
-		} catch (\Exception $e) {
-			$this->logger->warning('A sidecar part file could not be deleted', ['path' => $part->getPath(), 'exception' => $e]);
-		}
+	/** Writes in place, so the sidecar keeps its file id and its replaced bytes become a version. */
+	private function replace(File $sidecar, string $bytes): File {
+		$sidecar->putContent($bytes);
+		return $sidecar;
 	}
 
 	private function resultOf(\Exception $e, string $path): SidecarResult {
