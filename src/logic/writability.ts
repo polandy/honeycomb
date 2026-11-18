@@ -35,7 +35,7 @@ export interface ListedAccess {
 export const NO_ACCESS: ListedAccess = { folders: [], opened: [] }
 
 /** Whether a decision on the picture may be written to its sidecars, or the first reason it may not (XMP-008). */
-export type Writability = 'writable' | 'off' | 'readOnly' | 'shared' | 'noVersions' | 'refused'
+export type Writability = 'writable' | 'off' | 'readOnly' | 'shared' | 'noVersions' | 'refused' | 'legacy'
 
 /** A lock the user lifts in the dialog: turn writing On, confirm a shared folder (XMP-008.7). */
 export type LiftableLock = 'off' | 'shared'
@@ -47,7 +47,7 @@ export type FixedLock = Exclude<Writability, 'writable' | LiftableLock>
 const LIFTABLE_ORDER: readonly LiftableLock[] = ['off', 'shared']
 
 /** The fixed locks, first the one a toast names first (XMP-008.9). */
-const FIXED_ORDER: readonly FixedLock[] = ['readOnly', 'noVersions', 'refused']
+const FIXED_ORDER: readonly FixedLock[] = ['readOnly', 'noVersions', 'refused', 'legacy']
 
 /** A picture a step leaves as it is, and why. */
 export interface LockedPicture {
@@ -69,6 +69,7 @@ export interface WriteContext {
 	readonly opened: readonly OpenedFolder[]
 	readonly confirmed: readonly number[]
 	readonly refused: (picture: Picture<ListingEntry>) => boolean
+	readonly legacy: (picture: Picture<ListingEntry>) => boolean
 }
 
 /** A step not taken until the user lifts its lock: the reason, the shared folders to confirm, and the step again. */
@@ -97,7 +98,7 @@ export function folderAccess(folders: readonly FolderAccess[]): ReadonlyMap<stri
 	return new Map(folders.map((folder) => [folder.path, folder]))
 }
 
-/** The picture's writability: off first, then read-only, shared, without versions, refused (XMP-008.1–.6). */
+/** The picture's writability: off first, then read-only, shared, without versions, refused, legacy (XMP-008.1–.6, .11). */
 export function writability(picture: Picture<ListingEntry>, context: WriteContext): Writability {
 	if (context.setting === 'off') {
 		return 'off'
@@ -113,7 +114,7 @@ export function writability(picture: Picture<ListingEntry>, context: WriteContex
 	if (folders.some((folder) => !folder.versions)) {
 		return 'noVersions'
 	}
-	return context.refused(picture) ? 'refused' : 'writable'
+	return context.refused(picture) ? 'refused' : (context.legacy(picture) ? 'legacy' : 'writable')
 }
 
 /** Whether a member folder of the picture is shared and its opened folder not confirmed (XMP-008.4, XMP-007.13). */
@@ -135,9 +136,9 @@ function isFixed(reason: Writability): reason is FixedLock {
 	return (FIXED_ORDER as readonly Writability[]).includes(reason)
 }
 
-/** The first reason of the locked pictures in the order `readOnly`, `noVersions`, `refused` (XMP-008.9). */
+/** The first reason of the locked pictures in the order `readOnly`, `noVersions`, `refused`, `legacy` (XMP-008.9). */
 export function firstLock(locked: readonly LockedPicture[]): FixedLock {
-	return locked.reduce<FixedLock>((first, { reason }) => (FIXED_ORDER.indexOf(reason) < FIXED_ORDER.indexOf(first) ? reason : first), 'refused')
+	return locked.reduce<FixedLock>((first, { reason }) => (FIXED_ORDER.indexOf(reason) < FIXED_ORDER.indexOf(first) ? reason : first), 'legacy')
 }
 
 /** The opened folders that confirm the unconfirmed shared folders of the pictures, each once (XMP-008.4). */

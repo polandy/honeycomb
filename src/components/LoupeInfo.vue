@@ -66,6 +66,7 @@ const NOT_WRITTEN: Record<Exclude<Writability, 'writable'>, () => string> = {
 	shared: () => t('honeycomb', 'Not written, shared folder not confirmed'),
 	noVersions: () => t('honeycomb', 'Not written, the folder keeps no versions'),
 	refused: () => t('honeycomb', 'Not written, a sidecar was refused'),
+	legacy: () => t('honeycomb', 'Not written, stored decisions not yet in its sidecars'),
 }
 const writtenTo = computed(() => {
 	if (props.writability !== 'writable') {

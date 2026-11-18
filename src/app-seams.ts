@@ -18,7 +18,7 @@ import type { LookupSeries, SaveSeries } from './stored-series.ts'
 import type { ViewStateApi } from './view-state.ts'
 import type { HashImage, SaveVisualHashes } from './visual-hashes.ts'
 
-import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveDecisions as apiSaveDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, imageUrl, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, lookupTags, movePictures, probeTargets, savePosition, saveSidecars, saveTags, saveViewState, saveVisualHashes } from './api.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, imageUrl, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, lookupTags, movePictures, probeTargets, savePosition, saveSidecars, saveViewState, saveVisualHashes } from './api.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { browserHashWorkers } from './hash-workers.ts'
 import { acknowledgeLegacy, loadLegacyExport, loadLegacyInventory } from './legacy-api.ts'
@@ -28,7 +28,7 @@ import { lookupSeries, saveSeries } from './series-api.ts'
 import { browserNow } from './sidecar-flow.ts'
 import { browserSchedule } from './tile-selection.ts'
 import { hashInWorkers } from './visual-hashes.ts'
-import { clearCache } from './xmp-cache-api.ts'
+import { clearCache, lookupXmpCache, saveXmpCache } from './xmp-cache-api.ts'
 
 /** The server and browser seams of the app; tests replace them with fakes. */
 export interface AppSeams {
@@ -38,7 +38,6 @@ export interface AppSeams {
 	hashImage?: HashImage
 	saveVisualHashes?: SaveVisualHashes
 	lookupDecisions?: (fileIds: readonly number[]) => Promise<StoredDecision[]>
-	saveDecisions?: (decisions: readonly StoredDecision[]) => Promise<void>
 	lookupSeries?: LookupSeries
 	saveSeries?: SaveSeries
 	loadSettings?: () => Promise<unknown>
@@ -69,7 +68,6 @@ export const APP_SEAMS = {
 	hashImage: hashInWorkers(browserHashWorkers(), imageUrl),
 	saveVisualHashes,
 	lookupDecisions: apiLookupDecisions,
-	saveDecisions: apiSaveDecisions,
 	lookupSeries,
 	saveSeries,
 	loadSettings: apiLoadSettings,
@@ -81,9 +79,9 @@ export const APP_SEAMS = {
 	onPageHide: onBrowserPageHide,
 	toggleFullscreen: toggleBrowserFullscreen,
 	trashPictures: apiTrashPictures,
-	sidecars: () => ({ lookupSidecars, lookupEmbeddedXmp, saveSidecars, now: browserNow }),
+	sidecars: () => ({ lookupSidecars, lookupEmbeddedXmp, saveSidecars, lookupXmpCache, saveXmpCache, now: browserNow }),
 	move: () => ({ probeTargets, movePictures }),
-	tags: () => ({ lookupTags, saveTags, loadTagList }),
+	tags: () => ({ lookupTags, loadTagList }),
 	clearCache,
 	legacy: () => ({ loadInventory: loadLegacyInventory, loadExport: loadLegacyExport, acknowledge: acknowledgeLegacy }),
 	saveFile: () => saveBrowserFile,

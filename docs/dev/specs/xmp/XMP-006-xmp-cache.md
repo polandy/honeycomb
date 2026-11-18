@@ -99,10 +99,10 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 
 ### XMP-006.9 – A save adds its tags to the tag list
 
-- **Given** a row with the tags `Places|Rome` and `Trip` for a sidecar the user reaches, and one with
+- **Given** a row with the tags `Places/Rome` and `Trip` for a sidecar the user reaches, and one with
   the tag `Hidden` for a file the user does not reach
 - **When** both are saved
-- **Then** the user's tag list holds `Places|Rome` and `Trip`, not `Hidden`
+- **Then** the user's tag list holds `Places/Rome` and `Trip`, not `Hidden`
 
 ### XMP-006.10 – A saved sidecar's row is stored
 

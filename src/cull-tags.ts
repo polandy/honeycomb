@@ -6,25 +6,23 @@ import type { StoredTags, Tag, TagChange } from './logic/tag.ts'
 
 import { computed, shallowRef } from 'vue'
 import { logger } from './logger.ts'
-import { memberIds, pictureMembers } from './logic/pairing.ts'
-import { byFileId, saveQueue } from './logic/save-queue.ts'
+import { pictureMembers } from './logic/pairing.ts'
 import { withLevels } from './logic/tag-entry.ts'
-import { changedTags, revertTagRows, sortedTags, withTagRows } from './logic/tag.ts'
+import { changedTags, sortedTags, withTagRows } from './logic/tag.ts'
 
 /** The tag endpoints (ADR 0022). */
 export interface CullTagsApi {
 	readonly lookupTags: (fileIds: readonly number[]) => Promise<StoredTags[]>
-	readonly saveTags: (rows: readonly StoredTags[]) => Promise<void>
 	readonly loadTagList: () => Promise<Tag[]>
 }
 
 type Pictures = readonly Picture<ListingEntry>[]
 
-/** The tags of the open cull: read, taken over from the sidecars, changed and written through (TAGS-002); `current` names the open cull, answers for another are dropped. */
+/** The tags of the open cull: the legacy rows, the sidecars' tags, and changes written through (TAGS-002); `current` names the open cull, answers for another are dropped. */
 export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, change: TagChange) => Promise<unknown>, current: () => unknown, writable: (picture: Picture<ListingEntry>) => boolean) {
 	const tags = shallowRef<ReadonlyMap<number, readonly Tag[]>>(new Map())
+	const legacy = shallowRef<ReadonlyMap<number, readonly Tag[]>>(new Map())
 	const list = shallowRef<readonly Tag[]>([])
-	const saveTags = saveQueue(api.saveTags, { key: byFileId })
 	const known = computed(() => withLevels([...list.value, ...[...tags.value.values()].flat()]))
 
 	/** Reads the user's tag list for the tag entry (TAGS-003.13). */
@@ -37,76 +35,63 @@ export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, ch
 	/** Forgets the tags of the cull before. */
 	function reset() {
 		tags.value = new Map()
+		legacy.value = new Map()
 	}
 
 	/** The union of the tags of the picture's members, sorted. */
 	function tagsOf(picture: Picture<ListingEntry>): Tag[] {
-		return sortedTags(pictureMembers(picture).flatMap((member) => tags.value.get(member.fileId) ?? []))
+		return unionOf(picture, tags.value)
 	}
 
-	/** Reads the stored tags of every member under those given meanwhile; the file ids with stored tags, or null when they are unknown. */
-	async function load(opened: Pictures): Promise<Set<number> | null> {
+	/** The union of the legacy tags of the picture's members, sorted (XMP-007.5). */
+	function legacyTagsOf(picture: Picture<ListingEntry>): Tag[] {
+		return unionOf(picture, legacy.value)
+	}
+
+	/** Reads the legacy tags of the files and shows them under those given meanwhile; a failure shows none (TAGS-002.6). */
+	async function load(fileIds: readonly number[]): Promise<void> {
 		const cull = current()
 		try {
-			const rows = await api.lookupTags(opened.flatMap(memberIds))
-			if (current() !== cull) {
-				return null
+			const rows = await api.lookupTags(fileIds)
+			if (current() === cull) {
+				legacy.value = new Map([...withTagRows(new Map(), rows), ...legacy.value])
+				tags.value = new Map([...withTagRows(new Map(), rows), ...tags.value])
 			}
-			tags.value = new Map([...withTagRows(new Map(), rows), ...tags.value])
-			return new Set(rows.map(({ fileId }) => fileId))
 		} catch (error) {
-			logger.error('Could not read the tags; every photo shows as untagged', { error })
-			return null
+			logger.error('Could not read the stored tags; the photos show their sidecars\' tags', { error })
 		}
 	}
 
-	/** Shows and stores the sidecars' tags of the pictures still untagged; no write back (TAGS-002.2, .4). */
-	function takeOver(cull: unknown, tagged: readonly { picture: Picture<ListingEntry>, tags: readonly Tag[] }[]) {
-		const rows = current() === cull
-			? tagged.filter(({ picture }) => tagsOf(picture).length === 0).flatMap(({ picture, tags: set }) => pictureMembers(picture).map(({ fileId }) => ({ fileId, tags: [...set] })))
-			: []
+	/** Shows the sidecars' tags of the pictures still untagged; nothing is stored or written (TAGS-002.2). */
+	function fromSidecars(tagged: readonly { picture: Picture<ListingEntry>, tags: readonly Tag[] }[]) {
+		const rows = tagged.filter(({ picture }) => tagsOf(picture).length === 0).flatMap(({ picture, tags: set }) => pictureMembers(picture).map(({ fileId }) => ({ fileId, tags: [...set] })))
 		if (rows.length > 0) {
 			tags.value = withTagRows(tags.value, rows)
-			void saveTags(rows).then((saved) => saved.ok || logger.error('Could not save the tags taken over from the sidecars', { error: saved.error }))
 		}
 	}
 
-	/** Applies the change to each chosen picture, stores it for every member and writes it through; false when the save failed and was put back. */
-	async function change(chosen: Pictures, step: TagChange): Promise<boolean> {
-		const before = tags.value
+	/** Applies the change to each chosen picture and writes it through where the picture is writable. */
+	function change(chosen: Pictures, step: TagChange) {
 		const rows = chosen.flatMap((picture) => {
 			const next = changedTags(tagsOf(picture), step)
 			return pictureMembers(picture).map(({ fileId }) => ({ fileId, tags: next }))
 		})
-		tags.value = withTagRows(before, rows)
-		const cull = current()
-		const saved = await saveTags(rows)
-		if (!saved.ok) {
-			if (current() === cull) {
-				tags.value = revertTagRows(tags.value, saved.unsaved, before)
-			}
-			logger.error('Could not save the tags', { error: saved.error })
-			return false
-		}
+		tags.value = withTagRows(tags.value, rows)
 		const written = chosen.filter(writable)
-		if (current() === cull && written.length > 0) {
+		if (written.length > 0) {
 			void writeTags(written, step)
 		}
-		return true
 	}
 
-	/** Reads the stored tags of files put back that it holds none of. */
-	function restore(fileIds: readonly number[]) {
-		const unknown = fileIds.filter((fileId) => !tags.value.has(fileId))
-		const cull = current()
-		if (unknown.length > 0) {
-			api.lookupTags(unknown).then((rows) => {
-				if (current() === cull) {
-					tags.value = new Map([...withTagRows(new Map(), rows), ...tags.value])
-				}
-			}).catch((error: unknown) => logger.error('Could not read the tags of the photos moved back', { error }))
-		}
+	/** Forgets the legacy tags of the files once their sidecars hold them (XMP-008.11). */
+	function forget(fileIds: ReadonlySet<number>) {
+		legacy.value = new Map([...legacy.value].filter(([fileId]) => !fileIds.has(fileId)))
 	}
 
-	return { tags, known, reset, loadList, tagsOf, load, takeOver, change, restore }
+	return { tags, known, reset, loadList, tagsOf, legacyTagsOf, load, fromSidecars, change, forget }
+}
+
+/** The union of the tags of the picture's members in the map, sorted. */
+function unionOf(picture: Picture<ListingEntry>, byFileId: ReadonlyMap<number, readonly Tag[]>): Tag[] {
+	return sortedTags(pictureMembers(picture).flatMap((member) => byFileId.get(member.fileId) ?? []))
 }

@@ -122,8 +122,8 @@ decision made meanwhile wins (XMP-003.3).
 
 - **Given** writing *On*, a picture with a legacy decision and one with legacy tags only
 - **When** the user rates both, then the ⋯ entry writes them to their sidecars
-- **Then** neither is rated, the toast says *2 photos not changed: its stored decisions are not yet
-  in its sidecars* and the info panel says *Not written, stored decisions not yet in its sidecars*;
+- **Then** neither is rated, the toast says *2 photos not changed: stored decisions are not yet in
+  the sidecars* and the info panel says *Not written, stored decisions not yet in its sidecars*;
   once they are acknowledged both show what they showed before and are writable
 
 ## Out of scope

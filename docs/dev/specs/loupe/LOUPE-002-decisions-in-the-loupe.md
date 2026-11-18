@@ -74,7 +74,7 @@ rejects the rest of its series as one undo step and moves on to the first photo 
 ### LOUPE-002.8 – Undo toast
 
 - **Given** a decision in the loupe changed a picture
-- **When** it is stored
+- **When** it is made
 - **Then** a toast says what changed and offers *Undo*, at the top in the loupe, without taking
   the focus; *Undo* puts the earlier state back and says so, then the toast goes away
 
@@ -84,11 +84,10 @@ rejects the rest of its series as one undo step and moves on to the first photo 
 - **When** the user presses *Undo* on the toast
 - **Then** only the latest is undone, once; a decision that changes nothing shows no toast
 
-### LOUPE-002.10 – Undo the server refuses
+### LOUPE-002.10 – Undo the server refuses (removed)
 
-- **Given** a decision was undone
-- **When** the server does not store the undo
-- **Then** the decision is put back and the toast says the undo failed
+The cull stores no decisions in the database any more (ADR 0032, XMP-006.7); a failed sidecar
+write of an undo is reported (XMP-003.13).
 
 ### LOUPE-002.11 – Flag buttons at the side edges in landscape
 

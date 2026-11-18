@@ -63,10 +63,18 @@ const viewState = useViewState(props.viewState, props.storage)
 const settingsOpen = ref(false)
 const sidecarsReady = computed(() => settings.value.sidecarWrite === 'on')
 const legacy = useLegacy(props.legacy, props.saveFile, (message) => toast.show(message), () => sidecarsReady.value, openLegacyFolder)
-const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, refuseFailed, legacy.acknowledge)
+const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, refuseFailed, acknowledgeLegacy)
 const sidecars = useBundledSidecars(sidecarFlow.sync, props.schedule, props.onPageHide)
 const writeLock = useWriteLock(() => settings.value, updateSettings, retryLocked)
-const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, wait: waitSeconds(props.schedule), warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, saveDecisions: props.saveDecisions, lookupSeries: props.lookupSeries, saveSeries: props.saveSeries, tags: props.tags }, props.storage, () => settings.value, sidecars, writeLock.locked)
+const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, wait: waitSeconds(props.schedule), warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, lookupSeries: props.lookupSeries, saveSeries: props.saveSeries, tags: props.tags }, props.storage, () => settings.value, sidecars, writeLock.locked)
+/** Removes the legacy rows the ⋯ entry wrote to the sidecars, and unlocks their pictures (XMP-008.11). */
+async function acknowledgeLegacy(fileIds: readonly number[]): Promise<boolean> {
+	const removed = await legacy.acknowledge(fileIds)
+	if (removed) {
+		cull.forgetLegacy(fileIds)
+	}
+	return removed
+}
 /** Locks the pictures whose sidecar a write refused (XMP-008.6). */
 function refuseFailed(failed: readonly SidecarFailure[]) {
 	cull.refuse(failed)
