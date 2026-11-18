@@ -41,9 +41,14 @@ export function useSeriesEdits(context: SeriesEditsContext) {
 		return context.record(seriesStep('merge', series.flatMap(({ members }) => members), joinChange(series, [], context.rows(), context.newId), series.length))
 	}
 
-	/** Makes, adds to, merges or leaves series with the chosen pictures (SERIES-005.4–.7, .11). */
+	/** Makes, adds to, merges or leaves series with the chosen pictures (SERIES-005.4–.7, .11, .28). */
 	function editSelection(edit: SelectionEdit, chosen: readonly P[]): SeriesStep | null {
-		const { pictures, change, series } = selectionChange(edit, seriesOffer(chosen, context.seriesOf()), context.rows(), context.newId)
+		const offer = seriesOffer(chosen, context.seriesOf())
+		if (edit === 'done') {
+			const [only, ...others] = offer.touched
+			return only === undefined || others.length > 0 ? null : markSeries(only, only.stored?.status === 'done' ? 'open' : 'done')
+		}
+		const { pictures, change, series } = selectionChange(edit, offer, context.rows(), context.newId)
 		return context.record(seriesStep(edit, pictures, change, series))
 	}
 

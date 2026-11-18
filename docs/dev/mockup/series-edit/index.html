@@ -123,17 +123,17 @@ const scenes = {
 	// New series from a selection of loose photos
 	new() {
 		const sel = new Set([9, 10, 11, 12])
-		return grid(sel, `<div class="menu at-btn"><div class="mh">4 photos, none in a series</div>${menuItem('plus', 'New series from 4 photos', 'They stay together; the automatic grouping leaves them alone')}${menuItem('merge', 'Add to a series…', 'Select a photo of the series too', true)}${menuItem('minus', 'Remove from their series', 'None of them is in a series', true)}</div>`)
+		return grid(sel, `<div class="menu at-btn"><div class="mh">4 photos, none in a series</div>${menuItem('plus', 'New series from 4 photos', 'They stay together; the automatic grouping leaves them alone')}${menuItem('merge', 'Add to a series…', 'Select a photo of the series too', true)}${menuItem('minus', 'Remove from their series', 'None of them is in a series', true)}<div class="sep"></div>${menuItem('check', 'Series done', 'Select a photo of the series', true)}</div>`)
 	},
 	// Merge: the selection touches two series
 	merge() {
 		const sel = new Set([3, 6, 4])
-		return grid(sel, `<div class="menu at-btn"><div class="mh">3 photos in 2 series, 1 loose</div>${menuItem('merge', 'Merge 2 series · 8 photos', 'Series ⧉ 4 and ⧉ 3, plus IMG_0405')}${menuItem('plus', 'New series from these 3 photos', 'Takes them out of their series')}${menuItem('minus', 'Remove 2 photos from their series', 'They are never grouped again automatically')}</div>`)
+		return grid(sel, `<div class="menu at-btn"><div class="mh">3 photos in 2 series, 1 loose</div>${menuItem('merge', 'Merge 2 series · 8 photos', 'Series ⧉ 4 and ⧉ 3, plus IMG_0405')}${menuItem('plus', 'New series from these 3 photos', 'Takes them out of their series')}${menuItem('minus', 'Remove 2 photos from their series', 'They are never grouped again automatically')}<div class="sep"></div>${menuItem('check', 'Series done', 'Select photos of one series only', true)}</div>`)
 	},
 	// Add loose photos to the one series the selection touches
 	add() {
 		const sel = new Set([0, 4, 5])
-		return grid(sel, `<div class="menu at-btn"><div class="mh">3 photos: 1 in series ⧉ 4, 2 loose</div>${menuItem('merge', 'Add 2 photos to series ⧉ 4', 'IMG_0405 and IMG_0406')}${menuItem('plus', 'New series from 3 photos', 'Takes IMG_0401 out of its series')}${menuItem('minus', 'Remove 1 photo from its series', 'It is never grouped again automatically')}</div>`)
+		return grid(sel, `<div class="menu at-btn"><div class="mh">3 photos: 1 in series ⧉ 4, 2 loose</div>${menuItem('merge', 'Add 2 photos to series ⧉ 4', 'IMG_0405 and IMG_0406')}${menuItem('plus', 'New series from 3 photos', 'Takes IMG_0401 out of its series')}${menuItem('minus', 'Remove 1 photo from its series', 'It is never grouped again automatically')}<div class="sep"></div>${menuItem('check', 'Series done', 'Its unflagged photos count as decided')}</div>`)
 	},
 	// After Series done: the badge carries a check, undo in the toast
 	done() {
