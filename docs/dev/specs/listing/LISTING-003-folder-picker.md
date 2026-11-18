@@ -273,5 +273,5 @@ starts from that folder set and *Cancel* returns to it.
 | 2026-11-16 | .18 the folders included by *Include subfolders* (owner, E3 A) |
 | 2026-11-16 | .1/.19 the photo files of each folder in the tree (owner, after digiKam) |
 | 2026-11-16 | .1/.20 a collapsed folder counts its subfolders too (owner, digiKam) |
-| 2026-11-17 | .20 "~" and "about" where the count may be incomplete (owner, #244) |
+| 2026-11-18 | .20 "~" and "about" where the count may be incomplete (owner, #244) |
 | 2026-11-17 | .18 a tap excludes an included folder, .21/.22 excluded folders (owner, #187) |
