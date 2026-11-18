@@ -1490,3 +1490,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-18: The series compare's subtitle reads the first and last capture time, as the
   series-edit mockup shows, then "edited by hand" and "Also in other folders" (SERIES-005.17, .18);
   the tile's label says "Series edited by hand" or "Series done" for screen readers.
+- 2026-11-18: The NcModal focus trap error for a dialog taken away while it opens (`fallbackFocus`
+  was not a node) is logged at debug in the app's error handler, not fixed by patching or wrapping
+  `NcModal`; one branch and one test to drop once `@nextcloud/vue` fixes it (APP-001.12, #187).
