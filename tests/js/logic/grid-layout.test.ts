@@ -3,7 +3,7 @@
 import type { GridLayoutInput } from '../../../src/logic/grid-layout.ts'
 
 import { describe, expect, it } from 'vitest'
-import { anchoredScrollTop, focusStep, gridLayout, revealScrollTop, rowOfItem, stickyHeader, tileAt, visibleRows } from '../../../src/logic/grid-layout.ts'
+import { anchoredScrollTop, focusStep, gridLayout, renderedRows, revealScrollTop, rowOfItem, stickyHeader, tileAt, visibleRows } from '../../../src/logic/grid-layout.ts'
 
 // Two columns of 100 px tiles with a 10 px gap, two groups of 3 and 5 pictures.
 const GROUPED: GridLayoutInput = { width: 210, tileSize: 100, gap: 10, headerHeight: 30, groups: [3, 5], showHeaders: true, top: 0, nameBar: 0 }
@@ -91,6 +91,23 @@ describe('visibleRows', () => {
 
 	it('gives nothing for an empty grid', () => {
 		expect(visibleRows(gridLayout({ ...GROUPED, groups: [] }), 0, 500, 2)).toEqual({ start: 0, end: 0 })
+	})
+})
+
+describe('renderedRows', () => {
+	const layout = gridLayout(GROUPED)
+	const offscreen = (pinned: number | null) => renderedRows(layout, 145, 100, 1, pinned).map((row) => row.offscreen)
+
+	it('marks the overscan rows as offscreen', () => {
+		expect(offscreen(null)).toEqual([true, false, true])
+	})
+
+	it('keeps the row of a pinned picture that lies outside the rendered rows, offscreen', () => {
+		const rows = renderedRows(layout, 145, 100, 1, 7)
+
+		expect(rows.length).toBe(4)
+		expect(rows.at(-1)).toMatchObject({ offscreen: true, group: 1 })
+		expect(offscreen(3)).toEqual([true, false, true])
 	})
 })
 

@@ -28,7 +28,7 @@ import { formatNumber } from '../l10n.ts'
 import { autoScrollStep } from '../logic/auto-scroll.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { UNDECIDED } from '../logic/decision.ts'
-import { anchoredScrollTop, focusStep, gridLayout, revealScrollTop, rowOfItem, stickyHeader, tileAt, visibleRows } from '../logic/grid-layout.ts'
+import { anchoredScrollTop, focusStep, gridLayout, renderedRows, revealScrollTop, stickyHeader, tileAt } from '../logic/grid-layout.ts'
 import { IMAGE_LOADS_IN_FLIGHT, imageMember } from '../logic/image-tiers.ts'
 import { createLoadQueue } from '../logic/load-queue.ts'
 import { groupByFolder as folderGroups } from '../logic/picture-order.ts'
@@ -148,16 +148,8 @@ function scrollBy(step: number): boolean {
 	return true
 }
 
-const rendered = computed(() => {
-	const overscan = Math.ceil(height.value / (layout.value.tileWidth + GAP))
-	const { start, end } = visibleRows(layout.value, scrollTop.value, height.value, overscan)
-	const shown = visibleRows(layout.value, scrollTop.value, height.value, 0)
-	const rows = layout.value.rows.slice(start, end).map((row, offset) => ({ ...row, offscreen: start + offset < shown.start || start + offset >= shown.end }))
-	const origin = tiles.dragOrigin.value
-	const pinned = origin === null ? -1 : rowOfItem(layout.value, origin)
-	// The drag's pressed tile stays in the DOM: a touch's events keep going to the element it started on.
-	return pinned >= 0 && (pinned < start || pinned >= end) ? [...rows, { ...layout.value.rows[pinned]!, offscreen: true }] : rows
-})
+// The drag's pressed tile stays in the DOM: a touch's events keep going to the element it started on.
+const rendered = computed(() => renderedRows(layout.value, scrollTop.value, height.value, Math.ceil(height.value / (layout.value.tileWidth + GAP)), tiles.dragOrigin.value))
 
 watch(() => props.pictures, () => {
 	scroller.value!.scrollTop = 0

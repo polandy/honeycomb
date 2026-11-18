@@ -40,8 +40,8 @@ and a second tap deselects it. `Alt+←` and `Alt+→` move the focus to the pre
 **⋯ → Show file names** (or `Shift+J`) puts each photo's name above its tile; the setting is kept
 for your account. With a mouse, rest the pointer on a tile for a moment to see its full name, the
 capture time, the camera and the rating; moving away, clicking, scrolling or `Esc` hides it. On a touch screen, tap the ⓘ button at the end
-of the name bar instead; tap it again, tap beside it, scroll or press `Esc` to close it. A
-long-press on the tile still selects it.
+of the name bar instead; tap it again, tap beside it, scroll or press `Esc` to close it. A long-press
+on the tile still selects it.
 
 To decide many photos at once, press **Select** (or long-press a tile), select photos and use the
 action bar: flag, rating, colour label, *Keep RAW*, **Tags**, **Series…**, **Move…** and
