@@ -16,6 +16,13 @@ use PHPUnit\Framework\TestCase;
 
 final class UserPhotosTest extends TestCase {
 	use FakeFiles;
+	use FakeFileIdSearch;
+
+	/** @var list<list<int>> the file ids of each search of the user's folder */
+	private array $searched = [];
+
+	/** How often a single file id was looked up. */
+	private int $singleLookups = 0;
 
 	/** Photos whose user `alice` reaches `$nodes` by file id; `bob` reaches only file 50. */
 	private function photos(Node ...$nodes): UserPhotos {
@@ -33,8 +40,13 @@ final class UserPhotosTest extends TestCase {
 		foreach ($nodes as $node) {
 			$byId[$node->getId()] = $node;
 		}
+		$find = static fn (int $id): ?Node => $byId[$id] ?? null;
 		$folder = $this->folder('');
-		$folder->method('getFirstNodeById')->willReturnCallback(static fn (int $id): ?Node => $byId[$id] ?? null);
+		$folder->method('getFirstNodeById')->willReturnCallback(function (int $id) use ($find): ?Node {
+			$this->singleLookups++;
+			return $find($id);
+		});
+		$folder->method('search')->willReturnCallback(self::fileIdSearch($find, $this->searched));
 		return $folder;
 	}
 
@@ -88,6 +100,35 @@ final class UserPhotosTest extends TestCase {
 		$folder->method('getId')->willReturn(5);
 		$photos = $this->photos($this->file(7, '/P/A.JPG'), $this->file(8, '/P/B.CR3', 'application/octet-stream'), $this->file(10, '/P/notes.txt', 'text/plain'), $folder);
 		$this->assertSame([8, 7], $photos->photos($this->user(), [8, 404, 10, 5, 50, 7]));
+	}
+
+	// spec: DECISIONS-001.20, TAGS-001.15
+	public function testLooksThePhotosUpAThousandIdsAtATime(): void {
+		$fileIds = [...range(1, 2_499), 7_000];
+		$photos = $this->photos($this->file(7_000, '/P/LAST.JPG'), $this->file(1_200, '/P/MID.CR3', 'application/octet-stream'));
+
+		$this->assertSame([1_200, 7_000], $photos->photos($this->user(), $fileIds));
+		$this->assertSame([range(1, 1_000), range(1_001, 2_000), [...range(2_001, 2_499), 7_000]], $this->searched);
+		$this->assertSame(0, $this->singleLookups);
+	}
+
+	public function testLooksTheCurrentPhotosUpAThousandIdsAtATime(): void {
+		$photos = $this->photos($this->file(1_500, '/P/A.JPG'));
+
+		$this->assertSame([1_500], $photos->current($this->user(), array_fill_keys(range(1, 1_500), 'etag-1500')));
+		$this->assertSame([range(1, 1_000), range(1_001, 1_500)], $this->searched);
+		$this->assertSame(0, $this->singleLookups);
+	}
+
+	// spec: XMP-006.3, XMP-006.11
+	public function testAnswersTheSidecarsAndJpegsInRequestOrderInBatches(): void {
+		$photos = $this->photos($this->file(7, '/P/A.JPG'), $this->file(8, '/P/B.CR3', 'application/octet-stream'), $this->file(9, '/P/B.CR3.xmp', 'application/octet-stream'), $this->file(10, '/P/notes.txt', 'text/plain'), $this->file(11, '/P/C.jpg.XMP', 'application/octet-stream'));
+
+		$this->assertSame([11, 9], $photos->sidecars($this->user(), [11, 7, 404, 9, 10]));
+		$this->assertSame([7], $photos->jpegs($this->user(), [8, 9, 7, 50, 10]));
+		$this->assertSame([[11, 7, 404, 9, 10], [8, 9, 7, 50, 10]], $this->searched);
+		$this->assertSame([], $photos->sidecars($this->user(), []));
+		$this->assertSame(0, $this->singleLookups);
 	}
 
 	public function testAnswersNoPhotosForNoFileIds(): void {

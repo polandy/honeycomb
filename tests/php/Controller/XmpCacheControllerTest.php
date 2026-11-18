@@ -16,6 +16,7 @@ use OCA\Honeycomb\Service\UserPhotos;
 use OCA\Honeycomb\Service\VisualHash;
 use OCA\Honeycomb\Service\XmpCacheRow;
 use OCA\Honeycomb\Service\XmpCacheService;
+use OCA\Honeycomb\Tests\Service\FakeFileIdSearch;
 use OCA\Honeycomb\Tests\Service\FakeFiles;
 use OCA\Honeycomb\Tests\Service\FakeTagStore;
 use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
@@ -37,6 +38,7 @@ use ReflectionMethod;
 
 final class XmpCacheControllerTest extends TestCase {
 	use FakeFiles;
+	use FakeFileIdSearch;
 
 	private FakeXmpCacheStore $store;
 	private FakeVisualHashStore $visualHashes;
@@ -51,7 +53,8 @@ final class XmpCacheControllerTest extends TestCase {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $this->user() : null);
 		$userFolder = $this->folder('');
-		$userFolder->method('getFirstNodeById')->willReturnCallback(fn (int $id): ?Node => $id === 9 ? $this->file(9, '/P/A.XMP', 'application/octet-stream') : null);
+		$find = fn (int $id): ?Node => $id === 9 ? $this->file(9, '/P/A.XMP', 'application/octet-stream') : null;
+		$userFolder->method('search')->willReturnCallback(self::fileIdSearch($find));
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
 		$service = new XmpCacheService($this->store, new FakeTagStore(), new UserPhotos(new UserFolderResolver($root)));

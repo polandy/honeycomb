@@ -19,6 +19,7 @@ use PHPUnit\Framework\TestCase;
 
 final class VisualHashServiceTest extends TestCase {
 	use FakeFiles;
+	use FakeFileIdSearch;
 
 	private const string HASH = '00ff00ff00ff00ff';
 
@@ -36,7 +37,8 @@ final class VisualHashServiceTest extends TestCase {
 			$byId[$node->getId()] = $node;
 		}
 		$userFolder = $this->folder('');
-		$userFolder->method('getFirstNodeById')->willReturnCallback(static fn (int $id): ?Node => $byId[$id] ?? null);
+		$find = static fn (int $id): ?Node => $byId[$id] ?? null;
+		$userFolder->method('search')->willReturnCallback(self::fileIdSearch($find));
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
 		return new VisualHashService($this->store, new UserPhotos(new UserFolderResolver($root)));

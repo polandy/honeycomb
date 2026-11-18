@@ -13,12 +13,14 @@ use OCA\Honeycomb\Controller\SeriesController;
 use OCA\Honeycomb\Service\SeriesService;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
+use OCA\Honeycomb\Tests\Service\FakeFileIdSearch;
 use OCA\Honeycomb\Tests\Service\FakeFiles;
 use OCA\Honeycomb\Tests\Service\FakeSeriesStore;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -28,6 +30,7 @@ use ReflectionMethod;
 
 final class SeriesControllerTest extends TestCase {
 	use FakeFiles;
+	use FakeFileIdSearch;
 
 	private FakeSeriesStore $store;
 
@@ -40,7 +43,8 @@ final class SeriesControllerTest extends TestCase {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $this->user() : null);
 		$userFolder = $this->folder('');
-		$userFolder->method('getFirstNodeById')->willReturnCallback(fn (int $id) => $this->file($id, "/P/IMG_$id.JPG"));
+		$find = fn (int $id): File => $this->file($id, "/P/IMG_$id.JPG");
+		$userFolder->method('search')->willReturnCallback(self::fileIdSearch($find));
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturn($userFolder);
 		$service = new SeriesService($this->store, new UserPhotos(new UserFolderResolver($root)));

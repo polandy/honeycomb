@@ -1497,3 +1497,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   reshares, not only valid ones) and asks for an access list only of a folder that carries one,
   not shared above; the exact `getAccessList` answer stays the judge, so the shared flag is
   unchanged (LISTING-001.17, #187).
+- 2026-11-18: A save looks its file ids up through `Folder::search()` on the user's folder with
+  `fileid IN (...)`, 1,000 ids per search, over two small app classes implementing the OCP search
+  interfaces, instead of reading the file cache and mounts directly; the single-file checks keep
+  `getFirstNodeById()` (ADR 0038, #187).

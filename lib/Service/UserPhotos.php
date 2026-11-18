@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\IUser;
@@ -30,14 +31,8 @@ final class UserPhotos {
 		if ($etags === []) {
 			return [];
 		}
-		$userFolder = $this->userFolder($user);
-		$current = [];
-		foreach ($etags as $fileId => $etag) {
-			if ($this->photo($userFolder, $fileId)?->getEtag() === $etag) {
-				$current[] = $fileId;
-			}
-		}
-		return $current;
+		$photos = $this->filesOf($user, array_keys($etags), ListingService::isPhoto(...));
+		return array_values(array_filter(array_keys($etags), static fn (int $fileId): bool => ($photos[$fileId] ?? null)?->getEtag() === $etags[$fileId]));
 	}
 
 	/**
@@ -46,11 +41,25 @@ final class UserPhotos {
 	 * @return list<int>
 	 */
 	public function photos(IUser $user, array $fileIds): array {
-		if ($fileIds === []) {
-			return [];
-		}
-		$userFolder = $this->userFolder($user);
-		return array_values(array_filter($fileIds, fn (int $fileId): bool => $this->photo($userFolder, $fileId) !== null));
+		return $this->reached($user, $fileIds, ListingService::isPhoto(...));
+	}
+
+	/**
+	 * The file ids the user reaches as an XMP sidecar, in the given order.
+	 * @param list<int> $fileIds
+	 * @return list<int>
+	 */
+	public function sidecars(IUser $user, array $fileIds): array {
+		return $this->reached($user, $fileIds, ListingService::isSidecar(...));
+	}
+
+	/**
+	 * The file ids the user reaches as a JPEG, in the given order.
+	 * @param list<int> $fileIds
+	 * @return list<int>
+	 */
+	public function jpegs(IUser $user, array $fileIds): array {
+		return $this->reached($user, $fileIds, self::isJpeg(...));
 	}
 
 	/** The user's folder, to look up many file ids in one request. */
@@ -65,8 +74,7 @@ final class UserPhotos {
 
 	/** The JPEG with `$fileId` in `$userFolder`, or null for a missing, foreign, folder or other id. */
 	public function jpeg(Folder $userFolder, int $fileId): ?File {
-		$photo = $this->photo($userFolder, $fileId);
-		return $photo?->getMimetype() === self::JPEG_MIME ? $photo : null;
+		return self::fileOf($userFolder, $fileId, self::isJpeg(...));
 	}
 
 	/** The XMP sidecar with `$fileId` in `$userFolder`, or null for a missing, foreign, folder or other id. */
@@ -77,6 +85,42 @@ final class UserPhotos {
 	/** The photo or sidecar with `$fileId` in `$userFolder`, or null for a missing, foreign, folder or other id. */
 	public function listed(Folder $userFolder, int $fileId): ?File {
 		return self::fileOf($userFolder, $fileId, ListingService::isListedType(...));
+	}
+
+	/**
+	 * @param list<int> $fileIds
+	 * @param \Closure(File): bool $isType
+	 * @return list<int>
+	 */
+	private function reached(IUser $user, array $fileIds, \Closure $isType): array {
+		$files = $this->filesOf($user, $fileIds, $isType);
+		return array_values(array_filter($fileIds, static fn (int $fileId): bool => isset($files[$fileId])));
+	}
+
+	/**
+	 * The files of `$isType` among `$fileIds` the user reaches, by file id, searched 1,000 ids at a time (ADR 0038).
+	 * @param list<int> $fileIds
+	 * @param \Closure(File): bool $isType
+	 * @return array<int, File>
+	 */
+	private function filesOf(IUser $user, array $fileIds, \Closure $isType): array {
+		if ($fileIds === []) {
+			return [];
+		}
+		$userFolder = $this->userFolder($user);
+		$files = [];
+		foreach (array_chunk($fileIds, IQueryBuilder::MAX_IN_PARAMETERS) as $chunk) {
+			foreach ($userFolder->search(new FileIdSearch($user, $chunk)) as $node) {
+				if ($node instanceof File && !isset($files[$node->getId()]) && $isType($node)) {
+					$files[$node->getId()] = $node;
+				}
+			}
+		}
+		return $files;
+	}
+
+	private static function isJpeg(File $file): bool {
+		return ListingService::isPhoto($file) && $file->getMimetype() === self::JPEG_MIME;
 	}
 
 	/** @param \Closure(File): bool $isType */

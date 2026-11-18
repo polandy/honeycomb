@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-use OCP\Files\Folder;
 use OCP\IUser;
 
 /** Looks up and stores the user's XMP cache, each row only for a file the user reaches as its kind (ADR 0032). */
@@ -45,8 +44,7 @@ final class XmpCacheService {
 		if ($rows === []) {
 			return [];
 		}
-		$userFolder = $this->photos->userFolder($user);
-		$reached = array_values(array_filter($rows, fn (XmpCacheRow $row): bool => $this->reaches($userFolder, $row)));
+		$reached = $this->reached($user, $rows);
 		if ($reached !== []) {
 			RetryOnConflict::run(fn () => $this->store->replace($user->getUID(), $reached));
 			RetryOnConflict::run(fn () => $this->tags->addToTagList($user->getUID(), array_merge(...array_map(static fn (XmpCacheRow $row): array => $row->tags ?? [], $reached))));
@@ -54,11 +52,14 @@ final class XmpCacheService {
 		return array_map(static fn (XmpCacheRow $row): int => $row->fileId, $reached);
 	}
 
-	/** A sidecar row needs a sidecar, an embedded row a JPEG. */
-	private function reaches(Folder $userFolder, XmpCacheRow $row): bool {
-		return match ($row->kind) {
-			XmpSource::Sidecar => $this->photos->sidecar($userFolder, $row->fileId) !== null,
-			XmpSource::Embedded => $this->photos->jpeg($userFolder, $row->fileId) !== null,
-		};
+	/**
+	 * The rows the user reaches as their kind, in request order: a sidecar row needs a sidecar, an embedded row a JPEG.
+	 * @param list<XmpCacheRow> $rows
+	 * @return list<XmpCacheRow>
+	 */
+	private function reached(IUser $user, array $rows): array {
+		$idsOf = static fn (XmpSource $kind): array => array_map(static fn (XmpCacheRow $row): int => $row->fileId, array_values(array_filter($rows, static fn (XmpCacheRow $row): bool => $row->kind === $kind)));
+		$reached = array_flip([...$this->photos->sidecars($user, $idsOf(XmpSource::Sidecar)), ...$this->photos->jpegs($user, $idsOf(XmpSource::Embedded))]);
+		return array_values(array_filter($rows, static fn (XmpCacheRow $row): bool => isset($reached[$row->fileId])));
 	}
 }
