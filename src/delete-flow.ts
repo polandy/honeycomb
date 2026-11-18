@@ -19,15 +19,15 @@ import { rejectedPictures } from './logic/delete-summary.ts'
 import { rawBatch, rawRemoval } from './logic/raw-removal.ts'
 import { sendInChunks } from './logic/request-chunks.ts'
 import { followReplaced, mergeReports, permanentBatch, retryBatch, trashReport, trashRequest, unkeptFiles, wholePictures } from './logic/trash-report.ts'
-import { deletedPermanentlyText, deletedText, removedRawsText, skippedText } from './trash-text.ts'
+import { deletedPermanentlyText, deletedText, removedRawsText, skippedText, uncheckedText } from './trash-text.ts'
 
 type Pictures = readonly Picture<ListingEntry>[]
 
 /** The fresh pictures a delete by decision may send, and those it skips. */
 export type FreshCheck = FreshCheckResult
 
-/** What a delete sends, once the waiting sidecars are written, and the pictures it skipped. */
-type Plan = () => Promise<{ readonly batch: TrashBatch, readonly skipped: readonly SkippedPicture[] }>
+/** What a delete sends, once the waiting sidecars are written, the pictures it skipped and how many it sends unchecked. */
+type Plan = () => Promise<{ readonly batch: TrashBatch, readonly skipped: readonly SkippedPicture[], readonly unchecked: number }>
 
 /** The toast's words for what a delete did. */
 type Done = (report: TrashReport) => string
@@ -118,14 +118,14 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 
 	/** The batch as it stands, nothing skipped. */
 	function planned(batch: TrashBatch): Plan {
-		return async () => ({ batch, skipped: [] })
+		return async () => ({ batch, skipped: [], unchecked: 0 })
 	}
 
-	/** The batch of the pictures that pass the fresh check of the flow, and those skipped. */
+	/** The batch of the pictures that pass the fresh check of the flow, with those it could not check as honeycomb saved them, and those skipped. */
 	function checked(pictures: Pictures, flow: DecisionFlow, toBatch: (passed: Pictures) => TrashBatch): Plan {
 		return async () => {
-			const { passed, skipped } = await context.check(pictures, flow)
-			return { batch: toBatch(passed), skipped }
+			const { passed, skipped, unchecked } = await context.check(pictures, flow)
+			return { batch: toBatch([...passed, ...unchecked.map(context.current)]), skipped, unchecked: unchecked.length }
 		}
 	}
 
@@ -155,7 +155,8 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 		busy.value = true
 		try {
 			await context.flush()
-			const { batch, skipped } = await plan()
+			const { batch, skipped, unchecked } = await plan()
+			const told: Done = unchecked > 0 ? (report) => `${done(report)} · ${uncheckedText(unchecked)}` : done
 			const permanent = new Set(first === null ? [] : unkeptFiles(first).map(({ file }) => file.entry.fileId))
 			const onProgress = (count: number) => (progress.value = { done: count, total: batch.length })
 			const sent = batch.length === 0 ? { answers: [], failure: null } : await sendInChunks(trashRequest(batch, permanent), context.trash, onProgress, context.chunks)
@@ -170,9 +171,9 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 			const report = first === null ? answered : mergeReports(first, answered)
 			const unkept = first === null ? unkeptFiles(report) : []
 			if (unkept.length > 0) {
-				dialog.value = { kind: 'permanent', files: unkept, report, skipped, done }
+				dialog.value = { kind: 'permanent', files: unkept, report, skipped, done: told }
 			} else {
-				finish(report, skipped, done, batch.length > 0)
+				finish(report, skipped, told, batch.length > 0)
 			}
 		} catch (error) {
 			logger.error('Could not move the files to the trash bin', { error })
@@ -193,10 +194,10 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 		}
 		const open = dialog.value
 		if (open?.kind === 'permanent') {
-			return send(async () => ({ batch: permanentBatch(open.report), skipped: open.skipped }), open.done, open.report)
+			return send(async () => ({ batch: permanentBatch(open.report), skipped: open.skipped, unchecked: 0 }), open.done, open.report)
 		}
 		if (open?.kind === 'summary') {
-			const plan = open.fromReview ? checked(open.pictures, 'rejects', wholePictures) : async () => ({ batch: wholePictures(open.pictures.map(context.current)), skipped: [] })
+			const plan = open.fromReview ? checked(open.pictures, 'rejects', wholePictures) : async () => ({ batch: wholePictures(open.pictures.map(context.current)), skipped: [], unchecked: 0 })
 			return send(plan, (report) => deletedText(report, false))
 		}
 		const removed = removal.value?.removed

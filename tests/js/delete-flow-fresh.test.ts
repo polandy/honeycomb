@@ -6,7 +6,7 @@ import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 
 import { describe, expect, it } from 'vitest'
-import { skipReason } from '../../src/trash-text.ts'
+import { skipReason, uncheckedText } from '../../src/trash-text.ts'
 import { allTrashed, flow, OTHER, PAIR } from './delete-fixtures.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 
@@ -20,7 +20,7 @@ describe('useDeleteFlow, deleting by decision', () => {
 		const check = async (pictures: readonly Picture<ListingEntry>[], decisionFlow: string): Promise<FreshCheck> => {
 			steps.push('check')
 			checked.push([pictures, decisionFlow])
-			return { passed: [FRESH_PAIR], skipped: [{ picture: OTHER!, reason: 'notRejected' }] }
+			return { passed: [FRESH_PAIR], skipped: [{ picture: OTHER!, reason: 'notRejected' }], unchecked: [] }
 		}
 		const { deleting, sent, pictures, toasts } = flow(allTrashed, undefined, async () => {
 			steps.push('flush')
@@ -39,7 +39,7 @@ describe('useDeleteFlow, deleting by decision', () => {
 
 	// spec: DELETE-002.16
 	it('sends nothing when every picture is skipped, and reports them', async () => {
-		const check = async (pictures: readonly Picture<ListingEntry>[]): Promise<FreshCheck> => ({ passed: [], skipped: pictures.map((picture) => ({ picture, reason: 'disagrees' })) })
+		const check = async (pictures: readonly Picture<ListingEntry>[]): Promise<FreshCheck> => ({ passed: [], skipped: pictures.map((picture) => ({ picture, reason: 'disagrees' })), unchecked: [] })
 		const { deleting, sent, pictures, toasts } = flow(allTrashed, undefined, undefined, check)
 
 		deleting.continueToSummary()
@@ -56,7 +56,7 @@ describe('useDeleteFlow, deleting by decision', () => {
 		const checked: unknown[] = []
 		const { deleting, sent } = flow(allTrashed, undefined, undefined, async (pictures) => {
 			checked.push(pictures)
-			return { passed: [], skipped: [] }
+			return { passed: [], skipped: [], unchecked: [] }
 		})
 
 		deleting.summarise([PAIR!])
@@ -71,7 +71,7 @@ describe('useDeleteFlow, deleting by decision', () => {
 		const checked: unknown[] = []
 		const { deleting, sent, pictures } = flow(allTrashed, undefined, undefined, async (chosen, decisionFlow) => {
 			checked.push([chosen, decisionFlow])
-			return { passed: [], skipped: [{ picture: chosen[0]!, reason: 'jpegSidecar' }] }
+			return { passed: [], skipped: [{ picture: chosen[0]!, reason: 'jpegSidecar' }], unchecked: [] }
 		})
 		pictures.value = [FRESH_PAIR]
 
@@ -81,6 +81,33 @@ describe('useDeleteFlow, deleting by decision', () => {
 		expect(checked).toEqual([[[FRESH_PAIR], 'raws']])
 		expect(sent).toEqual([])
 		expect(deleting.dialog.value).toMatchObject({ kind: 'report', skipped: [{ picture: FRESH_PAIR, reason: 'jpegSidecar' }] })
+	})
+
+	// spec: DELETE-002.23
+	it('sends the pictures it could not check afresh as honeycomb saved them, so the server still holds a changed file, and says so', async () => {
+		const saved = pictureOf(PAIR!.raw!, { ...PAIR!.rendered!, etag: 'saved-2' })
+		const check = async (): Promise<FreshCheck> => ({ passed: [], skipped: [{ picture: OTHER!, reason: 'notRejected' }], unchecked: [PAIR!] })
+		const answer = async () => [[{ fileId: 2, result: 'changed' }, { fileId: 1, result: 'skipped' }]]
+		const { deleting, sent, toasts } = flow(answer, undefined, undefined, check, (picture) => (picture === PAIR ? saved : picture))
+
+		deleting.continueToSummary()
+		await deleting.confirm()
+
+		expect(sent).toEqual([[[{ fileId: 2, etag: 'saved-2' }, { fileId: 1, etag: 'etag-1' }]]])
+		expect(deleting.dialog.value).toMatchObject({ kind: 'report', report: { failed: [{ result: 'changed' }, { result: 'skipped' }] } })
+		expect(toasts).toEqual(['Moved 0 files to trash · 2 failed · Fresh check not possible for 1 photo · 1 photo skipped'])
+	})
+
+	// spec: DELETE-003.10
+	it('removes the RAWs it could not check afresh as honeycomb knows them, and says so', async () => {
+		const { deleting, sent, toasts, pictures } = flow(allTrashed, undefined, undefined, async (chosen) => ({ passed: [], skipped: [], unchecked: chosen }))
+		pictures.value = [FRESH_PAIR]
+
+		deleting.removeRaws()
+		await deleting.confirm()
+
+		expect(sent).toEqual([[[{ fileId: 1, etag: 'etag-1' }, { fileId: 3, etag: 'etag-3' }]]])
+		expect(toasts).toEqual([expect.stringMatching(/^Removed the RAWs of 1 photo .* · Fresh check not possible for 1 photo$/)])
 	})
 
 	// spec: DELETE-002.15
@@ -108,5 +135,13 @@ describe('skipReason', () => {
 		['jpegSidecar', 'The JPEG sidecar could not be written, so the RAW stays'],
 	] as const)('words %s', (reason, text) => {
 		expect(skipReason(reason)).toBe(text)
+	})
+})
+
+// spec: DELETE-002.23
+describe('uncheckedText', () => {
+	it('counts the photos not checked afresh', () => {
+		expect(uncheckedText(1)).toBe('Fresh check not possible for 1 photo')
+		expect(uncheckedText(3)).toBe('Fresh check not possible for 3 photos')
 	})
 })

@@ -93,6 +93,11 @@ export function skippedText(count: number): string {
 	return n('honeycomb', '{count} photo skipped', '{count} photos skipped', count, { count: formatNumber(count) }, PLAIN_TEXT)
 }
 
+/** "Fresh check not possible for %n photo", the toast's part on the photos a delete by decision sent unchecked (DELETE-002.23). */
+export function uncheckedText(count: number): string {
+	return n('honeycomb', 'Fresh check not possible for {count} photo', 'Fresh check not possible for {count} photos', count, { count: formatNumber(count) }, PLAIN_TEXT)
+}
+
 /** Why a delete by decision skipped a photo, in the user's words (DELETE-002.16). */
 export function skipReason(reason: SkipReason): string {
 	switch (reason) {
