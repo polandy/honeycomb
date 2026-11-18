@@ -1493,3 +1493,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-18: The NcModal focus trap error for a dialog taken away while it opens (`fallbackFocus`
   was not a node) is logged at debug in the app's error handler, not fixed by patching or wrapping
   `NcModal`; one branch and one test to drop once `@nextcloud/vue` fixes it (APP-001.12, #187).
+- 2026-11-18: A listing reads the user's shares once (`IManager::getSharesBy` per share type, with
+  reshares, not only valid ones) and asks for an access list only of a folder that carries one,
+  not shared above; the exact `getAccessList` answer stays the judge, so the shared flag is
+  unchanged (LISTING-001.17, #187).

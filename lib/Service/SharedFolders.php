@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-use OCP\Files\Config\ICachedMountInfo;
 use OCP\Files\Config\IUserMountCache;
 use OCP\Files\Folder;
 use OCP\IUser;
@@ -21,26 +20,8 @@ final class SharedFolders {
 	) {
 	}
 
-	public function isShared(IUser $user, Folder $folder): bool {
-		$mount = $folder->getMountPoint();
-		return match ($mount->getMountType()) {
-			'group', 'shared' => true,
-			'external' => $this->isMountedForOthers($user, (int)$mount->getNumericStorageId()) || $this->hasShares($user, $folder),
-			default => $this->hasShares($user, $folder),
-		};
-	}
-
-	private function hasShares(IUser $user, Folder $folder): bool {
-		$access = $this->shareManager->getAccessList($folder, true, false);
-		$others = array_diff($access['users'] ?? [], [$user->getUID()]);
-		return $others !== []
-			|| ($access['remote'] ?? false) === true
-			|| ($access['public'] ?? false) === true
-			|| ($access['mail'] ?? []) !== [];
-	}
-
-	private function isMountedForOthers(IUser $user, int $storageId): bool {
-		$users = array_map(fn (ICachedMountInfo $mount): string => $mount->getUser()->getUID(), $this->mountCache->getMountsForStorageId($storageId));
-		return array_diff($users, [$user->getUID()]) !== [];
+	/** A lookup for one listing of the user's files, which reads the user's shares at most once. */
+	public function lookup(IUser $user, Folder $userFolder): SharedFolderLookup {
+		return new SharedFolderLookup($user, $userFolder->getPath(), $this->shareManager, $this->mountCache);
 	}
 }

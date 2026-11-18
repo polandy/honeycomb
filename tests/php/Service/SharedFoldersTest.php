@@ -50,7 +50,10 @@ final class SharedFoldersTest extends TestCase {
 	}
 
 	// spec: LISTING-001.12
-	/** @param list<string> $mountedFor */
+	/**
+	 * @param array<string, mixed> $accessList
+	 * @param list<string> $mountedFor
+	 */
 	#[DataProvider('accessLists')]
 	public function testAFolderIsSharedWhenAnotherUserHasAccess(array $accessList, string $mountType, array $mountedFor, bool $shared): void {
 		$this->accessLists = $accessList === [] ? [] : [10 => $accessList];

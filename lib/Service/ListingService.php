@@ -48,6 +48,7 @@ final class ListingService {
 
 	/** @param iterable<Node> $nodes */
 	private function collect(IUser $user, Folder $userFolder, Folder $folder, iterable $nodes): Listing {
+		$shares = $this->sharedFolders->lookup($user, $userFolder);
 		$entries = [];
 		$batch = [];
 		$folders = [];
@@ -59,7 +60,7 @@ final class ListingService {
 				return new Listing([...$entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch)], true, array_values($folders), $folder->getId());
 			}
 			$batch[] = $node;
-			$folders[dirname($node->getPath())] ??= $this->folderOf($user, $userFolder, $node);
+			$folders[dirname($node->getPath())] ??= $this->folderOf($shares, $userFolder, $node);
 			if (count($batch) === self::METADATA_BATCH) {
 				array_push($entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch));
 				$batch = [];
@@ -69,10 +70,10 @@ final class ListingService {
 	}
 
 	/** @return array{path: string, shared: bool, permissions: int, versions: bool} */
-	private function folderOf(IUser $user, Folder $userFolder, File $node): array {
+	private function folderOf(SharedFolderLookup $shares, Folder $userFolder, File $node): array {
 		$path = $userFolder->getRelativePath(dirname($node->getPath())) ?? '/';
 		$parent = $node->getParent();
-		return ['path' => $path, 'shared' => $this->sharedFolders->isShared($user, $parent), 'permissions' => $parent->getPermissions(), 'versions' => $this->versions->keeps($parent)];
+		return ['path' => $path, 'shared' => $shares->isShared($parent), 'permissions' => $parent->getPermissions(), 'versions' => $this->versions->keeps($parent)];
 	}
 
 	/** @psalm-assert-if-true File $node */
