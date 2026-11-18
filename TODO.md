@@ -13,7 +13,6 @@ Add items with `/todo`.
 
 ## Later
 
-- [ ] Opening the series compare logs "Unhandled error in the honeycomb UI: `fallbackFocus` was specified but was not a node" from the dialog's focus trap, from the toolbar, the `n` key and a grid series badge alike; find the cause and add an e2e check for no console error (2026-11-17)
 - [ ] Redraw `docs/dev/mockup/index.html` and `docs/dev/plan.md` item 2 (app bar) for the flag filter chips that replaced the scope control (GRID-002; owner sign-off on the look) (2026-11-11)
 - [ ] Measure the image budgets of `docs/dev/plan.md` Image delivery with real 24 MP RAW+JPEG pairs (IMAGES-001.12), incl. the loupe's 4096 px tier and the six image loads in flight (GRID-001.15) — needs the owner's files (2026-11-10)
 - [ ] Add a `main` ruleset (pull requests only, CI required), with a bypass for `nextcloud-bot` if issue #17 says so, and the `RELEASE_PLEASE_TOKEN` secret — owner (2026-11-09)
