@@ -48,6 +48,7 @@ final class TrashService {
 	 */
 	private function trashPicture(IUser $user, Folder $userFolder, array $picture): array {
 		$checked = array_map(fn (array $file): array|TrashResult => $this->check($user, $userFolder, $file), $picture);
+		/** @var array<int, array{File, TrashResult}> $files */
 		$files = array_filter($checked, is_array(...));
 		$results = count($files) === count($checked)
 			? $this->trashInOrder($files)

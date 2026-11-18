@@ -188,7 +188,7 @@ final class TrashServiceTest extends TestCase {
 		$this->assertSame([1, 2, 3, 4], $this->trashed);
 	}
 
-	/** @return array<string, array{array<int, Node|null>, list<array<string, mixed>>, list<string>}> */
+	/** @return array<string, array{array<int, Node>, list<array<string, mixed>>, list<string>}> */
 	public function permanentCheckFailures(): array {
 		$large = static fn (self $test, int $id, bool $deletable = true): File => $test->file($id, "IMG_000$id.JPG", deletable: $deletable, size: 1000);
 		return [
