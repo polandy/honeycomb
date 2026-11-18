@@ -139,7 +139,7 @@ describe('useDeleteFlow, deleting by decision', () => {
 		await deleting.confirm()
 
 		expect(sent).toEqual([[[{ fileId: 1, etag: 'etag-1' }, { fileId: 3, etag: 'etag-3' }]]])
-		expect(toasts).toEqual([expect.stringMatching(/^Removed the RAWs of 1 photo [^·]*$/)])
+		expect(toasts).toEqual(['Removed the RAWs of 1 photo · 2 files · 2.1 kB freed to the Nextcloud trash bin'])
 	})
 
 	// spec: DELETE-002.15

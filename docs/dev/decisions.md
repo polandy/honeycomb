@@ -1505,3 +1505,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   *Rejected*; icon and label, icon only below 520 px and in the app bar) in place of the scope
   control; the default is Picked and Unflagged pressed (GRID-002). Easy to redo: one render
   function and its CSS.
+- 2026-11-18: A failed fresh check asks *Fresh check not possible for N photos* with *Delete anyway*
+  and *Cancel* (focused) before anything is sent, instead of a toast after (owner, DELETE-002.25).
+  *Cancel* closes the question without going back to the summary, and sends none of the batch.
+  Easy to redo: one dialog kind in `delete-flow.ts`.
