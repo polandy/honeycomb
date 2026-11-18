@@ -58,6 +58,15 @@ const ENTRY_TEXT: { readonly [E in SelectionEdit]: (offer: SeriesOffer<unknown>,
 				: n('honeycomb', 'Their whole series and {count} loose photo', 'Their whole series and {count} loose photos', loose.length, { count: counted(loose.length) }, PLAIN_TEXT),
 		}
 	},
+	done: ({ touched }, blocked) => {
+		const name = t('honeycomb', 'Series done')
+		if (blocked !== null) {
+			return { name, description: blocked === 'noSeries' ? t('honeycomb', 'Select a photo of the series') : t('honeycomb', 'Select photos of one series only') }
+		}
+		return touched[0]!.stored?.status === 'done'
+			? { name: t('honeycomb', 'Reopen series'), description: t('honeycomb', 'Its unflagged photos count as undecided again') }
+			: { name, description: t('honeycomb', 'Its unflagged photos count as decided') }
+	},
 	remove: ({ inSeries }, blocked) => (blocked !== null
 		? { name: t('honeycomb', 'Remove from their series'), description: t('honeycomb', 'None of them is in a series') }
 		: {

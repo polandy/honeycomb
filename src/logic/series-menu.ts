@@ -9,15 +9,20 @@ import type { StoredRows } from './stored-series.ts'
 import { joinChange, newSeriesChange, removeChange } from './series-edit.ts'
 
 /** The edits of the grid's *Series…* menu (SERIES-005). */
-export type SelectionEdit = 'new' | 'add' | 'merge' | 'remove'
+export type SelectionEdit = 'new' | 'add' | 'merge' | 'remove' | 'done'
+
+/** The edits that change the photos' places, as against the one that marks a series. */
+export type PlacingEdit = Exclude<SelectionEdit, 'done'>
 
 /** Why an entry of the menu does not fit the selection. */
-export type EntryBlock = 'tooFew' | 'noSeries' | 'noLoose' | 'noneInSeries'
+export type EntryBlock = 'tooFew' | 'noSeries' | 'noLoose' | 'noneInSeries' | 'manySeries'
 
 /** One entry of the menu, and why it is disabled, if it is. */
 export interface MenuEntry {
 	readonly edit: SelectionEdit
 	readonly blocked: EntryBlock | null
+	/** Only *done*: the one series is done, so the entry reopens it. */
+	readonly pressed?: boolean
 }
 
 /** The selection as the menu sees it: the series it touches, its photos in them and its loose photos. */
@@ -45,11 +50,12 @@ export function menuEntries<P>({ selected, touched, inSeries, loose }: SeriesOff
 		? { edit: 'merge', blocked: null }
 		: { edit: 'add', blocked: touched.length === 0 ? 'noSeries' : loose.length === 0 ? 'noLoose' : null }
 	const removed: MenuEntry = { edit: 'remove', blocked: inSeries.length === 0 ? 'noneInSeries' : null }
-	return touched.length === 0 ? [made, joined, removed] : [joined, made, removed]
+	const marked: MenuEntry = { edit: 'done', blocked: touched.length === 0 ? 'noSeries' : touched.length > 1 ? 'manySeries' : null, pressed: touched.length === 1 && touched[0]!.stored?.status === 'done' }
+	return touched.length === 0 ? [made, joined, removed, marked] : [joined, made, removed, marked]
 }
 
 /** What an edit of the selection writes, the photos its toast names and how many series it touched. */
-export function selectionChange(edit: SelectionEdit, offer: SeriesOffer<Picture<ListingEntry>>, rows: StoredRows, newId: NewSeriesId): { pictures: readonly Picture<ListingEntry>[], change: SeriesChange, series: number } {
+export function selectionChange(edit: PlacingEdit, offer: SeriesOffer<Picture<ListingEntry>>, rows: StoredRows, newId: NewSeriesId): { pictures: readonly Picture<ListingEntry>[], change: SeriesChange, series: number } {
 	const { selected, touched, inSeries, loose } = offer
 	const series = touched.length
 	switch (edit) {

@@ -13,6 +13,7 @@ import { computed } from 'vue'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActionCaption from '@nextcloud/vue/components/NcActionCaption'
 import NcActions from '@nextcloud/vue/components/NcActions'
+import NcActionSeparator from '@nextcloud/vue/components/NcActionSeparator'
 import ActionIcon from './ActionIcon.vue'
 import AppIcon from './AppIcon.vue'
 import { menuEntries } from '../logic/series-menu.ts'
@@ -26,7 +27,7 @@ const props = defineProps<{
 const emit = defineEmits<{ edit: [edit: SelectionEdit] }>()
 
 /** The icon of each edit, as the mockup draws it. */
-const ICONS: { readonly [E in SelectionEdit]: IconName } = { new: 'plus', add: 'merge', merge: 'merge', remove: 'minus' }
+const ICONS: { readonly [E in SelectionEdit]: IconName } = { new: 'plus', add: 'merge', merge: 'merge', remove: 'minus', done: 'check' }
 
 const entries = computed(() => menuEntries(props.offer).map((entry) => ({ ...entry, ...entryText(entry, props.offer) })))
 </script>
@@ -42,17 +43,18 @@ const entries = computed(() => menuEntries(props.offer).map((entry) => ({ ...ent
 			<AppIcon name="series" />
 		</template>
 		<NcActionCaption :name="seriesCaption(props.offer)" />
-		<NcActionButton
-			v-for="entry in entries"
-			:key="entry.edit"
-			closeAfterClick
-			:disabled="entry.blocked !== null"
-			:description="entry.description"
-			@click="emit('edit', entry.edit)">
-			<template #icon>
-				<ActionIcon :name="ICONS[entry.edit]" />
-			</template>
-			{{ entry.name }}
-		</NcActionButton>
+		<template v-for="entry in entries" :key="entry.edit">
+			<NcActionSeparator v-if="entry.edit === 'done'" />
+			<NcActionButton
+				closeAfterClick
+				:disabled="entry.blocked !== null"
+				:description="entry.description"
+				@click="emit('edit', entry.edit)">
+				<template #icon>
+					<ActionIcon :name="ICONS[entry.edit]" />
+				</template>
+				{{ entry.name }}
+			</NcActionButton>
+		</template>
 	</NcActions>
 </template>

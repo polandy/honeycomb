@@ -75,7 +75,8 @@ opens the series of the shown photo.
   photos stay unflagged but count as decided, and the series leaves the compare. Choose
   *Series done* again, from the loupe's series chip, to reopen it.
 - The same ⋯ menu merges a series with the next or previous one or dissolves it. In the grid,
-  **Series…** in the action bar corrects series by hand.
+  **Series…** in the action bar corrects series by hand; select photos of one series and choose
+  *Series done* there, or *Reopen series* when it is done.
 
 ## 6. Delete the rejects
 

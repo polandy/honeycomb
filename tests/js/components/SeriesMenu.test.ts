@@ -48,6 +48,7 @@ describe('SeriesMenu', () => {
 			['New series from 1 photo Select two photos or more', true],
 			['Add to a series Select a photo of the series too', true],
 			['Remove from their series None of them is in a series', true],
+			['Series done Select a photo of the series', true],
 		])
 	})
 
@@ -60,6 +61,7 @@ describe('SeriesMenu', () => {
 			['Add 1 photo to series ⧉ 3 It stays in the series from now on', false],
 			['New series from 2 photos Takes it out of its series', false],
 			['Remove 1 photo from its series It is never grouped again automatically', false],
+			['Series done Its unflagged photos count as decided', false],
 		])
 		expect(mountMenu([A, B]).entries()[0]).toEqual(['Add to series ⧉ 3 Select photos outside the series too', true])
 	})
@@ -74,12 +76,26 @@ describe('SeriesMenu', () => {
 		expect(mountMenu([A, B, D]).entries()[1]).toEqual(['New series from 3 photos Takes them out of their series', false])
 	})
 
+	// spec: SERIES-005.28, SERIES-005.29
+	it('offers series done for one series, reopen for a done one, and says why not', () => {
+		expect(mountMenu([A, D]).entries().at(-1)).toEqual(['Series done Select photos of one series only', true])
+		const wrapper = mount(SeriesMenu, {
+			props: { offer: seriesOffer([A], new Map([[A, { ...first, stored: { id: 7, status: 'done', elsewhere: false } }]])) },
+			global: { stubs: { NcActions: ActionsStub } },
+		})
+		const last = wrapper.findAllComponents(NcActionButton).at(-1)!
+
+		expect(plain(last.text())).toContain('Reopen series')
+		expect(last.props('disabled')).toBe(false)
+	})
+
 	// spec: SERIES-005.4, SERIES-005.7
 	it('emits the chosen edit', async () => {
 		const { wrapper, buttons } = mountMenu([A, D, F])
 
 		await buttons()[0]!.find('button').trigger('click')
 		await buttons()[2]!.find('button').trigger('click')
+		await buttons()[3]!.find('button').trigger('click')
 
 		expect(wrapper.emitted('edit')).toEqual([['merge'], ['remove']])
 	})
