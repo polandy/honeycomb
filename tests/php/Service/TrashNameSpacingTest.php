@@ -17,6 +17,7 @@ final class TrashNameSpacingTest extends TestCase {
 	/** @var array<string, int> the second each trash call ran in, by its label */
 	private array $ranAt = [];
 
+	#[\Override]
 	protected function setUp(): void {
 		$this->clock = new FakeClock();
 	}
@@ -27,11 +28,17 @@ final class TrashNameSpacingTest extends TestCase {
 		return new TrashNameSpacing($time, $this->clock);
 	}
 
-	/** A trash call that records its second under `$label` and takes `$seconds`. */
-	private function trash(string $label, int $seconds = 0): \Closure {
-		return function () use ($label, $seconds): string {
+	/**
+	 * A trash call that records its second under `$label`, takes `$seconds` and throws `$failure` if given.
+	 * @return \Closure(): string
+	 */
+	private function trash(string $label, int $seconds = 0, ?\Throwable $failure = null): \Closure {
+		return function () use ($label, $seconds, $failure): string {
 			$this->ranAt[$label] = $this->clock->now;
 			$this->clock->now += $seconds;
+			if ($failure !== null) {
+				throw $failure;
+			}
 			return $label;
 		};
 	}
@@ -66,13 +73,14 @@ final class TrashNameSpacingTest extends TestCase {
 	public function testAFailedDeleteStillKeepsTheName(): void {
 		$spacing = $this->spacing();
 
+		$failure = null;
 		try {
-			$spacing->trash('IMG_0001.JPG', static fn (): never => throw new \RuntimeException('storage'));
-			$this->fail('The failure must pass through');
+			$spacing->trash('IMG_0001.JPG', $this->trash('failed', failure: new \RuntimeException('storage')));
 		} catch (\RuntimeException $e) {
-			$this->assertSame('storage', $e->getMessage());
+			$failure = $e->getMessage();
 		}
 
+		$this->assertSame('storage', $failure);
 		$this->assertFalse($spacing->clear(['IMG_0001.JPG']));
 	}
 

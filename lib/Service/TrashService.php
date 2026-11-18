@@ -16,12 +16,13 @@ use OCP\IUser;
 use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
 
-/** Moves whole pictures into the trash bin: each checked whole, then trashed file by file (ADR 0013); a file marked permanent the trash bin would not keep is deleted for good (ADR 0036). */
+/** Moves whole pictures into the trash bin: each checked whole, then trashed file by file (ADR 0013), files of one name in different seconds (ADR 0037); a file marked permanent the trash bin would not keep is deleted for good (ADR 0036). */
 final class TrashService {
 	public function __construct(
 		private UserPhotos $photos,
 		private IAppManager $appManager,
 		private TrashBinGuard $trashBinGuard,
+		private TrashNameSpacing $spacing,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -39,21 +40,50 @@ final class TrashService {
 			throw new TrashBinDisabledException('The trash bin is disabled for the user');
 		}
 		$userFolder = $this->photos->userFolder($user);
-		return array_map(fn (array $picture): array => $this->trashPicture($user, $userFolder, $picture), $pictures);
+		$results = [];
+		while (true) {
+			foreach ($pictures as $index => $picture) {
+				$result = $this->trashPicture($user, $userFolder, $picture);
+				if ($result !== null) {
+					$results[$index] = $result;
+					unset($pictures[$index]);
+				}
+			}
+			if ($pictures === []) {
+				ksort($results);
+				return array_values($results);
+			}
+			$this->spacing->awaitNextSecond();
+		}
 	}
 
 	/**
+	 * The picture's results, or null when a file to trash shares a name with one trashed in this second.
 	 * @param non-empty-list<array{fileId: int, etag: string, permanent: bool}> $picture
-	 * @return list<array{fileId: int, result: TrashResult}>
+	 * @return list<array{fileId: int, result: TrashResult}>|null
 	 */
-	private function trashPicture(IUser $user, Folder $userFolder, array $picture): array {
+	private function trashPicture(IUser $user, Folder $userFolder, array $picture): ?array {
 		$checked = array_map(fn (array $file): array|TrashResult => $this->check($user, $userFolder, $file), $picture);
 		/** @var array<int, array{File, TrashResult}> $files */
 		$files = array_filter($checked, is_array(...));
-		$results = count($files) === count($checked)
-			? $this->trashInOrder($files)
-			: array_map(static fn (array|TrashResult $node): TrashResult => is_array($node) ? TrashResult::Skipped : $node, $checked);
+		if (count($files) !== count($checked)) {
+			$results = array_map(static fn (array|TrashResult $node): TrashResult => is_array($node) ? TrashResult::Skipped : $node, $checked);
+		} elseif ($this->spacing->clear(self::namesToTrash($files))) {
+			$results = $this->trashInOrder($files);
+		} else {
+			return null;
+		}
 		return array_map(static fn (array $file, TrashResult $result): array => ['fileId' => $file['fileId'], 'result' => $result], $picture, $results);
+	}
+
+	/**
+	 * The names of the files that go into the trash bin rather than being deleted for good.
+	 * @param array<int, array{File, TrashResult}> $files
+	 * @return list<string>
+	 */
+	private static function namesToTrash(array $files): array {
+		$toTrash = array_filter($files, static fn (array $file): bool => $file[1] === TrashResult::Trashed);
+		return array_values(array_map(static fn (array $file): string => $file[0]->getName(), $toTrash));
 	}
 
 	/**
@@ -65,7 +95,9 @@ final class TrashService {
 		$sidecars = array_filter($files, static fn (array $file): bool => ListingService::isSidecar($file[0]));
 		$results = array_fill_keys(array_keys($files), TrashResult::Skipped);
 		foreach (array_diff_key($files, $sidecars) + $sidecars as $index => [$file, $done]) {
-			$results[$index] = $this->deleteFile($file, $done);
+			$results[$index] = $done === TrashResult::Trashed
+				? $this->spacing->trash($file->getName(), fn (): TrashResult => $this->deleteFile($file, $done))
+				: $this->deleteFile($file, $done);
 			if ($results[$index] !== $done) {
 				break;
 			}

@@ -1484,3 +1484,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the ETag and size check instead of through a `.part` file: Nextcloud 35.0.3 refuses to move the
   uncached part file, and a cached temporary name would give the sidecar a new file id and lose
   the version of the replaced bytes (ADR 0017, amendment 2026-11-18). e2e's newest image is 35.0.3.
+- 2026-11-18: Files of one name in one trash request go into the trash bin in different seconds,
+  the pictures without such a clash first; a clash with another request in the same second stays
+  open (ADR 0037).

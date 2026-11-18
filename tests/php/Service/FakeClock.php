@@ -19,6 +19,7 @@ final class FakeClock implements Pause {
 	) {
 	}
 
+	#[\Override]
 	public function until(int $second): void {
 		$this->pauses[] = $second;
 		$this->now = max($this->now, $second);
