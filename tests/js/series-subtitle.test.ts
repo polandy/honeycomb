@@ -11,8 +11,10 @@ import { listingEntry, picturesOf } from './logic/listing-entries.ts'
 
 const MEMBERS = picturesOf([31, 52].map((time, index) => listingEntry(index + 1, `/P/IMG_${index}.JPG`, { captureTime: 50_000 + time }))) as Picture<ListingEntry>[]
 const SPAN = `${formatTime(50_031)}–${formatTime(50_052)}`
-const subtitle = (stored?: { readonly elsewhere: boolean }, members = MEMBERS) =>
-	seriesSubtitle({ key: 1, members, ...(stored && { stored: { id: 7, status: 'open', ...stored } }) }).replaceAll(TRANSLATED_MARK, '')
+/** The subtitle of a series of the members, stored when `stored` is given, without the catalogue's marks. */
+function subtitle(stored?: { readonly elsewhere: boolean }, members = MEMBERS): string {
+	return seriesSubtitle({ key: 1, members, ...(stored && { stored: { id: 7, status: 'open', ...stored } }) }).replaceAll(TRANSLATED_MARK, '')
+}
 
 describe('seriesSubtitle', () => {
 	beforeEach(installMarkedCatalogue)
