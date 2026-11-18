@@ -231,6 +231,11 @@ starts from that folder set and *Cancel* returns to it.
 - **Then** its count adds the photo files of all folders below it and of the mounted storage,
   hidden folders and files left out, read out as "*n* photo files with subfolders"; expanding it
   shows its own count again, and a count the file cache cannot give shows none
+- **Given** a collapsed folder whose count may miss files: one with files not scanned yet (its
+  file cache size is unknown, or a storage mounted below it is not scanned), or one on a team
+  folder with advanced permissions
+- **Then** the count starts with "~" ("~123") and is read out as "about *n* photo files with
+  subfolders"; a folder the file cache knows completely shows no "~"
 
 ### LISTING-003.21 – Exclude an included folder
 
@@ -268,4 +273,5 @@ starts from that folder set and *Cancel* returns to it.
 | 2026-11-16 | .18 the folders included by *Include subfolders* (owner, E3 A) |
 | 2026-11-16 | .1/.19 the photo files of each folder in the tree (owner, after digiKam) |
 | 2026-11-16 | .1/.20 a collapsed folder counts its subfolders too (owner, digiKam) |
+| 2026-11-17 | .20 "~" and "about" where the count may be incomplete (owner, #244) |
 | 2026-11-17 | .18 a tap excludes an included folder, .21/.22 excluded folders (owner, #187) |

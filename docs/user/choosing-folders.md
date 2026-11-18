@@ -21,7 +21,8 @@ folder, shared folders included. A folder with subfolders has an arrow before it
   and a JPEG of one shot count as two, so it can be twice the number of photos the picker shows
   once you tick the folder. Folders without photo files show no number. The count of a collapsed
   folder comes from Nextcloud's file index, so files Nextcloud has not scanned yet are missing
-  from it.
+  from it. Where the number may be incomplete, because files are not scanned yet or the folder is
+  a team folder with advanced permissions, it starts with "~" (for example "~123").
 - **Include subfolders:** the switch above the tree adds every subfolder of a ticked folder, at
   any depth. Hidden folders (starting with a dot) are always skipped and cannot be ticked. With
   the switch on, ticking a subfolder of a ticked folder changes nothing: **Recent** keeps one
