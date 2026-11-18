@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\SidecarResult;
-use OCP\Files\Folder;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\Lock\LockedException;
@@ -21,22 +20,23 @@ final class SidecarWriterTest extends TestCase {
 	use FakeSidecarFolder;
 
 	// spec: XMP-002.3
-	public function testSavesAnExistingSidecarThroughAPartFile(): void {
+	public function testSavesAnExistingSidecarInPlaceWithoutTheRightToCreateFiles(): void {
+		$this->creatable = false;
+
 		$results = $this->writer()->save($this->user(), [$this->existing('new')]);
 
-		$this->assertSame(['write IMG_0001.NEF.xmp.part', 'move IMG_0001.NEF.xmp.part'], $this->events);
-		$this->assertSame('new', $this->disk['IMG_0001.NEF.xmp']);
-		$this->assertArrayNotHasKey('IMG_0001.NEF.xmp.part', $this->disk);
-		$this->assertSame([['result' => SidecarResult::Saved, 'fileId' => 9, 'etag' => md5('new'), 'size' => 3, 'mtime' => 1_700_000_002]], $results);
+		$this->assertSame(['put IMG_0001.NEF.xmp'], $this->events);
+		$this->assertSame(['IMG_0001.NEF' => 'raw', 'IMG_0001.NEF.xmp' => 'new', 'IMG_0002.JPG' => 'jpeg'], $this->disk);
+		$this->assertSame([['result' => SidecarResult::Saved, 'fileId' => 9, 'etag' => md5('new'), 'size' => 3, 'mtime' => 1_700_000_001]], $results);
 	}
 
 	// spec: XMP-002.4
 	public function testCreatesANewSidecarBesideItsImage(): void {
 		$results = $this->writer()->save($this->user(), [$this->created('fresh')]);
 
-		$this->assertSame(['write IMG_0002.JPG.xmp.part', 'move IMG_0002.JPG.xmp.part'], $this->events);
-		$this->assertSame('fresh', $this->disk['IMG_0002.JPG.xmp']);
-		$this->assertSame([['result' => SidecarResult::Saved, 'fileId' => self::NEW_ID, 'etag' => md5('fresh'), 'size' => 5, 'mtime' => 1_700_000_002]], $results);
+		$this->assertSame(['write IMG_0002.JPG.xmp'], $this->events);
+		$this->assertSame(['IMG_0001.NEF' => 'raw', 'IMG_0001.NEF.xmp' => 'old', 'IMG_0002.JPG' => 'jpeg', 'IMG_0002.JPG.xmp' => 'fresh'], $this->disk);
+		$this->assertSame([['result' => SidecarResult::Saved, 'fileId' => self::NEW_ID, 'etag' => md5('fresh'), 'size' => 5, 'mtime' => 1_700_000_001]], $results);
 	}
 
 	// spec: XMP-002.5
@@ -49,32 +49,6 @@ final class SidecarWriterTest extends TestCase {
 		$this->assertSame([SidecarResult::Changed, SidecarResult::Changed, SidecarResult::Changed], $this->resultsOf($results));
 		$this->assertSame([], $this->events);
 		$this->assertSame('old', $this->disk['IMG_0001.NEF.xmp']);
-	}
-
-	// spec: XMP-002.5
-	public function testAnExistingSidecarChangedWhileThePartWasWrittenIsNotOverwritten(): void {
-		$this->afterWrite = function (): void {
-			$this->disk['IMG_0001.NEF.xmp'] = 'darktable';
-		};
-
-		$results = $this->writer()->save($this->user(), [$this->existing('new')]);
-
-		$this->assertSame([SidecarResult::Changed], $this->resultsOf($results));
-		$this->assertSame(['write IMG_0001.NEF.xmp.part', 'delete IMG_0001.NEF.xmp.part'], $this->events);
-		$this->assertSame('darktable', $this->disk['IMG_0001.NEF.xmp']);
-	}
-
-	// spec: XMP-002.5
-	public function testANewSidecarThatAppearedWhileThePartWasWrittenIsNotOverwritten(): void {
-		$this->afterWrite = function (): void {
-			$this->disk['IMG_0002.JPG.xmp'] = 'digikam';
-		};
-
-		$results = $this->writer()->save($this->user(), [$this->created('fresh')]);
-
-		$this->assertSame([SidecarResult::Changed], $this->resultsOf($results));
-		$this->assertSame(['write IMG_0002.JPG.xmp.part', 'delete IMG_0002.JPG.xmp.part'], $this->events);
-		$this->assertSame('digikam', $this->disk['IMG_0002.JPG.xmp']);
 	}
 
 	// spec: XMP-002.6
@@ -104,57 +78,47 @@ final class SidecarWriterTest extends TestCase {
 		$this->updateable = false;
 		$this->assertSame([SidecarResult::NotPermitted], $this->resultsOf($this->writer()->save($this->user(), [$this->existing('new')])));
 
-		$this->updateable = true;
 		$this->creatable = false;
-		$results = $this->writer()->save($this->user(), [$this->existing('new'), $this->created('fresh')]);
+		$this->assertSame([SidecarResult::NotPermitted], $this->resultsOf($this->writer()->save($this->user(), [$this->created('fresh')])));
 
-		$this->assertSame([SidecarResult::NotPermitted, SidecarResult::NotPermitted], $this->resultsOf($results));
 		$this->assertSame([], $this->events);
+		$this->assertArrayNotHasKey('IMG_0002.JPG.xmp', $this->disk);
 	}
 
-	/** @return array<string, array{string, \Exception, SidecarResult, list<string>}> */
+	/** @return array<string, array{string, \Exception, SidecarResult}> */
 	public static function storageFailures(): array {
 		return [
-			'not permitted while writing' => ['newFile', new NotPermittedException('quota'), SidecarResult::NotPermitted, []],
-			'locked while writing' => ['newFile', new LockedException('IMG_0001.NEF.xmp.part'), SidecarResult::Locked, []],
-			'storage error while writing' => ['newFile', new \RuntimeException('disk'), SidecarResult::Failed, []],
-			'locked while renaming' => ['move', new LockedException('IMG_0001.NEF.xmp'), SidecarResult::Locked, ['write IMG_0001.NEF.xmp.part', 'delete IMG_0001.NEF.xmp.part']],
-			'vanished while renaming' => ['move', new NotFoundException('IMG_0001.NEF.xmp'), SidecarResult::NotFound, ['write IMG_0001.NEF.xmp.part', 'delete IMG_0001.NEF.xmp.part']],
-			'storage error while renaming' => ['move', new \RuntimeException('disk'), SidecarResult::Failed, ['write IMG_0001.NEF.xmp.part', 'delete IMG_0001.NEF.xmp.part']],
+			'not permitted while replacing' => ['putContent', new NotPermittedException('quota'), SidecarResult::NotPermitted],
+			'locked while replacing' => ['putContent', new LockedException('IMG_0001.NEF.xmp'), SidecarResult::Locked],
+			'vanished while replacing' => ['putContent', new NotFoundException('IMG_0001.NEF.xmp'), SidecarResult::NotFound],
+			'storage error while replacing' => ['putContent', new \RuntimeException('disk'), SidecarResult::Failed],
+			'not permitted while creating' => ['newFile', new NotPermittedException('quota'), SidecarResult::NotPermitted],
+			'locked while creating' => ['newFile', new LockedException('IMG_0002.JPG.xmp'), SidecarResult::Locked],
+			'storage error while creating' => ['newFile', new \RuntimeException('disk'), SidecarResult::Failed],
 		];
 	}
 
 	// spec: XMP-002.6
 	#[DataProvider('storageFailures')]
-	public function testAStorageFailureLeavesNoPartFile(string $step, \Exception $failure, SidecarResult $expected, array $events): void {
+	public function testAStorageFailureWritesNothingElseAndTheOtherSidecarIsSaved(string $step, \Exception $failure, SidecarResult $expected): void {
 		$this->failures[$step] = $failure;
+		$sidecars = $step === 'putContent' ? [$this->existing('new'), $this->created('fresh')] : [$this->created('fresh'), $this->existing('new')];
 
-		$results = $this->writer()->save($this->user(), [$this->existing('new'), $this->created('fresh')]);
+		$results = $this->writer()->save($this->user(), $sidecars);
 
-		$this->assertSame($expected, $results[0]['result']);
-		$this->assertSame($events, array_slice($this->events, 0, count($events)));
-		$this->assertSame('old', $this->disk['IMG_0001.NEF.xmp']);
-		$this->assertSame([], array_filter(array_keys($this->disk), static fn (string $name): bool => str_ends_with($name, '.part')));
+		$this->assertSame([$expected, SidecarResult::Saved], $this->resultsOf($results));
+		$this->assertSame($step === 'putContent' ? ['write IMG_0002.JPG.xmp'] : ['put IMG_0001.NEF.xmp'], $this->events);
+		$this->assertSame(['IMG_0001.NEF', 'IMG_0001.NEF.xmp', 'IMG_0002.JPG', ...($step === 'putContent' ? ['IMG_0002.JPG.xmp'] : [])], array_keys($this->disk));
 	}
 
 	// spec: XMP-002.6
 	public function testAStorageErrorIsLogged(): void {
-		$this->failures['move'] = new \RuntimeException('disk');
+		$this->failures['putContent'] = new \RuntimeException('disk');
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('warning')->with($this->anything(), $this->callback(
 			static fn (array $context): bool => $context['path'] === self::FOLDER . '/IMG_0001.NEF.xmp' && $context['exception'] instanceof \RuntimeException,
 		));
 
 		$this->writer($logger)->save($this->user(), [$this->existing('new')]);
-	}
-
-	// spec: XMP-002.6
-	public function testAPartFileThatCannotBeDeletedIsLoggedAndTheResultStays(): void {
-		$this->failures['move'] = new LockedException('IMG_0001.NEF.xmp');
-		$this->failures['delete'] = new \RuntimeException('disk');
-		$logger = $this->createMock(LoggerInterface::class);
-		$logger->expects($this->once())->method('warning');
-
-		$this->assertSame([SidecarResult::Locked], $this->resultsOf($this->writer($logger)->save($this->user(), [$this->existing('new')])));
 	}
 }

@@ -21,7 +21,7 @@ final class SidecarWriterVersionsTest extends TestCase {
 
 		$this->assertSame([SidecarResult::NoVersions, SidecarResult::Saved], $this->resultsOf($results));
 		$this->assertSame('old', $this->disk['IMG_0001.NEF.xmp']);
-		$this->assertSame(['write IMG_0002.JPG.xmp.part', 'move IMG_0002.JPG.xmp.part'], $this->events);
+		$this->assertSame(['write IMG_0002.JPG.xmp'], $this->events);
 	}
 
 	// spec: XMP-002.10

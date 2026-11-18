@@ -32,10 +32,8 @@ trait FakeSidecarFolder {
 	private array $disk = ['IMG_0001.NEF' => 'raw', 'IMG_0001.NEF.xmp' => 'old', 'IMG_0002.JPG' => 'jpeg'];
 	/** @var list<string> */
 	private array $events = [];
-	/** @var array<string, \Throwable> failures by step: `newFile`, `move`, `delete` */
+	/** @var array<string, \Throwable> failures by step: `newFile`, `putContent` */
 	private array $failures = [];
-	/** Runs right after the part file is written, as another program could. */
-	private ?\Closure $afterWrite = null;
 	private bool $creatable = true;
 	private bool $updateable = true;
 	/** Whether the sidecar's owner has `files_versions` on; the user always has. */
@@ -55,33 +53,20 @@ trait FakeSidecarFolder {
 		$file->method('getName')->willReturn($name);
 		$file->method('getPath')->willReturn(self::FOLDER . "/$name");
 		$file->method('getMimetype')->willReturn(str_ends_with($name, '.xmp') ? 'application/octet-stream' : 'image/jpeg');
-		$file->method('getEtag')->willReturn(md5($this->disk[$name]));
-		$file->method('getSize')->willReturn(strlen($this->disk[$name]));
-		$file->method('getMTime')->willReturn(1_700_000_000 + count($this->events));
+		$file->method('getEtag')->willReturnCallback(fn (): string => md5($this->disk[$name]));
+		$file->method('getSize')->willReturnCallback(fn (): int => strlen($this->disk[$name]));
+		$file->method('getMTime')->willReturnCallback(fn (): int => 1_700_000_000 + count($this->events));
+		$file->method('putContent')->willReturnCallback(function (string $content) use ($name): void {
+			$this->failOn('putContent');
+			$this->disk[$name] = $content;
+			$this->events[] = "put $name";
+		});
 		$file->method('isUpdateable')->willReturn($this->updateable);
 		$file->method('getParent')->willReturn($folder);
 		$file->method('getOwner')->willReturn($this->user($this->owner));
 		$file->method('getStorage')->willReturn($this->createStub(IStorage::class));
 		$file->method('getMountPoint')->willReturn($this->createStub(IMountPoint::class));
 		return $file;
-	}
-
-	private function part(string $name, Folder $folder): File {
-		$part = $this->createStub(File::class);
-		$part->method('move')->willReturnCallback(function (string $target) use ($name, $folder): Node {
-			$this->failOn('move');
-			$this->assertSame(self::FOLDER . '/' . substr($name, 0, -strlen('.part')), $target);
-			$this->disk[basename($target)] = $this->disk[$name];
-			unset($this->disk[$name]);
-			$this->events[] = "move $name";
-			return $this->node(basename($target), $folder);
-		});
-		$part->method('delete')->willReturnCallback(function () use ($name): void {
-			$this->failOn('delete');
-			unset($this->disk[$name]);
-			$this->events[] = "delete $name";
-		});
-		return $part;
 	}
 
 	private function failOn(string $step): void {
@@ -100,10 +85,7 @@ trait FakeSidecarFolder {
 			$this->failOn('newFile');
 			$this->disk[$name] = $content;
 			$this->events[] = "write $name";
-			if ($this->afterWrite !== null) {
-				($this->afterWrite)();
-			}
-			return $this->part($name, $folder);
+			return $this->node($name, $folder);
 		});
 		$userFolder = $this->createStub(Folder::class);
 		$userFolder->method('getFirstNodeById')->willReturnCallback(function (int $id) use ($folder, $nodeNamed): ?Node {
