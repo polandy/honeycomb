@@ -1480,3 +1480,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the own count (that one is read from a live listing). It is set from the size and storage the
   count reads anyway, so it costs no query: an unknown size (`-1`), an unscanned mount, or a
   storage wrapped by Team folders' `ACLStorageWrapper`, found by class name.
+- 2026-11-18: A sidecar is saved in place (`File::putContent()`, `Folder::newFile()`) right after
+  the ETag and size check instead of through a `.part` file: Nextcloud 35.0.3 refuses to move the
+  uncached part file, and a cached temporary name would give the sidecar a new file id and lose
+  the version of the replaced bytes (ADR 0017, amendment 2026-11-18). e2e's newest image is 35.0.3.

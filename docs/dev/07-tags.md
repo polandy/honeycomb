@@ -105,7 +105,7 @@ honeycomb writes the three fields it reads and leaves the others alone:
 
 - **Change, not snapshot.** A write applies honeycomb's change (added and removed tags) to the
   tags the sidecar holds at that moment, so a tag digiKam added since the listing survives. The
-  saving rules of `06-xmp-interop.md` (`.part`, ETag check, rename) are unchanged.
+  saving rules of `06-xmp-interop.md` (ETag check, write in place) are unchanged.
 - **Empty.** With no tags left, `TagsList` and `hierarchicalSubject` are removed and
   `dc:subject` keeps only the foreign keywords.
 - **Fields 2, 4, 5** (Microsoft, MediaPro, ACDSee) are left as they are. Because digiKam reads

@@ -225,11 +225,13 @@ because digiKam is the target of M5; darktable's only where darktable already wr
 write the same bytes for the same model: Framehive's canonical form (CORE-009.4, .5), preferred
 prefixes and a clashing prefix renamed (CORE-009.6, .7), `xmp:MetadataDate` set on every write
 from the injected clock, never `xmp:CreatorTool`, `xmp:ModifyDate` or `xmpMM:History`
-(CORE-009.10). Saving goes through `OCP\Files` (CLAUDE.md rule 1): write `<name>.part`, check the
-target has not appeared or changed since it was read, rename (CORE-009.16–.19). An existing
+(CORE-009.10). Saving goes through `OCP\Files` (CLAUDE.md rule 1): check the target has not
+appeared or changed since it was read, then write it in place (ADR 0017). An existing
 sidecar is replaced only while the Versions app is enabled for the user, so the bytes another
 program wrote can be restored; without it the save answers `noVersions` (XMP-002.10). *Differs:* the
-check uses the Nextcloud ETag and size in place of BLAKE3. Reading, the mapping and serializing
+check uses the Nextcloud ETag and size in place of BLAKE3, and the write is no part file and rename
+(CORE-009.16–.19): Nextcloud 35.0.3 refuses to move a part file, and the replaced bytes are kept as
+a version instead. Reading, the mapping and serializing
 are a pure TypeScript module, `src/logic/xmp/` (XMP-001); the backend only reads the bytes and
 does the checked save (ADR 0006, endpoints in ADR 0017 and XMP-002). `@xmldom/xmldom` turns
 the bytes into an element tree (ADR 0016).
