@@ -25,8 +25,8 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
   visual hash of the user (SERIES-003).
 - `400` for a malformed body; one malformed item writes nothing. `401` without a user.
 - A save writes only the file ids the user reaches: a sidecar for `sidecar`, a JPEG for
-  `embedded`; any other id is skipped (ADR 0031). The ids are looked up 1,000 at a time (ADR 0038). Saves and the `DELETE` are rate limited per user
-(APP-001.9).
+  `embedded`; any other id is skipped (ADR 0031). The ids are looked up 1,000 at a time
+  (ADR 0038). Saves and the `DELETE` are rate limited per user (APP-001.9).
 - A save adds the tags of the rows it stores to the user's tag list (TAGS-003.13).
 - A row is valid while its `etag` equals the ETag the listing gives the file and its `reader` is
   the current version; the client reads every other listed source again and stores the new row.

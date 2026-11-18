@@ -20,7 +20,8 @@ device; the tag list keeps every tag the user ever had for autocomplete and the 
   end and contain no `|`. A file has at most 100 tags, each once; they are stored sorted.
 - `400` for a malformed body; one malformed item writes nothing. `401` without a user.
 - A save writes only the file ids the user reaches as a photo; any other id is skipped, its row
-  neither written nor removed (ADR 0031), looked up 1,000 ids at a time (ADR 0038). Saves are rate limited per user (APP-001.9).
+  neither written nor removed (ADR 0031), looked up 1,000 ids at a time (ADR 0038). Saves are
+  rate limited per user (APP-001.9).
 - The client functions `lookupTags`, `saveTags` and `loadTagList` in `src/api.ts` send these
   requests and reject an answer without the expected list.
 
