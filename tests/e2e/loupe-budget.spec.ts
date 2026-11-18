@@ -4,60 +4,11 @@ import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { readdirSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { budgetPhotos } from './budget-photos.ts'
 import { cullFolder, resetViewState } from './cull.ts'
 import { createFolder, upload } from './files.ts'
 
 const PHOTO_COUNT = 3
-/** A folder of the owner's own JPEGs to measure with instead of the drawn ones. */
-const PHOTOS = process.env.HONEYCOMB_BUDGET_PHOTOS
-
-/** A 24 MP JPEG, 6000 × 4000, drawn in the browser: a gradient under a seeded noise tile. */
-async function drawnPhoto(page: Page, seed: number): Promise<Buffer> {
-	const base64 = await page.evaluate(async (seed) => {
-		const tile = new OffscreenCanvas(509, 509)
-		const noise = new ImageData(tile.width, tile.height)
-		let state = seed
-		for (let i = 0; i < noise.data.length; i++) {
-			state = (Math.imul(state, 1103515245) + 12345) >>> 0
-			noise.data[i] = i % 4 === 3 ? 64 : state >>> 24
-		}
-		tile.getContext('2d')!.putImageData(noise, 0, 0)
-
-		const canvas = new OffscreenCanvas(6000, 4000)
-		const context = canvas.getContext('2d')!
-		const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height)
-		gradient.addColorStop(0, `hsl(${seed * 97 % 360} 60% 30%)`)
-		gradient.addColorStop(1, `hsl(${(seed * 97 + 140) % 360} 60% 70%)`)
-		context.fillStyle = gradient
-		context.fillRect(0, 0, canvas.width, canvas.height)
-		context.fillStyle = context.createPattern(tile, 'repeat')!
-		context.fillRect(0, 0, canvas.width, canvas.height)
-
-		const bytes = new Uint8Array(await (await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.9 })).arrayBuffer())
-		let binary = ''
-		for (let start = 0; start < bytes.length; start += 0x8000) {
-			binary += String.fromCharCode(...bytes.subarray(start, start + 0x8000))
-		}
-		return btoa(binary)
-	}, seed)
-	return Buffer.from(base64, 'base64')
-}
-
-/** The photos to measure with: the first JPEGs of `PHOTOS`, else drawn ones. */
-async function photos(page: Page): Promise<Buffer[]> {
-	if (PHOTOS !== undefined) {
-		const names = readdirSync(PHOTOS).filter((name) => /\.jpe?g$/i.test(name)).sort().slice(0, PHOTO_COUNT)
-		expect(names, `JPEGs in ${PHOTOS}`).toHaveLength(PHOTO_COUNT)
-		return names.map((name) => readFileSync(join(PHOTOS, name)))
-	}
-	const drawn: Buffer[] = []
-	for (let seed = 1; seed <= PHOTO_COUNT; seed++) {
-		drawn.push(await drawnPhoto(page, seed))
-	}
-	return drawn
-}
 
 /** Starts timing at the next key press until `alt`'s loupe tier is loaded and a frame has passed. */
 function startTiming(page: Page, alt: string) {
@@ -87,7 +38,7 @@ test('shows a prefetched 24 MP neighbour without a request when paging', async (
 	await resetViewState(page)
 	const folder = `Budget ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
-	const measured = await photos(page)
+	const measured = (await budgetPhotos(page, PHOTO_COUNT)).map(({ jpeg }) => jpeg)
 	for (const [index, photo] of measured.entries()) {
 		await upload(page, `${folder}/IMG_000${index + 1}.jpg`, photo)
 	}

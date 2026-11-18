@@ -325,6 +325,31 @@ installs it. Imaginary is optional (ADR 0010).
 prefetched 24 MP neighbour, checks that no image request follows the key press and reports the
 time from the key press to the frame after the loupe tier shows. It draws its JPEGs, or takes
 the first three of `HONEYCOMB_BUDGET_PHOTOS`, a folder of real photos.
+`tests/e2e/image-budgets.spec.ts` opens a folder of 12 RAW+JPEG pairs at the iPad's pixel ratio of 2
+and reports the first small and the first sharp image, the server's first render of a 1024 px and
+a 4096 px tier, the loupe's 4096 px tier and the peak of image loads in flight; it asserts only
+that peak (at most six, counted by the browser's clock; GRID-001.15), as a time on a shared host is
+no gate. With `HONEYCOMB_BUDGET_PHOTOS` set, it uploads the pairs of that folder.
+
+**Measured on 2026-11-18** (local e2e container, Nextcloud 35, one host; 12 pairs of Fujifilm
+X-T2, 6000 × 4000 px, 9.4 MB JPEG and about 30 MB RAF each; the Series folder of the owner's real
+test set; three runs agree within 10 %):
+
+| What | Budget | Measured |
+|---|---|---|
+| Prefetched next loupe image | < 100 ms | 4.5 ms |
+| First sharp image in a newly opened folder, previews not yet rendered | < 500 ms | about 2.1 s (first small preview 1.0 s) |
+| First sharp image, previews rendered on the server, browser cache off | < 500 ms | about 35 ms |
+| Server render of a tier, first request (1024 px / 4096 px) | — | about 1.0 s / 0.9 s |
+| Loupe's 4096 px tier after the background warm-up | — | 100–150 ms |
+| Image loads in flight in the grid | at most 6 | 6 |
+| Grid scroll at 2,000+ items | no jank | not measured |
+
+The budget holds wherever a preview exists and misses by a factor of four where it has to be
+rendered first: one 24 MP preview costs about a second of server time, so the first tile waits
+for it. The 4096 px tier costs the same as the 1024 px one and is hidden by the warm-up. No
+24 MP pair of another make was at hand (the Canon 7D files are 18 MP), so the numbers are the
+X-T2's.
 
 Where the work lands: M1.2 (file id and mtime per entry), M2.2 (cache-keyed URLs), M2.3
 (tiers, virtualised grid), M3.1 (prefetch, `decode()` swap), M4.5 (README recommendation), and
