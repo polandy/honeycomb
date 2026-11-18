@@ -1503,5 +1503,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `getFirstNodeById()` (ADR 0038, #187).
 - 2026-11-18: The mockup draws the flag filter as three toggle chips (*Picked*, *Unflagged*,
   *Rejected*; icon and label, icon only below 520 px and in the app bar) in place of the scope
-  control; the default is Picked and Unflagged pressed (GRID-002, #187). Easy to redo: one render
+  control; the default is Picked and Unflagged pressed (GRID-002). Easy to redo: one render
   function and its CSS.
