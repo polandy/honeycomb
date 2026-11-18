@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\FileCachePhotoFiles;
+use OCA\Honeycomb\Db\SubtreeExactness;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeLoader;
 use OCP\Files\IRootFolder;
@@ -129,6 +130,49 @@ final class FileCachePhotoFilesTest extends DbTestCase {
 
 		$this->assertFalse($plain?->approximate);
 		$this->assertFalse($mounted?->approximate);
+	}
+
+	private function aclStorage(): IStorage {
+		$storage = $this->createStub(IStorage::class);
+		$storage->method('instanceOfStorage')->willReturnCallback(static fn (string $class): bool => $class === SubtreeExactness::ACL_STORAGE);
+		return $storage;
+	}
+
+	// spec: LISTING-003.20
+	public function testAFolderOnAStorageWithAdvancedPermissionsMayMissFiles(): void {
+		$home = $this->files(self::USER, ['Photos/a.jpg']);
+		$photos = $this->folderAt($home, 'Photos');
+		$folder = $this->createStub(Folder::class);
+		$folder->method('getId')->willReturn($photos->getId());
+		$folder->method('getPath')->willReturn($photos->getPath());
+		$folder->method('getStorage')->willReturn($this->aclStorage());
+
+		$this->assertTrue($this->counter()->count($folder)?->approximate);
+	}
+
+	// spec: LISTING-003.20
+	public function testAMountedStorageWithAdvancedPermissionsOrAnUnknownSizeMayMissFiles(): void {
+		$home = $this->files(self::USER, ['Photos/a.jpg']);
+		$other = $this->files(self::OTHER, ['Holiday/c.jpg', 'Other/d.jpg']);
+		$below = '/' . self::USER . '/files/Photos';
+		$holiday = $this->folderAt($other, 'Holiday');
+		$unknown = $this->folderAt($other, 'Other');
+		$update = $this->db->getQueryBuilder();
+		$update->update('filecache')->set('size', $update->createNamedParameter(-1))->where($update->expr()->eq('fileid', $update->createNamedParameter($unknown->getId())))->executeStatement();
+
+		$acl = $this->counter([$this->mount("$below/Team/", $holiday->getId(), $this->aclStorage())])->count($this->folderAt($home, 'Photos'));
+		$size = $this->counter([$this->mount("$below/Size/", $unknown->getId(), $other->getStorage())])->count($this->folderAt($home, 'Photos'));
+
+		$this->assertTrue($acl?->approximate);
+		$this->assertTrue($size?->approximate);
+	}
+
+	// spec: LISTING-003.20
+	public function testAHiddenMountDoesNotMakeTheCountApproximate(): void {
+		$home = $this->files(self::USER, ['Photos/a.jpg']);
+		$mount = $this->mount('/' . self::USER . '/files/Photos/.hidden/Shared/', -1);
+
+		$this->assertFalse($this->counter([$mount])->count($this->folderAt($home, 'Photos'))?->approximate);
 	}
 
 	// spec: LISTING-003.20
