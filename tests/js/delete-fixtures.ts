@@ -23,7 +23,7 @@ export const [PAIR, SINGLE, OTHER] = picturesOf([
 ]) as Picture<ListingEntry>[]
 
 /** A check that lets every picture go. */
-export const allPass = async (pictures: readonly Picture<ListingEntry>[]): Promise<FreshCheck> => ({ passed: pictures, skipped: [] })
+export const allPass = async (pictures: readonly Picture<ListingEntry>[]): Promise<FreshCheck> => ({ passed: pictures, skipped: [], unchecked: [] })
 
 /** A flow over the three pictures, PAIR and OTHER rejected, with a trash endpoint answering `answer`, `flush` writing the waiting sidecars, `current` giving a picture as honeycomb saved its sidecars and `check` checking them afresh. */
 export function flow(answer: (request: { fileId: number }[][]) => Promise<TrashResponseFile[][]>, chunks?: ChunkLimits, flush = async () => {}, check: (pictures: readonly Picture<ListingEntry>[], flow: DecisionFlow) => Promise<FreshCheck> = allPass, current = (picture: Picture<ListingEntry>) => picture) {

@@ -68,11 +68,51 @@ describe('freshCheck', () => {
 		expect(calls).toEqual([['list', '/Trip', false], ['sidecars', [12, 13]]])
 	})
 
-	// spec: DELETE-002.15
-	it('fails when the listing fails, so nothing is deleted', async () => {
-		const seam: FreshCheckApi = { ...api([], new Map()).seam, listEntries: async () => Promise.reject(new Error('offline')) }
+	// spec: DELETE-002.23
+	it('sends the pictures of a folder whose listing fails as known, and checks the others', async () => {
+		const away = listingEntry(5, '/Away/IMG_5.JPG')
+		const listed = picturesOf([JPEG, OTHER, away])
+		const { seam } = api([JPEG, OTHER, OTHER_SIDECAR], new Map([[13, read(xmp({ 'digiKam:PickLabel': '3' }))]]))
+		const failing: FreshCheckApi = { ...seam, listEntries: async (path, subfolders) => (path === '/Away' ? Promise.reject(new Error('offline')) : seam.listEntries(path, subfolders)) }
 
-		await expect(freshCheck(seam, context().context)([pictureOf(JPEG)], 'rejects')).rejects.toThrow('offline')
+		const result = await freshCheck(failing, context().context)(listed, 'rejects')
+
+		expect(result).toEqual({ passed: [], skipped: [{ picture: listed[0], reason: 'notRejected' }, { picture: listed[1], reason: 'notRejected' }], unchecked: [listed[2]] })
+	})
+
+	// spec: DELETE-002.23
+	it('sends the pictures whose sidecar lookup fails as known, and keeps the verdict of those read', async () => {
+		const listed = picturesOf([JPEG, OTHER, OTHER_SIDECAR])
+		const { seam } = api([JPEG, OTHER, OTHER_SIDECAR], new Map(), new Map([[2, read(xmp({ 'digiKam:PickLabel': '3' }))]]))
+		const failing: FreshCheckApi = { ...seam, lookupSidecars: async () => Promise.reject(new Error('offline')) }
+
+		const result = await freshCheck(failing, context().context)(listed, 'rejects')
+
+		expect(result).toEqual({ passed: [], skipped: [{ picture: listed[0], reason: 'notRejected' }], unchecked: [listed[1]] })
+	})
+
+	// spec: DELETE-002.23
+	it('sends the pictures whose embedded XMP lookup fails as known', async () => {
+		const listed = picturesOf([JPEG, OTHER, OTHER_SIDECAR])
+		const { seam } = api([JPEG, OTHER, OTHER_SIDECAR], new Map([[13, read(xmp({ 'digiKam:PickLabel': '1' }))]]))
+		const failing: FreshCheckApi = { ...seam, lookupEmbeddedXmp: async () => Promise.reject(new Error('offline')) }
+
+		const result = await freshCheck(failing, context().context)(listed, 'rejects')
+
+		expect(result).toEqual({ passed: [listed[1]], skipped: [], unchecked: [listed[0]] })
+	})
+
+	// spec: DELETE-003.10
+	it('removes the RAW of an unchecked pair as known, but skips one whose values live only in the RAW sidecar', async () => {
+		const bare = picturesOf([listingEntry(6, '/Trip/IMG_6.NEF', { mime: 'image/x-dcraw' }), listingEntry(7, '/Trip/IMG_6.JPG')])
+		const listed = [...bare, ...picturesOf([RAW, JPEG, RAW_SIDECAR])]
+		const failing: FreshCheckApi = { ...api([], new Map()).seam, listEntries: async () => Promise.reject(new Error('offline')) }
+		const { written, context: writing } = context()
+
+		const result = await freshCheck(failing, writing)(listed, 'raws')
+
+		expect(result).toEqual({ passed: [], skipped: [{ picture: listed[1], reason: 'unread' }], unchecked: [listed[0]] })
+		expect(written).toEqual([])
 	})
 
 	// spec: DELETE-003.9
@@ -95,16 +135,16 @@ describe('freshCheck', () => {
 		const locked = context(false)
 		const failing = context(true, false)
 
-		expect(await freshCheck(seam, locked.context)(listed, 'raws')).toEqual({ passed: [], skipped: [{ picture: listed[0], reason: 'jpegSidecar' }] })
+		expect(await freshCheck(seam, locked.context)(listed, 'raws')).toEqual({ passed: [], skipped: [{ picture: listed[0], reason: 'jpegSidecar' }], unchecked: [] })
 		expect(locked.written).toEqual([])
-		expect(await freshCheck(seam, failing.context)(listed, 'raws')).toEqual({ passed: [], skipped: [{ picture: listed[0], reason: 'jpegSidecar' }] })
+		expect(await freshCheck(seam, failing.context)(listed, 'raws')).toEqual({ passed: [], skipped: [{ picture: listed[0], reason: 'jpegSidecar' }], unchecked: [] })
 	})
 
 	// spec: DELETE-002.15
 	it('asks nothing for no pictures', async () => {
 		const { seam, calls } = api([], new Map())
 
-		expect(await freshCheck(seam, context().context)([], 'rejects')).toEqual({ passed: [], skipped: [] })
+		expect(await freshCheck(seam, context().context)([], 'rejects')).toEqual({ passed: [], skipped: [], unchecked: [] })
 		expect(calls).toEqual([])
 	})
 })
