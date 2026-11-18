@@ -2,7 +2,7 @@
 
 - Status: implemented
 - Area: delete
-- Origin: `docs/dev/plan.md` M4.1, ADR 0013, ADR 0030, ADR 0036, CLAUDE.md rule 2
+- Origin: `docs/dev/plan.md` M4.1, ADR 0013, ADR 0030, ADR 0036, ADR 0037, CLAUDE.md rule 2
 - Depends on: LISTING-001
 
 ## Purpose
@@ -49,6 +49,13 @@ Nextcloud's trash bin deletes a file for good instead of keeping it when its sto
 wrapped by the trash bin, or when the file is at least as large as the trash bin size
 (`trashbin_size`, the owner's setting, else the server's). A Team folder keeps its own trash bin
 without that size. So before trashing, each file is checked against these rules (ADR 0030).
+
+Nextcloud names a trashed file `<name>.d<seconds>` and overwrites the trash copy of an earlier
+file of the same name trashed in the same second, e.g. `IMG_0001.jpg` from two folders of a
+folder set. So within a request two files of one name are never trashed in the same second: a
+picture whose file shares a name with one trashed in the current second waits while the other
+pictures go first, and the request pauses for the next second only when every remaining picture
+waits (ADR 0037).
 
 ## Acceptance criteria
 
@@ -140,6 +147,14 @@ without that size. So before trashing, each file is checked against these rules 
   `notFound`, `noTrashBin` or `tooLarge` as without the flag; a `permanent` that is not `true` or
   `false` is a malformed request (`400`)
 
+### DELETE-001.13 – Files of one name stay apart in the trash bin
+
+- **Given** pictures from different folders whose files share a name, e.g. `IMG_0001.jpg`
+- **When** the client posts them in one request
+- **Then** each file of that name is trashed in another second than the others, the pictures
+  without such a file go first, the answer keeps the order sent, and every file can be restored
+  from the trash bin; a file deleted for good does not wait
+
 ## Out of scope
 
 Choosing what to delete, the summary and the report: DELETE-002. Removing only RAWs: DELETE-003.
@@ -154,3 +169,4 @@ Choosing what to delete, the summary and the report: DELETE-002. Removing only R
 | 2026-11-15 | At most 500 files per request instead of 60,000 (ADR 0029) |
 | 2026-11-15 | A file the trash bin would not keep reports `noTrashBin` (DELETE-001.9, ADR 0030); Team folders and External Storage proven by e2e tests (DELETE-001.10) |
 | 2026-11-18 | `tooLarge` splits from `noTrashBin`; a file with `permanent` the trash bin would not keep is deleted for good (DELETE-001.11, DELETE-001.12, ADR 0036, owner) |
+| 2026-11-18 | Files of one name are trashed in different seconds, so the trash bin keeps each (DELETE-001.13, ADR 0037) |
