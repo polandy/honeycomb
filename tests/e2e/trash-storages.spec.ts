@@ -5,6 +5,7 @@ import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
+import { cullFolder } from './cull.ts'
 import { etagOf, JPEG, RAW, requestToken, trashEntry, upload } from './files.ts'
 import { occ } from './server.ts'
 
@@ -24,11 +25,37 @@ async function uploadPair(page: Page, folder: string): Promise<{ fileId: number,
 }
 
 /** Posts one picture to the trash endpoint and returns each file's result. */
-async function trash(page: Page, picture: { fileId: number, etag: string }[]): Promise<string[]> {
+async function trash(page: Page, picture: { fileId: number, etag: string, permanent?: boolean }[]): Promise<string[]> {
 	const response = await page.request.post(`${API}/trash`, { data: { pictures: [picture] }, headers: { requesttoken: await requestToken(page) } })
 	expect(response.status(), await response.text()).toBe(200)
 	const body = await response.json() as { pictures: { result: string }[][] }
 	return body.pictures.flat().map(({ result }) => result)
+}
+
+/** Whether the admin has a file at `path`. */
+async function exists(page: Page, path: string): Promise<boolean> {
+	const response = await page.request.fetch(`/remote.php/dav/files/${ADMIN.username}/${path}`, { method: 'PROPFIND', headers: { requesttoken: await requestToken(page), Depth: '0' } })
+	return response.status() !== 404
+}
+
+/** The original locations of the admin's trash bin. */
+async function trashLocations(page: Page): Promise<string> {
+	const trash = await page.request.fetch(`/remote.php/dav/trashbin/${ADMIN.username}/trash`, {
+		method: 'PROPFIND',
+		headers: { requesttoken: await requestToken(page), Depth: '1' },
+		data: '<d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns"><d:prop><nc:trashbin-original-location/></d:prop></d:propfind>',
+	})
+	return trash.text()
+}
+
+/** Runs `body` with the admin's trash bin size at the JPEG's size; the web process caches app config that occ changes behind its back. */
+async function withSmallTrashBin(body: () => Promise<void>): Promise<void> {
+	occ(['user:setting', ADMIN.username, 'files_trashbin', 'trashbin_size', String(JPEG.length)])
+	try {
+		await body()
+	} finally {
+		occ(['user:setting', '--delete', ADMIN.username, 'files_trashbin', 'trashbin_size'])
+	}
 }
 
 /** Runs `body` with a Team folder of the admin's group mounted at `name`, removed afterwards. */
@@ -88,15 +115,68 @@ test('refuses a picture whose files the trash bin would delete for good', async 
 	const mount = `External ${randomUUID().slice(0, 8)}`
 	await withExternalStorage(mount, async () => {
 		const picture = await uploadPair(page, mount)
-		// The admin's own limit: the web process caches app config that occ changes behind its back.
-		occ(['user:setting', ADMIN.username, 'files_trashbin', 'trashbin_size', String(JPEG.length)])
-		try {
-			expect(await trash(page, picture)).toEqual(['noTrashBin', 'noTrashBin'])
+		await withSmallTrashBin(async () => {
+			expect(await trash(page, picture)).toEqual(['tooLarge', 'tooLarge'])
 			for (const name of PAIR) {
 				expect(await etagOf(page, `${mount}/${name}`)).not.toBe('')
 			}
-		} finally {
-			occ(['user:setting', '--delete', ADMIN.username, 'files_trashbin', 'trashbin_size'])
+		})
+	})
+})
+
+// spec: DELETE-001.11
+test('deletes for good only the files marked permanent, and trashes a marked file the trash bin keeps', async ({ page }) => {
+	const mount = `External ${randomUUID().slice(0, 8)}`
+	await withExternalStorage(mount, async () => {
+		const [jpeg, raw] = await uploadPair(page, mount)
+		await withSmallTrashBin(async () => {
+			expect(await trash(page, [{ ...jpeg!, permanent: true }, raw!])).toEqual(['skipped', 'tooLarge'])
+			expect(await trash(page, [{ ...jpeg!, permanent: true }, { ...raw!, permanent: true }])).toEqual(['deleted', 'deleted'])
+		})
+		const locations = await trashLocations(page)
+		for (const name of PAIR) {
+			expect(await exists(page, `${mount}/${name}`)).toBe(false)
+			expect(locations).not.toContain(`${mount}/${name}<`)
 		}
+	})
+})
+
+// spec: DELETE-001.9, DELETE-001.11
+test('trashes a Team folder pair past the trash bin size, since a Team folder keeps it, even when marked permanent', async ({ page }) => {
+	const mount = `Team ${randomUUID().slice(0, 8)}`
+	await withTeamFolder(mount, async () => {
+		const [jpeg, raw] = await uploadPair(page, mount)
+		await withSmallTrashBin(async () => {
+			expect(await trash(page, [jpeg!, { ...raw!, permanent: true }])).toEqual(['trashed', 'trashed'])
+		})
+		for (const name of PAIR) {
+			await trashEntry(page, `${mount}/${name}`)
+		}
+	})
+})
+
+// spec: DELETE-002.20, DELETE-002.21
+test('warns before deleting a photo the trash bin would not keep, with Cancel focused, then deletes it for good', async ({ page }) => {
+	const mount = `External ${randomUUID().slice(0, 8)}`
+	await withExternalStorage(mount, async () => {
+		await upload(page, `${mount}/IMG_0001.jpg`, JPEG)
+		await withSmallTrashBin(async () => {
+			await cullFolder(page, mount)
+			const grid = page.getByRole('grid', { name: 'Photos' })
+			await page.getByRole('button', { name: 'Select', exact: true }).click()
+			await grid.getByRole('gridcell', { name: 'IMG_0001, JPG only' }).click()
+			await page.getByRole('button', { name: 'Delete…', exact: true }).click()
+			await page.getByRole('dialog', { name: 'Delete 1 photo' }).getByRole('button', { name: /^Move \d+ files? to trash$/ }).click()
+
+			const warning = page.getByRole('dialog', { name: '1 file will be deleted permanently' })
+			await expect(warning.getByRole('listitem')).toHaveText([/IMG_0001\.jpg.*Larger than the trash bin allows/])
+			await expect(warning.getByRole('button', { name: 'Cancel' })).toBeFocused()
+			await warning.getByRole('button', { name: 'Delete permanently' }).click()
+
+			await expect(warning).toBeHidden()
+			await expect(page.getByRole('status').filter({ hasText: '1 file deleted permanently' })).toBeVisible()
+			await expect(grid.getByRole('gridcell')).toHaveCount(0)
+		})
+		expect(await exists(page, `${mount}/IMG_0001.jpg`)).toBe(false)
 	})
 })

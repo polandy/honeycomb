@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\TrashBinGuard;
+use OCA\Honeycomb\Service\TrashResult;
 use OCP\Config\IUserConfig;
 use OCP\Files\File;
 use OCP\Files\Storage\IStorage;
@@ -45,12 +46,12 @@ final class TrashBinGuardTest extends TestCase {
 
 	// spec: DELETE-001.9
 	public function testKeepsAFileOnATrashBinStorageWithoutASizeLimit(): void {
-		$this->assertTrue($this->guard()->keeps('alice', $this->file(10_000_000)));
+		$this->assertNull($this->guard()->refusal('alice', $this->file(10_000_000)));
 	}
 
 	// spec: DELETE-001.9
 	public function testRefusesAFileOnAStorageTheTrashBinDoesNotWrap(): void {
-		$this->assertFalse($this->guard()->keeps('alice', $this->file(1, storages: [])));
+		$this->assertSame(TrashResult::NoTrashBin, $this->guard()->refusal('alice', $this->file(1, storages: [])));
 	}
 
 	/** @return array<string, array{array<string, string>, string, int, bool}> */
@@ -69,18 +70,18 @@ final class TrashBinGuardTest extends TestCase {
 	/** @param array<string, string> $userSizes */
 	#[DataProvider('sizeLimits')]
 	public function testRefusesAFileAtLeastAsLargeAsTheOwnersTrashBinSize(array $userSizes, string $serverSize, int $size, bool $kept): void {
-		$this->assertSame($kept, $this->guard($userSizes, $serverSize)->keeps('alice', $this->file($size)));
+		$this->assertSame($kept ? null : TrashResult::TooLarge, $this->guard($userSizes, $serverSize)->refusal('alice', $this->file($size)));
 	}
 
 	// spec: DELETE-001.9
 	public function testReadsTheUsersLimitForAFileWithoutAnOwner(): void {
-		$this->assertFalse($this->guard(['alice' => '10'])->keeps('alice', $this->file(50, owner: null)));
+		$this->assertSame(TrashResult::TooLarge, $this->guard(['alice' => '10'])->refusal('alice', $this->file(50, owner: null)));
 	}
 
 	// spec: DELETE-001.9
 	public function testATeamFolderKeepsAFileOfAnySize(): void {
 		$file = $this->file(50, ['OCA\Files_Trashbin\Storage', 'OCA\GroupFolders\Mount\GroupFolderStorage']);
 
-		$this->assertTrue($this->guard(serverSize: '10')->keeps('alice', $file));
+		$this->assertNull($this->guard(serverSize: '10')->refusal('alice', $file));
 	}
 }
