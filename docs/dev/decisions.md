@@ -1531,3 +1531,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-19: Error toasts come from a separate `showError` and flows take a required `error`
   callback, so a failure path cannot forget the kind; the details dialog has no e2e (it needs a
   read-only share), Vitest covers it. Easy to redo: `src/toast.ts`.
+- 2026-11-19: The server counts statistics only for what succeeded (STATS-001, PR #289): a picture
+  with a file deleted for good counts as deleted, its files by where each went; *Remove RAWs*
+  counts the RAWs only; a picture counts only when all its files went; an unreadable size or
+  modification time counts nothing and is logged; a sidecar is updated when it was last changed
+  before the user's day; series done are counted by an `open` to `done` update in the mapper; a
+  move counts pictures whose files all moved. Easy to redo: `TrashTally`, `SeriesMapper`.
