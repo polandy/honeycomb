@@ -97,7 +97,7 @@ holds the flag and *Keep RAW* only, because the rest goes into the sidecar (ADR 
 asset has no sidecar, so its table is the only place for the rating and the colour label. The
 store is registered as a `UserRowStore` only, never as a `FileRowStore`: there is no file id to
 carry over and no vanished file to sweep. A row whose connection left the connections file is
-swept instead. The table's columns and its endpoints get their own ADR (rule 6).
+swept instead. The table's columns and its endpoints are ADR 0043 (rule 6).
 
 ### The picture id in the browser
 
@@ -149,7 +149,7 @@ it frees the pure TypeScript of PR 8 from `fileId: number` (decision 5 of the re
 | 4 | `docs(mockup)` | the Immich source under `docs/dev/mockup/immich/`: source and connection switcher, read-only connection dialog, status per connection; then the owner's sign-off (ADR 0003) | 3 |
 | 5 | `refactor(types)` | `PictureId` alias and a `SourceEntry` base of `ListingEntry`; type lines only, allowed before the sign-off | now, beside statistics PR 4 |
 | 6 | `feat(immich)` | backend: connection registry and status, the client with contract tests and upstream error classes, listing and preview proxy; new files and one-line registrations only | 2, sign-off |
-| 7 | `feat(immich)` | the decision table, its mapper and endpoints as a `UserRowStore`; the sweep of rows whose connection left the file | 2, sign-off |
+| 7 | `feat(immich)` | the decision table, its mapper and endpoints as a `UserRowStore`; the sweep of rows whose connection left the file (ADR 0043) | 2, 6, sign-off |
 | 8 | `feat(immich)` | pure TypeScript: asset to picture (live photo as one picture, stacks, device from EXIF, kinds) and the filters | 3, 5 |
 | 9 | `refactor(shell)` | the opened source as a union with its key and capabilities, `imageUrl` in the cull context, `cull.ts` relieved; no behaviour change for folders | statistics PR 6 |
 | 10 | `feat(immich)` | UI, two pull requests: (a) source and connection switcher with the read-only connection dialog; (b) grid and loupe with Immich data, capabilities off, decisions saved, position and *Recent* | 6 to 9 |
