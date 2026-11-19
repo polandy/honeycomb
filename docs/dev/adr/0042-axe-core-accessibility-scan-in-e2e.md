@@ -1,4 +1,4 @@
-# 0041 – An axe-core accessibility scan in the e2e run
+# 0042 – An axe-core accessibility scan in the e2e run
 
 - Status: accepted
 - Date: 2026-11-19

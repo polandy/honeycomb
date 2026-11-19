@@ -137,7 +137,7 @@ stays the same.
 - **Given** the real app in the light and in the dark theme
 - **When** the grid, folder tree, settings, selection, *Move…*, ⋯ menu, reject review, *Delete…*,
   loupe, gesture guide, series compare and series viewer are open
-- **Then** an axe-core scan (WCAG 2.2 A and AA rules, ADR 0041) finds no fault rated *serious* or
+- **Then** an axe-core scan (WCAG 2.2 A and AA rules, ADR 0042) finds no fault rated *serious* or
   *critical*, contrast included; a known fault is excluded only by its rule and element, each with
   a `TODO.md` item
 
@@ -158,4 +158,4 @@ stays the same.
 | 2026-11-17 | The navigation toggle is centred in the toolbar row, alone and opaque on hover (APP-001.11) |
 | 2026-11-18 | A dialog closed while it opens logs no focus trap error (APP-001.12) |
 | 2026-11-18 | An error toast stays until closed and is announced as an alert; a toast's details open in a dialog (APP-001.13, .14; review UX-1, UX-2) |
-| 2026-11-19 | An axe-core scan of every screen, light and dark (APP-001.15, ADR 0041; review UX-5) |
+| 2026-11-19 | An axe-core scan of every screen, light and dark (APP-001.15, ADR 0042; review UX-5) |

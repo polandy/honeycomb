@@ -8,7 +8,7 @@ import { expect } from '@playwright/test'
 /** The light and the dark theme, as the browser reports them to Nextcloud. */
 export const SCHEMES = ['light', 'dark'] as const
 
-/** The rule sets the scan runs (ADR 0041). */
+/** The rule sets the scan runs (ADR 0042). */
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22a', 'wcag22aa']
 const GATED_IMPACTS = new Set(['serious', 'critical'])
 /** Nextcloud's own header is not honeycomb's to fix. */
