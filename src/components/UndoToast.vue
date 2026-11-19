@@ -20,6 +20,10 @@ const emit = defineEmits<{
 	act: []
 	/** The offer before the action was pressed. */
 	offer: []
+	/** The details button, for the dialog. */
+	details: []
+	/** The close button of an error toast. */
+	close: []
 	/** Whether the focus is inside it. */
 	focus: [inside: boolean]
 	/** Whether a pointer is pressed on it. */
@@ -51,19 +55,21 @@ onBeforeUnmount(() => {
 	window.removeEventListener('pointerup', release)
 	window.removeEventListener('pointercancel', release)
 })
+
+const CLOSE_SIGN = '×'
 </script>
 
 <template>
 	<div
 		class="undo-toast"
 		:class="{ 'undo-toast--top': props.top }"
-		role="status"
+		:role="props.toast.kind === 'error' ? 'alert' : 'status'"
 		@focusin="emit('focus', true)"
 		@focusout="onFocusOut"
 		@pointerdown="onPointerDown">
 		<div class="undo-toast__row">
 			<span>{{ props.toast.message }}</span>
-			<span v-if="props.toast.action !== null || props.toast.offer" aria-hidden="true">·</span>
+			<span v-if="props.toast.action !== null || props.toast.offer || props.toast.details" aria-hidden="true">·</span>
 			<!-- mousedown would move the focus out of the loupe and its keys -->
 			<button
 				v-if="props.toast.offer"
@@ -82,17 +88,24 @@ onBeforeUnmount(() => {
 				@click="emit('act')">
 				{{ props.toast.action.label }}
 			</button>
-		</div>
-		<details v-if="props.toast.details" class="undo-toast__details">
-			<summary class="undo-toast__summary">
+			<button
+				v-if="props.toast.details"
+				type="button"
+				class="undo-toast__action undo-toast__details"
+				@mousedown.prevent
+				@click="emit('details')">
 				{{ t('honeycomb', 'Details') }}
-			</summary>
-			<ul class="undo-toast__list">
-				<li v-for="(detail, at) in props.toast.details" :key="at">
-					{{ detail }}
-				</li>
-			</ul>
-		</details>
+			</button>
+			<button
+				v-if="props.toast.kind === 'error'"
+				type="button"
+				class="undo-toast__action undo-toast__close"
+				:aria-label="t('honeycomb', 'Close')"
+				@mousedown.prevent
+				@click="emit('close')">
+				{{ CLOSE_SIGN }}
+			</button>
+		</div>
 	</div>
 </template>
 
@@ -120,22 +133,6 @@ onBeforeUnmount(() => {
 	display: flex;
 	align-items: center;
 	gap: calc(2 * var(--default-grid-baseline));
-}
-
-.undo-toast__summary {
-	display: flex;
-	align-items: center;
-	min-height: var(--default-clickable-area);
-	color: var(--color-primary-element-light);
-	font-weight: bold;
-	cursor: pointer;
-}
-
-.undo-toast__list {
-	max-height: 30vh;
-	overflow-y: auto;
-	padding-inline-start: calc(4 * var(--default-grid-baseline));
-	list-style: disc;
 }
 
 .undo-toast--top {

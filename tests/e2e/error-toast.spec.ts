@@ -13,7 +13,7 @@ test.afterEach(async ({ page }) => {
 })
 
 // spec: APP-001.13
-test('keeps an error toast announced as an alert until it is closed, while a success toast goes by itself', async ({ page }) => {
+test('keeps an error toast announced as an alert until it is closed', async ({ page }) => {
 	await page.clock.install()
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Alert ${randomUUID().slice(0, 8)}`
@@ -29,6 +29,9 @@ test('keeps an error toast announced as an alert until it is closed, while a suc
 	await expect(alert).toBeVisible()
 	await page.clock.runFor(PAST_TOAST_MS)
 
+	await expect(alert).toBeVisible()
+	await page.keyboard.press('Escape')
+	await expect(page.getByRole('dialog', { name: 'Settings' })).toBeHidden()
 	await expect(alert).toBeVisible()
 	await alert.getByRole('button', { name: 'Close' }).focus()
 	await page.keyboard.press('Enter')

@@ -13,17 +13,25 @@ export interface ToastAction {
 	readonly run: () => void
 }
 
-/** One message at the bottom of the screen, with an optional action, an optional offer before it and details to unfold. */
+/** One message at the bottom of the screen, with an optional action, an optional offer before it and details for a dialog; an error stays until closed (APP-001.13). */
 export interface Toast {
 	readonly message: string
 	readonly action: ToastAction | null
 	readonly offer?: ToastAction
 	readonly details?: readonly string[]
+	readonly kind?: 'error'
 }
 
-/** One toast at a time: a new one replaces the shown one and its timer; focus or a press holds it. */
+/** A toast's message with the details its dialog lists (APP-001.14). */
+export interface DetailedToast {
+	readonly message: string
+	readonly details: readonly string[]
+}
+
+/** One toast at a time: a new one replaces the shown one and its timer; focus or a press holds it; an error has no timer. */
 export function useToast(schedule: Schedule) {
 	const current = ref<Toast | null>(null)
+	const detailed = ref<DetailedToast | null>(null)
 	let cancel: (() => void) | null = null
 	let focused = false
 	let pressed = false
@@ -59,7 +67,7 @@ export function useToast(schedule: Schedule) {
 	/** Runs the full time from now, unless the toast is held. */
 	function start() {
 		stop()
-		if (!focused && !pressed) {
+		if (!focused && !pressed && current.value?.kind !== 'error') {
 			cancel = schedule(hide, TOAST_MS)
 		}
 	}
@@ -69,6 +77,27 @@ export function useToast(schedule: Schedule) {
 		const shown: Toast = { message, action, ...(offer === undefined ? {} : { offer }), ...(details.length === 0 ? {} : { details }) }
 		replace(shown)
 		return () => close(shown)
+	}
+
+	/** Shows the error until the user closes it or another toast replaces it, and returns its closer. */
+	function showError(message: string, action: ToastAction | null = null, details: readonly string[] = []): () => void {
+		const shown: Toast = { message, action, ...(details.length === 0 ? {} : { details }), kind: 'error' }
+		replace(shown)
+		return () => close(shown)
+	}
+
+	/** Hands the toast's message and details to the dialog and hides the toast. */
+	function openDetails() {
+		const details = current.value?.details
+		if (details) {
+			detailed.value = { message: current.value!.message, details }
+			hide()
+		}
+	}
+
+	/** Closes the details dialog. */
+	function closeDetails() {
+		detailed.value = null
 	}
 
 	/** Holds the toast while the focus is inside it; leaving restarts its full time. */
@@ -114,7 +143,7 @@ export function useToast(schedule: Schedule) {
 	}
 
 	/** The events of `UndoToast`, to bind as they are. */
-	const listeners = { onAct: act, onOffer: offer, onFocus: setFocused, onPress: setPressed }
+	const listeners = { onAct: act, onOffer: offer, onDetails: openDetails, onClose: hide, onFocus: setFocused, onPress: setPressed }
 
-	return { current: readonly(current), show, act, offer, setFocused, setPressed, listeners }
+	return { current: readonly(current), detailed: readonly(detailed), show, showError, dismiss: hide, openDetails, closeDetails, act, offer, setFocused, setPressed, listeners }
 }

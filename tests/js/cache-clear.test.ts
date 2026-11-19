@@ -15,7 +15,7 @@ describe('clearCacheWithToast', () => {
 		const toasts: string[] = []
 		let cleared = 0
 
-		await clearCacheWithToast(async () => void cleared++, (message) => void toasts.push(message))
+		await clearCacheWithToast(async () => void cleared++, (message) => void toasts.push(message), () => undefined)
 
 		expect(cleared).toBe(1)
 		expect(toasts).toEqual(['Cache cleared'])
@@ -41,7 +41,7 @@ describe('cleanUpWithToast', () => {
 	it.each([[12, 'Removed 12 orphaned entries'], [1, 'Removed 1 orphaned entry'], [0, 'Nothing was orphaned']])('cleans up %i entries and says so', async (removed, message) => {
 		const toasts: string[] = []
 
-		await cleanUpWithToast(async () => removed, (text) => void toasts.push(text))
+		await cleanUpWithToast(async () => removed, (text) => void toasts.push(text), () => undefined)
 
 		expect(toasts).toEqual([message])
 	})

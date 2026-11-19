@@ -65,6 +65,8 @@ export interface DeleteFlowContext {
 	readonly removeFiles: (fileIds: ReadonlySet<number>) => ReadonlyMap<Picture<ListingEntry>, Picture<ListingEntry> | null>
 	readonly loupe: Ref<LoupeSnapshot | null>
 	readonly toast: (message: string, action?: ToastAction | null) => void
+	/** Says a failure and keeps it until the user closes it. */
+	readonly error: (message: string) => void
 	/** Overrides the request size of ADR 0029, for tests. */
 	readonly chunks?: ChunkLimits | undefined
 }
@@ -183,7 +185,7 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 		} catch (error) {
 			logger.error('Could not move the files to the trash bin', { error })
 			dialog.value = null
-			context.toast(error instanceof TrashBinOffError
+			context.error(error instanceof TrashBinOffError
 				? t('honeycomb', 'The Nextcloud trash bin is off, so nothing was deleted. honeycomb deletes only into the trash bin.')
 				: t('honeycomb', 'Could not delete the photos; reload the folder to see what changed.'))
 		} finally {
