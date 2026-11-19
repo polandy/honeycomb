@@ -14,8 +14,7 @@ written through to the picture's sidecars, so digiKam, darktable and Lightroom s
 ## Behaviour
 
 **Concept D (ADR 0040).** A tag change is written through for every rateable picture, shared or
-not (.22). M8 PR 5 dropped the stored tags; M8 PR 6 makes a read-only picture untaggable
-(XMP-008.13). Until then the text below holds.
+not (.22); a read-only picture cannot be tagged (XMP-008.13).
 
 **A picture's tags** are the union of its members' sidecar tags, sorted, read when a cull opens and
 again when the pairing settings change.
@@ -47,8 +46,8 @@ tag is left. The JPEG gets its new sidecar also when no tag is left but its embe
 so the removal lasts. Only the three tag fields change (XMP-004); the decision fields stay as the
 sidecar holds them. Changes waiting for the same pass are applied in order and saved once
 (XMP-003.16). A sidecar answering `changed` is read again and gets the change once more. A sidecar
-that cannot be written is reported like a decision's (XMP-003.13); *Retry failed sidecars* applies
-the same change again.
+that cannot be written is reported like a decision's (XMP-003.13), and its picture gets back the
+tags it had before the change (.23); the other pictures keep it.
 
 **Files moved back.** Files put back into the cull (an undone delete) have their sidecars read.
 
@@ -124,12 +123,11 @@ reported (TAGS-002.13).
 
 Withdrawn by ADR 0040 (M8 PR 3); tags are written through in a shared folder (.22).
 
-### TAGS-002.13 – A failed sidecar is retried with the same change
+### TAGS-002.13 – A failed sidecar is reported
 
 - **Given** a tag change whose sidecar answers `notPermitted`
-- **When** the write finishes and the user chooses *Retry failed sidecars*
-- **Then** the toast and report of XMP-003.13 appear, and the retry writes the same change to that
-  sidecar
+- **When** the write finishes
+- **Then** the toast and report of XMP-003.13 appear
 
 ### TAGS-002.14 – Files moved back have their tags read
 
@@ -178,8 +176,8 @@ Withdrawn by ADR 0040 (M8 PR 3); tags are written through in a shared folder (.2
 
 - **Given** a tag change for a picture whose embedded XMP lookup fails
 - **When** it is written through
-- **Then** none of its sidecars is saved, they are reported as not written, and *Retry failed
-  sidecars* looks the embedded XMP up again
+- **Then** none of its sidecars is saved, they are reported as not written, and the picture gets
+  back its earlier tags
 
 ### TAGS-002.21 – Tag saves go one at a time (removed)
 
@@ -191,7 +189,7 @@ The cull saves no tags to the database any more (ADR 0032, XMP-006.7).
 - **When** the user tags it
 - **Then** the change is written to its sidecars as in .9, without asking first
 
-### TAGS-002.23 – A failed tag write is taken back (gap)
+### TAGS-002.23 – A failed tag write is taken back
 
 - **Given** a tag change on two pictures, a sidecar of one answering `locked`
 - **When** the write ends
@@ -218,3 +216,4 @@ The cull saves no tags to the database any more (ADR 0032, XMP-006.7).
 | 2026-11-19 | M8 PR 3: tags are written through in a shared folder without asking (.12 removed; .22 implemented) |
 | 2026-11-19 | M8 PR 4: the migration is gone, so stored tags lock nothing; their read goes with the table in M8 PR 5 (.1, .3, .6) |
 | 2026-11-19 | M8 PR 5: no stored tags are read (.1, .3, .6 removed; .14 reads only the sidecars) |
+| 2026-11-19 | M8 PR 6: a failed tag write is taken back, no retry (.13, .20 changed, .23 implemented) |

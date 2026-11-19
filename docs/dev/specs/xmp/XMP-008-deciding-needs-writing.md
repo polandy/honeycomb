@@ -15,9 +15,6 @@ picture with the reason.
 
 ## Behaviour
 
-ADR 0040 replaces the six locks of ADR 0032 by two states; M8 PR 6 takes back failed writes,
-until then .15 to .17 are gaps.
-
 **Two states (ADR 0040, M8 PR 3).** A picture is *rateable* when the folder of every member
 grants UPDATE (2) and CREATE (4) in the listing's `permissions` (LISTING-001), otherwise *read
 only*. A folder the listing does not name counts as rateable; the server checks every save again
@@ -29,9 +26,11 @@ lock on each read-only tile (GRID-001.20), the loupe greys its controls (LOUPE-0
 
 **Failed writes (ADR 0040, M8 PR 6).** A rating, colour label or tag whose sidecar write fails
 (`locked`, `notPermitted`, `changed` after the second read, `failed`, `noSpace`, or a sidecar
-that is not XMP) is taken back for that picture, and the toast names the reason; the other
-pictures of the step stay changed. A flag or *Keep RAW* save that fails is taken back the same
-way.
+that is not XMP) is taken back for that picture, and the failure toast of XMP-003.13 names the
+reason; the other pictures of the step stay changed. A flag or *Keep RAW* save that fails, or that
+the server skips, is taken back the same way, logged, and a toast says how many photos were not
+saved. Only the fields that still hold what the failed write set are taken back, so a later step
+on the picture wins.
 
 **The order of reasons.** A step that leaves pictures unchanged names the reason, `readOnly`.
 The loupe's info panel says per picture why nothing is written.
@@ -104,7 +103,7 @@ Withdrawn by ADR 0040 (M8 PR 3); .12 and .14 replace it.
 - **Then** it is rateable, and a step on it asks nothing first; a listing item of another shape is
   dropped and counts as not named
 
-### XMP-008.13 – One rule for all six values (gap)
+### XMP-008.13 – One rule for all six values
 
 - **Given** a picture with a member folder that grants READ and UPDATE but not CREATE
 - **When** the user flags, rates, labels, marks *Keep RAW* or tags it, alone or in a step
@@ -118,27 +117,28 @@ Withdrawn by ADR 0040 (M8 PR 3); .12 and .14 replace it.
   changed: read only* with *Undo* and *Details*, which unfold each read-only photo's name; with all
   ten read only nothing is taken and the toast says *Not changed: read only*
 
-### XMP-008.15 – A failed sidecar write is taken back for its picture (gap)
+### XMP-008.15 – A failed sidecar write is taken back for its picture
 
 - **Given** three stars on ten rateable pictures, one sidecar of them answering `locked`
 - **When** the write ends
-- **Then** nine keep the stars, the one gets back its earlier rating, and the toast says *9 photos
-  changed; 1 not saved: the file is locked* with *Details*; the same holds for `notPermitted`,
-  `changed`, `failed` and a sidecar that is not XMP, with their own words
+- **Then** nine keep the stars, the one gets back its earlier rating, and the toast says *Could not
+  write 1 sidecar.* with the text for `locked` (XMP-003.33) and *Details*; the same holds for
+  `notPermitted`, `changed`, `failed` and a sidecar that is not XMP, with their own words
 
-### XMP-008.16 – A full storage is named (gap)
+### XMP-008.16 – A full storage is named
 
 - **Given** a sidecar save that fails because the storage or the owner's quota is full
 - **When** the server answers
 - **Then** the sidecar is answered `noSpace`, the change is taken back for its picture, and the
-  toast says *not saved: no storage space left*
+  toast names the full storage (XMP-003.33)
 
-### XMP-008.17 – A failed flag save is taken back (gap)
+### XMP-008.17 – A failed flag save is taken back
 
 - **Given** a flag on two pictures whose flag save fails with a server error
 - **When** the answer comes
 - **Then** both pictures get back their earlier flag and the failure is logged and shown in a
-  toast; a flag on a picture whose sidecar is locked is saved
+  toast; a flag on a picture whose sidecar is locked is saved, and an id the server skips is taken
+  back alone
 
 ## Out of scope
 
@@ -154,3 +154,4 @@ Withdrawn by ADR 0040 (M8 PR 3); .12 and .14 replace it.
 | 2026-11-19 | ADR 0040: two states, rateable and read only; failed writes are taken back (.1, .2, .4–.7, .9, .11 withdrawn; .12–.17 gaps) |
 | 2026-11-19 | M8 PR 3: rateable, read only and `legacy` (.3 changed, .1, .2, .4–.7, .9 removed; .12, .14 implemented) |
 | 2026-11-19 | M8 PR 4: no `legacy` state, so the order of reasons has one entry (.11 removed, .14) |
+| 2026-11-19 | M8 PR 6: failed writes taken back, the toast of XMP-003.13 names the reason (.13, .15–.17 implemented) |

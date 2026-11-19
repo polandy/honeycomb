@@ -121,13 +121,13 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 - **Then** its file ids are looked up 1,000 at a time in the user's files, shares included, not
   one by one, and the same ids are reached as by a lookup of each (ADR 0038)
 
-### XMP-006.12 – The flag fields serve the take-over and the count (gap)
+### XMP-006.12 – The flag fields serve the take-over and the count
 
 - **Given** a picture with a row in `honeycomb_flags` saying *rejected*, whose sidecar's cache row
   states picked
 - **When** the cull opens
-- **Then** the picture shows *rejected*, no take-over is sent, and *Write picks/rejects to XMP*
-  counts the sidecar as differing
+- **Then** the picture shows *rejected* and no take-over is sent; *Write picks/rejects to XMP*
+  counting the sidecar as differing is XMP-003.39
 
 ## Out of scope
 
@@ -142,3 +142,4 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 | 2026-11-18 | The cull reads through the cache and stores the rows of the sidecars it saves (XMP-006.7, .10); a save feeds the tag list (.9) |
 | 2026-11-18 | A save looks its file ids up 1,000 at a time (XMP-006.11, ADR 0038) |
 | 2026-11-19 | ADR 0040: the flag fields serve only the take-over and the export count (.12 gap until M8 PR 6) |
+| 2026-11-19 | M8 PR 6: a row wins over the cached flag fields (.12 implemented, its count with XMP-003.39) |
