@@ -6,9 +6,10 @@ import type { SidecarWrites } from '../../src/cull-seams.ts'
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { useCull } from '../../src/cull.ts'
+import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { useBundledSidecars } from '../../src/sidecar-bundle.ts'
 import { useSidecarSync } from '../../src/sidecar-sync.ts'
-import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET, WRITING_ON } from './app-cull.ts'
+import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
 import { access } from './cull-sidecars-fake.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
 import { CANONICAL_TIME } from './logic/xmp/xmp-builders.ts'
@@ -36,7 +37,7 @@ async function bundledCull(over?: SidecarWrites) {
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,
-	}, fakeStorage(), () => WRITING_ON, sidecars, () => undefined)
+	}, fakeStorage(), () => DEFAULT_SETTINGS, sidecars)
 	cull.open(SET, ENTRIES, access())
 	await flushPromises()
 	return { cull, sidecars, settle, writes, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }

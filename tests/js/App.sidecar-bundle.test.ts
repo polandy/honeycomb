@@ -30,7 +30,7 @@ async function openLoupe() {
 		},
 		now: () => CANONICAL_TIME,
 	}
-	const mounted = mountApp({ sidecars, loadSettings: async () => ({ sidecarWrite: 'on' }), schedule: fakeScheduler().schedule }, [], { NcDialog: DialogStub, PhotoLoupe: false })
+	const mounted = mountApp({ sidecars, schedule: fakeScheduler().schedule }, [], { NcDialog: DialogStub, PhotoLoupe: false })
 	await flushPromises()
 	await openCull(mounted.wrapper, SET, [...ENTRIES, listingEntry(5, '/Trip/A/IMG_9.JPG.xmp')])
 	mounted.wrapper.findComponent(PhotoGrid).vm.$emit('open', 1)

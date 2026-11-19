@@ -12,7 +12,7 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import SettingsDialog from '../../src/components/SettingsDialog.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { mountApp, openCull, shownNames, WRITING_ON } from './app-cull.ts'
+import { mountApp, openCull, shownNames } from './app-cull.ts'
 
 enableAutoUnmount(afterEach)
 
@@ -44,7 +44,7 @@ describe('App: the settings', () => {
 		await flushPromises()
 
 		expect(shownNames(wrapper)).toEqual(['IMG_10'])
-		expect(savedSettings).toEqual([{ ...WRITING_ON, showSingles: false }])
+		expect(savedSettings).toEqual([{ ...DEFAULT_SETTINGS, showSingles: false }])
 	})
 
 	// spec: SETTINGS-001.22
@@ -94,13 +94,13 @@ describe('App: the settings', () => {
 		wrapper.findComponent(PhotoGrid).vm.$emit('open', 0)
 		await flushPromises()
 		const loupe = wrapper.findComponent(PhotoLoupe)
-		expect(loupe.props('settings')).toEqual(WRITING_ON)
+		expect(loupe.props('settings')).toEqual(DEFAULT_SETTINGS)
 
 		loupe.vm.$emit('updateSettings', { flagButtonsShown: false })
 		await flushPromises()
 
-		expect(wrapper.findComponent(PhotoLoupe).props('settings')).toEqual({ ...WRITING_ON, flagButtonsShown: false })
-		expect(savedSettings).toEqual([{ ...WRITING_ON, flagButtonsShown: false }])
+		expect(wrapper.findComponent(PhotoLoupe).props('settings')).toEqual({ ...DEFAULT_SETTINGS, flagButtonsShown: false })
+		expect(savedSettings).toEqual([{ ...DEFAULT_SETTINGS, flagButtonsShown: false }])
 	})
 
 	// spec: SETTINGS-001.25
@@ -129,6 +129,6 @@ describe('App: the settings', () => {
 		document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'J', shiftKey: true, bubbles: true, cancelable: true }))
 		await flushPromises()
 		expect(wrapper.findComponent(PhotoGrid).props('fileNames')).toBe(false)
-		expect(savedSettings).toEqual([{ ...WRITING_ON, showFileNames: true }, { ...WRITING_ON, showFileNames: false }])
+		expect(savedSettings).toEqual([{ ...DEFAULT_SETTINGS, showFileNames: true }, { ...DEFAULT_SETTINGS, showFileNames: false }])
 	})
 })

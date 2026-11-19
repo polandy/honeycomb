@@ -20,24 +20,23 @@ describe('countFolderSet', () => {
 
 		const count = countFolderSet([{ entries: [...pair, single], truncated: false }, { entries: [single], truncated: false }], DEFAULT_PAIRING_SETTINGS)
 
-		expect(count).toEqual({ entries: [...pair, single], pictures: 2, folders: 2, firstFolder: '/A', overCap: false, access: { folders: [], opened: [] } })
+		expect(count).toEqual({ entries: [...pair, single], pictures: 2, folders: 2, firstFolder: '/A', overCap: false, access: { folders: [] } })
 	})
 
 	it('has no first folder and nothing over the cap without pictures', () => {
-		expect(countFolderSet([{ entries: [], truncated: false }], DEFAULT_PAIRING_SETTINGS)).toEqual({ entries: [], pictures: 0, folders: 0, firstFolder: null, overCap: false, access: { folders: [], opened: [] } })
+		expect(countFolderSet([{ entries: [], truncated: false }], DEFAULT_PAIRING_SETTINGS)).toEqual({ entries: [], pictures: 0, folders: 0, firstFolder: null, overCap: false, access: { folders: [] } })
 	})
 
-	// spec: XMP-003.14
-	// spec: XMP-008.4
-	it('collects the folders of every listing, each once, and every opened folder', () => {
-		const team = { path: '/A/Team', shared: true, permissions: 31, versions: true }
-		const b = { path: '/B', shared: false, permissions: 1, versions: true }
+	// spec: XMP-008.12
+	it('collects the folders of every listing, each once', () => {
+		const team = { path: '/A/Team', permissions: 31 }
+		const b = { path: '/B', permissions: 1 }
 		const listings = [
-			{ entries: [], truncated: false, folders: [team], opened: { path: '/A', fileId: 7 } },
-			{ entries: [], truncated: false, folders: [team, b], opened: null },
+			{ entries: [], truncated: false, folders: [team] },
+			{ entries: [], truncated: false, folders: [team, b] },
 		]
 
-		expect(countFolderSet(listings, DEFAULT_PAIRING_SETTINGS).access).toEqual({ folders: [team, b], opened: [{ path: '/A', fileId: 7 }] })
+		expect(countFolderSet(listings, DEFAULT_PAIRING_SETTINGS).access).toEqual({ folders: [team, b] })
 	})
 
 	it('is over the cap when a listing is truncated', () => {

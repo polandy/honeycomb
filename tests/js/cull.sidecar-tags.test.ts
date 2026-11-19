@@ -34,16 +34,16 @@ describe('useCull: tags', () => {
 		expect(cull.decisionOf(picture('IMG_9')).flag).toBe('picked')
 	})
 
-	// spec: TAGS-002.9, TAGS-002.12
-	it('writes a tag change through outside shared folders only', async () => {
+	// spec: TAGS-002.9, TAGS-002.22
+	it('writes a tag change through wherever the folder grants update and create, a shared one too', async () => {
 		const { cull, tagWrites, picture } = cullWith()
 		const change = { added: ['Anna'], removed: [] }
-		cull.open(SET, ENTRIES, access({ '/Trip/B': { shared: true } }))
+		cull.open(SET, ENTRIES, access({ '/Trip/A': 1 }))
 		await flushPromises()
 
 		cull.tags.change([picture('IMG_2'), picture('IMG_10')], change)
 
-		expect(tagWrites).toEqual([{ names: ['IMG_10'], change }])
+		expect(tagWrites).toEqual([{ names: ['IMG_2'], change }])
 	})
 
 	// spec: TAGS-002.14

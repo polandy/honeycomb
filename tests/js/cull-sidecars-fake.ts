@@ -4,9 +4,9 @@ import type { SidecarWrites } from '../../src/cull-seams.ts'
 import type { Decision, StoredDecision } from '../../src/logic/decision.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
-import type { Settings, SidecarWrite } from '../../src/logic/settings.ts'
+import type { Settings } from '../../src/logic/settings.ts'
 import type { StoredTags, Tag, TagChange } from '../../src/logic/tag.ts'
-import type { FolderAccess, ListedAccess, WriteLock } from '../../src/logic/writability.ts'
+import type { ListedAccess } from '../../src/logic/writability.ts'
 
 import { shallowRef } from 'vue'
 import { useCull } from '../../src/cull.ts'
@@ -17,20 +17,18 @@ import { fakeStorage, NO_SERIES, SAVED_SERIES } from './app-cull.ts'
 /** A decision of three stars, rejected. */
 export const THREE_REJECTED: Decision = { ...UNDECIDED, rating: 3, flag: 'rejected' }
 
-/** The listing's access of `/Trip` opened as file id 7, with the given folders changed from plain and writable. */
-export function access(changed: Record<string, Partial<FolderAccess>> = {}): ListedAccess {
-	const folder = (path: string): FolderAccess => ({ path, shared: false, permissions: 31, versions: true, ...changed[path] })
-	return { folders: ['/Trip/A', '/Trip/B'].map(folder), opened: [{ path: '/Trip', fileId: 7 }] }
+/** The listing's access of `/Trip/A` and `/Trip/B`, every permission unless `permissions` names others. */
+export function access(permissions: Record<string, number> = {}): ListedAccess {
+	return { folders: ['/Trip/A', '/Trip/B'].map((path) => ({ path, permissions: permissions[path] ?? 31 })) }
 }
 
 /** A cull whose sidecars read as `takenOver` and whose writes are recorded. */
-export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<string, Decision>>, storedTags?: StoredTags[], tagsTakenOver?: Map<string, Tag[]>, tagLookupFails?: boolean, sidecarWrite?: SidecarWrite } = {}) {
-	const locks: WriteLock[] = []
+export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<string, Decision>>, storedTags?: StoredTags[], tagsTakenOver?: Map<string, Tag[]>, tagLookupFails?: boolean } = {}) {
 	const reads: string[][] = []
 	const tagWrites: { names: string[], change: TagChange }[] = []
 	const tagLookups: number[][] = []
 	const writes: { name: string, decision: Decision, fields: readonly string[] }[][] = []
-	const settings = shallowRef<Settings>({ ...DEFAULT_SETTINGS, sidecarWrite: options.sidecarWrite ?? 'on' })
+	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
 	const sidecars: SidecarWrites = {
 		read: async (pictures) => {
 			reads.push(pictures.map((picture) => picture.baseName))
@@ -68,7 +66,7 @@ export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promi
 			},
 			loadTagList: async () => [],
 		},
-	}, fakeStorage(), () => settings.value, sidecars, (lock) => locks.push(lock))
+	}, fakeStorage(), () => settings.value, sidecars)
 	const picture = (name: string): Picture<ListingEntry> => cull.pictures.value.find((each) => each.baseName === name)!
-	return { cull, reads, writes, settings, picture, tagWrites, tagLookups, locks }
+	return { cull, reads, writes, settings, picture, tagWrites, tagLookups }
 }

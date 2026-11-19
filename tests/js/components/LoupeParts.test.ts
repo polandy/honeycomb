@@ -130,18 +130,15 @@ describe('LoupeInfo', () => {
 		expect(infoRows(wrapper)['Written to']).toBe('IMG_1.JPG.xmp, IMG_1.xmp')
 	})
 
-	// spec: TAGS-004.9, XMP-008.7
+	// spec: TAGS-004.9
 	it('names the sidecars a writable picture writes, and why a locked one writes none', () => {
 		const picture = pictureOf(listingEntry(1, '/P/IMG_1.JPG'), listingEntry(2, '/P/IMG_1.CR3', { mime: 'image/x-canon-cr3' }), listingEntry(3, '/P/IMG_1.CR3.xmp', { mime: 'application/octet-stream' }))
 		const writtenTo = (writability?: Writability) => infoRows(mountInfo(picture, UNDECIDED, { tags: ['Anna'], ...(writability === undefined ? {} : { writability }) }))['Written to']
 
 		expect(writtenTo('writable')).toBe('IMG_1.CR3.xmp, IMG_1.JPG.xmp')
-		expect(writtenTo('off')).toBe('Not written, off in the settings')
-		expect(writtenTo()).toBe('Not written, off in the settings')
+		expect(writtenTo()).toBe('IMG_1.CR3.xmp, IMG_1.JPG.xmp')
 		expect(writtenTo('readOnly')).toBe('Not written, read-only folder')
-		expect(writtenTo('shared')).toBe('Not written, shared folder not confirmed')
-		expect(writtenTo('noVersions')).toBe('Not written, the folder keeps no versions')
-		expect(writtenTo('refused')).toBe('Not written, a sidecar was refused')
+		expect(writtenTo('legacy')).toBe('Not written, stored decisions not yet in its sidecars')
 	})
 
 	// spec: TAGS-004.8, LOUPE-001.23

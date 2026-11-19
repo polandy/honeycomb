@@ -14,7 +14,7 @@ import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { useLoupeOpening } from '../../src/loupe-opening.ts'
 import { useSelectionMode } from '../../src/selection-mode.ts'
 import { useSeriesCompare } from '../../src/series-compare.ts'
-import { ENTRIES, fakeStorage, fakeViewState, NO_LEGACY, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET, WRITING_ON } from './app-cull.ts'
+import { ENTRIES, fakeStorage, fakeViewState, NO_LEGACY, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
 
 /** One call of a context action: its name and arguments. */
 export type ContextCall = [name: string, ...args: unknown[]]
@@ -46,7 +46,7 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,
-	}, fakeStorage(), () => WRITING_ON, NO_SIDECARS, () => undefined)
+	}, fakeStorage(), () => DEFAULT_SETTINGS, NO_SIDECARS)
 	cull.open(SET, entries)
 	await flushPromises()
 	const opening = useLoupeOpening(async (index) => record('reveal')(index), () => true)

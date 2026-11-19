@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { ListingEntry } from '../../src/logic/listing.ts'
-import type { Picture } from '../../src/logic/pairing.ts'
 import type { SendProgress } from '../../src/logic/request-chunks.ts'
 import type { SidecarSaveAnswer, SidecarSaveItem } from '../../src/logic/sidecar-sync.ts'
 import type { ToastAction } from '../../src/toast.ts'
@@ -51,7 +49,7 @@ function flowWith(answer: (item: SidecarSaveItem) => SidecarSaveAnswer = () => (
 			return items.map(answer)
 		},
 		now: () => CANONICAL_TIME,
-	}, (message, action) => void toasts.push({ message, action: action ?? null }), () => undefined, async (fileIds) => {
+	}, (message, action) => void toasts.push({ message, action: action ?? null }), async (fileIds) => {
 		acknowledged.push([...fileIds])
 		return true
 	})
@@ -59,19 +57,23 @@ function flowWith(answer: (item: SidecarSaveItem) => SidecarSaveAnswer = () => (
 }
 
 const rated = () => ({ ...UNDECIDED, rating: 3 })
-const NONE_SKIPPED = () => false
 
 describe('useSidecarFlow: writing through', () => {
-	// spec: XMP-003.13, XMP-003.33
-	it('names the reason in the toast of a failed write, and Details names each sidecar', async () => {
-		const { flow, toasts } = flowWith(() => ({ result: 'noVersions' }))
+	// spec: XMP-003.13, XMP-003.33, XMP-002.12
+	it.each([
+		['locked', 'The sidecar is locked (another process is writing to it)'],
+		['notPermitted', 'You may not change this sidecar or create files in its folder'],
+		['changed', 'The sidecar changed again while honeycomb wrote it'],
+		['noSpace', 'No storage space left for the sidecar; free some space or ask the folder\'s owner'],
+	] as const)('names the reason in the toast of a failed write (%s), and Details names each sidecar', async (result, reason) => {
+		const { flow, toasts } = flowWith(() => ({ result }))
 
 		await flow.sync.write([writesOf(1)[0]!.picture], rated)
 		await flushPromises()
 
-		expect(toasts.map(({ message, action }) => [message, action?.label])).toEqual([['Could not write 1 sidecar. File versions are off, so honeycomb does not overwrite an existing sidecar', 'Details']])
+		expect(toasts.map(({ message, action }) => [message, action?.label])).toEqual([[`Could not write 1 sidecar. ${reason}`, 'Details']])
 		toasts[0]!.action!.run()
-		expect(flow.report.value?.map(({ path, reason }) => [path, reason])).toEqual([['/P/IMG_1.JPG.xmp', 'noVersions']])
+		expect(flow.report.value?.map(({ path, reason }) => [path, reason])).toEqual([['/P/IMG_1.JPG.xmp', result]])
 	})
 })
 
@@ -81,7 +83,7 @@ describe('useSidecarFlow: the migration run', () => {
 		const { flow, progress, acknowledged, toasts } = flowWith()
 		flow.ask(writesOf(45))
 
-		const running = flow.confirm(rated, NONE_SKIPPED)
+		const running = flow.confirm(rated)
 		expect(flow.open.value).toBe(true)
 		await running
 		await flushPromises()
@@ -100,7 +102,7 @@ describe('useSidecarFlow: the migration run', () => {
 		const { flow, acknowledged, toasts } = flowWith((item) => ('fileId' in item && item.fileId === 1002 ? { result: 'notPermitted' } : { result: 'saved', fileId: 1, etag: 's', size: 1, mtime: 2 }))
 		flow.ask(writesOf(2))
 
-		await flow.confirm(rated, NONE_SKIPPED)
+		await flow.confirm(rated)
 		await flushPromises()
 
 		expect(acknowledged).toEqual([[1]])
@@ -115,7 +117,7 @@ describe('useSidecarFlow: the migration run', () => {
 		const { flow, acknowledged, toasts } = flowWith(undefined, true)
 		flow.ask(writesOf(2))
 
-		await flow.confirm(rated, NONE_SKIPPED)
+		await flow.confirm(rated)
 		await flushPromises()
 
 		expect(acknowledged).toEqual([])
@@ -131,7 +133,7 @@ describe('useSidecarFlow: the migration run', () => {
 
 		await flow.confirm(() => {
 			throw failure
-		}, NONE_SKIPPED)
+		})
 		await flushPromises()
 
 		expect(acknowledged).toEqual([])
@@ -145,54 +147,10 @@ describe('useSidecarFlow: the migration run', () => {
 		const { flow, acknowledged, toasts, progress } = flowWith()
 		flow.ask([])
 
-		await flow.confirm(rated, NONE_SKIPPED)
+		await flow.confirm(rated)
 
 		expect([acknowledged, progress]).toEqual([[], []])
 		expect(toasts.map(({ message }) => message)).toEqual(['No stored decisions to write here'])
 		expect(flow.open.value).toBe(false)
-	})
-
-	// spec: XMP-007.13
-	it('skips the pictures in shared folders not confirmed: saves none of their sidecars, keeps their rows and says how many', async () => {
-		const { flow, acknowledged, toasts, saves } = flowWith()
-		const writes = writesOf(3)
-		const skipped = new Set([writes[0]!.picture, writes[2]!.picture])
-		flow.ask(writes)
-
-		await flow.confirm(rated, (picture) => skipped.has(picture))
-		await flushPromises()
-
-		expect(saves).toEqual([[1002]])
-		expect(acknowledged).toEqual([[2]])
-		expect(toasts.map(({ message }) => message)).toEqual(['Wrote the decisions of 1 photo to sidecars; skipped 2 photos in shared folders not confirmed'])
-	})
-
-	// spec: XMP-007.13
-	it('writes the pictures of a folder confirmed since the last run', async () => {
-		const { flow, acknowledged, toasts } = flowWith()
-		const writes = writesOf(2)
-		let confirmed = false
-		const unconfirmed = (picture: Picture<ListingEntry>) => !confirmed && picture === writes[1]!.picture
-		flow.ask(writes)
-		await flow.confirm(rated, unconfirmed)
-		confirmed = true
-		flow.ask(writes)
-
-		await flow.confirm(rated, unconfirmed)
-		await flushPromises()
-
-		expect(acknowledged).toEqual([[1], [1, 2]])
-		expect(toasts.map(({ message }) => message)).toEqual(['Wrote the decisions of 1 photo to sidecars; skipped 1 photo in a shared folder not confirmed', 'Wrote the decisions of 2 photos to sidecars'])
-	})
-
-	// spec: XMP-007.13
-	it('writes nothing when every picture is skipped and says so', async () => {
-		const { flow, acknowledged, toasts, saves } = flowWith()
-		flow.ask(writesOf(2))
-
-		await flow.confirm(rated, () => true)
-
-		expect([acknowledged, saves]).toEqual([[], []])
-		expect(toasts.map(({ message }) => message)).toEqual(['No stored decisions to write here; skipped 2 photos in shared folders not confirmed'])
 	})
 })

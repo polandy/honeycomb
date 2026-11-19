@@ -9,7 +9,8 @@ import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
-import { fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET, stored, WRITING_ON } from './app-cull.ts'
+import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
+import { fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET, stored } from './app-cull.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
 afterEach(() => vi.restoreAllMocks())
@@ -26,7 +27,7 @@ function openedCull(entries: readonly ListingEntry[], api: Partial<CullApi> = {}
 		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,
 		...api,
-	}, fakeStorage(), () => WRITING_ON, NO_SIDECARS, () => undefined)
+	}, fakeStorage(), () => DEFAULT_SETTINGS, NO_SIDECARS)
 	cull.open(SET, entries)
 	return cull
 }

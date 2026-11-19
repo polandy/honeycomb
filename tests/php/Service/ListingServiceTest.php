@@ -11,15 +11,12 @@ use OCA\Honeycomb\Service\EntryFactory;
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\ListingService;
-use OCA\Honeycomb\Service\SharedFolders;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\VisualHash;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotPermittedException;
 use OCP\FilesMetadata\IFilesMetadataManager;
-use OCP\Share\IManager as IShareManager;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -31,7 +28,7 @@ final class ListingServiceTest extends TestCase {
 		$manager->method('getMetadataForFiles')->willReturnCallback(
 			static fn (array $ids): array => array_intersect_key($metadata, array_flip($ids)),
 		);
-		return new ListingService(new UserFolderResolver($root), new EntryFactory($manager, $hashes), new SharedFolders($this->createStub(IShareManager::class), $this->createStub(IUserMountCache::class)), $this->fileVersions(), $entryLimit);
+		return new ListingService(new UserFolderResolver($root), new EntryFactory($manager, $hashes), $entryLimit);
 	}
 
 	// spec: LISTING-001.1
@@ -50,11 +47,10 @@ final class ListingServiceTest extends TestCase {
 
 		$this->assertSame([1, 2, 3], array_column($this->entriesOf($listing), 'fileId'));
 		$this->assertFalse($listing->jsonSerialize()['truncated']);
-		// spec: LISTING-001.12
-		$this->assertSame([['path' => '/Photos', 'shared' => false, 'permissions' => 31, 'versions' => true]], $listing->jsonSerialize()['folders']);
+		// spec: LISTING-001.19
+		$this->assertSame([['path' => '/Photos', 'permissions' => 31]], $listing->jsonSerialize()['folders']);
 	}
 
-	// spec: XMP-008.4
 	public function testNamesTheListedFolderByItsFileId(): void {
 		$folder = $this->folder('/Photos', fileId: 42);
 		$folder->method('getDirectoryListing')->willReturn([]);

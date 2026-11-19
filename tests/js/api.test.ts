@@ -29,7 +29,7 @@ describe('listEntries', () => {
 
 		const listing = await listEntries('/Photos', true)
 
-		expect(listing).toEqual({ entries: [ENTRY], truncated: true, folders: [], opened: null })
+		expect(listing).toEqual({ entries: [ENTRY], truncated: true, folders: [] })
 		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/entries', { params: { path: '/Photos', subfolders: 1 } })
 	})
 
@@ -42,27 +42,24 @@ describe('listEntries', () => {
 		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/entries', { params: { path: '' } })
 	})
 
-	// spec: XMP-003.14
-	// spec: XMP-008.4
-	it('returns the folders with their access and the opened folder by its file id', async () => {
-		const folders = [{ path: '/Photos/Team', shared: true, permissions: 1, versions: false }, { path: '/Photos', shared: false, permissions: 31, versions: true }]
+	// spec: LISTING-001.19, XMP-008.12
+	it('returns the folders with their path and permissions', async () => {
+		const folders = [{ path: '/Photos/Team', permissions: 1 }, { path: '/Photos', permissions: 31 }]
 		vi.mocked(axios.get).mockResolvedValue({ data: { entries: [ENTRY], truncated: false, folders, fileId: 7 } })
 
 		const listing = await listEntries('/Photos', true)
 
-		expect(listing.folders).toEqual(folders)
-		expect(listing.opened).toEqual({ path: '/Photos', fileId: 7 })
+		expect(listing).toEqual({ entries: [ENTRY], truncated: false, folders })
 	})
 
-	// spec: XMP-008.1
-	it('drops a folder item of the wrong shape and an opened folder without a file id', async () => {
-		const folders = [{ path: '/Photos', shared: true }, 'oops', { path: '/Photos/A', shared: false, permissions: 31, versions: true }]
-		vi.mocked(axios.get).mockResolvedValue({ data: { entries: [], truncated: false, folders, fileId: '7' } })
+	// spec: XMP-008.12
+	it('drops a folder item of the wrong shape and keeps only path and permissions', async () => {
+		const folders = [{ path: '/Photos' }, 'oops', { path: '/Photos/A', shared: false, permissions: 31, versions: true }]
+		vi.mocked(axios.get).mockResolvedValue({ data: { entries: [], truncated: false, folders } })
 
 		const listing = await listEntries('/Photos', true)
 
-		expect(listing.folders).toEqual([{ path: '/Photos/A', shared: false, permissions: 31, versions: true }])
-		expect(listing.opened).toBeNull()
+		expect(listing.folders).toEqual([{ path: '/Photos/A', permissions: 31 }])
 	})
 
 	it.each([

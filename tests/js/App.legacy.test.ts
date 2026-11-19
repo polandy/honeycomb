@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { LegacyExport, LegacyInventory } from '../../src/logic/legacy.ts'
-import type { SidecarWrite } from '../../src/logic/settings.ts'
 import type { AppWrapper } from './app-cull.ts'
 
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
@@ -16,8 +15,8 @@ enableAutoUnmount(afterEach)
 const INVENTORY: LegacyInventory = { folders: [{ path: '/Photos/A', files: 2 }, { path: '/Photos/B', files: 1 }], unreachable: 3 }
 const EXPORTED: LegacyExport = { decisions: [{ fileId: 7, rating: 1, colourLabel: null, flag: 'picked', keepRaw: false }], tags: [{ fileId: 8, tags: ['Anna'] }, { fileId: 9, tags: ['Ben'] }] }
 
-/** The app on a cull, over legacy endpoints answering `inventory`, with writing set as given. */
-async function openWith(inventory: LegacyInventory, sidecarWrite: SidecarWrite = 'on') {
+/** The app on a cull, over legacy endpoints answering `inventory`. */
+async function openWith(inventory: LegacyInventory) {
 	const reads: number[] = []
 	const listed: string[] = []
 	const acknowledged: number[][] = []
@@ -33,9 +32,9 @@ async function openWith(inventory: LegacyInventory, sidecarWrite: SidecarWrite =
 	const saveFile = (name: string, text: string) => void saved.push({ name, text })
 	const listEntries = async (path: string, subfolders: boolean) => {
 		listed.push(`${path}${subfolders ? ' +' : ''}`)
-		return { entries: path === '/Photos/B' ? ENTRIES : [], truncated: false, folders: [], opened: null }
+		return { entries: path === '/Photos/B' ? ENTRIES : [], truncated: false, folders: [] }
 	}
-	const mounted = mountApp({ legacy, saveFile, listEntries, loadSettings: async () => ({ sidecarWrite }) }, [], { NcDialog: DialogStub })
+	const mounted = mountApp({ legacy, saveFile, listEntries }, [], { NcDialog: DialogStub })
 	await flushPromises()
 	await openCull(mounted.wrapper)
 	return { ...mounted, reads, listed, acknowledged, saved }
@@ -106,11 +105,8 @@ describe('App: the notice of legacy rows', () => {
 	})
 
 	// spec: XMP-007.8
-	it.each<[string, LegacyInventory, SidecarWrite]>([
-		['without rows', { folders: [], unreachable: 0 }, 'on'],
-		['with writing Off', INVENTORY, 'off'],
-	])('shows no notice %s', async (_case, inventory, sidecarWrite) => {
-		const { wrapper } = await openWith(inventory, sidecarWrite)
+	it('shows no notice without rows', async () => {
+		const { wrapper } = await openWith({ folders: [], unreachable: 0 })
 
 		expect(notice(wrapper).exists()).toBe(false)
 	})

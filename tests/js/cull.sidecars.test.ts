@@ -112,74 +112,45 @@ describe('useCull: writing through to the sidecars', () => {
 		expect(writes.map((write) => write.map(({ name }) => name))).toEqual([['IMG_10']])
 	})
 
-	// spec: XMP-003.18, XMP-008.7
-	it('decides nothing and writes neither decisions nor tags with writing to sidecars off, and still reads', async () => {
-		const { cull, writes, tagWrites, reads, settings, picture, locks } = cullWith({ sidecarWrite: 'off' })
-		cull.open(SET, ENTRIES)
+	// spec: XMP-008.12
+	it('decides and writes through in every folder that grants update and create, without asking', async () => {
+		const { cull, writes, tagWrites, picture } = cullWith()
+		cull.open(SET, ENTRIES, access({ '/Trip/A': 7 }))
 		await flushPromises()
 
-		expect(cull.decide({ kind: 'rating', rating: 4 }, [picture('IMG_10')])).toBeNull()
-		cull.tags.change([picture('IMG_10')], { added: ['Anna'], removed: [] })
+		expect(cull.decide({ kind: 'rating', rating: 4 }, [picture('IMG_2'), picture('IMG_10')])?.names).toEqual(['IMG_2', 'IMG_10'])
+		cull.tags.change([picture('IMG_9')], { added: ['Anna'], removed: [] })
 		await flushPromises()
-		expect(writes).toEqual([])
-		expect(tagWrites).toEqual([])
-		expect(reads).toHaveLength(1)
-		expect(locks.map(({ reason, folders }) => [reason, folders])).toEqual([['off', []]])
 
-		settings.value = { ...settings.value, sidecarWrite: 'on' }
-		locks[0]!.retry()
-		await flushPromises()
-		expect(writes.map((write) => write.map(({ name, decision }) => [name, decision.rating]))).toEqual([[['IMG_10', 4]]])
+		expect(writes.map((write) => write.map(({ name, decision }) => [name, decision.rating]))).toEqual([[['IMG_2', 4], ['IMG_10', 4]]])
+		expect(tagWrites.map(({ names }) => names)).toEqual([['IMG_9']])
+		expect(cull.takeSkipped()).toEqual([])
 	})
 
-	// spec: XMP-003.11, XMP-003.14, XMP-008.4, XMP-008.7
-	it('asks to confirm a shared folder before deciding there, then writes through', async () => {
-		const { cull, writes, picture, settings, locks } = cullWith({ stored: [stored(1, 'picked')] })
-		cull.open(SET, ENTRIES, access({ '/Trip/A': { shared: true }, '/Trip/B': { shared: true } }))
-		await flushPromises()
-
-		expect(cull.decide({ kind: 'rating', rating: 4 }, [picture('IMG_9')])).toBeNull()
-		await flushPromises()
-		expect(writes).toEqual([])
-		expect(locks.map(({ reason, folders }) => [reason, folders])).toEqual([['shared', [{ path: '/Trip', fileId: 7 }]]])
-		expect(cull.sharedPictures.value.map((each) => each.baseName)).toEqual(['IMG_2', 'IMG_10', 'IMG_9'])
-		expect(cull.legacy.value.map(({ picture }) => [picture.baseName, cull.unconfirmedOf(picture)])).toEqual([['IMG_2', true]])
-
-		settings.value = { ...settings.value, confirmedSharedFolders: [7] }
-		expect(cull.unconfirmedOf(picture('IMG_2'))).toBe(false)
-		locks[0]!.retry()
-		await flushPromises()
-		expect(writes.map((write) => write.map(({ name }) => name))).toEqual([['IMG_9']])
-
-		cull.open(SET, ENTRIES)
-		expect(cull.sharedPictures.value).toEqual([])
-	})
-
-	// spec: XMP-008.3, XMP-008.5, XMP-008.9
-	it('takes nothing when every picture of a step is locked, nor when the picked one is, and names why', async () => {
-		const { cull, writes, picture, locks } = cullWith()
-		cull.open(SET, ENTRIES, access({ '/Trip/A': { permissions: 1 }, '/Trip/B': { versions: false } }))
+	// spec: XMP-008.3, XMP-008.14
+	it('takes nothing when every picture of a step is read-only, nor when the picked one is, and names why', async () => {
+		const { cull, writes, picture } = cullWith()
+		cull.open(SET, ENTRIES, access({ '/Trip/A': 1, '/Trip/B': 3 }))
 		await flushPromises()
 
 		expect(cull.decide({ kind: 'flag', flag: 'picked' }, [picture('IMG_2'), picture('IMG_10')])).toBeNull()
-		expect(cull.takeSkipped().map(({ picture, reason }) => [picture.baseName, reason])).toEqual([['IMG_2', 'noVersions'], ['IMG_10', 'readOnly']])
+		expect(cull.takeSkipped().map(({ picture, reason }) => [picture.baseName, reason])).toEqual([['IMG_2', 'readOnly'], ['IMG_10', 'readOnly']])
 		expect(cull.tag({ added: ['Anna'], removed: [] }, [picture('IMG_2')])).toBeNull()
-		expect(cull.takeSkipped().map(({ reason }) => reason)).toEqual(['noVersions'])
-		cull.open(SET, ENTRIES, access({ '/Trip/A': { permissions: 1 } }))
+		expect(cull.takeSkipped().map(({ reason }) => reason)).toEqual(['readOnly'])
+		cull.open(SET, ENTRIES, access({ '/Trip/A': 1 }))
 		await flushPromises()
 		expect(cull.pickRest(picture('IMG_10'), [picture('IMG_2')])).toBeNull()
 		expect(cull.takeSkipped().map(({ picture }) => picture.baseName)).toEqual(['IMG_10'])
 		await flushPromises()
 
 		expect(cull.takeSkipped()).toEqual([])
-		expect(locks).toEqual([])
 		expect(writes).toEqual([])
 	})
 
-	// spec: XMP-008.9, XMP-008.10
+	// spec: XMP-008.14, XMP-008.10
 	it('decides the writable pictures of a step as one undo step and leaves the locked ones', async () => {
 		const { cull, writes, picture } = cullWith()
-		cull.open(SET, ENTRIES, access({ '/Trip/A': { permissions: 1 } }))
+		cull.open(SET, ENTRIES, access({ '/Trip/A': 1 }))
 		await flushPromises()
 
 		const step = cull.decide({ kind: 'flag', flag: 'rejected' }, [picture('IMG_2'), picture('IMG_10'), picture('IMG_9')])
@@ -197,19 +168,5 @@ describe('useCull: writing through to the sidecars', () => {
 		expect(writes.slice(2).map((write) => write.map(({ name, decision }) => [name, decision.flag]))).toEqual([[['IMG_2', 'rejected']], [['IMG_2', 'unflagged']]])
 		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('unflagged')
 		expect(cull.undo()).toBeNull()
-	})
-
-	// spec: XMP-008.6
-	it('locks a picture once a write refused one of its sidecars', async () => {
-		const { cull, picture } = cullWith()
-		cull.open(SET, ENTRIES)
-		await flushPromises()
-
-		cull.refuse([{ path: '/Trip/B/IMG_2.JPG.xmp', picture: picture('IMG_2'), reason: 'malformed' }, { path: '/Trip/A/IMG_9.JPG.xmp', picture: picture('IMG_9'), reason: 'notPermitted' }])
-
-		expect(cull.writabilityOf(picture('IMG_2'))).toBe('refused')
-		expect(cull.writabilityOf(picture('IMG_9'))).toBe('writable')
-		cull.open(SET, ENTRIES)
-		expect(cull.writabilityOf(cull.pictures.value.find((each) => each.baseName === 'IMG_2')!)).toBe('writable')
 	})
 })
