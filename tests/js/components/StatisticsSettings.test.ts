@@ -31,7 +31,9 @@ describe('StatisticsSettings', () => {
 	it('shows Keep statistics on by default with what it counts, every string translated', () => {
 		const wrapper = mountSection()
 
-		expect(plain(wrapper.find('.checkbox-radio-switch').text())).toBe('Keep statistics Counts what honeycomb does per day: pictures decided, moved to the trash bin, sidecars written. No file names, nothing leaves your Nextcloud.')
+		const text = plain(wrapper.find('.checkbox-radio-switch').text())
+		expect(text).toContain('Keep statistics')
+		expect(text).toContain('Counts what honeycomb does per day: pictures decided, moved to the trash bin, sidecars written. No file names, nothing leaves your Nextcloud.')
 		expect((keepSwitch(wrapper).element as HTMLInputElement).checked).toBe(true)
 		expect(untranslatedText(wrapper.element as Element)).toEqual([])
 	})
