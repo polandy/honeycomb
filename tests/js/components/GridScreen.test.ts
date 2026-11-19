@@ -33,7 +33,7 @@ describe('GridScreen', () => {
 			view: { tileSize: expect.any(Number), groupByFolder: false, fileNames: false, sortOrder: 'capture-time', flags: new Set(['picked', 'unflagged']), filtersOpen: false, activeFilters: 0 },
 			progress: { decided: 0, total: 3, filtered: false },
 			selection: { selecting: false, selected: 0 },
-			tasks: { rejected: 1, series: 0, rawRemovable: 1, movable: 0, clearable: 0, resumeName: 'IMG_9' },
+			tasks: { rejected: 1, series: 0, rawRemovable: 1, movable: 0, clearable: 0, xmpToWrite: 0, resumeName: 'IMG_9' },
 		})
 	})
 

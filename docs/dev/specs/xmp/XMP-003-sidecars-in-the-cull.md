@@ -33,8 +33,8 @@ to write (GRID-001.21), writes the flag and *Keep RAW* of every rateable
 picture of the open folder set, whatever the filters show, into each of its sidecars whose flag
 fields or `honeycomb:KeepRaw` differ, as the XMP cache states them; *unflagged* removes the flag
 fields except an existing digiKam `PickLabel` 2, and a member without a sidecar gets `<member
-file>.xmp` only when the picture is flagged or kept. It uses the write path below, is no undo step,
-and reports in one toast. Until M8 PR 7 the criteria from .39 on are gaps.
+file>.xmp` only when the picture is flagged or kept. A sidecar the cache holds as refused is not
+counted and not written. It uses the write path below, is no undo step, and reports in one toast.
 
 **Reading.** When a cull opens, and again when the pairing settings change, each picture's
 sidecars (darktable duplicates excepted) and the JPEG whose embedded XMP counts (TAGS-002) are read
@@ -355,7 +355,7 @@ Withdrawn by ADR 0040 (M8 PR 6); the flag lives in the database, .34 to .38 repl
 - **Then** both members' rows are saved with the new state, and no sidecar is looked up, saved or
   created
 
-### XMP-003.39 – *Write picks/rejects to XMP* writes what differs, in the whole folder set (gap)
+### XMP-003.39 – *Write picks/rejects to XMP* writes what differs, in the whole folder set
 
 - **Given** an open folder set of two folders with a filter showing picked only, a rejected
   picture whose sidecar states picked, and a picked picture whose sidecar states picked
@@ -363,7 +363,7 @@ Withdrawn by ADR 0040 (M8 PR 6); the flag lives in the database, .34 to .38 repl
 - **Then** the first sidecar gets the reject fields, also though the filter hides it, and the
   second is not saved
 
-### XMP-003.40 – *Unflagged* removes the flag fields (gap)
+### XMP-003.40 – *Unflagged* removes the flag fields
 
 - **Given** an *unflagged* picture whose sidecar states `xmpDM:pick` 1, and one whose sidecar
   states `digiKam:PickLabel` 2
@@ -371,7 +371,7 @@ Withdrawn by ADR 0040 (M8 PR 6); the flag lives in the database, .34 to .38 repl
 - **Then** the first sidecar loses its flag fields, the second keeps `PickLabel` 2 and is not
   saved
 
-### XMP-003.41 – A sidecar is created only for a flagged or kept picture (gap)
+### XMP-003.41 – A sidecar is created only for a flagged or kept picture
 
 - **Given** a picked pair without sidecars and an *unflagged* pair without sidecars and without
   *Keep RAW*
@@ -379,14 +379,14 @@ Withdrawn by ADR 0040 (M8 PR 6); the flag lives in the database, .34 to .38 repl
 - **Then** the picked pair gets `IMG_0001.NEF.xmp` and `IMG_0001.JPG.xmp`, started from what its
   embedded XMP states; the other pair gets none
 
-### XMP-003.42 – The export reports in one toast and is no undo step (gap)
+### XMP-003.42 – The export reports in one toast and is no undo step
 
 - **Given** an export of 214 differing sidecars, 3 of them in a read-only folder, then one with
   nothing to write
 - **When** each finishes
-- **Then** the first toast says *211 XMP files written, 3 not written: read only* with *Details*,
-  the second *All XMP files are up to date*; undo afterwards takes back the step before the
-  export, and no sidecar
+- **Then** the first toast says *211 XMP files written, 3 not written. You may not change this
+  sidecar or create files in its folder* with *Details*, the second *All XMP files are up to date*;
+  undo afterwards takes back the step before the export, and no sidecar
 
 ## Out of scope
 
@@ -416,3 +416,4 @@ Withdrawn by ADR 0040 (M8 PR 6); the flag lives in the database, .34 to .38 repl
 | 2026-11-19 | M8 PR 4: the migration is gone; a stored row no longer locks its picture (.2 changed, .12 note) |
 | 2026-11-19 | M8 PR 5: `honeycomb_decisions` dropped, no stored row is read (.2 removed) |
 | 2026-11-19 | M8 PR 6: flags from the listing, taken over once, saved to the database; a failed write is taken back, so the report has no retry (.13 changed, .1, .6, .15, .21, .23 removed, .34–.38 implemented) |
+| 2026-11-19 | M8 PR 7: *Write picks/rejects to XMP* (.39–.42 implemented) |
