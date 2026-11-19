@@ -196,6 +196,7 @@ IMAGES-001.
 | 2026-11-13 | .19 the filmstrip starts at its left edge and stops at its right one (UX L7) |
 | 2026-11-14 | .25 the series chip and `N` open the compare on the shown series; .19 the frame's tab shows (series concept step 8) |
 | 2026-11-14 | .26 the first-series hint under the series chip (series concept step 11) |
+| 2026-11-19 | .25 the series chip is named by the text it shows (APP-001.15) |
 
 ### LOUPE-001.18 – One photo in view
 
@@ -272,8 +273,8 @@ IMAGES-001.
   that are not rejected, decided or not
 - **When** the title row shows
 - **Then** a series chip follows the position count: "⧉ 2/5" on a phone, "⧉ Series 2/5"
-  otherwise, the shown picture's place and the series' count, labelled "Photo 2 of a series of 5
-  – compare", a honey outline never filled, 44 px high (34 px with a fine pointer), its tooltip
+  otherwise, the shown picture's place and the series' count, labelled "Series 2/5: compare"
+  so the name holds the text it shows, a honey outline never filled, 44 px high (34 px with a fine pointer), its tooltip
   naming `N`; a tap on it or `N` opens the series compare on this series with the shown picture
   active (SERIES-001.24); a picture outside any series shows no chip and `N` does nothing
 

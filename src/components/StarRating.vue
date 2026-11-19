@@ -22,7 +22,7 @@ const RATINGS = [0, 1, 2, 3, 4, 5]
 /** What a rating button says to a screen reader. */
 function rateLabel(value: number) {
 	return value === 0
-		? t('honeycomb', 'Clear rating')
+		? t('honeycomb', 'Clear rating: 0 stars')
 		: n('honeycomb', 'Rate {count} star', 'Rate {count} stars', value, { count: formatNumber(value) })
 }
 

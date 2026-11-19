@@ -119,7 +119,7 @@ test('marks a series done from the compare\'s menu, its photos counted as decide
 	await page.getByRole('gridcell', { name: /^IMG_0001/ }).click()
 	const loupe = page.getByRole('dialog', { name: 'Loupe' })
 	await loupe.getByRole('dialog', { name: 'How to cull' }).getByRole('button', { name: 'Got it' }).click()
-	await loupe.getByRole('button', { name: 'Photo 1 of a series of 3 – compare' }).click()
+	await loupe.getByRole('button', { name: 'Series 1/3: compare' }).click()
 	await page.getByRole('button', { name: 'Series menu', exact: true }).click()
 	await page.getByRole('menuitemcheckbox', { name: /Series done/, checked: true }).click()
 	await expect(page.getByText('Reopened the series')).toBeVisible()
