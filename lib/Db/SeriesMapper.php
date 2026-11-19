@@ -129,7 +129,6 @@ final class SeriesMapper implements SeriesStore {
 		}, $this->db);
 	}
 
-	/** Whether the user has the series; Nextcloud counts matched rows on MySQL too. */
 	/**
 	 * Writes the item's status, open to done first, so the first statement is still a write.
 	 * @return array{int, bool} the series id, a new one for a null id or one the user does not have, and whether it became done
@@ -145,7 +144,7 @@ final class SeriesMapper implements SeriesStore {
 		return [$this->insertSeries($userId, $item->status), $done];
 	}
 
-	/** Sets the status of the user's series, only from `$from` when given; whether a series matched. */
+	/** Sets the status of the user's series, only from `$from` when given; whether a series matched (Nextcloud counts matched rows on MySQL too). */
 	private function updateStatus(string $userId, int $id, SeriesStatus $status, ?SeriesStatus $from = null): bool {
 		$query = $this->db->getQueryBuilder();
 		$query->update(self::SERIES_TABLE)
