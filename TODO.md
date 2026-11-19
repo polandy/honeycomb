@@ -9,7 +9,14 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Sidecar is the source of truth (M8, ADR 0032, #187): PR 9 drop the legacy tables a release after PR 6 (2026-11-15)
+- [ ] Sidecar is the source of truth (M8, ADR 0032, #187): PR 9 drop the legacy tables a release after PR 6 ; its repair step first writes the start value `pictures_decided_before` (ADR 0039, STATS-001.24) (2026-11-15)
+- [ ] Statistics (M9, STATS-001, ADR 0039): PR 2 table `honeycomb_stats`, read and reset API, *Keep statistics*, removal in `ForgetDeletedUser` (2026-11-19)
+- [ ] Statistics (M9, STATS-001): PR 3 count on the server: trash, deleted for good, Remove RAWs, sidecars created and updated, series done, moves (2026-11-19)
+- [ ] Statistics (M9, STATS-001): PR 4 *Cull finished* card with the session's numbers and before/after (2026-11-19)
+- [ ] Statistics (M9, STATS-001): PR 5 browser counts with the sidecar and position saves: decisions net of undo, active time, bounds in PHP (2026-11-19)
+- [ ] Statistics (M9, STATS-001): PR 6 statistics page: navigation entry, periods, tiles, bars, folder sets, days in a row (2026-11-19)
+- [ ] Statistics (M9, STATS-001): PR 7 start value with M8 PR 9 and the state of the pictures read so far from the XMP cache (2026-11-19)
+- [ ] Statistics (M9, STATS-001): PR 8 year in review, its one-time hint from 1 December, sidecars from digiKam or darktable (2026-11-19)
 
 ## Later
 

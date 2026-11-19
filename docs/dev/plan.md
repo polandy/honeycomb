@@ -143,6 +143,13 @@ database keeps a per-user XMP cache that is rebuilt from the files (XMP-006), an
 compatibility comes first. Decided by the owner on 2026-11-15 (#187); the rules, the permission
 model and the pull request order are in ADR 0032.
 
+### M9 – Statistics
+
+Daily counters of what honeycomb did for each user, a *Cull finished* card, a statistics page and
+a year in review (STATS-001, ADR 0039, mockup `docs/dev/mockup/statistics/index.html`). Decided by
+the owner on 2026-11-18 with the concept *Nutzen-Metriken*; eight pull requests, the first being
+mockup, ADR and spec. Statistics never write to a sidecar.
+
 ### Release – first App Store release
 
 Before it: Transifex setup ([Translations](#translations)), the signing certificate and the

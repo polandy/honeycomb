@@ -65,6 +65,9 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **tag list** | Every tag the user has, offered by the tag entry and the filter. |
 | **tag entry** | The field `T` opens, with autocomplete, to add and remove tags. |
 | **tag filter** | The filter bar's *Tags* group: a picture passes when it has every chosen tag or a tag beneath it. |
+| **statistics** | The daily counters of what honeycomb did for a user (pictures decided, moved to the trash bin, sidecars created and updated, series done, active time), and the page that shows them; no file ids (ADR 0039). |
+| **active time** | The seconds of a cull with an input at most 2 minutes earlier; a longer pause counts its first 2 minutes only. |
+| **streak** | Consecutive days, up to today or yesterday, with at least one counted action. Not a *series*. |
 
 ## Words and conventions in the UI
 
