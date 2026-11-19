@@ -15,7 +15,6 @@ import DeleteSummary from './DeleteSummary.vue'
 import PermanentDeleteWarning from './PermanentDeleteWarning.vue'
 import RawRemovalSummary from './RawRemovalSummary.vue'
 import RejectReview from './RejectReview.vue'
-import UncheckedDeleteWarning from './UncheckedDeleteWarning.vue'
 
 const props = defineProps<{
 	/** The open step of the delete, if any. */
@@ -73,14 +72,6 @@ const emit = defineEmits<{
 		:progress="props.progress"
 		:container="props.container"
 		@toggle="emit('toggleKeepRaw', $event)"
-		@cancel="emit('close')"
-		@confirm="emit('confirm')" />
-	<UncheckedDeleteWarning
-		v-else-if="props.dialog?.kind === 'unchecked'"
-		:count="props.dialog.count"
-		:busy="props.busy"
-		:progress="props.progress"
-		:container="props.container"
 		@cancel="emit('close')"
 		@confirm="emit('confirm')" />
 	<PermanentDeleteWarning

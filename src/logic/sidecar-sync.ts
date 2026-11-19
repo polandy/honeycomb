@@ -176,7 +176,7 @@ function editorOf(edit: SidecarEdit, pair: boolean, sources: readonly XmpPacket[
 }
 
 /** A sidecar of the picture as the reading rules take it. */
-export function sidecarBytes(picture: Picture<ListingEntry>, path: string, { mtime, bytes }: { readonly mtime: number, readonly bytes: Uint8Array }): SidecarBytes {
+function sidecarBytes(picture: Picture<ListingEntry>, path: string, { mtime, bytes }: { readonly mtime: number, readonly bytes: Uint8Array }): SidecarBytes {
 	return { name: path, mtime, ofRaw: isRawSidecar(picture, path), bytes }
 }
 
@@ -187,7 +187,7 @@ export function isRawSidecar(picture: Picture<ListingEntry>, path: string): bool
 }
 
 /** The JPEG's embedded XMP as the reading rules take it: the JPEG's own sidecar, at the JPEG's modification time. */
-export function embeddedBytes(jpeg: ListingEntry, bytes: Uint8Array): SidecarBytes {
+function embeddedBytes(jpeg: ListingEntry, bytes: Uint8Array): SidecarBytes {
 	return { name: jpeg.path, mtime: jpeg.mtime, ofRaw: false, bytes }
 }
 

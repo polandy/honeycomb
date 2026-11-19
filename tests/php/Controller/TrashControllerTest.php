@@ -16,6 +16,7 @@ use OCA\Honeycomb\Service\TrashService;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCA\Honeycomb\Tests\Service\FakeClock;
+use OCA\Honeycomb\Tests\Service\FakeFlagStore;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -62,7 +63,7 @@ final class TrashControllerTest extends TestCase {
 		$appConfig->method('getValueString')->willReturnArgument(2);
 		$guard = new TrashBinGuard($userConfig, $appConfig);
 		$spacing = new TrashNameSpacing($this->createStub(ITimeFactory::class), new FakeClock());
-		$trash = new TrashService(new UserPhotos(new UserFolderResolver($root)), $apps, $guard, $spacing, $this->createStub(LoggerInterface::class));
+		$trash = new TrashService(new UserPhotos(new UserFolderResolver($root)), $apps, $guard, $spacing, new FakeFlagStore(), $this->createStub(LoggerInterface::class));
 		return new TrashController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $trash);
 	}
 
@@ -83,6 +84,18 @@ final class TrashControllerTest extends TestCase {
 
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
 		$this->assertSame([], json_decode($response->render(), true));
+	}
+
+	// spec: DELETE-001.16
+	public function testPassesTheExpectationToTheCheck(): void {
+		$response = $this->controller()->trash([[['fileId' => 7, 'etag' => 'etag-7']]], 'rejected');
+
+		$this->assertSame(['pictures' => [[['fileId' => 7, 'result' => 'decisionChanged']]]], json_decode($response->render(), true));
+	}
+
+	// spec: DELETE-001.18
+	public function testAMalformedExpectationIsABadRequest(): void {
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->trash([[['fileId' => 7, 'etag' => 'etag-7']]], ['rejected'])->getStatus());
 	}
 
 	// spec: DELETE-001.5

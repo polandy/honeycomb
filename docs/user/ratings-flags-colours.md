@@ -12,12 +12,13 @@ While you stay on a photo, honeycomb collects your changes and writes them once 
 after two seconds without a change. Until then the grid tile shows a small white ring next to the
 stars. Leaving the page, deleting and moving write what still waits first.
 
-Deleting goes by the sidecars as they are now, not as honeycomb last saw them. [*Review rejects*](deleting.md)
-deletes a photo only when every sidecar of it still says rejected, and *Remove RAWs* only when none
-says *Keep RAW* or rejected. If someone changed a sidecar on the desktop in between, the photo is
-skipped and the report says why; reload the folder to see its current state. A deleted photo takes
-its sidecars into the trash bin with it. Before a RAW goes, its values are copied into the JPEG's
-own sidecar, so nothing you decided is lost; if that sidecar cannot be written, the RAW stays.
+Deleting goes by the flags as the server holds them as it deletes, not as honeycomb last showed
+them. [*Review rejects*](deleting.md) deletes a photo only while it is still rejected, and *Remove
+RAWs* only while it is neither *Keep RAW* nor rejected. If someone changed it in between, the
+photo is skipped and the report says why; reload the folder to see its current state. A deleted
+photo takes its sidecars into the trash bin with it. Before a RAW goes, its rating, colour label
+and tags are copied into the JPEG's own sidecar, so nothing you set is lost; if that sidecar cannot
+be written, the RAW stays.
 
 The technical details are in [`../06-xmp-interop.md`](../dev/06-xmp-interop.md).
 

@@ -25,12 +25,17 @@ final class FakeFlagStore implements FlagStore {
 	public int $writeCalls = 0;
 	/** @var ?FileFlag A row another save inserts just before the next take-over writes. */
 	public ?FileFlag $insertedMeanwhile = null;
+	/** @var bool Whether removing rows by file id fails, as a lost database connection would. */
+	public bool $removeFails = false;
 	/** @var bool Whether every read of row ids fails, as a lost database connection would. */
 	public bool $readFails = false;
 
 	#[\Override]
 	public function find(array $fileIds): array {
 		$this->findCalls[] = $fileIds;
+		if ($this->readFails) {
+			throw new FakeDbException(0);
+		}
 		return array_intersect_key($this->rows, array_flip($fileIds));
 	}
 
@@ -84,6 +89,14 @@ final class FakeFlagStore implements FlagStore {
 		$before = count($this->rows);
 		$this->rows = array_diff_key($this->rows, array_flip($ids));
 		return $before - count($this->rows);
+	}
+
+	#[\Override]
+	public function remove(array $fileIds): void {
+		if ($this->removeFails) {
+			throw new FakeDbException(0);
+		}
+		$this->rows = array_diff_key($this->rows, array_flip($fileIds));
 	}
 
 	private function write(): void {

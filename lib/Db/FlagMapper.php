@@ -66,6 +66,11 @@ final class FlagMapper implements FlagStore {
 		return array_map(static fn (FileFlag $flag): int => $flag->fileId, $missing);
 	}
 
+	#[\Override]
+	public function remove(array $fileIds): void {
+		$this->deleteFileRows(null, $fileIds);
+	}
+
 	/** A file's one flag follows it to the new file id, whoever set it. */
 	#[\Override]
 	public function carryOver(string $userId, int $fileId, int $newFileId): void {

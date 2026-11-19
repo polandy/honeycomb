@@ -92,20 +92,13 @@ export function skippedText(count: number): string {
 	return n('honeycomb', '{count} photo skipped', '{count} photos skipped', count, { count: formatNumber(count) }, PLAIN_TEXT)
 }
 
-/** "Fresh check not possible for %n photo", the question before a delete by decision sends photos unchecked (DELETE-002.25). */
-export function uncheckedText(count: number): string {
-	return n('honeycomb', 'Fresh check not possible for {count} photo', 'Fresh check not possible for {count} photos', count, { count: formatNumber(count) }, PLAIN_TEXT)
-}
-
 /** Why a delete by decision skipped a photo, in the user's words (DELETE-002.16). */
 export function skipReason(reason: SkipReason): string {
 	switch (reason) {
 		case 'changed':
 			return t('honeycomb', 'Its files changed since the folder was listed; reload the folder')
-		case 'unread':
-			return t('honeycomb', 'A sidecar could not be read')
-		case 'refused':
-			return t('honeycomb', 'A sidecar is not valid XMP')
+		case 'unlisted':
+			return t('honeycomb', 'Its folder could not be listed again')
 		case 'notRejected':
 			return t('honeycomb', 'No longer rejected')
 		case 'notRemovable':

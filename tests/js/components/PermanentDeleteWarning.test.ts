@@ -69,7 +69,7 @@ describe('PermanentDeleteWarning', () => {
 	// spec: DELETE-002.20
 	it('opens from the delete dialogs, which pass its confirm and cancel on', () => {
 		const wrapper = mount(DeleteDialogs, {
-			props: { dialog: { kind: 'permanent', files: FILES, report: REPORT, skipped: [], done: () => '' }, rejected: [], rawRemoval: null, folderSet: SET, folders: 2, busy: false },
+			props: { dialog: { kind: 'permanent', files: FILES, report: REPORT, skipped: [], done: () => '', expect: null }, rejected: [], rawRemoval: null, folderSet: SET, folders: 2, busy: false },
 			global: { stubs: { NcDialog: DialogStub } },
 		})
 		const shown = wrapper.findComponent(PermanentDeleteWarning)

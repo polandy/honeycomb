@@ -16,34 +16,38 @@ use OCP\IUser;
 use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
 
-/** Moves whole pictures into the trash bin: each checked whole, then trashed file by file (ADR 0013), files of one name in different seconds (ADR 0037); a file marked permanent the trash bin would not keep is deleted for good (ADR 0036). */
+/** Moves whole pictures into the trash bin: each checked whole, also against its flag rows, then trashed file by file (ADR 0013, ADR 0040), files of one name in different seconds (ADR 0037); a file marked permanent the trash bin would not keep is deleted for good (ADR 0036). */
 final class TrashService {
 	public function __construct(
 		private UserPhotos $photos,
 		private IAppManager $appManager,
 		private TrashBinGuard $trashBinGuard,
 		private TrashNameSpacing $spacing,
+		private FlagStore $flags,
 		private LoggerInterface $logger,
 	) {
 	}
 
 	/**
-	 * Trashes the files of each picture and reports each file, pictures and files in the order sent.
+	 * Trashes the files of each picture whose rows still say `$expect`, removes the rows of the files deleted and reports each file, pictures and files in the order sent.
 	 * @param array<array-key, mixed> $pictures
 	 * @return list<list<array{fileId: int, result: TrashResult}>>
 	 * @throws InvalidTrashRequestException for a malformed request; nothing is touched
 	 * @throws TrashBinDisabledException when deleting would not be restorable; nothing is touched
+	 * @throws \OCP\DB\Exception when the rows cannot be read; nothing is touched
 	 */
-	public function trash(IUser $user, array $pictures): array {
+	public function trash(IUser $user, array $pictures, mixed $expect = null): array {
 		$pictures = $this->parse($pictures);
+		$expectation = self::expectation($expect);
 		if (!$this->appManager->isEnabledForUser('files_trashbin', $user)) {
 			throw new TrashBinDisabledException('The trash bin is disabled for the user');
 		}
 		$userFolder = $this->photos->userFolder($user);
+		$rows = $expectation === null ? [] : $this->flags->find(array_merge(...array_map(static fn (array $picture): array => array_column($picture, 'fileId'), $pictures)));
 		$results = [];
 		while (true) {
 			foreach ($pictures as $index => $picture) {
-				$result = $this->trashPicture($user, $userFolder, $picture);
+				$result = $this->trashPicture($user, $userFolder, $picture, $expectation, $rows);
 				if ($result !== null) {
 					$results[$index] = $result;
 					unset($pictures[$index]);
@@ -51,6 +55,7 @@ final class TrashService {
 			}
 			if ($pictures === []) {
 				ksort($results);
+				$this->removeRows(array_merge(...$results));
 				return array_values($results);
 			}
 			$this->spacing->awaitNextSecond();
@@ -58,22 +63,65 @@ final class TrashService {
 	}
 
 	/**
+	 * Removes the rows of the files deleted; the files are gone, so a failure only leaves rows the clean-up removes.
+	 * @param list<array{fileId: int, result: TrashResult}> $results
+	 */
+	private function removeRows(array $results): void {
+		$deleted = array_filter($results, static fn (array $file): bool => in_array($file['result'], [TrashResult::Trashed, TrashResult::Deleted], true));
+		if ($deleted === []) {
+			return;
+		}
+		try {
+			$this->flags->remove(array_column($deleted, 'fileId'));
+		} catch (\OCP\DB\Exception $e) {
+			$this->logger->error('Could not remove the flag rows of trashed files', ['exception' => $e]);
+		}
+	}
+
+	/** @throws InvalidTrashRequestException */
+	private static function expectation(mixed $expect): ?TrashExpectation {
+		if ($expect === null) {
+			return null;
+		}
+		$expectation = is_string($expect) ? TrashExpectation::tryFrom($expect) : null;
+		if ($expectation === null) {
+			throw new InvalidTrashRequestException('expect must be rejected or rawRemovable');
+		}
+		return $expectation;
+	}
+
+	/**
 	 * The picture's results, or null when a file to trash shares a name with one trashed in this second.
 	 * @param non-empty-list<array{fileId: int, etag: string, permanent: bool}> $picture
+	 * @param array<int, FileFlag> $rows
 	 * @return list<array{fileId: int, result: TrashResult}>|null
 	 */
-	private function trashPicture(IUser $user, Folder $userFolder, array $picture): ?array {
+	private function trashPicture(IUser $user, Folder $userFolder, array $picture, ?TrashExpectation $expectation, array $rows): ?array {
 		$checked = array_map(fn (array $file): array|TrashResult => $this->check($user, $userFolder, $file), $picture);
 		/** @var array<int, array{File, TrashResult}> $files */
 		$files = array_filter($checked, is_array(...));
 		if (count($files) !== count($checked)) {
 			$results = array_map(static fn (array|TrashResult $node): TrashResult => is_array($node) ? TrashResult::Skipped : $node, $checked);
+		} elseif ($expectation !== null && !$expectation->holds(self::memberRows($files, $picture, $rows))) {
+			$results = array_fill(0, count($picture), TrashResult::DecisionChanged);
 		} elseif ($this->spacing->clear(self::namesToTrash($files))) {
 			$results = $this->trashInOrder($user, $files);
 		} else {
 			return null;
 		}
 		return array_map(static fn (array $file, TrashResult $result): array => ['fileId' => $file['fileId'], 'result' => $result], $picture, $results);
+	}
+
+	/**
+	 * The rows of the picture's members by the file ids sent, null for a member without one.
+	 * @param array<int, array{File, TrashResult}> $files
+	 * @param non-empty-list<array{fileId: int, etag: string, permanent: bool}> $picture
+	 * @param array<int, FileFlag> $rows
+	 * @return list<?FileFlag>
+	 */
+	private static function memberRows(array $files, array $picture, array $rows): array {
+		$members = array_filter($files, static fn (array $file): bool => !ListingService::isSidecar($file[0]));
+		return array_map(static fn (int $index): ?FileFlag => $rows[$picture[$index]['fileId']] ?? null, array_keys($members));
 	}
 
 	/**
