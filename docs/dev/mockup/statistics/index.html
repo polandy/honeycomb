@@ -1,0 +1,152 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 honeycomb contributors -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>honeycomb mockup – statistics</title>
+<link rel="icon" href="data:,">
+<style>
+*{box-sizing:border-box}
+:root{--honey:#F4A51C;--on-honey:#1b1b1b;--bg:#f7f7f7;--card:#fff;--card-2:#f0f0f0;--text:#1b1b1b;--muted:#5e5e5e;--border:#dcdcdc;--honey-soft:#fdecc8;--good:#2e7d32;--danger:#c62f2b;--shadow:0 4px 18px rgba(0,0,0,.14);--scrim:rgba(0,0,0,.45);--hit:44px}
+html,body{margin:0;background:#d9d9d9;color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif}
+button{font:inherit;color:inherit}
+#mock{position:sticky;z-index:40;top:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 10px;background:var(--card);border-bottom:2px dashed #b8860b;font-size:13px}
+#mock a{padding:4px 8px;border-radius:8px;border:1px solid var(--border);color:inherit;text-decoration:none}
+#mock a[aria-current=page]{background:var(--honey-soft);border-color:var(--honey)}
+#mock span{color:var(--muted)}
+#note{max-width:760px;margin:10px auto;padding:0 12px;font-size:13px;color:#333}
+.frame{position:relative;margin:12px auto 32px;background:var(--bg);border:1px solid #bbb;overflow:hidden;display:flex;flex-direction:column}
+.frame.phone{width:390px;height:780px;border-radius:28px;border:10px solid #1b1b1b}
+.frame.desk{width:min(1180px,calc(100% - 24px));height:760px;border-radius:8px}
+.nc{flex:none;height:44px;background:#0082c9;color:#fff;display:flex;align-items:center;gap:16px;padding:0 14px;font-weight:600}
+.body{flex:1;min-height:0;display:flex}
+.nav{flex:none;width:250px;background:var(--card-2);border-right:1px solid var(--border);padding:8px;display:flex;flex-direction:column;gap:2px;overflow:auto}
+.phone .nav{position:absolute;inset:44px 70px 0 0;z-index:5;box-shadow:var(--shadow)}
+.nav .it{min-height:var(--hit);display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:22px}
+.nav .it.on{background:var(--honey-soft);font-weight:600}
+.nav .cap{font-size:12px;color:var(--muted);padding:12px 12px 2px}
+.nav .grow{flex:1}
+.hint{margin:6px 4px;padding:10px 12px;border-radius:12px;background:var(--honey-soft);border:1px solid var(--honey);font-size:13px;display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:start}
+.hint b{grid-column:1}.hint .x{grid-row:1/3;grid-column:2;width:var(--hit);height:var(--hit);border:0;background:none;border-radius:50%;font-size:18px}
+.main{flex:1;min-width:0;overflow:auto;padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+.phone .main{padding:12px}
+.tb{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between}
+.tb h1{margin:0;font-size:20px}
+.seg{display:flex;border:1px solid var(--border);border-radius:22px;overflow:hidden;background:var(--card)}
+.seg button{min-height:var(--hit);padding:0 14px;border:0;background:none;white-space:nowrap}
+.phone .seg button{padding:0 10px}
+.seg button[aria-pressed=true]{background:var(--honey);color:var(--on-honey);font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.phone .tiles,.sheet .tiles{grid-template-columns:1fr 1fr;gap:8px}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;display:grid;gap:2px;align-content:start;min-width:0}
+.tile span{font-size:12.5px;color:var(--muted)}
+.tile b{font-size:24px;font-variant-numeric:tabular-nums}
+.phone .tile b,.sheet .tile b{font-size:19px}
+.tile em{font-style:normal;font-size:12px;color:var(--muted)}
+.tile em.up{color:var(--good)}
+.line{font-size:13px;color:var(--muted)}
+.two{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
+.phone .two{grid-template-columns:1fr}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:grid;gap:10px;align-content:start}
+.panel h2{margin:0;font-size:14px}
+.chart{display:flex;align-items:flex-end;gap:10px;height:140px;padding-top:6px;border-bottom:1px solid var(--border)}
+.chart .col{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:3px;height:100%;position:relative}
+.chart .col i{display:block;width:40%;border-radius:4px 4px 0 0}
+.chart .col i.d{background:var(--honey)}.chart .col i.t{background:#7a7a7a}
+.chart .col small{position:absolute;bottom:-20px;font-size:11px;color:var(--muted);white-space:nowrap}
+.legend{margin-top:18px;font-size:12px;color:var(--muted);display:flex;gap:14px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.fs{display:grid;grid-template-columns:1fr 100px 52px;gap:8px;align-items:center;font-size:13px}
+.fs .n{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{height:8px;border-radius:4px;background:var(--card-2);overflow:hidden}.bar i{display:block;height:100%;background:var(--honey)}
+.split{display:flex;height:10px;border-radius:5px;overflow:hidden}.split i{display:block;height:100%}
+.foot{font-size:12px;color:var(--muted)}
+.btn{min-height:var(--hit);padding:0 16px;border-radius:22px;border:1px solid var(--border);background:var(--card);display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.btn.primary{background:var(--honey);border-color:var(--honey);color:var(--on-honey);font-weight:600}
+.btn.danger{background:var(--danger);border-color:var(--danger);color:#fff;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;opacity:.35}
+.grid i{aspect-ratio:1;border-radius:10px;background:#cfcfcf;display:block}
+.empty{text-align:center;color:var(--muted);padding:24px 0 0}
+.scrim{position:absolute;inset:44px 0 0;background:var(--scrim);z-index:8}
+.sheet{position:absolute;z-index:9;background:var(--card);box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:12px}
+.phone .sheet{left:0;right:0;bottom:0;border-radius:18px 18px 0 0;max-height:calc(100% - 60px);overflow:auto}
+.desk .sheet{left:50%;top:50%;transform:translate(-50%,-50%);width:480px;border-radius:14px}
+.sheet h2{margin:0;font-size:18px}
+.big{display:flex;align-items:baseline;gap:8px}.big b{font-size:32px;font-variant-numeric:tabular-nums}
+.row{display:flex;gap:8px;justify-content:flex-end}.phone .row .btn{flex:1}
+.year{background:linear-gradient(160deg,var(--honey-soft),var(--card) 70%)}
+.year .head{font-size:22px;font-weight:700;line-height:1.2}
+.heat{display:grid;grid-template-columns:repeat(53,1fr);grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:2px}
+.phone .heat{grid-template-columns:repeat(27,1fr)}
+.heat i{aspect-ratio:1;border-radius:2px;background:var(--card-2);display:block}
+.heat i.l1{background:#f8dca5}.heat i.l2{background:#f6c060}.heat i.l3{background:var(--honey)}
+.set{display:flex;align-items:center;gap:12px;min-height:var(--hit)}
+.sw-t{width:40px;height:24px;border-radius:12px;background:var(--honey);position:relative;flex:none}
+.sw-t::after{content:'';position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff}
+.dlg-set{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:16px;display:grid;gap:8px;max-width:560px}
+.dlg-set h2{margin:0 0 4px;font-size:16px}
+.dlg-set p{margin:0;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<nav id="mock"></nav>
+<p id="note"></p>
+<div id="root"></div>
+<script>
+'use strict'
+const scenes = {
+	card: ['Cull finished', 'The card opens when no undecided picture is left in the folder set, and after the delete report. Numbers are this session only; nothing here is read from the server.'],
+	page: ['Statistics page', 'A navigation entry beside Similarity. Period chips; tiles; bars per day (7 days), per week (30 days) or per month (year, all time); folder set progress from the resume positions; the state of the pictures read so far.'],
+	year: ['Year in review', 'From 1 December the page opens with the year in review, and the navigation shows a one-time hint that can be closed. In January it still shows the year just ended. On a phone the hint sits in the navigation that ☰ opens.'],
+	settings: ['Settings', 'Keep statistics is on by default. Off means nothing is counted; the numbers already there stay until Reset statistics.'],
+	empty: ['Nothing counted yet', 'The page before the first counted action, and with Keep statistics off.'],
+}
+const params = new URLSearchParams(location.search)
+const scene = scenes[params.get('s')] ? params.get('s') : 'card'
+const device = params.get('d') === 'phone' || (params.get('d') === null && innerWidth <= 520) ? 'phone' : 'desk'
+const link = (s, d, label) => `<a href="?s=${s}&d=${d}"${s === scene && d === device ? ' aria-current="page"' : ''}>${label}</a>`
+document.getElementById('mock').innerHTML = `<b>Mockup · statistics</b>${Object.keys(scenes).map((s) => link(s, device, scenes[s][0])).join('')}<span>Device:</span>${link(scene, 'phone', 'Phone')}${link(scene, 'desk', 'Desktop / iPad landscape')}`
+document.getElementById('note').textContent = scenes[scene][1]
+
+const phone = device === 'phone'
+const tile = (label, value, extra, up) => `<div class="tile"><span>${label}</span><b>${value}</b>${extra ? `<em${up ? ' class="up"' : ''}>${extra}</em>` : ''}</div>`
+const nav = (active, hint) => `<div class="nav"><div class="it">Folder</div><div class="it">Similarity</div><div class="it${active ? ' on' : ''}">Statistics</div>${hint ? '<div class="hint"><b>Your 2026 in honeycomb</b><span>See the year in review on the statistics page.</span><button class="x" aria-label="Close">×</button></div>' : ''}<div class="cap">Recent</div><div class="it">Italy 2025</div><div class="it">Wedding Mia</div><div class="grow"></div><div class="it">Settings</div></div>`
+const shell = (inner, opts = {}) => `<div class="nc"><span>☰</span><span>Nextcloud</span><span style="opacity:.8">honeycomb</span></div><div class="body">${!phone || opts.navOpen ? nav(opts.active, opts.hint) : ''}<div class="main">${inner}</div></div>${opts.over || ''}`
+const period = (on) => `<div class="seg" role="group" aria-label="Period">${['7 days', '30 days', '2026', 'All time'].map((p) => `<button aria-pressed="${p === on}">${p}</button>`).join('')}</div>`
+const bars = [['Oct 20–26', 52, 20], ['Oct 27–Nov 2', 73, 26], ['Nov 3–9', 90, 34], ['Nov 10–16', 62, 26]]
+const chart = `<div class="panel"><h2>Per week</h2><div class="chart">${bars.map(([w, d, t]) => `<div class="col"><i class="d" style="height:${d}%"></i><i class="t" style="height:${t}%"></i><small>${phone ? w.split('–')[0] : w}</small></div>`).join('')}</div><div class="legend"><span><span class="sw" style="background:var(--honey)"></span>Pictures decided</span><span><span class="sw" style="background:#7a7a7a"></span>Moved to the trash bin</span></div></div>`
+const sets = [['Italy 2025', 79, '79 %'], ['Wedding Mia', 100, 'Done'], ['2024 / Autumn', 34, '34 %'], ['Garden', 8, '8 %']]
+const progress = `<div class="panel"><h2>Folder sets</h2>${sets.map(([n, w, l]) => `<div class="fs"><span>${n}</span><div class="bar"><i style="width:${w}%"></i></div><span class="n">${l}</span></div>`).join('')}<h2>Of the pictures read so far</h2><div class="split"><i style="width:46%;background:var(--good)"></i><i style="width:20%;background:var(--danger)"></i><i style="width:34%;background:var(--card-2)"></i></div><div class="foot">46 % picked · 20 % rejected · 34 % unflagged · 61 % rated</div></div>`
+const tiles30 = `<div class="tiles">${tile('Pictures decided', '3,412', '+18 % on the 30 days before', true)}${tile('Moved to the trash bin', '1,240', '38.4 GB · 3 deleted for good')}${tile('Sidecars created / updated', '2,006 / 871', '312 from digiKam or darktable')}${tile('Days in a row', '6', 'Longest 19')}</div>`
+const footer = '<div class="foot">Counted since 12 Dec 2026. Before that: 8,214 pictures decided (no date). Space is freed when the trash bin is emptied.</div>'
+
+const heatCells = (n) => Array.from({ length: n }, (_, i) => `<i class="${['', 'l1', '', 'l2', 'l3', '', 'l1', ''][(i * 7 + (i >> 3)) % 8]}"></i>`).join('')
+const yearBlock = `<div class="panel year"><div class="line">Your 2026 in honeycomb</div><div class="head">14,820 pictures decided, 186 GB moved to the trash bin</div><div class="tiles">${tile('Moved to the trash bin', '5,940', '12 deleted for good')}${tile('RAW files removed', '2,310', '61.2 GB')}${tile('Sidecars created', '9,112')}${tile('Sidecars updated', '3,877')}${tile('Series done', '214')}${tile('Longest streak', '19 days')}${tile('Active time', '41 h 20 min', '6.0 pictures a minute')}${tile('Busiest day', '3 Aug', '1,204 pictures decided')}</div><h2 style="margin:4px 0 0;font-size:14px">Active days</h2><div class="heat" aria-label="One square per day; darker means more pictures decided">${heatCells(phone ? 189 : 371)}</div><div class="foot">${phone ? 'Last 27 weeks; turn the device for the whole year.' : 'January to December.'} Counted since 12 Dec 2026 where the year began earlier.</div></div>`
+
+const render = {
+	card() {
+		const grid = `<div class="tb"><h1>Italy 2025</h1></div><div class="empty">No photos left to cull</div><div class="grid">${'<i></i>'.repeat(phone ? 9 : 18)}</div>`
+		const sheet = `<div class="scrim"></div><div class="sheet" role="dialog" aria-label="Cull finished"><h2>Cull finished</h2><div class="big"><b>1,030</b><span>pictures decided</span></div><div class="split"><i style="width:52%;background:var(--good)"></i><i style="width:8%;background:var(--card-2)"></i><i style="width:40%;background:var(--danger)"></i></div><div class="foot"><span class="sw" style="background:var(--good)"></span>536 picked · <span class="sw" style="background:var(--card-2)"></span>82 unflagged · <span class="sw" style="background:var(--danger)"></span>412 rejected</div><div class="tiles">${tile('Moved to the trash bin', '412', '21.6 GB')}${tile('Deleted for good', '0')}${tile('Sidecars created', '604')}${tile('Sidecars updated', '426')}</div><div class="line">Before 1,030 pictures · 41.2 GB → after 618 · 19.6 GB<br>Active time 2 h 18 min · 7.5 pictures a minute</div><div class="row"><button class="btn">Statistics</button><button class="btn primary">Done</button></div></div>`
+		return shell(grid, { over: sheet })
+	},
+	page() {
+		return shell(`<div class="tb"><h1>Statistics</h1>${period('30 days')}</div>${tiles30}<div class="line">Active time 7 h 41 min · 7.4 pictures a minute · 86 series done · 410 RAW files removed</div><div class="two">${chart}${progress}</div>${footer}`, { active: true })
+	},
+	year() {
+		return shell(`<div class="tb"><h1>Statistics</h1>${period('2026')}</div>${yearBlock}${tiles30}${footer}`, { active: true, hint: true, navOpen: false })
+	},
+	settings() {
+		const dlg = `<div class="dlg-set"><h2>Statistics</h2><div class="set"><span class="sw-t" role="switch" aria-checked="true"></span><span>Keep statistics</span></div><p>Counts what honeycomb does per day: pictures decided, moved to the trash bin, sidecars written. No file names, nothing leaves your Nextcloud.</p><div class="set"><button class="btn">Reset statistics</button></div></div>`
+		const confirm = `<div class="scrim"></div><div class="sheet" role="alertdialog"><h2>Reset all statistics?</h2><div class="line">Your photos and sidecars stay as they are.</div><div class="row"><button class="btn primary">Cancel</button><button class="btn danger">Reset statistics</button></div></div>`
+		return shell(`<div class="tb"><h1>Settings</h1></div>${dlg}`, { over: params.get('confirm') === '0' ? '' : confirm })
+	},
+	empty() {
+		return shell(`<div class="tb"><h1>Statistics</h1>${period('30 days')}</div><div class="empty">Nothing counted yet. Cull a folder and the numbers show here.</div><div class="two">${progress}</div><div class="foot">With Keep statistics off the page adds: Statistics are off. Turn on Keep statistics in the settings to count again.</div>`, { active: true })
+	},
+}
+document.getElementById('root').innerHTML = `<div class="frame ${device}">${render[scene]()}</div>`
+</script>
+</body>
+</html>
