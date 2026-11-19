@@ -5,7 +5,7 @@ import type { Locator } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { cullFolder, E2E_SETTINGS, openLoupe, putSettings } from './cull.ts'
-import { createFolder, JPEG, RAW, requestToken, upload } from './files.ts'
+import { apiHeaders, createFolder, JPEG, RAW, upload } from './files.ts'
 
 // The reference devices the cache toast is captured on (docs/dev/plan.md Reference devices).
 const SCREENSHOT_VIEWPORTS = { 'pixel-portrait': { width: 427, height: 952 }, 'ipad-mini-portrait': { width: 744, height: 1133 }, 'ipad-mini-landscape': { width: 1133, height: 744 } }
@@ -143,6 +143,6 @@ test('resets the statistics from the settings after a confirmation and says so',
 	await question.getByRole('button', { name: 'Reset statistics' }).click()
 	expect((await done).status()).toBe(204)
 	await expect(page.getByText('Statistics reset')).toBeVisible()
-	const read = await page.request.get('/index.php/apps/honeycomb/api/v1/stats', { headers: { requesttoken: await requestToken(page) } })
+	const read = await page.request.get('/index.php/apps/honeycomb/api/v1/stats', { headers: await apiHeaders(page) })
 	expect(await read.json()).toEqual({ counters: [], firstDay: null })
 })

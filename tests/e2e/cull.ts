@@ -4,7 +4,7 @@ import type { Locator, Page } from '@playwright/test'
 
 import { expect } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { createFolder, JPEG, requestToken, upload } from './files.ts'
+import { apiHeaders, createFolder, JPEG, upload } from './files.ts'
 
 const SETTINGS_URL = '/index.php/apps/honeycomb/api/v1/settings'
 
@@ -25,7 +25,7 @@ export async function cullFolder(page: Page, folder: string): Promise<void> {
 export async function resetViewState(page: Page, seriesHintSeen = true): Promise<void> {
 	const reset = await page.request.put('/index.php/apps/honeycomb/api/v1/view-state', {
 		data: { viewState: { infoPanelOpen: false, gestureGuideSeen: false, seriesHintSeen } },
-		headers: { requesttoken: await requestToken(page) },
+		headers: await apiHeaders(page),
 	})
 	expect(reset.status(), await reset.text()).toBe(200)
 }
@@ -58,6 +58,6 @@ export const E2E_SETTINGS = {}
 
 /** Stores the settings for the user, `E2E_SETTINGS` putting back the ones every test starts from. */
 export async function putSettings(page: Page, settings: Record<string, unknown>): Promise<void> {
-	const response = await page.request.put(SETTINGS_URL, { data: { settings }, headers: { requesttoken: await requestToken(page) } })
+	const response = await page.request.put(SETTINGS_URL, { data: { settings }, headers: await apiHeaders(page) })
 	expect(response.status(), await response.text()).toBe(200)
 }
