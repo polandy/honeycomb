@@ -186,6 +186,10 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .tile.rej img.th{opacity:.35}.tile.rej .rejx{display:flex}
 .rejx{display:none;position:absolute;inset:0;align-items:center;justify-content:center;color:#fff;filter:drop-shadow(0 1px 6px rgba(0,0,0,.6));pointer-events:none}
 .rejx svg{width:48px;height:48px;stroke-width:1.5}
+.tile .lock{position:absolute;right:6px;top:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;display:flex;align-items:center;justify-content:center}.tile .lock svg{width:14px;height:14px;stroke-width:2.2}
+.selmode .tile .lock{top:38px}
+.ro-note{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px}.ro-note svg{width:16px;height:16px}
+.l-title .ro-note{display:flex;white-space:normal;font-size:12px;line-height:1.3}.l-title .ro-note[hidden]{display:none}
 .tile .chk{position:absolute;right:6px;top:6px;width:26px;height:26px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.25);display:none;align-items:center;justify-content:center;color:var(--on-honey)}
 .tile .chk svg{width:16px;height:16px;stroke-width:3;opacity:0}
 .selmode .tile .chk{display:flex}
@@ -208,7 +212,7 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .sq[aria-pressed="true"]{background:var(--honey);border-color:var(--honey);color:var(--on-honey)}
 .pair.p.k{background:var(--honey);color:var(--on-honey)}
 .sq.fb.none[aria-pressed="true"]{background:var(--card);border:2px solid var(--text);color:var(--text)}.l-ctrl .sq.fb.none[aria-pressed="true"],.sv-ctl .sq.fb.none[aria-pressed="true"]{background:#ffffff14;border-color:var(--stage-text);color:var(--stage-text)}
-.sq:disabled,.btn:disabled{opacity:.4}
+.sq:disabled,.btn:disabled,.bigbtn:disabled{opacity:.4}
 
 /* toasts / popovers */
 #toasts{position:absolute;left:0;right:0;bottom:calc(16px + var(--sa-b));display:flex;justify-content:center;pointer-events:none;z-index:90}
@@ -588,15 +592,32 @@ const LOCALE = () => LANG === 'de' ? 'de-DE' : 'en';
 /* keyed by the English source string; a plural entry is [singular, plural] and is keyed by the English singular */
 const DE = {
   'Language (mockup)': 'Sprache (Mockup)',
+  'Read only': 'Nur lesen',
+  'Read only: you may not change this folder': 'Nur lesen: du darfst diesen Ordner nicht ändern',
+  'Write picks/rejects to XMP': 'Picks/Rejects in XMP schreiben',
+  'Write picks/rejects to XMP · {count}': 'Picks/Rejects in XMP schreiben · {count}',
+  'Clear picks/rejects': 'Picks/Rejects zurücksetzen',
+  '%n photo reset': ['%n Foto zurückgesetzt', '%n Fotos zurückgesetzt'],
+  'Reset picks and rejects of {name}': 'Picks und Rejects von {name} zurückgesetzt',
+  'All XMP files are up to date': 'Alle XMP-Dateien sind aktuell',
+  '%n XMP file written': ['%n XMP-Datei geschrieben', '%n XMP-Dateien geschrieben'],
+  '{written}, {failed} not written: {reason}': '{written}, {failed} nicht geschrieben: {reason}',
+  'read only': 'nur lesen', 'file locked': 'Datei gesperrt', 'storage full': 'Speicher voll', 'changed elsewhere': 'anderswo geändert', 'several reasons': 'mehrere Gründe',
+  'Storage is full': 'Speicher voll',
+  'Changed by another program in the meantime': 'Inzwischen von einem anderen Programm geändert',
+  'Details': 'Details',
+  'XMP files not written': 'XMP-Dateien nicht geschrieben',
+  'The other XMP files were written. Run the entry again after the cause is gone.': 'Die übrigen XMP-Dateien wurden geschrieben. Wähle den Eintrag erneut, wenn die Ursache behoben ist.',
+  '{name} not changed: {reason}': '{name} nicht geändert: {reason}',
+  'Cache': 'Cache',
+  'Clean up orphaned data': 'Verwaiste Daten bereinigen',
+  'Removes the picks, rejects and Keep RAW marks of photos that no longer exist or lie in the trash bin.': 'Entfernt Picks, Rejects und Keep RAW von Fotos, die nicht mehr existieren oder im Papierkorb liegen.',
+  'Clean up': 'Bereinigen',
+  'Removed %n orphaned entry': ['%n verwaisten Eintrag entfernt', '%n verwaiste Einträge entfernt'],
+  'Nothing was orphaned': 'Nichts war verwaist',
+  'Simulate an XMP write that fails': 'Fehlgeschlagenes Schreiben in XMP simulieren',
+  'Signed in as an admin': 'Als Admin angemeldet',
   '{size} GB': '{size} GB', '{size} MB': '{size} MB',
-  'Write decisions to sidecars…': 'Entscheidungen in Sidecar-Dateien schreiben …',
-  'Write decisions to sidecars': 'Entscheidungen in Sidecar-Dateien schreiben',
-  'Write to sidecars': 'In Sidecar-Dateien schreiben',
-  'This folder is shared. honeycomb keeps your decisions to yourself and writes nothing next to the files on its own.': 'Dieser Ordner ist geteilt. honeycomb behält deine Entscheidungen für dich und schreibt von sich aus nichts neben die Dateien.',
-  'Every user of this folder, and digiKam, darktable and Lightroom, will see these decisions.': 'Alle Personen mit Zugriff auf diesen Ordner sowie digiKam, darktable und Lightroom sehen diese Entscheidungen.',
-  'The XMP sidecar of each file gets its rating, colour label and flag.': 'Die XMP-Sidecar-Datei jeder Datei erhält Bewertung, Farbetikett und Markierung.',
-  '%n photo in {folders}': ['%n Foto in {folders}', '%n Fotos in {folders}'],
-  'Wrote the decisions of %n photo to sidecars': ['Entscheidungen von %n Foto in Sidecar-Dateien geschrieben', 'Entscheidungen von %n Fotos in Sidecar-Dateien geschrieben'],
   '%n file shares the name {name}; shown as singles': ['%n Datei hat den Namen {name}; als Einzeldateien angezeigt', '%n Dateien haben den Namen {name}; als Einzeldateien angezeigt'],
   'Ambiguous name: {count} files are called {name}, ignoring case, so none is paired': 'Mehrdeutiger Name: {count} Dateien heißen {name} (ohne Groß-/Kleinschreibung), daher wird keine gepaart',
   'ambiguous name': 'mehrdeutiger Name',
@@ -721,7 +742,7 @@ const DE = {
   '%n folder + subfolders': ['%n Ordner + Unterordner', '%n Ordner + Unterordner'],
   '%n folder': ['%n Ordner', '%n Ordner'],
   '%n item, RAW and JPEG side by side': ['%n Element, RAW und JPEG nebeneinander', '%n Elemente, RAW und JPEG nebeneinander'],
-  '%n item, RAW/ and JPG/ subfolders, shared with you': ['%n Element, Unterordner RAW/ und JPG/, mit dir geteilt', '%n Elemente, Unterordner RAW/ und JPG/, mit dir geteilt'],
+  '%n item, RAW/ and JPG/ subfolders, shared with you, read only': ['%n Element, Unterordner RAW/ und JPG/, mit dir geteilt, nur lesen', '%n Elemente, Unterordner RAW/ und JPG/, mit dir geteilt, nur lesen'],
   '%n item, mostly JPEG only': ['%n Element, meist nur JPEG', '%n Elemente, meist nur JPEG'],
   '%n item, a camera and a phone': ['%n Element, eine Kamera und ein Handy', '%n Elemente, eine Kamera und ein Handy'],
   '%n item (mockup: not generated)': ['%n Element (Mockup: nicht erzeugt)', '%n Elemente (Mockup: nicht erzeugt)'],
@@ -816,7 +837,6 @@ const DE = {
   'Part of its parent folder: tick the parent to see the pairs': 'Teil des übergeordneten Ordners: Wähle den übergeordneten Ordner, um die Paare zu sehen',
   '{photos} in {folders}': '{photos} in {folders}',
   '123 items, RAW and JPEG side by side': '123 Elemente, RAW und JPEG nebeneinander',
-  '64 items, RAW/ and JPG/ subfolders, shared with you': '64 Elemente, Unterordner RAW/ und JPG/, mit dir geteilt',
   '28 items, mostly JPEG only': '28 Elemente, meist nur JPEG',
   '46 items, a camera and a phone': '46 Elemente, eine Kamera und ein Telefon',
   '38 items, a camera and a phone': '38 Elemente, eine Kamera und ein Telefon',
@@ -918,14 +938,6 @@ const DE = {
   'Favourite folders': 'Lieblingsordner',
   'Remove favourite {path}': 'Lieblingsordner {path} entfernen',
   'None yet: add one in the move dialog.': 'Noch keine: Füge einen im Verschieben-Dialog hinzu.',
-  'Where decisions are stored': 'Wo Entscheidungen gespeichert werden',
-  'Storage': 'Speicherort',
-  'App database': 'App-Datenbank',
-  'XMP sidecars': 'XMP-Sidecar-Dateien',
-  'Both (recommended)': 'Beides (empfohlen)',
-  'Database is the fast working state; every change is written through to the XMP sidecars of each file.': 'Die Datenbank ist der schnelle Arbeitsstand; jede Änderung wird in die XMP-Sidecar-Datei jeder Datei durchgeschrieben.',
-  'Sidecars are the only source of truth, so digiKam sees every change. Slower grid.': 'Sidecar-Dateien sind die einzige Quelle der Wahrheit, daher sieht digiKam jede Änderung. Langsameres Raster.',
-  'Nothing is written next to your files.': 'Neben deinen Dateien wird nichts geschrieben.',
   'Keyboard shortcuts': 'Tastenkürzel',
   'The Lightroom Classic keys, the same on every screen. They act on the selection or focused tile in the grid, and on the active photo in the loupe, the series compare and the series viewer.': 'Die Tasten von Lightroom Classic, auf jedem Bildschirm gleich. Sie wirken im Raster auf die Auswahl oder die fokussierte Kachel, in Lupe, Serienvergleich und Serienbetrachter auf das aktive Foto.',
   'Flags': 'Markierungen',
@@ -1079,7 +1091,7 @@ const fmtWhen = ms => fmt('DateTimeFormat', {dateStyle:'medium', timeStyle:'shor
 function rng(seed){ let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const IC = {
   menu:'M4 6h16M4 12h16M4 18h16', undo:'M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3', redo:'M15 14l5-5-5-5M20 9H10a6 6 0 0 0 0 12h3',
-  close:'M6 6l12 12M18 6 6 18', check:'M5 12l5 5 9-10', trash:'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
+  close:'M6 6l12 12M18 6 6 18', lock:'M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z', check:'M5 12l5 5 9-10', trash:'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
   settings:'M4 7h10M18 7h2M4 17h2M10 17h10M16 7m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0M8 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0',
   folder:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', chevR:'M9 6l6 6-6 6', chevL:'M15 6l-6 6 6 6', chevD:'M6 9l6 6 6-6',
   filter:'M3 5h18l-7 8v6l-4-2v-4z', tag:'M3 12V4h8l10 10-8 8zM7.5 8.5h.01', select:'M4 4h16v16H4zM8 12l3 3 5-6', film:'M3 6h18v12H3zM8 6v12M16 6v12', sort:'M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3',
@@ -1139,7 +1151,7 @@ function actionBar(d, forKey, opts = {}){
   return opts.big ? (S.settings.flagButtons ? `<div class="ab-big">${flagButtons(d.flag, forKey, opts)}</div>` : '') + `<div class="ab-small">${rest}</div>` : rest + flagButtons(d.flag, forKey, opts);
 }
 const flagBtnsToggle = id => `<button class="icon-btn" data-act="flagBtns" id="${id}" aria-label="${esc(t('Flag buttons'))}" ${tip(t('Flag buttons'), HOTKEY.flagButtons)} aria-pressed="${S.settings.flagButtons}">${ic(S.settings.flagButtons ? 'flag' : 'flagCross')}</button>`;
-const pickRestBtn = (forKey, id = '', primary = true) => `<button class="btn${primary ? ' primary' : ''}" data-act="pickRest" ${forAttrs(forKey, id)} ${tip(t('Pick this, reject the rest'), HOTKEY.pickRest)}>${ic('flagPick')}${t('Pick this, reject the rest')}</button>`;
+const pickRestBtn = (forKey, id = '', primary = true, dis = '') => `<button class="btn${primary ? ' primary' : ''}" data-act="pickRest" ${forAttrs(forKey, id)} ${dis} ${tip(t('Pick this, reject the rest'), HOTKEY.pickRest)}>${ic('flagPick')}${t('Pick this, reject the rest')}</button>`;
 /* footer order everywhere: back, cancel, then the confirming action on the right */
 function confirmDialog(title, body, {back = null, cancel = t('Cancel'), confirm = null, wide = false, canClose = true} = {}){
   const foot = (back ? `<button class="btn ghost" data-act="${back.act}">${esc(back.label)}</button>` : '')
@@ -1165,8 +1177,8 @@ const isHidden = p => p.split('/').some(s => s.startsWith('.'));
 const FOLDERS = {
   '/Photos/2026/2026-10-12 Dolomites (paired)': {seed:4121, count:120, date:'2026-10-12', pPair:.78, pJpg:.11, pPortrait:.25, kinds:[0,0,0,1,2], mode:'same',
     cams:[['NEF','DSC_',.55],['ARW','DSC0',.15],['RAF','DSCF',.15],['DNG','IMG_',.15]], ambiguous:['JPG', 'jpg', 'NEF'], get info(){ return n('%n item, RAW and JPEG side by side', '%n items, RAW and JPEG side by side', 123); }},
-  '/Photos/2026/2026-11-01 Wedding (separate)': {seed:77123, count:64, date:'2026-11-01', pPair:.84, pJpg:.08, pPortrait:.4, kinds:[3,3,3,1,0], mode:'sub', shared:true,
-    cams:[['CR3','IMG_',.8],['NEF','DSC_',.2]], get info(){ return n('%n item, RAW/ and JPG/ subfolders, shared with you', '%n items, RAW/ and JPG/ subfolders, shared with you', 64); }},
+  '/Photos/2026/2026-11-01 Wedding (separate)': {seed:77123, count:64, date:'2026-11-01', pPair:.84, pJpg:.08, pPortrait:.4, kinds:[3,3,3,1,0], mode:'sub', readOnly:true,
+    cams:[['CR3','IMG_',.8],['NEF','DSC_',.2]], get info(){ return n('%n item, RAW/ and JPG/ subfolders, shared with you, read only', '%n items, RAW/ and JPG/ subfolders, shared with you, read only', 64); }},
   '/Photos/Phone': {seed:991, count:28, date:'2026-10-30', pPair:.12, pJpg:.74, pPortrait:.55, kinds:[0,1,2,3], mode:'same', phone:true,
     cams:[['DNG','IMG_',1]], get info(){ return n('%n item, mostly JPEG only', '%n items, mostly JPEG only', 28); }},
   '/Photos/2026/2026-09-20 Lisbon/Day 1': {seed:5150, count:46, date:'2026-09-20', pPair:.7, pJpg:.2, pPortrait:.3, kinds:[0,1,2], mode:'same',
@@ -1196,8 +1208,20 @@ function folderName(p){
   return root && p.startsWith(root + '/') ? p.slice(root.length + 1) : p.split('/').pop();
 }
 const multiFolder = () => !!S.set && S.set.folders.length > 1;
-/* the photos of the cull that lie in a shared folder: there honeycomb writes sidecars only when asked */
-const sharedItems = () => S.items.filter(i => FOLDERS[i.folder].shared);
+/* XMP-008: a picture is rateable or read only; read only takes no change of any of the six values */
+const isRO = it => !!FOLDERS[it.folder].readOnly;
+const READ_ONLY = 'Read only: you may not change this folder';
+/* why a write to an XMP file fails: [text for the details list, short form for the toast] */
+const WHY = {ro:[READ_ONLY, 'read only'], locked:['File is locked (another process is writing to it)', 'file locked'], full:['Storage is full', 'storage full'], changed:['Changed by another program in the meantime', 'changed elsewhere']};
+const MOCK_WHY = ['locked', 'full', 'changed'];
+let mockFails = 0;
+/* a rating, colour label or tag goes to the XMP file at once; with the mock switch on, the first picture's write fails and is taken back */
+function xmpGate(its){ return S.mock.xmpFail && its.length ? {ok:its.slice(1), failed:{it:its[0], why:MOCK_WHY[mockFails++ % MOCK_WHY.length]}} : {ok:its, failed:null}; }
+const failNote = f => t('{name} not changed: {reason}', {name:stem(f.it), reason:t(WHY[f.why][1])});
+/* a flag and Keep RAW live in the database; XMP files only carry them after Write picks/rejects to XMP */
+const xmpDiffers = it => it.flag !== (it.wFlag ?? 'none') || !!it.keepRaw !== !!it.wKeep;
+const clearable = () => S.items.filter(i => !isRO(i) && (i.flag !== 'none' || i.keepRaw));
+const xmpFileName = it => (it.raw || it.jpg).name + '.xmp';
 const MODELS = {NEF:'NIKON Z 6_2', ARW:'ILCE-7M4', RAF:'X-T5', DNG:'iPhone 15 Pro', CR3:'Canon EOS R5'};
 const MAKES = {NEF:'NIKON CORPORATION', ARW:'SONY', RAF:'FUJIFILM', DNG:'Apple', CR3:'Canon'};
 const TPL_PRESETS = [
@@ -1216,7 +1240,7 @@ const TPL_SAMPLES = [
 
 /* ---------- state ---------- */
 const DEF_SETTINGS = () => ({rawExt:['NEF','CR3','ARW','RAF','DNG'], renderedExt:['JPG','JPEG','HEIC','HEIF','HIF'], folderMode:'same', rawFolder:'RAW', jpgFolder:'JPG',
-  showSingles:true, swipeUp:'pick', swipeDown:'reject', autoAdvance:true, flagButtons:true, viKeys:false, storage:'both', moveTemplate:TPL_PRESETS[0][1]});
+  showSingles:true, swipeUp:'pick', swipeDown:'reject', autoAdvance:true, flagButtons:true, viKeys:false, moveTemplate:TPL_PRESETS[0][1]});
 const DEF_FLAGS = ['pick', 'none'];
 const flagsDefault = f => f.flags.size === DEF_FLAGS.length && DEF_FLAGS.every(v => f.flags.has(v));
 const DEF_FILTERS = () => ({ratingOp:'gte', rating:null, labels:new Set(), flags:new Set(DEF_FLAGS), pairs:new Set(), keepRaw:new Set(), folders:new Set(), tags:[]});
@@ -1240,7 +1264,7 @@ function freshState(){
       {paths:['/Photos/2026/2026-11-01 Wedding (separate)'], sub:false}, {paths:['/Photos/Phone'], sub:false}], folders:{}, items:[], view:[], byId:new Map(), filters:DEF_FILTERS(), filtersOpen:null, sel:new Set(), selMode:false, anchor:null, focusId:null,
     sort:'name', tagList:['Places/Italy/Dolomites', 'People/Anna', 'Sunrise', 'Family'], ts:P0.ts, bursts:null, server:{resume:{}}, undo:[], redo:[], settings:DEF_SETTINGS(), loupe:null, dlg:null, navOpen:null,
     moveFav:['/Photos/Portfolio/Landscape', '/Photos/Archive'], moveRecent:['/Photos/Archive', '/Photos/Portfolio/People'], tfiles:{}, tplDraft:null,
-    mock:{theme:S ? S.mock.theme : 'auto', frame:S ? S.mock.frame : 'off', orient:S ? S.mock.orient : 'land', fail:false, slow:S ? S.mock.slow : false, conflict:true, open:S ? S.mock.open : false}, scale:1};
+    mock:{theme:S ? S.mock.theme : 'auto', frame:S ? S.mock.frame : 'off', orient:S ? S.mock.orient : 'land', fail:false, xmpFail:false, admin:true, orphans:12, slow:S ? S.mock.slow : false, conflict:true, open:S ? S.mock.open : false}, scale:1};
 }
 S = freshState();
 const pairType = it => it.jpg && it.raw ? 'pair' : it.jpg ? 'jpg' : 'raw';
@@ -1422,7 +1446,7 @@ function burstCurrent(d){
   return null;
 }
 function decideBurst(pickId, others){
-  const changes = [], set = (id, to) => { const it = S.byId.get(id); if (it && it.flag !== to){ changes.push({id, key:'flag', from:it.flag, to}); it.flag = to; } };
+  const changes = [], set = (id, to) => { const it = S.byId.get(id); if (it && !isRO(it) && it.flag !== to){ changes.push({id, key:'flag', from:it.flag, to}); it.flag = to; } };
   set(pickId, 'pick'); others.forEach(id => set(id, 'reject'));
   if (!changes.length) return;
   const desc = n('Picked {name} · rejected %n', 'Picked {name} · rejected %n', others.length, {name:stem(S.byId.get(pickId))});
@@ -1433,9 +1457,12 @@ function decideBurst(pickId, others){
 const FLAG_TXT = {pick:'Picked', reject:'Rejected', none:'Unflagged'};
 const flagName = v => t(FLAG_TXT[v]);
 function change(ids, key, value, opts = {}){
-  const changes = [];
-  for (const id of ids){ const it = S.byId.get(id); if (it && it[key] !== value){ changes.push({id, key, from:it[key], to:value}); it[key] = value; } }
-  if (!changes.length) return false;
+  const changes = [], all = ids.map(i => S.byId.get(i)).filter(Boolean), open = all.filter(i => !isRO(i));
+  if (all.length && !open.length){ toast(t(READ_ONLY)); return false; }
+  const gate = key === 'rating' || key === 'label' ? xmpGate(open.filter(i => i[key] !== value)) : {ok:open, failed:null};
+  ids = open.map(i => i.id);
+  for (const it of gate.ok){ if (it[key] !== value){ changes.push({id:it.id, key, from:it[key], to:value}); it[key] = value; } }
+  if (!changes.length){ if (gate.failed) toast(failNote(gate.failed)); return false; }
   const one = ids.length === 1 ? stem(S.byId.get(ids[0])) : n('%n photo', '%n photos', ids.length);
   let desc;
   if (key === 'flag') desc = t('{flag} {name}', {flag:flagName(value), name:one});
@@ -1444,7 +1471,7 @@ function change(ids, key, value, opts = {}){
   else desc = value ? t('Labelled {name} {label}', {name:one, label:labelName(value)}) : t('Removed label from {name}', {name:one});
   const adv = key === 'flag' && value !== 'none' && ids.length === 1 && !S.loupe && S.settings.autoAdvance ? nextUndecided(ids[0]) : null;
   pushUndo(desc, changes);
-  toast(desc, true);
+  toast(desc + (gate.failed ? ' · ' + failNote(gate.failed) : ''), true);
   if (adv){ setFocus(adv); const el = tileEls.get(adv); if (el){ el.focus(); el.scrollIntoView({block:'nearest'}); } }
   return true;
 }
@@ -1485,6 +1512,29 @@ function afterChange(ids){
   if (S.serie) serieSync(); else if (S.dlg && S.dlg.type === 'burst') renderDlg();
 }
 function viewChanged(){ const was = S.view.map(i => i.id).join('|'); computeView(); return was !== S.view.map(i => i.id).join('|'); }
+
+/* Write picks/rejects to XMP: all pictures of the folder set that differ, no filter, no question, no undo step */
+function writeXmp(){
+  const its = S.items.filter(xmpDiffers), failed = [];
+  if (!its.length){ toast(t('All XMP files are up to date')); return; }
+  its.forEach((it, k) => {
+    const why = isRO(it) ? 'ro' : S.mock.xmpFail && k === 0 ? MOCK_WHY[mockFails++ % MOCK_WHY.length] : '';
+    if (why) failed.push({it, why}); else { it.wFlag = it.flag; it.wKeep = it.keepRaw; }
+  });
+  const written = its.length - failed.length, wr = n('%n XMP file written', '%n XMP files written', written);
+  S.xmpFailed = failed;
+  if (!failed.length){ toast(wr); return; }
+  const why = [...new Set(failed.map(f => f.why))], reason = why.length === 1 ? t(WHY[why[0]][1]) : t('several reasons');
+  toast(t('{written}, {failed} not written: {reason}', {written:wr, failed:nf(failed.length), reason}), false, {act:'xmpDetails', label:t('Details')});
+}
+/* Clear picks/rejects: the rateable pictures lose flag and Keep RAW as one undo step; rows and XMP files stay */
+function clearFlags(){
+  const its = clearable(), changes = [];
+  its.forEach(it => { if (it.flag !== 'none') changes.push({id:it.id, key:'flag', from:it.flag, to:'none'}); if (it.keepRaw) changes.push({id:it.id, key:'keepRaw', from:true, to:false}); it.flag = 'none'; it.keepRaw = false; });
+  if (!its.length) return;
+  const desc = n('%n photo reset', '%n photos reset', its.length);
+  pushUndo(desc, changes); toast(desc, true);
+}
 
 /* ---------- toast ---------- */
 const TOAST_MS = 5200;
@@ -1589,7 +1639,7 @@ function openMenu(pop, anchor){
 }
 function closeMenu(){ const a = S.menuAnchor; closePop(); S.menuAnchor = null; a && a.isConnected && a.focus(); }
 function openMore(anchor){
-  const rit = S.server.resume[S.folderPath] && S.byId.get(S.server.resume[S.folderPath]), nMove = filtersActive() ? S.view.length : S.items.filter(i => i.flag === 'pick').length;
+  const rit = S.server.resume[S.folderPath] && S.byId.get(S.server.resume[S.folderPath]), nMove = filtersActive() ? S.view.length : S.items.filter(i => i.flag === 'pick').length, nXmp = S.items.filter(xmpDiffers).length, nClear = clearable().length;
   const pop = document.createElement('div'), sep = '<div class="msep" role="separator"></div>';
   pop.setAttribute('aria-label', t('More'));
   pop.innerHTML = `<div class="minfo" aria-live="polite">${t('Showing {shown} of {total}', {shown:nf(S.view.length), total:nf(S.items.length)})}</div>
@@ -1599,7 +1649,7 @@ function openMore(anchor){
     ${menuItem('moveView', 'move', filtersActive() ? t('Move filtered') : t('Move picks'), nMove ? '' : 'disabled', `<span class="k">${nf(nMove)}</span>`)}
     ${menuItem('rawRm', 'trash', t('Remove RAWs…'), rawRemovable(S.view).length ? '' : 'disabled', `<span class="k">${nf(rawRemovable(S.view).length)}</span>`)}
     ${rit ? menuItem('resume', 'folder', esc(t('Resume at {name}', {name:stem(rit)}))) : ''}${sep}
-    ${sharedItems().length ? menuItem('writeSidecars', 'check', t('Write decisions to sidecars…')) + sep : ''}
+    ${menuItem('writeXmp', 'check', esc(nXmp ? t('Write picks/rejects to XMP · {count}', {count:nf(nXmp)}) : t('Write picks/rejects to XMP'))) + menuItem('clearFlags', 'undo', t('Clear picks/rejects'), nClear ? '' : 'disabled', `<span class="k">${nf(nClear)}</span>`) + sep}
     ${$('hRedo').offsetParent ? '' : menuItem('redo', 'redo', t('Redo'), S.redo.length ? '' : 'disabled', `<span class="k">${HOTKEY.redo}</span>`)}
     ${menuItem('barOff', 'up', t('Hide header'))}${menuItem('settings', 'settings', t('Settings'))}${sep}
     <div class="minfo" id="langLbl">${t('Language (mockup)')}</div><div role="group" aria-labelledby="langLbl">${[['en', 'English'], ['de', 'Deutsch']].map(([v, l]) => `<button class="mi" role="menuitemradio" aria-checked="${LANG === v}" data-act="langSet" data-v="${v}" lang="${v}"><span>${l}</span></button>`).join('')}</div>`;
@@ -1645,10 +1695,10 @@ const tileEls = new Map();
 function pairLabel(it){ return pairType(it) === 'pair' ? 'JPG+' + it.raw.name.split('.').pop() : pairType(it) === 'jpg' ? t('JPG only') : t('RAW only'); }
 function tileInner(it){
   return `<img class="th" alt="" draggable="false"><span class="pair ${pairType(it) === 'pair' ? 'p' : 's'}" ${tip(pairType(it) === 'pair' ? t('Pair: JPEG and RAW') : t('Single: {name}', {name:pairLabel(it)}))}>${pairLabel(it)}</span>
-  ${it.ambiguous ? `<span class="amb" ${tip(t('Ambiguous name: {count} files are called {name}, ignoring case, so none is paired', {count:nf(it.ambiguous), name:it.base}))}>!</span>` : ''}<span class="burst" hidden></span><span class="chk" ${tip(t('Selected'))}>${ic('check')}</span><span class="rejx" aria-hidden="true" ${tip(flagName('reject'))}>${ic('flagX')}</span><div class="ov"><span class="stars" aria-hidden="true"></span><span class="dotc" hidden></span><span class="tgn" hidden>${ic('tag')}<b></b></span><span class="flw"></span></div>`;
+  ${it.ambiguous ? `<span class="amb" ${tip(t('Ambiguous name: {count} files are called {name}, ignoring case, so none is paired', {count:nf(it.ambiguous), name:it.base}))}>!</span>` : ''}<span class="burst" hidden></span>${isRO(it) ? `<span class="lock" role="img" aria-label="${esc(t('Read only'))}" ${tip(t(READ_ONLY))}>${ic('lock')}</span>` : ''}<span class="chk" ${tip(t('Selected'))}>${ic('check')}</span><span class="rejx" aria-hidden="true" ${tip(flagName('reject'))}>${ic('flagX')}</span><div class="ov"><span class="stars" aria-hidden="true"></span><span class="dotc" hidden></span><span class="tgn" hidden>${ic('tag')}<b></b></span><span class="flw"></span></div>`;
 }
 function tileLabel(it){
-  const bits = [stem(it), pairLabel(it)]; if (it.rating) bits.push(n('%n star', '%n stars', it.rating)); if (it.label) bits.push(t('{name} label', {name:labelName(it.label)})); if (it.flag !== 'none') bits.push(flagName(it.flag).toLowerCase()); if (it.keepRaw) bits.push(t('Keep RAW')); if (it.tags.length) bits.push(n('%n tag', '%n tags', it.tags.length)); if (it.ambiguous) bits.push(t('ambiguous name'));
+  const bits = [stem(it), pairLabel(it)]; if (it.rating) bits.push(n('%n star', '%n stars', it.rating)); if (it.label) bits.push(t('{name} label', {name:labelName(it.label)})); if (it.flag !== 'none') bits.push(flagName(it.flag).toLowerCase()); if (it.keepRaw) bits.push(t('Keep RAW')); if (isRO(it)) bits.push(t('Read only')); if (it.tags.length) bits.push(n('%n tag', '%n tags', it.tags.length)); if (it.ambiguous) bits.push(t('ambiguous name'));
   return bits.join(', ');
 }
 function updateTile(id){
@@ -1755,10 +1805,10 @@ function setTileSize(v, live){
 /* ---------- action bar ---------- */
 function renderActionBar(){
   const el = $('actionbar'); el.hidden = !S.selMode; if (!S.selMode) return;
-  const dis = S.sel.size ? '' : 'disabled', its = [...S.sel].map(i => S.byId.get(i)).filter(Boolean);
+  const none = S.sel.size ? '' : 'disabled', its = [...S.sel].map(i => S.byId.get(i)).filter(Boolean), allRo = its.length > 0 && its.every(isRO), dis = none || allRo ? 'disabled' : '';
   el.innerHTML = `${actionBar({rating:common(its, 'rating'), label:common(its, 'label'), flag:common(its, 'flag'), keepRaw:common(its, 'keepRaw'), pair:its.some(i => pairType(i) === 'pair')}, 'bulk', {dis})}
-  <span class="grow"></span><span class="count">${n('%n selected', '%n selected', S.sel.size)}</span>
-  <button class="btn" data-act="tags" data-for="bulk" ${dis}>${ic('tag')}${t('Tags')}</button><button class="btn" data-act="moveSel" ${dis}>${ic('move')}${t('Move…')}</button><button class="btn danger" data-act="delSel" ${dis}>${ic('trash')}${t('Delete…')}</button>`;
+  ${allRo ? `<span class="ro-note" role="status">${ic('lock')}${t('Read only')}</span>` : ''}<span class="grow"></span><span class="count">${n('%n selected', '%n selected', S.sel.size)}</span>
+  <button class="btn" data-act="tags" data-for="bulk" ${dis}>${ic('tag')}${t('Tags')}</button><button class="btn" data-act="moveSel" ${none}>${ic('move')}${t('Move…')}</button><button class="btn danger" data-act="delSel" ${none}>${ic('trash')}${t('Delete…')}</button>`;
 }
 
 /* ---------- popovers ---------- */
@@ -1850,7 +1900,7 @@ function dlgShell(title, body, foot, wide, canClose = true){
 function renderDlg(){
   const d = S.dlg, root = $('dlgRoot'); if (!d){ root.replaceChildren(); return; }
   const old = root.querySelector('.dlg-b'), top = old ? old.scrollTop : 0;
-  const map = {picker:dlgPicker, del:dlgDelete, settings:dlgSettings, keys:dlgKeys, report:dlgReport, review:dlgReview, rawrm:dlgRawRm, burst:dlgBurst, move:dlgMove, sidecars:dlgSidecars, tags:dlgTags};
+  const map = {picker:dlgPicker, del:dlgDelete, settings:dlgSettings, keys:dlgKeys, report:dlgReport, review:dlgReview, rawrm:dlgRawRm, burst:dlgBurst, move:dlgMove, xmpReport:dlgXmpReport, tags:dlgTags};
   root.innerHTML = map[d.type](d);
   const nb = root.querySelector('.dlg-b'); if (nb) nb.scrollTop = top;
   if (d.refocus){ const i = root.querySelector(d.refocus); i && i.focus(); d.refocus = null; }
@@ -1915,11 +1965,15 @@ function tagRemove(tag){
   if (d.mode === 'filter'){ S.filters.tags = S.filters.tags.filter(x => x !== tag); refreshView(); } else tagChange(tagIts(d).filter(i => hasExactTag(i, tag)), tag, false);
   d.msg = ''; tagLists(d);
 }
-function tagChange(its, tag, add){
+function tagChange(all, tag, add){
+  const open = all.filter(i => !isRO(i));
+  if (all.length && !open.length){ toast(t(READ_ONLY)); return; }
+  const gate = xmpGate(open), its = gate.ok;
+  if (!its.length){ if (gate.failed) toast(failNote(gate.failed)); return; }
   const changes = its.map(it => { const from = [...it.tags]; it.tags = add ? [...from, tag] : from.filter(x => !sameTag(x, tag)); return {id:it.id, key:'tags', from, to:[...it.tags]}; });
   const one = its.length === 1 ? stem(its[0]) : n('%n photo', '%n photos', its.length);
   const desc = add ? t('Tagged {name} {tag}', {name:one, tag}) : t('Removed {tag} from {name}', {tag, name:one});
-  pushUndo(desc, changes); toast(desc, true);
+  pushUndo(desc, changes); toast(desc + (gate.failed ? ' · ' + failNote(gate.failed) : ''), true);
 }
 function tagCycle(d, step){
   const rows = tagRows(d).filter(r => !r.create); if (!rows.length) return;
@@ -1978,12 +2032,11 @@ function dlgPicker(d){
     <p class="hint">${t('Tap folders to tick them, the arrow to open one. A cull of several folders is listed under Recent with its own progress.')}</p>${recent}`,
     {cancel:S.folderPath ? t('Cancel') : null, confirm:{act:'pkChoose', label, dis:!can}, canClose:!!S.folderPath});
 }
-function dlgSidecars(){
-  const its = sharedItems(), names = [...new Set(its.map(i => folderName(i.folder)))].map(esc).join(', ');
-  return confirmDialog(t('Write decisions to sidecars'), `<p style="margin-top:0">${t('This folder is shared. honeycomb keeps your decisions to yourself and writes nothing next to the files on its own.')}</p>
-    <div class="note warn"><span>${t('Every user of this folder, and digiKam, darktable and Lightroom, will see these decisions.')}</span></div>
-    <p class="hint">${t('The XMP sidecar of each file gets its rating, colour label and flag.')} ${n('%n photo in {folders}', '%n photos in {folders}', its.length, {folders:names})}</p>`,
-    {cancel:t('Cancel'), confirm:{act:'sidecarsConfirm', label:t('Write to sidecars'), dis:!its.length}});
+/* Write picks/rejects to XMP: the files it could not write */
+function dlgXmpReport(){
+  return confirmDialog(t('XMP files not written'),
+    `<div class="fl-list">${S.xmpFailed.map(f => `<div><span class="k">XMP</span><span class="n"><i>${esc(f.it.folder.replace('/Photos/', '…/'))}</i>${esc(xmpFileName(f.it))}<div class="bad">${esc(t(WHY[f.why][0]))}</div></span></div>`).join('')}</div>
+    <p style="color:var(--muted);font-size:13px">${t('The other XMP files were written. Run the entry again after the cause is gone.')}</p>`, {cancel:t('Close')});
 }
 /* delete summary */
 function filesOf(it){ return [it.jpg && {...it.jpg, kind:'JPEG', it}, it.raw && {...it.raw, kind:'RAW', it}, it.xmp && {...it.xmp, kind:'XMP', it}].filter(Boolean); }
@@ -2042,7 +2095,7 @@ function serieChrome(){
   $('svName').textContent = stem(it);
   $('svSub').textContent = [t('Series {i} of {count}', {i:nf(S.dlg ? S.dlg.i + 1 : 1), count:nf(S.dlg ? S.dlg.gids.length : 1)}), t('photo {i} of {count}', {i:nf(SV.idx + 1), count:nf(SV.ids.length)}), pairLabel(it),
     it.rating ? nf(it.rating) + '★' : '', it.flag !== 'none' ? flagName(it.flag) : ''].filter(Boolean).join(' · ');
-  $('svBar').innerHTML = actionBar(it, 'serie', {big:true, tail:pickRestBtn('serie')}); syncFlagBtns();
+  $('svBar').innerHTML = actionBar(it, 'serie', {big:true, dis:isRO(it) ? 'disabled' : '', tail:pickRestBtn('serie', '', true, isRO(it) ? 'disabled' : '')}); syncFlagBtns();
   document.querySelector('#serie .sv-nav.prev').hidden = SV.idx === 0; document.querySelector('#serie .sv-nav.next').hidden = SV.idx === SV.ids.length - 1;
 }
 function serieApply(){
@@ -2207,9 +2260,8 @@ function dlgSettings(){
     <div id="tplPv">${tplPreview(tplCur)}</div>
     <p class="hint" style="margin-top:8px">${t('Tokens: <span class="mono">{date:%Y %m %d %j %H %M %S}</span>, <span class="mono">{camera}</span>, <span class="mono">{make}</span>, <span class="mono">{name}</span>, <span class="mono">{number:N}</span>, <span class="mono">{ext}</span>; <span class="mono">:lower</span> and <span class="mono">:upper</span> on text tokens. Only letters, digits, <span class="mono">. _ -</span> and <span class="mono">/</span>, never spaces.')}</p>
     <div style="margin:10px 0 8px"><b style="font-size:13px">${t('Favourite folders')}</b></div><div class="chiprow">${S.moveFav.map(p => `<span class="ext">★ ${esc(p.split('/').pop())}<button data-act="favDel" data-path="${esc(p)}" aria-label="${esc(t('Remove favourite {path}', {path:p}))}" ${tip(t('Remove favourite {path}', {path:p}))}>✕</button></span>`).join('') || `<span class="hint">${t('None yet: add one in the move dialog.')}</span>`}</div></div>
-  <div class="sec"><h3>${t('Where decisions are stored')}</h3>
-    <div class="seg" role="radiogroup" aria-label="${esc(t('Storage'))}" style="flex-wrap:wrap">${[['db', 'App database'], ['xmp', 'XMP sidecars'], ['both', 'Both (recommended)']].map(([v, l]) => `<button role="radio" aria-checked="${s.storage === v}" data-act="setStorage" data-v="${v}">${t(l)}</button>`).join('')}</div>
-    <p class="hint" style="margin-top:8px">${s.storage === 'both' ? t('Database is the fast working state; every change is written through to the XMP sidecars of each file.') : s.storage === 'xmp' ? t('Sidecars are the only source of truth, so digiKam sees every change. Slower grid.') : t('Nothing is written next to your files.')}</p></div>`,
+  ${S.mock.admin ? `<div class="sec"><h3>${t('Cache')}</h3>
+    <div class="setrow"><div><div>${t('Clean up orphaned data')}</div><div style="font-size:12px;color:var(--muted)">${t('Removes the picks, rejects and Keep RAW marks of photos that no longer exist or lie in the trash bin.')}</div></div><button class="btn" data-act="cleanupOrphans">${t('Clean up')}</button></div></div>` : ''}`,
     `<button class="btn primary" data-act="closeDlg">${t('Done')}</button>`, true);
 }
 const KEYS = [
@@ -2405,7 +2457,7 @@ const L = {W:0, H:0, z:{s:1, tx:0, ty:0}, anim:false, film:true, slides:[], cvs:
 function buildLoupe(){
   $('loupe').innerHTML = `
   <div class="l-top"><button class="icon-btn" data-act="closeLoupe" aria-label="${esc(t('Close loupe'))}" ${tip(t('Close loupe'), HOTKEY.close)}>${ic('close')}</button>
-    <div class="l-title"><b id="lName"></b><span id="lPair"></span></div>
+    <div class="l-title"><b id="lName"></b><span id="lPair"></span><span id="lRo" class="ro-note" hidden></span></div>
     <span class="l-count" id="lCount"></span>
     <button class="btn" data-act="zoomToggle" id="lZoomBtn" aria-label="${esc(t('Toggle fit and 100 percent'))}" ${tip(t('Fit / 100 %'), HOTKEY.fit)}>${t('Fit')}</button>
     <button class="btn" data-act="moveCur" aria-label="${esc(t('Move this photo'))}" ${tip(t('Move this photo'), HOTKEY.move)}>${t('Move…')}</button>
@@ -2488,10 +2540,12 @@ function renderLoupeChrome(){
   $('lPair').textContent = parts.join('  ·  ') + (!it.jpg ? '  ·  ' + t('RAW only: showing embedded preview') : !it.raw ? '  ·  ' + t('JPEG only') : '') + (parts.length > 1 ? '  ·  ' + n('Reject covers the %n file', 'Reject covers all %n files', parts.length) : '');
   const up = S.settings.swipeUp, dn = S.settings.swipeDown, nm = a => swipeWord(a, 'off');
   $('lCount').textContent = `${nf(lp.idx + 1)} / ${nf(lp.ids.length)}`;
-  $('lCtrl').innerHTML = actionBar(it, 'loupe', {big:true, tail:`<div class="grp"><button class="sq" data-act="tags" data-for="loupe" aria-label="${t('Tags')}" ${tip(t('Tags'), HOTKEY.tags)} style="padding:0 12px">${ic('tag')}</button></div>`}); syncFlagBtns();
+  const ro = isRO(it), roDis = ro ? 'disabled' : '';
+  $('lRo').hidden = !ro; $('lRo').innerHTML = ro ? ic('lock') + esc(t(READ_ONLY)) : '';
+  $('lCtrl').innerHTML = actionBar(it, 'loupe', {big:true, dis:roDis, tail:`<div class="grp"><button class="sq" data-act="tags" data-for="loupe" ${roDis} aria-label="${t('Tags')}" ${tip(t('Tags'), HOTKEY.tags)} style="padding:0 12px">${ic('tag')}</button></div>`}); syncFlagBtns();
   $('lZoomBtn').textContent = L.z.s > 1.02 ? Math.round(L.z.s * fitSize(it)[0] * (devicePixelRatio || 1) / it.nativeW * 100) + '%' : t('Fit');
   const ip = $('infoPanel'); ip.hidden = $('infoDiv').hidden = !P0.infoOpen; $('lInfoBtn').setAttribute('aria-pressed', P0.infoOpen);
-  ip.innerHTML = `<h4>${t('File')}</h4><dl><dt>${t('Name')}</dt><dd>${esc(stem(it))}</dd><dt>${t('Folder')}</dt><dd ${tip(it.folder)}>${esc(folderName(it.folder))}</dd>${it.jpg ? `<dt>JPEG</dt><dd>${fmtSize(it.jpg.size)}</dd>` : ''}${it.raw ? `<dt>RAW</dt><dd>${esc(it.raw.name.split('.').pop())} · ${fmtSize(it.raw.size)}</dd>` : ''}<dt>${t('Sidecars')}</dt><dd>${it.xmp ? esc(it.xmp.name) : '—'}</dd><dt>${t('Size')}</dt><dd>${t('{px} px wide', {px:nf(it.nativeW)})}</dd><dt>${t('Captured')}</dt><dd>${it.exifTime != null ? esc(fmtWhen(it.exifTime)) : esc(t('Modified {date} (no capture time)', {date:fmtWhen(it.mtime)}))}</dd></dl>
+  ip.innerHTML = (ro ? `<div class="note warn" role="status" style="margin-bottom:12px">${esc(t(READ_ONLY))}</div>` : '') + `<h4>${t('File')}</h4><dl><dt>${t('Name')}</dt><dd>${esc(stem(it))}</dd><dt>${t('Folder')}</dt><dd ${tip(it.folder)}>${esc(folderName(it.folder))}</dd>${it.jpg ? `<dt>JPEG</dt><dd>${fmtSize(it.jpg.size)}</dd>` : ''}${it.raw ? `<dt>RAW</dt><dd>${esc(it.raw.name.split('.').pop())} · ${fmtSize(it.raw.size)}</dd>` : ''}<dt>${t('Sidecars')}</dt><dd>${it.xmp ? esc(it.xmp.name) : '—'}</dd><dt>${t('Size')}</dt><dd>${t('{px} px wide', {px:nf(it.nativeW)})}</dd><dt>${t('Captured')}</dt><dd>${it.exifTime != null ? esc(fmtWhen(it.exifTime)) : esc(t('Modified {date} (no capture time)', {date:fmtWhen(it.mtime)}))}</dd></dl>
     <h4 style="margin-top:16px">${t('Decision')}</h4><dl><dt>${t('Rating')}</dt><dd>${it.rating ? nf(it.rating) + ' ★' : '—'}</dd><dt>${t('Label')}</dt><dd>${it.label ? esc(labelName(it.label)) : '—'}</dd><dt>${t('Flag')}</dt><dd>${esc(t(FLAG_TXT[it.flag]))}</dd></dl>
     <h4 style="margin-top:16px">${t('Tags')}</h4><dl><dt>${t('Tags')}</dt><dd>${it.tags.length ? [...it.tags].sort().map(esc).join('<br>') : '—'}</dd>${it.tags.length ? `<dt>${t('Written to')}</dt><dd>${esc(tagTargets(it))}</dd>` : ''}</dl>
     <h4 style="margin-top:16px">${t('Gestures')}</h4><p class="gest" id="lGest"></p>`;
@@ -2623,6 +2677,8 @@ function renderMock(){
       <div class="seg" role="radiogroup" aria-label="${esc(t('Orientation'))}">${[['port', 'Portrait'], ['land', 'Landscape']].map(([v, l]) => `<button role="radio" aria-checked="${m.orient === v}" data-act="mockOrient" data-v="${v}" ${m.frame === 'off' || DEVICES[m.frame].fixed ? 'disabled' : ''}>${t(l)}</button>`).join('')}</div></div>
     <label class="chk"><input type="checkbox" data-chg="mockSlow" ${m.slow ? 'checked' : ''}> ${t('Simulate a slow network')}</label>
     <label class="chk"><input type="checkbox" data-chg="mockFail" ${m.fail ? 'checked' : ''}> ${t('Simulate a failed file on delete')}</label>
+    <label class="chk"><input type="checkbox" data-chg="mockXmpFail" ${m.xmpFail ? 'checked' : ''}> ${t('Simulate an XMP write that fails')}</label>
+    <label class="chk"><input type="checkbox" data-chg="mockAdmin" ${m.admin ? 'checked' : ''}> ${t('Signed in as an admin')}</label>
     <label class="chk"><input type="checkbox" data-chg="mockConflict" ${m.conflict ? 'checked' : ''}> ${t('Simulate a name conflict when moving to Archive')}</label>
     <button class="btn" data-act="mockDevice">${t('Continue on another device')}</button>
     <button class="btn" data-act="mockReset">${t('Reset mockup')}</button></div>` : ''}`;
@@ -2713,10 +2769,10 @@ const A = {
   fFlagsAll(){ S.filters.flags.clear(); refreshView(); },
   more(el){ if ($('popRoot').firstChild && S.menuAnchor === el) closeMenu(); else openMore(el); }, path(el){ if ($('popRoot').firstChild && S.menuAnchor === el) closeMenu(); else openPath(el); },
   sortSet(el){ S.sort = el.dataset.v; refreshView(); }, langSet(el){ setLang(el.dataset.v); },
-  writeSidecars(){ openDlg({type:'sidecars'}); },
+  writeXmp(){ writeXmp(); }, clearFlags(){ clearFlags(); }, xmpDetails(){ openDlg({type:'xmpReport'}); },
+  cleanupOrphans(){ const k = S.mock.orphans; S.mock.orphans = 0; toast(k ? n('Removed %n orphaned entry', 'Removed %n orphaned entries', k) : t('Nothing was orphaned')); },
   rawRm(){ openDlg({type:'rawrm', ids:S.view.map(i => i.id)}); }, rawRmConfirm(){ const res = doRemoveRaws(S.dlg.ids, S.mock.fail); S.lastFailed = res.failed; finishRawRm(res); },
   keepRaw(el){ toggleKeepRaw(idsForKey(el.dataset.for, el.dataset.id)); },
-  sidecarsConfirm(){ const its = sharedItems(); closeDlg(); toast(n('Wrote the decisions of %n photo to sidecars', 'Wrote the decisions of %n photos to sidecars', its.length)); },
   barOff(){ P0.barOff = true; savePrefs(); applyBar(); toast(t('Header hidden · tap the handle at the top to bring it back')); }, barOn(){ P0.barOff = false; savePrefs(); resetBar(); },
   resume(){ const id = S.server.resume[S.folderPath], hit = S.view.find(i => i.id === id) || S.view.find(i => i.flag === 'none') || S.view[0]; if (hit) openLoupe(hit.id); },
   burst(){ const gids = getBursts().groups.map(g => g.map(i => i.id)); if (gids.length) openDlg({type:'burst', gids, i:0}); },
@@ -2735,13 +2791,13 @@ const A = {
   zoomToggle(){ toggleZoom(); }, infoToggle(){ P0.infoOpen = !P0.infoOpen; savePrefs(); renderLoupeChrome(); measure(); showLoupe(); }, filmToggle(){ L.film = !L.film; renderLoupeChrome(); measure(); showLoupe(); },
   setBool(el){ S.settings[el.dataset.k] = !S.settings[el.dataset.k]; if (el.dataset.k === 'showSingles') refreshView(); if (el.dataset.k === 'flagButtons') flagBtnsChanged(); renderDlg(); },
   flagBtns(){ toggleFlagBtns(); },
-  setFolderMode(el){ S.settings.folderMode = el.dataset.v; renderDlg(); }, setStorage(el){ S.settings.storage = el.dataset.v; renderDlg(); },
+  setFolderMode(el){ S.settings.folderMode = el.dataset.v; renderDlg(); },
   extDel(el){ const a = S.settings[el.dataset.k]; a.splice(a.indexOf(el.dataset.e), 1); renderDlg(); },
   mockToggle(){ S.mock.open = !S.mock.open; renderMock(); },
   mockTheme(el){ S.mock.theme = el.dataset.v; applyTheme(); renderMock(); },
   mockFrame(el){ S.mock.frame = el.dataset.v; renderMock(); layoutFrame(); },
   mockOrient(el){ S.mock.orient = el.dataset.v; renderMock(); layoutFrame(); },
-  mockReset(){ const m = S.mock; closeDlg(); closeSerie(); if (S.loupe) closeLoupe(); S = freshState(); S.mock = {...S.mock, ...{theme:m.theme, frame:m.frame, open:true, fail:false}}; thumbs.clear(); bigCache.clear(); boot(); }
+  mockReset(){ const m = S.mock; closeDlg(); closeSerie(); if (S.loupe) closeLoupe(); S = freshState(); S.mock = {...S.mock, ...{theme:m.theme, frame:m.frame, open:true, fail:false, xmpFail:false}}; thumbs.clear(); bigCache.clear(); boot(); }
 };
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-act]');
@@ -2768,6 +2824,8 @@ document.addEventListener('change', e => {
   else if (k === 'rawFolder' || k === 'jpgFolder') S.settings[k] = e.target.value.trim() || (k === 'rawFolder' ? 'RAW' : 'JPG');
   else if (k === 'mockFail') S.mock.fail = e.target.checked;
   else if (k === 'mockSlow') S.mock.slow = e.target.checked;
+  else if (k === 'mockXmpFail') S.mock.xmpFail = e.target.checked;
+  else if (k === 'mockAdmin'){ S.mock.admin = e.target.checked; if (S.dlg && S.dlg.type === 'settings') renderDlg(); }
   else if (k === 'mockConflict'){ S.mock.conflict = e.target.checked; if (S.dlg && S.dlg.type === 'move') renderDlg(); }
 });
 document.addEventListener('submit', e => {
