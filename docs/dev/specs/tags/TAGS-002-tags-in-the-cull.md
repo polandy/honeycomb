@@ -41,17 +41,16 @@ read.
 shown at once for every member. Nothing is stored in the database: the sidecars hold it, and the
 XMP cache save of each saved sidecar adds its tags to the tag list (XMP-006.9).
 
-**Writing through.** While writing to sidecars is on (XMP-003 The setting), each
-changed picture outside a shared folder gets the change written to its sidecars, in the same passes
-as the decisions (XMP-003): every sidecar is read unless honeycomb holds its bytes, the change is
-applied to the union of their tags as they are then, and that set is written to every sidecar, and,
-to a new `<member file>.xmp` for each member without one while
-any tag is left. The JPEG gets its new sidecar also when no tag is left but its embedded XMP held
-tags, so the removal lasts. Only the three tag
-fields change (XMP-004); the decision fields stay as the sidecar holds them. Changes waiting for
-the same pass are applied in order and saved once (XMP-003.16). A sidecar answering `changed` is
-read again and gets the change once more. A sidecar that cannot be written is reported like a
-decision's (XMP-003.13); *Retry failed sidecars* applies the same change again.
+**Writing through.** Each changed rateable picture (XMP-008) gets the change written to its
+sidecars, in the same passes as the decisions (XMP-003): every sidecar is read unless honeycomb
+holds its bytes, the change is applied to the union of their tags as they are then, and that set is
+written to every sidecar, and, to a new `<member file>.xmp` for each member without one while any
+tag is left. The JPEG gets its new sidecar also when no tag is left but its embedded XMP held tags,
+so the removal lasts. Only the three tag fields change (XMP-004); the decision fields stay as the
+sidecar holds them. Changes waiting for the same pass are applied in order and saved once
+(XMP-003.16). A sidecar answering `changed` is read again and gets the change once more. A sidecar
+that cannot be written is reported like a decision's (XMP-003.13); *Retry failed sidecars* applies
+the same change again.
 
 **Files moved back.** Files put back into the cull (an undone delete) have their legacy tags and
 sidecars read.
@@ -117,7 +116,7 @@ reported (TAGS-002.13).
 
 ### TAGS-002.9 – A tag change is written through
 
-- **Given** a pair outside a shared folder with sidecars holding `Places/Lisbon` and, added by
+- **Given** a rateable pair with sidecars holding `Places/Lisbon` and, added by
   another program after the listing, `People/Anna`
 - **When** the user adds `Events/Wedding` and removes `Places/Lisbon`
 - **Then** each sidecar is saved with `Events/Wedding` and `People/Anna` in the three tag fields and

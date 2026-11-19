@@ -3,11 +3,10 @@
 honeycomb keeps your decisions — stars, flags and colour labels — and writes them into the XMP
 sidecar files next to your photos (`IMG_0001.NEF.xmp` or `IMG_0001.xmp`). honeycomb rates only what
 it can write, so a photo in a folder you may only read cannot be rated. Setting anything on a photo
-updates the sidecars it already has, and a file without one gets a new `IMG_0001.NEF.xmp`. A photo you have not touched
-gets none. digiKam,
-darktable and Lightroom Classic read those files, so a photo you rated on the iPad shows the same
-stars on your desktop. When you open a folder for the first time, honeycomb also picks up what these
-programs have already written.
+updates the sidecars it already has, and a file without one gets a new `IMG_0001.NEF.xmp`. A photo
+you have not touched gets none. digiKam, darktable and Lightroom Classic read those files, so a
+photo you rated on the iPad shows the same stars on your desktop. When you open a folder for the
+first time, honeycomb also picks up what these programs have already written.
 
 While you stay on a photo, honeycomb collects your changes and writes them once you move on, or
 after two seconds without a change. Until then the grid tile shows a small white ring next to the

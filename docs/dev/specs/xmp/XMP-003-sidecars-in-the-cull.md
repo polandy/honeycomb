@@ -16,22 +16,22 @@ sidecars when the user asks (ADR 0040).
 
 ## Behaviour
 
-**Concept D (ADR 0040).** There is no setting and no shared-folder rule (XMP-008); M8 PR 4
-removes the legacy rows, and M8 PR 6 moves the flag and *Keep RAW* to the database: from then on a step writes
-only the rating, colour label and tags through, and leaves the sidecar's flag fields and
-`honeycomb:KeepRaw` as they are. **Taking over (M8 PR 6):** a picture whose members have no row
-in `honeycomb_flags` takes over the flag and *Keep RAW* its sources state, by the rules of
-*Reading* below, and the client sends them to the take-over endpoint (DECISIONS-001.27), as
-*unflagged* when no source states one, also for a read-only picture; from then on its row holds,
-and a later change in another program is not read. Rating, colour label and tags are not taken
-over: they are always read from the sidecars. ***Write picks/rejects to XMP* (M8 PR 7):** the
-grid's ⋯ entry, shown with the number of sidecars to write (GRID-001.21), writes the flag and
-*Keep RAW* of every rateable picture of the open folder set, whatever the filters show, into each
-of its sidecars whose flag fields or `honeycomb:KeepRaw` differ, as the XMP cache states them;
-*unflagged* removes the flag fields except an existing digiKam `PickLabel` 2, and a member
-without a sidecar gets `<member file>.xmp` only when the picture is flagged or kept. It uses the
-write path below, is no undo step, and reports in one toast. Until those PRs the text below
-holds, and the criteria withdrawn below hold; those from .34 on are gaps.
+**Concept D (ADR 0040).** There is no setting and no shared-folder rule (XMP-008); M8 PR 4 removes
+the legacy rows, and M8 PR 6 moves the flag and *Keep RAW* to the database: from then on a step
+writes only the rating, colour label and tags through, and leaves the sidecar's flag fields and
+`honeycomb:KeepRaw` as they are. **Taking over (M8 PR 6):** a picture whose members have no row in
+`honeycomb_flags` takes over the flag and *Keep RAW* its sources state, by the rules of *Reading*
+below, and the client sends them to the take-over endpoint (DECISIONS-001.27), as *unflagged* when
+no source states one, also for a read-only picture; from then on its row holds, and a later change
+in another program is not read. Rating, colour label and tags are not taken over: they are always
+read from the sidecars. ***Write picks/rejects to XMP* (M8 PR 7):** the grid's ⋯ entry, shown with
+the number of sidecars to write (GRID-001.21), writes the flag and *Keep RAW* of every rateable
+picture of the open folder set, whatever the filters show, into each of its sidecars whose flag
+fields or `honeycomb:KeepRaw` differ, as the XMP cache states them; *unflagged* removes the flag
+fields except an existing digiKam `PickLabel` 2, and a member without a sidecar gets `<member
+file>.xmp` only when the picture is flagged or kept. It uses the write path below, is no undo step,
+and reports in one toast. Until those PRs the text below holds, and the criteria withdrawn below
+hold; those from .34 on are gaps.
 
 **Reading.** When a cull opens, and again when the pairing settings change, each picture's
 sidecars (darktable duplicates excepted) and the JPEG whose embedded XMP counts (TAGS-002) are read
@@ -135,13 +135,13 @@ Withdrawn by ADR 0040; M8 PR 4 marks it removed.
 
 Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 
-- **Given** a pair outside a shared folder with `IMG_0001.NEF.xmp` and `IMG_0001.JPG.xmp`
+- **Given** a rateable pair with `IMG_0001.NEF.xmp` and `IMG_0001.JPG.xmp`
 - **When** the user picks it
 - **Then** both sidecars are read, merged with the pick and saved with the ETag and size read
 
 ### XMP-003.7 – A member without a sidecar gets `<member file>.xmp`
 
-- **Given** a pair outside a shared folder without sidecars
+- **Given** a rateable pair without sidecars
 - **When** the user rates it
 - **Then** `IMG_0001.NEF.xmp` and `IMG_0001.JPG.xmp` are created with the rating, and the next
   write to them saves over the created files without looking them up
@@ -202,7 +202,7 @@ Withdrawn by ADR 0040 (M8 PR 3); there is no switch and no shared-folder rule (X
 
 Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 
-- **Given** a cull outside a shared folder
+- **Given** a cull of rateable pictures
 - **When** the user flags, rates, labels or keeps the RAW of one picture
 - **Then** that picture alone is written to its sidecars; the others get none
 

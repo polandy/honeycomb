@@ -137,9 +137,7 @@ Withdrawn by ADR 0040 (M8 PR 3); an existing sidecar is overwritten without vers
 
 ## Out of scope
 
-- When the client reads and writes sidecars, and asking first in a shared folder:
-  [XMP-003](XMP-003-sidecars-in-the-cull.md).
-- Which folders are shared: LISTING-001.12.
+- When the client reads and writes sidecars: [XMP-003](XMP-003-sidecars-in-the-cull.md).
 
 ## History
 

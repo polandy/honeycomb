@@ -35,8 +35,8 @@ shade, and its label names the count; an untagged tile shows neither.
 one per line in sort order, each as its full path, or "—". A tagged picture's *Written to*
 row names the files the tags are written through to (TAGS-002, XMP-003) by file name, each once:
 its sidecars but darktable's duplicates, then the `<member file>.xmp` a write creates for each
-member without one. In a shared folder nothing is written on its own, and the row says *Not
-written, shared folder*. The section follows a tag change at once.
+member without one. For a read-only picture nothing is written, and the row names the reason
+(.9). The section follows a tag change at once.
 
 ## Acceptance criteria
 
