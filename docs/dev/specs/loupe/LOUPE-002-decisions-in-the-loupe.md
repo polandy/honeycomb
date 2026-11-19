@@ -99,6 +99,14 @@ write of an undo is reported (XMP-003.13).
   in portrait they form a row below the photo, *Pick* at the left, *Unflag* in the middle and
   *Reject* at the right (owner decision, 2026-11-13)
 
+### LOUPE-002.18 – A read-only picture greys its controls (gap)
+
+- **Given** the loupe on a read-only picture (XMP-008), then on a rateable one
+- **When** it shows each
+- **Then** on the first the pick, reject, stars, colour label, *Keep RAW* and *Tags* controls are
+  disabled, the swipes and decision keys change nothing, and the info panel says *Read only: you
+  may not change this folder*; on the second all of them act as before
+
 ## Out of scope
 
 Decision keys (`P`, `X`, `U`, digits, `[`, `]`): KEYS-001. Storage of decisions: DECISIONS-001.
@@ -177,3 +185,4 @@ Delete from the loupe: DELETE-002.
 | 2026-11-14 | .15 *Pick this, reject the rest* in the loupe (concept step 9) |
 | 2026-11-14 | .16 *Reject the other N* in the undo toast (concept step 10) |
 | 2026-11-14 | .17 toast buttons stay readable on hover and focus |
+| 2026-11-19 | ADR 0040: a read-only picture greys its controls in the loupe (.18 gap) |

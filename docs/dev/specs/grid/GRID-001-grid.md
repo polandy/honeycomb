@@ -152,6 +152,28 @@ a glance, at any size, without waiting for a sharp image of every tile.
   one around it, a small preview before a sharp one, then the oldest request; a tile that scrolls
   into view moves its waiting load forward, and an unmounted tile's waiting load never starts
 
+### GRID-001.20 – A read-only tile carries a lock (gap)
+
+- **Given** a folder set in which only the pictures of `Island/Drone` are read only (XMP-008)
+- **When** the grid shows them
+- **Then** exactly those tiles carry the lock, drawn as the mockup draws it (M8 PR 2), with the
+  text *Read only* for assistive technology; the other tiles carry none
+
+### GRID-001.21 – *Write picks/rejects to XMP* shows its count (gap)
+
+- **Given** an open folder set with 214 sidecars to write as XMP-003.39 counts them, and one with
+  none
+- **When** the user opens the ⋯ menu
+- **Then** the entry reads *Write picks/rejects to XMP · 214* and writes at once, without asking;
+  with nothing to write it reads *Write picks/rejects to XMP* and reports that all are up to date
+
+### GRID-001.22 – *Clear picks/rejects* (gap)
+
+- **Given** an open folder set with 12 flagged or kept pictures, 2 of them read only
+- **When** the user chooses *Clear picks/rejects* in the ⋯ menu
+- **Then** the 10 rateable ones become *unflagged* without *Keep RAW* as one undo step, their rows
+  stay, no sidecar is touched, and the toast says *10 photos reset* with *Undo*
+
 ## Out of scope
 
 Pairing (LISTING-002), the folder picker and its over-the-cap notice (LISTING-003), filters and
@@ -180,7 +202,8 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 - **When** the user looks at it, changes a view option or chooses an action
 - **Then** one separator stands between the view options (thumbnail size, *Group by folder*, sort)
   and the actions; a changed view option leaves the menu open, and an action (*Review rejects*,
-  *Compare series*, *Remove RAWs…*, *Move picks…*, *Resume at*, *Write decisions to sidecars…*,
+  *Compare series*, *Remove RAWs…*, *Move picks…*, *Resume at*, *Write decisions to sidecars…*
+  (*Write picks/rejects to XMP* and *Clear picks/rejects* from M8 PR 6 and 7, .21, .22),
   *Settings*) closes it, so no menu stays above the dialog or view it opens
 
 ### GRID-001.19 – Every control is at least 44 × 44 px on an iPad
@@ -205,3 +228,4 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 | 2026-11-15 | GRID-001.17: *Review rejects* stays in the ⋯ menu from 900 px too (owner, DELETE-002.19) |
 | 2026-11-13 | GRID-001.18: a separator between view options and actions in the ⋯ menu; an action closes it (UX review M7) |
 | 2026-11-18 | GRID-001.19: an e2e check of the 44 px touch targets in the real app on iPad viewports |
+| 2026-11-19 | ADR 0040: the lock on read-only tiles, *Write picks/rejects to XMP* with its count, *Clear picks/rejects* (.20–.22 gaps) |

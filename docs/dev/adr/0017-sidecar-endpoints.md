@@ -1,6 +1,7 @@
 # 0017 – The sidecar endpoints: bytes in base64, a checked save
 
-- Status: accepted, amended by [0032](0032-sidecar-is-the-source-of-truth.md) and on 2026-11-18
+- Status: accepted, amended by [0032](0032-sidecar-is-the-source-of-truth.md) and on 2026-11-18;
+  the shared-folder detection is superseded by [0040](0040-flags-per-picture-in-the-database.md)
 - Date: 2026-11-10
 
 ## Context

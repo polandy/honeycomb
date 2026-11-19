@@ -2,7 +2,7 @@
 
 - Status: implemented
 - Area: delete
-- Origin: `docs/dev/plan.md` M4.2, Q11, Q12
+- Origin: `docs/dev/plan.md` M4.2, Q11, Q12; ADR 0032, ADR 0040
 - Depends on: DELETE-001, DECISIONS-001
 
 ## Purpose
@@ -37,6 +37,15 @@ Confirming
 sends those files' pictures again, those files marked `permanent`; the toast and the report then
 count both requests, and the files deleted for good apart. *Cancel* goes on as before: the files
 stay and the report lists them with the warning's words for their reason.
+
+**Deleting by decision under ADR 0040 (M8 PR 8).** The fresh check reads no sidecar and no
+embedded XMP any more. Confirming the summary that came from the review writes the waiting
+sidecars and flags, lists the pictures' folders again and sends each picture that is still
+rejected in the cull, with the files of the fresh listing, and `"expect": "rejected"`
+(DELETE-001.16). A picture is skipped, and stays, when its members changed; one the server
+answers `decisionChanged` stays and is reported as *No longer rejected*. When a folder's fresh
+listing or the request fails, nothing of it is deleted and the toast says so; there is no dialog
+*Fresh check not possible*. Until then the following holds.
 
 **Deleting by decision** (ADR 0032). Confirming the summary that came from the review first writes
 the waiting sidecars (XMP-003.30), lists the pictures' folders again and reads every sidecar of each
@@ -161,6 +170,8 @@ honeycomb's write, keeps the listing's ETag and holds its picture as `changed`.
 
 ### DELETE-002.15 – Only what every sidecar rejects
 
+Withdrawn by ADR 0040; M8 PR 8 marks it removed.
+
 - **Given** the summary from the review, with a picture whose sidecar another program changed to
   *picked*, a pair whose RAW sidecar says *rejected* and JPEG sidecar *unflagged*, a picture with an
   unreadable sidecar, and a picture every sidecar of which says *rejected*
@@ -224,6 +235,8 @@ honeycomb's write, keeps the listing's ETag and holds its picture as `changed`.
 
 ### DELETE-002.23 – A failed fresh check deletes what honeycomb knows, once confirmed
 
+Withdrawn by ADR 0040; M8 PR 8 marks it removed.
+
 - **Given** the summary from the review with rejected pictures in two folders, the fresh listing
   of one folder failing, and in the other a picture whose sidecar now says *picked* and one whose
   sidecar lookup fails
@@ -242,12 +255,31 @@ honeycomb's write, keeps the listing's ETag and holds its picture as `changed`.
 
 ### DELETE-002.25 – Cancelled before an unchecked delete, nothing goes
 
+Withdrawn by ADR 0040; M8 PR 8 marks it removed.
+
 - **Given** the summary from the review and a fresh check that fails for some pictures
 - **When** the user confirms
 - **Then** nothing is sent yet, and the dialog *Fresh check not possible for N photos* opens with
   *Delete anyway* and *Cancel*, the focus on *Cancel*
 - **When** the user taps *Cancel* or closes it
 - **Then** nothing is sent, neither the unchecked pictures nor the checked ones, and no toast shows
+
+### DELETE-002.26 – The server decides what is still rejected (gap)
+
+- **Given** the summary from the review with two rejected pictures, of which another user picks
+  one after the summary opened, and a sidecar another program changed to *picked*
+- **When** the user confirms
+- **Then** no sidecar is looked up, both pictures are sent with `"expect": "rejected"`, the one
+  picked by the other user stays and the report lists it as *No longer rejected*, and the other
+  goes although its sidecar says *picked*
+
+### DELETE-002.27 – A failed fresh listing deletes nothing of its folder (gap)
+
+- **Given** the summary from the review with rejected pictures in two folders, the fresh listing
+  of one failing
+- **When** the user confirms
+- **Then** no dialog asks, the pictures of the other folder go, those of the failed folder stay
+  and are reported as skipped, and the failure is logged
 
 ## Out of scope
 
@@ -269,3 +301,4 @@ The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
 | 2026-11-18 | No key confirms the warning, and the report words the reasons as the warning does (DELETE-002.22, DELETE-002.24, ADR 0036, owner) |
 | 2026-11-18 | A failed fresh listing or lookup deletes the rejects honeycomb knows instead of aborting (DELETE-002.15, DELETE-002.23, ADR 0032, owner) |
 | 2026-11-18 | A failed fresh check asks before deleting, instead of saying so in the toast after (DELETE-002.15, DELETE-002.23, DELETE-002.25, owner) |
+| 2026-11-19 | ADR 0040: the server checks the rejects, the fresh check reads no sidecar, no dialog on a failed check (.15, .23, .25 withdrawn; .26, .27 gaps) |

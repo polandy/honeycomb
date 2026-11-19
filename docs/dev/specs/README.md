@@ -12,7 +12,7 @@ merged code does. Spec, tests and code change in the same pull request.
 | `listing/` | [LISTING-001](listing/LISTING-001-entries.md) entries of a folder set, [LISTING-002](listing/LISTING-002-pairing.md) pairing, [LISTING-003](listing/LISTING-003-folder-picker.md) folder picker |
 | `images/` | [IMAGES-001](images/IMAGES-001-preview-tiers.md) preview tiers and background previews |
 | `grid/` | [GRID-001](grid/GRID-001-grid.md) grid, [GRID-002](grid/GRID-002-filters-and-sort.md) flag filter, filters, progress and sort, [GRID-003](grid/GRID-003-selection.md) selection mode, [GRID-004](grid/GRID-004-file-names-and-tile-info.md) file names and tile info |
-| `decisions/` | [DECISIONS-001](decisions/DECISIONS-001-decision-storage.md) decision storage, [DECISIONS-002](decisions/DECISIONS-002-resume-position.md) resume position |
+| `decisions/` | [DECISIONS-001](decisions/DECISIONS-001-decision-storage.md) flag storage, [DECISIONS-002](decisions/DECISIONS-002-resume-position.md) resume position |
 | `loupe/` | [LOUPE-001](loupe/LOUPE-001-loupe.md) loupe, [LOUPE-002](loupe/LOUPE-002-decisions-in-the-loupe.md) decisions in the loupe, [LOUPE-003](loupe/LOUPE-003-view-state.md) view state |
 | `move/` | [MOVE-001](move/MOVE-001-name-templates.md) name templates, [MOVE-002](move/MOVE-002-move-endpoints.md) move endpoints, [MOVE-003](move/MOVE-003-move-plan-and-report.md) move plan, conflicts, report and undo, [MOVE-004](move/MOVE-004-move-dialog.md) move dialog and move summary |
 | `keys/` | [KEYS-001](keys/KEYS-001-key-map.md) key map, undo, redo and the shortcut sheet |
@@ -21,7 +21,7 @@ merged code does. Spec, tests and code change in the same pull request.
 | `tags/` | [TAGS-001](tags/TAGS-001-tag-storage.md) tag storage and tag list, [TAGS-002](tags/TAGS-002-tags-in-the-cull.md) tags in the cull, [TAGS-003](tags/TAGS-003-tag-entry.md) tag entry, [TAGS-004](tags/TAGS-004-tag-filter-and-tile.md) tag filter, the tile's tags and the info panel |
 | `settings/` | [SETTINGS-001](settings/SETTINGS-001-settings.md) per-user settings |
 | `stats/` | [STATS-001](stats/STATS-001-statistics.md) statistics |
-| `xmp/` | [XMP-001](xmp/XMP-001-sidecar-model-and-mapping.md) sidecar model and decision mapping, [XMP-002](xmp/XMP-002-sidecar-endpoints.md) sidecar endpoints, [XMP-003](xmp/XMP-003-sidecars-in-the-cull.md) sidecars in the cull, [XMP-004](xmp/XMP-004-tags-in-sidecars.md) tags in sidecars, [XMP-005](xmp/XMP-005-embedded-xmp-endpoint.md) embedded XMP endpoint, [XMP-006](xmp/XMP-006-xmp-cache.md) XMP cache, [XMP-007](xmp/XMP-007-legacy-migration.md) migration of the legacy rows, [XMP-008](xmp/XMP-008-deciding-needs-writing.md) deciding needs writing |
+| `xmp/` | [XMP-001](xmp/XMP-001-sidecar-model-and-mapping.md) sidecar model and decision mapping, [XMP-002](xmp/XMP-002-sidecar-endpoints.md) sidecar endpoints, [XMP-003](xmp/XMP-003-sidecars-in-the-cull.md) sidecars in the cull, [XMP-004](xmp/XMP-004-tags-in-sidecars.md) tags in sidecars, [XMP-005](xmp/XMP-005-embedded-xmp-endpoint.md) embedded XMP endpoint, [XMP-006](xmp/XMP-006-xmp-cache.md) XMP cache, [XMP-007](xmp/XMP-007-legacy-migration.md) migration of the legacy rows, [XMP-008](xmp/XMP-008-deciding-needs-writing.md) rateable and read only |
 
 ## IDs and status
 

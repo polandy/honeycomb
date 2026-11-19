@@ -27,6 +27,9 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 - A save writes only the file ids the user reaches: a sidecar for `sidecar`, a JPEG for
   `embedded`; any other id is skipped (ADR 0031). The ids are looked up 1,000 at a time
   (ADR 0038). Saves and the `DELETE` are rate limited per user (APP-001.9).
+- Under ADR 0040 the `flag` and `keepRaw` of a row no longer show in the cull: they serve the
+  take-over of a picture without a row in `honeycomb_flags` (XMP-003.34) and the count of
+  *Write picks/rejects to XMP* (XMP-003.39). Rating, colour label and tags show as before.
 - A save adds the tags of the rows it stores to the user's tag list (TAGS-003.13).
 - A row is valid while its `etag` equals the ETag the listing gives the file and its `reader` is
   the current version; the client reads every other listed source again and stores the new row.
@@ -118,6 +121,14 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 - **Then** its file ids are looked up 1,000 at a time in the user's files, shares included, not
   one by one, and the same ids are reached as by a lookup of each (ADR 0038)
 
+### XMP-006.12 – The flag fields serve the take-over and the count (gap)
+
+- **Given** a picture with a row in `honeycomb_flags` saying *rejected*, whose sidecar's cache row
+  states picked
+- **When** the cull opens
+- **Then** the picture shows *rejected*, no take-over is sent, and *Write picks/rejects to XMP*
+  counts the sidecar as differing
+
 ## Out of scope
 
 - A cache shared between users per file id and ETag (ADR 0032 Consequences).
@@ -130,3 +141,4 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 | 2026-11-15 | The endpoints, the command and *Clear cache* (ADR 0032 PR 4); the save answers the ids stored |
 | 2026-11-18 | The cull reads through the cache and stores the rows of the sidecars it saves (XMP-006.7, .10); a save feeds the tag list (.9) |
 | 2026-11-18 | A save looks its file ids up 1,000 at a time (XMP-006.11, ADR 0038) |
+| 2026-11-19 | ADR 0040: the flag fields serve only the take-over and the export count (.12 gap until M8 PR 6) |

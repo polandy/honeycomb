@@ -143,6 +143,13 @@ database keeps a per-user XMP cache that is rebuilt from the files (XMP-006), an
 compatibility comes first. Decided by the owner on 2026-11-15 (#187); the rules, the permission
 model and the pull request order are in ADR 0032.
 
+**Concept D** (owner, 2026-11-18, ADR 0040) revises it: rating, colour label and tags stay in the
+sidecars, while the flag and *Keep RAW* live per picture in `honeycomb_flags`, the same for every
+user, and reach the sidecars only through *Write picks/rejects to XMP*. A picture is rateable or
+read only, by the folder's UPDATE and CREATE; the switch, the shared-folder confirmation, the
+migration XMP-007 and the legacy tables go. Eight pull requests, ordered in ADR 0040 and
+`TODO.md`; PR 5 to 8 ship in one release.
+
 ### M9 – Statistics
 
 Daily counters of what honeycomb did for each user, a *Cull finished* card, a statistics page and
@@ -941,7 +948,8 @@ Answered by the owner on 2026-11-09 (Q3, Q4, Q5, Q6, Q20).
 4. **Sidecar names.** Both `<file>.xmp` and `<base>.xmp` are read; every one that exists is
    written, else `<file>.xmp` per member; deleting a picture removes both, *Remove RAWs* only the
    RAW's own `<file>.xmp` ([`06-xmp-interop.md`](06-xmp-interop.md#sidecar-names)).
-5. **Shared folders** (until M8, where ADR 0032 makes writing there permission-based and confirmed).
+5. **Shared folders** (until M8, where ADR 0040 makes every rateable folder writable without a
+   confirmation and keeps one set of flags per picture for every user).
    Decisions are per user, in the database. Sidecars are shared by every
    user of the folder, so in a shared folder nothing is written through on its own: the ⋯ menu
    offers *Write decisions to sidecars…*, which asks first (ADR 0005). Writing through is
@@ -1109,7 +1117,9 @@ the decisions.
 
 **Answer (owner, 2026-11-09): (c)**, database first (M2), sidecars as M5, read and written in
 digiKam's, darktable's and Lightroom's fields (ADR 0005). **Revised (owner, 2026-11-15): (b)**,
-the sidecar is the source of truth and the database only a cache (ADR 0032, M8). The mapping is
+the sidecar is the source of truth and the database only a cache (ADR 0032, M8). **Revised
+(owner, 2026-11-18):** the flag and *Keep RAW* per picture in the database, the rest in the
+sidecars (ADR 0040). The mapping is
 [`06-xmp-interop.md`](06-xmp-interop.md).
 
 ### Q3 – Sidecar file names
@@ -1228,5 +1238,7 @@ Answered 2026-11-09: see [Image delivery & performance](#image-delivery--perform
 
 When two users cull the same shared folder: (a) decisions per user; (b) shared decisions.
 **Recommendation: (a)** in the database. Sidecars (Q2) are shared by nature, so writing them is an
-explicit action in shared folders. **Answered by the owner on 2026-11-09:** (a). See [Decisions,
-gestures and shared folders](#decisions-gestures-and-shared-folders).
+explicit action in shared folders. **Answered by the owner on 2026-11-09:** (a). **Revised
+(owner, 2026-11-18): (b)**, one set of flags per picture for every user, and the sidecars are
+written wherever the user may write (ADR 0040). See [Decisions, gestures and shared
+folders](#decisions-gestures-and-shared-folders).

@@ -53,9 +53,9 @@ Three ways to record:
 - **API:** `GET /apps/honeycomb/api/v1/stats?from=&to=` answers the user's rows of those days and
   the first counted day; `DELETE /apps/honeycomb/api/v1/stats` resets. Both only for the user
   themselves; no admin view, nothing leaves the server.
-- **One start value from the past:** before M8 PR 9 drops `honeycomb_decisions`, its repair step
-  writes the number of decided pictures in it as the metric `pictures_decided_before`, dated the
-  day of the repair, shown as "Before that: n pictures decided (no date)".
+- **One start value from the past:** before M8 PR 5 (ADR 0040) drops `honeycomb_decisions`, its
+  migration writes the number of decided pictures in it as the metric `pictures_decided_before`,
+  dated the day of the migration, shown as "Before that: n pictures decided (no date)".
 
 ## Consequences
 

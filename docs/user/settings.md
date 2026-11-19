@@ -5,6 +5,10 @@ OK button. The settings are yours alone and are stored in your Nextcloud account
 you to every device and browser. If a change cannot be saved, honeycomb says so and keeps it
 until you reload the page.
 
+**Changing in the next release** ([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
+The *XMP sidecars* section and its *Off* and *On* go: honeycomb writes wherever you may change the
+folder. Admins get *Clean up orphaned data* in the *Cache* section.
+
 ## File types
 
 honeycomb pairs a RAW file and a rendered file (a JPEG, HEIC and so on) with the same name,

@@ -18,7 +18,12 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **rating** | 0 to 5 stars. 0 means unrated. |
 | **capture time** | When a picture was taken: the RAW member's EXIF capture time, else the rendered member's, else the file's modification time. |
 | **colour label** | One of digiKam's nine colours, or none (Q5). |
-| **flag** | *Picked*, *rejected* or *unflagged*; digiKam calls it a pick label (Q4). |
+| **flag** | *Picked*, *rejected* or *unflagged*; digiKam calls it a pick label (Q4). Kept per picture in the database, the same for every user (ADR 0040). |
+| **rateable** | A picture whose every member's folder grants the user UPDATE and CREATE, so it can be flagged, rated, labelled, marked *Keep RAW* and tagged (ADR 0040). |
+| **read only** | A picture that is not rateable: it is shown with a lock, and nothing of it can be changed (ADR 0040). |
+| **take-over** | Recording, once, the flag and *Keep RAW* a picture's sidecars state when honeycomb first sees it; from then on the database holds them (ADR 0040). |
+| **Write picks/rejects to XMP** | The ⋯ entry that writes the flag and *Keep RAW* of every rateable picture of the open folder set into its sidecars that differ (ADR 0040). |
+| **Clear picks/rejects** | The ⋯ entry that sets every rateable picture of the open folder set to *unflagged* without *Keep RAW*, as one undo step; the sidecars stay as they are (ADR 0040). |
 | **Keep RAW** | A marker on a pair, independent of rating, colour label and flag: its RAW member stays when *Remove RAWs* runs. |
 | **Remove RAWs** | The bulk action that moves the RAW member and its own sidecar of every unmarked, not rejected pair in the view to the trash bin; the JPEG and the decisions stay. |
 | **cull** | Going through a folder set and rating, labelling, flagging and deleting pictures. |
@@ -58,7 +63,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **name template** | The pattern that builds a moved picture's path, e.g. `{date:%Y}/{name}.{ext}` (`docs/dev/05-name-templates.md`). |
 | **delete summary** | The dialog that lists pictures, files, bytes freed and the trash-bin note before deleting. |
 | **remove RAWs summary** | The same dialog before *Remove RAWs*, which also says how many pictures were skipped and why. |
-| **skipped photo** | A photo a delete by decision leaves alone because its sidecars changed, cannot be read or do not agree; listed in the delete report (ADR 0032). |
+| **skipped photo** | A photo a delete by decision leaves alone because its sidecars changed, cannot be read or do not agree, or, from M8 PR 8, because its members changed or the server finds its flag changed; listed in the delete report (ADR 0032, ADR 0040). |
 | **permanent delete warning** | The dialog *N files will be deleted permanently* that lists the files the trash bin would not keep, with *Cancel* focused and a destructive *Delete permanently* (ADR 0036). |
 | **trash bin** | Nextcloud's trash bin (`files_trashbin`), where deleted files can be restored from. |
 | **tag** | A path of names, `Places/Italy/Dolomites`, given to a picture; digiKam's tag. Not a *keyword* or *label* (a label is a colour label). |

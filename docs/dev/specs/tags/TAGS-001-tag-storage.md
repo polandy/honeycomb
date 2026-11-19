@@ -2,7 +2,8 @@
 
 - Status: implemented
 - Area: tags
-- Origin: `docs/dev/07-tags.md` Model, D6, Implementation outline step 3; ADR 0005, ADR 0022
+- Origin: `docs/dev/07-tags.md` Model, D6, Implementation outline step 3; ADR 0005, ADR 0022,
+  ADR 0040
 - Depends on: DECISIONS-001
 
 ## Purpose
@@ -11,6 +12,11 @@ Each user's tags are kept per file on the server, beside the decisions, so a cul
 device; the tag list keeps every tag the user ever had for autocomplete and the filter.
 
 ## Behaviour
+
+**Concept D (ADR 0040).** A file's tags live only in its sidecars (TAGS-002, XMP-004). M8 PR 5
+drops `honeycomb_file_tags` with `tags/lookup`, `PUT tags`, `lookupTags`, `saveTags` and the
+carrying of file tags on a move; the tag list per user (`honeycomb_tag_list`, `tags/list`,
+`loadTagList`) stays. Until then the text below holds.
 
 - `POST /apps/honeycomb/api/v1/tags/lookup` with `{"fileIds": [...]}` answers
   `{"tags": [{"fileId": 9, "tags": ["Places/Italy"]}, ...]}` with the stored rows only;
@@ -29,6 +35,8 @@ device; the tag list keeps every tag the user ever had for autocomplete and the 
 
 ### TAGS-001.1 – Lookup answers the stored rows
 
+Withdrawn by ADR 0040; M8 PR 5 marks it removed.
+
 - **Given** stored tags
 - **When** the user looks up file ids
 - **Then** the answer holds the rows of those ids only, in file id order, each file's tags sorted;
@@ -36,17 +44,23 @@ device; the tag list keeps every tag the user ever had for autocomplete and the 
 
 ### TAGS-001.2 – Whole states, overwritten
 
+Withdrawn by ADR 0040; M8 PR 5 marks it removed.
+
 - **Given** a file with stored tags
 - **When** the user saves a new list for it
 - **Then** the list replaces the earlier one
 
 ### TAGS-001.3 – No tags removes the row
 
+Withdrawn by ADR 0040; M8 PR 5 marks it removed.
+
 - **Given** a file with stored tags
 - **When** the user saves an empty list for it
 - **Then** the row is gone and the file reads as untagged
 
 ### TAGS-001.4 – Each user apart
+
+Withdrawn by ADR 0040; M8 PR 5 marks it removed.
 
 - **Given** two users tagging the same file
 - **When** each looks up, or reads the tag list
@@ -60,6 +74,8 @@ device; the tag list keeps every tag the user ever had for autocomplete and the 
 
 ### TAGS-001.6 – A malformed save writes nothing
 
+Withdrawn by ADR 0040; M8 PR 5 marks it removed.
+
 - **Given** a save with one malformed item: a tag that is not a string, has an empty name, a name
   with a space at either end or a `|`, or is over 255 characters; a tag twice in one item; more
   than 100 tags; a file id twice; or more than 60,000 items
@@ -68,17 +84,23 @@ device; the tag list keeps every tag the user ever had for autocomplete and the 
 
 ### TAGS-001.7 – A malformed lookup
 
+Withdrawn by ADR 0040; M8 PR 5 marks it removed.
+
 - **Given** a lookup that is not a list of positive integer ids or has more than 60,000
 - **When** it arrives
 - **Then** the answer is `400`
 
 ### TAGS-001.8 – Without a user
 
+Withdrawn by ADR 0040; M8 PR 5 marks it removed.
+
 - **Given** no logged-in user
 - **When** a lookup, a save or a tag list request arrives
 - **Then** the answer is `401` and nothing is read or written
 
 ### TAGS-001.9 – Saves of one file at once
+
+Withdrawn by ADR 0040; M8 PR 5 marks it removed.
 
 - **Given** two saves of the same file at once, so one hits the unique key of a row the other just
   inserted
@@ -89,6 +111,8 @@ device; the tag list keeps every tag the user ever had for autocomplete and the 
   stored
 
 ### TAGS-001.10 – A moved file
+
+Withdrawn by ADR 0040; M8 PR 5 marks it removed.
 
 - **Given** a file with tags
 - **When** a move gives it a new file id
@@ -117,6 +141,8 @@ device; the tag list keeps every tag the user ever had for autocomplete and the 
 
 ### TAGS-001.14 – A file the user does not reach
 
+Withdrawn by ADR 0040; M8 PR 5 marks it removed.
+
 - **Given** a save naming a file id that is not in the user's files, or not a photo
 - **When** it is stored
 - **Then** the user's photos in it are stored, nothing is written for that id, and a save of no
@@ -124,10 +150,19 @@ device; the tag list keeps every tag the user ever had for autocomplete and the 
 
 ### TAGS-001.15 – A save looks its file ids up in batches
 
+Withdrawn by ADR 0040; M8 PR 5 marks it removed.
+
 - **Given** a save of 2,000 tag lists
 - **When** it is stored
 - **Then** its file ids are looked up 1,000 at a time in the user's files, shares included, not
   one by one, and the same ids are reached as by a lookup of each (ADR 0038)
+
+### TAGS-001.16 – No file tags in the database (gap)
+
+- **Given** a cull in which the user tags a picture, and a move that gives a file a new id
+- **When** the server is asked
+- **Then** no tag is stored per file and no file-tag endpoint answers; the tag list holds the new
+  tag through the XMP cache save (XMP-006.9) and is read by `tags/list` as before
 
 ## Out of scope
 
@@ -142,3 +177,4 @@ Reading tags from sidecars and writing them through (TAGS-002); the JPEG's embed
 | 2026-11-14 | A deadlock or lock wait timeout is repeated like a unique-key conflict (TAGS-001.9) |
 | 2026-11-15 | A save skips file ids that are not the user's photos (TAGS-001.14, ADR 0031, risk review R10) |
 | 2026-11-18 | A save looks its file ids up 1,000 at a time (TAGS-001.15, ADR 0038) |
+| 2026-11-19 | ADR 0040: file tags only in the sidecars, the tag list stays (.1–.4, .6–.10, .14, .15 withdrawn; .16 gap) |

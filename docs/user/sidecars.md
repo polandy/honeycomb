@@ -4,6 +4,13 @@ honeycomb writes your decisions — stars, flag, colour label, *Keep RAW* and ta
 sidecars next to your photos, where digiKam, darktable and Lightroom read them. The photos
 themselves are never changed.
 
+**Changing in the next release** ([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
+Stars, colour labels and tags are still written into the sidecars at once, without a setting to
+turn on. Flags (pick, reject) and *Keep RAW* are kept by honeycomb itself and reach the sidecars
+only when you choose *Write picks/rejects to XMP* in the ⋯ menu; the entry shows how many sidecars
+differ. A photo honeycomb sees for the first time takes over the flag its sidecars state, once.
+The notice about stored decisions and its *Write decisions to sidecars…* go.
+
 ## Turn writing on
 
 Writing is *Off* until you turn on **Write decisions to XMP sidecars** in the

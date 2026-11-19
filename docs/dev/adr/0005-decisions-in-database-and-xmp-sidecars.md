@@ -1,6 +1,8 @@
 # 0005 – Decisions live in the database and are written through to XMP sidecars
 
-- Status: superseded by [0032](0032-sidecar-is-the-source-of-truth.md)
+- Status: superseded by [0032](0032-sidecar-is-the-source-of-truth.md);
+  the flag and *Keep RAW* in the database hold again in the form of
+  [0040](0040-flags-per-picture-in-the-database.md), per file id without a user
 - Date: 2026-11-09
 
 ## Context

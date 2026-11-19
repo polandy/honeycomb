@@ -1,6 +1,8 @@
 # 0022 – Tag storage: a row of tags per file id and user, and a tag list per user
 
-- Status: accepted, amended by [0032](0032-sidecar-is-the-source-of-truth.md)
+- Status: accepted, amended by [0032](0032-sidecar-is-the-source-of-truth.md);
+  the file tags in the database are superseded by
+  [0040](0040-flags-per-picture-in-the-database.md), the tag list per user holds
 - Date: 2026-11-13
 
 ## Context

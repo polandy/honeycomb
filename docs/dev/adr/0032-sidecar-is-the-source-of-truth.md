@@ -1,6 +1,8 @@
 # 0032 – The XMP sidecar is the source of truth; the database holds only a cache
 
-- Status: accepted
+- Status: accepted, superseded in part by [0040](0040-flags-per-picture-in-the-database.md):
+  *Truth* holds for rating, colour label and tags only; *Writability* 1, 2, 4, 6, 7, 8,
+  *Deleting by decision* and *App state and migration* 2, 3 are replaced
 - Date: 2026-11-15
 - Supersedes: [0005](0005-decisions-in-database-and-xmp-sidecars.md),
   [0012](0012-decision-storage.md)

@@ -1,9 +1,11 @@
 # 6. XMP interop
 
 How honeycomb reads and writes ratings, flags and colour labels in the XMP sidecars that digiKam,
-darktable and Lightroom Classic use (Q2, Q3, milestone M5). Since ADR 0032 the sidecar is the
-source of truth and digiKam compatibility comes first; where a rule below has not landed yet, it
-names the pull request of ADR 0032 that brings it. The file rules are Framehive's
+darktable and Lightroom Classic use (Q2, Q3, milestone M5). Since ADR 0032 the sidecar is the source
+of truth and digiKam compatibility comes first; since ADR 0040 that holds for rating, colour label
+and tags, while the flag and *Keep RAW* live in the database (`honeycomb_flags`) and reach the
+sidecars only through *Write picks/rejects to XMP*. Where a rule below has not landed yet, it names
+the pull request of ADR 0032 or of M8 (ADR 0040) that brings it. The file rules are Framehive's
 (CORE-009, LIBRARY-001), so a sidecar means the same in both apps; what honeycomb adds is marked.
 The user-facing summary is [`user/ratings-flags-colours.md`](../user/ratings-flags-colours.md).
 
@@ -123,7 +125,8 @@ Same as Framehive (CORE-009 "Sidecar names", LIBRARY-001 "Metadata"):
   one: the name its *compatible file name* setting gives, with no fallback to the other
   (`metaengine_fileio.cpp:42–59`, `collectionscanner_scan.cpp:716–733`).
 - **Writing** is off until the user opts in (setting *Write decisions to XMP sidecars*,
-  XMP-003). It then goes to every sidecar of the picture that exists, so none is left stale. When
+  XMP-003; M8 PR 3 drops the setting, and every rateable picture is written). It goes to every
+  sidecar of the picture that exists, so none is left stale. When
   a member has none, honeycomb creates `<member file>.xmp` (CORE-009.21, `original_with_extension`,
   digiKam's default), one per member (LIBRARY-001.6). The setting is *Off* or *On* (ADR 0032
   PR 6); *On* creates them.
@@ -140,7 +143,9 @@ Same as Framehive (CORE-009 "Sidecar names", LIBRARY-001 "Metadata"):
 
 ## Reading
 
-**When.** The sidecar is the source of truth (ADR 0032). Every source file is read once per
+**When.** The sidecar is the source of truth for rating, colour label and tags (ADR 0032, ADR
+0040); the flag and *Keep RAW* it states are taken over once, for a picture without a row in
+`honeycomb_flags` (XMP-003.34, M8 PR 6). Every source file is read once per
 ETag: a per-user cache (`honeycomb_xmp_cache`, XMP-006) holds the values derived from each
 sidecar or embedded packet, and a file is read again when its listed ETag differs, so a change in
 digiKam shows at the next folder visit. A sidecar that is read hides the JPEG's embedded XMP
@@ -193,14 +198,19 @@ Camera Raw settings and unknown namespaces (CORE-009.3, .23).
 | Property | Written | Value |
 |---|---|---|
 | `xmp:Rating` | always | rating 0–5, also when *rejected*; never −1 (ADR 0032) |
-| `digiKam:PickLabel` | always | 3 *picked*, 1 *rejected*; *unflagged* removes it, but an existing 2 (pending) stays |
-| `xmpDM:pick` | always | 1 *picked*, −1 *rejected*; removed when *unflagged*, as digiKam does |
-| `xmpDM:good` | always | `True` *picked*, `False` *rejected*; removed when *unflagged* |
+| `digiKam:PickLabel` | always; from M8 PR 6 only by *Write picks/rejects to XMP* | 3 *picked*, 1 *rejected*; *unflagged* removes it, but an existing 2 (pending) stays |
+| `xmpDM:pick` | as `digiKam:PickLabel` | 1 *picked*, −1 *rejected*; removed when *unflagged*, as digiKam does |
+| `xmpDM:good` | as `digiKam:PickLabel` | `True` *picked*, `False` *rejected*; removed when *unflagged* |
 | `digiKam:ColorLabel` | always | 0–9; 0 for none, so digiKam does not fall through to `photoshop:Urgency` |
 | `xmp:Label` | always, except in a darktable sidecar that lacks it | digiKam's text (`Purple` for magenta); removed for none |
 | `darktable:colorlabels` | only in a darktable sidecar, only when the colour label changed | a `rdf:Seq` with the one darktable index; removed for none and for orange, gray, black and white |
-| `honeycomb:KeepRaw` | always, for a pair | `True` when marked *Keep RAW*; removed when not marked |
+| `honeycomb:KeepRaw` | always, for a pair; from M8 PR 6 as `digiKam:PickLabel` | `True` when marked *Keep RAW*; removed when not marked |
 | tags | not yet on a change; the module is ready (XMP-004) | `digiKam:TagsList`, `lr:hierarchicalSubject`, `dc:subject` ([`07-tags.md`](07-tags.md)) |
+
+From M8 PR 6 a rating, colour label or tag write leaves the three flag fields and
+`honeycomb:KeepRaw` as the sidecar holds them, and *Write picks/rejects to XMP* writes those four
+alone, into each sidecar of a rateable picture that differs from the database; it creates a
+sidecar only for a picture that is flagged or marked *Keep RAW* (XMP-003.37–.41, ADR 0040).
 
 A **darktable sidecar** is one with `darktable:xmp_version`. digiKam's fields are written always
 because digiKam is the target of M5; darktable's only where darktable already wrote.
@@ -221,23 +231,23 @@ because digiKam is the target of M5; darktable's only where darktable already wr
   picture's sources state; the JPEG's new sidecar reads as its embedded XMP, while that has a
   packet. A new sidecar gets the decision fields also from a tag change.
 
-**Serializing and saving** follow CORE-009 "Writing" and "Saving", so honeycomb and Framehive
-write the same bytes for the same model: Framehive's canonical form (CORE-009.4, .5), preferred
-prefixes and a clashing prefix renamed (CORE-009.6, .7), `xmp:MetadataDate` set on every write
-from the injected clock, never `xmp:CreatorTool`, `xmp:ModifyDate` or `xmpMM:History`
-(CORE-009.10). Saving goes through `OCP\Files` (CLAUDE.md rule 1): check the target has not
-appeared or changed since it was read, then write it in place (ADR 0017). An existing
-sidecar is replaced only while the Versions app is enabled for the user, so the bytes another
-program wrote can be restored; without it the save answers `noVersions` (XMP-002.10). *Differs:* the
-check uses the Nextcloud ETag and size in place of BLAKE3, and the write is no part file and rename
-(CORE-009.16–.19): Nextcloud 35.0.3 refuses to move a part file, and the replaced bytes are kept as
-a version instead. Reading, the mapping and serializing
-are a pure TypeScript module, `src/logic/xmp/` (XMP-001); the backend only reads the bytes and
-does the checked save (ADR 0006, endpoints in ADR 0017 and XMP-002). `@xmldom/xmldom` turns
-the bytes into an element tree (ADR 0016).
-In it, `parse.ts` (the only importer of xmldom) and `rdf.ts` read, `decision.ts` maps a packet to
-a decision and picks the deciding sidecar, `merge.ts` merges and writes, `serialize.ts` writes the
-canonical form and `targets.ts` names the sidecars a write goes to.
+**Serializing and saving** follow CORE-009 "Writing" and "Saving", so honeycomb and Framehive write
+the same bytes for the same model: Framehive's canonical form (CORE-009.4, .5), preferred prefixes
+and a clashing prefix renamed (CORE-009.6, .7), `xmp:MetadataDate` set on every write from the
+injected clock, never `xmp:CreatorTool`, `xmp:ModifyDate` or `xmpMM:History` (CORE-009.10). Saving
+goes through `OCP\Files` (CLAUDE.md rule 1): check the target has not appeared or changed since it
+was read, then write it in place (ADR 0017). Until M8 PR 3 an existing sidecar is replaced only
+while the Versions app is enabled for the user; ADR 0040 drops that rule, so a sidecar on external
+storage is overwritten too, and the delta write keeps the other programs' fields (XMP-002.11). A
+full storage or quota answers `noSpace` (M8 PR 6). *Differs:* the check uses the Nextcloud ETag and
+size in place of BLAKE3, and the write is no part file and rename (CORE-009.16–.19): Nextcloud
+35.0.3 refuses to move a part file, and the replaced bytes are kept as a version instead. Reading,
+the mapping and serializing are a pure TypeScript module, `src/logic/xmp/` (XMP-001); the backend
+only reads the bytes and does the checked save (ADR 0006, endpoints in ADR 0017 and XMP-002).
+`@xmldom/xmldom` turns the bytes into an element tree (ADR 0016). In it, `parse.ts` (the only
+importer of xmldom) and `rdf.ts` read, `decision.ts` maps a packet to a decision and picks the
+deciding sidecar, `merge.ts` merges and writes, `serialize.ts` writes the canonical form and
+`targets.ts` names the sidecars a write goes to.
 
 ## Test vectors
 

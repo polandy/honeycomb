@@ -3,7 +3,7 @@
 - Status: implemented
 - Area: tags
 - Origin: `docs/dev/07-tags.md` Model, Reading, Writing (D1, D2, D9), outline step 3; ADR 0005,
-  ADR 0022, ADR 0023
+  ADR 0022, ADR 0023, ADR 0040
 - Depends on: TAGS-001, XMP-003, XMP-004, XMP-005
 
 ## Purpose
@@ -12,6 +12,10 @@ Brings the tags into the cull: a picture shows the tags of its sidecars, and eve
 written through to the picture's sidecars, so digiKam, darktable and Lightroom see it.
 
 ## Behaviour
+
+**Concept D (ADR 0040).** M8 PR 4 and 5 remove the legacy tags, M8 PR 3 the shared-folder rule:
+a tag change is then written through for every rateable picture, shared or not, and a read-only
+picture cannot be tagged (XMP-008.13). Until then the text below holds.
 
 **A picture's tags** are the union of its members' tags, sorted. When a cull opens, and again when
 the pairing settings change, the legacy tags of every member (`honeycomb_file_tags`, XMP-007) are
@@ -56,6 +60,8 @@ sidecars read.
 
 ### TAGS-002.1 – The legacy tags are read when the cull opens
 
+Withdrawn by ADR 0040; M8 PR 4 marks it removed.
+
 - **Given** a pair whose RAW has the legacy tag `Places/Lisbon` and whose JPEG has `People/Anna`
 - **When** the cull opens
 - **Then** the picture's tags are `People/Anna` and `Places/Lisbon`, and the tags of every member
@@ -70,6 +76,8 @@ sidecars read.
   saved
 
 ### TAGS-002.3 – Legacy tags win until they are migrated
+
+Withdrawn by ADR 0040; M8 PR 4 marks it removed.
 
 - **Given** a picture without a legacy decision but with legacy tags, and a sidecar with other tags
 - **When** the cull opens
@@ -89,6 +97,8 @@ sidecars read.
   the others are shown and cached
 
 ### TAGS-002.6 – A failed legacy read shows the sidecars' tags
+
+Withdrawn by ADR 0040; M8 PR 4 marks it removed.
 
 - **Given** a legacy tag lookup that fails
 - **When** the cull opens
@@ -128,6 +138,8 @@ reported (TAGS-002.13).
 - **Then** the sidecar is read again and saved with the change applied to its tags of that moment
 
 ### TAGS-002.12 – Nothing is written through in a shared folder
+
+Withdrawn by ADR 0040; M8 PR 3 marks it removed.
 
 - **Given** a picture with a member in a shared folder
 - **When** the user tags it
@@ -194,12 +206,23 @@ reported (TAGS-002.13).
 
 The cull saves no tags to the database any more (ADR 0032, XMP-006.7).
 
+### TAGS-002.22 – Tags are written through in a shared folder (gap)
+
+- **Given** a rateable picture with a member in a folder shared with another user
+- **When** the user tags it
+- **Then** the change is written to its sidecars as in .9, without asking first
+
+### TAGS-002.23 – A failed tag write is taken back (gap)
+
+- **Given** a tag change on two pictures, a sidecar of one answering `locked`
+- **When** the write ends
+- **Then** that picture gets back its earlier tags, the other keeps the change, and the toast names
+  the reason (XMP-008.15)
+
 ## Out of scope
 
 - The tag entry, undo, toasts and the tag list in the UI: TAGS-003; multi-select by long-press
   (*Tags 3*); filter, tile and info panel (*Tags 4*).
-- Writing tags in shared folders: the ⋯ menu's *Write decisions to sidecars…* writes decisions
-  only.
 - Re-reading sidecars another program changes while the cull is open, as for decisions (XMP-003).
 
 ## History
@@ -212,3 +235,4 @@ The cull saves no tags to the database any more (ADR 0032, XMP-006.7).
 | 2026-11-14 | Tag changes waiting for one sidecar pass are saved once (XMP-003.16) |
 | 2026-11-15 | The embedded XMP is looked up for the decision too, also with stored tags (XMP-003.22) |
 | 2026-11-18 | The cull reads tags through the XMP cache and stores none; legacy tags win, locked, until migrated (.1–.7, .14–.17 changed, .8, .21 removed, ADR 0032) |
+| 2026-11-19 | ADR 0040: no legacy tags, tags written through in shared folders, failed writes taken back (.1, .3, .6, .12 withdrawn; .22, .23 gaps) |

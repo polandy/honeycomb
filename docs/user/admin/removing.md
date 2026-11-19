@@ -2,6 +2,10 @@
 
 For Nextcloud admins. Checked on Nextcloud 35.0.2.
 
+**Changing in the next release** ([ADR 0040](../../dev/adr/0040-flags-per-picture-in-the-database.md)).
+The tables `oc_honeycomb_decisions` and `oc_honeycomb_file_tags` are dropped, and flags and *Keep
+RAW* live in `oc_honeycomb_flags`.
+
 ## What `occ app:remove` leaves behind
 
 ```sh

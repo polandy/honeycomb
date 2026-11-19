@@ -3,6 +3,7 @@
 - Status: implemented
 - Area: xmp
 - Origin: ADR 0032 (App state and migration), `docs/dev/06-xmp-interop.md`
+- Withdrawn by: ADR 0040; M8 PR 4 removes the migration and sets the status `removed`
 - Depends on: DECISIONS-001, TAGS-001, XMP-002, XMP-003, XMP-004, SETTINGS-001
 
 ## Purpose
@@ -13,6 +14,11 @@ the pictures' sidecars, removes each picture's rows once its sidecars hold them,
 rows of files the user no longer reaches until the user exports or discards them.
 
 ## Behaviour
+
+**Withdrawn.** ADR 0040 drops the migration: honeycomb runs in no production, so M8 PR 5 drops
+`honeycomb_decisions` and `honeycomb_file_tags` without writing their rows anywhere. M8 PR 4
+removes the code, its tests and this spec's criteria; until then the merged code does what
+follows.
 
 **Endpoints.** Logged in, with the CSRF token:
 
@@ -204,3 +210,4 @@ after each part of a run, a copy or a forget; a failed read shows no notice and 
 | 2026-11-17 | Clearer notice with folder buttons, *Save a copy* and *Forget…*; the run shows progress and one result (XMP-007.10–.12) |
 | 2026-11-18 | Shared folders need the confirmation of XMP-008.4; the run skips those not confirmed (XMP-007.13, owner decision #187) |
 | 2026-11-18 | An acknowledged picture is unlocked and gets no legacy rows back, so the notice stays away (XMP-007.14, ADR 0032) |
+| 2026-11-19 | Withdrawn by ADR 0040; M8 PR 4 removes the migration and sets the status `removed` |
