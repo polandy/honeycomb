@@ -90,7 +90,7 @@ final class StatsServiceTest extends TestCase {
 		$this->service()->count($this->user(), new StatsCount(StatsMetric::SeriesDone, 1));
 
 		$this->assertSame(['2026-02-27' => ['series_done' => 2]], $this->store->rows['alice']);
-		$this->assertSame(['counters' => [new StatsCounter('2026-02-27', 'series_done', 2)], 'firstDay' => '2026-02-27'], $this->service()->read($this->user(), null, null));
+		$this->assertEquals(['counters' => [new StatsCounter('2026-02-27', 'series_done', 2)], 'firstDay' => '2026-02-27'], $this->service()->read($this->user(), null, null));
 	}
 
 	// spec: STATS-001.18
