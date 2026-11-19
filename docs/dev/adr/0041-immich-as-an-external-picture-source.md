@@ -137,7 +137,9 @@ the test server only, never a CI step.
 Phase 1's production code is about eight pull requests, following the 26-task plan of 2026-11-19
 and section 4 of the architecture review. They run autonomously by the chain rules: a pull request
 starts when the ones it depends on are merged, merges `origin/main` before every push, and no
-production code lands before the mockup is signed off (rule 3).
+production code lands before the mockup is signed off (rule 3). The one thing the owner allowed
+before the sign-off is PR 5, the refactor of type lines: it changes no behaviour and no UI, and
+it frees the pure TypeScript of PR 8 from `fileId: number` (decision 5 of the review).
 
 | # | Pull request | Contents | After |
 |---|---|---|---|
@@ -145,7 +147,7 @@ production code lands before the mockup is signed off (rule 3).
 | 2 | `docs(adr)` | the connections file and its reader; the decision table per (connection, asset id); the public API of the source | 1 |
 | 3 | `docs(specs)` | `docs/dev/specs/immich/`: connections, listing and filters, decisions per connection, *Write to Immich* | 2 |
 | 4 | `docs(mockup)` | the Immich source under `docs/dev/mockup/immich/`: source and connection switcher, read-only connection dialog, status per connection; then the owner's sign-off (ADR 0003) | 3 |
-| 5 | `refactor(types)` | `PictureId` alias and a `SourceEntry` base of `ListingEntry`; type lines only | now, beside statistics PR 4 |
+| 5 | `refactor(types)` | `PictureId` alias and a `SourceEntry` base of `ListingEntry`; type lines only, allowed before the sign-off | now, beside statistics PR 4 |
 | 6 | `feat(immich)` | backend: connection registry and status, the client with contract tests and upstream error classes, listing and preview proxy; new files and one-line registrations only | 2, sign-off |
 | 7 | `feat(immich)` | the decision table, its mapper and endpoints as a `UserRowStore`; the sweep of rows whose connection left the file | 2, sign-off |
 | 8 | `feat(immich)` | pure TypeScript: asset to picture (live photo as one picture, stacks, device from EXIF, kinds) and the filters | 3, 5 |
