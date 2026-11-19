@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto'
 import { GRID_TIERS, IMAGE_LOADS_IN_FLIGHT, LOUPE_TIER } from '../../src/logic/image-tiers.ts'
 import { budgetPhotos } from './budget-photos.ts'
 import { resetViewState } from './cull.ts'
-import { createFolder, MTIME, upload } from './files.ts'
+import { apiHeaders, createFolder, MTIME, upload } from './files.ts'
 
 const PHOTO_COUNT = 12
 const IN_FLIGHT_LIMIT = IMAGE_LOADS_IN_FLIGHT
@@ -79,7 +79,7 @@ async function watchInFlight(page: Page) {
 /** Milliseconds the server takes to answer the first request of a tier of a file nobody has opened. */
 async function coldRender(page: Page, fileId: number, size: number): Promise<number> {
 	const start = performance.now()
-	const response = await page.request.get(`/index.php/apps/honeycomb${IMAGES}${fileId}?size=${size}&v=${MTIME}`)
+	const response = await page.request.get(`/index.php/apps/honeycomb${IMAGES}${fileId}?size=${size}&v=${MTIME}`, { headers: await apiHeaders(page) })
 	expect(response.status()).toBe(200)
 	await response.body()
 	return performance.now() - start
