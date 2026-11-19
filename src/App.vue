@@ -87,7 +87,7 @@ function decideInCompare(intent: DecisionIntent, picture: Picture<ListingEntry>,
 }
 const seriesScreen = useTemplateRef<InstanceType<typeof SeriesCompareScreen>>('seriesScreen')
 const overlayScreen = computed(() => (loupe.value !== null ? '.photo-loupe' : seriesCompare.viewer.open.value ? '.series-viewer' : undefined))
-const check = freshCheck({ listEntries: props.listEntries, ...props.sidecars }, { pairing: () => cull.pairing.value, writable: (picture) => cull.writabilityOf(picture) === 'writable', writeSidecar: sidecarSaver(sidecarFlow.sync) })
+const check = freshCheck({ listEntries: props.listEntries }, { pairing: () => cull.pairing.value, writable: (picture) => cull.writabilityOf(picture) === 'writable', decisionOf: cull.decisionOf, tagsOf: cull.tags.tagsOf, writeSidecar: sidecarSaver(sidecarFlow.sync) })
 /** Writes the waiting sidecars and waits for the flag saves in flight, before a delete or move reads the folders again (DELETE-002.28). */
 async function flushWrites() {
 	await sidecars.flush()

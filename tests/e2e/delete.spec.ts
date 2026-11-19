@@ -21,7 +21,7 @@ async function trashLocations(page: Page): Promise<string> {
 	return trash.text()
 }
 
-// spec: DELETE-002.1, DELETE-002.8, DELETE-002.13, DELETE-002.15
+// spec: DELETE-002.1, DELETE-002.8, DELETE-002.13
 test('reviews the rejects, rescues one and moves the rest to the Nextcloud trash bin, writing no sidecar', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Delete ${randomUUID().slice(0, 8)}`
@@ -101,8 +101,8 @@ test('deletes the rejects from the More menu while the flag filter hides them', 
 	expect(await trashLocations(page)).toContain(`${folder}/IMG_0001.jpg.xmp<`)
 })
 
-// spec: DELETE-002.16, DELETE-002.28
-test('skips a reject another user picked meanwhile, and reports it', async ({ page }) => {
+// spec: DELETE-002.16, DELETE-002.26
+test('skips a reject another user picked meanwhile and reports it, but deletes one whose sidecar another program picked', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Fresh ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
@@ -118,6 +118,7 @@ test('skips a reject another user picked meanwhile, and reports it', async ({ pa
 	await takenOver
 	const picked = await page.request.put(`${API}/flags`, { data: { flags: [{ fileId: fileIds[1], flag: 'picked', keepRaw: false }] }, headers: { requesttoken: await requestToken(page) } })
 	expect(picked.status()).toBe(200)
+	await upload(page, `${folder}/IMG_0001.jpg.xmp`, pickLabel(3))
 
 	await page.getByRole('button', { name: 'Review rejects (2)' }).click()
 	await page.getByRole('dialog', { name: 'Review rejects' }).getByRole('button', { name: 'Continue: delete 2' }).click()
@@ -134,10 +135,10 @@ test('skips a reject another user picked meanwhile, and reports it', async ({ pa
 	expect(locations).not.toContain(`${folder}/IMG_0002.jpg`)
 })
 
-// spec: DELETE-002.23, DELETE-002.25
-test('asks before deleting rejects it could not check afresh: Cancel keeps them, Delete anyway moves them', async ({ page }) => {
+// spec: DELETE-002.27
+test('deletes nothing of a folder it could not list again, asks nothing and reports the rejects as skipped', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
-	const folder = `Unchecked ${randomUUID().slice(0, 8)}`
+	const folder = `Unlisted ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
 	for (const name of ['IMG_0001', 'IMG_0002']) {
 		await upload(page, `${folder}/${name}.jpg`, JPEG)
@@ -146,31 +147,38 @@ test('asks before deleting rejects it could not check afresh: Cancel keeps them,
 	await cullFolder(page, folder)
 	await expect(page.getByRole('button', { name: 'Review rejects (2)' })).toBeVisible()
 	await page.route('**/apps/honeycomb/api/v1/entries**', (route) => route.fulfill({ status: 500 }))
-	const question = page.getByRole('dialog', { name: 'Fresh check not possible for 2 photos' })
-	const confirmSummary = async () => {
-		await page.getByRole('button', { name: 'Review rejects (2)' }).click()
-		await page.getByRole('dialog', { name: 'Review rejects' }).getByRole('button', { name: 'Continue: delete 2' }).click()
-		await page.getByRole('dialog', { name: 'Delete 2 photos' }).getByRole('button', { name: /^Move \d+ files to trash$/ }).click()
-	}
 
-	await confirmSummary()
-	await expect(question.getByRole('button', { name: 'Cancel' })).toBeFocused()
-	await question.getByRole('button', { name: 'Cancel' }).click()
-	await expect(question).toBeHidden()
+	await page.getByRole('button', { name: 'Review rejects (2)' }).click()
+	await page.getByRole('dialog', { name: 'Review rejects' }).getByRole('button', { name: 'Continue: delete 2' }).click()
+	await page.getByRole('dialog', { name: 'Delete 2 photos' }).getByRole('button', { name: /^Move \d+ files to trash$/ }).click()
+
+	const report = page.getByRole('dialog', { name: 'Some photos were skipped' })
+	await expect(report.getByRole('list', { name: 'Photos skipped' })).toContainText('IMG_0001.jpgIts folder could not be listed again')
+	await expect(page.getByRole('status').filter({ hasText: '2 photos skipped' })).toBeVisible()
 	expect(await trashLocations(page)).not.toContain(`${folder}/`)
-
-	await confirmSummary()
-	await question.getByRole('button', { name: 'Delete anyway' }).click()
-	await expect(page.getByRole('status').filter({ hasText: 'Moved 2 photos · 4 files' })).toBeVisible()
-	await expect(page.getByRole('status').filter({ hasText: 'Fresh check' })).toHaveCount(0)
-	const locations = await trashLocations(page)
-	for (const file of ['IMG_0001.jpg', 'IMG_0001.jpg.xmp', 'IMG_0002.jpg', 'IMG_0002.jpg.xmp']) {
-		expect(locations).toContain(`${folder}/${file}<`)
-	}
 })
 
-// spec: DELETE-001.8
-test('a picture restored from the trash bin keeps its file id and its flag', async ({ page }) => {
+// spec: DELETE-002.11
+test('deletes nothing when the trash request fails, and the toast says so', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = `Failed ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+	await upload(page, `${folder}/IMG_0001.jpg.xmp`, pickLabel(1))
+	await cullFolder(page, folder)
+	await page.route('**/apps/honeycomb/api/v1/trash', (route) => route.fulfill({ status: 500 }))
+
+	await page.getByRole('button', { name: 'Review rejects (1)' }).click()
+	await page.getByRole('dialog', { name: 'Review rejects' }).getByRole('button', { name: 'Continue: delete 1' }).click()
+	await page.getByRole('dialog', { name: 'Delete 1 photo' }).getByRole('button', { name: 'Move 2 files to trash' }).click()
+
+	await expect(page.getByRole('status').filter({ hasText: 'Could not delete the photos; reload the folder to see what changed.' })).toBeVisible()
+	await expect(page.getByRole('button', { name: 'Review rejects (1)' })).toBeVisible()
+	expect(await trashLocations(page)).not.toContain(`${folder}/`)
+})
+
+// spec: DELETE-001.15
+test('a picture restored from the trash bin keeps its file id but not its flag, whose row went with it', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const requesttoken = await requestToken(page)
 	const id = randomUUID().slice(0, 8)
@@ -193,7 +201,7 @@ test('a picture restored from the trash bin keeps its file id and its flag', asy
 
 	const back = await page.request.fetch(file, { method: 'PROPFIND', headers: { requesttoken, Depth: '0' }, data: '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><oc:fileid/></d:prop></d:propfind>' })
 	expect(await back.text()).toContain(`<oc:fileid>${fileId}</oc:fileid>`)
-	expect(await flagOf()).toBe('picked')
+	expect(await flagOf()).toBeNull()
 })
 
 // spec: DELETE-001.13

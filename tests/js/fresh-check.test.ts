@@ -2,16 +2,17 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { FreshCheckApi } from '../../src/fresh-check.ts'
-import type { EmbeddedXmpAnswer } from '../../src/logic/embedded-xmp.ts'
+import type { Decision } from '../../src/logic/decision.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
-import type { SidecarLookupAnswer } from '../../src/logic/sidecar-sync.ts'
+import type { Picture } from '../../src/logic/pairing.ts'
+import type { Tag } from '../../src/logic/tag.ts'
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { freshCheck, sidecarSaver } from '../../src/fresh-check.ts'
+import { logger } from '../../src/logger.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../../src/logic/pairing.ts'
 import { listingEntry, pictureOf, picturesOf } from './logic/listing-entries.ts'
-import { read, xmp } from './logic/sidecar-answers.ts'
 
 const RAW = listingEntry(1, '/Trip/IMG_1.NEF', { mime: 'image/x-dcraw' })
 const JPEG = listingEntry(2, '/Trip/IMG_1.JPG')
@@ -19,34 +20,28 @@ const RAW_SIDECAR = listingEntry(11, '/Trip/IMG_1.NEF.xmp', { mime: 'application
 const OTHER = listingEntry(3, '/Trip/IMG_2.JPG')
 const OTHER_SIDECAR = listingEntry(13, '/Trip/IMG_2.JPG.xmp', { mime: 'application/octet-stream' })
 
-/** An API whose listing answers `entries` and whose lookups answer from the maps; it records the calls. */
-function api(entries: readonly ListingEntry[], sidecars: Map<number, SidecarLookupAnswer>, embedded = new Map<number, EmbeddedXmpAnswer>()) {
+/** An API whose listing answers `entries`, failing for the folders given; it records the calls. */
+function api(entries: readonly ListingEntry[], failing: readonly string[] = []) {
 	const calls: unknown[] = []
 	const seam: FreshCheckApi = {
 		listEntries: async (path, subfolders) => {
 			calls.push(['list', path, subfolders])
-			return { entries }
-		},
-		lookupSidecars: async (fileIds) => {
-			calls.push(['sidecars', fileIds])
-			return fileIds.map((fileId) => sidecars.get(fileId) ?? { result: 'notFound' })
-		},
-		lookupEmbeddedXmp: async (fileIds) => {
-			calls.push(['embedded', fileIds])
-			return fileIds.map((fileId) => embedded.get(fileId) ?? { result: 'none' })
+			return failing.includes(path) ? Promise.reject(new Error('offline')) : { entries }
 		},
 	}
 	return { seam, calls }
 }
 
-/** A context that pairs by default, with the writability and the save's answer given. */
-function context(writable = true, saved = true) {
+/** A context that pairs by default, shows `decision` and `tags` for every picture, with the writability and the save's answer given. */
+function context(decision: Decision = UNDECIDED, tags: readonly Tag[] = [], writable = true, saved = true) {
 	const written: unknown[] = []
 	return {
 		written,
 		context: {
 			pairing: () => DEFAULT_PAIRING_SETTINGS,
 			writable: () => writable,
+			decisionOf: (_: Picture<ListingEntry>) => decision,
+			tagsOf: (_: Picture<ListingEntry>) => tags,
 			writeSidecar: async (...args: unknown[]) => {
 				written.push(args)
 				return saved
@@ -56,103 +51,100 @@ function context(writable = true, saved = true) {
 }
 
 describe('freshCheck', () => {
-	// spec: DELETE-002.15
-	it('lists the folders again, reads every sidecar and passes the fresh picture every sidecar rejects', async () => {
+	// spec: DELETE-002.26
+	it('lists the folders again and passes the fresh pictures without reading a sidecar', async () => {
 		const listed = picturesOf([JPEG, OTHER])
 		const fresh = [JPEG, OTHER, listingEntry(12, '/Trip/IMG_1.JPG.xmp', { mime: 'application/octet-stream' }), OTHER_SIDECAR]
-		const { seam, calls } = api(fresh, new Map([[12, read(xmp({ 'digiKam:PickLabel': '1' }))], [13, read(xmp({ 'digiKam:PickLabel': '3' }))]]))
+		const { seam, calls } = api(fresh)
 
-		const { passed, skipped } = await freshCheck(seam, context().context)(listed, 'rejects')
+		const result = await freshCheck(seam, context().context)(listed, 'rejects')
 
-		expect(passed).toEqual([pictureOf(JPEG, fresh[2]!)])
-		expect(skipped).toEqual([{ picture: listed[1], reason: 'notRejected' }])
-		expect(calls).toEqual([['list', '/Trip', false], ['sidecars', [12, 13]]])
+		expect(result).toEqual({ passed: [pictureOf(JPEG, fresh[2]!), pictureOf(OTHER, OTHER_SIDECAR)], skipped: [] })
+		expect(calls).toEqual([['list', '/Trip', false]])
 	})
 
-	// spec: DELETE-002.23
-	it('sends the pictures of a folder whose listing fails as known, and checks the others', async () => {
+	// spec: DELETE-002.16
+	it('skips a picture whose members changed', async () => {
+		const listed = picturesOf([JPEG, OTHER])
+		const { seam } = api([JPEG])
+
+		expect(await freshCheck(seam, context().context)(listed, 'rejects')).toEqual({ passed: [listed[0]], skipped: [{ picture: listed[1], reason: 'changed' }] })
+	})
+
+	// spec: DELETE-002.27
+	it('skips the pictures of a folder whose listing fails, logs it and checks the others', async () => {
 		const away = listingEntry(5, '/Away/IMG_5.JPG')
-		const listed = picturesOf([JPEG, OTHER, away])
-		const { seam } = api([JPEG, OTHER, OTHER_SIDECAR], new Map([[13, read(xmp({ 'digiKam:PickLabel': '3' }))]]))
-		const failing: FreshCheckApi = { ...seam, listEntries: async (path, subfolders) => (path === '/Away' ? Promise.reject(new Error('offline')) : seam.listEntries(path, subfolders)) }
+		const listed = picturesOf([JPEG, away])
+		const { seam } = api([JPEG], ['/Away'])
+		const error = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 
-		const result = await freshCheck(failing, context().context)(listed, 'rejects')
+		const result = await freshCheck(seam, context().context)(listed, 'rejects')
 
-		expect(result).toEqual({ passed: [], skipped: [{ picture: listed[0], reason: 'notRejected' }, { picture: listed[1], reason: 'notRejected' }], unchecked: [listed[2]] })
+		expect(result).toEqual({ passed: [listed[0]], skipped: [{ picture: listed[1], reason: 'unlisted' }] })
+		expect(error).toHaveBeenCalledOnce()
+		error.mockRestore()
 	})
 
-	// spec: DELETE-002.23
-	it('sends the pictures whose sidecar lookup fails as known, and keeps the verdict of those read', async () => {
-		const listed = picturesOf([JPEG, OTHER, OTHER_SIDECAR])
-		const { seam } = api([JPEG, OTHER, OTHER_SIDECAR], new Map(), new Map([[2, { result: 'read', bytes: xmp({ 'digiKam:PickLabel': '3' }) }]]))
-		const failing: FreshCheckApi = { ...seam, lookupSidecars: async () => Promise.reject(new Error('offline')) }
+	// spec: DELETE-003.14
+	it('removes nothing of a folder whose listing fails, and writes no JPEG sidecar there', async () => {
+		const listed = picturesOf([RAW, JPEG, RAW_SIDECAR])
+		const { seam } = api([], ['/Trip'])
+		const { written, context: writing } = context({ ...UNDECIDED, rating: 3 })
+		vi.spyOn(logger, 'error').mockImplementationOnce(() => undefined)
 
-		const result = await freshCheck(failing, context().context)(listed, 'rejects')
-
-		expect(result).toEqual({ passed: [], skipped: [{ picture: listed[0], reason: 'notRejected' }], unchecked: [listed[1]] })
-	})
-
-	// spec: DELETE-002.23
-	it('sends the pictures whose embedded XMP lookup fails as known', async () => {
-		const listed = picturesOf([JPEG, OTHER, OTHER_SIDECAR])
-		const { seam } = api([JPEG, OTHER, OTHER_SIDECAR], new Map([[13, read(xmp({ 'digiKam:PickLabel': '1' }))]]))
-		const failing: FreshCheckApi = { ...seam, lookupEmbeddedXmp: async () => Promise.reject(new Error('offline')) }
-
-		const result = await freshCheck(failing, context().context)(listed, 'rejects')
-
-		expect(result).toEqual({ passed: [listed[1]], skipped: [], unchecked: [listed[0]] })
-	})
-
-	// spec: DELETE-003.10
-	it('removes the RAW of an unchecked pair as known, but skips one whose values live only in the RAW sidecar', async () => {
-		const bare = picturesOf([listingEntry(6, '/Trip/IMG_6.NEF', { mime: 'image/x-dcraw' }), listingEntry(7, '/Trip/IMG_6.JPG')])
-		const listed = [...bare, ...picturesOf([RAW, JPEG, RAW_SIDECAR])]
-		const failing: FreshCheckApi = { ...api([], new Map()).seam, listEntries: async () => Promise.reject(new Error('offline')) }
-		const { written, context: writing } = context()
-
-		const result = await freshCheck(failing, writing)(listed, 'raws')
-
-		expect(result).toEqual({ passed: [], skipped: [{ picture: listed[1], reason: 'unread' }], unchecked: [listed[0]] })
+		expect(await freshCheck(seam, writing)(listed, 'raws')).toEqual({ passed: [], skipped: [{ picture: listed[0], reason: 'unlisted' }] })
 		expect(written).toEqual([])
 	})
 
-	// spec: DELETE-003.9
-	it('writes the JPEG sidecar of a pair whose RAW sidecar holds the values before its RAW goes', async () => {
+	// spec: DELETE-003.12
+	it('writes the JPEG sidecar with the rating, colour label and tags the cull shows before the RAW goes', async () => {
 		const listed = picturesOf([RAW, JPEG, RAW_SIDECAR])
-		const { seam } = api([RAW, JPEG, RAW_SIDECAR], new Map([[11, read(xmp({ 'xmp:Rating': '4' }))]]))
-		const { written, context: writing } = context()
+		const { seam } = api([RAW, JPEG, RAW_SIDECAR])
+		const shown: Decision = { rating: 3, colourLabel: 'red', flag: 'picked', keepRaw: false }
+		const { written, context: writing } = context(shown, ['Places/Lisbon'])
 
-		const { passed, skipped } = await freshCheck(seam, writing)(listed, 'raws')
+		const result = await freshCheck(seam, writing)(listed, 'raws')
 
-		expect(passed).toEqual(listed)
-		expect(skipped).toEqual([])
-		expect(written).toEqual([[listed[0], '/Trip/IMG_1.JPG.xmp', { ...UNDECIDED, rating: 4 }, []]])
+		expect(result).toEqual({ passed: listed, skipped: [] })
+		expect(written).toEqual([[listed[0], '/Trip/IMG_1.JPG.xmp', shown, ['Places/Lisbon']]])
+	})
+
+	// spec: DELETE-003.9
+	it('writes no JPEG sidecar while the cull shows no rating, colour label or tag, or the RAW has no sidecar', async () => {
+		const withSidecar = picturesOf([RAW, JPEG, RAW_SIDECAR])
+		const bare = picturesOf([RAW, JPEG])
+		const unset = context({ ...UNDECIDED, flag: 'picked' })
+		const rated = context({ ...UNDECIDED, rating: 2 })
+
+		expect(await freshCheck(api([RAW, JPEG, RAW_SIDECAR]).seam, unset.context)(withSidecar, 'raws')).toEqual({ passed: withSidecar, skipped: [] })
+		expect(await freshCheck(api([RAW, JPEG]).seam, rated.context)(bare, 'raws')).toEqual({ passed: bare, skipped: [] })
+		expect([...unset.written, ...rated.written]).toEqual([])
 	})
 
 	// spec: DELETE-003.9
 	it('skips the pair whose JPEG sidecar may not or could not be written', async () => {
 		const listed = picturesOf([RAW, JPEG, RAW_SIDECAR])
-		const { seam } = api([RAW, JPEG, RAW_SIDECAR], new Map([[11, read(xmp({ 'xmp:Rating': '4' }))]]))
-		const locked = context(false)
-		const failing = context(true, false)
+		const { seam } = api([RAW, JPEG, RAW_SIDECAR])
+		const locked = context({ ...UNDECIDED, rating: 4 }, [], false)
+		const failing = context({ ...UNDECIDED, rating: 4 }, [], true, false)
 
-		expect(await freshCheck(seam, locked.context)(listed, 'raws')).toEqual({ passed: [], skipped: [{ picture: listed[0], reason: 'jpegSidecar' }], unchecked: [] })
+		expect(await freshCheck(seam, locked.context)(listed, 'raws')).toEqual({ passed: [], skipped: [{ picture: listed[0], reason: 'jpegSidecar' }] })
 		expect(locked.written).toEqual([])
-		expect(await freshCheck(seam, failing.context)(listed, 'raws')).toEqual({ passed: [], skipped: [{ picture: listed[0], reason: 'jpegSidecar' }], unchecked: [] })
+		expect(await freshCheck(seam, failing.context)(listed, 'raws')).toEqual({ passed: [], skipped: [{ picture: listed[0], reason: 'jpegSidecar' }] })
 	})
 
-	// spec: DELETE-002.15
+	// spec: DELETE-002.26
 	it('asks nothing for no pictures', async () => {
-		const { seam, calls } = api([], new Map())
+		const { seam, calls } = api([])
 
-		expect(await freshCheck(seam, context().context)([], 'rejects')).toEqual({ passed: [], skipped: [], unchecked: [] })
+		expect(await freshCheck(seam, context().context)([], 'rejects')).toEqual({ passed: [], skipped: [] })
 		expect(calls).toEqual([])
 	})
 })
 
 describe('sidecarSaver', () => {
-	// spec: DELETE-003.9
-	it('writes the decision, then the tags, to the one sidecar and says whether both saved', async () => {
+	// spec: DELETE-003.12
+	it('writes the rating and colour label, then the tags, to the one sidecar, never the flag, and says whether both saved', async () => {
 		const picture = pictureOf(RAW, JPEG, RAW_SIDECAR)
 		const calls: unknown[] = []
 		const failure = { path: '/Trip/IMG_1.JPG.xmp', picture, reason: 'locked' as const }
@@ -166,12 +158,12 @@ describe('sidecarSaver', () => {
 				return { written: 0, failed: failed ? [failure] : [] }
 			},
 		})
-		const decision = { ...UNDECIDED, rating: 4 }
+		const decision = { ...UNDECIDED, rating: 4, flag: 'picked' as const }
 		const paths = new Map([[picture, new Set(['/Trip/IMG_1.JPG.xmp'])]])
 
 		expect(await save(false)(picture, '/Trip/IMG_1.JPG.xmp', decision, ['Places/Lisbon'])).toBe(true)
 		expect(calls).toEqual([
-			['write', [picture], decision, ['rating', 'colourLabel', 'flag', 'keepRaw'], paths],
+			['write', [picture], decision, ['rating', 'colourLabel'], paths],
 			['tags', [picture], { added: ['Places/Lisbon'], removed: [] }, paths],
 		])
 		expect(await save(true)(picture, '/Trip/IMG_1.JPG.xmp', decision, ['Places/Lisbon'])).toBe(false)

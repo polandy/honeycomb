@@ -1518,3 +1518,13 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   back, so nothing is left to retry (XMP-008.15). Easy to redo: the retry was a revert-sized change.
 - 2026-11-19: The take-over reads its rows before its transaction rather than retrying a locked
   SQLite write with a back-off (DECISIONS-001.34). Easy to redo: `takeOver` in `FlagMapper`.
+- 2026-11-19: M8 PR 8 sends `expect` once per trash request, not per picture, and the server checks
+  every non-sidecar member's row; a member without a row counts as unflagged, so *rejected* needs
+  a row on each member. For *Remove RAWs* only the rows of the files sent are checked, not the
+  JPEG's. Easy to redo: `TrashExpectation::holds`.
+- 2026-11-19: A failed removal of the rows after a delete is logged and answered, because the files
+  are in the trash bin already; a failed read of the rows fails the request before anything is
+  touched. Easy to redo: `TrashService::removeRows`.
+- 2026-11-19: A failed fresh listing skips its folder (DELETE-002.27) instead of asking *Delete
+  anyway*; this replaces the 2026-11-18 question *Fresh check not possible*. Medium to redo: the
+  dialog would come back.

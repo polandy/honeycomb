@@ -35,6 +35,13 @@ trait TrashServiceFixtures {
 
 	private ?FakeClock $clock = null;
 
+	private ?FakeFlagStore $flags = null;
+
+	/** The flag rows the service checks and removes. */
+	private function flags(): FakeFlagStore {
+		return $this->flags ??= new FakeFlagStore();
+	}
+
 	private function clock(): FakeClock {
 		return $this->clock ??= new FakeClock();
 	}
@@ -84,7 +91,7 @@ trait TrashServiceFixtures {
 		$time = $this->createStub(ITimeFactory::class);
 		$time->method('getTime')->willReturnCallback(fn (): int => $this->clock()->now);
 		$spacing = new TrashNameSpacing($time, $this->clock());
-		return new TrashService(new UserPhotos(new UserFolderResolver($root)), $apps, $guard, $spacing, $logger ?? $this->createStub(LoggerInterface::class));
+		return new TrashService(new UserPhotos(new UserFolderResolver($root)), $apps, $guard, $spacing, $this->flags(), $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
 	/**

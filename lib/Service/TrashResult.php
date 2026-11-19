@@ -19,4 +19,5 @@ enum TrashResult: string {
 	case Locked = 'locked';
 	case Failed = 'failed';
 	case Skipped = 'skipped';
+	case DecisionChanged = 'decisionChanged';
 }

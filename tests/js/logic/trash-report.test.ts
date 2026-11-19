@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import { filesOf } from '../../../src/logic/delete-summary.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../../../src/logic/pairing.ts'
-import { followReplaced, mergeReports, permanentBatch, retryBatch, trashReport, trashRequest, unkeptFiles, wholePictures, withoutFiles } from '../../../src/logic/trash-report.ts'
+import { decisionChanges, followReplaced, mergeReports, permanentBatch, retryBatch, trashReport, trashRequest, unkeptFiles, wholePictures, withoutFiles } from '../../../src/logic/trash-report.ts'
 import { listingEntry, pictureOf, picturesOf } from './listing-entries.ts'
 
 const ENTRIES = [
@@ -85,6 +85,24 @@ describe('trashReport', () => {
 		expect(report.trashed.map((file) => file.entry.fileId)).toEqual([2, 3])
 		expect(report.deleted.map((file) => file.entry.fileId)).toEqual([1, 4])
 		expect(report).toMatchObject({ failed: [], removed: 2, bytes: 33 })
+	})
+})
+
+describe('decisionChanges', () => {
+	// spec: DELETE-002.26, DELETE-003.11
+	it('takes the pictures the server found changed in their decision out of the failed files, each once', () => {
+		const report = trashReport(wholePictures([PAIR, SINGLE, OTHER]), results(
+			[[2, 'decisionChanged'], [1, 'decisionChanged'], [3, 'decisionChanged']],
+			[[4, 'locked']],
+			[[5, 'trashed']],
+		))
+
+		const { report: left, changed } = decisionChanges(report)
+
+		expect(changed).toEqual([PAIR])
+		expect(left.failed.map(({ file, result }) => [file.entry.fileId, result])).toEqual([[4, 'locked']])
+		expect(left.trashed).toBe(report.trashed)
+		expect(decisionChanges(left)).toEqual({ report: left, changed: [] })
 	})
 })
 

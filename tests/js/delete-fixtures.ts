@@ -23,7 +23,7 @@ export const [PAIR, SINGLE, OTHER] = picturesOf([
 ]) as Picture<ListingEntry>[]
 
 /** A check that lets every picture go. */
-export const allPass = async (pictures: readonly Picture<ListingEntry>[]): Promise<FreshCheck> => ({ passed: pictures, skipped: [], unchecked: [] })
+export const allPass = async (pictures: readonly Picture<ListingEntry>[]): Promise<FreshCheck> => ({ passed: pictures, skipped: [] })
 
 /** A flow over the three pictures, PAIR and OTHER rejected, with a trash endpoint answering `answer`, `flush` writing the waiting sidecars, `current` giving a picture as honeycomb saved its sidecars and `check` checking them afresh. */
 export function flow(answer: (request: { fileId: number }[][]) => Promise<TrashResponseFile[][]>, chunks?: ChunkLimits, flush = async () => {}, check: (pictures: readonly Picture<ListingEntry>[], flow: DecisionFlow) => Promise<FreshCheck> = allPass, current = (picture: Picture<ListingEntry>) => picture) {
@@ -33,6 +33,7 @@ export function flow(answer: (request: { fileId: number }[][]) => Promise<TrashR
 	const errors: string[] = []
 	const decided: unknown[] = []
 	const sent: { fileId: number }[][][] = []
+	const expectations: (string | null)[] = []
 	const loupe = ref<{ pictures: readonly Picture<ListingEntry>[], index: number } | null>({ pictures: [PAIR!, SINGLE!], index: 0 })
 	const deleting = useDeleteFlow({
 		pictures: () => pictures.value,
@@ -42,7 +43,8 @@ export function flow(answer: (request: { fileId: number }[][]) => Promise<TrashR
 		flush,
 		current,
 		check,
-		trash: async (request) => {
+		trash: async (request, expect) => {
+			expectations.push(expect)
 			sent.push(request.map((files) => [...files]))
 			return answer(request.map((files) => [...files]))
 		},
@@ -56,7 +58,7 @@ export function flow(answer: (request: { fileId: number }[][]) => Promise<TrashR
 		error: (message) => errors.push(message),
 		chunks,
 	})
-	return { deleting, pictures, toasts, errors, decided, sent, loupe }
+	return { deleting, pictures, toasts, errors, decided, sent, expectations, loupe }
 }
 
 export const allTrashed = async (request: { fileId: number }[][]) => request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'trashed' })))

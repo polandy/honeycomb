@@ -55,6 +55,14 @@ final class FlagMapperTest extends DbTestCase {
 		$this->assertEquals([7 => self::flag(7, Flag::Unflagged, false, 200), 8 => self::flag(8)], $this->flags->find([7, 8, 9]));
 	}
 
+	// spec: DELETE-001.15
+	public function testRemovesTheRowsOfTheFileIdsGiven(): void {
+		$this->flags->save([self::flag(7), self::flag(8), self::flag(9)]);
+		$this->flags->remove([7, 9, 10]);
+
+		$this->assertEquals([8 => self::flag(8)], $this->flags->find([7, 8, 9]));
+	}
+
 	public function testFindsAndSavesMoreFileIdsThanOneInListTakes(): void {
 		$fileIds = range(1, self::BEYOND_CHUNK);
 		$this->flags->save(array_map(static fn (int $id): FileFlag => self::flag($id), array_reverse($fileIds)));

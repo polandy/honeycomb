@@ -23,11 +23,13 @@ import { xmp } from './logic/sidecar-answers.ts'
 
 const REJECTED = [stored(1, 'rejected'), stored(2, 'rejected'), stored(3, 'rejected')]
 
-/** The app on a cull with IMG_2 and IMG_10 rejected in their JPEGs, so the grid shows IMG_9; a fresh listing answers the same files, each JPEG embeds its decision's flag, and the trash endpoint trashes every file. */
+/** The app on a cull with IMG_2 and IMG_10 rejected in their JPEGs, so the grid shows IMG_9; a fresh listing answers the same files and the trash endpoint trashes every file. */
 async function openApp(decisions: StoredDecision[] = REJECTED) {
 	const sent: TrashRequestFile[][][] = []
-	const trashPictures = async (request: TrashRequestFile[][]) => {
+	const expectations: (string | null)[] = []
+	const trashPictures = async (request: TrashRequestFile[][], expect: string | null = null) => {
 		sent.push(request)
+		expectations.push(expect)
 		return request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'trashed' })))
 	}
 	const flags = new Map(decisions.map(({ fileId, flag }) => [fileId, flag]))
@@ -42,7 +44,7 @@ async function openApp(decisions: StoredDecision[] = REJECTED) {
 	const listEntries = async () => ({ entries: ENTRIES })
 	const mounted = mountApp({ trashPictures, sidecars, listEntries, schedule: fakeScheduler().schedule }, [], { NcDialog: DialogStub })
 	await openCull(mounted.wrapper)
-	return { ...mounted, sent }
+	return { ...mounted, sent, expectations }
 }
 
 async function press(key: string, fields: KeyboardEventInit = {}) {
@@ -63,9 +65,9 @@ const summaryOf = (wrapper: AppWrapper) => wrapper.findComponent(DeleteSummary)
 enableAutoUnmount(afterEach)
 
 describe('App: deleting rejects', () => {
-	// spec: DELETE-002.1
-	it('reviews the rejects from the toolbar, rescues one, and moves the rest to the trash bin', async () => {
-		const { wrapper, sent } = await openApp()
+	// spec: DELETE-002.1, DELETE-002.26
+	it('reviews the rejects from the toolbar, rescues one, and moves the rest to the trash bin while still rejected', async () => {
+		const { wrapper, sent, expectations } = await openApp()
 		const toolbar = wrapper.findComponent(GridToolbar)
 		expect(toolbarProps(wrapper).rejected).toBe(2)
 
@@ -85,6 +87,7 @@ describe('App: deleting rejects', () => {
 		await flushPromises()
 
 		expect(sent).toEqual([[[{ fileId: 2, etag: 'etag-2' }, { fileId: 3, etag: 'etag-3' }]]])
+		expect(expectations).toEqual(['rejected'])
 		expect(summaryOf(wrapper).exists()).toBe(false)
 		expect(toolbarProps(wrapper).rejected).toBe(0)
 		expect(toolbarProps(wrapper).total).toBe(2)
@@ -156,7 +159,7 @@ describe('App: the Delete key and Delete…', () => {
 
 	// spec: DELETE-002.5, DELETE-002.8
 	it('deletes the loupe\'s photo and closes the loupe when no photo is left in it', async () => {
-		const { wrapper, sent } = await openApp()
+		const { wrapper, sent, expectations } = await openApp()
 		await openLoupe(wrapper)
 
 		await press('Delete')
@@ -166,14 +169,15 @@ describe('App: the Delete key and Delete…', () => {
 		await flushPromises()
 
 		expect(sent).toEqual([[[{ fileId: 4, etag: 'etag-4' }]]])
+		expect(expectations).toEqual([null])
 		expect(wrapper.findComponent(PhotoLoupe).exists()).toBe(false)
 	})
 })
 
 describe('App: removing RAWs', () => {
-	// spec: DELETE-003.1, DELETE-003.4, DELETE-003.6
+	// spec: DELETE-003.1, DELETE-003.4, DELETE-003.6, DELETE-003.11
 	it('removes the RAWs of the view from the More menu, after a Keep RAW toggled there and back', async () => {
-		const { wrapper, sent } = await openApp([])
+		const { wrapper, sent, expectations } = await openApp([])
 		const toolbar = wrapper.findComponent(GridToolbar)
 		expect(toolbarProps(wrapper).rawRemovable).toBe(1)
 
@@ -193,6 +197,7 @@ describe('App: removing RAWs', () => {
 		await flushPromises()
 
 		expect(sent).toEqual([[[{ fileId: 3, etag: 'etag-3' }]]])
+		expect(expectations).toEqual(['rawRemovable'])
 		expect(wrapper.findComponent(RawRemovalSummary).exists()).toBe(false)
 		expect(toolbarProps(wrapper).rawRemovable).toBe(0)
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
