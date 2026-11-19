@@ -1,6 +1,6 @@
-import type { PictureId } from './logic/picture-id.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { PictureId } from './logic/picture-id.ts'
 import type { Series } from './logic/series.ts'
 
 import { computed } from 'vue'
