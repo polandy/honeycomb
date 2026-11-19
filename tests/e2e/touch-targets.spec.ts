@@ -74,6 +74,8 @@ for (const orientation of Object.keys(IPAD_MINI) as (keyof typeof IPAD_MINI)[]) 
 		await expectTouchTargets(page.getByRole('menu').or(page.locator('.v-popper__popper--shown')), at('⋯ menu'))
 		await page.getByRole('button', { name: /^Review rejects 1/ }).click()
 		await expect(page.getByRole('menu')).toBeHidden()
+		// The menu fades out above the dialog; the hit test waits until it has left.
+		await expect(page.locator('.v-popper__popper').filter({ visible: true })).toHaveCount(0)
 		const review = page.getByRole('dialog', { name: 'Review rejects' })
 		await expectTouchTargets(review, at('reject review'))
 		await review.getByRole('button', { name: 'Continue: delete 1' }).click()
