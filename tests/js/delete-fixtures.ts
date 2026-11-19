@@ -6,7 +6,7 @@ import type { DecisionFlow } from '../../src/logic/fresh-check.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 import type { ChunkLimits } from '../../src/logic/request-chunks.ts'
-import type { TrashResponseFile } from '../../src/logic/trash-report.ts'
+import type { TrashExpectation, TrashReport, TrashResponseFile } from '../../src/logic/trash-report.ts'
 
 import { ref, shallowRef } from 'vue'
 import { useDeleteFlow } from '../../src/delete-flow.ts'
@@ -34,6 +34,7 @@ export function flow(answer: (request: { fileId: number }[][]) => Promise<TrashR
 	const decided: unknown[] = []
 	const sent: { fileId: number }[][][] = []
 	const expectations: (string | null)[] = []
+	const deletes: [TrashReport, TrashExpectation | null][] = []
 	const loupe = ref<{ pictures: readonly Picture<ListingEntry>[], index: number } | null>({ pictures: [PAIR!, SINGLE!], index: 0 })
 	const deleting = useDeleteFlow({
 		pictures: () => pictures.value,
@@ -57,8 +58,9 @@ export function flow(answer: (request: { fileId: number }[][]) => Promise<TrashR
 		toast: (message) => toasts.push(message),
 		error: (message) => errors.push(message),
 		chunks,
+		onDeleted: (report, expect) => deletes.push([report, expect]),
 	})
-	return { deleting, pictures, toasts, errors, decided, sent, expectations, loupe }
+	return { deleting, pictures, toasts, errors, decided, sent, expectations, loupe, deletes }
 }
 
 export const allTrashed = async (request: { fileId: number }[][]) => request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'trashed' })))

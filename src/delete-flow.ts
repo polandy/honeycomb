@@ -72,6 +72,8 @@ export interface DeleteFlowContext {
 	readonly error: (message: string) => void
 	/** Overrides the request size of ADR 0029, for tests. */
 	readonly chunks?: ChunkLimits | undefined
+	/** Hears what each request round took out, with the state the server checked (STATS-001.20). */
+	readonly onDeleted?: ((report: TrashReport, expect: TrashExpectation | null) => void) | undefined
 }
 
 /** Reject review, delete summary, *Remove RAWs* and delete report (`docs/dev/plan.md` Culling workflow, Keep RAW and Remove RAWs, Q11). */
@@ -181,6 +183,7 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 			}
 			const { report: answered, skipped } = withChanges(trashReport(batch, sent.answers), plannedSend.skipped, expect)
 			takeOut(answered)
+			context.onDeleted?.(answered, expect)
 			const report = first === null ? answered : mergeReports(first, answered)
 			const unkept = first === null ? unkeptFiles(report) : []
 			if (unkept.length > 0) {
