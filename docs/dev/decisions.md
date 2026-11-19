@@ -1531,3 +1531,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-19: Error toasts come from a separate `showError` and flows take a required `error`
   callback, so a failure path cannot forget the kind; the details dialog has no e2e (it needs a
   read-only share), Vitest covers it. Easy to redo: `src/toast.ts`.
+- 2026-11-19: ADR 0041 records the Immich source's exception to rule 1, the mapping and the two
+  phases only; the connections file's format, the flag table's columns and the source's endpoints
+  go into a follow-up ADR before PR 4, so the owner can review the schema before it is built. The
+  work is milestone M10. Easy to redo: one more ADR.

@@ -15,6 +15,10 @@ Add items with `/todo`.
 - [ ] Statistics (M9, STATS-001): PR 6 statistics page: navigation entry, periods, tiles, bars, folder sets, days in a row (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 7 start value from the user preference `pictures_decided_before` that M8 PR 5 wrote, moved into `honeycomb_stats`, and the state of the pictures read so far from the XMP cache (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 8 year in review, its one-time hint from 1 December, sidecars from digiKam or darktable (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 2 mockup of the Immich source under `docs/dev/mockup/`, for the owner's sign-off (ADR 0003) (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 3 ADR for the connections file and its reader, the flag table per (connection, asset id) and the source's public API (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 4 Phase 1, read only: connections, listing, previews through PHP, the source in the UI, flags and ratings in the table, an Immich container in e2e (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 5 Phase 2: *Write to Immich* with the `updatedAt` conflict check, rejects as Immich trash bin by default (2026-11-19)
 
 ## Later
 

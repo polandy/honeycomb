@@ -73,6 +73,11 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **statistics** | The daily counters of what honeycomb did for a user (pictures decided, moved to the trash bin, sidecars created and updated, series done, active time), and the page that shows them; no file ids (ADR 0039). |
 | **active time** | The seconds of a cull with an input at most 2 minutes earlier; a longer pause counts its first 2 minutes only. |
 | **streak** | Consecutive days, up to today or yesterday, with at least one counted action. Not a *series*. |
+| **Immich source** | The second source beside Nextcloud folders: one connection's upload library, reached only through the Immich API, never as files (ADR 0041). |
+| **connection** | One Immich account a user culls: Nextcloud user, label, Immich URL and key file, declared by the admin in the connections file; several per user (ADR 0041). |
+| **connections file** | The read-only JSON file the server configuration generates with every connection; its path is app config, and no key ever enters the database or the UI (ADR 0041). |
+| **asset** | One picture or video in Immich, keyed by its asset id; a live photo is one asset, a stack shows but only the chosen asset goes (ADR 0041). |
+| **Write to Immich** | The explicit step (Phase 2) that sends picks, rejects and ratings of Immich assets to Immich after the `updatedAt` conflict check; a reject becomes the Immich trash bin by default (ADR 0041). |
 
 ## Words and conventions in the UI
 

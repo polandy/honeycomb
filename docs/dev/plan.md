@@ -157,6 +157,17 @@ a year in review (STATS-001, ADR 0039, mockup `docs/dev/mockup/statistics/index.
 the owner on 2026-11-18 with the concept *Nutzen-Metriken*; eight pull requests, the first being
 mockup, ADR and spec. Statistics never write to a sidecar.
 
+### M10 – Immich as a second source
+
+The family phones back up into Immich's upload library, which Nextcloud never sees. honeycomb
+gets an *Immich* source that reaches these assets only through the Immich API, with PHP as the
+proxy and the logic in TypeScript; the admin declares the connections (several per user) in a
+read-only file, and no key enters the database or the UI. Decided by the owner on 2026-11-19 as
+option A in two phases: Phase 1 lists and culls read only, Phase 2 adds *Write to Immich* with a
+conflict check, rejects going to the Immich trash bin by default. The exception to rule 1, the
+mapping and the pull request order are in ADR 0041; the flag table and the source's API get their
+own ADR.
+
 ### Release – first App Store release
 
 Before it: Transifex setup ([Translations](#translations)), the signing certificate and the
