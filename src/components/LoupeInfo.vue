@@ -8,7 +8,7 @@ import type { FolderSet } from '../logic/folder-set.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Tag } from '../logic/tag.ts'
-import type { Writability } from '../logic/writability.ts'
+import type { LockReason, Writability } from '../logic/writability.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
@@ -30,7 +30,7 @@ const props = withDefaults(defineProps<{
 	writability?: Writability
 }>(), {
 	tags: () => [],
-	writability: 'off',
+	writability: 'writable',
 })
 
 /** Shown for a fact the picture lacks. */
@@ -60,12 +60,8 @@ const decisionRows = computed(() => {
 		...(props.picture.raw !== null && props.picture.rendered !== null ? [{ term: t('honeycomb', 'Keep RAW'), value: keepRaw ? t('honeycomb', 'yes') : t('honeycomb', 'no') }] : []),
 	]
 })
-const NOT_WRITTEN: Record<Exclude<Writability, 'writable'>, () => string> = {
-	off: () => t('honeycomb', 'Not written, off in the settings'),
+const NOT_WRITTEN: Record<LockReason, () => string> = {
 	readOnly: () => t('honeycomb', 'Not written, read-only folder'),
-	shared: () => t('honeycomb', 'Not written, shared folder not confirmed'),
-	noVersions: () => t('honeycomb', 'Not written, the folder keeps no versions'),
-	refused: () => t('honeycomb', 'Not written, a sidecar was refused'),
 	legacy: () => t('honeycomb', 'Not written, stored decisions not yet in its sidecars'),
 }
 const writtenTo = computed(() => {

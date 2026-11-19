@@ -10,7 +10,7 @@ import type { PairingSettings, Picture } from './logic/pairing.ts'
 import type { Settings } from './logic/settings.ts'
 import type { TagChange } from './logic/tag.ts'
 import type { DecisionStep, PickRestStep, StepEffects, TagStep, UndoStep } from './logic/undo.ts'
-import type { ListedAccess, WriteLock } from './logic/writability.ts'
+import type { ListedAccess } from './logic/writability.ts'
 
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useCullAccess } from './cull-access.ts'
@@ -26,7 +26,6 @@ import { memberIds } from './logic/pairing.ts'
 import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
 import { sortPictures } from './logic/picture-order.ts'
 import { pairingSettings } from './logic/settings.ts'
-import { inSharedFolder } from './logic/sidecar-sync.ts'
 import { inDoneSeries } from './logic/stored-series.ts'
 import { inverseChange } from './logic/tag.ts'
 import { withoutFiles } from './logic/trash-report.ts'
@@ -41,8 +40,8 @@ import { useViewOptions } from './view-options.ts'
 /** A step of the cull's undo history. */
 export type CullStep = UndoStep<Picture<ListingEntry>>
 
-/** The open cull, its view settings and the folder picker's state; it pairs and shows singles as the settings say, and reports a step it may not write in `onLocked`. */
-export function useCull(api: CullApi, storage: BrowserStorage, settings: () => Settings, sidecars: SidecarWrites, onLocked: (lock: WriteLock<CullStep>) => void) {
+/** The open cull, its view settings and the folder picker's state; it pairs and shows singles as the settings say. */
+export function useCull(api: CullApi, storage: BrowserStorage, settings: () => Settings, sidecars: SidecarWrites) {
 	const compareNames = nameComparer()
 	const folderSet = ref<FolderSet | null>(null)
 	const entries = shallowRef<readonly ListingEntry[]>([])
@@ -52,7 +51,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const pictures = computed(() => (settings().showSingles ? paired.value : paired.value.filter((picture) => picture.raw !== null && picture.rendered !== null)))
 	const decisions = shallowRef<ReadonlyMap<number, Decision>>(new Map())
 	const legacyDecisions = shallowRef<ReadonlyMap<number, Decision>>(new Map())
-	const access = useCullAccess(settings, onLocked, hasLegacyRows)
+	const access = useCullAccess(hasLegacyRows)
 	let opening = 0
 	const storedSeries = useStoredSeries(api, () => opening)
 	/** Puts each kind of step into effect, or takes it back when `back`. */
@@ -80,7 +79,6 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
 	const seriesState = useSeries(api, storage, () => pictures.value, decisionOf, () => storedSeries.rows.value)
 	const warmer = usePreviewWarmer(api.warmPreviews, storage)
-	const sharedPictures = computed(() => pictures.value.filter((picture) => inSharedFolder(picture, access.sharedFolders.value)))
 	const seriesEdits = useSeriesEdits({ record: history.record, rows: () => storedSeries.rows.value, newId: storedSeries.newId, seriesOf: () => seriesState.seriesOf.value })
 
 	/** Shows the pictures of the confirmed folders with fresh filters, then their stored decisions. */
@@ -219,9 +217,6 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 
 	return {
 		writabilityOf: access.writabilityOf,
-		unconfirmedOf: access.unconfirmedOf,
-		confirmationFoldersOf: access.confirmationFoldersOf,
-		refuse: access.refuse,
 		takeSkipped: access.takeSkipped,
 		folderSet,
 		pictures,
@@ -240,7 +235,6 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		pickerOpen: options.pickerOpen,
 		groupByFolder: options.groupByFolder,
 		tileSize: options.tileSize,
-		sharedPictures,
 		legacy,
 		forgetLegacy,
 		tags,

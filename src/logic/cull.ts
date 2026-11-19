@@ -3,7 +3,7 @@
 import type { FolderSet } from './folder-set.ts'
 import type { ListingEntry } from './listing.ts'
 import type { PairingSettings, Picture } from './pairing.ts'
-import type { FolderAccess, ListedAccess, OpenedFolder } from './writability.ts'
+import type { FolderAccess, ListedAccess } from './writability.ts'
 
 import { splitFolder } from './file-name.ts'
 import { summarise } from './folder-set.ts'
@@ -16,10 +16,8 @@ import { capPictures, PICTURE_CAP } from './picture-order.ts'
 export interface Listing {
 	readonly entries: readonly ListingEntry[]
 	readonly truncated: boolean
-	/** The folders of the listing: shared with or by the user, their permissions and versions (ADR 0017, LISTING-001.12). */
+	/** The folders of the listing with the user's permissions on each (LISTING-001.19). */
 	readonly folders?: readonly FolderAccess[]
-	/** The listed folder by its file id, which a shared confirmation is kept under (XMP-008.4). */
-	readonly opened?: OpenedFolder | null
 }
 
 /** What the picker reports for the ticked folders; `overCap` when the grid will not show them all. */
@@ -40,7 +38,6 @@ export function countFolderSet(listings: readonly Listing[], settings: PairingSe
 	const overCap = pictures.length > PICTURE_CAP || listings.some((listing) => listing.truncated)
 	const access: ListedAccess = {
 		folders: listings.flatMap((listing) => listing.folders ?? []).filter((folder, index, all) => all.findIndex((other) => other.path === folder.path) === index),
-		opened: listings.flatMap((listing) => (listing.opened ? [listing.opened] : [])),
 	}
 	return { entries, pictures: pictures.length, folders, firstFolder: pictures[0]?.folder ?? null, overCap, access }
 }

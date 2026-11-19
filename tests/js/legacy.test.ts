@@ -6,7 +6,6 @@ import type { LegacyExport, LegacyInventory } from '../../src/logic/legacy.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { shallowRef } from 'vue'
 import { LEGACY_EXPORT_NAME, useLegacy } from '../../src/legacy.ts'
 import { logger } from '../../src/logger.ts'
 
@@ -17,9 +16,8 @@ afterEach(() => {
 	vi.restoreAllMocks()
 })
 
-/** The legacy rows over fake endpoints; `active` as the writing setting says. */
-function legacyWith(options: { inventory?: () => Promise<LegacyInventory>, exportFails?: boolean, acknowledgeFails?: boolean, active?: boolean } = {}) {
-	const active = shallowRef(options.active ?? true)
+/** The legacy rows over fake endpoints. */
+function legacyWith(options: { inventory?: () => Promise<LegacyInventory>, exportFails?: boolean, acknowledgeFails?: boolean } = {}) {
 	const reads: number[] = []
 	const acknowledged: number[][] = []
 	const saved: { name: string, text: string }[] = []
@@ -42,27 +40,19 @@ function legacyWith(options: { inventory?: () => Promise<LegacyInventory>, expor
 			}
 			acknowledged.push([...fileIds])
 		},
-	}, (name, text) => void saved.push({ name, text }), (message) => void toasts.push(message), () => active.value, (folderSet) => void opened.push(folderSet))
-	return { legacy, active, reads, acknowledged, saved, toasts, opened }
+	}, (name, text) => void saved.push({ name, text }), (message) => void toasts.push(message), (folderSet) => void opened.push(folderSet))
+	return { legacy, reads, acknowledged, saved, toasts, opened }
 }
 
 describe('useLegacy', () => {
 	// spec: XMP-007.8
-	it('reads the inventory while writing creates new sidecars, and shows it while rows remain', async () => {
-		const { legacy, active, reads } = legacyWith({ active: false })
+	it('reads the inventory at once and shows it while rows remain', async () => {
+		const { legacy, reads } = legacyWith()
 		await flushPromises()
-		expect(reads).toEqual([])
-		expect(legacy.shown.value).toBe(false)
 
-		active.value = true
-		await flushPromises()
 		expect(reads).toEqual([1])
 		expect(legacy.inventory.value).toEqual(INVENTORY)
 		expect(legacy.shown.value).toBe(true)
-
-		active.value = false
-		await flushPromises()
-		expect(legacy.shown.value).toBe(false)
 	})
 
 	// spec: XMP-007.8

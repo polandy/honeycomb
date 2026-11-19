@@ -35,7 +35,7 @@ import { browserSchedule } from '../tile-selection.ts'
 const props = withDefaults(defineProps<PhotoLoupeProps>(), {
 	seriesOf: () => new Map(),
 	tagsOf: () => [],
-	writabilityOf: (): Writability => 'off',
+	writabilityOf: (): Writability => 'writable',
 	imageUrl: apiImageUrl,
 	decode: decodeSource,
 	schedule: browserSchedule,

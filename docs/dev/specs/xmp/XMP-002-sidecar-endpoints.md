@@ -121,13 +121,13 @@ changes only its own fields and keeps the rest of the sidecar (`06-xmp-interop.m
 
 Withdrawn by ADR 0040 (M8 PR 3); an existing sidecar is overwritten without versions too (.11).
 
-### XMP-002.11 – An existing sidecar is overwritten without file versions too (gap)
+### XMP-002.11 – An existing sidecar is overwritten without file versions too
 
 - **Given** an existing sidecar whose folder keeps no versions, such as external storage
 - **When** the client saves it with the ETag and size read
 - **Then** it is `saved` in place; no `noVersions` is answered
 
-### XMP-002.12 – A full storage answers `noSpace` (gap)
+### XMP-002.12 – A full storage answers `noSpace`
 
 - **Given** a new sidecar in a folder whose storage or owner's quota is full, and an existing one
   whose save fails for the same reason

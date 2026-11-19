@@ -9,7 +9,6 @@ namespace OCA\Honeycomb\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Service\ScriptManifest;
-use OCP\App\IAppManager;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -17,33 +16,23 @@ use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IRequest;
-use OCP\IUserSession;
 
 /** @psalm-suppress UnusedClass Routed by its attributes. */
 final class PageController extends Controller {
-	private const string VERSIONS_APP = 'files_versions';
-
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IAppManager $appManager,
-		private IUserSession $userSession,
 		private ScriptManifest $scripts,
 	) {
 		parent::__construct($appName, $request);
 	}
 
-	/** The app page and its hashed script (APP-001.10); it tells the UI whether the Versions app is on for the user, which writing to sidecars needs (SETTINGS-001.26). */
+	/** The app page and its hashed script (APP-001.10). */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/')]
 	public function index(): TemplateResponse {
-		$user = $this->userSession->getUser();
-		$versionsApp = $user !== null && $this->appManager->isEnabledForUser(self::VERSIONS_APP, $user);
-		return $this->withHashWorkers(new TemplateResponse(Application::APP_ID, 'main', [
-			'versionsApp' => $versionsApp,
-			'script' => $this->scripts->script(ScriptManifest::MAIN),
-		]));
+		return $this->withHashWorkers(new TemplateResponse(Application::APP_ID, 'main', ['script' => $this->scripts->script(ScriptManifest::MAIN)]));
 	}
 
 	/** The page that computes the missing visual hashes of a folder tree in Web Workers (ADR 0025). */

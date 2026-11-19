@@ -13,9 +13,9 @@ import type { ToastAction } from './toast.ts'
 import { t } from '@nextcloud/l10n'
 import { computed, shallowRef } from 'vue'
 import { logger } from './logger.ts'
-import { acknowledgedIds, withoutUnconfirmed } from './logic/legacy.ts'
+import { acknowledgedIds } from './logic/legacy.ts'
 import { useSidecarSync } from './sidecar-sync.ts'
-import { nothingToWriteText, notWrittenText, photosNotWrittenText, withSkippedText, writtenText } from './sidecar-text.ts'
+import { nothingToWriteText, notWrittenText, photosNotWrittenText, writtenText } from './sidecar-text.ts'
 
 /** How many photos one part of a migration run writes, so its progress moves and its rows go early (XMP-007.11). */
 export const MIGRATION_PART = 20
@@ -31,8 +31,8 @@ export function browserNow(): XmpTime {
 	return { epochMs: date.getTime(), offsetMinutes: -date.getTimezoneOffset() }
 }
 
-/** Writing to sidecars as the user sees it: the migration's confirmation, progress and result, the toasts and the report with a retry (XMP-003.13, XMP-007.5–.6, .11–.12); `onFailed` hears of each failed write too. */
-export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, action?: ToastAction | null) => void, onFailed: (failed: readonly SidecarFailure[]) => void, acknowledge: (fileIds: readonly number[]) => Promise<unknown>) {
+/** Writing to sidecars as the user sees it: the migration's confirmation, progress and result, the toasts and the report with a retry (XMP-003.13, XMP-007.5–.6, .11–.12). */
+export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, action?: ToastAction | null) => void, acknowledge: (fileIds: readonly number[]) => Promise<unknown>) {
 	const asking = shallowRef<readonly LegacyWrite[] | null>(null)
 	const report = shallowRef<SidecarFailure[] | null>(null)
 	const progress = shallowRef<SendProgress | null>(null)
@@ -40,7 +40,6 @@ export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, act
 	// a migration run collects the failures of its passes for its one result
 	let collected: SidecarFailure[] | null = null
 	const sync = useSidecarSync(api, api.now, (failed) => {
-		onFailed(failed)
 		if (collected !== null) {
 			collected.push(...failed)
 		} else {
@@ -69,12 +68,12 @@ export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, act
 		report.value = null
 	}
 
-	/** Writes the stored decisions and adds the stored tags part by part, skipping shared folders not confirmed, acknowledges each picture saved in full, then tells the result. */
-	async function confirm(decisionOf: (picture: Picture<ListingEntry>) => Decision, unconfirmed: (picture: Picture<ListingEntry>) => boolean) {
-		const { written: chosen, skipped } = withoutUnconfirmed(asking.value ?? [], unconfirmed)
+	/** Writes the stored decisions and adds the stored tags part by part, acknowledges each picture saved in full, then tells the result. */
+	async function confirm(decisionOf: (picture: Picture<ListingEntry>) => Decision) {
+		const chosen = asking.value ?? []
 		if (chosen.length === 0) {
 			asking.value = null
-			toast(withSkippedText(nothingToWriteText(), skipped))
+			toast(nothingToWriteText())
 			return
 		}
 		const failed: SidecarFailure[] = []
@@ -102,9 +101,9 @@ export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, act
 			asking.value = null
 		}
 		if (failedPictures === 0) {
-			toast(withSkippedText(writtenText(chosen.length), skipped))
+			toast(writtenText(chosen.length))
 		} else {
-			toastFailed(withSkippedText(photosNotWrittenText(failedPictures, chosen.length, failed.map(({ reason }) => reason)), skipped), failed)
+			toastFailed(photosNotWrittenText(failedPictures, chosen.length, failed.map(({ reason }) => reason)), failed)
 		}
 	}
 

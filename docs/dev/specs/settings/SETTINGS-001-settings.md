@@ -237,7 +237,7 @@ Withdrawn by ADR 0040 (M8 PR 3); there is no sidecar switch (.28).
   failed; the other user sees no such button, and the server refuses the request of a non-admin
   with `403`
 
-### SETTINGS-001.28 – No sidecar switch (gap)
+### SETTINGS-001.28 – No sidecar switch
 
 - **Given** a stored `sidecarWrite` *Off* and a stored `confirmedSharedFolders`
 - **When** the user opens the settings and decides a photo

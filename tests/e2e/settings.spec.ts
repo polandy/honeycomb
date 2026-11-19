@@ -78,7 +78,7 @@ test('decides at once over a stored switch Off, with no XMP sidecars section', a
 	await page.keyboard.press('p')
 
 	await expect(page.getByRole('status').filter({ hasText: 'IMG_0001' })).toContainText('Picked IMG_0001')
-	await expect(loupe.getByRole('button', { name: 'Pick' }).first()).toHaveAttribute('aria-pressed', 'true')
+	await expect(loupe.getByRole('heading', { name: 'IMG_0002' })).toBeVisible()
 	await expect(page.getByRole('dialog', { name: 'Write decisions to XMP sidecars?' })).toHaveCount(0)
 	await page.keyboard.press('Escape')
 	await page.getByRole('button', { name: 'More' }).click()

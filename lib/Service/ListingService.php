@@ -23,8 +23,6 @@ final class ListingService {
 	public function __construct(
 		private UserFolderResolver $folders,
 		private EntryFactory $entryFactory,
-		private SharedFolders $sharedFolders,
-		private FileVersions $versions,
 		private int $entryLimit = self::ENTRY_LIMIT,
 	) {
 	}
@@ -48,9 +46,9 @@ final class ListingService {
 
 	/** @param iterable<Node> $nodes */
 	private function collect(IUser $user, Folder $userFolder, Folder $folder, iterable $nodes): Listing {
-		$shares = $this->sharedFolders->lookup($user, $userFolder);
 		$entries = [];
 		$batch = [];
+		/** @var array<string, array{path: string, permissions: int}> $folders */
 		$folders = [];
 		foreach ($nodes as $node) {
 			if (!$this->isListed($folder, $node)) {
@@ -60,7 +58,7 @@ final class ListingService {
 				return new Listing([...$entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch)], true, array_values($folders), $folder->getId());
 			}
 			$batch[] = $node;
-			$folders[dirname($node->getPath())] ??= $this->folderOf($shares, $userFolder, $node);
+			$folders[dirname($node->getPath())] ??= $this->folderOf($userFolder, $node);
 			if (count($batch) === self::METADATA_BATCH) {
 				array_push($entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch));
 				$batch = [];
@@ -69,11 +67,13 @@ final class ListingService {
 		return new Listing([...$entries, ...$this->entryFactory->create($user->getUID(), $userFolder, $batch)], false, array_values($folders), $folder->getId());
 	}
 
-	/** @return array{path: string, shared: bool, permissions: int, versions: bool} */
-	private function folderOf(SharedFolderLookup $shares, Folder $userFolder, File $node): array {
+	/**
+	 * The folder of the node by its path and the user's permissions on it (LISTING-001.19).
+	 * @return array{path: string, permissions: int}
+	 */
+	private function folderOf(Folder $userFolder, File $node): array {
 		$path = $userFolder->getRelativePath(dirname($node->getPath())) ?? '/';
-		$parent = $node->getParent();
-		return ['path' => $path, 'shared' => $shares->isShared($parent), 'permissions' => $parent->getPermissions(), 'versions' => $this->versions->keeps($parent)];
+		return ['path' => $path, 'permissions' => $node->getParent()->getPermissions()];
 	}
 
 	/** @psalm-assert-if-true File $node */

@@ -201,7 +201,7 @@ Withdrawn by ADR 0040 (M8 PR 3); tags are written through in a shared folder (.2
 
 The cull saves no tags to the database any more (ADR 0032, XMP-006.7).
 
-### TAGS-002.22 – Tags are written through in a shared folder (gap)
+### TAGS-002.22 – Tags are written through in a shared folder
 
 - **Given** a rateable picture with a member in a folder shared with another user
 - **When** the user tags it

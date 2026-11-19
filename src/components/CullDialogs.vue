@@ -9,7 +9,6 @@ import type { Decision } from '../logic/decision.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
-import type { OpenedFolder } from '../logic/writability.ts'
 import type { MoveFlow } from '../move-flow.ts'
 import type { SidecarFlow } from '../sidecar-flow.ts'
 
@@ -21,22 +20,13 @@ const props = defineProps<{
 	deleting: DeleteFlow
 	moving: MoveFlow
 	sidecars: SidecarFlow
-	/** Whether writing creates new sidecars, which the migration needs (XMP-007.7). */
-	sidecarsReady: boolean
 	folderSet: FolderSet
 	/** How many folders the cull shows. */
 	folders: number
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
-	/** Whether the picture lies in a shared folder not confirmed (XMP-007.13). */
-	unconfirmed: (picture: Picture<ListingEntry>) => boolean
-	confirmationFolders: (pictures: readonly Picture<ListingEntry>[]) => readonly OpenedFolder[]
 	listFolders: (path: string) => Promise<Folder[]>
 	/** Where the dialogs open, e.g. inside the loupe; the page body by default. */
 	container?: string | undefined
-}>()
-
-const emit = defineEmits<{
-	confirmFolder: [folder: OpenedFolder]
 }>()
 
 const deleting = props.deleting
@@ -62,11 +52,7 @@ const deleting = props.deleting
 	<SidecarDialogs
 		:flow="props.sidecars"
 		:folderSet="props.folderSet"
-		:decisionOf="props.decisionOf"
-		:ready="props.sidecarsReady"
-		:unconfirmed="props.unconfirmed"
-		:confirmationFolders="props.confirmationFolders"
-		@confirmFolder="emit('confirmFolder', $event)" />
+		:decisionOf="props.decisionOf" />
 	<MoveDialogs
 		:flow="props.moving"
 		:folderSet="props.folderSet"

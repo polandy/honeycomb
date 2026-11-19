@@ -129,8 +129,7 @@ after each part of a run, a copy or a forget; a failed read shows no notice and 
 - **Then** the notice names both folders and the 3 files, *Save a copy* saves the export as
   `honeycomb-legacy-rows.json` and toasts *Saved a copy as honeycomb-legacy-rows.json*, *Forget*
   acknowledges the exported file ids, toasts *Forgot the stored decisions of 3 files* and the
-  notice is read again; *Cancel* forgets nothing, and without rows or with writing *Off* no notice
-  shows
+  notice is read again; *Cancel* forgets nothing, and without rows no notice shows
 - **And** a long folder list scrolls inside the notice, which takes at most 30 % of the screen's
   height, so the grid keeps room on a phone
 
@@ -192,4 +191,4 @@ Withdrawn by ADR 0040 (M8 PR 3); a shared folder needs no confirmation (XMP-008.
 | 2026-11-18 | Shared folders need the confirmation of XMP-008.4; the run skips those not confirmed (XMP-007.13, owner decision #187) |
 | 2026-11-18 | An acknowledged picture is unlocked and gets no legacy rows back, so the notice stays away (XMP-007.14, ADR 0032) |
 | 2026-11-19 | Withdrawn by ADR 0040; M8 PR 4 removes the migration and sets the status `removed` |
-| 2026-11-19 | M8 PR 3: no setting and no shared-folder skip (.7 changed, .13 removed) |
+| 2026-11-19 | M8 PR 3: no setting and no shared-folder skip (.7, .8 changed, .13 removed) |

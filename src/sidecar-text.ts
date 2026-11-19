@@ -28,8 +28,8 @@ export function sidecarFailureReason(reason: SidecarFailureReason): string {
 			return t('honeycomb', 'The sidecar is locked (another process is writing to it)')
 		case 'changed':
 			return t('honeycomb', 'The sidecar changed again while honeycomb wrote it')
-		case 'noVersions':
-			return t('honeycomb', 'File versions are off, so honeycomb does not overwrite an existing sidecar')
+		case 'noSpace':
+			return t('honeycomb', 'No storage space left for the sidecar; free some space or ask the folder\'s owner')
 		case 'unreachable':
 			return t('honeycomb', 'Could not reach the server')
 		case 'failed':
@@ -57,13 +57,3 @@ export const photosNotWrittenText = (failed: number, count: number, reasons: rea
 
 /** The result of a migration run without photos (XMP-007.12). */
 export const nothingToWriteText = () => t('honeycomb', 'No stored decisions to write here')
-
-/** A migration run's result and how many photos it skipped in shared folders not confirmed (XMP-007.13). */
-export function withSkippedText(result: string, skipped: number): string {
-	return skipped === 0
-		? result
-		: n('honeycomb', '{result}; skipped {count} photo in a shared folder not confirmed', '{result}; skipped {count} photos in shared folders not confirmed', skipped, { result, count: formatNumber(skipped) }, PLAIN_TEXT)
-}
-
-/** "1 photo in a shared folder you have not confirmed is skipped.", the migration dialog's note (XMP-007.13). */
-export const skippedNoteText = (skipped: number) => n('honeycomb', '{count} photo in a shared folder you have not confirmed is skipped.', '{count} photos in shared folders you have not confirmed are skipped.', skipped, { count: formatNumber(skipped) }, PLAIN_TEXT)

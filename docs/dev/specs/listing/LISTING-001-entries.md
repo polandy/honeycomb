@@ -159,7 +159,7 @@ Withdrawn by ADR 0040 (M8 PR 3); a folder names its path and permissions only (.
 - **Then** the first entry has `flag` `rejected`, `keepRaw` true and `flagUpdated` the row's time;
   the other two have `null` in all three, and the flags are read in one query per 1,000 entries
 
-### LISTING-001.19 – A folder names its path and permissions only (gap)
+### LISTING-001.19 – A folder names its path and permissions only
 
 - **Given** entries in a folder of the user's own, in a folder shared with the user and on
   external storage
