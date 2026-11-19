@@ -30,11 +30,12 @@ back to its default, so an unknown, missing or invalid field never breaks the ap
 | Vi keys | Off |
 | Name template for moved photos | *By day* (`docs/dev/05-name-templates.md` Default and presets) |
 | Favourite targets | None |
+| Keep statistics | On (STATS-001) |
 
 *Settings* in the grid's ⋯ menu opens a dialog with the sections *File types*, *Folder layout*,
-*Loupe gestures*, *Keyboard*, *Moving photos* and *Cache*. Each change applies at
+*Loupe gestures*, *Keyboard*, *Moving photos*, *Statistics* and *Cache*. Each change applies at
 once and saves the whole object; there is no OK button. What a setting does elsewhere is specified
-where it acts (LISTING-002, LOUPE-001, LOUPE-002, KEYS-001, MOVE-004, XMP-003).
+where it acts (LISTING-002, LOUPE-001, LOUPE-002, KEYS-001, MOVE-004, XMP-003, STATS-001).
 
 There is no setting *Write decisions to XMP sidecars* and no confirmation of shared folders
 (ADR 0040): a decision is written where the picture is rateable (XMP-008), and the stored fields
@@ -267,3 +268,4 @@ Pairing itself: LISTING-002.
 | 2026-11-19 | ADR 0040: the sidecar switch and shared-folder confirmations go, *Clean up orphaned data* for admins (.24, .26 withdrawn; .27, .28 gaps) |
 | 2026-11-19 | M8 PR 3: no *XMP sidecars* section (.24, .26 removed; .28 implemented) |
 | 2026-11-19 | M8 PR 5: *Clean up orphaned data* for admins (.27 implemented) |
+| 2026-11-19 | The *Statistics* section and *Keep statistics* in the defaults (STATS-001) |

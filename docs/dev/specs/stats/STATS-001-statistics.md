@@ -63,7 +63,16 @@ just ended: its totals, the longest streak, the busiest day, active time and a c
 days. From 1 December the navigation shows the hint *Your {year} in honeycomb* once a year until
 the user closes it or opens the year in review; the view state remembers it (LOUPE-003).
 
-**Settings:** *Keep statistics* (on by default) and *Reset statistics* with a confirmation.
+**Settings:** a section *Statistics* with the switch *Keep statistics* (on by default, the
+settings field `keepStatistics`; only `false` turns it off) and *Reset statistics*, which asks
+*Reset all statistics?* first; a toast says *Statistics reset* or that they could not be reset.
+
+**Storage and API:** the table `honeycomb_stats` holds one row per user, day and metric. A count
+adds to the row of the day, never below zero; two counts at once both arrive (the second insert
+of a new row retries as an update). `GET /apps/honeycomb/api/v1/stats` takes the optional days
+`from` and `to` (`YYYY-MM-DD`, both included) and answers `counters`, the user's rows of those
+days as `{day, metric, value}` ordered by day and metric, and `firstDay`, the user's first counted
+day or `null`; a malformed day or `from` after `to` answers 400. `DELETE` on the same URL resets.
 Strings are English, translated per ADR 0007; the mockup lists them.
 
 ## Acceptance criteria
@@ -253,3 +262,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | Date | Change |
 |---|---|
 | 2026-11-19 | Written from the signed-off concept *Nutzen-Metriken* (metrics PR 1 of 8) |
+| 2026-11-19 | Storage and API, the settings section (metrics PR 2 of 8) |
