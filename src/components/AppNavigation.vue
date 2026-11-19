@@ -60,23 +60,35 @@ function closeOnNarrowScreen() {
 				</template>
 			</NcAppNavigationItem>
 			<NcAppNavigationCaption :name="t('honeycomb', 'Recent')" />
-			<RecentFolderSets v-if="props.items.length > 0" :items="props.items" @open="closeOnNarrowScreen(); emit('openRecent', $event)" />
-			<p v-else class="app-navigation__empty">
+			<li v-if="props.items.length > 0" class="app-navigation__recent">
+				<RecentFolderSets :items="props.items" @open="closeOnNarrowScreen(); emit('openRecent', $event)" />
+			</li>
+			<li v-else class="app-navigation__empty">
 				{{ t('honeycomb', 'Folder sets you cull show here.') }}
-			</p>
+			</li>
 		</template>
 		<template #footer>
-			<NcAppNavigationItem :name="t('honeycomb', 'Settings')" @click="closeOnNarrowScreen(); emit('openSettings')">
-				<template #icon>
-					<AppIcon name="settings" />
-				</template>
-			</NcAppNavigationItem>
+			<ul class="app-navigation__footer">
+				<NcAppNavigationItem :name="t('honeycomb', 'Settings')" @click="closeOnNarrowScreen(); emit('openSettings')">
+					<template #icon>
+						<AppIcon name="settings" />
+					</template>
+				</NcAppNavigationItem>
+			</ul>
 		</template>
 	</NcAppNavigation>
 </template>
 
 <style scoped>
+.app-navigation__recent,
+.app-navigation__footer {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
 .app-navigation__empty {
+	list-style: none;
 	padding: var(--default-grid-baseline) calc(3 * var(--default-grid-baseline));
 	color: var(--color-text-maxcontrast);
 }

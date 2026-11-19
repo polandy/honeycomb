@@ -38,7 +38,7 @@ describe('RejectReview', () => {
 		expect(wrapper.find('[role="dialog"]').attributes('name')).toBe('Review rejects')
 		expect(wrapper.find('.delete-stats').text()).toBe('2photos4files5 kBto free')
 		const tiles = wrapper.findAll('.picture-thumbs__tile')
-		expect(tiles.map((tile) => tile.attributes('aria-label'))).toEqual(['Rescue IMG_1', 'Rescue IMG_2'])
+		expect(tiles.map((tile) => tile.attributes('aria-label'))).toEqual([undefined, undefined])
 		expect(tiles[0]!.text()).toBe('IMG_1A · JPG + CR3 + XMPRescue')
 		expect(tiles[0]!.find('img').attributes('src')).toBe('/image/2')
 
@@ -169,7 +169,7 @@ describe('RawRemovalSummary', () => {
 		expect(groups[0]!.text()).toContain('Tap a photo to keep its RAW instead.')
 		expect(groups[1]!.text()).toContain('Tap a photo to remove its RAW after all.')
 		const tiles = wrapper.findAll('.picture-thumbs__tile')
-		expect(tiles.map((tile) => tile.attributes('aria-label'))).toEqual(['Keep RAW: IMG_3', 'Remove RAW: IMG_4'])
+		expect(tiles.map((tile) => tile.text())).toEqual(['IMG_3Keep RAW', 'IMG_4Remove RAW'])
 		expect(tiles[0]!.find('img').attributes('src')).toBe('/image/12')
 
 		await tiles[0]!.trigger('click')

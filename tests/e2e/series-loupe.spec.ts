@@ -19,7 +19,7 @@ test('opens the compare on the loupe\'s series by the chip, above the loupe, and
 	const loupe = page.getByRole('dialog', { name: 'Loupe' })
 	await loupe.getByRole('dialog', { name: 'How to cull' }).getByRole('button', { name: 'Got it' }).click()
 
-	await loupe.getByRole('button', { name: 'Photo 2 of a series of 3 – compare' }).click()
+	await loupe.getByRole('button', { name: 'Series 2/3: compare' }).click()
 	const compare = page.getByRole('dialog', { name: 'Series of 3 · photo 2' })
 	await compare.getByRole('button', { name: 'Pick this, reject the rest' }).click()
 
@@ -87,7 +87,7 @@ test('shows the first-series hint once, under a chip that does not pulse with re
 
 	await page.keyboard.press('ArrowLeft')
 	await expect(hint).toContainText('This photo is part of a series of 2.')
-	await expect(loupe.getByRole('button', { name: 'Photo 2 of a series of 2 – compare' })).toHaveCSS('animation-name', 'none')
+	await expect(loupe.getByRole('button', { name: 'Series 2/2: compare' })).toHaveCSS('animation-name', 'none')
 	const saved = page.waitForResponse((response) => response.url().endsWith('/api/v1/view-state') && response.request().method() === 'PUT' && response.request().postDataJSON().viewState.seriesHintSeen === true && response.ok())
 	await hint.getByRole('button', { name: 'Got it' }).click()
 

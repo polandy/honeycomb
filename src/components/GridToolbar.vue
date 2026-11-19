@@ -116,7 +116,7 @@ const setName = computed(() => {
 		</NcButton>
 		<NcButton
 			variant="tertiary"
-			:ariaLabel="t('honeycomb', 'Select')"
+			:ariaLabel="props.selection.selecting && props.selection.selected > 0 ? t('honeycomb', 'Select: {count} selected', { count: formatNumber(props.selection.selected) }) : t('honeycomb', 'Select')"
 			v-bind="tip(t('honeycomb', 'Select'))"
 			:aria-pressed="props.selection.selecting"
 			@click="emit('update:selecting', !props.selection.selecting)">
@@ -128,7 +128,7 @@ const setName = computed(() => {
 		<NcButton
 			class="grid-toolbar__wide"
 			variant="tertiary"
-			:ariaLabel="props.tasks.rejected > 0 ? t('honeycomb', 'Review rejects ({count})', { count: formatNumber(props.tasks.rejected) }) : t('honeycomb', 'Review rejects')"
+			:ariaLabel="props.tasks.rejected > 0 ? t('honeycomb', 'Review rejects: {count}', { count: formatNumber(props.tasks.rejected) }) : t('honeycomb', 'Review rejects')"
 			v-bind="tip(t('honeycomb', 'Review rejects'), keyCap('review-rejects'))"
 			:disabled="props.tasks.rejected === 0"
 			@click="emit('reviewRejects')">
@@ -140,7 +140,7 @@ const setName = computed(() => {
 		<NcButton
 			class="grid-toolbar__wide"
 			variant="tertiary"
-			:ariaLabel="props.tasks.series > 0 ? t('honeycomb', 'Compare series ({count})', { count: formatNumber(props.tasks.series) }) : t('honeycomb', 'Compare series')"
+			:ariaLabel="props.tasks.series > 0 ? t('honeycomb', 'Compare series: {count}', { count: formatNumber(props.tasks.series) }) : t('honeycomb', 'Compare series')"
 			v-bind="tip(t('honeycomb', 'Compare series'), keyCap('compare'))"
 			:disabled="props.tasks.series === 0"
 			@click="emit('compareSeries')">
