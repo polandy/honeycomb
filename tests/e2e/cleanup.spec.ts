@@ -93,7 +93,7 @@ test('cleans up orphaned data for an admin and refuses another user', async ({ b
 	await page.goto('/index.php/apps/honeycomb/')
 	const cleaned = await send(page, 'POST', `${API}/cleanup`)
 	expect(cleaned.status(), await cleaned.text()).toBe(200)
-	expect(await cleaned.json()).toEqual({ removed: expect.any(Number) as number })
+	expect(await cleaned.json()).toEqual({ removed: expect.any(Number) })
 
 	const user = { username: `plain-${randomUUID().slice(0, 8)}`, password: `e2e-${randomUUID()}` }
 	occ(['user:add', '--password-from-env', user.username], { OC_PASS: user.password })

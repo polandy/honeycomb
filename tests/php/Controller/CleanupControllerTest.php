@@ -28,12 +28,16 @@ use ReflectionMethod;
 final class CleanupControllerTest extends TestCase {
 	private FakeFlagStore $store;
 
+	#[\Override]
+	protected function setUp(): void {
+		$this->store = new FakeFlagStore();
+	}
+
 	private function controller(bool $loggedIn = true): CleanupController {
 		$user = $this->createStub(IUser::class);
 		$user->method('getUID')->willReturn('admin');
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
-		$this->store = new FakeFlagStore();
 		$this->store->rows = [7 => new FileFlag(7, Flag::Picked, false, 100), 8 => new FileFlag(8, Flag::Picked, false, 100)];
 		$files = new FakeExistingFiles();
 		$files->trashed = [7];

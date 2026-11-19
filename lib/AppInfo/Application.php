@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\AppInfo;
 
-use OCA\Honeycomb\Db\DecisionMapper;
 use OCA\Honeycomb\Db\FileCacheLookup;
 use OCA\Honeycomb\Db\FileCachePhotoFiles;
+use OCA\Honeycomb\Db\FlagMapper;
 use OCA\Honeycomb\Db\PositionMapper;
 use OCA\Honeycomb\Db\SeriesMapper;
 use OCA\Honeycomb\Db\TagMapper;
@@ -19,8 +19,8 @@ use OCA\Honeycomb\Listener\ForgetDeletedUser;
 use OCA\Honeycomb\Preview\JpegDecoder;
 use OCA\Honeycomb\Preview\OcpJpegDecoder;
 use OCA\Honeycomb\Preview\RawPreviewProvider;
-use OCA\Honeycomb\Service\DecisionStore;
 use OCA\Honeycomb\Service\ExistingFiles;
+use OCA\Honeycomb\Service\FlagStore;
 use OCA\Honeycomb\Service\Pause;
 use OCA\Honeycomb\Service\PhotoFilesBelow;
 use OCA\Honeycomb\Service\PositionStore;
@@ -47,7 +47,7 @@ final class Application extends App implements IBootstrap {
 	#[\Override]
 	public function register(IRegistrationContext $context): void {
 		$context->registerServiceAlias(JpegDecoder::class, OcpJpegDecoder::class);
-		$context->registerServiceAlias(DecisionStore::class, DecisionMapper::class);
+		$context->registerServiceAlias(FlagStore::class, FlagMapper::class);
 		$context->registerServiceAlias(PositionStore::class, PositionMapper::class);
 		$context->registerServiceAlias(SeriesStore::class, SeriesMapper::class);
 		$context->registerServiceAlias(TagStore::class, TagMapper::class);

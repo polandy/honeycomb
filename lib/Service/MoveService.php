@@ -20,7 +20,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Moves whole pictures to the paths the client rendered, within their storage: each checked whole, moved file by file
- * and moved back when one of its files fails (ADR 0018); decisions and tags follow a new file id (MOVE-002.10, TAGS-001.10).
+ * and moved back when one of its files fails (ADR 0018); the flag and the visual hash follow a new file id (MOVE-002.10).
  *
  * @psalm-type Outcome = array{fileId: int, result: MoveResult, replaced: bool, path?: string, newFileId?: int, etag?: string}
  */
@@ -136,7 +136,7 @@ final class MoveService {
 		}
 	}
 
-	/** Carries the user's decision, tags and visual hash over when the move gave the file a new id; a failure is logged and the file stays moved. */
+	/** Carries the file's flag and the user's file rows over when the move gave the file a new id; a failure is logged and the file stays moved. */
 	private function carryOver(string $userId, int $fileId, Node $node): void {
 		$newFileId = $node->getId();
 		if ($newFileId === $fileId) {
@@ -146,7 +146,7 @@ final class MoveService {
 			try {
 				$store->carryOver($userId, $fileId, $newFileId);
 			} catch (\Exception $e) {
-				$this->logger->error('A decision, tags or a visual hash could not follow their file to a new file id', ['fileId' => $fileId, 'newFileId' => $newFileId, 'exception' => $e]);
+				$this->logger->error('A flag or a file row could not follow its file to a new file id', ['fileId' => $fileId, 'newFileId' => $newFileId, 'exception' => $e]);
 			}
 		}
 	}

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
-import type { StoredTags, Tag, TagChange } from './logic/tag.ts'
+import type { Tag, TagChange } from './logic/tag.ts'
 
 import { computed, shallowRef } from 'vue'
 import { logger } from './logger.ts'
@@ -10,16 +10,15 @@ import { pictureMembers } from './logic/pairing.ts'
 import { withLevels } from './logic/tag-entry.ts'
 import { changedTags, sortedTags, withTagRows } from './logic/tag.ts'
 
-/** The tag endpoints (ADR 0022). */
+/** The tag list endpoint (ADR 0022). */
 export interface CullTagsApi {
-	readonly lookupTags: (fileIds: readonly number[]) => Promise<StoredTags[]>
 	readonly loadTagList: () => Promise<Tag[]>
 }
 
 type Pictures = readonly Picture<ListingEntry>[]
 
-/** The tags of the open cull: the stored rows, the sidecars' tags, and changes written through (TAGS-002); `current` names the open cull, answers for another are dropped. */
-export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, change: TagChange) => Promise<unknown>, current: () => unknown, writable: (picture: Picture<ListingEntry>) => boolean) {
+/** The tags of the open cull: the sidecars' tags and changes written through (TAGS-002). */
+export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, change: TagChange) => Promise<unknown>, writable: (picture: Picture<ListingEntry>) => boolean) {
 	const tags = shallowRef<ReadonlyMap<number, readonly Tag[]>>(new Map())
 	const list = shallowRef<readonly Tag[]>([])
 	const known = computed(() => withLevels([...list.value, ...[...tags.value.values()].flat()]))
@@ -39,19 +38,6 @@ export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, ch
 	/** The union of the tags of the picture's members, sorted. */
 	function tagsOf(picture: Picture<ListingEntry>): Tag[] {
 		return unionOf(picture, tags.value)
-	}
-
-	/** Reads the stored tags of the files and shows them under those given meanwhile; a failure shows none (TAGS-002.6). */
-	async function load(fileIds: readonly number[]): Promise<void> {
-		const cull = current()
-		try {
-			const rows = await api.lookupTags(fileIds)
-			if (current() === cull) {
-				tags.value = new Map([...withTagRows(new Map(), rows), ...tags.value])
-			}
-		} catch (error) {
-			logger.error('Could not read the stored tags; the photos show their sidecars\' tags', { error })
-		}
 	}
 
 	/** Shows the sidecars' tags of the pictures still untagged; nothing is stored or written (TAGS-002.2). */
@@ -75,7 +61,7 @@ export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, ch
 		}
 	}
 
-	return { tags, known, reset, loadList, tagsOf, load, fromSidecars, change }
+	return { tags, known, reset, loadList, tagsOf, fromSidecars, change }
 }
 
 /** The union of the tags of the picture's members in the map, sorted. */

@@ -11,7 +11,6 @@ use OCA\Honeycomb\Db\FileCacheLookup;
 use OCA\Honeycomb\Db\FlagMapper;
 use OCA\Honeycomb\Service\FileFlag;
 use OCA\Honeycomb\Service\Flag;
-use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\IUserManager;
@@ -93,11 +92,12 @@ final class FlagMapperTest extends DbTestCase {
 	// spec: DECISIONS-001.32
 	public function testAFileInTheTrashBinIsNotOutsideItUntilItIsRestored(): void {
 		$home = Server::get(IRootFolder::class)->getUserFolder(self::USER);
-		$kept = $home->newFolder('Photos')->newFile('a.jpg', 'x');
-		$trashed = $home->get('Photos')->newFile('b.jpg', 'x');
-		assert($trashed instanceof File);
-		$trashBin = Server::get(IRootFolder::class)->get('/' . self::USER)->newFolder('files_trashbin/files');
-		assert($trashBin instanceof Folder);
+		$photos = $home->newFolder('Photos');
+		$kept = $photos->newFile('a.jpg', 'x');
+		$trashed = $photos->newFile('b.jpg', 'x');
+		$userRoot = Server::get(IRootFolder::class)->get('/' . self::USER);
+		assert($userRoot instanceof Folder);
+		$trashBin = $userRoot->newFolder('files_trashbin/files');
 		$lookup = new FileCacheLookup($this->db);
 		$gone = PHP_INT_MAX;
 

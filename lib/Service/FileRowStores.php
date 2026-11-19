@@ -11,8 +11,7 @@ namespace OCA\Honeycomb\Service;
 final readonly class FileRowStores {
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it. */
 	public function __construct(
-		private DecisionStore $decisions,
-		private TagStore $tags,
+		private FlagStore $flags,
 		private VisualHashStore $visualHashes,
 		private SeriesStore $series,
 		private XmpCacheStore $xmpCache,
@@ -22,8 +21,7 @@ final readonly class FileRowStores {
 	/** @return list<FileRowStoreEntry> */
 	public function all(): array {
 		return [
-			new FileRowStoreEntry('decision', 'vanished_after_decisions', $this->decisions),
-			new FileRowStoreEntry('tag', 'vanished_after_file_tags', $this->tags),
+			new FileRowStoreEntry('flag', 'vanished_after_flags', $this->flags),
 			new FileRowStoreEntry('visual hash', 'vanished_after_hashes', $this->visualHashes),
 			new FileRowStoreEntry('series member', 'vanished_after_series_files', $this->series),
 			new FileRowStoreEntry('xmp cache', 'vanished_after_xmp_cache', $this->xmpCache),

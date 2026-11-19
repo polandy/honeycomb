@@ -127,7 +127,7 @@ final class FlagServiceTest extends TestCase {
 
 		$answer = $service->save($this->user(), [self::item(7), self::item(8), self::item(9, 'rejected'), self::item(10), self::item(self::TEXT_FILE)]);
 
-		$this->assertSame([7, 9], array_keys($this->store->rows));
+		$this->assertEqualsCanonicalizing([7, 9], array_keys($this->store->rows));
 		$this->assertEquals(new FileFlag(9, Flag::Picked, false, 100), $this->store->rows[9]);
 		$this->assertSame(['saved' => [7], 'skipped' => [
 			['fileId' => 8, 'reason' => 'notFound'],
@@ -210,7 +210,11 @@ final class FlagServiceTest extends TestCase {
 	public function testASaveReadsTheRightsOncePerFolder(): void {
 		$photos = [];
 		foreach (range(1, 2_000) as $id) {
-			$photos[$id] = [['/A', '/B', '/C'][$id % 3], $id % 3 === 2 ? Constants::PERMISSION_READ : self::RATEABLE];
+			$photos[$id] = match ($id % 3) {
+				0 => ['/A', self::RATEABLE],
+				1 => ['/B', self::RATEABLE],
+				default => ['/C', Constants::PERMISSION_READ],
+			};
 		}
 		$items = array_map(static fn (int $id): array => self::item($id), array_keys($photos));
 

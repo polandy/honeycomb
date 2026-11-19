@@ -47,8 +47,9 @@ migration drops the old table and its endpoints, and the criteria withdrawn belo
 
 - A daily background job removes the rows of files deleted for good. For each of the flag, visual
   hash, series and XMP cache tables it reads 1,000 rows at a time in row id order, asks the file
-  cache which of their file ids still exist, without a join, and stops after 100 chunks. The row id it stopped at is kept in the app config, so the next run goes on from
-  there; at the end of a table the next run starts again from the beginning.
+  cache which of their file ids still exist, without a join, and stops after 100 chunks. The row
+  id it stopped at is kept in the app config, so the next run goes on from there; at the end of
+  a table the next run starts again from the beginning.
 
 ## Acceptance criteria
 

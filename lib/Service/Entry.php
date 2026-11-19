@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-/** One file of the listing with the EXIF basics Nextcloud has extracted, `null` where it has none. */
+/** One file of the listing with the EXIF basics Nextcloud has extracted and its flag row, `null` where it has none. */
 final class Entry implements \JsonSerializable {
 	public function __construct(
 		private int $fileId,
@@ -22,10 +22,11 @@ final class Entry implements \JsonSerializable {
 		private ?int $height,
 		private ?string $camera,
 		private ?string $visualHash,
+		private ?FileFlag $flag,
 	) {
 	}
 
-	/** @return array<string, int|string|null> */
+	/** @return array<string, int|string|bool|null> */
 	#[\Override]
 	public function jsonSerialize(): array {
 		return [
@@ -41,6 +42,9 @@ final class Entry implements \JsonSerializable {
 			'height' => $this->height,
 			'camera' => $this->camera,
 			'visualHash' => $this->visualHash,
+			'flag' => $this->flag?->flag->value,
+			'keepRaw' => $this->flag?->keepRaw,
+			'flagUpdated' => $this->flag?->updatedAt,
 		];
 	}
 }

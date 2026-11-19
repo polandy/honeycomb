@@ -53,7 +53,10 @@ and RAW files removed. Bars show pictures decided and moved to the trash bin per
 week (30 days) or per month (year, all time). *Folder sets* lists the resume positions with their
 share decided; *Of the pictures read so far* shows the shares picked, rejected, unflagged and
 rated from the XMP cache. A footnote says *Counted since {date}.* and, with a start value, *Before
-that: n pictures decided (no date).*
+that: n pictures decided (no date).* The start value is the user preference
+`pictures_decided_before`, `{count, day}`, which the migration to `honeycomb_flags` writes from
+`honeycomb_decisions` before it drops that table: a picture counts once, whichever member held
+the flag.
 
 **The year in review** opens the page from 1 December to 31 January, for the year that ends or
 just ended: its totals, the longest streak, the busiest day, active time and a calendar of active

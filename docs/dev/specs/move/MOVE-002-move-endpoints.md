@@ -131,8 +131,8 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
 - **Given** a file with a flag row that gets a new file id when it moves, or when it moves back
 - **When** the client posts it
 - **Then** the row is stored under the new file id and none is left under the old, whoever set
-  it; the user's other rows of the file follow it, other users' stay; a row that cannot be carried over is logged as an error and the file is still
-  reported `moved`
+  it; the user's other rows of the file follow it, other users' stay; a row that cannot be
+  carried over is logged as an error and the file is still reported `moved`
 
 ### MOVE-002.11 – A move stays on its storage
 

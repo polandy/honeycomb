@@ -34,12 +34,16 @@ final class FlagControllerTest extends TestCase {
 
 	private FakeFlagStore $store;
 
+	#[\Override]
+	protected function setUp(): void {
+		$this->store = new FakeFlagStore();
+	}
+
 	private function controller(bool $loggedIn = true): FlagController {
 		$user = $this->createStub(IUser::class);
 		$user->method('getUID')->willReturn('alice');
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
-		$this->store = new FakeFlagStore();
 		$service = new FlagService($this->store, $this->userPhotos(7), $this->createStub(ITimeFactory::class));
 		return new FlagController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $service);
 	}

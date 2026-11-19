@@ -42,6 +42,7 @@ trait FakeUserPhotos {
 		$file->method('getId')->willReturn($id);
 		$file->method('getName')->willReturn($name);
 		$file->method('getMimetype')->willReturn($mime);
+		$file->method('getPath')->willReturn("/alice/files/Photos/$name");
 		$folder = $this->createStub(Folder::class);
 		$folder->method('getPermissions')->willReturn(Constants::PERMISSION_ALL);
 		$file->method('getParent')->willReturn($folder);

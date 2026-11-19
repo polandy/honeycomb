@@ -23,11 +23,12 @@ final class EntryFactory {
 	public function __construct(
 		private IFilesMetadataManager $metadataManager,
 		private VisualHashStore $visualHashes,
+		private FlagStore $flags,
 	) {
 	}
 
 	/**
-	 * Entries of `$files` with paths relative to `$userFolder`, from one metadata and one visual hash query.
+	 * Entries of `$files` with paths relative to `$userFolder`, from one metadata, one visual hash and one flag query.
 	 * @param list<File> $files
 	 * @return list<Entry>
 	 */
@@ -38,14 +39,15 @@ final class EntryFactory {
 		$fileIds = array_map(static fn (File $file): int => $file->getId(), $files);
 		$metadata = $this->metadataManager->getMetadataForFiles($fileIds);
 		$hashes = $this->visualHashes->find($userId, $fileIds);
+		$flags = $this->flags->find($fileIds);
 		return array_map(
-			fn (File $file): Entry => $this->entry($userFolder, $file, $metadata[$file->getId()] ?? null, $hashes[$file->getId()] ?? null),
+			fn (File $file): Entry => $this->entry($userFolder, $file, $metadata[$file->getId()] ?? null, $hashes[$file->getId()] ?? null, $flags[$file->getId()] ?? null),
 			$files,
 		);
 	}
 
 	/** A stored hash counts only while the file is at the etag it was taken from (ADR 0024). */
-	private function entry(Folder $userFolder, File $file, ?IFilesMetadata $metadata, ?VisualHash $hash): Entry {
+	private function entry(Folder $userFolder, File $file, ?IFilesMetadata $metadata, ?VisualHash $hash, ?FileFlag $flag): Entry {
 		$size = $this->arrayOf($metadata, self::SIZE);
 		$width = self::intOrNull($size['width'] ?? null);
 		$height = self::intOrNull($size['height'] ?? null);
@@ -64,6 +66,7 @@ final class EntryFactory {
 			$complete ? $height : null,
 			self::camera($ifd0),
 			$hash !== null && $hash->etag === $file->getEtag() ? $hash->hash : null,
+			$flag,
 		);
 	}
 

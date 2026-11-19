@@ -71,3 +71,5 @@ Changing a list pairs the open folders again at once; your decisions stay.
   visual hashes of your photos, so a folder opens fast. *Clear cache* removes that at once; the
   next visit of a folder reads its files again. Your sidecars, decisions and tags stay. A message
   says when the cache is cleared or could not be.
+- **Clean up orphaned data** (admins only): removes the picks and rejects of files that were
+  deleted or lie in a trash bin, for every user, and says how many entries went.

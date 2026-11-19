@@ -11,10 +11,12 @@ use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
 /**
- * The `FileRowStore` queries of a mapper whose table has `user_id` and `file_id`.
+ * The `FileRowStore` queries of a mapper whose table has `file_id`, and `user_id` where a user is given.
  * @property IDBConnection $db
  */
 trait FileRowQueries {
+	use UserRowQueries;
+
 	/** Oracle takes at most 1,000 values in an `IN` list. */
 	private const int IN_CHUNK = 1_000;
 
@@ -61,20 +63,20 @@ trait FileRowQueries {
 	}
 
 	/**
-	 * The user's rows of `$fileIds`, in file id order.
+	 * The user's rows of `$fileIds`, or every row of them for null, in file id order.
 	 * @param list<int> $fileIds
 	 * @return list<array<string, mixed>>
 	 */
-	private function findFileRows(string $userId, array $fileIds): array {
+	private function findFileRows(?string $userId, array $fileIds): array {
 		sort($fileIds);
 		$rows = [];
 		foreach (array_chunk($fileIds, self::IN_CHUNK) as $chunk) {
 			$query = $this->db->getQueryBuilder();
 			$query->select('*')
 				->from($this->getTableName())
-				->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
-				->andWhere($query->expr()->in('file_id', $query->createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)))
+				->where($query->expr()->in('file_id', $query->createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)))
 				->orderBy('file_id');
+			$this->ofUser($query, $userId);
 			$result = $query->executeQuery();
 			$chunkRows = $result->fetchAll();
 			$result->closeCursor();
@@ -84,26 +86,15 @@ trait FileRowQueries {
 	}
 
 	/**
-	 * Removes the user's rows of `$fileIds`.
+	 * Removes the user's rows of `$fileIds`, or every row of them for null.
 	 * @param list<int> $fileIds
 	 */
-	private function deleteFileRows(string $userId, array $fileIds): void {
+	private function deleteFileRows(?string $userId, array $fileIds): void {
 		foreach (array_chunk($fileIds, self::IN_CHUNK) as $chunk) {
 			$query = $this->db->getQueryBuilder();
 			$query->delete($this->getTableName())
-				->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
-				->andWhere($query->expr()->in('file_id', $query->createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)))
-				->executeStatement();
-		}
-	}
-
-	/**
-	 * Runs the statements inserting `$rows`.
-	 * @param list<array<string, scalar|null>> $rows
-	 */
-	private function insertRows(InsertStatements $insert, array $rows): void {
-		foreach ($insert->of($rows, $this->db->getDatabaseProvider()) as $statement) {
-			$this->db->executeStatement($statement->sql, $statement->params, $statement->types);
+				->where($query->expr()->in('file_id', $query->createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)));
+			$this->ofUser($query, $userId)->executeStatement();
 		}
 	}
 
@@ -111,16 +102,11 @@ trait FileRowQueries {
 	private function clearRows(?string $userId): int {
 		$query = $this->db->getQueryBuilder();
 		$query->delete($this->getTableName());
-		if ($userId !== null) {
-			$query->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)));
-		}
-		return $query->executeStatement();
+		return $this->ofUser($query, $userId)->executeStatement();
 	}
 
-	private function deleteUserRows(string $table, string $userId): void {
-		$query = $this->db->getQueryBuilder();
-		$query->delete($table)
-			->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
-			->executeStatement();
+	/** Narrows `$query` to the user's rows; null leaves it on every row. */
+	private function ofUser(IQueryBuilder $query, ?string $userId): IQueryBuilder {
+		return $userId === null ? $query : $query->andWhere($query->expr()->eq('user_id', $query->createNamedParameter($userId)));
 	}
 }

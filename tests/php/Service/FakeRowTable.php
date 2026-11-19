@@ -70,8 +70,4 @@ final class FakeRowTable implements FileRowStore {
 	#[\Override]
 	public function carryOver(string $userId, int $fileId, int $newFileId): void {
 	}
-
-	#[\Override]
-	public function forgetUser(string $userId): void {
-	}
 }

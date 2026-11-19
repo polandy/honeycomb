@@ -16,7 +16,7 @@ use OCP\BackgroundJob\TimedJob;
 use OCP\DB\Exception as DbException;
 use Psr\Log\LoggerInterface;
 
-/** Removes the decision, tag, visual hash and series member rows of files deleted for good, then the series left empty, once a day (ADR 0012, ADR 0022, ADR 0024, ADR 0027). */
+/** Removes the flag, visual hash, series member and XMP cache rows of files deleted for good, then the series left empty, once a day (ADR 0024, ADR 0027, ADR 0040). */
 final class RemoveVanishedDecisions extends TimedJob {
 	private const int DAY = 86_400;
 

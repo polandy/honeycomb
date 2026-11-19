@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 /** Where the XMP cache of each user is kept, one row per file id with the etag it was read at (ADR 0032). */
-interface XmpCacheStore extends FileRowStore, CacheRows {
+interface XmpCacheStore extends FileRowStore, UserRowStore, CacheRows {
 	/**
 	 * The stored rows among `$fileIds`, by file id.
 	 * @param list<int> $fileIds
