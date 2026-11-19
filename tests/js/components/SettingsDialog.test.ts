@@ -6,6 +6,7 @@ import type { Settings } from '../../../src/logic/settings.ts'
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import SettingsDialog from '../../../src/components/SettingsDialog.vue'
+import StatisticsSettings from '../../../src/components/StatisticsSettings.vue'
 import { DEFAULT_SETTINGS } from '../../../src/logic/settings.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { AppSettingsDialogStub, AppSettingsSectionStub } from './stubs.ts'
@@ -37,12 +38,12 @@ describe('SettingsDialog', () => {
 	beforeEach(installMarkedCatalogue)
 	afterEach(uninstallMarkedCatalogue)
 
-	// spec: SETTINGS-001.7, SETTINGS-001.28
+	// spec: SETTINGS-001.7, SETTINGS-001.28, STATS-001.2
 	it('shows the sections of the settings, all translated, and no XMP sidecars section', () => {
 		const wrapper = mountDialog()
 
 		expect(wrapper.find('[role="dialog"]').attributes('name')).toBe(`${MARK}Settings`)
-		expect(wrapper.findAll('h3').map((heading) => plain(heading.text()))).toEqual(['File types', 'Folder layout', 'Loupe gestures', 'Keyboard', 'Moving photos', 'Cache'])
+		expect(wrapper.findAll('h3').map((heading) => plain(heading.text()))).toEqual(['File types', 'Folder layout', 'Loupe gestures', 'Keyboard', 'Moving photos', 'Statistics', 'Cache'])
 		expect(untranslatedText(wrapper.element as Element)).toEqual([...DEFAULT_SETTINGS.rawExtensions, ...DEFAULT_SETTINGS.renderedExtensions].map((extension) => `.${extension.toUpperCase()}`))
 	})
 
@@ -79,6 +80,19 @@ describe('SettingsDialog', () => {
 		await button.trigger('click')
 
 		expect(wrapper.emitted('clearCache')).toHaveLength(1)
+	})
+
+	// spec: STATS-001.1, STATS-001.3
+	it('passes the statistics section\'s change and reset on', () => {
+		const wrapper = mountDialog({ keepStatistics: false })
+		const section = wrapper.findComponent(StatisticsSettings)
+		expect(section.props('settings')).toMatchObject({ keepStatistics: false })
+
+		section.vm.$emit('update', { keepStatistics: true })
+		section.vm.$emit('reset')
+
+		expect(wrapper.emitted('update')).toEqual([[{ keepStatistics: true }]])
+		expect(wrapper.emitted('resetStatistics')).toHaveLength(1)
 	})
 
 	// spec: SETTINGS-001.27

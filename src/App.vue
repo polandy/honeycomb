@@ -45,6 +45,7 @@ import { useSeriesCompare } from './series-compare.ts'
 import { useSettings } from './settings.ts'
 import { useBundledSidecars } from './sidecar-bundle.ts'
 import { useSidecarFlow } from './sidecar-flow.ts'
+import { resetStatisticsWithToast } from './statistics-reset.ts'
 import { useTagEntryTargets } from './tag-entry-targets.ts'
 import { useToast } from './toast.ts'
 import { useToastedDecisions } from './toasted-decisions.ts'
@@ -175,7 +176,8 @@ useHotkeys(() => {
 				@update="updateSettings"
 				@showGestureGuide="viewState.showGestureGuide"
 				@clearCache="clearCacheWithToast(props.clearCache, toast.show)"
-				@cleanUp="cleanUpWithToast(props.cleanUp, toast.show)" />
+				@cleanUp="cleanUpWithToast(props.cleanUp, toast.show)"
+				@resetStatistics="resetStatisticsWithToast(props.resetStatistics, toast.show)" />
 			<Teleport to="body">
 				<LoupeScreen ref="loupeScreen" />
 				<TagEntry

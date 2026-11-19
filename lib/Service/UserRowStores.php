@@ -16,11 +16,12 @@ final readonly class UserRowStores {
 		private XmpCacheStore $xmpCache,
 		private TagStore $tags,
 		private PositionStore $positions,
+		private StatsStore $stats,
 	) {
 	}
 
 	/** @return list<UserRowStore> */
 	public function all(): array {
-		return [$this->visualHashes, $this->series, $this->xmpCache, $this->tags, $this->positions];
+		return [$this->visualHashes, $this->series, $this->xmpCache, $this->tags, $this->positions, $this->stats];
 	}
 }
