@@ -100,8 +100,6 @@ export const NO_SERIES = async () => ({ series: [], keptOut: [] })
 /** Sidecars with nothing to read, written without a word. */
 export const NO_SIDECARS: SidecarWrites = { read: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) }
 
-/** Legacy endpoints without a legacy row. */
-export const NO_LEGACY = { loadInventory: async () => ({ folders: [], unreachable: 0 }), loadExport: async () => ({ decisions: [], tags: [] }), acknowledge: async () => undefined }
 /** A series save that keeps each series' id and gives a new one 100. */
 export const SAVED_SERIES = async (write: SeriesWrite) => ({ ids: write.series.map(({ id }) => id ?? 100) })
 
@@ -128,7 +126,6 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			lookupSeries: NO_SERIES,
 			saveSeries: SAVED_SERIES,
 			tags: NO_TAGS,
-			legacy: NO_LEGACY,
 			saveFile: () => undefined,
 			loadSettings: async () => ({}),
 			saveSettings: async (settings: object) => { savedSettings.push(settings) },

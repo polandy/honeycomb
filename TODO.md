@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Concept D (M8, ADR 0040): PR 4 `refactor(xmp)` drop the migration XMP-007 in PHP and Vue, set XMP-007 `removed` (2026-11-19)
 - [ ] Concept D (M8, ADR 0040): PR 5 `feat(db)` table `honeycomb_flags`, flags in the listing, the set and take-over endpoints, `carryOver`, the clean-up job, `occ honeycomb:cleanup` and *Clean up orphaned data*; first write the start value `pictures_decided_before` (ADR 0039, STATS-001.24), then drop `honeycomb_decisions`, `honeycomb_file_tags` and their endpoints (DECISIONS-001.21, DECISIONS-001.22, DECISIONS-001.23, DECISIONS-001.24, DECISIONS-001.25, DECISIONS-001.26, DECISIONS-001.27, DECISIONS-001.28, DECISIONS-001.29, DECISIONS-001.30, DECISIONS-001.31, DECISIONS-001.32, DECISIONS-001.33, LISTING-001.18, TAGS-001.16, SETTINGS-001.27); ships with PR 6–8 (2026-11-19)
 - [ ] Concept D (M8, ADR 0040): PR 6 `feat(cull)` flags from the listing, take-over once, ratings, labels and tags leave the flag fields, failed writes taken back, *Clear picks/rejects*, the lock as the mockup draws it (XMP-003.34, XMP-003.35, XMP-003.36, XMP-003.37, XMP-003.38, XMP-006.12, XMP-008.13, XMP-008.15, XMP-008.16, XMP-008.17, TAGS-002.23, GRID-001.20, GRID-001.22, GRID-003.16, LOUPE-002.18) (2026-11-19)
 - [ ] Concept D (M8, ADR 0040): PR 7 `feat(xmp)` *Write picks/rejects to XMP* with its count and toasts (XMP-003.39, XMP-003.40, XMP-003.41, XMP-003.42, GRID-001.21) (2026-11-19)

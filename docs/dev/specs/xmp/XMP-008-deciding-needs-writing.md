@@ -15,9 +15,8 @@ picture with the reason.
 
 ## Behaviour
 
-ADR 0040 replaces the six locks of ADR 0032 by two states. Until M8 PR 4 removes it, a third
-state, `legacy`, locks a picture with a legacy decision or tag (XMP-007) not yet written to its
-sidecars; M8 PR 6 takes back failed writes, until then .15 to .17 are gaps.
+ADR 0040 replaces the six locks of ADR 0032 by two states; M8 PR 6 takes back failed writes,
+until then .15 to .17 are gaps.
 
 **Two states (ADR 0040, M8 PR 3).** A picture is *rateable* when the folder of every member
 grants UPDATE (2) and CREATE (4) in the listing's `permissions` (LISTING-001), otherwise *read
@@ -34,8 +33,8 @@ that is not XMP) is taken back for that picture, and the toast names the reason;
 pictures of the step stay changed. A flag or *Keep RAW* save that fails is taken back the same
 way.
 
-**The order of reasons.** A step that leaves pictures unchanged names the first reason in the
-order `readOnly`, `legacy`. The loupe's info panel says per picture why nothing is written.
+**The order of reasons.** A step that leaves pictures unchanged names the reason, `readOnly`.
+The loupe's info panel says per picture why nothing is written.
 
 **Before the sidecars are read.** A step is taken while the sidecars are still looked up; a
 decision made meanwhile wins (XMP-003.3).
@@ -89,9 +88,7 @@ Withdrawn by ADR 0040 (M8 PR 3); .12 and .14 replace it.
 - **When** the user picks a picture
 - **Then** the pick is taken at once and wins over the sidecar's decision when it arrives
 
-### XMP-008.11 – A picture with legacy rows is locked until they are written
-
-Withdrawn by ADR 0040; M8 PR 4 marks it removed.
+### XMP-008.11 – A picture with legacy rows is locked until they are written (removed)
 
 - **Given** a picture with a legacy decision and one with legacy tags only
 - **When** the user rates both, then the ⋯ entry writes them to their sidecars
@@ -156,3 +153,4 @@ Withdrawn by ADR 0040; M8 PR 4 marks it removed.
 | 2026-11-18 | A picture with legacy rows is locked until the ⋯ entry writes them (`legacy`, .11; ADR 0032 App state and migration 2) |
 | 2026-11-19 | ADR 0040: two states, rateable and read only; failed writes are taken back (.1, .2, .4–.7, .9, .11 withdrawn; .12–.17 gaps) |
 | 2026-11-19 | M8 PR 3: rateable, read only and `legacy` (.3 changed, .1, .2, .4–.7, .9 removed; .12, .14 implemented) |
+| 2026-11-19 | M8 PR 4: no `legacy` state, so the order of reasons has one entry (.11 removed, .14) |

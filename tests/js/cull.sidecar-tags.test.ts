@@ -8,8 +8,8 @@ import { ENTRIES, SET, stored } from './app-cull.ts'
 import { access, cullWith } from './cull-sidecars-fake.ts'
 
 describe('useCull: tags', () => {
-	// spec: TAGS-002.1, TAGS-002.2, TAGS-002.3, XMP-003.2
-	it('reads the legacy tags with the sidecars and shows the sidecars\' tags of the pictures without', async () => {
+	// spec: TAGS-002.1, TAGS-002.2, TAGS-002.3
+	it('reads the stored tags with the sidecars and shows the sidecars\' tags of the pictures without', async () => {
 		const { cull, reads, tagLookups, picture } = cullWith({ storedTags: [{ fileId: 4, tags: ['Anna'] }], tagsTakenOver: new Map([['IMG_10', ['Places/Lisbon']], ['IMG_9', ['Old']]]) })
 
 		cull.open(SET, ENTRIES)
@@ -19,11 +19,10 @@ describe('useCull: tags', () => {
 		expect(reads).toHaveLength(1)
 		expect(cull.tags.tagsOf(picture('IMG_9'))).toEqual(['Anna'])
 		expect(cull.tags.tagsOf(picture('IMG_10'))).toEqual(['Places/Lisbon'])
-		expect(cull.writabilityOf(picture('IMG_9'))).toBe('legacy')
 	})
 
 	// spec: TAGS-002.6
-	it('shows the sidecars\' tags when the legacy read fails, and still loads the decisions', async () => {
+	it('shows the sidecars\' tags when the stored read fails, and still loads the decisions', async () => {
 		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		const { cull, picture } = cullWith({ stored: [stored(4, 'picked')], tagLookupFails: true, tagsTakenOver: new Map([['IMG_9', ['Trip']]]) })
 

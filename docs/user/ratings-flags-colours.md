@@ -107,25 +107,6 @@ only read nothing can be rated: a message says *Not changed: read only*, and the
 panel names the reason under *Written to*. A sidecar that cannot be written, because it is locked,
 was changed by another program, is not XMP or the storage is full, is reported with its reason.
 
-## Moving stored decisions into sidecars
-
-Earlier versions kept ratings, flags, colour labels, *Keep RAW* marks and tags in honeycomb's
-database, where digiKam, darktable and Lightroom cannot see them. To move them into the sidecars,
-use the notice the grid shows: *Move the decisions of 81
-photos into their sidecars* with one button per folder that still holds stored decisions, such as
-`/Big (10)`. A button opens that folder; there choose **⋯ → Write decisions to sidecars…**.
-honeycomb names the photos and folders, and once you confirm writes the stored values into each
-photo's sidecars, 20 photos at a time: the dialog shows how many were sent, and the numbers in the
-grid's notice fall as each part is done. Where a sidecar says otherwise, the stored value wins;
-stored tags are added to the sidecar's. A photo whose sidecars were all written leaves the database;
-one that failed stays and is written again the next time. At the end a message says how many photos
-were written, or *Could not write 2 of 81 photos* and the reason with **Details**, which lists
-each sidecar with the reason and can retry.
-
-Stored decisions of files that were deleted or are no longer shared with you cannot be written.
-**Save a copy** saves them as `honeycomb-legacy-rows.json`; **Forget…** asks, then removes them
-from the database for good.
-
 ## When a sidecar cannot be written
 
 If a sidecar cannot be written — you may not change it, it is locked, or it is not valid XML —

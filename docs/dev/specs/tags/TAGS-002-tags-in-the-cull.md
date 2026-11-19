@@ -14,19 +14,19 @@ written through to the picture's sidecars, so digiKam, darktable and Lightroom s
 ## Behaviour
 
 **Concept D (ADR 0040).** A tag change is written through for every rateable picture, shared or
-not (.22). M8 PR 4 and 5 remove the legacy tags, and a read-only picture cannot be tagged
+not (.22). M8 PR 5 drops the stored tags, and a read-only picture cannot be tagged
 (XMP-008.13). Until then the text below holds.
 
 **A picture's tags** are the union of its members' tags, sorted. When a cull opens, and again when
-the pairing settings change, the legacy tags of every member (`honeycomb_file_tags`, XMP-007) are
-read beside the legacy decisions; a failed read is logged and the pictures show their sidecars'
+the pairing settings change, the stored tags of every member (`honeycomb_file_tags`) are
+read beside the stored decisions; a failed read is logged and the pictures show their sidecars'
 tags.
 
-**Reading.** A picture without legacy tags for any member shows the tags of its sidecars, read
+**Reading.** A picture without stored tags for any member shows the tags of its sidecars, read
 through the XMP cache with its decision (XMP-003, XMP-006) as XMP-004 says: the union of every
 sidecar read and not refused, and of the embedded XMP while it counts. They are not written back,
-and nothing is stored in the legacy tables. A picture with legacy tags shows them until the ⋯ entry
-writes them to its sidecars, locked (XMP-008.11). A picture tagged meanwhile keeps the user's tags.
+and nothing is stored in the database. A picture with stored tags shows them, rateable (XMP-008.12).
+A picture tagged meanwhile keeps the user's tags.
 A tag the cache cannot hold (over 255 characters, or beyond the first 100 of a picture in sort
 order) is left out and logged as a warning.
 
@@ -52,14 +52,14 @@ sidecar holds them. Changes waiting for the same pass are applied in order and s
 that cannot be written is reported like a decision's (XMP-003.13); *Retry failed sidecars* applies
 the same change again.
 
-**Files moved back.** Files put back into the cull (an undone delete) have their legacy tags and
+**Files moved back.** Files put back into the cull (an undone delete) have their stored tags and
 sidecars read.
 
 ## Acceptance criteria
 
-### TAGS-002.1 – The legacy tags are read when the cull opens
+### TAGS-002.1 – The stored tags are read when the cull opens
 
-Withdrawn by ADR 0040; M8 PR 4 marks it removed.
+Withdrawn by ADR 0040; M8 PR 5 marks it removed with the table.
 
 - **Given** a pair whose RAW has the legacy tag `Places/Lisbon` and whose JPEG has `People/Anna`
 - **When** the cull opens
@@ -74,9 +74,9 @@ Withdrawn by ADR 0040; M8 PR 4 marks it removed.
 - **Then** the picture shows both tags, no tags are saved to the legacy tables, and no sidecar is
   saved
 
-### TAGS-002.3 – Legacy tags win until they are migrated
+### TAGS-002.3 – Stored tags win over the sidecars
 
-Withdrawn by ADR 0040; M8 PR 4 marks it removed.
+Withdrawn by ADR 0040; M8 PR 5 marks it removed with the table.
 
 - **Given** a picture without a legacy decision but with legacy tags, and a sidecar with other tags
 - **When** the cull opens
@@ -95,9 +95,9 @@ Withdrawn by ADR 0040; M8 PR 4 marks it removed.
 - **Then** the long tag and the last tag in sort order are left out and each is logged as a warning;
   the others are shown and cached
 
-### TAGS-002.6 – A failed legacy read shows the sidecars' tags
+### TAGS-002.6 – A failed stored read shows the sidecars' tags
 
-Withdrawn by ADR 0040; M8 PR 4 marks it removed.
+Withdrawn by ADR 0040; M8 PR 5 marks it removed with the table.
 
 - **Given** a legacy tag lookup that fails
 - **When** the cull opens
@@ -232,3 +232,4 @@ The cull saves no tags to the database any more (ADR 0032, XMP-006.7).
 | 2026-11-18 | The cull reads tags through the XMP cache and stores none; legacy tags win, locked, until migrated (.1–.7, .14–.17 changed, .8, .21 removed, ADR 0032) |
 | 2026-11-19 | ADR 0040: no legacy tags, tags written through in shared folders, failed writes taken back (.1, .3, .6, .12 withdrawn; .22, .23 gaps) |
 | 2026-11-19 | M8 PR 3: tags are written through in a shared folder without asking (.12 removed; .22 implemented) |
+| 2026-11-19 | M8 PR 4: the migration is gone, so stored tags lock nothing; their read goes with the table in M8 PR 5 (.1, .3, .6) |

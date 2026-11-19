@@ -202,7 +202,7 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 - **When** the user looks at it, changes a view option or chooses an action
 - **Then** one separator stands between the view options (thumbnail size, *Group by folder*, sort)
   and the actions; a changed view option leaves the menu open, and an action (*Review rejects*,
-  *Compare series*, *Remove RAWs…*, *Move picks…*, *Resume at*, *Write decisions to sidecars…*
+  *Compare series*, *Remove RAWs…*, *Move picks…*, *Resume at*
   (*Write picks/rejects to XMP* and *Clear picks/rejects* from M8 PR 6 and 7, .21, .22),
   *Settings*) closes it, so no menu stays above the dialog or view it opens
 

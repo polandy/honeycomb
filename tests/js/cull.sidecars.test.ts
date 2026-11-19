@@ -22,8 +22,8 @@ describe('useCull: reading the sidecars\' decision', () => {
 		expect(writes).toEqual([])
 	})
 
-	// spec: XMP-003.2, XMP-008.11
-	it('shows a legacy decision over the sidecars\' and locks its picture', async () => {
+	// spec: XMP-003.2
+	it('shows a stored decision over the sidecars\'', async () => {
 		const { cull, picture } = cullWith({ stored: [stored(4, 'picked')], takenOver: Promise.resolve(new Map([['IMG_9', THREE_REJECTED], ['IMG_2', THREE_REJECTED]])) })
 
 		cull.open(SET, ENTRIES)
@@ -31,8 +31,7 @@ describe('useCull: reading the sidecars\' decision', () => {
 
 		expect(cull.decisionOf(picture('IMG_9')).flag).toBe('picked')
 		expect(cull.decisionOf(picture('IMG_2'))).toEqual(THREE_REJECTED)
-		expect(cull.writabilityOf(picture('IMG_9'))).toBe('legacy')
-		expect(cull.writabilityOf(picture('IMG_2'))).toBe('writable')
+		expect(cull.writabilityOf(picture('IMG_9'))).toBe('writable')
 	})
 
 	// spec: XMP-003.3, XMP-008.8
