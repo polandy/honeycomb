@@ -33,6 +33,9 @@ final class FakeFlagStore implements FlagStore {
 	#[\Override]
 	public function find(array $fileIds): array {
 		$this->findCalls[] = $fileIds;
+		if ($this->readFails) {
+			throw new FakeDbException(0);
+		}
 		return array_intersect_key($this->rows, array_flip($fileIds));
 	}
 

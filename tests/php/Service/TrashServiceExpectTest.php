@@ -123,6 +123,19 @@ final class TrashServiceExpectTest extends TestCase {
 		$this->assertSame([1, 2, 10, 11], $this->trashed);
 	}
 
+	// spec: DELETE-001.16
+	public function testRowsThatCannotBeReadTouchNothing(): void {
+		$this->flag(Flag::Rejected, false, 1, 2, 3);
+		$this->flags()->readFails = true;
+
+		try {
+			$this->service($this->pair(1))->trash($this->user(), [self::picture(1, 2, 3)], 'rejected');
+			$this->fail('The failed read must reach the caller');
+		} catch (\OCP\DB\Exception) {
+			$this->assertSame([], $this->trashed);
+		}
+	}
+
 	/** @return array<string, array{mixed}> */
 	public static function malformedExpectations(): array {
 		return [
