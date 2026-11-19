@@ -20,7 +20,8 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Moves whole pictures to the paths the client rendered, within their storage: each checked whole, moved file by file
- * and moved back when one of its files fails (ADR 0018); the flag and the visual hash follow a new file id (MOVE-002.10).
+ * and moved back when one of its files fails (ADR 0018); the flag and the visual hash follow a new file id (MOVE-002.10);
+ * the pictures moved whole are counted (STATS-001.31).
  *
  * @psalm-type Outcome = array{fileId: int, result: MoveResult, replaced: bool, path?: string, newFileId?: int, etag?: string}
  */
@@ -30,6 +31,7 @@ final class MoveService {
 		private IAppManager $appManager,
 		private FileRowStores $fileRows,
 		private LoggerInterface $logger,
+		private StatsService $stats,
 	) {
 	}
 
@@ -47,7 +49,10 @@ final class MoveService {
 			throw new TrashBinDisabledException('The trash bin is disabled for the user');
 		}
 		$userFolder = $this->photos->userFolder($user);
-		return array_map(fn (array $picture): array => $this->movePicture($user->getUID(), $userFolder, $picture), $pictures);
+		$results = array_map(fn (array $picture): array => $this->movePicture($user->getUID(), $userFolder, $picture), $pictures);
+		$moved = array_filter($results, static fn (array $outcomes): bool => array_filter($outcomes, static fn (array $outcome): bool => $outcome['result'] !== MoveResult::Moved) === []);
+		$this->stats->count($user, new StatsCount(StatsMetric::PicturesMoved, count($moved)));
+		return $results;
 	}
 
 	/**
