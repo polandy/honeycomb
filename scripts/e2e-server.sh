@@ -4,6 +4,9 @@
 # Runs a fresh Nextcloud with this checkout as the honeycomb app, in the foreground for Playwright.
 # Usage: scripts/e2e-server.sh <port> <admin user> <admin password>
 # HONEYCOMB_E2E_NEXTCLOUD=oldest runs the oldest supported Nextcloud instead of the newest.
+# HONEYCOMB_E2E_CGROUP_PARENT puts the container into that systemd slice (docker --cgroup-parent),
+# e.g. a low-CPU-weight slice on a host that shares its CPU with other work. Default: e2e.slice
+# if the host defines it, else Docker's default.
 set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
@@ -36,8 +39,15 @@ if [ ! -d "$TEAM_FOLDERS" ]; then
   mv "$TEAM_FOLDERS.part" "$TEAM_FOLDERS"
 fi
 
+CGROUP_PARENT=()
+if [ -n "${HONEYCOMB_E2E_CGROUP_PARENT:-}" ]; then
+  CGROUP_PARENT=(--cgroup-parent "$HONEYCOMB_E2E_CGROUP_PARENT")
+elif [ -f /etc/systemd/system/e2e.slice ]; then
+  CGROUP_PARENT=(--cgroup-parent e2e.slice)
+fi
+
 docker rm --force "$CONTAINER" >/dev/null 2>&1 || true
-exec docker run --rm --name "$CONTAINER" -p "127.0.0.1:$1:80" \
+exec docker run --rm --name "$CONTAINER" -p "127.0.0.1:$1:80" "${CGROUP_PARENT[@]}" \
   -e SQLITE_DATABASE=nextcloud -e NEXTCLOUD_ADMIN_USER="$2" -e NEXTCLOUD_ADMIN_PASSWORD="$3" \
   -v "$PWD:/var/www/html/custom_apps/honeycomb:ro" \
   -v "$TEAM_FOLDERS:/var/www/html/custom_apps/groupfolders:ro" \
