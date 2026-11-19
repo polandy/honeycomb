@@ -16,7 +16,7 @@ sidecars when the user asks (ADR 0040).
 
 ## Behaviour
 
-**Concept D (ADR 0040).** There is no setting and no shared-folder rule (XMP-008); M8 PR 5 drops
+**Concept D (ADR 0040).** There is no setting and no shared-folder rule (XMP-008); M8 PR 5 dropped
 the stored rows, and M8 PR 6 moves the flag and *Keep RAW* to the database: from then on a step
 writes only the rating, colour label and tags through, and leaves the sidecar's flag fields and
 `honeycomb:KeepRaw` as they are. **Taking over (M8 PR 6):** a picture whose members have no row in
@@ -40,11 +40,10 @@ stored. The embedded XMP is read as the JPEG's sidecar, at the JPEG's modificati
 decision follows [`06-xmp-interop.md`](../../06-xmp-interop.md#reading) (newest wins as a whole, a
 tie goes to the RAW member's sidecar), by the modification times the listing gives. A decision
 other than undecided is shown for every member; it is neither an undo step nor written back, and
-nothing is stored in the database. A picture with a stored row (until M8 PR 5 drops the table) shows
-it. A picture the user decided meanwhile keeps the user's decision. A refused or unreadable sidecar,
-a disagreement between sidecars and a failed lookup are logged as warnings; the picture keeps what
-it shows, or takes what the sources that were read state. A failed cache lookup reads every
-source; a failed cache save is logged.
+nothing is stored in the database. A picture the user decided meanwhile keeps the user's
+decision. A refused or unreadable sidecar, a disagreement between sidecars and a failed lookup
+are logged as warnings; the picture keeps what it shows, or takes what the sources that were
+read state. A failed cache lookup reads every source; a failed cache save is logged.
 
 **Writing through.** As soon as any attribute is set on a photo — a flag, a rating, a colour label,
 *Keep RAW*, or an undo or redo of one — each picture the step touched is
@@ -98,18 +97,14 @@ picture's decision when it runs, for the fields its write changed. A refused sid
 
 Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 
-- **Given** a pair without legacy rows whose sidecar says three stars and rejected
+- **Given** a pair whose sidecar says three stars and rejected
 - **When** the cull opens
 - **Then** the picture shows three stars and rejected for both members, and no decision or tag is
-  saved to the legacy tables
+  saved to the database
 
-### XMP-003.2 – A stored row wins over the sidecar
+### XMP-003.2 – A stored row wins over the sidecar (removed)
 
-Withdrawn by ADR 0040; M8 PR 5 marks it removed with the table.
-
-- **Given** a picture with a stored decision and a sidecar that says otherwise
-- **When** the cull opens
-- **Then** it shows the stored decision, and the picture stays rateable
+Withdrawn by ADR 0040; `honeycomb_decisions` is gone (M8 PR 5).
 
 ### XMP-003.3 – A decision made meanwhile wins over the sidecar
 
@@ -236,10 +231,9 @@ Withdrawn by ADR 0040; M8 PR 6 marks it removed.
   whose `IMG_0001.NEF.xmp` states one star and whose JPEG, modified later, embeds four stars and
   picked
 - **When** the cull opens
-- **Then** the JPEG shows three stars and red and the pair four stars and picked, also while the
-  legacy tags are unknown; with the sidecar modified later the pair shows one star; an embedded
-  XMP that is refused or not read is logged as a warning, and the picture takes over what its
-  sidecars state
+- **Then** the JPEG shows three stars and red and the pair four stars and picked; with the sidecar
+  modified later the pair shows one star; an embedded XMP that is refused or not read is logged as
+  a warning, and the picture takes over what its sidecars state
 
 ### XMP-003.23 – A new JPEG sidecar takes over the embedded decision
 
@@ -417,3 +411,4 @@ Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 | 2026-11-19 | ADR 0040: flags taken over once and written only by *Write picks/rejects to XMP*; ratings, labels and tags leave the flag fields (.1, .2, .6, .11, .14, .15, .18, .21, .23 withdrawn; .34–.42 gaps) |
 | 2026-11-19 | M8 PR 3: no setting and no shared-folder confirmation (.11, .14, .18 removed) |
 | 2026-11-19 | M8 PR 4: the migration is gone; a stored row no longer locks its picture (.2 changed, .12 note) |
+| 2026-11-19 | M8 PR 5: `honeycomb_decisions` dropped, no stored row is read (.2 removed) |

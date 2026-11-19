@@ -100,7 +100,7 @@ final class UserPhotosSearchTest extends DbTestCase {
 		return $lines === false ? 0 : count($lines);
 	}
 
-	// spec: DECISIONS-001.19, TAGS-001.14, XMP-006.3, DECISIONS-001.20, TAGS-001.15, XMP-006.11
+	// spec: XMP-006.3, XMP-006.11
 	public function testReachesTheSameIdsAsALookupOfEach(): void {
 		$other = $this->home($this->otherUid);
 		$shared = $this->newFile($other, 'Shared/S.JPG');
@@ -124,7 +124,7 @@ final class UserPhotosSearchTest extends DbTestCase {
 		$this->assertSame([$shared, $jpeg], $this->photos()->jpegs($this->user(), $fileIds));
 	}
 
-	// spec: DECISIONS-001.20, TAGS-001.15, XMP-006.11
+	// spec: XMP-006.11
 	public function testAddsOneQueryPerThousandIds(): void {
 		$jpeg = $this->newFile($this->home($this->uid), 'P/A.JPG');
 		$this->photos()->photos($this->user(), [$jpeg]);

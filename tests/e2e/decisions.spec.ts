@@ -14,36 +14,44 @@ async function send(page: Page, method: 'GET' | 'POST' | 'PUT', path: string, da
 	return page.request.fetch(`${API}${path}`, { method, data, headers: { requesttoken: await requestToken(page) } })
 }
 
-// spec: DECISIONS-001.1, DECISIONS-001.2, DECISIONS-001.3, DECISIONS-001.19
-test('stores, overwrites and clears decisions per file id', async ({ page }) => {
+/** The flag fields of the folder's entries by file id, as the listing carries them. */
+async function flagsOf(page: Page, folder: string) {
+	const listing = await page.request.get(`${API}/entries`, { params: { path: `/${folder}` }, headers: { requesttoken: await requestToken(page) } })
+	expect(listing.status(), await listing.text()).toBe(200)
+	const { entries } = await listing.json() as { entries: { fileId: number, flag: string | null, keepRaw: boolean | null, flagUpdated: number | null }[] }
+	return new Map(entries.map(({ fileId, flag, keepRaw, flagUpdated }) => [fileId, { flag, keepRaw, updated: flagUpdated !== null }]))
+}
+
+// spec: DECISIONS-001.21, DECISIONS-001.23, DECISIONS-001.24, DECISIONS-001.27
+test('stores whole flag states, lists them with the folder and takes over only missing rows', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
-	const folder = `Decisions ${randomUUID().slice(0, 8)}`
+	const folder = `Flags ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
 	const [first, second] = [await upload(page, `${folder}/A.JPG`, JPEG), await upload(page, `${folder}/B.JPG`, JPEG)]
-	const picked = { fileId: first, rating: 4, colourLabel: 'green', flag: 'picked', keepRaw: true }
-	const rejected = { fileId: second, rating: 0, colourLabel: null, flag: 'rejected', keepRaw: false }
-	const unreachable = { ...picked, fileId: 900_001 }
 
-	expect((await send(page, 'PUT', '/decisions', { decisions: [picked, rejected, unreachable] })).status()).toBe(204)
-	const stored = await send(page, 'POST', '/decisions/lookup', { fileIds: [first, second, 900_001] })
-	expect(stored.status()).toBe(200)
-	expect(await stored.json()).toEqual({ decisions: [picked, rejected] })
+	const saved = await send(page, 'PUT', '/flags', { flags: [{ fileId: first, flag: 'picked', keepRaw: true }, { fileId: 900_001, flag: 'rejected', keepRaw: false }] })
+	expect(saved.status(), await saved.text()).toBe(200)
+	expect(await saved.json()).toEqual({ saved: [first], skipped: [{ fileId: 900_001, reason: 'notFound' }] })
+	expect(await flagsOf(page, folder)).toEqual(new Map([[first, { flag: 'picked', keepRaw: true, updated: true }], [second, { flag: null, keepRaw: null, updated: false }]]))
 
-	const unflagged = { ...rejected, flag: 'unflagged' }
-	expect((await send(page, 'PUT', '/decisions', { decisions: [{ ...picked, rating: 2 }, unflagged] })).status()).toBe(204)
-	const overwritten = await send(page, 'POST', '/decisions/lookup', { fileIds: [first, second] })
-	expect(await overwritten.json()).toEqual({ decisions: [{ ...picked, rating: 2 }] })
+	const takenOver = await send(page, 'POST', '/flags/take-over', { flags: [{ fileId: first, flag: 'rejected', keepRaw: false }, { fileId: second, flag: 'rejected', keepRaw: false }] })
+	expect(await takenOver.json()).toEqual({ saved: [second], skipped: [{ fileId: first, reason: 'exists' }] })
+
+	expect((await send(page, 'PUT', '/flags', { flags: [{ fileId: first, flag: 'unflagged', keepRaw: false }] })).status()).toBe(200)
+	expect(await flagsOf(page, folder)).toEqual(new Map([[first, { flag: 'unflagged', keepRaw: false, updated: true }], [second, { flag: 'rejected', keepRaw: false, updated: true }]]))
 })
 
-// spec: DECISIONS-001.5
-test('rejects a malformed decision without writing any', async ({ page }) => {
+// spec: DECISIONS-001.25
+test('rejects a malformed flag without writing any', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
-	const decision = { fileId: 900_010, rating: 1, colourLabel: null, flag: 'unflagged', keepRaw: false }
+	const folder = `Malformed ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	const fileId = await upload(page, `${folder}/A.JPG`, JPEG)
 
-	const response = await send(page, 'PUT', '/decisions', { decisions: [decision, { ...decision, fileId: 900_011, flag: 'pending' }] })
+	const response = await send(page, 'PUT', '/flags', { flags: [{ fileId, flag: 'picked', keepRaw: false }, { fileId, flag: 'pending', keepRaw: false }] })
 
 	expect(response.status()).toBe(400)
-	expect(await (await send(page, 'POST', '/decisions/lookup', { fileIds: [900_010] })).json()).toEqual({ decisions: [] })
+	expect((await flagsOf(page, folder)).get(fileId)?.flag).toBeNull()
 })
 
 // spec: DECISIONS-002.3

@@ -12,7 +12,6 @@ use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\TagController;
 use OCA\Honeycomb\Service\TagService;
 use OCA\Honeycomb\Tests\Service\FakeTagStore;
-use OCA\Honeycomb\Tests\Service\FakeUserPhotos;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -25,10 +24,6 @@ use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
 final class TagControllerTest extends TestCase {
-	use FakeUserPhotos;
-
-	private const array TAGGED = ['fileId' => 7, 'tags' => ['People/Anna', 'Places/Italy']];
-
 	private FakeTagStore $store;
 
 	#[\Override]
@@ -41,48 +36,34 @@ final class TagControllerTest extends TestCase {
 		$user->method('getUID')->willReturn('alice');
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
-		return new TagController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new TagService($this->store, $this->userPhotos(7)));
+		return new TagController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new TagService($this->store));
 	}
 
-	// spec: TAGS-001.1, TAGS-001.5
-	public function testAnswersTheStoredTagsAndTheTagList(): void {
-		$controller = $this->controller();
+	// spec: TAGS-001.5
+	public function testAnswersTheTagList(): void {
+		$this->store->addToTagList('alice', ['Places/Italy', 'People/Anna']);
 
-		$this->assertSame(Http::STATUS_NO_CONTENT, $controller->save([self::TAGGED])->getStatus());
-		$lookup = $controller->lookup([7, 8]);
-		$tagList = $controller->tagList();
+		$response = $this->controller()->tagList();
 
-		$this->assertSame(Http::STATUS_OK, $lookup->getStatus());
-		$this->assertSame(['tags' => [self::TAGGED]], json_decode($lookup->render(), true));
-		$this->assertSame(Http::STATUS_OK, $tagList->getStatus());
-		$this->assertSame(['tagList' => ['People/Anna', 'Places/Italy']], json_decode($tagList->render(), true));
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame(['tagList' => ['People/Anna', 'Places/Italy']], json_decode($response->render(), true));
 	}
 
-	// spec: TAGS-001.7
-	public function testAMalformedLookupIsABadRequest(): void {
-		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->lookup(['7'])->getStatus());
+	// spec: TAGS-001.16
+	public function testNoFileTagRouteIsLeft(): void {
+		$this->assertSame(['tagList'], array_values(array_filter(
+			array_map(static fn (ReflectionMethod $method): string => $method->getName(), (new \ReflectionClass(TagController::class))->getMethods(ReflectionMethod::IS_PUBLIC)),
+			static fn (string $name): bool => (new ReflectionMethod(TagController::class, $name))->getAttributes(FrontpageRoute::class) !== [],
+		)));
 	}
 
-	// spec: TAGS-001.6
-	public function testAMalformedSaveIsABadRequest(): void {
-		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->save([['fileId' => 7, 'tags' => ['A|B']]])->getStatus());
-	}
-
-	// spec: TAGS-001.8
-	public function testWithoutAUserNothingIsReadOrWritten(): void {
-		$controller = $this->controller(loggedIn: false);
-
-		$this->assertSame(Http::STATUS_UNAUTHORIZED, $controller->lookup([7])->getStatus());
-		$this->assertSame(Http::STATUS_UNAUTHORIZED, $controller->save([self::TAGGED])->getStatus());
-		$this->assertSame(Http::STATUS_UNAUTHORIZED, $controller->tagList()->getStatus());
-		$this->assertSame([], $this->store->rows);
+	public function testWithoutAUserTheTagListIsNotRead(): void {
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(loggedIn: false)->tagList()->getStatus());
 	}
 
 	/** @return array<string, array{string, string, string}> */
 	public static function routes(): array {
 		return [
-			'lookup' => ['lookup', 'POST', '/api/v1/tags/lookup'],
-			'save' => ['save', 'PUT', '/api/v1/tags'],
 			'tag list' => ['tagList', 'GET', '/api/v1/tags/list'],
 		];
 	}

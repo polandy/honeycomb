@@ -55,7 +55,9 @@ Three ways to record:
   themselves; no admin view, nothing leaves the server.
 - **One start value from the past:** before M8 PR 5 (ADR 0040) drops `honeycomb_decisions`, its
   migration writes the number of decided pictures in it as the metric `pictures_decided_before`,
-  dated the day of the migration, shown as "Before that: n pictures decided (no date)".
+  dated the day of the migration, shown as "Before that: n pictures decided (no date)". As
+  `honeycomb_stats` does not exist yet then, it is kept as the user preference
+  `pictures_decided_before`, `{count, day}`, until M9 PR 7 reads it.
 
 ## Consequences
 

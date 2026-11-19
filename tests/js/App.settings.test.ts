@@ -115,6 +115,28 @@ describe('App: the settings', () => {
 		expect(cleared).toBe(1)
 		expect(wrapper.findComponent(UndoToast).text()).toContain('Cache cleared')
 	})
+
+	// spec: SETTINGS-001.27
+	it('cleans up the orphaned data for an admin and says how much', async () => {
+		let cleanUps = 0
+		const { wrapper } = mountApp({ admin: () => true, cleanUp: async () => (cleanUps++, 12) })
+		await openCull(wrapper)
+		expect(wrapper.findComponent(SettingsDialog).props('admin')).toBe(true)
+
+		wrapper.findComponent(SettingsDialog).vm.$emit('cleanUp')
+		await flushPromises()
+
+		expect(cleanUps).toBe(1)
+		expect(wrapper.findComponent(UndoToast).text()).toContain('Removed 12 orphaned entries')
+	})
+
+	// spec: SETTINGS-001.27
+	it('tells the dialog a user is no admin', async () => {
+		const { wrapper } = mountApp({ admin: () => false })
+		await openCull(wrapper)
+
+		expect(wrapper.findComponent(SettingsDialog).props('admin')).toBe(false)
+	})
 	// spec: GRID-004.1, GRID-004.2, GRID-004.3
 	it('shows the file names from the More menu and by Shift+J, saving the setting', async () => {
 		const { wrapper, savedSettings } = mountApp()

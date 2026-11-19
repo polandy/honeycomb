@@ -7,49 +7,12 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\PictureTags;
 use OCA\Honeycomb\Service\TagStore;
-use OCP\DB\Exception as DbException;
 
-/** Keeps tags and tag lists in memory, by user and file id. */
+/** Keeps the tag lists in memory, by user. */
 final class FakeTagStore implements TagStore {
-	use FakeFileRows;
-
-	/** @var array<string, array<int, PictureTags>> */
-	public array $rows = [];
-
 	/** @var array<string, list<string>> */
 	public array $tagLists = [];
-
-	/** @var int How many `replace()` calls still fail, as a concurrent save winning the insert would. */
-	public int $failures = 0;
-
-	/** @var int The reason the failing `replace()` calls report. */
-	public int $failureReason = DbException::REASON_UNIQUE_CONSTRAINT_VIOLATION;
-
-	/** @var int How many times `replace()` was called, failed ones included. */
-	public int $replaceCalls = 0;
-
-	#[\Override]
-	public function find(string $userId, array $fileIds): array {
-		$rows = array_intersect_key($this->rows[$userId] ?? [], array_flip($fileIds));
-		ksort($rows);
-		return array_values($rows);
-	}
-
-	#[\Override]
-	public function replace(string $userId, array $fileIds, array $pictures): void {
-		++$this->replaceCalls;
-		if ($this->failures > 0) {
-			--$this->failures;
-			throw new FakeDbException($this->failureReason);
-		}
-		$this->rows[$userId] = array_diff_key($this->rows[$userId] ?? [], array_flip($fileIds));
-		foreach ($pictures as $picture) {
-			$this->rows[$userId][$picture->fileId] = $picture;
-			$this->tagLists[$userId] = array_values(array_unique([...$this->tagLists[$userId] ?? [], ...$picture->tags]));
-		}
-	}
 
 	#[\Override]
 	public function addToTagList(string $userId, array $tags): void {
@@ -64,16 +27,7 @@ final class FakeTagStore implements TagStore {
 	}
 
 	#[\Override]
-	public function carryOver(string $userId, int $fileId, int $newFileId): void {
-		$picture = $this->rows[$userId][$fileId] ?? null;
-		if ($picture !== null) {
-			unset($this->rows[$userId][$fileId]);
-			$this->rows[$userId][$newFileId] = new PictureTags($newFileId, $picture->tags);
-		}
-	}
-
-	#[\Override]
 	public function forgetUser(string $userId): void {
-		unset($this->rows[$userId], $this->tagLists[$userId]);
+		unset($this->tagLists[$userId]);
 	}
 }

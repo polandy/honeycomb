@@ -6,13 +6,10 @@ import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
 import { cullFolder } from './cull.ts'
-import { createFolder, etagOf, JPEG, RAW, requestToken, trashEntry, upload } from './files.ts'
+import { createFolder, etagOf, JPEG, pickLabel, RAW, requestToken, trashEntry, upload } from './files.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
 const TRASHBIN = `/remote.php/dav/trashbin/${ADMIN.username}`
-
-/** A sidecar that states only the pick label, digiKam's 1 rejected and 3 picked. */
-const pickLabel = (label: number) => Buffer.from(`<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:digiKam="http://www.digikam.org/ns/1.0/" digiKam:PickLabel="${label}"/></rdf:RDF></x:xmpmeta>`)
 
 /** The original locations of the files in the trash bin. */
 async function trashLocations(page: Page): Promise<string> {
@@ -168,7 +165,7 @@ test('asks before deleting rejects it could not check afresh: Cancel keeps them,
 })
 
 // spec: DELETE-001.8
-test('a picture restored from the trash bin keeps its file id and its decision', async ({ page }) => {
+test('a picture restored from the trash bin keeps its file id and its flag', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const requesttoken = await requestToken(page)
 	const id = randomUUID().slice(0, 8)
@@ -179,13 +176,11 @@ test('a picture restored from the trash bin keeps its file id and its decision',
 	const fileId = await upload(page, path, JPEG)
 	const file = `/remote.php/dav/files/${ADMIN.username}/${path}`
 	const etag = await etagOf(page, path)
-	const decision = { fileId, rating: 4, colourLabel: 'green', flag: 'picked', keepRaw: false }
-	expect((await page.request.put(`${API}/decisions`, { data: { decisions: [decision] }, headers: { requesttoken } })).status()).toBe(204)
+	expect((await page.request.put(`${API}/flags`, { data: { flags: [{ fileId, flag: 'picked', keepRaw: false }] }, headers: { requesttoken } })).status()).toBe(200)
 
 	const trashed = await page.request.post(`${API}/trash`, { data: { pictures: [[{ fileId, etag }]] }, headers: { requesttoken } })
 	expect(await trashed.json()).toEqual({ pictures: [[{ fileId, result: 'trashed' }]] })
-	const lookup = async () => (await (await page.request.post(`${API}/decisions/lookup`, { data: { fileIds: [fileId] }, headers: { requesttoken } })).json()) as unknown
-	expect(await lookup()).toEqual({ decisions: [decision] })
+	const flagOf = async () => ((await (await page.request.get(`${API}/entries`, { params: { path: `/${folder}` }, headers: { requesttoken } })).json()) as { entries: { fileId: number, flag: string | null }[] }).entries.find((entry) => entry.fileId === fileId)?.flag
 
 	const entry = await trashEntry(page, path)
 	const restored = await page.request.fetch(entry, { method: 'MOVE', headers: { requesttoken, Destination: `${TRASHBIN}/restore/${randomUUID()}` } })
@@ -193,7 +188,7 @@ test('a picture restored from the trash bin keeps its file id and its decision',
 
 	const back = await page.request.fetch(file, { method: 'PROPFIND', headers: { requesttoken, Depth: '0' }, data: '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><oc:fileid/></d:prop></d:propfind>' })
 	expect(await back.text()).toContain(`<oc:fileid>${fileId}</oc:fileid>`)
-	expect(await lookup()).toEqual({ decisions: [decision] })
+	expect(await flagOf()).toBe('picked')
 })
 
 // spec: DELETE-001.13

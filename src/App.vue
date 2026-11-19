@@ -26,7 +26,7 @@ import ShortcutSheet from './components/ShortcutSheet.vue'
 import TagEntry from './components/TagEntry.vue'
 import UndoToast from './components/UndoToast.vue'
 import { APP_SEAMS } from './app-seams.ts'
-import { clearCacheWithToast } from './cache-clear.ts'
+import { cleanUpWithToast, clearCacheWithToast } from './cache-clear.ts'
 import { provideCullContext } from './cull-context.ts'
 import { useCull } from './cull.ts'
 import { useDeleteFlow } from './delete-flow.ts'
@@ -52,6 +52,7 @@ import { useViewState } from './view-state.ts'
 const props = withDefaults(defineProps<AppSeams>(), APP_SEAMS)
 
 const toast = useToast(props.schedule)
+const isAdmin = props.admin()
 const { settings, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, (message) => toast.show(message))
 const viewState = useViewState(props.viewState, props.storage)
 const settingsOpen = ref(false)
@@ -163,9 +164,11 @@ useHotkeys(() => {
 				v-model:open="settingsOpen"
 				:settings="settings"
 				:gestureGuideSeen="viewState.gestureGuideSeen.value"
+				:admin="isAdmin"
 				@update="updateSettings"
 				@showGestureGuide="viewState.showGestureGuide"
-				@clearCache="clearCacheWithToast(props.clearCache, toast.show)" />
+				@clearCache="clearCacheWithToast(props.clearCache, toast.show)"
+				@cleanUp="cleanUpWithToast(props.cleanUp, toast.show)" />
 			<Teleport to="body">
 				<LoupeScreen ref="loupeScreen" />
 				<TagEntry

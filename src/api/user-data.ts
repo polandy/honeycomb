@@ -1,25 +1,12 @@
-import type { StoredDecision } from '../logic/decision.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ResumePosition } from '../logic/resume-position.ts'
-import type { StoredTags, Tag } from '../logic/tag.ts'
+import type { Tag } from '../logic/tag.ts'
 import type { ViewState } from '../logic/view-state.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { API, ApiResponseError, isRecord } from './core.ts'
-
-/** The stored decisions of the files; a file without one is undecided (ADR 0012). */
-export async function lookupDecisions(fileIds: readonly number[]): Promise<StoredDecision[]> {
-	if (fileIds.length === 0) {
-		return []
-	}
-	const { data } = await axios.post<unknown>(generateUrl(`${API}/decisions/lookup`), { fileIds })
-	if (!isRecord(data) || !Array.isArray(data.decisions)) {
-		throw new ApiResponseError('The decision lookup came without a decisions array; check the server\'s version.')
-	}
-	return data.decisions as StoredDecision[]
-}
 
 /** The stored settings of the user as they came, checked by `parseSettings` (ADR 0014). */
 export async function loadSettings(): Promise<unknown> {
@@ -49,18 +36,6 @@ export async function saveViewState(viewState: Partial<ViewState>): Promise<void
 	await axios.put(generateUrl(`${API}/view-state`), { viewState })
 }
 
-/** The stored tags of the files; a file without a row has no tags (ADR 0022). */
-export async function lookupTags(fileIds: readonly number[]): Promise<StoredTags[]> {
-	if (fileIds.length === 0) {
-		return []
-	}
-	const { data } = await axios.post<unknown>(generateUrl(`${API}/tags/lookup`), { fileIds })
-	if (!isRecord(data) || !Array.isArray(data.tags)) {
-		throw new ApiResponseError('The tag lookup came without a tags array; check the server\'s version.')
-	}
-	return data.tags as StoredTags[]
-}
-
 /** Every tag the user has had, sorted (ADR 0022). */
 export async function loadTagList(): Promise<Tag[]> {
 	const { data } = await axios.get<unknown>(generateUrl(`${API}/tags/list`))
@@ -82,4 +57,13 @@ export async function loadPositions(): Promise<unknown[]> {
 /** Stores the resume position of a folder set (ADR 0012). */
 export async function savePosition(position: ResumePosition): Promise<void> {
 	await axios.put(generateUrl(`${API}/positions`), position)
+}
+
+/** Removes the flags of files deleted for good or in a trash bin, for every user; an admin only (SETTINGS-001.27). */
+export async function cleanUpOrphanedData(): Promise<number> {
+	const { data } = await axios.post<unknown>(generateUrl(`${API}/cleanup`))
+	if (!isRecord(data) || typeof data.removed !== 'number') {
+		throw new ApiResponseError('The clean-up came without a removed count; check the server\'s version.')
+	}
+	return data.removed
 }

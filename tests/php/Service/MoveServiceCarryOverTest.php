@@ -7,14 +7,12 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\DecisionStore;
+use OCA\Honeycomb\Service\FileFlag;
 use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\Flag;
+use OCA\Honeycomb\Service\FlagStore;
 use OCA\Honeycomb\Service\MoveService;
-use OCA\Honeycomb\Service\PictureDecision;
-use OCA\Honeycomb\Service\PictureTags;
 use OCA\Honeycomb\Service\SeriesStatus;
-use OCA\Honeycomb\Service\TagStore;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCA\Honeycomb\Service\VisualHash;
@@ -23,31 +21,29 @@ use OCP\Files\NotPermittedException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
-final class MoveServiceDecisionsTest extends TestCase {
+final class MoveServiceCarryOverTest extends TestCase {
 	use FakeTree;
 
-	private FakeDecisionStore $store;
-	private FakeTagStore $tags;
+	private FakeFlagStore $flags;
 	private FakeVisualHashStore $hashes;
 	private FakeSeriesStore $series;
 
 	#[\Override]
 	protected function setUp(): void {
-		$this->store = new FakeDecisionStore();
-		$this->tags = new FakeTagStore();
+		$this->flags = new FakeFlagStore();
 		$this->hashes = new FakeVisualHashStore();
 		$this->series = new FakeSeriesStore();
 		$this->addFiles([1 => '/In/A.RAF', 2 => '/In/A.JPG']);
 	}
 
-	private function service(?DecisionStore $store = null, ?LoggerInterface $logger = null, ?TagStore $tags = null): MoveService {
+	private function service(?FlagStore $flags = null, ?LoggerInterface $logger = null): MoveService {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturn(true);
-		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores($store ?? $this->store, $tags ?? $this->tags, $this->hashes, $this->series, new FakeXmpCacheStore()), $logger ?? $this->createStub(LoggerInterface::class));
+		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores($flags ?? $this->flags, $this->hashes, $this->series, new FakeXmpCacheStore()), $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
-	private static function decision(int $fileId): PictureDecision {
-		return new PictureDecision($fileId, 4, null, Flag::Picked, false);
+	private static function flag(int $fileId): FileFlag {
+		return new FileFlag($fileId, Flag::Picked, true, 100);
 	}
 
 	/** @return list<list<array{fileId: int, etag: string, path: string}>> the pair to `/Out` */
@@ -59,71 +55,58 @@ final class MoveServiceDecisionsTest extends TestCase {
 	}
 
 	// spec: MOVE-002.10
-	public function testADecisionFollowsItsFileToANewFileId(): void {
+	public function testAFlagFollowsItsFileToANewFileIdWhoeverSetIt(): void {
 		$this->addFolder('/Out');
 		$this->newIds[2] = 20;
-		$this->store->rows = ['alice' => [1 => self::decision(1), 2 => self::decision(2)], 'bob' => [2 => self::decision(2)]];
+		$this->flags->rows = [1 => self::flag(1), 2 => self::flag(2)];
 
 		$this->service()->move($this->treeUser(), self::request());
 
-		$this->assertEquals(['alice' => [1 => self::decision(1), 20 => self::decision(20)], 'bob' => [2 => self::decision(2)]], $this->store->rows);
+		$this->assertEquals([1 => self::flag(1), 20 => self::flag(20)], $this->flags->rows);
 	}
 
 	// spec: MOVE-002.10
-	public function testADecisionFollowsItsFileWhenItMovesBackToAnotherNewFileId(): void {
+	public function testAFlagFollowsItsFileWhenItMovesBackToAnotherNewFileId(): void {
 		$this->addFolder('/Out');
 		$this->newIds = [1 => 10, 10 => 11];
 		$this->moveFailures[2] = new NotPermittedException();
-		$this->store->rows = ['alice' => [1 => self::decision(1)]];
+		$this->flags->rows = [1 => self::flag(1)];
 
 		$this->service()->move($this->treeUser(), self::request());
 
 		$this->assertSame('/In/A.RAF', $this->files[11]);
-		$this->assertEquals(['alice' => [11 => self::decision(11)]], $this->store->rows);
+		$this->assertEquals([11 => self::flag(11)], $this->flags->rows);
 	}
 
 	// spec: MOVE-002.10
-	public function testADecisionThatCannotBeCarriedOverIsLoggedAndTheFileStaysMoved(): void {
+	public function testAFlagThatCannotBeCarriedOverIsLoggedAndTheFileStaysMoved(): void {
 		$this->addFolder('/Out');
 		$this->newIds[2] = 20;
 		$failure = new \RuntimeException('database gone');
-		$store = $this->createStub(DecisionStore::class);
-		$store->method('carryOver')->willThrowException($failure);
+		$flags = $this->createStub(FlagStore::class);
+		$flags->method('carryOver')->willThrowException($failure);
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('error')->with($this->anything(), ['fileId' => 2, 'newFileId' => 20, 'exception' => $failure]);
 
-		$results = $this->service($store, $logger)->move($this->treeUser(), self::request());
+		$results = $this->service($flags, $logger)->move($this->treeUser(), self::request());
 
 		$this->assertSame(['moved', 'moved'], array_map(static fn (array $file): string => $file['result']->value, $results[0]));
 		$this->assertSame('/Out/A.JPG', $this->files[20]);
 	}
 
-	// spec: TAGS-001.10
-	public function testTagsFollowTheirFileToANewFileId(): void {
+	// spec: MOVE-002.10
+	public function testTheUsersOtherRowsFollowAndAnotherUsersStay(): void {
 		$this->addFolder('/Out');
 		$this->newIds[2] = 20;
-		$this->tags->rows = ['alice' => [2 => new PictureTags(2, ['Anna'])]];
+		$hash = new VisualHash(2, 'etag-2', '00ff00ff00ff00ff');
+		$this->hashes->rows = ['alice' => [2 => $hash], 'bob' => [2 => $hash]];
+		$this->flags->rows = [2 => self::flag(2)];
 
 		$this->service()->move($this->treeUser(), self::request());
 
-		$this->assertEquals(['alice' => [20 => new PictureTags(20, ['Anna'])]], $this->tags->rows);
-	}
-
-	// spec: TAGS-001.10
-	public function testTagsThatCannotBeCarriedOverAreLoggedAndTheDecisionStillFollows(): void {
-		$this->addFolder('/Out');
-		$this->newIds[2] = 20;
-		$this->store->rows = ['alice' => [2 => self::decision(2)]];
-		$failure = new \RuntimeException('database gone');
-		$tags = $this->createStub(TagStore::class);
-		$tags->method('carryOver')->willThrowException($failure);
-		$logger = $this->createMock(LoggerInterface::class);
-		$logger->expects($this->once())->method('error')->with($this->anything(), ['fileId' => 2, 'newFileId' => 20, 'exception' => $failure]);
-
-		$results = $this->service(logger: $logger, tags: $tags)->move($this->treeUser(), self::request());
-
-		$this->assertSame(['moved', 'moved'], array_map(static fn (array $file): string => $file['result']->value, $results[0]));
-		$this->assertEquals(['alice' => [20 => self::decision(20)]], $this->store->rows);
+		$this->assertSame([20], array_keys($this->hashes->rows['alice']));
+		$this->assertSame([2], array_keys($this->hashes->rows['bob']));
+		$this->assertEquals([20 => self::flag(20)], $this->flags->rows);
 	}
 
 	// spec: SERIES-003.15

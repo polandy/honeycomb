@@ -103,8 +103,8 @@ export const NO_SIDECARS: SidecarWrites = { read: async () => ({ decided: [], ta
 /** A series save that keeps each series' id and gives a new one 100. */
 export const SAVED_SERIES = async (write: SeriesWrite) => ({ ids: write.series.map(({ id }) => id ?? 100) })
 
-/** Tag endpoints that store nothing. */
-export const NO_TAGS = { lookupTags: async () => [], loadTagList: async () => [] }
+/** A tag list that is empty. */
+export const NO_TAGS = { loadTagList: async () => [] }
 
 export function mountApp(props: Record<string, unknown> = {}, decisions: StoredDecision[] = [], stubs: Record<string, unknown> = {}) {
 	provideSkipActions()

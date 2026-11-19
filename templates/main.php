@@ -5,7 +5,7 @@
 
 declare(strict_types=1);
 
-/** @var array{script: string} $_ */
+/** @var array{script: string, admin: bool} $_ */
 \OCP\Util::addScript('honeycomb', $_['script']);
 ?>
-<div id="honeycomb"></div>
+<div id="honeycomb" data-admin="<?php echo $_['admin'] ? 'true' : 'false'; ?>"></div>

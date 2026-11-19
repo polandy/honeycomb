@@ -22,7 +22,6 @@ describe('useCull: reading the sidecars\' decision', () => {
 		expect(writes).toEqual([])
 	})
 
-	// spec: XMP-003.2
 	it('shows a stored decision over the sidecars\'', async () => {
 		const { cull, picture } = cullWith({ stored: [stored(4, 'picked')], takenOver: Promise.resolve(new Map([['IMG_9', THREE_REJECTED], ['IMG_2', THREE_REJECTED]])) })
 

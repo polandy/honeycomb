@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Saves data with the first release, updates to this checkout and checks the data survived.
+# Saves data with the first release, updates to this checkout and checks the data survived or was
+# carried as designed: the decision becomes the start value of the statistics (ADR 0039, ADR 0040).
 # Usage: scripts/upgrade-test.sh [port]
 set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
@@ -51,7 +52,7 @@ api() {
     -H 'Content-Type: application/json' -X "$1" "$BASE/index.php/apps/honeycomb/api/v1/$2" ${3:+--data "$3"}
 }
 
-# Prints the stored data of FILE_ID, the same for every version that kept it.
+# Prints the data v0.1.0 stored for FILE_ID.
 stored() {
   jq -cS '.decisions[0] | del(.fileId)' <<<"$(api POST decisions/lookup "{\"fileIds\":[$FILE_ID]}")"
   jq -cS '.tags[0].tags' <<<"$(api POST tags/lookup "{\"fileIds\":[$FILE_ID]}")"
@@ -104,8 +105,13 @@ wait_for_nextcloud || fail "Nextcloud did not answer within $STARTUP_SECONDS sec
 
 [ "$(occ app:list --output=json | jq -r '.enabled.honeycomb')" = "$new_version" ] ||
   fail "honeycomb $new_version is not enabled after the update"
-after=$(stored)
-[ "$after" = "$before" ] || fail "the update changed the stored data: $before -> $after"
+settings=$(jq -cS '.settings' <<<"$(api GET settings)")
+[ "$settings" = "$(jq -cS . <<<"$SETTINGS")" ] || fail "the update changed the settings: $settings"
+# honeycomb_decisions and honeycomb_file_tags are dropped; the one decided picture is the start value.
+decided=$(occ user:setting "$ACCOUNT" honeycomb pictures_decided_before | jq -r .count)
+[ "$decided" = 1 ] || fail "the update did not count the decided picture: $decided"
 # The listing reads tables later releases added, so it fails when a migration did not run.
-api GET "entries?path=$FOLDER" >/dev/null || fail "the folder does not open after the update"
+flag=$(api GET "entries?path=$FOLDER" | jq -c "[.. | objects | select(.fileId? == $FILE_ID) | .flag]") ||
+  fail "the folder does not open after the update"
+[ "$flag" = '[null]' ] || fail "the photo carries a flag nobody set after the update: $flag"
 echo "ok   update from $FROM to $new_version kept the data"

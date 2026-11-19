@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 /** The stored series of each user: one row per member or kept-out file, one per series (ADR 0027). */
-interface SeriesStore extends FileRowStore {
+interface SeriesStore extends FileRowStore, UserRowStore {
 	/**
 	 * The user's series with members among `$fileIds`, and the kept-out files among them.
 	 * @param list<int> $fileIds

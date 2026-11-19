@@ -16,4 +16,12 @@ interface ExistingFiles {
 	 * @throws \OCP\DB\Exception
 	 */
 	public function existing(array $fileIds): array;
+
+	/**
+	 * The ids of `$fileIds` that still have a file cache row outside a user's trash bin.
+	 * @param list<int> $fileIds
+	 * @return list<int>
+	 * @throws \OCP\DB\Exception
+	 */
+	public function outsideTrashBin(array $fileIds): array;
 }

@@ -13,7 +13,10 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import TagEntry from '../../src/components/TagEntry.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
-import { decidedRows, mountApp, openCull, shownNames, toolbarProps } from './app-cull.ts'
+import { serializeXmp } from '../../src/logic/xmp/serialize.ts'
+import { decidedRows, ENTRIES, mountApp, NO_TAGS, openCull, SET, shownNames, toolbarProps } from './app-cull.ts'
+import { listingEntry } from './logic/listing-entries.ts'
+import { CANONICAL_TIME, packetOf, seq } from './logic/xmp/xmp-builders.ts'
 
 /** Presses a key on the page and returns whether the app handled it. */
 async function press(key: string) {
@@ -25,7 +28,7 @@ async function press(key: string) {
 
 /** The app on an open cull of IMG_2, IMG_9 and IMG_10. */
 async function openApp(settings: object = {}) {
-	const mounted = mountApp({ tags: { lookupTags: async () => [], loadTagList: async () => ['Places/Italy'] }, loadSettings: async () => settings })
+	const mounted = mountApp({ tags: { loadTagList: async () => ['Places/Italy'] }, loadSettings: async () => settings })
 	await openCull(mounted.wrapper)
 	expect(shownNames(mounted.wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
 	return mounted
@@ -115,10 +118,20 @@ describe('App: tag entry', () => {
 describe('App: tag filter and tile', () => {
 	/** The app on IMG_2 tagged `Places/Italyx` and IMG_10 with `Anna` on its JPEG and a Dolomites tag on its RAW. */
 	async function openTagged() {
-		const stored = [{ fileId: 1, tags: ['Places/Italyx'] }, { fileId: 2, tags: ['Anna'] }, { fileId: 3, tags: ['Places/Italy/Dolomites'] }]
-		const lookupTags = async (fileIds: readonly number[]) => stored.filter(({ fileId }) => fileIds.includes(fileId))
-		const mounted = mountApp({ tags: { lookupTags, loadTagList: async () => [] } })
-		await openCull(mounted.wrapper)
+		const tagged = new Map([[11, ['Places/Italyx']], [12, ['Anna', 'Places/Italy/Dolomites']]])
+		const sidecars = {
+			lookupSidecars: async (fileIds: readonly number[]) => fileIds.map((fileId) => {
+				const bytes = serializeXmp(packetOf({ 'digiKam:TagsList': seq(tagged.get(fileId) ?? []) }), CANONICAL_TIME)
+				return { result: 'read' as const, bytes, etag: `e${fileId}`, size: bytes.length, mtime: 1 }
+			}),
+			lookupXmpCache: async () => [],
+			saveXmpCache: async () => undefined,
+			lookupEmbeddedXmp: async (fileIds: readonly number[]) => fileIds.map(() => ({ result: 'none' as const })),
+			saveSidecars: async () => [],
+			now: () => CANONICAL_TIME,
+		}
+		const mounted = mountApp({ tags: NO_TAGS, sidecars })
+		await openCull(mounted.wrapper, SET, [...ENTRIES, listingEntry(11, '/Trip/B/IMG_2.JPG.xmp'), listingEntry(12, '/Trip/A/IMG_10.CR3.xmp')])
 		mounted.wrapper.findComponent(GridToolbar).vm.$emit('update:filtersOpen', true)
 		await flushPromises()
 		return mounted.wrapper
@@ -162,7 +175,7 @@ describe('App: tag filter and tile', () => {
 
 	// spec: TAGS-004.9, XMP-008.12
 	it('tells the loupe that a picture in a folder without write permission is read only', async () => {
-		const mounted = mountApp({ tags: { lookupTags: async () => [], loadTagList: async () => [] } })
+		const mounted = mountApp({ tags: NO_TAGS })
 		await openCull(mounted.wrapper, undefined, undefined, { folders: [{ path: '/Trip/B', permissions: 1 }] })
 		await press('e')
 

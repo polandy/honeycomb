@@ -8,9 +8,9 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\AppInfo;
 
 use OCA\Honeycomb\AppInfo\Application;
-use OCA\Honeycomb\Db\DecisionMapper;
 use OCA\Honeycomb\Db\FileCacheLookup;
 use OCA\Honeycomb\Db\FileCachePhotoFiles;
+use OCA\Honeycomb\Db\FlagMapper;
 use OCA\Honeycomb\Db\PositionMapper;
 use OCA\Honeycomb\Db\SeriesMapper;
 use OCA\Honeycomb\Db\TagMapper;
@@ -20,8 +20,8 @@ use OCA\Honeycomb\Listener\ForgetDeletedUser;
 use OCA\Honeycomb\Preview\JpegDecoder;
 use OCA\Honeycomb\Preview\OcpJpegDecoder;
 use OCA\Honeycomb\Preview\RawPreviewProvider;
-use OCA\Honeycomb\Service\DecisionStore;
 use OCA\Honeycomb\Service\ExistingFiles;
+use OCA\Honeycomb\Service\FlagStore;
 use OCA\Honeycomb\Service\Pause;
 use OCA\Honeycomb\Service\PhotoFilesBelow;
 use OCA\Honeycomb\Service\PositionStore;
@@ -46,10 +46,10 @@ final class ApplicationTest extends TestCase {
 
 		(new \ReflectionClass(Application::class))->newInstanceWithoutConstructor()->register($context);
 
-		$this->assertSame([JpegDecoder::class => OcpJpegDecoder::class, DecisionStore::class => DecisionMapper::class, PositionStore::class => PositionMapper::class, SeriesStore::class => SeriesMapper::class, TagStore::class => TagMapper::class, VisualHashStore::class => VisualHashMapper::class, XmpCacheStore::class => XmpCacheMapper::class, ExistingFiles::class => FileCacheLookup::class, PhotoFilesBelow::class => FileCachePhotoFiles::class, Pause::class => SystemPause::class], $aliases);
+		$this->assertSame([JpegDecoder::class => OcpJpegDecoder::class, FlagStore::class => FlagMapper::class, PositionStore::class => PositionMapper::class, SeriesStore::class => SeriesMapper::class, TagStore::class => TagMapper::class, VisualHashStore::class => VisualHashMapper::class, XmpCacheStore::class => XmpCacheMapper::class, ExistingFiles::class => FileCacheLookup::class, PhotoFilesBelow::class => FileCachePhotoFiles::class, Pause::class => SystemPause::class], $aliases);
 	}
 
-	// spec: DECISIONS-001.12, DECISIONS-002.13
+	// spec: DECISIONS-002.13
 	public function testForgetsTheRowsOfADeletedUser(): void {
 		$context = $this->createMock(IRegistrationContext::class);
 		$context->expects($this->once())->method('registerEventListener')->with(UserDeletedEvent::class, ForgetDeletedUser::class);

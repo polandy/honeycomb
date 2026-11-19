@@ -14,11 +14,10 @@ folder see one state (ADR 0040). Rating, colour label and tags live in the sidec
 
 ## Behaviour
 
-ADR 0040 replaces the per-user rows of `honeycomb_decisions` by `honeycomb_flags`; M8 PR 5 builds
-it (the criteria from .21 on are gaps until then) and drops the old table and its endpoints, and
-marks the criteria withdrawn below as removed.
+ADR 0040 replaced the per-user rows of `honeycomb_decisions` by `honeycomb_flags` (M8 PR 5): the
+migration drops the old table and its endpoints, and the criteria withdrawn below are removed.
 
-**Flags (ADR 0040, M8 PR 5):**
+**Flags:**
 
 - A row is `fileId`, `flag` (`picked`, `rejected`, `unflagged`), `keepRaw` and `updatedAt` from
   the injected clock, one row per member file id, without a user. A row is never removed because
@@ -31,8 +30,11 @@ marks the criteria withdrawn below as removed.
   for a file whose folder lacks UPDATE or CREATE. Ids are resolved per folder, not per file
   (ADR 0038). The last save wins.
 - `POST /apps/honeycomb/api/v1/flags/take-over` with the same body inserts a row only where the
-  file id has none, needs READ only and never changes a row; it answers like the save.
-- A picture whose members' rows differ reads as the row with the latest `updatedAt`.
+  file id has none, needs READ only and never changes a row; it answers the inserted ids under
+  `saved` and an id that already has a row under `skipped` with `exists`.
+- A picture whose members' rows differ reads as the row with the latest `updatedAt` (Unix
+  seconds); of rows saved in the same second the first member's wins, in the picture's member
+  order.
 - `400` for a malformed body; one malformed item writes nothing. `401` without a user. Both
   endpoints are rate limited per user (APP-001.9).
 - A move that gives a file a new id carries its row over (MOVE-002). Deleting a picture through
@@ -41,125 +43,66 @@ marks the criteria withdrawn below as removed.
 - `occ honeycomb:cleanup` and *Clean up orphaned data* (SETTINGS-001.27) remove the rows whose
   file id no longer exists or lies in a trash bin, and report how many.
 
-**Until M8 PR 5:**
+**Clean-up:**
 
-- `POST /apps/honeycomb/api/v1/decisions/lookup` with `{"fileIds": [...]}` answers
-  `{"decisions": [...]}` with the stored rows only; `PUT /apps/honeycomb/api/v1/decisions` with
-  `{"decisions": [...]}` stores whole states, at most 60,000 each, in one transaction.
-- A decision is `fileId`, `rating` 0–5, `colourLabel` (one of nine or `null`), `flag` and
-  `keepRaw`, one row per member file id and user. A row back at the default is removed.
-- A save writes only the file ids the user reaches as a photo; any other id is skipped, its row
-  neither written nor removed (ADR 0031), looked up 1,000 ids at a time (ADR 0038).
-- Since ADR 0032 the rows are old rows: the client reads them for every member after the listing,
-  and a picture shows them until M8 PR 5 drops the table (XMP-003.2); a failed lookup is logged and
-  the pictures show their sidecars.
-- Deleting a user removes their rows.
-
-**Both:**
-
-- A daily background job removes the rows of files deleted for good, of every user. For each of
-  the decision (later flag), tag and visual hash tables it reads 1,000 rows at a time in row id
-  order, asks the file cache which of their file ids still exist, without a join, and stops after
-  100 chunks. The row id it stopped at is kept in the app config, so the next run goes on from
-  there; at the end of a table the next run starts again from the beginning.
+- A daily background job removes the rows of files deleted for good. For each of the flag, visual
+  hash, series and XMP cache tables it reads 1,000 rows at a time in row id order, asks the file
+  cache which of their file ids still exist, without a join, and stops after 100 chunks. The row
+  id it stopped at is kept in the app config, so the next run goes on from there; at the end of
+  a table the next run starts again from the beginning.
 
 ## Acceptance criteria
 
-### DECISIONS-001.1 – Lookup answers the stored rows
+### DECISIONS-001.1 – Lookup answers the stored rows (removed)
 
-Withdrawn by ADR 0040; M8 PR 5 marks it removed.
+Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5).
 
-- **Given** stored decisions
-- **When** the user looks up file ids
-- **Then** the answer holds the rows of those ids only; an id without a row is undecided
+### DECISIONS-001.2 – Whole states, overwritten (removed)
 
-### DECISIONS-001.2 – Whole states, overwritten
+Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5).
 
-Withdrawn by ADR 0040; M8 PR 5 marks it removed.
+### DECISIONS-001.3 – The default removes the row (removed)
 
-- **Given** a stored decision
-- **When** the user saves a new state for the same file id
-- **Then** it replaces the whole earlier state
+Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5).
 
-### DECISIONS-001.3 – The default removes the row
+### DECISIONS-001.4 – Each user apart (removed)
 
-Withdrawn by ADR 0040; M8 PR 5 marks it removed.
+Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5).
 
-- **Given** a stored decision
-- **When** the user saves the default (unrated, no label, unflagged, no *Keep RAW*)
-- **Then** the row is gone and the file reads as undecided
+### DECISIONS-001.5 – A malformed save writes nothing (removed)
 
-### DECISIONS-001.4 – Each user apart
+Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5).
 
-Withdrawn by ADR 0040; M8 PR 5 marks it removed.
+### DECISIONS-001.6 – A malformed lookup (removed)
 
-- **Given** two users deciding the same file
-- **When** each looks up
-- **Then** each reads only their own decision
+Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5).
 
-### DECISIONS-001.5 – A malformed save writes nothing
+### DECISIONS-001.7 – Without a user (removed)
 
-Withdrawn by ADR 0040; M8 PR 5 marks it removed.
+Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5).
 
-- **Given** a save with one malformed item, a file id twice or more than 60,000 items
-- **When** it arrives
-- **Then** the answer is `400` and no row changes
+### DECISIONS-001.8 – A picture's decision (removed)
 
-### DECISIONS-001.6 – A malformed lookup
+Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5).
 
-Withdrawn by ADR 0040; M8 PR 5 marks it removed.
+### DECISIONS-001.9 – A failed lookup (removed)
 
-- **Given** a lookup that is not a list of positive integer ids or has more than 60,000
-- **When** it arrives
-- **Then** the answer is `400`
+Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5).
 
-### DECISIONS-001.7 – Without a user
+### DECISIONS-001.10 – Nothing to ask (removed)
 
-Withdrawn by ADR 0040; M8 PR 5 marks it removed.
-
-- **Given** no logged-in user
-- **When** a lookup or save arrives
-- **Then** the answer is `401` and nothing is read or written
-
-### DECISIONS-001.8 – A picture's decision
-
-Withdrawn by ADR 0040; M8 PR 5 marks it removed.
-
-- **Given** the rows of a picture's members
-- **When** the client merges them
-- **Then** the picture is undecided without a row and takes the members' state otherwise
-
-### DECISIONS-001.9 – A failed lookup
-
-Withdrawn by ADR 0040; M8 PR 5 marks it removed.
-
-- **Given** an open cull
-- **When** the lookup fails or answers no decisions list
-- **Then** the error is logged and every picture counts as undecided; the answer of a folder set
-  no longer open is ignored
-
-### DECISIONS-001.10 – Nothing to ask
-
-Withdrawn by ADR 0040; M8 PR 5 marks it removed.
-
-- **Given** no file ids or no decisions
-- **When** the client would look up or save
-- **Then** it sends no request
+Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5).
 
 ### DECISIONS-001.11 – A file deleted for good
 
-- **Given** decisions of a file in the trash bin and of a file still in place
+- **Given** flags of a file in the trash bin and of a file still in place
 - **When** the file is deleted from the trash bin and the clean-up job runs
-- **Then** its rows are gone for every user; the other file keeps its decision, and the job run
-  again removes nothing more
+- **Then** its row is gone; the other file keeps its flag, and the job run again removes nothing
+  more
 
-### DECISIONS-001.12 – A deleted user
+### DECISIONS-001.12 – A deleted user (removed)
 
-Withdrawn by ADR 0040; M8 PR 5 marks it removed.
-
-- **Given** a user with stored decisions
-- **When** the user is deleted
-- **Then** their rows are gone, and a new user of the same name reads no decision
+Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5).
 
 ### DECISIONS-001.13 – Saves of one file at once
 
@@ -200,45 +143,35 @@ The cull saves no decision any more (ADR 0032, XMP-006.7).
 - **Then** the error is logged, the other tables are cleaned, and the next run goes on after the
   last chunk that was finished
 
-### DECISIONS-001.19 – A file the user does not reach
+### DECISIONS-001.19 – A file the user does not reach (removed)
 
-Withdrawn by ADR 0040; M8 PR 5 marks it removed.
+Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5).
 
-- **Given** a save naming a file id that is not in the user's files, or not a photo
-- **When** it is stored
-- **Then** the user's photos in it are stored, nothing is written for that id, and a save of no
-  such photo writes nothing
+### DECISIONS-001.20 – A save looks its file ids up in batches (removed)
 
-### DECISIONS-001.20 – A save looks its file ids up in batches
+Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5).
 
-Withdrawn by ADR 0040; M8 PR 5 marks it removed.
-
-- **Given** a save of 2,000 decisions
-- **When** it is stored
-- **Then** its file ids are looked up 1,000 at a time in the user's files, shares included, not
-  one by one, and the same ids are reached as by a lookup of each (ADR 0038)
-
-### DECISIONS-001.21 – The listing carries the flags (gap)
+### DECISIONS-001.21 – The listing carries the flags
 
 - **Given** a folder with a photo that has a row and one that has none
 - **When** the user lists it
 - **Then** the first entry carries its `flag`, `keepRaw` and `flagUpdated`, the second `null` in
   all three
 
-### DECISIONS-001.22 – One state for every user (gap)
+### DECISIONS-001.22 – One state for every user
 
 - **Given** a folder shared between two users, and one of them sets a flag
 - **When** the other lists the folder
 - **Then** the other reads the same flag and *Keep RAW*; no row names a user
 
-### DECISIONS-001.23 – A save stores whole states, the last one wins (gap)
+### DECISIONS-001.23 – A save stores whole states, the last one wins
 
 - **Given** a stored row
 - **When** the user saves a new state for the same file id, also *unflagged* without *Keep RAW*
 - **Then** it replaces the whole earlier state, keeps the row, sets `updatedAt` from the clock and
   answers the id under `saved`
 
-### DECISIONS-001.24 – A save skips what the user may not set (gap)
+### DECISIONS-001.24 – A save skips what the user may not set
 
 - **Given** a save naming a file the user does not reach as a photo and one whose folder lacks
   UPDATE or CREATE
@@ -246,53 +179,53 @@ Withdrawn by ADR 0040; M8 PR 5 marks it removed.
 - **Then** the other ids are stored, those two are answered under `skipped` with `notFound` and
   `notPermitted`, and their rows are neither written nor removed
 
-### DECISIONS-001.25 – A malformed save writes nothing (gap)
+### DECISIONS-001.25 – A malformed save writes nothing
 
 - **Given** a save or take-over with one malformed item, an unknown flag, a file id twice or more
   than 60,000 items
 - **When** it arrives
 - **Then** the answer is `400` and no row changes
 
-### DECISIONS-001.26 – Without a user (gap)
+### DECISIONS-001.26 – Without a user
 
 - **Given** no logged-in user
 - **When** a save or take-over arrives
 - **Then** the answer is `401` and nothing is written
 
-### DECISIONS-001.27 – Taking over inserts only (gap)
+### DECISIONS-001.27 – Taking over inserts only
 
 - **Given** a file with a row, one without, and a user who may only read their folder
 - **When** the user takes over a state for both
-- **Then** the file without a row gets it, the row of the other is unchanged, and both are
-  answered under `saved` or `skipped`
+- **Then** the file without a row gets it and is answered under `saved`; the row of the other is
+  unchanged and its id is answered under `skipped` with `exists`
 
-### DECISIONS-001.28 – Members that disagree (gap)
+### DECISIONS-001.28 – Members that disagree
 
 - **Given** a picture whose JPEG row says *picked* and whose RAW row, changed later, says
   *rejected*
 - **When** the client reads the picture
 - **Then** it is *rejected*; without any row it is not taken over yet
 
-### DECISIONS-001.29 – A save resolves its ids per folder (gap)
+### DECISIONS-001.29 – A save resolves its ids per folder
 
 - **Given** a save of 2,000 flags in three folders
 - **When** it is stored
 - **Then** the rights are read once per folder, not per file, and the same ids are stored as by a
   save of each alone (ADR 0038)
 
-### DECISIONS-001.30 – Saves of one file at once (gap)
+### DECISIONS-001.30 – Saves of one file at once
 
 - **Given** two saves or take-overs of the same file at the same time
 - **When** one hits the unique key or, on MySQL, a deadlock or lock wait timeout
 - **Then** it is repeated as in .13; a take-over that loses the race leaves the other's row
 
-### DECISIONS-001.31 – The clean-up job cleans the flags (gap)
+### DECISIONS-001.31 – The clean-up job cleans the flags
 
 - **Given** flag rows of a file deleted for good and of a file still in place
 - **When** the clean-up job runs
 - **Then** the first row is gone, the second stays, in chunks as in .16 to .18
 
-### DECISIONS-001.32 – Cleaning up orphaned data (gap)
+### DECISIONS-001.32 – Cleaning up orphaned data
 
 - **Given** flag rows of a file that no longer exists, of a file in a trash bin and of a file in
   place
@@ -300,7 +233,7 @@ Withdrawn by ADR 0040; M8 PR 5 marks it removed.
 - **Then** the first two rows are gone, the third stays, and the command prints how many it
   removed; run again it removes none
 
-### DECISIONS-001.33 – A deleted user leaves the flags (gap)
+### DECISIONS-001.33 – A deleted user leaves the flags
 
 - **Given** a user who set flags in a folder another user reaches
 - **When** the user is deleted
@@ -325,3 +258,4 @@ Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XM
 | 2026-11-18 | A save looks its file ids up 1,000 at a time (DECISIONS-001.20, ADR 0038) |
 | 2026-11-19 | ADR 0040: flags per picture in `honeycomb_flags`, the old rows withdrawn (.21–.33 gaps until M8 PR 5) |
 | 2026-11-19 | M8 PR 4: the rows lock nothing and nothing migrates them; M8 PR 5 drops them |
+| 2026-11-19 | M8 PR 5: `honeycomb_flags` built (.21–.33), `honeycomb_decisions` dropped (.1–.10, .12, .19, .20 removed) |

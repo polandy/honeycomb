@@ -5,7 +5,7 @@ import type { Decision, StoredDecision } from '../../src/logic/decision.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 import type { Settings } from '../../src/logic/settings.ts'
-import type { StoredTags, Tag, TagChange } from '../../src/logic/tag.ts'
+import type { Tag, TagChange } from '../../src/logic/tag.ts'
 import type { ListedAccess } from '../../src/logic/writability.ts'
 
 import { shallowRef } from 'vue'
@@ -23,10 +23,9 @@ export function access(permissions: Record<string, number> = {}): ListedAccess {
 }
 
 /** A cull whose sidecars read as `takenOver` and whose writes are recorded. */
-export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<string, Decision>>, storedTags?: StoredTags[], tagsTakenOver?: Map<string, Tag[]>, tagLookupFails?: boolean } = {}) {
+export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<string, Decision>>, tagsTakenOver?: Map<string, Tag[]> } = {}) {
 	const reads: string[][] = []
 	const tagWrites: { names: string[], change: TagChange }[] = []
-	const tagLookups: number[][] = []
 	const writes: { name: string, decision: Decision, fields: readonly string[] }[][] = []
 	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
 	const sidecars: SidecarWrites = {
@@ -56,17 +55,8 @@ export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promi
 		lookupDecisions: async () => options.stored ?? [],
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
-		tags: {
-			lookupTags: async (fileIds) => {
-				tagLookups.push([...fileIds])
-				if (options.tagLookupFails) {
-					throw new Error('down')
-				}
-				return (options.storedTags ?? []).filter((row) => fileIds.includes(row.fileId))
-			},
-			loadTagList: async () => [],
-		},
+		tags: { loadTagList: async () => [] },
 	}, fakeStorage(), () => settings.value, sidecars)
 	const picture = (name: string): Picture<ListingEntry> => cull.pictures.value.find((each) => each.baseName === name)!
-	return { cull, reads, writes, settings, picture, tagWrites, tagLookups }
+	return { cull, reads, writes, settings, picture, tagWrites }
 }

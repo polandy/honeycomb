@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, imageUrl, listEntries, listFolders, loadSettings, lookupDecisions, lookupEmbeddedXmp, lookupSidecars, saveSettings, saveSidecars, TrashBinOffError, trashPictures } from '../../src/api.ts'
+import { ApiResponseError, imageUrl, listEntries, listFolders, loadSettings, lookupEmbeddedXmp, lookupSidecars, saveSettings, saveSidecars, TrashBinOffError, trashPictures } from '../../src/api.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({
@@ -88,30 +88,6 @@ describe('listFolders', () => {
 		vi.mocked(axios.get).mockResolvedValue({ data: { entries: [] } })
 
 		await expect(listFolders('')).rejects.toThrow(ApiResponseError)
-	})
-})
-
-describe('lookupDecisions', () => {
-	// spec: DECISIONS-001.1
-	it('reads the stored decisions of the files', async () => {
-		const decisions = [{ fileId: 3, rating: 4, colourLabel: 'green', flag: 'picked', keepRaw: true }]
-		vi.mocked(axios.post).mockResolvedValue({ data: { decisions } })
-
-		expect(await lookupDecisions([3, 1])).toEqual(decisions)
-		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/decisions/lookup', { fileIds: [3, 1] })
-	})
-
-	// spec: DECISIONS-001.10
-	it('asks nothing for no files', async () => {
-		expect(await lookupDecisions([])).toEqual([])
-		expect(axios.post).not.toHaveBeenCalled()
-	})
-
-	// spec: DECISIONS-001.9
-	it.each([['no object', 'oops'], ['no decisions', { rows: [] }]])('rejects a response with %s', async (_case, data) => {
-		vi.mocked(axios.post).mockResolvedValue({ data })
-
-		await expect(lookupDecisions([1])).rejects.toThrow(ApiResponseError)
 	})
 })
 

@@ -23,6 +23,8 @@ const props = defineProps<{
 	settings: Settings
 	/** Whether the gesture guide counts as seen, which its hint tells. */
 	gestureGuideSeen: boolean
+	/** Whether the user is an admin, who may clean up the orphaned data. */
+	admin: boolean
 }>()
 
 const emit = defineEmits<{
@@ -33,6 +35,8 @@ const emit = defineEmits<{
 	showGestureGuide: []
 	/** The user wants honeycomb to forget the sidecars and photos it read. */
 	clearCache: []
+	/** The admin wants the flags of deleted and trashed files removed. */
+	cleanUp: []
 }>()
 
 const LISTS = [
@@ -223,6 +227,14 @@ function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 			<NcButton aria-describedby="clear-cache-hint" @click="emit('clearCache')">
 				{{ t('honeycomb', 'Clear cache') }}
 			</NcButton>
+			<template v-if="admin">
+				<p id="clean-up-hint" class="settings-dialog__hint settings-text">
+					{{ t('honeycomb', 'Removes the picks and rejects of files that were deleted or lie in a trash bin, for every user.') }}
+				</p>
+				<NcButton aria-describedby="clean-up-hint" @click="emit('cleanUp')">
+					{{ t('honeycomb', 'Clean up orphaned data') }}
+				</NcButton>
+			</template>
 		</NcAppSettingsSection>
 	</NcAppSettingsDialog>
 </template>

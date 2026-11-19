@@ -4,8 +4,7 @@ What honeycomb needs from the server and what an admin can run. Installation: th
 [README](../../../README.md#installation).
 
 **Changing in the next release** ([ADR 0040](../../dev/adr/0040-flags-per-picture-in-the-database.md)).
-The Versions app is no longer needed for writing sidecars. A new command `occ honeycomb:cleanup`
-removes the flags of files that no longer exist or lie in a trash bin and prints how many.
+The Versions app is no longer needed for writing sidecars.
 
 ## Nextcloud apps
 
@@ -26,11 +25,12 @@ previews and faster first visits: the [README](../../../README.md#installation).
 
 ## occ commands
 
-honeycomb has one command:
+honeycomb has two commands:
 
 | Command | Does |
 |---|---|
 | `occ honeycomb:cache:clear [<user>]` | Clears what honeycomb read from sidecars and photos, for one user or every user ([cache](../cache.md)) |
+| `occ honeycomb:cleanup` | Removes the picks and rejects of files that no longer exist or lie in a trash bin, for every user, and prints how many rows went |
 
 Database migrations run with Nextcloud's own `occ app:update` or `occ upgrade`
 ([updating](updating.md)).
@@ -39,4 +39,6 @@ Database migrations run with Nextcloud's own `occ app:update` or `occ upgrade`
 
 A daily background job removes honeycomb's rows of files that were deleted for good. Deleting a
 user removes all of their honeycomb data at once. Nextcloud's background jobs must run (cron is
-recommended).
+recommended). The picks and rejects of files in a trash bin stay until an admin runs
+`occ honeycomb:cleanup` or *Clean up orphaned data* in honeycomb's settings. A file in a group
+folder's trash bin keeps its row until it is deleted for good.

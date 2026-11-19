@@ -10,6 +10,8 @@ export const MTIME = 1_700_000_000
 export const JPEG = readFileSync('tests/fixtures/images/landscape-600x400.jpg')
 /** A stand-in RAW: a TIFF header and sensor bytes around the embedded JPEG preview. */
 export const RAW = Buffer.concat([Buffer.from('II*\0'), Buffer.alloc(512, 0x11), JPEG, Buffer.alloc(512, 0x22)])
+/** A sidecar that states only the pick label, digiKam's 1 rejected and 3 picked. */
+export const pickLabel = (label: number) => Buffer.from(`<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:digiKam="http://www.digikam.org/ns/1.0/" digiKam:PickLabel="${label}"/></rdf:RDF></x:xmpmeta>`)
 
 const EXIF_DATE_TIME_LENGTH = 20
 

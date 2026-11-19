@@ -62,7 +62,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const history = useCullHistory<CullStep>((step, back) => applyStep(effects, step, back))
 	/** Whether a step on the picture is written through to its sidecars (XMP-008.1). */
 	const writesThrough = (picture: Picture<ListingEntry>) => access.writabilityOf(picture) === 'writable'
-	const tags = useCullTags(api.tags, sidecars.writeTags, () => opening, writesThrough)
+	const tags = useCullTags(api.tags, sidecars.writeTags, writesThrough)
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
 	const folders = computed(() => folderPaths.value.length)
 	const options = useViewOptions(storage, () => folders.value)
@@ -101,18 +101,18 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		loadDecisions(paired.value)
 	})
 
-	/** Reads the stored series and the decisions and tags of every member. */
+	/** Reads the stored series and the decisions of every member. */
 	function loadDecisions(opened: readonly Picture<ListingEntry>[]) {
 		storedSeries.load(opened)
 		const fileIds = opened.flatMap(memberIds)
-		readPictures(opened, fileIds, fileIds)
+		readPictures(opened, fileIds)
 	}
 
 	/** Shows the stored rows of the files and the sidecars' values of the pictures, read through the XMP cache; a stored row wins, then a change made meanwhile, then the sidecars (XMP-003.1–.3, TAGS-002.2). */
-	function readPictures(read: readonly Picture<ListingEntry>[], decisionIds: readonly number[], tagIds: readonly number[]) {
+	function readPictures(read: readonly Picture<ListingEntry>[], decisionIds: readonly number[]) {
 		const shown = paired.value
 		const cull = opening
-		Promise.all([lookupStored(decisionIds), tags.load(tagIds), sidecars.read(read)]).then(([rows, , fromSidecars]) => {
+		Promise.all([lookupStored(decisionIds), sidecars.read(read)]).then(([rows, fromSidecars]) => {
 			if (opening !== cull || paired.value !== shown) {
 				return
 			}
@@ -185,14 +185,14 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		return replaced
 	}
 
-	/** Puts files back into the listing and pairs it again; the decisions and tags of unknown ids are read, the restored pictures' sidecars too. */
+	/** Puts files back into the listing and pairs it again; the decisions of unknown ids are read, the restored pictures' sidecars too. */
 	function restoreFiles(restored: readonly ListingEntry[]) {
 		entries.value = [...entries.value, ...restored]
 		paired.value = prepareCull(entries.value, pairing.value).pictures
 		const fileIds = new Set(restored.map((entry) => entry.fileId))
 		storedSeries.restore([...fileIds])
 		const pictures = paired.value.filter((picture) => memberIds(picture).some((fileId) => fileIds.has(fileId)))
-		readPictures(pictures, [...fileIds].filter((fileId) => !decisions.value.has(fileId)), [...fileIds].filter((fileId) => !tags.tags.value.has(fileId)))
+		readPictures(pictures, [...fileIds].filter((fileId) => !decisions.value.has(fileId)))
 	}
 
 	return {

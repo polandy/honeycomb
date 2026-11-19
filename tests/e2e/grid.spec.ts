@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { createFolder, JPEG, RAW, requestToken, upload } from './files.ts'
+import { createFolder, JPEG, pickLabel, RAW, upload } from './files.ts'
 
 /** A folder name no earlier run left behind. */
 const uniqueFolder = (prefix: string) => `${prefix} ${randomUUID().slice(0, 8)}`
@@ -70,14 +70,9 @@ test('hides a rejected photo by default and shows it under Rejected', async ({ p
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = uniqueFolder('Scope')
 	await createFolder(page, folder)
-	const rejected = await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+	await upload(page, `${folder}/IMG_0001.jpg.xmp`, pickLabel(1))
 	await upload(page, `${folder}/IMG_0002.jpg`, JPEG)
-	const decision = { fileId: rejected, rating: 0, colourLabel: null, flag: 'rejected', keepRaw: false }
-	const saved = await page.request.put('/index.php/apps/honeycomb/api/v1/decisions', {
-		data: { decisions: [decision] },
-		headers: { requesttoken: await requestToken(page) },
-	})
-	expect(saved.status()).toBe(204)
 
 	const picker = await openPicker(page)
 	await picker.getByRole('treeitem', { name: folder }).click()
@@ -100,14 +95,10 @@ test('combines the flag chips at iPad width and shares them with the filter bar'
 	const folder = uniqueFolder('Chips')
 	await createFolder(page, folder)
 	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
-	const picked = await upload(page, `${folder}/IMG_0002.jpg`, JPEG)
-	const rejected = await upload(page, `${folder}/IMG_0003.jpg`, JPEG)
-	const decide = (fileId: number, flag: string) => ({ fileId, rating: 0, colourLabel: null, flag, keepRaw: false })
-	const saved = await page.request.put('/index.php/apps/honeycomb/api/v1/decisions', {
-		data: { decisions: [decide(picked, 'picked'), decide(rejected, 'rejected')] },
-		headers: { requesttoken: await requestToken(page) },
-	})
-	expect(saved.status()).toBe(204)
+	await upload(page, `${folder}/IMG_0002.jpg`, JPEG)
+	await upload(page, `${folder}/IMG_0002.jpg.xmp`, pickLabel(3))
+	await upload(page, `${folder}/IMG_0003.jpg`, JPEG)
+	await upload(page, `${folder}/IMG_0003.jpg.xmp`, pickLabel(1))
 
 	const picker = await openPicker(page)
 	await picker.getByRole('treeitem', { name: folder }).click()

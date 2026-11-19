@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCP\Constants;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Files\File;
 use OCP\Files\Folder;
@@ -16,6 +17,8 @@ use OCP\IUser;
 final class UserPhotos {
 	/** The one photo type that embeds XMP the client reads (ADR 0023). */
 	private const string JPEG_MIME = 'image/jpeg';
+	/** A folder whose files may be flagged: XMP is written there, as a new sidecar or into the file (ADR 0039). */
+	private const int RATEABLE = Constants::PERMISSION_UPDATE | Constants::PERMISSION_CREATE;
 
 	public function __construct(
 		private UserFolderResolver $userFolders,
@@ -42,6 +45,22 @@ final class UserPhotos {
 	 */
 	public function photos(IUser $user, array $fileIds): array {
 		return $this->reached($user, $fileIds, ListingService::isPhoto(...));
+	}
+
+	/**
+	 * Whether the user may set the flag of each photo they reach, by file id; the rights are read once per folder.
+	 * @param list<int> $fileIds
+	 * @return array<int, bool>
+	 */
+	public function rateable(IUser $user, array $fileIds): array {
+		$folderRateable = [];
+		$rateable = [];
+		foreach ($this->filesOf($user, $fileIds, ListingService::isPhoto(...)) as $fileId => $photo) {
+			$folder = dirname($photo->getPath());
+			$folderRateable[$folder] ??= ($photo->getParent()->getPermissions() & self::RATEABLE) === self::RATEABLE;
+			$rateable[$fileId] = $folderRateable[$folder];
+		}
+		return $rateable;
 	}
 
 	/**

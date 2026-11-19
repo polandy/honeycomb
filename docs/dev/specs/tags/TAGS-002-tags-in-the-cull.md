@@ -14,18 +14,16 @@ written through to the picture's sidecars, so digiKam, darktable and Lightroom s
 ## Behaviour
 
 **Concept D (ADR 0040).** A tag change is written through for every rateable picture, shared or
-not (.22). M8 PR 5 drops the stored tags, and a read-only picture cannot be tagged
+not (.22). M8 PR 5 dropped the stored tags; M8 PR 6 makes a read-only picture untaggable
 (XMP-008.13). Until then the text below holds.
 
-**A picture's tags** are the union of its members' tags, sorted. When a cull opens, and again when
-the pairing settings change, the stored tags of every member (`honeycomb_file_tags`) are
-read beside the stored decisions; a failed read is logged and the pictures show their sidecars'
-tags.
+**A picture's tags** are the union of its members' sidecar tags, sorted, read when a cull opens and
+again when the pairing settings change.
 
-**Reading.** A picture without stored tags for any member shows the tags of its sidecars, read
+**Reading.** A picture shows the tags of its sidecars, read
 through the XMP cache with its decision (XMP-003, XMP-006) as XMP-004 says: the union of every
 sidecar read and not refused, and of the embedded XMP while it counts. They are not written back,
-and nothing is stored in the database. A picture with stored tags shows them, rateable (XMP-008.12).
+and nothing is stored in the database.
 A picture tagged meanwhile keeps the user's tags.
 A tag the cache cannot hold (over 255 characters, or beyond the first 100 of a picture in sort
 order) is left out and logged as a warning.
@@ -52,35 +50,25 @@ sidecar holds them. Changes waiting for the same pass are applied in order and s
 that cannot be written is reported like a decision's (XMP-003.13); *Retry failed sidecars* applies
 the same change again.
 
-**Files moved back.** Files put back into the cull (an undone delete) have their stored tags and
-sidecars read.
+**Files moved back.** Files put back into the cull (an undone delete) have their sidecars read.
 
 ## Acceptance criteria
 
-### TAGS-002.1 – The stored tags are read when the cull opens
+### TAGS-002.1 – The stored tags are read when the cull opens (removed)
 
-Withdrawn by ADR 0040; M8 PR 5 marks it removed with the table.
-
-- **Given** a pair whose RAW has the legacy tag `Places/Lisbon` and whose JPEG has `People/Anna`
-- **When** the cull opens
-- **Then** the picture's tags are `People/Anna` and `Places/Lisbon`, and the tags of every member
-  of the cull were looked up in one request
+Withdrawn by ADR 0040; `honeycomb_file_tags` is gone (M8 PR 5).
 
 ### TAGS-002.2 – A picture shows its sidecars' tags
 
-- **Given** a pair without legacy rows whose RAW's sidecar holds `Places/Lisbon` and whose JPEG's
+- **Given** a pair whose RAW's sidecar holds `Places/Lisbon` and whose JPEG's
   sidecar holds `People/Anna`
 - **When** the cull opens
-- **Then** the picture shows both tags, no tags are saved to the legacy tables, and no sidecar is
+- **Then** the picture shows both tags, no tags are saved to the database, and no sidecar is
   saved
 
-### TAGS-002.3 – Stored tags win over the sidecars
+### TAGS-002.3 – Stored tags win over the sidecars (removed)
 
-Withdrawn by ADR 0040; M8 PR 5 marks it removed with the table.
-
-- **Given** a picture without a legacy decision but with legacy tags, and a sidecar with other tags
-- **When** the cull opens
-- **Then** the picture shows its legacy tags
+Withdrawn by ADR 0040; `honeycomb_file_tags` is gone (M8 PR 5).
 
 ### TAGS-002.4 – Tags given meanwhile win over the sidecars
 
@@ -95,19 +83,15 @@ Withdrawn by ADR 0040; M8 PR 5 marks it removed with the table.
 - **Then** the long tag and the last tag in sort order are left out and each is logged as a warning;
   the others are shown and cached
 
-### TAGS-002.6 – A failed stored read shows the sidecars' tags
+### TAGS-002.6 – A failed stored read shows the sidecars' tags (removed)
 
-Withdrawn by ADR 0040; M8 PR 5 marks it removed with the table.
-
-- **Given** a legacy tag lookup that fails
-- **When** the cull opens
-- **Then** the error is logged, and the pictures show their sidecars' tags and decisions
+Withdrawn by ADR 0040; `honeycomb_file_tags` is gone (M8 PR 5).
 
 ### TAGS-002.7 – A tag change is shown for every member
 
 - **Given** a pair whose RAW's sidecar has `Places/Lisbon` and whose JPEG has none
 - **When** the user adds `Events/Wedding` and removes `Places/Lisbon`
-- **Then** the picture shows `Events/Wedding` at once and no tags are saved to the legacy tables
+- **Then** the picture shows `Events/Wedding` at once and no tags are saved to the database
 
 ### TAGS-002.8 – A failed save puts the tags back and writes nothing (removed)
 
@@ -149,13 +133,13 @@ Withdrawn by ADR 0040 (M8 PR 3); tags are written through in a shared folder (.2
 
 ### TAGS-002.14 – Files moved back have their tags read
 
-- **Given** a deleted picture with legacy tags, and one whose sidecar holds tags
-- **When** their files are put back into the cull
-- **Then** their legacy tags and sidecars are read and the pictures show those tags
+- **Given** a deleted picture whose sidecar holds tags
+- **When** its files are put back into the cull
+- **Then** its sidecars are read and the picture shows those tags
 
 ### TAGS-002.15 – The JPEG's embedded tags are taken over
 
-- **Given** a pair without legacy rows whose RAW's sidecar holds `People/Anna` and whose JPEG has
+- **Given** a pair whose RAW's sidecar holds `People/Anna` and whose JPEG has
   no sidecar of its own and embeds `Places/Lisbon`
 - **When** the cull opens
 - **Then** the picture shows both tags; only that JPEG's embedded XMP was looked up
@@ -233,3 +217,4 @@ The cull saves no tags to the database any more (ADR 0032, XMP-006.7).
 | 2026-11-19 | ADR 0040: no legacy tags, tags written through in shared folders, failed writes taken back (.1, .3, .6, .12 withdrawn; .22, .23 gaps) |
 | 2026-11-19 | M8 PR 3: tags are written through in a shared folder without asking (.12 removed; .22 implemented) |
 | 2026-11-19 | M8 PR 4: the migration is gone, so stored tags lock nothing; their read goes with the table in M8 PR 5 (.1, .3, .6) |
+| 2026-11-19 | M8 PR 5: no stored tags are read (.1, .3, .6 removed; .14 reads only the sidecars) |

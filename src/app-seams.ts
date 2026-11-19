@@ -17,7 +17,7 @@ import type { LookupSeries, SaveSeries } from './stored-series.ts'
 import type { ViewStateApi } from './view-state.ts'
 import type { HashImage, SaveVisualHashes } from './visual-hashes.ts'
 
-import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, imageUrl, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, lookupTags, movePictures, probeTargets, savePosition, saveSidecars, saveViewState, saveVisualHashes } from './api.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, cleanUpOrphanedData, imageUrl, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, movePictures, probeTargets, savePosition, saveSidecars, saveViewState, saveVisualHashes } from './api.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { browserHashWorkers } from './hash-workers.ts'
 import { onBrowserPageHide } from './page-hide.ts'
@@ -26,6 +26,9 @@ import { browserNow } from './sidecar-flow.ts'
 import { browserSchedule } from './tile-selection.ts'
 import { hashInWorkers } from './visual-hashes.ts'
 import { clearCache, lookupXmpCache, saveXmpCache } from './xmp-cache-api.ts'
+
+/** The element the server renders the app into, which carries its data attributes. */
+const APP_ELEMENT = 'honeycomb'
 
 /** The server and browser seams of the app; tests replace them with fakes. */
 export interface AppSeams {
@@ -51,6 +54,9 @@ export interface AppSeams {
 	move?: MoveApi
 	tags?: CullTagsApi
 	clearCache?: () => Promise<void>
+	/** Whether the user is an admin, who may clean up the orphaned data (SETTINGS-001.27). */
+	admin?: () => boolean
+	cleanUp?: () => Promise<number>
 }
 
 /** The seams the app uses in production. */
@@ -60,7 +66,7 @@ export const APP_SEAMS = {
 	warmPreviews: apiWarmPreviews,
 	hashImage: hashInWorkers(browserHashWorkers(), imageUrl),
 	saveVisualHashes,
-	lookupDecisions: apiLookupDecisions,
+	lookupDecisions: async (): Promise<StoredDecision[]> => [],
 	lookupSeries,
 	saveSeries,
 	loadSettings: apiLoadSettings,
@@ -74,6 +80,8 @@ export const APP_SEAMS = {
 	trashPictures: apiTrashPictures,
 	sidecars: () => ({ lookupSidecars, lookupEmbeddedXmp, saveSidecars, lookupXmpCache, saveXmpCache, now: browserNow }),
 	move: () => ({ probeTargets, movePictures }),
-	tags: () => ({ lookupTags, loadTagList }),
+	tags: () => ({ loadTagList }),
 	clearCache,
+	admin: () => document.getElementById(APP_ELEMENT)?.dataset.admin === 'true',
+	cleanUp: cleanUpOrphanedData,
 }

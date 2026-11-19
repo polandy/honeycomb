@@ -15,7 +15,9 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\IGroupManager;
 use OCP\IRequest;
+use OCP\IUserSession;
 
 /** @psalm-suppress UnusedClass Routed by its attributes. */
 final class PageController extends Controller {
@@ -23,16 +25,21 @@ final class PageController extends Controller {
 		string $appName,
 		IRequest $request,
 		private ScriptManifest $scripts,
+		private IUserSession $userSession,
+		private IGroupManager $groups,
 	) {
 		parent::__construct($appName, $request);
 	}
 
-	/** The app page and its hashed script (APP-001.10). */
+	/** The app page, its hashed script (APP-001.10) and whether the user is an admin, who may clean up orphaned data (SETTINGS-001.27). */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/')]
 	public function index(): TemplateResponse {
-		return $this->withHashWorkers(new TemplateResponse(Application::APP_ID, 'main', ['script' => $this->scripts->script(ScriptManifest::MAIN)]));
+		return $this->withHashWorkers(new TemplateResponse(Application::APP_ID, 'main', [
+			'script' => $this->scripts->script(ScriptManifest::MAIN),
+			'admin' => $this->isAdmin(),
+		]));
 	}
 
 	/** The page that computes the missing visual hashes of a folder tree in Web Workers (ADR 0025). */
@@ -41,6 +48,11 @@ final class PageController extends Controller {
 	#[FrontpageRoute(verb: 'GET', url: '/similarity')]
 	public function similarity(): TemplateResponse {
 		return $this->withHashWorkers(new TemplateResponse(Application::APP_ID, 'similarity', ['script' => $this->scripts->script(ScriptManifest::SIMILARITY)]));
+	}
+
+	private function isAdmin(): bool {
+		$user = $this->userSession->getUser();
+		return $user !== null && $this->groups->isAdmin($user->getUID());
 	}
 
 	/** Lets the page start the hash workers of its own origin (SERIES-003.26, SERIES-004.13). */

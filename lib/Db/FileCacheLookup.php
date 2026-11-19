@@ -15,6 +15,8 @@ use OCP\IDBConnection;
 final class FileCacheLookup implements ExistingFiles {
 	/** Oracle takes at most 1,000 values in an `IN` list. */
 	private const int IN_CHUNK = 1_000;
+	/** Where the files app's trash bin keeps a user's deleted files, in their home storage. */
+	private const string TRASH_BIN_PREFIX = 'files_trashbin/';
 
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it through the service alias. */
 	public function __construct(
@@ -24,16 +26,35 @@ final class FileCacheLookup implements ExistingFiles {
 
 	#[\Override]
 	public function existing(array $fileIds): array {
-		$existing = [];
+		return $this->select($fileIds, false);
+	}
+
+	#[\Override]
+	public function outsideTrashBin(array $fileIds): array {
+		return $this->select($fileIds, true);
+	}
+
+	/**
+	 * Compares the path in PHP: Nextcloud's `notLike` carries no `ESCAPE` on SQLite and Oracle.
+	 *
+	 * @param list<int> $fileIds
+	 * @return list<int>
+	 */
+	private function select(array $fileIds, bool $outsideTrashBin): array {
+		$found = [];
 		foreach (array_chunk($fileIds, self::IN_CHUNK) as $chunk) {
 			$query = $this->db->getQueryBuilder();
-			$query->select('fileid')
+			$query->select('fileid', 'path')
 				->from('filecache')
 				->where($query->expr()->in('fileid', $query->createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)));
 			$result = $query->executeQuery();
-			array_push($existing, ...array_map(intval(...), $result->fetchAll(\PDO::FETCH_COLUMN)));
+			while (($row = $result->fetch()) !== false) {
+				if (!$outsideTrashBin || !str_starts_with((string)$row['path'], self::TRASH_BIN_PREFIX)) {
+					$found[] = (int)$row['fileid'];
+				}
+			}
 			$result->closeCursor();
 		}
-		return $existing;
+		return $found;
 	}
 }

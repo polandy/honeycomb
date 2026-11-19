@@ -7,12 +7,14 @@ import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
+import { memberIds } from '../../src/logic/pairing.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
+import { sortedTags } from '../../src/logic/tag.ts'
 import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, SAVED_SERIES, SET } from './app-cull.ts'
 
 afterEach(() => vi.restoreAllMocks())
 
-/** A cull opened on ENTRIES with the stored tags, whose tag writes are recorded. */
+/** A cull opened on ENTRIES whose sidecars hold the tags of the rows, whose tag writes are recorded. */
 async function taggedCull(stored: StoredTags[], tagList: () => Promise<Tag[]> = async () => []) {
 	const written: { names: string[], change: TagChange }[] = []
 	const cull = useCull({
@@ -23,12 +25,10 @@ async function taggedCull(stored: StoredTags[], tagList: () => Promise<Tag[]> = 
 		lookupDecisions: async () => [],
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
-		tags: {
-			lookupTags: async (fileIds) => stored.filter((row) => fileIds.includes(row.fileId)),
-			loadTagList: tagList,
-		},
+		tags: { loadTagList: tagList },
 	}, fakeStorage(), () => DEFAULT_SETTINGS, {
 		...NO_SIDECARS,
+		read: async (pictures) => ({ decided: [], tagged: pictures.map((picture) => ({ picture, tags: sortedTags(stored.filter((row) => memberIds(picture).includes(row.fileId)).flatMap((row) => row.tags)) })).filter(({ tags }) => tags.length > 0) }),
 		writeTags: async (pictures, change) => {
 			written.push({ names: pictures.map((picture) => picture.baseName), change })
 			return { written: pictures.length, failed: [] }

@@ -13,7 +13,7 @@ use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\ImageNotFoundException;
 use OCA\Honeycomb\Service\ImageNotReadableException;
 use OCA\Honeycomb\Service\InvalidCursorException;
-use OCA\Honeycomb\Service\InvalidDecisionException;
+use OCA\Honeycomb\Service\InvalidFlagException;
 use OCA\Honeycomb\Service\InvalidMoveRequestException;
 use OCA\Honeycomb\Service\InvalidPositionException;
 use OCA\Honeycomb\Service\InvalidPreviewRequestException;
@@ -60,7 +60,7 @@ final class ApiResponseTest extends TestCase {
 	public static function failures(): array {
 		return [
 			'cursor' => [new InvalidCursorException(), Http::STATUS_BAD_REQUEST],
-			'decision' => [new InvalidDecisionException(), Http::STATUS_BAD_REQUEST],
+			'flag' => [new InvalidFlagException(), Http::STATUS_BAD_REQUEST],
 			'move' => [new InvalidMoveRequestException(), Http::STATUS_BAD_REQUEST],
 			'position' => [new InvalidPositionException(), Http::STATUS_BAD_REQUEST],
 			'preview' => [new InvalidPreviewRequestException(), Http::STATUS_BAD_REQUEST],

@@ -31,7 +31,7 @@ final class ClearCache extends Command {
 
 	#[\Override]
 	protected function configure(): void {
-		$this->setDescription('Clears what honeycomb remembers of the sidecars and photos it read; sidecars and decisions stay.')
+		$this->setDescription('Clears what honeycomb remembers of the sidecars and photos it read; sidecars and flags stay.')
 			->addArgument(self::USER, InputArgument::OPTIONAL, 'The user whose cache to clear; every user without one');
 	}
 

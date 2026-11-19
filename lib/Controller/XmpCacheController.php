@@ -46,7 +46,7 @@ final class XmpCacheController extends Controller {
 		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(['saved' => $this->service->save($user, $entries)]));
 	}
 
-	/** Clears the user's XMP cache and visual hashes; sidecars and decisions stay (ADR 0032). */
+	/** Clears the user's XMP cache and visual hashes; sidecars and flags stay (ADR 0032). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'DELETE', url: '/api/v1/xmp-cache')]
 	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]

@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Concept D (M8, ADR 0040): PR 5 `feat(db)` table `honeycomb_flags`, flags in the listing, the set and take-over endpoints, `carryOver`, the clean-up job, `occ honeycomb:cleanup` and *Clean up orphaned data*; first write the start value `pictures_decided_before` (ADR 0039, STATS-001.24), then drop `honeycomb_decisions`, `honeycomb_file_tags` and their endpoints (DECISIONS-001.21, DECISIONS-001.22, DECISIONS-001.23, DECISIONS-001.24, DECISIONS-001.25, DECISIONS-001.26, DECISIONS-001.27, DECISIONS-001.28, DECISIONS-001.29, DECISIONS-001.30, DECISIONS-001.31, DECISIONS-001.32, DECISIONS-001.33, LISTING-001.18, TAGS-001.16, SETTINGS-001.27); ships with PR 6–8 (2026-11-19)
 - [ ] Concept D (M8, ADR 0040): PR 6 `feat(cull)` flags from the listing, take-over once, ratings, labels and tags leave the flag fields, failed writes taken back, *Clear picks/rejects*, the lock as the mockup draws it (XMP-003.34, XMP-003.35, XMP-003.36, XMP-003.37, XMP-003.38, XMP-006.12, XMP-008.13, XMP-008.15, XMP-008.16, XMP-008.17, TAGS-002.23, GRID-001.20, GRID-001.22, GRID-003.16, LOUPE-002.18) (2026-11-19)
 - [ ] Concept D (M8, ADR 0040): PR 7 `feat(xmp)` *Write picks/rejects to XMP* with its count and toasts (XMP-003.39, XMP-003.40, XMP-003.41, XMP-003.42, GRID-001.21) (2026-11-19)
 - [ ] Concept D (M8, ADR 0040): PR 8 `fix(delete)` the trash endpoint checks `expect` and removes the rows; the fresh check reads no sidecar, the dialog *Fresh check not possible* goes (DELETE-001.15, DELETE-001.16, DELETE-001.17, DELETE-001.18, DELETE-002.26, DELETE-002.27, DELETE-003.11, DELETE-003.12) (2026-11-19)
@@ -18,7 +17,7 @@ Add items with `/todo`.
 - [ ] Statistics (M9, STATS-001): PR 4 *Cull finished* card with the session's numbers and before/after (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 5 browser counts with the sidecar and position saves: decisions net of undo, active time, bounds in PHP (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 6 statistics page: navigation entry, periods, tiles, bars, folder sets, days in a row (2026-11-19)
-- [ ] Statistics (M9, STATS-001): PR 7 start value with M8 PR 5 (ADR 0040) and the state of the pictures read so far from the XMP cache (2026-11-19)
+- [ ] Statistics (M9, STATS-001): PR 7 start value from the user preference `pictures_decided_before` that M8 PR 5 wrote, moved into `honeycomb_stats`, and the state of the pictures read so far from the XMP cache (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 8 year in review, its one-time hint from 1 December, sidecars from digiKam or darktable (2026-11-19)
 
 ## Later

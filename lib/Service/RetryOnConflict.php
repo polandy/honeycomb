@@ -26,15 +26,16 @@ final class RetryOnConflict {
 	];
 
 	/**
-	 * Runs `$save`, again after a unique key conflict, a deadlock or a lock wait timeout.
-	 * @param callable(): void $save
+	 * Runs `$save`, again after a unique key conflict, a deadlock or a lock wait timeout, and answers its result.
+	 * @template T
+	 * @param callable(): T $save
+	 * @return T
 	 * @throws DbException for any other database error, or one of these on every attempt
 	 */
-	public static function run(callable $save): void {
+	public static function run(callable $save): mixed {
 		for ($attempt = 1;; ++$attempt) {
 			try {
-				$save();
-				return;
+				return $save();
 			} catch (DbException $e) {
 				if (!in_array($e->getReason(), self::REPEATED_REASONS, true) || $attempt >= self::ATTEMPTS) {
 					throw $e;

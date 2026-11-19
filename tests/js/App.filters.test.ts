@@ -56,7 +56,6 @@ describe('App: decisions, flag filter, filters and sort', () => {
 		expect(toolbarProps(wrapper)).toMatchObject({ decided: 2, total: 3, filtered: false })
 	})
 
-	// spec: DECISIONS-001.9
 	it('ignores the decisions of a folder set that is no longer open', async () => {
 		let answer: (rows: StoredDecision[]) => void = () => undefined
 		const late = new Promise<StoredDecision[]>((resolve) => {
@@ -73,7 +72,6 @@ describe('App: decisions, flag filter, filters and sort', () => {
 		expect(shownNames(wrapper)).toEqual(['IMG_9', 'IMG_10'])
 	})
 
-	// spec: DECISIONS-001.9
 	it('logs a failed lookup and treats every photo as undecided', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		const { wrapper } = mountApp({ lookupDecisions: () => Promise.reject(new Error('down')) })

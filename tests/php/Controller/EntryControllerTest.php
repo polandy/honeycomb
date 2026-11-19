@@ -14,6 +14,7 @@ use OCA\Honeycomb\Service\EntryFactory;
 use OCA\Honeycomb\Service\ListingService;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Tests\Service\FakeFiles;
+use OCA\Honeycomb\Tests\Service\FakeFlagStore;
 use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -35,7 +36,7 @@ final class EntryControllerTest extends TestCase {
 	private function controller(IRootFolder $root, ?IUser $user, array $params = []): EntryController {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($user);
-		$listing = new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore()));
+		$listing = new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore(), new FakeFlagStore()));
 		$request = $this->createStub(IRequest::class);
 		$request->method('getParam')->willReturnCallback(static fn (string $key, mixed $default = null): mixed => $params[$key] ?? $default);
 		return new EntryController(Application::APP_ID, $request, new ApiResponse($session), $listing);
