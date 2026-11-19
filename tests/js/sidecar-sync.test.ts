@@ -63,7 +63,7 @@ function saved(fileId: number): SidecarSaveAnswer {
 const decisionOf = (decision: Decision) => () => decision
 
 describe('useSidecarSync: write', () => {
-	// spec: XMP-003.6, XMP-003.7
+	// spec: XMP-003.7
 	it('saves the looked-up and the created sidecars, then saves over both without a lookup', async () => {
 		const { sidecars, lookups, saves } = sync((item) => saved('fileId' in item ? item.fileId : 30))
 
@@ -211,26 +211,13 @@ describe('useSidecarSync: writeTags', () => {
 	})
 
 	// spec: TAGS-002.13
-	it('reports a failed sidecar with the change, and a retry writes the same change', async () => {
+	it('reports a failed sidecar with the change', async () => {
 		const { sidecars, saves, failures } = sync((item, call) => (call === 1 && 'fileId' in item ? { result: 'notPermitted' } : saved('fileId' in item ? item.fileId : 30)))
 
 		const { failed } = await sidecars.writeTags([PAIR], WEDDING)
-		await sidecars.retry(failed, decisionOf(UNDECIDED))
 
-		expect(failures).toEqual([[{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'notPermitted', tags: WEDDING }]])
-		expect(saves[1]!.map((item) => 'fileId' in item && item.fileId)).toEqual([11])
-		expect(itemsOf(readXmp(saves[1]![0]!.bytes), 'digiKam:TagsList')).toEqual(['Events/Wedding'])
-		expect(textOf(readXmp(saves[1]![0]!.bytes), 'xmp:Rating')).toBe('3')
-	})
-
-	// spec: XMP-003.13
-	it('retries a decision\'s failed sidecars with the decision of that moment', async () => {
-		const { sidecars, saves } = sync((item, call) => (call === 1 && 'fileId' in item ? { result: 'locked' } : saved(11)))
-
-		const { failed } = await sidecars.write([PAIR], decisionOf(UNDECIDED))
-		await sidecars.retry(failed, decisionOf({ ...UNDECIDED, rating: 5 }))
-
-		expect(saves[1]!.map((item) => 'fileId' in item && item.fileId)).toEqual([11])
-		expect(textOf(readXmp(saves[1]![0]!.bytes), 'xmp:Rating')).toBe('5')
+		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: PAIR, reason: 'notPermitted', tags: WEDDING }])
+		expect(failures).toEqual([failed])
+		expect(saves).toHaveLength(1)
 	})
 })

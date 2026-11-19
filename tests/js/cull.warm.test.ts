@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest'
 import { useCull } from '../../src/cull.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
+import { ENTRIES, fakeFlags, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
 describe('useCull: warm-up', () => {
@@ -16,7 +16,7 @@ describe('useCull: warm-up', () => {
 			saveVisualHashes: async () => undefined,
 			wait: async () => {},
 			warmPreviews: async (_fileIds, options) => { signals.push(options.signal!) },
-			lookupDecisions: async () => [],
+			flags: fakeFlags().api,
 			lookupSeries: NO_SERIES,
 			saveSeries: SAVED_SERIES,
 			tags: NO_TAGS,

@@ -28,6 +28,18 @@ describe('PhotoGrid tile marks', () => {
 		expect(tile(wrapper, 0).find('.photo-tile__tags').exists()).toBe(false)
 	})
 
+	// spec: GRID-001.20
+	it('locks exactly the read-only tiles and names the lock for assistive technology', async () => {
+		const readOnly = (picture: { baseName: string }) => picture.baseName === 'IMG_1'
+		const { wrapper, resize } = mountGrid({ readOnly })
+		await resize(432, 220)
+
+		expect(wrapper.findAll('.photo-tile__lock')).toHaveLength(1)
+		expect(tile(wrapper, 1).find('.photo-tile__lock').attributes('aria-hidden')).toBe('true')
+		expect(tile(wrapper, 1).attributes('aria-label')).toMatch(/, Read only$/)
+		expect(tile(wrapper, 0).attributes('aria-label')).not.toContain('Read only')
+	})
+
 	// spec: SERIES-003.18
 	it('lays what it is given over the top of the grid', () => {
 		const { wrapper } = mountGrid({}, false, { default: '<p class="strip">Comparing</p>' })

@@ -157,7 +157,7 @@ describe('trashPictures', () => {
 const bytesOf = (text: string) => new TextEncoder().encode(text)
 
 describe('lookupSidecars', () => {
-	// spec: XMP-003.1
+	// spec: XMP-003.34
 	it('decodes the bytes of each read sidecar and keeps the other results', async () => {
 		vi.mocked(axios.post).mockResolvedValue({ data: { sidecars: [
 			{ fileId: 9, result: 'read', content: btoa('<x/>'), etag: 'e', size: 4, mtime: 17 },
@@ -213,7 +213,7 @@ describe('lookupEmbeddedXmp', () => {
 })
 
 describe('saveSidecars', () => {
-	// spec: XMP-003.6, XMP-003.7
+	// spec: XMP-003.7
 	it('sends existing sidecars with ETag and size and new ones by path, in base64', async () => {
 		const large = new Uint8Array(70000).map((_, index) => index % 256)
 		vi.mocked(axios.put).mockResolvedValue({ data: { sidecars: [{ result: 'saved', fileId: 9, etag: 'n', size: 3, mtime: 5 }, { result: 'changed' }] } })

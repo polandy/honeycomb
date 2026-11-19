@@ -5,45 +5,33 @@ import type { StoredDecision } from '../../src/logic/decision.ts'
 import type { Settings } from '../../src/logic/settings.ts'
 
 import { flushPromises } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { shallowRef } from 'vue'
 import { useCull } from '../../src/cull.ts'
-import { logger } from '../../src/logger.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET, stored } from './app-cull.ts'
+import { ENTRIES, fakeFlags, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET, stored } from './app-cull.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
-/** The error the next lookups fail with, reset before each test. */
-let lookupFails: Error | null = null
-beforeEach(() => {
-	lookupFails = null
-})
 afterEach(() => vi.restoreAllMocks())
 
-/** A cull opened on ENTRIES whose lookups are recorded. */
+/** A cull opened on ENTRIES listed with the rows of its flag table. */
 async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
-	const lookedUp: number[][] = []
+	const flags = fakeFlags(stored)
 	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
 		saveVisualHashes: async () => undefined,
 		wait: async () => {},
 		warmPreviews: async () => undefined,
-		lookupDecisions: async (fileIds) => {
-			lookedUp.push([...fileIds])
-			if (lookupFails !== null) {
-				throw lookupFails
-			}
-			return [...stored]
-		},
+		flags: flags.api,
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,
 	}, fakeStorage(), () => settings.value, NO_SIDECARS)
-	cull.open(SET, entries)
+	cull.open(SET, flags.listed(entries))
 	await flushPromises()
-	return { cull, lookedUp, settings, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
+	return { cull, flags, settings, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
 }
 
 describe('useCull: redo', () => {
@@ -122,7 +110,7 @@ describe('useCull: removeFiles', () => {
 describe('useCull: restoreFiles', () => {
 	// spec: MOVE-004.11
 	it('puts files back into the listing, pairs them again and keeps their decisions', async () => {
-		const { cull, picture, lookedUp } = await openedCull()
+		const { cull, picture, flags } = await openedCull()
 		const pair = picture('IMG_10')
 		cull.decide({ kind: 'flag', flag: 'picked' }, [pair])
 		const entries = [pair.raw!, pair.rendered!]
@@ -133,54 +121,33 @@ describe('useCull: restoreFiles', () => {
 		expect(picture('IMG_10')).toMatchObject({ raw: { fileId: pair.raw!.fileId }, rendered: { fileId: pair.rendered!.fileId } })
 		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('picked')
 		expect(cull.pictures.value).toHaveLength(3)
-		expect(lookedUp).toHaveLength(1)
+		expect(flags.takenOver).toHaveLength(1)
 	})
 
 	// spec: MOVE-004.14
-	it('reads the decisions of files back under new file ids', async () => {
-		const rows: StoredDecision[] = []
-		const { cull, picture, lookedUp } = await openedCull(rows)
+	it('shows the flags the files back carry under new file ids', async () => {
+		const { cull, picture, flags } = await openedCull()
 		const pair = picture('IMG_10')
 		cull.removeFiles(new Set([pair.raw!.fileId, pair.rendered!.fileId]))
-		rows.push(stored(pair.raw!.fileId + 100, 'picked'), stored(pair.rendered!.fileId + 100, 'picked'))
 
-		cull.restoreFiles([{ ...pair.raw!, fileId: pair.raw!.fileId + 100 }, { ...pair.rendered!, fileId: pair.rendered!.fileId + 100 }])
+		cull.restoreFiles([pair.raw!, pair.rendered!].map((entry) => ({ ...entry, fileId: entry.fileId + 100, flag: 'picked' as const, keepRaw: false, flagUpdated: 1 })))
 		await flushPromises()
 
-		expect(lookedUp.at(-1)).toEqual([pair.raw!.fileId + 100, pair.rendered!.fileId + 100])
 		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('picked')
+		expect(flags.takenOver).toHaveLength(1)
 	})
 
 	// spec: MOVE-004.14
-	it('logs a failed read of the decisions of files back, and leaves them undecided', async () => {
-		const { cull, picture } = await openedCull()
-		const error = new Error('offline')
-		const logged = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
+	it('takes over the files back that carry no flag', async () => {
+		const { cull, picture, flags } = await openedCull()
 		const pair = picture('IMG_10')
 		cull.removeFiles(new Set([pair.raw!.fileId, pair.rendered!.fileId]))
-		lookupFails = error
 
 		cull.restoreFiles([{ ...pair.raw!, fileId: 103 }, { ...pair.rendered!, fileId: 102 }])
 		await flushPromises()
 
-		expect(logged).toHaveBeenCalledWith('Could not read the stored decisions; the photos show their sidecars\' decisions', { error })
 		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('unflagged')
-	})
-
-	// spec: MOVE-004.14
-	it('drops the decisions of files back once another folder set is open', async () => {
-		const rows: StoredDecision[] = []
-		const { cull, picture } = await openedCull(rows)
-		const pair = picture('IMG_10')
-		cull.removeFiles(new Set([pair.raw!.fileId, pair.rendered!.fileId]))
-		rows.push(stored(103, 'picked'))
-
-		cull.restoreFiles([{ ...pair.raw!, fileId: 103 }])
-		rows.length = 0
-		cull.open(SET, [{ ...pair.raw!, fileId: 103 }])
-		await flushPromises()
-
-		expect(cull.decisionOf(cull.pictures.value[0]!).flag).toBe('unflagged')
+		expect(flags.takenOver.at(-1)).toEqual([103, 102].map((fileId) => ({ fileId, flag: 'unflagged', keepRaw: false })))
 	})
 })
 
@@ -199,8 +166,8 @@ describe('useCull: settings', () => {
 		expect(cull.progress.value).toEqual({ decided: 2, total: 3 })
 	})
 
-	it('pairs the open cull again when the extensions change, keeps the decisions and reads those of new members', async () => {
-		const { cull, settings, lookedUp, picture } = await openedCull([stored(3, 'rejected')])
+	it('pairs the open cull again when the extensions change and keeps the listed flags', async () => {
+		const { cull, settings, picture } = await openedCull([stored(3, 'rejected')])
 		const before = cull.pictures.value
 
 		settings.value = { ...settings.value, rawExtensions: ['nef'] }
@@ -208,22 +175,20 @@ describe('useCull: settings', () => {
 
 		expect(cull.pictures.value).not.toBe(before)
 		expect(picture('IMG_10')).toMatchObject({ rendered: { fileId: 2 }, raw: null })
-		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('unflagged')
+		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('rejected')
 		settings.value = { ...settings.value, rawExtensions: ['cr3'] }
 		await flushPromises()
 		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('rejected')
-		expect(lookedUp).toHaveLength(3)
 	})
 
 	it('keeps the pictures when a setting that does not pair changes', async () => {
-		const { cull, settings, lookedUp } = await openedCull()
+		const { cull, settings } = await openedCull()
 		const before = cull.pictures.value
 
 		settings.value = { ...settings.value, viKeys: true, autoAdvance: false }
 		await flushPromises()
 
 		expect(cull.pictures.value).toBe(before)
-		expect(lookedUp).toHaveLength(1)
 	})
 
 	it('pairs what is left after a delete with the settings', async () => {

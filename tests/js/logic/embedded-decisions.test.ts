@@ -28,7 +28,7 @@ function written(saves: ReturnType<typeof planSaves>['saves'], isPair = true) {
 }
 
 describe('planSaves with the embedded XMP for a decision', () => {
-	// spec: XMP-003.23
+	// spec: XMP-003.22
 	it('starts the JPEG\'s new sidecar from the embedded decision, the others from their own', () => {
 		const answers = new Map([[11, read(xmp({ 'xmp:Rating': '1' }), 300)]])
 
@@ -41,7 +41,7 @@ describe('planSaves with the embedded XMP for a decision', () => {
 		])
 	})
 
-	// spec: XMP-003.21, XMP-003.23
+	// spec: XMP-003.22
 	it('starts a new RAW sidecar from the embedded decision when it is all the picture states', () => {
 		const pair = pictureOf(NEF, JPG)
 
@@ -52,7 +52,7 @@ describe('planSaves with the embedded XMP for a decision', () => {
 		expect(written(none.saves).map(([, decision]) => decision)).toEqual([{ ...UNDECIDED, rating: 5 }, { ...UNDECIDED, rating: 5 }])
 	})
 
-	// spec: XMP-003.23
+	// spec: XMP-003.22
 	it('writes the embedded decision into the JPEG\'s sidecar that a tag change creates', () => {
 		const { saves } = planSaves(ALONE, { tags: { added: ['Kids'], removed: [] } }, new Map(), new Map(), CANONICAL_TIME, undefined, new Map([[3, embedded({ 'xmp:Rating': '3', 'digiKam:PickLabel': '1' })]]))
 

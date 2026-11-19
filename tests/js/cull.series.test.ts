@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { CullApi } from '../../src/cull-seams.ts'
+import type { StoredDecision } from '../../src/logic/decision.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { SeriesWrite } from '../../src/logic/series-edit.ts'
 
@@ -10,25 +11,26 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useCull } from '../../src/cull.ts'
 import { logger } from '../../src/logger.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET, stored } from './app-cull.ts'
+import { fakeFlags, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET, stored } from './app-cull.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
 afterEach(() => vi.restoreAllMocks())
 
-/** A cull opened on the entries over the given endpoints. */
-function openedCull(entries: readonly ListingEntry[], api: Partial<CullApi> = {}) {
+/** A cull opened on the entries over the given endpoints, the rows in the flag table. */
+function openedCull(entries: readonly ListingEntry[], api: Partial<CullApi> = {}, rows: StoredDecision[] = []) {
+	const flags = fakeFlags(rows)
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
 		saveVisualHashes: async () => undefined,
 		wait: async () => {},
 		warmPreviews: async () => undefined,
-		lookupDecisions: async () => [],
+		flags: flags.api,
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,
 		...api,
 	}, fakeStorage(), () => DEFAULT_SETTINGS, NO_SIDECARS)
-	cull.open(SET, entries)
+	cull.open(SET, flags.listed(entries))
 	return cull
 }
 
@@ -69,7 +71,7 @@ describe('useCull: stored series', () => {
 	it('logs a failed read, keeps every series automatic and still reads the decisions', async () => {
 		const error = new Error('offline')
 		const logged = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
-		const cull = openedCull(BURST, { lookupSeries: async () => Promise.reject(error), lookupDecisions: async () => [stored(1, 'picked')] })
+		const cull = openedCull(BURST, { lookupSeries: async () => Promise.reject(error) }, [stored(1, 'picked')])
 		await flushPromises()
 
 		expect(logged).toHaveBeenCalledWith('Could not read the stored series; every series shows as automatic', { error })
@@ -100,7 +102,7 @@ describe('useCull: stored series', () => {
 
 describe('useCull: series edits', () => {
 	/** A cull on the burst that records its series writes and answers new series with ids from 31 on. */
-	function editedCull(api: Partial<CullApi> = {}) {
+	function editedCull(api: Partial<CullApi> = {}, rows: StoredDecision[] = []) {
 		const written: SeriesWrite[] = []
 		const cull = openedCull(BURST, {
 			saveSeries: async (write) => {
@@ -108,7 +110,7 @@ describe('useCull: series edits', () => {
 				return { ids: write.series.map(({ id }, index) => id ?? 31 + index) }
 			},
 			...api,
-		})
+		}, rows)
 		return { cull, written }
 	}
 
@@ -221,7 +223,7 @@ describe('useCull: series edits', () => {
 
 	// spec: SERIES-005.14
 	it('marks an automatic series done as one undo step: its unflagged pictures count as decided but keep their flag', async () => {
-		const { cull, written } = editedCull({ lookupDecisions: async () => [stored(3, 'picked')] })
+		const { cull, written } = editedCull({}, [stored(3, 'picked')])
 		await flushPromises()
 		const [A, , C] = cull.pictures.value
 

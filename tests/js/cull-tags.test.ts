@@ -5,6 +5,7 @@ import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 import type { TagChange } from '../../src/logic/tag.ts'
 
+import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { useCullTags } from '../../src/cull-tags.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
@@ -13,11 +14,12 @@ const PAIR = pictureOf(listingEntry(1, '/P/IMG_1.NEF'), listingEntry(2, '/P/IMG_
 const READ_ONLY = pictureOf(listingEntry(3, '/Team/IMG_3.JPG'))
 const WEDDING: TagChange = { added: ['Events/Wedding'], removed: ['Places/Lisbon'] }
 
-/** Cull tags over the OPENED pictures, with recorded writes; READ_ONLY lies in a read-only folder. */
-function cullTags() {
+/** Cull tags with recorded writes whose sidecars of the `failing` pictures answer `locked`; READ_ONLY lies in a read-only folder. */
+function cullTags(failing: readonly Picture<ListingEntry>[] = []) {
 	const writes: { pictures: Picture<ListingEntry>[], change: TagChange }[] = []
 	const tags = useCullTags({ loadTagList: async () => [] }, async (pictures, change) => {
 		writes.push({ pictures: [...pictures], change })
+		return { failed: pictures.filter((picture) => failing.includes(picture)).map((picture) => ({ picture, path: `${picture.folder}/${picture.baseName}.xmp`, reason: 'locked' as const })) }
 	}, (picture) => picture !== READ_ONLY)
 	return { tags, writes }
 }
@@ -68,6 +70,19 @@ describe('useCullTags: change', () => {
 		expect(tags.tagsOf(PAIR)).toEqual(['Events/Wedding'])
 		expect(tags.tagsOf(READ_ONLY)).toEqual(['Events/Wedding'])
 		expect(writes).toEqual([{ pictures: [PAIR], change: WEDDING }])
+	})
+
+	// spec: TAGS-002.23
+	it('gives a picture whose sidecar write failed its earlier tags back, and the other keeps the change', async () => {
+		const OTHER = pictureOf(listingEntry(4, '/P/IMG_4.JPG'))
+		const { tags } = cullTags([PAIR])
+		tags.fromSidecars([{ picture: PAIR, tags: ['Places/Lisbon'] }, { picture: OTHER, tags: ['Places/Lisbon'] }])
+
+		tags.change([PAIR, OTHER], WEDDING)
+		await flushPromises()
+
+		expect(tags.tagsOf(PAIR)).toEqual(['Places/Lisbon'])
+		expect(tags.tagsOf(OTHER)).toEqual(['Events/Wedding'])
 	})
 
 	it('writes nothing when no chosen picture is writable', () => {

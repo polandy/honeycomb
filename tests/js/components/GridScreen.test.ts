@@ -10,7 +10,7 @@ import GridToolbar from '../../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../../src/components/PhotoGrid.vue'
 import SelectionBar from '../../../src/components/SelectionBar.vue'
 import { DEFAULT_FILTERS } from '../../../src/logic/picture-filter.ts'
-import { gridStub, SET } from '../app-cull.ts'
+import { ENTRIES, gridStub, SET } from '../app-cull.ts'
 import { fakeCullContext, mountInCullContext } from '../cull-context-fake.ts'
 
 /** The grid screen over a fake context, its parts stubbed. */
@@ -33,7 +33,7 @@ describe('GridScreen', () => {
 			view: { tileSize: expect.any(Number), groupByFolder: false, fileNames: false, sortOrder: 'capture-time', flags: new Set(['picked', 'unflagged']), filtersOpen: false, activeFilters: 0 },
 			progress: { decided: 0, total: 3, filtered: false },
 			selection: { selecting: false, selected: 0 },
-			tasks: { rejected: 1, series: 0, rawRemovable: 1, movable: 0, resumeName: 'IMG_9' },
+			tasks: { rejected: 1, series: 0, rawRemovable: 1, movable: 0, clearable: 0, resumeName: 'IMG_9' },
 		})
 	})
 
@@ -124,6 +124,24 @@ describe('GridScreen', () => {
 		bar.vm.$emit('series', 'new')
 
 		expect(calls).toEqual([['decide', { kind: 'flag', flag: 'picked' }, chosen], ['tag', chosen], ['move', chosen], ['summarise', chosen], ['editSeries', 'new', chosen]])
+	})
+
+	// spec: GRID-003.16
+	it('greys the selection bar while every selected picture is read only, and not once a rateable one is added', async () => {
+		const { wrapper, context } = await mountScreen(({ context }) => {
+			context.cull.open(SET, ENTRIES, { folders: [{ path: '/Trip/A', permissions: 3 }] })
+		})
+		await flushPromises()
+		context.selection.setSelecting(true)
+		const bar = () => wrapper.findComponent(SelectionBar)
+
+		context.selection.select({ ids: new Set([2, 4]), anchor: 2 })
+		await flushPromises()
+		expect(bar().props('readOnly')).toBe(true)
+
+		context.selection.select({ ids: new Set([1, 2, 4]), anchor: 2 })
+		await flushPromises()
+		expect(bar().props('readOnly')).toBe(false)
 	})
 
 	// spec: SERIES-005.4

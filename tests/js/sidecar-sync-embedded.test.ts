@@ -53,7 +53,7 @@ function sync(embedded: (fileId: number) => EmbeddedXmpAnswer | null) {
 const tagsOf = (item: SidecarSaveItem) => itemsOf(readXmp(item.bytes), 'digiKam:TagsList')
 
 describe('useSidecarSync: the embedded XMP in a decision write', () => {
-	// spec: XMP-003.23
+	// spec: XMP-003.22
 	it('starts the JPEG\'s new sidecar from the embedded decision', async () => {
 		const { sidecars, embeddedLookups, saves } = sync(() => ({ result: 'read', bytes: tagged([], '4') }))
 
@@ -90,19 +90,15 @@ describe('useSidecarSync: the embedded XMP in a tag write', () => {
 	})
 
 	// spec: TAGS-002.20
-	it('writes nothing for a picture whose embedded lookup failed, and looks it up again on retry', async () => {
+	it('writes nothing for a picture whose embedded lookup failed and reports it', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
-		const answers = [null, { result: 'none' as const }]
-		const { sidecars, embeddedLookups, saves, failures } = sync(() => answers[embeddedLookups.length - 1]!)
+		const { sidecars, embeddedLookups, saves, failures } = sync(() => null)
 
 		await sidecars.writeTags([ALONE], WEDDING)
-		await sidecars.retry(failures[0]!, () => {
-			throw new Error('no decision')
-		})
 
 		expect(failures).toEqual([[{ path: '/P/B.JPG.xmp', picture: ALONE, reason: 'unreachable', tags: WEDDING }]])
-		expect(embeddedLookups).toEqual([[3], [3]])
-		expect(saves.map((items) => items.map(tagsOf))).toEqual([[['Events/Wedding']]])
+		expect(embeddedLookups).toEqual([[3]])
+		expect(saves).toEqual([])
 		expect(error).toHaveBeenCalledWith('Could not look up the embedded XMP to write', expect.anything())
 		error.mockRestore()
 	})

@@ -100,20 +100,18 @@ describe('useSidecarSync: passes', () => {
 	})
 
 	// spec: XMP-003.20, XMP-003.13
-	it('retries a failed sidecar with the fields its write changed, valued as they are then', async () => {
+	it('reports a failed sidecar with the fields its write changed', async () => {
 		const answers = [(): SidecarSaveAnswer => ({ result: 'notPermitted' })]
-		const { sidecars, saves, release } = sync((item) => (answers.shift() ?? (() => saved('fileId' in item ? item.fileId : 30)))())
+		const { sidecars, release } = sync((item) => (answers.shift() ?? (() => saved('fileId' in item ? item.fileId : 30)))())
 		release()
 
 		const { failed } = await sidecars.write([SINGLE], () => rated(4), ['rating'])
-		await sidecars.retry(failed, () => ({ ...rated(2), colourLabel: 'red' }))
 
 		expect(failed.map(({ fields }) => fields)).toEqual([['rating']])
-		expect(sidecarDecision(readXmp(saves.at(-1)![0]!.bytes), false)).toEqual(rated(2))
 	})
 
 	// spec: XMP-003.16, XMP-003.13
-	it('retries a failed sidecar of a decision and a tag change with both', async () => {
+	it('reports a failed sidecar of a decision and a tag change with both', async () => {
 		const answers = [(): SidecarSaveAnswer => ({ result: 'notPermitted' })]
 		const { sidecars, saves, release } = sync((item) => (answers.shift() ?? (() => saved('fileId' in item ? item.fileId : 30)))())
 		release()
@@ -121,11 +119,9 @@ describe('useSidecarSync: passes', () => {
 		const wedding = { added: ['Events/Wedding'], removed: [] }
 		const results = await Promise.all([sidecars.write([SINGLE], () => rated(4)), sidecars.writeTags([SINGLE], wedding)])
 		const failed = results[1].failed
-		await sidecars.retry(failed, () => rated(4))
 
 		expect(failed).toEqual([{ path: '/P/IMG_0001.NEF.xmp', picture: SINGLE, reason: 'notPermitted', tags: wedding, fields: DECISION_FIELDS }])
-		const retried = readXmp(saves.at(-1)![0]!.bytes)
-		expect([textOf(retried, 'xmp:Rating'), itemsOf(retried, 'digiKam:TagsList')]).toEqual(['4', ['Events/Wedding', 'Places/Lisbon']])
+		expect(saves).toHaveLength(1)
 	})
 
 	// spec: XMP-003.17

@@ -9,7 +9,7 @@ import ActionBar from '../../src/components/ActionBar.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import { UNDECIDED } from '../../src/logic/decision.ts'
-import { decidedRows, mountApp, openCull, shownNames, toolbarProps } from './app-cull.ts'
+import { decidedRows, mountApp, openCull, shownNames, sidecarApi, toolbarProps } from './app-cull.ts'
 import { installMarkedCatalogue, uninstallMarkedCatalogue } from './l10n/marked-catalogue.ts'
 
 /** Enters selection mode from the toolbar and selects the grid keys. */
@@ -79,11 +79,11 @@ describe('App: selection mode and bulk decisions', () => {
 	})
 
 	// spec: GRID-003.10
-	it('keeps a change made before the stored decisions arrive', async () => {
-		let resolveLookup: (rows: never[]) => void = () => undefined
-		const { wrapper } = mountApp({ lookupDecisions: () => new Promise((resolve) => {
+	it('keeps a change made before the sidecars are read', async () => {
+		let resolveLookup: (found: never[]) => void = () => undefined
+		const { wrapper } = mountApp({ sidecars: { ...sidecarApi(), lookupSidecars: () => new Promise((resolve) => {
 			resolveLookup = resolve
-		}) })
+		}) } })
 		await openCull(wrapper)
 		await select(wrapper, [1])
 

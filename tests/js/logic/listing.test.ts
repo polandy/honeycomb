@@ -18,6 +18,9 @@ function entry(fileId: number, path: string): ListingEntry {
 		width: null,
 		height: null,
 		camera: null,
+		flag: null,
+		keepRaw: null,
+		flagUpdated: null,
 		visualHash: null,
 	}
 }

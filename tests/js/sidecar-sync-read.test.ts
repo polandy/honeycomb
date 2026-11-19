@@ -65,7 +65,7 @@ afterEach(() => {
 })
 
 describe('useSidecarSync: read', () => {
-	// spec: XMP-006.7, XMP-003.1
+	// spec: XMP-006.7, XMP-003.34
 	it('reads only the sidecars without a valid row, stores their rows and shows the valid row\'s values', async () => {
 		const valid = sidecarRow(103, 'etag-103', RATED_5)
 		const stale = sidecarRow(101, 'old', RATED_5)

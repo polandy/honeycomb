@@ -10,7 +10,7 @@ import { logger } from '../../src/logger.ts'
 import { memberIds } from '../../src/logic/pairing.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { sortedTags } from '../../src/logic/tag.ts'
-import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, SAVED_SERIES, SET } from './app-cull.ts'
+import { ENTRIES, fakeFlags, fakeStorage, NO_SERIES, NO_SIDECARS, SAVED_SERIES, SET } from './app-cull.ts'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -22,7 +22,7 @@ async function taggedCull(stored: StoredTags[], tagList: () => Promise<Tag[]> = 
 		saveVisualHashes: async () => undefined,
 		wait: async () => {},
 		warmPreviews: async () => undefined,
-		lookupDecisions: async () => [],
+		flags: fakeFlags().api,
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
 		tags: { loadTagList: tagList },

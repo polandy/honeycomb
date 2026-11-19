@@ -3,7 +3,7 @@
 import type { DecisionChange } from '../../src/logic/decision-change.ts'
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { changeText, decidedText, redoneText, shownDecidedText, undoneText } from '../../src/decision-text.ts'
+import { changeText, decidedText, flagsNotSavedText, redoneText, shownDecidedText, undoneText } from '../../src/decision-text.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue } from './l10n/marked-catalogue.ts'
 
 const escapeMark = TRANSLATED_MARK.replace(/[[\]]/g, '\\$&')
@@ -98,5 +98,19 @@ describe('changeText of a series edit', () => {
 	] as const)('words %s of %o in %i series as "%s"', (edit, names, series, text) => {
 		expect(changeText({ kind: 'series', edit, names, series })).toBe(text)
 		expect(redoneText({ kind: 'series', edit, names, series })).toBe(`Redid: ${text}`)
+	})
+})
+
+describe('the texts of Clear picks/rejects and of a failed flag save', () => {
+	// spec: GRID-001.22
+	it('words the clear as a reset of the photos', () => {
+		expect(changeText({ kind: 'decision', change: { flag: 'unflagged', keepRaw: false }, names: Array.from({ length: 10 }, (_, index) => `IMG_${index}`) })).toBe('10 photos reset')
+		expect(changeText({ kind: 'decision', change: { flag: 'unflagged', keepRaw: false }, names: ['IMG_1'] })).toBe('IMG_1 reset')
+	})
+
+	// spec: XMP-008.17
+	it('counts the photos whose flags are back', () => {
+		expect(flagsNotSavedText(1)).toBe('Could not save the flag of 1 photo; it is back as it was')
+		expect(flagsNotSavedText(2)).toBe('Could not save the flags of 2 photos; they are back as they were')
 	})
 })

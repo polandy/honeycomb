@@ -15,16 +15,17 @@ import { DEFAULT_SETTINGS } from '../../../src/logic/settings.ts'
 import { pointer } from './loupe-pointer.ts'
 import { button, indices, mountLoupe } from './mount-loupe.ts'
 
-/** The loupe at `index` over decisions by file id that apply every flag it decides, as the cull does. */
-async function mountDeciding(index: number, flags: Record<number, Decision['flag']> = {}, settings: Partial<Settings> = {}) {
+/** The loupe at `index` over decisions by file id that apply every flag it decides, as the cull does, except on a read-only picture. */
+async function mountDeciding(index: number, flags: Record<number, Decision['flag']> = {}, settings: Partial<Settings> = {}, readOnly: readonly string[] = []) {
 	const decisions = reactive(new Map(Object.entries(flags).map(([fileId, flag]) => [Number(fileId), { ...UNDECIDED, flag }])))
 	const decided: [DecisionIntent, string][] = []
 	const mounted = await mountLoupe(index, {}, false, {
 		settings: { ...DEFAULT_SETTINGS, ...settings },
+		writabilityOf: (picture: (typeof PICTURES)[number]) => (readOnly.includes(picture.baseName) ? 'readOnly' : 'writable'),
 		decisionOf: (picture: (typeof PICTURES)[number]) => decisions.get(picture.rendered!.fileId) ?? UNDECIDED,
 		onDecide: (intent: DecisionIntent, picture: (typeof PICTURES)[number]) => {
 			decided.push([intent, picture.baseName])
-			if (intent.kind === 'flag') {
+			if (intent.kind === 'flag' && !readOnly.includes(picture.baseName)) {
 				decisions.set(picture.rendered!.fileId, { ...UNDECIDED, flag: intent.flag })
 			}
 		},
@@ -63,6 +64,23 @@ describe('PhotoLoupe: decisions', () => {
 		const { wrapper } = await mountDeciding(8, { 10: 'rejected' })
 		await button(wrapper, 'Pick').trigger('click')
 		expect(indices(wrapper)).toBeUndefined()
+	})
+
+	// spec: LOUPE-002.18
+	it('greys the decisions and Tags of a read-only picture, where a swipe changes nothing, and not of a rateable one', async () => {
+		const controls = ['Pick', 'Reject', 'Unflag', 'Rate 3 stars', 'Colour label', 'Tags']
+		const { wrapper } = await mountDeciding(4, {}, {}, ['IMG_5'])
+		const stage = wrapper.find('.loupe-stage')
+
+		expect(controls.map((label) => button(wrapper, label).attributes('disabled'))).toEqual(controls.map(() => ''))
+		await pointer(stage, 'pointerdown', { x: 500, y: 400, time: 0 })
+		await pointer(stage, 'pointermove', { x: 500, y: 100, time: 100 })
+		await pointer(stage, 'pointerup', { x: 500, y: 100, time: 100 })
+		expect(indices(wrapper)).toBeUndefined()
+		expect(button(wrapper, 'Unflag').attributes('aria-pressed')).toBe('true')
+
+		await wrapper.setProps({ index: 5 })
+		expect(controls.map((label) => button(wrapper, label).attributes('disabled'))).toEqual(controls.map(() => undefined))
 	})
 
 	// spec: LOUPE-002.4

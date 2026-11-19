@@ -9,7 +9,7 @@ import { useCull } from '../../src/cull.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { useBundledSidecars } from '../../src/sidecar-bundle.ts'
 import { useSidecarSync } from '../../src/sidecar-sync.ts'
-import { ENTRIES, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
+import { ENTRIES, fakeFlags, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
 import { access } from './cull-sidecars-fake.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
 import { CANONICAL_TIME } from './logic/xmp/xmp-builders.ts'
@@ -33,7 +33,7 @@ async function bundledCull(over?: SidecarWrites) {
 		saveVisualHashes: async () => undefined,
 		wait: async () => {},
 		warmPreviews: async () => undefined,
-		lookupDecisions: async () => [],
+		flags: fakeFlags().api,
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,
@@ -47,7 +47,7 @@ describe('useCull: flushing the sidecar writes', () => {
 	// spec: XMP-003.30
 	it('waits for the sidecar write of a decision still on the way', async () => {
 		const { cull, sidecars, settle, writes, picture } = await bundledCull()
-		cull.decide({ kind: 'flag', flag: 'picked' }, [picture('IMG_9'), picture('IMG_2')])
+		cull.decide({ kind: 'rating', rating: 2 }, [picture('IMG_9'), picture('IMG_2')])
 		let flushed = false
 		const flush = sidecars.flush().then(() => (flushed = true))
 
@@ -88,7 +88,7 @@ describe('useCull: flushing the sidecar writes', () => {
 			},
 		}, () => CANONICAL_TIME, () => {})
 		const { cull, sidecars, picture } = await bundledCull(sync)
-		cull.decide({ kind: 'flag', flag: 'picked' }, [picture('IMG_2')])
+		cull.decide({ kind: 'rating', rating: 2 }, [picture('IMG_2')])
 		const flush = sidecars.flush()
 		await flushPromises()
 
