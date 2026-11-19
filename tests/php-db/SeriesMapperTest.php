@@ -37,8 +37,29 @@ final class SeriesMapperTest extends DbTestCase {
 	 * @return list<int>
 	 */
 	private function write(string $userId, array $items, array $keptOut = [], array $released = []): array {
+		return $this->written($userId, $items, $keptOut, $released)['ids'];
+	}
+
+	/**
+	 * Writes the series items as `write()` does and returns the store's whole answer.
+	 * @param list<array<int|string|null>> $items
+	 * @param list<int> $keptOut
+	 * @param list<int> $released
+	 * @return array{ids: list<int>, done: int}
+	 */
+	private function written(string $userId, array $items, array $keptOut = [], array $released = []): array {
 		$series = array_map(static fn (array $item): array => ['id' => $item[0], 'status' => $item[1], 'fileIds' => array_slice($item, 2)], $items);
 		return $this->series->write($userId, SeriesWrite::fromRequest($series, $keptOut, $released));
+	}
+
+	// spec: STATS-001.29
+	public function testAnswersHowManySeriesBecameDone(): void {
+		[$open, $done, $reopened] = $this->write('alice', [[null, 'open', 7], [null, 'done', 8], [null, 'done', 9]]);
+		[$bobs] = $this->write('bob', [[null, 'open', 3]]);
+
+		$this->assertSame(3, $this->written('alice', [[$open, 'done'], [$done, 'done'], [$reopened, 'open'], [null, 'done', 4], [null, 'open', 5], [$bobs, 'done', 6]])['done']);
+		$this->assertSame(0, $this->written('alice', [[$open, 'done']])['done']);
+		$this->assertSame(SeriesStatus::Open, $this->find('bob', [3])->series[0]->status);
 	}
 
 	/** @param list<int> $fileIds */

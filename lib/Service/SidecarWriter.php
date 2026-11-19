@@ -16,16 +16,17 @@ use OCP\IUser;
 use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
 
-/** Saves sidecars by the checked save: check, then write in place (ADR 0017). */
+/** Saves sidecars by the checked save: check, then write in place (ADR 0017); counts the saves (ADR 0039). */
 final class SidecarWriter {
 	public function __construct(
 		private UserPhotos $photos,
 		private LoggerInterface $logger,
+		private StatsService $stats,
 	) {
 	}
 
 	/**
-	 * Saves each sidecar and reports each, in the order sent.
+	 * Saves each sidecar, counts the saves and reports each, in the order sent.
 	 * @param array<array-key, mixed> $sidecars
 	 * @return list<array{result: SidecarResult, fileId?: int, etag?: string, size?: int|float, mtime?: int}>
 	 * @throws InvalidSidecarRequestException for a malformed request; nothing is written
@@ -33,11 +34,19 @@ final class SidecarWriter {
 	public function save(IUser $user, array $sidecars): array {
 		$sidecars = SidecarRequest::sidecars($sidecars);
 		$userFolder = $this->photos->userFolder($user);
-		return array_map(fn (ExistingSidecar|NewSidecar $sidecar): array => $this->saveOne($userFolder, $sidecar), $sidecars);
+		$previousMTimes = [];
+		$results = array_map(function (ExistingSidecar|NewSidecar $sidecar) use ($userFolder, &$previousMTimes): array {
+			return $this->saveOne($userFolder, $sidecar, $previousMTimes);
+		}, $sidecars);
+		$this->stats->countSidecars($user, $previousMTimes);
+		return $results;
 	}
 
-	/** @return array{result: SidecarResult, fileId?: int, etag?: string, size?: int|float, mtime?: int} */
-	private function saveOne(Folder $userFolder, ExistingSidecar|NewSidecar $sidecar): array {
+	/**
+	 * @param list<?int> $previousMTimes gains the modification time a saved sidecar had before, null for a created one
+	 * @return array{result: SidecarResult, fileId?: int, etag?: string, size?: int|float, mtime?: int}
+	 */
+	private function saveOne(Folder $userFolder, ExistingSidecar|NewSidecar $sidecar, array &$previousMTimes): array {
 		$target = $this->check($userFolder, $sidecar);
 		if ($target instanceof SidecarResult) {
 			return ['result' => $target];
@@ -46,11 +55,26 @@ final class SidecarWriter {
 		if (!$this->fits($folder, $sidecar->bytes, $existing)) {
 			return ['result' => SidecarResult::NoSpace];
 		}
+		$previous = $this->previousMTime($existing);
 		try {
 			$saved = $existing === null ? $folder->newFile($name, $sidecar->bytes) : $this->replace($existing, $sidecar->bytes);
+			array_push($previousMTimes, ...$previous);
 			return ['result' => SidecarResult::Saved, 'fileId' => $saved->getId(), 'etag' => $saved->getEtag(), 'size' => $saved->getSize(), 'mtime' => $saved->getMTime()];
 		} catch (\Exception $e) {
 			return ['result' => $this->resultOf($e, $folder->getPath() . "/$name")];
+		}
+	}
+
+	/**
+	 * The modification time of the sidecar a save replaces, null for a created one, or nothing when it cannot be read, so the save goes on uncounted.
+	 * @return list<?int>
+	 */
+	private function previousMTime(?File $existing): array {
+		try {
+			return [$existing?->getMTime()];
+		} catch (\Exception $e) {
+			$this->logger->warning('Could not read the modification time of a sidecar to count it', ['exception' => $e]);
+			return [];
 		}
 	}
 

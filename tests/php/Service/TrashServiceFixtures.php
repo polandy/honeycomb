@@ -27,6 +27,8 @@ use Psr\Log\LoggerInterface;
 
 /** Alice's files and a `TrashService` over them, for the tests of `TrashService`. */
 trait TrashServiceFixtures {
+	use StatsFixture;
+
 	/** @var list<int> file ids in the order they were trashed */
 	private array $trashed = [];
 
@@ -52,13 +54,15 @@ trait TrashServiceFixtures {
 		return $user;
 	}
 
-	/** A file of alice's that records its delete, or throws `$failure` instead, and has no id once deleted, as in Nextcloud; `$size` bytes against a trash bin size of 1000; its delete takes `$seconds`. */
-	private function file(int $id, string $name, string $mime = 'image/jpeg', bool $deletable = true, ?\Throwable $failure = null, int $size = 1, bool $trashBin = true, int $seconds = 0): File {
+	/** A file of alice's that records its delete, or throws `$failure` instead, and has no id once deleted, as in Nextcloud; `$size` bytes against a trash bin size of 1000, unreadable after `$sizeReads` reads; its delete takes `$seconds`. */
+	private function file(int $id, string $name, string $mime = 'image/jpeg', bool $deletable = true, ?\Throwable $failure = null, int $size = 1, bool $trashBin = true, int $seconds = 0, int $sizeReads = PHP_INT_MAX): File {
 		$storage = $this->createStub(IStorage::class);
 		$storage->method('instanceOfStorage')->willReturnCallback(static fn (string $class): bool => $trashBin && $class === 'OCA\Files_Trashbin\Storage');
 		$file = $this->createStub(File::class);
 		$file->method('getStorage')->willReturn($storage);
-		$file->method('getSize')->willReturn($size);
+		$file->method('getSize')->willReturnCallback(function () use ($id, $size, &$sizeReads): int {
+			return in_array($id, $this->trashed, true) || $sizeReads-- <= 0 ? throw new NotFoundException() : $size;
+		});
 		$file->method('getId')->willReturnCallback(fn (): int => in_array($id, $this->trashed, true) ? throw new NotFoundException() : $id);
 		$file->method('getName')->willReturn($name);
 		$file->method('getMimetype')->willReturn($mime);
@@ -91,7 +95,7 @@ trait TrashServiceFixtures {
 		$time = $this->createStub(ITimeFactory::class);
 		$time->method('getTime')->willReturnCallback(fn (): int => $this->clock()->now);
 		$spacing = new TrashNameSpacing($time, $this->clock());
-		return new TrashService(new UserPhotos(new UserFolderResolver($root)), $apps, $guard, $spacing, $this->flags(), $logger ?? $this->createStub(LoggerInterface::class));
+		return new TrashService(new UserPhotos(new UserFolderResolver($root)), $apps, $guard, $spacing, $this->flags(), $logger ?? $this->createStub(LoggerInterface::class), $this->stats());
 	}
 
 	/**

@@ -21,6 +21,8 @@ use Psr\Log\LoggerInterface;
 
 /** A folder of sidecars on a fake disk, and the `SidecarWriter` that writes into it. */
 trait FakeSidecarFolder {
+	use StatsFixture;
+
 	private const string FOLDER = '/alice/files/Photos';
 	private const int NEW_ID = 99;
 
@@ -34,6 +36,12 @@ trait FakeSidecarFolder {
 	private bool $updateable = true;
 	/** The bytes the folder's storage has left, or a negative `FileInfo::SPACE_*` when unknown. */
 	private int|float $freeSpace = FileInfo::SPACE_UNKNOWN;
+	/** @var array<string, int> modification times by name; others count up from November 2023 with each event */
+	private array $mtimes = [];
+	/** The modification time a write gives its file, or null to leave it to the count. */
+	private ?int $writtenAt = null;
+	/** What the next read of a modification time throws, once. */
+	private ?\Throwable $mtimeFailure = null;
 
 	private function user(string $uid = 'alice'): IUser {
 		$user = $this->createStub(IUser::class);
@@ -50,15 +58,25 @@ trait FakeSidecarFolder {
 		$file->method('getMimetype')->willReturn(str_ends_with($name, '.xmp') ? 'application/octet-stream' : 'image/jpeg');
 		$file->method('getEtag')->willReturnCallback(fn (): string => md5($this->disk[$name]));
 		$file->method('getSize')->willReturnCallback(fn (): int => strlen($this->disk[$name]));
-		$file->method('getMTime')->willReturnCallback(fn (): int => 1_700_000_000 + count($this->events));
+		$file->method('getMTime')->willReturnCallback(function () use ($name): int {
+			[$failure, $this->mtimeFailure] = [$this->mtimeFailure, null];
+			return $failure !== null ? throw $failure : $this->mtimes[$name] ?? 1_700_000_000 + count($this->events);
+		});
 		$file->method('putContent')->willReturnCallback(function (string $content) use ($name): void {
 			$this->failOn('putContent');
 			$this->disk[$name] = $content;
+			$this->written($name);
 			$this->events[] = "put $name";
 		});
 		$file->method('isUpdateable')->willReturn($this->updateable);
 		$file->method('getParent')->willReturn($folder);
 		return $file;
+	}
+
+	private function written(string $name): void {
+		if ($this->writtenAt !== null) {
+			$this->mtimes[$name] = $this->writtenAt;
+		}
 	}
 
 	private function failOn(string $step): void {
@@ -77,6 +95,7 @@ trait FakeSidecarFolder {
 		$folder->method('newFile')->willReturnCallback(function (string $name, string $content) use ($folder): File {
 			$this->failOn('newFile');
 			$this->disk[$name] = $content;
+			$this->written($name);
 			$this->events[] = "write $name";
 			return $this->node($name, $folder);
 		});
@@ -97,7 +116,7 @@ trait FakeSidecarFolder {
 		});
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
-		return new SidecarWriter(new UserPhotos(new UserFolderResolver($root)), $logger ?? $this->createStub(LoggerInterface::class));
+		return new SidecarWriter(new UserPhotos(new UserFolderResolver($root)), $logger ?? $this->createStub(LoggerInterface::class), $this->stats());
 	}
 
 	private function existing(string $content, ?string $etag = null, ?int $size = null): array {

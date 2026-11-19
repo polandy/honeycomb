@@ -9,11 +9,12 @@ namespace OCA\Honeycomb\Service;
 
 use OCP\IUser;
 
-/** Reads and writes the user's stored series, only on the user's photos (ADR 0027). */
+/** Reads and writes the user's stored series, only on the user's photos (ADR 0027), and counts the series done (STATS-001.29). */
 final class SeriesService {
 	public function __construct(
 		private SeriesStore $store,
 		private UserPhotos $photos,
+		private StatsService $stats,
 	) {
 	}
 
@@ -37,10 +38,11 @@ final class SeriesService {
 	public function save(IUser $user, array $series, array $keptOut, array $released): array {
 		$write = SeriesWrite::fromRequest($series, $keptOut, $released);
 		$saved = $this->photos->photos($user, $write->fileIds());
-		$ids = [];
-		RetryOnConflict::run(function () use ($user, $write, $saved, &$ids): void {
-			$ids = $this->store->write($user->getUID(), $write->only($saved));
+		$written = ['ids' => [], 'done' => 0];
+		RetryOnConflict::run(function () use ($user, $write, $saved, &$written): void {
+			$written = $this->store->write($user->getUID(), $write->only($saved));
 		});
-		return ['ids' => $ids, 'saved' => $saved];
+		$this->stats->count($user, new StatsCount(StatsMetric::SeriesDone, $written['done']));
+		return ['ids' => $written['ids'], 'saved' => $saved];
 	}
 }

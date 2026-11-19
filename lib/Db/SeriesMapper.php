@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
+use OCA\Honeycomb\Service\SeriesItem;
 use OCA\Honeycomb\Service\SeriesLookup;
 use OCA\Honeycomb\Service\SeriesStatus;
 use OCA\Honeycomb\Service\SeriesStore;
@@ -70,8 +71,10 @@ final class SeriesMapper implements SeriesStore {
 		return $this->atomic(function () use ($userId, $write): array {
 			$rows = [];
 			$ids = [];
+			$done = 0;
 			foreach ($write->series as $item) {
-				$id = $item->id !== null && $this->updateStatus($userId, $item->id, $item->status) ? $item->id : $this->insertSeries($userId, $item->status);
+				[$id, $finished] = $this->writeSeries($userId, $item);
+				$done += $finished ? 1 : 0;
 				foreach ($item->fileIds as $fileId) {
 					$rows[] = ['user_id' => $userId, 'file_id' => $fileId, 'series_id' => $id];
 				}
@@ -85,7 +88,7 @@ final class SeriesMapper implements SeriesStore {
 			sort($fileIds);
 			$this->deleteFileRows($userId, $fileIds);
 			$this->insertRows(new InsertStatements(self::TABLE, self::COLUMNS), $rows);
-			return $ids;
+			return ['ids' => $ids, 'done' => $done];
 		}, $this->db);
 	}
 
@@ -126,14 +129,32 @@ final class SeriesMapper implements SeriesStore {
 		}, $this->db);
 	}
 
-	/** Whether the user has the series; Nextcloud counts matched rows on MySQL too. */
-	private function updateStatus(string $userId, int $id, SeriesStatus $status): bool {
+	/**
+	 * Writes the item's status, open to done first, so the first statement is still a write.
+	 * @return array{int, bool} the series id, a new one for a null id or one the user does not have, and whether it became done
+	 */
+	private function writeSeries(string $userId, SeriesItem $item): array {
+		$done = $item->status === SeriesStatus::Done;
+		if ($item->id !== null && $done && $this->updateStatus($userId, $item->id, $item->status, SeriesStatus::Open)) {
+			return [$item->id, true];
+		}
+		if ($item->id !== null && $this->updateStatus($userId, $item->id, $item->status)) {
+			return [$item->id, false];
+		}
+		return [$this->insertSeries($userId, $item->status), $done];
+	}
+
+	/** Sets the status of the user's series, only from `$from` when given; whether a series matched (Nextcloud counts matched rows on MySQL too). */
+	private function updateStatus(string $userId, int $id, SeriesStatus $status, ?SeriesStatus $from = null): bool {
 		$query = $this->db->getQueryBuilder();
-		return $query->update(self::SERIES_TABLE)
+		$query->update(self::SERIES_TABLE)
 			->set('status', $query->createNamedParameter($status->value))
 			->where($query->expr()->eq('id', $query->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
-			->andWhere($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
-			->executeStatement() > 0;
+			->andWhere($query->expr()->eq('user_id', $query->createNamedParameter($userId)));
+		if ($from !== null) {
+			$query->andWhere($query->expr()->eq('status', $query->createNamedParameter($from->value)));
+		}
+		return $query->executeStatement() > 0;
 	}
 
 	private function insertSeries(string $userId, SeriesStatus $status): int {

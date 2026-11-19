@@ -9,12 +9,24 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Statistics (M9, STATS-001): PR 3 count on the server: trash, deleted for good, Remove RAWs, sidecars created and updated, series done, moves (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 4 *Cull finished* card with the session's numbers and before/after (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 5 browser counts with the sidecar and position saves: decisions net of undo, active time, bounds in PHP (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 6 statistics page: navigation entry, periods, tiles, bars, folder sets, days in a row (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 7 start value from the user preference `pictures_decided_before` that M8 PR 5 wrote, moved into `honeycomb_stats`, and the state of the pictures read so far from the XMP cache (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 8 year in review, its one-time hint from 1 December, sidecars from digiKam or darktable (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 2 ADR for the connections file and its reader, the decision table per (connection, asset id) as a `UserRowStore` and the source's public API (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 3 specs under `docs/dev/specs/immich/`: connections, listing and filters, decisions per connection, *Write to Immich* (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 4 mockup under `docs/dev/mockup/immich/`: source and connection switcher, read-only connection dialog, status per connection; then the owner's sign-off (ADR 0003) (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 5 refactor, type lines only: `PictureId` alias and a `SourceEntry` base of `ListingEntry`; runs beside statistics PR 4 (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 6 backend: connection registry and status, the client with contract tests and upstream error classes, listing and preview proxy; after the sign-off (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 7 the decision table, its mapper and endpoints; the sweep of rows whose connection left the file; after the sign-off (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 8 pure TypeScript: asset to picture and the time, device, kind and flag filters; after PR 5 (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 9 refactor of the Vue shell: the opened source as a union with key and capabilities, `imageUrl` in the cull context, `cull.ts` relieved; after statistics PR 6 (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 10 UI in two pull requests: source and connection switcher with the read-only dialog; grid and loupe with Immich data, capabilities off, decisions saved, position and *Recent* (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 11 e2e with the stub Immich from the pinned schema and a fixture of two connections, on the generic upstream-stub seam of the e2e setup (2026-11-19)
+- [ ] Immich (M10, ADR 0041): owner: Phase 1 hand test on the test server with two real accounts and read-only keys (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 13 Phase 2: *Write to Immich* with the `updatedAt` conflict check, rejects as Immich trash bin by default, per-asset results, undo; Immich decisions enter the statistics (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 14 user docs: the connections file format and key scopes for the admin, the guide for culling Immich uploads (2026-11-19)
 
 ## Later
 

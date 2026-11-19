@@ -22,6 +22,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 final class MoveServiceCarryOverTest extends TestCase {
+	use StatsFixture;
 	use FakeTree;
 
 	private FakeFlagStore $flags;
@@ -39,7 +40,7 @@ final class MoveServiceCarryOverTest extends TestCase {
 	private function service(?FlagStore $flags = null, ?LoggerInterface $logger = null): MoveService {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturn(true);
-		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores($flags ?? $this->flags, $this->hashes, $this->series, new FakeXmpCacheStore()), $logger ?? $this->createStub(LoggerInterface::class));
+		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores($flags ?? $this->flags, $this->hashes, $this->series, new FakeXmpCacheStore()), $logger ?? $this->createStub(LoggerInterface::class), $this->stats());
 	}
 
 	private static function flag(int $fileId): FileFlag {
