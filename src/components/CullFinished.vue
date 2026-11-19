@@ -56,7 +56,7 @@ const activeTime = computed(() => {
 		<p class="cull-finished__line">
 			{{ split }}
 		</p>
-		<DeleteStats :stats="stats" />
+		<DeleteStats :stats="stats" tiles />
 		<p v-if="props.numbers.freedBytes > 0" class="cull-finished__line">
 			{{ freed }}
 		</p>
