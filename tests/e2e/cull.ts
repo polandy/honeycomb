@@ -48,8 +48,8 @@ export async function openLoupe(page: Page): Promise<Locator> {
 	return loupe
 }
 
-/** The settings every test starts from: the defaults with writing to sidecars on, so a test may decide. */
-export const E2E_SETTINGS = { sidecarWrite: 'on' }
+/** The settings every test starts from: the defaults. */
+export const E2E_SETTINGS = {}
 
 /** Stores the settings for the user, `E2E_SETTINGS` putting back the ones every test starts from. */
 export async function putSettings(page: Page, settings: Record<string, unknown>): Promise<void> {

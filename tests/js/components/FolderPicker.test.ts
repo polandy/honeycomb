@@ -219,7 +219,7 @@ describe('FolderPicker', () => {
 		expect(picker.calls).toEqual(['/Trip', '/Empty', '/Trip'])
 	})
 
-	// spec: LISTING-003.12, XMP-003.14
+	// spec: LISTING-003.12, XMP-008.12
 	it('emits the folder set, its merged entries and its folders\' access on confirm', async () => {
 		const picker = await mountPicker()
 		await tick(picker, 'Trip')

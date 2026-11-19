@@ -12,15 +12,14 @@ import { API, ApiResponseError, isRecord } from './core.ts'
 /** A child folder as the folder endpoint returns it (ADR 0011). */
 export type Folder = TreeFolder
 
-/** The image files of a folder, with every folder below it when `subfolders` (ADR 0009), and the folders that are shared (ADR 0017). */
+/** The image files of a folder, with every folder below it when `subfolders` (ADR 0009), and the user's permissions on each folder (LISTING-001.19). */
 export async function listEntries(path: string, subfolders: boolean, excluded: readonly string[] = []): Promise<Required<Listing>> {
 	const params = { path, ...(subfolders ? { subfolders: 1 } : {}), ...(excluded.length > 0 ? { excluded } : {}) }
 	const { data } = await axios.get<unknown>(generateUrl(`${API}/entries`), { params })
 	if (!isRecord(data) || !Array.isArray(data.entries) || typeof data.truncated !== 'boolean') {
 		throw new ApiResponseError(`The listing of "${path}" has no entries array and truncated flag; check the server's version.`)
 	}
-	const opened = typeof data.fileId === 'number' ? { path, fileId: data.fileId } : null
-	return { entries: data.entries as Listing['entries'], truncated: data.truncated, folders: listedFolders(data.folders), opened }
+	return { entries: data.entries as Listing['entries'], truncated: data.truncated, folders: listedFolders(data.folders) }
 }
 
 /** The direct child folders of a folder (ADR 0011). */

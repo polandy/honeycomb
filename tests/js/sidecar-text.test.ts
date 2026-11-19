@@ -6,7 +6,7 @@ import type { SidecarFailureReason } from '../../src/logic/sidecar-sync.ts'
 import { describe, expect, it } from 'vitest'
 import { notWrittenText, sidecarFailureReason, writtenText } from '../../src/sidecar-text.ts'
 
-const REASONS: SidecarFailureReason[] = ['malformed', 'not-utf-8', 'doctype', 'conflict', 'not-xmp', 'notFound', 'tooLarge', 'notPermitted', 'locked', 'changed', 'noVersions', 'unreachable', 'failed']
+const REASONS: SidecarFailureReason[] = ['malformed', 'not-utf-8', 'doctype', 'conflict', 'not-xmp', 'notFound', 'tooLarge', 'notPermitted', 'locked', 'changed', 'noSpace', 'unreachable', 'failed']
 
 describe('sidecar texts', () => {
 	// spec: XMP-003.13
@@ -28,9 +28,10 @@ describe('sidecar texts', () => {
 		expect(notWrittenText(['locked', 'notFound'])).toBe('Could not write 2 sidecars. The sidecar is locked (another process is writing to it). More reasons in Details.')
 	})
 
-	// spec: XMP-002.10
-	it('says why a sidecar is not overwritten without file versions', () => {
-		expect(sidecarFailureReason('noVersions')).toBe('File versions are off, so honeycomb does not overwrite an existing sidecar')
+	// spec: XMP-002.12
+	it('says a sidecar was not written because the storage is full', () => {
+		expect(sidecarFailureReason('noSpace')).toBe('No storage space left for the sidecar; free some space or ask the folder\'s owner')
+		expect(notWrittenText(['noSpace', 'noSpace'])).toBe('Could not write 2 sidecars. No storage space left for the sidecar; free some space or ask the folder\'s owner')
 	})
 
 	it('counts sidecars and photos', () => {

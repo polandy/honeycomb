@@ -56,8 +56,6 @@ export interface AppSeams {
 	clearCache?: () => Promise<void>
 	legacy?: LegacyApi
 	saveFile?: (name: string, text: string) => void
-	/** Whether the Versions app is enabled for the user, which writing to sidecars needs (SETTINGS-001.26). */
-	versionsApp?: boolean
 }
 
 /** The seams the app uses in production. */
@@ -85,5 +83,4 @@ export const APP_SEAMS = {
 	clearCache,
 	legacy: () => ({ loadInventory: loadLegacyInventory, loadExport: loadLegacyExport, acknowledge: acknowledgeLegacy }),
 	saveFile: () => saveBrowserFile,
-	versionsApp: true,
 }

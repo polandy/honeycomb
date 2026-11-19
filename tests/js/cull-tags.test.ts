@@ -11,11 +11,11 @@ import { logger } from '../../src/logger.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 
 const PAIR = pictureOf(listingEntry(1, '/P/IMG_1.NEF'), listingEntry(2, '/P/IMG_1.JPG'))
-const SHARED = pictureOf(listingEntry(3, '/Team/IMG_3.JPG'))
-const OPENED = [PAIR, SHARED]
+const READ_ONLY = pictureOf(listingEntry(3, '/Team/IMG_3.JPG'))
+const OPENED = [PAIR, READ_ONLY]
 const WEDDING: TagChange = { added: ['Events/Wedding'], removed: ['Places/Lisbon'] }
 
-/** Cull tags over the OPENED pictures, with recorded lookups and writes; SHARED lies in a shared folder. */
+/** Cull tags over the OPENED pictures, with recorded lookups and writes; READ_ONLY lies in a read-only folder. */
 function cullTags(options: { stored?: StoredTags[], lookup?: () => Promise<StoredTags[]> } = {}) {
 	const lookups: number[][] = []
 	const writes: { pictures: Picture<ListingEntry>[], change: TagChange }[] = []
@@ -28,7 +28,7 @@ function cullTags(options: { stored?: StoredTags[], lookup?: () => Promise<Store
 		loadTagList: async () => [],
 	}, async (pictures, change) => {
 		writes.push({ pictures: [...pictures], change })
-	}, () => current.pictures, (picture) => picture !== SHARED)
+	}, () => current.pictures, (picture) => picture !== READ_ONLY)
 	return { tags, lookups, writes, current }
 }
 
@@ -42,7 +42,7 @@ describe('useCullTags: load', () => {
 		expect(lookups).toEqual([[1, 2, 3]])
 		expect(tags.tagsOf(PAIR)).toEqual(['People/Anna', 'Places/Lisbon'])
 		expect(tags.legacyTagsOf(PAIR)).toEqual(['People/Anna', 'Places/Lisbon'])
-		expect(tags.tagsOf(SHARED)).toEqual([])
+		expect(tags.tagsOf(READ_ONLY)).toEqual([])
 	})
 
 	// spec: TAGS-002.6
@@ -95,7 +95,7 @@ describe('useCullTags: load', () => {
 		tags.forget(new Set([1, 2]))
 
 		expect(tags.legacyTagsOf(PAIR)).toEqual([])
-		expect(tags.legacyTagsOf(SHARED)).toEqual(['Kids'])
+		expect(tags.legacyTagsOf(READ_ONLY)).toEqual(['Kids'])
 		expect(tags.tagsOf(PAIR)).toEqual(['Anna'])
 	})
 })
@@ -118,30 +118,30 @@ describe('useCullTags: fromSidecars', () => {
 		await tags.load([3])
 		tags.change([PAIR], WEDDING)
 
-		tags.fromSidecars([{ picture: PAIR, tags: ['Old'] }, { picture: SHARED, tags: ['Old'] }])
+		tags.fromSidecars([{ picture: PAIR, tags: ['Old'] }, { picture: READ_ONLY, tags: ['Old'] }])
 
 		expect(tags.tagsOf(PAIR)).toEqual(['Events/Wedding'])
-		expect(tags.tagsOf(SHARED)).toEqual(['Kids'])
+		expect(tags.tagsOf(READ_ONLY)).toEqual(['Kids'])
 	})
 })
 
 describe('useCullTags: change', () => {
-	// spec: TAGS-002.7, TAGS-002.12
-	it('shows the change at once and writes the pictures outside shared folders', async () => {
+	// spec: TAGS-002.7, TAGS-002.9
+	it('shows the change at once and writes the writable pictures', async () => {
 		const { tags, writes } = cullTags({ stored: [{ fileId: 1, tags: ['Places/Lisbon'] }] })
 		await tags.load([1, 2, 3])
 
-		tags.change([PAIR, SHARED], WEDDING)
+		tags.change([PAIR, READ_ONLY], WEDDING)
 
 		expect(tags.tagsOf(PAIR)).toEqual(['Events/Wedding'])
-		expect(tags.tagsOf(SHARED)).toEqual(['Events/Wedding'])
+		expect(tags.tagsOf(READ_ONLY)).toEqual(['Events/Wedding'])
 		expect(writes).toEqual([{ pictures: [PAIR], change: WEDDING }])
 	})
 
 	it('writes nothing when no chosen picture is writable', () => {
 		const { tags, writes } = cullTags()
 
-		tags.change([SHARED], WEDDING)
+		tags.change([READ_ONLY], WEDDING)
 
 		expect(writes).toEqual([])
 	})

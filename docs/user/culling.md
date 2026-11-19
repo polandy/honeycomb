@@ -9,10 +9,9 @@ a lock.
 
 ## 1. Before the first cull
 
-honeycomb rates only what it can write into the photos' XMP sidecars. Turn on **Write decisions to
-XMP sidecars** in the [settings](settings.md#xmp-sidecars), or confirm it at your first rating;
-until then you can look, compare, move and delete, but not rate. What that changes in your files:
-[sidecars](sidecars.md).
+honeycomb rates only what it can write into the photos' XMP sidecars, so you can rate photos in
+folders you may change; in a folder you may only read you can look, compare and move, but not
+rate. What that changes in your files: [sidecars](sidecars.md).
 
 ## 2. Choose the folders
 

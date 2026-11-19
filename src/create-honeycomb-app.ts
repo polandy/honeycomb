@@ -10,8 +10,8 @@ import App from './App.vue'
 const VANISHED_MODAL = /^`fallbackFocus` was specified but was not a node/
 
 /** Creates the honeycomb Vue app; an error that reaches Vue goes to the given logger. */
-export function createHoneycombApp(logger: ILogger, versionsApp: boolean): VueApp {
-	const app = createApp(App, { versionsApp })
+export function createHoneycombApp(logger: ILogger): VueApp {
+	const app = createApp(App)
 	app.config.errorHandler = (error, _instance, info) => {
 		if (error instanceof Error && VANISHED_MODAL.test(error.message)) {
 			logger.debug('A dialog was closed while it opened, its focus trap is skipped', { error })
@@ -20,9 +20,4 @@ export function createHoneycombApp(logger: ILogger, versionsApp: boolean): VueAp
 		logger.error('Unhandled error in the honeycomb UI', { error, info })
 	}
 	return app
-}
-
-/** Whether the page says the Versions app is enabled; on unless it says off, so the server rechecks every write. */
-export function versionsAppOf(root: HTMLElement | null): boolean {
-	return root?.dataset.versionsApp !== 'false'
 }

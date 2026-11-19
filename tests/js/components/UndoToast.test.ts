@@ -45,13 +45,13 @@ describe('UndoToast', () => {
 		expect(presses).toEqual([true])
 	})
 
-	// spec: XMP-008.9
+	// spec: XMP-008.14
 	it('unfolds its details on demand and has none without them', async () => {
-		const wrapper = mount(UndoToast, { props: { toast: { message: 'Rejected IMG_1; 1 photo not changed', action: null, details: ['IMG_2: you may only read the folder'] } } })
+		const wrapper = mount(UndoToast, { props: { toast: { message: 'Rejected IMG_1; 1 photo not changed', action: null, details: ['IMG_2: read only'] } } })
 
 		const details = wrapper.find('details')
 		expect(details.find('summary').text()).toBe('Details')
-		expect(details.findAll('li').map((item) => item.text())).toEqual(['IMG_2: you may only read the folder'])
+		expect(details.findAll('li').map((item) => item.text())).toEqual(['IMG_2: read only'])
 		expect(details.element.open).toBe(false)
 		expect(mountToast(null).find('details').exists()).toBe(false)
 	})

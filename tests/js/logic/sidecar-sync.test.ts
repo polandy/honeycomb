@@ -1,13 +1,11 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Decision } from '../../../src/logic/decision.ts'
-import type { ListingEntry } from '../../../src/logic/listing.ts'
-import type { Picture } from '../../../src/logic/pairing.ts'
 import type { KnownSidecar } from '../../../src/logic/sidecar-sync.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { applySaves, inSharedFolder, planSaves, writeLookups } from '../../../src/logic/sidecar-sync.ts'
+import { applySaves, planSaves, writeLookups } from '../../../src/logic/sidecar-sync.ts'
 import { sidecarDecision } from '../../../src/logic/xmp/decision.ts'
 import { readXmp } from '../../../src/logic/xmp/parse.ts'
 import { serializeXmp } from '../../../src/logic/xmp/serialize.ts'
@@ -228,18 +226,5 @@ describe('applySaves', () => {
 		expect(answered.failed.map(({ reason }) => reason)).toEqual(['locked', 'notFound'])
 		expect([...answered.known]).toEqual([['/P/IMG_0001.NEF.xmp', { fileId: 11, saved: null }]])
 		expect(unanswered.failed.map(({ reason }) => reason)).toEqual(['unreachable', 'unreachable'])
-	})
-})
-
-describe('inSharedFolder', () => {
-	// spec: XMP-003.14
-	it('counts a picture with any member in a shared folder', () => {
-		const split: Picture<ListingEntry> = { raw: listingEntry(1, '/P/RAW/A.NEF'), rendered: listingEntry(2, '/P/A.JPG'), folder: '/P', baseName: 'A', sidecars: [], ambiguous: false }
-		const atRoot = pictureOf(listingEntry(3, '/B.JPG'))
-
-		expect(inSharedFolder(split, new Set(['/P/RAW']))).toBe(true)
-		expect(inSharedFolder(split, new Set(['/P/Other']))).toBe(false)
-		expect(inSharedFolder(atRoot, new Set(['/']))).toBe(true)
-		expect(inSharedFolder(atRoot, new Set())).toBe(false)
 	})
 })

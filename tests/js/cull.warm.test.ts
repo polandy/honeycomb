@@ -20,7 +20,7 @@ describe('useCull: warm-up', () => {
 			lookupSeries: NO_SERIES,
 			saveSeries: SAVED_SERIES,
 			tags: NO_TAGS,
-		}, fakeStorage(), () => DEFAULT_SETTINGS, NO_SIDECARS, () => undefined)
+		}, fakeStorage(), () => DEFAULT_SETTINGS, NO_SIDECARS)
 
 		cull.open(SET, ENTRIES)
 		cull.open(SET, [listingEntry(50, '/A/IMG_50.JPG')])

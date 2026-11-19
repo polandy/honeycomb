@@ -35,8 +35,8 @@ shade, and its label names the count; an untagged tile shows neither.
 one per line in sort order, each as its full path, or "—". A tagged picture's *Written to*
 row names the files the tags are written through to (TAGS-002, XMP-003) by file name, each once:
 its sidecars but darktable's duplicates, then the `<member file>.xmp` a write creates for each
-member without one. In a shared folder nothing is written on its own, and the row says *Not
-written, shared folder*. The section follows a tag change at once.
+member without one. For a read-only picture nothing is written, and the row names the reason
+(.9). The section follows a tag change at once.
 
 ## Acceptance criteria
 
@@ -102,9 +102,8 @@ written, shared folder*. The section follows a tag change at once.
 - **When** the info panel shows each
 - **Then** for a writable picture *Written to* names the two sidecars by file name, not the
   duplicate's, and for the pair the RAW's sidecar and the JPEG's sidecar the write creates; for a
-  locked one it says *Not written, off in the settings*, *Not written, read-only folder*, *Not
-  written, shared folder not confirmed*, *Not written, the folder keeps no versions* or *Not
-  written, a sidecar was refused*
+  locked one it says *Not written, read-only folder* or *Not written, stored decisions not yet in
+  its sidecars*
 
 ## Out of scope
 
@@ -120,3 +119,4 @@ filter (`docs/dev/07-tags.md` Tag filter).
 | 2026-11-13 | .8 an untagged picture shows "—" instead of *none* (UX M6) |
 | 2026-11-15 | .9 *Written to* follows the setting *Write decisions to XMP sidecars* (risk review R1/R9) |
 | 2026-11-15 | .9 *Written to* names the picture's writability (XMP-008, ADR 0032 PR 6) |
+| 2026-11-19 | .9 *Written to* knows only read only and legacy (M8 PR 3) |

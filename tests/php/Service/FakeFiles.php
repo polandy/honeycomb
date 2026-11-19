@@ -7,10 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\FileVersions;
 use OCA\Honeycomb\Service\Listing;
-use OCA\Honeycomb\Service\VersionBackends;
-use OCP\App\IAppManager;
 use OCP\Constants;
 use OCP\Files\File;
 use OCP\Files\Folder;
@@ -80,15 +77,6 @@ trait FakeFiles {
 			},
 		);
 		return $folder;
-	}
-
-	/** The versions check, with `files_versions` on for every user and a versions backend for every storage or none. */
-	private function fileVersions(bool $backends = true): FileVersions {
-		$apps = $this->createStub(IAppManager::class);
-		$apps->method('isEnabledForUser')->willReturn(true);
-		$versionBackends = $this->createStub(VersionBackends::class);
-		$versionBackends->method('existFor')->willReturn($backends);
-		return new FileVersions($apps, $versionBackends);
 	}
 
 	/**

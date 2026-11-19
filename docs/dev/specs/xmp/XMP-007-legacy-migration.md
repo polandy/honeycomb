@@ -38,19 +38,9 @@ follows.
 **The ⋯ entry.** *Write decisions to sidecars…* in the grid's ⋯ menu is offered while a picture
 of the cull has a stored decision other than undecided or a stored tag. It asks first: the dialog
 names how many photos in which folders, says the database value wins where a sidecar says
-otherwise and that tags are added. It needs
-*Write decisions to XMP sidecars* set to *On* (SETTINGS-001.24), so every
-picture gets a sidecar; with another setting the dialog says so and *Write to sidecars* is
-disabled.
+otherwise and that tags are added.
 
-**Shared folders.** A picture in a shared folder needs the same confirmation as deciding it
-(XMP-008.4): per opened folder including its subfolders, kept in `confirmedSharedFolders`. The
-run skips every picture in a shared folder not confirmed; it keeps its rows. The dialog says how
-many photos it skips, that everyone with access and digiKam, darktable and Lightroom see the
-decisions of a confirmed folder, and offers one *Confirm <folder>* button per opened folder to
-confirm. A confirmed folder's pictures are written by this run, or by the next one when it was
-confirmed later, e.g. by deciding a picture there. With every picture skipped, *Write to
-sidecars* is disabled.
+**Shared folders.** A picture in a shared folder is written like any other (ADR 0040).
 
 On confirm, every decided picture's sidecars get all four decision fields of the
 stored decision, every tagged picture's sidecars get its stored tags added (the union), in one
@@ -65,11 +55,10 @@ back and the notice does not return.
 *Cancel*, its footer shows how many photos were written, and each part's saved pictures are
 acknowledged as the part ends, so the notice's counts fall while it runs. It ends with one toast:
 how many photos were written, or how many of them could not be written with *Details*, which
-lists each failed sidecar with its reason and offers a retry (XMP-003.13); after `;` it adds how
-many photos it skipped in shared folders not confirmed. A run that stops on
+lists each failed sidecar with its reason and offers a retry (XMP-003.13). A run that stops on
 an error says so, and a run without photos says there is nothing to write.
 
-**The notice.** While writing is *On* and legacy rows remain, the grid shows a notice. Its
+**The notice.** While legacy rows remain, the grid shows a notice. Its
 heading says how many photos have decisions not yet in their sidecars; its text says that
 digiKam, darktable and Lightroom cannot see them and to open a folder and choose the ⋯ entry; one
 button per folder, `/Photos/A (2)`, opens that folder alone, without subfolders. With unreachable
@@ -111,7 +100,7 @@ after each part of a run, a copy or a forget; a failed read shows no notice and 
 
 ### XMP-007.5 – The ⋯ entry writes every picture with legacy rows, the database winning
 
-- **Given** writing *On*, a picture with a stored decision whose sidecar states
+- **Given** a picture with a stored decision whose sidecar states
   other values, and a picture with stored tags only whose sidecar states a rating and a tag
 - **When** the user chooses *Write decisions to sidecars…* and confirms *Write to sidecars*
 - **Then** the first sidecar gets the stored rating, colour label, flag and *Keep RAW*, the second
@@ -125,22 +114,22 @@ after each part of a run, a copy or a forget; a failed read shows no notice and 
 - **When** the ⋯ entry writes them
 - **Then** only the second picture is acknowledged; the first keeps its rows and is reported
 
-### XMP-007.7 – The ⋯ entry needs writing *On* and legacy rows
+### XMP-007.7 – The ⋯ entry needs legacy rows
 
-- **Given** writing *Off*, and a cull without a stored decision or tag
-- **When** the user opens the ⋯ menu and chooses *Write decisions to sidecars…*
-- **Then** the dialog says to turn on *Write decisions to XMP sidecars* in the settings and *Write to
-  sidecars* is disabled; in the cull without legacy rows the entry is absent
+- **Given** a cull with a stored decision, and a cull without a stored decision or tag, both with a
+  stored `sidecarWrite` *Off*
+- **When** the user opens the ⋯ menu
+- **Then** the first offers *Write decisions to sidecars…*, whose *Write to sidecars* is enabled; in
+  the cull without legacy rows the entry is absent
 
 ### XMP-007.8 – The notice names the folders and offers a copy and forgetting
 
-- **Given** writing *On* and an inventory of two folders and 3 unreachable files
+- **Given** an inventory of two folders and 3 unreachable files
 - **When** the grid shows, and the user chooses *Save a copy*, then *Forget…* and confirms
 - **Then** the notice names both folders and the 3 files, *Save a copy* saves the export as
   `honeycomb-legacy-rows.json` and toasts *Saved a copy as honeycomb-legacy-rows.json*, *Forget*
   acknowledges the exported file ids, toasts *Forgot the stored decisions of 3 files* and the
-  notice is read again; *Cancel* forgets nothing, and without rows or with writing *Off* no notice
-  shows
+  notice is read again; *Cancel* forgets nothing, and without rows no notice shows
 - **And** a long folder list scrolls inside the notice, which takes at most 30 % of the screen's
   height, so the grid keeps room on a phone
 
@@ -174,18 +163,9 @@ after each part of a run, a copy or a forget; a failed read shows no notice and 
   reason; after an error it says *Could not write the sidecars; run it again later.* and
   acknowledges nothing; without pictures it says *No stored decisions to write here*
 
-### XMP-007.13 – A shared folder not confirmed is skipped until confirmed
+### XMP-007.13 – A shared folder not confirmed is skipped until confirmed (removed)
 
-- **Given** writing *On*, a picture with a stored decision in a shared folder below the opened
-  folder `/Trip` (file id 7) that is not confirmed, and one in a folder that is not shared
-- **When** the user chooses *Write decisions to sidecars…* and confirms *Write to sidecars*
-- **Then** the dialog says *1 photo in a shared folder you have not confirmed is skipped* and
-  offers *Confirm Trip*; only the second picture's sidecars are saved and acknowledged, no
-  sidecar of the shared folder is saved, and the toast says *Wrote the decisions of 1 photo to
-  sidecars; skipped 1 photo in a shared folder not confirmed*
-- **And** after *Confirm Trip* the settings keep 7 in `confirmedSharedFolders`, the dialog no
-  longer skips, and the next run writes and acknowledges the shared picture; with every picture
-  skipped *Write to sidecars* is disabled
+Withdrawn by ADR 0040 (M8 PR 3); a shared folder needs no confirmation (XMP-008.12).
 
 ### XMP-007.14 – The notice does not come back after a migration
 
@@ -211,3 +191,4 @@ after each part of a run, a copy or a forget; a failed read shows no notice and 
 | 2026-11-18 | Shared folders need the confirmation of XMP-008.4; the run skips those not confirmed (XMP-007.13, owner decision #187) |
 | 2026-11-18 | An acknowledged picture is unlocked and gets no legacy rows back, so the notice stays away (XMP-007.14, ADR 0032) |
 | 2026-11-19 | Withdrawn by ADR 0040; M8 PR 4 removes the migration and sets the status `removed` |
+| 2026-11-19 | M8 PR 3: no setting and no shared-folder skip (.7, .8 changed, .13 removed) |

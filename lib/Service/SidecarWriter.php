@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\Service;
 
 use OCP\Files\File;
 use OCP\Files\Folder;
+use OCP\Files\NotEnoughSpaceException;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\IUser;
@@ -19,7 +20,6 @@ use Psr\Log\LoggerInterface;
 final class SidecarWriter {
 	public function __construct(
 		private UserPhotos $photos,
-		private FileVersions $versions,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -43,9 +43,8 @@ final class SidecarWriter {
 			return ['result' => $target];
 		}
 		[$folder, $name, $existing] = $target;
-		// Without versions the replaced bytes of another program could not be restored (XMP-002.10).
-		if ($existing !== null && !$this->versions->keeps($existing)) {
-			return ['result' => SidecarResult::NoVersions];
+		if (!$this->fits($folder, $sidecar->bytes, $existing)) {
+			return ['result' => SidecarResult::NoSpace];
 		}
 		try {
 			$saved = $existing === null ? $folder->newFile($name, $sidecar->bytes) : $this->replace($existing, $sidecar->bytes);
@@ -94,7 +93,13 @@ final class SidecarWriter {
 		return $folder->isCreatable() ? [$folder, $name, null] : SidecarResult::NotPermitted;
 	}
 
-	/** Writes in place, so the sidecar keeps its file id and its replaced bytes become a version. */
+	/** Whether the bytes fit the folder's free space, less the sidecar they replace; an unknown or unlimited space fits (XMP-002.12). */
+	private function fits(Folder $folder, string $bytes, ?File $existing): bool {
+		$free = $folder->getFreeSpace();
+		return $free < 0 || strlen($bytes) - (int)($existing?->getSize() ?? 0) <= $free;
+	}
+
+	/** Writes in place, so the sidecar keeps its file id and its replaced bytes become a version (XMP-002.11). */
 	private function replace(File $sidecar, string $bytes): File {
 		$sidecar->putContent($bytes);
 		return $sidecar;
@@ -102,6 +107,7 @@ final class SidecarWriter {
 
 	private function resultOf(\Exception $e, string $path): SidecarResult {
 		return match (true) {
+			$e instanceof NotEnoughSpaceException => SidecarResult::NoSpace,
 			$e instanceof NotPermittedException => SidecarResult::NotPermitted,
 			$e instanceof LockedException => SidecarResult::Locked,
 			$e instanceof NotFoundException => SidecarResult::NotFound,

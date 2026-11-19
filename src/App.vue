@@ -4,13 +4,11 @@
 -->
 <script setup lang="ts">
 import type { AppSeams } from './app-seams.ts'
-import type { CullStep } from './cull.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
-import type { SidecarFailure } from './logic/sidecar-sync.ts'
 
 import { computed, ref, useTemplateRef, watch } from 'vue'
 import NcAppContent from '@nextcloud/vue/components/NcAppContent'
@@ -28,7 +26,6 @@ import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutSheet from './components/ShortcutSheet.vue'
 import TagEntry from './components/TagEntry.vue'
 import UndoToast from './components/UndoToast.vue'
-import WriteOnDialog from './components/WriteOnDialog.vue'
 import { APP_SEAMS } from './app-seams.ts'
 import { clearCacheWithToast } from './cache-clear.ts'
 import { provideCullContext } from './cull-context.ts'
@@ -53,7 +50,6 @@ import { useTagEntryTargets } from './tag-entry-targets.ts'
 import { useToast } from './toast.ts'
 import { useToastedDecisions } from './toasted-decisions.ts'
 import { useViewState } from './view-state.ts'
-import { useWriteLock } from './write-lock.ts'
 
 const props = withDefaults(defineProps<AppSeams>(), APP_SEAMS)
 
@@ -61,12 +57,10 @@ const toast = useToast(props.schedule)
 const { settings, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, (message) => toast.show(message))
 const viewState = useViewState(props.viewState, props.storage)
 const settingsOpen = ref(false)
-const sidecarsReady = computed(() => settings.value.sidecarWrite === 'on')
-const legacy = useLegacy(props.legacy, props.saveFile, (message) => toast.show(message), () => sidecarsReady.value, openLegacyFolder)
-const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, refuseFailed, acknowledgeLegacy)
+const legacy = useLegacy(props.legacy, props.saveFile, (message) => toast.show(message), openLegacyFolder)
+const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, acknowledgeLegacy)
 const sidecars = useBundledSidecars(sidecarFlow.sync, props.schedule, props.onPageHide)
-const writeLock = useWriteLock(() => settings.value, updateSettings, retryLocked)
-const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, wait: waitSeconds(props.schedule), warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, lookupSeries: props.lookupSeries, saveSeries: props.saveSeries, tags: props.tags }, props.storage, () => settings.value, sidecars, writeLock.locked)
+const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, wait: waitSeconds(props.schedule), warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, lookupSeries: props.lookupSeries, saveSeries: props.saveSeries, tags: props.tags }, props.storage, () => settings.value, sidecars)
 /** Removes the legacy rows the ⋯ entry wrote to the sidecars, and unlocks their pictures (XMP-008.11). */
 async function acknowledgeLegacy(fileIds: readonly number[]): Promise<boolean> {
 	const removed = await legacy.acknowledge(fileIds)
@@ -74,10 +68,6 @@ async function acknowledgeLegacy(fileIds: readonly number[]): Promise<boolean> {
 		cull.forgetLegacy(fileIds)
 	}
 	return removed
-}
-/** Locks the pictures whose sidecar a write refused (XMP-008.6). */
-function refuseFailed(failed: readonly SidecarFailure[]) {
-	cull.refuse(failed)
 }
 const { folderSet, pictures, folders, view, progress, filtersOpen, pickerOpen, tileSize } = cull
 const gridScreen = useTemplateRef<InstanceType<typeof GridScreen>>('gridScreen')
@@ -94,11 +84,7 @@ const selection = useSelectionMode(() => view.value, pictures)
 const { selected } = selection
 watch(cull.pairing, selection.selectNone)
 
-const { decide, pickRest, tag, removeFromSeries, dissolveSeries, mergeSeries, markSeries, editSelection, undo, redo, toastChange } = useToastedDecisions(cull, toast.show)
-/** Toasts a step taken once its lock was lifted (XMP-008.7). */
-function retryLocked(step: CullStep | null) {
-	toastChange(step)
-}
+const { decide, pickRest, tag, removeFromSeries, dissolveSeries, mergeSeries, markSeries, editSelection, undo, redo } = useToastedDecisions(cull, toast.show)
 const tagEntry = useTagEntryTargets()
 const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: decideInCompare, pickRest, removeFromSeries, dissolve: dissolveSeries, everySeries: () => cull.everySeries.value, merge: mergeSeries, markSeries, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })
 const restOffer = useRestOffer({ seriesOf: () => cull.seriesOf.value, decisionOf: cull.decisionOf, compare: seriesCompare, shown: shownInLoupe, land: landInLoupe })
@@ -142,7 +128,7 @@ const toggleFileNames = () => updateSettings({ showFileNames: !settings.value.sh
 /** Opens or closes the shortcut sheet. */
 const toggleShortcuts = () => (shortcutsOpen.value = !shortcutsOpen.value)
 useHotkeys(() => {
-	if (pickerOpen.value || settingsOpen.value || tagEntry.targets.value !== null || deleteDialog.value !== null || sidecarFlow.open.value || writeLock.asking.value !== null || moving.pictures.value !== null || moving.report.value !== null) {
+	if (pickerOpen.value || settingsOpen.value || tagEntry.targets.value !== null || deleteDialog.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
 		return null
 	}
 	if (shortcutsOpen.value || folderSet.value === null) {
@@ -182,32 +168,19 @@ useHotkeys(() => {
 				:deleting="deleting"
 				:moving="moving"
 				:sidecars="sidecarFlow"
-				:sidecarsReady="sidecarsReady"
 				:folderSet="folderSet"
 				:folders="folders"
 				:decisionOf="cull.decisionOf"
-				:unconfirmed="cull.unconfirmedOf"
-				:confirmationFolders="cull.confirmationFoldersOf"
 				:listFolders="props.listFolders"
-				:container="loupe !== null ? '.photo-loupe' : undefined"
-				@confirmFolder="writeLock.confirmFolder" />
+				:container="loupe !== null ? '.photo-loupe' : undefined" />
 			<SeriesCompareScreen ref="seriesScreen" />
 			<SettingsDialog
 				v-model:open="settingsOpen"
 				:settings="settings"
 				:gestureGuideSeen="viewState.gestureGuideSeen.value"
-				:versionsApp="props.versionsApp"
 				@update="updateSettings"
 				@showGestureGuide="viewState.showGestureGuide"
 				@clearCache="clearCacheWithToast(props.clearCache, toast.show)" />
-			<WriteOnDialog
-				v-if="writeLock.asking.value !== null"
-				:turnsOn="writeLock.turnsOn.value"
-				:sharedNames="writeLock.sharedNames.value"
-				:versionsApp="props.versionsApp"
-				:container="loupe !== null ? '.photo-loupe' : undefined"
-				@cancel="writeLock.cancel"
-				@confirm="writeLock.confirm" />
 			<Teleport to="body">
 				<LoupeScreen ref="loupeScreen" />
 				<TagEntry

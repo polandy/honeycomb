@@ -10,54 +10,19 @@ namespace OCA\Honeycomb\Tests\Service;
 use OCA\Honeycomb\Service\EntryFactory;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\ListingService;
-use OCA\Honeycomb\Service\SharedFolders;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCP\Constants;
-use OCP\Files\Config\IUserMountCache;
 use OCP\Files\File;
-use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
-use OCP\Files\Node;
 use OCP\Files\NotPermittedException;
 use OCP\FilesMetadata\IFilesMetadataManager;
-use OCP\Share\IManager as IShareManager;
-use OCP\Share\IShare;
 use PHPUnit\Framework\TestCase;
 
 final class ListingServiceSubfoldersTest extends TestCase {
 	use FakeFiles;
 
-	/** @var array<string, array> access lists by folder path below the user's files */
-	private array $accessLists = [];
-	/** @var array<int, true> the file ids that carry a share */
-	private array $sharedIds = [];
-	/** @var list<string> the folders whose access list was asked for */
-	private array $lookups = [];
-	/** @var int how often the user's shares were read, once per share type */
-	private int $shareReads = 0;
-
-	private function shares(): IShareManager {
-		$shares = $this->createStub(IShareManager::class);
-		$shares->method('getAccessList')->willReturnCallback(function (Node $folder): array {
-			$path = substr($folder->getPath(), strlen(self::USER_ROOT));
-			$this->lookups[] = $path;
-			return $this->accessLists[$path] ?? [];
-		});
-		$shares->method('getSharesBy')->willReturnCallback(function (string $uid, int $type): array {
-			$this->shareReads++;
-			return $type === IShare::TYPE_USER ? array_map(function (int $fileId): IShare {
-				$share = $this->createStub(IShare::class);
-				$share->method('getNodeId')->willReturn($fileId);
-				return $share;
-			}, array_keys($this->sharedIds)) : [];
-		});
-		return $shares;
-	}
-
 	private function service(IRootFolder $root, int $entryLimit = ListingService::ENTRY_LIMIT): ListingService {
-		$mounts = $this->createStub(IUserMountCache::class);
-		$mounts->method('getMountsForStorageId')->willReturn([]);
-		return new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore()), new SharedFolders($this->shares(), $mounts), $this->fileVersions(), $entryLimit);
+		return new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore()), $entryLimit);
 	}
 
 	// spec: LISTING-001.4
@@ -175,7 +140,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 				return [];
 			},
 		);
-		$service = new ListingService(new UserFolderResolver($this->rootWith(['/Photos' => $photos])), new EntryFactory($metadata, new FakeVisualHashStore()), new SharedFolders($this->shares(), $this->createStub(IUserMountCache::class)), $this->fileVersions());
+		$service = new ListingService(new UserFolderResolver($this->rootWith(['/Photos' => $photos])), new EntryFactory($metadata, new FakeVisualHashStore()));
 
 		$listing = $service->list($this->user(), 'Photos', true);
 
@@ -183,70 +148,27 @@ final class ListingServiceSubfoldersTest extends TestCase {
 		$this->assertSame(['/Photos'], $this->listed);
 	}
 
-	// spec: LISTING-001.12
-	public function testSaysOnceForEachFolderWhetherItIsShared(): void {
-		$fed = $this->folder('/Photos/Fed', fileId: 3);
-		$folders = ['/Photos' => $this->folder('/Photos'), '/Photos/Bob' => $this->folder('/Photos/Bob', fileId: 2)];
-		$folders['/Photos/Fed/2024'] = $this->folder('/Photos/Fed/2024', fileId: 4, parent: fn (): Folder => $fed);
-		$folders['/Photos/Team'] = $this->folder('/Photos/Team', mountType: 'group');
-		$this->accessLists = ['/Photos/Bob' => ['users' => ['alice', 'bob']], '/Photos/Fed' => ['users' => ['alice'], 'remote' => true]];
-		$this->sharedIds = [2 => true, 3 => true];
-		$paths = [1 => '/Photos/IMG_1.JPG', 2 => '/Photos/Bob/IMG_2.JPG', 3 => '/Photos/IMG_3.JPG', 4 => '/Photos/Fed/2024/IMG_4.JPG', 5 => '/Photos/Team/IMG_5.JPG', 6 => '/Photos/Bob/IMG_6.JPG'];
-		$files = [];
-		foreach ($paths as $id => $path) {
-			$files[] = $this->file($id, $path, parent: $folders[dirname($path)]);
-		}
-
-		$listing = $this->service($this->rootWith(['/Photos' => $this->treeOf($files)]))->list($this->user(), 'Photos', true);
-
-		$this->assertSame([
-			['path' => '/Photos', 'shared' => false, 'permissions' => 31, 'versions' => true],
-			['path' => '/Photos/Bob', 'shared' => true, 'permissions' => 31, 'versions' => true],
-			['path' => '/Photos/Fed/2024', 'shared' => true, 'permissions' => 31, 'versions' => true],
-			['path' => '/Photos/Team', 'shared' => true, 'permissions' => 31, 'versions' => true],
-		], $listing->jsonSerialize()['folders']);
-		$this->assertSame(['/Photos/Bob', '/Photos/Fed'], $this->lookups);
-	}
-
-	// spec: LISTING-001.17
-	public function testReadsTheSharesOnceForAHundredFolders(): void {
-		$files = array_map(fn (int $day): File => $this->file($day, "/Photos/d$day/IMG_$day.JPG"), range(1, 100));
-		$this->sharedIds = [50 => true];
-
-		$listing = $this->service($this->rootWith(['/Photos' => $this->treeOf($files)]))->list($this->user(), 'Photos', true);
-
-		$this->assertCount(100, $listing->jsonSerialize()['folders']);
-		$this->assertLessThanOrEqual(15, $this->shareReads);
-		$this->assertSame([], $this->lookups);
-	}
-
-	// spec: LISTING-001.14, LISTING-001.15
-	public function testNamesEachFoldersPermissionsAndWhetherItKeepsVersions(): void {
+	// spec: LISTING-001.14, LISTING-001.19
+	public function testNamesEachFolderByItsPathAndPermissionsOnly(): void {
 		$folders = [
 			'/Photos' => $this->folder('/Photos'),
-			'/Photos/Lent' => $this->folder('/Photos/Lent', mountType: 'shared', permissions: Constants::PERMISSION_READ),
-			'/Photos/Ext' => $this->folder('/Photos/Ext', mountType: 'external'),
+			'/Photos/Lent' => $this->folder('/Photos/Lent', mountType: 'shared', permissions: Constants::PERMISSION_READ | Constants::PERMISSION_UPDATE),
+			'/Photos/Ext' => $this->folder('/Photos/Ext', mountType: 'external', permissions: Constants::PERMISSION_READ),
+			'/Photos/Team' => $this->folder('/Photos/Team', mountType: 'group', permissions: Constants::PERMISSION_READ | Constants::PERMISSION_CREATE),
 		];
 		$files = [];
-		foreach ([1 => '/Photos/IMG_1.JPG', 2 => '/Photos/Lent/IMG_2.JPG', 3 => '/Photos/Ext/IMG_3.JPG'] as $id => $path) {
+		foreach ([1 => '/Photos/IMG_1.JPG', 2 => '/Photos/Lent/IMG_2.JPG', 3 => '/Photos/Ext/IMG_3.JPG', 4 => '/Photos/Team/IMG_4.JPG'] as $id => $path) {
 			$files[] = $this->file($id, $path, parent: $folders[dirname($path)]);
 		}
 
 		$listing = $this->service($this->rootWith(['/Photos' => $this->treeOf($files)]))->list($this->user(), 'Photos', true);
 
 		$this->assertEqualsCanonicalizing([
-			['/Photos', Constants::PERMISSION_ALL, true],
-			['/Photos/Ext', Constants::PERMISSION_ALL, false],
-			['/Photos/Lent', Constants::PERMISSION_READ, true],
-		], array_map(static fn (array $folder): array => [$folder['path'], $folder['permissions'], $folder['versions']], $listing->jsonSerialize()['folders']));
-	}
-
-	// spec: LISTING-001.15
-	public function testAFolderOnAStorageWithoutAVersionsBackendKeepsNone(): void {
-		$root = $this->rootWith(['/Photos' => $this->treeOf([$this->file(1, '/Photos/IMG_1.JPG')])]);
-		$service = new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore()), new SharedFolders($this->shares(), $this->createStub(IUserMountCache::class)), $this->fileVersions(false));
-
-		$this->assertFalse($service->list($this->user(), 'Photos', false)->jsonSerialize()['folders'][0]['versions']);
+			['path' => '/Photos', 'permissions' => Constants::PERMISSION_ALL],
+			['path' => '/Photos/Ext', 'permissions' => Constants::PERMISSION_READ],
+			['path' => '/Photos/Lent', 'permissions' => Constants::PERMISSION_READ | Constants::PERMISSION_UPDATE],
+			['path' => '/Photos/Team', 'permissions' => Constants::PERMISSION_READ | Constants::PERMISSION_CREATE],
+		], $listing->jsonSerialize()['folders']);
 	}
 
 	// spec: LISTING-001.8

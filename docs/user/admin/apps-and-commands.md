@@ -14,11 +14,11 @@ Nextcloud's own apps switch features on:
 
 | App | Needed for | Without it |
 |---|---|---|
-| Versions (`files_versions`) | Writing decisions to XMP sidecars, so every write can be undone | *Write decisions to XMP sidecars* cannot be turned on, so users cannot rate; they see *On needs the Versions app … ask your administrator to enable it.* |
+| Versions (`files_versions`) | Undoing a sidecar write from the file's versions | Sidecars are written all the same; an earlier state cannot be restored from the Files app. |
 | Deleted files (`files_trashbin`) | Deleting, *Remove RAWs* and a move that replaces a file | Nothing is deleted or replaced: *The Nextcloud trash bin is off, so nothing was deleted.* |
 
-Versions count per folder: external storage never keeps versions, so honeycomb does not replace
-an existing sidecar there. The trash bin size (`trashbin_size`) decides which files are too large
+Versions count per folder: external storage never keeps versions, but honeycomb writes its
+sidecars there too. The trash bin size (`trashbin_size`) decides which files are too large
 for the trash bin; such a file is deleted for good only after the user confirms a warning, else its
 photo stays whole. Each file deleted for good leaves a warning in the Nextcloud log, *A file was
 deleted permanently*, with its file id and the user, never its path. Recommended apps for RAW

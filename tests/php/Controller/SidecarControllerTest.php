@@ -10,13 +10,10 @@ namespace OCA\Honeycomb\Tests\Controller;
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\SidecarController;
-use OCA\Honeycomb\Service\FileVersions;
 use OCA\Honeycomb\Service\SidecarReader;
 use OCA\Honeycomb\Service\SidecarWriter;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
-use OCA\Honeycomb\Service\VersionBackends;
-use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -25,7 +22,6 @@ use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
-use OCP\Files\Storage\IStorage;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -44,8 +40,6 @@ final class SidecarControllerTest extends TestCase {
 		$sidecar->method('getMTime')->willReturn(1_700_000_000);
 		$sidecar->method('isReadable')->willReturn(true);
 		$sidecar->method('getContent')->willReturn('old');
-		$sidecar->method('getOwner')->willReturn($this->createStub(IUser::class));
-		$sidecar->method('getStorage')->willReturn($this->createStub(IStorage::class));
 		$userFolder = $this->createStub(Folder::class);
 		$userFolder->method('getFirstNodeById')->willReturnCallback(static fn (int $id): ?Node => $id === 9 ? $sidecar : null);
 		$root = $this->createStub(IRootFolder::class);
@@ -55,11 +49,7 @@ final class SidecarControllerTest extends TestCase {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
 		$logger = $this->createStub(LoggerInterface::class);
-		$apps = $this->createStub(IAppManager::class);
-		$apps->method('isEnabledForUser')->willReturn(true);
-		$backends = $this->createStub(VersionBackends::class);
-		$backends->method('existFor')->willReturn(true);
-		return new SidecarController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new SidecarReader(new UserPhotos(new UserFolderResolver($root)), $logger), new SidecarWriter(new UserPhotos(new UserFolderResolver($root)), new FileVersions($apps, $backends), $logger));
+		return new SidecarController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new SidecarReader(new UserPhotos(new UserFolderResolver($root)), $logger), new SidecarWriter(new UserPhotos(new UserFolderResolver($root)), $logger));
 	}
 
 	// spec: XMP-002.1

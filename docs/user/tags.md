@@ -83,8 +83,8 @@ programs have written into `dc:subject` stay as they are.
   embedded XMP is read, never written.
 - **The tag list.** The tags offered are those found in your sidecars plus those you created, kept
   per user.
-- **Shared folders.** In a shared folder honeycomb writes no sidecars on its own; the info panel
-  says *Not written, shared folder* ([ratings, flags and colours](ratings-flags-colours.md#shared-folders)).
+- **Shared folders.** In a shared folder tags are written like anywhere else you may change the
+  folder ([ratings, flags and colours](ratings-flags-colours.md#shared-folders)).
   **⋯ → Write decisions to sidecars…** moves stored tags into the sidecars
   ([moving stored decisions](ratings-flags-colours.md#moving-stored-decisions-into-sidecars)).
 - **Not yet.** Renaming, moving or deleting a tag across all photos is not in honeycomb; do it in

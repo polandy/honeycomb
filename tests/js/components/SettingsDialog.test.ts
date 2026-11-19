@@ -37,12 +37,12 @@ describe('SettingsDialog', () => {
 	beforeEach(installMarkedCatalogue)
 	afterEach(uninstallMarkedCatalogue)
 
-	// spec: SETTINGS-001.7
-	it('shows the sections of the settings, all translated', () => {
+	// spec: SETTINGS-001.7, SETTINGS-001.28
+	it('shows the sections of the settings, all translated, and no XMP sidecars section', () => {
 		const wrapper = mountDialog()
 
 		expect(wrapper.find('[role="dialog"]').attributes('name')).toBe(`${MARK}Settings`)
-		expect(wrapper.findAll('h3').map((heading) => plain(heading.text()))).toEqual(['File types', 'Folder layout', 'Loupe gestures', 'Keyboard', 'Moving photos', 'XMP sidecars', 'Cache'])
+		expect(wrapper.findAll('h3').map((heading) => plain(heading.text()))).toEqual(['File types', 'Folder layout', 'Loupe gestures', 'Keyboard', 'Moving photos', 'Cache'])
 		expect(untranslatedText(wrapper.element as Element)).toEqual([...DEFAULT_SETTINGS.rawExtensions, ...DEFAULT_SETTINGS.renderedExtensions].map((extension) => `.${extension.toUpperCase()}`))
 	})
 

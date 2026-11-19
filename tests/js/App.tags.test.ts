@@ -13,7 +13,7 @@ import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import TagEntry from '../../src/components/TagEntry.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
-import { decidedRows, mountApp, openCull, sharedAccess, shownNames, toolbarProps } from './app-cull.ts'
+import { decidedRows, mountApp, openCull, shownNames, toolbarProps } from './app-cull.ts'
 
 /** Presses a key on the page and returns whether the app handled it. */
 async function press(key: string) {
@@ -24,7 +24,7 @@ async function press(key: string) {
 }
 
 /** The app on an open cull of IMG_2, IMG_9 and IMG_10. */
-async function openApp(settings: object = { sidecarWrite: 'on' }) {
+async function openApp(settings: object = {}) {
 	const mounted = mountApp({ tags: { lookupTags: async () => [], loadTagList: async () => ['Places/Italy'] }, loadSettings: async () => settings })
 	await openCull(mounted.wrapper)
 	expect(shownNames(mounted.wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
@@ -160,22 +160,14 @@ describe('App: tag filter and tile', () => {
 		expect(loupe().props('writabilityOf')?.(pictureAt(wrapper, 0))).toBe('writable')
 	})
 
-	// spec: TAGS-004.9
-	it('tells the loupe that writing is off by default', async () => {
-		const { wrapper } = await openApp({})
-		await press('e')
-
-		expect(wrapper.findComponent(PhotoLoupe).props('writabilityOf')?.(pictureAt(wrapper, 0))).toBe('off')
-	})
-
-	// spec: TAGS-004.9
-	it('tells the loupe that a picture in a shared folder is not written', async () => {
-		const mounted = mountApp({ tags: { lookupTags: async () => [], loadTagList: async () => [] }, loadSettings: async () => ({ sidecarWrite: 'on' }) })
-		await openCull(mounted.wrapper, undefined, undefined, sharedAccess(['/Trip/B']))
+	// spec: TAGS-004.9, XMP-008.12
+	it('tells the loupe that a picture in a folder without write permission is read only', async () => {
+		const mounted = mountApp({ tags: { lookupTags: async () => [], loadTagList: async () => [] } })
+		await openCull(mounted.wrapper, undefined, undefined, { folders: [{ path: '/Trip/B', permissions: 1 }] })
 		await press('e')
 
 		const writabilityOf = mounted.wrapper.findComponent(PhotoLoupe).props('writabilityOf')
 
-		expect([0, 1].map((at) => writabilityOf?.(pictureAt(mounted.wrapper, at)))).toEqual(['shared', 'writable'])
+		expect([0, 1].map((at) => writabilityOf?.(pictureAt(mounted.wrapper, at)))).toEqual(['readOnly', 'writable'])
 	})
 })

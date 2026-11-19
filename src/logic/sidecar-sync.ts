@@ -10,8 +10,7 @@ import type { XmpPacket, XmpRefusal, XmpTime } from './xmp/model.ts'
 
 import { UNDECIDED } from './decision.ts'
 import { embeddedSidecarPath, embeddedSourceOf, embeddedXmpSource } from './embedded-xmp.ts'
-import { parseFileName, splitFolder } from './file-name.ts'
-import { pictureMembers } from './pairing.ts'
+import { parseFileName } from './file-name.ts'
 import { isMemberSidecar } from './sidecars.ts'
 import { pictureSidecarDecision, sidecarDecision } from './xmp/decision.ts'
 import { mergeDelta } from './xmp/merge.ts'
@@ -25,7 +24,7 @@ import { sidecarTargets } from './xmp/targets.ts'
 export type SidecarLookupFailure = 'notFound' | 'tooLarge' | 'notPermitted' | 'locked' | 'failed'
 
 /** What the save endpoint answers for a sidecar it did not save (XMP-002). */
-export type SidecarSaveFailure = 'notFound' | 'changed' | 'noVersions' | 'notPermitted' | 'locked' | 'failed'
+export type SidecarSaveFailure = 'notFound' | 'changed' | 'noSpace' | 'notPermitted' | 'locked' | 'failed'
 
 /** The lookup endpoint's answer for one sidecar. */
 export type SidecarLookupAnswer
@@ -151,14 +150,6 @@ export function applySaves(saves: readonly PlannedSave[], answers: readonly Side
 		}
 	})
 	return { known, failed, changed }
-}
-
-/** Whether a member of the picture lies in one of the shared folders. */
-export function inSharedFolder(picture: Picture<ListingEntry>, shared: ReadonlySet<string>): boolean {
-	return pictureMembers(picture).some((member) => {
-		const folder = splitFolder(member.path).parent
-		return shared.has(folder) || (folder === '' && shared.has('/'))
-	})
 }
 
 /** The paths a write goes to, each with its file id when it exists and what honeycomb saved there. */

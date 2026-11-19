@@ -43,12 +43,6 @@ export function legacyWrites(
 	})
 }
 
-/** The pictures a run writes, and how many it skips in shared folders not confirmed (XMP-007.13). */
-export function withoutUnconfirmed(writes: readonly LegacyWrite[], unconfirmed: (picture: Picture<ListingEntry>) => boolean) {
-	const written = writes.filter(({ picture }) => !unconfirmed(picture))
-	return { written, skipped: writes.length - written.length }
-}
-
 /** Whether a picture of the cull has legacy rows to write (XMP-007.7). */
 export function hasLegacyRows(writes: readonly LegacyWrite[]): boolean {
 	return writes.length > 0

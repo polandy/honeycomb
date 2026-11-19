@@ -17,7 +17,7 @@ enum SidecarResult: string {
 	case Saved = 'saved';
 	case NotFound = 'notFound';
 	case Changed = 'changed';
-	case NoVersions = 'noVersions';
+	case NoSpace = 'noSpace';
 	case TooLarge = 'tooLarge';
 	case NotPermitted = 'notPermitted';
 	case Locked = 'locked';

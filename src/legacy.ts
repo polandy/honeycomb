@@ -4,7 +4,7 @@ import type { FolderSet } from './logic/folder-set.ts'
 import type { LegacyExport, LegacyInventory } from './logic/legacy.ts'
 
 import { n, t } from '@nextcloud/l10n'
-import { computed, shallowRef, watch } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { formatNumber, PLAIN_TEXT } from './l10n.ts'
 import { logger } from './logger.ts'
 import { exportedFileIds } from './logic/legacy.ts'
@@ -19,11 +19,11 @@ export interface LegacyApi {
 	readonly acknowledge: (fileIds: readonly number[]) => Promise<void>
 }
 
-/** The legacy rows as the user sees them: the inventory while `active`, the acknowledgement after a run, a copy, forgetting and opening a folder (XMP-007.5–.10). */
-export function useLegacy(api: LegacyApi, saveFile: (name: string, text: string) => void, toast: (message: string) => void, active: () => boolean, openFolderSet: (folderSet: FolderSet) => void) {
+/** The legacy rows as the user sees them: the inventory, read at once, the acknowledgement after a run, a copy, forgetting and opening a folder (XMP-007.5–.10). */
+export function useLegacy(api: LegacyApi, saveFile: (name: string, text: string) => void, toast: (message: string) => void, openFolderSet: (folderSet: FolderSet) => void) {
 	const inventory = shallowRef<LegacyInventory | null>(null)
 	const forgetting = shallowRef(false)
-	const shown = computed(() => active() && inventory.value !== null && (inventory.value.folders.length > 0 || inventory.value.unreachable > 0))
+	const shown = computed(() => inventory.value !== null && (inventory.value.folders.length > 0 || inventory.value.unreachable > 0))
 
 	/** Reads which folders still hold legacy rows; a failure shows no notice. */
 	async function refresh() {
@@ -93,11 +93,7 @@ export function useLegacy(api: LegacyApi, saveFile: (name: string, text: string)
 		openFolderSet({ paths: [path], subfolders: false })
 	}
 
-	watch(active, (isActive) => {
-		if (isActive) {
-			void refresh()
-		}
-	}, { immediate: true })
+	void refresh()
 
 	return { inventory, shown, refresh, acknowledge, exportRows, askForget, cancelForget, forget, forgetting, openFolder }
 }

@@ -13,9 +13,9 @@ written through to the picture's sidecars, so digiKam, darktable and Lightroom s
 
 ## Behaviour
 
-**Concept D (ADR 0040).** M8 PR 4 and 5 remove the legacy tags, M8 PR 3 the shared-folder rule:
-a tag change is then written through for every rateable picture, shared or not, and a read-only
-picture cannot be tagged (XMP-008.13). Until then the text below holds.
+**Concept D (ADR 0040).** A tag change is written through for every rateable picture, shared or
+not (.22). M8 PR 4 and 5 remove the legacy tags, and a read-only picture cannot be tagged
+(XMP-008.13). Until then the text below holds.
 
 **A picture's tags** are the union of its members' tags, sorted. When a cull opens, and again when
 the pairing settings change, the legacy tags of every member (`honeycomb_file_tags`, XMP-007) are
@@ -41,17 +41,16 @@ read.
 shown at once for every member. Nothing is stored in the database: the sidecars hold it, and the
 XMP cache save of each saved sidecar adds its tags to the tag list (XMP-006.9).
 
-**Writing through.** While writing to sidecars is on (XMP-003 The setting), each
-changed picture outside a shared folder gets the change written to its sidecars, in the same passes
-as the decisions (XMP-003): every sidecar is read unless honeycomb holds its bytes, the change is
-applied to the union of their tags as they are then, and that set is written to every sidecar, and,
-to a new `<member file>.xmp` for each member without one while
-any tag is left. The JPEG gets its new sidecar also when no tag is left but its embedded XMP held
-tags, so the removal lasts. Only the three tag
-fields change (XMP-004); the decision fields stay as the sidecar holds them. Changes waiting for
-the same pass are applied in order and saved once (XMP-003.16). A sidecar answering `changed` is
-read again and gets the change once more. A sidecar that cannot be written is reported like a
-decision's (XMP-003.13); *Retry failed sidecars* applies the same change again.
+**Writing through.** Each changed rateable picture (XMP-008) gets the change written to its
+sidecars, in the same passes as the decisions (XMP-003): every sidecar is read unless honeycomb
+holds its bytes, the change is applied to the union of their tags as they are then, and that set is
+written to every sidecar, and, to a new `<member file>.xmp` for each member without one while any
+tag is left. The JPEG gets its new sidecar also when no tag is left but its embedded XMP held tags,
+so the removal lasts. Only the three tag fields change (XMP-004); the decision fields stay as the
+sidecar holds them. Changes waiting for the same pass are applied in order and saved once
+(XMP-003.16). A sidecar answering `changed` is read again and gets the change once more. A sidecar
+that cannot be written is reported like a decision's (XMP-003.13); *Retry failed sidecars* applies
+the same change again.
 
 **Files moved back.** Files put back into the cull (an undone delete) have their legacy tags and
 sidecars read.
@@ -117,7 +116,7 @@ reported (TAGS-002.13).
 
 ### TAGS-002.9 – A tag change is written through
 
-- **Given** a pair outside a shared folder with sidecars holding `Places/Lisbon` and, added by
+- **Given** a rateable pair with sidecars holding `Places/Lisbon` and, added by
   another program after the listing, `People/Anna`
 - **When** the user adds `Events/Wedding` and removes `Places/Lisbon`
 - **Then** each sidecar is saved with `Events/Wedding` and `People/Anna` in the three tag fields and
@@ -137,13 +136,9 @@ reported (TAGS-002.13).
 - **When** a tag change is written through
 - **Then** the sidecar is read again and saved with the change applied to its tags of that moment
 
-### TAGS-002.12 – Nothing is written through in a shared folder
+### TAGS-002.12 – Nothing is written through in a shared folder (removed)
 
-Withdrawn by ADR 0040; M8 PR 3 marks it removed.
-
-- **Given** a picture with a member in a shared folder
-- **When** the user tags it
-- **Then** the tags are stored and no sidecar is looked up or saved
+Withdrawn by ADR 0040 (M8 PR 3); tags are written through in a shared folder (.22).
 
 ### TAGS-002.13 – A failed sidecar is retried with the same change
 
@@ -206,7 +201,7 @@ Withdrawn by ADR 0040; M8 PR 3 marks it removed.
 
 The cull saves no tags to the database any more (ADR 0032, XMP-006.7).
 
-### TAGS-002.22 – Tags are written through in a shared folder (gap)
+### TAGS-002.22 – Tags are written through in a shared folder
 
 - **Given** a rateable picture with a member in a folder shared with another user
 - **When** the user tags it
@@ -236,3 +231,4 @@ The cull saves no tags to the database any more (ADR 0032, XMP-006.7).
 | 2026-11-15 | The embedded XMP is looked up for the decision too, also with stored tags (XMP-003.22) |
 | 2026-11-18 | The cull reads tags through the XMP cache and stores none; legacy tags win, locked, until migrated (.1–.7, .14–.17 changed, .8, .21 removed, ADR 0032) |
 | 2026-11-19 | ADR 0040: no legacy tags, tags written through in shared folders, failed writes taken back (.1, .3, .6, .12 withdrawn; .22, .23 gaps) |
+| 2026-11-19 | M8 PR 3: tags are written through in a shared folder without asking (.12 removed; .22 implemented) |

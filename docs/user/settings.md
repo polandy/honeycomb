@@ -52,18 +52,6 @@ Changing a list pairs the open folders again at once; your decisions stay.
   `/` opens the filters. `g` then no longer opens the grid: `Esc` does. See
   [keyboard shortcuts](keyboard-shortcuts.md#vi-keys).
 
-## XMP sidecars
-
-- **Write decisions to XMP sidecars:** whether your ratings, flags, colour labels, *Keep RAW* and
-  tags also go into the XMP sidecars next to your photos, where digiKam, darktable and Lightroom
-  read them. honeycomb rates only what it can write, so with *Off* (the default) you can view,
-  compare, move and delete, but not rate. *On* updates every sidecar and gives each file without
-  one a new sidecar, like `IMG_0001.NEF.xmp`. Turning it *On*, here or at your first rating, asks
-  you to confirm and explains what changes; *Cancel* keeps it off. *On* needs the Versions app, so
-  that every write can be undone; without it ask your administrator. If you had chosen *Only
-  existing sidecars* before, that choice is gone and writing is *Off* until you turn it *On*.
-  Reading sidecars works either way. See [ratings, flags and colour labels](ratings-flags-colours.md).
-
 ## Moving photos
 
 - **Name template:** how a moved photo is named, relative to the folder you move it to. All files

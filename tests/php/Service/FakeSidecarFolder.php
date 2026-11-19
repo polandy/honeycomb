@@ -7,19 +7,15 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\FileVersions;
 use OCA\Honeycomb\Service\SidecarWriter;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
-use OCA\Honeycomb\Service\VersionBackends;
-use OCP\App\IAppManager;
 use OCP\Files\File;
+use OCP\Files\FileInfo;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
-use OCP\Files\Mount\IMountPoint;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
-use OCP\Files\Storage\IStorage;
 use OCP\IUser;
 use Psr\Log\LoggerInterface;
 
@@ -36,9 +32,8 @@ trait FakeSidecarFolder {
 	private array $failures = [];
 	private bool $creatable = true;
 	private bool $updateable = true;
-	/** Whether the sidecar's owner has `files_versions` on; the user always has. */
-	private bool $versions = true;
-	private string $owner = 'alice';
+	/** The bytes the folder's storage has left, or a negative `FileInfo::SPACE_*` when unknown. */
+	private int|float $freeSpace = FileInfo::SPACE_UNKNOWN;
 
 	private function user(string $uid = 'alice'): IUser {
 		$user = $this->createStub(IUser::class);
@@ -63,9 +58,6 @@ trait FakeSidecarFolder {
 		});
 		$file->method('isUpdateable')->willReturn($this->updateable);
 		$file->method('getParent')->willReturn($folder);
-		$file->method('getOwner')->willReturn($this->user($this->owner));
-		$file->method('getStorage')->willReturn($this->createStub(IStorage::class));
-		$file->method('getMountPoint')->willReturn($this->createStub(IMountPoint::class));
 		return $file;
 	}
 
@@ -80,6 +72,7 @@ trait FakeSidecarFolder {
 		$folder = $this->createStub(Folder::class);
 		$folder->method('getPath')->willReturn(self::FOLDER);
 		$folder->method('isCreatable')->willReturnCallback(fn (): bool => $this->creatable);
+		$folder->method('getFreeSpace')->willReturnCallback(fn (): int|float => $this->freeSpace);
 		$folder->method('nodeExists')->willReturnCallback(fn (string $name): bool => isset($this->disk[$name]));
 		$folder->method('newFile')->willReturnCallback(function (string $name, string $content) use ($folder): File {
 			$this->failOn('newFile');
@@ -104,11 +97,7 @@ trait FakeSidecarFolder {
 		});
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
-		$apps = $this->createStub(IAppManager::class);
-		$apps->method('isEnabledForUser')->willReturnCallback(fn (string $app, ?IUser $user): bool => $app === 'files_versions' && ($user?->getUID() !== $this->owner || $this->versions));
-		$backends = $this->createStub(VersionBackends::class);
-		$backends->method('existFor')->willReturn(true);
-		return new SidecarWriter(new UserPhotos(new UserFolderResolver($root)), new FileVersions($apps, $backends), $logger ?? $this->createStub(LoggerInterface::class));
+		return new SidecarWriter(new UserPhotos(new UserFolderResolver($root)), $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
 	private function existing(string $content, ?string $etag = null, ?int $size = null): array {
