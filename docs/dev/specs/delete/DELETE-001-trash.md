@@ -44,16 +44,21 @@ sent. `result` is one of:
 | `tooLarge` | It is at least as large as the trash bin size, so deleting it would be for good |
 | `locked` | Locked by another process |
 | `failed` | Any other error, logged as a warning |
+| `decisionChanged` | Its picture's rows no longer say what `expect` asked |
 | `skipped` | Not tried, because another file of the picture failed |
 
-**By decision (ADR 0040, M8 PR 8).** A picture may carry `"expect": "rejected"` (from *Delete
-rejected*) or `"expect": "rawRemovable"` (from *Remove RAWs*: neither *Keep RAW* nor rejected).
-Before step 1 the server reads the rows of the picture's members in `honeycomb_flags` and, when
-any of them no longer says so, answers every file of the picture `decisionChanged` and touches
-none; checking and trashing are one request. A picture without `expect` is not checked so.
+**By decision (ADR 0040).** A request may carry `"expect": "rejected"` (from *Delete rejected*)
+or `"expect": "rawRemovable"` (from *Remove RAWs*: neither *Keep RAW* nor rejected) for all its
+pictures. Once every file of a picture passed step 1, the server reads the rows of its members
+(the files that are not sidecars) in `honeycomb_flags`, a member without a row counting as
+unflagged without *Keep RAW*. When any of them no longer says so, every file of the picture
+answers `decisionChanged` and none is touched; checking and trashing are one request. A request
+without `expect` is not checked so.
+
 **The rows go with the files.** The rows of the files a request trashed or deleted are removed in
 the same request, so a restore from the trash bin brings no flag back; a file that failed keeps
-its row.
+its row. When removing them fails, the failure is logged and the answer stands; the orphaned rows
+go with the next clean-up.
 
 Nextcloud's trash bin deletes a file for good instead of keeping it when its storage is not
 wrapped by the trash bin, or when the file is at least as large as the trash bin size
@@ -120,13 +125,9 @@ waits (ADR 0037).
 - **Then** the answer is `401` and nothing is trashed; the route is open to every user and keeps
   Nextcloud's CSRF check
 
-### DELETE-001.8 – Decisions survive the trash bin
+### DELETE-001.8 – Decisions survive the trash bin (removed)
 
-Withdrawn by ADR 0040; M8 PR 8 marks it removed.
-
-- **Given** a picture with a decision
-- **When** its files are trashed and later restored from the trash bin
-- **Then** the restored files keep their file ids and so their decision
+Withdrawn by ADR 0040 (M8 PR 8); the rows go with the files (.15).
 
 ### DELETE-001.9 – A file the trash bin would not keep is not deleted
 
@@ -174,7 +175,7 @@ Withdrawn by ADR 0040; M8 PR 8 marks it removed.
 - **Then** a warning with the file id and the user is logged for that file, never its path or
   name; a file the trash bin keeps, or one whose delete fails, logs no such entry
 
-### DELETE-001.15 – The rows go with the files (gap)
+### DELETE-001.15 – The rows go with the files
 
 - **Given** a pair with rows saying *rejected*, of which the JPEG is trashed and the RAW fails as
   `locked`
@@ -182,22 +183,22 @@ Withdrawn by ADR 0040; M8 PR 8 marks it removed.
 - **Then** the JPEG's row is gone and the RAW's row stays; the restored JPEG has no flag and is
   taken over again from its sources (XMP-003.34)
 
-### DELETE-001.16 – A picture whose decision changed is not touched (gap)
+### DELETE-001.16 – A picture whose decision changed is not touched
 
-- **Given** two pictures sent with `"expect": "rejected"`, the first rejected in every member's
+- **Given** two pictures sent in a request with `"expect": "rejected"`, the first rejected in every member's
   row, the second picked meanwhile by another user in one member's row
 - **When** the request arrives
 - **Then** the first is trashed and the second answers `decisionChanged` for every file and keeps
   its files and rows
 
-### DELETE-001.17 – A RAW is removed only while it may go (gap)
+### DELETE-001.17 – A RAW is removed only while it may go
 
-- **Given** pictures sent with `"expect": "rawRemovable"`, one without *Keep RAW* and not
+- **Given** pictures sent in a request with `"expect": "rawRemovable"`, one without *Keep RAW* and not
   rejected, one marked *Keep RAW* and one rejected in its rows
 - **When** the request arrives
 - **Then** the first one's files are trashed, the other two answer `decisionChanged`
 
-### DELETE-001.18 – A malformed expectation touches nothing (gap)
+### DELETE-001.18 – A malformed expectation touches nothing
 
 - **Given** a request whose `expect` is not `rejected` or `rawRemovable`
 - **When** it arrives
@@ -220,3 +221,4 @@ Choosing what to delete, the summary and the report: DELETE-002. Removing only R
 | 2026-11-18 | Every file deleted for good is logged as a warning with its file id and the user (DELETE-001.14, ADR 0036, owner) |
 | 2026-11-18 | Files of one name are trashed in different seconds, so the trash bin keeps each (DELETE-001.13, ADR 0037) |
 | 2026-11-19 | ADR 0040: the trash endpoint checks `expect` against the flags and removes the rows of what it trashed (.8 withdrawn; .15–.18 gaps) |
+| 2026-11-19 | `expect` is checked per request and answers `decisionChanged`; the rows go with the files (DELETE-001.15–.18, ADR 0040 M8 PR 8) |

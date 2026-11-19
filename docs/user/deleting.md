@@ -5,10 +5,8 @@ sidecars), where you can restore it until the trash bin empties itself. Keep a b
 honeycomb deletes a file for good only after you confirm a warning that names it (see
 [Files the trash bin would not keep](#files-the-trash-bin-would-not-keep)).
 
-**Changing in the next release** ([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
-*Delete rejected* and *Remove RAWs* check on the server, as they delete, that a photo is still
-rejected (or still may lose its RAW); a photo someone picked meanwhile stays. The dialog *Fresh
-check not possible* goes. A photo restored from the trash bin comes back without its flag.
+A photo restored from the trash bin comes back without its pick or reject
+([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
 
 ## Delete every rejected photo
 
@@ -20,12 +18,11 @@ Photos* and takes every rejected photo of the folders you cull, even the ones th
 1. The review shows every rejected photo. Tap one to rescue it: it is no longer rejected.
 2. **Continue** opens the summary: how many photos and files go, from which folders, and the list
    of every file.
-3. **Move … files to trash** sends them. Before that honeycomb lists the folders afresh; a photo
-   goes only when honeycomb still holds it as rejected and its sidecars can be read, and as a whole
-   or not at all. A photo someone picked in between stays, and the report says why. When a folder
-   or its sidecars cannot be read just then, honeycomb first asks *Fresh check not possible for N photos*:
-   **Cancel** deletes nothing, not even the photos it could check; **Delete anyway** sends them as
-   honeycomb knows them, and a file changed since the folder was listed still stays.
+3. **Move … files to trash** sends them. Before that honeycomb lists the folders afresh, and the
+   server moves a photo, as a whole or not at all, only while it is still rejected there. A photo
+   someone picked in between stays, and the report says *No longer rejected*. When a folder cannot
+   be listed just then, nothing of it is deleted and the report lists its photos as skipped; when
+   the request fails, nothing is deleted and the toast says so.
    While it runs, the button
    reads *Checking the photos…*, then *Moving to trash…*, and the footer counts the photos sent.
    Each file takes the server a moment, so a large delete takes a while; the toast says how many
