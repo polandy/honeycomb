@@ -178,7 +178,7 @@ useHotkeys(() => {
 				@showGestureGuide="viewState.showGestureGuide"
 				@clearCache="clearCacheWithToast(props.clearCache, toast.show, toast.showError)"
 				@cleanUp="cleanUpWithToast(props.cleanUp, toast.show, toast.showError)"
-				@resetStatistics="resetStatisticsWithToast(props.resetStatistics, toast.show)" />
+				@resetStatistics="resetStatisticsWithToast(props.resetStatistics, toast.show, toast.showError)" />
 			<ToastDetails v-if="toast.detailed.value !== null" :detailed="toast.detailed.value" @close="toast.closeDetails" />
 			<Teleport to="body">
 				<LoupeScreen ref="loupeScreen" />
