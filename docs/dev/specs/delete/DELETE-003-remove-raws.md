@@ -29,9 +29,10 @@ decision or tags goes, a pair whose JPEG has no sidecar of its own nor a shared 
 `<jpeg>.xmp` with the picture's decision and tags, so the JPEG keeps its values in digiKam. Where
 that sidecar cannot be written (the picture is not writable, XMP-008, or the save fails), the pair
 is skipped. The delete report lists the skipped photos (DELETE-002.16). When the fresh listing or
-lookup fails, the RAWs go as honeycomb knows them (DELETE-002.23), except a pair whose JPEG has no
-sidecar of its own nor a shared one while the RAW has one: its values cannot be read to copy, so it
-is skipped as *A sidecar could not be read*.
+lookup fails, the RAWs go as honeycomb knows them once the user confirms *Delete anyway*
+(DELETE-002.23, DELETE-002.25), except a pair whose JPEG has no sidecar of its own nor a shared one
+while the RAW has one: its values cannot be read to copy, so it is skipped as *A sidecar could not
+be read*.
 
 ## Acceptance criteria
 
@@ -104,9 +105,10 @@ is skipped as *A sidecar could not be read*.
 
 - **Given** the summary with a pair without sidecars and a pair whose only sidecar is
   `IMG.NEF.xmp`, and the fresh listing failing
-- **When** the user confirms
+- **When** the user confirms, and then taps *Delete anyway* in the dialog *Fresh check not possible
+  for 1 photo*
 - **Then** the first RAW goes as honeycomb knows it, the second pair is skipped as unread, and the
-  toast adds *Fresh check not possible for 1 photo*
+  toast does not repeat the dialog
 
 ## Out of scope
 
@@ -121,3 +123,4 @@ to XMP: M5.
 | 2026-11-15 | The summary shows the trash-bin note of DELETE-002.6 |
 | 2026-11-15 | Checks the sidecars afresh and writes the JPEG's sidecar first (DELETE-003.8, DELETE-003.9, ADR 0032 PR 8) |
 | 2026-11-18 | A failed fresh listing or lookup removes the RAWs honeycomb knows instead of aborting (DELETE-003.10, owner) |
+| 2026-11-18 | A failed fresh check asks before removing the RAWs (DELETE-003.10, owner) |

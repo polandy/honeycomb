@@ -48,8 +48,10 @@ changed, a sidecar cannot be read or is not valid XMP, its sidecars disagree, or
 listing or a sidecar lookup fails, the pictures it would have checked are not checked afresh: they
 go as honeycomb knows them, rejected in the cull, with the files and ETags of the cull's listing and
 honeycomb's own saves, so the server still holds a file changed since then. The failure is logged
-and the toast adds *Fresh check not possible for N photos*; the pictures whose check succeeded keep
-its verdict. *Delete…* and the `Delete` key delete what the user chose, without this check.
+and, before anything is sent, a dialog *Fresh check not possible for N photos* asks *Delete anyway*
+or *Cancel*, with the focus on *Cancel*: *Cancel* sends nothing, the checked pictures neither, and
+*Delete anyway* sends the delete, whose toast does not repeat it; the pictures whose check succeeded
+keep its verdict. *Delete…* and the `Delete` key delete what the user chose, without this check.
 
 **honeycomb's own writes** (ADR 0032). *Delete…* and the `Delete` key also write the waiting
 sidecars first. Each sidecar honeycomb saved since the folder was listed is sent with the ETag of
@@ -220,15 +222,16 @@ honeycomb's write, keeps the listing's ETag and holds its picture as `changed`.
 - **Then** nothing more is sent, the files stay, and the report lists them with the warning's words
   for their reason (*No trash bin on this storage*, *Larger than the trash bin allows*)
 
-### DELETE-002.23 – A failed fresh check deletes what honeycomb knows
+### DELETE-002.23 – A failed fresh check deletes what honeycomb knows, once confirmed
 
 - **Given** the summary from the review with rejected pictures in two folders, the fresh listing
   of one folder failing, and in the other a picture whose sidecar now says *picked* and one whose
   sidecar lookup fails
-- **When** the user confirms
+- **When** the user confirms, and then taps *Delete anyway* in the dialog *Fresh check not possible
+  for 2 photos*
 - **Then** the pictures of the failed folder and the one whose lookup failed go with the files and
   ETags honeycomb knows, the *picked* one is skipped, a file changed since the listing is held by
-  the server as `changed`, and the toast adds *Fresh check not possible for 2 photos*
+  the server as `changed`, and the toast does not repeat the dialog
 
 ### DELETE-002.24 – No key deletes for good
 
@@ -236,6 +239,15 @@ honeycomb's write, keeps the listing's ETag and holds its picture as `changed`.
 - **When** the user presses a key of the key map, e.g. Delete, Ctrl+Backspace or P, or Enter
 - **Then** nothing is deleted for good: the key map's keys do nothing, and Enter acts on the
   focused *Cancel*, which closes the warning and leaves the files
+
+### DELETE-002.25 – Cancelled before an unchecked delete, nothing goes
+
+- **Given** the summary from the review and a fresh check that fails for some pictures
+- **When** the user confirms
+- **Then** nothing is sent yet, and the dialog *Fresh check not possible for N photos* opens with
+  *Delete anyway* and *Cancel*, the focus on *Cancel*
+- **When** the user taps *Cancel* or closes it
+- **Then** nothing is sent, neither the unchecked pictures nor the checked ones, and no toast shows
 
 ## Out of scope
 
@@ -256,3 +268,4 @@ The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
 | 2026-11-18 | A warning before deleting for good what the trash bin would not keep (DELETE-002.20 to DELETE-002.22, ADR 0036, owner) |
 | 2026-11-18 | No key confirms the warning, and the report words the reasons as the warning does (DELETE-002.22, DELETE-002.24, ADR 0036, owner) |
 | 2026-11-18 | A failed fresh listing or lookup deletes the rejects honeycomb knows instead of aborting (DELETE-002.15, DELETE-002.23, ADR 0032, owner) |
+| 2026-11-18 | A failed fresh check asks before deleting, instead of saying so in the toast after (DELETE-002.15, DELETE-002.23, DELETE-002.25, owner) |

@@ -132,6 +132,41 @@ test('skips a reject whose sidecar was changed elsewhere to picked, and reports 
 	expect(locations).not.toContain(`${folder}/IMG_0002.jpg`)
 })
 
+// spec: DELETE-002.23, DELETE-002.25
+test('asks before deleting rejects it could not check afresh: Cancel keeps them, Delete anyway moves them', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = `Unchecked ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	for (const name of ['IMG_0001', 'IMG_0002']) {
+		await upload(page, `${folder}/${name}.jpg`, JPEG)
+		await upload(page, `${folder}/${name}.jpg.xmp`, pickLabel(1))
+	}
+	await cullFolder(page, folder)
+	await expect(page.getByRole('button', { name: 'Review rejects (2)' })).toBeVisible()
+	await page.route('**/apps/honeycomb/api/v1/entries**', (route) => route.fulfill({ status: 500 }))
+	const question = page.getByRole('dialog', { name: 'Fresh check not possible for 2 photos' })
+	const confirmSummary = async () => {
+		await page.getByRole('button', { name: 'Review rejects (2)' }).click()
+		await page.getByRole('dialog', { name: 'Review rejects' }).getByRole('button', { name: 'Continue: delete 2' }).click()
+		await page.getByRole('dialog', { name: 'Delete 2 photos' }).getByRole('button', { name: /^Move \d+ files to trash$/ }).click()
+	}
+
+	await confirmSummary()
+	await expect(question.getByRole('button', { name: 'Cancel' })).toBeFocused()
+	await question.getByRole('button', { name: 'Cancel' }).click()
+	await expect(question).toBeHidden()
+	expect(await trashLocations(page)).not.toContain(`${folder}/`)
+
+	await confirmSummary()
+	await question.getByRole('button', { name: 'Delete anyway' }).click()
+	await expect(page.getByRole('status').filter({ hasText: 'Moved 2 photos · 4 files' })).toBeVisible()
+	await expect(page.getByRole('status').filter({ hasText: 'Fresh check' })).toHaveCount(0)
+	const locations = await trashLocations(page)
+	for (const file of ['IMG_0001.jpg', 'IMG_0001.jpg.xmp', 'IMG_0002.jpg', 'IMG_0002.jpg.xmp']) {
+		expect(locations).toContain(`${folder}/${file}<`)
+	}
+})
+
 // spec: DELETE-001.8
 test('a picture restored from the trash bin keeps its file id and its decision', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
