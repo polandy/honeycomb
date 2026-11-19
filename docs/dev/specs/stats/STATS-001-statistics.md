@@ -24,16 +24,18 @@ paths. The day is the calendar day in the user's Nextcloud time zone, UTC withou
 | Pictures picked, pictures rejected | `pictures_picked`, `pictures_rejected` | A picture becomes picked, rejected; net of undo |
 | Ratings, colour labels, tags set | `ratings_set`, `colour_labels_set`, `tags_set` | A picture's rating, colour label or tags change; net of undo |
 | Pictures, files, bytes moved to the trash bin | `trash_pictures`, `trash_files`, `trash_bytes` | A delete moves them to the trash bin; a pair is one picture, every member and sidecar a file |
-| Pictures, files, bytes deleted for good | `deleted_pictures`, `deleted_files`, `deleted_bytes` | A delete removes files the trash bin would not keep (ADR 0036) |
-| RAW files removed, their bytes | `raws_removed`, `raws_removed_bytes` | *Remove RAWs* moves RAW files to the trash bin; not counted as pictures |
+| Pictures, files, bytes deleted for good | `deleted_pictures`, `deleted_files`, `deleted_bytes` | A delete removes files the trash bin would not keep (ADR 0036); a picture with such a file counts here, not as moved to the trash bin |
+| RAW files removed, their bytes | `raws_removed`, `raws_removed_bytes` | *Remove RAWs* moves RAW files to the trash bin or deletes them for good; not counted as pictures, their sidecars not counted |
 | Sidecars created | `sidecars_created` | A sidecar save creates a new sidecar |
-| Sidecars updated | `sidecars_updated` | A sidecar save replaces an existing sidecar not saved before on the same day |
+| Sidecars updated | `sidecars_updated` | A sidecar save replaces an existing sidecar last changed before the start of the user's day |
 | Sidecars from digiKam or darktable | `sidecars_foreign` | A sidecar updated that holds data of digiKam or darktable |
-| Series done | `series_done` | A stored series changes to done |
-| Pictures moved | `pictures_moved` | A move puts a picture into its target folder |
+| Series done | `series_done` | A series write sets a stored open series to done or creates a series as done |
+| Pictures moved | `pictures_moved` | A move reports every file of a picture as moved |
 | Active time | `active_seconds` | Seconds of the cull with an input at most 2 minutes earlier |
 
-Only successful results count. A day's net counter never goes below zero. *Space freed* is the
+Only successful results count. A day's net counter never goes below zero. The server counts
+trash, deletes for good, *Remove RAWs*, sidecar saves, series done and moves in the request that
+acts, one sum per metric and request, with the sizes the server reads before it moves a file. *Space freed* is the
 bytes moved to the trash bin and deleted for good; the page notes that the space is freed when the
 trash bin is emptied.
 
@@ -257,9 +259,31 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **When** the user is deleted
 - **Then** their counters are deleted
 
+### STATS-001.29 – A series counts done once
+
+- **Given** a stored series that is open
+- **When** a write sets it to done, and a later write sends it as done again
+- **Then** series done rise by 1; a series created as done counts 1, one set back to open takes
+  nothing back
+
+### STATS-001.30 – A picture with a file deleted for good
+
+- **Given** a pair whose JPEG goes to the trash bin and whose RAW the trash bin would not keep,
+  with the permanent delete confirmed
+- **When** both succeed
+- **Then** pictures deleted for good rise by 1, files moved to the trash bin by 1 and files
+  deleted for good by 1, each with its bytes
+
+### STATS-001.31 – Moves count whole pictures
+
+- **Given** a move of 2 pictures where one file of the second fails and its files move back
+- **When** it ends
+- **Then** pictures moved rise by 1
+
 ## History
 
 | Date | Change |
 |---|---|
 | 2026-11-19 | Written from the signed-off concept *Nutzen-Metriken* (metrics PR 1 of 8) |
 | 2026-11-19 | Storage and API, the settings section (metrics PR 2 of 8) |
+| 2026-11-19 | Server counts: trash, deleted for good, Remove RAWs, sidecars, series done, moves (.29–.31; metrics PR 3 of 8) |
