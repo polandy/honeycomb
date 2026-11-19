@@ -36,6 +36,8 @@ function pending() {
 /** The resume flow over a fake server that answers `positions`; saves settle as `save` says. */
 function resumeOn(positions: () => Promise<unknown>, save: () => Promise<void> = async () => undefined) {
 	const saved: ResumePosition[] = []
+	const seconds: number[] = []
+	let active = 0
 	const toasts: { message: string, action: ToastAction | null, closed: boolean }[] = []
 	const opened: number[] = []
 	const folderSet = ref<FolderSet | null>(SET)
@@ -45,8 +47,9 @@ function resumeOn(positions: () => Promise<unknown>, save: () => Promise<void> =
 	const shown = shallowRef<Picture<ListingEntry> | null>(null)
 	const resume = useResume({
 		loadPositions: positions,
-		savePosition: (position) => {
+		savePosition: (position, activeSeconds) => {
 			saved.push(position)
+			seconds.push(activeSeconds)
 			return save()
 		},
 	}, {
@@ -57,12 +60,17 @@ function resumeOn(positions: () => Promise<unknown>, save: () => Promise<void> =
 		decidedOf: () => false,
 		shown: () => shown.value,
 		openLoupe: (index) => opened.push(index),
+		takeActiveSeconds: () => {
+			const taken = active
+			active = 0
+			return taken
+		},
 	}, (message, action) => {
 		const toast = { message, action, closed: false }
 		toasts.push(toast)
 		return () => (toast.closed = true)
 	})
-	return { ...resume, saved, toasts, opened, folderSet, pictures, view, progress, shown }
+	return { ...resume, saved, seconds, act: (more: number) => (active += more), toasts, opened, folderSet, pictures, view, progress, shown }
 }
 
 describe('useResume', () => {
@@ -189,6 +197,27 @@ describe('useResume', () => {
 		saves[0]!.settle(false)
 		await flushPromises()
 		expect(flow.saved.map((position) => position.fileId)).toEqual([1, 4])
+	})
+
+	// spec: STATS-001.39
+	it('sends the active time taken when the save goes out, so a queued save carries what came meanwhile', async () => {
+		const saves = [pending(), pending()]
+		const queue = [...saves]
+		const flow = resumeOn(async () => [], () => queue.shift()!.promise)
+		flow.offer()
+		await flushPromises()
+
+		flow.act(90)
+		flow.shown.value = first
+		await nextTick()
+		flow.act(20)
+		flow.shown.value = second
+		await nextTick()
+		flow.act(5)
+		saves[0]!.settle(false)
+		await flushPromises()
+
+		expect(flow.seconds).toEqual([90, 25])
 	})
 
 	// spec: DECISIONS-002.11

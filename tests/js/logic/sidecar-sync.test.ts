@@ -51,6 +51,16 @@ describe('planSaves', () => {
 		expect([textOf(written, 'xmp:Rating'), textOf(written, 'xmpDM:pick'), textOf(written, 'dc:format')]).toEqual(['2', '1', 'kept'])
 	})
 
+	// spec: STATS-001.38
+	it('marks an existing sidecar that holds data of digiKam or darktable as foreign', () => {
+		const pair = pictureOf(NEF, JPG, NEF_XMP, JPG_XMP)
+		const answers = new Map([[11, read(xmp({ 'darktable:xmp_version': '5' }))], [12, read(xmp({ 'xmp:Rating': '4' }), 7)]])
+
+		const { saves } = planSaves(pair, { decision: PICKED }, new Map(), answers, CANONICAL_TIME)
+
+		expect(saves.map(({ item }) => ('foreign' in item ? item.foreign : null))).toEqual([true, false])
+	})
+
 	// spec: XMP-003.7
 	it('creates `<member file>.xmp` for each member without one, and saves over a created one it holds', () => {
 		const pair = pictureOf(NEF, JPG)

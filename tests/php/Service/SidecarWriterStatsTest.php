@@ -45,6 +45,33 @@ final class SidecarWriterStatsTest extends TestCase {
 		$this->assertSame(['sidecars_updated' => 1], $this->counted());
 	}
 
+	// spec: STATS-001.37
+	public function testAddsTheCountsOfTheSavedSidecars(): void {
+		$this->writer()->save($this->user(), [
+			['counts' => ['ratings_set' => 1, 'colour_labels_set' => 1]] + $this->created('fresh'),
+			['counts' => ['ratings_set' => 1, 'tags_set' => 1]] + $this->existing('new'),
+		]);
+
+		$this->assertEquals(['sidecars_created' => 1, 'ratings_set' => 2, 'colour_labels_set' => 1, 'tags_set' => 1], $this->counted());
+	}
+
+	// spec: STATS-001.36
+	public function testASidecarThatChangedMeanwhileCountsNothing(): void {
+		$this->writer()->save($this->user(), [['counts' => ['ratings_set' => 1]] + $this->existing('new', etag: 'etag-seen')]);
+
+		$this->assertSame([], $this->statsStore()->rows);
+	}
+
+	// spec: STATS-001.38
+	public function testASidecarFromDigiKamOrDarktableCountsWhenItCountsAsUpdated(): void {
+		$this->mtimes['IMG_0001.NEF.xmp'] = self::START_OF_DAY - 1;
+
+		$this->writer()->save($this->user(), [['foreign' => true] + $this->existing('new')]);
+		$this->writer()->save($this->user(), [['foreign' => true] + $this->existing('newer', md5('new'), 3)]);
+
+		$this->assertSame(['sidecars_updated' => 1, 'sidecars_foreign' => 1], $this->counted());
+	}
+
 	// spec: STATS-001.10
 	public function testAFailedSaveCountsNothing(): void {
 		$this->failures['newFile'] = new LockedException('IMG_0002.JPG.xmp');

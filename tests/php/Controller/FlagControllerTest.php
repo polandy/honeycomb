@@ -14,6 +14,7 @@ use OCA\Honeycomb\Controller\WriteRateLimit;
 use OCA\Honeycomb\Service\FlagService;
 use OCA\Honeycomb\Tests\Service\FakeFlagStore;
 use OCA\Honeycomb\Tests\Service\FakeUserPhotos;
+use OCA\Honeycomb\Tests\Service\StatsFixture;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -29,6 +30,7 @@ use ReflectionMethod;
 
 final class FlagControllerTest extends TestCase {
 	use FakeUserPhotos;
+	use StatsFixture;
 
 	private const array PICKED = ['fileId' => 7, 'flag' => 'picked', 'keepRaw' => false];
 
@@ -44,7 +46,7 @@ final class FlagControllerTest extends TestCase {
 		$user->method('getUID')->willReturn('alice');
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
-		$service = new FlagService($this->store, $this->userPhotos(7), $this->createStub(ITimeFactory::class));
+		$service = new FlagService($this->store, $this->userPhotos(7), $this->createStub(ITimeFactory::class), $this->stats());
 		return new FlagController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $service);
 	}
 

@@ -28,6 +28,7 @@ use PHPUnit\Framework\TestCase;
 final class FlagServiceTest extends TestCase {
 	use FakeFiles;
 	use FakeFileIdSearch;
+	use StatsFixture;
 
 	private const int NOW = 1_800_000_000;
 	/** A file id every user reaches, but as a text file. */
@@ -49,7 +50,7 @@ final class FlagServiceTest extends TestCase {
 	private function service(array $photos): FlagService {
 		$time = $this->createStub(ITimeFactory::class);
 		$time->method('getTime')->willReturn(self::NOW);
-		return new FlagService($this->store, $this->userPhotos($photos), $time);
+		return new FlagService($this->store, $this->userPhotos($photos), $time, $this->stats());
 	}
 
 	/** @param array<int, array{string, int}> $photos */
