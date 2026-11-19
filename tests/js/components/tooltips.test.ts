@@ -72,7 +72,7 @@ describe('the tooltips of the icon-only controls', () => {
 
 		expect(tips(mount(FlagButtons, { props: { flag: undefined } }))).toEqual([['Pick', 'P'], ['Unflag', 'U'], ['Reject', 'X']])
 		expect(tips(mount(StarRating, { props: { rating: 0 } }))).toEqual([
-			['Clear rating', '0'],
+			['Clear rating: 0 stars', '0'],
 			['Rate 1 star', '1'],
 			['Rate 2 stars', '2'],
 			['Rate 3 stars', '3'],

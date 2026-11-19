@@ -43,10 +43,10 @@ test('reviews the rejects, rescues one and moves the rest to the Nextcloud trash
 	await page.getByRole('dialog', { name: 'Cull finished' }).getByRole('button', { name: 'Done' }).click()
 	await page.getByRole('button', { name: 'Done' }).click()
 
-	await page.getByRole('button', { name: 'Review rejects (3)' }).click()
+	await page.getByRole('button', { name: 'Review rejects: 3' }).click()
 	const review = page.getByRole('dialog', { name: 'Review rejects' })
-	await review.getByRole('button', { name: 'Rescue IMG_0003' }).click()
-	await expect(review.getByRole('button', { name: 'Rescue IMG_0003' })).toBeHidden()
+	await review.getByRole('button', { name: /^IMG_0003/ }).click()
+	await expect(review.getByRole('button', { name: /^IMG_0003/ })).toBeHidden()
 	await review.getByRole('button', { name: 'Continue: delete 2' }).click()
 
 	const summary = page.getByRole('dialog', { name: 'Delete 2 photos' })
@@ -93,7 +93,7 @@ test('deletes the rejects from the More menu while the flag filter hides them', 
 	await item.click()
 
 	const review = page.getByRole('dialog', { name: 'Review rejects' })
-	await expect(review.getByRole('button', { name: 'Rescue IMG_0001' })).toBeVisible()
+	await expect(review.getByRole('button', { name: /^IMG_0001/ })).toBeVisible()
 	await review.getByRole('button', { name: 'Continue: delete 1' }).click()
 	await page.getByRole('dialog', { name: 'Delete 1 photo' }).getByRole('button', { name: 'Move 2 files to trash' }).click()
 
@@ -115,13 +115,13 @@ test('skips a reject another user picked meanwhile and reports it, but deletes o
 
 	const takenOver = page.waitForResponse((response) => response.url().endsWith('/api/v1/flags/take-over') && response.ok())
 	await cullFolder(page, folder)
-	await expect(page.getByRole('button', { name: 'Review rejects (2)' })).toBeVisible()
+	await expect(page.getByRole('button', { name: 'Review rejects: 2' })).toBeVisible()
 	await takenOver
 	const picked = await page.request.put(`${API}/flags`, { data: { flags: [{ fileId: fileIds[1], flag: 'picked', keepRaw: false }] }, headers: { requesttoken: await requestToken(page) } })
 	expect(picked.status()).toBe(200)
 	await upload(page, `${folder}/IMG_0001.jpg.xmp`, pickLabel(3))
 
-	await page.getByRole('button', { name: 'Review rejects (2)' }).click()
+	await page.getByRole('button', { name: 'Review rejects: 2' }).click()
 	await page.getByRole('dialog', { name: 'Review rejects' }).getByRole('button', { name: 'Continue: delete 2' }).click()
 	await page.getByRole('dialog', { name: 'Delete 2 photos' }).getByRole('button', { name: /^Move \d+ files to trash$/ }).click()
 
@@ -146,10 +146,10 @@ test('deletes nothing of a folder it could not list again, asks nothing and repo
 		await upload(page, `${folder}/${name}.jpg.xmp`, pickLabel(1))
 	}
 	await cullFolder(page, folder)
-	await expect(page.getByRole('button', { name: 'Review rejects (2)' })).toBeVisible()
+	await expect(page.getByRole('button', { name: 'Review rejects: 2' })).toBeVisible()
 	await page.route('**/apps/honeycomb/api/v1/entries**', (route) => route.fulfill({ status: 500 }))
 
-	await page.getByRole('button', { name: 'Review rejects (2)' }).click()
+	await page.getByRole('button', { name: 'Review rejects: 2' }).click()
 	await page.getByRole('dialog', { name: 'Review rejects' }).getByRole('button', { name: 'Continue: delete 2' }).click()
 	await page.getByRole('dialog', { name: 'Delete 2 photos' }).getByRole('button', { name: /^Move \d+ files to trash$/ }).click()
 
@@ -169,12 +169,12 @@ test('deletes nothing when the trash request fails, and the toast says so', asyn
 	await cullFolder(page, folder)
 	await page.route('**/apps/honeycomb/api/v1/trash', (route) => route.fulfill({ status: 500 }))
 
-	await page.getByRole('button', { name: 'Review rejects (1)' }).click()
+	await page.getByRole('button', { name: 'Review rejects: 1' }).click()
 	await page.getByRole('dialog', { name: 'Review rejects' }).getByRole('button', { name: 'Continue: delete 1' }).click()
 	await page.getByRole('dialog', { name: 'Delete 1 photo' }).getByRole('button', { name: 'Move 2 files to trash' }).click()
 
 	await expect(page.getByRole('alert').filter({ hasText: 'Could not delete the photos; reload the folder to see what changed.' })).toBeVisible()
-	await expect(page.getByRole('button', { name: 'Review rejects (1)' })).toBeVisible()
+	await expect(page.getByRole('button', { name: 'Review rejects: 1' })).toBeVisible()
 	expect(await trashLocations(page)).not.toContain(`${folder}/`)
 })
 

@@ -57,7 +57,6 @@ const groups = computed(() => [
 		pictures: props.removal.removed,
 		hint: t('honeycomb', 'Tap a photo to keep its RAW instead.'),
 		action: t('honeycomb', 'Keep RAW'),
-		label: (picture: Picture<ListingEntry>) => t('honeycomb', 'Keep RAW: {name}', { name: picture.baseName }, undefined, PLAIN_TEXT),
 		tone: 'error' as const,
 	},
 	{
@@ -65,7 +64,6 @@ const groups = computed(() => [
 		pictures: props.removal.kept,
 		hint: t('honeycomb', 'Tap a photo to remove its RAW after all.'),
 		action: t('honeycomb', 'Remove RAW'),
-		label: (picture: Picture<ListingEntry>) => t('honeycomb', 'Remove RAW: {name}', { name: picture.baseName }, undefined, PLAIN_TEXT),
 		tone: 'primary' as const,
 	},
 ])
@@ -94,7 +92,6 @@ const groups = computed(() => [
 					class="raw-removal__thumbs"
 					:pictures="group.pictures"
 					:action="group.action"
-					:label="group.label"
 					:tone="group.tone"
 					:imageUrl="props.imageUrl"
 					@tap="emit('toggle', $event)" />

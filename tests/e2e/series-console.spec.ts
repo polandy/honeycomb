@@ -8,7 +8,7 @@ import { cullFolder } from './cull.ts'
 import { createFolder, JPEG, upload, withCaptureTime } from './files.ts'
 
 const OPENERS: Record<string, (page: Page) => Promise<void>> = {
-	'the toolbar': (page) => page.getByRole('button', { name: /^Compare series \(\d+\)$/ }).click(),
+	'the toolbar': (page) => page.getByRole('button', { name: /^Compare series: \d+$/ }).click(),
 	'the n key': (page) => page.keyboard.press('n'),
 	'a grid series badge': (page) => page.getByRole('button', { name: /^Series of 2 – compare/ }).click(),
 }

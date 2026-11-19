@@ -132,6 +132,15 @@ stays the same.
 - **Then** the toast closes and a dialog lists the toast's message and each detail, one per line,
   with *Close*; the dialog traps the focus and `Esc` closes it
 
+### APP-001.15 – No serious accessibility fault, light or dark
+
+- **Given** the real app in the light and in the dark theme
+- **When** the grid, folder tree, settings, selection, *Move…*, ⋯ menu, reject review, *Delete…*,
+  loupe, gesture guide, series compare and series viewer are open
+- **Then** an axe-core scan (WCAG 2.2 A and AA rules, ADR 0042) finds no fault rated *serious* or
+  *critical*, contrast included; a known fault is excluded only by its rule and element, each with
+  a `TODO.md` item
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -149,3 +158,4 @@ stays the same.
 | 2026-11-17 | The navigation toggle is centred in the toolbar row, alone and opaque on hover (APP-001.11) |
 | 2026-11-18 | A dialog closed while it opens logs no focus trap error (APP-001.12) |
 | 2026-11-18 | An error toast stays until closed and is announced as an alert; a toast's details open in a dialog (APP-001.13, .14; review UX-1, UX-2) |
+| 2026-11-19 | An axe-core scan of every screen, light and dark (APP-001.15, ADR 0042; review UX-5) |

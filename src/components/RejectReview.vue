@@ -69,7 +69,6 @@ function caption(picture: Picture<ListingEntry>): string {
 			<PictureThumbs
 				:pictures="props.pictures"
 				:action="t('honeycomb', 'Rescue')"
-				:label="(picture) => t('honeycomb', 'Rescue {name}', { name: picture.baseName }, undefined, PLAIN_TEXT)"
 				:caption="caption"
 				tone="error"
 				:imageUrl="props.imageUrl"
