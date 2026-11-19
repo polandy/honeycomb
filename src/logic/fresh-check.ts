@@ -12,6 +12,7 @@ import { sameDecision, UNDECIDED } from './decision.ts'
 import { embeddedSidecarPath, embeddedXmpSource } from './embedded-xmp.ts'
 import { splitFolder } from './file-name.ts'
 import { memberIds, pictureMembers } from './pairing.ts'
+import { pictureFlag, readDecision } from './picture-flag.ts'
 import { embeddedBytes, isPair, sidecarBytes } from './sidecar-sync.ts'
 import { pictureSidecarDecision, sidecarDecision } from './xmp/decision.ts'
 import { readXmp } from './xmp/parse.ts'
@@ -22,7 +23,7 @@ import { sidecarTargets } from './xmp/targets.ts'
 export type DecisionFlow = 'rejects' | 'raws'
 
 /** Why a picture is skipped instead of deleted (DELETE-002.16). */
-export type SkipReason = 'changed' | 'unread' | 'refused' | 'disagrees' | 'notRejected' | 'notRemovable' | 'jpegSidecar'
+export type SkipReason = 'changed' | 'unread' | 'refused' | 'notRejected' | 'notRemovable' | 'jpegSidecar'
 
 /** A picture the fresh check kept out of the delete, and why. */
 export interface SkippedPicture {
@@ -73,7 +74,7 @@ export function freshLookups(pictures: readonly Picture<ListingEntry>[]) {
 	}
 }
 
-/** Whether the fresh picture may go in the flow: every source read, valid and agreeing on the flag the flow needs. */
+/** Whether the fresh picture may go in the flow: every source read and valid, and its flag, from its rows or else its sidecars, the one the flow needs. */
 export function freshVerdict(flow: DecisionFlow, picture: Picture<ListingEntry>, answers: Answers, embedded: Embedded): Verdict {
 	const sources = sourcesOf(picture, answers, embedded)
 	if (sources === null) {
@@ -84,19 +85,11 @@ export function freshVerdict(flow: DecisionFlow, picture: Picture<ListingEntry>,
 	if (refused.length > 0) {
 		return { reason: 'refused' }
 	}
-	const packets = sources.map((source) => readXmp(source.bytes))
-	const goes = packets.map((packet) => letsGo(flow, sidecarDecision(packet, pair)))
-	if (goes.some((go) => go) && goes.some((go) => !go)) {
-		return { reason: 'disagrees' }
+	const decision = readDecision(pictureFlag(picture), winner?.decision ?? UNDECIDED)
+	if (!letsGo(flow, decision)) {
+		return { reason: flow === 'rejects' ? 'notRejected' : 'notRemovable' }
 	}
-	if (flow === 'rejects' && !goes.includes(true)) {
-		return { reason: 'notRejected' }
-	}
-	if (flow === 'raws' && goes.includes(false)) {
-		return { reason: 'notRemovable' }
-	}
-	const decision = winner?.decision ?? UNDECIDED
-	const tags = pictureTags(packets)
+	const tags = pictureTags(sources.map((source) => readXmp(source.bytes)))
 	return { decision, tags, jpegSidecar: flow === 'raws' ? jpegSidecarOf(picture, sources) : null }
 }
 
@@ -106,7 +99,7 @@ export function goesUnchecked(flow: DecisionFlow, picture: Picture<ListingEntry>
 	return flow === 'rejects' || picture.rendered === null || existing.length === 0 || !created.includes(embeddedSidecarPath(picture.rendered))
 }
 
-/** Whether one sidecar's decision lets the picture go in the flow. */
+/** Whether the picture's decision lets it go in the flow. */
 function letsGo(flow: DecisionFlow, decision: Decision): boolean {
 	return flow === 'rejects' ? decision.flag === 'rejected' : decision.flag !== 'rejected' && !decision.keepRaw
 }

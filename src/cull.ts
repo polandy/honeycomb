@@ -235,6 +235,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 
 	return {
 		writabilityOf: access.writabilityOf,
+		flushFlags: flags.flush,
 		takeSkipped: access.takeSkipped,
 		folderSet,
 		pictures,

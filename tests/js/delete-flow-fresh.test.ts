@@ -39,7 +39,7 @@ describe('useDeleteFlow, deleting by decision', () => {
 
 	// spec: DELETE-002.16
 	it('sends nothing when every picture is skipped, and reports them', async () => {
-		const check = async (pictures: readonly Picture<ListingEntry>[]): Promise<FreshCheck> => ({ passed: [], skipped: pictures.map((picture) => ({ picture, reason: 'disagrees' })), unchecked: [] })
+		const check = async (pictures: readonly Picture<ListingEntry>[]): Promise<FreshCheck> => ({ passed: [], skipped: pictures.map((picture) => ({ picture, reason: 'unread' })), unchecked: [] })
 		const { deleting, sent, pictures, toasts } = flow(allTrashed, undefined, undefined, check)
 
 		deleting.continueToSummary()

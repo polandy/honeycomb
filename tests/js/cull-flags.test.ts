@@ -56,6 +56,7 @@ describe('useCullFlags', () => {
 		void flags.save([row(1)])
 		void flags.save([row(2)])
 		void flags.flush().then(() => (flushed = true))
+		await flushPromises()
 
 		answers[0]!(new Error('offline'))
 		await flushPromises()

@@ -35,5 +35,10 @@ export function useCullFlags(api: FlagApi) {
 		}
 	}
 
-	return { save, takeOver }
+	/** Waits for every save sent so far to answer (DELETE-002.28). */
+	async function flush() {
+		await queue
+	}
+
+	return { save, takeOver, flush }
 }
