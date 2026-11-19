@@ -88,9 +88,9 @@ export function useToast(schedule: Schedule) {
 
 	/** Hands the toast's message and details to the dialog and hides the toast. */
 	function openDetails() {
-		const details = current.value?.details
-		if (details) {
-			detailed.value = { message: current.value!.message, details }
+		const shown = current.value
+		if (shown?.details) {
+			detailed.value = { message: shown.message, details: shown.details }
 			hide()
 		}
 	}

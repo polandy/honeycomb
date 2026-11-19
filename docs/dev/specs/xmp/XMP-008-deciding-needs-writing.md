@@ -156,3 +156,4 @@ Withdrawn by ADR 0040 (M8 PR 3); .12 and .14 replace it.
 | 2026-11-19 | M8 PR 3: rateable, read only and `legacy` (.3 changed, .1, .2, .4–.7, .9 removed; .12, .14 implemented) |
 | 2026-11-19 | M8 PR 4: no `legacy` state, so the order of reasons has one entry (.11 removed, .14) |
 | 2026-11-19 | M8 PR 6: failed writes taken back, the toast of XMP-003.13 names the reason (.13, .15–.17 implemented) |
+| 2026-11-19 | The toast of a partly locked step opens its details in a dialog; all locked is an error toast (.14; APP-001.13, .14) |
