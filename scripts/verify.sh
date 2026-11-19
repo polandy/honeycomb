@@ -37,6 +37,7 @@ parallel_wait
 step build npx vite build
 # Each Nextcloud container has its own port and name (scripts/e2e-names.sh).
 parallel_step "phpunit db" scripts/php-db-tests.sh
+parallel_step "xmp interop" scripts/xmp-interop.sh
 parallel_step e2e npx playwright test
 parallel_step "e2e oldest" env HONEYCOMB_E2E_NEXTCLOUD=oldest HONEYCOMB_E2E_PORT="$(e2e_oldest_port)" npx playwright test
 parallel_step "upgrade test" scripts/upgrade-test.sh "$(upgrade_port)"
