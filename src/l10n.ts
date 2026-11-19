@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { getCanonicalLocale } from '@nextcloud/l10n'
+import { getCanonicalLocale, t } from '@nextcloud/l10n'
 
 /** Options for t() and n() whose result Vue renders as text, so a folder named "A & B" stays as it is. */
 export const PLAIN_TEXT = { escape: false, sanitize: false } as const
@@ -37,4 +37,16 @@ export function formatDateTime(seconds: number): string {
 /** A Unix time in seconds as a date and a time with seconds in the user's locale. */
 export function formatDateTimeSeconds(seconds: number): string {
 	return new Intl.DateTimeFormat(getCanonicalLocale(), { dateStyle: 'medium', timeStyle: 'medium' }).format(seconds * 1000)
+}
+
+/** A duration in ms as hours and minutes, or minutes and seconds below an hour, e.g. "2 h 18 min" or "2 min 30 s". */
+export function formatDuration(ms: number): string {
+	const seconds = Math.floor(ms / 1000)
+	const hours = formatNumber(Math.floor(seconds / 3600))
+	const minutes = formatNumber(Math.floor(seconds / 60) % 60)
+	const rest = formatNumber(seconds % 60)
+	if (seconds >= 3600) {
+		return t('honeycomb', '{hours} h {minutes} min', { hours, minutes }, undefined, PLAIN_TEXT)
+	}
+	return seconds >= 60 ? t('honeycomb', '{minutes} min {seconds} s', { minutes, seconds: rest }, undefined, PLAIN_TEXT) : t('honeycomb', '{seconds} s', { seconds: rest }, undefined, PLAIN_TEXT)
 }

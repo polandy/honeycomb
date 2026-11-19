@@ -52,7 +52,9 @@ function focus(wrapper: AppWrapper, grid: { focused: number }, name: string) {
 }
 
 const card = (wrapper: AppWrapper) => wrapper.findComponent(CullFinished)
-const done = async (wrapper: AppWrapper) => {
+
+/** Closes the card by *Done*. */
+async function done(wrapper: AppWrapper) {
 	await card(wrapper).findAll('button').find((button) => button.text() === 'Done')!.trigger('click')
 	await flushPromises()
 }

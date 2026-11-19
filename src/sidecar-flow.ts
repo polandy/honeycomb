@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { SidecarFailure } from './logic/sidecar-sync.ts'
+import type { SavedSidecar, SidecarFailure } from './logic/sidecar-sync.ts'
 import type { XmpTime } from './logic/xmp/model.ts'
 import type { SidecarApi } from './sidecar-sync.ts'
 import type { ToastAction } from './toast.ts'
@@ -25,9 +25,15 @@ export function browserNow(): XmpTime {
 export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, action?: ToastAction | null) => void, error: (message: string, action?: ToastAction | null) => void) {
 	const report = shallowRef<SidecarFailure[] | null>(null)
 	const open = computed(() => report.value !== null)
+	let savedListener = (_saved: SavedSidecar[]) => {}
 	const sync = useSidecarSync(api, api.now, (failed) => {
 		toastFailed(notWrittenText(failed.map(({ reason }) => reason)), failed)
-	})
+	}, (saved) => savedListener(saved))
+
+	/** Hears each save's written sidecars, from then on. */
+	function onSaved(listener: (saved: SavedSidecar[]) => void) {
+		savedListener = listener
+	}
 
 	/** Shows the error with *Details*, which reports the failures. */
 	function toastFailed(message: string, failed: SidecarFailure[]) {
@@ -44,7 +50,7 @@ export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, act
 		report.value = null
 	}
 
-	return { sync, report, open, close, toast, toastFailed }
+	return { sync, report, open, close, toast, toastFailed, onSaved }
 }
 
 /** The sidecar flow of the app. */
