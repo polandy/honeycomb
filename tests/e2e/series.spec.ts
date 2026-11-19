@@ -163,8 +163,9 @@ test('merges the series with the next one from the compare\'s menu, kept after a
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Series ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
-	for (const [shot, second] of [[1, '01'], [2, '02'], [3, '10'], [4, '11']] as const) {
-		await upload(page, `${folder}/IMG_000${shot}.jpg`, withCaptureTime(JPEG, `2026:11:10 10:00:${second}`))
+	// Two bursts a minute apart: the visual gap of 30 s may not join them once the hashes arrive.
+	for (const [shot, time] of [[1, '00:01'], [2, '00:02'], [3, '01:00'], [4, '01:01']] as const) {
+		await upload(page, `${folder}/IMG_000${shot}.jpg`, withCaptureTime(JPEG, `2026:11:10 10:${time}`))
 	}
 
 	await cullFolder(page, folder)
