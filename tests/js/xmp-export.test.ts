@@ -54,7 +54,8 @@ function exportOf(sources: readonly { picture: Picture<ListingEntry>, bytes: Uin
 	const pictures = sources.map(({ picture }) => picture)
 	const writing = useXmpExport(flow, { pictures: () => pictures, decisionOf: (picture) => decisions.get(picture) ?? UNDECIDED, flush: async () => void flushed.push('flushed') })
 	const valuesOf = (fileId: number) => sidecarValues(readXmp(files.get(fileId)!))
-	return { flow, writing, toasts, flushed, files, created, valuesOf, load: async () => { await flow.sync.read(pictures) } }
+	const load = async () => void await flow.sync.read(pictures)
+	return { flow, writing, toasts, flushed, files, created, valuesOf, load }
 }
 
 describe('useXmpExport', () => {
@@ -110,7 +111,7 @@ describe('useXmpExport', () => {
 		await writing.run()
 
 		expect([...created.keys()].sort()).toEqual(['/P/IMG_1.JPG.xmp', '/P/IMG_1.NEF.xmp'])
-		expect([...created.values()].map(valuesOf)).toEqual([{ rating: null, flag: 'picked', colourLabel: null, keepRaw: true }, { rating: null, flag: 'picked', colourLabel: null, keepRaw: true }].map((values) => expect.objectContaining(values)))
+		expect([...created.values()].map(valuesOf)).toEqual([{ rating: 0, flag: 'picked', colourLabel: null, keepRaw: true }, { rating: 0, flag: 'picked', colourLabel: null, keepRaw: true }].map((values) => expect.objectContaining(values)))
 		expect(toasts.map(({ message }) => message)).toEqual(['2 XMP files written'])
 		expect(writing.count.value).toBe(0)
 	})

@@ -48,3 +48,12 @@ function withReasonText(message: string, reasons: readonly SidecarFailureReason[
 
 /** "Could not write 2 sidecars. You may not …", the toast of a write with failures, naming their reason. */
 export const notWrittenText = (reasons: readonly SidecarFailureReason[]) => withReasonText(n('honeycomb', 'Could not write {count} sidecar', 'Could not write {count} sidecars', reasons.length, { count: formatNumber(reasons.length) }, PLAIN_TEXT), reasons)
+
+/** "211 XMP files written", or with failures "211 XMP files written, 3 not written. You may not …"; none to write says all are up to date (XMP-003.42). */
+export function xmpExportText(written: number, reasons: readonly SidecarFailureReason[]): string {
+	if (written === 0 && reasons.length === 0) {
+		return t('honeycomb', 'All XMP files are up to date')
+	}
+	const done = n('honeycomb', '{count} XMP file written', '{count} XMP files written', written, { count: formatNumber(written) }, PLAIN_TEXT)
+	return reasons.length === 0 ? done : withReasonText(t('honeycomb', '{done}, {failed} not written', { done, failed: formatNumber(reasons.length) }, undefined, PLAIN_TEXT), reasons)
+}

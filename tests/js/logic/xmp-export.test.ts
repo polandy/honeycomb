@@ -26,7 +26,7 @@ const jpegWithSidecar = (fileId: number, folder = 'P') => pictureOf(listingEntry
 /** A JPEG+NEF pair without sidecars. */
 const bare = (fileId: number) => pictureOf(listingEntry(fileId, `/P/IMG_${fileId}.NEF`, { mime: 'image/x-nikon-nef' }), listingEntry(fileId + 1, `/P/IMG_${fileId}.JPG`))
 
-const plan = (decisions: Map<object, Decision>, rows: Map<number, XmpCacheRow>, known = new Map<string, { fileId: number }>()) => {
+function plan(decisions: Map<object, Decision>, rows: Map<number, XmpCacheRow>, known = new Map<string, { fileId: number }>()) {
 	const pictures = [...decisions.keys()] as ReturnType<typeof bare>[]
 	return exportPlan(pictures, (picture) => decisions.get(picture) ?? UNDECIDED, rows, known)
 }

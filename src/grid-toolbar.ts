@@ -48,6 +48,8 @@ export interface ToolbarTasks {
 	readonly rawRemovable: number
 	/** How many rateable pictures *Clear picks/rejects* resets. */
 	readonly clearable: number
+	/** How many XMP files *Write picks/rejects to XMP* writes. */
+	readonly xmpToWrite: number
 	/** How many pictures *Move picks* or, while a filter is on, *Move filtered* opens the move dialog on. */
 	readonly movable: number
 	/** The base name of the picture *Resume* opens the loupe at, null when there is none. */

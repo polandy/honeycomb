@@ -42,6 +42,7 @@ const emit = defineEmits<{
 	compareSeries: []
 	removeRaws: []
 	clearFlags: []
+	writeXmp: []
 	move: []
 	resume: []
 	openSettings: []
@@ -164,6 +165,7 @@ const setName = computed(() => {
 				:sortOrder="props.view.sortOrder"
 				:rawRemovable="props.tasks.rawRemovable"
 				:clearable="props.tasks.clearable"
+				:xmpToWrite="props.tasks.xmpToWrite"
 				:movable="props.tasks.movable"
 				:moveFiltered="props.view.activeFilters > 0"
 				:resumeName="props.tasks.resumeName"
@@ -175,6 +177,7 @@ const setName = computed(() => {
 				@update:sortOrder="emit('update:sortOrder', $event)"
 				@removeRaws="fromMenu(() => emit('removeRaws'))"
 				@clearFlags="fromMenu(() => emit('clearFlags'))"
+				@writeXmp="fromMenu(() => emit('writeXmp'))"
 				@move="fromMenu(() => emit('move'))"
 				@resume="fromMenu(() => emit('resume'))"
 				@reviewRejects="fromMenu(() => emit('reviewRejects'))"
