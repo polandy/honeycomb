@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Runs every CI check locally: one line per step, the full output of a failing step only.
+# Runs every CI check locally: one timed line per step, the full output of a failing step only.
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
@@ -9,25 +9,10 @@ MARKDOWNLINT_CLI2_VERSION=0.24.0 # matches DavidAnson/markdownlint-cli2-action v
 REUSE_VERSION=6.3.0              # matches the fsfe/reuse:6 image of fsfe/reuse-action v6.0.0
 
 source scripts/e2e-names.sh
-
-failed=0
-step() {
-  local name=$1
-  shift
-  local log
-  log=$(mktemp)
-  if "$@" >"$log" 2>&1; then
-    echo "ok   $name"
-  else
-    echo "FAIL $name"
-    cat "$log"
-    failed=1
-  fi
-  rm -f "$log"
-}
+source scripts/verify-steps.sh
 
 step ci-changes scripts/test-ci-changes.sh
-step "gate tests" sh -c 'scripts/test-e2e-names.sh && scripts/test-source-sizes.sh && scripts/test-pins.sh && scripts/test-specs.sh && scripts/test-spec-trailers.sh && scripts/test-nextcloud-versions.sh && scripts/test-package.sh'
+step "gate tests" sh -c 'scripts/test-e2e-names.sh && scripts/test-source-sizes.sh && scripts/test-pins.sh && scripts/test-specs.sh && scripts/test-spec-trailers.sh && scripts/test-nextcloud-versions.sh && scripts/test-package.sh && scripts/test-verify-steps.sh'
 step source-sizes scripts/source-sizes.sh
 step pins scripts/pins.sh
 step specs scripts/specs.sh
@@ -52,4 +37,5 @@ step e2e npx playwright test
 step "e2e oldest" env HONEYCOMB_E2E_NEXTCLOUD=oldest npx playwright test
 step "upgrade test" scripts/upgrade-test.sh "$(upgrade_port)"
 
+verify_total
 exit $failed
