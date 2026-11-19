@@ -83,6 +83,16 @@ final class TrashServiceStatsTest extends TestCase {
 		$this->assertSame(['Could not count the statistics.'], $this->statsWarnings);
 	}
 
+	// spec: STATS-001.7
+	public function testAnUnreadableSizeCountsNoBytesAndTheDeleteGoesOn(): void {
+		$nodes = [1 => $this->file(1, 'IMG_0001.JPG', size: 100, sizeReads: 1), 2 => $this->file(2, 'IMG_0002.JPG', size: 100)];
+
+		$results = $this->service($nodes)->trash($this->user(), [self::picture(1), self::picture(2)]);
+
+		$this->assertSame([[['fileId' => 1, 'result' => 'trashed']], [['fileId' => 2, 'result' => 'trashed']]], self::results($results));
+		$this->assertSame(['trash_pictures' => 2, 'trash_files' => 2, 'trash_bytes' => 100], $this->counted());
+	}
+
 	// spec: STATS-001.10
 	public function testNothingIsCountedWhenNothingSucceeded(): void {
 		$this->service([])->trash($this->user(), [self::picture(1)]);
