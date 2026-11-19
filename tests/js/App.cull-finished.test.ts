@@ -70,14 +70,14 @@ describe('App: Cull finished', () => {
 
 		expect(card(wrapper).exists()).toBe(true)
 		const text = card(wrapper).text()
-		expect(text).toContain('Cull finished')
+		expect(card(wrapper).find('[role=dialog]').attributes('name')).toBe('Cull finished')
 		expect(text).toContain('1 photo decided')
 		expect(text).toContain('Before 3 photos · 10 kB → after 3 · 10 kB')
 		expect(text).toContain('Active time 0 s')
 		await done(wrapper)
 		expect(card(wrapper).exists()).toBe(false)
 
-		await press('x')
+		await press('3')
 		expect(card(wrapper).exists()).toBe(false)
 		clock.now = 60_000
 		await press('u')
@@ -126,7 +126,7 @@ describe('App: Cull finished', () => {
 
 		const text = card(wrapper).text()
 		expect(text).toContain('Before 3 photos · 10 kB → after 2 · 5 kB')
-		expect(text).toMatch(/Moved to the trash bin\s*1/)
+		expect(text).toMatch(/1\s*Moved to the trash bin/)
 		expect(text).toContain('5 kB freed')
 	})
 })
