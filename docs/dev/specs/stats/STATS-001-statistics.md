@@ -40,11 +40,17 @@ acts, one sum per metric and request, with the sizes the server reads before it 
 space is freed when the trash bin is emptied.
 
 **Cull finished** is a card over the grid: a bottom sheet on a phone, a dialog from the iPad width
-on. It opens once when no undecided picture is left in the folder set, and after the delete
-report. It shows this session only, computed in the browser: pictures decided with picked,
-unflagged and rejected, moved to the trash bin, deleted for good, sidecars created and updated,
-before and after (pictures and bytes of the folder set when the session started and now), active
-time and pictures a minute. *Statistics* opens the statistics page, *Done* closes the card.
+on. It opens once when a decision of the user leaves no undecided picture in the folder set, and
+when a delete from the reject review ends (after the delete report, if one opens); it waits while
+the loupe, the series compare or a delete dialog is open. It shows this session only, computed in
+the browser and never sent: the pictures the user decided (a picture changed by a decision, undo
+or redo and decided now, or deleted since) split into picked, unflagged and rejected; the pictures
+moved to the trash bin and deleted for good by the session's deletes, *Remove RAWs* left out, with
+the space freed; the sidecars created and updated, each once; before and after (pictures and bytes
+of the folder set when the session started and now); active time and pictures a minute. A session
+starts when a folder set opens with pictures. Active time adds the time between two inputs (a
+pointer press, a key, a wheel turn), at most 2 minutes each. *Statistics* opens the statistics
+page and comes with it (metrics PR 6); *Done* closes the card.
 
 **The statistics page** is a navigation entry *Statistics* beside *Similarity*. A period chip row
 offers *7 days*, *30 days*, the current year and *All time*, 30 days preselected. Tiles show
@@ -207,6 +213,33 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **When** the user closes the delete report
 - **Then** *Cull finished* opens with the session's numbers, the delete included
 
+### STATS-001.32 – Cull finished counts the session net
+
+- **Given** a session in which the user picked 2 pictures, rejected 1 and took one pick back by undo
+- **When** *Cull finished* opens
+- **Then** it shows 2 pictures decided, 1 picked and 1 rejected; a picture decided before the
+  session and not changed in it does not count
+
+### STATS-001.33 – Before and after
+
+- **Given** a folder set of 3 pictures of 30 MB when the session started
+- **When** the user deletes 1 picture of 10 MB from the reject review
+- **Then** *Cull finished* shows before 3 pictures · 30 MB and after 2 · 20 MB, 1 picture moved to the
+  trash bin and 10 MB freed
+
+### STATS-001.34 – Only a decision of the user opens the card
+
+- **Given** a folder set whose last undecided pictures become decided by reading their sidecars,
+  or that opens with no undecided picture
+- **When** nothing else happens
+- **Then** *Cull finished* does not open
+
+### STATS-001.35 – Active time leaves gaps over 2 minutes out
+
+- **Given** inputs at 0 s, 30 s and 5 min
+- **When** *Cull finished* opens at 5 min
+- **Then** active time is 2 min 30 s
+
 ### STATS-001.21 – The page shows a period
 
 - **Given** counters on several days
@@ -287,3 +320,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-19 | Written from the signed-off concept *Nutzen-Metriken* (metrics PR 1 of 8) |
 | 2026-11-19 | Storage and API, the settings section (metrics PR 2 of 8) |
 | 2026-11-19 | Server counts: trash, deleted for good, Remove RAWs, sidecars, series done, moves (.29–.31; metrics PR 3 of 8) |
+| 2026-11-19 | *Cull finished*: when it opens, what the session counts (.32–.35; metrics PR 4 of 8) |
