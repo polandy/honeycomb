@@ -6,6 +6,9 @@ E2E_DEFAULT_PORT=8180
 UPGRADE_DEFAULT_PORT=8190
 
 e2e_port() { echo "${HONEYCOMB_E2E_PORT:-$E2E_DEFAULT_PORT}"; }
+# verify.sh runs the oldest-Nextcloud e2e alongside; the offset keeps it clear of other worktrees' 8xxx ports.
+E2E_OLDEST_PORT_OFFSET=1000
+e2e_oldest_port() { echo "${HONEYCOMB_E2E_OLDEST_PORT:-$(($(e2e_port) + E2E_OLDEST_PORT_OFFSET))}"; }
 upgrade_port() { echo "${HONEYCOMB_UPGRADE_PORT:-$UPGRADE_DEFAULT_PORT}"; }
 e2e_container() { echo "honeycomb-e2e-$1"; }
 upgrade_container() { echo "honeycomb-upgrade-$1"; }

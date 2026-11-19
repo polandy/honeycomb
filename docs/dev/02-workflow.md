@@ -54,7 +54,8 @@ during a task becomes an issue as above.
 ## 2.4 Before opening
 
 - `scripts/verify.sh` is green locally. CI runs the same tools at the same versions. Each step line
-  shows its duration in seconds and the last line the total (`scripts/verify-steps.sh`).
+  shows its duration in seconds and the last line the total (`scripts/verify-steps.sh`). Independent
+  slow steps run in parallel and still print in a fixed order; any failing one turns the run red.
 - Docs that the change touches and the `TODO.md` line it finishes are part of the same pull
   request. So is the spec in `docs/dev/specs/` for any behaviour change (ADR 0015). `CHANGELOG.md`
   is written by release-please.
