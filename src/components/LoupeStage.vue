@@ -46,6 +46,8 @@ const DEFAULT_ASPECT = 3 / 2
 
 const stage = useTemplateRef<HTMLElement>('stage')
 const size = ref<Size>({ width: 0, height: 0 })
+/** Counts the fits to the stage's size, for tests to wait on. */
+const fitSeq = ref(0)
 const zoom = ref<Zoom>(FIT)
 const dragX = ref(0)
 const liftY = ref(0)
@@ -180,6 +182,7 @@ let stopObserving = () => undefined as void
 onMounted(() => {
 	stopObserving = props.observeSize(stage.value!, (width, height) => {
 		size.value = { width, height }
+		fitSeq.value++
 	})
 })
 onBeforeUnmount(() => stopObserving())
@@ -200,6 +203,7 @@ defineExpose({
 	<div
 		ref="stage"
 		class="loupe-stage"
+		:data-fit-seq="fitSeq"
 		data-tip-avoid
 		@pointerdown="onPointerDown"
 		@pointermove="act(gestures.move(pointerOf($event)))"

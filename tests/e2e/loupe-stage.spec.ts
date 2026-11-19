@@ -50,7 +50,7 @@ async function openRotatedPair(page: Page) {
 async function expectRotatedAlone(page: Page, loupe: Locator, testInfo: TestInfo, shot: string) {
 	const photo = loupe.getByRole('img', { name: '_MG_1031' })
 	await expect(photo).toHaveJSProperty('complete', true)
-	await expect.poll(() => photosInView(page)).toBe(1)
+	expect(await photosInView(page)).toBe(1)
 	const box = (await photo.boundingBox())!
 	const natural = await photo.evaluate((image: HTMLImageElement) => image.naturalWidth / image.naturalHeight)
 	expect(box.height).toBeGreaterThan(box.width)
@@ -64,12 +64,16 @@ test('shows only the rotated pair, upright, at iPad landscape and portrait', asy
 	const loupe = await openRotatedPair(page)
 	await expectRotatedAlone(page, loupe, testInfo, 'loupe-ipad-landscape.png')
 
+	// The stage refits from its ResizeObserver and counts each fit, so wait for the next one.
+	const stage = loupe.locator('.loupe-stage')
+	const fitSeq = Number(await stage.getAttribute('data-fit-seq'))
 	await page.setViewportSize(IPAD_PORTRAIT)
+	await expect(stage).toHaveAttribute('data-fit-seq', String(fitSeq + 1))
 	await expectRotatedAlone(page, loupe, testInfo, 'loupe-ipad-portrait.png')
 
 	await page.keyboard.press('ArrowRight')
 	await expect(loupe.getByRole('heading', { name: '_MG_1032' })).toBeVisible()
-	await expect.poll(() => photosInView(page)).toBe(1)
+	expect(await photosInView(page)).toBe(1)
 })
 
 // spec: LOUPE-001.18
@@ -83,7 +87,7 @@ test('shows only the rotated pair, upright, in browser fullscreen', async ({ pag
 
 	await page.keyboard.press('ArrowLeft')
 	await expect(loupe.getByRole('heading', { name: '_MG_1030' })).toBeVisible()
-	await expect.poll(() => photosInView(page)).toBe(1)
+	expect(await photosInView(page)).toBe(1)
 })
 
 // spec: LOUPE-001.10
@@ -98,7 +102,7 @@ test('goes fullscreen by the button, keeps one photo and Pick, and leaves by the
 
 	await page.keyboard.press('p')
 	await expect(loupe.getByRole('heading', { name: '_MG_1032' })).toBeVisible()
-	await expect.poll(() => photosInView(page)).toBe(1)
+	expect(await photosInView(page)).toBe(1)
 
 	await loupe.getByRole('button', { name: 'Leave fullscreen' }).click()
 	await expect.poll(() => page.evaluate(() => document.fullscreenElement !== null)).toBe(false)

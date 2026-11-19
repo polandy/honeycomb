@@ -75,18 +75,14 @@ test('puts Pick and Reject at the side edges and Unflag bottom centre above the 
 		expect(word.y + word.height).toBeLessThanOrEqual(edge.y + edge.height)
 	}
 
+	// The stage refits the photo from its ResizeObserver and counts each fit, so wait for the next one.
+	const stage = loupe.locator('.loupe-stage')
+	const fitSeq = Number(await stage.getAttribute('data-fit-seq'))
 	await page.setViewportSize({ width: 600, height: 900 })
-	// The stage refits the photo from its ResizeObserver, a frame after the viewport changes, so
-	// measure photo and buttons together and wait until the refit photo ends above the row.
-	const portrait = async () => {
-		const photo = (await loupe.getByRole('img', { name: 'IMG_0001' }).boundingBox())!
-		return { photoBottom: photo.y + photo.height, pick: await box('Pick'), reject: await box('Reject'), unflag: await box('Unflag') }
-	}
-	await expect.poll(async () => {
-		const { photoBottom, pick } = await portrait()
-		return photoBottom <= pick.y
-	}).toBe(true)
-	const { pick: portraitPick, reject: portraitReject, unflag } = await portrait()
+	await expect(stage).toHaveAttribute('data-fit-seq', String(fitSeq + 1))
+	const photo = (await loupe.getByRole('img', { name: 'IMG_0001' }).boundingBox())!
+	const [portraitPick, portraitReject, unflag] = [await box('Pick'), await box('Reject'), await box('Unflag')]
+	expect(photo.y + photo.height).toBeLessThanOrEqual(portraitPick.y)
 	expect(portraitReject.y).toBe(portraitPick.y)
 	expect(unflag.y).toBe(portraitPick.y)
 	expect(portraitPick.x).toBeLessThan(unflag.x)
