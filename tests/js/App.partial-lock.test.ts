@@ -34,7 +34,7 @@ describe('App: a step over pictures of which some are locked', () => {
 
 		expect(decidedFlags(wrapper)).toEqual(['1 rejected'])
 		expect(toast(wrapper).props('toast').message).toBe('Rejected IMG_2; 2 photos not changed: read only')
-		expect(toast(wrapper).findAll('li').map((item) => item.text())).toEqual(['IMG_9: read only', 'IMG_10: read only'])
+		expect(toast(wrapper).props('toast').kind).toBeUndefined()
 
 		toast(wrapper).vm.$emit('act')
 		await flushPromises()
@@ -42,7 +42,24 @@ describe('App: a step over pictures of which some are locked', () => {
 		expect(toast(wrapper).props('toast').message).toBe('Undid: Rejected IMG_2')
 	})
 
-	// spec: XMP-008.3
+	// spec: XMP-008.14, APP-001.14
+	it('opens the locked pictures in a dialog from Details, which closes the toast', async () => {
+		const { wrapper } = mountApp({}, [], { NcDialog: DialogStub })
+		await openCull(wrapper, SET, ENTRIES, READ_ONLY_A)
+		await press('a', { ctrlKey: true })
+		await press('x')
+
+		toast(wrapper).vm.$emit('details')
+		await flushPromises()
+
+		expect(toast(wrapper).exists()).toBe(false)
+		expect(wrapper.find('[role="dialog"]').attributes('name')).toBe('Rejected IMG_2; 2 photos not changed: read only')
+		expect(wrapper.findAll('[role="dialog"] li').map((item) => item.text())).toEqual(['IMG_9: read only', 'IMG_10: read only'])
+		await wrapper.find('[role="dialog"] button').trigger('click')
+		expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+	})
+
+	// spec: XMP-008.3, APP-001.13
 	it('names the reason in a toast when every picture is read only and asks nothing', async () => {
 		const { wrapper, sidecarSaves } = mountApp({}, [], { NcDialog: DialogStub })
 		await openCull(wrapper, SET, ENTRIES, { folders: [{ path: '/Trip/A', permissions: 1 }, { path: '/Trip/B', permissions: 3 }] })
@@ -53,6 +70,7 @@ describe('App: a step over pictures of which some are locked', () => {
 		expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
 		expect(decidedFlags(wrapper)).toEqual([])
 		expect(toast(wrapper).props('toast').message).toBe('Not changed: read only')
+		expect(toast(wrapper).props('toast').kind).toBe('error')
 		expect(sidecarSaves).toEqual([])
 	})
 })

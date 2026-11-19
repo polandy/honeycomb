@@ -15,23 +15,27 @@ describe('resetStatisticsWithToast', () => {
 		const toasts: string[] = []
 		let resets = 0
 
-		await resetStatisticsWithToast(async () => void resets++, (message) => void toasts.push(message))
+		await resetStatisticsWithToast(async () => void resets++, (message) => void toasts.push(message), () => {
+			throw new Error('success must not be an error toast')
+		})
 
 		expect(resets).toBe(1)
 		expect(toasts).toEqual(['Statistics reset'])
 	})
 
-	// spec: STATS-001.3
-	it('logs a failure and says the statistics could not be reset', async () => {
+	// spec: APP-001.13
+	it('logs a failure and says the statistics could not be reset as an error toast', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => {})
-		const toasts: string[] = []
+		const errors: string[] = []
 		const failure = new Error('offline')
 
 		await resetStatisticsWithToast(async () => {
 			throw failure
-		}, (message) => void toasts.push(message))
+		}, () => {
+			throw new Error('a failure must be an error toast')
+		}, (message) => void errors.push(message))
 
-		expect(toasts).toEqual(['Could not reset the statistics.'])
+		expect(errors).toEqual(['Could not reset the statistics.'])
 		expect(error).toHaveBeenCalledWith('Could not reset the statistics.', { error: failure })
 	})
 })

@@ -116,6 +116,22 @@ stays the same.
 - **Then** its focus trap is skipped and nothing is logged as an error; any other error is still
   logged as one (APP-001.5)
 
+### APP-001.13 – An error toast stays until it is closed
+
+- **Given** a toast that reports a failure, such as *Could not save the settings*, *Could not
+  clear the cache.*, *Could not move the photos* or *Not changed: read only*
+- **When** the user looks away and back, however long it takes
+- **Then** the toast is still there, announced by a screen reader at once (`role="alert"`), with a
+  *Close* button; another toast replaces it; a toast that reports success keeps its timer and
+  stays a polite status (`role="status"`)
+
+### APP-001.14 – A toast's details open in a dialog
+
+- **Given** a toast with *Details*, such as *Picked 7 photos; 3 photos not changed: read only*
+- **When** the user chooses *Details*, by touch or with the keyboard
+- **Then** the toast closes and a dialog lists the toast's message and each detail, one per line,
+  with *Close*; the dialog traps the focus and `Esc` closes it
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -132,3 +148,4 @@ stays the same.
 | 2026-11-16 | Each page loads its script by its content-hashed name (APP-001.10, ADR 0033) |
 | 2026-11-17 | The navigation toggle is centred in the toolbar row, alone and opaque on hover (APP-001.11) |
 | 2026-11-18 | A dialog closed while it opens logs no focus trap error (APP-001.12) |
+| 2026-11-18 | An error toast stays until closed and is announced as an alert; a toast's details open in a dialog (APP-001.13, .14; review UX-1, UX-2) |

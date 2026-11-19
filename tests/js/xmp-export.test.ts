@@ -32,6 +32,7 @@ function exportOf(sources: readonly { picture: Picture<ListingEntry>, bytes: Uin
 	const created = new Map<string, number>()
 	const cache = new Map<number, XmpCacheRow>()
 	const toasts: { message: string, action: ToastAction | null }[] = []
+	const errors: { message: string, action: ToastAction | null }[] = []
 	const flushed: string[] = []
 	const flow = useSidecarFlow({
 		lookupSidecars: async (fileIds) => fileIds.map((fileId) => ({ result: 'read', bytes: files.get(fileId)!, etag: `e${fileId}`, size: files.get(fileId)!.length, mtime: 1 })),
@@ -50,12 +51,12 @@ function exportOf(sources: readonly { picture: Picture<ListingEntry>, bytes: Uin
 			return { result: 'saved', fileId, etag: `e${fileId}`, size: item.bytes.length, mtime: 2 }
 		}),
 		now: () => CANONICAL_TIME,
-	}, (message, action) => void toasts.push({ message, action: action ?? null }))
+	}, (message, action) => void toasts.push({ message, action: action ?? null }), (message, action) => void errors.push({ message, action: action ?? null }))
 	const pictures = sources.map(({ picture }) => picture)
 	const writing = useXmpExport(flow, { pictures: () => pictures, decisionOf: (picture) => decisions.get(picture) ?? UNDECIDED, flush: async () => void flushed.push('flushed') })
 	const valuesOf = (fileId: number) => sidecarValues(readXmp(files.get(fileId)!))
 	const load = async () => void await flow.sync.read(pictures)
-	return { flow, writing, toasts, flushed, files, created, valuesOf, load }
+	return { flow, writing, toasts, errors, flushed, files, created, valuesOf, load }
 }
 
 describe('useXmpExport', () => {
@@ -130,13 +131,13 @@ describe('useXmpExport', () => {
 	// spec: XMP-003.42, XMP-003.33
 	it('reports the sidecars it could not write in one toast with Details', async () => {
 		const sources = [1, 2, 3].map((fileId) => stating(fileId, { 'digiKam:PickLabel': '3' }))
-		const { writing, toasts, flow, load } = exportOf(sources, new Map(sources.map(({ picture }) => [picture, REJECTED])), [103])
+		const { writing, errors, flow, load } = exportOf(sources, new Map(sources.map(({ picture }) => [picture, REJECTED])), [103])
 		await load()
 
 		await writing.run()
 		await flushPromises()
 
-		const last = toasts.at(-1)!
+		const last = errors.at(-1)!
 		expect([last.message, last.action?.label]).toEqual([`2 XMP files written, 1 not written. ${NOT_PERMITTED}`, 'Details'])
 		last.action!.run()
 		expect(flow.report.value?.map(({ path, reason }) => [path, reason])).toEqual([['/P/IMG_3.JPG.xmp', 'notPermitted']])
