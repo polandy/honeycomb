@@ -31,7 +31,8 @@ migration drops the old table and its endpoints, and the criteria withdrawn belo
   (ADR 0038). The last save wins.
 - `POST /apps/honeycomb/api/v1/flags/take-over` with the same body inserts a row only where the
   file id has none, needs READ only and never changes a row; it answers the inserted ids under
-  `saved` and an id that already has a row under `skipped` with `exists`.
+  `saved` and an id that already has a row under `skipped` with `exists`. It reads the rows before
+  its transaction, so on SQLite it waits for another save instead of failing (.34).
 - A picture whose members' rows differ reads as the row with the latest `updatedAt` (Unix
   seconds); of rows saved in the same second the first member's wins, in the picture's member
   order.
@@ -239,6 +240,14 @@ Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5
 - **When** the user is deleted
 - **Then** the rows stay and the other user still reads them
 
+### DECISIONS-001.34 – A take-over beside another save
+
+- **Given** a take-over while another save commits, such as a cull opening while another tab saves
+  its flags on SQLite
+- **When** it is stored
+- **Then** it waits for that save instead of failing: the first statement of its transaction is a
+  write, and an id another save inserted meanwhile is repeated as in .30
+
 ## Out of scope
 
 Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XMP sidecars (M5).
@@ -259,3 +268,4 @@ Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XM
 | 2026-11-19 | ADR 0040: flags per picture in `honeycomb_flags`, the old rows withdrawn (.21–.33 gaps until M8 PR 5) |
 | 2026-11-19 | M8 PR 4: the rows lock nothing and nothing migrates them; M8 PR 5 drops them |
 | 2026-11-19 | M8 PR 5: `honeycomb_flags` built (.21–.33), `honeycomb_decisions` dropped (.1–.10, .12, .19, .20 removed) |
+| 2026-11-19 | M8 PR 6: a take-over reads before its transaction, so SQLite does not fail it (.34) |
