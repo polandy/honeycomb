@@ -40,16 +40,6 @@ final class DecisionMapper extends QBMapper implements DecisionStore {
 	}
 
 	#[\Override]
-	public function fileIdsOf(string $userId): array {
-		return $this->userFileIds($userId);
-	}
-
-	#[\Override]
-	public function forget(string $userId, array $fileIds): void {
-		$this->deleteFileRows($userId, $fileIds);
-	}
-
-	#[\Override]
 	public function forgetUser(string $userId): void {
 		$this->deleteUserRows($this->getTableName(), $userId);
 	}

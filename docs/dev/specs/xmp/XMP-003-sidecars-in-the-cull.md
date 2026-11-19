@@ -16,8 +16,8 @@ sidecars when the user asks (ADR 0040).
 
 ## Behaviour
 
-**Concept D (ADR 0040).** There is no setting and no shared-folder rule (XMP-008); M8 PR 4 removes
-the legacy rows, and M8 PR 6 moves the flag and *Keep RAW* to the database: from then on a step
+**Concept D (ADR 0040).** There is no setting and no shared-folder rule (XMP-008); M8 PR 5 drops
+the stored rows, and M8 PR 6 moves the flag and *Keep RAW* to the database: from then on a step
 writes only the rating, colour label and tags through, and leaves the sidecar's flag fields and
 `honeycomb:KeepRaw` as they are. **Taking over (M8 PR 6):** a picture whose members have no row in
 `honeycomb_flags` takes over the flag and *Keep RAW* its sources state, by the rules of *Reading*
@@ -40,11 +40,11 @@ stored. The embedded XMP is read as the JPEG's sidecar, at the JPEG's modificati
 decision follows [`06-xmp-interop.md`](../../06-xmp-interop.md#reading) (newest wins as a whole, a
 tie goes to the RAW member's sidecar), by the modification times the listing gives. A decision
 other than undecided is shown for every member; it is neither an undo step nor written back, and
-nothing is stored in the legacy tables. A picture with legacy rows shows them until the ⋯ entry
-writes them to its sidecars (XMP-007), locked (XMP-008). A picture the user decided meanwhile keeps
-the user's decision. A refused or unreadable sidecar, a disagreement between sidecars and a failed
-lookup are logged as warnings; the picture keeps what it shows, or takes what the sources that were
-read state. A failed cache lookup reads every source; a failed cache save is logged.
+nothing is stored in the database. A picture with a stored row (until M8 PR 5 drops the table) shows
+it. A picture the user decided meanwhile keeps the user's decision. A refused or unreadable sidecar,
+a disagreement between sidecars and a failed lookup are logged as warnings; the picture keeps what
+it shows, or takes what the sources that were read state. A failed cache lookup reads every
+source; a failed cache save is logged.
 
 **Writing through.** As soon as any attribute is set on a photo — a flag, a rating, a colour label,
 *Keep RAW*, or an undo or redo of one — each picture the step touched is
@@ -81,8 +81,7 @@ the sizes the listing states, and saves into requests of at most 1,000 sidecars 
 content; one sidecar over 8 MiB goes alone. The server keeps no byte budget of its own.
 
 **Shared folders.** A picture in a shared folder is decided and written like any other rateable
-picture, without asking (ADR 0040). The grid's ⋯ menu entry *Write decisions to sidecars…* writes
-every picture with legacy rows after asking (XMP-007).
+picture, without asking (ADR 0040).
 
 **Failure report.** A sidecar that could not be written — refused when read (not UTF-8, malformed,
 a `<!DOCTYPE>`, a property given twice), a lookup or save answer other than `read` or `saved`, or a
@@ -104,13 +103,13 @@ Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 - **Then** the picture shows three stars and rejected for both members, and no decision or tag is
   saved to the legacy tables
 
-### XMP-003.2 – A legacy row wins until it is migrated
+### XMP-003.2 – A stored row wins over the sidecar
 
-Withdrawn by ADR 0040; M8 PR 4 marks it removed.
+Withdrawn by ADR 0040; M8 PR 5 marks it removed with the table.
 
-- **Given** a picture with a legacy decision and a sidecar that says otherwise
+- **Given** a picture with a stored decision and a sidecar that says otherwise
 - **When** the cull opens
-- **Then** it shows the legacy decision, locked (XMP-008.11)
+- **Then** it shows the stored decision, and the picture stays rateable
 
 ### XMP-003.3 – A decision made meanwhile wins over the sidecar
 
@@ -183,8 +182,7 @@ Withdrawn by ADR 0040 (M8 PR 3); there is no switch and no shared-folder rule (X
 
 ### XMP-003.12 – The ⋯ menu writes to sidecars in shared folders after asking (removed)
 
-Replaced by XMP-007.5: the ⋯ entry now writes every picture with legacy rows, in shared folders
-and elsewhere.
+Replaced by XMP-007.5, which the removal of the migration (M8 PR 4) took away again.
 
 ### XMP-003.13 – A failed sidecar is reported per file
 
@@ -418,3 +416,4 @@ Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 | 2026-11-18 | The cull reads through the XMP cache and stores no legacy rows; a legacy row wins, locked, until migrated (.1–.5, .11, .18, .30 changed, .10 removed, ADR 0032) |
 | 2026-11-19 | ADR 0040: flags taken over once and written only by *Write picks/rejects to XMP*; ratings, labels and tags leave the flag fields (.1, .2, .6, .11, .14, .15, .18, .21, .23 withdrawn; .34–.42 gaps) |
 | 2026-11-19 | M8 PR 3: no setting and no shared-folder confirmation (.11, .14, .18 removed) |
+| 2026-11-19 | M8 PR 4: the migration is gone; a stored row no longer locks its picture (.2 changed, .12 note) |

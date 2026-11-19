@@ -14,7 +14,6 @@ use OCP\DB\Exception as DbException;
 /** Keeps decisions in memory, by user and file id. */
 final class FakeDecisionStore implements DecisionStore {
 	use FakeFileRows;
-	use FakeLegacyRows;
 
 	/** @var array<string, array<int, PictureDecision>> */
 	public array $rows = [];

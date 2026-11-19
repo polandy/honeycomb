@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 /** Where the decisions of each user are kept, by file id. */
-interface DecisionStore extends FileRowStore, LegacyRowStore {
+interface DecisionStore extends FileRowStore {
 	/**
 	 * The stored decisions among `$fileIds`, in file id order.
 	 * @param list<int> $fileIds

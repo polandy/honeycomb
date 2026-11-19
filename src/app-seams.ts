@@ -4,7 +4,6 @@ import type { Folder } from './api.ts'
 import type { BrowserStorage } from './browser-storage.ts'
 import type { CullTagsApi } from './cull-tags.ts'
 import type { ListEntries } from './folder-count.ts'
-import type { LegacyApi } from './legacy.ts'
 import type { StoredDecision } from './logic/decision.ts'
 import type { Schedule } from './logic/long-press.ts'
 import type { Settings } from './logic/settings.ts'
@@ -21,9 +20,7 @@ import type { HashImage, SaveVisualHashes } from './visual-hashes.ts'
 import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, lookupDecisions as apiLookupDecisions, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, imageUrl, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, lookupTags, movePictures, probeTargets, savePosition, saveSidecars, saveViewState, saveVisualHashes } from './api.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { browserHashWorkers } from './hash-workers.ts'
-import { acknowledgeLegacy, loadLegacyExport, loadLegacyInventory } from './legacy-api.ts'
 import { onBrowserPageHide } from './page-hide.ts'
-import { saveBrowserFile } from './save-file.ts'
 import { lookupSeries, saveSeries } from './series-api.ts'
 import { browserNow } from './sidecar-flow.ts'
 import { browserSchedule } from './tile-selection.ts'
@@ -54,8 +51,6 @@ export interface AppSeams {
 	move?: MoveApi
 	tags?: CullTagsApi
 	clearCache?: () => Promise<void>
-	legacy?: LegacyApi
-	saveFile?: (name: string, text: string) => void
 }
 
 /** The seams the app uses in production. */
@@ -81,6 +76,4 @@ export const APP_SEAMS = {
 	move: () => ({ probeTargets, movePictures }),
 	tags: () => ({ lookupTags, loadTagList }),
 	clearCache,
-	legacy: () => ({ loadInventory: loadLegacyInventory, loadExport: loadLegacyExport, acknowledge: acknowledgeLegacy }),
-	saveFile: () => saveBrowserFile,
 }

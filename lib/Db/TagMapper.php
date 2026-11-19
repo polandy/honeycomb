@@ -59,16 +59,6 @@ final class TagMapper extends QBMapper implements TagStore {
 	}
 
 	#[\Override]
-	public function fileIdsOf(string $userId): array {
-		return $this->userFileIds($userId);
-	}
-
-	#[\Override]
-	public function forget(string $userId, array $fileIds): void {
-		$this->deleteFileRows($userId, $fileIds);
-	}
-
-	#[\Override]
 	public function forgetUser(string $userId): void {
 		$this->atomic(function () use ($userId): void {
 			$this->deleteUserRows($this->getTableName(), $userId);

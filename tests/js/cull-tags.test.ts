@@ -33,15 +33,14 @@ function cullTags(options: { stored?: StoredTags[], lookup?: () => Promise<Store
 }
 
 describe('useCullTags: load', () => {
-	// spec: TAGS-002.1, XMP-007.5
-	it('reads the legacy tags of every member in one request; a picture has the union of its members\'', async () => {
+	// spec: TAGS-002.1
+	it('reads the stored tags of every member in one request; a picture has the union of its members\'', async () => {
 		const { tags, lookups } = cullTags({ stored: [{ fileId: 1, tags: ['Places/Lisbon'] }, { fileId: 2, tags: ['People/Anna', 'Places/Lisbon'] }] })
 
 		await tags.load([1, 2, 3])
 
 		expect(lookups).toEqual([[1, 2, 3]])
 		expect(tags.tagsOf(PAIR)).toEqual(['People/Anna', 'Places/Lisbon'])
-		expect(tags.legacyTagsOf(PAIR)).toEqual(['People/Anna', 'Places/Lisbon'])
 		expect(tags.tagsOf(READ_ONLY)).toEqual([])
 	})
 
@@ -54,7 +53,6 @@ describe('useCullTags: load', () => {
 		tags.fromSidecars([{ picture: PAIR, tags: ['Trip'] }])
 
 		expect(tags.tagsOf(PAIR)).toEqual(['Trip'])
-		expect(tags.legacyTagsOf(PAIR)).toEqual([])
 		expect(error).toHaveBeenCalledWith('Could not read the stored tags; the photos show their sidecars\' tags', expect.anything())
 	})
 
@@ -84,19 +82,6 @@ describe('useCullTags: load', () => {
 		expect(tags.tagsOf(PAIR)).toEqual(['Events/Wedding'])
 		tags.reset()
 		expect(tags.tagsOf(PAIR)).toEqual([])
-		expect(tags.legacyTagsOf(PAIR)).toEqual([])
-	})
-
-	// spec: XMP-008.11
-	it('forgets the legacy tags of the files given, but keeps showing them', async () => {
-		const { tags } = cullTags({ stored: [{ fileId: 1, tags: ['Anna'] }, { fileId: 3, tags: ['Kids'] }] })
-		await tags.load([1, 2, 3])
-
-		tags.forget(new Set([1, 2]))
-
-		expect(tags.legacyTagsOf(PAIR)).toEqual([])
-		expect(tags.legacyTagsOf(READ_ONLY)).toEqual(['Kids'])
-		expect(tags.tagsOf(PAIR)).toEqual(['Anna'])
 	})
 })
 
@@ -108,12 +93,11 @@ describe('useCullTags: fromSidecars', () => {
 		tags.fromSidecars([{ picture: PAIR, tags: ['People/Anna', 'Places/Lisbon'] }])
 
 		expect(tags.tagsOf(PAIR)).toEqual(['People/Anna', 'Places/Lisbon'])
-		expect(tags.legacyTagsOf(PAIR)).toEqual([])
 		expect(writes).toEqual([])
 	})
 
-	// spec: TAGS-002.4, XMP-003.2
-	it('keeps tags the user gave meanwhile and the legacy tags', async () => {
+	// spec: TAGS-002.4
+	it('keeps tags the user gave meanwhile and the stored tags', async () => {
 		const { tags } = cullTags({ stored: [{ fileId: 3, tags: ['Kids'] }] })
 		await tags.load([3])
 		tags.change([PAIR], WEDDING)

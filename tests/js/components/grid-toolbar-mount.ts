@@ -9,14 +9,13 @@ import GridToolbar from '../../../src/components/GridToolbar.vue'
 import { PopoverStub } from './stubs.ts'
 
 /** A cull that shows the toolbar with nothing to review, compare or move. */
-const CULL: { flags: ReadonlySet<Flag>, decided: number, total: number, filtered: boolean, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number, series: number, rawRemovable: number, legacyRows: boolean, movable: number, resumeName: string | null } = {
+const CULL: { flags: ReadonlySet<Flag>, decided: number, total: number, filtered: boolean, activeFilters: number, filtersOpen: boolean, sortOrder: SortOrder, selecting: boolean, selected: number, rejected: number, series: number, rawRemovable: number, movable: number, resumeName: string | null } = {
 	movable: 0,
 	resumeName: null,
 	selecting: false,
 	rejected: 0,
 	series: 0,
 	rawRemovable: 0,
-	legacyRows: false,
 	selected: 0,
 	flags: new Set(['picked', 'unflagged']),
 	decided: 1840,

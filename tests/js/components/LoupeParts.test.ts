@@ -138,7 +138,6 @@ describe('LoupeInfo', () => {
 		expect(writtenTo('writable')).toBe('IMG_1.CR3.xmp, IMG_1.JPG.xmp')
 		expect(writtenTo()).toBe('IMG_1.CR3.xmp, IMG_1.JPG.xmp')
 		expect(writtenTo('readOnly')).toBe('Not written, read-only folder')
-		expect(writtenTo('legacy')).toBe('Not written, stored decisions not yet in its sidecars')
 	})
 
 	// spec: TAGS-004.8, LOUPE-001.23

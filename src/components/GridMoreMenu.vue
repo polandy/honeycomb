@@ -22,8 +22,6 @@ defineProps<{
 	sortOrder: SortOrder
 	/** How many pictures of the view would lose their RAW to *Remove RAWs*. */
 	rawRemovable: number
-	/** Whether pictures of the cull lie in a shared folder, where decisions reach the sidecars only on request. */
-	legacyRows: boolean
 	/** How many pictures the move item opens the move dialog on. */
 	movable: number
 	/** Whether a filter is on, which makes *Move picks* *Move filtered*. */
@@ -46,7 +44,6 @@ const emit = defineEmits<{
 	resume: []
 	reviewRejects: []
 	compareSeries: []
-	writeSidecars: []
 	openSettings: []
 }>()
 </script>
@@ -156,17 +153,6 @@ const emit = defineEmits<{
 				<AppIcon name="folder" />
 			</template>
 			{{ t('honeycomb', 'Resume at {name}', { name: resumeName }) }}
-		</NcButton>
-		<NcButton
-			v-if="legacyRows"
-			variant="tertiary"
-			alignment="start"
-			wide
-			@click="emit('writeSidecars')">
-			<template #icon>
-				<AppIcon name="check" />
-			</template>
-			{{ t('honeycomb', 'Write decisions to sidecars…') }}
 		</NcButton>
 		<NcButton
 			variant="tertiary"

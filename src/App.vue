@@ -5,7 +5,6 @@
 <script setup lang="ts">
 import type { AppSeams } from './app-seams.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
-import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
@@ -34,7 +33,6 @@ import { useDeleteFlow } from './delete-flow.ts'
 import { freshCheck, sidecarSaver } from './fresh-check.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
-import { useLegacy } from './legacy.ts'
 import { waitSeconds } from './logic/retry-after.ts'
 import { useLoupeOpening } from './loupe-opening.ts'
 import { useMoveFlow } from './move-flow.ts'
@@ -57,18 +55,9 @@ const toast = useToast(props.schedule)
 const { settings, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, (message) => toast.show(message))
 const viewState = useViewState(props.viewState, props.storage)
 const settingsOpen = ref(false)
-const legacy = useLegacy(props.legacy, props.saveFile, (message) => toast.show(message), openLegacyFolder)
-const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, acknowledgeLegacy)
+const sidecarFlow = useSidecarFlow(props.sidecars, toast.show)
 const sidecars = useBundledSidecars(sidecarFlow.sync, props.schedule, props.onPageHide)
 const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, wait: waitSeconds(props.schedule), warmPreviews: props.warmPreviews, lookupDecisions: props.lookupDecisions, lookupSeries: props.lookupSeries, saveSeries: props.saveSeries, tags: props.tags }, props.storage, () => settings.value, sidecars)
-/** Removes the legacy rows the ⋯ entry wrote to the sidecars, and unlocks their pictures (XMP-008.11). */
-async function acknowledgeLegacy(fileIds: readonly number[]): Promise<boolean> {
-	const removed = await legacy.acknowledge(fileIds)
-	if (removed) {
-		cull.forgetLegacy(fileIds)
-	}
-	return removed
-}
 const { folderSet, pictures, folders, view, progress, filtersOpen, pickerOpen, tileSize } = cull
 const gridScreen = useTemplateRef<InstanceType<typeof GridScreen>>('gridScreen')
 const grid = computed(() => gridScreen.value?.grid ?? null)
@@ -112,12 +101,8 @@ watch(pickerOpen, (open) => open && recent.refresh())
 
 const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => gridScreen.value?.filterBar?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
 
-provideCullContext({ cull, selection, decide, editSeries: editSelection, deleting, moving, resume, seriesCompare, sidecars: sidecarFlow, unsaved: sidecars.waiting, legacy, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage })
+provideCullContext({ cull, selection, decide, editSeries: editSelection, deleting, moving, resume, seriesCompare, unsaved: sidecars.waiting, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage })
 
-/** Opens a folder of the notice of stored decisions (XMP-007.10). */
-function openLegacyFolder(set: FolderSet) {
-	void recent.openSet(set, openFolderSet)
-}
 /** Opens the confirmed folder set and offers its resume position. */
 function openFolderSet(...opened: Parameters<typeof cull.open>) {
 	cull.open(...opened)

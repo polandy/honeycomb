@@ -5,7 +5,7 @@ import type { Picture } from '../../../src/logic/pairing.ts'
 import type { FolderAccess, WriteContext } from '../../../src/logic/writability.ts'
 
 import { describe, expect, it } from 'vitest'
-import { firstLock, folderAccess, listedFolders, splitLocks, writability } from '../../../src/logic/writability.ts'
+import { folderAccess, listedFolders, splitLocks, writability } from '../../../src/logic/writability.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const ALL = 31
@@ -20,9 +20,9 @@ function folder(path: string, permissions = ALL): FolderAccess {
 	return { path, permissions }
 }
 
-/** A context of the folders given, without legacy rows. */
-function context(folders: FolderAccess[], change: Partial<WriteContext> = {}): WriteContext {
-	return { folders: folderAccess(folders), legacy: () => false, ...change }
+/** A context of the folders given. */
+function context(folders: FolderAccess[]): WriteContext {
+	return { folders: folderAccess(folders) }
 }
 
 describe('writability', () => {
@@ -45,13 +45,6 @@ describe('writability', () => {
 		expect(writability(SPLIT, context([folder('/P', READ | CREATE), folder('/P/RAW')]))).toBe('readOnly')
 		expect(writability(SPLIT, context([folder('/P', READ), folder('/P/RAW', READ)]))).toBe('readOnly')
 	})
-
-	// spec: XMP-008.11
-	it('is legacy while the picture has legacy rows, after read-only', () => {
-		expect(writability(SPLIT, context([], { legacy: (picture) => picture === SPLIT }))).toBe('legacy')
-		expect(writability(SPLIT, context([folder('/P', READ)], { legacy: () => true }))).toBe('readOnly')
-		expect(writability(AT_ROOT, context([], { legacy: (picture) => picture === SPLIT }))).toBe('writable')
-	})
 })
 
 describe('listedFolders', () => {
@@ -69,19 +62,10 @@ describe('splitLocks', () => {
 
 	// spec: XMP-008.14
 	it('splits the pictures into the writable ones and the locked ones with their reasons, in their order', () => {
-		const legacy = (picture: Picture<ListingEntry>) => picture === OTHER
-		const split = splitLocks([SPLIT, AT_ROOT, OTHER], context([folder('/', READ)], { legacy }))
+		const split = splitLocks([SPLIT, AT_ROOT, OTHER], context([folder('/', READ), folder('/Q', READ)]))
 
 		expect(split.writable).toEqual([SPLIT])
-		expect(split.locked).toEqual([{ picture: AT_ROOT, reason: 'readOnly' }, { picture: OTHER, reason: 'legacy' }])
+		expect(split.locked).toEqual([{ picture: AT_ROOT, reason: 'readOnly' }, { picture: OTHER, reason: 'readOnly' }])
 		expect(splitLocks([SPLIT], context([]))).toEqual({ writable: [SPLIT], locked: [] })
-	})
-})
-
-describe('firstLock', () => {
-	// spec: XMP-008.14
-	it('names the first reason in the order of the reasons, not of the pictures', () => {
-		expect(firstLock([{ picture: SPLIT, reason: 'legacy' }, { picture: AT_ROOT, reason: 'readOnly' }])).toBe('readOnly')
-		expect(firstLock([{ picture: SPLIT, reason: 'legacy' }])).toBe('legacy')
 	})
 })

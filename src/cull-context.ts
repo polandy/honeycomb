@@ -4,7 +4,6 @@ import type { InjectionKey, Ref } from 'vue'
 import type { BrowserStorage } from './browser-storage.ts'
 import type { useCull } from './cull.ts'
 import type { DeleteFlow } from './delete-flow.ts'
-import type { Legacy } from './legacy.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { Settings } from './logic/settings.ts'
@@ -14,7 +13,6 @@ import type { useRestOffer } from './rest-offer.ts'
 import type { useResume } from './resume.ts'
 import type { useSelectionMode } from './selection-mode.ts'
 import type { SeriesCompareFlow } from './series-compare.ts'
-import type { SidecarFlow } from './sidecar-flow.ts'
 import type { useTagEntryTargets } from './tag-entry-targets.ts'
 import type { useToast } from './toast.ts'
 import type { useToastedDecisions } from './toasted-decisions.ts'
@@ -34,10 +32,8 @@ export interface CullContext {
 	readonly resume: Pick<ReturnType<typeof useResume>, 'resumeName' | 'resume' | 'dismiss'>
 	/** Whole, as the series compare screen binds nearly all of it. */
 	readonly seriesCompare: SeriesCompareFlow<Picture<ListingEntry>>
-	readonly sidecars: Pick<SidecarFlow, 'ask'>
 	/** The picture whose sidecar writes still wait (XMP-003.28). */
 	readonly unsaved: Readonly<Ref<Picture<ListingEntry> | null>>
-	readonly legacy: Legacy
 	readonly tagEntry: Pick<ReturnType<typeof useTagEntryTargets>, 'open'>
 	/** Whether the toolbar and the filter bar show above the grid. */
 	readonly headerShown: Ref<boolean>

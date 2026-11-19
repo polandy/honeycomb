@@ -77,18 +77,6 @@ describe('GridToolbar More menu', () => {
 		expect(filtered.emitted('move')).toHaveLength(1)
 	})
 
-	// spec: XMP-007.7
-	it('offers writing to sidecars in the More menu only with legacy rows', async () => {
-		const set = { paths: ['/Trip'], subfolders: false }
-		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('button').find((button) => button.text().includes('Write decisions to sidecars'))
-		const wrapper = mountToolbar(set, 1, { legacyRows: true })
-
-		expect(item(mountToolbar(set))).toBeUndefined()
-		expect(item(wrapper)!.text().replaceAll(MARK, '')).toBe('Write decisions to sidecars…')
-		await item(wrapper)!.trigger('click')
-		expect(wrapper.emitted('writeSidecars')).toHaveLength(1)
-	})
-
 	it('opens the settings from the More menu', async () => {
 		const wrapper = mountToolbar({ paths: ['/Trip'], subfolders: false })
 		const item = wrapper.findAll('button').find((button) => button.text().replaceAll(MARK, '') === 'Settings')!
@@ -122,8 +110,8 @@ describe('GridToolbar More menu', () => {
 	})
 
 	// spec: GRID-001.18
-	it.each(['Review rejects', 'Compare series', 'Remove RAWs', 'Move picks', 'Resume at', 'Write decisions to sidecars', 'Settings'])('closes the More menu when %s is chosen', async (label) => {
-		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { rejected: 1, series: 1, rawRemovable: 1, movable: 1, resumeName: 'IMG_9', legacyRows: true })
+	it.each(['Review rejects', 'Compare series', 'Remove RAWs', 'Move picks', 'Resume at', 'Settings'])('closes the More menu when %s is chosen', async (label) => {
+		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { rejected: 1, series: 1, rawRemovable: 1, movable: 1, resumeName: 'IMG_9' })
 		const popover = wrapper.findComponent(PopoverStub)
 		await popover.vm.$emit('update:shown', true)
 		expect(popover.props('shown')).toBe(true)

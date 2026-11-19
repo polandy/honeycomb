@@ -78,7 +78,7 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 		if (entry !== null) {
 			show(partialText(changeText(entry), skipped), { label: t('honeycomb', 'Undo'), run: undo }, offer() ?? undefined, lockDetails(skipped))
 		} else if (skipped.length > 0) {
-			show(lockedText(skipped), null, undefined, lockDetails(skipped))
+			show(lockedText(), null, undefined, lockDetails(skipped))
 		}
 	}
 

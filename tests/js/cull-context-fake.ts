@@ -9,12 +9,11 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { computed, defineComponent, h, ref, shallowRef } from 'vue'
 import { provideCullContext } from '../../src/cull-context.ts'
 import { useCull } from '../../src/cull.ts'
-import { useLegacy } from '../../src/legacy.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { useLoupeOpening } from '../../src/loupe-opening.ts'
 import { useSelectionMode } from '../../src/selection-mode.ts'
 import { useSeriesCompare } from '../../src/series-compare.ts'
-import { ENTRIES, fakeStorage, fakeViewState, NO_LEGACY, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
+import { ENTRIES, fakeStorage, fakeViewState, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
 
 /** One call of a context action: its name and arguments. */
 export type ContextCall = [name: string, ...args: unknown[]]
@@ -60,13 +59,11 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 		moving: { open: record('move'), openShown: record('moveShown') },
 		resume: { resumeName: computed(() => counts.value.resumeName), resume: record('resume'), dismiss: record('dismissResume') },
 		seriesCompare: { ...flow, start: record('compareSeries'), startOn: record('compareSeriesOn'), pickRestAndLand: record('pickRestAndLand') },
-		sidecars: { ask: record('writeSidecars') },
 		unsaved: shallowRef(null),
 		tagEntry: { open: (chosen) => {
 			calls.push(['tag', chosen])
 			return true
 		} },
-		legacy: useLegacy(NO_LEGACY, record('saveFile'), record('toast'), record('openFolderSet')),
 		headerShown: ref(true),
 		openLoupe: record('openLoupe'),
 		openSettings: record('openSettings'),

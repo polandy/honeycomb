@@ -4,7 +4,7 @@
 import type { SidecarFailureReason } from '../../src/logic/sidecar-sync.ts'
 
 import { describe, expect, it } from 'vitest'
-import { notWrittenText, sidecarFailureReason, writtenText } from '../../src/sidecar-text.ts'
+import { notWrittenText, sidecarFailureReason } from '../../src/sidecar-text.ts'
 
 const REASONS: SidecarFailureReason[] = ['malformed', 'not-utf-8', 'doctype', 'conflict', 'not-xmp', 'notFound', 'tooLarge', 'notPermitted', 'locked', 'changed', 'noSpace', 'unreachable', 'failed']
 
@@ -32,9 +32,5 @@ describe('sidecar texts', () => {
 	it('says a sidecar was not written because the storage is full', () => {
 		expect(sidecarFailureReason('noSpace')).toBe('No storage space left for the sidecar; free some space or ask the folder\'s owner')
 		expect(notWrittenText(['noSpace', 'noSpace'])).toBe('Could not write 2 sidecars. No storage space left for the sidecar; free some space or ask the folder\'s owner')
-	})
-
-	it('counts sidecars and photos', () => {
-		expect(writtenText(1200)).toBe('Wrote the decisions of 1,200 photos to sidecars')
 	})
 })

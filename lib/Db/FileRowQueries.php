@@ -84,22 +84,6 @@ trait FileRowQueries {
 	}
 
 	/**
-	 * The file ids the user has a row of, sorted, each once.
-	 * @return list<int>
-	 */
-	private function userFileIds(string $userId): array {
-		$query = $this->db->getQueryBuilder();
-		$query->selectDistinct('file_id')
-			->from($this->getTableName())
-			->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
-			->orderBy('file_id');
-		$result = $query->executeQuery();
-		$fileIds = array_map(intval(...), $result->fetchAll(\PDO::FETCH_COLUMN));
-		$result->closeCursor();
-		return $fileIds;
-	}
-
-	/**
 	 * Removes the user's rows of `$fileIds`.
 	 * @param list<int> $fileIds
 	 */

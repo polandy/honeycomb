@@ -120,3 +120,4 @@ filter (`docs/dev/07-tags.md` Tag filter).
 | 2026-11-15 | .9 *Written to* follows the setting *Write decisions to XMP sidecars* (risk review R1/R9) |
 | 2026-11-15 | .9 *Written to* names the picture's writability (XMP-008, ADR 0032 PR 6) |
 | 2026-11-19 | .9 *Written to* knows only read only and legacy (M8 PR 3) |
+| 2026-11-19 | M8 PR 4: .9 *Written to* knows only read only |

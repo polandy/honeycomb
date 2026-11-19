@@ -69,7 +69,6 @@ describe('useRecent', () => {
 		expect(recent.opened).toEqual([[TRIP, [...LISTINGS['/Trip']!, ...LISTINGS['/Day']!], { folders: [{ path: '/Day', permissions: 31 }] }, 2]])
 	})
 
-	// spec: XMP-007.10
 	it('lists a folder set and opens it without a position; the open one stays', async () => {
 		const recent = recentOn(async () => [])
 

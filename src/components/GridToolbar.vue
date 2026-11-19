@@ -43,7 +43,6 @@ const emit = defineEmits<{
 	removeRaws: []
 	move: []
 	resume: []
-	writeSidecars: []
 	openSettings: []
 }>()
 
@@ -163,7 +162,6 @@ const setName = computed(() => {
 				:fileNames="props.view.fileNames"
 				:sortOrder="props.view.sortOrder"
 				:rawRemovable="props.tasks.rawRemovable"
-				:legacyRows="props.tasks.legacyRows"
 				:movable="props.tasks.movable"
 				:moveFiltered="props.view.activeFilters > 0"
 				:resumeName="props.tasks.resumeName"
@@ -178,7 +176,6 @@ const setName = computed(() => {
 				@resume="fromMenu(() => emit('resume'))"
 				@reviewRejects="fromMenu(() => emit('reviewRejects'))"
 				@compareSeries="fromMenu(() => emit('compareSeries'))"
-				@writeSidecars="fromMenu(() => emit('writeSidecars'))"
 				@openSettings="fromMenu(() => emit('openSettings'))" />
 		</NcPopover>
 		<div v-if="props.selection.selecting" class="grid-toolbar__selection">
