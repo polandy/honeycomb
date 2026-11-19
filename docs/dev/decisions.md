@@ -1555,3 +1555,21 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   a connection that left the file go with the daily sweep, which sweeps nothing when the file is
   missing or invalid; a lacking scope is detected from Immich's `403`, never probed; the status
   check needs no scope beyond Phase 1's. Easy to redo: each is a line in the ADR before the code.
+- 2026-11-19: Each browser count rides with the request that saves its field (STATS-001, metrics
+  PR 5): the flag save carries decided, picked and rejected, the sidecar save ratings, colour
+  labels and tags set and the foreign mark, the position save the active seconds. A count counts
+  only when its own item is saved. Easy to redo: `counts` per item in `FlagService`,
+  `SidecarRequest`.
+- 2026-11-19: Counts are sent per item as `counts: {metric: n}`, at most one item per picture; the
+  server caps each value at ±1 and answers 400 to a metric the endpoint does not take. The second
+  sidecar round sends again the counts no saved save carried. Easy to redo: `StatsItemCounts`.
+- 2026-11-19: Flags count as the state a change enters minus the state it leaves, so undo nets
+  out; ratings, colour labels and tags count +1 per changed picture and −1 on its undo. Easy to
+  redo: `src/logic/stats-counts.ts`.
+- 2026-11-19: A sidecar counts as from digiKam or darktable when it holds `darktable:xmp_version`
+  or a digiKam property other than PickLabel, ColorLabel and TagsList; it counts only when the
+  save counts it as updated. Easy to redo: `holdsForeignData`.
+- 2026-11-19: Active time is measured in the browser (two-minute idle cap) and taken in whole
+  seconds when a position save is sent; the server caps it at the time since the folder set's
+  previous position save, or since the start of the user's day. A cull that only uses the grid
+  sends it with its next position save. Easy to redo: `useActiveTime`, `PositionService`.

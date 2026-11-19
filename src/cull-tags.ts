@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
+import type { CountsOf } from './logic/sidecar-pass.ts'
 import type { SidecarFailure } from './logic/sidecar-sync.ts'
+import type { CountSign } from './logic/stats-counts.ts'
 import type { Tag, TagChange } from './logic/tag.ts'
 
 import { computed, shallowRef } from 'vue'
@@ -19,7 +21,7 @@ export interface CullTagsApi {
 type Pictures = readonly Picture<ListingEntry>[]
 
 /** The tags of the open cull: the sidecars' tags and changes written through (TAGS-002). */
-export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, change: TagChange) => Promise<{ readonly failed: readonly SidecarFailure[] }>, writable: (picture: Picture<ListingEntry>) => boolean) {
+export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, change: TagChange, paths?: undefined, counts?: CountsOf) => Promise<{ readonly failed: readonly SidecarFailure[] }>, writable: (picture: Picture<ListingEntry>) => boolean) {
 	const tags = shallowRef<ReadonlyMap<number, readonly Tag[]>>(new Map())
 	const list = shallowRef<readonly Tag[]>([])
 	const known = computed(() => withLevels([...list.value, ...[...tags.value.values()].flat()]))
@@ -49,12 +51,12 @@ export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, ch
 		}
 	}
 
-	/** Applies the change to each chosen picture and writes it through where the picture is writable; a picture whose write fails gets its tags back (TAGS-002.23). */
-	function change(chosen: Pictures, step: TagChange) {
+	/** Applies the change to each chosen picture and writes it through where the picture is writable, each counting a tag set by the sign; a picture whose write fails gets its tags back (TAGS-002.23, STATS-001.37). */
+	function change(chosen: Pictures, step: TagChange, sign: CountSign = 1) {
 		apply(chosen, step)
 		const written = chosen.filter(writable)
 		if (written.length > 0) {
-			writeTags(written, step).then(({ failed }) => {
+			writeTags(written, step, undefined, () => ({ tags_set: sign })).then(({ failed }) => {
 				const failedPictures = new Set(failed.map(({ picture }) => picture))
 				const back = written.filter((picture) => failedPictures.has(picture))
 				if (back.length > 0) {

@@ -4,7 +4,7 @@ import type { Decision, DecisionField } from './logic/decision.ts'
 import type { EmbeddedXmpAnswer } from './logic/embedded-xmp.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
-import type { SidecarStep } from './logic/sidecar-pass.ts'
+import type { CountsOf, SidecarStep } from './logic/sidecar-pass.ts'
 import type { KnownSidecar, PlannedSave, SavedSidecar, SidecarEdit, SidecarFailure, SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from './logic/sidecar-sync.ts'
 import type { Tag, TagChange } from './logic/tag.ts'
 import type { XmpCacheRow, XmpCacheSource } from './logic/xmp-cache.ts'
@@ -17,6 +17,7 @@ import { embeddedXmpSource } from './logic/embedded-xmp.ts'
 import { NO_OWN_SAVES, recordSaves, withOwnSaves } from './logic/own-saves.ts'
 import { failureOf, passOf, stepResult } from './logic/sidecar-pass.ts'
 import { applySaves, planSaves, savedSidecars, writeLookups } from './logic/sidecar-sync.ts'
+import { countedPictures, withCounts } from './logic/stats-counts.ts'
 import { embeddedRow, pictureState, sidecarRow, staleSources, xmpCacheSources } from './logic/xmp-cache.ts'
 
 /** The sidecar endpoints (ADR 0017), the embedded XMP endpoint (ADR 0023) and the XMP cache (ADR 0032). */
@@ -140,14 +141,14 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		}
 	}
 
-	/** Writes the fields of each picture's decision, read when the write starts, to its sidecars as a delta; `paths` limits a picture to those sidecars. */
-	function write(pictures: Pictures, decisionOf: (picture: Picture<ListingEntry>) => Decision, fields: readonly DecisionField[] = DECISION_FIELDS, paths?: Paths) {
-		return queued({ pictures, decisionOf, fields, tags: null, paths })
+	/** Writes the fields of each picture's decision, read when the write starts, to its sidecars as a delta; `paths` limits a picture to those sidecars, `counts` rides with its saves. */
+	function write(pictures: Pictures, decisionOf: (picture: Picture<ListingEntry>) => Decision, fields: readonly DecisionField[] = DECISION_FIELDS, paths?: Paths, counts?: CountsOf) {
+		return queued({ pictures, decisionOf, fields, tags: null, paths, counts })
 	}
 
-	/** Writes the tag change to each picture's sidecars, applied to their tags when the write starts; `paths` limits a picture to those sidecars. */
-	function writeTags(pictures: Pictures, change: TagChange, paths?: Paths) {
-		return queued({ pictures, decisionOf: null, tags: change, paths })
+	/** Writes the tag change to each picture's sidecars, applied to their tags when the write starts; `paths` limits a picture to those sidecars, `counts` rides with its saves. */
+	function writeTags(pictures: Pictures, change: TagChange, paths?: Paths, counts?: CountsOf) {
+		return queued({ pictures, decisionOf: null, tags: change, paths, counts })
 	}
 
 	/** Answers the step's write once a pass has written it with the steps waiting beside it. */
@@ -169,7 +170,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 			waiting = []
 			const pass = passOf(steps.map(({ step }) => step))
 			try {
-				const failed = await writeNow(pass.pictures, pass.editOf, pass.paths)
+				const failed = await writeNow(pass.pictures, pass.editOf, pass.paths, pass.countsOf)
 				steps.forEach(({ step, resolve }) => resolve(stepResult(step, failed)))
 			} catch (error) {
 				steps.forEach(({ reject }) => reject(error))
@@ -178,12 +179,12 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		passing = false
 	}
 
-	/** One pass: a round, and one more for the sidecars that changed meanwhile; a failure carries a tag change for a retry. */
-	async function writeNow(pictures: Pictures, editOf: EditOf, paths: Paths) {
-		const first = await round(pictures, editOf, paths)
+	/** One pass: a round, and one more for the sidecars that changed meanwhile, which carries the counts no saved save carried; a failure carries a tag change for a retry. */
+	async function writeNow(pictures: Pictures, editOf: EditOf, paths: Paths, countsOf: CountsOf) {
+		const first = await round(pictures, editOf, countsOf, paths)
 		const again = new Map<Picture<ListingEntry>, Set<string>>()
 		first.changed.forEach(({ picture, path }) => again.set(picture, (again.get(picture) ?? new Set()).add(path)))
-		const second = await round([...again.keys()], editOf, again)
+		const second = await round([...again.keys()], editOf, (picture) => (first.counted.has(picture) ? {} : countsOf(picture)), again)
 		const failed = [...first.failed, ...second.failed, ...second.changed.map(({ path, picture }) => ({ path, picture, reason: 'changed' as const }))]
 			.map((failure) => failureOf(failure, editOf(failure.picture)))
 		if (failed.length > 0) {
@@ -192,16 +193,16 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		return failed
 	}
 
-	/** Reads the sidecars honeycomb holds no bytes of, merges the edits and saves them in one request each. */
-	async function round(pictures: Pictures, editOf: EditOf, paths?: Paths) {
+	/** Reads the sidecars honeycomb holds no bytes of, merges the edits and saves them with the counts in one request each. */
+	async function round(pictures: Pictures, editOf: EditOf, countsOf: CountsOf, paths?: Paths) {
 		const answers = await lookUp(pictures.flatMap((picture) => writeLookups(picture, known.value, paths?.get(picture))), (ids) => api.lookupSidecars(ids, sizesOf(pictures)), 'Could not look up the sidecars to write')
 		const embeddedIds = pictures.flatMap((picture) => embeddedXmpSource(picture, known.value)?.fileId ?? [])
 		const embedded = await lookUp(embeddedIds, api.lookupEmbeddedXmp, 'Could not look up the embedded XMP to write')
 		const time = now()
 		const planned = pictures.map((picture) => planSaves(picture, editOf(picture), known.value, answers, time, paths?.get(picture), embedded))
-		const saves = planned.flatMap(({ saves }) => saves)
+		const saves = withCounts(planned.flatMap(({ saves }) => saves), countsOf)
 		const saved = await save(saves)
-		return { failed: [...planned.flatMap(({ failed }) => failed), ...saved.failed], changed: saved.changed }
+		return { failed: [...planned.flatMap(({ failed }) => failed), ...saved.failed], changed: saved.changed, counted: saved.counted }
 	}
 
 	/** The lookup's answers by file id; none, logged, when the request failed. */
@@ -214,10 +215,10 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		}
 	}
 
-	/** Saves the sidecars and remembers what was saved. */
+	/** Saves the sidecars and remembers what was saved; `counted` names the pictures whose counts were saved. */
 	async function save(saves: PlannedSave[]) {
 		if (saves.length === 0) {
-			return { failed: [], changed: [] }
+			return { failed: [], changed: [], counted: new Set<Picture<ListingEntry>>() }
 		}
 		let answers: SidecarSaveAnswer[] | null = null
 		try {
@@ -235,7 +236,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		const savedNow = savedRows(saves, answers ?? [])
 		rememberRows(savedNow)
 		await storeRows(savedNow)
-		return applied
+		return { ...applied, counted: countedPictures(saves, answers) }
 	}
 
 	/** The picture with its sidecars as honeycomb last saved them, which a delete sends (DELETE-002.17). */

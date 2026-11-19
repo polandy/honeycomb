@@ -52,7 +52,7 @@ final class SidecarWriterStatsTest extends TestCase {
 			['counts' => ['ratings_set' => 1, 'tags_set' => 1]] + $this->existing('new'),
 		]);
 
-		$this->assertEquals(['sidecars_created' => 1, 'ratings_set' => 2, 'colour_labels_set' => 1, 'tags_set' => 1], $this->counted());
+		$this->assertEquals(['sidecars_created' => 1, 'sidecars_updated' => 1, 'ratings_set' => 2, 'colour_labels_set' => 1, 'tags_set' => 1], $this->counted());
 	}
 
 	// spec: STATS-001.36
