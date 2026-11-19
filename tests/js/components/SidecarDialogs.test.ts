@@ -33,7 +33,7 @@ describe('SidecarDialogs', () => {
 				return items.map(() => answer)
 			},
 			now: () => CANONICAL_TIME,
-		}, (_message, action) => void toasts.push(action?.run === undefined ? {} : { run: action.run }))
+		}, () => undefined, (_message, action) => void toasts.push(action?.run === undefined ? {} : { run: action.run }))
 		const wrapper = mount(SidecarDialogs, { props: { flow, folderSet: { paths: ['/Trip'], subfolders: true } }, global: { stubs: { NcDialog: DialogStub } } })
 		expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
 

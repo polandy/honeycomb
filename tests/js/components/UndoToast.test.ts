@@ -45,15 +45,26 @@ describe('UndoToast', () => {
 		expect(presses).toEqual([true])
 	})
 
-	// spec: XMP-008.14
-	it('unfolds its details on demand and has none without them', async () => {
+	// spec: APP-001.14
+	it('offers its details as a button that asks for the dialog, and none without details', async () => {
 		const wrapper = mount(UndoToast, { props: { toast: { message: 'Rejected IMG_1; 1 photo not changed', action: null, details: ['IMG_2: read only'] } } })
 
-		const details = wrapper.find('details')
-		expect(details.find('summary').text()).toBe('Details')
-		expect(details.findAll('li').map((item) => item.text())).toEqual(['IMG_2: read only'])
-		expect(details.element.open).toBe(false)
-		expect(mountToast(null).find('details').exists()).toBe(false)
+		expect(wrapper.find('details').exists()).toBe(false)
+		await wrapper.find('.undo-toast__details').trigger('click')
+		expect(wrapper.emitted('details')).toHaveLength(1)
+		expect(mountToast(null).find('.undo-toast__details').exists()).toBe(false)
+	})
+
+	// spec: APP-001.13
+	it('is an alert with a Close button when it reports an error, and a status without one otherwise', async () => {
+		const error = mount(UndoToast, { props: { toast: { message: 'Could not clear the cache.', action: null, kind: 'error' } } })
+
+		expect(error.attributes('role')).toBe('alert')
+		await error.find('.undo-toast__close').trigger('click')
+		expect(error.emitted('close')).toHaveLength(1)
+		expect(error.find('.undo-toast__close').attributes('aria-label')).toBe('Close')
+		expect(mountToast(null).attributes('role')).toBe('status')
+		expect(mountToast(null).find('.undo-toast__close').exists()).toBe(false)
 	})
 
 	it('says the change, a dot and its action as a status', async () => {

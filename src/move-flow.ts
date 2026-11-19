@@ -43,6 +43,8 @@ export interface MoveFlowContext {
 	readonly listing?: () => unknown
 	readonly loupe: Ref<LoupeSnapshot | null>
 	readonly toast: (message: string, action?: ToastAction | null) => void
+	/** Says a failure and keeps it until the user closes it. */
+	readonly error: (message: string) => void
 	readonly offset?: MtimeOffset
 	/** Overrides the request size of ADR 0029, for tests. */
 	readonly chunks?: ChunkLimits | undefined
@@ -159,7 +161,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 	/** Closes the dialog and says why nothing moved. */
 	function fail(error: unknown) {
 		close()
-		context.toast(moveFailedText(error))
+		context.error(moveFailedText(error))
 	}
 
 	/** Sends the pictures in chunks; throws when the first request fails, logs a later failure (ADR 0029). */
@@ -222,7 +224,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 			context.toast(movedBackText(entries.length, failed + unsent.flat().length))
 		} catch (error) {
 			logger.error('Could not move the photos back', { error })
-			context.toast(moveFailedText(error))
+			context.error(moveFailedText(error))
 		}
 	}
 

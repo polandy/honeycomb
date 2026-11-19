@@ -85,6 +85,67 @@ describe('useToast', () => {
 		expect(ran).toEqual(['offer'])
 	})
 
+	// spec: APP-001.13
+	it('keeps an error toast without a timer until it is closed, and a success toast keeps its timer', () => {
+		const scheduler = fakeScheduler()
+		const toast = useToast(scheduler.schedule)
+
+		toast.showError('Could not clear the cache.')
+		toast.setFocused(true)
+		toast.setFocused(false)
+		toast.setPressed(true)
+		toast.setPressed(false)
+
+		expect(toast.current.value).toEqual({ message: 'Could not clear the cache.', action: null, kind: 'error' })
+		expect(scheduler.timers).toEqual([])
+		toast.dismiss()
+		expect(toast.current.value).toBeNull()
+		toast.show('Cache cleared')
+		expect(scheduler.timers.map((timer) => timer.ms)).toEqual([TOAST_MS])
+	})
+
+	// spec: APP-001.13
+	it('lets the next toast replace an error toast, and an error toast replace the timer of a success', () => {
+		const scheduler = fakeScheduler()
+		const toast = useToast(scheduler.schedule)
+
+		toast.show('Rejected IMG_1')
+		toast.showError('Could not move the photos.')
+		expect(scheduler.timers.map((timer) => timer.cancelled)).toEqual([true])
+		toast.show('Undid: Rejected IMG_1')
+
+		expect(toast.current.value).toEqual({ message: 'Undid: Rejected IMG_1', action: null })
+	})
+
+	// spec: APP-001.13
+	it('closes an error toast by the closer it returned, and runs its action hidden first', () => {
+		const toast = useToast(fakeScheduler().schedule)
+		const ran: string[] = []
+
+		const close = toast.showError('Could not write 1 sidecar.', { label: 'Details', run: () => ran.push('details') })
+		toast.act()
+		close()
+
+		expect(ran).toEqual(['details'])
+		expect(toast.current.value).toBeNull()
+	})
+
+	// spec: APP-001.14
+	it('hides the toast and hands its message and details to the dialog, until the dialog is closed', () => {
+		const toast = useToast(fakeScheduler().schedule)
+		toast.show('Picked 7 photos; 3 photos not changed: read only', null, undefined, ['IMG_2: read only', 'IMG_3: read only'])
+
+		toast.openDetails()
+
+		expect(toast.current.value).toBeNull()
+		expect(toast.detailed.value).toEqual({ message: 'Picked 7 photos; 3 photos not changed: read only', details: ['IMG_2: read only', 'IMG_3: read only'] })
+		toast.closeDetails()
+		expect(toast.detailed.value).toBeNull()
+		toast.show('Rejected IMG_1')
+		toast.openDetails()
+		expect(toast.detailed.value).toBeNull()
+	})
+
 	describe('held by focus or a press', () => {
 		const shown = () => {
 			const scheduler = fakeScheduler()

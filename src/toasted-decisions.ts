@@ -32,7 +32,7 @@ interface Decisions {
 }
 
 /** Decide, pick-rest, tag, the series edits, undo and redo that each say in a toast what changed and which photos were locked. */
-export function useToastedDecisions(cull: Decisions, show: (message: string, action?: ToastAction | null, offer?: ToastAction, details?: readonly string[]) => void) {
+export function useToastedDecisions(cull: Decisions, show: (message: string, action?: ToastAction | null, offer?: ToastAction, details?: readonly string[]) => void, showError: (message: string, action?: ToastAction | null, details?: readonly string[]) => void) {
 	/** Decides the pictures and says what changed, with Undo and the offer `offer` makes once they are decided. */
 	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[], offer: () => ToastAction | null = () => null) {
 		toastChange(cull.decide(intent, chosen), offer)
@@ -84,7 +84,7 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 		if (entry !== null) {
 			show(partialText(changeText(entry), skipped), { label: t('honeycomb', 'Undo'), run: undo }, offer() ?? undefined, lockDetails(skipped))
 		} else if (skipped.length > 0) {
-			show(lockedText(), null, undefined, lockDetails(skipped))
+			showError(lockedText(), null, lockDetails(skipped))
 		}
 	}
 

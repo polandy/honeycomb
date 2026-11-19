@@ -96,13 +96,13 @@ describe('useDeleteFlow', () => {
 		expect(deleting.dialog.value).toBeNull()
 	})
 
-	// spec: DELETE-002.11
+	// spec: DELETE-002.11, APP-001.13
 	it.each([
 		[new TrashBinOffError('off'), 'The Nextcloud trash bin is off, so nothing was deleted. honeycomb deletes only into the trash bin.'],
 		[new Error('Network Error'), 'Could not delete the photos; reload the folder to see what changed.'],
 	])('changes nothing and says why when the request fails: %s', async (error, message) => {
 		vi.spyOn(logger, 'error').mockImplementation(() => {})
-		const { deleting, pictures, toasts } = flow(() => Promise.reject(error))
+		const { deleting, pictures, errors } = flow(() => Promise.reject(error))
 
 		deleting.summarise([PAIR!])
 		await deleting.confirm()
@@ -110,7 +110,7 @@ describe('useDeleteFlow', () => {
 		expect(pictures.value).toHaveLength(3)
 		expect(deleting.dialog.value).toBeNull()
 		expect(deleting.busy.value).toBe(false)
-		expect(toasts).toEqual([message])
+		expect(errors).toEqual([message])
 	})
 
 	// spec: XMP-003.30
@@ -207,6 +207,7 @@ describe('useDeleteFlow: Remove RAWs', () => {
 			},
 			loupe: ref(null),
 			toast: (message) => toasts.push(message),
+			error: (message) => toasts.push(message),
 		})
 		return { deleting, pictures, toasts, sent }
 	}

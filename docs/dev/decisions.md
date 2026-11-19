@@ -1528,3 +1528,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-19: A failed fresh listing skips its folder (DELETE-002.27) instead of asking *Delete
   anyway*; this replaces the 2026-11-18 question *Fresh check not possible*. Medium to redo: the
   dialog would come back.
+- 2026-11-19: Error toasts come from a separate `showError` and flows take a required `error`
+  callback, so a failure path cannot forget the kind; the details dialog has no e2e (it needs a
+  read-only share), Vitest covers it. Easy to redo: `src/toast.ts`.

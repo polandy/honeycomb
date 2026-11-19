@@ -33,6 +33,7 @@ export function moveFlow(answer: Answer = allMoved(), { held = [] as string[], t
 	const pictures = shallowRef<Picture<ListingEntry>[]>(pairPictures(ENTRIES, DEFAULT_PAIRING_SETTINGS))
 	const settings = shallowRef<Settings>({ ...DEFAULT_SETTINGS, moveFavourites: ['/Fav'], moveRecent: ['/Old', '/Fav'], moveTemplate: template })
 	const toasts: { message: string, action: ToastAction | null }[] = []
+	const errors: string[] = []
 	const sent: MoveRequestFile[][][] = []
 	const probed: string[][] = []
 	const sources: string[][] = []
@@ -72,9 +73,10 @@ export function moveFlow(answer: Answer = allMoved(), { held = [] as string[], t
 		loupe,
 		listing: () => listing.value,
 		toast: (message, action = null) => toasts.push({ message, action }),
+		error: (message) => errors.push(message),
 		offset: () => 0,
 		chunks,
 	})
 	const [pair, single, sunset] = pictures.value as [Picture<ListingEntry>, Picture<ListingEntry>, Picture<ListingEntry>]
-	return { moving, pictures, entries, settings, toasts, sent, probed, sources, loupe, listing, pair, single, sunset }
+	return { moving, pictures, entries, settings, toasts, errors, sent, probed, sources, loupe, listing, pair, single, sunset }
 }

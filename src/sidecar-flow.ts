@@ -22,16 +22,16 @@ export function browserNow(): XmpTime {
 }
 
 /** Writing to sidecars as the user sees it: the toasts and the report (XMP-003.13). */
-export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, action?: ToastAction | null) => void) {
+export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, action?: ToastAction | null) => void, error: (message: string, action?: ToastAction | null) => void) {
 	const report = shallowRef<SidecarFailure[] | null>(null)
 	const open = computed(() => report.value !== null)
 	const sync = useSidecarSync(api, api.now, (failed) => {
 		toastFailed(notWrittenText(failed.map(({ reason }) => reason)), failed)
 	})
 
-	/** Toasts the message with *Details*, which reports the failures. */
+	/** Shows the error with *Details*, which reports the failures. */
 	function toastFailed(message: string, failed: SidecarFailure[]) {
-		toast(message, {
+		error(message, {
 			label: t('honeycomb', 'Details'),
 			run: () => {
 				report.value = failed

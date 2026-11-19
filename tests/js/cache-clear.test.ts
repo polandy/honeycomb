@@ -15,13 +15,13 @@ describe('clearCacheWithToast', () => {
 		const toasts: string[] = []
 		let cleared = 0
 
-		await clearCacheWithToast(async () => void cleared++, (message) => void toasts.push(message))
+		await clearCacheWithToast(async () => void cleared++, (message) => void toasts.push(message), () => undefined)
 
 		expect(cleared).toBe(1)
 		expect(toasts).toEqual(['Cache cleared'])
 	})
 
-	// spec: SETTINGS-001.25
+	// spec: SETTINGS-001.25, APP-001.13
 	it('logs a failure and says the cache could not be cleared', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => {})
 		const toasts: string[] = []
@@ -29,7 +29,7 @@ describe('clearCacheWithToast', () => {
 
 		await clearCacheWithToast(async () => {
 			throw failure
-		}, (message) => void toasts.push(message))
+		}, () => undefined, (message) => void toasts.push(message))
 
 		expect(toasts).toEqual(['Could not clear the cache.'])
 		expect(error).toHaveBeenCalledWith('Could not clear the cache.', { error: failure })
@@ -41,12 +41,12 @@ describe('cleanUpWithToast', () => {
 	it.each([[12, 'Removed 12 orphaned entries'], [1, 'Removed 1 orphaned entry'], [0, 'Nothing was orphaned']])('cleans up %i entries and says so', async (removed, message) => {
 		const toasts: string[] = []
 
-		await cleanUpWithToast(async () => removed, (text) => void toasts.push(text))
+		await cleanUpWithToast(async () => removed, (text) => void toasts.push(text), () => undefined)
 
 		expect(toasts).toEqual([message])
 	})
 
-	// spec: SETTINGS-001.27
+	// spec: SETTINGS-001.27, APP-001.13
 	it('logs a failure and says the clean-up failed', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => {})
 		const toasts: string[] = []
@@ -54,7 +54,7 @@ describe('cleanUpWithToast', () => {
 
 		await cleanUpWithToast(async () => {
 			throw failure
-		}, (text) => void toasts.push(text))
+		}, () => undefined, (text) => void toasts.push(text))
 
 		expect(toasts).toEqual(['Could not clean up the orphaned data.'])
 		expect(error).toHaveBeenCalledWith('Could not clean up the orphaned data.', { error: failure })

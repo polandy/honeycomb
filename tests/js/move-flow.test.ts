@@ -197,11 +197,11 @@ describe('useMoveFlow: moving and undo', () => {
 		expect(toasts.at(-1)!.message).toBe('Moved 2 files back')
 	})
 
-	// spec: MOVE-004.11
+	// spec: MOVE-004.11, APP-001.13
 	it('says so when the undo request fails', async () => {
 		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		let calls = 0
-		const { moving, pair, toasts } = moveFlow(async (request) => (calls++ === 0 ? allMoved()(request) : Promise.reject(new Error('down'))))
+		const { moving, pair, toasts, errors } = moveFlow(async (request) => (calls++ === 0 ? allMoved()(request) : Promise.reject(new Error('down'))))
 		moving.open([pair])
 		moving.choose('/Out')
 		await flushPromises()
@@ -210,7 +210,7 @@ describe('useMoveFlow: moving and undo', () => {
 		toasts.at(-1)!.action!.run()
 		await flushPromises()
 
-		expect(toasts.at(-1)!.message).toBe('Could not move the photos; reload the folder to see what changed.')
+		expect(errors).toEqual(['Could not move the photos; reload the folder to see what changed.'])
 	})
 
 	// spec: MOVE-004.12
@@ -243,13 +243,13 @@ describe('useMoveFlow: moving and undo', () => {
 		expect(settings.value.moveRecent).toEqual(['/Old', '/Fav'])
 	})
 
-	// spec: MOVE-004.13
+	// spec: MOVE-004.13, APP-001.13
 	it.each([
 		[new TrashBinOffError('off'), 'The Nextcloud trash bin is off, so nothing was moved. honeycomb replaces files only into the trash bin.'],
 		[new Error('down'), 'Could not move the photos; reload the folder to see what changed.'],
 	])('changes nothing when the move request fails with %s', async (error, message) => {
 		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
-		const { moving, pair, pictures, toasts } = moveFlow(async () => Promise.reject(error))
+		const { moving, pair, pictures, errors } = moveFlow(async () => Promise.reject(error))
 		moving.open([pair])
 		moving.choose('/Out')
 		await flushPromises()
@@ -258,20 +258,20 @@ describe('useMoveFlow: moving and undo', () => {
 
 		expect(pictures.value).toHaveLength(3)
 		expect(moving.pictures.value).toBeNull()
-		expect(toasts.at(-1)!.message).toBe(message)
+		expect(errors).toEqual([message])
 	})
 
 	// spec: MOVE-004.13
 	it('closes the dialog when the probe fails', async () => {
 		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
-		const { moving, pair, toasts } = moveFlow(allMoved(), { probe: async () => Promise.reject(new Error('down')) })
+		const { moving, pair, errors } = moveFlow(allMoved(), { probe: async () => Promise.reject(new Error('down')) })
 		moving.open([pair])
 
 		moving.choose('/Out')
 		await flushPromises()
 
 		expect(moving.pictures.value).toBeNull()
-		expect(toasts.at(-1)!.message).toBe('Could not move the photos; reload the folder to see what changed.')
+		expect(errors).toEqual(['Could not move the photos; reload the folder to see what changed.'])
 	})
 
 	// spec: MOVE-004.14
