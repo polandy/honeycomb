@@ -13,9 +13,9 @@ import { AppSettingsDialogStub, AppSettingsSectionStub } from './stubs.ts'
 const MARK = TRANSLATED_MARK
 
 /** The open dialog over the given settings. */
-function mountDialog(settings: Partial<Settings> = {}, gestureGuideSeen = false) {
+function mountDialog(settings: Partial<Settings> = {}, gestureGuideSeen = false, admin = false) {
 	return mount(SettingsDialog, {
-		props: { open: true, settings: { ...DEFAULT_SETTINGS, ...settings }, gestureGuideSeen },
+		props: { open: true, settings: { ...DEFAULT_SETTINGS, ...settings }, gestureGuideSeen, admin },
 		global: { stubs: { NcAppSettingsDialog: AppSettingsDialogStub, NcAppSettingsSection: AppSettingsSectionStub } },
 	})
 }
@@ -79,6 +79,26 @@ describe('SettingsDialog', () => {
 		await button.trigger('click')
 
 		expect(wrapper.emitted('clearCache')).toHaveLength(1)
+	})
+
+	// spec: SETTINGS-001.27
+	it('offers an admin to clean up the orphaned data, with a hint on what that does', async () => {
+		const wrapper = mountDialog({}, false, true)
+		const button = wrapper.findAll('button').find((item) => plain(item.text()) === 'Clean up orphaned data')!
+		expect(button.attributes('aria-describedby')).toBe('clean-up-hint')
+		expect(plain(wrapper.find('#clean-up-hint').text())).toBe('Removes the picks and rejects of files that were deleted or lie in a trash bin, for every user.')
+
+		await button.trigger('click')
+
+		expect(wrapper.emitted('cleanUp')).toHaveLength(1)
+	})
+
+	// spec: SETTINGS-001.27
+	it('offers no clean-up to another user', () => {
+		const wrapper = mountDialog()
+
+		expect(wrapper.findAll('button').some((item) => plain(item.text()) === 'Clean up orphaned data')).toBe(false)
+		expect(wrapper.find('#clean-up-hint').exists()).toBe(false)
 	})
 
 	// spec: SETTINGS-001.8

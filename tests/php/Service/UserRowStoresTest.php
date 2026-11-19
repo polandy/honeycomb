@@ -7,21 +7,19 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\UserRowStores;
 use PHPUnit\Framework\TestCase;
 
 final class UserRowStoresTest extends TestCase {
-	public function testListsTheFileRowStoresAndThePositions(): void {
-		$decisions = new FakeDecisionStore();
+	public function testListsEveryStoreThatKeepsRowsPerUser(): void {
 		$tags = new FakeTagStore();
 		$hashes = new FakeVisualHashStore();
 		$series = new FakeSeriesStore();
 		$xmpCache = new FakeXmpCacheStore();
 		$positions = new FakePositionStore();
 
-		$all = (new UserRowStores(new FileRowStores($decisions, $tags, $hashes, $series, $xmpCache), $positions))->all();
+		$all = (new UserRowStores($hashes, $series, $xmpCache, $tags, $positions))->all();
 
-		$this->assertSame([$decisions, $tags, $hashes, $series, $xmpCache, $positions], $all);
+		$this->assertSame([$hashes, $series, $xmpCache, $tags, $positions], $all);
 	}
 }

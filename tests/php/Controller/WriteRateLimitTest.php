@@ -16,13 +16,11 @@ use ReflectionMethod;
 final class WriteRateLimitTest extends TestCase {
 	/** The routes that are not `GET` but only read, each `Controller::method`. */
 	private const array READING = [
-		'DecisionController::lookup',
 		'EmbeddedXmpController::lookup',
 		'ImageController::warm',
 		'MoveController::targets',
 		'SeriesController::lookup',
 		'SidecarController::lookup',
-		'TagController::lookup',
 		'XmpCacheController::lookup',
 	];
 
@@ -52,13 +50,14 @@ final class WriteRateLimitTest extends TestCase {
 		$limits = array_map(static fn (ReflectionMethod $method): array => array_map(static fn ($limit): array => $limit->getArguments(), $method->getAttributes(UserRateLimit::class)), self::changingRoutes());
 
 		$this->assertSame([
-			'DecisionController::save' => [['limit' => 600, 'period' => 60]],
+			'CleanupController::cleanup' => [['limit' => 600, 'period' => 60]],
+			'FlagController::save' => [['limit' => 600, 'period' => 60]],
+			'FlagController::takeOver' => [['limit' => 600, 'period' => 60]],
 			'MoveController::move' => [['limit' => 600, 'period' => 60]],
 			'PositionController::save' => [['limit' => 600, 'period' => 60]],
 			'SeriesController::save' => [['limit' => 600, 'period' => 60]],
 			'SettingsController::save' => [['limit' => 600, 'period' => 60]],
 			'SidecarController::save' => [['limit' => 600, 'period' => 60]],
-			'TagController::save' => [['limit' => 600, 'period' => 60]],
 			'TrashController::trash' => [['limit' => 600, 'period' => 60]],
 			'ViewStateController::save' => [['limit' => 600, 'period' => 60]],
 			'VisualHashController::save' => [['limit' => 300, 'period' => 60]],

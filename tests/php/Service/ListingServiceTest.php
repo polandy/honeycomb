@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\EntryFactory;
+use OCA\Honeycomb\Service\FileFlag;
+use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\ListingService;
@@ -23,12 +25,12 @@ use PHPUnit\Framework\TestCase;
 final class ListingServiceTest extends TestCase {
 	use FakeFiles;
 
-	private function service(IRootFolder $root, array $metadata = [], int $entryLimit = ListingService::ENTRY_LIMIT, FakeVisualHashStore $hashes = new FakeVisualHashStore()): ListingService {
+	private function service(IRootFolder $root, array $metadata = [], int $entryLimit = ListingService::ENTRY_LIMIT, FakeVisualHashStore $hashes = new FakeVisualHashStore(), FakeFlagStore $flags = new FakeFlagStore()): ListingService {
 		$manager = $this->createStub(IFilesMetadataManager::class);
 		$manager->method('getMetadataForFiles')->willReturnCallback(
 			static fn (array $ids): array => array_intersect_key($metadata, array_flip($ids)),
 		);
-		return new ListingService(new UserFolderResolver($root), new EntryFactory($manager, $hashes), $entryLimit);
+		return new ListingService(new UserFolderResolver($root), new EntryFactory($manager, $hashes, $flags), $entryLimit);
 	}
 
 	// spec: LISTING-001.1
@@ -99,6 +101,9 @@ final class ListingServiceTest extends TestCase {
 			'height' => 4000,
 			'camera' => 'Canon EOS R5',
 			'visualHash' => null,
+			'flag' => null,
+			'keepRaw' => null,
+			'flagUpdated' => null,
 		]], $this->entriesOf($listing));
 	}
 
@@ -114,6 +119,33 @@ final class ListingServiceTest extends TestCase {
 
 		$this->assertSame(['0000000000000001', null, null, null], array_column($this->entriesOf($listing), 'visualHash'));
 		$this->assertSame([[1, 2, 3, 4]], $hashes->findCalls);
+	}
+
+	// spec: LISTING-001.18, DECISIONS-001.21
+	public function testAnEntryCarriesTheFlagOfItsRow(): void {
+		$folder = $this->folder('/Photos');
+		$folder->method('getDirectoryListing')->willReturn([
+			$this->file(1, '/Photos/IMG_1.JPG'),
+			$this->file(2, '/Photos/IMG_2.JPG'),
+			$this->file(3, '/Photos/IMG_1.XMP', 'application/octet-stream'),
+		]);
+		$flags = new FakeFlagStore();
+		$flags->rows[1] = new FileFlag(1, Flag::Rejected, true, 1_800_000_000);
+
+		$entries = $this->entriesOf($this->service($this->rootWith(['/Photos' => $folder]), flags: $flags)->list($this->user(), 'Photos', false));
+
+		$this->assertSame([['rejected', true, 1_800_000_000], [null, null, null], [null, null, null]], array_map(static fn (array $entry): array => [$entry['flag'], $entry['keepRaw'], $entry['flagUpdated']], $entries));
+	}
+
+	// spec: LISTING-001.18
+	public function testReadsTheFlagsOncePerThousandEntries(): void {
+		$folder = $this->folder('/Photos');
+		$folder->method('getDirectoryListing')->willReturn(array_map(fn (int $id): File => $this->file($id, "/Photos/IMG_$id.JPG"), range(1, 2_500)));
+		$flags = new FakeFlagStore();
+
+		$this->service($this->rootWith(['/Photos' => $folder]), flags: $flags)->list($this->user(), 'Photos', false);
+
+		$this->assertSame([1_000, 1_000, 500], array_map(count(...), $flags->findCalls));
 	}
 
 	/** @return array<string, array{array<string, mixed>}> */

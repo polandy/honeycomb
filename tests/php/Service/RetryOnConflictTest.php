@@ -24,7 +24,7 @@ final class RetryOnConflictTest extends TestCase {
 		];
 	}
 
-	// spec: DECISIONS-001.13, TAGS-001.9
+	// spec: DECISIONS-001.13, DECISIONS-001.30
 	#[DataProvider('repeatedReasons')]
 	public function testRepeatsTheSaveAfterAConcurrentSave(int $reason): void {
 		RetryOnConflict::run($this->failing(2, $reason));
@@ -32,7 +32,7 @@ final class RetryOnConflictTest extends TestCase {
 		$this->assertSame(3, $this->calls);
 	}
 
-	// spec: DECISIONS-001.13, TAGS-001.9
+	// spec: DECISIONS-001.13, DECISIONS-001.30
 	#[DataProvider('repeatedReasons')]
 	public function testGivesUpAfterThreeAttempts(int $reason): void {
 		$thrown = $this->thrownBy($this->failing(10, $reason));
@@ -41,12 +41,23 @@ final class RetryOnConflictTest extends TestCase {
 		$this->assertSame(3, $this->calls);
 	}
 
-	// spec: DECISIONS-001.13, TAGS-001.9
+	// spec: DECISIONS-001.13, DECISIONS-001.30
 	public function testDoesNotRepeatAnotherDatabaseError(): void {
 		$thrown = $this->thrownBy($this->failing(1, DbException::REASON_FOREIGN_KEY_VIOLATION));
 
 		$this->assertSame(DbException::REASON_FOREIGN_KEY_VIOLATION, $thrown?->getReason());
 		$this->assertSame(1, $this->calls);
+	}
+
+	// spec: DECISIONS-001.30
+	public function testAnswersWhatTheSaveAnswers(): void {
+		$save = $this->failing(1, DbException::REASON_DEADLOCK);
+
+		$this->assertSame([7, 8], RetryOnConflict::run(static function () use ($save): array {
+			$save();
+			return [7, 8];
+		}));
+		$this->assertSame(2, $this->calls);
 	}
 
 	/** @return callable(): void A save whose first `$failures` calls fail with `$reason`. */

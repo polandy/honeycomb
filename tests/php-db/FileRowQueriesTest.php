@@ -7,25 +7,25 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\DbTests;
 
-use OCA\Honeycomb\Db\TagMapper;
-use OCA\Honeycomb\Service\PictureTags;
+use OCA\Honeycomb\Db\VisualHashMapper;
+use OCA\Honeycomb\Service\VisualHash;
 
-/** The shared `FileRowQueries` SQL, through the tag mapper. */
+/** The shared `FileRowQueries` SQL, through the visual hash mapper. */
 final class FileRowQueriesTest extends DbTestCase {
 	/** More file ids than one `IN` list takes. */
 	private const int BEYOND_CHUNK = 2_500;
 
-	private TagMapper $tags;
+	private VisualHashMapper $hashes;
 
 	#[\Override]
 	protected function setUp(): void {
 		parent::setUp();
-		$this->tags = new TagMapper($this->db);
+		$this->hashes = new VisualHashMapper($this->db);
 	}
 
 	/** @param list<int> $fileIds */
-	private function tag(string $userId, array $fileIds): void {
-		$this->tags->replace($userId, $fileIds, array_map(static fn (int $fileId): PictureTags => new PictureTags($fileId, ['Anna']), $fileIds));
+	private function hash(string $userId, array $fileIds): void {
+		$this->hashes->replace($userId, array_map(static fn (int $fileId): VisualHash => new VisualHash($fileId, "etag-$fileId", '00ff00ff00ff00ff'), $fileIds));
 	}
 
 	/**
@@ -33,58 +33,56 @@ final class FileRowQueriesTest extends DbTestCase {
 	 * @return list<int>
 	 */
 	private function fileIds(string $userId, array $fileIds): array {
-		return array_map(static fn (PictureTags $picture): int => $picture->fileId, $this->tags->find($userId, $fileIds));
+		return array_keys($this->hashes->find($userId, $fileIds));
 	}
 
 	public function testFindsAndReplacesTheRowsOfMoreFileIdsThanOneInListTakes(): void {
 		$fileIds = range(1, self::BEYOND_CHUNK);
-		$this->tag('alice', array_reverse($fileIds));
+		$this->hash('alice', array_reverse($fileIds));
+		$this->hash('alice', $fileIds);
 		$this->assertSame($fileIds, $this->fileIds('alice', $fileIds));
-		$this->tags->replace('alice', $fileIds, []);
-		$this->assertSame([], $this->fileIds('alice', $fileIds));
 	}
 
 	public function testReplacesOnlyTheUsersRows(): void {
-		$this->tag('alice', [7]);
-		$this->tag('bob', [7]);
-		$this->tags->replace('alice', [7], []);
-		$this->assertSame([], $this->fileIds('alice', [7]));
-		$this->assertSame([7], $this->fileIds('bob', [7]));
+		$this->hash('alice', [7]);
+		$this->hash('bob', [7]);
+		$this->hashes->replace('alice', [new VisualHash(7, 'etag-new', '0000000000000000')]);
+		$this->assertSame('etag-new', $this->hashes->find('alice', [7])[7]->etag);
+		$this->assertSame('etag-7', $this->hashes->find('bob', [7])[7]->etag);
 	}
 
 	public function testCarriesTheUsersRowOverToTheNewFileId(): void {
-		$this->tag('alice', [7]);
-		$this->tag('bob', [7]);
-		$this->tags->carryOver('alice', 7, 20);
+		$this->hash('alice', [7]);
+		$this->hash('bob', [7]);
+		$this->hashes->carryOver('alice', 7, 20);
 		$this->assertSame([20], $this->fileIds('alice', [7, 20]));
 		$this->assertSame([7], $this->fileIds('bob', [7, 20]));
 	}
 
 	public function testPagesTheFileIdsByRowId(): void {
-		$this->tag('alice', [7, 8]);
-		$this->tag('bob', [9]);
-		$all = $this->tags->fileIdsAfter(0, 10);
+		$this->hash('alice', [7, 8]);
+		$this->hash('bob', [9]);
+		$all = $this->hashes->fileIdsAfter(0, 10);
 		$this->assertSame([7, 8, 9], array_values($all));
 		$rowIds = array_keys($all);
-		$this->assertSame([$rowIds[1] => 8], $this->tags->fileIdsAfter($rowIds[0], 1));
-		$this->assertSame([], $this->tags->fileIdsAfter($rowIds[2], 10));
+		$this->assertSame([$rowIds[1] => 8], $this->hashes->fileIdsAfter($rowIds[0], 1));
+		$this->assertSame([], $this->hashes->fileIdsAfter($rowIds[2], 10));
 	}
 
 	public function testDeletesMoreRowsThanOneInListTakes(): void {
-		$this->tag('alice', range(1, self::BEYOND_CHUNK));
-		$this->tag('bob', [7]);
-		$aliceRows = array_keys($this->tags->fileIdsAfter(0, self::BEYOND_CHUNK));
-		$this->assertSame(self::BEYOND_CHUNK, $this->tags->deleteRows($aliceRows));
+		$this->hash('alice', range(1, self::BEYOND_CHUNK));
+		$this->hash('bob', [7]);
+		$aliceRows = array_keys($this->hashes->fileIdsAfter(0, self::BEYOND_CHUNK));
+		$this->assertSame(self::BEYOND_CHUNK, $this->hashes->deleteRows($aliceRows));
 		$this->assertSame([7], $this->fileIds('bob', [7]));
 		$this->assertSame([], $this->fileIds('alice', [7]));
 	}
 
 	public function testForgetsTheUserOnly(): void {
-		$this->tag('alice', [7]);
-		$this->tag('bob', [7]);
-		$this->tags->forgetUser('alice');
+		$this->hash('alice', [7]);
+		$this->hash('bob', [7]);
+		$this->hashes->forgetUser('alice');
 		$this->assertSame([], $this->fileIds('alice', [7]));
-		$this->assertSame([], $this->tags->tagList('alice'));
-		$this->assertSame(['Anna'], $this->tags->tagList('bob'));
+		$this->assertSame([7], $this->fileIds('bob', [7]));
 	}
 }

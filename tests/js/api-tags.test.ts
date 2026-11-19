@@ -2,38 +2,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, loadTagList, lookupTags } from '../../src/api.ts'
+import { ApiResponseError, loadTagList } from '../../src/api.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({ generateUrl: (url: string) => `/index.php${url}` }))
 
-const TAGGED = { fileId: 3, tags: ['People/Anna', 'Places/Italy'] }
-
 beforeEach(() => {
 	vi.clearAllMocks()
-})
-
-describe('lookupTags', () => {
-	// spec: TAGS-001.13
-	it('reads the stored tags of the files', async () => {
-		vi.mocked(axios.post).mockResolvedValue({ data: { tags: [TAGGED] } })
-
-		await expect(lookupTags([3, 1])).resolves.toEqual([TAGGED])
-		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/tags/lookup', { fileIds: [3, 1] })
-	})
-
-	// spec: TAGS-001.13
-	it('asks nothing for no file ids', async () => {
-		await expect(lookupTags([])).resolves.toEqual([])
-		expect(axios.post).not.toHaveBeenCalled()
-	})
-
-	// spec: TAGS-001.13
-	it.each([['no object', 'oops'], ['no tags array', { tags: {} }]])('rejects an answer with %s', async (_case, data) => {
-		vi.mocked(axios.post).mockResolvedValue({ data })
-
-		await expect(lookupTags([1])).rejects.toThrow(ApiResponseError)
-	})
 })
 
 describe('loadTagList', () => {

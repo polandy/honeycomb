@@ -15,7 +15,10 @@ use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\IGroupManager;
 use OCP\IRequest;
+use OCP\IUser;
+use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
@@ -37,11 +40,24 @@ final class PageControllerTest extends TestCase {
 		$this->assertSame(['script' => 'honeycomb-similarity-Xy9-Zw8v'], $controller->similarity()->getParams());
 	}
 
-	/** The controller over the built script manifest of the fixtures. */
-	private function controller(): PageController {
+	// spec: SETTINGS-001.27
+	public function testIndexTellsThePageWhetherTheUserIsAnAdmin(): void {
+		$this->assertTrue($this->controller(admin: true)->index()->getParams()['admin']);
+		$this->assertFalse($this->controller(admin: false)->index()->getParams()['admin']);
+		$this->assertFalse($this->controller(admin: true, signedIn: false)->index()->getParams()['admin']);
+	}
+
+	/** The controller over the built script manifest of the fixtures, for a user who is an admin or not. */
+	private function controller(bool $admin = false, bool $signedIn = true): PageController {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('getAppPath')->willReturn(__DIR__ . '/../../fixtures/script-manifest/built');
-		return new PageController(Application::APP_ID, $this->createStub(IRequest::class), new ScriptManifest($apps));
+		$user = $this->createStub(IUser::class);
+		$user->method('getUID')->willReturn('alice');
+		$session = $this->createStub(IUserSession::class);
+		$session->method('getUser')->willReturn($signedIn ? $user : null);
+		$groups = $this->createStub(IGroupManager::class);
+		$groups->method('isAdmin')->willReturnCallback(static fn (string $uid): bool => $admin && $uid === 'alice');
+		return new PageController(Application::APP_ID, $this->createStub(IRequest::class), new ScriptManifest($apps), $session, $groups);
 	}
 
 	// spec: APP-001.1

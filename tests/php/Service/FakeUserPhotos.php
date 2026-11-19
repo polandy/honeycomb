@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
+use OCP\Constants;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -41,6 +42,9 @@ trait FakeUserPhotos {
 		$file->method('getId')->willReturn($id);
 		$file->method('getName')->willReturn($name);
 		$file->method('getMimetype')->willReturn($mime);
+		$folder = $this->createStub(Folder::class);
+		$folder->method('getPermissions')->willReturn(Constants::PERMISSION_ALL);
+		$file->method('getParent')->willReturn($folder);
 		return $file;
 	}
 }

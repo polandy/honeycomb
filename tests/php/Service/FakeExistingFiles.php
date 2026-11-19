@@ -9,10 +9,13 @@ namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\ExistingFiles;
 
-/** A file cache in memory: every file id exists except the vanished ones. */
+/** A file cache in memory: every file id exists except the vanished ones, and lies outside a trash bin except the trashed ones. */
 final class FakeExistingFiles implements ExistingFiles {
 	/** @var list<int> The file ids deleted for good. */
 	public array $vanished = [];
+
+	/** @var list<int> The file ids in a trash bin. */
+	public array $trashed = [];
 
 	/** @var list<list<int>> The file ids of each call. */
 	public array $calls = [];
@@ -27,5 +30,14 @@ final class FakeExistingFiles implements ExistingFiles {
 			throw new FakeDbException(0);
 		}
 		return array_values(array_diff($fileIds, $this->vanished));
+	}
+
+	#[\Override]
+	public function outsideTrashBin(array $fileIds): array {
+		$this->calls[] = $fileIds;
+		if ($this->fails) {
+			throw new FakeDbException(0);
+		}
+		return array_values(array_diff($fileIds, $this->vanished, $this->trashed));
 	}
 }

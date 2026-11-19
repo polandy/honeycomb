@@ -7,7 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Service\FileFlag;
 use OCA\Honeycomb\Service\FileRowStores;
+use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\MoveService;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
@@ -19,10 +21,17 @@ use Psr\Log\LoggerInterface;
 final class MoveServiceStorageTest extends TestCase {
 	use FakeTree;
 
+	private FakeFlagStore $flags;
+
+	#[\Override]
+	protected function setUp(): void {
+		$this->flags = new FakeFlagStore();
+	}
+
 	private function service(): MoveService {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturn(true);
-		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores(new FakeDecisionStore(), new FakeTagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore()), $this->createStub(LoggerInterface::class));
+		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores($this->flags, new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore()), $this->createStub(LoggerInterface::class));
 	}
 
 	/** @return array{fileId: int, etag: string, path: string} */
@@ -52,6 +61,7 @@ final class MoveServiceStorageTest extends TestCase {
 		$this->addFiles([1 => "$from/A.RAF", 2 => "$from/A.JPG", 4 => '/Shared/B.JPG']);
 		$this->addFolder('/Group');
 		$this->mounts = ['/Shared' => true, '/Group' => true];
+		$this->flags->rows = [2 => new FileFlag(2, Flag::Rejected, false, 100)];
 
 		$results = $this->service()->move($this->treeUser(), [[self::to(1, "$to/A.RAF"), self::to(2, "$to/A.JPG")], [self::to(4, '/Shared/C.JPG')]]);
 
@@ -60,6 +70,8 @@ final class MoveServiceStorageTest extends TestCase {
 			[['fileId' => 4, 'result' => 'moved', 'replaced' => false, 'path' => '/Shared/C.JPG', 'newFileId' => 4, 'etag' => 'etag-4']],
 		], self::results($results));
 		$this->assertSame(['move 4 /Shared/C.JPG'], $this->log);
+		// spec: MOVE-002.10
+		$this->assertEquals([2 => new FileFlag(2, Flag::Rejected, false, 100)], $this->flags->rows);
 	}
 
 	// spec: MOVE-002.11

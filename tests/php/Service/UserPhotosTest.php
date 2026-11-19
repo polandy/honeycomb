@@ -102,7 +102,7 @@ final class UserPhotosTest extends TestCase {
 		$this->assertSame([8, 7], $photos->photos($this->user(), [8, 404, 10, 5, 50, 7]));
 	}
 
-	// spec: DECISIONS-001.20, TAGS-001.15
+	// spec: XMP-006.11
 	public function testLooksThePhotosUpAThousandIdsAtATime(): void {
 		$fileIds = [...range(1, 2_499), 7_000];
 		$photos = $this->photos($this->file(7_000, '/P/LAST.JPG'), $this->file(1_200, '/P/MID.CR3', 'application/octet-stream'));

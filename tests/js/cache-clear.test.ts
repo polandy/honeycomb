@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { clearCacheWithToast } from '../../src/cache-clear.ts'
+import { cleanUpWithToast, clearCacheWithToast } from '../../src/cache-clear.ts'
 import { logger } from '../../src/logger.ts'
 
 afterEach(() => {
@@ -33,5 +33,30 @@ describe('clearCacheWithToast', () => {
 
 		expect(toasts).toEqual(['Could not clear the cache.'])
 		expect(error).toHaveBeenCalledWith('Could not clear the cache.', { error: failure })
+	})
+})
+
+describe('cleanUpWithToast', () => {
+	// spec: SETTINGS-001.27
+	it.each([[12, 'Removed 12 orphaned entries'], [1, 'Removed 1 orphaned entry'], [0, 'Nothing was orphaned']])('cleans up %i entries and says so', async (removed, message) => {
+		const toasts: string[] = []
+
+		await cleanUpWithToast(async () => removed, (text) => void toasts.push(text))
+
+		expect(toasts).toEqual([message])
+	})
+
+	// spec: SETTINGS-001.27
+	it('logs a failure and says the clean-up failed', async () => {
+		const error = vi.spyOn(logger, 'error').mockImplementation(() => {})
+		const toasts: string[] = []
+		const failure = new Error('forbidden')
+
+		await cleanUpWithToast(async () => {
+			throw failure
+		}, (text) => void toasts.push(text))
+
+		expect(toasts).toEqual(['Could not clean up the orphaned data.'])
+		expect(error).toHaveBeenCalledWith('Could not clean up the orphaned data.', { error: failure })
 	})
 })
