@@ -9,10 +9,10 @@ import { DEFAULT_PAIRING_SETTINGS, pairPictures } from '../../../src/logic/pairi
 import { addExtension, DEFAULT_SETTINGS, DEFAULT_SUBFOLDERS, folderMode, pairingSettings, parseSettings, removeExtension } from '../../../src/logic/settings.ts'
 
 describe('DEFAULT_SETTINGS', () => {
-	// spec: SETTINGS-001.6, GRID-004.1
+	// spec: SETTINGS-001.6, GRID-004.1, STATS-001.2
 	it('pairs as the pairing defaults and turns on all but the vi keys', () => {
 		expect(pairingSettings(DEFAULT_SETTINGS)).toEqual(DEFAULT_PAIRING_SETTINGS)
-		expect(DEFAULT_SETTINGS).toMatchObject({ showSingles: true, swipes: DEFAULT_SWIPES, autoAdvance: true, flagButtonsShown: true, filmstripPinned: false, ratingRowPinned: false, viKeys: false, showFileNames: false })
+		expect(DEFAULT_SETTINGS).toMatchObject({ showSingles: true, swipes: DEFAULT_SWIPES, autoAdvance: true, flagButtonsShown: true, filmstripPinned: false, ratingRowPinned: false, viKeys: false, showFileNames: false, keepStatistics: true })
 		expect(DEFAULT_SUBFOLDERS).toEqual({ rawSubfolder: 'RAW', renderedSubfolder: 'JPG' })
 	})
 })
@@ -32,6 +32,7 @@ describe('parseSettings', () => {
 			ratingRowPinned: true,
 			viKeys: true,
 			showFileNames: true,
+			keepStatistics: false,
 			moveFavourites: ['/Archive'],
 			moveRecent: ['/Archive', '/Best'],
 			moveTemplate: '{name:lower}.{ext}',
@@ -45,9 +46,9 @@ describe('parseSettings', () => {
 		expect(parseSettings(value)).toEqual(DEFAULT_SETTINGS)
 	})
 
-	// spec: SETTINGS-001.6, GRID-004.1
+	// spec: SETTINGS-001.6, GRID-004.1, STATS-001.2
 	it('takes the default of each missing or invalid field and keeps the rest', () => {
-		expect(parseSettings({ showSingles: 'no', autoAdvance: false, viKeys: 1, showFileNames: 'yes', swipes: { up: 'rejected', down: 'maybe' } })).toEqual({
+		expect(parseSettings({ showSingles: 'no', autoAdvance: false, viKeys: 1, showFileNames: 'yes', keepStatistics: 'no', swipes: { up: 'rejected', down: 'maybe' } })).toEqual({
 			...DEFAULT_SETTINGS,
 			autoAdvance: false,
 			swipes: { up: 'rejected', down: 'rejected' },
