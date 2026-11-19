@@ -51,6 +51,7 @@ Every tool result is re-read, and paid for, on each later turn.
 
 1. **Files only through `OCP\Files`** (`IRootFolder`, the user's folder). Never touch the
    file system directly, so permissions, versions and the trash bin keep working.
+   The one exception, Immich assets through the Immich API, is ADR 0041.
 2. **Deleting moves to the Nextcloud trash bin** and acts on a whole pair (JPEG, RAW, sidecars).
    A partial failure is reported per file and leaves a traceable state (milestone M4.1). A file
    the trash bin would not keep is deleted for good only after a warning naming it (ADR 0036).

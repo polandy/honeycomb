@@ -1537,3 +1537,14 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   modification time counts nothing and is logged; a sidecar is updated when it was last changed
   before the user's day; series done are counted by an `open` to `done` update in the mapper; a
   move counts pictures whose files all moved. Easy to redo: `TrashTally`, `SeriesMapper`.
+- 2026-11-19: ADR 0041 records the Immich source's exception to rule 1, the mapping and the two
+  phases only; the connections file's format, the decision table's columns and the source's
+  endpoints go into a follow-up ADR (PR 2 of the order) before the Phase 1 code, so the owner can
+  review the schema before it is built. The work is milestone M10. Easy to redo: one more ADR.
+- 2026-11-19: ADR 0041 takes the seven decisions of the architecture review of the same day as
+  recommended: `PictureId` alias (`number | string`) instead of a synthetic-number table; the whole
+  decision per (connection, asset id) in the Immich table, registered as a `UserRowStore` only;
+  e2e against a stub from the pinned Immich schema instead of a real container; Phase 1 as about
+  eight pull requests, run autonomously by the chain rules; the type-only refactor now, beside
+  statistics PR 4; a lean Phase 1 UI without series, hashes, tags, delete, move or XMP; one owner
+  per hotspot file, M9 until its PR 6, then M10. Easy to redo: each is a docs line or a small PR.
