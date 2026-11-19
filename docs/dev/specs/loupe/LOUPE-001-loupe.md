@@ -274,9 +274,10 @@ IMAGES-001.
 - **When** the title row shows
 - **Then** a series chip follows the position count: "⧉ 2/5" on a phone, "⧉ Series 2/5"
   otherwise, the shown picture's place and the series' count, labelled "Series 2/5: compare"
-  so the name holds the text it shows, a honey outline never filled, 44 px high (34 px with a fine pointer), its tooltip
-  naming `N`; a tap on it or `N` opens the series compare on this series with the shown picture
-  active (SERIES-001.24); a picture outside any series shows no chip and `N` does nothing
+  so the name holds the text it shows, a honey outline never filled, 44 px high (34 px with a
+  fine pointer), its tooltip naming `N`; a tap on it or `N` opens the series compare on this
+  series with the shown picture active (SERIES-001.24); a picture outside any series shows no
+  chip and `N` does nothing
 
 ### LOUPE-001.26 – First-series hint
 
