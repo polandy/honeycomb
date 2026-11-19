@@ -75,8 +75,8 @@ final class FlagService {
 	 */
 	private static function counts(array $items): array {
 		$counts = [];
+		/** @var array{fileId: int, counts?: mixed} $item */
 		foreach ($items as $item) {
-			/** @var array{fileId: int, counts?: mixed} $item */
 			$counts[$item['fileId']] = StatsItemCounts::parse($item['counts'] ?? null, self::COUNTS, InvalidFlagException::class);
 		}
 		return $counts;

@@ -23,6 +23,7 @@ final class StatsItemCounts {
 			throw new $exception('counts must be an object of metrics');
 		}
 		$parsed = [];
+		/** @var array<array-key, mixed> $counts */
 		foreach ($counts as $key => $amount) {
 			$metric = StatsMetric::tryFrom((string)$key);
 			if ($metric === null || !in_array($metric, $takes, true) || !is_int($amount)) {
