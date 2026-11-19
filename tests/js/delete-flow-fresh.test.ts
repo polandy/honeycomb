@@ -13,8 +13,9 @@ import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 const FRESH_PAIR = pictureOf(...[PAIR!.raw!, PAIR!.rendered!], listingEntry(3, '/Trip/IMG_1.CR3.xmp', { size: 100 }))
 
 /** A trash endpoint that answers `decisionChanged` for the files of `changed` and trashes the others. */
-const changedFor = (...changed: number[]) => async (request: { fileId: number }[][]) =>
-	request.map((files) => files.map(({ fileId }) => ({ fileId, result: changed.includes(fileId) ? 'decisionChanged' : 'trashed' })))
+function changedFor(...changed: number[]) {
+	return async (request: { fileId: number }[][]) => request.map((files) => files.map(({ fileId }) => ({ fileId, result: changed.includes(fileId) ? 'decisionChanged' : 'trashed' })))
+}
 
 describe('useDeleteFlow, deleting by decision', () => {
 	// spec: DELETE-002.26, DELETE-002.28

@@ -185,8 +185,8 @@ Withdrawn by ADR 0040 (M8 PR 8); the rows go with the files (.15).
 
 ### DELETE-001.16 – A picture whose decision changed is not touched
 
-- **Given** two pictures sent in a request with `"expect": "rejected"`, the first rejected in every member's
-  row, the second picked meanwhile by another user in one member's row
+- **Given** two pictures sent in a request with `"expect": "rejected"`, the first rejected in every
+  member's row, the second picked meanwhile by another user in one member's row
 - **When** the request arrives
 - **Then** the first is trashed and the second answers `decisionChanged` for every file and keeps
   its files and rows

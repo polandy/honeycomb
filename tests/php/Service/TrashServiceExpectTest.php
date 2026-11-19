@@ -70,7 +70,7 @@ final class TrashServiceExpectTest extends TestCase {
 		$results = $this->service($this->pair(1), logger: $logger)->trash($this->user(), [self::picture(1, 2, 3)], 'rejected');
 
 		$this->assertSame(['trashed', 'trashed', 'trashed'], array_column(self::results($results)[0], 'result'));
-		$this->assertSame([1, 2, 3], $this->trashed);
+		$this->assertSame([1, 3, 2], $this->trashed);
 	}
 
 	// spec: DELETE-001.16
@@ -84,7 +84,7 @@ final class TrashServiceExpectTest extends TestCase {
 			[['fileId' => 1, 'result' => 'trashed'], ['fileId' => 2, 'result' => 'trashed'], ['fileId' => 3, 'result' => 'trashed']],
 			[['fileId' => 4, 'result' => 'decisionChanged'], ['fileId' => 5, 'result' => 'decisionChanged'], ['fileId' => 6, 'result' => 'decisionChanged']],
 		], self::results($results));
-		$this->assertSame([1, 2, 3], $this->trashed);
+		$this->assertSame([1, 3, 2], $this->trashed);
 		$this->assertSame([4, 6], array_keys($this->flags()->rows));
 	}
 

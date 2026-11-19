@@ -9,9 +9,9 @@ import type { Tag } from '../../src/logic/tag.ts'
 
 import { describe, expect, it, vi } from 'vitest'
 import { freshCheck, sidecarSaver } from '../../src/fresh-check.ts'
+import { logger } from '../../src/logger.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../../src/logic/pairing.ts'
-import { logger } from '../../src/logger.ts'
 import { listingEntry, pictureOf, picturesOf } from './logic/listing-entries.ts'
 
 const RAW = listingEntry(1, '/Trip/IMG_1.NEF', { mime: 'image/x-dcraw' })

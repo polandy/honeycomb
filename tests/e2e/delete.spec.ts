@@ -173,7 +173,7 @@ test('deletes nothing when the trash request fails, and the toast says so', asyn
 	await page.getByRole('dialog', { name: 'Delete 1 photo' }).getByRole('button', { name: 'Move 2 files to trash' }).click()
 
 	await expect(page.getByRole('status').filter({ hasText: 'Could not delete the photos; reload the folder to see what changed.' })).toBeVisible()
-	await expect(page.getByRole('grid', { name: 'Photos' }).getByRole('gridcell', { name: /^IMG_0001/ })).toBeVisible()
+	await expect(page.getByRole('button', { name: 'Review rejects (1)' })).toBeVisible()
 	expect(await trashLocations(page)).not.toContain(`${folder}/`)
 })
 

@@ -13,22 +13,23 @@ const SIDECAR = Buffer.from('<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:
 const RATED = Buffer.from('<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/" xmlns:digiKam="http://www.digikam.org/ns/1.0/" xmp:Rating="3" xmp:Label="Red" digiKam:PickLabel="3"><digiKam:TagsList><rdf:Seq><rdf:li>Places/Lisbon</rdf:li></rdf:Seq></digiKam:TagsList></rdf:Description></rdf:RDF></x:xmpmeta>')
 const KEEP_RAW = Buffer.from('<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:honeycomb="https://github.com/polandy/honeycomb/xmp/1.0/" honeycomb:KeepRaw="True"/></rdf:RDF></x:xmpmeta>')
 
-/** Culls a new folder of NEF+JPEG pairs once the flags are taken over and returns its name and the JPEGs' file ids. */
-async function cullPairs(page: Page, names: readonly string[], sidecar: Buffer = SIDECAR): Promise<{ folder: string, jpegs: number[] }> {
+/** Culls a new folder of NEF+JPEG pairs once the flags are taken over and returns its name and the members' file ids. */
+async function cullPairs(page: Page, names: readonly string[], sidecar: Buffer = SIDECAR): Promise<{ folder: string, jpegs: number[], raws: number[] }> {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Raws ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
 	const jpegs: number[] = []
+	const raws: number[] = []
 	for (const name of names) {
 		jpegs.push(await upload(page, `${folder}/${name}.jpg`, JPEG))
-		await upload(page, `${folder}/${name}.NEF`, RAW)
+		raws.push(await upload(page, `${folder}/${name}.NEF`, RAW))
 		await upload(page, `${folder}/${name}.NEF.xmp`, sidecar)
 	}
 	const takenOver = page.waitForResponse((response) => response.url().endsWith('/api/v1/flags/take-over') && response.ok())
 	await cullFolder(page, folder)
 	await expect(page.getByRole('grid', { name: 'Photos' }).getByRole('gridcell')).toHaveCount(names.length)
 	await takenOver
-	return { folder, jpegs }
+	return { folder, jpegs, raws }
 }
 
 /** Opens the Remove RAWs summary and confirms it. */
@@ -96,8 +97,9 @@ test('removes only the RAW and its own sidecar of each pair not kept, after one 
 
 // spec: DELETE-003.11
 test('keeps the RAW another user marked Keep RAW after the summary opened, and removes the others', async ({ page }) => {
-	const { folder, jpegs } = await cullPairs(page, ['IMG_0001', 'IMG_0002', 'IMG_0003'])
-	const kept = await page.request.put(`${API}/flags`, { data: { flags: [{ fileId: jpegs[1], flag: 'unflagged', keepRaw: true }] }, headers: { requesttoken: await requestToken(page) } })
+	const { folder, jpegs, raws } = await cullPairs(page, ['IMG_0001', 'IMG_0002', 'IMG_0003'])
+	const flags = [jpegs[1], raws[1]].map((fileId) => ({ fileId, flag: 'unflagged', keepRaw: true }))
+	const kept = await page.request.put(`${API}/flags`, { data: { flags }, headers: { requesttoken: await requestToken(page) } })
 	expect(kept.status()).toBe(200)
 	await upload(page, `${folder}/IMG_0003.NEF.xmp`, KEEP_RAW)
 	const sidecarLookups: string[] = []

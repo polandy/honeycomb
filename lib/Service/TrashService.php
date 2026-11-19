@@ -72,7 +72,7 @@ final class TrashService {
 			return;
 		}
 		try {
-			$this->flags->remove(array_values(array_column($deleted, 'fileId')));
+			$this->flags->remove(array_column($deleted, 'fileId'));
 		} catch (\OCP\DB\Exception $e) {
 			$this->logger->error('Could not remove the flag rows of trashed files', ['exception' => $e]);
 		}
@@ -102,7 +102,7 @@ final class TrashService {
 		$files = array_filter($checked, is_array(...));
 		if (count($files) !== count($checked)) {
 			$results = array_map(static fn (array|TrashResult $node): TrashResult => is_array($node) ? TrashResult::Skipped : $node, $checked);
-		} elseif ($expectation !== null && !$expectation->holds(self::memberRows($files, $rows))) {
+		} elseif ($expectation !== null && !$expectation->holds(self::memberRows($files, $picture, $rows))) {
 			$results = array_fill(0, count($picture), TrashResult::DecisionChanged);
 		} elseif ($this->spacing->clear(self::namesToTrash($files))) {
 			$results = $this->trashInOrder($user, $files);
@@ -113,14 +113,15 @@ final class TrashService {
 	}
 
 	/**
-	 * The rows of the picture's members, null for a member without one.
+	 * The rows of the picture's members by the file ids sent, null for a member without one.
 	 * @param array<int, array{File, TrashResult}> $files
+	 * @param non-empty-list<array{fileId: int, etag: string, permanent: bool}> $picture
 	 * @param array<int, FileFlag> $rows
 	 * @return list<?FileFlag>
 	 */
-	private static function memberRows(array $files, array $rows): array {
+	private static function memberRows(array $files, array $picture, array $rows): array {
 		$members = array_filter($files, static fn (array $file): bool => !ListingService::isSidecar($file[0]));
-		return array_values(array_map(static fn (array $file): ?FileFlag => $rows[$file[0]->getId()] ?? null, $members));
+		return array_map(static fn (int $index): ?FileFlag => $rows[$picture[$index]['fileId']] ?? null, array_keys($members));
 	}
 
 	/**
