@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { Decision } from '../../src/logic/decision.ts'
-import type { SidecarFailure, SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from '../../src/logic/sidecar-sync.ts'
+import type { SavedSidecar, SidecarFailure, SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from '../../src/logic/sidecar-sync.ts'
 import type { TagChange } from '../../src/logic/tag.ts'
 
 import { flushPromises } from '@vue/test-utils'
@@ -35,6 +35,7 @@ function sync(answer: (item: SidecarSaveItem, call: number) => SidecarSaveAnswer
 	const sized: [number, number][][] = []
 	const saves: SidecarSaveItem[][] = []
 	const failures: SidecarFailure[][] = []
+	const savedSidecars: SavedSidecar[][] = []
 	const lookupAnswer = { current: (_fileId: number): SidecarLookupAnswer => ({ result: 'read', bytes: BYTES, etag: `etag-${lookups.length}`, size: BYTES.length, mtime: 100 }) }
 	const sidecars = useSidecarSync({
 		lookupXmpCache: async () => [],
@@ -51,8 +52,8 @@ function sync(answer: (item: SidecarSaveItem, call: number) => SidecarSaveAnswer
 			const answers = items.map((item) => answer(item, call))
 			return Promise.all(answers)
 		},
-	}, () => CANONICAL_TIME, (failed) => failures.push([...failed]))
-	return { sidecars, lookups, sized, saves, failures, lookupAnswer }
+	}, () => CANONICAL_TIME, (failed) => failures.push([...failed]), (saved) => savedSidecars.push([...saved]))
+	return { sidecars, lookups, sized, saves, failures, lookupAnswer, savedSidecars }
 }
 
 /** A `saved` answer for the file id. */
@@ -74,6 +75,17 @@ describe('useSidecarSync: write', () => {
 		expect(saves[0]!.map((item) => ('fileId' in item ? [item.fileId, item.etag] : item.path))).toEqual([[11, 'etag-1'], '/P/IMG_0001.JPG.xmp'])
 		expect(saves[1]!.map((item) => ('fileId' in item ? [item.fileId, item.etag] : item.path))).toEqual([[11, 'saved-11'], [30, 'saved-30']])
 		expect(textOf(readXmp(saves[1]![1]!.bytes), 'xmp:Rating')).toBe('4')
+	})
+
+	// spec: STATS-001.19
+	it('tells which sidecars it saved and which of them it created, leaving a failed one out', async () => {
+		const { sidecars, savedSidecars } = sync((item) => ('fileId' in item ? saved(item.fileId) : { result: 'noSpace' }))
+		await sidecars.write([PAIR], decisionOf({ ...UNDECIDED, flag: 'picked' }))
+		const both = sync((item) => saved('fileId' in item ? item.fileId : 30))
+		await both.sidecars.write([PAIR], decisionOf({ ...UNDECIDED, flag: 'picked' }))
+
+		expect(savedSidecars).toEqual([[{ path: '/P/IMG_0001.NEF.xmp', created: false }]])
+		expect(both.savedSidecars).toEqual([[{ path: '/P/IMG_0001.NEF.xmp', created: false }, { path: '/P/IMG_0001.JPG.xmp', created: true }]])
 	})
 
 	// spec: DELETE-002.17
