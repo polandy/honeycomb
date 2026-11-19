@@ -55,13 +55,26 @@ final class SidecarWriter {
 		if (!$this->fits($folder, $sidecar->bytes, $existing)) {
 			return ['result' => SidecarResult::NoSpace];
 		}
-		$previousMTime = $existing?->getMTime();
+		$previous = $this->previousMTime($existing);
 		try {
 			$saved = $existing === null ? $folder->newFile($name, $sidecar->bytes) : $this->replace($existing, $sidecar->bytes);
-			$previousMTimes[] = $previousMTime;
+			array_push($previousMTimes, ...$previous);
 			return ['result' => SidecarResult::Saved, 'fileId' => $saved->getId(), 'etag' => $saved->getEtag(), 'size' => $saved->getSize(), 'mtime' => $saved->getMTime()];
 		} catch (\Exception $e) {
 			return ['result' => $this->resultOf($e, $folder->getPath() . "/$name")];
+		}
+	}
+
+	/**
+	 * The modification time of the sidecar a save replaces, null for a created one, or nothing when it cannot be read, so the save goes on uncounted.
+	 * @return list<?int>
+	 */
+	private function previousMTime(?File $existing): array {
+		try {
+			return [$existing?->getMTime()];
+		} catch (\Exception $e) {
+			$this->logger->warning('Could not read the modification time of a sidecar to count it', ['exception' => $e]);
+			return [];
 		}
 	}
 
