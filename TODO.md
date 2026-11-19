@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Concept D (M8, ADR 0040): PR 8 `fix(delete)` the trash endpoint checks `expect` and removes the rows; the fresh check reads no sidecar, the dialog *Fresh check not possible* goes (DELETE-001.15, DELETE-001.16, DELETE-001.17, DELETE-001.18, DELETE-002.26, DELETE-002.27, DELETE-003.11, DELETE-003.12) (2026-11-19)
 - [ ] Statistics (M9, STATS-001, ADR 0039): PR 2 table `honeycomb_stats`, read and reset API, *Keep statistics*, removal in `ForgetDeletedUser` (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 3 count on the server: trash, deleted for good, Remove RAWs, sidecars created and updated, series done, moves (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 4 *Cull finished* card with the session's numbers and before/after (2026-11-19)

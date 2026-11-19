@@ -8,7 +8,10 @@ import { filesOf } from './delete-summary.ts'
 import { pairPictures } from './pairing.ts'
 
 /** Why the trash endpoint left a file where it was (ADR 0013). */
-export type TrashFailure = 'notFound' | 'changed' | 'notPermitted' | 'noTrashBin' | 'tooLarge' | 'locked' | 'failed' | 'skipped'
+export type TrashFailure = 'notFound' | 'changed' | 'notPermitted' | 'noTrashBin' | 'tooLarge' | 'locked' | 'failed' | 'skipped' | 'decisionChanged'
+
+/** The state the server checks a picture's rows against before deleting it (ADR 0040). */
+export type TrashExpectation = 'rejected' | 'rawRemovable'
 
 /** The failures of a file the trash bin would not keep, which the user may delete permanently (ADR 0036). */
 export type UnkeptFailure = 'noTrashBin' | 'tooLarge'
@@ -50,7 +53,7 @@ export interface TrashReport {
 	readonly bytes: number
 }
 
-const FAILURES: ReadonlySet<string> = new Set<TrashFailure>(['notFound', 'changed', 'notPermitted', 'noTrashBin', 'tooLarge', 'locked', 'failed', 'skipped'])
+const FAILURES: ReadonlySet<string> = new Set<TrashFailure>(['notFound', 'changed', 'notPermitted', 'noTrashBin', 'tooLarge', 'locked', 'failed', 'skipped', 'decisionChanged'])
 
 const UNKEPT: ReadonlySet<TrashFailure> = new Set<UnkeptFailure>(['noTrashBin', 'tooLarge'])
 
@@ -95,6 +98,13 @@ function byPicture(failed: readonly FailedFile[]): PictureFile[][] {
 		grouped.set(file.picture, [...(grouped.get(file.picture) ?? []), file])
 	}
 	return [...grouped.values()]
+}
+
+/** The report without the files the server kept because their rows no longer said the expected state, and those pictures, each once. */
+export function decisionChanges(report: TrashReport): { report: TrashReport, changed: Picture<ListingEntry>[] } {
+	const changed = report.failed.filter(({ result }) => result === 'decisionChanged')
+	const failed = report.failed.filter(({ result }) => result !== 'decisionChanged')
+	return { report: { ...report, failed }, changed: [...new Set(changed.map(({ file }) => file.picture))] }
 }
 
 /** The failed and skipped files of a report again, grouped by their picture. */

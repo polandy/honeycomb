@@ -28,11 +28,11 @@ final class TrashController extends Controller {
 		parent::__construct($appName, $request);
 	}
 
-	/** Moves each picture's files into the trash bin and reports every file (ADR 0013). */
+	/** Moves each picture's files into the trash bin while its rows say `$expect`, and reports every file (ADR 0013, ADR 0040). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'POST', url: '/api/v1/trash')]
 	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
-	public function trash(array $pictures = []): Response {
-		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(['pictures' => $this->trash->trash($user, $pictures)]));
+	public function trash(array $pictures = [], mixed $expect = null): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(['pictures' => $this->trash->trash($user, $pictures, $expect)]));
 	}
 }

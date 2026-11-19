@@ -105,13 +105,13 @@ describe('useDeleteFlow, deleting by decision', () => {
 
 	// spec: DELETE-002.26
 	it('sends the retry and the permanent resend with the expectation of the flow', async () => {
-		let answers = [[{ fileId: 2, result: 'locked' }, { fileId: 1, result: 'skipped' }], [{ fileId: 4, result: 'tooLarge' }]]
+		let answers = [[{ fileId: 2, result: 'locked' }, { fileId: 1, result: 'skipped' }], [{ fileId: 5, result: 'tooLarge' }]]
 		const { deleting, expectations } = flow(async () => answers)
 
 		deleting.continueToSummary()
 		await deleting.confirm()
 		expect(deleting.dialog.value).toMatchObject({ kind: 'permanent' })
-		answers = [[{ fileId: 4, result: 'deleted' }]]
+		answers = [[{ fileId: 5, result: 'deleted' }]]
 		await deleting.confirm()
 		answers = [[{ fileId: 2, result: 'trashed' }, { fileId: 1, result: 'trashed' }]]
 		await deleting.retry()

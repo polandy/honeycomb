@@ -88,6 +88,7 @@ final class FakeFlagStore implements FlagStore {
 		return $before - count($this->rows);
 	}
 
+	#[\Override]
 	public function remove(array $fileIds): void {
 		if ($this->removeFails) {
 			throw new FakeDbException(0);

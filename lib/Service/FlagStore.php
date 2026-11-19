@@ -31,4 +31,11 @@ interface FlagStore extends FileRowStore {
 	 * @throws \OCP\DB\Exception
 	 */
 	public function takeOver(array $flags): array;
+
+	/**
+	 * Removes the rows of `$fileIds`.
+	 * @param list<int> $fileIds
+	 * @throws \OCP\DB\Exception
+	 */
+	public function remove(array $fileIds): void;
 }

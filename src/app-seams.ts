@@ -7,7 +7,7 @@ import type { FlagApi } from './flags-api.ts'
 import type { ListEntries } from './folder-count.ts'
 import type { Schedule } from './logic/long-press.ts'
 import type { Settings } from './logic/settings.ts'
-import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
+import type { TrashExpectation, TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
 import type { MoveApi } from './move-flow.ts'
 import type { OnPageHide } from './page-hide.ts'
 import type { WarmPreviews } from './preview-warmer.ts'
@@ -50,7 +50,7 @@ export interface AppSeams {
 	/** Writes the waiting sidecars when the page hides (XMP-003.29). */
 	onPageHide?: OnPageHide
 	toggleFullscreen?: (element: HTMLElement) => void
-	trashPictures?: (pictures: readonly (readonly TrashRequestFile[])[]) => Promise<TrashResponseFile[][]>
+	trashPictures?: (pictures: readonly (readonly TrashRequestFile[])[], expect?: TrashExpectation | null) => Promise<TrashResponseFile[][]>
 	sidecars?: SidecarFlowApi
 	move?: MoveApi
 	tags?: CullTagsApi
