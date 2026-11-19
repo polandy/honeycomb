@@ -25,6 +25,8 @@ final class SeriesServiceTest extends TestCase {
 	/** The file ids `alice` reaches as photos; 50 is a text file. */
 	private const array PHOTOS = [3, 4, 5, 7, 8, 9];
 
+	use StatsFixture;
+
 	private FakeSeriesStore $store;
 	private SeriesService $service;
 
@@ -40,7 +42,7 @@ final class SeriesServiceTest extends TestCase {
 		$userFolder->method('search')->willReturnCallback(self::fileIdSearch($find));
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturn($userFolder);
-		$this->service = new SeriesService($this->store, new UserPhotos(new UserFolderResolver($root)));
+		$this->service = new SeriesService($this->store, new UserPhotos(new UserFolderResolver($root)), $this->stats());
 	}
 
 	/** @return array<string, mixed> */
@@ -94,6 +96,26 @@ final class SeriesServiceTest extends TestCase {
 		$this->store->failures = 1;
 		$this->assertSame(['ids' => [1], 'saved' => [7]], $this->service->save($this->user(), [self::item(null, 'open', 7)], [], []));
 		$this->assertSame(2, $this->store->writeCalls);
+	}
+
+	// spec: STATS-001.29
+	public function testCountsTheSeriesThatBecameDone(): void {
+		$open = $this->store->add('alice', SeriesStatus::Open, 7);
+		$done = $this->store->add('alice', SeriesStatus::Done, 8);
+
+		$this->service->save($this->user(), [self::item($open, 'done', 7), self::item($done, 'done', 8), self::item(null, 'done', 3), self::item(null, 'open', 4)], [], []);
+		$this->service->save($this->user(), [self::item($open, 'open', 7)], [], []);
+
+		$this->assertSame(['series_done' => 2], $this->counted());
+	}
+
+	// spec: STATS-001.7
+	public function testAFailedCountLeavesTheWriteAndItsAnswerAsTheyAre(): void {
+		$this->failCounting();
+
+		$this->assertSame(['ids' => [1], 'saved' => [7]], $this->service->save($this->user(), [self::item(null, 'done', 7)], [], []));
+		$this->assertSame(SeriesStatus::Done, $this->store->series[1]['status']);
+		$this->assertSame(['Could not count the statistics.'], $this->statsWarnings);
 	}
 
 	public function testAnotherDatabaseErrorReachesTheCaller(): void {

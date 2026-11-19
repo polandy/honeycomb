@@ -16,6 +16,7 @@ use OCA\Honeycomb\Service\UserPhotos;
 use OCA\Honeycomb\Tests\Service\FakeFileIdSearch;
 use OCA\Honeycomb\Tests\Service\FakeFiles;
 use OCA\Honeycomb\Tests\Service\FakeSeriesStore;
+use OCA\Honeycomb\Tests\Service\StatsFixture;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -29,6 +30,7 @@ use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
 final class SeriesControllerTest extends TestCase {
+	use StatsFixture;
 	use FakeFiles;
 	use FakeFileIdSearch;
 
@@ -47,7 +49,7 @@ final class SeriesControllerTest extends TestCase {
 		$userFolder->method('search')->willReturnCallback(self::fileIdSearch($find));
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturn($userFolder);
-		$service = new SeriesService($this->store, new UserPhotos(new UserFolderResolver($root)));
+		$service = new SeriesService($this->store, new UserPhotos(new UserFolderResolver($root)), $this->stats());
 		return new SeriesController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $service);
 	}
 

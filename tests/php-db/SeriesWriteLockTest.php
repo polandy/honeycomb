@@ -22,12 +22,22 @@ final class SeriesWriteLockTest extends DbTestCase {
 	// spec: SERIES-005.27
 	public function testTakesTheWriteLockWithItsFirstStatementWhenReopeningAStoredSeries(): void {
 		$this->assertSame(IDBConnection::PLATFORM_SQLITE, $this->db->getDatabaseProvider());
-		[$id] = (new SeriesMapper($this->db))->write('alice', SeriesWrite::fromRequest([['id' => null, 'status' => 'done', 'fileIds' => [7, 8]]], [], []));
+		[$id] = (new SeriesMapper($this->db))->write('alice', SeriesWrite::fromRequest([['id' => null, 'status' => 'done', 'fileIds' => [7, 8]]], [], []))['ids'];
 
-		$ids = (new SeriesMapper($this->probedConnection()))->write('alice', SeriesWrite::fromRequest([['id' => $id, 'status' => 'open', 'fileIds' => [7, 8]]], [], []));
+		$ids = (new SeriesMapper($this->probedConnection()))->write('alice', SeriesWrite::fromRequest([['id' => $id, 'status' => 'open', 'fileIds' => [7, 8]]], [], []))['ids'];
 
 		$this->assertTrue($this->lockedAfterFirstStatement);
 		$this->assertSame([$id], $ids);
 		$this->assertSame(SeriesStatus::Open, (new SeriesMapper($this->db))->find('alice', [7, 8])->series[0]->status);
+	}
+
+	// spec: SERIES-005.27, STATS-001.29
+	public function testTakesTheWriteLockWithItsFirstStatementWhenFinishingAStoredSeries(): void {
+		[$id] = (new SeriesMapper($this->db))->write('alice', SeriesWrite::fromRequest([['id' => null, 'status' => 'open', 'fileIds' => [7, 8]]], [], []))['ids'];
+
+		$written = (new SeriesMapper($this->probedConnection()))->write('alice', SeriesWrite::fromRequest([['id' => $id, 'status' => 'done', 'fileIds' => [7, 8]]], [], []));
+
+		$this->assertTrue($this->lockedAfterFirstStatement);
+		$this->assertSame(['ids' => [$id], 'done' => 1], $written);
 	}
 }

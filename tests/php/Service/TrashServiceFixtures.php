@@ -27,6 +27,8 @@ use Psr\Log\LoggerInterface;
 
 /** Alice's files and a `TrashService` over them, for the tests of `TrashService`. */
 trait TrashServiceFixtures {
+	use StatsFixture;
+
 	/** @var list<int> file ids in the order they were trashed */
 	private array $trashed = [];
 
@@ -58,7 +60,7 @@ trait TrashServiceFixtures {
 		$storage->method('instanceOfStorage')->willReturnCallback(static fn (string $class): bool => $trashBin && $class === 'OCA\Files_Trashbin\Storage');
 		$file = $this->createStub(File::class);
 		$file->method('getStorage')->willReturn($storage);
-		$file->method('getSize')->willReturn($size);
+		$file->method('getSize')->willReturnCallback(fn (): int => in_array($id, $this->trashed, true) ? throw new NotFoundException() : $size);
 		$file->method('getId')->willReturnCallback(fn (): int => in_array($id, $this->trashed, true) ? throw new NotFoundException() : $id);
 		$file->method('getName')->willReturn($name);
 		$file->method('getMimetype')->willReturn($mime);
@@ -91,7 +93,7 @@ trait TrashServiceFixtures {
 		$time = $this->createStub(ITimeFactory::class);
 		$time->method('getTime')->willReturnCallback(fn (): int => $this->clock()->now);
 		$spacing = new TrashNameSpacing($time, $this->clock());
-		return new TrashService(new UserPhotos(new UserFolderResolver($root)), $apps, $guard, $spacing, $this->flags(), $logger ?? $this->createStub(LoggerInterface::class));
+		return new TrashService(new UserPhotos(new UserFolderResolver($root)), $apps, $guard, $spacing, $this->flags(), $logger ?? $this->createStub(LoggerInterface::class), $this->stats());
 	}
 
 	/**
