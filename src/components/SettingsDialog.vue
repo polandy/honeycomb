@@ -13,8 +13,10 @@ import NcAppSettingsSection from '@nextcloud/vue/components/NcAppSettingsSection
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import AppIcon from './AppIcon.vue'
+import CacheSettings from './CacheSettings.vue'
 import LoupeGestureSettings from './LoupeGestureSettings.vue'
 import MoveSettings from './MoveSettings.vue'
+import StatisticsSettings from './StatisticsSettings.vue'
 import { addExtension, DEFAULT_SUBFOLDERS, folderMode, removeExtension } from '../logic/settings.ts'
 import { tip } from '../tooltip.ts'
 
@@ -37,6 +39,8 @@ const emit = defineEmits<{
 	clearCache: []
 	/** The admin wants the flags of deleted and trashed files removed. */
 	cleanUp: []
+	/** The user confirmed that their statistics go. */
+	resetStatistics: []
 }>()
 
 const LISTS = [
@@ -220,21 +224,11 @@ function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 		<NcAppSettingsSection id="moving-photos" :name="t('honeycomb', 'Moving photos')">
 			<MoveSettings :settings="settings" @update="emit('update', $event)" />
 		</NcAppSettingsSection>
+		<NcAppSettingsSection id="statistics" :name="t('honeycomb', 'Statistics')">
+			<StatisticsSettings :settings="settings" @update="emit('update', $event)" @reset="emit('resetStatistics')" />
+		</NcAppSettingsSection>
 		<NcAppSettingsSection id="cache" :name="t('honeycomb', 'Cache')">
-			<p id="clear-cache-hint" class="settings-dialog__hint settings-text">
-				{{ t('honeycomb', 'Removes what honeycomb remembers of the sidecars and photos it read; it reads them again on the next visit. Sidecars and decisions stay.') }}
-			</p>
-			<NcButton aria-describedby="clear-cache-hint" @click="emit('clearCache')">
-				{{ t('honeycomb', 'Clear cache') }}
-			</NcButton>
-			<template v-if="admin">
-				<p id="clean-up-hint" class="settings-dialog__hint settings-text">
-					{{ t('honeycomb', 'Removes the picks and rejects of files that were deleted or lie in a trash bin, for every user.') }}
-				</p>
-				<NcButton aria-describedby="clean-up-hint" @click="emit('cleanUp')">
-					{{ t('honeycomb', 'Clean up orphaned data') }}
-				</NcButton>
-			</template>
+			<CacheSettings :admin="admin" @clearCache="emit('clearCache')" @cleanUp="emit('cleanUp')" />
 		</NcAppSettingsSection>
 	</NcAppSettingsDialog>
 </template>

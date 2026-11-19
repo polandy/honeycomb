@@ -23,6 +23,8 @@ export interface Settings extends PairingSettings {
 	readonly moveFavourites: readonly string[]
 	readonly moveRecent: readonly string[]
 	readonly moveTemplate: string
+	/** Whether honeycomb counts the daily statistics (STATS-001.2). */
+	readonly keepStatistics: boolean
 }
 
 /** One of the two extension lists. */
@@ -48,6 +50,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	moveFavourites: [],
 	moveRecent: [],
 	moveTemplate: DEFAULT_NAME_TEMPLATE,
+	keepStatistics: true,
 }
 
 const OTHER_LIST: Record<ExtensionList, ExtensionList> = { rawExtensions: 'renderedExtensions', renderedExtensions: 'rawExtensions' }
@@ -56,7 +59,7 @@ const SWIPE_FLAGS: readonly (Flag | null)[] = ['picked', 'rejected', null]
 /** The settings as stored, each missing or invalid field at its default; pairing never fails on them. */
 export function parseSettings(value: unknown): Settings {
 	const stored: Record<string, unknown> = isObject(value) ? value : {}
-	const boolean = (key: 'showSingles' | 'autoAdvance' | 'flagButtonsShown' | 'filmstripPinned' | 'ratingRowPinned' | 'viKeys' | 'showFileNames') => (typeof stored[key] === 'boolean' ? stored[key] : DEFAULT_SETTINGS[key])
+	const boolean = (key: 'showSingles' | 'autoAdvance' | 'flagButtonsShown' | 'filmstripPinned' | 'ratingRowPinned' | 'viKeys' | 'showFileNames' | 'keepStatistics') => (typeof stored[key] === 'boolean' ? stored[key] : DEFAULT_SETTINGS[key])
 	return {
 		...extensionLists(stored.rawExtensions, stored.renderedExtensions),
 		folderMode: parseFolderMode(stored.folderMode),
@@ -71,6 +74,7 @@ export function parseSettings(value: unknown): Settings {
 		moveFavourites: parsePaths(stored.moveFavourites),
 		moveRecent: parsePaths(stored.moveRecent),
 		moveTemplate: typeof stored.moveTemplate === 'string' && parseNameTemplate(stored.moveTemplate).ok ? stored.moveTemplate : DEFAULT_NAME_TEMPLATE,
+		keepStatistics: boolean('keepStatistics'),
 	}
 }
 
