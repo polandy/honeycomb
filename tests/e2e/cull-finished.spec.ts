@@ -45,6 +45,9 @@ test.describe('on a phone', () => {
 		await expect(card).toContainText('Before 2 photos')
 		const box = (await card.boundingBox())!
 		expect(box.y + box.height).toBe(PHONE.height)
+		// The four tiles sit two by two, as in the mockup.
+		const tiles = await card.locator('.delete-stats__item').evaluateAll((items) => items.map((item) => Math.round(item.getBoundingClientRect().top)))
+		expect(new Set(tiles).size).toBe(2)
 		await expectTouchTargets(card, 'Cull finished on a phone')
 		await page.screenshot({ path: testInfo.outputPath('cull-finished-phone.png'), animations: 'disabled' })
 
