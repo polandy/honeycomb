@@ -21,7 +21,7 @@ describe('clearCacheWithToast', () => {
 		expect(toasts).toEqual(['Cache cleared'])
 	})
 
-	// spec: SETTINGS-001.25
+	// spec: SETTINGS-001.25, APP-001.13
 	it('logs a failure and says the cache could not be cleared', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => {})
 		const toasts: string[] = []
@@ -29,7 +29,7 @@ describe('clearCacheWithToast', () => {
 
 		await clearCacheWithToast(async () => {
 			throw failure
-		}, (message) => void toasts.push(message))
+		}, () => undefined, (message) => void toasts.push(message))
 
 		expect(toasts).toEqual(['Could not clear the cache.'])
 		expect(error).toHaveBeenCalledWith('Could not clear the cache.', { error: failure })
@@ -46,7 +46,7 @@ describe('cleanUpWithToast', () => {
 		expect(toasts).toEqual([message])
 	})
 
-	// spec: SETTINGS-001.27
+	// spec: SETTINGS-001.27, APP-001.13
 	it('logs a failure and says the clean-up failed', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => {})
 		const toasts: string[] = []
@@ -54,7 +54,7 @@ describe('cleanUpWithToast', () => {
 
 		await cleanUpWithToast(async () => {
 			throw failure
-		}, (text) => void toasts.push(text))
+		}, () => undefined, (text) => void toasts.push(text))
 
 		expect(toasts).toEqual(['Could not clean up the orphaned data.'])
 		expect(error).toHaveBeenCalledWith('Could not clean up the orphaned data.', { error: failure })

@@ -158,14 +158,14 @@ describe('useDeleteFlow, deleting by decision', () => {
 
 	// spec: DELETE-002.15
 	it('changes nothing when the check fails', async () => {
-		const { deleting, sent, toasts } = flow(allTrashed, undefined, undefined, async () => Promise.reject(new Error('offline')))
+		const { deleting, sent, errors } = flow(allTrashed, undefined, undefined, async () => Promise.reject(new Error('offline')))
 
 		deleting.continueToSummary()
 		await deleting.confirm()
 
 		expect(sent).toEqual([])
 		expect(deleting.dialog.value).toBeNull()
-		expect(toasts).toEqual(['Could not delete the photos; reload the folder to see what changed.'])
+		expect(errors).toEqual(['Could not delete the photos; reload the folder to see what changed.'])
 	})
 })
 

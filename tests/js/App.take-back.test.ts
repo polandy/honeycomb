@@ -40,7 +40,7 @@ describe('App: Clear picks/rejects', () => {
 })
 
 describe('App: a failed write is taken back', () => {
-	// spec: XMP-008.17
+	// spec: XMP-008.17, APP-001.13
 	it('shows the earlier flag again and says the flag was not saved', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		const { wrapper } = mountApp({ flags: { save: async () => Promise.reject(new Error('500')), takeOver: async () => ({ saved: [], skipped: [] }) } })
@@ -51,11 +51,12 @@ describe('App: a failed write is taken back', () => {
 
 		expect(decidedFlags(wrapper)).toEqual([])
 		expect(toast(wrapper).props('toast').message).toBe('Could not save the flag of 1 photo; it is back as it was')
+		expect(toast(wrapper).props('toast').kind).toBe('error')
 		expect(error).toHaveBeenCalledOnce()
 		error.mockRestore()
 	})
 
-	// spec: XMP-008.15
+	// spec: XMP-008.15, APP-001.13
 	it('gives back the rating of the picture whose sidecar is locked and names the reason', async () => {
 		const { wrapper } = mountApp({ sidecars: {
 			lookupSidecars: async (ids: readonly number[]) => ids.map(() => ({ result: 'notFound' })),
@@ -72,6 +73,7 @@ describe('App: a failed write is taken back', () => {
 
 		expect(decidedRows(wrapper).map(({ fileId, rating }) => [fileId, rating])).toEqual([[2, 3], [3, 3], [4, 3]])
 		expect(toast(wrapper).props('toast').message).toMatch(/^Could not write 1 sidecar\./)
+		expect(toast(wrapper).props('toast').kind).toBe('error')
 		expect(toast(wrapper).text()).toContain('The sidecar is locked (another process is writing to it)')
 	})
 })

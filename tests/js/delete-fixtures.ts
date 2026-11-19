@@ -30,6 +30,7 @@ export function flow(answer: (request: { fileId: number }[][]) => Promise<TrashR
 	const pictures = shallowRef<readonly Picture<ListingEntry>[]>([PAIR!, SINGLE!, OTHER!])
 	const flags = new Map([[PAIR, 'rejected'], [OTHER, 'rejected']])
 	const toasts: string[] = []
+	const errors: string[] = []
 	const decided: unknown[] = []
 	const sent: { fileId: number }[][][] = []
 	const loupe = ref<{ pictures: readonly Picture<ListingEntry>[], index: number } | null>({ pictures: [PAIR!, SINGLE!], index: 0 })
@@ -52,9 +53,10 @@ export function flow(answer: (request: { fileId: number }[][]) => Promise<TrashR
 		},
 		loupe,
 		toast: (message) => toasts.push(message),
+		error: (message) => errors.push(message),
 		chunks,
 	})
-	return { deleting, pictures, toasts, decided, sent, loupe }
+	return { deleting, pictures, toasts, errors, decided, sent, loupe }
 }
 
 export const allTrashed = async (request: { fileId: number }[][]) => request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'trashed' })))

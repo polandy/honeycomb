@@ -30,7 +30,7 @@ function flowWith(answer: (item: SidecarSaveItem) => SidecarSaveAnswer = () => (
 			return items.map(answer)
 		},
 		now: () => CANONICAL_TIME,
-	}, (message, action) => void toasts.push({ message, action: action ?? null }))
+	}, () => undefined, (message, action) => void toasts.push({ message, action: action ?? null }))
 	return { flow, toasts }
 }
 
@@ -40,7 +40,7 @@ const PICTURE = pictureOf(listingEntry(1, '/P/IMG_1.JPG'), listingEntry(1001, '/
 const rated = () => ({ ...UNDECIDED, rating: 3 })
 
 describe('useSidecarFlow: writing through', () => {
-	// spec: XMP-003.13, XMP-003.33, XMP-002.12
+	// spec: XMP-003.13, XMP-003.33, XMP-002.12, APP-001.13
 	it.each([
 		['locked', 'The sidecar is locked (another process is writing to it)'],
 		['notPermitted', 'You may not change this sidecar or create files in its folder'],

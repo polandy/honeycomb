@@ -114,8 +114,9 @@ Withdrawn by ADR 0040 (M8 PR 3); .12 and .14 replace it.
 - **Given** a pick of ten pictures, three of them in a read-only folder
 - **When** the user takes it
 - **Then** seven are picked as one undo step and the toast says *Picked 7 photos; 3 photos not
-  changed: read only* with *Undo* and *Details*, which unfold each read-only photo's name; with all
-  ten read only nothing is taken and the toast says *Not changed: read only*
+  changed: read only* with *Undo* and *Details*, which opens a dialog naming each read-only photo (APP-001.14); with all
+  ten read only nothing is taken and the toast says *Not changed: read only*, an error toast
+  (APP-001.13)
 
 ### XMP-008.15 – A failed sidecar write is taken back for its picture
 
