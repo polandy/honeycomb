@@ -181,6 +181,7 @@ function onLoad(fileId: number, event: Event) {
 let stopObserving = () => undefined as void
 onMounted(() => {
 	stopObserving = props.observeSize(stage.value!, (width, height) => {
+		if (width === size.value.width && height === size.value.height) return
 		size.value = { width, height }
 		fitSeq.value++
 	})
