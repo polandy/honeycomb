@@ -16,7 +16,7 @@ use OCP\IUser;
 use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
 
-/** Moves whole pictures into the trash bin: each checked whole, also against its flag rows, then trashed file by file (ADR 0013, ADR 0040), files of one name in different seconds (ADR 0037); a file marked permanent the trash bin would not keep is deleted for good (ADR 0036). */
+/** Moves whole pictures into the trash bin: each checked whole, also against its flag rows, then trashed file by file (ADR 0013, ADR 0040), files of one name in different seconds (ADR 0037); a file marked permanent the trash bin would not keep is deleted for good (ADR 0036); what was deleted is counted (STATS-001). */
 final class TrashService {
 	public function __construct(
 		private UserPhotos $photos,
@@ -25,6 +25,7 @@ final class TrashService {
 		private TrashNameSpacing $spacing,
 		private FlagStore $flags,
 		private LoggerInterface $logger,
+		private StatsService $stats,
 	) {
 	}
 
@@ -44,10 +45,11 @@ final class TrashService {
 		}
 		$userFolder = $this->photos->userFolder($user);
 		$rows = $expectation === null ? [] : $this->flags->find(array_merge(...array_map(static fn (array $picture): array => array_column($picture, 'fileId'), $pictures)));
+		$tally = new TrashTally($expectation === TrashExpectation::RawRemovable);
 		$results = [];
 		while (true) {
 			foreach ($pictures as $index => $picture) {
-				$result = $this->trashPicture($user, $userFolder, $picture, $expectation, $rows);
+				$result = $this->trashPicture($user, $userFolder, $picture, $expectation, $rows, $tally);
 				if ($result !== null) {
 					$results[$index] = $result;
 					unset($pictures[$index]);
@@ -56,6 +58,7 @@ final class TrashService {
 			if ($pictures === []) {
 				ksort($results);
 				$this->removeRows(array_merge(...$results));
+				$this->stats->count($user, ...$tally->counts());
 				return array_values($results);
 			}
 			$this->spacing->awaitNextSecond();
@@ -91,21 +94,23 @@ final class TrashService {
 	}
 
 	/**
-	 * The picture's results, or null when a file to trash shares a name with one trashed in this second.
+	 * The picture's results, added to `$tally`, or null when a file to trash shares a name with one trashed in this second.
 	 * @param non-empty-list<array{fileId: int, etag: string, permanent: bool}> $picture
 	 * @param array<int, FileFlag> $rows
 	 * @return list<array{fileId: int, result: TrashResult}>|null
 	 */
-	private function trashPicture(IUser $user, Folder $userFolder, array $picture, ?TrashExpectation $expectation, array $rows): ?array {
+	private function trashPicture(IUser $user, Folder $userFolder, array $picture, ?TrashExpectation $expectation, array $rows, TrashTally $tally): ?array {
 		$checked = array_map(fn (array $file): array|TrashResult => $this->check($user, $userFolder, $file), $picture);
-		/** @var array<int, array{File, TrashResult}> $files */
+		/** @var list<array{File, TrashResult}> $files */
 		$files = array_filter($checked, is_array(...));
 		if (count($files) !== count($checked)) {
 			$results = array_map(static fn (array|TrashResult $node): TrashResult => is_array($node) ? TrashResult::Skipped : $node, $checked);
 		} elseif ($expectation !== null && !$expectation->holds(self::memberRows($files, $picture, $rows))) {
 			$results = array_fill(0, count($picture), TrashResult::DecisionChanged);
 		} elseif ($this->spacing->clear(self::namesToTrash($files))) {
+			$sizes = array_map($this->size(...), array_column($files, 0));
 			$results = $this->trashInOrder($user, $files);
+			$tally->add($files, $results, $sizes);
 		} else {
 			return null;
 		}
@@ -151,6 +156,16 @@ final class TrashService {
 			}
 		}
 		return array_values($results);
+	}
+
+	/** The file's size for the statistics, 0 when it cannot be read, so the delete goes on. */
+	private function size(File $file): int {
+		try {
+			return (int)$file->getSize();
+		} catch (\Exception $e) {
+			$this->logger->warning('Could not read the size of a file to count it', ['fileId' => $file->getId(), 'exception' => $e]);
+			return 0;
+		}
 	}
 
 	/** Deletes the file, which the trash bin keeps unless `$done` is `Deleted`, and returns `$done` or the failure; a delete for good is logged without the path (DELETE-001.14). */

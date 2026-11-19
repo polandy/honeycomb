@@ -17,6 +17,7 @@ use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCA\Honeycomb\Tests\Service\FakeClock;
 use OCA\Honeycomb\Tests\Service\FakeFlagStore;
+use OCA\Honeycomb\Tests\Service\StatsFixture;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -38,6 +39,8 @@ use Psr\Log\LoggerInterface;
 use ReflectionMethod;
 
 final class TrashControllerTest extends TestCase {
+	use StatsFixture;
+
 	private function controller(bool $loggedIn = true, bool $trashBin = true): TrashController {
 		$storage = $this->createStub(IStorage::class);
 		$storage->method('instanceOfStorage')->willReturnCallback(static fn (string $class): bool => $class === 'OCA\Files_Trashbin\Storage');
@@ -63,7 +66,7 @@ final class TrashControllerTest extends TestCase {
 		$appConfig->method('getValueString')->willReturnArgument(2);
 		$guard = new TrashBinGuard($userConfig, $appConfig);
 		$spacing = new TrashNameSpacing($this->createStub(ITimeFactory::class), new FakeClock());
-		$trash = new TrashService(new UserPhotos(new UserFolderResolver($root)), $apps, $guard, $spacing, new FakeFlagStore(), $this->createStub(LoggerInterface::class));
+		$trash = new TrashService(new UserPhotos(new UserFolderResolver($root)), $apps, $guard, $spacing, new FakeFlagStore(), $this->createStub(LoggerInterface::class), $this->stats());
 		return new TrashController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $trash);
 	}
 
