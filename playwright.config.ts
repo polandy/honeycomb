@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { defineConfig, devices } from '@playwright/test'
 import { ADMIN, ADMIN_STATE } from './tests/e2e/admin.ts'
-import { PORT } from './tests/e2e/server.ts'
+import { PORT, RESULTS_DIR } from './tests/e2e/server.ts'
 
 const BASE_URL = `http://localhost:${PORT}`
 const NEXTCLOUD_INSTALL_TIMEOUT_MS = 300_000
 
 export default defineConfig({
 	testDir: 'tests/e2e',
+	outputDir: RESULTS_DIR,
 	forbidOnly: !!process.env.CI,
 	retries: 0,
 	workers: 1,

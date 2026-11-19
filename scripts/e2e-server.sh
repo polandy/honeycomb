@@ -8,12 +8,13 @@ set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
 source scripts/nextcloud-images.sh
+source scripts/e2e-names.sh
 case "${HONEYCOMB_E2E_NEXTCLOUD:-newest}" in
   oldest) NEXTCLOUD=$OLDEST_NEXTCLOUD_IMAGE ;;
   newest) NEXTCLOUD=$NEWEST_NEXTCLOUD_IMAGE ;;
   *) echo "HONEYCOMB_E2E_NEXTCLOUD must be oldest or newest" >&2 && exit 1 ;;
 esac
-CONTAINER=honeycomb-e2e-$1
+CONTAINER=$(e2e_container "$1")
 TEAM_FOLDERS_VERSION=23.0.1
 TEAM_FOLDERS_SHA256=3949e6a45947188090c170c6983aae11a1d66134ec317ffe7b7609062f3aecf3
 TEAM_FOLDERS="${XDG_CACHE_HOME:-$HOME/.cache}/honeycomb-e2e/groupfolders-$TEAM_FOLDERS_VERSION"

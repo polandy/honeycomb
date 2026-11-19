@@ -9,6 +9,9 @@ const DEFAULT_PORT = 8180
 /** The port of the e2e Nextcloud on localhost. */
 export const PORT = Number(process.env.HONEYCOMB_E2E_PORT ?? DEFAULT_PORT)
 
+/** Where a run leaves its Playwright output; the default port keeps `test-results/` for CI. */
+export const RESULTS_DIR = PORT === DEFAULT_PORT ? 'test-results' : `test-results-${PORT}`
+
 /** The container `scripts/e2e-server.sh` names after the port. */
 const CONTAINER = `honeycomb-e2e-${PORT}`
 

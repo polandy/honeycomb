@@ -20,7 +20,7 @@ while IFS= read -r path; do
     *.php | composer.* | appinfo/* | templates/* | lib/* | tests/php/* | tests/php-db/* | scripts/php-db-tests.sh | psalm* | .php-cs-fixer* | phpunit*) php=true app=true ;;
     *.ts | *.vue | src/* | package*.json | .npmrc | tsconfig* | vite* | vitest* | eslint* | .eslintrc*)
       ts=true app=true ;;
-    tests/e2e/* | scripts/e2e-server.sh | scripts/nextcloud-images.sh | scripts/upgrade-test.sh | img/* | l10n/* | css/*) app=true ;;
+    tests/e2e/* | scripts/e2e-server.sh | scripts/e2e-names.sh | scripts/nextcloud-images.sh | scripts/upgrade-test.sh | img/* | l10n/* | css/*) app=true ;;
     *) all ;;
   esac
 done

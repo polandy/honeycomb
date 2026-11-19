@@ -3,14 +3,15 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Saves data with the first release, updates to this checkout and checks the data survived or was
 # carried as designed: the decision becomes the start value of the statistics (ADR 0039, ADR 0040).
-# Usage: scripts/upgrade-test.sh [port]
+# Usage: scripts/upgrade-test.sh [port]; the port defaults to HONEYCOMB_UPGRADE_PORT, then 8190.
 set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
 source scripts/nextcloud-images.sh
+source scripts/e2e-names.sh
 
 FROM=v0.1.0
-PORT=${1:-8190}
-CONTAINER=honeycomb-upgrade-$PORT
+PORT=${1:-$(upgrade_port)}
+CONTAINER=$(upgrade_container "$PORT")
 BASE=http://localhost:$PORT
 ACCOUNT=admin
 PASSWORD=upgrade-test-password

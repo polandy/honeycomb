@@ -10,5 +10,5 @@
 /translationfiles/
 .DS_Store
 /.claude/settings.local.json
-/test-results/
+/test-results*/
 /playwright-report/
