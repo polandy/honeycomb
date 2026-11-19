@@ -41,9 +41,10 @@ decision follows [`06-xmp-interop.md`](../../06-xmp-interop.md#reading) (newest 
 tie goes to the RAW member's sidecar), by the modification times the listing gives. A decision
 other than undecided is shown for every member; it is neither an undo step nor written back, and
 nothing is stored in the database. A picture with a stored row (until M8 PR 5 drops the table) shows
-it. A picture the user decided meanwhile keeps the user's decision. A refused or unreadable sidecar, a disagreement between sidecars and a failed
-lookup are logged as warnings; the picture keeps what it shows, or takes what the sources that were
-read state. A failed cache lookup reads every source; a failed cache save is logged.
+it. A picture the user decided meanwhile keeps the user's decision. A refused or unreadable sidecar,
+a disagreement between sidecars and a failed lookup are logged as warnings; the picture keeps what
+it shows, or takes what the sources that were read state. A failed cache lookup reads every
+source; a failed cache save is logged.
 
 **Writing through.** As soon as any attribute is set on a photo — a flag, a rating, a colour label,
 *Keep RAW*, or an undo or redo of one — each picture the step touched is

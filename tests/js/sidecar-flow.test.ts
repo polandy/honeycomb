@@ -6,7 +6,6 @@ import type { ToastAction } from '../../src/toast.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { logger } from '../../src/logger.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { serializeXmp } from '../../src/logic/xmp/serialize.ts'
 import { useSidecarFlow } from '../../src/sidecar-flow.ts'

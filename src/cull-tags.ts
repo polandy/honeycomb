@@ -18,10 +18,9 @@ export interface CullTagsApi {
 
 type Pictures = readonly Picture<ListingEntry>[]
 
-/** The tags of the open cull: the legacy rows, the sidecars' tags, and changes written through (TAGS-002); `current` names the open cull, answers for another are dropped. */
+/** The tags of the open cull: the stored rows, the sidecars' tags, and changes written through (TAGS-002); `current` names the open cull, answers for another are dropped. */
 export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, change: TagChange) => Promise<unknown>, current: () => unknown, writable: (picture: Picture<ListingEntry>) => boolean) {
 	const tags = shallowRef<ReadonlyMap<number, readonly Tag[]>>(new Map())
-	const legacy = shallowRef<ReadonlyMap<number, readonly Tag[]>>(new Map())
 	const list = shallowRef<readonly Tag[]>([])
 	const known = computed(() => withLevels([...list.value, ...[...tags.value.values()].flat()]))
 
@@ -35,7 +34,6 @@ export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, ch
 	/** Forgets the tags of the cull before. */
 	function reset() {
 		tags.value = new Map()
-		legacy.value = new Map()
 	}
 
 	/** The union of the tags of the picture's members, sorted. */
@@ -43,18 +41,12 @@ export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, ch
 		return unionOf(picture, tags.value)
 	}
 
-	/** The union of the legacy tags of the picture's members, sorted (XMP-007.5). */
-	function legacyTagsOf(picture: Picture<ListingEntry>): Tag[] {
-		return unionOf(picture, legacy.value)
-	}
-
-	/** Reads the legacy tags of the files and shows them under those given meanwhile; a failure shows none (TAGS-002.6). */
+	/** Reads the stored tags of the files and shows them under those given meanwhile; a failure shows none (TAGS-002.6). */
 	async function load(fileIds: readonly number[]): Promise<void> {
 		const cull = current()
 		try {
 			const rows = await api.lookupTags(fileIds)
 			if (current() === cull) {
-				legacy.value = new Map([...withTagRows(new Map(), rows), ...legacy.value])
 				tags.value = new Map([...withTagRows(new Map(), rows), ...tags.value])
 			}
 		} catch (error) {
@@ -83,12 +75,7 @@ export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, ch
 		}
 	}
 
-	/** Forgets the legacy tags of the files once their sidecars hold them (XMP-008.11). */
-	function forget(fileIds: ReadonlySet<number>) {
-		legacy.value = new Map([...legacy.value].filter(([fileId]) => !fileIds.has(fileId)))
-	}
-
-	return { tags, known, reset, loadList, tagsOf, legacyTagsOf, load, fromSidecars, change, forget }
+	return { tags, known, reset, loadList, tagsOf, load, fromSidecars, change }
 }
 
 /** The union of the tags of the picture's members in the map, sorted. */

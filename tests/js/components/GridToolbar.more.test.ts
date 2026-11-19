@@ -77,7 +77,6 @@ describe('GridToolbar More menu', () => {
 		expect(filtered.emitted('move')).toHaveLength(1)
 	})
 
-	// spec: XMP-007.7
 	it('opens the settings from the More menu', async () => {
 		const wrapper = mountToolbar({ paths: ['/Trip'], subfolders: false })
 		const item = wrapper.findAll('button').find((button) => button.text().replaceAll(MARK, '') === 'Settings')!

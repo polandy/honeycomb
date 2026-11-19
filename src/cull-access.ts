@@ -7,13 +7,13 @@ import type { ListedAccess, LockedPicture, WriteContext } from './logic/writabil
 import { computed, shallowRef } from 'vue'
 import { folderAccess, NO_ACCESS, splitLocks, writability } from './logic/writability.ts'
 
-/** Whether the open cull may write each picture's sidecars, and the gate a step passes before it decides (XMP-008); `legacy` names a picture with legacy rows (XMP-008.11). */
-export function useCullAccess(legacy: (picture: Picture<ListingEntry>) => boolean) {
+/** Whether the open cull may write each picture's sidecars, and the gate a step passes before it decides (XMP-008). */
+export function useCullAccess() {
 	const access = shallowRef<ListedAccess>(NO_ACCESS)
 	const folders = computed(() => folderAccess(access.value.folders))
 	// the pictures the latest step left locked, until its toast takes them
 	let skipped: readonly LockedPicture[] = []
-	const context = (): WriteContext => ({ folders: folders.value, legacy })
+	const context = (): WriteContext => ({ folders: folders.value })
 
 	/** Whether a decision on the picture is written to its sidecars, or why not. */
 	const writabilityOf = (picture: Picture<ListingEntry>) => writability(picture, context())

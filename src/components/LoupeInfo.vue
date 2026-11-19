@@ -62,7 +62,6 @@ const decisionRows = computed(() => {
 })
 const NOT_WRITTEN: Record<LockReason, () => string> = {
 	readOnly: () => t('honeycomb', 'Not written, read-only folder'),
-	legacy: () => t('honeycomb', 'Not written, stored decisions not yet in its sidecars'),
 }
 const writtenTo = computed(() => {
 	if (props.writability !== 'writable') {

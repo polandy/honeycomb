@@ -4,25 +4,20 @@ import type { LockedPicture, LockReason } from './logic/writability.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { formatNumber, PLAIN_TEXT } from './l10n.ts'
-import { firstLock } from './logic/writability.ts'
 
 /** Why a photo was not changed, after a count or a name (XMP-008.14). */
 const LOCK_REASON: Readonly<Record<LockReason, () => string>> = {
 	readOnly: () => t('honeycomb', 'read only'),
-	legacy: () => t('honeycomb', 'stored decisions are not yet in the sidecars'),
 }
 
-/** "2 photos not changed: read only", naming the first reason. */
+/** "2 photos not changed: read only". */
 function notChangedText(locked: readonly LockedPicture[]): string {
-	return n('honeycomb', '{count} photo not changed: {reason}', '{count} photos not changed: {reason}', locked.length, { count: formatNumber(locked.length), reason: LOCK_REASON[firstLock(locked)]() }, PLAIN_TEXT)
+	return n('honeycomb', '{count} photo not changed: {reason}', '{count} photos not changed: {reason}', locked.length, { count: formatNumber(locked.length), reason: LOCK_REASON.readOnly() }, PLAIN_TEXT)
 }
 
-/** The toast of a step that changed nothing because its photos are locked: read only names no count (XMP-008.3, .14). */
-export function lockedText(locked: readonly LockedPicture[]): string {
-	if (firstLock(locked) === 'readOnly') {
-		return t('honeycomb', 'Not changed: read only')
-	}
-	return locked.length === 1 ? t('honeycomb', 'Not changed: this photo\'s stored decisions are not yet in its sidecars') : notChangedText(locked)
+/** The toast of a step that changed nothing because its photos are read only; it names no count (XMP-008.3, .14). */
+export function lockedText(): string {
+	return t('honeycomb', 'Not changed: read only')
 }
 
 /** What a step changed, and how many of its photos it left locked: "Rejected IMG_2; 2 photos not changed: …" (XMP-008.14). */

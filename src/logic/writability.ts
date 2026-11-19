@@ -27,11 +27,8 @@ export const NO_ACCESS: ListedAccess = { folders: [] }
 /** Whether a decision on the picture may be written to its sidecars, or why not (XMP-008). */
 export type Writability = 'writable' | LockReason
 
-/** Why a step leaves a picture as it is: a read-only folder, or legacy rows not yet written (XMP-008.3, .11). */
-export type LockReason = 'readOnly' | 'legacy'
-
-/** The reasons, first the one a toast names first (XMP-008.14). */
-const LOCK_ORDER: readonly LockReason[] = ['readOnly', 'legacy']
+/** Why a step leaves a picture as it is: a read-only folder (XMP-008.3). */
+export type LockReason = 'readOnly'
 
 /** A picture a step leaves as it is, and why. */
 export interface LockedPicture {
@@ -48,7 +45,6 @@ export interface LockSplit {
 /** What the writability of a picture is read from. */
 export interface WriteContext {
 	readonly folders: ReadonlyMap<string, FolderAccess>
-	readonly legacy: (picture: Picture<ListingEntry>) => boolean
 }
 
 /** The well-shaped folders of a listing response with their path and permissions; an item of another shape is dropped. */
@@ -70,14 +66,14 @@ export function folderAccess(folders: readonly FolderAccess[]): ReadonlyMap<stri
 	return new Map(folders.map((folder) => [folder.path, folder]))
 }
 
-/** The picture's writability: read-only unless every member folder grants UPDATE and CREATE, then legacy (XMP-008.3, .11, .12). */
+/** The picture's writability: read-only unless every member folder grants UPDATE and CREATE (XMP-008.3, .12). */
 export function writability(picture: Picture<ListingEntry>, context: WriteContext): Writability {
 	const needed = PERMISSION_UPDATE | PERMISSION_CREATE
 	const folders = memberFolders(picture).map((path) => context.folders.get(path)).filter((folder) => folder !== undefined)
 	if (folders.some((folder) => (folder.permissions & needed) !== needed)) {
 		return 'readOnly'
 	}
-	return context.legacy(picture) ? 'legacy' : 'writable'
+	return 'writable'
 }
 
 /** The pictures split into the rateable and the locked ones, each in its order (XMP-008.14). */
@@ -86,11 +82,6 @@ export function splitLocks(pictures: readonly Picture<ListingEntry>[], context: 
 	const writable = reasons.filter(({ reason }) => reason === 'writable').map(({ picture }) => picture)
 	const locked = reasons.filter((each): each is LockedPicture => each.reason !== 'writable')
 	return { writable, locked }
-}
-
-/** The first reason of the locked pictures in the order `readOnly`, `legacy` (XMP-008.14). */
-export function firstLock(locked: readonly LockedPicture[]): LockReason {
-	return locked.reduce<LockReason>((first, { reason }) => (LOCK_ORDER.indexOf(reason) < LOCK_ORDER.indexOf(first) ? reason : first), 'legacy')
 }
 
 /** The folders of the picture's members, the root as `/`. */

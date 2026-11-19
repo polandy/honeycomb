@@ -21,7 +21,6 @@ import { logger } from './logger.ts'
 import { prepareCull, warmMembers } from './logic/cull.ts'
 import { changedFields, commonDecision, resolveChange, withRows } from './logic/decision-change.ts'
 import { countsAsDecided, decisionsByFileId, pictureDecision } from './logic/decision.ts'
-import { legacyWrites } from './logic/legacy.ts'
 import { memberIds } from './logic/pairing.ts'
 import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
 import { sortPictures } from './logic/picture-order.ts'
@@ -50,8 +49,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const pairing = computed(() => JSON.parse(pairingKey.value) as PairingSettings)
 	const pictures = computed(() => (settings().showSingles ? paired.value : paired.value.filter((picture) => picture.raw !== null && picture.rendered !== null)))
 	const decisions = shallowRef<ReadonlyMap<number, Decision>>(new Map())
-	const legacyDecisions = shallowRef<ReadonlyMap<number, Decision>>(new Map())
-	const access = useCullAccess(hasLegacyRows)
+	const access = useCullAccess()
 	let opening = 0
 	const storedSeries = useStoredSeries(api, () => opening)
 	/** Puts each kind of step into effect, or takes it back when `back`. */
@@ -89,7 +87,6 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		entries.value = listed
 		paired.value = prepareCull(listed, pairing.value).pictures
 		decisions.value = new Map()
-		legacyDecisions.value = new Map()
 		tags.reset()
 		storedSeries.reset()
 		tags.loadList()
@@ -111,15 +108,14 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		readPictures(opened, fileIds, fileIds)
 	}
 
-	/** Shows the legacy rows of the files and the sidecars' values of the pictures, read through the XMP cache; a legacy row wins, then a change made meanwhile, then the sidecars (XMP-003.1–.3, TAGS-002.2). */
+	/** Shows the stored rows of the files and the sidecars' values of the pictures, read through the XMP cache; a stored row wins, then a change made meanwhile, then the sidecars (XMP-003.1–.3, TAGS-002.2). */
 	function readPictures(read: readonly Picture<ListingEntry>[], decisionIds: readonly number[], tagIds: readonly number[]) {
 		const shown = paired.value
 		const cull = opening
-		Promise.all([lookupLegacy(decisionIds), tags.load(tagIds), sidecars.read(read)]).then(([rows, , fromSidecars]) => {
+		Promise.all([lookupStored(decisionIds), tags.load(tagIds), sidecars.read(read)]).then(([rows, , fromSidecars]) => {
 			if (opening !== cull || paired.value !== shown) {
 				return
 			}
-			legacyDecisions.value = new Map([...legacyDecisions.value, ...decisionsByFileId(rows)])
 			decisions.value = new Map([...decisionsByFileId(rows), ...decisions.value])
 			tags.fromSidecars(fromSidecars.tagged)
 			const undecided = fromSidecars.decided.filter(({ picture }) => !memberIds(picture).some((fileId) => decisions.value.has(fileId)))
@@ -129,8 +125,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		}).catch((error: unknown) => logger.error('Could not read the sidecars; the photos show their stored decisions', { error }))
 	}
 
-	/** The legacy decisions of the files; none, logged, when they cannot be read (XMP-003.2). */
-	async function lookupLegacy(fileIds: readonly number[]): Promise<StoredDecision[]> {
+	/** The stored decisions of the files; none, logged, when they cannot be read (XMP-003.2). */
+	async function lookupStored(fileIds: readonly number[]): Promise<StoredDecision[]> {
 		try {
 			return fileIds.length === 0 ? [] : await api.lookupDecisions(fileIds)
 		} catch (error) {
@@ -176,25 +172,9 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		}
 	}
 
-	/** The pictures with legacy rows, for *Write decisions to sidecars…* (XMP-007.5); they are locked until it wrote them (XMP-008.11). */
-	const legacy = computed(() => legacyWrites(paired.value, legacyDecisions.value, tags.legacyTagsOf))
-	const legacyPictures = computed(() => new Set(legacy.value.map(({ picture }) => picture)))
-
-	/** Whether the picture still has legacy rows, which lock it (XMP-008.11). */
-	function hasLegacyRows(picture: Picture<ListingEntry>) {
-		return legacyPictures.value.has(picture)
-	}
-
 	/** Changes the tags of the pictures as a step says. */
 	function changeTags(chosen: readonly Picture<ListingEntry>[], change: TagChange) {
 		tags.change(chosen, change)
-	}
-
-	/** Forgets the legacy rows of the files the ⋯ entry wrote to their sidecars, which unlocks their pictures (XMP-008.11). */
-	function forgetLegacy(fileIds: readonly number[]) {
-		const forgotten = new Set(fileIds)
-		legacyDecisions.value = new Map([...legacyDecisions.value].filter(([fileId]) => !forgotten.has(fileId)))
-		tags.forget(forgotten)
 	}
 
 	/** Takes trashed files out of the pictures; returns what each affected picture became (ADR 0013). */
@@ -235,8 +215,6 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		pickerOpen: options.pickerOpen,
 		groupByFolder: options.groupByFolder,
 		tileSize: options.tileSize,
-		legacy,
-		forgetLegacy,
 		tags,
 		decisionOf,
 		decidedOf,

@@ -10,7 +10,7 @@ import { ENTRIES, SET, stored } from './app-cull.ts'
 import { access, cullWith, THREE_REJECTED } from './cull-sidecars-fake.ts'
 
 describe('useCull: reading the sidecars\' decision', () => {
-	// spec: XMP-003.1, XMP-007.14
+	// spec: XMP-003.1
 	it('reads every picture\'s sidecars and shows their decision without storing it', async () => {
 		const { cull, reads, writes, picture } = cullWith({ takenOver: Promise.resolve(new Map([['IMG_10', THREE_REJECTED]])) })
 

@@ -48,12 +48,3 @@ function withReasonText(message: string, reasons: readonly SidecarFailureReason[
 
 /** "Could not write 2 sidecars. You may not …", the toast of a write with failures, naming their reason. */
 export const notWrittenText = (reasons: readonly SidecarFailureReason[]) => withReasonText(n('honeycomb', 'Could not write {count} sidecar', 'Could not write {count} sidecars', reasons.length, { count: formatNumber(reasons.length) }, PLAIN_TEXT), reasons)
-
-/** "Wrote the decisions of 2 photos to sidecars", the toast of an explicit write. */
-export const writtenText = (count: number) => n('honeycomb', 'Wrote the decisions of {count} photo to sidecars', 'Wrote the decisions of {count} photos to sidecars', count, { count: formatNumber(count) }, PLAIN_TEXT)
-
-/** "Could not write 1 of 2 photos. You may not …", the result of a migration run with failures, naming their reason (XMP-007.12). */
-export const photosNotWrittenText = (failed: number, count: number, reasons: readonly SidecarFailureReason[]) => withReasonText(n('honeycomb', 'Could not write {failed} of {count} photo', 'Could not write {failed} of {count} photos', count, { failed: formatNumber(failed), count: formatNumber(count) }, PLAIN_TEXT), reasons)
-
-/** The result of a migration run without photos (XMP-007.12). */
-export const nothingToWriteText = () => t('honeycomb', 'No stored decisions to write here')

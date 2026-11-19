@@ -12,12 +12,12 @@ const locked = (name: string, reason: LockedPicture['reason']): LockedPicture =>
 describe('lock texts', () => {
 	// spec: XMP-008.3
 	it('names why one photo was not changed', () => {
-		expect(lockedText([locked('A', 'readOnly')])).toBe('Not changed: read only')
+		expect(lockedText()).toBe('Not changed: read only')
 	})
 
 	// spec: XMP-008.14
 	it('says read only for a step whose photos are all locked', () => {
-		expect(lockedText([locked('A', 'readOnly'), locked('B', 'readOnly')])).toBe('Not changed: read only')
+		expect(lockedText()).toBe('Not changed: read only')
 	})
 
 	// spec: XMP-008.14
