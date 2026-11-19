@@ -40,6 +40,8 @@ trait FakeSidecarFolder {
 	private array $mtimes = [];
 	/** The modification time a write gives its file, or null to leave it to the count. */
 	private ?int $writtenAt = null;
+	/** What the next read of a modification time throws, once. */
+	private ?\Throwable $mtimeFailure = null;
 
 	private function user(string $uid = 'alice'): IUser {
 		$user = $this->createStub(IUser::class);
@@ -56,7 +58,10 @@ trait FakeSidecarFolder {
 		$file->method('getMimetype')->willReturn(str_ends_with($name, '.xmp') ? 'application/octet-stream' : 'image/jpeg');
 		$file->method('getEtag')->willReturnCallback(fn (): string => md5($this->disk[$name]));
 		$file->method('getSize')->willReturnCallback(fn (): int => strlen($this->disk[$name]));
-		$file->method('getMTime')->willReturnCallback(fn (): int => $this->mtimes[$name] ?? 1_700_000_000 + count($this->events));
+		$file->method('getMTime')->willReturnCallback(function () use ($name): int {
+			[$failure, $this->mtimeFailure] = [$this->mtimeFailure, null];
+			return $failure !== null ? throw $failure : $this->mtimes[$name] ?? 1_700_000_000 + count($this->events);
+		});
 		$file->method('putContent')->willReturnCallback(function (string $content) use ($name): void {
 			$this->failOn('putContent');
 			$this->disk[$name] = $content;

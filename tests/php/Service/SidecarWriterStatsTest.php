@@ -10,6 +10,7 @@ namespace OCA\Honeycomb\Tests\Service;
 use OCA\Honeycomb\Service\SidecarResult;
 use OCP\Lock\LockedException;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 /** What a sidecar save counts, against the in-memory folder of FakeSidecarFolder at 1 March 2026, 23:30 UTC. */
 final class SidecarWriterStatsTest extends TestCase {
@@ -50,6 +51,19 @@ final class SidecarWriterStatsTest extends TestCase {
 
 		$this->writer()->save($this->user(), [$this->created('fresh'), $this->existing('new', etag: 'etag-seen')]);
 
+		$this->assertSame([], $this->statsStore()->rows);
+	}
+
+	// spec: STATS-001.7
+	public function testAnUnreadableModificationTimeCountsNothingAndTheSaveGoesOn(): void {
+		$this->mtimeFailure = new \RuntimeException('storage gone');
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->expects($this->once())->method('warning')->with('Could not read the modification time of a sidecar to count it');
+
+		$results = $this->writer($logger)->save($this->user(), [$this->existing('new')]);
+
+		$this->assertSame('new', $this->disk['IMG_0001.NEF.xmp']);
+		$this->assertSame(SidecarResult::Saved, $results[0]['result']);
 		$this->assertSame([], $this->statsStore()->rows);
 	}
 
