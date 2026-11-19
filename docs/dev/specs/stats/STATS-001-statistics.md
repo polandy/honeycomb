@@ -35,9 +35,9 @@ paths. The day is the calendar day in the user's Nextcloud time zone, UTC withou
 
 Only successful results count. A day's net counter never goes below zero. The server counts
 trash, deletes for good, *Remove RAWs*, sidecar saves, series done and moves in the request that
-acts, one sum per metric and request, with the sizes the server reads before it moves a file. *Space freed* is the
-bytes moved to the trash bin and deleted for good; the page notes that the space is freed when the
-trash bin is emptied.
+acts, one sum per metric and request, with the sizes the server reads before it moves a file.
+*Space freed* is the bytes moved to the trash bin and deleted for good; the page notes that the
+space is freed when the trash bin is emptied.
 
 **Cull finished** is a card over the grid: a bottom sheet on a phone, a dialog from the iPad width
 on. It opens once when no undecided picture is left in the folder set, and after the delete
