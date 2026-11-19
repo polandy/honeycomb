@@ -37,9 +37,9 @@ For each picture:
    a replaced file goes to the trash bin just before its file takes its place.
 3. If a move fails, the picture's files already moved go back to their old paths, last first, and
    its remaining files are `skipped`. One picture's failure does not stop the others.
-4. A file that gets a new file id anyway takes the user's decision row along to the new id, also
-   when it moves back. A row that cannot be carried over is logged as
-   an error; the file stays where it moved.
+4. A file that gets a new file id anyway takes its flag row (DECISIONS-001) and the user's other
+   rows of the file along to the new id, also when it moves back. A row that cannot be carried over
+   is logged as an error; the file stays where it moved.
 
 The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "replaced": false, "path":
 "/Sorted/2026/a.RAF", "newFileId": 7, "etag": "…"}, …], …]}` in the order sent; `path`,
@@ -126,13 +126,12 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
 - **When** it reaches either endpoint
 - **Then** the answer is `401`, and both routes are `POST`, need no admin and keep the CSRF check
 
-### MOVE-002.10 – Decisions follow a new file id
+### MOVE-002.10 – Flags follow a new file id
 
-- **Given** a file with the user's decision row that gets a new file id when it moves, or when it
-  moves back
+- **Given** a file with a flag row that gets a new file id when it moves, or when it moves back
 - **When** the client posts it
-- **Then** the row is stored under the new file id and none is left under the old; other users'
-  rows stay; a row that cannot be carried over is logged as an error and the file is still
+- **Then** the row is stored under the new file id and none is left under the old, whoever set
+  it; the user's other rows of the file follow it, other users' stay; a row that cannot be carried over is logged as an error and the file is still
   reported `moved`
 
 ### MOVE-002.11 – A move stays on its storage
@@ -166,3 +165,4 @@ over.
 | 2026-11-10 | Decision rows follow a new file id (MOVE-002.10). |
 | 2026-11-15 | At most 500 files per move request instead of 60,000 (ADR 0029). |
 | 2026-11-15 | A move stays on its storage (MOVE-002.11); the probe names storages (MOVE-002.12). |
+| 2026-11-19 | M8 PR 5: the flag row follows a new file id, whoever set it (MOVE-002.10, ADR 0040). |

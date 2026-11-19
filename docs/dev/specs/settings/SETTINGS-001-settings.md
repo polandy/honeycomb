@@ -41,9 +41,10 @@ There is no setting *Write decisions to XMP sidecars* and no confirmation of sha
 `sidecarWrite`, `sidecarExistingHint` and `confirmedSharedFolders` of earlier releases are ignored
 and dropped with the next save.
 
-The *Cache* section gets *Clean up orphaned data* in M8 PR 5, shown only to Nextcloud admins
+The *Cache* section has *Clean up orphaned data*, shown only to Nextcloud admins
 because it acts on every user's photos: it removes the flag rows of files that no longer exist or
-lie in a trash bin, like `occ honeycomb:cleanup` (DECISIONS-001.32), and says how many.
+lie in a trash bin, like `occ honeycomb:cleanup` (DECISIONS-001.32), and says how many:
+`POST /apps/honeycomb/api/v1/cleanup` answers `{"removed": <n>}`, `403` for a non-admin.
 
 *Moving photos* holds the name template: three presets, a text field and a live preview that
 renders the template on five fixed sample pictures, chosen to show the template's edge cases (two
@@ -228,7 +229,7 @@ Withdrawn by ADR 0040 (M8 PR 3); there is no sidecar switch (.28).
 
 Withdrawn by ADR 0040 (M8 PR 3); there is no sidecar switch (.28).
 
-### SETTINGS-001.27 – Clean up orphaned data, for admins (gap)
+### SETTINGS-001.27 – Clean up orphaned data, for admins
 
 - **Given** the *Cache* section, opened by an admin and by another user
 - **When** the admin taps *Clean up orphaned data*
@@ -265,3 +266,4 @@ Pairing itself: LISTING-002.
 | 2026-11-17 | *Show file names* in the defaults (GRID-004) |
 | 2026-11-19 | ADR 0040: the sidecar switch and shared-folder confirmations go, *Clean up orphaned data* for admins (.24, .26 withdrawn; .27, .28 gaps) |
 | 2026-11-19 | M8 PR 3: no *XMP sidecars* section (.24, .26 removed; .28 implemented) |
+| 2026-11-19 | M8 PR 5: *Clean up orphaned data* for admins (.27 implemented) |

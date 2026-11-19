@@ -12,18 +12,15 @@ show them, from one request per folder. The server lists; it never pairs (ADR 00
 
 ## Behaviour
 
-**Concept D (ADR 0040).** M8 PR 5 adds to each entry the
-picture's `flag`, `keepRaw` and `flagUpdated` from `honeycomb_flags` (DECISIONS-001.21), each
-`null` while the file has no row. Until then the text below holds.
-
 `GET /apps/honeycomb/api/v1/entries?path=<folder>[&subfolders=1][&excluded[]=<folder>...]`,
 logged in, with the CSRF token. `path` is relative to the user's files; empty is the root. The
 answer is `{"entries": [...], "truncated": <bool>, "folders": [...], "fileId": <n>}`, `fileId`
 being the listed folder's. An entry has `fileId`, `path`
 (from the user's files, leading `/`), `size`, `mtime`, `etag`, `mime` and `captureTime`,
 `orientation`, `width`, `height` from Nextcloud's file metadata, each `null` where it has none,
-and `visualHash`, the user's stored visual hash of the file's current version or `null`
-(SERIES-003).
+`visualHash`, the user's stored visual hash of the file's current version or `null`
+(SERIES-003), and the file's `flag`, `keepRaw` and `flagUpdated` (Unix seconds) from
+`honeycomb_flags`, each `null` while the file has no row (DECISIONS-001.21).
 `folders` has one item per folder that holds an entry, `{"path": "/Photos", "permissions": 31}`
 (ADR 0040). `permissions` are Nextcloud's bits of the folder for the user (READ 1, UPDATE 2,
 CREATE 4, DELETE 8, SHARE 16), with the share mask, reshares, ACLs and read-only mounts in them.
@@ -151,7 +148,7 @@ Withdrawn by ADR 0040 (M8 PR 3); a folder names its path and permissions only (.
 
 Withdrawn by ADR 0040 (M8 PR 3); a folder names its path and permissions only (.19).
 
-### LISTING-001.18 – Each entry carries its flag (gap)
+### LISTING-001.18 – Each entry carries its flag
 
 - **Given** a photo with a row in `honeycomb_flags` saying *rejected* with *Keep RAW*, a photo
   without a row and a sidecar
@@ -188,3 +185,4 @@ Withdrawn by ADR 0040 (M8 PR 3); a folder names its path and permissions only (.
 | 2026-11-18 | The shares are read once per listing, not per folder (.17; `docs/dev/plan.md` Multiple folders item 9) |
 | 2026-11-19 | ADR 0040: `shared` and `versions` go, each entry carries its flag (.12, .15, .17 withdrawn; .18, .19 gaps) |
 | 2026-11-19 | M8 PR 3: folders carry `path` and `permissions` only (.12, .15, .17 removed; .19 implemented) |
+| 2026-11-19 | M8 PR 5: each entry carries its flag (.18 implemented) |
