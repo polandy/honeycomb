@@ -7,6 +7,8 @@ cd "$(dirname "$0")/.." || exit 1
 
 MARKDOWNLINT_CLI2_VERSION=0.24.0 # matches DavidAnson/markdownlint-cli2-action v25.0.0 in ci.yml
 REUSE_VERSION=6.3.0              # matches the fsfe/reuse:6 image of fsfe/reuse-action v6.0.0
+PSALM_MAX_THREADS=8
+PSALM_THREADS=$(($(nproc) < PSALM_MAX_THREADS ? $(nproc) : PSALM_MAX_THREADS))
 
 source scripts/e2e-names.sh
 source scripts/verify-steps.sh
@@ -24,18 +26,21 @@ step markdownlint npx --yes "markdownlint-cli2@$MARKDOWNLINT_CLI2_VERSION"
 step reuse uvx --from "reuse==$REUSE_VERSION" reuse lint
 step "composer install" scripts/php.sh composer install --no-interaction --no-progress
 step php-cs-fixer scripts/php.sh vendor/bin/php-cs-fixer fix --dry-run --diff
-step psalm scripts/php.sh vendor/bin/psalm --no-cache --threads=1 --no-progress
+step psalm scripts/php.sh vendor/bin/psalm --no-cache --threads=$PSALM_THREADS --no-progress
 step phpunit scripts/php.sh vendor/bin/phpunit
-step "phpunit db" scripts/php-db-tests.sh
 step "npm ci" npm ci
 step unused-exports scripts/unused-exports.sh
-step eslint npx eslint
-step vue-tsc npx vue-tsc
-step vitest npx vitest run --coverage
+parallel_step eslint npx eslint
+parallel_step vue-tsc npx vue-tsc
+parallel_step vitest npx vitest run --coverage
+parallel_wait
 step build npx vite build
-step e2e npx playwright test
-step "e2e oldest" env HONEYCOMB_E2E_NEXTCLOUD=oldest npx playwright test
-step "upgrade test" scripts/upgrade-test.sh "$(upgrade_port)"
+# Each Nextcloud container has its own port and name (scripts/e2e-names.sh).
+parallel_step "phpunit db" scripts/php-db-tests.sh
+parallel_step e2e npx playwright test
+parallel_step "e2e oldest" env HONEYCOMB_E2E_NEXTCLOUD=oldest HONEYCOMB_E2E_PORT="$(e2e_oldest_port)" npx playwright test
+parallel_step "upgrade test" scripts/upgrade-test.sh "$(upgrade_port)"
+parallel_wait
 
 verify_total
 exit $failed

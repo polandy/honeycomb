@@ -67,7 +67,9 @@ dependencies — are in [`conventions.md`](conventions.md). This file adds the s
   (`scripts/nextcloud-images.sh`, images pinned by digest); a setup project logs in once through the
   login form and shares the session. Cases use `reducedMotion: 'reduce'` and wait on a visible
   state. Each run starts its own container on `HONEYCOMB_E2E_PORT` (default 8180) and the upgrade test
-  on `HONEYCOMB_UPGRADE_PORT` (default 8190). The port names the container
+  on `HONEYCOMB_UPGRADE_PORT` (default 8190). `scripts/verify.sh` runs both e2e runs, the upgrade test
+  and the `phpunit db` tests at once; the oldest-Nextcloud run takes `HONEYCOMB_E2E_OLDEST_PORT`
+  (default the e2e port plus 1000). The port names the container
   (`scripts/e2e-names.sh`) and a non-default port the output folder `test-results-<port>/`, so
   parallel runs, e.g. `HONEYCOMB_E2E_PORT=8380 HONEYCOMB_UPGRADE_PORT=8390 scripts/verify.sh` in a second
   worktree, share nothing and never remove each other's container.
