@@ -30,6 +30,9 @@ touch as well as with a mouse or keyboard.
   take the first row and rating, colour label, *Keep RAW*, *Tags* and *Series…* (SERIES-005)
   follow below; on a phone in portrait they need two more rows, since 44 px targets leave no room
   for all of them in one.
+- On a selection with read-only pictures (XMP-008) every control stays enabled; the step changes
+  the rateable ones and reports the others. A selection of read-only pictures only disables the
+  rating, colour label, flag, *Keep RAW* and *Tags* controls (M8 PR 6).
 - A change writes the whole new decision of every member of each changed picture; a picture the
   change leaves as it is sends nothing. A failed sidecar write is reported (XMP-003.13).
 - A rejected picture leaves the view (default filter) and the selection; the selection keeps only
@@ -143,6 +146,14 @@ write is reported (XMP-003.13).
 - **Then** they run *Pick*, *Unflag*, *Reject* from left to right, so a hand learns one order
   (owner decision, 2026-11-13)
 
+### GRID-003.16 – A read-only selection greys the controls (gap)
+
+- **Given** selection mode with two read-only pictures selected, then one rateable picture added
+- **When** the action bar shows
+- **Then** rating, colour label, flag, *Keep RAW* and *Tags* are disabled with the reason *Read
+  only*, *Move* and *Delete* are not; with the rateable one added they are enabled again, and a
+  step changes that one alone (XMP-008.14)
+
 ## Out of scope
 
 Selection keys in detail (KEYS-001), deleting a selection (DELETE-002).
@@ -157,3 +168,4 @@ Selection keys in detail (KEYS-001), deleting a selection (DELETE-002).
 | 2026-11-14 | One flag button order *Pick*, *Unflag*, *Reject* (.15, owner decision 2) |
 | 2026-11-15 | *Series…* follows the decisions after *Tags*, wrapping on a narrow tablet; one row from about 1040 px (.14, #185 PR 4) |
 | 2026-11-18 | A bulk decision leaves locked pictures out and reports them (.5, XMP-008.9) |
+| 2026-11-19 | ADR 0040: a selection of read-only pictures greys the controls (.16 gap) |

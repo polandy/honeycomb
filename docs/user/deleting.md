@@ -5,6 +5,11 @@ sidecars), where you can restore it until the trash bin empties itself. Keep a b
 honeycomb deletes a file for good only after you confirm a warning that names it (see
 [Files the trash bin would not keep](#files-the-trash-bin-would-not-keep)).
 
+**Changing in the next release** ([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
+*Delete rejected* and *Remove RAWs* check on the server, as they delete, that a photo is still
+rejected (or still may lose its RAW); a photo someone picked meanwhile stays. The dialog *Fresh
+check not possible* goes. A photo restored from the trash bin comes back without its flag.
+
 ## Delete every rejected photo
 
 Reject the photos you do not want (`X`), then open the ⋯ menu and choose **Review rejects**, or

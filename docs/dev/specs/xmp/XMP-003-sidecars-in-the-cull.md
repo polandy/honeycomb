@@ -3,18 +3,35 @@
 - Status: implemented
 - Area: xmp
 - Origin: `docs/dev/plan.md` M5 and Decisions, gestures and shared folders, `docs/dev/06-xmp-interop.md`,
-  ADR 0005, ADR 0017
+  ADR 0005, ADR 0017, ADR 0040
 - Depends on: LISTING-001, DECISIONS-001, XMP-001, XMP-002
 
 ## Purpose
 
-Brings the sidecars into the cull: a picture honeycomb has no decision for takes over the decision
-its sidecars state, and, once the user opts in, every decision the user makes is written through
-to the picture's sidecars, so digiKam, darktable and Lightroom see it. By default nothing is
-written. In a shared folder nothing is written on its own; the user writes there explicitly, after
-being asked.
+Brings the sidecars into the cull. Rating, colour label and tags are read from the picture's
+sidecars and written to them at once, so digiKam, darktable and Lightroom see them. The flag and
+*Keep RAW* live in the database (DECISIONS-001): a picture honeycomb sees for the first time takes
+over the flag its sidecars state, once, and *Write picks/rejects to XMP* writes the flags to the
+sidecars when the user asks (ADR 0040).
 
 ## Behaviour
+
+**Concept D (ADR 0040).** M8 PR 3 removes the setting and the shared folders below, M8 PR 4 the
+legacy rows, and M8 PR 6 moves the flag and *Keep RAW* to the database: from then on a step writes
+only the rating, colour label and tags through, and leaves the sidecar's flag fields and
+`honeycomb:KeepRaw` as they are. **Taking over (M8 PR 6):** a picture whose members have no row
+in `honeycomb_flags` takes over the flag and *Keep RAW* its sources state, by the rules of
+*Reading* below, and the client sends them to the take-over endpoint (DECISIONS-001.27), as
+*unflagged* when no source states one, also for a read-only picture; from then on its row holds,
+and a later change in another program is not read. Rating, colour label and tags are not taken
+over: they are always read from the sidecars. ***Write picks/rejects to XMP* (M8 PR 7):** the
+grid's ⋯ entry, shown with the number of sidecars to write (GRID-001.21), writes the flag and
+*Keep RAW* of every rateable picture of the open folder set, whatever the filters show, into each
+of its sidecars whose flag fields or `honeycomb:KeepRaw` differ, as the XMP cache states them;
+*unflagged* removes the flag fields except an existing digiKam `PickLabel` 2, and a member
+without a sidecar gets `<member file>.xmp` only when the picture is flagged or kept. It uses the
+write path below, is no undo step, and reports in one toast. Until those PRs the text below
+holds, and the criteria withdrawn below hold; those from .34 on are gaps.
 
 **Reading.** When a cull opens, and again when the pairing settings change, each picture's
 sidecars (darktable duplicates excepted) and the JPEG whose embedded XMP counts (TAGS-002) are read
@@ -87,12 +104,16 @@ picture's decision when it runs, for the fields its write changed. A refused sid
 
 ### XMP-003.1 – A picture shows its sidecars' decision
 
+Withdrawn by ADR 0040; M8 PR 6 marks it removed.
+
 - **Given** a pair without legacy rows whose sidecar says three stars and rejected
 - **When** the cull opens
 - **Then** the picture shows three stars and rejected for both members, and no decision or tag is
   saved to the legacy tables
 
 ### XMP-003.2 – A legacy row wins until it is migrated
+
+Withdrawn by ADR 0040; M8 PR 4 marks it removed.
 
 - **Given** a picture with a legacy decision and a sidecar that says otherwise
 - **When** the cull opens
@@ -118,6 +139,8 @@ picture's decision when it runs, for the fields its write changed. A refused sid
 - **Then** undo has nothing to take back and no sidecar is saved
 
 ### XMP-003.6 – A decision is written through to every existing sidecar
+
+Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 
 - **Given** writing to sidecars on, a pair outside a shared folder with `IMG_0001.NEF.xmp` and `IMG_0001.JPG.xmp`
 - **When** the user picks it
@@ -163,6 +186,8 @@ is reported (XMP-003.13).
 
 ### XMP-003.11 – Nothing is written in an unconfirmed shared folder
 
+Withdrawn by ADR 0040; M8 PR 3 marks it removed.
+
 - **Given** a picture with a member in a shared folder the user has not confirmed
 - **When** the user decides it
 - **Then** nothing is shown and no sidecar is looked up or saved until the user confirms the
@@ -183,6 +208,8 @@ and elsewhere.
 
 ### XMP-003.14 – The client reads the listing's shared folders
 
+Withdrawn by ADR 0040; M8 PR 3 marks it removed.
+
 - **Given** a listing answer with `folders` marking `/Photos/Team` shared
 - **When** the cull opens on it
 - **Then** pictures in `/Photos/Team` count as in a shared folder; a listing without `folders`
@@ -190,11 +217,15 @@ and elsewhere.
 
 ### XMP-003.15 – Every attribute writes through, and only for the touched picture
 
+Withdrawn by ADR 0040; M8 PR 6 marks it removed.
+
 - **Given** writing to sidecars on, a cull outside a shared folder
 - **When** the user flags, rates, labels or keeps the RAW of one picture
 - **Then** that picture alone is written to its sidecars; the others get none
 
 ### XMP-003.18 – Off by default, nothing is decided or written
+
+Withdrawn by ADR 0040; M8 PR 3 marks it removed.
 
 - **Given** a user without the setting stored, or with *Off*
 - **When** the user decides a picture outside a shared folder or changes its tags
@@ -215,6 +246,8 @@ sidecars* reads as *Off* (SETTINGS-001.26).
 
 ### XMP-003.21 – A new sidecar starts from what the picture's sidecars state
 
+Withdrawn by ADR 0040; M8 PR 6 marks it removed.
+
 - **Given** writing *On*, a pair whose `IMG_0001.NEF.xmp` states three stars and red,
   and no `IMG_0001.JPG.xmp`
 - **When** the user rejects it
@@ -233,6 +266,8 @@ sidecars* reads as *Off* (SETTINGS-001.26).
   sidecars state
 
 ### XMP-003.23 – A new JPEG sidecar takes over the embedded decision
+
+Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 
 - **Given** writing *On*, a pair whose `IMG_0001.NEF.xmp` states one star and whose
   JPEG embeds four stars and green, without `IMG_0001.JPG.xmp`
@@ -310,6 +345,76 @@ sidecars* reads as *Off* (SETTINGS-001.26).
 - **Then** it says *Could not write 1 sidecar.* and a text for that reason alone, never a generic
   one nor the server's raw text
 
+### XMP-003.34 – A picture seen for the first time takes over its flag once (gap)
+
+- **Given** a pair without rows whose `IMG_0001.NEF.xmp` states three stars and rejected, and a
+  JPEG without rows and without any source
+- **When** the cull opens
+- **Then** the pair shows three stars and rejected and is taken over as *rejected*, the JPEG as
+  *unflagged*, in one take-over request; nothing is written to a sidecar
+
+### XMP-003.35 – After taking over the row holds (gap)
+
+- **Given** a pair taken over as *rejected*, whose sidecar another program then changes to four
+  stars and picked
+- **When** the cull opens again
+- **Then** the pair shows four stars and rejected, and no take-over is sent for it
+
+### XMP-003.36 – A reader takes over too (gap)
+
+- **Given** a read-only picture without rows whose sidecar states picked
+- **When** the cull opens
+- **Then** it shows picked and is taken over as *picked*; a failed take-over is logged and the
+  picture shows what its sources state
+
+### XMP-003.37 – A rating, colour label or tag leaves the flag fields alone (gap)
+
+- **Given** a sidecar stating `digiKam:PickLabel` 3 and *Keep RAW*, of a picture whose row says
+  *rejected*
+- **When** the user rates it, labels it or changes its tags
+- **Then** the sidecar gets the new field and keeps `digiKam:PickLabel` 3 and `honeycomb:KeepRaw`
+  as they were
+
+### XMP-003.38 – A flag goes to the database only (gap)
+
+- **Given** a rateable pair with `IMG_0001.NEF.xmp` and without `IMG_0001.JPG.xmp`
+- **When** the user picks it, marks it *Keep RAW*, or undoes either
+- **Then** both members' rows are saved with the new state, and no sidecar is looked up, saved or
+  created
+
+### XMP-003.39 – *Write picks/rejects to XMP* writes what differs, in the whole folder set (gap)
+
+- **Given** an open folder set of two folders with a filter showing picked only, a rejected
+  picture whose sidecar states picked, and a picked picture whose sidecar states picked
+- **When** the user chooses *Write picks/rejects to XMP*
+- **Then** the first sidecar gets the reject fields, also though the filter hides it, and the
+  second is not saved
+
+### XMP-003.40 – *Unflagged* removes the flag fields (gap)
+
+- **Given** an *unflagged* picture whose sidecar states `xmpDM:pick` 1, and one whose sidecar
+  states `digiKam:PickLabel` 2
+- **When** the user writes picks and rejects to XMP
+- **Then** the first sidecar loses its flag fields, the second keeps `PickLabel` 2 and is not
+  saved
+
+### XMP-003.41 – A sidecar is created only for a flagged or kept picture (gap)
+
+- **Given** a picked pair without sidecars and an *unflagged* pair without sidecars and without
+  *Keep RAW*
+- **When** the user writes picks and rejects to XMP
+- **Then** the picked pair gets `IMG_0001.NEF.xmp` and `IMG_0001.JPG.xmp`, started from what its
+  embedded XMP states; the other pair gets none
+
+### XMP-003.42 – The export reports in one toast and is no undo step (gap)
+
+- **Given** an export of 214 differing sidecars, 3 of them in a read-only folder, then one with
+  nothing to write
+- **When** each finishes
+- **Then** the first toast says *211 XMP files written, 3 not written: read only* with *Details*,
+  the second *All XMP files are up to date*; undo afterwards takes back the step before the
+  export, and no sidecar
+
 ## Out of scope
 
 - Re-reading a sidecar that another program changes while the cull is open; the next visit reads
@@ -333,3 +438,4 @@ sidecars* reads as *Off* (SETTINGS-001.26).
 | 2026-11-16 | A delete or move also waits for the write of a step whose save has not answered (.30) |
 | 2026-11-18 | The failure toast names the reason, one text per reason (.13 changed, .33; owner decision on #221 (c)) |
 | 2026-11-18 | The cull reads through the XMP cache and stores no legacy rows; a legacy row wins, locked, until migrated (.1–.5, .11, .18, .30 changed, .10 removed, ADR 0032) |
+| 2026-11-19 | ADR 0040: flags taken over once and written only by *Write picks/rejects to XMP*; ratings, labels and tags leave the flag fields (.1, .2, .6, .11, .14, .15, .18, .21, .23 withdrawn; .34–.42 gaps) |

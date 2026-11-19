@@ -37,13 +37,20 @@ back to its default, so an unknown, missing or invalid field never breaks the ap
 once and saves the whole object; there is no OK button. What a setting does elsewhere is specified
 where it acts (LISTING-002, LOUPE-001, LOUPE-002, KEYS-001, MOVE-004, XMP-003).
 
-*XMP sidecars* offers *Off* and *On*, each with a line that says what it changes. Turning *On*
+ADR 0040 drops the setting *Write decisions to XMP sidecars*, its section and its opt-in
+dialog, and the stored confirmations of shared folders (`confirmedSharedFolders`): M8 PR 3 removes
+them, and the stored fields are then ignored. Until then the following holds. *XMP sidecars*
+offers *Off* and *On*, each with a line that says what it changes. Turning *On*
 asks first: a dialog explains what is written where, names a new sidecar such as
 `IMG_0001.NEF.xmp`, and says what other programs and the Nextcloud versions see; only *Write to
 sidecars* applies it, *Cancel* keeps *Off*. Back to *Off* applies at once. *On* needs the Versions
 app for the user: without it *On* is disabled and says why. A stored *Only existing sidecars*
 reads as *Off* and the section says so once; a stored *Existing and new sidecars* reads as *On*.
 The first decision while *Off* asks the same (XMP-008.7).
+
+The *Cache* section gets *Clean up orphaned data* in M8 PR 5, shown only to Nextcloud admins
+because it acts on every user's photos: it removes the flag rows of files that no longer exist or
+lie in a trash bin, like `occ honeycomb:cleanup` (DECISIONS-001.32), and says how many.
 
 *Moving photos* holds the name template: three presets, a text field and a live preview that
 renders the template on five fixed sample pictures, chosen to show the template's edge cases (two
@@ -215,6 +222,8 @@ Below it, the favourite targets the move dialog starred, each with a ✕ to remo
 
 ### SETTINGS-001.24 – Writing to sidecars is opted into
 
+Withdrawn by ADR 0040; M8 PR 3 marks it removed.
+
 - **Given** the *XMP sidecars* section with *Off*
 - **When** the user chooses *On*
 - **Then** a dialog explains what will be written; *Write to sidecars* applies and saves *On*,
@@ -230,12 +239,30 @@ Below it, the favourite targets the move dialog starred, each with a ✕ to remo
 
 ### SETTINGS-001.26 – *On* needs the Versions app; the old values are read once
 
+Withdrawn by ADR 0040; M8 PR 3 marks it removed.
+
 - **Given** the Versions app off for the user, or a stored `existing` or `existing-and-new`
 - **When** the app page loads and the user opens the *XMP sidecars* section
 - **Then** without the Versions app *On* is disabled and the section says *On needs the Versions
   app, so that every write can be undone; ask your administrator to enable it.*, as does the
   opt-in dialog; `existing` reads as *Off* and the section says once that *Only existing sidecars*
   is gone; `existing-and-new` reads as *On*
+
+### SETTINGS-001.27 – Clean up orphaned data, for admins (gap)
+
+- **Given** the *Cache* section, opened by an admin and by another user
+- **When** the admin taps *Clean up orphaned data*
+- **Then** the orphaned flag rows are removed (DECISIONS-001.32) and a toast says *Removed 12
+  orphaned entries*, or that nothing was orphaned; when it fails, the toast says the clean-up
+  failed; the other user sees no such button, and the server refuses the request of a non-admin
+  with `403`
+
+### SETTINGS-001.28 – No sidecar switch (gap)
+
+- **Given** a stored `sidecarWrite` *Off* and a stored `confirmedSharedFolders`
+- **When** the user opens the settings and decides a photo
+- **Then** there is no *XMP sidecars* section, no dialog asks first, and the photo is decided and
+  written where it is rateable (XMP-008.12)
 
 ## Out of scope
 
@@ -256,3 +283,4 @@ Pairing itself: LISTING-002.
 | 2026-11-15 | .25 *Clear cache* (ADR 0032) |
 | 2026-11-15 | .24 *Off* and *On*; .26 the Versions app and the old values (ADR 0032 PR 6) |
 | 2026-11-17 | *Show file names* in the defaults (GRID-004) |
+| 2026-11-19 | ADR 0040: the sidecar switch and shared-folder confirmations go, *Clean up orphaned data* for admins (.24, .26 withdrawn; .27, .28 gaps) |

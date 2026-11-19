@@ -3,6 +3,10 @@
 What honeycomb needs from the server and what an admin can run. Installation: the
 [README](../../../README.md#installation).
 
+**Changing in the next release** ([ADR 0040](../../dev/adr/0040-flags-per-picture-in-the-database.md)).
+The Versions app is no longer needed for writing sidecars. A new command `occ honeycomb:cleanup`
+removes the flags of files that no longer exist or lie in a trash bin and prints how many.
+
 ## Nextcloud apps
 
 honeycomb declares no app dependency and runs on Nextcloud 35 with PHP 8.3 or newer. Two of

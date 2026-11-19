@@ -2,8 +2,9 @@
 
 - Status: implemented
 - Area: delete
-- Origin: `docs/dev/plan.md` M4.1, ADR 0013, ADR 0030, ADR 0036, ADR 0037, CLAUDE.md rule 2
-- Depends on: LISTING-001
+- Origin: `docs/dev/plan.md` M4.1, ADR 0013, ADR 0030, ADR 0036, ADR 0037,
+  ADR 0040, CLAUDE.md rule 2
+- Depends on: LISTING-001, DECISIONS-001
 
 ## Purpose
 
@@ -44,6 +45,15 @@ sent. `result` is one of:
 | `locked` | Locked by another process |
 | `failed` | Any other error, logged as a warning |
 | `skipped` | Not tried, because another file of the picture failed |
+
+**By decision (ADR 0040, M8 PR 8).** A picture may carry `"expect": "rejected"` (from *Delete
+rejected*) or `"expect": "rawRemovable"` (from *Remove RAWs*: neither *Keep RAW* nor rejected).
+Before step 1 the server reads the rows of the picture's members in `honeycomb_flags` and, when
+any of them no longer says so, answers every file of the picture `decisionChanged` and touches
+none; checking and trashing are one request. A picture without `expect` is not checked so.
+**The rows go with the files.** The rows of the files a request trashed or deleted are removed in
+the same request, so a restore from the trash bin brings no flag back; a file that failed keeps
+its row.
 
 Nextcloud's trash bin deletes a file for good instead of keeping it when its storage is not
 wrapped by the trash bin, or when the file is at least as large as the trash bin size
@@ -112,6 +122,8 @@ waits (ADR 0037).
 
 ### DELETE-001.8 – Decisions survive the trash bin
 
+Withdrawn by ADR 0040; M8 PR 8 marks it removed.
+
 - **Given** a picture with a decision
 - **When** its files are trashed and later restored from the trash bin
 - **Then** the restored files keep their file ids and so their decision
@@ -162,6 +174,35 @@ waits (ADR 0037).
 - **Then** a warning with the file id and the user is logged for that file, never its path or
   name; a file the trash bin keeps, or one whose delete fails, logs no such entry
 
+### DELETE-001.15 – The rows go with the files (gap)
+
+- **Given** a pair with rows saying *rejected*, of which the JPEG is trashed and the RAW fails as
+  `locked`
+- **When** the request ends, and the JPEG is later restored from the trash bin
+- **Then** the JPEG's row is gone and the RAW's row stays; the restored JPEG has no flag and is
+  taken over again from its sources (XMP-003.34)
+
+### DELETE-001.16 – A picture whose decision changed is not touched (gap)
+
+- **Given** two pictures sent with `"expect": "rejected"`, the first rejected in every member's
+  row, the second picked meanwhile by another user in one member's row
+- **When** the request arrives
+- **Then** the first is trashed and the second answers `decisionChanged` for every file and keeps
+  its files and rows
+
+### DELETE-001.17 – A RAW is removed only while it may go (gap)
+
+- **Given** pictures sent with `"expect": "rawRemovable"`, one without *Keep RAW* and not
+  rejected, one marked *Keep RAW* and one rejected in its rows
+- **When** the request arrives
+- **Then** the first one's files are trashed, the other two answer `decisionChanged`
+
+### DELETE-001.18 – A malformed expectation touches nothing (gap)
+
+- **Given** a request whose `expect` is not `rejected` or `rawRemovable`
+- **When** it arrives
+- **Then** the answer is `400` and nothing is trashed
+
 ## Out of scope
 
 Choosing what to delete, the summary and the report: DELETE-002. Removing only RAWs: DELETE-003.
@@ -178,3 +219,4 @@ Choosing what to delete, the summary and the report: DELETE-002. Removing only R
 | 2026-11-18 | `tooLarge` splits from `noTrashBin`; a file with `permanent` the trash bin would not keep is deleted for good (DELETE-001.11, DELETE-001.12, ADR 0036, owner) |
 | 2026-11-18 | Every file deleted for good is logged as a warning with its file id and the user (DELETE-001.14, ADR 0036, owner) |
 | 2026-11-18 | Files of one name are trashed in different seconds, so the trash bin keeps each (DELETE-001.13, ADR 0037) |
+| 2026-11-19 | ADR 0040: the trash endpoint checks `expect` against the flags and removes the rows of what it trashed (.8 withdrawn; .15–.18 gaps) |

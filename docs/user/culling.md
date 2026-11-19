@@ -3,6 +3,10 @@
 One pass through a shoot, from choosing the folders to deleting the rejects. Every step also has
 keys: [keyboard shortcuts](keyboard-shortcuts.md).
 
+**Changing in the next release** ([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)):
+no setting needs turning on before the first rating; a photo in a folder you may not change shows
+a lock.
+
 ## 1. Before the first cull
 
 honeycomb rates only what it can write into the photos' XMP sidecars. Turn on **Write decisions to

@@ -3,6 +3,14 @@
 honeycomb acts with your Nextcloud permissions only: what you may not change in the Files app,
 honeycomb does not change either.
 
+**Changing in the next release** ([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
+A photo is *rateable* when you may change its folder (Nextcloud's *Edit* right, which brings
+*Create*), else *read only*: it shows a lock and its flag, stars, colour label, *Keep RAW* and tags
+cannot be changed. A shared folder needs no confirmation any more. Flags and *Keep RAW* become one
+set per photo for everyone who reaches it: what one user picks or rejects, the others see, and
+whoever deletes the rejects deletes them for all. Folders without file versions, such as
+external storage, become rateable.
+
 ## What counts as shared
 
 A folder shared with you, a group or Team folder, external storage that other users also mount or

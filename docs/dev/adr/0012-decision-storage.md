@@ -1,6 +1,8 @@
 # 0012 – Decision storage: per file id and user, written as whole states
 
-- Status: superseded by [0032](0032-sidecar-is-the-source-of-truth.md)
+- Status: superseded by [0032](0032-sidecar-is-the-source-of-truth.md);
+  the flag and *Keep RAW* per file id hold again in the form of
+  [0040](0040-flags-per-picture-in-the-database.md), without `user_id`
 - Date: 2026-11-10
 
 ## Context

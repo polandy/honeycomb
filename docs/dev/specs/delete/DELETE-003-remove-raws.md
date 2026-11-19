@@ -2,7 +2,8 @@
 
 - Status: implemented
 - Area: delete
-- Origin: `docs/dev/plan.md` M4.3, Keep RAW and Remove RAWs (owner, 2026-11-09)
+- Origin: `docs/dev/plan.md` M4.3, Keep RAW and Remove RAWs (owner, 2026-11-09);
+  ADR 0040
 - Depends on: DELETE-001, DELETE-002, DECISIONS-001
 
 ## Purpose
@@ -22,6 +23,15 @@ undoable decision with its toast, and moves it to the other group.
 Confirming sends each RAW with its own sidecars (`<raw>.xmp` and darktable duplicates) as one
 picture to the trash endpoint, RAW first. The JPEG, its sidecar and a shared `<base>.xmp` stay; the
 picture becomes a *JPEG only* single. Like deleting, it is not undone by `Ctrl+Z` (DELETE-002.12).
+
+**Under ADR 0040 (M8 PR 8)** confirming reads no sidecar to check: it sends each pair still
+neither *Keep RAW* nor rejected in the cull with `"expect": "rawRemovable"`, and the server keeps
+a pair whose rows say otherwise (DELETE-001.17). Before a RAW sidecar that states a rating, colour
+label or tags goes, a JPEG without a sidecar of its own nor a shared one gets `<jpeg>.xmp` with
+the picture's rating, colour label and tags, without the flag fields; where it cannot be written
+the pair is skipped. The JPEG keeps its row in `honeycomb_flags`, the RAW's goes with it
+(DELETE-001.15). When the fresh listing or the request fails, nothing of it is removed. Until then
+the following holds.
 
 Confirming checks the sidecars afresh like deleting by decision (DELETE-002.15): a pair goes only
 when every sidecar reads and none says *Keep RAW* or *rejected*. Before a RAW sidecar that states a
@@ -88,6 +98,8 @@ be read*.
 
 ### DELETE-003.8 – Only pairs every sidecar lets go
 
+Withdrawn by ADR 0040; M8 PR 8 marks it removed.
+
 - **Given** the summary with a pair whose RAW sidecar says *Keep RAW* since the listing, a pair
   whose sidecar cannot be read, and an undecided pair without sidecars
 - **When** the user confirms
@@ -103,12 +115,31 @@ be read*.
 
 ### DELETE-003.10 – A failed fresh check removes what honeycomb knows
 
+Withdrawn by ADR 0040; M8 PR 8 marks it removed.
+
 - **Given** the summary with a pair without sidecars and a pair whose only sidecar is
   `IMG.NEF.xmp`, and the fresh listing failing
 - **When** the user confirms, and then taps *Delete anyway* in the dialog *Fresh check not possible
   for 1 photo*
 - **Then** the first RAW goes as honeycomb knows it, the second pair is skipped as unread, and the
   toast does not repeat the dialog
+
+### DELETE-003.11 – The server decides what may go (gap)
+
+- **Given** the summary with two pairs neither *Keep RAW* nor rejected, of which another user marks
+  one *Keep RAW* after the summary opened, and a pair whose RAW sidecar says *Keep RAW* since the
+  listing
+- **When** the user confirms
+- **Then** no sidecar is looked up to check, the pair marked by the other user keeps its RAW and
+  is reported, and the other two RAWs go
+
+### DELETE-003.12 – The JPEG's new sidecar holds no flag (gap)
+
+- **Given** a pair, neither rejected nor *Keep RAW*, whose only sidecar is `IMG.NEF.xmp` with
+  three stars, red and a tag, and whose rows say *picked*
+- **When** the user confirms *Remove RAWs*
+- **Then** `IMG.JPG.xmp` is written with three stars, red and the tag and no flag field, before the
+  RAW goes; the JPEG's row stays *picked*, the RAW's row is gone
 
 ## Out of scope
 
@@ -124,3 +155,4 @@ to XMP: M5.
 | 2026-11-15 | Checks the sidecars afresh and writes the JPEG's sidecar first (DELETE-003.8, DELETE-003.9, ADR 0032 PR 8) |
 | 2026-11-18 | A failed fresh listing or lookup removes the RAWs honeycomb knows instead of aborting (DELETE-003.10, owner) |
 | 2026-11-18 | A failed fresh check asks before removing the RAWs (DELETE-003.10, owner) |
+| 2026-11-19 | ADR 0040: the server checks the pairs, the JPEG sidecar holds rating, colour label and tags only (.8, .10 withdrawn; .11, .12 gaps) |

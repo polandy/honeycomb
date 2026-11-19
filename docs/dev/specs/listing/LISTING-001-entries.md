@@ -12,6 +12,11 @@ show them, from one request per folder. The server lists; it never pairs (ADR 00
 
 ## Behaviour
 
+**Concept D (ADR 0040).** M8 PR 3 drops `shared` and `versions` from `folders` and stops reading
+the shares, so a folder item is `{"path", "permissions"}`. M8 PR 5 adds to each entry the
+picture's `flag`, `keepRaw` and `flagUpdated` from `honeycomb_flags` (DECISIONS-001.21), each
+`null` while the file has no row. Until then the text below holds.
+
 `GET /apps/honeycomb/api/v1/entries?path=<folder>[&subfolders=1][&excluded[]=<folder>...]`,
 logged in, with the CSRF token. `path` is relative to the user's files; empty is the root. The
 answer is `{"entries": [...], "truncated": <bool>, "folders": [...], "fileId": <n>}`, `fileId`
@@ -126,6 +131,8 @@ ticked parent with subfolders and a ticked child both hold it.
 
 ### LISTING-001.12 – Each folder says whether it is shared
 
+Withdrawn by ADR 0040; M8 PR 3 marks it removed.
+
 - **Given** entries in a folder of the user's own, in a folder shared with another user, in a
   folder shared with the user, below a folder shared with a federated user, in a folder shared
   by public link, in one shared by mail, in a group folder, on external storage of the user only
@@ -150,6 +157,8 @@ ticked parent with subfolders and a ticked child both hold it.
 
 ### LISTING-001.15 – Each folder says whether it keeps versions
 
+Withdrawn by ADR 0040; M8 PR 3 marks it removed.
+
 - **Given** entries in a folder of the user's own, in a folder whose owner has the Versions app
   disabled, in a folder whose storage has no versions backend, and on external storage
 - **When** the client lists them
@@ -164,10 +173,28 @@ ticked parent with subfolders and a ticked child both hold it.
 
 ### LISTING-001.17 – The shares are read once per listing
 
+Withdrawn by ADR 0040; M8 PR 3 marks it removed.
+
 - **Given** a tree of 100 folders of which one carries a share with another user
 - **When** the client lists it with `subfolders`
 - **Then** the share manager is asked for the user's shares once per share type and for one
   access list, that of the shared folder, and every folder below it is shared
+
+### LISTING-001.18 – Each entry carries its flag (gap)
+
+- **Given** a photo with a row in `honeycomb_flags` saying *rejected* with *Keep RAW*, a photo
+  without a row and a sidecar
+- **When** the client lists them
+- **Then** the first entry has `flag` `rejected`, `keepRaw` true and `flagUpdated` the row's time;
+  the other two have `null` in all three, and the flags are read in one query per 1,000 entries
+
+### LISTING-001.19 – A folder names its path and permissions only (gap)
+
+- **Given** entries in a folder of the user's own, in a folder shared with the user and on
+  external storage
+- **When** the client lists them
+- **Then** each `folders` item has `path` and `permissions` only, and no share or versions lookup
+  is made
 
 ## Out of scope
 
@@ -188,3 +215,4 @@ ticked parent with subfolders and a ticked child both hold it.
 | 2026-11-15 | The listed folder's `fileId` (XMP-008.4) |
 | 2026-11-17 | `excluded` folders left out (.16; ADR 0035) |
 | 2026-11-18 | The shares are read once per listing, not per folder (.17; `docs/dev/plan.md` Multiple folders item 9) |
+| 2026-11-19 | ADR 0040: `shared` and `versions` go, each entry carries its flag (.12, .15, .17 withdrawn; .18, .19 gaps) |

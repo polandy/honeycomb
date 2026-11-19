@@ -5,6 +5,11 @@ works with tags the way digiKam does: they have levels, they are stored in the p
 files, and digiKam, darktable and Lightroom Classic read them there. The technical details are in
 [`../07-tags.md`](../dev/07-tags.md).
 
+**Changing in the next release** ([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
+Tags are written into the sidecars at once in shared folders too, wherever you may change the
+folder; honeycomb keeps no tags of its own per photo any more, only your list of tags for
+suggestions.
+
 ## Add and remove tags
 
 Press `T` to open the **tag entry** for the photo you see in the loupe or the series viewer. In the

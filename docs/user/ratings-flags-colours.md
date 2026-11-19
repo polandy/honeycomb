@@ -24,6 +24,11 @@ own sidecar, so nothing you decided is lost; if that sidecar cannot be written, 
 
 The technical details are in [`../06-xmp-interop.md`](../dev/06-xmp-interop.md).
 
+**Changing in the next release** ([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
+Writing needs no setting any more; stars and colour labels go into the sidecars at once, flags
+and *Keep RAW* only through *Write picks/rejects to XMP* in the ⋯ menu. digiKam sees honeycomb's
+picks and rejects only after that, and until then may still show an old pick of its own.
+
 ## What each program sees
 
 | In honeycomb | digiKam | darktable | Lightroom Classic |
