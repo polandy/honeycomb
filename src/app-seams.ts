@@ -17,7 +17,7 @@ import type { LookupSeries, SaveSeries } from './stored-series.ts'
 import type { ViewStateApi } from './view-state.ts'
 import type { HashImage, SaveVisualHashes } from './visual-hashes.ts'
 
-import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, cleanUpOrphanedData, imageUrl, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, movePictures, probeTargets, savePosition, saveSidecars, saveViewState, saveVisualHashes } from './api.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, cleanUpOrphanedData, imageUrl, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, movePictures, probeTargets, resetStatistics, savePosition, saveSidecars, saveViewState, saveVisualHashes } from './api.ts'
 import { saveFlags, takeOverFlags } from './flags-api.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { browserHashWorkers } from './hash-workers.ts'
@@ -58,6 +58,7 @@ export interface AppSeams {
 	/** Whether the user is an admin, who may clean up the orphaned data (SETTINGS-001.27). */
 	admin?: () => boolean
 	cleanUp?: () => Promise<number>
+	resetStatistics?: () => Promise<void>
 }
 
 /** The seams the app uses in production. */
@@ -85,4 +86,5 @@ export const APP_SEAMS = {
 	clearCache,
 	admin: () => document.getElementById(APP_ELEMENT)?.dataset.admin === 'true',
 	cleanUp: cleanUpOrphanedData,
+	resetStatistics,
 }

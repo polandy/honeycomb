@@ -5,7 +5,7 @@ import type { Locator } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { cullFolder, E2E_SETTINGS, openLoupe, putSettings } from './cull.ts'
-import { createFolder, JPEG, RAW, upload } from './files.ts'
+import { createFolder, JPEG, RAW, requestToken, upload } from './files.ts'
 
 // The reference devices the cache toast is captured on (docs/dev/plan.md Reference devices).
 const SCREENSHOT_VIEWPORTS = { 'pixel-portrait': { width: 427, height: 952 }, 'ipad-mini-portrait': { width: 744, height: 1133 }, 'ipad-mini-landscape': { width: 1133, height: 744 } }
@@ -113,4 +113,36 @@ test('clears the cache from the settings and says so', async ({ page }, testInfo
 		await page.setViewportSize(viewport)
 		await page.screenshot({ path: testInfo.outputPath(`cache-cleared-${device}.png`), animations: 'disabled' })
 	}
+})
+
+// spec: STATS-001.3
+test('resets the statistics from the settings after a confirmation and says so', async ({ page }, testInfo) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = `Stats ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+	await cullFolder(page, folder)
+	await page.getByRole('button', { name: 'More' }).click()
+	await page.getByRole('button', { name: 'Settings', exact: true }).click()
+	const section = page.getByRole('dialog', { name: 'Settings' }).locator('section', { has: page.getByRole('heading', { name: 'Statistics', exact: true }) })
+	const reset = section.getByRole('button', { name: 'Reset statistics' })
+	await reset.scrollIntoViewIfNeeded()
+	for (const scheme of ['light', 'dark'] as const) {
+		await page.emulateMedia({ colorScheme: scheme })
+		await section.screenshot({ path: testInfo.outputPath(`statistics-section-${scheme}.png`), animations: 'disabled' })
+	}
+
+	await reset.click()
+	const question = page.getByRole('dialog', { name: 'Reset all statistics?' })
+	await expect(question.getByRole('button', { name: 'Cancel' })).toBeFocused()
+	for (const [device, viewport] of Object.entries(SCREENSHOT_VIEWPORTS)) {
+		await page.setViewportSize(viewport)
+		await page.screenshot({ path: testInfo.outputPath(`statistics-reset-${device}.png`), animations: 'disabled' })
+	}
+	const done = page.waitForResponse((response) => response.url().endsWith('/api/v1/stats') && response.request().method() === 'DELETE')
+	await question.getByRole('button', { name: 'Reset statistics' }).click()
+	expect((await done).status()).toBe(204)
+	await expect(page.getByText('Statistics reset')).toBeVisible()
+	const read = await page.request.get('/index.php/apps/honeycomb/api/v1/stats', { headers: { requesttoken: await requestToken(page) } })
+	expect(await read.json()).toEqual({ counters: [], firstDay: null })
 })

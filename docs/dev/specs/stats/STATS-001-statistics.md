@@ -18,20 +18,20 @@ never change a photo or a sidecar.
 Statistics are daily counters per user (ADR 0039): one sum per day and metric, no file ids, no
 paths. The day is the calendar day in the user's Nextcloud time zone, UTC without one.
 
-| Metric | Counted when |
-|---|---|
-| Pictures decided | A picture's flag changes from unflagged to picked or rejected (+1), or back to unflagged (−1); undo subtracts what it takes back |
-| Pictures picked, pictures rejected | A picture becomes picked, rejected; net of undo |
-| Ratings, colour labels, tags set | A picture's rating, colour label or tags change; net of undo |
-| Pictures, files, bytes moved to the trash bin | A delete moves them to the trash bin; a pair is one picture, every member and sidecar a file |
-| Pictures, files, bytes deleted for good | A delete removes files the trash bin would not keep (ADR 0036) |
-| RAW files removed, their bytes | *Remove RAWs* moves RAW files to the trash bin; not counted as pictures |
-| Sidecars created | A sidecar save creates a new sidecar |
-| Sidecars updated | A sidecar save replaces an existing sidecar not saved before on the same day |
-| Sidecars from digiKam or darktable | A sidecar updated that holds data of digiKam or darktable |
-| Series done | A stored series changes to done |
-| Pictures moved | A move puts a picture into its target folder |
-| Active time | Seconds of the cull with an input at most 2 minutes earlier |
+| Metric | Key | Counted when |
+|---|---|---|
+| Pictures decided | `pictures_decided` | A picture's flag changes from unflagged to picked or rejected (+1), or back to unflagged (−1); undo subtracts what it takes back |
+| Pictures picked, pictures rejected | `pictures_picked`, `pictures_rejected` | A picture becomes picked, rejected; net of undo |
+| Ratings, colour labels, tags set | `ratings_set`, `colour_labels_set`, `tags_set` | A picture's rating, colour label or tags change; net of undo |
+| Pictures, files, bytes moved to the trash bin | `trash_pictures`, `trash_files`, `trash_bytes` | A delete moves them to the trash bin; a pair is one picture, every member and sidecar a file |
+| Pictures, files, bytes deleted for good | `deleted_pictures`, `deleted_files`, `deleted_bytes` | A delete removes files the trash bin would not keep (ADR 0036) |
+| RAW files removed, their bytes | `raws_removed`, `raws_removed_bytes` | *Remove RAWs* moves RAW files to the trash bin; not counted as pictures |
+| Sidecars created | `sidecars_created` | A sidecar save creates a new sidecar |
+| Sidecars updated | `sidecars_updated` | A sidecar save replaces an existing sidecar not saved before on the same day |
+| Sidecars from digiKam or darktable | `sidecars_foreign` | A sidecar updated that holds data of digiKam or darktable |
+| Series done | `series_done` | A stored series changes to done |
+| Pictures moved | `pictures_moved` | A move puts a picture into its target folder |
+| Active time | `active_seconds` | Seconds of the cull with an input at most 2 minutes earlier |
 
 Only successful results count. A day's net counter never goes below zero. *Space freed* is the
 bytes moved to the trash bin and deleted for good; the page notes that the space is freed when the
@@ -63,7 +63,16 @@ just ended: its totals, the longest streak, the busiest day, active time and a c
 days. From 1 December the navigation shows the hint *Your {year} in honeycomb* once a year until
 the user closes it or opens the year in review; the view state remembers it (LOUPE-003).
 
-**Settings:** *Keep statistics* (on by default) and *Reset statistics* with a confirmation.
+**Settings:** a section *Statistics* with the switch *Keep statistics* (on by default, the
+settings field `keepStatistics`; only `false` turns it off) and *Reset statistics*, which asks
+*Reset all statistics?* first; a toast says *Statistics reset* or that they could not be reset.
+
+**Storage and API:** the table `honeycomb_stats` holds one row per user, day and metric. A count
+adds to the row of the day, never below zero; two counts at once both arrive (the second insert
+of a new row retries as an update). `GET /apps/honeycomb/api/v1/stats` takes the optional days
+`from` and `to` (`YYYY-MM-DD`, both included) and answers `counters`, the user's rows of those
+days as `{day, metric, value}` ordered by day and metric, and `firstDay`, the user's first counted
+day or `null`; a malformed day or `from` after `to` answers 400. `DELETE` on the same URL resets.
 Strings are English, translated per ADR 0007; the mockup lists them.
 
 ## Acceptance criteria
@@ -253,3 +262,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | Date | Change |
 |---|---|
 | 2026-11-19 | Written from the signed-off concept *Nutzen-Metriken* (metrics PR 1 of 8) |
+| 2026-11-19 | Storage and API, the settings section (metrics PR 2 of 8) |
