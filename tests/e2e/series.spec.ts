@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { cullFolder } from './cull.ts'
+import { cullFolder, seriesSaved } from './cull.ts'
 import { createFolder, JPEG, upload, withCaptureTime } from './files.ts'
 
 const PHONE = { width: 320, height: 640 }
@@ -133,9 +133,11 @@ test('removes a photo from the series and dissolves the series from the compare\
 	await page.keyboard.press('n')
 	const compare = page.getByRole('dialog', { name: /^Compare series 1 of 1/ })
 	await compare.getByRole('button', { name: 'Photo 2 menu' }).click()
+	const removed = seriesSaved(page)
 	await page.getByRole('menuitem', { name: /Remove from this series/ }).click()
 	await expect(page.getByText('Removed IMG_0002 from the series')).toBeVisible()
 	await expect(compare.locator('.series-compare__card')).toHaveCount(2)
+	await removed
 
 	await page.reload()
 	await cullFolder(page, folder)
@@ -143,8 +145,10 @@ test('removes a photo from the series and dissolves the series from the compare\
 	await page.keyboard.press('n')
 	await expect(compare.locator('.series-compare__name')).toHaveText(['1 · IMG_0001', '2 · IMG_0003'])
 	await compare.getByRole('button', { name: 'Series menu' }).click()
+	const dissolved = seriesSaved(page)
 	await page.getByRole('menuitem', { name: /Dissolve this series/ }).click()
 	await expect(page.getByText('Dissolved the series · 2 photos')).toBeVisible()
+	await dissolved
 
 	await page.reload()
 	await cullFolder(page, folder)
@@ -169,10 +173,12 @@ test('merges the series with the next one from the compare\'s menu, kept after a
 	await expect(page.getByRole('dialog', { name: /^Compare series 1 of 2/ })).toBeVisible()
 	await page.getByRole('button', { name: 'Series menu' }).click()
 	await expect(page.getByRole('menuitem', { name: /Merge with the previous series/ })).toBeDisabled()
+	const saved = seriesSaved(page)
 	await page.getByRole('menuitem', { name: /Merge with the next series/ }).click()
 	await expect(page.getByText('Merged 2 series · 4 photos')).toBeVisible()
 	const merged = page.getByRole('dialog', { name: /^Compare series 1 of 1/ })
 	await expect(merged.locator('.series-compare__card')).toHaveCount(4)
+	await saved
 
 	await page.reload()
 	await cullFolder(page, folder)
