@@ -18,7 +18,8 @@ Add items with `/todo`.
 
 ## Later
 
-- [ ] Make the series tab on a filmstrip thumbnail a 44 × 44 px target that does not cover the thumbnail: it is a 20 px pill over the thumbnail's corner; `tests/e2e/touch-targets.ts` exempts it (GRID-001.19) (2026-11-18)
+- [ ] Make the series tab on a filmstrip thumbnail a 44 × 44 px target that does not cover the thumbnail: it is a 20 px pill over the thumbnail's corner; `tests/e2e/touch-targets.ts` and `tests/e2e/a11y.ts` exempt it (GRID-001.19, APP-001.15) (2026-11-18)
+- [ ] Close a dialog with Escape while a switch, checkbox or text field in it has focus: `NcModal` binds Escape without `allowInInput`, so *Choose folders* stays open with *Include subfolders* focused; `tests/e2e/a11y.spec.ts` closes dialogs by their button (2026-11-19)
 - [ ] Opt in to `viewport-fit=cover` and pad the page edges with `env(safe-area-inset-*)`, so photos run under the status bar and home indicator while controls stay clear (`docs/dev/plan.md` Reference devices rule 2) (2026-11-18)
 - [ ] Bring the first sharp image of a newly opened folder from about 2.1 s to under 500 ms (IMAGES-001.12): the first 24 MP preview renders on the request, about 1 s each; measured in `docs/dev/plan.md` Image delivery (2026-11-18)
 - [ ] Measure the grid scroll at 2,000+ items (`docs/dev/plan.md` Image delivery budgets), which `tests/e2e/image-budgets.spec.ts` leaves out (2026-11-18)

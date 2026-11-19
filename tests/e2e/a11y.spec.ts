@@ -60,7 +60,7 @@ for (const scheme of SCHEMES) {
 		await page.getByRole('button', { name: 'More' }).click()
 		await expect(page.getByRole('menu').or(page.locator('.v-popper__popper--shown'))).toBeVisible()
 		await expectAccessible(page, at('⋯ menu'))
-		await page.getByRole('button', { name: /^Review rejects 1/ }).click()
+		await page.getByRole('button', { name: 'Review rejects: 1' }).click()
 		await expect(page.getByRole('menu')).toBeHidden()
 		const review = page.getByRole('dialog', { name: 'Review rejects' })
 		await expect(review).toBeVisible()
@@ -81,7 +81,7 @@ for (const scheme of SCHEMES) {
 		await loupe.getByRole('button', { name: 'Close loupe' }).click()
 		await expect(loupe).toBeHidden()
 
-		await page.getByRole('button', { name: /^Compare series \(?\d/ }).click()
+		await page.getByRole('button', { name: /^Compare series: \d/ }).click()
 		const compare = page.getByRole('dialog', { name: /^Compare series 1 of 1/ })
 		await expect(compare).toBeVisible()
 		await expectAccessible(page, at('series compare'))
