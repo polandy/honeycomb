@@ -204,6 +204,9 @@ IMAGES-001.
 - **Then** only that photo is in view: each neighbour waits one full stage width aside, hidden,
   and shows only while a drag moves it in; a photo turned by its EXIF orientation is fitted
   upright
+- Each fit of the photos to the stage's size, the first and every one after the size changes, ends by
+  raising the stage's `data-fit-seq` by one in the same render, so a test waits for the next value
+  instead of polling
 
 ### LOUPE-001.19 – Filmstrip
 
