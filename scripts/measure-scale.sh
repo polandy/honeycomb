@@ -6,7 +6,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
-CONTAINER=honeycomb-e2e-$1
+source scripts/e2e-names.sh
+CONTAINER=$(e2e_container "$1")
 USER_ID=$2
 FIXTURE=scale-fixture
 YEARS=10

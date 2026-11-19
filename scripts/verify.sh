@@ -8,6 +8,8 @@ cd "$(dirname "$0")/.." || exit 1
 MARKDOWNLINT_CLI2_VERSION=0.24.0 # matches DavidAnson/markdownlint-cli2-action v25.0.0 in ci.yml
 REUSE_VERSION=6.3.0              # matches the fsfe/reuse:6 image of fsfe/reuse-action v6.0.0
 
+source scripts/e2e-names.sh
+
 failed=0
 step() {
   local name=$1
@@ -25,7 +27,7 @@ step() {
 }
 
 step ci-changes scripts/test-ci-changes.sh
-step "gate tests" sh -c 'scripts/test-source-sizes.sh && scripts/test-pins.sh && scripts/test-specs.sh && scripts/test-spec-trailers.sh && scripts/test-nextcloud-versions.sh && scripts/test-package.sh'
+step "gate tests" sh -c 'scripts/test-e2e-names.sh && scripts/test-source-sizes.sh && scripts/test-pins.sh && scripts/test-specs.sh && scripts/test-spec-trailers.sh && scripts/test-nextcloud-versions.sh && scripts/test-package.sh'
 step source-sizes scripts/source-sizes.sh
 step pins scripts/pins.sh
 step specs scripts/specs.sh
@@ -48,6 +50,6 @@ step vitest npx vitest run --coverage
 step build npx vite build
 step e2e npx playwright test
 step "e2e oldest" env HONEYCOMB_E2E_NEXTCLOUD=oldest npx playwright test
-step "upgrade test" scripts/upgrade-test.sh
+step "upgrade test" scripts/upgrade-test.sh "$(upgrade_port)"
 
 exit $failed
