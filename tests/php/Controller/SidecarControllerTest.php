@@ -14,6 +14,7 @@ use OCA\Honeycomb\Service\SidecarReader;
 use OCA\Honeycomb\Service\SidecarWriter;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
+use OCA\Honeycomb\Tests\Service\StatsFixture;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -31,6 +32,8 @@ use Psr\Log\LoggerInterface;
 use ReflectionMethod;
 
 final class SidecarControllerTest extends TestCase {
+	use StatsFixture;
+
 	private function controller(bool $loggedIn = true): SidecarController {
 		$sidecar = $this->createStub(File::class);
 		$sidecar->method('getId')->willReturn(9);
@@ -49,7 +52,7 @@ final class SidecarControllerTest extends TestCase {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
 		$logger = $this->createStub(LoggerInterface::class);
-		return new SidecarController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new SidecarReader(new UserPhotos(new UserFolderResolver($root)), $logger), new SidecarWriter(new UserPhotos(new UserFolderResolver($root)), $logger));
+		return new SidecarController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new SidecarReader(new UserPhotos(new UserFolderResolver($root)), $logger), new SidecarWriter(new UserPhotos(new UserFolderResolver($root)), $logger, $this->stats()));
 	}
 
 	// spec: XMP-002.1

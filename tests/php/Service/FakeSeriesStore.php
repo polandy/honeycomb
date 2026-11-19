@@ -67,9 +67,12 @@ final class FakeSeriesStore implements SeriesStore {
 			throw new FakeDbException($this->failureReason);
 		}
 		$ids = [];
+		$done = 0;
 		foreach ($write->series as $item) {
 			$id = $item->id;
-			if ($id !== null && ($this->series[$id]['userId'] ?? null) === $userId) {
+			$before = $id !== null && ($this->series[$id]['userId'] ?? null) === $userId ? $this->series[$id]['status'] : null;
+			$done += (int)($item->status === SeriesStatus::Done && $before !== SeriesStatus::Done);
+			if ($before !== null && $id !== null) {
 				$this->series[$id]['status'] = $item->status;
 			} else {
 				$id = $this->add($userId, $item->status);
@@ -85,7 +88,7 @@ final class FakeSeriesStore implements SeriesStore {
 		foreach ($write->released as $fileId) {
 			unset($this->rows[$userId][$fileId]);
 		}
-		return $ids;
+		return ['ids' => $ids, 'done' => $done];
 	}
 
 	#[\Override]

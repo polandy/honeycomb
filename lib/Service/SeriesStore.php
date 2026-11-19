@@ -16,8 +16,8 @@ interface SeriesStore extends FileRowStore, UserRowStore {
 	public function find(string $userId, array $fileIds): SeriesLookup;
 
 	/**
-	 * Writes the whole state in `$write`, all or nothing, and returns each series item's id.
-	 * @return list<int> the id of each series item, a new one for a null id or one the user does not have
+	 * Writes the whole state in `$write`, all or nothing; a new series id for a null id or one the user does not have.
+	 * @return array{ids: list<int>, done: int} the id of each series item, and how many series became done
 	 * @throws \OCP\DB\Exception
 	 */
 	public function write(string $userId, SeriesWrite $write): array;

@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Statistics (M9, STATS-001): PR 3 count on the server: trash, deleted for good, Remove RAWs, sidecars created and updated, series done, moves (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 4 *Cull finished* card with the session's numbers and before/after (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 5 browser counts with the sidecar and position saves: decisions net of undo, active time, bounds in PHP (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 6 statistics page: navigation entry, periods, tiles, bars, folder sets, days in a row (2026-11-19)
