@@ -34,19 +34,21 @@ final class SidecarWriter {
 	public function save(IUser $user, array $sidecars): array {
 		$sidecars = SidecarRequest::sidecars($sidecars);
 		$userFolder = $this->photos->userFolder($user);
-		$previousMTimes = [];
-		$results = array_map(function (ExistingSidecar|NewSidecar $sidecar) use ($userFolder, &$previousMTimes): array {
-			return $this->saveOne($userFolder, $sidecar, $previousMTimes);
+		$written = [];
+		$counts = [];
+		$results = array_map(function (ExistingSidecar|NewSidecar $sidecar) use ($userFolder, &$written, &$counts): array {
+			return $this->saveOne($userFolder, $sidecar, $written, $counts);
 		}, $sidecars);
-		$this->stats->countSidecars($user, $previousMTimes);
+		$this->stats->countSidecars($user, $written, ...$counts);
 		return $results;
 	}
 
 	/**
-	 * @param list<?int> $previousMTimes gains the modification time a saved sidecar had before, null for a created one
+	 * @param list<array{mtime: ?int, foreign: bool}> $written gains the modification time a saved sidecar had before, null for a created one, and whether it is foreign
+	 * @param list<StatsCount> $counts gains the counts a saved item carried
 	 * @return array{result: SidecarResult, fileId?: int, etag?: string, size?: int|float, mtime?: int}
 	 */
-	private function saveOne(Folder $userFolder, ExistingSidecar|NewSidecar $sidecar, array &$previousMTimes): array {
+	private function saveOne(Folder $userFolder, ExistingSidecar|NewSidecar $sidecar, array &$written, array &$counts): array {
 		$target = $this->check($userFolder, $sidecar);
 		if ($target instanceof SidecarResult) {
 			return ['result' => $target];
@@ -58,7 +60,9 @@ final class SidecarWriter {
 		$previous = $this->previousMTime($existing);
 		try {
 			$saved = $existing === null ? $folder->newFile($name, $sidecar->bytes) : $this->replace($existing, $sidecar->bytes);
-			array_push($previousMTimes, ...$previous);
+			$foreign = $sidecar instanceof ExistingSidecar && $sidecar->foreign;
+			array_push($written, ...array_map(static fn (?int $mtime): array => ['mtime' => $mtime, 'foreign' => $foreign], $previous));
+			array_push($counts, ...$sidecar->counts);
 			return ['result' => SidecarResult::Saved, 'fileId' => $saved->getId(), 'etag' => $saved->getEtag(), 'size' => $saved->getSize(), 'mtime' => $saved->getMTime()];
 		} catch (\Exception $e) {
 			return ['result' => $this->resultOf($e, $folder->getPath() . "/$name")];

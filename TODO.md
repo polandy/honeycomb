@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Statistics (M9, STATS-001): PR 5 browser counts with the sidecar and position saves: decisions net of undo, active time, bounds in PHP (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 6 statistics page: navigation entry, periods, tiles, bars, folder sets, days in a row (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 7 start value from the user preference `pictures_decided_before` that M8 PR 5 wrote, moved into `honeycomb_stats`, and the state of the pictures read so far from the XMP cache (2026-11-19)
 - [ ] Statistics (M9, STATS-001): PR 8 year in review, its one-time hint from 1 December, sidecars from digiKam or darktable (2026-11-19)

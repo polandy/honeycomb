@@ -4,10 +4,9 @@ import type { Flag } from './decision.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 
+import { sinceLastInput } from './active-time.ts'
 import { filesOf } from './delete-summary.ts'
 
-/** The longest pause active time counts (glossary: active time). */
-export const IDLE_LIMIT_MS = 120_000
 const MINUTE_MS = 60_000
 
 /** What a picture is to *Cull finished*: decided by its flag, or undecided. */
@@ -114,9 +113,9 @@ export function withSaved(session: CullSession, saves: readonly SessionSave[]): 
 	return { ...session, sidecars }
 }
 
-/** The session with an input at `at` ms: the time since the last input counts, at most IDLE_LIMIT_MS. */
+/** The session with an input at `at` ms: the time since the last input counts, at most the idle limit. */
 export function withInput(session: CullSession, at: number): CullSession {
-	return { ...session, activeMs: session.activeMs + sinceLast(session, at), lastInput: at }
+	return { ...session, activeMs: session.activeMs + sinceLastInput(session.lastInput, at), lastInput: at }
 }
 
 /** The numbers of the session read at `at` ms, with the folder set's totals now. */
@@ -126,7 +125,7 @@ export function sessionNumbers(session: CullSession, after: SessionTotals, at: n
 	const decided = states.length - count('undecided')
 	const deleted = [...session.removed.values()].filter(Boolean).length
 	const created = [...session.sidecars.values()].filter(Boolean).length
-	const activeMs = session.activeMs + sinceLast(session, at)
+	const activeMs = session.activeMs + sinceLastInput(session.lastInput, at)
 	return {
 		decided,
 		picked: count('picked'),
@@ -142,9 +141,4 @@ export function sessionNumbers(session: CullSession, after: SessionTotals, at: n
 		activeMs,
 		perMinute: activeMs < MINUTE_MS ? null : decided / (activeMs / MINUTE_MS),
 	}
-}
-
-/** The active time since the last input, none before the first. */
-function sinceLast(session: CullSession, at: number): number {
-	return session.lastInput === null ? 0 : Math.min(at - session.lastInput, IDLE_LIMIT_MS)
 }

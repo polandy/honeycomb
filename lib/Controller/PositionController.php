@@ -35,11 +35,11 @@ final class PositionController extends Controller {
 		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(['positions' => $this->positions->recent($user)]));
 	}
 
-	/** Stores where the user stands in the folder set (ADR 0012). */
+	/** Stores where the user stands in the folder set (ADR 0012) and counts the active time since the last save (STATS-001.39). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/positions')]
 	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
-	public function save(array $folderSet = [], int $fileId = 0, int $decided = 0, int $total = 0): Response {
-		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->positions->save($user, $folderSet, $fileId, $decided, $total)));
+	public function save(array $folderSet = [], int $fileId = 0, int $decided = 0, int $total = 0, int $activeSeconds = 0): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->positions->save($user, $folderSet, $fileId, $decided, $total, $activeSeconds)));
 	}
 }

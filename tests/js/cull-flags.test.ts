@@ -48,6 +48,20 @@ describe('useCullFlags', () => {
 		expect(sent).toHaveLength(2)
 	})
 
+	// spec: STATS-001.36
+	it('sends each row\'s counts with its item and none with the take-over', async () => {
+		const { api, sent, answers } = pendingApi()
+		const flags = useCullFlags(api)
+
+		void flags.save([row(1), row(2)], new Map([[1, { pictures_decided: 1, pictures_picked: 1 }]]))
+		flags.takeOver([row(3)])
+		await flushPromises()
+		answers[0]!(SAVED)
+
+		expect(sent).toEqual([[{ fileId: 1, flag: 'picked', keepRaw: false, counts: { pictures_decided: 1, pictures_picked: 1 } }, { fileId: 2, flag: 'picked', keepRaw: false }]])
+		expect(api.takeOver).toHaveBeenCalledWith([{ fileId: 3, flag: 'picked', keepRaw: false }])
+	})
+
 	// spec: DELETE-002.28
 	it('flushes once every save sent has answered, failed or not', async () => {
 		const { api, answers } = pendingApi()

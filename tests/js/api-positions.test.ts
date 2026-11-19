@@ -34,6 +34,15 @@ describe('savePosition', () => {
 
 		await savePosition(POSITION)
 
-		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/positions', POSITION)
+		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/positions', { ...POSITION, activeSeconds: 0 })
+	})
+
+	// spec: STATS-001.39
+	it('sends the active time since the last save with the position', async () => {
+		vi.mocked(axios.put).mockResolvedValue({ data: {} })
+
+		await savePosition(POSITION, 90)
+
+		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/positions', { ...POSITION, activeSeconds: 90 })
 	})
 })
