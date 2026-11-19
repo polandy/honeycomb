@@ -16,6 +16,8 @@ const props = withDefaults(defineProps<{
 	/** What the pictures the bar acts on share. */
 	common: CommonDecision
 	disabled?: boolean
+	/** Whether the user may not change the pictures, which greys the controls and says so (GRID-003.16, LOUPE-002.18). */
+	readOnly?: boolean
 	/** A bar under the grid, or the loupe's large flag buttons apart from a row of the rest. */
 	layout?: 'bar' | 'loupe'
 	/** Whether the loupe shows its large flag buttons. */
@@ -24,11 +26,12 @@ const props = withDefaults(defineProps<{
 	idle?: boolean
 	/** Whether the loupe's row stays below the photo in landscape instead of floating over it. */
 	pinned?: boolean
-}>(), { disabled: false, layout: 'bar', flags: true, idle: false, pinned: false })
+}>(), { disabled: false, readOnly: false, layout: 'bar', flags: true, idle: false, pinned: false })
 
 const emit = defineEmits<{ decide: [intent: DecisionIntent], tag: [] }>()
 
 const loupe = computed(() => props.layout === 'loupe')
+const off = computed(() => props.disabled || props.readOnly)
 </script>
 
 <template>
@@ -37,17 +40,18 @@ const loupe = computed(() => props.layout === 'loupe')
 			<FlagButtons
 				size="large"
 				:flag="props.common.flag"
-				:disabled="props.disabled"
+				:disabled="off"
 				@flag="emit('decide', { kind: 'flag', flag: $event })" />
 		</div>
 		<div class="action-bar__row">
 			<slot />
-			<StarRating :rating="props.common.rating" :disabled="props.disabled" @rate="emit('decide', { kind: 'rating', rating: $event })" />
-			<ColourLabels :colourLabel="props.common.colourLabel" :disabled="props.disabled" @choose="emit('decide', { kind: 'colourLabel', colourLabel: $event })" />
+			<span v-if="props.readOnly" class="action-bar__note">{{ t('honeycomb', 'Read only') }}</span>
+			<StarRating :rating="props.common.rating" :disabled="off" @rate="emit('decide', { kind: 'rating', rating: $event })" />
+			<ColourLabels :colourLabel="props.common.colourLabel" :disabled="off" @choose="emit('decide', { kind: 'colourLabel', colourLabel: $event })" />
 			<button
 				type="button"
 				class="action-bar__keep-raw"
-				:disabled="props.disabled || !props.common.canKeepRaw"
+				:disabled="off || !props.common.canKeepRaw"
 				:aria-pressed="props.common.keepRaw === true"
 				:aria-label="props.common.canKeepRaw ? t('honeycomb', 'Keep RAW') : t('honeycomb', 'Keep RAW: only for pairs')"
 				@click="emit('decide', { kind: 'keepRaw' })">
@@ -56,7 +60,7 @@ const loupe = computed(() => props.layout === 'loupe')
 			<button
 				type="button"
 				class="action-bar__tags"
-				:disabled="props.disabled"
+				:disabled="off"
 				:aria-label="t('honeycomb', 'Tags')"
 				@click="emit('tag')">
 				<AppIcon name="tag" />
@@ -69,7 +73,7 @@ const loupe = computed(() => props.layout === 'loupe')
 			<slot name="end" />
 			<FlagButtons
 				:flag="props.common.flag"
-				:disabled="props.disabled"
+				:disabled="off"
 				@flag="emit('decide', { kind: 'flag', flag: $event })" />
 		</div>
 	</div>
@@ -89,6 +93,10 @@ const loupe = computed(() => props.layout === 'loupe')
 .action-bar__row,
 .action-bar__primary {
 	display: contents;
+}
+
+.action-bar__note {
+	color: var(--color-text-maxcontrast);
 }
 
 .action-bar--bar {

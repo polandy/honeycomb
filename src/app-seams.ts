@@ -3,8 +3,8 @@
 import type { Folder } from './api.ts'
 import type { BrowserStorage } from './browser-storage.ts'
 import type { CullTagsApi } from './cull-tags.ts'
+import type { FlagApi } from './flags-api.ts'
 import type { ListEntries } from './folder-count.ts'
-import type { StoredDecision } from './logic/decision.ts'
 import type { Schedule } from './logic/long-press.ts'
 import type { Settings } from './logic/settings.ts'
 import type { TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
@@ -18,6 +18,7 @@ import type { ViewStateApi } from './view-state.ts'
 import type { HashImage, SaveVisualHashes } from './visual-hashes.ts'
 
 import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, cleanUpOrphanedData, imageUrl, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, movePictures, probeTargets, savePosition, saveSidecars, saveViewState, saveVisualHashes } from './api.ts'
+import { saveFlags, takeOverFlags } from './flags-api.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { browserHashWorkers } from './hash-workers.ts'
 import { onBrowserPageHide } from './page-hide.ts'
@@ -37,7 +38,7 @@ export interface AppSeams {
 	warmPreviews?: WarmPreviews
 	hashImage?: HashImage
 	saveVisualHashes?: SaveVisualHashes
-	lookupDecisions?: (fileIds: readonly number[]) => Promise<StoredDecision[]>
+	flags?: FlagApi
 	lookupSeries?: LookupSeries
 	saveSeries?: SaveSeries
 	loadSettings?: () => Promise<unknown>
@@ -66,7 +67,7 @@ export const APP_SEAMS = {
 	warmPreviews: apiWarmPreviews,
 	hashImage: hashInWorkers(browserHashWorkers(), imageUrl),
 	saveVisualHashes,
-	lookupDecisions: async (): Promise<StoredDecision[]> => [],
+	flags: () => ({ save: saveFlags, takeOver: takeOverFlags }),
 	lookupSeries,
 	saveSeries,
 	loadSettings: apiLoadSettings,

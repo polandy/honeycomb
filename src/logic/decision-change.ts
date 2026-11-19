@@ -24,6 +24,7 @@ export type DecisionChange
 		| { readonly colourLabel: ColourLabel | null }
 		| { readonly flag: Flag }
 		| { readonly keepRaw: boolean }
+		| typeof CLEARED
 
 /** Each value the pictures share, undefined where they differ; Keep RAW over the pairs only. */
 export interface CommonDecision {
@@ -35,8 +36,11 @@ export interface CommonDecision {
 	readonly canKeepRaw: boolean
 }
 
+/** The state *Clear picks/rejects* resets a picture to (GRID-001.22). */
+export const CLEARED = { flag: 'unflagged', keepRaw: false } as const
+
 /** Whether the picture has both members, the only kind that can keep its RAW. */
-const isPair = ({ picture }: Decided) => picture.rendered !== null && picture.raw !== null
+export const isPair = ({ picture }: Decided) => picture.rendered !== null && picture.raw !== null
 
 /** The value every decision shares, undefined when they differ or there are none. */
 function shared<K extends keyof Decision>(decisions: readonly Decision[], key: K): Decision[K] | undefined {
@@ -85,6 +89,16 @@ export function changedRows(pictures: readonly Decided[], change: DecisionChange
 /** The fields the rows change against the decisions they replace, undecided where none was stored. */
 export function changedFields(rows: readonly StoredDecision[], before: ReadonlyMap<number, Decision>): DecisionField[] {
 	return DECISION_FIELDS.filter((field) => rows.some((row) => row[field] !== (before.get(row.fileId) ?? UNDECIDED)[field]))
+}
+
+/** The rows that take the fields of the written rows back to `before`, where they still hold what was written (XMP-008.15, .17). */
+export function takenBack(decisions: ReadonlyMap<number, Decision>, written: readonly StoredDecision[], before: ReadonlyMap<number, Decision>, fields: readonly DecisionField[]): StoredDecision[] {
+	return written.map((row) => {
+		const current = decisions.get(row.fileId) ?? UNDECIDED
+		const earlier = before.get(row.fileId) ?? UNDECIDED
+		const back = Object.fromEntries(fields.filter((field) => current[field] === row[field]).map((field) => [field, earlier[field]]))
+		return { fileId: row.fileId, ...current, ...back }
+	})
 }
 
 /** The decisions with the rows put over them. */

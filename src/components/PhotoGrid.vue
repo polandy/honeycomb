@@ -35,6 +35,7 @@ const props = withDefaults(defineProps<PhotoGridProps>(), {
 	selection: () => NO_SELECTION,
 	decisionOf: () => UNDECIDED,
 	tagsOf: () => [],
+	readOnly: () => false,
 	unsaved: null,
 	fileNames: false,
 	touch: () => window.matchMedia('(pointer: coarse)').matches,
@@ -221,6 +222,7 @@ defineExpose({
 							:decision="props.decisionOf(picture)"
 							:tags="props.tagsOf(picture).length"
 							:unsaved="picture === props.unsaved"
+							:readOnly="props.readOnly(picture)"
 							:selecting="props.selecting"
 							:selected="props.selection.ids.has(imageMember(picture).fileId)"
 							:loads="loads"

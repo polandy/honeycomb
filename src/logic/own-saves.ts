@@ -75,5 +75,5 @@ function lastSaved(entry: ListingEntry, own: OwnSaves): ListingEntry {
 
 /** A listing entry for a sidecar honeycomb created. */
 function newEntry(path: string, { fileId, etag, size, mtime }: SavedState): ListingEntry {
-	return { fileId, path, size, mtime, etag, mime: SIDECAR_MIME, captureTime: null, orientation: null, width: null, height: null, camera: null, visualHash: null }
+	return { fileId, path, size, mtime, etag, mime: SIDECAR_MIME, captureTime: null, orientation: null, width: null, height: null, camera: null, visualHash: null, flag: null, keepRaw: null, flagUpdated: null }
 }

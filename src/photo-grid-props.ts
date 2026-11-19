@@ -30,6 +30,8 @@ export interface PhotoGridProps {
 	decisionOf?: (picture: Picture<ListingEntry>) => Decision
 	/** The picture's tags, counted on its tile. */
 	tagsOf?: (picture: Picture<ListingEntry>) => readonly Tag[]
+	/** Whether the user may not change the picture, so its tile carries the lock (GRID-001.20). */
+	readOnly?: (picture: Picture<ListingEntry>) => boolean
 	/** Times the long-press and the tile info's delay. */
 	schedule?: Schedule
 	/** Times the auto-scroll of a drag selection. */

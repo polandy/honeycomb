@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
+import type { SidecarFailure } from './logic/sidecar-sync.ts'
 import type { Tag, TagChange } from './logic/tag.ts'
 
 import { computed, shallowRef } from 'vue'
 import { logger } from './logger.ts'
 import { pictureMembers } from './logic/pairing.ts'
 import { withLevels } from './logic/tag-entry.ts'
-import { changedTags, sortedTags, withTagRows } from './logic/tag.ts'
+import { changedTags, inverseChange, sortedTags, withTagRows } from './logic/tag.ts'
 
 /** The tag list endpoint (ADR 0022). */
 export interface CullTagsApi {
@@ -18,7 +19,7 @@ export interface CullTagsApi {
 type Pictures = readonly Picture<ListingEntry>[]
 
 /** The tags of the open cull: the sidecars' tags and changes written through (TAGS-002). */
-export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, change: TagChange) => Promise<unknown>, writable: (picture: Picture<ListingEntry>) => boolean) {
+export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, change: TagChange) => Promise<{ readonly failed: readonly SidecarFailure[] }>, writable: (picture: Picture<ListingEntry>) => boolean) {
 	const tags = shallowRef<ReadonlyMap<number, readonly Tag[]>>(new Map())
 	const list = shallowRef<readonly Tag[]>([])
 	const known = computed(() => withLevels([...list.value, ...[...tags.value.values()].flat()]))
@@ -48,17 +49,28 @@ export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, ch
 		}
 	}
 
-	/** Applies the change to each chosen picture and writes it through where the picture is writable. */
+	/** Applies the change to each chosen picture and writes it through where the picture is writable; a picture whose write fails gets its tags back (TAGS-002.23). */
 	function change(chosen: Pictures, step: TagChange) {
+		apply(chosen, step)
+		const written = chosen.filter(writable)
+		if (written.length > 0) {
+			writeTags(written, step).then(({ failed }) => {
+				const failedPictures = new Set(failed.map(({ picture }) => picture))
+				const back = written.filter((picture) => failedPictures.has(picture))
+				if (back.length > 0) {
+					apply(back, inverseChange(step))
+				}
+			}, (error: unknown) => logger.error('Could not write the tags; the photos show them as changed', { error }))
+		}
+	}
+
+	/** Applies the change to the tags of each picture's members. */
+	function apply(chosen: Pictures, step: TagChange) {
 		const rows = chosen.flatMap((picture) => {
 			const next = changedTags(tagsOf(picture), step)
 			return pictureMembers(picture).map(({ fileId }) => ({ fileId, tags: next }))
 		})
 		tags.value = withTagRows(tags.value, rows)
-		const written = chosen.filter(writable)
-		if (written.length > 0) {
-			void writeTags(written, step)
-		}
 	}
 
 	return { tags, known, reset, loadList, tagsOf, fromSidecars, change }

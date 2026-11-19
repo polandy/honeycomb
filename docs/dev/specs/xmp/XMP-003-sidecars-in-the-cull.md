@@ -26,9 +26,10 @@ rating, colour label and tags through, and leaves the sidecar's flag fields and
 below, and the client sends them for every member to the take-over endpoint (DECISIONS-001.27), in
 one request per read, as *unflagged* when no source states one, also for a read-only picture; a
 failed take-over is logged as a warning and the picture shows what its sources state. From then on
-its row holds, and a later change in another program is not read. Rating, colour label and tags are not taken over: they are always
-read from the sidecars. ***Write picks/rejects to XMP* (M8 PR 7):** the grid's ⋯ entry, shown with
-the number of sidecars to write (GRID-001.21), writes the flag and *Keep RAW* of every rateable
+its row holds, and a later change in another program is not read. Rating, colour label and tags
+are not taken over: they are always read from the sidecars.
+***Write picks/rejects to XMP* (M8 PR 7):** the grid's ⋯ entry, shown with the number of sidecars
+to write (GRID-001.21), writes the flag and *Keep RAW* of every rateable
 picture of the open folder set, whatever the filters show, into each of its sidecars whose flag
 fields or `honeycomb:KeepRaw` differ, as the XMP cache states them; *unflagged* removes the flag
 fields except an existing digiKam `PickLabel` 2, and a member without a sidecar gets `<member

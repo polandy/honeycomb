@@ -47,6 +47,8 @@ const props = withDefaults(defineProps<{
 	tags?: number
 	/** Whether the picture's sidecar writes still wait (XMP-003.28). */
 	unsaved?: boolean
+	/** Whether the user may not change the picture, which the lock shows (GRID-001.20). */
+	readOnly?: boolean
 	/** Whether the name bar above the photo shows the base name (GRID-004.4). */
 	nameBar?: boolean
 	/** Whether the name bar ends in the ⓘ button that opens the tile info, on touch (GRID-004.12). */
@@ -58,6 +60,7 @@ const props = withDefaults(defineProps<{
 	seriesOpen: false,
 	tags: 0,
 	unsaved: false,
+	readOnly: false,
 	nameBar: false,
 	infoButton: false,
 	selecting: false,
@@ -150,6 +153,7 @@ const label = computed(() => [
 	...decisionLabel.value,
 	...(props.tags > 0 ? [n('honeycomb', '{count} tag', '{count} tags', props.tags, { count: formatNumber(props.tags) })] : []),
 	...(props.unsaved ? [t('honeycomb', 'Not saved yet')] : []),
+	...(props.readOnly ? [t('honeycomb', 'Read only')] : []),
 ].join(', '))
 
 let pending: { load: QueuedLoad, sharp: boolean } | null = null
@@ -216,6 +220,7 @@ onBeforeUnmount(() => pending?.load.cancel())
 				:src="shown">
 			<span v-if="badge !== null" class="photo-tile__pair" :class="{ 'photo-tile__pair--single': badge.single, 'photo-tile__pair--keep-raw': badge.keepRaw }">{{ badge.text }}</span>
 			<span v-if="props.picture.ambiguous" class="photo-tile__ambiguous" aria-hidden="true">!</span>
+			<span v-if="props.readOnly" class="photo-tile__lock" aria-hidden="true"><AppIcon name="lock" /></span>
 			<button
 				v-if="seriesBadge !== null"
 				type="button"

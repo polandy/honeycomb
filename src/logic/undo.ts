@@ -5,7 +5,7 @@ import type { StoredDecision } from './decision.ts'
 import type { SeriesChange, SeriesEdit } from './series-edit.ts'
 import type { Tag, TagChange } from './tag.ts'
 
-import { changedRows } from './decision-change.ts'
+import { changedRows, CLEARED, isPair } from './decision-change.ts'
 import { changedTags, sameTags } from './tag.ts'
 
 /** How many steps the undo history keeps (`docs/dev/plan.md` M3.2). */
@@ -72,6 +72,12 @@ export function undoEntry(pictures: readonly Decided[], change: DecisionChange):
 export function pickRestEntry(picked: Decided, rest: readonly Decided[]): PickRestStep | null {
 	const rows = rowsOf([{ decided: picked, change: { flag: 'picked' } as const }, ...rest.map((decided) => ({ decided, change: { flag: 'rejected' } as const }))])
 	return rows === null ? null : { kind: 'pickRest', picked: picked.picture.baseName, ...rows }
+}
+
+/** The undo step that resets the pictures to unflagged without Keep RAW, a single's flag only, or null when it alters none (GRID-001.22). */
+export function clearEntry(pictures: readonly Decided[]): DecisionStep | null {
+	const rows = rowsOf(pictures.map((decided) => ({ decided, change: isPair(decided) ? CLEARED : { flag: CLEARED.flag } })))
+	return rows === null ? null : { kind: 'decision', change: CLEARED, ...rows }
 }
 
 /** The names and rows of the changes that altered something, or null when none did. */

@@ -22,6 +22,8 @@ defineProps<{
 	sortOrder: SortOrder
 	/** How many pictures of the view would lose their RAW to *Remove RAWs*. */
 	rawRemovable: number
+	/** How many rateable pictures *Clear picks/rejects* resets. */
+	clearable: number
 	/** How many pictures the move item opens the move dialog on. */
 	movable: number
 	/** Whether a filter is on, which makes *Move picks* *Move filtered*. */
@@ -40,6 +42,7 @@ const emit = defineEmits<{
 	'update:fileNames': [shown: boolean]
 	'update:sortOrder': [order: SortOrder]
 	removeRaws: []
+	clearFlags: []
 	move: []
 	resume: []
 	reviewRejects: []
@@ -142,6 +145,18 @@ const emit = defineEmits<{
 			</template>
 			{{ moveFiltered ? t('honeycomb', 'Move filtered…') : t('honeycomb', 'Move picks…') }}
 			<span class="grid-more-menu__count">{{ formatNumber(movable) }}</span>
+		</NcButton>
+		<NcButton
+			variant="tertiary"
+			alignment="start"
+			wide
+			:disabled="clearable === 0"
+			@click="emit('clearFlags')">
+			<template #icon>
+				<AppIcon name="undo" />
+			</template>
+			{{ t('honeycomb', 'Clear picks/rejects') }}
+			<span class="grid-more-menu__count">{{ formatNumber(clearable) }}</span>
 		</NcButton>
 		<NcButton
 			v-if="resumeName !== null"

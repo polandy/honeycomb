@@ -62,12 +62,6 @@ export function stepResult(step: SidecarStep, failed: readonly SidecarFailure[])
 	return { written: step.pictures.filter((picture) => !own.some((failure) => failure.picture === picture)).length, failed: own }
 }
 
-/** The step that writes a failed sidecar once more: its decision fields as they are then, a tag change as it was. */
-export function retryStep({ picture, path, tags, fields }: SidecarFailure, decisionOf: DecisionOf): SidecarStep {
-	const paths = new Map([[picture, new Set([path])]])
-	return fields === undefined ? { pictures: [picture], decisionOf: null, tags: tags ?? null, paths } : { pictures: [picture], decisionOf, fields, tags: tags ?? null, paths }
-}
-
 /** The picture's write with the step joined: its decision replaces, its fields add up, its tag change follows, its paths add up and no limit wins. */
 function joined(before: PictureWrite | undefined, step: SidecarStep, own: ReadonlySet<string> | undefined): PictureWrite {
 	const tags = before?.tags ?? null

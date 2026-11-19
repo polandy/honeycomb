@@ -24,7 +24,7 @@ import { DEFAULT_FILTERS } from '../logic/picture-filter.ts'
 import { toggleGroup } from '../logic/selection.ts'
 import { seriesOffer } from '../logic/series-menu.ts'
 
-const { cull, selection, decide, editSeries, deleting, moving, resume, seriesCompare, tagEntry, headerShown, openLoupe, openSettings, unsaved, settings, updateSettings } = useCullContext()
+const { cull, selection, decide, clearFlags, editSeries, deleting, moving, resume, seriesCompare, tagEntry, headerShown, openLoupe, openSettings, unsaved, settings, updateSettings } = useCullContext()
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize } = cull
 const { selecting, selected } = selection
 const { rejected, rawRemovable } = deleting
@@ -43,6 +43,7 @@ const toolbarTasks = computed<ToolbarTasks>(() => ({
 	rejected: rejected.value.length,
 	series: cull.series.value.length,
 	rawRemovable: rawRemovable.value,
+	clearable: cull.clearable.value,
 	movable: movable.value.length,
 	resumeName: resume.resumeName.value,
 }))
@@ -89,6 +90,7 @@ defineExpose({ grid, filterBar })
 			@reviewRejects="deleting.review"
 			@compareSeries="seriesCompare.start"
 			@removeRaws="deleting.removeRaws"
+			@clearFlags="clearFlags"
 			@move="moving.open(movable)"
 			@resume="resume.resume"
 			@openSettings="openSettings" />
@@ -116,6 +118,7 @@ defineExpose({ grid, filterBar })
 			:selection="selection.selection.value"
 			:decisionOf="cull.decisionOf"
 			:tagsOf="cull.tags.tagsOf"
+			:readOnly="(picture) => cull.writabilityOf(picture) === 'readOnly'"
 			:seriesOf="cull.seriesOf.value"
 			:offeredSeries="offeredSeries"
 			:openSeries="cull.openSeries.value"
@@ -139,6 +142,7 @@ defineExpose({ grid, filterBar })
 			v-if="selecting"
 			:common="common"
 			:selected="selected.length"
+			:readOnly="selected.length > 0 && selected.every((picture) => cull.writabilityOf(picture) === 'readOnly')"
 			:seriesOffer="offer"
 			@decide="decide($event, selected)"
 			@tag="tagEntry.open(selected)"

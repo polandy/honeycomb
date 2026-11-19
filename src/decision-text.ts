@@ -19,6 +19,9 @@ function photos(names: readonly string[]): string {
 /** What a decision did to the photos. */
 function decisionText(change: DecisionChange, photos: string): string {
 	const vars = { photos }
+	if ('flag' in change && 'keepRaw' in change) {
+		return t('honeycomb', '{photos} reset', vars, undefined, PLAIN_TEXT)
+	}
 	if ('flag' in change) {
 		return change.flag === 'picked'
 			? t('honeycomb', 'Picked {photos}', vars, undefined, PLAIN_TEXT)
@@ -82,6 +85,11 @@ export function undoneText(entry: DescribedStep): string {
 /** What a redo put again: "Redid: Rejected IMG_0001". */
 export function redoneText(entry: DescribedStep): string {
 	return t('honeycomb', 'Redid: {change}', { change: changeText(entry) }, undefined, PLAIN_TEXT)
+}
+
+/** The toast of flag saves the server did not take: "Could not save the flag of 2 photos; they are back as they were" (XMP-008.17). */
+export function flagsNotSavedText(photos: number): string {
+	return n('honeycomb', 'Could not save the flag of {count} photo; it is back as it was', 'Could not save the flags of {count} photos; they are back as they were', photos, { count: formatNumber(photos) })
 }
 
 /** The progress over the photos the filters show, while they hide some: "4 / 20 shown decided" (GRID-002.7). */

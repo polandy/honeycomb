@@ -25,6 +25,7 @@ export interface CullContext {
 	readonly cull: ReturnType<typeof useCull>
 	readonly selection: ReturnType<typeof useSelectionMode>
 	readonly decide: ReturnType<typeof useToastedDecisions>['decide']
+	readonly clearFlags: ReturnType<typeof useToastedDecisions>['clearFlags']
 	/** The grid's *Series…* menu edits, with their toasts. */
 	readonly editSeries: ReturnType<typeof useToastedDecisions>['editSelection']
 	readonly deleting: Pick<DeleteFlow, 'rejected' | 'rawRemovable' | 'review' | 'removeRaws' | 'summarise' | 'allDecided'>

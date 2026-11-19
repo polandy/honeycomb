@@ -19,6 +19,7 @@ import { lockDetails, lockedText, partialText } from './lock-text.ts'
 interface Decisions {
 	decide: (intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]) => CullStep | null
 	pickRest: (picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]) => CullStep | null
+	clearFlags: () => CullStep | null
 	tag: (change: TagChange, chosen: readonly Picture<ListingEntry>[]) => CullStep | null
 	removeFromSeries: (series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>) => CullStep | null
 	dissolveSeries: (series: Series<Picture<ListingEntry>>) => CullStep | null
@@ -40,6 +41,11 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 	/** Picks one picture, rejects the rest and says so, with Undo. */
 	function pickRest(picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]) {
 		toastChange(cull.pickRest(picked, rest))
+	}
+
+	/** Resets every rateable picture's flag and *Keep RAW* and says so, with Undo (GRID-001.22). */
+	function clearFlags() {
+		toastChange(cull.clearFlags())
 	}
 
 	/** Changes the pictures' tags and says what changed, with Undo (TAGS-003.10). */
@@ -98,5 +104,5 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 		}
 	}
 
-	return { decide, pickRest, tag, removeFromSeries, dissolveSeries, mergeSeries, markSeries, editSelection, undo, redo }
+	return { decide, pickRest, clearFlags, tag, removeFromSeries, dissolveSeries, mergeSeries, markSeries, editSelection, undo, redo }
 }

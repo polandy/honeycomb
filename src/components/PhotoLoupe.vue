@@ -222,6 +222,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			v-if="!chromeFree"
 			layout="loupe"
 			:common="decisions.common.value"
+			:readOnly="props.writabilityOf(picture) === 'readOnly'"
 			:flags="settings.flagButtonsShown"
 			:idle="overlays.idle.value"
 			:pinned="settings.ratingRowPinned"
