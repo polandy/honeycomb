@@ -25,15 +25,20 @@ const SIZED = [
 	listingEntry(4, '/Trip/A/IMG_9.JPG', { size: 4096 }),
 ]
 
-/** The app on a cull of SIZED with the decisions, which the JPEGs' XMP agrees with, its clock at `clock.now` and a trash endpoint that trashes every file. */
-async function openApp(decisions: StoredDecision[]) {
+/** The app on a cull of SIZED with the decisions, which the JPEGs' XMP agrees with, its clock at `clock.now` and a trash endpoint that trashes every file unless `trashFails`. */
+async function openApp(decisions: StoredDecision[], trashFails = false) {
 	const clock = { now: 0 }
 	const flags = new Map(decisions.map(({ fileId, flag }) => [fileId, flag]))
 	const sidecars = {
 		...sidecarApi(),
 		lookupEmbeddedXmp: async (ids: readonly number[]) => ids.map((id) => (flags.get(id) === 'rejected' ? { result: 'read', bytes: xmp({ 'digiKam:PickLabel': '1' }) } : { result: 'none' })),
 	}
-	const trashPictures = async (request: { fileId: number }[][]) => request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'trashed' })))
+	const trashPictures = async (request: { fileId: number }[][]) => {
+		if (trashFails) {
+			throw new Error('trash request failed')
+		}
+		return request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'trashed' })))
+	}
 	const listEntries = async () => ({ entries: SIZED })
 	const mounted = mountApp({ clock: () => clock.now, sidecars, trashPictures, listEntries }, decisions, { NcDialog: DialogStub })
 	await openCull(mounted.wrapper, undefined, SIZED)
@@ -130,5 +135,19 @@ describe('App: Cull finished', () => {
 		expect(text).toContain('Before 3 photos · 10 kB → after 2 · 5 kB')
 		expect(text).toMatch(/1\s*Moved to the trash bin/)
 		expect(text).toContain('5 kB freed')
+	})
+
+	// spec: STATS-001.33
+	it('does not open when the delete from the reject review fails', async () => {
+		const { wrapper } = await openApp([stored(2, 'rejected'), stored(3, 'rejected')], true)
+		wrapper.findComponent(GridToolbar).vm.$emit('reviewRejects')
+		await flushPromises()
+		wrapper.findComponent(RejectReview).vm.$emit('confirm')
+		await flushPromises()
+
+		wrapper.findComponent(DeleteSummary).vm.$emit('confirm')
+		await flushPromises()
+
+		expect(card(wrapper).exists()).toBe(false)
 	})
 })

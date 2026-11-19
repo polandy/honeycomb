@@ -26,7 +26,10 @@ async function finishCull(page: Page) {
 		await grid.getByRole('gridcell', { name }).click()
 	}
 	await page.getByRole('button', { name: 'Pick', exact: true }).click()
-	return page.getByRole('dialog', { name: 'Cull finished' })
+	const card = page.getByRole('dialog', { name: 'Cull finished' })
+	// The dialog fades in; a screenshot before the end of the fade shows the grid alone.
+	await expect(card).toHaveCSS('opacity', '1')
+	return card
 }
 
 test.describe('on a phone', () => {

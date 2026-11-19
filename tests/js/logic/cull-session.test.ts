@@ -106,10 +106,12 @@ describe('withInput', () => {
 })
 
 describe('sessionNumbers perMinute', () => {
-	it('divides the pictures decided by the active minutes, and has none without active time', () => {
+	it('divides the pictures decided by the active minutes, and has none below one active minute', () => {
 		const decided = withStep(SESSION, states({ 1: 'undecided', 2: 'undecided', 3: 'undecided' }), states({ 1: 'picked', 2: 'picked', 3: 'rejected' }))
 		const session = [0, 60_000, 120_000].reduce(withInput, decided)
 		expect(sessionNumbers(session, AFTER, 120_000).perMinute).toBe(1.5)
+		expect(sessionNumbers(withInput(decided, 0), AFTER, 60_000).perMinute).toBe(3)
 		expect(sessionNumbers(decided, AFTER, 0).perMinute).toBeNull()
+		expect(sessionNumbers(withInput(decided, 0), AFTER, 59_999).perMinute).toBeNull()
 	})
 })
