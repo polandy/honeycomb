@@ -40,6 +40,7 @@ test('reviews the rejects, rescues one and moves the rest to the Nextcloud trash
 	}
 	await page.getByRole('button', { name: 'Reject', exact: true }).click()
 	await expect(grid).toBeHidden()
+	await page.getByRole('dialog', { name: 'Cull finished' }).getByRole('button', { name: 'Done' }).click()
 	await page.getByRole('button', { name: 'Done' }).click()
 
 	await page.getByRole('button', { name: 'Review rejects (3)' }).click()

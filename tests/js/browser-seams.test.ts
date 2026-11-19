@@ -4,7 +4,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { APP_SEAMS } from '../../src/app-seams.ts'
 import { fullscreenAvailable, toggleBrowserFullscreen } from '../../src/fullscreen.ts'
-import { formatDateTime, formatDateTimeSeconds, formatFileSize, formatTime } from '../../src/l10n.ts'
+import { formatDateTime, formatDateTimeSeconds, formatDuration, formatFileSize, formatTime } from '../../src/l10n.ts'
 import { observeElementSize } from '../../src/observe-size.ts'
 
 afterEach(() => {
@@ -96,9 +96,14 @@ describe('observeElementSize', () => {
 	})
 })
 
-describe('formatFileSize, formatDateTime and formatTime', () => {
+describe('formatFileSize, formatDuration, formatDateTime and formatTime', () => {
 	it('shows kB below one MB, MB below one GB and GB from there', () => {
 		expect([formatFileSize(512 * 1024), formatFileSize(1.5 * 1024 ** 2), formatFileSize(2 * 1024 ** 3)]).toEqual(['512 kB', '1.5 MB', '2 GB'])
+	})
+
+	// spec: STATS-001.35
+	it('shows a duration in seconds, minutes and seconds, or hours and minutes', () => {
+		expect([formatDuration(9_999), formatDuration(150_000), formatDuration((2 * 3600 + 18 * 60 + 5) * 1000)]).toEqual(['9 s', '2 min 30 s', '2 h 18 min'])
 	})
 
 	it('shows a capture time with its year', () => {

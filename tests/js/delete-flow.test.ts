@@ -72,6 +72,16 @@ describe('useDeleteFlow', () => {
 		expect(toasts).toEqual(['Moved 1 photo · 2 files · 3 kB freed to the Nextcloud trash bin'])
 	})
 
+	// spec: STATS-001.20
+	it('tells the delete it answered, with the state the server checked', async () => {
+		const { deleting, deletes } = flow(allTrashed)
+
+		deleting.summarise([PAIR!])
+		await deleting.confirm()
+
+		expect(deletes.map(([report, expect]) => [report.trashed.map((file) => file.entry.fileId), expect])).toEqual([[[2, 1], null]])
+	})
+
 	// spec: DELETE-002.9, DELETE-002.10
 	it('reports the failed files, keeps the picture that lost a member as a single, and retries only the failed ones', async () => {
 		const answers = [

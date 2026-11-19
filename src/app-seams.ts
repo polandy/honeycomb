@@ -59,6 +59,8 @@ export interface AppSeams {
 	admin?: () => boolean
 	cleanUp?: () => Promise<number>
 	resetStatistics?: () => Promise<void>
+	/** A monotonic clock in ms, which active time is measured by (STATS-001.35). */
+	clock?: () => number
 }
 
 /** The seams the app uses in production. */
@@ -87,4 +89,5 @@ export const APP_SEAMS = {
 	admin: () => document.getElementById(APP_ELEMENT)?.dataset.admin === 'true',
 	cleanUp: cleanUpOrphanedData,
 	resetStatistics,
+	clock: () => performance.now(),
 }

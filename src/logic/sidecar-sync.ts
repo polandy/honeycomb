@@ -69,6 +69,12 @@ export interface PlannedSave {
 	readonly item: SidecarSaveItem
 }
 
+/** A sidecar a save wrote, and whether the save created it. */
+export interface SavedSidecar {
+	readonly path: string
+	readonly created: boolean
+}
+
 type Answers = ReadonlyMap<number, SidecarLookupAnswer>
 type Embedded = ReadonlyMap<number, EmbeddedXmpAnswer>
 type Known = ReadonlyMap<string, KnownSidecar>
@@ -199,4 +205,9 @@ function sameBytes(left: Uint8Array, right: Uint8Array): boolean {
 /** Whether the picture is a pair. */
 export function isPair(picture: Picture<ListingEntry>): boolean {
 	return picture.raw !== null && picture.rendered !== null
+}
+
+/** The sidecars the answers say were saved; one saved without a file id was created. */
+export function savedSidecars(saves: readonly PlannedSave[], answers: readonly SidecarSaveAnswer[]): SavedSidecar[] {
+	return saves.filter((_, index) => answers[index]?.result === 'saved').map(({ path, item }) => ({ path, created: !('fileId' in item) }))
 }
