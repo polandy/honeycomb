@@ -10,6 +10,7 @@ import type { Tag, TagChange } from './logic/tag.ts'
 import type { XmpCacheRow, XmpCacheSource } from './logic/xmp-cache.ts'
 import type { XmpTime } from './logic/xmp/model.ts'
 
+import { shallowRef } from 'vue'
 import { logger } from './logger.ts'
 import { DECISION_FIELDS, sameDecision, UNDECIDED } from './logic/decision.ts'
 import { embeddedXmpSource } from './logic/embedded-xmp.ts'
@@ -41,7 +42,8 @@ interface Waiting {
 
 /** Reads decisions and tags from the sidecars through the XMP cache and writes them to the sidecars, one pass after another, creating missing ones (XMP-003, TAGS-002). */
 export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (failed: SidecarFailure[]) => void) {
-	let known = new Map<string, KnownSidecar>()
+	const known = shallowRef(new Map<string, KnownSidecar>())
+	const knownRows = shallowRef<ReadonlyMap<number, XmpCacheRow>>(new Map())
 	let own = NO_OWN_SAVES
 	let waiting: Waiting[] = []
 	let passing = false
@@ -56,6 +58,8 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		const stale = staleSources(sources, rows)
 		const fresh = await readSources(stale, pictures)
 		fresh.forEach((row) => rows.set(row.fileId, row))
+		const staleIds = new Set(stale.map(({ entry }) => entry.fileId))
+		rememberRows([...[...rows.values()].filter(({ fileId }) => !staleIds.has(fileId)), ...fresh])
 		if (fresh.length > 0) {
 			await storeRows(fresh)
 		}
@@ -72,6 +76,11 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 			}
 		}
 		return { decided, tagged }
+	}
+
+	/** Keeps the rows, which the XMP export counts its sidecars by. */
+	function rememberRows(more: readonly XmpCacheRow[]) {
+		knownRows.value = new Map([...knownRows.value, ...more.map((row): [number, XmpCacheRow] => [row.fileId, row])])
 	}
 
 	/** The valid and stale rows the cache holds of the files; none, logged, when its lookup failed. */
@@ -185,11 +194,11 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 
 	/** Reads the sidecars honeycomb holds no bytes of, merges the edits and saves them in one request each. */
 	async function round(pictures: Pictures, editOf: EditOf, paths?: Paths) {
-		const answers = await lookUp(pictures.flatMap((picture) => writeLookups(picture, known, paths?.get(picture))), (ids) => api.lookupSidecars(ids, sizesOf(pictures)), 'Could not look up the sidecars to write')
-		const embeddedIds = pictures.flatMap((picture) => embeddedXmpSource(picture, known)?.fileId ?? [])
+		const answers = await lookUp(pictures.flatMap((picture) => writeLookups(picture, known.value, paths?.get(picture))), (ids) => api.lookupSidecars(ids, sizesOf(pictures)), 'Could not look up the sidecars to write')
+		const embeddedIds = pictures.flatMap((picture) => embeddedXmpSource(picture, known.value)?.fileId ?? [])
 		const embedded = await lookUp(embeddedIds, api.lookupEmbeddedXmp, 'Could not look up the embedded XMP to write')
 		const time = now()
-		const planned = pictures.map((picture) => planSaves(picture, editOf(picture), known, answers, time, paths?.get(picture), embedded))
+		const planned = pictures.map((picture) => planSaves(picture, editOf(picture), known.value, answers, time, paths?.get(picture), embedded))
 		const saves = planned.flatMap(({ saves }) => saves)
 		const saved = await save(saves)
 		return { failed: [...planned.flatMap(({ failed }) => failed), ...saved.failed], changed: saved.changed }
@@ -216,10 +225,12 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		} catch (error) {
 			logger.error('Could not save the sidecars', { error })
 		}
-		const applied = applySaves(saves, answers, known)
-		known = applied.known
+		const applied = applySaves(saves, answers, known.value)
+		known.value = applied.known
 		own = recordSaves(own, saves, answers)
-		await storeRows(savedRows(saves, answers ?? []))
+		const savedNow = savedRows(saves, answers ?? [])
+		rememberRows(savedNow)
+		await storeRows(savedNow)
 		return applied
 	}
 
@@ -228,7 +239,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		return withOwnSaves(picture, own)
 	}
 
-	return { read, write, writeTags, current }
+	return { read, write, writeTags, current, known, rows: knownRows }
 }
 
 /** The lookup's answers by file id, without a request for no ids. */

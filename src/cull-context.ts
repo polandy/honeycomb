@@ -17,6 +17,7 @@ import type { useTagEntryTargets } from './tag-entry-targets.ts'
 import type { useToast } from './toast.ts'
 import type { useToastedDecisions } from './toasted-decisions.ts'
 import type { ViewStateStore } from './view-state.ts'
+import type { useXmpExport } from './xmp-export.ts'
 
 import { inject, provide } from 'vue'
 
@@ -26,6 +27,8 @@ export interface CullContext {
 	readonly selection: ReturnType<typeof useSelectionMode>
 	readonly decide: ReturnType<typeof useToastedDecisions>['decide']
 	readonly clearFlags: ReturnType<typeof useToastedDecisions>['clearFlags']
+	/** Writing the picks and rejects to XMP files, with the count of files to write. */
+	readonly xmpExport: ReturnType<typeof useXmpExport>
 	/** The grid's *Series…* menu edits, with their toasts. */
 	readonly editSeries: ReturnType<typeof useToastedDecisions>['editSelection']
 	readonly deleting: Pick<DeleteFlow, 'rejected' | 'rawRemovable' | 'review' | 'removeRaws' | 'summarise' | 'allDecided'>

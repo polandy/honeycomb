@@ -159,13 +159,14 @@ a glance, at any size, without waiting for a sharp image of every tile.
 - **Then** exactly those tiles carry the lock, drawn as the mockup draws it (M8 PR 2), with the
   text *Read only* for assistive technology; the other tiles carry none
 
-### GRID-001.21 – *Write picks/rejects to XMP* shows its count (gap)
+### GRID-001.21 – *Write picks/rejects to XMP* shows its count
 
 - **Given** an open folder set with 214 sidecars to write as XMP-003.39 counts them, and one with
   none
 - **When** the user opens the ⋯ menu
 - **Then** the entry reads *Write picks/rejects to XMP · 214* and writes at once, without asking;
-  with nothing to write it reads *Write picks/rejects to XMP* and reports that all are up to date
+  with nothing to write it reads *Write picks/rejects to XMP* and reports that all are up to date;
+  the count also falls to none once the sidecars are written
 
 ### GRID-001.22 – *Clear picks/rejects*
 
@@ -230,3 +231,4 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 | 2026-11-18 | GRID-001.19: an e2e check of the 44 px touch targets in the real app on iPad viewports |
 | 2026-11-19 | ADR 0040: the lock on read-only tiles, *Write picks/rejects to XMP* with its count, *Clear picks/rejects* (.20–.22 gaps) |
 | 2026-11-19 | M8 PR 6: the lock and *Clear picks/rejects* (.20, .22 implemented) |
+| 2026-11-19 | M8 PR 7: *Write picks/rejects to XMP* with its count (.21 implemented) |

@@ -24,6 +24,8 @@ defineProps<{
 	rawRemovable: number
 	/** How many rateable pictures *Clear picks/rejects* resets. */
 	clearable: number
+	/** How many XMP files *Write picks/rejects to XMP* writes. */
+	xmpToWrite: number
 	/** How many pictures the move item opens the move dialog on. */
 	movable: number
 	/** Whether a filter is on, which makes *Move picks* *Move filtered*. */
@@ -43,6 +45,7 @@ const emit = defineEmits<{
 	'update:sortOrder': [order: SortOrder]
 	removeRaws: []
 	clearFlags: []
+	writeXmp: []
 	move: []
 	resume: []
 	reviewRejects: []
@@ -157,6 +160,18 @@ const emit = defineEmits<{
 			</template>
 			{{ t('honeycomb', 'Clear picks/rejects') }}
 			<span class="grid-more-menu__count">{{ formatNumber(clearable) }}</span>
+		</NcButton>
+		<NcButton
+			variant="tertiary"
+			alignment="start"
+			wide
+			:disabled="xmpToWrite === 0"
+			@click="emit('writeXmp')">
+			<template #icon>
+				<AppIcon name="flagPick" />
+			</template>
+			{{ t('honeycomb', 'Write picks/rejects to XMP') }}
+			<span class="grid-more-menu__count">{{ formatNumber(xmpToWrite) }}</span>
 		</NcButton>
 		<NcButton
 			v-if="resumeName !== null"

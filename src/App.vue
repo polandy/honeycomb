@@ -49,6 +49,7 @@ import { useTagEntryTargets } from './tag-entry-targets.ts'
 import { useToast } from './toast.ts'
 import { useToastedDecisions } from './toasted-decisions.ts'
 import { useViewState } from './view-state.ts'
+import { useXmpExport } from './xmp-export.ts'
 
 const props = withDefaults(defineProps<AppSeams>(), APP_SEAMS)
 
@@ -91,6 +92,7 @@ async function flushWrites() {
 	await sidecars.flush()
 	await cull.flushFlags()
 }
+const xmpExport = useXmpExport(sidecarFlow, { pictures: () => pictures.value.filter((picture) => cull.writabilityOf(picture) === 'writable'), decisionOf: cull.decisionOf, flush: flushWrites })
 const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, flush: flushWrites, current: sidecarFlow.sync.current, check, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show })
 const { dialog: deleteDialog } = deleting
 const moving = useMoveFlow({ view: () => view.value, settings: () => settings.value, updateSettings, probe: props.move.probeTargets, move: props.move.movePictures, flush: flushWrites, current: sidecarFlow.sync.current, removeFiles: cull.removeFiles, restoreFiles: cull.restoreFiles, listing: () => folderSet.value, loupe, toast: toast.show })
@@ -108,7 +110,7 @@ watch(pickerOpen, (open) => open && recent.refresh())
 
 const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => gridScreen.value?.filterBar?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
 
-provideCullContext({ cull, selection, decide, clearFlags, editSeries: editSelection, deleting, moving, resume, seriesCompare, unsaved: sidecars.waiting, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage })
+provideCullContext({ cull, selection, decide, clearFlags, xmpExport, editSeries: editSelection, deleting, moving, resume, seriesCompare, unsaved: sidecars.waiting, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage })
 
 /** Opens the confirmed folder set and offers its resume position. */
 function openFolderSet(...opened: Parameters<typeof cull.open>) {

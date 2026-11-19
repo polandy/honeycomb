@@ -23,6 +23,7 @@ export interface ContextCounts {
 	rejected: Picture<ListingEntry>[]
 	rawRemovable: number
 	resumeName: string | null
+	xmpToWrite?: number
 }
 
 /**
@@ -59,6 +60,7 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 			record('clearFlags')()
 			return null
 		},
+		xmpExport: { count: computed(() => counts.value.xmpToWrite ?? 0), run: async () => record('writeXmp')() },
 		deleting: { rejected: computed(() => counts.value.rejected), rawRemovable: computed(() => counts.value.rawRemovable), review: record('review'), removeRaws: record('removeRaws'), summarise: record('summarise'), allDecided: record('allDecided') },
 		moving: { open: record('move'), openShown: record('moveShown') },
 		resume: { resumeName: computed(() => counts.value.resumeName), resume: record('resume'), dismiss: record('dismissResume') },

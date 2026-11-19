@@ -24,7 +24,7 @@ import { DEFAULT_FILTERS } from '../logic/picture-filter.ts'
 import { toggleGroup } from '../logic/selection.ts'
 import { seriesOffer } from '../logic/series-menu.ts'
 
-const { cull, selection, decide, clearFlags, editSeries, deleting, moving, resume, seriesCompare, tagEntry, headerShown, openLoupe, openSettings, unsaved, settings, updateSettings } = useCullContext()
+const { cull, selection, decide, clearFlags, xmpExport, editSeries, deleting, moving, resume, seriesCompare, tagEntry, headerShown, openLoupe, openSettings, unsaved, settings, updateSettings } = useCullContext()
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize } = cull
 const { selecting, selected } = selection
 const { rejected, rawRemovable } = deleting
@@ -44,6 +44,7 @@ const toolbarTasks = computed<ToolbarTasks>(() => ({
 	series: cull.series.value.length,
 	rawRemovable: rawRemovable.value,
 	clearable: cull.clearable.value,
+	xmpToWrite: xmpExport.count.value,
 	movable: movable.value.length,
 	resumeName: resume.resumeName.value,
 }))
@@ -91,6 +92,7 @@ defineExpose({ grid, filterBar })
 			@compareSeries="seriesCompare.start"
 			@removeRaws="deleting.removeRaws"
 			@clearFlags="clearFlags"
+			@writeXmp="xmpExport.run"
 			@move="moving.open(movable)"
 			@resume="resume.resume"
 			@openSettings="openSettings" />

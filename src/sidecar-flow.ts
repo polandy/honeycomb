@@ -44,7 +44,7 @@ export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, act
 		report.value = null
 	}
 
-	return { sync, report, open, close }
+	return { sync, report, open, close, toast, toastFailed }
 }
 
 /** The sidecar flow of the app. */
