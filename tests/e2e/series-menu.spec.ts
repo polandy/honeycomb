@@ -40,10 +40,17 @@ async function openMenu(page: Page, names: readonly string[], caption: string): 
 	await expect(page.getByText(caption, { exact: true })).toBeVisible()
 }
 
-/** Chooses an entry of the open menu and waits for its toast. */
+/** Resolves once the server took a series write; the toast comes with the edit, the write after it. */
+function seriesSaved(page: Page): Promise<unknown> {
+	return page.waitForResponse((response) => response.url().endsWith('/api/v1/series') && response.request().method() === 'PUT' && response.ok())
+}
+
+/** Chooses an entry of the open menu and waits for its toast and its write. */
 async function choose(page: Page, entry: RegExp, toast: string): Promise<void> {
+	const saved = seriesSaved(page)
 	await page.getByRole('menuitem', { name: entry }).click()
 	await expect(page.getByText(toast)).toBeVisible()
+	await saved
 	await page.getByRole('button', { name: 'Done' }).click()
 }
 
@@ -109,9 +116,11 @@ test('marks a series done from the compare\'s menu, its photos counted as decide
 
 	await page.keyboard.press('n')
 	await page.getByRole('button', { name: 'Series menu', exact: true }).click()
+	const saved = seriesSaved(page)
 	await page.getByRole('menuitemcheckbox', { name: /Series done/, checked: false }).click()
 	await expect(page.getByText('Marked the series done')).toBeVisible()
 	await expect(progress).toHaveText('3 / 5 decided')
+	await saved
 
 	await page.reload()
 	await cullFolder(page, folder)
