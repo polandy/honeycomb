@@ -3,19 +3,23 @@
 import type { FlagFields } from './picture-flag.ts'
 import type { PictureId } from './picture-id.ts'
 
-/** One file of the listing endpoint (ADR 0009) with its flag row (LISTING-001.18); times are Unix seconds. */
-export interface ListingEntry extends FlagFields {
+/** What every picture source lists of one file: identity, pairing, sorting, display and flags (ADR 0041); times are Unix seconds. */
+export interface SourceEntry extends FlagFields {
 	readonly fileId: PictureId
 	readonly path: string
-	readonly size: number
 	readonly mtime: number
-	readonly etag: string
 	readonly mime: string
 	readonly captureTime: number | null
 	readonly orientation: number | null
 	readonly width: number | null
 	readonly height: number | null
 	readonly camera: string | null
+}
+
+/** One file of the listing endpoint (ADR 0009) with its flag row (LISTING-001.18). */
+export interface ListingEntry extends SourceEntry {
+	readonly size: number
+	readonly etag: string
 	/** The stored visual hash of this file version, `null` while none is stored (ADR 0024). */
 	readonly visualHash: string | null
 }

@@ -1548,3 +1548,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   eight pull requests, run autonomously by the chain rules; the type-only refactor now, beside
   statistics PR 4; a lean Phase 1 UI without series, hashes, tags, delete, move or XMP; one owner
   per hotspot file, M9 until its PR 6, then M10. Easy to redo: each is a docs line or a small PR.
+- 2026-11-19: Immich refactor PR 5 types file ids as `PictureId` and splits `SourceEntry` off
+  `ListingEntry`, but leaves the cull context, the grid and loupe props and `toasted-decisions` on
+  `Picture<ListingEntry>`: their callbacks reach the tag and sidecar writes in `cull.ts`, which need
+  `etag` and `size`, so retyping them now would mean reshaping `cull.ts` beside statistics PR 4. The
+  retyping moves to the Vue shell refactor (PR 9), which reshapes `cull.ts` anyway. Easy to redo:
+  type lines only.
