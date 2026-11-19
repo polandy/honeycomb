@@ -170,8 +170,8 @@ the whole decision per (connection, asset id) in a table of its own registered a
 `UserRowStore`, e2e against a stub built from the pinned Immich schema, Phase 1 as about eight
 pull requests with a lean UI (grid, loupe, filters, decisions, position and *Recent*; no series,
 hashes, tags, delete, move or XMP), and the Vue shell's hotspot files owned by M9 until its PR 6 is
-merged. The exception to rule 1, the mapping and the pull request order are in ADR 0041; the
-connections file, the decision table and the source's API get their own ADR.
+merged. The exception to rule 1, the mapping and the pull request order are in ADR 0041, the
+connections file in ADR 0042; the decision table and the source's API get their own ADR.
 
 ### Release – first App Store release
 

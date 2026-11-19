@@ -74,8 +74,8 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **active time** | The seconds of a cull with an input at most 2 minutes earlier; a longer pause counts its first 2 minutes only. |
 | **streak** | Consecutive days, up to today or yesterday, with at least one counted action. Not a *series*. |
 | **Immich source** | The second source beside Nextcloud folders: one connection's upload library, reached only through the Immich API, never as files (ADR 0041). |
-| **connection** | One Immich account a user culls: Nextcloud user, label, Immich URL and key file, declared by the admin in the connections file; several per user (ADR 0041). |
-| **connections file** | The read-only JSON file the server configuration generates with every connection; its path is app config, and no key ever enters the database or the UI (ADR 0041). |
+| **connection** | One Immich account a user culls: Nextcloud user, label, Immich URL and key file, declared by the admin in the connections file; several per user (ADR 0041, ADR 0042). |
+| **connections file** | The read-only JSON file the server configuration generates with every connection; its path is app config, and no key ever enters the database or the UI (ADR 0041, format and rules in ADR 0042). |
 | **asset** | One picture or video in Immich, keyed by its asset id; a live photo is one asset, a stack shows but only the chosen asset goes (ADR 0041). |
 | **picture id** | What identifies a picture in the browser, `PictureId`: the Nextcloud file id as a number, the Immich asset id as a string (ADR 0041). |
 | **decision table** | The table that holds an Immich asset's whole decision, rating, colour label, flag and *Keep RAW*, per (connection, asset id); a `UserRowStore`, never a `FileRowStore` (ADR 0041). |

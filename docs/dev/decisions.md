@@ -1548,3 +1548,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   eight pull requests, run autonomously by the chain rules; the type-only refactor now, beside
   statistics PR 4; a lean Phase 1 UI without series, hashes, tags, delete, move or XMP; one owner
   per hotspot file, M9 until its PR 6, then M10. Easy to redo: each is a docs line or a small PR.
+- 2026-11-19: ADR 0042 fixes the connections file: `version` 1, per connection `id` (1–64 of
+  `a-z0-9-`, the stable key of the decision table), `user`, `label`, `url` (origin only),
+  `keyFile` (absolute) and `picksAsFavorites`; the file is valid as a whole or not at all; it is
+  read on every request through an injected seam and a key only for the one Immich call; rows of
+  a connection that left the file go with the daily sweep, which sweeps nothing when the file is
+  missing or invalid; a lacking scope is detected from Immich's `403`, never probed; the status
+  check needs no scope beyond Phase 1's. Easy to redo: each is a line in the ADR before the code.
