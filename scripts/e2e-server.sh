@@ -23,19 +23,23 @@ DOWNLOAD_ATTEMPTS=5
 CONNECT_SECONDS=20
 
 # Team folders is no bundled app; fetch the pinned release once, check it every run (ADR 0030).
-if [ ! -f "$TEAM_FOLDERS.tar.gz" ]; then
-  mkdir -p "$(dirname "$TEAM_FOLDERS")"
-  curl -fsSL --connect-timeout "$CONNECT_SECONDS" --retry "$DOWNLOAD_ATTEMPTS" --retry-all-errors \
-    -o "$TEAM_FOLDERS.tar.gz.part" \
-    "https://github.com/nextcloud-releases/groupfolders/releases/download/v$TEAM_FOLDERS_VERSION/groupfolders-v$TEAM_FOLDERS_VERSION.tar.gz"
-  mv "$TEAM_FOLDERS.tar.gz.part" "$TEAM_FOLDERS.tar.gz"
-fi
-echo "$TEAM_FOLDERS_SHA256  $TEAM_FOLDERS.tar.gz" | sha256sum --check --quiet
-if [ ! -d "$TEAM_FOLDERS" ]; then
-  rm -rf "${TEAM_FOLDERS:?}.part" && mkdir "$TEAM_FOLDERS.part"
-  tar -xzf "$TEAM_FOLDERS.tar.gz" -C "$TEAM_FOLDERS.part" --strip-components=1
-  mv "$TEAM_FOLDERS.part" "$TEAM_FOLDERS"
-fi
+# Parallel runs share the cache: the lock lets one fill it while the others wait.
+mkdir -p "$(dirname "$TEAM_FOLDERS")"
+(
+  flock 9
+  if [ ! -f "$TEAM_FOLDERS.tar.gz" ]; then
+    curl -fsSL --connect-timeout "$CONNECT_SECONDS" --retry "$DOWNLOAD_ATTEMPTS" --retry-all-errors \
+      -o "$TEAM_FOLDERS.tar.gz.part" \
+      "https://github.com/nextcloud-releases/groupfolders/releases/download/v$TEAM_FOLDERS_VERSION/groupfolders-v$TEAM_FOLDERS_VERSION.tar.gz"
+    mv "$TEAM_FOLDERS.tar.gz.part" "$TEAM_FOLDERS.tar.gz"
+  fi
+  echo "$TEAM_FOLDERS_SHA256  $TEAM_FOLDERS.tar.gz" | sha256sum --check --quiet
+  if [ ! -d "$TEAM_FOLDERS" ]; then
+    rm -rf "${TEAM_FOLDERS:?}.part" && mkdir "$TEAM_FOLDERS.part"
+    tar -xzf "$TEAM_FOLDERS.tar.gz" -C "$TEAM_FOLDERS.part" --strip-components=1
+    mv "$TEAM_FOLDERS.part" "$TEAM_FOLDERS"
+  fi
+) 9>"$TEAM_FOLDERS.lock"
 
 docker rm --force "$CONTAINER" >/dev/null 2>&1 || true
 exec docker run --rm --name "$CONTAINER" -p "127.0.0.1:$1:80" \
