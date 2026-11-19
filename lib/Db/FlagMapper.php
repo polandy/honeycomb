@@ -59,7 +59,7 @@ final class FlagMapper implements FlagStore {
 
 	#[\Override]
 	public function takeOver(array $flags): array {
-		// Read before the transaction, so SQLite takes the write lock at once; a row inserted meanwhile hits the unique key and is repeated.
+		// Read before the transaction, so SQLite takes the write lock at once; a row inserted meanwhile hits the unique key, and FlagService repeats the take-over.
 		$existing = $this->find(array_map(static fn (FileFlag $flag): int => $flag->fileId, $flags));
 		$missing = array_values(array_filter($flags, static fn (FileFlag $flag): bool => !isset($existing[$flag->fileId])));
 		$this->atomic(fn () => $this->insert($missing), $this->db);
