@@ -11,12 +11,11 @@ only when you choose *Write picks/rejects to XMP* in the ⋯ menu; the entry sho
 differ. A photo honeycomb sees for the first time takes over the flag its sidecars state, once.
 The notice about stored decisions and its *Write decisions to sidecars…* go.
 
-## Turn writing on
+## When honeycomb writes
 
-Writing is *Off* until you turn on **Write decisions to XMP sidecars** in the
-[settings](settings.md#xmp-sidecars), or confirm *Write to sidecars* at your first rating. While it
-is off, nothing can be rated. *On* needs Nextcloud's Versions app, so every write can be undone
-from the file's versions; without it the option is greyed out — ask your administrator.
+honeycomb writes the sidecars of every photo you may change, without a setting and without asking
+first, shared folders and folders without file versions included. In a folder you may only read
+nothing can be rated ([shared folders and permissions](shared-folders.md)).
 
 ## What honeycomb writes
 

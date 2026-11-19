@@ -16,8 +16,8 @@ sidecars when the user asks (ADR 0040).
 
 ## Behaviour
 
-**Concept D (ADR 0040).** M8 PR 3 removes the setting and the shared folders below, M8 PR 4 the
-legacy rows, and M8 PR 6 moves the flag and *Keep RAW* to the database: from then on a step writes
+**Concept D (ADR 0040).** There is no setting and no shared-folder rule (XMP-008); M8 PR 4
+removes the legacy rows, and M8 PR 6 moves the flag and *Keep RAW* to the database: from then on a step writes
 only the rating, colour label and tags through, and leaves the sidecar's flag fields and
 `honeycomb:KeepRaw` as they are. **Taking over (M8 PR 6):** a picture whose members have no row
 in `honeycomb_flags` takes over the flag and *Keep RAW* its sources state, by the rules of
@@ -45,11 +45,6 @@ writes them to its sidecars (XMP-007), locked (XMP-008). A picture the user deci
 the user's decision. A refused or unreadable sidecar, a disagreement between sidecars and a failed
 lookup are logged as warnings; the picture keeps what it shows, or takes what the sources that were
 read state. A failed cache lookup reads every source; a failed cache save is logged.
-
-**The setting.** *Write decisions to XMP sidecars* (SETTINGS-001.24) is *Off* by default, for
-every user, also one who culled before it existed. Off, no decision or tag is made: the first
-attempt asks to turn it *On* (XMP-008); the cull still shows what the sidecars state. *On* writes
-through as below.
 
 **Writing through.** As soon as any attribute is set on a photo — a flag, a rating, a colour label,
 *Keep RAW*, or an undo or redo of one — each picture the step touched is
@@ -85,11 +80,9 @@ the sidecars as they state, so no sidecar is saved for it (XMP-003.17).
 the sizes the listing states, and saves into requests of at most 1,000 sidecars and 8 MiB of
 content; one sidecar over 8 MiB goes alone. The server keeps no byte budget of its own.
 
-**Shared folders.** The listing says per folder whether it is shared (ADR 0017). A picture of the
-cull in a shared folder is decided only once the user confirmed the opened folder (XMP-008.4).
-The grid's ⋯ menu
-entry *Write decisions to sidecars…* writes every picture with legacy rows after asking, in shared
-folders too (XMP-007).
+**Shared folders.** A picture in a shared folder is decided and written like any other rateable
+picture, without asking (ADR 0040). The grid's ⋯ menu entry *Write decisions to sidecars…* writes
+every picture with legacy rows after asking (XMP-007).
 
 **Failure report.** A sidecar that could not be written — refused when read (not UTF-8, malformed,
 a `<!DOCTYPE>`, a property given twice), a lookup or save answer other than `read` or `saved`, or a
@@ -142,13 +135,13 @@ Withdrawn by ADR 0040; M8 PR 4 marks it removed.
 
 Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 
-- **Given** writing to sidecars on, a pair outside a shared folder with `IMG_0001.NEF.xmp` and `IMG_0001.JPG.xmp`
+- **Given** a pair outside a shared folder with `IMG_0001.NEF.xmp` and `IMG_0001.JPG.xmp`
 - **When** the user picks it
 - **Then** both sidecars are read, merged with the pick and saved with the ETag and size read
 
 ### XMP-003.7 – A member without a sidecar gets `<member file>.xmp`
 
-- **Given** writing *On*, a pair outside a shared folder without sidecars
+- **Given** a pair outside a shared folder without sidecars
 - **When** the user rates it
 - **Then** `IMG_0001.NEF.xmp` and `IMG_0001.JPG.xmp` are created with the rating, and the next
   write to them saves over the created files without looking them up
@@ -184,14 +177,9 @@ Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 The cull saves no decision to the database any more (ADR 0032, XMP-006.7); a failed sidecar write
 is reported (XMP-003.13).
 
-### XMP-003.11 – Nothing is written in an unconfirmed shared folder
+### XMP-003.11 – Nothing is written in an unconfirmed shared folder (removed)
 
-Withdrawn by ADR 0040; M8 PR 3 marks it removed.
-
-- **Given** a picture with a member in a shared folder the user has not confirmed
-- **When** the user decides it
-- **Then** nothing is shown and no sidecar is looked up or saved until the user confirms the
-  folder (XMP-008.4); then the decision is written through
+Withdrawn by ADR 0040 (M8 PR 3); there is no switch and no shared-folder rule (XMP-008.12).
 
 ### XMP-003.12 – The ⋯ menu writes to sidecars in shared folders after asking (removed)
 
@@ -206,31 +194,21 @@ and elsewhere.
   first reason and *More reasons in Details*, with *Details*; the dialog lists both files with
   their reasons, and *Retry failed sidecars* writes their pictures again
 
-### XMP-003.14 – The client reads the listing's shared folders
+### XMP-003.14 – The client reads the listing's shared folders (removed)
 
-Withdrawn by ADR 0040; M8 PR 3 marks it removed.
-
-- **Given** a listing answer with `folders` marking `/Photos/Team` shared
-- **When** the cull opens on it
-- **Then** pictures in `/Photos/Team` count as in a shared folder; a listing without `folders`
-  counts no folder as shared
+Withdrawn by ADR 0040 (M8 PR 3); there is no switch and no shared-folder rule (XMP-008.12).
 
 ### XMP-003.15 – Every attribute writes through, and only for the touched picture
 
 Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 
-- **Given** writing to sidecars on, a cull outside a shared folder
+- **Given** a cull outside a shared folder
 - **When** the user flags, rates, labels or keeps the RAW of one picture
 - **Then** that picture alone is written to its sidecars; the others get none
 
-### XMP-003.18 – Off by default, nothing is decided or written
+### XMP-003.18 – Off by default, nothing is decided or written (removed)
 
-Withdrawn by ADR 0040; M8 PR 3 marks it removed.
-
-- **Given** a user without the setting stored, or with *Off*
-- **When** the user decides a picture outside a shared folder or changes its tags
-- **Then** nothing is shown and no sidecar is looked up or saved until the user turns writing
-  *On* (XMP-008.7); a picture still shows its sidecars' decision
+Withdrawn by ADR 0040 (M8 PR 3); there is no switch and no shared-folder rule (XMP-008.12).
 
 ### XMP-003.19 – *Only existing sidecars* creates none (removed)
 
@@ -239,7 +217,7 @@ sidecars* reads as *Off* (SETTINGS-001.26).
 
 ### XMP-003.20 – A step writes only the fields it changed
 
-- **Given** writing to sidecars on, a picture whose sidecar states green while honeycomb shows no
+- **Given** a picture whose sidecar states green while honeycomb shows no
   colour label
 - **When** the user rates it, then undoes the rating
 - **Then** each write carries only the rating, and the sidecar keeps green
@@ -248,7 +226,7 @@ sidecars* reads as *Off* (SETTINGS-001.26).
 
 Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 
-- **Given** writing *On*, a pair whose `IMG_0001.NEF.xmp` states three stars and red,
+- **Given** a pair whose `IMG_0001.NEF.xmp` states three stars and red,
   and no `IMG_0001.JPG.xmp`
 - **When** the user rejects it
 - **Then** `IMG_0001.JPG.xmp` is created with three stars, red and rejected; held bytes honeycomb
@@ -269,7 +247,7 @@ Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 
 Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 
-- **Given** writing *On*, a pair whose `IMG_0001.NEF.xmp` states one star and whose
+- **Given** a pair whose `IMG_0001.NEF.xmp` states one star and whose
   JPEG embeds four stars and green, without `IMG_0001.JPG.xmp`
 - **When** the user picks it
 - **Then** `IMG_0001.NEF.xmp` gets one star and picked, and `IMG_0001.JPG.xmp` is created with four
@@ -284,7 +262,7 @@ Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 
 ### XMP-003.25 – One picture's steps are written together when the user leaves it
 
-- **Given** writing *On*, the loupe on a picture
+- **Given** the loupe on a picture
 - **When** the user rates, flags and labels it, then the loupe shows the next picture
 - **Then** nothing is saved before the loupe moves on; then one pass saves each sidecar of the
   picture once, with all three changes
@@ -338,7 +316,7 @@ Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 
 ### XMP-003.33 – Every refusal is named in its own words
 
-- **Given** a write that failed for one reason: a save answer (`notFound`, `changed`, `noVersions`,
+- **Given** a write that failed for one reason: a save answer (`notFound`, `changed`, `noSpace`,
   `notPermitted`, `locked`, `failed`), a lookup answer (`tooLarge` too), an XMP refusal or a failed
   request
 - **When** the toast reports it
@@ -439,3 +417,4 @@ Withdrawn by ADR 0040; M8 PR 6 marks it removed.
 | 2026-11-18 | The failure toast names the reason, one text per reason (.13 changed, .33; owner decision on #221 (c)) |
 | 2026-11-18 | The cull reads through the XMP cache and stores no legacy rows; a legacy row wins, locked, until migrated (.1–.5, .11, .18, .30 changed, .10 removed, ADR 0032) |
 | 2026-11-19 | ADR 0040: flags taken over once and written only by *Write picks/rejects to XMP*; ratings, labels and tags leave the flag fields (.1, .2, .6, .11, .14, .15, .18, .21, .23 withdrawn; .34–.42 gaps) |
+| 2026-11-19 | M8 PR 3: no setting and no shared-folder confirmation (.11, .14, .18 removed) |

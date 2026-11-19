@@ -124,12 +124,10 @@ Same as Framehive (CORE-009 "Sidecar names", LIBRARY-001 "Metadata"):
 - **Reading** looks for both, extension `xmp` in any case (CORE-009.20). digiKam reads exactly
   one: the name its *compatible file name* setting gives, with no fallback to the other
   (`metaengine_fileio.cpp:42–59`, `collectionscanner_scan.cpp:716–733`).
-- **Writing** is off until the user opts in (setting *Write decisions to XMP sidecars*,
-  XMP-003; M8 PR 3 drops the setting, and every rateable picture is written). It goes to every
+- **Writing** goes to every rateable picture, without a setting (ADR 0040, XMP-008). It goes to every
   sidecar of the picture that exists, so none is left stale. When
   a member has none, honeycomb creates `<member file>.xmp` (CORE-009.21, `original_with_extension`,
-  digiKam's default), one per member (LIBRARY-001.6). The setting is *Off* or *On* (ADR 0032
-  PR 6); *On* creates them.
+  digiKam's default), one per member (LIBRARY-001.6).
 - darktable's duplicates (`IMG_0001_01.NEF.xmp`, `image.c:930`) belong to darktable versions,
   not to members: honeycomb neither reads nor writes them, and deletes them with the picture.
   *Added; Framehive does not mention them.*

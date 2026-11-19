@@ -12,33 +12,22 @@ show them, from one request per folder. The server lists; it never pairs (ADR 00
 
 ## Behaviour
 
-**Concept D (ADR 0040).** M8 PR 3 drops `shared` and `versions` from `folders` and stops reading
-the shares, so a folder item is `{"path", "permissions"}`. M8 PR 5 adds to each entry the
+**Concept D (ADR 0040).** M8 PR 5 adds to each entry the
 picture's `flag`, `keepRaw` and `flagUpdated` from `honeycomb_flags` (DECISIONS-001.21), each
 `null` while the file has no row. Until then the text below holds.
 
 `GET /apps/honeycomb/api/v1/entries?path=<folder>[&subfolders=1][&excluded[]=<folder>...]`,
 logged in, with the CSRF token. `path` is relative to the user's files; empty is the root. The
 answer is `{"entries": [...], "truncated": <bool>, "folders": [...], "fileId": <n>}`, `fileId`
-being the listed folder's (XMP-008.4). An entry has `fileId`, `path`
+being the listed folder's. An entry has `fileId`, `path`
 (from the user's files, leading `/`), `size`, `mtime`, `etag`, `mime` and `captureTime`,
 `orientation`, `width`, `height` from Nextcloud's file metadata, each `null` where it has none,
 and `visualHash`, the user's stored visual hash of the file's current version or `null`
 (SERIES-003).
-`folders` has one item per folder
-that holds an entry, `{"path": "/Photos", "shared": <bool>, "permissions": 31, "versions": <bool>}`:
-shared when another user or a
-federated user has access to it or to a folder above it, when it lies in a folder shared with the
-user, when it or a folder above it is shared by public link or by mail, when it lies in a group
-folder, or when it lies on external storage
-mounted for another user too (ADR 0017). A listing reads the user's shares once, one lookup per
-share type, and asks for the access list only of a folder that carries one of them, with no
-shared folder above it; a folder without a share inherits the answer of the folder above it.
-`permissions` are Nextcloud's bits of the folder for the
-user (READ 1, UPDATE 2, CREATE 4, DELETE 8, SHARE 16), with the share mask, reshares, ACLs and
-read-only mounts in them. `versions` is true when the Versions app keeps the folder's file
-versions: `files_versions` is enabled for the folder's owner, a versions backend exists for its
-storage, and it is not on external storage (ADR 0032).
+`folders` has one item per folder that holds an entry, `{"path": "/Photos", "permissions": 31}`
+(ADR 0040). `permissions` are Nextcloud's bits of the folder for the user (READ 1, UPDATE 2,
+CREATE 4, DELETE 8, SHARE 16), with the share mask, reshares, ACLs and read-only mounts in them.
+No share or versions lookup is made.
 
 Listed are files whose mime type is `image/*` or whose name ends in `.xmp`, `.cr3` or `.srw`
 (case-insensitive): Nextcloud types Canon and Samsung RAW files `application/octet-stream`. Without
@@ -129,17 +118,9 @@ ticked parent with subfolders and a ticked child both hold it.
 - **When** the client merges their listings
 - **Then** each file is listed once, in listing order
 
-### LISTING-001.12 – Each folder says whether it is shared
+### LISTING-001.12 – Each folder says whether it is shared (removed)
 
-Withdrawn by ADR 0040; M8 PR 3 marks it removed.
-
-- **Given** entries in a folder of the user's own, in a folder shared with another user, in a
-  folder shared with the user, below a folder shared with a federated user, in a folder shared
-  by public link, in one shared by mail, in a group folder, on external storage of the user only
-  and on external storage mounted for another user too
-- **When** the client lists them
-- **Then** `folders` lists each of these folders once, with its path, and `shared` is false only
-  for the user's own folder and the external storage of the user only
+Withdrawn by ADR 0040 (M8 PR 3); a folder names its path and permissions only (.19).
 
 ### LISTING-001.13 – RAW files Nextcloud does not type are listed
 
@@ -155,14 +136,9 @@ Withdrawn by ADR 0040; M8 PR 3 marks it removed.
 - **Then** each folder's `permissions` are its bits for the user: all of them for the own folder,
   READ without UPDATE and CREATE for the read-only share
 
-### LISTING-001.15 – Each folder says whether it keeps versions
+### LISTING-001.15 – Each folder says whether it keeps versions (removed)
 
-Withdrawn by ADR 0040; M8 PR 3 marks it removed.
-
-- **Given** entries in a folder of the user's own, in a folder whose owner has the Versions app
-  disabled, in a folder whose storage has no versions backend, and on external storage
-- **When** the client lists them
-- **Then** `versions` is true only for the user's own folder
+Withdrawn by ADR 0040 (M8 PR 3); a folder names its path and permissions only (.19).
 
 ### LISTING-001.16 – Excluded folders are left out
 
@@ -171,14 +147,9 @@ Withdrawn by ADR 0040; M8 PR 3 marks it removed.
 - **Then** the excluded folders and everything below them are neither listed nor opened, the
   others are; a malformed `excluded` answers `400`
 
-### LISTING-001.17 – The shares are read once per listing
+### LISTING-001.17 – The shares are read once per listing (removed)
 
-Withdrawn by ADR 0040; M8 PR 3 marks it removed.
-
-- **Given** a tree of 100 folders of which one carries a share with another user
-- **When** the client lists it with `subfolders`
-- **Then** the share manager is asked for the user's shares once per share type and for one
-  access list, that of the shared folder, and every folder below it is shared
+Withdrawn by ADR 0040 (M8 PR 3); a folder names its path and permissions only (.19).
 
 ### LISTING-001.18 – Each entry carries its flag (gap)
 
@@ -216,3 +187,4 @@ Withdrawn by ADR 0040; M8 PR 3 marks it removed.
 | 2026-11-17 | `excluded` folders left out (.16; ADR 0035) |
 | 2026-11-18 | The shares are read once per listing, not per folder (.17; `docs/dev/plan.md` Multiple folders item 9) |
 | 2026-11-19 | ADR 0040: `shared` and `versions` go, each entry carries its flag (.12, .15, .17 withdrawn; .18, .19 gaps) |
+| 2026-11-19 | M8 PR 3: folders carry `path` and `permissions` only (.12, .15, .17 removed; .19 implemented) |

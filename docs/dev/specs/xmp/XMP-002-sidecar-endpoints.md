@@ -27,11 +27,8 @@ file id and the replaced bytes become a version; no file is written beside it. T
 `{"sidecars": [{"result": "saved", "fileId": 9, "etag": "…", "size": 830, "mtime": …}, …]}` in
 the order sent.
 
-Until M8 PR 3 (ADR 0040 withdraws this rule, so a folder without versions is rateable) an
-existing sidecar is overwritten only while its folder keeps versions (`versions` in
-LISTING-001.15: `files_versions` enabled for the owner, a versions backend for the storage, not
-external storage), so the version it replaces, possibly written by another program, can be
-restored from the file's versions; a new sidecar has nothing to lose and is created either way.
+An existing sidecar is overwritten whether or not its folder keeps versions (ADR 0040): honeycomb
+changes only its own fields and keeps the rest of the sidecar (`06-xmp-interop.md` Writing).
 
 | Result | Lookup | Save |
 |---|---|---|
@@ -39,11 +36,10 @@ restored from the file's versions; a new sidecar has nothing to lose and is crea
 | `saved` | – | Saved; the sidecar's file id, ETag, size and mtime |
 | `notFound` | Vanished, foreign, a folder or not `.xmp` | An existing sidecar vanished or is not `.xmp`; a new one's image is missing |
 | `changed` | – | Another ETag or size, or a new one that exists meanwhile |
-| `noVersions` | – | An existing sidecar whose folder keeps no versions |
 | `tooLarge` | Over 1 MiB | – |
 | `notPermitted` | The user may not read it | The user may not update it; for a new one, create files in its folder |
 | `locked` | Locked by another process | Locked by another process |
-| `noSpace` | – | The storage or the owner's quota is full (M8 PR 6, ADR 0040) |
+| `noSpace` | – | The storage or the owner's quota is full, by its free space or the error (ADR 0040) |
 | `failed` | Any other error, logged as a warning | Any other error, logged as a warning |
 
 | Case | Answer |
@@ -121,16 +117,9 @@ restored from the file's versions; a new sidecar has nothing to lose and is crea
 - **Then** the lookup answers the new bytes under the same file id, and the file's versions hold
   the old bytes
 
-### XMP-002.10 – No existing sidecar is overwritten without file versions
+### XMP-002.10 – No existing sidecar is overwritten without file versions (removed)
 
-Withdrawn by ADR 0040; M8 PR 3 marks it removed.
-
-- **Given** an existing sidecar whose folder keeps no versions (the Versions app disabled for its
-  owner, no versions backend for its storage, or external storage) and a new sidecar path
-- **When** the client saves both
-- **Then** the existing one answers `noVersions` and keeps its bytes, nothing is written beside it,
-  and the new one is `saved`; the client reports it as *File versions are off, so honeycomb does
-  not overwrite an existing sidecar*
+Withdrawn by ADR 0040 (M8 PR 3); an existing sidecar is overwritten without versions too (.11).
 
 ### XMP-002.11 – An existing sidecar is overwritten without file versions too (gap)
 
@@ -161,3 +150,4 @@ Withdrawn by ADR 0040; M8 PR 3 marks it removed.
 | 2026-11-15 | Versions checked per folder, by owner and storage (ADR 0032) |
 | 2026-11-18 | Saved in place instead of through a part file, which Nextcloud 35.0.3 refuses to move (ADR 0017) |
 | 2026-11-19 | ADR 0040: a sidecar is overwritten without versions too, a full storage answers `noSpace` (.10 withdrawn; .11, .12 gaps) |
+| 2026-11-19 | M8 PR 3: no `noVersions`, `noSpace` by free space or error (.10 removed; .11, .12 implemented) |

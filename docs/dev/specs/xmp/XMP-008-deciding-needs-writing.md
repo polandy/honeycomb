@@ -15,10 +15,9 @@ picture with the reason.
 
 ## Behaviour
 
-ADR 0040 replaces the six locks below by two states. M8 PR 3 builds them and removes `off`,
-`shared`, `noVersions`, `refused` and the confirmation of shared folders, M8 PR 4 removes
-`legacy`, M8 PR 6 takes back failed writes; until then the criteria withdrawn below hold and
-those from .12 on are gaps.
+ADR 0040 replaces the six locks of ADR 0032 by two states. Until M8 PR 4 removes it, a third
+state, `legacy`, locks a picture with a legacy decision or tag (XMP-007) not yet written to its
+sidecars; M8 PR 6 takes back failed writes, until then .15 to .17 are gaps.
 
 **Two states (ADR 0040, M8 PR 3).** A picture is *rateable* when the folder of every member
 grants UPDATE (2) and CREATE (4) in the listing's `permissions` (LISTING-001), otherwise *read
@@ -35,93 +34,47 @@ that is not XMP) is taken back for that picture, and the toast names the reason;
 pictures of the step stay changed. A flag or *Keep RAW* save that fails is taken back the same
 way.
 
-**Until M8 PR 3:** each picture has one writability, the first of these that holds for any
-member's folder: `off` while *Write decisions to XMP sidecars* is *Off*; `readOnly` when the
-folder lacks UPDATE or CREATE; `shared` when the folder is shared and the user has not confirmed
-the opened folder that holds it; `noVersions` when the folder keeps no versions; `refused` when a
-write of this visit refused one of the picture's sidecars; `legacy` while a member has a legacy
-decision or tag (XMP-007) not yet written to its sidecars. Otherwise it is `writable`. A
-confirmation of a shared folder is kept per user under the file id of the nearest opened folder
-that holds it, at most 200. A step over locked pictures first asks for the locks the user can
-lift (*Write decisions to XMP sidecars?*, *Write to a shared folder?*), then decides the writable
-pictures and names the first reason of the others in the order `readOnly`, `noVersions`,
-`refused`, `legacy`. The loupe's info panel says per picture why nothing is written.
+**The order of reasons.** A step that leaves pictures unchanged names the first reason in the
+order `readOnly`, `legacy`. The loupe's info panel says per picture why nothing is written.
 
 **Before the sidecars are read.** A step is taken while the sidecars are still looked up; a
 decision made meanwhile wins (XMP-003.3).
 
 ## Acceptance criteria
 
-### XMP-008.1 – A picture whose folders allow it is writable
+### XMP-008.1 – A picture whose folders allow it is writable (removed)
 
-Withdrawn by ADR 0040; M8 PR 3 marks it removed.
+Withdrawn by ADR 0040 (M8 PR 3); .12 and .14 replace it.
 
-- **Given** writing *On*, a picture whose member folders grant UPDATE and CREATE, keep versions and
-  are not shared, or are not named by the listing at all
-- **When** its writability is read
-- **Then** it is `writable`; a listing item of another shape is dropped and counts as not named
+### XMP-008.2 – *Off* comes first (removed)
 
-### XMP-008.2 – *Off* comes first
-
-Withdrawn by ADR 0040; M8 PR 3 marks it removed.
-
-- **Given** writing *Off* and a read-only, shared folder without versions
-- **When** the writability of a picture there is read
-- **Then** it is `off`
+Withdrawn by ADR 0040 (M8 PR 3); .12 and .14 replace it.
 
 ### XMP-008.3 – A folder without UPDATE or CREATE is read-only
 
-- **Given** writing *On* and a member folder with permissions 1 (READ only)
+- **Given** a member folder with permissions 1 (READ only)
 - **When** the user decides or tags the picture
-- **Then** nothing is decided and a toast says *Not changed: you may only read this folder*
+- **Then** nothing is decided and a toast says *Not changed: read only*
 
-### XMP-008.4 – A shared folder is confirmed once per opened folder
+### XMP-008.4 – A shared folder is confirmed once per opened folder (removed)
 
-Withdrawn by ADR 0040; M8 PR 3 marks it removed.
+Withdrawn by ADR 0040 (M8 PR 3); .12 and .14 replace it.
 
-- **Given** writing *On* and a shared member folder below the opened folder `/Trip` (file id 7)
-- **When** the user decides the picture and confirms *Write to a shared folder?*
-- **Then** the settings keep 7 in `confirmedSharedFolders`, the step is taken, and further steps
-  in `/Trip` and its subfolders ask no more; the listing answers the opened folder's `fileId`
+### XMP-008.5 – A folder without versions is locked (removed)
 
-### XMP-008.5 – A folder without versions is locked
+Withdrawn by ADR 0040 (M8 PR 3); .12 and .14 replace it.
 
-Withdrawn by ADR 0040; M8 PR 3 marks it removed.
+### XMP-008.6 – A refused sidecar locks its picture for the visit (removed)
 
-- **Given** writing *On* and a member folder whose `versions` is false
-- **When** the user decides the picture
-- **Then** nothing is decided and a toast says *Not changed: this folder keeps no versions*
+Withdrawn by ADR 0040 (M8 PR 3); .12 and .14 replace it.
 
-### XMP-008.6 – A refused sidecar locks its picture for the visit
+### XMP-008.7 – A lock the user can lift is asked first (removed)
 
-Withdrawn by ADR 0040; M8 PR 3 marks it removed.
+Withdrawn by ADR 0040 (M8 PR 3); .12 and .14 replace it.
 
-- **Given** a write that refused a sidecar of one picture as malformed and could not save one of
-  another (`notPermitted`)
-- **When** the writabilities are read, and again after a folder set is opened
-- **Then** the first picture is `refused` and the second `writable`; after opening both are
-  `writable`
+### XMP-008.9 – A step decides the writable pictures and reports the locked ones (removed)
 
-### XMP-008.7 – A lock the user can lift is asked first
-
-Withdrawn by ADR 0040; M8 PR 3 marks it removed.
-
-- **Given** a step on two pictures, one of them `off` or `shared`
-- **When** the user takes it
-- **Then** the dialog asks before anything is decided; *Write to sidecars* takes the step, *Cancel*
-  takes nothing; the info panel says *Not written, …* with the picture's reason
-
-### XMP-008.9 – A step decides the writable pictures and reports the locked ones
-
-Withdrawn by ADR 0040; M8 PR 3 marks it removed.
-
-- **Given** a step on three pictures, two of them in a read-only folder
-- **When** the user takes it
-- **Then** the writable one is decided, stored and written; the locked two are not; the toast says
-  *Rejected 1 photo; 2 photos not changed: you may only read the folder* with *Undo* and
-  *Details*, which unfold each locked photo's name and reason; with every picture locked nothing is
-  taken and the toast names the first reason in the order `readOnly`, `noVersions`, `refused`,
-  `legacy`
+Withdrawn by ADR 0040 (M8 PR 3); .12 and .14 replace it.
 
 ### XMP-008.10 – Undo takes back the partial step as one step
 
@@ -140,13 +93,13 @@ Withdrawn by ADR 0040; M8 PR 3 marks it removed.
 
 Withdrawn by ADR 0040; M8 PR 4 marks it removed.
 
-- **Given** writing *On*, a picture with a legacy decision and one with legacy tags only
+- **Given** a picture with a legacy decision and one with legacy tags only
 - **When** the user rates both, then the ⋯ entry writes them to their sidecars
 - **Then** neither is rated, the toast says *2 photos not changed: stored decisions are not yet in
   the sidecars* and the info panel says *Not written, stored decisions not yet in its sidecars*;
   once they are acknowledged both show what they showed before and are writable
 
-### XMP-008.12 – A picture whose folders grant UPDATE and CREATE is rateable (gap)
+### XMP-008.12 – A picture whose folders grant UPDATE and CREATE is rateable
 
 - **Given** a picture whose member folders grant UPDATE and CREATE, also one that is shared and
   keeps no versions, or folders the listing does not name
@@ -160,7 +113,7 @@ Withdrawn by ADR 0040; M8 PR 4 marks it removed.
 - **When** the user flags, rates, labels, marks *Keep RAW* or tags it, alone or in a step
 - **Then** nothing of it changes and nothing is saved, neither in the database nor in a sidecar
 
-### XMP-008.14 – A step takes the rateable pictures and reports the read-only ones (gap)
+### XMP-008.14 – A step takes the rateable pictures and reports the read-only ones
 
 - **Given** a pick of ten pictures, three of them in a read-only folder
 - **When** the user takes it
@@ -202,3 +155,4 @@ Withdrawn by ADR 0040; M8 PR 4 marks it removed.
 | 2026-11-18 | A step decides the writable pictures and reports the locked ones (.7 changed, .9, .10; owner decision on #221 (a)) |
 | 2026-11-18 | A picture with legacy rows is locked until the ⋯ entry writes them (`legacy`, .11; ADR 0032 App state and migration 2) |
 | 2026-11-19 | ADR 0040: two states, rateable and read only; failed writes are taken back (.1, .2, .4–.7, .9, .11 withdrawn; .12–.17 gaps) |
+| 2026-11-19 | M8 PR 3: rateable, read only and `legacy` (.3 changed, .1, .2, .4–.7, .9 removed; .12, .14 implemented) |

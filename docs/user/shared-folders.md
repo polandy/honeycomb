@@ -6,10 +6,9 @@ honeycomb does not change either.
 **Changing in the next release** ([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
 A photo is *rateable* when you may change its folder (Nextcloud's *Edit* right, which brings
 *Create*), else *read only*: it shows a lock and its flag, stars, colour label, *Keep RAW* and tags
-cannot be changed. A shared folder needs no confirmation any more. Flags and *Keep RAW* become one
+cannot be changed. Flags and *Keep RAW* become one
 set per photo for everyone who reaches it: what one user picks or rejects, the others see, and
-whoever deletes the rejects deletes them for all. Folders without file versions, such as
-external storage, become rateable.
+whoever deletes the rejects deletes them for all.
 
 ## What counts as shared
 
@@ -19,17 +18,20 @@ another server.
 
 ## Writing sidecars
 
-- **Shared folders.** Everyone who shares the folder sees your decisions in its sidecars, so your
-  first rating there asks *Write to a shared folder?*. *Write to sidecars* covers the folder you
-  opened and its subfolders; *Cancel* changes nothing.
+A photo is *rateable* when you may change its folder (Nextcloud's *Edit* right with *Create*),
+else *read only*.
+
+- **Shared folders.** Everyone who shares the folder sees your decisions in its sidecars;
+  honeycomb writes them there without asking.
 - **Folders you may only read.** honeycomb never writes a sidecar there, and nothing can be rated:
-  *Not changed: you may only read this folder*. The loupe's info panel says *Not written,
-  read-only folder*.
-- **Folders without versions.** External storage keeps no file versions, so honeycomb does not
-  replace an existing sidecar there: *Not changed: this folder keeps no versions*.
-- **A selection with some of these photos.** A step over several photos changes the ones it may
-  write and leaves the rest: *Rejected 3 photos; 2 photos not changed: you may only read the
-  folder*. **Details** names each photo left, and **Undo** takes the whole step back.
+  *Not changed: read only*. The loupe's info panel says *Not written, read-only folder*.
+- **Folders without versions.** External storage keeps no file versions; honeycomb writes its
+  sidecars all the same.
+- **A full storage.** When the storage or the quota of the folder's owner is full, the sidecar is
+  not written: *not saved: no storage space left*.
+- **A selection with some of these photos.** A step over several photos changes the rateable ones
+  and leaves the rest: *Rejected 3 photos; 2 photos not changed: read only*. **Details** names
+  each photo left, and **Undo** takes the whole step back.
 
 ## Deleting
 
