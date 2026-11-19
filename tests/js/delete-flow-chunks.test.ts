@@ -44,7 +44,7 @@ describe('useDeleteFlow: requests in chunks', () => {
 	it('counts nothing while it writes the waiting sidecars and checks the photos, then counts the photos that passed', async () => {
 		let checked = () => {}
 		const check = async (chosen: readonly Picture<ListingEntry>[]) => new Promise<FreshCheck>((resolve) => {
-			checked = () => resolve({ passed: chosen.slice(1), skipped: [{ picture: chosen[0]!, reason: 'changed' }], unchecked: [] })
+			checked = () => resolve({ passed: chosen.slice(1), skipped: [{ picture: chosen[0]!, reason: 'changed' }] })
 		})
 		const pending: (() => void)[] = []
 		const { deleting } = flow((request) => new Promise<TrashResponseFile[][]>((resolve) => {

@@ -134,6 +134,15 @@ describe('trashPictures', () => {
 		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/trash', { pictures })
 	})
 
+	// spec: DELETE-002.26, DELETE-003.11
+	it('sends the expectation the server checks the flags against', async () => {
+		vi.mocked(axios.post).mockResolvedValue({ data: { pictures: [] } })
+
+		await trashPictures(pictures, 'rawRemovable')
+
+		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/trash', { pictures, expect: 'rawRemovable' })
+	})
+
 	it('refuses a response without a pictures array', async () => {
 		vi.mocked(axios.post).mockResolvedValue({ data: {} })
 
