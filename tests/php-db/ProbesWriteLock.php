@@ -19,18 +19,19 @@ use OCP\Server;
 trait ProbesWriteLock {
 	/** Whether a second connection found the write lock taken when the transaction asked for its second statement or committed. */
 	private ?bool $lockedAfterFirstStatement = null;
+	/** The steps of the probed transaction so far, null before it begins. */
+	private ?int $transactionSteps = null;
 
 	/** The test's connection, probing the lock at the second step of the first transaction it begins. */
 	private function probedConnection(): IDBConnection {
-		$steps = null;
-		$step = function () use (&$steps): void {
-			if ($steps !== null && ++$steps === 2 && $this->lockedAfterFirstStatement === null) {
+		$step = function (): void {
+			if ($this->transactionSteps !== null && ++$this->transactionSteps === 2 && $this->lockedAfterFirstStatement === null) {
 				$this->lockedAfterFirstStatement = $this->writeLockTaken();
 			}
 		};
 		$db = $this->createStub(IDBConnection::class);
-		$db->method('beginTransaction')->willReturnCallback(function () use (&$steps): void {
-			$steps = 0;
+		$db->method('beginTransaction')->willReturnCallback(function (): void {
+			$this->transactionSteps = 0;
 			$this->db->beginTransaction();
 		});
 		$db->method('commit')->willReturnCallback(function () use ($step): void {
