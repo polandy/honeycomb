@@ -9,11 +9,15 @@ export interface DeleteStat {
 	readonly label: string
 }
 
-const props = defineProps<{ stats: readonly DeleteStat[] }>()
+const props = defineProps<{
+	stats: readonly DeleteStat[]
+	/** Two columns of framed tiles, as on *Cull finished*, instead of one row. */
+	tiles?: boolean
+}>()
 </script>
 
 <template>
-	<dl class="delete-stats">
+	<dl class="delete-stats" :class="{ 'delete-stats--tiles': props.tiles }">
 		<div v-for="stat in props.stats" :key="stat.label" class="delete-stats__item">
 			<dt class="delete-stats__value">
 				{{ stat.value }}
@@ -31,6 +35,26 @@ const props = defineProps<{ stats: readonly DeleteStat[] }>()
 	flex-wrap: wrap;
 	gap: calc(var(--default-grid-baseline) * 6);
 	margin: 0 0 calc(var(--default-grid-baseline) * 3);
+}
+
+.delete-stats--tiles {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: calc(var(--default-grid-baseline) * 2);
+}
+
+.delete-stats--tiles .delete-stats__item {
+	display: grid;
+	align-content: start;
+	padding: calc(var(--default-grid-baseline) * 2) calc(var(--default-grid-baseline) * 3);
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius-large);
+}
+
+.delete-stats--tiles :is(.delete-stats__value, .delete-stats__label) {
+	display: block;
+	margin: 0;
+	text-align: start;
 }
 
 .delete-stats__value {

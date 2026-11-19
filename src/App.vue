@@ -15,6 +15,7 @@ import NcContent from '@nextcloud/vue/components/NcContent'
 import AppNavigation from './components/AppNavigation.vue'
 import AppTooltip from './components/AppTooltip.vue'
 import CullDialogs from './components/CullDialogs.vue'
+import CullFinished from './components/CullFinished.vue'
 import FolderPicker from './components/FolderPicker.vue'
 import GridScreen from './components/GridScreen.vue'
 import GridSkeleton from './components/GridSkeleton.vue'
@@ -29,6 +30,7 @@ import UndoToast from './components/UndoToast.vue'
 import { APP_SEAMS } from './app-seams.ts'
 import { cleanUpWithToast, clearCacheWithToast } from './cache-clear.ts'
 import { provideCullContext } from './cull-context.ts'
+import { useCullFinished } from './cull-finished.ts'
 import { useCull } from './cull.ts'
 import { flagsNotSavedText } from './decision-text.ts'
 import { useDeleteFlow } from './delete-flow.ts'
@@ -78,7 +80,9 @@ const selection = useSelectionMode(() => view.value, pictures)
 const { selected } = selection
 watch(cull.pairing, selection.selectNone)
 
-const { decide, pickRest, clearFlags, tag, removeFromSeries, dissolveSeries, mergeSeries, markSeries, editSelection, undo, redo } = useToastedDecisions(cull, toast.show, toast.showError)
+const cullFinished = useCullFinished({ folderSet: () => folderSet.value, pictures: () => pictures.value, decisionOf: cull.decisionOf, decidedOf: cull.decidedOf, now: props.clock })
+sidecarFlow.onSaved(cullFinished.saved)
+const { decide, pickRest, clearFlags, tag, removeFromSeries, dissolveSeries, mergeSeries, markSeries, editSelection, undo, redo } = cullFinished.watching(useToastedDecisions(cull, toast.show, toast.showError))
 const tagEntry = useTagEntryTargets()
 const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: decideInCompare, pickRest, removeFromSeries, dissolve: dissolveSeries, everySeries: () => cull.everySeries.value, merge: mergeSeries, markSeries, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })
 const restOffer = useRestOffer({ seriesOf: () => cull.seriesOf.value, decisionOf: cull.decisionOf, compare: seriesCompare, shown: shownInLoupe, land: landInLoupe })
@@ -95,8 +99,9 @@ async function flushWrites() {
 	await cull.flushFlags()
 }
 const xmpExport = useXmpExport(sidecarFlow, { pictures: () => pictures.value.filter((picture) => cull.writabilityOf(picture) === 'writable'), decisionOf: cull.decisionOf, flush: flushWrites })
-const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, flush: flushWrites, current: sidecarFlow.sync.current, check, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show, error: toast.showError })
+const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, flush: flushWrites, current: sidecarFlow.sync.current, check, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show, error: toast.showError, onDeleted: cullFinished.deleted })
 const { dialog: deleteDialog } = deleting
+cullFinished.waitWhile(() => loupe.value !== null || seriesCompare.open.value || deleteDialog.value !== null || deleting.busy.value)
 const moving = useMoveFlow({ view: () => view.value, settings: () => settings.value, updateSettings, probe: props.move.probeTargets, move: props.move.movePictures, flush: flushWrites, current: sidecarFlow.sync.current, removeFiles: cull.removeFiles, restoreFiles: cull.restoreFiles, listing: () => folderSet.value, loupe, toast: toast.show, error: toast.showError })
 const recent = useRecent(props.positions, props.listEntries, { folderSet: () => folderSet.value, progress: () => progress.value, pairing: () => cull.pairing.value }, toast.showError)
 const resume = useResume(recent.positions, { folderSet: () => folderSet.value, pictures: () => pictures.value, view: () => view.value, progress: () => progress.value, decidedOf: cull.decidedOf, shown: shownInLoupe, openLoupe }, toast.show)
@@ -124,7 +129,7 @@ const toggleFileNames = () => updateSettings({ showFileNames: !settings.value.sh
 /** Opens or closes the shortcut sheet. */
 const toggleShortcuts = () => (shortcutsOpen.value = !shortcutsOpen.value)
 useHotkeys(() => {
-	if (pickerOpen.value || settingsOpen.value || tagEntry.targets.value !== null || deleteDialog.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
+	if (pickerOpen.value || settingsOpen.value || tagEntry.targets.value !== null || deleteDialog.value !== null || cullFinished.numbers.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
 		return null
 	}
 	if (shortcutsOpen.value || folderSet.value === null) {
@@ -168,6 +173,7 @@ useHotkeys(() => {
 				:folders="folders"
 				:listFolders="props.listFolders"
 				:container="loupe !== null ? '.photo-loupe' : undefined" />
+			<CullFinished v-if="cullFinished.numbers.value !== null" :numbers="cullFinished.numbers.value" @close="cullFinished.close" />
 			<SeriesCompareScreen ref="seriesScreen" />
 			<SettingsDialog
 				v-model:open="settingsOpen"

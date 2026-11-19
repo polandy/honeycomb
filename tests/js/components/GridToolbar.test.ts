@@ -47,7 +47,7 @@ describe('GridToolbar', () => {
 
 		expect(none.attributes('disabled')).toBeDefined()
 		expect(none.find('.grid-toolbar__badge').exists()).toBe(false)
-		expect(button.attributes('aria-label')!.replaceAll(MARK, '')).toBe('Compare series (3)')
+		expect(button.attributes('aria-label')!.replaceAll(MARK, '')).toBe('Compare series: 3')
 		expect(button.attributes('data-tip')!.replaceAll(MARK, '')).toBe('Compare series')
 		expect(button.attributes('data-tip-key')).toBe('N')
 		expect(button.find('.grid-toolbar__badge').text()).toBe('3')
@@ -145,7 +145,7 @@ describe('GridToolbar', () => {
 		const named = (label: string) => row.findAll('button').find((found) => found.text() === `${MARK}${label}`)!
 
 		expect(row.text()).toContain('1,234 selected')
-		expect(wrapper.find(`[aria-label="${MARK}Select"]`).attributes('aria-pressed')).toBe('true')
+		expect(wrapper.find(`[aria-label="${MARK}Select: 1,234 selected"]`).attributes('aria-pressed')).toBe('true')
 		await named('Select all (filtered)').trigger('click')
 		await named('None').trigger('click')
 		await named('Done').trigger('click')

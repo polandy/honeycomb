@@ -30,7 +30,7 @@ describe('ActionBar', () => {
 	})
 
 	it.each([
-		['Clear rating', { kind: 'rating', rating: 0 }],
+		['Clear rating: 0 stars', { kind: 'rating', rating: 0 }],
 		['Rate 1 star', { kind: 'rating', rating: 1 }],
 		['Rate 5 stars', { kind: 'rating', rating: 5 }],
 		['Pick', { kind: 'flag', flag: 'picked' }],

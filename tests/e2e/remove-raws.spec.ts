@@ -71,9 +71,9 @@ test('removes only the RAW and its own sidecar of each pair not kept, after one 
 
 	const summary = page.getByRole('dialog', { name: /^Remove the RAWs? of/ })
 	await expect(summary).toHaveAccessibleName('Remove the RAWs of 2 photos')
-	await summary.getByRole('button', { name: 'Keep RAW: IMG_0002' }).click()
+	await summary.getByRole('button', { name: /^IMG_0002.*Keep RAW$/ }).click()
 	await expect(summary).toHaveAccessibleName('Remove the RAW of 1 photo')
-	await expect(summary.getByRole('button', { name: 'Remove RAW: IMG_0002' })).toBeVisible()
+	await expect(summary.getByRole('button', { name: /^IMG_0002.*Remove RAW$/ })).toBeVisible()
 	await summary.getByRole('button', { name: 'Move 2 files to trash' }).click()
 
 	await expect(summary).toBeHidden()

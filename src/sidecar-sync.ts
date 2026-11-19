@@ -5,7 +5,7 @@ import type { EmbeddedXmpAnswer } from './logic/embedded-xmp.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { SidecarStep } from './logic/sidecar-pass.ts'
-import type { KnownSidecar, PlannedSave, SidecarEdit, SidecarFailure, SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from './logic/sidecar-sync.ts'
+import type { KnownSidecar, PlannedSave, SavedSidecar, SidecarEdit, SidecarFailure, SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from './logic/sidecar-sync.ts'
 import type { Tag, TagChange } from './logic/tag.ts'
 import type { XmpCacheRow, XmpCacheSource } from './logic/xmp-cache.ts'
 import type { XmpTime } from './logic/xmp/model.ts'
@@ -16,7 +16,7 @@ import { DECISION_FIELDS, sameDecision, UNDECIDED } from './logic/decision.ts'
 import { embeddedXmpSource } from './logic/embedded-xmp.ts'
 import { NO_OWN_SAVES, recordSaves, withOwnSaves } from './logic/own-saves.ts'
 import { failureOf, passOf, stepResult } from './logic/sidecar-pass.ts'
-import { applySaves, planSaves, writeLookups } from './logic/sidecar-sync.ts'
+import { applySaves, planSaves, savedSidecars, writeLookups } from './logic/sidecar-sync.ts'
 import { embeddedRow, pictureState, sidecarRow, staleSources, xmpCacheSources } from './logic/xmp-cache.ts'
 
 /** The sidecar endpoints (ADR 0017), the embedded XMP endpoint (ADR 0023) and the XMP cache (ADR 0032). */
@@ -41,7 +41,7 @@ interface Waiting {
 }
 
 /** Reads decisions and tags from the sidecars through the XMP cache and writes them to the sidecars, one pass after another, creating missing ones (XMP-003, TAGS-002). */
-export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (failed: SidecarFailure[]) => void) {
+export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (failed: SidecarFailure[]) => void, onSaved: (saved: SavedSidecar[]) => void = () => {}) {
 	const known = shallowRef(new Map<string, KnownSidecar>())
 	const knownRows = shallowRef<ReadonlyMap<number, XmpCacheRow>>(new Map())
 	let own = NO_OWN_SAVES
@@ -228,6 +228,10 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		const applied = applySaves(saves, answers, known.value)
 		known.value = applied.known
 		own = recordSaves(own, saves, answers)
+		const saved = savedSidecars(saves, answers ?? [])
+		if (saved.length > 0) {
+			onSaved(saved)
+		}
 		const savedNow = savedRows(saves, answers ?? [])
 		rememberRows(savedNow)
 		await storeRows(savedNow)
