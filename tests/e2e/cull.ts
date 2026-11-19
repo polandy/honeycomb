@@ -8,6 +8,11 @@ import { createFolder, JPEG, requestToken, upload } from './files.ts'
 
 const SETTINGS_URL = '/index.php/apps/honeycomb/api/v1/settings'
 
+/** Resolves once the server took a series write; the toast comes with the edit, the write after it. */
+export function seriesSaved(page: Page): Promise<unknown> {
+	return page.waitForResponse((response) => response.url().endsWith('/api/v1/series') && response.request().method() === 'PUT' && response.ok())
+}
+
 /** Opens the app and culls `folder` from the folder picker. */
 export async function cullFolder(page: Page, folder: string): Promise<void> {
 	await page.goto('/index.php/apps/honeycomb/')
