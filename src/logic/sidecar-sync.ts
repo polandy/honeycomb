@@ -4,6 +4,7 @@ import type { Decision, DecisionDelta, DecisionField } from './decision.ts'
 import type { EmbeddedXmpAnswer } from './embedded-xmp.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
+import type { PictureId } from './picture-id.ts'
 import type { TagChange } from './tag.ts'
 import type { SidecarBytes } from './xmp/decision.ts'
 import type { XmpPacket, XmpRefusal, XmpTime } from './xmp/model.ts'
@@ -33,12 +34,12 @@ export type SidecarLookupAnswer
 
 /** One sidecar to save: an existing one with the ETag and size read, or a new one by path. */
 export type SidecarSaveItem
-	= | { readonly fileId: number, readonly etag: string, readonly size: number, readonly bytes: Uint8Array }
+	= | { readonly fileId: PictureId, readonly etag: string, readonly size: number, readonly bytes: Uint8Array }
 		| { readonly path: string, readonly bytes: Uint8Array }
 
 /** The save endpoint's answer for one sidecar. */
 export type SidecarSaveAnswer
-	= | { readonly result: 'saved', readonly fileId: number, readonly etag: string, readonly size: number, readonly mtime: number }
+	= | { readonly result: 'saved', readonly fileId: PictureId, readonly etag: string, readonly size: number, readonly mtime: number }
 		| { readonly result: SidecarSaveFailure }
 
 /** Why a sidecar was not read or written; `unreachable` when its request failed. */
@@ -58,7 +59,7 @@ export type SidecarEdit = { readonly decision: DecisionDelta, readonly tags?: Ta
 
 /** A sidecar honeycomb knows by path: its file id and, while nobody else changed it, what honeycomb saved. */
 export interface KnownSidecar {
-	readonly fileId: number
+	readonly fileId: PictureId
 	readonly saved: { readonly etag: string, readonly size: number, readonly mtime: number, readonly bytes: Uint8Array } | null
 }
 

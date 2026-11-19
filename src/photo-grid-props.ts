@@ -7,6 +7,7 @@ import type { ImageUrlFor } from './logic/image-tiers.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Schedule } from './logic/long-press.ts'
 import type { Picture } from './logic/pairing.ts'
+import type { PictureId } from './logic/picture-id.ts'
 import type { Selection } from './logic/selection.ts'
 import type { Series } from './logic/series.ts'
 import type { Tag } from './logic/tag.ts'
@@ -39,7 +40,7 @@ export interface PhotoGridProps {
 	/** Every picture's series, offered or settled (SERIES-002.12). */
 	seriesOf?: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>
 	/** The keys of the series the compare offers; the others are settled. */
-	offeredSeries?: ReadonlySet<number>
+	offeredSeries?: ReadonlySet<PictureId>
 	/** The pictures of a series that may still change (SERIES-003.25). */
 	openSeries?: ReadonlySet<Picture<ListingEntry>>
 	/** The picture whose sidecar writes still wait (XMP-003.28). */

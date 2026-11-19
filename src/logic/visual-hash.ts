@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { PictureId } from './picture-id.ts'
 
 /** The width of the image a visual hash is taken from; one column more than bits per row (ADR 0024). */
 export const HASH_COLUMNS = 9
@@ -50,7 +51,7 @@ export function hashDistance(a: string, b: string): number {
 
 /** A visual hash with the etag of the file version it was taken from, as the server stores it (ADR 0024). */
 export interface StoredVisualHash {
-	readonly fileId: number
+	readonly fileId: PictureId
 	readonly etag: string
 	readonly hash: string
 }

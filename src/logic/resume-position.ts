@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { FolderSet } from './folder-set.ts'
 import type { Picture } from './pairing.ts'
+import type { PictureId } from './picture-id.ts'
 
 import { folderSetKey } from './folder-set.ts'
 
 /** Where a user stands in a folder set, as the positions endpoint stores it (ADR 0012). */
 export interface ResumePosition {
 	readonly folderSet: FolderSet
-	readonly fileId: number
+	readonly fileId: PictureId
 	readonly decided: number
 	readonly total: number
 }
@@ -28,12 +29,12 @@ export function positionOf(positions: readonly ResumePosition[], set: FolderSet)
 }
 
 /** The file a position names a picture by: its rendered member, a RAW alone by itself. */
-export function positionFileId(picture: Picture<{ readonly fileId: number }>): number {
+export function positionFileId(picture: Picture<{ readonly fileId: PictureId }>): PictureId {
 	return (picture.rendered ?? picture.raw)!.fileId
 }
 
 /** The picture with the file as any member, or null. */
-export function pictureHolding<P extends Picture<{ readonly fileId: number }>>(pictures: readonly P[], fileId: number): P | null {
+export function pictureHolding<P extends Picture<{ readonly fileId: PictureId }>>(pictures: readonly P[], fileId: PictureId): P | null {
 	return pictures.find((picture) => picture.raw?.fileId === fileId || picture.rendered?.fileId === fileId) ?? null
 }
 

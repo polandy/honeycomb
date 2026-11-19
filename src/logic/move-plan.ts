@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { PictureFile } from './delete-summary.ts'
 import type { RenderedFile } from './name-template/render.ts'
+import type { PictureId } from './picture-id.ts'
 
 import { collisionSuffixes } from './name-template/collisions.ts'
 import { renderedPath } from './name-template/render.ts'
@@ -15,7 +16,7 @@ export interface MoveCandidate {
 /** A child of a target folder, as the probe answers it (ADR 0018). */
 export interface TargetChild {
 	readonly name: string
-	readonly fileId: number
+	readonly fileId: PictureId
 	readonly etag: string
 }
 
@@ -39,7 +40,7 @@ export interface Probe {
 /** A file or folder at a path a move may want. */
 export interface ExistingFile {
 	readonly path: string
-	readonly fileId: number
+	readonly fileId: PictureId
 	readonly etag: string
 }
 
@@ -63,10 +64,10 @@ export interface PlannedPicture {
 
 /** One file of the move request (ADR 0018). */
 export interface MoveRequestFile {
-	readonly fileId: number
+	readonly fileId: PictureId
 	readonly etag: string
 	readonly path: string
-	readonly replace?: { readonly fileId: number, readonly etag: string }
+	readonly replace?: { readonly fileId: PictureId, readonly etag: string }
 }
 
 const FIRST_SUFFIX = 2

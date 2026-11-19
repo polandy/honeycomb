@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
+import type { PictureId } from './logic/picture-id.ts'
 import type { SidecarFailure } from './logic/sidecar-sync.ts'
 import type { Tag, TagChange } from './logic/tag.ts'
 
@@ -20,7 +21,7 @@ type Pictures = readonly Picture<ListingEntry>[]
 
 /** The tags of the open cull: the sidecars' tags and changes written through (TAGS-002). */
 export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, change: TagChange) => Promise<{ readonly failed: readonly SidecarFailure[] }>, writable: (picture: Picture<ListingEntry>) => boolean) {
-	const tags = shallowRef<ReadonlyMap<number, readonly Tag[]>>(new Map())
+	const tags = shallowRef<ReadonlyMap<PictureId, readonly Tag[]>>(new Map())
 	const list = shallowRef<readonly Tag[]>([])
 	const known = computed(() => withLevels([...list.value, ...[...tags.value.values()].flat()]))
 
@@ -77,6 +78,6 @@ export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, ch
 }
 
 /** The union of the tags of the picture's members in the map, sorted. */
-function unionOf(picture: Picture<ListingEntry>, byFileId: ReadonlyMap<number, readonly Tag[]>): Tag[] {
+function unionOf(picture: Picture<ListingEntry>, byFileId: ReadonlyMap<PictureId, readonly Tag[]>): Tag[] {
 	return sortedTags(pictureMembers(picture).flatMap((member) => byFileId.get(member.fileId) ?? []))
 }

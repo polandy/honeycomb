@@ -7,6 +7,7 @@ import type { Decision, DecisionField, StoredDecision } from './logic/decision.t
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { PairingSettings, Picture } from './logic/pairing.ts'
+import type { PictureId } from './logic/picture-id.ts'
 import type { Settings } from './logic/settings.ts'
 import type { TagChange } from './logic/tag.ts'
 import type { DecisionStep, PickRestStep, StepEffects, TagStep, UndoStep } from './logic/undo.ts'
@@ -50,9 +51,9 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const pairingKey = computed(() => JSON.stringify(pairingSettings(settings())))
 	const pairing = computed(() => JSON.parse(pairingKey.value) as PairingSettings)
 	const pictures = computed(() => (settings().showSingles ? paired.value : paired.value.filter((picture) => picture.raw !== null && picture.rendered !== null)))
-	const decisions = shallowRef<ReadonlyMap<number, Decision>>(new Map())
+	const decisions = shallowRef<ReadonlyMap<PictureId, Decision>>(new Map())
 	/** The file ids a read or a step has set, so a later read leaves them as they are (XMP-003.3). */
-	let settled = new Set<number>()
+	let settled = new Set<PictureId>()
 	const access = useCullAccess()
 	const flags = useCullFlags(api.flags)
 	let opening = 0
@@ -203,7 +204,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	}
 
 	/** Takes the fields of the written rows back where they still hold what was written. */
-	function takeBack(written: readonly StoredDecision[], before: ReadonlyMap<number, Decision>, fields: readonly DecisionField[]) {
+	function takeBack(written: readonly StoredDecision[], before: ReadonlyMap<PictureId, Decision>, fields: readonly DecisionField[]) {
 		if (written.length > 0) {
 			decisions.value = withRows(decisions.value, takenBack(decisions.value, written, before, fields))
 		}
@@ -215,7 +216,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	}
 
 	/** Takes trashed files out of the pictures; returns what each affected picture became (ADR 0013). */
-	function removeFiles(fileIds: ReadonlySet<number>) {
+	function removeFiles(fileIds: ReadonlySet<PictureId>) {
 		const { pictures: left, replaced } = withoutFiles(paired.value, fileIds, pairing.value)
 		entries.value = entries.value.filter((entry) => !fileIds.has(entry.fileId))
 		paired.value = left
