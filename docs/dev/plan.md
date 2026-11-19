@@ -164,9 +164,14 @@ gets an *Immich* source that reaches these assets only through the Immich API, w
 proxy and the logic in TypeScript; the admin declares the connections (several per user) in a
 read-only file, and no key enters the database or the UI. Decided by the owner on 2026-11-19 as
 option A in two phases: Phase 1 lists and culls read only, Phase 2 adds *Write to Immich* with a
-conflict check, rejects going to the Immich trash bin by default. The exception to rule 1, the
-mapping and the pull request order are in ADR 0041; the flag table and the source's API get their
-own ADR.
+conflict check, rejects going to the Immich trash bin by default. The architecture review of
+2026-11-19 settled how M10 runs beside M9: a `PictureId` alias (`number | string`) in the browser,
+the whole decision per (connection, asset id) in a table of its own registered as a
+`UserRowStore`, e2e against a stub built from the pinned Immich schema, Phase 1 as about eight
+pull requests with a lean UI (grid, loupe, filters, decisions, position and *Recent*; no series,
+hashes, tags, delete, move or XMP), and the Vue shell's hotspot files owned by M9 until its PR 6 is
+merged. The exception to rule 1, the mapping and the pull request order are in ADR 0041; the
+connections file, the decision table and the source's API get their own ADR.
 
 ### Release – first App Store release
 
