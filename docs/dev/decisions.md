@@ -1509,3 +1509,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   and *Cancel* (focused) before anything is sent, instead of a toast after (owner, DELETE-002.25).
   *Cancel* closes the question without going back to the summary, and sends none of the batch.
   Easy to redo: one dialog kind in `delete-flow.ts`.
+- 2026-11-19: A full storage answers `noSpace` already in M8 PR 3: the writer compares the sidecar's
+  size, less the one it replaces, with the folder's free space (unknown or unlimited writes) and
+  maps `NotEnoughSpaceException` too (XMP-002.12). Easy to redo: `fits` in `SidecarWriter`.
+- 2026-11-19: With the versions lock gone, the `versionsApp` page value, `FileVersions` and
+  `VersionBackends` are removed rather than kept unused (M8 PR 3). Easy to redo: a revert of them.
