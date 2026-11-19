@@ -36,4 +36,28 @@ describe('LoupeStage fit', () => {
 		expect(stage.attributes('data-fit-seq')).toBe('2')
 		expect(wrapper.find('img').attributes('style')).toContain('width: 300px; height: 200px')
 	})
+
+	// spec: LOUPE-001.18
+	it('does not count an observer callback that reports the same size', async () => {
+		let resize = (_width: number, _height: number) => undefined as void
+		const wrapper = mount(LoupeStage, {
+			props: {
+				pictures: picturesOf([listingEntry(1, '/P/IMG_1.JPG', { width: 3000, height: 2000 })]),
+				index: 0,
+				imageUrl: (fileId: number, size: number) => `/img/${fileId}/${size}`,
+				load: async () => undefined,
+				ready: new Set<string>(),
+				devicePixelRatio: 1,
+				observeSize: (_element: Element, onSize: (width: number, height: number) => void) => {
+					resize = onSize
+					onSize(1000, 600)
+					return () => undefined
+				},
+			},
+		})
+		resize(1000, 600)
+		await wrapper.vm.$nextTick()
+
+		expect(wrapper.find('.loupe-stage').attributes('data-fit-seq')).toBe('1')
+	})
 })
