@@ -18,20 +18,20 @@ never change a photo or a sidecar.
 Statistics are daily counters per user (ADR 0039): one sum per day and metric, no file ids, no
 paths. The day is the calendar day in the user's Nextcloud time zone, UTC without one.
 
-| Metric | Counted when |
-|---|---|
-| Pictures decided | A picture's flag changes from unflagged to picked or rejected (+1), or back to unflagged (−1); undo subtracts what it takes back |
-| Pictures picked, pictures rejected | A picture becomes picked, rejected; net of undo |
-| Ratings, colour labels, tags set | A picture's rating, colour label or tags change; net of undo |
-| Pictures, files, bytes moved to the trash bin | A delete moves them to the trash bin; a pair is one picture, every member and sidecar a file |
-| Pictures, files, bytes deleted for good | A delete removes files the trash bin would not keep (ADR 0036) |
-| RAW files removed, their bytes | *Remove RAWs* moves RAW files to the trash bin; not counted as pictures |
-| Sidecars created | A sidecar save creates a new sidecar |
-| Sidecars updated | A sidecar save replaces an existing sidecar not saved before on the same day |
-| Sidecars from digiKam or darktable | A sidecar updated that holds data of digiKam or darktable |
-| Series done | A stored series changes to done |
-| Pictures moved | A move puts a picture into its target folder |
-| Active time | Seconds of the cull with an input at most 2 minutes earlier |
+| Metric | Key | Counted when |
+|---|---|---|
+| Pictures decided | `pictures_decided` | A picture's flag changes from unflagged to picked or rejected (+1), or back to unflagged (−1); undo subtracts what it takes back |
+| Pictures picked, pictures rejected | `pictures_picked`, `pictures_rejected` | A picture becomes picked, rejected; net of undo |
+| Ratings, colour labels, tags set | `ratings_set`, `colour_labels_set`, `tags_set` | A picture's rating, colour label or tags change; net of undo |
+| Pictures, files, bytes moved to the trash bin | `trash_pictures`, `trash_files`, `trash_bytes` | A delete moves them to the trash bin; a pair is one picture, every member and sidecar a file |
+| Pictures, files, bytes deleted for good | `deleted_pictures`, `deleted_files`, `deleted_bytes` | A delete removes files the trash bin would not keep (ADR 0036) |
+| RAW files removed, their bytes | `raws_removed`, `raws_removed_bytes` | *Remove RAWs* moves RAW files to the trash bin; not counted as pictures |
+| Sidecars created | `sidecars_created` | A sidecar save creates a new sidecar |
+| Sidecars updated | `sidecars_updated` | A sidecar save replaces an existing sidecar not saved before on the same day |
+| Sidecars from digiKam or darktable | `sidecars_foreign` | A sidecar updated that holds data of digiKam or darktable |
+| Series done | `series_done` | A stored series changes to done |
+| Pictures moved | `pictures_moved` | A move puts a picture into its target folder |
+| Active time | `active_seconds` | Seconds of the cull with an input at most 2 minutes earlier |
 
 Only successful results count. A day's net counter never goes below zero. *Space freed* is the
 bytes moved to the trash bin and deleted for good; the page notes that the space is freed when the
