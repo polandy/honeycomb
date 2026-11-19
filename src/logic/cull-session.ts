@@ -60,7 +60,7 @@ export interface SessionNumbers {
 	readonly before: SessionTotals
 	readonly after: SessionTotals
 	readonly activeMs: number
-	/** Pictures decided per active minute; null without active time. */
+	/** Pictures decided per active minute; null below one active minute, where the rate is noise. */
 	readonly perMinute: number | null
 }
 
@@ -140,7 +140,7 @@ export function sessionNumbers(session: CullSession, after: SessionTotals, at: n
 		before: session.before,
 		after,
 		activeMs,
-		perMinute: activeMs === 0 ? null : decided / (activeMs / MINUTE_MS),
+		perMinute: activeMs < MINUTE_MS ? null : decided / (activeMs / MINUTE_MS),
 	}
 }
 
