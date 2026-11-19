@@ -351,6 +351,32 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **When** it ends
 - **Then** pictures moved rise by 1
 
+### STATS-001.40 – The navigation entry opens the page
+
+- **Given** the cull page or the *Cull finished* card
+- **When** the user picks *Statistics* in the navigation or on the card
+- **Then** the statistics page opens at `/apps/honeycomb/statistics`, a page of its own like
+  *Similarity* with *Back to the cull*; the navigation's page entries come from one list
+
+### STATS-001.41 – The period before
+
+- **Given** pictures decided in the period and in the period of the same length before it
+- **When** the page shows the tile *Photos decided*
+- **Then** it adds the change in percent against the period before; without numbers before, or
+  for *All time*, it adds nothing
+
+### STATS-001.42 – Folder sets show their share decided
+
+- **Given** stored resume positions
+- **When** the page shows *Folder sets*
+- **Then** each shows its name and its share decided, *Done* at 100 %
+
+### STATS-001.43 – Statistics off
+
+- **Given** *Keep statistics* off
+- **When** the user opens the page
+- **Then** it adds *Statistics are off. Turn on Keep statistics in the settings to count again.*
+
 ## History
 
 | Date | Change |
@@ -360,3 +386,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-19 | Server counts: trash, deleted for good, Remove RAWs, sidecars, series done, moves (.29–.31; metrics PR 3 of 8) |
 | 2026-11-19 | *Cull finished*: when it opens, what the session counts (.32–.35; metrics PR 4 of 8) |
 | 2026-11-19 | Browser counts on the flag, sidecar and position saves (.36–.39; metrics PR 5 of 8) |
+| 2026-11-20 | The statistics page and its navigation entry (.40–.43; metrics PR 6 of 8) |
