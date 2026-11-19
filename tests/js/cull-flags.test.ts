@@ -48,6 +48,25 @@ describe('useCullFlags', () => {
 		expect(sent).toHaveLength(2)
 	})
 
+	// spec: DELETE-002.28
+	it('flushes once every save sent has answered, failed or not', async () => {
+		const { api, answers } = pendingApi()
+		const flags = useCullFlags(api)
+		let flushed = false
+		void flags.save([row(1)])
+		void flags.save([row(2)])
+		void flags.flush().then(() => (flushed = true))
+
+		answers[0]!(new Error('offline'))
+		await flushPromises()
+		expect(flushed).toBe(false)
+		answers[1]!(SAVED)
+		await flushPromises()
+
+		expect(flushed).toBe(true)
+		await expect(useCullFlags(api).flush()).resolves.toBeUndefined()
+	})
+
 	// spec: XMP-008.17
 	it('answers the ids the server skipped and warns', async () => {
 		const { api, answers } = pendingApi()

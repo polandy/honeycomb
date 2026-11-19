@@ -33,6 +33,9 @@ the pair is skipped. The JPEG keeps its row in `honeycomb_flags`, the RAW's goes
 (DELETE-001.15). When the fresh listing or the request fails, nothing of it is removed. Until then
 the following holds.
 
+Until M8 PR 8 the fresh check takes the flag and *Keep RAW* from the fresh listing's rows, and
+from the sidecars only while a picture has none, as DELETE-002 says (.13).
+
 Confirming checks the sidecars afresh like deleting by decision (DELETE-002.15): a pair goes only
 when every sidecar reads and none says *Keep RAW* or *rejected*. Before a RAW sidecar that states a
 decision or tags goes, a pair whose JPEG has no sidecar of its own nor a shared one gets
@@ -141,6 +144,13 @@ Withdrawn by ADR 0040; M8 PR 8 marks it removed.
 - **Then** `IMG.JPG.xmp` is written with three stars, red and the tag and no flag field, before the
   RAW goes; the JPEG's row stays *picked*, the RAW's row is gone
 
+### DELETE-003.13 – *Keep RAW* from the fresh listing
+
+- **Given** the summary with a pair whose fresh row says *Keep RAW* while its sidecars say nothing,
+  and a pair whose row says neither while its RAW sidecar says *Keep RAW*
+- **When** the user confirms
+- **Then** the RAW of the second goes, and the first is skipped and reported
+
 ## Out of scope
 
 Marking *Keep RAW* elsewhere and its filter: DECISIONS-001, GRID-002, GRID-003. Writing the marker
@@ -156,3 +166,4 @@ to XMP: M5.
 | 2026-11-18 | A failed fresh listing or lookup removes the RAWs honeycomb knows instead of aborting (DELETE-003.10, owner) |
 | 2026-11-18 | A failed fresh check asks before removing the RAWs (DELETE-003.10, owner) |
 | 2026-11-19 | ADR 0040: the server checks the pairs, the JPEG sidecar holds rating, colour label and tags only (.8, .10 withdrawn; .11, .12 gaps) |
+| 2026-11-19 | M8 PR 6: until M8 PR 8 the fresh check takes *Keep RAW* from the fresh listing (.13) |

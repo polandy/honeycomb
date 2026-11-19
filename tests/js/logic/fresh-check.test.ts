@@ -63,15 +63,24 @@ describe('freshVerdict', () => {
 	const pair = pictureOf(RAW, JPEG, RAW_SIDECAR, JPEG_SIDECAR)
 
 	// spec: DELETE-002.15
-	it('lets a rejected picture go only when every sidecar reads and says rejected', () => {
+	it('lets a picture without a row go only when its sidecars read and say rejected', () => {
 		const both: Answers = new Map([[11, read(REJECTED)], [12, read(REJECTED)]])
-		const split: Answers = new Map([[11, read(REJECTED)], [12, read(xmp({}))]])
 		const rescued: Answers = new Map([[11, read(PICKED)], [12, read(PICKED)]])
 
 		expect(freshVerdict('rejects', pair, both, noEmbedded)).toMatchObject({ decision: { flag: 'rejected' } })
-		expect(freshVerdict('rejects', pair, split, noEmbedded)).toEqual({ reason: 'disagrees' })
 		expect(freshVerdict('rejects', pair, rescued, noEmbedded)).toEqual({ reason: 'notRejected' })
 		expect(freshVerdict('rejects', pictureOf(RAW, JPEG), new Map(), new Map([[2, { result: 'none' }]]))).toEqual({ reason: 'notRejected' })
+	})
+
+	// spec: DELETE-002.28
+	it('takes the flag from the fresh rows over the sidecars, which may disagree', () => {
+		const flagged = (flag: 'picked' | 'rejected') => pictureOf(...[RAW, JPEG, RAW_SIDECAR, JPEG_SIDECAR].map((entry) => ({ ...entry, flag, keepRaw: false, flagUpdated: 1 })))
+		const split: Answers = new Map([[11, read(REJECTED)], [12, read(PICKED)]])
+		const rejected: Answers = new Map([[11, read(REJECTED)], [12, read(REJECTED)]])
+
+		expect(freshVerdict('rejects', flagged('rejected'), new Map([[11, read(PICKED)], [12, read(PICKED)]]), noEmbedded)).toMatchObject({ decision: { flag: 'rejected' } })
+		expect(freshVerdict('rejects', flagged('rejected'), split, noEmbedded)).toMatchObject({ decision: { flag: 'rejected' } })
+		expect(freshVerdict('rejects', flagged('picked'), rejected, noEmbedded)).toEqual({ reason: 'notRejected' })
 	})
 
 	// spec: DELETE-002.15
@@ -104,8 +113,17 @@ describe('freshVerdict', () => {
 		expect(freshVerdict('raws', bare, new Map(), undecided)).toEqual({ decision: UNDECIDED, tags: [], jpegSidecar: null })
 		expect(freshVerdict('raws', pair, new Map([[11, read(KEPT)], [12, read(KEPT)]]), noEmbedded)).toEqual({ reason: 'notRemovable' })
 		expect(freshVerdict('raws', pair, new Map([[11, read(REJECTED)], [12, read(REJECTED)]]), noEmbedded)).toEqual({ reason: 'notRemovable' })
-		expect(freshVerdict('raws', pair, new Map([[11, read(KEPT)], [12, read(xmp({}))]]), noEmbedded)).toEqual({ reason: 'disagrees' })
 		expect(freshVerdict('raws', pair, new Map([[11, read(xmp({}))], [12, { result: 'failed' }]]), noEmbedded)).toEqual({ reason: 'unread' })
+	})
+
+	// spec: DELETE-003.13
+	it('takes Keep RAW from the fresh rows over the sidecars', () => {
+		const kept = pictureOf(...[RAW, JPEG, RAW_SIDECAR, JPEG_SIDECAR].map((entry) => ({ ...entry, flag: 'unflagged' as const, keepRaw: true, flagUpdated: 1 })))
+		const released = pictureOf(...[RAW, JPEG, RAW_SIDECAR, JPEG_SIDECAR].map((entry) => ({ ...entry, flag: 'unflagged' as const, keepRaw: false, flagUpdated: 1 })))
+		const empty: Answers = new Map([[11, read(xmp({}))], [12, read(xmp({}))]])
+
+		expect(freshVerdict('raws', kept, empty, noEmbedded)).toEqual({ reason: 'notRemovable' })
+		expect(freshVerdict('raws', released, new Map([[11, read(KEPT)], [12, read(xmp({}))]]), noEmbedded)).toMatchObject({ decision: { keepRaw: false } })
 	})
 
 	// spec: DELETE-003.9
