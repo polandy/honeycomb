@@ -22,8 +22,8 @@ Photos* and takes every rejected photo of the folders you cull, even the ones th
    of every file.
 3. **Move … files to trash** sends them. Before that honeycomb lists the folders afresh; a photo
    goes only when honeycomb still holds it as rejected and its sidecars can be read, and as a whole
-   or not at all. A photo someone picked in between stays, and the report says why. When a folder or its
-   sidecars cannot be read just then, honeycomb first asks *Fresh check not possible for N photos*:
+   or not at all. A photo someone picked in between stays, and the report says why. When a folder
+   or its sidecars cannot be read just then, honeycomb first asks *Fresh check not possible for N photos*:
    **Cancel** deletes nothing, not even the photos it could check; **Delete anyway** sends them as
    honeycomb knows them, and a file changed since the folder was listed still stays.
    While it runs, the button

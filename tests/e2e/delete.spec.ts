@@ -22,7 +22,7 @@ async function trashLocations(page: Page): Promise<string> {
 }
 
 // spec: DELETE-002.1, DELETE-002.8, DELETE-002.13, DELETE-002.15
-test('reviews the rejects, rescues one and moves the rest with their sidecars to the Nextcloud trash bin', async ({ page }) => {
+test('reviews the rejects, rescues one and moves the rest to the Nextcloud trash bin, writing no sidecar', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Delete ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
@@ -62,14 +62,15 @@ test('reviews the rejects, rescues one and moves the rest with their sidecars to
 	release()
 
 	await expect(summary).toBeHidden()
-	await expect(page.getByRole('status').filter({ hasText: 'Moved 2 photos · 6 files' })).toBeVisible()
+	await expect(page.getByRole('status').filter({ hasText: 'Moved 2 photos · 3 files' })).toBeVisible()
 	await expect(grid.getByRole('gridcell')).toHaveCount(1)
 	await expect(grid.getByRole('gridcell', { name: 'IMG_0003, JPG only' })).toBeVisible()
 
 	const locations = await trashLocations(page)
-	for (const file of ['IMG_0001.jpg', 'IMG_0001.NEF', 'IMG_0002.jpg', 'IMG_0001.jpg.xmp', 'IMG_0001.NEF.xmp', 'IMG_0002.jpg.xmp']) {
+	for (const file of ['IMG_0001.jpg', 'IMG_0001.NEF', 'IMG_0002.jpg']) {
 		expect(locations).toContain(`${folder}/${file}<`)
 	}
+	expect(locations).not.toContain(`${folder}/IMG_0001.NEF.xmp<`)
 	expect(locations).not.toContain(`${folder}/IMG_0003.jpg`)
 })
 
