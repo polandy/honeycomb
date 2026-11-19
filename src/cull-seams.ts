@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { CullTagsApi } from './cull-tags.ts'
-import type { Decision, DecisionField, StoredDecision } from './logic/decision.ts'
+import type { FlagApi } from './flags-api.ts'
+import type { Decision, DecisionField } from './logic/decision.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { SidecarFailure } from './logic/sidecar-sync.ts'
@@ -22,7 +23,7 @@ export interface SidecarWrites {
 /** The server calls the cull makes, and the visual hashing of its previews. */
 export interface CullApi extends VisualHashApi {
 	readonly warmPreviews: WarmPreviews
-	readonly lookupDecisions: (fileIds: readonly number[]) => Promise<StoredDecision[]>
+	readonly flags: FlagApi
 	readonly lookupSeries: LookupSeries
 	readonly saveSeries: SaveSeries
 	readonly tags: CullTagsApi

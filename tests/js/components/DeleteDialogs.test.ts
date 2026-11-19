@@ -127,7 +127,7 @@ describe('DeleteReport', () => {
 		expect(wrapper.find('[role="dialog"]').attributes('name')).toBe('Some photos were skipped')
 		expect(wrapper.find('.delete-stats').text()).toBe('3files moved to trash0failed1photo skipped')
 		expect(wrapper.findAll('.trash-files__row').map((row) => row.text())).toEqual([
-			'JPGB/IMG_2.JPGIts sidecars do not say rejected1 kB',
+			'JPGB/IMG_2.JPGNo longer rejected1 kB',
 		])
 		expect(wrapper.findComponent(ConfirmDialog).props('confirmDisabled')).toBe(true)
 	})

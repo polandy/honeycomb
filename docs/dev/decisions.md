@@ -1514,3 +1514,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   maps `NotEnoughSpaceException` too (XMP-002.12). Easy to redo: `fits` in `SidecarWriter`.
 - 2026-11-19: With the versions lock gone, the `versionsApp` page value, `FileVersions` and
   `VersionBackends` are removed rather than kept unused (M8 PR 3). Easy to redo: a revert of them.
+- 2026-11-19: M8 PR 6 removes *Retry failed sidecars* (2026-11-10 above): a failed write is taken
+  back, so nothing is left to retry (XMP-008.15). Easy to redo: the retry was a revert-sized change.
+- 2026-11-19: The take-over reads its rows before its transaction rather than retrying a locked
+  SQLite write with a back-off (DECISIONS-001.34). Easy to redo: `takeOver` in `FlagMapper`.

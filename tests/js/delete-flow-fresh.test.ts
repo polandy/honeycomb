@@ -39,7 +39,7 @@ describe('useDeleteFlow, deleting by decision', () => {
 
 	// spec: DELETE-002.16
 	it('sends nothing when every picture is skipped, and reports them', async () => {
-		const check = async (pictures: readonly Picture<ListingEntry>[]): Promise<FreshCheck> => ({ passed: [], skipped: pictures.map((picture) => ({ picture, reason: 'disagrees' })), unchecked: [] })
+		const check = async (pictures: readonly Picture<ListingEntry>[]): Promise<FreshCheck> => ({ passed: [], skipped: pictures.map((picture) => ({ picture, reason: 'unread' })), unchecked: [] })
 		const { deleting, sent, pictures, toasts } = flow(allTrashed, undefined, undefined, check)
 
 		deleting.continueToSummary()
@@ -175,9 +175,8 @@ describe('skipReason', () => {
 		['changed', 'Its files changed since the folder was listed; reload the folder'],
 		['unread', 'A sidecar could not be read'],
 		['refused', 'A sidecar is not valid XMP'],
-		['disagrees', 'Its sidecars disagree'],
-		['notRejected', 'Its sidecars do not say rejected'],
-		['notRemovable', 'Its sidecars now say Keep RAW or rejected'],
+		['notRejected', 'No longer rejected'],
+		['notRemovable', 'Now rejected or kept with Keep RAW'],
 		['jpegSidecar', 'The JPEG sidecar could not be written, so the RAW stays'],
 	] as const)('words %s', (reason, text) => {
 		expect(skipReason(reason)).toBe(text)

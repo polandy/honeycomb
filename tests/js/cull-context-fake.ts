@@ -13,7 +13,7 @@ import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { useLoupeOpening } from '../../src/loupe-opening.ts'
 import { useSelectionMode } from '../../src/selection-mode.ts'
 import { useSeriesCompare } from '../../src/series-compare.ts'
-import { ENTRIES, fakeStorage, fakeViewState, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
+import { ENTRIES, fakeFlags, fakeStorage, fakeViewState, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
 
 /** One call of a context action: its name and arguments. */
 export type ContextCall = [name: string, ...args: unknown[]]
@@ -41,7 +41,7 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 		saveVisualHashes: async () => undefined,
 		wait: async () => {},
 		warmPreviews: async () => undefined,
-		lookupDecisions: async () => [],
+		flags: fakeFlags().api,
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
 		tags: NO_TAGS,
@@ -55,6 +55,10 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 		selection: useSelectionMode(() => cull.view.value, cull.pictures),
 		decide: record('decide'),
 		editSeries: record('editSeries'),
+		clearFlags: () => {
+			record('clearFlags')()
+			return null
+		},
 		deleting: { rejected: computed(() => counts.value.rejected), rawRemovable: computed(() => counts.value.rawRemovable), review: record('review'), removeRaws: record('removeRaws'), summarise: record('summarise'), allDecided: record('allDecided') },
 		moving: { open: record('move'), openShown: record('moveShown') },
 		resume: { resumeName: computed(() => counts.value.resumeName), resume: record('resume'), dismiss: record('dismissResume') },

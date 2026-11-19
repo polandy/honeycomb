@@ -116,6 +116,31 @@
 	outline-offset: -3px;
 }
 
+/* The mockup's lock (M8 PR 2), below the ambiguous mark when both show. */
+.photo-tile__lock {
+	position: absolute;
+	top: 6px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	inset-inline-end: 6px;
+	background-color: var(--color-main-background-blur);
+	color: var(--color-main-text);
+}
+
+.photo-tile__ambiguous ~ .photo-tile__lock {
+	top: 30px;
+}
+
+.photo-tile__lock .app-icon {
+	width: 14px;
+	height: 14px;
+	stroke-width: 2.2;
+}
+
 .photo-tile__check {
 	position: absolute;
 	display: flex;

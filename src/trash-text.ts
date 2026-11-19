@@ -106,12 +106,10 @@ export function skipReason(reason: SkipReason): string {
 			return t('honeycomb', 'A sidecar could not be read')
 		case 'refused':
 			return t('honeycomb', 'A sidecar is not valid XMP')
-		case 'disagrees':
-			return t('honeycomb', 'Its sidecars disagree')
 		case 'notRejected':
-			return t('honeycomb', 'Its sidecars do not say rejected')
+			return t('honeycomb', 'No longer rejected')
 		case 'notRemovable':
-			return t('honeycomb', 'Its sidecars now say Keep RAW or rejected')
+			return t('honeycomb', 'Now rejected or kept with Keep RAW')
 		default:
 			return t('honeycomb', 'The JPEG sidecar could not be written, so the RAW stays')
 	}

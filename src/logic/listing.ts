@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { FlagFields } from './picture-flag.ts'
 
-/** One file of the listing endpoint (ADR 0009); times are Unix seconds. */
-export interface ListingEntry {
+/** One file of the listing endpoint (ADR 0009) with its flag row (LISTING-001.18); times are Unix seconds. */
+export interface ListingEntry extends FlagFields {
 	readonly fileId: number
 	readonly path: string
 	readonly size: number

@@ -22,7 +22,7 @@ async function trashLocations(page: Page): Promise<string> {
 }
 
 // spec: DELETE-002.1, DELETE-002.8, DELETE-002.13, DELETE-002.15
-test('reviews the rejects, rescues one and moves the rest with their sidecars to the Nextcloud trash bin', async ({ page }) => {
+test('reviews the rejects, rescues one and moves the rest to the Nextcloud trash bin, writing no sidecar', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Delete ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
@@ -62,14 +62,15 @@ test('reviews the rejects, rescues one and moves the rest with their sidecars to
 	release()
 
 	await expect(summary).toBeHidden()
-	await expect(page.getByRole('status').filter({ hasText: 'Moved 2 photos · 6 files' })).toBeVisible()
+	await expect(page.getByRole('status').filter({ hasText: 'Moved 2 photos · 3 files' })).toBeVisible()
 	await expect(grid.getByRole('gridcell')).toHaveCount(1)
 	await expect(grid.getByRole('gridcell', { name: 'IMG_0003, JPG only' })).toBeVisible()
 
 	const locations = await trashLocations(page)
-	for (const file of ['IMG_0001.jpg', 'IMG_0001.NEF', 'IMG_0002.jpg', 'IMG_0001.jpg.xmp', 'IMG_0001.NEF.xmp', 'IMG_0002.jpg.xmp']) {
+	for (const file of ['IMG_0001.jpg', 'IMG_0001.NEF', 'IMG_0002.jpg']) {
 		expect(locations).toContain(`${folder}/${file}<`)
 	}
+	expect(locations).not.toContain(`${folder}/IMG_0001.NEF.xmp<`)
 	expect(locations).not.toContain(`${folder}/IMG_0003.jpg`)
 })
 
@@ -100,26 +101,30 @@ test('deletes the rejects from the More menu while the flag filter hides them', 
 	expect(await trashLocations(page)).toContain(`${folder}/IMG_0001.jpg.xmp<`)
 })
 
-// spec: DELETE-002.15, DELETE-002.16
-test('skips a reject whose sidecar was changed elsewhere to picked, and reports it', async ({ page }) => {
+// spec: DELETE-002.16, DELETE-002.28
+test('skips a reject another user picked meanwhile, and reports it', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Fresh ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
+	const fileIds: number[] = []
 	for (const name of ['IMG_0001', 'IMG_0002']) {
-		await upload(page, `${folder}/${name}.jpg`, JPEG)
+		fileIds.push(await upload(page, `${folder}/${name}.jpg`, JPEG))
 		await upload(page, `${folder}/${name}.jpg.xmp`, pickLabel(1))
 	}
 
+	const takenOver = page.waitForResponse((response) => response.url().endsWith('/api/v1/flags/take-over') && response.ok())
 	await cullFolder(page, folder)
 	await expect(page.getByRole('button', { name: 'Review rejects (2)' })).toBeVisible()
-	await upload(page, `${folder}/IMG_0002.jpg.xmp`, pickLabel(3))
+	await takenOver
+	const picked = await page.request.put(`${API}/flags`, { data: { flags: [{ fileId: fileIds[1], flag: 'picked', keepRaw: false }] }, headers: { requesttoken: await requestToken(page) } })
+	expect(picked.status()).toBe(200)
 
 	await page.getByRole('button', { name: 'Review rejects (2)' }).click()
 	await page.getByRole('dialog', { name: 'Review rejects' }).getByRole('button', { name: 'Continue: delete 2' }).click()
 	await page.getByRole('dialog', { name: 'Delete 2 photos' }).getByRole('button', { name: /^Move \d+ files to trash$/ }).click()
 
 	const report = page.getByRole('dialog', { name: 'Some photos were skipped' })
-	await expect(report.getByRole('list', { name: 'Photos skipped' })).toContainText('IMG_0002.jpgIts sidecars do not say rejected')
+	await expect(report.getByRole('list', { name: 'Photos skipped' })).toContainText('IMG_0002.jpgNo longer rejected')
 	await expect(report.getByRole('button', { name: 'Retry failed files' })).toBeDisabled()
 	await expect(page.getByRole('status').filter({ hasText: 'Moved 1 photo · 2 files' }).filter({ hasText: '1 photo skipped' })).toBeVisible()
 	const locations = await trashLocations(page)
@@ -216,8 +221,8 @@ test('two photos of one name from two folders, trashed in one request, can both 
 	}
 })
 
-/** Culls a folder of `IMG_0001.jpg` with a sidecar and `IMG_0002.jpg` without, and picks both, which writes both sidecars at once. */
-async function pickBoth(page: Page): Promise<{ folder: string, saved: Promise<unknown> }> {
+/** Culls a folder of `IMG_0001.jpg` with a sidecar and `IMG_0002.jpg` without, and rates both, which writes both sidecars at once. */
+async function rateBoth(page: Page): Promise<{ folder: string, saved: Promise<unknown> }> {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Own writes ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
@@ -232,7 +237,7 @@ async function pickBoth(page: Page): Promise<{ folder: string, saved: Promise<un
 		await grid.getByRole('gridcell', { name }).click()
 	}
 	const saved = page.waitForResponse((response) => response.url().endsWith('/api/v1/sidecars') && response.request().method() === 'PUT')
-	await page.getByRole('button', { name: 'Pick', exact: true }).click()
+	await page.getByRole('button', { name: 'Rate 3 stars' }).click()
 	return { folder, saved }
 }
 
@@ -244,7 +249,7 @@ async function deleteSelection(page: Page): Promise<void> {
 
 // spec: DELETE-002.17
 test('deletes chosen photos right after deciding them, with the sidecars honeycomb just wrote and created', async ({ page }) => {
-	const { folder } = await pickBoth(page)
+	const { folder } = await rateBoth(page)
 	await deleteSelection(page)
 
 	await expect(page.getByRole('status').filter({ hasText: 'Moved 2 photos · 4 files' })).toBeVisible()
@@ -257,7 +262,7 @@ test('deletes chosen photos right after deciding them, with the sidecars honeyco
 
 // spec: DELETE-002.18
 test('keeps a chosen photo whose sidecar another program changed after honeycomb wrote it', async ({ page }) => {
-	const { folder, saved } = await pickBoth(page)
+	const { folder, saved } = await rateBoth(page)
 	await saved
 	await upload(page, `${folder}/IMG_0001.jpg.xmp`, pickLabel(1))
 	await deleteSelection(page)

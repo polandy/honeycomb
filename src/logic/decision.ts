@@ -28,6 +28,9 @@ export type DecisionDelta = Partial<Decision>
 /** Every field of a decision, in its order. */
 export const DECISION_FIELDS: readonly DecisionField[] = ['rating', 'colourLabel', 'flag', 'keepRaw']
 
+/** The fields the database holds; the others live in the sidecars (ADR 0040). */
+export const FLAG_FIELDS: readonly DecisionField[] = ['flag', 'keepRaw']
+
 /** A decision as the decision endpoint stores it per member file id (ADR 0012). */
 export interface StoredDecision extends Decision {
 	readonly fileId: number

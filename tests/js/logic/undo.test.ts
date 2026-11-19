@@ -4,7 +4,7 @@ import type { Decision } from '../../../src/logic/decision.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { applyStep, NO_HISTORY, pickRestEntry, pushUndo, recordStep, redoStep, seriesStep, tagStep, UNDO_LIMIT, undoEntry, undoStep } from '../../../src/logic/undo.ts'
+import { applyStep, clearEntry, NO_HISTORY, pickRestEntry, pushUndo, recordStep, redoStep, seriesStep, tagStep, UNDO_LIMIT, undoEntry, undoStep } from '../../../src/logic/undo.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const PAIR = pictureOf(listingEntry(1, '/P/A.JPG'), listingEntry(2, '/P/A.NEF', { mime: 'image/x-dcraw' }))
@@ -170,5 +170,28 @@ describe('undo and redo steps', () => {
 	it('keeps the limit on redo', () => {
 		const full = { done: Array.from({ length: UNDO_LIMIT }, (_, at) => step(at % 6)), undone: [step(5)] }
 		expect(redoStep(full)!.history.done).toHaveLength(UNDO_LIMIT)
+	})
+})
+
+describe('clearEntry', () => {
+	// spec: GRID-001.22
+	it('resets the flag and Keep RAW of a pair and only the flag of a single, as one step', () => {
+		const entry = clearEntry([
+			{ picture: PAIR, decision: decided({ flag: 'picked', keepRaw: true, rating: 2 }) },
+			{ picture: JPEG, decision: decided({ flag: 'rejected', keepRaw: true }) },
+		])
+
+		expect(entry).toEqual({
+			kind: 'decision',
+			change: { flag: 'unflagged', keepRaw: false },
+			names: ['A', 'B'],
+			after: [{ fileId: 1, ...decided({ rating: 2 }) }, { fileId: 2, ...decided({ rating: 2 }) }, { fileId: 3, ...decided({ keepRaw: true }) }],
+			before: [{ fileId: 1, ...decided({ flag: 'picked', keepRaw: true, rating: 2 }) }, { fileId: 2, ...decided({ flag: 'picked', keepRaw: true, rating: 2 }) }, { fileId: 3, ...decided({ flag: 'rejected', keepRaw: true }) }],
+		})
+	})
+
+	// spec: GRID-001.22
+	it('is null when nothing is flagged', () => {
+		expect(clearEntry([{ picture: JPEG, decision: decided({ rating: 3 }) }])).toBeNull()
 	})
 })

@@ -25,6 +25,18 @@ describe('GridToolbar More menu', () => {
 		expect(wrapper.emitted('compareSeries')).toHaveLength(1)
 	})
 
+	// spec: GRID-001.22
+	it('clears the picks and rejects from the More menu with their count, held at 0', async () => {
+		const set = { paths: ['/Trip'], subfolders: false }
+		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('.grid-more-menu button').find((button) => button.text().includes('Clear picks/rejects'))!
+		const wrapper = mountToolbar(set, 1, { clearable: 10 })
+
+		expect(item(mountToolbar(set)).attributes('disabled')).toBeDefined()
+		expect(item(wrapper).text().replaceAll(MARK, '')).toBe('Clear picks/rejects 10')
+		await item(wrapper).trigger('click')
+		expect(wrapper.emitted('clearFlags')).toHaveLength(1)
+	})
+
 	// spec: GRID-001.17, DELETE-002.19
 	it('reviews the rejects from the More menu at every width, with its count and Ctrl+Backspace, held at 0', async () => {
 		const set = { paths: ['/Trip'], subfolders: false }

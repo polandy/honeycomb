@@ -22,7 +22,7 @@ const NO_EMBEDDED = new Map([[JPG.fileId, { result: 'none' as const }]])
 const LATER = { ...CANONICAL_TIME, epochMs: CANONICAL_TIME.epochMs + 60_000 }
 
 describe('writeLookups', () => {
-	// spec: XMP-003.6, XMP-003.7
+	// spec: XMP-003.7
 	it('looks up the existing sidecars honeycomb holds no bytes of', () => {
 		const pair = pictureOf(NEF, JPG, NEF_XMP)
 		const known = new Map<string, KnownSidecar>([['/P/IMG_0001.JPG.xmp', { fileId: 20, saved: null }]])
@@ -35,7 +35,7 @@ describe('writeLookups', () => {
 })
 
 describe('planSaves', () => {
-	// spec: XMP-003.6
+	// spec: XMP-003.20
 	it('merges the decision into each existing sidecar with the ETag and size read', () => {
 		const pair = pictureOf(NEF, JPG, NEF_XMP, JPG_XMP)
 		const bytes = xmp({ 'xmp:Rating': '4', 'dc:format': 'kept' })
@@ -121,7 +121,6 @@ describe('planSaves', () => {
 		])
 	})
 
-	// spec: XMP-003.21
 	it('starts a new sidecar from what the picture\'s sidecars state, held bytes before read ones', () => {
 		const single = pictureOf(NEF, JPG, NEF_XMP)
 		const known = new Map<string, KnownSidecar>([['/P/IMG_0001.NEF.xmp', { fileId: 11, saved: { etag: 'n', size: 1, mtime: 300, bytes: xmp({ 'xmp:Rating': '5' }) } }]])

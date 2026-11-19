@@ -46,6 +46,8 @@ export interface ToolbarTasks {
 	/** How many series are left to compare. */
 	readonly series: number
 	readonly rawRemovable: number
+	/** How many rateable pictures *Clear picks/rejects* resets. */
+	readonly clearable: number
 	/** How many pictures *Move picks* or, while a filter is on, *Move filtered* opens the move dialog on. */
 	readonly movable: number
 	/** The base name of the picture *Resume* opens the loupe at, null when there is none. */

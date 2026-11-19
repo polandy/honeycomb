@@ -47,6 +47,13 @@ answers `decisionChanged` stays and is reported as *No longer rejected*. When a 
 listing or the request fails, nothing of it is deleted and the toast says so; there is no dialog
 *Fresh check not possible*. Until then the following holds.
 
+**Until M8 PR 8, flags from the fresh listing.** Since M8 PR 6 the cull keeps flags and *Keep RAW*
+in `honeycomb_flags` and no longer writes them to the sidecars (XMP-003.37), so the fresh check
+below waits for the flag saves in flight and then takes a picture's flag from the rows its fresh
+listing carries, and from its sidecars only
+while it has none (DECISIONS-001.28). Its sidecars must still read and be valid XMP; sidecars that
+disagree on the flag no longer hold a picture (.28).
+
 **Deleting by decision** (ADR 0032). Confirming the summary that came from the review first writes
 the waiting sidecars (XMP-003.30), lists the pictures' folders again and reads every sidecar of each
 picture, and the JPEG's embedded XMP while it counts. A picture goes only when every one of them
@@ -281,6 +288,15 @@ Withdrawn by ADR 0040; M8 PR 8 marks it removed.
 - **Then** no dialog asks, the pictures of the other folder go, those of the failed folder stay
   and are reported as skipped, and the failure is logged
 
+### DELETE-002.28 – The fresh check reads the flag from the fresh listing
+
+- **Given** the summary from the review with a picture whose fresh row says *rejected* while its
+  sidecars say *picked* or disagree, one whose fresh row another user changed to *picked* while its
+  sidecar says *rejected*, and one without a row whose sidecars say *rejected*
+- **When** the user confirms
+- **Then** the flag saves still in flight land first, the first and the last picture go, and the
+  second stays and is reported as *No longer rejected*
+
 ## Out of scope
 
 The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
@@ -302,3 +318,4 @@ The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
 | 2026-11-18 | A failed fresh listing or lookup deletes the rejects honeycomb knows instead of aborting (DELETE-002.15, DELETE-002.23, ADR 0032, owner) |
 | 2026-11-18 | A failed fresh check asks before deleting, instead of saying so in the toast after (DELETE-002.15, DELETE-002.23, DELETE-002.25, owner) |
 | 2026-11-19 | ADR 0040: the server checks the rejects, the fresh check reads no sidecar, no dialog on a failed check (.15, .23, .25 withdrawn; .26, .27 gaps) |
+| 2026-11-19 | M8 PR 6: until M8 PR 8 the fresh check takes the flag from the fresh listing (.28) |

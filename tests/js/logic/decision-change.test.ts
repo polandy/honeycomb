@@ -3,7 +3,7 @@
 import type { Decision } from '../../../src/logic/decision.ts'
 
 import { describe, expect, it } from 'vitest'
-import { changedFields, changedRows, commonDecision, resolveChange, withRows } from '../../../src/logic/decision-change.ts'
+import { changedFields, changedRows, commonDecision, resolveChange, takenBack, withRows } from '../../../src/logic/decision-change.ts'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
@@ -106,5 +106,22 @@ describe('changedFields', () => {
 
 		expect(changedFields([{ fileId: 1, ...decided({ rating: 2, flag: 'picked' }) }, { fileId: 2, ...decided({ colourLabel: 'red' }) }], before)).toEqual(['colourLabel', 'flag'])
 		expect(changedFields([{ fileId: 1, ...decided({ rating: 2 }) }], before)).toEqual([])
+	})
+})
+
+describe('takenBack', () => {
+	// spec: XMP-008.15
+	it('puts back the written fields the user has not changed since, and keeps the others', () => {
+		const before = new Map([[1, decided({ rating: 1, flag: 'picked' })]])
+		const decisions = new Map([[1, decided({ rating: 4, flag: 'rejected' })]])
+
+		expect(takenBack(decisions, [{ fileId: 1, ...decided({ rating: 3, flag: 'rejected' }) }], before, ['rating', 'flag'])).toEqual([{ fileId: 1, ...decided({ rating: 4, flag: 'picked' }) }])
+	})
+
+	// spec: XMP-008.17
+	it('puts back the undecided state for a file not decided before', () => {
+		const decisions = new Map([[2, decided({ flag: 'picked', keepRaw: true })]])
+
+		expect(takenBack(decisions, [{ fileId: 2, ...decided({ flag: 'picked', keepRaw: true }) }], new Map(), ['flag', 'keepRaw'])).toEqual([{ fileId: 2, ...UNDECIDED }])
 	})
 })

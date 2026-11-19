@@ -1,8 +1,5 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Decision } from './logic/decision.ts'
-import type { ListingEntry } from './logic/listing.ts'
-import type { Picture } from './logic/pairing.ts'
 import type { SidecarFailure } from './logic/sidecar-sync.ts'
 import type { XmpTime } from './logic/xmp/model.ts'
 import type { SidecarApi } from './sidecar-sync.ts'
@@ -24,7 +21,7 @@ export function browserNow(): XmpTime {
 	return { epochMs: date.getTime(), offsetMinutes: -date.getTimezoneOffset() }
 }
 
-/** Writing to sidecars as the user sees it: the toasts and the report with a retry (XMP-003.13). */
+/** Writing to sidecars as the user sees it: the toasts and the report (XMP-003.13). */
 export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, action?: ToastAction | null) => void) {
 	const report = shallowRef<SidecarFailure[] | null>(null)
 	const open = computed(() => report.value !== null)
@@ -47,14 +44,7 @@ export function useSidecarFlow(api: SidecarFlowApi, toast: (message: string, act
 		report.value = null
 	}
 
-	/** Writes the failed sidecars once more. */
-	function retry(decisionOf: (picture: Picture<ListingEntry>) => Decision) {
-		const failed = report.value ?? []
-		report.value = null
-		void sync.retry(failed, decisionOf)
-	}
-
-	return { sync, report, open, close, retry }
+	return { sync, report, open, close }
 }
 
 /** The sidecar flow of the app. */

@@ -5,10 +5,7 @@
 <script setup lang="ts">
 import type { Folder } from '../api.ts'
 import type { DeleteFlow } from '../delete-flow.ts'
-import type { Decision } from '../logic/decision.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
-import type { ListingEntry } from '../logic/listing.ts'
-import type { Picture } from '../logic/pairing.ts'
 import type { MoveFlow } from '../move-flow.ts'
 import type { SidecarFlow } from '../sidecar-flow.ts'
 
@@ -23,7 +20,6 @@ const props = defineProps<{
 	folderSet: FolderSet
 	/** How many folders the cull shows. */
 	folders: number
-	decisionOf: (picture: Picture<ListingEntry>) => Decision
 	listFolders: (path: string) => Promise<Folder[]>
 	/** Where the dialogs open, e.g. inside the loupe; the page body by default. */
 	container?: string | undefined
@@ -51,8 +47,7 @@ const deleting = props.deleting
 		@retry="deleting.retry" />
 	<SidecarDialogs
 		:flow="props.sidecars"
-		:folderSet="props.folderSet"
-		:decisionOf="props.decisionOf" />
+		:folderSet="props.folderSet" />
 	<MoveDialogs
 		:flow="props.moving"
 		:folderSet="props.folderSet"

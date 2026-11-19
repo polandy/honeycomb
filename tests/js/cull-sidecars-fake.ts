@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { SidecarWrites } from '../../src/cull-seams.ts'
 import type { Decision, StoredDecision } from '../../src/logic/decision.ts'
+import type { FolderSet } from '../../src/logic/folder-set.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 import type { Settings } from '../../src/logic/settings.ts'
+import type { SidecarFailure, SidecarFailureReason } from '../../src/logic/sidecar-sync.ts'
 import type { Tag, TagChange } from '../../src/logic/tag.ts'
 import type { ListedAccess } from '../../src/logic/writability.ts'
 
@@ -12,7 +14,7 @@ import { shallowRef } from 'vue'
 import { useCull } from '../../src/cull.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { fakeStorage, NO_SERIES, SAVED_SERIES } from './app-cull.ts'
+import { fakeFlags, fakeStorage, NO_SERIES, SAVED_SERIES } from './app-cull.ts'
 
 /** A decision of three stars, rejected. */
 export const THREE_REJECTED: Decision = { ...UNDECIDED, rating: 3, flag: 'rejected' }
@@ -22,12 +24,18 @@ export function access(permissions: Record<string, number> = {}): ListedAccess {
 	return { folders: ['/Trip/A', '/Trip/B'].map((path) => ({ path, permissions: permissions[path] ?? 31 })) }
 }
 
-/** A cull whose sidecars read as `takenOver` and whose writes are recorded. */
-export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<string, Decision>>, tagsTakenOver?: Map<string, Tag[]> } = {}) {
+/** A cull whose sidecars read as `takenOver`, fail as `failing` names, whose flag table holds `stored`, and whose writes are recorded; `open` lists the entries with the table's rows. */
+export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<string, Decision>>, tagsTakenOver?: Map<string, Tag[]>, failing?: Record<string, SidecarFailureReason> } = {}) {
 	const reads: string[][] = []
 	const tagWrites: { names: string[], change: TagChange }[] = []
 	const writes: { name: string, decision: Decision, fields: readonly string[] }[][] = []
 	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
+	const flags = fakeFlags(options.stored)
+	const notSaved: number[] = []
+	const failures = (pictures: readonly Picture<ListingEntry>[]): SidecarFailure[] => pictures.flatMap((picture) => {
+		const reason = options.failing?.[picture.baseName]
+		return reason === undefined ? [] : [{ path: `${picture.folder}/${picture.baseName}.xmp`, picture, reason }]
+	})
 	const sidecars: SidecarWrites = {
 		read: async (pictures) => {
 			reads.push(pictures.map((picture) => picture.baseName))
@@ -40,7 +48,7 @@ export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promi
 		},
 		write: async (pictures, decisionOf, fields) => {
 			writes.push(pictures.map((picture) => ({ name: picture.baseName, decision: decisionOf(picture), fields })))
-			return { written: pictures.length, failed: [] }
+			return { written: pictures.length, failed: failures(pictures) }
 		},
 		writeTags: async (pictures, change) => {
 			tagWrites.push({ names: pictures.map((picture) => picture.baseName), change })
@@ -52,11 +60,12 @@ export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promi
 		saveVisualHashes: async () => undefined,
 		wait: async () => {},
 		warmPreviews: async () => undefined,
-		lookupDecisions: async () => options.stored ?? [],
+		flags: flags.api,
 		lookupSeries: NO_SERIES,
 		saveSeries: SAVED_SERIES,
 		tags: { loadTagList: async () => [] },
-	}, fakeStorage(), () => settings.value, sidecars)
+	}, fakeStorage(), () => settings.value, sidecars, (photos) => notSaved.push(photos))
 	const picture = (name: string): Picture<ListingEntry> => cull.pictures.value.find((each) => each.baseName === name)!
-	return { cull, reads, writes, settings, picture, tagWrites }
+	const open = (set: FolderSet, entries: readonly ListingEntry[], listed?: ListedAccess) => cull.open(set, flags.listed(entries), listed)
+	return { cull, reads, writes, settings, picture, tagWrites, flags, open, notSaved }
 }

@@ -152,7 +152,7 @@ a glance, at any size, without waiting for a sharp image of every tile.
   one around it, a small preview before a sharp one, then the oldest request; a tile that scrolls
   into view moves its waiting load forward, and an unmounted tile's waiting load never starts
 
-### GRID-001.20 – A read-only tile carries a lock (gap)
+### GRID-001.20 – A read-only tile carries a lock
 
 - **Given** a folder set in which only the pictures of `Island/Drone` are read only (XMP-008)
 - **When** the grid shows them
@@ -167,7 +167,7 @@ a glance, at any size, without waiting for a sharp image of every tile.
 - **Then** the entry reads *Write picks/rejects to XMP · 214* and writes at once, without asking;
   with nothing to write it reads *Write picks/rejects to XMP* and reports that all are up to date
 
-### GRID-001.22 – *Clear picks/rejects* (gap)
+### GRID-001.22 – *Clear picks/rejects*
 
 - **Given** an open folder set with 12 flagged or kept pictures, 2 of them read only
 - **When** the user chooses *Clear picks/rejects* in the ⋯ menu
@@ -203,7 +203,7 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 - **Then** one separator stands between the view options (thumbnail size, *Group by folder*, sort)
   and the actions; a changed view option leaves the menu open, and an action (*Review rejects*,
   *Compare series*, *Remove RAWs…*, *Move picks…*, *Resume at*
-  (*Write picks/rejects to XMP* and *Clear picks/rejects* from M8 PR 6 and 7, .21, .22),
+  *Clear picks/rejects* (.22), *Write picks/rejects to XMP* from M8 PR 7 (.21),
   *Settings*) closes it, so no menu stays above the dialog or view it opens
 
 ### GRID-001.19 – Every control is at least 44 × 44 px on an iPad
@@ -229,3 +229,4 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 | 2026-11-13 | GRID-001.18: a separator between view options and actions in the ⋯ menu; an action closes it (UX review M7) |
 | 2026-11-18 | GRID-001.19: an e2e check of the 44 px touch targets in the real app on iPad viewports |
 | 2026-11-19 | ADR 0040: the lock on read-only tiles, *Write picks/rejects to XMP* with its count, *Clear picks/rejects* (.20–.22 gaps) |
+| 2026-11-19 | M8 PR 6: the lock and *Clear picks/rejects* (.20, .22 implemented) |

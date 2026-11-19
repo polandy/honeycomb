@@ -19,9 +19,9 @@ const rated = () => ({ ...UNDECIDED, rating: 3 })
 
 describe('SidecarDialogs', () => {
 	// spec: XMP-003.13
-	it('names each failed sidecar with its reason and writes the failed ones again on retry', async () => {
+	it('names each failed sidecar with its reason and offers only Close', async () => {
 		const saves: SidecarSaveItem[][] = []
-		let answer: SidecarSaveAnswer = { result: 'notPermitted' }
+		const answer: SidecarSaveAnswer = { result: 'notPermitted' }
 		const toasts: { run?: () => void }[] = []
 		const flow = useSidecarFlow({
 			lookupSidecars: async (fileIds) => fileIds.map(() => ({ result: 'read', bytes: BYTES, etag: 'e', size: BYTES.length, mtime: 1 })),
@@ -34,7 +34,7 @@ describe('SidecarDialogs', () => {
 			},
 			now: () => CANONICAL_TIME,
 		}, (_message, action) => void toasts.push(action?.run === undefined ? {} : { run: action.run }))
-		const wrapper = mount(SidecarDialogs, { props: { flow, folderSet: { paths: ['/Trip'], subfolders: true }, decisionOf: rated }, global: { stubs: { NcDialog: DialogStub } } })
+		const wrapper = mount(SidecarDialogs, { props: { flow, folderSet: { paths: ['/Trip'], subfolders: true } }, global: { stubs: { NcDialog: DialogStub } } })
 		expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
 
 		await flow.sync.write([PICTURE], rated)
@@ -45,11 +45,11 @@ describe('SidecarDialogs', () => {
 		expect(report.text()).toContain('A/IMG_1.JPG.xmp')
 		expect(report.text()).toContain('You may not change this sidecar or create files in its folder')
 
-		answer = { result: 'saved', fileId: 2, etag: 's', size: 1, mtime: 2 }
-		await wrapper.findAll('button').find((button) => button.text() === 'Retry failed sidecars')!.trigger('click')
+		expect(report.findAll('button').map((button) => button.text())).toEqual(['Close'])
+		await report.find('button').trigger('click')
 		await flushPromises()
 
-		expect(saves).toHaveLength(2)
+		expect(saves).toHaveLength(1)
 		expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
 	})
 })

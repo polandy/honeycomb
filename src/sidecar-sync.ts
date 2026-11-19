@@ -14,7 +14,7 @@ import { logger } from './logger.ts'
 import { DECISION_FIELDS, sameDecision, UNDECIDED } from './logic/decision.ts'
 import { embeddedXmpSource } from './logic/embedded-xmp.ts'
 import { NO_OWN_SAVES, recordSaves, withOwnSaves } from './logic/own-saves.ts'
-import { failureOf, passOf, retryStep, stepResult } from './logic/sidecar-pass.ts'
+import { failureOf, passOf, stepResult } from './logic/sidecar-pass.ts'
 import { applySaves, planSaves, writeLookups } from './logic/sidecar-sync.ts'
 import { embeddedRow, pictureState, sidecarRow, staleSources, xmpCacheSources } from './logic/xmp-cache.ts'
 
@@ -141,11 +141,6 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		return queued({ pictures, decisionOf: null, tags: change, paths })
 	}
 
-	/** Writes the failed sidecars once more: the decision fields as they are now, a tag change as it was. */
-	function retry(failed: readonly SidecarFailure[], decisionOf: (picture: Picture<ListingEntry>) => Decision) {
-		return Promise.all(failed.map((failure) => queued(retryStep(failure, decisionOf))))
-	}
-
 	/** Answers the step's write once a pass has written it with the steps waiting beside it. */
 	function queued(step: SidecarStep): Promise<Written> {
 		return new Promise((resolve, reject) => {
@@ -233,7 +228,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		return withOwnSaves(picture, own)
 	}
 
-	return { read, write, writeTags, retry, current }
+	return { read, write, writeTags, current }
 }
 
 /** The lookup's answers by file id, without a request for no ids. */

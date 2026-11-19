@@ -14,21 +14,23 @@ import type { ListedAccess } from './logic/writability.ts'
 
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useCullAccess } from './cull-access.ts'
+import { useCullFlags } from './cull-flags.ts'
 import { useCullHistory } from './cull-history.ts'
 import { useCullTags } from './cull-tags.ts'
 import { nameComparer } from './l10n.ts'
 import { logger } from './logger.ts'
 import { prepareCull, warmMembers } from './logic/cull.ts'
-import { changedFields, commonDecision, resolveChange, withRows } from './logic/decision-change.ts'
-import { countsAsDecided, decisionsByFileId, pictureDecision } from './logic/decision.ts'
+import { changedFields, commonDecision, resolveChange, takenBack, withRows } from './logic/decision-change.ts'
+import { countsAsDecided, FLAG_FIELDS, pictureDecision, UNDECIDED } from './logic/decision.ts'
 import { memberIds } from './logic/pairing.ts'
 import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
+import { listedRows, pictureFlag, readDecision } from './logic/picture-flag.ts'
 import { sortPictures } from './logic/picture-order.ts'
 import { pairingSettings } from './logic/settings.ts'
 import { inDoneSeries } from './logic/stored-series.ts'
 import { inverseChange } from './logic/tag.ts'
 import { withoutFiles } from './logic/trash-report.ts'
-import { applyStep, pickRestEntry, tagStep, undoEntry } from './logic/undo.ts'
+import { applyStep, clearEntry, pickRestEntry, tagStep, undoEntry } from './logic/undo.ts'
 import { NO_ACCESS } from './logic/writability.ts'
 import { usePreviewWarmer } from './preview-warmer.ts'
 import { useSeriesEdits } from './series-edits.ts'
@@ -39,8 +41,8 @@ import { useViewOptions } from './view-options.ts'
 /** A step of the cull's undo history. */
 export type CullStep = UndoStep<Picture<ListingEntry>>
 
-/** The open cull, its view settings and the folder picker's state; it pairs and shows singles as the settings say. */
-export function useCull(api: CullApi, storage: BrowserStorage, settings: () => Settings, sidecars: SidecarWrites) {
+/** The open cull, its view settings and the folder picker's state; it pairs and shows singles as the settings say; `onFlagsNotSaved` hears how many photos got their flag back. */
+export function useCull(api: CullApi, storage: BrowserStorage, settings: () => Settings, sidecars: SidecarWrites, onFlagsNotSaved: (photos: number) => void = () => undefined) {
 	const compareNames = nameComparer()
 	const folderSet = ref<FolderSet | null>(null)
 	const entries = shallowRef<readonly ListingEntry[]>([])
@@ -49,7 +51,10 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const pairing = computed(() => JSON.parse(pairingKey.value) as PairingSettings)
 	const pictures = computed(() => (settings().showSingles ? paired.value : paired.value.filter((picture) => picture.raw !== null && picture.rendered !== null)))
 	const decisions = shallowRef<ReadonlyMap<number, Decision>>(new Map())
+	/** The file ids a read or a step has set, so a later read leaves them as they are (XMP-003.3). */
+	let settled = new Set<number>()
 	const access = useCullAccess()
+	const flags = useCullFlags(api.flags)
 	let opening = 0
 	const storedSeries = useStoredSeries(api, () => opening)
 	/** Puts each kind of step into effect, or takes it back when `back`. */
@@ -60,7 +65,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		series: (step, back) => void storedSeries.store(back ? step.before : step.after),
 	}
 	const history = useCullHistory<CullStep>((step, back) => applyStep(effects, step, back))
-	/** Whether a step on the picture is written through to its sidecars (XMP-008.1). */
+	/** Whether a step on the picture is saved and written through (XMP-008.12). */
 	const writesThrough = (picture: Picture<ListingEntry>) => access.writabilityOf(picture) === 'writable'
 	const tags = useCullTags(api.tags, sidecars.writeTags, writesThrough)
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
@@ -79,14 +84,15 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const warmer = usePreviewWarmer(api.warmPreviews, storage)
 	const seriesEdits = useSeriesEdits({ record: history.record, rows: () => storedSeries.rows.value, newId: storedSeries.newId, seriesOf: () => seriesState.seriesOf.value })
 
-	/** Shows the pictures of the confirmed folders with fresh filters, then their stored decisions. */
+	/** Shows the pictures of the confirmed folders with fresh filters and the listing's flags, then reads their sidecars. */
 	function open(set: FolderSet, listed: readonly ListingEntry[], listedAccess: ListedAccess = NO_ACCESS) {
 		folderSet.value = set
 		access.open(listedAccess)
 		opening++
 		entries.value = listed
 		paired.value = prepareCull(listed, pairing.value).pictures
-		decisions.value = new Map()
+		decisions.value = withRows(new Map(), listedRows(paired.value))
+		settled = new Set()
 		tags.reset()
 		storedSeries.reset()
 		tags.loadList()
@@ -101,37 +107,35 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		loadDecisions(paired.value)
 	})
 
-	/** Reads the stored series and the decisions of every member. */
+	/** Reads the stored series and the sidecars of every picture. */
 	function loadDecisions(opened: readonly Picture<ListingEntry>[]) {
 		storedSeries.load(opened)
-		const fileIds = opened.flatMap(memberIds)
-		readPictures(opened, fileIds)
+		readPictures(opened)
 	}
 
-	/** Shows the stored rows of the files and the sidecars' values of the pictures, read through the XMP cache; a stored row wins, then a change made meanwhile, then the sidecars (XMP-003.1–.3, TAGS-002.2). */
-	function readPictures(read: readonly Picture<ListingEntry>[], decisionIds: readonly number[]) {
+	/** Shows the sidecars' values of the pictures no read or step has set yet, with the listing's flag, and takes over those without a row (XMP-003.3, .34–.36, TAGS-002.2). */
+	function readPictures(read: readonly Picture<ListingEntry>[]) {
 		const shown = paired.value
 		const cull = opening
-		Promise.all([lookupStored(decisionIds), sidecars.read(read)]).then(([rows, fromSidecars]) => {
+		sidecars.read(read).then((fromSidecars) => {
 			if (opening !== cull || paired.value !== shown) {
 				return
 			}
-			decisions.value = new Map([...decisionsByFileId(rows), ...decisions.value])
 			tags.fromSidecars(fromSidecars.tagged)
-			const undecided = fromSidecars.decided.filter(({ picture }) => !memberIds(picture).some((fileId) => decisions.value.has(fileId)))
-			if (undecided.length > 0) {
-				decisions.value = withRows(decisions.value, undecided.flatMap(({ picture, decision }) => memberIds(picture).map((fileId) => ({ fileId, ...decision }))))
-			}
-		}).catch((error: unknown) => logger.error('Could not read the sidecars; the photos show their stored decisions', { error }))
+			const stated = new Map(fromSidecars.decided.map(({ picture, decision }) => [picture, decision]))
+			const fresh = read.filter((picture) => !memberIds(picture).some((fileId) => settled.has(fileId)))
+			const rows = fresh.flatMap((picture) => memberIds(picture).map((fileId) => ({ fileId, ...readDecision(pictureFlag(picture), stated.get(picture) ?? UNDECIDED) })))
+			decisions.value = withRows(decisions.value, rows)
+			settle(rows)
+			const unlisted = new Set(fresh.filter((picture) => pictureFlag(picture) === null).flatMap(memberIds))
+			flags.takeOver(rows.filter(({ fileId }) => unlisted.has(fileId)))
+		}).catch((error: unknown) => logger.error('Could not read the sidecars; the photos show the listing\'s flags', { error }))
 	}
 
-	/** The stored decisions of the files; none, logged, when they cannot be read (XMP-003.2). */
-	async function lookupStored(fileIds: readonly number[]): Promise<StoredDecision[]> {
-		try {
-			return fileIds.length === 0 ? [] : await api.lookupDecisions(fileIds)
-		} catch (error) {
-			logger.error('Could not read the stored decisions; the photos show their sidecars\' decisions', { error })
-			return []
+	/** Marks the rows' files as set, so no read overrides them. */
+	function settle(rows: readonly StoredDecision[]) {
+		for (const { fileId } of rows) {
+			settled.add(fileId)
 		}
 	}
 
@@ -156,19 +160,52 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		return access.gate(chosen, (writable) => history.record(tagStep(writable, tags.tagsOf, change)))
 	}
 
-	/** Shows the rows at once and writes their changed fields through. */
+	/** How many rateable pictures *Clear picks/rejects* would reset (GRID-001.22). */
+	const clearable = computed(() => clearEntry(decided(pictures.value.filter(writesThrough)))?.names.length ?? 0)
+
+	/** Resets the rateable pictures of the folder set to unflagged without Keep RAW as one undo step, or null when nothing changes (GRID-001.22). */
+	function clearFlags(): DecisionStep | null {
+		return history.record(clearEntry(decided(pictures.value.filter(writesThrough))))
+	}
+
+	/** Shows the rows at once, saves their flags and writes their other changed fields through; a failed save or write is taken back (XMP-003.37, .38, XMP-008.15, .17). */
 	function store(rows: readonly StoredDecision[]) {
 		const before = decisions.value
 		decisions.value = withRows(before, rows)
-		writeThrough(rows, changedFields(rows, before))
+		settle(rows)
+		const fields = changedFields(rows, before)
+		const fileIds = new Set(rows.map(({ fileId }) => fileId))
+		const written = paired.value.filter((picture) => memberIds(picture).some((fileId) => fileIds.has(fileId)) && writesThrough(picture))
+		const writtenRows = rowsOf(rows, written)
+		const flagFields = fields.filter((field) => FLAG_FIELDS.includes(field))
+		const sidecarFields = fields.filter((field) => !FLAG_FIELDS.includes(field))
+		if (writtenRows.length > 0 && flagFields.length > 0) {
+			void flags.save(writtenRows).then((notSaved) => {
+				const back = written.filter((picture) => memberIds(picture).some((fileId) => notSaved.has(fileId)))
+				if (back.length > 0) {
+					takeBack(rowsOf(writtenRows, back), before, flagFields)
+					onFlagsNotSaved(back.length)
+				}
+			})
+		}
+		if (written.length > 0 && sidecarFields.length > 0) {
+			sidecars.write(written, decisionOf, sidecarFields).then(({ failed }) => {
+				const failedPictures = new Set(failed.map(({ picture }) => picture))
+				takeBack(rowsOf(writtenRows, written.filter((picture) => failedPictures.has(picture))), before, sidecarFields)
+			}, (error: unknown) => logger.error('Could not write the sidecars; the photos show them as changed', { error }))
+		}
 	}
 
-	/** Writes the changed fields of the rows' pictures to their sidecars where they write through (XMP-003.6, .20, XMP-008.1). */
-	function writeThrough(rows: readonly StoredDecision[], fields: readonly DecisionField[]) {
-		const fileIds = new Set(rows.map((row) => row.fileId))
-		const written = paired.value.filter((picture) => memberIds(picture).some((fileId) => fileIds.has(fileId)) && writesThrough(picture))
-		if (written.length > 0 && fields.length > 0) {
-			void sidecars.write(written, decisionOf, fields)
+	/** The rows of the pictures' members. */
+	function rowsOf(rows: readonly StoredDecision[], of: readonly Picture<ListingEntry>[]): StoredDecision[] {
+		const fileIds = new Set(of.flatMap(memberIds))
+		return rows.filter(({ fileId }) => fileIds.has(fileId))
+	}
+
+	/** Takes the fields of the written rows back where they still hold what was written. */
+	function takeBack(written: readonly StoredDecision[], before: ReadonlyMap<number, Decision>, fields: readonly DecisionField[]) {
+		if (written.length > 0) {
+			decisions.value = withRows(decisions.value, takenBack(decisions.value, written, before, fields))
 		}
 	}
 
@@ -185,18 +222,20 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		return replaced
 	}
 
-	/** Puts files back into the listing and pairs it again; the decisions of unknown ids are read, the restored pictures' sidecars too. */
+	/** Puts files back into the listing and pairs it again; the restored pictures not set yet show their listed flags, then their sidecars are read. */
 	function restoreFiles(restored: readonly ListingEntry[]) {
 		entries.value = [...entries.value, ...restored]
 		paired.value = prepareCull(entries.value, pairing.value).pictures
 		const fileIds = new Set(restored.map((entry) => entry.fileId))
 		storedSeries.restore([...fileIds])
 		const pictures = paired.value.filter((picture) => memberIds(picture).some((fileId) => fileIds.has(fileId)))
-		readPictures(pictures, [...fileIds].filter((fileId) => !decisions.value.has(fileId)))
+		decisions.value = withRows(decisions.value, listedRows(pictures.filter((picture) => !memberIds(picture).some((fileId) => settled.has(fileId)))))
+		readPictures(pictures)
 	}
 
 	return {
 		writabilityOf: access.writabilityOf,
+		flushFlags: flags.flush,
 		takeSkipped: access.takeSkipped,
 		folderSet,
 		pictures,
@@ -228,6 +267,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		hashProgress: seriesState.hashProgress,
 		decide,
 		pickRest,
+		clearable,
+		clearFlags,
 		tag,
 		...seriesEdits,
 		undo: history.undo,

@@ -90,7 +90,7 @@ describe('embeddedRow', () => {
 })
 
 describe('pictureState', () => {
-	// spec: XMP-003.1, XMP-006.7
+	// spec: XMP-003.34, XMP-006.7
 	it('takes the decision of the newest sidecar by the listing\'s time, a tie going to the RAW member\'s, and the pair rule for Keep RAW', () => {
 		const both = pictureOf(NEF, JPG, RAW_SIDECAR, JPEG_SIDECAR)
 

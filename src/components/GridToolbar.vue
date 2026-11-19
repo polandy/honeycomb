@@ -41,6 +41,7 @@ const emit = defineEmits<{
 	reviewRejects: []
 	compareSeries: []
 	removeRaws: []
+	clearFlags: []
 	move: []
 	resume: []
 	openSettings: []
@@ -162,6 +163,7 @@ const setName = computed(() => {
 				:fileNames="props.view.fileNames"
 				:sortOrder="props.view.sortOrder"
 				:rawRemovable="props.tasks.rawRemovable"
+				:clearable="props.tasks.clearable"
 				:movable="props.tasks.movable"
 				:moveFiltered="props.view.activeFilters > 0"
 				:resumeName="props.tasks.resumeName"
@@ -172,6 +174,7 @@ const setName = computed(() => {
 				@update:fileNames="emit('update:fileNames', $event)"
 				@update:sortOrder="emit('update:sortOrder', $event)"
 				@removeRaws="fromMenu(() => emit('removeRaws'))"
+				@clearFlags="fromMenu(() => emit('clearFlags'))"
 				@move="fromMenu(() => emit('move'))"
 				@resume="fromMenu(() => emit('resume'))"
 				@reviewRejects="fromMenu(() => emit('reviewRejects'))"

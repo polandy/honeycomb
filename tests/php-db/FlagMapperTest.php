@@ -18,6 +18,8 @@ use OCP\Server;
 
 /** The flags table and the file cache lookups the orphan clean-up uses. */
 final class FlagMapperTest extends DbTestCase {
+	use ProbesWriteLock;
+
 	/** More file ids than one `IN` list takes. */
 	private const int BEYOND_CHUNK = 2_500;
 	private const string USER = 'honeycomb-flags';
@@ -69,6 +71,16 @@ final class FlagMapperTest extends DbTestCase {
 
 		$this->assertSame([8], $this->flags->takeOver([self::flag(7, Flag::Picked, true, 200), self::flag(8, Flag::Unflagged, false, 200)]));
 		$this->assertEquals([7 => self::flag(7, Flag::Rejected), 8 => self::flag(8, Flag::Unflagged, false, 200)], $this->flags->find([7, 8]));
+	}
+
+	// spec: DECISIONS-001.34
+	public function testATakeOverTakesTheWriteLockWithTheFirstStatementOfItsTransaction(): void {
+		$this->flags->save([self::flag(7, Flag::Rejected)]);
+
+		$inserted = (new FlagMapper($this->probedConnection()))->takeOver([self::flag(7), self::flag(8)]);
+
+		$this->assertTrue($this->lockedAfterFirstStatement);
+		$this->assertSame([8], $inserted);
 	}
 
 	// spec: MOVE-002.10

@@ -1,14 +1,12 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { StoredDecision } from '../../src/logic/decision.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import FilterBar from '../../src/components/FilterBar.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
-import { logger } from '../../src/logger.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
 import { ENTRIES, mountApp, openCull, SET, shownNames, stored, toolbarProps } from './app-cull.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue } from './l10n/marked-catalogue.ts'
@@ -41,12 +39,11 @@ describe('App: decisions, flag filter, filters and sort', () => {
 	})
 
 	// spec: GRID-002.1, GRID-002.7
-	it('looks up the decisions of every member and hides rejected photos until the Rejected chip is pressed', async () => {
-		const { wrapper, lookedUp } = mountApp({}, [stored(3, 'rejected'), stored(1, 'picked')])
+	it('shows the listed flags and hides rejected photos until the Rejected chip is pressed', async () => {
+		const { wrapper } = mountApp({}, [stored(3, 'rejected'), stored(1, 'picked')])
 
 		await openCull(wrapper)
 
-		expect(lookedUp.map((ids) => [...ids].sort((a, b) => a - b))).toEqual([[1, 2, 3, 4]])
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9'])
 		expect(toolbarProps(wrapper)).toMatchObject({ decided: 1, total: 2, filtered: true })
 
@@ -54,33 +51,6 @@ describe('App: decisions, flag filter, filters and sort', () => {
 		await flushPromises()
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
 		expect(toolbarProps(wrapper)).toMatchObject({ decided: 2, total: 3, filtered: false })
-	})
-
-	it('ignores the decisions of a folder set that is no longer open', async () => {
-		let answer: (rows: StoredDecision[]) => void = () => undefined
-		const late = new Promise<StoredDecision[]>((resolve) => {
-			answer = resolve
-		})
-		const lookups = [late, Promise.resolve([])]
-		const { wrapper } = mountApp({ lookupDecisions: () => lookups.shift()! })
-		await openCull(wrapper)
-		await openCull(wrapper, { paths: ['/Trip/A'], subfolders: false }, ENTRIES.slice(1))
-
-		answer([stored(4, 'rejected')])
-		await flushPromises()
-
-		expect(shownNames(wrapper)).toEqual(['IMG_9', 'IMG_10'])
-	})
-
-	it('logs a failed lookup and treats every photo as undecided', async () => {
-		const error = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
-		const { wrapper } = mountApp({ lookupDecisions: () => Promise.reject(new Error('down')) })
-
-		await openCull(wrapper)
-
-		expect(error).toHaveBeenCalledOnce()
-		expect(shownNames(wrapper)).toHaveLength(3)
-		expect(toolbarProps(wrapper).decided).toBe(0)
 	})
 
 	it('opens the filter bar from the toolbar and shows what passes its filters', async () => {

@@ -45,6 +45,15 @@ describe('ActionBar', () => {
 		expect(wrapper.emitted('decide')).toEqual([[intent]])
 	})
 
+	// spec: GRID-003.16, LOUPE-002.18
+	it('greys every decision and Tags for read-only pictures and says why', () => {
+		const wrapper = mount(ActionBar, { props: { common: MIXED, readOnly: true } })
+
+		expect(wrapper.findAll('button').filter((found) => found.attributes('disabled') === undefined)).toEqual([])
+		expect(wrapper.find('.action-bar__note').text().replaceAll(MARK, '')).toBe('Read only')
+		expect(mountBar().find('.action-bar__note').exists()).toBe(false)
+	})
+
 	// spec: TAGS-003.2
 	it('opens the tag entry with Tags, off while disabled', async () => {
 		const wrapper = mountBar()
