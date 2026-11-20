@@ -50,7 +50,7 @@ final class SidecarWriterFilesTest extends DbTestCase {
 
 	#[\Override]
 	protected function tearDown(): void {
-		\OC\Files\Filesystem::reset();
+		$this->resetHooks();
 		foreach ([$this->uid, $this->otherUid] as $uid) {
 			$this->users->get($uid)?->delete();
 		}
@@ -73,7 +73,7 @@ final class SidecarWriterFilesTest extends DbTestCase {
 
 	// spec: XMP-002.13
 	public function testReplacesASidecarInPlaceAndKeepsTheOldBytesAsAVersion(): void {
-		$this->hooksFor($this->uid);
+		$this->hooksForUser();
 		$photos = $this->photos($this->uid);
 		$sidecar = $this->sidecarWithPart($photos);
 
@@ -174,18 +174,31 @@ final class SidecarWriterFilesTest extends DbTestCase {
 	 * @return list<string>
 	 */
 	private function stored(Folder $folder): array {
+		$dir = $folder->getStorage()->opendir($folder->getInternalPath());
+		$this->assertIsResource($dir);
 		$names = [];
-		foreach ($folder->getStorage()->getDirectoryContent($folder->getInternalPath()) as $entry) {
-			$names[] = $entry['name'];
+		while (($name = readdir($dir)) !== false) {
+			if ($name !== '.' && $name !== '..') {
+				$names[] = $name;
+			}
 		}
+		closedir($dir);
 		sort($names);
 		return $names;
 	}
 
-	/** Makes the user's files the process's default view, the only one whose writes fire the hooks the versions app listens to. */
-	private function hooksFor(string $uid): void {
+	/**
+	 * Makes the user's files the process's default view, the only one whose writes fire the hooks the versions app listens to.
+	 * @psalm-suppress UndefinedClass the server's own classes, which the OCP stubs leave out
+	 */
+	private function hooksForUser(): void {
 		\OC\Files\Filesystem::reset();
-		\OC_Util::setupFS($uid);
+		\OC_Util::setupFS($this->uid);
+	}
+
+	/** @psalm-suppress UndefinedClass the server's own class, which the OCP stubs leave out */
+	private function resetHooks(): void {
+		\OC\Files\Filesystem::reset();
 	}
 
 	/**
