@@ -58,11 +58,11 @@ const emit = defineEmits<{
 	width: 10px;
 	height: 10px;
 	border-radius: 50%;
-	background: var(--color-success);
+	background: var(--color-success-text);
 }
 
 .immich-connections__dot--failed {
-	background: var(--color-error);
+	background: var(--color-error-text);
 }
 
 .immich-connections__dot--asked {

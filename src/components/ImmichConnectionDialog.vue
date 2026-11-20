@@ -103,12 +103,13 @@ function test() {
 <style scoped>
 .immich-connection__facts {
 	display: grid;
-	grid-template-columns: auto 1fr;
+	grid-template-columns: max-content 1fr;
 	gap: var(--default-grid-baseline) calc(3 * var(--default-grid-baseline));
 	margin: 0 0 calc(3 * var(--default-grid-baseline));
 }
 
 .immich-connection__facts dt {
+	min-width: max-content;
 	color: var(--color-text-maxcontrast);
 }
 

@@ -45,12 +45,23 @@ const description = computed(() => {
 			<AppIcon name="phone" />
 		</template>
 		<template v-if="props.connection !== null && props.status !== null" #action>
-			<NcButton v-if="failed" variant="primary" @click="emit('retry')">
-				{{ t('honeycomb', 'Try again') }}
-			</NcButton>
-			<NcButton :variant="failed ? 'secondary' : 'primary'" @click="emit('details')">
-				{{ t('honeycomb', 'Connection details') }}
-			</NcButton>
+			<div class="immich-state__actions">
+				<NcButton v-if="failed" variant="primary" @click="emit('retry')">
+					{{ t('honeycomb', 'Try again') }}
+				</NcButton>
+				<NcButton :variant="failed ? 'secondary' : 'primary'" @click="emit('details')">
+					{{ t('honeycomb', 'Connection details') }}
+				</NcButton>
+			</div>
 		</template>
 	</NcEmptyContent>
 </template>
+
+<style scoped>
+.immich-state__actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: calc(2 * var(--default-grid-baseline));
+}
+</style>
