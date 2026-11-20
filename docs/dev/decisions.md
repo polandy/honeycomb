@@ -1720,3 +1720,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   since series are a folder capability (IMMICH-002.17). Easy to redo.
 - 2026-11-20: The cull's flag saves and sidecar writes move from `cull.ts` into `cull-writes.ts`,
   so the cull keeps the state and the Nextcloud writes sit in one module. Easy to redo.
+- 2026-11-20: Under reduced motion every dialog opens and closes without a transition or an
+  animation (`src/reduced-motion.css`, APP-001.17), since `NcModal` ignores the setting and its
+  fade and zoom never settled on a starved WebKit renderer, so Playwright's stability check in
+  `delete.spec.ts` stalled. Easy to redo: one stylesheet.
