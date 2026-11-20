@@ -1708,3 +1708,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   file in place when two requests render it at once and a tile read meanwhile came back empty
   (IMAGES-001.18). Without `sysvsem` it renders unlocked, as core does. Easy to redo: one alias
   in `Application.php`.
+- 2026-11-20: The e2e loupe budget waits for the stage's `data-decoded` (LOUPE-001.12), not for the
+  loupe tiers' requests: a slide swaps to its loupe tier only once decoded, so a test that timed
+  the page between request and decode measured a fresh load. A test-only `decode()` wrapper was
+  rejected as tied to the prefetch's internals.

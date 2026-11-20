@@ -45,19 +45,18 @@ test('shows a prefetched 24 MP neighbour without a request when paging', async (
 	}
 
 	await cullFolder(page, folder)
-	const loaded = new Set<string>()
 	const gridLoaded = new Set<string>()
 	page.on('requestfinished', (request) => {
 		const url = request.url()
-		if (url.includes('/api/v1/images/')) {
-			(url.includes('size=4096') ? loaded : gridLoaded).add(new URL(url).pathname)
+		if (url.includes('/api/v1/images/') && !url.includes('size=4096')) {
+			gridLoaded.add(new URL(url).pathname)
 		}
 	})
 	await page.getByRole('gridcell', { name: 'IMG_0001, JPG only' }).click()
 	const loupe = page.getByRole('dialog', { name: 'Loupe' })
 	await loupe.getByRole('dialog', { name: 'How to cull' }).getByRole('button', { name: 'Got it' }).click()
-	// The shown picture's and every neighbour's loupe tier have arrived; the stage swaps to the shown one's.
-	await expect.poll(() => loaded.size, { timeout: 60_000 }).toBe(PHOTO_COUNT)
+	// A loupe tier is shown only once decoded, which ends after its request; until then paging shows and fetches the grid tier.
+	await expect(loupe.locator('.loupe-stage')).toHaveAttribute('data-decoded', String(PHOTO_COUNT), { timeout: 60_000 })
 	// A grid tile still loading is no request of the paging, so every grid tier has arrived too.
 	await expect.poll(() => gridLoaded.size, { timeout: 60_000 }).toBe(PHOTO_COUNT)
 	await expect(loupe.getByRole('img', { name: 'IMG_0001' })).toHaveAttribute('src', /size=4096/, { timeout: 60_000 })
