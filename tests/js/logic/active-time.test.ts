@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { IDLE_LIMIT_MS, NO_ACTIVE_TIME, takenSeconds, withActiveInput } from '../../../src/logic/active-time.ts'
+import { IDLE_LIMIT_MS, NO_ACTIVE_TIME, picturesPerMinute, takenSeconds, withActiveInput } from '../../../src/logic/active-time.ts'
 
 const MINUTE = 60_000
 
@@ -31,5 +31,12 @@ describe('takenSeconds', () => {
 		expect(first.seconds).toBe(90)
 		expect(second.seconds).toBe(1)
 		expect(takenSeconds(second.rest).seconds).toBe(0)
+	})
+})
+
+describe('picturesPerMinute', () => {
+	it('is the pictures a minute of active time from one active minute on, else null', () => {
+		expect(picturesPerMinute(15, 2 * MINUTE)).toBe(7.5)
+		expect(picturesPerMinute(15, MINUTE - 1)).toBeNull()
 	})
 })

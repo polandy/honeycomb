@@ -55,7 +55,7 @@ final class StatsControllerTest extends TestCase {
 		$response = $this->controller()->index('2026-11-02', '2026-11-30');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame('{"counters":[{"day":"2026-11-19","metric":"trash_pictures","value":3}],"firstDay":"2026-11-01"}', $response->render());
+		$this->assertSame('{"counters":[{"day":"2026-11-19","metric":"trash_pictures","value":3}],"firstDay":"2026-11-01","today":"1970-01-01"}', $response->render());
 	}
 
 	public function testAMalformedDayIsABadRequest(): void {
