@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Service\AppVisits;
 use OCA\Honeycomb\Service\ScriptManifest;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -27,15 +28,20 @@ final class PageController extends Controller {
 		private ScriptManifest $scripts,
 		private IUserSession $userSession,
 		private IGroupManager $groups,
+		private AppVisits $visits,
 	) {
 		parent::__construct($appName, $request);
 	}
 
-	/** The app page, its hashed script (APP-001.10) and whether the user is an admin, who may clean up orphaned data (SETTINGS-001.27). */
+	/** The app page, its hashed script (APP-001.10) and whether the user is an admin (SETTINGS-001.27); records the visit (IMAGES-001.16). */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/')]
 	public function index(): TemplateResponse {
+		$user = $this->userSession->getUser();
+		if ($user !== null) {
+			$this->visits->record($user);
+		}
 		return $this->withHashWorkers(new TemplateResponse(Application::APP_ID, 'main', [
 			'script' => $this->scripts->script(ScriptManifest::MAIN),
 			'admin' => $this->isAdmin(),

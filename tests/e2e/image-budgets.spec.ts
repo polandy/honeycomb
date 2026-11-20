@@ -95,11 +95,12 @@ async function uploadPairs(page: Page, folder: string, photos: Awaited<ReturnTyp
 
 /** Runs the queued render jobs of the given files, as the server's cron would. */
 function runRenderJobs(fileIds: number[]): void {
-	const jobs = JSON.parse(occ(['background-job:list', `--class=${RENDER_JOB}`, '--output=json'])) as { id: number, argument: { fileId?: number } }[]
-	const ours = jobs.filter(({ argument }) => fileIds.includes(argument.fileId ?? -1))
+	// The list prints each job's argument as its JSON text.
+	const jobs = JSON.parse(occ(['background-job:list', `--class=${RENDER_JOB}`, '--output=json'])) as { id: string, argument: string }[]
+	const ours = jobs.filter(({ argument }) => fileIds.includes((JSON.parse(argument) as { fileId: number }).fileId))
 	expect(ours).toHaveLength(fileIds.length)
 	for (const { id } of ours) {
-		occ(['background-job:execute', String(id), '--force-execute'])
+		occ(['background-job:execute', id, '--force-execute'])
 	}
 }
 

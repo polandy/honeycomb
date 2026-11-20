@@ -25,7 +25,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 final class RenderPhotoTiersTest extends TestCase {
-	/** @var array<int, list<int>> the tiers rendered, by file id */
+	/** @var array<int, array<array-key, mixed>> the preview specifications rendered, by file id */
 	private array $rendered = [];
 
 	private function job(?LoggerInterface $logger = null): RenderPhotoTiers {
@@ -40,7 +40,7 @@ final class RenderPhotoTiersTest extends TestCase {
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
 		$preview = $this->createStub(IPreview::class);
 		$preview->method('generatePreviews')->willReturnCallback(function (File $file, array $specifications): ISimpleFile {
-			$this->rendered[$file->getId()] = array_map(static fn (array $specification): int => $specification['width'], $specifications);
+			$this->rendered[$file->getId()] = $specifications;
 			return $this->createStub(ISimpleFile::class);
 		});
 		$alice = $this->createStub(IUser::class);
@@ -60,7 +60,7 @@ final class RenderPhotoTiersTest extends TestCase {
 	public function testRendersTheThreeTiersOfTheFile(): void {
 		$this->execute($this->job(), ['userId' => 'alice', 'fileId' => 7]);
 
-		$this->assertSame([7 => ImageService::TIERS], $this->rendered);
+		$this->assertSame([7 => ImageService::TIERS], array_map(static fn (array $specifications): array => array_column($specifications, 'width'), $this->rendered));
 	}
 
 	// spec: IMAGES-001.17
