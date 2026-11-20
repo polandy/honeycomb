@@ -13,7 +13,9 @@ final class FakeAppData implements AppData {
 	public ?\Throwable $failure = null;
 
 	/** @param array<string, int> $rows */
-	public function __construct(public array $rows) {
+	public function __construct(
+		public array $rows,
+	) {
 	}
 
 	#[\Override]
@@ -27,7 +29,7 @@ final class FakeAppData implements AppData {
 			throw $this->failure;
 		}
 		$removed = $this->rows;
-		$this->rows = array_map(static fn (): int => 0, $removed);
+		$this->rows = array_map(static fn (int $_rows): int => 0, $removed);
 		return $removed;
 	}
 }
