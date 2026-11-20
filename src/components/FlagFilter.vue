@@ -8,11 +8,14 @@ import type { Flag } from '../logic/decision.ts'
 import { t } from '@nextcloud/l10n'
 import AppIcon from './AppIcon.vue'
 import { FLAG_ICONS } from '../flag-icons.ts'
+import { formatNumber } from '../l10n.ts'
 import { toggleChip } from '../logic/picture-filter.ts'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	flags: ReadonlySet<Flag>
-}>()
+	/** The server's count per flag, shown on the chips; none while counting or for a folder source (IMMICH-002.13). */
+	counts?: Readonly<Record<Flag, number>> | null
+}>(), { counts: null })
 
 const emit = defineEmits<{
 	'update:flags': [flags: ReadonlySet<Flag>]
@@ -37,6 +40,7 @@ const CHIPS: readonly { flag: Flag, label: () => string }[] = [
 			@click="emit('update:flags', toggleChip(props.flags, chip.flag))">
 			<AppIcon :name="FLAG_ICONS[chip.flag]" />
 			<span class="flag-filter__label">{{ chip.label() }}</span>
+			<span v-if="props.counts !== null" class="flag-filter__count">{{ formatNumber(props.counts[chip.flag]) }}</span>
 		</button>
 	</div>
 </template>
@@ -47,6 +51,10 @@ const CHIPS: readonly { flag: Flag, label: () => string }[] = [
 	flex-wrap: wrap;
 	align-items: center;
 	gap: var(--default-grid-baseline);
+}
+
+.flag-filter__count {
+	color: var(--color-text-maxcontrast);
 }
 
 .flag-filter__chip :deep(.app-icon) {
