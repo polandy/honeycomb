@@ -118,13 +118,14 @@ and a deployment. A connection taken out of the file disappears from the UI at o
 
 ### A connection that left the file
 
-The decision table (its own ADR, PR 2 of ADR 0041's order) keeps a row per `(connection id,
-asset id)`. Rows of a connection that is no longer in the file are **kept until the daily sweep**
-of `RemoveVanishedDecisions` removes them, the same way the rows of files deleted for good go
-(ADR 0040). The sweep reads the connections file itself and **sweeps nothing when the file is
-missing or invalid**, so a broken deployment loses no decision. A connection re-added with the
-same `id` before the sweep keeps its rows; a new `id` starts empty. An admin who wants to pause a
-connection without losing its decisions keeps the entry and revokes the key in Immich.
+The decision table ([ADR 0043](0043-immich-decisions-per-connection-and-asset.md)) keeps a row
+per `(connection id, asset id)`. Rows of a connection that is no longer in the file are **kept
+until the daily sweep** of `RemoveVanishedDecisions` removes them, the same way the rows of files
+deleted for good go (ADR 0040). The sweep reads the connections file itself and **sweeps nothing
+when the file is missing or invalid**, so a broken deployment loses no decision. A connection
+re-added with the same `id` before the sweep keeps its rows; a new `id` starts empty. An admin who
+wants to pause a connection without losing its decisions keeps the entry and revokes the key in
+Immich.
 
 ### Scopes per phase
 
