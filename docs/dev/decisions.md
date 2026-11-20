@@ -1614,6 +1614,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the owner's sign-off condition. Kinds in Phase 1 are photos, motion photos and videos;
   *Screenshots* and *Messenger images* wait, since Immich cannot filter them. Easy to redo: docs
   only, no code yet.
+- 2026-11-20: A photo written by a user who has opened honeycomb is rendered by a background job
+  (ADR 0045, #271). This reverses the decision of 2026-11-10 to render nothing on upload: the
+  first sharp image of a newly opened folder took about 2.7 s against 500 ms, and only users who
+  cull pay for it.
 - 2026-11-20: The Immich mockup (`docs/dev/mockup/immich/`) applies the signed-off Phase 1
   artifact with the owner's paging condition and ADR 0042's read-only connections; the sign-off
   covers it, so the production PRs follow without a second sign-off. The counts answer gains

@@ -18,6 +18,7 @@ use OCA\Honeycomb\Db\TagMapper;
 use OCA\Honeycomb\Db\VisualHashMapper;
 use OCA\Honeycomb\Db\XmpCacheMapper;
 use OCA\Honeycomb\Listener\ForgetDeletedUser;
+use OCA\Honeycomb\Listener\RenderWrittenPhotos;
 use OCA\Honeycomb\Preview\JpegDecoder;
 use OCA\Honeycomb\Preview\OcpJpegDecoder;
 use OCA\Honeycomb\Preview\RawPreviewProvider;
@@ -33,6 +34,7 @@ use OCA\Honeycomb\Service\TagStore;
 use OCA\Honeycomb\Service\VisualHashStore;
 use OCA\Honeycomb\Service\XmpCacheStore;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\Files\Events\Node\NodeWrittenEvent;
 use OCP\User\Events\UserDeletedEvent;
 use PHPUnit\Framework\TestCase;
 
@@ -53,9 +55,23 @@ final class ApplicationTest extends TestCase {
 
 	// spec: DECISIONS-002.13
 	public function testForgetsTheRowsOfADeletedUser(): void {
-		$context = $this->createMock(IRegistrationContext::class);
-		$context->expects($this->once())->method('registerEventListener')->with(UserDeletedEvent::class, ForgetDeletedUser::class);
+		$this->assertContains([UserDeletedEvent::class, ForgetDeletedUser::class], $this->listeners());
+	}
+
+	// spec: IMAGES-001.16
+	public function testRendersWrittenPhotosInTheBackground(): void {
+		$this->assertContains([NodeWrittenEvent::class, RenderWrittenPhotos::class], $this->listeners());
+	}
+
+	/** @return list<array{string, string}> the event listeners the app registers, by event and listener class */
+	private function listeners(): array {
+		$listeners = [];
+		$context = $this->createStub(IRegistrationContext::class);
+		$context->method('registerEventListener')->willReturnCallback(static function (string $event, string $listener) use (&$listeners): void {
+			$listeners[] = [$event, $listener];
+		});
 
 		(new \ReflectionClass(Application::class))->newInstanceWithoutConstructor()->register($context);
+		return $listeners;
 	}
 }

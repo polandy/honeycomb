@@ -1,7 +1,8 @@
 # 0010 – The image endpoint and background previews
 
 - Status: accepted
-- Date: 2026-11-10, tiers amended 2026-11-11, warm-up amended 2026-11-14
+- Date: 2026-11-10, tiers amended 2026-11-11, warm-up amended 2026-11-14, rendering on write
+  amended 2026-11-20 ([0045](0045-render-written-photos-in-the-background.md))
 
 ## Context
 
@@ -40,9 +41,9 @@ A RAW+JPEG pair shows its JPEG; a RAW-only picture needs the JPEG preview embedd
   another folder set aborts the running warm-up: it sends no further chunk and aborts the
   requests in flight. The browser keeps `fileId:mtime` of every file whose request succeeded,
   the 20,000 used last, in local storage (`honeycomb.warmedPreviews`), and a warm-up skips
-  those, so reopening a warmed folder set sends next to nothing (amended 2026-11-14). honeycomb
-  needs no background worker; on upload it generates nothing itself, and an admin who wants that
-  installs the Preview Generator app, which needs cron.
+  those, so reopening a warmed folder set sends next to nothing (amended 2026-11-14). A photo
+  written by a user who has opened honeycomb is also rendered by a background job (ADR 0045,
+  amended 2026-11-20).
 - **Errors:** `404` for an id that is not a file below the user's files, not an image, or has no
   preview; `403` when the user may not read it; `401` without a user. The body is empty.
 
@@ -57,8 +58,8 @@ A RAW+JPEG pair shows its JPEG; a RAW-only picture needs the JPEG preview embedd
 - Until 2026-11-11 the tiers were `512` and `2048`, which core delivered as 1024 and 4096 px.
 - Core renders four previews at a time; the client keeps a few image loads in flight
   (GRID-001.15), so a first view does not exhaust the server's database connections.
-- If the budgets, measured with real 24 MP files, miss, honeycomb scales the tiers itself and
-  needs its own cache with clean-up for deleted files; that is a new decision.
+- The budgets missed for a newly opened folder; ADR 0045 renders written photos in the
+  background instead of scaling the tiers in honeycomb.
 - With `camerarawpreviews` also installed, Nextcloud uses whichever provider matches first;
   both deliver the embedded JPEG.
 - A file the user cannot reach, such as one in another user's files, is `404` like a missing
