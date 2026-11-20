@@ -21,9 +21,9 @@ The options for the listing were:
 
 - **A, one endpoint that returns the whole library**, filtered in the browser like a folder set.
   Breaks the condition: a library of fifty thousand assets is fifty thousand entries per open.
-- **B, a paged listing whose cursor the server issues**, chosen: the server pages Immich's search
-  (`POST /search/metadata` with its `filter` and `cursor`), joins each page with the decision table, and hands
-  the browser an opaque cursor. Counts are a second endpoint.
+- **B, a paged listing whose cursor the server issues**, chosen: the server pages Immich's
+  search (`POST /search/metadata` with its `filter` and `cursor`), joins each page with the
+  decision table, and hands the browser an opaque cursor. Counts are a second endpoint.
 - **C, the browser pages by capture time** (`takenBefore` of the last entry). No server state in
   the cursor, but ties on one second lose or repeat assets, and the decision filter (ADR 0043)
   pages rows, not Immich.

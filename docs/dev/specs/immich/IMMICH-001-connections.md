@@ -34,9 +34,10 @@ never stores, shows or logs a key.
 - **Connection switcher:** with several connections the navigation lists them by label; the one
   opened last is opened again. With one connection there is no switcher.
 - **Connection dialog** (*Immich connection*): read only, the label, the Immich server URL, the
-  status, the account and Immich's version, the scopes Phase 1 needs (`asset.read`, `asset.view`,
-  `asset.statistics`, optional `user.read`) and the note that the admin defines connections. No field can be edited,
-  no key is shown, masked or entered; *Test connection* asks the status again; *Done* closes it.
+  status, the account and Immich's version, the scopes Phase 1 needs (`asset.read`,
+  `asset.view`, `asset.statistics`, optional `user.read`) and the note that the admin defines
+  connections. No field can be edited, no key is shown, masked or entered; *Test connection*
+  asks the status again; *Done* closes it.
 - **Status per connection:** *Connected as <account>* (or the label without `user.read`), the
   version and the number of phone uploads (none without
   `asset.statistics`); *Immich unreachable*, *The API key is refused*, *The
