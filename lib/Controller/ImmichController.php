@@ -45,12 +45,14 @@ final class ImmichController extends Controller {
 		parent::__construct($appName, $request);
 	}
 
-	/** The user's Immich connections, without key or key file (IMMICH-001.2). */
+	/** The user's Immich connections, without key or key file, and none when not configured (IMMICH-001.1, IMMICH-001.2). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/immich/connections')]
 	public function connections(): Response {
 		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse([
-			'connections' => array_map(static fn (Connection $connection): array => $connection->toArray(), $this->connections->forUser($user->getUID())),
+			'connections' => $this->connections->isConfigured()
+				? array_map(static fn (Connection $connection): array => $connection->toArray(), $this->connections->forUser($user->getUID()))
+				: [],
 		]));
 	}
 
