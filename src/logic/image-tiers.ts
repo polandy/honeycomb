@@ -27,6 +27,11 @@ export function imageMember(picture: Picture<ListingEntry>): ListingEntry {
 	return picture.rendered ?? picture.raw
 }
 
+/** Whether the picture's image is the preview embedded in its RAW, as it has no rendered member (LOUPE-001.28). */
+export function isEmbeddedPreview(picture: Picture<ListingEntry>): boolean {
+	return picture.rendered === null
+}
+
 /** The `srcset` of a tile with every grid tier. */
 export function gridSrcset(member: ListingEntry, urlFor: ImageUrlFor): string {
 	return GRID_TIERS.map((tier) => `${urlFor(member.fileId, tier, member.mtime)} ${tier}w`).join(', ')

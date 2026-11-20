@@ -22,7 +22,7 @@ import { imageUrl as apiImageUrl } from '../api.ts'
 import { toggleBrowserFullscreen } from '../fullscreen.ts'
 import { LOUPE_IDLE_MS, useIdle } from '../idle.ts'
 import { FILMSTRIP_THUMB } from '../logic/filmstrip.ts'
-import { imageMember, loupeSources } from '../logic/image-tiers.ts'
+import { imageMember, isEmbeddedPreview, loupeSources } from '../logic/image-tiers.ts'
 import { DIVIDER_WIDTH, FLAG_RAIL, INFO_PANEL } from '../logic/panel-width.ts'
 import { useLoupeDecisions } from '../loupe-decisions.ts'
 import { useLoupePanels } from '../loupe-panels.ts'
@@ -155,6 +155,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:series="loupeSeries.place.value"
 			:seriesHint="seriesHint.shown.value"
 			:unsaved="picture === props.unsaved"
+			:embeddedPreview="isEmbeddedPreview(picture)"
 			@pointerdown="overlays.wake"
 			@compareSeries="loupeSeries.compareAt(props.index)"
 			@dismissSeriesHint="dismissAndFocus(seriesHint.dismiss)"
