@@ -27,12 +27,18 @@ never stores, shows or logs a key.
   `connections-file` (`503`), `key`, `unreachable`, `refused`, `version` (`502`) and `scope`
   (`403`, naming the scope). A broken file is one log line with its path and the first violation;
   a broken key file one log line with the connection id and its path.
-- **Source switcher:** *Nextcloud* and *Immich* in the app header; *Immich* shows only while the
-  user has a connection. Without the app config, or with a broken file, the Nextcloud source works
-  as before; a broken file shows the Immich source as unavailable because of the server
-  configuration.
-- **Connection switcher:** with several connections the navigation lists them by label; the one
-  opened last is opened again. With one connection there is no switcher.
+- **Source switcher:** *Nextcloud* and *Immich* at the top of the navigation, the app's header,
+  since Nextcloud's own header sits above it; *Immich* shows only while the user has a connection
+  or the file is broken. Without the app config the Nextcloud source works as before; a broken
+  file shows the Immich source as unavailable because of the server configuration. The Nextcloud
+  source keeps its cull while the Immich source is open, and the page opens on Nextcloud.
+- **Immich navigation:** the Immich source replaces *Folder* and *Recent* in the navigation with
+  its connections and *Connection details*; the pages of their own stay.
+- **Connection switcher:** with several connections the navigation lists them by label, each with
+  its status line; the one opened last is opened again, remembered in the browser. With one
+  connection there is no switcher. Opening the Immich source asks the status of every connection.
+- **A connection that does not work** shows its state in the content with *Try again*, which asks
+  the status again; a failed status request counts as *Immich unreachable*.
 - **Connection dialog** (*Immich connection*): read only, the label, the Immich server URL, the
   status, the account and Immich's version, the scopes Phase 1 needs (`asset.read`,
   `asset.view`, `asset.statistics`, optional `user.read`) and the note that the admin defines
@@ -159,3 +165,17 @@ never stores, shows or logs a key.
 - **Given** a key without `asset.statistics`
 - **When** the user asks the status
 - **Then** `state` is `ok` and `total` is `null`
+
+### IMMICH-001.18 – Immich unavailable
+
+- **Given** a connections file that is broken
+- **When** the user opens the Immich source
+- **Then** it says Immich is unavailable because of the server configuration and that the
+  Nextcloud folders work as before, and asks no status
+
+### IMMICH-001.19 – A connection that does not work
+
+- **Given** a connection whose status is not `ok`, or whose status request fails
+- **When** the user opens it
+- **Then** the content names the state, says the decisions stay in honeycomb, and *Try again*
+  asks the status again
