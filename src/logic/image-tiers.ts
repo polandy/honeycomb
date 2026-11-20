@@ -28,7 +28,7 @@ export function imageMember<E>(picture: Picture<E>): E {
 }
 
 /** Whether the picture's image is the preview embedded in its RAW, as it has no rendered member (LOUPE-001.28). */
-export function isEmbeddedPreview(picture: Picture<ListingEntry>): boolean {
+export function isEmbeddedPreview<E>(picture: Picture<E>): boolean {
 	return picture.rendered === null
 }
 
