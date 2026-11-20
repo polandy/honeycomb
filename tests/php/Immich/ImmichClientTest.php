@@ -124,6 +124,7 @@ final class ImmichClientTest extends TestCase {
 			'a server error' => [static fn (self $test) => $test->immichAnswers('POST /search/metadata', 503), ImmichError::Unreachable],
 			'the key refused' => [static fn (self $test) => $test->immichAnswers('POST /search/metadata', 401), ImmichError::Refused],
 			'a bad request' => [static fn (self $test) => $test->immichAnswers('POST /search/metadata', 400, ['message' => 'filter.foo should not exist']), ImmichError::Version],
+			'a redirect' => [static fn (self $test) => $test->immichAnswers('POST /search/metadata', 302), ImmichError::Version],
 			'another 4xx' => [static fn (self $test) => $test->immichAnswers('POST /search/metadata', 418), ImmichError::Version],
 			'a body not in the schema' => [static fn (self $test) => $test->immichAnswers('POST /search/metadata', 200, ['assets' => ['items' => 'none']]), ImmichError::Version],
 			'a cursor not a string' => [static fn (self $test) => $test->immichAnswers('POST /search/metadata', 200, ['assets' => ['items' => [], 'nextCursor' => 7]]), ImmichError::Version],
