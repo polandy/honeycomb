@@ -107,7 +107,7 @@ final class ListingServiceTest extends TestCase {
 		]], $this->entriesOf($listing));
 	}
 
-	// spec: SERIES-003.1, SERIES-003.2, SERIES-003.8
+	// spec: SERIES-003.1, SERIES-003.2, SERIES-003.28
 	public function testAnEntryCarriesTheUsersStoredHashOfTheCurrentVersionOnly(): void {
 		$folder = $this->folder('/Photos');
 		$folder->method('getDirectoryListing')->willReturn(array_map(fn (int $id): File => $this->file($id, "/Photos/IMG_$id.JPG"), [1, 2, 3, 4]));
