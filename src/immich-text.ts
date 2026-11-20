@@ -6,7 +6,7 @@ import { n, t } from '@nextcloud/l10n'
 import { formatNumber, PLAIN_TEXT } from './l10n.ts'
 
 /** What a state that does not work says (IMMICH-001). */
-export function stateText(state: Exclude<ConnectionState, 'ok'>): string {
+function stateText(state: Exclude<ConnectionState, 'ok'>): string {
 	switch (state) {
 		case 'unreachable':
 			return t('honeycomb', 'Immich unreachable')
