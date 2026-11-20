@@ -56,7 +56,7 @@ final class Cleanup extends Command {
 		try {
 			$rows = $dryRun ? $this->data->count() : $this->data->empty();
 		} catch (\Throwable $e) {
-			$output->writeln('<error>Could not empty the honeycomb tables: ' . $e->getMessage() . '</error>');
+			$output->writeln('<error>' . ($dryRun ? 'Could not count' : 'Could not empty') . ' the honeycomb tables: ' . $e->getMessage() . '</error>');
 			return self::FAILURE;
 		}
 		foreach ($rows as $table => $count) {

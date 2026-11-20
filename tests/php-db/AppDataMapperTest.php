@@ -58,6 +58,8 @@ final class AppDataMapperTest extends DbTestCase {
 		$this->preference(self::OTHER_APP);
 
 		$counts = $this->data->count();
+		$this->assertCount(11, $counts);
+		$this->assertSame([], array_filter(array_diff_key($counts, ['honeycomb_flags' => 1, 'preferences' => 1])));
 		$this->assertSame(1, $counts['honeycomb_flags']);
 		$this->assertSame(1, $counts['preferences']);
 		$this->assertSame(1, $this->data->count()['honeycomb_flags']);

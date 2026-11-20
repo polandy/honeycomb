@@ -18,9 +18,11 @@ everything it stored stays in the database:
 
 | What | Where (default table prefix `oc_`) |
 |---|---|
-| Ratings, flags, colour labels, *Keep RAW* | table `oc_honeycomb_decisions` |
+| Ratings, flags, colour labels, *Keep RAW* | table `oc_honeycomb_flags` (`oc_honeycomb_decisions` before the next release) |
 | Resume positions | table `oc_honeycomb_positions` |
-| Tags | tables `oc_honeycomb_file_tags`, `oc_honeycomb_tag_list` |
+| Tags | table `oc_honeycomb_tag_list` (and `oc_honeycomb_file_tags` before the next release) |
+| Daily statistics counters | table `oc_honeycomb_stats` |
+| Immich decisions | table `oc_honeycomb_immich_assets` |
 | Visual hashes of the pictures | table `oc_honeycomb_hashes` |
 | Sharpness of the pictures in a series | table `oc_honeycomb_quality` |
 | Stored series and kept-out photos | tables `oc_honeycomb_series`, `oc_honeycomb_series_files` |
@@ -69,9 +71,10 @@ To drop the tables as well, back up the database first, then, with honeycomb rem
 tables and delete the rows listed above, for example on MySQL or MariaDB:
 
 ```sql
-DROP TABLE oc_honeycomb_decisions, oc_honeycomb_positions, oc_honeycomb_file_tags,
-  oc_honeycomb_tag_list, oc_honeycomb_hashes, oc_honeycomb_series, oc_honeycomb_series_files,
-  oc_honeycomb_xmp_cache, oc_honeycomb_quality;
+DROP TABLE IF EXISTS oc_honeycomb_flags, oc_honeycomb_decisions, oc_honeycomb_positions,
+  oc_honeycomb_file_tags, oc_honeycomb_tag_list, oc_honeycomb_hashes, oc_honeycomb_series,
+  oc_honeycomb_series_files, oc_honeycomb_xmp_cache, oc_honeycomb_quality, oc_honeycomb_stats,
+  oc_honeycomb_immich_assets;
 DELETE FROM oc_migrations WHERE app = 'honeycomb';
 DELETE FROM oc_appconfig WHERE appid = 'honeycomb';
 DELETE FROM oc_preferences WHERE appid = 'honeycomb';
