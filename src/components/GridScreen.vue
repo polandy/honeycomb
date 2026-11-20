@@ -24,7 +24,7 @@ import { DEFAULT_FILTERS } from '../logic/picture-filter.ts'
 import { toggleGroup } from '../logic/selection.ts'
 import { seriesOffer } from '../logic/series-menu.ts'
 
-const { cull, selection, decide, clearFlags, xmpExport, editSeries, deleting, moving, resume, seriesCompare, tagEntry, headerShown, openLoupe, openSettings, unsaved, settings, updateSettings } = useCullContext()
+const { cull, selection, decide, clearFlags, xmpExport, editSeries, deleting, moving, resume, seriesCompare, tagEntry, headerShown, openLoupe, openSettings, unsaved, settings, updateSettings, imageUrl } = useCullContext()
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize } = cull
 const { selecting, selected } = selection
 const { rejected, rawRemovable } = deleting
@@ -126,6 +126,7 @@ defineExpose({ grid, filterBar })
 			:openSeries="cull.openSeries.value"
 			:busy="cull.seriesLoading.value"
 			:unsaved="unsaved"
+			:imageUrl="imageUrl"
 			@update:tileSize="cull.setTileSize"
 			@update:selecting="selection.setSelecting"
 			@update:selection="selection.select"
