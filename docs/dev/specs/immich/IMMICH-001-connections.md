@@ -86,6 +86,7 @@ never stores, shows or logs a key.
 - **When** honeycomb calls Immich for it
 - **Then** the key is sent in the `x-api-key` header only, with surrounding whitespace trimmed,
   and appears in no answer, log line or exception message
+- **And** a redirect is not followed, so the key never reaches another host
 
 ### IMMICH-001.7 – A bad key file
 

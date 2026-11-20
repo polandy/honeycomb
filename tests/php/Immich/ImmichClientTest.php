@@ -70,6 +70,13 @@ final class ImmichClientTest extends TestCase {
 		$this->assertStringNotContainsString(self::KEY, json_encode([$messages, $this->logger->lines], JSON_THROW_ON_ERROR));
 	}
 
+	// spec: IMMICH-001.6
+	public function testItFollowsNoRedirectSoTheKeyStaysWithTheConnection(): void {
+		$this->client()->search($this->connection(), []);
+
+		$this->assertFalse($this->immichRequests[0]['options']['allow_redirects']);
+	}
+
 	public function testItCallsImmichWithShortTimeoutsAndAllowsALocalAddress(): void {
 		$this->client()->search($this->connection(), []);
 
