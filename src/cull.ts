@@ -266,6 +266,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		everySeries: seriesState.everySeries,
 		seriesOf: seriesState.seriesOf,
 		openSeries: seriesState.openSeries,
+		seriesLoading: storedSeries.loading,
 		holdHashes: seriesState.holdHashes,
 		hashProgress: seriesState.hashProgress,
 		decide,

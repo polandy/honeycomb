@@ -37,6 +37,7 @@ const props = withDefaults(defineProps<PhotoGridProps>(), {
 	tagsOf: () => [],
 	readOnly: () => false,
 	unsaved: null,
+	busy: false,
 	fileNames: false,
 	touch: () => window.matchMedia('(pointer: coarse)').matches,
 	schedule: browserSchedule,
@@ -184,6 +185,7 @@ defineExpose({
 			class="photo-grid__scroller"
 			role="grid"
 			:aria-label="t('honeycomb', 'Photos')"
+			:aria-busy="props.busy || undefined"
 			@scroll.passive="onScroll"
 			@touchstart.passive="onTouchStart"
 			@touchend.passive="onTouchEnd"

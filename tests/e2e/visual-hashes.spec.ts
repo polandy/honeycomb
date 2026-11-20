@@ -5,14 +5,14 @@ import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { cullFolder } from './cull.ts'
-import { createFolder, JPEG, requestToken, upload, withCaptureTime } from './files.ts'
+import { apiHeaders, createFolder, JPEG, upload, withCaptureTime } from './files.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
 const HASH = /^[0-9a-f]{16}$/
 
 /** The entries of the admin's folder, as the cull lists them. */
 async function listed(page: Page, folder: string): Promise<{ fileId: number, etag: string, visualHash: string | null }[]> {
-	const listing = await page.request.get(`${API}/entries`, { params: { path: `/${folder}` }, headers: { requesttoken: await requestToken(page) } })
+	const listing = await page.request.get(`${API}/entries`, { params: { path: `/${folder}` }, headers: await apiHeaders(page) })
 	expect(listing.status(), await listing.text()).toBe(200)
 	return (await listing.json() as { entries: { fileId: number, etag: string, visualHash: string | null }[] }).entries
 }
@@ -57,7 +57,7 @@ test('skips a hash of an older version and lists a changed file without one', as
 	const entry = async () => (await listed(page, folder))[0]!
 	const save = async (etag: string) => page.request.put(`${API}/visual-hashes`, {
 		data: { hashes: [{ fileId, etag, hash: '00ff00ff00ff00ff' }] },
-		headers: { requesttoken: await requestToken(page) },
+		headers: await apiHeaders(page),
 	})
 
 	expect(await (await save('an-older-etag')).json()).toEqual({ saved: [] })

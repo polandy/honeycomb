@@ -59,26 +59,29 @@ function withExif(jpeg: Buffer, tiff: Buffer): Buffer {
 
 const davUrl = (path: string) => `/remote.php/dav/files/${ADMIN.username}/${path}`
 
-/** The CSRF token of the logged-in page, which the session's WebDAV and POST requests need. */
-export async function requestToken(page: Page): Promise<string> {
-	return (await page.locator('head').getAttribute('data-requesttoken')) ?? ''
+/** No keep-alive for a test's own requests: Apache closes an idle connection after 5 s, and a request reusing it that instant fails with ECONNRESET. */
+const NO_KEEP_ALIVE = { Connection: 'close' }
+
+/** The headers of a test's own request: the page's CSRF token, which the session's writes need, no keep-alive, and `extra`. */
+export async function apiHeaders(page: Page, extra: Record<string, string> = {}): Promise<Record<string, string>> {
+	return { requesttoken: (await page.locator('head').getAttribute('data-requesttoken')) ?? '', ...NO_KEEP_ALIVE, ...extra }
 }
 
 /** Creates a folder in the admin's files; its parent must exist. */
 export async function createFolder(page: Page, path: string): Promise<void> {
-	const response = await page.request.fetch(davUrl(path), { method: 'MKCOL', headers: { requesttoken: await requestToken(page) } })
+	const response = await page.request.fetch(davUrl(path), { method: 'MKCOL', headers: await apiHeaders(page) })
 	expect(response.status(), await response.text()).toBe(201)
 }
 
 /** Uploads `content` to the admin's files with a fixed mtime and returns its file id. */
 export async function upload(page: Page, path: string, content: Buffer): Promise<number> {
 	const url = davUrl(path)
-	const requesttoken = await requestToken(page)
-	const put = await page.request.put(url, { data: content, headers: { requesttoken, 'X-OC-MTime': String(MTIME) } })
+	const headers = await apiHeaders(page)
+	const put = await page.request.put(url, { data: content, headers: { ...headers, 'X-OC-MTime': String(MTIME) } })
 	expect(put.status(), await put.text()).toBeLessThan(300)
 	const propfind = await page.request.fetch(url, {
 		method: 'PROPFIND',
-		headers: { requesttoken, Depth: '0' },
+		headers: { ...headers, Depth: '0' },
 		data: '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><oc:fileid/></d:prop></d:propfind>',
 	})
 	const fileId = /<oc:fileid>(\d+)<\/oc:fileid>/.exec(await propfind.text())?.[1]
@@ -90,7 +93,7 @@ export async function upload(page: Page, path: string, content: Buffer): Promise
 export async function etagOf(page: Page, path: string): Promise<string> {
 	const response = await page.request.fetch(davUrl(path), {
 		method: 'PROPFIND',
-		headers: { requesttoken: await requestToken(page), Depth: '0' },
+		headers: await apiHeaders(page, { Depth: '0' }),
 		data: '<d:propfind xmlns:d="DAV:"><d:prop><d:getetag/></d:prop></d:propfind>',
 	})
 	const etag = /<d:getetag>&quot;(.+?)&quot;<\/d:getetag>/.exec(await response.text())?.[1]
@@ -102,7 +105,7 @@ export async function etagOf(page: Page, path: string): Promise<string> {
 export async function trashEntry(page: Page, path: string): Promise<string> {
 	const trash = await page.request.fetch(`/remote.php/dav/trashbin/${ADMIN.username}/trash`, {
 		method: 'PROPFIND',
-		headers: { requesttoken: await requestToken(page), Depth: '1' },
+		headers: await apiHeaders(page, { Depth: '1' }),
 		data: '<d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns"><d:prop><nc:trashbin-original-location/></d:prop></d:propfind>',
 	})
 	const entry = new RegExp(`<d:href>([^<]+)</d:href>(?:(?!</d:response>).)*?<nc:trashbin-original-location>${path}</nc:trashbin-original-location>`, 's').exec(await trash.text())?.[1]

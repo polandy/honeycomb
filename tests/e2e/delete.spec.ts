@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
 import { cullFolder } from './cull.ts'
-import { createFolder, etagOf, JPEG, pickLabel, RAW, requestToken, trashEntry, upload } from './files.ts'
+import { apiHeaders, createFolder, etagOf, JPEG, pickLabel, RAW, trashEntry, upload } from './files.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
 const TRASHBIN = `/remote.php/dav/trashbin/${ADMIN.username}`
@@ -15,7 +15,7 @@ const TRASHBIN = `/remote.php/dav/trashbin/${ADMIN.username}`
 async function trashLocations(page: Page): Promise<string> {
 	const trash = await page.request.fetch(`${TRASHBIN}/trash`, {
 		method: 'PROPFIND',
-		headers: { requesttoken: await requestToken(page), Depth: '1' },
+		headers: await apiHeaders(page, { Depth: '1' }),
 		data: '<d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns"><d:prop><nc:trashbin-original-location/></d:prop></d:propfind>',
 	})
 	return trash.text()
@@ -117,7 +117,7 @@ test('skips a reject another user picked meanwhile and reports it, but deletes o
 	await cullFolder(page, folder)
 	await expect(page.getByRole('button', { name: 'Review rejects: 2' })).toBeVisible()
 	await takenOver
-	const picked = await page.request.put(`${API}/flags`, { data: { flags: [{ fileId: fileIds[1], flag: 'picked', keepRaw: false }] }, headers: { requesttoken: await requestToken(page) } })
+	const picked = await page.request.put(`${API}/flags`, { data: { flags: [{ fileId: fileIds[1], flag: 'picked', keepRaw: false }] }, headers: await apiHeaders(page) })
 	expect(picked.status()).toBe(200)
 	await upload(page, `${folder}/IMG_0001.jpg.xmp`, pickLabel(3))
 
@@ -181,7 +181,7 @@ test('deletes nothing when the trash request fails, and the toast says so', asyn
 // spec: DELETE-001.15
 test('a picture restored from the trash bin keeps its file id but not its flag, whose row went with it', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
-	const requesttoken = await requestToken(page)
+	const headers = await apiHeaders(page)
 	const id = randomUUID().slice(0, 8)
 	const folder = `Restore ${id}`
 	await createFolder(page, folder)
@@ -190,17 +190,17 @@ test('a picture restored from the trash bin keeps its file id but not its flag, 
 	const fileId = await upload(page, path, JPEG)
 	const file = `/remote.php/dav/files/${ADMIN.username}/${path}`
 	const etag = await etagOf(page, path)
-	expect((await page.request.put(`${API}/flags`, { data: { flags: [{ fileId, flag: 'picked', keepRaw: false }] }, headers: { requesttoken } })).status()).toBe(200)
+	expect((await page.request.put(`${API}/flags`, { data: { flags: [{ fileId, flag: 'picked', keepRaw: false }] }, headers })).status()).toBe(200)
 
-	const trashed = await page.request.post(`${API}/trash`, { data: { pictures: [[{ fileId, etag }]] }, headers: { requesttoken } })
+	const trashed = await page.request.post(`${API}/trash`, { data: { pictures: [[{ fileId, etag }]] }, headers })
 	expect(await trashed.json()).toEqual({ pictures: [[{ fileId, result: 'trashed' }]] })
-	const flagOf = async () => ((await (await page.request.get(`${API}/entries`, { params: { path: `/${folder}` }, headers: { requesttoken } })).json()) as { entries: { fileId: number, flag: string | null }[] }).entries.find((entry) => entry.fileId === fileId)?.flag
+	const flagOf = async () => ((await (await page.request.get(`${API}/entries`, { params: { path: `/${folder}` }, headers })).json()) as { entries: { fileId: number, flag: string | null }[] }).entries.find((entry) => entry.fileId === fileId)?.flag
 
 	const entry = await trashEntry(page, path)
-	const restored = await page.request.fetch(entry, { method: 'MOVE', headers: { requesttoken, Destination: `${TRASHBIN}/restore/${randomUUID()}` } })
+	const restored = await page.request.fetch(entry, { method: 'MOVE', headers: { ...headers, Destination: `${TRASHBIN}/restore/${randomUUID()}` } })
 	expect(restored.status(), await restored.text()).toBe(201)
 
-	const back = await page.request.fetch(file, { method: 'PROPFIND', headers: { requesttoken, Depth: '0' }, data: '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><oc:fileid/></d:prop></d:propfind>' })
+	const back = await page.request.fetch(file, { method: 'PROPFIND', headers: { ...headers, Depth: '0' }, data: '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><oc:fileid/></d:prop></d:propfind>' })
 	expect(await back.text()).toContain(`<oc:fileid>${fileId}</oc:fileid>`)
 	expect(await flagOf()).toBeNull()
 })
@@ -208,7 +208,7 @@ test('a picture restored from the trash bin keeps its file id but not its flag, 
 // spec: DELETE-001.13
 test('two photos of one name from two folders, trashed in one request, can both be restored', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
-	const requesttoken = await requestToken(page)
+	const headers = await apiHeaders(page)
 	const id = randomUUID().slice(0, 8)
 	const files = []
 	for (const folder of [`Same name ${id} A`, `Same name ${id} B`]) {
@@ -218,14 +218,14 @@ test('two photos of one name from two folders, trashed in one request, can both 
 	}
 
 	const pictures = files.map(({ fileId, etag }) => [{ fileId, etag }])
-	const trashed = await page.request.post(`${API}/trash`, { data: { pictures }, headers: { requesttoken } })
+	const trashed = await page.request.post(`${API}/trash`, { data: { pictures }, headers })
 	expect(await trashed.json()).toEqual({ pictures: files.map(({ fileId }) => [{ fileId, result: 'trashed' }]) })
 
 	for (const { path, fileId } of files) {
 		const entry = await trashEntry(page, path)
-		const restored = await page.request.fetch(entry, { method: 'MOVE', headers: { requesttoken, Destination: `${TRASHBIN}/restore/${randomUUID()}` } })
+		const restored = await page.request.fetch(entry, { method: 'MOVE', headers: { ...headers, Destination: `${TRASHBIN}/restore/${randomUUID()}` } })
 		expect(restored.status(), await restored.text()).toBe(201)
-		const back = await page.request.fetch(`/remote.php/dav/files/${ADMIN.username}/${path}`, { method: 'PROPFIND', headers: { requesttoken, Depth: '0' }, data: '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><oc:fileid/></d:prop></d:propfind>' })
+		const back = await page.request.fetch(`/remote.php/dav/files/${ADMIN.username}/${path}`, { method: 'PROPFIND', headers: { ...headers, Depth: '0' }, data: '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><oc:fileid/></d:prop></d:propfind>' })
 		expect(await back.text()).toContain(`<oc:fileid>${fileId}</oc:fileid>`)
 	}
 })
