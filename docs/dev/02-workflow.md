@@ -37,8 +37,8 @@ during a task becomes an issue as above.
     for components.
   - **PHPUnit** for every endpoint and service, with `OCP\Files` mocks or the Nextcloud test
     server, including the failure paths: a foreign path, a vanished file, a conflict, no
-    permission. The mapper SQL also runs against SQLite inside the pinned Nextcloud image
-    (`tests/php-db/`, `scripts/php-db-tests.sh`).
+    permission. The mapper SQL and the sidecar save also run against SQLite and the real files
+    inside the newest Nextcloud image e2e runs on (`tests/php-db/`, `scripts/php-db-tests.sh`).
   - **ExifTool and Exiv2** read the sidecars honeycomb writes back (`tests/interop/`,
     `scripts/xmp-interop.sh`, Docker), in CI on a TypeScript change and every night.
   - **Playwright** end to end against a real Nextcloud container, for the flows across both.

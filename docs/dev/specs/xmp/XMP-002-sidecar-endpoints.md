@@ -135,6 +135,17 @@ Withdrawn by ADR 0040 (M8 PR 3); an existing sidecar is overwritten without vers
 - **Then** both answer `noSpace`, nothing is left beside them, and the other sidecars of the
   request are saved
 
+### XMP-002.13 – Every save path runs against a real Nextcloud's files
+
+- **Given** a real Nextcloud on the newest version e2e runs on, a part file `IMG_0001.NEF.xmp.part`
+  left beside a sidecar by an older save, a folder shared read-only with the user, and a sidecar
+  another request holds a lock on
+- **When** the client saves a new sidecar, an existing one, one with a stale ETag, one in the
+  read-only folder, a new one there, and the locked one
+- **Then** they answer `saved` (new file id), `saved` (same file id, the old bytes in its versions),
+  `changed`, `notPermitted`, `notPermitted` and `locked`; the refused sidecars keep their bytes,
+  the left part file stays as it was, and no file is written beside any of them
+
 ## Out of scope
 
 - When the client reads and writes sidecars: [XMP-003](XMP-003-sidecars-in-the-cull.md).
@@ -149,3 +160,4 @@ Withdrawn by ADR 0040 (M8 PR 3); an existing sidecar is overwritten without vers
 | 2026-11-18 | Saved in place instead of through a part file, which Nextcloud 35.0.3 refuses to move (ADR 0017) |
 | 2026-11-19 | ADR 0040: a sidecar is overwritten without versions too, a full storage answers `noSpace` (.10 withdrawn; .11, .12 gaps) |
 | 2026-11-19 | M8 PR 3: no `noVersions`, `noSpace` by free space or error (.10 removed; .11, .12 implemented) |
+| 2026-11-20 | Every save path tested against a real Nextcloud (.13) |
