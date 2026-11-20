@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Test for scripts/e2e-names.sh and e2e-server.sh: two ports share no name and no run removes the other's container.
+# Every container carries the owner label that lets verify.sh find its orphans.
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 source scripts/e2e-names.sh
@@ -45,11 +46,24 @@ chmod +x "$work/bin/"*
 
 for port in 8180 8380; do
   PATH="$work/bin:$PATH" DOCKER_LOG="$work/docker-$port.log" XDG_CACHE_HOME="$work/cache" \
-    scripts/e2e-server.sh "$port" admin secret
+    HONEYCOMB_E2E_OWNER="7@test-host" scripts/e2e-server.sh "$port" admin secret
   removed=$(grep '^rm ' "$work/docker-$port.log")
   check "removes-own-container-$port" "rm --force honeycomb-e2e-$port" "$removed"
   check "locks-cache-$port" 1 "$(grep -c '^9$' "$work/docker-$port.log")"
   check "starts-own-container-$port" 1 "$(grep -c -- "--name honeycomb-e2e-$port -p 127.0.0.1:$port:80" "$work/docker-$port.log")"
+  check "labels-owner-$port" 1 "$(grep -c -- "--label honeycomb.e2e.owner=7@test-host" "$work/docker-$port.log")"
+done
+
+# Without a verify.sh run as owner, the script's own process owns the container, which exec keeps.
+PATH="$work/bin:$PATH" DOCKER_LOG="$work/docker-own.log" XDG_CACHE_HOME="$work/cache" \
+  env -u HONEYCOMB_E2E_OWNER bash -c 'echo "pid $$" >>"$DOCKER_LOG"; exec scripts/e2e-server.sh 8480 admin secret'
+own_pid=$(sed -n 's/^pid //p' "$work/docker-own.log")
+check labels-own-process 1 "$(grep -c -- "--label honeycomb.e2e.owner=$own_pid@$(uname -n)" "$work/docker-own.log")"
+
+# Every script that starts a Nextcloud container labels it with its owner.
+for script in e2e-server upgrade-test php-db-tests; do
+  check "labels-every-run-$script" "$(grep -c 'docker run' "scripts/$script.sh")" \
+    "$(grep -c -- '--label "$(e2e_owner_label)"' "scripts/$script.sh")"
 done
 
 exit $failed
