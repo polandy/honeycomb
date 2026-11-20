@@ -21,6 +21,13 @@ export function occ(args: string[], env: Record<string, string> = {}): string {
 	return execFileSync('docker', ['exec', ...envArgs, '-u', 'www-data', CONTAINER, 'php', 'occ', ...args], { encoding: 'utf8' })
 }
 
+/** How many preview files core has stored for each of the files, by the folder of its file id. */
+export function previewFiles(fileIds: number[]): number {
+	const paths = fileIds.flatMap((id) => ['-o', '-path', `*/preview/*/${id}/*`]).slice(1)
+	const found = execFileSync('docker', ['exec', CONTAINER, 'sh', '-c', 'find /var/www/html/data/appdata_*/preview -type f \\( "$@" \\)', 'sh', ...paths], { encoding: 'utf8' })
+	return found.split('\n').filter((line) => line !== '').length
+}
+
 /** Logs `user` in through the login form. */
 export async function logIn(page: Page, user: { username: string, password: string }): Promise<void> {
 	await page.goto('/index.php/login')

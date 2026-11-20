@@ -219,7 +219,7 @@ JPEGs of 10.8 MB each, so the RAW column of the earlier run is missing):
 
 | What | Before | After (render jobs ran) |
 |---|---|---|
-| First sharp image in a newly opened folder | 2.3–2.8 s | 117 ms |
+| First sharp image in a newly opened folder | 2.3–2.8 s | 117–351 ms (CI runners 290–551 ms) |
 | First small preview in a newly opened folder | 1.1–1.3 s | 42 ms |
 | Server render of a tier, first request (1024 px / 4096 px) | about 1.1 s / 1.0 s | unchanged |
 | Image loads in flight in the grid | 6 | 6 |
@@ -373,9 +373,10 @@ the first three of `HONEYCOMB_BUDGET_PHOTOS`, a folder of real photos.
 before their render jobs ran and reports the first small and the first sharp image, the server's
 first render of a 1024 px and a 4096 px tier, the loupe's 4096 px tier and the peak of image
 loads in flight, which it asserts (at most six, counted by the browser's clock; GRID-001.15). It
-then writes the same photos into a second folder, runs their render jobs and asserts that the
-folder's first sharp image shows within 500 ms (IMAGES-001.12); a cold render's time on a shared
-host is no gate. With `HONEYCOMB_BUDGET_PHOTOS` set, it uploads the pairs of that folder.
+then writes the same photos into a second folder, runs their render jobs, opens it and asserts
+that the opening rendered no preview, counted in core's preview files (IMAGES-001.12); it reports
+that folder's first sharp image, as a time on a shared host is no gate. With
+`HONEYCOMB_BUDGET_PHOTOS` set, it uploads the pairs of that folder.
 
 **Measured on 2026-11-18** (local e2e container, Nextcloud 35, one host; 12 pairs of Fujifilm
 X-T2, 6000 × 4000 px, 9.4 MB JPEG and about 30 MB RAF each; the Series folder of the owner's real

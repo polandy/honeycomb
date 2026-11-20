@@ -54,9 +54,10 @@ The options were:
   24 MP JPEG, and the previews' storage, also for photos never culled.
 - A job and the warm-up can render the same file at the same time; core's preview table
   resolves the race, the second render is wasted work.
-- `tests/e2e/image-budgets.spec.ts` asserts the 500 ms budget for a folder whose jobs ran
-  (IMAGES-001.12); the cold numbers stay reported only, as a cold render's time on a shared
-  host is no gate.
+- `tests/e2e/image-budgets.spec.ts` gates the budget for a folder whose jobs ran by what keeps
+  it: opening the folder renders no preview (IMAGES-001.12). Its first sharp image measured
+  117–351 ms locally and 290–551 ms on CI runners, so the time is reported, not asserted; a
+  time on a shared host is no gate.
 - The Preview Generator app is no longer needed for the grid; it still covers photos written
   before the first visit.
 - Changing the mind costs the listener, the job and the preference; no data needs migrating.
