@@ -35,3 +35,10 @@ path = [
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 honeycomb contributors"
 SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# Cut from Immich's OpenAPI file by scripts/immich-schema.sh; Immich is AGPL-3.0.
+[[annotations]]
+path = "tests/fixtures/immich/openapi.json"
+precedence = "override"
+SPDX-FileCopyrightText = "Immich contributors"
+SPDX-License-Identifier = "AGPL-3.0-only"
