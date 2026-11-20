@@ -35,12 +35,14 @@ parallel_step vue-tsc npx vue-tsc
 parallel_step vitest npx vitest run --coverage
 parallel_wait
 step build npx vite build
-# Each Nextcloud container has its own port and name (scripts/e2e-names.sh).
+# Each Nextcloud container has its own port and name (scripts/e2e-names.sh); one run per host at a time.
+e2e_slot_take || failed=1
 parallel_step "phpunit db" scripts/php-db-tests.sh
 parallel_step e2e npx playwright test
 parallel_step "e2e oldest" env HONEYCOMB_E2E_NEXTCLOUD=oldest HONEYCOMB_E2E_PORT="$(e2e_oldest_port)" npx playwright test
 parallel_step "upgrade test" scripts/upgrade-test.sh "$(upgrade_port)"
 parallel_wait
+e2e_slot_release
 
 verify_total
 exit $failed
