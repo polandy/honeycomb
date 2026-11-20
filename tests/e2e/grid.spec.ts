@@ -5,6 +5,7 @@ import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { createFolder, JPEG, pickLabel, RAW, upload } from './files.ts'
+import { WEBKIT } from './webkit.ts'
 
 /** A folder name no earlier run left behind. */
 const uniqueFolder = (prefix: string) => `${prefix} ${randomUUID().slice(0, 8)}`
@@ -18,7 +19,7 @@ async function openPicker(page: Page) {
 }
 
 // spec: GRID-001.4, GRID-001.12, LISTING-003.12
-test('culls a ticked folder in a grid of pairs and singles', async ({ page }) => {
+test('culls a ticked folder in a grid of pairs and singles', { tag: WEBKIT }, async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = uniqueFolder('Grid')
 	await createFolder(page, folder)
