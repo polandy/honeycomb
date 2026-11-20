@@ -15,6 +15,7 @@ use OCA\Honeycomb\Service\XmpReadState;
 use OCA\Honeycomb\Service\XmpSource;
 use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\DB\QueryBuilder\IQueryFunction;
 use OCP\IDBConnection;
 
 /** Keeps the XMP cache in `honeycomb_xmp_cache`, the tags as a JSON list (ADR 0032). */
@@ -58,6 +59,26 @@ final class XmpCacheMapper implements XmpCacheStore {
 			$rows[$cached->fileId] = $cached;
 		}
 		return $rows;
+	}
+
+	#[\Override]
+	public function readCounts(string $userId): array {
+		$query = $this->db->getQueryBuilder();
+		$counted = static fn (string $when): IQueryFunction => $query->createFunction(sprintf('SUM(CASE WHEN %s THEN 1 ELSE 0 END)', $when));
+		$flag = $query->getColumnName('flag');
+		$rating = $query->getColumnName('rating');
+		$query->select($query->func()->count('file_id', 'pictures'))
+			->selectAlias($counted(sprintf('%s = %s', $flag, $query->createNamedParameter(Flag::Picked->value))), 'picked')
+			->selectAlias($counted(sprintf('%s = %s', $flag, $query->createNamedParameter(Flag::Rejected->value))), 'rejected')
+			->selectAlias($counted(sprintf('%s > 0', $rating)), 'rated')
+			->from(self::TABLE)
+			->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
+			->andWhere($query->expr()->eq('state', $query->createNamedParameter(XmpReadState::Read->value)));
+		$result = $query->executeQuery();
+		/** @var array<string, mixed> $row an aggregate without grouping always answers one row */
+		$row = $result->fetch();
+		$result->closeCursor();
+		return ['pictures' => (int)$row['pictures'], 'picked' => (int)$row['picked'], 'rejected' => (int)$row['rejected'], 'rated' => (int)$row['rated']];
 	}
 
 	/** Sorted by file id, so two saves at once take their row locks in the same order. */

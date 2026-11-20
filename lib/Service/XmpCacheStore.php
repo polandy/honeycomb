@@ -17,6 +17,12 @@ interface XmpCacheStore extends FileRowStore, UserRowStore, CacheRows {
 	public function find(string $userId, array $fileIds): array;
 
 	/**
+	 * How many of the user's cached files were read, and of those how many are picked, rejected and rated.
+	 * @return array{pictures: int, picked: int, rejected: int, rated: int}
+	 */
+	public function readCounts(string $userId): array;
+
+	/**
 	 * Stores `$rows` in place of the user's stored rows of their files, all or nothing.
 	 * @param list<XmpCacheRow> $rows each of another file
 	 */

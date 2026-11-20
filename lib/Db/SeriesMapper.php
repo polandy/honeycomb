@@ -93,6 +93,19 @@ final class SeriesMapper implements SeriesStore {
 	}
 
 	#[\Override]
+	public function countDone(string $userId): int {
+		$query = $this->db->getQueryBuilder();
+		$query->select($query->func()->count('id'))
+			->from(self::SERIES_TABLE)
+			->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
+			->andWhere($query->expr()->eq('status', $query->createNamedParameter(SeriesStatus::Done->value)));
+		$result = $query->executeQuery();
+		$count = (int)$result->fetchOne();
+		$result->closeCursor();
+		return $count;
+	}
+
+	#[\Override]
 	public function seriesIdsAfter(int $afterId, int $limit): array {
 		$query = $this->db->getQueryBuilder();
 		$query->select('id')

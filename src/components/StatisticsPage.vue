@@ -18,6 +18,7 @@ import AppIcon from './AppIcon.vue'
 import DeleteStats from './DeleteStats.vue'
 import StatisticsBars from './StatisticsBars.vue'
 import StatisticsFolderSets from './StatisticsFolderSets.vue'
+import StatisticsRead from './StatisticsRead.vue'
 import { formatDay, formatDuration, formatFileSize, formatNumber, formatPercent, PLAIN_TEXT } from '../l10n.ts'
 import { logger } from '../logger.ts'
 import { parsePositions } from '../logic/resume-position.ts'
@@ -139,8 +140,12 @@ onMounted(async () => {
 						{{ t('honeycomb', 'Nothing counted yet. Cull a folder and the numbers show here.') }}
 					</p>
 					<StatisticsFolderSets :positions="positions" />
+					<StatisticsRead :read="answer.read" />
 					<p v-if="counted && answer.firstDay" class="statistics-page__line">
 						{{ t('honeycomb', 'Counted since {day}.', { day: formatDay(answer.firstDay) }, undefined, PLAIN_TEXT) }}
+						<template v-if="answer.seriesDoneBefore > 0">
+							{{ n('honeycomb', 'Before that: %n series done (no date).', 'Before that: %n series done (no date).', answer.seriesDoneBefore, undefined, PLAIN_TEXT) }}
+						</template>
 						{{ t('honeycomb', 'Space is freed when the trash bin is emptied.') }}
 					</p>
 				</template>

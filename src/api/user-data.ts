@@ -7,7 +7,7 @@ import type { ViewState } from '../logic/view-state.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { parseCounters } from '../logic/statistics.ts'
+import { parseCounters, parseReadPictures } from '../logic/statistics.ts'
 import { API, ApiResponseError, isRecord } from './core.ts'
 
 /** The stored settings of the user as they came, checked by `parseSettings` (ADR 0014). */
@@ -75,11 +75,17 @@ export async function resetStatistics(): Promise<void> {
 	await axios.delete(generateUrl(`${API}/stats`))
 }
 
-/** Every statistics counter of the user, their first counted day and their today (STATS-001.4). */
+/** Every statistics counter of the user, their first counted day, their today and what began before the counting (STATS-001.4). */
 export async function loadStatistics(): Promise<StatsAnswer> {
 	const { data } = await axios.get<unknown>(generateUrl(`${API}/stats`))
 	if (!isRecord(data) || !Array.isArray(data.counters) || typeof data.today !== 'string') {
 		throw new ApiResponseError('The statistics came without counters or today; check the server\'s version.')
 	}
-	return { counters: parseCounters(data.counters), firstDay: typeof data.firstDay === 'string' ? data.firstDay : null, today: data.today }
+	return {
+		counters: parseCounters(data.counters),
+		firstDay: typeof data.firstDay === 'string' ? data.firstDay : null,
+		today: data.today,
+		seriesDoneBefore: Number.isInteger(data.seriesDoneBefore) ? data.seriesDoneBefore as number : 0,
+		read: parseReadPictures(data.read),
+	}
 }
