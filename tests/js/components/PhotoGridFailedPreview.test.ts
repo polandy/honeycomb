@@ -17,7 +17,12 @@ function fakeLoader() {
 		settle.shift()![outcome]()
 		await flushPromises()
 	}
-	return { started, loadImage, finish }
+	const finishAll = async () => {
+		while (settle.length > 0) {
+			await finish('resolve')
+		}
+	}
+	return { started, loadImage, finish, finishAll }
 }
 
 async function mountFailed() {
@@ -25,6 +30,7 @@ async function mountFailed() {
 	const { wrapper, resize } = mountGrid({ loadImage: loader.loadImage, imageUrl: (fileId: number, size: number) => `/img/${fileId}/${size}` })
 	await resize(432, 100)
 	await loader.finish('reject')
+	await loader.finishAll()
 	return { wrapper, loader, tile: wrapper.find('[data-index="0"]') }
 }
 
@@ -38,9 +44,7 @@ describe('PhotoGrid failed previews', () => {
 		await tile.trigger('click')
 		expect(loader.started.slice(requested)).toEqual(['/img/1/256'])
 		expect(wrapper.emitted('open')).toBeUndefined()
-		while (!tile.find('img').exists()) {
-			await loader.finish('resolve')
-		}
+		await loader.finishAll()
 		await tile.trigger('click')
 
 		expect(wrapper.emitted('open')).toEqual([[0]])
@@ -53,6 +57,7 @@ describe('PhotoGrid failed previews', () => {
 
 		await tile.trigger('keydown', { key: 'Enter' })
 		await loader.finish('reject')
+		await loader.finishAll()
 		await tile.trigger('keydown', { key: ' ' })
 
 		expect(loader.started.slice(requested)).toEqual(['/img/1/256', '/img/1/256'])

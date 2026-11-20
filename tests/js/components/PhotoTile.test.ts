@@ -143,6 +143,18 @@ describe('PhotoTile', () => {
 	})
 
 	// spec: GRID-001.23
+	it('reports that it no longer failed when it unmounts', async () => {
+		const { loads, settled } = fakeLoads()
+		const reports: boolean[] = []
+		const wrapper = mountTile(PAIR, { loads, onImageFailed: (failed: boolean) => reports.push(failed) })
+		await settled('/img/1/256/7', 'reject')
+
+		wrapper.unmount()
+
+		expect(reports).toEqual([true, false])
+	})
+
+	// spec: GRID-001.23
 	it('ignores a retry while the preview shows or is on its way', async () => {
 		const { started, loads, settled } = fakeLoads()
 		const wrapper = mountTile(PAIR, { loads })

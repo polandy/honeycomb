@@ -7,7 +7,7 @@ import type { FocusMove } from '../logic/grid-layout.ts'
 import type { PhotoGridEmits, PhotoGridProps } from '../photo-grid-props.ts'
 
 import { t } from '@nextcloud/l10n'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, useSlots, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, useSlots, useTemplateRef, watch } from 'vue'
 import PhotoTile from './PhotoTile.vue'
 import SeriesBrackets from './SeriesBrackets.vue'
 import TileInfo from './TileInfo.vue'
@@ -88,6 +88,38 @@ const tiles = useTileSelection({
 	stepAt: (y) => autoScrollStep(y - scroller.value!.getBoundingClientRect().top, height.value),
 	scrollBy,
 }, props.schedule, props.frame)
+
+/** The tiles whose small preview failed, and how often each was asked to load it again (GRID-001.23). */
+const failed = new Set<number>()
+const retries = reactive(new Map<number, number>())
+
+/** Loads a failed tile again, unless the click or key is for the selection or the tile is fine; true when it did. */
+function retryFailed(id: number, event: MouseEvent | KeyboardEvent): boolean {
+	if (props.selecting || !failed.has(id) || event.shiftKey || event.ctrlKey || event.metaKey) {
+		return false
+	}
+	retries.set(id, (retries.get(id) ?? 0) + 1)
+	return true
+}
+
+function onTileClick(id: number, event: MouseEvent): void {
+	if (!retryFailed(id, event)) {
+		tiles.onClick(id, event)
+	}
+}
+
+function onTileKeydown(id: number, event: KeyboardEvent): void {
+	if ((event.key === 'Enter' || event.key === ' ') && retryFailed(id, event)) {
+		event.preventDefault()
+		return
+	}
+	tiles.onKeydown(id, event)
+}
+
+/** Records whether a tile's small preview failed. */
+function markFailed(id: number, isFailed: boolean): void {
+	failed[isFailed ? 'add' : 'delete'](id)
+}
 
 /** Scrolls the grid by `step` within its ends; false when it is already at that end. */
 function scrollBy(step: number): boolean {
@@ -231,8 +263,10 @@ defineExpose({
 							:offscreen="row.offscreen"
 							v-bind="{ ...(props.imageUrl && { imageUrl: props.imageUrl }), ...series.tileProps(index, picture) }"
 							@focus="focused = index"
-							@click="tiles.onClick(imageMember(picture).fileId, $event)"
-							@keydown="tiles.onKeydown(imageMember(picture).fileId, $event)"
+							:retry="retries.get(imageMember(picture).fileId) ?? 0"
+							@click="onTileClick(imageMember(picture).fileId, $event)"
+							@keydown="onTileKeydown(imageMember(picture).fileId, $event)"
+							@imageFailed="markFailed(imageMember(picture).fileId, $event)"
 							@pointerdown="tiles.onPointerDown(imageMember(picture).fileId, $event)"
 							@info="toggleInfo"
 							@compareSeries="emit('compareSeries', props.seriesOf!.get(picture)!, picture)" />
