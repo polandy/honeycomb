@@ -7,13 +7,18 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Immich;
 
+use OCA\Honeycomb\Immich\AssetDecision;
 use OCA\Honeycomb\Immich\AssetEntries;
+use OCA\Honeycomb\Immich\AssetKind;
 use OCA\Honeycomb\Immich\Connection;
+use OCA\Honeycomb\Immich\DecidedPages;
 use OCA\Honeycomb\Immich\ImmichClient;
 use OCA\Honeycomb\Immich\ImmichError;
 use OCA\Honeycomb\Immich\ImmichListing;
 use OCA\Honeycomb\Immich\ImmichSearchFilter;
 use OCA\Honeycomb\Immich\ListingCursors;
+use OCA\Honeycomb\Service\ColourLabel;
+use OCA\Honeycomb\Service\Flag;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Security\ICrypto;
 use PHPUnit\Framework\TestCase;
@@ -25,11 +30,13 @@ final class ImmichListingTest extends TestCase {
 	private const int NOW = 1_795_000_000;
 
 	private FakeImmichLibrary $library;
+	private FakeImmichDecisionStore $decisions;
 	private int $now = self::NOW;
 
 	#[\Override]
 	protected function setUp(): void {
 		$this->library = new FakeImmichLibrary();
+		$this->decisions = new FakeImmichDecisionStore();
 		$this->immichRoute('POST /search/metadata', fn (array $options): array => $this->library->search($options));
 	}
 
@@ -120,12 +127,77 @@ final class ImmichListingTest extends TestCase {
 		$this->assertFailsWith(ImmichError::Request, fn () => $this->listing()->page($this->connection(), ['kinds' => ['video']], $cursor, 1));
 	}
 
-	public function testADecisionFilterNoUndecidedPicturePassesIsAnEmptyPageWithoutAsking(): void {
+	public function testADecisionFilterNoUndecidedPicturePassesIsAnEmptyPageWithoutDecisionsOrAsking(): void {
 		$this->library->add('photo', self::NOW - 10);
 
 		$this->assertSame(['entries' => [], 'nextCursor' => null, 'previousCursor' => null], $this->listing()->page($this->connection(), ['flags' => ['picked']], null, 100));
 		$this->assertSame([], $this->immichRequests);
 		$this->assertCount(1, $this->listing()->page($this->connection(), ['flags' => ['unflagged']], null, 100)['entries']);
+	}
+
+	// spec: IMMICH-003.1
+	public function testAnEntryCarriesItsSavedDecision(): void {
+		$this->library->add(self::id(1), self::NOW - 10);
+		$this->decide(1, Flag::Picked, 3, ColourLabel::Red);
+
+		$entry = $this->listing()->page($this->connection(), [], null, 100)['entries'][0];
+
+		$this->assertSame([3, 'red', 'picked', false], [$entry['rating'], $entry['colourLabel'], $entry['flag'], $entry['keepRaw']]);
+	}
+
+	// spec: IMMICH-002.22
+	public function testADecisionFilterPagesTheMatchingDecisionsNewestFirst(): void {
+		foreach (range(1, 5) as $n) {
+			$this->library->add(self::id($n), self::NOW - 60 * $n);
+		}
+		foreach ([1, 3, 4] as $n) {
+			$this->decide($n, Flag::Picked);
+		}
+		$this->decide(2, Flag::Rejected);
+
+		$first = $this->listing()->page($this->connection(), ['flags' => ['picked']], null, 2);
+
+		$this->assertSame(['picked', 'picked'], array_column($first['entries'], 'flag'));
+		$this->assertSame([[self::id(1), self::id(3)], [self::id(4)]], $this->walk(['flags' => ['picked']], 2));
+		$this->assertSame(['type' => ['in' => ['IMAGE', 'VIDEO']], 'or' => [['id' => ['eq' => self::id(4)]]]], array_intersect_key((array)($this->lastImmichFilter() ?? []), ['type' => 0, 'or' => 0]));
+	}
+
+	public function testADecisionFilterHonoursTheTimeDeviceAndKindOfTheDecision(): void {
+		$this->library->add(self::id(1), self::NOW - 60);
+		$this->library->add(self::id(2), self::NOW - 120, 0, ['exifInfo' => ['model' => 'Pixel 7']]);
+		$this->decide(1, Flag::Picked);
+		$this->decide(2, Flag::Picked, 0, null, 'Pixel 7');
+
+		$ids = $this->walk(['flags' => ['picked'], 'devices' => ['Pixel 7'], 'takenAfter' => self::NOW - 600], 10);
+
+		$this->assertSame([[self::id(2)]], $ids);
+	}
+
+	// spec: IMMICH-002.23
+	public function testAFilterThatAdmitsUndecidedPicturesLeavesOutTheDecidedOnesItRefuses(): void {
+		foreach (range(1, 3) as $n) {
+			$this->library->add(self::id($n), self::NOW - 60 * $n);
+		}
+		$this->decide(1, Flag::Picked);
+		$this->decide(2, Flag::Rejected);
+
+		$entries = $this->listing()->page($this->connection(), ['flags' => ['picked', 'unflagged']], null, 100)['entries'];
+
+		$this->assertSame([[self::id(1), 'picked'], [self::id(3), 'unflagged']], array_map(static fn (array $entry): array => [$entry['assetId'], $entry['flag']], $entries));
+	}
+
+	// spec: IMMICH-003.12
+	public function testADecidedAssetGoneFromTheUploadLibraryLosesItsRowWhenAFilterAsksForIt(): void {
+		$this->library->add(self::id(1), self::NOW - 60);
+		$this->library->add(self::id(2), self::NOW - 120, 0, ['trashedAt' => '2026-11-19T09:00:00.000Z']);
+		$this->decide(1, Flag::Picked);
+		$this->decide(2, Flag::Picked);
+		$this->decide(3, Flag::Picked);
+
+		$entries = $this->listing()->page($this->connection(), ['flags' => ['picked']], null, 100)['entries'];
+
+		$this->assertSame([self::id(1)], array_column($entries, 'assetId'));
+		$this->assertSame(['alice-phone/' . self::id(1)], array_keys($this->decisions->rows));
 	}
 
 	// spec: IMMICH-001.16
@@ -160,7 +232,24 @@ final class ImmichListingTest extends TestCase {
 		$crypto = $this->createStub(ICrypto::class);
 		$crypto->method('calculateHMAC')->willReturnCallback(static fn (string $message): string => hash_hmac('sha256', $message, 'secret'));
 		$client = new ImmichClient($this->immichClients(), $files, new FakeLogger());
-		return new ImmichListing($client, new ImmichSearchFilter(), new ListingCursors($crypto), new AssetEntries(), $time);
+		$filter = new ImmichSearchFilter();
+		$cursors = new ListingCursors($crypto);
+		$entries = new AssetEntries();
+		return new ImmichListing($client, $filter, $cursors, $entries, $time, $this->decisions, new DecidedPages($client, $filter, $cursors, $entries, $this->decisions));
+	}
+
+	private function decide(int $n, Flag $flag, int $rating = 0, ?ColourLabel $label = null, ?string $model = 'Pixel 9 Pro'): void {
+		$this->decisions->decide('alice', 'alice-phone', new AssetDecision(self::id($n), $rating, $label, $flag, false, self::NOW - 60 * $n, $model, AssetKind::Photo, '2026-11-19T08:00:00.000Z'));
+	}
+
+	private function lastImmichFilter(): mixed {
+		/** @var mixed $body */
+		$body = $this->lastImmichBody('POST /search/metadata');
+		return is_array($body) ? $body['filter'] : null;
+	}
+
+	private static function id(int $n): string {
+		return sprintf('00000000-0000-4000-8000-%012d', $n);
 	}
 
 	private function connection(): Connection {

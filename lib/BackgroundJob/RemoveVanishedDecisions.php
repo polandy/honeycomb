@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\BackgroundJob;
 
+use OCA\Honeycomb\Immich\ImmichConnectionSweep;
 use OCA\Honeycomb\Service\EmptySeriesSweep;
 use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\VanishedFileSweep;
@@ -16,7 +17,7 @@ use OCP\BackgroundJob\TimedJob;
 use OCP\DB\Exception as DbException;
 use Psr\Log\LoggerInterface;
 
-/** Removes the flag, visual hash, series member and XMP cache rows of files deleted for good, then the series left empty, once a day (ADR 0024, ADR 0027, ADR 0040). */
+/** Removes the flag, visual hash, series member and XMP cache rows of files deleted for good, then the series left empty and the Immich decisions of connections that left the file, once a day (ADR 0024, ADR 0027, ADR 0040, ADR 0043). */
 final class RemoveVanishedDecisions extends TimedJob {
 	private const int DAY = 86_400;
 
@@ -26,6 +27,7 @@ final class RemoveVanishedDecisions extends TimedJob {
 		private FileRowStores $stores,
 		private VanishedFileSweep $sweep,
 		private EmptySeriesSweep $emptySeries,
+		private ImmichConnectionSweep $connectionSweep,
 		private LoggerInterface $logger,
 	) {
 		parent::__construct($time);
@@ -48,6 +50,7 @@ final class RemoveVanishedDecisions extends TimedJob {
 			}
 		}
 		$this->removeEmptySeries();
+		$this->removeLeftConnections();
 	}
 
 	/** After the member rows, so a series that lost its last member goes in the same run. */
@@ -60,6 +63,19 @@ final class RemoveVanishedDecisions extends TimedJob {
 		}
 		if ($removed > 0) {
 			$this->logger->info("Removed {$removed} series without members");
+		}
+	}
+
+	/** Rows of a connection the valid file no longer names for its user (IMMICH-003.10). */
+	private function removeLeftConnections(): void {
+		try {
+			$removed = $this->connectionSweep->sweep();
+		} catch (DbException $e) {
+			$this->logger->error('Could not remove the Immich decision rows of connections that left the connections file', ['exception' => $e]);
+			return;
+		}
+		if ($removed > 0) {
+			$this->logger->info("Removed {$removed} Immich decision rows of connections that left the connections file");
 		}
 	}
 }

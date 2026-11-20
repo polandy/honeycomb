@@ -135,7 +135,9 @@ rows. `decided` is `total` minus `undecided`, `matching` the count under the fla
 colour filters as well (the toolbar's *N of M*; the body then carries them). A facet
 (`devices`, `kinds`, `periods`) counts under the filters of the other groups, so an option shows
 what choosing it would give. The device list comes from Immich's suggestions for
-camera models, each with its own count.
+camera models, each with its own count; a model without uploads under the other filters shows only
+while chosen, *No camera data* always. *Decided* means picked or rejected, so `undecided` is
+*Unflagged*. A body takes at most 50 periods.
 
 ### Write to Immich (Phase 2)
 

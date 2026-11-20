@@ -56,6 +56,25 @@ final class ImmichClient {
 		return is_int($total) ? $total : throw $this->failure($connection, ImmichError::Version, 'the statistics answer does not fit');
 	}
 
+	/**
+	 * The camera models of the key's assets, as Immich suggests them for a search.
+	 * @return list<string>
+	 */
+	public function cameraModels(Connection $connection): array {
+		$models = $this->json($connection, 'GET', '/search/suggestions', 'asset.read', ['query' => ['type' => 'camera-model']]);
+		if (!array_is_list($models) || array_filter($models, static fn (mixed $model): bool => !is_string($model) && $model !== null) !== []) {
+			throw $this->failure($connection, ImmichError::Version, 'the suggestions answer does not fit');
+		}
+		$named = [];
+		/** @var list<?string> $models */
+		foreach ($models as $model) {
+			if (is_string($model)) {
+				$named[] = $model;
+			}
+		}
+		return $named;
+	}
+
 	/** The name of the key's Immich account. */
 	public function userName(Connection $connection): string {
 		/** @var mixed $name */
@@ -96,11 +115,11 @@ final class ImmichClient {
 
 	/**
 	 * The JSON object of a successful answer.
-	 * @param array{body?: array<string, mixed>} $request
+	 * @param array{body?: array<string, mixed>, query?: array<string, string>} $request
 	 * @return array<array-key, mixed>
 	 */
 	private function json(Connection $connection, string $method, string $path, ?string $scope, array $request): array {
-		$options = [];
+		$options = isset($request['query']) ? ['query' => $request['query']] : [];
 		if (isset($request['body'])) {
 			$options['body'] = json_encode($request['body'] === [] ? new \stdClass() : $request['body'], JSON_THROW_ON_ERROR);
 			$options['headers'] = ['Content-Type' => self::JSON];
