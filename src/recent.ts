@@ -85,7 +85,7 @@ export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: Recent
 				opened()
 			}
 		} catch (error) {
-			logger.error('Could not list the recent folder set', { folderSet, error })
+			logger.error('Could not list the recent folder set', { error })
 			toast(t('honeycomb', 'Could not open {name}.', { name: folderSetName(folderSet) }, undefined, PLAIN_TEXT))
 		} finally {
 			if (listed === opening) {

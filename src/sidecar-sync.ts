@@ -107,7 +107,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 			if (answer?.result === 'read') {
 				rows.push(sidecarRow(sidecar.fileId, answer.etag, answer.bytes, leftOut))
 			} else if (answer !== undefined) {
-				logger.warn('Could not read a sidecar', { path: sidecar.path, reason: answer.result })
+				logger.warn('Could not read a sidecar', { fileId: sidecar.fileId, reason: answer.result })
 			}
 		}
 		for (const jpeg of jpegs) {
@@ -116,7 +116,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 			if (row !== null) {
 				rows.push(row)
 			} else if (answer !== undefined) {
-				logger.warn('Could not read the embedded XMP; the picture shows no tags', { path: jpeg.path, reason: answer.result })
+				logger.warn('Could not read the embedded XMP; the picture shows no tags', { fileId: jpeg.fileId, reason: answer.result })
 			}
 		}
 		return rows

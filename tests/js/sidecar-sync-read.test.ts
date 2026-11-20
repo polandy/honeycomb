@@ -125,7 +125,7 @@ describe('useSidecarSync: read', () => {
 
 		expect(await sidecars.read([single(1)])).toEqual({ decided: [], tagged: [] })
 		expect(stored).toEqual([])
-		expect(warn).toHaveBeenCalledWith('Could not read a sidecar', { fileId: 1001, reason: 'notPermitted' })
+		expect(warn).toHaveBeenCalledWith('Could not read a sidecar', { fileId: 101, reason: 'notPermitted' })
 
 		fail.lookup = true
 		expect(await sidecars.read([single(1)])).toEqual({ decided: [], tagged: [] })

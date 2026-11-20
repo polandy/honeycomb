@@ -71,7 +71,7 @@ async function load(path: string) {
 		const children = await props.listFolders(path)
 		setBranch(path, { state: 'loaded', folders: children.toSorted((a, b) => compareNames(a.name, b.name)) })
 	} catch (error) {
-		logger.error('Could not load the folders', { path, error })
+		logger.error('Could not load the folders', { error })
 		setBranch(path, { state: 'failed' })
 	}
 }
