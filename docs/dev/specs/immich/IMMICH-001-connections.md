@@ -2,7 +2,8 @@
 
 - Status: accepted
 - Area: immich
-- Origin: ADR 0041, ADR 0042, ADR 0044; Phase 1 mockup signed off on 2026-11-20
+- Origin: ADR 0041, ADR 0042, ADR 0044; Phase 1 mockup signed off on 2026-11-20,
+  [mockup](../../mockup/immich/index.html)
 - Depends on: –
 
 ## Purpose

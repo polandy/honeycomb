@@ -1614,3 +1614,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the owner's sign-off condition. Kinds in Phase 1 are photos, motion photos and videos;
   *Screenshots* and *Messenger images* wait, since Immich cannot filter them. Easy to redo: docs
   only, no code yet.
+- 2026-11-20: The Immich mockup (`docs/dev/mockup/immich/`) applies the signed-off Phase 1
+  artifact with the owner's paging condition and ADR 0042's read-only connections; the sign-off
+  covers it, so the production PRs follow without a second sign-off. The counts answer gains
+  `decided` and `matching` for the toolbar's *N of M*. A loupe opened at the resume position shows
+  *N pictures* until the newer pages are loaded; resume falls back to *All phone uploads* when the
+  asset is outside the filters. The flag filter starts empty, as in the artifact. Easy to redo:
+  docs only.
