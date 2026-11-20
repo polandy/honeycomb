@@ -3,7 +3,7 @@
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { openLoupe } from './cull.ts'
-import { requestToken } from './files.ts'
+import { apiHeaders } from './files.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
 
@@ -11,7 +11,7 @@ const API = '/index.php/apps/honeycomb/api/v1'
 test('answers the tag list without duplicates', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 
-	const response = await page.request.get(`${API}/tags/list`, { headers: { requesttoken: await requestToken(page) } })
+	const response = await page.request.get(`${API}/tags/list`, { headers: await apiHeaders(page) })
 
 	expect(response.status()).toBe(200)
 	const { tagList } = await response.json() as { tagList: string[] }

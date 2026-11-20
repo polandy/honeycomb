@@ -8,6 +8,7 @@ import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { PairingSettings, Picture } from './logic/pairing.ts'
 import type { Settings } from './logic/settings.ts'
+import type { CountSign } from './logic/stats-counts.ts'
 import type { TagChange } from './logic/tag.ts'
 import type { DecisionStep, PickRestStep, StepEffects, TagStep, UndoStep } from './logic/undo.ts'
 import type { ListedAccess } from './logic/writability.ts'
@@ -27,6 +28,7 @@ import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress }
 import { listedRows, pictureFlag, readDecision } from './logic/picture-flag.ts'
 import { sortPictures } from './logic/picture-order.ts'
 import { pairingSettings } from './logic/settings.ts'
+import { countsByRow, fieldCounts, flagCounts } from './logic/stats-counts.ts'
 import { inDoneSeries } from './logic/stored-series.ts'
 import { inverseChange } from './logic/tag.ts'
 import { withoutFiles } from './logic/trash-report.ts'
@@ -59,9 +61,9 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const storedSeries = useStoredSeries(api, () => opening)
 	/** Puts each kind of step into effect, or takes it back when `back`. */
 	const effects: StepEffects<Picture<ListingEntry>> = {
-		decision: (step, back) => store(back ? step.before : step.after),
-		pickRest: (step, back) => store(back ? step.before : step.after),
-		tags: (step, back) => changeTags(step.pictures, back ? inverseChange(step.change) : step.change),
+		decision: (step, back) => store(back ? step.before : step.after, back ? -1 : 1),
+		pickRest: (step, back) => store(back ? step.before : step.after, back ? -1 : 1),
+		tags: (step, back) => changeTags(step.pictures, back ? inverseChange(step.change) : step.change, back ? -1 : 1),
 		series: (step, back) => void storedSeries.store(back ? step.before : step.after),
 	}
 	const history = useCullHistory<CullStep>((step, back) => applyStep(effects, step, back))
@@ -168,10 +170,11 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		return history.record(clearEntry(decided(pictures.value.filter(writesThrough))))
 	}
 
-	/** Shows the rows at once, saves their flags and writes their other changed fields through; a failed save or write is taken back (XMP-003.37, .38, XMP-008.15, .17). */
-	function store(rows: readonly StoredDecision[]) {
+	/** Shows the rows at once, saves their flags and writes their other changed fields through with what they count, by the sign; a failed save or write is taken back (XMP-003.37, .38, XMP-008.15, .17, STATS-001). */
+	function store(rows: readonly StoredDecision[], sign: CountSign) {
 		const before = decisions.value
-		decisions.value = withRows(before, rows)
+		const after = withRows(before, rows)
+		decisions.value = after
 		settle(rows)
 		const fields = changedFields(rows, before)
 		const fileIds = new Set(rows.map(({ fileId }) => fileId))
@@ -180,7 +183,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		const flagFields = fields.filter((field) => FLAG_FIELDS.includes(field))
 		const sidecarFields = fields.filter((field) => !FLAG_FIELDS.includes(field))
 		if (writtenRows.length > 0 && flagFields.length > 0) {
-			void flags.save(writtenRows).then((notSaved) => {
+			void flags.save(writtenRows, countsByRow(written, writtenRows, (picture) => flagCounts(pictureDecision(picture, before).flag, pictureDecision(picture, after).flag))).then((notSaved) => {
 				const back = written.filter((picture) => memberIds(picture).some((fileId) => notSaved.has(fileId)))
 				if (back.length > 0) {
 					takeBack(rowsOf(writtenRows, back), before, flagFields)
@@ -189,7 +192,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 			})
 		}
 		if (written.length > 0 && sidecarFields.length > 0) {
-			sidecars.write(written, decisionOf, sidecarFields).then(({ failed }) => {
+			sidecars.write(written, decisionOf, sidecarFields, undefined, (picture) => fieldCounts(pictureDecision(picture, before), pictureDecision(picture, after), sign)).then(({ failed }) => {
 				const failedPictures = new Set(failed.map(({ picture }) => picture))
 				takeBack(rowsOf(writtenRows, written.filter((picture) => failedPictures.has(picture))), before, sidecarFields)
 			}, (error: unknown) => logger.error('Could not write the sidecars; the photos show them as changed', { error }))
@@ -209,9 +212,9 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		}
 	}
 
-	/** Changes the tags of the pictures as a step says. */
-	function changeTags(chosen: readonly Picture<ListingEntry>[], change: TagChange) {
-		tags.change(chosen, change)
+	/** Changes the tags of the pictures as a step says, counting each by the sign. */
+	function changeTags(chosen: readonly Picture<ListingEntry>[], change: TagChange, sign: CountSign) {
+		tags.change(chosen, change, sign)
 	}
 
 	/** Takes trashed files out of the pictures; returns what each affected picture became (ADR 0013). */
@@ -263,6 +266,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		everySeries: seriesState.everySeries,
 		seriesOf: seriesState.seriesOf,
 		openSeries: seriesState.openSeries,
+		seriesLoading: storedSeries.loading,
 		holdHashes: seriesState.holdHashes,
 		hashProgress: seriesState.hashProgress,
 		decide,

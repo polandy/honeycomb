@@ -12,6 +12,7 @@ use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\PositionController;
 use OCA\Honeycomb\Service\PositionService;
 use OCA\Honeycomb\Tests\Service\FakePositionStore;
+use OCA\Honeycomb\Tests\Service\StatsFixture;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -25,7 +26,9 @@ use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
 final class PositionControllerTest extends TestCase {
-	private const int NOW = 1_700_000_000;
+	use StatsFixture;
+
+	private const int NOW = 1_772_407_800;
 	private const array FOLDER_SET = ['paths' => ['/Photos'], 'subfolders' => false];
 
 	private function controller(bool $loggedIn = true): PositionController {
@@ -35,7 +38,7 @@ final class PositionControllerTest extends TestCase {
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
 		$time = $this->createStub(ITimeFactory::class);
 		$time->method('getTime')->willReturn(self::NOW);
-		return new PositionController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new PositionService(new FakePositionStore(), $time));
+		return new PositionController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new PositionService(new FakePositionStore(), $time, $this->stats()));
 	}
 
 	// spec: DECISIONS-002.1
@@ -49,6 +52,13 @@ final class PositionControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $saved->getStatus());
 		$this->assertSame($position, json_decode($saved->render(), true));
 		$this->assertSame(['positions' => [$position]], json_decode($recent->render(), true));
+	}
+
+	// spec: STATS-001.39
+	public function testCountsTheActiveTimeTheSaveCarries(): void {
+		$this->controller()->save(self::FOLDER_SET, 12, 3, 10, 90);
+
+		$this->assertSame(['active_seconds' => 90], $this->counted());
 	}
 
 	// spec: DECISIONS-002.5

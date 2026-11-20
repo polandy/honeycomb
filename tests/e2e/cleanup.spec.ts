@@ -5,7 +5,7 @@ import type { Browser, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
-import { createFolder, JPEG, requestToken, trashEntry, upload } from './files.ts'
+import { apiHeaders, createFolder, JPEG, trashEntry, upload } from './files.ts'
 import { logIn, occ } from './server.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
@@ -14,7 +14,7 @@ const JOB = 'OCA\\Honeycomb\\BackgroundJob\\RemoveVanishedDecisions'
 
 /** Sends `data` as JSON with the session's CSRF token. */
 async function send(page: Page, method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: string, data?: unknown) {
-	return page.request.fetch(path, { method, data, headers: { requesttoken: await requestToken(page) } })
+	return page.request.fetch(path, { method, data, headers: await apiHeaders(page) })
 }
 
 /** Signs `user` in on a fresh context, opens the app and hands the page to `act`. */
@@ -50,7 +50,7 @@ async function flag(page: Page, fileIds: number[], flag: string): Promise<void> 
 
 /** Moves the trashed file back to where it was. */
 async function restore(page: Page, path: string): Promise<void> {
-	const restored = await page.request.fetch(await trashEntry(page, path), { method: 'MOVE', headers: { requesttoken: await requestToken(page), Destination: `${TRASHBIN}/restore/${randomUUID()}` } })
+	const restored = await page.request.fetch(await trashEntry(page, path), { method: 'MOVE', headers: await apiHeaders(page, { Destination: `${TRASHBIN}/restore/${randomUUID()}` }) })
 	expect(restored.status(), await restored.text()).toBe(201)
 }
 

@@ -3,7 +3,8 @@
 import type { SessionState } from '../../../src/logic/cull-session.ts'
 
 import { describe, expect, it } from 'vitest'
-import { finishesCull, IDLE_LIMIT_MS, pictureBytes, sessionNumbers, sessionState, startSession, totalsOf, withDeleted, withInput, withSaved, withStep } from '../../../src/logic/cull-session.ts'
+import { IDLE_LIMIT_MS } from '../../../src/logic/active-time.ts'
+import { finishesCull, pictureBytes, sessionNumbers, sessionState, startSession, totalsOf, withDeleted, withInput, withSaved, withStep } from '../../../src/logic/cull-session.ts'
 import { listingEntry, picturesOf } from './listing-entries.ts'
 
 const states = (entries: Record<number, SessionState>) => new Map(Object.entries(entries).map(([key, state]) => [Number(key), state]))

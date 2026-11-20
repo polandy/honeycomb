@@ -11,10 +11,12 @@ import { DialogStub } from './stubs.ts'
 
 const MARK = TRANSLATED_MARK
 
-function mountDialog(props: Record<string, unknown> = {}) {
+const CHECKBOX = '<input type="checkbox">'
+
+function mountDialog(props: Record<string, unknown> = {}, body = '<p>Body</p>') {
 	return mount(ConfirmDialog, {
 		props: { title: 'Choose folders', confirmLabel: 'Cull 2 folders', ...props },
-		slots: { default: '<p>Body</p>' },
+		slots: { default: body },
 		global: { stubs: { NcDialog: DialogStub } },
 	})
 }
@@ -85,6 +87,27 @@ describe('ConfirmDialog', () => {
 		wrapper.findComponent(DialogStub).vm.$emit('update:open', false)
 
 		expect(wrapper.emitted('cancel')).toHaveLength(1)
+	})
+
+	// spec: APP-001.16
+	it.each([['checkbox', 1], ['radio', 1], ['text', 0]])('emits cancel on Escape from a %s input %i times', async (type, times) => {
+		const wrapper = mountDialog({ cancel: true }, `<input type="${type}">`)
+
+		await wrapper.find('input').trigger('keydown', { key: 'Escape' })
+
+		expect(wrapper.emitted('cancel') ?? []).toHaveLength(times)
+	})
+
+	// spec: APP-001.16
+	it('stays open on Escape from a checkbox without Cancel, and on another key', async () => {
+		const uncancellable = mountDialog({}, CHECKBOX)
+		const cancellable = mountDialog({ cancel: true }, CHECKBOX)
+
+		await uncancellable.find('input').trigger('keydown', { key: 'Escape' })
+		await cancellable.find('input').trigger('keydown', { key: 'Enter' })
+
+		expect(uncancellable.emitted('cancel')).toBeUndefined()
+		expect(cancellable.emitted('cancel')).toBeUndefined()
 	})
 
 	it('opens in the body, or inside the given container', () => {

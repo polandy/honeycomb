@@ -3,7 +3,7 @@
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { cullFolder, resetViewState } from './cull.ts'
-import { createFolder, JPEG, requestToken, upload } from './files.ts'
+import { apiHeaders, createFolder, JPEG, upload } from './files.ts'
 
 // spec: DECISIONS-002.8
 test('lists a culled folder set under Recent and opens it at its position', async ({ page }) => {
@@ -48,7 +48,7 @@ test('lists at most three recent folder sets under the folder tree on a phone an
 		const fileId = await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
 		const saved = await page.request.put('/index.php/apps/honeycomb/api/v1/positions', {
 			data: { folderSet: { paths: [`/${folder}`], subfolders: false }, fileId, decided: 0, total: 1 },
-			headers: { requesttoken: await requestToken(page) },
+			headers: await apiHeaders(page),
 		})
 		expect(saved.status()).toBe(200)
 	}

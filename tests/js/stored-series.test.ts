@@ -68,6 +68,30 @@ describe('useStoredSeries', () => {
 		expect(stored.rows.value.size).toBe(0)
 	})
 
+	// spec: SERIES-005.30
+	it('is loading from the read of the opened pictures until its answer', async () => {
+		const { stored } = storedSeries({ series: [], keptOut: [4] })
+		expect(stored.loading.value).toBe(false)
+
+		stored.load(picturesOf(ENTRIES))
+		expect(stored.loading.value).toBe(true)
+		await flushPromises()
+
+		expect(stored.loading.value).toBe(false)
+	})
+
+	// spec: SERIES-005.30
+	it('is loading from the read of files back until it fails', async () => {
+		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
+		const { stored } = storedSeries(new Error('offline'))
+
+		stored.restore([7])
+		expect(stored.loading.value).toBe(true)
+		await flushPromises()
+
+		expect(stored.loading.value).toBe(false)
+	})
+
 	// spec: SERIES-005.26
 	it('logs a failed read and leaves every series automatic', async () => {
 		const error = new Error('offline')

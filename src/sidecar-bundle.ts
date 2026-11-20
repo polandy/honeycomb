@@ -18,8 +18,8 @@ export function useBundledSidecars(sidecars: SidecarWrites, schedule: Schedule, 
 		onScopeDispose(stop)
 	}
 
-	const write: SidecarWrites['write'] = (pictures, decisionOf, fields) => bundle.add(pictures, () => sidecars.write(pictures, decisionOf, fields))
-	const writeTags: SidecarWrites['writeTags'] = (pictures, change) => bundle.add(pictures, () => sidecars.writeTags(pictures, change))
+	const write: SidecarWrites['write'] = (pictures, decisionOf, fields, paths, counts) => bundle.add(pictures, () => sidecars.write(pictures, decisionOf, fields, paths, counts))
+	const writeTags: SidecarWrites['writeTags'] = (pictures, change, paths, counts) => bundle.add(pictures, () => sidecars.writeTags(pictures, change, paths, counts))
 
 	return { read: sidecars.read, write, writeTags, waiting, leave: bundle.leave, flush: bundle.flush }
 }

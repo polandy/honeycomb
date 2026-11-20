@@ -118,7 +118,7 @@ describe('useCull: Clear picks/rejects', () => {
 
 		expect(NAMES.map((name) => [cull.decisionOf(picture(name)).flag, cull.decisionOf(picture(name)).keepRaw])).toEqual([['picked', false], ['unflagged', false], ['unflagged', false]])
 		expect(cull.clearable.value).toBe(0)
-		expect(flags.saves.map((items) => items.toSorted((a, b) => a.fileId - b.fileId))).toEqual([[2, 3, 4].map((fileId) => ({ fileId, flag: 'unflagged', keepRaw: false }))])
+		expect(flags.saves.map((items) => items.toSorted((a, b) => a.fileId - b.fileId))).toMatchObject([[2, 3, 4].map((fileId) => ({ fileId, flag: 'unflagged', keepRaw: false }))])
 		expect(writes).toEqual([])
 		cull.undo()
 		expect(cull.decisionOf(picture('IMG_10'))).toMatchObject({ flag: 'rejected', keepRaw: true })

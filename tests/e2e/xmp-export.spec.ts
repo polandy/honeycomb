@@ -4,7 +4,7 @@ import { expect, request, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
 import { cullFolder } from './cull.ts'
-import { createFolder, JPEG, requestToken, upload } from './files.ts'
+import { apiHeaders, createFolder, JPEG, upload } from './files.ts'
 import { occ, PORT } from './server.ts'
 
 /** OCS share type and permissions of a user share that may only be read. */
@@ -17,7 +17,7 @@ test('writes the picks to XMP files with their count and then has nothing left t
 	await createFolder(page, folder)
 	const picked = await upload(page, `${folder}/A.JPG`, JPEG)
 	await upload(page, `${folder}/B.JPG`, JPEG)
-	const saved = await page.request.put('/index.php/apps/honeycomb/api/v1/flags', { data: { flags: [{ fileId: picked, flag: 'picked', keepRaw: false }] }, headers: { requesttoken: await requestToken(page) } })
+	const saved = await page.request.put('/index.php/apps/honeycomb/api/v1/flags', { data: { flags: [{ fileId: picked, flag: 'picked', keepRaw: false }] }, headers: await apiHeaders(page) })
 	expect(saved.status(), await saved.text()).toBe(200)
 
 	await cullFolder(page, folder)
@@ -28,7 +28,7 @@ test('writes the picks to XMP files with their count and then has nothing left t
 	await entry.click()
 
 	await expect(page.getByRole('status').filter({ hasText: '1 XMP file written' })).toBeVisible()
-	const sidecar = await page.request.get(`/remote.php/dav/files/${ADMIN.username}/${folder}/A.JPG.xmp`, { headers: { requesttoken: await requestToken(page) } })
+	const sidecar = await page.request.get(`/remote.php/dav/files/${ADMIN.username}/${folder}/A.JPG.xmp`, { headers: await apiHeaders(page) })
 	expect(sidecar.status()).toBe(200)
 	expect(await sidecar.text()).toContain('PickLabel')
 	await page.getByRole('button', { name: 'More', exact: true }).click()

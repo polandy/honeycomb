@@ -4,21 +4,26 @@ import type { Decision, DecisionField } from './decision.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 import type { SidecarEdit, SidecarFailure } from './sidecar-sync.ts'
+import type { StatsCounts } from './stats-counts.ts'
 import type { TagChange } from './tag.ts'
 
 import { DECISION_FIELDS, deltaOf } from './decision.ts'
+import { summedCounts } from './stats-counts.ts'
 import { combinedChange } from './tag.ts'
 
 type Paths = ReadonlyMap<Picture<ListingEntry>, ReadonlySet<string>>
 type DecisionOf = (picture: Picture<ListingEntry>) => Decision
+/** What a write counts for each picture (STATS-001). */
+export type CountsOf = (picture: Picture<ListingEntry>) => StatsCounts
 
-/** A write waiting for its pass: its pictures, the decision read when the pass starts with the fields it changed, or the tag change, and the paths a picture is limited to. */
+/** A write waiting for its pass: its pictures, the decision read when the pass starts with the fields it changed, or the tag change, the paths a picture is limited to and what it counts. */
 export interface SidecarStep {
 	readonly pictures: readonly Picture<ListingEntry>[]
 	readonly decisionOf: DecisionOf | null
 	readonly fields?: readonly DecisionField[]
 	readonly tags: TagChange | null
 	readonly paths?: Paths | undefined
+	readonly counts?: CountsOf | undefined
 }
 
 interface PictureWrite {
@@ -46,7 +51,11 @@ export function passOf(steps: readonly SidecarStep[]) {
 		const decision = deltaOf(decisionOf(picture), fields)
 		return tags === null ? { decision } : { decision, tags }
 	}
-	return { pictures: [...writes.keys()], paths, editOf }
+	/** What the steps count for the picture, added up. */
+	function countsOf(picture: Picture<ListingEntry>): StatsCounts {
+		return summedCounts(...steps.filter((step) => step.pictures.includes(picture)).map((step) => step.counts?.(picture) ?? {}))
+	}
+	return { pictures: [...writes.keys()], paths, editOf, countsOf }
 }
 
 /** The failure with what its edit wrote, for a retry: the tag change and the decision fields. */

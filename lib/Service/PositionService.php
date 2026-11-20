@@ -18,6 +18,7 @@ final class PositionService {
 	public function __construct(
 		private PositionStore $store,
 		private ITimeFactory $time,
+		private StatsService $stats,
 	) {
 	}
 
@@ -30,20 +31,32 @@ final class PositionService {
 	}
 
 	/**
-	 * Stores where the user stands in the folder set and forgets all but the most recent sets.
+	 * Stores where the user stands in the folder set, forgets all but the most recent sets and counts the active time the save carries (STATS-001.39).
 	 * @param array<array-key, mixed> $folderSet
 	 * @throws InvalidPositionException for a malformed folder set, file id or count
 	 */
-	public function save(IUser $user, array $folderSet, int $fileId, int $decided, int $total): ResumePosition {
+	public function save(IUser $user, array $folderSet, int $fileId, int $decided, int $total, int $activeSeconds = 0): ResumePosition {
 		if ($fileId < 1 || $decided < 0 || $decided > $total) {
 			throw new InvalidPositionException('fileId must be positive and decided 0 to total');
 		}
 		$position = new ResumePosition(FolderSet::fromRequest($folderSet), $fileId, $decided, $total, $this->time->getTime());
+		$since = $this->savedAt($user, $position->folderSet);
 		$this->store->save($user->getUID(), $position);
 		$stale = array_slice($this->store->all($user->getUID()), self::RECENT_LIMIT);
 		if ($stale !== []) {
 			$this->store->forget($user->getUID(), array_map(static fn (ResumePosition $old): string => $old->folderSet->key(), $stale));
 		}
+		$this->stats->countActiveSeconds($user, $activeSeconds, $position->updatedAt, $since);
 		return $position;
+	}
+
+	/** When the folder set's position was saved last, null without one. */
+	private function savedAt(IUser $user, FolderSet $folderSet): ?int {
+		foreach ($this->store->all($user->getUID()) as $stored) {
+			if ($stored->folderSet->key() === $folderSet->key()) {
+				return $stored->updatedAt;
+			}
+		}
+		return null;
 	}
 }

@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { cullFolder, resetViewState } from './cull.ts'
+import { cullFolder, resetViewState, seriesSaved } from './cull.ts'
 import { createFolder, JPEG, upload, withCaptureTime } from './files.ts'
 
 /** Pixel 9 Pro in portrait. */
@@ -38,11 +38,6 @@ async function openMenu(page: Page, names: readonly string[], caption: string): 
 	}
 	await page.getByRole('button', { name: 'Series…', exact: true }).click()
 	await expect(page.getByText(caption, { exact: true })).toBeVisible()
-}
-
-/** Resolves once the server took a series write; the toast comes with the edit, the write after it. */
-function seriesSaved(page: Page): Promise<unknown> {
-	return page.waitForResponse((response) => response.url().endsWith('/api/v1/series') && response.request().method() === 'PUT' && response.ok())
 }
 
 /** Chooses an entry of the open menu and waits for its toast and its write. */

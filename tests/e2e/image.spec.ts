@@ -3,7 +3,7 @@
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
-import { JPEG, MTIME, RAW, requestToken, upload } from './files.ts'
+import { apiHeaders, JPEG, MTIME, RAW, upload } from './files.ts'
 
 /** The natural size of the image at `url`, as the browser decodes it. */
 async function naturalSize(page: Page, url: string): Promise<number[]> {
@@ -22,13 +22,13 @@ test('serves a JPEG and a RAW-only picture under immutable URLs', async ({ page 
 	for (const [name, content] of [['IMG_0001.JPG', JPEG], ['IMG_0002.NEF', RAW], ['IMG_0004.CR3', RAW]] as const) {
 		const url = `/index.php/apps/honeycomb/api/v1/images/${await upload(page, name, content)}?size=256&v=${MTIME}`
 
-		const response = await page.request.get(url)
+		const response = await page.request.get(url, { headers: await apiHeaders(page) })
 		expect(response.status(), name).toBe(200)
 		expect(response.headers()['content-type']).toMatch(/^image\//)
 		expect(response.headers()['cache-control']).toBe('private, max-age=31536000, immutable')
 		expect(await naturalSize(page, url), name).toEqual([256, 171])
 
-		const revisit = await page.request.get(url, { headers: { 'If-None-Match': response.headers().etag ?? '' } })
+		const revisit = await page.request.get(url, { headers: await apiHeaders(page, { 'If-None-Match': response.headers().etag ?? '' }) })
 		expect(revisit.status(), name).toBe(304)
 	}
 })
@@ -40,7 +40,7 @@ test('renders the previews of a folder before it answers', async ({ page }) => {
 
 	const response = await page.request.post('/index.php/apps/honeycomb/api/v1/previews', {
 		data: { fileIds: [fileId] },
-		headers: { requesttoken: await requestToken(page) },
+		headers: await apiHeaders(page),
 	})
 
 	expect(response.status()).toBe(200)

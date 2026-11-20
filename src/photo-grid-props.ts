@@ -42,6 +42,8 @@ export interface PhotoGridProps {
 	offeredSeries?: ReadonlySet<number>
 	/** The pictures of a series that may still change (SERIES-003.25). */
 	openSeries?: ReadonlySet<Picture<ListingEntry>>
+	/** Whether the series may still change because the stored ones are being read (SERIES-005.30). */
+	busy?: boolean
 	/** The picture whose sidecar writes still wait (XMP-003.28). */
 	unsaved?: Picture<ListingEntry> | null
 	/** Shows a name bar above each tile (GRID-004.4). */

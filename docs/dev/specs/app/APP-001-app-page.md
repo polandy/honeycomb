@@ -141,6 +141,14 @@ stays the same.
   *critical*, contrast included; a known fault is excluded only by its rule and element, each with
   a `TODO.md` item
 
+### APP-001.16 – Escape closes a dialog from a switch or a checkbox
+
+- **Given** a confirm dialog that can be cancelled, such as the folder picker, with the focus on a
+  switch, checkbox or radio button in it, as after it opens with *Include subfolders* first
+- **When** the user presses *Escape*
+- **Then** the dialog closes as by *Cancel*; a dialog without *Cancel* stays open, and in a text
+  field *Escape* stays the field's
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -159,3 +167,4 @@ stays the same.
 | 2026-11-18 | A dialog closed while it opens logs no focus trap error (APP-001.12) |
 | 2026-11-18 | An error toast stays until closed and is announced as an alert; a toast's details open in a dialog (APP-001.13, .14; review UX-1, UX-2) |
 | 2026-11-19 | An axe-core scan of every screen, light and dark (APP-001.15, ADR 0042; review UX-5) |
+| 2026-11-20 | *Escape* closes a confirm dialog also from a switch or a checkbox, which `NcModal` leaves to the field (APP-001.16) |

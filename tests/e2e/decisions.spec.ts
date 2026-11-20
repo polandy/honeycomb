@@ -4,19 +4,19 @@ import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { createFolder, JPEG, requestToken, upload } from './files.ts'
+import { apiHeaders, createFolder, JPEG, upload } from './files.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
 const RECENT_LIMIT = 20
 
 /** Sends `data` as JSON with the session's CSRF token. */
 async function send(page: Page, method: 'GET' | 'POST' | 'PUT', path: string, data?: unknown) {
-	return page.request.fetch(`${API}${path}`, { method, data, headers: { requesttoken: await requestToken(page) } })
+	return page.request.fetch(`${API}${path}`, { method, data, headers: await apiHeaders(page) })
 }
 
 /** The flag fields of the folder's entries by file id, as the listing carries them. */
 async function flagsOf(page: Page, folder: string) {
-	const listing = await page.request.get(`${API}/entries`, { params: { path: `/${folder}` }, headers: { requesttoken: await requestToken(page) } })
+	const listing = await page.request.get(`${API}/entries`, { params: { path: `/${folder}` }, headers: await apiHeaders(page) })
 	expect(listing.status(), await listing.text()).toBe(200)
 	const { entries } = await listing.json() as { entries: { fileId: number, flag: string | null, keepRaw: boolean | null, flagUpdated: number | null }[] }
 	return new Map(entries.map(({ fileId, flag, keepRaw, flagUpdated }) => [fileId, { flag, keepRaw, updated: flagUpdated !== null }]))
