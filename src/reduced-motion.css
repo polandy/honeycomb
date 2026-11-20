@@ -1,0 +1,12 @@
+/*
+ * SPDX-FileCopyrightText: 2026 honeycomb contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+/* NcModal plays its fade and zoom regardless of reduced motion; its scoped selectors need the override's weight. */
+@media (prefers-reduced-motion: reduce) {
+	.modal-mask,
+	.modal-mask * {
+		transition: none !important;
+		animation: none !important;
+	}
+}

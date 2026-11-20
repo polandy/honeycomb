@@ -7,6 +7,7 @@ import type { Picture } from '../../src/logic/pairing.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { computed, defineComponent, h, ref, shallowRef } from 'vue'
+import { imageUrl } from '../../src/api.ts'
 import { provideCullContext } from '../../src/cull-context.ts'
 import { useCull } from '../../src/cull.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
@@ -88,6 +89,7 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 		updateSettings: record('updateSettings'),
 		viewState: fakeViewState(),
 		storage: fakeStorage(),
+		imageUrl,
 	}
 	return { context, calls, counts, opening, flow }
 }

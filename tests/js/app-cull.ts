@@ -98,7 +98,7 @@ const flagTables = new WeakMap<object, ReturnType<typeof fakeFlags>>()
 export function gridStub() {
 	const calls = { steps: [] as string[], revealed: [] as number[], jumps: [] as string[], focused: 0 }
 	const component = defineComponent({
-		props: ['pictures', 'folderSet', 'groupByFolder', 'tileSize', 'selecting', 'selection', 'decisionOf', 'tagsOf', 'seriesOf', 'offeredSeries', 'openSeries', 'unsaved', 'fileNames'],
+		props: ['pictures', 'folderSet', 'groupByFolder', 'tileSize', 'selecting', 'selection', 'decisionOf', 'tagsOf', 'seriesOf', 'offeredSeries', 'openSeries', 'unsaved', 'fileNames', 'imageUrl'],
 		setup(_props, { expose, slots }) {
 			expose({
 				reveal: async (index: number) => {

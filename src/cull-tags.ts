@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ListingEntry } from './logic/listing.ts'
+import type { ListingEntry, SourceEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { PictureId } from './logic/picture-id.ts'
 import type { CountsOf } from './logic/sidecar-pass.ts'
@@ -40,7 +40,7 @@ export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, ch
 	}
 
 	/** The union of the tags of the picture's members, sorted. */
-	function tagsOf(picture: Picture<ListingEntry>): Tag[] {
+	function tagsOf(picture: Picture<SourceEntry>): Tag[] {
 		return unionOf(picture, tags.value)
 	}
 
@@ -80,6 +80,6 @@ export function useCullTags(api: CullTagsApi, writeTags: (pictures: Pictures, ch
 }
 
 /** The union of the tags of the picture's members in the map, sorted. */
-function unionOf(picture: Picture<ListingEntry>, byFileId: ReadonlyMap<PictureId, readonly Tag[]>): Tag[] {
+function unionOf(picture: Picture<SourceEntry>, byFileId: ReadonlyMap<PictureId, readonly Tag[]>): Tag[] {
 	return sortedTags(pictureMembers(picture).flatMap((member) => byFileId.get(member.fileId) ?? []))
 }

@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ListingEntry } from './listing.ts'
+import type { SourceEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 import type { PictureId } from './picture-id.ts'
 
@@ -23,22 +23,22 @@ export type GridTier = typeof GRID_TIERS[number]
 export type ImageUrlFor = (fileId: PictureId, size: number, mtime: number) => string
 
 /** The member whose image a picture shows: the rendered one, else the RAW one (ADR 0010). */
-export function imageMember(picture: Picture<ListingEntry>): ListingEntry {
-	return picture.rendered ?? picture.raw
+export function imageMember<E>(picture: Picture<E>): E {
+	return (picture.rendered ?? picture.raw)!
 }
 
 /** The `srcset` of a tile with every grid tier. */
-export function gridSrcset(member: ListingEntry, urlFor: ImageUrlFor): string {
+export function gridSrcset(member: SourceEntry, urlFor: ImageUrlFor): string {
 	return GRID_TIERS.map((tier) => `${urlFor(member.fileId, tier, member.mtime)} ${tier}w`).join(', ')
 }
 
 /** The URL of a tier of the member. */
-export function tierSource(member: Pick<ListingEntry, 'fileId' | 'mtime'>, tier: number, urlFor: ImageUrlFor): string {
+export function tierSource(member: Pick<SourceEntry, 'fileId' | 'mtime'>, tier: number, urlFor: ImageUrlFor): string {
 	return urlFor(member.fileId, tier, member.mtime)
 }
 
 /** The URL of the smallest grid tier, which a tile loads first. */
-export function smallSource(member: Pick<ListingEntry, 'fileId' | 'mtime'>, urlFor: ImageUrlFor): string {
+export function smallSource(member: Pick<SourceEntry, 'fileId' | 'mtime'>, urlFor: ImageUrlFor): string {
 	return tierSource(member, GRID_TIERS[0], urlFor)
 }
 
@@ -54,7 +54,7 @@ export function sharpTier(tileCssPx: number, devicePixelRatio: number): GridTier
 }
 
 /** The loupe's sources of a member: the grid's large tier at once, the loupe tier, the full image. */
-export function loupeSources(member: ListingEntry, urlFor: ImageUrlFor) {
+export function loupeSources(member: SourceEntry, urlFor: ImageUrlFor) {
 	return {
 		preview: urlFor(member.fileId, GRID_TIERS.at(-1)!, member.mtime),
 		loupe: urlFor(member.fileId, LOUPE_TIER, member.mtime),
@@ -63,6 +63,6 @@ export function loupeSources(member: ListingEntry, urlFor: ImageUrlFor) {
 }
 
 /** The long edge of the full image in pixels, from the listing, else the loupe tier's. */
-export function fullLongEdge(member: ListingEntry): number {
+export function fullLongEdge(member: SourceEntry): number {
 	return member.width !== null && member.height !== null ? Math.max(member.width, member.height) : LOUPE_TIER
 }

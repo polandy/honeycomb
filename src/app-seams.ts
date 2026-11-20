@@ -5,6 +5,7 @@ import type { BrowserStorage } from './browser-storage.ts'
 import type { CullTagsApi } from './cull-tags.ts'
 import type { FlagApi } from './flags-api.ts'
 import type { ListEntries } from './folder-count.ts'
+import type { ImageUrlFor } from './logic/image-tiers.ts'
 import type { Schedule } from './logic/long-press.ts'
 import type { Settings } from './logic/settings.ts'
 import type { TrashExpectation, TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
@@ -39,6 +40,8 @@ export interface AppSeams {
 	listFolders?: (path: string) => Promise<Folder[]>
 	listEntries?: ListEntries
 	warmPreviews?: WarmPreviews
+	/** The URL of a preview tier, which the grid, the loupe and the series compare load. */
+	imageUrl?: ImageUrlFor
 	hashImage?: HashImage
 	saveVisualHashes?: SaveVisualHashes
 	measureImage?: MeasureImage
@@ -78,6 +81,7 @@ export const APP_SEAMS = {
 	listFolders: apiListFolders,
 	listEntries: apiListEntries,
 	warmPreviews: apiWarmPreviews,
+	imageUrl,
 	hashImage: hashInWorkers(HASH_WORKERS, imageUrl),
 	saveVisualHashes,
 	measureImage: measureInWorkers(HASH_WORKERS, imageUrl),

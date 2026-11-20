@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ListingEntry } from './listing.ts'
+import type { ListingEntry, SourceEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 
 import { splitFolder } from './file-name.ts'
@@ -32,7 +32,7 @@ export type LockReason = 'readOnly'
 
 /** A picture a step leaves as it is, and why. */
 export interface LockedPicture {
-	readonly picture: Picture<ListingEntry>
+	readonly picture: Picture<SourceEntry>
 	readonly reason: LockReason
 }
 
@@ -67,7 +67,7 @@ export function folderAccess(folders: readonly FolderAccess[]): ReadonlyMap<stri
 }
 
 /** The picture's writability: read-only unless every member folder grants UPDATE and CREATE (XMP-008.3, .12). */
-export function writability(picture: Picture<ListingEntry>, context: WriteContext): Writability {
+export function writability(picture: Picture<SourceEntry>, context: WriteContext): Writability {
 	const needed = PERMISSION_UPDATE | PERMISSION_CREATE
 	const folders = memberFolders(picture).map((path) => context.folders.get(path)).filter((folder) => folder !== undefined)
 	if (folders.some((folder) => (folder.permissions & needed) !== needed)) {
@@ -80,11 +80,11 @@ export function writability(picture: Picture<ListingEntry>, context: WriteContex
 export function splitLocks(pictures: readonly Picture<ListingEntry>[], context: WriteContext): LockSplit {
 	const reasons = pictures.map((picture) => ({ picture, reason: writability(picture, context) }))
 	const writable = reasons.filter(({ reason }) => reason === 'writable').map(({ picture }) => picture)
-	const locked = reasons.filter((each): each is LockedPicture => each.reason !== 'writable')
+	const locked = reasons.filter((each): each is LockedPicture & { readonly picture: Picture<ListingEntry> } => each.reason !== 'writable')
 	return { writable, locked }
 }
 
 /** The folders of the picture's members, the root as `/`. */
-function memberFolders(picture: Picture<ListingEntry>): string[] {
+function memberFolders(picture: Picture<SourceEntry>): string[] {
 	return pictureMembers(picture).map((member) => splitFolder(member.path).parent || '/')
 }

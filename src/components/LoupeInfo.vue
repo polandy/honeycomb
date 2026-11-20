@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import type { Decision } from '../logic/decision.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
-import type { ListingEntry } from '../logic/listing.ts'
+import type { SourceEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { SharpnessPlace } from '../logic/sharpness.ts'
 import type { Tag } from '../logic/tag.ts'
@@ -18,11 +18,12 @@ import { formatDateTime, formatFileSize, formatNumber } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { parseFileName } from '../logic/file-name.ts'
 import { imageMember } from '../logic/image-tiers.ts'
+import { isListingPicture } from '../logic/listing.ts'
 import { badgeExtension } from '../logic/pair-badge.ts'
 import { sidecarTargets } from '../logic/xmp/targets.ts'
 
 const props = withDefaults(defineProps<{
-	picture: Picture<ListingEntry>
+	picture: Picture<SourceEntry>
 	folderSet: FolderSet
 	decision: Decision
 	/** The picture's tags, sorted (TAGS-004.8). */
@@ -43,7 +44,7 @@ const FLAG_NAMES = { picked: () => t('honeycomb', 'Picked'), rejected: () => t('
 
 const member = computed(() => imageMember(props.picture))
 const rows = computed(() => {
-	const { rendered, raw } = props.picture
+	const { rendered, raw } = isListingPicture(props.picture) ? props.picture : { rendered: null, raw: null }
 	const { captureTime, width, height } = member.value
 	return [
 		{ term: t('honeycomb', 'Name'), value: props.picture.baseName },

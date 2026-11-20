@@ -4,7 +4,7 @@ import type { Frame } from './auto-scroll.ts'
 import type { Decision } from './logic/decision.ts'
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ImageUrlFor } from './logic/image-tiers.ts'
-import type { ListingEntry } from './logic/listing.ts'
+import type { SourceEntry } from './logic/listing.ts'
 import type { Schedule } from './logic/long-press.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { PictureId } from './logic/picture-id.ts'
@@ -16,7 +16,7 @@ import type { ObserveSize } from './observe-size.ts'
 /** What the photo grid is given. */
 export interface PhotoGridProps {
 	/** The pictures in the grid's order. */
-	pictures: readonly Picture<ListingEntry>[]
+	pictures: readonly Picture<SourceEntry>[]
 	folderSet: FolderSet
 	groupByFolder: boolean
 	/** The target tile size in CSS pixels. */
@@ -28,25 +28,25 @@ export interface PhotoGridProps {
 	selecting?: boolean
 	/** The selected pictures by grid key, the file id of the member the tile shows. */
 	selection?: Selection
-	decisionOf?: (picture: Picture<ListingEntry>) => Decision
+	decisionOf?: (picture: Picture<SourceEntry>) => Decision
 	/** The picture's tags, counted on its tile. */
-	tagsOf?: (picture: Picture<ListingEntry>) => readonly Tag[]
+	tagsOf?: (picture: Picture<SourceEntry>) => readonly Tag[]
 	/** Whether the user may not change the picture, so its tile carries the lock (GRID-001.20). */
-	readOnly?: (picture: Picture<ListingEntry>) => boolean
+	readOnly?: (picture: Picture<SourceEntry>) => boolean
 	/** Times the long-press and the tile info's delay. */
 	schedule?: Schedule
 	/** Times the auto-scroll of a drag selection. */
 	frame?: Frame
 	/** Every picture's series, offered or settled (SERIES-002.12). */
-	seriesOf?: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>
+	seriesOf?: ReadonlyMap<Picture<SourceEntry>, Series<Picture<SourceEntry>>>
 	/** The keys of the series the compare offers; the others are settled. */
 	offeredSeries?: ReadonlySet<PictureId>
 	/** The pictures of a series that may still change (SERIES-003.25). */
-	openSeries?: ReadonlySet<Picture<ListingEntry>>
+	openSeries?: ReadonlySet<Picture<SourceEntry>>
 	/** Whether the series may still change because the stored ones are being read (SERIES-005.30). */
 	busy?: boolean
 	/** The picture whose sidecar writes still wait (XMP-003.28). */
-	unsaved?: Picture<ListingEntry> | null
+	unsaved?: Picture<SourceEntry> | null
 	/** Shows a name bar above each tile (GRID-004.4). */
 	fileNames?: boolean
 	/** Whether the pointer is coarse, so the name bar offers the ⓘ button (GRID-004.12). */
@@ -59,7 +59,7 @@ export type PhotoGridEmits = {
 	'update:selecting': [selecting: boolean]
 	'update:selection': [selection: Selection]
 	open: [index: number]
-	compareSeries: [series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>]
+	compareSeries: [series: Series<Picture<SourceEntry>>, picture: Picture<SourceEntry>]
 	/** The user scrolled the grid; a scroll it made itself does not count. */
 	scroll: []
 }
