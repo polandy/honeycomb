@@ -22,6 +22,13 @@ trait ProbesWriteLock {
 	/** The steps of the probed transaction so far, null before it begins. */
 	private ?int $transactionSteps = null;
 
+	/** Ends a test that asks for SQLite's file lock on another engine, which has none to probe. */
+	private function requireSqlite(): void {
+		if ($this->db->getDatabaseProvider() !== IDBConnection::PLATFORM_SQLITE) {
+			$this->markTestSkipped('The write lock is SQLite\'s; other engines lock rows.');
+		}
+	}
+
 	/** The test's connection, probing the lock at the second step of the first transaction it begins. */
 	private function probedConnection(): IDBConnection {
 		$step = function (): void {

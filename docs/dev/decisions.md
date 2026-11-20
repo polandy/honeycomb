@@ -1696,3 +1696,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-20: An Immich entry stays its own type beside `SourceEntry` until the shell refactor
   (M10 PR 9) widens `PictureId` to `number | string`; widening it now breaks dozens of call
   sites that PR 9 rewrites anyway. Easy to redo.
+- 2026-11-20: `tests/php-db` and the update test also run on MariaDB 11.4 and PostgreSQL 17 in CI
+  (matrix `db`, `scripts/database.sh`); `scripts/verify.sh` stays on SQLite to keep its run short.
+  The three SQLite write-lock tests skip on the other engines, which lock rows (review E21/T3).
+  Easy to redo: the matrix list in `ci.yml`.
