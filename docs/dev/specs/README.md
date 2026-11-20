@@ -22,6 +22,7 @@ merged code does. Spec, tests and code change in the same pull request.
 | `settings/` | [SETTINGS-001](settings/SETTINGS-001-settings.md) per-user settings |
 | `stats/` | [STATS-001](stats/STATS-001-statistics.md) statistics |
 | `xmp/` | [XMP-001](xmp/XMP-001-sidecar-model-and-mapping.md) sidecar model and decision mapping, [XMP-002](xmp/XMP-002-sidecar-endpoints.md) sidecar endpoints, [XMP-003](xmp/XMP-003-sidecars-in-the-cull.md) sidecars in the cull, [XMP-004](xmp/XMP-004-tags-in-sidecars.md) tags in sidecars, [XMP-005](xmp/XMP-005-embedded-xmp-endpoint.md) embedded XMP endpoint, [XMP-006](xmp/XMP-006-xmp-cache.md) XMP cache, [XMP-007](xmp/XMP-007-legacy-migration.md) migration of the old rows (removed), [XMP-008](xmp/XMP-008-deciding-needs-writing.md) rateable and read only |
+| `immich/` | [IMMICH-001](immich/IMMICH-001-connections.md) connections, [IMMICH-002](immich/IMMICH-002-listing-and-filters.md) listing, filters and counts, [IMMICH-003](immich/IMMICH-003-decisions-per-connection.md) decisions per connection, [IMMICH-004](immich/IMMICH-004-write-to-immich.md) *Write to Immich* |
 
 ## IDs and status
 

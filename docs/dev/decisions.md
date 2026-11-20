@@ -1597,3 +1597,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   row count up to yesterday when today is empty. The page is a page of its own without the
   navigation sidebar, like Similarity, not inside the cull layout the mockup sketches. Easy to
   redo: `src/logic/statistics.ts`, `StatisticsPage`.
+- 2026-11-20: The Immich source's API (ADR 0044) is a paged listing with a signed cursor the
+  server issues, a counts endpoint and a preview proxy; the specs IMMICH-001 to IMMICH-004 carry
+  the owner's sign-off condition. Kinds in Phase 1 are photos, motion photos and videos;
+  *Screenshots* and *Messenger images* wait, since Immich cannot filter them. Easy to redo: docs
+  only, no code yet.
