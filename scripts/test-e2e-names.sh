@@ -62,7 +62,7 @@ own_pid=$(sed -n 's/^pid //p' "$work/docker-own.log")
 check labels-own-process 1 "$(grep -c -- "--label honeycomb.e2e.owner=$own_pid@$(uname -n)" "$work/docker-own.log")"
 
 # Every script that starts a Nextcloud container labels it with its owner.
-for script in e2e-server upgrade-test php-db-tests; do
+for script in e2e-server upgrade-test php-db-tests database; do
   check "labels-every-run-$script" "$(grep -c 'docker run' "scripts/$script.sh")" \
     "$(grep -c -- '--label "$(e2e_owner_label)"' "scripts/$script.sh")"
 done

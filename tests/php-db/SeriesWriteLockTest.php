@@ -10,7 +10,6 @@ namespace OCA\Honeycomb\DbTests;
 use OCA\Honeycomb\Db\SeriesMapper;
 use OCA\Honeycomb\Service\SeriesStatus;
 use OCA\Honeycomb\Service\SeriesWrite;
-use OCP\IDBConnection;
 
 /**
  * A series write takes SQLite's write lock with its first statement (ProbesWriteLock).
@@ -21,7 +20,7 @@ final class SeriesWriteLockTest extends DbTestCase {
 
 	// spec: SERIES-005.27
 	public function testTakesTheWriteLockWithItsFirstStatementWhenReopeningAStoredSeries(): void {
-		$this->assertSame(IDBConnection::PLATFORM_SQLITE, $this->db->getDatabaseProvider());
+		$this->requireSqlite();
 		[$id] = (new SeriesMapper($this->db))->write('alice', SeriesWrite::fromRequest([['id' => null, 'status' => 'done', 'fileIds' => [7, 8]]], [], []))['ids'];
 
 		$ids = (new SeriesMapper($this->probedConnection()))->write('alice', SeriesWrite::fromRequest([['id' => $id, 'status' => 'open', 'fileIds' => [7, 8]]], [], []))['ids'];
@@ -33,6 +32,7 @@ final class SeriesWriteLockTest extends DbTestCase {
 
 	// spec: SERIES-005.27, STATS-001.29
 	public function testTakesTheWriteLockWithItsFirstStatementWhenFinishingAStoredSeries(): void {
+		$this->requireSqlite();
 		[$id] = (new SeriesMapper($this->db))->write('alice', SeriesWrite::fromRequest([['id' => null, 'status' => 'open', 'fileIds' => [7, 8]]], [], []))['ids'];
 
 		$written = (new SeriesMapper($this->probedConnection()))->write('alice', SeriesWrite::fromRequest([['id' => $id, 'status' => 'done', 'fileIds' => [7, 8]]], [], []));
