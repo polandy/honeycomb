@@ -2,7 +2,7 @@
 
 - Status: accepted
 - Area: immich
-- Origin: ADR 0041, ADR 0043, ADR 0044
+- Origin: ADR 0041, ADR 0043, ADR 0044, [mockup](../../mockup/immich/index.html)
 - Depends on: IMMICH-001, IMMICH-002, DECISIONS-002, LOUPE-002
 
 ## Purpose

@@ -1618,3 +1618,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (ADR 0045, #271). This reverses the decision of 2026-11-10 to render nothing on upload: the
   first sharp image of a newly opened folder took about 2.7 s against 500 ms, and only users who
   cull pay for it.
+- 2026-11-20: The Immich mockup (`docs/dev/mockup/immich/`) applies the signed-off Phase 1
+  artifact with the owner's paging condition and ADR 0042's read-only connections; the sign-off
+  covers it, so the production PRs follow without a second sign-off. The counts answer gains
+  `decided` and `matching` for the toolbar's *N of M*. A loupe opened at the resume position shows
+  *N pictures* until the newer pages are loaded; resume falls back to *All phone uploads* when the
+  asset is outside the filters. The flag filter starts empty, as in the artifact. Easy to redo:
+  docs only.
