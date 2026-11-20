@@ -136,7 +136,7 @@ the gesture guide was dismissed are kept per user on the server (LOUPE-003).
 - **When** it loads images
 - **Then** it shows the grid tier until the loupe tier loads, loads 3 neighbours ahead and 2
   behind, nearest first, each once, retries a failed one on the next page, and shows a
-  prefetched 24 MP neighbour without a new request
+  prefetched 24 MP neighbour without a new request, within 100 ms of the key press (asserted in e2e)
 
 ### LOUPE-001.13 – Info panel and filmstrip
 
