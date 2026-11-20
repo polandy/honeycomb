@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
 import { cullFolder } from './cull.ts'
 import { apiHeaders, createFolder, etagOf, JPEG, pickLabel, RAW, trashEntry, upload } from './files.ts'
+import { WEBKIT } from './webkit.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
 const TRASHBIN = `/remote.php/dav/trashbin/${ADMIN.username}`
@@ -22,7 +23,7 @@ async function trashLocations(page: Page): Promise<string> {
 }
 
 // spec: DELETE-002.1, DELETE-002.8, DELETE-002.13
-test('reviews the rejects, rescues one and moves the rest to the Nextcloud trash bin, writing no sidecar', async ({ page }) => {
+test('reviews the rejects, rescues one and moves the rest to the Nextcloud trash bin, writing no sidecar', { tag: WEBKIT }, async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Delete ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
