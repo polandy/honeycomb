@@ -368,15 +368,17 @@ who has opened honeycomb (ADR 0045), and warmed when a folder is opened. Imagina
 
 `tests/e2e/loupe-budget.spec.ts` measures the first budget in e2e: it pages from a picture to a
 prefetched 24 MP neighbour, checks that no image request follows the key press and reports the
-time from the key press to the frame after the loupe tier shows. It draws its JPEGs, or takes
+time from the key press to the frame after the loupe tier shows, which it asserts. It draws its JPEGs, or takes
 the first three of `HONEYCOMB_BUDGET_PHOTOS`, a folder of real photos.
 `tests/e2e/image-budgets.spec.ts` opens a folder of 12 RAW+JPEG pairs at the iPad's pixel ratio of 2
 before their render jobs ran and reports the first small and the first sharp image, the server's
 first render of a 1024 px and a 4096 px tier, the loupe's 4096 px tier and the peak of image
 loads in flight, which it asserts (at most six, counted by the browser's clock; GRID-001.15). It
 then writes the same photos into a second folder, runs their render jobs, opens it and asserts
-that the opening rendered no preview, counted in core's preview files (IMAGES-001.12); it reports
-that folder's first sharp image, as a time on a shared host is no gate. With
+that the opening rendered no preview, counted in core's preview files (IMAGES-001.12); it asserts
+that folder's first sharp image within its budget. Every limit is in `tests/e2e/budgets.ts`: the
+budgets above, and about five times the measurement below where there is none; a test fails when
+one is exceeded (`HONEYCOMB_BUDGET_SCALE=0.01` shows it). With
 `HONEYCOMB_BUDGET_PHOTOS` set, it uploads the pairs of that folder.
 
 **Measured on 2026-11-18** (local e2e container, Nextcloud 35, one host; 12 pairs of Fujifilm

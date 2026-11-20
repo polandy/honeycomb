@@ -122,7 +122,9 @@ nothing.
 - **Given** a newly opened folder of 24 MP files whose background jobs ran after the upload
 - **When** the grid shows
 - **Then** opening it renders no preview on the server, which keeps the first sharp image within
-  500 ms; the time is measured and reported, not asserted, as a time on a shared host is no gate
+  500 ms; e2e asserts both the renders and the 500 ms, and bounds the cold first images and the
+  server's first render of a tier at about five times the local measurement
+  (`tests/e2e/budgets.ts`)
 
 ### IMAGES-001.13 – RAW files Nextcloud does not type are served
 
@@ -168,6 +170,7 @@ nothing.
 |---|---|
 | 2026-11-10 | Written from the merged code of #40 (ADR 0015) |
 | 2026-11-11 | `.cr3` and `.srw` files are served and previewed by name (`TODO.md`, owner 2026-11-10) |
+| 2026-11-20 | e2e budgets are asserted, not only reported (IMAGES-001.12, LOUPE-001.12) |
 | 2026-11-20 | Written photos are rendered in the background; IMAGES-001.12 is gated in e2e by the renders an opening causes (#271, ADR 0045) |
 | 2026-11-11 | Tiers 256, 1024 and 4096, core's preview sizes, in place of 512 and 2048 (owner, nc-test analysis) |
 | 2026-11-14 | A new folder set stops the warm-up; warmed files are skipped by `fileId` and `mtime` (ADR 0010, amended 2026-11-14) |
