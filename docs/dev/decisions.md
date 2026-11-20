@@ -1561,6 +1561,17 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   a connection that left the file go with the daily sweep, which sweeps nothing when the file is
   missing or invalid; a lacking scope is detected from Immich's `403`, never probed; the status
   check needs no scope beyond Phase 1's. Easy to redo: each is a line in the ADR before the code.
+- 2026-11-19: ADR 0043 fixes the Immich decision table `honeycomb_immich_assets`: the whole
+  `Decision` per `(connection_id, asset_id)` with `user_id` in the row (so `forgetUser` needs no
+  file) and Immich's `updatedAt` as the baseline of Phase 2's conflict check; one save endpoint
+  per connection that answers the saved asset ids, rejects a malformed body as a whole and never
+  calls Immich; a `UserRowStore` only; rows of a connection that left the file go with the daily
+  sweep, rows of assets deleted in Immich stay in Phase 1; Immich decisions count nothing in
+  the statistics until *Write to Immich*. Easy to redo: each is a line in the ADR before the code.
+- 2026-11-20: ADR 0043 takes the owner's Phase 1 sign-off condition (paged grid, counts from the
+  server, blocks of 100): the row copies the asset's capture time, camera model and kind so the
+  server counts and filters decided assets without the whole library; a decision filter pages the
+  rows and deletes a row whose asset Immich no longer returns. Easy to redo: columns before code.
 - 2026-11-19: Each browser count rides with the request that saves its field (STATS-001, metrics
   PR 5): the flag save carries decided, picked and rejected, the sidecar save ratings, colour
   labels and tags set and the foreign mark, the position save the active seconds. A count counts
