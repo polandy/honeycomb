@@ -3,7 +3,7 @@
 import type { ListingEntry, SourceEntry } from '../../../src/logic/listing.ts'
 
 import { describe, expect, it } from 'vitest'
-import { isListingPicture, mergeListings } from '../../../src/logic/listing.ts'
+import { isListingPicture, listedPictures, mergeListings, NotListedError } from '../../../src/logic/listing.ts'
 import { DEFAULT_PAIRING_SETTINGS, pairPictures } from '../../../src/logic/pairing.ts'
 
 function entry(fileId: number, path: string): ListingEntry {
@@ -52,6 +52,8 @@ describe('mergeListings', () => {
 	})
 })
 
+const BARE: SourceEntry = { fileId: 1, path: '/A/1.jpg', mtime: 100, mime: 'image/jpeg', captureTime: null, orientation: null, width: null, height: null, camera: null, flag: null, keepRaw: null, flagUpdated: null }
+
 describe('isListingPicture', () => {
 	it('takes a picture of listing entries as one', () => {
 		const [picture] = pairPictures([entry(1, '/A/1.jpg')], DEFAULT_PAIRING_SETTINGS)
@@ -60,9 +62,20 @@ describe('isListingPicture', () => {
 	})
 
 	it('takes a picture of bare source entries as none', () => {
-		const bare: SourceEntry = { fileId: 1, path: '/A/1.jpg', mtime: 100, mime: 'image/jpeg', captureTime: null, orientation: null, width: null, height: null, camera: null, flag: null, keepRaw: null, flagUpdated: null }
-		const [picture] = pairPictures([bare], DEFAULT_PAIRING_SETTINGS)
+		const [picture] = pairPictures([BARE], DEFAULT_PAIRING_SETTINGS)
 
 		expect(isListingPicture(picture!)).toBe(false)
+	})
+})
+
+describe('listedPictures', () => {
+	it('gives pictures of listing entries back as they are', () => {
+		const pictures = pairPictures([entry(1, '/A/1.jpg'), entry(2, '/A/2.jpg')], DEFAULT_PAIRING_SETTINGS)
+
+		expect(listedPictures(pictures)).toEqual(pictures)
+	})
+
+	it('throws on a picture of bare source entries', () => {
+		expect(() => listedPictures(pairPictures([BARE], DEFAULT_PAIRING_SETTINGS))).toThrow(NotListedError)
 	})
 })
