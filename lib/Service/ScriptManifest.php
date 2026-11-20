@@ -14,6 +14,7 @@ use OCP\App\IAppManager;
 final class ScriptManifest {
 	public const string MAIN = 'main';
 	public const string SIMILARITY = 'similarity';
+	public const string STATISTICS = 'statistics';
 	/** Written by the build: entry name => script name. */
 	private const string PATH = '/js/scripts.php';
 

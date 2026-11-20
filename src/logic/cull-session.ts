@@ -4,10 +4,8 @@ import type { Flag } from './decision.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 
-import { sinceLastInput } from './active-time.ts'
+import { picturesPerMinute, sinceLastInput } from './active-time.ts'
 import { filesOf } from './delete-summary.ts'
-
-const MINUTE_MS = 60_000
 
 /** What a picture is to *Cull finished*: decided by its flag, or undecided. */
 export type SessionState = Flag | 'undecided'
@@ -139,6 +137,6 @@ export function sessionNumbers(session: CullSession, after: SessionTotals, at: n
 		before: session.before,
 		after,
 		activeMs,
-		perMinute: activeMs < MINUTE_MS ? null : decided / (activeMs / MINUTE_MS),
+		perMinute: picturesPerMinute(decided, activeMs),
 	}
 }

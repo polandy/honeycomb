@@ -95,6 +95,8 @@ function onOpen(open: boolean) {
 				<ProgressBar :label="progressText" :value="props.progress.done" :max="props.progress.total" />
 				{{ progressText }}
 			</span>
+			<!-- A further action before the dialog's own buttons, e.g. a link to another page. -->
+			<slot name="actions" />
 			<NcButton v-if="props.back" variant="tertiary" @click="emit('back')">
 				{{ props.backLabel ?? t('honeycomb', 'Back') }}
 			</NcButton>

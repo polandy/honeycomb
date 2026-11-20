@@ -67,7 +67,7 @@ describe('AppNavigation', () => {
 
 	// spec: STATS-001.40
 	it('links the pages of their own from one list, Statistics after Similarity', () => {
-		const links = mountNavigation().findAll('a[href]').map((link) => ({ name: link.text(), href: link.attributes('href') }))
+		const links = mountNavigation().findAll('a[href]:not([href="#"])').map((link) => ({ name: link.text(), href: link.attributes('href') }))
 
 		expect(links).toEqual(useNavigationItems().map(({ name, href }) => ({ name, href })))
 		expect(links.map((link) => link.name)).toEqual([`${MARK}Similarity`, `${MARK}Statistics`])

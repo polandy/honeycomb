@@ -93,7 +93,8 @@ adds to the row of the day, never below zero; two counts at once both arrive (th
 of a new row retries as an update). `GET /apps/honeycomb/api/v1/stats` takes the optional days
 `from` and `to` (`YYYY-MM-DD`, both included) and answers `counters`, the user's rows of those
 days as `{day, metric, value}` ordered by day and metric, `firstDay`, the user's first counted
-day or `null`, and `today`, the user's day; a malformed day or `from` after `to` answers 400. `DELETE` on the same URL resets.
+day or `null`, and `today`, the user's day; a malformed day or `from` after `to` answers 400.
+`DELETE` on the same URL resets.
 Strings are English, translated per ADR 0007; the mockup lists them.
 
 ## Acceptance criteria

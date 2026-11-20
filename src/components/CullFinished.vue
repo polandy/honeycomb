@@ -7,9 +7,11 @@ import type { SessionNumbers } from '../logic/cull-session.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
+import NcButton from '@nextcloud/vue/components/NcButton'
 import ConfirmDialog from './ConfirmDialog.vue'
 import DeleteStats from './DeleteStats.vue'
 import { formatDuration, formatFileSize, formatNumber, PLAIN_TEXT } from '../l10n.ts'
+import { pageUrl } from '../navigation-items.ts'
 
 const props = defineProps<{ numbers: SessionNumbers }>()
 
@@ -66,6 +68,11 @@ const activeTime = computed(() => {
 		<p class="cull-finished__line">
 			{{ activeTime }}
 		</p>
+		<template #actions>
+			<NcButton variant="tertiary" :href="pageUrl('statistics')">
+				{{ t('honeycomb', 'Statistics') }}
+			</NcButton>
+		</template>
 	</ConfirmDialog>
 </template>
 

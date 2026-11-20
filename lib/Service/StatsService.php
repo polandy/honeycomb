@@ -81,8 +81,8 @@ final readonly class StatsService {
 	}
 
 	/**
-	 * The user's counters of the days from `$from` to `$to`, both included, and their first counted day.
-	 * @return array{counters: list<StatsCounter>, firstDay: ?string}
+	 * The user's counters of the days from `$from` to `$to`, both included, their first counted day and their today.
+	 * @return array{counters: list<StatsCounter>, firstDay: ?string, today: string}
 	 * @throws InvalidStatsRequestException for a malformed day or `$from` after `$to`
 	 */
 	public function read(IUser $user, ?string $from, ?string $to): array {
@@ -91,7 +91,7 @@ final readonly class StatsService {
 		if ($from !== null && $to !== null && $from > $to) {
 			throw new InvalidStatsRequestException('from must not be after to');
 		}
-		return ['counters' => $this->store->between($user->getUID(), $from, $to), 'firstDay' => $this->store->firstDay($user->getUID())];
+		return ['counters' => $this->store->between($user->getUID(), $from, $to), 'firstDay' => $this->store->firstDay($user->getUID()), 'today' => $this->day->today($user)];
 	}
 
 	/** Removes every counter of the user. */
