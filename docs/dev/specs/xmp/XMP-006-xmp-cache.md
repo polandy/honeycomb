@@ -36,8 +36,8 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
   The cull reads every picture through the cache this way (XMP-003.1), and stores the row of each
   sidecar it saves, from the bytes saved and the new ETag.
 - `occ honeycomb:cache:clear [<user>]` removes the XMP cache rows of one user, or without an
-  argument those of every user and every visual hash and quality value, and prints how many rows it removed. An unknown user
-  fails with a message and removes nothing.
+  argument those of every user and every visual hash and quality value, and prints how many
+  rows it removed. An unknown user fails with a message and removes nothing.
 - *Clear cache* in the settings' *Cache* section sends the `DELETE` (SETTINGS-001.25).
 - Neither the `DELETE` nor the command touches a sidecar, a position, a stored series, the settings
   or the tag list.

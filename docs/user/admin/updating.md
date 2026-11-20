@@ -32,8 +32,8 @@ tables and is used again once a honeycomb release for that major is installed.
 Going back to an older honeycomb release is not supported. Updates mostly add tables and
 columns; the update that added `honeycomb_quality` also dropped every stored visual hash, which
 the next cull computes again. The older code does not know what a newer release wrote, and
-Nextcloud does not undo a migration. To go back, restore the database and the `custom_apps/honeycomb` folder from the
-backup taken before the update.
+Nextcloud does not undo a migration. To go back, restore the database and the
+`custom_apps/honeycomb` folder from the backup taken before the update.
 
 ## Installed from a Git checkout
 

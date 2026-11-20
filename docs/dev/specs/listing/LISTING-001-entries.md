@@ -19,7 +19,8 @@ being the listed folder's. An entry has `fileId`, `path`
 (from the user's files, leading `/`), `size`, `mtime`, `etag`, `mime` and `captureTime`,
 `orientation`, `width`, `height` from Nextcloud's file metadata, each `null` where it has none,
 `visualHash`, the stored visual hash of the file's current version or `null` (SERIES-003),
-`quality`, the stored quality value of the file's current version or `null` (SERIES-006), and the file's `flag`, `keepRaw` and `flagUpdated` (Unix seconds) from
+`quality`, the stored quality value of the file's current version or `null` (SERIES-006), and
+the file's `flag`, `keepRaw` and `flagUpdated` (Unix seconds) from
 `honeycomb_flags`, each `null` while the file has no row (DECISIONS-001.21).
 `folders` has one item per folder that holds an entry, `{"path": "/Photos", "permissions": 31}`
 (ADR 0040). `permissions` are Nextcloud's bits of the folder for the user (READ 1, UPDATE 2,
