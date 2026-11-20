@@ -19,7 +19,7 @@ const props = defineProps<{
 		<h2 class="series-viewer__name">
 			{{ props.name }}
 		</h2>
-		<span class="series-viewer__place">{{ props.place }}<SharpestMark v-if="props.sharpest" /></span>
+		<span class="series-viewer__place"><span>{{ props.place }}</span><SharpestMark v-if="props.sharpest" /></span>
 	</div>
 </template>
 
@@ -41,6 +41,7 @@ const props = defineProps<{
 
 .series-viewer__place {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: var(--default-grid-baseline);
 	color: var(--color-text-maxcontrast);
