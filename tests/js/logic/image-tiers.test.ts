@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { fullLongEdge, GRID_TIERS, gridSrcset, imageMember, loadPriority, LOUPE_TIER, loupeSources, sharpTier, smallSource, tierSource } from '../../../src/logic/image-tiers.ts'
+import { fullLongEdge, GRID_TIERS, gridSrcset, imageMember, isEmbeddedPreview, loadPriority, LOUPE_TIER, loupeSources, sharpTier, smallSource, tierSource } from '../../../src/logic/image-tiers.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const urlFor = (fileId: number, size: number, mtime: number) => `/img/${fileId}?size=${size}&v=${mtime}`
@@ -79,5 +79,16 @@ describe('loupe sources', () => {
 		expect(fullLongEdge(listingEntry(1, '/P/A.JPG', { width: 6000, height: 4000 }))).toBe(6000)
 		expect(fullLongEdge(listingEntry(1, '/P/A.JPG', { width: 3000, height: 4500 }))).toBe(4500)
 		expect(fullLongEdge(listingEntry(1, '/P/A.JPG', { width: 6000 }))).toBe(LOUPE_TIER)
+	})
+})
+
+describe('isEmbeddedPreview', () => {
+	it.each([
+		['a RAW single', ['/P/A.NEF'], true],
+		['a pair', ['/P/A.NEF', '/P/A.JPG'], false],
+		['a JPEG single', ['/P/A.JPG'], false],
+	// spec: LOUPE-001.28
+	])('is %s: %s', (_case, paths, expected) => {
+		expect(isEmbeddedPreview(pictureOf(...paths.map((path, index) => listingEntry(index + 1, path))))).toBe(expected)
 	})
 })

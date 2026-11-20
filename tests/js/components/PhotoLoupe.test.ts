@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { FILMSTRIP_THUMB } from '../../../src/logic/filmstrip.ts'
 import { DEFAULT_SETTINGS } from '../../../src/logic/settings.ts'
 import { INFO_WIDTH_KEY, NAVIGATION_SHOWN_KEY } from '../../../src/loupe-panels.ts'
+import { listingEntry, picturesOf } from '../logic/listing-entries.ts'
 import { tap } from './loupe-pointer.ts'
 import { button, indices, mountLoupe } from './mount-loupe.ts'
 
@@ -139,6 +140,18 @@ describe('PhotoLoupe', () => {
 		expect(decoded).toContain('/img/5/0')
 		await zoomButton.trigger('click')
 		expect(zoomButton.attributes('aria-pressed')).toBe('false')
+	})
+
+	// spec: LOUPE-001.28
+	it('notes the embedded preview of a RAW-only picture once zoomed, and of no picture with a JPEG', async () => {
+		const pictures = picturesOf([listingEntry(1, '/P/A.NEF', { width: 3000, height: 2000 }), listingEntry(2, '/P/B.JPG', { width: 3000, height: 2000 })])
+		const { wrapper, root } = await mountLoupe(0, {}, false, { pictures })
+		expect(wrapper.find('.loupe-title-row__embedded').exists()).toBe(false)
+		await root.trigger('keydown', { key: 'z' })
+		expect(wrapper.find('.loupe-title-row__embedded').text()).toBe('Embedded preview')
+		await wrapper.setProps({ index: 1 })
+		await root.trigger('keydown', { key: 'z' })
+		expect(wrapper.find('.loupe-title-row__embedded').exists()).toBe(false)
 	})
 
 	// spec: LOUPE-001.9

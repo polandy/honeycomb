@@ -303,3 +303,11 @@ IMAGES-001.
 - **Then** a ring in the text colour follows the picture's name, never over the photo, with the
   label *Not saved yet* for screen readers; it goes when the write starts, and at another
   picture it shows only if that one is the waiting picture
+
+### LOUPE-001.28 – A RAW-only picture says its 100 % view is the embedded preview
+
+- **Given** the loupe shows a picture with a RAW member and no rendered member
+- **When** the photo is zoomed to 100 % (LOUPE-001.7)
+- **Then** the title row shows the short note *Embedded preview* after the name, because honeycomb
+  culls with the preview the camera stored in the RAW, not a full development of it; fitted, or at a
+  picture with a rendered member, no note shows
