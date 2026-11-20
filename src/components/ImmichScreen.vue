@@ -24,7 +24,7 @@ import PhotoGrid from './PhotoGrid.vue'
 import PhotoLoupe from './PhotoLoupe.vue'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { LOUPE_AHEAD, loupeCounter } from '../logic/immich-paging.ts'
-import { immichSource } from '../logic/opened-source.ts'
+import { DECISIONS_ONLY } from '../logic/opened-source.ts'
 import { DEFAULT_TILE_SIZE } from '../logic/tile-size.ts'
 
 const props = withDefaults(defineProps<{
@@ -44,7 +44,6 @@ const emit = defineEmits<{
 }>()
 
 const { list, counts, pictures, filters } = props.cull
-const capabilities = computed(() => immichSource(props.cull.connectionId.value ?? '').capabilities)
 const loupeIndex = ref<number | null>(null)
 const photoLoupe = useTemplateRef<InstanceType<typeof PhotoLoupe>>('photoLoupe')
 
@@ -123,7 +122,7 @@ defineExpose({ loupe: photoLoupe })
 				ref="photoLoupe"
 				:index="loupeIndex"
 				:pictures="pictures"
-				:capabilities="capabilities"
+				:capabilities="DECISIONS_ONLY"
 				:counter="counter"
 				:decisionOf="props.cull.decisionOf"
 				:storage="props.storage"

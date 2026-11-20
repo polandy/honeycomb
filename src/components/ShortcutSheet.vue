@@ -15,7 +15,7 @@ const props = defineProps<{
 	/** The element the dialog opens in; the loupe's while it is open, as it lies above the page. */
 	container?: string | undefined
 	/** The key map's entries the source does not offer (IMMICH-002.17). */
-	hidden?: ReadonlySet<string>
+	hidden?: ReadonlySet<string> | undefined
 }>()
 
 const emit = defineEmits<{

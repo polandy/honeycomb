@@ -5,6 +5,7 @@ import type { BrowserStorage } from './browser-storage.ts'
 import type { CullTagsApi } from './cull-tags.ts'
 import type { FlagApi } from './flags-api.ts'
 import type { ListEntries } from './folder-count.ts'
+import type { ImmichCullApi } from './immich-cull.ts'
 import type { ImmichApi } from './immich-source.ts'
 import type { ImageUrlFor } from './logic/image-tiers.ts'
 import type { Schedule } from './logic/long-press.ts'
@@ -20,7 +21,7 @@ import type { LookupSeries, SaveSeries } from './stored-series.ts'
 import type { ViewStateApi } from './view-state.ts'
 import type { HashImage, SaveVisualHashes } from './visual-hashes.ts'
 
-import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, cleanUpOrphanedData, imageUrl, immichStatus, listImmichConnections, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, movePictures, probeTargets, resetStatistics, savePosition, saveQualityValues, saveSidecars, saveViewState, saveVisualHashes } from './api.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, cleanUpOrphanedData, imageUrl, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, movePictures, probeTargets, resetStatistics, saveImmichDecisions, savePosition, saveQualityValues, saveSidecars, saveViewState, saveVisualHashes } from './api.ts'
 import { saveFlags, takeOverFlags } from './flags-api.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { browserHashWorkers } from './hash-workers.ts'
@@ -32,6 +33,8 @@ import { browserSchedule } from './tile-selection.ts'
 import { hashInWorkers } from './visual-hashes.ts'
 import { clearCache, lookupXmpCache, saveXmpCache } from './xmp-cache-api.ts'
 import { browserDay } from './year-review-hint.ts'
+
+const MS_PER_SECOND = 1000
 
 /** The element the server renders the app into, which carries its data attributes. */
 const APP_ELEMENT = 'honeycomb'
@@ -65,6 +68,8 @@ export interface AppSeams {
 	tags?: CullTagsApi
 	/** The user's Immich connections and their status (IMMICH-001). */
 	immich?: ImmichApi
+	/** An Immich connection's pages, counts, decisions and images (IMMICH-002, IMMICH-003). */
+	immichCull?: ImmichCullApi
 	clearCache?: () => Promise<void>
 	/** Whether the user is an admin, who may clean up the orphaned data (SETTINGS-001.27). */
 	admin?: () => boolean
@@ -74,6 +79,8 @@ export interface AppSeams {
 	clock?: () => number
 	/** The browser's local day as YYYY-MM-DD, which the year-in-review hint shows by (STATS-001.26). */
 	today?: () => string
+	/** The wall clock in Unix seconds, which the Immich time filter counts from (IMMICH-002.11). */
+	now?: () => number
 }
 
 /** The page's one pool of workers, which hashes and measures (SERIES-006.15). */
@@ -105,10 +112,12 @@ export const APP_SEAMS = {
 	move: () => ({ probeTargets, movePictures }),
 	tags: () => ({ loadTagList }),
 	immich: () => ({ listConnections: listImmichConnections, status: immichStatus }),
+	immichCull: () => ({ assets: immichAssets, counts: immichCounts, saveDecisions: saveImmichDecisions, imageUrl: immichImageUrl }),
 	clearCache,
 	admin: () => document.getElementById(APP_ELEMENT)?.dataset.admin === 'true',
 	cleanUp: cleanUpOrphanedData,
 	resetStatistics,
 	clock: () => performance.now(),
 	today: browserDay,
+	now: () => Date.now() / MS_PER_SECOND,
 }

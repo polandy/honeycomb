@@ -20,6 +20,7 @@ import FolderPicker from './components/FolderPicker.vue'
 import GridScreen from './components/GridScreen.vue'
 import GridSkeleton from './components/GridSkeleton.vue'
 import ImmichConnectionDialog from './components/ImmichConnectionDialog.vue'
+import ImmichScreen from './components/ImmichScreen.vue'
 import ImmichState from './components/ImmichState.vue'
 import LoupeScreen from './components/LoupeScreen.vue'
 import NoFolderState from './components/NoFolderState.vue'
@@ -40,9 +41,14 @@ import { useDeleteFlow } from './delete-flow.ts'
 import { freshCheck } from './fresh-check.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
+import { useImmichCull } from './immich-cull.ts'
 import { useImmichSource } from './immich-source.ts'
 import { connectionLines } from './immich-text.ts'
+import { formatCaptureDay } from './l10n.ts'
+import { browserCalendar } from './logic/immich-filters.ts'
+import { DECISIONS_ONLY } from './logic/opened-source.ts'
 import { waitSeconds } from './logic/retry-after.ts'
+import { unofferedKeys } from './logic/source-keys.ts'
 import { useLoupeOpening } from './loupe-opening.ts'
 import { useMoveFlow } from './move-flow.ts'
 import { useRecent } from './recent.ts'
@@ -99,7 +105,8 @@ function decideInCompare(intent: DecisionIntent, picture: Picture<ListingEntry>,
 	decide(intent, [picture], () => (inViewer ? restOffer(intent, picture) : null))
 }
 const seriesScreen = useTemplateRef<InstanceType<typeof SeriesCompareScreen>>('seriesScreen')
-const overlayScreen = computed(() => (loupe.value !== null ? '.photo-loupe' : seriesCompare.viewer.open.value ? '.series-viewer' : undefined))
+const immichScreen = useTemplateRef<InstanceType<typeof ImmichScreen>>('immichScreen')
+const overlayScreen = computed(() => (loupe.value !== null || immichScreen.value?.loupe ? '.photo-loupe' : seriesCompare.viewer.open.value ? '.series-viewer' : undefined))
 const check = freshCheck({ listEntries: props.listEntries }, { pairing: () => cull.pairing.value, writable: (picture) => cull.writabilityOf(picture) === 'writable', seedSidecar: sidecarFlow.sync.seed })
 /** Writes the waiting sidecars and waits for the flag saves in flight, before a delete or move reads the folders again (DELETE-002.28). */
 async function flushWrites() {
@@ -130,6 +137,10 @@ const immichShown = computed(() => immich.source.value === 'immich')
 const connectionDialogOpen = ref(false)
 const opened = immich.connection
 const openedStatus = computed(() => opened.value && immich.statusOf(opened.value.id))
+const IMMICH_HIDDEN_KEYS = unofferedKeys(DECISIONS_ONLY)
+const immichCull = useImmichCull({ api: props.immichCull, now: props.now, calendar: browserCalendar, dayLabel: formatCaptureDay, toast })
+// The pictures show once the connection answers ok, and start over whenever it opens again.
+watch(() => (openedStatus.value?.state === 'ok' ? opened.value!.id : null), (id) => id !== null && immichCull.open(id))
 /** Opens the connection and asks its status again. */
 function openConnection(connectionId: string) {
 	immich.open(connectionId)
@@ -159,6 +170,9 @@ useHotkeys(() => {
 	if (pickerOpen.value || settingsOpen.value || connectionDialogOpen.value || tagEntry.targets.value !== null || deleteDialog.value !== null || cullFinished.numbers.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
 		return null
 	}
+	if (immichShown.value && !shortcutsOpen.value) {
+		return { shortcuts: toggleShortcuts, ...immichScreen.value?.loupe?.hotkeys }
+	}
 	if (shortcutsOpen.value || folderSet.value === null || immichShown.value) {
 		return { shortcuts: toggleShortcuts }
 	}
@@ -187,8 +201,19 @@ useHotkeys(() => {
 			@openRecent="openRecent"
 			@openSettings="settingsOpen = true" />
 		<NcAppContent class="honeycomb">
+			<ImmichScreen
+				v-if="immichShown && openedStatus?.state === 'ok'"
+				ref="immichScreen"
+				:cull="immichCull"
+				:settings="settings"
+				:storage="props.storage"
+				:viewState="viewState"
+				:tileSize="tileSize"
+				@update:tileSize="cull.setTileSize"
+				@updateSettings="updateSettings"
+				@toast="toast.show($event.message, $event.action)" />
 			<ImmichState
-				v-if="immichShown"
+				v-else-if="immichShown"
 				:connection="opened"
 				:status="openedStatus"
 				@retry="checkOpened"
@@ -243,7 +268,11 @@ useHotkeys(() => {
 					:known="cull.tags.known.value"
 					@change="tag($event, tagEntry.targets.value!)"
 					@close="tagEntry.close" />
-				<ShortcutSheet v-if="shortcutsOpen" :container="overlayScreen" @close="shortcutsOpen = false" />
+				<ShortcutSheet
+					v-if="shortcutsOpen"
+					:container="overlayScreen"
+					:hidden="immichShown ? IMMICH_HIDDEN_KEYS : undefined"
+					@close="shortcutsOpen = false" />
 				<UndoToast
 					v-if="toast.current.value !== null"
 					:toast="toast.current.value"
