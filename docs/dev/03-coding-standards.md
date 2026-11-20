@@ -71,9 +71,10 @@ dependencies — are in [`conventions.md`](conventions.md). This file adds the s
   and the `phpunit db` tests at once; the oldest-Nextcloud run takes `HONEYCOMB_E2E_OLDEST_PORT`
   (default the e2e port plus 1000); `scripts/verify.sh` moves each of the three to the next free
   port when it is busy ([workflow §2.4](02-workflow.md#24-before-opening)). The port names the
-  container (`scripts/e2e-names.sh`) and a non-default port the output folder `test-results-<port>/`, so
-  parallel runs, e.g. `HONEYCOMB_E2E_PORT=8380 HONEYCOMB_UPGRADE_PORT=8390 scripts/verify.sh` in a second
-  worktree, share nothing and never remove each other's container.
+  container (`scripts/e2e-names.sh`) and a non-default port the output folder
+  `test-results-<port>/`, so parallel runs, e.g.
+  `HONEYCOMB_E2E_PORT=8380 HONEYCOMB_UPGRADE_PORT=8390 scripts/verify.sh` in a second worktree,
+  share nothing and never remove each other's container.
 - Every Vue component is checked with the marked stub catalogue of
   `tests/js/l10n/marked-catalogue.ts`: shallow-mount it with `renderStubDefaultSlot`, and expect
   `untranslatedText()` to return nothing (ADR 0007, *Checks*).
