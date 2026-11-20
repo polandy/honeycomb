@@ -1700,3 +1700,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (matrix `db`, `scripts/database.sh`); `scripts/verify.sh` stays on SQLite to keep its run short.
   The three SQLite write-lock tests skip on the other engines, which lock rows (review E21/T3).
   Easy to redo: the matrix list in `ci.yml`.
+- 2026-11-20: honeycomb renders a file's previews in one request at a time, under a System V
+  semaphore per file (256 shared, `SemaphorePreviewLock`), since Nextcloud 35 rewrites a preview
+  file in place when two requests render it at once and a tile read meanwhile came back empty
+  (IMAGES-001.18). Without `sysvsem` it renders unlocked, as core does. Easy to redo: one alias
+  in `Application.php`.

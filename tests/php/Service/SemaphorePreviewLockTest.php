@@ -11,16 +11,23 @@ use OCA\Honeycomb\Service\SemaphorePreviewLock;
 use PHPUnit\Framework\TestCase;
 
 final class SemaphorePreviewLockTest extends TestCase {
+	/** A render that fails. */
+	private static function failingRender(): string {
+		throw new \RuntimeException('render failed');
+	}
+
 	// spec: IMAGES-001.18
 	public function testAnswersTheRenderAndReleasesTheLockAfterAFailure(): void {
 		$lock = new SemaphorePreviewLock();
+		$failure = null;
 
 		try {
-			$lock->whileRendering(7, static fn (): never => throw new \RuntimeException('render failed'));
-			$this->fail('The failure was swallowed');
+			$lock->whileRendering(7, self::failingRender(...));
 		} catch (\RuntimeException $e) {
-			$this->assertSame('render failed', $e->getMessage());
+			$failure = $e->getMessage();
 		}
+
+		$this->assertSame('render failed', $failure);
 		// a lock kept after the failure would block this second render for good
 		$this->assertSame('rendered', $lock->whileRendering(7, static fn (): string => 'rendered'));
 	}
