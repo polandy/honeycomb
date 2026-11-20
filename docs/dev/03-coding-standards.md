@@ -65,7 +65,10 @@ dependencies — are in [`conventions.md`](conventions.md). This file adds the s
   checkout mounted as the app: the newest supported release, or with
   `HONEYCOMB_E2E_NEXTCLOUD=oldest` the first release of `min-version`
   (`scripts/nextcloud-images.sh`, images pinned by digest); a setup project logs in once through the
-  login form and shares the session. Cases use `reducedMotion: 'reduce'` and wait on a visible
+  login form and shares the session. The container runs background jobs only through `occ`
+  (`backgroundjobs_mode` is `cron`, and no cron runs): a job in a page request, such as core's
+  metadata scan, keeps the shared locks of the files it read until it ends, and a trash or move
+  meanwhile finds them locked. Cases use `reducedMotion: 'reduce'` and wait on a visible
   state. Each run starts its own container on `HONEYCOMB_E2E_PORT` (default 8180) and the upgrade test
   on `HONEYCOMB_UPGRADE_PORT` (default 8190). `scripts/verify.sh` runs both e2e runs, the upgrade test
   and the `phpunit db` tests at once; the oldest-Nextcloud run takes `HONEYCOMB_E2E_OLDEST_PORT`
