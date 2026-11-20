@@ -33,6 +33,7 @@ expect upgrade-test "markdown=false php=false ts=false app=true" scripts/upgrade
 expect interop-dockerfile "markdown=false php=false ts=true app=false" tests/interop/Dockerfile
 expect interop-runner "markdown=false php=false ts=true app=false" scripts/xmp-interop.sh
 expect db-test "markdown=false php=true ts=false app=true" tests/php-db/SeriesMapperTest.php
+expect database-script "markdown=false php=true ts=false app=true" scripts/database.sh
 expect db-test-runner "markdown=false php=true ts=false app=true" scripts/php-db-tests.sh
 expect info-xml "markdown=false php=true ts=false app=true" appinfo/info.xml
 expect workflow "markdown=true php=true ts=true app=true" .github/workflows/ci.yml

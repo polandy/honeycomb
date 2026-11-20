@@ -83,6 +83,7 @@ final class FlagMapperTest extends DbTestCase {
 
 	// spec: DECISIONS-001.34
 	public function testATakeOverTakesTheWriteLockWithTheFirstStatementOfItsTransaction(): void {
+		$this->requireSqlite();
 		$this->flags->save([self::flag(7, Flag::Rejected)]);
 
 		$inserted = (new FlagMapper($this->probedConnection()))->takeOver([self::flag(7), self::flag(8)]);

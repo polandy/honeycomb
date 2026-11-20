@@ -4,10 +4,12 @@
 # Saves data with the first release, updates to this checkout and checks the data survived or was
 # carried as designed: the decision becomes the start value of the statistics (ADR 0039, ADR 0040).
 # Usage: scripts/upgrade-test.sh [port]; the port defaults to HONEYCOMB_UPGRADE_PORT, then 8190.
+# HONEYCOMB_DB picks the database: sqlite (default), mariadb or postgres (scripts/database.sh).
 set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
 source scripts/nextcloud-images.sh
 source scripts/e2e-names.sh
+source scripts/database.sh
 
 FROM=v0.1.0
 PORT=${1:-$(upgrade_port)}
@@ -26,6 +28,7 @@ app=$(mktemp -d)
 jar=$(mktemp)
 cleanup() {
   docker rm --force "$CONTAINER" >/dev/null 2>&1 || true
+  database_stop "$PORT"
   rm -rf "${app:?}" "${jar:?}"
 }
 trap cleanup EXIT
@@ -77,8 +80,10 @@ new_version=$(sed -nE 's|.*<version>(.*)</version>.*|\1|p' appinfo/info.xml)
 
 install_app "$FROM"
 docker rm --force "$CONTAINER" >/dev/null 2>&1 || true
+database_stop "$PORT"
+database_start "$PORT"
 docker run --detach --rm --name "$CONTAINER" -p "127.0.0.1:$PORT:80" --label "$(e2e_owner_label)" \
-  -e SQLITE_DATABASE=nextcloud -e NEXTCLOUD_ADMIN_USER="$ACCOUNT" -e NEXTCLOUD_ADMIN_PASSWORD="$PASSWORD" \
+  "${DATABASE_DOCKER_ARGS[@]}" -e NEXTCLOUD_ADMIN_USER="$ACCOUNT" -e NEXTCLOUD_ADMIN_PASSWORD="$PASSWORD" \
   -v "$app:/var/www/html/custom_apps/honeycomb" "$NEWEST_NEXTCLOUD_IMAGE" >/dev/null
 wait_for_nextcloud || fail "Nextcloud did not answer within $STARTUP_SECONDS seconds"
 occ app:enable honeycomb >/dev/null
