@@ -101,8 +101,11 @@ async function stubYear(page: Page): Promise<void> {
 	await page.route('**/apps/honeycomb/api/v1/stats', (route) => (route.request().method() === 'GET' ? route.fulfill({ json: YEAR_ANSWER }) : route.continue()))
 }
 
-// spec: STATS-001.46, STATS-001.47, STATS-001.49
+// spec: STATS-001.46, STATS-001.47, STATS-001.48, STATS-001.49
 test('shows the year in review above the periods on the desktop', async ({ page }, testInfo) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	const reopened = await page.request.put(`${API}/view-state`, { data: { viewState: { yearReviewHintClosed: 2000 } }, headers: await apiHeaders(page) })
+	expect(reopened.status(), await reopened.text()).toBe(200)
 	await stubYear(page)
 
 	await page.goto('/index.php/apps/honeycomb/statistics')
@@ -115,6 +118,7 @@ test('shows the year in review above the periods on the desktop', async ({ page 
 	await expect(review.locator('.year-review__day')).toHaveCount(365)
 	await expect(review.locator('.year-review__day[data-shade="3"]')).toHaveCount(1)
 	await expect(review).toContainText('Counted since Jan 1, 2026')
+	await expect.poll(async () => (await (await page.request.get(`${API}/view-state`, { headers: await apiHeaders(page) })).json()).viewState.yearReviewHintClosed).toBe(2026)
 	await page.screenshot({ path: testInfo.outputPath('year-review-desktop.png'), animations: 'disabled' })
 })
 
