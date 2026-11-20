@@ -17,7 +17,9 @@ navigation. The entry opens the app's page for the logged-in user. While no fold
 the page shows an empty state, *No folder chosen*, with the folder picker open over it. Every
 text the user reads comes from the translation catalogue (`t()`), except names taken from the
 user's files. On a phone, below 520 px, every confirm dialog is a bottom sheet: full width, at
-the bottom edge, rounded at the top only, its footer clear of the home indicator.
+the bottom edge, rounded at the top only, its footer clear of the home indicator. When the
+browser asks for reduced motion, a dialog opens and closes without a fade or a zoom, which
+`NcModal` would otherwise play.
 
 Nextcloud's navigation beside the page holds only *Folder*, the recent folder sets and
 *Settings*, so it starts closed below 1280 px, where the grid needs the room. Once the user opens
@@ -149,6 +151,13 @@ stays the same.
 - **Then** the dialog closes as by *Cancel*; a dialog without *Cancel* stays open, and in a text
   field *Escape* stays the field's
 
+### APP-001.17 – A dialog opens without motion when the browser asks for less
+
+- **Given** the browser asks for reduced motion
+- **When** a dialog opens, such as the folder picker on the empty state
+- **Then** neither the dialog nor anything in it plays a transition or an animation; it stands
+  at its place from its first frame
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -167,4 +176,5 @@ stays the same.
 | 2026-11-18 | A dialog closed while it opens logs no focus trap error (APP-001.12) |
 | 2026-11-18 | An error toast stays until closed and is announced as an alert; a toast's details open in a dialog (APP-001.13, .14; review UX-1, UX-2) |
 | 2026-11-19 | An axe-core scan of every screen, light and dark (APP-001.15, ADR 0042; review UX-5) |
+| 2026-11-20 | A dialog opens without motion under reduced motion (APP-001.17) |
 | 2026-11-20 | *Escape* closes a confirm dialog also from a switch or a checkbox, which `NcModal` leaves to the field (APP-001.16) |
