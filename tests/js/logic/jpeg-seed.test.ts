@@ -20,7 +20,7 @@ describe('seededSidecar', () => {
 	it('takes every field of the RAW sidecar, other programs\' too, but the flag fields and Keep RAW', () => {
 		const seeded = seededSidecar(read(RAW_SIDECAR), CANONICAL_TIME)
 
-		expect('bytes' in seeded && seeded.bytes !== null).toBe(true)
+		expect(seeded).not.toBeNull()
 		const packet = readXmp((seeded as { bytes: Uint8Array }).bytes)
 		expect(textOf(packet, 'xmp:Rating')).toBe('3')
 		expect(textOf(packet, 'xmp:Label')).toBe('Red')
@@ -35,7 +35,7 @@ describe('seededSidecar', () => {
 
 	// spec: DELETE-003.12
 	it('gives no sidecar for a RAW sidecar holding nothing but the flag fields and Keep RAW', () => {
-		expect(seededSidecar(read(xmp({ 'digiKam:PickLabel': '3', 'honeycomb:KeepRaw': 'True' })), CANONICAL_TIME)).toEqual({ bytes: null })
+		expect(seededSidecar(read(xmp({ 'digiKam:PickLabel': '3', 'honeycomb:KeepRaw': 'True' })), CANONICAL_TIME)).toBeNull()
 	})
 
 	// spec: DELETE-003.9

@@ -1697,3 +1697,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (matrix `db`, `scripts/database.sh`); `scripts/verify.sh` stays on SQLite to keep its run short.
   The three SQLite write-lock tests skip on the other engines, which lock rows (review E21/T3).
   Easy to redo: the matrix list in `ci.yml`.
+- 2026-11-20: *Remove RAWs* seeds the JPEG's new sidecar from the RAW sidecar read again (owner,
+  #187 D68) without `digiKam:PickLabel`, `xmpDM:pick`, `xmpDM:good` and `honeycomb:KeepRaw`, since
+  the flag and *Keep RAW* live in the rows (ADR 0040); darktable's history is copied like every
+  other program's field. A RAW sidecar with no other field seeds nothing. Easy to redo: the
+  `NOT_SEEDED` list in `src/logic/jpeg-seed.ts`.
