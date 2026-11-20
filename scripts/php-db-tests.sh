@@ -6,7 +6,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
 source scripts/nextcloud-images.sh
+source scripts/e2e-names.sh
 
-exec docker run --rm -e SQLITE_DATABASE=nextcloud -e NEXTCLOUD_ADMIN_USER=admin -e NEXTCLOUD_ADMIN_PASSWORD=admin \
+exec docker run --rm --label "$(e2e_owner_label)" -e SQLITE_DATABASE=nextcloud -e NEXTCLOUD_ADMIN_USER=admin -e NEXTCLOUD_ADMIN_PASSWORD=admin \
   -e NEXTCLOUD_UPDATE=1 -v "$PWD:/var/www/html/custom_apps/honeycomb:ro" "$NEWEST_NEXTCLOUD_IMAGE" \
   sh -c '/entrypoint.sh true && su -s /bin/sh www-data -c "php occ app:enable honeycomb && cd custom_apps/honeycomb && php vendor/bin/phpunit -c phpunit-db.xml"'
