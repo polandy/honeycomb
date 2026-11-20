@@ -16,6 +16,8 @@ use OCA\Honeycomb\Db\StatsMapper;
 use OCA\Honeycomb\Db\TagMapper;
 use OCA\Honeycomb\Db\VisualHashMapper;
 use OCA\Honeycomb\Db\XmpCacheMapper;
+use OCA\Honeycomb\Immich\LocalFiles;
+use OCA\Honeycomb\Immich\PhpLocalFiles;
 use OCA\Honeycomb\Listener\ForgetDeletedUser;
 use OCA\Honeycomb\Listener\RenderWrittenPhotos;
 use OCA\Honeycomb\Preview\JpegDecoder;
@@ -61,6 +63,7 @@ final class Application extends App implements IBootstrap {
 		$context->registerServiceAlias(ExistingFiles::class, FileCacheLookup::class);
 		$context->registerServiceAlias(PhotoFilesBelow::class, FileCachePhotoFiles::class);
 		$context->registerServiceAlias(Pause::class, SystemPause::class);
+		$context->registerServiceAlias(LocalFiles::class, PhpLocalFiles::class);
 		$context->registerEventListener(UserDeletedEvent::class, ForgetDeletedUser::class);
 		$context->registerEventListener(NodeWrittenEvent::class, RenderWrittenPhotos::class);
 		$context->registerPreviewProvider(RawPreviewProvider::class, RawPreviewProvider::MIME_TYPE_REGEX);

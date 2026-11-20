@@ -137,6 +137,7 @@ them. A lacking scope shows up as a `403` on the call that needed it (above).
 |---|---|---|
 | 1, read only | `asset.read` | listing with filters and cursor paging (`POST /search/metadata`), reloading assets |
 | 1, read only | `asset.view` | previews through the PHP proxy (`GET /assets/{id}/thumbnail`) |
+| 1, read only | `asset.statistics` | the number of uploads in the status and the counts of ADR 0044 (`POST /search/statistics`); without it the status shows no number |
 | 1, optional | `user.read` | the account's name in the connection's status (`GET /users/me`); without it the status shows the label only |
 | 2, *Write to Immich* | `asset.update` | rating, favourite, archive (`PUT /assets`) |
 | 2, optional | `asset.delete` | the Immich trash bin (`DELETE /assets`, `force:false`) and restoring from it; without it a reject can be archived or rated −1, not trashed |

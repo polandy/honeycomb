@@ -34,11 +34,13 @@ never stores, shows or logs a key.
 - **Connection switcher:** with several connections the navigation lists them by label; the one
   opened last is opened again. With one connection there is no switcher.
 - **Connection dialog** (*Immich connection*): read only, the label, the Immich server URL, the
-  status, the account and Immich's version, the scopes Phase 1 needs (`asset.read`, `asset.view`,
-  optional `user.read`) and the note that the admin defines connections. No field can be edited,
-  no key is shown, masked or entered; *Test connection* asks the status again; *Done* closes it.
+  status, the account and Immich's version, the scopes Phase 1 needs (`asset.read`,
+  `asset.view`, `asset.statistics`, optional `user.read`) and the note that the admin defines
+  connections. No field can be edited, no key is shown, masked or entered; *Test connection*
+  asks the status again; *Done* closes it.
 - **Status per connection:** *Connected as <account>* (or the label without `user.read`), the
-  version and the number of phone uploads; *Immich unreachable*, *The API key is refused*, *The
+  version and the number of phone uploads (none without
+  `asset.statistics`); *Immich unreachable*, *The API key is refused*, *The
   API key cannot be read*, *This Immich version is not supported*. Decisions already made stay in
   honeycomb in every state, and the other connections work.
 
@@ -84,6 +86,7 @@ never stores, shows or logs a key.
 - **When** honeycomb calls Immich for it
 - **Then** the key is sent in the `x-api-key` header only, with surrounding whitespace trimmed,
   and appears in no answer, log line or exception message
+- **And** a redirect is not followed, so the key never reaches another host
 
 ### IMMICH-001.7 – A bad key file
 
@@ -142,3 +145,17 @@ never stores, shows or logs a key.
 - **Given** any Immich error state
 - **When** the user switches to *Nextcloud*
 - **Then** folders list, cull and delete as before
+
+### IMMICH-001.16 – An answer that does not fit
+
+- **Given** an Immich that answers a call with another `4xx` than `401` or `403`, or with a body
+  the pinned schema does not describe
+- **When** the user asks the status or lists the assets
+- **Then** the status is `version` and the listing answers `502` `version`; an Immich that
+  answers `5xx` is `unreachable`
+
+### IMMICH-001.17 – Status without `asset.statistics`
+
+- **Given** a key without `asset.statistics`
+- **When** the user asks the status
+- **Then** `state` is `ok` and `total` is `null`

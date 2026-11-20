@@ -18,6 +18,7 @@ final class WriteRateLimitTest extends TestCase {
 	private const array READING = [
 		'EmbeddedXmpController::lookup',
 		'ImageController::warm',
+		'ImmichController::assets',
 		'MoveController::targets',
 		'SeriesController::lookup',
 		'SidecarController::lookup',
