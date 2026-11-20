@@ -7,6 +7,7 @@ import type { ImmichAvailability } from '../../src/logic/immich-connections.ts'
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import AppNavigation from '../../src/components/AppNavigation.vue'
+import FolderPicker from '../../src/components/FolderPicker.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import ImmichConnectionDialog from '../../src/components/ImmichConnectionDialog.vue'
 import ImmichState from '../../src/components/ImmichState.vue'
@@ -33,6 +34,16 @@ describe('App: the Immich source', () => {
 		await flushPromises()
 
 		expect(wrapper.findComponent(AppNavigation).props('offersImmich')).toBe(false)
+	})
+
+	// spec: IMMICH-001.20
+	it('lets the folder picker close before a first cull only while Immich is offered', async () => {
+		const offered = mountApp({ immich: immichOn({ kind: 'connections', connections: [PHONE] }).immich }).wrapper
+		const none = mountApp({ immich: immichOn({ kind: 'none' }).immich }).wrapper
+		await flushPromises()
+
+		expect(offered.findComponent(FolderPicker).props('closable')).toBe(true)
+		expect(none.findComponent(FolderPicker).props('closable')).toBe(false)
 	})
 
 	// spec: IMMICH-001.15

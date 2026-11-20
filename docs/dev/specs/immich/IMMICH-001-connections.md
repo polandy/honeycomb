@@ -33,7 +33,8 @@ never stores, shows or logs a key.
   since Nextcloud's own header sits above it; *Immich* shows only while the user has a connection
   or the file is broken. Without the app config the Nextcloud source works as before; a broken
   file shows the Immich source as unavailable because of the server configuration. The Nextcloud
-  source keeps its cull while the Immich source is open, and the page opens on Nextcloud.
+  source keeps its cull while the Immich source is open, and the page opens on Nextcloud. While
+  *Immich* shows, the folder picker can be closed before a first cull, so Immich needs no folder.
 - **Immich navigation:** the Immich source replaces *Folder* and *Recent* in the navigation with
   its connections and *Connection details*; the pages of their own stay.
 - **Connection switcher:** with several connections the navigation lists them by label, each with
@@ -181,3 +182,9 @@ never stores, shows or logs a key.
 - **When** the user opens it
 - **Then** the content names the state, says the decisions stay in honeycomb, and *Try again*
   asks the status again
+
+### IMMICH-001.20 – Immich without a folder
+
+- **Given** a user with a connection and no folder culled yet
+- **When** the user opens honeycomb
+- **Then** the folder picker can be closed, and the source switcher opens Immich
