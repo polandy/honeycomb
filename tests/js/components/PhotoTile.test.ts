@@ -110,6 +110,50 @@ describe('PhotoTile', () => {
 		expect(started).toEqual(['/img/1/256/7'])
 	})
 
+	// spec: GRID-001.23
+	it('dims a tile whose small preview failed, with a broken-image glyph, its name and the failure in its label', async () => {
+		const { loads, settled } = fakeLoads()
+		const wrapper = mountTile(PAIR, { loads })
+		expect(wrapper.find('.photo-tile__failed').exists()).toBe(false)
+
+		await settled('/img/1/256/7', 'reject')
+
+		expect(wrapper.classes()).toContain('photo-tile--failed')
+		expect(wrapper.find('.photo-tile__failed svg').exists()).toBe(true)
+		expect(wrapper.find('.photo-tile__failed').text()).toBe('IMG_0001')
+		expect(wrapper.attributes('aria-label')).toContain('Preview failed to load')
+		expect(wrapper.emitted('imageFailed')).toEqual([[true]])
+	})
+
+	// spec: GRID-001.23
+	it('loads the small preview again on a retry and shows it when it arrives', async () => {
+		const { started, loads, settled } = fakeLoads()
+		const wrapper = mountTile(PAIR, { loads })
+		await settled('/img/1/256/7', 'reject')
+
+		await wrapper.setProps({ retry: 1 })
+		expect(started).toEqual(['/img/1/256/7', '/img/1/256/7'])
+		expect(wrapper.classes()).not.toContain('photo-tile--failed')
+		expect(wrapper.classes()).toContain('skeleton-tile')
+		await settled('/img/1/256/7')
+
+		expect(wrapper.find('img').attributes('src')).toBe('/img/1/256/7')
+		expect(wrapper.find('.photo-tile__failed').exists()).toBe(false)
+		expect(wrapper.emitted('imageFailed')).toEqual([[true], [false]])
+	})
+
+	// spec: GRID-001.23
+	it('ignores a retry while the preview shows or is on its way', async () => {
+		const { started, loads, settled } = fakeLoads()
+		const wrapper = mountTile(PAIR, { loads })
+
+		await wrapper.setProps({ retry: 1 })
+		await settled('/img/1/256/7')
+		await wrapper.setProps({ retry: 2 })
+
+		expect(started).toEqual(['/img/1/256/7', '/img/1/1024/7'])
+	})
+
 	// spec: GRID-001.2
 	it('loads no sharp image while the small preview is sharp enough', async () => {
 		const { started, loads, settled } = fakeLoads()
