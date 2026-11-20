@@ -9,12 +9,14 @@ namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\PageController;
+use OCA\Honeycomb\Service\AppVisits;
 use OCA\Honeycomb\Service\ScriptManifest;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\Config\IUserConfig;
 use OCP\IGroupManager;
 use OCP\IRequest;
 use OCP\IUser;
@@ -23,6 +25,17 @@ use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
 final class PageControllerTest extends TestCase {
+	/** @var list<string> the users whose visit was stored */
+	private array $visited = [];
+
+	// spec: IMAGES-001.16
+	public function testIndexRemembersThatTheUserOpenedHoneycomb(): void {
+		$this->controller()->index();
+		$this->controller(signedIn: false)->index();
+
+		$this->assertSame(['alice'], $this->visited);
+	}
+
 	// spec: APP-001.1
 	public function testIndexRendersTheMainTemplateForTheUser(): void {
 		$response = $this->controller()->index();
@@ -70,7 +83,12 @@ final class PageControllerTest extends TestCase {
 		$session->method('getUser')->willReturn($signedIn ? $user : null);
 		$groups = $this->createStub(IGroupManager::class);
 		$groups->method('isAdmin')->willReturnCallback(static fn (string $uid): bool => $admin && $uid === 'alice');
-		return new PageController(Application::APP_ID, $this->createStub(IRequest::class), new ScriptManifest($apps), $session, $groups);
+		$config = $this->createStub(IUserConfig::class);
+		$config->method('setValueBool')->willReturnCallback(function (string $userId): bool {
+			$this->visited[] = $userId;
+			return true;
+		});
+		return new PageController(Application::APP_ID, $this->createStub(IRequest::class), new ScriptManifest($apps), $session, $groups, new AppVisits($config));
 	}
 
 	// spec: APP-001.1
