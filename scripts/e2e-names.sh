@@ -12,3 +12,6 @@ e2e_oldest_port() { echo "${HONEYCOMB_E2E_OLDEST_PORT:-$(($(e2e_port) + E2E_OLDE
 upgrade_port() { echo "${HONEYCOMB_UPGRADE_PORT:-$UPGRADE_DEFAULT_PORT}"; }
 e2e_container() { echo "honeycomb-e2e-$1"; }
 upgrade_container() { echo "honeycomb-upgrade-$1"; }
+# The label names the process that owns a container, so verify.sh can remove it once that process is gone.
+E2E_OWNER_LABEL=honeycomb.e2e.owner
+e2e_owner_label() { echo "$E2E_OWNER_LABEL=${HONEYCOMB_E2E_OWNER:-$$@$(uname -n)}"; }

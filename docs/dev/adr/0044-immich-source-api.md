@@ -94,12 +94,12 @@ first, ties by asset id; a cursor is `null` at the end it names.
 
 ### The counts
 
-The body is `{"filters", "periods"}` with the time, device and kind filters of the listing and a
+The body is `{"filters", "periods"}` with the filters of the listing and a
 list of `{"takenAfter", "takenBefore"}` for the time options. The answer:
 
 ```json
 {
-  "total": 3660, "undecided": 3412,
+  "total": 3660, "undecided": 3412, "decided": 248, "matching": 3660,
   "flags": {"picked": 120, "rejected": 128, "unflagged": 3412},
   "ratings": {"0": 3500, "1": 0, "2": 40, "3": 80, "4": 30, "5": 10},
   "colourLabels": {"red": 4},
@@ -111,8 +111,10 @@ list of `{"takenAfter", "takenBefore"}` for the time options. The answer:
 
 `total` is Immich's count (`POST /search/statistics`) for the filters; the flag, rating and colour
 counts are ADR 0043's grouped query, with *Unflagged* and rating 0 as `total` minus the decided
-rows. A facet (`devices`, `kinds`, `periods`) counts under the filters of the other groups, so an
-option shows what choosing it would give. The device list comes from Immich's suggestions for
+rows. `decided` is `total` minus `undecided`, `matching` the count under the flag, rating and
+colour filters as well (the toolbar's *N of M*; the body then carries them). A facet
+(`devices`, `kinds`, `periods`) counts under the filters of the other groups, so an option shows
+what choosing it would give. The device list comes from Immich's suggestions for
 camera models, each with its own count.
 
 ### Write to Immich (Phase 2)
@@ -142,8 +144,7 @@ is `immich:<connectionId>`; `honeycomb_positions` gains a nullable `asset_id` (s
 - A signed cursor keeps the server stateless across requests; changing a filter starts over.
 - Several devices or kinds cost one Immich search each per page; bounded at 20.
 - Counts cost one Immich statistics call per facet option, a dozen per change of filter; the
-  browser asks again only when the time, device or kind filters change, a decision updates its
-  counts locally.
+  browser asks again only when a filter changes, a decision updates its counts locally.
 - Screenshots and messenger images, which the mockup shows as kinds, are not in Phase 1: Immich
   cannot filter them, so the server could not count them without paging the library. They are a
   `TODO.md` item.

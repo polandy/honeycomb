@@ -2,8 +2,8 @@
 
 - Status: accepted
 - Area: immich
-- Origin: ADR 0041 Phase 2, ADR 0043, ADR 0044; Phase 1 mockup and the owner's sign-off condition
-  of 2026-11-20
+- Origin: ADR 0041 Phase 2, ADR 0043, ADR 0044; Phase 1 mockup and the owner's
+  sign-off condition of 2026-11-20, [mockup](../../mockup/immich/index.html) (phase 2)
 - Depends on: IMMICH-001, IMMICH-002, IMMICH-003
 
 ## Purpose

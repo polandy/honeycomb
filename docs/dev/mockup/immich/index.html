@@ -1,0 +1,805 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 honeycomb contributors -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>honeycomb mockup – Immich source</title>
+<link rel="icon" href="data:,">
+<style>
+/* Tokens copied from docs/dev/mockup/index.html; built from the Phase 1 artifact the owner signed off on 2026-11-20. */
+:root{
+  --ink:#1b1b1b; --paper:#f7f7f7; --honey:#F4A51C; --on-honey:#1b1b1b;
+  --bg:#f7f7f7; --bg-nav:#ffffff; --card:#ffffff; --card-2:#f0f0f0; --text:#1b1b1b; --muted:#5e5e5e;
+  --border:#dcdcdc; --honey-soft:#fdecc8; --danger:#c62f2b;
+  --ok:#1f8a4c; --ok-soft:#dff3e6; --warn-bg:#ffe3dc; --warn-text:#a52f14; --focus:#1a62d6; --scrim:rgba(0,0,0,.5);
+  --shadow:0 4px 18px rgba(0,0,0,.14); --tile-bg:#e6e6e6;
+  --stage:#111111; --stage-2:#1a1a1a; --stage-text:#f2f2f2; --stage-muted:#b0b0b0; --pick-fill:#1f7a46; --reject-fill:#b3302c;
+  --hdr-bg:#ffffff; --hdr-fg:#1b1b1b; --hdr-line:#dcdcdc; --immich-soft:#e4e7fb;
+  --hit:44px; --ic:22px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#161616; --bg-nav:#1c1c1c; --card:#222222; --card-2:#2c2c2c; --text:#f2f2f2; --muted:#a6a6a6;
+  --border:#3a3a3a; --honey-soft:#3d2e0e; --danger:#ef6b66;
+  --ok:#5fcf8a; --ok-soft:#1c3a28; --warn-bg:#4a2018; --warn-text:#ffb4a2; --focus:#8ab4ff; --scrim:rgba(0,0,0,.65);
+  --shadow:0 4px 22px rgba(0,0,0,.5); --tile-bg:#2c2c2c; --hdr-bg:#1b1b1b; --hdr-fg:#f7f7f7; --hdr-line:#333;
+  --immich-soft:#262b4d; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#161616; --bg-nav:#1c1c1c; --card:#222222; --card-2:#2c2c2c; --text:#f2f2f2; --muted:#a6a6a6;
+  --border:#3a3a3a; --honey-soft:#3d2e0e; --danger:#ef6b66;
+  --ok:#5fcf8a; --ok-soft:#1c3a28; --warn-bg:#4a2018; --warn-text:#ffb4a2; --focus:#8ab4ff; --scrim:rgba(0,0,0,.65);
+  --shadow:0 4px 22px rgba(0,0,0,.5); --tile-bg:#2c2c2c; --hdr-bg:#1b1b1b; --hdr-fg:#f7f7f7; --hdr-line:#333;
+  --immich-soft:#262b4d; color-scheme:dark }
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;overflow:hidden;display:flex;flex-direction:column}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+svg.ic{width:var(--ic);height:var(--ic);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.ic.fill{fill:currentColor}
+
+#mock{flex:none;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:6px 10px;background:var(--card);border-bottom:2px dashed #b8860b;font-size:13px}
+#mock label{display:inline-flex;align-items:center;gap:6px}
+#mock select{min-height:32px;border-radius:8px;border:1px solid var(--border);background:var(--card-2);padding:0 6px}
+#mock input{width:18px;height:18px;accent-color:var(--honey)}
+#req{color:var(--muted);font-variant-numeric:tabular-nums;margin-left:auto}
+body[data-phase="1"] .p2{display:none!important}
+
+#app{flex:1;min-height:0;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.hdr{flex:none;background:var(--hdr-bg);color:var(--hdr-fg);border-bottom:1px solid var(--hdr-line);display:flex;align-items:center;gap:6px;min-height:56px;padding:4px 10px 4px 6px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:8px;font-weight:600;font-size:19px;padding:0 6px}
+.logo svg{width:30px;height:30px}
+.sp{flex:1}
+.icon-btn{width:var(--hit);height:var(--hit);border-radius:10px;border:0;background:transparent;display:inline-flex;align-items:center;justify-content:center;color:inherit}
+.icon-btn:active{background:rgba(127,127,127,.22)}
+.btn{min-height:var(--hit);padding:0 16px;border-radius:10px;border:1px solid var(--border);background:var(--card);display:inline-flex;align-items:center;gap:8px;justify-content:center;font-weight:500;white-space:nowrap}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.primary{background:var(--honey);border-color:var(--honey);color:var(--on-honey);font-weight:600}
+.badge-n{min-width:20px;height:20px;border-radius:10px;background:var(--ink);color:var(--paper);font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 6px}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--card)}
+.seg button{min-height:var(--hit);border:0;background:transparent;padding:0 14px;border-right:1px solid var(--border);display:inline-flex;align-items:center;gap:6px}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--honey);color:var(--on-honey);font-weight:700}
+.seg button:disabled{opacity:.4;cursor:not-allowed}
+.src .imm{width:18px;height:18px;border-radius:5px;background:conic-gradient(#fa2921 0 25%,#ed79b5 0 50%,#ffb400 0 75%,#1e83f7 0);flex:none}
+.sync{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 12px;border-radius:18px;font-size:13px;border:1px solid var(--border);background:var(--card-2)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--ok);flex:none}
+.dot.pending{background:var(--honey)}.dot.err{background:var(--danger)}.dot.wait{background:var(--muted)}
+.sync.err{background:var(--warn-bg);color:var(--warn-text);border-color:transparent}
+
+.body{flex:1;display:flex;min-height:0;position:relative}
+nav#nav{width:272px;flex:none;background:var(--bg-nav);border-right:1px solid var(--border);overflow:auto;padding:8px 8px 16px;display:flex;flex-direction:column;gap:2px;z-index:20}
+nav .sect{font-size:12px;color:var(--muted);padding:14px 12px 4px;text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:6px}
+nav .sect svg{width:16px;height:16px}
+nav button.it{display:flex;align-items:center;gap:10px;min-height:var(--hit);padding:0 12px;border-radius:10px;border:0;background:none;width:100%;text-align:left}
+nav button.it:disabled{opacity:.6;cursor:default}
+nav button.it .n{margin-left:auto;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap}
+nav button.it .two{display:flex;flex-direction:column;min-width:0}nav button.it .two small{color:var(--muted);font-size:12px}
+nav button.it[aria-pressed="true"]{background:var(--honey-soft);font-weight:600}
+nav button.it .box{width:18px;height:18px;border-radius:5px;border:2px solid var(--muted);display:inline-flex;align-items:center;justify-content:center;flex:none}
+nav button.it[aria-pressed="true"] .box{background:var(--honey);border-color:var(--honey);color:var(--on-honey)}
+nav button.it .box svg{width:12px;height:12px;stroke-width:3.5}
+.conn{margin-top:auto;margin-inline:4px;padding:10px 12px;border-radius:12px;background:var(--immich-soft);font-size:13px;display:flex;flex-direction:column;gap:2px}
+.conn b{font-weight:600;display:flex;align-items:center;gap:8px}.conn span{color:var(--muted)}
+.conn button{margin-top:6px;align-self:flex-start;min-height:36px;border-radius:8px;border:1px solid var(--border);background:var(--card);padding:0 10px}
+#navScrim{display:none}
+@media (max-width:899px){
+  nav#nav{position:absolute;left:0;top:0;bottom:0;box-shadow:var(--shadow);transform:translateX(-110%);transition:transform .2s}
+  #app[data-nav="open"] nav#nav{transform:none}
+  #app[data-nav="open"] #navScrim{display:block;position:absolute;inset:0;background:var(--scrim);z-index:19}
+}
+@media (min-width:900px){ #navBtn{display:none} }
+
+main{flex:1;min-width:0;display:flex;flex-direction:column}
+.toolbar{flex:none;padding:10px 12px 6px;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.crumbs{font-size:16px;flex:1;min-width:0;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.crumbs .sep{color:var(--muted)}.crumbs b{font-weight:700}
+.count{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.chip{min-height:var(--hit);padding:0 14px;border-radius:22px;border:1px solid var(--border);background:var(--card-2);display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--honey);border-color:var(--honey);color:var(--on-honey);font-weight:700}
+.chip[aria-pressed="true"] .count{color:inherit}
+.chip svg{width:18px;height:18px}
+.seg.rating button{padding:0 10px;font-size:18px;color:var(--muted)}
+.seg.rating button[aria-pressed="true"]{color:var(--on-honey)}
+.seg.rating button.op{font-size:15px;color:var(--text);min-width:var(--hit);justify-content:center}
+.resume{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 6px 6px 14px;border-radius:12px;background:var(--honey-soft);font-size:14px}
+.resume span{flex:1;min-width:200px}
+.grid-wrap{flex:1;overflow:auto;padding:4px 12px 24px;min-height:0}
+.day{grid-column:1/-1;font-size:13px;font-weight:600;color:var(--muted);padding:10px 2px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.tile{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--tile-bg);border:0;padding:0;max-width:100%}
+.tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tile img:not([src]){visibility:hidden}
+.tile .ov{position:absolute;left:0;right:0;bottom:0;padding:18px 6px 5px;background:linear-gradient(transparent,rgba(0,0,0,.72));display:flex;align-items:center;gap:6px;color:#fff;font-size:12px}
+.stars .off{opacity:.3}
+.tile .fl{margin-left:auto;display:inline-flex}
+.tile .fl svg{width:20px;height:20px;stroke-width:2.2}
+.fl.pick{color:#7ee2a5}.fl.reject{color:#ff8f87}
+.tile.rej img{opacity:.35}
+.tile .tl{position:absolute;left:6px;top:6px;display:flex;gap:4px}
+.tile .tr{position:absolute;right:6px;top:6px;display:flex;gap:4px}
+.pillx{font-size:11px;font-weight:700;border-radius:6px;padding:2px 6px;background:rgba(0,0,0,.6);color:#fff;display:inline-flex;align-items:center;gap:3px;line-height:1.3}
+.pillx svg{width:12px;height:12px;stroke-width:2.4}
+.pillx.pend{background:var(--honey);color:var(--on-honey)}
+.tile.cur{box-shadow:inset 0 0 0 4px var(--honey)}
+.empty{grid-column:1/-1;padding:40px 16px;text-align:center;color:var(--muted)}
+.note{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;max-width:640px;margin:24px auto;line-height:1.5;grid-column:1/-1}
+.note .btn{margin-top:12px}
+.foot{padding:14px 2px;display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--muted);font-size:13px;text-align:center}
+.skel{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;width:100%}
+.skel i{aspect-ratio:1;border-radius:10px;background:var(--tile-bg);opacity:.6}
+
+#loupe{position:absolute;inset:0;background:var(--stage);color:var(--stage-text);z-index:50;display:flex;flex-direction:column}
+.l-top{flex:none;display:flex;align-items:center;gap:6px;padding:6px 10px;min-height:60px}
+.l-top .icon-btn{color:var(--stage-text)}
+.l-title{min-width:0;flex:1}.l-title b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.l-title span{display:block;font-size:12px;color:var(--stage-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.l-count{color:var(--stage-muted);font-size:13px;font-variant-numeric:tabular-nums}
+.l-main{flex:1;display:flex;min-height:0;position:relative}
+#stage{flex:1;position:relative;overflow:hidden;touch-action:none;user-select:none;min-width:0}
+#stage img{position:absolute;inset:12px;width:calc(100% - 24px);height:calc(100% - 24px);object-fit:contain;transition:transform .15s}
+.navbtn{position:absolute;top:50%;margin-top:-28px;width:56px;height:56px;border-radius:50%;border:0;background:#0009;color:#fff;display:flex;align-items:center;justify-content:center;z-index:2}
+.navbtn.l{left:10px}.navbtn.r{right:10px}.navbtn:disabled{opacity:.25}
+.swipe-hint{position:absolute;left:50%;transform:translateX(-50%);padding:10px 22px;border-radius:30px;font-weight:800;font-size:20px;opacity:0;pointer-events:none;color:#fff;transition:opacity .15s;z-index:3}
+.swipe-hint.up{top:14px;background:var(--pick-fill)}.swipe-hint.down{bottom:14px;background:var(--reject-fill)}
+.swipe-hint.on{opacity:1}
+.l-load{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:#000b;border-radius:16px;padding:6px 14px;font-size:13px;z-index:3}
+#info{width:320px;flex:none;background:var(--stage-2);border-left:1px solid #ffffff1a;overflow:auto;padding:14px 16px;font-size:13px}
+#info h3{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--stage-muted);margin:14px 0 6px;font-weight:600}
+#info h3:first-child{margin-top:0}
+#info dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0}
+#info dt{color:var(--stage-muted)}#info dd{margin:0;min-width:0;overflow-wrap:anywhere}
+#info .state{padding:8px 10px;border-radius:10px;background:#ffffff10;margin-top:6px}
+@media (max-width:899px){ #info{position:absolute;right:0;top:0;bottom:0;z-index:5;box-shadow:var(--shadow)} }
+.film{flex:none;display:flex;gap:6px;overflow-x:auto;padding:6px 10px;background:#000;min-height:66px}
+.film button{flex:none;width:72px;height:54px;border-radius:6px;border:0;padding:0;overflow:hidden;background:#222}
+.film button.rej{opacity:.45}.film button.cur{box-shadow:inset 0 0 0 3px #fff}
+.film img{width:100%;height:100%;object-fit:cover;display:block}
+.film .more{flex:none;width:72px;height:54px;border-radius:6px;background:#222;color:var(--stage-muted);font-size:11px;display:flex;align-items:center;justify-content:center;text-align:center}
+.l-ctrl{flex:none;background:var(--stage-2);border-top:1px solid #ffffff1a;padding:8px 10px;display:flex;flex-direction:column;gap:8px;align-items:center}
+.ab{display:flex;gap:10px;width:100%;max-width:720px}
+.bigbtn{flex:1;min-height:60px;border-radius:14px;border:2px solid #ffffff26;background:#ffffff14;font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;color:var(--stage-text)}
+.bigbtn.pick svg{color:#5fcf8a}.bigbtn.reject svg{color:#ff8f87}.bigbtn.none{flex:0 0 auto;padding:0 18px}
+.bigbtn[aria-pressed="true"].pick{background:var(--pick-fill);border-color:var(--pick-fill);color:#fff}
+.bigbtn[aria-pressed="true"].reject{background:var(--reject-fill);border-color:var(--reject-fill);color:#fff}
+.bigbtn[aria-pressed="true"].none{border-color:var(--stage-text)}
+.bigbtn[aria-pressed="true"] svg{color:inherit}
+.starrow{display:flex;gap:2px;align-items:center}
+.starrow button{width:var(--hit);height:var(--hit);border:0;background:none;color:var(--stage-muted);font-size:24px;border-radius:8px}
+.starrow button.on{color:var(--honey)}
+.kbd-hint{font-size:12px;color:var(--stage-muted)}
+
+.scrim{position:absolute;inset:0;background:var(--scrim);z-index:80;display:flex;align-items:center;justify-content:center;padding:16px}
+.dlg{background:var(--card);color:var(--text);border-radius:14px;box-shadow:var(--shadow);width:min(720px,100%);max-height:100%;display:flex;flex-direction:column;overflow:hidden}
+.dlg-h{display:flex;align-items:center;padding:6px 8px 6px 20px;border-bottom:1px solid var(--border);gap:6px}
+.dlg-h h2{margin:0;font-size:19px;flex:1}
+.dlg-b{padding:14px 20px;overflow:auto;flex:1;min-height:0;display:flex;flex-direction:column;gap:14px}
+.dlg-f{display:flex;gap:8px;justify-content:flex-end;padding:10px 16px 12px;border-top:1px solid var(--border);flex-wrap:wrap;align-items:center}
+.dlg-f .hint{margin-right:auto;font-size:13px;color:var(--muted);max-width:360px}
+.blk{display:flex;flex-direction:column;gap:8px}
+.blk h4{margin:0;font-size:15px;display:flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums}
+.blk p{margin:0;font-size:13px;color:var(--muted)}
+.blk .seg{align-self:flex-start;flex-wrap:wrap}
+.lead{margin:0;font-size:14px}
+.strip{display:flex;gap:4px;overflow-x:auto}.strip img{width:44px;height:44px;border-radius:6px;object-fit:cover;flex:none;background:var(--tile-bg)}
+.conf{border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.conf .ci{display:flex;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);align-items:center;flex-wrap:wrap}
+.conf .ci:last-child{border-bottom:0}
+.conf .ci.warn{background:var(--warn-bg)}
+.conf img{width:48px;height:48px;border-radius:8px;object-fit:cover;flex:none}
+.conf .tx{flex:1;min-width:180px;font-size:13px}.conf .tx b{display:block;font-size:14px}
+.conf .seg button{min-height:36px;font-size:13px;padding:0 10px}
+.banner{padding:10px 14px;border-radius:10px;font-size:14px}
+.banner.err{background:var(--warn-bg);color:var(--warn-text)}
+.banner.ok{background:var(--ok-soft);color:var(--ok)}
+.bar{height:10px;border-radius:5px;background:var(--card-2);overflow:hidden}.bar i{display:block;height:100%;background:var(--honey);transition:width .3s}
+.ro{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0;font-size:14px}
+.ro dt{color:var(--muted)}.ro dd{margin:0;min-width:0;overflow-wrap:anywhere;display:flex;align-items:center;gap:8px}
+.scopes{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13px;margin:0;padding:0;list-style:none}
+.scopes code{font-size:12px;background:var(--card-2);padding:1px 6px;border-radius:5px}
+.scopes .n{color:var(--danger);font-weight:700}
+.toasts{position:absolute;left:0;right:0;bottom:16px;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:90;pointer-events:none;padding:0 16px}
+.toast{pointer-events:auto;background:var(--ink);color:var(--paper);border-radius:12px;padding:4px 6px 4px 16px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);min-height:48px;max-width:100%}
+.toast button{min-height:var(--hit);padding:0 14px;border:0;background:transparent;color:var(--honey);font-weight:700;border-radius:8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body data-phase="1">
+<div id="mock" aria-label="Mockup scenarios">
+  <b>Mockup · Immich source</b>
+  <label>Phase <select data-sc="phase"><option value="1">1 · read only</option><option value="2">2 · Write to Immich</option></select></label>
+  <label>Connections file <select data-sc="conns"><option value="two">Two connections</option><option value="one">One connection</option><option value="none">Not configured</option><option value="broken">Invalid</option></select></label>
+  <label>Andy’s phone <select data-sc="state"><option value="ok">Connected</option><option value="unreachable">Immich unreachable</option><option value="refused">Key refused</option><option value="key">Key file unreadable</option><option value="version">Version not supported</option></select></label>
+  <label><input type="checkbox" data-sc="noUserRead">Key without <code>user.read</code></label>
+  <label><input type="checkbox" data-sc="failPage">Third page fails</label>
+  <label class="p2">Changes to write <select data-sc="write"><option value="large">Large (every decision)</option><option value="small">Small (six)</option></select></label>
+  <label class="p2"><input type="checkbox" data-sc="noDelete">Key without <code>asset.delete</code></label>
+  <span id="req" role="status"></span>
+</div>
+<div id="app" data-nav="closed">
+  <header class="hdr">
+    <button class="icon-btn" id="navBtn" aria-label="Show navigation" data-act="nav"></button>
+    <div class="logo" id="logo"></div>
+    <div class="seg src" role="group" aria-label="Source" id="srcSeg"></div>
+    <div class="sp"></div>
+    <span class="sync" id="sync" role="status"></span>
+    <button class="btn primary p2" data-act="write" id="writeBtn"></button>
+    <button class="icon-btn" data-act="settings" aria-label="Immich connection" id="setBtn"></button>
+  </header>
+  <div class="body">
+    <nav id="nav" aria-label="Navigation"></nav>
+    <div id="navScrim" data-act="nav"></div>
+    <main>
+      <div class="toolbar" id="toolbar"></div>
+      <div class="grid-wrap" id="gridWrap"><div class="grid" id="grid"></div><div class="foot" id="foot"></div></div>
+    </main>
+  </div>
+  <section id="loupe" hidden aria-label="Loupe"></section>
+  <div id="dlg" hidden></div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+</div>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf = n => new Intl.NumberFormat('en').format(n);
+const IC = {
+  menu:'M4 6h16M4 12h16M4 18h16', close:'M6 6l12 12M18 6 6 18', check:'M5 12l5 5 9-10', chevL:'M15 6l-6 6 6 6', chevR:'M9 6l6 6-6 6',
+  upload:'M12 16V4M7 9l5-5 5 5M4 20h16', settings:'M4 7h10M18 7h2M4 17h2M10 17h10M16 7m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0M8 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0',
+  flag:'M5 3v18M5 4h11l-2 4 2 4H5', flagPick:'M5 3v18M5 4h11l-2 4 2 4H5z', flagX:'M5 3v18M5 4h11l-2 4 2 4H5M8 6l3 4M11 6l-3 4',
+  info:'M12 8h.01M11 12h1v5h1M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18', play:'M8 5v14l11-7z', live:'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0',
+  stack:'M4 8l8-4 8 4-8 4zM4 12l8 4 8-4M4 16l8 4 8-4', phone:'M8 3h8v18H8zM11 18h2', folder:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  cal:'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', warn:'M12 4l9 16H3zM12 10v4M12 17h.01', clock:'M12 7v5l3 2M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18', user:'M12 12a4 4 0 1 0 0-8a4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0'
+};
+const FILLED = new Set(['flagPick', 'play']);
+const ic = n => `<svg class="ic${FILLED.has(n) ? ' fill' : ''}" viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
+const starsHtml = n => `<span class="stars"><span>${'★'.repeat(n)}</span><span class="off">${'★'.repeat(5 - n)}</span></span>`;
+function rng(seed){ let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function logoSVG(){
+  const cx = 24, cy = 24, R = 21, V = [];
+  for (let k = 0; k < 6; k++){ const a = (-90 + 60 * k) * Math.PI / 180; V.push([cx + R * Math.cos(a), cy + R * Math.sin(a)]); }
+  let d = '';
+  for (let k = 0; k < 6; k++){
+    const p = V[k], a = V[(k + 5) % 6], b = V[(k + 1) % 6], f = .34, m = q => [p[0] + (q[0] - p[0]) * f, p[1] + (q[1] - p[1]) * f];
+    const m1 = m(a), m2 = m(b); d += `M${m1[0].toFixed(1)} ${m1[1].toFixed(1)}L${p[0].toFixed(1)} ${p[1].toFixed(1)}L${m2[0].toFixed(1)} ${m2[1].toFixed(1)}`;
+  }
+  const hex = (x, y, r) => { let s = ''; for (let k = 0; k < 6; k++){ const a = (-90 + 60 * k) * Math.PI / 180; s += (k ? 'L' : 'M') + (x + r * Math.cos(a)).toFixed(1) + ' ' + (y + r * Math.sin(a)).toFixed(1); } return s + 'Z'; };
+  return `<svg viewBox="0 0 48 48" role="img" aria-label="honeycomb"><path d="${d}" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="${hex(17.4, 24, 6.2)}" fill="#F4A51C"/><path d="${hex(30.6, 24, 6.2)}" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>`;
+}
+
+/* ---------- sample data: two Immich upload libraries, as the server sees them ---------- */
+const NOW = Date.UTC(2026, 10, 19, 15, 14);
+const PAGE = 100, BLOCK = 100, AHEAD = 12;
+const KINDS = {photo:'Photos', live:'Motion photos', video:'Videos'};
+const KIND_ONE = {photo:'Photo', live:'Motion photo', video:'Video'};
+const FLAGS = [['picked', 'flagPick', 'Picked'], ['unflagged', 'flag', 'Unflagged'], ['rejected', 'flagX', 'Rejected']];
+const flagName = f => FLAGS.find(x => x[0] === f)[2];
+const RATING_OPS = {atLeast:{sym:'≥', name:'At least', test:(r, k) => r >= k, next:'atMost'}, atMost:{sym:'≤', name:'At most', test:(r, k) => r <= k, next:'exactly'}, exactly:{sym:'=', name:'Exactly', test:(r, k) => r === k, next:'atLeast'}};
+const NODEV = 'No camera data';
+const MONTHS = [[10, 18, 'November 2026'], [9, 31, 'October 2026'], [8, 30, 'September 2026'], [7, 31, 'August 2026']];
+const pad = (n, w = 2) => String(n).padStart(w, '0');
+const monthKey = t => { const d = new Date(t); return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`; };
+const mmss = s => `${Math.floor(s / 60)}:${pad(s % 60)}`;
+function uuid(r){ const h = () => Math.floor(r() * 16).toString(16); let s = ''; for (let i = 0; i < 32; i++){ s += i === 12 ? '4' : i === 16 ? '8' : h(); if ([7, 11, 15, 19].includes(i)) s += '-'; } return s; }
+function library(seed, perMonth, devices){
+  const r = rng(seed), out = [];
+  let seq = 0;
+  MONTHS.forEach(([mon, days], m) => { for (let n = 0; n < perMonth[m]; n++){
+    const t = Date.UTC(2026, mon, 1 + Math.floor(r() * days), 6 + Math.floor(r() * 16), Math.floor(r() * 60), Math.floor(r() * 60));
+    const roll = r(), kind = roll < .74 ? 'photo' : roll < .9 ? 'live' : 'video';
+    let device = null, acc = 0; const dr = r();
+    for (const [d, w] of devices){ acc += w; if (dr < acc){ device = d; break; } }
+    if (kind !== 'photo' && !device) device = devices[0][0];
+    const d = new Date(t), ymd = `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}`, hms = `${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}`;
+    seq++;
+    const name = !device ? `IMG-${ymd}-WA${pad(seq % 9973, 4)}.jpg` : device.startsWith('Pixel') ? `PXL_${ymd}_${hms}${pad(seq % 1000, 3)}${kind === 'video' ? '.mp4' : kind === 'live' ? '.MP.jpg' : '.jpg'}`
+      : `IMG_${pad(seq, 4)}.${kind === 'video' ? 'MOV' : 'HEIC'}`;
+    const portrait = r() < .3;
+    out.push({id:uuid(r), name, kind, device, t, scene:Math.floor(r() * 1e6), portrait, w:portrait ? 3072 : 4080, h:portrait ? 4080 : 3072,
+      dur:kind === 'video' ? 4 + Math.floor(r() * 50) : null, stack:kind === 'photo' && r() < .03 ? 2 + Math.floor(r() * 3) : null, updated:t + 6e5,
+      imm:{rating:null, fav:false, trashed:false, archived:false, album:null, shared:0, ratingChanged:false, trashedElsewhere:false, failOnWrite:false}});
+  }});
+  return out.sort((a, b) => b.t - a.t || (a.id < b.id ? -1 : 1));
+}
+const CONNS = [
+  {id:'andy-phone', label:'Andy’s phone', url:'https://immich.example.org', account:'Andy', picksAsFavorites:true, lib:library(4711, [700, 1100, 980, 880], [['Pixel 9 Pro', .8], ['Pixel 7', .12]]), dec:new Map(), position:null},
+  {id:'family-ipad', label:'Family iPad', url:'https://immich.example.org', account:'Family', picksAsFavorites:false, lib:library(815, [60, 152, 120, 80], [['iPad Air', .85]]), dec:new Map(), position:null}
+];
+const SPECIAL = [1, 2, 3, 9, 12, 15];
+(function seed(){
+  const c = CONNS[0], L = c.lib, r = rng(99);
+  const put = (i, flag, rating) => c.dec.set(L[i].id, {flag, rating, written:null});
+  for (let i = 0; i < 400 && c.dec.size < 242; i++){
+    if (r() < .62){ const f = r() < .45 ? 'picked' : r() < .9 ? 'rejected' : 'unflagged'; put(i, f, f === 'rejected' ? 0 : 1 + Math.floor(r() * 5)); }
+  }
+  put(1, 'rejected', 0); L[1].imm.failOnWrite = true;
+  put(2, 'rejected', 0); L[2].imm.album = 'Family 2026'; L[2].imm.shared = 2;
+  put(3, 'picked', 2); L[3].imm.rating = 4; L[3].imm.ratingChanged = true;
+  put(9, 'rejected', 0); L[9].imm.trashedElsewhere = true;
+  put(12, 'rejected', 0); L[12].stack = 3;
+  put(15, 'picked', 5);
+  c.position = {assetId:L[400].id};
+})();
+
+/* ---------- scenarios and the mock server (stands for honeycomb's routes, ADR 0044) ---------- */
+const SC = {phase:'1', conns:'two', state:'ok', noUserRead:false, failPage:false, write:'large', noDelete:false};
+const REQ = {status:0, listing:0, counts:0, thumbnail:0, preview:0, save:0, position:0, check:0, write:0};
+const tally = () => { $('#req').textContent = `Requests: listing ${REQ.listing} · counts ${REQ.counts} · thumbnails ${REQ.thumbnail} · previews ${REQ.preview} · saves ${REQ.save}${SC.phase === '2' ? ` · check ${REQ.check} · write ${REQ.write}` : ''}`; };
+const later = (fn, ms = 280) => setTimeout(fn, ms);
+const conns = () => SC.conns === 'two' ? CONNS : SC.conns === 'one' ? CONNS.slice(0, 1) : [];
+const stateOf = c => c === CONNS[0] ? SC.state : 'ok';
+const UND = {flag:'unflagged', rating:0, written:null};
+const decOf = (c, p) => c.dec.get(p.id) || UND;
+const isDecided = d => d.flag !== 'unflagged' || d.rating > 0;
+const periodOf = k => k === 'all' ? () => true : k === 'last7' ? p => p.t >= NOW - 7 * 864e5 : p => monthKey(p.t) === k;
+const inDev = (f, p) => !f.devices.size || f.devices.has(p.device || NODEV);
+const inKind = (f, p) => !f.kinds.size || f.kinds.has(p.kind);
+const passDec = (f, d) => (!f.flags.size || f.flags.has(d.flag)) && (f.rating == null || RATING_OPS[f.ratingOp].test(d.rating, f.rating));
+const timeOptions = () => [['last7', 'Last 7 days'], ...MONTHS.map(([m, , l]) => [`2026-${pad(m + 1)}`, l]), ['all', 'All phone uploads']];
+const deviceOptions = c => [...new Set(c.lib.map(p => p.device || NODEV))].sort((a, b) => (a === NODEV) - (b === NODEV) || a.localeCompare(b));
+const pendingOf = d => d.written ? d.flag !== d.written.flag || d.rating !== d.written.rating : isDecided(d);
+function setWriteScenario(){
+  const c = CONNS[0], small = new Set(SPECIAL.map(i => c.lib[i].id));
+  for (const [id, d] of c.dec) d.written = SC.write === 'large' || small.has(id) ? null : {flag:d.flag, rating:d.rating};
+}
+function srvStatus(c, cb){
+  REQ.status++; tally();
+  later(() => { const state = stateOf(c); cb({state, account:SC.noUserRead ? null : c.account, version:state === 'version' ? 'v2.1.0' : 'v3.4.2', total:state === 'ok' ? c.lib.length : null}); }, 200);
+}
+function srvList(c, f, req, cb){
+  REQ.listing++; tally();
+  later(() => {
+    const st = stateOf(c); if (st !== 'ok') return cb({error:st});
+    if (SC.failPage && req.nth === 3 && !req.retry) return cb({error:'unreachable'});
+    const Q = c.lib.filter(p => periodOf(f.time)(p) && inDev(f, p) && inKind(f, p));
+    const L = passDec(f, UND) ? Q : Q.filter(p => c.dec.has(p.id) && passDec(f, c.dec.get(p.id)));
+    let s, e;
+    if (req.back != null){ e = req.back; s = Math.max(0, e - PAGE); }
+    else { s = req.from ? Math.max(0, L.findIndex(p => p.id === req.from)) : req.cursor; e = Math.min(L.length, s + PAGE); }
+    cb({entries:L.slice(s, e).filter(p => passDec(f, decOf(c, p))), nextCursor:e < L.length ? e : null, previousCursor:s > 0 ? s : null});
+  });
+}
+function srvCounts(c, f, cb){
+  REQ.counts++; tally();
+  later(() => {
+    const st = stateOf(c); if (st !== 'ok') return cb({error:st});
+    const inT = periodOf(f.time), Q = c.lib.filter(p => inT(p) && inDev(f, p) && inKind(f, p));
+    const flags = {picked:0, rejected:0, unflagged:0}; let decided = 0, matching = 0;
+    for (const p of Q){ const d = decOf(c, p); flags[d.flag]++; if (isDecided(d)) decided++; if (passDec(f, d)) matching++; }
+    cb({total:Q.length, decided, matching, flags,
+      devices:deviceOptions(c).map(m => ({model:m, count:c.lib.filter(p => inT(p) && inKind(f, p) && (p.device || NODEV) === m).length})),
+      kinds:Object.fromEntries(Object.keys(KINDS).map(k => [k, c.lib.filter(p => inT(p) && inDev(f, p) && p.kind === k).length])),
+      periods:timeOptions().map(([k]) => c.lib.filter(p => periodOf(k)(p) && inDev(f, p) && inKind(f, p)).length)});
+  });
+}
+function srvSave(c, p, d){ REQ.save++; tally(); const old = c.dec.get(p.id); c.dec.set(p.id, {flag:d.flag, rating:d.rating, written:old ? old.written : null}); }
+
+/* ---------- pseudo photos drawn on canvas; a cached URL stands for the browser's year-long cache ---------- */
+const imgCache = new Map();
+function picture(p, size){
+  const key = p.id + size; if (imgCache.has(key)) return imgCache.get(key);
+  REQ[size > 400 ? 'preview' : 'thumbnail']++; tally();
+  const W = p.portrait ? Math.round(size * .75) : size, H = p.portrait ? size : Math.round(size * .75);
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const g = cv.getContext('2d');
+  const r = rng(p.scene), hue = Math.floor(r() * 360);
+  if (!p.device){
+    g.fillStyle = `hsl(${hue} 60% 45%)`; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#fff'; g.fillRect(W * .1, H * .08, W * .8, H * .1); g.fillRect(W * .1, H * .82, W * .8, H * .1);
+    g.fillStyle = `hsl(${(hue + 160) % 360} 60% 60%)`; g.beginPath(); g.arc(W * .5, H * .5, Math.min(W, H) * .22, 0, 7); g.fill();
+  } else {
+    const sky = g.createLinearGradient(0, 0, 0, H), t = r();
+    sky.addColorStop(0, `hsl(${(hue + 190) % 360} ${40 + t * 30}% ${55 + t * 20}%)`); sky.addColorStop(1, `hsl(${(hue + 30) % 360} 60% ${70 + t * 10}%)`);
+    g.fillStyle = sky; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'hsla(45 100% 85% / .9)'; g.beginPath(); g.arc(W * (.2 + r() * .6), H * (.18 + r() * .2), Math.min(W, H) * (.06 + r() * .06), 0, 7); g.fill();
+    for (let k = 0; k < 3; k++){
+      g.fillStyle = `hsl(${(hue + 80 + k * 20) % 360} ${30 + k * 10}% ${42 - k * 10}%)`; g.beginPath(); g.moveTo(0, H);
+      const base = H * (.5 + k * .14); for (let x = 0; x <= W; x += W / 8) g.lineTo(x, base - r() * H * .14 + Math.sin(x / W * 6) * H * .02);
+      g.lineTo(W, H); g.fill();
+    }
+  }
+  const url = cv.toDataURL('image/jpeg', .8); imgCache.set(key, url); return url;
+}
+const thumb = p => picture(p, 320), preview = p => picture(p, 1100);
+
+/* ---------- client state ---------- */
+const defaultFilters = () => ({time:'2026-11', devices:new Set(), kinds:new Set(), flags:new Set(), ratingOp:'atLeast', rating:null});
+const S = {source:'immich', connId:'andy-phone', f:defaultFilters(), loupeId:null, info:true, status:{}, counts:null, resumeDone:{}, write:{rejectAs:'trash', choices:{}}};
+let W = null;
+const freshWindow = () => ({gen:(W ? W.gen : 0) + 1, items:[], next:0, prev:null, busy:false, prevBusy:false, error:null, nth:0, retry:false});
+const conn = () => conns().find(c => c.id === S.connId) || conns()[0];
+const vis = () => { const c = conn(); return W.items.filter(p => passDec(S.f, decOf(c, p))); };
+const STATE_TEXT = {unreachable:'Immich unreachable', refused:'The API key is refused', key:'The API key cannot be read', version:'This Immich version is not supported'};
+const statusLine = c => { const st = S.status[c.id]; if (!st) return 'Checking the connection…'; if (st.state !== 'ok') return STATE_TEXT[st.state]; return st.account ? `Connected as ${st.account}` : c.label; };
+const dotOf = c => { const st = S.status[c.id]; return !st ? 'wait' : st.state !== 'ok' ? 'err' : SC.phase === '2' && pendingCount(c) ? 'pending' : ''; };
+const pendingCount = c => [...c.dec.values()].filter(pendingOf).length;
+const immichUsable = () => S.source === 'immich' && SC.conns !== 'none' && SC.conns !== 'broken';
+
+function openConnection(){
+  S.loupeId = null; closeLoupe(true);
+  const c = conn(); if (!c) return render();
+  conns().forEach(x => srvStatus(x, st => { S.status[x.id] = st; renderHeader(); renderNav(); }));
+  restart();
+}
+function restart(from, onFirst){
+  W = freshWindow(); S.counts = null;
+  const g = W.gen, c = conn();
+  srvCounts(c, S.f, res => { if (g !== W.gen) return; S.counts = res.error ? null : res; renderToolbar(); renderNav(); renderLoupe(); });
+  render(); $('#gridWrap').scrollTop = 0; loadNext(from, onFirst);
+}
+function loadNext(from, onFirst){
+  if (!W || W.busy || W.next === null || W.error) return;
+  W.busy = true; W.nth++; renderFoot();
+  const g = W.gen;
+  srvList(conn(), S.f, {cursor:W.next, from, nth:W.nth, retry:W.retry}, res => {
+    if (g !== W.gen) return;
+    W.busy = false;
+    if (res.error){ W.error = res.error; renderGrid(); renderLoupe(); return; }
+    W.retry = false; W.items.push(...res.entries); W.next = res.nextCursor; if (from) W.prev = res.previousCursor;
+    renderGrid(); if (onFirst) onFirst(); renderLoupe(); fillScreen();
+  });
+}
+function loadPrev(){
+  if (!W || W.prevBusy || W.prev === null) return;
+  W.prevBusy = true; const g = W.gen, wrap = $('#gridWrap');
+  srvList(conn(), S.f, {back:W.prev}, res => {
+    if (g !== W.gen) return;
+    W.prevBusy = false; if (res.error) return;
+    const h = wrap.scrollHeight; W.items.unshift(...res.entries); W.prev = res.previousCursor;
+    renderGrid(); wrap.scrollTop += wrap.scrollHeight - h; renderLoupe();
+  });
+}
+// Short pages under a decision filter: keep asking until the screen is full or the cursor ends (IMMICH-002.8).
+function fillScreen(){
+  const wrap = $('#gridWrap'), end = $('#foot');
+  if (end.getBoundingClientRect().top - wrap.getBoundingClientRect().bottom < wrap.clientHeight) loadNext();
+}
+
+/* ---------- render ---------- */
+function renderHeader(){
+  $('#navBtn').innerHTML = ic('menu'); $('#logo').innerHTML = logoSVG() + '<span>honeycomb</span>'; $('#setBtn').innerHTML = ic('settings');
+  const showImm = SC.conns !== 'none';
+  $('#srcSeg').innerHTML = `<button data-act="src" data-v="nextcloud" aria-pressed="${S.source === 'nextcloud'}">${ic('folder')}<span>Nextcloud</span></button>
+    ${showImm ? `<button data-act="src" data-v="immich" aria-pressed="${S.source === 'immich'}"><span class="imm" aria-hidden="true"></span><span>Immich</span></button>` : ''}`;
+  const sync = $('#sync'), w = $('#writeBtn'), on = immichUsable(), c = conn();
+  sync.hidden = !on; w.hidden = !on; $('#setBtn').hidden = !on;
+  if (!on) return;
+  const st = S.status[c.id], n = pendingCount(c);
+  sync.className = 'sync' + (st && st.state !== 'ok' ? ' err' : '');
+  sync.innerHTML = st && st.state !== 'ok' ? `<span class="dot err"></span>${STATE_TEXT[st.state]} · decisions kept in honeycomb`
+    : SC.phase === '2' && n ? `<span class="dot pending"></span>${nf(n)} not written to Immich` : `<span class="dot ${dotOf(c)}"></span>${esc(statusLine(c))}`;
+  w.innerHTML = `${ic('upload')}<span>Write to Immich</span>${n ? `<span class="badge-n">${nf(n)}</span>` : ''}`; w.disabled = !n;
+}
+function renderNav(){
+  const nav = $('#nav'), box = on => `<span class="box">${on ? ic('check') : ''}</span>`;
+  if (!immichUsable()){
+    const rec = conns().filter(c => c.position).map(c => { const d = [...c.dec.values()].filter(isDecided).length;
+      return `<button class="it" data-act="recent" data-v="${c.id}"><span class="imm src" aria-hidden="true"><span class="imm"></span></span><span class="two"><span>${esc(c.label)}</span><small>Immich · ${nf(d)} / ${nf(c.lib.length)} decided</small></span></button>`; }).join('');
+    nav.innerHTML = `<div class="sect">${ic('clock')}Recent</div>${rec}
+      <button class="it" disabled>${ic('folder')}<span class="two"><span>2026-11 Engadin</span><small>212 / 540 decided</small></span></button>
+      <div class="sect">${ic('folder')}Folders</div>${['Photos/2026/2026-11 Engadin', 'Photos/2026/2026-10 Ticino', 'InstantUpload/Camera'].map(f => `<button class="it" disabled>${ic('folder')}<span>${esc(f)}</span></button>`).join('')}`;
+    return;
+  }
+  const c = conn(), C = S.counts, n = v => C ? nf(v) : '…', st = S.status[c.id];
+  const list = conns().length > 1 ? `<div class="sect">${ic('user')}Connections</div>${conns().map(x => `<button class="it" data-act="conn" data-v="${x.id}" aria-pressed="${x.id === c.id}"><span class="dot ${dotOf(x)}"></span><span class="two"><span>${esc(x.label)}</span><small>${esc(statusLine(x))}</small></span></button>`).join('')}` : '';
+  nav.innerHTML = `${list}<div class="sect">${ic('cal')}Time</div>
+    ${timeOptions().map(([k, l], i) => `<button class="it" data-act="time" data-v="${k}" aria-pressed="${S.f.time === k}"><span>${l}</span><span class="n">${n(C && C.periods[i])}</span></button>`).join('')}
+    <div class="sect">${ic('phone')}Device</div>
+    ${deviceOptions(c).map((d, i) => `<button class="it" data-act="dev" data-v="${esc(d)}" aria-pressed="${S.f.devices.has(d)}">${box(S.f.devices.has(d))}<span>${esc(d)}</span><span class="n">${n(C && C.devices[i].count)}</span></button>`).join('')}
+    <div class="sect">Kind</div>
+    ${Object.entries(KINDS).map(([k, l]) => `<button class="it" data-act="kind" data-v="${k}" aria-pressed="${S.f.kinds.has(k)}">${box(S.f.kinds.has(k))}<span>${l}</span><span class="n">${n(C && C.kinds[k])}</span></button>`).join('')}
+    <div class="conn"><b><span class="dot ${dotOf(c)}"></span>${esc(statusLine(c))}</b>
+      <span>${st && st.state === 'ok' ? `Immich ${st.version} · ` : ''}upload library only</span>${st && st.total != null ? `<span>${nf(st.total)} phone uploads</span>` : ''}
+      <button data-act="settings">Connection details</button></div>`;
+}
+function renderToolbar(){
+  const tb = $('#toolbar');
+  if (S.source === 'nextcloud'){ tb.innerHTML = `<div class="row"><div class="crumbs"><b>Nextcloud</b><span class="sep">›</span><span>Photos</span></div></div>`; return; }
+  if (!immichUsable()){ tb.innerHTML = `<div class="row"><div class="crumbs"><b>Immich</b></div></div>`; return; }
+  const c = conn(), C = S.counts, f = S.f, tl = timeOptions().find(x => x[0] === f.time)[1];
+  const resume = c.position && !S.resumeDone[c.id] && C ? `<div class="resume" role="status"><span>Continue where you left off · ${nf([...c.dec.values()].filter(isDecided).length)} / ${nf(c.lib.length)} decided</span>
+    <button class="btn primary" data-act="resume">Resume</button><button class="icon-btn" data-act="resumeNo" aria-label="Start from the newest">${ic('close')}</button></div>` : '';
+  const op = RATING_OPS[f.ratingOp];
+  tb.innerHTML = `${resume}<div class="row"><div class="crumbs"><span>Immich</span><span class="sep">›</span><span>${esc(c.label)}</span><span class="sep">›</span><b>${tl}</b></div>
+    <span class="count">${C ? `${nf(C.matching)} of ${nf(C.total)} pictures · ${nf(C.decided)} decided` : 'Counting…'}</span></div>
+    <div class="row"><div class="row" role="group" aria-label="Flag filter">${FLAGS.map(([k, i, l]) => `<button class="chip" data-act="flagf" data-v="${k}" aria-pressed="${f.flags.has(k)}">${ic(i)}<span>${l}</span><span class="count">${C ? nf(C.flags[k]) : '…'}</span></button>`).join('')}</div>
+    <div class="seg rating" role="group" aria-label="Rating filter"><button class="op" data-act="rop" aria-label="Comparison: ${op.name}">${op.sym}</button>${[1, 2, 3, 4, 5].map(k => `<button data-act="rstar" data-v="${k}" aria-pressed="${f.rating === k}" aria-label="${op.name} ${k} stars">${'★'}${k}</button>`).join('')}</div></div>`;
+}
+function tileHtml(c, p){
+  const d = decOf(c, p), url = imgCache.get(p.id + 320);
+  const tl = [p.kind === 'live' ? `<span class="pillx">${ic('live')}LIVE</span>` : '', p.kind === 'video' ? `<span class="pillx">${ic('play')}${mmss(p.dur)}</span>` : '', p.stack ? `<span class="pillx">${ic('stack')}${p.stack}</span>` : ''].join('');
+  const tr = SC.phase === '2' && pendingOf(d) ? '<span class="pillx pend" title="Not written to Immich yet">●</span>' : '';
+  const fl = d.flag === 'picked' ? `<span class="fl pick">${ic('flagPick')}</span>` : d.flag === 'rejected' ? `<span class="fl reject">${ic('flagX')}</span>` : '<span class="fl"></span>';
+  return `<button class="tile${d.flag === 'rejected' ? ' rej' : ''}${p.id === S.loupeId ? ' cur' : ''}" data-act="open" data-id="${p.id}" aria-label="${esc(p.name)}, ${flagName(d.flag)}"><img alt="" ${url ? `src="${url}"` : `data-a="${p.id}"`}>
+    <span class="tl">${tl}</span><span class="tr">${tr}</span><span class="ov">${starsHtml(d.rating)}${fl}</span></button>`;
+}
+const fmtDay = t => new Intl.DateTimeFormat('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric', timeZone:'UTC'}).format(t);
+const fmtWhen = t => new Intl.DateTimeFormat('en-GB', {dateStyle:'medium', timeStyle:'short', timeZone:'UTC'}).format(t);
+const byId = new Map(CONNS.flatMap(c => c.lib.map(p => [p.id, p])));
+let thumbIO = null, endIO = null, topIO = null;
+function renderGrid(){
+  const g = $('#grid');
+  if (S.source === 'nextcloud'){ g.innerHTML = `<div class="note"><b>The folder cull you know.</b><br>Nextcloud folders work as before: pairs, sidecars, the Nextcloud trash bin. Immich reads these photos as an external library and follows on its next scan.${SC.conns !== 'none' ? ' Switch to <b>Immich</b> above to cull the phone uploads that live only in Immich.' : ''}</div>`; renderFoot(); return; }
+  if (SC.conns === 'broken'){ g.innerHTML = '<div class="note"><b>Immich is unavailable because of the server configuration.</b><br>Ask your Nextcloud admin to check the Immich connections. Your Nextcloud folders work as before.</div>'; renderFoot(); return; }
+  const c = conn();
+  if (W.error && !W.items.length){ g.innerHTML = `<div class="note"><b>${STATE_TEXT[W.error]}.</b><br>Decisions already made stay in honeycomb${conns().length > 1 ? ', and your other connections work' : ''}. ${W.error === 'version' ? 'Ask your admin to update Immich.' : W.error === 'unreachable' ? 'Try again in a moment.' : 'Ask your Nextcloud admin to check this connection’s API key.'}<br><button class="btn" data-act="retryConn">Try again</button></div>`; renderFoot(); return; }
+  const v = vis();
+  let html = W.prev !== null ? '<div class="day" id="top">Newer pictures load as you scroll up</div>' : '', last = '';
+  for (const p of v){ const d = fmtDay(p.t); if (d !== last){ html += `<div class="day">${esc(d)}</div>`; last = d; } html += tileHtml(c, p); }
+  if (!v.length && !W.busy && W.next === null) html = '<p class="empty">No pictures match. Change the time, device or flag filter.</p>';
+  g.innerHTML = html; renderFoot();
+  thumbIO.disconnect(); g.querySelectorAll('img[data-a]').forEach(i => thumbIO.observe(i));
+  topIO.disconnect(); if ($('#top')) topIO.observe($('#top'));
+}
+function renderFoot(){
+  const f = $('#foot');
+  if (!immichUsable() || (W.error && !W.items.length)){ f.innerHTML = ''; return; }
+  f.innerHTML = W.error ? `<div class="banner err">${STATE_TEXT[W.error]}. The pictures above stay.</div><button class="btn" data-act="retry">Try again</button>`
+    : W.busy ? `<div class="skel" aria-hidden="true">${'<i></i>'.repeat(6)}</div><span>Loading more phone uploads…</span>`
+    : W.next === null && vis().length ? `<span>End of the phone uploads for these filters</span>` : '';
+}
+
+/* ---------- loupe ---------- */
+function renderLoupe(){
+  const L = $('#loupe'); if (!S.loupeId){ return; }
+  const c = conn(), v = vis(), k = v.findIndex(p => p.id === S.loupeId);
+  if (k < 0){ closeLoupe(); return; }
+  if (k >= v.length - AHEAD) loadNext();
+  if (k < AHEAD) loadPrev();
+  const p = v[k], d = decOf(c, p), C = S.counts; L.hidden = false;
+  const counter = !C ? '…' : W.prev === null ? `${nf(k + 1)} / ${nf(C.matching)}` : `${nf(C.matching)} pictures`;
+  const line = [p.device || NODEV, fmtWhen(p.t), p.kind === 'video' ? `video ${mmss(p.dur)}` : `${p.w}×${p.h}`].join(' · ');
+  const atEnd = k === v.length - 1, waiting = atEnd && (W.busy || W.prevBusy);
+  const film = v.slice(Math.max(0, k - 12), k + 13);
+  L.innerHTML = `<div class="l-top"><button class="icon-btn" data-act="close" aria-label="Back to the grid (Esc)">${ic('close')}</button>
+      <div class="l-title"><b>${esc(p.name)}</b><span>${esc(line)}</span></div><span class="l-count">${counter}</span>
+      <button class="icon-btn" data-act="info" aria-label="Info panel (I)" aria-pressed="${S.info}">${ic('info')}</button></div>
+    <div class="l-main"><div id="stage"><img alt="${esc(p.name)}" src="${preview(p)}" id="limg">
+      <div class="swipe-hint up">Pick</div><div class="swipe-hint down">Reject</div>
+      <button class="navbtn l" data-act="prev" aria-label="Previous (←)" ${k ? '' : 'disabled'}>${ic('chevL')}</button>
+      <button class="navbtn r" data-act="next" aria-label="Next (→)" ${atEnd ? 'disabled' : ''}>${ic('chevR')}</button>
+      ${waiting ? '<div class="l-load">Loading the next pictures…</div>' : atEnd && W.error ? `<div class="l-load">${STATE_TEXT[W.error]}</div>` : ''}</div>
+      ${S.info ? `<aside id="info">${infoHtml(p, d)}</aside>` : ''}</div>
+    <div class="film" id="film">${W.prev !== null && k < 12 ? '<span class="more">Loading newer…</span>' : ''}${film.map(q => `<button class="${q.id === p.id ? 'cur' : ''}${decOf(c, q).flag === 'rejected' ? ' rej' : ''}" data-act="go" data-id="${q.id}" aria-label="${esc(q.name)}"><img alt="" src="${thumb(q)}"></button>`).join('')}${W.next !== null && k + 13 > v.length ? '<span class="more">Loading…</span>' : ''}</div>
+    <div class="l-ctrl"><div class="ab">
+      <button class="bigbtn pick" data-act="flag" data-v="picked" aria-pressed="${d.flag === 'picked'}">${ic('flagPick')}Pick</button>
+      <button class="bigbtn none" data-act="flag" data-v="unflagged" aria-pressed="${d.flag === 'unflagged'}" aria-label="Unflag (U)">${ic('flag')}</button>
+      <button class="bigbtn reject" data-act="flag" data-v="rejected" aria-pressed="${d.flag === 'rejected'}">${ic('flagX')}Reject</button></div>
+      <div class="starrow" role="group" aria-label="Rating">${[1, 2, 3, 4, 5].map(n => `<button class="${d.rating >= n ? 'on' : ''}" data-act="rate" data-v="${n}" aria-label="${n} stars (${n})">★</button>`).join('')}</div>
+      <span class="kbd-hint">Swipe up to pick, down to reject · ← → · P X U · 1–5 · 0</span></div>`;
+  const cur = $('#film .cur'); if (cur) cur.scrollIntoView({inline:'center', block:'nearest'});
+}
+function infoHtml(p, d){
+  return `<h3>honeycomb</h3><dl><dt>Flag</dt><dd>${flagName(d.flag)}</dd><dt>Rating</dt><dd>${d.rating ? '★'.repeat(d.rating) : 'none'}</dd></dl>
+    ${SC.phase === '2' ? `<div class="state">${pendingOf(d) ? '● Not written to Immich yet. <b>Write to Immich</b> sends it.' : isDecided(d) ? 'Written to Immich.' : 'Nothing to write.'}</div>` : ''}
+    <h3>Asset</h3><dl><dt>Taken</dt><dd>${fmtWhen(p.t)}</dd><dt>Device</dt><dd>${esc(p.device || NODEV)}</dd><dt>Kind</dt><dd>${KIND_ONE[p.kind]}${p.dur ? ` · ${mmss(p.dur)}` : ''}</dd>
+    <dt>Size</dt><dd>${p.w} × ${p.h}</dd>${p.stack ? `<dt>Stack</dt><dd>${p.stack} assets, this one is the top</dd>` : ''}
+    <dt>Library</dt><dd>Upload library (phone backup)</dd><dt>File</dt><dd>${esc(p.name)}</dd><dt>ID</dt><dd><code>${p.id.slice(0, 13)}…</code></dd></dl>`;
+}
+function closeLoupe(quiet){ S.loupeId = null; $('#loupe').hidden = true; $('#loupe').innerHTML = ''; if (!quiet) renderGrid(); }
+function go(id){ S.loupeId = id; REQ.position++; conn().position = {assetId:id}; renderLoupe(); }
+function step(dir){ const v = vis(), k = v.findIndex(p => p.id === S.loupeId), n = v[k + dir]; if (n) go(n.id); }
+function decide(p, change){
+  const c = conn(), old = decOf(c, p), nd = {flag:old.flag, rating:old.rating, ...change}, C = S.counts;
+  if (C){ C.flags[old.flag]--; C.flags[nd.flag]++; C.decided += isDecided(nd) - isDecided(old); C.matching += passDec(S.f, nd) - passDec(S.f, old); }
+  srvSave(c, p, nd); renderHeader(); renderToolbar(); renderGrid();
+}
+function setFlag(f){
+  const c = conn(), v = vis(), k = v.findIndex(p => p.id === S.loupeId), p = v[k], old = decOf(c, p);
+  const nf2 = old.flag === f && f !== 'unflagged' ? 'unflagged' : f;
+  decide(p, {flag:nf2});
+  if (nf2 === 'rejected') toast(`Rejected ${p.name}`, 'Undo', () => { decide(p, {flag:old.flag, rating:old.rating}); go(p.id); });
+  if (nf2 === 'unflagged'){ renderLoupe(); return; }
+  const rest = v.slice(k + 1), next = rest.find(q => !isDecided(decOf(c, q)) && passDec(S.f, decOf(c, q))) || rest.find(q => passDec(S.f, decOf(c, q)));
+  if (next) go(next.id); else if (vis().some(q => q.id === p.id)) renderLoupe(); else closeLoupe();
+}
+function setRating(n){ const c = conn(), p = byId.get(S.loupeId), d = decOf(c, p); decide(p, {rating:d.rating === n ? 0 : n}); renderLoupe(); }
+
+/* ---------- connection dialog (read only, ADR 0042) ---------- */
+function openConnDialog(tested){
+  const c = conn(), st = S.status[c.id], d = $('#dlg'); d.hidden = false;
+  const scopes = [['asset.read', 'list and search the phone uploads'], ['asset.view', 'thumbnails and previews'], ['user.read', 'optional: shows the account; without it honeycomb shows the label']];
+  if (SC.phase === '2') scopes.push(['asset.update', 'rating, archive and favourite'], ['asset.delete', SC.noDelete ? 'lacking: rejects are archived, not trashed' : 'optional: move to and restore from the Immich trash']);
+  d.innerHTML = `<div class="scrim" data-act="dlgBg"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="ch">
+    <div class="dlg-h"><h2 id="ch">Immich connection</h2><button class="icon-btn" data-act="dlgClose" aria-label="Close">${ic('close')}</button></div>
+    <div class="dlg-b">
+      <dl class="ro"><dt>Label</dt><dd>${esc(c.label)}</dd><dt>Immich server</dt><dd>${esc(c.url)}</dd>
+        <dt>Status</dt><dd><span class="dot ${dotOf(c)}"></span>${esc(statusLine(c))}</dd>
+        <dt>Account</dt><dd>${st && st.account ? esc(st.account) : 'not shown (the key lacks <code>user.read</code>)'}</dd>
+        <dt>Immich version</dt><dd>${st ? (st.version || 'unknown') + (st.state === 'version' ? ' · not supported' : '') : '…'}</dd>
+        <dt>Phone uploads</dt><dd>${st && st.total != null ? nf(st.total) : '–'}</dd>
+        ${SC.phase === '2' ? `<dt>Picks</dt><dd>${c.picksAsFavorites ? 'become favourites in Immich' : 'stay in honeycomb'}</dd>` : ''}</dl>
+      <div class="blk"><h4>Permissions the API key needs</h4><ul class="scopes">${scopes.map(([s, t]) => `<li style="display:contents"><code>${s}</code><span class="${t.startsWith('lacking') ? 'n' : ''}">${t}</span></li>`).join('')}</ul></div>
+      ${tested ? (st && st.state === 'ok' ? `<div class="banner ok">${esc(statusLine(c))} · Immich ${st.version} · ${nf(st.total)} phone uploads</div>` : `<div class="banner err">${STATE_TEXT[st.state]}.</div>`) : ''}
+      <p class="lead">Your Nextcloud admin sets up the Immich connections. To add an account, change its API key or remove it, ask your admin.</p>
+    </div>
+    <div class="dlg-f"><button class="btn" data-act="test">Test connection</button><button class="btn primary" data-act="dlgClose">Done</button></div></div></div>`;
+}
+
+/* ---------- Write to Immich (Phase 2, IMMICH-004) ---------- */
+function plan(){
+  const c = conn(), rejectAs = SC.noDelete && S.write.rejectAs === 'trash' ? 'archive' : S.write.rejectAs;
+  const out = {assets:[], rejects:[], restores:[], picks:[], ratings:[], conflicts:[], rejectAs};
+  for (const p of c.lib){
+    const d = c.dec.get(p.id); if (!d || !pendingOf(d)) continue;
+    const w = d.written || UND; out.assets.push(p);
+    if (d.flag === 'rejected' && w.flag !== 'rejected'){
+      if (p.imm.trashedElsewhere) out.conflicts.push({p, type:'trashed'});
+      else { out.rejects.push(p); if (p.imm.shared && rejectAs === 'trash') out.conflicts.push({p, type:'shared'}); if (p.stack) out.conflicts.push({p, type:'stack'}); }
+    }
+    if (d.flag !== 'rejected' && w.flag === 'rejected') out.restores.push(p);
+    if (d.flag === 'picked' && w.flag !== 'picked') out.picks.push(p);
+    if (d.rating !== w.rating) out.ratings.push(p);
+    if (p.imm.ratingChanged) out.conflicts.push({p, type:'rating'});
+  }
+  return out;
+}
+const blocksOf = n => Math.max(1, Math.ceil(n / BLOCK));
+function dlgFrame(body, foot){
+  const d = $('#dlg'); d.hidden = false;
+  d.innerHTML = `<div class="scrim" data-act="dlgBg"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="wh">
+    <div class="dlg-h"><h2 id="wh">Write to Immich</h2><button class="icon-btn" data-act="dlgClose" aria-label="Close">${ic('close')}</button></div>
+    <div class="dlg-b">${body}</div><div class="dlg-f">${foot}</div></div></div>`;
+}
+function progress(label, done, all){ return `<p class="lead" role="status">${label}</p><div class="bar"><i style="width:${Math.round(done / all * 100)}%"></i></div>`; }
+function openWrite(){
+  const c = conn(), n = plan().assets.length, B = blocksOf(n);
+  if (stateOf(c) !== 'ok') return renderWrite(plan());
+  let b = 0;
+  const tick = () => {
+    dlgFrame(progress(`Checking ${nf(n)} pictures with Immich · block ${b + 1} of ${B}`, b, B), '<button class="btn" data-act="dlgClose">Cancel</button>');
+    REQ.check++; tally();
+    later(() => { if (++b < B) tick(); else renderWrite(plan()); }, 320);
+  };
+  tick();
+}
+function renderWrite(pl){
+  const c = conn(), ch = S.write.choices, n = pl.assets.length, big = n > BLOCK, down = stateOf(c) !== 'ok';
+  const strip = list => big || !list.length ? '' : `<div class="strip">${list.map(p => `<img alt="${esc(p.name)}" src="${thumb(p)}">`).join('')}</div>`;
+  const seg = (p, opts) => `<div class="seg" role="group">${opts.map(([v, l]) => `<button data-act="choice" data-id="${p.id}" data-v="${v}" aria-pressed="${(ch[p.id] || opts[0][0]) === v}">${l}</button>`).join('')}</div>`;
+  const conf = pl.conflicts.map(({p, type}) => {
+    const img = `<img alt="" src="${thumb(p)}">`;
+    if (type === 'rating') return `<div class="ci warn">${img}<div class="tx"><b>${esc(p.name)}</b>Rating changed in Immich since you decided: Immich ${'★'.repeat(p.imm.rating)}, honeycomb ${'★'.repeat(decOf(c, p).rating) || 'none'}.</div>${seg(p, [['hc', 'Keep honeycomb’s'], ['imm', 'Keep Immich’s']])}</div>`;
+    if (type === 'shared') return `<div class="ci warn">${img}<div class="tx"><b>${esc(p.name)}</b>In the shared album “${esc(p.imm.album)}”. The trash removes it there for ${p.imm.shared} other people too.</div>${seg(p, [['trash', 'Trash anyway'], ['archive', 'Archive instead'], ['skip', 'Skip']])}</div>`;
+    if (type === 'trashed') return `<div class="ci">${img}<div class="tx"><b>${esc(p.name)}</b>Already in the Immich trash. Counts as done; nothing is sent.</div></div>`;
+    return `<div class="ci">${img}<div class="tx"><b>${esc(p.name)}</b>Top of a stack of ${p.stack}. Only this asset goes; Immich makes the next one the top.</div></div>`;
+  }).join('');
+  const rejBtn = (v, l, dis) => `<button data-act="rejAs" data-v="${v}" aria-pressed="${pl.rejectAs === v}" ${dis ? 'disabled' : ''}>${l}</button>`;
+  const rejText = {trash:'Immich moves them to its trash and empties it after 30 days. Until then you can restore them here or in the Immich app.',
+    archive:'They leave the Immich timeline and stay in the archive, with their files and albums.', rating:'They stay in the timeline with Immich’s “rejected” rating (−1); you delete them in Immich later.'}[pl.rejectAs];
+  dlgFrame(`${down ? '<div class="banner err">Immich does not answer at the moment. Your decisions stay in honeycomb; write them when Immich is back.</div>' : ''}
+      <p class="lead">${nf(n)} pictures change${big ? '. A write this large shows numbers; only what needs your choice is listed one by one.' : '.'}</p>
+      <div class="blk"><h4>${ic('flagX')}${nf(pl.rejects.length)} rejected</h4>
+        <div class="seg" role="group" aria-label="Rejected pictures become">${rejBtn('trash', 'Move to Immich trash', SC.noDelete)}${rejBtn('archive', 'Archive')}${rejBtn('rating', 'Rating “rejected” only')}</div>
+        ${SC.noDelete ? '<p class="n">Your API key lacks <code>asset.delete</code>.</p>' : ''}<p>${rejText}</p>${strip(pl.rejects)}</div>
+      ${pl.restores.length ? `<div class="blk"><h4>${ic('flag')}${nf(pl.restores.length)} no longer rejected</h4><p>Restored from the Immich trash or archive.</p>${strip(pl.restores)}</div>` : ''}
+      <div class="blk"><h4>${ic('flagPick')}${nf(pl.picks.length)} picked</h4><p>${c.picksAsFavorites ? 'They become favourites in Immich.' : 'Immich has no pick; on this connection picks stay in honeycomb.'}</p>${strip(pl.picks)}</div>
+      <div class="blk"><h4>★ ${nf(pl.ratings.length)} ratings</h4><p>Set as the Immich rating. No stars in honeycomb clears the Immich rating.</p></div>
+      ${conf ? `<div class="blk"><h4>${ic('warn')}${pl.conflicts.length} to check before writing</h4><div class="conf">${conf}</div></div>` : ''}`,
+    `<span class="hint">Sent in ${blocksOf(n)} ${blocksOf(n) === 1 ? 'block' : 'blocks'} of up to ${BLOCK} pictures. Only Immich’s database changes; no file and no sidecar is written.</span>
+      <button class="btn" data-act="dlgClose">Cancel</button><button class="btn primary" data-act="doWrite" ${down || !n ? 'disabled' : ''}>Write ${nf(n)} changes</button>`);
+}
+function doWrite(){
+  const c = conn(), pl = plan(), ch = S.write.choices, n = pl.assets.length, B = blocksOf(n);
+  let b = 0;
+  const tick = () => {
+    dlgFrame(progress(`Writing block ${b + 1} of ${B} · ${nf(Math.min(n, b * BLOCK))} of ${nf(n)} pictures`, b, B), '');
+    REQ.write++; tally();
+    later(() => { if (++b < B) tick(); else finish(); }, 380);
+  };
+  const finish = () => {
+    let ok = 0; const failed = [], skipped = [], trashed = [];
+    for (const p of pl.assets){
+      const d = c.dec.get(p.id);
+      if (p.imm.failOnWrite){ failed.push(p); continue; }
+      const as = d.flag === 'rejected' ? (p.imm.shared && ch[p.id] ? ch[p.id] : pl.rejectAs) : null;
+      if (as === 'skip'){ skipped.push(p); continue; }
+      if (p.imm.ratingChanged){ if (ch[p.id] === 'imm') d.rating = p.imm.rating; p.imm.ratingChanged = false; }
+      if (as === 'trash' && !p.imm.trashedElsewhere){ p.imm.trashed = true; trashed.push(p); } else if (as === 'archive') p.imm.archived = true;
+      d.written = {flag:d.flag, rating:d.rating}; ok++;
+    }
+    S.write.choices = {};
+    dlgFrame(`<div class="banner ${failed.length ? 'err' : 'ok'}" role="status">Written: ${nf(ok)}${failed.length ? ` · Failed: ${nf(failed.length)}` : ''}</div>
+      ${skipped.length ? `<p class="lead">Skipped, as you chose: ${nf(skipped.length)}</p>` : ''}
+      ${failed.length ? `<div class="conf">${failed.map(p => `<div class="ci warn"><img alt="" src="${thumb(p)}"><div class="tx"><b>${esc(p.name)}</b>Immich refused this change. It keeps its decision in honeycomb and is offered again next time.</div></div>`).join('')}</div>` : ''}`,
+      '<button class="btn primary" data-act="dlgClose">Done</button>');
+    render();
+    if (trashed.length) toast(`Moved ${nf(trashed.length)} pictures to the Immich trash`, 'Undo', () => {
+      trashed.forEach(p => { const d = c.dec.get(p.id); p.imm.trashed = false; d.flag = 'unflagged'; d.written = {flag:d.flag, rating:d.rating}; });
+      REQ.write += blocksOf(trashed.length); restart(); toast('Restored from the Immich trash');
+    });
+  };
+  tick();
+}
+function closeDlg(){ const d = $('#dlg'); d.hidden = true; d.innerHTML = ''; }
+function toast(msg, act, fn){
+  const t = document.createElement('div'); t.className = 'toast'; t.innerHTML = `<span>${esc(msg)}</span>${act ? `<button>${esc(act)}</button>` : ''}`;
+  if (act) t.querySelector('button').onclick = () => { t.remove(); fn(); };
+  $('#toasts').append(t); setTimeout(() => t.remove(), 6000);
+}
+function render(){ document.body.dataset.phase = SC.phase; renderHeader(); renderNav(); renderToolbar(); renderGrid(); renderLoupe(); tally(); }
+
+/* ---------- events ---------- */
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if (!el) return; const a = el.dataset.act, v = el.dataset.v;
+  if (a === 'dlgBg' && e.target !== el) return;
+  const tog = (set, x) => set.has(x) ? set.delete(x) : set.add(x), f = S.f;
+  switch (a){
+    case 'nav': $('#app').dataset.nav = $('#app').dataset.nav === 'open' ? 'closed' : 'open'; break;
+    case 'src': S.source = v; if (v === 'immich') openConnection(); else { closeLoupe(true); render(); } break;
+    case 'conn': S.connId = v; S.f = defaultFilters(); $('#app').dataset.nav = 'closed'; openConnection(); break;
+    case 'recent': S.source = 'immich'; S.connId = v; S.f = defaultFilters(); openConnection(); break;
+    case 'time': f.time = v; $('#app').dataset.nav = 'closed'; restart(); break;
+    case 'dev': tog(f.devices, v); restart(); break;
+    case 'kind': tog(f.kinds, v); restart(); break;
+    case 'flagf': tog(f.flags, v); restart(); break;
+    case 'rop': f.ratingOp = RATING_OPS[f.ratingOp].next; if (f.rating != null) restart(); else renderToolbar(); break;
+    case 'rstar': f.rating = f.rating === +v ? null : +v; restart(); break;
+    case 'resume': {
+      const c = conn(), p = byId.get(c.position.assetId); S.resumeDone[c.id] = true;
+      if (!(periodOf(f.time)(p) && inDev(f, p) && inKind(f, p) && passDec(f, decOf(c, p)))) S.f = {...defaultFilters(), time:'all'};
+      restart(p.id, () => go(p.id)); break;
+    }
+    case 'resumeNo': S.resumeDone[conn().id] = true; renderToolbar(); break;
+    case 'retry': W.error = null; W.retry = true; W.nth--; loadNext(); break;
+    case 'retryConn': openConnection(); break;
+    case 'open': case 'go': go(el.dataset.id); break;
+    case 'close': closeLoupe(); break;
+    case 'prev': step(-1); break; case 'next': step(1); break;
+    case 'info': S.info = !S.info; renderLoupe(); break;
+    case 'flag': setFlag(v); break;
+    case 'rate': setRating(+v); break;
+    case 'write': openWrite(); break;
+    case 'rejAs': S.write.rejectAs = v; renderWrite(plan()); break;
+    case 'choice': S.write.choices[el.dataset.id] = v; renderWrite(plan()); break;
+    case 'doWrite': doWrite(); break;
+    case 'settings': $('#app').dataset.nav = 'closed'; openConnDialog(false); break;
+    case 'test': srvStatus(conn(), st => { S.status[conn().id] = st; renderHeader(); renderNav(); openConnDialog(true); }); break;
+    case 'dlgClose': case 'dlgBg': closeDlg(); break;
+  }
+});
+document.addEventListener('change', e => {
+  const el = e.target.closest('[data-sc]'); if (!el) return;
+  SC[el.dataset.sc] = el.type === 'checkbox' ? el.checked : el.value;
+  closeDlg(); setWriteScenario();
+  if (SC.conns === 'none' && S.source === 'immich') S.source = 'nextcloud';
+  if (!conns().some(c => c.id === S.connId)) S.connId = CONNS[0].id;
+  S.status = {}; if (S.source === 'immich') openConnection(); else render();
+});
+document.addEventListener('keydown', e => {
+  if (!$('#dlg').hidden){ if (e.key === 'Escape') closeDlg(); return; }
+  if (!S.loupeId || e.target.closest('select')) return;
+  const k = e.key.toLowerCase();
+  if (k === 'escape') closeLoupe(); else if (k === 'arrowleft') step(-1); else if (k === 'arrowright') step(1);
+  else if (k === 'p') setFlag('picked'); else if (k === 'x') setFlag('rejected'); else if (k === 'u') setFlag('unflagged');
+  else if (k === 'i'){ S.info = !S.info; renderLoupe(); } else if (k >= '1' && k <= '5') setRating(+k);
+  else if (k === '0'){ decide(byId.get(S.loupeId), {rating:0}); renderLoupe(); }
+  else return; e.preventDefault();
+});
+let sw = null;
+document.addEventListener('pointerdown', e => { const st = e.target.closest('#stage'); if (!st || e.target.closest('button')) return; sw = {x:e.clientX, y:e.clientY}; });
+document.addEventListener('pointermove', e => { if (!sw) return; const dy = e.clientY - sw.y, img = $('#limg'); if (!img) return;
+  img.style.transform = `translate(${(e.clientX - sw.x) * .4}px, ${dy * .5}px)`;
+  document.querySelector('.swipe-hint.up')?.classList.toggle('on', dy < -60); document.querySelector('.swipe-hint.down')?.classList.toggle('on', dy > 60); });
+document.addEventListener('pointerup', e => { if (!sw) return; const dx = e.clientX - sw.x, dy = e.clientY - sw.y; sw = null;
+  const img = $('#limg'); if (img) img.style.transform = ''; document.querySelectorAll('.swipe-hint').forEach(h => h.classList.remove('on'));
+  if (Math.abs(dy) > 60 && Math.abs(dy) > Math.abs(dx)) setFlag(dy < 0 ? 'picked' : 'rejected');
+  else if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1); });
+document.addEventListener('pointercancel', () => { sw = null; });
+
+// Only tiles in or near the viewport load thumbnails; the end of the grid within one screen loads the next page.
+const wrap = $('#gridWrap');
+thumbIO = new IntersectionObserver(es => es.forEach(x => { if (!x.isIntersecting) return; const i = x.target; i.src = thumb(byId.get(i.dataset.a)); i.removeAttribute('data-a'); thumbIO.unobserve(i); }), {root:wrap, rootMargin:'50% 0px'});
+endIO = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting) && immichUsable() && W) loadNext(); }, {root:wrap, rootMargin:'0px 0px 100% 0px'});
+topIO = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) loadPrev(); }, {root:wrap, rootMargin:'100% 0px 0px 0px'});
+endIO.observe($('#foot'));
+openConnection();
+</script>
+</body>
+</html>

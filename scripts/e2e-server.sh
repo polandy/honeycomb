@@ -42,7 +42,7 @@ mkdir -p "$(dirname "$TEAM_FOLDERS")"
 ) 9>"$TEAM_FOLDERS.lock"
 
 docker rm --force "$CONTAINER" >/dev/null 2>&1 || true
-exec docker run --rm --name "$CONTAINER" -p "127.0.0.1:$1:80" \
+exec docker run --rm --name "$CONTAINER" -p "127.0.0.1:$1:80" --label "$(e2e_owner_label)" \
   -e SQLITE_DATABASE=nextcloud -e NEXTCLOUD_ADMIN_USER="$2" -e NEXTCLOUD_ADMIN_PASSWORD="$3" \
   -v "$PWD:/var/www/html/custom_apps/honeycomb:ro" \
   -v "$TEAM_FOLDERS:/var/www/html/custom_apps/groupfolders:ro" \
