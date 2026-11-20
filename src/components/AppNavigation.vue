@@ -13,6 +13,7 @@ import { useIsMobile } from '@nextcloud/vue/composables/useIsMobile'
 import NcAppNavigation from '@nextcloud/vue/components/NcAppNavigation'
 import NcAppNavigationCaption from '@nextcloud/vue/components/NcAppNavigationCaption'
 import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
+import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import RecentFolderSets from './RecentFolderSets.vue'
 import { useNavigationChoice } from '../navigation-choice.ts'
@@ -24,18 +25,23 @@ const props = withDefaults(defineProps<{
 	storage: BrowserStorage
 	/** The viewport's width in CSS pixels when the page opens. */
 	viewportWidth?: () => number
+	/** The year whose year-in-review hint shows, none for no hint (STATS-001.26). */
+	hintYear?: number | null
 }>(), {
 	viewportWidth: () => window.innerWidth,
+	hintYear: null,
 })
 
 const emit = defineEmits<{
 	chooseFolders: []
 	openRecent: [position: ResumePosition]
 	openSettings: []
+	closeHint: []
 }>()
 
 const isMobile = useIsMobile()
 const pageItems = useNavigationItems()
+const statisticsHref = pageItems.find((item) => item.page === 'statistics')!.href
 useNavigationChoice(props.storage, props.viewportWidth)
 
 /** NcAppNavigation closes only through this event, as NcAppNavigationItem does for router links. */
@@ -63,6 +69,17 @@ function closeOnNarrowScreen() {
 					<AppIcon :name="item.icon" />
 				</template>
 			</NcAppNavigationItem>
+			<li v-if="props.hintYear !== null" class="app-navigation__hint">
+				<a :href="statisticsHref" @click="closeOnNarrowScreen()">
+					<strong>{{ t('honeycomb', 'Your {year} in honeycomb', { year: String(props.hintYear) }) }}</strong>
+					<span>{{ t('honeycomb', 'See the year in review on the statistics page.') }}</span>
+				</a>
+				<NcButton variant="tertiary" :ariaLabel="t('honeycomb', 'Close')" @click="emit('closeHint')">
+					<template #icon>
+						<AppIcon name="close" />
+					</template>
+				</NcButton>
+			</li>
 			<NcAppNavigationCaption :name="t('honeycomb', 'Recent')" />
 			<li v-if="props.items.length > 0" class="app-navigation__recent">
 				<RecentFolderSets :items="props.items" @open="closeOnNarrowScreen(); emit('openRecent', $event)" />
@@ -89,6 +106,28 @@ function closeOnNarrowScreen() {
 	list-style: none;
 	margin: 0;
 	padding: 0;
+}
+
+.app-navigation__hint {
+	display: flex;
+	align-items: flex-start;
+	list-style: none;
+	margin: var(--default-grid-baseline);
+	padding: var(--default-grid-baseline) var(--default-grid-baseline) var(--default-grid-baseline) calc(2 * var(--default-grid-baseline));
+	border-radius: var(--border-radius-element);
+	background: var(--color-primary-element-light);
+}
+
+.app-navigation__hint a {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	color: inherit;
+	text-decoration: none;
+}
+
+.app-navigation__hint span {
+	color: var(--color-text-maxcontrast);
 }
 
 .app-navigation__empty {

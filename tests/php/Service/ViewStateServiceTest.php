@@ -15,7 +15,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class ViewStateServiceTest extends TestCase {
-	/** @var array<string, bool> */
+	/** @var array<string, bool|int> */
 	private array $stored = [];
 
 	private function service(): ViewStateService {
@@ -24,7 +24,16 @@ final class ViewStateServiceTest extends TestCase {
 			fn (string $userId, string $app, string $key): bool => isset($this->stored["$userId/$app/$key"]),
 		);
 		$config->method('getValueBool')->willReturnCallback(
-			fn (string $userId, string $app, string $key, bool $default = false): bool => $this->stored["$userId/$app/$key"] ?? $default,
+			fn (string $userId, string $app, string $key, bool $default = false): bool => (bool)($this->stored["$userId/$app/$key"] ?? $default),
+		);
+		$config->method('getValueInt')->willReturnCallback(
+			fn (string $userId, string $app, string $key, int $default = 0): int => (int)($this->stored["$userId/$app/$key"] ?? $default),
+		);
+		$config->method('setValueInt')->willReturnCallback(
+			function (string $userId, string $app, string $key, int $value): bool {
+				$this->stored["$userId/$app/$key"] = $value;
+				return true;
+			},
 		);
 		$config->method('setValueBool')->willReturnCallback(
 			function (string $userId, string $app, string $key, bool $value): bool {
@@ -43,7 +52,7 @@ final class ViewStateServiceTest extends TestCase {
 
 	// spec: LOUPE-003.1
 	public function testAKeyNeverStoredIsNull(): void {
-		$this->assertSame(['infoPanelOpen' => null, 'gestureGuideSeen' => null, 'seriesHintSeen' => null], $this->service()->get($this->user()));
+		$this->assertSame(['infoPanelOpen' => null, 'gestureGuideSeen' => null, 'seriesHintSeen' => null, 'yearReviewHintClosed' => null], $this->service()->get($this->user()));
 	}
 
 	// spec: LOUPE-003.1
@@ -51,7 +60,7 @@ final class ViewStateServiceTest extends TestCase {
 		$this->stored['alice/honeycomb/infoPanelOpen'] = false;
 		$this->stored['alice/honeycomb/gestureGuideSeen'] = true;
 
-		$this->assertSame(['infoPanelOpen' => false, 'gestureGuideSeen' => true, 'seriesHintSeen' => null], $this->service()->get($this->user()));
+		$this->assertSame(['infoPanelOpen' => false, 'gestureGuideSeen' => true, 'seriesHintSeen' => null, 'yearReviewHintClosed' => null], $this->service()->get($this->user()));
 	}
 
 	// spec: LOUPE-003.2
@@ -60,15 +69,22 @@ final class ViewStateServiceTest extends TestCase {
 
 		$answer = $this->service()->save($this->user(), ['gestureGuideSeen' => false]);
 
-		$this->assertSame(['infoPanelOpen' => true, 'gestureGuideSeen' => false, 'seriesHintSeen' => null], $answer);
+		$this->assertSame(['infoPanelOpen' => true, 'gestureGuideSeen' => false, 'seriesHintSeen' => null, 'yearReviewHintClosed' => null], $answer);
 		$this->assertSame(['alice/honeycomb/infoPanelOpen' => true, 'alice/honeycomb/gestureGuideSeen' => false], $this->stored);
 	}
 
 	// spec: LOUPE-003.2
 	public function testStoresEveryKey(): void {
-		$answer = $this->service()->save($this->user(), ['infoPanelOpen' => true, 'gestureGuideSeen' => true, 'seriesHintSeen' => true]);
+		$answer = $this->service()->save($this->user(), ['infoPanelOpen' => true, 'gestureGuideSeen' => true, 'seriesHintSeen' => true, 'yearReviewHintClosed' => 2026]);
 
-		$this->assertSame(['infoPanelOpen' => true, 'gestureGuideSeen' => true, 'seriesHintSeen' => true], $answer);
+		$this->assertSame(['infoPanelOpen' => true, 'gestureGuideSeen' => true, 'seriesHintSeen' => true, 'yearReviewHintClosed' => 2026], $answer);
+	}
+
+	// spec: LOUPE-003.1
+	public function testReadsTheYearOfTheClosedHint(): void {
+		$this->stored['alice/honeycomb/yearReviewHintClosed'] = 2025;
+
+		$this->assertSame(2025, $this->service()->get($this->user())['yearReviewHintClosed']);
 	}
 
 	/** @return array<string, array{mixed}> */
@@ -82,6 +98,11 @@ final class ViewStateServiceTest extends TestCase {
 			'a string value' => [['infoPanelOpen' => 'true']],
 			'a number value' => [['gestureGuideSeen' => 1]],
 			'a null value' => [['gestureGuideSeen' => null]],
+			'a boolean year' => [['yearReviewHintClosed' => true]],
+			'a year as text' => [['yearReviewHintClosed' => '2026']],
+			'a year before 1970' => [['yearReviewHintClosed' => 1969]],
+			'a year after 9999' => [['yearReviewHintClosed' => 10000]],
+			'a flag with a year' => [['infoPanelOpen' => 2026]],
 		];
 	}
 

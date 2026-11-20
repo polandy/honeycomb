@@ -3,7 +3,7 @@
 import type { ResumePosition } from '../logic/resume-position.ts'
 import type { StatsAnswer } from '../logic/statistics.ts'
 import type { Tag } from '../logic/tag.ts'
-import type { ViewState } from '../logic/view-state.ts'
+import type { ViewStatePatch } from '../logic/view-state.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -34,7 +34,7 @@ export async function loadViewState(): Promise<unknown> {
 }
 
 /** Stores only the keys of the view state given (ADR 0019). */
-export async function saveViewState(viewState: Partial<ViewState>): Promise<void> {
+export async function saveViewState(viewState: ViewStatePatch): Promise<void> {
 	await axios.put(generateUrl(`${API}/view-state`), { viewState })
 }
 

@@ -47,7 +47,7 @@ final class ViewStateControllerTest extends TestCase {
 		$response = $this->controller()->index();
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame('{"viewState":{"infoPanelOpen":null,"gestureGuideSeen":null,"seriesHintSeen":null}}', $response->render());
+		$this->assertSame('{"viewState":{"infoPanelOpen":null,"gestureGuideSeen":null,"seriesHintSeen":null,"yearReviewHintClosed":null}}', $response->render());
 	}
 
 	// spec: LOUPE-003.1, LOUPE-003.2
@@ -57,7 +57,7 @@ final class ViewStateControllerTest extends TestCase {
 		$saved = $controller->save(['gestureGuideSeen' => true]);
 		$read = $controller->index();
 
-		$expected = '{"viewState":{"infoPanelOpen":null,"gestureGuideSeen":true,"seriesHintSeen":null}}';
+		$expected = '{"viewState":{"infoPanelOpen":null,"gestureGuideSeen":true,"seriesHintSeen":null,"yearReviewHintClosed":null}}';
 		$this->assertSame(Http::STATUS_OK, $saved->getStatus());
 		$this->assertSame($expected, $saved->render());
 		$this->assertSame($expected, $read->render());
