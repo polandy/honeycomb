@@ -9,7 +9,6 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Immich (M10, ADR 0041): PR 4 mockup under `docs/dev/mockup/immich/`: source and connection switcher, read-only connection dialog, status per connection, the paged grid with server counts and a large *Write to Immich* as numbers and conflicts (IMMICH-001 to IMMICH-004, replacing the signed-off artifact's key-per-user dialog with ADR 0042's read-only connections); then the owner's sign-off (ADR 0003) (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 6 backend: connection registry and status, the client with contract tests and upstream error classes, listing and preview proxy; after the sign-off (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 7 the decision table, its mapper and endpoints; the sweep of rows whose connection left the file; after the sign-off (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 8 pure TypeScript: asset to picture and the time, device, kind and flag filters; after PR 5 (2026-11-19)

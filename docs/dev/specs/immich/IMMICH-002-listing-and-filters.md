@@ -2,7 +2,8 @@
 
 - Status: accepted
 - Area: immich
-- Origin: ADR 0041, ADR 0044; Phase 1 mockup and the owner's sign-off condition of 2026-11-20
+- Origin: ADR 0041, ADR 0044; Phase 1 mockup and the owner's sign-off condition of
+  2026-11-20, [mockup](../../mockup/immich/index.html)
 - Depends on: IMMICH-001, IMMICH-003, GRID-001, LOUPE-001
 
 ## Purpose
@@ -24,15 +25,17 @@ what is on screen is loaded, and every number comes from the server.
   or empty with a `nextCursor`; the grid asks again until it fills the screen or the cursor ends.
 - **Loupe and filmstrip past the page:** stepping or swiping to within twelve entries of the last
   loaded one loads the next page; the filmstrip shows its neighbours as they arrive, and the
-  counter *k / N* uses the server's total.
+  counter *k / N* uses the server's total. A loupe opened at the resume position shows *N pictures*
+  until the newer pages are loaded, since a page started at an asset carries no offset.
 - **Filters:** time (*Last 7 days*, the months with uploads, *All phone uploads*; the current month
   by default), device (camera models and *No camera data*, any number), kind (*Photos*, *Motion
   photos*, *Videos*, any number) and the flag filter of GRID-002 with its rating filter. Groups
   combine with AND, chips in a group with OR. Changing a filter starts the listing over.
-- **Counts** (`POST …/counts`): the toolbar's *N of M pictures · K decided*, the flag chips'
+- **Counts** (`POST …/counts`): the toolbar's *N of M pictures · K decided* (`matching`, `total`,
+  `decided`), the flag chips'
   numbers, and each time, device and kind option's number, all from the server for the active
   filters; a facet counts under the filters of the other groups. A decision changes the counts in
-  place without a request; a change of the time, device or kind filters asks again.
+  place without a request; a change of a filter asks again.
 - **Previews** go through honeycomb (`GET …/assets/{assetId}/image`), cached by the browser for a
   year under a URL that names the asset's `updatedAt`.
 - **Capabilities off:** no series, similarity, tags, delete, move, *Remove RAWs*, *Keep RAW* or
