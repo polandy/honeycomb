@@ -3,13 +3,14 @@
 import type { PictureFile } from './delete-summary.ts'
 import type { ListingEntry } from './listing.ts'
 import type { MoveRequestFile } from './move-plan.ts'
+import type { PictureId } from './picture-id.ts'
 
 /** Why the move endpoint left a file where it was, or put it back (ADR 0018). */
 export type MoveFailure = 'notFound' | 'changed' | 'notPermitted' | 'locked' | 'exists' | 'failed' | 'skipped' | 'movedBack' | 'otherStorage'
 
 /** One file of the move response; `result` is checked here. */
 export interface MoveResponseFile {
-	readonly fileId: number
+	readonly fileId: PictureId
 	readonly result: string
 	readonly replaced: boolean
 	readonly path?: string
@@ -22,7 +23,7 @@ export interface MovedFile {
 	readonly file: PictureFile
 	readonly from: string
 	readonly path: string
-	readonly fileId: number
+	readonly fileId: PictureId
 	readonly etag: string
 }
 

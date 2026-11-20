@@ -3,6 +3,7 @@
 import type { Decision } from './decision.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
+import type { PictureId } from './picture-id.ts'
 import type { XmpCacheRow } from './xmp-cache.ts'
 
 import { isPair } from './sidecar-sync.ts'
@@ -17,7 +18,7 @@ export interface ExportPlan {
 }
 
 type Rows = ReadonlyMap<number, XmpCacheRow>
-type Known = ReadonlyMap<string, { readonly fileId: number }>
+type Known = ReadonlyMap<string, { readonly fileId: PictureId }>
 
 /** Whether the sidecar's row states another pick/reject or Keep RAW than the decision; an unflagged picture keeps a row stating nothing or PickLabel 2. */
 function differs(row: XmpCacheRow, decision: Decision, pair: boolean): boolean {

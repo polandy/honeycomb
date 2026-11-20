@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
+import type { PictureId } from './picture-id.ts'
 
 /** The preview tiers of the grid's tiles, smallest first, at core's preview sizes (ADR 0010). */
 export const GRID_TIERS = [256, 1024] as const
@@ -19,7 +20,7 @@ const FULL_TIER = 0
 export type GridTier = typeof GRID_TIERS[number]
 
 /** The URL of a preview tier of a file, immutable while `mtime` is current (ADR 0010). */
-export type ImageUrlFor = (fileId: number, size: number, mtime: number) => string
+export type ImageUrlFor = (fileId: PictureId, size: number, mtime: number) => string
 
 /** The member whose image a picture shows: the rendered one, else the RAW one (ADR 0010). */
 export function imageMember(picture: Picture<ListingEntry>): ListingEntry {

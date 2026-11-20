@@ -5,6 +5,7 @@ import type { Decision } from './logic/decision.ts'
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
+import type { PictureId } from './logic/picture-id.ts'
 import type { SavedSidecar } from './logic/sidecar-sync.ts'
 import type { TrashExpectation, TrashReport } from './logic/trash-report.ts'
 
@@ -40,7 +41,7 @@ export function useCullFinished(context: CullFinishedContext) {
 	}
 
 	/** Each picture's state now, by picture key. */
-	function states(): Map<number, SessionState> {
+	function states(): Map<PictureId, SessionState> {
 		return new Map(context.pictures().map((picture) => [positionFileId(picture), sessionState(context.decisionOf(picture).flag, context.decidedOf(picture))]))
 	}
 

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
+import type { PictureId } from './picture-id.ts'
 import type { Series } from './series.ts'
 import type { SeriesStatus, StoredRows, StoredSeriesInfo } from './stored-series.ts'
 
@@ -12,7 +13,7 @@ export type SeriesPlace = StoredSeriesInfo | 'keptOut' | 'loose'
 
 /** One file's place, as an edit writes it. */
 export interface SeriesRow {
-	readonly fileId: number
+	readonly fileId: PictureId
 	readonly place: SeriesPlace
 }
 
@@ -36,7 +37,7 @@ export interface SeriesWrite {
 }
 
 /** Where the file stands in the rows. */
-export function placeOf(rows: StoredRows, fileId: number): SeriesPlace {
+export function placeOf(rows: StoredRows, fileId: PictureId): SeriesPlace {
 	const row = rows.get(fileId)
 	return row === undefined ? 'loose' : row ?? 'keptOut'
 }

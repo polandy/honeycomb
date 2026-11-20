@@ -5,6 +5,7 @@ import type { Decision } from './logic/decision.ts'
 import type { HotkeyIntent } from './logic/hotkeys.ts'
 import type { SwipeDirection, SwipeSetting } from './logic/loupe-gesture.ts'
 import type { Picture } from './logic/pairing.ts'
+import type { PictureId } from './logic/picture-id.ts'
 import type { Toast } from './toast.ts'
 
 import { t } from '@nextcloud/l10n'
@@ -16,7 +17,7 @@ import { stepRating } from './logic/hotkeys.ts'
 import { swipeFlag } from './logic/loupe-gesture.ts'
 
 /** What the loupe's decisions read from it and hand to it. */
-export interface LoupeDecisionsContext<P extends Picture<{ readonly fileId: number }>> {
+export interface LoupeDecisionsContext<P extends Picture<{ readonly fileId: PictureId }>> {
 	readonly pictures: () => readonly P[]
 	readonly index: () => number
 	readonly decisionOf: (picture: P) => Decision
@@ -36,7 +37,7 @@ export interface LoupeDecisionsContext<P extends Picture<{ readonly fileId: numb
 }
 
 /** The shown picture's decision controls: with auto-advance on, a pick or reject moves on to the next undecided picture. */
-export function useLoupeDecisions<P extends Picture<{ readonly fileId: number }>>(context: LoupeDecisionsContext<P>) {
+export function useLoupeDecisions<P extends Picture<{ readonly fileId: PictureId }>>(context: LoupeDecisionsContext<P>) {
 	const shown = () => context.pictures()[context.index()]!
 	const decidedOf = context.decidedOf ?? ((picture: P) => isDecided(context.decisionOf(picture)))
 	const common = computed(() => commonDecision([{ picture: shown(), decision: context.decisionOf(shown()) }]))

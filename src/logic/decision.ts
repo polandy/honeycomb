@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Picture } from './pairing.ts'
+import type { PictureId } from './picture-id.ts'
 
 /** digiKam's nine colour labels, in the palette's order (ADR 0012). */
 export const COLOUR_LABELS = ['red', 'orange', 'yellow', 'green', 'blue', 'magenta', 'gray', 'black', 'white'] as const
@@ -33,7 +34,7 @@ export const FLAG_FIELDS: readonly DecisionField[] = ['flag', 'keepRaw']
 
 /** A decision as the decision endpoint stores it per member file id (ADR 0012). */
 export interface StoredDecision extends Decision {
-	readonly fileId: number
+	readonly fileId: PictureId
 }
 
 /** What the predicates read of a decision. */
@@ -43,12 +44,12 @@ type FlagOf = Pick<Decision, 'flag'>
 export const UNDECIDED: Decision = { rating: 0, colourLabel: null, flag: 'unflagged', keepRaw: false }
 
 /** The stored decisions keyed by their file id. */
-export function decisionsByFileId(rows: readonly StoredDecision[]): Map<number, Decision> {
+export function decisionsByFileId(rows: readonly StoredDecision[]): Map<PictureId, Decision> {
 	return new Map(rows.map(({ fileId, ...decision }) => [fileId, decision]))
 }
 
 /** The rendered member's decision, else the RAW member's, else undecided (`docs/dev/decisions.md`). */
-export function pictureDecision(picture: Picture<{ readonly fileId: number }>, byFileId: ReadonlyMap<number, Decision>): Decision {
+export function pictureDecision(picture: Picture<{ readonly fileId: PictureId }>, byFileId: ReadonlyMap<PictureId, Decision>): Decision {
 	return (picture.rendered && byFileId.get(picture.rendered.fileId))
 		?? (picture.raw && byFileId.get(picture.raw.fileId))
 		?? UNDECIDED

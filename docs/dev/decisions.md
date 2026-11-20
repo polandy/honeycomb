@@ -1548,6 +1548,12 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   eight pull requests, run autonomously by the chain rules; the type-only refactor now, beside
   statistics PR 4; a lean Phase 1 UI without series, hashes, tags, delete, move or XMP; one owner
   per hotspot file, M9 until its PR 6, then M10. Easy to redo: each is a docs line or a small PR.
+- 2026-11-19: Immich refactor PR 5 types file ids as `PictureId` and splits `SourceEntry` off
+  `ListingEntry`, but leaves the cull context, the grid and loupe props and `toasted-decisions` on
+  `Picture<ListingEntry>`: their callbacks reach the tag and sidecar writes in `cull.ts`, which need
+  `etag` and `size`, so retyping them now would mean reshaping `cull.ts` beside statistics PR 4. The
+  retyping moves to the Vue shell refactor (PR 9), which reshapes `cull.ts` anyway. Easy to redo:
+  type lines only.
 - 2026-11-19: ADR 0042 fixes the connections file: `version` 1, per connection `id` (1–64 of
   `a-z0-9-`, the stable key of the decision table), `user`, `label`, `url` (origin only),
   `keyFile` (absolute) and `picksAsFavorites`; the file is valid as a whole or not at all; it is
@@ -1555,6 +1561,17 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   a connection that left the file go with the daily sweep, which sweeps nothing when the file is
   missing or invalid; a lacking scope is detected from Immich's `403`, never probed; the status
   check needs no scope beyond Phase 1's. Easy to redo: each is a line in the ADR before the code.
+- 2026-11-19: ADR 0043 fixes the Immich decision table `honeycomb_immich_assets`: the whole
+  `Decision` per `(connection_id, asset_id)` with `user_id` in the row (so `forgetUser` needs no
+  file) and Immich's `updatedAt` as the baseline of Phase 2's conflict check; one save endpoint
+  per connection that answers the saved asset ids, rejects a malformed body as a whole and never
+  calls Immich; a `UserRowStore` only; rows of a connection that left the file go with the daily
+  sweep, rows of assets deleted in Immich stay in Phase 1; Immich decisions count nothing in
+  the statistics until *Write to Immich*. Easy to redo: each is a line in the ADR before the code.
+- 2026-11-20: ADR 0043 takes the owner's Phase 1 sign-off condition (paged grid, counts from the
+  server, blocks of 100): the row copies the asset's capture time, camera model and kind so the
+  server counts and filters decided assets without the whole library; a decision filter pages the
+  rows and deletes a row whose asset Immich no longer returns. Easy to redo: columns before code.
 - 2026-11-19: Each browser count rides with the request that saves its field (STATS-001, metrics
   PR 5): the flag save carries decided, picked and rejected, the sidecar save ratings, colour
   labels and tags set and the foreign mark, the position save the active seconds. A count counts

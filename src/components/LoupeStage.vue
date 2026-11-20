@@ -8,6 +8,7 @@ import type { ListingEntry } from '../logic/listing.ts'
 import type { GestureAction, GesturePointer, SwipeDirection, SwipeSetting } from '../logic/loupe-gesture.ts'
 import type { PinchCentre, Size, Zoom } from '../logic/loupe-zoom.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { PictureId } from '../logic/picture-id.ts'
 import type { ObserveSize } from '../observe-size.ts'
 
 import { computed, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef, watch } from 'vue'
@@ -54,7 +55,7 @@ const liftY = ref(0)
 /** The swipe releasing the lifted photo now makes, null when it settles back. */
 const liftSwipe = ref<SwipeDirection | null>(null)
 /** Aspects learnt from loaded images, by file id; they win over the listing's size. */
-const aspects = reactive(new Map<number, number>())
+const aspects = reactive(new Map<PictureId, number>())
 
 const member = computed(() => imageMember(props.pictures[props.index]!))
 const sources = computed(() => loupeSources(member.value, props.imageUrl))
@@ -171,7 +172,7 @@ function onPointerDown(event: PointerEvent) {
 }
 
 /** Learns the upright aspect of a loaded photo. */
-function onLoad(fileId: number, event: Event) {
+function onLoad(fileId: PictureId, event: Event) {
 	const image = event.target as HTMLImageElement
 	if (image.naturalWidth > 0 && image.naturalHeight > 0) {
 		aspects.set(fileId, image.naturalWidth / image.naturalHeight)

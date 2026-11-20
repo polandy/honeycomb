@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { FlagApi, FlagItem } from './flags-api.ts'
 import type { StoredDecision } from './logic/decision.ts'
+import type { PictureId } from './logic/picture-id.ts'
 import type { StatsCounts } from './logic/stats-counts.ts'
 
 import { logger } from './logger.ts'
@@ -14,7 +15,7 @@ export function useCullFlags(api: FlagApi) {
 	let queue: Promise<unknown> = Promise.resolve()
 
 	/** Saves the rows' flags, each with its counts by file id, after the saves before; answers the file ids not saved, every one when the save fails (XMP-008.17, STATS-001). */
-	function save(rows: readonly StoredDecision[], counts: ReadonlyMap<number, StatsCounts> = new Map()): Promise<ReadonlySet<number>> {
+	function save(rows: readonly StoredDecision[], counts: ReadonlyMap<PictureId, StatsCounts> = new Map()): Promise<ReadonlySet<PictureId>> {
 		const items = rows.map((row) => {
 			const own = counts.get(row.fileId)
 			return own === undefined ? itemOf(row) : { ...itemOf(row), counts: own }
