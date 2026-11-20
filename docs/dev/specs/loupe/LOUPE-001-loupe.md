@@ -138,6 +138,8 @@ the gesture guide was dismissed are kept per user on the server (LOUPE-003).
 - **Then** it shows the grid tier until the loupe tier loads, loads 3 neighbours ahead and 2
   behind, nearest first, each once, retries a failed one on the next page, and shows a
   prefetched 24 MP neighbour without a new request, within 100 ms of the key press (asserted in e2e)
+- The stage's `data-decoded` counts the sources that have decoded, raised in the render that
+  swaps the slides to them, so a test waits for the neighbours instead of their requests
 
 ### LOUPE-001.13 – Info panel and filmstrip
 
@@ -199,6 +201,7 @@ IMAGES-001.
 | 2026-11-14 | .26 the first-series hint under the series chip (series concept step 11) |
 | 2026-11-19 | .25 the series chip is named by the text it shows (APP-001.15) |
 | 2026-11-20 | .7 the key and the button zoom onto the focus tile of a photo with a quality value (SERIES-007, M11 PR 3) |
+| 2026-11-20 | .12 the stage's `data-decoded` counts the decoded sources, for the e2e budget to wait on |
 
 ### LOUPE-001.18 – One photo in view
 
