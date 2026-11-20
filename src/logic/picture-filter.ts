@@ -31,6 +31,9 @@ export interface Filters {
 	readonly tags: ReadonlySet<Tag>
 }
 
+/** The filter groups a decision alone answers: rating, colour label and flag. */
+export type DecisionFilters = Pick<Filters, 'rating' | 'comparison' | 'colourLabels' | 'flags'>
+
 /** Picked and unflagged, no other filter, the comparison at least. */
 export const DEFAULT_FILTERS: Filters = {
 	rating: null,
@@ -66,14 +69,18 @@ export function pairingKind(picture: Picture<unknown>): PairingKind {
 
 /** Whether a picture with this decision and these tags passes every active filter group. */
 export function matchesFilters(picture: Picture<unknown>, decision: Decision, tags: readonly Tag[], filters: Filters): boolean {
-	const chosen = <T>(chips: ReadonlySet<T>, value: T) => chips.size === 0 || chips.has(value)
-	return (filters.rating === null || COMPARE_RATING[filters.comparison](decision.rating, filters.rating))
-		&& (filters.colourLabels.size === 0 || (decision.colourLabel !== null && filters.colourLabels.has(decision.colourLabel)))
-		&& chosen(filters.flags, decision.flag)
+	return matchesDecision(decision, filters)
 		&& chosen(filters.pairings, pairingKind(picture))
 		&& chosen(filters.keepRaw, decision.keepRaw ? 'marked' : 'not-marked')
 		&& chosen(filters.folders, picture.folder)
 		&& hasEveryTag(tags, filters.tags)
+}
+
+/** Whether a decision passes the rating, colour label and flag filters. */
+export function matchesDecision(decision: Decision, filters: DecisionFilters): boolean {
+	return (filters.rating === null || COMPARE_RATING[filters.comparison](decision.rating, filters.rating))
+		&& (filters.colourLabels.size === 0 || (decision.colourLabel !== null && filters.colourLabels.has(decision.colourLabel)))
+		&& chosen(filters.flags, decision.flag)
 }
 
 /** The pictures that pass the filters, in their given order. */
@@ -112,6 +119,11 @@ export function emptyReason(filters: Filters, total: number): EmptyReason {
 		return 'no-pictures'
 	}
 	return activeFilterCount(filters) > 0 ? 'no-match' : 'none-left'
+}
+
+/** Whether an empty chip set or one holding the value. */
+function chosen<T>(chips: ReadonlySet<T>, value: T): boolean {
+	return chips.size === 0 || chips.has(value)
 }
 
 /** Whether the flag filter is the default one. */

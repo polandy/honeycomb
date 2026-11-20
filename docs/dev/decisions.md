@@ -1693,7 +1693,18 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   row, not on the photo, to stay clear of the zoom sync text and the flag rail. Easy to redo.
 - 2026-11-20: The quality hint on a tile is a small icon beside the file name, without colour or
   badge, so the grid stays calm; the filter bar gets a group *Hints*. Easy to redo.
+- 2026-11-20: The Immich time filter counts the current month and the eleven before it; older
+  uploads are under *All phone uploads*. Twelve keeps a change of filter at about fifteen Immich
+  calls, under the server's 50 periods. Easy to redo: one constant.
+- 2026-11-20: An Immich entry stays its own type beside `SourceEntry` until the shell refactor
+  (M10 PR 9) widens `PictureId` to `number | string`; widening it now breaks dozens of call
+  sites that PR 9 rewrites anyway. Easy to redo.
 - 2026-11-20: `tests/php-db` and the update test also run on MariaDB 11.4 and PostgreSQL 17 in CI
   (matrix `db`, `scripts/database.sh`); `scripts/verify.sh` stays on SQLite to keep its run short.
   The three SQLite write-lock tests skip on the other engines, which lock rows (review E21/T3).
   Easy to redo: the matrix list in `ci.yml`.
+- 2026-11-20: honeycomb renders a file's previews in one request at a time, under a System V
+  semaphore per file (256 shared, `SemaphorePreviewLock`), since Nextcloud 35 rewrites a preview
+  file in place when two requests render it at once and a tile read meanwhile came back empty
+  (IMAGES-001.18). Without `sysvsem` it renders unlocked, as core does. Easy to redo: one alias
+  in `Application.php`.
