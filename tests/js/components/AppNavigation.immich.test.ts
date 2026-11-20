@@ -3,7 +3,7 @@
 // @vitest-environment happy-dom
 import { enableAutoUnmount, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import AppNavigation from '../../../src/components/AppNavigation.vue'
 import RecentFolderSets from '../../../src/components/RecentFolderSets.vue'
 import { fakeStorage } from '../app-cull.ts'
@@ -56,6 +56,8 @@ describe('AppNavigation: the sources', () => {
 	// spec: IMMICH-001.14
 	it('lists several connections with their status and opens one', async () => {
 		const wrapper = mountNavigation({ source: 'immich', connections: LINES, connectionId: 'andy-phone' })
+		await nextTick()
+
 		expect(wrapper.text()).toContain('Connected as andy')
 		expect(wrapper.text()).toContain('Immich unreachable')
 

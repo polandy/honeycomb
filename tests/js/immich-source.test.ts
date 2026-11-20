@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// @vitest-environment happy-dom
 import type { ImmichApi } from '../../src/immich-source.ts'
 import type { ConnectionStatus, ImmichAvailability } from '../../src/logic/immich-connections.ts'
 

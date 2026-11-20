@@ -19,6 +19,8 @@ import CullFinished from './components/CullFinished.vue'
 import FolderPicker from './components/FolderPicker.vue'
 import GridScreen from './components/GridScreen.vue'
 import GridSkeleton from './components/GridSkeleton.vue'
+import ImmichConnectionDialog from './components/ImmichConnectionDialog.vue'
+import ImmichState from './components/ImmichState.vue'
 import LoupeScreen from './components/LoupeScreen.vue'
 import NoFolderState from './components/NoFolderState.vue'
 import SeriesCompareScreen from './components/SeriesCompareScreen.vue'
@@ -38,6 +40,8 @@ import { useDeleteFlow } from './delete-flow.ts'
 import { freshCheck } from './fresh-check.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
+import { useImmichSource } from './immich-source.ts'
+import { connectionLines } from './immich-text.ts'
 import { waitSeconds } from './logic/retry-after.ts'
 import { useLoupeOpening } from './loupe-opening.ts'
 import { useMoveFlow } from './move-flow.ts'
@@ -120,6 +124,24 @@ function openRecent(position: ResumePosition) {
 recent.refresh()
 watch(pickerOpen, (open) => open && recent.refresh())
 
+const immich = useImmichSource(props.immich, props.storage)
+void immich.load()
+const immichShown = computed(() => immich.source.value === 'immich')
+const connectionDialogOpen = ref(false)
+const opened = immich.connection
+const openedStatus = computed(() => opened.value && immich.statusOf(opened.value.id))
+/** Opens the connection and asks its status again. */
+function openConnection(connectionId: string) {
+	immich.open(connectionId)
+	void immich.check(connectionId)
+}
+/** Asks the opened connection's status again (IMMICH-001.19). */
+function checkOpened() {
+	if (opened.value !== null) {
+		void immich.check(opened.value.id)
+	}
+}
+
 const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => gridScreen.value?.filterBar?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
 
 provideCullContext({ cull, selection, decide, clearFlags, xmpExport, editSeries: editSelection, deleting, moving, resume, seriesCompare, unsaved: sidecars.waiting, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage, imageUrl: props.imageUrl })
@@ -134,10 +156,10 @@ const toggleFileNames = () => updateSettings({ showFileNames: !settings.value.sh
 /** Opens or closes the shortcut sheet. */
 const toggleShortcuts = () => (shortcutsOpen.value = !shortcutsOpen.value)
 useHotkeys(() => {
-	if (pickerOpen.value || settingsOpen.value || tagEntry.targets.value !== null || deleteDialog.value !== null || cullFinished.numbers.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
+	if (pickerOpen.value || settingsOpen.value || connectionDialogOpen.value || tagEntry.targets.value !== null || deleteDialog.value !== null || cullFinished.numbers.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
 		return null
 	}
-	if (shortcutsOpen.value || folderSet.value === null) {
+	if (shortcutsOpen.value || folderSet.value === null || immichShown.value) {
 		return { shortcuts: toggleShortcuts }
 	}
 	if (seriesCompare.open.value) {
@@ -153,12 +175,25 @@ useHotkeys(() => {
 			:items="recent.items.value"
 			:storage="props.storage"
 			:hintYear="yearReviewHint.year.value"
+			:source="immich.source.value"
+			:offersImmich="immich.offered.value"
+			:connections="connectionLines(immich.connections.value, immich.statusOf)"
+			:connectionId="opened?.id ?? null"
+			@chooseSource="immich.choose"
+			@openConnection="openConnection"
+			@connectionDetails="connectionDialogOpen = true"
 			@closeHint="yearReviewHint.close()"
 			@chooseFolders="pickerOpen = true"
 			@openRecent="openRecent"
 			@openSettings="settingsOpen = true" />
 		<NcAppContent class="honeycomb">
-			<GridSkeleton v-if="recent.listing.value" class="honeycomb__grid" :tileSize="tileSize" />
+			<ImmichState
+				v-if="immichShown"
+				:connection="opened"
+				:status="openedStatus"
+				@retry="checkOpened"
+				@details="connectionDialogOpen = true" />
+			<GridSkeleton v-else-if="recent.listing.value" class="honeycomb__grid" :tileSize="tileSize" />
 			<GridScreen v-else-if="folderSet !== null" ref="gridScreen" />
 			<NoFolderState v-else @chooseFolder="pickerOpen = true" />
 			<FolderPicker
@@ -192,6 +227,12 @@ useHotkeys(() => {
 				@clearCache="clearCacheWithToast(props.clearCache, toast.show, toast.showError)"
 				@cleanUp="cleanUpWithToast(props.cleanUp, toast.show, toast.showError)"
 				@resetStatistics="resetStatisticsWithToast(props.resetStatistics, toast.show, toast.showError)" />
+			<ImmichConnectionDialog
+				v-if="connectionDialogOpen && opened !== null"
+				:connection="opened"
+				:status="openedStatus"
+				@test="checkOpened"
+				@close="connectionDialogOpen = false" />
 			<ToastDetails v-if="toast.detailed.value !== null" :detailed="toast.detailed.value" @close="toast.closeDetails" />
 			<Teleport to="body">
 				<LoupeScreen ref="loupeScreen" />

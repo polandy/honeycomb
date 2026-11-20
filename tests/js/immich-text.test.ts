@@ -28,9 +28,9 @@ describe('immich-text', () => {
 
 	// spec: IMMICH-001.17
 	it('gives the version and the number of phone uploads when known', () => {
-		expect(connectionFacts(OK)).toBe(`${MARK}Immich 2.3.1 · ${MARK}3,660 phone uploads`)
+		expect(connectionFacts(OK)).toBe(`${MARK}Immich 2.3.1 · ${MARK}${MARK}3,660 phone uploads`)
 		expect(connectionFacts({ ...OK, total: null })).toBe(`${MARK}Immich 2.3.1`)
-		expect(connectionFacts({ ...OK, version: null, total: 1 })).toBe(`${MARK}1 phone upload`)
+		expect(connectionFacts({ ...OK, version: null, total: 1 })).toBe(`${MARK}${MARK}1 phone upload`)
 		expect(connectionFacts({ ...OK, version: null, total: null })).toBe('')
 	})
 })

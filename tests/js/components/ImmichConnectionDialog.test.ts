@@ -1,12 +1,14 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
+import type { ConnectionStatus } from '../../../src/logic/immich-connections.ts'
+
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import ImmichConnectionDialog from '../../../src/components/ImmichConnectionDialog.vue'
 
 const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example' }
-const OK = { state: 'ok', account: 'andy', version: '2.3.1', total: 3660 } as const
+const OK: ConnectionStatus = { state: 'ok', account: 'andy', version: '2.3.1', total: 3660 }
 
 enableAutoUnmount(afterEach)
 
@@ -35,7 +37,7 @@ describe('ImmichConnectionDialog', () => {
 		const { text } = mountDialog({ ...OK, account: null, total: null })
 
 		expect(text()).toContain('not shown, the key lacks user.read')
-		expect(text()).toContain('Connected as')
+		expect(text()).not.toContain('Connected as')
 	})
 
 	// spec: IMMICH-001.11

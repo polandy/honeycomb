@@ -23,7 +23,7 @@ const OK = { state: 'ok', account: 'andy', version: '2.3.1', total: 3660 } as co
 function immichOn(availability: ImmichAvailability) {
 	const asked: string[] = []
 	const api: ImmichApi = { listConnections: async () => availability, status: async (id) => (asked.push(id), OK) }
-	return { immich: () => api, asked }
+	return { immich: api, asked }
 }
 
 describe('App: the Immich source', () => {

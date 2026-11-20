@@ -5,6 +5,7 @@ import type { BrowserStorage } from './browser-storage.ts'
 import type { CullTagsApi } from './cull-tags.ts'
 import type { FlagApi } from './flags-api.ts'
 import type { ListEntries } from './folder-count.ts'
+import type { ImmichApi } from './immich-source.ts'
 import type { ImageUrlFor } from './logic/image-tiers.ts'
 import type { Schedule } from './logic/long-press.ts'
 import type { Settings } from './logic/settings.ts'
@@ -19,7 +20,7 @@ import type { LookupSeries, SaveSeries } from './stored-series.ts'
 import type { ViewStateApi } from './view-state.ts'
 import type { HashImage, SaveVisualHashes } from './visual-hashes.ts'
 
-import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, cleanUpOrphanedData, imageUrl, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, movePictures, probeTargets, resetStatistics, savePosition, saveQualityValues, saveSidecars, saveViewState, saveVisualHashes } from './api.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, cleanUpOrphanedData, imageUrl, immichStatus, listImmichConnections, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, movePictures, probeTargets, resetStatistics, savePosition, saveQualityValues, saveSidecars, saveViewState, saveVisualHashes } from './api.ts'
 import { saveFlags, takeOverFlags } from './flags-api.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { browserHashWorkers } from './hash-workers.ts'
@@ -62,6 +63,8 @@ export interface AppSeams {
 	sidecars?: SidecarFlowApi
 	move?: MoveApi
 	tags?: CullTagsApi
+	/** The user's Immich connections and their status (IMMICH-001). */
+	immich?: ImmichApi
 	clearCache?: () => Promise<void>
 	/** Whether the user is an admin, who may clean up the orphaned data (SETTINGS-001.27). */
 	admin?: () => boolean
@@ -101,6 +104,7 @@ export const APP_SEAMS = {
 	sidecars: () => ({ lookupSidecars, lookupEmbeddedXmp, saveSidecars, lookupXmpCache, saveXmpCache, now: browserNow }),
 	move: () => ({ probeTargets, movePictures }),
 	tags: () => ({ loadTagList }),
+	immich: () => ({ listConnections: listImmichConnections, status: immichStatus }),
 	clearCache,
 	admin: () => document.getElementById(APP_ELEMENT)?.dataset.admin === 'true',
 	cleanUp: cleanUpOrphanedData,
