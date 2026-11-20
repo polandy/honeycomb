@@ -28,8 +28,8 @@ what is on screen is loaded, and every number comes from the server.
   loaded one loads the next page; the filmstrip shows its neighbours as they arrive, and the
   counter *k / N* uses the server's total. A loupe opened at the resume position shows *N pictures*
   until the newer pages are loaded, since a page started at an asset carries no offset.
-- **Filters:** time (*Last 7 days*, the months with uploads, *All phone uploads*; the current month
-  by default), device (camera models and *No camera data*, any number), kind (*Photos*, *Motion
+- **Filters:** time (*Last 7 days*, the months with uploads among the current month and the eleven
+  before it, in the browser's time zone, *All phone uploads*; the current month by default), device (camera models and *No camera data*, any number), kind (*Photos*, *Motion
   photos*, *Videos*, any number) and the flag filter of GRID-002 with its rating filter. Groups
   combine with AND, chips in a group with OR. Changing a filter starts the listing over.
 - **Decision filters:** when the filter admits undecided assets, the listing pages Immich and
@@ -219,3 +219,17 @@ what is on screen is loaded, and every number comes from the server.
 - **Given** a counts request with malformed filters, a malformed time option or more than 50
 - **When** it is sent
 - **Then** the answer is `400` `request` and Immich is not asked
+
+### IMMICH-002.26 – Time options
+
+- **Given** 20 November 2026 and uploads in November, September and in 2024
+- **When** the time options are counted
+- **Then** the request counts *Last 7 days*, the twelve months from November 2026 back to
+  December 2025 and *All phone uploads*; *Last 7 days*, *November 2026*, *September 2026* and
+  *All phone uploads* show, a month counted 0 only while it is chosen or the current month
+
+### IMMICH-002.27 – Counter at the resume position
+
+- **Given** a loupe opened at the resume position, with newer entries not yet loaded
+- **When** the counter renders
+- **Then** it says *N pictures* with the server's total, and *k / N* once the newer pages are loaded
