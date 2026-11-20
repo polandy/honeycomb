@@ -43,6 +43,11 @@ a background job that renders its three tiers like the warm-up, so a folder open
 rendered previews. One job per file waits at a time; a job whose user or file is gone does
 nothing.
 
+One request at a time renders a file's previews: the tile, the loupe, the warm-up and the
+background job wait for each other, since core rewrites a preview file in place when two
+requests render it at once, and a request reading it meanwhile would serve it empty. Without
+PHP's `sysvsem` extension the renders run unlocked, as core's own preview limits do.
+
 ## Acceptance criteria
 
 ### IMAGES-001.1 – A tier under an immutable URL
@@ -160,6 +165,13 @@ nothing.
 - **When** it is written
 - **Then** no job is queued; a job whose user is gone renders nothing
 
+### IMAGES-001.18 – One file renders in one request at a time
+
+- **Given** a tile asking for a tier of a file while the warm-up renders the same file
+- **When** both render
+- **Then** each renders while it holds the file's lock, and the tile gets the whole image, never
+  an empty one
+
 ## Out of scope
 
 - Which tier a tile or the loupe loads, and prefetch: GRID-001, LOUPE-001.
@@ -173,4 +185,5 @@ nothing.
 | 2026-11-20 | e2e budgets are asserted, not only reported (IMAGES-001.12, LOUPE-001.12) |
 | 2026-11-20 | Written photos are rendered in the background; IMAGES-001.12 is gated in e2e by the renders an opening causes (#271, ADR 0045) |
 | 2026-11-11 | Tiers 256, 1024 and 4096, core's preview sizes, in place of 512 and 2048 (owner, nc-test analysis) |
+| 2026-11-20 | One request at a time renders a file's previews; Nextcloud 35.0.0 served an empty tile when the warm-up rendered it too (IMAGES-001.18) |
 | 2026-11-14 | A new folder set stops the warm-up; warmed files are skipped by `fileId` and `mtime` (ADR 0010, amended 2026-11-14) |

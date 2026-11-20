@@ -11,6 +11,7 @@ use OCA\Honeycomb\BackgroundJob\RenderPhotoTiers;
 use OCA\Honeycomb\Service\ImageService;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
+use OCA\Honeycomb\Tests\Service\FakePreviewLock;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\File;
 use OCP\Files\Folder;
@@ -48,7 +49,7 @@ final class RenderPhotoTiersTest extends TestCase {
 		$users = $this->createStub(IUserManager::class);
 		$users->method('get')->willReturnCallback(static fn (string $userId): ?IUser => $userId === 'alice' ? $alice : null);
 		$logger ??= $this->createStub(LoggerInterface::class);
-		$images = new ImageService(new UserPhotos(new UserFolderResolver($root)), $preview, $logger);
+		$images = new ImageService(new UserPhotos(new UserFolderResolver($root)), $preview, $logger, new FakePreviewLock());
 		return new RenderPhotoTiers($this->createStub(ITimeFactory::class), $users, $images, $logger);
 	}
 
