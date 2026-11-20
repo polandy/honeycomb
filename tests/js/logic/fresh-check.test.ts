@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { UNDECIDED } from '../../../src/logic/decision.ts'
 import { freshFolders, jpegSidecarOf, matchFresh } from '../../../src/logic/fresh-check.ts'
 import { listingEntry, pictureOf, picturesOf } from './listing-entries.ts'
 
@@ -37,21 +36,16 @@ describe('matchFresh', () => {
 })
 
 describe('jpegSidecarOf', () => {
-	const rawOnly = pictureOf(RAW, JPEG, RAW_SIDECAR)
-
 	// spec: DELETE-003.12
-	it('names the JPEG sidecar to write first while the cull shows a rating, colour label or tag and only the RAW has a sidecar', () => {
-		expect(jpegSidecarOf(rawOnly, { ...UNDECIDED, rating: 3 }, [])).toBe('/Trip/IMG_1.JPG.xmp')
-		expect(jpegSidecarOf(rawOnly, { ...UNDECIDED, colourLabel: 'red' }, [])).toBe('/Trip/IMG_1.JPG.xmp')
-		expect(jpegSidecarOf(rawOnly, UNDECIDED, ['Places/Lisbon'])).toBe('/Trip/IMG_1.JPG.xmp')
+	it('names the JPEG sidecar to seed and the RAW sidecar it is read from while only the RAW has a sidecar', () => {
+		expect(jpegSidecarOf(pictureOf(RAW, JPEG, RAW_SIDECAR))).toEqual({ path: '/Trip/IMG_1.JPG.xmp', source: RAW_SIDECAR })
 	})
 
 	// spec: DELETE-003.9
-	it('names none for a picture without values, without a RAW sidecar, with a JPEG or shared sidecar, or without a JPEG', () => {
-		expect(jpegSidecarOf(rawOnly, { ...UNDECIDED, flag: 'picked', keepRaw: true }, [])).toBeNull()
-		expect(jpegSidecarOf(pictureOf(RAW, JPEG), { ...UNDECIDED, rating: 3 }, [])).toBeNull()
-		expect(jpegSidecarOf(pictureOf(RAW, JPEG, RAW_SIDECAR, JPEG_SIDECAR), { ...UNDECIDED, rating: 3 }, [])).toBeNull()
-		expect(jpegSidecarOf(pictureOf(RAW, JPEG, RAW_SIDECAR, SHARED_SIDECAR), { ...UNDECIDED, rating: 3 }, [])).toBeNull()
-		expect(jpegSidecarOf(pictureOf(RAW, RAW_SIDECAR), { ...UNDECIDED, rating: 3 }, [])).toBeNull()
+	it('names none without a RAW sidecar, with a JPEG or shared sidecar, or without a JPEG', () => {
+		expect(jpegSidecarOf(pictureOf(RAW, JPEG))).toBeNull()
+		expect(jpegSidecarOf(pictureOf(RAW, JPEG, RAW_SIDECAR, JPEG_SIDECAR))).toBeNull()
+		expect(jpegSidecarOf(pictureOf(RAW, JPEG, RAW_SIDECAR, SHARED_SIDECAR))).toBeNull()
+		expect(jpegSidecarOf(pictureOf(RAW, RAW_SIDECAR))).toBeNull()
 	})
 })
