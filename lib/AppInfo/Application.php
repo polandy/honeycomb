@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\AppInfo;
 
+use OCA\Honeycomb\Db\AppDataMapper;
 use OCA\Honeycomb\Db\FileCacheLookup;
 use OCA\Honeycomb\Db\FileCachePhotoFiles;
 use OCA\Honeycomb\Db\FlagMapper;
@@ -26,6 +27,7 @@ use OCA\Honeycomb\Listener\RenderWrittenPhotos;
 use OCA\Honeycomb\Preview\JpegDecoder;
 use OCA\Honeycomb\Preview\OcpJpegDecoder;
 use OCA\Honeycomb\Preview\RawPreviewProvider;
+use OCA\Honeycomb\Service\AppData;
 use OCA\Honeycomb\Service\ExistingFiles;
 use OCA\Honeycomb\Service\FlagStore;
 use OCA\Honeycomb\Service\Pause;
@@ -63,6 +65,7 @@ final class Application extends App implements IBootstrap {
 		$context->registerServiceAlias(StatsStore::class, StatsMapper::class);
 		$context->registerServiceAlias(TagStore::class, TagMapper::class);
 		$context->registerServiceAlias(QualityStore::class, QualityMapper::class);
+		$context->registerServiceAlias(AppData::class, AppDataMapper::class);
 		$context->registerServiceAlias(VisualHashStore::class, VisualHashMapper::class);
 		$context->registerServiceAlias(XmpCacheStore::class, XmpCacheMapper::class);
 		$context->registerServiceAlias(ExistingFiles::class, FileCacheLookup::class);
