@@ -23,6 +23,9 @@ interface StatsStore extends UserRowStore {
 	 */
 	public function between(string $userId, ?string $from, ?string $to): array;
 
+	/** The sum of the user's counters of one metric over every day. */
+	public function total(string $userId, StatsMetric $metric): int;
+
 	/** The user's earliest counted day, null without one. */
 	public function firstDay(string $userId): ?string;
 }

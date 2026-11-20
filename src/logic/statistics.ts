@@ -24,11 +24,21 @@ export interface Counter {
 	readonly value: number
 }
 
-/** What the stats API answers: every counter, the first counted day and the user's today. */
+/** The cached XMP readings of the user that were read: how many, and how many of them are picked, rejected and rated (STATS-001.45). */
+export interface ReadPictures {
+	readonly pictures: number
+	readonly picked: number
+	readonly rejected: number
+	readonly rated: number
+}
+
+/** What the stats API answers: every counter, the first counted day, the user's today and what began before the counting. */
 export interface StatsAnswer {
 	readonly counters: readonly Counter[]
 	readonly firstDay: string | null
 	readonly today: string
+	readonly seriesDoneBefore: number
+	readonly read: ReadPictures
 }
 
 /** The periods the page sums over (STATS-001.21). */
@@ -170,6 +180,22 @@ export function folderSetShare(decided: number, total: number): { percent: numbe
 /** The well-formed counters of an answer, the rest dropped. */
 export function parseCounters(answer: unknown): Counter[] {
 	return Array.isArray(answer) ? answer.filter(isCounter) : []
+}
+
+/** The read pictures of an answer, a missing or malformed number as zero. */
+export function parseReadPictures(answer: unknown): ReadPictures {
+	const fields = typeof answer === 'object' && answer !== null ? answer as Record<string, unknown> : {}
+	const count = (key: string): number => Number.isInteger(fields[key]) ? fields[key] as number : 0
+	return { pictures: count('pictures'), picked: count('picked'), rejected: count('rejected'), rated: count('rated') }
+}
+
+/** The whole percent of the read pictures picked, rejected, unflagged and rated; null while none was read (STATS-001.45). */
+export function readShares(read: ReadPictures): { picked: number, rejected: number, unflagged: number, rated: number } | null {
+	if (read.pictures === 0) {
+		return null
+	}
+	const percent = (part: number): number => Math.round((part * PERCENT) / read.pictures)
+	return { picked: percent(read.picked), rejected: percent(read.rejected), unflagged: percent(read.pictures - read.picked - read.rejected), rated: percent(read.rated) }
 }
 
 /** Whether a value is a well-formed counter. */

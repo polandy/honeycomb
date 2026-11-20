@@ -92,6 +92,11 @@ final class FakeSeriesStore implements SeriesStore {
 	}
 
 	#[\Override]
+	public function countDone(string $userId): int {
+		return count(array_filter($this->series, static fn (array $series): bool => $series['userId'] === $userId && $series['status'] === SeriesStatus::Done));
+	}
+
+	#[\Override]
 	public function seriesIdsAfter(int $afterId, int $limit): array {
 		if ($this->seriesReadFails) {
 			throw new FakeDbException(0);

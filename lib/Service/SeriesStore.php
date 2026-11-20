@@ -22,6 +22,9 @@ interface SeriesStore extends FileRowStore, UserRowStore {
 	 */
 	public function write(string $userId, SeriesWrite $write): array;
 
+	/** How many series of the user are done. */
+	public function countDone(string $userId): int;
+
 	/**
 	 * The ids of at most `$limit` series of every user above `$afterId`, in id order.
 	 * @return list<int>

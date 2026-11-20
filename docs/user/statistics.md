@@ -23,7 +23,12 @@ Open **Statistics** in the navigation, or press **Statistics** on the *Cull fini
   per month (year, all time).
 - **Folder sets:** every folder set you cull, with the share of its photos decided; *Done* once
   every photo is.
-- **Counted since:** the first day honeycomb counted. The space of photos in the trash bin is freed
+- **Of the pictures read so far:** the shares picked, rejected, unflagged and rated among the
+  pictures whose XMP honeycomb has read. A folder you have not opened yet is not in it, whichever
+  program set its flags.
+- **Counted since:** the first day honeycomb counted, and how many series were already done before
+  that (*Before that: 12 series done*). Decided pictures have no such number: honeycomb counts them
+  from the first day on. The space of photos in the trash bin is freed
   when the trash bin is emptied.
 
 ## Switch it off or reset it

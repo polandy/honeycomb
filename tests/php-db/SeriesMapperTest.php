@@ -159,4 +159,13 @@ final class SeriesMapperTest extends DbTestCase {
 		$this->assertSame(1, $this->series->deleteRows([(int)array_search(7, $rows, true)]));
 		$this->assertSame([8], $this->find('alice', [7, 8])->series[0]->fileIds);
 	}
+
+	// spec: STATS-001.44
+	public function testCountsTheDoneSeriesOfOneUser(): void {
+		$this->write('alice', [[null, 'done', 7], [null, 'open', 8], [null, 'done', 9]]);
+		$this->write('bob', [[null, 'done', 3]]);
+
+		$this->assertSame(2, $this->series->countDone('alice'));
+		$this->assertSame(0, $this->series->countDone('carol'));
+	}
 }

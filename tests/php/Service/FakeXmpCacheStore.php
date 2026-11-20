@@ -7,8 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\XmpCacheRow;
 use OCA\Honeycomb\Service\XmpCacheStore;
+use OCA\Honeycomb\Service\XmpReadState;
 
 /** Keeps XMP cache rows in memory, by user and file id. */
 final class FakeXmpCacheStore implements XmpCacheStore {
@@ -27,6 +29,17 @@ final class FakeXmpCacheStore implements XmpCacheStore {
 		foreach ($rows as $row) {
 			$this->rows[$userId][$row->fileId] = $row;
 		}
+	}
+
+	#[\Override]
+	public function readCounts(string $userId): array {
+		$read = array_filter($this->rows[$userId] ?? [], static fn (XmpCacheRow $row): bool => $row->state === XmpReadState::Read);
+		return [
+			'pictures' => count($read),
+			'picked' => count(array_filter($read, static fn (XmpCacheRow $row): bool => $row->flag === Flag::Picked)),
+			'rejected' => count(array_filter($read, static fn (XmpCacheRow $row): bool => $row->flag === Flag::Rejected)),
+			'rated' => count(array_filter($read, static fn (XmpCacheRow $row): bool => $row->rating !== null && $row->rating > 0)),
+		];
 	}
 
 	#[\Override]

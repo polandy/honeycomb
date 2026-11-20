@@ -40,19 +40,19 @@ describe('resetStatistics', () => {
 })
 
 describe('loadStatistics', () => {
-	// spec: STATS-001.4, STATS-001.21
+	// spec: STATS-001.4, STATS-001.21, STATS-001.44, STATS-001.45
 	it('reads every counter of the user, the first counted day and today', async () => {
 		const counter = { day: '2026-11-19', metric: 'trash_pictures', value: 3 }
-		vi.mocked(axios.get).mockResolvedValue({ data: { counters: [counter, { day: 'x' }], firstDay: '2026-11-01', today: '2026-11-20' } })
+		vi.mocked(axios.get).mockResolvedValue({ data: { counters: [counter, { day: 'x' }], firstDay: '2026-11-01', today: '2026-11-20', seriesDoneBefore: 3, read: { pictures: 4, picked: 2, rejected: 1, rated: 2 } } })
 
-		await expect(loadStatistics()).resolves.toEqual({ counters: [counter], firstDay: '2026-11-01', today: '2026-11-20' })
+		await expect(loadStatistics()).resolves.toEqual({ counters: [counter], firstDay: '2026-11-01', today: '2026-11-20', seriesDoneBefore: 3, read: { pictures: 4, picked: 2, rejected: 1, rated: 2 } })
 		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/stats')
 	})
 
-	it('reads no first day as null', async () => {
+	it('reads no first day as null and no start values as zero', async () => {
 		vi.mocked(axios.get).mockResolvedValue({ data: { counters: [], firstDay: null, today: '2026-11-20' } })
 
-		await expect(loadStatistics()).resolves.toEqual({ counters: [], firstDay: null, today: '2026-11-20' })
+		await expect(loadStatistics()).resolves.toEqual({ counters: [], firstDay: null, today: '2026-11-20', seriesDoneBefore: 0, read: { pictures: 0, picked: 0, rejected: 0, rated: 0 } })
 	})
 
 	it.each([['no object', null], ['no counters', { firstDay: null, today: '2026-11-20' }], ['no today', { counters: [], firstDay: null }]])('rejects an answer with %s', async (_case, data) => {

@@ -72,6 +72,19 @@ final class StatsMapper implements StatsStore {
 	}
 
 	#[\Override]
+	public function total(string $userId, StatsMetric $metric): int {
+		$query = $this->db->getQueryBuilder();
+		$query->select($query->func()->sum('value'))
+			->from(self::TABLE)
+			->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
+			->andWhere($query->expr()->eq('metric', $query->createNamedParameter($metric->value)));
+		$result = $query->executeQuery();
+		$total = (int)$result->fetchOne();
+		$result->closeCursor();
+		return $total;
+	}
+
+	#[\Override]
 	public function firstDay(string $userId): ?string {
 		$query = $this->db->getQueryBuilder();
 		$query->select($query->func()->min('day'))
