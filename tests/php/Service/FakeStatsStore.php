@@ -42,6 +42,11 @@ final class FakeStatsStore implements StatsStore {
 	}
 
 	#[\Override]
+	public function total(string $userId, StatsMetric $metric): int {
+		return array_sum(array_column($this->rows[$userId] ?? [], $metric->value));
+	}
+
+	#[\Override]
 	public function firstDay(string $userId): ?string {
 		$days = array_keys($this->rows[$userId] ?? []);
 		return $days === [] ? null : min($days);
