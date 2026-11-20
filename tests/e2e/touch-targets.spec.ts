@@ -4,7 +4,7 @@ import type { Locator, Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { cullFolder, E2E_SETTINGS, putSettings, resetViewState } from './cull.ts'
+import { closeByEscape, cullFolder, E2E_SETTINGS, putSettings, resetViewState } from './cull.ts'
 import { createFolder, JPEG, RAW, upload, withCaptureTime } from './files.ts'
 import { emulateIpad, expectTouchTargets, IPAD_MINI } from './touch-targets.ts'
 
@@ -34,8 +34,7 @@ async function checkDialog(page: Page, dialog: Locator, screen: string, open: ()
 	await open()
 	await expect(dialog).toBeVisible()
 	await expectTouchTargets(dialog, screen)
-	await page.keyboard.press('Escape')
-	await expect(dialog).toBeHidden()
+	await closeByEscape(page, dialog)
 }
 
 for (const orientation of Object.keys(IPAD_MINI) as (keyof typeof IPAD_MINI)[]) {
@@ -81,7 +80,7 @@ for (const orientation of Object.keys(IPAD_MINI) as (keyof typeof IPAD_MINI)[]) 
 		await review.getByRole('button', { name: 'Continue: delete 1' }).click()
 		const summary = page.getByRole('dialog', { name: 'Delete 1 photo' })
 		await expectTouchTargets(summary, at('Delete…'))
-		await page.keyboard.press('Escape')
+		await closeByEscape(page, summary)
 
 		await page.getByRole('gridcell', { name: /^IMG_0001/ }).click()
 		const loupe = page.getByRole('dialog', { name: 'Loupe' })
