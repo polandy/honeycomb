@@ -1733,3 +1733,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   loupe tiers' requests: a slide swaps to its loupe tier only once decoded, so a test that timed
   the page between request and decode measured a fresh load. A test-only `decode()` wrapper was
   rejected as tied to the prefetch's internals.
+- 2026-11-21: CI splits the e2e specs per Nextcloud version into 3 Playwright shards (`--shard`),
+  each a matrix job on its own runner with its own Nextcloud, so no shard sees another's state;
+  the `gate` needs the `e2e` job and so every shard. `workers: 1` stays: one Nextcloud per
+  worker would need a port and a container per worker. Easy to redo: the `shard` list in `ci.yml`.
+- 2026-11-21: The e2e job caches the Playwright browsers and a copy of the WebKit `.deb` files in
+  the home directory; caching apt's archive directory directly never restored, since the runner
+  user cannot write it.
