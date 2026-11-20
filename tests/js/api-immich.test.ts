@@ -20,10 +20,10 @@ describe('listImmichConnections', () => {
 	})
 
 	// spec: IMMICH-001.1
-	it('answers no Immich when it is not configured', async () => {
-		vi.mocked(axios.get).mockRejectedValue(failure(404, 'not-configured'))
+	it('answers no connections when it is not configured', async () => {
+		vi.mocked(axios.get).mockResolvedValue({ data: { connections: [] } })
 
-		await expect(listImmichConnections()).resolves.toEqual({ kind: 'none' })
+		await expect(listImmichConnections()).resolves.toEqual({ kind: 'connections', connections: [] })
 	})
 
 	// spec: IMMICH-001.3, IMMICH-001.4

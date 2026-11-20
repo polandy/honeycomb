@@ -23,6 +23,8 @@ never stores, shows or logs a key.
   (`id`, `label`, `url`); `GET …/immich/{connectionId}/status` answers `state`, `account`,
   `version` and `total` (ADR 0044). A connection of another user, or one the file does not name,
   is `404` with `unknown-connection`, on every Immich route.
+- **Not configured:** the connections route answers an empty list, so a page without Immich asks
+  nothing that fails; the other Immich routes answer `404` `not-configured`.
 - **Errors** carry a code, never a path, a key or Immich's text: `not-configured` (`404`),
   `connections-file` (`503`), `key`, `unreachable`, `refused`, `version` (`502`) and `scope`
   (`403`, naming the scope). A broken file is one log line with its path and the first violation;
@@ -56,8 +58,8 @@ never stores, shows or logs a key.
 
 - **Given** no `connections_file` app config
 - **When** the user opens honeycomb
-- **Then** the source switcher shows no *Immich*, the connections route answers `404`
-  `not-configured`, and nothing is logged
+- **Then** the source switcher shows no *Immich*, the connections route answers an empty list,
+  and nothing is logged
 
 ### IMMICH-001.2 – The user's own connections
 
