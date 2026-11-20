@@ -604,7 +604,7 @@ function setRating(n){ const c = conn(), p = byId.get(S.loupeId), d = decOf(c, p
 /* ---------- connection dialog (read only, ADR 0042) ---------- */
 function openConnDialog(tested){
   const c = conn(), st = S.status[c.id], d = $('#dlg'); d.hidden = false;
-  const scopes = [['asset.read', 'list and search the phone uploads'], ['asset.view', 'thumbnails and previews'], ['user.read', 'optional: shows the account; without it honeycomb shows the label']];
+  const scopes = [['asset.read', 'list and search the phone uploads'], ['asset.view', 'thumbnails and previews'], ['asset.statistics', 'the number of uploads and the filter counts'], ['user.read', 'optional: shows the account; without it honeycomb shows the label']];
   if (SC.phase === '2') scopes.push(['asset.update', 'rating, archive and favourite'], ['asset.delete', SC.noDelete ? 'lacking: rejects are archived, not trashed' : 'optional: move to and restore from the Immich trash']);
   d.innerHTML = `<div class="scrim" data-act="dlgBg"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="ch">
     <div class="dlg-h"><h2 id="ch">Immich connection</h2><button class="icon-btn" data-act="dlgClose" aria-label="Close">${ic('close')}</button></div>
