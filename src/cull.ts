@@ -3,9 +3,10 @@
 import type { BrowserStorage } from './browser-storage.ts'
 import type { CullApi, SidecarWrites } from './cull-seams.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
-import type { Decision, DecisionField, StoredDecision } from './logic/decision.ts'
+import type { Decision, StoredDecision } from './logic/decision.ts'
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
+import type { OpenedSource } from './logic/opened-source.ts'
 import type { PairingSettings, Picture } from './logic/pairing.ts'
 import type { PictureId } from './logic/picture-id.ts'
 import type { Settings } from './logic/settings.ts'
@@ -14,22 +15,23 @@ import type { TagChange } from './logic/tag.ts'
 import type { DecisionStep, PickRestStep, StepEffects, TagStep, UndoStep } from './logic/undo.ts'
 import type { ListedAccess } from './logic/writability.ts'
 
-import { computed, ref, shallowRef, watch } from 'vue'
+import { computed, shallowRef, watch } from 'vue'
 import { useCullAccess } from './cull-access.ts'
 import { useCullFlags } from './cull-flags.ts'
 import { useCullHistory } from './cull-history.ts'
 import { useCullTags } from './cull-tags.ts'
+import { useCullWrites } from './cull-writes.ts'
 import { nameComparer } from './l10n.ts'
 import { logger } from './logger.ts'
 import { prepareCull, warmMembers } from './logic/cull.ts'
-import { changedFields, commonDecision, resolveChange, takenBack, withRows } from './logic/decision-change.ts'
-import { countsAsDecided, FLAG_FIELDS, pictureDecision, UNDECIDED } from './logic/decision.ts'
+import { commonDecision, resolveChange, withRows } from './logic/decision-change.ts'
+import { countsAsDecided, pictureDecision, UNDECIDED } from './logic/decision.ts'
+import { folderSetOf, folderSource } from './logic/opened-source.ts'
 import { memberIds } from './logic/pairing.ts'
 import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
 import { listedRows, pictureFlag, readDecision } from './logic/picture-flag.ts'
 import { sortPictures } from './logic/picture-order.ts'
 import { pairingSettings } from './logic/settings.ts'
-import { countsByRow, fieldCounts, flagCounts } from './logic/stats-counts.ts'
 import { inDoneSeries } from './logic/stored-series.ts'
 import { inverseChange } from './logic/tag.ts'
 import { withoutFiles } from './logic/trash-report.ts'
@@ -47,7 +49,8 @@ export type CullStep = UndoStep<Picture<ListingEntry>>
 /** The open cull, its view settings and the folder picker's state; it pairs and shows singles as the settings say; `onFlagsNotSaved` hears how many photos got their flag back. */
 export function useCull(api: CullApi, storage: BrowserStorage, settings: () => Settings, sidecars: SidecarWrites, onFlagsNotSaved: (photos: number) => void = () => undefined) {
 	const compareNames = nameComparer()
-	const folderSet = ref<FolderSet | null>(null)
+	const source = shallowRef<OpenedSource | null>(null)
+	const folderSet = computed(() => folderSetOf(source.value))
 	const entries = shallowRef<readonly ListingEntry[]>([])
 	const paired = shallowRef<Picture<ListingEntry>[]>([])
 	const pairingKey = computed(() => JSON.stringify(pairingSettings(settings())))
@@ -71,6 +74,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	/** Whether a step on the picture is saved and written through (XMP-008.12). */
 	const writesThrough = (picture: Picture<ListingEntry>) => access.writabilityOf(picture) === 'writable'
 	const tags = useCullTags(api.tags, sidecars.writeTags, writesThrough)
+	const writes = useCullWrites(flags, sidecars, { decisions, pictures: () => paired.value, writesThrough, onFlagsNotSaved })
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
 	const folders = computed(() => folderPaths.value.length)
 	const options = useViewOptions(storage, () => folders.value)
@@ -89,7 +93,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 
 	/** Shows the pictures of the confirmed folders with fresh filters and the listing's flags, then reads their sidecars. */
 	function open(set: FolderSet, listed: readonly ListingEntry[], listedAccess: ListedAccess = NO_ACCESS) {
-		folderSet.value = set
+		source.value = folderSource(set)
 		access.open(listedAccess)
 		opening++
 		entries.value = listed
@@ -171,46 +175,12 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		return history.record(clearEntry(decided(pictures.value.filter(writesThrough))))
 	}
 
-	/** Shows the rows at once, saves their flags and writes their other changed fields through with what they count, by the sign; a failed save or write is taken back (XMP-003.37, .38, XMP-008.15, .17, STATS-001). */
+	/** Shows the rows at once and writes them through, counting by the sign. */
 	function store(rows: readonly StoredDecision[], sign: CountSign) {
 		const before = decisions.value
-		const after = withRows(before, rows)
-		decisions.value = after
+		decisions.value = withRows(before, rows)
 		settle(rows)
-		const fields = changedFields(rows, before)
-		const fileIds = new Set(rows.map(({ fileId }) => fileId))
-		const written = paired.value.filter((picture) => memberIds(picture).some((fileId) => fileIds.has(fileId)) && writesThrough(picture))
-		const writtenRows = rowsOf(rows, written)
-		const flagFields = fields.filter((field) => FLAG_FIELDS.includes(field))
-		const sidecarFields = fields.filter((field) => !FLAG_FIELDS.includes(field))
-		if (writtenRows.length > 0 && flagFields.length > 0) {
-			void flags.save(writtenRows, countsByRow(written, writtenRows, (picture) => flagCounts(pictureDecision(picture, before).flag, pictureDecision(picture, after).flag))).then((notSaved) => {
-				const back = written.filter((picture) => memberIds(picture).some((fileId) => notSaved.has(fileId)))
-				if (back.length > 0) {
-					takeBack(rowsOf(writtenRows, back), before, flagFields)
-					onFlagsNotSaved(back.length)
-				}
-			})
-		}
-		if (written.length > 0 && sidecarFields.length > 0) {
-			sidecars.write(written, decisionOf, sidecarFields, undefined, (picture) => fieldCounts(pictureDecision(picture, before), pictureDecision(picture, after), sign)).then(({ failed }) => {
-				const failedPictures = new Set(failed.map(({ picture }) => picture))
-				takeBack(rowsOf(writtenRows, written.filter((picture) => failedPictures.has(picture))), before, sidecarFields)
-			}, (error: unknown) => logger.error('Could not write the sidecars; the photos show them as changed', { error }))
-		}
-	}
-
-	/** The rows of the pictures' members. */
-	function rowsOf(rows: readonly StoredDecision[], of: readonly Picture<ListingEntry>[]): StoredDecision[] {
-		const fileIds = new Set(of.flatMap(memberIds))
-		return rows.filter(({ fileId }) => fileIds.has(fileId))
-	}
-
-	/** Takes the fields of the written rows back where they still hold what was written. */
-	function takeBack(written: readonly StoredDecision[], before: ReadonlyMap<PictureId, Decision>, fields: readonly DecisionField[]) {
-		if (written.length > 0) {
-			decisions.value = withRows(decisions.value, takenBack(decisions.value, written, before, fields))
-		}
+		writes.write(rows, before, sign)
 	}
 
 	/** Changes the tags of the pictures as a step says, counting each by the sign. */
@@ -241,6 +211,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		writabilityOf: access.writabilityOf,
 		flushFlags: flags.flush,
 		takeSkipped: access.takeSkipped,
+		source,
 		folderSet,
 		pictures,
 		pairing,
