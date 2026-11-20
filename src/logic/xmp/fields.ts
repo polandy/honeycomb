@@ -17,6 +17,7 @@ export const PROPERTY = {
 	colorlabels: xmpKey(NAMESPACE.darktable, 'colorlabels'),
 	darktableVersion: xmpKey(NAMESPACE.darktable, 'xmp_version'),
 	keepRaw: xmpKey(NAMESPACE.honeycomb, 'KeepRaw'),
+	metadataDate: xmpKey(NAMESPACE.xmp, 'MetadataDate'),
 } as const
 
 /** digiKam's pick labels (`digikam_globals.h`). */

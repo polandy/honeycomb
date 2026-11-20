@@ -35,7 +35,7 @@ import { useCullFinished } from './cull-finished.ts'
 import { useCull } from './cull.ts'
 import { flagsNotSavedText } from './decision-text.ts'
 import { useDeleteFlow } from './delete-flow.ts'
-import { freshCheck, sidecarSaver } from './fresh-check.ts'
+import { freshCheck } from './fresh-check.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
 import { waitSeconds } from './logic/retry-after.ts'
@@ -96,7 +96,7 @@ function decideInCompare(intent: DecisionIntent, picture: Picture<ListingEntry>,
 }
 const seriesScreen = useTemplateRef<InstanceType<typeof SeriesCompareScreen>>('seriesScreen')
 const overlayScreen = computed(() => (loupe.value !== null ? '.photo-loupe' : seriesCompare.viewer.open.value ? '.series-viewer' : undefined))
-const check = freshCheck({ listEntries: props.listEntries }, { pairing: () => cull.pairing.value, writable: (picture) => cull.writabilityOf(picture) === 'writable', decisionOf: cull.decisionOf, tagsOf: cull.tags.tagsOf, writeSidecar: sidecarSaver(sidecarFlow.sync) })
+const check = freshCheck({ listEntries: props.listEntries }, { pairing: () => cull.pairing.value, writable: (picture) => cull.writabilityOf(picture) === 'writable', seedSidecar: sidecarFlow.sync.seed })
 /** Writes the waiting sidecars and waits for the flag saves in flight, before a delete or move reads the folders again (DELETE-002.28). */
 async function flushWrites() {
 	await sidecars.flush()

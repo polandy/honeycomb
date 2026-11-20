@@ -1703,6 +1703,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (matrix `db`, `scripts/database.sh`); `scripts/verify.sh` stays on SQLite to keep its run short.
   The three SQLite write-lock tests skip on the other engines, which lock rows (review E21/T3).
   Easy to redo: the matrix list in `ci.yml`.
+- 2026-11-20: *Remove RAWs* seeds the JPEG's new sidecar from the RAW sidecar read again (owner,
+  #187 D68) without `digiKam:PickLabel`, `xmpDM:pick`, `xmpDM:good` and `honeycomb:KeepRaw`, since
+  the flag and *Keep RAW* live in the rows (ADR 0040); darktable's history is copied like every
+  other program's field. A RAW sidecar with no other field seeds nothing. Easy to redo: the
+  `NOT_SEEDED` list in `src/logic/jpeg-seed.ts`.
 - 2026-11-20: honeycomb renders a file's previews in one request at a time, under a System V
   semaphore per file (256 shared, `SemaphorePreviewLock`), since Nextcloud 35 rewrites a preview
   file in place when two requests render it at once and a tile read meanwhile came back empty
@@ -1724,3 +1729,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   animation (`src/reduced-motion.css`, APP-001.17), since `NcModal` ignores the setting and its
   fade and zoom never settled on a starved WebKit renderer, so Playwright's stability check in
   `delete.spec.ts` stalled. Easy to redo: one stylesheet.
+- 2026-11-20: The e2e loupe budget waits for the stage's `data-decoded` (LOUPE-001.12), not for the
+  loupe tiers' requests: a slide swaps to its loupe tier only once decoded, so a test that timed
+  the page between request and decode measured a fresh load. A test-only `decode()` wrapper was
+  rejected as tied to the prefetch's internals.
