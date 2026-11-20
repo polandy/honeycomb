@@ -73,9 +73,10 @@ Changing a list pairs the open folders again at once; your decisions stay.
 
 ## Cache
 
-- **Clear cache:** honeycomb remembers what it read from your XMP sidecars and JPEGs, and the
-  visual hashes of your photos, so a folder opens fast. *Clear cache* removes that at once; the
-  next visit of a folder reads its files again. Your sidecars, decisions and tags stay. A message
+- **Clear cache:** honeycomb remembers what it read from your XMP sidecars and JPEGs, so a folder
+  opens fast. *Clear cache* removes that at once; the next visit of a folder reads its files
+  again. The visual hashes and sharpness values of your photos stay, as every user who reaches
+  a photo shares them. Your sidecars, decisions and tags stay. A message
   says when the cache is cleared or could not be.
 - **Clean up orphaned data** (admins only): removes the picks and rejects of files that were
   deleted or lie in a trash bin, for every user, and says how many entries went.

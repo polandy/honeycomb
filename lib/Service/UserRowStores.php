@@ -9,11 +9,10 @@ namespace OCA\Honeycomb\Service;
 
 use OCA\Honeycomb\Immich\ImmichDecisionStore;
 
-/** Every table of rows that go with a user; the flags are no one's and stay (ADR 0040). */
+/** Every table of rows that go with a user; the flags, visual hashes and quality values are no one's and stay (ADR 0040, ADR 0046). */
 final readonly class UserRowStores {
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it. */
 	public function __construct(
-		private VisualHashStore $visualHashes,
 		private SeriesStore $series,
 		private XmpCacheStore $xmpCache,
 		private TagStore $tags,
@@ -25,6 +24,6 @@ final readonly class UserRowStores {
 
 	/** @return list<UserRowStore> */
 	public function all(): array {
-		return [$this->visualHashes, $this->series, $this->xmpCache, $this->tags, $this->positions, $this->stats, $this->immichDecisions];
+		return [$this->series, $this->xmpCache, $this->tags, $this->positions, $this->stats, $this->immichDecisions];
 	}
 }

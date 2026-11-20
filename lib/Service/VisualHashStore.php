@@ -7,18 +7,18 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-/** Where the visual hashes of each user are kept, by file id with the etag they were taken from (ADR 0024). */
-interface VisualHashStore extends FileRowStore, UserRowStore, CacheRows {
+/** Where the visual hashes are kept, one per file id with the etag they were taken from, for every user (ADR 0024, ADR 0046). */
+interface VisualHashStore extends FileRowStore, SharedCacheRows {
 	/**
 	 * The stored hashes among `$fileIds`, by file id.
 	 * @param list<int> $fileIds
 	 * @return array<int, VisualHash>
 	 */
-	public function find(string $userId, array $fileIds): array;
+	public function find(array $fileIds): array;
 
 	/**
-	 * Stores `$hashes` in place of the user's stored hashes of their files, all or nothing.
+	 * Stores `$hashes` in place of the stored hashes of their files, all or nothing.
 	 * @param list<VisualHash> $hashes each of another file
 	 */
-	public function replace(string $userId, array $hashes): void;
+	public function replace(array $hashes): void;
 }

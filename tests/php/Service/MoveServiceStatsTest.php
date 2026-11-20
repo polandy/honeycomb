@@ -24,7 +24,7 @@ final class MoveServiceStatsTest extends TestCase {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturn(true);
 		$this->addFiles([1 => '/In/A.RAF', 2 => '/In/A.JPG', 3 => '/In/B.JPG', 4 => '/In/C.RAF', 5 => '/In/C.JPG']);
-		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore()), $this->createStub(LoggerInterface::class), $this->stats());
+		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore(), new FakeQualityStore()), $this->createStub(LoggerInterface::class), $this->stats());
 	}
 
 	/** @return array{fileId: int, etag: string, path: string} */

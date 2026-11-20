@@ -134,6 +134,31 @@ describe('createHashWorkers', () => {
 		expect(workers[1]!.sent.map((request) => request.url)).toEqual(['/b'])
 	})
 
+	// spec: SERIES-006.19
+	it('measures a URL in the same workers and tells each worker the kind of its job', async () => {
+		const { hashing, workers } = pool(1)
+
+		const measured = hashing.measure('/loupe')
+		workers[0]!.answer({ measured: { sharpness: 4.5, focusTile: 9 } })
+		await expect(measured).resolves.toEqual({ sharpness: 4.5, focusTile: 9 })
+		const hashed = hashing.hash('/a')
+		workers[0]!.answer({ hash: '00000000000000aa' })
+		await hashed
+
+		expect(workers[0]!.sent.map((request) => [request.kind, request.url])).toEqual([['sharpness', '/loupe'], ['hash', '/a']])
+	})
+
+	it('rejects an answer that does not fit its job', async () => {
+		const { hashing, workers } = pool(1)
+
+		const measured = hashing.measure('/loupe')
+		workers[0]!.answer({ hash: '00000000000000aa' })
+		await expect(measured).rejects.toThrow('The hash worker answered another job')
+		const hashed = hashing.hash('/a')
+		workers[0]!.answer({ measured: { sharpness: 4.5, focusTile: 9 } })
+		await expect(hashed).rejects.toThrow('The hash worker answered another job')
+	})
+
 	it('ends every worker', () => {
 		const { hashing, workers } = pool(2)
 		void hashing.hash('/a')

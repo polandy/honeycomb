@@ -22,6 +22,7 @@ everything it stored stays in the database:
 | Resume positions | table `oc_honeycomb_positions` |
 | Tags | tables `oc_honeycomb_file_tags`, `oc_honeycomb_tag_list` |
 | Visual hashes of the pictures | table `oc_honeycomb_hashes` |
+| Sharpness of the pictures in a series | table `oc_honeycomb_quality` |
 | Stored series and kept-out photos | tables `oc_honeycomb_series`, `oc_honeycomb_series_files` |
 | What honeycomb read from the XMP sidecars and JPEGs (the XMP cache) | table `oc_honeycomb_xmp_cache` |
 | Applied migrations | rows with `app = 'honeycomb'` in `oc_migrations` |
@@ -44,13 +45,13 @@ they were.
 ## Deleting the data by hand
 
 honeycomb never deletes this data itself. To remove it for good, back up the database first,
-then, with honeycomb removed, drop the eight tables and delete the rows listed above, for
+then, with honeycomb removed, drop the nine tables and delete the rows listed above, for
 example on MySQL or MariaDB:
 
 ```sql
 DROP TABLE oc_honeycomb_decisions, oc_honeycomb_positions, oc_honeycomb_file_tags,
   oc_honeycomb_tag_list, oc_honeycomb_hashes, oc_honeycomb_series, oc_honeycomb_series_files,
-  oc_honeycomb_xmp_cache;
+  oc_honeycomb_xmp_cache, oc_honeycomb_quality;
 DELETE FROM oc_migrations WHERE app = 'honeycomb';
 DELETE FROM oc_appconfig WHERE appid = 'honeycomb';
 DELETE FROM oc_preferences WHERE appid = 'honeycomb';

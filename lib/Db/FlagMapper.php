@@ -74,11 +74,7 @@ final class FlagMapper implements FlagStore {
 	/** A file's one flag follows it to the new file id, whoever set it. */
 	#[\Override]
 	public function carryOver(string $userId, int $fileId, int $newFileId): void {
-		$query = $this->db->getQueryBuilder();
-		$query->update(self::TABLE)
-			->set('file_id', $query->createNamedParameter($newFileId, IQueryBuilder::PARAM_INT))
-			->where($query->expr()->eq('file_id', $query->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
-			->executeStatement();
+		$this->carryFileRow($fileId, $newFileId);
 	}
 
 	/** @param list<FileFlag> $flags */

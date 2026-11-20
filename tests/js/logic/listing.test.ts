@@ -22,6 +22,7 @@ function entry(fileId: number, path: string): ListingEntry {
 		keepRaw: null,
 		flagUpdated: null,
 		visualHash: null,
+		quality: null,
 	}
 }
 

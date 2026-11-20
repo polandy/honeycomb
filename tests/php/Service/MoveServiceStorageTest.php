@@ -32,7 +32,7 @@ final class MoveServiceStorageTest extends TestCase {
 	private function service(): MoveService {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturn(true);
-		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores($this->flags, new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore()), $this->createStub(LoggerInterface::class), $this->stats());
+		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores($this->flags, new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore(), new FakeQualityStore()), $this->createStub(LoggerInterface::class), $this->stats());
 	}
 
 	/** @return array{fileId: int, etag: string, path: string} */

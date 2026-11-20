@@ -21,8 +21,8 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 - `POST /apps/honeycomb/api/v1/xmp-cache/lookup` with `{"fileIds": [...]}` answers
   `{"entries": [...]}` with the stored rows only; `PUT /apps/honeycomb/api/v1/xmp-cache` with
   `{"entries": [...]}` stores whole rows, replacing a stored one; at most 60,000 each, in one
-  transaction. `DELETE /apps/honeycomb/api/v1/xmp-cache` removes every row of the user and every
-  visual hash of the user (SERIES-003).
+  transaction. `DELETE /apps/honeycomb/api/v1/xmp-cache` removes every row of the user; the visual
+  hashes and quality values, which every user of a file shares (ADR 0046), stay.
 - `400` for a malformed body; one malformed item writes nothing. `401` without a user.
 - A save writes only the file ids the user reaches: a sidecar for `sidecar`, a JPEG for
   `embedded`; any other id is skipped (ADR 0031). The ids are looked up 1,000 at a time
@@ -35,9 +35,9 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
   the current version; the client reads every other listed source again and stores the new row.
   The cull reads every picture through the cache this way (XMP-003.1), and stores the row of each
   sidecar it saves, from the bytes saved and the new ETag.
-- `occ honeycomb:cache:clear [<user>]` removes the XMP cache rows and visual hashes of one user,
-  or of every user without an argument, and prints how many rows it removed. An unknown user
-  fails with a message and removes nothing.
+- `occ honeycomb:cache:clear [<user>]` removes the XMP cache rows of one user, or without an
+  argument those of every user and every visual hash and quality value, and prints how many
+  rows it removed. An unknown user fails with a message and removes nothing.
 - *Clear cache* in the settings' *Cache* section sends the `DELETE` (SETTINGS-001.25).
 - Neither the `DELETE` nor the command touches a sidecar, a position, a stored series, the settings
   or the tag list.
@@ -71,19 +71,20 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 - **When** it is sent
 - **Then** the answer is `400` (or `401`) and no row is written
 
-### XMP-006.5 – Clear cache removes the user's cache and visual hashes only
+### XMP-006.5 – Clear cache removes the user's cache only
 
 - **Given** a user with cache rows, visual hashes, a position, a stored series and a tag list, and
   another user with cache rows
 - **When** the user sends `DELETE /apps/honeycomb/api/v1/xmp-cache`
-- **Then** the user's cache rows and visual hashes are gone; the position, series, tag list and
-  the other user's rows stay
+- **Then** the user's cache rows are gone; the visual hashes, position, series, tag list and the
+  other user's rows stay
 
 ### XMP-006.6 – The occ command clears one user or every user
 
-- **Given** two users with cache rows and visual hashes
+- **Given** two users with cache rows, and visual hashes
 - **When** `occ honeycomb:cache:clear alice` runs, then `occ honeycomb:cache:clear`
-- **Then** the first removes only alice's rows and names the count, the second the rest; an
+- **Then** the first removes only alice's cache rows and names the count, the second the rest and
+  every visual hash and quality value; an
   unknown user fails with a message and removes nothing
 
 ### XMP-006.7 – A stale row is read again
@@ -143,3 +144,4 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 | 2026-11-18 | A save looks its file ids up 1,000 at a time (XMP-006.11, ADR 0038) |
 | 2026-11-19 | ADR 0040: the flag fields serve only the take-over and the export count (.12 gap until M8 PR 6) |
 | 2026-11-19 | M8 PR 6: a row wins over the cached flag fields (.12 implemented, its count with XMP-003.39) |
+| 2026-11-20 | Hashes and quality values are every user's: only the command without a user clears them (.5, .6, ADR 0046) |

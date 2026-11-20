@@ -11,6 +11,7 @@ use OCA\Honeycomb\Command\ClearCache;
 use OCA\Honeycomb\Service\CacheClear;
 use OCA\Honeycomb\Service\VisualHash;
 use OCA\Honeycomb\Service\XmpCacheRow;
+use OCA\Honeycomb\Tests\Service\FakeQualityStore;
 use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
 use OCA\Honeycomb\Tests\Service\FakeXmpCacheStore;
 use OCA\Honeycomb\Tests\Service\XmpCacheRowTest;
@@ -30,13 +31,13 @@ final class ClearCacheTest extends TestCase {
 		$this->xmpCache = new FakeXmpCacheStore();
 		$this->xmpCache->rows = ['alice' => [9 => $row, 10 => $row], 'bob' => [9 => $row]];
 		$this->visualHashes = new FakeVisualHashStore();
-		$this->visualHashes->rows = ['alice' => [7 => $hash], 'bob' => [7 => $hash, 8 => $hash]];
+		$this->visualHashes->rows = [7 => $hash, 8 => $hash];
 	}
 
 	private function command(): ClearCache {
 		$users = $this->createStub(IUserManager::class);
 		$users->method('userExists')->willReturnCallback(static fn (string $uid): bool => in_array($uid, ['alice', 'bob'], true));
-		return new ClearCache(new CacheClear($this->xmpCache, $this->visualHashes), $users);
+		return new ClearCache(new CacheClear($this->xmpCache, $this->visualHashes, new FakeQualityStore()), $users);
 	}
 
 	private function tester(): CommandTester {
@@ -53,9 +54,9 @@ final class ClearCacheTest extends TestCase {
 		$tester = $this->tester();
 
 		$this->assertSame(Command::SUCCESS, $tester->execute(['user' => 'alice']));
-		$this->assertStringContainsString('Removed 3 cache rows of alice.', $tester->getDisplay());
+		$this->assertStringContainsString('Removed 2 cache rows of alice.', $tester->getDisplay());
 		$this->assertSame(['bob'], array_keys($this->xmpCache->rows));
-		$this->assertSame(['bob'], array_keys($this->visualHashes->rows));
+		$this->assertSame([7, 8], array_keys($this->visualHashes->rows));
 
 		$this->assertSame(Command::SUCCESS, $tester->execute([]));
 		$this->assertStringContainsString('Removed 3 cache rows of every user.', $tester->getDisplay());

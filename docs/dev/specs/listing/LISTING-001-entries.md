@@ -18,8 +18,9 @@ answer is `{"entries": [...], "truncated": <bool>, "folders": [...], "fileId": <
 being the listed folder's. An entry has `fileId`, `path`
 (from the user's files, leading `/`), `size`, `mtime`, `etag`, `mime` and `captureTime`,
 `orientation`, `width`, `height` from Nextcloud's file metadata, each `null` where it has none,
-`visualHash`, the user's stored visual hash of the file's current version or `null`
-(SERIES-003), and the file's `flag`, `keepRaw` and `flagUpdated` (Unix seconds) from
+`visualHash`, the stored visual hash of the file's current version or `null` (SERIES-003),
+`quality`, the stored quality value of the file's current version or `null` (SERIES-006), and
+the file's `flag`, `keepRaw` and `flagUpdated` (Unix seconds) from
 `honeycomb_flags`, each `null` while the file has no row (DECISIONS-001.21).
 `folders` has one item per folder that holds an entry, `{"path": "/Photos", "permissions": 31}`
 (ADR 0040). `permissions` are Nextcloud's bits of the folder for the user (READ 1, UPDATE 2,
@@ -186,3 +187,4 @@ Withdrawn by ADR 0040 (M8 PR 3); a folder names its path and permissions only (.
 | 2026-11-19 | ADR 0040: `shared` and `versions` go, each entry carries its flag (.12, .15, .17 withdrawn; .18, .19 gaps) |
 | 2026-11-19 | M8 PR 3: folders carry `path` and `permissions` only (.12, .15, .17 removed; .19 implemented) |
 | 2026-11-19 | M8 PR 5: each entry carries its flag (.18 implemented) |
+| 2026-11-20 | `quality` on every entry; `visualHash` for every user of the file (SERIES-006, ADR 0046) |
