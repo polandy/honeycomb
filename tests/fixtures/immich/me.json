@@ -1,0 +1,20 @@
+{
+  "id": "5b9f1c2e-7a3d-4e8f-9c1b-2d3e4f5a6b7c",
+  "email": "alice@example.org",
+  "name": "Alice",
+  "avatarColor": "primary",
+  "clusterGroupId": "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d",
+  "createdAt": "2025-03-02T10:00:00.000Z",
+  "deletedAt": null,
+  "isAdmin": false,
+  "license": null,
+  "oauthId": "",
+  "profileChangedAt": "2025-03-02T10:00:00.000Z",
+  "profileImagePath": "",
+  "quotaSizeInBytes": null,
+  "quotaUsageInBytes": 52428800,
+  "shouldChangePassword": false,
+  "status": "active",
+  "storageLabel": "alice",
+  "updatedAt": "2026-11-01T10:00:00.000Z"
+}
