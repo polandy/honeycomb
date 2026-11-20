@@ -199,6 +199,7 @@ useHotkeys(() => {
 			<FolderPicker
 				v-if="pickerOpen"
 				:current="folderSet"
+				:closable="immich.offered.value"
 				:listFolders="props.listFolders"
 				:listEntries="props.listEntries"
 				:pairing="cull.pairing.value"

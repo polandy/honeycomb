@@ -35,6 +35,8 @@ const props = withDefaults(defineProps<{
 	pairing?: PairingSettings
 	/** The folder sets culled before, newest first. */
 	recent?: readonly RecentFolderSet[]
+	/** Whether it can be closed while no cull is open, so another source is reachable. */
+	closable?: boolean
 }>(), {
 	listFolders: apiListFolders,
 	listEntries: apiListEntries,
@@ -102,7 +104,7 @@ function onConfirm() {
 		:title="t('honeycomb', 'Choose folders')"
 		:confirmLabel="confirmLabel"
 		:confirmDisabled="!canCull"
-		:cancel="props.current !== null"
+		:cancel="props.current !== null || props.closable"
 		@cancel="emit('cancel')"
 		@confirm="onConfirm">
 		<p v-if="props.current === null" class="folder-picker__intro">
