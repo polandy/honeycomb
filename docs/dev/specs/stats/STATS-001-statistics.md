@@ -80,9 +80,18 @@ value for decided pictures: honeycomb is deployed nowhere with decisions of the 
 page counts from the first counter on.
 
 **The year in review** opens the page from 1 December to 31 January, for the year that ends or
-just ended: its totals, the longest streak, the busiest day, active time and a calendar of active
-days. From 1 December the navigation shows the hint *Your {year} in honeycomb* once a year until
-the user closes it or opens the year in review; the view state remembers it (LOUPE-003).
+just ended, above the period tiles: a headline with the pictures decided and the space freed, tiles
+for pictures moved to the trash bin (with those deleted for good), RAW files removed (with their
+space), sidecars created, sidecars updated (with those from digiKam or darktable), series done, the
+longest streak, active time (with pictures a minute) and the busiest day (the day with most
+pictures decided, the earlier one on a tie, none while no picture was decided), and a calendar of
+the active days: one square per day from 1 January to 31 December, empty without a counter, else
+the lightest shade, and from 1 to 3 by the day's share of the busiest day's pictures decided (up
+to a third, up to two thirds, above). Its footnote says *Counted since {date}.* when the counting
+began in that year. The hint *Your {year} in honeycomb* shows in the navigation from 1 December to
+31 January once for each year, until the user closes it or opens the year in review; the view
+state remembers the year closed (LOUPE-003), so it follows the user to every device and comes back
+for the next year. The day for the hint is the browser's, for the page the server's `today`.
 
 **Settings:** a section *Statistics* with the switch *Keep statistics* (on by default, the
 settings field `keepStatistics`; only `false` turns it off) and *Reset statistics*, which asks
@@ -312,7 +321,7 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 ### STATS-001.25 – Year in review in December and January
 
-- **Given** the date is 1 December 2026 to 31 January 2027
+- **Given** the date is 1 December 2026 to 31 January 2027 and a user with counters
 - **When** the user opens the statistics page
 - **Then** the year in review for 2026 is shown above the period tiles; outside those dates it is
   not
@@ -321,8 +330,9 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 - **Given** 1 December and a user who has not closed this year's hint
 - **When** the navigation is shown
-- **Then** it shows the hint; once closed, or once the year in review was opened, it stays away
-  on every device until the next December
+- **Then** it shows the hint *Your 2026 in honeycomb*; once closed, or once the year in review was
+  opened, it stays away on every device until the next December, and outside December and January
+  it never shows; a hint closed for 2025 does not hide the one for 2026
 
 ### STATS-001.27 – Clear cache keeps statistics
 
@@ -399,6 +409,36 @@ Strings are English, translated per ADR 0007; the mockup lists them.
   rated, and no other user's rows; the page shows *Of the pictures read so far* with the shares
   picked, rejected, unflagged and rated, and nothing while no picture was read
 
+### STATS-001.46 – The year's numbers
+
+- **Given** counters in 2026 and in 2025, and the date 5 December 2026
+- **When** the year in review is shown
+- **Then** every sum, the longest streak and the active time count only the days of 2026, the
+  headline names the pictures decided and the space freed, and the tiles show the trash bin, RAW,
+  sidecar, series, streak and active time numbers with *from digiKam or darktable* under the
+  sidecars updated only above 0
+
+### STATS-001.47 – The busiest day and the calendar of active days
+
+- **Given** the days of 2026 with their counters
+- **When** the year in review is shown
+- **Then** the busiest day is the one with most pictures decided, the earlier on a tie, and the
+  tile is absent while none was decided; the calendar has one square per day of the year, in the
+  shade the behaviour above names, and says in words how many days were active
+
+### STATS-001.48 – A closed or opened year in review is remembered
+
+- **Given** the hint shows
+- **When** the user closes it, or opens the year in review on the statistics page
+- **Then** the year is stored as the view state's `yearReviewHintClosed`; a failed write is logged,
+  keeps the hint away for this visit and tells the user nothing
+
+### STATS-001.49 – Counted since inside the year
+
+- **Given** the year in review and a first counted day in that year, or before it
+- **When** it is shown
+- **Then** it says *Counted since {date}.* for a first day inside the year and nothing otherwise
+
 ## History
 
 | Date | Change |
@@ -410,3 +450,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-19 | Browser counts on the flag, sidecar and position saves (.36–.39; metrics PR 5 of 8) |
 | 2026-11-20 | The statistics page and its navigation entry, `today` in the answer (.40–.43; metrics PR 6 of 8) |
 | 2026-11-20 | Series done before the counting and the state of the pictures read so far; no start value for decided pictures (.24, .44, .45; metrics PR 7 of 8) |
+| 2026-11-20 | Year in review: numbers, calendar of active days, hint in the navigation (.25, .26, .46–.49; metrics PR 8 of 8) |

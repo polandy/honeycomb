@@ -27,6 +27,7 @@ import { browserNow } from './sidecar-flow.ts'
 import { browserSchedule } from './tile-selection.ts'
 import { hashInWorkers } from './visual-hashes.ts'
 import { clearCache, lookupXmpCache, saveXmpCache } from './xmp-cache-api.ts'
+import { browserDay } from './year-review-hint.ts'
 
 /** The element the server renders the app into, which carries its data attributes. */
 const APP_ELEMENT = 'honeycomb'
@@ -61,6 +62,8 @@ export interface AppSeams {
 	resetStatistics?: () => Promise<void>
 	/** A monotonic clock in ms, which active time is measured by (STATS-001.35). */
 	clock?: () => number
+	/** The browser's local day as YYYY-MM-DD, which the year-in-review hint shows by (STATS-001.26). */
+	today?: () => string
 }
 
 /** The seams the app uses in production. */
@@ -90,4 +93,5 @@ export const APP_SEAMS = {
 	cleanUp: cleanUpOrphanedData,
 	resetStatistics,
 	clock: () => performance.now(),
+	today: browserDay,
 }

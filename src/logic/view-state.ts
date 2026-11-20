@@ -10,6 +10,9 @@ export interface ViewState {
 
 export type ViewStateKey = keyof ViewState
 
+/** What a write may carry: any boolean key, and the year whose year-in-review hint was closed (STATS-001.48). */
+export type ViewStatePatch = Partial<ViewState> & { yearReviewHintClosed?: number }
+
 /** Each key's stored value, null while it was never stored. */
 export type StoredViewState = { [Key in ViewStateKey]: boolean | null }
 
