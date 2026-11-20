@@ -19,6 +19,7 @@ use OCA\Honeycomb\Service\XmpCacheService;
 use OCA\Honeycomb\Tests\Service\FakeFileIdSearch;
 use OCA\Honeycomb\Tests\Service\FakeFiles;
 use OCA\Honeycomb\Tests\Service\FakeTagStore;
+use OCA\Honeycomb\Tests\Service\FakeQualityStore;
 use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
 use OCA\Honeycomb\Tests\Service\FakeXmpCacheStore;
 use OCA\Honeycomb\Tests\Service\XmpCacheRowTest;
@@ -58,7 +59,7 @@ final class XmpCacheControllerTest extends TestCase {
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
 		$service = new XmpCacheService($this->store, new FakeTagStore(), new UserPhotos(new UserFolderResolver($root)));
-		return new XmpCacheController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $service, new CacheClear($this->store, $this->visualHashes));
+		return new XmpCacheController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $service, new CacheClear($this->store, $this->visualHashes, new FakeQualityStore()));
 	}
 
 	// spec: XMP-006.1
@@ -93,15 +94,15 @@ final class XmpCacheControllerTest extends TestCase {
 	}
 
 	// spec: XMP-006.5
-	public function testClearsTheUsersCacheAndAnswersNoContent(): void {
+	public function testClearsTheUsersCacheKeepsTheHashesAndAnswersNoContent(): void {
 		$this->store->rows['alice'][9] = XmpCacheRow::fromRequest(XmpCacheRowTest::item());
-		$this->visualHashes->rows['alice'][7] = new VisualHash(7, 'etag-7', '00ff00ff00ff00ff');
+		$this->visualHashes->rows[7] = new VisualHash(7, 'etag-7', '00ff00ff00ff00ff');
 
 		$response = $this->controller()->clear();
 
 		$this->assertSame(Http::STATUS_NO_CONTENT, $response->getStatus());
 		$this->assertSame([], $this->store->rows);
-		$this->assertSame([], $this->visualHashes->rows);
+		$this->assertSame([7], array_keys($this->visualHashes->rows));
 	}
 
 	/** @return array<string, array{\Closure(XmpCacheController): \OCP\AppFramework\Http\Response}> */

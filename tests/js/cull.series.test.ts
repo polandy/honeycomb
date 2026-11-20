@@ -22,6 +22,8 @@ function openedCull(entries: readonly ListingEntry[], api: Partial<CullApi> = {}
 	const cull = useCull({
 		hashImage: () => new Promise(() => undefined),
 		saveVisualHashes: async () => undefined,
+		measureImage: async () => ({ sharpness: 0, focusTile: 0 }),
+		saveQualityValues: async () => undefined,
 		wait: async () => {},
 		warmPreviews: async () => undefined,
 		flags: flags.api,

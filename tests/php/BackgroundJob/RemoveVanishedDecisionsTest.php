@@ -14,12 +14,14 @@ use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\SeriesStatus;
 use OCA\Honeycomb\Service\VanishedFileSweep;
+use OCA\Honeycomb\Service\QualityValue;
 use OCA\Honeycomb\Service\VisualHash;
 use OCA\Honeycomb\Service\XmpCacheRow;
 use OCA\Honeycomb\Tests\Service\AppConfigStub;
 use OCA\Honeycomb\Tests\Service\FakeDbException;
 use OCA\Honeycomb\Tests\Service\FakeExistingFiles;
 use OCA\Honeycomb\Tests\Service\FakeFlagStore;
+use OCA\Honeycomb\Tests\Service\FakeQualityStore;
 use OCA\Honeycomb\Tests\Service\FakeSeriesStore;
 use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
 use OCA\Honeycomb\Tests\Service\FakeXmpCacheStore;
@@ -53,7 +55,7 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 	}
 
 	public function testRunsOnceADayAtAnyTime(): void {
-		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore()), $this->sweep(), $this->emptySeries(), $this->createStub(LoggerInterface::class));
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore(), new FakeQualityStore()), $this->sweep(), $this->emptySeries(), $this->createStub(LoggerInterface::class));
 
 		$this->assertSame(self::DAY, $job->getInterval());
 		$this->assertFalse($job->isTimeSensitive());
@@ -66,7 +68,7 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 		$this->files->vanished = [7];
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('info')->with($this->stringContains('1 flag row'));
-		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores($store, new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore()), $this->sweep(), $this->emptySeries(), $logger);
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores($store, new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore(), new FakeQualityStore()), $this->sweep(), $this->emptySeries(), $logger);
 
 		$this->runJob($job);
 
@@ -77,7 +79,7 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 	public function testLogsNothingWhenNoRowIsLeftBehind(): void {
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->never())->method('info');
-		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore()), $this->sweep(), $this->emptySeries(), $logger);
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore(), new FakeQualityStore()), $this->sweep(), $this->emptySeries(), $logger);
 
 		$this->runJob($job);
 	}
@@ -85,18 +87,29 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 	// spec: SERIES-003.10
 	public function testRemovesTheVisualHashesOfFilesDeletedForGood(): void {
 		$hashes = new FakeVisualHashStore();
-		$hashes->rows = [
-			'alice' => [7 => new VisualHash(7, 'etag-7', '0000000000000007'), 8 => new VisualHash(8, 'etag-8', '0000000000000008')],
-			'bob' => [7 => new VisualHash(7, 'etag-7', '0000000000000007')],
-		];
+		$hashes->rows = [7 => new VisualHash(7, 'etag-7', '0000000000000007'), 8 => new VisualHash(8, 'etag-8', '0000000000000008')];
 		$this->files->vanished = [7];
 		$logger = $this->createMock(LoggerInterface::class);
-		$logger->expects($this->once())->method('info')->with($this->stringContains('2 visual hash rows'));
-		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores(new FakeFlagStore(), $hashes, new FakeSeriesStore(), new FakeXmpCacheStore()), $this->sweep(), $this->emptySeries(), $logger);
+		$logger->expects($this->once())->method('info')->with($this->stringContains('1 visual hash row'));
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores(new FakeFlagStore(), $hashes, new FakeSeriesStore(), new FakeXmpCacheStore(), new FakeQualityStore()), $this->sweep(), $this->emptySeries(), $logger);
 
 		$this->runJob($job);
 
-		$this->assertSame(['alice' => [8], 'bob' => []], array_map(array_keys(...), $hashes->rows));
+		$this->assertSame([8], array_keys($hashes->rows));
+	}
+
+	// spec: SERIES-006.14
+	public function testRemovesTheQualityValuesOfFilesDeletedForGood(): void {
+		$quality = new FakeQualityStore();
+		$quality->rows = [7 => new QualityValue(7, 'etag-7', 1, 3.0, 0), 8 => new QualityValue(8, 'etag-8', 1, 4.0, 1)];
+		$this->files->vanished = [7];
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->expects($this->once())->method('info')->with($this->stringContains('1 quality value row'));
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore(), $quality), $this->sweep(), $this->emptySeries(), $logger);
+
+		$this->runJob($job);
+
+		$this->assertSame([8], array_keys($quality->rows));
 	}
 
 	// spec: XMP-006.8
@@ -107,7 +120,7 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 		$this->files->vanished = [7];
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('info')->with($this->stringContains('2 xmp cache rows'));
-		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), $xmpCache), $this->sweep(), $this->emptySeries(), $logger);
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), $xmpCache, new FakeQualityStore()), $this->sweep(), $this->emptySeries(), $logger);
 
 		$this->runJob($job);
 
@@ -119,16 +132,16 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 		$flags = new FakeFlagStore();
 		$flags->readFails = true;
 		$hashes = new FakeVisualHashStore();
-		$hashes->rows = ['alice' => [7 => new VisualHash(7, 'etag-7', '0000000000000007')]];
+		$hashes->rows = [7 => new VisualHash(7, 'etag-7', '0000000000000007')];
 		$this->files->vanished = [7];
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('error')->with($this->stringContains('flag'), $this->callback(fn (array $context): bool => $context['exception'] instanceof FakeDbException));
 		$logger->expects($this->once())->method('info')->with($this->stringContains('1 visual hash row'));
-		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores($flags, $hashes, new FakeSeriesStore(), new FakeXmpCacheStore()), $this->sweep(), $this->emptySeries(), $logger);
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores($flags, $hashes, new FakeSeriesStore(), new FakeXmpCacheStore(), new FakeQualityStore()), $this->sweep(), $this->emptySeries(), $logger);
 
 		$this->runJob($job);
 
-		$this->assertSame(['alice' => []], array_map(array_keys(...), $hashes->rows));
+		$this->assertSame([], $hashes->rows);
 	}
 
 	// spec: SERIES-005.25
@@ -140,7 +153,7 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 		$this->files->vanished = [7];
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->exactly(2))->method('info')->with($this->logicalOr($this->stringContains('2 series member rows'), $this->stringContains('1 series without')));
-		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), $series, new FakeXmpCacheStore()), $this->sweep(), $this->emptySeries($series), $logger);
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), $series, new FakeXmpCacheStore(), new FakeQualityStore()), $this->sweep(), $this->emptySeries($series), $logger);
 		$this->runJob($job);
 		$this->assertSame([8 => $kept, 9 => $kept], $series->rows['alice'] ?? null);
 		$this->assertSame([], $series->rows['bob'] ?? null);
@@ -153,13 +166,13 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 		$series = new FakeSeriesStore();
 		$series->seriesReadFails = true;
 		$hashes = new FakeVisualHashStore();
-		$hashes->rows = ['alice' => [7 => new VisualHash(7, 'etag-7', '0000000000000007')]];
+		$hashes->rows = [7 => new VisualHash(7, 'etag-7', '0000000000000007')];
 		$this->files->vanished = [7];
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('error')->with($this->stringContains('series without'), $this->callback(fn (array $context): bool => $context['exception'] instanceof FakeDbException));
 		$logger->expects($this->once())->method('info')->with($this->stringContains('1 visual hash row'));
-		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores(new FakeFlagStore(), $hashes, $series, new FakeXmpCacheStore()), $this->sweep(), $this->emptySeries($series), $logger);
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores(new FakeFlagStore(), $hashes, $series, new FakeXmpCacheStore(), new FakeQualityStore()), $this->sweep(), $this->emptySeries($series), $logger);
 		$this->runJob($job);
-		$this->assertSame(['alice' => []], array_map(array_keys(...), $hashes->rows));
+		$this->assertSame([], $hashes->rows);
 	}
 }

@@ -51,13 +51,13 @@ final class VisualHashServiceTest extends TestCase {
 
 	// spec: SERIES-003.3
 	public function testStoresTheHashesOfTheCurrentVersionsAndAnswersTheirIds(): void {
-		$this->store->rows['alice'][8] = new VisualHash(8, 'etag-8', 'ffffffffffffffff');
+		$this->store->rows[8] = new VisualHash(8, 'etag-8', 'ffffffffffffffff');
 		$service = $this->service($this->file(7, '/P/A.JPG'), $this->file(8, '/P/B.CR3', 'image/x-dcraw'));
 
 		$saved = $service->save($this->user(), [self::item(8), self::item(7)]);
 
 		$this->assertSame([8, 7], $saved);
-		$this->assertEquals([8 => new VisualHash(8, 'etag-8', self::HASH), 7 => new VisualHash(7, 'etag-7', self::HASH)], $this->store->rows['alice']);
+		$this->assertEquals([8 => new VisualHash(8, 'etag-8', self::HASH), 7 => new VisualHash(7, 'etag-7', self::HASH)], $this->store->rows);
 	}
 
 	// spec: SERIES-003.4
@@ -69,7 +69,7 @@ final class VisualHashServiceTest extends TestCase {
 		$saved = $service->save($this->user(), [self::item(404), self::item(7), self::item(9), self::item(5)]);
 
 		$this->assertSame([7], $saved);
-		$this->assertSame([7], array_keys($this->store->rows['alice']));
+		$this->assertSame([7], array_keys($this->store->rows));
 	}
 
 	// spec: SERIES-003.5
@@ -77,7 +77,7 @@ final class VisualHashServiceTest extends TestCase {
 		$saved = $this->service($this->file(7, '/P/A.JPG'))->save($this->user(), [self::item(7, 'etag-old')]);
 
 		$this->assertSame([], $saved);
-		$this->assertSame([], $this->store->rows['alice'] ?? []);
+		$this->assertSame([], $this->store->rows);
 	}
 
 	/** @return array<string, array{array<array-key, mixed>}> */

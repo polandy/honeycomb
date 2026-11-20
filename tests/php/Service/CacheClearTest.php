@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\CacheClear;
+use OCA\Honeycomb\Service\QualityValue;
 use OCA\Honeycomb\Service\VisualHash;
 use OCA\Honeycomb\Service\XmpCacheRow;
 use PHPUnit\Framework\TestCase;
@@ -15,6 +16,7 @@ use PHPUnit\Framework\TestCase;
 final class CacheClearTest extends TestCase {
 	private FakeXmpCacheStore $xmpCache;
 	private FakeVisualHashStore $visualHashes;
+	private FakeQualityStore $quality;
 
 	#[\Override]
 	protected function setUp(): void {
@@ -22,24 +24,32 @@ final class CacheClearTest extends TestCase {
 		$this->xmpCache = new FakeXmpCacheStore();
 		$this->xmpCache->rows = ['alice' => [9 => $row, 10 => $row], 'bob' => [9 => $row]];
 		$this->visualHashes = new FakeVisualHashStore();
-		$this->visualHashes->rows = ['alice' => [7 => new VisualHash(7, 'etag-7', '00ff00ff00ff00ff')], 'bob' => [7 => new VisualHash(7, 'etag-7', '00ff00ff00ff00ff')]];
+		$this->visualHashes->rows = [7 => new VisualHash(7, 'etag-7', '00ff00ff00ff00ff')];
+		$this->quality = new FakeQualityStore();
+		$this->quality->rows = [7 => new QualityValue(7, 'etag-7', 1, 3.0, 0), 8 => new QualityValue(8, 'etag-8', 1, 4.0, 1)];
 	}
 
-	// spec: XMP-006.5
-	public function testClearsOneUsersCacheAndVisualHashes(): void {
-		$removed = (new CacheClear($this->xmpCache, $this->visualHashes))->clear('alice');
+	private function clear(): CacheClear {
+		return new CacheClear($this->xmpCache, $this->visualHashes, $this->quality);
+	}
 
-		$this->assertSame(3, $removed);
+	// spec: XMP-006.5, SERIES-006.20
+	public function testClearsOneUsersCacheAndKeepsTheSharedHashesAndQualityValues(): void {
+		$removed = $this->clear()->clear('alice');
+
+		$this->assertSame(2, $removed);
 		$this->assertSame(['bob'], array_keys($this->xmpCache->rows));
-		$this->assertSame(['bob'], array_keys($this->visualHashes->rows));
+		$this->assertSame([7], array_keys($this->visualHashes->rows));
+		$this->assertSame([7, 8], array_keys($this->quality->rows));
 	}
 
-	// spec: XMP-006.6
-	public function testClearsEveryUser(): void {
-		$removed = (new CacheClear($this->xmpCache, $this->visualHashes))->clear(null);
+	// spec: XMP-006.6, SERIES-006.20
+	public function testClearsEveryUserWithTheHashesAndQualityValues(): void {
+		$removed = $this->clear()->clear(null);
 
-		$this->assertSame(5, $removed);
+		$this->assertSame(6, $removed);
 		$this->assertSame([], $this->xmpCache->rows);
 		$this->assertSame([], $this->visualHashes->rows);
+		$this->assertSame([], $this->quality->rows);
 	}
 }

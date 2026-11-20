@@ -7,11 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\DbTests;
 
-use OCA\Honeycomb\Db\VisualHashMapper;
 use OCA\Honeycomb\Db\XmpCacheMapper;
 use OCA\Honeycomb\Service\ColourLabel;
 use OCA\Honeycomb\Service\Flag;
-use OCA\Honeycomb\Service\VisualHash;
 use OCA\Honeycomb\Service\XmpCacheRow;
 use OCA\Honeycomb\Service\XmpReadState;
 use OCA\Honeycomb\Service\XmpSource;
@@ -61,19 +59,6 @@ final class XmpCacheMapperTest extends DbTestCase {
 		$this->assertCount(1, $this->cache->find('bob', [7]));
 		$this->assertSame(2, $this->cache->clear(null));
 		$this->assertSame([], $this->cache->find('carol', [7]));
-	}
-
-	// spec: XMP-006.5, XMP-006.6
-	public function testClearsTheVisualHashesOfOneUserOrEveryUser(): void {
-		$hashes = new VisualHashMapper($this->db);
-		$hashes->replace('alice', [new VisualHash(7, 'etag-7', '00ff00ff00ff00ff')]);
-		$hashes->replace('bob', [new VisualHash(7, 'etag-7', '00ff00ff00ff00ff')]);
-
-		$this->assertSame(1, $hashes->clear('alice'));
-		$this->assertSame([], $hashes->find('alice', [7]));
-		$this->assertCount(1, $hashes->find('bob', [7]));
-		$this->assertSame(1, $hashes->clear(null));
-		$this->assertSame([], $hashes->find('bob', [7]));
 	}
 
 	// spec: STATS-001.45

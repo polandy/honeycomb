@@ -13,14 +13,13 @@ use PHPUnit\Framework\TestCase;
 final class UserRowStoresTest extends TestCase {
 	public function testListsEveryStoreThatKeepsRowsPerUser(): void {
 		$tags = new FakeTagStore();
-		$hashes = new FakeVisualHashStore();
 		$series = new FakeSeriesStore();
 		$xmpCache = new FakeXmpCacheStore();
 		$positions = new FakePositionStore();
 		$stats = new FakeStatsStore();
 
-		$all = (new UserRowStores($hashes, $series, $xmpCache, $tags, $positions, $stats))->all();
+		$all = (new UserRowStores($series, $xmpCache, $tags, $positions, $stats))->all();
 
-		$this->assertSame([$hashes, $series, $xmpCache, $tags, $positions, $stats], $all);
+		$this->assertSame([$series, $xmpCache, $tags, $positions, $stats], $all);
 	}
 }

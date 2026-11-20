@@ -14,6 +14,7 @@ use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\ListingService;
 use OCA\Honeycomb\Service\UserFolderResolver;
+use OCA\Honeycomb\Service\QualityValue;
 use OCA\Honeycomb\Service\VisualHash;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
@@ -25,12 +26,12 @@ use PHPUnit\Framework\TestCase;
 final class ListingServiceTest extends TestCase {
 	use FakeFiles;
 
-	private function service(IRootFolder $root, array $metadata = [], int $entryLimit = ListingService::ENTRY_LIMIT, FakeVisualHashStore $hashes = new FakeVisualHashStore(), FakeFlagStore $flags = new FakeFlagStore()): ListingService {
+	private function service(IRootFolder $root, array $metadata = [], int $entryLimit = ListingService::ENTRY_LIMIT, FakeVisualHashStore $hashes = new FakeVisualHashStore(), FakeFlagStore $flags = new FakeFlagStore(), FakeQualityStore $quality = new FakeQualityStore()): ListingService {
 		$manager = $this->createStub(IFilesMetadataManager::class);
 		$manager->method('getMetadataForFiles')->willReturnCallback(
 			static fn (array $ids): array => array_intersect_key($metadata, array_flip($ids)),
 		);
-		return new ListingService(new UserFolderResolver($root), new EntryFactory($manager, $hashes, $flags), $entryLimit);
+		return new ListingService(new UserFolderResolver($root), new EntryFactory($manager, $hashes, $flags, $quality), $entryLimit);
 	}
 
 	// spec: LISTING-001.1
@@ -101,6 +102,7 @@ final class ListingServiceTest extends TestCase {
 			'height' => 4000,
 			'camera' => 'Canon EOS R5',
 			'visualHash' => null,
+			'quality' => null,
 			'flag' => null,
 			'keepRaw' => null,
 			'flagUpdated' => null,
@@ -108,17 +110,29 @@ final class ListingServiceTest extends TestCase {
 	}
 
 	// spec: SERIES-003.1, SERIES-003.2, SERIES-003.28
-	public function testAnEntryCarriesTheUsersStoredHashOfTheCurrentVersionOnly(): void {
+	public function testAnEntryCarriesTheStoredHashOfTheCurrentVersionWhoeverSavedIt(): void {
 		$folder = $this->folder('/Photos');
 		$folder->method('getDirectoryListing')->willReturn(array_map(fn (int $id): File => $this->file($id, "/Photos/IMG_$id.JPG"), [1, 2, 3, 4]));
 		$hashes = new FakeVisualHashStore();
-		$hashes->rows['alice'] = [1 => new VisualHash(1, 'etag-1', '0000000000000001'), 2 => new VisualHash(2, 'etag-old', '0000000000000002')];
-		$hashes->rows['bob'] = [3 => new VisualHash(3, 'etag-3', '0000000000000003')];
+		$hashes->rows = [1 => new VisualHash(1, 'etag-1', '0000000000000001'), 2 => new VisualHash(2, 'etag-old', '0000000000000002'), 3 => new VisualHash(3, 'etag-3', '0000000000000003')];
 
 		$listing = $this->service($this->rootWith(['/Photos' => $folder]), hashes: $hashes)->list($this->user(), 'Photos', false);
 
-		$this->assertSame(['0000000000000001', null, null, null], array_column($this->entriesOf($listing), 'visualHash'));
+		$this->assertSame(['0000000000000001', null, '0000000000000003', null], array_column($this->entriesOf($listing), 'visualHash'));
 		$this->assertSame([[1, 2, 3, 4]], $hashes->findCalls);
+	}
+
+	// spec: SERIES-006.6, SERIES-006.12
+	public function testAnEntryCarriesTheStoredQualityValueOfTheCurrentVersionOnly(): void {
+		$folder = $this->folder('/Photos');
+		$folder->method('getDirectoryListing')->willReturn(array_map(fn (int $id): File => $this->file($id, "/Photos/IMG_$id.JPG"), [1, 2, 3]));
+		$quality = new FakeQualityStore();
+		$quality->rows = [1 => new QualityValue(1, 'etag-1', 1, 812.4, 27), 2 => new QualityValue(2, 'etag-old', 1, 90.0, 3)];
+
+		$listing = $this->service($this->rootWith(['/Photos' => $folder]), quality: $quality)->list($this->user(), 'Photos', false);
+
+		$this->assertSame([['method' => 1, 'sharpness' => 812.4, 'focusTile' => 27], null, null], array_column($this->entriesOf($listing), 'quality'));
+		$this->assertSame([[1, 2, 3]], $quality->findCalls);
 	}
 
 	// spec: LISTING-001.18, DECISIONS-001.21

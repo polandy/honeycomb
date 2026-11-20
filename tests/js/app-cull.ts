@@ -164,6 +164,8 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			storage: fakeStorage(),
 			hashImage: () => new Promise(() => undefined),
 			saveVisualHashes: async () => undefined,
+			measureImage: async () => ({ sharpness: 0, focusTile: 0 }),
+			saveQualityValues: async () => undefined,
 			warmPreviews: async (ids: readonly number[]) => { warmed.push([...ids]) },
 			flags: flags.api,
 			lookupSeries: NO_SERIES,
