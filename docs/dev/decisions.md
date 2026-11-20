@@ -1562,3 +1562,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   calls Immich; a `UserRowStore` only; rows of a connection that left the file go with the daily
   sweep, rows of assets deleted in Immich stay in Phase 1; Immich decisions count nothing in
   the statistics until *Write to Immich*. Easy to redo: each is a line in the ADR before the code.
+- 2026-11-20: ADR 0043 takes the owner's Phase 1 sign-off condition (paged grid, counts from the
+  server, blocks of 100): the row copies the asset's capture time, camera model and kind so the
+  server counts and filters decided assets without the whole library; a decision filter pages the
+  rows and deletes a row whose asset Immich no longer returns. Easy to redo: columns before code.

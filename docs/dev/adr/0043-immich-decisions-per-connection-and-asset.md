@@ -15,8 +15,11 @@ M12), that the **whole decision** of an Immich asset lives in honeycomb's databa
 `FileRowStore`, and left the table's columns and endpoints to this ADR. ADR 0042 made the
 connection's `id` from the connections file the stable key and said that the rows of a connection
 that left the file go with the daily sweep. The owner decided on 2026-11-19 that Immich decisions
-do not count in the statistics in Phase 1. Those decisions are binding here; this ADR fixes the
-shape they left open.
+do not count in the statistics in Phase 1. With the sign-off of the Phase 1 mockup on 2026-11-20
+the owner set a condition: the grid loads page by page from Immich's paged search with infinite
+scroll, the counters and filter numbers come from the server, the loupe and the filmstrip load
+past the loaded page on their own, and *Write to Immich* writes in blocks of 100. Those decisions
+are binding here; this ADR fixes the shape they left open.
 
 `honeycomb_flags` (ADR 0040) cannot hold these rows. It is keyed by a Nextcloud file id, has no
 user, and holds the flag and *Keep RAW* only, because a Nextcloud picture's rating and colour label
@@ -54,15 +57,24 @@ the asset that is shown (ADR 0041).
 | `colour_label` | string 16, nullable | one of the nine `COLOUR_LABELS`, or null |
 | `flag` | string 16 | `picked`, `rejected`, `unflagged` |
 | `keep_raw` | boolean | kept so that the pure logic sees one `Decision`; Phase 1 never sets it |
+| `taken_at` | bigint | the capture time the grid sorts by, in Unix seconds, as the listing delivered it |
+| `camera_model` | string 128, nullable | the device the listing delivered, null when Immich has none |
+| `kind` | string 16 | the asset's kind as the listing delivered it; the values are the listing spec's |
 | `asset_updated_at` | string 32 | Immich's `updatedAt` as the listing delivered it when the decision was saved; compared for equality in Phase 2, never parsed |
 | `updated_at` | bigint | from the injected clock |
 
-A unique index on `(connection_id, asset_id)`. The name is not `honeycomb_immich_decisions`
+A unique index on `(connection_id, asset_id)` and an index on `(connection_id, flag, taken_at)`
+for the counts and the decision filters below. The name is not `honeycomb_immich_decisions`
 because Nextcloud limits a table with an autoincrement key to 23 characters.
 
 `user_id` is in the row although the file maps a connection to its user: `forgetUser` must work
 while the file is missing or invalid, a deleted user's rows go at once, and a connection id the
 admin later gives to another user leaves the old rows to the sweep instead of handing them over.
+
+`taken_at`, `camera_model` and `kind` are a copy of the asset's facets at the time of the
+decision. The browser only ever holds a page, so the server counts and filters the decided assets
+by time, device and kind without asking Immich for every asset; the copy goes stale only if the
+asset's metadata changes in Immich, and the next save of that asset refreshes it.
 
 `asset_updated_at` is in the row, not in the browser, so that Phase 2's conflict check compares
 with the moment the decision was made, on any device and after any reload. The Immich listing
@@ -79,18 +91,30 @@ therefore carries Immich's `updatedAt` in every entry (the source's API ADR).
    flags are no one's stays true.
 3. **No take-over.** There is no sidecar to read; an asset without a row is `UNDECIDED`.
 
-### Reading: in the listing only
+### Reading: through the listing and its counts
 
-The Immich listing (the source's API ADR) joins the assets of the page it returns with their
-rows and gives every entry `rating`, `colourLabel`, `flag` and `keepRaw`, `UNDECIDED` without a
-row, beside Immich's `updatedAt`. There is no lookup of arbitrary asset ids and no listing of a
-connection's rows: the server answers for the signed-in user's connection and the assets Immich
-returned, nothing else.
+The Immich listing is paged (the source's API ADR): the browser never holds the whole library.
+Every read of the table therefore runs on the server, for the signed-in user's connection only,
+and its results reach the browser through the listing's endpoints; there is no endpoint that
+returns rows as they are.
+
+1. **A page of the listing** joins the assets Immich returned with their rows and gives every
+   entry `rating`, `colourLabel`, `flag` and `keepRaw`, `UNDECIDED` without a row, beside Immich's
+   `updatedAt`.
+2. **The counts** of the counters and filter numbers: per flag, per rating and per colour label,
+   over the connection's rows matching the active time, device and kind filters, in one grouped
+   query. The total and the undecided count come from Immich's count for the same filters minus
+   the decided rows; the source's API ADR names the endpoint.
+3. **A decision filter** (picks only, rejects only, a rating) pages the connection's matching
+   rows by `taken_at`, newest first, and the listing fetches those assets from Immich by id. A row
+   whose asset Immich no longer has is deleted then, in the same request, so the counts heal
+   without a job that holds a key.
 
 ### Saving
 
 1. **`PUT /apps/honeycomb/api/v1/immich/{connectionId}/decisions`** with `{"decisions":
-   [{"assetId", "rating", "colourLabel", "flag", "keepRaw", "assetUpdatedAt"}]}`, at most as many
+   [{"assetId", "rating", "colourLabel", "flag", "keepRaw", "takenAt", "cameraModel", "kind",
+   "assetUpdatedAt"}]}`, at most as many
    as the flags endpoint takes (the one limit constant), answers `{"saved": [assetIds]}`. Each
    decision is the asset's whole state; the rows are inserted or updated by `(connection_id,
    asset_id)` in one transaction, `user_id` and `updated_at` set on every write. The last save
@@ -101,8 +125,8 @@ returned, nothing else.
    file missing or invalid is the same typed error every Immich endpoint gives (ADR 0042's table;
    the source's API ADR names the status). The write rate limit applies (ADR 0031).
 3. **A malformed body is a `400` for the whole request:** an asset id that is not a UUID, a rating
-   outside 0 to 5, an unknown colour label or flag, a missing field, or more decisions than the
-   limit. Nothing is saved then.
+   outside 0 to 5, an unknown colour label, flag or kind, a `takenAt` that is not an integer, a
+   missing field, or more decisions than the limit. Nothing is saved then.
 4. **No call to Immich on save.** The server checks the asset id's shape, not its existence, so a
    decision is saved while Immich is down (ADR 0041: decisions already made stay in honeycomb),
    needs no scope, and keeps the key out of the hot path. A row for an id Immich never returns is
@@ -118,11 +142,15 @@ returned, nothing else.
   as a step of its own beside the file sweep. It keeps a row only while the file names a
   connection with the row's `connection_id` for the row's `user_id`, and sweeps nothing while the
   file is not configured, missing or invalid.
-- **An asset that is gone in Immich** keeps its row in Phase 1: no background job calls Immich,
-  so no key is read outside a user's request and no scope is needed for housekeeping. The row is
-  never shown. Phase 2 decides in its spec what happens to the row of an asset it wrote to Immich.
+- **An asset that is gone in Immich** keeps its row in Phase 1 until a decision filter of a
+  user's request asks Immich for it and Immich has it no more: no background job calls Immich, so
+  no key is read outside a user's request and no scope is needed for housekeeping. Until then the
+  row is never shown but counts in its connection's counts. Phase 2 decides in its spec what happens
+  to the row of an asset it wrote to Immich.
 - **A bulk step** of the Phase 1 UI (for example clearing the picks and rejects of a connection)
-  is a save of every affected asset through the endpoint above; the specs name the steps.
+  is a save of every affected asset through the endpoint above, sent in requests of at most the
+  limit; for assets past the loaded page the browser pages them through the decision filter
+  first. The specs name the steps.
 
 ### Statistics in Phase 1
 
@@ -140,11 +168,11 @@ The pull requests are those of ADR 0041's order; this ADR says what each adds fo
 | ADR 0041 PR | What this ADR adds to it |
 |---|---|
 | 3 `docs(specs)` | the spec *decisions per connection*: the fields, the save and its errors, the lifecycle, no statistics in Phase 1 |
-| 7 `feat(immich)` | the migration (its number is the one shared line), `ImmichDecisionStore` and its mapper, the controller with the save endpoint and its validation, the entry in `UserRowStores`, the connection sweep as a step of `RemoveVanishedDecisions`; after PR 6, whose connection registry the access check needs, and after the sign-off |
-| 8 `feat(immich)` | pure TypeScript: an entry's four fields to a `Decision`, `UNDECIDED` without a row |
+| 7 `feat(immich)` | the migration (its number is the one shared line), `ImmichDecisionStore` and its mapper with the grouped counts and the paged decision filter, the controller with the save endpoint and its validation, the entry in `UserRowStores`, the connection sweep as a step of `RemoveVanishedDecisions`; after PR 6, whose connection registry the access check needs, and after the sign-off |
+| 8 `feat(immich)` | pure TypeScript: an entry's four fields to a `Decision`, `UNDECIDED` without a row; the save's facets from an entry |
 | 10 `feat(immich)` (b) | grid and loupe save through the endpoint, undo as a new save, every connection rateable |
 | 11 `test(e2e)` | against the stub: a decision survives a reload; the fixture's second connection sees none of the first's rows |
-| 13 `feat(immich)` | Phase 2 reads `asset_updated_at` for the conflict check, decides the row of a written asset, and lets Immich decisions enter the statistics |
+| 13 `feat(immich)` | Phase 2 writes in blocks of 100 assets, reads `asset_updated_at` for the conflict check, shows a large write as numbers and its conflicts only, decides the row of a written asset, and lets Immich decisions enter the statistics |
 
 PR 7 touches new files and one-line registrations only (`Application.php`, the `UserRowStores`
 constructor, the migration number), as ADR 0041's hotspot rule demands.
@@ -154,6 +182,8 @@ constructor, the migration number), as ADR 0041's hotspot rule demands.
 - Two storage shapes for one `Decision` (ADR 0041): a Nextcloud picture's rating and colour label
   in the sidecar and its flag in `honeycomb_flags`, an Immich asset's four values in one row. The
   pure logic sees one `Decision` either way, and neither table knows the other.
+- The counters and filter numbers are right for a library of any size without the browser loading
+  it, at the price of a copy of three facets per row and two indexes.
 - A row is a few hundred bytes; a fully decided library of fifty thousand assets is about ten
   megabytes. `user_id` costs up to 64 bytes per row and buys a `forgetUser` that needs no file.
 - Rows of assets deleted in Immich linger, invisible, until the connection leaves the file or the
