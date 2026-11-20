@@ -25,8 +25,8 @@ never stores, shows or logs a key.
   is `404` with `unknown-connection`, on every Immich route.
 - **Errors** carry a code, never a path, a key or Immich's text: `not-configured` (`404`),
   `connections-file` (`503`), `key`, `unreachable`, `refused`, `version` (`502`) and `scope`
-  (`403`, naming the scope). A broken file is one log line with its path and the first violation;
-  a broken key file one log line with the connection id and its path.
+  (`403`, naming the scope). A broken file is one log line with the first violation;
+  a broken key file one log line with the connection id. A log line never holds a path.
 - **Source switcher:** *Nextcloud* and *Immich* in the app header; *Immich* shows only while the
   user has a connection. Without the app config, or with a broken file, the Nextcloud source works
   as before; a broken file shows the Immich source as unavailable because of the server
@@ -92,7 +92,7 @@ never stores, shows or logs a key.
 
 - **Given** a connection whose key file is missing, unreadable or empty, and a second good one
 - **When** the user asks the status of both
-- **Then** the first is `key` with a log line naming its id and key file path, the second is `ok`
+- **Then** the first is `key` with a log line naming its id (no path), the second is `ok`
 
 ### IMMICH-001.8 – Immich unreachable or refusing
 
