@@ -5,7 +5,7 @@ import type { CullApi, SidecarWrites } from './cull-seams.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
 import type { Decision, StoredDecision } from './logic/decision.ts'
 import type { FolderSet } from './logic/folder-set.ts'
-import type { ListingEntry } from './logic/listing.ts'
+import type { ListingEntry, SourceEntry } from './logic/listing.ts'
 import type { OpenedSource } from './logic/opened-source.ts'
 import type { PairingSettings, Picture } from './logic/pairing.ts'
 import type { PictureId } from './logic/picture-id.ts'
@@ -26,6 +26,7 @@ import { logger } from './logger.ts'
 import { prepareCull, warmMembers } from './logic/cull.ts'
 import { commonDecision, resolveChange, withRows } from './logic/decision-change.ts'
 import { countsAsDecided, pictureDecision, UNDECIDED } from './logic/decision.ts'
+import { listedPictures } from './logic/listing.ts'
 import { folderSetOf, folderSource } from './logic/opened-source.ts'
 import { memberIds } from './logic/pairing.ts'
 import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
@@ -79,11 +80,11 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const folders = computed(() => folderPaths.value.length)
 	const options = useViewOptions(storage, () => folders.value)
 	const { filters, sortOrder, grouped } = options
-	const decisionOf = (picture: Picture<ListingEntry>) => pictureDecision(picture, decisions.value)
-	const passes = (picture: Picture<ListingEntry>) => matchesFilters(picture, decisionOf(picture), tags.tagsOf(picture), filters.value)
+	const decisionOf = (picture: Picture<SourceEntry>) => pictureDecision(picture, decisions.value)
+	const passes = (picture: Picture<SourceEntry>) => matchesFilters(picture, decisionOf(picture), tags.tagsOf(picture), filters.value)
 	const view = computed(() => sortPictures(filterPictures(pictures.value, decisionOf, tags.tagsOf, filters.value), sortOrder.value, compareNames, grouped.value))
 	/** Whether the picture counts as decided, an unflagged one in a done series too (SERIES-005.14). */
-	const decidedOf = (picture: Picture<ListingEntry>) => countsAsDecided(decisionOf(picture), inDoneSeries(picture, storedSeries.rows.value))
+	const decidedOf = (picture: Picture<SourceEntry>) => countsAsDecided(decisionOf(picture), inDoneSeries(picture, storedSeries.rows.value))
 	const cullProgress = computed(() => progress(pictures.value, decidedOf))
 	const shownProgress = computed(() => progress(view.value, decidedOf))
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
@@ -147,24 +148,25 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	}
 
 	/** The pictures with their decisions, as the decision rules take them. */
-	const decided = (chosen: readonly Picture<ListingEntry>[]) => chosen.map((picture) => ({ picture, decision: decisionOf(picture) }))
+	const decided = <P extends Picture<SourceEntry>>(chosen: readonly P[]) => chosen.map((picture) => ({ picture, decision: decisionOf(picture) }))
 
 	/** What the pictures share, for the action bar. */
-	const common = (chosen: readonly Picture<ListingEntry>[]) => commonDecision(decided(chosen))
+	const common = (chosen: readonly Picture<SourceEntry>[]) => commonDecision(decided(chosen))
 
 	/** Decides the writable pictures, keeps the step for undo and returns it, or null when nothing changes or all are locked (XMP-008.9). */
-	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]): DecisionStep | null {
-		return access.gate(chosen, (writable) => history.record(undoEntry(decided(writable), resolveChange(intent, decided(writable)))))
+	function decide(intent: DecisionIntent, chosen: readonly Picture<SourceEntry>[]): DecisionStep | null {
+		return access.gate(listedPictures(chosen), (writable) => history.record(undoEntry(decided(writable), resolveChange(intent, decided(writable)))))
 	}
 
 	/** Picks one picture and rejects the rest as one undo step (SERIES-001.9), or null when nothing changes. */
-	function pickRest(picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]): PickRestStep | null {
-		return access.gate([picked, ...rest], (writable) => history.record(pickRestEntry(decided([picked])[0]!, decided(writable.filter((picture) => picture !== picked)))), picked)
+	function pickRest(picked: Picture<SourceEntry>, rest: readonly Picture<SourceEntry>[]): PickRestStep | null {
+		const [listedPick, ...listedRest] = listedPictures([picked, ...rest])
+		return access.gate([listedPick!, ...listedRest], (writable) => history.record(pickRestEntry(decided([listedPick!])[0]!, decided(writable.filter((picture) => picture !== picked)))), listedPick)
 	}
 
 	/** Applies the tag change to the pictures as one undo step and returns it, or null when nothing changes (TAGS-003.10, .11). */
-	function tag(change: TagChange, chosen: readonly Picture<ListingEntry>[]): TagStep<Picture<ListingEntry>> | null {
-		return access.gate(chosen, (writable) => history.record(tagStep(writable, tags.tagsOf, change)))
+	function tag(change: TagChange, chosen: readonly Picture<SourceEntry>[]): TagStep<Picture<ListingEntry>> | null {
+		return access.gate(listedPictures(chosen), (writable) => history.record(tagStep(writable, tags.tagsOf, change)))
 	}
 
 	/** How many rateable pictures *Clear picks/rejects* would reset (GRID-001.22). */

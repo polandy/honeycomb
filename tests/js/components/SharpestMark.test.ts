@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { ListingEntry } from '../../../src/logic/listing.ts'
+import type { SourceEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
 import type { QualityValue, SharpnessPlace } from '../../../src/logic/sharpness.ts'
 
@@ -22,7 +22,7 @@ import { mountLoupe, PICTURES } from './mount-loupe.ts'
 const quality = (sharpness: number, focusTile = 0): QualityValue => ({ method: SHARPNESS_METHOD, sharpness, focusTile })
 
 /** Looks the picture's quality value up by its name. */
-const qualities = (values: Record<string, QualityValue>) => (picture: Picture<ListingEntry>) => values[picture.baseName] ?? null
+const qualities = (values: Record<string, QualityValue>) => (picture: Picture<SourceEntry>) => values[picture.baseName] ?? null
 
 /** The definition list under the info panel's headings, as term → value. */
 function infoRows(wrapper: { findAll: ReturnType<typeof mount>['findAll'] }) {
@@ -126,7 +126,7 @@ describe('the zoom onto the focus tile', () => {
 	const PHOTOS = picturesOf([1, 2].map((id) => listingEntry(id, `/P/IMG_${id}.JPG`, { width: 3000, height: 2000 })))
 
 	/** The stage on a 1000 × 600 area showing the second photo, zoomed by its exposed toggle. */
-	async function zoomedStage(qualityOf?: (picture: Picture<ListingEntry>) => QualityValue | null) {
+	async function zoomedStage(qualityOf?: (picture: Picture<SourceEntry>) => QualityValue | null) {
 		const wrapper = mount(LoupeStage, {
 			props: {
 				pictures: PHOTOS,
