@@ -1625,3 +1625,29 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   *N pictures* until the newer pages are loaded; resume falls back to *All phone uploads* when the
   asset is outside the filters. The flag filter starts empty, as in the artifact. Easy to redo:
   docs only.
+- 2026-11-20: The Immich listing sends one v3 `search/metadata` request whose `or` branches
+  combine kinds and devices, so the filters allow at most 20 devices (IMMICH-002.5). Easy to
+  redo: one class.
+- 2026-11-20: A listing cursor pins the first page's time as an upper `createdAt` bound, so
+  uploads arriving while the user scrolls do not shift the pages (IMMICH-002.21). Easy to redo.
+- 2026-11-20: Supported Immich versions are 3.x from 3.2 on; any answer that does not fit the
+  pinned schema is reported as the `version` state. Easy to redo: one constant.
+- 2026-11-20: The number of uploads needs the `asset.statistics` scope; without it the status
+  reports the total as null instead of failing. Easy to redo.
+- 2026-11-20: PR 6 serves the listing without decisions: counts and decision paging come with
+  PR 7, `from` and the previous cursor with PR 10; every entry is undecided, and a decision filter
+  that excludes undecided answers an empty page without asking Immich. Easy to redo.
+- 2026-11-20: An image Immich answers with 400 or 404 is an `unknown-asset`, not a version
+  mismatch. Easy to redo.
+- 2026-11-20: Assets shared by a partner are not listed in Phase 1; this is a known limit until
+  PR 14. Easy to redo.
+- 2026-11-20: Stack members other than the primary asset are dropped from the listing, as Immich
+  shows a stack as one tile. Easy to redo.
+- 2026-11-20: The status probes the version first, then the uploads, the account and the total;
+  a version route refused with 401 or 403 leaves the version unknown and the probe continues.
+  Easy to redo.
+- 2026-11-20: Immich failures map to error codes: a network failure or 5xx is `unreachable`, 401
+  `refused`, 403 `scope` with the scope named, anything else unexpected `version`. Easy to redo.
+- 2026-11-20: Immich calls time out after 5 s to connect and 30 s in total. Easy to redo.
+- 2026-11-20: The Immich backend lives in `lib/Immich/`; tests stub Nextcloud's HTTP client with
+  a route-keyed fake Immich and check its answers against the pinned OpenAPI schema. Easy to redo.

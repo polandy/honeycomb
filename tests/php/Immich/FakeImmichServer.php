@@ -34,7 +34,7 @@ trait FakeImmichServer {
 	/** The JSON body of the last request to the route. */
 	private function lastImmichBody(string $route): mixed {
 		foreach (array_reverse($this->immichRequests) as $request) {
-			if ($request['method'] . ' ' . $this->immichPath($request['url']) === $route) {
+			if ($route === $request['method'] . ' ' . $this->immichPath($request['url'])) {
 				return json_decode((string)($request['options']['body'] ?? 'null'), true, 512, JSON_THROW_ON_ERROR);
 			}
 		}
@@ -43,8 +43,8 @@ trait FakeImmichServer {
 
 	private function immichClients(): IClientService {
 		$client = $this->createStub(IClient::class);
-		$client->method('get')->willReturnCallback(fn (string $url, array $options = []): IResponse => $this->immichRespond('GET', $url, $options));
-		$client->method('post')->willReturnCallback(fn (string $url, array $options = []): IResponse => $this->immichRespond('POST', $url, $options));
+		$client->method('get')->willReturnCallback(/** @param array<string, mixed> $options */ fn (string $url, array $options = []): IResponse => $this->immichRespond('GET', $url, $options));
+		$client->method('post')->willReturnCallback(/** @param array<string, mixed> $options */ fn (string $url, array $options = []): IResponse => $this->immichRespond('POST', $url, $options));
 		$clients = $this->createStub(IClientService::class);
 		$clients->method('newClient')->willReturn($client);
 		return $clients;
@@ -53,8 +53,8 @@ trait FakeImmichServer {
 	/** @param array<string, mixed> $options */
 	private function immichRespond(string $method, string $url, array $options): IResponse {
 		$this->immichRequests[] = ['method' => $method, 'url' => $url, 'options' => $options];
-		$answer = $this->immichRoutes[$method . ' ' . $this->immichPath($url)] ?? static fn (): array => [404, '{"message":"Not Found"}', 'application/json'];
-		[$status, $body, $type] = $answer($options);
+		$answer = $this->immichRoutes[$method . ' ' . $this->immichPath($url)] ?? null;
+		[$status, $body, $type] = $answer === null ? [404, '{"message":"Not Found"}', 'application/json'] : $answer($options);
 		$response = $this->createStub(IResponse::class);
 		$response->method('getStatusCode')->willReturn($status);
 		$response->method('getBody')->willReturn($body);

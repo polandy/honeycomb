@@ -12,7 +12,10 @@ final class FakeImmichLibrary {
 	/** @var list<array<string, mixed>> */
 	public array $assets = [];
 
-	/** An asset as Immich answers it, taken and received at unix seconds, with fields overridden. */
+	/**
+	 * An asset as Immich answers it, taken and received at unix seconds, with fields overridden.
+	 * @param array<string, mixed> $override
+	 */
 	public function add(string $id, int $takenAt, int $receivedAt = 0, array $override = []): void {
 		$this->assets[] = [...[
 			'id' => $id,
@@ -47,7 +50,7 @@ final class FakeImmichLibrary {
 		/** @var array{offset: int} $cursor */
 		$cursor = isset($body['cursor']) ? json_decode(base64_decode(strtr($body['cursor'], '-_', '+/')), true, 512, JSON_THROW_ON_ERROR) : ['offset' => 0];
 		$page = array_slice($assets, $cursor['offset'], $size);
-		$next = $cursor['offset'] + $size < count($assets) ? rtrim(strtr(base64_encode((string)json_encode(['offset' => $cursor['offset'] + $size])), '+/', '-_'), '=') : null;
+		$next = count($assets) > $cursor['offset'] + $size ? rtrim(strtr(base64_encode((string)json_encode(['offset' => $cursor['offset'] + $size])), '+/', '-_'), '=') : null;
 		$answer = ['albums' => ['count' => 0, 'facets' => [], 'items' => [], 'total' => 0], 'assets' => ['count' => count($page), 'facets' => [], 'items' => $page, 'nextCursor' => $next, 'nextPage' => null, 'total' => count($page)]];
 		return [200, json_encode($answer, JSON_THROW_ON_ERROR), 'application/json'];
 	}

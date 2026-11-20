@@ -98,6 +98,7 @@ final class ImmichListingTest extends TestCase {
 		$this->assertSame(['field' => 'fileCreatedAt', 'direction' => 'desc'], $body['orderBy']);
 		$this->assertSame([40, true, true], [$body['size'], $body['withExif'], $body['withStacked']]);
 		$this->assertArrayNotHasKey('cursor', $body);
+		$this->assertIsArray($body['filter']);
 		$this->assertSame([['type' => ['eq' => 'IMAGE'], 'isMotion' => ['eq' => false]]], $body['filter']['or']);
 	}
 

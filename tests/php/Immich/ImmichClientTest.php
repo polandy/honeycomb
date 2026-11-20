@@ -28,7 +28,7 @@ final class ImmichClientTest extends TestCase {
 	#[\Override]
 	protected function setUp(): void {
 		$this->files = new FakeLocalFiles();
-		$this->files->files[self::KEY_FILE] = "  " . self::KEY . "\n";
+		$this->files->files[self::KEY_FILE] = '  ' . self::KEY . "\n";
 		$this->logger = new FakeLogger();
 		$this->immichAnswers('POST /search/metadata', 200, ['albums' => [], 'assets' => ['count' => 0, 'facets' => [], 'items' => [], 'nextCursor' => null, 'nextPage' => null, 'total' => 0]]);
 	}
@@ -49,7 +49,15 @@ final class ImmichClientTest extends TestCase {
 	// spec: IMMICH-001.6
 	public function testNoFailureCarriesTheKeyIntoAMessageOrALogLine(): void {
 		$messages = [];
-		foreach ([fn () => $this->immichDown('POST /search/metadata'), fn () => $this->immichAnswers('POST /search/metadata', 401), fn () => $this->immichAnswers('POST /search/metadata', 500), fn () => $this->immichAnswers('POST /search/metadata', 200, ['x' => self::KEY])] as $setUp) {
+		foreach ([function (): void {
+			$this->immichDown('POST /search/metadata');
+		}, function (): void {
+			$this->immichAnswers('POST /search/metadata', 401);
+		}, function (): void {
+			$this->immichAnswers('POST /search/metadata', 500);
+		}, function (): void {
+			$this->immichAnswers('POST /search/metadata', 200, ['x' => self::KEY]);
+		}] as $setUp) {
 			$setUp();
 			try {
 				$this->client()->search($this->connection(), []);
@@ -142,7 +150,7 @@ final class ImmichClientTest extends TestCase {
 	public function testAForbiddenCallNamesTheScopeItNeeded(string $route, \Closure $call, string $scope): void {
 		$this->immichAnswers($route, 403, ['message' => 'Missing required permission: ' . $scope]);
 
-		$failure = $this->assertFailsWith(ImmichError::Scope, fn () => $call($this->client(), $this->connection()));
+		$failure = $this->assertFailsWith(ImmichError::Scope, fn (): mixed => $call($this->client(), $this->connection()));
 		$this->assertSame($scope, $failure->scope);
 		$this->assertCount(1, $this->immichRequests);
 	}
@@ -157,7 +165,7 @@ final class ImmichClientTest extends TestCase {
 	}
 
 	public function testAPreviewAnswersImmichsBytesAndContentType(): void {
-		$this->immichRoute('GET /assets/' . self::ASSET . '/thumbnail', static fn (array $options): array => [200, 'webp of ' . json_encode($options['query']), 'image/webp']);
+		$this->immichRoute('GET /assets/' . self::ASSET . '/thumbnail', static fn (array $options): array => [200, 'webp of ' . json_encode($options['query'] ?? null, JSON_THROW_ON_ERROR), 'image/webp']);
 
 		$image = $this->client()->thumbnail($this->connection(), self::ASSET, 'preview');
 

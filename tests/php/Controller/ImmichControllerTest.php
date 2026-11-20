@@ -125,14 +125,15 @@ final class ImmichControllerTest extends TestCase {
 
 	// spec: IMMICH-002.16
 	public function testAPreviewIsImmichsImageCachedForAYear(): void {
-		$this->immichRoute('GET /assets/' . self::ASSET . '/thumbnail', static fn (array $options): array => [200, 'webp-' . (string)$options['query']['size'], 'image/webp']);
+		$this->immichRoute('GET /assets/' . self::ASSET . '/thumbnail', static fn (array $options): array => [200, 'webp-' . json_encode($options['query'] ?? null, JSON_THROW_ON_ERROR), 'image/webp']);
 
 		$answer = $this->controller()->image('alice-phone', self::ASSET, 'thumbnail');
 
 		$this->assertInstanceOf(DataDisplayResponse::class, $answer);
-		$this->assertSame('webp-thumbnail', $answer->getData());
-		$this->assertSame('image/webp', $answer->getHeaders()['Content-Type']);
-		$this->assertSame('private, max-age=31536000, immutable', $answer->getHeaders()['Cache-Control']);
+		$this->assertSame('webp-{"size":"thumbnail"}', $answer->getData());
+		/** @var array<string, string> $headers */
+		$headers = (new \ReflectionProperty(Response::class, 'headers'))->getValue($answer);
+		$this->assertSame(['image/webp', 'private, max-age=31536000, immutable'], [$headers['Content-Type'], $headers['Cache-Control']]);
 	}
 
 	// spec: IMMICH-001.9

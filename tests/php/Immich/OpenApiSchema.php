@@ -36,7 +36,7 @@ final class OpenApiSchema {
 	 */
 	public function responseViolations(string $method, string $path, int $status, mixed $body): array {
 		$operation = $this->operation($method, $path);
-		/** @var array<string, mixed> $responses */
+		/** @var array<array-key, mixed> $responses */
 		$responses = $operation['responses'] ?? [];
 		return $this->violations($body, $this->jsonSchema($responses[(string)$status] ?? null), '$', false);
 	}
@@ -89,6 +89,7 @@ final class OpenApiSchema {
 	 * @return list<string>
 	 */
 	private function typeViolations(mixed $value, array $schema, string $at, bool $strict): array {
+		/** @var mixed $type */
 		$type = $schema['type'] ?? null;
 		return match ($type) {
 			'object' => is_array($value) && !array_is_list($value) || $value === [] ? $this->objectViolations((array)$value, $schema, $at, $strict) : ["$at is not an object"],
@@ -118,6 +119,7 @@ final class OpenApiSchema {
 				$found[] = "$at.$name is missing";
 			}
 		}
+		/** @var mixed $field */
 		foreach ($value as $name => $field) {
 			$property = $properties[(string)$name] ?? null;
 			if ($property === null) {
@@ -143,6 +145,7 @@ final class OpenApiSchema {
 		$found = count($value) < (int)($schema['minItems'] ?? 0) ? ["$at has too few items"] : [];
 		/** @var array<string, mixed> $items */
 		$items = $schema['items'] ?? [];
+		/** @var mixed $item */
 		foreach ($value as $index => $item) {
 			array_push($found, ...$this->violations($item, $items, "{$at}[$index]", $strict));
 		}
@@ -155,6 +158,7 @@ final class OpenApiSchema {
 	 */
 	private function stringViolations(string $value, array $schema, string $at): array {
 		$found = strlen($value) < (int)($schema['minLength'] ?? 0) ? ["$at is too short"] : [];
+		/** @var mixed $pattern */
 		$pattern = $schema['pattern'] ?? null;
 		if (is_string($pattern) && preg_match('/' . str_replace('/', '\/', $pattern) . '/u', $value) !== 1) {
 			$found[] = "$at does not match its pattern";
