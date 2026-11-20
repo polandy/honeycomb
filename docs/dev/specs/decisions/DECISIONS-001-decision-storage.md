@@ -248,6 +248,25 @@ Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5
 - **Then** it waits for that save instead of failing: the first statement of its transaction is a
   write, and an id another save inserted meanwhile is repeated as in .30
 
+### DECISIONS-001.35 – Cleaning up all data
+
+- **Given** rows in every honeycomb table and in the users' honeycomb preferences
+- **When** an admin runs `occ honeycomb:cleanup --all --dry-run`
+- **Then** it prints the row count of each and deletes nothing
+
+- **Given** the same rows
+- **When** an admin runs `occ honeycomb:cleanup --all`
+- **Then** every table and the preferences are empty and the command prints how many rows went from
+  each; the tables, the `oc_migrations` rows and the app's state stay
+
+- **Given** the database fails while it empties the tables
+- **When** an admin runs `occ honeycomb:cleanup --all`
+- **Then** the command names the failure, exits non-zero and prints no success line
+
+- **Given** `--dry-run` without `--all`
+- **When** an admin runs `occ honeycomb:cleanup --dry-run`
+- **Then** the command refuses, exits non-zero and removes nothing
+
 ## Out of scope
 
 Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XMP sidecars (M5).
@@ -269,3 +288,4 @@ Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XM
 | 2026-11-19 | M8 PR 4: the rows lock nothing and nothing migrates them; M8 PR 5 drops them |
 | 2026-11-19 | M8 PR 5: `honeycomb_flags` built (.21–.33), `honeycomb_decisions` dropped (.1–.10, .12, .19, .20 removed) |
 | 2026-11-19 | M8 PR 6: a take-over reads before its transaction, so SQLite does not fail it (.34) |
+| 2026-11-20 | `occ honeycomb:cleanup --all [--dry-run]` empties all honeycomb data (.35, E16/B17) |
