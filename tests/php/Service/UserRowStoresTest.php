@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\UserRowStores;
+use OCA\Honeycomb\Tests\Immich\FakeImmichDecisionStore;
 use PHPUnit\Framework\TestCase;
 
 final class UserRowStoresTest extends TestCase {
@@ -18,9 +19,10 @@ final class UserRowStoresTest extends TestCase {
 		$xmpCache = new FakeXmpCacheStore();
 		$positions = new FakePositionStore();
 		$stats = new FakeStatsStore();
+		$immich = new FakeImmichDecisionStore();
 
-		$all = (new UserRowStores($hashes, $series, $xmpCache, $tags, $positions, $stats))->all();
+		$all = (new UserRowStores($hashes, $series, $xmpCache, $tags, $positions, $stats, $immich))->all();
 
-		$this->assertSame([$hashes, $series, $xmpCache, $tags, $positions, $stats], $all);
+		$this->assertSame([$hashes, $series, $xmpCache, $tags, $positions, $stats, $immich], $all);
 	}
 }

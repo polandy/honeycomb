@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Listener;
 
+use OCA\Honeycomb\Immich\AssetDecision;
+use OCA\Honeycomb\Immich\AssetKind;
 use OCA\Honeycomb\Listener\ForgetDeletedUser;
 use OCA\Honeycomb\Service\FileFlag;
 use OCA\Honeycomb\Service\Flag;
@@ -16,6 +18,7 @@ use OCA\Honeycomb\Service\SeriesStatus;
 use OCA\Honeycomb\Service\UserRowStores;
 use OCA\Honeycomb\Service\VisualHash;
 use OCA\Honeycomb\Service\XmpCacheRow;
+use OCA\Honeycomb\Tests\Immich\FakeImmichDecisionStore;
 use OCA\Honeycomb\Tests\Service\FakeFlagStore;
 use OCA\Honeycomb\Tests\Service\FakePositionStore;
 use OCA\Honeycomb\Tests\Service\FakeSeriesStore;
@@ -37,6 +40,7 @@ final class ForgetDeletedUserTest extends TestCase {
 	private FakeSeriesStore $series;
 	private FakeXmpCacheStore $xmpCache;
 	private FakeStatsStore $stats;
+	private FakeImmichDecisionStore $immich;
 
 	#[\Override]
 	protected function setUp(): void {
@@ -48,6 +52,7 @@ final class ForgetDeletedUserTest extends TestCase {
 		$this->series = new FakeSeriesStore();
 		$this->xmpCache = new FakeXmpCacheStore();
 		$this->stats = new FakeStatsStore();
+		$this->immich = new FakeImmichDecisionStore();
 		foreach (['alice', 'bob'] as $userId) {
 			$this->tags->addToTagList($userId, ['Anna']);
 			$this->hashes->replace($userId, [new VisualHash(7, 'etag-7', '0000000000000007')]);
@@ -55,11 +60,12 @@ final class ForgetDeletedUserTest extends TestCase {
 			$this->xmpCache->replace($userId, [XmpCacheRow::fromRequest(XmpCacheRowTest::item())]);
 			$this->positions->save($userId, new ResumePosition(new FolderSet(['/Trip'], false), 7, 1, 2, 0));
 			$this->stats->rows[$userId] = ['2026-11-19' => ['series_done' => 1]];
+			$this->immich->decide($userId, "$userId-phone", new AssetDecision('0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d', 3, null, Flag::Picked, false, 100, null, AssetKind::Photo, '2026-11-19T08:00:00.000Z'));
 		}
 	}
 
 	private function registry(): UserRowStores {
-		return new UserRowStores($this->hashes, $this->series, $this->xmpCache, $this->tags, $this->positions, $this->stats);
+		return new UserRowStores($this->hashes, $this->series, $this->xmpCache, $this->tags, $this->positions, $this->stats, $this->immich);
 	}
 
 	private function deleted(string $userId): UserDeletedEvent {
@@ -68,7 +74,7 @@ final class ForgetDeletedUserTest extends TestCase {
 		return new UserDeletedEvent($user);
 	}
 
-	// spec: DECISIONS-001.33, DECISIONS-002.13, TAGS-001.12, SERIES-003.11, SERIES-005.25, XMP-006.8, STATS-001.28
+	// spec: DECISIONS-001.33, DECISIONS-002.13, TAGS-001.12, SERIES-003.11, SERIES-005.25, XMP-006.8, STATS-001.28, IMMICH-003.9
 	public function testForgetsTheRowsOfTheDeletedUserOnlyAndLeavesTheFlags(): void {
 		(new ForgetDeletedUser($this->registry()))->handle($this->deleted('alice'));
 
@@ -84,6 +90,7 @@ final class ForgetDeletedUserTest extends TestCase {
 		$this->assertCount(1, $this->xmpCache->find('bob', [9]));
 		$this->assertSame(['bob'], array_keys($this->stats->rows));
 		$this->assertSame(['bob'], array_values(array_unique(array_column($this->series->series, 'userId'))));
+		$this->assertSame(['bob'], array_column($this->immich->rows, 'user'));
 	}
 
 	public function testIgnoresAnotherEvent(): void {
