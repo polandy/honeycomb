@@ -78,6 +78,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **year in review** | The section of the statistics page with the year's totals, the calendar of active days, the busiest day and the longest streak; shown in December and January, with a one-time hint in the navigation from 1 December. |
 | **streak** | Consecutive days, up to today or yesterday, with at least one counted action. Not a *series*. |
 | **Immich source** | The second source beside Nextcloud folders: one connection's upload library, reached only through the Immich API, never as files (ADR 0041). |
+| **capabilities** | What the opened source allows beside deciding: series, similarity, tags, delete, move, RAW removal, *Keep RAW* and XMP. Nextcloud folders allow all of them, the Immich source none in Phase 1 (ADR 0041, IMMICH-002.17). |
 | **connection** | One Immich account a user culls: Nextcloud user, label, Immich URL and key file, declared by the admin in the connections file; several per user (ADR 0041, ADR 0042). |
 | **connections file** | The read-only JSON file the server configuration generates with every connection; its path is app config, and no key ever enters the database or the UI (ADR 0041, format and rules in ADR 0042). |
 | **asset** | One picture or video in Immich, keyed by its asset id; a live photo is one asset, a stack shows but only the chosen asset goes (ADR 0041). |
