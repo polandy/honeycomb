@@ -214,6 +214,7 @@ defineExpose({
 		ref="stage"
 		class="loupe-stage"
 		:data-fit-seq="fitSeq"
+		:data-decoded="props.ready.size"
 		data-tip-avoid
 		@pointerdown="onPointerDown"
 		@pointermove="act(gestures.move(pointerOf($event)))"
