@@ -10,6 +10,7 @@ export const METRIC = {
 	deletedPictures: 'deleted_pictures',
 	deletedBytes: 'deleted_bytes',
 	rawsRemoved: 'raws_removed',
+	rawsRemovedBytes: 'raws_removed_bytes',
 	sidecarsCreated: 'sidecars_created',
 	sidecarsUpdated: 'sidecars_updated',
 	sidecarsForeign: 'sidecars_foreign',

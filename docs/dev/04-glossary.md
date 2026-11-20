@@ -72,6 +72,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **tag filter** | The filter bar's *Tags* group: a picture passes when it has every chosen tag or a tag beneath it. |
 | **statistics** | The daily counters of what honeycomb did for a user (pictures decided, moved to the trash bin, sidecars created and updated, series done, active time), and the page that shows them; no file ids (ADR 0039). |
 | **active time** | The seconds of a cull with an input at most 2 minutes earlier; a longer pause counts its first 2 minutes only. |
+| **year in review** | The section of the statistics page with the year's totals, the calendar of active days, the busiest day and the longest streak; shown in December and January, with a one-time hint in the navigation from 1 December. |
 | **streak** | Consecutive days, up to today or yesterday, with at least one counted action. Not a *series*. |
 | **Immich source** | The second source beside Nextcloud folders: one connection's upload library, reached only through the Immich API, never as files (ADR 0041). |
 | **connection** | One Immich account a user culls: Nextcloud user, label, Immich URL and key file, declared by the admin in the connections file; several per user (ADR 0041, ADR 0042). |

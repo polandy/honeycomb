@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { BrowserStorage } from './browser-storage.ts'
-import type { StoredViewState, ViewState, ViewStateKey } from './logic/view-state.ts'
+import type { StoredViewState, ViewState, ViewStateKey, ViewStatePatch } from './logic/view-state.ts'
 
 import { computed, ref } from 'vue'
 import { readStored, removeStored } from './browser-storage.ts'
@@ -17,7 +17,13 @@ const LOCAL_KEYS: Partial<Record<ViewStateKey, string>> = { infoPanelOpen: INFO_
 /** The server seams of the view state (ADR 0019). */
 export interface ViewStateApi {
 	loadViewState(): Promise<unknown>
-	saveViewState(patch: Partial<ViewState>): Promise<void>
+	saveViewState(patch: ViewStatePatch): Promise<void>
+}
+
+/** The api whose one read is shared by everyone who asks, so the app reads the view state once per visit (LOUPE-003.5). */
+export function readOnce(api: ViewStateApi): ViewStateApi {
+	let read: Promise<unknown> | null = null
+	return { loadViewState: () => (read ??= api.loadViewState()), saveViewState: api.saveViewState }
 }
 
 /** The loupe's view state: read once, each change applied at once and written key by key; values left in browser storage are taken over once. */

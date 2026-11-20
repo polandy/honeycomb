@@ -19,17 +19,21 @@ import DeleteStats from './DeleteStats.vue'
 import StatisticsBars from './StatisticsBars.vue'
 import StatisticsFolderSets from './StatisticsFolderSets.vue'
 import StatisticsRead from './StatisticsRead.vue'
+import YearReview from './YearReview.vue'
 import { formatDay, formatDuration, formatFileSize, formatNumber, formatPercent, PLAIN_TEXT } from '../l10n.ts'
 import { logger } from '../logger.ts'
 import { parsePositions } from '../logic/resume-position.ts'
 import { parseSettings } from '../logic/settings.ts'
 import { periodNumbers, streak } from '../logic/statistics.ts'
+import { reviewYear, yearReview } from '../logic/year-review.ts'
 
 /** How the page reads the counters, the resume positions and the settings. */
 export interface StatisticsSeams {
 	readonly loadStatistics: () => Promise<StatsAnswer>
 	readonly loadPositions: () => Promise<unknown[]>
 	readonly loadSettings: () => Promise<unknown>
+	/** Stores the year whose year in review was opened, which closes the navigation's hint (STATS-001.48). */
+	readonly saveViewState: (patch: { yearReviewHintClosed: number }) => Promise<void>
 }
 
 const props = defineProps<{ seams: StatisticsSeams }>()
@@ -50,6 +54,10 @@ const periods = computed(() => [
 	{ period: 'all' as const, label: t('honeycomb', 'All time') },
 ])
 const counted = computed(() => answer.value !== null && answer.value.counters.length > 0)
+const review = computed(() => {
+	const year = answer.value === null || !counted.value ? null : reviewYear(answer.value.today)
+	return year === null ? null : yearReview(answer.value!.counters, year, answer.value!.firstDay)
+})
 const numbers = computed(() => answer.value && periodNumbers(answer.value.counters, period.value, answer.value.today, answer.value.firstDay))
 const cullUrl = generateUrl('/apps/honeycomb/')
 const stats = computed(() => {
@@ -88,12 +96,20 @@ const line = computed(() => {
 	].filter((part) => part !== null).join(' · ')
 })
 
+/** Opening the year in review closes the hint for its year; a failed write is only logged. */
+function closeHint() {
+	if (review.value !== null) {
+		props.seams.saveViewState({ yearReviewHintClosed: review.value.year }).catch((error: unknown) => logger.error('Could not save the closed year-in-review hint.', { error }))
+	}
+}
+
 onMounted(async () => {
 	try {
 		const [statistics, stored, settings] = await Promise.all([props.seams.loadStatistics(), props.seams.loadPositions(), props.seams.loadSettings()])
 		answer.value = statistics
 		positions.value = parsePositions(stored)
 		keepStatistics.value = parseSettings(settings).keepStatistics
+		closeHint()
 	} catch (error) {
 		failed.value = true
 		logger.error('Could not load the statistics', { error })
@@ -121,6 +137,7 @@ onMounted(async () => {
 						{{ t('honeycomb', 'Statistics are off. Turn on Keep statistics in the settings to count again.') }}
 					</NcNoteCard>
 					<template v-if="counted">
+						<YearReview v-if="review" :review="review" />
 						<div class="statistics-page__periods" role="group" :aria-label="t('honeycomb', 'Period')">
 							<NcButton
 								v-for="each in periods"
