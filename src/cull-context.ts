@@ -4,6 +4,7 @@ import type { InjectionKey, Ref } from 'vue'
 import type { BrowserStorage } from './browser-storage.ts'
 import type { useCull } from './cull.ts'
 import type { DeleteFlow } from './delete-flow.ts'
+import type { ImageUrlFor } from './logic/image-tiers.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { Settings } from './logic/settings.ts'
@@ -52,6 +53,8 @@ export interface CullContext {
 	updateSettings(patch: Partial<Settings>): void
 	readonly viewState: ViewStateStore
 	readonly storage: BrowserStorage
+	/** The URL of a preview tier of the opened source. */
+	readonly imageUrl: ImageUrlFor
 }
 
 const CULL_CONTEXT: InjectionKey<CullContext> = Symbol('honeycomb cull context')

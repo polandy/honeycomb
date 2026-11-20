@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { BrowserStorage } from './browser-storage.ts'
 import type { Decision } from './logic/decision.ts'
-import type { ListingEntry } from './logic/listing.ts'
+import type { ListingEntry, SourceEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { StoredRows } from './logic/stored-series.ts'
 import type { QualityApi } from './quality-values.ts'
@@ -10,6 +10,7 @@ import type { VisualHashApi } from './visual-hashes.ts'
 
 import { computed } from 'vue'
 import { imageMember } from './logic/image-tiers.ts'
+import { isListingPicture } from './logic/listing.ts'
 import { allSeries, findSeries, openSeries, seriesCandidates, seriesMembers } from './logic/series.ts'
 import { splitByStoredRows } from './logic/stored-series.ts'
 import { useQualityValues } from './quality-values.ts'
@@ -31,6 +32,6 @@ export function useSeries(api: VisualHashApi & QualityApi, storage: BrowserStora
 		holdHashes: hashes.hold,
 		hashProgress: hashes.progress,
 		/** The quality value of the picture's shown member, or null while it has none (SERIES-006). */
-		qualityOf: (picture: Picture<ListingEntry>) => quality.qualityOf(imageMember(picture)),
+		qualityOf: (picture: Picture<SourceEntry>) => (isListingPicture(picture) ? quality.qualityOf(imageMember(picture)) : null),
 	}
 }

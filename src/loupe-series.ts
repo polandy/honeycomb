@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ListingEntry } from './logic/listing.ts'
+import type { SourceEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { Series } from './logic/series.ts'
 import type { QualityOf } from './quality-of.ts'
@@ -9,7 +9,7 @@ import { computed } from 'vue'
 import { sharpnessPlace } from './logic/sharpness.ts'
 import { sharpestPicture, sharpnessBy } from './quality-of.ts'
 
-type Shown = Picture<ListingEntry>
+type Shown = Picture<SourceEntry>
 
 /** What the loupe's series actions read and ask for. */
 export interface LoupeSeriesTargets {

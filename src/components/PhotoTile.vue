@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import type { Decision } from '../logic/decision.ts'
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
-import type { ListingEntry } from '../logic/listing.ts'
+import type { SourceEntry } from '../logic/listing.ts'
 import type { LoadQueue, QueuedLoad } from '../logic/load-queue.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { SeriesStatus } from '../logic/stored-series.ts'
@@ -25,7 +25,7 @@ import { pairBadge } from '../logic/pair-badge.ts'
 import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
-	picture: Picture<ListingEntry>
+	picture: Picture<SourceEntry>
 	/** The tile's edge in CSS pixels. */
 	size: number
 	imageUrl?: ImageUrlFor

@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ListingEntry } from './logic/listing.ts'
+import type { ListingEntry, SourceEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { ListedAccess, LockedPicture, WriteContext } from './logic/writability.ts'
 
@@ -16,7 +16,7 @@ export function useCullAccess() {
 	const context = (): WriteContext => ({ folders: folders.value })
 
 	/** Whether a decision on the picture is written to its sidecars, or why not. */
-	const writabilityOf = (picture: Picture<ListingEntry>) => writability(picture, context())
+	const writabilityOf = (picture: Picture<SourceEntry>) => writability(picture, context())
 
 	/** Takes the access of newly opened folders. */
 	function open(listed: ListedAccess) {

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { CullStep } from './cull.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
-import type { ListingEntry } from './logic/listing.ts'
+import type { ListingEntry, SourceEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { SelectionEdit } from './logic/series-menu.ts'
 import type { Series } from './logic/series.ts'
@@ -17,10 +17,10 @@ import { lockDetails, lockedText, partialText } from './lock-text.ts'
 
 /** The cull's recording actions; each returns the step it recorded, whatever its kind, or null. */
 interface Decisions {
-	decide: (intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[]) => CullStep | null
-	pickRest: (picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]) => CullStep | null
+	decide: (intent: DecisionIntent, chosen: readonly Picture<SourceEntry>[]) => CullStep | null
+	pickRest: (picked: Picture<SourceEntry>, rest: readonly Picture<SourceEntry>[]) => CullStep | null
 	clearFlags: () => CullStep | null
-	tag: (change: TagChange, chosen: readonly Picture<ListingEntry>[]) => CullStep | null
+	tag: (change: TagChange, chosen: readonly Picture<SourceEntry>[]) => CullStep | null
 	removeFromSeries: (series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>) => CullStep | null
 	dissolveSeries: (series: Series<Picture<ListingEntry>>) => CullStep | null
 	mergeSeries: (series: readonly Series<Picture<ListingEntry>>[]) => CullStep | null
@@ -34,12 +34,12 @@ interface Decisions {
 /** Decide, pick-rest, tag, the series edits, undo and redo that each say in a toast what changed and which photos were locked. */
 export function useToastedDecisions(cull: Decisions, show: (message: string, action?: ToastAction | null, offer?: ToastAction, details?: readonly string[]) => void, showError: (message: string, action?: ToastAction | null, details?: readonly string[]) => void) {
 	/** Decides the pictures and says what changed, with Undo and the offer `offer` makes once they are decided. */
-	function decide(intent: DecisionIntent, chosen: readonly Picture<ListingEntry>[], offer: () => ToastAction | null = () => null) {
+	function decide(intent: DecisionIntent, chosen: readonly Picture<SourceEntry>[], offer: () => ToastAction | null = () => null) {
 		toastChange(cull.decide(intent, chosen), offer)
 	}
 
 	/** Picks one picture, rejects the rest and says so, with Undo. */
-	function pickRest(picked: Picture<ListingEntry>, rest: readonly Picture<ListingEntry>[]) {
+	function pickRest(picked: Picture<SourceEntry>, rest: readonly Picture<SourceEntry>[]) {
 		toastChange(cull.pickRest(picked, rest))
 	}
 
@@ -49,7 +49,7 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 	}
 
 	/** Changes the pictures' tags and says what changed, with Undo (TAGS-003.10). */
-	function tag(change: TagChange, chosen: readonly Picture<ListingEntry>[]) {
+	function tag(change: TagChange, chosen: readonly Picture<SourceEntry>[]) {
 		toastChange(cull.tag(change, chosen))
 	}
 
