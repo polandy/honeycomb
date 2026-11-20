@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { XmpFields, XmpNode, XmpPacket, XmpTime, XmpValue } from './model.ts'
 
+import { PROPERTY } from './fields.ts'
 import { NAMESPACE, PREFERRED_PREFIXES, textNode, xmpKey, xmpName } from './model.ts'
 
 /** A start tag; `End` closes the latest open one, and a start directly followed by it is written empty. */
@@ -20,7 +21,7 @@ const END: XmlEvent = { kind: 'end' }
 
 /** Writes a packet in Framehive's canonical form with `xmp:MetadataDate` at the given time (CORE-009 "Writing"). */
 export function serializeXmp(packet: XmpPacket, time: XmpTime): Uint8Array {
-	const properties = new Map(packet.properties).set(xmpKey(NAMESPACE.xmp, 'MetadataDate'), textNode(xmpDate(time)))
+	const properties = new Map(packet.properties).set(PROPERTY.metadataDate, textNode(xmpDate(time)))
 	const prefixes = choosePrefixes(properties, packet.prefixes)
 	const declarations = [...prefixes].map(([namespace, prefix]) => [`xmlns:${prefix}`, namespace] as const)
 		.sort(([left], [right]) => compare(left, right))
