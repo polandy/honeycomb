@@ -1655,3 +1655,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-20: Immich calls time out after 5 s to connect and 30 s in total. Easy to redo.
 - 2026-11-20: The Immich backend lives in `lib/Immich/`; tests stub Nextcloud's HTTP client with
   a route-keyed fake Immich and check its answers against the pinned OpenAPI schema. Easy to redo.
+- 2026-11-20: The Immich client follows no redirect, so the key header never reaches another
+  host; a redirecting Immich reports the `version` state (IMMICH-001.6). Easy to redo.

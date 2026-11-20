@@ -129,7 +129,7 @@ final class ImmichClient {
 		if ($scope !== null) {
 			$headers['x-api-key'] = $this->key($connection);
 		}
-		$options = [...$options, 'headers' => $headers, 'connect_timeout' => self::CONNECT_TIMEOUT, 'timeout' => self::TIMEOUT, 'http_errors' => false, 'nextcloud' => ['allow_local_address' => true]];
+		$options = [...$options, 'headers' => $headers, 'connect_timeout' => self::CONNECT_TIMEOUT, 'timeout' => self::TIMEOUT, 'http_errors' => false, 'allow_redirects' => false, 'nextcloud' => ['allow_local_address' => true]];
 		$url = rtrim($connection->url, '/') . self::API . $path;
 		try {
 			$client = $this->clients->newClient();
