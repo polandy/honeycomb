@@ -75,4 +75,19 @@ final class XmpCacheMapperTest extends DbTestCase {
 		$this->assertSame(1, $hashes->clear(null));
 		$this->assertSame([], $hashes->find('bob', [7]));
 	}
+
+	// spec: STATS-001.45
+	public function testCountsOnlyTheReadRowsOfTheUserByFlagAndRating(): void {
+		$row = static fn (int $id, XmpReadState $state, ?Flag $flag, ?int $rating): XmpCacheRow => new XmpCacheRow($id, XmpSource::Sidecar, "etag-$id", 1, $state, null, $rating, $flag, null, null, null);
+		$this->cache->replace('alice', [
+			$row(1, XmpReadState::Read, Flag::Picked, 3),
+			$row(2, XmpReadState::Read, Flag::Rejected, 0),
+			$row(3, XmpReadState::Read, Flag::Unflagged, null),
+			$row(4, XmpReadState::Refused, Flag::Picked, 5),
+		]);
+		$this->cache->replace('bob', [$row(9, XmpReadState::Read, Flag::Picked, 1)]);
+
+		$this->assertSame(['pictures' => 3, 'picked' => 1, 'rejected' => 1, 'rated' => 1], $this->cache->readCounts('alice'));
+		$this->assertSame(['pictures' => 0, 'picked' => 0, 'rejected' => 0, 'rated' => 0], $this->cache->readCounts('carol'));
+	}
 }

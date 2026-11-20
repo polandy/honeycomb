@@ -113,4 +113,15 @@ final class StatsMapperTest extends DbTestCase {
 			'value' => $query->createNamedParameter($value),
 		])->executeStatement();
 	}
+
+	// spec: STATS-001.44
+	public function testTheTotalSumsOneMetricOfOneUserOverEveryDay(): void {
+		$this->stats->add('alice', '2026-11-01', StatsMetric::SeriesDone, 2);
+		$this->stats->add('alice', '2026-11-19', StatsMetric::SeriesDone, 3);
+		$this->stats->add('alice', '2026-11-19', StatsMetric::TrashFiles, 7);
+		$this->stats->add('bob', '2026-11-19', StatsMetric::SeriesDone, 9);
+
+		$this->assertSame(5, $this->stats->total('alice', StatsMetric::SeriesDone));
+		$this->assertSame(0, $this->stats->total('carol', StatsMetric::SeriesDone));
+	}
 }
