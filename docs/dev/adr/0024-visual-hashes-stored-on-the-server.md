@@ -6,6 +6,8 @@
 - Extended by: [0025](0025-missing-visual-hashes-by-path-cursor.md), hashing a folder tree in bulk;
   [0026](0026-rate-limit-of-the-visual-hash-saves.md), the rate limit of the saves;
   [0027](0027-series-stored-on-the-server.md), stored series
+- Amended by: [0046](0046-quality-values-per-file-version.md), one row per file instead of per
+  user and file
 
 ## Context
 

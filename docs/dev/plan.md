@@ -174,6 +174,18 @@ merged. The exception to rule 1, the mapping and the pull request order are in A
 connections file in ADR 0042, the decision table in ADR 0043, the source's API in ADR 0044; the
 behaviour is in the specs IMMICH-001 to IMMICH-004.
 
+### M11 – Culling aids
+
+Asked by the owner on 2026-11-20: honeycomb helps to cull by measuring each series member's
+sharpness in the browser and marking the sharpest photo of a series, and by quality hints (shake
+risk, clipping) in the info panel, as a filter and on the tile. A mark or hint is never a
+decision and never reaches a sidecar. Hashes and quality values are stored per file version, not
+per user (ADR 0046, mockup `docs/dev/mockup/quality/index.html`). Five pull requests: ADR and
+mockup; sharpness and its storage with the calibration script; the mark in the series compare
+and series viewer; the series reduction over all series; the shake risk from EXIF. After them,
+as feedback asks: clipping, a 2-up and 4-up compare (4-up on large screens only), duplicates
+across series and the filter by quality.
+
 ### Release – first App Store release
 
 Before it: Transifex setup ([Translations](#translations)), the signing certificate and the

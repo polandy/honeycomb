@@ -1,0 +1,112 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 honeycomb contributors -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>honeycomb mockup – quality values</title>
+<link rel="icon" href="data:,">
+<style>
+*{box-sizing:border-box}
+:root{--ink:#1b1b1b;--paper:#f7f7f7;--honey:#F4A51C;--on-honey:#1b1b1b;--bg:#f7f7f7;--card:#fff;--card-2:#f0f0f0;--text:#1b1b1b;--muted:#5e5e5e;--border:#dcdcdc;--honey-soft:#fdecc8;--shadow:0 4px 18px rgba(0,0,0,.14);--tile-bg:#e6e6e6;--stage:#111;--stage-2:#1d1d1d;--stage-text:#f2f2f2;--stage-muted:#b0b0b0;--hit:44px}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif}
+button{font:inherit;color:inherit}
+svg.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.app,.cmpd,.loupe{position:fixed;inset:0;top:var(--mock-h,40px);display:flex;flex-direction:column}
+.tb{flex:none;display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--card);border-bottom:1px solid var(--border);min-height:56px}
+.tb .ttl{flex:1;min-width:0}.tb .ttl b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tb .ttl span{font-size:12px;color:var(--muted)}
+.ib{position:relative;width:var(--hit);height:var(--hit);border:0;border-radius:10px;background:none;display:inline-flex;align-items:center;justify-content:center}
+.ib[aria-pressed=true]{background:var(--honey-soft)}
+.main{flex:1;min-height:0;overflow:auto;padding:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--ts),1fr));gap:8px}
+.tile{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--tile-bg)}
+.ph{position:absolute;inset:0}.ph i{position:absolute;border-radius:50%}
+.tile .pair{position:absolute;left:6px;top:6px;font-size:11px;font-weight:700;border-radius:6px;padding:2px 6px;background:#fff;color:#1b1b1b}
+.tile .ov{position:absolute;left:0;right:0;bottom:0;padding:16px 6px 5px;background:linear-gradient(transparent,rgba(0,0,0,.7));color:#fff;font-size:12px;display:flex;align-items:center;gap:4px}
+.tile .ov .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hint{display:inline-flex;opacity:.8}.hint svg{width:15px;height:15px}
+.chip{display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:0 12px;border-radius:18px;border:1px solid var(--border);background:var(--card);font-size:14px}
+.chip[aria-pressed=true]{background:var(--honey-soft);border-color:var(--honey)}
+.chip .n{color:var(--muted);font-size:12px}
+.fbar{flex:none;display:flex;flex-wrap:wrap;gap:8px 18px;padding:8px 12px;background:var(--card);border-bottom:1px solid var(--border)}
+.fbar .grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.fbar .grp>b{font-size:12px;color:var(--muted);margin-right:4px}
+.cmpd,.loupe{background:var(--stage);color:var(--stage-text)}
+.cmpd .tb,.loupe .tb{background:var(--stage-2);border-color:#333}.cmpd .tb .ttl span,.loupe .tb .ttl span{color:var(--stage-muted)}.cmpd .ib,.loupe .ib{color:var(--stage-text)}.loupe .ib[aria-pressed=true]{color:var(--on-honey)}
+.cards{flex:1;min-height:0;display:grid;gap:8px;padding:8px;grid-template-columns:repeat(var(--cols),1fr);align-content:start}
+.cm{position:relative;display:flex;flex-direction:column;gap:6px;border-radius:12px;padding:4px 4px 6px;background:#262626}
+.cm.active{outline:3px solid var(--honey);outline-offset:1px}
+.cm .img{position:relative;height:var(--ih);border-radius:8px;overflow:hidden}
+.cm .nm{font-weight:700;font-size:13px;padding:0 4px;display:flex;align-items:center;gap:6px}
+.cm .fl{display:flex;gap:4px}.cm .fl button{flex:1;min-height:40px;border-radius:8px;border:1px solid #444;background:#2e2e2e;color:#eee;font-size:13px}
+.sharp{position:absolute;left:6px;bottom:6px;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;background:rgba(0,0,0,.66);color:#fff;font-size:12px;font-weight:600;border:1px solid var(--honey)}
+.sharp svg{width:14px;height:14px;color:var(--honey)}
+.btn{min-height:var(--hit);padding:0 14px;border-radius:10px;border:1px solid #444;background:#2e2e2e;color:#eee;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn.primary{background:var(--honey);border-color:var(--honey);color:var(--on-honey);font-weight:600}
+.bbar{flex:none;display:flex;gap:8px;align-items:center;padding:8px 12px;background:var(--stage-2);border-top:1px solid #333}
+.bbar .tip{flex:1;color:var(--stage-muted);font-size:13px}
+.stage{flex:1;min-height:0;display:flex}
+.photo{position:relative;flex:1;margin:8px;border-radius:6px;overflow:hidden}
+.film{flex:none;display:flex;gap:4px;justify-content:center;padding:6px;background:var(--stage-2)}
+.film .t{position:relative;width:56px;height:56px;border-radius:6px;overflow:hidden}.film .t.cur{outline:2px solid var(--honey)}
+.film .t .dot{position:absolute;right:3px;bottom:3px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.66);display:flex;align-items:center;justify-content:center}
+.film .t .dot svg{width:12px;height:12px;color:var(--honey)}
+#infoPanel{flex:none;width:300px;background:var(--stage-2);border-left:1px solid #ffffff1a;overflow:auto;padding:12px 14px;font-size:14px}
+#infoPanel h4{margin:12px 0 8px;font-size:12px;color:var(--stage-muted);text-transform:uppercase;letter-spacing:.5px}
+#infoPanel dl{margin:0;display:grid;grid-template-columns:auto 1fr;grid-auto-rows:minmax(32px,auto);align-items:center;column-gap:12px}
+#infoPanel dt{color:var(--stage-muted);align-self:start;padding-top:2px}#infoPanel dd{margin:0}#infoPanel dd small{display:block;color:var(--stage-muted);font-size:12px}
+#mock{position:fixed;z-index:40;left:0;right:0;top:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 10px;background:var(--card);border-bottom:2px dashed #b8860b;font-size:13px}#mock a{padding:4px 8px;border-radius:8px;border:1px solid var(--border);color:inherit;text-decoration:none}#mock a[aria-current=page]{background:var(--honey-soft);border-color:var(--honey)}#mock span{color:var(--muted)}#mock em{flex-basis:100%;color:var(--muted)}
+@media (max-width:520px){.hide-phone{display:none}#infoPanel{display:none}}
+</style>
+</head>
+<body>
+<nav id="mock"></nav>
+<div id="root"></div>
+<script>
+'use strict'
+const P = (hue, x, y, k, blur = 0) => `<div class="ph" style="filter:blur(${blur}px);background:linear-gradient(${160 + k * 7}deg,hsl(${hue} 45% ${62 - k * 2}%),hsl(${hue + 30} 35% ${30 + k}%))"><i style="left:${x + k * 3}%;top:${y}%;width:34%;height:34%;background:hsl(${hue + 180} 30% 85% / .85)"></i><i style="left:${x - 10}%;top:${y + 30}%;width:60%;height:50%;background:hsl(${hue} 30% 22% / .7)"></i></div>`
+const ic = { close:'M6 6l12 12M18 6L6 18', back:'M15 6l-6 6 6 6', more:'M5 12h.01M12 12h.01M19 12h.01', filter:'M4 5h16l-6 8v6l-4-2v-4z', sharp:'M12 2v5M12 17v5M2 12h5M17 12h5M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6', shake:'M2 12l3-5 3 10 3-10 3 10 3-10 3 5', clip:'M12 7a5 5 0 1 0 0 10a5 5 0 1 0 0-10M12 1v2M12 21v2M4 4l1.5 1.5M18.5 18.5L20 20M1 12h2M21 12h2' }
+const svg = (k) => `<svg class="ic" viewBox="0 0 24 24"><path d="${ic[k]}"/></svg>`
+// series: [name, blur]; IMG_0403 is the sharpest, more than 5 % ahead of IMG_0402
+const series = [['IMG_0401', 2.2], ['IMG_0402', 0.6], ['IMG_0403', 0], ['IMG_0404', 1.4]]
+// grid: [name, hue, x, y, hint]
+const photos = [['IMG_0398', 200, 50, 30, null], ['IMG_0399', 120, 20, 40, 'shake'], ['IMG_0400', 340, 25, 35, null], ...series.map((s, i) => [s[0], 30, 30 + i * 2, 20, null]), ['IMG_0405', 90, 55, 15, 'clip'], ['IMG_0406', 260, 35, 30, null], ['IMG_0407', 15, 45, 40, 'shake'], ['IMG_0408', 170, 30, 25, null], ['IMG_0409', 50, 60, 35, null]]
+const hintText = { shake: 'Shake risk', clip: 'Clipping' }
+const phone = () => innerWidth <= 520
+const tile = (p, i) => `<div class="tile">${P(p[1], p[2], p[3], i % 4)}<span class="pair">RAW+JPG</span><div class="ov"><span class="nm">${p[0]}</span>${p[4] ? `<span class="hint" title="${hintText[p[4]]}" aria-label="${hintText[p[4]]}">${svg(p[4])}</span>` : ''}</div></div>`
+const chip = (label, n, on) => `<button class="chip" aria-pressed="${on}">${label}${n === null ? '' : ` <span class="n">${n}</span>`}</button>`
+function grid(filterBar, only) {
+	const shown = only ? photos.filter((p) => p[4]) : photos
+	const bar = filterBar ? `<div class="fbar"><div class="grp"><b>Flag</b>${chip('Picked', null, true)}${chip('Unflagged', null, true)}${chip('Rejected', null, false)}</div><div class="grp"><b>Hints</b>${chip(`${svg('shake')}Shake risk`, 2, only)}${chip(`${svg('clip')}Clipping`, 1, only)}</div></div>` : ''
+	return `<div class="app"><div class="tb"><button class="ib">${svg('back')}</button><div class="ttl"><b>Hike 2026-10</b><span>${shown.length} of ${photos.length} photos</span></div><button class="ib" aria-pressed="${filterBar}">${svg('filter')}</button><button class="ib">${svg('more')}</button></div>${bar}<div class="main"><div class="grid" style="--ts:${phone() ? 110 : 170}px">${shown.map((p, i) => tile(p, i)).join('')}</div></div></div>`
+}
+const sharpBadge = `<span class="sharp">${svg('sharp')}Sharpest</span>`
+function compare(marked) {
+	const cols = phone() ? 2 : 4, rows = Math.ceil(series.length / cols), ih = Math.floor((innerHeight - 150 - document.getElementById('mock').offsetHeight) / rows - 112)
+	return `<div class="cmpd"><div class="tb"><div class="ttl"><b>Compare series 1 of 2 · photo 1 of 4</b><span>14:02:31–14:02:52</span></div><button class="ib">${svg('more')}</button><button class="ib">${svg('close')}</button></div>
+	<div class="cards" style="--cols:${cols};--ih:${Math.max(120, ih)}px">${series.map((s, k) => `<div class="cm${k === 0 ? ' active' : ''}"><div class="img">${P(30, 30 + k * 2, 20, k, marked ? s[1] : 0.8)}${marked && k === 2 ? sharpBadge : ''}</div><span class="nm">${k + 1} · ${s[0]}</span><div class="fl"><button>Pick</button><button>Unflag</button><button>Reject</button></div></div>`).join('')}</div>
+	<div class="bbar"><span class="tip hide-phone">← → choose · P X U decide · Shift+K pick this, reject the rest</span><button class="btn">Skip</button><button class="btn primary">Pick this, reject the rest</button></div></div>`
+}
+const film = (cur) => `<div class="film">${series.map((s, k) => `<div class="t${k === cur ? ' cur' : ''}">${P(30, 30 + k * 2, 20, k, s[1] / 3)}${k === 2 ? `<span class="dot" title="Sharpest">${svg('sharp')}</span>` : ''}</div>`).join('')}</div>`
+const row = (dt, dd, note) => `<dt>${dt}</dt><dd>${dd}${note ? `<small>${note}</small>` : ''}</dd>`
+function loupe(cur, panel) {
+	const s = series[cur]
+	const info = panel ? `<aside id="infoPanel" aria-label="Photo info"><h4>Photo</h4><dl>${row('Name', s[0])}${row('Captured', '2026-10-12 14:02:44')}${row('Exposure', '1/15 s · f/5.6 · ISO 800')}${row('Focal length', '200 mm', '300 mm full frame')}</dl><h4>Quality</h4><dl>${row('Sharpness', cur === 2 ? 'Sharpest of 4' : `${['3rd', '2nd', '', '4th'][cur]} of 4`, 'Compared within its series only')}${row('Hints', `<span class="hint">${svg('shake')}</span> Shake risk`, '1/15 s at 300 mm full frame; slower than 1/300 s')}${row('', `<span class="hint">${svg('clip')}</span> Clipping`, '4 % of the JPEG is blown out; the RAW may hold more')}</dl></aside>` : ''
+	return `<div class="loupe"><div class="tb"><button class="ib">${svg('back')}</button><div class="ttl"><b>${s[0]}</b><span>Series 1 · photo ${cur + 1} of 4</span></div><button class="ib" aria-pressed="${panel}">Info</button><button class="ib">${svg('close')}</button></div><div class="stage"><div class="photo">${P(30, 30 + cur * 2, 20, cur, s[1])}${cur === 2 ? sharpBadge : ''}</div>${info}</div>${film(cur)}</div>`
+}
+const scenes = {
+	compare: ['Series compare', 'IMG_0403 is marked Sharpest; the active card stays the first photo, nothing is picked.', () => compare(true)],
+	close: ['No clear sharpest', 'The two sharpest photos lie within 5 %: no photo is marked.', () => compare(false)],
+	viewer: ['Series viewer', 'The mark sits on the photo and on its filmstrip thumbnail.', () => loupe(2, false)],
+	info: ['Info panel', 'The rank, never the raw value; hints with their reason. Hidden on the phone, as the info panel is.', () => loupe(1, true)],
+	grid: ['Hints on tiles', 'A small icon beside the file name; no colour, no badge.', () => grid(false, false)],
+	filter: ['Hints filter', 'The filter bar group Hints: Shake risk and Clipping, combined like the other chips.', () => grid(true, true)],
+}
+const scene = scenes[location.hash.slice(1)] ? location.hash.slice(1) : 'compare'
+document.getElementById('mock').innerHTML = '<span>Mockup · ADR 0046 · quality values:</span>' + Object.keys(scenes).map((k) => `<a href="#${k}"${k === scene ? ' aria-current="page"' : ''}>${scenes[k][0]}</a>`).join('') + `<em>${scenes[scene][1]}</em>`
+document.documentElement.style.setProperty('--mock-h', document.getElementById('mock').offsetHeight + 'px')
+addEventListener('hashchange', () => location.reload())
+document.getElementById('root').innerHTML = scenes[scene][2]()
+</script>
+</body>
+</html>
