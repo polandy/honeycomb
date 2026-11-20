@@ -17,8 +17,8 @@ export const SERIES = picturesOf([
 	listingEntry(3, '/Trip/IMG_3.JPG'),
 ]) as Picture<ListingEntry>[]
 
-/** The compare on the series, second of four, its second photo active, measured at 1416 × 760. */
-export function mountSeriesCompare(decisions: Record<string, Decision> = {}, series: Picture<ListingEntry>[] | null = SERIES, now = () => 0, oneSeries = false) {
+/** The compare on the series, second of four, its second photo active, measured at 1416 × 760; `props` override the defaults. */
+export function mountSeriesCompare(decisions: Record<string, Decision> = {}, series: Picture<ListingEntry>[] | null = SERIES, now = () => 0, oneSeries = false, props: Record<string, unknown> = {}) {
 	return mount(SeriesCompare, {
 		attachTo: document.body,
 		props: {
@@ -34,6 +34,7 @@ export function mountSeriesCompare(decisions: Record<string, Decision> = {}, ser
 				onSize(1416, 760)
 				return () => undefined
 			},
+			...props,
 		},
 		global: { stubs: { NcDialog: DialogStub, NcActions: ActionsStub } },
 	})

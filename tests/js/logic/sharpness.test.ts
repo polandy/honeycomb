@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { measureSharpness, sharpestOf, sharpnessMeter } from '../../../src/logic/sharpness.ts'
+import { focusTileCentre, measureSharpness, sharpestMember, sharpestOf, sharpnessMeter, sharpnessPlace } from '../../../src/logic/sharpness.ts'
 
 /** An RGBA photo of `width` × `height` whose grey value at each pixel is `grey(x, y)`. */
 function photo(width: number, height: number, grey: (x: number, y: number) => number) {
@@ -132,5 +132,48 @@ describe('sharpestOf', () => {
 		expect(sharpestOf([100, null, 300])).toBeNull()
 		expect(sharpestOf([100])).toBeNull()
 		expect(sharpestOf([])).toBeNull()
+	})
+})
+
+describe('sharpestMember', () => {
+	const values = new Map([['A', 100], ['B', 200], ['C', 195]])
+	const sharpnessOf = (member: string) => values.get(member) ?? null
+
+	// spec: SERIES-007.1, SERIES-007.2
+	it('names the member sharpest by 5 %, else none', () => {
+		expect(sharpestMember(['A', 'B'], sharpnessOf)).toBe('B')
+		expect(sharpestMember(['A', 'B', 'C'], sharpnessOf)).toBeNull()
+		expect(sharpestMember(['A', 'D'], sharpnessOf)).toBeNull()
+	})
+})
+
+describe('sharpnessPlace', () => {
+	const values = new Map([['A', 100], ['B', 300], ['C', 100], ['D', 50]])
+	const sharpnessOf = (member: string) => values.get(member) ?? null
+	const members = ['A', 'B', 'C', 'D']
+
+	// spec: SERIES-007.6
+	it('ranks a member by the members sharper than it, a tie sharing the better rank', () => {
+		expect(sharpnessPlace(members, 'B', sharpnessOf)).toEqual({ rank: 1, count: 4, sharpest: true })
+		expect(sharpnessPlace(members, 'A', sharpnessOf)).toEqual({ rank: 2, count: 4, sharpest: false })
+		expect(sharpnessPlace(members, 'C', sharpnessOf)).toEqual({ rank: 2, count: 4, sharpest: false })
+		expect(sharpnessPlace(members, 'D', sharpnessOf)).toEqual({ rank: 4, count: 4, sharpest: false })
+		expect(sharpnessPlace(['A', 'C'], 'A', sharpnessOf)).toEqual({ rank: 1, count: 2, sharpest: false })
+	})
+
+	// spec: SERIES-007.6
+	it('has no place for a non-member, a lone member or a series with a member without a value', () => {
+		expect(sharpnessPlace(members, 'E', sharpnessOf)).toBeNull()
+		expect(sharpnessPlace(['B'], 'B', sharpnessOf)).toBeNull()
+		expect(sharpnessPlace(['B', 'E'], 'B', sharpnessOf)).toBeNull()
+	})
+})
+
+describe('focusTileCentre', () => {
+	// spec: SERIES-007.7
+	it('places a tile\'s middle as fractions of the photo, row by row', () => {
+		expect(focusTileCentre(0)).toEqual({ x: 0.0625, y: 0.0625 })
+		expect(focusTileCentre(27)).toEqual({ x: 0.4375, y: 0.4375 })
+		expect(focusTileCentre(63)).toEqual({ x: 0.9375, y: 0.9375 })
 	})
 })

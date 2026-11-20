@@ -16,6 +16,7 @@ import SeriesViewer from '../../../src/components/SeriesViewer.vue'
 import { hotkeyListener } from '../../../src/hotkeys.ts'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
 import { DEFAULT_SETTINGS } from '../../../src/logic/settings.ts'
+import { SHARPNESS_METHOD } from '../../../src/logic/sharpness.ts'
 import { fakeScheduler } from '../fake-scheduler.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue } from '../l10n/marked-catalogue.ts'
 import { listingEntry, picturesOf } from '../logic/listing-entries.ts'
@@ -24,8 +25,8 @@ import { pointer, tap } from './loupe-pointer.ts'
 const SERIES = picturesOf([1, 2, 3].map((id) => listingEntry(id, `/Trip/IMG_${id}.JPG`, { width: 3000, height: 2000 }))) as Picture<ListingEntry>[]
 const listeners: ((event: KeyboardEvent) => void)[] = []
 
-/** The viewer at `index` of the series on a 1000 × 600 stage, its keys on the window as the app installs them. */
-async function mountViewer(index = 1, settings: Partial<Settings> = {}, pictures: Picture<ListingEntry>[] = SERIES) {
+/** The viewer at `index` of the series on a 1000 × 600 stage, its keys on the window as the app installs them; `props` override the defaults. */
+async function mountViewer(index = 1, settings: Partial<Settings> = {}, pictures: Picture<ListingEntry>[] = SERIES, props: Record<string, unknown> = {}) {
 	const decoded: string[] = []
 	const decided: [DecisionIntent, string][] = []
 	const decisions = reactive(new Map<string, Decision>())
@@ -55,6 +56,7 @@ async function mountViewer(index = 1, settings: Partial<Settings> = {}, pictures
 				decisions.set(picture.baseName, { ...UNDECIDED, ...(intent.kind === 'flag' ? { flag: intent.flag } : {}) })
 			},
 			onUpdateSettings: (patch: Partial<Settings>) => wrapper.setProps({ settings: { ...wrapper.props('settings'), ...patch } }),
+			...props,
 		},
 	})
 	const listener = hotkeyListener(() => wrapper.vm.hotkeys, () => false)
@@ -156,6 +158,20 @@ describe('SeriesViewer', () => {
 		await tap(stage, 500, 1100)
 		expect(zoomText(wrapper)).toBe('100 %')
 		expect(wrapper.find('.series-viewer--chrome-free').exists()).toBe(false)
+	})
+
+	// spec: SERIES-007.3, SERIES-007.7
+	it('says Sharpest in the title row of the sharpest photo and zooms a double-tap onto its focus tile', async () => {
+		const qualityOf = (picture: Picture<ListingEntry>) => ({ method: SHARPNESS_METHOD, sharpness: picture.baseName === 'IMG_1' ? 300 : 100, focusTile: 0 })
+		const { wrapper, stage } = await mountViewer(0, {}, SERIES, { qualityOf })
+		const mark = () => wrapper.find('.series-viewer__title .sharpest-mark')
+		expect(plain(mark().text())).toBe('Sharpest')
+
+		await tap(stage, 500, 1000)
+		await tap(stage, 500, 1100)
+		expect(wrapper.find('img[alt="IMG_1"]').attributes('style')).toContain('translate(1000px, 700px)')
+		await wrapper.setProps({ index: 1 })
+		expect(mark().exists()).toBe(false)
 	})
 
 	// spec: SERIES-002.4
