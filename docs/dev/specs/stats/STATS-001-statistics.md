@@ -66,9 +66,12 @@ opens the statistics page and comes with it (metrics PR 6); *Done* closes the ca
 offers *7 days*, *30 days*, the current year and *All time*, 30 days preselected. Tiles show
 pictures decided (with the change against the period before), moved to the trash bin (with space
 freed and deleted for good), sidecars created / updated (with those from digiKam or darktable) and
-days in a row (with the longest streak). A line shows active time, pictures a minute, series done
-and RAW files removed. Bars show pictures decided and moved to the trash bin per day (7 days), per
-week (30 days) or per month (year, all time). *Folder sets* lists the resume positions with their
+days in a row (with the longest streak); a day counts toward days in a row when any of its
+counters is above zero. A line shows active time, pictures a minute (from one active minute on),
+series done and RAW files removed. Bars show pictures decided and moved to the trash bin per day
+(7 days), per 7 days ending today (30 days, the oldest bar shorter) or per calendar month (year,
+all time). The period ends today, the user's day the server answers; the current year starts on
+1 January, all time on the first counted day. *Folder sets* lists the resume positions with their
 share decided; *Of the pictures read so far* shows the shares picked, rejected, unflagged and
 rated from the XMP cache. A footnote says *Counted since {date}.* and, with a start value, *Before
 that: n pictures decided (no date).* The start value is the user preference
@@ -89,8 +92,8 @@ settings field `keepStatistics`; only `false` turns it off) and *Reset statistic
 adds to the row of the day, never below zero; two counts at once both arrive (the second insert
 of a new row retries as an update). `GET /apps/honeycomb/api/v1/stats` takes the optional days
 `from` and `to` (`YYYY-MM-DD`, both included) and answers `counters`, the user's rows of those
-days as `{day, metric, value}` ordered by day and metric, and `firstDay`, the user's first counted
-day or `null`; a malformed day or `from` after `to` answers 400. `DELETE` on the same URL resets.
+days as `{day, metric, value}` ordered by day and metric, `firstDay`, the user's first counted
+day or `null`, and `today`, the user's day; a malformed day or `from` after `to` answers 400. `DELETE` on the same URL resets.
 Strings are English, translated per ADR 0007; the mockup lists them.
 
 ## Acceptance criteria
@@ -386,4 +389,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-19 | Server counts: trash, deleted for good, Remove RAWs, sidecars, series done, moves (.29–.31; metrics PR 3 of 8) |
 | 2026-11-19 | *Cull finished*: when it opens, what the session counts (.32–.35; metrics PR 4 of 8) |
 | 2026-11-19 | Browser counts on the flag, sidecar and position saves (.36–.39; metrics PR 5 of 8) |
-| 2026-11-20 | The statistics page and its navigation entry (.40–.43; metrics PR 6 of 8) |
+| 2026-11-20 | The statistics page and its navigation entry, `today` in the answer (.40–.43; metrics PR 6 of 8) |
