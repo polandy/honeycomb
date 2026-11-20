@@ -19,8 +19,8 @@ const MARK = TRANSLATED_MARK
 const position = { folderSet: { paths: ['/A', '/B'], subfolders: false }, fileId: 9, decided: 0, total: 40 }
 const ITEMS = [{ position, current: false, decided: 0, total: 40 }]
 
-function mountNavigation(items = ITEMS, stored: Record<string, string> = {}, width = 1440) {
-	return mount(AppNavigation, { props: { items, storage: fakeStorage(stored), viewportWidth: () => width } })
+function mountNavigation(items = ITEMS, stored: Record<string, string> = {}, width = 1440, hintYear: number | null = null) {
+	return mount(AppNavigation, { props: { items, storage: fakeStorage(stored), viewportWidth: () => width, hintYear } })
 }
 
 /** Records what the navigation is told from now on: true to open, false to close. */
@@ -71,6 +71,24 @@ describe('AppNavigation', () => {
 
 		expect(links).toEqual(useNavigationItems().map(({ name, href }) => ({ name, href })))
 		expect(links.map((link) => link.name)).toEqual([`${MARK}Similarity`, `${MARK}Statistics`])
+	})
+
+	// spec: STATS-001.26
+	it('shows the year-in-review hint with a link to the page while a year is due', () => {
+		const wrapper = mountNavigation(ITEMS, {}, 1440, 2026)
+
+		expect(wrapper.find('.app-navigation__hint').text()).toContain(`${MARK}Your 2026 in honeycomb`)
+		expect(wrapper.find('.app-navigation__hint a').attributes('href')).toBe(useNavigationItems().find((item) => item.page === 'statistics')!.href)
+		expect(mountNavigation().find('.app-navigation__hint').exists()).toBe(false)
+	})
+
+	// spec: STATS-001.26
+	it('closes the hint with its close button', async () => {
+		const wrapper = mountNavigation(ITEMS, {}, 1440, 2026)
+
+		await wrapper.find('.app-navigation__hint button').trigger('click')
+
+		expect(wrapper.emitted('closeHint')).toEqual([[]])
 	})
 
 	// spec: DECISIONS-002.12
