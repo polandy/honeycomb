@@ -1609,3 +1609,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   writes none any more, Nextcloud keeps no cache entry for it, so it is neither listed nor synced
   nor in the way of a save, and removing it would need the storage below `OCP\Files` (rule 1).
   This closes review OPS-9.
+- 2026-11-20: A photo written by a user who has opened honeycomb is rendered by a background job
+  (ADR 0045, #271). This reverses the decision of 2026-11-10 to render nothing on upload: the
+  first sharp image of a newly opened folder took about 2.7 s against 500 ms, and only users who
+  cull pay for it.
