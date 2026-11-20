@@ -1602,3 +1602,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   row count up to yesterday when today is empty. The page is a page of its own without the
   navigation sidebar, like Similarity, not inside the cull layout the mockup sketches. Easy to
   redo: `src/logic/statistics.ts`, `StatisticsPage`.
+- 2026-11-20: `tests/php-db` runs on the newest e2e image (`NEWEST_NEXTCLOUD_IMAGE`) instead of a
+  pin of its own, so a Nextcloud point release that refuses a sidecar save, as 35.0.3 refused the
+  part file, turns that suite red (review ARC-2, XMP-002.13).
+- 2026-11-20: A part file `*.xmp.part` left by a save before #261 stays where it is. honeycomb
+  writes none any more, Nextcloud keeps no cache entry for it, so it is neither listed nor synced
+  nor in the way of a save, and removing it would need the storage below `OCP\Files` (rule 1).
+  This closes review OPS-9.
