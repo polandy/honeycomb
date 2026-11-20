@@ -1733,3 +1733,20 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   loupe tiers' requests: a slide swaps to its loupe tier only once decoded, so a test that timed
   the page between request and decode measured a fresh load. A test-only `decode()` wrapper was
   rejected as tied to the prefetch's internals.
+- 2026-11-21: Immich PR 10b ships the paged grid and loupe, server counts, the flag filter and
+  saved decisions; the resume position (the listing's `from`, the positions' `asset_id`, its sweep
+  in IMMICH-003.18), *Recent*, the time, device, kind and rating filter bar, grid-level decisions,
+  selection and keys, and the tile pills move to PR 10c, to keep one PR reviewable. Easy to redo:
+  each lands on the screen as it is.
+- 2026-11-21: An Immich asset gets a numeric grid id per open connection (a map from asset id),
+  not a `PictureId` widened to `number | string`: widening touched 116 places of the folder cull.
+  Medium to redo: the map lives in `useImmichCull` only.
+- 2026-11-21: An Immich decision is undone by the toast's *Undo* only, which saves the earlier
+  decision; Ctrl+Z stays with the folder cull's history. Easy to redo: one key in `App.vue`.
+- 2026-11-21: The Immich grid groups by day through the picture's `folder`, set to the local day,
+  so `PhotoGrid` needed no new grouping; a header shows its folder as it is without a folder set.
+- 2026-11-21: The Immich loupe counts *k / N* against the server's matching total, the folder
+  loupe *k of N*, as IMMICH-002.9 writes it.
+- 2026-11-21: A failed Immich page says "Could not load more pictures." with *Try again*, not the
+  connection's state (IMMICH-002.19): the page request answers no state yet. Easy to redo: one
+  footer line once the listing's error carries one.
