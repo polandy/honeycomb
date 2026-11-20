@@ -31,7 +31,8 @@ an older version left in browser storage is taken over once.
 - **Given** a user with some, all or none of the keys stored
 - **When** the client reads the view state
 - **Then** the answer is `{"viewState": {"infoPanelOpen": …, "gestureGuideSeen": …,
-  "seriesHintSeen": …, "yearReviewHintClosed": …}}` with each stored boolean or year, `null` for a key never stored
+  "seriesHintSeen": …, "yearReviewHintClosed": …}}` with each stored boolean or year, `null` for
+  a key never stored
 
 ### LOUPE-003.2 – Write only the keys given
 

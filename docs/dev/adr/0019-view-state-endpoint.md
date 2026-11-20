@@ -40,6 +40,8 @@ or device.
 
 - A new view state key needs a server change: the server knows the keys and their type, unlike
   the settings blob. That keeps the stored values typed and the endpoint small.
+- A key may hold a year instead of a boolean (`yearReviewHintClosed`, STATS-001.48), which the server
+  validates as an integer from 1970 to 9999.
 - Two devices writing the same key at once: the last write wins, for that key only.
 - The loupe reads the view state from the server once per visit; a failed read falls back to the
   values left in browser storage, without migrating them.

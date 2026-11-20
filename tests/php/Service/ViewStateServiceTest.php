@@ -24,10 +24,10 @@ final class ViewStateServiceTest extends TestCase {
 			fn (string $userId, string $app, string $key): bool => isset($this->stored["$userId/$app/$key"]),
 		);
 		$config->method('getValueBool')->willReturnCallback(
-			fn (string $userId, string $app, string $key, bool $default = false): bool => $this->stored["$userId/$app/$key"] ?? $default,
+			fn (string $userId, string $app, string $key, bool $default = false): bool => (bool)($this->stored["$userId/$app/$key"] ?? $default),
 		);
 		$config->method('getValueInt')->willReturnCallback(
-			fn (string $userId, string $app, string $key, int $default = 0): int => $this->stored["$userId/$app/$key"] ?? $default,
+			fn (string $userId, string $app, string $key, int $default = 0): int => (int)($this->stored["$userId/$app/$key"] ?? $default),
 		);
 		$config->method('setValueInt')->willReturnCallback(
 			function (string $userId, string $app, string $key, int $value): bool {

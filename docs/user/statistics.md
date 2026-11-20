@@ -31,6 +31,15 @@ Open **Statistics** in the navigation, or press **Statistics** on the *Cull fini
   from the first day on. The space of photos in the trash bin is freed
   when the trash bin is emptied.
 
+## Year in review
+
+In December and January the page opens with your year: the photos decided, the photos moved to the
+trash bin and their size, the RAW files removed, the sidecars created and updated (and how many
+came from digiKam or darktable), the series done, the longest streak and the busiest day. Below
+them, a calendar shades every active day. From 1 December a hint in the navigation of the cull page
+points to it, once per year: close it, or open the year in review, and it stays away until the next
+December.
+
 ## Switch it off or reset it
 
 Both sit in the *Statistics* section of the [settings](settings.md). With *Keep statistics* off,

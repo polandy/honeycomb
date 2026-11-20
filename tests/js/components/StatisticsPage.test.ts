@@ -246,7 +246,7 @@ describe('StatisticsPage', () => {
 			const wrapper = mountPage({ counters: YEAR, today: DECEMBER, firstDay: '2026-01-01' })
 			await flushPromises()
 
-			expect(wrapper.vm.$.props.seams.saveViewState).toHaveBeenCalledExactlyOnceWith({ yearReviewHintClosed: 2026 })
+			expect((wrapper.vm.$.props.seams as { saveViewState: unknown }).saveViewState).toHaveBeenCalledExactlyOnceWith({ yearReviewHintClosed: 2026 })
 		})
 
 		// spec: STATS-001.48
@@ -254,7 +254,7 @@ describe('StatisticsPage', () => {
 			const wrapper = mountPage()
 			await flushPromises()
 
-			expect(wrapper.vm.$.props.seams.saveViewState).not.toHaveBeenCalled()
+			expect((wrapper.vm.$.props.seams as { saveViewState: unknown }).saveViewState).not.toHaveBeenCalled()
 		})
 	})
 })

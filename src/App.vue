@@ -53,15 +53,18 @@ import { resetStatisticsWithToast } from './statistics-reset.ts'
 import { useTagEntryTargets } from './tag-entry-targets.ts'
 import { useToast } from './toast.ts'
 import { useToastedDecisions } from './toasted-decisions.ts'
-import { useViewState } from './view-state.ts'
+import { readOnce, useViewState } from './view-state.ts'
 import { useXmpExport } from './xmp-export.ts'
+import { useYearReviewHint } from './year-review-hint.ts'
 
 const props = withDefaults(defineProps<AppSeams>(), APP_SEAMS)
 
 const toast = useToast(props.schedule)
 const isAdmin = props.admin()
 const { settings, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, toast.showError)
-const viewState = useViewState(props.viewState, props.storage)
+const viewStateApi = readOnce(props.viewState)
+const viewState = useViewState(viewStateApi, props.storage)
+const yearReviewHint = useYearReviewHint(viewStateApi, props.today)
 const settingsOpen = ref(false)
 const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, toast.showError)
 const sidecars = useBundledSidecars(sidecarFlow.sync, props.schedule, props.onPageHide)
@@ -149,6 +152,8 @@ useHotkeys(() => {
 		<AppNavigation
 			:items="recent.items.value"
 			:storage="props.storage"
+			:hintYear="yearReviewHint.year.value"
+			@closeHint="yearReviewHint.close()"
 			@chooseFolders="pickerOpen = true"
 			@openRecent="openRecent"
 			@openSettings="settingsOpen = true" />

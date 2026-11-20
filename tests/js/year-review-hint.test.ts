@@ -10,7 +10,13 @@ vi.mock('../../src/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
 function hintOn(today: string, answer: () => Promise<unknown>, save: () => Promise<void> = async () => undefined) {
 	const saved: unknown[] = []
-	const hint = useYearReviewHint({ loadViewState: answer, saveViewState: (patch) => { saved.push(patch); return save() } }, () => today)
+	const hint = useYearReviewHint({
+		loadViewState: answer,
+		saveViewState: async (patch) => {
+			saved.push(patch)
+			return save()
+		},
+	}, () => today)
 	return { hint, saved }
 }
 
