@@ -1590,6 +1590,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   seconds when a position save is sent; the server caps it at the time since the folder set's
   previous position save, or since the start of the user's day. A cull that only uses the grid
   sends it with its next position save. Easy to redo: `useActiveTime`, `PositionService`.
+- 2026-11-20: honeycomb writes sidecars without `<?xpacket?>` and padding, also into a sidecar
+  that had them (ARC-3); ExifTool and Exiv2 read that form back. Easy to redo: `serializeXmp`.
+- 2026-11-20: The ExifTool and Exiv2 read-back runs in its own small container
+  (`scripts/xmp-interop.sh`) on every TypeScript change and nightly, not in the e2e container, so
+  it needs no Nextcloud. Easy to redo: `tests/interop/`.
 - 2026-11-20: The statistics page (STATS-001.40–.43, metrics PR 6) reads every counter once and
   sums the periods in the browser; its "today" is the user's Nextcloud day from the stats answer,
   never the browser's. The 30-day bars are 7-day chunks ending today (the oldest shorter); the
@@ -1597,6 +1602,13 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   row count up to yesterday when today is empty. The page is a page of its own without the
   navigation sidebar, like Similarity, not inside the cull layout the mockup sketches. Easy to
   redo: `src/logic/statistics.ts`, `StatisticsPage`.
+- 2026-11-20: `tests/php-db` runs on the newest e2e image (`NEWEST_NEXTCLOUD_IMAGE`) instead of a
+  pin of its own, so a Nextcloud point release that refuses a sidecar save, as 35.0.3 refused the
+  part file, turns that suite red (review ARC-2, XMP-002.13).
+- 2026-11-20: A part file `*.xmp.part` left by a save before #261 stays where it is. honeycomb
+  writes none any more, Nextcloud keeps no cache entry for it, so it is neither listed nor synced
+  nor in the way of a save, and removing it would need the storage below `OCP\Files` (rule 1).
+  This closes review OPS-9.
 - 2026-11-20: The Immich source's API (ADR 0044) is a paged listing with a signed cursor the
   server issues, a counts endpoint and a preview proxy; the specs IMMICH-001 to IMMICH-004 carry
   the owner's sign-off condition. Kinds in Phase 1 are photos, motion photos and videos;

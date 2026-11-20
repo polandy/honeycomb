@@ -20,6 +20,7 @@ const COUNTERS = [
 	{ day: TODAY, metric: METRIC.sidecarsCreated, value: 7 },
 	{ day: TODAY, metric: METRIC.sidecarsUpdated, value: 3 },
 ]
+const NOTHING_READ = { pictures: 0, picked: 0, rejected: 0, rated: 0 }
 const POSITIONS = [
 	{ folderSet: { paths: ['/Photos/Italy 2025'], subfolders: false }, fileId: 9, decided: 79, total: 100 },
 	{ folderSet: { paths: ['/Photos/Wedding'], subfolders: false }, fileId: 10, decided: 40, total: 40 },
@@ -27,7 +28,7 @@ const POSITIONS = [
 
 function mountPage(answer: Partial<StatsAnswer> = {}, settings: unknown = {}) {
 	const seams = {
-		loadStatistics: vi.fn(async () => ({ counters: COUNTERS, firstDay: '2026-11-01', today: TODAY, ...answer })),
+		loadStatistics: vi.fn(async () => ({ counters: COUNTERS, firstDay: '2026-11-01', today: TODAY, seriesDoneBefore: 0, read: NOTHING_READ, ...answer })),
 		loadPositions: vi.fn(async () => POSITIONS),
 		loadSettings: vi.fn(async () => settings),
 	}
@@ -109,6 +110,29 @@ describe('StatisticsPage', () => {
 
 		expect(wrapper.text()).toContain(`Counted since ${formatDay('2026-11-01')}.`)
 		expect(wrapper.text()).toContain('Space is freed when the trash bin is emptied.')
+	})
+
+	// spec: STATS-001.24, STATS-001.44
+	it('adds the series done before the counting only above zero', async () => {
+		const wrapper = mountPage({ seriesDoneBefore: 3 })
+		await flushPromises()
+
+		expect(wrapper.text()).toContain('Before that: 3 series done (no date).')
+		const none = mountPage()
+		await flushPromises()
+		expect(none.text()).not.toContain('Before that')
+	})
+
+	// spec: STATS-001.45
+	it('shows the shares of the pictures read so far, nothing while none was read', async () => {
+		const wrapper = mountPage({ read: { pictures: 50, picked: 23, rejected: 10, rated: 30 } })
+		await flushPromises()
+
+		expect(wrapper.text()).toContain('Of the pictures read so far')
+		expect(wrapper.text()).toMatch(/46\s?% picked · 20\s?% rejected · 34\s?% unflagged · 60\s?% rated/)
+		const none = mountPage()
+		await flushPromises()
+		expect(none.text()).not.toContain('Of the pictures read so far')
 	})
 
 	// spec: STATS-001.42

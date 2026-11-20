@@ -155,6 +155,23 @@ jobs:
       - run: npx vue-tsc
       - run: npx vitest run --coverage
 
+  xmp-interop:
+    name: XMP read back with ExifTool and Exiv2
+    needs: changes
+    if: needs.changes.outputs.ts == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: scripts/xmp-interop.sh
+
   e2e:
     name: Build and e2e on the ${{ matrix.nextcloud }} Nextcloud
     needs: changes
@@ -201,7 +218,7 @@ jobs:
 
   gate:
     name: CI gate
-    needs: [changes, markdown, reuse, conventions, php, php-db, typescript, e2e, upgrade]
+    needs: [changes, markdown, reuse, conventions, php, php-db, typescript, xmp-interop, e2e, upgrade]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 5

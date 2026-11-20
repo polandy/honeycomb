@@ -54,11 +54,12 @@ Three ways to record:
   the first counted day and the user's today, so the page needs no clock of its own;
   `DELETE /apps/honeycomb/api/v1/stats` resets. Both only for the user themselves; no admin view,
   nothing leaves the server.
-- **One start value from the past:** before M8 PR 5 (ADR 0040) drops `honeycomb_decisions`, its
-  migration writes the number of decided pictures in it as the metric `pictures_decided_before`,
-  dated the day of the migration, shown as "Before that: n pictures decided (no date)". As
-  `honeycomb_stats` does not exist yet then, it is kept as the user preference
-  `pictures_decided_before`, `{count, day}`, until M9 PR 7 reads it.
+- **No start value for decided pictures (amended 2026-11-20):** honeycomb is deployed nowhere
+  with decisions of the old table, so the page counts from the first counter on; M9 PR 7 does not
+  read the preference `pictures_decided_before` that the migration of ADR 0040 wrote. Done series
+  have no counter before the counting began, so the answer derives them: done stored series now
+  less the counted `series_done`, never below zero. Nothing is stored for it, so a later decision
+  costs no migration.
 
 ## Consequences
 

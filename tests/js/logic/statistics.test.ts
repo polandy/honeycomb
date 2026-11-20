@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { folderSetShare, METRIC, parseCounters, percentChange, periodBars, periodNumbers, periodRange, periodSums, rangeBefore, streak } from '../../../src/logic/statistics.ts'
+import { folderSetShare, METRIC, parseCounters, parseReadPictures, percentChange, periodBars, periodNumbers, periodRange, periodSums, rangeBefore, readShares, streak } from '../../../src/logic/statistics.ts'
 
 const TODAY = '2026-11-20'
 
@@ -189,5 +189,26 @@ describe('periodNumbers', () => {
 	it('adds no change for all time, nor without numbers before', () => {
 		expect(periodNumbers(counters, 'all', TODAY, '2026-10-01').decidedChange).toBeNull()
 		expect(periodNumbers(counters, 'week', TODAY, '2026-10-01').decidedChange).toBeNull()
+	})
+})
+
+describe('parseReadPictures', () => {
+	// spec: STATS-001.45
+	it('keeps whole numbers and reads anything else as zero', () => {
+		expect(parseReadPictures({ pictures: 4, picked: 2, rejected: 1, rated: 2 })).toEqual({ pictures: 4, picked: 2, rejected: 1, rated: 2 })
+		expect(parseReadPictures({ pictures: 4, picked: 1.5, rejected: '1' })).toEqual({ pictures: 4, picked: 0, rejected: 0, rated: 0 })
+		expect(parseReadPictures(null)).toEqual({ pictures: 0, picked: 0, rejected: 0, rated: 0 })
+	})
+})
+
+describe('readShares', () => {
+	// spec: STATS-001.45
+	it('gives the whole percent of the read pictures picked, rejected, unflagged and rated', () => {
+		expect(readShares({ pictures: 50, picked: 23, rejected: 10, rated: 30 })).toEqual({ picked: 46, rejected: 20, unflagged: 34, rated: 60 })
+	})
+
+	// spec: STATS-001.45
+	it('gives no shares while no picture was read', () => {
+		expect(readShares({ pictures: 0, picked: 0, rejected: 0, rated: 0 })).toBeNull()
 	})
 })

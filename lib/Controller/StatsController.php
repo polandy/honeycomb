@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
+use OCA\Honeycomb\Service\StatsBaseline;
 use OCA\Honeycomb\Service\StatsService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -25,15 +26,16 @@ final class StatsController extends Controller {
 		IRequest $request,
 		private ApiResponse $api,
 		private StatsService $stats,
+		private StatsBaseline $baseline,
 	) {
 		parent::__construct($appName, $request);
 	}
 
-	/** The user's daily counters of the days from `from` to `to`, both included, and the first counted day (STATS-001). */
+	/** The user's daily counters of the days from `from` to `to`, both included, the first counted day and what began before the counting (STATS-001). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/stats')]
 	public function index(?string $from = null, ?string $to = null): Response {
-		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->stats->read($user, $from, $to)));
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse([...$this->stats->read($user, $from, $to), ...$this->baseline->of($user)]));
 	}
 
 	/** Resets the user's statistics; photos, sidecars and flags stay (STATS-001.3). */

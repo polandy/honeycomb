@@ -12,10 +12,14 @@ use DateTimeZone;
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\StatsController;
+use OCA\Honeycomb\Service\SeriesStatus;
 use OCA\Honeycomb\Service\SettingsService;
+use OCA\Honeycomb\Service\StatsBaseline;
 use OCA\Honeycomb\Service\StatsDay;
 use OCA\Honeycomb\Service\StatsService;
+use OCA\Honeycomb\Tests\Service\FakeSeriesStore;
 use OCA\Honeycomb\Tests\Service\FakeStatsStore;
+use OCA\Honeycomb\Tests\Service\FakeXmpCacheStore;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -33,10 +37,14 @@ use ReflectionMethod;
 
 final class StatsControllerTest extends TestCase {
 	private FakeStatsStore $store;
+	private FakeSeriesStore $series;
 
 	#[\Override]
 	protected function setUp(): void {
 		$this->store = new FakeStatsStore();
+		$this->series = new FakeSeriesStore();
+		$this->series->add('alice', SeriesStatus::Done, 1);
+		$this->series->add('alice', SeriesStatus::Done, 2);
 		$this->store->rows['alice'] = ['2026-11-01' => ['series_done' => 1], '2026-11-19' => ['trash_pictures' => 3]];
 		$this->store->rows['bob'] = ['2026-11-19' => ['series_done' => 9]];
 	}
@@ -51,7 +59,7 @@ final class StatsControllerTest extends TestCase {
 		$time = $this->createStub(ITimeFactory::class);
 		$time->method('getDateTime')->willReturn(new DateTime('2026-11-20 12:00', new DateTimeZone('UTC')));
 		$stats = new StatsService($this->store, new StatsDay($config, $time), new SettingsService($config), $this->createStub(LoggerInterface::class));
-		return new StatsController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $stats);
+		return new StatsController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $stats, new StatsBaseline($this->series, $this->store, new FakeXmpCacheStore()));
 	}
 
 	// spec: STATS-001.4, STATS-001.6
@@ -59,7 +67,7 @@ final class StatsControllerTest extends TestCase {
 		$response = $this->controller()->index('2026-11-02', '2026-11-30');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame('{"counters":[{"day":"2026-11-19","metric":"trash_pictures","value":3}],"firstDay":"2026-11-01","today":"2026-11-20"}', $response->render());
+		$this->assertSame('{"counters":[{"day":"2026-11-19","metric":"trash_pictures","value":3}],"firstDay":"2026-11-01","today":"2026-11-20","seriesDoneBefore":1,"read":{"pictures":0,"picked":0,"rejected":0,"rated":0}}', $response->render());
 	}
 
 	public function testAMalformedDayIsABadRequest(): void {

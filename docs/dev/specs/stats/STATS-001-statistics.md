@@ -73,11 +73,11 @@ series done and RAW files removed. Bars show pictures decided and moved to the t
 all time). The period ends today, the user's day the server answers; the current year starts on
 1 January, all time on the first counted day. *Folder sets* lists the resume positions with their
 share decided; *Of the pictures read so far* shows the shares picked, rejected, unflagged and
-rated from the XMP cache. A footnote says *Counted since {date}.* and, with a start value, *Before
-that: n pictures decided (no date).* The start value is the user preference
-`pictures_decided_before`, `{count, day}`, which the migration to `honeycomb_flags` writes from
-`honeycomb_decisions` before it drops that table: a picture counts once, whichever member held
-the flag.
+rated from the XMP cache, counting only the pictures whose XMP honeycomb has read, so a library
+not yet opened shows little. A footnote says *Counted since {date}.* and, when stored series
+were done before the counting began, *Before that: n series done (no date).* There is no start
+value for decided pictures: honeycomb is deployed nowhere with decisions of the old table, so the
+page counts from the first counter on.
 
 **The year in review** opens the page from 1 December to 31 January, for the year that ends or
 just ended: its totals, the longest streak, the busiest day, active time and a calendar of active
@@ -93,7 +93,10 @@ adds to the row of the day, never below zero; two counts at once both arrive (th
 of a new row retries as an update). `GET /apps/honeycomb/api/v1/stats` takes the optional days
 `from` and `to` (`YYYY-MM-DD`, both included) and answers `counters`, the user's rows of those
 days as `{day, metric, value}` ordered by day and metric, `firstDay`, the user's first counted
-day or `null`, and `today`, the user's day; a malformed day or `from` after `to` answers 400.
+day or `null`, `today`, the user's day, `seriesDoneBefore`, the user's done series that no
+counter holds (done series now less the counted ones, never below zero), and `read`, the
+`{pictures, picked, rejected, rated}` of the user's XMP cache rows that were read; a malformed
+day or `from` after `to` answers 400.
 `DELETE` on the same URL resets.
 Strings are English, translated per ADR 0007; the mockup lists them.
 
@@ -305,8 +308,7 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 - **Given** a user whose first counter is on 12 December 2026
 - **When** they open the page
-- **Then** the footnote says *Counted since 12 Dec 2026.*; with a start value it adds *Before that:
-  n pictures decided (no date).*
+- **Then** the footnote says *Counted since 12 Dec 2026.*
 
 ### STATS-001.25 – Year in review in December and January
 
@@ -381,6 +383,22 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **When** the user opens the page
 - **Then** it adds *Statistics are off. Turn on Keep statistics in the settings to count again.*
 
+### STATS-001.44 – Series done before the counting
+
+- **Given** a user with 5 done stored series, of which counters hold 2
+- **When** they ask for the statistics
+- **Then** `seriesDoneBefore` is 3; with as many counted as stored, or more, it is 0, and the
+  footnote adds *Before that: 3 series done (no date).* only above 0
+
+### STATS-001.45 – The state of the pictures read so far
+
+- **Given** XMP cache rows of the user: two picked, one rejected, one unflagged, one refused, one
+  without XMP, two of them rated
+- **When** they ask for the statistics
+- **Then** `read` counts only the four rows that were read: 4 pictures, 2 picked, 1 rejected, 2
+  rated, and no other user's rows; the page shows *Of the pictures read so far* with the shares
+  picked, rejected, unflagged and rated, and nothing while no picture was read
+
 ## History
 
 | Date | Change |
@@ -391,3 +409,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-19 | *Cull finished*: when it opens, what the session counts (.32–.35; metrics PR 4 of 8) |
 | 2026-11-19 | Browser counts on the flag, sidecar and position saves (.36–.39; metrics PR 5 of 8) |
 | 2026-11-20 | The statistics page and its navigation entry, `today` in the answer (.40–.43; metrics PR 6 of 8) |
+| 2026-11-20 | Series done before the counting and the state of the pictures read so far; no start value for decided pictures (.24, .44, .45; metrics PR 7 of 8) |
