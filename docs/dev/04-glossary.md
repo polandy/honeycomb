@@ -10,6 +10,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **member** | One image file of a picture (the RAW member or the rendered member). |
 | **rendered file** | A camera-rendered image file (JPEG or HEIF; the extensions are a setting, Q15). Shown in the app. |
 | **RAW file** | A camera RAW file, recognised by its extension (configurable list). |
+| **embedded preview** | The JPEG a camera stores inside a RAW file; the loupe shows it, also at 100 %, for a RAW-only picture, and says so (LOUPE-001.28). |
 | **sidecar** | An `.xmp` file that holds metadata for a member; deleted together with its picture. |
 | **XMP cache** | The values honeycomb derived from one sidecar or one JPEG's embedded XMP, kept per user and ETag so a folder visit reads only changed files; rebuilt at any time (ADR 0032). |
 | **waiting picture** | The one picture whose sidecar writes honeycomb holds until the user leaves it or 2 s pass idle; its grid tile and the loupe's title row show a ring, read as *Not saved yet* (ADR 0032). |
