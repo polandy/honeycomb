@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ListingEntry } from '../../../src/logic/listing.ts'
+import type { ListingEntry, SourceEntry } from '../../../src/logic/listing.ts'
 
 import { describe, expect, it } from 'vitest'
-import { mergeListings } from '../../../src/logic/listing.ts'
+import { isListingPicture, mergeListings } from '../../../src/logic/listing.ts'
+import { DEFAULT_PAIRING_SETTINGS, pairPictures } from '../../../src/logic/pairing.ts'
 
 function entry(fileId: number, path: string): ListingEntry {
 	return {
@@ -48,5 +49,20 @@ describe('mergeListings', () => {
 
 	it('returns no entries for no listings', () => {
 		expect(mergeListings([])).toEqual([])
+	})
+})
+
+describe('isListingPicture', () => {
+	it('takes a picture of listing entries as one', () => {
+		const [picture] = pairPictures([entry(1, '/A/1.jpg')], DEFAULT_PAIRING_SETTINGS)
+
+		expect(isListingPicture(picture!)).toBe(true)
+	})
+
+	it('takes a picture of bare source entries as none', () => {
+		const bare: SourceEntry = { fileId: 1, path: '/A/1.jpg', mtime: 100, mime: 'image/jpeg', captureTime: null, orientation: null, width: null, height: null, camera: null, flag: null, keepRaw: null, flagUpdated: null }
+		const [picture] = pairPictures([bare], DEFAULT_PAIRING_SETTINGS)
+
+		expect(isListingPicture(picture!)).toBe(false)
 	})
 })
