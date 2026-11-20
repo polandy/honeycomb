@@ -1,6 +1,14 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ImmichEntry } from './immich-asset.ts'
+import type { RequestFilters } from './immich-filters.ts'
+
+/** What one page is asked with (ADR 0044); a `null` cursor asks the first page. */
+export interface AssetsRequest {
+	readonly filters: RequestFilters
+	readonly cursor: string | null
+	readonly size: number
+}
 
 /** One page of the listing (ADR 0044); a cursor is `null` at the end it names. */
 export interface Page {

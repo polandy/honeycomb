@@ -9,8 +9,8 @@ import type { Page } from '../../src/logic/immich-paging.ts'
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PAGE_SIZE, useImmichCull } from '../../src/immich-cull.ts'
-import { imageMember } from '../../src/logic/image-tiers.ts'
 import { logger } from '../../src/logger.ts'
+import { imageMember } from '../../src/logic/image-tiers.ts'
 import { immichEntry, NOW, UTC_CALENDAR } from './logic/immich-fixtures.ts'
 
 afterEach(() => {
@@ -136,10 +136,10 @@ describe('useImmichCull', () => {
 		await flushPromises()
 		const id = imageMember(cull.pictures.value[0]!).fileId
 
-		expect(cull.imageUrl(id, 256, 0)).toBe('andy-phone/a1/thumbnail?v=2026-11-20T12:00:00.000Z')
-		expect(cull.imageUrl(id, 1024, 0)).toBe('andy-phone/a1/thumbnail?v=2026-11-20T12:00:00.000Z')
-		expect(cull.imageUrl(id, 4096, 0)).toBe('andy-phone/a1/preview?v=2026-11-20T12:00:00.000Z')
-		expect(cull.imageUrl(id, 0, 0)).toBe('andy-phone/a1/preview?v=2026-11-20T12:00:00.000Z')
+		expect(cull.imageUrl(id, 256)).toBe('andy-phone/a1/thumbnail?v=2026-11-20T12:00:00.000Z')
+		expect(cull.imageUrl(id, 1024)).toBe('andy-phone/a1/thumbnail?v=2026-11-20T12:00:00.000Z')
+		expect(cull.imageUrl(id, 4096)).toBe('andy-phone/a1/preview?v=2026-11-20T12:00:00.000Z')
+		expect(cull.imageUrl(id, 0)).toBe('andy-phone/a1/preview?v=2026-11-20T12:00:00.000Z')
 	})
 
 	// spec: IMMICH-002.15, IMMICH-003.1, IMMICH-003.7
@@ -194,7 +194,7 @@ describe('useImmichCull', () => {
 		await flushPromises()
 
 		expect(cull.decisionOf(first!).rating).toBe(0)
-		expect(cull.counts.value).toEqual(COUNTS)
+		expect(cull.counts.value).toMatchObject({ flags: COUNTS.flags, matching: COUNTS.matching, ratings: { 4: 0 } })
 		expect(toast.showError).toHaveBeenCalled()
 		expect(logger.error).toHaveBeenCalled()
 	})

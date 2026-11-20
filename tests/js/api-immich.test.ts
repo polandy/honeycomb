@@ -65,7 +65,7 @@ describe('immichStatus', () => {
 	})
 })
 
-const FILTERS = { from: null, to: null, devices: [], kinds: [], flags: [], rating: null, colourLabels: [] }
+const FILTERS = { takenAfter: null, takenBefore: null, devices: [], kinds: [], flags: [], rating: null, colourLabels: [] }
 const BASE = '/index.php/apps/honeycomb/api/v1/immich/andy-phone'
 
 describe('immichAssets', () => {
@@ -88,7 +88,7 @@ describe('immichCounts', () => {
 	// spec: IMMICH-002.13
 	it('asks the counts of the filters and the periods', async () => {
 		const counts = { total: 3, undecided: 3, decided: 0, matching: 3, flags: { picked: 0, rejected: 0, unflagged: 3 }, ratings: {}, colourLabels: {}, devices: [], kinds: { photo: 3, live: 0, video: 0 }, periods: [3] }
-		const periods = [{ from: 1, to: 2 }]
+		const periods = [{ takenAfter: 1, takenBefore: 2 }]
 		vi.mocked(axios.post).mockResolvedValue({ data: counts })
 
 		await expect(immichCounts('andy-phone', { filters: FILTERS, periods })).resolves.toEqual(counts)

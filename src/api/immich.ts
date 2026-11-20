@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { DecisionRow, ImmichImageSize } from '../logic/immich-asset.ts'
 import type { ConnectionState, ConnectionStatus, ImmichAvailability, ImmichConnection } from '../logic/immich-connections.ts'
+import type { CountsRequest, ImmichCounts } from '../logic/immich-counts.ts'
+import type { AssetsRequest, Page } from '../logic/immich-paging.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -36,4 +39,36 @@ export async function immichStatus(connectionId: string): Promise<ConnectionStat
 		throw new ApiResponseError('The Immich status came without a known state; check the server\'s version.')
 	}
 	return data as unknown as ConnectionStatus
+}
+
+/** One page of the listing at the cursor (IMMICH-002.1). */
+export async function immichAssets(connectionId: string, request: AssetsRequest): Promise<Page> {
+	const { data } = await axios.post<unknown>(generateUrl(`${API}/immich/{connectionId}/assets`, { connectionId }), request)
+	if (!isRecord(data) || !Array.isArray(data.entries)) {
+		throw new ApiResponseError('The Immich page came without an entries array; check the server\'s version.')
+	}
+	return data as unknown as Page
+}
+
+/** The counts of the filters and the time options (IMMICH-002.13). */
+export async function immichCounts(connectionId: string, request: CountsRequest): Promise<ImmichCounts> {
+	const { data } = await axios.post<unknown>(generateUrl(`${API}/immich/{connectionId}/counts`, { connectionId }), request)
+	if (!isRecord(data) || typeof data.total !== 'number') {
+		throw new ApiResponseError('The Immich counts came without a total; check the server\'s version.')
+	}
+	return data as unknown as ImmichCounts
+}
+
+/** Saves the whole decisions of the rows and answers the saved asset ids (ADR 0043). */
+export async function saveImmichDecisions(connectionId: string, rows: readonly DecisionRow[]): Promise<string[]> {
+	const { data } = await axios.put<unknown>(generateUrl(`${API}/immich/{connectionId}/decisions`, { connectionId }), { decisions: rows })
+	if (!isRecord(data) || !Array.isArray(data.saved)) {
+		throw new ApiResponseError('The Immich save came without the saved ids; check the server\'s version.')
+	}
+	return data.saved as string[]
+}
+
+/** The URL of an asset's image through honeycomb, versioned by Immich's `updatedAt` (IMMICH-002.16). */
+export function immichImageUrl(connectionId: string, assetId: string, size: ImmichImageSize, version: string): string {
+	return `${generateUrl(`${API}/immich/{connectionId}/assets/{assetId}/image`, { connectionId, assetId })}?size=${size}&v=${encodeURIComponent(version)}`
 }
