@@ -1694,5 +1694,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   uploads are under *All phone uploads*. Twelve keeps a change of filter at about fifteen Immich
   calls, under the server's 50 periods. Easy to redo: one constant.
 - 2026-11-20: An Immich entry stays its own type beside `SourceEntry` until the shell refactor
-  (M10 PR 9) widens `PictureId` to `number | string`; widening it now breaks about forty call
+  (M10 PR 9) widens `PictureId` to `number | string`; widening it now breaks dozens of call
   sites that PR 9 rewrites anyway. Easy to redo.

@@ -29,8 +29,9 @@ what is on screen is loaded, and every number comes from the server.
   counter *k / N* uses the server's total. A loupe opened at the resume position shows *N pictures*
   until the newer pages are loaded, since a page started at an asset carries no offset.
 - **Filters:** time (*Last 7 days*, the months with uploads among the current month and the eleven
-  before it, in the browser's time zone, *All phone uploads*; the current month by default), device (camera models and *No camera data*, any number), kind (*Photos*, *Motion
-  photos*, *Videos*, any number) and the flag filter of GRID-002 with its rating filter. Groups
+  before it, in the browser's time zone, *All phone uploads*; the current month by default),
+  device (camera models and *No camera data*, any number), kind (*Photos*, *Motion photos*,
+  *Videos*, any number) and the flag filter of GRID-002 with its rating filter. Groups
   combine with AND, chips in a group with OR. Changing a filter starts the listing over.
 - **Decision filters:** when the filter admits undecided assets, the listing pages Immich and
   leaves out the decided ones it refuses. When it admits decided assets only (*Picked* or
