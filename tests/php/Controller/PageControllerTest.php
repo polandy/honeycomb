@@ -38,6 +38,19 @@ final class PageControllerTest extends TestCase {
 
 		$this->assertSame('honeycomb-main-Ab1_cD2e', $controller->index()->getParams()['script']);
 		$this->assertSame(['script' => 'honeycomb-similarity-Xy9-Zw8v'], $controller->similarity()->getParams());
+		$this->assertSame(['script' => 'honeycomb-statistics-Qr7_St6u'], $controller->statistics()->getParams());
+	}
+
+	// spec: STATS-001.40
+	public function testStatisticsIsAPageOfItsOwnForEveryUser(): void {
+		$method = new ReflectionMethod(PageController::class, 'statistics');
+
+		$routes = $method->getAttributes(FrontpageRoute::class);
+		$this->assertCount(1, $routes);
+		$this->assertSame(['verb' => 'GET', 'url' => '/statistics'], $routes[0]->getArguments());
+		$this->assertCount(1, $method->getAttributes(NoAdminRequired::class));
+		$this->assertCount(1, $method->getAttributes(NoCSRFRequired::class));
+		$this->assertSame('statistics', $this->controller()->statistics()->getTemplateName());
 	}
 
 	// spec: SETTINGS-001.27

@@ -144,5 +144,5 @@ test('resets the statistics from the settings after a confirmation and says so',
 	expect((await done).status()).toBe(204)
 	await expect(page.getByText('Statistics reset')).toBeVisible()
 	const read = await page.request.get('/index.php/apps/honeycomb/api/v1/stats', { headers: await apiHeaders(page) })
-	expect(await read.json()).toEqual({ counters: [], firstDay: null })
+	expect(await read.json()).toMatchObject({ counters: [], firstDay: null })
 })

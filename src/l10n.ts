@@ -50,3 +50,18 @@ export function formatDuration(ms: number): string {
 	}
 	return seconds >= 60 ? t('honeycomb', '{minutes} min {seconds} s', { minutes, seconds: rest }, undefined, PLAIN_TEXT) : t('honeycomb', '{seconds} s', { seconds: rest }, undefined, PLAIN_TEXT)
 }
+
+/** A `YYYY-MM-DD` day in the user's locale, by default as a medium date, e.g. "Nov 1, 2026". */
+export function formatDay(day: string, style: Intl.DateTimeFormatOptions = { dateStyle: 'medium' }): string {
+	return new Intl.DateTimeFormat(getCanonicalLocale(), { ...style, timeZone: 'UTC' }).format(Date.parse(day))
+}
+
+/** The days from `from` to `to` in the user's locale, e.g. "Oct 24 – 30". */
+export function formatDayRange(from: string, to: string): string {
+	return new Intl.DateTimeFormat(getCanonicalLocale(), { month: 'short', day: 'numeric', timeZone: 'UTC' }).formatRange(Date.parse(from), Date.parse(to))
+}
+
+/** A whole percent in the user's locale, e.g. "79 %", or signed, e.g. "+18 %". */
+export function formatPercent(percent: number, signed = false): string {
+	return new Intl.NumberFormat(getCanonicalLocale(), { style: 'percent', signDisplay: signed ? 'exceptZero' : 'auto' }).format(percent / 100)
+}

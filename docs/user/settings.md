@@ -65,6 +65,12 @@ Changing a list pairs the open folders again at once; your decisions stay.
 - **Favourite folders:** the folders you starred in the move dialog. ✕ removes one; add them in
   the move dialog.
 
+## Statistics
+
+- **Keep statistics:** on by default. honeycomb counts per day what you do, without file names;
+  the [statistics page](statistics.md) shows it. Off, nothing new is counted.
+- **Reset statistics:** removes every counter after a question; counting starts again today.
+
 ## Cache
 
 - **Clear cache:** honeycomb remembers what it read from your XMP sidecars and JPEGs, and the

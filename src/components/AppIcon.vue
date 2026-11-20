@@ -7,6 +7,7 @@
 const PATHS = {
 	back: 'M19 12H5M11 6l-6 6 6 6',
 	check: 'M5 12l5 5 9-10',
+	chart: 'M4 20V10M10 20V4M16 20v-8M22 20H2',
 	chevronLeft: 'M15 6l-6 6 6 6',
 	chevronRight: 'M9 6l6 6-6 6',
 	close: 'M6 6l12 12M18 6 6 18',
