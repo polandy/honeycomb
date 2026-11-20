@@ -5,6 +5,7 @@
 <script setup lang="ts">
 import type { AppSeams } from './app-seams.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
+import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
@@ -34,6 +35,7 @@ import { APP_SEAMS } from './app-seams.ts'
 import { cleanUpWithToast, clearCacheWithToast } from './cache-clear.ts'
 import { provideCullContext } from './cull-context.ts'
 import { useCullFinished } from './cull-finished.ts'
+import { useCullLocation } from './cull-location.ts'
 import { useCull } from './cull.ts'
 import { flagsNotSavedText } from './decision-text.ts'
 import { useDeleteFlow } from './delete-flow.ts'
@@ -42,6 +44,7 @@ import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
 import { useImmichSource } from './immich-source.ts'
 import { connectionLines } from './immich-text.ts'
+import { positionFileId } from './logic/resume-position.ts'
 import { waitSeconds } from './logic/retry-after.ts'
 import { useLoupeOpening } from './loupe-opening.ts'
 import { useMoveFlow } from './move-flow.ts'
@@ -107,10 +110,10 @@ async function flushWrites() {
 	await cull.flushFlags()
 }
 const xmpExport = useXmpExport(sidecarFlow, { pictures: () => pictures.value.filter((picture) => cull.writabilityOf(picture) === 'writable'), decisionOf: cull.decisionOf, flush: flushWrites })
-const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, flush: flushWrites, current: sidecarFlow.sync.current, check, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show, error: toast.showError, onDeleted: cullFinished.deleted })
+const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, flush: flushWrites, current: sidecarFlow.sync.current, check, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show, error: toast.showError, reload: reloadFolder, onDeleted: cullFinished.deleted })
 const { dialog: deleteDialog } = deleting
 cullFinished.waitWhile(() => loupe.value !== null || seriesCompare.open.value || deleteDialog.value !== null || deleting.busy.value)
-const moving = useMoveFlow({ view: () => view.value, settings: () => settings.value, updateSettings, probe: props.move.probeTargets, move: props.move.movePictures, flush: flushWrites, current: sidecarFlow.sync.current, removeFiles: cull.removeFiles, restoreFiles: cull.restoreFiles, listing: () => folderSet.value, loupe, toast: toast.show, error: toast.showError })
+const moving = useMoveFlow({ view: () => view.value, settings: () => settings.value, updateSettings, probe: props.move.probeTargets, move: props.move.movePictures, flush: flushWrites, current: sidecarFlow.sync.current, removeFiles: cull.removeFiles, restoreFiles: cull.restoreFiles, listing: () => folderSet.value, loupe, toast: toast.show, error: toast.showError, reload: reloadFolder })
 const recent = useRecent(props.positions, props.listEntries, { folderSet: () => folderSet.value, progress: () => progress.value, pairing: () => cull.pairing.value }, toast.showError)
 const activeTime = useActiveTime(props.clock)
 const resume = useResume(recent.positions, { folderSet: () => folderSet.value, pictures: () => pictures.value, view: () => view.value, progress: () => progress.value, decidedOf: cull.decidedOf, shown: shownInLoupe, openLoupe, takeActiveSeconds: activeTime.take }, toast.show)
@@ -151,6 +154,19 @@ function openFolderSet(...opened: Parameters<typeof cull.open>) {
 	cull.open(...opened)
 	resume.offer()
 }
+/** The file the loupe shows, null while it is closed. */
+const shownFile = () => (shownInLoupe() === null ? null : positionFileId(shownInLoupe()!))
+/** Lists the folder set and opens it, the loupe at the picture when one is given and still there (DECISIONS-002.17, .18). */
+async function openAt(set: FolderSet, fileId: number | null) {
+	await recent.list(set, fileId === null ? openFolderSet : cull.open, () => fileId !== null && resume.resumeAt(fileId))
+}
+/** Lists the open folder set again, keeping the loupe's picture (DECISIONS-002.18). */
+function reloadFolder() {
+	if (folderSet.value !== null) {
+		void openAt(folderSet.value, shownFile())
+	}
+}
+useCullLocation(props.location, { folderSet: () => folderSet.value, shownFileId: shownFile }, ({ folderSet: set, fileId }) => openAt(set, fileId))
 /** Shows or hides the file names above the grid's tiles (GRID-004.3). */
 const toggleFileNames = () => updateSettings({ showFileNames: !settings.value.showFileNames })
 /** Opens or closes the shortcut sheet. */

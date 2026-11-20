@@ -99,6 +99,7 @@ export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: Recent
 		refresh,
 		open,
 		openSet,
+		list,
 		listing,
 		/** The positions API for the resume flow; a saved position is listed first. */
 		positions: {

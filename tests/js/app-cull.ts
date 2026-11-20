@@ -180,6 +180,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			loadSettings: async () => ({}),
 			saveSettings: async (settings: object) => { savedSettings.push(settings) },
 			positions: { loadPositions: async () => [], savePosition: async () => undefined },
+			location: { read: () => '', write: () => undefined },
 			viewState: { loadViewState: async () => ({ infoPanelOpen: null, gestureGuideSeen: true, seriesHintSeen: true }), saveViewState: async () => undefined },
 			sidecars: sidecarApi(sidecarSaves),
 			immich: NO_IMMICH_API,
