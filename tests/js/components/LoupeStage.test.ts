@@ -67,6 +67,18 @@ describe('LoupeStage', () => {
 		expect(current(wrapper).attributes('src')).toBe('/img/2/4096')
 	})
 
+	// spec: LOUPE-001.12
+	it('counts the decoded sources in data-decoded, in the render that swaps the slides to them', async () => {
+		const { wrapper, stage, ready } = await mountStage()
+		expect(stage.attributes('data-decoded')).toBe('0')
+
+		ready.add('/img/3/4096')
+		await wrapper.vm.$nextTick()
+
+		expect(stage.attributes('data-decoded')).toBe('1')
+		expect(images(wrapper)[2]!.attributes('src')).toBe('/img/3/4096')
+	})
+
 	it('shows no neighbour beyond the first picture', async () => {
 		const { wrapper } = await mountStage({ index: 0 })
 
