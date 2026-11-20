@@ -171,7 +171,8 @@ the whole decision per (connection, asset id) in a table of its own registered a
 pull requests with a lean UI (grid, loupe, filters, decisions, position and *Recent*; no series,
 hashes, tags, delete, move or XMP), and the Vue shell's hotspot files owned by M9 until its PR 6 is
 merged. The exception to rule 1, the mapping and the pull request order are in ADR 0041, the
-connections file in ADR 0042, the decision table in ADR 0043; the source's API gets its own ADR.
+connections file in ADR 0042, the decision table in ADR 0043, the source's API in ADR 0044; the
+behaviour is in the specs IMMICH-001 to IMMICH-004.
 
 ### Release – first App Store release
 
@@ -213,6 +214,20 @@ pictures, a rejected picture disappears from view, and at the end delete all rej
    progress.
 7. **Multi-pass.** The flag filter combines *Picked*, *Unflagged* and *Rejected* (default: picked
    and unflagged), so a second pass over the picks or a pass over what is left is two taps.
+
+**Measured on 2026-11-20** (#271; local e2e container, Nextcloud 35, one host; 12 drawn 24 MP
+JPEGs of 10.8 MB each, so the RAW column of the earlier run is missing):
+
+| What | Before | After (render jobs ran) |
+|---|---|---|
+| First sharp image in a newly opened folder | 2.3–2.8 s | 117–351 ms (CI runners 290–551 ms) |
+| First small preview in a newly opened folder | 1.1–1.3 s | 42 ms |
+| Server render of a tier, first request (1024 px / 4096 px) | about 1.1 s / 1.0 s | unchanged |
+| Image loads in flight in the grid | 6 | 6 |
+
+Inside the container, core's first render of a 24 MP JPEG is about 0.24 s of decode and
+0.65 s of resampling to its 4096 px max preview, from which every tier is scaled. A folder opened
+before its jobs ran stays at the cold numbers.
 
 Where the work lands: M2.4 (resume position), M2.5 (flag filter, progress), M3.2 (auto-advance, toast),
 M4.1 and M4.2 (delete, review, summary), M6 (series).
@@ -339,9 +354,9 @@ shows the embedded JPEG preview, extracted and cached on the server.
 **Caching.** Image URLs are immutable and keyed by file id and mtime, with a long
 `Cache-Control` and an `ETag`; an edited file gets a new URL (endpoint shape: ADR 0010).
 
-**Pre-generation.** Previews are generated in the background when a folder is opened, by
-honeycomb's own background job, and on upload by the Preview Generator app when the admin
-installs it. Imaginary is optional (ADR 0010).
+**Pre-generation.** Previews are rendered by a background job when a photo is written by a user
+who has opened honeycomb (ADR 0045), and warmed when a folder is opened. Imaginary is optional
+(ADR 0010).
 
 **Budgets**, measured with real 24 MP files:
 
@@ -356,10 +371,13 @@ prefetched 24 MP neighbour, checks that no image request follows the key press a
 time from the key press to the frame after the loupe tier shows. It draws its JPEGs, or takes
 the first three of `HONEYCOMB_BUDGET_PHOTOS`, a folder of real photos.
 `tests/e2e/image-budgets.spec.ts` opens a folder of 12 RAW+JPEG pairs at the iPad's pixel ratio of 2
-and reports the first small and the first sharp image, the server's first render of a 1024 px and
-a 4096 px tier, the loupe's 4096 px tier and the peak of image loads in flight; it asserts only
-that peak (at most six, counted by the browser's clock; GRID-001.15), as a time on a shared host is
-no gate. With `HONEYCOMB_BUDGET_PHOTOS` set, it uploads the pairs of that folder.
+before their render jobs ran and reports the first small and the first sharp image, the server's
+first render of a 1024 px and a 4096 px tier, the loupe's 4096 px tier and the peak of image
+loads in flight, which it asserts (at most six, counted by the browser's clock; GRID-001.15). It
+then writes the same photos into a second folder, runs their render jobs, opens it and asserts
+that the opening rendered no preview, counted in core's preview files (IMAGES-001.12); it reports
+that folder's first sharp image, as a time on a shared host is no gate. With
+`HONEYCOMB_BUDGET_PHOTOS` set, it uploads the pairs of that folder.
 
 **Measured on 2026-11-18** (local e2e container, Nextcloud 35, one host; 12 pairs of Fujifilm
 X-T2, 6000 × 4000 px, 9.4 MB JPEG and about 30 MB RAF each; the Series folder of the owner's real

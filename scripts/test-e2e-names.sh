@@ -38,7 +38,8 @@ cat >"$work/bin/curl" <<'STUB'
 #!/bin/sh
 while [ $# -gt 0 ]; do [ "$1" = -o ] && : >"$2"; shift; done
 STUB
-printf '#!/bin/sh\n' >"$work/bin/sha256sum"
+# The stub reads its input: one that exits first breaks the pipe, and pipefail stops the script.
+printf '#!/bin/sh\ncat >/dev/null\n' >"$work/bin/sha256sum"
 printf '#!/bin/sh\nmkdir -p "$4"\n' >"$work/bin/tar"
 # flock records which lock guards the Team folders cache, so parallel runs never share a half download.
 printf '#!/bin/sh\necho "$*" >>"$DOCKER_LOG"\n' >"$work/bin/flock"

@@ -123,9 +123,10 @@ Nothing is released yet; this is how honeycomb will be installed. It needs Nextc
 
 - [`camerarawpreviews`](https://apps.nextcloud.com/apps/camerarawpreviews) shows the embedded
   preview of RAW files, so a picture that has no JPEG still has an image.
-- [Preview Generator](https://apps.nextcloud.com/apps/previewgenerator) renders previews ahead of
-  time with a cron job (Nextcloud's background jobs must run), so the first pass through a big
-  folder is fast. honeycomb itself warms the previews of an opened folder without cron.
+- [Preview Generator](https://apps.nextcloud.com/apps/previewgenerator) renders the previews of
+  photos written before a user first opened honeycomb. Once a user has opened it, honeycomb
+  renders their new photos with a background job of its own, so Nextcloud's background jobs
+  should run by cron; it also warms the previews of an opened folder.
 
 **From the App Store.** As an admin, open *Apps*, search for honeycomb and click *Download and
 enable*, or run `occ app:install honeycomb`.

@@ -4,6 +4,12 @@ import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { cullFolder } from './cull.ts'
 import { createFolder, JPEG, upload } from './files.ts'
+import { occ } from './server.ts'
+
+// A background job in a page request keeps the shared locks of the files it read until it ends, so a trash meanwhile fails.
+test('runs background jobs only when a test asks for one, never inside a page request', () => {
+	expect(occ(['config:app:get', 'core', 'backgroundjobs_mode', '--default-value=ajax']).trim()).toBe('cron')
+})
 
 // spec: APP-001.3
 test('opens on the empty state while no folder is chosen', async ({ page }) => {
