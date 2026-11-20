@@ -127,3 +127,35 @@ export function sharpestOf(values: readonly (number | null)[]): number | null {
 	const [best, second] = [measured[order[0]!]!, measured[order[1]!]!]
 	return best > second && best * PERCENT >= second * SHARPEST_PERCENT ? order[0]! : null
 }
+
+/** A member's rank by sharpness within its series, 1 for the sharpest value, and whether it is the sharpest (SERIES-007.6). */
+export interface SharpnessPlace {
+	readonly rank: number
+	readonly count: number
+	readonly sharpest: boolean
+}
+
+/** The sharpest of `members` by SERIES-006.5, or null. */
+export function sharpestMember<P>(members: readonly P[], sharpnessOf: (member: P) => number | null): P | null {
+	const index = sharpestOf(members.map(sharpnessOf))
+	return index === null ? null : members[index]!
+}
+
+/** The place of `member` among `members`; null for a non-member, fewer than two members or a member without a value (SERIES-007.6). */
+export function sharpnessPlace<P>(members: readonly P[], member: P, sharpnessOf: (member: P) => number | null): SharpnessPlace | null {
+	const values = members.map(sharpnessOf)
+	const own = members.indexOf(member)
+	if (own < 0 || members.length < 2 || values.includes(null)) {
+		return null
+	}
+	const value = values[own]!
+	return { rank: 1 + values.filter((other) => other! > value).length, count: members.length, sharpest: sharpestOf(values) === own }
+}
+
+/** The fraction of a tile's middle along each side. */
+const TILE_MIDDLE = 0.5
+
+/** The middle of the focus tile as fractions of the photo's width and height. */
+export function focusTileCentre(tile: number): { x: number, y: number } {
+	return { x: ((tile % GRID) + TILE_MIDDLE) / GRID, y: (Math.floor(tile / GRID) + TILE_MIDDLE) / GRID }
+}

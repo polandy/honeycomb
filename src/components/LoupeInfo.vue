@@ -7,6 +7,7 @@ import type { Decision } from '../logic/decision.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { SharpnessPlace } from '../logic/sharpness.ts'
 import type { Tag } from '../logic/tag.ts'
 import type { LockReason, Writability } from '../logic/writability.ts'
 
@@ -28,9 +29,12 @@ const props = withDefaults(defineProps<{
 	tags?: readonly Tag[]
 	/** Whether the picture's decisions and tags are written to its sidecars, or why not (TAGS-004.9, XMP-008). */
 	writability?: Writability
+	/** The picture's rank by sharpness within its series, without a section while null (SERIES-007.5). */
+	sharpness?: SharpnessPlace | null
 }>(), {
 	tags: () => [],
 	writability: 'writable',
+	sharpness: null,
 })
 
 /** Shown for a fact the picture lacks. */
@@ -60,6 +64,15 @@ const decisionRows = computed(() => {
 		...(props.picture.raw !== null && props.picture.rendered !== null ? [{ term: t('honeycomb', 'Keep RAW'), value: keepRaw ? t('honeycomb', 'yes') : t('honeycomb', 'no') }] : []),
 	]
 })
+const sharpnessText = computed(() => {
+	if (props.sharpness === null) {
+		return null
+	}
+	const { rank, count, sharpest } = props.sharpness
+	return sharpest
+		? t('honeycomb', 'Sharpest of {count}', { count: formatNumber(count) })
+		: t('honeycomb', 'Rank {rank} of {count}', { rank: formatNumber(rank), count: formatNumber(count) })
+})
 const NOT_WRITTEN: Record<LockReason, () => string> = {
 	readOnly: () => t('honeycomb', 'Read only: you may not change this folder'),
 }
@@ -81,6 +94,16 @@ const writtenTo = computed(() => {
 				<dd>{{ row.value }}</dd>
 			</template>
 		</dl>
+		<template v-if="sharpnessText !== null">
+			<h3>{{ t('honeycomb', 'Quality') }}</h3>
+			<dl>
+				<dt>{{ t('honeycomb', 'Sharpness') }}</dt>
+				<dd>{{ sharpnessText }}</dd>
+			</dl>
+			<p class="loupe-info__note">
+				{{ t('honeycomb', 'Compared within its series only') }}
+			</p>
+		</template>
 		<h3>{{ t('honeycomb', 'Decision') }}</h3>
 		<dl>
 			<template v-for="row in decisionRows" :key="row.term">
@@ -132,6 +155,12 @@ const writtenTo = computed(() => {
 	align-items: center;
 	column-gap: calc(3 * var(--default-grid-baseline));
 	margin: 0;
+}
+
+.loupe-info__note {
+	margin: 0;
+	font-size: var(--font-size-small, 13px);
+	color: var(--color-text-maxcontrast);
 }
 
 .loupe-info__tags {

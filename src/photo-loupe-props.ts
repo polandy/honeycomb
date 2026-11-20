@@ -13,6 +13,7 @@ import type { Settings } from './logic/settings.ts'
 import type { Tag } from './logic/tag.ts'
 import type { Writability } from './logic/writability.ts'
 import type { ObserveSize } from './observe-size.ts'
+import type { QualityOf } from './quality-of.ts'
 import type { Toast } from './toast.ts'
 import type { ViewStateStore } from './view-state.ts'
 
@@ -27,6 +28,8 @@ export interface PhotoLoupeProps {
 	decidedOf?: (picture: Picture<ListingEntry>) => boolean
 	/** Each picture of a series mapped to its whole series, for the filmstrip's frame (LOUPE-001.19). */
 	seriesOf?: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>
+	/** The series members' quality values, for the *Sharpest* mark, the rank and the zoom onto the focus tile (SERIES-007). */
+	qualityOf?: QualityOf
 	/** The picture's tags for the info panel (TAGS-004.8). */
 	tagsOf?: (picture: Picture<ListingEntry>) => readonly Tag[]
 	writabilityOf?: (picture: Picture<ListingEntry>) => Writability

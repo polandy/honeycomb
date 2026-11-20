@@ -34,6 +34,7 @@ import { browserSchedule } from '../tile-selection.ts'
 
 const props = withDefaults(defineProps<PhotoLoupeProps>(), {
 	seriesOf: () => new Map(),
+	qualityOf: () => null,
 	tagsOf: () => [],
 	writabilityOf: (): Writability => 'writable',
 	imageUrl: apiImageUrl,
@@ -76,6 +77,7 @@ const loupeSeries = useLoupeSeries({
 	pictures: () => props.pictures,
 	picture: () => picture.value,
 	seriesOf: () => props.seriesOf,
+	qualityOf: (shown) => props.qualityOf(shown),
 	dismissHint: () => seriesHint.dismiss(),
 	compare: (series, shown) => emit('compareSeries', series, shown),
 	pickRest: (series, shown) => emit('pickRest', series, shown),
@@ -176,6 +178,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 				:devicePixelRatio="props.devicePixelRatio"
 				:observeSize="props.observeSize"
 				:swipes="settings.swipes"
+				:qualityOf="props.qualityOf"
 				@page="go(props.index + $event)"
 				@overlays="overlays.toggle"
 				@chromeFree="chromeFree = !chromeFree"
@@ -200,7 +203,8 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 					:folderSet="props.folderSet"
 					:decision="props.decisionOf(picture)"
 					:tags="props.tagsOf(picture)"
-					:writability="props.writabilityOf(picture)" />
+					:writability="props.writabilityOf(picture)"
+					:sharpness="loupeSeries.sharpness.value" />
 			</template>
 		</div>
 		<LoupeFilmstrip
@@ -211,6 +215,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:index="props.index"
 			:decisionOf="props.decisionOf"
 			:seriesOf="props.seriesOf"
+			:sharpest="loupeSeries.sharpest.value"
 			:imageUrl="props.imageUrl"
 			:observeSize="props.observeSize"
 			:pinned="settings.filmstripPinned"

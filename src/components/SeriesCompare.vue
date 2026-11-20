@@ -10,6 +10,7 @@ import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Series } from '../logic/series.ts'
 import type { ObserveSize } from '../observe-size.ts'
+import type { QualityOf } from '../quality-of.ts'
 import type { MergeDirection } from '../series-compare.ts'
 
 import { n, t } from '@nextcloud/l10n'
@@ -27,6 +28,7 @@ import { doubleTaps } from '../logic/double-tap.ts'
 import { imageMember } from '../logic/image-tiers.ts'
 import { SERIES_GAP_SECONDS } from '../logic/series.ts'
 import { observeElementSize } from '../observe-size.ts'
+import { sharpestPicture } from '../quality-of.ts'
 import { seriesSubtitle } from '../series-subtitle.ts'
 
 const props = withDefaults(defineProps<{
@@ -49,7 +51,9 @@ const props = withDefaults(defineProps<{
 	/** The series before and after the shown one, which its title row's menu merges with (SERIES-005.8). */
 	previous?: Series<Picture<ListingEntry>> | null
 	next?: Series<Picture<ListingEntry>> | null
-}>(), { previous: null, next: null, imageUrl: apiImageUrl, observeSize: observeElementSize, now: () => performance.now(), oneSeries: false, container: 'body' })
+	/** The members' quality values, which mark the sharpest card (SERIES-007.1). */
+	qualityOf?: QualityOf
+}>(), { previous: null, next: null, qualityOf: () => null, imageUrl: apiImageUrl, observeSize: observeElementSize, now: () => performance.now(), oneSeries: false, container: 'body' })
 
 const emit = defineEmits<{
 	decide: [intent: DecisionIntent, picture: Picture<ListingEntry>]
@@ -92,6 +96,7 @@ watch(grid, (element, _, onCleanup) => {
 	}
 }, { flush: 'post' })
 const layout = computed(() => (area.value === null || props.series === null ? null : compareGrid({ count: props.series.members.length, ...area.value })))
+const sharpest = computed(() => (props.series === null ? null : sharpestPicture(props.series.members, props.qualityOf)))
 const photoWidth = computed(() => (layout.value === null ? null : Math.floor(layout.value.photoWidth)))
 const gridStyle = computed(() => (layout.value === null || photoWidth.value === null
 	? { '--series-compare-gap': `${CARD_GAP}px` }
@@ -185,6 +190,7 @@ function onOpen(open: boolean) {
 				:picture="picture"
 				:index="index"
 				:active="index === props.active"
+				:sharpest="picture === sharpest"
 				:decision="props.decisionOf(picture)"
 				:imageUrl="props.imageUrl"
 				:photoWidth="photoWidth"

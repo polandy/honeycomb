@@ -3,7 +3,7 @@
 // @vitest-environment happy-dom
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
-import type { QualityValue } from '../../../src/logic/sharpness.ts'
+import type { QualityValue, SharpnessPlace } from '../../../src/logic/sharpness.ts'
 
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -90,7 +90,7 @@ describe('the Sharpest mark in the loupe', () => {
 
 	// spec: SERIES-007.5
 	it('ranks the photo in the info panel and leaves the section out without a rank', () => {
-		const info = (sharpness: unknown) => mount(LoupeInfo, { props: { picture: STRIP[0]!, folderSet: { paths: ['/P'], subfolders: true }, decision: UNDECIDED, sharpness } })
+		const info = (sharpness: SharpnessPlace | null) => mount(LoupeInfo, { props: { picture: STRIP[0]!, folderSet: { paths: ['/P'], subfolders: true }, decision: UNDECIDED, sharpness } })
 		const sharpest = info({ rank: 1, count: 4, sharpest: true })
 		expect(headings(sharpest)).toContain('Quality')
 		expect(infoRows(sharpest).Sharpness).toBe('Sharpest of 4')
