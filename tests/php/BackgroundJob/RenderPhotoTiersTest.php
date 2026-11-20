@@ -8,9 +8,12 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\BackgroundJob;
 
 use OCA\Honeycomb\BackgroundJob\RenderPhotoTiers;
+use OCA\Honeycomb\Service\BackgroundJobName;
 use OCA\Honeycomb\Service\ImageService;
+use OCA\Honeycomb\Service\JobRuns;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
+use OCA\Honeycomb\Tests\Service\AppConfigStub;
 use OCA\Honeycomb\Tests\Service\FakePreviewLock;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\File;
@@ -26,6 +29,12 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 final class RenderPhotoTiersTest extends TestCase {
+	use AppConfigStub;
+
+	private ?JobRuns $runs = null;
+
+	private ?\Throwable $renderFails = null;
+
 	/** @var array<int, array<array-key, mixed>> the preview specifications rendered, by file id */
 	private array $rendered = [];
 
@@ -41,6 +50,9 @@ final class RenderPhotoTiersTest extends TestCase {
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
 		$preview = $this->createStub(IPreview::class);
 		$preview->method('generatePreviews')->willReturnCallback(function (File $file, array $specifications): ISimpleFile {
+			if ($this->renderFails !== null) {
+				throw $this->renderFails;
+			}
 			$this->rendered[$file->getId()] = $specifications;
 			return $this->createStub(ISimpleFile::class);
 		});
@@ -50,7 +62,13 @@ final class RenderPhotoTiersTest extends TestCase {
 		$users->method('get')->willReturnCallback(static fn (string $userId): ?IUser => $userId === 'alice' ? $alice : null);
 		$logger ??= $this->createStub(LoggerInterface::class);
 		$images = new ImageService(new UserPhotos(new UserFolderResolver($root)), $preview, $logger, new FakePreviewLock());
-		return new RenderPhotoTiers($this->createStub(ITimeFactory::class), $users, $images, $logger);
+		return new RenderPhotoTiers($this->createStub(ITimeFactory::class), $users, $images, $logger, $this->runs());
+	}
+
+	private function runs(): JobRuns {
+		$time = $this->createStub(ITimeFactory::class);
+		$time->method('getTime')->willReturn(5_000);
+		return $this->runs ??= new JobRuns($this->appConfigStub(), $time);
 	}
 
 	private function execute(RenderPhotoTiers $job, mixed $argument): void {
@@ -92,5 +110,29 @@ final class RenderPhotoTiersTest extends TestCase {
 		$this->execute($this->job($logger), $argument);
 
 		$this->assertSame([], $this->rendered);
+	}
+
+	// spec: APP-003.6
+	public function testStoresAGoodRun(): void {
+		$this->execute($this->job(), ['userId' => 'alice', 'fileId' => 7]);
+
+		$status = $this->runs()->status(BackgroundJobName::WarmUp);
+		$this->assertSame(5_000, $status->lastRun);
+		$this->assertFalse($status->failed);
+	}
+
+	// spec: APP-003.6
+	public function testStoresAFailedRunAndRethrows(): void {
+		$this->renderFails = new \RuntimeException('no preview');
+		$job = $this->job();
+
+		try {
+			$this->execute($job, ['userId' => 'alice', 'fileId' => 7]);
+			$this->fail('The failure must be rethrown');
+		} catch (\RuntimeException) {
+			$status = $this->runs()->status(BackgroundJobName::WarmUp);
+			$this->assertTrue($status->failed);
+			$this->assertSame(\RuntimeException::class, $status->lastError);
+		}
 	}
 }
