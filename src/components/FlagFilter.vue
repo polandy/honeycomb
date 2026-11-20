@@ -54,7 +54,7 @@ const CHIPS: readonly { flag: Flag, label: () => string }[] = [
 }
 
 .flag-filter__count {
-	color: var(--color-text-maxcontrast);
+	font-weight: normal;
 }
 
 .flag-filter__chip :deep(.app-icon) {

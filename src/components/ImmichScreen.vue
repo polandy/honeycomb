@@ -151,6 +151,7 @@ defineExpose({ loupe: photoLoupe })
 	align-items: center;
 	gap: calc(2 * var(--default-grid-baseline));
 	padding: calc(2 * var(--default-grid-baseline));
+	padding-inline-start: var(--honeycomb-toggle-gutter);
 }
 
 .immich-screen__count {
