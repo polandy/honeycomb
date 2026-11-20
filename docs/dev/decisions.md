@@ -1686,8 +1686,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   Easy to redo before PR 2.
 - 2026-11-20: A quality value carries the `method` of its measure; the browser measures again
   when the method differs, so calibrating the measure needs no migration. Easy to redo.
-- 2026-11-20: The info panel shows the sharpness rank in the series (*2nd of 4*), never the raw
+- 2026-11-20: The info panel shows the sharpness rank in the series (*Rank 2 of 4*), never the raw
   value, which compares within a series only. Easy to redo.
+- 2026-11-20: The rank reads *Rank 2 of 4*, not the mockup's *2nd of 4*, because an ordinal does
+  not translate through one plural form. The *Sharpest* mark sits in the series viewer's title
+  row, not on the photo, to stay clear of the zoom sync text and the flag rail. Easy to redo.
 - 2026-11-20: The quality hint on a tile is a small icon beside the file name, without colour or
   badge, so the grid stays calm; the filter bar gets a group *Hints*. Easy to redo.
 - 2026-11-20: `tests/php-db` and the update test also run on MariaDB 11.4 and PostgreSQL 17 in CI

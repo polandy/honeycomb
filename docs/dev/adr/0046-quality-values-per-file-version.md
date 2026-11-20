@@ -78,7 +78,7 @@ The options for the quality values were:
   the rate limit of ADR 0026 (300 saves a minute per user).
 - **The mark:** the series compare and the series viewer mark the sharpest photo when its value is
   at least 5 % above the second; closer than that, no photo is marked. The active card stays the
-  first photo. The info panel names the rank (*Sharpest of 4*, *2nd of 4*), never the raw value.
+  first photo. The info panel names the rank (*Sharpest of 4*, *Rank 2 of 4*), never the raw value.
   The 5 % is a start that calibration may move.
 - **Never in a sidecar.** No quality value, mark or hint is written to XMP or sent to Immich; the
   user's *Pick this, reject the rest* writes flags as before.
