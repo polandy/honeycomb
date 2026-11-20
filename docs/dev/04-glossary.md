@@ -38,6 +38,9 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **kept out** | A picture the user removed from a series: no automatic series takes it again; by hand it can still join one. |
 | **series done** | The status of a stored series the user has finished: its unflagged pictures count as decided but stay unflagged. Its opposite is *open*. |
 | **visual hash** | A 64-bit fingerprint of a picture's small preview; two pictures look alike when their visual hashes differ in few bits (ADR 0024). |
+| **quality value** | A measurement of a photo's preview, stored per file version: today its sharpness and focus tile (ADR 0046). Never a decision, never written to a sidecar. |
+| **sharpest** | The mark on the photo of a series whose sharpness lies at least 5 % above every other member's; a mark only, never a pick or the active card. |
+| **quality hint** | A note that a picture may be shaken (shake risk, from EXIF) or clipped (clipping, from the preview); shown in the info panel, as a filter and as a small icon on the tile; never a suggestion to reject. |
 | **grid** | The thumbnail view of a folder set. |
 | **skeleton tile** | A tile drawn before its photo is there: its empty face pulses while the listing or the tile's thumbnail is on its way. |
 | **loupe** | The full-screen view of one picture, with swipe, zoom and the decision buttons. |
@@ -108,6 +111,8 @@ loupe, series compare, series viewer). The controls come from the shared compone
   *Flag buttons* (toggle, `B`) hide them there.
 - **Toggle.** Pressing the flag a picture already has, by button or key, unflags it.
 - **Photo.** The UI and the user docs say *photo* for a picture; code and specs say *picture*.
+- **Quality.** The UI says *Sharpest*, *Shake risk* and *Clipping*, and the filter group *Hints*;
+  code and specs say *quality value*, *sharpest* and *quality hint*.
 - **Similarity.** The UI says *similarity* for the progress of the visual hashes, and *Comparing
   photos* and *Photos compared* in the strip over the grid; code and specs say *visual hash*.
 - **Avoid** *keep*, *discard*, *accept*, *unreject* and *clear flag*: they are *Pick*, *Reject*

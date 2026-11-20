@@ -1659,3 +1659,20 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   a route-keyed fake Immich and check its answers against the pinned OpenAPI schema. Easy to redo.
 - 2026-11-20: The Immich client follows no redirect, so the key header never reaches another
   host; a redirecting Immich reports the `version` state (IMMICH-001.6). Easy to redo.
+- 2026-11-20: Culling aids (owner, M11): the sharpest photo of a series is only marked, never
+  preselected or picked; sharpness on the 4096 px preview for series members only; no suggestion
+  reaches a sidecar; quality hints in the info panel, as a filter and subtly on the tile; a 2-up
+  and a 4-up compare, 4-up on large screens only; calibration copies from the Photos library and
+  never changes it.
+- 2026-11-20: ADR 0024 kept hashes per user only because decisions were per user then; a hash
+  depends on the file's content alone, so hashes and quality values are stored per file and etag
+  (ADR 0046), as the owner asked for when that reason no longer holds.
+- 2026-11-20: Quality values get their own table `honeycomb_quality`, not columns of
+  `honeycomb_hashes`: two passes on different previews would otherwise merge into one row.
+  Easy to redo before PR 2.
+- 2026-11-20: A quality value carries the `method` of its measure; the browser measures again
+  when the method differs, so calibrating the measure needs no migration. Easy to redo.
+- 2026-11-20: The info panel shows the sharpness rank in the series (*2nd of 4*), never the raw
+  value, which compares within a series only. Easy to redo.
+- 2026-11-20: The quality hint on a tile is a small icon beside the file name, without colour or
+  badge, so the grid stays calm; the filter bar gets a group *Hints*. Easy to redo.
