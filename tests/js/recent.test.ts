@@ -190,7 +190,7 @@ describe('useRecent', () => {
 		recent.refresh()
 		await flushPromises()
 
-		await recent.positions.savePosition(trip)
+		await recent.positions.savePosition(trip, 0)
 
 		expect(recent.items.value.map((item) => item.position.fileId)).toEqual([2, 9])
 		expect(reads).toBe(1)

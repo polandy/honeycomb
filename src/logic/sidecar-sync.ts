@@ -5,6 +5,7 @@ import type { EmbeddedXmpAnswer } from './embedded-xmp.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 import type { PictureId } from './picture-id.ts'
+import type { StatsCounts } from './stats-counts.ts'
 import type { TagChange } from './tag.ts'
 import type { SidecarBytes } from './xmp/decision.ts'
 import type { XmpPacket, XmpRefusal, XmpTime } from './xmp/model.ts'
@@ -13,6 +14,7 @@ import { UNDECIDED } from './decision.ts'
 import { embeddedSidecarPath, embeddedSourceOf, embeddedXmpSource } from './embedded-xmp.ts'
 import { parseFileName } from './file-name.ts'
 import { isMemberSidecar } from './sidecars.ts'
+import { holdsForeignData } from './stats-counts.ts'
 import { pictureSidecarDecision, sidecarDecision } from './xmp/decision.ts'
 import { mergeDelta } from './xmp/merge.ts'
 import { EMPTY_PACKET, XmpError } from './xmp/model.ts'
@@ -32,10 +34,10 @@ export type SidecarLookupAnswer
 	= | { readonly result: 'read', readonly bytes: Uint8Array, readonly etag: string, readonly size: number, readonly mtime: number }
 		| { readonly result: SidecarLookupFailure }
 
-/** One sidecar to save: an existing one with the ETag and size read, or a new one by path. */
+/** One sidecar to save: an existing one with the ETag and size read and whether darktable or digiKam wrote it, or a new one by path; either may carry its picture's counts (STATS-001). */
 export type SidecarSaveItem
-	= | { readonly fileId: PictureId, readonly etag: string, readonly size: number, readonly bytes: Uint8Array }
-		| { readonly path: string, readonly bytes: Uint8Array }
+	= | { readonly fileId: PictureId, readonly etag: string, readonly size: number, readonly bytes: Uint8Array, readonly foreign?: boolean, readonly counts?: StatsCounts }
+		| { readonly path: string, readonly bytes: Uint8Array, readonly counts?: StatsCounts }
 
 /** The save endpoint's answer for one sidecar. */
 export type SidecarSaveAnswer
@@ -122,7 +124,7 @@ export function planSaves(picture: Picture<ListingEntry>, edit: SidecarEdit, kno
 			if (source !== null && sameBytes(bytes, serializeXmp(packet, time))) {
 				continue
 			}
-			saves.push({ picture, path, item: fileId === null || source === null ? { path, bytes } : { fileId, etag: source.etag, size: source.size, bytes } })
+			saves.push({ picture, path, item: fileId === null || source === null ? { path, bytes } : { fileId, etag: source.etag, size: source.size, bytes, foreign: holdsForeignData(packet) } })
 		} catch (error) {
 			if (!(error instanceof XmpError)) {
 				throw error

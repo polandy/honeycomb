@@ -9,6 +9,9 @@ namespace OCA\Honeycomb\Service;
 
 /** Parses the bodies of the sidecar endpoints; a malformed body throws before anything is touched (ADR 0017). */
 final class SidecarRequest {
+	/** The counts a sidecar item may carry (STATS-001.36). */
+	private const array COUNTS = [StatsMetric::RatingsSet, StatsMetric::ColourLabelsSet, StatsMetric::TagsSet];
+
 	/**
 	 * @param array<array-key, mixed> $fileIds
 	 * @return list<int>
@@ -36,17 +39,18 @@ final class SidecarRequest {
 			throw new InvalidSidecarRequestException('Each sidecar must be an object');
 		}
 		$bytes = self::bytes($sidecar['content'] ?? null);
+		$counts = StatsItemCounts::parse($sidecar['counts'] ?? null, self::COUNTS, InvalidSidecarRequestException::class);
 		if (isset($sidecar['fileId']) === isset($sidecar['path'])) {
 			throw new InvalidSidecarRequestException('Each sidecar names either a file id or a path');
 		}
 		if (isset($sidecar['path'])) {
-			return new NewSidecar(self::path($sidecar['path']), $bytes);
+			return new NewSidecar(self::path($sidecar['path']), $bytes, $counts);
 		}
-		['fileId' => $fileId, 'etag' => $etag, 'size' => $size] = $sidecar + ['etag' => null, 'size' => null];
-		if (!is_int($fileId) || $fileId < 1 || !is_string($etag) || $etag === '' || !is_int($size) || $size < 0) {
-			throw new InvalidSidecarRequestException('An existing sidecar needs its file id, ETag and size');
+		['fileId' => $fileId, 'etag' => $etag, 'size' => $size, 'foreign' => $foreign] = $sidecar + ['etag' => null, 'size' => null, 'foreign' => false];
+		if (!is_int($fileId) || $fileId < 1 || !is_string($etag) || $etag === '' || !is_int($size) || $size < 0 || !is_bool($foreign)) {
+			throw new InvalidSidecarRequestException('An existing sidecar needs its file id, ETag and size, and foreign is true or false');
 		}
-		return new ExistingSidecar($fileId, $etag, $size, $bytes);
+		return new ExistingSidecar($fileId, $etag, $size, $bytes, $counts, $foreign);
 	}
 
 	/** @throws InvalidSidecarRequestException */

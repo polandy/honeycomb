@@ -149,7 +149,7 @@ describe('useCull: writing through to the sidecars', () => {
 		cull.undo()
 		await flushPromises()
 
-		expect(flags.saves).toEqual([
+		expect(flags.saves).toMatchObject([
 			[2, 3].map((fileId) => ({ fileId, flag: decided.flag, keepRaw: decided.keepRaw })),
 			[2, 3].map((fileId) => ({ fileId, flag: 'unflagged', keepRaw: false })),
 		])

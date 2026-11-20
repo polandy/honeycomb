@@ -13,6 +13,18 @@ export function seriesSaved(page: Page): Promise<unknown> {
 	return page.waitForResponse((response) => response.url().endsWith('/api/v1/series') && response.request().method() === 'PUT' && response.ok())
 }
 
+/** Waits until the grid's stored series have been read: the grid is busy from the render that shows the cells (SERIES-005.30). */
+export async function seriesRead(page: Page): Promise<void> {
+	await expect(page.getByRole('grid', { name: 'Photos' })).not.toHaveAttribute('aria-busy', 'true')
+}
+
+/** Closes a modal by Escape once its focus trap has taken the focus: the modal closes on Escape only from then on, after its fade-in. */
+export async function closeByEscape(page: Page, dialog: Locator): Promise<void> {
+	await expect.poll(() => dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true)
+	await page.keyboard.press('Escape')
+	await expect(dialog).toBeHidden()
+}
+
 /** Opens the app and culls `folder` from the folder picker. */
 export async function cullFolder(page: Page, folder: string): Promise<void> {
 	await page.goto('/index.php/apps/honeycomb/')

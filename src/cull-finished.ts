@@ -9,11 +9,9 @@ import type { SavedSidecar } from './logic/sidecar-sync.ts'
 import type { TrashExpectation, TrashReport } from './logic/trash-report.ts'
 
 import { onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
+import { ACTIVE_INPUTS } from './active-time.ts'
 import { finishesCull, sessionNumbers, sessionState, startSession, totalsOf, withDeleted, withInput, withSaved, withStep } from './logic/cull-session.ts'
 import { positionFileId } from './logic/resume-position.ts'
-
-/** The inputs that count towards active time (glossary: active time). */
-const INPUTS = ['pointerdown', 'keydown', 'wheel'] as const
 
 /** What *Cull finished* reads from the cull. */
 export interface CullFinishedContext {
@@ -112,9 +110,9 @@ export function useCullFinished(context: CullFinishedContext) {
 	watch(context.pictures, current)
 	onMounted(() => {
 		watch(blocked, show)
-		INPUTS.forEach((type) => window.addEventListener(type, input, { capture: true, passive: true }))
+		ACTIVE_INPUTS.forEach((type) => window.addEventListener(type, input, { capture: true, passive: true }))
 	})
-	onBeforeUnmount(() => INPUTS.forEach((type) => window.removeEventListener(type, input, { capture: true })))
+	onBeforeUnmount(() => ACTIVE_INPUTS.forEach((type) => window.removeEventListener(type, input, { capture: true })))
 
 	return { numbers, watching, deleted, saved, waitWhile, close }
 }

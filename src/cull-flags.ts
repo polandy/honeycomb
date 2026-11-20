@@ -3,6 +3,7 @@
 import type { FlagApi, FlagItem } from './flags-api.ts'
 import type { StoredDecision } from './logic/decision.ts'
 import type { PictureId } from './logic/picture-id.ts'
+import type { StatsCounts } from './logic/stats-counts.ts'
 
 import { logger } from './logger.ts'
 
@@ -13,9 +14,12 @@ const itemOf = ({ fileId, flag, keepRaw }: StoredDecision): FlagItem => ({ fileI
 export function useCullFlags(api: FlagApi) {
 	let queue: Promise<unknown> = Promise.resolve()
 
-	/** Saves the rows' flags after the saves before; answers the file ids not saved, every one when the save fails (XMP-008.17). */
-	function save(rows: readonly StoredDecision[]): Promise<ReadonlySet<PictureId>> {
-		const items = rows.map(itemOf)
+	/** Saves the rows' flags, each with its counts by file id, after the saves before; answers the file ids not saved, every one when the save fails (XMP-008.17, STATS-001). */
+	function save(rows: readonly StoredDecision[], counts: ReadonlyMap<PictureId, StatsCounts> = new Map()): Promise<ReadonlySet<PictureId>> {
+		const items = rows.map((row) => {
+			const own = counts.get(row.fileId)
+			return own === undefined ? itemOf(row) : { ...itemOf(row), counts: own }
+		})
 		const saved = queue.then(() => api.save(items)).then(({ skipped }) => {
 			if (skipped.length > 0) {
 				logger.warn('The server did not save some flags; they are taken back', { skipped })

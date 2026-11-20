@@ -15,7 +15,7 @@ import { saveQueue } from './logic/save-queue.ts'
 /** The server seams of the resume position (ADR 0012). */
 export interface ResumeApi {
 	loadPositions(): Promise<unknown>
-	savePosition(position: ResumePosition): Promise<void>
+	savePosition(position: ResumePosition, activeSeconds: number): Promise<void>
 }
 
 /** What the resume flow reads from the open cull and how it opens the loupe. */
@@ -29,6 +29,8 @@ export interface ResumeCull {
 	/** The picture the loupe shows, null while it is closed. */
 	readonly shown: () => Picture<ListingEntry> | null
 	readonly openLoupe: (index: number) => void
+	/** The whole active seconds since the last take (STATS-001.39). */
+	readonly takeActiveSeconds: () => number
 }
 
 /** Saves where the user stands in the open cull and offers to continue at the stored position (DECISIONS-002.7). */
@@ -40,7 +42,7 @@ export function useResume(api: ResumeApi, cull: ResumeCull, toast: (message: str
 	let sent = ''
 	// One key: only the latest position is worth sending.
 	const queue = saveQueue<ResumePosition, null>(async (positions) => {
-		await Promise.all(positions.map((position) => api.savePosition(position)))
+		await Promise.all(positions.map((position) => api.savePosition(position, cull.takeActiveSeconds())))
 	}, { key: () => null })
 
 	/** Sends the position, or keeps it as the latest to send once the save in flight settles. */

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Flag } from './logic/decision.ts'
 import type { PictureId } from './logic/picture-id.ts'
+import type { StatsCounts } from './logic/stats-counts.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -12,6 +13,8 @@ export interface FlagItem {
 	readonly fileId: PictureId
 	readonly flag: Flag
 	readonly keepRaw: boolean
+	/** What the change counts (STATS-001); a save only. */
+	readonly counts?: StatsCounts
 }
 
 /** What a save or take-over stored, and the ids it skipped with the reason. */

@@ -103,8 +103,8 @@ export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: Recent
 		/** The positions API for the resume flow; a saved position is listed first. */
 		positions: {
 			loadPositions: () => api.loadPositions(),
-			savePosition: async (position: ResumePosition) => {
-				await api.savePosition(position)
+			savePosition: async (position: ResumePosition, activeSeconds: number) => {
+				await api.savePosition(position, activeSeconds)
 				reading++
 				positions.value = withPosition(positions.value, position)
 			},

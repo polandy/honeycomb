@@ -54,9 +54,9 @@ export async function loadPositions(): Promise<unknown[]> {
 	return data.positions
 }
 
-/** Stores the resume position of a folder set (ADR 0012). */
-export async function savePosition(position: ResumePosition): Promise<void> {
-	await axios.put(generateUrl(`${API}/positions`), position)
+/** Stores the resume position of a folder set (ADR 0012) with the active seconds since the last save (STATS-001.39). */
+export async function savePosition(position: ResumePosition, activeSeconds = 0): Promise<void> {
+	await axios.put(generateUrl(`${API}/positions`), { ...position, activeSeconds })
 }
 
 /** Removes the flags of files deleted for good or in a trash bin, for every user; an admin only (SETTINGS-001.27). */

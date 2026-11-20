@@ -12,27 +12,33 @@ use OCP\IUser;
 
 /** Writes the one flag of each file the user reaches (ADR 0040). */
 final class FlagService {
+	/** The counts a flag item may carry (STATS-001.36). */
+	private const array COUNTS = [StatsMetric::PicturesDecided, StatsMetric::PicturesPicked, StatsMetric::PicturesRejected];
+
 	public function __construct(
 		private FlagStore $store,
 		private UserPhotos $photos,
 		private ITimeFactory $time,
+		private StatsService $stats,
 	) {
 	}
 
 	/**
-	 * Writes the whole states in `$items` of the photos in folders the user may write to.
+	 * Writes the whole states in `$items` of the photos in folders the user may write to, and counts what the saved items carry.
 	 * @param array<array-key, mixed> $items
 	 * @throws InvalidFlagException for a malformed item or a file id given twice, before any write
 	 * @throws \OCP\DB\Exception
 	 */
 	public function save(IUser $user, array $items): FlagAnswer {
 		$flags = $this->parse($items);
+		$counts = self::counts($items);
 		$rateable = $this->photos->rateable($user, array_keys($flags));
 		$allowed = array_values(array_filter($flags, static fn (FileFlag $flag): bool => $rateable[$flag->fileId] ?? false));
 		if ($allowed !== []) {
 			RetryOnConflict::run(fn () => $this->store->save($allowed));
 		}
 		$saved = array_map(static fn (FileFlag $flag): int => $flag->fileId, $allowed);
+		$this->stats->count($user, ...array_merge(...array_map(static fn (int $fileId): array => $counts[$fileId], $saved)));
 		return self::answer(array_keys($flags), $saved, static fn (int $fileId): string => isset($rateable[$fileId]) ? FlagAnswer::NOT_PERMITTED : FlagAnswer::NOT_FOUND);
 	}
 
@@ -60,6 +66,20 @@ final class FlagService {
 		$flags = array_map(static fn (mixed $item): FileFlag => FileFlag::fromRequest($item, $now), FileIds::items($items, ListingService::ENTRY_LIMIT, InvalidFlagException::class));
 		$fileIds = FileIds::eachOnce(array_map(static fn (FileFlag $flag): int => $flag->fileId, $flags), InvalidFlagException::class);
 		return array_combine($fileIds, $flags);
+	}
+
+	/**
+	 * The counts each item carries, by file id; the items are already parsed as flags.
+	 * @param array<array-key, mixed> $items
+	 * @return array<int, list<StatsCount>>
+	 */
+	private static function counts(array $items): array {
+		$counts = [];
+		/** @var array{fileId: int, counts?: mixed} $item */
+		foreach ($items as $item) {
+			$counts[$item['fileId']] = StatsItemCounts::parse($item['counts'] ?? null, self::COUNTS, InvalidFlagException::class);
+		}
+		return $counts;
 	}
 
 	/**
