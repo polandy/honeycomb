@@ -40,7 +40,8 @@ during a task becomes an issue as above.
     permission. The mapper SQL and the sidecar save also run against SQLite, MariaDB and PostgreSQL
     and the real files inside the newest Nextcloud image e2e runs on (`tests/php-db/`,
     `scripts/php-db-tests.sh`); the update test runs on all three. `HONEYCOMB_DB=mariadb|postgres`
-    picks the engine locally (`scripts/database.sh`); `scripts/verify.sh` stays on SQLite, CI runs the matrix.
+    picks the engine locally (`scripts/database.sh`); `scripts/verify.sh` stays on SQLite, CI
+    runs the matrix.
   - **ExifTool and Exiv2** read the sidecars honeycomb writes back (`tests/interop/`,
     `scripts/xmp-interop.sh`, Docker), in CI on a TypeScript change and every night.
   - **Playwright** end to end against a real Nextcloud container, for the flows across both.
