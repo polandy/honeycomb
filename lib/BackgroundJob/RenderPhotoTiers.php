@@ -7,7 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\BackgroundJob;
 
+use OCA\Honeycomb\Service\BackgroundJobName;
 use OCA\Honeycomb\Service\ImageService;
+use OCA\Honeycomb\Service\JobRuns;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\QueuedJob;
 use OCP\IUserManager;
@@ -21,6 +23,7 @@ final class RenderPhotoTiers extends QueuedJob {
 		private IUserManager $users,
 		private ImageService $images,
 		private LoggerInterface $logger,
+		private JobRuns $runs,
 	) {
 		parent::__construct($time);
 	}
@@ -34,9 +37,15 @@ final class RenderPhotoTiers extends QueuedJob {
 			$this->logger->warning('Render job without a user and a file id', ['argument' => $argument]);
 			return;
 		}
-		$user = $this->users->get($userId);
-		if ($user !== null) {
-			$this->images->warm($user, [$fileId]);
+		try {
+			$user = $this->users->get($userId);
+			if ($user !== null) {
+				$this->images->warm($user, [$fileId]);
+			}
+		} catch (\Throwable $e) {
+			$this->runs->failed(BackgroundJobName::WarmUp, $e);
+			throw $e;
 		}
+		$this->runs->succeeded(BackgroundJobName::WarmUp);
 	}
 }

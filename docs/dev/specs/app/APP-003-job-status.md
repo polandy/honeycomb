@@ -1,6 +1,6 @@
 # APP-003 – Background job status
 
-- Status: accepted
+- Status: implemented
 - Area: app
 - Origin: E22/B30 of the weakness analysis of 2026-11-19, owner decision `/decide` 2026-11-19
 - Depends on: IMAGES-001, DECISIONS-001
@@ -35,7 +35,8 @@ Nextcloud log or `oc_appconfig`.
 
 - **Given** a job whose last run went through two hours ago
 - **When** `occ honeycomb:jobs` runs
-- **Then** its line says `ok`, the time of the run in UTC and `2 hours ago`, and `none` as the last error
+- **Then** its line says `ok`, the time of the run in UTC and `2 hours ago`, and `none` as the
+  last error
 
 ### APP-003.3 – A failed run shows the error
 
