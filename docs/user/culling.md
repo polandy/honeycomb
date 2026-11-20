@@ -70,6 +70,10 @@ Every decision shows a message with **Undo**. `Esc` returns to the grid at the p
 When you open the folder set again, on any device, *Continue where you left off* offers
 **Resume**; the ⋯ menu keeps *Resume at …*.
 
+Reloading the browser page opens the same folder set again, and the loupe at the same photo when it
+was open; the page address holds both. When a move or delete fails or skips a photo because the folder
+changed, the message offers **Reload folder**, which lists the folder set again.
+
 ## 5. Compare series
 
 Photos of a burst form a **series** ([similarity](similarity.md)). **Compare series** in the

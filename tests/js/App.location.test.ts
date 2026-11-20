@@ -63,6 +63,6 @@ describe('App: the address', () => {
 		const { wrapper, written } = await openApp('#nonsense')
 
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
-		expect(written).toEqual([])
+		expect(written).toEqual([''])
 	})
 })

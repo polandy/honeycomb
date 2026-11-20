@@ -68,14 +68,11 @@ describe('App: Reload folder', () => {
 		await failDelete(wrapper)
 		wrapper.findComponent(PhotoGrid).vm.$emit('open', shownNames(wrapper).indexOf('IMG_9'))
 		await flushPromises()
-		const shown = wrapper.findComponent(PhotoLoupe).props('pictures')[wrapper.findComponent(PhotoLoupe).props('index')].baseName
-
-		await wrapper.findComponent(UndoToast).findAll('button').find((button) => button.text() === 'Reload folder')?.trigger('click')
+		await wrapper.findComponent(UndoToast).findAll('button').find((button) => button.text() === 'Reload folder')!.trigger('click')
 		await flushPromises()
 
-		expect(shown).toBe('IMG_9')
 		const loupe = wrapper.findComponent(PhotoLoupe)
-		expect(loupe.props('pictures')[loupe.props('index')].baseName).toBe('IMG_9')
+		expect(loupe.props('pictures')[loupe.props('index')]?.baseName).toBe('IMG_9')
 	})
 
 	// spec: DECISIONS-002.18

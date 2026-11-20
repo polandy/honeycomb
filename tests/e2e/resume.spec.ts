@@ -31,3 +31,26 @@ test('saves where the loupe stands and offers to continue there after a fresh st
 	await expect(loupe.getByRole('heading', { name: 'IMG_0002' })).toBeVisible()
 	await expect(loupe.getByText('2 of 3')).toBeVisible()
 })
+
+// spec: DECISIONS-002.17
+test('a browser reload lands on the same picture of the same folder', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	await resetViewState(page)
+	const folder = `Reload ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	for (const name of ['IMG_0001', 'IMG_0002', 'IMG_0003']) {
+		await upload(page, `${folder}/${name}.jpg`, JPEG)
+	}
+
+	await cullFolder(page, folder)
+	await page.getByRole('gridcell', { name: 'IMG_0001, JPG only' }).click()
+	const loupe = page.getByRole('dialog', { name: 'Loupe' })
+	await loupe.getByRole('dialog', { name: 'How to cull' }).getByRole('button', { name: 'Got it' }).click()
+	await page.keyboard.press('ArrowRight')
+	await expect(loupe.getByRole('heading', { name: 'IMG_0002' })).toBeVisible()
+
+	await page.reload()
+
+	await expect(loupe.getByRole('heading', { name: 'IMG_0002' })).toBeVisible()
+	await expect(loupe.getByText('2 of 3')).toBeVisible()
+})
