@@ -1573,3 +1573,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   seconds when a position save is sent; the server caps it at the time since the folder set's
   previous position save, or since the start of the user's day. A cull that only uses the grid
   sends it with its next position save. Easy to redo: `useActiveTime`, `PositionService`.
+- 2026-11-20: The statistics page (STATS-001.40–.43, metrics PR 6) reads every counter once and
+  sums the periods in the browser; its "today" is the user's Nextcloud day from the stats answer,
+  never the browser's. The 30-day bars are 7-day chunks ending today (the oldest shorter); the
+  period before a year is the same number of days before 1 January, none for all time; days in a
+  row count up to yesterday when today is empty. The page is a page of its own without the
+  navigation sidebar, like Similarity, not inside the cull layout the mockup sketches. Easy to
+  redo: `src/logic/statistics.ts`, `StatisticsPage`.
