@@ -62,6 +62,15 @@ trait FileRowQueries {
 		return $removed;
 	}
 
+	/** Moves the row of `$fileId`, whoever's it is, to `$newFileId`: for a table with one row per file. */
+	private function carryFileRow(int $fileId, int $newFileId): void {
+		$query = $this->db->getQueryBuilder();
+		$query->update($this->getTableName())
+			->set('file_id', $query->createNamedParameter($newFileId, IQueryBuilder::PARAM_INT))
+			->where($query->expr()->eq('file_id', $query->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
+			->executeStatement();
+	}
+
 	/**
 	 * The user's rows of `$fileIds`, or every row of them for null, in file id order.
 	 * @param list<int> $fileIds

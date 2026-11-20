@@ -42,7 +42,7 @@ final class QualityServiceTest extends TestCase {
 		return new QualityService($this->store, new UserPhotos(new UserFolderResolver($root)));
 	}
 
-	/** @return array<string, mixed> */
+	/** @param array<string, mixed> $fields */
 	private static function item(mixed $fileId, array $fields = []): array {
 		return [...['fileId' => $fileId, 'etag' => "etag-$fileId", 'method' => 1, 'sharpness' => 812.4, 'focusTile' => 27], ...$fields];
 	}

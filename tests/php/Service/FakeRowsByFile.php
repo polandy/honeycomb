@@ -8,21 +8,12 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 /**
- * The `FileRowStore` part of a fake store with one row per file, `$rows[$fileId]`, whose row id is the file id.
- * @template T
+ * The `FileRowStore` part of a fake store with one row per file, `$rows[$fileId]`, whose row id is the file id;
+ * the store declares `$rows` and `movedTo()`, the row moved to a new file id.
  */
 trait FakeRowsByFile {
-	/** @var array<int, T> */
-	public array $rows = [];
 	/** @var bool Whether every read of row ids fails, as a lost database connection would. */
 	public bool $readFails = false;
-
-	/**
-	 * The row moved to `$fileId`.
-	 * @param T $row
-	 * @return T
-	 */
-	abstract private static function movedTo(mixed $row, int $fileId): mixed;
 
 	/** A file's row follows it, whoever saved it. */
 	#[\Override]

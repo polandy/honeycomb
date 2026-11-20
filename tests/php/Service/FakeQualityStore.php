@@ -7,14 +7,16 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\QualityValue;
 use OCA\Honeycomb\Service\QualityStore;
+use OCA\Honeycomb\Service\QualityValue;
 use OCP\DB\Exception as DbException;
 
 /** Keeps quality values in memory, by file id. */
 final class FakeQualityStore implements QualityStore {
-	/** @use FakeRowsByFile<QualityValue> */
 	use FakeRowsByFile;
+
+	/** @var array<int, QualityValue> */
+	public array $rows = [];
 
 	/** @var list<list<int>> The file ids of each `find()` call. */
 	public array $findCalls = [];
@@ -41,7 +43,8 @@ final class FakeQualityStore implements QualityStore {
 		}
 	}
 
-	private static function movedTo(mixed $row, int $fileId): mixed {
+	/** The row moved to `$fileId`. */
+	private static function movedTo(QualityValue $row, int $fileId): QualityValue {
 		return new QualityValue($fileId, $row->etag, $row->method, $row->sharpness, $row->focusTile);
 	}
 }

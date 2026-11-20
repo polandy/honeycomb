@@ -93,8 +93,11 @@ the Nextcloud database:
 
 - ratings, flags, colour labels and *Keep RAW* per picture, tags, and the position where you
   stopped a cull;
-- visual hashes and series of your pictures (for similarity);
+- series of your pictures (for similarity);
 - your settings and view state.
+
+For every user who reaches a picture it stores the picture's visual hash and, for a picture in a
+series, its sharpness; deleting a user leaves them while the picture exists.
 
 It stores file ids, not file names. The Nextcloud log can contain full file paths when a sidecar
 cannot be saved, so remove them before you share a log. Deleting a user deletes their honeycomb

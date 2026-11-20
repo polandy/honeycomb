@@ -21,19 +21,19 @@ final class VisualHashService {
 	}
 
 	/**
-	 * Stores the hashes in `$items` whose file the user reaches as a photo at that etag; returns their file ids in request order.
+	 * Stores the hashes in `$items` whose file the user reaches as a photo at that etag, repeated on a unique-key conflict
+	 * (SERIES-003.9); returns their file ids in request order.
 	 * @param array<array-key, mixed> $items
 	 * @return list<int>
 	 * @throws InvalidVisualHashException for a malformed item, a file id given twice or too many items
 	 */
 	public function save(IUser $user, array $items): array {
 		$hashes = array_map(VisualHash::fromRequest(...), FileIds::items($items, self::SAVE_LIMIT, InvalidVisualHashException::class));
-		$fileIds = FileIds::eachOnce(array_map(static fn (VisualHash $hash): int => $hash->fileId, $hashes), InvalidVisualHashException::class);
-		$isCurrent = array_flip($this->photos->current($user, array_combine($fileIds, array_map(static fn (VisualHash $hash): string => $hash->etag, $hashes))));
-		$current = array_values(array_filter($hashes, static fn (VisualHash $hash): bool => isset($isCurrent[$hash->fileId])));
+		FileIds::eachOnce(array_map(static fn (VisualHash $hash): int => $hash->fileId, $hashes), InvalidVisualHashException::class);
+		$current = CurrentRows::of($this->photos, $user, $hashes);
 		if ($current !== []) {
-			RetryOnConflict::run(fn () => $this->store->replace($user->getUID(), $current));
+			RetryOnConflict::run(fn () => $this->store->replace($current));
 		}
-		return array_map(static fn (VisualHash $hash): int => $hash->fileId, $current);
+		return array_map(static fn (VisualHash $row): int => $row->fileId, $current);
 	}
 }

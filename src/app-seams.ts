@@ -11,17 +11,19 @@ import type { TrashExpectation, TrashRequestFile, TrashResponseFile } from './lo
 import type { MoveApi } from './move-flow.ts'
 import type { OnPageHide } from './page-hide.ts'
 import type { WarmPreviews } from './preview-warmer.ts'
+import type { MeasureImage, SaveQualityValues } from './quality-values.ts'
 import type { ResumeApi } from './resume.ts'
 import type { SidecarFlowApi } from './sidecar-flow.ts'
 import type { LookupSeries, SaveSeries } from './stored-series.ts'
 import type { ViewStateApi } from './view-state.ts'
 import type { HashImage, SaveVisualHashes } from './visual-hashes.ts'
 
-import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, cleanUpOrphanedData, imageUrl, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, movePictures, probeTargets, resetStatistics, savePosition, saveSidecars, saveViewState, saveVisualHashes } from './api.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, cleanUpOrphanedData, imageUrl, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, movePictures, probeTargets, resetStatistics, savePosition, saveQualityValues, saveSidecars, saveViewState, saveVisualHashes } from './api.ts'
 import { saveFlags, takeOverFlags } from './flags-api.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { browserHashWorkers } from './hash-workers.ts'
 import { onBrowserPageHide } from './page-hide.ts'
+import { measureInWorkers } from './quality-values.ts'
 import { lookupSeries, saveSeries } from './series-api.ts'
 import { browserNow } from './sidecar-flow.ts'
 import { browserSchedule } from './tile-selection.ts'
@@ -39,6 +41,8 @@ export interface AppSeams {
 	warmPreviews?: WarmPreviews
 	hashImage?: HashImage
 	saveVisualHashes?: SaveVisualHashes
+	measureImage?: MeasureImage
+	saveQualityValues?: SaveQualityValues
 	flags?: FlagApi
 	lookupSeries?: LookupSeries
 	saveSeries?: SaveSeries
@@ -66,13 +70,18 @@ export interface AppSeams {
 	today?: () => string
 }
 
+/** The page's one pool of workers, which hashes and measures (SERIES-006.15). */
+const HASH_WORKERS = browserHashWorkers()
+
 /** The seams the app uses in production. */
 export const APP_SEAMS = {
 	listFolders: apiListFolders,
 	listEntries: apiListEntries,
 	warmPreviews: apiWarmPreviews,
-	hashImage: hashInWorkers(browserHashWorkers(), imageUrl),
+	hashImage: hashInWorkers(HASH_WORKERS, imageUrl),
 	saveVisualHashes,
+	measureImage: measureInWorkers(HASH_WORKERS, imageUrl),
+	saveQualityValues,
 	flags: () => ({ save: saveFlags, takeOver: takeOverFlags }),
 	lookupSeries,
 	saveSeries,

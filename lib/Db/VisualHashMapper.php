@@ -13,14 +13,13 @@ use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
-/** Keeps the visual hashes in `honeycomb_hashes` (ADR 0024). */
+/** Keeps the one visual hash of each file in `honeycomb_hashes`, without a user (ADR 0024, ADR 0046). */
 final class VisualHashMapper implements VisualHashStore {
 	use FileRowQueries;
 	use TTransactional;
 
 	private const string TABLE = 'honeycomb_hashes';
 	private const array COLUMNS = [
-		'user_id' => IQueryBuilder::PARAM_STR,
 		'file_id' => IQueryBuilder::PARAM_INT,
 		'etag' => IQueryBuilder::PARAM_STR,
 		'hash' => IQueryBuilder::PARAM_STR,
@@ -39,9 +38,9 @@ final class VisualHashMapper implements VisualHashStore {
 	}
 
 	#[\Override]
-	public function find(string $userId, array $fileIds): array {
+	public function find(array $fileIds): array {
 		$hashes = [];
-		foreach ($this->findFileRows($userId, $fileIds) as $row) {
+		foreach ($this->findFileRows(null, $fileIds) as $row) {
 			$hash = new VisualHash((int)$row['file_id'], (string)$row['etag'], (string)$row['hash']);
 			$hashes[$hash->fileId] = $hash;
 		}
@@ -50,24 +49,25 @@ final class VisualHashMapper implements VisualHashStore {
 
 	/** Sorted by file id, so two saves at once take their row locks in the same order. */
 	#[\Override]
-	public function replace(string $userId, array $hashes): void {
+	public function replace(array $hashes): void {
 		usort($hashes, static fn (VisualHash $a, VisualHash $b): int => $a->fileId <=> $b->fileId);
-		$this->atomic(function () use ($userId, $hashes): void {
-			$this->deleteFileRows($userId, array_map(static fn (VisualHash $hash): int => $hash->fileId, $hashes));
+		$this->atomic(function () use ($hashes): void {
+			$this->deleteFileRows(null, array_map(static fn (VisualHash $hash): int => $hash->fileId, $hashes));
 			$this->insertRows(
 				new InsertStatements(self::TABLE, self::COLUMNS),
-				array_map(static fn (VisualHash $hash): array => ['user_id' => $userId, 'file_id' => $hash->fileId, 'etag' => $hash->etag, 'hash' => $hash->hash], $hashes),
+				array_map(static fn (VisualHash $hash): array => ['file_id' => $hash->fileId, 'etag' => $hash->etag, 'hash' => $hash->hash], $hashes),
 			);
 		}, $this->db);
 	}
 
+	/** A file's one hash follows it to the new file id, whoever saved it. */
 	#[\Override]
-	public function clear(?string $userId): int {
-		return $this->clearRows($userId);
+	public function carryOver(string $userId, int $fileId, int $newFileId): void {
+		$this->carryFileRow($fileId, $newFileId);
 	}
 
 	#[\Override]
-	public function forgetUser(string $userId): void {
-		$this->deleteUserRows(self::TABLE, $userId);
+	public function clearAll(): int {
+		return $this->clearRows(null);
 	}
 }

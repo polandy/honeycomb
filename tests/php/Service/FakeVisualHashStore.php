@@ -13,8 +13,10 @@ use OCP\DB\Exception as DbException;
 
 /** Keeps visual hashes in memory, by file id. */
 final class FakeVisualHashStore implements VisualHashStore {
-	/** @use FakeRowsByFile<VisualHash> */
 	use FakeRowsByFile;
+
+	/** @var array<int, VisualHash> */
+	public array $rows = [];
 
 	/** @var list<list<int>> The file ids of each `find()` call. */
 	public array $findCalls = [];
@@ -41,7 +43,8 @@ final class FakeVisualHashStore implements VisualHashStore {
 		}
 	}
 
-	private static function movedTo(mixed $row, int $fileId): mixed {
+	/** The row moved to `$fileId`. */
+	private static function movedTo(VisualHash $row, int $fileId): VisualHash {
 		return new VisualHash($fileId, $row->etag, $row->hash);
 	}
 }

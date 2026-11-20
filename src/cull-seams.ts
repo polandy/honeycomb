@@ -9,6 +9,7 @@ import type { CountsOf } from './logic/sidecar-pass.ts'
 import type { SidecarFailure } from './logic/sidecar-sync.ts'
 import type { Tag, TagChange } from './logic/tag.ts'
 import type { WarmPreviews } from './preview-warmer.ts'
+import type { QualityApi } from './quality-values.ts'
 import type { LookupSeries, SaveSeries } from './stored-series.ts'
 import type { VisualHashApi } from './visual-hashes.ts'
 
@@ -22,8 +23,8 @@ export interface SidecarWrites {
 	readonly writeTags: (pictures: readonly Picture<ListingEntry>[], change: TagChange, paths?: Paths, counts?: CountsOf) => Written
 }
 
-/** The server calls the cull makes, and the visual hashing of its previews. */
-export interface CullApi extends VisualHashApi {
+/** The server calls the cull makes, the visual hashing of its previews and the measuring of its series' photos. */
+export interface CullApi extends VisualHashApi, QualityApi {
 	readonly warmPreviews: WarmPreviews
 	readonly flags: FlagApi
 	readonly lookupSeries: LookupSeries

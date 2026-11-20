@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { FlagFields } from './picture-flag.ts'
 import type { PictureId } from './picture-id.ts'
+import type { QualityValue } from './sharpness.ts'
 
 /** What every picture source lists of one file: identity, pairing, sorting, display and flags (ADR 0041); times are Unix seconds. */
 export interface SourceEntry extends FlagFields {
@@ -22,6 +23,8 @@ export interface ListingEntry extends SourceEntry {
 	readonly etag: string
 	/** The stored visual hash of this file version, `null` while none is stored (ADR 0024). */
 	readonly visualHash: string | null
+	/** The stored quality value of this file version, `null` while none is stored (ADR 0046). */
+	readonly quality: QualityValue | null
 }
 
 /** The listings of a folder set as one, each file once, in the order first listed. */
