@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { resetViewState } from './cull.ts'
+import { cullFolder, resetViewState } from './cull.ts'
 import { apiHeaders, createFolder, JPEG, upload } from './files.ts'
 import { expectTouchTargets } from './touch-targets.ts'
 
@@ -29,6 +29,10 @@ async function countActiveTime(page: Page): Promise<string> {
 test('opens the statistics page from the navigation and says nothing is counted yet', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	await resetViewState(page)
+	const folder = `Statistics ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+	await cullFolder(page, folder)
 	expect((await page.request.delete(`${API}/stats`, { headers: await apiHeaders(page) })).status()).toBe(204)
 
 	await page.getByRole('navigation', { name: 'honeycomb navigation' }).getByRole('link', { name: 'Statistics' }).click()
