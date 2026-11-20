@@ -219,4 +219,6 @@ useHotkeys(() => {
 
 <style src="./navigation-toggle.css" />
 
+<style src="./reduced-motion.css" />
+
 <style scoped src="./app.css" />
