@@ -171,7 +171,8 @@ the whole decision per (connection, asset id) in a table of its own registered a
 pull requests with a lean UI (grid, loupe, filters, decisions, position and *Recent*; no series,
 hashes, tags, delete, move or XMP), and the Vue shell's hotspot files owned by M9 until its PR 6 is
 merged. The exception to rule 1, the mapping and the pull request order are in ADR 0041, the
-connections file in ADR 0042, the decision table in ADR 0043; the source's API gets its own ADR.
+connections file in ADR 0042, the decision table in ADR 0043, the source's API in ADR 0044; the
+behaviour is in the specs IMMICH-001 to IMMICH-004.
 
 ### Release – first App Store release
 

@@ -10,9 +10,7 @@ Add items with `/todo`.
 ## Milestones
 
 - [ ] Statistics (M9, STATS-001): PR 8 year in review, its one-time hint from 1 December, sidecars from digiKam or darktable (2026-11-19)
-- [ ] Immich (M10, ADR 0041): PR 2 ADR for the source's public API (paged listing with filters for infinite scroll, counts and filter numbers from the server through ADR 0043's grouped counts and decision filter, loupe and filmstrip loading past the page, previews, connection status, *Write to Immich* in blocks of 100); the connections file is ADR 0042, the decision table ADR 0043 (2026-11-19)
-- [ ] Immich (M10, ADR 0041): PR 3 specs under `docs/dev/specs/immich/`: connections, listing and filters, decisions per connection, *Write to Immich*, with the owner's sign-off condition of 2026-11-20 (paged grid, server counts, loupe and filmstrip past the page, blocks of 100, a large write as numbers and conflicts) (2026-11-19)
-- [ ] Immich (M10, ADR 0041): PR 4 mockup under `docs/dev/mockup/immich/`: source and connection switcher, read-only connection dialog, status per connection; then the owner's sign-off (ADR 0003) (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 4 mockup under `docs/dev/mockup/immich/`: source and connection switcher, read-only connection dialog, status per connection, the paged grid with server counts and a large *Write to Immich* as numbers and conflicts (IMMICH-001 to IMMICH-004, replacing the signed-off artifact's key-per-user dialog with ADR 0042's read-only connections); then the owner's sign-off (ADR 0003) (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 6 backend: connection registry and status, the client with contract tests and upstream error classes, listing and preview proxy; after the sign-off (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 7 the decision table, its mapper and endpoints; the sweep of rows whose connection left the file; after the sign-off (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 8 pure TypeScript: asset to picture and the time, device, kind and flag filters; after PR 5 (2026-11-19)
@@ -25,6 +23,7 @@ Add items with `/todo`.
 
 ## Later
 
+- [ ] Immich kinds *Screenshots* and *Messenger images* from the Phase 1 mockup: Immich cannot filter them, so the server cannot count them without paging the library (ADR 0044); needs a server-side classification first (2026-11-20)
 - [ ] Make the series tab on a filmstrip thumbnail a 44 × 44 px target that does not cover the thumbnail: it is a 20 px pill over the thumbnail's corner; `tests/e2e/touch-targets.ts` and `tests/e2e/a11y.ts` exempt it (GRID-001.19, APP-001.15) (2026-11-18)
 - [ ] Opt in to `viewport-fit=cover` and pad the page edges with `env(safe-area-inset-*)`, so photos run under the status bar and home indicator while controls stay clear (`docs/dev/plan.md` Reference devices rule 2) (2026-11-18)
 - [ ] Fix the grid tiles that never show their 1024 px tier after their 256 px load was aborted: `tests/e2e/image-budgets.spec.ts` waited 120 s for IMG_0012 locally and `loupe-budget.spec.ts` failed on main (run 44699293878) (GRID-001.15) (2026-11-20)
