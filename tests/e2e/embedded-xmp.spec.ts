@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { createFolder, JPEG, requestToken, upload } from './files.ts'
+import { apiHeaders, createFolder, JPEG, upload } from './files.ts'
 
 const PACKET = '<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/></x:xmpmeta>'
 
@@ -24,7 +24,7 @@ test('answers the XMP packet a real JPEG embeds', async ({ page }) => {
 
 	const response = await page.request.post('/index.php/apps/honeycomb/api/v1/embedded-xmp/lookup', {
 		data: { fileIds: [tagged, plain] },
-		headers: { requesttoken: await requestToken(page) },
+		headers: await apiHeaders(page),
 	})
 
 	expect(response.status(), await response.text()).toBe(200)

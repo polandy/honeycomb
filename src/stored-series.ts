@@ -5,7 +5,7 @@ import type { Picture } from './logic/pairing.ts'
 import type { SeriesPlace, SeriesRow, SeriesWrite } from './logic/series-edit.ts'
 import type { SeriesLookup } from './logic/stored-series.ts'
 
-import { shallowRef } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { logger } from './logger.ts'
 import { memberIds } from './logic/pairing.ts'
 import { byFileId, saveQueue } from './logic/save-queue.ts'
@@ -27,6 +27,9 @@ export interface SeriesEndpoints {
 /** The stored series rows of the open cull (SERIES-005); `current` names the open cull, answers for another are dropped. */
 export function useStoredSeries({ lookupSeries, saveSeries }: SeriesEndpoints, current: () => unknown) {
 	const rows = shallowRef(NO_STORED_ROWS)
+	const reads = shallowRef(0)
+	/** Whether a read has not answered yet (SERIES-005.30). */
+	const loading = computed(() => reads.value > 0)
 	// A new series has a local id below 0 until the server answers its real one; a vanished id is answered anew.
 	const answered = new Map<number, number>()
 	let lastLocalId = 0
@@ -40,6 +43,7 @@ export function useStoredSeries({ lookupSeries, saveSeries }: SeriesEndpoints, c
 	/** Reads the rows of the files under those known, unless another cull opened meanwhile. */
 	async function read(fileIds: readonly number[], failure: string) {
 		const cull = current()
+		reads.value++
 		try {
 			const answer = await lookupSeries(fileIds)
 			if (current() === cull) {
@@ -47,6 +51,8 @@ export function useStoredSeries({ lookupSeries, saveSeries }: SeriesEndpoints, c
 			}
 		} catch (error) {
 			logger.error(failure, { error })
+		} finally {
+			reads.value--
 		}
 	}
 
@@ -114,5 +120,5 @@ export function useStoredSeries({ lookupSeries, saveSeries }: SeriesEndpoints, c
 		}
 	}
 
-	return { rows, reset, load, restore, newId, store }
+	return { rows, loading, reset, load, restore, newId, store }
 }

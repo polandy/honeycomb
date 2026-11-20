@@ -4,9 +4,26 @@ import type { Locator, Page } from '@playwright/test'
 
 import { expect } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { createFolder, JPEG, requestToken, upload } from './files.ts'
+import { apiHeaders, createFolder, JPEG, upload } from './files.ts'
 
 const SETTINGS_URL = '/index.php/apps/honeycomb/api/v1/settings'
+
+/** Resolves once the server took a series write; the toast comes with the edit, the write after it. */
+export function seriesSaved(page: Page): Promise<unknown> {
+	return page.waitForResponse((response) => response.url().endsWith('/api/v1/series') && response.request().method() === 'PUT' && response.ok())
+}
+
+/** Waits until the grid's stored series have been read: the grid is busy from the render that shows the cells (SERIES-005.30). */
+export async function seriesRead(page: Page): Promise<void> {
+	await expect(page.getByRole('grid', { name: 'Photos' })).not.toHaveAttribute('aria-busy', 'true')
+}
+
+/** Closes a modal by Escape once its focus trap has taken the focus: the modal closes on Escape only from then on, after its fade-in. */
+export async function closeByEscape(page: Page, dialog: Locator): Promise<void> {
+	await expect.poll(() => dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true)
+	await page.keyboard.press('Escape')
+	await expect(dialog).toBeHidden()
+}
 
 /** Opens the app and culls `folder` from the folder picker. */
 export async function cullFolder(page: Page, folder: string): Promise<void> {
@@ -20,7 +37,7 @@ export async function cullFolder(page: Page, folder: string): Promise<void> {
 export async function resetViewState(page: Page, seriesHintSeen = true): Promise<void> {
 	const reset = await page.request.put('/index.php/apps/honeycomb/api/v1/view-state', {
 		data: { viewState: { infoPanelOpen: false, gestureGuideSeen: false, seriesHintSeen } },
-		headers: { requesttoken: await requestToken(page) },
+		headers: await apiHeaders(page),
 	})
 	expect(reset.status(), await reset.text()).toBe(200)
 }
@@ -53,6 +70,6 @@ export const E2E_SETTINGS = {}
 
 /** Stores the settings for the user, `E2E_SETTINGS` putting back the ones every test starts from. */
 export async function putSettings(page: Page, settings: Record<string, unknown>): Promise<void> {
-	const response = await page.request.put(SETTINGS_URL, { data: { settings }, headers: { requesttoken: await requestToken(page) } })
+	const response = await page.request.put(SETTINGS_URL, { data: { settings }, headers: await apiHeaders(page) })
 	expect(response.status(), await response.text()).toBe(200)
 }

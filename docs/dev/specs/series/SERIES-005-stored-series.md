@@ -266,6 +266,14 @@ through every new visual hash.
 - **Then** *Series done* is disabled, with "Select a photo of the series" or "Select photos of one
   series only" in its second line
 
+### SERIES-005.30 – The grid is busy while the series are read
+
+- **Given** a cull whose stored series are still being read, at its opening or for photos moved
+  back
+- **When** the grid shows
+- **Then** it carries `aria-busy="true"` until every read has answered or failed, so assistive
+  technology and the end-to-end tests know the series may still change
+
 ## Out of scope
 
 - A hint that a new photo looks like a stored series (D2; can come later).
@@ -285,3 +293,4 @@ through every new visual hash.
 | 2026-11-15 | SERIES-005.14 and .15 in the series compare (#185 PR 6): the title row's ⋯ menu has the *Series done* toggle after a separator, pressed while done; marking stores an automatic series first, and the compare moves on as after *Skip*, or, opened from the loupe, keeps showing the series. The loupe's auto-advance, its resume position and the progress count a done series' unflagged pictures as decided. SERIES-005.17 and .18 are still open. |
 | 2026-11-18 | SERIES-005.28 and .29 in the grid (#230): the *Series…* menu has *Series done* / *Reopen series* after a separator, for a selection that touches exactly one series. |
 | 2026-11-18 | SERIES-005.17 and .18: the grid badge of a stored series carries a pin or, done, a check, and sits under the pair badge; the compare's title row has the subtitle of capture times, "edited by hand" and "Also in other folders". |
+| 2026-11-20 | SERIES-005.30: the grid is `aria-busy` while the stored series are read, a signal that they have arrived. |

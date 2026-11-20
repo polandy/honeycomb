@@ -124,6 +124,7 @@ defineExpose({ grid, filterBar })
 			:seriesOf="cull.seriesOf.value"
 			:offeredSeries="offeredSeries"
 			:openSeries="cull.openSeries.value"
+			:busy="cull.seriesLoading.value"
 			:unsaved="unsaved"
 			@update:tileSize="cull.setTileSize"
 			@update:selecting="selection.setSelecting"

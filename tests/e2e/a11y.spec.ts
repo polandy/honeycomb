@@ -5,7 +5,7 @@ import type { Locator, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { expectAccessible, SCHEMES } from './a11y.ts'
-import { cullFolder, E2E_SETTINGS, putSettings, resetViewState } from './cull.ts'
+import { closeByEscape, cullFolder, E2E_SETTINGS, putSettings, resetViewState } from './cull.ts'
 import { createFolder, JPEG, RAW, upload, withCaptureTime } from './files.ts'
 
 test.afterEach(async ({ page }) => {
@@ -66,9 +66,10 @@ for (const scheme of SCHEMES) {
 		await expect(review).toBeVisible()
 		await expectAccessible(page, at('reject review'))
 		await review.getByRole('button', { name: 'Continue: delete 1' }).click()
-		await expect(page.getByRole('dialog', { name: 'Delete 1 photo' })).toBeVisible()
+		const summary = page.getByRole('dialog', { name: 'Delete 1 photo' })
+		await expect(summary).toBeVisible()
 		await expectAccessible(page, at('Delete…'))
-		await page.keyboard.press('Escape')
+		await closeByEscape(page, summary)
 
 		await page.getByRole('gridcell', { name: /^IMG_0001/ }).click()
 		const loupe = page.getByRole('dialog', { name: 'Loupe' })
