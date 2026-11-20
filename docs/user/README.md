@@ -15,5 +15,6 @@ the [README](../../README.md).
 | [Tags](tags.md) | Adding, filtering and saving tags |
 | [Settings](settings.md) | The per-user settings and what each one does |
 | [Similarity](similarity.md) | How similar pictures are grouped into series |
+| [Statistics](statistics.md) | The statistics page: periods, tiles, bars, folder sets, switching it off |
 | [Clearing the cache](cache.md) | For admins: `occ honeycomb:cache:clear` for one user or every user |
 | [Administering honeycomb](admin/README.md) | For Nextcloud admins: updating, removing |

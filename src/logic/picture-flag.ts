@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Decision, Flag, StoredDecision } from './decision.ts'
 import type { Picture } from './pairing.ts'
+import type { PictureId } from './picture-id.ts'
 
 import { UNDECIDED } from './decision.ts'
 import { memberIds } from './pairing.ts'
@@ -38,7 +39,7 @@ export function readDecision(listed: PictureFlag | null, stated: Decision): Deci
 }
 
 /** A row for each member of every picture whose members have a row, its other fields undecided (LISTING-001.18). */
-export function listedRows<T extends FlagFields & { readonly fileId: number }>(pictures: readonly Picture<T>[]): StoredDecision[] {
+export function listedRows<T extends FlagFields & { readonly fileId: PictureId }>(pictures: readonly Picture<T>[]): StoredDecision[] {
 	return pictures.flatMap((picture) => {
 		const listed = pictureFlag(picture)
 		return listed === null ? [] : memberIds(picture).map((fileId) => ({ fileId, ...UNDECIDED, ...listed }))

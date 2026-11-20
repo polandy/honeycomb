@@ -50,6 +50,14 @@ final class PageController extends Controller {
 		return $this->withHashWorkers(new TemplateResponse(Application::APP_ID, 'similarity', ['script' => $this->scripts->script(ScriptManifest::SIMILARITY)]));
 	}
 
+	/** The statistics page of the user's culling (STATS-001.40). */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[FrontpageRoute(verb: 'GET', url: '/statistics')]
+	public function statistics(): TemplateResponse {
+		return new TemplateResponse(Application::APP_ID, 'statistics', ['script' => $this->scripts->script(ScriptManifest::STATISTICS)]);
+	}
+
 	private function isAdmin(): bool {
 		$user = $this->userSession->getUser();
 		return $user !== null && $this->groups->isAdmin($user->getUID());

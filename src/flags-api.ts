@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Flag } from './logic/decision.ts'
+import type { PictureId } from './logic/picture-id.ts'
+import type { StatsCounts } from './logic/stats-counts.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -8,15 +10,17 @@ import { API, ApiResponseError, isRecord } from './api.ts'
 
 /** The state of one file in `honeycomb_flags` (DECISIONS-001). */
 export interface FlagItem {
-	readonly fileId: number
+	readonly fileId: PictureId
 	readonly flag: Flag
 	readonly keepRaw: boolean
+	/** What the change counts (STATS-001); a save only. */
+	readonly counts?: StatsCounts
 }
 
 /** What a save or take-over stored, and the ids it skipped with the reason. */
 export interface FlagAnswer {
 	readonly saved: readonly number[]
-	readonly skipped: readonly { readonly fileId: number, readonly reason: string }[]
+	readonly skipped: readonly { readonly fileId: PictureId, readonly reason: string }[]
 }
 
 /** The flag endpoints the cull calls (DECISIONS-001.23, .27). */

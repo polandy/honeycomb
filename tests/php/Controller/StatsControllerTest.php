@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Controller;
 
+use DateTime;
+use DateTimeZone;
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\StatsController;
@@ -46,7 +48,9 @@ final class StatsControllerTest extends TestCase {
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
 		$config = $this->createStub(IUserConfig::class);
 		$config->method('getValueString')->willReturnArgument(3);
-		$stats = new StatsService($this->store, new StatsDay($config, $this->createStub(ITimeFactory::class)), new SettingsService($config), $this->createStub(LoggerInterface::class));
+		$time = $this->createStub(ITimeFactory::class);
+		$time->method('getDateTime')->willReturn(new DateTime('2026-11-20 12:00', new DateTimeZone('UTC')));
+		$stats = new StatsService($this->store, new StatsDay($config, $time), new SettingsService($config), $this->createStub(LoggerInterface::class));
 		return new StatsController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $stats);
 	}
 
@@ -55,7 +59,7 @@ final class StatsControllerTest extends TestCase {
 		$response = $this->controller()->index('2026-11-02', '2026-11-30');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame('{"counters":[{"day":"2026-11-19","metric":"trash_pictures","value":3}],"firstDay":"2026-11-01"}', $response->render());
+		$this->assertSame('{"counters":[{"day":"2026-11-19","metric":"trash_pictures","value":3}],"firstDay":"2026-11-01","today":"2026-11-20"}', $response->render());
 	}
 
 	public function testAMalformedDayIsABadRequest(): void {

@@ -17,6 +17,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class PositionServiceTest extends TestCase {
+	use StatsFixture;
+
 	private const int NOW = 1_700_000_000;
 	private const array HOLIDAY = ['paths' => ['/Photos/2024', '/Photos/2023'], 'subfolders' => true];
 
@@ -31,7 +33,7 @@ final class PositionServiceTest extends TestCase {
 	private function service(): PositionService {
 		$time = $this->createStub(ITimeFactory::class);
 		$time->method('getTime')->willReturnCallback(fn (): int => $this->now);
-		return new PositionService($this->store, $time);
+		return new PositionService($this->store, $time, $this->stats());
 	}
 
 	private function user(string $uid): IUser {

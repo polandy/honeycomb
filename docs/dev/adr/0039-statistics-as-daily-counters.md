@@ -50,9 +50,10 @@ Three ways to record:
 - **On by default**, per user: the settings field `keepStatistics` (missing means on); the server
   reads it before it counts. *Reset statistics* deletes the user's rows. *Clear cache* leaves them:
   statistics are app state, not a cache. Deleting a user deletes their rows.
-- **API:** `GET /apps/honeycomb/api/v1/stats?from=&to=` answers the user's rows of those days and
-  the first counted day; `DELETE /apps/honeycomb/api/v1/stats` resets. Both only for the user
-  themselves; no admin view, nothing leaves the server.
+- **API:** `GET /apps/honeycomb/api/v1/stats?from=&to=` answers the user's rows of those days,
+  the first counted day and the user's today, so the page needs no clock of its own;
+  `DELETE /apps/honeycomb/api/v1/stats` resets. Both only for the user themselves; no admin view,
+  nothing leaves the server.
 - **One start value from the past:** before M8 PR 5 (ADR 0040) drops `honeycomb_decisions`, its
   migration writes the number of decided pictures in it as the metric `pictures_decided_before`,
   dated the day of the migration, shown as "Before that: n pictures decided (no date)". As

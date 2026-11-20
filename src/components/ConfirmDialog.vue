@@ -62,6 +62,16 @@ onMounted(async () => {
 	}
 })
 
+/** The input types whose Escape has no use of its own, which NcModal still leaves to them. */
+const TOGGLES = new Set(['checkbox', 'radio'])
+
+/** Escape from a switch, checkbox or radio button cancels the dialog as from anywhere else in it (APP-001.16). */
+function onEscape(event: KeyboardEvent) {
+	if (props.cancel && event.target instanceof HTMLInputElement && TOGGLES.has(event.target.type)) {
+		emit('cancel')
+	}
+}
+
 /** Closing the dialog by its close button or Escape cancels it. */
 function onOpen(open: boolean) {
 	if (!open) {
@@ -77,13 +87,16 @@ function onOpen(open: boolean) {
 		:noClose="!props.cancel"
 		:container="props.container ?? 'body'"
 		:size="props.wide ? 'large' : 'normal'"
-		@update:open="onOpen">
+		@update:open="onOpen"
+		@keydown.esc="onEscape">
 		<slot />
 		<template #actions>
 			<span v-if="props.progress" class="confirm-dialog__progress">
 				<ProgressBar :label="progressText" :value="props.progress.done" :max="props.progress.total" />
 				{{ progressText }}
 			</span>
+			<!-- A further action before the dialog's own buttons, e.g. a link to another page. -->
+			<slot name="actions" />
 			<NcButton v-if="props.back" variant="tertiary" @click="emit('back')">
 				{{ props.backLabel ?? t('honeycomb', 'Back') }}
 			</NcButton>

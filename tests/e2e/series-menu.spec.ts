@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { cullFolder, resetViewState } from './cull.ts'
+import { cullFolder, resetViewState, seriesSaved } from './cull.ts'
 import { createFolder, JPEG, upload, withCaptureTime } from './files.ts'
 
 /** Pixel 9 Pro in portrait. */
@@ -40,10 +40,12 @@ async function openMenu(page: Page, names: readonly string[], caption: string): 
 	await expect(page.getByText(caption, { exact: true })).toBeVisible()
 }
 
-/** Chooses an entry of the open menu and waits for its toast. */
+/** Chooses an entry of the open menu and waits for its toast and its write. */
 async function choose(page: Page, entry: RegExp, toast: string): Promise<void> {
+	const saved = seriesSaved(page)
 	await page.getByRole('menuitem', { name: entry }).click()
 	await expect(page.getByText(toast)).toBeVisible()
+	await saved
 	await page.getByRole('button', { name: 'Done' }).click()
 }
 
@@ -109,9 +111,11 @@ test('marks a series done from the compare\'s menu, its photos counted as decide
 
 	await page.keyboard.press('n')
 	await page.getByRole('button', { name: 'Series menu', exact: true }).click()
+	const saved = seriesSaved(page)
 	await page.getByRole('menuitemcheckbox', { name: /Series done/, checked: false }).click()
 	await expect(page.getByText('Marked the series done')).toBeVisible()
 	await expect(progress).toHaveText('3 / 5 decided')
+	await saved
 
 	await page.reload()
 	await cullFolder(page, folder)
@@ -119,7 +123,7 @@ test('marks a series done from the compare\'s menu, its photos counted as decide
 	await page.getByRole('gridcell', { name: /^IMG_0001/ }).click()
 	const loupe = page.getByRole('dialog', { name: 'Loupe' })
 	await loupe.getByRole('dialog', { name: 'How to cull' }).getByRole('button', { name: 'Got it' }).click()
-	await loupe.getByRole('button', { name: 'Photo 1 of a series of 3 – compare' }).click()
+	await loupe.getByRole('button', { name: 'Series 1/3: compare' }).click()
 	await page.getByRole('button', { name: 'Series menu', exact: true }).click()
 	await page.getByRole('menuitemcheckbox', { name: /Series done/, checked: true }).click()
 	await expect(page.getByText('Reopened the series')).toBeVisible()

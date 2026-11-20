@@ -5,6 +5,7 @@ import type { FlagApi } from './flags-api.ts'
 import type { Decision, DecisionField } from './logic/decision.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
+import type { CountsOf } from './logic/sidecar-pass.ts'
 import type { SidecarFailure } from './logic/sidecar-sync.ts'
 import type { Tag, TagChange } from './logic/tag.ts'
 import type { WarmPreviews } from './preview-warmer.ts'
@@ -12,12 +13,13 @@ import type { LookupSeries, SaveSeries } from './stored-series.ts'
 import type { VisualHashApi } from './visual-hashes.ts'
 
 type Written = Promise<{ written: number, failed: SidecarFailure[] }>
+type Paths = ReadonlyMap<Picture<ListingEntry>, ReadonlySet<string>>
 
 /** How the cull reads decisions and tags from the sidecars and writes them through (XMP-003, TAGS-002). */
 export interface SidecarWrites {
 	readonly read: (pictures: readonly Picture<ListingEntry>[]) => Promise<{ decided: { picture: Picture<ListingEntry>, decision: Decision }[], tagged: { picture: Picture<ListingEntry>, tags: Tag[] }[] }>
-	readonly write: (pictures: readonly Picture<ListingEntry>[], decisionOf: (picture: Picture<ListingEntry>) => Decision, fields: readonly DecisionField[]) => Written
-	readonly writeTags: (pictures: readonly Picture<ListingEntry>[], change: TagChange) => Written
+	readonly write: (pictures: readonly Picture<ListingEntry>[], decisionOf: (picture: Picture<ListingEntry>) => Decision, fields: readonly DecisionField[], paths?: Paths, counts?: CountsOf) => Written
+	readonly writeTags: (pictures: readonly Picture<ListingEntry>[], change: TagChange, paths?: Paths, counts?: CountsOf) => Written
 }
 
 /** The server calls the cull makes, and the visual hashing of its previews. */

@@ -7,6 +7,7 @@ import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 import type { Settings } from '../../src/logic/settings.ts'
 import type { SidecarFailure, SidecarFailureReason } from '../../src/logic/sidecar-sync.ts'
+import type { StatsCounts } from '../../src/logic/stats-counts.ts'
 import type { Tag, TagChange } from '../../src/logic/tag.ts'
 import type { ListedAccess } from '../../src/logic/writability.ts'
 
@@ -29,6 +30,9 @@ export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promi
 	const reads: string[][] = []
 	const tagWrites: { names: string[], change: TagChange }[] = []
 	const writes: { name: string, decision: Decision, fields: readonly string[] }[][] = []
+	/** The counts each sidecar write carried, by picture name. */
+	const counted: Record<string, StatsCounts>[] = []
+	const countsOf = (pictures: readonly Picture<ListingEntry>[], counts?: (picture: Picture<ListingEntry>) => StatsCounts) => Object.fromEntries(pictures.map((picture) => [picture.baseName, counts?.(picture) ?? {}]))
 	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
 	const flags = fakeFlags(options.stored)
 	const notSaved: number[] = []
@@ -46,11 +50,13 @@ export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promi
 				tagged: pictures.filter((picture) => tags.has(picture.baseName)).map((picture) => ({ picture, tags: tags.get(picture.baseName)! })),
 			}
 		},
-		write: async (pictures, decisionOf, fields) => {
+		write: async (pictures, decisionOf, fields, _paths, counts) => {
+			counted.push(countsOf(pictures, counts))
 			writes.push(pictures.map((picture) => ({ name: picture.baseName, decision: decisionOf(picture), fields })))
 			return { written: pictures.length, failed: failures(pictures) }
 		},
-		writeTags: async (pictures, change) => {
+		writeTags: async (pictures, change, _paths, counts) => {
+			counted.push(countsOf(pictures, counts))
 			tagWrites.push({ names: pictures.map((picture) => picture.baseName), change })
 			return { written: pictures.length, failed: [] }
 		},
@@ -67,5 +73,5 @@ export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promi
 	}, fakeStorage(), () => settings.value, sidecars, (photos) => notSaved.push(photos))
 	const picture = (name: string): Picture<ListingEntry> => cull.pictures.value.find((each) => each.baseName === name)!
 	const open = (set: FolderSet, entries: readonly ListingEntry[], listed?: ListedAccess) => cull.open(set, flags.listed(entries), listed)
-	return { cull, reads, writes, settings, picture, tagWrites, flags, open, notSaved }
+	return { cull, reads, writes, settings, picture, tagWrites, flags, open, notSaved, counted }
 }

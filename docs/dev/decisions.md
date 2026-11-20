@@ -1548,6 +1548,12 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   eight pull requests, run autonomously by the chain rules; the type-only refactor now, beside
   statistics PR 4; a lean Phase 1 UI without series, hashes, tags, delete, move or XMP; one owner
   per hotspot file, M9 until its PR 6, then M10. Easy to redo: each is a docs line or a small PR.
+- 2026-11-19: Immich refactor PR 5 types file ids as `PictureId` and splits `SourceEntry` off
+  `ListingEntry`, but leaves the cull context, the grid and loupe props and `toasted-decisions` on
+  `Picture<ListingEntry>`: their callbacks reach the tag and sidecar writes in `cull.ts`, which need
+  `etag` and `size`, so retyping them now would mean reshaping `cull.ts` beside statistics PR 4. The
+  retyping moves to the Vue shell refactor (PR 9), which reshapes `cull.ts` anyway. Easy to redo:
+  type lines only.
 - 2026-11-19: ADR 0042 fixes the connections file: `version` 1, per connection `id` (1–64 of
   `a-z0-9-`, the stable key of the decision table), `user`, `label`, `url` (origin only),
   `keyFile` (absolute) and `picksAsFavorites`; the file is valid as a whole or not at all; it is
@@ -1566,3 +1572,28 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   server, blocks of 100): the row copies the asset's capture time, camera model and kind so the
   server counts and filters decided assets without the whole library; a decision filter pages the
   rows and deletes a row whose asset Immich no longer returns. Easy to redo: columns before code.
+- 2026-11-19: Each browser count rides with the request that saves its field (STATS-001, metrics
+  PR 5): the flag save carries decided, picked and rejected, the sidecar save ratings, colour
+  labels and tags set and the foreign mark, the position save the active seconds. A count counts
+  only when its own item is saved. Easy to redo: `counts` per item in `FlagService`,
+  `SidecarRequest`.
+- 2026-11-19: Counts are sent per item as `counts: {metric: n}`, at most one item per picture; the
+  server caps each value at ±1 and answers 400 to a metric the endpoint does not take. The second
+  sidecar round sends again the counts no saved save carried. Easy to redo: `StatsItemCounts`.
+- 2026-11-19: Flags count as the state a change enters minus the state it leaves, so undo nets
+  out; ratings, colour labels and tags count +1 per changed picture and −1 on its undo. Easy to
+  redo: `src/logic/stats-counts.ts`.
+- 2026-11-19: A sidecar counts as from digiKam or darktable when it holds `darktable:xmp_version`
+  or a digiKam property other than PickLabel, ColorLabel and TagsList; it counts only when the
+  save counts it as updated. Easy to redo: `holdsForeignData`.
+- 2026-11-19: Active time is measured in the browser (two-minute idle cap) and taken in whole
+  seconds when a position save is sent; the server caps it at the time since the folder set's
+  previous position save, or since the start of the user's day. A cull that only uses the grid
+  sends it with its next position save. Easy to redo: `useActiveTime`, `PositionService`.
+- 2026-11-20: The statistics page (STATS-001.40–.43, metrics PR 6) reads every counter once and
+  sums the periods in the browser; its "today" is the user's Nextcloud day from the stats answer,
+  never the browser's. The 30-day bars are 7-day chunks ending today (the oldest shorter); the
+  period before a year is the same number of days before 1 January, none for all time; days in a
+  row count up to yesterday when today is empty. The page is a page of its own without the
+  navigation sidebar, like Similarity, not inside the cull layout the mockup sketches. Easy to
+  redo: `src/logic/statistics.ts`, `StatisticsPage`.

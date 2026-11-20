@@ -4,6 +4,7 @@ import type { ListEntries } from './folder-count.ts'
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { PairingSettings } from './logic/pairing.ts'
+import type { PictureId } from './logic/picture-id.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
 import type { ListedAccess } from './logic/writability.ts'
 import type { ResumeApi } from './resume.ts'
@@ -31,7 +32,7 @@ export interface RecentOpener {
 	/** Opens the folder set's cull. */
 	readonly open: (set: FolderSet, entries: ListingEntry[], access: ListedAccess) => void
 	/** Opens the loupe of the cull just opened at the file. */
-	readonly resumeAt: (fileId: number) => void
+	readonly resumeAt: (fileId: PictureId) => void
 	/** Opens the loupe of the open cull at its resume position. */
 	readonly resumeOpen: () => void
 }
@@ -102,8 +103,8 @@ export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: Recent
 		/** The positions API for the resume flow; a saved position is listed first. */
 		positions: {
 			loadPositions: () => api.loadPositions(),
-			savePosition: async (position: ResumePosition) => {
-				await api.savePosition(position)
+			savePosition: async (position: ResumePosition, activeSeconds: number) => {
+				await api.savePosition(position, activeSeconds)
 				reading++
 				positions.value = withPosition(positions.value, position)
 			},

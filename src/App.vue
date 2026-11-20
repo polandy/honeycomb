@@ -27,6 +27,7 @@ import ShortcutSheet from './components/ShortcutSheet.vue'
 import TagEntry from './components/TagEntry.vue'
 import ToastDetails from './components/ToastDetails.vue'
 import UndoToast from './components/UndoToast.vue'
+import { useActiveTime } from './active-time.ts'
 import { APP_SEAMS } from './app-seams.ts'
 import { cleanUpWithToast, clearCacheWithToast } from './cache-clear.ts'
 import { provideCullContext } from './cull-context.ts'
@@ -104,7 +105,8 @@ const { dialog: deleteDialog } = deleting
 cullFinished.waitWhile(() => loupe.value !== null || seriesCompare.open.value || deleteDialog.value !== null || deleting.busy.value)
 const moving = useMoveFlow({ view: () => view.value, settings: () => settings.value, updateSettings, probe: props.move.probeTargets, move: props.move.movePictures, flush: flushWrites, current: sidecarFlow.sync.current, removeFiles: cull.removeFiles, restoreFiles: cull.restoreFiles, listing: () => folderSet.value, loupe, toast: toast.show, error: toast.showError })
 const recent = useRecent(props.positions, props.listEntries, { folderSet: () => folderSet.value, progress: () => progress.value, pairing: () => cull.pairing.value }, toast.showError)
-const resume = useResume(recent.positions, { folderSet: () => folderSet.value, pictures: () => pictures.value, view: () => view.value, progress: () => progress.value, decidedOf: cull.decidedOf, shown: shownInLoupe, openLoupe }, toast.show)
+const activeTime = useActiveTime(props.clock)
+const resume = useResume(recent.positions, { folderSet: () => folderSet.value, pictures: () => pictures.value, view: () => view.value, progress: () => progress.value, decidedOf: cull.decidedOf, shown: shownInLoupe, openLoupe, takeActiveSeconds: activeTime.take }, toast.show)
 /** Opens a folder set from *Recent* at its position. */
 function openRecent(position: ResumePosition) {
 	void recent.open(position, { open: cull.open, resumeAt: resume.resumeAt, resumeOpen: () => {

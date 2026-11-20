@@ -32,6 +32,17 @@ function brackets(wrapper: ReturnType<typeof mountGrid>['wrapper']) {
 const tile = (wrapper: ReturnType<typeof mountGrid>['wrapper'], index: number) => wrapper.find(`[data-index="${index}"]`)
 
 describe('PhotoGrid series', () => {
+	// spec: SERIES-005.30
+	it('is aria-busy only while busy', async () => {
+		const { wrapper } = mountGrid({ pictures: picturesIn({ '/P': 2 }), busy: true })
+		const grid = wrapper.find('[role="grid"]')
+		expect(grid.attributes('aria-busy')).toBe('true')
+
+		await wrapper.setProps({ busy: false })
+
+		expect(grid.attributes()).not.toHaveProperty('aria-busy')
+	})
+
 	// spec: SERIES-002.12
 	it('brackets a run over the tile gaps and a row wrap, capped at its start and end, a gap below the top, and moves no tile', async () => {
 		const pictures = picturesIn({ '/P': 12 })

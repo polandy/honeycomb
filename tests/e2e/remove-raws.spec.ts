@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
 import { cullFolder } from './cull.ts'
-import { createFolder, JPEG, RAW, requestToken, upload } from './files.ts'
+import { apiHeaders, createFolder, JPEG, RAW, upload } from './files.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
 const SIDECAR = Buffer.from('<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/></x:xmpmeta>')
@@ -45,7 +45,7 @@ async function removeRaws(page: Page): Promise<void> {
 async function trashLocations(page: Page): Promise<string> {
 	const trash = await page.request.fetch(`/remote.php/dav/trashbin/${ADMIN.username}/trash`, {
 		method: 'PROPFIND',
-		headers: { requesttoken: await requestToken(page), Depth: '1' },
+		headers: await apiHeaders(page, { Depth: '1' }),
 		data: '<d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns"><d:prop><nc:trashbin-original-location/></d:prop></d:propfind>',
 	})
 	return trash.text()
@@ -71,9 +71,9 @@ test('removes only the RAW and its own sidecar of each pair not kept, after one 
 
 	const summary = page.getByRole('dialog', { name: /^Remove the RAWs? of/ })
 	await expect(summary).toHaveAccessibleName('Remove the RAWs of 2 photos')
-	await summary.getByRole('button', { name: 'Keep RAW: IMG_0002' }).click()
+	await summary.getByRole('button', { name: /^IMG_0002.*Keep RAW$/ }).click()
 	await expect(summary).toHaveAccessibleName('Remove the RAW of 1 photo')
-	await expect(summary.getByRole('button', { name: 'Remove RAW: IMG_0002' })).toBeVisible()
+	await expect(summary.getByRole('button', { name: /^IMG_0002.*Remove RAW$/ })).toBeVisible()
 	await summary.getByRole('button', { name: 'Move 2 files to trash' }).click()
 
 	await expect(summary).toBeHidden()
@@ -83,7 +83,7 @@ test('removes only the RAW and its own sidecar of each pair not kept, after one 
 
 	const trash = await page.request.fetch(`/remote.php/dav/trashbin/${ADMIN.username}/trash`, {
 		method: 'PROPFIND',
-		headers: { requesttoken: await requestToken(page), Depth: '1' },
+		headers: await apiHeaders(page, { Depth: '1' }),
 		data: '<d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns"><d:prop><nc:trashbin-original-location/></d:prop></d:propfind>',
 	})
 	const locations = await trash.text()
@@ -99,7 +99,7 @@ test('removes only the RAW and its own sidecar of each pair not kept, after one 
 test('keeps the RAW another user marked Keep RAW after the summary opened, and removes the others', async ({ page }) => {
 	const { folder, jpegs, raws } = await cullPairs(page, ['IMG_0001', 'IMG_0002', 'IMG_0003'])
 	const flags = [jpegs[1], raws[1]].map((fileId) => ({ fileId, flag: 'unflagged', keepRaw: true }))
-	const kept = await page.request.put(`${API}/flags`, { data: { flags }, headers: { requesttoken: await requestToken(page) } })
+	const kept = await page.request.put(`${API}/flags`, { data: { flags }, headers: await apiHeaders(page) })
 	expect(kept.status()).toBe(200)
 	await upload(page, `${folder}/IMG_0003.NEF.xmp`, KEEP_RAW)
 	const sidecarLookups: string[] = []
@@ -128,13 +128,13 @@ test('writes the rating, colour label and tags to the JPEG sidecar but no flag, 
 	await removeRaws(page)
 
 	await expect(page.getByRole('status').filter({ hasText: 'Removed the RAWs of 1 photo' })).toBeVisible()
-	const requesttoken = await requestToken(page)
-	const written = await (await page.request.get(`/remote.php/dav/files/${ADMIN.username}/${folder}/IMG_0001.jpg.xmp`, { headers: { requesttoken } })).text()
+	const headers = await apiHeaders(page)
+	const written = await (await page.request.get(`/remote.php/dav/files/${ADMIN.username}/${folder}/IMG_0001.jpg.xmp`, { headers })).text()
 	expect(written).toMatch(/xmp:Rating(="|>)3/)
 	expect(written).toMatch(/xmp:Label(="|>)Red/)
 	expect(written).toContain('Places/Lisbon')
 	expect(written).not.toContain('PickLabel')
-	const listing = await page.request.get(`${API}/entries`, { params: { path: `/${folder}` }, headers: { requesttoken } })
+	const listing = await page.request.get(`${API}/entries`, { params: { path: `/${folder}` }, headers })
 	const { entries } = await listing.json() as { entries: { fileId: number, flag: string | null }[] }
 	expect(entries.find((entry) => entry.fileId === jpegs[0])?.flag).toBe('picked')
 	expect(await trashLocations(page)).toContain(`${folder}/IMG_0001.NEF<`)

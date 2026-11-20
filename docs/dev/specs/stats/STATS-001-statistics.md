@@ -21,14 +21,14 @@ paths. The day is the calendar day in the user's Nextcloud time zone, UTC withou
 | Metric | Key | Counted when |
 |---|---|---|
 | Pictures decided | `pictures_decided` | A picture's flag changes from unflagged to picked or rejected (+1), or back to unflagged (−1); undo subtracts what it takes back |
-| Pictures picked, pictures rejected | `pictures_picked`, `pictures_rejected` | A picture becomes picked, rejected; net of undo |
+| Pictures picked, pictures rejected | `pictures_picked`, `pictures_rejected` | A picture becomes picked, rejected (+1), or stops being so (−1); net of undo |
 | Ratings, colour labels, tags set | `ratings_set`, `colour_labels_set`, `tags_set` | A picture's rating, colour label or tags change; net of undo |
 | Pictures, files, bytes moved to the trash bin | `trash_pictures`, `trash_files`, `trash_bytes` | A delete moves them to the trash bin; a pair is one picture, every member and sidecar a file |
 | Pictures, files, bytes deleted for good | `deleted_pictures`, `deleted_files`, `deleted_bytes` | A delete removes files the trash bin would not keep (ADR 0036); a picture with such a file counts here, not as moved to the trash bin |
 | RAW files removed, their bytes | `raws_removed`, `raws_removed_bytes` | *Remove RAWs* moves RAW files to the trash bin or deletes them for good; not counted as pictures, their sidecars not counted |
 | Sidecars created | `sidecars_created` | A sidecar save creates a new sidecar |
 | Sidecars updated | `sidecars_updated` | A sidecar save replaces an existing sidecar last changed before the start of the user's day |
-| Sidecars from digiKam or darktable | `sidecars_foreign` | A sidecar updated that holds data of digiKam or darktable |
+| Sidecars from digiKam or darktable | `sidecars_foreign` | A sidecar updated that holds data of digiKam or darktable: `darktable:xmp_version`, or a digiKam property honeycomb does not write |
 | Series done | `series_done` | A series write sets a stored open series to done or creates a series as done |
 | Pictures moved | `pictures_moved` | A move reports every file of a picture as moved |
 | Active time | `active_seconds` | Seconds of the cull with an input at most 2 minutes earlier |
@@ -38,6 +38,16 @@ trash, deletes for good, *Remove RAWs*, sidecar saves, series done and moves in 
 acts, one sum per metric and request, with the sizes the server reads before it moves a file.
 *Space freed* is the bytes moved to the trash bin and deleted for good; the page notes that the
 space is freed when the trash bin is emptied.
+
+**What only the browser knows** rides as counts on the request that saves it. A flag save carries
+pictures decided, picked and rejected; a sidecar save carries ratings, colour labels and tags set,
+and marks each existing sidecar that holds data of digiKam or darktable; a position save carries
+the active seconds since the last one. A picture's counts ride on one item of its save, an object
+of metric keys with −1, 0 or 1 (undo sends −1), and count only when that item is saved. The server
+caps each value at ±1, a key the endpoint does not take answers 400, and active seconds are capped
+at the time since the folder set's previous position save, since the start of the user's day
+without one. Reading a sidecar, taking a flag over, *Write XMP* and the fresh check before a delete
+count nothing.
 
 **Cull finished** is a card over the grid: a bottom sheet on a phone, a dialog from the iPad width
 on. It opens once when a decision of the user leaves no undecided picture in the folder set, and
@@ -56,9 +66,12 @@ opens the statistics page and comes with it (metrics PR 6); *Done* closes the ca
 offers *7 days*, *30 days*, the current year and *All time*, 30 days preselected. Tiles show
 pictures decided (with the change against the period before), moved to the trash bin (with space
 freed and deleted for good), sidecars created / updated (with those from digiKam or darktable) and
-days in a row (with the longest streak). A line shows active time, pictures a minute, series done
-and RAW files removed. Bars show pictures decided and moved to the trash bin per day (7 days), per
-week (30 days) or per month (year, all time). *Folder sets* lists the resume positions with their
+days in a row (with the longest streak); a day counts toward days in a row when any of its
+counters is above zero. A line shows active time, pictures a minute (from one active minute on),
+series done and RAW files removed. Bars show pictures decided and moved to the trash bin per day
+(7 days), per 7 days ending today (30 days, the oldest bar shorter) or per calendar month (year,
+all time). The period ends today, the user's day the server answers; the current year starts on
+1 January, all time on the first counted day. *Folder sets* lists the resume positions with their
 share decided; *Of the pictures read so far* shows the shares picked, rejected, unflagged and
 rated from the XMP cache. A footnote says *Counted since {date}.* and, with a start value, *Before
 that: n pictures decided (no date).* The start value is the user preference
@@ -79,8 +92,9 @@ settings field `keepStatistics`; only `false` turns it off) and *Reset statistic
 adds to the row of the day, never below zero; two counts at once both arrive (the second insert
 of a new row retries as an update). `GET /apps/honeycomb/api/v1/stats` takes the optional days
 `from` and `to` (`YYYY-MM-DD`, both included) and answers `counters`, the user's rows of those
-days as `{day, metric, value}` ordered by day and metric, and `firstDay`, the user's first counted
-day or `null`; a malformed day or `from` after `to` answers 400. `DELETE` on the same URL resets.
+days as `{day, metric, value}` ordered by day and metric, `firstDay`, the user's first counted
+day or `null`, and `today`, the user's day; a malformed day or `from` after `to` answers 400.
+`DELETE` on the same URL resets.
 Strings are English, translated per ADR 0007; the mockup lists them.
 
 ## Acceptance criteria
@@ -183,9 +197,10 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 ### STATS-001.16 – A browser count is bounded
 
-- **Given** a sidecar save of n sidecars
-- **When** its count list claims more than n changes of one kind, or active time longer than the
-  time since the folder set's previous position save
+- **Given** a flag or sidecar save of n items
+- **When** its counts claim more than n changes of one kind (more than one per item), or a
+  position save claims active time longer than the time since the folder set's previous position
+  save
 - **Then** the server caps the count at that bound
 
 ### STATS-001.17 – Active time leaves idle time out
@@ -239,6 +254,33 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **Given** inputs at 0 s, 30 s and 5 min
 - **When** *Cull finished* opens at 5 min
 - **Then** active time is 2 min 30 s
+
+### STATS-001.36 – Browser counts need a saved item
+
+- **Given** a flag save of 2 pictures whose second file the server skips, or a sidecar save whose
+  counted sidecar changed meanwhile
+- **When** it ends
+- **Then** only the saved items' counts count; a sidecar saved in the second round carries the
+  counts again
+
+### STATS-001.37 – Ratings, colour labels and tags count each change
+
+- **Given** a picture with no rating and no tags
+- **When** the user rates it, gives it a colour label, adds a tag, and undoes the tag
+- **Then** ratings set and colour labels set rise by 1 and tags set by 0
+
+### STATS-001.38 – A sidecar from digiKam or darktable
+
+- **Given** sidecars last changed before today, one written by darktable, one with a digiKam
+  property honeycomb does not write, and one written by honeycomb only
+- **When** honeycomb saves to each
+- **Then** sidecars updated rise by 3 and sidecars from digiKam or darktable by 2
+
+### STATS-001.39 – Active time rides with the position save
+
+- **Given** a cull with 90 seconds of input since the last position save
+- **When** the next position save is sent
+- **Then** it carries 90 active seconds and the one after it starts again from 0
 
 ### STATS-001.21 – The page shows a period
 
@@ -313,6 +355,32 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **When** it ends
 - **Then** pictures moved rise by 1
 
+### STATS-001.40 – The navigation entry opens the page
+
+- **Given** the cull page or the *Cull finished* card
+- **When** the user picks *Statistics* in the navigation or on the card
+- **Then** the statistics page opens at `/apps/honeycomb/statistics`, a page of its own like
+  *Similarity* with *Back to the cull*; the navigation's page entries come from one list
+
+### STATS-001.41 – The period before
+
+- **Given** pictures decided in the period and in the period of the same length before it
+- **When** the page shows the tile *Photos decided*
+- **Then** it adds the change in percent against the period before; without numbers before, or
+  for *All time*, it adds nothing
+
+### STATS-001.42 – Folder sets show their share decided
+
+- **Given** stored resume positions
+- **When** the page shows *Folder sets*
+- **Then** each shows its name and its share decided, *Done* at 100 %
+
+### STATS-001.43 – Statistics off
+
+- **Given** *Keep statistics* off
+- **When** the user opens the page
+- **Then** it adds *Statistics are off. Turn on Keep statistics in the settings to count again.*
+
 ## History
 
 | Date | Change |
@@ -321,3 +389,5 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-19 | Storage and API, the settings section (metrics PR 2 of 8) |
 | 2026-11-19 | Server counts: trash, deleted for good, Remove RAWs, sidecars, series done, moves (.29–.31; metrics PR 3 of 8) |
 | 2026-11-19 | *Cull finished*: when it opens, what the session counts (.32–.35; metrics PR 4 of 8) |
+| 2026-11-19 | Browser counts on the flag, sidecar and position saves (.36–.39; metrics PR 5 of 8) |
+| 2026-11-20 | The statistics page and its navigation entry, `today` in the answer (.40–.43; metrics PR 6 of 8) |

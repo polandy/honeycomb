@@ -9,7 +9,6 @@ import type { ResumePosition } from '../logic/resume-position.ts'
 
 import { emit as emitEvent } from '@nextcloud/event-bus'
 import { t } from '@nextcloud/l10n'
-import { generateUrl } from '@nextcloud/router'
 import { useIsMobile } from '@nextcloud/vue/composables/useIsMobile'
 import NcAppNavigation from '@nextcloud/vue/components/NcAppNavigation'
 import NcAppNavigationCaption from '@nextcloud/vue/components/NcAppNavigationCaption'
@@ -17,6 +16,7 @@ import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
 import AppIcon from './AppIcon.vue'
 import RecentFolderSets from './RecentFolderSets.vue'
 import { useNavigationChoice } from '../navigation-choice.ts'
+import { useNavigationItems } from '../navigation-items.ts'
 
 const props = withDefaults(defineProps<{
 	items: readonly RecentFolderSet[]
@@ -35,7 +35,7 @@ const emit = defineEmits<{
 }>()
 
 const isMobile = useIsMobile()
-const similarityUrl = generateUrl('/apps/honeycomb/similarity')
+const pageItems = useNavigationItems()
 useNavigationChoice(props.storage, props.viewportWidth)
 
 /** NcAppNavigation closes only through this event, as NcAppNavigationItem does for router links. */
@@ -54,29 +54,45 @@ function closeOnNarrowScreen() {
 					<AppIcon name="folder" />
 				</template>
 			</NcAppNavigationItem>
-			<NcAppNavigationItem :name="t('honeycomb', 'Similarity')" :href="similarityUrl">
+			<NcAppNavigationItem
+				v-for="item in pageItems"
+				:key="item.page"
+				:name="item.name"
+				:href="item.href">
 				<template #icon>
-					<AppIcon name="compare" />
+					<AppIcon :name="item.icon" />
 				</template>
 			</NcAppNavigationItem>
 			<NcAppNavigationCaption :name="t('honeycomb', 'Recent')" />
-			<RecentFolderSets v-if="props.items.length > 0" :items="props.items" @open="closeOnNarrowScreen(); emit('openRecent', $event)" />
-			<p v-else class="app-navigation__empty">
+			<li v-if="props.items.length > 0" class="app-navigation__recent">
+				<RecentFolderSets :items="props.items" @open="closeOnNarrowScreen(); emit('openRecent', $event)" />
+			</li>
+			<li v-else class="app-navigation__empty">
 				{{ t('honeycomb', 'Folder sets you cull show here.') }}
-			</p>
+			</li>
 		</template>
 		<template #footer>
-			<NcAppNavigationItem :name="t('honeycomb', 'Settings')" @click="closeOnNarrowScreen(); emit('openSettings')">
-				<template #icon>
-					<AppIcon name="settings" />
-				</template>
-			</NcAppNavigationItem>
+			<ul class="app-navigation__footer">
+				<NcAppNavigationItem :name="t('honeycomb', 'Settings')" @click="closeOnNarrowScreen(); emit('openSettings')">
+					<template #icon>
+						<AppIcon name="settings" />
+					</template>
+				</NcAppNavigationItem>
+			</ul>
 		</template>
 	</NcAppNavigation>
 </template>
 
 <style scoped>
+.app-navigation__recent,
+.app-navigation__footer {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
 .app-navigation__empty {
+	list-style: none;
 	padding: var(--default-grid-baseline) calc(3 * var(--default-grid-baseline));
 	color: var(--color-text-maxcontrast);
 }

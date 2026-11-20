@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
 import { cullFolder } from './cull.ts'
-import { etagOf, JPEG, RAW, requestToken, trashEntry, upload } from './files.ts'
+import { apiHeaders, etagOf, JPEG, RAW, trashEntry, upload } from './files.ts'
 import { occ } from './server.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
@@ -26,7 +26,7 @@ async function uploadPair(page: Page, folder: string): Promise<{ fileId: number,
 
 /** Posts one picture to the trash endpoint and returns each file's result. */
 async function trash(page: Page, picture: { fileId: number, etag: string, permanent?: boolean }[]): Promise<string[]> {
-	const response = await page.request.post(`${API}/trash`, { data: { pictures: [picture] }, headers: { requesttoken: await requestToken(page) } })
+	const response = await page.request.post(`${API}/trash`, { data: { pictures: [picture] }, headers: await apiHeaders(page) })
 	expect(response.status(), await response.text()).toBe(200)
 	const body = await response.json() as { pictures: { result: string }[][] }
 	return body.pictures.flat().map(({ result }) => result)
@@ -34,7 +34,7 @@ async function trash(page: Page, picture: { fileId: number, etag: string, perman
 
 /** Whether the admin has a file at `path`. */
 async function exists(page: Page, path: string): Promise<boolean> {
-	const response = await page.request.fetch(`/remote.php/dav/files/${ADMIN.username}/${path}`, { method: 'PROPFIND', headers: { requesttoken: await requestToken(page), Depth: '0' } })
+	const response = await page.request.fetch(`/remote.php/dav/files/${ADMIN.username}/${path}`, { method: 'PROPFIND', headers: await apiHeaders(page, { Depth: '0' }) })
 	return response.status() !== 404
 }
 
@@ -42,7 +42,7 @@ async function exists(page: Page, path: string): Promise<boolean> {
 async function trashLocations(page: Page): Promise<string> {
 	const trash = await page.request.fetch(`/remote.php/dav/trashbin/${ADMIN.username}/trash`, {
 		method: 'PROPFIND',
-		headers: { requesttoken: await requestToken(page), Depth: '1' },
+		headers: await apiHeaders(page, { Depth: '1' }),
 		data: '<d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns"><d:prop><nc:trashbin-original-location/></d:prop></d:propfind>',
 	})
 	return trash.text()

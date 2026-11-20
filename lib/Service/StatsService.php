@@ -29,17 +29,25 @@ final readonly class StatsService {
 	}
 
 	/**
-	 * Counts the sidecars a save created, and those it replaced that were last changed before the user's day (ADR 0039).
-	 * @param list<?int> $previousMTimes each saved sidecar's modification time before the save, null for a created one
+	 * Counts the sidecars a save created, those it replaced that were last changed before the user's day, the foreign ones among those, and the counts the saved items carried (ADR 0039).
+	 * @param list<array{mtime: ?int, foreign: bool}> $saved each saved sidecar's modification time before the save, null for a created one, and whether it held data of another program
 	 */
-	public function countSidecars(IUser $user, array $previousMTimes): void {
-		$this->add($user, function () use ($user, $previousMTimes): array {
+	public function countSidecars(IUser $user, array $saved, StatsCount ...$counts): void {
+		$this->add($user, function () use ($user, $saved, $counts): array {
 			$start = $this->day->start($user);
+			$updated = array_filter($saved, static fn (array $sidecar): bool => $sidecar['mtime'] !== null && $sidecar['mtime'] < $start);
 			return [
-				new StatsCount(StatsMetric::SidecarsCreated, count(array_filter($previousMTimes, is_null(...)))),
-				new StatsCount(StatsMetric::SidecarsUpdated, count(array_filter($previousMTimes, static fn (?int $mtime): bool => $mtime !== null && $mtime < $start))),
+				new StatsCount(StatsMetric::SidecarsCreated, count(array_filter($saved, static fn (array $sidecar): bool => $sidecar['mtime'] === null))),
+				new StatsCount(StatsMetric::SidecarsUpdated, count($updated)),
+				new StatsCount(StatsMetric::SidecarsForeign, count(array_filter($updated, static fn (array $sidecar): bool => $sidecar['foreign']))),
+				...$counts,
 			];
 		});
+	}
+
+	/** Counts the active time a position save carried, at most the time since `$since`, or since the start of the user's day without one (STATS-001.16). */
+	public function countActiveSeconds(IUser $user, int $seconds, int $now, ?int $since): void {
+		$this->add($user, fn (): array => [new StatsCount(StatsMetric::ActiveSeconds, max(0, min($seconds, $now - ($since ?? $this->day->start($user)))))]);
 	}
 
 	/** @param \Closure(): array<StatsCount> $counts */
@@ -49,9 +57,9 @@ final readonly class StatsService {
 				return;
 			}
 			$day = $this->day->today($user);
-			foreach ($counts() as $count) {
-				if ($count->amount !== 0) {
-					RetryOnConflict::run(fn () => $this->store->add($user->getUID(), $day, $count->metric, $count->amount));
+			foreach (self::summed($counts()) as $metric => $amount) {
+				if ($amount !== 0) {
+					RetryOnConflict::run(fn () => $this->store->add($user->getUID(), $day, StatsMetric::from($metric), $amount));
 				}
 			}
 		} catch (\Exception $e) {
@@ -60,8 +68,21 @@ final readonly class StatsService {
 	}
 
 	/**
-	 * The user's counters of the days from `$from` to `$to`, both included, and their first counted day.
-	 * @return array{counters: list<StatsCounter>, firstDay: ?string}
+	 * One sum per metric, in the order the metrics first come.
+	 * @param array<StatsCount> $counts
+	 * @return array<string, int>
+	 */
+	private static function summed(array $counts): array {
+		$sums = [];
+		foreach ($counts as $count) {
+			$sums[$count->metric->value] = ($sums[$count->metric->value] ?? 0) + $count->amount;
+		}
+		return $sums;
+	}
+
+	/**
+	 * The user's counters of the days from `$from` to `$to`, both included, their first counted day and their today.
+	 * @return array{counters: list<StatsCounter>, firstDay: ?string, today: string}
 	 * @throws InvalidStatsRequestException for a malformed day or `$from` after `$to`
 	 */
 	public function read(IUser $user, ?string $from, ?string $to): array {
@@ -70,7 +91,7 @@ final readonly class StatsService {
 		if ($from !== null && $to !== null && $from > $to) {
 			throw new InvalidStatsRequestException('from must not be after to');
 		}
-		return ['counters' => $this->store->between($user->getUID(), $from, $to), 'firstDay' => $this->store->firstDay($user->getUID())];
+		return ['counters' => $this->store->between($user->getUID(), $from, $to), 'firstDay' => $this->store->firstDay($user->getUID()), 'today' => $this->day->today($user)];
 	}
 
 	/** Removes every counter of the user. */

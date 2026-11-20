@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
 import { cullFolder } from './cull.ts'
-import { createFolder, etagOf, JPEG, pickLabel, RAW, requestToken, trashEntry, upload } from './files.ts'
+import { apiHeaders, createFolder, etagOf, JPEG, pickLabel, RAW, trashEntry, upload } from './files.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
 const TRASHBIN = `/remote.php/dav/trashbin/${ADMIN.username}`
@@ -15,7 +15,7 @@ const TRASHBIN = `/remote.php/dav/trashbin/${ADMIN.username}`
 async function trashLocations(page: Page): Promise<string> {
 	const trash = await page.request.fetch(`${TRASHBIN}/trash`, {
 		method: 'PROPFIND',
-		headers: { requesttoken: await requestToken(page), Depth: '1' },
+		headers: await apiHeaders(page, { Depth: '1' }),
 		data: '<d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns"><d:prop><nc:trashbin-original-location/></d:prop></d:propfind>',
 	})
 	return trash.text()
@@ -43,10 +43,10 @@ test('reviews the rejects, rescues one and moves the rest to the Nextcloud trash
 	await page.getByRole('dialog', { name: 'Cull finished' }).getByRole('button', { name: 'Done' }).click()
 	await page.getByRole('button', { name: 'Done' }).click()
 
-	await page.getByRole('button', { name: 'Review rejects (3)' }).click()
+	await page.getByRole('button', { name: 'Review rejects: 3' }).click()
 	const review = page.getByRole('dialog', { name: 'Review rejects' })
-	await review.getByRole('button', { name: 'Rescue IMG_0003' }).click()
-	await expect(review.getByRole('button', { name: 'Rescue IMG_0003' })).toBeHidden()
+	await review.getByRole('button', { name: /^IMG_0003/ }).click()
+	await expect(review.getByRole('button', { name: /^IMG_0003/ })).toBeHidden()
 	await review.getByRole('button', { name: 'Continue: delete 2' }).click()
 
 	const summary = page.getByRole('dialog', { name: 'Delete 2 photos' })
@@ -93,7 +93,7 @@ test('deletes the rejects from the More menu while the flag filter hides them', 
 	await item.click()
 
 	const review = page.getByRole('dialog', { name: 'Review rejects' })
-	await expect(review.getByRole('button', { name: 'Rescue IMG_0001' })).toBeVisible()
+	await expect(review.getByRole('button', { name: /^IMG_0001/ })).toBeVisible()
 	await review.getByRole('button', { name: 'Continue: delete 1' }).click()
 	await page.getByRole('dialog', { name: 'Delete 1 photo' }).getByRole('button', { name: 'Move 2 files to trash' }).click()
 
@@ -115,13 +115,13 @@ test('skips a reject another user picked meanwhile and reports it, but deletes o
 
 	const takenOver = page.waitForResponse((response) => response.url().endsWith('/api/v1/flags/take-over') && response.ok())
 	await cullFolder(page, folder)
-	await expect(page.getByRole('button', { name: 'Review rejects (2)' })).toBeVisible()
+	await expect(page.getByRole('button', { name: 'Review rejects: 2' })).toBeVisible()
 	await takenOver
-	const picked = await page.request.put(`${API}/flags`, { data: { flags: [{ fileId: fileIds[1], flag: 'picked', keepRaw: false }] }, headers: { requesttoken: await requestToken(page) } })
+	const picked = await page.request.put(`${API}/flags`, { data: { flags: [{ fileId: fileIds[1], flag: 'picked', keepRaw: false }] }, headers: await apiHeaders(page) })
 	expect(picked.status()).toBe(200)
 	await upload(page, `${folder}/IMG_0001.jpg.xmp`, pickLabel(3))
 
-	await page.getByRole('button', { name: 'Review rejects (2)' }).click()
+	await page.getByRole('button', { name: 'Review rejects: 2' }).click()
 	await page.getByRole('dialog', { name: 'Review rejects' }).getByRole('button', { name: 'Continue: delete 2' }).click()
 	await page.getByRole('dialog', { name: 'Delete 2 photos' }).getByRole('button', { name: /^Move \d+ files to trash$/ }).click()
 
@@ -146,10 +146,10 @@ test('deletes nothing of a folder it could not list again, asks nothing and repo
 		await upload(page, `${folder}/${name}.jpg.xmp`, pickLabel(1))
 	}
 	await cullFolder(page, folder)
-	await expect(page.getByRole('button', { name: 'Review rejects (2)' })).toBeVisible()
+	await expect(page.getByRole('button', { name: 'Review rejects: 2' })).toBeVisible()
 	await page.route('**/apps/honeycomb/api/v1/entries**', (route) => route.fulfill({ status: 500 }))
 
-	await page.getByRole('button', { name: 'Review rejects (2)' }).click()
+	await page.getByRole('button', { name: 'Review rejects: 2' }).click()
 	await page.getByRole('dialog', { name: 'Review rejects' }).getByRole('button', { name: 'Continue: delete 2' }).click()
 	await page.getByRole('dialog', { name: 'Delete 2 photos' }).getByRole('button', { name: /^Move \d+ files to trash$/ }).click()
 
@@ -169,19 +169,19 @@ test('deletes nothing when the trash request fails, and the toast says so', asyn
 	await cullFolder(page, folder)
 	await page.route('**/apps/honeycomb/api/v1/trash', (route) => route.fulfill({ status: 500 }))
 
-	await page.getByRole('button', { name: 'Review rejects (1)' }).click()
+	await page.getByRole('button', { name: 'Review rejects: 1' }).click()
 	await page.getByRole('dialog', { name: 'Review rejects' }).getByRole('button', { name: 'Continue: delete 1' }).click()
 	await page.getByRole('dialog', { name: 'Delete 1 photo' }).getByRole('button', { name: 'Move 2 files to trash' }).click()
 
 	await expect(page.getByRole('alert').filter({ hasText: 'Could not delete the photos; reload the folder to see what changed.' })).toBeVisible()
-	await expect(page.getByRole('button', { name: 'Review rejects (1)' })).toBeVisible()
+	await expect(page.getByRole('button', { name: 'Review rejects: 1' })).toBeVisible()
 	expect(await trashLocations(page)).not.toContain(`${folder}/`)
 })
 
 // spec: DELETE-001.15
 test('a picture restored from the trash bin keeps its file id but not its flag, whose row went with it', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
-	const requesttoken = await requestToken(page)
+	const headers = await apiHeaders(page)
 	const id = randomUUID().slice(0, 8)
 	const folder = `Restore ${id}`
 	await createFolder(page, folder)
@@ -190,17 +190,17 @@ test('a picture restored from the trash bin keeps its file id but not its flag, 
 	const fileId = await upload(page, path, JPEG)
 	const file = `/remote.php/dav/files/${ADMIN.username}/${path}`
 	const etag = await etagOf(page, path)
-	expect((await page.request.put(`${API}/flags`, { data: { flags: [{ fileId, flag: 'picked', keepRaw: false }] }, headers: { requesttoken } })).status()).toBe(200)
+	expect((await page.request.put(`${API}/flags`, { data: { flags: [{ fileId, flag: 'picked', keepRaw: false }] }, headers })).status()).toBe(200)
 
-	const trashed = await page.request.post(`${API}/trash`, { data: { pictures: [[{ fileId, etag }]] }, headers: { requesttoken } })
+	const trashed = await page.request.post(`${API}/trash`, { data: { pictures: [[{ fileId, etag }]] }, headers })
 	expect(await trashed.json()).toEqual({ pictures: [[{ fileId, result: 'trashed' }]] })
-	const flagOf = async () => ((await (await page.request.get(`${API}/entries`, { params: { path: `/${folder}` }, headers: { requesttoken } })).json()) as { entries: { fileId: number, flag: string | null }[] }).entries.find((entry) => entry.fileId === fileId)?.flag
+	const flagOf = async () => ((await (await page.request.get(`${API}/entries`, { params: { path: `/${folder}` }, headers })).json()) as { entries: { fileId: number, flag: string | null }[] }).entries.find((entry) => entry.fileId === fileId)?.flag
 
 	const entry = await trashEntry(page, path)
-	const restored = await page.request.fetch(entry, { method: 'MOVE', headers: { requesttoken, Destination: `${TRASHBIN}/restore/${randomUUID()}` } })
+	const restored = await page.request.fetch(entry, { method: 'MOVE', headers: { ...headers, Destination: `${TRASHBIN}/restore/${randomUUID()}` } })
 	expect(restored.status(), await restored.text()).toBe(201)
 
-	const back = await page.request.fetch(file, { method: 'PROPFIND', headers: { requesttoken, Depth: '0' }, data: '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><oc:fileid/></d:prop></d:propfind>' })
+	const back = await page.request.fetch(file, { method: 'PROPFIND', headers: { ...headers, Depth: '0' }, data: '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><oc:fileid/></d:prop></d:propfind>' })
 	expect(await back.text()).toContain(`<oc:fileid>${fileId}</oc:fileid>`)
 	expect(await flagOf()).toBeNull()
 })
@@ -208,7 +208,7 @@ test('a picture restored from the trash bin keeps its file id but not its flag, 
 // spec: DELETE-001.13
 test('two photos of one name from two folders, trashed in one request, can both be restored', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
-	const requesttoken = await requestToken(page)
+	const headers = await apiHeaders(page)
 	const id = randomUUID().slice(0, 8)
 	const files = []
 	for (const folder of [`Same name ${id} A`, `Same name ${id} B`]) {
@@ -218,14 +218,14 @@ test('two photos of one name from two folders, trashed in one request, can both 
 	}
 
 	const pictures = files.map(({ fileId, etag }) => [{ fileId, etag }])
-	const trashed = await page.request.post(`${API}/trash`, { data: { pictures }, headers: { requesttoken } })
+	const trashed = await page.request.post(`${API}/trash`, { data: { pictures }, headers })
 	expect(await trashed.json()).toEqual({ pictures: files.map(({ fileId }) => [{ fileId, result: 'trashed' }]) })
 
 	for (const { path, fileId } of files) {
 		const entry = await trashEntry(page, path)
-		const restored = await page.request.fetch(entry, { method: 'MOVE', headers: { requesttoken, Destination: `${TRASHBIN}/restore/${randomUUID()}` } })
+		const restored = await page.request.fetch(entry, { method: 'MOVE', headers: { ...headers, Destination: `${TRASHBIN}/restore/${randomUUID()}` } })
 		expect(restored.status(), await restored.text()).toBe(201)
-		const back = await page.request.fetch(`/remote.php/dav/files/${ADMIN.username}/${path}`, { method: 'PROPFIND', headers: { requesttoken, Depth: '0' }, data: '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><oc:fileid/></d:prop></d:propfind>' })
+		const back = await page.request.fetch(`/remote.php/dav/files/${ADMIN.username}/${path}`, { method: 'PROPFIND', headers: { ...headers, Depth: '0' }, data: '<d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><oc:fileid/></d:prop></d:propfind>' })
 		expect(await back.text()).toContain(`<oc:fileid>${fileId}</oc:fileid>`)
 	}
 })

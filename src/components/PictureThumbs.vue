@@ -13,8 +13,6 @@ const props = withDefaults(defineProps<{
 	pictures: readonly Picture<ListingEntry>[]
 	/** What a tap does, e.g. "Rescue". */
 	action: string
-	/** The tile's accessible name, e.g. "Rescue IMG_0001". */
-	label: (picture: Picture<ListingEntry>) => string
 	/** The tile's frame: red for pictures that go, primary for pictures that stay. */
 	tone: 'error' | 'primary'
 	imageUrl: ImageUrlFor
@@ -34,7 +32,6 @@ const emit = defineEmits<{
 				type="button"
 				class="picture-thumbs__tile"
 				:class="`picture-thumbs__tile--${props.tone}`"
-				:aria-label="props.label(picture)"
 				@click="emit('tap', picture)">
 				<img :src="smallSource(imageMember(picture), props.imageUrl)" alt="" loading="lazy">
 				<span class="picture-thumbs__name">{{ picture.baseName }}</span>
@@ -66,6 +63,12 @@ const emit = defineEmits<{
 	border-radius: var(--border-radius-large);
 	background: var(--color-main-background);
 	text-align: start;
+}
+
+/* Nextcloud's own button hover is the light primary, on which the grey caption and the blue action fall below 4.5:1. */
+.picture-thumbs__tile:hover,
+.picture-thumbs__tile:focus {
+	background: var(--color-background-hover);
 }
 
 .picture-thumbs__tile--primary {

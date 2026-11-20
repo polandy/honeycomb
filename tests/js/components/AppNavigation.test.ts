@@ -8,6 +8,7 @@ import { ref } from 'vue'
 import AppNavigation from '../../../src/components/AppNavigation.vue'
 import RecentFolderSets from '../../../src/components/RecentFolderSets.vue'
 import { NAVIGATION_OPEN_KEY } from '../../../src/navigation-choice.ts'
+import { useNavigationItems } from '../../../src/navigation-items.ts'
 import { fakeStorage } from '../app-cull.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 
@@ -62,6 +63,14 @@ describe('AppNavigation', () => {
 
 		expect(wrapper.emitted('chooseFolders')).toEqual([[]])
 		expect(wrapper.emitted('openSettings')).toEqual([[]])
+	})
+
+	// spec: STATS-001.40
+	it('links the pages of their own from one list, Statistics after Similarity', () => {
+		const links = mountNavigation().findAll('a[href]:not([href="#"])').map((link) => ({ name: link.text(), href: link.attributes('href') }))
+
+		expect(links).toEqual(useNavigationItems().map(({ name, href }) => ({ name, href })))
+		expect(links.map((link) => link.name)).toEqual([`${MARK}Similarity`, `${MARK}Statistics`])
 	})
 
 	// spec: DECISIONS-002.12

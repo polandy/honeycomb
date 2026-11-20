@@ -90,7 +90,7 @@ final class StatsServiceTest extends TestCase {
 		$this->service()->count($this->user(), new StatsCount(StatsMetric::SeriesDone, 1));
 
 		$this->assertSame(['2026-02-27' => ['series_done' => 2]], $this->store->rows['alice']);
-		$this->assertEquals(['counters' => [new StatsCounter('2026-02-27', 'series_done', 2)], 'firstDay' => '2026-02-27'], $this->service()->read($this->user(), null, null));
+		$this->assertEquals(['counters' => [new StatsCounter('2026-02-27', 'series_done', 2)], 'firstDay' => '2026-02-27', 'today' => '2026-03-01'], $this->service()->read($this->user(), null, null));
 	}
 
 	// spec: STATS-001.18
@@ -149,19 +149,19 @@ final class StatsServiceTest extends TestCase {
 		$this->assertSame([], $this->store->rows);
 	}
 
-	// spec: STATS-001.4
-	public function testReadsTheUsersOwnCountersOfThePeriodAndTheirFirstDay(): void {
+	// spec: STATS-001.4, STATS-001.21
+	public function testReadsTheUsersOwnCountersOfThePeriodTheirFirstDayAndToday(): void {
 		$this->store->rows['alice'] = ['2026-02-01' => ['series_done' => 1], '2026-02-10' => ['trash_files' => 4, 'series_done' => 2], '2026-03-01' => ['series_done' => 5]];
 		$this->store->rows['bob'] = ['2026-01-01' => ['series_done' => 9], '2026-02-10' => ['series_done' => 9]];
 
 		$read = $this->service()->read($this->user(), '2026-02-10', '2026-02-28');
 
-		$this->assertEquals(['counters' => [new StatsCounter('2026-02-10', 'series_done', 2), new StatsCounter('2026-02-10', 'trash_files', 4)], 'firstDay' => '2026-02-01'], $read);
+		$this->assertEquals(['counters' => [new StatsCounter('2026-02-10', 'series_done', 2), new StatsCounter('2026-02-10', 'trash_files', 4)], 'firstDay' => '2026-02-01', 'today' => '2026-03-01'], $read);
 	}
 
 	// spec: STATS-001.23
 	public function testReadsNothingForAUserWithoutCounters(): void {
-		$this->assertSame(['counters' => [], 'firstDay' => null], $this->service()->read($this->user(), null, '2026-03-01'));
+		$this->assertSame(['counters' => [], 'firstDay' => null, 'today' => '2026-03-01'], $this->service()->read($this->user(), null, '2026-03-01'));
 	}
 
 	/** @return array<string, array{?string, ?string}> */
@@ -189,7 +189,7 @@ final class StatsServiceTest extends TestCase {
 
 		$this->service()->reset($this->user());
 
-		$this->assertSame(['counters' => [], 'firstDay' => null], $this->service()->read($this->user(), null, null));
+		$this->assertSame(['counters' => [], 'firstDay' => null, 'today' => '2026-03-01'], $this->service()->read($this->user(), null, null));
 		$this->assertSame(['2026-02-10' => ['series_done' => 9]], $this->store->rows['bob']);
 	}
 }
