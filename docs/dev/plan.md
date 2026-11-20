@@ -377,9 +377,9 @@ loads in flight, which it asserts (at most six, counted by the browser's clock; 
 then writes the same photos into a second folder, runs their render jobs, opens it and asserts
 that the opening rendered no preview, counted in core's preview files (IMAGES-001.12); it asserts
 that folder's first sharp image within twice its budget. Every limit is in `tests/e2e/budgets.ts`:
-the loupe budget above, and about three times CI's slowest run elsewhere, as a shared runner is
-slower than the host measured below; a test fails when one is exceeded (`HONEYCOMB_BUDGET_SCALE=0.01` shows it). With
-`HONEYCOMB_BUDGET_PHOTOS` set, it uploads the pairs of that folder.
+the loupe budget above, and about three times CI's slowest run elsewhere, as a shared runner
+is slower than the host measured below; a test fails when one is exceeded
+(`HONEYCOMB_BUDGET_SCALE=0.01` shows it). With `HONEYCOMB_BUDGET_PHOTOS` set, it uploads the pairs of that folder.
 
 **Measured on 2026-11-18** (local e2e container, Nextcloud 35, one host; 12 pairs of Fujifilm
 X-T2, 6000 × 4000 px, 9.4 MB JPEG and about 30 MB RAF each; the Series folder of the owner's real
