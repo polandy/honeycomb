@@ -4,6 +4,7 @@
 /** The longest pause active time counts (glossary: active time). */
 export const IDLE_LIMIT_MS = 120_000
 const SECOND_MS = 1000
+const MINUTE_MS = 60_000
 
 /** The active time measured so far and the moment of the last input, in ms. */
 export interface ActiveTime {
@@ -28,4 +29,9 @@ export function withActiveInput(time: ActiveTime, at: number): ActiveTime {
 export function takenSeconds(time: ActiveTime): { readonly seconds: number, readonly rest: ActiveTime } {
 	const seconds = Math.floor(time.ms / SECOND_MS)
 	return { seconds, rest: { ...time, ms: time.ms - seconds * SECOND_MS } }
+}
+
+/** The pictures a minute of the active time, from one active minute on, else null. */
+export function picturesPerMinute(pictures: number, activeMs: number): number | null {
+	return activeMs < MINUTE_MS ? null : pictures / (activeMs / MINUTE_MS)
 }

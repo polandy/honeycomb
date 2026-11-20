@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { HashState } from './logic/hash-progress.ts'
+import type { PictureId } from './logic/picture-id.ts'
 import type { StoredVisualHash } from './logic/visual-hash.ts'
 
 import { computed, ref, shallowRef, triggerRef } from 'vue'
@@ -13,7 +14,7 @@ export const HASH_RUN_SAVE_BATCH = 250
 
 /** A photo of the user without a hash of its current version, as the server lists it (ADR 0025). */
 export interface MissingPicture {
-	readonly fileId: number
+	readonly fileId: PictureId
 	readonly etag: string
 	readonly mtime: number
 	readonly path: string
@@ -66,7 +67,7 @@ export function useHashRun(seams: HashRunSeams) {
 	const failedPaths = computed(() => [...states.value.values()].filter((each) => each.state === 'failed').map((each) => each.picture.path))
 
 	/** Sets the state of one picture and lets the progress know. */
-	function mark(fileId: number, state: HashState) {
+	function mark(fileId: PictureId, state: HashState) {
 		states.value.get(fileId)!.state = state
 		triggerRef(states)
 	}

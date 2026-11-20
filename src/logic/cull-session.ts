@@ -3,11 +3,10 @@
 import type { Flag } from './decision.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
+import type { PictureId } from './picture-id.ts'
 
-import { sinceLastInput } from './active-time.ts'
+import { picturesPerMinute, sinceLastInput } from './active-time.ts'
 import { filesOf } from './delete-summary.ts'
-
-const MINUTE_MS = 60_000
 
 /** What a picture is to *Cull finished*: decided by its flag, or undecided. */
 export type SessionState = Flag | 'undecided'
@@ -35,9 +34,9 @@ export interface SessionSave {
 export interface CullSession {
 	readonly before: SessionTotals
 	/** The state now of each picture a step of the user changed, by picture key. */
-	readonly changed: ReadonlyMap<number, SessionState>
+	readonly changed: ReadonlyMap<PictureId, SessionState>
 	/** Each picture a delete took out, by key: whether a file of it was deleted for good. */
-	readonly removed: ReadonlyMap<number, boolean>
+	readonly removed: ReadonlyMap<PictureId, boolean>
 	readonly freedBytes: number
 	/** Each sidecar saved, by path: whether a save created it. */
 	readonly sidecars: ReadonlyMap<string, boolean>
@@ -84,7 +83,7 @@ export function totalsOf(pictures: readonly Picture<ListingEntry>[]): SessionTot
 }
 
 /** The session with the pictures a step changed at their state after it; a picture the step took out keeps its last state. */
-export function withStep(session: CullSession, before: ReadonlyMap<number, SessionState>, after: ReadonlyMap<number, SessionState>): CullSession {
+export function withStep(session: CullSession, before: ReadonlyMap<PictureId, SessionState>, after: ReadonlyMap<PictureId, SessionState>): CullSession {
 	const changed = new Map(session.changed)
 	after.forEach((state, key) => {
 		if (before.get(key) !== state) {
@@ -95,7 +94,7 @@ export function withStep(session: CullSession, before: ReadonlyMap<number, Sessi
 }
 
 /** Whether a step took the last undecided picture: some before, none after. */
-export function finishesCull(before: ReadonlyMap<number, SessionState>, after: ReadonlyMap<number, SessionState>): boolean {
+export function finishesCull(before: ReadonlyMap<PictureId, SessionState>, after: ReadonlyMap<PictureId, SessionState>): boolean {
 	return [...before.values()].includes('undecided') && ![...after.values()].includes('undecided')
 }
 
@@ -139,6 +138,6 @@ export function sessionNumbers(session: CullSession, after: SessionTotals, at: n
 		before: session.before,
 		after,
 		activeMs,
-		perMinute: activeMs < MINUTE_MS ? null : decided / (activeMs / MINUTE_MS),
+		perMinute: picturesPerMinute(decided, activeMs),
 	}
 }

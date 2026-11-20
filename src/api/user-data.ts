@@ -1,11 +1,13 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ResumePosition } from '../logic/resume-position.ts'
+import type { StatsAnswer } from '../logic/statistics.ts'
 import type { Tag } from '../logic/tag.ts'
 import type { ViewState } from '../logic/view-state.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
+import { parseCounters } from '../logic/statistics.ts'
 import { API, ApiResponseError, isRecord } from './core.ts'
 
 /** The stored settings of the user as they came, checked by `parseSettings` (ADR 0014). */
@@ -71,4 +73,13 @@ export async function cleanUpOrphanedData(): Promise<number> {
 /** Removes every statistics counter of the user (STATS-001.3). */
 export async function resetStatistics(): Promise<void> {
 	await axios.delete(generateUrl(`${API}/stats`))
+}
+
+/** Every statistics counter of the user, their first counted day and their today (STATS-001.4). */
+export async function loadStatistics(): Promise<StatsAnswer> {
+	const { data } = await axios.get<unknown>(generateUrl(`${API}/stats`))
+	if (!isRecord(data) || !Array.isArray(data.counters) || typeof data.today !== 'string') {
+		throw new ApiResponseError('The statistics came without counters or today; check the server\'s version.')
+	}
+	return { counters: parseCounters(data.counters), firstDay: typeof data.firstDay === 'string' ? data.firstDay : null, today: data.today }
 }

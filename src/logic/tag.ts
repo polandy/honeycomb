@@ -1,12 +1,13 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { PictureId } from './picture-id.ts'
 
 /** A path of names, `Places/Italy/Dolomites`, as `digiKam:TagsList` writes it (`docs/dev/07-tags.md` Model). */
 export type Tag = string
 
 /** The stored tags of one file, sorted (ADR 0022). */
 export interface StoredTags {
-	fileId: number
+	fileId: PictureId
 	tags: Tag[]
 }
 
@@ -81,7 +82,7 @@ export function storableTags(tags: readonly Tag[]): { kept: Tag[], leftOut: Tag[
 }
 
 /** The tags by file id with each row set; an empty row drops its file. */
-export function withTagRows(tags: ReadonlyMap<number, readonly Tag[]>, rows: readonly StoredTags[]): Map<number, readonly Tag[]> {
+export function withTagRows(tags: ReadonlyMap<PictureId, readonly Tag[]>, rows: readonly StoredTags[]): Map<PictureId, readonly Tag[]> {
 	const next = new Map(tags)
 	for (const { fileId, tags: set } of rows) {
 		if (set.length === 0) {
