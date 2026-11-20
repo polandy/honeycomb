@@ -4,6 +4,7 @@ import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { openLoupe } from './cull.ts'
+import { WEBKIT } from './webkit.ts'
 
 /** Whether the middle of Nextcloud's header is on top, not under the loupe. */
 function headerUncovered(page: Page) {
@@ -14,7 +15,7 @@ function headerUncovered(page: Page) {
 }
 
 // spec: LOUPE-001.2, LOUPE-001.3
-test('opens a photo in the loupe, pages by key and closes back to the grid', async ({ page }) => {
+test('opens a photo in the loupe, pages by key and closes back to the grid', { tag: WEBKIT }, async ({ page }) => {
 	const loupe = await openLoupe(page)
 
 	await page.keyboard.press('ArrowRight')

@@ -4,9 +4,10 @@ import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { cullFolder } from './cull.ts'
 import { createFolder, JPEG, RAW, upload } from './files.ts'
+import { WEBKIT } from './webkit.ts'
 
 // spec: MOVE-004.1, MOVE-004.3, MOVE-004.9, MOVE-004.11
-test('moves the selection to a folder chosen by Browse… and brings it back by Undo', async ({ page }) => {
+test('moves the selection to a folder chosen by Browse… and brings it back by Undo', { tag: WEBKIT }, async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const id = randomUUID().slice(0, 8)
 	const folder = `Move ${id}`

@@ -108,6 +108,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   in `@nextcloud/l10n`'s registry, so it needs no list of strings. Components are
   shallow-mounted, so `@nextcloud/vue`'s own English stays out and the props of the stubs, which
   render as attributes, are checked with the attributes of `vue/no-bare-strings-in-template`.
+- 2026-11-20: e2e adds a `webkit` project for a tagged smoke subset (grid, loupe, delete, move)
+  in CI, see `03-coding-standards.md`; the next line still holds for every other case.
 - 2026-11-10: e2e runs one Playwright project, desktop Chromium at 1440 × 900; the reference
   device projects join with the grid (M2.3), when there is a layout to check on them. Nextcloud
   logs a page in only through the login form, not HTTP basic auth, so a setup project logs in
