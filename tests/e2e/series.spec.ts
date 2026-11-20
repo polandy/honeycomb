@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { cullFolder, seriesSaved } from './cull.ts'
+import { cullFolder, seriesRead, seriesSaved } from './cull.ts'
 import { createFolder, JPEG, upload, withCaptureTime } from './files.ts'
 
 const PHONE = { width: 320, height: 640 }
@@ -142,6 +142,7 @@ test('removes a photo from the series and dissolves the series from the compare\
 	await page.reload()
 	await cullFolder(page, folder)
 	await expect(page.getByRole('gridcell')).toHaveCount(3)
+	await seriesRead(page)
 	await page.keyboard.press('n')
 	await expect(compare.locator('.series-compare__name')).toHaveText(['1 · IMG_0001', '2 · IMG_0003'])
 	await compare.getByRole('button', { name: 'Series menu' }).click()
@@ -153,6 +154,7 @@ test('removes a photo from the series and dissolves the series from the compare\
 	await page.reload()
 	await cullFolder(page, folder)
 	await expect(page.getByRole('gridcell')).toHaveCount(3)
+	await seriesRead(page)
 	await page.keyboard.press('n')
 	await expect(page.getByText('All series compared')).toBeVisible()
 })
@@ -184,6 +186,7 @@ test('merges the series with the next one from the compare\'s menu, kept after a
 	await page.reload()
 	await cullFolder(page, folder)
 	await expect(page.getByRole('gridcell')).toHaveCount(4)
+	await seriesRead(page)
 	await page.keyboard.press('n')
 	await expect(merged.locator('.series-compare__name')).toHaveText(['1 · IMG_0001', '2 · IMG_0002', '3 · IMG_0003', '4 · IMG_0004'])
 })
