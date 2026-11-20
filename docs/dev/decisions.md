@@ -1609,3 +1609,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   writes none any more, Nextcloud keeps no cache entry for it, so it is neither listed nor synced
   nor in the way of a save, and removing it would need the storage below `OCP\Files` (rule 1).
   This closes review OPS-9.
+- 2026-11-20: The Immich source's API (ADR 0044) is a paged listing with a signed cursor the
+  server issues, a counts endpoint and a preview proxy; the specs IMMICH-001 to IMMICH-004 carry
+  the owner's sign-off condition. Kinds in Phase 1 are photos, motion photos and videos;
+  *Screenshots* and *Messenger images* wait, since Immich cannot filter them. Easy to redo: docs
+  only, no code yet.
