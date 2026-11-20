@@ -10,7 +10,7 @@ namespace OCA\Honeycomb\Immich;
 use OCP\AppFramework\Utility\ITimeFactory;
 
 /**
- * One page of a connection's uploads, newest first, from Immich's paged search (IMMICH-002).
+ * One page of a connection's uploads with their decisions, newest first, from Immich's paged search (IMMICH-002).
  * @psalm-import-type Entry from AssetEntries
  */
 final class ImmichListing {
@@ -24,6 +24,8 @@ final class ImmichListing {
 		private ListingCursors $cursors,
 		private AssetEntries $entries,
 		private ITimeFactory $time,
+		private ImmichDecisionStore $decisions,
+		private DecidedPages $decided,
 	) {
 	}
 
@@ -38,11 +40,11 @@ final class ImmichListing {
 		}
 		$checked = new ListingFilters($filters);
 		$opened = $cursor === null ? null : $this->cursors->open($cursor, $connection->id, $checked);
-		// Immich knows no decisions yet, so a filter an undecided picture fails matches nothing (ADR 0044).
-		if (!$checked->admitsUndecided()) {
-			return ['entries' => [], 'nextCursor' => null, 'previousCursor' => null];
-		}
 		$receivedBefore = $opened === null ? $this->time->getTime() : $opened['receivedBefore'];
+		// Immich knows no decisions, so a filter no undecided picture passes pages the decision table instead (ADR 0044).
+		if (!$checked->admitsUndecided()) {
+			return $this->decided->page($connection, $checked, $opened['immich'] ?? null, $receivedBefore, $size);
+		}
 		$body = [
 			'filter' => $this->filter->of($checked, $receivedBefore),
 			'orderBy' => self::ORDER,
@@ -55,6 +57,22 @@ final class ImmichListing {
 		}
 		$page = $this->client->search($connection, $body);
 		$next = $page['nextCursor'] === null ? null : $this->cursors->issue($connection->id, $checked, $page['nextCursor'], $receivedBefore);
-		return ['entries' => $this->entries->of($page['items']), 'nextCursor' => $next, 'previousCursor' => null];
+		return ['entries' => $this->decide($connection, $checked, $page['items']), 'nextCursor' => $next, 'previousCursor' => null];
+	}
+
+	/**
+	 * The entries with their decisions, without the decided ones the filters refuse (IMMICH-002.23).
+	 * @param list<mixed> $items
+	 * @return list<Entry>
+	 */
+	private function decide(Connection $connection, ListingFilters $filters, array $items): array {
+		/** @var list<string> $assetIds */
+		$assetIds = array_values(array_filter(array_map(static fn (mixed $item): mixed => is_array($item) ? ($item['id'] ?? null) : null, $items), is_string(...)));
+		$decisions = $assetIds === [] ? [] : $this->decisions->find($connection->user, $connection->id, $assetIds);
+		$entries = $this->entries->of($items, $decisions);
+		return array_values(array_filter($entries, static function (array $entry) use ($decisions, $filters): bool {
+			$decision = $decisions[$entry['assetId']] ?? null;
+			return $decision === null || $filters->admits($decision->flag, $decision->rating, $decision->colourLabel);
+		}));
 	}
 }

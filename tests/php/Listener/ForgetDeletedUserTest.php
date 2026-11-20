@@ -90,7 +90,7 @@ final class ForgetDeletedUserTest extends TestCase {
 		$this->assertCount(1, $this->xmpCache->find('bob', [9]));
 		$this->assertSame(['bob'], array_keys($this->stats->rows));
 		$this->assertSame(['bob'], array_values(array_unique(array_column($this->series->series, 'userId'))));
-		$this->assertSame(['bob'], array_values(array_column($this->immich->rows, 'user')));
+		$this->assertSame(['bob'], array_column($this->immich->rows, 'user'));
 	}
 
 	public function testIgnoresAnotherEvent(): void {

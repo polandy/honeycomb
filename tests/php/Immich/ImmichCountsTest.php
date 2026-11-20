@@ -143,11 +143,11 @@ final class ImmichCountsTest extends TestCase {
 	 * The counts as the browser reads them.
 	 * @param array<string, mixed> $filters
 	 * @param list<mixed> $periods
-	 * @return array<string, mixed>
+	 * @return array{total: int, matching: int, flags: array<string, int>, devices: list<array{model: ?string, count: int}>, kinds: array<string, int>, periods: list<int>, ...<string, mixed>}
 	 */
 	private function counts(array $filters, array $periods): array {
 		$counts = (new ImmichCounts($this->client(), new ImmichSearchFilter(), $this->decisions, $this->time()))->of($this->connection(), $filters, $periods);
-		/** @var array<string, mixed> */
+		/** @var array{total: int, matching: int, flags: array<string, int>, devices: list<array{model: ?string, count: int}>, kinds: array<string, int>, periods: list<int>, ...<string, mixed>} */
 		return json_decode(json_encode($counts, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
 	}
 

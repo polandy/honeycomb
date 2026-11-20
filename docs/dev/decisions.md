@@ -1659,3 +1659,17 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   a route-keyed fake Immich and check its answers against the pinned OpenAPI schema. Easy to redo.
 - 2026-11-20: The Immich client follows no redirect, so the key header never reaches another
   host; a redirecting Immich reports the `version` state (IMMICH-001.6). Easy to redo.
+- 2026-11-20: An Immich asset is gone when the upload library's visible set no longer holds it
+  (deleted, trashed or archived); its decision row is deleted when a decision filter asks for it
+  (IMMICH-003.12). Easy to redo.
+- 2026-11-20: Paging under a decision filter is ordered by the row's capture time, ties by asset
+  id descending, so it needs no Immich page (IMMICH-002.22). Easy to redo.
+- 2026-11-20: A device option without uploads shows only while chosen; *No camera data* is always
+  counted (IMMICH-002.24). Easy to redo.
+- 2026-11-20: A counts request takes at most 50 periods (IMMICH-002.25). Easy to redo.
+- 2026-11-20: The Immich facet counts ignore the decision filter; *decided* means picked or
+  rejected, so *undecided* is the *Unflagged* count. Easy to redo.
+- 2026-11-20: An Immich save naming an asset twice keeps its last decision (IMMICH-003.17). Easy
+  to redo.
+- 2026-11-20: The sweep of an Immich connection's position moves to PR 10, which brings the
+  Immich position (IMMICH-003.18). Easy to redo.

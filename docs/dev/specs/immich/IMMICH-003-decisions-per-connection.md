@@ -16,8 +16,9 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
   [{"assetId", "rating", "colourLabel", "flag", "keepRaw", "takenAt", "cameraModel", "kind",
   "assetUpdatedAt"}]}`, at most the flags endpoint's limit, answers `{"saved": [assetIds]}`. Each
   decision is the asset's whole state; the last save wins; an undo is a new save of the earlier
-  values; an asset named twice in one save keeps its last decision. The write rate limit applies. The save calls no Immich and needs no scope, so it works
-  while Immich is down; every connection is rateable.
+  values; an asset named twice in one save keeps its last decision. The write rate limit
+  applies. The save calls no Immich and needs no scope, so it works while Immich is down; every
+  connection is rateable.
 - **Read:** a listing entry carries its decision, `UNDECIDED` without a row (rating 0, no colour
   label, unflagged, no *Keep RAW*). No route returns the rows as they are.
 - **Keys and the UI** are the cull's (KEYS-001, LOUPE-002): *P*, *X*, *U*, *1*–*5*, *0*, swipe up

@@ -100,7 +100,7 @@ final class ImmichDecisionMapperTest extends DbTestCase {
 
 		$this->assertSame([self::id(1)], $ids(['rating' => ['op' => 'atLeast', 'value' => 3]]));
 		$this->assertSame([self::id(2)], $ids(['rating' => ['op' => 'exactly', 'value' => 2]]));
-		$this->assertSame([self::id(1), self::id(3)], $ids(['colourLabels' => ['red']]));
+		$this->assertSame([self::id(3), self::id(1)], $ids(['colourLabels' => ['red']]));
 	}
 
 	// spec: IMMICH-002.13

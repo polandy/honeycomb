@@ -42,8 +42,11 @@ final class Connections {
 		throw new ImmichException(ImmichError::UnknownConnection);
 	}
 
-	/** @return list<Connection> */
-	private function all(): array {
+	/**
+	 * Every user's connections; not configured or a broken file throws.
+	 * @return list<Connection>
+	 */
+	public function all(): array {
 		$path = $this->config->getValueString(Application::APP_ID, self::FILE_KEY, '');
 		if ($path === '') {
 			throw new ImmichException(ImmichError::NotConfigured);

@@ -47,9 +47,9 @@ final class ImmichDecisionsTest extends TestCase {
 
 	// spec: IMMICH-003.3
 	public function testALaterSaveReplacesTheWholeStateWithTheClocksTime(): void {
-		$this->decisions()->save($this->connection(), [[...self::DECISION, 'rating' => 4]]);
+		$this->decisions()->save($this->connection(), [self::with(['rating' => 4])]);
 
-		$this->decisions(self::NOW + 60)->save($this->connection(), [[...self::DECISION, 'rating' => 0, 'colourLabel' => null, 'flag' => 'unflagged', 'cameraModel' => null]]);
+		$this->decisions(self::NOW + 60)->save($this->connection(), [self::with(['rating' => 0, 'colourLabel' => null, 'flag' => 'unflagged', 'cameraModel' => null])]);
 
 		$row = $this->store->rows['alice-phone/' . self::ASSET];
 		$this->assertSame([0, null, Flag::Unflagged, null, self::NOW + 60], [$row['decision']->rating, $row['decision']->colourLabel, $row['decision']->flag, $row['decision']->cameraModel, $row['updatedAt']]);
@@ -57,7 +57,7 @@ final class ImmichDecisionsTest extends TestCase {
 
 	// spec: IMMICH-003.17
 	public function testAnAssetNamedTwiceKeepsItsLastDecision(): void {
-		$answer = $this->decisions()->save($this->connection(), [self::DECISION, [...self::DECISION, 'flag' => 'rejected']]);
+		$answer = $this->decisions()->save($this->connection(), [self::DECISION, self::with(['flag' => 'rejected'])]);
 
 		$this->assertSame(['saved' => [self::ASSET]], $answer);
 		$this->assertSame(Flag::Rejected, $this->store->rows['alice-phone/' . self::ASSET]['decision']->flag);
@@ -70,20 +70,20 @@ final class ImmichDecisionsTest extends TestCase {
 		return [
 			'no list' => [['decisions' => self::DECISION]],
 			'a decision that is no object' => [['x']],
-			'an asset id that is no UUID' => [[[...self::DECISION, 'assetId' => '../users/me']]],
-			'an asset id in upper case' => [[[...self::DECISION, 'assetId' => strtoupper(self::ASSET)]]],
-			'a rating above 5' => [[[...self::DECISION, 'rating' => 6]]],
-			'a rating below 0' => [[[...self::DECISION, 'rating' => -1]]],
-			'an unknown colour label' => [[[...self::DECISION, 'colourLabel' => 'purple']]],
-			'an unknown flag' => [[[...self::DECISION, 'flag' => 'maybe']]],
-			'an unknown kind' => [[[...self::DECISION, 'kind' => 'screenshot']]],
-			'a takenAt that is no integer' => [[[...self::DECISION, 'takenAt' => '1794990000']]],
-			'a keepRaw that is no boolean' => [[[...self::DECISION, 'keepRaw' => 0]]],
-			'an empty camera model' => [[[...self::DECISION, 'cameraModel' => '']]],
-			'an empty updatedAt' => [[[...self::DECISION, 'assetUpdatedAt' => '']]],
+			'an asset id that is no UUID' => [[self::with(['assetId' => '../users/me'])]],
+			'an asset id in upper case' => [[self::with(['assetId' => strtoupper(self::ASSET)])]],
+			'a rating above 5' => [[self::with(['rating' => 6])]],
+			'a rating below 0' => [[self::with(['rating' => -1])]],
+			'an unknown colour label' => [[self::with(['colourLabel' => 'purple'])]],
+			'an unknown flag' => [[self::with(['flag' => 'maybe'])]],
+			'an unknown kind' => [[self::with(['kind' => 'screenshot'])]],
+			'a takenAt that is no integer' => [[self::with(['takenAt' => '1794990000'])]],
+			'a keepRaw that is no boolean' => [[self::with(['keepRaw' => 0])]],
+			'an empty camera model' => [[self::with(['cameraModel' => ''])]],
+			'an empty updatedAt' => [[self::with(['assetUpdatedAt' => ''])]],
 			'a missing field' => [[$without]],
-			'an unknown field' => [[[...self::DECISION, 'rejected' => true]]],
-			'a good decision beside a bad one' => [[self::DECISION, [...self::DECISION, 'rating' => 9]]],
+			'an unknown field' => [[self::with(['rejected' => true])]],
+			'a good decision beside a bad one' => [[self::DECISION, self::with(['rating' => 9])]],
 		];
 	}
 
@@ -105,6 +105,15 @@ final class ImmichDecisionsTest extends TestCase {
 		$this->decisions()->save($this->connection(), [self::DECISION]);
 
 		$this->assertSame([], $this->store->find('alice', 'alice-tablet', [self::ASSET]));
+	}
+
+	/**
+	 * The decision with the given fields replaced.
+	 * @param array<string, mixed> $fields
+	 * @return array<string, mixed>
+	 */
+	private static function with(array $fields): array {
+		return array_replace(self::DECISION, $fields);
 	}
 
 	private function decisions(int $now = self::NOW): ImmichDecisions {

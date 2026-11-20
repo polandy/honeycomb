@@ -79,7 +79,7 @@ final class ImmichContractTest extends TestCase {
 	public function testEveryStatisticsTheCountsSendFitsTheSchema(): void {
 		$this->counts()->of($this->connection(), self::ALL_FILTERS, [['takenAfter' => 1_793_491_200, 'takenBefore' => null]]);
 
-		$bodies = array_map(static fn (array $request): mixed => $request['options']['json'] ?? null, array_values(array_filter($this->immichRequests, static fn (array $request): bool => str_ends_with($request['url'], '/search/statistics'))));
+		$bodies = array_map(static fn (array $request): mixed => json_decode((string)($request['options']['body'] ?? 'null'), true, 512, JSON_THROW_ON_ERROR), array_values(array_filter($this->immichRequests, static fn (array $request): bool => str_ends_with($request['url'], '/search/statistics'))));
 		$this->assertGreaterThan(5, count($bodies));
 		$this->assertSame([], array_merge(...array_map(fn (mixed $body): array => $this->schema->requestViolations('POST', '/search/statistics', $body), $bodies)));
 	}

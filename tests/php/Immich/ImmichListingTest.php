@@ -243,6 +243,7 @@ final class ImmichListingTest extends TestCase {
 	}
 
 	private function lastImmichFilter(): mixed {
+		/** @var mixed $body */
 		$body = $this->lastImmichBody('POST /search/metadata');
 		return is_array($body) ? $body['filter'] : null;
 	}

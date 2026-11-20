@@ -79,6 +79,7 @@ final class FakeImmichLibrary {
 	 * @param array<string, mixed> $filter
 	 */
 	private function matches(array $asset, array $filter): bool {
+		/** @var mixed $condition */
 		foreach ($filter as $field => $condition) {
 			/** @var array<string, mixed> $condition */
 			if ($field === 'or') {
@@ -109,7 +110,9 @@ final class FakeImmichLibrary {
 
 	/** @param array<string, mixed> $condition */
 	private function holds(mixed $value, array $condition): bool {
+		/** @var mixed $operand */
 		foreach ($condition as $op => $operand) {
+			/** @var mixed $operand */
 			$operand = is_string($operand) && is_int($value) ? strtotime($operand) : $operand;
 			$holds = match ($op) {
 				'eq' => $value === $operand,
