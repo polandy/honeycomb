@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Immich;
 
-/** Immich's paged search over a list of assets: newest `fileCreatedAt` first, ties by id, an offset cursor, the `createdAt` bound. */
+/** Immich's paged search and statistics over a list of assets: the v3 filter, newest `fileCreatedAt` first, ties by id, an offset cursor. */
 final class FakeImmichLibrary {
 	/** @var list<array<string, mixed>> */
 	public array $assets = [];
@@ -41,10 +41,9 @@ final class FakeImmichLibrary {
 	 * @return array{int, string, string}
 	 */
 	public function search(array $options): array {
-		/** @var array{size?: int, cursor?: string, filter?: array{createdAt?: array{lte?: string}}} $body */
+		/** @var array{size?: int, cursor?: string, filter?: array<string, mixed>} $body */
 		$body = json_decode((string)$options['body'], true, 512, JSON_THROW_ON_ERROR);
-		$receivedBefore = $body['filter']['createdAt']['lte'] ?? null;
-		$assets = array_values(array_filter($this->assets, static fn (array $asset): bool => $receivedBefore === null || strtotime((string)$asset['createdAt']) <= strtotime($receivedBefore)));
+		$assets = $this->matching($body['filter'] ?? []);
 		usort($assets, static fn (array $a, array $b): int => [$b['fileCreatedAt'], $b['id']] <=> [$a['fileCreatedAt'], $a['id']]);
 		$size = $body['size'] ?? 250;
 		/** @var array{offset: int} $cursor */
@@ -53,6 +52,78 @@ final class FakeImmichLibrary {
 		$next = count($assets) > $cursor['offset'] + $size ? rtrim(strtr(base64_encode((string)json_encode(['offset' => $cursor['offset'] + $size])), '+/', '-_'), '=') : null;
 		$answer = ['albums' => ['count' => 0, 'facets' => [], 'items' => [], 'total' => 0], 'assets' => ['count' => count($page), 'facets' => [], 'items' => $page, 'nextCursor' => $next, 'nextPage' => null, 'total' => count($page)]];
 		return [200, json_encode($answer, JSON_THROW_ON_ERROR), 'application/json'];
+	}
+
+	/**
+	 * Answers a statistics request's options as Immich does.
+	 * @param array<string, mixed> $options
+	 * @return array{int, string, string}
+	 */
+	public function statistics(array $options): array {
+		/** @var array{filter?: array<string, mixed>} $body */
+		$body = json_decode((string)$options['body'], true, 512, JSON_THROW_ON_ERROR);
+		return [200, json_encode(['total' => count($this->matching($body['filter'] ?? []))], JSON_THROW_ON_ERROR), 'application/json'];
+	}
+
+	/**
+	 * The assets the filter matches: its fields ANDed with any of its `or` branches.
+	 * @param array<string, mixed> $filter
+	 * @return list<array<string, mixed>>
+	 */
+	private function matching(array $filter): array {
+		return array_values(array_filter($this->assets, fn (array $asset): bool => $this->matches($asset, $filter)));
+	}
+
+	/**
+	 * @param array<string, mixed> $asset
+	 * @param array<string, mixed> $filter
+	 */
+	private function matches(array $asset, array $filter): bool {
+		foreach ($filter as $field => $condition) {
+			/** @var array<string, mixed> $condition */
+			if ($field === 'or') {
+				/** @var list<array<string, mixed>> $condition */
+				if (array_filter($condition, fn (array $branch): bool => $this->matches($asset, $branch)) === []) {
+					return false;
+				}
+			} elseif (!$this->holds($this->field($asset, $field), $condition)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/** @param array<string, mixed> $asset */
+	private function field(array $asset, string $field): mixed {
+		/** @var array{model?: ?string} $exif */
+		$exif = $asset['exifInfo'] ?? [];
+		return match ($field) {
+			'createdAt' => strtotime((string)$asset['createdAt']),
+			'takenAt' => strtotime((string)$asset['fileCreatedAt']),
+			'model' => $exif['model'] ?? null,
+			'isMotion' => $asset['livePhotoVideoId'] !== null,
+			'visibility' => $asset['visibility'] ?? 'timeline',
+			default => $asset[$field] ?? null,
+		};
+	}
+
+	/** @param array<string, mixed> $condition */
+	private function holds(mixed $value, array $condition): bool {
+		foreach ($condition as $op => $operand) {
+			$operand = is_string($operand) && is_int($value) ? strtotime($operand) : $operand;
+			$holds = match ($op) {
+				'eq' => $value === $operand,
+				'in' => in_array($value, (array)$operand, true),
+				'lt' => $value < $operand,
+				'lte' => $value <= $operand,
+				'gte' => $value >= $operand,
+				default => throw new \LogicException("The fake knows no filter op $op"),
+			};
+			if (!$holds) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private function date(int $seconds): string {

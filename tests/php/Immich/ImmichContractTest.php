@@ -7,13 +7,18 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Immich;
 
+use OCA\Honeycomb\Immich\AssetDecision;
 use OCA\Honeycomb\Immich\AssetEntries;
+use OCA\Honeycomb\Immich\AssetKind;
 use OCA\Honeycomb\Immich\Connection;
+use OCA\Honeycomb\Immich\DecidedPages;
 use OCA\Honeycomb\Immich\ImmichClient;
+use OCA\Honeycomb\Immich\ImmichCounts;
 use OCA\Honeycomb\Immich\ImmichListing;
 use OCA\Honeycomb\Immich\ImmichSearchFilter;
 use OCA\Honeycomb\Immich\ImmichStatus;
 use OCA\Honeycomb\Immich\ListingCursors;
+use OCA\Honeycomb\Service\Flag;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Security\ICrypto;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -43,6 +48,7 @@ final class ImmichContractTest extends TestCase {
 		$this->immichAnswers('GET /users/me', 200, $this->fixture('me.json'));
 		$this->immichAnswers('POST /search/statistics', 200, $this->fixture('statistics.json'));
 		$this->immichAnswers('POST /search/metadata', 200, $this->fixture('search-page.json'));
+		$this->immichAnswers('GET /search/suggestions', 200, $this->fixture('suggestions.json'));
 	}
 
 	/** @return array<string, array{array<string, mixed>}> */
@@ -70,6 +76,23 @@ final class ImmichContractTest extends TestCase {
 		$this->assertSame([], $this->schema->requestViolations('POST', '/search/metadata', $this->lastImmichBody('POST /search/metadata')));
 	}
 
+	public function testEveryStatisticsTheCountsSendFitsTheSchema(): void {
+		$this->counts()->of($this->connection(), self::ALL_FILTERS, [['takenAfter' => 1_793_491_200, 'takenBefore' => null]]);
+
+		$bodies = array_map(static fn (array $request): mixed => $request['options']['json'] ?? null, array_values(array_filter($this->immichRequests, static fn (array $request): bool => str_ends_with($request['url'], '/search/statistics'))));
+		$this->assertGreaterThan(5, count($bodies));
+		$this->assertSame([], array_merge(...array_map(fn (mixed $body): array => $this->schema->requestViolations('POST', '/search/statistics', $body), $bodies)));
+	}
+
+	public function testTheSearchOfDecidedAssetsByIdFitsTheSchema(): void {
+		$decisions = new FakeImmichDecisionStore();
+		$decisions->decide('alice', 'alice-phone', new AssetDecision('0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d', 4, null, Flag::Picked, false, 1_795_000_000, 'Pixel 9 Pro', AssetKind::Photo, 'x'));
+
+		$this->listing($decisions)->page($this->connection(), ['flags' => ['picked']], null, 100);
+
+		$this->assertSame([], $this->schema->requestViolations('POST', '/search/metadata', $this->lastImmichBody('POST /search/metadata')));
+	}
+
 	/** @return array<string, array{string, string, string}> */
 	public static function answers(): array {
 		return [
@@ -77,6 +100,7 @@ final class ImmichContractTest extends TestCase {
 			'the statistics' => ['POST', '/search/statistics', 'statistics.json'],
 			'the version' => ['GET', '/server/version', 'version.json'],
 			'the account' => ['GET', '/users/me', 'me.json'],
+			'the camera models' => ['GET', '/search/suggestions', 'suggestions.json'],
 		];
 	}
 
@@ -110,12 +134,21 @@ final class ImmichContractTest extends TestCase {
 		return new ImmichClient($this->immichClients(), $files, new FakeLogger());
 	}
 
-	private function listing(): ImmichListing {
-		$time = $this->createStub(ITimeFactory::class);
-		$time->method('getTime')->willReturn(1_795_000_000);
+	private function listing(FakeImmichDecisionStore $decisions = new FakeImmichDecisionStore()): ImmichListing {
 		$crypto = $this->createStub(ICrypto::class);
 		$crypto->method('calculateHMAC')->willReturnCallback(static fn (string $message): string => hash_hmac('sha256', $message, 'secret'));
-		return new ImmichListing($this->client(), new ImmichSearchFilter(), new ListingCursors($crypto), new AssetEntries(), $time);
+		$cursors = new ListingCursors($crypto);
+		return new ImmichListing($this->client(), new ImmichSearchFilter(), $cursors, new AssetEntries(), $this->time(), $decisions, new DecidedPages($this->client(), new ImmichSearchFilter(), $cursors, new AssetEntries(), $decisions));
+	}
+
+	private function counts(): ImmichCounts {
+		return new ImmichCounts($this->client(), new ImmichSearchFilter(), new FakeImmichDecisionStore(), $this->time());
+	}
+
+	private function time(): ITimeFactory {
+		$time = $this->createStub(ITimeFactory::class);
+		$time->method('getTime')->willReturn(1_795_000_000);
+		return $time;
 	}
 
 	private function connection(): Connection {

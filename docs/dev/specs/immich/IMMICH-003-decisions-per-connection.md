@@ -16,7 +16,7 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
   [{"assetId", "rating", "colourLabel", "flag", "keepRaw", "takenAt", "cameraModel", "kind",
   "assetUpdatedAt"}]}`, at most the flags endpoint's limit, answers `{"saved": [assetIds]}`. Each
   decision is the asset's whole state; the last save wins; an undo is a new save of the earlier
-  values. The write rate limit applies. The save calls no Immich and needs no scope, so it works
+  values; an asset named twice in one save keeps its last decision. The write rate limit applies. The save calls no Immich and needs no scope, so it works
   while Immich is down; every connection is rateable.
 - **Read:** a listing entry carries its decision, `UNDECIDED` without a row (rating 0, no colour
   label, unflagged, no *Keep RAW*). No route returns the rows as they are.
@@ -27,7 +27,9 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
   loaded page are paged through the decision filter first.
 - **Lifecycle:** a deleted user's rows go at once; rows of a connection that left the file go in
   the daily sweep, which sweeps nothing while the file is not configured, missing or invalid; a
-  row whose asset Immich no longer has is deleted when a decision filter asks for it.
+  row whose asset Immich no longer lists in the upload library (deleted, trashed or archived there)
+  is deleted when a decision filter asks for it. A connection's position goes with its rows once
+  positions of a connection exist (IMMICH-003.18).
 - **Position and *Recent*:** the cull saves the loupe's asset as the connection's position through
   the positions endpoint (`{"immich": "<connectionId>"}`, `assetId`, `takenAt`, `decided`,
   `total`). Opening the connection offers *Continue where you left off*, and *Resume* opens the
@@ -97,8 +99,7 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
 
 - **Given** rows of a connection the valid file no longer names, or names for another user
 - **When** the daily sweep runs
-- **Then** those rows are removed, the rows of the file's connections stay, and the connection's
-  position goes with them
+- **Then** those rows are removed and the rows of the file's connections stay
 
 ### IMMICH-003.11 – No sweep on a broken file
 
@@ -108,7 +109,7 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
 
 ### IMMICH-003.12 – An asset gone in Immich
 
-- **Given** a picked asset that Immich no longer has
+- **Given** a picked asset that Immich no longer lists in the upload library
 - **When** the user filters to *Picked* only
 - **Then** the asset does not show, its row is deleted in the same request, and the counts no
   longer hold it
@@ -138,3 +139,15 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
 - **Given** a user who picks and rejects Immich assets
 - **When** the statistics are read
 - **Then** they are unchanged
+
+### IMMICH-003.17 – An asset twice in one save
+
+- **Given** a save that names the same asset twice, first picked and then rejected
+- **When** it is sent
+- **Then** the row holds the rejected decision and the answer names the asset once
+
+### IMMICH-003.18 – The position goes with the sweep
+
+- **Given** a position of a connection the valid file no longer names for the user
+- **When** the daily sweep runs
+- **Then** the position is removed with the connection's rows
