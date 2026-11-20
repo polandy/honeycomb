@@ -3,6 +3,7 @@
 import type { Decision, Flag } from './decision.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
+import type { PictureId } from './picture-id.ts'
 import type { PlannedSave, SidecarSaveAnswer } from './sidecar-sync.ts'
 import type { XmpPacket } from './xmp/model.ts'
 
@@ -61,7 +62,7 @@ export function countedPictures(saves: readonly PlannedSave[], answers: readonly
 }
 
 /** Each picture's counts by the file id of its first row, which a flag save carries them on; a picture that counts nothing has none. */
-export function countsByRow(pictures: readonly Picture<ListingEntry>[], rows: readonly { readonly fileId: number }[], countsOf: (picture: Picture<ListingEntry>) => StatsCounts): Map<number, StatsCounts> {
+export function countsByRow(pictures: readonly Picture<ListingEntry>[], rows: readonly { readonly fileId: PictureId }[], countsOf: (picture: Picture<ListingEntry>) => StatsCounts): Map<PictureId, StatsCounts> {
 	return new Map(pictures.flatMap((picture) => {
 		const members = new Set(memberIds(picture))
 		const first = rows.find(({ fileId }) => members.has(fileId))

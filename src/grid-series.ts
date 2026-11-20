@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { PictureId } from './logic/picture-id.ts'
 import type { Series } from './logic/series.ts'
 
 import { computed } from 'vue'
@@ -9,7 +10,7 @@ import { rowBrackets, runsAt, seriesJump, seriesRuns, tileSeries } from './logic
 export interface GridSeriesSource<P> {
 	pictures: () => readonly P[]
 	seriesOf: () => ReadonlyMap<P, Series<P>> | undefined
-	offered: () => ReadonlySet<number> | undefined
+	offered: () => ReadonlySet<PictureId> | undefined
 	open: () => ReadonlySet<P> | undefined
 	groupStarts: () => readonly number[]
 }

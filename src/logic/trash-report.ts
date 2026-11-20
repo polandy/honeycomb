@@ -3,6 +3,7 @@
 import type { PictureFile } from './delete-summary.ts'
 import type { ListingEntry } from './listing.ts'
 import type { PairingSettings, Picture } from './pairing.ts'
+import type { PictureId } from './picture-id.ts'
 
 import { filesOf } from './delete-summary.ts'
 import { pairPictures } from './pairing.ts'
@@ -21,14 +22,14 @@ export type TrashBatch = readonly (readonly PictureFile[])[]
 
 /** One file of the trash request, with the ETag from the listing; `permanent` once the user confirmed deleting it for good. */
 export interface TrashRequestFile {
-	readonly fileId: number
+	readonly fileId: PictureId
 	readonly etag: string
 	readonly permanent?: true
 }
 
 /** One file of the trash response; `result` is checked here. */
 export interface TrashResponseFile {
-	readonly fileId: number
+	readonly fileId: PictureId
 	readonly result: string
 }
 

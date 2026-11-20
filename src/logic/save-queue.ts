@@ -1,3 +1,5 @@
+import type { PictureId } from './picture-id.ts'
+
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { RateLimitedError } from './retry-after.ts'
@@ -14,7 +16,7 @@ export interface SaveQueueOptions<Row, Key> {
 }
 
 /** The key of a row stored per file. */
-export function byFileId(row: { readonly fileId: number }): number {
+export function byFileId(row: { readonly fileId: PictureId }): PictureId {
 	return row.fileId
 }
 

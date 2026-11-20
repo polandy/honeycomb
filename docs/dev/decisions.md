@@ -1548,6 +1548,12 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   eight pull requests, run autonomously by the chain rules; the type-only refactor now, beside
   statistics PR 4; a lean Phase 1 UI without series, hashes, tags, delete, move or XMP; one owner
   per hotspot file, M9 until its PR 6, then M10. Easy to redo: each is a docs line or a small PR.
+- 2026-11-19: Immich refactor PR 5 types file ids as `PictureId` and splits `SourceEntry` off
+  `ListingEntry`, but leaves the cull context, the grid and loupe props and `toasted-decisions` on
+  `Picture<ListingEntry>`: their callbacks reach the tag and sidecar writes in `cull.ts`, which need
+  `etag` and `size`, so retyping them now would mean reshaping `cull.ts` beside statistics PR 4. The
+  retyping moves to the Vue shell refactor (PR 9), which reshapes `cull.ts` anyway. Easy to redo:
+  type lines only.
 - 2026-11-19: ADR 0042 fixes the connections file: `version` 1, per connection `id` (1–64 of
   `a-z0-9-`, the stable key of the decision table), `user`, `label`, `url` (origin only),
   `keyFile` (absolute) and `picksAsFavorites`; the file is valid as a whole or not at all; it is

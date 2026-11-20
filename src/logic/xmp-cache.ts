@@ -4,6 +4,7 @@ import type { ColourLabel, Decision, Flag } from './decision.ts'
 import type { EmbeddedXmpAnswer } from './embedded-xmp.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
+import type { PictureId } from './picture-id.ts'
 import type { Tag } from './tag.ts'
 import type { SidecarValues } from './xmp/decision.ts'
 
@@ -28,7 +29,7 @@ export type XmpCacheState = 'read' | 'refused' | 'none'
 
 /** One row of the XMP cache: what one source states, each value `null` where it states nothing (ADR 0032). */
 export interface XmpCacheRow {
-	readonly fileId: number
+	readonly fileId: PictureId
 	readonly kind: XmpCacheKind
 	readonly etag: string
 	readonly reader: number
@@ -82,7 +83,7 @@ export function staleSources(sources: readonly XmpCacheSource[], rows: Rows): Xm
 }
 
 /** The row of a sidecar read with the ETag; each tag the cache cannot hold goes to `onLeftOut` (TAGS-002.5). */
-export function sidecarRow(fileId: number, etag: string, bytes: Uint8Array, onLeftOut?: LeftOut): XmpCacheRow {
+export function sidecarRow(fileId: PictureId, etag: string, bytes: Uint8Array, onLeftOut?: LeftOut): XmpCacheRow {
 	return rowOf(fileId, 'sidecar', etag, bytes, onLeftOut)
 }
 
@@ -117,7 +118,7 @@ export function pictureState(picture: Picture<ListingEntry>, rows: Rows): Pictur
 }
 
 /** The row of a source's bytes: what it states, or refused with the reason. */
-function rowOf(fileId: number, kind: XmpCacheKind, etag: string, bytes: Uint8Array, onLeftOut?: LeftOut): XmpCacheRow {
+function rowOf(fileId: PictureId, kind: XmpCacheKind, etag: string, bytes: Uint8Array, onLeftOut?: LeftOut): XmpCacheRow {
 	try {
 		const packet = readXmp(bytes)
 		const { kept, leftOut } = storableTags(pictureTags([packet]))
@@ -132,6 +133,6 @@ function rowOf(fileId: number, kind: XmpCacheKind, etag: string, bytes: Uint8Arr
 }
 
 /** A read row that states nothing. */
-function emptyRow(fileId: number, kind: XmpCacheKind, etag: string): XmpCacheRow {
+function emptyRow(fileId: PictureId, kind: XmpCacheKind, etag: string): XmpCacheRow {
 	return { fileId, kind, etag, reader: XMP_READER, state: 'read', reason: null, ...NOTHING_STATED, tags: null }
 }

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
+import type { PictureId } from './picture-id.ts'
 import type { PlannedSave, SidecarSaveAnswer } from './sidecar-sync.ts'
 
 import { pictureMembers } from './pairing.ts'
@@ -9,7 +10,7 @@ import { SIDECAR_EXTENSION } from './sidecars.ts'
 
 /** A sidecar as honeycomb last saved it. */
 interface SavedState {
-	readonly fileId: number
+	readonly fileId: PictureId
 	readonly etag: string
 	readonly size: number
 	readonly mtime: number
@@ -27,7 +28,7 @@ export const NO_OWN_SAVES: OwnSaves = { replaced: new Map(), created: new Map() 
 /** Nextcloud's mime type for an extension it does not know, as the listing reports a sidecar. */
 const SIDECAR_MIME = 'application/octet-stream'
 
-const keyOf = (fileId: number, etag: string) => `${fileId}:${etag}`
+const keyOf = (fileId: PictureId, etag: string) => `${fileId}:${etag}`
 
 /** The own saves with the saved answers added; a failed save or request adds nothing. */
 export function recordSaves(own: OwnSaves, saves: readonly PlannedSave[], answers: readonly SidecarSaveAnswer[] | null): OwnSaves {

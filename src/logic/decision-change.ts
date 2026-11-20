@@ -2,12 +2,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ColourLabel, Decision, DecisionField, Flag, StoredDecision } from './decision.ts'
 import type { Picture } from './pairing.ts'
+import type { PictureId } from './picture-id.ts'
 
 import { DECISION_FIELDS, UNDECIDED } from './decision.ts'
 
 /** A picture with its current decision. */
 export interface Decided {
-	readonly picture: Picture<{ readonly fileId: number }>
+	readonly picture: Picture<{ readonly fileId: PictureId }>
 	readonly decision: Decision
 }
 
@@ -87,12 +88,12 @@ export function changedRows(pictures: readonly Decided[], change: DecisionChange
 }
 
 /** The fields the rows change against the decisions they replace, undecided where none was stored. */
-export function changedFields(rows: readonly StoredDecision[], before: ReadonlyMap<number, Decision>): DecisionField[] {
+export function changedFields(rows: readonly StoredDecision[], before: ReadonlyMap<PictureId, Decision>): DecisionField[] {
 	return DECISION_FIELDS.filter((field) => rows.some((row) => row[field] !== (before.get(row.fileId) ?? UNDECIDED)[field]))
 }
 
 /** The rows that take the fields of the written rows back to `before`, where they still hold what was written (XMP-008.15, .17). */
-export function takenBack(decisions: ReadonlyMap<number, Decision>, written: readonly StoredDecision[], before: ReadonlyMap<number, Decision>, fields: readonly DecisionField[]): StoredDecision[] {
+export function takenBack(decisions: ReadonlyMap<PictureId, Decision>, written: readonly StoredDecision[], before: ReadonlyMap<PictureId, Decision>, fields: readonly DecisionField[]): StoredDecision[] {
 	return written.map((row) => {
 		const current = decisions.get(row.fileId) ?? UNDECIDED
 		const earlier = before.get(row.fileId) ?? UNDECIDED
@@ -102,7 +103,7 @@ export function takenBack(decisions: ReadonlyMap<number, Decision>, written: rea
 }
 
 /** The decisions with the rows put over them. */
-export function withRows(decisions: ReadonlyMap<number, Decision>, rows: readonly StoredDecision[]): Map<number, Decision> {
+export function withRows(decisions: ReadonlyMap<PictureId, Decision>, rows: readonly StoredDecision[]): Map<PictureId, Decision> {
 	const next = new Map(decisions)
 	for (const { fileId, ...decision } of rows) {
 		next.set(fileId, decision)

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Listing } from '../logic/cull.ts'
 import type { TreeFolder } from '../logic/folder-tree.ts'
+import type { PictureId } from '../logic/picture-id.ts'
 import type { WarmOptions } from '../preview-warmer.ts'
 
 import axios from '@nextcloud/axios'
@@ -61,6 +62,6 @@ export async function warmPreviews(fileIds: readonly number[], { signal, onWarme
 }
 
 /** The immutable URL of a preview tier of a file (ADR 0010). */
-export function imageUrl(fileId: number, size: number, mtime: number): string {
+export function imageUrl(fileId: PictureId, size: number, mtime: number): string {
 	return `${generateUrl(`${API}/images/{fileId}`, { fileId })}?size=${size}&v=${mtime}`
 }

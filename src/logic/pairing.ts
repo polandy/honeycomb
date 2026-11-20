@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { FileName } from './file-name.ts'
+import type { PictureId } from './picture-id.ts'
 import type { SidecarOwner } from './sidecars.ts'
 
 import { parseFileName, splitFolder } from './file-name.ts'
@@ -65,7 +66,7 @@ export function pictureMembers<T>(picture: { readonly raw: T | null, readonly re
 }
 
 /** The file ids of the picture's members, RAW first. */
-export function memberIds(picture: Picture<{ readonly fileId: number }>): number[] {
+export function memberIds(picture: Picture<{ readonly fileId: PictureId }>): PictureId[] {
 	return pictureMembers(picture).map((member) => member.fileId)
 }
 
