@@ -37,11 +37,15 @@ parallel_step "xmp interop" scripts/xmp-interop.sh
 parallel_wait
 step build npx vite build
 # Each Nextcloud container has its own port and name (scripts/e2e-names.sh); one run per host at a time.
+# Orphans go first: an aborted run's leftovers would otherwise hold the slot or the ports.
+e2e_reap_orphans || failed=1
 e2e_slot_take || failed=1
+e2e_remove_on_exit
+e2e_ports_choose || failed=1
 parallel_step "phpunit db" scripts/php-db-tests.sh
 parallel_step e2e npx playwright test
-parallel_step "e2e oldest" env HONEYCOMB_E2E_NEXTCLOUD=oldest HONEYCOMB_E2E_PORT="$(e2e_oldest_port)" npx playwright test
-parallel_step "upgrade test" scripts/upgrade-test.sh "$(upgrade_port)"
+parallel_step "e2e oldest" env HONEYCOMB_E2E_NEXTCLOUD=oldest HONEYCOMB_E2E_PORT="$HONEYCOMB_E2E_OLDEST_PORT" npx playwright test
+parallel_step "upgrade test" scripts/upgrade-test.sh "$HONEYCOMB_UPGRADE_PORT"
 parallel_wait
 e2e_slot_release
 

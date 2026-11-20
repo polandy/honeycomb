@@ -77,7 +77,7 @@ new_version=$(sed -nE 's|.*<version>(.*)</version>.*|\1|p' appinfo/info.xml)
 
 install_app "$FROM"
 docker rm --force "$CONTAINER" >/dev/null 2>&1 || true
-docker run --detach --rm --name "$CONTAINER" -p "127.0.0.1:$PORT:80" \
+docker run --detach --rm --name "$CONTAINER" -p "127.0.0.1:$PORT:80" --label "$(e2e_owner_label)" \
   -e SQLITE_DATABASE=nextcloud -e NEXTCLOUD_ADMIN_USER="$ACCOUNT" -e NEXTCLOUD_ADMIN_PASSWORD="$PASSWORD" \
   -v "$app:/var/www/html/custom_apps/honeycomb" "$NEWEST_NEXTCLOUD_IMAGE" >/dev/null
 wait_for_nextcloud || fail "Nextcloud did not answer within $STARTUP_SECONDS seconds"
