@@ -14,6 +14,7 @@ import { n, t } from '@nextcloud/l10n'
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
 import AppIcon from './AppIcon.vue'
 import FlagMark from './FlagMark.vue'
+import SharpestMark from './SharpestMark.vue'
 import { keyCap } from '../hotkeys.ts'
 import { formatNumber } from '../l10n.ts'
 import { isDecided, isRejected } from '../logic/decision.ts'
@@ -28,13 +29,15 @@ const props = withDefaults(defineProps<{
 	decisionOf: (picture: Picture<ListingEntry>) => Decision
 	/** Each picture of a series mapped to its whole series; each run in the strip gets a frame. */
 	seriesOf: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>
+	/** The sharpest photo of each series, whose thumbnail is marked (SERIES-007.4). */
+	sharpest?: ReadonlySet<Picture<ListingEntry>>
 	imageUrl: ImageUrlFor
 	/** Whether *Pin the filmstrip* is on; its toggle sits at the strip's end. */
 	pinned: boolean
 	observeSize?: ObserveSize
 	/** Opens the compare on the series of the photo at that index, the frame's first; the frame's tab shows only with it (LOUPE-001.19). */
 	onCompareSeries?: (index: number) => void
-}>(), { observeSize: observeElementSize })
+}>(), { observeSize: observeElementSize, sharpest: () => new Set() })
 
 const emit = defineEmits<{ select: [index: number], 'update:pinned': [pinned: boolean] }>()
 
@@ -92,6 +95,7 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 					@click="emit('select', item.index)">
 					<img alt="" draggable="false" :src="smallSource(item.member, props.imageUrl)">
 					<FlagMark v-if="isDecided(item)" class="loupe-filmstrip__flag" :flag="item.flag" />
+					<SharpestMark v-if="props.sharpest.has(item.picture)" compact class="loupe-filmstrip__sharpest" />
 				</button>
 				<div
 					v-for="frame in frames"
@@ -266,5 +270,13 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 	z-index: 2;
 	inset-block-end: 4px;
 	inset-inline-end: 4px;
+}
+
+/* Bottom left, clear of the flag mark (mockup quality). */
+.loupe-filmstrip__sharpest {
+	position: absolute;
+	z-index: 2;
+	inset-block-end: 4px;
+	inset-inline-start: 4px;
 }
 </style>

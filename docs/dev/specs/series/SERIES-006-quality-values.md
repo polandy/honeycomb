@@ -8,7 +8,7 @@
 ## Purpose
 
 The browser measures how sharp each photo of a series is, once per file version for every user,
-so the series compare can later mark the sharpest one. A value is a measurement, never a decision:
+so the series compare can mark the sharpest one (SERIES-007). A value is a measurement, never a decision:
 it flags, moves, deletes and writes nothing.
 
 ## Behaviour
@@ -200,8 +200,7 @@ it flags, moves, deletes and writes nothing.
 
 ## Out of scope
 
-- The *Sharpest* mark in the series compare and the series viewer, the rank in the info panel
-  and the zoom onto the focus tile: milestone M11, PR 3.
+- The *Sharpest* mark, the rank in the info panel and the zoom onto the focus tile: SERIES-007.
 - Measuring on the similarity page (SERIES-004): it lists photos without a hash and knows no
   series yet (`TODO.md`).
 - Shake risk and clipping hints: milestone M11, PR 5.
@@ -211,3 +210,4 @@ it flags, moves, deletes and writes nothing.
 | Date | Change |
 |---|---|
 | 2026-11-20 | Written with the sharpness measure, its table and endpoint (owner decisions, ADR 0046) |
+| 2026-11-20 | Out of scope: the mark, the rank and the zoom moved to SERIES-007 (M11 PR 3) |

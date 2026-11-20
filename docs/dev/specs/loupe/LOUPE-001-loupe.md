@@ -94,8 +94,9 @@ the gesture guide was dismissed are kept per user on the server (LOUPE-003).
 
 - **Given** the loupe shows a fitted picture
 - **When** the user presses `Z` or the zoom button, or pinches with two fingers
-- **Then** the photo zooms to 100 % (one image pixel per device pixel) at that point and loads the
-  full image; the same again fits it, and a pinch below the threshold snaps back to fit
+- **Then** the photo zooms to 100 % (one image pixel per device pixel) at that point (the key and
+  the button on the focus tile of a photo with a quality value, SERIES-007.7, else the middle) and
+  loads the full image; the same again fits it, and a pinch below the threshold snaps back to fit
 
 ### LOUPE-001.8 – Zoomed, the zones are off
 
@@ -197,6 +198,7 @@ IMAGES-001.
 | 2026-11-14 | .25 the series chip and `N` open the compare on the shown series; .19 the frame's tab shows (series concept step 8) |
 | 2026-11-14 | .26 the first-series hint under the series chip (series concept step 11) |
 | 2026-11-19 | .25 the series chip is named by the text it shows (APP-001.15) |
+| 2026-11-20 | .7 the key and the button zoom onto the focus tile of a photo with a quality value (SERIES-007, M11 PR 3) |
 
 ### LOUPE-001.18 – One photo in view
 

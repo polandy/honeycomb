@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { FIT, fitSize, fullScale, isZoomed, panBy, pinchZoom, toggleZoom, zoomAt, zoomPercent } from '../../../src/logic/loupe-zoom.ts'
+import { FIT, fitSize, fullScale, isZoomed, panBy, pinchZoom, spotOf, toggleZoom, zoomAt, zoomPercent } from '../../../src/logic/loupe-zoom.ts'
 
 const STAGE = { width: 1000, height: 800 }
 const FITTED = { width: 1000, height: 500 }
@@ -86,6 +86,12 @@ describe('toggleZoom', () => {
 		expect(toggleZoom(zoomed, { x: 0, y: 0 }, 3, FITTED, STAGE)).toEqual(FIT)
 	})
 
+	// spec: SERIES-007.7
+	it('centres the spot of the photo as far as its edges allow', () => {
+		expect(toggleZoom(FIT, { x: 50, y: -20 }, 3, FITTED, STAGE)).toEqual({ scale: 3, x: -150, y: 60 })
+		expect(toggleZoom(FIT, { x: -450, y: -225 }, 3, FITTED, STAGE)).toEqual({ scale: 3, x: 1000, y: 350 })
+	})
+
 	it('treats a scale barely above fit as fit', () => {
 		expect(isZoomed({ scale: 1.01, x: 0, y: 0 })).toBe(false)
 	})
@@ -94,5 +100,13 @@ describe('toggleZoom', () => {
 describe('zoomPercent', () => {
 	it('is the share of the full image shown, rounded', () => {
 		expect(zoomPercent({ scale: 1.5, x: 0, y: 0 }, 3)).toBe(50)
+	})
+})
+
+describe('spotOf', () => {
+	// spec: SERIES-007.7
+	it('turns fractions of the photo into a spot from the fitted photo\'s middle', () => {
+		expect(spotOf({ x: 0.0625, y: 0.0625 }, FITTED)).toEqual({ x: -437.5, y: -218.75 })
+		expect(spotOf({ x: 0.5, y: 0.5 }, FITTED)).toEqual({ x: 0, y: 0 })
 	})
 })
