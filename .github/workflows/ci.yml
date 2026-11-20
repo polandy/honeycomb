@@ -202,8 +202,13 @@ jobs:
       - run: npx vite build
       # The runner image already has Chrome's system libraries; apt mirrors answering 503 failed the job.
       - run: npx playwright install chromium
-      # WebKit's system libraries are not on the runner image.
+      # WebKit's system libraries are not on the runner image; the slow apt mirror stalled the job at 20 minutes.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: /var/cache/apt/archives/*.deb
+          key: webkit-apt-${{ hashFiles('package-lock.json') }}
       - run: npx playwright install --with-deps webkit
+        timeout-minutes: 10
       - run: npx playwright test
         env:
           HONEYCOMB_E2E_WEBKIT: '1'
