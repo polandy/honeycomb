@@ -159,4 +159,22 @@ describe('App: the move', () => {
 		expect(opened(wrapper)).toBeNull()
 		expect(toastText(wrapper)).toContain('The Nextcloud trash bin is off')
 	})
+
+	// spec: DECISIONS-002.18
+	it('offers Reload folder on a failed move, and not when the trash bin is off', async () => {
+		const failed = await openApp([], async () => {
+			throw new Error('stale')
+		})
+		await press('m')
+		await moveToOut(failed.wrapper)
+		const buttons = () => failed.wrapper.findComponent(UndoToast).findAll('button').map((each) => each.text())
+		expect(buttons()).toContain('Reload folder')
+
+		const off = await openApp([], async () => {
+			throw new TrashBinOffError()
+		})
+		await press('m')
+		await moveToOut(off.wrapper)
+		expect(off.wrapper.findComponent(UndoToast).findAll('button').map((each) => each.text())).not.toContain('Reload folder')
+	})
 })
