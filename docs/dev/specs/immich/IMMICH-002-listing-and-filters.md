@@ -32,11 +32,17 @@ what is on screen is loaded, and every number comes from the server.
   by default), device (camera models and *No camera data*, any number), kind (*Photos*, *Motion
   photos*, *Videos*, any number) and the flag filter of GRID-002 with its rating filter. Groups
   combine with AND, chips in a group with OR. Changing a filter starts the listing over.
+- **Decision filters:** when the filter admits undecided assets, the listing pages Immich and
+  leaves out the decided ones it refuses. When it admits decided assets only (*Picked* or
+  *Rejected* alone, a rating above 0, a colour label), the listing pages the matching decisions by
+  the capture time saved with them, newest first, and asks Immich for those assets by id.
 - **Counts** (`POST …/counts`): the toolbar's *N of M pictures · K decided* (`matching`, `total`,
   `decided`), the flag chips'
   numbers, and each time, device and kind option's number, all from the server for the active
-  filters; a facet counts under the filters of the other groups. A decision changes the counts in
-  place without a request; a change of a filter asks again.
+  filters; a facet counts under the filters of the other groups. The device options are Immich's
+  camera models with at least one upload under those filters, and every chosen one. At most 50
+  time options are counted per request. A decision changes the counts in place without a request;
+  a change of a filter asks again.
 - **Previews** go through honeycomb (`GET …/assets/{assetId}/image`), cached by the browser for a
   year under a URL that names the asset's `updatedAt`.
 - **Capabilities off:** no series, similarity, tags, delete, move, *Remove RAWs*, *Keep RAW* or
@@ -188,3 +194,28 @@ what is on screen is loaded, and every number comes from the server.
 - **When** a new asset reaches Immich before the next page is asked
 - **Then** the next pages neither repeat nor skip an asset, and the new one is in the first page
   of the next start
+
+### IMMICH-002.22 – Paging under a decision filter
+
+- **Given** five uploads of which three are picked
+- **When** the listing is asked for *Picked* with `size` 2 and then with the `nextCursor`
+- **Then** two pages of 2 and 1 picked entries arrive, newest first, each carrying its decision,
+  and the last `nextCursor` is `null`
+
+### IMMICH-002.23 – Decided entries a filter refuses
+
+- **Given** a picked, a rejected and an undecided upload
+- **When** the listing is asked for *Picked* and *Unflagged*
+- **Then** the picked and the undecided entry arrive, the rejected one does not
+
+### IMMICH-002.24 – Device options
+
+- **Given** camera models of which one has no upload under the time and kind filters
+- **When** the counts are asked, once without a device filter and once with that model chosen
+- **Then** the model is left out the first time and counts 0 the second
+
+### IMMICH-002.25 – Malformed counts request
+
+- **Given** a counts request with malformed filters, a malformed time option or more than 50
+- **When** it is sent
+- **Then** the answer is `400` `request` and Immich is not asked

@@ -25,6 +25,15 @@ final class ImmichSearchFilter {
 	}
 
 	/**
+	 * The uploads among the assets; Immich's id filter knows no list, so each id is a branch.
+	 * @param non-empty-list<string> $assetIds
+	 * @return array<string, mixed>
+	 */
+	public function byIds(array $assetIds): array {
+		return [...$this->uploads(), 'or' => array_map(static fn (string $assetId): array => ['id' => ['eq' => $assetId]], $assetIds)];
+	}
+
+	/**
 	 * The uploads received up to the time that pass the filters: devices and kinds as the branches of one search.
 	 * @return array<string, mixed>
 	 */

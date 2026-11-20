@@ -11,18 +11,19 @@ use OCA\Honeycomb\Service\Flag;
 
 /**
  * Maps Immich's assets to listing entries; an asset of another shape is the version state (IMMICH-002.4, IMMICH-001.16).
- * @psalm-type Entry = array{assetId: string, name: string, takenAt: int, cameraModel: ?string, kind: string, width: ?int, height: ?int, duration: ?float, stackSize: ?int, updatedAt: string, rating: int, colourLabel: null, flag: string, keepRaw: bool}
+ * @psalm-type Entry = array{assetId: string, name: string, takenAt: int, cameraModel: ?string, kind: string, width: ?int, height: ?int, duration: ?float, stackSize: ?int, updatedAt: string, rating: int, colourLabel: ?string, flag: string, keepRaw: bool}
  */
 final class AssetEntries {
 	private const string DATE = '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/';
 	private const float MILLISECONDS = 1000.0;
 
 	/**
-	 * One entry per picture: a stack shows as its primary asset only.
+	 * One entry per picture with its decision, undecided without one: a stack shows as its primary asset only.
 	 * @param list<mixed> $assets
+	 * @param array<string, AssetDecision> $decisions by asset id
 	 * @return list<Entry>
 	 */
-	public function of(array $assets): array {
+	public function of(array $assets, array $decisions = []): array {
 		$entries = [];
 		foreach ($assets as $asset) {
 			if (!is_array($asset)) {
@@ -33,7 +34,15 @@ final class AssetEntries {
 			if ($stack !== null && (!is_array($stack) || ($stack['primaryAssetId'] ?? null) !== ($asset['id'] ?? null))) {
 				continue;
 			}
-			$entries[] = $this->entry($asset, $stack);
+			$entry = $this->entry($asset, $stack);
+			$decision = $decisions[$entry['assetId']] ?? null;
+			if ($decision !== null) {
+				$entry['rating'] = $decision->rating;
+				$entry['colourLabel'] = $decision->colourLabel?->value;
+				$entry['flag'] = $decision->flag->value;
+				$entry['keepRaw'] = $decision->keepRaw;
+			}
+			$entries[] = $entry;
 		}
 		return $entries;
 	}

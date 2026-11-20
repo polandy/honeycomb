@@ -31,7 +31,9 @@ final class ListingFilters {
 	public readonly array $colourLabels;
 
 	/** @param array<array-key, mixed> $raw the request's `filters` */
-	public function __construct(array $raw) {
+	public function __construct(
+		private array $raw,
+	) {
 		if (array_diff(array_keys($raw), self::KEYS) !== []) {
 			throw self::malformed();
 		}
@@ -44,11 +46,28 @@ final class ListingFilters {
 		$this->colourLabels = array_map(static fn (string $label): ColourLabel => ColourLabel::tryFrom($label) ?? throw self::malformed(), self::strings($raw['colourLabels'] ?? []));
 	}
 
-	/** Whether a picture without a decision, as every Immich asset is in Phase 1, passes the decision filters. */
+	/**
+	 * The same filters with some groups replaced, as a facet counts under the other groups (IMMICH-002.14).
+	 * @param array<string, mixed> $override
+	 */
+	public function with(array $override): self {
+		return new self([...$this->raw, ...$override]);
+	}
+
+	/** Whether a picture of this decision passes the flag, rating and colour label filters. */
+	public function admits(Flag $flag, int $rating, ?ColourLabel $colourLabel): bool {
+		$ratingPasses = $this->rating === null || match ($this->rating['op']) {
+			'atLeast' => $rating >= $this->rating['value'],
+			'atMost' => $rating <= $this->rating['value'],
+			default => $rating === $this->rating['value'],
+		};
+		return ($this->flags === [] || in_array($flag, $this->flags, true)) && $ratingPasses
+			&& ($this->colourLabels === [] || ($colourLabel !== null && in_array($colourLabel, $this->colourLabels, true)));
+	}
+
+	/** Whether a picture without a decision passes the decision filters. */
 	public function admitsUndecided(): bool {
-		$flagPasses = $this->flags === [] || in_array(Flag::Unflagged, $this->flags, true);
-		$ratingPasses = $this->rating === null || $this->rating['op'] === 'atMost' || $this->rating['value'] === 0;
-		return $flagPasses && $ratingPasses && $this->colourLabels === [];
+		return $this->admits(Flag::Unflagged, 0, null);
 	}
 
 	/** Equal for the same choices in any order or repetition; a cursor is bound to it. */
