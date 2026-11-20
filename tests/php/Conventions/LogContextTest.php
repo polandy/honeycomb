@@ -61,7 +61,7 @@ final class LogContextTest extends TestCase {
 		$files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(__DIR__ . '/../../../lib', \FilesystemIterator::SKIP_DOTS));
 		foreach ($files as $file) {
 			if ($file->getExtension() === 'php') {
-				$sources[$file->getPathname()] = $file->openFile()->fread(max(1, (int)$file->getSize())) ?: '';
+				$sources[$file->getPathname()] = (string)$file->openFile()->fread(max(1, (int)$file->getSize()));
 			}
 		}
 		$this->assertNotSame([], $sources);
