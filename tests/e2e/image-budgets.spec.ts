@@ -6,6 +6,7 @@ import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { GRID_TIERS, IMAGE_LOADS_IN_FLIGHT, LOUPE_TIER } from '../../src/logic/image-tiers.ts'
 import { budgetPhotos } from './budget-photos.ts'
+import { BUDGET_MS, withinBudget } from './budgets.ts'
 import { resetViewState } from './cull.ts'
 import { apiHeaders, createFolder, MTIME, upload } from './files.ts'
 import { occ, previewFiles } from './server.ts'
@@ -20,7 +21,6 @@ const IMAGES = '/api/v1/images/'
 const WARM_UP = '/api/v1/previews'
 /** The background job that renders the tiers of a written photo (IMAGES-001.16). */
 const RENDER_JOB = 'OCA\\Honeycomb\\BackgroundJob\\RenderPhotoTiers'
-const SHARP_BUDGET_MS = 500
 /** The preview files of one photo once its tiers are rendered: core's max preview and the three tiers, at least. */
 const RENDERED_PREVIEWS = 3
 
@@ -186,7 +186,7 @@ test('measures the first sharp image, the six loads in flight and the 4096 px ti
 	const megabytes = photos.map(({ jpeg }) => (jpeg.length / 1e6).toFixed(1)).join(', ')
 	const raws = photos.filter(({ raw }) => raw !== null).length
 	const results = {
-		'First sharp image in a newly opened folder, render jobs ran': `${rendered.sharp.toFixed(0)} ms (budget < ${SHARP_BUDGET_MS} ms)`,
+		'First sharp image in a newly opened folder, render jobs ran': `${rendered.sharp.toFixed(0)} ms (budget < ${BUDGET_MS.sharpRendered} ms)`,
 		'First small preview in a newly opened folder, render jobs ran': `${rendered.small.toFixed(0)} ms`,
 		'Server render of a 1024 px tier, first request': `${coldSharp.toFixed(0)} ms`,
 		'Server render of the 4096 px tier, first request': `${coldLoupe.toFixed(0)} ms`,
@@ -200,7 +200,12 @@ test('measures the first sharp image, the six loads in flight and the 4096 px ti
 		process.stdout.write(`${type}: ${description}\n`)
 	}
 	process.stdout.write(`${PHOTO_COUNT} photos, ${raws} with a RAW, JPEGs of ${megabytes} MB\n`)
-	// A time on a shared runner is no gate; a folder that renders nothing on opening is what keeps the budget.
 	// spec: IMAGES-001.12
 	expect(previewFiles(renderedIds)).toBe(stored)
+	withinBudget('sharpRendered', rendered.sharp)
+	withinBudget('smallCold', first.small)
+	withinBudget('sharpCold', first.sharp)
+	withinBudget('serverRender', coldSharp)
+	withinBudget('serverRender', coldLoupe)
+	withinBudget('loupeWarmed', loupe)
 })

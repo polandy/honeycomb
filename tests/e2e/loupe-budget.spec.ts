@@ -5,6 +5,7 @@ import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { budgetPhotos } from './budget-photos.ts'
+import { BUDGET_MS, withinBudget } from './budgets.ts'
 import { cullFolder, resetViewState } from './cull.ts'
 import { createFolder, upload } from './files.ts'
 
@@ -76,7 +77,8 @@ test('shows a prefetched 24 MP neighbour without a request when paging', async (
 
 	expect(requests).toEqual([])
 	const megabytes = measured.map((photo) => (photo.length / 1e6).toFixed(1)).join(', ')
-	const result = `${elapsed.toFixed(1)} ms (budget < 100 ms) with JPEGs of ${megabytes} MB`
+	const result = `${elapsed.toFixed(1)} ms (budget < ${BUDGET_MS.prefetchedLoupe} ms) with JPEGs of ${megabytes} MB`
 	test.info().annotations.push({ type: 'Prefetched next loupe image', description: result })
 	process.stdout.write(`Prefetched next loupe image: ${result}\n`)
+	withinBudget('prefetchedLoupe', elapsed)
 })
