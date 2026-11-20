@@ -1690,3 +1690,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   value, which compares within a series only. Easy to redo.
 - 2026-11-20: The quality hint on a tile is a small icon beside the file name, without colour or
   badge, so the grid stays calm; the filter bar gets a group *Hints*. Easy to redo.
+- 2026-11-20: The Immich time filter counts the current month and the eleven before it; older
+  uploads are under *All phone uploads*. Twelve keeps a change of filter at about fifteen Immich
+  calls, under the server's 50 periods. Easy to redo: one constant.
+- 2026-11-20: An Immich entry stays its own type beside `SourceEntry` until the shell refactor
+  (M10 PR 9) widens `PictureId` to `number | string`; widening it now breaks about forty call
+  sites that PR 9 rewrites anyway. Easy to redo.

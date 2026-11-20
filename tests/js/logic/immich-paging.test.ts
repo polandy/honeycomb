@@ -11,7 +11,7 @@ const entries = (from: number, count: number) => Array.from({ length: count }, (
 const page = (list: readonly ImmichEntry[], nextCursor: string | null, previousCursor: string | null = null): Page => ({ entries: list, nextCursor, previousCursor })
 
 function loaded(...pages: Page[]): PagedList {
-	return pages.reduce((list, next) => pageArrived(pageAsked(list, 'next'), 'next', next), EMPTY_LIST)
+	return pages.reduce<PagedList>((list, next) => pageArrived(pageAsked(list, 'next'), 'next', next), EMPTY_LIST)
 }
 
 describe('wantsNext', () => {
