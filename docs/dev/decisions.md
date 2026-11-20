@@ -1590,6 +1590,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   seconds when a position save is sent; the server caps it at the time since the folder set's
   previous position save, or since the start of the user's day. A cull that only uses the grid
   sends it with its next position save. Easy to redo: `useActiveTime`, `PositionService`.
+- 2026-11-20: honeycomb writes sidecars without `<?xpacket?>` and padding, also into a sidecar
+  that had them (ARC-3); ExifTool and Exiv2 read that form back. Easy to redo: `serializeXmp`.
+- 2026-11-20: The ExifTool and Exiv2 read-back runs in its own small container
+  (`scripts/xmp-interop.sh`) on every TypeScript change and nightly, not in the e2e container, so
+  it needs no Nextcloud. Easy to redo: `tests/interop/`.
 - 2026-11-20: The statistics page (STATS-001.40–.43, metrics PR 6) reads every counter once and
   sums the periods in the browser; its "today" is the user's Nextcloud day from the stats answer,
   never the browser's. The 30-day bars are 7-day chunks ending today (the oldest shorter); the

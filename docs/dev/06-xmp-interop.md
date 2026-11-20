@@ -273,6 +273,23 @@ not write keeps its value and qualifiers. The bytes still change: honeycomb writ
 form, without the wrapper, padding, `x:xmptk` or comments, which is why a replace needs file
 versions.
 
+**Canonical form, a decision (2026-11-20):** honeycomb writes no `<?xpacket?>` wrapper and no
+padding, also into a sidecar that had them. The wrapper and padding let a program edit a packet
+embedded in another file in place; a sidecar is a file of its own. ExifTool and Exiv2 read the form
+back (below), and digiKam reads through Exiv2. The cost is a rewritten file and a
+larger diff in file versions and sync on the first write into a foreign sidecar. Keeping a foreign
+wrapper would make the bytes depend on the file read and leave honeycomb and Framehive writing
+different bytes for one model (CORE-009.4). Lightroom reading it is unverified, like its sidecar
+name.
+
+**Read back with real tools.** The fixtures are synthetic, so `tests/interop/` writes sidecars with
+honeycomb's writer and reads them back with `exiftool -j -G1 -n -XMP:all` and `exiv2 -pa`
+(XMP-001.25, .26). Each case states digiKam's values as constants of their own, not through
+honeycomb's mapping, so a wrong value, a wrong namespace URI or a lost foreign property fails it.
+`scripts/xmp-interop.sh` runs it in a container with both tools; `scripts/verify.sh` and CI run it
+on every TypeScript change, and the nightly workflow runs it against the tools as Debian ships them
+that day.
+
 Write cases for M5, on top of CORE-009's:
 
 1. **Unknown fields survive.** Rejecting `darktable.xmp` again, then picking it, keeps

@@ -30,8 +30,9 @@ disagreement is reported. A refused sidecar is reported and does not count. dark
 **Writing** merges a decision into a sidecar's model: only the properties of
 [`06-xmp-interop.md`](../../06-xmp-interop.md#writing) change, every other property, qualifier and
 value text stays. The result is serialized in Framehive's canonical form (CORE-009 "Writing") with
-`xmp:MetadataDate` from the given time and offset. The targets of a picture are every sidecar it
-has, else one new `<member file>.xmp` per member.
+`xmp:MetadataDate` from the given time and offset. ExifTool and Exiv2, the library digiKam reads
+with, read the written sidecars back in `tests/interop/` (`scripts/xmp-interop.sh`). The targets
+of a picture are every sidecar it has, else one new `<member file>.xmp` per member.
 
 ## Acceptance criteria
 
@@ -207,6 +208,23 @@ has, else one new `<member file>.xmp` per member.
   writes `xmp:Rating` 0 and the reject in the pick fields; none writes −1 or
   `honeycomb:RejectedRating`
 
+### XMP-001.25 – ExifTool and Exiv2 read the written fields as digiKam's
+
+- **Given** a new sidecar, `digikam.xmp`, `digikam-pending.xmp`, `darktable.xmp` and
+  `lightroom.xmp`, and every flag, colour label and a tag
+- **When** honeycomb writes them and `exiftool -j -G1 -n -XMP:all` and `exiv2 -pa` read them back
+- **Then** both tools read `xmp:Rating`, `digiKam:PickLabel`, `xmpDM:pick`, `xmpDM:good`,
+  `digiKam:ColorLabel`, `xmp:Label`, `darktable:colorlabels`, `honeycomb:KeepRaw`,
+  `digiKam:TagsList`, `lr:hierarchicalSubject` and `dc:subject` with the values of the writing
+  table, under digiKam's namespaces, from the canonical form without `<?xpacket?>`
+
+### XMP-001.26 – The tools read every foreign property unchanged
+
+- **Given** the fixtures with foreign properties and the corpus
+- **When** honeycomb writes a decision into each and the tools read it before and after
+- **Then** each tool reads every property honeycomb does not write with the same value; only
+  `x:xmptk` is gone
+
 ## Out of scope
 
 - Fetching the sidecars, the backend's checked save, when sidecars are read on listing and written
@@ -220,3 +238,4 @@ has, else one new `<member file>.xmp` per member.
 | 2026-11-10 | Created and implemented with M5.1 (ADR 0016) |
 | 2026-11-15 | Corpus of foreign sidecars (XMP-001.22) |
 | 2026-11-15 | Deltas on each sidecar's own decision, a reject never as `xmp:Rating` −1 (ADR 0032; .13, .23, .24) |
+| 2026-11-20 | Read back with ExifTool and Exiv2 (.25, .26; `scripts/xmp-interop.sh`) |

@@ -33,6 +33,7 @@ step unused-exports scripts/unused-exports.sh
 parallel_step eslint npx eslint
 parallel_step vue-tsc npx vue-tsc
 parallel_step vitest npx vitest run --coverage
+parallel_step "xmp interop" scripts/xmp-interop.sh
 parallel_wait
 step build npx vite build
 # Each Nextcloud container has its own port and name (scripts/e2e-names.sh); one run per host at a time.
