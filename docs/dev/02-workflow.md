@@ -61,7 +61,14 @@ during a task becomes an issue as above.
   The steps that start Nextcloud containers (phpunit db, e2e, e2e oldest, upgrade test) run
   as one group under a host-wide `flock` on `HONEYCOMB_E2E_LOCK` (default
   `/tmp/honeycomb-e2e.lock`), so parallel worktrees on one host take turns; a run that has to
-  wait prints `waiting for the e2e slot` and then how long it waited.
+  wait prints `waiting for the e2e slot` and then how long it waited. Steps never inherit the
+  lock, so a child an aborted run left behind cannot hold it. Each container carries the label
+  `honeycomb.e2e.owner=<pid>@<host>` of the process that started it. Before taking the slot,
+  verify.sh removes the labelled containers on its host whose owner process is gone; it never
+  touches a container without the label, another host's or one whose owner still runs. A busy
+  port is never waited for: verify.sh takes the next free port at once, up to 100 above, and
+  prints `port <wanted> is busy, using <port>`. Its own containers go when it ends, also on
+  `Ctrl-C`, `SIGTERM` or a closed terminal.
 - Docs that the change touches and the `TODO.md` line it finishes are part of the same pull
   request. So is the spec in `docs/dev/specs/` for any behaviour change (ADR 0015). `CHANGELOG.md`
   is written by release-please.

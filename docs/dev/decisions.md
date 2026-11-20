@@ -1609,3 +1609,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   writes none any more, Nextcloud keeps no cache entry for it, so it is neither listed nor synced
   nor in the way of a save, and removing it would need the storage below `OCP\Files` (rule 1).
   This closes review OPS-9.
+- 2026-11-20: verify.sh moves a busy e2e port to the next free one above it (at most 100 up)
+  instead of a random or OS-chosen one, so the port and with it the container name and
+  `test-results-<port>/` stay predictable; it finds orphans by an owner label `<pid>@<host>`
+  and leaves a container of another host alone, since its process cannot be checked from here.
