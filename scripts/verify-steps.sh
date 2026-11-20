@@ -2,7 +2,8 @@
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Sourced by verify.sh: step runs one command and prints its result line with the duration;
-# parallel_step starts one in the background and parallel_wait prints those lines in start order.
+# parallel_step starts one in the background and parallel_wait prints those lines in start order;
+# e2e_slot_take and e2e_slot_release bracket the Nextcloud containers with a host-wide lock.
 # VERIFY_CLOCK is the command that prints the current second; tests replace it.
 
 VERIFY_CLOCK=${VERIFY_CLOCK:-"date +%s"}
@@ -51,6 +52,23 @@ parallel_wait() {
   done
   parallel_pids=()
   parallel_logs=()
+}
+
+# Takes the host-wide e2e slot on fd 9 (HONEYCOMB_E2E_LOCK) and prints how long it waited when busy.
+e2e_slot_take() {
+  local lock=${HONEYCOMB_E2E_LOCK:-/tmp/honeycomb-e2e.lock} began
+  exec 9>>"$lock" || return 1
+  flock -n 9 && return 0
+  echo "waiting for the e2e slot ($lock)"
+  began=$($VERIFY_CLOCK)
+  flock 9 || return 1
+  echo "got the e2e slot after $(($($VERIFY_CLOCK) - began))s"
+}
+
+# Unlocks explicitly, since the steps' children inherit fd 9.
+e2e_slot_release() {
+  flock -u 9
+  exec 9>&-
 }
 
 # Prints the total duration; the caller exits with $failed.
