@@ -9,15 +9,18 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Immich (M10, ADR 0041): PR 6 backend: connection registry and status, the client with contract tests and upstream error classes, listing and preview proxy; after the sign-off (2026-11-19)
-- [ ] Immich (M10, ADR 0041): PR 7 the decision table, its mapper and endpoints; the sweep of rows whose connection left the file; after the sign-off (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 7 the decision table, its mapper and endpoints, the listing's paging of decided rows under a decision filter and the counts route (ADR 0044); the sweep of rows whose connection left the file; after the sign-off (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 8 pure TypeScript: asset to picture and the time, device, kind and flag filters; after PR 5 (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 9 refactor of the Vue shell: the opened source as a union with key and capabilities, `imageUrl` in the cull context, `cull.ts` relieved, the cull context, the grid and loupe props and `toasted-decisions` on `Picture<SourceEntry>` (their callbacks reach the Nextcloud-only writes in `cull.ts`); after statistics PR 6 (2026-11-19)
-- [ ] Immich (M10, ADR 0041): PR 10 UI in two pull requests: source and connection switcher with the read-only dialog; grid and loupe with Immich data, capabilities off, decisions saved, position and *Recent* (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 10 UI in two pull requests: source and connection switcher with the read-only dialog; grid and loupe with Immich data, capabilities off, decisions saved, position (with the listing's `from` and `previousCursor`, ADR 0044) and *Recent* (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 11 e2e with the stub Immich from the pinned schema and a fixture of two connections, on the generic upstream-stub seam of the e2e setup (2026-11-19)
 - [ ] Immich (M10, ADR 0041): owner: Phase 1 hand test on the test server with two real accounts and read-only keys (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 13 Phase 2: *Write to Immich* with the `updatedAt` conflict check, rejects as Immich trash bin by default, per-asset results, undo; Immich decisions enter the statistics (2026-11-19)
-- [ ] Immich (M10, ADR 0041): PR 14 user docs: the connections file format and key scopes for the admin, the guide for culling Immich uploads (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 14 user docs: the connections file format and key scopes for the admin, an account without partner sharing in its timeline (ADR 0044), the guide for culling Immich uploads (2026-11-19)
+- [ ] Culling aids (M11, ADR 0046): PR 2 sharpness and its storage: `src/logic/sharpness.ts` with test vectors, a worker job on 4096 px bands for series members, `honeycomb_hashes` and the new `honeycomb_quality` per file and etag (old hash rows dropped), `PUT /api/v1/quality-values`, the listing's `quality` field, the similarity page measures too; the calibration script on series copied from the owner's Photos library (read only); spec SERIES-006 (2026-11-20)
+- [ ] Culling aids (M11, ADR 0046): PR 3 the *Sharpest* mark in the series compare and series viewer and on its filmstrip thumbnail, the rank in the info panel, `Z` and double-tap zoom onto the focus tile; the active card stays the first photo; e2e with a sharp and a soft fixture photo; after PR 2 (2026-11-20)
+- [ ] Culling aids (M11, ADR 0046): PR 4 the series reduction over all series: a plan from the *Sharpest* marks (a series without one is left out), a review dialog, one undo step, flags only; the dialog needs a mockup scene first; after PR 3 (2026-11-20)
+- [ ] Culling aids (M11, ADR 0046): PR 5 the shake risk from EXIF: an amendment of ADR 0046 for the listing fields (exposure time, focal length, its full-frame value, aperture, ISO), `src/logic/shake-risk.ts`, the info panel rows, the tile icon and the filter bar group *Hints* as the mockup shows them (2026-11-20)
 
 ## Later
 

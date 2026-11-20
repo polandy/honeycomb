@@ -16,7 +16,8 @@ what is on screen is loaded, and every number comes from the server.
 - **The listing** (`POST …/immich/{connectionId}/assets`, ADR 0044) answers a page of at most
   `size` entries (1 to 250, default 100), newest capture time first, ties by asset id, with a
   `nextCursor` and a `previousCursor`. Only the upload library is listed; external libraries,
-  trashed and archived assets are left out.
+  trashed, archived, hidden and locked assets, audio and other files are left out. An upload
+  during the paging shifts no page; it shows once the listing starts over.
 - **An entry** is one picture: a live photo is one entry of kind `live`, a stack shows its
   primary asset with the stack's size. The grid groups entries under day headers.
 - **Infinite scroll:** the grid loads the first page on open and the next one when its last loaded
@@ -64,7 +65,7 @@ what is on screen is loaded, and every number comes from the server.
 - **Given** Immich assets in the upload library, in an external library, in the trash bin and in
   the archive
 - **When** the listing is read
-- **Then** only the upload library's visible assets appear
+- **Then** only the upload library's visible photos and videos appear
 
 ### IMMICH-002.4 – Entry fields
 
@@ -77,8 +78,7 @@ what is on screen is loaded, and every number comes from the server.
 ### IMMICH-002.5 – Malformed request
 
 - **Given** a `size` outside 1 to 250, an unknown kind or flag, a rating op other than *atLeast*,
-  *atMost* or *exactly*, a cursor of other filters or another connection, or more than 20 device
-  and kind searches
+  *atMost* or *exactly*, a cursor of other filters or another connection, or more than 20 devices
 - **When** the listing is asked
 - **Then** the answer is `400` `request`
 
@@ -175,3 +175,16 @@ what is on screen is loaded, and every number comes from the server.
 - **When** the grid asks the third
 - **Then** the two pages stay, the end of the grid names the state and offers *Try again*, which
   asks the same cursor again
+
+### IMMICH-002.20 – Preview of an unknown asset
+
+- **Given** an asset id Immich does not know, or the key may not read
+- **When** its preview is asked
+- **Then** the answer is `404` `unknown-asset`
+
+### IMMICH-002.21 – An upload during the paging
+
+- **Given** a listing whose first page has been read
+- **When** a new asset reaches Immich before the next page is asked
+- **Then** the next pages neither repeat nor skip an asset, and the new one is in the first page
+  of the next start
