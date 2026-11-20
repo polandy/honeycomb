@@ -38,7 +38,8 @@ Database migrations run with Nextcloud's own `occ app:update` or `occ upgrade`
 
 ## Background job
 
-`occ honeycomb:jobs` shows whether the jobs ran and the class of their last error; the Nextcloud log has the details.
+`occ honeycomb:jobs` shows whether the jobs ran and the class of their last error;
+the Nextcloud log has the details.
 
 A daily background job removes honeycomb's rows of files that were deleted for good. Deleting a
 user removes all of their honeycomb data at once. Nextcloud's background jobs must run (cron is
