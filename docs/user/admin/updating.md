@@ -1,6 +1,6 @@
 # Updating honeycomb
 
-For Nextcloud admins. Installation: the [README](../../../README.md#installation).
+For Nextcloud admins. Installation: [installing](installing.md).
 
 ## Every release
 
@@ -57,7 +57,7 @@ in debug mode, lists the migrations and which of them have run.
 A new build reaches the browser on the next page load even without a version change, since its
 script names carry a hash of their content. Builds before 2026-11-16 had fixed names that
 Nextcloud lets the browser cache for six months: after updating from one of them, reload the
-page once without the cache (`Ctrl+Shift+R`, on the iPad clear the website data).
+page once without the cache (`Ctrl+Shift+R`, on a tablet clear the website data).
 
 ## File locking
 

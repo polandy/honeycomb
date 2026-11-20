@@ -1,7 +1,7 @@
 # honeycomb – Rules for AI agents
 
 honeycomb is a Nextcloud app (PHP backend, Vue frontend) for culling RAW+JPEG photo pairs,
-touch-first for the iPad. It is developed by AI agents; a human must still be able to read and
+optimised for desktop and tablet. It is developed by AI agents; a human must still be able to read and
 follow every line, so every rule that can be checked is checked by `scripts/verify.sh`.
 
 This file is loaded in full by every session and every subagent, so it holds rules and pointers
