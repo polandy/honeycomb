@@ -4,7 +4,7 @@ import type { ConnectionState, ConnectionStatus, ImmichAvailability, ImmichConne
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { CONNECTION_STATES, NO_IMMICH } from '../logic/immich-connections.ts'
+import { CONNECTION_STATES } from '../logic/immich-connections.ts'
 import { API, ApiResponseError, isRecord } from './core.ts'
 
 /** The error code of a failed Immich request, null for any other failure. */
@@ -18,11 +18,7 @@ export async function listImmichConnections(): Promise<ImmichAvailability> {
 	try {
 		({ data } = await axios.get<unknown>(generateUrl(`${API}/immich/connections`)))
 	} catch (error) {
-		const code = immichError(error)
-		if (code === 'not-configured') {
-			return NO_IMMICH
-		}
-		if (code === 'connections-file') {
+		if (immichError(error) === 'connections-file') {
 			return { kind: 'broken' }
 		}
 		throw error
