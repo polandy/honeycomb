@@ -44,6 +44,7 @@ async function press(key: string, fields: KeyboardEventInit = {}) {
 const flowOf = (wrapper: AppWrapper): MoveFlow => wrapper.findComponent(MoveDialogs).props('flow')
 const opened = (wrapper: AppWrapper) => flowOf(wrapper).pictures.value?.map((picture) => picture.baseName) ?? null
 const toastText = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast).text()
+const toastButtons = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast).findAll('button').map((each) => each.text())
 
 /** Chooses `/Out` and confirms the move. */
 async function moveToOut(wrapper: AppWrapper) {
@@ -161,20 +162,25 @@ describe('App: the move', () => {
 	})
 
 	// spec: DECISIONS-002.18
-	it('offers Reload folder on a failed move, and not when the trash bin is off', async () => {
-		const failed = await openApp([], async () => {
+	it('offers Reload folder on a failed move', async () => {
+		const { wrapper } = await openApp([], async () => {
 			throw new Error('stale')
 		})
 		await press('m')
-		await moveToOut(failed.wrapper)
-		const buttons = () => failed.wrapper.findComponent(UndoToast).findAll('button').map((each) => each.text())
-		expect(buttons()).toContain('Reload folder')
+		await moveToOut(wrapper)
 
-		const off = await openApp([], async () => {
+		expect(toastButtons(wrapper)).toContain('Reload folder')
+	})
+
+	// spec: DECISIONS-002.18
+	it('offers no Reload folder when the trash bin is off', async () => {
+		const { wrapper } = await openApp([], async () => {
 			throw new TrashBinOffError()
 		})
 		await press('m')
-		await moveToOut(off.wrapper)
-		expect(off.wrapper.findComponent(UndoToast).findAll('button').map((each) => each.text())).not.toContain('Reload folder')
+		await moveToOut(wrapper)
+
+		expect(toastText(wrapper)).toContain('The Nextcloud trash bin is off')
+		expect(toastButtons(wrapper)).not.toContain('Reload folder')
 	})
 })
