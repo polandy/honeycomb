@@ -17,7 +17,8 @@ import type { ObserveSize } from './observe-size.ts'
 export interface PhotoGridProps {
 	/** The pictures in the grid's order. */
 	pictures: readonly Picture<SourceEntry>[]
-	folderSet: FolderSet
+	/** The folder set the group headers name their folders within; without one a header shows its folder as it is. */
+	folderSet?: FolderSet | undefined
 	groupByFolder: boolean
 	/** The target tile size in CSS pixels. */
 	tileSize: number
@@ -62,4 +63,6 @@ export type PhotoGridEmits = {
 	compareSeries: [series: Series<Picture<SourceEntry>>, picture: Picture<SourceEntry>]
 	/** The user scrolled the grid; a scroll it made itself does not count. */
 	scroll: []
+	/** The index of the last tile rendered, one screen below the viewport, for paging (IMMICH-002.6). */
+	shown: [last: number]
 }

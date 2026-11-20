@@ -5,8 +5,10 @@ import type { DecisionIntent } from './logic/decision-change.ts'
 import type { Decision } from './logic/decision.ts'
 import type { FolderSet } from './logic/folder-set.ts'
 import type { ImageUrlFor } from './logic/image-tiers.ts'
+import type { LoupeCounter } from './logic/immich-paging.ts'
 import type { SourceEntry } from './logic/listing.ts'
 import type { Schedule } from './logic/long-press.ts'
+import type { SourceCapabilities } from './logic/opened-source.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { Series } from './logic/series.ts'
 import type { Settings } from './logic/settings.ts'
@@ -22,7 +24,12 @@ export interface PhotoLoupeProps {
 	/** The pictures the loupe pages through, the grid's order when it opened. */
 	pictures: readonly Picture<SourceEntry>[]
 	index: number
-	folderSet: FolderSet
+	/** The folder set of a folder source, for the info panel's Folder row. */
+	folderSet?: FolderSet | undefined
+	/** What the source offers beside deciding; everything unless given (IMMICH-002.17). */
+	capabilities?: SourceCapabilities
+	/** The place against the source's own total, for a source that pages (IMMICH-002.9). */
+	counter?: LoupeCounter | null
 	decisionOf: (picture: Picture<SourceEntry>) => Decision
 	/** Whether the picture counts as decided, by its flag unless given (SERIES-005.14). */
 	decidedOf?: (picture: Picture<SourceEntry>) => boolean

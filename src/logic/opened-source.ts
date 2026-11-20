@@ -37,7 +37,8 @@ export interface ImmichSource {
 /** The source a cull shows. */
 export type OpenedSource = FolderSource | ImmichSource
 
-const EVERYTHING: SourceCapabilities = { series: true, similarity: true, tags: true, delete: true, move: true, removeRaws: true, keepRaw: true, xmp: true }
+/** What a folder source offers: everything. */
+export const EVERYTHING: SourceCapabilities = { series: true, similarity: true, tags: true, delete: true, move: true, removeRaws: true, keepRaw: true, xmp: true }
 const DECISIONS_ONLY: SourceCapabilities = { series: false, similarity: false, tags: false, delete: false, move: false, removeRaws: false, keepRaw: false, xmp: false }
 
 /** The folder set as a source that allows everything. */

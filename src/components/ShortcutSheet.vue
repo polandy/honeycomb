@@ -14,6 +14,8 @@ import { formatCaps, KEYMAP } from '../logic/hotkeys.ts'
 const props = defineProps<{
 	/** The element the dialog opens in; the loupe's while it is open, as it lies above the page. */
 	container?: string | undefined
+	/** The key map's entries the source does not offer (IMMICH-002.17). */
+	hidden?: ReadonlySet<string>
 }>()
 
 const emit = defineEmits<{
@@ -82,7 +84,7 @@ const mac = isMac()
 const sections = (Object.keys(GROUPS) as KeymapGroup[]).map((group) => ({
 	group,
 	name: GROUPS[group],
-	rows: KEYMAP.filter((entry) => entry.group === group).map((entry) => ({
+	rows: KEYMAP.filter((entry) => entry.group === group && props.hidden?.has(entry.id) !== true).map((entry) => ({
 		id: entry.id,
 		caps: entry.caps.map((caps) => formatCaps(caps, mac)),
 		range: entry.range === true,

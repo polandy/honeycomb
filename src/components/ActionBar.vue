@@ -26,7 +26,10 @@ const props = withDefaults(defineProps<{
 	idle?: boolean
 	/** Whether the loupe's row stays below the photo in landscape instead of floating over it. */
 	pinned?: boolean
-}>(), { disabled: false, readOnly: false, layout: 'bar', flags: true, idle: false, pinned: false })
+	/** Whether the source offers *Keep RAW* and tags (IMMICH-002.17). */
+	keepRaw?: boolean
+	tags?: boolean
+}>(), { disabled: false, readOnly: false, layout: 'bar', flags: true, idle: false, pinned: false, keepRaw: true, tags: true })
 
 const emit = defineEmits<{ decide: [intent: DecisionIntent], tag: [] }>()
 
@@ -49,6 +52,7 @@ const off = computed(() => props.disabled || props.readOnly)
 			<StarRating :rating="props.common.rating" :disabled="off" @rate="emit('decide', { kind: 'rating', rating: $event })" />
 			<ColourLabels :colourLabel="props.common.colourLabel" :disabled="off" @choose="emit('decide', { kind: 'colourLabel', colourLabel: $event })" />
 			<button
+				v-if="props.keepRaw"
 				type="button"
 				class="action-bar__keep-raw"
 				:disabled="off || !props.common.canKeepRaw"
@@ -58,6 +62,7 @@ const off = computed(() => props.disabled || props.readOnly)
 				{{ t('honeycomb', 'Keep RAW') }}
 			</button>
 			<button
+				v-if="props.tags"
 				type="button"
 				class="action-bar__tags"
 				:disabled="off"
