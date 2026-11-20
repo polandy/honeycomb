@@ -52,7 +52,7 @@ it flags, moves, deletes and writes nothing.
   every user's; `occ honeycomb:cache:clear` without a user removes them all (XMP-006.6).
 - `scripts/sharpness-calibration.sh <folder>` measures every JPEG of each subfolder of a local
   folder, one series per subfolder, with the same module, and prints each series' values, ranks
-  and sharpest (`docs/dev/calibration.md`). It only reads the folder.
+  and sharpest, and each photo it could not measure (`docs/dev/calibration.md`). It only reads the folder.
 
 ## Acceptance criteria
 
@@ -190,6 +190,13 @@ it flags, moves, deletes and writes nothing.
 - **Given** stored quality values
 - **When** a user clears their cache, and when `occ honeycomb:cache:clear` runs without a user
 - **Then** the first keeps the values; the second removes them all
+
+### SERIES-006.21 – The calibration report
+
+- **Given** the measured photos of a series, one of which could not be measured
+- **When** the calibration script reports the series
+- **Then** it ranks the measured photos by sharpness with their focus tile, names the sharpest or
+  none as the series compare would, and lists the photo not measured with its reason
 
 ## Out of scope
 
