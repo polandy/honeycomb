@@ -53,7 +53,7 @@ final class MissingVisualHashes {
 				break;
 			}
 		}
-		$stored = $this->store->find($user->getUID(), array_values(array_map(static fn (File $photo): int => $photo->getId(), $photos)));
+		$stored = $this->store->find(array_values(array_map(static fn (File $photo): int => $photo->getId(), $photos)));
 		$pictures = [];
 		foreach ($photos as $relative => $photo) {
 			$fileId = $photo->getId();

@@ -5,21 +5,15 @@ import type { StoredVisualHash } from '../logic/visual-hash.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { asRateLimited } from '../logic/retry-after.ts'
 import { API, ApiResponseError, isRecord } from './core.ts'
+import { putSavedRows } from './saved-rows.ts'
 
 /** Stores visual hashes with the etags they were taken from and answers the file ids stored; the server skips those of changed files (ADR 0024), a `429` rejects with `RateLimitedError`. */
 export async function saveVisualHashes(hashes: readonly StoredVisualHash[]): Promise<number[]> {
 	if (hashes.length === 0) {
 		return []
 	}
-	const data = await axios.put<unknown>(generateUrl(`${API}/visual-hashes`), { hashes }).then((response) => response.data, (error: unknown) => {
-		throw asRateLimited(error)
-	})
-	if (!isRecord(data) || !Array.isArray(data.saved) || !data.saved.every((fileId) => typeof fileId === 'number')) {
-		throw new ApiResponseError('The saved visual hashes came without a saved array of file ids; check the server\'s version.')
-	}
-	return data.saved
+	return putSavedRows('visual-hashes', { hashes }, 'visual hashes')
 }
 
 /** The next page of the user's photos below `path` without a hash of their current version, after the cursor `after` (ADR 0025). */

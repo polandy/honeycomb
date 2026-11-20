@@ -12,6 +12,7 @@ use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\FlagStore;
 use OCA\Honeycomb\Service\MoveService;
+use OCA\Honeycomb\Service\QualityValue;
 use OCA\Honeycomb\Service\SeriesStatus;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
@@ -27,12 +28,14 @@ final class MoveServiceCarryOverTest extends TestCase {
 
 	private FakeFlagStore $flags;
 	private FakeVisualHashStore $hashes;
+	private FakeQualityStore $quality;
 	private FakeSeriesStore $series;
 
 	#[\Override]
 	protected function setUp(): void {
 		$this->flags = new FakeFlagStore();
 		$this->hashes = new FakeVisualHashStore();
+		$this->quality = new FakeQualityStore();
 		$this->series = new FakeSeriesStore();
 		$this->addFiles([1 => '/In/A.RAF', 2 => '/In/A.JPG']);
 	}
@@ -40,7 +43,7 @@ final class MoveServiceCarryOverTest extends TestCase {
 	private function service(?FlagStore $flags = null, ?LoggerInterface $logger = null): MoveService {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturn(true);
-		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores($flags ?? $this->flags, $this->hashes, $this->series, new FakeXmpCacheStore()), $logger ?? $this->createStub(LoggerInterface::class), $this->stats());
+		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores($flags ?? $this->flags, $this->hashes, $this->series, new FakeXmpCacheStore(), $this->quality), $logger ?? $this->createStub(LoggerInterface::class), $this->stats());
 	}
 
 	private static function flag(int $fileId): FileFlag {
@@ -99,14 +102,14 @@ final class MoveServiceCarryOverTest extends TestCase {
 	public function testTheUsersOtherRowsFollowAndAnotherUsersStay(): void {
 		$this->addFolder('/Out');
 		$this->newIds[2] = 20;
-		$hash = new VisualHash(2, 'etag-2', '00ff00ff00ff00ff');
-		$this->hashes->rows = ['alice' => [2 => $hash], 'bob' => [2 => $hash]];
+		$this->series->add('alice', SeriesStatus::Open, 2);
+		$this->series->add('bob', SeriesStatus::Open, 2);
 		$this->flags->rows = [2 => self::flag(2)];
 
 		$this->service()->move($this->treeUser(), self::request());
 
-		$this->assertSame([20], array_keys($this->hashes->rows['alice']));
-		$this->assertSame([2], array_keys($this->hashes->rows['bob']));
+		$this->assertSame([20], array_keys($this->series->rows['alice']));
+		$this->assertSame([2], array_keys($this->series->rows['bob']));
 		$this->assertEquals([20 => self::flag(20)], $this->flags->rows);
 	}
 
@@ -114,11 +117,22 @@ final class MoveServiceCarryOverTest extends TestCase {
 	public function testAVisualHashFollowsItsFileToANewFileId(): void {
 		$this->addFolder('/Out');
 		$this->newIds[2] = 20;
-		$this->hashes->rows = ['alice' => [2 => new VisualHash(2, 'etag-2', '00ff00ff00ff00ff')]];
+		$this->hashes->rows = [2 => new VisualHash(2, 'etag-2', '00ff00ff00ff00ff')];
 
 		$this->service()->move($this->treeUser(), self::request());
 
-		$this->assertEquals(['alice' => [20 => new VisualHash(20, 'etag-2', '00ff00ff00ff00ff')]], $this->hashes->rows);
+		$this->assertEquals([20 => new VisualHash(20, 'etag-2', '00ff00ff00ff00ff')], $this->hashes->rows);
+	}
+
+	// spec: SERIES-006.14
+	public function testAQualityValueFollowsItsFileToANewFileId(): void {
+		$this->addFolder('/Out');
+		$this->newIds[2] = 20;
+		$this->quality->rows = [2 => new QualityValue(2, 'etag-2', 1, 5.5, 9)];
+
+		$this->service()->move($this->treeUser(), self::request());
+
+		$this->assertEquals([20 => new QualityValue(20, 'etag-2', 1, 5.5, 9)], $this->quality->rows);
 	}
 
 	// spec: SERIES-005.25

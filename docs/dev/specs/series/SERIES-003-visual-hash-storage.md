@@ -2,22 +2,24 @@
 
 - Status: implemented
 - Area: series
-- Origin: owner decision 2026-11-14 (fingerprints stored on the server); ADR 0024
+- Origin: owner decision 2026-11-14 (fingerprints stored on the server); ADRs 0024, 0046
 - Depends on: LISTING-001, SERIES-001
 
 ## Purpose
 
-A visual hash is computed once per file version and user, not once per device and browser: the
+A visual hash is computed once per file version, not once per user, device and browser: the
 server keeps the hashes the browser computed and hands them out with the listing.
 
 ## Behaviour
 
-- Each listing entry (LISTING-001) has `visualHash`: the user's stored hash of that file when it
-  was taken from the file's current etag, else `null`.
+- Each listing entry (LISTING-001) has `visualHash`: the stored hash of that file when it was
+  taken from the file's current etag, else `null`. A hash is stored per file, not per user: every
+  user who reaches the file gets it (ADR 0046). The upgrade to that key dropped the stored hashes,
+  which the next visit computes again.
 - `PUT /apps/honeycomb/api/v1/visual-hashes` with `{"hashes": [{"fileId": 9, "etag": "…",
-  "hash": "…"}, ...]}`, at most 1,000 items, stores each item's hash for the user and answers
+  "hash": "…"}, ...]}`, at most 1,000 items, stores each item's hash and answers
   `{"saved": [...]}` with the file ids stored, in request order. A stored hash of the same file is
-  replaced.
+  replaced, whoever saved it.
 - An item is skipped, and missing from `saved`, when the user cannot reach its file id as a photo
   (unknown, another user's file, a folder, a sidecar) or its etag is not the file's current one.
 - `400`, nothing written, for a body that is not a list of at most 1,000 items, an item without a
@@ -99,7 +101,7 @@ server keeps the hashes the browser computed and hands them out with the listing
 - **When** a save arrives
 - **Then** the answer is `401` and nothing is written
 
-### SERIES-003.8 – Each user apart
+### SERIES-003.8 – Each user apart (removed)
 
 - **Given** two users who can both reach a file, one of them with a stored hash of it
 - **When** the other lists it
@@ -118,7 +120,7 @@ server keeps the hashes the browser computed and hands them out with the listing
 - **When** the daily clean-up runs
 - **Then** the hashes of the deleted file are gone and the others stay
 
-### SERIES-003.11 – A deleted user
+### SERIES-003.11 – A deleted user (removed)
 
 - **Given** a user with stored hashes
 - **When** the user is deleted
@@ -233,6 +235,18 @@ server keeps the hashes the browser computed and hands them out with the listing
   hashes again; it keeps hashing meanwhile, sends no other save, and the save does not count as
   failed
 
+### SERIES-003.28 – Every user gets the hash
+
+- **Given** two users who can both reach a file, one of them with a saved hash of it
+- **When** the other lists it
+- **Then** the other's entry carries that hash
+
+### SERIES-003.29 – A deleted user leaves the hashes
+
+- **Given** a user who saved hashes of files that still exist
+- **When** the user is deleted
+- **Then** the hashes stay
+
 ## Out of scope
 
 - The hash, the link rule and when a picture is hashed: SERIES-001.
@@ -248,3 +262,4 @@ server keeps the hashes the browser computed and hands them out with the listing
 | 2026-11-14 | Saves limited to 300 a minute per user (ADR 0026) |
 | 2026-11-14 | The similarity moves from the toolbar to a strip over the grid; a series that may still change has a dashed badge (owner decision #181) |
 | 2026-11-15 | The cull hashes in the similarity page's workers, and a limited save waits (review R12 b) |
+| 2026-11-20 | One hash per file for every user; .8 and .11 removed for .28 and .29 (ADR 0046) |

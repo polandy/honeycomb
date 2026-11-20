@@ -4,6 +4,7 @@
 export * from './api/core.ts'
 export * from './api/files.ts'
 export * from './api/listing.ts'
+export * from './api/quality-values.ts'
 export * from './api/sidecars.ts'
 export * from './api/user-data.ts'
 export * from './api/visual-hashes.ts'

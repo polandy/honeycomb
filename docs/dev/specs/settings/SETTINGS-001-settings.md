@@ -223,7 +223,7 @@ Withdrawn by ADR 0040 (M8 PR 3); there is no sidecar switch (.28).
 
 - **Given** the *Cache* section
 - **When** the user taps *Clear cache*
-- **Then** the user's XMP cache and visual hashes are removed (XMP-006.5) without asking, and a
+- **Then** the user's XMP cache is removed (XMP-006.5) without asking, and a
   toast says *Cache cleared*; when it fails, the toast says the cache could not be cleared
 
 ### SETTINGS-001.26 – *On* needs the Versions app; the old values are read once (removed)
@@ -269,3 +269,4 @@ Pairing itself: LISTING-002.
 | 2026-11-19 | M8 PR 3: no *XMP sidecars* section (.24, .26 removed; .28 implemented) |
 | 2026-11-19 | M8 PR 5: *Clean up orphaned data* for admins (.27 implemented) |
 | 2026-11-19 | The *Statistics* section and *Keep statistics* in the defaults (STATS-001) |
+| 2026-11-20 | .25 keeps the visual hashes, which every user of a file shares (ADR 0046) |

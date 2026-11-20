@@ -29,18 +29,20 @@ tables and is used again once a honeycomb release for that major is installed.
 
 ## Downgrade not supported
 
-Going back to an older honeycomb release is not supported. Updates only add tables and columns,
-but the older code does not know what a newer release wrote, and Nextcloud does not undo a
-migration. To go back, restore the database and the `custom_apps/honeycomb` folder from the
-backup taken before the update.
+Going back to an older honeycomb release is not supported. Updates mostly add tables and
+columns; the update that added `honeycomb_quality` also dropped every stored visual hash, which
+the next cull computes again. The older code does not know what a newer release wrote, and
+Nextcloud does not undo a migration. To go back, restore the database and the
+`custom_apps/honeycomb` folder from the backup taken before the update.
 
 ## Installed from a Git checkout
 
 Tag storage (pull request #119) added the tables `honeycomb_file_tags` and
 `honeycomb_tag_list`, visual hash storage added `honeycomb_hashes` and stored series added
-`honeycomb_series` and `honeycomb_series_files`, without raising the app version, so an
+`honeycomb_series` and `honeycomb_series_files`, and sharpness storage added `honeycomb_quality`,
+without raising the app version, so an
 instance installed from a Git checkout before them never created them, and the commands above
-do not either. Without `honeycomb_hashes` no folder opens. The `migrations:`
+do not either. Without `honeycomb_hashes` or `honeycomb_quality` no folder opens. The `migrations:`
 commands exist only in debug mode, so turn it on for this one run:
 
 ```sh

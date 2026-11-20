@@ -68,7 +68,7 @@ const yearReviewHint = useYearReviewHint(viewStateApi, props.today)
 const settingsOpen = ref(false)
 const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, toast.showError)
 const sidecars = useBundledSidecars(sidecarFlow.sync, props.schedule, props.onPageHide)
-const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, wait: waitSeconds(props.schedule), warmPreviews: props.warmPreviews, flags: props.flags, lookupSeries: props.lookupSeries, saveSeries: props.saveSeries, tags: props.tags }, props.storage, () => settings.value, sidecars, (photos) => toast.showError(flagsNotSavedText(photos)))
+const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, measureImage: props.measureImage, saveQualityValues: props.saveQualityValues, wait: waitSeconds(props.schedule), warmPreviews: props.warmPreviews, flags: props.flags, lookupSeries: props.lookupSeries, saveSeries: props.saveSeries, tags: props.tags }, props.storage, () => settings.value, sidecars, (photos) => toast.showError(flagsNotSavedText(photos)))
 const { folderSet, pictures, folders, view, progress, filtersOpen, pickerOpen, tileSize } = cull
 const gridScreen = useTemplateRef<InstanceType<typeof GridScreen>>('gridScreen')
 const grid = computed(() => gridScreen.value?.grid ?? null)

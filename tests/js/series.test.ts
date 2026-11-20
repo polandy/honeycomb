@@ -20,7 +20,7 @@ function setUp(entries: ListingEntry[]) {
 	const hasher = fakeHasher()
 	const pictures = shallowRef<Picture<ListingEntry>[]>(picturesOf(entries))
 	const decisions = shallowRef<ReadonlyMap<Picture<ListingEntry>, Decision>>(new Map())
-	const series = useSeries({ hashImage: hasher.hashImage, saveVisualHashes: async () => undefined, wait: async () => {} }, fakeStorage(), () => pictures.value, (picture) => decisions.value.get(picture) ?? UNDECIDED, () => NO_STORED_ROWS)
+	const series = useSeries({ hashImage: hasher.hashImage, saveVisualHashes: async () => undefined, measureImage: async () => ({ sharpness: 0, focusTile: 0 }), saveQualityValues: async () => undefined, wait: async () => {} }, fakeStorage(), () => pictures.value, (picture) => decisions.value.get(picture) ?? UNDECIDED, () => NO_STORED_ROWS)
 	const byName = (name: string) => pictures.value.find((picture) => picture.baseName === name)!
 	const names = () => series.series.value.map((each) => each.members.map((member) => member.baseName))
 	return { ...hasher, series, decisions, byName, names }

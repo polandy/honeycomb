@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 /** A test against the database of the Nextcloud it runs in, with the app's tables emptied before each test. */
 abstract class DbTestCase extends TestCase {
-	private const array TABLES = ['honeycomb_flags', 'honeycomb_tag_list', 'honeycomb_series', 'honeycomb_series_files', 'honeycomb_xmp_cache', 'honeycomb_hashes', 'honeycomb_positions', 'honeycomb_stats', 'honeycomb_immich_assets'];
+	private const array TABLES = ['honeycomb_flags', 'honeycomb_tag_list', 'honeycomb_series', 'honeycomb_series_files', 'honeycomb_xmp_cache', 'honeycomb_hashes', 'honeycomb_positions', 'honeycomb_stats', 'honeycomb_immich_assets', 'honeycomb_quality'];
 
 	protected IDBConnection $db;
 

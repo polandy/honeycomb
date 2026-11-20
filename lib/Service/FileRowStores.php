@@ -15,6 +15,7 @@ final readonly class FileRowStores {
 		private VisualHashStore $visualHashes,
 		private SeriesStore $series,
 		private XmpCacheStore $xmpCache,
+		private QualityStore $quality,
 	) {
 	}
 
@@ -25,6 +26,7 @@ final readonly class FileRowStores {
 			new FileRowStoreEntry('visual hash', 'vanished_after_hashes', $this->visualHashes),
 			new FileRowStoreEntry('series member', 'vanished_after_series_files', $this->series),
 			new FileRowStoreEntry('xmp cache', 'vanished_after_xmp_cache', $this->xmpCache),
+			new FileRowStoreEntry('quality value', 'vanished_after_quality', $this->quality),
 		];
 	}
 

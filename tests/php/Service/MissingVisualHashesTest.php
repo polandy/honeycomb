@@ -61,7 +61,7 @@ final class MissingVisualHashesTest extends TestCase {
 			$this->file(6, '/Photos/.hidden/c.JPG'),
 			$this->file(7, '/Photos/c.JPG'),
 		]);
-		$this->store->rows['alice'] = [
+		$this->store->rows = [
 			5 => new VisualHash(5, 'etag-5', self::HASH),
 			7 => new VisualHash(7, 'older', self::HASH),
 		];
@@ -92,7 +92,7 @@ final class MissingVisualHashesTest extends TestCase {
 
 	// spec: SERIES-004.2
 	public function testAPageOfHashedPhotosIsEmptyButGoesOn(): void {
-		$this->store->rows['alice'] = [1 => new VisualHash(1, 'etag-1', self::HASH), 2 => new VisualHash(2, 'etag-2', self::HASH)];
+		$this->store->rows = [1 => new VisualHash(1, 'etag-1', self::HASH), 2 => new VisualHash(2, 'etag-2', self::HASH)];
 
 		$page = $this->service($this->rootWith(['/Photos' => $this->photos(3)]), 2)->page($this->user(), 'Photos', '');
 
