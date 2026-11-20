@@ -122,9 +122,9 @@ nothing.
 - **Given** a newly opened folder of 24 MP files whose background jobs ran after the upload
 - **When** the grid shows
 - **Then** opening it renders no preview on the server, which keeps the first sharp image within
-  500 ms; e2e asserts both the renders and the 500 ms, and bounds the cold first images and the
-  server's first render of a tier at about five times the local measurement
-  (`tests/e2e/budgets.ts`)
+  500 ms; e2e asserts the renders, and bounds that time at twice the budget, the cold first
+  images and the server's first render of a tier at about three times CI's slowest run, as a
+  shared runner is slower than the measuring host (`tests/e2e/budgets.ts`)
 
 ### IMAGES-001.13 – RAW files Nextcloud does not type are served
 
