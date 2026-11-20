@@ -9,7 +9,7 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Immich (M10, ADR 0041): PR 10 UI in two pull requests: source and connection switcher with the read-only dialog; grid and loupe with Immich data (the Immich entry as a `SourceEntry`, `PictureId` widened to `number | string`), capabilities off, decisions saved, position (with the listing's `from` and `previousCursor`, ADR 0044, and the position's removal in the connection sweep, IMMICH-003.18) and *Recent* (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 10b UI: grid and loupe with Immich data (the Immich entry as a `SourceEntry`, `PictureId` widened to `number | string`), capabilities off, decisions saved, position (with the listing's `from` and `previousCursor`, ADR 0044, and the position's removal in the connection sweep, IMMICH-003.18) and *Recent* (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 11 e2e with the stub Immich from the pinned schema and a fixture of two connections, on the generic upstream-stub seam of the e2e setup (2026-11-19)
 - [ ] Immich (M10, ADR 0041): owner: Phase 1 hand test on the test server with two real accounts and read-only keys (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 13 Phase 2: *Write to Immich* with the `updatedAt` conflict check, rejects as Immich trash bin by default, per-asset results, undo; Immich decisions enter the statistics (2026-11-19)
