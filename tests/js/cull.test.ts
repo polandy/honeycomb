@@ -8,6 +8,7 @@ import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { shallowRef } from 'vue'
 import { useCull } from '../../src/cull.ts'
+import { folderSource } from '../../src/logic/opened-source.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { ENTRIES, fakeFlags, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET, stored } from './app-cull.ts'
@@ -35,6 +36,15 @@ async function openedCull(stored: StoredDecision[] = [], entries = ENTRIES) {
 	await flushPromises()
 	return { cull, flags, settings, picture: (name: string) => cull.pictures.value.find((picture) => picture.baseName === name)! }
 }
+
+describe('useCull: open', () => {
+	it('holds the opened folder set as a folder source', async () => {
+		const { cull } = await openedCull()
+
+		expect(cull.source.value).toEqual(folderSource(SET))
+		expect(cull.folderSet.value).toBe(SET)
+	})
+})
 
 describe('useCull: redo', () => {
 	// spec: KEYS-001.10

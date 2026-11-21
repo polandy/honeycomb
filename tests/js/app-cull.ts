@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { SidecarWrites } from '../../src/cull-seams.ts'
 import type { FlagApi, FlagItem } from '../../src/flags-api.ts'
+import type { ImmichApi } from '../../src/immich-source.ts'
 import type { Decision, StoredDecision } from '../../src/logic/decision.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
@@ -19,6 +20,7 @@ import FolderPicker from '../../src/components/FolderPicker.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import { sameDecision, UNDECIDED } from '../../src/logic/decision.ts'
+import { FAILED_STATUS, NO_IMMICH } from '../../src/logic/immich-connections.ts'
 import { DEFAULT_PAIRING_SETTINGS, memberIds, pairPictures } from '../../src/logic/pairing.ts'
 import { NO_ACCESS } from '../../src/logic/writability.ts'
 import { useViewState } from '../../src/view-state.ts'
@@ -98,7 +100,7 @@ const flagTables = new WeakMap<object, ReturnType<typeof fakeFlags>>()
 export function gridStub() {
 	const calls = { steps: [] as string[], revealed: [] as number[], jumps: [] as string[], focused: 0 }
 	const component = defineComponent({
-		props: ['pictures', 'folderSet', 'groupByFolder', 'tileSize', 'selecting', 'selection', 'decisionOf', 'tagsOf', 'seriesOf', 'offeredSeries', 'openSeries', 'unsaved', 'fileNames'],
+		props: ['pictures', 'folderSet', 'groupByFolder', 'tileSize', 'selecting', 'selection', 'decisionOf', 'tagsOf', 'seriesOf', 'offeredSeries', 'openSeries', 'unsaved', 'fileNames', 'imageUrl'],
 		setup(_props, { expose, slots }) {
 			expose({
 				reveal: async (index: number) => {
@@ -152,6 +154,9 @@ export function sidecarApi(saves: SidecarSaveItem[][] = []): SidecarFlowApi {
 	}
 }
 
+/** An Immich seam without connections, so no test reaches the network. */
+const NO_IMMICH_API: ImmichApi = { listConnections: async () => NO_IMMICH, status: async () => FAILED_STATUS }
+
 export function mountApp(props: Record<string, unknown> = {}, decisions: StoredDecision[] = [], stubs: Record<string, unknown> = {}) {
 	provideSkipActions()
 	const warmed: number[][] = []
@@ -175,8 +180,10 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			loadSettings: async () => ({}),
 			saveSettings: async (settings: object) => { savedSettings.push(settings) },
 			positions: { loadPositions: async () => [], savePosition: async () => undefined },
+			location: { read: () => '', write: () => undefined },
 			viewState: { loadViewState: async () => ({ infoPanelOpen: null, gestureGuideSeen: true, seriesHintSeen: true }), saveViewState: async () => undefined },
 			sidecars: sidecarApi(sidecarSaves),
+			immich: NO_IMMICH_API,
 			...props,
 		},
 		global: { stubs: { AppNavigation: true, FolderPicker: true, PhotoGrid: grid.component, GridToolbar: true, FilterBar: true, PhotoLoupe: true, SettingsDialog: true, ...stubs } },

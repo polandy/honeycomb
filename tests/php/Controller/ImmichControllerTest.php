@@ -101,10 +101,10 @@ final class ImmichControllerTest extends TestCase {
 	}
 
 	// spec: IMMICH-001.1
-	public function testWithoutTheAppConfigTheConnectionsAreNotConfigured(): void {
+	public function testWithoutTheAppConfigTheConnectionsAreEmpty(): void {
 		$this->configured = '';
 
-		$this->assertAnswer(Http::STATUS_NOT_FOUND, ['error' => 'not-configured'], $this->controller()->connections());
+		$this->assertAnswer(Http::STATUS_OK, ['connections' => []], $this->controller()->connections());
 	}
 
 	// spec: IMMICH-001.3

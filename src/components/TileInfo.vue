@@ -4,7 +4,7 @@
 -->
 <script setup lang="ts">
 import type { Decision } from '../logic/decision.ts'
-import type { ListingEntry } from '../logic/listing.ts'
+import type { SourceEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Box, TipPlacement } from '../logic/tooltip.ts'
 
@@ -16,7 +16,7 @@ import { ratingStars, tileInfoMembers } from '../logic/tile-info.ts'
 import { placeTip } from '../logic/tooltip.ts'
 
 const props = defineProps<{
-	picture: Picture<ListingEntry>
+	picture: Picture<SourceEntry>
 	decision: Decision
 	/** The tile's box in the viewport, which the bubble points at. */
 	anchor: Box

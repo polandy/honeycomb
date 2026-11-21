@@ -19,6 +19,7 @@ import { rejectedPictures } from './logic/delete-summary.ts'
 import { rawBatch, rawRemoval } from './logic/raw-removal.ts'
 import { sendInChunks } from './logic/request-chunks.ts'
 import { decisionChanges, followReplaced, mergeReports, permanentBatch, retryBatch, trashReport, trashRequest, unkeptFiles, wholePictures } from './logic/trash-report.ts'
+import { reloadAction } from './reload-action.ts'
 import { deletedPermanentlyText, deletedText, removedRawsText, skippedText } from './trash-text.ts'
 
 type Pictures = readonly Picture<ListingEntry>[]
@@ -69,7 +70,9 @@ export interface DeleteFlowContext {
 	readonly loupe: Ref<LoupeSnapshot | null>
 	readonly toast: (message: string, action?: ToastAction | null) => void
 	/** Says a failure and keeps it until the user closes it. */
-	readonly error: (message: string) => void
+	readonly error: (message: string, action?: ToastAction | null) => void
+	/** Lists the open folder set again; the failure messages offer it. */
+	readonly reload?: () => void
 	/** Overrides the request size of ADR 0029, for tests. */
 	readonly chunks?: ChunkLimits | undefined
 	/** Hears what each request round took out, with the state the server checked (STATS-001.20). */
@@ -158,7 +161,7 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 			...(sentAny ? [done(report)] : []),
 			...(report.deleted.length > 0 ? [deletedPermanentlyText(report.deleted.length)] : []),
 			...(skipped.length > 0 ? [skippedText(skipped.length)] : []),
-		].join(' · '))
+		].join(' · '), skipped.length > 0 ? reloadAction(context.reload) : null)
 	}
 
 	/**
@@ -196,7 +199,7 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 			dialog.value = null
 			context.error(error instanceof TrashBinOffError
 				? t('honeycomb', 'The Nextcloud trash bin is off, so nothing was deleted. honeycomb deletes only into the trash bin.')
-				: t('honeycomb', 'Could not delete the photos; reload the folder to see what changed.'))
+				: t('honeycomb', 'Could not delete the photos; reload the folder to see what changed.'), error instanceof TrashBinOffError ? null : reloadAction(context.reload))
 		} finally {
 			busy.value = false
 			progress.value = null

@@ -42,12 +42,17 @@ final class Connections {
 		throw new ImmichException(ImmichError::UnknownConnection);
 	}
 
+	/** Whether the app config names a connections file (IMMICH-001.1). */
+	public function isConfigured(): bool {
+		return $this->path() !== '';
+	}
+
 	/**
 	 * Every user's connections; not configured or a broken file throws.
 	 * @return list<Connection>
 	 */
 	public function all(): array {
-		$path = $this->config->getValueString(Application::APP_ID, self::FILE_KEY, '');
+		$path = $this->path();
 		if ($path === '') {
 			throw new ImmichException(ImmichError::NotConfigured);
 		}
@@ -62,5 +67,9 @@ final class Connections {
 			$this->logger->error('The Immich connections file is invalid: {violation}', ['violation' => $violation->getMessage()]);
 			throw new ImmichException(ImmichError::ConnectionsFile);
 		}
+	}
+
+	private function path(): string {
+		return $this->config->getValueString(Application::APP_ID, self::FILE_KEY, '');
 	}
 }

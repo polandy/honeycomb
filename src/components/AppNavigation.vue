@@ -4,6 +4,8 @@
 -->
 <script setup lang="ts">
 import type { BrowserStorage } from '../browser-storage.ts'
+import type { SourceKind } from '../immich-source.ts'
+import type { ConnectionLine } from '../immich-text.ts'
 import type { RecentFolderSet } from '../logic/recent.ts'
 import type { ResumePosition } from '../logic/resume-position.ts'
 
@@ -15,7 +17,9 @@ import NcAppNavigationCaption from '@nextcloud/vue/components/NcAppNavigationCap
 import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
+import ImmichConnections from './ImmichConnections.vue'
 import RecentFolderSets from './RecentFolderSets.vue'
+import SourceSwitcher from './SourceSwitcher.vue'
 import { useNavigationChoice } from '../navigation-choice.ts'
 import { useNavigationItems } from '../navigation-items.ts'
 
@@ -27,9 +31,21 @@ const props = withDefaults(defineProps<{
 	viewportWidth?: () => number
 	/** The year whose year-in-review hint shows, none for no hint (STATS-001.26). */
 	hintYear?: number | null
+	/** The source the page shows (IMMICH-001). */
+	source?: SourceKind
+	/** Whether the source switcher offers Immich. */
+	offersImmich?: boolean
+	/** The user's connections with their status lines. */
+	connections?: readonly ConnectionLine[]
+	/** The opened connection's id. */
+	connectionId?: string | null
 }>(), {
 	viewportWidth: () => window.innerWidth,
 	hintYear: null,
+	source: 'nextcloud',
+	offersImmich: false,
+	connections: () => [],
+	connectionId: null,
 })
 
 const emit = defineEmits<{
@@ -37,6 +53,9 @@ const emit = defineEmits<{
 	openRecent: [position: ResumePosition]
 	openSettings: []
 	closeHint: []
+	chooseSource: [source: SourceKind]
+	openConnection: [connectionId: string]
+	connectionDetails: []
 }>()
 
 const isMobile = useIsMobile()
@@ -55,7 +74,16 @@ function closeOnNarrowScreen() {
 <template>
 	<NcAppNavigation :ariaLabel="t('honeycomb', 'honeycomb navigation')">
 		<template #list>
-			<NcAppNavigationItem :name="t('honeycomb', 'Folder')" @click="closeOnNarrowScreen(); emit('chooseFolders')">
+			<li v-if="props.offersImmich">
+				<SourceSwitcher :source="props.source" @choose="emit('chooseSource', $event)" />
+			</li>
+			<ImmichConnections
+				v-if="props.source === 'immich'"
+				:connections="props.connections"
+				:connectionId="props.connectionId"
+				@open="closeOnNarrowScreen(); emit('openConnection', $event)"
+				@details="closeOnNarrowScreen(); emit('connectionDetails')" />
+			<NcAppNavigationItem v-else :name="t('honeycomb', 'Folder')" @click="closeOnNarrowScreen(); emit('chooseFolders')">
 				<template #icon>
 					<AppIcon name="folder" />
 				</template>
@@ -80,13 +108,15 @@ function closeOnNarrowScreen() {
 					</template>
 				</NcButton>
 			</li>
-			<NcAppNavigationCaption :name="t('honeycomb', 'Recent')" />
-			<li v-if="props.items.length > 0" class="app-navigation__recent">
-				<RecentFolderSets :items="props.items" @open="closeOnNarrowScreen(); emit('openRecent', $event)" />
-			</li>
-			<li v-else class="app-navigation__empty">
-				{{ t('honeycomb', 'Folder sets you cull show here.') }}
-			</li>
+			<template v-if="props.source === 'nextcloud'">
+				<NcAppNavigationCaption :name="t('honeycomb', 'Recent')" />
+				<li v-if="props.items.length > 0" class="app-navigation__recent">
+					<RecentFolderSets :items="props.items" @open="closeOnNarrowScreen(); emit('openRecent', $event)" />
+				</li>
+				<li v-else class="app-navigation__empty">
+					{{ t('honeycomb', 'Folder sets you cull show here.') }}
+				</li>
+			</template>
 		</template>
 		<template #footer>
 			<ul class="app-navigation__footer">

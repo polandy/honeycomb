@@ -4,7 +4,7 @@
 -->
 <script setup lang="ts">
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
-import type { ListingEntry } from '../logic/listing.ts'
+import type { SourceEntry } from '../logic/listing.ts'
 import type { GestureAction, GesturePointer, SwipeDirection, SwipeSetting } from '../logic/loupe-gesture.ts'
 import type { PinchCentre, Size, Zoom } from '../logic/loupe-zoom.ts'
 import type { Picture } from '../logic/pairing.ts'
@@ -20,7 +20,7 @@ import { FIT, fitSize, fullScale, isZoomed, panBy, pinchZoom, spotOf, toggleZoom
 import { focusTileCentre } from '../logic/sharpness.ts'
 
 const props = withDefaults(defineProps<{
-	pictures: readonly Picture<ListingEntry>[]
+	pictures: readonly Picture<SourceEntry>[]
 	index: number
 	imageUrl: ImageUrlFor
 	/** Loads a source once; the loupe's prefetch shares it. */
@@ -77,13 +77,13 @@ const slides = computed(() => [-1, 0, 1]
 	}))
 
 /** The loaded image's aspect, which is upright, else the listing's, else the default. */
-function aspectOf(shown: ListingEntry): number {
+function aspectOf(shown: SourceEntry): number {
 	const listed = shown.width !== null && shown.height !== null ? shown.width / shown.height : DEFAULT_ASPECT
 	return aspects.get(shown.fileId) ?? listed
 }
 
 /** The sharpest loaded source: the full image while zoomed, else the loupe tier, else the grid's. */
-function sourceOf(shown: ListingEntry, current: boolean): string {
+function sourceOf(shown: SourceEntry, current: boolean): string {
 	const tiers = loupeSources(shown, props.imageUrl)
 	if (current && zoomed.value && props.ready.has(tiers.full)) {
 		return tiers.full
@@ -214,6 +214,7 @@ defineExpose({
 		ref="stage"
 		class="loupe-stage"
 		:data-fit-seq="fitSeq"
+		:data-decoded="props.ready.size"
 		data-tip-avoid
 		@pointerdown="onPointerDown"
 		@pointermove="act(gestures.move(pointerOf($event)))"

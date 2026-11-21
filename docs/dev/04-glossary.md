@@ -10,6 +10,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **member** | One image file of a picture (the RAW member or the rendered member). |
 | **rendered file** | A camera-rendered image file (JPEG or HEIF; the extensions are a setting, Q15). Shown in the app. |
 | **RAW file** | A camera RAW file, recognised by its extension (configurable list). |
+| **embedded preview** | The JPEG a camera stores inside a RAW file; the loupe shows it, also at 100 %, for a RAW-only picture, and says so (LOUPE-001.28). |
 | **sidecar** | An `.xmp` file that holds metadata for a member; deleted together with its picture. |
 | **XMP cache** | The values honeycomb derived from one sidecar or one JPEG's embedded XMP, kept per user and ETag so a folder visit reads only changed files; rebuilt at any time (ADR 0032). |
 | **waiting picture** | The one picture whose sidecar writes honeycomb holds until the user leaves it or 2 s pass idle; its grid tile and the loupe's title row show a ring, read as *Not saved yet* (ADR 0032). |
@@ -78,6 +79,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **year in review** | The section of the statistics page with the year's totals, the calendar of active days, the busiest day and the longest streak; shown in December and January, with a one-time hint in the navigation from 1 December. |
 | **streak** | Consecutive days, up to today or yesterday, with at least one counted action. Not a *series*. |
 | **Immich source** | The second source beside Nextcloud folders: one connection's upload library, reached only through the Immich API, never as files (ADR 0041). |
+| **capabilities** | What the opened source allows beside deciding: series, similarity, tags, delete, move, RAW removal, *Keep RAW* and XMP. Nextcloud folders allow all of them, the Immich source none in Phase 1 (ADR 0041, IMMICH-002.17). |
 | **connection** | One Immich account a user culls: Nextcloud user, label, Immich URL and key file, declared by the admin in the connections file; several per user (ADR 0041, ADR 0042). |
 | **connections file** | The read-only JSON file the server configuration generates with every connection; its path is app config, and no key ever enters the database or the UI (ADR 0041, format and rules in ADR 0042). |
 | **asset** | One picture or video in Immich, keyed by its asset id; a live photo is one asset, a stack shows but only the chosen asset goes (ADR 0041). |

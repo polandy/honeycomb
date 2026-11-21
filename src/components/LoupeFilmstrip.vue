@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import type { Decision } from '../logic/decision.ts'
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
-import type { ListingEntry } from '../logic/listing.ts'
+import type { SourceEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Series } from '../logic/series.ts'
 import type { ObserveSize } from '../observe-size.ts'
@@ -24,13 +24,13 @@ import { observeElementSize } from '../observe-size.ts'
 import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
-	pictures: readonly Picture<ListingEntry>[]
+	pictures: readonly Picture<SourceEntry>[]
 	index: number
-	decisionOf: (picture: Picture<ListingEntry>) => Decision
+	decisionOf: (picture: Picture<SourceEntry>) => Decision
 	/** Each picture of a series mapped to its whole series; each run in the strip gets a frame. */
-	seriesOf: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>
+	seriesOf: ReadonlyMap<Picture<SourceEntry>, Series<Picture<SourceEntry>>>
 	/** The sharpest photo of each series, whose thumbnail is marked (SERIES-007.4). */
-	sharpest?: ReadonlySet<Picture<ListingEntry>>
+	sharpest?: ReadonlySet<Picture<SourceEntry>>
 	imageUrl: ImageUrlFor
 	/** Whether *Pin the filmstrip* is on; its toggle sits at the strip's end. */
 	pinned: boolean

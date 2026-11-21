@@ -1,13 +1,12 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Decision } from './decision.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
-import type { Tag } from './tag.ts'
 
 import { embeddedSidecarPath } from './embedded-xmp.ts'
 import { splitFolder } from './file-name.ts'
 import { memberIds, pictureMembers } from './pairing.ts'
+import { isRawSidecar } from './sidecar-sync.ts'
 import { sidecarTargets } from './xmp/targets.ts'
 
 /** The flow that deletes by decision: Delete rejected, or Remove RAWs (ADR 0032 Deleting by decision). */
@@ -46,12 +45,12 @@ export function matchFresh(pictures: readonly Picture<ListingEntry>[], fresh: re
 	return { matched, skipped }
 }
 
-/** The JPEG sidecar to create before the RAW goes: while the JPEG has none of its own or shared, the RAW has its own and the cull shows a rating, colour label or tag. */
-export function jpegSidecarOf(picture: Picture<ListingEntry>, decision: Decision, tags: readonly Tag[]): string | null {
+/** The JPEG sidecar to seed before the RAW goes and the RAW sidecar it is read from: while the JPEG has none of its own or shared and the RAW has its own (DELETE-003.12). */
+export function jpegSidecarOf(picture: Picture<ListingEntry>): { readonly path: string, readonly source: ListingEntry } | null {
 	const { created, existing } = sidecarTargets(picture)
-	if (picture.rendered === null || existing.length === 0 || !created.includes(embeddedSidecarPath(picture.rendered))) {
+	const source = existing.find((entry) => isRawSidecar(picture, entry.path))
+	if (picture.rendered === null || source === undefined || !created.includes(embeddedSidecarPath(picture.rendered))) {
 		return null
 	}
-	const holdsValues = decision.rating !== 0 || decision.colourLabel !== null || tags.length > 0
-	return holdsValues ? embeddedSidecarPath(picture.rendered) : null
+	return { path: embeddedSidecarPath(picture.rendered), source }
 }
