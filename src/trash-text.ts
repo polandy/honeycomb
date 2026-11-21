@@ -5,8 +5,9 @@ import type { SendProgress } from './logic/request-chunks.ts'
 import type { TrashFailure, TrashReport, UnkeptFailure } from './logic/trash-report.ts'
 
 import { n, t } from '@nextcloud/l10n'
-import { RequestTimeoutError, TrashBinOffError } from './api.ts'
+import { TrashBinOffError } from './api.ts'
 import { formatFileSize, formatNumber, PLAIN_TEXT } from './l10n.ts'
+import { RequestTimeoutError } from './logic/timed-request.ts'
 
 /** Why a file stayed, in the user's words. */
 export function failureReason(result: TrashFailure): string {

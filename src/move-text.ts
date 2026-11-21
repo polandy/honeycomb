@@ -4,9 +4,10 @@ import type { NamingProblem } from './logic/move-candidates.ts'
 import type { MoveFailure, MoveReport } from './logic/move-report.ts'
 
 import { n, t } from '@nextcloud/l10n'
-import { RequestTimeoutError, TrashBinOffError } from './api.ts'
+import { TrashBinOffError } from './api.ts'
 import { formatNumber, PLAIN_TEXT } from './l10n.ts'
 import { folderName } from './logic/move-targets.ts'
+import { RequestTimeoutError } from './logic/timed-request.ts'
 
 /** Why a file did not move, in the user's words. */
 export function moveFailureReason(result: MoveFailure): string {
