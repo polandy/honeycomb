@@ -32,7 +32,8 @@ For each picture:
    listing lists, carry the given ETag and be deletable. The target path must be free, hold the
    source itself, or hold the file `replace` names with its ETag, deletable. The deepest existing
    folder on the target path must be a folder the user may create in, on the source's storage, as
-   must the file `replace` names.
+   must the file `replace` names, and the trash bin must keep that file (ADR 0036): its storage
+   has a trash bin and it is smaller than the trash bin size.
 2. The files then move in order, sidecars (`.xmp`) after the members. Missing folders are created;
    a replaced file goes to the trash bin just before its file takes its place.
 3. If a move fails, the picture's files already moved go back to their old paths, last first, and
@@ -57,6 +58,8 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
 | `skipped` | Not tried, because another file of the picture failed |
 | `movedBack` | Moved, then moved back because another file of the picture failed |
 | `otherStorage` | The target is on another storage than the file, see MOVE-002.11 |
+| `noTrashBin` | The file `replace` names lies on a storage without a trash bin, see MOVE-002.5 |
+| `tooLarge` | The file `replace` names is at least as large as the trash bin size, see MOVE-002.5 |
 
 ## Acceptance criteria
 
@@ -96,7 +99,10 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
 - **Given** a file whose target holds the file its `replace` names, with that file's ETag
 - **When** the client posts it
 - **Then** that file goes to the trash bin, the file moves to its path and is reported with
-  `replaced: true`; a `replace` whose file has another ETag or id is reported `exists`
+  `replaced: true`; a `replace` whose file has another ETag or id is reported `exists`; a
+  `replace` whose file the trash bin would not keep, on a storage without one or at least as large
+  as the owner's or the server's trash bin size, is reported `noTrashBin` or `tooLarge`, the
+  picture's other files are `skipped`, and nothing is deleted
 
 ### MOVE-002.6 – A file already at its path stays
 
@@ -166,3 +172,4 @@ over.
 | 2026-11-15 | At most 500 files per move request instead of 60,000 (ADR 0029). |
 | 2026-11-15 | A move stays on its storage (MOVE-002.11); the probe names storages (MOVE-002.12). |
 | 2026-11-19 | M8 PR 5: the flag row follows a new file id, whoever set it (MOVE-002.10, ADR 0040). |
+| 2026-11-21 | A replace whose file the trash bin would not keep is refused (MOVE-002.5, ADR 0036). |

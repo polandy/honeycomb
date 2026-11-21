@@ -19,4 +19,6 @@ enum MoveResult: string {
 	case Skipped = 'skipped';
 	case MovedBack = 'movedBack';
 	case OtherStorage = 'otherStorage';
+	case NoTrashBin = 'noTrashBin';
+	case TooLarge = 'tooLarge';
 }

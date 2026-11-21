@@ -1791,3 +1791,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   docs/readme-first-impression) and honeycomb is stated as a culling tool with no picture editing,
   now or later (owner, #187): requirements 1.10 lists it as a non-goal, so workers do not propose
   develop controls.
+- 2026-11-21: A move that would replace a file the trash bin would not keep is refused
+  (`noTrashBin`, `tooLarge`) and the report says to move again with *Add suffix* or *Skip*; the
+  ADR 0036 warning with a `permanent` flag stays with the trash dialog, so a move never deletes for
+  good and the request gains no field (MOVE-002.5, autonomous).

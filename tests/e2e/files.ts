@@ -5,6 +5,7 @@ import type { Page } from '@playwright/test'
 import { expect } from '@playwright/test'
 import { readFileSync } from 'node:fs'
 import { ADMIN } from './admin.ts'
+import { occ } from './server.ts'
 
 export const MTIME = 1_700_000_000
 export const JPEG = readFileSync('tests/fixtures/images/landscape-600x400.jpg')
@@ -111,4 +112,14 @@ export async function trashEntry(page: Page, path: string): Promise<string> {
 	const entry = new RegExp(`<d:href>([^<]+)</d:href>(?:(?!</d:response>).)*?<nc:trashbin-original-location>${path}</nc:trashbin-original-location>`, 's').exec(await trash.text())?.[1]
 	expect(entry).toBeDefined()
 	return entry as string
+}
+
+/** Runs `body` with the admin's trash bin size at the JPEG's size; the web process caches app config that occ changes behind its back. */
+export async function withSmallTrashBin(body: () => Promise<void>): Promise<void> {
+	occ(['user:setting', ADMIN.username, 'files_trashbin', 'trashbin_size', String(JPEG.length)])
+	try {
+		await body()
+	} finally {
+		occ(['user:setting', '--delete', ADMIN.username, 'files_trashbin', 'trashbin_size'])
+	}
 }

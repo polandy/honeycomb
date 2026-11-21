@@ -144,7 +144,8 @@ trash bin refuses (`409`, a *Replace* with the trash bin off) says the trash bin
 - **Given** a move the server answers with some files failed
 - **When** the user confirms
 - **Then** the moved files leave the grid, the move report lists each failed file with its reason,
-  and the toast counts moved and failed files
+  and the toast counts moved and failed files; a replace the trash bin would not keep says so and
+  to move the photo again with *Add suffix* or *Skip*, since a move never deletes for good
 
 ### MOVE-004.13 – A failed request changes nothing
 
@@ -228,3 +229,4 @@ SETTINGS-001. The endpoints: MOVE-002. The plan, conflicts, report and undo requ
 | 2026-11-16 | Requests start at 5 pictures and double up to 50, so the count moves early (MOVE-004.17, ADR 0029). |
 | 2026-11-17 | A move sends the sidecars as honeycomb last saved or created them (MOVE-004.19, #232). |
 | 2026-11-21 | A probe or move request that does not answer in time fails with a message (MOVE-004.20, E23/U7). |
+| 2026-11-21 | The move report says when the trash bin would not keep a file to replace (MOVE-004.12). |
