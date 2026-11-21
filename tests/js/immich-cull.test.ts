@@ -151,7 +151,7 @@ describe('useImmichCull', () => {
 		await flushPromises()
 		const [first] = cull.pictures.value
 
-		void cull.decide({ kind: 'flag', flag: 'rejected' }, [first!])
+		cull.decide({ kind: 'flag', flag: 'rejected' }, [first!])
 
 		expect(cull.decisionOf(first!).flag).toBe('rejected')
 		expect(cull.counts.value!.flags.rejected).toBe(1)
@@ -169,7 +169,7 @@ describe('useImmichCull', () => {
 		counts[0]!.answer(COUNTS)
 		await flushPromises()
 		const [first] = cull.pictures.value
-		void cull.decide({ kind: 'flag', flag: 'rejected' }, [first!])
+		cull.decide({ kind: 'flag', flag: 'rejected' }, [first!])
 		saves[0]!.answer()
 		await flushPromises()
 
@@ -178,6 +178,45 @@ describe('useImmichCull', () => {
 		expect(saves[1]!.rows).toEqual([expect.objectContaining({ assetId: 'a1', flag: 'unflagged' })])
 		expect(cull.decisionOf(first!).flag).toBe('unflagged')
 		expect(cull.counts.value!.flags.rejected).toBe(0)
+	})
+
+	// spec: IMMICH-003.19
+	it('takes the decisions back in reverse order and puts the latest again, each as a new save', async () => {
+		const { cull, assets, counts, saves, toast } = cullOn()
+		cull.open('andy-phone')
+		assets[0]!.answer(page(['a1', 'a2']))
+		counts[0]!.answer(COUNTS)
+		await flushPromises()
+		const [first, second] = cull.pictures.value
+		cull.decide({ kind: 'rating', rating: 3 }, [first!])
+		cull.decide({ kind: 'flag', flag: 'rejected' }, [second!])
+
+		cull.undo()
+		cull.undo()
+		cull.redo()
+
+		expect(saves.map(({ rows }) => rows.map(({ assetId, rating, flag }) => `${assetId} ${rating} ${flag}`))).toEqual([['a1 3 unflagged'], ['a2 0 rejected'], ['a2 0 unflagged'], ['a1 0 unflagged'], ['a1 3 unflagged']])
+		expect(toast.show.mock.calls.slice(2).map(([message]) => message)).toEqual(['Undid: Rejected a2', 'Undid: Cleared rating of a1', 'Redid: Rated a1 ★★★'])
+		expect(cull.decisionOf(first!).rating).toBe(3)
+		expect(cull.counts.value!.flags.rejected).toBe(0)
+	})
+
+	// spec: KEYS-001.10, KEYS-001.11
+	it('saves no step for a decision that changes nothing, does nothing with no step left and starts empty on open', async () => {
+		const { cull, assets, counts, saves, toast } = cullOn()
+		cull.open('andy-phone')
+		assets[0]!.answer(page(['a1']))
+		counts[0]!.answer(COUNTS)
+		await flushPromises()
+		const [first] = cull.pictures.value
+		cull.decide({ kind: 'flag', flag: 'unflagged' }, [first!])
+		cull.decide({ kind: 'flag', flag: 'picked' }, [first!])
+		cull.open('andy-phone')
+
+		expect(cull.undo()).toBeNull()
+		expect(cull.redo()).toBeNull()
+		expect(saves).toHaveLength(1)
+		expect(toast.show).toHaveBeenCalledTimes(1)
 	})
 
 	it('puts a decision back and says so when its save fails', async () => {
@@ -189,7 +228,7 @@ describe('useImmichCull', () => {
 		await flushPromises()
 		const [first] = cull.pictures.value
 
-		void cull.decide({ kind: 'rating', rating: 4 }, [first!])
+		cull.decide({ kind: 'rating', rating: 4 }, [first!])
 		saves[0]!.fail(new Error('database down'))
 		await flushPromises()
 

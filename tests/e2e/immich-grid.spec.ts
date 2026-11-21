@@ -147,4 +147,39 @@ test.describe('the grid and the loupe of an Immich connection', () => {
 		await expect(picked).toContainText('1')
 		await expect(main).toContainText('1 decided')
 	})
+
+	// spec: IMMICH-003.19
+	test('takes several decisions back with Ctrl+Z in reverse order, in the loupe and in the grid', async ({ page }) => {
+		const saves: { assetId: string, rating: number, flag: string }[][] = []
+		page.on('request', (request) => {
+			if (request.url().endsWith('/api/v1/immich/family/decisions')) {
+				saves.push((request.postDataJSON() as { decisions: { assetId: string, rating: number, flag: string }[] }).decisions)
+			}
+		})
+		await openFamily(page)
+		const loupe = await openLoupe(page)
+		const toast = page.getByRole('status').filter({ hasText: 'PXL_E2E_' })
+		await page.keyboard.press('2')
+		await expect(toast).toContainText(`Rated ${uploadName(1)} ★★`)
+		await page.keyboard.press('ArrowRight')
+		await page.keyboard.press('x')
+		await expect(toast).toContainText(`Rejected ${uploadName(2)}`)
+		await expect(loupe.getByRole('heading', { name: uploadName(3) })).toBeVisible()
+
+		await page.keyboard.press('Control+z')
+		await expect(toast).toContainText(`Undid: Rejected ${uploadName(2)}`)
+		await page.keyboard.press('Escape')
+		await expect(loupe).toBeHidden()
+		await page.keyboard.press('Control+z')
+		await expect(toast).toContainText(`Undid: Cleared rating of ${uploadName(1)}`)
+
+		await expect.poll(() => saves.length).toBe(4)
+		const [rated, rejected, unrejected, unrated] = saves.map((rows) => rows.map(({ rating, flag }) => ({ rating, flag })))
+		expect(rated).toEqual([{ rating: 2, flag: expect.any(String) }])
+		expect(rejected).toEqual([{ rating: 0, flag: 'rejected' }])
+		expect(unrejected).toEqual([{ rating: 0, flag: 'unflagged' }])
+		expect(unrated).toEqual([{ rating: 0, flag: rated![0]!.flag }])
+		expect(saves[2]![0]!.assetId).toBe(saves[1]![0]!.assetId)
+		expect(saves[3]![0]!.assetId).toBe(saves[0]![0]!.assetId)
+	})
 })

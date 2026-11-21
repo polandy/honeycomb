@@ -24,6 +24,10 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
 - **Keys and the UI** are the cull's (KEYS-001, LOUPE-002): *P*, *X*, *U*, *1*–*5*, *0*, swipe up
   and down, auto-advance after a pick or reject, the reject toast with *Undo*. A rejected tile is
   dimmed; nothing is deleted, and no tile says "Not written to Immich" in Phase 1.
+- **Undo and redo** are the cull's history (KEYS-001.10, .11): every decision is one step,
+  `Ctrl+Z` and `Ctrl+Shift+Z` take steps back and put them again in the grid and the loupe, and
+  the toast's *Undo* takes the latest step back. Each undo or redo is a new save. A decision that
+  changes nothing is no step and is not saved. Opening a connection starts an empty history.
 - **Bulk steps** save every affected asset in requests of at most the limit; assets past the
   loaded page are paged through the decision filter first.
 - **Lifecycle:** a deleted user's rows go at once; rows of a connection that left the file go in
@@ -154,3 +158,10 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
 - **Given** a position of a connection the valid file no longer names for the user
 - **When** the daily sweep runs
 - **Then** the position is removed with the connection's rows
+
+### IMMICH-003.19 – Undo chain
+
+- **Given** an Immich cull where the user rated one asset and then rejected another
+- **When** they press `Ctrl+Z` twice and then `Ctrl+Shift+Z`
+- **Then** the reject is taken back first and the rating second, each as a new save and with a
+  toast *Undid: …*; the redo saves the rating again
