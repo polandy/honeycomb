@@ -28,6 +28,12 @@ once, delete both files together. Optimised for desktop and tablet.
 - **Your data stays home.** Runs inside your Nextcloud, no telemetry, no outgoing requests; a
   cull started on one device goes on at the same place on another.
 
+## What honeycomb is not
+
+honeycomb is for culling and reviewing, not for editing. It has no exposure, saturation, shadow,
+crop or rotate controls like Lightroom, and never will: edit your picks in darktable, digiKam or
+a similar tool, which read the XMP sidecars honeycomb writes.
+
 ## Quick install
 
 honeycomb is pre-release; it needs Nextcloud 35 and PHP 8.3. As an admin:
