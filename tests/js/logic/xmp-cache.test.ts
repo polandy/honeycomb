@@ -103,15 +103,15 @@ describe('pictureState', () => {
 		const both = pictureOf(NEF, JPG, listingEntry(11, '/P/IMG_0001.NEF.xmp', { mtime: 200 }), JPEG_SIDECAR)
 
 		expect(pictureState(PAIR, new Map())).toEqual({ decision: UNDECIDED, tags: [], warnings: [] })
-		expect(pictureState(both, byId(row(11, { rating: 3 }), row(12, { state: 'refused', reason: 'malformed' }))).warnings).toEqual([{ path: '/P/IMG_0001.JPG.xmp', reason: 'malformed' }])
-		expect(pictureState(both, byId(row(11, { rating: 3 }), row(12, { rating: 1 }))).warnings).toEqual([{ path: '/P/IMG_0001.JPG.xmp', reason: 'disagrees' }])
+		expect(pictureState(both, byId(row(11, { rating: 3 }), row(12, { state: 'refused', reason: 'malformed' }))).warnings).toEqual([{ fileId: 12, reason: 'malformed' }])
+		expect(pictureState(both, byId(row(11, { rating: 3 }), row(12, { rating: 1 }))).warnings).toEqual([{ fileId: 12, reason: 'disagrees' }])
 	})
 
 	// spec: TAGS-002.2, TAGS-002.15, XMP-003.22
 	it('unites the tags of the sidecars and the embedded XMP, the embedded XMP deciding at the JPEG\'s time', () => {
 		const rows = byId(row(11, { rating: 1, tags: ['Places/Lisbon'] }), row(2, { kind: 'embedded', rating: 4, tags: ['People/Anna'] }), row(3, { kind: 'embedded', state: 'none' }))
 
-		expect(pictureState(PAIR, rows)).toEqual({ decision: { ...UNDECIDED, rating: 1 }, tags: ['People/Anna', 'Places/Lisbon'], warnings: [{ path: '/P/IMG_0001.JPG', reason: 'disagrees' }] })
+		expect(pictureState(PAIR, rows)).toEqual({ decision: { ...UNDECIDED, rating: 1 }, tags: ['People/Anna', 'Places/Lisbon'], warnings: [{ fileId: 2, reason: 'disagrees' }] })
 		expect(pictureState(ALONE, rows)).toEqual({ decision: UNDECIDED, tags: [], warnings: [] })
 	})
 

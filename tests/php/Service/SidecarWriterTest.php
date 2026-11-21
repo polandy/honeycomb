@@ -112,11 +112,11 @@ final class SidecarWriterTest extends TestCase {
 	}
 
 	// spec: XMP-002.6
-	public function testAStorageErrorIsLogged(): void {
+	public function testAStorageErrorIsLoggedWithTheFileIdButNotThePath(): void {
 		$this->failures['putContent'] = new \RuntimeException('disk');
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('warning')->with($this->anything(), $this->callback(
-			static fn (array $context): bool => $context['path'] === self::FOLDER . '/IMG_0001.NEF.xmp' && $context['exception'] instanceof \RuntimeException,
+			static fn (array $context): bool => $context['fileId'] === 9 && !array_key_exists('path', $context) && $context['exception'] instanceof \RuntimeException,
 		));
 
 		$this->writer($logger)->save($this->user(), [$this->existing('new')]);

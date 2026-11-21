@@ -94,7 +94,7 @@ changes only its own fields and keeps the rest of the sidecar (`06-xmp-interop.m
 - **When** the client saves them with a valid sidecar
 - **Then** they answer `notFound`, `notFound`, `notFound`, `notPermitted`, `notPermitted`,
   `notPermitted`, `locked`, `notFound` and `failed`, no other file is written, the storage error is
-  logged, and the valid sidecar is `saved`
+  logged with the sidecar's file id, never its path, and the valid sidecar is `saved`
 
 ### XMP-002.7 – A malformed request touches nothing
 
@@ -161,3 +161,4 @@ Withdrawn by ADR 0040 (M8 PR 3); an existing sidecar is overwritten without vers
 | 2026-11-19 | ADR 0040: a sidecar is overwritten without versions too, a full storage answers `noSpace` (.10 withdrawn; .11, .12 gaps) |
 | 2026-11-19 | M8 PR 3: no `noVersions`, `noSpace` by free space or error (.10 removed; .11, .12 implemented) |
 | 2026-11-20 | Every save path tested against a real Nextcloud (.13) |
+| 2026-11-20 | The storage error is logged without the path (E18/B25, owner) |
