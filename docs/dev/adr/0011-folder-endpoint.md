@@ -64,7 +64,9 @@ the ticked folders.
   base name count once (default extensions; the server cannot see the user's LISTING-002
   settings). Each item also carries `orphanedSidecars` and `orphanedSidecarsBelow` (XMP-009
   rule). The file cache query reads `parent`, `name` and `mimepart` of the subtree's media and
-  `.xmp` rows and tallies them per folder in PHP (`PictureTally`), so one query per storage stays; the rows now travel to PHP instead of a `COUNT`, so memory and time grow with the media files below a folder (unmeasured, revisit with a cache).
+  `.xmp` rows and tallies them per folder in PHP (`PictureTally`), so one query per storage
+  stays. The rows now travel to PHP instead of a `COUNT`, so memory and time grow with the media
+  files below a folder (unmeasured, revisit with a cache).
   The endpoint is not yet released, so the fields are renamed, not added.
 
 ## Consequences
