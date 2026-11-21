@@ -213,6 +213,20 @@ final class ImmichListingTest extends TestCase {
 		$this->assertSame(['alice-phone/' . self::id(1), 'alice-phone/' . self::id(2), 'alice-phone/' . self::id(3)], array_keys($this->decisions->rows));
 	}
 
+	// spec: IMMICH-003.12
+	public function testAFailingLookupOfTheMissingAssetsKeepsTheirRows(): void {
+		$this->library->add(self::id(1), self::NOW - 60);
+		$this->decide(1, Flag::Picked);
+		$this->decide(2, Flag::Picked);
+		$asked = 0;
+		$this->immichRoute('POST /search/metadata', function (array $options) use (&$asked): array {
+			return ++$asked === 1 ? $this->library->search($options) : [500, '{}', 'application/json'];
+		});
+
+		$this->assertFailsWith(ImmichError::Unreachable, fn () => $this->listing()->page($this->connection(), ['flags' => ['picked']], null, 100));
+		$this->assertCount(2, $this->decisions->rows);
+	}
+
 	// spec: IMMICH-001.16
 	public function testAnAssetOfAnotherShapeIsTheVersionState(): void {
 		$this->library->add('photo', self::NOW - 10, 0, ['fileCreatedAt' => 'yesterday']);

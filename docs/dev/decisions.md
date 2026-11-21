@@ -1661,7 +1661,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   host; a redirecting Immich reports the `version` state (IMMICH-001.6). Easy to redo.
 - 2026-11-21: An Immich decision row is deleted only when Immich no longer holds the asset at
   all; a trashed or archived asset keeps its row (IMMICH-003.12, owner decision H2 of #187,
-  replaces the 2026-11-20 line). Easy to redo.
+  replaces the 2026-11-20 line). The lookup sets no `trashedAt` or `visibility`, as the
+  pinned schema takes both as explicit filters. Easy to redo.
 - 2026-11-20: Paging under a decision filter is ordered by the row's capture time, ties by asset
   id descending, so it needs no Immich page (IMMICH-002.22). Easy to redo.
 - 2026-11-20: A device option without uploads shows only while chosen; *No camera data* is always
