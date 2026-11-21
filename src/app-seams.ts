@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Folder } from './api.ts'
 import type { BrowserStorage } from './browser-storage.ts'
+import type { LocationApi } from './cull-location.ts'
 import type { CullTagsApi } from './cull-tags.ts'
 import type { FlagApi } from './flags-api.ts'
 import type { ListEntries } from './folder-count.ts'
@@ -22,6 +23,7 @@ import type { ViewStateApi } from './view-state.ts'
 import type { HashImage, SaveVisualHashes } from './visual-hashes.ts'
 
 import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, cleanUpOrphanedData, imageUrl, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, movePictures, probeTargets, resetStatistics, saveImmichDecisions, savePosition, saveQualityValues, saveSidecars, saveViewState, saveVisualHashes } from './api.ts'
+import { browserLocation } from './cull-location.ts'
 import { saveFlags, takeOverFlags } from './flags-api.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { browserHashWorkers } from './hash-workers.ts'
@@ -57,6 +59,8 @@ export interface AppSeams {
 	saveSettings?: (settings: Settings) => Promise<void>
 	viewState?: ViewStateApi
 	positions?: ResumeApi
+	/** The page address, which keeps the folder and the picture across a browser reload. */
+	location?: LocationApi
 	storage?: BrowserStorage
 	schedule?: Schedule
 	/** Writes the waiting sidecars when the page hides (XMP-003.29). */
@@ -103,6 +107,7 @@ export const APP_SEAMS = {
 	saveSettings: apiSaveSettings,
 	viewState: () => ({ loadViewState, saveViewState }),
 	positions: () => ({ loadPositions, savePosition }),
+	location: () => browserLocation,
 	storage: () => window.localStorage,
 	schedule: browserSchedule,
 	onPageHide: onBrowserPageHide,
