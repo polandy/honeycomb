@@ -152,20 +152,12 @@ const counts = computed(() => new Map(rows.value.flatMap((row) => {
 	return row.kind === 'folder' && count !== null ? [[row.folder.path, count] as const] : []
 })))
 
-/** The orphaned-sidecar note of a folder row, shown and spoken; null when it has none or they are unknown. */
-function orphanNote(folder: Folder, expanded: boolean) {
-	const orphans = rowOrphans(folder, expanded)
-	if (orphans === null) {
-		return null
-	}
-	const text = n('honeycomb', '{count} orphaned sidecar', '{count} orphaned sidecars', orphans, { count: formatNumber(orphans) }, PLAIN_TEXT)
-	return { shown: text, spoken: text }
-}
-
 /** The orphaned-sidecar notes of the folders shown, by path. */
 const orphanNotes = computed(() => new Map(rows.value.flatMap((row) => {
-	const note = row.kind === 'folder' ? orphanNote(row.folder, row.expanded) : null
-	return row.kind === 'folder' && note !== null ? [[row.folder.path, note] as const] : []
+	const orphans = row.kind === 'folder' ? rowOrphans(row.folder, row.expanded) : null
+	return row.kind === 'folder' && orphans !== null
+		? [[row.folder.path, n('honeycomb', '{count} orphaned sidecar', '{count} orphaned sidecars', orphans, { count: formatNumber(orphans) }, PLAIN_TEXT)] as const]
+		: []
 })))
 
 /** The spoken note of a folder *Include subfolders* takes along or leaves out; null for neither. */
@@ -279,8 +271,8 @@ for (const path of [ROOT, ...foldersToExpand([...props.ticked, ...effectiveExclu
 					<span class="hidden-visually">{{ badge.spoken }}</span>
 				</span>
 				<span v-if="orphanNotes.has(row.folder.path)" class="folder-tree__orphans">
-					<span aria-hidden="true">{{ orphanNotes.get(row.folder.path)?.shown }}</span>
-					<span class="hidden-visually">{{ orphanNotes.get(row.folder.path)?.spoken }}</span>
+					<span aria-hidden="true">{{ orphanNotes.get(row.folder.path) }}</span>
+					<span class="hidden-visually">{{ orphanNotes.get(row.folder.path) }}</span>
 				</span>
 				<span v-if="counts.has(row.folder.path)" class="folder-tree__count">
 					<span aria-hidden="true">{{ counts.get(row.folder.path)?.shown }}</span>

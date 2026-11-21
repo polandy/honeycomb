@@ -9,8 +9,8 @@ namespace OCA\Honeycomb\Db;
 
 use OCA\Honeycomb\Preview\UntypedRaw;
 use OCA\Honeycomb\Service\PictureCount;
-use OCA\Honeycomb\Service\PictureTally;
 use OCA\Honeycomb\Service\PicturesBelow;
+use OCA\Honeycomb\Service\PictureTally;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeLoader;
