@@ -127,9 +127,10 @@ trash endpoint, which trashes a picture only while every member's row still says
 `decisionChanged` otherwise; checking and deleting are one request, also when two users work at
 once. The client still lists the folders again, so moved, renamed and vanished members show.
 Before *Remove RAWs* takes `IMG.NEF.xmp`, a JPEG without a sidecar of its own gets one seeded
-from `IMG.NEF.xmp` read again, with every field but the flag fields and `honeycomb:KeepRaw`
+from `IMG.NEF.xmp` read again, with every field but `honeycomb:KeepRaw`
 (amended 2026-11-20, owner, #187 D68: before, it got the rating, colour label and tags the cull
-showed, which lost other programs' fields such as face regions); where that cannot be read or
+showed, which lost other programs' fields such as face regions; amended 2026-11-21, owner, #187
+H6: digiKam's pick fields are kept too); where that cannot be read or
 written, the pair is skipped. A
 failed request deletes nothing; the dialog *Fresh check not possible* of #274 goes.
 

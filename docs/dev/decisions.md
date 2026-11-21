@@ -1704,8 +1704,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   The three SQLite write-lock tests skip on the other engines, which lock rows (review E21/T3).
   Easy to redo: the matrix list in `ci.yml`.
 - 2026-11-20: *Remove RAWs* seeds the JPEG's new sidecar from the RAW sidecar read again (owner,
-  #187 D68) without `digiKam:PickLabel`, `xmpDM:pick`, `xmpDM:good` and `honeycomb:KeepRaw`, since
-  the flag and *Keep RAW* live in the rows (ADR 0040); darktable's history is copied like every
+  #187 D68) without `honeycomb:KeepRaw`, since *Keep RAW* lives in the rows (ADR 0040); digiKam's
+  pick fields are kept (owner, #187 H6, 2026-11-21: digiKam goes first); darktable's history is copied like every
   other program's field. A RAW sidecar with no other field seeds nothing. Easy to redo: the
   `NOT_SEEDED` list in `src/logic/jpeg-seed.ts`.
 - 2026-11-20: honeycomb renders a file's previews in one request at a time, under a System V
