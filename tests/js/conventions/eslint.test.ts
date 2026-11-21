@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { ESLint } from 'eslint'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 
 const LOGIC_FILE = 'src/logic/example.ts'
 const COMPONENT_HELPER_FILE = 'src/components/example.ts'
@@ -9,6 +9,8 @@ const TEST_FILE = 'tests/js/example.test.ts'
 const COMPONENT_FILE = 'src/components/ExampleView.vue'
 
 const eslint = new ESLint()
+/** Building the type-aware program once can outlast a check's own timeout on a loaded machine. */
+const WARM_UP_TIMEOUT_MS = 120_000
 
 async function ruleIds(code: string, filePath: string): Promise<string[]> {
 	const [result] = await eslint.lintText(code, { filePath })
@@ -16,6 +18,10 @@ async function ruleIds(code: string, filePath: string): Promise<string[]> {
 }
 
 describe('eslint conventions', { timeout: 30_000 }, () => {
+	beforeAll(async () => {
+		await eslint.lintText('', { filePath: LOGIC_FILE })
+	}, WARM_UP_TIMEOUT_MS)
+
 	it('accepts a documented pure logic module', async () => {
 		const code = '/** Counts the pictures that are decided. */\n'
 			+ 'export function countDecided(flags: readonly string[]): number {\n'
