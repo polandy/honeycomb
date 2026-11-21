@@ -2,11 +2,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Listing } from '../logic/cull.ts'
 import type { TreeFolder } from '../logic/folder-tree.ts'
+import type { Schedule } from '../logic/long-press.ts'
 import type { PictureId } from '../logic/picture-id.ts'
 import type { WarmOptions } from '../preview-warmer.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
+import { browserSchedule } from '../browser-schedule.ts'
+import { LISTING_TIMEOUT_MS, withTimeout } from '../logic/timed-request.ts'
 import { listedFolders } from '../logic/writability.ts'
 import { API, ApiResponseError, isRecord } from './core.ts'
 
@@ -14,9 +17,9 @@ import { API, ApiResponseError, isRecord } from './core.ts'
 export type Folder = TreeFolder
 
 /** The image files of a folder, with every folder below it when `subfolders` (ADR 0009), and the user's permissions on each folder (LISTING-001.19). */
-export async function listEntries(path: string, subfolders: boolean, excluded: readonly string[] = []): Promise<Required<Listing>> {
+export async function listEntries(path: string, subfolders: boolean, excluded: readonly string[] = [], schedule: Schedule = browserSchedule): Promise<Required<Listing>> {
 	const params = { path, ...(subfolders ? { subfolders: 1 } : {}), ...(excluded.length > 0 ? { excluded } : {}) }
-	const { data } = await axios.get<unknown>(generateUrl(`${API}/entries`), { params })
+	const { data } = await withTimeout((signal) => axios.get<unknown>(generateUrl(`${API}/entries`), { params, signal }), LISTING_TIMEOUT_MS, schedule)
 	if (!isRecord(data) || !Array.isArray(data.entries) || typeof data.truncated !== 'boolean') {
 		throw new ApiResponseError(`The listing of "${path}" has no entries array and truncated flag; check the server's version.`)
 	}

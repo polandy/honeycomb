@@ -3,10 +3,10 @@
 import { createApp } from 'vue'
 import SimilarityPage from './components/SimilarityPage.vue'
 import { imageUrl, listFolders, listMissingVisualHashes, saveVisualHashes } from './api.ts'
+import { browserSchedule } from './browser-schedule.ts'
 import { browserHashWorkers } from './hash-workers.ts'
 import { logger } from './logger.ts'
 import { waitSeconds } from './logic/retry-after.ts'
-import { browserSchedule } from './tile-selection.ts'
 import { hashInWorkers } from './visual-hashes.ts'
 
 const workers = browserHashWorkers()

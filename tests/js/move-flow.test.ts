@@ -3,7 +3,7 @@
 // @vitest-environment happy-dom
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { TrashBinOffError } from '../../src/api.ts'
+import { RequestTimeoutError, TrashBinOffError } from '../../src/api.ts'
 import { logger } from '../../src/logger.ts'
 import { allMoved, moveFlow } from './move-fixtures.ts'
 
@@ -247,6 +247,8 @@ describe('useMoveFlow: moving and undo', () => {
 	it.each([
 		[new TrashBinOffError('off'), 'The Nextcloud trash bin is off, so nothing was moved. honeycomb replaces files only into the trash bin.'],
 		[new Error('down'), 'Could not move the photos; reload the folder to see what changed.'],
+		// spec: MOVE-004.20
+		[new RequestTimeoutError(90_000), 'The server did not answer within 90 s; reload the folder to see what moved.'],
 	])('changes nothing when the move request fails with %s', async (error, message) => {
 		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		const { moving, pair, pictures, errors } = moveFlow(async () => Promise.reject(error))

@@ -9,9 +9,9 @@ import type { Schedule } from '../logic/long-press.ts'
 import { n, t } from '@nextcloud/l10n'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import ProgressBar from './ProgressBar.vue'
+import { browserSchedule } from '../browser-schedule.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { progressStep } from '../logic/hash-progress.ts'
-import { browserSchedule } from '../tile-selection.ts'
 
 const props = withDefaults(defineProps<{
 	/** How far the visual hashes of the cull are. */

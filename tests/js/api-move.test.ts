@@ -20,7 +20,7 @@ describe('probeTargets', () => {
 		vi.mocked(axios.post).mockResolvedValue({ data: probe })
 
 		expect(await probeTargets(['/Out'], ['/Shared/In'])).toEqual(probe)
-		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/move/targets', { folders: ['/Out'], sources: ['/Shared/In'] })
+		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/move/targets', { folders: ['/Out'], sources: ['/Shared/In'] }, { signal: expect.any(AbortSignal) })
 	})
 
 	it('refuses a response without a folders or a sources array', async () => {
@@ -41,7 +41,7 @@ describe('movePictures', () => {
 		vi.mocked(axios.post).mockResolvedValue({ data: { pictures: results } })
 
 		expect(await movePictures(pictures)).toEqual(results)
-		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/move', { pictures })
+		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/move', { pictures }, { signal: expect.any(AbortSignal) })
 	})
 
 	it('refuses a response without a pictures array', async () => {

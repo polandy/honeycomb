@@ -1,19 +1,23 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Schedule } from '../logic/long-press.ts'
 import type { MoveRequestFile, Probe } from '../logic/move-plan.ts'
 import type { MoveResponseFile } from '../logic/move-report.ts'
 import type { TrashExpectation, TrashRequestFile, TrashResponseFile } from '../logic/trash-report.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
+import { browserSchedule } from '../browser-schedule.ts'
+import { CHUNK_TIMEOUT_MS, LISTING_TIMEOUT_MS, withTimeout } from '../logic/timed-request.ts'
 import { API, ApiResponseError, isRecord } from './core.ts'
 
 /** Thrown when the trash bin app is off for the user; nothing was deleted (ADR 0013). */
 export class TrashBinOffError extends Error {}
 
 /** Moves each picture's files to the trash bin while their rows say `expect`, and returns the result of every file (ADR 0013, ADR 0040). */
-export async function trashPictures(pictures: readonly (readonly TrashRequestFile[])[], expect: TrashExpectation | null = null): Promise<TrashResponseFile[][]> {
-	const data = await axios.post<unknown>(generateUrl(`${API}/trash`), expect === null ? { pictures } : { pictures, expect }).then((response) => response.data, (error: unknown) => {
+export async function trashPictures(pictures: readonly (readonly TrashRequestFile[])[], expect: TrashExpectation | null = null, schedule: Schedule = browserSchedule): Promise<TrashResponseFile[][]> {
+	const body = expect === null ? { pictures } : { pictures, expect }
+	const data = await withTimeout((signal) => axios.post<unknown>(generateUrl(`${API}/trash`), body, { signal }), CHUNK_TIMEOUT_MS, schedule).then((response) => response.data, (error: unknown) => {
 		throw isRecord(error) && isRecord(error.response) && error.response.status === 409 ? new TrashBinOffError('The trash bin is off; nothing was deleted.') : error
 	})
 	if (!isRecord(data) || !Array.isArray(data.pictures)) {
@@ -23,8 +27,8 @@ export async function trashPictures(pictures: readonly (readonly TrashRequestFil
 }
 
 /** What each target folder of a move already holds, and the storage of each target and source folder (ADR 0018). */
-export async function probeTargets(folders: readonly string[], sources: readonly string[]): Promise<Probe> {
-	const { data } = await axios.post<unknown>(generateUrl(`${API}/move/targets`), { folders, sources })
+export async function probeTargets(folders: readonly string[], sources: readonly string[], schedule: Schedule = browserSchedule): Promise<Probe> {
+	const { data } = await withTimeout((signal) => axios.post<unknown>(generateUrl(`${API}/move/targets`), { folders, sources }, { signal }), LISTING_TIMEOUT_MS, schedule)
 	if (!isRecord(data) || !Array.isArray(data.folders) || !Array.isArray(data.sources)) {
 		throw new ApiResponseError('The move target response came without a folders and a sources array; check the server\'s version.')
 	}
@@ -32,8 +36,8 @@ export async function probeTargets(folders: readonly string[], sources: readonly
 }
 
 /** Moves each picture's files to their new paths and returns the result of every file (ADR 0018). */
-export async function movePictures(pictures: readonly (readonly MoveRequestFile[])[]): Promise<MoveResponseFile[][]> {
-	const data = await axios.post<unknown>(generateUrl(`${API}/move`), { pictures }).then((response) => response.data, (error: unknown) => {
+export async function movePictures(pictures: readonly (readonly MoveRequestFile[])[], schedule: Schedule = browserSchedule): Promise<MoveResponseFile[][]> {
+	const data = await withTimeout((signal) => axios.post<unknown>(generateUrl(`${API}/move`), { pictures }, { signal }), CHUNK_TIMEOUT_MS, schedule).then((response) => response.data, (error: unknown) => {
 		throw isRecord(error) && isRecord(error.response) && error.response.status === 409 ? new TrashBinOffError('The trash bin is off; nothing was moved.') : error
 	})
 	if (!isRecord(data) || !Array.isArray(data.pictures)) {

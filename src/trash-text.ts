@@ -5,7 +5,9 @@ import type { SendProgress } from './logic/request-chunks.ts'
 import type { TrashFailure, TrashReport, UnkeptFailure } from './logic/trash-report.ts'
 
 import { n, t } from '@nextcloud/l10n'
+import { TrashBinOffError } from './api.ts'
 import { formatFileSize, formatNumber, PLAIN_TEXT } from './l10n.ts'
+import { RequestTimeoutError } from './logic/timed-request.ts'
 
 /** Why a file stayed, in the user's words. */
 export function failureReason(result: TrashFailure): string {
@@ -106,4 +108,14 @@ export function skipReason(reason: SkipReason): string {
 		default:
 			return t('honeycomb', 'The JPEG sidecar could not be written, so the RAW stays')
 	}
+}
+
+/** Why a delete changed nothing, or may have changed something unseen; the trash bin being off needs no reload. */
+export function deleteFailedText(error: unknown): string {
+	if (error instanceof TrashBinOffError) {
+		return t('honeycomb', 'The Nextcloud trash bin is off, so nothing was deleted. honeycomb deletes only into the trash bin.')
+	}
+	return error instanceof RequestTimeoutError
+		? t('honeycomb', 'The server did not answer within {seconds} s; reload the folder to see what was deleted.', { seconds: error.seconds }, undefined, PLAIN_TEXT)
+		: t('honeycomb', 'Could not delete the photos; reload the folder to see what changed.')
 }

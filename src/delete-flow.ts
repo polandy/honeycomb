@@ -20,7 +20,7 @@ import { rawBatch, rawRemoval } from './logic/raw-removal.ts'
 import { sendInChunks } from './logic/request-chunks.ts'
 import { decisionChanges, followReplaced, mergeReports, permanentBatch, retryBatch, trashReport, trashRequest, unkeptFiles, wholePictures } from './logic/trash-report.ts'
 import { reloadAction } from './reload-action.ts'
-import { deletedPermanentlyText, deletedText, removedRawsText, skippedText } from './trash-text.ts'
+import { deletedPermanentlyText, deletedText, deleteFailedText, removedRawsText, skippedText } from './trash-text.ts'
 
 type Pictures = readonly Picture<ListingEntry>[]
 
@@ -197,9 +197,7 @@ export function useDeleteFlow(context: DeleteFlowContext) {
 		} catch (error) {
 			logger.error('Could not move the files to the trash bin', { error })
 			dialog.value = null
-			context.error(error instanceof TrashBinOffError
-				? t('honeycomb', 'The Nextcloud trash bin is off, so nothing was deleted. honeycomb deletes only into the trash bin.')
-				: t('honeycomb', 'Could not delete the photos; reload the folder to see what changed.'), error instanceof TrashBinOffError ? null : reloadAction(context.reload))
+			context.error(deleteFailedText(error), error instanceof TrashBinOffError ? null : reloadAction(context.reload))
 		} finally {
 			busy.value = false
 			progress.value = null

@@ -7,8 +7,8 @@ import type { Schedule } from '../logic/long-press.ts'
 import type { Box, TipPlacement } from '../logic/tooltip.ts'
 
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
+import { browserSchedule } from '../browser-schedule.ts'
 import { placeTip } from '../logic/tooltip.ts'
-import { browserSchedule } from '../tile-selection.ts'
 import { TIP_ID, useTooltip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
