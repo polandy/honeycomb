@@ -126,7 +126,7 @@ test('keeps the RAW another user marked Keep RAW after the summary opened, and r
 })
 
 // spec: DELETE-003.12
-test('seeds the JPEG sidecar from the RAW sidecar read again, other programs\' fields too, but no flag, and keeps the JPEG picked', async ({ page }) => {
+test('seeds the JPEG sidecar from the RAW sidecar read again, other programs\' fields and the pick label too, but not Keep RAW, and keeps the JPEG picked', async ({ page }) => {
 	const { folder, jpegs } = await cullPairs(page, ['IMG_0001'], RATED)
 	await upload(page, `${folder}/IMG_0001.NEF.xmp`, CHANGED)
 
@@ -139,7 +139,8 @@ test('seeds the JPEG sidecar from the RAW sidecar read again, other programs\' f
 	expect(written).toMatch(/xmp:Label(="|>)Red/)
 	expect(written).toContain('Places/Lisbon')
 	expect(written).toContain('Ana')
-	expect(written).not.toContain('PickLabel')
+	expect(written).toMatch(/digiKam:PickLabel(="|>)3/)
+	expect(written).not.toContain('KeepRaw')
 	const listing = await page.request.get(`${API}/entries`, { params: { path: `/${folder}` }, headers })
 	const { entries } = await listing.json() as { entries: { fileId: number, flag: string | null }[] }
 	expect(entries.find((entry) => entry.fileId === jpegs[0])?.flag).toBe('picked')

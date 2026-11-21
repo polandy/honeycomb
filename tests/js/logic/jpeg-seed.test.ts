@@ -17,7 +17,7 @@ const RAW_SIDECAR = new TextEncoder().encode(`<x:xmpmeta xmlns:x="adobe:ns:meta/
 
 describe('seededSidecar', () => {
 	// spec: DELETE-003.12
-	it('takes every field of the RAW sidecar, other programs\' too, but the flag fields and Keep RAW', () => {
+	it('takes every field of the RAW sidecar, other programs\' too and digiKam\'s pick fields, but Keep RAW', () => {
 		const seeded = seededSidecar(read(RAW_SIDECAR), CANONICAL_TIME)
 
 		expect(seeded).not.toBeNull()
@@ -28,14 +28,24 @@ describe('seededSidecar', () => {
 		expect(itemsOf(packet, 'digiKam:TagsList')).toEqual(['Places/Lisbon'])
 		expect(textOf(packet, 'darktable:xmp_version')).toBe('5')
 		expect(packet.properties.get(`${REGIONS} Regions`)?.value.kind).toBe('struct')
-		for (const flag of ['digiKam:PickLabel', 'xmpDM:pick', 'xmpDM:good', 'honeycomb:KeepRaw']) {
-			expect(packet.properties.has(key(flag))).toBe(false)
-		}
+		expect(textOf(packet, 'digiKam:PickLabel')).toBe('3')
+		expect(textOf(packet, 'xmpDM:pick')).toBe('1')
+		expect(textOf(packet, 'xmpDM:good')).toBe('True')
+		expect(packet.properties.has(key('honeycomb:KeepRaw'))).toBe(false)
 	})
 
 	// spec: DELETE-003.12
-	it('gives no sidecar for a RAW sidecar holding nothing but the flag fields and Keep RAW', () => {
-		expect(seededSidecar(read(xmp({ 'digiKam:PickLabel': '3', 'honeycomb:KeepRaw': 'True' })), CANONICAL_TIME)).toBeNull()
+	it('gives no sidecar for a RAW sidecar holding nothing but Keep RAW', () => {
+		expect(seededSidecar(read(xmp({ 'honeycomb:KeepRaw': 'True' })), CANONICAL_TIME)).toBeNull()
+	})
+
+	// spec: DELETE-003.12
+	it('seeds a RAW sidecar holding nothing but a pick label and Keep RAW with the pick label alone', () => {
+		const seeded = seededSidecar(read(xmp({ 'digiKam:PickLabel': '3', 'honeycomb:KeepRaw': 'True' })), CANONICAL_TIME)
+
+		const packet = readXmp((seeded as { bytes: Uint8Array }).bytes)
+		expect(textOf(packet, 'digiKam:PickLabel')).toBe('3')
+		expect(packet.properties.has(key('honeycomb:KeepRaw'))).toBe(false)
 	})
 
 	// spec: DELETE-003.9
