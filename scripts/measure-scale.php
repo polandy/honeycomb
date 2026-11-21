@@ -5,12 +5,16 @@
 
 declare(strict_types=1);
 
-// Usage (in the e2e container): php measure-scale.php <user> listing <path> | <user> decisions|tags|xmp-save|xmp-lookup <count> <path prefix>
+// Usage (in the e2e container): php measure-scale.php <user> listing|pictures-below|count-below <path> | <user> decisions|tags|xmp-save|xmp-lookup <count> <path prefix>
 
 use OCA\Honeycomb\Service\DecisionService;
 use OCA\Honeycomb\Service\ListingService;
+use OCA\Honeycomb\Service\PairingExtensions;
+use OCA\Honeycomb\Service\PicturesBelow;
 use OCA\Honeycomb\Service\TagService;
 use OCA\Honeycomb\Service\XmpCacheService;
+use OCP\Files\IMimeTypeLoader;
+use OCP\Files\IRootFolder;
 use OCP\IDBConnection;
 use OCP\IUserManager;
 use OCP\IUserSession;
@@ -38,6 +42,18 @@ $run = match ($action) {
 	'listing' => static function () use ($user, $argument): string {
 		$listing = json_decode(json_encode(Server::get(ListingService::class)->list($user, $argument, true)), true);
 		return count($listing['entries']) . ' entries in ' . count($listing['folders']) . ' folders' . ($listing['truncated'] ? ', truncated' : '');
+	},
+	'pictures-below' => static function () use ($userId, $argument): string {
+		$count = Server::get(PicturesBelow::class)->count(Server::get(IRootFolder::class)->getUserFolder($userId)->get($argument), PairingExtensions::defaults());
+		return $count === null ? 'no count' : "{$count->pictures} pictures, {$count->orphans} orphaned sidecars";
+	},
+	// The single SQL COUNT of #244, for comparison: photo files, no pairing.
+	'count-below' => static function () use ($argument): string {
+		$query = Server::get(IDBConnection::class)->getQueryBuilder();
+		$query->select($query->func()->count('fileid'))->from('filecache')
+			->where($query->expr()->like('path', $query->createNamedParameter('files/' . trim($argument, '/') . '/%')))
+			->andWhere($query->expr()->eq('mimepart', $query->createNamedParameter(Server::get(IMimeTypeLoader::class)->getId('image'))));
+		return $query->executeQuery()->fetchOne() . ' photo files';
 	},
 	'decisions' => static function () use ($user, $argument, $argv): string {
 		$items = array_map(static fn (int $id): array => ['fileId' => $id, 'rating' => 3, 'colourLabel' => 'red', 'flag' => 'picked', 'keepRaw' => false], fileIds((int)$argument, $argv[4]));

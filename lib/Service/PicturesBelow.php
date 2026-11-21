@@ -17,5 +17,5 @@ interface PicturesBelow {
 	 * it does not know the folder.
 	 * @throws \OCP\DB\Exception when the database fails
 	 */
-	public function count(Folder $folder): ?PictureCount;
+	public function count(Folder $folder, PairingExtensions $extensions): ?PictureCount;
 }

@@ -82,6 +82,8 @@ const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveV
 const { folderSet, pictures, folders, view, progress, filtersOpen, pickerOpen, tileSize } = cull
 const gridScreen = useTemplateRef<InstanceType<typeof GridScreen>>('gridScreen')
 const grid = computed(() => gridScreen.value?.grid ?? null)
+// The picker and the move dialog count pictures with the user's extension lists (LISTING-003.24).
+const listFolders = (path: string) => props.listFolders(path, { rawExtensions: cull.pairing.value.rawExtensions, renderedExtensions: cull.pairing.value.renderedExtensions })
 const loupeOpening = useLoupeOpening((index) => grid.value?.reveal(index), cull.passes)
 const { loupe, picture: shownInLoupe, land: landInLoupe } = loupeOpening
 watch(shownInLoupe, sidecars.leave)
@@ -220,7 +222,7 @@ useHotkeys(() => {
 				v-if="pickerOpen"
 				:current="folderSet"
 				:closable="immich.offered.value"
-				:listFolders="props.listFolders"
+				:listFolders="listFolders"
 				:listEntries="props.listEntries"
 				:pairing="cull.pairing.value"
 				:recent="recent.items.value"
@@ -234,7 +236,7 @@ useHotkeys(() => {
 				:sidecars="sidecarFlow"
 				:folderSet="folderSet"
 				:folders="folders"
-				:listFolders="props.listFolders"
+				:listFolders="listFolders"
 				:container="loupe !== null ? '.photo-loupe' : undefined" />
 			<CullFinished v-if="cullFinished.numbers.value !== null" :numbers="cullFinished.numbers.value" @close="cullFinished.close" />
 			<SeriesCompareScreen ref="seriesScreen" />

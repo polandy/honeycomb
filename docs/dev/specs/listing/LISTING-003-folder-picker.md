@@ -15,14 +15,17 @@ The picker shows how many photos the set holds before it opens.
 **Folder endpoint.** `GET /apps/honeycomb/api/v1/folders?path=<folder>`, logged in, with the
 CSRF token, answers `{"folders": [...]}`: one item per direct child folder with `name`, `path`
 (from the user's files, leading `/`), `hasSubfolders`, `pictures`, `picturesBelow`,
-`orphanedSidecars` and `orphanedSidecarsBelow`.
+`orphanedSidecars` and `orphanedSidecarsBelow`. Optional `rawExtensions[]` and
+`renderedExtensions[]` carry the user's extension lists of the pairing settings (LISTING-002);
+a list left out is its default. A list that is empty, names `xmp` or an extension of anything but
+letters and digits, or shares an extension with the other list answers `400`.
 Hidden folders are included; files are not. `hasSubfolders` is false when the child holds no
 folder or may not be listed. `pictures` counts the child's own pictures, hidden files and its
-subfolders left out, from one listing of the child: a RAW and a rendered file of one base name in
-the same folder count once, any other photo file of the types LISTING-001 lists counts once each
-(pairing as LISTING-002 with its default extensions; the user's own pairing settings are not
-read, so the count can differ from the grid's). `orphanedSidecars` counts the child's own
-orphaned sidecars (XMP-009), also from that listing. `picturesBelow` and `orphanedSidecarsBelow`
+subfolders left out, from one listing of the child: of the photo files LISTING-001 lists, those
+with an extension in either list count, as the grid pairs them (LISTING-002): a RAW and a
+rendered file of one base name in the same folder once, any other once each; the folder mode is
+not applied, so separate RAW and rendered subfolders count apart. `orphanedSidecars` counts the
+child's own orphaned sidecars (XMP-009), also from that listing. `picturesBelow` and `orphanedSidecarsBelow`
 count the same in the child and in every folder below it, hidden folders left out and the
 storages mounted below it (shares, external storages) added, from the names in Nextcloud's file
 cache in one query per storage, without walking the folders; pairs and orphans are told per
@@ -51,6 +54,8 @@ it, which are back in (ADR 0035). The same tap on an excluded folder includes it
 picker lists each ticked folder without the excluded folders below it (LISTING-001.16), so the
 status line counts without them. Unticking a folder drops the exclusions no ticked folder holds
 any more. Exclusions kept while the switch is off leave nothing out and are not shown.
+
+The picker and the move dialog send the user's extension lists with each folder request.
 
 On every tick the picker lists the ticked folders (LISTING-001), pairs them with the user's
 pairing settings (LISTING-002) and shows the count, "*n* photos in *m* folders"; the button reads
@@ -276,6 +281,15 @@ starts from that folder set and *Cancel* returns to it.
   own while expanded or without subfolders, else those below it too), also without pictures,
   read out as "*n* orphaned sidecars"; the others show no note
 
+### LISTING-003.24 – The count follows the user's extensions
+
+- **Given** a folder with a NEF and a JPEG of one shot, a TIFF of another and a PNG, and pairing
+  settings whose rendered list adds `tif` and whose RAW list drops `nef`
+- **When** the picker or the move dialog asks for its folders
+- **Then** the request carries both extension lists, and the counts, own and below, count only
+  files with a listed extension and pair them by those lists, as the grid does; without the lists
+  the defaults apply, and invalid lists answer `400`
+
 ## Out of scope
 
 - The grid and its folder headers: GRID-001. The resume position: DECISIONS-002.
@@ -298,3 +312,4 @@ starts from that folder set and *Cancel* returns to it.
 | 2026-11-21 | .19/.20 the tree counts pictures, a pair once; .23 a note for orphaned sidecars (owner, E9/U9, #187) |
 | 2026-11-17 | .18 a tap excludes an included folder, .21/.22 excluded folders (owner, #187) |
 | 2026-11-21 | .8 a listing that does not answer within 30 s fails (E23/U7, ADR 0029) |
+| 2026-11-21 | .19/.20/.24 the counts follow the user's extension lists (owner, #187 M1) |

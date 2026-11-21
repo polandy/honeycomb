@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Db;
 
 use OCA\Honeycomb\Preview\UntypedRaw;
+use OCA\Honeycomb\Service\PairingExtensions;
 use OCA\Honeycomb\Service\PictureCount;
 use OCA\Honeycomb\Service\PicturesBelow;
 use OCA\Honeycomb\Service\PictureTally;
@@ -31,7 +32,7 @@ final class FileCachePictures implements PicturesBelow {
 	}
 
 	#[\Override]
-	public function count(Folder $folder): ?PictureCount {
+	public function count(Folder $folder, PairingExtensions $extensions): ?PictureCount {
 		$own = $this->location($folder->getId());
 		if ($own === null) {
 			return null;
@@ -52,7 +53,7 @@ final class FileCachePictures implements PicturesBelow {
 				$approximate = $approximate || SubtreeExactness::mayMissFiles($location['size'], $mount->getStorage());
 			}
 		}
-		$tally = array_map(fn (array $subtree): array => $this->tally(...$subtree), $subtrees);
+		$tally = array_map(fn (array $subtree): array => $this->tally($extensions, ...$subtree), $subtrees);
 		return new PictureCount(array_sum(array_column($tally, 'pictures')), array_sum(array_column($tally, 'orphans')), $approximate);
 	}
 
@@ -87,7 +88,7 @@ final class FileCachePictures implements PicturesBelow {
 	 * leaving out every path with a hidden name.
 	 * @return array{pictures: int, orphans: int}
 	 */
-	private function tally(int $storage, string $path): array {
+	private function tally(PairingExtensions $extensions, int $storage, string $path): array {
 		$query = $this->db->getQueryBuilder();
 		$expr = $query->expr();
 		$prefix = $path === '' ? '' : $this->db->escapeLikeParameter($path) . '/';
@@ -116,7 +117,7 @@ final class FileCachePictures implements PicturesBelow {
 		$result->closeCursor();
 		$total = ['pictures' => 0, 'orphans' => 0];
 		foreach ($folders as $names) {
-			$own = PictureTally::of($names['photos'] ?? [], $names['videos'] ?? [], $names['sidecars'] ?? []);
+			$own = PictureTally::of($names['photos'] ?? [], $names['videos'] ?? [], $names['sidecars'] ?? [], $extensions);
 			$total = ['pictures' => $total['pictures'] + $own['pictures'], 'orphans' => $total['orphans'] + $own['orphans']];
 		}
 		return $total;
