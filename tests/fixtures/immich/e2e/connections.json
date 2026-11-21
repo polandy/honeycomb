@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "connections": [
+    {
+      "id": "family",
+      "user": "alice",
+      "label": "Family phones",
+      "url": "http://127.0.0.1:2283",
+      "keyFile": "/var/www/html/custom_apps/honeycomb/tests/fixtures/immich/e2e/family-key.txt"
+    },
+    {
+      "id": "anna",
+      "user": "alice",
+      "label": "Anna's phone",
+      "url": "http://127.0.0.1:2283",
+      "keyFile": "/var/www/html/custom_apps/honeycomb/tests/fixtures/immich/e2e/anna-key.txt"
+    }
+  ]
+}

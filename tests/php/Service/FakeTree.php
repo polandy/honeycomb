@@ -14,6 +14,7 @@ use OCP\Files\Mount\IMountPoint;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
+use OCP\Files\Storage\IStorage;
 use OCP\IUser;
 
 /** An in-memory tree of alice's files under `/alice/files` that `OCP\Files` stubs read and change. */
@@ -26,6 +27,8 @@ trait FakeTree {
 	private array $folders = ['/' => 1000];
 	/** @var array<int, true> */
 	private array $undeletable = [];
+	/** @var array<int, true> file ids on a storage without a trash bin */
+	private array $noTrashBin = [];
 	/** @var array<string, true> folder paths the user may not create in */
 	private array $readOnly = [];
 	/** @var array<string, true> folder paths the user may not read */
@@ -127,10 +130,17 @@ trait FakeTree {
 		$file->method('getMimetype')->willReturn(match (strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
 			'jpg' => 'image/jpeg',
 			'raf' => 'image/x-fuji-raf',
+			'cr2', 'nef' => 'image/x-dcraw',
 			'txt' => 'text/plain',
+			'mov' => 'video/quicktime',
 			default => 'application/octet-stream',
 		});
 		$file->method('isDeletable')->willReturn(!isset($this->undeletable[$id]));
+		$file->method('getSize')->willReturn(100 * $id);
+		$file->method('getParent')->willReturnCallback(fn (): Folder => $this->treeFolder(dirname($path)));
+		$storage = $this->createStub(IStorage::class);
+		$storage->method('instanceOfStorage')->willReturnCallback(fn (string $class): bool => !isset($this->noTrashBin[$id]) && $class === 'OCA\\Files_Trashbin\\Storage');
+		$file->method('getStorage')->willReturn($storage);
 		$file->method('delete')->willReturnCallback(function () use ($id): void {
 			unset($this->files[$id]);
 			$this->trashed[] = $id;
@@ -161,6 +171,7 @@ trait FakeTree {
 		usort($roots, static fn (string $a, string $b): int => strlen($b) - strlen($a));
 		$mount = $this->createStub(IMountPoint::class);
 		$mount->method('getMountPoint')->willReturn($roots === [] ? '/alice/' : self::TREE_ROOT . $roots[0] . '/');
+		$mount->method('getMountType')->willReturn($roots === [] ? '' : 'shared');
 		return $mount;
 	}
 }

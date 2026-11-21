@@ -113,7 +113,7 @@ export function useHashRun(seams: HashRunSeams) {
 			cursor = page.next ?? cursor
 			listed.value = page.next === null
 		} catch (error) {
-			logger.warn('Could not load the photos without a visual hash', { error, folder, cursor })
+			logger.warn('Could not load the photos without a visual hash', { error, cursor })
 			if (of === run) {
 				problem.value = 'page'
 				pause()

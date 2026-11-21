@@ -54,7 +54,7 @@ export function useFolderCount(set: Ref<FolderSet>, listEntries: ListEntries, pa
 			}
 		} catch (error) {
 			if (counting === latestCount) {
-				logger.error('Could not count the photos', { paths, subfolders, error })
+				logger.error('Could not count the photos', { subfolders, error })
 				failed.value = true
 			}
 		}

@@ -65,12 +65,12 @@ describe('AppNavigation', () => {
 		expect(wrapper.emitted('openSettings')).toEqual([[]])
 	})
 
-	// spec: STATS-001.40
-	it('links the pages of their own from one list, Statistics after Similarity', () => {
+	// spec: STATS-001.40, XMP-009.13
+	it('links the pages of their own from one list, Statistics after Similarity, Orphaned sidecars last', () => {
 		const links = mountNavigation().findAll('a[href]:not([href="#"])').map((link) => ({ name: link.text(), href: link.attributes('href') }))
 
 		expect(links).toEqual(useNavigationItems().map(({ name, href }) => ({ name, href })))
-		expect(links.map((link) => link.name)).toEqual([`${MARK}Similarity`, `${MARK}Statistics`])
+		expect(links.map((link) => link.name)).toEqual([`${MARK}Similarity`, `${MARK}Statistics`, `${MARK}Orphaned sidecars`])
 	})
 
 	// spec: STATS-001.26

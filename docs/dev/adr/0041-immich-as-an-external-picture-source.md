@@ -127,10 +127,13 @@ module. The asset id stays the truth; no server table hands out synthetic number
 
 Every version of the Immich API in use is pinned: the client checks the server version it
 targets and its contract tests run against the OpenAPI schema of that version. **e2e runs against
-a stub** of the Immich API built from that pinned schema, started as a second Playwright web
-server with a fixture of two connections and their key files; it answers in seconds and runs in
-`scripts/verify.sh`. A real Immich (Postgres, Redis, machine learning) is the owner's hand test on
-the test server only, never a CI step.
+a stub** of the Immich API built from that pinned schema, run by PHP's built-in server inside the
+e2e Nextcloud container, with a fixture of two connections and their key files; it answers in
+seconds and runs in `scripts/verify.sh`. Amended on 2026-11-21: a second Playwright web server on
+the host, as first written, would need a free port per parallel run and a route from the container
+to the host; inside the container the connections file names one fixed origin. A real Immich
+(Postgres, Redis, machine learning) is the owner's hand test on the test server only, never a CI
+step.
 
 ### Implementation order
 

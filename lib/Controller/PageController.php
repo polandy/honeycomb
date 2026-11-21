@@ -64,6 +64,14 @@ final class PageController extends Controller {
 		return new TemplateResponse(Application::APP_ID, 'statistics', ['script' => $this->scripts->script(ScriptManifest::STATISTICS)]);
 	}
 
+	/** The page that finds orphaned sidecars and moves them to the trash bin once confirmed (XMP-009). */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[FrontpageRoute(verb: 'GET', url: '/orphaned-sidecars')]
+	public function orphanedSidecars(): TemplateResponse {
+		return new TemplateResponse(Application::APP_ID, 'orphaned-sidecars', ['script' => $this->scripts->script(ScriptManifest::ORPHANED_SIDECARS)]);
+	}
+
 	private function isAdmin(): bool {
 		$user = $this->userSession->getUser();
 		return $user !== null && $this->groups->isAdmin($user->getUID());

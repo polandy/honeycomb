@@ -65,7 +65,7 @@ final class SidecarWriter {
 			array_push($counts, ...$sidecar->counts);
 			return ['result' => SidecarResult::Saved, 'fileId' => $saved->getId(), 'etag' => $saved->getEtag(), 'size' => $saved->getSize(), 'mtime' => $saved->getMTime()];
 		} catch (\Exception $e) {
-			return ['result' => $this->resultOf($e, $folder->getPath() . "/$name")];
+			return ['result' => $this->resultOf($e, $existing?->getId())];
 		}
 	}
 
@@ -133,18 +133,18 @@ final class SidecarWriter {
 		return $sidecar;
 	}
 
-	private function resultOf(\Exception $e, string $path): SidecarResult {
+	private function resultOf(\Exception $e, ?int $fileId): SidecarResult {
 		return match (true) {
 			$e instanceof NotEnoughSpaceException => SidecarResult::NoSpace,
 			$e instanceof NotPermittedException => SidecarResult::NotPermitted,
 			$e instanceof LockedException => SidecarResult::Locked,
 			$e instanceof NotFoundException => SidecarResult::NotFound,
-			default => $this->failed($e, $path),
+			default => $this->failed($e, $fileId),
 		};
 	}
 
-	private function failed(\Exception $e, string $path): SidecarResult {
-		$this->logger->warning('A sidecar could not be saved', ['path' => $path, 'exception' => $e]);
+	private function failed(\Exception $e, ?int $fileId): SidecarResult {
+		$this->logger->warning('A sidecar could not be saved', ['fileId' => $fileId, 'exception' => $e]);
 		return SidecarResult::Failed;
 	}
 }

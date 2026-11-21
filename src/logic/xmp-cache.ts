@@ -52,7 +52,7 @@ export interface XmpCacheSource {
 export interface PictureXmpState {
 	readonly decision: Decision
 	readonly tags: Tag[]
-	readonly warnings: { readonly path: string, readonly reason: string }[]
+	readonly warnings: { readonly fileId: number, readonly reason: string }[]
 }
 
 type Rows = ReadonlyMap<number, XmpCacheRow>
@@ -99,20 +99,20 @@ export function embeddedRow(jpeg: ListingEntry, answer: EmbeddedXmpAnswer, onLef
 export function pictureState(picture: Picture<ListingEntry>, rows: Rows): PictureXmpState {
 	const jpeg = embeddedXmpSource(picture)
 	const sources = [...sidecarTargets(picture).existing.map((entry) => ({ entry, ofRaw: isRawSidecar(picture, entry.path) })), ...(jpeg === null ? [] : [{ entry: jpeg, ofRaw: false }])]
-	const read: { readonly path: string, readonly mtime: number, readonly ofRaw: boolean, readonly row: XmpCacheRow }[] = []
-	const warnings: { path: string, reason: string }[] = []
+	const read: { readonly fileId: number, readonly path: string, readonly mtime: number, readonly ofRaw: boolean, readonly row: XmpCacheRow }[] = []
+	const warnings: { fileId: number, reason: string }[] = []
 	for (const { entry, ofRaw } of sources) {
 		const row = rows.get(entry.fileId)
 		if (row?.state === 'read') {
-			read.push({ path: entry.path, mtime: entry.mtime, ofRaw, row })
+			read.push({ fileId: entry.fileId, path: entry.path, mtime: entry.mtime, ofRaw, row })
 		} else if (row?.state === 'refused') {
-			warnings.push({ path: entry.path, reason: row.reason ?? 'refused' })
+			warnings.push({ fileId: entry.fileId, reason: row.reason ?? 'refused' })
 		}
 	}
 	const pair = isPair(picture)
 	const best = read.reduce<typeof read[number] | null>((winner, candidate) => (winner === null || isNewer(candidate, winner) ? candidate : winner), null)
 	const decision = best === null ? UNDECIDED : decisionOfValues(best.row, pair)
-	warnings.push(...read.filter(({ row }) => !sameDecision(decisionOfValues(row, pair), decision)).map(({ path }) => ({ path, reason: 'disagrees' })))
+	warnings.push(...read.filter(({ row }) => !sameDecision(decisionOfValues(row, pair), decision)).map(({ fileId }) => ({ fileId, reason: 'disagrees' })))
 	const tags = jpeg !== null && !rows.has(jpeg.fileId) ? [] : sortedTags(read.flatMap(({ row }) => row.tags ?? []))
 	return { decision, tags, warnings }
 }
