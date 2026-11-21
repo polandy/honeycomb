@@ -148,7 +148,7 @@ describe('FolderTree', () => {
 
 	// spec: LISTING-003.18
 	it('marks the folders below a ticked one as included while Include subfolders is on, still tappable', async () => {
-		const hidden = { name: '.cache', path: '/Photos/.cache', hasSubfolders: false, photoFiles: null, photoFilesBelow: null, photoFilesBelowApproximate: false }
+		const hidden = { name: '.cache', path: '/Photos/.cache', hasSubfolders: false, pictures: null, picturesBelow: null, picturesBelowApproximate: false, orphanedSidecars: null, orphanedSidecarsBelow: null }
 		const { wrapper, answer } = await mountTree(['/Photos'], true, { ...FOLDERS, '/Photos': [...FOLDERS['/Photos']!, hidden] })
 		await twisty(wrapper, 'Photos').trigger('click')
 		await answer('/Photos')
@@ -177,14 +177,14 @@ describe('FolderTree', () => {
 	})
 
 	// spec: LISTING-003.19
-	it('shows the photo files of each folder last in its row, spoken as part of the folder', async () => {
+	it('shows the pictures of each folder last in its row, spoken as part of the folder', async () => {
 		const { wrapper, answer } = await mountTree(['/Photos/2025'])
 		const count = (name: string) => item(wrapper, name).find('.folder-tree__count')
 
 		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('3')
-		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}3 photo files`)
+		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}3 pictures`)
 		expect(item(wrapper, 'Photos').element.lastElementChild?.classList).toContain('folder-tree__count')
-		expect(count('Day 9').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1 photo file`)
+		expect(count('Day 9').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1 picture`)
 		expect(count('Day 10').exists()).toBe(false)
 		expect(count('.hidden').exists()).toBe(false)
 
@@ -195,18 +195,18 @@ describe('FolderTree', () => {
 	})
 
 	// spec: LISTING-003.20
-	it('shows the photo files below a collapsed folder and its own once it is expanded', async () => {
+	it('shows the pictures below a collapsed folder and its own once it is expanded', async () => {
 		const { wrapper, answer } = await mountTree()
 		const count = (name: string) => item(wrapper, name).find('.folder-tree__count')
 
 		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('1,203')
-		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1,203 photo files with subfolders`)
-		expect(count('Day 9').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1 photo file`)
+		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1,203 pictures with subfolders`)
+		expect(count('Day 9').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1 picture`)
 
 		await twisty(wrapper, 'Photos').trigger('click')
 		await answer('/Photos')
 		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('3')
-		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}3 photo files`)
+		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}3 pictures`)
 
 		await twisty(wrapper, 'Photos').trigger('click')
 		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('1,203')
@@ -214,12 +214,12 @@ describe('FolderTree', () => {
 
 	// spec: LISTING-003.20
 	it('puts a tilde before a collapsed count that may be incomplete and speaks "about", but not on its own count', async () => {
-		const approximate = { ...FOLDERS['']![0]!, photoFilesBelowApproximate: true }
+		const approximate = { ...FOLDERS['']![0]!, picturesBelowApproximate: true }
 		const { wrapper, answer } = await mountTree([], false, { ...FOLDERS, '': [approximate, ...FOLDERS['']!.slice(1)] })
 		const count = (name: string) => item(wrapper, name).find('.folder-tree__count')
 
 		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('~1,203')
-		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}about 1,203 photo files with subfolders`)
+		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}about 1,203 pictures with subfolders`)
 		expect(count('Day 9').find('[aria-hidden="true"]').text()).toBe('1')
 
 		await twisty(wrapper, 'Photos').trigger('click')

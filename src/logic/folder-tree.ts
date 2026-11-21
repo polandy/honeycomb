@@ -12,12 +12,16 @@ export interface TreeFolder {
 	readonly name: string
 	readonly path: string
 	readonly hasSubfolders: boolean
-	/** Photo files of its own, null for a hidden or unlistable folder. */
-	readonly photoFiles: number | null
-	/** Photo files of its own and of every folder below it, null for a hidden folder or an unknown count. */
-	readonly photoFilesBelow: number | null
+	/** Pictures of its own (a RAW+JPEG pair counts once), null for a hidden or unlistable folder. */
+	readonly pictures: number | null
+	/** Pictures of its own and of every folder below it, null for a hidden folder or an unknown count. */
+	readonly picturesBelow: number | null
 	/** Whether the count below may miss files (unscanned, or a Team folder with advanced permissions). */
-	readonly photoFilesBelowApproximate: boolean
+	readonly picturesBelowApproximate: boolean
+	/** Orphaned sidecars of its own, null for a hidden or unlistable folder. */
+	readonly orphanedSidecars: number | null
+	/** Orphaned sidecars of its own and of every folder below it, null for a hidden folder or an unknown count. */
+	readonly orphanedSidecarsBelow: number | null
 }
 
 /** What the tree knows of one folder's child folders. */
@@ -128,9 +132,15 @@ export function excludedBelow(set: FolderSet, path: string): number {
 	return effectiveExclusions(set).filter((each) => each.startsWith(`${path}/`)).length
 }
 
-/** The photo files a folder row shows: its own while expanded or without subfolders, else all below it, maybe approximately; null for none or unknown. */
-export function rowPhotoFiles(folder: TreeFolder, expanded: boolean): { readonly count: number, readonly below: boolean, readonly approximate: boolean } | null {
+/** The pictures a folder row shows: its own while expanded or without subfolders, else all below it, maybe approximately; null for none or unknown. */
+export function rowPictures(folder: TreeFolder, expanded: boolean): { readonly count: number, readonly below: boolean, readonly approximate: boolean } | null {
 	const below = folder.hasSubfolders && !expanded
-	const count = below ? folder.photoFilesBelow : folder.photoFiles
-	return count === null || count === 0 ? null : { count, below, approximate: below && folder.photoFilesBelowApproximate }
+	const count = below ? folder.picturesBelow : folder.pictures
+	return count === null || count === 0 ? null : { count, below, approximate: below && folder.picturesBelowApproximate }
+}
+
+/** The orphaned sidecars a folder row notes: its own while expanded or without subfolders, else all below it; null for none or unknown. */
+export function rowOrphans(folder: TreeFolder, expanded: boolean): number | null {
+	const count = folder.hasSubfolders && !expanded ? folder.orphanedSidecarsBelow : folder.orphanedSidecars
+	return count === null || count === 0 ? null : count
 }

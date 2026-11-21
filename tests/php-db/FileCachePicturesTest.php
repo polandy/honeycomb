@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\DbTests;
 
-use OCA\Honeycomb\Db\FileCachePhotoFiles;
+use OCA\Honeycomb\Db\FileCachePictures;
 use OCA\Honeycomb\Db\SubtreeExactness;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeLoader;
@@ -18,8 +18,8 @@ use OCP\Files\Storage\IStorage;
 use OCP\IUserManager;
 use OCP\Server;
 
-/** The photo files below a folder, counted in Nextcloud's file cache of real users' files. */
-final class FileCachePhotoFilesTest extends DbTestCase {
+/** The pictures and orphaned sidecars below a folder, counted in Nextcloud's file cache of real users' files. */
+final class FileCachePicturesTest extends DbTestCase {
 	private const string USER = 'honeycomb-count';
 	private const string OTHER = 'honeycomb-count-other';
 	private const string PASSWORD = 'honeycomb-count-Passw0rd-long!';
@@ -45,10 +45,10 @@ final class FileCachePhotoFilesTest extends DbTestCase {
 	}
 
 	/** @param list<IMountPoint> $mounts */
-	private function counter(array $mounts = []): FileCachePhotoFiles {
+	private function counter(array $mounts = []): FileCachePictures {
 		$manager = $this->createStub(IMountManager::class);
 		$manager->method('findIn')->willReturn($mounts);
-		return new FileCachePhotoFiles($this->db, Server::get(IMimeTypeLoader::class), $manager);
+		return new FileCachePictures($this->db, Server::get(IMimeTypeLoader::class), $manager);
 	}
 
 	/**
@@ -82,23 +82,45 @@ final class FileCachePhotoFilesTest extends DbTestCase {
 	}
 
 	// spec: LISTING-003.20
-	public function testCountsThePhotoFilesOfAFolderAndAllItsSubfolders(): void {
+	public function testCountsThePicturesOfAFolderAndAllItsSubfolders(): void {
 		$home = $this->files(self::USER, [
 			'Photos/a.jpg', 'Photos/b.CR3', 'Photos/b.xmp', 'Photos/notes.txt', 'Photos/.c.jpg',
 			'Photos/.thumbnails/d.jpg', 'Photos/2024/.e.jpg', 'Photos/2024/e.jpg', 'Photos/2024/Trip/f.png', 'Other/g.jpg',
 		]);
 
-		$this->assertSame(4, $this->counter()->count($this->folderAt($home, 'Photos'))?->files);
-		$this->assertSame(2, $this->counter()->count($this->folderAt($home, 'Photos/2024'))?->files);
+		$this->assertSame(4, $this->counter()->count($this->folderAt($home, 'Photos'))?->pictures);
+		$this->assertSame(2, $this->counter()->count($this->folderAt($home, 'Photos/2024'))?->pictures);
+	}
+
+	// spec: LISTING-003.20
+	public function testCountsAPairOnceAndOnlyWithinOneFolder(): void {
+		$home = $this->files(self::USER, [
+			'Photos/a.jpg', 'Photos/A.CR2', 'Photos/b.jpg', 'Photos/b.cr3', 'Photos/b.CR3.xmp',
+			'Photos/2024/a.dng', 'Photos/2024/c.JPG', 'Photos/2024/c.heic', 'Photos/2024/.d.jpg', 'Photos/2024/.d.dng',
+		]);
+
+		$this->assertSame(5, $this->counter()->count($this->folderAt($home, 'Photos'))?->pictures);
+		$this->assertSame(3, $this->counter()->count($this->folderAt($home, 'Photos/2024'))?->pictures);
+	}
+
+	// spec: LISTING-003.23
+	public function testCountsTheOrphanedSidecarsFolderByFolder(): void {
+		$home = $this->files(self::USER, [
+			'Photos/a.jpg', 'Photos/a.jpg.xmp', 'Photos/b.xmp', 'Photos/clip.mp4', 'Photos/clip.mp4.xmp',
+			'Photos/2024/c.xmp', 'Photos/2024/a.xmp', 'Photos/2024/.h.xmp', 'Photos/.thumbs/z.xmp', 'Other/y.xmp',
+		]);
+
+		$this->assertSame(3, $this->counter()->count($this->folderAt($home, 'Photos'))?->orphans);
+		$this->assertSame(2, $this->counter()->count($this->folderAt($home, 'Photos/2024'))?->orphans);
 	}
 
 	// spec: LISTING-003.20
 	public function testCountsNoSiblingThatSharesThePrefixOrMatchesItAsAPattern(): void {
 		$home = $this->files(self::USER, ['Day/a.jpg', 'Day 2/b.jpg', 'Day_1/c.jpg', 'DayA1/d.jpg', '100%/e.jpg', '1000/f.jpg']);
 
-		$this->assertSame(1, $this->counter()->count($this->folderAt($home, 'Day'))?->files);
-		$this->assertSame(1, $this->counter()->count($this->folderAt($home, 'Day_1'))?->files);
-		$this->assertSame(1, $this->counter()->count($this->folderAt($home, '100%'))?->files);
+		$this->assertSame(1, $this->counter()->count($this->folderAt($home, 'Day'))?->pictures);
+		$this->assertSame(1, $this->counter()->count($this->folderAt($home, 'Day_1'))?->pictures);
+		$this->assertSame(1, $this->counter()->count($this->folderAt($home, '100%'))?->pictures);
 	}
 
 	// spec: LISTING-003.20
@@ -115,7 +137,7 @@ final class FileCachePhotoFilesTest extends DbTestCase {
 			$this->mount("$below/Again/", $this->folderAt($home, 'Photos/2024')->getId()),
 		])->count($this->folderAt($home, 'Photos'));
 
-		$this->assertSame(4, $count?->files);
+		$this->assertSame(4, $count?->pictures);
 		$this->assertTrue($count?->approximate);
 	}
 
@@ -191,6 +213,6 @@ final class FileCachePhotoFilesTest extends DbTestCase {
 		$folder->method('getId')->willReturn(PHP_INT_MAX);
 		$folder->method('getPath')->willReturn('/' . self::USER . '/files/Gone');
 
-		$this->assertNull($this->counter()->count($folder)?->files);
+		$this->assertNull($this->counter()->count($folder)?->pictures);
 	}
 }

@@ -3,9 +3,9 @@
 import type { Branch, TreeFolder } from '../../../src/logic/folder-tree.ts'
 
 import { describe, expect, it } from 'vitest'
-import { excludedBelow, excludedFrom, foldersToExpand, includedBy, ROOT, rowPhotoFiles, tickedBelow, treeKey, visibleRows } from '../../../src/logic/folder-tree.ts'
+import { excludedBelow, excludedFrom, foldersToExpand, includedBy, ROOT, rowOrphans, rowPictures, tickedBelow, treeKey, visibleRows } from '../../../src/logic/folder-tree.ts'
 
-const folder = (path: string, hasSubfolders = false): TreeFolder => ({ name: path.split('/').pop()!, path, hasSubfolders, photoFiles: 0, photoFilesBelow: 0, photoFilesBelowApproximate: false })
+const folder = (path: string, hasSubfolders = false): TreeFolder => ({ name: path.split('/').pop()!, path, hasSubfolders, pictures: 0, picturesBelow: 0, picturesBelowApproximate: false, orphanedSidecars: 0, orphanedSidecarsBelow: 0 })
 const loaded = (...folders: TreeFolder[]): Branch => ({ state: 'loaded', folders })
 
 const BRANCHES = new Map<string, Branch>([
@@ -174,31 +174,53 @@ describe('excludedBelow', () => {
 	})
 })
 
-describe('rowPhotoFiles', () => {
-	const counted = (hasSubfolders: boolean, photoFiles: number | null, photoFilesBelow: number | null, photoFilesBelowApproximate = false): TreeFolder => ({ name: 'A', path: '/A', hasSubfolders, photoFiles, photoFilesBelow, photoFilesBelowApproximate })
+describe('rowPictures', () => {
+	const counted = (hasSubfolders: boolean, pictures: number | null, picturesBelow: number | null, picturesBelowApproximate = false): TreeFolder => ({ name: 'A', path: '/A', hasSubfolders, pictures, picturesBelow, picturesBelowApproximate, orphanedSidecars: 0, orphanedSidecarsBelow: 0 })
 
 	// spec: LISTING-003.20
 	it('counts the files below a collapsed folder with subfolders', () => {
-		expect(rowPhotoFiles(counted(true, 3, 1203), false)).toEqual({ count: 1203, below: true, approximate: false })
+		expect(rowPictures(counted(true, 3, 1203), false)).toEqual({ count: 1203, below: true, approximate: false })
 	})
 
 	// spec: LISTING-003.20
 	it('counts its own files while expanded or without subfolders', () => {
-		expect(rowPhotoFiles(counted(true, 3, 1203), true)).toEqual({ count: 3, below: false, approximate: false })
-		expect(rowPhotoFiles(counted(false, 2, 2), false)).toEqual({ count: 2, below: false, approximate: false })
+		expect(rowPictures(counted(true, 3, 1203), true)).toEqual({ count: 3, below: false, approximate: false })
+		expect(rowPictures(counted(false, 2, 2), false)).toEqual({ count: 2, below: false, approximate: false })
 	})
 
 	// spec: LISTING-003.20
 	it('marks the count below as approximate, never the own count', () => {
-		expect(rowPhotoFiles(counted(true, 3, 1203, true), false)).toEqual({ count: 1203, below: true, approximate: true })
-		expect(rowPhotoFiles(counted(true, 3, 1203, true), true)).toEqual({ count: 3, below: false, approximate: false })
+		expect(rowPictures(counted(true, 3, 1203, true), false)).toEqual({ count: 1203, below: true, approximate: true })
+		expect(rowPictures(counted(true, 3, 1203, true), true)).toEqual({ count: 3, below: false, approximate: false })
 	})
 
 	// spec: LISTING-003.19, LISTING-003.20
 	it('counts nothing for none or an unknown count', () => {
-		expect(rowPhotoFiles(counted(true, 3, 0), false)).toBeNull()
-		expect(rowPhotoFiles(counted(true, 3, null), false)).toBeNull()
-		expect(rowPhotoFiles(counted(true, 0, 9), true)).toBeNull()
-		expect(rowPhotoFiles(counted(false, null, null), false)).toBeNull()
+		expect(rowPictures(counted(true, 3, 0), false)).toBeNull()
+		expect(rowPictures(counted(true, 3, null), false)).toBeNull()
+		expect(rowPictures(counted(true, 0, 9), true)).toBeNull()
+		expect(rowPictures(counted(false, null, null), false)).toBeNull()
+	})
+})
+
+describe('rowOrphans', () => {
+	const orphaned = (hasSubfolders: boolean, own: number | null, below: number | null): TreeFolder => ({ name: 'A', path: '/A', hasSubfolders, pictures: 5, picturesBelow: 5, picturesBelowApproximate: false, orphanedSidecars: own, orphanedSidecarsBelow: below })
+
+	// spec: LISTING-003.23
+	it('counts the orphaned sidecars below a collapsed folder with subfolders', () => {
+		expect(rowOrphans(orphaned(true, 1, 7), false)).toBe(7)
+	})
+
+	// spec: LISTING-003.23
+	it('counts its own while expanded or without subfolders', () => {
+		expect(rowOrphans(orphaned(true, 1, 7), true)).toBe(1)
+		expect(rowOrphans(orphaned(false, 2, 2), false)).toBe(2)
+	})
+
+	// spec: LISTING-003.23
+	it('shows nothing for none or an unknown count', () => {
+		expect(rowOrphans(orphaned(true, 1, 0), false)).toBeNull()
+		expect(rowOrphans(orphaned(true, 1, null), false)).toBeNull()
+		expect(rowOrphans(orphaned(false, null, null), false)).toBeNull()
 	})
 })

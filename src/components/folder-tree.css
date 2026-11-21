@@ -104,6 +104,15 @@
 	color: var(--color-text-maxcontrast);
 }
 
+.folder-tree__orphans {
+	min-width: 0;
+	overflow: hidden;
+	color: var(--color-text-maxcontrast);
+	font-size: var(--font-size-small, 13px);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 .folder-tree__count {
 	flex: none;
 	color: var(--color-text-maxcontrast);

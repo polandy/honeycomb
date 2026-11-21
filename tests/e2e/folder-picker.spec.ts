@@ -74,7 +74,7 @@ test('expands the folder tree by its arrow and the arrow keys and ticks a subfol
 	await expect(item('2026')).toBeFocused()
 	await page.keyboard.press('ArrowLeft')
 	await expect(item('Day 1')).toBeHidden()
-	await expect(item('2026')).toHaveAccessibleName(/^2026\s*1 ticked folder inside 1 photo file with subfolders$/)
+	await expect(item('2026')).toHaveAccessibleName(/^2026\s*1 ticked folder inside 1 picture with subfolders$/)
 	await expect(item(root).locator('.folder-tree__badge > [aria-hidden="true"]')).toHaveText('1 inside')
 	await expect(item(root)).toHaveAttribute('aria-selected', 'false')
 })
@@ -89,7 +89,7 @@ test('marks the folders below a ticked one as included while Include subfolders 
 	await expect(item('2026').locator('.folder-tree__included')).toHaveCount(0)
 	await picker.getByText('Include subfolders', { exact: true }).click()
 
-	await expect(item('2026')).toHaveAccessibleName(/^2026\s*included with Tree [0-9a-f]+ 1 photo file with subfolders$/)
+	await expect(item('2026')).toHaveAccessibleName(/^2026\s*included with Tree [0-9a-f]+ 1 picture with subfolders$/)
 	await expect(item('2026')).toHaveAttribute('aria-selected', 'false')
 	await expect(item('2026').locator('.folder-tree__box--included')).toBeVisible()
 	await expect(picker.getByText('1 photo in 1 folder')).toBeVisible()
@@ -106,7 +106,7 @@ test('excludes an included folder on a tap and includes it again on Enter', asyn
 
 	await item('2026').click()
 
-	await expect(item('2026')).toHaveAccessibleName(/^2026\s*excluded from Tree [0-9a-f]+ 1 photo file with subfolders$/)
+	await expect(item('2026')).toHaveAccessibleName(/^2026\s*excluded from Tree [0-9a-f]+ 1 picture with subfolders$/)
 	await expect(item('2026')).toHaveAttribute('aria-selected', 'false')
 	await expect(item('2026').locator('.folder-tree__box--excluded')).toBeVisible()
 	await expect(item(root).locator('.folder-tree__badge--excluded > [aria-hidden="true"]')).toHaveText('1 excluded')
@@ -114,7 +114,7 @@ test('excludes an included folder on a tap and includes it again on Enter', asyn
 
 	await item('2026').press('Enter')
 
-	await expect(item('2026')).toHaveAccessibleName(/^2026\s*included with Tree [0-9a-f]+ 1 photo file with subfolders$/)
+	await expect(item('2026')).toHaveAccessibleName(/^2026\s*included with Tree [0-9a-f]+ 1 picture with subfolders$/)
 	await expect(item(root).locator('.folder-tree__badge--excluded')).toHaveCount(0)
 	await expect(picker.getByText('1 photo in 1 folder')).toBeVisible()
 })

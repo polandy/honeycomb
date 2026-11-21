@@ -10,7 +10,7 @@ namespace OCA\Honeycomb\Tests\Service;
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\FolderService;
-use OCA\Honeycomb\Service\PhotoFilesBelow;
+use OCA\Honeycomb\Service\PicturesBelow;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCP\Files\FileInfo;
 use OCP\Files\Folder;
@@ -24,7 +24,7 @@ use Psr\Log\LoggerInterface;
 final class FolderServiceTest extends TestCase {
 	use FakeFiles;
 
-	private function service(IRootFolder $root, PhotoFilesBelow $below = new FakePhotoFilesBelow(), ?LoggerInterface $logger = null): FolderService {
+	private function service(IRootFolder $root, PicturesBelow $below = new FakePicturesBelow(), ?LoggerInterface $logger = null): FolderService {
 		return new FolderService(new UserFolderResolver($root), $below, $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
@@ -46,8 +46,8 @@ final class FolderServiceTest extends TestCase {
 		$folders = $this->service($this->rootWith(['/' => $root]))->children($this->user(), '');
 
 		$this->assertSame([
-			['name' => 'Photos', 'path' => '/Photos', 'hasSubfolders' => false, 'photoFiles' => 0, 'photoFilesBelow' => 0, 'photoFilesBelowApproximate' => false],
-			['name' => 'Documents', 'path' => '/Documents', 'hasSubfolders' => false, 'photoFiles' => 0, 'photoFilesBelow' => 0, 'photoFilesBelowApproximate' => false],
+			['name' => 'Photos', 'path' => '/Photos', 'hasSubfolders' => false, 'pictures' => 0, 'picturesBelow' => 0, 'picturesBelowApproximate' => false, 'orphanedSidecars' => 0, 'orphanedSidecarsBelow' => 0],
+			['name' => 'Documents', 'path' => '/Documents', 'hasSubfolders' => false, 'pictures' => 0, 'picturesBelow' => 0, 'picturesBelowApproximate' => false, 'orphanedSidecars' => 0, 'orphanedSidecarsBelow' => 0],
 		], $folders);
 	}
 
@@ -58,7 +58,7 @@ final class FolderServiceTest extends TestCase {
 
 		$folders = $this->service($this->rootWith(['/Photos/2024' => $year]))->children($this->user(), '/Photos/2024');
 
-		$this->assertSame([['name' => 'Trip', 'path' => '/Photos/2024/Trip', 'hasSubfolders' => false, 'photoFiles' => 0, 'photoFilesBelow' => 0, 'photoFilesBelowApproximate' => false]], $folders);
+		$this->assertSame([['name' => 'Trip', 'path' => '/Photos/2024/Trip', 'hasSubfolders' => false, 'pictures' => 0, 'picturesBelow' => 0, 'picturesBelowApproximate' => false, 'orphanedSidecars' => 0, 'orphanedSidecarsBelow' => 0]], $folders);
 	}
 
 	// spec: LISTING-003.1
@@ -71,7 +71,7 @@ final class FolderServiceTest extends TestCase {
 
 		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
 
-		$this->assertSame([['name' => '.thumbnails', 'path' => '/Photos/.thumbnails', 'hasSubfolders' => false, 'photoFiles' => null, 'photoFilesBelow' => null, 'photoFilesBelowApproximate' => false]], $folders);
+		$this->assertSame([['name' => '.thumbnails', 'path' => '/Photos/.thumbnails', 'hasSubfolders' => false, 'pictures' => null, 'picturesBelow' => null, 'picturesBelowApproximate' => false, 'orphanedSidecars' => null, 'orphanedSidecarsBelow' => null]], $folders);
 	}
 
 	// spec: LISTING-003.2
@@ -93,11 +93,11 @@ final class FolderServiceTest extends TestCase {
 
 		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
 
-		$this->assertSame([['name' => 'Locked', 'path' => '/Photos/Locked', 'hasSubfolders' => false, 'photoFiles' => null, 'photoFilesBelow' => null, 'photoFilesBelowApproximate' => false]], $folders);
+		$this->assertSame([['name' => 'Locked', 'path' => '/Photos/Locked', 'hasSubfolders' => false, 'pictures' => null, 'picturesBelow' => null, 'picturesBelowApproximate' => false, 'orphanedSidecars' => null, 'orphanedSidecarsBelow' => null]], $folders);
 	}
 
 	// spec: LISTING-003.19
-	public function testCountsThePhotoFilesOfEachChildWithoutItsSubfolders(): void {
+	public function testCountsThePicturesOfEachChildWithoutItsSubfoldersAPairOnce(): void {
 		$day = $this->folderWith('/Photos/Day', [
 			$this->file(1, '/Photos/Day/IMG_1.JPG'),
 			$this->file(2, '/Photos/Day/IMG_1.CR3', 'application/octet-stream'),
@@ -110,7 +110,25 @@ final class FolderServiceTest extends TestCase {
 
 		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
 
-		$this->assertSame([2, 0], array_column($folders, 'photoFiles'));
+		$this->assertSame([1, 0], array_column($folders, 'pictures'));
+	}
+
+	// spec: LISTING-003.23
+	public function testCountsTheOrphanedSidecarsOfEachChildAndOfItsBelow(): void {
+		$day = $this->folderWith('/Photos/Day', [
+			$this->file(1, '/Photos/Day/IMG_1.JPG'),
+			$this->file(2, '/Photos/Day/IMG_1.JPG.xmp', 'application/octet-stream'),
+			$this->file(3, '/Photos/Day/Gone.xmp', 'application/octet-stream'),
+			$this->file(4, '/Photos/Day/Gone.NEF.xmp', 'application/octet-stream'),
+			$this->file(5, '/Photos/Day/.Hidden.xmp', 'application/octet-stream'),
+		]);
+		$photos = $this->folderWith('/Photos', [$day, $this->folderWith('/Photos/Empty')]);
+		$below = new FakePicturesBelow(orphans: [self::USER_ROOT . '/Photos/Day' => 5]);
+
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]), $below)->children($this->user(), 'Photos');
+
+		$this->assertSame([2, 0], array_column($folders, 'orphanedSidecars'));
+		$this->assertSame([5, 0], array_column($folders, 'orphanedSidecarsBelow'));
 	}
 
 	// spec: LISTING-003.19
@@ -120,27 +138,27 @@ final class FolderServiceTest extends TestCase {
 
 		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
 
-		$this->assertSame([null], array_column($folders, 'photoFiles'));
+		$this->assertSame([null], array_column($folders, 'pictures'));
 	}
 
 	// spec: LISTING-003.20
-	public function testCountsThePhotoFilesBelowEachChildFromTheFileIndex(): void {
+	public function testCountsThePicturesBelowEachChildFromTheFileIndex(): void {
 		$photos = $this->folderWith('/Photos', [$this->folderWith('/Photos/2024'), $this->folderWith('/Photos/Empty')]);
-		$below = new FakePhotoFilesBelow([self::USER_ROOT . '/Photos/2024' => 1200]);
+		$below = new FakePicturesBelow([self::USER_ROOT . '/Photos/2024' => 1200]);
 
 		$folders = $this->service($this->rootWith(['/Photos' => $photos]), $below)->children($this->user(), 'Photos');
 
-		$this->assertSame([1200, 0], array_column($folders, 'photoFilesBelow'));
+		$this->assertSame([1200, 0], array_column($folders, 'picturesBelow'));
 	}
 
 	// spec: LISTING-003.20
 	public function testFlagsACountBelowThatMayMissFiles(): void {
 		$photos = $this->folderWith('/Photos', [$this->folderWith('/Photos/Team'), $this->folderWith('/Photos/Own')]);
-		$below = new FakePhotoFilesBelow([self::USER_ROOT . '/Photos/Team' => 40], approximate: [self::USER_ROOT . '/Photos/Team']);
+		$below = new FakePicturesBelow([self::USER_ROOT . '/Photos/Team' => 40], approximate: [self::USER_ROOT . '/Photos/Team']);
 
 		$folders = $this->service($this->rootWith(['/Photos' => $photos]), $below)->children($this->user(), 'Photos');
 
-		$this->assertSame([true, false], array_column($folders, 'photoFilesBelowApproximate'));
+		$this->assertSame([true, false], array_column($folders, 'picturesBelowApproximate'));
 	}
 
 	// spec: LISTING-003.20
@@ -148,21 +166,21 @@ final class FolderServiceTest extends TestCase {
 		$locked = $this->folder('/Photos/Locked');
 		$locked->method('getDirectoryListing')->willThrowException(new NotPermittedException('Locked'));
 		$photos = $this->folderWith('/Photos', [$this->folderWith('/Photos/.cache'), $locked]);
-		$below = new FakePhotoFilesBelow([self::USER_ROOT . '/Photos/.cache' => 5, self::USER_ROOT . '/Photos/Locked' => 7]);
+		$below = new FakePicturesBelow([self::USER_ROOT . '/Photos/.cache' => 5, self::USER_ROOT . '/Photos/Locked' => 7]);
 
 		$folders = $this->service($this->rootWith(['/Photos' => $photos]), $below)->children($this->user(), 'Photos');
 
-		$this->assertSame([null, null], array_column($folders, 'photoFilesBelow'));
+		$this->assertSame([null, null], array_column($folders, 'picturesBelow'));
 	}
 
 	// spec: LISTING-003.20
 	public function testAChildTheFileIndexDoesNotKnowHasNoCountBelow(): void {
 		$photos = $this->folderWith('/Photos', [$this->folderWith('/Photos/New')]);
-		$below = new FakePhotoFilesBelow([self::USER_ROOT . '/Photos/New' => null]);
+		$below = new FakePicturesBelow([self::USER_ROOT . '/Photos/New' => null]);
 
 		$folders = $this->service($this->rootWith(['/Photos' => $photos]), $below)->children($this->user(), 'Photos');
 
-		$this->assertSame([null], array_column($folders, 'photoFilesBelow'));
+		$this->assertSame([null], array_column($folders, 'picturesBelow'));
 	}
 
 	// spec: LISTING-003.20
@@ -171,9 +189,9 @@ final class FolderServiceTest extends TestCase {
 		$logger->expects($this->once())->method('warning');
 		$photos = $this->folderWith('/Photos', [$this->folderWith('/Photos/2024', [$this->file(1, '/Photos/2024/IMG_1.JPG')])]);
 
-		$folders = $this->service($this->rootWith(['/Photos' => $photos]), new FakePhotoFilesBelow(fails: true), $logger)->children($this->user(), 'Photos');
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]), new FakePicturesBelow(fails: true), $logger)->children($this->user(), 'Photos');
 
-		$this->assertSame([['name' => '2024', 'path' => '/Photos/2024', 'hasSubfolders' => false, 'photoFiles' => 1, 'photoFilesBelow' => null, 'photoFilesBelowApproximate' => false]], $folders);
+		$this->assertSame([['name' => '2024', 'path' => '/Photos/2024', 'hasSubfolders' => false, 'pictures' => 1, 'picturesBelow' => null, 'picturesBelowApproximate' => false, 'orphanedSidecars' => 0, 'orphanedSidecarsBelow' => null]], $folders);
 	}
 
 	// spec: LISTING-003.2, LISTING-003.19
@@ -200,7 +218,7 @@ final class FolderServiceTest extends TestCase {
 
 		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
 
-		$this->assertSame([['name' => 'Gone', 'path' => '/Photos/Gone', 'hasSubfolders' => false, 'photoFiles' => null, 'photoFilesBelow' => null, 'photoFilesBelowApproximate' => false]], $folders);
+		$this->assertSame([['name' => 'Gone', 'path' => '/Photos/Gone', 'hasSubfolders' => false, 'pictures' => null, 'picturesBelow' => null, 'picturesBelowApproximate' => false, 'orphanedSidecars' => null, 'orphanedSidecarsBelow' => null]], $folders);
 	}
 
 	/** @return array<string, array{string}> */

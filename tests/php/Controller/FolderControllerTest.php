@@ -13,7 +13,7 @@ use OCA\Honeycomb\Controller\FolderController;
 use OCA\Honeycomb\Service\FolderService;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Tests\Service\FakeFiles;
-use OCA\Honeycomb\Tests\Service\FakePhotoFilesBelow;
+use OCA\Honeycomb\Tests\Service\FakePicturesBelow;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -32,7 +32,7 @@ final class FolderControllerTest extends TestCase {
 	private function controller(IRootFolder $root, ?IUser $user): FolderController {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($user);
-		$folders = new FolderService(new UserFolderResolver($root), new FakePhotoFilesBelow(), $this->createStub(LoggerInterface::class));
+		$folders = new FolderService(new UserFolderResolver($root), new FakePicturesBelow(), $this->createStub(LoggerInterface::class));
 		return new FolderController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $folders);
 	}
 
@@ -47,7 +47,7 @@ final class FolderControllerTest extends TestCase {
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame(
-			['folders' => [['name' => '2024', 'path' => '/Photos/2024', 'hasSubfolders' => false, 'photoFiles' => 0, 'photoFilesBelow' => 0, 'photoFilesBelowApproximate' => false]]],
+			['folders' => [['name' => '2024', 'path' => '/Photos/2024', 'hasSubfolders' => false, 'pictures' => 0, 'picturesBelow' => 0, 'picturesBelowApproximate' => false, 'orphanedSidecars' => 0, 'orphanedSidecarsBelow' => 0]]],
 			json_decode($response->render(), true, flags: JSON_THROW_ON_ERROR),
 		);
 	}

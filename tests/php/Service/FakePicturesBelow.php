@@ -7,29 +7,31 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\PhotoCount;
-use OCA\Honeycomb\Service\PhotoFilesBelow;
+use OCA\Honeycomb\Service\PictureCount;
+use OCA\Honeycomb\Service\PicturesBelow;
 use OCP\Files\Folder;
 
-/** Photo-file counts by absolute folder path, or a database that fails. */
-final class FakePhotoFilesBelow implements PhotoFilesBelow {
+/** Picture counts by absolute folder path, or a database that fails. */
+final class FakePicturesBelow implements PicturesBelow {
 	/**
 	 * @param array<string, ?int> $counts
 	 * @param list<string> $approximate absolute paths whose count may miss files
+	 * @param array<string, int> $orphans orphaned sidecars by absolute folder path
 	 */
 	public function __construct(
 		private array $counts = [],
 		private bool $fails = false,
 		private array $approximate = [],
+		private array $orphans = [],
 	) {
 	}
 
 	#[\Override]
-	public function count(Folder $folder): ?PhotoCount {
+	public function count(Folder $folder): ?PictureCount {
 		if ($this->fails) {
 			throw new FakeDbException(\OCP\DB\Exception::REASON_CONNECTION_LOST);
 		}
 		$files = array_key_exists($folder->getPath(), $this->counts) ? $this->counts[$folder->getPath()] : 0;
-		return $files === null ? null : new PhotoCount($files, in_array($folder->getPath(), $this->approximate, true));
+		return $files === null ? null : new PictureCount($files, $this->orphans[$folder->getPath()] ?? 0, in_array($folder->getPath(), $this->approximate, true));
 	}
 }

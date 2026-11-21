@@ -58,15 +58,26 @@ the ticked folders.
   hidden subfolder there can count). The tree shows "~" before the number and speaks "about". No
   extra query: the size comes from the row read to find the subtree, the storage from the mount
   already listed.
+- **Pictures and orphaned sidecars (amended 2026-11-21, E9/U9):** the counts are pictures, not
+  files: `photoFiles` is now `pictures`, `photoFilesBelow` is `picturesBelow` and
+  `photoFilesBelowApproximate` is `picturesBelowApproximate`. A RAW and a rendered file of one
+  base name count once (default extensions; the server cannot see the user's LISTING-002
+  settings). Each item also carries `orphanedSidecars` and `orphanedSidecarsBelow` (XMP-009
+  rule). The file cache query reads `parent`, `name` and `mimepart` of the subtree's media and
+  `.xmp` rows and tallies them per folder in PHP (`PictureTally`), so one query per storage
+  stays. The rows now travel to PHP instead of a `COUNT`, so memory and time grow with the media
+  files below a folder (unmeasured, revisit with a cache).
+  The endpoint is not yet released, so the fields are renamed, not added.
 
 ## Consequences
 
 - One request per folder level the user opens, plus one listing per ticked folder.
-- `hasSubfolders` and `photoFiles` read one unfiltered directory listing per child folder; a
-  folder with thousands of child folders, or children with thousands of files, answers slower,
-  which the picker shows as loading.
-- `photoFilesBelow` adds one count query per child and per storage mounted below it; on
-  PostgreSQL each one reads the rows of the child's whole storage, so a level's cost grows with
-  its child folders times the storage's files. A cache with invalidation is the next step if
+- `hasSubfolders`, `pictures` and `orphanedSidecars` read one unfiltered directory listing per
+  child folder; a folder with thousands of child folders, or children with thousands of files,
+  answers slower, which the picker shows as loading.
+- `picturesBelow` adds one query per child and per storage mounted below it; on PostgreSQL
+  each one reads the rows of the child's whole storage, so a level's cost grows with its child
+  folders times the storage's files. A cache with invalidation is the next step if
   that gets slow.
-- A new field is added, never renamed or removed, without a new version in the path.
+- A new field is added, never renamed or removed, without a new version in the path (the
+  2026-11-21 rename happened before the first release).
