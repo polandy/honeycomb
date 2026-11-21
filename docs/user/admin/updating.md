@@ -19,6 +19,15 @@ sudo -u www-data php /var/www/nextcloud/occ upgrade
 Clicking *Update* in *Apps* does the same as `occ app:update`. Until the update has run, the
 new code may read tables that do not exist yet, and saving a flag, a rating or a tag fails.
 
+## Updating from 0.1.0 drops flags and tags
+
+The update from 0.1.0 to 0.2.0 deletes the flags (*Picked*, *Rejected*, *Keep RAW*) and the tags
+that 0.1.0 stored in the database tables `honeycomb_decisions` and `honeycomb_file_tags`
+(migration 0005, [ADR 0040](../../dev/adr/0040-flags-per-picture-in-the-database.md)). Photos and
+sidecars are not touched, and what 0.1.0 already wrote into sidecars stays. Before
+updating an instance that holds 0.1.0 flags or tags you want to keep, cull those folders again or
+write them into the sidecars first.
+
 ## Supported Nextcloud versions
 
 Each release names the Nextcloud versions it runs on in `appinfo/info.xml`, today Nextcloud 35

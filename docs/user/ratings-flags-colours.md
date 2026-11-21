@@ -28,6 +28,10 @@ Writing needs no setting any more; stars and colour labels go into the sidecars 
 and *Keep RAW* only through *Write picks/rejects to XMP* in the ⋯ menu. digiKam sees honeycomb's
 picks and rejects only after that, and until then may still show an old pick of its own.
 
+Flags and *Keep RAW* belong to the file's Nextcloud file ID, not to its name or content. A photo
+you upload again or that a rescan registers under a new ID loses its flag; the sidecar stays the
+truth, so write flags to XMP to keep them with the photo.
+
 ## What each program sees
 
 | In honeycomb | digiKam | darktable | Lightroom Classic |
