@@ -53,6 +53,7 @@ final class AppDataMapperTest extends DbTestCase {
 		return (int)$query->executeQuery()->fetchOne();
 	}
 
+	// spec: DECISIONS-001.35
 	public function testCountsDeletesNothingAndEmptyingRemovesOnlyHoneycombRows(): void {
 		(new FlagMapper($this->db))->save([new FileFlag(7, Flag::Picked, false, 100)]);
 		$this->preference('honeycomb');
