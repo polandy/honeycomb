@@ -4,7 +4,8 @@
 import type { ViewState } from '../../src/logic/view-state.ts'
 
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import CullDialogs from '../../src/components/CullDialogs.vue'
 import FolderPicker from '../../src/components/FolderPicker.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
@@ -85,6 +86,20 @@ describe('App: the settings', () => {
 		await flushPromises()
 
 		expect(wrapper.findComponent(FolderPicker).props('pairing')).toEqual({ rawExtensions: ['nef'], renderedExtensions: DEFAULT_SETTINGS.renderedExtensions, folderMode: DEFAULT_SETTINGS.folderMode })
+	})
+
+	// spec: LISTING-003.24
+	it('asks for the folders of the picker and the move dialog with the extension lists', async () => {
+		const listFolders = vi.fn(async () => [])
+		const { wrapper } = mountApp({ listFolders, loadSettings: async () => ({ rawExtensions: ['nef'], renderedExtensions: ['jpg', 'tif'] }) })
+		await flushPromises()
+		const extensions = { rawExtensions: ['nef'], renderedExtensions: ['jpg', 'tif'] }
+
+		await wrapper.findComponent(FolderPicker).props('listFolders')('/P')
+		expect(listFolders).toHaveBeenLastCalledWith('/P', extensions)
+		await openCull(wrapper)
+		await wrapper.findComponent(CullDialogs).props('listFolders')('/Q')
+		expect(listFolders).toHaveBeenLastCalledWith('/Q', extensions)
 	})
 
 	// spec: SETTINGS-001.14

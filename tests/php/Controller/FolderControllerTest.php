@@ -29,11 +29,14 @@ use ReflectionMethod;
 final class FolderControllerTest extends TestCase {
 	use FakeFiles;
 
-	private function controller(IRootFolder $root, ?IUser $user): FolderController {
+	/** @param array<string, mixed> $params the request's query parameters */
+	private function controller(IRootFolder $root, ?IUser $user, array $params = []): FolderController {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($user);
+		$request = $this->createStub(IRequest::class);
+		$request->method('getParam')->willReturnCallback(static fn (string $key, mixed $default = null): mixed => $params[$key] ?? $default);
 		$folders = new FolderService(new UserFolderResolver($root), new FakePicturesBelow(), $this->createStub(LoggerInterface::class));
-		return new FolderController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $folders);
+		return new FolderController(Application::APP_ID, $request, new ApiResponse($session), $folders);
 	}
 
 	// spec: LISTING-003.1
@@ -50,6 +53,28 @@ final class FolderControllerTest extends TestCase {
 			['folders' => [['name' => '2024', 'path' => '/Photos/2024', 'hasSubfolders' => false, 'pictures' => 0, 'picturesBelow' => 0, 'picturesBelowApproximate' => false, 'orphanedSidecars' => 0, 'orphanedSidecarsBelow' => 0]]],
 			json_decode($response->render(), true, flags: JSON_THROW_ON_ERROR),
 		);
+	}
+
+	// spec: LISTING-003.24
+	public function testCountsWithTheSentExtensionLists(): void {
+		$day = $this->folder('/Photos/Day');
+		$day->method('getDirectoryListing')->willReturn([$this->file(1, '/Photos/Day/A.NEF', 'image/x-nikon-nef'), $this->file(2, '/Photos/Day/A.JPG'), $this->file(3, '/Photos/Day/B.TIF', 'image/tiff')]);
+		$photos = $this->folder('/Photos');
+		$photos->method('getDirectoryListing')->willReturn([$day]);
+		$root = $this->rootWith(['/Photos' => $photos]);
+
+		$own = $this->controller($root, $this->user(), ['rawExtensions' => ['cr2'], 'renderedExtensions' => ['jpg', 'tif']])->index('Photos');
+		$defaults = $this->controller($root, $this->user())->index('Photos');
+
+		$this->assertSame(2, json_decode($own->render(), true, flags: JSON_THROW_ON_ERROR)['folders'][0]['pictures']);
+		$this->assertSame(1, json_decode($defaults->render(), true, flags: JSON_THROW_ON_ERROR)['folders'][0]['pictures']);
+	}
+
+	// spec: LISTING-003.24
+	public function testInvalidExtensionListsAreABadRequest(): void {
+		$response = $this->controller($this->rootWith(['/Photos' => $this->folder('/Photos')]), $this->user(), ['rawExtensions' => ['tif'], 'renderedExtensions' => ['tif']])->index('Photos');
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
 	}
 
 	// spec: LISTING-003.3

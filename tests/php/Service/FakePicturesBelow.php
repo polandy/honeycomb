@@ -7,12 +7,16 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Service\PairingExtensions;
 use OCA\Honeycomb\Service\PictureCount;
 use OCA\Honeycomb\Service\PicturesBelow;
 use OCP\Files\Folder;
 
 /** Picture counts by absolute folder path, or a database that fails. */
 final class FakePicturesBelow implements PicturesBelow {
+	/** The extension lists of the last count. */
+	public ?PairingExtensions $asked = null;
+
 	/**
 	 * @param array<string, ?int> $counts
 	 * @param list<string> $approximate absolute paths whose count may miss files
@@ -27,7 +31,8 @@ final class FakePicturesBelow implements PicturesBelow {
 	}
 
 	#[\Override]
-	public function count(Folder $folder): ?PictureCount {
+	public function count(Folder $folder, PairingExtensions $extensions): ?PictureCount {
+		$this->asked = $extensions;
 		if ($this->fails) {
 			throw new FakeDbException(\OCP\DB\Exception::REASON_CONNECTION_LOST);
 		}

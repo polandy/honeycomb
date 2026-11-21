@@ -10,6 +10,7 @@ namespace OCA\Honeycomb\Tests\Service;
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\FolderService;
+use OCA\Honeycomb\Service\PairingExtensions;
 use OCA\Honeycomb\Service\PicturesBelow;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCP\Files\FileInfo;
@@ -43,7 +44,7 @@ final class FolderServiceTest extends TestCase {
 	public function testListsTheChildFoldersOfTheRoot(): void {
 		$root = $this->folderWith('', [$this->folderWith('/Photos'), $this->folderWith('/Documents')]);
 
-		$folders = $this->service($this->rootWith(['/' => $root]))->children($this->user(), '');
+		$folders = $this->service($this->rootWith(['/' => $root]))->children($this->user(), '', PairingExtensions::defaults());
 
 		$this->assertSame([
 			['name' => 'Photos', 'path' => '/Photos', 'hasSubfolders' => false, 'pictures' => 0, 'picturesBelow' => 0, 'picturesBelowApproximate' => false, 'orphanedSidecars' => 0, 'orphanedSidecarsBelow' => 0],
@@ -56,7 +57,7 @@ final class FolderServiceTest extends TestCase {
 		$trip = $this->folderWith('/Photos/2024/Trip');
 		$year = $this->folderWith('/Photos/2024', [$trip]);
 
-		$folders = $this->service($this->rootWith(['/Photos/2024' => $year]))->children($this->user(), '/Photos/2024');
+		$folders = $this->service($this->rootWith(['/Photos/2024' => $year]))->children($this->user(), '/Photos/2024', PairingExtensions::defaults());
 
 		$this->assertSame([['name' => 'Trip', 'path' => '/Photos/2024/Trip', 'hasSubfolders' => false, 'pictures' => 0, 'picturesBelow' => 0, 'picturesBelowApproximate' => false, 'orphanedSidecars' => 0, 'orphanedSidecarsBelow' => 0]], $folders);
 	}
@@ -69,7 +70,7 @@ final class FolderServiceTest extends TestCase {
 			$this->file(2, '/Photos/.hidden.jpg'),
 		]);
 
-		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos', PairingExtensions::defaults());
 
 		$this->assertSame([['name' => '.thumbnails', 'path' => '/Photos/.thumbnails', 'hasSubfolders' => false, 'pictures' => null, 'picturesBelow' => null, 'picturesBelowApproximate' => false, 'orphanedSidecars' => null, 'orphanedSidecarsBelow' => null]], $folders);
 	}
@@ -80,7 +81,7 @@ final class FolderServiceTest extends TestCase {
 		$withFiles = $this->folderWith('/Photos/2023', [$this->file(1, '/Photos/2023/IMG_0001.JPG')]);
 		$photos = $this->folderWith('/Photos', [$withFolder, $withFiles]);
 
-		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos', PairingExtensions::defaults());
 
 		$this->assertSame([true, false], array_column($folders, 'hasSubfolders'));
 	}
@@ -91,7 +92,7 @@ final class FolderServiceTest extends TestCase {
 		$locked->method('getDirectoryListing')->willThrowException(new NotPermittedException('Locked'));
 		$photos = $this->folderWith('/Photos', [$locked]);
 
-		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos', PairingExtensions::defaults());
 
 		$this->assertSame([['name' => 'Locked', 'path' => '/Photos/Locked', 'hasSubfolders' => false, 'pictures' => null, 'picturesBelow' => null, 'picturesBelowApproximate' => false, 'orphanedSidecars' => null, 'orphanedSidecarsBelow' => null]], $folders);
 	}
@@ -108,9 +109,26 @@ final class FolderServiceTest extends TestCase {
 		]);
 		$photos = $this->folderWith('/Photos', [$day, $this->folderWith('/Photos/Empty')]);
 
-		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos', PairingExtensions::defaults());
 
 		$this->assertSame([1, 0], array_column($folders, 'pictures'));
+	}
+
+	// spec: LISTING-003.24
+	public function testCountsByTheGivenExtensionsOwnAndBelow(): void {
+		$day = $this->folderWith('/Photos/Day', [
+			$this->file(1, '/Photos/Day/IMG_1.JPG'),
+			$this->file(2, '/Photos/Day/IMG_1.NEF', 'image/x-nikon-nef'),
+			$this->file(3, '/Photos/Day/IMG_2.TIF', 'image/tiff'),
+		]);
+		$photos = $this->folderWith('/Photos', [$day]);
+		$below = new FakePicturesBelow();
+		$extensions = PairingExtensions::fromRequest(['cr2'], ['jpg', 'tif']);
+
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]), $below)->children($this->user(), 'Photos', $extensions);
+
+		$this->assertSame([2], array_column($folders, 'pictures'));
+		$this->assertSame($extensions, $below->asked);
 	}
 
 	// spec: LISTING-003.23
@@ -125,7 +143,7 @@ final class FolderServiceTest extends TestCase {
 		$photos = $this->folderWith('/Photos', [$day, $this->folderWith('/Photos/Empty')]);
 		$below = new FakePicturesBelow(orphans: [self::USER_ROOT . '/Photos/Day' => 5]);
 
-		$folders = $this->service($this->rootWith(['/Photos' => $photos]), $below)->children($this->user(), 'Photos');
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]), $below)->children($this->user(), 'Photos', PairingExtensions::defaults());
 
 		$this->assertSame([2, 0], array_column($folders, 'orphanedSidecars'));
 		$this->assertSame([5, 0], array_column($folders, 'orphanedSidecarsBelow'));
@@ -136,7 +154,7 @@ final class FolderServiceTest extends TestCase {
 		$hidden = $this->folderWith('/Photos/.cache', [$this->file(1, '/Photos/.cache/IMG_1.JPG')]);
 		$photos = $this->folderWith('/Photos', [$hidden]);
 
-		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos', PairingExtensions::defaults());
 
 		$this->assertSame([null], array_column($folders, 'pictures'));
 	}
@@ -146,7 +164,7 @@ final class FolderServiceTest extends TestCase {
 		$photos = $this->folderWith('/Photos', [$this->folderWith('/Photos/2024'), $this->folderWith('/Photos/Empty')]);
 		$below = new FakePicturesBelow([self::USER_ROOT . '/Photos/2024' => 1200]);
 
-		$folders = $this->service($this->rootWith(['/Photos' => $photos]), $below)->children($this->user(), 'Photos');
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]), $below)->children($this->user(), 'Photos', PairingExtensions::defaults());
 
 		$this->assertSame([1200, 0], array_column($folders, 'picturesBelow'));
 	}
@@ -156,7 +174,7 @@ final class FolderServiceTest extends TestCase {
 		$photos = $this->folderWith('/Photos', [$this->folderWith('/Photos/Team'), $this->folderWith('/Photos/Own')]);
 		$below = new FakePicturesBelow([self::USER_ROOT . '/Photos/Team' => 40], approximate: [self::USER_ROOT . '/Photos/Team']);
 
-		$folders = $this->service($this->rootWith(['/Photos' => $photos]), $below)->children($this->user(), 'Photos');
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]), $below)->children($this->user(), 'Photos', PairingExtensions::defaults());
 
 		$this->assertSame([true, false], array_column($folders, 'picturesBelowApproximate'));
 	}
@@ -168,7 +186,7 @@ final class FolderServiceTest extends TestCase {
 		$photos = $this->folderWith('/Photos', [$this->folderWith('/Photos/.cache'), $locked]);
 		$below = new FakePicturesBelow([self::USER_ROOT . '/Photos/.cache' => 5, self::USER_ROOT . '/Photos/Locked' => 7]);
 
-		$folders = $this->service($this->rootWith(['/Photos' => $photos]), $below)->children($this->user(), 'Photos');
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]), $below)->children($this->user(), 'Photos', PairingExtensions::defaults());
 
 		$this->assertSame([null, null], array_column($folders, 'picturesBelow'));
 	}
@@ -178,7 +196,7 @@ final class FolderServiceTest extends TestCase {
 		$photos = $this->folderWith('/Photos', [$this->folderWith('/Photos/New')]);
 		$below = new FakePicturesBelow([self::USER_ROOT . '/Photos/New' => null]);
 
-		$folders = $this->service($this->rootWith(['/Photos' => $photos]), $below)->children($this->user(), 'Photos');
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]), $below)->children($this->user(), 'Photos', PairingExtensions::defaults());
 
 		$this->assertSame([null], array_column($folders, 'picturesBelow'));
 	}
@@ -189,7 +207,7 @@ final class FolderServiceTest extends TestCase {
 		$logger->expects($this->once())->method('warning');
 		$photos = $this->folderWith('/Photos', [$this->folderWith('/Photos/2024', [$this->file(1, '/Photos/2024/IMG_1.JPG')])]);
 
-		$folders = $this->service($this->rootWith(['/Photos' => $photos]), new FakePicturesBelow(fails: true), $logger)->children($this->user(), 'Photos');
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]), new FakePicturesBelow(fails: true), $logger)->children($this->user(), 'Photos', PairingExtensions::defaults());
 
 		$this->assertSame([['name' => '2024', 'path' => '/Photos/2024', 'hasSubfolders' => false, 'pictures' => 1, 'picturesBelow' => null, 'picturesBelowApproximate' => false, 'orphanedSidecars' => 0, 'orphanedSidecarsBelow' => null]], $folders);
 	}
@@ -204,7 +222,7 @@ final class FolderServiceTest extends TestCase {
 		});
 		$photos = $this->folderWith('/Photos', [$year]);
 
-		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos', PairingExtensions::defaults());
 
 		$this->assertSame([true], array_column($folders, 'hasSubfolders'));
 		$this->assertSame([null], $filters);
@@ -216,7 +234,7 @@ final class FolderServiceTest extends TestCase {
 		$gone->method('getDirectoryListing')->willThrowException(new NotFoundException('Gone'));
 		$photos = $this->folderWith('/Photos', [$gone]);
 
-		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos');
+		$folders = $this->service($this->rootWith(['/Photos' => $photos]))->children($this->user(), 'Photos', PairingExtensions::defaults());
 
 		$this->assertSame([['name' => 'Gone', 'path' => '/Photos/Gone', 'hasSubfolders' => false, 'pictures' => null, 'picturesBelow' => null, 'picturesBelowApproximate' => false, 'orphanedSidecars' => null, 'orphanedSidecarsBelow' => null]], $folders);
 	}
@@ -237,7 +255,7 @@ final class FolderServiceTest extends TestCase {
 		$root->expects($this->never())->method('getUserFolder');
 
 		$this->expectException(FolderNotFoundException::class);
-		$this->service($root)->children($this->user(), $path);
+		$this->service($root)->children($this->user(), $path, PairingExtensions::defaults());
 	}
 
 	// spec: LISTING-003.3
@@ -247,31 +265,31 @@ final class FolderServiceTest extends TestCase {
 		$foreign->method('isReadable')->willReturn(true);
 
 		$this->expectException(FolderNotFoundException::class);
-		$this->service($this->rootWith(['/Shared' => $foreign]))->children($this->user(), 'Shared');
+		$this->service($this->rootWith(['/Shared' => $foreign]))->children($this->user(), 'Shared', PairingExtensions::defaults());
 	}
 
 	// spec: LISTING-003.3
 	public function testAVanishedFolderIsNotFound(): void {
 		$this->expectException(FolderNotFoundException::class);
-		$this->service($this->rootWith([]))->children($this->user(), 'Gone');
+		$this->service($this->rootWith([]))->children($this->user(), 'Gone', PairingExtensions::defaults());
 	}
 
 	// spec: LISTING-003.3
 	public function testAFileIsNotAFolder(): void {
 		$this->expectException(FolderNotFoundException::class);
-		$this->service($this->rootWith(['/a.jpg' => $this->file(1, '/a.jpg')]))->children($this->user(), 'a.jpg');
+		$this->service($this->rootWith(['/a.jpg' => $this->file(1, '/a.jpg')]))->children($this->user(), 'a.jpg', PairingExtensions::defaults());
 	}
 
 	// spec: LISTING-003.3
 	public function testAnUnreadableFolderIsNotReadable(): void {
 		$this->expectException(FolderNotReadableException::class);
-		$this->service($this->rootWith(['/Photos' => $this->folder('/Photos', false)]))->children($this->user(), 'Photos');
+		$this->service($this->rootWith(['/Photos' => $this->folder('/Photos', false)]))->children($this->user(), 'Photos', PairingExtensions::defaults());
 	}
 
 	// spec: LISTING-003.3
 	public function testAFolderThatMayNotBeOpenedIsNotReadable(): void {
 		$this->expectException(FolderNotReadableException::class);
-		$this->service($this->rootWith(['/Photos' => new NotPermittedException('Photos')]))->children($this->user(), 'Photos');
+		$this->service($this->rootWith(['/Photos' => new NotPermittedException('Photos')]))->children($this->user(), 'Photos', PairingExtensions::defaults());
 	}
 
 	// spec: LISTING-003.3
@@ -280,6 +298,6 @@ final class FolderServiceTest extends TestCase {
 		$folder->method('getDirectoryListing')->willThrowException(new NotPermittedException('Photos'));
 
 		$this->expectException(FolderNotReadableException::class);
-		$this->service($this->rootWith(['/Photos' => $folder]))->children($this->user(), 'Photos');
+		$this->service($this->rootWith(['/Photos' => $folder]))->children($this->user(), 'Photos', PairingExtensions::defaults());
 	}
 }
