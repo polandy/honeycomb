@@ -52,6 +52,18 @@ selection and the loupe; the target becomes the first recent target (5 kept). Th
 the files, also to a new file id (MOVE-002.10). When a file failed, the move report lists each
 failed file with its reason, and the toast counts moved and failed files.
 
+**Replace for good** (ADR 0048). When the server answers a file `noTrashBin` or `tooLarge`, the
+file its *Replace* names would be deleted for good, and its photo has not moved. Before the report
+and the toast, the *permanent replace warning* opens: "*N* files will be replaced permanently",
+"The Nextcloud trash bin cannot keep these files. Replaced, they cannot be restored, and Undo does
+not bring them back.", and the list of those existing files, each with its path in the target
+folder and its reason ("No trash bin on this storage", "Larger than the trash bin allows").
+*Cancel* has the focus; the destructive *Replace permanently* ("Replacing permanently…" while it
+runs) sends those photos again with their replaces marked permanent (MOVE-003.8), and the toast,
+the report and *Undo* then cover both requests. *Cancel* leaves those photos where they are, and
+the move report lists their files: "Not moved: the file it would replace has no trash bin on its
+storage" or "Not moved: the file it would replace is larger than the trash bin allows".
+
 **Undo.** *Undo* in the toast sends the undo request (MOVE-003). The files that came back return to
 the listing at their old paths, with their decisions, unless another folder set was opened since;
 then they only move back. A file back under a new file id has its decision read again. `Ctrl+Z`
@@ -144,8 +156,7 @@ trash bin refuses (`409`, a *Replace* with the trash bin off) says the trash bin
 - **Given** a move the server answers with some files failed
 - **When** the user confirms
 - **Then** the moved files leave the grid, the move report lists each failed file with its reason,
-  and the toast counts moved and failed files; a replace the trash bin would not keep says so and
-  to move the photo again with *Add suffix* or *Skip*, since a move never deletes for good
+  and the toast counts moved and failed files
 
 ### MOVE-004.13 – A failed request changes nothing
 
@@ -213,6 +224,29 @@ trash bin refuses (`409`, a *Replace* with the trash bin off) says the trash bin
   *The server did not answer within {seconds} s; reload the folder to see what moved.* with
   *Reload folder*, since the server may have moved the photos anyway
 
+### MOVE-004.21 – A replace the trash bin would not keep asks first
+
+- **Given** a move with *Replace* whose existing file the server answers `tooLarge`, and another
+  photo that moves
+- **When** the user confirms the move
+- **Then** the permanent replace warning lists the existing file with its path in the target
+  folder and its reason, *Cancel* has the focus, the other photo has left the grid, and no toast
+  is shown yet
+
+### MOVE-004.22 – Confirming replaces for good
+
+- **Given** the permanent replace warning
+- **When** the user taps *Replace permanently*
+- **Then** the photo is sent again, its replace marked permanent and its other files without the
+  mark, it leaves the grid, and the toast counts both photos with *Undo*
+
+### MOVE-004.23 – Cancelling keeps the photo
+
+- **Given** the permanent replace warning
+- **When** the user taps *Cancel*
+- **Then** nothing more is sent, the photo stays in the grid, the move report lists its files with
+  the reason, and the toast counts the files moved and failed
+
 ## Out of scope
 
 The name template setting, its presets and the favourite targets list in the settings:
@@ -230,3 +264,4 @@ SETTINGS-001. The endpoints: MOVE-002. The plan, conflicts, report and undo requ
 | 2026-11-17 | A move sends the sidecars as honeycomb last saved or created them (MOVE-004.19, #232). |
 | 2026-11-21 | A probe or move request that does not answer in time fails with a message (MOVE-004.20, E23/U7). |
 | 2026-11-21 | The move report says when the trash bin would not keep a file to replace (MOVE-004.12). |
+| 2026-11-21 | Such a replace asks in the permanent replace warning first (MOVE-004.21–23, ADR 0048). |

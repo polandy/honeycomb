@@ -67,7 +67,7 @@ export interface MoveRequestFile {
 	readonly fileId: PictureId
 	readonly etag: string
 	readonly path: string
-	readonly replace?: { readonly fileId: PictureId, readonly etag: string }
+	readonly replace?: { readonly fileId: PictureId, readonly etag: string, readonly permanent?: true }
 }
 
 const FIRST_SUFFIX = 2
@@ -137,13 +137,13 @@ export function planMove(target: string, candidates: readonly MoveCandidate[], e
 	})
 }
 
-/** The sent pictures as the move request's body. */
-export function moveRequest(plan: readonly PlannedPicture[]): MoveRequestFile[][] {
+/** The sent pictures as the move request's body; a file in `permanent` replaces for good (ADR 0048). */
+export function moveRequest(plan: readonly PlannedPicture[], permanent: ReadonlySet<number> = new Set()): MoveRequestFile[][] {
 	return plan.filter((picture) => picture.sent).map((picture) => picture.files.map(({ file, path, replace }) => ({
 		fileId: file.entry.fileId,
 		etag: file.entry.etag,
 		path,
-		...(replace === null ? {} : { replace: { fileId: replace.fileId, etag: replace.etag } }),
+		...(replace === null ? {} : { replace: { fileId: replace.fileId, etag: replace.etag, ...(permanent.has(file.entry.fileId) ? { permanent: true as const } : {}) } }),
 	})))
 }
 

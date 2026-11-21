@@ -1,21 +1,19 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Ref } from 'vue'
-import type { LoupeSnapshot } from './delete-flow.ts'
 import type { ListingEntry } from './logic/listing.ts'
-import type { MtimeOffset } from './logic/move-candidates.ts'
-import type { ConflictChoice, ExistingFile, MoveRequestFile, Probe } from './logic/move-plan.ts'
-import type { MoveReport, MoveResponseFile } from './logic/move-report.ts'
+import type { UnkeptReplace } from './logic/move-permanent.ts'
+import type { ConflictChoice, ExistingFile, MoveRequestFile, PlannedPicture } from './logic/move-plan.ts'
+import type { MoveReport } from './logic/move-report.ts'
 import type { Picture } from './logic/pairing.ts'
-import type { ChunkLimits, SendProgress } from './logic/request-chunks.ts'
-import type { Settings } from './logic/settings.ts'
-import type { ToastAction } from './toast.ts'
+import type { SendProgress } from './logic/request-chunks.ts'
+import type { MoveFlowContext } from './move-flow-context.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, ref, shallowRef, toRaw } from 'vue'
 import { TrashBinOffError } from './api.ts'
 import { logger } from './logger.ts'
 import { browserOffset, inViewOrder, moveCounts, nameCandidates } from './logic/move-candidates.ts'
+import { mergeMoveReports, permanentPlan, unkeptReplaces } from './logic/move-permanent.ts'
 import { existingFiles, leavesStorage, moveRequest, planMove, probeFolders, sourceFolders } from './logic/move-plan.ts'
 import { moveReport, undoneEntries, undoRequest } from './logic/move-report.ts'
 import { addRecent, targetChips, toggleFavourite as toggled } from './logic/move-targets.ts'
@@ -26,39 +24,6 @@ import { movedBackText, movedText, moveFailedText } from './move-text.ts'
 import { reloadAction } from './reload-action.ts'
 
 type Pictures = readonly Picture<ListingEntry>[]
-
-/** What a move reads and changes in the cull. */
-export interface MoveFlowContext {
-	readonly view: () => Pictures
-	readonly settings: () => Settings
-	readonly updateSettings: (patch: Partial<Settings>) => void
-	readonly probe: (folders: readonly string[], sources: readonly string[]) => Promise<Probe>
-	readonly move: (pictures: readonly (readonly MoveRequestFile[])[]) => Promise<MoveResponseFile[][]>
-	/** Writes the waiting sidecars and waits for every write in flight (XMP-003.30). */
-	readonly flush: () => Promise<void>
-	/** The picture with its sidecars as honeycomb last saved them since the listing (MOVE-004.19). */
-	readonly current: (picture: Picture<ListingEntry>) => Picture<ListingEntry>
-	/** Takes the files out of the listing; returns what each affected picture became. */
-	readonly removeFiles: (fileIds: ReadonlySet<number>) => ReadonlyMap<Picture<ListingEntry>, Picture<ListingEntry> | null>
-	readonly restoreFiles: (entries: readonly ListingEntry[]) => void
-	/** Identifies the open listing; an undo restores files only into the one the move left. */
-	readonly listing?: () => unknown
-	readonly loupe: Ref<LoupeSnapshot | null>
-	readonly toast: (message: string, action?: ToastAction | null) => void
-	/** Says a failure and keeps it until the user closes it. */
-	readonly error: (message: string, action?: ToastAction | null) => void
-	/** Lists the open folder set again; the failure messages offer it. */
-	readonly reload?: () => void
-	readonly offset?: MtimeOffset
-	/** Overrides the request size of ADR 0029, for tests. */
-	readonly chunks?: ChunkLimits | undefined
-}
-
-/** The endpoints a move uses (ADR 0018). */
-export interface MoveApi {
-	readonly probeTargets: MoveFlowContext['probe']
-	readonly movePictures: MoveFlowContext['move']
-}
 
 /** The move dialog, its move summary, the move and its undo (`docs/dev/plan.md` Moving pictures, MOVE-004). */
 export function useMoveFlow(context: MoveFlowContext) {
@@ -72,6 +37,8 @@ export function useMoveFlow(context: MoveFlowContext) {
 	const report = shallowRef<MoveReport | null>(null)
 	const busy = ref(false)
 	const progress = shallowRef<SendProgress | null>(null)
+	const warning = shallowRef<UnkeptReplace[] | null>(null)
+	let pending: { done: MoveReport, plan: readonly PlannedPicture[], to: string, listing: unknown } | null = null
 	let probing = 0
 
 	const template = computed(() => {
@@ -180,7 +147,21 @@ export function useMoveFlow(context: MoveFlowContext) {
 		return sent
 	}
 
-	/** Sends the plan, takes the moved files out of the listing and the loupe, and offers *Undo*. */
+	/** Sends the planned pictures and takes the moved files out of the listing and the loupe. */
+	async function sendPlan(planned: readonly PlannedPicture[], permanent?: ReadonlySet<number>) {
+		const sent = planned.filter((picture) => picture.sent).map((picture) => picture.files.map(({ file }) => file))
+		const request = moveRequest(planned, permanent)
+		const { answers } = await send(request, 'move', (count) => {
+			progress.value = { done: count, total: request.length }
+		})
+		const done = moveReport(sent, answers)
+		const replaced = context.removeFiles(new Set(done.moved.filter((file) => file.path !== file.from).map((file) => file.file.entry.fileId)))
+		const loupe = toRaw(context.loupe.value)
+		context.loupe.value = loupe === null ? null : followReplaced(loupe.pictures, loupe.index, replaced)
+		return done
+	}
+
+	/** Sends the plan; warns first about a replace the trash bin would not keep (ADR 0048), else finishes. */
 	async function confirm() {
 		if (busy.value || plan.value === null || counts.value.files === 0) {
 			return
@@ -192,21 +173,15 @@ export function useMoveFlow(context: MoveFlowContext) {
 			await context.flush()
 			refresh()
 			const planned = plan.value!
-			const sent = planned.filter((picture) => picture.sent).map((picture) => picture.files.map(({ file }) => file))
-			const request = moveRequest(planned)
-			const { answers } = await send(request, 'move', (count) => {
-				progress.value = { done: count, total: request.length }
-			})
-			const done = moveReport(sent, answers)
-			const replaced = context.removeFiles(new Set(done.moved.filter((file) => file.path !== file.from).map((file) => file.file.entry.fileId)))
-			const loupe = toRaw(context.loupe.value)
-			context.loupe.value = loupe === null ? null : followReplaced(loupe.pictures, loupe.index, replaced)
-			if (done.moved.length > 0) {
-				context.updateSettings({ moveRecent: addRecent(context.settings().moveRecent, to) })
-			}
+			const done = await sendPlan(planned)
 			close()
-			report.value = done.failed.length > 0 ? done : null
-			context.toast(movedText(done, to), done.moved.length > 0 ? { label: t('honeycomb', 'Undo'), run: () => void undo(done, listing) } : null)
+			const unkept = unkeptReplaces(planned, done)
+			if (unkept.length > 0) {
+				pending = { done, plan: planned, to, listing }
+				warning.value = unkept
+				return
+			}
+			finish(done, to, listing)
 		} catch (error) {
 			logger.error('Could not move the photos', { error })
 			fail(error)
@@ -214,6 +189,46 @@ export function useMoveFlow(context: MoveFlowContext) {
 			busy.value = false
 			progress.value = null
 		}
+	}
+
+	/** Sends the warned pictures again, each unkept replace marked permanent, and finishes with both reports. */
+	async function replacePermanently() {
+		if (busy.value || pending === null) {
+			return
+		}
+		busy.value = true
+		const { done, plan: planned, to, listing } = pending
+		const unkept = warning.value!
+		try {
+			const again = await sendPlan(permanentPlan(planned, unkept), new Set(unkept.map(({ file }) => file.entry.fileId)))
+			finish(mergeMoveReports(done, again), to, listing)
+		} catch (error) {
+			logger.error('Could not replace the files permanently', { error })
+			finish(done, to, listing)
+			fail(error)
+		} finally {
+			busy.value = false
+			progress.value = null
+		}
+	}
+
+	/** Leaves the warned pictures where they are and finishes with the first report. */
+	function cancelWarning() {
+		if (busy.value || pending === null) {
+			return
+		}
+		finish(pending.done, pending.to, pending.listing)
+	}
+
+	/** Remembers the target, keeps a report with failures and toasts the move with *Undo*. */
+	function finish(done: MoveReport, to: string, listing: unknown) {
+		pending = null
+		warning.value = null
+		if (done.moved.length > 0) {
+			context.updateSettings({ moveRecent: addRecent(context.settings().moveRecent, to) })
+		}
+		report.value = done.failed.length > 0 ? done : null
+		context.toast(movedText(done, to), done.moved.length > 0 ? { label: t('honeycomb', 'Undo'), run: () => void undo(done, listing) } : null)
 	}
 
 	/** Moves the files of the move back and shows them again, if the listing is still the one they left. */
@@ -244,6 +259,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 		chips,
 		favourite,
 		report,
+		warning,
 		busy,
 		progress,
 		templateText: computed(() => template.value.text),
@@ -262,6 +278,8 @@ export function useMoveFlow(context: MoveFlowContext) {
 			choices.value = new Map(conflicted.value.map((picture) => [picture, choice]))
 		},
 		confirm,
+		replacePermanently,
+		cancelWarning,
 		closeReport: () => {
 			report.value = null
 		},

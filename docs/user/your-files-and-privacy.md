@@ -15,8 +15,9 @@ file versions and the trash bin apply.
   stays ([deleting photos](deleting.md)).
 - **Moving** renames and moves the files of a picture into the folder you choose, by a name
   template ([name templates](../dev/05-name-templates.md)). A picture is moved whole or not at
-  all, and the move can be undone. It stays on its storage: honeycomb does not move files out of
-  or into a share, a group folder or external storage.
+  all, and the move can be undone. A *Replace* goes to the trash bin; a file it would not keep is
+  replaced for good only after a warning that names it. It stays on its storage: honeycomb does
+  not move files out of or into a share, a group folder or external storage.
 - **XMP sidecars** (`<file>.xmp`) receive your decisions, so digiKam, darktable and Lightroom
   see them. An existing sidecar is merged, so what other programs wrote stays, and it is only
   replaced while Nextcloud's file versions are on. When and what honeycomb writes:

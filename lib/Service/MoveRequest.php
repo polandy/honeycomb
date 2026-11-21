@@ -72,10 +72,11 @@ final class MoveRequest {
 		$replace = is_array($file['replace']) ? $file['replace'] : [];
 		$replaceId = $replace['fileId'] ?? null;
 		$replaceEtag = $replace['etag'] ?? null;
-		if (!is_int($replaceId) || $replaceId < 1 || !is_string($replaceEtag) || $replaceEtag === '') {
-			throw new InvalidMoveRequestException('A replace must have a positive fileId and an etag');
+		$permanent = $replace['permanent'] ?? false;
+		if (!is_int($replaceId) || $replaceId < 1 || !is_string($replaceEtag) || $replaceEtag === '' || !is_bool($permanent)) {
+			throw new InvalidMoveRequestException('A replace must have a positive fileId, an etag and at most a boolean permanent');
 		}
-		return new MoveFile($fileId, $etag, $path, $replaceId, $replaceEtag);
+		return new MoveFile($fileId, $etag, $path, $replaceId, $replaceEtag, $permanent);
 	}
 
 	/**

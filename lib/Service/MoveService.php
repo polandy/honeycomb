@@ -20,7 +20,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Moves whole pictures to the paths the client rendered, within their storage: each checked whole, moved file by file
- * and moved back when one of its files fails (ADR 0018); a file is replaced only into the trash bin (ADR 0036); the flag and the visual hash follow a new file id (MOVE-002.10);
+ * and moved back when one of its files fails (ADR 0018); a file is replaced into the trash bin, or for good once the user confirmed (ADR 0036, ADR 0048); the flag and the visual hash follow a new file id (MOVE-002.10);
  * the pictures moved whole are counted (STATS-001.31).
  *
  * @psalm-type Outcome = array{fileId: int, result: MoveResult, replaced: bool, path?: string, newFileId?: int, etag?: string}
@@ -87,7 +87,7 @@ final class MoveService {
 		foreach (array_diff_key($moves, $sidecars) + $sidecars as $index => $move) {
 			$replaced = false;
 			try {
-				$moved[$index] = $this->moveFile($userFolder, $move, $replaced);
+				$moved[$index] = $this->moveFile($userId, $userFolder, $move, $replaced);
 				$this->carryOver($userId, $move->source->getId(), $moved[$index]);
 				$outcomes[$index] = self::moved($move, $moved[$index], $replaced);
 			} catch (\Exception $e) {
@@ -102,10 +102,10 @@ final class MoveService {
 	}
 
 	/**
-	 * Creates the missing folders, trashes the file to replace and moves the file into its place.
+	 * Creates the missing folders, trashes the file to replace, or deletes it for good logged without its path, and moves the file into its place.
 	 * @param-out bool $replaced
 	 */
-	private function moveFile(Folder $userFolder, CheckedMove $move, bool &$replaced): Node {
+	private function moveFile(string $userId, Folder $userFolder, CheckedMove $move, bool &$replaced): Node {
 		if ($move->stays) {
 			return $move->source;
 		}
@@ -114,8 +114,12 @@ final class MoveService {
 			$folder = $this->subfolder($folder, $name);
 		}
 		if ($move->replace !== null) {
+			$fileId = $move->replace->getId();
 			$move->replace->delete();
 			$replaced = true;
+			if ($move->replacesForGood) {
+				$this->logger->warning('A file was replaced permanently', ['fileId' => $fileId, 'user' => $userId]);
+			}
 		}
 		return $move->source->move($userFolder->getPath() . $move->path);
 	}
@@ -218,11 +222,11 @@ final class MoveService {
 		if (!$target->isDeletable()) {
 			return MoveResult::NotPermitted;
 		}
-		return match ($this->trashBin->refusal($userId, $target)) {
-			null => new CheckedMove($source, $file->path, $target, false),
-			TrashResult::TooLarge => MoveResult::TooLarge,
-			default => MoveResult::NoTrashBin,
-		};
+		$refusal = $this->trashBin->refusal($userId, $target);
+		if ($refusal === null || $file->replacePermanent) {
+			return new CheckedMove($source, $file->path, $target, false, $refusal !== null);
+		}
+		return $refusal === TrashResult::TooLarge ? MoveResult::TooLarge : MoveResult::NoTrashBin;
 	}
 
 	/** @throws NotPermittedException */
