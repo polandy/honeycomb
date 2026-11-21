@@ -83,6 +83,12 @@ opens the series of the shown photo.
 - Tap a photo to make it the active one, ⤢ or a double-tap shows it full screen.
 - **Pick this, reject the rest** (`Shift+K`) keeps the active photo and rejects the others in one
   step. **Skip** goes to the next series.
+- honeycomb measures the sharpness of each photo of a series and marks the clearly sharpest one
+  *Sharpest*; the mark is a hint only, it picks nothing.
+- **⋯ → Reduce series to the sharpest…** in the grid takes that step for every series with a
+  *Sharpest* photo at once: review the list, tap a photo to leave its series out, and confirm to
+  pick each sharpest photo and reject the rest. Series without a clear sharpest stay for you to
+  compare; `Ctrl+Z` takes the whole step back.
 - **⋯ → Series done** marks a series as dealt with without deciding every photo: its unflagged
   photos stay unflagged but count as decided, and the series leaves the compare. Choose
   *Series done* again, from the loupe's series chip, to reopen it.

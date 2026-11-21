@@ -212,7 +212,8 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 - **When** the user looks at it, changes a view option or chooses an action
 - **Then** one separator stands between the view options (thumbnail size, *Group by folder*, sort)
   and the actions; a changed view option leaves the menu open, and an action (*Review rejects*,
-  *Compare series*, *Remove RAWs…*, *Move picks…*, *Resume at*
+  *Compare series*, *Reduce series to the sharpest…* (SERIES-008), *Remove RAWs…*, *Move picks…*,
+  *Resume at*
   *Clear picks/rejects* (.22), *Write picks/rejects to XMP* from M8 PR 7 (.21),
   *Settings*) closes it, so no menu stays above the dialog or view it opens
 
@@ -242,3 +243,4 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 | 2026-11-19 | M8 PR 6: the lock and *Clear picks/rejects* (.20, .22 implemented) |
 | 2026-11-19 | M8 PR 7: *Write picks/rejects to XMP* with its count (.21 implemented) |
 | 2026-11-21 | GRID-001.23: a failed preview shows a dimmed tile with a broken-image glyph and loads again on a tap (E8/U4, owner 2026-11-19) |
+| 2026-11-21 | GRID-001.18: *Reduce series to the sharpest…* among the actions (SERIES-008) |

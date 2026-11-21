@@ -100,7 +100,7 @@ spot, which is mostly the subject, instead of its middle.
 
 ## Out of scope
 
-- The series reduction over all series from the marks: milestone M11, PR 4.
+- The series reduction over all series from the marks: SERIES-008.
 - Shake risk and clipping hints: milestone M11, PR 5.
 - A mark on the loupe's photo itself: the filmstrip and the info panel name it there.
 
