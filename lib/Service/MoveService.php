@@ -20,7 +20,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Moves whole pictures to the paths the client rendered, within their storage: each checked whole, moved file by file
- * and moved back when one of its files fails (ADR 0018); the flag and the visual hash follow a new file id (MOVE-002.10);
+ * and moved back when one of its files fails (ADR 0018); a file is replaced only into the trash bin (ADR 0036); the flag and the visual hash follow a new file id (MOVE-002.10);
  * the pictures moved whole are counted (STATS-001.31).
  *
  * @psalm-type Outcome = array{fileId: int, result: MoveResult, replaced: bool, path?: string, newFileId?: int, etag?: string}
@@ -32,6 +32,7 @@ final class MoveService {
 		private FileRowStores $fileRows,
 		private LoggerInterface $logger,
 		private StatsService $stats,
+		private TrashBinGuard $trashBin,
 	) {
 	}
 
@@ -60,7 +61,7 @@ final class MoveService {
 	 * @return list<Outcome>
 	 */
 	private function movePicture(string $userId, Folder $userFolder, array $picture): array {
-		$checked = array_map(fn (MoveFile $file): CheckedMove|MoveResult => $this->check($userFolder, $file), $picture);
+		$checked = array_map(fn (MoveFile $file): CheckedMove|MoveResult => $this->check($userId, $userFolder, $file), $picture);
 		$moves = array_filter($checked, static fn (CheckedMove|MoveResult $move): bool => $move instanceof CheckedMove);
 		if (count($moves) !== count($checked)) {
 			return array_map(static fn (MoveFile $file, CheckedMove|MoveResult $move): array => [
@@ -177,7 +178,7 @@ final class MoveService {
 	}
 
 	/** The move to make, or why the file may not move. */
-	private function check(Folder $userFolder, MoveFile $file): CheckedMove|MoveResult {
+	private function check(string $userId, Folder $userFolder, MoveFile $file): CheckedMove|MoveResult {
 		$source = $this->photos->listed($userFolder, $file->fileId);
 		if ($source === null) {
 			return MoveResult::NotFound;
@@ -214,7 +215,14 @@ final class MoveService {
 		if (!$replaceable) {
 			return MoveResult::Exists;
 		}
-		return $target->isDeletable() ? new CheckedMove($source, $file->path, $target, false) : MoveResult::NotPermitted;
+		if (!$target->isDeletable()) {
+			return MoveResult::NotPermitted;
+		}
+		return match ($this->trashBin->refusal($userId, $target)) {
+			null => new CheckedMove($source, $file->path, $target, false),
+			TrashResult::TooLarge => MoveResult::TooLarge,
+			default => MoveResult::NoTrashBin,
+		};
 	}
 
 	/** @throws NotPermittedException */
