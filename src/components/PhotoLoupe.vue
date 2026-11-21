@@ -23,6 +23,7 @@ import { toggleBrowserFullscreen } from '../fullscreen.ts'
 import { LOUPE_IDLE_MS, useIdle } from '../idle.ts'
 import { FILMSTRIP_THUMB } from '../logic/filmstrip.ts'
 import { imageMember, isEmbeddedPreview, loupeSources } from '../logic/image-tiers.ts'
+import { EVERYTHING } from '../logic/opened-source.ts'
 import { DIVIDER_WIDTH, FLAG_RAIL, INFO_PANEL } from '../logic/panel-width.ts'
 import { useLoupeDecisions } from '../loupe-decisions.ts'
 import { useLoupePanels } from '../loupe-panels.ts'
@@ -43,6 +44,8 @@ const props = withDefaults(defineProps<PhotoLoupeProps>(), {
 	toggleFullscreen: toggleBrowserFullscreen,
 	devicePixelRatio: () => window.devicePixelRatio,
 	observeSize: observeElementSize,
+	capabilities: () => EVERYTHING,
+	counter: null,
 })
 
 const emit = defineEmits<PhotoLoupeEmits>()
@@ -111,10 +114,9 @@ const hotkeys: HotkeyHandlers = {
 	'zoom-out': () => stage.value!.toggleZoom(true),
 	info: () => panels.setInfoOpen(!infoOpen.value),
 	'flag-buttons': () => decisions.setFlagButtonsShown(!props.settings.flagButtonsShown, true),
-	tag: () => emit('tag', picture.value),
-	compare: () => loupeSeries.compareAt(props.index),
-	'pick-rest': loupeSeries.pickRest,
-	decide: decisions.decideByKey,
+	...(props.capabilities.tags && { tag: () => emit('tag', picture.value) }),
+	...(props.capabilities.series && { compare: () => loupeSeries.compareAt(props.index), 'pick-rest': loupeSeries.pickRest }),
+	decide: (intent, advance) => (intent.kind !== 'keepRaw' || props.capabilities.keepRaw) && decisions.decideByKey(intent, advance),
 }
 
 defineExpose({ hotkeys })
@@ -147,6 +149,8 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:name="picture.baseName"
 			:index="props.index"
 			:count="props.pictures.length"
+			:counter="props.counter"
+			:movable="props.capabilities.move"
 			:zoom="zoom"
 			:infoOpen="infoOpen"
 			:filmstripOpen="filmstripOpen"
@@ -232,6 +236,8 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:flags="settings.flagButtonsShown"
 			:idle="overlays.idle.value"
 			:pinned="settings.ratingRowPinned"
+			:keepRaw="props.capabilities.keepRaw"
+			:tags="props.capabilities.tags"
 			@pointerdown="overlays.wake"
 			@decide="decisions.decide"
 			@tag="emit('tag', picture)">

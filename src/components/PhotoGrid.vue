@@ -15,6 +15,7 @@ import { browserFrame } from '../auto-scroll.ts'
 import { useGridPinch } from '../grid-pinch.ts'
 import { useGridSeries } from '../grid-series.ts'
 import { formatNumber } from '../l10n.ts'
+import { isAppended } from '../logic/appended.ts'
 import { autoScrollStep } from '../logic/auto-scroll.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { UNDECIDED } from '../logic/decision.ts'
@@ -102,15 +103,25 @@ function scrollBy(step: number): boolean {
 // The drag's pressed tile stays in the DOM: a touch's events keep going to the element it started on.
 const rendered = computed(() => renderedRows(layout.value, scrollTop.value, height.value, Math.ceil(height.value / (layout.value.tileWidth + GAP)), tiles.dragOrigin.value))
 
-watch(() => props.pictures, () => {
+watch(() => props.pictures, (next, previous) => {
+	if (isAppended(previous, next)) {
+		return
+	}
 	scroller.value!.scrollTop = 0
 	scrollTop.value = 0
 	focused.value = 0
 })
+watch(rendered, (rows) => {
+	const last = rows.findLast((row) => row.kind === 'tiles')
+	if (last?.kind === 'tiles') {
+		emit('shown', last.first + last.count - 1)
+	}
+})
 
 /** The name a group's header shows. */
 function groupName(group: number): string {
-	return folderLabel(groups.value[group]!.folder, props.folderSet)
+	const { folder } = groups.value[group]!
+	return props.folderSet === undefined ? folder : folderLabel(folder, props.folderSet)
 }
 
 /** The pictures of a tile row with their indexes. */

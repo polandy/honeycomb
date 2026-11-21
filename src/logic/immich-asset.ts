@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Decision } from './decision.ts'
+import type { SourceEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
+import type { PictureId } from './picture-id.ts'
 
 import { parseFileName } from './file-name.ts'
 
@@ -34,9 +36,35 @@ export interface DecisionRow extends Decision {
 	readonly assetUpdatedAt: string
 }
 
-/** An Immich asset as a picture: a single rendered member, no RAW, no sidecars. */
-export function assetPicture(entry: ImmichEntry): Picture<ImmichEntry> {
-	return { raw: null, rendered: entry, folder: '', baseName: parseFileName(entry.name).baseName, sidecars: [], ambiguous: false }
+/** The image sizes honeycomb fetches from Immich: the grid's and the loupe's (IMMICH-002.16). */
+export type ImmichImageSize = 'thumbnail' | 'preview'
+
+/** An Immich asset as the grid's and the loupe's member: a listing-like file under a grid id. */
+export interface ImmichSourceEntry extends SourceEntry {
+	readonly asset: ImmichEntry
+}
+
+/** Immich's rendered images are JPEGs; a video's member stands for its poster frame. */
+const MIME_OF: Readonly<Record<ImmichKind, string>> = { photo: 'image/jpeg', live: 'image/jpeg', video: 'video/mp4' }
+
+/** An Immich asset as a picture under its grid id and day group: a single rendered member, no RAW, no sidecars. */
+export function assetPicture(entry: ImmichEntry, fileId: PictureId, day: string): Picture<ImmichSourceEntry> {
+	const rendered: ImmichSourceEntry = {
+		fileId,
+		path: entry.name,
+		mtime: entry.takenAt,
+		mime: MIME_OF[entry.kind],
+		captureTime: entry.takenAt,
+		orientation: null,
+		width: entry.width,
+		height: entry.height,
+		camera: entry.cameraModel,
+		flag: entry.flag,
+		keepRaw: entry.keepRaw,
+		flagUpdated: null,
+		asset: entry,
+	}
+	return { raw: null, rendered, folder: day, baseName: parseFileName(entry.name).baseName, sidecars: [], ambiguous: false }
 }
 
 /** The decision the entry carries. */

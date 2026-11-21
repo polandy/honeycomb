@@ -23,7 +23,7 @@ final class ListingCursors {
 	public function issue(string $connectionId, ListingFilters $filters, string $immichCursor, int $receivedBefore): string {
 		$payload = json_encode(['c' => $connectionId, 'f' => $filters->fingerprint(), 'i' => $immichCursor, 't' => $receivedBefore], JSON_THROW_ON_ERROR);
 		$encoded = rtrim(strtr(base64_encode($payload), '+/', '-_'), '=');
-		return $encoded . self::SEPARATOR . $this->crypto->calculateHMAC($encoded);
+		return $encoded . self::SEPARATOR . $this->signature($encoded);
 	}
 
 	/**
@@ -32,7 +32,7 @@ final class ListingCursors {
 	 */
 	public function open(string $cursor, string $connectionId, ListingFilters $filters): array {
 		$parts = explode(self::SEPARATOR, $cursor);
-		if (count($parts) !== 2 || $parts[0] === '' || !hash_equals($this->crypto->calculateHMAC($parts[0]), $parts[1])) {
+		if (count($parts) !== 2 || $parts[0] === '' || !hash_equals($this->signature($parts[0]), $parts[1])) {
 			throw new ImmichException(ImmichError::Request);
 		}
 		$decoded = base64_decode(strtr($parts[0], '-_', '+/'), true);
@@ -53,5 +53,10 @@ final class ListingCursors {
 			throw new ImmichException(ImmichError::Request);
 		}
 		return ['immich' => $immich, 'receivedBefore' => $receivedBefore];
+	}
+
+	/** The HMAC in hex: `calculateHMAC` answers raw bytes, which no JSON answer can carry. */
+	private function signature(string $encoded): string {
+		return bin2hex($this->crypto->calculateHMAC($encoded));
 	}
 }

@@ -65,3 +65,8 @@ export function formatDayRange(from: string, to: string): string {
 export function formatPercent(percent: number, signed = false): string {
 	return new Intl.NumberFormat(getCanonicalLocale(), { style: 'percent', signDisplay: signed ? 'exceptZero' : 'auto' }).format(percent / 100)
 }
+
+/** A Unix time in seconds as its local day with the weekday in the user's locale, the Immich grid's day header. */
+export function formatCaptureDay(seconds: number): string {
+	return new Intl.DateTimeFormat(getCanonicalLocale(), { dateStyle: 'full' }).format(seconds * 1000)
+}

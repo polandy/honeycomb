@@ -1,8 +1,9 @@
+import type { ImmichCullApi } from '../../src/immich-cull.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { ImmichApi } from '../../src/immich-source.ts'
-import type { ImmichAvailability } from '../../src/logic/immich-connections.ts'
+import type { ConnectionStatus, ImmichAvailability } from '../../src/logic/immich-connections.ts'
 
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -10,20 +11,22 @@ import AppNavigation from '../../src/components/AppNavigation.vue'
 import FolderPicker from '../../src/components/FolderPicker.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import ImmichConnectionDialog from '../../src/components/ImmichConnectionDialog.vue'
+import ImmichScreen from '../../src/components/ImmichScreen.vue'
 import ImmichState from '../../src/components/ImmichState.vue'
 import { IMMICH_CONNECTION_KEY } from '../../src/immich-source.ts'
-import { fakeStorage, mountApp, openCull, shownNames } from './app-cull.ts'
+import { fakeStorage, mountApp, openCull, shownNames, SILENT_IMMICH_CULL } from './app-cull.ts'
 
 enableAutoUnmount(afterEach)
 
 const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example' }
 const KIDS = { id: 'kids', label: 'Kids', url: 'https://immich.example' }
 const OK = { state: 'ok', account: 'andy', version: '2.3.1', total: 3660 } as const
+const UNREACHABLE: ConnectionStatus = { state: 'unreachable', account: null, version: null, total: null }
 
 /** An Immich server with the given connections that answers each status as `OK` and records what it was asked. */
-function immichOn(availability: ImmichAvailability) {
+function immichOn(availability: ImmichAvailability, status: ConnectionStatus = OK) {
 	const asked: string[] = []
-	const api: ImmichApi = { listConnections: async () => availability, status: async (id) => (asked.push(id), OK) }
+	const api: ImmichApi = { listConnections: async () => availability, status: async (id) => (asked.push(id), status) }
 	return { immich: api, asked }
 }
 
@@ -57,12 +60,12 @@ describe('App: the Immich source', () => {
 		navigation().vm.$emit('chooseSource', 'immich')
 		await flushPromises()
 		expect(wrapper.findComponent(GridToolbar).exists()).toBe(false)
-		expect(wrapper.findComponent(ImmichState).props()).toEqual({ connection: PHONE, status: OK })
+		expect(wrapper.findComponent(ImmichScreen).exists()).toBe(true)
 		expect(asked).toEqual(['andy-phone'])
 
 		navigation().vm.$emit('chooseSource', 'nextcloud')
 		await flushPromises()
-		expect(wrapper.findComponent(ImmichState).exists()).toBe(false)
+		expect(wrapper.findComponent(ImmichScreen).exists()).toBe(false)
 		expect(shownNames(wrapper)).toEqual(['IMG_2', 'IMG_9', 'IMG_10'])
 	})
 
@@ -79,7 +82,7 @@ describe('App: the Immich source', () => {
 			{ id: 'andy-phone', label: 'Andy · Phone', line: 'Connected as andy', working: true },
 			{ id: 'kids', label: 'Kids', line: 'Connected as andy', working: true },
 		])
-		expect(wrapper.findComponent(ImmichState).props('connection')).toEqual(KIDS)
+		expect(wrapper.findComponent(ImmichScreen).props('cull').connectionId.value).toBe('kids')
 		wrapper.unmount()
 
 		const reloaded = mountApp({ immich, storage: fakeStorage(stored) }).wrapper
@@ -113,7 +116,7 @@ describe('App: the Immich source', () => {
 
 	// spec: IMMICH-001.19
 	it('tries a connection again from its state', async () => {
-		const { immich, asked } = immichOn({ kind: 'connections', connections: [PHONE] })
+		const { immich, asked } = immichOn({ kind: 'connections', connections: [PHONE] }, UNREACHABLE)
 		const { wrapper } = mountApp({ immich })
 		await flushPromises()
 		wrapper.findComponent(AppNavigation).vm.$emit('chooseSource', 'immich')
@@ -125,5 +128,30 @@ describe('App: the Immich source', () => {
 
 		expect(asked).toEqual(['andy-phone', 'andy-phone'])
 		expect(wrapper.findComponent(ImmichConnectionDialog).exists()).toBe(true)
+	})
+
+	// spec: IMMICH-002.6, IMMICH-002.13
+	it('shows the connection\'s pictures once its status is ok, and asks their first page and counts', async () => {
+		const asked: string[] = []
+		const immichCull: ImmichCullApi = { ...SILENT_IMMICH_CULL, assets: (id) => (asked.push(`assets ${id}`), new Promise(() => undefined)), counts: (id) => (asked.push(`counts ${id}`), new Promise(() => undefined)) }
+		const { wrapper } = mountApp({ immich: immichOn({ kind: 'connections', connections: [PHONE] }).immich, immichCull })
+		await flushPromises()
+		wrapper.findComponent(AppNavigation).vm.$emit('chooseSource', 'immich')
+		await flushPromises()
+
+		expect(wrapper.findComponent(ImmichState).exists()).toBe(false)
+		expect(wrapper.findComponent(ImmichScreen).exists()).toBe(true)
+		expect(asked.toSorted()).toEqual(['assets andy-phone', 'counts andy-phone'])
+	})
+
+	// spec: IMMICH-001.19
+	it('shows the connection\'s state instead of its pictures while it fails', async () => {
+		const { wrapper } = mountApp({ immich: immichOn({ kind: 'connections', connections: [PHONE] }, UNREACHABLE).immich })
+		await flushPromises()
+		wrapper.findComponent(AppNavigation).vm.$emit('chooseSource', 'immich')
+		await flushPromises()
+
+		expect(wrapper.findComponent(ImmichScreen).exists()).toBe(false)
+		expect(wrapper.findComponent(ImmichState).props('status')).toEqual(UNREACHABLE)
 	})
 })
