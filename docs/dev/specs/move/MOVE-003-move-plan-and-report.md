@@ -39,9 +39,15 @@ ETag; the failed files with their result; the pictures all of whose sent files m
 files went to the trash bin as replaced. A file the response leaves out, answers with an unknown
 result, or answers `moved` without its new path, file id or ETag counts as `failed`.
 
+**Replace for good** (ADR 0048). The *unkept replaces* of a report are its files failed with
+`noTrashBin` or `tooLarge`, each with the existing file its plan replaces. Their request sends the
+pictures of the plan that hold one again, every file as planned, and marks only the unkept
+replaces' `replace` with `"permanent": true`. The report of that request merges into the first:
+a file sent again counts only by its second result, and the pictures and replaced files add up.
+
 **Undo** is a move request that sends every moved file, by its new file id and ETag, back to its
 old path, grouped by picture; a file that stayed at its path is left out. Replaced files are not
-part of it: they stay in the trash bin.
+part of it: they stay in the trash bin, or are gone for good.
 
 ## Acceptance criteria
 
@@ -98,6 +104,17 @@ part of it: they stay in the trash bin.
 - **Then** it sends each moved file by its new file id and ETag to its old path, one list per
   picture, without the file that stayed
 
+### MOVE-003.8 – Replaces the trash bin would not keep are sent again marked permanent
+
+- **Given** a plan of three pictures with *Replace*, and a report in which a file of the first
+  failed `noTrashBin`, one of the second `tooLarge` with its other files `skipped`, and the third
+  moved
+- **When** the unkept replaces and their request are asked for, and the second report is merged
+- **Then** the unkept replaces name both files with the existing file they replace and their
+  reason; the request sends the first two pictures whole, `permanent` only on those two
+  `replace`s; the merged report holds the third picture's moves and the second report's results
+  of the files sent again, and adds up pictures and replaced files
+
 ## Out of scope
 
 The dialog, the move summary's text, the undo toast and the key `M` are M7.3. The endpoints are
@@ -109,3 +126,4 @@ MOVE-002.
 |---|---|
 | 2026-11-10 | Written and implemented with M7.2 (ADR 0018). |
 | 2026-11-21 | The report keeps `noTrashBin` and `tooLarge` (MOVE-003.6). |
+| 2026-11-21 | Unkept replaces are sent again marked permanent (MOVE-003.8, ADR 0048). |

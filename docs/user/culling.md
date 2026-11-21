@@ -115,5 +115,6 @@ and decide what happens when a name is taken: *Add suffix*, *Skip* or *Replace*.
 photo moves together, with its decision. The message after the move offers **Undo**; `Ctrl+Z` does
 not undo a move. A photo stays where it is when the move would take it out of its share or
 storage. *Replace* sends the old file to the Nextcloud trash bin; when the trash bin would not keep
-it (its storage has none, or it is larger than the trash bin allows), the photo stays where it is
-and the move report says so: move it again with *Add suffix* or *Skip*.
+it (its storage has none, or it is larger than the trash bin allows), a warning names it first:
+*Replace permanently* deletes it for good and moves the photo, which *Undo* cannot bring back;
+*Cancel* leaves the photo where it is.
