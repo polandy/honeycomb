@@ -131,8 +131,9 @@ a stub** of the Immich API built from that pinned schema, run by PHP's built-in 
 e2e Nextcloud container, with a fixture of two connections and their key files; it answers in
 seconds and runs in `scripts/verify.sh`. Amended on 2026-11-21: a second Playwright web server on
 the host, as first written, would need a free port per parallel run and a route from the container
-to the host; inside the container the connections file names one fixed origin. A real Immich (Postgres, Redis, machine learning) is the owner's hand test on
-the test server only, never a CI step.
+to the host; inside the container the connections file names one fixed origin. A real Immich
+(Postgres, Redis, machine learning) is the owner's hand test on the test server only, never a CI
+step.
 
 ### Implementation order
 

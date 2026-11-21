@@ -1739,3 +1739,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the e2e container (PHP's built-in server on `127.0.0.1:2283`), not as a second Playwright web
   server: no port per parallel run, no route from the container to the host. Easy to redo: the
   router files stay, only the hook that starts them moves.
+- 2026-11-21: The ESLint conventions test's snippet paths are excluded from `tsconfig.json`, so
+  they lint in typescript-eslint's small default project instead of loading the whole program;
+  its first case took over 30 s inside the full Vitest run on a loaded host (load average above
+  20) and 5 s after. A longer timeout was rejected (owner rule against flaky tests).
