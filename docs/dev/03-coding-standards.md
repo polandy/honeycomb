@@ -87,7 +87,9 @@ dependencies — are in [`conventions.md`](conventions.md). This file adds the s
   grid, the loupe, delete and move: the flows where Safari differs (pointer events, layout of the
   stage, dialogs, `fetch` and cookies) and a failure costs photos. The iPad profile runs the same
   four cases and takes the landscape size because the toolbar folds its *Review rejects* button
-  into *More* below 900 px. Chromium keeps every other case; iPad widths and touch stay emulated
+  into *More* below 900 px. A third project, `webkit-ipad-portrait` (iPad Pro 11 portrait,
+  834 × 1194), runs the one case tagged `{ tag: IPAD_PORTRAIT }`: deleting the rejects from *More*.
+  Chromium keeps every other case; iPad widths and touch stay emulated
   there. Add the tag to a case that exercises a Safari-specific API, never to a case only to widen
   the subset.
 - Every Vue component is checked with the marked stub catalogue of
