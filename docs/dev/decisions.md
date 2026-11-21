@@ -1733,6 +1733,19 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   loupe tiers' requests: a slide swaps to its loupe tier only once decoded, so a test that timed
   the page between request and decode measured a fresh load. A test-only `decode()` wrapper was
   rejected as tied to the prefetch's internals.
+- 2026-11-21: M10 PR 11 is split: 11a brings the upstream-stub seam, the stub Immich, the fixture
+  of two connections and the e2e of the source and connection switcher and the connection dialog
+  on `main`; the grid and loupe e2e follow once PR 10b and 10c are merged. The stub runs inside
+  the e2e container (PHP's built-in server on `127.0.0.1:2283`), not as a second Playwright web
+  server: no port per parallel run, no route from the container to the host. Easy to redo: the
+  router files stay, only the hook that starts them moves.
+- 2026-11-21: The ESLint conventions test lints its snippets under
+  `tests/js/conventions/snippets/`, whose empty `tsconfig.json` is the nearest one, with the
+  repository's config rebased there. Under the root `tsconfig.json` the project service loaded the
+  whole configured project (about 1,700 files) for every snippet path, and the first case took
+  40 s inside the full Vitest run on a loaded host. Now it takes about 1.5 s. A tsconfig `exclude`
+  did not help, and a longer timeout was rejected (owner rule against flaky tests). The
+  120 s warm-up hook that main had added meanwhile (#333) is removed for the same reason.
 - 2026-11-21: CI splits the e2e specs per Nextcloud version into 3 Playwright shards (`--shard`),
   each a matrix job on its own runner with its own Nextcloud, so no shard sees another's state;
   the `gate` needs the `e2e` job and so every shard. `workers: 1` stays: one Nextcloud per
