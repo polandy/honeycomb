@@ -50,7 +50,7 @@ final class OrphanedSidecarTrashTest extends TestCase {
 	 * @return list<array{fileId: int, etag: string}>
 	 */
 	private static function sidecars(int ...$fileIds): array {
-		return array_map(static fn (int $id): array => ['fileId' => $id, 'etag' => "etag-$id"], $fileIds);
+		return array_values(array_map(static fn (int $id): array => ['fileId' => $id, 'etag' => "etag-$id"], $fileIds));
 	}
 
 	/**

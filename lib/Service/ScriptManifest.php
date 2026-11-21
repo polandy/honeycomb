@@ -15,6 +15,7 @@ final class ScriptManifest {
 	public const string MAIN = 'main';
 	public const string SIMILARITY = 'similarity';
 	public const string STATISTICS = 'statistics';
+	public const string ORPHANED_SIDECARS = 'orphaned-sidecars';
 	/** Written by the build: entry name => script name. */
 	private const string PATH = '/js/scripts.php';
 

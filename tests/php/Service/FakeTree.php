@@ -130,6 +130,7 @@ trait FakeTree {
 		$file->method('getMimetype')->willReturn(match (strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
 			'jpg' => 'image/jpeg',
 			'raf' => 'image/x-fuji-raf',
+			'cr2', 'nef' => 'image/x-dcraw',
 			'txt' => 'text/plain',
 			'mov' => 'video/quicktime',
 			default => 'application/octet-stream',
