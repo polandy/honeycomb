@@ -17,9 +17,6 @@ final class OrphanedSidecarScan {
 	/** Files looked at per page; a page ends after the folder in which it reaches them. */
 	public const int PAGE_SIZE = 1_000;
 
-	/** The mount type of the user's home storage; shares, group folders and external storage differ. */
-	private const string OWN_MOUNT = '';
-
 	public function __construct(
 		private UserFolderResolver $folders,
 		private int $pageSize = self::PAGE_SIZE,
@@ -36,7 +33,7 @@ final class OrphanedSidecarScan {
 	public function page(IUser $user, string $path, string $after): array {
 		$cursor = self::cursorOf($after);
 		$folder = $this->folders->folder($user, $path);
-		if (!self::isOwn($folder)) {
+		if (!OrphanedSidecarRule::isOwnStorage($folder)) {
 			return ['sidecars' => [], 'next' => null];
 		}
 		$base = rtrim((string)$this->folders->userFolder($user)->getRelativePath($folder->getPath()), '/');
@@ -68,7 +65,7 @@ final class OrphanedSidecarScan {
 			yield $relative => [count(array_filter($nodes, static fn (Node $node): bool => $node instanceof File)), $orphans];
 		}
 		$first = $after[0] ?? null;
-		$subfolders = array_filter($nodes, static fn (Node $node): bool => $node instanceof Folder && !str_starts_with($node->getName(), '.') && $node->isReadable() && self::isOwn($node));
+		$subfolders = array_filter($nodes, static fn (Node $node): bool => $node instanceof Folder && !str_starts_with($node->getName(), '.') && $node->isReadable() && OrphanedSidecarRule::isOwnStorage($node));
 		usort($subfolders, static fn (Node $a, Node $b): int => strcmp($a->getName(), $b->getName()));
 		foreach ($subfolders as $subfolder) {
 			$name = $subfolder->getName();
@@ -78,10 +75,6 @@ final class OrphanedSidecarScan {
 				yield from self::walk($subfolder, $relative . '/' . $name, array_slice($after ?? [], 1));
 			}
 		}
-	}
-
-	private static function isOwn(Node $node): bool {
-		return $node->getMountPoint()->getMountType() === self::OWN_MOUNT;
 	}
 
 	/**

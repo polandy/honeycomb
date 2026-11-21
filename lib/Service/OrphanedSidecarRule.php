@@ -17,6 +17,14 @@ final class OrphanedSidecarRule {
 
 	private const string SIDECAR_SUFFIX = '.xmp';
 
+	/** The mount type of the user's home storage; shares, group folders and external storage differ. */
+	private const string OWN_MOUNT = '';
+
+	/** Whether the node lies on the user's own storage, the only one cleaned up. */
+	public static function isOwnStorage(Node $node): bool {
+		return $node->getMountPoint()->getMountType() === self::OWN_MOUNT;
+	}
+
 	/**
 	 * The sidecars among one folder's nodes that no media file among them owns.
 	 * @param iterable<Node> $nodes

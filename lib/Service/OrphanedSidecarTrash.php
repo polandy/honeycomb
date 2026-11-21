@@ -56,7 +56,7 @@ final class OrphanedSidecarTrash {
 		if ($file->getEtag() !== $etag) {
 			return TrashResult::Changed;
 		}
-		if (!$file->isDeletable()) {
+		if (!$file->isDeletable() || !OrphanedSidecarRule::isOwnStorage($file)) {
 			return TrashResult::NotPermitted;
 		}
 		try {
