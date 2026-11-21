@@ -12,9 +12,9 @@ const IPAD_USER_AGENT = 'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebK
 // WebKit needs system libraries not every host has, so CI and opted-in hosts add its project.
 const WEBKIT_PROJECTS = process.env.HONEYCOMB_E2E_WEBKIT === '1'
 	? [
-		{ name: 'webkit', dependencies: ['login'], grep: new RegExp(WEBKIT), use: { ...devices['Desktop Safari'], viewport: { width: 1440, height: 900 }, storageState: ADMIN_STATE } },
-		{ name: 'webkit-ipad', dependencies: ['login'], grep: new RegExp(WEBKIT), use: { ...devices['iPad Pro 11 landscape'], userAgent: IPAD_USER_AGENT, storageState: ADMIN_STATE } },
-	]
+			{ name: 'webkit', dependencies: ['login'], grep: new RegExp(WEBKIT), use: { ...devices['Desktop Safari'], viewport: { width: 1440, height: 900 }, storageState: ADMIN_STATE } },
+			{ name: 'webkit-ipad', dependencies: ['login'], grep: new RegExp(WEBKIT), use: { ...devices['iPad Pro 11 landscape'], userAgent: IPAD_USER_AGENT, storageState: ADMIN_STATE } },
+		]
 	: []
 
 export default defineConfig({
