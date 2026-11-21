@@ -1739,10 +1739,12 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the e2e container (PHP's built-in server on `127.0.0.1:2283`), not as a second Playwright web
   server: no port per parallel run, no route from the container to the host. Easy to redo: the
   router files stay, only the hook that starts them moves.
-- 2026-11-21: The ESLint conventions test's snippet paths are excluded from `tsconfig.json`, so
-  they lint in typescript-eslint's small default project instead of loading the whole program;
-  its first case took over 30 s inside the full Vitest run on a loaded host (load average above
-  20) and 5 s after. A longer timeout was rejected (owner rule against flaky tests).
+- 2026-11-21: The ESLint conventions test lints its snippets under
+  `tests/js/conventions/snippets/`, whose empty `tsconfig.json` is the nearest one, with the
+  repository's config rebased there. Under the root `tsconfig.json` the project service loaded the
+  whole configured project (about 1,700 files) for every snippet path, and the first case took
+  40 s inside the full Vitest run on a loaded host. Now it takes about 1.5 s. A tsconfig `exclude`
+  did not help, and a longer timeout was rejected (owner rule against flaky tests).
 - 2026-11-21: CI splits the e2e specs per Nextcloud version into 3 Playwright shards (`--shard`),
   each a matrix job on its own runner with its own Nextcloud, so no shard sees another's state;
   the `gate` needs the `e2e` job and so every shard. `workers: 1` stays: one Nextcloud per

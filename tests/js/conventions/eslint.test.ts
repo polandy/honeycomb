@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Linter } from 'eslint'
+
 import { ESLint } from 'eslint'
+import { resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 const LOGIC_FILE = 'src/logic/example.ts'
@@ -8,10 +12,27 @@ const COMPONENT_HELPER_FILE = 'src/components/example.ts'
 const TEST_FILE = 'tests/js/example.test.ts'
 const COMPONENT_FILE = 'src/components/ExampleView.vue'
 
-const eslint = new ESLint()
+// An empty tsconfig here keeps the project service from loading the whole repository for a snippet.
+const SNIPPET_ROOT = resolve(import.meta.dirname, 'snippets')
+const CONFIG_FILE = resolve(import.meta.dirname, '../../../eslint.config.mjs')
+const { default: config } = await import(pathToFileURL(CONFIG_FILE).href) as { default: Linter.Config[] }
+
+/** The repository's config, rooted at the snippet folder. */
+function snippetConfig(): Linter.Config[] {
+	return config.map((entry) => {
+		const parserOptions = entry.languageOptions?.parserOptions
+		return {
+			...entry,
+			basePath: SNIPPET_ROOT,
+			...(parserOptions ? { languageOptions: { ...entry.languageOptions, parserOptions: { ...parserOptions, tsconfigRootDir: SNIPPET_ROOT } } } : {}),
+		}
+	})
+}
+
+const eslint = new ESLint({ cwd: SNIPPET_ROOT, overrideConfigFile: true, overrideConfig: snippetConfig() })
 
 async function ruleIds(code: string, filePath: string): Promise<string[]> {
-	const [result] = await eslint.lintText(code, { filePath })
+	const [result] = await eslint.lintText(code, { filePath: resolve(SNIPPET_ROOT, filePath) })
 	return (result?.messages ?? []).map((message) => message.ruleId ?? message.message)
 }
 
