@@ -61,14 +61,19 @@ const exposureRows = computed(() => {
 	]
 })
 /** The reason the hint gives, `1/15 s at 300 mm full frame; slower than 1/300 s`. */
-const riskReason = computed(() => risk.value === null
-	? null
-	: t('honeycomb', '{time} at {length} mm{fullFrame}; slower than {limit}', {
-			time: exposureTimeText(risk.value.exposureTime),
-			length: formatNumber(risk.value.focalLength),
-			fullFrame: risk.value.fullFrame ? t('honeycomb', ' full frame') : '',
-			limit: exposureTimeText(1 / risk.value.focalLength),
-		}))
+const riskReason = computed(() => {
+	if (risk.value === null) {
+		return null
+	}
+	const params = {
+		time: exposureTimeText(risk.value.exposureTime),
+		length: formatNumber(risk.value.focalLength),
+		limit: exposureTimeText(1 / risk.value.focalLength),
+	}
+	return risk.value.fullFrame
+		? t('honeycomb', '{time} at {length} mm full frame; slower than {limit}', params)
+		: t('honeycomb', '{time} at {length} mm; slower than {limit}', params)
+})
 const rows = computed(() => {
 	const { rendered, raw } = isListingPicture(props.picture) ? props.picture : { rendered: null, raw: null }
 	const { captureTime, width, height } = member.value
