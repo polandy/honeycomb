@@ -18,6 +18,7 @@ import { listFolders as apiListFolders } from '../api.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { folderName, parentName } from '../logic/move-targets.ts'
 import { moveFailureReason } from '../move-text.ts'
+import { unkeptReason } from '../trash-text.ts'
 
 const props = withDefaults(defineProps<{
 	flow: MoveFlow
@@ -36,6 +37,7 @@ const pictures = computed(() => flow.pictures.value?.length ?? 0)
 const confirmLabel = computed(() => (flow.plan.value === null
 	? t('honeycomb', 'Move')
 	: n('honeycomb', 'Move {count} file', 'Move {count} files', flow.counts.value.files, { count: formatNumber(flow.counts.value.files) }, PLAIN_TEXT)))
+const unkept = computed(() => flow.warning.value?.length ?? 0)
 const reportRows = computed(() => (flow.report.value?.failed ?? []).map(({ file, result }) => ({ file, reason: moveFailureReason(result) })))
 const reportStats = computed(() => {
 	const moved = flow.report.value?.moved.length ?? 0
@@ -135,6 +137,26 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 			:folderSet="props.folderSet" />
 	</ConfirmDialog>
 	<ConfirmDialog
+		v-else-if="flow.warning.value !== null"
+		:title="n('honeycomb', '{count} file will be replaced permanently', '{count} files will be replaced permanently', unkept, { count: formatNumber(unkept) }, PLAIN_TEXT)"
+		:confirmLabel="flow.busy.value ? t('honeycomb', 'Replacing permanently…') : t('honeycomb', 'Replace permanently')"
+		:confirmDisabled="flow.busy.value"
+		:progress="flow.progress.value"
+		:container="props.container"
+		cancel
+		danger
+		focusCancel
+		wide
+		@cancel="flow.cancelWarning()"
+		@confirm="flow.replacePermanently()">
+		<p>{{ t('honeycomb', 'The Nextcloud trash bin cannot keep these files. Replaced, they cannot be restored, and Undo does not bring them back.') }}</p>
+		<ul class="move-dialog__unkept" :aria-label="t('honeycomb', 'Files to replace permanently')">
+			<li v-for="{ replace, result } in flow.warning.value" :key="replace.fileId">
+				{{ replace.path }} <small>{{ unkeptReason(result) }}</small>
+			</li>
+		</ul>
+	</ConfirmDialog>
+	<ConfirmDialog
 		v-else-if="flow.report.value !== null"
 		:title="t('honeycomb', 'Move finished with errors')"
 		:confirmLabel="t('honeycomb', 'Close')"
@@ -178,6 +200,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 .move-dialog__chip small {
 	color: inherit;
 	opacity: 0.7;
+}
+
+.move-dialog__unkept small {
+	display: block;
+	color: var(--color-text-maxcontrast);
 }
 
 .move-dialog__hint {

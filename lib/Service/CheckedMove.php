@@ -9,7 +9,7 @@ namespace OCA\Honeycomb\Service;
 
 use OCP\Files\File;
 
-/** A file that passed its check: where it goes, the file it replaces there, or that it is already there. */
+/** A file that passed its check: where it goes, the file it replaces there and whether for good (ADR 0048), or that it is already there. */
 final readonly class CheckedMove {
 	public string $from;
 
@@ -18,6 +18,7 @@ final readonly class CheckedMove {
 		public string $path,
 		public ?File $replace,
 		public bool $stays,
+		public bool $replacesForGood = false,
 	) {
 		$this->from = $source->getPath();
 	}
