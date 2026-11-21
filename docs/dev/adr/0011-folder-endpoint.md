@@ -58,6 +58,14 @@ the ticked folders.
   hidden subfolder there can count). The tree shows "~" before the number and speaks "about". No
   extra query: the size comes from the row read to find the subtree, the storage from the mount
   already listed.
+- **Pictures and orphaned sidecars (amended 2026-11-21, E9/U9):** the counts are pictures, not
+  files: `photoFiles` is now `pictures`, `photoFilesBelow` is `picturesBelow` and
+  `photoFilesBelowApproximate` is `picturesBelowApproximate`. A RAW and a rendered file of one
+  base name count once (default extensions; the server cannot see the user's LISTING-002
+  settings). Each item also carries `orphanedSidecars` and `orphanedSidecarsBelow` (XMP-009
+  rule). The file cache query reads `parent`, `name` and `mimepart` of the subtree's media and
+  `.xmp` rows and tallies them per folder in PHP (`PictureTally`), so one query per storage stays.
+  The endpoint is not yet released, so the fields are renamed, not added.
 
 ## Consequences
 

@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\Db;
 
 use OCA\Honeycomb\Preview\UntypedRaw;
 use OCA\Honeycomb\Service\PictureCount;
+use OCA\Honeycomb\Service\PictureTally;
 use OCA\Honeycomb\Service\PicturesBelow;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Files\Folder;
@@ -17,8 +18,8 @@ use OCP\Files\Mount\IMountManager;
 use OCP\IDBConnection;
 
 /**
- * Counts the photo files below a folder with one query per storage in the file cache: the
- * folder's own subtree plus each storage mounted below it (ADR 0011).
+ * Counts the pictures and orphaned sidecars below a folder from the names in the file cache, with
+ * one query per storage: the folder's own subtree plus each storage mounted below it (ADR 0011).
  */
 final class FileCachePictures implements PicturesBelow {
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it through the service alias. */
@@ -51,7 +52,8 @@ final class FileCachePictures implements PicturesBelow {
 				$approximate = $approximate || SubtreeExactness::mayMissFiles($location['size'], $mount->getStorage());
 			}
 		}
-		return new PictureCount(array_sum(array_map(fn (array $subtree): int => $this->pictures(...$subtree), $subtrees)), $approximate);
+		$tally = array_map(fn (array $subtree): array => $this->tally(...$subtree), $subtrees);
+		return new PictureCount(array_sum(array_column($tally, 'pictures')), array_sum(array_column($tally, 'orphans')), $approximate);
 	}
 
 	/** @return ?array{at: array{int, string}, size: int} the storage, path and size of a file cache row */
@@ -80,23 +82,43 @@ final class FileCachePictures implements PicturesBelow {
 		return false;
 	}
 
-	/** The photo files below `$path` of `$storage`, leaving out every path with a hidden name. */
-	private function pictures(int $storage, string $path): int {
+	/**
+	 * The pictures and orphaned sidecars below `$path` of `$storage`, told folder by folder and
+	 * leaving out every path with a hidden name.
+	 * @return array{pictures: int, orphans: int}
+	 */
+	private function tally(int $storage, string $path): array {
 		$query = $this->db->getQueryBuilder();
 		$expr = $query->expr();
 		$prefix = $path === '' ? '' : $this->db->escapeLikeParameter($path) . '/';
 		$untypedRaws = array_map(static fn (string $extension): string => $expr->iLike('name', $query->createNamedParameter('%.' . $extension)), UntypedRaw::EXTENSIONS);
-		$photo = $expr->orX($expr->eq('mimepart', $query->createNamedParameter($this->mimeTypes->getId('image'), IQueryBuilder::PARAM_INT)), ...$untypedRaws);
-		$query->select($query->func()->count('fileid', 'photos'))
+		$media = $expr->orX(
+			$expr->eq('mimepart', $query->createNamedParameter($this->mimeTypes->getId('image'), IQueryBuilder::PARAM_INT)),
+			$expr->eq('mimepart', $query->createNamedParameter($this->mimeTypes->getId('video'), IQueryBuilder::PARAM_INT)),
+			$expr->iLike('name', $query->createNamedParameter('%.xmp')),
+			...$untypedRaws,
+		);
+		$query->select('parent', 'name', 'mimepart')
 			->from('filecache')
 			->where($expr->eq('storage', $query->createNamedParameter($storage, IQueryBuilder::PARAM_INT)))
 			->andWhere($expr->like('path', $query->createNamedParameter($prefix . '%')))
 			->andWhere($expr->notLike('path', $query->createNamedParameter($prefix . '.%')))
 			->andWhere($expr->notLike('path', $query->createNamedParameter($prefix . '%/.%')))
-			->andWhere($photo);
+			->andWhere($media);
+		$video = $this->mimeTypes->getId('video');
+		$folders = [];
 		$result = $query->executeQuery();
-		$count = (int)$result->fetchOne();
+		while (($row = $result->fetch()) !== false) {
+			$name = (string)$row['name'];
+			$kind = str_ends_with(strtolower($name), '.xmp') ? 'sidecars' : ((int)$row['mimepart'] === $video ? 'videos' : 'photos');
+			$folders[(int)$row['parent']][$kind][] = $name;
+		}
 		$result->closeCursor();
-		return $count;
+		$total = ['pictures' => 0, 'orphans' => 0];
+		foreach ($folders as $names) {
+			$own = PictureTally::of($names['photos'] ?? [], $names['videos'] ?? [], $names['sidecars'] ?? []);
+			$total = ['pictures' => $total['pictures'] + $own['pictures'], 'orphans' => $total['orphans'] + $own['orphans']];
+		}
+		return $total;
 	}
 }

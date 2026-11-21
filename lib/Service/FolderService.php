@@ -25,8 +25,8 @@ final class FolderService {
 
 	/**
 	 * The direct child folders of the folder at `$path`, hidden ones included, unsorted, each with
-	 * the count of its own photo files and of those below it (null for a hidden or unlistable child).
-	 * @return list<array{name: string, path: string, hasSubfolders: bool, pictures: ?int, picturesBelow: ?int, picturesBelowApproximate: bool}>
+	 * the counts of its own pictures and orphaned sidecars and of those below it (null for a hidden or unlistable child).
+	 * @return list<array{name: string, path: string, hasSubfolders: bool, pictures: ?int, picturesBelow: ?int, picturesBelowApproximate: bool, orphanedSidecars: ?int, orphanedSidecarsBelow: ?int}>
 	 * @throws FolderNotFoundException for a foreign, vanished or non-folder path
 	 * @throws FolderNotReadableException when the user may not read the folder
 	 */
@@ -49,37 +49,52 @@ final class FolderService {
 	}
 
 	/**
-	 * Whether `$folder` holds a folder and how many photo files of its own, from one listing, and
-	 * how many below it, from the file cache.
-	 * @return array{hasSubfolders: bool, pictures: ?int, picturesBelow: ?int, picturesBelowApproximate: bool}
+	 * Whether `$folder` holds a folder and how many pictures and orphaned sidecars of its own, from
+	 * one listing, and how many below it, from the file cache.
+	 * @return array{hasSubfolders: bool, pictures: ?int, picturesBelow: ?int, picturesBelowApproximate: bool, orphanedSidecars: ?int, orphanedSidecarsBelow: ?int}
 	 */
 	private function contents(Folder $folder): array {
 		try {
 			$nodes = $folder->getDirectoryListing();
 		} catch (NotPermittedException|NotFoundException) {
-			return ['hasSubfolders' => false, 'pictures' => null, 'picturesBelow' => null, 'picturesBelowApproximate' => false];
+			return ['hasSubfolders' => false, 'pictures' => null, 'picturesBelow' => null, 'picturesBelowApproximate' => false, 'orphanedSidecars' => null, 'orphanedSidecarsBelow' => null];
 		}
 		$hasSubfolders = false;
-		$pictures = 0;
+		$photos = $videos = $sidecars = [];
 		foreach ($nodes as $node) {
 			$hasSubfolders = $hasSubfolders || $node instanceof Folder;
-			if ($node instanceof File && !str_starts_with($node->getName(), '.') && ListingService::isPhoto($node)) {
-				$pictures++;
+			if (!$node instanceof File || str_starts_with($node->getName(), '.')) {
+				continue;
+			}
+			if (ListingService::isSidecar($node)) {
+				$sidecars[] = $node->getName();
+			} elseif (ListingService::isPhoto($node)) {
+				$photos[] = $node->getName();
+			} elseif (OrphanedSidecarRule::isVideo($node)) {
+				$videos[] = $node->getName();
 			}
 		}
 		if (str_starts_with($folder->getName(), '.')) {
-			return ['hasSubfolders' => $hasSubfolders, 'pictures' => null, 'picturesBelow' => null, 'picturesBelowApproximate' => false];
+			return ['hasSubfolders' => $hasSubfolders, 'pictures' => null, 'picturesBelow' => null, 'picturesBelowApproximate' => false, 'orphanedSidecars' => null, 'orphanedSidecarsBelow' => null];
 		}
+		$own = PictureTally::of($photos, $videos, $sidecars);
 		$below = $this->picturesBelow($folder);
-		return ['hasSubfolders' => $hasSubfolders, 'pictures' => $pictures, 'picturesBelow' => $below?->pictures, 'picturesBelowApproximate' => $below?->approximate ?? false];
+		return [
+			'hasSubfolders' => $hasSubfolders,
+			'pictures' => $own['pictures'],
+			'picturesBelow' => $below?->pictures,
+			'picturesBelowApproximate' => $below?->approximate ?? false,
+			'orphanedSidecars' => $own['orphans'],
+			'orphanedSidecarsBelow' => $below?->orphans,
+		];
 	}
 
-	/** The photo files below `$folder`, or null when the file cache cannot tell. */
+	/** The pictures and orphaned sidecars below `$folder`, or null when the file cache cannot tell. */
 	private function picturesBelow(Folder $folder): ?PictureCount {
 		try {
 			return $this->below->count($folder);
 		} catch (\OCP\DB\Exception $e) {
-			$this->logger->warning('Could not count the photo files below a folder.', ['exception' => $e]);
+			$this->logger->warning('Could not count the pictures below a folder.', ['exception' => $e]);
 			return null;
 		}
 	}

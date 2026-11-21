@@ -15,14 +15,16 @@ folder, shared folders included. A folder with subfolders has an arrow before it
 - **Ticked below:** a folder with ticked folders somewhere inside it shows "*n* inside" after its
   name, also while it is collapsed, so you can find your ticks. The move dialog's *Browse…* marks
   the folders above the chosen one the same way.
-- **Photo files:** the number at the end of a folder's row counts its photo files. While a
-  folder is collapsed it counts the photo files in it and in all its subfolders; once you expand
-  it, it counts only those directly in it, and each subfolder shows its own (as in digiKam). A RAW
-  and a JPEG of one shot count as two, so it can be twice the number of photos the picker shows
-  once you tick the folder. Folders without photo files show no number. The count of a collapsed
+- **Pictures:** the number at the end of a folder's row counts its pictures. A RAW and a JPEG of
+  one shot count as one picture (with the default file types), so it matches the grid once you
+  tick the folder. While a folder is collapsed it counts the pictures in it and in all its
+  subfolders; once you expand it, it counts only those directly in it, and each subfolder shows
+  its own (as in digiKam). Folders without pictures show no number. The count of a collapsed
   folder comes from Nextcloud's file index, so files Nextcloud has not scanned yet are missing
   from it. Where the number may be incomplete, because files are not scanned yet or the folder is
   a team folder with advanced permissions, it starts with "~" (for example "~123").
+- **Orphaned sidecars:** a folder with sidecar files (.xmp) that have no picture shows a small
+  note such as "3 orphaned sidecars" before its number, counted the same way as the pictures.
 - **Include subfolders:** the switch above the tree adds every subfolder of a ticked folder, at
   any depth. Hidden folders (starting with a dot) are always skipped and cannot be ticked. With
   the switch on, ticking a subfolder of a ticked folder changes nothing: **Recent** keeps one

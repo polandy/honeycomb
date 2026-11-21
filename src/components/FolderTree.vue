@@ -13,7 +13,7 @@ import { listFolders as apiListFolders } from '../api.ts'
 import { formatNumber, nameComparer, PLAIN_TEXT } from '../l10n.ts'
 import { logger } from '../logger.ts'
 import { effectiveExclusions, isHiddenFolder } from '../logic/folder-set.ts'
-import { excludedBelow, excludedFrom, foldersToExpand, includedBy, ROOT, rowPictures, tickedBelow, treeKey, visibleRows } from '../logic/folder-tree.ts'
+import { excludedBelow, excludedFrom, foldersToExpand, includedBy, ROOT, rowOrphans, rowPictures, tickedBelow, treeKey, visibleRows } from '../logic/folder-tree.ts'
 import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
@@ -129,7 +129,7 @@ function badges(folder: Folder) {
 	]
 }
 
-/** The photo-file count of a folder row, shown and spoken; null when it holds none or is unknown. */
+/** The picture count of a folder row, shown and spoken; null when it holds none or is unknown. */
 function pictureCount(folder: Folder, expanded: boolean) {
 	const files = rowPictures(folder, expanded)
 	if (files === null) {
@@ -139,17 +139,33 @@ function pictureCount(folder: Folder, expanded: boolean) {
 	return {
 		shown: files.approximate ? `~${vars.count}` : vars.count,
 		spoken: files.approximate
-			? n('honeycomb', 'about {count} photo file with subfolders', 'about {count} photo files with subfolders', files.count, vars, PLAIN_TEXT)
+			? n('honeycomb', 'about {count} picture with subfolders', 'about {count} pictures with subfolders', files.count, vars, PLAIN_TEXT)
 			: files.below
-				? n('honeycomb', '{count} photo file with subfolders', '{count} photo files with subfolders', files.count, vars, PLAIN_TEXT)
-				: n('honeycomb', '{count} photo file', '{count} photo files', files.count, vars, PLAIN_TEXT),
+				? n('honeycomb', '{count} picture with subfolders', '{count} pictures with subfolders', files.count, vars, PLAIN_TEXT)
+				: n('honeycomb', '{count} picture', '{count} pictures', files.count, vars, PLAIN_TEXT),
 	}
 }
 
-/** The photo-file counts of the folders shown, by path. */
+/** The picture counts of the folders shown, by path. */
 const counts = computed(() => new Map(rows.value.flatMap((row) => {
 	const count = row.kind === 'folder' ? pictureCount(row.folder, row.expanded) : null
 	return row.kind === 'folder' && count !== null ? [[row.folder.path, count] as const] : []
+})))
+
+/** The orphaned-sidecar note of a folder row, shown and spoken; null when it has none or they are unknown. */
+function orphanNote(folder: Folder, expanded: boolean) {
+	const orphans = rowOrphans(folder, expanded)
+	if (orphans === null) {
+		return null
+	}
+	const text = n('honeycomb', '{count} orphaned sidecar', '{count} orphaned sidecars', orphans, { count: formatNumber(orphans) }, PLAIN_TEXT)
+	return { shown: text, spoken: text }
+}
+
+/** The orphaned-sidecar notes of the folders shown, by path. */
+const orphanNotes = computed(() => new Map(rows.value.flatMap((row) => {
+	const note = row.kind === 'folder' ? orphanNote(row.folder, row.expanded) : null
+	return row.kind === 'folder' && note !== null ? [[row.folder.path, note] as const] : []
 })))
 
 /** The spoken note of a folder *Include subfolders* takes along or leaves out; null for neither. */
@@ -261,6 +277,10 @@ for (const path of [ROOT, ...foldersToExpand([...props.ticked, ...effectiveExclu
 					:class="{ 'folder-tree__badge--excluded': badge.excluded }">
 					<span aria-hidden="true">{{ badge.shown }}</span>
 					<span class="hidden-visually">{{ badge.spoken }}</span>
+				</span>
+				<span v-if="orphanNotes.has(row.folder.path)" class="folder-tree__orphans">
+					<span aria-hidden="true">{{ orphanNotes.get(row.folder.path)?.shown }}</span>
+					<span class="hidden-visually">{{ orphanNotes.get(row.folder.path)?.spoken }}</span>
 				</span>
 				<span v-if="counts.has(row.folder.path)" class="folder-tree__count">
 					<span aria-hidden="true">{{ counts.get(row.folder.path)?.shown }}</span>

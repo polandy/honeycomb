@@ -32,20 +32,39 @@ final class OrphanedSidecarRule {
 	 */
 	public static function orphans(iterable $nodes): array {
 		$sidecars = [];
-		$owners = [];
+		$media = [];
 		foreach ($nodes as $node) {
 			if (!$node instanceof File) {
 				continue;
 			}
 			if (ListingService::isSidecar($node)) {
-				$sidecars[] = $node;
+				$sidecars[$node->getName()] = $node;
 			} elseif (self::isMedia($node)) {
-				$name = strtolower($node->getName());
-				$owners[$name] = true;
-				$owners[pathinfo($name, PATHINFO_FILENAME)] = true;
+				$media[] = $node->getName();
 			}
 		}
-		return array_values(array_filter($sidecars, static fn (File $sidecar): bool => !self::isOwned($sidecar->getName(), $owners)));
+		return array_values(array_intersect_key($sidecars, array_flip(self::orphanNames($media, array_keys($sidecars)))));
+	}
+
+	/**
+	 * The sidecar names that no media file name owns, all from one folder.
+	 * @param list<string> $media photo and video file names
+	 * @param list<string> $sidecars
+	 * @return list<string>
+	 */
+	public static function orphanNames(array $media, array $sidecars): array {
+		$owners = [];
+		foreach ($media as $name) {
+			$name = strtolower($name);
+			$owners[$name] = true;
+			$owners[pathinfo($name, PATHINFO_FILENAME)] = true;
+		}
+		return array_values(array_filter($sidecars, static fn (string $sidecar): bool => !self::isOwned($sidecar, $owners)));
+	}
+
+	/** Whether the file is a video, which owns sidecars but is no picture. */
+	public static function isVideo(File $file): bool {
+		return str_starts_with($file->getMimetype(), 'video/');
 	}
 
 	/**
@@ -64,7 +83,7 @@ final class OrphanedSidecarRule {
 
 	/** A photo, including untyped RAW files, or a video. */
 	private static function isMedia(File $file): bool {
-		return ListingService::isPhoto($file) || str_starts_with($file->getMimetype(), 'video/');
+		return ListingService::isPhoto($file) || self::isVideo($file);
 	}
 
 	/** @param array<string, true> $owners media file names and their names without the extension, in lower case */
