@@ -21,6 +21,7 @@ export function listingEntry(fileId: number, path: string, fields: Partial<Listi
 		camera: null,
 		visualHash: null,
 		quality: null,
+		exposure: null,
 		flag: null,
 		keepRaw: null,
 		flagUpdated: null,

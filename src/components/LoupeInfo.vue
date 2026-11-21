@@ -20,6 +20,7 @@ import { parseFileName } from '../logic/file-name.ts'
 import { imageMember } from '../logic/image-tiers.ts'
 import { isListingPicture } from '../logic/listing.ts'
 import { badgeExtension } from '../logic/pair-badge.ts'
+import { exposureText, exposureTimeText, pictureExposure, shakeRisk } from '../logic/shake-risk.ts'
 import { sidecarTargets } from '../logic/xmp/targets.ts'
 
 const props = withDefaults(defineProps<{
@@ -44,6 +45,35 @@ const EMPTY = '—'
 const FLAG_NAMES = { picked: () => t('honeycomb', 'Picked'), rejected: () => t('honeycomb', 'Rejected'), unflagged: () => t('honeycomb', 'Unflagged') }
 
 const member = computed(() => imageMember(props.picture))
+const exposure = computed(() => pictureExposure(props.picture))
+/** The shake risk's rule applied to the picture, null while it is not at risk (SERIES-009). */
+const risk = computed(() => shakeRisk(exposure.value))
+const exposureRows = computed(() => {
+	const facts = exposure.value
+	const text = facts === null ? null : exposureText(facts)
+	const length = facts?.focalLength ?? null
+	const fullFrame = facts?.focalLength35 ?? null
+	return [
+		...(text === null ? [] : [{ term: t('honeycomb', 'Exposure'), value: text }]),
+		...(length === null && fullFrame === null
+			? []
+			: [{ term: t('honeycomb', 'Focal length'), value: focalLengthText(length, fullFrame) }]),
+	]
+})
+/** The reason the hint gives, `1/15 s at 300 mm full frame; slower than 1/300 s`. */
+const riskReason = computed(() => {
+	if (risk.value === null) {
+		return null
+	}
+	const params = {
+		time: exposureTimeText(risk.value.exposureTime),
+		length: formatNumber(risk.value.focalLength),
+		limit: exposureTimeText(1 / risk.value.focalLength),
+	}
+	return risk.value.fullFrame
+		? t('honeycomb', '{time} at {length} mm full frame; slower than {limit}', params)
+		: t('honeycomb', '{time} at {length} mm; slower than {limit}', params)
+})
 const rows = computed(() => {
 	const { rendered, raw } = isListingPicture(props.picture) ? props.picture : { rendered: null, raw: null }
 	const { captureTime, width, height } = member.value
@@ -51,6 +81,7 @@ const rows = computed(() => {
 		{ term: t('honeycomb', 'Name'), value: props.picture.baseName },
 		...(props.folderSet === undefined ? [] : [{ term: t('honeycomb', 'Folder'), value: folderLabel(props.picture.folder, props.folderSet) }]),
 		...(captureTime === null ? [] : [{ term: t('honeycomb', 'Captured'), value: formatDateTime(captureTime) }]),
+		...exposureRows.value,
 		...(width === null || height === null ? [] : [{ term: t('honeycomb', 'Size'), value: `${formatNumber(width)} × ${formatNumber(height)}` }]),
 		...(rendered === null ? [] : [{ term: badgeExtension(rendered), value: formatFileSize(rendered.size) }]),
 		...(raw === null ? [] : [{ term: badgeExtension(raw), value: formatFileSize(raw.size) }]),
@@ -75,6 +106,15 @@ const sharpnessText = computed(() => {
 		? t('honeycomb', 'Sharpest of {count}', { count: formatNumber(count) })
 		: t('honeycomb', 'Rank {rank} of {count}', { rank: formatNumber(rank), count: formatNumber(count) })
 })
+/** `200 mm`, with `(300 mm full frame)` where the camera reports a different full-frame length. */
+function focalLengthText(length: number | null, fullFrame: number | null): string {
+	if (length === null || fullFrame === null) {
+		return t('honeycomb', '{length} mm', { length: formatNumber(length ?? fullFrame!) })
+	}
+	return length === fullFrame
+		? t('honeycomb', '{length} mm', { length: formatNumber(length) })
+		: t('honeycomb', '{length} mm ({fullFrame} mm full frame)', { length: formatNumber(length), fullFrame: formatNumber(fullFrame) })
+}
 const NOT_WRITTEN: Record<LockReason, () => string> = {
 	readOnly: () => t('honeycomb', 'Read only: you may not change this folder'),
 }
@@ -96,15 +136,26 @@ const writtenTo = computed(() => {
 				<dd>{{ row.value }}</dd>
 			</template>
 		</dl>
-		<template v-if="sharpnessText !== null">
+		<template v-if="sharpnessText !== null || riskReason !== null">
 			<h3>{{ t('honeycomb', 'Quality') }}</h3>
-			<dl>
-				<dt>{{ t('honeycomb', 'Sharpness') }}</dt>
-				<dd>{{ sharpnessText }}</dd>
-			</dl>
-			<p class="loupe-info__note">
-				{{ t('honeycomb', 'Compared within its series only') }}
-			</p>
+			<template v-if="sharpnessText !== null">
+				<dl>
+					<dt>{{ t('honeycomb', 'Sharpness') }}</dt>
+					<dd>{{ sharpnessText }}</dd>
+				</dl>
+				<p class="loupe-info__note">
+					{{ t('honeycomb', 'Compared within its series only') }}
+				</p>
+			</template>
+			<template v-if="riskReason !== null">
+				<dl>
+					<dt>{{ t('honeycomb', 'Hints') }}</dt>
+					<dd>{{ t('honeycomb', 'Shake risk') }}</dd>
+				</dl>
+				<p class="loupe-info__note">
+					{{ riskReason }}
+				</p>
+			</template>
 		</template>
 		<h3>{{ t('honeycomb', 'Decision') }}</h3>
 		<dl>
