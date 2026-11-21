@@ -95,7 +95,7 @@ describe('App: the settings', () => {
 		await flushPromises()
 		const extensions = { rawExtensions: ['nef'], renderedExtensions: ['jpg', 'tif'] }
 
-		await wrapper.findComponent(FolderPicker).props('listFolders')('/P')
+		await wrapper.findComponent(FolderPicker).props('listFolders')?.('/P')
 		expect(listFolders).toHaveBeenLastCalledWith('/P', extensions)
 		await openCull(wrapper)
 		await wrapper.findComponent(CullDialogs).props('listFolders')('/Q')

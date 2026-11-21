@@ -61,13 +61,20 @@ the ticked folders.
 - **Pictures and orphaned sidecars (amended 2026-11-21, E9/U9):** the counts are pictures, not
   files: `photoFiles` is now `pictures`, `photoFilesBelow` is `picturesBelow` and
   `photoFilesBelowApproximate` is `picturesBelowApproximate`. A RAW and a rendered file of one
-  base name count once (default extensions; the server cannot see the user's LISTING-002
-  settings). Each item also carries `orphanedSidecars` and `orphanedSidecarsBelow` (XMP-009
+  base name count once. Each item also carries `orphanedSidecars` and `orphanedSidecarsBelow` (XMP-009
   rule). The file cache query reads `parent`, `name` and `mimepart` of the subtree's media and
   `.xmp` rows and tallies them per folder in PHP (`PictureTally`), so one query per storage
   stays. The rows now travel to PHP instead of a `COUNT`, so memory and time grow with the media
-  files below a folder (unmeasured, revisit with a cache).
+  files below a folder.
   The endpoint is not yet released, so the fields are renamed, not added.
+- **The user's extensions (amended 2026-11-21, #187 M1):** the request may carry
+  `rawExtensions[]` and `renderedExtensions[]`, the user's LISTING-002 lists; a list left out is
+  the default, an invalid list (empty, `xmp`, not letters and digits, shared by both) answers 400.
+  Only photos with an extension in either list count, as in the grid. The count stays in PHP:
+  at 100,000 files below a folder (SQLite, `scripts/measure-scale.sh`) the tally takes 110–130 ms
+  and 36 MB, the plain SQL `COUNT` of #244 14–16 ms but cannot pair, and a pairing `GROUP BY` on
+  the lower-case base name 360–380 ms. Orphaned sidecars need the darktable duplicate pattern,
+  which portable SQL cannot match.
 
 ## Consequences
 

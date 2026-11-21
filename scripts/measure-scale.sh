@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Measures the subfolder listing, the bulk saves and the XMP cache with a tree of 100,000 empty photo files.
+# Measures the subfolder listing, the picker's count below a folder, the bulk saves and the XMP cache with a tree of 100,000 empty photo files.
 # Usage: scripts/measure-scale.sh <port> <admin user>, against a running scripts/e2e-server.sh <port>
 set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
@@ -32,7 +32,9 @@ as_web php occ config:system:set query_log_file --value=/tmp/honeycomb-query.log
 docker cp scripts/measure-scale.php "$CONTAINER:/tmp/measure-scale.php"
 
 for path in "$FIXTURE/y1/d1" "$FIXTURE/y1" "$FIXTURE"; do
-  as_web php /tmp/measure-scale.php "$USER_ID" listing "/$path"
+  for action in listing pictures-below count-below; do
+    as_web php /tmp/measure-scale.php "$USER_ID" "$action" "/$path"
+  done
 done
 for kind in decisions tags; do
   for count in "${SAVED_ITEMS[@]}"; do

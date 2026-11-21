@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Controller;
 
 use OCA\Honeycomb\Service\FolderService;
+use OCA\Honeycomb\Service\PairingExtensions;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -27,10 +28,13 @@ final class FolderController extends Controller {
 		parent::__construct($appName, $request);
 	}
 
-	/** The child folders of the folder at `path`, for the folder picker. */
+	/** The child folders of the folder at `path`, for the folder picker, counted with the `rawExtensions[]` and `renderedExtensions[]` sent. */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/folders')]
 	public function index(string $path = ''): Response {
-		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(['folders' => $this->folderService->children($user, $path)]));
+		return $this->api->forUser(function (IUser $user) use ($path): Response {
+			$extensions = PairingExtensions::fromRequest($this->request->getParam('rawExtensions'), $this->request->getParam('renderedExtensions'));
+			return new JSONResponse(['folders' => $this->folderService->children($user, $path, $extensions)]);
+		});
 	}
 }

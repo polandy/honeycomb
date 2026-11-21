@@ -3,6 +3,7 @@
 import type { Listing } from '../logic/cull.ts'
 import type { TreeFolder } from '../logic/folder-tree.ts'
 import type { Schedule } from '../logic/long-press.ts'
+import type { PairingSettings } from '../logic/pairing.ts'
 import type { PictureId } from '../logic/picture-id.ts'
 import type { WarmOptions } from '../preview-warmer.ts'
 
@@ -16,6 +17,9 @@ import { API, ApiResponseError, isRecord } from './core.ts'
 /** A child folder as the folder endpoint returns it (ADR 0011). */
 export type Folder = TreeFolder
 
+/** The extension lists the folder endpoint counts with; the server's defaults without them. */
+export type PairingExtensions = Pick<PairingSettings, 'rawExtensions' | 'renderedExtensions'>
+
 /** The image files of a folder, with every folder below it when `subfolders` (ADR 0009), and the user's permissions on each folder (LISTING-001.19). */
 export async function listEntries(path: string, subfolders: boolean, excluded: readonly string[] = [], schedule: Schedule = browserSchedule): Promise<Required<Listing>> {
 	const params = { path, ...(subfolders ? { subfolders: 1 } : {}), ...(excluded.length > 0 ? { excluded } : {}) }
@@ -26,9 +30,10 @@ export async function listEntries(path: string, subfolders: boolean, excluded: r
 	return { entries: data.entries as Listing['entries'], truncated: data.truncated, folders: listedFolders(data.folders) }
 }
 
-/** The direct child folders of a folder (ADR 0011). */
-export async function listFolders(path: string): Promise<Folder[]> {
-	const { data } = await axios.get<unknown>(generateUrl(`${API}/folders`), { params: { path } })
+/** The direct child folders of a folder, their pictures counted with `extensions` (ADR 0011). */
+export async function listFolders(path: string, extensions?: PairingExtensions): Promise<Folder[]> {
+	const lists = extensions === undefined ? {} : { rawExtensions: extensions.rawExtensions, renderedExtensions: extensions.renderedExtensions }
+	const { data } = await axios.get<unknown>(generateUrl(`${API}/folders`), { params: { path, ...lists } })
 	if (!isRecord(data) || !Array.isArray(data.folders)) {
 		throw new ApiResponseError(`The folders of "${path}" came without a folders array; check the server's version.`)
 	}
