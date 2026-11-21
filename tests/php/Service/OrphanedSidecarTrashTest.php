@@ -83,14 +83,15 @@ final class OrphanedSidecarTrashTest extends TestCase {
 	}
 
 	// spec: XMP-009.8
-	public function testSkipsAChangedForeignUndeletableOrUnrestorableSidecar(): void {
-		$this->addFiles([1 => '/P/a.xmp', 2 => '/P/b.JPG', 3 => '/P/c.xmp', 4 => '/P/d.xmp']);
+	public function testSkipsAChangedForeignUndeletableUnrestorableOrSharedSidecar(): void {
+		$this->addFiles([1 => '/P/a.xmp', 2 => '/P/b.JPG', 3 => '/P/c.xmp', 4 => '/P/d.xmp', 5 => '/P/shared/e.xmp']);
 		$this->undeletable[3] = true;
 		$this->noTrashBin[4] = true;
+		$this->mounts['/P/shared'] = true;
 
-		$results = $this->service()->trash($this->treeUser(), [['fileId' => 1, 'etag' => 'older'], ...self::sidecars(2, 99, 3, 4)]);
+		$results = $this->service()->trash($this->treeUser(), [['fileId' => 1, 'etag' => 'older'], ...self::sidecars(2, 99, 3, 4, 5)]);
 
-		$this->assertSame([1 => 'changed', 2 => 'notFound', 99 => 'notFound', 3 => 'notPermitted', 4 => 'noTrashBin'], self::byFile($results));
+		$this->assertSame([1 => 'changed', 2 => 'notFound', 99 => 'notFound', 3 => 'notPermitted', 4 => 'noTrashBin', 5 => 'notPermitted'], self::byFile($results));
 		$this->assertSame([], $this->trashed);
 	}
 

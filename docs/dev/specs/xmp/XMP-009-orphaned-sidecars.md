@@ -102,10 +102,10 @@ without changing anything, and moves them to the trash bin only after the user c
 ### XMP-009.8 – A changed, foreign or unrestorable sidecar is skipped
 
 - **Given** a sidecar with another etag, an id that is not an `.xmp` file of the user, an
-  undeletable sidecar and one the trash bin would not keep
+  undeletable sidecar, one the trash bin would not keep and one outside the user's own storage
 - **When** the user sends them to the trash endpoint
-- **Then** the results are `changed`, `notFound`, `notPermitted` and `noTrashBin`, and none was
-  deleted
+- **Then** the results are `changed`, `notFound`, `notPermitted`, `noTrashBin` and
+  `notPermitted`, and none was deleted
 
 ### XMP-009.9 – A malformed request or a disabled trash bin touches nothing
 
