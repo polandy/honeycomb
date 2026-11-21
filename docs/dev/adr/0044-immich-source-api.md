@@ -2,6 +2,7 @@
 
 - Status: accepted
 - Date: 2026-11-20, amended 2026-11-20 by M10 PR 6 (the listing on Immich's v3 search filter)
+  and by M10 PR 10 (`GET /connections` answers `[]` when not configured)
 - Extends: [0041](0041-immich-as-an-external-picture-source.md),
   [0042](0042-declarative-immich-connections.md),
   [0043](0043-immich-decisions-per-connection-and-asset.md)
@@ -56,7 +57,7 @@ the state ADR 0042 lists; the code never carries a path, a key or Immich's own t
 
 | Route | Answer |
 |---|---|
-| `GET /connections` | `{"connections": [{"id", "label", "url"}]}`, the user's connections in file order; `[]` when the file names none; `not-configured` and `connections-file` as above |
+| `GET /connections` | `{"connections": [{"id", "label", "url"}]}`, the user's connections in file order; `[]` when the file names none or no app config key is set, since every page asks it and a `404` is a console error; `connections-file` as above |
 | `GET /{connectionId}/status` | `{"state", "account", "version", "total"}`: `state` is `ok` or one of the `502`/`403` codes, `account` the Immich user name (`null` without `user.read`), `version` and `total` (`null` when unknown); always `200` for a known connection, since the status reports, not fails |
 | `POST /{connectionId}/assets` | one page of the listing (below) |
 | `POST /{connectionId}/counts` | the counters and filter numbers (below) |

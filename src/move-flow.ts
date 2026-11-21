@@ -13,6 +13,7 @@ import type { ToastAction } from './toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, ref, shallowRef, toRaw } from 'vue'
+import { TrashBinOffError } from './api.ts'
 import { logger } from './logger.ts'
 import { browserOffset, inViewOrder, moveCounts, nameCandidates } from './logic/move-candidates.ts'
 import { existingFiles, leavesStorage, moveRequest, planMove, probeFolders, sourceFolders } from './logic/move-plan.ts'
@@ -22,6 +23,7 @@ import { parseNameTemplate } from './logic/name-template/parse.ts'
 import { sendInChunks } from './logic/request-chunks.ts'
 import { followReplaced } from './logic/trash-report.ts'
 import { movedBackText, movedText, moveFailedText } from './move-text.ts'
+import { reloadAction } from './reload-action.ts'
 
 type Pictures = readonly Picture<ListingEntry>[]
 
@@ -44,7 +46,9 @@ export interface MoveFlowContext {
 	readonly loupe: Ref<LoupeSnapshot | null>
 	readonly toast: (message: string, action?: ToastAction | null) => void
 	/** Says a failure and keeps it until the user closes it. */
-	readonly error: (message: string) => void
+	readonly error: (message: string, action?: ToastAction | null) => void
+	/** Lists the open folder set again; the failure messages offer it. */
+	readonly reload?: () => void
 	readonly offset?: MtimeOffset
 	/** Overrides the request size of ADR 0029, for tests. */
 	readonly chunks?: ChunkLimits | undefined
@@ -161,7 +165,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 	/** Closes the dialog and says why nothing moved. */
 	function fail(error: unknown) {
 		close()
-		context.error(moveFailedText(error))
+		context.error(moveFailedText(error), error instanceof TrashBinOffError ? null : reloadAction(context.reload))
 	}
 
 	/** Sends the pictures in chunks; throws when the first request fails, logs a later failure (ADR 0029). */

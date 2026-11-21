@@ -4,21 +4,23 @@
 -->
 <script setup lang="ts">
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
-import type { ListingEntry } from '../logic/listing.ts'
+import type { SourceEntry } from '../logic/listing.ts'
 import type { GestureAction, GesturePointer, SwipeDirection, SwipeSetting } from '../logic/loupe-gesture.ts'
 import type { PinchCentre, Size, Zoom } from '../logic/loupe-zoom.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { PictureId } from '../logic/picture-id.ts'
 import type { ObserveSize } from '../observe-size.ts'
+import type { QualityOf } from '../quality-of.ts'
 
 import { computed, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef, watch } from 'vue'
 import LoupeSwipeHint from './LoupeSwipeHint.vue'
 import { fullLongEdge, imageMember, loupeSources } from '../logic/image-tiers.ts'
 import { DEFAULT_SWIPES, loupeGestures, swipeHint } from '../logic/loupe-gesture.ts'
-import { FIT, fitSize, fullScale, isZoomed, panBy, pinchZoom, toggleZoom, zoomPercent } from '../logic/loupe-zoom.ts'
+import { FIT, fitSize, fullScale, isZoomed, panBy, pinchZoom, spotOf, toggleZoom, zoomPercent } from '../logic/loupe-zoom.ts'
+import { focusTileCentre } from '../logic/sharpness.ts'
 
 const props = withDefaults(defineProps<{
-	pictures: readonly Picture<ListingEntry>[]
+	pictures: readonly Picture<SourceEntry>[]
 	index: number
 	imageUrl: ImageUrlFor
 	/** Loads a source once; the loupe's prefetch shares it. */
@@ -31,7 +33,9 @@ const props = withDefaults(defineProps<{
 	keepZoom?: boolean
 	/** What each swipe sets, for the swipe hint. */
 	swipes?: SwipeSetting
-}>(), { keepZoom: false, swipes: () => DEFAULT_SWIPES })
+	/** The pictures' quality values; 100 % centres a photo's focus tile (SERIES-007.7). */
+	qualityOf?: QualityOf
+}>(), { keepZoom: false, swipes: () => DEFAULT_SWIPES, qualityOf: () => null })
 
 const emit = defineEmits<{
 	page: [step: -1 | 1]
@@ -62,6 +66,7 @@ const sources = computed(() => loupeSources(member.value, props.imageUrl))
 const fitted = computed(() => fitSize(aspectOf(member.value), size.value))
 const maxScale = computed(() => fullScale(fullLongEdge(member.value), fitted.value, props.devicePixelRatio))
 const zoomed = computed(() => isZoomed(zoom.value))
+const focusTile = computed(() => props.qualityOf(props.pictures[props.index]!)?.focusTile ?? null)
 const hint = computed(() => swipeHint(liftY.value, liftSwipe.value, size.value.height, props.swipes))
 const slides = computed(() => [-1, 0, 1]
 	.filter((offset) => props.pictures[props.index + offset] !== undefined)
@@ -72,13 +77,13 @@ const slides = computed(() => [-1, 0, 1]
 	}))
 
 /** The loaded image's aspect, which is upright, else the listing's, else the default. */
-function aspectOf(shown: ListingEntry): number {
+function aspectOf(shown: SourceEntry): number {
 	const listed = shown.width !== null && shown.height !== null ? shown.width / shown.height : DEFAULT_ASPECT
 	return aspects.get(shown.fileId) ?? listed
 }
 
 /** The sharpest loaded source: the full image while zoomed, else the loupe tier, else the grid's. */
-function sourceOf(shown: ListingEntry, current: boolean): string {
+function sourceOf(shown: SourceEntry, current: boolean): string {
 	const tiers = loupeSources(shown, props.imageUrl)
 	if (current && zoomed.value && props.ready.has(tiers.full)) {
 		return tiers.full
@@ -192,12 +197,13 @@ onMounted(() => {
 onBeforeUnmount(() => stopObserving())
 
 defineExpose({
-	/** Toggles between fit and 100 % around the stage's middle; with `from`, only when zoomed is `from`, saying whether it did. */
+	/** Toggles between fit and 100 % on the focus tile, else the middle; with `from`, only when zoomed is `from`, saying whether it did. */
 	toggleZoom(from = zoomed.value): boolean {
 		if (from !== zoomed.value) {
 			return false
 		}
-		zoom.value = toggleZoom(zoom.value, { x: 0, y: 0 }, maxScale.value, fitted.value, size.value)
+		const spot = focusTile.value === null ? { x: 0, y: 0 } : spotOf(focusTileCentre(focusTile.value), fitted.value)
+		zoom.value = toggleZoom(zoom.value, spot, maxScale.value, fitted.value, size.value)
 		return true
 	},
 })
@@ -208,6 +214,7 @@ defineExpose({
 		ref="stage"
 		class="loupe-stage"
 		:data-fit-seq="fitSeq"
+		:data-decoded="props.ready.size"
 		data-tip-avoid
 		@pointerdown="onPointerDown"
 		@pointermove="act(gestures.move(pointerOf($event)))"

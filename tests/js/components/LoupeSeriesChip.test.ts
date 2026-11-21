@@ -101,3 +101,25 @@ describe('LoupeTitleRow: the Not saved yet ring', () => {
 		expect(wrapper.find('.loupe-title-row__unsaved').exists()).toBe(false)
 	})
 })
+
+describe('LoupeTitleRow: the embedded preview note', () => {
+	const NOTE = '.loupe-title-row__embedded'
+	const mountRow = (embeddedPreview: boolean, zoom: number | null) => mount(LoupeTitleRow, {
+		props: { name: 'IMG_7', index: 6, count: 120, zoom, infoOpen: false, filmstripOpen: true, navigationShown: false, flagButtonsShown: true, embeddedPreview },
+	})
+
+	// spec: LOUPE-001.28
+	it('follows the name of a RAW-only picture while zoomed to 100 %', () => {
+		const wrapper = mountRow(true, 100)
+
+		expect(wrapper.find('.loupe-title-row__name + ' + NOTE).text()).toBe('Embedded preview')
+	})
+
+	// spec: LOUPE-001.28
+	it.each([
+		['fitted', true, null],
+		['a picture with a rendered member', false, 100],
+	])('is absent for %s', (_case, embeddedPreview, zoom) => {
+		expect(mountRow(embeddedPreview, zoom).find(NOTE).exists()).toBe(false)
+	})
+})

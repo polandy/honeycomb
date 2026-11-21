@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { Decision } from '../../../src/logic/decision.ts'
-import type { ListingEntry } from '../../../src/logic/listing.ts'
+import type { SourceEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
 import type { Writability } from '../../../src/logic/writability.ts'
 
@@ -60,7 +60,7 @@ describe('PanelDivider', () => {
 })
 
 describe('LoupeInfo', () => {
-	const mountInfo = (picture: Picture<ListingEntry>, decision: Decision = UNDECIDED, tagged: { tags?: string[], writability?: Writability } = {}) => mount(LoupeInfo, {
+	const mountInfo = (picture: Picture<SourceEntry>, decision: Decision = UNDECIDED, tagged: { tags?: string[], writability?: Writability } = {}) => mount(LoupeInfo, {
 		props: { picture, folderSet: SET, decision, ...tagged },
 	})
 
@@ -151,8 +151,8 @@ describe('LoupeInfo', () => {
 
 describe('LoupeFilmstrip', () => {
 	const PICTURES = picturesOf(Array.from({ length: 30 }, (_, at) => listingEntry(at + 1, `/P/IMG_${String(at + 1).padStart(2, '0')}.JPG`)))
-	const pickIMG11 = (picture: Picture<ListingEntry>) => ({ ...UNDECIDED, flag: picture.baseName === 'IMG_11' ? 'picked' as const : 'unflagged' as const })
-	const mountStrip = (index: number, pinned = false, decisionOf: (picture: Picture<ListingEntry>) => Decision = pickIMG11) => mount(LoupeFilmstrip, {
+	const pickIMG11 = (picture: Picture<SourceEntry>) => ({ ...UNDECIDED, flag: picture.baseName === 'IMG_11' ? 'picked' as const : 'unflagged' as const })
+	const mountStrip = (index: number, pinned = false, decisionOf: (picture: Picture<SourceEntry>) => Decision = pickIMG11) => mount(LoupeFilmstrip, {
 		props: {
 			pictures: PICTURES,
 			index,
@@ -207,7 +207,7 @@ describe('LoupeFilmstrip', () => {
 
 	// spec: LOUPE-001.19
 	it('rings the shown picture and dims the other rejected ones, never the shown one', async () => {
-		const rejectOdd = (picture: Picture<ListingEntry>) => ({ ...UNDECIDED, flag: Number(picture.baseName.slice(4)) % 2 === 1 ? 'rejected' as const : 'unflagged' as const })
+		const rejectOdd = (picture: Picture<SourceEntry>) => ({ ...UNDECIDED, flag: Number(picture.baseName.slice(4)) % 2 === 1 ? 'rejected' as const : 'unflagged' as const })
 		const wrapper = mountStrip(4, false, rejectOdd)
 		await nextTick()
 		const classes = (label: string) => wrapper.find(`button[aria-label="${label}"]`).classes()

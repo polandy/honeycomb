@@ -14,6 +14,7 @@ import { shallowRef } from 'vue'
 import { logger } from './logger.ts'
 import { DECISION_FIELDS, sameDecision, UNDECIDED } from './logic/decision.ts'
 import { embeddedXmpSource } from './logic/embedded-xmp.ts'
+import { seededSidecar } from './logic/jpeg-seed.ts'
 import { NO_OWN_SAVES, recordSaves, withOwnSaves } from './logic/own-saves.ts'
 import { failureOf, passOf, stepResult } from './logic/sidecar-pass.ts'
 import { applySaves, planSaves, savedSidecars, writeLookups } from './logic/sidecar-sync.ts'
@@ -239,12 +240,26 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		return { ...applied, counted: countedPictures(saves, answers) }
 	}
 
+	/** Creates the sidecar at the path seeded from the source sidecar read again, before *Remove RAWs* (DELETE-003.12); true when saved or nothing was to seed. */
+	async function seed(picture: Picture<ListingEntry>, path: string, source: ListingEntry): Promise<boolean> {
+		const answers = await lookUp([source.fileId], api.lookupSidecars, 'Could not read the RAW sidecar again to seed the JPEG sidecar')
+		const seeded = seededSidecar(answers.get(source.fileId), now())
+		if (seeded === null) {
+			return true
+		}
+		const reason = 'reason' in seeded ? seeded.reason : (await save([{ picture, path, item: { path, bytes: seeded.bytes } }])).failed[0]?.reason
+		if (reason !== undefined) {
+			logger.warn('Could not seed the JPEG sidecar; the RAW stays', { path, reason })
+		}
+		return reason === undefined
+	}
+
 	/** The picture with its sidecars as honeycomb last saved them, which a delete sends (DELETE-002.17). */
 	function current(picture: Picture<ListingEntry>) {
 		return withOwnSaves(picture, own)
 	}
 
-	return { read, write, writeTags, current, known, rows: knownRows }
+	return { read, write, writeTags, seed, current, known, rows: knownRows }
 }
 
 /** The lookup's answers by file id, without a request for no ids. */

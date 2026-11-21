@@ -22,7 +22,7 @@ import { imageUrl as apiImageUrl } from '../api.ts'
 import { toggleBrowserFullscreen } from '../fullscreen.ts'
 import { LOUPE_IDLE_MS, useIdle } from '../idle.ts'
 import { FILMSTRIP_THUMB } from '../logic/filmstrip.ts'
-import { imageMember, loupeSources } from '../logic/image-tiers.ts'
+import { imageMember, isEmbeddedPreview, loupeSources } from '../logic/image-tiers.ts'
 import { DIVIDER_WIDTH, FLAG_RAIL, INFO_PANEL } from '../logic/panel-width.ts'
 import { useLoupeDecisions } from '../loupe-decisions.ts'
 import { useLoupePanels } from '../loupe-panels.ts'
@@ -34,6 +34,7 @@ import { browserSchedule } from '../tile-selection.ts'
 
 const props = withDefaults(defineProps<PhotoLoupeProps>(), {
 	seriesOf: () => new Map(),
+	qualityOf: () => null,
 	tagsOf: () => [],
 	writabilityOf: (): Writability => 'writable',
 	imageUrl: apiImageUrl,
@@ -76,6 +77,7 @@ const loupeSeries = useLoupeSeries({
 	pictures: () => props.pictures,
 	picture: () => picture.value,
 	seriesOf: () => props.seriesOf,
+	qualityOf: (shown) => props.qualityOf(shown),
 	dismissHint: () => seriesHint.dismiss(),
 	compare: (series, shown) => emit('compareSeries', series, shown),
 	pickRest: (series, shown) => emit('pickRest', series, shown),
@@ -153,6 +155,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:series="loupeSeries.place.value"
 			:seriesHint="seriesHint.shown.value"
 			:unsaved="picture === props.unsaved"
+			:embeddedPreview="isEmbeddedPreview(picture)"
 			@pointerdown="overlays.wake"
 			@compareSeries="loupeSeries.compareAt(props.index)"
 			@dismissSeriesHint="dismissAndFocus(seriesHint.dismiss)"
@@ -176,6 +179,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 				:devicePixelRatio="props.devicePixelRatio"
 				:observeSize="props.observeSize"
 				:swipes="settings.swipes"
+				:qualityOf="props.qualityOf"
 				@page="go(props.index + $event)"
 				@overlays="overlays.toggle"
 				@chromeFree="chromeFree = !chromeFree"
@@ -200,7 +204,8 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 					:folderSet="props.folderSet"
 					:decision="props.decisionOf(picture)"
 					:tags="props.tagsOf(picture)"
-					:writability="props.writabilityOf(picture)" />
+					:writability="props.writabilityOf(picture)"
+					:sharpness="loupeSeries.sharpness.value" />
 			</template>
 		</div>
 		<LoupeFilmstrip
@@ -211,6 +216,7 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 			:index="props.index"
 			:decisionOf="props.decisionOf"
 			:seriesOf="props.seriesOf"
+			:sharpest="loupeSeries.sharpest.value"
 			:imageUrl="props.imageUrl"
 			:observeSize="props.observeSize"
 			:pinned="settings.filmstripPinned"

@@ -1,8 +1,12 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Picture } from './pairing.ts'
 import type { FlagFields } from './picture-flag.ts'
 import type { PictureId } from './picture-id.ts'
+import type { Series } from './series.ts'
 import type { QualityValue } from './sharpness.ts'
+
+import { imageMember } from './image-tiers.ts'
 
 /** What every picture source lists of one file: identity, pairing, sorting, display and flags (ADR 0041); times are Unix seconds. */
 export interface SourceEntry extends FlagFields {
@@ -25,6 +29,32 @@ export interface ListingEntry extends SourceEntry {
 	readonly visualHash: string | null
 	/** The stored quality value of this file version, `null` while none is stored (ADR 0046). */
 	readonly quality: QualityValue | null
+}
+
+/** Whether the picture comes from the listing endpoint, so its members carry the folder-only fields. */
+export function isListingPicture(picture: Picture<SourceEntry>): picture is Picture<ListingEntry> {
+	return 'etag' in imageMember(picture)
+}
+
+/** Thrown when a picture without a listing reaches a folder-only step. */
+export class NotListedError extends Error {}
+
+/** The pictures as listing pictures; throws on any other, which a folder-only step never gets. */
+export function listedPictures(pictures: readonly Picture<SourceEntry>[]): Picture<ListingEntry>[] {
+	if (!pictures.every(isListingPicture)) {
+		throw new NotListedError('A picture without a listing reached a folder-only step')
+	}
+	return [...pictures]
+}
+
+/** The picture as a listing picture; throws on any other. */
+export function listedPicture(picture: Picture<SourceEntry>): Picture<ListingEntry> {
+	return listedPictures([picture])[0]!
+}
+
+/** Asserts the series holds listing pictures only, as every series of a folder cull does. */
+export function assertListedSeries(series: Series<Picture<SourceEntry>>): asserts series is Series<Picture<ListingEntry>> {
+	listedPictures(series.members)
 }
 
 /** The listings of a folder set as one, each file once, in the order first listed. */

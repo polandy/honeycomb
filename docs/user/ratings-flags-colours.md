@@ -14,11 +14,12 @@ stars. Leaving the page, deleting and moving write what still waits first.
 
 Deleting goes by the flags as the server holds them as it deletes, not as honeycomb last showed
 them. [*Review rejects*](deleting.md) deletes a photo only while it is still rejected, and *Remove
-RAWs* only while it is neither *Keep RAW* nor rejected. If someone changed it in between, the
-photo is skipped and the report says why; reload the folder to see its current state. A deleted
-photo takes its sidecars into the trash bin with it. Before a RAW goes, its rating, colour label
-and tags are copied into the JPEG's own sidecar, so nothing you set is lost; if that sidecar cannot
-be written, the RAW stays.
+RAWs* only while it is neither *Keep RAW* nor rejected. If someone changed it in between, the photo
+is skipped and the report says why; press *Reload folder* on the message to see its current state. A
+deleted photo takes its sidecars into the trash bin with it. Before a RAW goes, its sidecar is read
+again and copied into the JPEG's own sidecar, with the rating, colour label, tags and what other
+programs such as digiKam stored there (face regions, for example), so nothing is lost; the pick or
+reject and *Keep RAW* stay in honeycomb. If that sidecar cannot be read or written, the RAW stays.
 
 The technical details are in [`../06-xmp-interop.md`](../dev/06-xmp-interop.md).
 

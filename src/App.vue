@@ -5,6 +5,7 @@
 <script setup lang="ts">
 import type { AppSeams } from './app-seams.ts'
 import type { DecisionIntent } from './logic/decision-change.ts'
+import type { FolderSet } from './logic/folder-set.ts'
 import type { ListingEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
@@ -19,6 +20,8 @@ import CullFinished from './components/CullFinished.vue'
 import FolderPicker from './components/FolderPicker.vue'
 import GridScreen from './components/GridScreen.vue'
 import GridSkeleton from './components/GridSkeleton.vue'
+import ImmichConnectionDialog from './components/ImmichConnectionDialog.vue'
+import ImmichState from './components/ImmichState.vue'
 import LoupeScreen from './components/LoupeScreen.vue'
 import NoFolderState from './components/NoFolderState.vue'
 import SeriesCompareScreen from './components/SeriesCompareScreen.vue'
@@ -32,12 +35,16 @@ import { APP_SEAMS } from './app-seams.ts'
 import { cleanUpWithToast, clearCacheWithToast } from './cache-clear.ts'
 import { provideCullContext } from './cull-context.ts'
 import { useCullFinished } from './cull-finished.ts'
+import { useCullLocation } from './cull-location.ts'
 import { useCull } from './cull.ts'
 import { flagsNotSavedText } from './decision-text.ts'
 import { useDeleteFlow } from './delete-flow.ts'
-import { freshCheck, sidecarSaver } from './fresh-check.ts'
+import { freshCheck } from './fresh-check.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
+import { useImmichSource } from './immich-source.ts'
+import { connectionLines } from './immich-text.ts'
+import { positionFileId } from './logic/resume-position.ts'
 import { waitSeconds } from './logic/retry-after.ts'
 import { useLoupeOpening } from './loupe-opening.ts'
 import { useMoveFlow } from './move-flow.ts'
@@ -96,17 +103,17 @@ function decideInCompare(intent: DecisionIntent, picture: Picture<ListingEntry>,
 }
 const seriesScreen = useTemplateRef<InstanceType<typeof SeriesCompareScreen>>('seriesScreen')
 const overlayScreen = computed(() => (loupe.value !== null ? '.photo-loupe' : seriesCompare.viewer.open.value ? '.series-viewer' : undefined))
-const check = freshCheck({ listEntries: props.listEntries }, { pairing: () => cull.pairing.value, writable: (picture) => cull.writabilityOf(picture) === 'writable', decisionOf: cull.decisionOf, tagsOf: cull.tags.tagsOf, writeSidecar: sidecarSaver(sidecarFlow.sync) })
+const check = freshCheck({ listEntries: props.listEntries }, { pairing: () => cull.pairing.value, writable: (picture) => cull.writabilityOf(picture) === 'writable', seedSidecar: sidecarFlow.sync.seed })
 /** Writes the waiting sidecars and waits for the flag saves in flight, before a delete or move reads the folders again (DELETE-002.28). */
 async function flushWrites() {
 	await sidecars.flush()
 	await cull.flushFlags()
 }
 const xmpExport = useXmpExport(sidecarFlow, { pictures: () => pictures.value.filter((picture) => cull.writabilityOf(picture) === 'writable'), decisionOf: cull.decisionOf, flush: flushWrites })
-const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, flush: flushWrites, current: sidecarFlow.sync.current, check, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show, error: toast.showError, onDeleted: cullFinished.deleted })
+const deleting = useDeleteFlow({ pictures: () => pictures.value, view: () => view.value, decisionOf: cull.decisionOf, decide, flush: flushWrites, current: sidecarFlow.sync.current, check, trash: props.trashPictures, removeFiles: cull.removeFiles, loupe, toast: toast.show, error: toast.showError, reload: reloadFolder, onDeleted: cullFinished.deleted })
 const { dialog: deleteDialog } = deleting
 cullFinished.waitWhile(() => loupe.value !== null || seriesCompare.open.value || deleteDialog.value !== null || deleting.busy.value)
-const moving = useMoveFlow({ view: () => view.value, settings: () => settings.value, updateSettings, probe: props.move.probeTargets, move: props.move.movePictures, flush: flushWrites, current: sidecarFlow.sync.current, removeFiles: cull.removeFiles, restoreFiles: cull.restoreFiles, listing: () => folderSet.value, loupe, toast: toast.show, error: toast.showError })
+const moving = useMoveFlow({ view: () => view.value, settings: () => settings.value, updateSettings, probe: props.move.probeTargets, move: props.move.movePictures, flush: flushWrites, current: sidecarFlow.sync.current, removeFiles: cull.removeFiles, restoreFiles: cull.restoreFiles, listing: () => folderSet.value, loupe, toast: toast.show, error: toast.showError, reload: reloadFolder })
 const recent = useRecent(props.positions, props.listEntries, { folderSet: () => folderSet.value, progress: () => progress.value, pairing: () => cull.pairing.value }, toast.showError)
 const activeTime = useActiveTime(props.clock)
 const resume = useResume(recent.positions, { folderSet: () => folderSet.value, pictures: () => pictures.value, view: () => view.value, progress: () => progress.value, decidedOf: cull.decidedOf, shown: shownInLoupe, openLoupe, takeActiveSeconds: activeTime.take }, toast.show)
@@ -120,24 +127,55 @@ function openRecent(position: ResumePosition) {
 recent.refresh()
 watch(pickerOpen, (open) => open && recent.refresh())
 
+const immich = useImmichSource(props.immich, props.storage)
+void immich.load()
+const immichShown = computed(() => immich.source.value === 'immich')
+const connectionDialogOpen = ref(false)
+const opened = immich.connection
+const openedStatus = computed(() => opened.value && immich.statusOf(opened.value.id))
+/** Opens the connection and asks its status again. */
+function openConnection(connectionId: string) {
+	immich.open(connectionId)
+	void immich.check(connectionId)
+}
+/** Asks the opened connection's status again (IMMICH-001.19). */
+function checkOpened() {
+	if (opened.value !== null) {
+		void immich.check(opened.value.id)
+	}
+}
+
 const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => gridScreen.value?.filterBar?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
 
-provideCullContext({ cull, selection, decide, clearFlags, xmpExport, editSeries: editSelection, deleting, moving, resume, seriesCompare, unsaved: sidecars.waiting, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage })
+provideCullContext({ cull, selection, decide, clearFlags, xmpExport, editSeries: editSelection, deleting, moving, resume, seriesCompare, unsaved: sidecars.waiting, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage, imageUrl: props.imageUrl })
 
 /** Opens the confirmed folder set and offers its resume position. */
 function openFolderSet(...opened: Parameters<typeof cull.open>) {
 	cull.open(...opened)
 	resume.offer()
 }
+/** The file the loupe shows, null while it is closed. */
+const shownFile = () => (shownInLoupe() === null ? null : positionFileId(shownInLoupe()!))
+/** Lists the folder set and opens it, the loupe at the picture when one is given and still there (DECISIONS-002.17, .18). */
+async function openAt(set: FolderSet, fileId: number | null) {
+	await recent.list(set, fileId === null ? openFolderSet : cull.open, () => fileId !== null && resume.resumeAt(fileId))
+}
+/** Lists the open folder set again, keeping the loupe's picture (DECISIONS-002.18). */
+function reloadFolder() {
+	if (folderSet.value !== null) {
+		void openAt(folderSet.value, shownFile())
+	}
+}
+useCullLocation(props.location, { folderSet: () => folderSet.value, shownFileId: shownFile }, ({ folderSet: set, fileId }) => openAt(set, fileId))
 /** Shows or hides the file names above the grid's tiles (GRID-004.3). */
 const toggleFileNames = () => updateSettings({ showFileNames: !settings.value.showFileNames })
 /** Opens or closes the shortcut sheet. */
 const toggleShortcuts = () => (shortcutsOpen.value = !shortcutsOpen.value)
 useHotkeys(() => {
-	if (pickerOpen.value || settingsOpen.value || tagEntry.targets.value !== null || deleteDialog.value !== null || cullFinished.numbers.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
+	if (pickerOpen.value || settingsOpen.value || connectionDialogOpen.value || tagEntry.targets.value !== null || deleteDialog.value !== null || cullFinished.numbers.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
 		return null
 	}
-	if (shortcutsOpen.value || folderSet.value === null) {
+	if (shortcutsOpen.value || folderSet.value === null || immichShown.value) {
 		return { shortcuts: toggleShortcuts }
 	}
 	if (seriesCompare.open.value) {
@@ -153,17 +191,31 @@ useHotkeys(() => {
 			:items="recent.items.value"
 			:storage="props.storage"
 			:hintYear="yearReviewHint.year.value"
+			:source="immich.source.value"
+			:offersImmich="immich.offered.value"
+			:connections="connectionLines(immich.connections.value, immich.statusOf)"
+			:connectionId="opened?.id ?? null"
+			@chooseSource="immich.choose"
+			@openConnection="openConnection"
+			@connectionDetails="connectionDialogOpen = true"
 			@closeHint="yearReviewHint.close()"
 			@chooseFolders="pickerOpen = true"
 			@openRecent="openRecent"
 			@openSettings="settingsOpen = true" />
 		<NcAppContent class="honeycomb">
-			<GridSkeleton v-if="recent.listing.value" class="honeycomb__grid" :tileSize="tileSize" />
+			<ImmichState
+				v-if="immichShown"
+				:connection="opened"
+				:status="openedStatus"
+				@retry="checkOpened"
+				@details="connectionDialogOpen = true" />
+			<GridSkeleton v-else-if="recent.listing.value" class="honeycomb__grid" :tileSize="tileSize" />
 			<GridScreen v-else-if="folderSet !== null" ref="gridScreen" />
 			<NoFolderState v-else @chooseFolder="pickerOpen = true" />
 			<FolderPicker
 				v-if="pickerOpen"
 				:current="folderSet"
+				:closable="immich.offered.value"
 				:listFolders="props.listFolders"
 				:listEntries="props.listEntries"
 				:pairing="cull.pairing.value"
@@ -192,6 +244,12 @@ useHotkeys(() => {
 				@clearCache="clearCacheWithToast(props.clearCache, toast.show, toast.showError)"
 				@cleanUp="cleanUpWithToast(props.cleanUp, toast.show, toast.showError)"
 				@resetStatistics="resetStatisticsWithToast(props.resetStatistics, toast.show, toast.showError)" />
+			<ImmichConnectionDialog
+				v-if="connectionDialogOpen && opened !== null"
+				:connection="opened"
+				:status="openedStatus"
+				@test="checkOpened"
+				@close="connectionDialogOpen = false" />
 			<ToastDetails v-if="toast.detailed.value !== null" :detailed="toast.detailed.value" @close="toast.closeDetails" />
 			<Teleport to="body">
 				<LoupeScreen ref="loupeScreen" />
@@ -218,5 +276,7 @@ useHotkeys(() => {
 <style src="./coarse-controls.css" />
 
 <style src="./navigation-toggle.css" />
+
+<style src="./reduced-motion.css" />
 
 <style scoped src="./app.css" />

@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ListingEntry } from './listing.ts'
+import type { ListingEntry, SourceEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 
 import { memberIds } from './pairing.ts'
@@ -69,11 +69,11 @@ export function splitByStoredRows<P extends Picture<ListingEntry>>(pictures: rea
 }
 
 /** Whether the picture belongs to a stored series marked done (SERIES-005.14). */
-export function inDoneSeries(picture: Picture<ListingEntry>, rows: StoredRows): boolean {
+export function inDoneSeries(picture: Picture<SourceEntry>, rows: StoredRows): boolean {
 	return storedSeriesOf(picture, rows)?.status === 'done'
 }
 
 /** The stored series a member of the picture belongs to, if any. */
-function storedSeriesOf(picture: Picture<ListingEntry>, rows: StoredRows): StoredSeriesInfo | undefined {
+function storedSeriesOf(picture: Picture<SourceEntry>, rows: StoredRows): StoredSeriesInfo | undefined {
 	return memberIds(picture).map((fileId) => rows.get(fileId)).find((row) => row !== undefined && row !== null) ?? undefined
 }

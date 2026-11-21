@@ -45,6 +45,22 @@ test('shows a dialog as a bottom sheet on a phone', async ({ page }) => {
 	await expect(sheet).toHaveCSS('border-bottom-left-radius', '0px')
 })
 
+// spec: APP-001.17
+test('opens a dialog without a transition or an animation under reduced motion', async ({ page }) => {
+	await page.emulateMedia({ reducedMotion: 'reduce' })
+	await page.goto('/index.php/apps/honeycomb/')
+
+	const dialog = page.getByRole('dialog', { name: 'Choose folders' })
+	await expect(dialog).toBeVisible()
+	const moving = await page.evaluate(() => {
+		const parts = [...document.querySelectorAll('.modal-mask, .modal-mask *')]
+		const transitions = parts.filter((part) => getComputedStyle(part).transitionDuration.split(',').some((duration) => parseFloat(duration) > 0))
+		const animations = document.getAnimations().filter((animation) => parts.includes((animation.effect as KeyframeEffect | null)?.target as Element))
+		return [...transitions.map((part) => `transition on ${part.className}`), ...animations.map((animation) => `animation ${animation.id}`)]
+	})
+	expect(moving).toEqual([])
+})
+
 // spec: APP-001.7, APP-001.8
 test('starts the navigation closed on a laptop and keeps it open once the user opened it', async ({ page }) => {
 	await page.setViewportSize({ width: 1180, height: 820 })

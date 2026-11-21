@@ -42,7 +42,7 @@ final class ImageServiceTest extends TestCase {
 	}
 
 	/** @param array<int, Node> $nodes alice's nodes by file id */
-	private function service(array $nodes, ?IPreview $preview = null, ?LoggerInterface $logger = null): ImageService {
+	private function service(array $nodes, ?IPreview $preview = null, ?LoggerInterface $logger = null, ?FakePreviewLock $lock = null): ImageService {
 		$userFolder = $this->createStub(Folder::class);
 		$userFolder->method('getFirstNodeById')->willReturnCallback(static fn (int $id): ?Node => $nodes[$id] ?? null);
 		$root = $this->createStub(IRootFolder::class);
@@ -51,6 +51,7 @@ final class ImageServiceTest extends TestCase {
 			new UserPhotos(new UserFolderResolver($root)),
 			$preview ?? $this->createStub(IPreview::class),
 			$logger ?? $this->createStub(LoggerInterface::class),
+			$lock ?? new FakePreviewLock(),
 		);
 	}
 
@@ -113,6 +114,25 @@ final class ImageServiceTest extends TestCase {
 		$this->assertSame($rendered, $this->service([], $preview)->preview($file, 1024));
 	}
 
+	// spec: IMAGES-001.18
+	public function testRendersATierAndARawsFullImageWhileHoldingTheFilesLock(): void {
+		$lock = new FakePreviewLock();
+		$rendered = $this->createStub(ISimpleFile::class);
+		$heldWhileRendering = [];
+		$preview = $this->createStub(IPreview::class);
+		$preview->method('getPreview')->willReturnCallback(static function () use ($lock, $rendered, &$heldWhileRendering): ISimpleFile {
+			$heldWhileRendering[] = $lock->held;
+			return $rendered;
+		});
+		$service = $this->service([], $preview, lock: $lock);
+
+		$service->preview($this->image(7), 256);
+		$service->full($this->image(8, 'image/x-dcraw'));
+
+		$this->assertSame([7, 8], $heldWhileRendering);
+		$this->assertNull($lock->held);
+	}
+
 	/** @return array<string, array{\Throwable}> */
 	public static function previewFailures(): array {
 		return [
@@ -169,7 +189,9 @@ final class ImageServiceTest extends TestCase {
 		$last = $this->image(4, 'image/x-dcraw');
 		$warmed = [];
 		$preview = $this->createStub(IPreview::class);
-		$preview->method('generatePreviews')->willReturnCallback(function (File $file, array $specifications) use ($broken, &$warmed): ISimpleFile {
+		$lock = new FakePreviewLock();
+		$preview->method('generatePreviews')->willReturnCallback(function (File $file, array $specifications) use ($broken, $lock, &$warmed): ISimpleFile {
+			$this->assertSame($file->getId(), $lock->held);
 			if ($file === $broken) {
 				throw new NotFoundException();
 			}
@@ -180,7 +202,7 @@ final class ImageServiceTest extends TestCase {
 		$logger->expects($this->exactly(3))->method('debug');
 
 		$nodes = [1 => $first, 2 => $broken, 3 => $this->image(3, readable: false), 4 => $last];
-		$this->service($nodes, $preview, logger: $logger)->warm($this->user(), [1, 2, 3, 5, 4]);
+		$this->service($nodes, $preview, logger: $logger, lock: $lock)->warm($this->user(), [1, 2, 3, 5, 4]);
 
 		$tiers = array_map(static fn (int $size): array => ['width' => $size, 'height' => $size, 'crop' => false, 'mode' => IPreview::MODE_FILL], [256, 1024, 4096]);
 		$this->assertSame([1 => $tiers, 4 => $tiers], $warmed);

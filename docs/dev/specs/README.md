@@ -8,7 +8,7 @@ merged code does. Spec, tests and code change in the same pull request.
 
 | Area | Specs |
 |---|---|
-| `app/` | [APP-001](app/APP-001-app-page.md) app page and navigation, [APP-002](app/APP-002-tooltip.md) tooltip |
+| `app/` | [APP-001](app/APP-001-app-page.md) app page and navigation, [APP-002](app/APP-002-tooltip.md) tooltip, [APP-003](app/APP-003-job-status.md) background job status |
 | `listing/` | [LISTING-001](listing/LISTING-001-entries.md) entries of a folder set, [LISTING-002](listing/LISTING-002-pairing.md) pairing, [LISTING-003](listing/LISTING-003-folder-picker.md) folder picker |
 | `images/` | [IMAGES-001](images/IMAGES-001-preview-tiers.md) preview tiers and background previews |
 | `grid/` | [GRID-001](grid/GRID-001-grid.md) grid, [GRID-002](grid/GRID-002-filters-and-sort.md) flag filter, filters, progress and sort, [GRID-003](grid/GRID-003-selection.md) selection mode, [GRID-004](grid/GRID-004-file-names-and-tile-info.md) file names and tile info |
@@ -17,7 +17,7 @@ merged code does. Spec, tests and code change in the same pull request.
 | `move/` | [MOVE-001](move/MOVE-001-name-templates.md) name templates, [MOVE-002](move/MOVE-002-move-endpoints.md) move endpoints, [MOVE-003](move/MOVE-003-move-plan-and-report.md) move plan, conflicts, report and undo, [MOVE-004](move/MOVE-004-move-dialog.md) move dialog and move summary |
 | `keys/` | [KEYS-001](keys/KEYS-001-key-map.md) key map, undo, redo and the shortcut sheet |
 | `delete/` | [DELETE-001](delete/DELETE-001-trash.md) trash endpoint, [DELETE-002](delete/DELETE-002-reject-review.md) reject review and delete, [DELETE-003](delete/DELETE-003-remove-raws.md) Remove RAWs |
-| `series/` | [SERIES-001](series/SERIES-001-series-compare.md) series compare, [SERIES-002](series/SERIES-002-series-viewer.md) series viewer, series bracket and series badge, [SERIES-003](series/SERIES-003-visual-hash-storage.md) visual hash storage, [SERIES-004](series/SERIES-004-similarity-page.md) similarity page, [SERIES-005](series/SERIES-005-stored-series.md) stored series, [SERIES-006](series/SERIES-006-quality-values.md) quality values |
+| `series/` | [SERIES-001](series/SERIES-001-series-compare.md) series compare, [SERIES-002](series/SERIES-002-series-viewer.md) series viewer, series bracket and series badge, [SERIES-003](series/SERIES-003-visual-hash-storage.md) visual hash storage, [SERIES-004](series/SERIES-004-similarity-page.md) similarity page, [SERIES-005](series/SERIES-005-stored-series.md) stored series, [SERIES-006](series/SERIES-006-quality-values.md) quality values, [SERIES-007](series/SERIES-007-sharpest-mark.md) *Sharpest* mark and focus zoom |
 | `tags/` | [TAGS-001](tags/TAGS-001-tag-storage.md) tag storage and tag list, [TAGS-002](tags/TAGS-002-tags-in-the-cull.md) tags in the cull, [TAGS-003](tags/TAGS-003-tag-entry.md) tag entry, [TAGS-004](tags/TAGS-004-tag-filter-and-tile.md) tag filter, the tile's tags and the info panel |
 | `settings/` | [SETTINGS-001](settings/SETTINGS-001-settings.md) per-user settings |
 | `stats/` | [STATS-001](stats/STATS-001-statistics.md) statistics |

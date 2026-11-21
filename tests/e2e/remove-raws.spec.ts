@@ -11,10 +11,11 @@ import { apiHeaders, createFolder, JPEG, RAW, upload } from './files.ts'
 const API = '/index.php/apps/honeycomb/api/v1'
 const SIDECAR = Buffer.from('<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/></x:xmpmeta>')
 const RATED = Buffer.from('<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/" xmlns:digiKam="http://www.digikam.org/ns/1.0/" xmp:Rating="3" xmp:Label="Red" digiKam:PickLabel="3"><digiKam:TagsList><rdf:Seq><rdf:li>Places/Lisbon</rdf:li></rdf:Seq></digiKam:TagsList></rdf:Description></rdf:RDF></x:xmpmeta>')
+const CHANGED = Buffer.from('<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/" xmlns:digiKam="http://www.digikam.org/ns/1.0/" xmlns:mwg-rs="http://www.metadataworkinggroup.com/schemas/regions/" xmp:Rating="4" xmp:Label="Red" digiKam:PickLabel="3"><digiKam:TagsList><rdf:Seq><rdf:li>Places/Lisbon</rdf:li></rdf:Seq></digiKam:TagsList><mwg-rs:Regions rdf:parseType="Resource"><mwg-rs:RegionList><rdf:Bag><rdf:li rdf:parseType="Resource"><mwg-rs:Name>Ana</mwg-rs:Name></rdf:li></rdf:Bag></mwg-rs:RegionList></mwg-rs:Regions></rdf:Description></rdf:RDF></x:xmpmeta>')
 const KEEP_RAW = Buffer.from('<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:honeycomb="https://github.com/polandy/honeycomb/xmp/1.0/" honeycomb:KeepRaw="True"/></rdf:RDF></x:xmpmeta>')
 
-/** Culls a new folder of NEF+JPEG pairs once the flags are taken over and returns its name and the members' file ids. */
-async function cullPairs(page: Page, names: readonly string[], sidecar: Buffer = SIDECAR): Promise<{ folder: string, jpegs: number[], raws: number[] }> {
+/** Culls a new folder of NEF+JPEG pairs, each JPEG with a sidecar when told, once the flags are taken over and returns its name and the members' file ids. */
+async function cullPairs(page: Page, names: readonly string[], sidecar: Buffer = SIDECAR, jpegSidecars = false): Promise<{ folder: string, jpegs: number[], raws: number[] }> {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Raws ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
@@ -24,6 +25,9 @@ async function cullPairs(page: Page, names: readonly string[], sidecar: Buffer =
 		jpegs.push(await upload(page, `${folder}/${name}.jpg`, JPEG))
 		raws.push(await upload(page, `${folder}/${name}.NEF`, RAW))
 		await upload(page, `${folder}/${name}.NEF.xmp`, sidecar)
+		if (jpegSidecars) {
+			await upload(page, `${folder}/${name}.jpg.xmp`, SIDECAR)
+		}
 	}
 	const takenOver = page.waitForResponse((response) => response.url().endsWith('/api/v1/flags/take-over') && response.ok())
 	await cullFolder(page, folder)
@@ -97,7 +101,7 @@ test('removes only the RAW and its own sidecar of each pair not kept, after one 
 
 // spec: DELETE-003.11
 test('keeps the RAW another user marked Keep RAW after the summary opened, and removes the others', async ({ page }) => {
-	const { folder, jpegs, raws } = await cullPairs(page, ['IMG_0001', 'IMG_0002', 'IMG_0003'])
+	const { folder, jpegs, raws } = await cullPairs(page, ['IMG_0001', 'IMG_0002', 'IMG_0003'], SIDECAR, true)
 	const flags = [jpegs[1], raws[1]].map((fileId) => ({ fileId, flag: 'unflagged', keepRaw: true }))
 	const kept = await page.request.put(`${API}/flags`, { data: { flags }, headers: await apiHeaders(page) })
 	expect(kept.status()).toBe(200)
@@ -122,17 +126,19 @@ test('keeps the RAW another user marked Keep RAW after the summary opened, and r
 })
 
 // spec: DELETE-003.12
-test('writes the rating, colour label and tags to the JPEG sidecar but no flag, and keeps the JPEG picked', async ({ page }) => {
+test('seeds the JPEG sidecar from the RAW sidecar read again, other programs\' fields too, but no flag, and keeps the JPEG picked', async ({ page }) => {
 	const { folder, jpegs } = await cullPairs(page, ['IMG_0001'], RATED)
+	await upload(page, `${folder}/IMG_0001.NEF.xmp`, CHANGED)
 
 	await removeRaws(page)
 
 	await expect(page.getByRole('status').filter({ hasText: 'Removed the RAWs of 1 photo' })).toBeVisible()
 	const headers = await apiHeaders(page)
 	const written = await (await page.request.get(`/remote.php/dav/files/${ADMIN.username}/${folder}/IMG_0001.jpg.xmp`, { headers })).text()
-	expect(written).toMatch(/xmp:Rating(="|>)3/)
+	expect(written).toMatch(/xmp:Rating(="|>)4/)
 	expect(written).toMatch(/xmp:Label(="|>)Red/)
 	expect(written).toContain('Places/Lisbon')
+	expect(written).toContain('Ana')
 	expect(written).not.toContain('PickLabel')
 	const listing = await page.request.get(`${API}/entries`, { params: { path: `/${folder}` }, headers })
 	const { entries } = await listing.json() as { entries: { fileId: number, flag: string | null }[] }

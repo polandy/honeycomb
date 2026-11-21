@@ -78,9 +78,17 @@ export function pinchZoom(start: Zoom, from: PinchCentre, to: PinchCentre, maxSc
 	return clampPan({ scale, x, y }, fitted, stage)
 }
 
-/** Fit when zoomed in, else the largest scale at `point`. */
-export function toggleZoom(zoom: Zoom, point: Point, maxScale: number, fitted: Size, stage: Size): Zoom {
-	return isZoomed(zoom) ? FIT : zoomAt(FIT, point, maxScale, maxScale, fitted, stage)
+/** Fit when zoomed in, else the largest scale with the fitted photo's `spot` as near the stage's centre as its edges allow (SERIES-007.7). */
+export function toggleZoom(zoom: Zoom, spot: Point, maxScale: number, fitted: Size, stage: Size): Zoom {
+	return isZoomed(zoom) ? FIT : clampPan({ scale: maxScale, x: -spot.x * maxScale, y: -spot.y * maxScale }, fitted, stage)
+}
+
+/** The fraction of the photo's middle along each side. */
+const MIDDLE = 0.5
+
+/** The spot of the fitted photo, from its centre, at `fraction` of its width and height from the top left. */
+export function spotOf(fraction: Point, fitted: Size): Point {
+	return { x: (fraction.x - MIDDLE) * fitted.width, y: (fraction.y - MIDDLE) * fitted.height }
 }
 
 /** The zoom as a percentage of the full image, 100 at `fullScale`. */

@@ -97,6 +97,17 @@ describe('FolderPicker', () => {
 		expect(picker.wrapper.find('[role="dialog"]').attributes('data-no-close')).toBe('true')
 	})
 
+	// spec: IMMICH-001.20
+	it('can be cancelled before a first cull when it is closable', async () => {
+		const picker = await mountPicker()
+		await picker.wrapper.setProps({ closable: true })
+
+		const cancel = picker.wrapper.findAll('button').find((button) => button.text() === `${MARK}Cancel`)!
+		await cancel.trigger('click')
+
+		expect(picker.wrapper.emitted('cancel')).toEqual([[]])
+	})
+
 	// spec: LISTING-003.6
 	it('counts the photos of a ticked folder and offers to cull it', async () => {
 		const picker = await mountPicker()

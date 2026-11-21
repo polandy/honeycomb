@@ -153,6 +153,23 @@ continues on another, and *Recent* can list the last folder sets with their prog
 - **Then** both positions keep their key; the same set is one position; malformed `excluded` is
   a `400`; opening lists each ticked folder without the excluded folders below it
 
+### DECISIONS-002.17 – A browser reload keeps the folder and the picture
+
+- **Given** an open cull, with or without the loupe open
+- **When** the user reloads the browser page
+- **Then** the same folder set is listed again and opened, and with the loupe open it opens at the
+  same picture; the address carries the folder set and the loupe's picture, and a closed cull
+  leaves it empty; an address that names no valid folder set, or a folder set that cannot be
+  listed, opens the app as usual
+
+### DECISIONS-002.18 – Reload folder
+
+- **Given** a move or delete that failed or skipped pictures because the folder changed since it
+  was listed
+- **When** the user presses *Reload folder* on the message
+- **Then** the open folder set is listed again and opened, the loupe at the same picture when one
+  was open and the picture is still there; a failed listing keeps the open cull
+
 ## Out of scope
 
 The progress of the open cull (GRID-002).
@@ -169,3 +186,4 @@ The progress of the open cull (GRID-002).
 | 2026-11-13 | The toast closes when the user opens a photo, decides or scrolls (DECISIONS-002.14) |
 | 2026-11-16 | A ticked folder inside another with subfolders is the same set (DECISIONS-002.15, ADR 0034) |
 | 2026-11-17 | Excluded folders in the folder set and its key (DECISIONS-002.16, ADR 0035) |
+| 2026-11-20 | A browser reload keeps folder and picture; *Reload folder* on the stale-state messages (DECISIONS-002.17, .18) |

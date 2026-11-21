@@ -25,11 +25,12 @@ previews and faster first visits: the [README](../../../README.md#installation).
 
 ## occ commands
 
-honeycomb has two commands:
+honeycomb has three commands:
 
 | Command | Does |
 |---|---|
 | `occ honeycomb:cache:clear [<user>]` | Clears what honeycomb read from sidecars and photos, for one user or every user ([cache](../cache.md)) |
+| `occ honeycomb:jobs` | Shows, for each background job (sweep, warm-up), its status, the time of its last run and its last error; changes nothing |
 | `occ honeycomb:cleanup` | Removes the picks and rejects of files that no longer exist or lie in a trash bin, for every user, and prints how many rows went |
 | `occ honeycomb:cleanup --all [--dry-run]` | Deletes every honeycomb row of every user and their honeycomb settings; with `--dry-run` only prints the row counts ([removing](removing.md#deleting-the-data-on-purpose)) |
 
@@ -37,6 +38,9 @@ Database migrations run with Nextcloud's own `occ app:update` or `occ upgrade`
 ([updating](updating.md)).
 
 ## Background job
+
+`occ honeycomb:jobs` shows whether the jobs ran and the class of their last error;
+the Nextcloud log has the details.
 
 A daily background job removes honeycomb's rows of files that were deleted for good. Deleting a
 user removes all of their honeycomb data at once. Nextcloud's background jobs must run (cron is

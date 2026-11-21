@@ -13,6 +13,7 @@ import type { Schedule } from '../logic/long-press.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Settings } from '../logic/settings.ts'
 import type { ObserveSize } from '../observe-size.ts'
+import type { QualityOf } from '../quality-of.ts'
 import type { Toast } from '../toast.ts'
 
 import { n, t } from '@nextcloud/l10n'
@@ -24,6 +25,7 @@ import FlagButtonsToggle from './FlagButtonsToggle.vue'
 import LoupeNavButtons from './LoupeNavButtons.vue'
 import LoupeStage from './LoupeStage.vue'
 import PickRestButton from './PickRestButton.vue'
+import SeriesViewerTitle from './SeriesViewerTitle.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
 import { keyCap } from '../hotkeys.ts'
 import { LOUPE_IDLE_MS, useIdle } from '../idle.ts'
@@ -33,6 +35,7 @@ import { FLAG_RAIL } from '../logic/panel-width.ts'
 import { useLoupeDecisions } from '../loupe-decisions.ts'
 import { decodeSource, usePrefetch } from '../loupe-prefetch.ts'
 import { observeElementSize } from '../observe-size.ts'
+import { sharpestPicture } from '../quality-of.ts'
 import { browserSchedule } from '../tile-selection.ts'
 import { tip } from '../tooltip.ts'
 
@@ -50,7 +53,10 @@ const props = withDefaults(defineProps<{
 	schedule?: Schedule
 	devicePixelRatio?: number
 	observeSize?: ObserveSize
+	/** The pictures' quality values, for the *Sharpest* mark and the zoom onto the focus tile (SERIES-007). */
+	qualityOf?: QualityOf
 }>(), {
+	qualityOf: () => null,
 	imageUrl: apiImageUrl,
 	decode: decodeSource,
 	schedule: browserSchedule,
@@ -87,6 +93,7 @@ const decisions = useLoupeDecisions({
 })
 
 const picture = computed(() => props.pictures[props.index]!)
+const sharpest = computed(() => sharpestPicture(props.pictures, props.qualityOf))
 const place = computed(() => t('honeycomb', 'Series {series} of {count} · photo {photo} of {photos}', {
 	series: formatNumber(props.position + 1),
 	count: formatNumber(props.count),
@@ -147,12 +154,7 @@ onMounted(() => root.value!.focus())
 		@pointermove="$event.pointerType === 'mouse' && overlays.wake()">
 		<header class="series-viewer__top series-viewer__overlay" @pointerdown="overlays.wake">
 			<BackButton :label="t('honeycomb', 'Back to the series')" @back="emit('close')" />
-			<div class="series-viewer__title">
-				<h2 class="series-viewer__name">
-					{{ picture.baseName }}
-				</h2>
-				<span class="series-viewer__place">{{ place }}</span>
-			</div>
+			<SeriesViewerTitle :name="picture.baseName" :place="place" :sharpest="picture === sharpest" />
 			<FlagButtonsToggle :shown="settings.flagButtonsShown" @update:shown="decisions.setFlagButtonsShown" />
 			<NcButton :aria-label="t('honeycomb', 'Toggle fit and 100 percent')" v-bind="tip(t('honeycomb', 'Fit / 100 %'), keyCap('zoom', 1))" @click="stage!.toggleZoom()">
 				{{ zoom === null ? t('honeycomb', 'Fit') : t('honeycomb', '{percent} %', { percent: formatNumber(zoom) }, undefined, PLAIN_TEXT) }}
@@ -171,6 +173,7 @@ onMounted(() => root.value!.focus())
 				:devicePixelRatio="props.devicePixelRatio"
 				:observeSize="props.observeSize"
 				:swipes="settings.swipes"
+				:qualityOf="props.qualityOf"
 				@page="go(props.index + $event)"
 				@overlays="overlays.toggle"
 				@chromeFree="stage!.toggleZoom()"
@@ -220,25 +223,6 @@ onMounted(() => root.value!.focus())
 	align-items: center;
 	gap: var(--default-grid-baseline);
 	padding: var(--default-grid-baseline);
-}
-
-.series-viewer__title {
-	display: flex;
-	flex: 1;
-	flex-direction: column;
-	min-width: 0;
-}
-
-.series-viewer__name {
-	margin: 0;
-	overflow: hidden;
-	font-size: inherit;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.series-viewer__place {
-	color: var(--color-text-maxcontrast);
 }
 
 .series-viewer__main {

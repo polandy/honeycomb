@@ -56,6 +56,9 @@ Tap a tile to open the **loupe**: one photo full screen.
 
 - **Page** with a sideways swipe, a tap on the left or right edge, or `←` `→`.
 - **Zoom** with a pinch, a double-tap or `Z`; drag to pan.
+  For a picture that is only a RAW file, 100 % shows the *embedded preview* the camera stored in
+  the RAW, not a full development of it, and the title row says so. That is enough to judge sharpness
+  and focus, which is what honeycomb is for; a picture with a JPEG shows the JPEG.
 - **Decide** with the **Pick**, **Unflag** and **Reject** buttons, by swiping up (pick) or down
   (reject), or by keys. Below the photo you set stars, a colour label and *Keep RAW*. After a pick
   or reject the loupe goes on to the next undecided photo; the settings change the swipes and
@@ -66,6 +69,10 @@ Tap a tile to open the **loupe**: one photo full screen.
 Every decision shows a message with **Undo**. `Esc` returns to the grid at the photo you saw last.
 When you open the folder set again, on any device, *Continue where you left off* offers
 **Resume**; the ⋯ menu keeps *Resume at …*.
+
+Reloading the browser page opens the same folder set again, and the loupe at the same photo when it
+was open; the page address holds both. When a move or delete fails or skips a photo because the folder
+changed, the message offers **Reload folder**, which lists the folder set again.
 
 ## 5. Compare series
 

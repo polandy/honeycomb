@@ -837,6 +837,7 @@ takes its sizes from the pointer type ([Control sizes](#control-sizes)), not fro
 |---|---|---|---|
 | `FlagButtons` (`flagButtons`) | *Pick*, *Reject*, *Unflag*, neutral until pressed: a pressed *Pick* or *Reject* fills its colour, a pressed *Unflag* fills a neutral grey; small or large | action bar, series compare card | `decisions`: flag toggle, a selection's common value |
 | `FlagMark` (`flagMark`) | the read-only flag icon | `PhotoTile`, loupe filmstrip, series compare card | — |
+| `SharpestMark` (mockup quality, `.sharp`) | the *Sharpest* badge, or its icon alone with the tooltip | series compare card, series viewer title row, loupe filmstrip | `sharpness` |
 | `StarRating` (`starRating`, `stars`) | 0–5 buttons, or read-only stars | action bar, `PhotoTile`, series compare card | `decisions` |
 | `ColourLabels` (`colourLabel`, `showPalette`) | the label button and the nine-colour palette | action bar, filter bar | `decisions`, `hotkeys` |
 | `ActionBar` (`actionBar`) | rating, colour label, *Keep RAW* and flags; flags in a large row of their own (portrait) or at the side edges (landscape, [Loupe layout](#loupe-layout)), plus a slot | grid selection, loupe, series viewer | `decisions`, `hotkeys` |

@@ -29,6 +29,7 @@ final class ImageService {
 		private UserPhotos $photos,
 		private IPreview $preview,
 		private LoggerInterface $logger,
+		private PreviewLock $lock,
 	) {
 	}
 
@@ -54,7 +55,7 @@ final class ImageService {
 	 */
 	public function preview(File $file, int $tier): ISimpleFile {
 		try {
-			return $this->preview->getPreview($file, $tier, $tier, false, IPreview::MODE_FILL);
+			return $this->lock->whileRendering($file->getId(), fn (): ISimpleFile => $this->preview->getPreview($file, $tier, $tier, false, IPreview::MODE_FILL));
 		} catch (NotFoundException|\InvalidArgumentException $e) {
 			throw new ImageNotFoundException("No preview of file {$file->getId()}", 0, $e);
 		}
@@ -69,7 +70,7 @@ final class ImageService {
 			return $file;
 		}
 		try {
-			return $this->preview->getPreview($file, -1, -1, false);
+			return $this->lock->whileRendering($file->getId(), fn (): ISimpleFile => $this->preview->getPreview($file, -1, -1, false));
 		} catch (NotFoundException|\InvalidArgumentException $e) {
 			throw new ImageNotFoundException("No full preview of file {$file->getId()}", 0, $e);
 		}
@@ -88,7 +89,7 @@ final class ImageService {
 		);
 		foreach ($fileIds as $fileId) {
 			try {
-				$this->preview->generatePreviews($this->find($user, $fileId), $specifications);
+				$this->lock->whileRendering($fileId, fn (): ISimpleFile => $this->preview->generatePreviews($this->find($user, $fileId), $specifications));
 			} catch (ImageNotFoundException|ImageNotReadableException|NotFoundException|\InvalidArgumentException $e) {
 				$this->logger->debug('No previews warmed for file', ['fileId' => $fileId, 'exception' => $e]);
 			}

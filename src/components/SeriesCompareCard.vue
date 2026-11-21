@@ -16,6 +16,7 @@ import ActionIcon from './ActionIcon.vue'
 import AppIcon from './AppIcon.vue'
 import FlagButtons from './FlagButtons.vue'
 import FlagMark from './FlagMark.vue'
+import SharpestMark from './SharpestMark.vue'
 import StarRating from './StarRating.vue'
 import { keyCap } from '../hotkeys.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
@@ -29,6 +30,8 @@ const props = defineProps<{
 	/** The card's place in the series, from 0. */
 	index: number
 	active: boolean
+	/** Whether the photo is the series' sharpest (SERIES-007.1). */
+	sharpest?: boolean
 	decision: Decision
 	imageUrl: ImageUrlFor
 	/** The photo's width in CSS pixels, or null before the grid is measured. */
@@ -76,6 +79,7 @@ const reportMenu = useReportedMenu((open) => emit('menu', open))
 				@click="emit('view')">
 				<AppIcon name="expand" />
 			</button>
+			<SharpestMark v-if="props.sharpest" class="series-compare__sharpest" />
 			<NcActions
 				class="series-compare__menu"
 				forceMenu
@@ -162,6 +166,14 @@ const reportMenu = useReportedMenu((open) => emit('menu', open))
 	background-color: rgba(0, 0, 0, .7);
 	color: #fff;
 	cursor: pointer;
+}
+
+/* Bottom left on the photo, clear of the menu and the full screen button (mockup quality). */
+.series-compare__sharpest {
+	position: absolute;
+	bottom: 6px;
+	left: 6px;
+	pointer-events: none;
 }
 
 /* The card's menu, top left on the same dark disc (mockup series-edit). */

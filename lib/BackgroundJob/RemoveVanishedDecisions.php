@@ -8,8 +8,10 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\BackgroundJob;
 
 use OCA\Honeycomb\Immich\ImmichConnectionSweep;
+use OCA\Honeycomb\Service\BackgroundJobName;
 use OCA\Honeycomb\Service\EmptySeriesSweep;
 use OCA\Honeycomb\Service\FileRowStores;
+use OCA\Honeycomb\Service\JobRuns;
 use OCA\Honeycomb\Service\VanishedFileSweep;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
@@ -21,6 +23,8 @@ use Psr\Log\LoggerInterface;
 final class RemoveVanishedDecisions extends TimedJob {
 	private const int DAY = 86_400;
 
+	private ?DbException $failure = null;
+
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it from the job list. */
 	public function __construct(
 		ITimeFactory $time,
@@ -29,6 +33,7 @@ final class RemoveVanishedDecisions extends TimedJob {
 		private EmptySeriesSweep $emptySeries,
 		private ImmichConnectionSweep $connectionSweep,
 		private LoggerInterface $logger,
+		private JobRuns $runs,
 	) {
 		parent::__construct($time);
 		$this->setInterval(self::DAY);
@@ -38,10 +43,12 @@ final class RemoveVanishedDecisions extends TimedJob {
 	/** @param mixed $argument none, the job is registered by `info.xml` */
 	#[\Override]
 	protected function run($argument): void {
+		$this->failure = null;
 		foreach ($this->stores->all() as $entry) {
 			try {
 				$removed = $this->sweep->sweep($entry->cursorKey, $entry->store);
 			} catch (DbException $e) {
+				$this->failure = $e;
 				$this->logger->error("Could not remove the {$entry->kind} rows of files deleted for good", ['exception' => $e]);
 				continue;
 			}
@@ -51,6 +58,7 @@ final class RemoveVanishedDecisions extends TimedJob {
 		}
 		$this->removeEmptySeries();
 		$this->removeLeftConnections();
+		$this->failure === null ? $this->runs->succeeded(BackgroundJobName::Sweep) : $this->runs->failed(BackgroundJobName::Sweep, $this->failure);
 	}
 
 	/** After the member rows, so a series that lost its last member goes in the same run. */
@@ -58,6 +66,7 @@ final class RemoveVanishedDecisions extends TimedJob {
 		try {
 			$removed = $this->emptySeries->sweep();
 		} catch (DbException $e) {
+			$this->failure = $e;
 			$this->logger->error('Could not remove the series without members', ['exception' => $e]);
 			return;
 		}
@@ -71,6 +80,7 @@ final class RemoveVanishedDecisions extends TimedJob {
 		try {
 			$removed = $this->connectionSweep->sweep();
 		} catch (DbException $e) {
+			$this->failure = $e;
 			$this->logger->error('Could not remove the Immich decision rows of connections that left the connections file', ['exception' => $e]);
 			return;
 		}

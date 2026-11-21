@@ -32,7 +32,9 @@ const props = withDefaults(defineProps<{
 	seriesHint?: boolean
 	/** Whether the shown picture's sidecar save still waits (LOUPE-001.27). */
 	unsaved?: boolean
-}>(), { series: null, seriesHint: false, unsaved: false })
+	/** Whether the shown picture's image is the preview embedded in its RAW (LOUPE-001.28). */
+	embeddedPreview?: boolean
+}>(), { series: null, seriesHint: false, unsaved: false, embeddedPreview: false })
 
 const emit = defineEmits<{
 	close: []
@@ -74,6 +76,7 @@ const SERIES_MARK = '⧉'
 			class="loupe-title-row__unsaved"
 			role="img"
 			:aria-label="t('honeycomb', 'Not saved yet')" />
+		<span v-if="props.embeddedPreview && props.zoom !== null" class="loupe-title-row__embedded">{{ t('honeycomb', 'Embedded preview') }}</span>
 		<span class="loupe-title-row__count">{{ t('honeycomb', '{position} of {count}', { position: formatNumber(props.index + 1), count: formatNumber(props.count) }, undefined, PLAIN_TEXT) }}</span>
 		<span v-if="props.series !== null" class="loupe-title-row__series-anchor">
 			<button
@@ -237,6 +240,11 @@ const SERIES_MARK = '⧉'
 	height: 10px;
 	border: 2px solid var(--color-main-text);
 	border-radius: 50%;
+}
+
+.loupe-title-row__embedded {
+	flex-shrink: 0;
+	color: var(--color-text-maxcontrast);
 }
 
 .loupe-title-row__count {

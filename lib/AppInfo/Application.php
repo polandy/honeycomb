@@ -33,7 +33,9 @@ use OCA\Honeycomb\Service\FlagStore;
 use OCA\Honeycomb\Service\Pause;
 use OCA\Honeycomb\Service\PhotoFilesBelow;
 use OCA\Honeycomb\Service\PositionStore;
+use OCA\Honeycomb\Service\PreviewLock;
 use OCA\Honeycomb\Service\QualityStore;
+use OCA\Honeycomb\Service\SemaphorePreviewLock;
 use OCA\Honeycomb\Service\SeriesStore;
 use OCA\Honeycomb\Service\StatsStore;
 use OCA\Honeycomb\Service\SystemPause;
@@ -71,6 +73,7 @@ final class Application extends App implements IBootstrap {
 		$context->registerServiceAlias(ExistingFiles::class, FileCacheLookup::class);
 		$context->registerServiceAlias(PhotoFilesBelow::class, FileCachePhotoFiles::class);
 		$context->registerServiceAlias(Pause::class, SystemPause::class);
+		$context->registerServiceAlias(PreviewLock::class, SemaphorePreviewLock::class);
 		$context->registerServiceAlias(LocalFiles::class, PhpLocalFiles::class);
 		$context->registerServiceAlias(ImmichDecisionStore::class, ImmichDecisionMapper::class);
 		$context->registerEventListener(UserDeletedEvent::class, ForgetDeletedUser::class);
