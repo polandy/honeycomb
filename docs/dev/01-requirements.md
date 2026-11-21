@@ -110,3 +110,10 @@ The owner keeps the RAW for a few pictures and only the JPEG for most.
   removed only when no member remains.
 
 Details: [`plan.md`](plan.md#keep-raw-and-remove-raws).
+
+## 1.10 Non-goals
+
+honeycomb is a culling and review tool and does **not** edit pictures: no exposure, saturation,
+shadow, crop, rotate or similar develop controls as in Lightroom, now or later. Editing stays in
+darktable, digiKam and the like, which read the XMP sidecars honeycomb writes. Do not propose it
+as a feature or a milestone.

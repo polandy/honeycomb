@@ -6,7 +6,7 @@
 <info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
 	<id>honeycomb</id>
 	<name>honeycomb</name>
-	<summary>Cull RAW+JPEG photo pairs, touch-first for the iPad</summary>
+	<summary>Cull RAW+JPEG photo pairs, made for desktop and tablet</summary>
 	<description><![CDATA[A photo shot as RAW+JPEG is two files with the same base name; honeycomb treats them as one picture. Look at it once, rate, label, pick or reject it once, and delete both files and their XMP sidecars together into the trash bin.]]></description>
 	<version>0.1.0</version>
 	<licence>agpl</licence>
