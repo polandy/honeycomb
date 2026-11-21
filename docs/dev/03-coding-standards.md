@@ -82,13 +82,14 @@ dependencies — are in [`conventions.md`](conventions.md). This file adds the s
 - **WebKit smoke subset.** The iPad is the target device and every iPad browser is WebKit, so with
   `HONEYCOMB_E2E_WEBKIT=1` (set in CI, not in `scripts/verify.sh`: WebKit's system libraries are
   missing on some hosts) a `webkit` project runs the cases tagged `{ tag: WEBKIT }`
-  (`tests/e2e/webkit.ts`) in Desktop Safari at 1440 × 900 and, as a second project `webkit-ipad`, in the iPad Pro 11
-  landscape profile (touch on, 1194 × 834). The subset is one case each for the
+  (`tests/e2e/webkit.ts`) in Desktop Safari at 1440 × 900 and, as a second project `webkit-ipad`,
+  in the iPad Pro 11 landscape profile (touch on, 1194 × 834). The subset is one case each for the
   grid, the loupe, delete and move: the flows where Safari differs (pointer events, layout of the
-  stage, dialogs, `fetch` and cookies) and a failure costs photos. The iPad profile runs the same four cases
-  and takes the landscape size because the toolbar folds its *Review rejects* button into
-  *More* below 900 px. Chromium keeps every other case; iPad widths and touch stay emulated there. Add the tag to a case that exercises a Safari-specific
-  API, never to a case only to widen the subset.
+  stage, dialogs, `fetch` and cookies) and a failure costs photos. The iPad profile runs the same
+  four cases and takes the landscape size because the toolbar folds its *Review rejects* button
+  into *More* below 900 px. Chromium keeps every other case; iPad widths and touch stay emulated
+  there. Add the tag to a case that exercises a Safari-specific API, never to a case only to widen
+  the subset.
 - Every Vue component is checked with the marked stub catalogue of
   `tests/js/l10n/marked-catalogue.ts`: shallow-mount it with `renderStubDefaultSlot`, and expect
   `untranslatedText()` to return nothing (ADR 0007, *Checks*).
