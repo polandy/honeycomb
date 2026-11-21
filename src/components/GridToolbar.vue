@@ -40,6 +40,7 @@ const emit = defineEmits<{
 	selectNone: []
 	reviewRejects: []
 	compareSeries: []
+	reduceSeries: []
 	removeRaws: []
 	clearFlags: []
 	writeXmp: []
@@ -171,6 +172,7 @@ const setName = computed(() => {
 				:resumeName="props.tasks.resumeName"
 				:rejected="props.tasks.rejected"
 				:series="props.tasks.series"
+				:reducible="props.tasks.reducible"
 				@update:tileSize="emit('update:tileSize', $event)"
 				@update:groupByFolder="emit('update:groupByFolder', $event)"
 				@update:fileNames="emit('update:fileNames', $event)"
@@ -182,6 +184,7 @@ const setName = computed(() => {
 				@resume="fromMenu(() => emit('resume'))"
 				@reviewRejects="fromMenu(() => emit('reviewRejects'))"
 				@compareSeries="fromMenu(() => emit('compareSeries'))"
+				@reduceSeries="fromMenu(() => emit('reduceSeries'))"
 				@openSettings="fromMenu(() => emit('openSettings'))" />
 		</NcPopover>
 		<div v-if="props.selection.selecting" class="grid-toolbar__selection">

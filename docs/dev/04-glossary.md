@@ -42,6 +42,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **visual hash** | A 64-bit fingerprint of a picture's small preview; two pictures look alike when their visual hashes differ in few bits (ADR 0024). |
 | **quality value** | A measurement of a photo's preview, stored per file version: today its sharpness and focus tile (ADR 0046). Never a decision, never written to a sidecar. |
 | **sharpest** | The mark on the photo of a series whose sharpness lies at least 5 % above every other member's; a mark only, never a pick or the active card. |
+| **series reduction** | *Reduce series to the sharpest…*: one reviewed step that picks the sharpest photo of every open series that has one and rejects the rest; a series without a sharpest is left out (SERIES-008). |
 | **quality hint** | A note that a picture may be shaken (shake risk, from EXIF) or clipped (clipping, from the preview); shown in the info panel, as a filter and as a small icon on the tile; never a suggestion to reject. |
 | **grid** | The thumbnail view of a folder set. |
 | **skeleton tile** | A tile drawn before its photo is there: its empty face pulses while the listing or the tile's thumbnail is on its way. |

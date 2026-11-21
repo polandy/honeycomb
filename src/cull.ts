@@ -9,10 +9,11 @@ import type { ListingEntry, SourceEntry } from './logic/listing.ts'
 import type { OpenedSource } from './logic/opened-source.ts'
 import type { PairingSettings, Picture } from './logic/pairing.ts'
 import type { PictureId } from './logic/picture-id.ts'
+import type { ReductionPlan } from './logic/series-reduction.ts'
 import type { Settings } from './logic/settings.ts'
 import type { CountSign } from './logic/stats-counts.ts'
 import type { TagChange } from './logic/tag.ts'
-import type { DecisionStep, PickRestStep, StepEffects, TagStep, UndoStep } from './logic/undo.ts'
+import type { DecisionStep, PickRestStep, ReductionStep, StepEffects, TagStep, UndoStep } from './logic/undo.ts'
 import type { ListedAccess } from './logic/writability.ts'
 
 import { computed, shallowRef, watch } from 'vue'
@@ -32,13 +33,15 @@ import { memberIds } from './logic/pairing.ts'
 import { emptyReason, filterPictures, matchesFilters, pictureFolders, progress } from './logic/picture-filter.ts'
 import { listedRows, pictureFlag, readDecision } from './logic/picture-flag.ts'
 import { sortPictures } from './logic/picture-order.ts'
+import { reductionPlan as planReduction } from './logic/series-reduction.ts'
 import { pairingSettings } from './logic/settings.ts'
 import { inDoneSeries } from './logic/stored-series.ts'
 import { inverseChange } from './logic/tag.ts'
 import { withoutFiles } from './logic/trash-report.ts'
-import { applyStep, clearEntry, pickRestEntry, tagStep, undoEntry } from './logic/undo.ts'
+import { applyStep, clearEntry, pickRestEntry, reductionEntry, tagStep, undoEntry } from './logic/undo.ts'
 import { NO_ACCESS } from './logic/writability.ts'
 import { usePreviewWarmer } from './preview-warmer.ts'
+import { sharpnessBy } from './quality-of.ts'
 import { useSeriesEdits } from './series-edits.ts'
 import { useSeries } from './series.ts'
 import { useStoredSeries } from './stored-series.ts'
@@ -68,6 +71,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const effects: StepEffects<Picture<ListingEntry>> = {
 		decision: (step, back) => store(back ? step.before : step.after, back ? -1 : 1),
 		pickRest: (step, back) => store(back ? step.before : step.after, back ? -1 : 1),
+		reduction: (step, back) => store(back ? step.before : step.after, back ? -1 : 1),
 		tags: (step, back) => changeTags(step.pictures, back ? inverseChange(step.change) : step.change, back ? -1 : 1),
 		series: (step, back) => void storedSeries.store(back ? step.before : step.after),
 	}
@@ -177,6 +181,14 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		return history.record(clearEntry(decided(pictures.value.filter(writesThrough))))
 	}
 
+	/** The series *Reduce series to the sharpest* would decide (SERIES-008.1). */
+	const reductionPlan = computed(() => planReduction(seriesState.everySeries.value, { sharpnessOf: sharpnessBy(seriesState.qualityOf), decisionOf, writable: writesThrough }))
+
+	/** Picks the sharpest of each planned series and rejects the rest as one undo step, or null when nothing changes (SERIES-008.5). */
+	function reduceSeries(plan: ReductionPlan<Picture<ListingEntry>>): ReductionStep | null {
+		return history.record(reductionEntry(plan.reduced.map(({ kept, rejected }) => ({ picked: decided([kept])[0]!, rest: decided(rejected) }))))
+	}
+
 	/** Shows the rows at once and writes them through, counting by the sign. */
 	function store(rows: readonly StoredDecision[], sign: CountSign) {
 		const before = decisions.value
@@ -248,6 +260,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		pickRest,
 		clearable,
 		clearFlags,
+		reductionPlan,
+		reduceSeries,
 		tag,
 		...seriesEdits,
 		undo: history.undo,

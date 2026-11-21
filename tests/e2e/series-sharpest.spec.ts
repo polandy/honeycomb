@@ -37,3 +37,27 @@ test('marks the sharp photo of a series, keeps the soft one active and zooms ont
 	await page.keyboard.press('z')
 	await expect(viewer.locator('.loupe-stage img[alt="IMG_0002"]')).toHaveAttribute('style', /translate\([1-9][\d.]*px, [1-9][\d.]*px\)/)
 })
+
+// spec: SERIES-008.7
+test('reduces the series to its sharp photo from the More menu after the review', async ({ page }) => {
+	await page.setViewportSize(DESKTOP)
+	await page.goto('/index.php/apps/honeycomb/')
+	const folder = `Reduce ${randomUUID().slice(0, 8)}`
+	await createFolder(page, folder)
+	await upload(page, `${folder}/IMG_0001.jpg`, withCaptureTime(SOFT, '2026:11:10 10:00:00'))
+	await upload(page, `${folder}/IMG_0002.jpg`, withCaptureTime(SHARP, '2026:11:10 10:00:01'))
+
+	await cullFolder(page, folder)
+	await expect(page.getByRole('gridcell')).toHaveCount(2)
+	await page.getByRole('button', { name: 'More' }).click()
+	const reduce = page.getByRole('button', { name: /^Reduce series to the sharpest… 1/ })
+	await expect(reduce).toBeEnabled()
+	await reduce.click()
+	const dialog = page.getByRole('dialog', { name: 'Reduce series to the sharpest' })
+	await expect(dialog.locator('.picture-thumbs__tile')).toHaveText(/IMG_0002/)
+	await dialog.getByRole('button', { name: 'Pick 1, reject 1' }).click()
+
+	await expect(dialog).toBeHidden()
+	await expect(page.getByRole('gridcell')).toHaveCount(1)
+	await expect(page.getByRole('gridcell')).toHaveAttribute('aria-label', /IMG_0002.*Picked/)
+})

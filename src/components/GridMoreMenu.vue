@@ -36,6 +36,8 @@ defineProps<{
 	rejected: number
 	/** How many series are left to compare. */
 	series: number
+	/** How many series *Reduce series to the sharpest* decides. */
+	reducible: number
 }>()
 
 const emit = defineEmits<{
@@ -50,6 +52,7 @@ const emit = defineEmits<{
 	resume: []
 	reviewRejects: []
 	compareSeries: []
+	reduceSeries: []
 	openSettings: []
 }>()
 </script>
@@ -124,6 +127,18 @@ const emit = defineEmits<{
 			</template>
 			{{ t('honeycomb', 'Compare series') }}
 			<span class="grid-more-menu__count">{{ formatNumber(series) }}</span>
+		</NcButton>
+		<NcButton
+			variant="tertiary"
+			alignment="start"
+			wide
+			:disabled="reducible === 0"
+			@click="emit('reduceSeries')">
+			<template #icon>
+				<AppIcon name="sharp" />
+			</template>
+			{{ t('honeycomb', 'Reduce series to the sharpest…') }}
+			<span class="grid-more-menu__count">{{ formatNumber(reducible) }}</span>
 		</NcButton>
 		<NcButton
 			variant="tertiary"

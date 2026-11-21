@@ -59,6 +59,7 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 		selection: useSelectionMode(() => cull.view.value, cull.pictures),
 		decide: record('decide'),
 		editSeries: record('editSeries'),
+		reduceSeries: record('reduceSeries'),
 		clearFlags: () => {
 			record('clearFlags')()
 			return null

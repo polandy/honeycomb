@@ -56,6 +56,14 @@ svg.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;strok
 #infoPanel dl{margin:0;display:grid;grid-template-columns:auto 1fr;grid-auto-rows:minmax(32px,auto);align-items:center;column-gap:12px}
 #infoPanel dt{color:var(--stage-muted);align-self:start;padding-top:2px}#infoPanel dd{margin:0}#infoPanel dd small{display:block;color:var(--stage-muted);font-size:12px}
 #mock{position:fixed;z-index:40;left:0;right:0;top:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 10px;background:var(--card);border-bottom:2px dashed #b8860b;font-size:13px}#mock a{padding:4px 8px;border-radius:8px;border:1px solid var(--border);color:inherit;text-decoration:none}#mock a[aria-current=page]{background:var(--honey-soft);border-color:var(--honey)}#mock span{color:var(--muted)}#mock em{flex-basis:100%;color:var(--muted)}
+.veil{position:fixed;inset:0;top:var(--mock-h,40px);background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.dlg{width:min(720px,100%);max-height:100%;overflow:auto;background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.dlg h3{margin:0;font-size:18px}.dlg p{margin:0}.dlg .note{color:var(--muted);font-size:13px}
+.stats{display:flex;gap:18px}.stats b{display:block;font-size:22px}.stats span{color:var(--muted);font-size:13px}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin:0;padding:0;list-style:none}
+.thumbs button{position:relative;width:100%;aspect-ratio:1;border:3px solid var(--honey);border-radius:10px;overflow:hidden;padding:0;background:var(--tile-bg)}
+.thumbs .cap{position:absolute;left:0;right:0;bottom:0;padding:14px 6px 4px;background:linear-gradient(transparent,rgba(0,0,0,.75));color:#fff;font-size:12px;text-align:left}.thumbs .cap small{display:block;opacity:.85}
+.dlg .acts{display:flex;justify-content:flex-end;gap:8px}.dlg .btn{background:var(--card-2);border-color:var(--border);color:var(--text)}.dlg .btn.primary{background:var(--honey);color:var(--on-honey)}
 @media (max-width:520px){.hide-phone{display:none}#infoPanel{display:none}}
 </style>
 </head>
@@ -94,12 +102,24 @@ function loupe(cur, panel) {
 	const info = panel ? `<aside id="infoPanel" aria-label="Photo info"><h4>Photo</h4><dl>${row('Name', s[0])}${row('Captured', '2026-10-12 14:02:44')}${row('Exposure', '1/15 s · f/5.6 · ISO 800')}${row('Focal length', '200 mm', '300 mm full frame')}</dl><h4>Quality</h4><dl>${row('Sharpness', cur === 2 ? 'Sharpest of 4' : `${['3rd', '2nd', '', '4th'][cur]} of 4`, 'Compared within its series only')}${row('Hints', `<span class="hint">${svg('shake')}</span> Shake risk`, '1/15 s at 300 mm full frame; slower than 1/300 s')}${row('', `<span class="hint">${svg('clip')}</span> Clipping`, '4 % of the JPEG is blown out; the RAW may hold more')}</dl></aside>` : ''
 	return `<div class="loupe"><div class="tb"><button class="ib">${svg('back')}</button><div class="ttl"><b>${s[0]}</b><span>Series 1 · photo ${cur + 1} of 4</span></div><button class="ib" aria-pressed="${panel}">Info</button><button class="ib">${svg('close')}</button></div><div class="stage"><div class="photo">${P(30, 30 + cur * 2, 20, cur, s[1])}${cur === 2 ? sharpBadge : ''}</div>${info}</div>${film(cur)}</div>`
 }
+// reduction: [kept, series size]; two more series have no clear sharpest and are left out
+const reduced = [['IMG_0403', 4], ['IMG_0412', 3], ['IMG_0431', 5]]
+function reduce() {
+	const thumbs = reduced.map((r, k) => `<li><button>${P(40 + k * 90, 30, 25, k)}<span class="cap"><b>${r[0]}</b><small>Sharpest of ${r[1]} · Leave out</small></span></button></li>`).join('')
+	return `${grid(false, false)}<div class="veil"><div class="dlg" role="dialog" aria-label="Reduce series to the sharpest"><h3>Reduce series to the sharpest</h3>
+	<div class="stats"><div><b>3</b><span>series</span></div><div><b>3</b><span>to pick</span></div><div><b>9</b><span>to reject</span></div></div>
+	<p>Each series keeps its sharpest photo as picked and rejects the rest. Nothing is deleted; one undo takes it all back. Tap a photo to leave its series out.</p>
+	<ul class="thumbs">${thumbs}</ul>
+	<p class="note">2 series are left out, for you to compare.</p>
+	<div class="acts"><button class="btn">Cancel</button><button class="btn primary">Pick 3, reject 9</button></div></div></div>`
+}
 const scenes = {
 	compare: ['Series compare', 'IMG_0403 is marked Sharpest; the active card stays the first photo, nothing is picked.', () => compare(true)],
 	close: ['No clear sharpest', 'The two sharpest photos lie within 5 %: no photo is marked.', () => compare(false)],
 	viewer: ['Series viewer', 'The mark sits on the photo and on its filmstrip thumbnail.', () => loupe(2, false)],
 	info: ['Info panel', 'The rank, never the raw value; hints with their reason. Hidden on the phone, as the info panel is.', () => loupe(1, true)],
 	grid: ['Hints on tiles', 'A small icon beside the file name; no colour, no badge.', () => grid(false, false)],
+	reduce: ['Series reduction', 'From the ⋯ menu: every open series with a Sharpest photo, for review; nothing is flagged before the confirm.', reduce],
 	filter: ['Hints filter', 'The filter bar group Hints: Shake risk and Clipping, combined like the other chips.', () => grid(true, true)],
 }
 const scene = scenes[location.hash.slice(1)] ? location.hash.slice(1) : 'compare'

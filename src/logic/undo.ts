@@ -15,6 +15,7 @@ export const UNDO_LIMIT = 50
 export interface StepChanges {
 	readonly decision: { readonly change: DecisionChange }
 	readonly pickRest: { readonly picked: string }
+	readonly reduction: { readonly series: number, readonly rejected: number }
 	readonly tags: { readonly change: TagChange }
 	readonly series: { readonly edit: SeriesEdit, readonly series: number }
 }
@@ -37,6 +38,9 @@ export type DecisionStep = DescribedStep<'decision'> & DecisionRows
 /** Pick this, reject the rest by the picked picture's name, as an undo step (SERIES-001.9). */
 export type PickRestStep = DescribedStep<'pickRest'> & DecisionRows
 
+/** The series reduction by its counts, as an undo step (SERIES-008.5). */
+export type ReductionStep = DescribedStep<'reduction'> & DecisionRows
+
 /** One tag change as an undo step: the change and the pictures it altered (TAGS-003.10). */
 export type TagStep<P> = DescribedStep<'tags'> & { readonly pictures: readonly P[] }
 
@@ -44,12 +48,13 @@ export type TagStep<P> = DescribedStep<'tags'> & { readonly pictures: readonly P
 export type SeriesStep = DescribedStep<'series'> & SeriesChange
 
 /** One step of the undo history, tagged by its kind. */
-export type UndoStep<P> = DecisionStep | PickRestStep | TagStep<P> | SeriesStep
+export type UndoStep<P> = DecisionStep | PickRestStep | ReductionStep | TagStep<P> | SeriesStep
 
 /** The undo step of each kind. */
 interface StepsByKind<P> {
 	readonly decision: DecisionStep
 	readonly pickRest: PickRestStep
+	readonly reduction: ReductionStep
 	readonly tags: TagStep<P>
 	readonly series: SeriesStep
 }
@@ -70,14 +75,26 @@ export function undoEntry(pictures: readonly Decided[], change: DecisionChange):
 
 /** The undo step that picks one picture and rejects the rest, or null when it alters none. */
 export function pickRestEntry(picked: Decided, rest: readonly Decided[]): PickRestStep | null {
-	const rows = rowsOf([{ decided: picked, change: { flag: 'picked' } as const }, ...rest.map((decided) => ({ decided, change: { flag: 'rejected' } as const }))])
+	const rows = rowsOf(pickRestChanges(picked, rest))
 	return rows === null ? null : { kind: 'pickRest', picked: picked.picture.baseName, ...rows }
+}
+
+/** The undo step that picks the sharpest of each series and rejects the rest, or null when it alters none (SERIES-008.5). */
+export function reductionEntry(series: readonly { picked: Decided, rest: readonly Decided[] }[]): ReductionStep | null {
+	const rows = rowsOf(series.flatMap(({ picked, rest }) => pickRestChanges(picked, rest)))
+	const rejected = series.reduce((sum, { rest }) => sum + rest.filter(({ decision }) => decision.flag !== 'rejected').length, 0)
+	return rows === null ? null : { kind: 'reduction', series: series.length, rejected, ...rows }
 }
 
 /** The undo step that resets the pictures to unflagged without Keep RAW, a single's flag only, or null when it alters none (GRID-001.22). */
 export function clearEntry(pictures: readonly Decided[]): DecisionStep | null {
 	const rows = rowsOf(pictures.map((decided) => ({ decided, change: isPair(decided) ? CLEARED : { flag: CLEARED.flag } })))
 	return rows === null ? null : { kind: 'decision', change: CLEARED, ...rows }
+}
+
+/** The changes that pick one picture and reject the rest. */
+function pickRestChanges(picked: Decided, rest: readonly Decided[]): { decided: Decided, change: DecisionChange }[] {
+	return [{ decided: picked, change: { flag: 'picked' } }, ...rest.map((decided) => ({ decided, change: { flag: 'rejected' } as const }))]
 }
 
 /** The names and rows of the changes that altered something, or null when none did. */

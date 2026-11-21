@@ -28,6 +28,7 @@ export interface CullContext {
 	readonly selection: ReturnType<typeof useSelectionMode>
 	readonly decide: ReturnType<typeof useToastedDecisions>['decide']
 	readonly clearFlags: ReturnType<typeof useToastedDecisions>['clearFlags']
+	readonly reduceSeries: ReturnType<typeof useToastedDecisions>['reduceSeries']
 	/** Writing the picks and rejects to XMP files, with the count of files to write. */
 	readonly xmpExport: ReturnType<typeof useXmpExport>
 	/** The grid's *Series…* menu edits, with their toasts. */

@@ -5,6 +5,7 @@ import type { DecisionIntent } from './logic/decision-change.ts'
 import type { ListingEntry, SourceEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { SelectionEdit } from './logic/series-menu.ts'
+import type { ReductionPlan } from './logic/series-reduction.ts'
 import type { Series } from './logic/series.ts'
 import type { SeriesStatus } from './logic/stored-series.ts'
 import type { TagChange } from './logic/tag.ts'
@@ -21,6 +22,7 @@ interface Decisions {
 	decide: (intent: DecisionIntent, chosen: readonly Picture<SourceEntry>[]) => CullStep | null
 	pickRest: (picked: Picture<SourceEntry>, rest: readonly Picture<SourceEntry>[]) => CullStep | null
 	clearFlags: () => CullStep | null
+	reduceSeries: (plan: ReductionPlan<Picture<ListingEntry>>) => CullStep | null
 	tag: (change: TagChange, chosen: readonly Picture<SourceEntry>[]) => CullStep | null
 	removeFromSeries: (series: Series<Picture<ListingEntry>>, picture: Picture<ListingEntry>) => CullStep | null
 	dissolveSeries: (series: Series<Picture<ListingEntry>>) => CullStep | null
@@ -49,6 +51,11 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 	/** Resets every rateable picture's flag and *Keep RAW* and says so, with Undo (GRID-001.22). */
 	function clearFlags() {
 		toastChange(cull.clearFlags())
+	}
+
+	/** Picks the sharpest of each planned series, rejects the rest and says so, with Undo (SERIES-008.5). */
+	function reduceSeries(plan: ReductionPlan<Picture<ListingEntry>>) {
+		toastChange(cull.reduceSeries(plan))
 	}
 
 	/** Changes the pictures' tags and says what changed, with Undo (TAGS-003.10). */
@@ -91,7 +98,7 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 		}
 	}
 
-	return { decide, pickRest, clearFlags, tag, removeFromSeries, dissolveSeries, mergeSeries, markSeries, editSelection, undo, redo }
+	return { decide, pickRest, clearFlags, reduceSeries, tag, removeFromSeries, dissolveSeries, mergeSeries, markSeries, editSelection, undo, redo }
 }
 
 /** Undo and redo of a cull's history that say in a toast what they took back or put again. */
