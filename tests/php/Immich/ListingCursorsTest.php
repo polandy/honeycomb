@@ -42,7 +42,7 @@ final class ListingCursorsTest extends TestCase {
 		[$payload, $signature] = explode('.', $cursor);
 		$forged = rtrim(strtr(base64_encode((string)json_encode(['c' => 'alice-phone', 'f' => $filters->fingerprint(), 'i' => 'eyJvZmZzZXQiOjB9', 't' => self::RECEIVED_BEFORE + 60])), '+/', '-_'), '=');
 
-		foreach (["$forged.$signature", $payload, "$payload.", '.', '!!.00', 'bm90IGpzb24.' . $this->sign('bm90IGpzb24')] as $bad) {
+		foreach (["$forged.$signature", $payload, "$payload.", '.', '!!.00', 'bm90IGpzb24.' . bin2hex($this->sign('bm90IGpzb24'))] as $bad) {
 			$this->assertFailsWith(ImmichError::Request, fn () => $this->cursors()->open($bad, 'alice-phone', $filters));
 		}
 	}
@@ -53,7 +53,8 @@ final class ListingCursorsTest extends TestCase {
 		return new ListingCursors($crypto);
 	}
 
+	/** Raw bytes, as Nextcloud's `ICrypto::calculateHMAC` answers. */
 	private function sign(string $message): string {
-		return hash_hmac('sha256', $message, 'instance secret');
+		return hash_hmac('sha256', $message, 'instance secret', true);
 	}
 }

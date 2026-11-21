@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { SidecarWrites } from '../../src/cull-seams.ts'
 import type { FlagApi, FlagItem } from '../../src/flags-api.ts'
+import type { ImmichCullApi } from '../../src/immich-cull.ts'
 import type { ImmichApi } from '../../src/immich-source.ts'
 import type { Decision, StoredDecision } from '../../src/logic/decision.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
@@ -156,6 +157,10 @@ export function sidecarApi(saves: SidecarSaveItem[][] = []): SidecarFlowApi {
 
 /** An Immich seam without connections, so no test reaches the network. */
 const NO_IMMICH_API: ImmichApi = { listConnections: async () => NO_IMMICH, status: async () => FAILED_STATUS }
+/** The wall clock the app's Immich time filter counts from, noon UTC on 20 November 2026. */
+const NOW_SECONDS = 1_795_176_000
+/** An Immich server that never answers the cull's requests. */
+export const SILENT_IMMICH_CULL: ImmichCullApi = { assets: () => new Promise(() => undefined), counts: () => new Promise(() => undefined), saveDecisions: () => new Promise(() => undefined), imageUrl: (id, assetId, size) => `/${id}/${assetId}/${size}` }
 
 export function mountApp(props: Record<string, unknown> = {}, decisions: StoredDecision[] = [], stubs: Record<string, unknown> = {}) {
 	provideSkipActions()
@@ -184,6 +189,8 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			viewState: { loadViewState: async () => ({ infoPanelOpen: null, gestureGuideSeen: true, seriesHintSeen: true }), saveViewState: async () => undefined },
 			sidecars: sidecarApi(sidecarSaves),
 			immich: NO_IMMICH_API,
+			immichCull: SILENT_IMMICH_CULL,
+			now: () => NOW_SECONDS,
 			...props,
 		},
 		global: { stubs: { AppNavigation: true, FolderPicker: true, PhotoGrid: grid.component, GridToolbar: true, FilterBar: true, PhotoLoupe: true, SettingsDialog: true, ...stubs } },

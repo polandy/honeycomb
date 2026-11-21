@@ -84,7 +84,7 @@ export function timeRange(option: TimeOption, now: number, calendar: Calendar): 
 		return { takenAfter: null, takenBefore: null }
 	}
 	if (option.kind === 'last-7-days') {
-		return { takenAfter: now - RECENT_DAYS * DAY_SECONDS, takenBefore: null }
+		return { takenAfter: Math.floor(now) - RECENT_DAYS * DAY_SECONDS, takenBefore: null }
 	}
 	const next = shiftMonth(option.year, option.month, 1)
 	return { takenAfter: calendar.monthStart(option.year, option.month), takenBefore: calendar.monthStart(next.year, next.month) }

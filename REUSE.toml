@@ -30,6 +30,7 @@ path = [
     "composer.lock",
     "package.json",
     "tsconfig.json",
+    "tests/js/conventions/snippets/tsconfig.json",
     "package-lock.json",
 ]
 precedence = "aggregate"

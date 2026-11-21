@@ -262,3 +262,33 @@
 	border: 2px solid #fff;
 	border-radius: 50%;
 }
+
+/* A tile whose preview failed is dimmed, and its glyph and name stay legible (GRID-001.23). */
+.photo-tile--failed .photo-tile__photo {
+	opacity: 0.6;
+}
+
+.photo-tile__failed {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 8px;
+	color: var(--color-text-maxcontrast);
+}
+
+.photo-tile__failed .app-icon {
+	width: 32px;
+	height: 32px;
+}
+
+.photo-tile__failed-name {
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 12px;
+}

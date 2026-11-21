@@ -1,39 +1,17 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { ListingEntry } from '../../../src/logic/listing.ts'
-import type { Picture } from '../../../src/logic/pairing.ts'
 
-import { flushPromises, mount } from '@vue/test-utils'
+import { flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import PhotoTile from '../../../src/components/PhotoTile.vue'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
 import { createLoadQueue } from '../../../src/logic/load-queue.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { listingEntry, pictureOf, picturesOf } from '../logic/listing-entries.ts'
+import { fakeLoads, mountTile } from './tile-loads.ts'
 
 const MARK = TRANSLATED_MARK
 const PAIR = pictureOf(listingEntry(1, '/A/IMG_0001.JPG', { mtime: 7 }), listingEntry(2, '/A/IMG_0001.CR3'))
-const urlFor = (fileId: number, size: number, mtime: number) => `/img/${fileId}/${size}/${mtime}`
-
-/** A load queue over a loader whose loads the test settles by URL. */
-function fakeLoads() {
-	const started: string[] = []
-	const settle = new Map<string, { resolve: () => void, reject: () => void }>()
-	const loads = createLoadQueue((url) => new Promise<void>((resolve, reject) => {
-		started.push(url)
-		settle.set(url, { resolve, reject })
-	}), 10)
-	const settled = async (url: string, outcome: 'resolve' | 'reject' = 'resolve') => {
-		settle.get(url)![outcome]()
-		await flushPromises()
-	}
-	return { started, loads, settled }
-}
-
-function mountTile(picture: Picture<ListingEntry>, props: Record<string, unknown> = {}) {
-	return mount(PhotoTile, { props: { picture, size: 160, imageUrl: urlFor, loads: fakeLoads().loads, devicePixelRatio: 2, ...props } })
-}
 
 describe('PhotoTile', () => {
 	beforeEach(installMarkedCatalogue)

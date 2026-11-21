@@ -41,6 +41,7 @@ const PATHS = {
 	zoom: 'M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM15.5 15.5 20 20M8 10.5h5M10.5 8v5',
 	trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
 	undo: 'M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3',
+	imageBroken: 'M4 4h16v16H4zM4 16l5-5 3 3M14 14l2-2 4 4M15 8h.01M3 21 21 3',
 	lock: 'M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z',
 } as const
 
