@@ -3,7 +3,7 @@
 import { defineConfig, devices } from '@playwright/test'
 import { ADMIN, ADMIN_STATE } from './tests/e2e/admin.ts'
 import { PORT, RESULTS_DIR } from './tests/e2e/server.ts'
-import { WEBKIT } from './tests/e2e/webkit.ts'
+import { IPAD_PORTRAIT, WEBKIT } from './tests/e2e/webkit.ts'
 
 const BASE_URL = `http://localhost:${PORT}`
 const NEXTCLOUD_INSTALL_TIMEOUT_MS = 300_000
@@ -14,6 +14,7 @@ const WEBKIT_PROJECTS = process.env.HONEYCOMB_E2E_WEBKIT === '1'
 	? [
 			{ name: 'webkit', dependencies: ['login'], grep: new RegExp(WEBKIT), use: { ...devices['Desktop Safari'], viewport: { width: 1440, height: 900 }, storageState: ADMIN_STATE } },
 			{ name: 'webkit-ipad', dependencies: ['login'], grep: new RegExp(WEBKIT), use: { ...devices['iPad Pro 11 landscape'], userAgent: IPAD_USER_AGENT, storageState: ADMIN_STATE } },
+			{ name: 'webkit-ipad-portrait', dependencies: ['login'], grep: new RegExp(IPAD_PORTRAIT), use: { ...devices['iPad Pro 11'], userAgent: IPAD_USER_AGENT, storageState: ADMIN_STATE } },
 		]
 	: []
 

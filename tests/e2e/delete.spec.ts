@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
 import { cullFolder } from './cull.ts'
 import { apiHeaders, createFolder, etagOf, JPEG, pickLabel, RAW, trashEntry, upload } from './files.ts'
-import { WEBKIT } from './webkit.ts'
+import { IPAD_PORTRAIT, WEBKIT } from './webkit.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
 const TRASHBIN = `/remote.php/dav/trashbin/${ADMIN.username}`
@@ -77,7 +77,7 @@ test('reviews the rejects, rescues one and moves the rest to the Nextcloud trash
 })
 
 // spec: DELETE-002.19
-test('deletes the rejects from the More menu while the flag filter hides them', async ({ page }) => {
+test('deletes the rejects from the More menu while the flag filter hides them', { tag: IPAD_PORTRAIT }, async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Menu ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)

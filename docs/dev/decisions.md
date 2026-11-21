@@ -1796,6 +1796,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   *iPad Pro 11 landscape* device with a current iPadOS user agent, because the device's own agent
   names iOS 12 and Nextcloud redirects it to its unsupported-browser page. Landscape, because
   the toolbar folds *Review rejects* into *More* below 900 px; a portrait pass needs its own case.
+- 2026-11-21: The `webkit-ipad-portrait` project (#187, M10) runs one case, deleting the rejects
+  from *More* at 834 px, with the same iPadOS user agent as `webkit-ipad` (owner, `/decide`).
 - 2026-11-21: A move that would replace a file the trash bin would not keep is refused
   (`noTrashBin`, `tooLarge`) and the report says to move again with *Add suffix* or *Skip*; the
   ADR 0036 warning with a `permanent` flag stays with the trash dialog, so a move never deletes for
