@@ -2,7 +2,8 @@
 
 - Status: accepted
 - Date: 2026-11-15
-- Extends: [0013](0013-trash-endpoint-and-pair-atomicity.md), [0018](0018-move-endpoint-and-pair-atomicity.md)
+- Extends: [0013](0013-trash-endpoint-and-pair-atomicity.md), [0018](0018-move-endpoint-and-pair-
+atomicity.md)
 
 ## Context
 
