@@ -41,6 +41,7 @@ final class MoveRequestTest extends TestCase {
 			'a NUL' => [[[['path' => "/Out/X.RAF\0"] + $file]]],
 			'a replace that is no object' => [[[['replace' => 9] + $file]]],
 			'a replace without ETag' => [[[['replace' => ['fileId' => 9]] + $file]]],
+			'a permanent that is no boolean' => [[[['replace' => ['fileId' => 9, 'etag' => 'etag-9', 'permanent' => 1]] + $file]]],
 			'a replace of a file of the request' => [[[$file, self::to(2, '/Out/X.JPG') + ['replace' => ['fileId' => 1, 'etag' => 'etag-1']]]]],
 			'a file id in two pictures' => [[[$file], [$file]]],
 			'a target path twice, in another case' => [[[$file], [self::to(2, '/out/x.raf')]]],
@@ -48,7 +49,7 @@ final class MoveRequestTest extends TestCase {
 		];
 	}
 
-	// spec: MOVE-002.8
+	// spec: MOVE-002.8, MOVE-002.13
 	#[DataProvider('malformedRequests')]
 	public function testAMalformedRequestIsRefusedWhole(array $pictures): void {
 		$this->expectException(InvalidMoveRequestException::class);

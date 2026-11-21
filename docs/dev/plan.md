@@ -778,10 +778,12 @@ and the loupe's title row, on the key `M` (dialog and summary: MOVE-004).
 4. **Move summary.** Before anything moves, the dialog lists every file with its new path, and
    counts pictures, files and conflicts. A conflict (the target name already exists) is resolved
    per picture or for all at once: *Add suffix* (default), *Skip* or *Replace*. *Replace* sends
-   the existing file to the trash bin.
+   the existing file to the trash bin; one the trash bin would not keep is replaced for good only
+   after the permanent replace warning (ADR 0048).
 5. **Undo.** The toast's *Undo* moves the files back to their old names; `Ctrl+Z` undoes
    decisions only. Replaced files stay in the
-   trash bin, restorable there, since restoring is not public API (ADR 0018).
+   trash bin, restorable there, since restoring is not public API (ADR 0018); a file replaced for
+   good is gone.
 6. **Failures.** If one file of a picture fails, the picture's files already moved go back, and
    the summary reports each file (as in M4.1). Endpoints and atomicity: ADR 0018, MOVE-002;
    plan, conflicts, report and undo: MOVE-003.

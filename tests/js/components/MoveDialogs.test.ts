@@ -236,16 +236,46 @@ describe('MoveDialogs: report', () => {
 		wrapper.unmount()
 	})
 
-	// spec: MOVE-004.12
-	it('says when the trash bin would not keep the file to replace', async () => {
-		const { wrapper, moving, single } = mountDialogs({}, async (request) => request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'tooLarge', replaced: false }))))
+	// spec: MOVE-004.21, MOVE-004.22, MOVE-004.23
+	it('lists the files the replace would delete for good, Cancel focused, and replaces or keeps them', async () => {
+		const answer: Parameters<typeof mountDialogs>[1] = async (request) => request.map((files) => files.map(({ fileId, path, replace }) => (replace?.permanent === true ? { fileId, result: 'moved', replaced: true, path, newFileId: fileId, etag: 'm' } : { fileId, result: 'tooLarge', replaced: false })))
+		const { wrapper, moving, single, sent } = mountDialogs({ held: ['IMG_2.JPG'] }, answer)
 		moving.open([single])
 		moving.choose('/Out')
 		await flushPromises()
+		moving.setChoice(single, 'replace')
 		await moving.confirm()
 		await flushPromises()
 
-		expect(wrapper.find('.trash-files').text()).toContain('is larger than the trash bin allows and would be deleted for good; move again with Add suffix or Skip')
+		const dialog = wrapper.findComponent(ConfirmDialog)
+		expect(dialog.props()).toMatchObject({ title: '1 file will be replaced permanently', confirmLabel: 'Replace permanently', danger: true, cancel: true, focusCancel: true })
+		expect(wrapper.text()).toContain('Replaced, they cannot be restored, and Undo does not bring them back.')
+		expect(wrapper.find('.move-dialog__unkept').text()).toContain('/Out/IMG_2.JPG')
+		expect(wrapper.find('.move-dialog__unkept').text()).toContain('Larger than the trash bin allows')
+
+		await dialog.vm.$emit('confirm')
+		await flushPromises()
+		expect(sent).toHaveLength(2)
+		expect(moving.warning.value).toBeNull()
+		wrapper.unmount()
+	})
+
+	// spec: MOVE-004.23
+	it('keeps the photo when the permanent replace warning is cancelled', async () => {
+		const { wrapper, moving, single, sent } = mountDialogs({ held: ['IMG_2.JPG'] }, async (request) => request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'noTrashBin', replaced: false }))))
+		moving.open([single])
+		moving.choose('/Out')
+		await flushPromises()
+		moving.setChoice(single, 'replace')
+		await moving.confirm()
+		await flushPromises()
+
+		await wrapper.findComponent(ConfirmDialog).vm.$emit('cancel')
+		await flushPromises()
+
+		expect(sent).toHaveLength(1)
+		expect(wrapper.find('[role="dialog"]').attributes('name')).toBe('Move finished with errors')
+		expect(wrapper.find('.trash-files').text()).toContain('Not moved: the file it would replace has no trash bin on its storage')
 		wrapper.unmount()
 	})
 })

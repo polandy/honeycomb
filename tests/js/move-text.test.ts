@@ -34,10 +34,10 @@ describe('move texts', () => {
 		expect(moveFailureReason('otherStorage')).toBe('Not moved: the target is outside the shared folder or storage the file is on')
 	})
 
-	// spec: MOVE-004.12
-	it('says why a file to replace would not go to the trash bin, and how to move the photo', () => {
-		expect(moveFailureReason('noTrashBin')).toBe('Not moved: the file it would replace has no trash bin on its storage and would be deleted for good; move again with Add suffix or Skip')
-		expect(moveFailureReason('tooLarge')).toBe('Not moved: the file it would replace is larger than the trash bin allows and would be deleted for good; move again with Add suffix or Skip')
+	// spec: MOVE-004.23
+	it('says why a file to replace would not go to the trash bin', () => {
+		expect(moveFailureReason('noTrashBin')).toBe('Not moved: the file it would replace has no trash bin on its storage')
+		expect(moveFailureReason('tooLarge')).toBe('Not moved: the file it would replace is larger than the trash bin allows')
 	})
 
 	// spec: MOVE-004.9

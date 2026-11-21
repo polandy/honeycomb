@@ -114,6 +114,22 @@ export async function trashEntry(page: Page, path: string): Promise<string> {
 	return entry as string
 }
 
+/** Whether the admin has a file at `path`. */
+export async function exists(page: Page, path: string): Promise<boolean> {
+	const response = await page.request.fetch(`/remote.php/dav/files/${ADMIN.username}/${path}`, { method: 'PROPFIND', headers: await apiHeaders(page, { Depth: '0' }) })
+	return response.status() !== 404
+}
+
+/** The original locations of the admin's trash bin. */
+export async function trashLocations(page: Page): Promise<string> {
+	const trash = await page.request.fetch(`/remote.php/dav/trashbin/${ADMIN.username}/trash`, {
+		method: 'PROPFIND',
+		headers: await apiHeaders(page, { Depth: '1' }),
+		data: '<d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns"><d:prop><nc:trashbin-original-location/></d:prop></d:propfind>',
+	})
+	return trash.text()
+}
+
 /** Runs `body` with the admin's trash bin size at the JPEG's size; the web process caches app config that occ changes behind its back. */
 export async function withSmallTrashBin(body: () => Promise<void>): Promise<void> {
 	occ(['user:setting', ADMIN.username, 'files_trashbin', 'trashbin_size', String(JPEG.length)])

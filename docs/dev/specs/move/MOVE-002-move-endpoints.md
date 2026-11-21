@@ -25,7 +25,8 @@ deepest folder on the path that exists and may be read is mounted, as a path of 
 **Move.** `POST /apps/honeycomb/api/v1/move` takes `{"pictures": [[{"fileId": 7, "etag": "…",
 "path": "/Sorted/2026/a.RAF", "replace": {"fileId": 9, "etag": "…"}}, …], …]}`: a list of
 pictures, each the list of its files with the ETag from the listing and its new path; `replace` is
-optional. At most 500 files, so one request ends well inside a proxy or PHP timeout (ADR 0029).
+optional and may carry `"permanent": true` once the user confirmed replacing its file for good
+(ADR 0048). At most 500 files, so one request ends well inside a proxy or PHP timeout (ADR 0029).
 For each picture:
 
 1. Every file is checked before any moves. The source must exist in the user's files, be a file the
@@ -33,9 +34,11 @@ For each picture:
    source itself, or hold the file `replace` names with its ETag, deletable. The deepest existing
    folder on the target path must be a folder the user may create in, on the source's storage, as
    must the file `replace` names, and the trash bin must keep that file (ADR 0036): its storage
-   has a trash bin and it is smaller than the trash bin size.
+   has a trash bin and it is smaller than the trash bin size. A `replace` marked `permanent` passes
+   this last check (ADR 0048).
 2. The files then move in order, sidecars (`.xmp`) after the members. Missing folders are created;
-   a replaced file goes to the trash bin just before its file takes its place.
+   a replaced file goes to the trash bin just before its file takes its place, or, marked
+   `permanent` and not kept by the trash bin, is deleted for good, logged without its path.
 3. If a move fails, the picture's files already moved go back to their old paths, last first, and
    its remaining files are `skipped`. One picture's failure does not stop the others.
 4. A file that gets a new file id anyway takes its flag row (DECISIONS-001) and the user's other
@@ -58,8 +61,8 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
 | `skipped` | Not tried, because another file of the picture failed |
 | `movedBack` | Moved, then moved back because another file of the picture failed |
 | `otherStorage` | The target is on another storage than the file, see MOVE-002.11 |
-| `noTrashBin` | The file `replace` names lies on a storage without a trash bin, see MOVE-002.5 |
-| `tooLarge` | The file `replace` names is at least as large as the trash bin size, see MOVE-002.5 |
+| `noTrashBin` | The file `replace` names lies on a storage without a trash bin and is not marked `permanent`, see MOVE-002.5 |
+| `tooLarge` | The file `replace` names is at least as large as the trash bin size and is not marked `permanent`, see MOVE-002.5 |
 
 ## Acceptance criteria
 
@@ -101,8 +104,8 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
 - **Then** that file goes to the trash bin, the file moves to its path and is reported with
   `replaced: true`; a `replace` whose file has another ETag or id is reported `exists`; a
   `replace` whose file the trash bin would not keep, on a storage without one or at least as large
-  as the owner's or the server's trash bin size, is reported `noTrashBin` or `tooLarge`, the
-  picture's other files are `skipped`, and nothing is deleted
+  as the owner's or the server's trash bin size, and not marked `permanent`, is reported
+  `noTrashBin` or `tooLarge`, the picture's other files are `skipped`, and nothing is deleted
 
 ### MOVE-002.6 – A file already at its path stays
 
@@ -157,6 +160,16 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
 - **Then** each target and source folder is answered with its `storage`, the share's folder or
   `/`, in the order sent; a malformed `sources` list is a `400`
 
+### MOVE-002.13 – A replace marked permanent deletes for good
+
+- **Given** a file whose `replace` is marked `permanent` and names a file the trash bin would not
+  keep, on a storage without one or at least as large as the trash bin size, and another whose
+  marked `replace` the trash bin would keep
+- **When** the client posts them
+- **Then** the first replaced file is deleted for good, the second goes to the trash bin, both
+  files move and report `replaced: true`, and each delete for good is logged as a warning with the
+  file id and without its path; a `permanent` that is not a boolean is a `400`
+
 ## Out of scope
 
 The name template is MOVE-001; the move plan, conflict choices, report and undo are MOVE-003; the
@@ -173,3 +186,4 @@ over.
 | 2026-11-15 | A move stays on its storage (MOVE-002.11); the probe names storages (MOVE-002.12). |
 | 2026-11-19 | M8 PR 5: the flag row follows a new file id, whoever set it (MOVE-002.10, ADR 0040). |
 | 2026-11-21 | A replace whose file the trash bin would not keep is refused (MOVE-002.5, ADR 0036). |
+| 2026-11-21 | A replace marked `permanent` deletes such a file for good (MOVE-002.13, ADR 0048). |

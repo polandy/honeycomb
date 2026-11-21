@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-/** One file of a move request: the listed file, its new path and the file it may replace there. */
+/** One file of a move request: the listed file, its new path and the file it may replace there, for good once the user confirmed (ADR 0048). */
 final readonly class MoveFile {
 	public function __construct(
 		public int $fileId,
@@ -15,6 +15,7 @@ final readonly class MoveFile {
 		public string $path,
 		public ?int $replaceFileId = null,
 		public ?string $replaceEtag = null,
+		public bool $replacePermanent = false,
 	) {
 	}
 }
