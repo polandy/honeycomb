@@ -25,12 +25,13 @@ final class FolderService {
 
 	/**
 	 * The direct child folders of the folder at `$path`, hidden ones included, unsorted, each with
-	 * the counts of its own pictures and orphaned sidecars and of those below it (null for a hidden or unlistable child).
+	 * the counts of its own pictures and orphaned sidecars and of those below it (null for a hidden or unlistable child),
+	 * pictures paired by `$extensions`.
 	 * @return list<array{name: string, path: string, hasSubfolders: bool, pictures: ?int, picturesBelow: ?int, picturesBelowApproximate: bool, orphanedSidecars: ?int, orphanedSidecarsBelow: ?int}>
 	 * @throws FolderNotFoundException for a foreign, vanished or non-folder path
 	 * @throws FolderNotReadableException when the user may not read the folder
 	 */
-	public function children(IUser $user, string $path): array {
+	public function children(IUser $user, string $path, PairingExtensions $extensions): array {
 		$folder = $this->folders->folder($user, $path);
 		$userFolder = $this->folders->userFolder($user);
 		try {
@@ -42,7 +43,7 @@ final class FolderService {
 		foreach ($nodes as $node) {
 			$relative = $userFolder->getRelativePath($node->getPath());
 			if ($node instanceof Folder && $relative !== null) {
-				$children[] = ['name' => $node->getName(), 'path' => $relative, ...$this->contents($node)];
+				$children[] = ['name' => $node->getName(), 'path' => $relative, ...$this->contents($node, $extensions)];
 			}
 		}
 		return $children;
@@ -53,7 +54,7 @@ final class FolderService {
 	 * one listing, and how many below it, from the file cache.
 	 * @return array{hasSubfolders: bool, pictures: ?int, picturesBelow: ?int, picturesBelowApproximate: bool, orphanedSidecars: ?int, orphanedSidecarsBelow: ?int}
 	 */
-	private function contents(Folder $folder): array {
+	private function contents(Folder $folder, PairingExtensions $extensions): array {
 		try {
 			$nodes = $folder->getDirectoryListing();
 		} catch (NotPermittedException|NotFoundException) {
@@ -77,8 +78,8 @@ final class FolderService {
 		if (str_starts_with($folder->getName(), '.')) {
 			return ['hasSubfolders' => $hasSubfolders, 'pictures' => null, 'picturesBelow' => null, 'picturesBelowApproximate' => false, 'orphanedSidecars' => null, 'orphanedSidecarsBelow' => null];
 		}
-		$own = PictureTally::of($photos, $videos, $sidecars);
-		$below = $this->picturesBelow($folder);
+		$own = PictureTally::of($photos, $videos, $sidecars, $extensions);
+		$below = $this->picturesBelow($folder, $extensions);
 		return [
 			'hasSubfolders' => $hasSubfolders,
 			'pictures' => $own['pictures'],
@@ -90,9 +91,9 @@ final class FolderService {
 	}
 
 	/** The pictures and orphaned sidecars below `$folder`, or null when the file cache cannot tell. */
-	private function picturesBelow(Folder $folder): ?PictureCount {
+	private function picturesBelow(Folder $folder, PairingExtensions $extensions): ?PictureCount {
 		try {
-			return $this->below->count($folder);
+			return $this->below->count($folder, $extensions);
 		} catch (\OCP\DB\Exception $e) {
 			$this->logger->warning('Could not count the pictures below a folder.', ['exception' => $e]);
 			return null;

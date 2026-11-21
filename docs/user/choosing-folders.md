@@ -16,8 +16,8 @@ folder, shared folders included. A folder with subfolders has an arrow before it
   name, also while it is collapsed, so you can find your ticks. The move dialog's *Browse…* marks
   the folders above the chosen one the same way.
 - **Pictures:** the number at the end of a folder's row counts its pictures. A RAW and a JPEG of
-  one shot count as one picture (with the default file types), so it matches the grid once you
-  tick the folder. While a folder is collapsed it counts the pictures in it and in all its
+  one shot count as one picture, by the file types in your settings, so it matches the grid once
+  you tick the folder. While a folder is collapsed it counts the pictures in it and in all its
   subfolders; once you expand it, it counts only those directly in it, and each subfolder shows
   its own (as in digiKam). Folders without pictures show no number. The count of a collapsed
   folder comes from Nextcloud's file index, so files Nextcloud has not scanned yet are missing

@@ -83,6 +83,15 @@ describe('listFolders', () => {
 		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/folders', { params: { path: '/P' } })
 	})
 
+	// spec: LISTING-003.24
+	it('sends the extension lists of the pairing settings', async () => {
+		vi.mocked(axios.get).mockResolvedValue({ data: { folders: [] } })
+
+		await listFolders('/P', { rawExtensions: ['nef'], renderedExtensions: ['jpg', 'tif'] })
+
+		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/folders', { params: { path: '/P', rawExtensions: ['nef'], renderedExtensions: ['jpg', 'tif'] } })
+	})
+
 	// spec: LISTING-003.10
 	it('rejects a response without folders', async () => {
 		vi.mocked(axios.get).mockResolvedValue({ data: { entries: [] } })

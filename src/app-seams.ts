@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Folder } from './api.ts'
+import type { Folder, PairingExtensions } from './api.ts'
 import type { BrowserStorage } from './browser-storage.ts'
 import type { LocationApi } from './cull-location.ts'
 import type { CullTagsApi } from './cull-tags.ts'
@@ -43,7 +43,7 @@ const APP_ELEMENT = 'honeycomb'
 
 /** The server and browser seams of the app; tests replace them with fakes. */
 export interface AppSeams {
-	listFolders?: (path: string) => Promise<Folder[]>
+	listFolders?: (path: string, extensions?: PairingExtensions) => Promise<Folder[]>
 	listEntries?: ListEntries
 	warmPreviews?: WarmPreviews
 	/** The URL of a preview tier, which the grid, the loupe and the series compare load. */

@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\FileCachePictures;
 use OCA\Honeycomb\Db\SubtreeExactness;
+use OCA\Honeycomb\Service\PairingExtensions;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeLoader;
 use OCP\Files\IRootFolder;
@@ -88,8 +89,17 @@ final class FileCachePicturesTest extends DbTestCase {
 			'Photos/.thumbnails/d.jpg', 'Photos/2024/.e.jpg', 'Photos/2024/e.jpg', 'Photos/2024/Trip/f.png', 'Other/g.jpg',
 		]);
 
-		$this->assertSame(4, $this->counter()->count($this->folderAt($home, 'Photos'))?->pictures);
-		$this->assertSame(2, $this->counter()->count($this->folderAt($home, 'Photos/2024'))?->pictures);
+		$this->assertSame(3, $this->counter()->count($this->folderAt($home, 'Photos'), PairingExtensions::defaults())?->pictures);
+		$this->assertSame(1, $this->counter()->count($this->folderAt($home, 'Photos/2024'), PairingExtensions::defaults())?->pictures);
+	}
+
+	// spec: LISTING-003.24
+	public function testCountsAndPairsByTheGivenExtensions(): void {
+		$home = $this->files(self::USER, ['Photos/a.jpg', 'Photos/a.nef', 'Photos/2024/b.tif', 'Photos/2024/c.cr2', 'Photos/2024/c.tif', 'Photos/2024/d.png']);
+		$photos = $this->folderAt($home, 'Photos');
+
+		$this->assertSame(2, $this->counter()->count($photos, PairingExtensions::defaults())?->pictures);
+		$this->assertSame(3, $this->counter()->count($photos, PairingExtensions::fromRequest(['cr2'], ['jpg', 'tif']))?->pictures);
 	}
 
 	// spec: LISTING-003.20
@@ -99,8 +109,8 @@ final class FileCachePicturesTest extends DbTestCase {
 			'Photos/2024/a.dng', 'Photos/2024/c.JPG', 'Photos/2024/c.heic', 'Photos/2024/.d.jpg', 'Photos/2024/.d.dng',
 		]);
 
-		$this->assertSame(5, $this->counter()->count($this->folderAt($home, 'Photos'))?->pictures);
-		$this->assertSame(3, $this->counter()->count($this->folderAt($home, 'Photos/2024'))?->pictures);
+		$this->assertSame(5, $this->counter()->count($this->folderAt($home, 'Photos'), PairingExtensions::defaults())?->pictures);
+		$this->assertSame(3, $this->counter()->count($this->folderAt($home, 'Photos/2024'), PairingExtensions::defaults())?->pictures);
 	}
 
 	// spec: LISTING-003.23
@@ -110,17 +120,17 @@ final class FileCachePicturesTest extends DbTestCase {
 			'Photos/2024/c.xmp', 'Photos/2024/a.xmp', 'Photos/2024/.h.xmp', 'Photos/.thumbs/z.xmp', 'Other/y.xmp',
 		]);
 
-		$this->assertSame(3, $this->counter()->count($this->folderAt($home, 'Photos'))?->orphans);
-		$this->assertSame(2, $this->counter()->count($this->folderAt($home, 'Photos/2024'))?->orphans);
+		$this->assertSame(3, $this->counter()->count($this->folderAt($home, 'Photos'), PairingExtensions::defaults())?->orphans);
+		$this->assertSame(2, $this->counter()->count($this->folderAt($home, 'Photos/2024'), PairingExtensions::defaults())?->orphans);
 	}
 
 	// spec: LISTING-003.20
 	public function testCountsNoSiblingThatSharesThePrefixOrMatchesItAsAPattern(): void {
 		$home = $this->files(self::USER, ['Day/a.jpg', 'Day 2/b.jpg', 'Day_1/c.jpg', 'DayA1/d.jpg', '100%/e.jpg', '1000/f.jpg']);
 
-		$this->assertSame(1, $this->counter()->count($this->folderAt($home, 'Day'))?->pictures);
-		$this->assertSame(1, $this->counter()->count($this->folderAt($home, 'Day_1'))?->pictures);
-		$this->assertSame(1, $this->counter()->count($this->folderAt($home, '100%'))?->pictures);
+		$this->assertSame(1, $this->counter()->count($this->folderAt($home, 'Day'), PairingExtensions::defaults())?->pictures);
+		$this->assertSame(1, $this->counter()->count($this->folderAt($home, 'Day_1'), PairingExtensions::defaults())?->pictures);
+		$this->assertSame(1, $this->counter()->count($this->folderAt($home, '100%'), PairingExtensions::defaults())?->pictures);
 	}
 
 	// spec: LISTING-003.20
@@ -135,7 +145,7 @@ final class FileCachePicturesTest extends DbTestCase {
 			$this->mount("$below/.hidden/Shared/", $holiday),
 			$this->mount("$below/Unscanned/", -1),
 			$this->mount("$below/Again/", $this->folderAt($home, 'Photos/2024')->getId()),
-		])->count($this->folderAt($home, 'Photos'));
+		])->count($this->folderAt($home, 'Photos'), PairingExtensions::defaults());
 
 		$this->assertSame(4, $count?->pictures);
 		$this->assertTrue($count?->approximate);
@@ -147,8 +157,8 @@ final class FileCachePicturesTest extends DbTestCase {
 		$holiday = $this->files(self::OTHER, ['Holiday/c.jpg']);
 		$below = '/' . self::USER . '/files/Photos';
 
-		$plain = $this->counter()->count($this->folderAt($home, 'Photos'));
-		$mounted = $this->counter([$this->mount("$below/Shared/", $this->folderAt($holiday, 'Holiday')->getId(), $holiday->getStorage())])->count($this->folderAt($home, 'Photos'));
+		$plain = $this->counter()->count($this->folderAt($home, 'Photos'), PairingExtensions::defaults());
+		$mounted = $this->counter([$this->mount("$below/Shared/", $this->folderAt($holiday, 'Holiday')->getId(), $holiday->getStorage())])->count($this->folderAt($home, 'Photos'), PairingExtensions::defaults());
 
 		$this->assertFalse($plain?->approximate);
 		$this->assertFalse($mounted?->approximate);
@@ -169,7 +179,7 @@ final class FileCachePicturesTest extends DbTestCase {
 		$folder->method('getPath')->willReturn($photos->getPath());
 		$folder->method('getStorage')->willReturn($this->aclStorage());
 
-		$this->assertTrue($this->counter()->count($folder)?->approximate);
+		$this->assertTrue($this->counter()->count($folder, PairingExtensions::defaults())?->approximate);
 	}
 
 	// spec: LISTING-003.20
@@ -182,8 +192,8 @@ final class FileCachePicturesTest extends DbTestCase {
 		$update = $this->db->getQueryBuilder();
 		$update->update('filecache')->set('size', $update->createNamedParameter(-1))->where($update->expr()->eq('fileid', $update->createNamedParameter($unknown->getId())))->executeStatement();
 
-		$acl = $this->counter([$this->mount("$below/Team/", $holiday->getId(), $this->aclStorage())])->count($this->folderAt($home, 'Photos'));
-		$size = $this->counter([$this->mount("$below/Size/", $unknown->getId(), $other->getStorage())])->count($this->folderAt($home, 'Photos'));
+		$acl = $this->counter([$this->mount("$below/Team/", $holiday->getId(), $this->aclStorage())])->count($this->folderAt($home, 'Photos'), PairingExtensions::defaults());
+		$size = $this->counter([$this->mount("$below/Size/", $unknown->getId(), $other->getStorage())])->count($this->folderAt($home, 'Photos'), PairingExtensions::defaults());
 
 		$this->assertTrue($acl?->approximate);
 		$this->assertTrue($size?->approximate);
@@ -194,7 +204,7 @@ final class FileCachePicturesTest extends DbTestCase {
 		$home = $this->files(self::USER, ['Photos/a.jpg']);
 		$mount = $this->mount('/' . self::USER . '/files/Photos/.hidden/Shared/', -1);
 
-		$this->assertFalse($this->counter([$mount])->count($this->folderAt($home, 'Photos'))?->approximate);
+		$this->assertFalse($this->counter([$mount])->count($this->folderAt($home, 'Photos'), PairingExtensions::defaults())?->approximate);
 	}
 
 	// spec: LISTING-003.20
@@ -204,7 +214,7 @@ final class FileCachePicturesTest extends DbTestCase {
 		$update = $this->db->getQueryBuilder();
 		$update->update('filecache')->set('size', $update->createNamedParameter(-1))->where($update->expr()->eq('fileid', $update->createNamedParameter($photos->getId())))->executeStatement();
 
-		$this->assertTrue($this->counter()->count($photos)?->approximate);
+		$this->assertTrue($this->counter()->count($photos, PairingExtensions::defaults())?->approximate);
 	}
 
 	// spec: LISTING-003.20
@@ -213,6 +223,6 @@ final class FileCachePicturesTest extends DbTestCase {
 		$folder->method('getId')->willReturn(PHP_INT_MAX);
 		$folder->method('getPath')->willReturn('/' . self::USER . '/files/Gone');
 
-		$this->assertNull($this->counter()->count($folder)?->pictures);
+		$this->assertNull($this->counter()->count($folder, PairingExtensions::defaults())?->pictures);
 	}
 }

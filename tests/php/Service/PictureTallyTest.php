@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Service\PairingExtensions;
 use OCA\Honeycomb\Service\PictureTally;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -18,8 +19,8 @@ final class PictureTallyTest extends TestCase {
 	 * @param list<string> $sidecars
 	 * @param list<string> $videos
 	 */
-	private static function tally(array $photos, array $sidecars = [], array $videos = []): array {
-		return PictureTally::of($photos, $videos, $sidecars);
+	private static function tally(array $photos, array $sidecars = [], array $videos = [], ?PairingExtensions $extensions = null): array {
+		return PictureTally::of($photos, $videos, $sidecars, $extensions ?? PairingExtensions::defaults());
 	}
 
 	/** @return array<string, array{list<string>, int}> */
@@ -33,7 +34,7 @@ final class PictureTallyTest extends TestCase {
 			'a RAW alone is one picture' => [['A.NEF'], 1],
 			'two RAW files of one base name are two pictures' => [['A.NEF', 'A.DNG', 'A.JPG'], 3],
 			'two rendered files of one base name are two pictures' => [['A.JPG', 'A.HEIC', 'A.NEF'], 3],
-			'another photo type counts once each' => [['A.PNG', 'A.JPG', 'B.png'], 3],
+			'a photo type in neither list does not count' => [['A.PNG', 'A.JPG', 'B.png'], 1],
 			'an untyped RAW pairs like any RAW' => [['A.CR3', 'A.JPG'], 1],
 			'no photos' => [[], 0],
 		];
@@ -44,6 +45,20 @@ final class PictureTallyTest extends TestCase {
 	// spec: LISTING-003.19
 	public function testCountsAPairOnce(array $photos, int $pictures): void {
 		$this->assertSame($pictures, self::tally($photos)['pictures']);
+	}
+
+	// spec: LISTING-003.24
+	public function testCountsAndPairsByTheUsersExtensions(): void {
+		$photos = ['A.NEF', 'A.JPG', 'B.TIF', 'C.png', 'D.cr2', 'D.tif'];
+
+		$this->assertSame(2, self::tally($photos)['pictures']);
+		$this->assertSame(3, self::tally($photos, extensions: PairingExtensions::fromRequest(['cr2'], ['jpg', 'tif']))['pictures']);
+		$this->assertSame(2, self::tally($photos, extensions: PairingExtensions::fromRequest(['cr2'], ['tif']))['pictures']);
+	}
+
+	// spec: LISTING-003.23
+	public function testAPhotoInNeitherListStillOwnsItsSidecar(): void {
+		$this->assertSame(['pictures' => 0, 'orphans' => 0], self::tally(['A.png'], ['A.png.xmp']));
 	}
 
 	/** @return array<string, array{list<string>, list<string>, int}> */

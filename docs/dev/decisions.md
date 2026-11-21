@@ -1783,7 +1783,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   wait for 10c. The stub Immich generates a library of 3,660 plain photos, as many as its
   statistics fixture counts, paged by an offset cursor and unfiltered.
 - 2026-11-21: The folder picker counts pictures, a RAW+JPEG pair once, with the default
-  extensions (the server cannot see the LISTING-002 settings); orphaned sidecars get a note
+  extensions (later the user's, see below); orphaned sidecars get a note
   before the count. The fields were renamed (`photoFiles` to `pictures`), not added, as the
   endpoint is unreleased. Counting in PHP from `parent`/`name`/`mimepart` rows keeps the pairing
   rule in one place and avoids database-specific string SQL.
@@ -1802,3 +1802,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-21: Update from 0.1.0 drops flags and tags (migration 0005, ADR 0040); no
   production instance holds 0.1.0 data, so no code change, only a note in `updating.md` and the
   manual (release review F1, F5, autonomous).
+- 2026-11-21: The folder picker's count uses the user's LISTING-002 lists, sent as optional
+  `rawExtensions[]`/`renderedExtensions[]` (default when left out, 400 when invalid), and stays in
+  PHP: 110–130 ms at 100,000 files, where a pairing SQL count took about 365 ms (owner #187 M1,
+  ADR 0011, autonomous).
