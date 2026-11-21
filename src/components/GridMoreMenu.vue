@@ -135,7 +135,7 @@ const emit = defineEmits<{
 			:disabled="reducible === 0"
 			@click="emit('reduceSeries')">
 			<template #icon>
-				<AppIcon name="compare" />
+				<AppIcon name="sharp" />
 			</template>
 			{{ t('honeycomb', 'Reduce series to the sharpest…') }}
 			<span class="grid-more-menu__count">{{ formatNumber(reducible) }}</span>
