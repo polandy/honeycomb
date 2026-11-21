@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Service\TrashBinGuard;
+use OCP\Config\IUserConfig;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -15,6 +17,7 @@ use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\Files\Storage\IStorage;
+use OCP\IAppConfig;
 use OCP\IUser;
 
 /** An in-memory tree of alice's files under `/alice/files` that `OCP\Files` stubs read and change. */
@@ -54,6 +57,15 @@ trait FakeTree {
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $this->treeFolder('/')]]);
 		return $root;
+	}
+
+	/** The trash bin guard with alice's trash bin size, `-1` for none, and none on the server. */
+	private function treeTrashBin(string $userSize = '-1'): TrashBinGuard {
+		$userConfig = $this->createStub(IUserConfig::class);
+		$userConfig->method('getValueString')->willReturn($userSize);
+		$appConfig = $this->createStub(IAppConfig::class);
+		$appConfig->method('getValueString')->willReturn('-1');
+		return new TrashBinGuard($userConfig, $appConfig);
 	}
 
 	/**

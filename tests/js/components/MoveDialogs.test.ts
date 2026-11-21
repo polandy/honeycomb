@@ -235,4 +235,17 @@ describe('MoveDialogs: report', () => {
 		expect(moving.report.value).toBeNull()
 		wrapper.unmount()
 	})
+
+	// spec: MOVE-004.12
+	it('says when the trash bin would not keep the file to replace', async () => {
+		const { wrapper, moving, single } = mountDialogs({}, async (request) => request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'tooLarge', replaced: false }))))
+		moving.open([single])
+		moving.choose('/Out')
+		await flushPromises()
+		await moving.confirm()
+		await flushPromises()
+
+		expect(wrapper.find('.trash-files').text()).toContain('is larger than the trash bin allows and would be deleted for good; move again with Add suffix or Skip')
+		wrapper.unmount()
+	})
 })

@@ -83,8 +83,9 @@ part of it: they stay in the trash bin.
 
 ### MOVE-003.6 – The report counts moved, failed and replaced files
 
-- **Given** a request and a response with `moved`, `replaced`, failed and `movedBack` files, an
-  unknown result, a `moved` without its new file id and a file left out
+- **Given** a request and a response with `moved`, `replaced`, failed (also `noTrashBin` and
+  `tooLarge`) and `movedBack` files, an unknown result, a `moved` without its new file id and a
+  file left out
 - **When** the report is made
 - **Then** moved files carry old and new path, new file id and ETag; the others are failed with
   their result, unknown ones as `failed`; only pictures whose sent files all moved count, and the
@@ -107,3 +108,4 @@ MOVE-002.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written and implemented with M7.2 (ADR 0018). |
+| 2026-11-21 | The report keeps `noTrashBin` and `tooLarge` (MOVE-003.6). |

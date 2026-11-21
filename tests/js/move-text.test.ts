@@ -9,7 +9,7 @@ import { filesOf } from '../../src/logic/delete-summary.ts'
 import { movedBackText, movedText, moveFailedText, moveFailureReason, moveNote, namingProblemText } from '../../src/move-text.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 
-const FAILURES: MoveFailure[] = ['notFound', 'changed', 'notPermitted', 'locked', 'exists', 'failed', 'skipped', 'movedBack', 'otherStorage']
+const FAILURES: MoveFailure[] = ['notFound', 'changed', 'notPermitted', 'locked', 'exists', 'failed', 'skipped', 'movedBack', 'otherStorage', 'noTrashBin', 'tooLarge']
 const [FILE] = filesOf(pictureOf(listingEntry(1, '/In/DSC_1.JPG')))
 const moved = { file: FILE!, from: '/In/DSC_1.JPG', path: '/Out/DSC_1.JPG', fileId: 1, etag: 'e' }
 
@@ -32,6 +32,12 @@ describe('move texts', () => {
 	// spec: MOVE-002.11
 	it('says a file stays inside its shared folder or storage', () => {
 		expect(moveFailureReason('otherStorage')).toBe('Not moved: the target is outside the shared folder or storage the file is on')
+	})
+
+	// spec: MOVE-004.12
+	it('says why a file to replace would not go to the trash bin, and how to move the photo', () => {
+		expect(moveFailureReason('noTrashBin')).toBe('Not moved: the file it would replace has no trash bin on its storage and would be deleted for good; move again with Add suffix or Skip')
+		expect(moveFailureReason('tooLarge')).toBe('Not moved: the file it would replace is larger than the trash bin allows and would be deleted for good; move again with Add suffix or Skip')
 	})
 
 	// spec: MOVE-004.9
