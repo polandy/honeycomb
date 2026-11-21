@@ -110,10 +110,12 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
 
 ### IMMICH-003.12 – An asset gone in Immich
 
-- **Given** a picked asset that Immich no longer lists in the upload library
+- **Given** a picked asset that Immich reports as deleted, and another that is only in Immich's
+  trash bin or archived
 - **When** the user filters to *Picked* only
-- **Then** the asset does not show, its row is deleted in the same request, and the counts no
-  longer hold it
+- **Then** neither shows; the deleted asset's row is deleted in the same request and the counts no
+  longer hold it; the trashed or archived asset keeps its row, so restoring it in Immich brings
+  its decision back
 
 ### IMMICH-003.13 – Keys and auto-advance
 

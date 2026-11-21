@@ -62,6 +62,11 @@ final class ListingFiltersTest extends TestCase {
 		$this->assertSame([...(new ImmichSearchFilter())->uploads(), 'createdAt' => ['lte' => self::RECEIVED_BEFORE_DATE]], $this->search([]));
 	}
 
+	// spec: IMMICH-003.12
+	public function testTheLookupOfMissingAssetsHasNoLibraryVisibilityOrTrashLimit(): void {
+		$this->assertSame(['or' => [['id' => ['eq' => 'a']], ['id' => ['eq' => 'b']]]], (new ImmichSearchFilter())->heldByIds(['a', 'b']));
+	}
+
 	// spec: IMMICH-002.11
 	public function testTheTimeFilterIsHalfOpenOnTheCaptureTime(): void {
 		$filter = $this->search(['takenAfter' => 1_793_491_200, 'takenBefore' => 1_796_083_200]);

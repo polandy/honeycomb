@@ -26,7 +26,7 @@ final class DecidedPages {
 	}
 
 	/**
-	 * The rows after the cursor's key; a row whose asset left the upload library is deleted (IMMICH-003.12).
+	 * The rows after the cursor's key; a row whose asset Immich reports as deleted is deleted; a trashed or archived asset keeps its row (IMMICH-003.12).
 	 * @param ?string $key the opened cursor's key, null on the first page
 	 * @return array{entries: list<Entry>, nextCursor: ?string, previousCursor: null}
 	 */
@@ -51,15 +51,28 @@ final class DecidedPages {
 		}));
 		$entries = $this->entries->of($items, $decisions);
 		$found = array_map(static fn (array $item): mixed => $item['id'], $items);
-		$gone = array_values(array_diff($assetIds, $found));
-		if ($gone !== []) {
-			$this->store->remove($connection->user, $connection->id, $gone);
-		}
+		$this->removeDeleted($connection, array_values(array_diff($assetIds, $found)));
 		$order = array_flip($assetIds);
 		usort($entries, static fn (array $a, array $b): int => $order[$a['assetId']] <=> $order[$b['assetId']]);
 		$last = $rows[count($rows) - 1];
 		$next = $more ? $this->cursors->issue($connection->id, $filters, $last->takenAt . self::KEY_SEPARATOR . $last->assetId, $receivedBefore) : null;
 		return ['entries' => $entries, 'nextCursor' => $next, 'previousCursor' => null];
+	}
+
+	/**
+	 * Deletes the rows of the assets Immich no longer holds at all.
+	 * @param list<string> $missing assets the upload library's visible set did not return
+	 */
+	private function removeDeleted(Connection $connection, array $missing): void {
+		if ($missing === []) {
+			return;
+		}
+		$held = $this->client->search($connection, ['filter' => $this->filter->heldByIds($missing), 'size' => count($missing)])['items'];
+		$heldIds = array_map(static fn (mixed $item): mixed => is_array($item) ? ($item['id'] ?? null) : null, $held);
+		$deleted = array_values(array_diff($missing, $heldIds));
+		if ($deleted !== []) {
+			$this->store->remove($connection->user, $connection->id, $deleted);
+		}
 	}
 
 	/** @return array{takenAt: int, assetId: string} */

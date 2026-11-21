@@ -34,6 +34,15 @@ final class ImmichSearchFilter {
 	}
 
 	/**
+	 * The assets Immich still holds, in its trash bin or archive too, whichever library.
+	 * @param non-empty-list<string> $assetIds
+	 * @return array<string, mixed>
+	 */
+	public function heldByIds(array $assetIds): array {
+		return ['or' => array_map(static fn (string $assetId): array => ['id' => ['eq' => $assetId]], $assetIds)];
+	}
+
+	/**
 	 * The uploads received up to the time that pass the filters: devices and kinds as the branches of one search.
 	 * @return array<string, mixed>
 	 */
