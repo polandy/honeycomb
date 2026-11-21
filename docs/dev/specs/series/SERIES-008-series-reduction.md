@@ -31,6 +31,8 @@ series without a clear sharpest stays for the user to compare.
   the plan or a tap leaves out. A tap on a thumbnail leaves its series out. *Cancel* closes it
   without a change; the primary *Pick 3, reject 9* takes the plan as it stands, disabled when no
   series is left.
+  A plan without a reduced series shows *No series to reduce* instead of the counts; the menu
+  action is disabled then, so this guards only a plan that changed while the menu opened.
 - **The confirm** flags every reduced series as one undo step, with the toast *Picked the
   sharpest of 3 series, rejected 9 · Undo*; flags only, never the trash bin. The flags are
   written as any other decision, sidecars included; the plan, the mark and the counts are not.
