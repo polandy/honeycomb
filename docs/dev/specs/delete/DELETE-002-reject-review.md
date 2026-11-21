@@ -287,3 +287,4 @@ The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
 | 2026-11-19 | ADR 0040: the server checks the rejects, the fresh check reads no sidecar, no dialog on a failed check (.15, .23, .25 withdrawn; .26, .27 gaps) |
 | 2026-11-19 | M8 PR 6: until M8 PR 8 the fresh check takes the flag from the fresh listing (.28) |
 | 2026-11-21 | A listing or trash request that does not answer in time fails with a message (.29, E23/U7) |
+| 2026-11-21 | Measured: a full 500-file chunk takes 15–17 s, under half of its 90 s timeout; the timeouts stay (DELETE-002.29, ADR 0029). |

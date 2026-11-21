@@ -265,3 +265,4 @@ SETTINGS-001. The endpoints: MOVE-002. The plan, conflicts, report and undo requ
 | 2026-11-21 | A probe or move request that does not answer in time fails with a message (MOVE-004.20, E23/U7). |
 | 2026-11-21 | The move report says when the trash bin would not keep a file to replace (MOVE-004.12). |
 | 2026-11-21 | Such a replace asks in the permanent replace warning first (MOVE-004.21–23, ADR 0048). |
+| 2026-11-21 | Measured: a full 500-file chunk takes 15–17 s, under half of its 90 s timeout; the timeouts stay (MOVE-004.20, ADR 0029). |

@@ -85,3 +85,16 @@ Measured on the e2e container (Nextcloud 35, SQLite, no Redis), three runs each:
 - A listing gets the owner's 30 s: far above three times the measured 0.5 s, which leaves room for
   a slower server and a phone network carrying the 12 MB answer of a capped listing.
 - The probe of the move targets is a listing and gets 30 s too.
+
+Measured again on 2026-11-21, on the same e2e container with its own empty photo files, three runs
+each (the nc-test host was not reachable, so this is no nc-test figure):
+
+| Request | Time | Half of its timeout |
+|---|---|---|
+| Listing of 20,000 pictures (40,000 files, 10 folders) | 0.49–0.58 s | 15 s |
+| Listing of 2,000 pictures (4,000 files) | 0.14 s | 15 s |
+| Move of 500 files (250 pairs) in a folder of 4,000 | 15.1–15.3 s | 45 s |
+| Trash of 500 files (250 pairs) in a folder of 4,000 | 15.5–16.6 s | 45 s |
+
+Every value lies below half of its timeout, so 30 s and 90 s stay. Re-measure on nc-test when it is
+reachable; a value above half its timeout there would raise the timeout.
