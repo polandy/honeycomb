@@ -26,10 +26,10 @@ final class MoveServiceTest extends TestCase {
 	use StatsFixture;
 	use FakeTree;
 
-	private function service(bool $trashBin = true, ?LoggerInterface $logger = null): MoveService {
+	private function service(bool $trashBin = true, ?LoggerInterface $logger = null, string $trashBinSize = '-1'): MoveService {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturnCallback(static fn (string $app): bool => $app === 'files_trashbin' && $trashBin);
-		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore(), new FakeQualityStore()), $logger ?? $this->createStub(LoggerInterface::class), $this->stats());
+		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore(), new FakeQualityStore()), $logger ?? $this->createStub(LoggerInterface::class), $this->stats(), $this->treeTrashBin($trashBinSize));
 	}
 
 	/** A RAW, its JPEG and the RAW's sidecar in `/In`, and a single JPEG. */
@@ -234,6 +234,26 @@ final class MoveServiceTest extends TestCase {
 
 		$this->assertSame([[self::failedFile(3, 'skipped'), self::failedFile(1, 'movedBack', replaced: true), self::failedFile(2, 'notPermitted')]], self::results($results));
 		$this->assertSame([9], $this->trashed);
+	}
+
+	// spec: MOVE-002.5
+	public function testAReplaceTheTrashBinWouldNotKeepLeavesThePictureUntouched(): void {
+		$this->pair();
+		$this->addFiles([9 => '/Out/2026/X.JPG', 8 => '/Out/B.JPG']);
+		$this->noTrashBin[9] = true;
+		$request = self::request();
+		$request[0][2]['replace'] = ['fileId' => 9, 'etag' => 'etag-9'];
+		$request[1][0]['replace'] = ['fileId' => 8, 'etag' => 'etag-8'];
+
+		$results = $this->service(trashBinSize: '800')->move($this->treeUser(), $request);
+
+		$this->assertSame([
+			[self::failedFile(3, 'skipped'), self::failedFile(1, 'skipped'), self::failedFile(2, 'noTrashBin')],
+			[self::failedFile(4, 'tooLarge')],
+		], self::results($results));
+		$this->assertSame([], $this->trashed);
+		$this->assertSame([], $this->log);
+		$this->assertSame(['/Out/2026/X.JPG', '/Out/B.JPG'], [$this->files[9], $this->files[8]]);
 	}
 
 	// spec: MOVE-002.6

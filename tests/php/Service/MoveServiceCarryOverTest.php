@@ -43,7 +43,7 @@ final class MoveServiceCarryOverTest extends TestCase {
 	private function service(?FlagStore $flags = null, ?LoggerInterface $logger = null): MoveService {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturn(true);
-		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores($flags ?? $this->flags, $this->hashes, $this->series, new FakeXmpCacheStore(), $this->quality), $logger ?? $this->createStub(LoggerInterface::class), $this->stats());
+		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores($flags ?? $this->flags, $this->hashes, $this->series, new FakeXmpCacheStore(), $this->quality), $logger ?? $this->createStub(LoggerInterface::class), $this->stats(), $this->treeTrashBin());
 	}
 
 	private static function flag(int $fileId): FileFlag {
