@@ -44,10 +44,10 @@ describe('OrphanedSidecarsPage', () => {
 		await scanIn(wrapper)
 
 		expect(fake.scan).toHaveBeenCalledWith('/Photos', '')
-		expect(wrapper.text()).toContain('3 orphaned sidecars, 4 KB')
+		expect(wrapper.text()).toContain('3 orphaned sidecars, 4 kB')
 		const folders = wrapper.findAll('.orphaned-sidecars__folder')
-		expect(folders.map((folder) => folder.find('summary').text())).toEqual(['/Photos – 2 sidecars, 2 KB', '/Photos/2024 – 1 sidecar, 2 KB'])
-		expect(folders[0]!.findAll('li').map((item) => item.text())).toEqual(['a.xmp – 1 KB', 'b.CR2.xmp – 1 KB'])
+		expect(folders.map((folder) => folder.find('summary').text())).toEqual(['/Photos – 2 sidecars, 2 kB', '/Photos/2024 – 1 sidecar, 2 kB'])
+		expect(folders[0]!.findAll('li').map((item) => item.text())).toEqual(['a.xmp – 1 kB', 'b.CR2.xmp – 1 kB'])
 	})
 
 	// spec: XMP-009.11

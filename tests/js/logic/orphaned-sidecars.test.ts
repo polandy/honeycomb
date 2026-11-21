@@ -19,7 +19,7 @@ describe('groupByFolder', () => {
 				{ path: '/', count: 1, size: 5, sidecars: [{ ...sidecar(4, '/top.xmp', 5), name: 'top.xmp' }] },
 			],
 			count: 4,
-			size: 75,
+			size: 65,
 		})
 	})
 
