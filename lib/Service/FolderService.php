@@ -18,7 +18,7 @@ use Psr\Log\LoggerInterface;
 final class FolderService {
 	public function __construct(
 		private UserFolderResolver $folders,
-		private PhotoFilesBelow $below,
+		private PicturesBelow $below,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -26,7 +26,7 @@ final class FolderService {
 	/**
 	 * The direct child folders of the folder at `$path`, hidden ones included, unsorted, each with
 	 * the count of its own photo files and of those below it (null for a hidden or unlistable child).
-	 * @return list<array{name: string, path: string, hasSubfolders: bool, photoFiles: ?int, photoFilesBelow: ?int, photoFilesBelowApproximate: bool}>
+	 * @return list<array{name: string, path: string, hasSubfolders: bool, pictures: ?int, picturesBelow: ?int, picturesBelowApproximate: bool}>
 	 * @throws FolderNotFoundException for a foreign, vanished or non-folder path
 	 * @throws FolderNotReadableException when the user may not read the folder
 	 */
@@ -51,31 +51,31 @@ final class FolderService {
 	/**
 	 * Whether `$folder` holds a folder and how many photo files of its own, from one listing, and
 	 * how many below it, from the file cache.
-	 * @return array{hasSubfolders: bool, photoFiles: ?int, photoFilesBelow: ?int, photoFilesBelowApproximate: bool}
+	 * @return array{hasSubfolders: bool, pictures: ?int, picturesBelow: ?int, picturesBelowApproximate: bool}
 	 */
 	private function contents(Folder $folder): array {
 		try {
 			$nodes = $folder->getDirectoryListing();
 		} catch (NotPermittedException|NotFoundException) {
-			return ['hasSubfolders' => false, 'photoFiles' => null, 'photoFilesBelow' => null, 'photoFilesBelowApproximate' => false];
+			return ['hasSubfolders' => false, 'pictures' => null, 'picturesBelow' => null, 'picturesBelowApproximate' => false];
 		}
 		$hasSubfolders = false;
-		$photoFiles = 0;
+		$pictures = 0;
 		foreach ($nodes as $node) {
 			$hasSubfolders = $hasSubfolders || $node instanceof Folder;
 			if ($node instanceof File && !str_starts_with($node->getName(), '.') && ListingService::isPhoto($node)) {
-				$photoFiles++;
+				$pictures++;
 			}
 		}
 		if (str_starts_with($folder->getName(), '.')) {
-			return ['hasSubfolders' => $hasSubfolders, 'photoFiles' => null, 'photoFilesBelow' => null, 'photoFilesBelowApproximate' => false];
+			return ['hasSubfolders' => $hasSubfolders, 'pictures' => null, 'picturesBelow' => null, 'picturesBelowApproximate' => false];
 		}
-		$below = $this->photoFilesBelow($folder);
-		return ['hasSubfolders' => $hasSubfolders, 'photoFiles' => $photoFiles, 'photoFilesBelow' => $below?->files, 'photoFilesBelowApproximate' => $below?->approximate ?? false];
+		$below = $this->picturesBelow($folder);
+		return ['hasSubfolders' => $hasSubfolders, 'pictures' => $pictures, 'picturesBelow' => $below?->pictures, 'picturesBelowApproximate' => $below?->approximate ?? false];
 	}
 
 	/** The photo files below `$folder`, or null when the file cache cannot tell. */
-	private function photoFilesBelow(Folder $folder): ?PhotoCount {
+	private function picturesBelow(Folder $folder): ?PictureCount {
 		try {
 			return $this->below->count($folder);
 		} catch (\OCP\DB\Exception $e) {

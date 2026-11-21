@@ -12,7 +12,7 @@ import { allMoved, moveFlow } from '../move-fixtures.ts'
 import { DialogStub } from './stubs.ts'
 
 const SET = { paths: ['/Trip'], subfolders: false }
-const FOLDERS: Folder[] = [{ name: 'Trip', path: '/Trip', hasSubfolders: false, photoFiles: 0, photoFilesBelow: 0, photoFilesBelowApproximate: false }, { name: 'Out', path: '/Out', hasSubfolders: false, photoFiles: 0, photoFilesBelow: 0, photoFilesBelowApproximate: false }]
+const FOLDERS: Folder[] = [{ name: 'Trip', path: '/Trip', hasSubfolders: false, pictures: 0, picturesBelow: 0, picturesBelowApproximate: false }, { name: 'Out', path: '/Out', hasSubfolders: false, pictures: 0, picturesBelow: 0, picturesBelowApproximate: false }]
 
 /** The dialogs over a move flow from the fixtures, its dialog open on `chosen` of its pictures. */
 function mountDialogs(options: Parameters<typeof moveFlow>[1] = {}, answer = allMoved()) {

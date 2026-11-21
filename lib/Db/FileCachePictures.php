@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Db;
 
 use OCA\Honeycomb\Preview\UntypedRaw;
-use OCA\Honeycomb\Service\PhotoCount;
-use OCA\Honeycomb\Service\PhotoFilesBelow;
+use OCA\Honeycomb\Service\PictureCount;
+use OCA\Honeycomb\Service\PicturesBelow;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeLoader;
@@ -20,7 +20,7 @@ use OCP\IDBConnection;
  * Counts the photo files below a folder with one query per storage in the file cache: the
  * folder's own subtree plus each storage mounted below it (ADR 0011).
  */
-final class FileCachePhotoFiles implements PhotoFilesBelow {
+final class FileCachePictures implements PicturesBelow {
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it through the service alias. */
 	public function __construct(
 		private IDBConnection $db,
@@ -30,7 +30,7 @@ final class FileCachePhotoFiles implements PhotoFilesBelow {
 	}
 
 	#[\Override]
-	public function count(Folder $folder): ?PhotoCount {
+	public function count(Folder $folder): ?PictureCount {
 		$own = $this->location($folder->getId());
 		if ($own === null) {
 			return null;
@@ -51,7 +51,7 @@ final class FileCachePhotoFiles implements PhotoFilesBelow {
 				$approximate = $approximate || SubtreeExactness::mayMissFiles($location['size'], $mount->getStorage());
 			}
 		}
-		return new PhotoCount(array_sum(array_map(fn (array $subtree): int => $this->photoFiles(...$subtree), $subtrees)), $approximate);
+		return new PictureCount(array_sum(array_map(fn (array $subtree): int => $this->pictures(...$subtree), $subtrees)), $approximate);
 	}
 
 	/** @return ?array{at: array{int, string}, size: int} the storage, path and size of a file cache row */
@@ -81,7 +81,7 @@ final class FileCachePhotoFiles implements PhotoFilesBelow {
 	}
 
 	/** The photo files below `$path` of `$storage`, leaving out every path with a hidden name. */
-	private function photoFiles(int $storage, string $path): int {
+	private function pictures(int $storage, string $path): int {
 		$query = $this->db->getQueryBuilder();
 		$expr = $query->expr();
 		$prefix = $path === '' ? '' : $this->db->escapeLikeParameter($path) . '/';

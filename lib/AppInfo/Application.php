@@ -9,7 +9,7 @@ namespace OCA\Honeycomb\AppInfo;
 
 use OCA\Honeycomb\Db\AppDataMapper;
 use OCA\Honeycomb\Db\FileCacheLookup;
-use OCA\Honeycomb\Db\FileCachePhotoFiles;
+use OCA\Honeycomb\Db\FileCachePictures;
 use OCA\Honeycomb\Db\FlagMapper;
 use OCA\Honeycomb\Db\ImmichDecisionMapper;
 use OCA\Honeycomb\Db\PositionMapper;
@@ -31,7 +31,7 @@ use OCA\Honeycomb\Service\AppData;
 use OCA\Honeycomb\Service\ExistingFiles;
 use OCA\Honeycomb\Service\FlagStore;
 use OCA\Honeycomb\Service\Pause;
-use OCA\Honeycomb\Service\PhotoFilesBelow;
+use OCA\Honeycomb\Service\PicturesBelow;
 use OCA\Honeycomb\Service\PositionStore;
 use OCA\Honeycomb\Service\PreviewLock;
 use OCA\Honeycomb\Service\QualityStore;
@@ -71,7 +71,7 @@ final class Application extends App implements IBootstrap {
 		$context->registerServiceAlias(VisualHashStore::class, VisualHashMapper::class);
 		$context->registerServiceAlias(XmpCacheStore::class, XmpCacheMapper::class);
 		$context->registerServiceAlias(ExistingFiles::class, FileCacheLookup::class);
-		$context->registerServiceAlias(PhotoFilesBelow::class, FileCachePhotoFiles::class);
+		$context->registerServiceAlias(PicturesBelow::class, FileCachePictures::class);
 		$context->registerServiceAlias(Pause::class, SystemPause::class);
 		$context->registerServiceAlias(PreviewLock::class, SemaphorePreviewLock::class);
 		$context->registerServiceAlias(LocalFiles::class, PhpLocalFiles::class);

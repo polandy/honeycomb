@@ -148,7 +148,7 @@ describe('FolderTree', () => {
 
 	// spec: LISTING-003.18
 	it('marks the folders below a ticked one as included while Include subfolders is on, still tappable', async () => {
-		const hidden = { name: '.cache', path: '/Photos/.cache', hasSubfolders: false, photoFiles: null, photoFilesBelow: null, photoFilesBelowApproximate: false }
+		const hidden = { name: '.cache', path: '/Photos/.cache', hasSubfolders: false, pictures: null, picturesBelow: null, picturesBelowApproximate: false }
 		const { wrapper, answer } = await mountTree(['/Photos'], true, { ...FOLDERS, '/Photos': [...FOLDERS['/Photos']!, hidden] })
 		await twisty(wrapper, 'Photos').trigger('click')
 		await answer('/Photos')
@@ -214,7 +214,7 @@ describe('FolderTree', () => {
 
 	// spec: LISTING-003.20
 	it('puts a tilde before a collapsed count that may be incomplete and speaks "about", but not on its own count', async () => {
-		const approximate = { ...FOLDERS['']![0]!, photoFilesBelowApproximate: true }
+		const approximate = { ...FOLDERS['']![0]!, picturesBelowApproximate: true }
 		const { wrapper, answer } = await mountTree([], false, { ...FOLDERS, '': [approximate, ...FOLDERS['']!.slice(1)] })
 		const count = (name: string) => item(wrapper, name).find('.folder-tree__count')
 

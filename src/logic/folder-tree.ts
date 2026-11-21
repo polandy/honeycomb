@@ -13,11 +13,11 @@ export interface TreeFolder {
 	readonly path: string
 	readonly hasSubfolders: boolean
 	/** Photo files of its own, null for a hidden or unlistable folder. */
-	readonly photoFiles: number | null
+	readonly pictures: number | null
 	/** Photo files of its own and of every folder below it, null for a hidden folder or an unknown count. */
-	readonly photoFilesBelow: number | null
+	readonly picturesBelow: number | null
 	/** Whether the count below may miss files (unscanned, or a Team folder with advanced permissions). */
-	readonly photoFilesBelowApproximate: boolean
+	readonly picturesBelowApproximate: boolean
 }
 
 /** What the tree knows of one folder's child folders. */
@@ -129,8 +129,8 @@ export function excludedBelow(set: FolderSet, path: string): number {
 }
 
 /** The photo files a folder row shows: its own while expanded or without subfolders, else all below it, maybe approximately; null for none or unknown. */
-export function rowPhotoFiles(folder: TreeFolder, expanded: boolean): { readonly count: number, readonly below: boolean, readonly approximate: boolean } | null {
+export function rowPictures(folder: TreeFolder, expanded: boolean): { readonly count: number, readonly below: boolean, readonly approximate: boolean } | null {
 	const below = folder.hasSubfolders && !expanded
-	const count = below ? folder.photoFilesBelow : folder.photoFiles
-	return count === null || count === 0 ? null : { count, below, approximate: below && folder.photoFilesBelowApproximate }
+	const count = below ? folder.picturesBelow : folder.pictures
+	return count === null || count === 0 ? null : { count, below, approximate: below && folder.picturesBelowApproximate }
 }

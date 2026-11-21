@@ -13,7 +13,7 @@ import { listFolders as apiListFolders } from '../api.ts'
 import { formatNumber, nameComparer, PLAIN_TEXT } from '../l10n.ts'
 import { logger } from '../logger.ts'
 import { effectiveExclusions, isHiddenFolder } from '../logic/folder-set.ts'
-import { excludedBelow, excludedFrom, foldersToExpand, includedBy, ROOT, rowPhotoFiles, tickedBelow, treeKey, visibleRows } from '../logic/folder-tree.ts'
+import { excludedBelow, excludedFrom, foldersToExpand, includedBy, ROOT, rowPictures, tickedBelow, treeKey, visibleRows } from '../logic/folder-tree.ts'
 import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
@@ -130,8 +130,8 @@ function badges(folder: Folder) {
 }
 
 /** The photo-file count of a folder row, shown and spoken; null when it holds none or is unknown. */
-function photoCount(folder: Folder, expanded: boolean) {
-	const files = rowPhotoFiles(folder, expanded)
+function pictureCount(folder: Folder, expanded: boolean) {
+	const files = rowPictures(folder, expanded)
 	if (files === null) {
 		return null
 	}
@@ -148,7 +148,7 @@ function photoCount(folder: Folder, expanded: boolean) {
 
 /** The photo-file counts of the folders shown, by path. */
 const counts = computed(() => new Map(rows.value.flatMap((row) => {
-	const count = row.kind === 'folder' ? photoCount(row.folder, row.expanded) : null
+	const count = row.kind === 'folder' ? pictureCount(row.folder, row.expanded) : null
 	return row.kind === 'folder' && count !== null ? [[row.folder.path, count] as const] : []
 })))
 

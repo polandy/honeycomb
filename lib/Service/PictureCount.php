@@ -7,10 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-/** A count of photo files and whether the file cache may have missed some (ADR 0011). */
-final readonly class PhotoCount {
+/** A count of pictures and whether the file cache may have missed some (ADR 0011). */
+final readonly class PictureCount {
 	public function __construct(
-		public int $files,
+		public int $pictures,
 		public bool $approximate,
 	) {
 	}
