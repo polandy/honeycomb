@@ -72,7 +72,7 @@ function page(index: number) {
 
 /** Decides the picture the loupe shows. */
 function decideShown(intent: DecisionIntent, picture: Picture<SourceEntry>) {
-	void props.cull.decide(intent, [picture])
+	props.cull.decide(intent, [picture])
 }
 
 defineExpose({ loupe: photoLoupe })

@@ -168,7 +168,7 @@ useHotkeys(() => {
 		return null
 	}
 	if (immichShown.value && !shortcutsOpen.value) {
-		return { shortcuts: toggleShortcuts, ...immichScreen.value?.loupe?.hotkeys }
+		return { undo: immichCull.undo, redo: immichCull.redo, shortcuts: toggleShortcuts, ...immichScreen.value?.loupe?.hotkeys }
 	}
 	if (shortcutsOpen.value || folderSet.value === null || immichShown.value) {
 		return { shortcuts: toggleShortcuts }

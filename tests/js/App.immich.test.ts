@@ -1,8 +1,9 @@
-import type { ImmichCullApi } from '../../src/immich-cull.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
+import type { ImmichCullApi } from '../../src/immich-cull.ts'
 import type { ImmichApi } from '../../src/immich-source.ts'
+import type { DecisionRow } from '../../src/logic/immich-asset.ts'
 import type { ConnectionStatus, ImmichAvailability } from '../../src/logic/immich-connections.ts'
 
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
@@ -15,6 +16,7 @@ import ImmichScreen from '../../src/components/ImmichScreen.vue'
 import ImmichState from '../../src/components/ImmichState.vue'
 import { IMMICH_CONNECTION_KEY } from '../../src/immich-source.ts'
 import { fakeStorage, mountApp, openCull, shownNames, SILENT_IMMICH_CULL } from './app-cull.ts'
+import { immichEntry } from './logic/immich-fixtures.ts'
 
 enableAutoUnmount(afterEach)
 
@@ -153,5 +155,24 @@ describe('App: the Immich source', () => {
 
 		expect(wrapper.findComponent(ImmichScreen).exists()).toBe(false)
 		expect(wrapper.findComponent(ImmichState).props('status')).toEqual(UNREACHABLE)
+	})
+
+	// spec: IMMICH-003.19
+	it('undoes and redoes the Immich decisions with Ctrl+Z and Ctrl+Shift+Z', async () => {
+		const saved: DecisionRow[][] = []
+		const immichCull: ImmichCullApi = { ...SILENT_IMMICH_CULL, assets: async () => ({ entries: [immichEntry('a1')], nextCursor: null, previousCursor: null }), saveDecisions: async (_id, rows) => (saved.push([...rows]), rows.map(({ assetId }) => assetId)) }
+		const { wrapper } = mountApp({ immich: immichOn({ kind: 'connections', connections: [PHONE] }).immich, immichCull })
+		await flushPromises()
+		wrapper.findComponent(FolderPicker).vm.$emit('cancel')
+		wrapper.findComponent(AppNavigation).vm.$emit('chooseSource', 'immich')
+		await flushPromises()
+		const cull = wrapper.findComponent(ImmichScreen).props('cull')
+		cull.decide({ kind: 'flag', flag: 'picked' }, cull.pictures.value)
+
+		document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true, cancelable: true }))
+		document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Z', ctrlKey: true, shiftKey: true, bubbles: true, cancelable: true }))
+		await flushPromises()
+
+		expect(saved.map((rows) => rows.map(({ flag }) => flag))).toEqual([['picked'], ['unflagged'], ['picked']])
 	})
 })

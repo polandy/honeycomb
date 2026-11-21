@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { DecisionIntent } from './logic/decision-change.ts'
-import type { Decision } from './logic/decision.ts'
+import type { Decision, StoredDecision } from './logic/decision.ts'
 import type { DecisionRow, ImmichEntry, ImmichImageSize, ImmichSourceEntry } from './logic/immich-asset.ts'
 import type { CountsRequest, ImmichCounts } from './logic/immich-counts.ts'
 import type { Calendar, ImmichFilters, RequestFilters } from './logic/immich-filters.ts'
@@ -9,18 +9,23 @@ import type { AssetsRequest, Page } from './logic/immich-paging.ts'
 import type { SourceEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { PictureId } from './logic/picture-id.ts'
+import type { DecisionStep } from './logic/undo.ts'
 import type { useToast } from './toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, readonly, ref, shallowRef } from 'vue'
+import { useCullHistory } from './cull-history.ts'
 import { changeText } from './decision-text.ts'
 import { logger } from './logger.ts'
 import { resolveChange } from './logic/decision-change.ts'
+import { decisionsByFileId } from './logic/decision.ts'
 import { GRID_TIERS, imageMember } from './logic/image-tiers.ts'
 import { assetDecision, assetPicture, decisionRow } from './logic/immich-asset.ts'
 import { countsAfterDecision } from './logic/immich-counts.ts'
 import { countsRequest, defaultImmichFilters, requestFilters, timeOptions } from './logic/immich-filters.ts'
 import { EMPTY_LIST, pageArrived, pageAsked, pageFailed, wantsNext } from './logic/immich-paging.ts'
+import { undoEntry } from './logic/undo.ts'
+import { useToastedUndo } from './toasted-decisions.ts'
 
 export type { AssetsRequest, CountsRequest, ImmichImageSize }
 
@@ -66,6 +71,9 @@ export function useImmichCull(context: ImmichCullContext) {
 	const shown = new Map<PictureId, Picture<ImmichSourceEntry>>()
 	let request: RequestFilters = requestFilters(filters.value, now(), calendar)
 	let generation = 0
+	// Undo saves the rows a step replaced, redo the rows it wrote (IMMICH-003.19).
+	const history = useCullHistory<DecisionStep>((step, back) => void apply(back ? changesBetween(step.after, step.before) : changesBetween(step.before, step.after)))
+	const { undo, redo } = useToastedUndo(history, context.toast.show)
 
 	const pictures = computed(() => list.value.entries.map(pictureOf))
 
@@ -85,6 +93,7 @@ export function useImmichCull(context: ImmichCullContext) {
 		ids.clear()
 		entries.clear()
 		shown.clear()
+		history.reset()
 		filters.value = defaultImmichFilters(now(), calendar)
 		restart()
 	}
@@ -169,20 +178,24 @@ export function useImmichCull(context: ImmichCullContext) {
 		return api.imageUrl(connectionId.value!, entry.assetId, thumbnail ? 'thumbnail' : 'preview', entry.updatedAt)
 	}
 
+	/** The changes that take the assets from the `from` rows to the `to` rows. */
+	function changesBetween(from: readonly StoredDecision[], to: readonly StoredDecision[]): Change[] {
+		const before = decisionsByFileId(from)
+		return [...decisionsByFileId(to)].map(([id, after]) => ({ id, before: before.get(id)!, after }))
+	}
+
 	/** Shows the decisions at once, counts them and saves them; puts them back if the save fails. */
-	async function apply(changes: readonly Change[]): Promise<boolean> {
+	async function apply(changes: readonly Change[]) {
 		const asked = generation
 		show(changes.map(({ id, after }) => [id, after]), changes.map(({ before, after }) => [before, after]))
 		try {
 			await api.saveDecisions(connectionId.value!, changes.map(({ id, after }) => decisionRow(entries.get(id)!, after)))
-			return true
 		} catch (error) {
 			logger.error('Could not save the Immich decisions', { error })
 			if (asked === generation) {
 				show(changes.map(({ id, before }) => [id, before]), changes.map(({ before, after }) => [after, before]))
 				context.toast.showError(t('honeycomb', 'Could not save the decision; it is back as it was'))
 			}
-			return false
 		}
 	}
 
@@ -193,16 +206,14 @@ export function useImmichCull(context: ImmichCullContext) {
 		counts.value = start && moves.reduce((current, [before, after]) => countsAfterDecision(current, before, after, filters.value), start)
 	}
 
-	/** Decides on the pictures and toasts the change with *Undo*, which saves the earlier decisions (IMMICH-003.4). */
-	async function decide(intent: DecisionIntent, targets: readonly Picture<SourceEntry>[]) {
+	/** Decides on the pictures as one undo step and toasts the change with *Undo* (IMMICH-003.4, IMMICH-003.19). */
+	function decide(intent: DecisionIntent, targets: readonly Picture<SourceEntry>[]) {
 		const current = targets.map((picture) => ({ picture, decision: decisionOf(picture) }))
-		const change = resolveChange(intent, current)
-		const changes = current.map(({ picture, decision }) => ({ id: imageMember(picture).fileId, before: decision, after: { ...decision, ...change } }))
-		if (await apply(changes)) {
-			const undo = () => void apply(changes.map(({ id, before, after }) => ({ id, before: after, after: before })))
-			context.toast.show(changeText({ kind: 'decision', names: targets.map(({ baseName }) => baseName), change }), { label: t('honeycomb', 'Undo'), run: undo })
+		const step = history.record(undoEntry(current, resolveChange(intent, current)))
+		if (step !== null) {
+			context.toast.show(changeText(step), { label: t('honeycomb', 'Undo'), run: undo })
 		}
 	}
 
-	return { connectionId: readonly(connectionId), filters, list, counts, pictures, open, setFilters, loadNext, retry, decisionOf, imageUrl, decide }
+	return { connectionId: readonly(connectionId), filters, list, counts, pictures, open, setFilters, loadNext, retry, decisionOf, imageUrl, decide, undo, redo }
 }
