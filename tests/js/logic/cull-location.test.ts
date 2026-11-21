@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import { locationHash, parseLocation } from '../../../src/logic/cull-location.ts'
 
+const hashOf = (json: string) => `#cull=${encodeURIComponent(json)}`
 const SET = { paths: ['/Trip', '/Trip/Café'], subfolders: true, excluded: ['/Trip/Skip'] }
 
 describe('locationHash', () => {
@@ -18,6 +19,12 @@ describe('locationHash', () => {
 	})
 
 	// spec: DECISIONS-002.17
+	it('writes the current format version', () => {
+		const json = decodeURIComponent(locationHash(SET, 7).slice('#cull='.length))
+		expect(JSON.parse(json)).toMatchObject({ v: 1 })
+	})
+
+	// spec: DECISIONS-002.17
 	it('is empty without a folder set', () => {
 		expect(locationHash(null, 7)).toBe('')
 	})
@@ -29,11 +36,14 @@ describe('parseLocation', () => {
 		['an empty hash', ''],
 		['another hash', '#something'],
 		['broken JSON', '#cull=%7B'],
-		['no paths', `#cull=${encodeURIComponent('{"paths":[],"subfolders":true}')}`],
-		['a path that is no string', `#cull=${encodeURIComponent('{"paths":[1],"subfolders":true}')}`],
-		['no subfolders flag', `#cull=${encodeURIComponent('{"paths":["/A"]}')}`],
-		['malformed exclusions', `#cull=${encodeURIComponent('{"paths":["/A"],"subfolders":true,"excluded":"/B"}')}`],
-		['a picture that is no number', `#cull=${encodeURIComponent('{"paths":["/A"],"subfolders":true,"fileId":"x"}')}`],
+		['no version', hashOf('{"paths":["/A"],"subfolders":true}')],
+		['a foreign version', hashOf('{"v":2,"paths":["/A"],"subfolders":true}')],
+		['a version that is no number', hashOf('{"v":"1","paths":["/A"],"subfolders":true}')],
+		['no paths', `#cull=${encodeURIComponent('{"v":1,"paths":[],"subfolders":true}')}`],
+		['a path that is no string', `#cull=${encodeURIComponent('{"v":1,"paths":[1],"subfolders":true}')}`],
+		['no subfolders flag', `#cull=${encodeURIComponent('{"v":1,"paths":["/A"]}')}`],
+		['malformed exclusions', `#cull=${encodeURIComponent('{"v":1,"paths":["/A"],"subfolders":true,"excluded":"/B"}')}`],
+		['a picture that is no number', `#cull=${encodeURIComponent('{"v":1,"paths":["/A"],"subfolders":true,"fileId":"x"}')}`],
 	])('reads nothing from %s', (_, hash) => {
 		expect(parseLocation(hash)).toBeNull()
 	})
