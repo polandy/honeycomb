@@ -4,7 +4,7 @@ import type { NamingProblem } from './logic/move-candidates.ts'
 import type { MoveFailure, MoveReport } from './logic/move-report.ts'
 
 import { n, t } from '@nextcloud/l10n'
-import { TrashBinOffError } from './api.ts'
+import { RequestTimeoutError, TrashBinOffError } from './api.ts'
 import { formatNumber, PLAIN_TEXT } from './l10n.ts'
 import { folderName } from './logic/move-targets.ts'
 
@@ -56,8 +56,11 @@ export function movedBackText(moved: number, failed: number): string {
 
 /** The toast when the probe or the move request fails. */
 export function moveFailedText(error: unknown): string {
-	return error instanceof TrashBinOffError
-		? t('honeycomb', 'The Nextcloud trash bin is off, so nothing was moved. honeycomb replaces files only into the trash bin.')
+	if (error instanceof TrashBinOffError) {
+		return t('honeycomb', 'The Nextcloud trash bin is off, so nothing was moved. honeycomb replaces files only into the trash bin.')
+	}
+	return error instanceof RequestTimeoutError
+		? t('honeycomb', 'The server did not answer within {seconds} s; reload the folder to see what moved.', { seconds: error.seconds }, undefined, PLAIN_TEXT)
 		: t('honeycomb', 'Could not move the photos; reload the folder to see what changed.')
 }
 

@@ -19,6 +19,7 @@ import LoupeTitleRow from './LoupeTitleRow.vue'
 import PanelDivider from './PanelDivider.vue'
 import PickRestButton from './PickRestButton.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
+import { browserSchedule } from '../browser-schedule.ts'
 import { toggleBrowserFullscreen } from '../fullscreen.ts'
 import { LOUPE_IDLE_MS, useIdle } from '../idle.ts'
 import { FILMSTRIP_THUMB } from '../logic/filmstrip.ts'
@@ -31,7 +32,6 @@ import { decodeSource, usePrefetch } from '../loupe-prefetch.ts'
 import { useLoupeSeries } from '../loupe-series.ts'
 import { observeElementSize } from '../observe-size.ts'
 import { useSeriesHint } from '../series-hint.ts'
-import { browserSchedule } from '../tile-selection.ts'
 
 const props = withDefaults(defineProps<PhotoLoupeProps>(), {
 	seriesOf: () => new Map(),

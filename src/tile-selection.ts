@@ -34,12 +34,6 @@ interface Drag {
 	to: number
 }
 
-/** Runs `run` after `ms` on the browser's timer. */
-export const browserSchedule: Schedule = (run, ms) => {
-	const timer = window.setTimeout(run, ms)
-	return () => window.clearTimeout(timer)
-}
-
 /** A tile's clicks, keys, long-press and drag as selection changes or opening (`docs/dev/plan.md` Selection mode). */
 export function useTileSelection(state: TileSelectionState, schedule: Schedule, frame: Frame) {
 	const press = longPress(schedule)

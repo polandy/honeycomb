@@ -12,6 +12,7 @@ import PhotoTile from './PhotoTile.vue'
 import SeriesBrackets from './SeriesBrackets.vue'
 import TileInfo from './TileInfo.vue'
 import { browserFrame } from '../auto-scroll.ts'
+import { browserSchedule } from '../browser-schedule.ts'
 import { useGridPinch } from '../grid-pinch.ts'
 import { useGridSeries } from '../grid-series.ts'
 import { formatNumber } from '../l10n.ts'
@@ -27,7 +28,7 @@ import { NO_SELECTION } from '../logic/selection.ts'
 import { decodeSource } from '../loupe-prefetch.ts'
 import { observeElementSize } from '../observe-size.ts'
 import { useTileInfo } from '../tile-info.ts'
-import { browserSchedule, useTileSelection } from '../tile-selection.ts'
+import { useTileSelection } from '../tile-selection.ts'
 
 const props = withDefaults(defineProps<PhotoGridProps>(), {
 	observeSize: observeElementSize,

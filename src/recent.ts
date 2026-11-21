@@ -8,17 +8,17 @@ import type { PictureId } from './logic/picture-id.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
 import type { ListedAccess } from './logic/writability.ts'
 import type { ResumeApi } from './resume.ts'
+import type { ToastAction } from './toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, ref, shallowRef } from 'vue'
 import { listFolderSet } from './folder-count.ts'
-import { PLAIN_TEXT } from './l10n.ts'
 import { logger } from './logger.ts'
 import { countFolderSet } from './logic/cull.ts'
 import { folderSetKey } from './logic/folder-set.ts'
 import { recentFolderSets, withPosition } from './logic/recent.ts'
 import { parsePositions } from './logic/resume-position.ts'
-import { folderSetName } from './recent-text.ts'
+import { notOpenedText } from './recent-text.ts'
 
 /** What *Recent* reads from the open cull. */
 export interface RecentCull {
@@ -38,7 +38,7 @@ export interface RecentOpener {
 }
 
 /** The folder sets under *Recent* and how one opens at its position (DECISIONS-002.8). */
-export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: RecentCull, toast: (message: string) => void) {
+export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: RecentCull, toast: (message: string, action: ToastAction) => void) {
 	const positions = shallowRef<ResumePosition[]>([])
 	let reading = 0
 	let opening = 0
@@ -86,7 +86,7 @@ export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: Recent
 			}
 		} catch (error) {
 			logger.error('Could not list the recent folder set', { error })
-			toast(t('honeycomb', 'Could not open {name}.', { name: folderSetName(folderSet) }, undefined, PLAIN_TEXT))
+			toast(notOpenedText(folderSet, error), { label: t('honeycomb', 'Try again'), run: () => void list(folderSet, openCull, opened) })
 		} finally {
 			if (listed === opening) {
 				listing.value = false

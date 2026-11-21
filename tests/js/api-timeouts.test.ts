@@ -9,10 +9,12 @@ vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn() } })
 vi.mock('@nextcloud/router', () => ({ generateUrl: (url: string) => `/index.php${url}` }))
 
 /** An axios call that never answers and fails once its signal aborts, as axios does. */
-const hanging = (...args: unknown[]) => new Promise((_, reject) => {
-	const { signal } = args.at(-1) as { signal: AbortSignal }
-	signal.addEventListener('abort', () => reject(Object.assign(new Error('canceled'), { code: 'ERR_CANCELED' })))
-})
+function hanging(...args: unknown[]) {
+	return new Promise((_, reject) => {
+		const { signal } = args.at(-1) as { signal: AbortSignal }
+		signal.addEventListener('abort', () => reject(Object.assign(new Error('canceled'), { code: 'ERR_CANCELED' })))
+	})
+}
 
 describe('request timeouts', () => {
 	// spec: LISTING-003.8, DECISIONS-002.19, DELETE-002.29
