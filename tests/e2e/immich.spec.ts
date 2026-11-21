@@ -54,8 +54,7 @@ test.describe('as a user with two Immich connections', () => {
 
 		await expect(connectionEntry(page, FAMILY.label)).toContainText('Connected as Alice')
 		await expect(connectionEntry(page, ANNA.label)).toContainText('The API key is refused')
-		await expect(page.getByRole('main')).toContainText('Connected as Alice')
-		await expect(page.getByRole('main')).toContainText('Immich 3.4.2 · 3,660 phone uploads')
+		await expect(page.getByRole('main')).toContainText('3,660 of 3,660 pictures')
 	})
 
 	// spec: IMMICH-001.8
@@ -88,8 +87,8 @@ test.describe('as a user with two Immich connections', () => {
 	// spec: IMMICH-001.13
 	test('shows the connection read only in its dialog, and Test connection asks the status again', async ({ page }) => {
 		await openImmich(page)
-		await expect(page.getByRole('main')).toContainText('Connected as Alice')
-		await page.getByRole('main').getByRole('button', { name: 'Connection details' }).click()
+		await expect(connectionEntry(page, FAMILY.label)).toContainText('Connected as Alice')
+		await page.getByRole('navigation').getByRole('link', { name: 'Connection details' }).click()
 
 		const dialog = page.getByRole('dialog', { name: 'Immich connection' })
 		for (const fact of [FAMILY.label, FAMILY.url, 'Connected as Alice', 'Alice', '3.4.2', 'asset.read', 'asset.view', 'asset.statistics', 'user.read']) {

@@ -48,6 +48,10 @@ describe('timeRange', () => {
 		expect(timeRange({ kind: 'last-7-days' }, NOW, UTC_CALENDAR)).toEqual({ takenAfter: NOW - 7 * DAY, takenBefore: null })
 		expect(timeRange({ kind: 'all' }, NOW, UTC_CALENDAR)).toEqual({ takenAfter: null, takenBefore: null })
 	})
+
+	it('bounds the last seven days in whole seconds when now has a fraction, as the server takes them', () => {
+		expect(timeRange({ kind: 'last-7-days' }, NOW + 0.547, UTC_CALENDAR)).toEqual({ takenAfter: NOW - 7 * DAY, takenBefore: null })
+	})
 })
 
 describe('requestFilters', () => {
