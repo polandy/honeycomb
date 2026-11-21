@@ -1799,4 +1799,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (`noTrashBin`, `tooLarge`) and the report says to move again with *Add suffix* or *Skip*; the
   ADR 0036 warning with a `permanent` flag stays with the trash dialog, so a move never deletes for
   good and the request gains no field (MOVE-002.5, autonomous).
-- 2026-11-21: Update from 0.1.0 drops flags and tags (migration 0005, ADR 0040); no production instance holds 0.1.0 data, so no code change, only a note in `updating.md` and the manual (release review F1, F5, autonomous).
+- 2026-11-21: Update from 0.1.0 drops flags and tags (migration 0005, ADR 0040); no
+  production instance holds 0.1.0 data, so no code change, only a note in `updating.md` and the
+  manual (release review F1, F5, autonomous).
