@@ -125,7 +125,7 @@ describe('useSidecarSync: read', () => {
 
 		expect(await sidecars.read([single(1)])).toEqual({ decided: [], tagged: [] })
 		expect(stored).toEqual([])
-		expect(warn).toHaveBeenCalledWith('Could not read a sidecar', { path: '/P/S1.JPG.xmp', reason: 'notPermitted' })
+		expect(warn).toHaveBeenCalledWith('Could not read a sidecar', { fileId: 101, reason: 'notPermitted' })
 
 		fail.lookup = true
 		expect(await sidecars.read([single(1)])).toEqual({ decided: [], tagged: [] })
@@ -167,7 +167,7 @@ describe('useSidecarSync: read', () => {
 
 		expect(decided).toHaveLength(1)
 		expect(tagged).toEqual([])
-		expect(warn).toHaveBeenCalledWith('Could not read the embedded XMP; the picture shows no tags', { path: '/P/IMG_0001.JPG', reason: 'locked' })
+		expect(warn).toHaveBeenCalledWith('Could not read the embedded XMP; the picture shows no tags', { fileId: 2, reason: 'locked' })
 	})
 })
 

@@ -58,13 +58,13 @@ final class Connections {
 		}
 		$content = $this->files->read($path);
 		if ($content === null) {
-			$this->logger->error('The Immich connections file {path} cannot be read', ['path' => $path]);
+			$this->logger->error('The Immich connections file cannot be read');
 			throw new ImmichException(ImmichError::ConnectionsFile);
 		}
 		try {
 			return $this->shape->parse($content);
 		} catch (ConnectionsFileViolation $violation) {
-			$this->logger->error('The Immich connections file {path} is invalid: {violation}', ['path' => $path, 'violation' => $violation->getMessage()]);
+			$this->logger->error('The Immich connections file is invalid: {violation}', ['violation' => $violation->getMessage()]);
 			throw new ImmichException(ImmichError::ConnectionsFile);
 		}
 	}
