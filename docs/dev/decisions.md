@@ -1659,9 +1659,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   a route-keyed fake Immich and check its answers against the pinned OpenAPI schema. Easy to redo.
 - 2026-11-20: The Immich client follows no redirect, so the key header never reaches another
   host; a redirecting Immich reports the `version` state (IMMICH-001.6). Easy to redo.
-- 2026-11-20: An Immich asset is gone when the upload library's visible set no longer holds it
-  (deleted, trashed or archived); its decision row is deleted when a decision filter asks for it
-  (IMMICH-003.12). Easy to redo.
+- 2026-11-21: An Immich decision row is deleted only when Immich no longer holds the asset at
+  all; a trashed or archived asset keeps its row (IMMICH-003.12, owner decision H2 of #187,
+  replaces the 2026-11-20 line). Easy to redo.
 - 2026-11-20: Paging under a decision filter is ordered by the row's capture time, ties by asset
   id descending, so it needs no Immich page (IMMICH-002.22). Easy to redo.
 - 2026-11-20: A device option without uploads shows only while chosen; *No camera data* is always
