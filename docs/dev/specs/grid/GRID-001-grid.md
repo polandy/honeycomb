@@ -175,6 +175,15 @@ a glance, at any size, without waiting for a sharp image of every tile.
 - **Then** the 10 rateable ones become *unflagged* without *Keep RAW* as one undo step, their rows
   stay, no sidecar is touched, and the toast says *10 photos reset* with *Undo*
 
+### GRID-001.23 – A tile whose preview failed shows it and loads again on a tap
+
+- **Given** a tile whose small preview failed to load
+- **When** it renders
+- **Then** it is dimmed and shows a broken-image glyph and the picture's name, and its label says
+  *Preview failed to load*; the user can still flag, rate and tag it; a plain click, tap or
+  Enter or Space on it, outside selection mode, loads the preview again in place of opening the
+  loupe, and a tile that loaded opens the loupe again
+
 ## Out of scope
 
 Pairing (LISTING-002), the folder picker and its over-the-cap notice (LISTING-003), filters and
@@ -232,3 +241,4 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 | 2026-11-19 | ADR 0040: the lock on read-only tiles, *Write picks/rejects to XMP* with its count, *Clear picks/rejects* (.20–.22 gaps) |
 | 2026-11-19 | M8 PR 6: the lock and *Clear picks/rejects* (.20, .22 implemented) |
 | 2026-11-19 | M8 PR 7: *Write picks/rejects to XMP* with its count (.21 implemented) |
+| 2026-11-21 | GRID-001.23: a failed preview shows a dimmed tile with a broken-image glyph and loads again on a tap (E8/U4, owner 2026-11-19) |

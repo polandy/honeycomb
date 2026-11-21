@@ -53,6 +53,8 @@ const props = withDefaults(defineProps<{
 	nameBar?: boolean
 	/** Whether the name bar ends in the ⓘ button that opens the tile info, on touch (GRID-004.12). */
 	infoButton?: boolean
+	/** Raised by the grid to load a failed small preview again (GRID-001.23). */
+	retry?: number
 }>(), {
 	decision: () => UNDECIDED,
 	series: null,
@@ -63,6 +65,7 @@ const props = withDefaults(defineProps<{
 	readOnly: false,
 	nameBar: false,
 	infoButton: false,
+	retry: 0,
 	selecting: false,
 	selected: false,
 	offscreen: false,
@@ -75,6 +78,8 @@ const emit = defineEmits<{
 	compareSeries: []
 	/** The ⓘ button was tapped; the tile's element is where the tile info points (GRID-004.12). */
 	info: [tile: HTMLElement]
+	/** Whether the small preview failed to load, on each change (GRID-001.23). */
+	imageFailed: [failed: boolean]
 }>()
 
 const member = computed(() => imageMember(props.picture))
@@ -88,6 +93,8 @@ const sharp = computed(() => {
 const shown = ref<string | null>(null)
 /** Whether the small preview is still on its way (GRID-001.12). */
 const waiting = ref(true)
+/** Whether the small preview failed and the tile waits for a retry (GRID-001.23). */
+const failed = ref(false)
 
 /** The members as the label names them: both extensions of a pair, else the single's. */
 const members = computed(() => {
@@ -154,6 +161,7 @@ const label = computed(() => [
 	...(props.tags > 0 ? [n('honeycomb', '{count} tag', '{count} tags', props.tags, { count: formatNumber(props.tags) })] : []),
 	...(props.unsaved ? [t('honeycomb', 'Not saved yet')] : []),
 	...(props.readOnly ? [t('honeycomb', 'Read only')] : []),
+	...(failed.value ? [t('honeycomb', 'Preview failed to load')] : []),
 ].join(', '))
 
 let pending: { load: QueuedLoad, sharp: boolean } | null = null
@@ -183,24 +191,44 @@ function requestSharp(): void {
 	}
 }
 
-watch(small, (url) => {
+/** Loads the small preview and settles the tile on its outcome. */
+function loadSmall(url: string): void {
 	shown.value = null
 	waiting.value = true
+	failed.value = false
 	request(url, false, (loaded) => {
 		waiting.value = false
 		shown.value = loaded ? url : null
+		failed.value = !loaded
 		requestSharp()
 	})
-}, { immediate: true })
+}
+
+watch(small, loadSmall, { immediate: true })
+watch(failed, (isFailed, wasFailed) => {
+	if (isFailed || wasFailed) {
+		emit('imageFailed', isFailed)
+	}
+})
+watch(() => props.retry, () => {
+	if (failed.value) {
+		loadSmall(small.value)
+	}
+})
 watch(sharp, requestSharp)
 watch(() => props.offscreen, (offscreen) => pending?.load.prioritise(loadPriority(!offscreen, pending.sharp)))
-onBeforeUnmount(() => pending?.load.cancel())
+onBeforeUnmount(() => {
+	pending?.load.cancel()
+	if (failed.value) {
+		emit('imageFailed', false)
+	}
+})
 </script>
 
 <template>
 	<div
 		class="photo-tile"
-		:class="{ 'photo-tile--selected': props.selected, 'skeleton-tile': waiting }"
+		:class="{ 'photo-tile--selected': props.selected, 'photo-tile--failed': failed, 'skeleton-tile': waiting }"
 		:aria-label="label"
 		data-tip-hover-only
 		:aria-selected="props.selecting ? props.selected : undefined">
@@ -218,6 +246,10 @@ onBeforeUnmount(() => pending?.load.cancel())
 				alt=""
 				draggable="false"
 				:src="shown">
+			<span v-if="failed" class="photo-tile__failed" aria-hidden="true">
+				<AppIcon name="imageBroken" />
+				<span class="photo-tile__failed-name">{{ props.picture.baseName }}</span>
+			</span>
 			<span v-if="badge !== null" class="photo-tile__pair" :class="{ 'photo-tile__pair--single': badge.single, 'photo-tile__pair--keep-raw': badge.keepRaw }">{{ badge.text }}</span>
 			<span v-if="props.picture.ambiguous" class="photo-tile__ambiguous" aria-hidden="true">!</span>
 			<span v-if="props.readOnly" class="photo-tile__lock" aria-hidden="true"><AppIcon name="lock" /></span>
