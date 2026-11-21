@@ -12,8 +12,8 @@ in two cases (`apps/files_trashbin/lib/Storage.php` `doDelete`, `lib/Trashbin.ph
 
 - the file's storage is not wrapped by the trash bin's storage wrapper;
 - the file is at least as large as the trash bin size, `trashbin_size`: the owner's user setting
-  if set, else the server's app setting. Team folders have their own trash backend, which has no
-  such size.
+  if set, else the server's app setting; `-1`, the default, means the owner's free quota. Team
+  folders have their own trash backend, which has no such size.
 
 Local External Storage and Team folders (app `groupfolders`) trash normally, which the e2e tests
 now prove. The trash bin's retention (`trashbin_retention_obligation`) and its clean-up when the
