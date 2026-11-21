@@ -260,4 +260,3 @@ describe('useImmichCull', () => {
 		expect(toast.showError).toHaveBeenCalled()
 	})
 })
-
