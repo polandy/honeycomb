@@ -252,6 +252,17 @@ Withdrawn by ADR 0040 (M8 PR 8); there is no question before an unchecked delete
 - **Then** the save answers before the folders are listed again and the request is sent, so the
   server sees the rows it wrote
 
+### DELETE-002.29 – A request that does not answer
+
+- **Given** a delete of pictures
+- **When** the fresh listing of a folder does not answer within 30 s, or a trash request within
+  90 s (ADR 0029)
+- **Then** the request is aborted and fails like any failed request (DELETE-002.27 for the
+  listing, DELETE-002.14 for a later trash request); when no trash request was answered, the
+  dialog closes and a message that stays until closed says *The server did not answer within
+  {seconds} s; reload the folder to see what was deleted.* with *Reload folder*, since the
+  server may have deleted the photos anyway
+
 ## Out of scope
 
 The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
@@ -275,3 +286,4 @@ The endpoint and its checks: DELETE-001. Removing only RAWs: DELETE-003.
 | 2026-11-19 | ADR 0040 M8 PR 8: the server checks `expect: rejected`; no sidecar is read, a failed fresh listing deletes nothing of its folder, the question *Fresh check not possible* goes (.15, .23, .25 removed; .26, .27; .28 is the flag saves landing first) |
 | 2026-11-19 | ADR 0040: the server checks the rejects, the fresh check reads no sidecar, no dialog on a failed check (.15, .23, .25 withdrawn; .26, .27 gaps) |
 | 2026-11-19 | M8 PR 6: until M8 PR 8 the fresh check takes the flag from the fresh listing (.28) |
+| 2026-11-21 | A listing or trash request that does not answer in time fails with a message (.29, E23/U7) |

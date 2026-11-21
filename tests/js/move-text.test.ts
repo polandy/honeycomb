@@ -4,7 +4,7 @@
 import type { MoveFailure, MoveReport } from '../../src/logic/move-report.ts'
 
 import { describe, expect, it } from 'vitest'
-import { TrashBinOffError } from '../../src/api.ts'
+import { RequestTimeoutError, TrashBinOffError } from '../../src/api.ts'
 import { filesOf } from '../../src/logic/delete-summary.ts'
 import { movedBackText, movedText, moveFailedText, moveFailureReason, moveNote, namingProblemText } from '../../src/move-text.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
@@ -55,6 +55,11 @@ describe('move texts', () => {
 	it('says the trash bin is off, or that the move failed', () => {
 		expect(moveFailedText(new TrashBinOffError('off'))).toContain('trash bin is off')
 		expect(moveFailedText(new Error('down'))).toBe('Could not move the photos; reload the folder to see what changed.')
+	})
+
+	// spec: MOVE-004.20
+	it('says the server did not answer in time', () => {
+		expect(moveFailedText(new RequestTimeoutError(90_000))).toBe('The server did not answer within 90 s; reload the folder to see what moved.')
 	})
 
 	// spec: MOVE-004.7

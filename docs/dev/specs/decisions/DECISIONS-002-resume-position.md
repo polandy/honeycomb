@@ -47,7 +47,8 @@ continues on another, and *Recent* can list the last folder sets with their prog
   open folder set is marked and shows the progress of its cull. A position the cull saves moves
   its folder set to the top without reading the list again. Tapping a folder set lists it and
   opens the loupe at its position, without the toast; tapping the open one resumes it in place.
-  A folder set that cannot be listed is reported by a toast and the cull stays as it is.
+  A folder set that cannot be listed, or whose listing does not answer within 30 s, is reported
+  by a message with *Try again* and the cull stays as it is.
 
 ## Acceptance criteria
 
@@ -170,6 +171,14 @@ continues on another, and *Recent* can list the last folder sets with their prog
 - **Then** the open folder set is listed again and opened, the loupe at the same picture when one
   was open and the picture is still there; a failed listing keeps the open cull
 
+### DECISIONS-002.19 – A folder set that cannot be listed
+
+- **Given** a folder set opened from *Recent*, by a browser reload or by *Reload folder*
+- **When** its listing fails, or does not answer within 30 s and is aborted (ADR 0029)
+- **Then** the open cull stays, a message that stays until closed says *Could not open {name}.*,
+  after a timeout *Could not open {name}: the server did not answer within 30 s.*, and its
+  *Try again* lists the folder set again and opens it
+
 ## Out of scope
 
 The progress of the open cull (GRID-002).
@@ -187,3 +196,4 @@ The progress of the open cull (GRID-002).
 | 2026-11-16 | A ticked folder inside another with subfolders is the same set (DECISIONS-002.15, ADR 0034) |
 | 2026-11-17 | Excluded folders in the folder set and its key (DECISIONS-002.16, ADR 0035) |
 | 2026-11-20 | A browser reload keeps folder and picture; *Reload folder* on the stale-state messages (DECISIONS-002.17, .18) |
+| 2026-11-21 | A listing that fails or does not answer within 30 s offers *Try again* (DECISIONS-002.19, E23/U7) |

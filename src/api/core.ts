@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+export { RequestTimeoutError } from '../logic/timed-request.ts'
+
 /** The base path of honeycomb's endpoints. */
 export const API = '/apps/honeycomb/api/v1'
 

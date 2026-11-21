@@ -140,7 +140,7 @@ starts from that folder set and *Cancel* returns to it.
 ### LISTING-003.8 – Empty, capped and failed counts
 
 - **Given** ticked folders without photos, with more than 20,000 pictures, or whose listing
-  fails
+  fails or does not answer within 30 s (ADR 0029)
 - **When** the picker counts them
 - **Then** it says there are no photos, warns that the grid shows the first 20,000, or says the
   photos could not be counted and counts again on the next tick
@@ -275,3 +275,4 @@ starts from that folder set and *Cancel* returns to it.
 | 2026-11-16 | .1/.20 a collapsed folder counts its subfolders too (owner, digiKam) |
 | 2026-11-18 | .20 "~" and "about" where the count may be incomplete (owner, #244) |
 | 2026-11-17 | .18 a tap excludes an included folder, .21/.22 excluded folders (owner, #187) |
+| 2026-11-21 | .8 a listing that does not answer within 30 s fails (E23/U7, ADR 0029) |

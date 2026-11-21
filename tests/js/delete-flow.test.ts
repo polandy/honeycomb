@@ -8,7 +8,7 @@ import type { TrashResponseFile } from '../../src/logic/trash-report.ts'
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ref, shallowRef } from 'vue'
-import { TrashBinOffError } from '../../src/api.ts'
+import { RequestTimeoutError, TrashBinOffError } from '../../src/api.ts'
 import { useDeleteFlow } from '../../src/delete-flow.ts'
 import { logger } from '../../src/logger.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
@@ -110,6 +110,8 @@ describe('useDeleteFlow', () => {
 	it.each([
 		[new TrashBinOffError('off'), 'The Nextcloud trash bin is off, so nothing was deleted. honeycomb deletes only into the trash bin.'],
 		[new Error('Network Error'), 'Could not delete the photos; reload the folder to see what changed.'],
+		// spec: DELETE-002.29
+		[new RequestTimeoutError(90_000), 'The server did not answer within 90 s; reload the folder to see what was deleted.'],
 	])('changes nothing and says why when the request fails: %s', async (error, message) => {
 		vi.spyOn(logger, 'error').mockImplementation(() => {})
 		const { deleting, pictures, errors } = flow(() => Promise.reject(error))

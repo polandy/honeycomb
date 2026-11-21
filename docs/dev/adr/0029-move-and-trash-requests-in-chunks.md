@@ -60,3 +60,28 @@ rows of files already moved, so neither is taken.
 - The confirm button is held and names the step: *Checking the photos…* while the waiting sidecars
   are written and the photos checked afresh, then *Moving to trash…*; the count starts from the
   photos that passed the check.
+
+## Amendment 2026-11-21: client timeouts
+
+A request the server never answers left the move or delete dialog, the picker count or the
+opening of a folder set busy for good (weakness analysis U7, owner decision E23). The client now
+aborts a listing after 30 s and a move or trash request after 90 s and fails it like any failed
+request; the failure message says the server did not answer and offers *Try again* for a listing,
+*Reload folder* after a move or delete. A timed-out move or trash request is not sent again on its
+own: the server may have finished it, so the user reloads and sees what changed.
+
+Measured on the e2e container (Nextcloud 35, SQLite, no Redis), three runs each:
+
+| Request | Time |
+|---|---|
+| Listing of 2,000 pictures (3,200 files) | 0.14–0.6 s |
+| Listing of 20,000 pictures (40,000 files, 10 folders) | 0.48–0.49 s |
+| Move or trash of 50 pairs (100 files) | 3.2–4.0 s |
+| Move of 500 files (the request limit) in a folder of 4,000 | 18.6–26.6 s |
+| Trash of 500 files in a folder of 4,000 | 21.5–21.9 s |
+
+- A chunk gets 90 s, three times the slowest measured one; the owner's guide value of 60 s would
+  leave less than that for a full 500-file request.
+- A listing gets the owner's 30 s: far above three times the measured 0.5 s, which leaves room for
+  a slower server and a phone network carrying the 12 MB answer of a capped listing.
+- The probe of the move targets is a listing and gets 30 s too.
