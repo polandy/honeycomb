@@ -5,7 +5,7 @@ sidecar files next to your photos (`IMG_0001.NEF.xmp` or `IMG_0001.xmp`). honeyc
 it can write, so a photo in a folder you may only read cannot be rated. Setting anything on a photo
 updates the sidecars it already has, and a file without one gets a new `IMG_0001.NEF.xmp`. A photo
 you have not touched gets none. digiKam, darktable and Lightroom Classic read those files, so a
-photo you rated on the iPad shows the same stars on your desktop. When you open a folder for the
+photo you rated on a tablet shows the same stars on your desktop. When you open a folder for the
 first time, honeycomb also picks up what these programs have already written.
 
 While you stay on a photo, honeycomb collects your changes and writes them once you move on, or
