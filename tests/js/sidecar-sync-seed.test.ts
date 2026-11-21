@@ -42,7 +42,7 @@ function sync(lookup: SidecarLookupAnswer | null, answer: SidecarSaveAnswer = { 
 describe('useSidecarSync: seed', () => {
 	// spec: DELETE-003.12
 	it('reads the RAW sidecar again and creates the JPEG sidecar from it, which a delete then sends', async () => {
-		const { sidecars, lookups, saves, savedSidecars } = sync(read(xmp({ 'xmp:Rating': '3', 'digiKam:PickLabel': '3' })))
+		const { sidecars, lookups, saves, savedSidecars } = sync(read(xmp({ 'xmp:Rating': '3', 'digiKam:PickLabel': '3', 'honeycomb:KeepRaw': 'True' })))
 
 		expect(await sidecars.seed(PAIR, JPEG_SIDECAR, RAW_SIDECAR)).toBe(true)
 
@@ -52,7 +52,8 @@ describe('useSidecarSync: seed', () => {
 		expect('path' in item && item.path).toBe(JPEG_SIDECAR)
 		const packet = readXmp(item.bytes)
 		expect(textOf(packet, 'xmp:Rating')).toBe('3')
-		expect(packet.properties.has(key('digiKam:PickLabel'))).toBe(false)
+		expect(textOf(packet, 'digiKam:PickLabel')).toBe('3')
+		expect(packet.properties.has(key('honeycomb:KeepRaw'))).toBe(false)
 		expect(savedSidecars).toEqual([[{ path: JPEG_SIDECAR, created: true }]])
 		expect(sidecars.known.value.get(JPEG_SIDECAR)?.fileId).toBe(30)
 	})

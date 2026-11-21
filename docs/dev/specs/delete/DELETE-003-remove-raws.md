@@ -29,9 +29,9 @@ sidecar to check: it sends each pair still neither *Keep RAW* nor rejected in th
 with `"expect": "rawRemovable"`, and the server keeps a pair whose rows say otherwise
 (DELETE-001.17); the delete report lists it. Before a RAW sidecar goes, a JPEG without a sidecar
 of its own nor a shared one gets `<jpeg>.xmp` seeded from the RAW's `<raw>.xmp`, read again then
-(owner, 2026-11-20): every field of it, also those of other programs such as digiKam's labels and
-face regions or darktable's history, but the flag fields and `honeycomb:KeepRaw`, which live in
-the rows (ADR 0040), and not the values the cull shows. A RAW sidecar with no other field gives
+(owner, 2026-11-20): every field of it, also those of other programs such as digiKam's labels,
+pick fields and face regions or darktable's history, but `honeycomb:KeepRaw`, which lives in the
+rows (ADR 0040), and not the values the cull shows. A RAW sidecar with no other field gives
 none. Where the JPEG's sidecar cannot be seeded (the picture is read only, XMP-008, the RAW
 sidecar cannot be read, or the save fails) the pair is skipped. The JPEG keeps
 its row in `honeycomb_flags`, the RAW's goes with it (DELETE-001.15). When a folder's fresh
@@ -114,15 +114,15 @@ Withdrawn by ADR 0040 (M8 PR 8); when the fresh listing fails, nothing of it is 
 - **Then** no sidecar is looked up to check, the pair marked by the other user keeps its RAW and
   is reported, and the other two RAWs go
 
-### DELETE-003.12 – The JPEG's new sidecar is the RAW sidecar read again, without a flag
+### DELETE-003.12 – The JPEG's new sidecar is the RAW sidecar read again, without *Keep RAW*
 
 - **Given** a pair, neither rejected nor *Keep RAW*, whose only sidecar is `IMG.NEF.xmp`, which
   digiKam changed since the listing to three stars, red, a tag, a face region and pick label
   *accepted*, while the cull still shows no stars and the rows say *picked*
 - **When** the user confirms *Remove RAWs*
-- **Then** `IMG.JPG.xmp` is written with three stars, red, the tag and the face region and no
-  flag field nor `honeycomb:KeepRaw`, before the RAW goes; the JPEG's row stays *picked*, the
-  RAW's row is gone
+- **Then** `IMG.JPG.xmp` is written with three stars, red, the tag, the face region and pick
+  label *accepted*, without `honeycomb:KeepRaw`, before the RAW goes; the JPEG's row stays
+  *picked*, the RAW's row is gone
 
 ### DELETE-003.13 – *Keep RAW* from the fresh listing (removed)
 
@@ -153,3 +153,4 @@ to XMP: M5.
 | 2026-11-19 | M8 PR 6: until M8 PR 8 the fresh check takes *Keep RAW* from the fresh listing (.13) |
 | 2026-11-19 | ADR 0040 M8 PR 8: the server checks `expect: rawRemovable`; no sidecar is read to check, the JPEG's new sidecar holds no flag, a failed fresh listing removes nothing (.8, .10, .13 removed; .11, .12, .14) |
 | 2026-11-20 | Owner (#187, D68): the JPEG's new sidecar is seeded from the RAW sidecar read again, keeping other programs' fields, not from the values the cull shows (.9, .12) |
+| 2026-11-21 | Owner (#187, H6): the JPEG's new sidecar keeps digiKam's pick fields, only `honeycomb:KeepRaw` is dropped (.12) |
