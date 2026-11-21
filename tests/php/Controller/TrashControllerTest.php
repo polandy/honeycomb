@@ -26,6 +26,7 @@ use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Config\IUserConfig;
 use OCP\Files\File;
+use OCP\Files\FileInfo;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
@@ -44,7 +45,10 @@ final class TrashControllerTest extends TestCase {
 	private function controller(bool $loggedIn = true, bool $trashBin = true): TrashController {
 		$storage = $this->createStub(IStorage::class);
 		$storage->method('instanceOfStorage')->willReturnCallback(static fn (string $class): bool => $class === 'OCA\Files_Trashbin\Storage');
+		$parent = $this->createStub(Folder::class);
+		$parent->method('getFreeSpace')->willReturn(FileInfo::SPACE_UNLIMITED);
 		$file = $this->createStub(File::class);
+		$file->method('getParent')->willReturn($parent);
 		$file->method('getStorage')->willReturn($storage);
 		$file->method('getName')->willReturn('IMG_0001.JPG');
 		$file->method('getMimetype')->willReturn('image/jpeg');

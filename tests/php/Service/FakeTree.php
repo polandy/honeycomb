@@ -10,6 +10,7 @@ namespace OCA\Honeycomb\Tests\Service;
 use OCA\Honeycomb\Service\TrashBinGuard;
 use OCP\Config\IUserConfig;
 use OCP\Files\File;
+use OCP\Files\FileInfo;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\Mount\IMountPoint;
@@ -98,6 +99,7 @@ trait FakeTree {
 		$folder = $this->createStub(Folder::class);
 		$folder->method('getId')->willReturn($this->folders[$path]);
 		$folder->method('getName')->willReturn(basename($path));
+		$folder->method('getFreeSpace')->willReturn(FileInfo::SPACE_UNLIMITED);
 		$folder->method('getPath')->willReturn(rtrim(self::TREE_ROOT . $path, '/'));
 		$folder->method('getEtag')->willReturn('etag-folder' . $path);
 		$folder->method('getMountPoint')->willReturnCallback(fn (): IMountPoint => $this->treeMount($path));
