@@ -187,17 +187,30 @@ final class ImmichListingTest extends TestCase {
 	}
 
 	// spec: IMMICH-003.12
-	public function testADecidedAssetGoneFromTheUploadLibraryLosesItsRowWhenAFilterAsksForIt(): void {
+	public function testADecidedAssetDeletedInImmichLosesItsRowWhenAFilterAsksForIt(): void {
 		$this->library->add(self::id(1), self::NOW - 60);
-		$this->library->add(self::id(2), self::NOW - 120, 0, ['trashedAt' => '2026-11-19T09:00:00.000Z']);
 		$this->decide(1, Flag::Picked);
-		$this->decide(2, Flag::Picked);
 		$this->decide(3, Flag::Picked);
 
 		$entries = $this->listing()->page($this->connection(), ['flags' => ['picked']], null, 100)['entries'];
 
 		$this->assertSame([self::id(1)], array_column($entries, 'assetId'));
 		$this->assertSame(['alice-phone/' . self::id(1)], array_keys($this->decisions->rows));
+	}
+
+	// spec: IMMICH-003.12
+	public function testADecidedAssetInImmichsTrashBinOrArchiveKeepsItsRow(): void {
+		$this->library->add(self::id(1), self::NOW - 60);
+		$this->library->add(self::id(2), self::NOW - 120, 0, ['trashedAt' => '2026-11-19T09:00:00.000Z']);
+		$this->library->add(self::id(3), self::NOW - 180, 0, ['visibility' => 'archive']);
+		foreach ([1, 2, 3] as $n) {
+			$this->decide($n, Flag::Picked);
+		}
+
+		$entries = $this->listing()->page($this->connection(), ['flags' => ['picked']], null, 100)['entries'];
+
+		$this->assertSame([self::id(1)], array_column($entries, 'assetId'));
+		$this->assertSame(['alice-phone/' . self::id(1), 'alice-phone/' . self::id(2), 'alice-phone/' . self::id(3)], array_keys($this->decisions->rows));
 	}
 
 	// spec: IMMICH-001.16
