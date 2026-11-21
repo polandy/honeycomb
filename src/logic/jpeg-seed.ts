@@ -8,10 +8,10 @@ import { XmpError } from './xmp/model.ts'
 import { readXmp } from './xmp/parse.ts'
 import { serializeXmp } from './xmp/serialize.ts'
 
-/** The fields the JPEG sidecar does not take over: the flag and *Keep RAW* live in the rows (ADR 0040, DELETE-003.12). */
-const NOT_SEEDED: readonly string[] = [PROPERTY.pickLabel, PROPERTY.pick, PROPERTY.good, PROPERTY.keepRaw]
+/** The fields the JPEG sidecar does not take over: *Keep RAW* lives in the rows, digiKam's pick fields stay (DELETE-003.12). */
+const NOT_SEEDED: readonly string[] = [PROPERTY.keepRaw]
 
-/** The JPEG sidecar seeded from the RAW sidecar read again: every field but the flag fields and Keep RAW, `null` when none is left, or why it cannot be seeded. */
+/** The JPEG sidecar seeded from the RAW sidecar read again: every field but Keep RAW, `null` when none is left, or why it cannot be seeded. */
 export function seededSidecar(answer: SidecarLookupAnswer | undefined, time: XmpTime): { readonly bytes: Uint8Array } | { readonly reason: SidecarFailureReason } | null {
 	if (answer === undefined) {
 		return { reason: 'unreachable' }
