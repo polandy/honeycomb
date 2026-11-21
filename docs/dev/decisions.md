@@ -1782,3 +1782,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   and filmstrip past the page, a pick); each part of PR 10c brings its own e2e, so 11b does not
   wait for 10c. The stub Immich generates a library of 3,660 plain photos, as many as its
   statistics fixture counts, paged by an offset cursor and unfiltered.
+- 2026-11-21: The README is a first-impression page (owner sign-off of
+  docs/readme-first-impression) and honeycomb is stated as a culling tool with no picture editing,
+  now or later (owner, #187): requirements 1.10 lists it as a non-goal, so workers do not propose
+  develop controls.
