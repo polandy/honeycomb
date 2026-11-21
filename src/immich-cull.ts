@@ -1,6 +1,6 @@
-import type { DecisionIntent } from './logic/decision-change.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { DecisionIntent } from './logic/decision-change.ts'
 import type { Decision } from './logic/decision.ts'
 import type { DecisionRow, ImmichEntry, ImmichImageSize, ImmichSourceEntry } from './logic/immich-asset.ts'
 import type { CountsRequest, ImmichCounts } from './logic/immich-counts.ts'

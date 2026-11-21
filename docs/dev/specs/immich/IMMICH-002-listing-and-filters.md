@@ -114,7 +114,7 @@ what is on screen is loaded, and every number comes from the server.
 - **Given** the loupe on the 90th of 100 loaded entries of 1,000
 - **When** the user steps forward
 - **Then** the next page loads, stepping goes on past the 100th without a stop, and the counter
-  says *91 / 1000*
+  says *91 / 1,000*
 
 ### IMMICH-002.10 – Filmstrip past the page
 
