@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// @vitest-environment happy-dom
 import type { AppWrapper } from './app-cull.ts'
 
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'

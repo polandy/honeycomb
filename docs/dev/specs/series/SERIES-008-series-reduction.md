@@ -27,7 +27,7 @@ series without a clear sharpest stays for the user to compare.
   the line *Each series keeps its sharpest photo as picked and rejects the rest. Nothing is
   deleted; one undo takes it all back. Tap a photo to leave its series out.*; the thumbnails of the
   sharpest photos with the honey frame and the caption *Sharpest of 4*; and, when series are left
-  out, *2 series without a clear sharpest are left out, for you to compare.* counting every series
+  out, *2 series are left out, for you to compare.* counting every series
   the plan or a tap leaves out. A tap on a thumbnail leaves its series out. *Cancel* closes it
   without a change; the primary *Pick 3, reject 9* takes the plan as it stands, disabled when no
   series is left.
@@ -43,7 +43,7 @@ series without a clear sharpest stays for the user to compare.
   another member picked, with a locked member, and a series marked done
 - **When** the plan is made
 - **Then** only the first is reduced, its sharpest kept and its other members rejected; the
-  other four are left out
+  other three open ones are left out, and the done series is not counted
 
 ### SERIES-008.2 – The menu offers the reduction
 
@@ -56,7 +56,7 @@ series without a clear sharpest stays for the user to compare.
 - **Given** a plan reducing 2 series of 3 and of 4 photos and leaving 1 out
 - **When** the dialog opens
 - **Then** it counts 2 series, 2 to pick, 5 to reject, shows the two sharpest photos with
-  *Sharpest of 3* and *Sharpest of 4*, notes *1 series without a clear sharpest is left out, for you to compare.*,
+  *Sharpest of 3* and *Sharpest of 4*, notes *1 series is left out, for you to compare.*,
   and its confirm reads *Pick 2, reject 5*
 
 ### SERIES-008.4 – A tap leaves a series out

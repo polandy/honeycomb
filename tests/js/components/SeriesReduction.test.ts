@@ -44,7 +44,7 @@ describe('SeriesReduction', () => {
 		expect(text(wrapper)).toContain('2to pick')
 		expect(text(wrapper)).toContain('5to reject')
 		expect(thumbs(wrapper).map((tile) => tile.text().replaceAll(MARK, ''))).toEqual(['IMG_2Sharpest of 3Leave out', 'IMG_4Sharpest of 4Leave out'])
-		expect(text(wrapper)).toContain('1 series without a clear sharpest is left out, for you to compare.')
+		expect(text(wrapper)).toContain('1 series is left out, for you to compare.')
 		expect(confirmButton(wrapper).text().replaceAll(MARK, '')).toBe('Pick 2, reject 5')
 	})
 
@@ -54,7 +54,7 @@ describe('SeriesReduction', () => {
 
 		await thumbs(wrapper)[0]!.trigger('click')
 		expect(confirmButton(wrapper).text().replaceAll(MARK, '')).toBe('Pick 1, reject 3')
-		expect(text(wrapper)).toContain('2 series without a clear sharpest are left out, for you to compare.')
+		expect(text(wrapper)).toContain('2 series are left out, for you to compare.')
 		await thumbs(wrapper)[0]!.trigger('click')
 
 		expect(confirmButton(wrapper).attributes('disabled')).toBeDefined()

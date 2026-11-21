@@ -35,7 +35,7 @@ describe('reductionPlan', () => {
 		], inputs)
 
 		expect(plan.reduced.map(({ key, kept, rejected }) => ({ key, kept: kept.name, rejected: names(rejected) }))).toEqual([{ key: 1, kept: 'A2', rejected: ['A1', 'A3'] }])
-		expect(plan.leftOut).toBe(4)
+		expect(plan.leftOut).toBe(3)
 	})
 
 	// spec: SERIES-008.1

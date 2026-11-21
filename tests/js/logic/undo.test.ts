@@ -147,7 +147,7 @@ describe('applyStep', () => {
 	const effect = (step: { kind: string }, back: boolean) => {
 		calls.push(`${step.kind} ${back}`)
 	}
-	const effects = { decision: effect, pickRest: effect, tags: effect, series: effect }
+	const effects = { decision: effect, pickRest: effect, reduction: effect, tags: effect, series: effect }
 
 	it('hands each step to the effect of its kind, forward or back', () => {
 		const tags = tagStep([JPEG], () => [], { added: ['Sunrise'], removed: [] })!
