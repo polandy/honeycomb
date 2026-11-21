@@ -28,6 +28,12 @@ describe('changeText', () => {
 		expect(changeText({ kind: 'pickRest', picked: 'IMG_3', names: ['IMG_3', 'IMG_4'] })).toBe('Picked IMG_3, rejected the rest')
 	})
 
+	// spec: SERIES-008.5
+	it('words the series reduction by its series and rejects', () => {
+		expect(changeText({ kind: 'reduction', series: 2, rejected: 5, names: ['A', 'B'] })).toBe('Picked the sharpest of 2 series, rejected 5')
+		expect(changeText({ kind: 'reduction', series: 1, rejected: 1, names: ['A'] })).toBe('Picked the sharpest of 1 series, rejected 1')
+	})
+
 	it('keeps a name as it is', () => {
 		expect(changeText({ kind: 'decision', change: { flag: 'picked' }, names: ['A & <B>'] })).toBe('Picked A & <B>')
 	})

@@ -4,7 +4,7 @@ import type { Decision } from '../../../src/logic/decision.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { applyStep, clearEntry, NO_HISTORY, pickRestEntry, pushUndo, recordStep, redoStep, seriesStep, tagStep, UNDO_LIMIT, undoEntry, undoStep } from '../../../src/logic/undo.ts'
+import { applyStep, clearEntry, NO_HISTORY, pickRestEntry, reductionEntry, pushUndo, recordStep, redoStep, seriesStep, tagStep, UNDO_LIMIT, undoEntry, undoStep } from '../../../src/logic/undo.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const PAIR = pictureOf(listingEntry(1, '/P/A.JPG'), listingEntry(2, '/P/A.NEF', { mime: 'image/x-dcraw' }))
@@ -76,6 +76,43 @@ describe('pickRestEntry', () => {
 
 		expect(pickRestEntry(picked, [{ picture: C, decision: UNDECIDED }])?.names).toEqual(['C'])
 		expect(pickRestEntry(picked, [{ picture: C, decision: decided({ flag: 'rejected' }) }])).toBeNull()
+	})
+})
+
+describe('reductionEntry', () => {
+	const C = pictureOf(listingEntry(4, '/P/C.JPG'))
+	const D = pictureOf(listingEntry(5, '/P/D.JPG'))
+
+	// spec: SERIES-008.5
+	it('picks the sharpest of each series and rejects the rest in one step that puts back every flag', () => {
+		const entry = reductionEntry([
+			{ picked: { picture: JPEG, decision: UNDECIDED }, rest: [{ picture: PAIR, decision: decided({ rating: 2 }) }] },
+			{ picked: { picture: C, decision: decided({ flag: 'picked' }) }, rest: [{ picture: D, decision: UNDECIDED }] },
+		])
+
+		expect(entry).toEqual({
+			kind: 'reduction',
+			series: 2,
+			rejected: 2,
+			names: ['B', 'A', 'D'],
+			after: [
+				{ fileId: 3, ...decided({ flag: 'picked' }) },
+				{ fileId: 1, ...decided({ flag: 'rejected', rating: 2 }) },
+				{ fileId: 2, ...decided({ flag: 'rejected', rating: 2 }) },
+				{ fileId: 5, ...decided({ flag: 'rejected' }) },
+			],
+			before: [
+				{ fileId: 3, ...UNDECIDED },
+				{ fileId: 1, ...decided({ rating: 2 }) },
+				{ fileId: 2, ...decided({ rating: 2 }) },
+				{ fileId: 5, ...UNDECIDED },
+			],
+		})
+	})
+
+	it('is null when nothing changes', () => {
+		expect(reductionEntry([])).toBeNull()
+		expect(reductionEntry([{ picked: { picture: JPEG, decision: decided({ flag: 'picked' }) }, rest: [{ picture: C, decision: decided({ flag: 'rejected' }) }] }])).toBeNull()
 	})
 })
 

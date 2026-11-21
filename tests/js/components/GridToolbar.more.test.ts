@@ -25,6 +25,18 @@ describe('GridToolbar More menu', () => {
 		expect(wrapper.emitted('compareSeries')).toHaveLength(1)
 	})
 
+	// spec: SERIES-008.2
+	it('reduces the series to the sharpest from the More menu with their count, held at 0', async () => {
+		const set = { paths: ['/Trip'], subfolders: false }
+		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('.grid-more-menu button').find((button) => button.text().includes('Reduce series to the sharpest'))!
+		const wrapper = mountToolbar(set, 1, { reducible: 3 })
+
+		expect(item(mountToolbar(set)).attributes('disabled')).toBeDefined()
+		expect(item(wrapper).text().replaceAll(MARK, '')).toBe('Reduce series to the sharpest… 3')
+		await item(wrapper).trigger('click')
+		expect(wrapper.emitted('reduceSeries')).toHaveLength(1)
+	})
+
 	// spec: GRID-001.22
 	it('clears the picks and rejects from the More menu with their count, held at 0', async () => {
 		const set = { paths: ['/Trip'], subfolders: false }
