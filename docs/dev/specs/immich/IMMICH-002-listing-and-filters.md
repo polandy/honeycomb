@@ -176,7 +176,7 @@ what is on screen is loaded, and every number comes from the server.
 - **When** the counts say 0
 - **Then** the grid says "No pictures match. Change the time, device or flag filter."
 
-### IMMICH-002.19 – A failed page
+### IMMICH-002.19 – A failed page (gap)
 
 - **Given** two loaded pages and an Immich that stops answering
 - **When** the grid asks the third

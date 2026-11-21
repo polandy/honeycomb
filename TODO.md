@@ -9,7 +9,7 @@ Add items with `/todo`.
 
 ## Milestones
 
-- [ ] Immich (M10, ADR 0041): PR 10c UI: the resume position (the listing's `from` and `previousCursor`, ADR 0044, the positions' `asset_id` and its removal in the connection sweep, IMMICH-003.18) and *Recent*; the filter bar with time, device and kind options and their counts (`shownTimeOptions`) and the rating filter; grid-level decisions, selection and keys; the tile pills (LIVE, duration, stack); the failed page naming the connection's state (2026-11-21)
+- [ ] Immich (M10, ADR 0041): PR 10c UI: the resume position (the listing's `from` and `previousCursor`, ADR 0044, the positions' `asset_id` and its removal in the connection sweep, IMMICH-003.18) and *Recent*; the filter bar with time, device and kind options and their counts (`shownTimeOptions`) and the rating filter; grid-level decisions, selection and keys; the tile pills (LIVE, duration, stack); the failed page naming the connection's state (IMMICH-002.19) (2026-11-21)
 - [ ] Immich (M10, ADR 0041): PR 11b e2e of the grid and the loupe with Immich data against the stub Immich (`tests/e2e/upstream/immich.php` gains the thumbnail route and more search pages), after PR 10b and 10c (2026-11-21)
 - [ ] Immich (M10, ADR 0041): owner: Phase 1 hand test on the test server with two real accounts and read-only keys (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 13 Phase 2: *Write to Immich* with the `updatedAt` conflict check, rejects as Immich trash bin by default, per-asset results, undo; Immich decisions enter the statistics (2026-11-19)
