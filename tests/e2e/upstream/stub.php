@@ -22,6 +22,12 @@ final class StubAnswer {
 		return $body === false ? throw new RuntimeException("The stub fixture $path cannot be read") : new self($status, 'application/json', $body);
 	}
 
+	/** The file's bytes as an answer of the type. */
+	public static function file(string $path, string $type): self {
+		$body = file_get_contents($path);
+		return $body === false ? throw new RuntimeException("The stub fixture $path cannot be read") : new self(200, $type, $body);
+	}
+
 	/** The value as a JSON answer. */
 	public static function json(mixed $value, int $status = 200): self {
 		return new self($status, 'application/json', json_encode($value, JSON_THROW_ON_ERROR));
@@ -32,7 +38,7 @@ final class StubAnswer {
  * Answers the request from the first route that matches it; only an operation of the pinned schema may be a route.
  * @param string $schemaFile the pinned OpenAPI file of the upstream
  * @param string $prefix the API's path prefix before the schema's paths
- * @param list<array{0: string, 1: string, 2: \Closure(array<string, string>): StubAnswer}> $routes method, schema path and the answer by lower-case request header
+ * @param list<array{0: string, 1: string, 2: \Closure(array<string, string>, string): StubAnswer}> $routes method, schema path and the answer by lower-case request header and path
  */
 function stubServe(string $schemaFile, string $prefix, array $routes): void {
 	/** @var array{paths: array<string, array<string, mixed>>} $schema */
@@ -50,12 +56,21 @@ function stubServe(string $schemaFile, string $prefix, array $routes): void {
 	foreach ($routes as [$routeMethod, $template, $answer]) {
 		$pattern = '#^' . preg_quote($prefix, '#') . preg_replace('#\\\{[^/]+\\\}#', '[^/]+', preg_quote($template, '#')) . '$#';
 		if ($routeMethod === $method && preg_match($pattern, $path) === 1) {
-			stubSend($answer($headers));
+			stubSend($answer($headers, $path));
 			return;
 		}
 	}
 	stubLog("The stub has no route for $method $path");
 	stubSend(StubAnswer::json(['message' => 'Not Found'], 404));
+}
+
+/**
+ * The request's JSON body, or an empty array without one.
+ * @return array<array-key, mixed>
+ */
+function stubBody(): array {
+	$body = json_decode((string)file_get_contents('php://input'), true);
+	return is_array($body) ? $body : [];
 }
 
 function stubSend(StubAnswer $answer): void {
