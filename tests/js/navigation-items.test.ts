@@ -12,8 +12,17 @@ describe('useNavigationItems', () => {
 		expect(items.map(({ page, name, icon }) => ({ page, name, icon }))).toEqual([
 			{ page: 'similarity', name: 'Similarity', icon: 'compare' },
 			{ page: 'statistics', name: 'Statistics', icon: 'chart' },
+			{ page: 'orphaned-sidecars', name: 'Orphaned sidecars', icon: 'trash' },
 		])
 		expect(items[1]!.href).toBe(pageUrl('statistics'))
 		expect(pageUrl('statistics')).toMatch(/\/apps\/honeycomb\/statistics$/)
+	})
+
+	// spec: XMP-009.13
+	it('lists Orphaned sidecars after Statistics, at its page', () => {
+		const items = useNavigationItems()
+
+		expect(items.at(-1)).toEqual({ page: 'orphaned-sidecars', name: 'Orphaned sidecars', icon: 'trash', href: pageUrl('orphaned-sidecars') })
+		expect(pageUrl('orphaned-sidecars')).toMatch(/\/apps\/honeycomb\/orphaned-sidecars$/)
 	})
 })

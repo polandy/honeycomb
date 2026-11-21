@@ -157,7 +157,7 @@ describe('useRecent', () => {
 
 		expect(recent.opened).toEqual([])
 		expect(recent.toasts).toEqual(['Could not open 2 folders.'])
-		expect(error).toHaveBeenCalledWith('Could not list the recent folder set', expect.objectContaining({ folderSet: TRIP }))
+		expect(error).toHaveBeenCalledWith('Could not list the recent folder set', { error: expect.anything() })
 	})
 
 	it('keeps the list it has when the positions cannot be read, and takes the latest answer', async () => {

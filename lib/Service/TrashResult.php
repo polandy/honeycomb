@@ -20,4 +20,5 @@ enum TrashResult: string {
 	case Failed = 'failed';
 	case Skipped = 'skipped';
 	case DecisionChanged = 'decisionChanged';
+	case NotOrphaned = 'notOrphaned';
 }

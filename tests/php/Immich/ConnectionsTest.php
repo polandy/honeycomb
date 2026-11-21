@@ -103,17 +103,18 @@ final class ConnectionsTest extends TestCase {
 		}
 		$this->assertCount(2, $this->logger->lines);
 		$this->assertSame('error', $this->logger->lines[0]['level']);
-		$this->assertStringContainsString(self::PATH, $this->logger->lines[0]['line']);
+		$this->assertStringNotContainsString(self::PATH, $this->logger->lines[0]['line']);
 		$this->assertStringContainsString($violation, $this->logger->lines[0]['line']);
 	}
 
 	// spec: IMMICH-001.4
-	public function testAMissingFileIsTheConnectionsFileStateWithItsPathLogged(): void {
+	public function testAMissingFileIsTheConnectionsFileStateLoggedWithoutItsPath(): void {
 		unset($this->files->files[self::PATH]);
 
 		$this->assertFailsWith(ImmichError::ConnectionsFile, fn () => $this->connections()->forUser('alice'));
 		$this->assertCount(1, $this->logger->lines);
-		$this->assertStringContainsString(self::PATH . ' cannot be read', $this->logger->lines[0]['line']);
+		$this->assertStringContainsString('cannot be read', $this->logger->lines[0]['line']);
+		$this->assertStringNotContainsString(self::PATH, $this->logger->lines[0]['line']);
 	}
 
 	// spec: IMMICH-001.5

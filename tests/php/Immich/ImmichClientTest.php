@@ -103,7 +103,7 @@ final class ImmichClientTest extends TestCase {
 
 	// spec: IMMICH-001.7
 	#[DataProvider('badKeyFiles')]
-	public function testABadKeyFileIsTheKeyStateLoggedWithTheConnectionAndItsPath(?string $content): void {
+	public function testABadKeyFileIsTheKeyStateLoggedWithTheConnectionButNotItsPath(?string $content): void {
 		if ($content === null) {
 			unset($this->files->files[self::KEY_FILE]);
 		} else {
@@ -114,7 +114,7 @@ final class ImmichClientTest extends TestCase {
 		$this->assertSame([], $this->immichRequests);
 		$this->assertCount(1, $this->logger->lines);
 		$this->assertStringContainsString('alice-phone', $this->logger->lines[0]['line']);
-		$this->assertStringContainsString(self::KEY_FILE, $this->logger->lines[0]['line']);
+		$this->assertStringNotContainsString(self::KEY_FILE, $this->logger->lines[0]['line']);
 	}
 
 	/** @return array<string, array{\Closure(self): void, ImmichError}> */

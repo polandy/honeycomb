@@ -52,6 +52,17 @@ final class PageControllerTest extends TestCase {
 		$this->assertSame('honeycomb-main-Ab1_cD2e', $controller->index()->getParams()['script']);
 		$this->assertSame(['script' => 'honeycomb-similarity-Xy9-Zw8v'], $controller->similarity()->getParams());
 		$this->assertSame(['script' => 'honeycomb-statistics-Qr7_St6u'], $controller->statistics()->getParams());
+		$this->assertSame(['script' => 'honeycomb-orphaned-sidecars-Mn4_Op5q'], $controller->orphanedSidecars()->getParams());
+	}
+
+	// spec: XMP-009.13
+	public function testOrphanedSidecarsIsAPageOfItsOwnForEveryUser(): void {
+		$method = new ReflectionMethod(PageController::class, 'orphanedSidecars');
+
+		$this->assertSame(['verb' => 'GET', 'url' => '/orphaned-sidecars'], $method->getAttributes(FrontpageRoute::class)[0]->getArguments());
+		$this->assertCount(1, $method->getAttributes(NoAdminRequired::class));
+		$this->assertCount(1, $method->getAttributes(NoCSRFRequired::class));
+		$this->assertSame('orphaned-sidecars', $this->controller()->orphanedSidecars()->getTemplateName());
 	}
 
 	// spec: STATS-001.40
