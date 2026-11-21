@@ -25,8 +25,8 @@ The update from 0.1.0 to 0.2.0 deletes the flags (*Picked*, *Rejected*, *Keep RA
 that 0.1.0 stored in the database tables `honeycomb_decisions` and `honeycomb_file_tags`
 (migration 0005, [ADR 0040](../../dev/adr/0040-flags-per-picture-in-the-database.md)). Photos and
 sidecars are not touched, and what 0.1.0 already wrote into sidecars stays. Before
-updating an instance that holds 0.1.0 flags or tags you want to keep, cull those folders again or
-write them into the sidecars first.
+updating an instance that holds 0.1.0 flags or tags you want to keep, cull those folders again.
+Tags that 0.1.0 wrote into sidecars (setting *XMP sidecars* on) stay in the sidecars.
 
 ## Supported Nextcloud versions
 
