@@ -97,5 +97,7 @@ each (the nc-test host was not reachable, so this is no nc-test figure):
 | Move of 500 files (250 pairs) in a folder of 4,000 | 15.1–15.3 s | 45 s |
 | Trash of 500 files (250 pairs) in a folder of 4,000 | 15.5–16.6 s | 45 s |
 
-The three-times rule above sizes a timeout; half of it is the alarm line for a re-measure. The fixture here has 4,000 files in the folder of 2,000 pairs, unlike the 3,200 files before. Every value lies below that line, so 30 s and 90 s stay. Re-measure on nc-test when it is
-reachable; a value above half its timeout there would raise the timeout.
+The three-times rule above sizes a timeout; half of it is the alarm line for a re-measure. The
+fixture here has 4,000 files in the folder of 2,000 pairs, unlike the 3,200 files before. Every
+value lies below that line, so 30 s and 90 s stay. Re-measure on nc-test when it is reachable; a
+value above half its timeout there would raise the timeout.
