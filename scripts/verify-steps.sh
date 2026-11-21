@@ -134,7 +134,7 @@ e2e_free_port() {
   return 1
 }
 
-# Exports a free port each for the e2e, and the oldest-Nextcloud e2e.
+# Exports a free port each for the e2e and the oldest-Nextcloud e2e.
 e2e_ports_choose() {
   HONEYCOMB_E2E_PORT=$(e2e_free_port "$(e2e_port)") || return 1
   HONEYCOMB_E2E_OLDEST_PORT=$(e2e_free_port "$(e2e_oldest_port)" "$HONEYCOMB_E2E_PORT") || return 1

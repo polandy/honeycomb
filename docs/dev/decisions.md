@@ -1744,4 +1744,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   in it, and the job caches `node_modules` by the lockfile, running `npm ci` only on a miss; both
   cut fixed setup time that sharding repeats on every runner. The browser cache key says whether
   the shard needs WebKit, so a shard without it never saves the cache a WebKit shard restores.
-- 2026-11-21: Database migrations do not matter before the first real release (owner, #187): honeycomb runs only on the nc-test installation, whose honeycomb data may be deleted on a schema change. The `Update from the first release` CI jobs (sqlite, postgres, mariadb) and `scripts/upgrade-test.sh` are removed; existing migrations stay as they are.
+- 2026-11-21: Database migrations do not matter before the first real release (owner, #187):
+  honeycomb runs only on the nc-test installation, whose honeycomb data may be deleted on a
+  schema change. The `Update from the first release` CI jobs (sqlite, postgres, mariadb) and
+  `scripts/upgrade-test.sh` are removed; existing migrations stay as they are.

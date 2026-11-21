@@ -72,8 +72,9 @@ dependencies — are in [`conventions.md`](conventions.md). This file adds the s
   meanwhile finds them locked. Cases use `reducedMotion: 'reduce'` and wait on a visible
   state. Each run starts its own container on `HONEYCOMB_E2E_PORT` (default 8180).
   `scripts/verify.sh` runs both e2e runs and the `phpunit db` tests at once; the oldest-Nextcloud
-  run takes `HONEYCOMB_E2E_OLDEST_PORT` (default the e2e port plus 1000); `scripts/verify.sh` moves each of the two to the next free
-  port when it is busy ([workflow §2.4](02-workflow.md#24-before-opening)). The port names the
+  run takes `HONEYCOMB_E2E_OLDEST_PORT` (default the e2e port plus 1000); `scripts/verify.sh`
+  moves each of the two to the next free port when it is busy
+  ([workflow §2.4](02-workflow.md#24-before-opening)). The port names the
   container (`scripts/e2e-names.sh`) and a non-default port the output folder
   `test-results-<port>/`, so parallel runs, e.g.
   `HONEYCOMB_E2E_PORT=8380 scripts/verify.sh` in a second worktree,
