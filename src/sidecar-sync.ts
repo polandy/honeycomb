@@ -249,7 +249,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 		}
 		const reason = 'reason' in seeded ? seeded.reason : (await save([{ picture, path, item: { path, bytes: seeded.bytes } }])).failed[0]?.reason
 		if (reason !== undefined) {
-			logger.warn('Could not seed the JPEG sidecar; the RAW stays', { path, reason })
+			logger.warn('Could not seed the JPEG sidecar; the RAW stays', { fileId: source.fileId, reason })
 		}
 		return reason === undefined
 	}
