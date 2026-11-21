@@ -29,9 +29,9 @@ sidecar to check: it sends each pair still neither *Keep RAW* nor rejected in th
 with `"expect": "rawRemovable"`, and the server keeps a pair whose rows say otherwise
 (DELETE-001.17); the delete report lists it. Before a RAW sidecar goes, a JPEG without a sidecar
 of its own nor a shared one gets `<jpeg>.xmp` seeded from the RAW's `<raw>.xmp`, read again then
-(owner, 2026-11-20): every field of it, also those of other programs such as digiKam's labels and
-face regions or darktable's history, but the flag fields and `honeycomb:KeepRaw`, which live in
-the rows (ADR 0040), and not the values the cull shows. A RAW sidecar with no other field gives
+(owner, 2026-11-20): every field of it, also those of other programs such as digiKam's labels,
+pick fields and face regions or darktable's history, but `honeycomb:KeepRaw`, which lives in the
+rows (ADR 0040), and not the values the cull shows. A RAW sidecar with no other field gives
 none. Where the JPEG's sidecar cannot be seeded (the picture is read only, XMP-008, the RAW
 sidecar cannot be read, or the save fails) the pair is skipped. The JPEG keeps
 its row in `honeycomb_flags`, the RAW's goes with it (DELETE-001.15). When a folder's fresh
