@@ -1743,3 +1743,14 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   they lint in typescript-eslint's small default project instead of loading the whole program;
   its first case took over 30 s inside the full Vitest run on a loaded host (load average above
   20) and 5 s after. A longer timeout was rejected (owner rule against flaky tests).
+- 2026-11-21: CI splits the e2e specs per Nextcloud version into 3 Playwright shards (`--shard`),
+  each a matrix job on its own runner with its own Nextcloud, so no shard sees another's state;
+  the `gate` needs the `e2e` job and so every shard. `workers: 1` stays: one Nextcloud per
+  worker would need a port and a container per worker. Easy to redo: the `shard` list in `ci.yml`.
+- 2026-11-21: The e2e job caches the Playwright browsers and a copy of the WebKit `.deb` files in
+  the home directory; caching apt's archive directory directly never restored, since the runner
+  user cannot write it.
+- 2026-11-21: An e2e shard installs WebKit only when `playwright test --list` puts a `webkit` test
+  in it, and the job caches `node_modules` by the lockfile, running `npm ci` only on a miss; both
+  cut fixed setup time that sharding repeats on every runner. The browser cache key says whether
+  the shard needs WebKit, so a shard without it never saves the cache a WebKit shard restores.
