@@ -62,7 +62,9 @@ go with the next clean-up.
 
 Nextcloud's trash bin deletes a file for good instead of keeping it when its storage is not
 wrapped by the trash bin, or when the file is at least as large as the trash bin size
-(`trashbin_size`, the owner's setting, else the server's). A Team folder keeps its own trash bin
+(`trashbin_size`, the owner's setting, else the server's). A size of `-1`, the Nextcloud default,
+means the free quota of the owner: the file must be smaller than the free space left, and an
+unlimited quota keeps every file. A Team folder keeps its own trash bin
 without that size. So before trashing, each file is checked against these rules (ADR 0030).
 
 Nextcloud names a trashed file `<name>.d<seconds>` and overwrites the trash copy of an earlier
@@ -132,7 +134,7 @@ Withdrawn by ADR 0040 (M8 PR 8); the rows go with the files (.15).
 ### DELETE-001.9 – A file the trash bin would not keep is not deleted
 
 - **Given** a picture with a file on a storage without the trash bin, or a file at least as large
-  as the trash bin size, outside a Team folder
+  as the trash bin size (with a size of `-1`: as the free quota left), outside a Team folder
 - **When** the client posts it with another, valid picture
 - **Then** no file of that picture is touched, that file reports `noTrashBin` for the storage or
   `tooLarge` for the size, its other files `skipped` unless they fail too, and the other picture
