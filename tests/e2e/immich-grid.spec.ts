@@ -171,7 +171,7 @@ test.describe('the grid and the loupe of an Immich connection', () => {
 		await page.keyboard.press('Escape')
 		await expect(loupe).toBeHidden()
 		await page.keyboard.press('Control+z')
-		await expect(toast).toContainText(`Undid: Cleared rating of ${uploadName(1)}`)
+		await expect(toast).toContainText(`Undid: Rated ${uploadName(1)} ★★`)
 
 		await expect.poll(() => saves.length).toBe(4)
 		const [rated, rejected, unrejected, unrated] = saves.map((rows) => rows.map(({ rating, flag }) => ({ rating, flag })))

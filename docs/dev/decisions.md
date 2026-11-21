@@ -1807,3 +1807,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `rawExtensions[]`/`renderedExtensions[]` (default when left out, 400 when invalid), and stays in
   PHP: 110–130 ms at 100,000 files, where a pairing SQL count took about 365 ms (owner #187 M1,
   ADR 0011, autonomous).
+- 2026-11-21: The Immich cull records its decisions in the Nextcloud cull's undo history
+  (`useCullHistory`, `undoEntry`), so `Ctrl+Z`/`Ctrl+Shift+Z` and the toast's *Undo* walk one
+  chain in grid and loupe; the toast now shows at once, as in the Nextcloud cull, and a decision
+  that changes nothing is neither a step nor a save (owner #187 M4, IMMICH-003.19, autonomous).

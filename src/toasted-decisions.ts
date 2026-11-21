@@ -8,6 +8,7 @@ import type { SelectionEdit } from './logic/series-menu.ts'
 import type { Series } from './logic/series.ts'
 import type { SeriesStatus } from './logic/stored-series.ts'
 import type { TagChange } from './logic/tag.ts'
+import type { DescribedStep } from './logic/undo.ts'
 import type { LockedPicture } from './logic/writability.ts'
 import type { ToastAction } from './toast.ts'
 
@@ -33,6 +34,8 @@ interface Decisions {
 
 /** Decide, pick-rest, tag, the series edits, undo and redo that each say in a toast what changed and which photos were locked. */
 export function useToastedDecisions(cull: Decisions, show: (message: string, action?: ToastAction | null, offer?: ToastAction, details?: readonly string[]) => void, showError: (message: string, action?: ToastAction | null, details?: readonly string[]) => void) {
+	const { undo, redo } = useToastedUndo(cull, show)
+
 	/** Decides the pictures and says what changed, with Undo and the offer `offer` makes once they are decided. */
 	function decide(intent: DecisionIntent, chosen: readonly Picture<SourceEntry>[], offer: () => ToastAction | null = () => null) {
 		toastChange(cull.decide(intent, chosen), offer)
@@ -88,9 +91,14 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 		}
 	}
 
+	return { decide, pickRest, clearFlags, tag, removeFromSeries, dissolveSeries, mergeSeries, markSeries, editSelection, undo, redo }
+}
+
+/** Undo and redo of a cull's history that say in a toast what they took back or put again. */
+export function useToastedUndo<E extends DescribedStep>(history: { undo: () => E | null, redo: () => E | null }, show: (message: string) => void) {
 	/** Takes back the latest decision and says so. */
 	function undo() {
-		const entry = cull.undo()
+		const entry = history.undo()
 		if (entry !== null) {
 			show(undoneText(entry))
 		}
@@ -98,11 +106,11 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 
 	/** Puts back the latest undone decision and says so. */
 	function redo() {
-		const entry = cull.redo()
+		const entry = history.redo()
 		if (entry !== null) {
 			show(redoneText(entry))
 		}
 	}
 
-	return { decide, pickRest, clearFlags, tag, removeFromSeries, dissolveSeries, mergeSeries, markSeries, editSelection, undo, redo }
+	return { undo, redo }
 }

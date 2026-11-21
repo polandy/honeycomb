@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { ImmichCullApi } from '../../src/immich-cull.ts'
-import type { DecisionRow } from '../../src/logic/immich-asset.ts'
 import type { ImmichApi } from '../../src/immich-source.ts'
+import type { DecisionRow } from '../../src/logic/immich-asset.ts'
 import type { ConnectionStatus, ImmichAvailability } from '../../src/logic/immich-connections.ts'
 
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
@@ -163,6 +163,7 @@ describe('App: the Immich source', () => {
 		const immichCull: ImmichCullApi = { ...SILENT_IMMICH_CULL, assets: async () => ({ entries: [immichEntry('a1')], nextCursor: null, previousCursor: null }), saveDecisions: async (_id, rows) => (saved.push([...rows]), rows.map(({ assetId }) => assetId)) }
 		const { wrapper } = mountApp({ immich: immichOn({ kind: 'connections', connections: [PHONE] }).immich, immichCull })
 		await flushPromises()
+		wrapper.findComponent(FolderPicker).vm.$emit('cancel')
 		wrapper.findComponent(AppNavigation).vm.$emit('chooseSource', 'immich')
 		await flushPromises()
 		const cull = wrapper.findComponent(ImmichScreen).props('cull')

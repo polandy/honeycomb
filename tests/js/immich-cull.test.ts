@@ -196,7 +196,7 @@ describe('useImmichCull', () => {
 		cull.redo()
 
 		expect(saves.map(({ rows }) => rows.map(({ assetId, rating, flag }) => `${assetId} ${rating} ${flag}`))).toEqual([['a1 3 unflagged'], ['a2 0 rejected'], ['a2 0 unflagged'], ['a1 0 unflagged'], ['a1 3 unflagged']])
-		expect(toast.show.mock.calls.slice(2).map(([message]) => message)).toEqual(['Undid: Rejected a2', 'Undid: Cleared rating of a1', 'Redid: Rated a1 ★★★'])
+		expect(toast.show.mock.calls.slice(2).map(([message]) => message)).toEqual(['Undid: Rejected a2', 'Undid: Rated a1 ★★★', 'Redid: Rated a1 ★★★'])
 		expect(cull.decisionOf(first!).rating).toBe(3)
 		expect(cull.counts.value!.flags.rejected).toBe(0)
 	})
@@ -213,8 +213,9 @@ describe('useImmichCull', () => {
 		cull.decide({ kind: 'flag', flag: 'picked' }, [first!])
 		cull.open('andy-phone')
 
-		expect(cull.undo()).toBeNull()
-		expect(cull.redo()).toBeNull()
+		cull.undo()
+		cull.redo()
+
 		expect(saves).toHaveLength(1)
 		expect(toast.show).toHaveBeenCalledTimes(1)
 	})
