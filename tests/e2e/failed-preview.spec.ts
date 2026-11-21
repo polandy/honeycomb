@@ -2,15 +2,20 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { cullFolder } from './cull.ts'
+import { cullFolder, E2E_SETTINGS, putSettings } from './cull.ts'
 import { createFolder, JPEG, upload } from './files.ts'
 
 const PREVIEWS = '**/api/v1/images/**'
+
+test.afterEach(async ({ page }) => {
+	await putSettings(page, E2E_SETTINGS)
+})
 
 // spec: GRID-001.23
 test('shows a failed preview as a broken tile and loads it again on a tap', async ({ page }, testInfo) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Failed ${randomUUID().slice(0, 8)}`
+	await putSettings(page, { sidecarWrite: 'off' })
 	await createFolder(page, folder)
 	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
 	await page.route(PREVIEWS, (route) => route.fulfill({ status: 500 }))

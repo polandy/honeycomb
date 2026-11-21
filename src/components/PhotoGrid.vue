@@ -102,12 +102,14 @@ function retryFailed(id: number, event: MouseEvent | KeyboardEvent): boolean {
 	return true
 }
 
+/** A tile's click: a retry of a failed preview, else the selection's or the loupe's. */
 function onTileClick(id: number, event: MouseEvent): void {
 	if (!retryFailed(id, event)) {
 		tiles.onClick(id, event)
 	}
 }
 
+/** A tile's Enter or Space: a retry of a failed preview, else the selection's or the loupe's. */
 function onTileKeydown(id: number, event: KeyboardEvent): void {
 	if ((event.key === 'Enter' || event.key === ' ') && retryFailed(id, event)) {
 		event.preventDefault()
@@ -262,8 +264,8 @@ defineExpose({
 							:loads="loads"
 							:offscreen="row.offscreen"
 							v-bind="{ ...(props.imageUrl && { imageUrl: props.imageUrl }), ...series.tileProps(index, picture) }"
-							@focus="focused = index"
 							:retry="retries.get(imageMember(picture).fileId) ?? 0"
+							@focus="focused = index"
 							@click="onTileClick(imageMember(picture).fileId, $event)"
 							@keydown="onTileKeydown(imageMember(picture).fileId, $event)"
 							@imageFailed="markFailed(imageMember(picture).fileId, $event)"
