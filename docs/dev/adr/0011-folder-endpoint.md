@@ -72,9 +72,9 @@ the ticked folders.
 ## Consequences
 
 - One request per folder level the user opens, plus one listing per ticked folder.
-- `hasSubfolders`, `pictures` and `orphanedSidecars` read one unfiltered directory listing per child folder; a
-  folder with thousands of child folders, or children with thousands of files, answers slower,
-  which the picker shows as loading.
+- `hasSubfolders`, `pictures` and `orphanedSidecars` read one unfiltered directory listing per
+  child folder; a folder with thousands of child folders, or children with thousands of files,
+  answers slower, which the picker shows as loading.
 - `picturesBelow` adds one query per child and per storage mounted below it; on PostgreSQL
   each one reads the rows of the child's whole storage, so a level's cost grows with its child
   folders times the storage's files. A cache with invalidation is the next step if
