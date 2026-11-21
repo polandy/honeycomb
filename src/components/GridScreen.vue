@@ -4,17 +4,19 @@
 -->
 <script setup lang="ts">
 import type { ToolbarFolders, ToolbarProgress, ToolbarSelection, ToolbarTasks, ToolbarView } from '../grid-toolbar.ts'
-import type { SourceEntry } from '../logic/listing.ts'
+import type { ListingEntry, SourceEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { ReductionPlan } from '../logic/series-reduction.ts'
 import type { Series } from '../logic/series.ts'
 
-import { computed, useTemplateRef } from 'vue'
+import { computed, shallowRef, useTemplateRef } from 'vue'
 import CullEmptyState from './CullEmptyState.vue'
 import FilterBar from './FilterBar.vue'
 import GridNotices from './GridNotices.vue'
 import GridToolbar from './GridToolbar.vue'
 import PhotoGrid from './PhotoGrid.vue'
 import SelectionBar from './SelectionBar.vue'
+import SeriesReduction from './SeriesReduction.vue'
 import SimilarityStrip from './SimilarityStrip.vue'
 import { useCullContext } from '../cull-context.ts'
 import { isPicked } from '../logic/decision.ts'
@@ -25,7 +27,7 @@ import { DEFAULT_FILTERS } from '../logic/picture-filter.ts'
 import { toggleGroup } from '../logic/selection.ts'
 import { seriesOffer } from '../logic/series-menu.ts'
 
-const { cull, selection, decide, clearFlags, xmpExport, editSeries, deleting, moving, resume, seriesCompare, tagEntry, headerShown, openLoupe, openSettings, unsaved, settings, updateSettings, imageUrl } = useCullContext()
+const { cull, selection, decide, clearFlags, reduceSeries, xmpExport, editSeries, deleting, moving, resume, seriesCompare, tagEntry, headerShown, openLoupe, openSettings, unsaved, settings, updateSettings, imageUrl } = useCullContext()
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize } = cull
 const { selecting, selected } = selection
 const { rejected, rawRemovable } = deleting
@@ -43,12 +45,22 @@ const toolbarSelection = computed<ToolbarSelection>(() => ({ selecting: selectin
 const toolbarTasks = computed<ToolbarTasks>(() => ({
 	rejected: rejected.value.length,
 	series: cull.series.value.length,
+	reducible: cull.reductionPlan.value.reduced.length,
 	rawRemovable: rawRemovable.value,
 	clearable: cull.clearable.value,
 	xmpToWrite: xmpExport.count.value,
 	movable: movable.value.length,
 	resumeName: resume.resumeName.value,
 }))
+
+/** The plan the reduction dialog reviews, fixed when it opens; null while it is closed (SERIES-008.3). */
+const reduction = shallowRef<ReductionPlan<Picture<ListingEntry>> | null>(null)
+
+/** Takes the reviewed plan and closes the dialog (SERIES-008.5). */
+function onReduce(plan: ReductionPlan<Picture<ListingEntry>>) {
+	reduction.value = null
+	reduceSeries(plan)
+}
 
 const offeredSeries = computed(() => new Set(cull.series.value.map((series) => series.key)))
 
@@ -92,6 +104,7 @@ defineExpose({ grid, filterBar })
 			@selectNone="selection.selectNone"
 			@reviewRejects="deleting.review"
 			@compareSeries="seriesCompare.start"
+			@reduceSeries="reduction = cull.reductionPlan.value"
 			@removeRaws="deleting.removeRaws"
 			@clearFlags="clearFlags"
 			@writeXmp="xmpExport.run"
@@ -155,6 +168,12 @@ defineExpose({ grid, filterBar })
 			@move="moving.open(selected)"
 			@delete="deleting.summarise(selected)"
 			@series="editSeries($event, selected)" />
+		<SeriesReduction
+			v-if="reduction !== null"
+			:plan="reduction"
+			:imageUrl="imageUrl"
+			@confirm="onReduce"
+			@cancel="reduction = null" />
 	</template>
 </template>
 

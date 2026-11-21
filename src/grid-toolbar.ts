@@ -45,6 +45,8 @@ export interface ToolbarTasks {
 	readonly rejected: number
 	/** How many series are left to compare. */
 	readonly series: number
+	/** How many series *Reduce series to the sharpest* decides (SERIES-008.2). */
+	readonly reducible: number
 	readonly rawRemovable: number
 	/** How many rateable pictures *Clear picks/rejects* resets. */
 	readonly clearable: number
