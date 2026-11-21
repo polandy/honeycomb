@@ -18,6 +18,7 @@ test('shows a failed preview as a broken tile and loads it again on a tap', asyn
 	await putSettings(page, { sidecarWrite: 'off' })
 	await createFolder(page, folder)
 	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+	await upload(page, `${folder}/IMG_0002.jpg`, JPEG)
 	await page.route(PREVIEWS, (route) => route.fulfill({ status: 500 }))
 	await cullFolder(page, folder)
 
