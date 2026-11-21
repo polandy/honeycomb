@@ -12,22 +12,74 @@ require __DIR__ . '/stub.php';
 const FIXTURES = __DIR__ . '/../../fixtures/immich';
 /** The one key the stub takes, from `e2e/family-key.txt`; it refuses every other key as Immich does. */
 const KEY = 'e2e-key-family';
+/** The stub library's uploads, as many as `statistics.json` counts. */
+const LIBRARY_SIZE = 3660;
+/** The newest upload's capture time; each older one is a minute before the one after it. */
+const NEWEST_TAKEN = 1795023912;
+const SECONDS_PER_UPLOAD = 60;
+const ASSET_ID = '00000000-0000-4000-8000-%012d';
+const THUMBNAIL = __DIR__ . '/../../fixtures/images/landscape-600x400.jpg';
 
 /**
  * The answer for a request with the stub's key, else Immich's 401.
- * @param \Closure(): StubAnswer $answer
- * @return \Closure(array<string, string>): StubAnswer
+ * @param \Closure(string): StubAnswer $answer the answer by request path
+ * @return \Closure(array<string, string>, string): StubAnswer
  */
 function keyed(\Closure $answer): \Closure {
-	return static fn (array $headers): StubAnswer => ($headers['x-api-key'] ?? '') === KEY
-		? $answer()
+	return static fn (array $headers, string $path): StubAnswer => ($headers['x-api-key'] ?? '') === KEY
+		? $answer($path)
 		: StubAnswer::json(['message' => 'Invalid API key', 'statusCode' => 401, 'error' => 'Unauthorized'], 401);
+}
+
+/**
+ * The page of the library at the request's cursor, newest first: the search fixture's plain photo with the upload's id, name and time.
+ * The cursor is the offset of the page's first upload; the stub ignores the filter.
+ */
+function searchPage(): StubAnswer {
+	$body = stubBody();
+	$offset = (int)($body['cursor'] ?? 0);
+	$size = (int)($body['size'] ?? 100);
+	/** @var array{assets: array{items: list<array<string, mixed>>}} $fixture */
+	$fixture = json_decode((string)file_get_contents(FIXTURES . '/search-page.json'), true, 512, JSON_THROW_ON_ERROR);
+	$photo = $fixture['assets']['items'][0];
+	$items = array_map(static fn (int $index): array => upload($photo, $index), range($offset, min($offset + $size, LIBRARY_SIZE) - 1));
+	$next = $offset + $size < LIBRARY_SIZE ? (string)($offset + $size) : null;
+	return StubAnswer::json(['assets' => ['total' => count($items), 'count' => count($items), 'items' => $items, 'facets' => [], 'nextPage' => $next, 'nextCursor' => $next]]);
+}
+
+/**
+ * The library's upload at the index, newest first, named `PXL_E2E_<index + 1>`.
+ * @param array<string, mixed> $photo
+ * @return array<string, mixed>
+ */
+function upload(array $photo, int $index): array {
+	$taken = gmdate('Y-m-d\\TH:i:s.000\\Z', NEWEST_TAKEN - $index * SECONDS_PER_UPLOAD);
+	$name = sprintf('PXL_E2E_%04d.jpg', $index + 1);
+	/** @var array<string, mixed> $exif */
+	$exif = $photo['exifInfo'];
+	return array_merge($photo, [
+		'id' => sprintf(ASSET_ID, $index),
+		'originalFileName' => $name,
+		'deviceAssetId' => $name,
+		'fileCreatedAt' => $taken,
+		'localDateTime' => substr($taken, 0, -1),
+		'exifInfo' => array_merge($exif, ['dateTimeOriginal' => $taken]),
+	]);
+}
+
+/** The thumbnail fixture for an asset of the library, else Immich's 404. */
+function thumbnail(string $path): StubAnswer {
+	$index = sscanf(basename(dirname($path)), ASSET_ID);
+	return isset($index[0]) && $index[0] < LIBRARY_SIZE
+		? StubAnswer::file(THUMBNAIL, 'image/jpeg')
+		: StubAnswer::json(['message' => 'Not found or no asset.view access', 'statusCode' => 400, 'error' => 'Bad Request'], 400);
 }
 
 stubServe(FIXTURES . '/openapi.json', '/api', [
 	['get', '/server/version', static fn (): StubAnswer => StubAnswer::jsonFile(FIXTURES . '/version.json')],
 	['get', '/users/me', keyed(static fn (): StubAnswer => StubAnswer::jsonFile(FIXTURES . '/me.json'))],
-	['post', '/search/metadata', keyed(static fn (): StubAnswer => StubAnswer::jsonFile(FIXTURES . '/search-page.json'))],
+	['post', '/search/metadata', keyed(static fn (): StubAnswer => searchPage())],
+	['get', '/assets/{id}/thumbnail', keyed(thumbnail(...))],
 	['post', '/search/statistics', keyed(static fn (): StubAnswer => StubAnswer::jsonFile(FIXTURES . '/statistics.json'))],
 	['get', '/search/suggestions', keyed(static fn (): StubAnswer => StubAnswer::jsonFile(FIXTURES . '/suggestions.json'))],
 ]);
