@@ -1,6 +1,6 @@
 {
 	"name": "polandy/honeycomb",
-	"description": "Cull RAW+JPEG photo pairs in Nextcloud, touch-first for the iPad",
+	"description": "Cull RAW+JPEG photo pairs in Nextcloud, for desktop and tablet",
 	"license": "AGPL-3.0-or-later",
 	"type": "project",
 	"require": {
