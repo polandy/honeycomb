@@ -1791,6 +1791,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   docs/readme-first-impression) and honeycomb is stated as a culling tool with no picture editing,
   now or later (owner, #187): requirements 1.10 lists it as a non-goal, so workers do not propose
   develop controls.
+- 2026-11-21: The `webkit-ipad` project (#187, M10) runs the four `@webkit` cases in Playwright's
+  *iPad Pro 11 landscape* device with a current iPadOS user agent, because the device's own agent
+  names iOS 12 and Nextcloud redirects it to its unsupported-browser page. Landscape, because
+  the toolbar folds *Review rejects* into *More* below 900 px; a portrait pass needs its own case.
 - 2026-11-21: A move that would replace a file the trash bin would not keep is refused
   (`noTrashBin`, `tooLarge`) and the report says to move again with *Add suffix* or *Skip*; the
   ADR 0036 warning with a `permanent` flag stays with the trash dialog, so a move never deletes for
