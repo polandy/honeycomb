@@ -29,7 +29,6 @@ expect e2e-container-hook "markdown=false php=false ts=false app=true" tests/e2e
 expect e2e-server "markdown=false php=false ts=false app=true" scripts/e2e-server.sh
 expect e2e-names "markdown=false php=false ts=false app=true" scripts/e2e-names.sh
 expect nextcloud-images "markdown=false php=false ts=false app=true" scripts/nextcloud-images.sh
-expect upgrade-test "markdown=false php=false ts=false app=true" scripts/upgrade-test.sh
 expect interop-dockerfile "markdown=false php=false ts=true app=false" tests/interop/Dockerfile
 expect interop-runner "markdown=false php=false ts=true app=false" scripts/xmp-interop.sh
 expect db-test "markdown=false php=true ts=false app=true" tests/php-db/SeriesMapperTest.php

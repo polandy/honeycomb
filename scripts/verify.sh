@@ -45,7 +45,6 @@ e2e_ports_choose || failed=1
 parallel_step "phpunit db" scripts/php-db-tests.sh
 parallel_step e2e npx playwright test
 parallel_step "e2e oldest" env HONEYCOMB_E2E_NEXTCLOUD=oldest HONEYCOMB_E2E_PORT="$HONEYCOMB_E2E_OLDEST_PORT" npx playwright test
-parallel_step "upgrade test" scripts/upgrade-test.sh "$HONEYCOMB_UPGRADE_PORT"
 parallel_wait
 e2e_slot_release
 

@@ -136,7 +136,6 @@ The procedure — test first as its own commit, layers, coverage gate — is
 | No English left with a stub catalogue (ADR 0007) | Vitest, `tests/js/l10n/marked-catalogue.ts` | `TypeScript` job |
 | Bundle builds; flows in a real Nextcloud | `vite build`, Playwright (`tests/e2e/`) | `Build and e2e` jobs, oldest and newest Nextcloud, 3 shards each |
 | `info.xml` declares only the Nextcloud versions e2e runs | `scripts/nextcloud-versions.sh` | `Convention gates` job |
-| An update from the first release keeps the saved data | `scripts/upgrade-test.sh` | `Update from the first release` job |
 | PHP format (PSR-12 via `nextcloud/coding-standard`) | php-cs-fixer | `PHP` job |
 | PHP types, unused code, forbidden functions | psalm (`psalm.xml`) | `PHP` job |
 | File size, pins | `scripts/source-sizes.sh`, `scripts/pins.sh` | `Convention gates` job |

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Sourced by scripts/php-db-tests.sh and scripts/upgrade-test.sh: the database of one Nextcloud container.
+# Sourced by scripts/php-db-tests.sh: the database of one Nextcloud container.
 # HONEYCOMB_DB picks the engine: sqlite (default), mariadb or postgres.
 MARIADB_IMAGE=mariadb:11.4@sha256:a8992b5e5404d11e03c54a31d0c1bdea3fd116d283aa6d1a627551f29045309b
 POSTGRES_IMAGE=postgres:17@sha256:b60e90042aa6b8dbecd58e224b3e36114dbf8ad754465264c2476ad58a86e45c

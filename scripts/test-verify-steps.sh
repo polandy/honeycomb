@@ -196,15 +196,15 @@ for end in "exit 0" "kill -TERM \$BASHPID"; do
 done
 
 # A busy port is passed over at once: each port is asked once, the next free one is taken, and the
-# three runs never share a port.
+# two runs never share a port.
 choose() {
   : >"$work/checks"
   printf '%s\n' "$@" >"$work/busy-ports"
   PORT_CHECKS="$work/checks" BUSY_PORTS="$work/busy-ports" timeout 30 env -u HONEYCOMB_E2E_PORT \
-    -u HONEYCOMB_E2E_OLDEST_PORT -u HONEYCOMB_UPGRADE_PORT bash -c 'source scripts/e2e-names.sh
+    -u HONEYCOMB_E2E_OLDEST_PORT bash -c 'source scripts/e2e-names.sh
       source scripts/verify-steps.sh
       e2e_ports_choose 2>/dev/null || exit 1
-      echo "$HONEYCOMB_E2E_PORT $HONEYCOMB_E2E_OLDEST_PORT $HONEYCOMB_UPGRADE_PORT"'
+      echo "$HONEYCOMB_E2E_PORT $HONEYCOMB_E2E_OLDEST_PORT"'
 }
 expect_ports() {
   local want=$1 checks=$2 got
@@ -216,9 +216,9 @@ expect_ports() {
     failed=1
   fi
 }
-expect_ports "8180 9180 8190" "8180 9180 8190"
-expect_ports "8182 9182 8190" "8180 8181 8182 9182 8190" 8180 8181
-expect_ports "8190 9190 8191" "$(seq -s' ' 8180 8190) 9190 8191" $(seq 8180 8189)
+expect_ports "8180 9180" "8180 9180"
+expect_ports "8182 9182" "8180 8181 8182 9182" 8180 8181
+expect_ports "8190 9190" "$(seq -s' ' 8180 8190) 9190" $(seq 8180 8189)
 if choose $(seq 8180 8279) >/dev/null; then
   echo "FAIL no free port in the search range must fail the choice"
   failed=1

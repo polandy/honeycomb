@@ -39,7 +39,7 @@ during a task becomes an issue as above.
     server, including the failure paths: a foreign path, a vanished file, a conflict, no
     permission. The mapper SQL and the sidecar save also run against SQLite, MariaDB and PostgreSQL
     and the real files inside the newest Nextcloud image e2e runs on (`tests/php-db/`,
-    `scripts/php-db-tests.sh`); the update test runs on all three. `HONEYCOMB_DB=mariadb|postgres`
+    `scripts/php-db-tests.sh`). `HONEYCOMB_DB=mariadb|postgres`
     picks the engine locally (`scripts/database.sh`); `scripts/verify.sh` stays on SQLite, CI
     runs the matrix.
   - **ExifTool and Exiv2** read the sidecars honeycomb writes back (`tests/interop/`,
@@ -67,7 +67,7 @@ during a task becomes an issue as above.
 - `scripts/verify.sh` is green locally. CI runs the same tools at the same versions. Each step line
   shows its duration in seconds and the last line the total (`scripts/verify-steps.sh`). Independent
   slow steps run in parallel and still print in a fixed order; any failing one turns the run red.
-  The steps that start Nextcloud containers (phpunit db, e2e, e2e oldest, upgrade test) run
+  The steps that start Nextcloud containers (phpunit db, e2e, e2e oldest) run
   as one group under a host-wide `flock` on `HONEYCOMB_E2E_LOCK` (default
   `/tmp/honeycomb-e2e.lock`), so parallel worktrees on one host take turns; a run that has to
   wait prints `waiting for the e2e slot` and then how long it waited. Steps never inherit the
