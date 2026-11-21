@@ -30,7 +30,7 @@ describe('listEntries', () => {
 		const listing = await listEntries('/Photos', true)
 
 		expect(listing).toEqual({ entries: [ENTRY], truncated: true, folders: [] })
-		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/entries', { params: { path: '/Photos', subfolders: 1 } })
+		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/entries', { params: { path: '/Photos', subfolders: 1 }, signal: expect.any(AbortSignal) })
 	})
 
 	// spec: LISTING-001.1
@@ -39,7 +39,7 @@ describe('listEntries', () => {
 
 		await listEntries('', false)
 
-		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/entries', { params: { path: '' } })
+		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/entries', { params: { path: '' }, signal: expect.any(AbortSignal) })
 	})
 
 	// spec: LISTING-001.19, XMP-008.12
@@ -131,7 +131,7 @@ describe('trashPictures', () => {
 		vi.mocked(axios.post).mockResolvedValue({ data: { pictures: results } })
 
 		expect(await trashPictures(pictures)).toEqual(results)
-		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/trash', { pictures })
+		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/trash', { pictures }, { signal: expect.any(AbortSignal) })
 	})
 
 	// spec: DELETE-002.26, DELETE-003.11
@@ -140,7 +140,7 @@ describe('trashPictures', () => {
 
 		await trashPictures(pictures, 'rawRemovable')
 
-		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/trash', { pictures, expect: 'rawRemovable' })
+		expect(axios.post).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/trash', { pictures, expect: 'rawRemovable' }, { signal: expect.any(AbortSignal) })
 	})
 
 	it('refuses a response without a pictures array', async () => {

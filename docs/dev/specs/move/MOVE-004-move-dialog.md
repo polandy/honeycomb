@@ -202,6 +202,16 @@ trash bin refuses (`409`, a *Replace* with the trash bin off) says the trash bin
   meanwhile goes with its picture, its path is checked against the probed target folder like
   the others, and every picture moves
 
+### MOVE-004.20 – A request that does not answer
+
+- **Given** a move, or its undo
+- **When** the probe of the target folders does not answer within 30 s, or a move request within
+  90 s (ADR 0029)
+- **Then** the request is aborted and fails like any failed request (MOVE-004.18 for a later
+  one); when nothing was answered, the dialog closes and a message that stays until closed says
+  *The server did not answer within {seconds} s; reload the folder to see what moved.* with
+  *Reload folder*, since the server may have moved the photos anyway
+
 ## Out of scope
 
 The name template setting, its presets and the favourite targets list in the settings:
@@ -217,3 +227,4 @@ SETTINGS-001. The endpoints: MOVE-002. The plan, conflicts, report and undo requ
 | 2026-11-15 | A picture that would leave its storage is listed, not moved (MOVE-004.16). |
 | 2026-11-16 | Requests start at 5 pictures and double up to 50, so the count moves early (MOVE-004.17, ADR 0029). |
 | 2026-11-17 | A move sends the sidecars as honeycomb last saved or created them (MOVE-004.19, #232). |
+| 2026-11-21 | A probe or move request that does not answer in time fails with a message (MOVE-004.20, E23/U7). |

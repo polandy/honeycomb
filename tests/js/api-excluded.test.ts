@@ -14,7 +14,7 @@ describe('listEntries with excluded folders', () => {
 
 		await listEntries('/Photos', true, ['/Photos/Raw', '/Photos/Old'])
 
-		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/entries', { params: { path: '/Photos', subfolders: 1, excluded: ['/Photos/Raw', '/Photos/Old'] } })
+		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/entries', { params: { path: '/Photos', subfolders: 1, excluded: ['/Photos/Raw', '/Photos/Old'] }, signal: expect.any(AbortSignal) })
 	})
 
 	// spec: LISTING-001.16
@@ -23,6 +23,6 @@ describe('listEntries with excluded folders', () => {
 
 		await listEntries('/Photos', true, [])
 
-		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/entries', { params: { path: '/Photos', subfolders: 1 } })
+		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/entries', { params: { path: '/Photos', subfolders: 1 }, signal: expect.any(AbortSignal) })
 	})
 })

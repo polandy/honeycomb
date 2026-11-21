@@ -5,12 +5,14 @@ import type { ListEntries } from '../../src/folder-count.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { ResumePosition } from '../../src/logic/resume-position.ts'
+import type { ToastAction } from '../../src/toast.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import { logger } from '../../src/logger.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../../src/logic/pairing.ts'
+import { RequestTimeoutError } from '../../src/api.ts'
 import { useRecent } from '../../src/recent.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
@@ -30,6 +32,7 @@ const LISTINGS: Record<string, ListingEntry[]> = {
 function recentOn(positions: () => Promise<unknown>, listEntries: ListEntries = async (path: string) => ({ entries: LISTINGS[path] ?? [], truncated: false, folders: [{ path: '/Day', permissions: path === '/Day' ? 1 : 31 }] })) {
 	const opened: unknown[][] = []
 	const toasts: string[] = []
+	const actions: (ToastAction | null | undefined)[] = []
 	const listed: string[] = []
 	let resumed = 0
 	const folderSet = ref<FolderSet | null>(null)
@@ -41,9 +44,12 @@ function recentOn(positions: () => Promise<unknown>, listEntries: ListEntries = 
 		folderSet: () => folderSet.value,
 		progress: () => progress.value,
 		pairing: () => DEFAULT_PAIRING_SETTINGS,
-	}, (message) => toasts.push(message))
+	}, (message, action) => {
+		toasts.push(message)
+		actions.push(action)
+	})
 	const opener = { open: (...args: unknown[]) => opened.push(args), resumeAt: (fileId: number) => opened.at(-1)!.push(fileId), resumeOpen: () => resumed++ }
-	return { ...recent, open: (position: ResumePosition) => recent.open(position, opener), openSet: (set: FolderSet) => recent.openSet(set, opener.open), opened, toasts, listed, folderSet, progress, resumed: () => resumed }
+	return { ...recent, open: (position: ResumePosition) => recent.open(position, opener), openSet: (set: FolderSet) => recent.openSet(set, opener.open), opened, toasts, actions, listed, folderSet, progress, resumed: () => resumed }
 }
 
 describe('useRecent', () => {
@@ -158,6 +164,29 @@ describe('useRecent', () => {
 		expect(recent.opened).toEqual([])
 		expect(recent.toasts).toEqual(['Could not open 2 folders.'])
 		expect(error).toHaveBeenCalledWith('Could not list the recent folder set', { error: expect.anything() })
+	})
+
+	// spec: DECISIONS-002.19
+	it('says the server did not answer in time and lists the folder set again on Try again', async () => {
+		vi.spyOn(logger, 'error').mockImplementation(() => {})
+		let fail = true
+		const recent = recentOn(async () => [], async (path: string) => {
+			if (fail) {
+				throw new RequestTimeoutError(30_000)
+			}
+			return { entries: LISTINGS[path] ?? [], truncated: false, folders: [] }
+		})
+
+		await recent.open(trip)
+		await flushPromises()
+		expect(recent.toasts).toEqual(['Could not open 2 folders: the server did not answer within 30 s.'])
+		expect(recent.actions[0]?.label).toBe('Try again')
+
+		fail = false
+		recent.actions[0]!.run()
+		await flushPromises()
+		expect(recent.opened).toHaveLength(1)
+		expect(recent.opened[0]!.at(-1)).toBe(2)
 	})
 
 	it('keeps the list it has when the positions cannot be read, and takes the latest answer', async () => {
