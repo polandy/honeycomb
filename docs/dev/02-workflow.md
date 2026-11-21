@@ -44,7 +44,12 @@ during a task becomes an issue as above.
     runs the matrix.
   - **ExifTool and Exiv2** read the sidecars honeycomb writes back (`tests/interop/`,
     `scripts/xmp-interop.sh`, Docker), in CI on a TypeScript change and every night.
-  - **Playwright** end to end against a real Nextcloud container, for the flows across both.
+  - **Playwright** end to end against a real Nextcloud container, for the flows across both. An
+    upstream service is a stub inside that container, never the network: a router for PHP's
+    built-in server under `tests/e2e/upstream/` that answers fixtures, only for operations of the
+    upstream's pinned OpenAPI schema (`stub.php`), started by the container's post-installation
+    hook. The stub Immich takes one key and refuses every other one
+    (`tests/fixtures/immich/e2e/`).
 - Coverage gate in CI: logic modules (`src/logic/`) at least 95 % lines and 90 % branches; Vue
   components at least 80 % lines. A pull request does not lower either.
 - Test vectors shared with Framehive (pairing, XMP, name templates) are data files under

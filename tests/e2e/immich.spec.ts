@@ -21,7 +21,7 @@ async function openImmich(page: Page): Promise<void> {
 
 /** The connection switcher's entry for the connection. */
 function connectionEntry(page: Page, label: string) {
-	return page.getByRole('navigation').getByRole('listitem').filter({ hasText: label })
+	return page.getByRole('navigation').locator('.list-item__wrapper').filter({ hasText: label })
 }
 
 test.describe('as a user with two Immich connections', () => {
@@ -67,7 +67,7 @@ test.describe('as a user with two Immich connections', () => {
 		const main = page.getByRole('main')
 		await expect(main).toContainText('The API key is refused')
 		await expect(main).toContainText('Decisions already made stay in honeycomb.')
-		const asked = page.waitForResponse(`**${API}/${ANNA.id}/status`)
+		const asked = page.waitForResponse(`**/api/v1/immich/${ANNA.id}/status`)
 		await main.getByRole('button', { name: 'Try again' }).click()
 		expect((await (await asked).json()).state).toBe('refused')
 	})
@@ -96,7 +96,7 @@ test.describe('as a user with two Immich connections', () => {
 			await expect(dialog).toContainText(fact)
 		}
 		await expect(dialog.getByRole('textbox')).toHaveCount(0)
-		const asked = page.waitForResponse(`**${API}/${FAMILY.id}/status`)
+		const asked = page.waitForResponse(`**/api/v1/immich/${FAMILY.id}/status`)
 		await dialog.getByRole('button', { name: 'Test connection' }).click()
 		expect((await (await asked).json()).state).toBe('ok')
 		await dialog.getByRole('button', { name: 'Done' }).click()

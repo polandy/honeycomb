@@ -1733,3 +1733,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   loupe tiers' requests: a slide swaps to its loupe tier only once decoded, so a test that timed
   the page between request and decode measured a fresh load. A test-only `decode()` wrapper was
   rejected as tied to the prefetch's internals.
+- 2026-11-21: M10 PR 11 is split: 11a brings the upstream-stub seam, the stub Immich, the fixture
+  of two connections and the e2e of the source and connection switcher and the connection dialog
+  on `main`; the grid and loupe e2e follow once PR 10b and 10c are merged. The stub runs inside
+  the e2e container (PHP's built-in server on `127.0.0.1:2283`), not as a second Playwright web
+  server: no port per parallel run, no route from the container to the host. Easy to redo: the
+  router files stay, only the hook that starts them moves.

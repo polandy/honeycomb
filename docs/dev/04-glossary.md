@@ -85,7 +85,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **asset** | One picture or video in Immich, keyed by its asset id; a live photo is one asset, a stack shows but only the chosen asset goes (ADR 0041). |
 | **picture id** | What identifies a picture in the browser, `PictureId`: the Nextcloud file id as a number, the Immich asset id as a string (ADR 0041). |
 | **decision table** | The table that holds an Immich asset's whole decision, rating, colour label, flag and *Keep RAW*, per (connection, asset id); a `UserRowStore`, never a `FileRowStore` (ADR 0041, columns and endpoints in ADR 0043). |
-| **stub Immich** | The e2e stand-in for Immich, built from the pinned OpenAPI schema and started as a second Playwright web server; a real Immich is the owner's hand test only (ADR 0041). |
+| **stub Immich** | The e2e stand-in for Immich, built from the pinned OpenAPI schema and run inside the e2e Nextcloud container; a real Immich is the owner's hand test only (ADR 0041). |
 | **Write to Immich** | The explicit step (Phase 2) that sends picks, rejects and ratings of Immich assets to Immich after the `updatedAt` conflict check; a reject becomes the Immich trash bin by default (ADR 0041). |
 
 ## Words and conventions in the UI
