@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
 import { cullFolder } from './cull.ts'
-import { apiHeaders, etagOf, JPEG, RAW, trashEntry, upload } from './files.ts'
+import { apiHeaders, etagOf, JPEG, RAW, trashEntry, upload, withSmallTrashBin } from './files.ts'
 import { occ } from './server.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
@@ -46,16 +46,6 @@ async function trashLocations(page: Page): Promise<string> {
 		data: '<d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns"><d:prop><nc:trashbin-original-location/></d:prop></d:propfind>',
 	})
 	return trash.text()
-}
-
-/** Runs `body` with the admin's trash bin size at the JPEG's size; the web process caches app config that occ changes behind its back. */
-async function withSmallTrashBin(body: () => Promise<void>): Promise<void> {
-	occ(['user:setting', ADMIN.username, 'files_trashbin', 'trashbin_size', String(JPEG.length)])
-	try {
-		await body()
-	} finally {
-		occ(['user:setting', '--delete', ADMIN.username, 'files_trashbin', 'trashbin_size'])
-	}
 }
 
 /** Runs `body` with a Team folder of the admin's group mounted at `name`, removed afterwards. */

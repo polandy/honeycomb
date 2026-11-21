@@ -50,6 +50,13 @@ describe('moveReport', () => {
 	})
 
 	// spec: MOVE-003.6
+	it.each(['noTrashBin', 'tooLarge'] as const)('keeps %s, a replace the trash bin would not keep', (result) => {
+		const report = moveReport([filesOf(SINGLE)], [[{ fileId: filesOf(SINGLE)[0]!.entry.fileId, result, replaced: false }]])
+
+		expect(report.failed).toEqual([{ file: filesOf(SINGLE)[0], result }])
+	})
+
+	// spec: MOVE-003.6
 	it('counts a file the response leaves out as failed', () => {
 		const report = moveReport([filesOf(SINGLE)], [])
 
