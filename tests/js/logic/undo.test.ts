@@ -4,7 +4,7 @@ import type { Decision } from '../../../src/logic/decision.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { applyStep, clearEntry, NO_HISTORY, pickRestEntry, reductionEntry, pushUndo, recordStep, redoStep, seriesStep, tagStep, UNDO_LIMIT, undoEntry, undoStep } from '../../../src/logic/undo.ts'
+import { applyStep, clearEntry, NO_HISTORY, pickRestEntry, pushUndo, recordStep, redoStep, reductionEntry, seriesStep, tagStep, UNDO_LIMIT, undoEntry, undoStep } from '../../../src/logic/undo.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const PAIR = pictureOf(listingEntry(1, '/P/A.JPG'), listingEntry(2, '/P/A.NEF', { mime: 'image/x-dcraw' }))
