@@ -107,4 +107,4 @@ MOVE-002.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written and implemented with M7.2 (ADR 0018). |
-| 2026-11-21 | The report keeps `noTrashBin` and `tooLarge`, a replace the trash bin would not keep (MOVE-003.6). |
+| 2026-11-21 | The report keeps `noTrashBin` and `tooLarge` (MOVE-003.6). |

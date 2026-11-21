@@ -37,11 +37,7 @@ final class MoveServiceTest extends TestCase {
 		$this->addFiles([1 => '/In/A.RAF', 2 => '/In/A.JPG', 3 => '/In/A.RAF.xmp', 4 => '/In/B.JPG']);
 	}
 
-	/**
-	 * The request form of a file: its id, listed ETag and new path.
-	 * @return array{fileId: int, etag: string, path: string}
-	 */
-	/** @return array{fileId: int, etag: string, path: string, replace?: array{fileId: int, etag: string}} */
+	/** @return array{fileId: int, etag: string, path: string, replace?: array{fileId: int, etag: string}} the request form of a file: its id, listed ETag and new path */
 	private static function to(int $fileId, string $path): array {
 		return ['fileId' => $fileId, 'etag' => "etag-$fileId", 'path' => $path];
 	}
