@@ -24,7 +24,8 @@ import { sidecarTargets } from '../logic/xmp/targets.ts'
 
 const props = withDefaults(defineProps<{
 	picture: Picture<SourceEntry>
-	folderSet: FolderSet
+	/** The folder set the Folder row names the folder within; a source without folders has no Folder row. */
+	folderSet?: FolderSet | undefined
 	decision: Decision
 	/** The picture's tags, sorted (TAGS-004.8). */
 	tags?: readonly Tag[]
@@ -48,7 +49,7 @@ const rows = computed(() => {
 	const { captureTime, width, height } = member.value
 	return [
 		{ term: t('honeycomb', 'Name'), value: props.picture.baseName },
-		{ term: t('honeycomb', 'Folder'), value: folderLabel(props.picture.folder, props.folderSet) },
+		...(props.folderSet === undefined ? [] : [{ term: t('honeycomb', 'Folder'), value: folderLabel(props.picture.folder, props.folderSet) }]),
 		...(captureTime === null ? [] : [{ term: t('honeycomb', 'Captured'), value: formatDateTime(captureTime) }]),
 		...(width === null || height === null ? [] : [{ term: t('honeycomb', 'Size'), value: `${formatNumber(width)} × ${formatNumber(height)}` }]),
 		...(rendered === null ? [] : [{ term: badgeExtension(rendered), value: formatFileSize(rendered.size) }]),

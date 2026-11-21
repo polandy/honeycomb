@@ -2,9 +2,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ColourLabel, Decision, Flag } from './decision.ts'
 import type { ImmichKind } from './immich-asset.ts'
+import type { RequestFilters, TimeRange } from './immich-filters.ts'
 import type { DecisionFilters } from './picture-filter.ts'
 
 import { matchesDecision } from './picture-filter.ts'
+
+/** What the counts are asked with: the filters and the time options' ranges (ADR 0044). */
+export interface CountsRequest {
+	readonly filters: RequestFilters
+	readonly periods: readonly TimeRange[]
+}
 
 /** The counts endpoint's answer (ADR 0044): the toolbar's numbers and each filter option's. */
 export interface ImmichCounts {

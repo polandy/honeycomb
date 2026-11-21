@@ -71,6 +71,10 @@ is logged in [`decisions.md`](decisions.md).
   `var_dump`, `print_r`, `error_log`); the frontend never uses `console` (`no-console`) and logs
   through `@nextcloud/logger` from M2.1. Levels: `error` for a failed user action, `warning` for
   a recovered one, `debug` for tracing; never log a file's contents.
+- **A log line never holds a path or a file name**, only the `fileId` and the user's UID; a file
+  deleted for good is an audit line the same way (DELETE-001.14). Checked: PHPUnit
+  `tests/php/Conventions/LogContextTest.php` and Vitest `tests/js/conventions/log-paths.test.ts`.
+  The text of a caught exception is not checked.
 - **Promises are awaited or explicitly `void`ed** (`@typescript-eslint/no-floating-promises`,
   `no-misused-promises`).
 
@@ -127,9 +131,10 @@ The procedure — test first as its own commit, layers, coverage gate — is
 |---|---|---|
 | Format, style, Vue and TypeScript rules above | ESLint (`eslint.config.mjs`) | `TypeScript` job |
 | Types, `.vue` included | `vue-tsc` | `TypeScript` job |
-| Gates of `eslint.config.mjs` themselves | Vitest `tests/js/conventions/` | `TypeScript` job |
+| Gates of `eslint.config.mjs` themselves; no path in a log call (`src/`) | Vitest `tests/js/conventions/` | `TypeScript` job |
+| No path in a PHP log call (`lib/`) | PHPUnit `tests/php/Conventions/` | `PHP` job |
 | No English left with a stub catalogue (ADR 0007) | Vitest, `tests/js/l10n/marked-catalogue.ts` | `TypeScript` job |
-| Bundle builds; flows in a real Nextcloud | `vite build`, Playwright (`tests/e2e/`) | `Build and e2e` jobs, oldest and newest Nextcloud |
+| Bundle builds; flows in a real Nextcloud | `vite build`, Playwright (`tests/e2e/`) | `Build and e2e` jobs, oldest and newest Nextcloud, 3 shards each |
 | `info.xml` declares only the Nextcloud versions e2e runs | `scripts/nextcloud-versions.sh` | `Convention gates` job |
 | An update from the first release keeps the saved data | `scripts/upgrade-test.sh` | `Update from the first release` job |
 | PHP format (PSR-12 via `nextcloud/coding-standard`) | php-cs-fixer | `PHP` job |

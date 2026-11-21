@@ -40,7 +40,7 @@ The words the app uses (Pick, Reject, Unflag, series and more) are in the
 | [Keyboard shortcuts](keyboard-shortcuts.md) | Every key in the grid, the loupe and the series compare |
 | [Ratings, flags and colour labels](ratings-flags-colours.md) | How digiKam, darktable and Lightroom show honeycomb's decisions |
 | [Deleting photos](deleting.md) | Deleting every rejected photo, or the ones you choose |
-| [Sidecars and digiKam](sidecars.md) | What honeycomb writes into XMP sidecars, setting up digiKam, changes made elsewhere |
+| [Sidecars and digiKam](sidecars.md) | What honeycomb writes into XMP sidecars, setting up digiKam, changes made elsewhere, cleaning up orphaned sidecars |
 | [Shared folders and permissions](shared-folders.md) | Read-only folders, shared folders, the trash bin and moves across storages |
 | [Tags](tags.md) | Adding, filtering and saving tags |
 | [Settings](settings.md) | The per-user settings and what each one does |

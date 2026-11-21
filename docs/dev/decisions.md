@@ -1733,3 +1733,48 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   loupe tiers' requests: a slide swaps to its loupe tier only once decoded, so a test that timed
   the page between request and decode measured a fresh load. A test-only `decode()` wrapper was
   rejected as tied to the prefetch's internals.
+- 2026-11-21: Immich PR 10b ships the paged grid and loupe, server counts, the flag filter and
+  saved decisions; the resume position (the listing's `from`, the positions' `asset_id`, its sweep
+  in IMMICH-003.18), *Recent*, the time, device, kind and rating filter bar, grid-level decisions,
+  selection and keys, and the tile pills move to PR 10c, to keep one PR reviewable. Easy to redo:
+  each lands on the screen as it is.
+- 2026-11-21: An Immich asset gets a numeric grid id per open connection (a map from asset id),
+  not a `PictureId` widened to `number | string`: widening touched 116 places of the folder cull.
+  Medium to redo: the map lives in `useImmichCull` only.
+- 2026-11-21: An Immich decision is undone by the toast's *Undo* only, which saves the earlier
+  decision; Ctrl+Z stays with the folder cull's history. Easy to redo: one key in `App.vue`.
+- 2026-11-21: The Immich grid groups by day through the picture's `folder`, set to the local day,
+  so `PhotoGrid` needed no new grouping; a header shows its folder as it is without a folder set.
+- 2026-11-21: The Immich loupe counts *k / N* against the server's matching total, the folder
+  loupe *k of N*, as IMMICH-002.9 writes it.
+- 2026-11-21: A failed Immich page says "Could not load more pictures." with *Try again*, not the
+  connection's state (IMMICH-002.19): the page request answers no state yet. Easy to redo: one
+  footer line once the listing's error carries one.
+- 2026-11-21: M10 PR 11 is split: 11a brings the upstream-stub seam, the stub Immich, the fixture
+  of two connections and the e2e of the source and connection switcher and the connection dialog
+  on `main`; the grid and loupe e2e follow once PR 10b and 10c are merged. The stub runs inside
+  the e2e container (PHP's built-in server on `127.0.0.1:2283`), not as a second Playwright web
+  server: no port per parallel run, no route from the container to the host. Easy to redo: the
+  router files stay, only the hook that starts them moves.
+- 2026-11-21: The ESLint conventions test lints its snippets under
+  `tests/js/conventions/snippets/`, whose empty `tsconfig.json` is the nearest one, with the
+  repository's config rebased there. Under the root `tsconfig.json` the project service loaded the
+  whole configured project (about 1,700 files) for every snippet path, and the first case took
+  40 s inside the full Vitest run on a loaded host. Now it takes about 1.5 s. A tsconfig `exclude`
+  did not help, and a longer timeout was rejected (owner rule against flaky tests). The
+  120 s warm-up hook that main had added meanwhile (#333) is removed for the same reason.
+- 2026-11-21: CI splits the e2e specs per Nextcloud version into 3 Playwright shards (`--shard`),
+  each a matrix job on its own runner with its own Nextcloud, so no shard sees another's state;
+  the `gate` needs the `e2e` job and so every shard. `workers: 1` stays: one Nextcloud per
+  worker would need a port and a container per worker. Easy to redo: the `shard` list in `ci.yml`.
+- 2026-11-21: The e2e job caches the Playwright browsers and a copy of the WebKit `.deb` files in
+  the home directory; caching apt's archive directory directly never restored, since the runner
+  user cannot write it.
+- 2026-11-21: An e2e shard installs WebKit only when `playwright test --list` puts a `webkit` test
+  in it, and the job caches `node_modules` by the lockfile, running `npm ci` only on a miss; both
+  cut fixed setup time that sharding repeats on every runner. The browser cache key says whether
+  the shard needs WebKit, so a shard without it never saves the cache a WebKit shard restores.
+- 2026-11-21: PR 11b covers the grid and the loupe as PR 10b built them (paging, previews, loupe
+  and filmstrip past the page, a pick); each part of PR 10c brings its own e2e, so 11b does not
+  wait for 10c. The stub Immich generates a library of 3,660 plain photos, as many as its
+  statistics fixture counts, paged by an offset cursor and unfiltered.

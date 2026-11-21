@@ -30,6 +30,14 @@ describe('ShortcutSheet', () => {
 		expect(rows(wrapper).every(([, label]) => label !== '')).toBe(true)
 	})
 
+	// spec: IMMICH-002.17
+	it('leaves out the keys it is told the source does not offer', () => {
+		const wrapper = mountSheet({ hidden: new Set(['tag', 'move']) })
+
+		expect(rows(wrapper)).toHaveLength(KEYMAP.length - 2)
+		expect(rows(wrapper).some(([caps]) => caps?.[0] === 'T' || caps?.[0] === 'M')).toBe(false)
+	})
+
 	// spec: SERIES-001.23
 	it('names Enter for the loupe and for full screen from the series compare', () => {
 		expect(rows(mountSheet()).find(([caps]) => caps?.[0] === 'Enter')).toEqual([['Enter'], 'Open the loupe; series compare: view full screen'])

@@ -169,7 +169,7 @@ final class ImmichClient {
 	private function key(Connection $connection): string {
 		$key = trim($this->files->read($connection->keyFile) ?? '');
 		if ($key === '') {
-			$this->logger->error('The key file {keyFile} of the Immich connection {connection} is missing or empty', ['keyFile' => $connection->keyFile, 'connection' => $connection->id]);
+			$this->logger->error('The key file of the Immich connection {connection} is missing or empty', ['connection' => $connection->id]);
 			throw new ImmichException(ImmichError::Key);
 		}
 		return $key;

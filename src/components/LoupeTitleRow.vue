@@ -3,8 +3,10 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import { t } from '@nextcloud/l10n'
-import { useTemplateRef } from 'vue'
+import type { LoupeCounter } from '../logic/immich-paging.ts'
+
+import { n, t } from '@nextcloud/l10n'
+import { computed, useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import FlagButtonsToggle from './FlagButtonsToggle.vue'
@@ -19,6 +21,10 @@ const props = withDefaults(defineProps<{
 	/** The shown picture's index. */
 	index: number
 	count: number
+	/** The place against the source's own total, which overrides index and count (IMMICH-002.9). */
+	counter?: LoupeCounter | null
+	/** Whether the source offers *Move* (IMMICH-002.17). */
+	movable?: boolean
 	/** The zoom in percent of the full image, null when fitted. */
 	zoom: number | null
 	infoOpen: boolean
@@ -34,7 +40,7 @@ const props = withDefaults(defineProps<{
 	unsaved?: boolean
 	/** Whether the shown picture's image is the preview embedded in its RAW (LOUPE-001.28). */
 	embeddedPreview?: boolean
-}>(), { series: null, seriesHint: false, unsaved: false, embeddedPreview: false })
+}>(), { counter: null, movable: true, series: null, seriesHint: false, unsaved: false, embeddedPreview: false })
 
 const emit = defineEmits<{
 	close: []
@@ -50,6 +56,15 @@ const emit = defineEmits<{
 }>()
 
 const fullscreen = useFullscreenState()
+const countText = computed(() => {
+	if (props.counter === null) {
+		return t('honeycomb', '{position} of {count}', { position: formatNumber(props.index + 1), count: formatNumber(props.count) }, undefined, PLAIN_TEXT)
+	}
+	const { position, total } = props.counter
+	return position === null
+		? n('honeycomb', '{count} picture', '{count} pictures', total, { count: formatNumber(total) }, PLAIN_TEXT)
+		: t('honeycomb', '{position} / {count}', { position: formatNumber(position), count: formatNumber(total) }, undefined, PLAIN_TEXT)
+})
 const row = useTemplateRef<HTMLElement>('row')
 const chip = useTemplateRef<HTMLButtonElement>('chip')
 
@@ -77,7 +92,7 @@ const SERIES_MARK = '⧉'
 			role="img"
 			:aria-label="t('honeycomb', 'Not saved yet')" />
 		<span v-if="props.embeddedPreview && props.zoom !== null" class="loupe-title-row__embedded">{{ t('honeycomb', 'Embedded preview') }}</span>
-		<span class="loupe-title-row__count">{{ t('honeycomb', '{position} of {count}', { position: formatNumber(props.index + 1), count: formatNumber(props.count) }, undefined, PLAIN_TEXT) }}</span>
+		<span class="loupe-title-row__count">{{ countText }}</span>
 		<span v-if="props.series !== null" class="loupe-title-row__series-anchor">
 			<button
 				ref="chip"
@@ -107,6 +122,7 @@ const SERIES_MARK = '⧉'
 			</template>
 		</NcButton>
 		<NcButton
+			v-if="props.movable"
 			variant="tertiary"
 			:aria-label="t('honeycomb', 'Move this photo')"
 			v-bind="tip(t('honeycomb', 'Move this photo'), keyCap('move'))"

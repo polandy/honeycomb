@@ -64,3 +64,29 @@ never overwrites a sidecar it cannot read — not
 well-formed XML, not UTF-8, larger than 1 MiB — and then leaves that photo unchanged until you
 open the folder again. Folders you may only read, and shared folders: [shared
 folders](shared-folders.md).
+
+## Clean up orphaned sidecars
+
+When a photo is deleted outside honeycomb, for example on the desktop, its sidecar can stay
+behind. Open **Orphaned sidecars** in the navigation to find and remove such sidecars:
+
+1. Choose a folder in the folder tree (its subfolders are always included), or press **Whole
+   library**.
+2. Press **Find orphaned sidecars**. Nothing changes yet: the page lists every orphaned sidecar
+   by folder, with each folder's count and size, each file name and size, and the total above.
+3. Check the list, then press **Move N sidecars to trash**. Choosing another folder or finding
+   again drops the list without moving anything.
+4. The page says how many moved to the trash bin and how many were skipped, and lists each
+   skipped sidecar with its reason. Restore a sidecar from the Nextcloud trash bin if you need it
+   back.
+
+A sidecar is orphaned when no photo or video it belongs to is **in its own folder**:
+`IMG_0001.CR2.xmp` (digiKam, darktable) belongs to `IMG_0001.CR2`, `IMG_0001.xmp` (Lightroom)
+belongs to any `IMG_0001.*` photo or video, and a darktable duplicate `IMG_0001_01.CR2.xmp`
+belongs to `IMG_0001.CR2`; upper and lower case do not matter. A photo in another folder does not
+count, so if you keep RAW files in a subfolder of their own, check the list before you confirm.
+
+A sidecar is skipped rather than moved when, since the list was made, a photo or video it belongs
+to arrived in its folder, the sidecar changed or is gone, you may not delete it, or the trash bin
+would not keep it; honeycomb never deletes an orphaned sidecar for good. Hidden folders and
+folders shared with you, group folders and external storage are not searched.

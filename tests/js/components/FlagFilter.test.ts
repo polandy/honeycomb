@@ -13,6 +13,15 @@ const mountFilter = (flags: Flag[]) => mount(FlagFilter, { props: { flags: new S
 const chip = (wrapper: ReturnType<typeof mountFilter>, name: string) => wrapper.find(`button[aria-label="${name}"]`)
 
 describe('FlagFilter', () => {
+	// spec: IMMICH-002.13
+	it('carries the server\'s count on each chip when given, and none while counting', async () => {
+		const wrapper = mount(FlagFilter, { props: { flags: new Set<Flag>(), counts: { picked: 200, unflagged: 3412, rejected: 48 } } })
+		expect(wrapper.findAll('.flag-filter__count').map((count) => count.text())).toEqual(['200', '3,412', '48'])
+
+		await wrapper.setProps({ counts: null })
+		expect(wrapper.find('.flag-filter__count').exists()).toBe(false)
+	})
+
 	// spec: GRID-002.2, GRID-001.17
 	it('shows a labelled filter with a chip per flag, pressed as the flags are, without a filter icon', () => {
 		const wrapper = mountFilter(['picked', 'unflagged'])

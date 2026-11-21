@@ -7,6 +7,6 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-/** The cursor of a page of missing visual hashes is no path relative to the folder. */
+/** The cursor of a page of a folder walk (missing visual hashes, orphaned sidecars) is no path relative to the folder. */
 final class InvalidCursorException extends InvalidRequestException {
 }

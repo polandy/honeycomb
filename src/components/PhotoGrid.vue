@@ -7,7 +7,7 @@ import type { FocusMove } from '../logic/grid-layout.ts'
 import type { PhotoGridEmits, PhotoGridProps } from '../photo-grid-props.ts'
 
 import { t } from '@nextcloud/l10n'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, useSlots, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, useSlots, useTemplateRef, watch } from 'vue'
 import PhotoTile from './PhotoTile.vue'
 import SeriesBrackets from './SeriesBrackets.vue'
 import TileInfo from './TileInfo.vue'
@@ -15,6 +15,7 @@ import { browserFrame } from '../auto-scroll.ts'
 import { useGridPinch } from '../grid-pinch.ts'
 import { useGridSeries } from '../grid-series.ts'
 import { formatNumber } from '../l10n.ts'
+import { isAppended } from '../logic/appended.ts'
 import { autoScrollStep } from '../logic/auto-scroll.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { UNDECIDED } from '../logic/decision.ts'
@@ -89,6 +90,40 @@ const tiles = useTileSelection({
 	scrollBy,
 }, props.schedule, props.frame)
 
+/** The tiles whose small preview failed, and how often each was asked to load it again (GRID-001.23). */
+const failed = new Set<number>()
+const retries = reactive(new Map<number, number>())
+
+/** Loads a failed tile again, unless the click or key is for the selection or the tile is fine; true when it did. */
+function retryFailed(id: number, event: MouseEvent | KeyboardEvent): boolean {
+	if (props.selecting || !failed.has(id) || event.shiftKey || event.ctrlKey || event.metaKey) {
+		return false
+	}
+	retries.set(id, (retries.get(id) ?? 0) + 1)
+	return true
+}
+
+/** A tile's click: a retry of a failed preview, else the selection's or the loupe's. */
+function onTileClick(id: number, event: MouseEvent): void {
+	if (!retryFailed(id, event)) {
+		tiles.onClick(id, event)
+	}
+}
+
+/** A tile's Enter or Space: a retry of a failed preview, else the selection's or the loupe's. */
+function onTileKeydown(id: number, event: KeyboardEvent): void {
+	if ((event.key === 'Enter' || event.key === ' ') && retryFailed(id, event)) {
+		event.preventDefault()
+		return
+	}
+	tiles.onKeydown(id, event)
+}
+
+/** Records whether a tile's small preview failed. */
+function markFailed(id: number, isFailed: boolean): void {
+	failed[isFailed ? 'add' : 'delete'](id)
+}
+
 /** Scrolls the grid by `step` within its ends; false when it is already at that end. */
 function scrollBy(step: number): boolean {
 	const next = Math.max(0, Math.min(layout.value.totalHeight - height.value, scrollTop.value + step))
@@ -102,15 +137,25 @@ function scrollBy(step: number): boolean {
 // The drag's pressed tile stays in the DOM: a touch's events keep going to the element it started on.
 const rendered = computed(() => renderedRows(layout.value, scrollTop.value, height.value, Math.ceil(height.value / (layout.value.tileWidth + GAP)), tiles.dragOrigin.value))
 
-watch(() => props.pictures, () => {
+watch(() => props.pictures, (next, previous) => {
+	if (isAppended(previous, next)) {
+		return
+	}
 	scroller.value!.scrollTop = 0
 	scrollTop.value = 0
 	focused.value = 0
 })
+watch(rendered, (rows) => {
+	const last = rows.findLast((row) => row.kind === 'tiles')
+	if (last?.kind === 'tiles') {
+		emit('shown', last.first + last.count - 1)
+	}
+})
 
 /** The name a group's header shows. */
 function groupName(group: number): string {
-	return folderLabel(groups.value[group]!.folder, props.folderSet)
+	const { folder } = groups.value[group]!
+	return props.folderSet === undefined ? folder : folderLabel(folder, props.folderSet)
 }
 
 /** The pictures of a tile row with their indexes. */
@@ -230,9 +275,11 @@ defineExpose({
 							:loads="loads"
 							:offscreen="row.offscreen"
 							v-bind="{ ...(props.imageUrl && { imageUrl: props.imageUrl }), ...series.tileProps(index, picture) }"
+							:retry="retries.get(imageMember(picture).fileId) ?? 0"
 							@focus="focused = index"
-							@click="tiles.onClick(imageMember(picture).fileId, $event)"
-							@keydown="tiles.onKeydown(imageMember(picture).fileId, $event)"
+							@click="onTileClick(imageMember(picture).fileId, $event)"
+							@keydown="onTileKeydown(imageMember(picture).fileId, $event)"
+							@imageFailed="markFailed(imageMember(picture).fileId, $event)"
 							@pointerdown="tiles.onPointerDown(imageMember(picture).fileId, $event)"
 							@info="toggleInfo"
 							@compareSeries="emit('compareSeries', props.seriesOf!.get(picture)!, picture)" />

@@ -4,7 +4,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { APP_SEAMS } from '../../src/app-seams.ts'
 import { fullscreenAvailable, toggleBrowserFullscreen } from '../../src/fullscreen.ts'
-import { formatDateTime, formatDateTimeSeconds, formatDuration, formatFileSize, formatTime } from '../../src/l10n.ts'
+import { formatCaptureDay, formatDateTime, formatDateTimeSeconds, formatDuration, formatFileSize, formatTime } from '../../src/l10n.ts'
 import { observeElementSize } from '../../src/observe-size.ts'
 
 afterEach(() => {
@@ -113,6 +113,10 @@ describe('formatFileSize, formatDuration, formatDateTime and formatTime', () => 
 	// spec: GRID-004.9
 	it('shows a capture time with its year and seconds for the tile info', () => {
 		expect(formatDateTimeSeconds(Date.UTC(2026, 10, 10, 12, 3, 47) / 1000)).toMatch(/2026.*:47\b/)
+	})
+
+	it('names a day for the Immich grid\'s day headers with its weekday and year', () => {
+		expect(formatCaptureDay(Date.UTC(2026, 10, 20, 12) / 1000)).toMatch(/Friday.*2026|2026.*Friday/)
 	})
 
 	it('shows a time of day with its seconds, which tell the shots of a burst apart', () => {

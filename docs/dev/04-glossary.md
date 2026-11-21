@@ -12,6 +12,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **RAW file** | A camera RAW file, recognised by its extension (configurable list). |
 | **embedded preview** | The JPEG a camera stores inside a RAW file; the loupe shows it, also at 100 %, for a RAW-only picture, and says so (LOUPE-001.28). |
 | **sidecar** | An `.xmp` file that holds metadata for a member; deleted together with its picture. |
+| **orphaned sidecar** | A sidecar with no photo or video in its own folder that it belongs to; the page *Orphaned sidecars* finds them and moves them to the trash bin after the user confirms (XMP-009). |
 | **XMP cache** | The values honeycomb derived from one sidecar or one JPEG's embedded XMP, kept per user and ETag so a folder visit reads only changed files; rebuilt at any time (ADR 0032). |
 | **waiting picture** | The one picture whose sidecar writes honeycomb holds until the user leaves it or 2 s pass idle; its grid tile and the loupe's title row show a ring, read as *Not saved yet* (ADR 0032). |
 | **base name** | The file name up to the last `.`, compared case-insensitively. |
@@ -85,7 +86,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **asset** | One picture or video in Immich, keyed by its asset id; a live photo is one asset, a stack shows but only the chosen asset goes (ADR 0041). |
 | **picture id** | What identifies a picture in the browser, `PictureId`: the Nextcloud file id as a number, the Immich asset id as a string (ADR 0041). |
 | **decision table** | The table that holds an Immich asset's whole decision, rating, colour label, flag and *Keep RAW*, per (connection, asset id); a `UserRowStore`, never a `FileRowStore` (ADR 0041, columns and endpoints in ADR 0043). |
-| **stub Immich** | The e2e stand-in for Immich, built from the pinned OpenAPI schema and started as a second Playwright web server; a real Immich is the owner's hand test only (ADR 0041). |
+| **stub Immich** | The e2e stand-in for Immich, built from the pinned OpenAPI schema and run inside the e2e Nextcloud container; a real Immich is the owner's hand test only (ADR 0041). |
 | **Write to Immich** | The explicit step (Phase 2) that sends picks, rejects and ratings of Immich assets to Immich after the `updatedAt` conflict check; a reject becomes the Immich trash bin by default (ADR 0041). |
 
 ## Words and conventions in the UI
