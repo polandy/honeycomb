@@ -7,9 +7,14 @@ import { WEBKIT } from './tests/e2e/webkit.ts'
 
 const BASE_URL = `http://localhost:${PORT}`
 const NEXTCLOUD_INSTALL_TIMEOUT_MS = 300_000
+// The device's own user agent names iOS 12, which Nextcloud redirects to its unsupported-browser page.
+const IPAD_USER_AGENT = 'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'
 // WebKit needs system libraries not every host has, so CI and opted-in hosts add its project.
 const WEBKIT_PROJECTS = process.env.HONEYCOMB_E2E_WEBKIT === '1'
-	? [{ name: 'webkit', dependencies: ['login'], grep: new RegExp(WEBKIT), use: { ...devices['Desktop Safari'], viewport: { width: 1440, height: 900 }, storageState: ADMIN_STATE } }]
+	? [
+			{ name: 'webkit', dependencies: ['login'], grep: new RegExp(WEBKIT), use: { ...devices['Desktop Safari'], viewport: { width: 1440, height: 900 }, storageState: ADMIN_STATE } },
+			{ name: 'webkit-ipad', dependencies: ['login'], grep: new RegExp(WEBKIT), use: { ...devices['iPad Pro 11 landscape'], userAgent: IPAD_USER_AGENT, storageState: ADMIN_STATE } },
+		]
 	: []
 
 export default defineConfig({
