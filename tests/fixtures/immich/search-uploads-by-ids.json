@@ -1,0 +1,47 @@
+{
+  "albums": {
+    "total": 0,
+    "count": 0,
+    "items": [],
+    "facets": []
+  },
+  "assets": {
+    "total": 1,
+    "count": 1,
+    "items": [
+      {
+        "id": "eb656c55-e5ff-4420-918c-cdb80e730b53",
+        "createdAt": "2026-11-21T20:33:35.629Z",
+        "ownerId": "ed98cecd-6220-4653-ad16-f2cf7198b97f",
+        "libraryId": null,
+        "type": "IMAGE",
+        "originalPath": "/data/upload/probe/live.png",
+        "originalFileName": "live.png",
+        "originalMimeType": "image/png",
+        "thumbhash": "lZIBBwBamU1/eIeDeIeImHeMgwmXtXgP",
+        "fileCreatedAt": "2026-01-01T00:00:00.000Z",
+        "fileModifiedAt": "2026-01-01T00:00:00.000Z",
+        "localDateTime": "2026-01-01T00:00:00.000Z",
+        "updatedAt": "2026-11-21T20:33:35.789Z",
+        "isFavorite": false,
+        "isArchived": false,
+        "isTrashed": false,
+        "visibility": "timeline",
+        "duration": null,
+        "livePhotoVideoId": null,
+        "people": [],
+        "checksum": "aD+RkNQkLCe/0H5nN3STd+eQ+HY=",
+        "isOffline": false,
+        "hasMetadata": true,
+        "duplicateId": null,
+        "resized": true,
+        "width": 8,
+        "height": 8,
+        "isEdited": false
+      }
+    ],
+    "facets": [],
+    "nextPage": null,
+    "nextCursor": null
+  }
+}
