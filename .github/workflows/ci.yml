@@ -209,20 +209,19 @@ jobs:
       - if: steps.modules.outputs.cache-hit != 'true'
         run: npm ci
       - run: npx vite build
+      - id: webkit
+        run: |
+          tests=$(npx playwright test --list --shard=${{ matrix.shard }})
+          if grep -q '\[webkit\]' <<< "$tests"; then echo "needed=true" >> "$GITHUB_OUTPUT"; fi
       # The runner user cannot write apt's archive directory, so the cache holds a copy of it.
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cache/ms-playwright
             ~/webkit-apt
-          key: playwright-${{ hashFiles('package-lock.json') }}
+          key: playwright-webkit-${{ steps.webkit.outputs.needed == 'true' }}-${{ hashFiles('package-lock.json') }}
       # The runner image already has Chrome's system libraries; apt mirrors answering 503 failed the job.
       - run: npx playwright install chromium
-      - id: webkit
-        run: |
-          if npx playwright test --list --shard=${{ matrix.shard }} | grep -q '\[webkit\]'; then
-            echo "needed=true" >> "$GITHUB_OUTPUT"
-          fi
       # WebKit's system libraries are not on the runner image; the slow apt mirror stalled the job at 20 minutes.
       - if: steps.webkit.outputs.needed == 'true'
         run: |

@@ -1742,4 +1742,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   user cannot write it.
 - 2026-11-21: An e2e shard installs WebKit only when `playwright test --list` puts a `webkit` test
   in it, and the job caches `node_modules` by the lockfile, running `npm ci` only on a miss; both
-  cut fixed setup time that sharding repeats on every runner.
+  cut fixed setup time that sharding repeats on every runner. The browser cache key says whether
+  the shard needs WebKit, so a shard without it never saves the cache a WebKit shard restores.
