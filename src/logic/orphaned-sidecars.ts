@@ -63,7 +63,7 @@ export function groupByFolder(sidecars: readonly OrphanedSidecar[]): OrphanedSid
 /** The report of a move from the sidecars sent and the answers received; one without an answer was not sent (XMP-009.12). */
 export function moveReport(sent: readonly OrphanedSidecar[], answers: readonly OrphanedSidecarAnswer[]): OrphanedSidecarReport {
 	const results = new Map(answers.map(({ fileId, result }) => [fileId, result]))
-	const skipped = sent.flatMap(({ fileId, path }) => {
+	const skipped = sent.flatMap(({ fileId, path }): { path: string, reason: OrphanedSidecarSkip }[] => {
 		const result = results.get(fileId) ?? 'notSent'
 		return result === 'trashed' ? [] : [{ path, reason: result }]
 	})

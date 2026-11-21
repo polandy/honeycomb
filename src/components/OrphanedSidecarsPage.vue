@@ -65,7 +65,7 @@ function choose(path: string) {
 					</NcButton>
 				</div>
 				<p v-if="run.status.value === 'scanning'">
-					{{ t('honeycomb', 'Looking for orphaned sidecars …') }}
+					{{ t('honeycomb', 'Looking for orphaned sidecars …') }}
 				</p>
 				<NcNoteCard v-if="run.problem.value === 'scan'" type="error">
 					{{ t('honeycomb', 'Could not look for orphaned sidecars. Try again.') }}

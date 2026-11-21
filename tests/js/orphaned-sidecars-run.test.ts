@@ -26,7 +26,7 @@ describe('useOrphanedSidecars', () => {
 		const fake = seams()
 		const run = useOrphanedSidecars(fake)
 
-		run.scan('/P')
+		void run.scan('/P')
 		await flushPromises()
 
 		expect(fake.scan.mock.calls).toEqual([['/P', ''], ['/P', '/']])
@@ -40,9 +40,9 @@ describe('useOrphanedSidecars', () => {
 		const fake = seams()
 		const run = useOrphanedSidecars(fake)
 
-		run.scan('/P')
+		void run.scan('/P')
 		await flushPromises()
-		run.scan('/P')
+		void run.scan('/P')
 		await flushPromises()
 		run.drop()
 		await flushPromises()
@@ -63,9 +63,9 @@ describe('useOrphanedSidecars', () => {
 		}))
 		const run = useOrphanedSidecars(fake)
 
-		run.scan('/P')
+		void run.scan('/P')
 		await flushPromises()
-		run.scan('/Q')
+		void run.scan('/Q')
 		second({ sidecars: [sidecar(9)], next: null })
 		await flushPromises()
 
@@ -77,7 +77,7 @@ describe('useOrphanedSidecars', () => {
 		const fake = seams([2])
 		fake.scan.mockImplementation(async () => ({ sidecars: Array.from({ length: ORPHANED_SIDECARS_TRASH_BATCH + 1 }, (_, index) => sidecar(index + 1)), next: null }))
 		const run = useOrphanedSidecars(fake)
-		run.scan('/P')
+		void run.scan('/P')
 		await flushPromises()
 
 		await run.move()
@@ -95,7 +95,7 @@ describe('useOrphanedSidecars', () => {
 		fake.trash.mockImplementationOnce(async (batch) => batch.map(({ fileId }) => ({ fileId, result: 'trashed' })))
 		fake.trash.mockRejectedValueOnce(new Error('offline'))
 		const run = useOrphanedSidecars(fake)
-		run.scan('/P')
+		void run.scan('/P')
 		await flushPromises()
 
 		await run.move()
@@ -112,7 +112,7 @@ describe('useOrphanedSidecars', () => {
 		fake.scan.mockRejectedValueOnce(new Error('offline'))
 		const run = useOrphanedSidecars(fake)
 
-		run.scan('/P')
+		void run.scan('/P')
 		await flushPromises()
 		await run.move()
 
