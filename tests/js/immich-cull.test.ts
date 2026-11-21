@@ -238,4 +238,26 @@ describe('useImmichCull', () => {
 		expect(toast.showError).toHaveBeenCalled()
 		expect(logger.error).toHaveBeenCalled()
 	})
+
+	// spec: IMMICH-003.19
+	it('keeps the decision and says so when the save of an undo fails', async () => {
+		vi.spyOn(logger, 'error').mockReturnValue()
+		const { cull, assets, counts, saves, toast } = cullOn()
+		cull.open('andy-phone')
+		assets[0]!.answer(page(['a1']))
+		counts[0]!.answer(COUNTS)
+		await flushPromises()
+		const [first] = cull.pictures.value
+		cull.decide({ kind: 'flag', flag: 'rejected' }, [first!])
+		saves[0]!.answer()
+
+		cull.undo()
+		saves[1]!.fail(new Error('database down'))
+		await flushPromises()
+
+		expect(cull.decisionOf(first!).flag).toBe('rejected')
+		expect(cull.counts.value!.flags.rejected).toBe(1)
+		expect(toast.showError).toHaveBeenCalled()
+	})
 })
+
