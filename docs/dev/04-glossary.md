@@ -12,6 +12,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **RAW file** | A camera RAW file, recognised by its extension (configurable list). |
 | **embedded preview** | The JPEG a camera stores inside a RAW file; the loupe shows it, also at 100 %, for a RAW-only picture, and says so (LOUPE-001.28). |
 | **sidecar** | An `.xmp` file that holds metadata for a member; deleted together with its picture. |
+| **orphaned sidecar** | A sidecar with no photo or video in its own folder that it belongs to; the page *Orphaned sidecars* finds them and moves them to the trash bin after the user confirms (XMP-009). |
 | **XMP cache** | The values honeycomb derived from one sidecar or one JPEG's embedded XMP, kept per user and ETag so a folder visit reads only changed files; rebuilt at any time (ADR 0032). |
 | **waiting picture** | The one picture whose sidecar writes honeycomb holds until the user leaves it or 2 s pass idle; its grid tile and the loupe's title row show a ring, read as *Not saved yet* (ADR 0032). |
 | **base name** | The file name up to the last `.`, compared case-insensitively. |

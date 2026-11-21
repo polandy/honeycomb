@@ -1744,7 +1744,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   repository's config rebased there. Under the root `tsconfig.json` the project service loaded the
   whole configured project (about 1,700 files) for every snippet path, and the first case took
   40 s inside the full Vitest run on a loaded host. Now it takes about 1.5 s. A tsconfig `exclude`
-  did not help, and a longer timeout was rejected (owner rule against flaky tests).
+  did not help, and a longer timeout was rejected (owner rule against flaky tests). The
+  120 s warm-up hook that main had added meanwhile (#333) is removed for the same reason.
 - 2026-11-21: CI splits the e2e specs per Nextcloud version into 3 Playwright shards (`--shard`),
   each a matrix job on its own runner with its own Nextcloud, so no shard sees another's state;
   the `gate` needs the `e2e` job and so every shard. `workers: 1` stays: one Nextcloud per
