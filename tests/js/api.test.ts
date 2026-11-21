@@ -76,7 +76,7 @@ describe('listEntries', () => {
 describe('listFolders', () => {
 	// spec: LISTING-003.1
 	it('lists the child folders of a folder', async () => {
-		const folders = [{ name: 'A', path: '/P/A', hasSubfolders: false, pictures: 0, picturesBelow: 0, picturesBelowApproximate: false }]
+		const folders = [{ name: 'A', path: '/P/A', hasSubfolders: false, pictures: 0, picturesBelow: 0, picturesBelowApproximate: false, orphanedSidecars: 0, orphanedSidecarsBelow: 0 }]
 		vi.mocked(axios.get).mockResolvedValue({ data: { folders } })
 
 		expect(await listFolders('/P')).toEqual(folders)

@@ -8,12 +8,12 @@ import FolderTree from '../../../src/components/FolderTree.vue'
 
 export const FOLDERS: Record<string, Folder[]> = {
 	'': [
-		{ name: 'Photos', path: '/Photos', hasSubfolders: true, pictures: 3, picturesBelow: 1203, picturesBelowApproximate: false },
-		{ name: '.hidden', path: '/.hidden', hasSubfolders: false, pictures: null, picturesBelow: null, picturesBelowApproximate: false },
-		{ name: 'Day 10', path: '/Day 10', hasSubfolders: false, pictures: 0, picturesBelow: 0, picturesBelowApproximate: false },
-		{ name: 'Day 9', path: '/Day 9', hasSubfolders: false, pictures: 1, picturesBelow: 1, picturesBelowApproximate: false },
+		{ name: 'Photos', path: '/Photos', hasSubfolders: true, pictures: 3, picturesBelow: 1203, picturesBelowApproximate: false, orphanedSidecars: 0, orphanedSidecarsBelow: 0 },
+		{ name: '.hidden', path: '/.hidden', hasSubfolders: false, pictures: null, picturesBelow: null, picturesBelowApproximate: false, orphanedSidecars: null, orphanedSidecarsBelow: null },
+		{ name: 'Day 10', path: '/Day 10', hasSubfolders: false, pictures: 0, picturesBelow: 0, picturesBelowApproximate: false, orphanedSidecars: 0, orphanedSidecarsBelow: 0 },
+		{ name: 'Day 9', path: '/Day 9', hasSubfolders: false, pictures: 1, picturesBelow: 1, picturesBelowApproximate: false, orphanedSidecars: 0, orphanedSidecarsBelow: 0 },
 	],
-	'/Photos': [{ name: '2026', path: '/Photos/2026', hasSubfolders: true, pictures: 0, picturesBelow: 0, picturesBelowApproximate: false }, { name: '2025', path: '/Photos/2025', hasSubfolders: false, pictures: 1200, picturesBelow: 1200, picturesBelowApproximate: false }],
+	'/Photos': [{ name: '2026', path: '/Photos/2026', hasSubfolders: true, pictures: 0, picturesBelow: 0, picturesBelowApproximate: false, orphanedSidecars: 0, orphanedSidecarsBelow: 0 }, { name: '2025', path: '/Photos/2025', hasSubfolders: false, pictures: 1200, picturesBelow: 1200, picturesBelowApproximate: false, orphanedSidecars: 0, orphanedSidecarsBelow: 0 }],
 	// The server saw a subfolder that is gone by the time the folder opens.
 	'/Photos/2026': [],
 }

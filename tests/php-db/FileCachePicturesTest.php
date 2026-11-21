@@ -18,7 +18,7 @@ use OCP\Files\Storage\IStorage;
 use OCP\IUserManager;
 use OCP\Server;
 
-/** The photo files below a folder, counted in Nextcloud's file cache of real users' files. */
+/** The pictures and orphaned sidecars below a folder, counted in Nextcloud's file cache of real users' files. */
 final class FileCachePicturesTest extends DbTestCase {
 	private const string USER = 'honeycomb-count';
 	private const string OTHER = 'honeycomb-count-other';
@@ -90,6 +90,28 @@ final class FileCachePicturesTest extends DbTestCase {
 
 		$this->assertSame(4, $this->counter()->count($this->folderAt($home, 'Photos'))?->pictures);
 		$this->assertSame(2, $this->counter()->count($this->folderAt($home, 'Photos/2024'))?->pictures);
+	}
+
+	// spec: LISTING-003.20
+	public function testCountsAPairOnceAndOnlyWithinOneFolder(): void {
+		$home = $this->files(self::USER, [
+			'Photos/a.jpg', 'Photos/A.CR2', 'Photos/b.jpg', 'Photos/b.cr3', 'Photos/b.CR3.xmp',
+			'Photos/2024/a.dng', 'Photos/2024/c.JPG', 'Photos/2024/c.heic', 'Photos/2024/.d.jpg', 'Photos/2024/.d.dng',
+		]);
+
+		$this->assertSame(5, $this->counter()->count($this->folderAt($home, 'Photos'))?->pictures);
+		$this->assertSame(3, $this->counter()->count($this->folderAt($home, 'Photos/2024'))?->pictures);
+	}
+
+	// spec: LISTING-003.23
+	public function testCountsTheOrphanedSidecarsFolderByFolder(): void {
+		$home = $this->files(self::USER, [
+			'Photos/a.jpg', 'Photos/a.jpg.xmp', 'Photos/b.xmp', 'Photos/clip.mp4', 'Photos/clip.mp4.xmp',
+			'Photos/2024/c.xmp', 'Photos/2024/a.xmp', 'Photos/2024/.h.xmp', 'Photos/.thumbs/z.xmp', 'Other/y.xmp',
+		]);
+
+		$this->assertSame(3, $this->counter()->count($this->folderAt($home, 'Photos'))?->orphans);
+		$this->assertSame(2, $this->counter()->count($this->folderAt($home, 'Photos/2024'))?->orphans);
 	}
 
 	// spec: LISTING-003.20

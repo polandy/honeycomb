@@ -14,15 +14,21 @@ The picker shows how many photos the set holds before it opens.
 
 **Folder endpoint.** `GET /apps/honeycomb/api/v1/folders?path=<folder>`, logged in, with the
 CSRF token, answers `{"folders": [...]}`: one item per direct child folder with `name`, `path`
-(from the user's files, leading `/`), `hasSubfolders`, `photoFiles` and `photoFilesBelow`.
+(from the user's files, leading `/`), `hasSubfolders`, `pictures`, `picturesBelow`,
+`orphanedSidecars` and `orphanedSidecarsBelow`.
 Hidden folders are included; files are not. `hasSubfolders` is false when the child holds no
-folder or may not be listed. `photoFiles` counts the child's own photo files, the types
-LISTING-001 lists without sidecars and hidden files, its subfolders left out; both come from one
-listing of the child. `photoFilesBelow` counts the same types in the child and in every folder
-below it, hidden folders left out and the storages mounted below it (shares, external storages)
-added, from Nextcloud's file cache in one query per storage, without walking the folders. Both
-counts are `null` for a hidden child or one that may not be listed; `photoFilesBelow` also when
-the file cache does not know the child or the database fails (logged). Errors as
+folder or may not be listed. `pictures` counts the child's own pictures, hidden files and its
+subfolders left out, from one listing of the child: a RAW and a rendered file of one base name in
+the same folder count once, any other photo file of the types LISTING-001 lists counts once each
+(pairing as LISTING-002 with its default extensions; the user's own pairing settings are not
+read, so the count can differ from the grid's). `orphanedSidecars` counts the child's own
+orphaned sidecars (XMP-009), also from that listing. `picturesBelow` and `orphanedSidecarsBelow`
+count the same in the child and in every folder below it, hidden folders left out and the
+storages mounted below it (shares, external storages) added, from the names in Nextcloud's file
+cache in one query per storage, without walking the folders; pairs and orphans are told per
+folder. `pictures` and `orphanedSidecars` are `null` for a hidden child or one that may not be
+listed; `picturesBelow` and `orphanedSidecarsBelow` also when the file cache does not know the
+child or the database fails (logged). Errors as
 LISTING-001: `404` for a foreign, vanished or file path, `403` for an unreadable folder, `401`
 without a user.
 
@@ -59,13 +65,15 @@ above the chosen one the same way. While *Include subfolders* is on, every shown
 ticked one that is not ticked itself shows a dashed tick and "included" after its name, read out
 as "included with <the nearest ticked folder above>"; it is not selected and a tap ticks it.
 Hidden folders, and the folders inside them, stay without it, since the listing skips them.
-Every folder with photo files shows their count last in its row, in the muted colour with digits
-of even width. A collapsed folder with subfolders counts the photo files in it and in all folders
-below it, read out as "*n* photo files with subfolders"; once expanded, and for a folder without
-subfolders, it counts only its own, read out as "*n* photo files" (as digiKam). A folder without
-any, a hidden one, one that cannot be listed and a collapsed one whose count below is unknown
-show none. The count comes with the folder, so the row never grows when it arrives. The move
-dialog's tree shows it too.
+Every folder with pictures shows their count last in its row, in the muted colour with digits
+of even width. A collapsed folder with subfolders counts the pictures in it and in all folders
+below it, read out as "*n* pictures with subfolders"; once expanded, and for a folder without
+subfolders, it counts only its own, read out as "*n* pictures". A folder without any, a hidden
+one, one that cannot be listed and a collapsed one whose count below is unknown show none. A
+folder with orphaned sidecars shows a small note before the count, "*n* orphaned sidecars" (the
+same scope as the count: below while collapsed, else its own), also when it has no pictures. The
+count and the note come with the folder, so the row never grows when they arrive and the note
+shortens with an ellipsis before the name does. The move dialog's tree shows them too.
 Confirming hands the folder set and its merged entries to the grid.
 
 | State | Picker shows |
@@ -216,25 +224,29 @@ starts from that folder set and *Cancel* returns to it.
   (LISTING-003.21); hidden and excluded folders and those inside them do not, and with the switch
   off none does
 
-### LISTING-003.19 – Photo files of each folder
+### LISTING-003.19 – Pictures of each folder
 
-- **Given** folders with and without photo files, hidden ones, and one that cannot be listed
+- **Given** folders with and without pictures, one with a RAW and a JPEG of one shot, hidden
+  ones, and one that cannot be listed
 - **When** the tree shows them expanded or without subfolders, in the picker or in the move
   dialog
-- **Then** each one with photo files shows the count of its own (subfolders, sidecars and hidden
-  files left out) last in its row, read out as "*n* photo files"; the others show none
+- **Then** each one with pictures shows the count of its own (a RAW and rendered pair once;
+  subfolders, sidecars and hidden files left out) last in its row, read out as "*n* pictures";
+  the others show none
 
-### LISTING-003.20 – Photo files below a collapsed folder
+### LISTING-003.20 – Pictures below a collapsed folder
 
-- **Given** a collapsed folder with subfolders, some hidden, and a storage mounted below it
+- **Given** a collapsed folder with subfolders, some hidden, a pair in one of them, a RAW and a
+  JPEG of one name in two different folders, and a storage mounted below it
 - **When** the tree shows it, in the picker or in the move dialog
-- **Then** its count adds the photo files of all folders below it and of the mounted storage,
-  hidden folders and files left out, read out as "*n* photo files with subfolders"; expanding it
-  shows its own count again, and a count the file cache cannot give shows none
+- **Then** its count adds the pictures of all folders below it and of the mounted storage,
+  pairs counted once and only within one folder, hidden folders and files left out, read out as
+  "*n* pictures with subfolders"; expanding it shows its own count again, and a count the file
+  cache cannot give shows none
 - **Given** a collapsed folder whose count may miss files: one with files not scanned yet (its
   file cache size is unknown, or a storage mounted below it is not scanned), or one on a team
   folder with advanced permissions
-- **Then** the count starts with "~" ("~123") and is read out as "about *n* photo files with
+- **Then** the count starts with "~" ("~123") and is read out as "about *n* pictures with
   subfolders"; a folder the file cache knows completely shows no "~"
 
 ### LISTING-003.21 – Exclude an included folder
@@ -255,6 +267,15 @@ starts from that folder set and *Cancel* returns to it.
   inside", and the tree opens down to them; unticking drops the exclusions no ticked folder holds;
   with the switch off no folder shows an exclusion or its badge
 
+### LISTING-003.23 – Orphaned sidecars of a folder
+
+- **Given** folders with sidecars that belong to no photo or video of their folder, one folder
+  with only such sidecars, one whose sidecars all belong to a photo, and a folder below with one
+- **When** the tree shows them, collapsed or expanded, in the picker or in the move dialog
+- **Then** each folder with orphaned sidecars shows "*n* orphaned sidecars" before its count (its
+  own while expanded or without subfolders, else those below it too), also without pictures,
+  read out as "*n* orphaned sidecars"; the others show no note
+
 ## Out of scope
 
 - The grid and its folder headers: GRID-001. The resume position: DECISIONS-002.
@@ -274,4 +295,5 @@ starts from that folder set and *Cancel* returns to it.
 | 2026-11-16 | .1/.19 the photo files of each folder in the tree (owner, after digiKam) |
 | 2026-11-16 | .1/.20 a collapsed folder counts its subfolders too (owner, digiKam) |
 | 2026-11-18 | .20 "~" and "about" where the count may be incomplete (owner, #244) |
+| 2026-11-21 | .19/.20 the tree counts pictures, a pair once; .23 a note for orphaned sidecars (owner, E9/U9, #187) |
 | 2026-11-17 | .18 a tap excludes an included folder, .21/.22 excluded folders (owner, #187) |
