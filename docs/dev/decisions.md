@@ -1811,6 +1811,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (`useCullHistory`, `undoEntry`), so `Ctrl+Z`/`Ctrl+Shift+Z` and the toast's *Undo* walk one
   chain in grid and loupe; the toast now shows at once, as in the Nextcloud cull, and a decision
   that changes nothing is neither a step nor a save (owner #187 M4, IMMICH-003.19, autonomous).
+- 2026-11-21: Measured against a real Immich 3.4.2 that a search by ids without `trashedAt` and
+  `visibility` filters answers trashed and archived assets, and a deleted one is absent; the
+  filter stays as built, and the answers are pinned as fixtures (IMMICH-003.12). Easy to redo.
 - 2026-11-21: A move's replace the trash bin would not keep no longer only refuses: the client
   names the files in the permanent replace warning and, on *Replace permanently*, sends the
   pictures again with `permanent` on those replaces, which the server then deletes for good;

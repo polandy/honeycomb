@@ -120,6 +120,10 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
 - **Then** neither shows; the deleted asset's row is deleted in the same request and the counts no
   longer hold it; the trashed or archived asset keeps its row, so restoring it in Immich brings
   its decision back
+- **Note** Measured against Immich 3.4.2: a search by ids without `trashedAt` and `visibility`
+  filters answers live, trashed and archived assets; an asset deleted for good is absent from it
+  (measured by hand, not recorded). The fixtures `search-held-by-ids.json` and
+  `search-uploads-by-ids.json` record the first three.
 
 ### IMMICH-003.13 – Keys and auto-advance
 

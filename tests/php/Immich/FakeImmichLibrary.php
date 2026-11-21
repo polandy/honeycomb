@@ -32,6 +32,7 @@ final class FakeImmichLibrary {
 			'height' => 3072,
 			'stack' => null,
 			'exifInfo' => ['model' => 'Pixel 9 Pro'],
+			'isTrashed' => isset($override['trashedAt']),
 		], ...$override];
 	}
 
