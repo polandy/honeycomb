@@ -19,6 +19,7 @@ final class EntryFactory {
 	private const CAPTURE_TIME = 'photos-original_date_time';
 	private const SIZE = 'photos-size';
 	private const IFD0 = 'photos-ifd0';
+	private const EXIF = 'photos-exif';
 
 	public function __construct(
 		private IFilesMetadataManager $metadataManager,
@@ -69,6 +70,7 @@ final class EntryFactory {
 			self::camera($ifd0),
 			$hash !== null && $hash->etag === $file->getEtag() ? $hash->hash : null,
 			$quality !== null && $quality->etag === $file->getEtag() ? $quality : null,
+			Exposure::fromExif($this->arrayOf($metadata, self::EXIF)),
 			$flag,
 		);
 	}

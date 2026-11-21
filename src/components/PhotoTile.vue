@@ -14,6 +14,7 @@ import { n, t } from '@nextcloud/l10n'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import AppIcon from './AppIcon.vue'
 import FlagMark from './FlagMark.vue'
+import ShakeHint from './ShakeHint.vue'
 import StarRating from './StarRating.vue'
 import { imageUrl as apiImageUrl } from '../api.ts'
 import { COLOUR_LABEL_SWATCHES, colourLabelName } from '../colour-labels.ts'
@@ -22,6 +23,7 @@ import { isDecided, UNDECIDED } from '../logic/decision.ts'
 import { GRID_TIERS, imageMember, loadPriority, sharpTier, smallSource, tierSource } from '../logic/image-tiers.ts'
 import { nameParts } from '../logic/name-bar.ts'
 import { pairBadge } from '../logic/pair-badge.ts'
+import { pictureShakeRisk } from '../logic/shake-risk.ts'
 import { tip } from '../tooltip.ts'
 
 const props = withDefaults(defineProps<{
@@ -113,7 +115,6 @@ const badge = computed(() => {
 })
 
 const FLAG_NAMES = { picked: () => t('honeycomb', 'Picked'), rejected: () => t('honeycomb', 'Rejected'), unflagged: () => null }
-
 /** The decision as the label reads it; an undecided field says nothing. */
 const decisionLabel = computed(() => {
 	const { rating, colourLabel, flag } = props.decision
@@ -160,6 +161,7 @@ const label = computed(() => [
 	...decisionLabel.value,
 	...(props.tags > 0 ? [n('honeycomb', '{count} tag', '{count} tags', props.tags, { count: formatNumber(props.tags) })] : []),
 	...(props.unsaved ? [t('honeycomb', 'Not saved yet')] : []),
+	...(pictureShakeRisk(props.picture) !== null ? [t('honeycomb', 'Shake risk')] : []),
 	...(props.readOnly ? [t('honeycomb', 'Read only')] : []),
 	...(failed.value ? [t('honeycomb', 'Preview failed to load')] : []),
 ].join(', '))
@@ -265,6 +267,7 @@ onBeforeUnmount(() => {
 				@click.stop="emit('compareSeries')">
 				{{ seriesBadge.text }}<AppIcon v-if="seriesBadge.icon !== null" :name="seriesBadge.icon" />
 			</button>
+			<ShakeHint v-if="pictureShakeRisk(props.picture) !== null" :selecting="props.selecting" />
 			<span v-if="props.selecting" class="photo-tile__check" aria-hidden="true"><AppIcon v-if="props.selected" name="check" /></span>
 			<span v-if="marked" class="photo-tile__marks">
 				<FlagMark v-if="isDecided(props.decision)" :flag="props.decision.flag" :class="`photo-tile__flag photo-tile__flag--${props.decision.flag}`" />

@@ -14,7 +14,6 @@ Add items with `/todo`.
 - [ ] Immich (M10, ADR 0041): PR 13 Phase 2: *Write to Immich* with the `updatedAt` conflict check, rejects as Immich trash bin by default, per-asset results, undo; Immich decisions enter the statistics (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 14 user docs: the connections file format and key scopes for the admin, an account without partner sharing in its timeline (ADR 0044), the guide for culling Immich uploads (2026-11-19)
 - [ ] Culling aids (M11, ADR 0046): the similarity page (SERIES-004) measures the sharpness of its series members too, once it shows series; the cull measures them since PR 2 (SERIES-006) (2026-11-20)
-- [ ] Culling aids (M11, ADR 0046): PR 5 the shake risk from EXIF: an amendment of ADR 0046 for the listing fields (exposure time, focal length, its full-frame value, aperture, ISO), `src/logic/shake-risk.ts`, the info panel rows, the tile icon and the filter bar group *Hints* as the mockup shows them (2026-11-20)
 
 ## Later
 

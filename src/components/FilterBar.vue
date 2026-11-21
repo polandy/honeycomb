@@ -34,7 +34,7 @@ const emit = defineEmits<{
 }>()
 
 /** The filter groups that select several chips by value. */
-type ChipGroup = 'colourLabels' | 'flags' | 'pairings' | 'keepRaw' | 'folders'
+type ChipGroup = 'colourLabels' | 'flags' | 'pairings' | 'keepRaw' | 'folders' | 'hints'
 
 const STARS = [0, 1, 2, 3, 4, 5]
 
@@ -79,6 +79,9 @@ const textGroups = computed(() => {
 		{ group: 'keepRaw', label: t('honeycomb', 'Keep RAW'), chips: [
 			{ value: 'marked', label: t('honeycomb', 'Marked') },
 			{ value: 'not-marked', label: t('honeycomb', 'Not marked') },
+		] },
+		{ group: 'hints', label: t('honeycomb', 'Hints'), chips: [
+			{ value: 'shake-risk', label: t('honeycomb', 'Shake risk') },
 		] },
 	]
 	if (props.folders.length > 1) {

@@ -24,6 +24,7 @@ function entry(fileId: number, path: string): ListingEntry {
 		flagUpdated: null,
 		visualHash: null,
 		quality: null,
+		exposure: null,
 	}
 }
 

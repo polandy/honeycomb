@@ -251,9 +251,9 @@ describe('PhotoTile shake risk', () => {
 	it('shows a quiet icon and names the hint in the label for a photo at risk only', () => {
 		const wrapper = mountTile(shaky)
 
-		expect(wrapper.find('.photo-tile__hint svg').exists()).toBe(true)
-		expect(wrapper.find('.photo-tile__hint').attributes('data-tip')).toBe(`${TRANSLATED_MARK}Shake risk`)
+		expect(wrapper.find('.shake-hint svg').exists()).toBe(true)
+		expect(wrapper.find('.shake-hint').attributes('data-tip')).toBe(`${TRANSLATED_MARK}Shake risk`)
 		expect(wrapper.attributes('aria-label')!.replaceAll(TRANSLATED_MARK, '')).toBe('IMG_0005, JPG only, Shake risk')
-		expect(mountTile(PAIR).find('.photo-tile__hint').exists()).toBe(false)
+		expect(mountTile(PAIR).find('.shake-hint').exists()).toBe(false)
 	})
 })

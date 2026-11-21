@@ -23,11 +23,12 @@ final class Entry implements \JsonSerializable {
 		private ?string $camera,
 		private ?string $visualHash,
 		private ?QualityValue $quality,
+		private ?Exposure $exposure,
 		private ?FileFlag $flag,
 	) {
 	}
 
-	/** @return array<string, int|string|bool|array{method: int, sharpness: float, focusTile: int}|null> */
+	/** @return array<string, int|string|bool|array{method: int, sharpness: float, focusTile: int}|array{exposureTime: ?float, focalLength: ?float, focalLength35: ?float, aperture: ?float, iso: ?int}|null> */
 	#[\Override]
 	public function jsonSerialize(): array {
 		return [
@@ -44,6 +45,7 @@ final class Entry implements \JsonSerializable {
 			'camera' => $this->camera,
 			'visualHash' => $this->visualHash,
 			'quality' => $this->quality?->listed(),
+			'exposure' => $this->exposure?->jsonSerialize(),
 			'flag' => $this->flag?->flag->value,
 			'keepRaw' => $this->flag?->keepRaw,
 			'flagUpdated' => $this->flag?->updatedAt,

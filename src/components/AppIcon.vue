@@ -34,6 +34,7 @@ const PATHS = {
 	move: 'M3 12h14M13 7l5 5-5 5M21 5v14',
 	select: 'M4 4h16v16H4zM8 12l3 3 5-6',
 	series: 'M3 7h11v11H3zM7 3h11v11',
+	shake: 'M2 12l3-5 3 10 3-10 3 10 3-10 3 5',
 	sharp: 'M12 2v5M12 17v5M2 12h5M17 12h5M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6',
 	tag: 'M3 12V4h8l10 10-8 8zM7.5 8h.01',
 	settings: 'M4 7h10M18 7h2M4 17h2M10 17h10M16 7m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0M8 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0',

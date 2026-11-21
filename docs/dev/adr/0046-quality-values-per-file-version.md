@@ -89,8 +89,8 @@ The options for the quality values were:
 ### Quality hints
 
 A hint is information, never a suggestion to reject. The shake risk from EXIF is amended below;
-clipping, measured later, gets a column of `honeycomb_quality` the same way. The look of the mark and the hints is the
-mockup [`mockup/quality/index.html`](../mockup/quality/index.html).
+clipping, measured later, gets a column of `honeycomb_quality` the same way. The look of the
+mark and the hints is the mockup [`mockup/quality/index.html`](../mockup/quality/index.html).
 
 ### Amendment 2026-11-21: the shake risk from EXIF
 

@@ -28,7 +28,7 @@ final class ListingServiceExposureTest extends TestCase {
 		return $this->entriesOf($service->list($this->user(), '/Photos', false))[0]['exposure'];
 	}
 
-	/** @return array<string, array{array<string, mixed>, mixed}> */
+	/** @return array<string, array{array<string, mixed>, array<string, float|int|null>|null}> */
 	public static function exifValues(): array {
 		$all = ['exposureTime' => 1 / 15, 'focalLength' => 200.0, 'focalLength35' => 300.0, 'aperture' => 5.6, 'iso' => 800];
 		return [
@@ -42,15 +42,20 @@ final class ListingServiceExposureTest extends TestCase {
 	}
 
 	// spec: LISTING-001.20
+	/**
+	 * @param array<string, mixed> $values
+	 * @param array<string, float|int|null>|null $expected
+	 */
 	#[DataProvider('exifValues')]
-	public function testAnEntryCarriesItsExposureFacts(array $values, mixed $expected): void {
+	public function testAnEntryCarriesItsExposureFacts(array $values, ?array $expected): void {
 		$exposure = $this->exposureOf($values);
 
 		if ($expected === null) {
 			$this->assertNull($exposure);
 			return;
 		}
-		$this->assertEqualsWithDelta($expected, $exposure, 0.0001);
+		$this->assertIsArray($exposure);
 		$this->assertSame(array_keys($expected), array_keys($exposure));
+		$this->assertEqualsWithDelta($expected, $exposure, 0.0001);
 	}
 }

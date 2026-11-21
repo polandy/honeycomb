@@ -1,6 +1,6 @@
 # SERIES-009 – The shake risk hint from EXIF
 
-- Status: accepted
+- Status: implemented
 - Area: series
 - Origin: owner decisions 2026-11-20 (culling aids, milestone M11); ADR 0046 amendment
   2026-11-21; mockup `docs/dev/mockup/quality/index.html`, scenes *Info panel*, *Hints on tiles*
@@ -67,12 +67,6 @@ rejects, and it is never written to a sidecar.
 - **When** the grid filters
 - **Then** only pictures at risk pass, combined with the other groups as GRID-002.5 says; the chip
   counts as one active filter group, and *Clear filters* releases it
-
-### SERIES-009.6 – Never written
-
-- **Given** a photo at risk
-- **When** the user flags, rates or tags it
-- **Then** nothing of the hint reaches its sidecar or any request
 
 ## Out of scope
 

@@ -1,9 +1,11 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ColourLabel, Decision, Flag } from './decision.ts'
+import type { SourceEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 import type { Tag } from './tag.ts'
 
+import { pictureShakeRisk } from './shake-risk.ts'
 import { hasEveryTag } from './tag.ts'
 
 /** How the rating filter compares a picture's stars with the chosen count (Q8). */
@@ -14,6 +16,9 @@ export type PairingKind = 'pair' | 'rendered-only' | 'raw-only'
 
 /** The chips of the Keep RAW group. */
 export type KeepRawChip = 'marked' | 'not-marked'
+
+/** The chips of the Hints group (SERIES-009.5). */
+export type HintChip = 'shake-risk'
 
 /** Why the filtered view is empty, for its empty state. */
 export type EmptyReason = 'no-pictures' | 'none-left' | 'no-match'
@@ -29,6 +34,8 @@ export interface Filters {
 	readonly folders: ReadonlySet<string>
 	/** A picture needs every one of them (TAGS-004). */
 	readonly tags: ReadonlySet<Tag>
+	/** A picture needs to show one of them (SERIES-009.5). */
+	readonly hints: ReadonlySet<HintChip>
 }
 
 /** The filter groups a decision alone answers: rating, colour label and flag. */
@@ -44,6 +51,7 @@ export const DEFAULT_FILTERS: Filters = {
 	keepRaw: new Set(),
 	folders: new Set(),
 	tags: new Set(),
+	hints: new Set(),
 }
 
 const NEXT_COMPARISON: Record<RatingComparison, RatingComparison> = { 'at-least': 'at-most', 'at-most': 'exactly', exactly: 'at-least' }
@@ -68,12 +76,13 @@ export function pairingKind(picture: Picture<unknown>): PairingKind {
 }
 
 /** Whether a picture with this decision and these tags passes every active filter group. */
-export function matchesFilters(picture: Picture<unknown>, decision: Decision, tags: readonly Tag[], filters: Filters): boolean {
+export function matchesFilters(picture: Picture<SourceEntry>, decision: Decision, tags: readonly Tag[], filters: Filters): boolean {
 	return matchesDecision(decision, filters)
 		&& chosen(filters.pairings, pairingKind(picture))
 		&& chosen(filters.keepRaw, decision.keepRaw ? 'marked' : 'not-marked')
 		&& chosen(filters.folders, picture.folder)
 		&& hasEveryTag(tags, filters.tags)
+		&& (filters.hints.size === 0 || (filters.hints.has('shake-risk') && pictureShakeRisk(picture) !== null))
 }
 
 /** Whether a decision passes the rating, colour label and flag filters. */
@@ -84,7 +93,7 @@ export function matchesDecision(decision: Decision, filters: DecisionFilters): b
 }
 
 /** The pictures that pass the filters, in their given order. */
-export function filterPictures<P extends Picture<unknown>>(pictures: readonly P[], decisionOf: (picture: P) => Decision, tagsOf: (picture: P) => readonly Tag[], filters: Filters): P[] {
+export function filterPictures<P extends Picture<SourceEntry>>(pictures: readonly P[], decisionOf: (picture: P) => Decision, tagsOf: (picture: P) => readonly Tag[], filters: Filters): P[] {
 	return pictures.filter((picture) => matchesFilters(picture, decisionOf(picture), tagsOf(picture), filters))
 }
 
@@ -95,7 +104,7 @@ export function progress<P>(pictures: readonly P[], decidedOf: (picture: P) => b
 
 /** How many filter groups have a choice, each chosen tag counting as one; the flag filter has one when it is not the default. */
 export function activeFilterCount(filters: Filters): number {
-	const sets = [filters.colourLabels, filters.pairings, filters.keepRaw, filters.folders]
+	const sets = [filters.colourLabels, filters.pairings, filters.keepRaw, filters.folders, filters.hints]
 	return Number(filters.rating !== null) + Number(!isDefaultFlags(filters.flags)) + sets.filter((chips) => chips.size > 0).length + filters.tags.size
 }
 
