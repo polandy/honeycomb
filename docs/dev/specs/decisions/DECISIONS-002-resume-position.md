@@ -162,6 +162,9 @@ continues on another, and *Recent* can list the last folder sets with their prog
   same picture; the address carries the folder set and the loupe's picture, and a closed cull
   leaves it empty; an address that names no valid folder set, or a folder set that cannot be
   listed, opens the app as usual
+- The address carries a format version (`v`, now 1); an address without a version or with another
+  one is ignored like a malformed one, never an error, so a later format change cannot break an
+  old link
 
 ### DECISIONS-002.18 – Reload folder
 
@@ -196,4 +199,5 @@ The progress of the open cull (GRID-002).
 | 2026-11-16 | A ticked folder inside another with subfolders is the same set (DECISIONS-002.15, ADR 0034) |
 | 2026-11-17 | Excluded folders in the folder set and its key (DECISIONS-002.16, ADR 0035) |
 | 2026-11-20 | A browser reload keeps folder and picture; *Reload folder* on the stale-state messages (DECISIONS-002.17, .18) |
+| 2026-11-21 | The address of a reload carries a format version; an unknown one is ignored (DECISIONS-002.17, #187 H7) |
 | 2026-11-21 | A listing that fails or does not answer within 30 s offers *Try again* (DECISIONS-002.19, E23/U7) |
