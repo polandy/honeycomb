@@ -88,10 +88,28 @@ The options for the quality values were:
 
 ### Quality hints
 
-A hint is information, never a suggestion to reject. The shake risk from EXIF needs new listing
-fields and gets its own amendment of this ADR with its pull request; clipping, measured later,
-gets a column of `honeycomb_quality` the same way. The look of the mark and the hints is the
+A hint is information, never a suggestion to reject. The shake risk from EXIF is amended below;
+clipping, measured later, gets a column of `honeycomb_quality` the same way. The look of the mark and the hints is the
 mockup [`mockup/quality/index.html`](../mockup/quality/index.html).
+
+### Amendment 2026-11-21: the shake risk from EXIF
+
+- **Listing field** (ADR 0009 shape): each entry carries `exposure`, `{"exposureTime": 0.0667,
+  "focalLength": 200.0, "focalLength35": 300.0, "aperture": 5.6, "iso": 800}`, or `null` when
+  Nextcloud's metadata holds none of the five. Each member is `null` where the metadata lacks it.
+  Times are seconds, lengths millimetres. The server reads them from `photos-exif`
+  (`ExposureTime`, `FocalLength`, `FocalLengthIn35mmFilm`, `FNumber`, `ISOSpeedRatings`), as
+  numbers or as the rationals (`"1/15"`) EXIF stores; it computes nothing and stores nothing new.
+- **The rule** is the pure module `src/logic/shake-risk.ts`: a photo is at risk when its exposure
+  time is longer than `1 / f` seconds, `f` being the full-frame focal length, else the focal
+  length as shot. The classic reciprocal rule, `k = 1`; the mockup says *slower than 1/300 s*. A
+  photo lacking the exposure time or both focal lengths has no hint. The rule ignores image
+  stabilisation, which EXIF does not report uniformly, so it errs towards a hint; that is why it
+  is a hint and no more.
+- **Which file:** the RAW member's value, else the JPEG's, as for the capture time.
+- **Shown** in the info panel (the rows *Exposure*, *Focal length* and *Hints*), as an icon at the
+  tile's bottom right, and as the filter group *Hints* with the chip *Shake risk*.
+- **Never** in a sidecar, never a reason for a flag, never sent to Immich.
 
 ## Consequences
 

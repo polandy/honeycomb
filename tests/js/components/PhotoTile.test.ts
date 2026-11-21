@@ -240,3 +240,20 @@ describe('PhotoTile', () => {
 		expect(wrapper.attributes('aria-label')!.replaceAll(MARK, '')).toBe('IMG_0001, JPG+CR3')
 	})
 })
+
+describe('PhotoTile shake risk', () => {
+	beforeEach(installMarkedCatalogue)
+	afterEach(uninstallMarkedCatalogue)
+
+	const shaky = pictureOf(listingEntry(5, '/A/IMG_0005.JPG', { exposure: { exposureTime: 1 / 15, focalLength: 200, focalLength35: 300, aperture: null, iso: null } }))
+
+	// spec: SERIES-009.4
+	it('shows a quiet icon and names the hint in the label for a photo at risk only', () => {
+		const wrapper = mountTile(shaky)
+
+		expect(wrapper.find('.photo-tile__hint svg').exists()).toBe(true)
+		expect(wrapper.find('.photo-tile__hint').attributes('data-tip')).toBe(`${TRANSLATED_MARK}Shake risk`)
+		expect(wrapper.attributes('aria-label')!.replaceAll(TRANSLATED_MARK, '')).toBe('IMG_0005, JPG only, Shake risk')
+		expect(mountTile(PAIR).find('.photo-tile__hint').exists()).toBe(false)
+	})
+})

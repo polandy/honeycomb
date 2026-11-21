@@ -29,6 +29,18 @@ describe('FilterBar', () => {
 	beforeEach(installMarkedCatalogue)
 	afterEach(uninstallMarkedCatalogue)
 
+	// spec: SERIES-009.5
+	it('has the group Hints whose chip switches the shake risk filter', async () => {
+		const wrapper = mountBar()
+		const group = wrapper.findAll('[role="group"]').find((found) => plain(found.attributes('aria-label')) === 'Hints')!
+
+		expect(group.findAll('button').map((button) => plain(button.text()))).toEqual(['Shake risk'])
+		expect(chip(wrapper, 'Shake risk').attributes('aria-pressed')).toBe('false')
+		await chip(wrapper, 'Shake risk').trigger('click')
+		expect(emitted(wrapper)).toEqual([{ ...DEFAULT_FILTERS, hints: new Set(['shake-risk']) }])
+		expect(chip(mountBar({ hints: new Set(['shake-risk']) }), 'Shake risk').attributes('aria-pressed')).toBe('true')
+	})
+
 	// spec: GRID-002.3
 	it('selects Any while no rating filter is active and disables the comparison', () => {
 		const wrapper = mountBar()

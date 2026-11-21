@@ -19,7 +19,8 @@ being the listed folder's. An entry has `fileId`, `path`
 (from the user's files, leading `/`), `size`, `mtime`, `etag`, `mime` and `captureTime`,
 `orientation`, `width`, `height` from Nextcloud's file metadata, each `null` where it has none,
 `visualHash`, the stored visual hash of the file's current version or `null` (SERIES-003),
-`quality`, the stored quality value of the file's current version or `null` (SERIES-006), and
+`quality`, the stored quality value of the file's current version or `null` (SERIES-006),
+`exposure`, the EXIF exposure facts or `null` (SERIES-009), and
 the file's `flag`, `keepRaw` and `flagUpdated` (Unix seconds) from
 `honeycomb_flags`, each `null` while the file has no row (DECISIONS-001.21).
 `folders` has one item per folder that holds an entry, `{"path": "/Photos", "permissions": 31}`
@@ -165,6 +166,18 @@ Withdrawn by ADR 0040 (M8 PR 3); a folder names its path and permissions only (.
 - **Then** each `folders` item has `path` and `permissions` only, and no share or versions lookup
   is made
 
+### LISTING-001.20 – Each entry carries its exposure facts
+
+- **Given** a file whose `photos-exif` metadata holds `ExposureTime` `1/15`, `FocalLength` `200/1`,
+  `FocalLengthIn35mmFilm` 300, `FNumber` `56/10` and `ISOSpeedRatings` 800, one holding the same
+  as numbers, one holding only some of them, one holding none or text that is no number, and one
+  without metadata
+- **When** they are listed
+- **Then** the first two have `exposure` `{exposureTime, focalLength, focalLength35, aperture,
+  iso}` of 0.0667 s, 200 mm, 300 mm, 5.6 and 800; the third has `null` for each missing member;
+  the last two have `exposure` `null`; a zero or negative number or a rational with denominator 0
+  reads as missing
+
 ## Out of scope
 
 - Grouping entries into pictures: LISTING-002.
@@ -188,3 +201,4 @@ Withdrawn by ADR 0040 (M8 PR 3); a folder names its path and permissions only (.
 | 2026-11-19 | M8 PR 3: folders carry `path` and `permissions` only (.12, .15, .17 removed; .19 implemented) |
 | 2026-11-19 | M8 PR 5: each entry carries its flag (.18 implemented) |
 | 2026-11-20 | `quality` on every entry; `visualHash` for every user of the file (SERIES-006, ADR 0046) |
+| 2026-11-21 | `exposure` on every entry (SERIES-009, ADR 0046) |

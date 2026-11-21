@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Decision } from '../../../src/logic/decision.ts'
+import type { SourceEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
 import type { Filters } from '../../../src/logic/picture-filter.ts'
 
@@ -20,6 +21,9 @@ import {
 } from '../../../src/logic/picture-filter.ts'
 import { listingEntry, pictureOf, picturesOf } from './listing-entries.ts'
 
+const SHAKY = { exposureTime: 1 / 15, focalLength: 200, focalLength35: 300, aperture: null, iso: null }
+const STEADY = { ...SHAKY, exposureTime: 1 / 1000 }
+
 const compareNames = new Intl.Collator('en', { numeric: true }).compare
 const pair = pictureOf(listingEntry(1, '/P/A.NEF'), listingEntry(2, '/P/A.JPG'))
 const jpegOnly = pictureOf(listingEntry(3, '/P/B.JPG'))
@@ -31,7 +35,7 @@ function filters(fields: Partial<Filters>): Filters {
 }
 
 /** Whether the untagged picture passes. */
-function matchesUntagged(picture: Picture<unknown>, chosen: Decision, active: Filters): boolean {
+function matchesUntagged(picture: Picture<SourceEntry>, chosen: Decision, active: Filters): boolean {
 	return matchesFilters(picture, chosen, [], active)
 }
 
@@ -159,6 +163,25 @@ describe('matchesFilters with tags', () => {
 	// spec: TAGS-004.1
 	it('combines with the other groups', () => {
 		expect(matchesFilters(pair, decision({ flag: 'rejected' }), ['Anna', 'Places/Italy'], chosen)).toBe(false)
+	})
+})
+
+describe('matchesFilters with hints', () => {
+	const shaky = pictureOf(listingEntry(5, '/P/D.JPG', { exposure: SHAKY }))
+	const steady = pictureOf(listingEntry(6, '/P/E.JPG', { exposure: STEADY }))
+	const unknown = pictureOf(listingEntry(7, '/P/F.JPG'))
+	const chosen = filters({ hints: new Set(['shake-risk']) })
+
+	// spec: SERIES-009.5
+	it('lets only pictures at risk pass while the chip is pressed', () => {
+		expect([shaky, steady, unknown].map((picture) => matchesFilters(picture, UNDECIDED, [], chosen))).toEqual([true, false, false])
+		expect([shaky, steady, unknown].map((picture) => matchesFilters(picture, UNDECIDED, [], DEFAULT_FILTERS))).toEqual([true, true, true])
+	})
+
+	// spec: SERIES-009.5
+	it('counts as one active filter group', () => {
+		expect(activeFilterCount(chosen)).toBe(1)
+		expect(emptyReason(chosen, 3)).toBe('no-match')
 	})
 })
 

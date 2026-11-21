@@ -103,6 +103,7 @@ final class ListingServiceTest extends TestCase {
 			'camera' => 'Canon EOS R5',
 			'visualHash' => null,
 			'quality' => null,
+			'exposure' => null,
 			'flag' => null,
 			'keepRaw' => null,
 			'flagUpdated' => null,
