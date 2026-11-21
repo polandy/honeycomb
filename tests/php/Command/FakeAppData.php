@@ -20,6 +20,9 @@ final class FakeAppData implements AppData {
 
 	#[\Override]
 	public function count(): array {
+		if ($this->failure !== null) {
+			throw $this->failure;
+		}
 		return $this->rows;
 	}
 

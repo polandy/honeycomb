@@ -91,4 +91,15 @@ final class CleanupTest extends TestCase {
 		$this->assertSame(5, $data->rows['honeycomb_flags']);
 		$this->assertStringNotContainsString('Removed', $tester->getDisplay());
 	}
+
+	// spec: DECISIONS-001.35
+	public function testDryRunNamesACountFailureAndFails(): void {
+		$data = $this->data();
+		$data->failure = new \RuntimeException('connection lost');
+		$tester = new CommandTester($this->command($data));
+
+		$this->assertSame(Command::FAILURE, $tester->execute(['--all' => true, '--dry-run' => true]));
+		$this->assertStringContainsString('Could not count the honeycomb tables: connection lost', $tester->getDisplay());
+		$this->assertStringNotContainsString('Dry run', $tester->getDisplay());
+	}
 }

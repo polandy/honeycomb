@@ -12,6 +12,7 @@ use OCA\Honeycomb\Db\FlagMapper;
 use OCA\Honeycomb\Service\FileFlag;
 use OCA\Honeycomb\Service\Flag;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\IDBConnection;
 
 /** Counting and emptying everything the app stores, and nothing of other apps. */
 final class AppDataMapperTest extends DbTestCase {
@@ -71,5 +72,32 @@ final class AppDataMapperTest extends DbTestCase {
 		$this->assertSame(0, $this->data->count()['honeycomb_flags']);
 		$this->assertSame(0, $this->remainingPreferences('honeycomb'));
 		$this->assertSame(1, $this->remainingPreferences(self::OTHER_APP));
+	}
+
+	// spec: DECISIONS-001.35
+	public function testAFailureHalfwayRollsEveryDeletionBack(): void {
+		(new FlagMapper($this->db))->save([new FileFlag(7, Flag::Picked, false, 100)]);
+		$this->preference('honeycomb');
+		$builders = 0;
+		$failing = $this->createMock(IQueryBuilder::class);
+		$failing->method('delete')->willReturnSelf();
+		$failing->method('executeStatement')->willThrowException(new \RuntimeException('connection lost'));
+		$connection = $this->createMock(IDBConnection::class);
+		$connection->method('getQueryBuilder')->willReturnCallback(function () use (&$builders, $failing): IQueryBuilder {
+			return ++$builders === 3 ? $failing : $this->db->getQueryBuilder();
+		});
+		$connection->method('beginTransaction')->willReturnCallback(fn () => $this->db->beginTransaction());
+		$connection->method('commit')->willReturnCallback(fn () => $this->db->commit());
+		$connection->method('rollBack')->willReturnCallback(fn () => $this->db->rollBack());
+
+		try {
+			(new AppDataMapper($connection))->empty();
+			$this->fail('The failure was swallowed.');
+		} catch (\RuntimeException $e) {
+			$this->assertSame('connection lost', $e->getMessage());
+		}
+
+		$this->assertSame(1, $this->data->count()['honeycomb_flags']);
+		$this->assertSame(1, $this->remainingPreferences('honeycomb'));
 	}
 }
