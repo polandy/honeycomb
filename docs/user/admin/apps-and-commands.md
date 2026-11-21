@@ -24,7 +24,8 @@ Versions count per folder: external storage never keeps versions, but honeycomb 
 sidecars there too. The trash bin size (`trashbin_size`) decides which files are too large
 for the trash bin; such a file is deleted for good only after the user confirms a warning, else its
 photo stays whole. Each file deleted for good leaves a warning in the Nextcloud log, *A file was
-deleted permanently*, with its file id and the user, never its path. Recommended apps for RAW
+deleted permanently* (or *A file was replaced permanently*, when a move replaced it), with its file
+id and the user, never its path. Recommended apps for RAW
 previews and faster first visits: [installing](installing.md#recommended-apps).
 
 ## occ commands
