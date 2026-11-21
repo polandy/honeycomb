@@ -11,6 +11,8 @@ use OCA\Honeycomb\Service\TrashBinGuard;
 use OCA\Honeycomb\Service\TrashResult;
 use OCP\Config\IUserConfig;
 use OCP\Files\File;
+use OCP\Files\FileInfo;
+use OCP\Files\Folder;
 use OCP\Files\Storage\IStorage;
 use OCP\IAppConfig;
 use OCP\IUser;
@@ -18,13 +20,16 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class TrashBinGuardTest extends TestCase {
-	/** A file of `$owner` of `$size` bytes on a storage that is each of `$storages`. */
-	private function file(int $size, array $storages = ['OCA\Files_Trashbin\Storage'], ?string $owner = 'bob'): File {
+	/** A file of `$owner` of `$size` bytes on a storage that is each of `$storages`, in a folder with `$free` bytes of quota left. */
+	private function file(int $size, array $storages = ['OCA\Files_Trashbin\Storage'], ?string $owner = 'bob', int|float $free = FileInfo::SPACE_UNLIMITED): File {
 		$storage = $this->createStub(IStorage::class);
 		$storage->method('instanceOfStorage')->willReturnCallback(static fn (string $class): bool => in_array($class, $storages, true));
 		$user = $this->createStub(IUser::class);
 		$user->method('getUID')->willReturn((string)$owner);
+		$parent = $this->createStub(Folder::class);
+		$parent->method('getFreeSpace')->willReturn($free);
 		$file = $this->createStub(File::class);
+		$file->method('getParent')->willReturn($parent);
 		$file->method('getSize')->willReturn($size);
 		$file->method('getStorage')->willReturn($storage);
 		$file->method('getOwner')->willReturn($owner === null ? null : $user);
@@ -71,6 +76,31 @@ final class TrashBinGuardTest extends TestCase {
 	#[DataProvider('sizeLimits')]
 	public function testRefusesAFileAtLeastAsLargeAsTheOwnersTrashBinSize(array $userSizes, string $serverSize, int $size, bool $kept): void {
 		$this->assertSame($kept ? null : TrashResult::TooLarge, $this->guard($userSizes, $serverSize)->refusal('alice', $this->file($size)));
+	}
+
+	/** @return array<string, array{int|float, bool}> */
+	public static function freeQuotas(): array {
+		return [
+			'less free space than the file' => [49, false],
+			'exactly the free space of the file' => [50, false],
+			'more free space than the file' => [51, true],
+			'no free space' => [0, false],
+			'an unlimited quota' => [FileInfo::SPACE_UNLIMITED, true],
+			'an unknown quota' => [FileInfo::SPACE_UNKNOWN, true],
+		];
+	}
+
+	// spec: DELETE-001.9
+	#[DataProvider('freeQuotas')]
+	public function testReadsAnUnsetTrashBinSizeAsTheFreeQuotaOfTheOwner(int|float $free, bool $kept): void {
+		$file = $this->file(50, free: $free);
+
+		$this->assertSame($kept ? null : TrashResult::TooLarge, $this->guard()->refusal('alice', $file));
+	}
+
+	// spec: DELETE-001.9
+	public function testAnExplicitSizeLimitIgnoresTheFreeQuota(): void {
+		$this->assertNull($this->guard(['bob' => '1000'])->refusal('alice', $this->file(50, free: 10)));
 	}
 
 	// spec: DELETE-001.9
