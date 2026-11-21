@@ -16,6 +16,10 @@ Nextcloud's own apps switch features on:
 | Versions (`files_versions`) | Undoing a sidecar write from the file's versions | Sidecars are written all the same; an earlier state cannot be restored from the Files app. |
 | Deleted files (`files_trashbin`) | Deleting, *Remove RAWs* and a move that replaces a file | Nothing is deleted or replaced: *The Nextcloud trash bin is off, so nothing was deleted.* |
 
+The PHP extension `sysvsem` locks a file's preview renders (IMAGES-001.18). Without it honeycomb
+renders without the lock, as Nextcloud itself does, and renders that run at the same time can
+leave broken tiles.
+
 Versions count per folder: external storage never keeps versions, but honeycomb writes its
 sidecars there too. The trash bin size (`trashbin_size`) decides which files are too large
 for the trash bin; such a file is deleted for good only after the user confirms a warning, else its
