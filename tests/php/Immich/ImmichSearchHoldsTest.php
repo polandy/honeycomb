@@ -17,7 +17,7 @@ final class ImmichSearchHoldsTest extends TestCase {
 	// spec: IMMICH-003.12
 	public function testTheFakeHoldsTheTrashedAndArchivedAssetsLikeImmich(): void {
 		$real = $this->items('search-held-by-ids.json');
-		$ids = array_column($real, 'id');
+		$ids = $this->ids($real);
 
 		$answered = $this->fakeAnswer((new ImmichSearchFilter())->heldByIds($ids), $real);
 
@@ -29,7 +29,7 @@ final class ImmichSearchHoldsTest extends TestCase {
 	public function testTheFakeListsOnlyTheVisibleUploadsLikeImmich(): void {
 		$real = $this->items('search-held-by-ids.json');
 
-		$answered = $this->fakeAnswer((new ImmichSearchFilter())->byIds(array_column($real, 'id')), $real);
+		$answered = $this->fakeAnswer((new ImmichSearchFilter())->byIds($this->ids($real)), $real);
 
 		$this->assertSame($this->flags($this->items('search-uploads-by-ids.json')), $this->flags($answered));
 		$this->assertCount(1, $answered);
@@ -56,12 +56,22 @@ final class ImmichSearchHoldsTest extends TestCase {
 
 	/**
 	 * @param list<array<string, mixed>> $items
+	 * @return non-empty-list<string>
+	 */
+	private function ids(array $items): array {
+		$ids = array_map(static fn (array $item): string => (string)$item['id'], $items);
+		assert($ids !== []);
+		return $ids;
+	}
+
+	/**
+	 * @param list<array<string, mixed>> $items
 	 * @return array<string, array{bool, string}>
 	 */
 	private function flags(array $items): array {
 		$flags = [];
 		foreach ($items as $item) {
-			$flags[(string)$item['id']] = [$item['isTrashed'] ?? false, $item['visibility']];
+			$flags[(string)$item['id']] = [($item['isTrashed'] ?? false) === true, (string)$item['visibility']];
 		}
 		return $flags;
 	}
@@ -69,6 +79,7 @@ final class ImmichSearchHoldsTest extends TestCase {
 	/** @return list<array<string, mixed>> */
 	private function items(string $name): array {
 		/** @psalm-suppress ForbiddenCode Reads a test fixture, not a user file. */
+		/** @var array{assets: array{items: list<array<string, mixed>>}} $answer */
 		$answer = json_decode((string)file_get_contents(self::FIXTURES . $name), true, 512, JSON_THROW_ON_ERROR);
 		return $answer['assets']['items'];
 	}
