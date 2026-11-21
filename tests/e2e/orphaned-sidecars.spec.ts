@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
+import { cullFolder, resetViewState } from './cull.ts'
 import { apiHeaders, createFolder, etagOf, JPEG, pickLabel, RAW, trashEntry, upload } from './files.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
@@ -9,13 +10,15 @@ const API = '/index.php/apps/honeycomb/api/v1'
 // spec: XMP-009.13, XMP-009.11, XMP-009.6
 test('opens from the navigation, lists the orphaned sidecars and moves them to the trash bin once confirmed', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
+	await resetViewState(page)
 	const folder = `Orphans ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
 	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
 	await upload(page, `${folder}/IMG_0001.xmp`, pickLabel(1))
 	await upload(page, `${folder}/IMG_0002.CR2.xmp`, pickLabel(1))
+	await cullFolder(page, folder)
 
-	await page.getByRole('link', { name: 'Orphaned sidecars' }).click()
+	await page.getByRole('navigation', { name: 'honeycomb navigation' }).getByRole('link', { name: 'Orphaned sidecars' }).click()
 	await expect(page).toHaveURL(/\/apps\/honeycomb\/orphaned-sidecars$/)
 	await page.getByRole('treeitem', { name: folder }).click()
 	await page.getByRole('button', { name: 'Find orphaned sidecars' }).click()
