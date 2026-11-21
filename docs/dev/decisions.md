@@ -1740,3 +1740,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-21: The e2e job caches the Playwright browsers and a copy of the WebKit `.deb` files in
   the home directory; caching apt's archive directory directly never restored, since the runner
   user cannot write it.
+- 2026-11-21: An e2e shard installs WebKit only when `playwright test --list` puts a `webkit` test
+  in it, and the job caches `node_modules` by the lockfile, running `npm ci` only on a miss; both
+  cut fixed setup time that sharding repeats on every runner.
