@@ -82,7 +82,7 @@ final class FileCachePicturesTest extends DbTestCase {
 	}
 
 	// spec: LISTING-003.20
-	public function testCountsThePhotoFilesOfAFolderAndAllItsSubfolders(): void {
+	public function testCountsThePicturesOfAFolderAndAllItsSubfolders(): void {
 		$home = $this->files(self::USER, [
 			'Photos/a.jpg', 'Photos/b.CR3', 'Photos/b.xmp', 'Photos/notes.txt', 'Photos/.c.jpg',
 			'Photos/.thumbnails/d.jpg', 'Photos/2024/.e.jpg', 'Photos/2024/e.jpg', 'Photos/2024/Trip/f.png', 'Other/g.jpg',
