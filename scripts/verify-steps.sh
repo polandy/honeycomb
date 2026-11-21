@@ -134,12 +134,11 @@ e2e_free_port() {
   return 1
 }
 
-# Exports a free port each for the e2e, the oldest-Nextcloud e2e and the upgrade run.
+# Exports a free port each for the e2e, and the oldest-Nextcloud e2e.
 e2e_ports_choose() {
   HONEYCOMB_E2E_PORT=$(e2e_free_port "$(e2e_port)") || return 1
   HONEYCOMB_E2E_OLDEST_PORT=$(e2e_free_port "$(e2e_oldest_port)" "$HONEYCOMB_E2E_PORT") || return 1
-  HONEYCOMB_UPGRADE_PORT=$(e2e_free_port "$(upgrade_port)" "$HONEYCOMB_E2E_PORT" "$HONEYCOMB_E2E_OLDEST_PORT") || return 1
-  export HONEYCOMB_E2E_PORT HONEYCOMB_E2E_OLDEST_PORT HONEYCOMB_UPGRADE_PORT
+  export HONEYCOMB_E2E_PORT HONEYCOMB_E2E_OLDEST_PORT
 }
 
 # Prints the total duration; the caller exits with $failed.

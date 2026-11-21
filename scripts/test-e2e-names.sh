@@ -18,15 +18,11 @@ check() {
 }
 
 check e2e-default-port 8180 "$(env -u HONEYCOMB_E2E_PORT bash -c "source scripts/e2e-names.sh; e2e_port")"
-check upgrade-default-port 8190 "$(env -u HONEYCOMB_UPGRADE_PORT bash -c "source scripts/e2e-names.sh; upgrade_port")"
 check e2e-port-from-env 8380 "$(HONEYCOMB_E2E_PORT=8380 e2e_port)"
 check e2e-oldest-default-port 9180 "$(env -u HONEYCOMB_E2E_PORT -u HONEYCOMB_E2E_OLDEST_PORT bash -c "source scripts/e2e-names.sh; e2e_oldest_port")"
 check e2e-oldest-port-follows-e2e-port 9380 "$(HONEYCOMB_E2E_PORT=8380 e2e_oldest_port)"
 check e2e-oldest-port-from-env 8381 "$(HONEYCOMB_E2E_PORT=8380 HONEYCOMB_E2E_OLDEST_PORT=8381 e2e_oldest_port)"
-check upgrade-port-from-env 8390 "$(HONEYCOMB_UPGRADE_PORT=8390 upgrade_port)"
 check e2e-names-differ no "$([ "$(e2e_container 8180)" = "$(e2e_container 8380)" ] && echo yes || echo no)"
-check upgrade-names-differ no "$([ "$(upgrade_container 8190)" = "$(upgrade_container 8390)" ] && echo yes || echo no)"
-check e2e-upgrade-names-differ no "$([ "$(e2e_container 8180)" = "$(upgrade_container 8180)" ] && echo yes || echo no)"
 
 # Stubs stand in for the network and Docker; docker only records its arguments.
 mkdir "$work/bin" "$work/cache"
@@ -62,7 +58,7 @@ own_pid=$(sed -n 's/^pid //p' "$work/docker-own.log")
 check labels-own-process 1 "$(grep -c -- "--label honeycomb.e2e.owner=$own_pid@$(uname -n)" "$work/docker-own.log")"
 
 # Every script that starts a Nextcloud container labels it with its owner.
-for script in e2e-server upgrade-test php-db-tests database; do
+for script in e2e-server php-db-tests database; do
   check "labels-every-run-$script" "$(grep -c 'docker run' "scripts/$script.sh")" \
     "$(grep -c -- '--label "$(e2e_owner_label)"' "scripts/$script.sh")"
 done

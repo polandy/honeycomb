@@ -70,14 +70,13 @@ dependencies — are in [`conventions.md`](conventions.md). This file adds the s
   (`backgroundjobs_mode` is `cron`, and no cron runs): a job in a page request, such as core's
   metadata scan, keeps the shared locks of the files it read until it ends, and a trash or move
   meanwhile finds them locked. Cases use `reducedMotion: 'reduce'` and wait on a visible
-  state. Each run starts its own container on `HONEYCOMB_E2E_PORT` (default 8180) and the upgrade test
-  on `HONEYCOMB_UPGRADE_PORT` (default 8190). `scripts/verify.sh` runs both e2e runs, the upgrade test
-  and the `phpunit db` tests at once; the oldest-Nextcloud run takes `HONEYCOMB_E2E_OLDEST_PORT`
-  (default the e2e port plus 1000); `scripts/verify.sh` moves each of the three to the next free
+  state. Each run starts its own container on `HONEYCOMB_E2E_PORT` (default 8180).
+  `scripts/verify.sh` runs both e2e runs and the `phpunit db` tests at once; the oldest-Nextcloud
+  run takes `HONEYCOMB_E2E_OLDEST_PORT` (default the e2e port plus 1000); `scripts/verify.sh` moves each of the two to the next free
   port when it is busy ([workflow §2.4](02-workflow.md#24-before-opening)). The port names the
   container (`scripts/e2e-names.sh`) and a non-default port the output folder
   `test-results-<port>/`, so parallel runs, e.g.
-  `HONEYCOMB_E2E_PORT=8380 HONEYCOMB_UPGRADE_PORT=8390 scripts/verify.sh` in a second worktree,
+  `HONEYCOMB_E2E_PORT=8380 scripts/verify.sh` in a second worktree,
   share nothing and never remove each other's container.
 - **WebKit smoke subset.** The iPad is the target device and every iPad browser is WebKit, so with
   `HONEYCOMB_E2E_WEBKIT=1` (set in CI, not in `scripts/verify.sh`: WebKit's system libraries are
