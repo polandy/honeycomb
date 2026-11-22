@@ -27,6 +27,7 @@ enum StatsMetric: string {
 	case SidecarsUpdated = 'sidecars_updated';
 	case SidecarsForeign = 'sidecars_foreign';
 	case SeriesDone = 'series_done';
+	case FoldersDone = 'folders_done';
 	case PicturesMoved = 'pictures_moved';
 	case ActiveSeconds = 'active_seconds';
 }

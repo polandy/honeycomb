@@ -30,6 +30,7 @@ paths. The day is the calendar day in the user's Nextcloud time zone, UTC withou
 | Sidecars updated | `sidecars_updated` | A sidecar save replaces an existing sidecar last changed before the start of the user's day |
 | Sidecars from digiKam or darktable | `sidecars_foreign` | A sidecar updated that holds data of digiKam or darktable: `darktable:xmp_version`, or a digiKam property honeycomb does not write |
 | Series done | `series_done` | A series write sets a stored open series to done or creates a series as done |
+| Folders done | `folders_done` | A *Mark done* request succeeds (FOLDERS-006); a reopen subtracts nothing |
 | Pictures moved | `pictures_moved` | A move reports every file of a picture as moved |
 | Active time | `active_seconds` | Seconds of the cull with an input at most 2 minutes earlier |
 

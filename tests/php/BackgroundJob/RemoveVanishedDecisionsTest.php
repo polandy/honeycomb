@@ -18,6 +18,7 @@ use OCA\Honeycomb\Service\EmptySeriesSweep;
 use OCA\Honeycomb\Service\FileFlag;
 use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\Flag;
+use OCA\Honeycomb\Service\FolderDone;
 use OCA\Honeycomb\Service\JobRuns;
 use OCA\Honeycomb\Service\QualityValue;
 use OCA\Honeycomb\Service\SeriesStatus;
@@ -172,6 +173,16 @@ final class RemoveVanishedDecisionsTest extends TestCase {
 		$this->runJob($job);
 
 		$this->assertSame([], $hashes->rows);
+	}
+
+	// spec: FOLDERS-006.12
+	public function testRemovesTheDoneStatusOfAFolderDeletedForGood(): void {
+		$done = new FakeFolderDoneStore();
+		$done->rows = [7 => new FolderDone(7, 'alice', 1, 3), 8 => new FolderDone(8, 'bob', 2, 4)];
+		$this->files->vanished = [7];
+		$job = new RemoveVanishedDecisions($this->createStub(ITimeFactory::class), new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore(), new FakeQualityStore(), new FakeFolderSummaryStore(), $done), $this->sweep(), $this->emptySeries(), $this->connectionSweep(), $this->createStub(LoggerInterface::class), $this->runs());
+		$this->runJob($job);
+		$this->assertSame([8], array_keys($done->rows));
 	}
 
 	// spec: SERIES-005.25
