@@ -96,7 +96,7 @@ written as `xmp:Rating` −1. A write of a rating, colour label or tag leaves th
    - *Clear picks/rejects* in the grid's ⋯ menu sets every rateable picture of the open folder
      set to *unflagged* without *Keep RAW*, as one undo step; the rows stay, so the old sidecar
      flags are not taken over again. The sidecars are not touched.
-   - `RemoveVanishedDecisions` removes the rows of files deleted for good, like the other file
+   - `SweepVanishedRows` removes the rows of files deleted for good, like the other file
      row tables.
    - `occ honeycomb:cleanup` and *Clean up orphaned data* in the settings, shown to admins only
      because it acts on every user's photos, remove the rows whose file id no longer exists or

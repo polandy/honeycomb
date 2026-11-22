@@ -10,7 +10,7 @@ import { logIn, occ } from './server.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
 const TRASHBIN = `/remote.php/dav/trashbin/${ADMIN.username}`
-const JOB = 'OCA\\Honeycomb\\BackgroundJob\\RemoveVanishedDecisions'
+const JOB = 'OCA\\Honeycomb\\BackgroundJob\\SweepVanishedRows'
 
 /** Sends `data` as JSON with the session's CSRF token. */
 async function send(page: Page, method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: string, data?: unknown) {

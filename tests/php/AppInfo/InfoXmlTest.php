@@ -9,7 +9,7 @@ namespace OCA\Honeycomb\Tests\AppInfo;
 
 use DOMDocument;
 use OCA\Honeycomb\AppInfo\Application;
-use OCA\Honeycomb\BackgroundJob\RemoveVanishedDecisions;
+use OCA\Honeycomb\BackgroundJob\SweepVanishedRows;
 use PHPUnit\Framework\TestCase;
 use SimpleXMLElement;
 
@@ -49,7 +49,7 @@ final class InfoXmlTest extends TestCase {
 
 	// spec: DECISIONS-001.11
 	public function testRegistersTheCleanUpJob(): void {
-		$this->assertSame(RemoveVanishedDecisions::class, (string)$this->info->{'background-jobs'}->job);
+		$this->assertSame(SweepVanishedRows::class, (string)$this->info->{'background-jobs'}->job);
 	}
 
 	public function testVersionMatchesPackageJson(): void {

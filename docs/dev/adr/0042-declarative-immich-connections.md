@@ -120,7 +120,7 @@ and a deployment. A connection taken out of the file disappears from the UI at o
 
 The decision table ([ADR 0043](0043-immich-decisions-per-connection-and-asset.md)) keeps a row
 per `(connection id, asset id)`. Rows of a connection that is no longer in the file are **kept
-until the daily sweep** of `RemoveVanishedDecisions` removes them, the same way the rows of files
+until the daily sweep** of `SweepVanishedRows` removes them, the same way the rows of files
 deleted for good go (ADR 0040). The sweep reads the connections file itself and **sweeps nothing
 when the file is missing or invalid**, so a broken deployment loses no decision. A connection
 re-added with the same `id` before the sweep keeps its rows; a new `id` starts empty. An admin who
