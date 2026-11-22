@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, listLibraryFolders, scanLibrary } from '../../src/api.ts'
+import { ApiResponseError, listLibraryFolders, markFolderDone, reopenFolder, scanLibrary } from '../../src/api.ts'
 import { row } from './logic/folder-fixtures.ts'
 
-vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
+vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({ generateUrl: (url: string) => `/index.php${url}` }))
 
 const ROW = row({ fileId: 7, root: '/Photos', path: '/Photos/2019' })
@@ -47,5 +47,33 @@ describe('scanLibrary', () => {
 	it('refuses an answer without its progress', async () => {
 		vi.mocked(axios.post).mockResolvedValue({ data: { scanning: null } })
 		await expect(scanLibrary('/Photos')).rejects.toThrow(ApiResponseError)
+	})
+})
+
+describe('markFolderDone', () => {
+	// spec: FOLDERS-008.1
+	it('marks the folder done as of its photos and answers the done status', async () => {
+		const done = { by: 'andy', at: 1_800_000_000, photos: 412 }
+		vi.mocked(axios.put).mockResolvedValue({ data: { fileId: 7, done } })
+
+		await expect(markFolderDone(7, 412)).resolves.toEqual(done)
+		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/folders/7/done', { photos: 412 })
+	})
+
+	it('refuses an answer without its done status', async () => {
+		for (const data of [null, { fileId: 7, done: null }, { fileId: 7, done: { by: 'andy', at: '1', photos: 412 } }]) {
+			vi.mocked(axios.put).mockResolvedValue({ data })
+			await expect(markFolderDone(7, 412)).rejects.toThrow(ApiResponseError)
+		}
+	})
+})
+
+describe('reopenFolder', () => {
+	// spec: FOLDERS-008.4
+	it('removes the done status of the folder', async () => {
+		vi.mocked(axios.delete).mockResolvedValue({ data: '' })
+
+		await expect(reopenFolder(7)).resolves.toBeUndefined()
+		expect(axios.delete).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/folders/7/done')
 	})
 })

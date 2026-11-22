@@ -7,6 +7,14 @@ import { readonly, ref, toRaw } from 'vue'
 /** How long a toast stays, as in the mockup. */
 export const TOAST_MS = 5200
 
+/** How far a touch must move sideways to swipe a toast away, as in the mockup. */
+export const SWIPE_PX = 60
+
+/** Whether a pointer that moved by (dx, dy) swiped the toast away: far enough and mostly sideways (APP-001.18). */
+export function dismissesToast(dx: number, dy: number): boolean {
+	return Math.abs(dx) >= SWIPE_PX && Math.abs(dx) > Math.abs(dy)
+}
+
 /** A toast's button: its label and what it does. */
 export interface ToastAction {
 	readonly label: string
@@ -20,6 +28,8 @@ export interface Toast {
 	readonly offer?: ToastAction
 	readonly details?: readonly string[]
 	readonly kind?: 'error'
+	/** How long it stays, when not TOAST_MS (APP-001.19). */
+	readonly duration?: number
 }
 
 /** A toast's message with the details its dialog lists (APP-001.14). */
@@ -68,13 +78,13 @@ export function useToast(schedule: Schedule) {
 	function start() {
 		stop()
 		if (!focused && !pressed && current.value?.kind !== 'error') {
-			cancel = schedule(hide, TOAST_MS)
+			cancel = schedule(hide, current.value?.duration ?? TOAST_MS)
 		}
 	}
 
-	/** Shows the message for TOAST_MS and returns a closer that hides it unless another toast replaced it. */
-	function show(message: string, action: ToastAction | null = null, offer?: ToastAction, details: readonly string[] = []): () => void {
-		const shown: Toast = { message, action, ...(offer === undefined ? {} : { offer }), ...(details.length === 0 ? {} : { details }) }
+	/** Shows the message for `duration` and returns a closer that hides it unless another toast replaced it. */
+	function show(message: string, action: ToastAction | null = null, offer?: ToastAction, details: readonly string[] = [], duration = TOAST_MS): () => void {
+		const shown: Toast = { message, action, ...(offer === undefined ? {} : { offer }), ...(details.length === 0 ? {} : { details }), ...(duration === TOAST_MS ? {} : { duration }) }
 		replace(shown)
 		return () => close(shown)
 	}

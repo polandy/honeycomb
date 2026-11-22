@@ -6,6 +6,7 @@ import type { LocationApi } from './cull-location.ts'
 import type { CullTagsApi } from './cull-tags.ts'
 import type { FlagApi } from './flags-api.ts'
 import type { ListEntries } from './folder-count.ts'
+import type { FolderDoneApi } from './folder-done.ts'
 import type { LibraryApi } from './folders.ts'
 import type { ImmichCullApi } from './immich-cull.ts'
 import type { ImmichApi } from './immich-source.ts'
@@ -23,7 +24,7 @@ import type { LookupSeries, SaveSeries } from './stored-series.ts'
 import type { ViewStateApi } from './view-state.ts'
 import type { HashImage, SaveVisualHashes } from './visual-hashes.ts'
 
-import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, cleanUpOrphanedData, imageUrl, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, listLibraryFolders, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, movePictures, probeTargets, resetStatistics, saveImmichDecisions, savePosition, saveQualityValues, saveSidecars, saveViewState, saveVisualHashes, scanLibrary } from './api.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, cleanUpOrphanedData, imageUrl, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, listLibraryFolders, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, markFolderDone, movePictures, probeTargets, reopenFolder, resetStatistics, saveImmichDecisions, savePosition, saveQualityValues, saveSidecars, saveViewState, saveVisualHashes, scanLibrary } from './api.ts'
 import { browserSchedule } from './browser-schedule.ts'
 import { browserLocation } from './cull-location.ts'
 import { saveFlags, takeOverFlags } from './flags-api.ts'
@@ -61,7 +62,7 @@ export interface AppSeams {
 	viewState?: ViewStateApi
 	positions?: ResumeApi
 	/** The library roots' folder list (FOLDERS-005). */
-	library?: LibraryApi
+	library?: LibraryApi & FolderDoneApi
 	/** The page address, which keeps the folder and the picture across a browser reload. */
 	location?: LocationApi
 	storage?: BrowserStorage
@@ -110,7 +111,7 @@ export const APP_SEAMS = {
 	saveSettings: apiSaveSettings,
 	viewState: () => ({ loadViewState, saveViewState }),
 	positions: () => ({ loadPositions, savePosition }),
-	library: () => ({ listLibraryFolders, scanLibrary }),
+	library: () => ({ listLibraryFolders, scanLibrary, markFolderDone, reopenFolder }),
 	location: () => browserLocation,
 	storage: () => window.localStorage,
 	schedule: browserSchedule,

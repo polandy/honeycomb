@@ -13,9 +13,23 @@ import DeleteStats from './DeleteStats.vue'
 import { formatDuration, formatFileSize, formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { pageUrl } from '../navigation-items.ts'
 
-const props = defineProps<{ numbers: SessionNumbers }>()
+const props = defineProps<{
+	numbers: SessionNumbers
+	/** Whether the cull's one folder may be marked done here (FOLDERS-008.8). */
+	markable?: boolean
+}>()
 
-const emit = defineEmits<{ close: [] }>()
+const emit = defineEmits<{
+	close: []
+	/** Mark the folder done; the card closes as by *Done*. */
+	markDone: []
+}>()
+
+/** Asks for the mark, then closes. */
+function markDone() {
+	emit('markDone')
+	emit('close')
+}
 
 /** Rounds pictures a minute to one decimal. */
 const RATE_STEPS = 10
@@ -51,7 +65,11 @@ const activeTime = computed(() => {
 </script>
 
 <template>
-	<ConfirmDialog :title="t('honeycomb', 'Cull finished')" :confirmLabel="t('honeycomb', 'Done')" @confirm="emit('close')">
+	<ConfirmDialog
+		:title="t('honeycomb', 'Cull finished')"
+		:confirmLabel="t('honeycomb', 'Done')"
+		:secondary="props.markable"
+		@confirm="emit('close')">
 		<p class="cull-finished__decided">
 			{{ decided }}
 		</p>
@@ -71,6 +89,9 @@ const activeTime = computed(() => {
 		<template #actions>
 			<NcButton variant="tertiary" :href="pageUrl('statistics')">
 				{{ t('honeycomb', 'Statistics') }}
+			</NcButton>
+			<NcButton v-if="props.markable" variant="primary" @click="markDone">
+				{{ t('honeycomb', 'Mark folder done') }}
 			</NcButton>
 		</template>
 	</ConfirmDialog>

@@ -1,55 +1,12 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { LibraryScanning } from '../../src/api.ts'
-import type { FolderList } from '../../src/folders.ts'
-import type { FolderRow } from '../../src/logic/folder-row.ts'
-
-import { flushPromises, mount } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { nextTick, ref, shallowRef } from 'vue'
-import FoldersScreen from '../../src/components/FoldersScreen.vue'
-import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from './l10n/marked-catalogue.ts'
-import { doneRow, row } from './logic/folder-fixtures.ts'
-
-/** A plural form is marked twice: the library translates the chosen form again. */
-const MARK = TRANSLATED_MARK
-/** Noon UTC on 20 November 2026, in Unix seconds. */
-const NOW = Date.UTC(2026, 10, 20, 12) / 1000
-
-const OPEN = row({ fileId: 1, path: '/Photos/2019/Trip', undecided: 63, picked: 30, rejected: 7, bursts: 18, oldest: Date.UTC(2019, 3, 1) / 1000 })
-const COMPLETE = row({ fileId: 2, path: '/Photos/Done soon', undecided: 0, picked: 80 })
-const DONE = doneRow({ fileId: 3, path: '/Photos/Old', photos: 104, bytes: 6e8 }, 100)
-const READ_ONLY = row({ fileId: 4, path: '/Photos/Shared copy', permissions: 1 })
-const PHONE = row({ fileId: 5, root: '/Phone', path: '/Phone/Camera' })
-
-function fakeList(rows: readonly FolderRow[], state: FolderList['state']['value'] = 'ready', updating: LibraryScanning | null = null) {
-	return { rows: shallowRef(rows), state: ref(state), updating: ref(updating), shown: ref(true), refresh: vi.fn(async () => undefined) } satisfies FolderList
-}
-
-function mountScreen(list: FolderList, roots: readonly string[] = ['/Photos']) {
-	return mount(FoldersScreen, { props: { folders: list, roots, now: () => NOW }, attachTo: document.body })
-}
-
-type Screen = ReturnType<typeof mountScreen>
-
-/** The folder names of the rows, in order. */
-function names(wrapper: Screen): string[] {
-	return wrapper.findAll('.folder-row__name').map((each) => each.text())
-}
-
-function row_(wrapper: Screen, name: string) {
-	return wrapper.findAll('.folder-row').find((each) => each.find('.folder-row__name').text() === name)!
-}
-
-function chip(wrapper: Screen, group: string, label: string) {
-	return wrapper.find(`[role="group"][aria-label="${MARK}${group}"]`).findAll('button').find((each) => each.text().startsWith(label) || each.text().startsWith(`${MARK}${label}`))!
-}
-
-/** The open dialog's buttons by their text. */
-function dialogButton(label: string): HTMLButtonElement | undefined {
-	return [...document.body.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')].find((each) => each.textContent?.trim() === `${MARK}${label}`)
-}
+import { flushPromises } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { nextTick } from 'vue'
+import { chip, COMPLETE, dialogButton, DONE, fakeList, MARK, mountScreen, names, OPEN, PHONE, READ_ONLY, row_ } from './folders-screen-fixture.ts'
+import { installMarkedCatalogue, uninstallMarkedCatalogue, untranslatedText } from './l10n/marked-catalogue.ts'
+import { row } from './logic/folder-fixtures.ts'
 
 describe('FoldersScreen', () => {
 	beforeEach(installMarkedCatalogue)

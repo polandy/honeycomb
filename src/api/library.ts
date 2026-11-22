@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { FolderRow } from '../logic/folder-row.ts'
+import type { FolderDone, FolderRow } from '../logic/folder-row.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -41,6 +41,20 @@ export async function scanLibrary(root: string): Promise<LibraryScanning> {
 	return data.scanning
 }
 
+/** Marks the folder done by the user as of `photos` photos and answers the stored status (FOLDERS-006.1). */
+export async function markFolderDone(fileId: number, photos: number): Promise<FolderDone> {
+	const { data } = await axios.put<unknown>(generateUrl(`${API}/library/folders/${fileId}/done`), { photos })
+	if (!isRecord(data) || !isFolderDone(data.done)) {
+		throw new ApiResponseError('The done status came without its user, time and photos; check the server\'s version.')
+	}
+	return data.done
+}
+
+/** Removes the folder's done status (FOLDERS-006.3). */
+export async function reopenFolder(fileId: number): Promise<void> {
+	await axios.delete(generateUrl(`${API}/library/folders/${fileId}/done`))
+}
+
 /** Whether a value is a scan's progress. */
 function isScanning(value: unknown): value is LibraryScanning {
 	return isRecord(value) && typeof value.done === 'number' && typeof value.total === 'number'
@@ -52,5 +66,10 @@ function isFolderRow(value: unknown): value is FolderRow {
 		&& ROW_NUMBERS.every((key) => typeof value[key] === 'number')
 		&& ROW_TIMES.every((key) => value[key] === null || typeof value[key] === 'number')
 		&& typeof value.root === 'string' && typeof value.path === 'string'
-		&& (value.done === null || (isRecord(value.done) && typeof value.done.by === 'string' && typeof value.done.at === 'number' && typeof value.done.photos === 'number'))
+		&& (value.done === null || isFolderDone(value.done))
+}
+
+/** Whether a value is a folder's done status. */
+function isFolderDone(value: unknown): value is FolderDone {
+	return isRecord(value) && typeof value.by === 'string' && typeof value.at === 'number' && typeof value.photos === 'number'
 }

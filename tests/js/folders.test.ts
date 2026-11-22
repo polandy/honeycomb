@@ -79,6 +79,19 @@ describe('useFolders', () => {
 		expect(folders.updating.value).toBeNull()
 	})
 
+	// spec: FOLDERS-008.1, FOLDERS-008.3
+	it('shows a folder\'s new done status in its row alone', async () => {
+		const { api } = fakeLibrary({ '/Photos': { 0: page([A, B]) } })
+		const { folders } = mountFolders(api)
+		await flushPromises()
+		const done = { by: 'andy', at: 9, photos: 100 }
+
+		folders.setDone(B.fileId, done)
+		expect(folders.rows.value).toEqual([A, { ...B, done }])
+		folders.setDone(B.fileId, null)
+		expect(folders.rows.value).toEqual([A, { ...B, done: null }])
+	})
+
 	// spec: FOLDERS-007.5
 	it('reads the list again when the roots change', async () => {
 		const { api, calls } = fakeLibrary({ '/Photos': { 0: page([A]) }, '/Phone': { 0: page([C]) } })
