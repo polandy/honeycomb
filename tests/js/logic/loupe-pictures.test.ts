@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { firstAfter, landingTarget, narrowSnapshot, snapshotIndex } from '../../../src/logic/loupe-pictures.ts'
+import { firstAfter, keptIndex, landingTarget, narrowSnapshot, snapshotIndex } from '../../../src/logic/loupe-pictures.ts'
 
 const SNAPSHOT = ['a', 'b', 'c', 'd']
 
@@ -59,5 +59,15 @@ describe('landingTarget', () => {
 		expect(landingTarget(SNAPSHOT, SNAPSHOT, { kind: 'on', picture: 'b' })).toBe('b')
 		expect(landingTarget(SNAPSHOT, ['a', 'b', 'd'], { kind: 'after', series: { members: ['b', 'c'] }, picked: 'b' })).toBe('d')
 		expect(landingTarget(SNAPSHOT, SNAPSHOT, { kind: 'after', series: { members: ['c', 'd'] }, picked: 'c' })).toBe('c')
+	})
+})
+
+describe('keptIndex', () => {
+	// spec: IMMICH-002.28
+	it('finds the picture where it is now, or the next one still there, or the last one', () => {
+		expect(keptIndex(['a', 'b', 'c'], ['a', 'c'], 2)).toBe(1)
+		expect(keptIndex(['a', 'b', 'c'], ['a', 'c'], 1)).toBe(1)
+		expect(keptIndex(['a', 'b', 'c'], ['a'], 1)).toBe(0)
+		expect(keptIndex(['a'], [], 0)).toBe(-1)
 	})
 })
