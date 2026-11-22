@@ -112,6 +112,8 @@ jobs:
           key: composer-${{ matrix.php }}-${{ hashFiles('composer.lock') }}
           restore-keys: composer-${{ matrix.php }}-
       - run: composer install --no-interaction --no-progress
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
       - if: matrix.php == '8.3'
         run: vendor/bin/php-cs-fixer fix --dry-run --diff
       - run: vendor/bin/psalm --no-cache --threads=1 --no-progress
@@ -136,7 +138,16 @@ jobs:
           php-version: '8.5'
           coverage: none
           tools: none
+      - id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-8.5-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-8.5-
       - run: composer install --no-interaction --no-progress
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ github.token }}"}}'
       - run: scripts/php-db-tests.sh
         env:
           HONEYCOMB_DB: ${{ matrix.db }}
