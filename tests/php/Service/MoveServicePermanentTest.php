@@ -30,7 +30,7 @@ final class MoveServicePermanentTest extends TestCase {
 		$logger->method('warning')->willReturnCallback(function (string|\Stringable $message, array $context = []): void {
 			$this->warnings[] = [(string)$message, $context];
 		});
-		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore(), new FakeQualityStore()), $logger, $this->stats(), $this->treeTrashBin('800'));
+		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore(), new FakeQualityStore(), new FakeFolderSummaryStore(), new FakeFolderDoneStore()), $logger, $this->stats(), $this->treeTrashBin('800'));
 	}
 
 	/** @return array{fileId: int, etag: string, path: string, replace: array{fileId: int, etag: string, permanent: bool}} */
