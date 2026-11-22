@@ -171,3 +171,20 @@ describe('name template', () => {
 		expect(parseSettings({ moveTemplate: '{date:%Y}/{name}.{ext}' }).moveTemplate).toBe('{date:%Y}/{name}.{ext}')
 	})
 })
+
+describe('libraryRoots', () => {
+	// spec: SETTINGS-001.29
+	it('defaults to none, also for anything but a list', () => {
+		expect(DEFAULT_SETTINGS.libraryRoots).toEqual([])
+		for (const value of [undefined, null, 'Photos', { 0: '/a' }, 7]) {
+			expect(parseSettings({ libraryRoots: value }).libraryRoots).toEqual([])
+		}
+		expect(parseSettings(null).libraryRoots).toEqual([])
+	})
+
+	// spec: SETTINGS-001.29
+	it('reads valid roots in order, normalised, and drops repeated, nested, empty and non-string ones', () => {
+		const stored = ['Photos', '/Photos/2019', '/Archive/', '/Photos', '', 4, '/Archive/old', '/Docs']
+		expect(parseSettings({ libraryRoots: stored }).libraryRoots).toEqual(['/Photos', '/Archive', '/Docs'])
+	})
+})
