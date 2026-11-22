@@ -11,6 +11,7 @@ use OCA\Honeycomb\Immich\AssetDecision;
 use OCA\Honeycomb\Immich\AssetKind;
 use OCA\Honeycomb\Listener\ForgetDeletedUser;
 use OCA\Honeycomb\Service\FileFlag;
+use OCA\Honeycomb\Service\FolderDone;
 use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\FolderSet;
 use OCA\Honeycomb\Service\QualityValue;
@@ -21,6 +22,7 @@ use OCA\Honeycomb\Service\VisualHash;
 use OCA\Honeycomb\Service\XmpCacheRow;
 use OCA\Honeycomb\Tests\Immich\FakeImmichDecisionStore;
 use OCA\Honeycomb\Tests\Service\FakeFlagStore;
+use OCA\Honeycomb\Tests\Service\FakeFolderDoneStore;
 use OCA\Honeycomb\Tests\Service\FakePositionStore;
 use OCA\Honeycomb\Tests\Service\FakeQualityStore;
 use OCA\Honeycomb\Tests\Service\FakeSeriesStore;
@@ -44,6 +46,7 @@ final class ForgetDeletedUserTest extends TestCase {
 	private FakeXmpCacheStore $xmpCache;
 	private FakeStatsStore $stats;
 	private FakeImmichDecisionStore $immich;
+	private FakeFolderDoneStore $done;
 
 	#[\Override]
 	protected function setUp(): void {
@@ -59,6 +62,9 @@ final class ForgetDeletedUserTest extends TestCase {
 		$this->xmpCache = new FakeXmpCacheStore();
 		$this->stats = new FakeStatsStore();
 		$this->immich = new FakeImmichDecisionStore();
+		$this->done = new FakeFolderDoneStore();
+		$this->done->put(new FolderDone(11, 'alice', 100, 5));
+		$this->done->put(new FolderDone(12, 'bob', 100, 5));
 		foreach (['alice', 'bob'] as $userId) {
 			$this->tags->addToTagList($userId, ['Anna']);
 			$this->series->add($userId, SeriesStatus::Open, 7, 8);
@@ -70,7 +76,7 @@ final class ForgetDeletedUserTest extends TestCase {
 	}
 
 	private function registry(): UserRowStores {
-		return new UserRowStores($this->series, $this->xmpCache, $this->tags, $this->positions, $this->stats, $this->immich);
+		return new UserRowStores($this->series, $this->xmpCache, $this->tags, $this->positions, $this->stats, $this->immich, $this->done);
 	}
 
 	private function deleted(string $userId): UserDeletedEvent {
@@ -79,7 +85,7 @@ final class ForgetDeletedUserTest extends TestCase {
 		return new UserDeletedEvent($user);
 	}
 
-	// spec: DECISIONS-001.33, DECISIONS-002.13, TAGS-001.12, SERIES-003.29, SERIES-005.25, SERIES-006.14, XMP-006.8, STATS-001.28, IMMICH-003.9
+	// spec: DECISIONS-001.33, DECISIONS-002.13, TAGS-001.12, SERIES-003.29, SERIES-005.25, SERIES-006.14, XMP-006.8, STATS-001.28, IMMICH-003.9, FOLDERS-006.13
 	public function testForgetsTheRowsOfTheDeletedUserOnlyAndLeavesTheFlags(): void {
 		(new ForgetDeletedUser($this->registry()))->handle($this->deleted('alice'));
 
@@ -96,6 +102,7 @@ final class ForgetDeletedUserTest extends TestCase {
 		$this->assertSame(['bob'], array_keys($this->stats->rows));
 		$this->assertSame(['bob'], array_values(array_unique(array_column($this->series->series, 'userId'))));
 		$this->assertSame(['bob'], array_column($this->immich->rows, 'user'));
+		$this->assertSame([12], array_keys($this->done->rows));
 	}
 
 	public function testIgnoresAnotherEvent(): void {
