@@ -70,7 +70,10 @@ dependencies — are in [`conventions.md`](conventions.md). This file adds the s
   (`backgroundjobs_mode` is `cron`, and no cron runs): a job in a page request, such as core's
   metadata scan, keeps the shared locks of the files it read until it ends, and a trash or move
   meanwhile finds them locked. Cases use `reducedMotion: 'reduce'` and wait on a visible
-  state. Each run starts its own container on `HONEYCOMB_E2E_PORT` (default 8180).
+  state. A case that runs `occ` with its page still open, such as `user:delete` in an
+  `afterEach`, first awaits the drain of `trackRequests` (`tests/e2e/server.ts`): a request the
+  page still has running, such as a preview render, holds SQLite's write lock, and `occ` fails
+  with `database is locked`. Each run starts its own container on `HONEYCOMB_E2E_PORT` (default 8180).
   `scripts/verify.sh` runs both e2e runs and the `phpunit db` tests at once; the oldest-Nextcloud
   run takes `HONEYCOMB_E2E_OLDEST_PORT` (default the e2e port plus 1000); `scripts/verify.sh`
   moves each of the two to the next free port when it is busy
