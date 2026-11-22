@@ -1857,3 +1857,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   connection starts on *Folders* (IMMICH-001.21 to .24, FOLDERS-007.1).
 - 2026-11-22: App.vue loads its unscoped styles through one `app-global.css` that imports them,
   to stay within 300 lines after the merge.
+- 2026-11-22: A deleted user's done statuses are removed, so those folders are open again for
+  the others; the status is a user's statement, and anonymising it would need a schema change
+  (FOLDERS-006.13).

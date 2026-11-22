@@ -46,6 +46,17 @@ final class FolderDoneMapperTest extends DbTestCase {
 		$this->assertEquals([20 => new FolderDone(20, 'bob', 1_750_000_000, 412)], $this->done->find([7, 20]));
 	}
 
+	// spec: FOLDERS-006.13
+	public function testForgetsTheStatusesOfOneUserOnly(): void {
+		$this->insert(new FolderDone(7, 'alice', 1, 1));
+		$this->insert(new FolderDone(8, 'bob', 1, 1));
+		$this->insert(new FolderDone(9, 'alice', 1, 1));
+
+		$this->done->forgetUser('alice');
+
+		$this->assertSame([8], array_keys($this->done->find([7, 8, 9])));
+	}
+
 	// spec: FOLDERS-005.17
 	public function testPagesAndDeletesTheRowsByRowId(): void {
 		foreach ([7, 8, 9] as $fileId) {

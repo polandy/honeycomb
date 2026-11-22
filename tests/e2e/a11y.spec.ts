@@ -44,7 +44,11 @@ for (const scheme of SCHEMES) {
 
 		await expectAccessible(page, at('grid'))
 
-		await checkDialog(page, page.getByRole('dialog', { name: 'Choose folders' }), at('folder tree'), () => page.getByRole('button', { name: 'Change folders', exact: true }).click())
+		await checkDialog(page, page.getByRole('dialog', { name: 'Choose folders' }), at('folder tree'), async () => {
+			await page.getByRole('button', { name: 'Change folders', exact: true }).click()
+			// An empty tree, still loading, has no treeitem and axe rejects it.
+			await expect(page.getByRole('dialog', { name: 'Choose folders' }).getByRole('treeitem').first()).toBeVisible()
+		})
 		await expect(page.getByRole('gridcell')).toHaveCount(3)
 
 		await page.getByRole('button', { name: 'More' }).click()

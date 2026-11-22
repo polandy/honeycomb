@@ -66,6 +66,12 @@ final class FolderDoneMapper implements FolderDoneStore {
 		$this->deleteFileRows(null, [$fileId]);
 	}
 
+	/** The statuses the user marked go; those folders are open again. */
+	#[\Override]
+	public function forgetUser(string $userId): void {
+		$this->deleteUserRows(self::TABLE, $userId);
+	}
+
 	/** A folder's done status follows it to the new file id, whoever moves it. */
 	#[\Override]
 	public function carryOver(string $userId, int $fileId, int $newFileId): void {
