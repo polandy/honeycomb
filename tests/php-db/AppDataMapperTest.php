@@ -77,12 +77,24 @@ final class AppDataMapperTest extends DbTestCase {
 		$this->assertSame(1, $this->remainingPreferences(self::OTHER_APP));
 	}
 
+	/**
+	 * @return list<string> the app's tables in the live schema, without schema and prefix
+	 * @psalm-suppress UndefinedClass, MixedAssignment, MixedArgument Doctrine's schema is not in the stubs.
+	 */
+	private function schemaTables(): array {
+		$prefix = Server::get(IConfig::class)->getSystemValueString('dbtableprefix', 'oc_');
+		$tables = [];
+		foreach ($this->db->createSchema()->getTableNames() as $name) {
+			if (preg_match('/(?:^|\.)' . preg_quote($prefix, '/') . '(honeycomb_\w+)$/', (string)$name, $match) === 1) {
+				$tables[] = $match[1];
+			}
+		}
+		return $tables;
+	}
+
 	// spec: DECISIONS-001.35
 	public function testEveryHoneycombTableInTheSchemaIsCountedAndEmptied(): void {
-		$schema = new \OC\DB\SchemaWrapper(Server::get(\OC\DB\Connection::class));
-		$prefix = Server::get(IConfig::class)->getSystemValueString('dbtableprefix', 'oc_');
-		$names = array_map(static fn (string $name): string => str_starts_with($name, $prefix) ? substr($name, strlen($prefix)) : $name, $schema->getTableNames());
-		$tables = array_values(array_filter($names, static fn (string $name): bool => str_starts_with($name, 'honeycomb_')));
+		$tables = $this->schemaTables();
 		$this->assertNotSame([], $tables);
 
 		$this->assertEqualsCanonicalizing($tables, array_values(array_diff(array_keys($this->data->count()), ['preferences'])));
