@@ -206,7 +206,7 @@ Below it, the favourite targets the move dialog starred, each with a ✕ to remo
 
 - **Given** the dialog's *Loupe gestures* section
 - **When** the user presses *Show the gesture guide*
-- **Then** the view state `gestureGuideSeen` is `false` and only that key is written (LOUPE-003.6),
+- **Then** the view state `gesture_guide_seen` is `false` and only that key is written (LOUPE-003.6),
   so the guide shows on the next loupe opening; the hint under the button says so until the guide
   is dismissed again, and says what the guide holds while it counts as seen
 

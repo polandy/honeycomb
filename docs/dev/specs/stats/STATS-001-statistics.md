@@ -431,7 +431,7 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 - **Given** the hint shows
 - **When** the user closes it, or opens the year in review on the statistics page
-- **Then** the year is stored as the view state's `yearReviewHintClosed`; a failed write is logged,
+- **Then** the year is stored as the view state's `year_review_hint_closed`; a failed write is logged,
   keeps the hint away for this visit and tells the user nothing
 
 ### STATS-001.49 – Counted since inside the year

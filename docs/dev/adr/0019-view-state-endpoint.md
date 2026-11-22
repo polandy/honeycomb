@@ -19,13 +19,13 @@ or device.
 
 - **A separate endpoint**, `view state` in the glossary: the loupe's per-user state that is not a
   setting.
-- **Storage.** `OCP\Config\IUserConfig`, app `honeycomb`, one bool value per key: `infoPanelOpen`
-  and `gestureGuideSeen`. No new table. A key that was never stored reads as `null`
+- **Storage.** `OCP\Config\IUserConfig`, app `honeycomb`, one bool value per key: `info_panel_open`
+  and `gesture_guide_seen`. No new table. A key that was never stored reads as `null`
   (`hasKey`), so the client can tell "never stored" from `false`.
 - **Read:** `GET /apps/honeycomb/api/v1/view-state` answers
-  `{"viewState": {"infoPanelOpen": true|false|null, "gestureGuideSeen": true|false|null}}`.
+  `{"viewState": {"info_panel_open": true|false|null, "gesture_guide_seen": true|false|null}}`.
 - **Write:** `PUT /apps/honeycomb/api/v1/view-state` with a partial object, e.g.
-  `{"viewState": {"gestureGuideSeen": true}}`, stores only the keys given and answers the full
+  `{"viewState": {"gesture_guide_seen": true}}`, stores only the keys given and answers the full
   object like the read. Changes, not whole objects: two writes of different keys never undo each
   other.
 - **Errors:** `400` with an empty body for a `viewState` that is not an object, has an unknown
@@ -40,7 +40,7 @@ or device.
 
 - A new view state key needs a server change: the server knows the keys and their type, unlike
   the settings blob. That keeps the stored values typed and the endpoint small.
-- A key may hold a year instead of a boolean (`yearReviewHintClosed`, STATS-001.48), which the server
+- A key may hold a year instead of a boolean (`year_review_hint_closed`, STATS-001.48), which the server
   validates as an integer from 1970 to 9999.
 - Two devices writing the same key at once: the last write wins, for that key only.
 - The loupe reads the view state from the server once per visit; a failed read falls back to the
@@ -48,6 +48,6 @@ or device.
 
 ## Amendment 2026-11-14: a third key
 
-`seriesHintSeen` keeps whether the user dismissed the loupe's first-series hint (LOUPE-001.26),
-like `gestureGuideSeen`. No older version kept it in browser storage, so it has nothing to take
+`series_hint_seen` keeps whether the user dismissed the loupe's first-series hint (LOUPE-001.26),
+like `gesture_guide_seen`. No older version kept it in browser storage, so it has nothing to take
 over.

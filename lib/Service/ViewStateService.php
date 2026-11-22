@@ -14,10 +14,10 @@ use OCP\IUser;
 /** Keeps each user's view state as one bool per key and one year, null while never stored (ADR 0019). */
 final class ViewStateService {
 	/** The keys of the view state. */
-	public const array KEYS = ['infoPanelOpen', 'gestureGuideSeen', 'seriesHintSeen'];
+	public const array KEYS = ['info_panel_open', 'gesture_guide_seen', 'series_hint_seen'];
 
 	/** The key that holds a year instead of a boolean. */
-	public const string YEAR_KEY = 'yearReviewHintClosed';
+	public const string YEAR_KEY = 'year_review_hint_closed';
 
 	private const int FIRST_YEAR = 1970;
 	private const int LAST_YEAR = 9999;

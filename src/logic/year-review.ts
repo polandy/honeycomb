@@ -64,7 +64,7 @@ export function hintYear(today: string, closed: number | null): number | null {
 
 /** The year a view state answer holds as closed, null for anything but a whole year (STATS-001.48). */
 export function parseClosedYear(answer: unknown): number | null {
-	const value = typeof answer === 'object' && answer !== null ? (answer as Record<string, unknown>).yearReviewHintClosed : null
+	const value = typeof answer === 'object' && answer !== null ? (answer as Record<string, unknown>).year_review_hint_closed : null
 	return typeof value === 'number' && Number.isInteger(value) && value >= FIRST_YEAR && value <= LAST_YEAR ? value : null
 }
 
