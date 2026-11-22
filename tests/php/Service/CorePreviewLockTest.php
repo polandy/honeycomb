@@ -38,13 +38,14 @@ final class CorePreviewLockTest extends TestCase {
 	public function testRendersUnderTheFilesExclusiveLockAndFreesIt(): void {
 		$locks = new FakeLockingProvider($this->clock);
 		$heldWhileRendering = null;
+		$preview = new \stdClass();
 
-		$result = $this->lock($locks)->whileRendering(7, function () use ($locks, &$heldWhileRendering): string {
+		$result = $this->lock($locks)->whileRendering(7, function () use ($locks, &$heldWhileRendering, $preview): \stdClass {
 			$heldWhileRendering = $locks->held;
-			return 'rendered';
+			return $preview;
 		});
 
-		$this->assertSame('rendered', $result);
+		$this->assertSame($preview, $result);
 		$this->assertSame([self::KEY => ILockingProvider::LOCK_EXCLUSIVE], $heldWhileRendering);
 		$this->assertSame([], $locks->held);
 		$this->assertSame([self::KEY], $locks->released);
@@ -92,9 +93,11 @@ final class CorePreviewLockTest extends TestCase {
 		$logger->expects($this->once())->method('warning')
 			->with($this->anything(), $this->equalTo(['fileId' => 7, 'waitedSeconds' => 30]));
 
-		$result = $this->lock($locks, $logger)->whileRendering(7, fn (): string => 'rendered');
+		$preview = new \stdClass();
 
-		$this->assertSame('rendered', $result);
+		$result = $this->lock($locks, $logger)->whileRendering(7, fn (): \stdClass => $preview);
+
+		$this->assertSame($preview, $result);
 		$this->assertSame(range(101, 130), $this->clock->pauses);
 		$this->assertSame([], $locks->released);
 	}
