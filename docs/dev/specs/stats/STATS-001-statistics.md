@@ -72,8 +72,7 @@ counters is above zero. A line shows active time, pictures a minute (from one ac
 series done and RAW files removed. Bars show pictures decided and moved to the trash bin per day
 (7 days), per 7 days ending today (30 days, the oldest bar shorter) or per calendar month (year,
 all time). The period ends today, the user's day the server answers; the current year starts on
-1 January, all time on the first counted day. *Folder sets* lists the resume positions with their
-share decided; *Of the pictures read so far* shows the shares picked, rejected, unflagged and
+1 January, all time on the first counted day. *Library progress* shows how far the library roots have come (below); *Of the pictures read so far* shows the shares picked, rejected, unflagged and
 rated from the XMP cache, counting only the pictures whose XMP honeycomb has read, so a library
 not yet opened shows little. A footnote says *Counted since {date}.* and, when stored series
 were done before the counting began, *Before that: n series done (no date).* There is no start
@@ -382,11 +381,14 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **Then** it adds the change in percent against the period before; without numbers before, or
   for *All time*, it adds nothing
 
-### STATS-001.42 – Folder sets show their share decided
+### STATS-001.42 – The library progress
 
-- **Given** stored resume positions
-- **When** the page shows *Folder sets*
-- **Then** each shows its name and its share decided, *Done* at 100 %
+- **Given** library roots whose folders are in part done
+- **When** the page shows the *Library progress*
+- **Then** it shows the photos in done folders as a share of all photos below the roots, in
+  total and per root, the folders done of all folders, the folders marked done in the month of
+  the user's today and the share of photos decided as a cross-check (the card of *Folders*,
+  ADR 0049), read from the library folders of each root, and a link *Open Folders*
 
 ### STATS-001.43 – Statistics off
 
@@ -440,6 +442,19 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **When** it is shown
 - **Then** it says *Counted since {date}.* for a first day inside the year and nothing otherwise
 
+### STATS-001.50 – No library roots
+
+- **Given** a user without library roots
+- **When** the page shows the *Library progress*
+- **Then** it says *Choose your library* with the link *Open Folders*, and reads no folders
+
+### STATS-001.51 – The library cannot be read
+
+- **Given** the library folders cannot be read
+- **When** the page loads
+- **Then** the *Library progress* says *The library progress could not be loaded.* and the other
+  numbers still show; the error is logged
+
 ## History
 
 | Date | Change |
@@ -452,3 +467,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-20 | The statistics page and its navigation entry, `today` in the answer (.40–.43; metrics PR 6 of 8) |
 | 2026-11-20 | Series done before the counting and the state of the pictures read so far; no start value for decided pictures (.24, .44, .45; metrics PR 7 of 8) |
 | 2026-11-20 | Year in review: numbers, calendar of active days, hint in the navigation (.25, .26, .46–.49; metrics PR 8 of 8) |
+| 2026-11-22 | The library progress replaces *Folder sets* (.42, .50, .51; ADR 0049, M12 PR 7) |

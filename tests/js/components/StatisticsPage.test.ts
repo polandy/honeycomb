@@ -9,6 +9,7 @@ import StatisticsPage from '../../../src/components/StatisticsPage.vue'
 import { formatDay } from '../../../src/l10n.ts'
 import { logger } from '../../../src/logger.ts'
 import { METRIC } from '../../../src/logic/statistics.ts'
+import { doneRow, row } from '../logic/folder-fixtures.ts'
 
 vi.mock('../../../src/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
@@ -21,15 +22,13 @@ const COUNTERS = [
 	{ day: TODAY, metric: METRIC.sidecarsUpdated, value: 3 },
 ]
 const NOTHING_READ = { pictures: 0, picked: 0, rejected: 0, rated: 0 }
-const POSITIONS = [
-	{ folderSet: { paths: ['/Photos/Italy 2025'], subfolders: false }, fileId: 9, decided: 79, total: 100 },
-	{ folderSet: { paths: ['/Photos/Wedding'], subfolders: false }, fileId: 10, decided: 40, total: 40 },
-]
+const ROOTS = { libraryRoots: ['/Photos'] }
+const ROWS = [doneRow({ path: '/Photos/Wedding' }), row({ path: '/Photos/Italy 2025' })]
 
-function mountPage(answer: Partial<StatsAnswer> = {}, settings: unknown = {}) {
+function mountPage(answer: Partial<StatsAnswer> = {}, settings: unknown = ROOTS, folders = vi.fn(async (_root: string) => ROWS)) {
 	const seams = {
 		loadStatistics: vi.fn(async () => ({ counters: COUNTERS, firstDay: '2026-11-01', today: TODAY, seriesDoneBefore: 0, read: NOTHING_READ, ...answer })),
-		loadPositions: vi.fn(async () => POSITIONS),
+		loadLibraryFolders: folders,
 		loadSettings: vi.fn(async () => settings),
 		saveViewState: vi.fn(async (_patch: { yearReviewHintClosed: number }) => undefined),
 	}
@@ -94,13 +93,13 @@ describe('StatisticsPage', () => {
 	})
 
 	// spec: STATS-001.23
-	it('says nothing is counted yet and still shows the folder sets', async () => {
+	it('says nothing is counted yet and still shows the library progress', async () => {
 		const wrapper = mountPage({ counters: [], firstDay: null })
 		await flushPromises()
 
 		expect(wrapper.text()).toContain('Nothing counted yet. Cull a folder and the numbers show here.')
 		expect(wrapper.find('.delete-stats').exists()).toBe(false)
-		expect(wrapper.text()).toContain('Italy 2025')
+		expect(wrapper.text()).toContain('50 % of photos in done folders')
 		expect(wrapper.text()).not.toContain('Counted since')
 	})
 
@@ -137,13 +136,52 @@ describe('StatisticsPage', () => {
 	})
 
 	// spec: STATS-001.42
-	it('lists the folder sets with their share decided, Done at 100 %', async () => {
-		const wrapper = mountPage()
+	it('shows the library progress: done photos, folders, this month and the decided share', async () => {
+		const folders = vi.fn(async (_root: string) => ROWS)
+		const wrapper = mountPage({}, ROOTS, folders)
 		await flushPromises()
-		const rows = wrapper.findAll('.statistics-folder-sets__row').map((row) => row.text())
+		const panel = wrapper.find('.statistics-library')
 
-		expect(rows[0]).toMatch(/Italy 2025.*79\s?%/)
-		expect(rows[1]).toMatch(/Wedding.*Done/)
+		expect(folders).toHaveBeenCalledWith('/Photos')
+		expect(panel.text()).toContain('50 % of photos in done folders')
+		expect(panel.text()).toContain('1 of 2 folders done')
+		expect(panel.text()).toContain('1 this month')
+		expect(panel.text()).toContain('80 % of all photos decided')
+		expect(panel.find('a').text()).toBe('Open Folders')
+		expect(panel.find('a').attributes('href')).toBe('/index.php/apps/honeycomb/')
+	})
+
+	// spec: STATS-001.42
+	it('shows a bar per root of several roots', async () => {
+		const wrapper = mountPage({}, { libraryRoots: ['/Photos', '/Archive'] }, vi.fn(async (root: string) => (root === '/Photos' ? ROWS : [row({ root: '/Archive', path: '/Archive/old' })])))
+		await flushPromises()
+
+		expect(wrapper.findAll('.folders-progress__root').map((each) => each.text())).toEqual([expect.stringContaining('/Photos'), expect.stringContaining('/Archive')])
+	})
+
+	// spec: STATS-001.50
+	it('asks to choose the library without roots and reads no folders', async () => {
+		const folders = vi.fn(async (_root: string) => ROWS)
+		const wrapper = mountPage({}, {}, folders)
+		await flushPromises()
+		const panel = wrapper.find('.statistics-library')
+
+		expect(panel.text()).toContain('Choose your library')
+		expect(panel.find('a').text()).toBe('Open Folders')
+		expect(folders).not.toHaveBeenCalled()
+	})
+
+	// spec: STATS-001.51
+	it('says the library progress could not be loaded, logs it and keeps the other numbers', async () => {
+		const error = new Error('down')
+		const wrapper = mountPage({}, ROOTS, vi.fn(async (_root: string): Promise<typeof ROWS> => {
+			throw error
+		}))
+		await flushPromises()
+
+		expect(wrapper.find('.statistics-library').text()).toContain('The library progress could not be loaded.')
+		expect(tile(wrapper, 'Photos decided')).toContain('118')
+		expect(logger.error).toHaveBeenCalledWith('Could not load the library progress', { error })
 	})
 
 	// spec: STATS-001.43, STATS-001.1
@@ -158,7 +196,7 @@ describe('StatisticsPage', () => {
 
 	it('says so and logs when the numbers cannot be loaded', async () => {
 		const error = new Error('down')
-		const wrapper = mount(StatisticsPage, { props: { seams: { loadStatistics: async () => Promise.reject(error), loadPositions: async () => [], loadSettings: async () => ({}), saveViewState: async () => undefined } } })
+		const wrapper = mount(StatisticsPage, { props: { seams: { loadStatistics: async () => Promise.reject(error), loadLibraryFolders: async () => [], loadSettings: async () => ({}), saveViewState: async () => undefined } } })
 		await flushPromises()
 
 		expect(wrapper.text()).toContain('The statistics could not be loaded.')

@@ -196,7 +196,7 @@ needs UPDATE, asks nothing and never writes XMP; the progress headline is the sh
 done folders (ADR 0049, mockup `docs/dev/mockup/folders/index.html`). Seven pull requests: ADR
 and mockup; the folder summaries; the done status; the pure TypeScript ranking and texts; the
 list as the start screen; marking done in the UI; statistics and the library roots setting.
-Phase 2: shares and group folders, Immich albums.
+Phase 2: shares and group folders, Immich albums. **Done 2026-11-22**, phase 2 aside (`TODO.md`).
 
 ### Release – first App Store release
 
