@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
 import { folderProgress } from '../../../src/logic/folder-progress.ts'
-import { COMPLETE_TEXT, doneText, EMPTY_LIST_TEXT, FILTER_LABELS, progressTexts, READ_ONLY_TEXT, rootsSummary, scanningText, SORT_LABELS } from '../../../src/logic/folder-texts.ts'
+import { COMPLETE_TEXT, doneText, EMPTY_LIST_TEXT, FILTER_LABELS, progressTexts, READ_ONLY_TEXT, rootsSummary, scanningText, SORT_LABELS, yearHeadingText } from '../../../src/logic/folder-texts.ts'
 import { doneRow, row } from './folder-fixtures.ts'
 
 describe('folder texts', () => {
