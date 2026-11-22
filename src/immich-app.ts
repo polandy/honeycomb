@@ -9,6 +9,7 @@ import { useImmichCull } from './immich-cull.ts'
 import { useImmichSource } from './immich-source.ts'
 import { formatCaptureDay } from './l10n.ts'
 import { browserCalendar } from './logic/immich-filters.ts'
+import { immichOnlyOffer } from './logic/immich-only.ts'
 
 /** The seams the app's Immich side is built from. */
 export interface ImmichAppContext {
@@ -22,13 +23,13 @@ export interface ImmichAppContext {
 /** The app's Immich side: the source switcher, the opened connection's status and its cull (IMMICH-001, IMMICH-002). */
 export function useImmichApp(context: ImmichAppContext) {
 	const immich = useImmichSource(context.source, context.storage)
-	void immich.load()
 	const shown = computed(() => immich.source.value === 'immich')
 	const opened = immich.connection
 	const openedStatus = computed(() => opened.value && immich.statusOf(opened.value.id))
+	const onlyOffer = computed(() => immichOnlyOffer(immich.availability.value, openedStatus.value))
 	const cull = useImmichCull({ api: context.cull, now: context.now, calendar: browserCalendar, dayLabel: formatCaptureDay, toast: context.toast })
-	// The pictures show once the connection answers ok, and start over whenever it opens again.
-	watch(() => (openedStatus.value?.state === 'ok' ? opened.value!.id : null), (id) => id !== null && cull.open(id))
+	// The pictures show once the shown connection answers ok, and start over whenever it opens again.
+	watch(() => (shown.value && openedStatus.value?.state === 'ok' ? opened.value!.id : null), (id) => id !== null && cull.open(id))
 
 	/** Opens the connection and asks its status again. */
 	function openConnection(connectionId: string) {
@@ -42,6 +43,8 @@ export function useImmichApp(context: ImmichAppContext) {
 			void immich.check(opened.value.id)
 		}
 	}
+	// The folder picker offers *I only use Immich* by the status of the connection to open (IMMICH-001.21).
+	void immich.load().then(checkOpened)
 
-	return { immich, shown, opened, openedStatus, cull, openConnection, checkOpened }
+	return { immich, shown, opened, openedStatus, onlyOffer, cull, openConnection, checkOpened }
 }

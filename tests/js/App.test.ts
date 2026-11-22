@@ -22,8 +22,9 @@ describe('App', () => {
 	})
 
 	// spec: APP-001.3
-	it('shows that no folder is chosen and opens the folder picker', () => {
+	it('shows that no folder is chosen and opens the folder picker', async () => {
 		const { wrapper } = mountApp()
+		await flushPromises()
 
 		expect(wrapper.text()).toContain(`${MARK}No folder chosen`)
 		expect(wrapper.text()).toContain(`${MARK}Choose a folder…`)
@@ -34,6 +35,7 @@ describe('App', () => {
 	// spec: APP-001.3
 	it('opens the folder picker again from the no-folder state', async () => {
 		const { wrapper } = mountApp()
+		await flushPromises()
 		wrapper.findComponent(FolderPicker).vm.$emit('cancel')
 		await flushPromises()
 		expect(wrapper.findComponent(FolderPicker).exists()).toBe(false)

@@ -1836,3 +1836,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-22: A folder that is not readable or not rateable answers `403` and a file id that is no
   folder of the user's own files `404`, for `PUT` and `DELETE` alike, so a reopen of a vanished
   folder is `404`, not `204` (FOLDERS-006.4, FOLDERS-006.5).
+- 2026-11-22: *I only use Immich* is a tertiary button in the folder picker's footer, left of
+  *Choose*; it is hidden without an Immich connection and disabled with a one-line reason until
+  the connection that would open answers `ok` (IMMICH-001.21 to .25).
