@@ -35,6 +35,6 @@ describe('folder texts', () => {
 
 	// spec: FOLDERS-002.6
 	it('words the year headings', () => {
-		expect([2019, 'unknown', null].map(yearHeadingText)).toEqual(['2019', 'Unknown year', null])
+		expect(([2019, 'unknown', null] as const).map(yearHeadingText)).toEqual(['2019', 'Unknown year', null])
 	})
 })
