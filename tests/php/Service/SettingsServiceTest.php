@@ -110,4 +110,88 @@ final class SettingsServiceTest extends TestCase {
 
 		$this->assertSame(SettingsService::MAX_BYTES, strlen($this->stored['alice/honeycomb/settings']));
 	}
+
+	// spec: SETTINGS-001.2
+	public function testTheObjectIsStoredWithoutTheLists(): void {
+		$this->service()->save($this->user(), ['viKeys' => true, 'moveRecent' => ['/A'], 'moveFavourites' => ['/B'], 'libraryRoots' => ['/C']]);
+
+		$this->assertSame(['alice/honeycomb/settings' => '{"viKeys":true}'], $this->stored);
+	}
+
+	// spec: SETTINGS-001.31
+	public function testAListIsStoredUnderItsOwnKeyAndReadInTheObject(): void {
+		$service = $this->service();
+		$service->save($this->user(), ['viKeys' => true]);
+
+		$saved = $service->saveList($this->user(), 'moveRecent', ['/B', '/A']);
+		$service->saveList($this->user(), 'moveFavourites', []);
+		$service->saveList($this->user(), 'libraryRoots', ['/Photos']);
+
+		$this->assertSame(['/B', '/A'], $saved);
+		$this->assertSame('["/B","/A"]', $this->stored['alice/honeycomb/move_recent']);
+		$this->assertSame('{"viKeys":true,"moveRecent":["/B","/A"],"moveFavourites":[],"libraryRoots":["/Photos"]}', json_encode($service->get($this->user())));
+	}
+
+	// spec: SETTINGS-001.31
+	public function testSavingTheObjectKeepsTheListsOfAnotherTab(): void {
+		$service = $this->service();
+		$service->saveList($this->user(), 'moveRecent', ['/New']);
+
+		$service->save($this->user(), ['viKeys' => true, 'moveRecent' => ['/Old']]);
+
+		$this->assertSame(['/New'], $service->get($this->user())->moveRecent);
+	}
+
+	/** @return array<string, array{string, mixed}> */
+	public static function invalidLists(): array {
+		return [
+			'an unknown name' => ['moveTemplate', ['/A']],
+			'an object' => ['moveRecent', ['a' => '/A']],
+			'a number in it' => ['moveRecent', ['/A', 3]],
+			'a string' => ['libraryRoots', '/A'],
+			'null' => ['moveFavourites', null],
+			'over the size limit' => ['moveRecent', [str_repeat('x', SettingsService::MAX_BYTES)]],
+		];
+	}
+
+	// spec: SETTINGS-001.31
+	#[DataProvider('invalidLists')]
+	public function testRefusesAnythingButAKnownListOfStrings(string $name, mixed $items): void {
+		try {
+			$this->service()->saveList($this->user(), $name, $items);
+			$this->fail('expected InvalidSettingsException');
+		} catch (InvalidSettingsException) {
+			$this->assertSame([], $this->stored);
+		}
+	}
+
+	// spec: SETTINGS-001.31
+	public function testAcceptsAListAtTheSizeLimit(): void {
+		$this->service()->saveList($this->user(), 'moveRecent', [str_repeat('x', SettingsService::MAX_BYTES - strlen('[""]'))]);
+
+		$this->assertSame(SettingsService::MAX_BYTES, strlen($this->stored['alice/honeycomb/move_recent']));
+	}
+
+	// spec: SETTINGS-001.32
+	public function testAListStillInTheObjectIsReadAndCarriedOverOnTheNextSave(): void {
+		$this->stored['alice/honeycomb/settings'] = '{"viKeys":true,"moveRecent":["/A"],"libraryRoots":["/Photos"]}';
+		$this->stored['alice/honeycomb/library_roots'] = '["/Phone"]';
+		$service = $this->service();
+
+		$read = $service->get($this->user());
+		$service->save($this->user(), ['viKeys' => false]);
+
+		$this->assertSame('{"viKeys":true,"moveRecent":["/A"],"libraryRoots":["/Phone"]}', json_encode($read));
+		$this->assertSame('{"viKeys":false}', $this->stored['alice/honeycomb/settings']);
+		$this->assertSame('["/A"]', $this->stored['alice/honeycomb/move_recent']);
+		$this->assertSame('["/Phone"]', $this->stored['alice/honeycomb/library_roots']);
+		$this->assertArrayNotHasKey('alice/honeycomb/move_favourites', $this->stored);
+	}
+
+	// spec: SETTINGS-001.3
+	public function testABrokenStoredListReadsAsEmpty(): void {
+		$this->stored['alice/honeycomb/move_recent'] = '{"a":1}';
+
+		$this->assertSame([], $this->service()->get($this->user())->moveRecent);
+	}
 }

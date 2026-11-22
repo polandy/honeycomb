@@ -173,6 +173,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 	const warmed: number[][] = []
 	const flags = fakeFlags(decisions)
 	const savedSettings: object[] = []
+	const savedLists: [string, readonly string[]][] = []
 	const sidecarSaves: SidecarSaveItem[][] = []
 	const grid = gridStub()
 	const wrapper = mount(App, {
@@ -190,6 +191,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			saveFile: () => undefined,
 			loadSettings: async () => ({}),
 			saveSettings: async (settings: object) => { savedSettings.push(settings) },
+			saveSettingsList: async (name: string, items: readonly string[]) => { savedLists.push([name, items]) },
 			positions: { loadPositions: async () => [], savePosition: async () => undefined },
 			location: { read: () => '', write: () => undefined },
 			viewState: { loadViewState: async () => ({ info_panel_open: null, gesture_guide_seen: true, series_hint_seen: true }), saveViewState: async () => undefined },
@@ -203,7 +205,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 		global: { stubs: { AppNavigation: true, FoldersHome: true, FolderPicker: true, PhotoGrid: grid.component, GridToolbar: true, FilterBar: true, PhotoLoupe: true, SettingsDialog: true, ...stubs } },
 	})
 	flagTables.set(wrapper, flags)
-	return { wrapper, warmed, flagSaves: flags.saves, takenOver: flags.takenOver, savedSettings, sidecarSaves, grid: grid.calls }
+	return { wrapper, warmed, flagSaves: flags.saves, takenOver: flags.takenOver, savedSettings, savedLists, sidecarSaves, grid: grid.calls }
 }
 
 /** Each member of a decided picture of the entries as `fileId flag`, by file id. */

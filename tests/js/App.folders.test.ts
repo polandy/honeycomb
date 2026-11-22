@@ -131,12 +131,12 @@ describe('App: Folders', () => {
 
 	// spec: FOLDERS-007.5
 	it('saves the roots the setup chose', async () => {
-		const { wrapper, savedSettings } = mountApp()
+		const { wrapper, savedLists } = mountApp()
 		await flushPromises()
 
 		wrapper.findComponent(FoldersHome).props('home').saveRoots(['/Photos', '/Phone'])
 		await flushPromises()
 
-		expect(savedSettings.at(-1)).toMatchObject({ libraryRoots: ['/Photos', '/Phone'] })
+		expect(savedLists.at(-1)).toEqual(['libraryRoots', ['/Photos', '/Phone']])
 	})
 })

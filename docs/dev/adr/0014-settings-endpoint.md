@@ -1,6 +1,7 @@
 # 0014 – Settings endpoint: one JSON object per user, checked in TypeScript
 
-- Status: accepted
+- Status: accepted, amended by [0051](0051-settings-lists-in-their-own-keys.md) (the lists in
+  their own keys, the object versioned)
 - Date: 2026-11-10
 
 ## Context

@@ -2,7 +2,7 @@
 
 - Status: implemented
 - Area: settings
-- Origin: `docs/dev/plan.md` M4.4, Flag buttons and vi keys, Moving pictures, ADR 0014,
+- Origin: `docs/dev/plan.md` M4.4, Flag buttons and vi keys, Moving pictures, ADR 0014, ADR 0051,
   `docs/user/settings.md`
 - Depends on: LISTING-002, MOVE-001
 
@@ -15,7 +15,11 @@ device and browser.
 
 The settings are one JSON object per user behind `GET` and `PUT /apps/honeycomb/api/v1/settings`.
 The server checks only that it is an object of at most 8 KB; the client checks each field and falls
-back to its default, so an unknown, missing or invalid field never breaks the app.
+back to its default, so an unknown, missing or invalid field never breaks the app. The object
+carries `version: 1`. The lists that change on their own, the recent and favourite move targets
+and the library roots, are stored each under its own key and written through
+`PUT /apps/honeycomb/api/v1/settings/lists/{name}`, so a tab that saves a switch never overwrites a
+list another tab changed (ADR 0051); the read still answers one object with every list in it.
 
 | Setting | Default |
 |---|---|
@@ -35,7 +39,7 @@ back to its default, so an unknown, missing or invalid field never breaks the ap
 
 *Settings* in the grid's ⋯ menu opens a dialog with the sections *File types*, *Folder layout*,
 *Library*, *Loupe gestures*, *Keyboard*, *Moving photos*, *Statistics* and *Cache*. Each change
-applies at once and saves the whole object; there is no OK button. What a setting does elsewhere
+applies at once and saves the whole object, or the whole list it changed; there is no OK button. What a setting does elsewhere
 is specified where it acts (LISTING-002, LOUPE-001, LOUPE-002, KEYS-001, MOVE-004, XMP-003,
 STATS-001).
 
@@ -60,14 +64,16 @@ Below it, the favourite targets the move dialog starred, each with a ✕ to remo
 
 - **Given** a user with or without stored settings
 - **When** the client reads them
-- **Then** the answer is `{"settings": {...}}` with the stored object, `{}` when none is stored
+- **Then** the answer is `{"settings": {...}}` with the stored object and each stored list
+  (SETTINGS-001.31), `{}` when none is stored
 
 ### SETTINGS-001.2 – Write and read back
 
 - **Given** a settings object
 - **When** the client writes it
-- **Then** it is stored whole as JSON, the answer returns it, and a later read returns it; an empty
-  object stays an object
+- **Then** it is stored whole as JSON without the list fields `moveRecent`, `moveFavourites` and
+  `libraryRoots`, the answer returns it, and a later read returns it; an empty object stays an
+  object
 
 ### SETTINGS-001.3 – A broken stored value reads as empty
 
@@ -128,8 +134,9 @@ Below it, the favourite targets the move dialog starred, each with a ✕ to remo
 
 - **Given** settings that were read
 - **When** the user changes one
-- **Then** it applies at once, the whole object is saved, and it is still set after a reload; a
-  change made before the stored settings arrive is saved over them with their other values
+- **Then** it applies at once, the whole object with `version: 1` and without the lists is saved,
+  or only the whole list when a list changed, and it is still set after a reload; a change made
+  before the stored settings arrive is saved over them with their other values
 
 ### SETTINGS-001.12 – Saving or reading fails
 
@@ -264,6 +271,28 @@ Withdrawn by ADR 0040 (M8 PR 3); there is no sidecar switch (.28).
   not; the remove button of a root drops it; each change is saved through the settings update
   with the whole list
 
+### SETTINGS-001.31 – The lists in their own keys
+
+- **Given** a list of strings of at most 8 KB encoded, and a name `moveRecent`, `moveFavourites`
+  or `libraryRoots`
+- **When** the client writes it to `PUT /api/v1/settings/lists/{name}` as `{"items": [...]}`
+- **Then** it is stored whole under that list's own key, the answer is `{"items": [...]}`, and a
+  later read of the settings has it in the field of that name; an unknown name, a body that is not
+  a list of strings, or one over 8 KB is `400` and nothing is stored; without a user `401`
+
+### SETTINGS-001.32 – Lists stored in the object are carried over
+
+- **Given** stored settings from before ADR 0051 with a list in the object and no own key for it
+- **When** the client reads the settings, or then saves the object
+- **Then** the read has the list from the object, and the save writes it under its own key first,
+  so it is kept; a list whose own key is set is read from that key only
+
+### SETTINGS-001.33 – The object is versioned
+
+- **Given** stored settings with `version: 1`, without a version, or with another value there
+- **When** the app reads them
+- **Then** each is read field by field as SETTINGS-001.6 says, and every save writes `version: 1`
+
 ## Out of scope
 
 What the swipes, auto-advance and flag buttons do in the loupe: LOUPE-002. The vi keys: KEYS-001.
@@ -290,3 +319,4 @@ Pairing itself: LISTING-002.
 | 2026-11-20 | .25 keeps the visual hashes, which every user of a file shares (ADR 0046) |
 | 2026-11-22 | .29 library roots (M12 PR 4) |
 | 2026-11-22 | .30 the library roots in the settings (ADR 0049, M12 PR 7) |
+| 2026-11-22 | .31–.33 the lists in their own keys, the object versioned (ADR 0051) |

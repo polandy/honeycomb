@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_SWIPES } from '../../../src/logic/loupe-gesture.ts'
 import { DEFAULT_NAME_TEMPLATE } from '../../../src/logic/name-template/presets.ts'
 import { DEFAULT_PAIRING_SETTINGS, pairPictures } from '../../../src/logic/pairing.ts'
-import { addExtension, DEFAULT_SETTINGS, DEFAULT_SUBFOLDERS, folderMode, pairingSettings, parseSettings, removeExtension } from '../../../src/logic/settings.ts'
+import { addExtension, DEFAULT_SETTINGS, DEFAULT_SUBFOLDERS, folderMode, pairingSettings, parseSettings, removeExtension, SETTINGS_VERSION, splitChange, storedSettings } from '../../../src/logic/settings.ts'
 
 describe('DEFAULT_SETTINGS', () => {
 	// spec: SETTINGS-001.6, GRID-004.1, STATS-001.2, IMMICH-001.22
@@ -188,5 +188,38 @@ describe('libraryRoots', () => {
 	it('reads valid roots in order, normalised, and drops repeated, nested, empty and non-string ones', () => {
 		const stored = ['Photos', '/Photos/2019', '/Archive/', '/Photos', '', 4, '/Archive/old', '/Docs']
 		expect(parseSettings({ libraryRoots: stored }).libraryRoots).toEqual(['/Photos', '/Archive', '/Docs'])
+	})
+})
+
+describe('settings version', () => {
+	// spec: SETTINGS-001.33
+	it('reads an object with version 1, without a version or with another value field by field', () => {
+		for (const version of [1, undefined, 7, 'one']) {
+			expect(parseSettings({ version, viKeys: true })).toEqual({ ...DEFAULT_SETTINGS, viKeys: true })
+		}
+	})
+})
+
+describe('storedSettings', () => {
+	// spec: SETTINGS-001.11, SETTINGS-001.33
+	it('is the object to save: version 1, without the lists that have their own keys', () => {
+		const settings: Settings = { ...DEFAULT_SETTINGS, viKeys: true, moveRecent: ['/A'], moveFavourites: ['/B'], libraryRoots: ['/C'] }
+
+		const stored = storedSettings(settings)
+
+		expect(SETTINGS_VERSION).toBe(1)
+		expect(stored).toMatchObject({ version: 1, viKeys: true })
+		expect(['moveRecent', 'moveFavourites', 'libraryRoots'].filter((name) => name in stored)).toEqual([])
+		expect(parseSettings(stored)).toEqual({ ...settings, moveRecent: [], moveFavourites: [], libraryRoots: [] })
+	})
+})
+
+describe('splitChange', () => {
+	// spec: SETTINGS-001.11, SETTINGS-001.31
+	it('names the lists a change touches and whether it touches the object', () => {
+		expect(splitChange({ viKeys: true })).toEqual({ object: true, lists: [] })
+		expect(splitChange({ moveRecent: ['/A'], moveFavourites: [] })).toEqual({ object: false, lists: ['moveRecent', 'moveFavourites'] })
+		expect(splitChange({ libraryRoots: ['/C'], autoAdvance: false })).toEqual({ object: true, lists: ['libraryRoots'] })
+		expect(splitChange({})).toEqual({ object: false, lists: [] })
 	})
 })

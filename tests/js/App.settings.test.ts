@@ -13,7 +13,7 @@ import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import SettingsDialog from '../../src/components/SettingsDialog.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
-import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
+import { DEFAULT_SETTINGS, storedSettings } from '../../src/logic/settings.ts'
 import { mountApp, openCull, shownNames } from './app-cull.ts'
 
 enableAutoUnmount(afterEach)
@@ -46,7 +46,7 @@ describe('App: the settings', () => {
 		await flushPromises()
 
 		expect(shownNames(wrapper)).toEqual(['IMG_10'])
-		expect(savedSettings).toEqual([{ ...DEFAULT_SETTINGS, showSingles: false }])
+		expect(savedSettings).toEqual([storedSettings({ ...DEFAULT_SETTINGS, showSingles: false })])
 	})
 
 	// spec: SETTINGS-001.22
@@ -120,7 +120,7 @@ describe('App: the settings', () => {
 		await flushPromises()
 
 		expect(wrapper.findComponent(PhotoLoupe).props('settings')).toEqual({ ...DEFAULT_SETTINGS, flagButtonsShown: false })
-		expect(savedSettings).toEqual([{ ...DEFAULT_SETTINGS, flagButtonsShown: false }])
+		expect(savedSettings).toEqual([storedSettings({ ...DEFAULT_SETTINGS, flagButtonsShown: false })])
 	})
 
 	// spec: SETTINGS-001.25
@@ -184,6 +184,6 @@ describe('App: the settings', () => {
 		document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'J', shiftKey: true, bubbles: true, cancelable: true }))
 		await flushPromises()
 		expect(wrapper.findComponent(PhotoGrid).props('fileNames')).toBe(false)
-		expect(savedSettings).toEqual([{ ...DEFAULT_SETTINGS, showFileNames: true }, { ...DEFAULT_SETTINGS, showFileNames: false }])
+		expect(savedSettings).toEqual([storedSettings({ ...DEFAULT_SETTINGS, showFileNames: true }), storedSettings({ ...DEFAULT_SETTINGS, showFileNames: false })])
 	})
 })
