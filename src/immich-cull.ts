@@ -23,7 +23,7 @@ import { GRID_TIERS, imageMember } from './logic/image-tiers.ts'
 import { assetDecision, assetPicture, decisionRow } from './logic/immich-asset.ts'
 import { countsAfterDecision } from './logic/immich-counts.ts'
 import { countsRequest, defaultImmichFilters, requestFilters, timeOptions } from './logic/immich-filters.ts'
-import { EMPTY_LIST, pageArrived, pageAsked, pageFailed, wantsNext } from './logic/immich-paging.ts'
+import { EMPTY_LIST, pageArrived, pageAsked, pageFailed, shownList, wantsNext } from './logic/immich-paging.ts'
 import { undoEntry } from './logic/undo.ts'
 import { useToastedUndo } from './toasted-decisions.ts'
 
@@ -62,9 +62,12 @@ export function useImmichCull(context: ImmichCullContext) {
 	const { api, now, calendar } = context
 	const connectionId = ref<string | null>(null)
 	const filters = shallowRef<ImmichFilters>(defaultImmichFilters(now(), calendar))
-	const list = shallowRef(EMPTY_LIST)
+	// The loaded pages; `list` shows them without the pictures the decisions last settled let the filters refuse.
+	const loaded = shallowRef(EMPTY_LIST)
 	const counts = shallowRef<ImmichCounts | null>(null)
 	const decided = shallowRef<ReadonlyMap<PictureId, Decision>>(new Map())
+	const settled = shallowRef<ReadonlyMap<string, Decision>>(new Map())
+	let held = false
 	// Grid ids and pictures stay the same for an asset while the connection is open, so tiles keep their place.
 	const ids = new Map<string, PictureId>()
 	const entries = new Map<PictureId, ImmichEntry>()
@@ -75,6 +78,7 @@ export function useImmichCull(context: ImmichCullContext) {
 	const history = useCullHistory<DecisionStep>((step, back) => void apply(back ? changesBetween(step.after, step.before) : changesBetween(step.before, step.after)))
 	const { undo, redo } = useToastedUndo(history, context.toast.show)
 
+	const list = computed(() => shownList(loaded.value, settled.value, filters.value))
 	const pictures = computed(() => list.value.entries.map(pictureOf))
 
 	/** The picture of an entry, made once per asset. */
@@ -94,6 +98,7 @@ export function useImmichCull(context: ImmichCullContext) {
 		entries.clear()
 		shown.clear()
 		history.reset()
+		held = false
 		filters.value = defaultImmichFilters(now(), calendar)
 		restart()
 	}
@@ -108,9 +113,10 @@ export function useImmichCull(context: ImmichCullContext) {
 	function restart() {
 		generation += 1
 		request = requestFilters(filters.value, now(), calendar)
-		list.value = EMPTY_LIST
+		loaded.value = EMPTY_LIST
 		counts.value = null
 		decided.value = new Map()
+		settled.value = new Map()
 		void askCounts()
 		void askNext()
 	}
@@ -132,20 +138,20 @@ export function useImmichCull(context: ImmichCullContext) {
 	async function askNext() {
 		const asked = generation
 		const before = list.value.entries.length
-		const cursor = list.value.started ? list.value.nextCursor : null
-		list.value = pageAsked(list.value, 'next')
+		const cursor = loaded.value.started ? loaded.value.nextCursor : null
+		loaded.value = pageAsked(loaded.value, 'next')
 		try {
 			const page = await api.assets(connectionId.value!, { filters: request, cursor, size: PAGE_SIZE })
 			if (asked !== generation) {
 				return
 			}
-			list.value = pageArrived(list.value, 'next', page)
+			loaded.value = pageArrived(loaded.value, 'next', page)
 			if (list.value.entries.length === before && list.value.nextCursor !== null) {
 				void askNext()
 			}
 		} catch (error) {
 			if (asked === generation) {
-				list.value = pageFailed(list.value, 'next')
+				loaded.value = pageFailed(loaded.value, 'next')
 				logger.error('Could not load an Immich page', { error })
 			}
 		}
@@ -162,6 +168,23 @@ export function useImmichCull(context: ImmichCullContext) {
 	function retry() {
 		if (list.value.next === 'failed') {
 			void askNext()
+		}
+	}
+
+	/** Keeps the shown pictures while held, as the loupe does; on release hides those the decisions let the filters refuse (IMMICH-002.28). */
+	function hold(on: boolean) {
+		held = on
+		settle()
+	}
+
+	/** Lets the filters see the decisions unless held, and asks the next page when none is left to show. */
+	function settle() {
+		if (held) {
+			return
+		}
+		settled.value = new Map([...decided.value].map(([id, decision]) => [entries.get(id)!.assetId, decision]))
+		if (list.value.entries.length === 0) {
+			loadNext(-1, 1)
 		}
 	}
 
@@ -204,6 +227,7 @@ export function useImmichCull(context: ImmichCullContext) {
 		decided.value = new Map([...decided.value, ...next])
 		const start = counts.value
 		counts.value = start && moves.reduce((current, [before, after]) => countsAfterDecision(current, before, after, filters.value), start)
+		settle()
 	}
 
 	/** Decides on the pictures as one undo step and toasts the change with *Undo* (IMMICH-003.4, IMMICH-003.19). */
@@ -215,5 +239,5 @@ export function useImmichCull(context: ImmichCullContext) {
 		}
 	}
 
-	return { connectionId: readonly(connectionId), filters, list, counts, pictures, open, setFilters, loadNext, retry, decisionOf, imageUrl, decide, undo, redo }
+	return { connectionId: readonly(connectionId), filters, list, counts, pictures, open, setFilters, loadNext, retry, hold, decisionOf, imageUrl, decide, undo, redo }
 }

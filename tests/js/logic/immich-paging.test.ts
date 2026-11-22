@@ -1,10 +1,13 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Decision } from '../../../src/logic/decision.ts'
 import type { ImmichEntry } from '../../../src/logic/immich-asset.ts'
 import type { Page, PagedList } from '../../../src/logic/immich-paging.ts'
 
 import { describe, expect, it } from 'vitest'
-import { EMPTY_LIST, LOUPE_AHEAD, loupeCounter, pageArrived, pageAsked, pageFailed, replaceEntry, wantsNext, wantsPrevious } from '../../../src/logic/immich-paging.ts'
+import { UNDECIDED } from '../../../src/logic/decision.ts'
+import { EMPTY_LIST, LOUPE_AHEAD, loupeCounter, pageArrived, pageAsked, pageFailed, replaceEntry, shownList, wantsNext, wantsPrevious } from '../../../src/logic/immich-paging.ts'
+import { DEFAULT_FILTERS } from '../../../src/logic/picture-filter.ts'
 import { immichEntry } from './immich-fixtures.ts'
 
 const entries = (from: number, count: number) => Array.from({ length: count }, (_, index) => immichEntry(`a${from + index}`))
@@ -131,5 +134,54 @@ describe('loupeCounter', () => {
 	// spec: IMMICH-002.27
 	it('gives only the total while newer pages are not loaded', () => {
 		expect(loupeCounter(loaded(page(entries(50, 100), 'c1', 'p1')), 3, 1000)).toEqual({ position: null, total: 1000 })
+	})
+})
+
+describe('shownList', () => {
+	const rejected: Decision = { ...UNDECIDED, flag: 'rejected' }
+	const picked: Decision = { ...UNDECIDED, flag: 'picked' }
+	const ids = (list: PagedList) => list.entries.map((entry) => entry.assetId)
+
+	// spec: IMMICH-002.28
+	it('leaves out an entry whose decision the flag filter refuses, keeping the cursors', () => {
+		const list = loaded(page(entries(0, 3), 'c1', 'p1'))
+
+		const shown = shownList(list, new Map([['a1', rejected]]), DEFAULT_FILTERS)
+
+		expect(ids(shown)).toEqual(['a0', 'a2'])
+		expect(shown).toMatchObject({ nextCursor: 'c1', previousCursor: 'p1', next: 'idle', started: true })
+	})
+
+	// spec: IMMICH-002.28
+	it('keeps an entry whose decision the filter admits, and one without a decision by its own', () => {
+		const list = loaded(page([immichEntry('a0'), immichEntry('a1', { flag: 'rejected' }), immichEntry('a2')], null))
+
+		expect(ids(shownList(list, new Map([['a0', picked]]), DEFAULT_FILTERS))).toEqual(['a0', 'a2'])
+		expect(ids(shownList(list, new Map([['a1', UNDECIDED]]), DEFAULT_FILTERS))).toEqual(['a0', 'a1', 'a2'])
+	})
+
+	// spec: IMMICH-002.28
+	it('brings an entry back in its place when undo puts its decision back, and hides it again on redo', () => {
+		const list = loaded(page(entries(0, 3), null))
+
+		expect(ids(shownList(list, new Map([['a1', rejected]]), DEFAULT_FILTERS))).toEqual(['a0', 'a2'])
+		expect(ids(shownList(list, new Map([['a1', UNDECIDED]]), DEFAULT_FILTERS))).toEqual(['a0', 'a1', 'a2'])
+		expect(ids(shownList(list, new Map([['a1', rejected]]), DEFAULT_FILTERS))).toEqual(['a0', 'a2'])
+	})
+
+	// spec: IMMICH-002.28
+	it('shows a rejected entry while Rejected is pressed', () => {
+		const list = loaded(page(entries(0, 2), null))
+
+		expect(ids(shownList(list, new Map([['a1', rejected]]), { ...DEFAULT_FILTERS, flags: new Set(['rejected']) }))).toEqual(['a1'])
+	})
+
+	// spec: IMMICH-002.28, IMMICH-002.6
+	it('wants the next page once the hidden entries leave the shown list short', () => {
+		const list = loaded(page(entries(0, 3), 'c1'))
+		const shown = shownList(list, new Map([['a1', rejected], ['a2', rejected]]), DEFAULT_FILTERS)
+
+		expect(wantsNext(list, 0, 1)).toBe(false)
+		expect(wantsNext(shown, 0, 1)).toBe(true)
 	})
 })

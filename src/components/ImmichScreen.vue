@@ -15,7 +15,7 @@ import type { Toast } from '../toast.ts'
 import type { ViewStateStore } from '../view-state.ts'
 
 import { n, t } from '@nextcloud/l10n'
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import AppIcon from './AppIcon.vue'
@@ -24,6 +24,7 @@ import PhotoGrid from './PhotoGrid.vue'
 import PhotoLoupe from './PhotoLoupe.vue'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { LOUPE_AHEAD, loupeCounter } from '../logic/immich-paging.ts'
+import { keptIndex } from '../logic/loupe-pictures.ts'
 import { DECISIONS_ONLY } from '../logic/opened-source.ts'
 import { DEFAULT_TILE_SIZE } from '../logic/tile-size.ts'
 
@@ -46,6 +47,7 @@ const emit = defineEmits<{
 const { list, counts, pictures, filters } = props.cull
 const loupeIndex = ref<number | null>(null)
 const photoLoupe = useTemplateRef<InstanceType<typeof PhotoLoupe>>('photoLoupe')
+const photoGrid = useTemplateRef<InstanceType<typeof PhotoGrid>>('photoGrid')
 
 const countText = computed(() => {
 	if (counts.value === null) {
@@ -68,6 +70,22 @@ function setFlags(flags: ReadonlySet<Flag>) {
 function page(index: number) {
 	loupeIndex.value = index
 	props.cull.loadNext(index, LOUPE_AHEAD)
+}
+
+/** Opens the loupe and holds the grid's pictures while it shows, so a decision moves no picture (IMMICH-002.28). */
+function openLoupe(index: number) {
+	props.cull.hold(true)
+	page(index)
+}
+
+/** Closes the loupe, lets the grid drop the pictures the filters refuse now and shows the tile it was on, or the next one left. */
+async function closeLoupe() {
+	const before = pictures.value
+	const index = loupeIndex.value!
+	loupeIndex.value = null
+	props.cull.hold(false)
+	await nextTick()
+	await photoGrid.value?.reveal(Math.max(0, keptIndex(before, pictures.value, index)))
 }
 
 /** Decides the picture the loupe shows. */
@@ -95,6 +113,7 @@ defineExpose({ loupe: photoLoupe })
 		<template v-else>
 			<PhotoGrid
 				v-if="pictures.length > 0"
+				ref="photoGrid"
 				class="immich-screen__grid"
 				:pictures="pictures"
 				:groupByFolder="true"
@@ -104,7 +123,7 @@ defineExpose({ loupe: photoLoupe })
 				:imageUrl="props.cull.imageUrl"
 				v-bind="props.observeSize === undefined ? {} : { observeSize: props.observeSize }"
 				@update:tileSize="emit('update:tileSize', $event)"
-				@open="page"
+				@open="openLoupe"
 				@shown="props.cull.loadNext($event, 1)" />
 			<div v-if="list.next !== 'idle'" class="immich-screen__footer">
 				<template v-if="list.next === 'failed'">
@@ -133,7 +152,7 @@ defineExpose({ loupe: photoLoupe })
 				@updateSettings="emit('updateSettings', $event)"
 				@decide="decideShown"
 				@toast="emit('toast', $event)"
-				@close="loupeIndex = null" />
+				@close="closeLoupe" />
 		</Teleport>
 	</div>
 </template>
