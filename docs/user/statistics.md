@@ -21,8 +21,9 @@ Open **Statistics** in the navigation, or press **Statistics** on the *Cull fini
   removed, each once there is one.
 - **Bars:** the photos decided and moved to the trash bin per day (7 days), per week (30 days) or
   per month (year, all time).
-- **Folder sets:** every folder set you cull, with the share of its photos decided; *Done* once
-  every photo is.
+- **Library progress:** the share of your photos in done folders, for the library and each root,
+  with the folders done, those marked done this month and the share of photos decided; *Open
+  Folders* leads to the list ([cleaning up the library](cleaning-up-the-library.md)).
 - **Of the pictures read so far:** the shares picked, rejected, unflagged and rated among the
   pictures whose XMP honeycomb has read. A folder you have not opened yet is not in it, whichever
   program set its flags.

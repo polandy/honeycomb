@@ -28,7 +28,7 @@ function button(wrapper: ReturnType<typeof mountSetup>, label: string) {
 
 /** The listed roots. */
 function roots(wrapper: ReturnType<typeof mountSetup>): string[] {
-	return wrapper.findAll('.library-setup__root-name').map((each) => each.text())
+	return wrapper.findAll('.library-roots__root-name').map((each) => each.text())
 }
 
 describe('LibrarySetup', () => {

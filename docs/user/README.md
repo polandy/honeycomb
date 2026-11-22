@@ -36,6 +36,7 @@ The words the app uses (Pick, Reject, Unflag, series and more) are in the
 |---|---|
 | [Your files and privacy](your-files-and-privacy.md) | What honeycomb changes in your files, backups, what it stores |
 | [Culling a shoot](culling.md) | One pass from start to end: folders, grid, loupe, series, deleting, moving |
+| [Cleaning up the library](cleaning-up-the-library.md) | Folders: library roots, Suggested, Mark done and Reopen, new photos, the library progress |
 | [Choosing folders](choosing-folders.md) | The folder tree: expanding, ticking several folders, subfolders |
 | [Keyboard shortcuts](keyboard-shortcuts.md) | Every key in the grid, the loupe and the series compare |
 | [Ratings, flags and colour labels](ratings-flags-colours.md) | How digiKam, darktable and Lightroom show honeycomb's decisions |
@@ -45,6 +46,6 @@ The words the app uses (Pick, Reject, Unflag, series and more) are in the
 | [Tags](tags.md) | Adding, filtering and saving tags |
 | [Settings](settings.md) | The per-user settings and what each one does |
 | [Similarity](similarity.md) | How similar pictures are grouped into series |
-| [Statistics](statistics.md) | The statistics page: periods, tiles, bars, folder sets, switching it off |
+| [Statistics](statistics.md) | The statistics page: periods, tiles, bars, library progress, switching it off |
 | [Clearing the cache](cache.md) | For admins: `occ honeycomb:cache:clear` for one user or every user |
 | [Administering honeycomb](admin/README.md) | For Nextcloud admins: installing, updating, removing |

@@ -34,9 +34,10 @@ back to its default, so an unknown, missing or invalid field never breaks the ap
 | Library roots | None (FOLDERS-004) |
 
 *Settings* in the grid's ⋯ menu opens a dialog with the sections *File types*, *Folder layout*,
-*Loupe gestures*, *Keyboard*, *Moving photos*, *Statistics* and *Cache*. Each change applies at
-once and saves the whole object; there is no OK button. What a setting does elsewhere is specified
-where it acts (LISTING-002, LOUPE-001, LOUPE-002, KEYS-001, MOVE-004, XMP-003, STATS-001).
+*Library*, *Loupe gestures*, *Keyboard*, *Moving photos*, *Statistics* and *Cache*. Each change
+applies at once and saves the whole object; there is no OK button. What a setting does elsewhere
+is specified where it acts (LISTING-002, LOUPE-001, LOUPE-002, KEYS-001, MOVE-004, XMP-003,
+STATS-001).
 
 There is no setting *Write decisions to XMP sidecars* and no confirmation of shared folders
 (ADR 0040): a decision is written where the picture is rateable (XMP-008), and the stored fields
@@ -254,6 +255,15 @@ Withdrawn by ADR 0040 (M8 PR 3); there is no sidecar switch (.28).
 - **Then** valid roots are read in order and normalised (FOLDERS-004); a root that repeats, lies
   inside another, is empty or is not a string is dropped, and anything but a list reads as none
 
+### SETTINGS-001.30 – The library roots in the settings
+
+- **Given** the settings dialog
+- **When** the user opens its *Library* section
+- **Then** it lists the roots in order; *Add as root* adds the folder chosen in the tree, one at a
+  time, only when FOLDERS-004 and the server (the user's own storage) take it, else it says why
+  not; the remove button of a root drops it; each change is saved through the settings update
+  with the whole list
+
 ## Out of scope
 
 What the swipes, auto-advance and flag buttons do in the loupe: LOUPE-002. The vi keys: KEYS-001.
@@ -279,3 +289,4 @@ Pairing itself: LISTING-002.
 | 2026-11-19 | The *Statistics* section and *Keep statistics* in the defaults (STATS-001) |
 | 2026-11-20 | .25 keeps the visual hashes, which every user of a file shares (ADR 0046) |
 | 2026-11-22 | .29 library roots (M12 PR 4) |
+| 2026-11-22 | .30 the library roots in the settings (ADR 0049, M12 PR 7) |

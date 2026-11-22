@@ -31,6 +31,13 @@ Changing a list pairs the open folders again at once; your decisions stay.
 - **Show singles:** with it on, a JPEG without RAW or a RAW without JPEG stays in the grid. Turn
   it off to cull only pairs. The count in the folder picker still counts every photo.
 
+## Library
+
+- **Library roots:** the folders of your own files that *Folders* lists and counts. Tick a folder in
+  the tree and press *Add as root*; remove a root with its ✕ button. Roots cannot be nested or
+  repeated, and shares, group folders and external storage cannot be roots
+  ([cleaning up the library](cleaning-up-the-library.md)).
+
 ## Loupe gestures
 
 - **Swipe up** and **Swipe down:** each picks, rejects or does nothing. By default up picks and

@@ -3,8 +3,9 @@
 // @vitest-environment happy-dom
 import type { Settings } from '../../../src/logic/settings.ts'
 
-import { mount } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import FolderTree from '../../../src/components/FolderTree.vue'
 import SettingsDialog from '../../../src/components/SettingsDialog.vue'
 import StatisticsSettings from '../../../src/components/StatisticsSettings.vue'
 import { DEFAULT_SETTINGS } from '../../../src/logic/settings.ts'
@@ -14,10 +15,10 @@ import { AppSettingsDialogStub, AppSettingsSectionStub } from './stubs.ts'
 const MARK = TRANSLATED_MARK
 
 /** The open dialog over the given settings. */
-function mountDialog(settings: Partial<Settings> = {}, gestureGuideSeen = false, admin = false) {
+function mountDialog(settings: Partial<Settings> = {}, gestureGuideSeen = false, admin = false, check: (root: string) => Promise<boolean> = async () => true) {
 	return mount(SettingsDialog, {
-		props: { open: true, settings: { ...DEFAULT_SETTINGS, ...settings }, gestureGuideSeen, admin },
-		global: { stubs: { NcAppSettingsDialog: AppSettingsDialogStub, NcAppSettingsSection: AppSettingsSectionStub } },
+		props: { open: true, settings: { ...DEFAULT_SETTINGS, ...settings }, gestureGuideSeen, admin, listFolders: async () => [], check },
+		global: { stubs: { NcAppSettingsDialog: AppSettingsDialogStub, NcAppSettingsSection: AppSettingsSectionStub, FolderTree: true } },
 	})
 }
 
@@ -43,8 +44,55 @@ describe('SettingsDialog', () => {
 		const wrapper = mountDialog()
 
 		expect(wrapper.find('[role="dialog"]').attributes('name')).toBe(`${MARK}Settings`)
-		expect(wrapper.findAll('h3').map((heading) => plain(heading.text()))).toEqual(['File types', 'Folder layout', 'Loupe gestures', 'Keyboard', 'Moving photos', 'Statistics', 'Cache'])
+		expect(wrapper.findAll('h3').map((heading) => plain(heading.text()))).toEqual(['File types', 'Folder layout', 'Library', 'Loupe gestures', 'Keyboard', 'Moving photos', 'Statistics', 'Cache'])
 		expect(untranslatedText(wrapper.element as Element)).toEqual([...DEFAULT_SETTINGS.rawExtensions, ...DEFAULT_SETTINGS.renderedExtensions].map((extension) => `.${extension.toUpperCase()}`))
+	})
+
+	// spec: SETTINGS-001.30
+	it('lists the library roots and drops one through the settings update', async () => {
+		const wrapper = mountDialog({ libraryRoots: ['/Photos', '/Archive'] })
+		const roots = wrapper.find('section#library')
+
+		expect(roots.findAll('.library-roots__root-name').map((each) => each.text())).toEqual(['/Photos', '/Archive'])
+
+		await roots.findAll('button').find((each) => each.attributes('aria-label') === `${MARK}Remove /Photos`)!.trigger('click')
+
+		expect(wrapper.emitted('update')).toEqual([[{ libraryRoots: ['/Archive'] }]])
+	})
+
+	// spec: SETTINGS-001.30
+	it('adds the folder chosen in the tree as a root when the server takes it', async () => {
+		const check = vi.fn(async (_root: string) => true)
+		const wrapper = mountDialog({ libraryRoots: ['/Photos'] }, false, false, check)
+		const library = wrapper.find('section#library')
+
+		wrapper.findComponent(FolderTree).vm.$emit('toggle', '/Archive')
+		await flushPromises()
+		await library.findAll('button').find((each) => each.text() === `${MARK}Add as root`)!.trigger('click')
+		await flushPromises()
+
+		expect(wrapper.findComponent(FolderTree).props()).toMatchObject({ single: true })
+		expect(check).toHaveBeenCalledWith('/Archive')
+		expect(wrapper.emitted('update')).toEqual([[{ libraryRoots: ['/Photos', '/Archive'] }]])
+	})
+
+	// spec: SETTINGS-001.30
+	it('says why a folder is not added: nested, or not on the own storage', async () => {
+		const wrapper = mountDialog({ libraryRoots: ['/Photos'] }, false, false, async () => false)
+		const library = wrapper.find('section#library')
+		const press = async (path: string) => {
+			wrapper.findComponent(FolderTree).vm.$emit('toggle', path)
+			await flushPromises()
+			await library.findAll('button').find((each) => each.text() === `${MARK}Add as root`)!.trigger('click')
+			await flushPromises()
+		}
+
+		await press('/Photos/Italy')
+		expect(library.find('[role="alert"]').text()).toContain('lies inside the root /Photos')
+
+		await press('/Shared')
+		expect(library.find('[role="alert"]').text()).toContain('is not in your own files')
+		expect(wrapper.emitted('update')).toBeUndefined()
 	})
 
 	// spec: SETTINGS-001.7

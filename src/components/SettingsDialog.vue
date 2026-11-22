@@ -3,8 +3,9 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
+import type { Folder } from '../api.ts'
 import type { FolderMode } from '../logic/pairing.ts'
-import type { ExtensionList, ExtensionRefusal, Settings } from '../logic/settings.ts'
+import type { ExtensionList, Settings } from '../logic/settings.ts'
 
 import { t } from '@nextcloud/l10n'
 import { reactive } from 'vue'
@@ -14,10 +15,12 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import AppIcon from './AppIcon.vue'
 import CacheSettings from './CacheSettings.vue'
+import LibraryRoots from './LibraryRoots.vue'
 import LoupeGestureSettings from './LoupeGestureSettings.vue'
 import MoveSettings from './MoveSettings.vue'
 import StatisticsSettings from './StatisticsSettings.vue'
 import { addExtension, DEFAULT_SUBFOLDERS, folderMode, removeExtension } from '../logic/settings.ts'
+import { extensionRefusalText, shown } from '../settings-text.ts'
 import { tip } from '../tooltip.ts'
 
 const props = defineProps<{
@@ -27,6 +30,8 @@ const props = defineProps<{
 	gestureGuideSeen: boolean
 	/** Whether the user is an admin, who may clean up the orphaned data. */
 	admin: boolean
+	listFolders: (path: string) => Promise<Folder[]>
+	check: (root: string) => Promise<boolean>
 }>()
 
 const emit = defineEmits<{
@@ -56,26 +61,11 @@ const SWITCHES = {
 const drafts = reactive<Record<ExtensionList, string>>({ rawExtensions: '', renderedExtensions: '' })
 const errors = reactive<Record<ExtensionList, string | null>>({ rawExtensions: null, renderedExtensions: null })
 
-/** An extension as the chips show it. */
-const shown = (extension: string) => extension.toUpperCase()
-
-/** Why an extension was not added, in the user's words. */
-function refusalText(refusal: ExtensionRefusal, input: string): string {
-	const extension = `.${shown(input.trim().replace(/^\./, ''))}`
-	switch (refusal) {
-		case 'empty': return t('honeycomb', 'Type an extension.')
-		case 'sidecar': return t('honeycomb', 'Sidecars are paired with their photo, they cannot be a photo type.')
-		case 'invalid': return t('honeycomb', 'An extension has only letters and digits.')
-		case 'in-this-list': return t('honeycomb', '{extension} is already in this list.', { extension })
-		case 'in-other-list': return t('honeycomb', '{extension} is already in the other list.', { extension })
-	}
-}
-
 /** Adds the typed extension to the list, or says why it cannot. */
 function add(list: ExtensionList) {
 	const result = addExtension(props.settings, list, drafts[list])
 	if ('refused' in result) {
-		errors[list] = refusalText(result.refused, drafts[list])
+		errors[list] = extensionRefusalText(result.refused, drafts[list])
 		return
 	}
 	errors[list] = null
@@ -204,6 +194,16 @@ function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 				@update:modelValue="emit('update', { showSingles: $event })">
 				{{ SWITCHES.singles.label }}
 			</NcCheckboxRadioSwitch>
+		</NcAppSettingsSection>
+		<NcAppSettingsSection id="library" :name="t('honeycomb', 'Library')">
+			<p class="settings-dialog__hint settings-text">
+				{{ t('honeycomb', 'Folders lists the folders below these roots, in your own files only.') }}
+			</p>
+			<LibraryRoots
+				:roots="settings.libraryRoots"
+				:listFolders="listFolders"
+				:check="check"
+				@update="emit('update', { libraryRoots: $event })" />
 		</NcAppSettingsSection>
 		<NcAppSettingsSection id="loupe-gestures" :name="t('honeycomb', 'Loupe gestures')">
 			<LoupeGestureSettings

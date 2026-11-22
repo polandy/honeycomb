@@ -32,6 +32,17 @@ export async function listLibraryFolders(root: string, after = 0, limit?: number
 	return { folders: data.folders, next: data.next, scanning: data.scanning }
 }
 
+/** Every folder below `root`, read page by page; the statistics read what is summarised so far. */
+export async function listAllLibraryFolders(root: string): Promise<FolderRow[]> {
+	const rows: FolderRow[] = []
+	for (let after: number | null = 0; after !== null;) {
+		const page: LibraryPage = await listLibraryFolders(root, after)
+		rows.push(...page.folders)
+		after = page.next
+	}
+	return rows
+}
+
 /** Summarises the next batch of the stale folders below `root` and answers how far the root is. */
 export async function scanLibrary(root: string): Promise<LibraryScanning> {
 	const { data } = await axios.post<unknown>(generateUrl(`${API}/library/scan`), { root })

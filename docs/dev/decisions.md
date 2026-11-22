@@ -1869,3 +1869,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   every key stored in the Nextcloud user config follows one convention (arch report A4);
   browser-storage keys keep their names. The old names are not read: there is no production
   install yet.
+- 2026-11-22: The statistics page reads the library rows read-only (`listAllLibraryFolders`) and
+  never scans; "done this month" counts from the stats answer's `today`. The library roots editor
+  is one shared component (`LibraryRoots`) for the setup and Settings, and the last root may be
+  removed (Folders then shows the setup). The statistics mockup keeps the old Folder sets panel as
+  a record (PR 372).
