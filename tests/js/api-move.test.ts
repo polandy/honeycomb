@@ -57,8 +57,7 @@ describe('movePictures', () => {
 		await expect(movePictures(pictures)).rejects.toBeInstanceOf(TrashBinOffError)
 	})
 
-	it('passes any other error on', async () => {
-		const error = Object.assign(new Error('Bad'), { response: { status: 400 } })
+	it.each([Object.assign(new Error('Bad'), { response: { status: 400 } }), Object.assign(new Error('Conflict'), { response: { status: 409, data: { error: 'request' } } })])('passes any other error on', async (error) => {
 		vi.mocked(axios.post).mockRejectedValue(error)
 
 		await expect(movePictures(pictures)).rejects.toBe(error)
