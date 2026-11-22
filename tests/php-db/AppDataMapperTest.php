@@ -13,6 +13,7 @@ use OCA\Honeycomb\Service\FileFlag;
 use OCA\Honeycomb\Service\Flag;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use OCP\Server;
 
 /** Counting and emptying everything the app stores, and nothing of other apps. */
 final class AppDataMapperTest extends DbTestCase {
@@ -60,7 +61,7 @@ final class AppDataMapperTest extends DbTestCase {
 		$this->preference(self::OTHER_APP);
 
 		$counts = $this->data->count();
-		$this->assertCount(11, $counts);
+		$this->assertCount(13, $counts);
 		$this->assertSame([], array_filter(array_diff_key($counts, ['honeycomb_flags' => 1, 'preferences' => 1])));
 		$this->assertSame(1, $counts['honeycomb_flags']);
 		$this->assertSame(1, $counts['preferences']);
@@ -73,6 +74,16 @@ final class AppDataMapperTest extends DbTestCase {
 		$this->assertSame(0, $this->data->count()['honeycomb_flags']);
 		$this->assertSame(0, $this->remainingPreferences('honeycomb'));
 		$this->assertSame(1, $this->remainingPreferences(self::OTHER_APP));
+	}
+
+	// spec: DECISIONS-001.35
+	public function testEveryHoneycombTableInTheSchemaIsCountedAndEmptied(): void {
+		$schema = new \OC\DB\SchemaWrapper(Server::get(\OC\DB\Connection::class));
+		$tables = array_values(array_filter($schema->getTableNames(), static fn (string $name): bool => str_starts_with($name, 'honeycomb_')));
+		$this->assertNotSame([], $tables);
+
+		$this->assertEqualsCanonicalizing($tables, array_values(array_diff(array_keys($this->data->count()), ['preferences'])));
+		$this->assertEqualsCanonicalizing($tables, array_values(array_diff(array_keys($this->data->empty()), ['preferences'])));
 	}
 
 	// spec: DECISIONS-001.35
