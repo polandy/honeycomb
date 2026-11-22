@@ -27,10 +27,10 @@ everything it stored stays in the database:
 | App state (`enabled = no`, `installed_version`), the Immich `connections_file` path, the clean-up job's `vanished_after_*` and `empty_series_after` row ids and the background jobs' `job_*` run records | rows with `appid = 'honeycomb'` in `oc_appconfig` |
 | Each user's settings and view state | rows with `appid = 'honeycomb'` in `oc_preferences` |
 | Background jobs `RemoveVanishedDecisions` and `RenderPhotoTiers` (one per written photo, until it ran) | rows in `oc_jobs` |
-| Locks that keep a file's previews from rendering twice at once | System V semaphores with keys `0x48594300` to `0x485943ff`, in the server's kernel |
+| Locks that keep a file's previews from rendering twice at once | core's file locks with keys starting `honeycomb/preview/`, in `oc_file_locks` or the locking cache; core frees them when the request ends and deletes the rows after `filelocking.ttl`, so they need no step |
 | Previews of RAW files | the preview cache of Nextcloud's core, in the appdata folder `appdata_<instance id>/preview` |
 
-Outside the server's database and kernel, these also stay:
+Outside the server's database, these also stay:
 
 - **The Immich connections file and the key files** it names. They are yours, not honeycomb's, and
   honeycomb never writes them. Delete them if you made them only for honeycomb.
@@ -117,6 +117,3 @@ DELETE FROM oc_jobs WHERE class LIKE 'OCA\\Honeycomb\\%';
 
 Drop the tables and the `oc_migrations` rows together: without the rows a new install creates
 the tables again, without the tables it would skip creating them.
-
-Free the semaphores by restarting the server, or one at a time with `ipcs -s`, which lists the
-sets, and `ipcrm -S 0x48594300` for each key from `0x48594300` to `0x485943ff` that it shows.

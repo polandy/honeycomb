@@ -1860,3 +1860,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-22: A deleted user's done statuses are removed, so those folders are open again for
   the others; the status is a user's statement, and anonymising it would need a schema change
   (FOLDERS-006.13).
+- 2026-11-22: The preview lock moves from System V semaphores to core's file locking
+  (`CorePreviewLock`, ADR 0050), so nothing outlives the app in the kernel; a render waits for a
+  held lock at most 30 s, once a second, then renders without it and logs a warning. Easy to redo:
+  `WAIT_SECONDS`.
