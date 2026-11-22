@@ -1,8 +1,8 @@
+import type { FolderFilter, FolderSort } from './folder-list.ts'
+import type { FolderProgress } from './folder-progress.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { FolderRow } from './folder-row.ts'
-import type { FolderFilter, FolderSort } from './folder-list.ts'
-import type { FolderProgress } from './folder-progress.ts'
 
 const KB = 1024
 const GB = KB ** 3
@@ -53,9 +53,9 @@ export function progressTexts(progress: FolderProgress): { headline: string, fol
 	}
 }
 
-/** The line of a done folder: when and by whom. */
-export function doneText(row: FolderRow & { readonly done: NonNullable<FolderRow['done']> }): string {
-	return `Done ${new Date(row.done.at * 1000).toISOString().slice(0, DATE_LENGTH)} · by ${row.done.by}`
+/** The line of a done folder: when and by whom; null for a folder that is not done. */
+export function doneText(row: FolderRow): string | null {
+	return row.done === null ? null : `Done ${new Date(row.done.at * 1000).toISOString().slice(0, DATE_LENGTH)} · by ${row.done.by}`
 }
 
 /** The strip while the server rescans folders. */
@@ -68,6 +68,9 @@ export function rootsSummary(roots: number, totals: { readonly folders: number, 
 	return [plural(roots, 'root'), plural(totals.folders, 'folder'), plural(totals.photos, 'photo')].join(' · ')
 }
 
+/**
+ *
+ */
 function plural(count: number, noun: string): string {
 	return `${formatCount(count)} ${noun}${count === 1 ? '' : 's'}`
 }

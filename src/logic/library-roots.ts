@@ -37,6 +37,9 @@ export function validateLibraryRoots(roots: readonly string[]): LibraryRootRefus
 	return null
 }
 
+/**
+ *
+ */
 function rootRefusal(roots: readonly string[], input: string): LibraryRootRefusal | null {
 	const path = normalizeRoot(input)
 	if (path === '/') {

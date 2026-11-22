@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { newCount, PERMISSION_UPDATE } from '../../../src/logic/folder-row.ts'
 import { badgeText, buildFolderList, filterCounts, filterRows, sortRows } from '../../../src/logic/folder-list.ts'
+import { newCount, PERMISSION_UPDATE } from '../../../src/logic/folder-row.ts'
 import { doneRow, row } from './folder-fixtures.ts'
 
 const paths = (rows: readonly { path: string }[]) => rows.map((folder) => folder.path)
@@ -111,11 +111,11 @@ describe('buildFolderList', () => {
 	it('groups Oldest and Newest under year headings, folders without a time last', () => {
 		const rows = [row({ path: '/Photos/a', oldest: year(2021), newest: year(2021) }), row({ path: '/Photos/b', oldest: year(2019), newest: year(2023) }), row({ path: '/Photos/c', oldest: null, newest: null }), row({ path: '/Photos/d', oldest: year(2019), newest: year(2019) })]
 		const oldest = buildFolderList(rows, { ...view, roots: ['/Photos'], sort: 'oldest' })
-		expect(oldest.sections[0].groups.map((group) => [group.heading, paths(group.rows)])).toEqual([[2019, ['/Photos/b', '/Photos/d']], [2021, ['/Photos/a']], ['unknown', ['/Photos/c']]])
+		expect(oldest.sections[0]?.groups.map((group) => [group.heading, paths(group.rows)])).toEqual([[2019, ['/Photos/b', '/Photos/d']], [2021, ['/Photos/a']], ['unknown', ['/Photos/c']]])
 		const newest = buildFolderList(rows, { ...view, roots: ['/Photos'], sort: 'newest' })
-		expect(newest.sections[0].groups.map((group) => group.heading)).toEqual([2023, 2021, 2019, 'unknown'])
+		expect(newest.sections[0]?.groups.map((group) => group.heading)).toEqual([2023, 2021, 2019, 'unknown'])
 		const byName = buildFolderList(rows, { ...view, roots: ['/Photos'] })
-		expect(byName.sections[0].groups.map((group) => group.heading)).toEqual([null])
+		expect(byName.sections[0]?.groups.map((group) => group.heading)).toEqual([null])
 	})
 
 	// spec: FOLDERS-002.7
@@ -133,7 +133,7 @@ describe('buildFolderList', () => {
 		const rows = [row({ path: '/Archive/x', root: '/Archive' }), row({ path: '/Photos/y' })]
 		const one = buildFolderList(rows, { ...view, root: '/Archive' })
 		expect(one.rootHeadings).toBe(false)
-		expect(one.sections.map((section) => paths(section.groups[0].rows))).toEqual([['/Archive/x']])
+		expect(one.sections.map((section) => paths(section.groups[0]?.rows ?? []))).toEqual([['/Archive/x']])
 		expect(buildFolderList(rows, { ...view, roots: ['/Photos'] }).rootHeadings).toBe(false)
 	})
 
@@ -146,7 +146,7 @@ describe('buildFolderList', () => {
 	it('filters before it sorts', () => {
 		const rows = [row({ path: '/Photos/a', undecided: 5 }), doneRow({ path: '/Photos/b' })]
 		const list = buildFolderList(rows, { ...view, filter: 'suggested', sort: 'suggested' })
-		expect(paths(list.sections[0].groups[0].rows)).toEqual(['/Photos/a'])
+		expect(paths(list.sections[0]?.groups[0]?.rows ?? [])).toEqual(['/Photos/a'])
 	})
 })
 
