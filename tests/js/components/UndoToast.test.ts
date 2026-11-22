@@ -55,8 +55,8 @@ describe('UndoToast', () => {
 		expect(mountToast(null).find('.undo-toast__details').exists()).toBe(false)
 	})
 
-	// spec: APP-001.13
-	it('is an alert with a Close button when it reports an error, and a status without one otherwise', async () => {
+	// spec: APP-001.13, APP-001.18
+	it('is an alert when it reports an error and a status otherwise, each with a Close button', async () => {
 		const error = mount(UndoToast, { props: { toast: { message: 'Could not clear the cache.', action: null, kind: 'error' } } })
 
 		expect(error.attributes('role')).toBe('alert')
@@ -64,14 +64,16 @@ describe('UndoToast', () => {
 		expect(error.emitted('close')).toHaveLength(1)
 		expect(error.find('.undo-toast__close').attributes('aria-label')).toBe('Close')
 		expect(mountToast(null).attributes('role')).toBe('status')
-		expect(mountToast(null).find('.undo-toast__close').exists()).toBe(false)
+		const success = mountToast({ label: 'Undo' })
+		await success.find('.undo-toast__close').trigger('click')
+		expect(success.emitted('close')).toHaveLength(1)
 	})
 
 	it('says the change, a dot and its action as a status', async () => {
 		const wrapper = mountToast({ label: 'Undo' })
 
 		expect(wrapper.attributes('role')).toBe('status')
-		expect(wrapper.text()).toBe('Rejected IMG_1·Undo')
+		expect(wrapper.text()).toBe('Rejected IMG_1·Undo×')
 		await wrapper.find('button').trigger('click')
 		expect(wrapper.emitted('act')).toHaveLength(1)
 	})
@@ -97,7 +99,7 @@ describe('UndoToast', () => {
 		const wrapper = mount(UndoToast, { props: { toast: { message: 'Picked IMG_2', action: { label: 'Undo', run: () => undefined }, offer: { label: 'Reject the other 2', run: () => undefined } } } })
 		const offer = wrapper.find('.undo-toast__offer')
 
-		expect(wrapper.text()).toBe('Picked IMG_2·Reject the other 2Undo')
+		expect(wrapper.text()).toBe('Picked IMG_2·Reject the other 2Undo×')
 		expect(offer.attributes()).toMatchObject({ 'data-tip': 'Reject the other 2', 'data-tip-key': 'Shift+K' })
 		const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
 		offer.element.dispatchEvent(press)
@@ -107,11 +109,40 @@ describe('UndoToast', () => {
 		expect(wrapper.emitted('act')).toBeUndefined()
 	})
 
-	it('shows the message alone without an action', () => {
+	it('shows the message and its Close button alone without an action', () => {
 		const wrapper = mountToast(null)
 
-		expect(wrapper.text()).toBe('Rejected IMG_1')
-		expect(wrapper.find('button').exists()).toBe(false)
+		expect(wrapper.text()).toBe('Rejected IMG_1×')
+		expect(wrapper.findAll('button').map((each) => each.classes())).toEqual([['undo-toast__action', 'undo-toast__close']])
+	})
+
+	describe('swipe', () => {
+		/** A pointer pressed on the toast at (x, y) and released at (x + dx, y + dy) on the page. */
+		async function swipe(wrapper: ReturnType<typeof mountToast>, dx: number, dy: number, pointerType = 'touch') {
+			await wrapper.trigger('pointerdown', { clientX: 100, clientY: 200, pointerType })
+			window.dispatchEvent(new PointerEvent('pointerup', { clientX: 100 + dx, clientY: 200 + dy, pointerType }))
+		}
+
+		// spec: APP-001.18
+		it('asks to close on a sideways touch move of at least 60 px', async () => {
+			const wrapper = mountToast({ label: 'Undo' })
+
+			await swipe(wrapper, -60, 10)
+
+			expect(wrapper.emitted('close')).toHaveLength(1)
+			expect(wrapper.emitted('press')).toEqual([[true], [false]])
+		})
+
+		// spec: APP-001.18
+		it('stays on a short, a mostly vertical or a mouse move', async () => {
+			const wrapper = mountToast({ label: 'Undo' })
+
+			await swipe(wrapper, 59, 0)
+			await swipe(wrapper, 70, 90)
+			await swipe(wrapper, 120, 0, 'mouse')
+
+			expect(wrapper.emitted('close')).toBeUndefined()
+		})
 	})
 
 	describe('with the marked catalogue', () => {

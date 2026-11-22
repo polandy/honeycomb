@@ -34,4 +34,24 @@ describe('CullFinished', () => {
 		expect(link?.getAttribute('href')).toBe(pageUrl('statistics'))
 		wrapper.unmount()
 	})
+
+	// spec: FOLDERS-008.8
+	it('offers Mark folder done when the folder may be marked, and asks for it', async () => {
+		const wrapper = mount(CullFinished, { props: { numbers: NUMBERS, markable: true }, attachTo: document.body })
+
+		const button = [...document.body.querySelectorAll('button')].find((each) => each.textContent?.trim() === 'Mark folder done')
+		button!.click()
+		await wrapper.vm.$nextTick()
+
+		expect(wrapper.emitted('markDone')).toHaveLength(1)
+		wrapper.unmount()
+	})
+
+	// spec: FOLDERS-008.9
+	it('offers no Mark folder done otherwise', () => {
+		const wrapper = mount(CullFinished, { props: { numbers: NUMBERS }, attachTo: document.body })
+
+		expect([...document.body.querySelectorAll('button')].map((each) => each.textContent?.trim())).not.toContain('Mark folder done')
+		wrapper.unmount()
+	})
 })
