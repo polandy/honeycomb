@@ -20,7 +20,7 @@ describe('folder texts', () => {
 			headline: '41 % of photos in done folders',
 			folders: '1 of 18 folders done',
 			month: '1 this month',
-			decided: '10 % of all photos decided',
+			decided: '12 % of all photos decided',
 		})
 	})
 

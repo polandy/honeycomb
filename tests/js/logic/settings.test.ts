@@ -33,6 +33,7 @@ describe('parseSettings', () => {
 			viKeys: true,
 			showFileNames: true,
 			keepStatistics: false,
+			libraryRoots: ['/Photos', '/Archive'],
 			moveFavourites: ['/Archive'],
 			moveRecent: ['/Archive', '/Best'],
 			moveTemplate: '{name:lower}.{ext}',

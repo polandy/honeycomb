@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { PERMISSION_UPDATE } from '../../../src/logic/folder-row.ts'
-import { badgeText, buildFolderList, filterCounts, filterRows, newCount, sortRows } from '../../../src/logic/folder-list.ts'
+import { newCount, PERMISSION_UPDATE } from '../../../src/logic/folder-row.ts'
+import { badgeText, buildFolderList, filterCounts, filterRows, sortRows } from '../../../src/logic/folder-list.ts'
 import { doneRow, row } from './folder-fixtures.ts'
 
 const paths = (rows: readonly { path: string }[]) => rows.map((folder) => folder.path)
@@ -59,11 +59,10 @@ describe('sortRows', () => {
 	})
 
 	// spec: FOLDERS-002.2
-	it('breaks equal scores by undecided photos', () => {
-		const few = row({ path: '/Photos/few', photos: 10, undecided: 4, bytes: 0 })
-		const many = row({ path: '/Photos/many', photos: 20, undecided: 4, bytes: 0 })
-		const fewer = row({ path: '/Photos/fewer', photos: 10, undecided: 2, bytes: 0 })
-		expect(paths(sortRows([fewer, few, many], 'suggested'))).toEqual(['/Photos/few', '/Photos/many', '/Photos/fewer'])
+	it('breaks equal scores by undecided photos before the path', () => {
+		const more = row({ path: '/Photos/z', photos: 10, undecided: 4, bursts: 0, bytes: 0 })
+		const fewer = row({ path: '/Photos/a', photos: 10, undecided: 2, bursts: 5, bytes: 0 })
+		expect(paths(sortRows([fewer, more], 'suggested'))).toEqual(['/Photos/z', '/Photos/a'])
 	})
 
 	// spec: FOLDERS-002.5
@@ -85,6 +84,13 @@ describe('sortRows', () => {
 		const before = [...rows]
 		expect(paths(sortRows(rows, 'name'))).toEqual(['/Photos/2 a', '/Photos/10 b', '/Photos/m', '/Photos/Z'])
 		expect(rows).toEqual(before)
+	})
+
+	// spec: FOLDERS-002.5
+	it('orders paths that differ only in case by code point, so the order is stable', () => {
+		const rows = [row({ path: '/Photos/b' }), row({ path: '/Photos/B' }), row({ path: '/Photos/b' })]
+		expect(paths(sortRows(rows, 'name'))).toEqual(['/Photos/B', '/Photos/b', '/Photos/b'])
+		expect(paths(sortRows([...rows].reverse(), 'name'))).toEqual(['/Photos/B', '/Photos/b', '/Photos/b'])
 	})
 
 	// spec: FOLDERS-002.5
