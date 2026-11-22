@@ -24,10 +24,10 @@ test.beforeEach(async ({ page }) => {
 	await logIn(page, user)
 	await page.goto('/index.php/apps/honeycomb/')
 	await resetViewState(page)
-	await createFolder(page, 'Library')
+	await createFolder(page, 'Library', user.username)
 	for (const folder of FOLDERS) {
-		await createFolder(page, `Library/${folder}`)
-		await upload(page, `Library/${folder}/IMG_0001.jpg`, JPEG)
+		await createFolder(page, `Library/${folder}`, user.username)
+		await upload(page, `Library/${folder}/IMG_0001.jpg`, JPEG, user.username)
 	}
 })
 
@@ -44,7 +44,7 @@ async function openList(page: Page) {
 	return list
 }
 
-// spec: FOLDERS-006.2, FOLDERS-006.3, FOLDERS-006.5, FOLDERS-006.17
+// spec: FOLDERS-007.2, FOLDERS-007.3, FOLDERS-007.5, FOLDERS-007.17
 test('sets up the library root on the first run and shows its folders', async ({ page }) => {
 	await emulateIpad(page, 'landscape')
 	await page.reload()
@@ -65,7 +65,7 @@ test('sets up the library root on the first run and shows its folders', async ({
 	await expect(page.locator('.folders-screen').getByRole('article', { name: 'Alps' })).toBeVisible()
 })
 
-// spec: FOLDERS-006.7
+// spec: FOLDERS-007.7
 test('says how many folders it updates while the server summarises them', async ({ page }) => {
 	let release: () => void = () => undefined
 	const held = new Promise<void>((resolve) => (release = resolve))
@@ -84,7 +84,7 @@ test('says how many folders it updates while the server summarises them', async 
 	await expect(page.locator('.folders-screen').getByRole('article')).toHaveCount(FOLDERS.length)
 })
 
-// spec: FOLDERS-006.9, FOLDERS-006.11, FOLDERS-006.12, FOLDERS-006.17
+// spec: FOLDERS-007.9, FOLDERS-007.11, FOLDERS-007.12, FOLDERS-007.17
 test('lists the folders with the library\'s progress, accessible and touch-sized', async ({ page }) => {
 	await emulateIpad(page, 'landscape')
 	const list = await openList(page)
@@ -106,7 +106,7 @@ test('lists the folders with the library\'s progress, accessible and touch-sized
 	await expect(menu).toBeHidden()
 })
 
-// spec: FOLDERS-006.12
+// spec: FOLDERS-007.12
 test('opens the row\'s menu as a bottom sheet on a phone', async ({ page }) => {
 	const phone = { width: 390, height: 844 }
 	await page.setViewportSize(phone)
@@ -121,7 +121,7 @@ test('opens the row\'s menu as a bottom sheet on a phone', async ({ page }) => {
 	expect(box.y + box.height).toBe(phone.height)
 })
 
-// spec: FOLDERS-006.13, FOLDERS-006.14
+// spec: FOLDERS-007.13, FOLDERS-007.14
 test('culls a folder from the list and goes back to it with its filter and scroll', async ({ page }) => {
 	await page.setViewportSize({ width: 1133, height: 500 })
 	const list = await openList(page)

@@ -65,7 +65,7 @@ describe('GridToolbar', () => {
 		expect(wrapper.emitted('changeFolders')).toEqual([[], []])
 	})
 
-	// spec: FOLDERS-006.14
+	// spec: FOLDERS-007.14
 	it('goes back to the folders from Home on a cull opened from the list', async () => {
 		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, {}, true)
 

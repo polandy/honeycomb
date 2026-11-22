@@ -17,7 +17,7 @@ import { logger } from './logger.ts'
 import { countFolderSet } from './logic/cull.ts'
 import { folderSetKey } from './logic/folder-set.ts'
 import { recentFolderSets, withPosition } from './logic/recent.ts'
-import { parsePositions } from './logic/resume-position.ts'
+import { parsePositions, positionOf } from './logic/resume-position.ts'
 import { notOpenedText } from './recent-text.ts'
 
 /** What *Recent* reads from the open cull. */
@@ -101,6 +101,8 @@ export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: Recent
 		openSet,
 		list,
 		listing,
+		/** The stored position of the folder set, or null. */
+		positionOf: (folderSet: FolderSet) => positionOf(positions.value, folderSet),
 		/** The positions API for the resume flow; a saved position is listed first. */
 		positions: {
 			loadPositions: () => api.loadPositions(),

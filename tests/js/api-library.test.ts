@@ -11,7 +11,7 @@ vi.mock('@nextcloud/router', () => ({ generateUrl: (url: string) => `/index.php$
 const ROW = row({ fileId: 7, root: '/Photos', path: '/Photos/2019' })
 
 describe('listLibraryFolders', () => {
-	// spec: FOLDERS-006.6
+	// spec: FOLDERS-007.6
 	it('asks one page of a root after a folder and answers it', async () => {
 		vi.mocked(axios.get).mockResolvedValue({ data: { folders: [ROW], next: 7, scanning: { done: 1, total: 2 } } })
 
@@ -19,7 +19,7 @@ describe('listLibraryFolders', () => {
 		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/folders', { params: { root: '/Photos', after: 3 } })
 	})
 
-	// spec: FOLDERS-006.4
+	// spec: FOLDERS-007.4
 	it('asks a page of the given size', async () => {
 		vi.mocked(axios.get).mockResolvedValue({ data: { folders: [], next: null, scanning: null } })
 
@@ -36,7 +36,7 @@ describe('listLibraryFolders', () => {
 })
 
 describe('scanLibrary', () => {
-	// spec: FOLDERS-006.7
+	// spec: FOLDERS-007.7
 	it('summarises the next batch of a root and answers how far it is', async () => {
 		vi.mocked(axios.post).mockResolvedValue({ data: { scanning: { done: 9, total: 12 } } })
 

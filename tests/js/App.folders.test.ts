@@ -42,22 +42,27 @@ function openApp() {
 
 type App = ReturnType<typeof openApp>['wrapper']
 
+/** Whether the list shows; the app is not attached, so its `v-show` style says it. */
+function listShown(wrapper: App): boolean {
+	return !(wrapper.findComponent(FoldersHome).attributes('style') ?? '').includes('display: none')
+}
+
 async function cull(wrapper: App, set: typeof TRIP) {
-	wrapper.findComponent(FoldersHome).vm.$emit('cull', set)
+	wrapper.findComponent(FoldersHome).props('home').cull(set)
 	await flushPromises()
 }
 
 describe('App: Folders', () => {
-	// spec: FOLDERS-006.1
+	// spec: FOLDERS-007.1
 	it('reads the list of the roots once the settings are read', async () => {
 		const { wrapper, reads } = openApp()
 		await flushPromises()
 
 		expect(reads).toEqual(['/Photos'])
-		expect(wrapper.findComponent(FoldersHome).props('folders').rows.value).toHaveLength(1)
+		expect(wrapper.findComponent(FoldersHome).props('home').rows.value).toHaveLength(1)
 	})
 
-	// spec: FOLDERS-006.13
+	// spec: FOLDERS-007.13
 	it('opens a folder with a stored position in the loupe at it, as Recent does', async () => {
 		const { wrapper, listed } = openApp()
 		await flushPromises()
@@ -65,11 +70,11 @@ describe('App: Folders', () => {
 		await cull(wrapper, TRIP)
 
 		expect(listed).toEqual(['/Photos/Trip'])
-		expect(wrapper.findComponent(FoldersHome).isVisible()).toBe(false)
+		expect(listShown(wrapper)).toBe(false)
 		expect(wrapper.findComponent(PhotoLoupe).props('index')).toBe(shownNames(wrapper).indexOf('IMG_9'))
 	})
 
-	// spec: FOLDERS-006.13
+	// spec: FOLDERS-007.13
 	it('opens a folder without a stored position at the start of its grid', async () => {
 		const { wrapper, listed } = openApp()
 		await flushPromises()
@@ -81,7 +86,7 @@ describe('App: Folders', () => {
 		expect(wrapper.findComponent(PhotoLoupe).exists()).toBe(false)
 	})
 
-	// spec: FOLDERS-006.14
+	// spec: FOLDERS-007.14
 	it('offers Back to folders on a cull from the list and shows the list again with its rows read again', async () => {
 		const { wrapper, reads } = openApp()
 		await flushPromises()
@@ -91,12 +96,12 @@ describe('App: Folders', () => {
 		wrapper.findComponent(GridToolbar).vm.$emit('back')
 		await flushPromises()
 
-		expect(wrapper.findComponent(FoldersHome).isVisible()).toBe(true)
+		expect(listShown(wrapper)).toBe(true)
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
 		expect(reads).toEqual(['/Photos', '/Photos'])
 	})
 
-	// spec: FOLDERS-006.15
+	// spec: FOLDERS-007.15
 	it('keeps Change folders on a cull from the folder picker', async () => {
 		const { wrapper } = openApp()
 		await flushPromises()
@@ -107,26 +112,26 @@ describe('App: Folders', () => {
 		expect(wrapper.findComponent(GridToolbar).props('folders')).toMatchObject({ set: TRIP, back: false })
 	})
 
-	// spec: FOLDERS-006.16
+	// spec: FOLDERS-007.16
 	it('shows the list from the grid by the navigation\'s Folders', async () => {
 		const { wrapper } = openApp()
 		await flushPromises()
 		await openCull(wrapper, NEW)
-		expect(wrapper.findComponent(FoldersHome).isVisible()).toBe(false)
+		expect(listShown(wrapper)).toBe(false)
 
 		wrapper.findComponent(AppNavigation).vm.$emit('openFolders')
 		await flushPromises()
 
-		expect(wrapper.findComponent(FoldersHome).isVisible()).toBe(true)
+		expect(listShown(wrapper)).toBe(true)
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
 	})
 
-	// spec: FOLDERS-006.5
+	// spec: FOLDERS-007.5
 	it('saves the roots the setup chose', async () => {
 		const { wrapper, savedSettings } = mountApp()
 		await flushPromises()
 
-		wrapper.findComponent(FoldersHome).vm.$emit('saveRoots', ['/Photos', '/Phone'])
+		wrapper.findComponent(FoldersHome).props('home').saveRoots(['/Photos', '/Phone'])
 		await flushPromises()
 
 		expect(savedSettings.at(-1)).toMatchObject({ libraryRoots: ['/Photos', '/Phone'] })

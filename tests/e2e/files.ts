@@ -58,7 +58,7 @@ function withExif(jpeg: Buffer, tiff: Buffer): Buffer {
 	return Buffer.concat([jpeg.subarray(0, 2), segment, header, tiff, jpeg.subarray(2)])
 }
 
-const davUrl = (path: string) => `/remote.php/dav/files/${ADMIN.username}/${path}`
+const davUrl = (path: string, owner = ADMIN.username) => `/remote.php/dav/files/${owner}/${path}`
 
 /** No keep-alive for a test's own requests: Apache closes an idle connection after 5 s, and a request reusing it that instant fails with ECONNRESET. */
 const NO_KEEP_ALIVE = { Connection: 'close' }
@@ -68,15 +68,15 @@ export async function apiHeaders(page: Page, extra: Record<string, string> = {})
 	return { requesttoken: (await page.locator('head').getAttribute('data-requesttoken')) ?? '', ...NO_KEEP_ALIVE, ...extra }
 }
 
-/** Creates a folder in the admin's files; its parent must exist. */
-export async function createFolder(page: Page, path: string): Promise<void> {
-	const response = await page.request.fetch(davUrl(path), { method: 'MKCOL', headers: await apiHeaders(page) })
+/** Creates a folder in the files of `owner`, the admin by default; its parent must exist. */
+export async function createFolder(page: Page, path: string, owner?: string): Promise<void> {
+	const response = await page.request.fetch(davUrl(path, owner), { method: 'MKCOL', headers: await apiHeaders(page) })
 	expect(response.status(), await response.text()).toBe(201)
 }
 
-/** Uploads `content` to the admin's files with a fixed mtime and returns its file id. */
-export async function upload(page: Page, path: string, content: Buffer): Promise<number> {
-	const url = davUrl(path)
+/** Uploads `content` to the files of `owner`, the admin by default, with a fixed mtime and returns its file id. */
+export async function upload(page: Page, path: string, content: Buffer, owner?: string): Promise<number> {
+	const url = davUrl(path, owner)
 	const headers = await apiHeaders(page)
 	const put = await page.request.put(url, { data: content, headers: { ...headers, 'X-OC-MTime': String(MTIME) } })
 	expect(put.status(), await put.text()).toBeLessThan(300)

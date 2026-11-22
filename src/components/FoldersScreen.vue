@@ -1,0 +1,201 @@
+<!--
+  - SPDX-FileCopyrightText: 2026 honeycomb contributors
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<script setup lang="ts">
+import type { FolderList } from '../folders.ts'
+import type { FolderFilter, FolderSort } from '../logic/folder-list.ts'
+import type { FolderRow } from '../logic/folder-row.ts'
+
+import { t } from '@nextcloud/l10n'
+import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import FolderListFilters from './FolderListFilters.vue'
+import FolderListRow from './FolderListRow.vue'
+import FolderMenu from './FolderMenu.vue'
+import FoldersProgress from './FoldersProgress.vue'
+import ProgressBar from './ProgressBar.vue'
+import { updatingText, yearHeadingText } from '../folders-text.ts'
+import { formatNumber } from '../l10n.ts'
+import { buildFolderList, filterCounts } from '../logic/folder-list.ts'
+import { folderProgress } from '../logic/folder-progress.ts'
+
+const props = defineProps<{
+	folders: FolderList
+	roots: readonly string[]
+	/** The current time in Unix seconds; it sets the month of the progress card. */
+	now: () => number
+}>()
+
+const emit = defineEmits<{
+	/** Cull one folder, with its subfolders or without (FOLDERS-007.13). */
+	cull: [set: { paths: string[], subfolders: boolean }]
+}>()
+
+const root = ref<string | null>(null)
+const filter = ref<FolderFilter>('suggested')
+const sort = ref<FolderSort>('suggested')
+const menuRow = ref<FolderRow | null>(null)
+const scroller = useTemplateRef<HTMLElement>('scroller')
+
+const rows = computed(() => props.folders.rows.value)
+const listing = computed(() => buildFolderList(rows.value, { roots: props.roots, root: root.value, filter: filter.value, sort: sort.value }))
+const empty = computed(() => listing.value.sections.every((section) => section.groups.every((group) => group.rows.length === 0)))
+const counts = computed(() => filterCounts(rows.value.filter((each) => (root.value === null ? props.roots.includes(each.root) : each.root === root.value))))
+const library = computed(() => folderProgress(rows.value, props.roots, new Date(props.now() * 1000)))
+const progress = computed(() => (root.value === null ? library.value.total : library.value.perRoot.find((each) => each.root === root.value)!.progress))
+/** One bar per root only for the whole library of several roots (FOLDERS-007.9). */
+const perRoot = computed(() => (root.value === null && props.roots.length > 1 ? library.value.perRoot : []))
+const updating = computed(() => props.folders.updating.value)
+
+watch(() => props.roots, (roots) => {
+	if (root.value !== null && !roots.includes(root.value)) {
+		root.value = null
+	}
+})
+
+/** The list stays mounted under a cull; its scroll comes back with it (FOLDERS-007.14). */
+let scrollTop = 0
+watch(() => props.folders.shown.value, async (shown) => {
+	if (!shown) {
+		scrollTop = scroller.value?.scrollTop ?? 0
+		return
+	}
+	await nextTick()
+	if (scroller.value !== null) {
+		scroller.value.scrollTop = scrollTop
+	}
+})
+
+/** Close the menu and open the folder in the grid. */
+function cull(row: FolderRow, subfolders: boolean) {
+	menuRow.value = null
+	emit('cull', { paths: [row.path], subfolders })
+}
+</script>
+
+<template>
+	<div ref="scroller" class="folders-screen">
+		<div class="folders-screen__body">
+			<FoldersProgress
+				:root="root"
+				:roots="props.roots.length"
+				:progress="progress"
+				:perRoot="perRoot" />
+			<div v-if="updating !== null" class="folders-screen__updating">
+				<span>{{ updatingText(updating.total - updating.done) }}</span>
+				<ProgressBar
+					class="folders-screen__updating-bar"
+					:label="updatingText(updating.total - updating.done)"
+					:value="updating.done"
+					:max="updating.total" />
+			</div>
+			<FolderListFilters
+				v-model:root="root"
+				v-model:filter="filter"
+				v-model:sort="sort"
+				:roots="props.roots"
+				:counts="counts" />
+			<p v-if="props.folders.state.value === 'loading'" class="folders-screen__state">
+				{{ t('honeycomb', 'Loading the folders…') }}
+			</p>
+			<div v-else-if="props.folders.state.value === 'failed'" class="folders-screen__state" role="alert">
+				<p>{{ t('honeycomb', 'Could not load the folders.') }}</p>
+				<NcButton @click="props.folders.refresh">
+					{{ t('honeycomb', 'Try again') }}
+				</NcButton>
+			</div>
+			<p v-else-if="empty" class="folders-screen__state">
+				{{ t('honeycomb', 'No folders here.') }}
+			</p>
+			<template v-else>
+				<section v-for="section in listing.sections" :key="section.root" class="folders-screen__section">
+					<h3 v-if="listing.rootHeadings" class="folders-screen__root-heading">
+						<span translate="no">{{ section.root }}</span>
+						<span class="folders-screen__root-count">{{ formatNumber(section.count) }}</span>
+					</h3>
+					<template v-for="group in section.groups" :key="String(group.heading)">
+						<h4 v-if="yearHeadingText(group.heading) !== null" class="folders-screen__year">
+							{{ yearHeadingText(group.heading) }}
+						</h4>
+						<FolderListRow
+							v-for="each in group.rows"
+							:key="each.fileId"
+							:row="each"
+							@cull="cull(each, false)"
+							@menu="menuRow = each" />
+					</template>
+				</section>
+			</template>
+		</div>
+		<FolderMenu
+			v-if="menuRow !== null"
+			:row="menuRow"
+			@cull="cull(menuRow, $event)"
+			@close="menuRow = null" />
+	</div>
+</template>
+
+<style scoped>
+.folders-screen {
+	overflow: auto;
+	box-sizing: border-box;
+	height: 100%;
+}
+
+.folders-screen__body {
+	display: flex;
+	flex-direction: column;
+	gap: calc(3 * var(--default-grid-baseline));
+	box-sizing: border-box;
+	width: min(960px, 100%);
+	margin: 0 auto;
+	padding: calc(4 * var(--default-grid-baseline));
+}
+
+.folders-screen__updating {
+	display: grid;
+	gap: var(--default-grid-baseline);
+	color: var(--color-text-maxcontrast);
+	font-size: 13px;
+}
+
+.folders-screen__updating-bar {
+	width: 100%;
+	height: 6px;
+	border-radius: 3px;
+}
+
+.folders-screen__state {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: calc(2 * var(--default-grid-baseline));
+	color: var(--color-text-maxcontrast);
+}
+
+.folders-screen__section {
+	display: flex;
+	flex-direction: column;
+	gap: calc(2 * var(--default-grid-baseline));
+}
+
+.folders-screen__root-heading {
+	display: flex;
+	align-items: baseline;
+	gap: calc(2 * var(--default-grid-baseline));
+	margin: calc(2 * var(--default-grid-baseline)) 0 0;
+	font-size: 15px;
+}
+
+.folders-screen__root-count,
+.folders-screen__year {
+	color: var(--color-text-maxcontrast);
+	font-size: 13px;
+	font-variant-numeric: tabular-nums;
+}
+
+.folders-screen__year {
+	margin: var(--default-grid-baseline) 0 0;
+}
+</style>

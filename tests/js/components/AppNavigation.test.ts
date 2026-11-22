@@ -65,7 +65,7 @@ describe('AppNavigation', () => {
 		expect(wrapper.emitted('openSettings')).toEqual([[]])
 	})
 
-	// spec: FOLDERS-006.16
+	// spec: FOLDERS-007.16
 	it('lists Folders first, before the folder picker, and shows the list from it', async () => {
 		const wrapper = mountNavigation()
 		const entries = wrapper.findAll('.app-navigation-entry__name').map((each) => each.text())

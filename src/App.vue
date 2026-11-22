@@ -18,6 +18,7 @@ import AppTooltip from './components/AppTooltip.vue'
 import CullDialogs from './components/CullDialogs.vue'
 import CullFinished from './components/CullFinished.vue'
 import FolderPicker from './components/FolderPicker.vue'
+import FoldersHome from './components/FoldersHome.vue'
 import GridScreen from './components/GridScreen.vue'
 import GridSkeleton from './components/GridSkeleton.vue'
 import ImmichConnectionDialog from './components/ImmichConnectionDialog.vue'
@@ -40,6 +41,7 @@ import { useCullLocation } from './cull-location.ts'
 import { useCull } from './cull.ts'
 import { flagsNotSavedText } from './decision-text.ts'
 import { useDeleteFlow } from './delete-flow.ts'
+import { useFoldersHome } from './folders-home.ts'
 import { freshCheck } from './fresh-check.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
@@ -71,7 +73,7 @@ const props = withDefaults(defineProps<AppSeams>(), APP_SEAMS)
 
 const toast = useToast(props.schedule)
 const isAdmin = props.admin()
-const { settings, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, toast.showError)
+const { settings, ready, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, toast.showError)
 const viewStateApi = readOnce(props.viewState)
 const viewState = useViewState(viewStateApi, props.storage)
 const yearReviewHint = useYearReviewHint(viewStateApi, props.today)
@@ -123,10 +125,12 @@ const moving = useMoveFlow({ view: () => view.value, settings: () => settings.va
 const recent = useRecent(props.positions, props.listEntries, { folderSet: () => folderSet.value, progress: () => progress.value, pairing: () => cull.pairing.value }, toast.showError)
 const activeTime = useActiveTime(props.clock)
 const resume = useResume(recent.positions, { folderSet: () => folderSet.value, pictures: () => pictures.value, view: () => view.value, progress: () => progress.value, decidedOf: cull.decidedOf, shown: shownInLoupe, openLoupe, takeActiveSeconds: activeTime.take }, toast.show)
+const home = useFoldersHome(props.library, { roots: () => (ready.value ? settings.value.libraryRoots : null), flush: flushWrites, toastError: toast.showError, folderSet: () => folderSet.value, listing: () => recent.listing.value, positionOf: recent.positionOf, openPosition: openRecent, openSet: (set) => openAt(set, null), saveRoots: (libraryRoots) => updateSettings({ libraryRoots }), now: props.now })
 /** Opens a folder set from *Recent* at its position. */
 function openRecent(position: ResumePosition) {
 	void recent.open(position, { open: cull.open, resumeAt: resume.resumeAt, resumeOpen: () => {
 		pickerOpen.value = false
+		home.hide()
 		resume.resume()
 	} })
 }
@@ -139,7 +143,7 @@ const IMMICH_HIDDEN_KEYS = unofferedKeys(DECISIONS_ONLY)
 
 const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => gridScreen.value?.filterBar?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
 
-provideCullContext({ cull, selection, decide, clearFlags, reduceSeries, xmpExport, editSeries: editSelection, deleting, moving, resume, seriesCompare, unsaved: sidecars.waiting, tagEntry, headerShown, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage, imageUrl: props.imageUrl })
+provideCullContext({ cull, selection, decide, clearFlags, reduceSeries, xmpExport, editSeries: editSelection, deleting, moving, resume, seriesCompare, unsaved: sidecars.waiting, tagEntry, headerShown, home: { fromList: home.fromList, back: home.back }, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage, imageUrl: props.imageUrl })
 
 /** Opens the confirmed folder set and offers its resume position. */
 function openFolderSet(...opened: Parameters<typeof cull.open>) {
@@ -170,7 +174,7 @@ useHotkeys(() => {
 	if (immichShown.value && !shortcutsOpen.value) {
 		return { undo: immichCull.undo, redo: immichCull.redo, shortcuts: toggleShortcuts, ...immichScreen.value?.loupe?.hotkeys }
 	}
-	if (shortcutsOpen.value || folderSet.value === null || immichShown.value) {
+	if (shortcutsOpen.value || folderSet.value === null || immichShown.value || home.shown.value) {
 		return { shortcuts: toggleShortcuts }
 	}
 	if (seriesCompare.open.value) {
@@ -194,10 +198,12 @@ useHotkeys(() => {
 			@openConnection="openConnection"
 			@connectionDetails="connectionDialogOpen = true"
 			@closeHint="yearReviewHint.close()"
+			@openFolders="home.back"
 			@chooseFolders="pickerOpen = true"
 			@openRecent="openRecent"
 			@openSettings="settingsOpen = true" />
 		<NcAppContent class="honeycomb">
+			<FoldersHome v-show="ready && home.shown.value && !immichShown" :home="home" :listFolders="listFolders" />
 			<ImmichScreen
 				v-if="immichShown && openedStatus?.state === 'ok'"
 				ref="immichScreen"
@@ -215,6 +221,7 @@ useHotkeys(() => {
 				:status="openedStatus"
 				@retry="checkOpened"
 				@details="connectionDialogOpen = true" />
+			<template v-else-if="home.shown.value" />
 			<GridSkeleton v-else-if="recent.listing.value" class="honeycomb__grid" :tileSize="tileSize" />
 			<GridScreen v-else-if="folderSet !== null" ref="gridScreen" />
 			<NoFolderState v-else @chooseFolder="pickerOpen = true" />

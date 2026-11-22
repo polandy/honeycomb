@@ -3,7 +3,7 @@
 import type { Settings } from './logic/settings.ts'
 
 import { t } from '@nextcloud/l10n'
-import { shallowRef } from 'vue'
+import { ref, shallowRef } from 'vue'
 import { logger } from './logger.ts'
 import { DEFAULT_SETTINGS, parseSettings } from './logic/settings.ts'
 
@@ -13,20 +13,23 @@ export interface SettingsApi {
 	saveSettings(settings: Settings): Promise<void>
 }
 
-/** The user's settings: the defaults until the stored ones arrive, each change applied at once and saved whole. */
+/** The user's settings: the defaults until the stored ones arrive, each change applied at once and saved whole; `ready` once they were read or could not be. */
 export function useSettings(api: SettingsApi, toast: (message: string) => void) {
 	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
 	let loaded: 'pending' | 'read' | 'failed' = 'pending'
+	const ready = ref(false)
 	let early: Partial<Settings> = {}
 
 	api.loadSettings().then((stored) => {
 		loaded = 'read'
 		settings.value = { ...parseSettings(stored), ...early }
+		ready.value = true
 		if (Object.keys(early).length > 0) {
 			save()
 		}
 	}).catch((error: unknown) => {
 		loaded = 'failed'
+		ready.value = true
 		logger.error('Could not read the settings; the defaults apply.', { error })
 		if (Object.keys(early).length > 0) {
 			unsaved()
@@ -58,5 +61,5 @@ export function useSettings(api: SettingsApi, toast: (message: string) => void) 
 		}
 	}
 
-	return { settings, update }
+	return { settings, ready, update }
 }

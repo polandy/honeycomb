@@ -14,7 +14,7 @@ starts from an empty state that leads to the folder picker.
 
 The app installs on Nextcloud 35 with PHP 8.3 or later and adds a *honeycomb* entry to the
 navigation. The entry opens the app's page for the logged-in user. The page starts on *Folders*
-(FOLDERS-006), or on the library setup while the user has no library root; the folder picker
+(FOLDERS-007), or on the library setup while the user has no library root; the folder picker
 opens only from the navigation. Every
 text the user reads comes from the translation catalogue (`t()`), except names taken from the
 user's files. On a phone, below 520 px, every confirm dialog is a bottom sheet: full width, at
@@ -54,7 +54,7 @@ stays the same.
 
 - **Given** a user without a library root
 - **When** the app page opens
-- **Then** it shows the library setup, *Where is your library?* (FOLDERS-006.2), and the folder
+- **Then** it shows the library setup, *Where is your library?* (FOLDERS-007.2), and the folder
   picker stays closed
 
 ### APP-001.4 – Every text is translatable

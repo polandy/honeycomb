@@ -5,8 +5,8 @@ import { flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import AppNavigation from '../../src/components/AppNavigation.vue'
 import FolderPicker from '../../src/components/FolderPicker.vue'
-import GridToolbar from '../../src/components/GridToolbar.vue'
 import FoldersHome from '../../src/components/FoldersHome.vue'
+import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import { logger } from '../../src/logger.ts'
 import { ENTRIES, fakeStorage, mountApp, openCull, SET, shownNames, toolbarProps } from './app-cull.ts'
@@ -22,27 +22,27 @@ describe('App', () => {
 		vi.restoreAllMocks()
 	})
 
-	// spec: APP-001.3, FOLDERS-006.2
+	// spec: APP-001.3, FOLDERS-007.2
 	it('starts on the library setup without a library root, with the folder picker closed', async () => {
 		const { wrapper } = mountApp()
 		await flushPromises()
 
-		expect(wrapper.findComponent(FoldersHome).props('roots')).toEqual([])
+		expect(wrapper.findComponent(FoldersHome).props('home').roots.value).toEqual([])
 		expect(wrapper.findComponent(FolderPicker).exists()).toBe(false)
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
 	})
 
-	// spec: FOLDERS-006.1
+	// spec: FOLDERS-007.1
 	it('starts on Folders with the library roots', async () => {
 		const { wrapper } = mountApp({ loadSettings: async () => ({ libraryRoots: ['/Photos'] }) })
 		await flushPromises()
 
-		expect(wrapper.findComponent(FoldersHome).props('roots')).toEqual(['/Photos'])
-		expect(wrapper.findComponent(FoldersHome).isVisible()).toBe(true)
+		expect(wrapper.findComponent(FoldersHome).props('home').roots.value).toEqual(['/Photos'])
+		expect(wrapper.findComponent(FoldersHome).attributes('style') ?? '').not.toContain('display: none')
 		expect(wrapper.findComponent(FolderPicker).exists()).toBe(false)
 	})
 
-	// spec: FOLDERS-006.16
+	// spec: FOLDERS-007.16
 	it('opens the folder picker from the navigation', async () => {
 		const { wrapper } = mountApp()
 		await flushPromises()

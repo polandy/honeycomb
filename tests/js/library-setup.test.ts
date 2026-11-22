@@ -35,7 +35,7 @@ describe('LibrarySetup', () => {
 	beforeEach(installMarkedCatalogue)
 	afterEach(uninstallMarkedCatalogue)
 
-	// spec: FOLDERS-006.2
+	// spec: FOLDERS-007.2
 	it('asks where the library is, with a tree that chooses one folder and nothing to show yet', () => {
 		const wrapper = mountSetup()
 
@@ -47,7 +47,7 @@ describe('LibrarySetup', () => {
 		expect(untranslatedText(wrapper.element)).toEqual([])
 	})
 
-	// spec: FOLDERS-006.3
+	// spec: FOLDERS-007.3
 	it('adds the chosen folder as a root and removes it again', async () => {
 		const wrapper = mountSetup()
 
@@ -62,7 +62,7 @@ describe('LibrarySetup', () => {
 		expect(button(wrapper, 'Show folders').attributes('disabled')).toBeDefined()
 	})
 
-	// spec: FOLDERS-006.3
+	// spec: FOLDERS-007.3
 	it('ticks the chosen folder and unticks it on a second press', async () => {
 		const wrapper = mountSetup()
 		wrapper.findComponent(FolderTree).vm.$emit('toggle', '/Photos')
@@ -74,25 +74,27 @@ describe('LibrarySetup', () => {
 		expect(wrapper.findComponent(FolderTree).props('ticked')).toEqual([])
 	})
 
-	// spec: FOLDERS-006.4
-	it('refuses a folder inside a root, or holding one, or one already listed', async () => {
+	// spec: FOLDERS-007.4
+	it('refuses a folder inside a root, or holding one, or one already listed, or the home folder', async () => {
 		const wrapper = mountSetup()
-		await add(wrapper, '/Photos')
+		await add(wrapper, '/Media/Photos')
 
-		await add(wrapper, '/Photos/2019')
-		expect(wrapper.find('[role="alert"]').text()).toBe(`${MARK}/Photos/2019 lies inside the root /Photos.`)
-		await add(wrapper, '/Photos')
-		expect(wrapper.find('[role="alert"]').text()).toBe(`${MARK}/Photos is already a root.`)
+		await add(wrapper, '/Media/Photos/2019')
+		expect(wrapper.find('[role="alert"]').text()).toBe(`${MARK}/Media/Photos/2019 lies inside the root /Media/Photos.`)
+		await add(wrapper, '/Media/Photos')
+		expect(wrapper.find('[role="alert"]').text()).toBe(`${MARK}/Media/Photos is already a root.`)
+		await add(wrapper, '/Media')
+		expect(wrapper.find('[role="alert"]').text()).toBe(`${MARK}/Media holds the root /Media/Photos; remove that one first.`)
 		await add(wrapper, '/')
-		expect(wrapper.find('[role="alert"]').text()).toBe(`${MARK}/ holds the root /Photos; remove that one first.`)
-		expect(roots(wrapper)).toEqual(['/Photos'])
+		expect(wrapper.find('[role="alert"]').text()).toBe(`${MARK}Your home folder cannot be a root; choose a folder in it.`)
+		expect(roots(wrapper)).toEqual(['/Media/Photos'])
 
 		await add(wrapper, '/Phone')
 		expect(wrapper.find('[role="alert"]').exists()).toBe(false)
-		expect(roots(wrapper)).toEqual(['/Photos', '/Phone'])
+		expect(roots(wrapper)).toEqual(['/Media/Photos', '/Phone'])
 	})
 
-	// spec: FOLDERS-006.4
+	// spec: FOLDERS-007.4
 	it('refuses a folder the server does not take as a root: a share, group folder or external storage', async () => {
 		const check = vi.fn(async (root: string) => root !== '/Shared')
 		const wrapper = mountSetup(check)
@@ -104,7 +106,7 @@ describe('LibrarySetup', () => {
 		expect(roots(wrapper)).toEqual([])
 	})
 
-	// spec: FOLDERS-006.4
+	// spec: FOLDERS-007.4
 	it('says when it could not check a folder', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		const wrapper = mountSetup(() => Promise.reject(new Error('down')))
@@ -116,7 +118,7 @@ describe('LibrarySetup', () => {
 		expect(roots(wrapper)).toEqual([])
 	})
 
-	// spec: FOLDERS-006.5
+	// spec: FOLDERS-007.5
 	it('saves the roots in their order on Show folders', async () => {
 		const wrapper = mountSetup()
 		await add(wrapper, '/Photos')

@@ -49,7 +49,7 @@ test('opens a dialog without a transition or an animation under reduced motion',
 	await page.emulateMedia({ reducedMotion: 'reduce' })
 	await page.goto('/index.php/apps/honeycomb/')
 
-	const dialog = await openFolderPicker(page)
+	await openFolderPicker(page)
 	const moving = await page.evaluate(() => {
 		const parts = [...document.querySelectorAll('.modal-mask, .modal-mask *')]
 		const transitions = parts.filter((part) => getComputedStyle(part).transitionDuration.split(',').some((duration) => parseFloat(duration) > 0))

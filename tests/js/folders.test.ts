@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// @vitest-environment happy-dom
 import type { LibraryPage, LibraryScanning } from '../../src/api.ts'
 import type { LibraryApi } from '../../src/folders.ts'
 
@@ -52,7 +53,7 @@ function mountFolders(api: LibraryApi, roots: readonly string[] | null = ['/Phot
 }
 
 describe('useFolders', () => {
-	// spec: FOLDERS-006.2
+	// spec: FOLDERS-007.2
 	it('reads nothing while the settings are unread or there is no root', async () => {
 		const { api, calls } = fakeLibrary({})
 		const { folders, roots } = mountFolders(api, null)
@@ -65,7 +66,7 @@ describe('useFolders', () => {
 		expect(folders.rows.value).toEqual([])
 	})
 
-	// spec: FOLDERS-006.1, FOLDERS-006.6
+	// spec: FOLDERS-007.1, FOLDERS-007.6
 	it('reads every page of every root, in the roots\' order', async () => {
 		const { api, calls } = fakeLibrary({ '/Photos': { 0: page([A], 1), 1: page([B]) }, '/Phone': { 0: page([C]) } })
 		const { folders } = mountFolders(api, ['/Photos', '/Phone'])
@@ -78,7 +79,7 @@ describe('useFolders', () => {
 		expect(folders.updating.value).toBeNull()
 	})
 
-	// spec: FOLDERS-006.5
+	// spec: FOLDERS-007.5
 	it('reads the list again when the roots change', async () => {
 		const { api, calls } = fakeLibrary({ '/Photos': { 0: page([A]) }, '/Phone': { 0: page([C]) } })
 		const { folders, roots } = mountFolders(api)
@@ -91,7 +92,7 @@ describe('useFolders', () => {
 		expect(folders.rows.value).toEqual([A, C])
 	})
 
-	// spec: FOLDERS-006.7
+	// spec: FOLDERS-007.7
 	it('scans a stale root until every folder is fresh, then reads it again', async () => {
 		const pages = { '/Photos': { 0: page([A], null, { done: 7, total: 12 }) } }
 		const { api, calls } = fakeLibrary(pages)
@@ -117,7 +118,7 @@ describe('useFolders', () => {
 		expect(folders.rows.value).toEqual([A, B])
 	})
 
-	// spec: FOLDERS-006.7
+	// spec: FOLDERS-007.7
 	it('ends the scan when a call brings no progress', async () => {
 		const { api, calls } = fakeLibrary({ '/Photos': { 0: page([A], null, { done: 7, total: 12 }) } }, { '/Photos': [{ done: 7, total: 12 }] })
 		const { folders } = mountFolders(api)
@@ -127,7 +128,7 @@ describe('useFolders', () => {
 		expect(folders.updating.value).toBeNull()
 	})
 
-	// spec: FOLDERS-006.8
+	// spec: FOLDERS-007.8
 	it('says so when the list cannot be read and reads it again on request', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		const pages: Record<string, Record<number, LibraryPage>> = {}
@@ -144,7 +145,7 @@ describe('useFolders', () => {
 		expect(folders.rows.value).toEqual([A])
 	})
 
-	// spec: FOLDERS-006.8
+	// spec: FOLDERS-007.8
 	it('keeps the rows and ends the strip when a scan fails', async () => {
 		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		const { api } = fakeLibrary({ '/Photos': { 0: page([A], null, { done: 7, total: 12 }) } })
@@ -172,7 +173,7 @@ describe('useFolders', () => {
 		expect(folders.rows.value).toEqual([C])
 	})
 
-	// spec: FOLDERS-006.13, FOLDERS-006.14
+	// spec: FOLDERS-007.13, FOLDERS-007.14
 	it('remembers whether a cull left the list, and shows it again with its rows read after the writes', async () => {
 		const { api, calls } = fakeLibrary({ '/Photos': { 0: page([A]) } })
 		const { folders, flush } = mountFolders(api)
@@ -191,7 +192,7 @@ describe('useFolders', () => {
 		expect(folders.fromList.value).toBe(false)
 	})
 
-	// spec: FOLDERS-006.14
+	// spec: FOLDERS-007.14
 	it('keeps the rows while it reads them again', async () => {
 		const pages = { '/Photos': { 0: page([A]) } }
 		const { api } = fakeLibrary(pages)
@@ -207,7 +208,7 @@ describe('useFolders', () => {
 		expect(folders.rows.value).toEqual([A, B])
 	})
 
-	// spec: FOLDERS-006.14
+	// spec: FOLDERS-007.14
 	it('logs a failed write before the list shows again and reads it all the same', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
 		const { api, calls } = fakeLibrary({ '/Photos': { 0: page([A]) } })
@@ -221,7 +222,7 @@ describe('useFolders', () => {
 		expect(calls).toHaveLength(2)
 	})
 
-	// spec: FOLDERS-006.4
+	// spec: FOLDERS-007.4
 	it('checks a root by a page of one: the server refuses one that is not of the user\'s own storage', async () => {
 		const refused = { response: { status: 400 } }
 		const api: LibraryApi = {

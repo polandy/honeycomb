@@ -18,7 +18,7 @@ export function useViewOptions(storage: BrowserStorage, folders: () => number) {
 	const filters = shallowRef<Filters>(DEFAULT_FILTERS)
 	const sortOrder = ref<SortOrder>('file-name')
 	const filtersOpen = ref(false)
-	const pickerOpen = ref(true)
+	const pickerOpen = ref(false)
 	const groupByFolder = ref(false)
 	const tileSize = ref(parseTileSize(readStored(storage, TILE_SIZE_KEY)))
 	const activeFilters = computed(() => activeFilterCount(filters.value))

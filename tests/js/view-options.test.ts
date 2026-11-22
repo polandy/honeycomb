@@ -15,7 +15,7 @@ function viewOptions(stored: Record<string, string> = {}) {
 }
 
 describe('useViewOptions: start', () => {
-	// spec: FOLDERS-006.1, APP-001.3
+	// spec: FOLDERS-007.1, APP-001.3
 	it('starts with the folder picker closed', () => {
 		expect(viewOptions().options.pickerOpen.value).toBe(false)
 	})

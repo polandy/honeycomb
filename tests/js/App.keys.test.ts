@@ -7,7 +7,6 @@ import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import FilterBar from '../../src/components/FilterBar.vue'
-import FolderPicker from '../../src/components/FolderPicker.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
@@ -261,7 +260,6 @@ describe('App: the shortcut sheet', () => {
 	// spec: KEYS-001.12
 	it('opens on the empty screen before a cull', async () => {
 		const empty = mountApp({}, [], { ShortcutSheet: true })
-		empty.wrapper.findComponent(FolderPicker).vm.$emit('cancel')
 		await flushPromises()
 		await press('?', { shiftKey: true })
 		expect(empty.wrapper.findComponent(ShortcutSheet).exists()).toBe(true)

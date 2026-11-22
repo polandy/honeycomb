@@ -16,7 +16,6 @@ const PAGE_SIZE = 100
 /** Opens honeycomb as Alice on the Immich source, Family phones first, and waits for its first page. */
 async function openFamily(page: Page): Promise<Locator> {
 	await page.goto('/index.php/apps/honeycomb/')
-	await page.getByRole('dialog', { name: 'Choose folders' }).getByRole('button', { name: 'Cancel' }).click()
 	await page.getByRole('button', { name: 'Immich', exact: true }).click()
 	const main = page.getByRole('main')
 	await expect(main).toContainText('3,660 of 3,660 pictures')
@@ -142,7 +141,6 @@ test.describe('the grid and the loupe of an Immich connection', () => {
 		await expect(picked).toContainText('1')
 
 		await page.reload()
-		await page.getByRole('dialog', { name: 'Choose folders' }).getByRole('button', { name: 'Cancel' }).click()
 		await page.getByRole('button', { name: 'Immich', exact: true }).click()
 		await expect(picked).toContainText('1')
 		await expect(main).toContainText('1 decided')

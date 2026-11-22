@@ -27,24 +27,36 @@ export async function closeByEscape(page: Page, dialog: Locator): Promise<void> 
 
 /** Opens the folder picker from the navigation's *Folder* on the loaded app, opening the navigation where it starts closed. */
 export async function openFolderPicker(page: Page): Promise<Locator> {
+	return (await pickFromNavigation(page)).picker
+}
+
+/** The folder picker, and whether the navigation had to be opened to reach it. */
+async function pickFromNavigation(page: Page): Promise<{ picker: Locator, opened: boolean }> {
 	// The start screen shows once the settings are read, after the navigation took its start state.
 	await expect(page.locator('.folders-home')).toBeVisible()
 	const toggle = page.locator('.app-navigation-toggle')
-	if (await toggle.getAttribute('aria-expanded') !== 'true') {
+	const opened = await toggle.getAttribute('aria-expanded') !== 'true'
+	if (opened) {
 		await toggle.click()
 	}
 	await page.getByRole('navigation', { name: 'honeycomb navigation' }).getByRole('link', { name: 'Folder', exact: true }).click()
 	const picker = page.getByRole('dialog', { name: 'Choose folders' })
 	await expect(picker).toBeVisible()
-	return picker
+	return { picker, opened }
 }
 
-/** Opens the app and culls `folder` from the folder picker. */
+/** Opens the app and culls `folder` from the folder picker, the navigation left as the app started it. */
 export async function cullFolder(page: Page, folder: string): Promise<void> {
 	await page.goto('/index.php/apps/honeycomb/')
-	const picker = await openFolderPicker(page)
+	const { picker, opened } = await pickFromNavigation(page)
 	await picker.getByRole('treeitem', { name: folder }).click()
 	await picker.getByRole('button', { name: `Cull ${folder}` }).click()
+	await expect(picker).toBeHidden()
+	const toggle = page.locator('.app-navigation-toggle')
+	if (opened && await toggle.getAttribute('aria-expanded') === 'true') {
+		await toggle.click()
+		await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+	}
 }
 
 /** Closes the info panel, brings the gesture guide back and sets the first-series hint as seen unless `seriesHintSeen` says otherwise; the view state is the admin's, shared by every test (LOUPE-003). */
