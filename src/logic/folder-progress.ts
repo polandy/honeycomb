@@ -33,9 +33,7 @@ export function folderProgress(rows: readonly FolderRow[], roots: readonly strin
 	}
 }
 
-/**
- *
- */
+/** The progress of one set of rows. */
 function progressOf(rows: readonly FolderRow[], now: Date): FolderProgress {
 	const done = rows.filter((row) => row.done !== null)
 	const photos = sum(rows, (row) => row.photos)
@@ -53,9 +51,7 @@ function progressOf(rows: readonly FolderRow[], now: Date): FolderProgress {
 	}
 }
 
-/**
- *
- */
+/** The total of `count` over the rows. */
 function sum(rows: readonly FolderRow[], count: (row: FolderRow) => number): number {
 	return rows.reduce((total, row) => total + count(row), 0)
 }

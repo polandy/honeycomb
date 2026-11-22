@@ -37,9 +37,7 @@ export function validateLibraryRoots(roots: readonly string[]): LibraryRootRefus
 	return null
 }
 
-/**
- *
- */
+/** Why the input cannot join the roots, null when it can. */
 function rootRefusal(roots: readonly string[], input: string): LibraryRootRefusal | null {
 	const path = normalizeRoot(input)
 	if (path === '/') {

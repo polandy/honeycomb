@@ -70,9 +70,7 @@ export function badgeText(row: FolderRow): string | null {
 	return count > 0 ? `${count} new` : null
 }
 
-/**
- *
- */
+/** Paths in natural order, the code point order breaking case-only ties. */
 function byPath(a: FolderRow, b: FolderRow): number {
 	return NAMES.compare(a.path, b.path) || (a.path < b.path ? -1 : a.path > b.path ? 1 : 0)
 }
@@ -88,9 +86,7 @@ function byTime(time: (row: FolderRow) => number | null, direction: 1 | -1): (a:
 	}
 }
 
-/**
- *
- */
+/** The score a done folder never earns: it ranks last. */
 function suggestedScore(row: FolderRow): number {
 	return row.done === null ? folderScore(row) : 0
 }

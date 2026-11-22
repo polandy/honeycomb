@@ -1,7 +1,7 @@
-import type { FolderFilter, FolderSort, YearHeading } from './folder-list.ts'
-import type { FolderProgress } from './folder-progress.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { FolderFilter, FolderSort, YearHeading } from './folder-list.ts'
+import type { FolderProgress } from './folder-progress.ts'
 import type { FolderRow } from './folder-row.ts'
 
 const KB = 1024
@@ -72,9 +72,7 @@ export function rootsSummary(roots: number, totals: { readonly folders: number, 
 	return [plural(roots, 'root'), plural(totals.folders, 'folder'), plural(totals.photos, 'photo')].join(' · ')
 }
 
-/**
- *
- */
+/** The count with the noun, pluralised unless 1. */
 function plural(count: number, noun: string): string {
 	return `${formatCount(count)} ${noun}${count === 1 ? '' : 's'}`
 }
