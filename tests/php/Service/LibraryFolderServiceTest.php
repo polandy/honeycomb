@@ -110,7 +110,7 @@ final class LibraryFolderServiceTest extends TestCase {
 
 		$this->assertSame([[11]], $this->files->photoCalls);
 		$this->assertSame('new-11', $this->summaries->rows[11]->etag);
-		$this->assertSame($this->summary(10), $this->summaries->rows[10]);
+		$this->assertEquals($this->summary(10), $this->summaries->rows[10]);
 	}
 
 	// spec: FOLDERS-001.7

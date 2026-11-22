@@ -13,6 +13,7 @@ use OCA\Honeycomb\Service\FolderSummaryStore;
 /** Keeps folder summaries in memory, by the folder's file id. */
 final class FakeFolderSummaryStore implements FolderSummaryStore {
 	use FakeRowsByFile;
+	use FakeSharedCacheRows;
 
 	/** @var array<int, FolderSummary> */
 	public array $rows = [];

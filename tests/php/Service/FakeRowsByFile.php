@@ -42,11 +42,4 @@ trait FakeRowsByFile {
 		$this->rows = array_diff_key($this->rows, array_flip($ids));
 		return $before - count($this->rows);
 	}
-
-	#[\Override]
-	public function clearAll(): int {
-		$removed = count($this->rows);
-		$this->rows = [];
-		return $removed;
-	}
 }

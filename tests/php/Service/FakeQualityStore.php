@@ -14,6 +14,7 @@ use OCP\DB\Exception as DbException;
 /** Keeps quality values in memory, by file id. */
 final class FakeQualityStore implements QualityStore {
 	use FakeRowsByFile;
+	use FakeSharedCacheRows;
 
 	/** @var array<int, QualityValue> */
 	public array $rows = [];

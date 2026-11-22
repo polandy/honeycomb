@@ -14,6 +14,7 @@ use OCP\DB\Exception as DbException;
 /** Keeps visual hashes in memory, by file id. */
 final class FakeVisualHashStore implements VisualHashStore {
 	use FakeRowsByFile;
+	use FakeSharedCacheRows;
 
 	/** @var array<int, VisualHash> */
 	public array $rows = [];
