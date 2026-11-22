@@ -42,7 +42,7 @@ final class FolderDoneMapper implements FolderDoneStore {
 	public function find(array $fileIds): array {
 		$done = [];
 		foreach ($this->findFileRows(null, $fileIds) as $row) {
-			$status = new FolderDone((int)$row['file_id'], (string)$row['user_id'], (int)$row['done_at'], (int)$row['photos']);
+			$status = new FolderDone((int)$row['file_id'], $row['user_id'] === null ? null : (string)$row['user_id'], (int)$row['done_at'], (int)$row['photos']);
 			$done[$status->fileId] = $status;
 		}
 		return $done;
@@ -66,10 +66,14 @@ final class FolderDoneMapper implements FolderDoneStore {
 		$this->deleteFileRows(null, [$fileId]);
 	}
 
-	/** The statuses the user marked go; those folders are open again. */
+	/** The statuses the user marked stay, without the name (ADR 0040, Who shares what). */
 	#[\Override]
 	public function forgetUser(string $userId): void {
-		$this->deleteUserRows(self::TABLE, $userId);
+		$query = $this->db->getQueryBuilder();
+		$query->update(self::TABLE)
+			->set('user_id', $query->createNamedParameter(null, IQueryBuilder::PARAM_NULL))
+			->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
+			->executeStatement();
 	}
 
 	/** A folder's done status follows it to the new file id, whoever moves it. */

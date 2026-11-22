@@ -6,7 +6,7 @@ export const PERMISSION_UPDATE = 2
 
 /** Who marked a folder done, when (Unix seconds) and how many photos it held then (ADR 0049). */
 export interface FolderDone {
-	readonly by: string
+	readonly by: string | null
 	readonly at: number
 	readonly photos: number
 }

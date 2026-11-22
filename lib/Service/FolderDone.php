@@ -7,11 +7,11 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-/** That a user marked a folder done, when, and how many photos it had then (FOLDERS-005.10). */
+/** That a user marked a folder done, when, and how many photos it had then; no user once theirs was deleted (FOLDERS-005.10). */
 final readonly class FolderDone {
 	public function __construct(
 		public int $fileId,
-		public string $userId,
+		public ?string $userId,
 		public int $doneAt,
 		public int $photos,
 	) {

@@ -70,6 +70,9 @@ export function doneText(row: FolderRow): string | null {
 		return null
 	}
 	const date = new Date(row.done.at * 1000).toISOString().slice(0, DATE_LENGTH)
+	if (row.done.by === null) {
+		return t('honeycomb', 'Done {date}', { date }, undefined, PLAIN_TEXT)
+	}
 	return t('honeycomb', 'Done {date} · by {user}', { date, user: row.done.by }, undefined, PLAIN_TEXT)
 }
 

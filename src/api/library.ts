@@ -82,5 +82,5 @@ function isFolderRow(value: unknown): value is FolderRow {
 
 /** Whether a value is a folder's done status. */
 function isFolderDone(value: unknown): value is FolderDone {
-	return isRecord(value) && typeof value.by === 'string' && typeof value.at === 'number' && typeof value.photos === 'number'
+	return isRecord(value) && (value.by === null || typeof value.by === 'string') && typeof value.at === 'number' && typeof value.photos === 'number'
 }
