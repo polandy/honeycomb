@@ -1820,3 +1820,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   names the files in the permanent replace warning and, on *Replace permanently*, sends the
   pictures again with `permanent` on those replaces, which the server then deletes for good;
   Cancel leaves the photos (owner #187 F2, ADR 0048, MOVE-002.13, MOVE-003.8, MOVE-004.21–23).
+- 2026-11-22: The folders-to-cull decisions are ADR 0049, not 0047 as asked: 0047 and 0048 were
+  taken on `main` by then (ADR 0049).
