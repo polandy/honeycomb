@@ -69,7 +69,8 @@ test.describe('the grid and the loupe of an Immich connection', () => {
 		const main = await openFamily(page)
 
 		const previews = main.locator('img[src*="/image?size=thumbnail"]')
-		expect(await previews.count()).toBeGreaterThan(0)
+		// A tile mounts its image only once the preview has loaded, after the tile itself shows.
+		await expect(previews.first()).toBeAttached()
 		expect(await previews.count()).toBeLessThan(PAGE_SIZE)
 		await expect(tile(page, PAGE_SIZE + 1)).toHaveCount(0)
 		expect(listings).toHaveLength(1)
