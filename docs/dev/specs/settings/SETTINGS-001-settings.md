@@ -31,6 +31,7 @@ back to its default, so an unknown, missing or invalid field never breaks the ap
 | Name template for moved photos | *By day* (`docs/dev/05-name-templates.md` Default and presets) |
 | Favourite targets | None |
 | Keep statistics | On (STATS-001) |
+| Library roots | None (FOLDERS-004) |
 
 *Settings* in the grid's ⋯ menu opens a dialog with the sections *File types*, *Folder layout*,
 *Loupe gestures*, *Keyboard*, *Moving photos*, *Statistics* and *Cache*. Each change applies at
@@ -246,6 +247,13 @@ Withdrawn by ADR 0040 (M8 PR 3); there is no sidecar switch (.28).
 - **Then** there is no *XMP sidecars* section, no dialog asks first, and the photo is decided and
   written where it is rateable (XMP-008.12)
 
+### SETTINGS-001.29 – Library roots
+
+- **Given** stored `libraryRoots`, or none, or an invalid value
+- **When** the client reads the settings
+- **Then** valid roots are read in order and normalised (FOLDERS-004); a root that repeats, lies
+  inside another, is empty or is not a string is dropped, and anything but a list reads as none
+
 ## Out of scope
 
 What the swipes, auto-advance and flag buttons do in the loupe: LOUPE-002. The vi keys: KEYS-001.
@@ -270,3 +278,4 @@ Pairing itself: LISTING-002.
 | 2026-11-19 | M8 PR 5: *Clean up orphaned data* for admins (.27 implemented) |
 | 2026-11-19 | The *Statistics* section and *Keep statistics* in the defaults (STATS-001) |
 | 2026-11-20 | .25 keeps the visual hashes, which every user of a file shares (ADR 0046) |
+| 2026-11-22 | .29 library roots (M12 PR 4) |
