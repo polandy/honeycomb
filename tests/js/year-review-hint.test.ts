@@ -23,7 +23,7 @@ function hintOn(today: string, answer: () => Promise<unknown>, save: () => Promi
 describe('useYearReviewHint', () => {
 	// spec: STATS-001.26
 	it('shows nothing until the view state is read, then the year not yet closed', async () => {
-		const { hint } = hintOn('2026-12-01', async () => ({ yearReviewHintClosed: 2025 }))
+		const { hint } = hintOn('2026-12-01', async () => ({ year_review_hint_closed: 2025 }))
 		expect(hint.year.value).toBeNull()
 
 		await flushPromises()
@@ -33,7 +33,7 @@ describe('useYearReviewHint', () => {
 
 	// spec: STATS-001.26
 	it('stays away for a year already closed and outside December and January', async () => {
-		const closed = hintOn('2026-12-01', async () => ({ yearReviewHintClosed: 2026 }))
+		const closed = hintOn('2026-12-01', async () => ({ year_review_hint_closed: 2026 }))
 		const summer = hintOn('2026-07-01', async () => ({}))
 		await flushPromises()
 
@@ -49,7 +49,7 @@ describe('useYearReviewHint', () => {
 		hint.close()
 
 		expect(hint.year.value).toBeNull()
-		expect(saved).toEqual([{ yearReviewHintClosed: 2026 }])
+		expect(saved).toEqual([{ year_review_hint_closed: 2026 }])
 	})
 
 	// spec: STATS-001.48

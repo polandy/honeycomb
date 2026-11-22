@@ -107,7 +107,7 @@ describe('the Sharpest mark in the loupe', () => {
 		const { wrapper } = await mountLoupe(1, {}, false, {
 			seriesOf: new Map(series.members.map((picture) => [picture, series])),
 			qualityOf: qualities({ IMG_1: quality(100), IMG_2: quality(300), IMG_3: quality(100), IMG_4: quality(50) }),
-			viewState: fakeViewState({ gestureGuideSeen: true, seriesHintSeen: true, infoPanelOpen: true }),
+			viewState: fakeViewState({ gesture_guide_seen: true, series_hint_seen: true, info_panel_open: true }),
 		})
 		await flushPromises()
 		expect(infoRows(wrapper.find('.loupe-info')).Sharpness).toBe('Sharpest of 4')

@@ -192,7 +192,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			saveSettings: async (settings: object) => { savedSettings.push(settings) },
 			positions: { loadPositions: async () => [], savePosition: async () => undefined },
 			location: { read: () => '', write: () => undefined },
-			viewState: { loadViewState: async () => ({ infoPanelOpen: null, gestureGuideSeen: true, seriesHintSeen: true }), saveViewState: async () => undefined },
+			viewState: { loadViewState: async () => ({ info_panel_open: null, gesture_guide_seen: true, series_hint_seen: true }), saveViewState: async () => undefined },
 			sidecars: sidecarApi(sidecarSaves),
 			immich: NO_IMMICH_API,
 			immichCull: SILENT_IMMICH_CULL,
