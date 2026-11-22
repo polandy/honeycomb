@@ -1713,7 +1713,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   semaphore per file (256 shared, `SemaphorePreviewLock`), since Nextcloud 35 rewrites a preview
   file in place when two requests render it at once and a tile read meanwhile came back empty
   (IMAGES-001.18). Without `sysvsem` it renders unlocked, as core does. Easy to redo: one alias
-  in `Application.php`.
+  in `Application.php`. Superseded on 2026-11-22 by core's file locking (ADR 0050).
 - 2026-11-20: The shell refactor (M10 PR 9) leaves `PictureId` a `number`; widening it to
   `number | string` breaks over a hundred call sites in the folder code, and only the Immich grid
   (PR 10) needs it, together with the Immich entry becoming a `SourceEntry`. Easy to redo.
