@@ -54,9 +54,7 @@ export function useFoldersHome(api: LibraryApi & FolderDoneApi, options: Folders
 		open(set, true)
 	}
 
-	/**
-	 *
-	 */
+	/** Opens the folder set from the list, with the flag filter *Unflagged* when `onlyNew`. */
 	function open(set: FolderSet, onlyNew: boolean) {
 		culled = folderSetKey(set)
 		newOnly = onlyNew
