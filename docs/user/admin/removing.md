@@ -34,10 +34,11 @@ Outside the server's database and kernel, these also stay:
 
 - **The Immich connections file and the key files** it names. They are yours, not honeycomb's, and
   honeycomb never writes them. Delete them if you made them only for honeycomb.
-- **Each browser's local storage**, on every device that opened honeycomb: the keys
-  `honeycomb.infoWidth`, `honeycomb.loupeNavigationShown` and `honeycomb.immichConnection`. They
-  hold a panel width, a hint flag and the last Immich connection; they do no harm and a user
-  clears them with the browser's site data.
+- **Each browser's local storage**, on every device that opened honeycomb: the nine keys that
+  start with `honeycomb.` (`infoWidth`, `infoOpen`, `navigationOpen`, `loupeNavigationShown`,
+  `gestureGuideSeen`, `tileSize`, `immichConnection`, `visualHashes`, `warmedPreviews`). They hold
+  panel and hint state, the tile size, the last Immich connection and caches of visual hashes
+  and warmed previews; they do no harm and a user clears them with the browser's site data.
 
 `occ honeycomb:cleanup --all` empties the data first ([below](#deleting-the-data-on-purpose)).
 
@@ -58,7 +59,8 @@ are not touched. `occ app:remove --keep-data honeycomb` leaves the same data and
 ## RAW previews after removing
 
 honeycomb registers its RAW preview provider with Nextcloud itself, not per user: while the app
-is enabled, it serves the previews of RAW files (`image/x-dcraw`) for Files, Photos and every
+is enabled, it serves the previews of RAW files (`image/x-dcraw`, and files typed `application/octet-stream`
+that are named like RAW files) for Files, Photos and every
 other app of every user, not only inside honeycomb. This is deliberate. Disabling or removing
 honeycomb unregisters the provider at once.
 

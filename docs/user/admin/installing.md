@@ -16,7 +16,8 @@ Both are optional, and honeycomb works without them.
 
 ## RAW previews are global
 
-honeycomb registers a Nextcloud preview provider for RAW files. It is not limited to honeycomb:
+honeycomb registers a Nextcloud preview provider for RAW files (`image/x-dcraw`, and untyped
+`application/octet-stream` files named like RAW files). It is not limited to honeycomb:
 while the app is enabled, Files, Photos and every other app of every user get the embedded JPEG
 as the preview of a RAW file. Removing honeycomb ends that; what happens to the previews is in
 [removing](removing.md#raw-previews-after-removing).
