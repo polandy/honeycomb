@@ -1,45 +1,17 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { AssetsRequest, CountsRequest, ImmichCullApi } from '../../src/immich-cull.ts'
-import type { DecisionRow, ImmichEntry } from '../../src/logic/immich-asset.ts'
-import type { ImmichCounts } from '../../src/logic/immich-counts.ts'
-import type { Page } from '../../src/logic/immich-paging.ts'
-
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { PAGE_SIZE, useImmichCull } from '../../src/immich-cull.ts'
+import { PAGE_SIZE } from '../../src/immich-cull.ts'
 import { logger } from '../../src/logger.ts'
 import { imageMember } from '../../src/logic/image-tiers.ts'
-import { immichEntry, NOW, UTC_CALENDAR } from './logic/immich-fixtures.ts'
+import { assetIds, COUNTS, cullOn, page } from './immich-cull-fixtures.ts'
+import { NOW } from './logic/immich-fixtures.ts'
 
 afterEach(() => {
 	vi.restoreAllMocks()
 })
-
-const COUNTS: ImmichCounts = { total: 1000, undecided: 1000, decided: 0, matching: 1000, flags: { picked: 0, rejected: 0, unflagged: 1000 }, ratings: {}, colourLabels: {}, devices: [], kinds: { photo: 1000, live: 0, video: 0 }, periods: [] }
-
-/** A page of entries named by their ids. */
-const page = (ids: readonly string[], nextCursor: string | null = null): Page => ({ entries: ids.map((id) => immichEntry(id)), nextCursor, previousCursor: null })
-
-/** The Immich cull over a fake server; each request waits until the test answers it. */
-function cullOn() {
-	const assets: { request: AssetsRequest, answer: (page: Page) => void, fail: (error: Error) => void }[] = []
-	const counts: { request: CountsRequest, answer: (counts: ImmichCounts) => void }[] = []
-	const saves: { rows: readonly DecisionRow[], answer: () => void, fail: (error: Error) => void }[] = []
-	const api: ImmichCullApi = {
-		assets: (_id, request) => new Promise((answer, fail) => assets.push({ request, answer, fail })),
-		counts: (_id, request) => new Promise((answer) => counts.push({ request, answer })),
-		saveDecisions: (_id, rows) => new Promise((answer, fail) => saves.push({ rows, answer: () => answer(rows.map((row) => row.assetId)), fail })),
-		imageUrl: (id, assetId, size, version) => `${id}/${assetId}/${size}?v=${version}`,
-	}
-	const toast = { show: vi.fn(), showError: vi.fn() }
-	const cull = useImmichCull({ api, now: () => NOW, calendar: UTC_CALENDAR, dayLabel: (seconds) => `day ${seconds}`, toast })
-	return { cull, assets, counts, saves, toast }
-}
-
-/** The asset ids of the cull's pictures. */
-const assetIds = (cull: ReturnType<typeof useImmichCull>) => cull.pictures.value.map((picture) => (imageMember(picture) as unknown as { asset: ImmichEntry }).asset.assetId)
 
 describe('useImmichCull', () => {
 	// spec: IMMICH-002.6, IMMICH-002.13
@@ -258,61 +230,5 @@ describe('useImmichCull', () => {
 		expect(cull.decisionOf(first!).flag).toBe('rejected')
 		expect(cull.counts.value!.flags.rejected).toBe(1)
 		expect(toast.showError).toHaveBeenCalled()
-	})
-
-	// spec: IMMICH-002.28
-	it('keeps a refused decision in the pictures while held, hides it on release without a request, and undo and redo bring it back and take it out', async () => {
-		const { cull, assets, counts, saves } = cullOn()
-		cull.open('andy-phone')
-		assets[0]!.answer(page(['a1', 'a2', 'a3']))
-		counts[0]!.answer(COUNTS)
-		await flushPromises()
-		const [, second] = cull.pictures.value
-
-		cull.hold(true)
-		cull.decide({ kind: 'flag', flag: 'rejected' }, [second!])
-		saves[0]!.answer()
-		await flushPromises()
-		expect(assetIds(cull)).toEqual(['a1', 'a2', 'a3'])
-
-		cull.hold(false)
-		expect(assetIds(cull)).toEqual(['a1', 'a3'])
-		expect(cull.counts.value!.flags.rejected).toBe(1)
-		expect(assets).toHaveLength(1)
-		expect(counts).toHaveLength(1)
-
-		cull.undo()
-		expect(assetIds(cull)).toEqual(['a1', 'a2', 'a3'])
-		cull.redo()
-		expect(assetIds(cull)).toEqual(['a1', 'a3'])
-	})
-
-	// spec: IMMICH-002.28
-	it('hides a refused decision at once when no loupe holds it, and keeps an admitted one', async () => {
-		const { cull, assets, counts } = cullOn()
-		cull.open('andy-phone')
-		assets[0]!.answer(page(['a1', 'a2']))
-		counts[0]!.answer(COUNTS)
-		await flushPromises()
-
-		cull.decide({ kind: 'flag', flag: 'picked' }, [cull.pictures.value[0]!])
-		expect(assetIds(cull)).toEqual(['a1', 'a2'])
-		cull.decide({ kind: 'flag', flag: 'rejected' }, [cull.pictures.value[0]!])
-		expect(assetIds(cull)).toEqual(['a2'])
-	})
-
-	// spec: IMMICH-002.28, IMMICH-002.8
-	it('asks the next page at once when the hidden pictures leave none', async () => {
-		const { cull, assets, counts } = cullOn()
-		cull.open('andy-phone')
-		assets[0]!.answer(page(['a1'], 'c2'))
-		counts[0]!.answer(COUNTS)
-		await flushPromises()
-
-		cull.decide({ kind: 'flag', flag: 'rejected' }, [cull.pictures.value[0]!])
-
-		expect(assetIds(cull)).toEqual([])
-		expect(assets).toHaveLength(2)
-		expect(assets[1]!.request.cursor).toBe('c2')
 	})
 })
