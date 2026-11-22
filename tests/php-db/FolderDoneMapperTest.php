@@ -47,14 +47,38 @@ final class FolderDoneMapperTest extends DbTestCase {
 	}
 
 	// spec: FOLDERS-006.13
-	public function testForgetsTheStatusesOfOneUserOnly(): void {
-		$this->insert(new FolderDone(7, 'alice', 1, 1));
-		$this->insert(new FolderDone(8, 'bob', 1, 1));
-		$this->insert(new FolderDone(9, 'alice', 1, 1));
+	public function testForgetsTheNameOfOneUserAndKeepsEveryStatus(): void {
+		$this->insert(new FolderDone(7, 'alice', 10, 3));
+		$this->insert(new FolderDone(8, 'bob', 20, 4));
+		$this->insert(new FolderDone(9, 'alice', 30, 5));
 
 		$this->done->forgetUser('alice');
 
-		$this->assertSame([8], array_keys($this->done->find([7, 8, 9])));
+		$this->assertEquals([
+			7 => new FolderDone(7, null, 10, 3),
+			8 => new FolderDone(8, 'bob', 20, 4),
+			9 => new FolderDone(9, null, 30, 5),
+		], $this->done->find([7, 8, 9]));
+	}
+
+	// spec: FOLDERS-006.13
+	public function testForgettingAUserWithoutStatusesChangesNothing(): void {
+		$this->insert(new FolderDone(8, 'bob', 20, 4));
+
+		$this->done->forgetUser('alice');
+		$this->done->forgetUser('alice');
+
+		$this->assertEquals([8 => new FolderDone(8, 'bob', 20, 4)], $this->done->find([8]));
+	}
+
+	// spec: FOLDERS-006.14
+	public function testReadsAStatusWithoutANameAndReplacesItByAnotherUsersStatus(): void {
+		$this->insert(new FolderDone(7, null, 10, 3));
+		$this->assertEquals([7 => new FolderDone(7, null, 10, 3)], $this->done->find([7]));
+
+		$this->done->put(new FolderDone(7, 'bob', 40, 6));
+
+		$this->assertEquals([7 => new FolderDone(7, 'bob', 40, 6)], $this->done->find([7]));
 	}
 
 	// spec: FOLDERS-005.17

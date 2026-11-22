@@ -27,6 +27,7 @@ describe('folder texts', () => {
 	// spec: FOLDERS-003.6
 	it('words the done line, the scan and the roots summary with its singular', () => {
 		expect(doneText(doneRow())).toBe('Done 2026-11-02 · by Andy')
+		expect(doneText(doneRow({ done: { by: null, at: Date.UTC(2026, 10, 2) / 1000, photos: 100 } }))).toBe('Done 2026-11-02')
 		expect(scanningText(12)).toBe('Updating 12 folders')
 		expect(scanningText(1)).toBe('Updating 1 folder')
 		expect(rootsSummary(2, { folders: 18, photos: 14120 })).toBe('2 roots · 18 folders · 14,120 photos')

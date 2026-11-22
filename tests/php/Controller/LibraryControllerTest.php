@@ -74,6 +74,17 @@ final class LibraryControllerTest extends TestCase {
 		$this->assertSame(['fileId' => 10, 'path' => '/Photos', 'undecided' => 3, 'done' => null], array_intersect_key($body['folders'][0], array_flip(['fileId', 'path', 'undecided', 'done'])));
 	}
 
+	// spec: FOLDERS-006.14
+	public function testListsADoneStatusWithoutItsName(): void {
+		$this->summaries->rows[10] = new FolderSummary(10, 'e-10', 3, 30, 0, 0, null, null, 9, 1);
+		$this->done->rows[10] = new FolderDone(10, null, 1_772_000_000, 3);
+
+		/** @var array{folders: list<array<string, mixed>>} $body */
+		$body = json_decode($this->controller()->folders('/Photos')->render(), true);
+
+		$this->assertSame(['by' => null, 'at' => 1_772_000_000, 'photos' => 3], $body['folders'][0]['done']);
+	}
+
 	// spec: FOLDERS-005.13, FOLDERS-005.14
 	public function testAForeignRootOrAMalformedPageIsABadRequest(): void {
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->folders('/Shared')->getStatus());
