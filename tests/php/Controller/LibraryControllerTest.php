@@ -59,7 +59,9 @@ final class LibraryControllerTest extends TestCase {
 		$this->assertSame([Http::STATUS_OK, ['scanning' => ['done' => 1, 'total' => 1]]], [$scan->getStatus(), json_decode($scan->render(), true)]);
 		$list = $this->controller()->folders('/Photos');
 		$this->assertSame(Http::STATUS_OK, $list->getStatus());
-		$this->assertSame(['fileId' => 10, 'path' => '/Photos', 'undecided' => 3, 'done' => null], array_intersect_key(json_decode($list->render(), true)['folders'][0], array_flip(['fileId', 'path', 'undecided', 'done'])));
+		/** @var array{folders: list<array<string, mixed>>} $body */
+		$body = json_decode($list->render(), true);
+		$this->assertSame(['fileId' => 10, 'path' => '/Photos', 'undecided' => 3, 'done' => null], array_intersect_key($body['folders'][0], array_flip(['fileId', 'path', 'undecided', 'done'])));
 	}
 
 	// spec: FOLDERS-001.13, FOLDERS-001.14

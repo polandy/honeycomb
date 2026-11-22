@@ -93,7 +93,7 @@ final class LibraryFolderBenchTest extends DbTestCase {
 	private static function timed(callable $run): array {
 		$start = hrtime(true);
 		$result = $run();
-		return [$result, (hrtime(true) - $start) / 1e9];
+		return [$result, (float)(hrtime(true) - $start) / 1e9];
 	}
 
 	/**

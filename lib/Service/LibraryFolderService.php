@@ -73,7 +73,7 @@ final class LibraryFolderService {
 		$decisions = $ids === [] ? [] : FolderDecisions::of($this->files->decisionRows($user->getUID(), $ids));
 		return [
 			'folders' => array_map(fn (LibraryFolder $folder): array => self::row($rootPath, $folder, $summaries[$folder->fileId], $decisions[$folder->fileId] ?? null, $done[$folder->fileId] ?? null), $page),
-			'next' => count($listed) > $pageSize ? $ids[count($ids) - 1] : null,
+			'next' => count($listed) > $pageSize ? $listed[$pageSize - 1]->fileId : null,
 			'scanning' => $fresh === count($folders) ? null : ['done' => $fresh, 'total' => count($folders)],
 		];
 	}

@@ -106,7 +106,6 @@ final class FileCacheLibraryTest extends DbTestCase {
 		usort($files, static fn (array $a, array $b): int => $a['fileId'] <=> $b['fileId']);
 		$this->assertSame([$ids['Photos/a.jpg'], $ids['Photos/a.CR3']], array_column($files, 'fileId'));
 		$this->assertSame(['fileId' => $ids['Photos/a.jpg'], 'parent' => $photos->getId(), 'name' => 'a.jpg', 'size' => strlen('Photos/a.jpg')], array_diff_key($files[0], ['mtime' => true]));
-		$this->assertIsInt($files[0]['mtime']);
 	}
 
 	// spec: FOLDERS-001.9

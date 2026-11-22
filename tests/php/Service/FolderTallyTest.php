@@ -51,10 +51,13 @@ final class FolderTallyTest extends TestCase {
 
 	// spec: FOLDERS-001.3
 	public function testTheBurstGapIsTheSeriesGapOfTheBrowser(): void {
-		$series = (string)file_get_contents(__DIR__ . '/../../../src/logic/series.ts');
-
-		$this->assertSame(1, preg_match('/^export const SERIES_GAP_SECONDS = (\d+)$/m', $series, $match));
+		$this->assertSame(1, preg_match('/^export const SERIES_GAP_SECONDS = (\d+)$/m', self::seriesModule(), $match));
 		$this->assertSame((int)$match[1], FolderTally::BURST_GAP_SECONDS);
+	}
+
+	/** @psalm-suppress ForbiddenCode Reads the app's own TypeScript, not a user file. */
+	private static function seriesModule(): string {
+		return (string)file_get_contents(__DIR__ . '/../../../src/logic/series.ts');
 	}
 
 	// spec: FOLDERS-001.4

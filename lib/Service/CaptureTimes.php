@@ -34,7 +34,7 @@ final class CaptureTimes {
 			foreach ($this->metadataManager->getMetadataForFiles($chunk) as $fileId => $metadata) {
 				$time = self::from($metadata);
 				if ($time !== null) {
-					$times[(int)$fileId] = $time;
+					$times[$fileId] = $time;
 				}
 			}
 		}
