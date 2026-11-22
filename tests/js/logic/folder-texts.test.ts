@@ -32,4 +32,9 @@ describe('folder texts', () => {
 		expect(rootsSummary(2, { folders: 18, photos: 14120 })).toBe('2 roots · 18 folders · 14,120 photos')
 		expect(rootsSummary(1, { folders: 1, photos: 1 })).toBe('1 root · 1 folder · 1 photo')
 	})
+
+	// spec: FOLDERS-002.6
+	it('words the year headings', () => {
+		expect([2019, 'unknown', null].map(yearHeadingText)).toEqual(['2019', 'Unknown year', null])
+	})
 })

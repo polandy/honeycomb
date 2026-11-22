@@ -1,4 +1,4 @@
-import type { FolderFilter, FolderSort } from './folder-list.ts'
+import type { FolderFilter, FolderSort, YearHeading } from './folder-list.ts'
 import type { FolderProgress } from './folder-progress.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -26,8 +26,12 @@ export const READ_ONLY_TEXT = 'Read-only'
 /** What an empty list says. */
 export const EMPTY_LIST_TEXT = 'No folders here.'
 
-/** The heading of the folders without a capture time under *Oldest* and *Newest*. */
-export const UNKNOWN_YEAR_TEXT = 'Unknown year'
+const UNKNOWN_YEAR_TEXT = 'Unknown year'
+
+/** The text of a year heading; folders without a capture time are headed *Unknown year*. */
+export function yearHeadingText(heading: YearHeading): string | null {
+	return heading === 'unknown' ? UNKNOWN_YEAR_TEXT : heading === null ? null : String(heading)
+}
 
 /** A count with thousands separators. */
 export function formatCount(count: number): string {

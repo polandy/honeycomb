@@ -10,13 +10,13 @@ import { SERIES_GAP_SECONDS } from './series.ts'
 export const BURST_GAP_SECONDS = SERIES_GAP_SECONDS
 
 /** How much a folder made only of bursts outweighs one without: 1 + this. */
-export const BURST_WEIGHT = 2
+const BURST_WEIGHT = 2
 
 /** The bytes per photo from which a folder counts as RAW-heavy and the size factor stops growing. */
-export const HEAVY_BYTES_PER_PHOTO = 25 * 1024 * 1024
+const HEAVY_BYTES_PER_PHOTO = 25 * 1024 * 1024
 
 /** How much a RAW-heavy folder outweighs a light one: 1 + this. */
-export const SIZE_WEIGHT = 1
+const SIZE_WEIGHT = 1
 
 /** What a folder gains from being culled; 0 without photos. Compare scores, never show one (ADR 0049). */
 export function folderScore(row: Pick<FolderRow, 'photos' | 'undecided' | 'bursts' | 'bytes'>): number {
