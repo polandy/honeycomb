@@ -28,6 +28,10 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
   `Ctrl+Z` and `Ctrl+Shift+Z` take steps back and put them again in the grid and the loupe, and
   the toast's *Undo* takes the latest step back. Each undo or redo is a new save. A decision that
   changes nothing is no step and is not saved. Opening a connection starts an empty history.
+- **One save at a time:** the cull sends a connection's saves in order, one at a time, so a quick
+  undo never reaches the server before the decision it takes back. Decisions made while a save is
+  in flight go in the next save together, the newest per asset. A failed save puts back only the
+  decisions no later save stored.
 - **Bulk steps** save every affected asset in requests of at most the limit; assets past the
   loaded page are paged through the decision filter first.
 - **Lifecycle:** a deleted user's rows go at once; rows of a connection that left the file go in
@@ -169,3 +173,18 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
 - **When** they press `Ctrl+Z` twice and then `Ctrl+Shift+Z`
 - **Then** the reject is taken back first and the rating second, each as a new save and with a
   toast *Undid: …*; the redo saves the rating again
+
+### IMMICH-003.20 – One save at a time
+
+- **Given** an Immich cull whose save of a reject is still in flight
+- **When** the user rates another asset and takes both steps back
+- **Then** no second save starts until the first is answered, and the next save carries both
+  assets once, each with its newest decision
+
+### IMMICH-003.21 – A failed save puts back only what no later save stored
+
+- **Given** an Immich cull that rejected two assets and then picked the first, while the reject
+  was in flight
+- **When** the reject's save fails and the pick's save succeeds
+- **Then** the first asset stays picked, the second is unflagged again, the counts follow, and
+  the user is told once

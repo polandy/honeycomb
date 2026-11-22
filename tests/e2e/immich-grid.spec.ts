@@ -69,7 +69,8 @@ test.describe('the grid and the loupe of an Immich connection', () => {
 		const main = await openFamily(page)
 
 		const previews = main.locator('img[src*="/image?size=thumbnail"]')
-		expect(await previews.count()).toBeGreaterThan(0)
+		// A tile mounts its image only once the preview has loaded, after the tile itself shows.
+		await expect(previews.first()).toBeAttached()
 		expect(await previews.count()).toBeLessThan(PAGE_SIZE)
 		await expect(tile(page, PAGE_SIZE + 1)).toHaveCount(0)
 		expect(listings).toHaveLength(1)
@@ -154,31 +155,30 @@ test.describe('the grid and the loupe of an Immich connection', () => {
 				saves.push((request.postDataJSON() as { decisions: { assetId: string, rating: number, flag: string }[] }).decisions)
 			}
 		})
-		// The undos must reach the server before the page closes, or the next test sees their decisions.
-		let answered = 0
-		page.on('requestfinished', (request) => {
-			if (request.url().endsWith('/api/v1/immich/family/decisions')) {
-				answered++
-			}
-		})
+		// Each step waits for its save, so the four go out apart and none is left when the page closes.
+		const saved = async (step: () => Promise<void>) => {
+			const answer = page.waitForResponse((response) => response.url().endsWith('/api/v1/immich/family/decisions'))
+			await step()
+			expect((await answer).status()).toBe(200)
+		}
 		await openFamily(page)
 		const loupe = await openLoupe(page)
 		const toast = page.getByRole('status').filter({ hasText: 'PXL_E2E_' })
-		await page.keyboard.press('2')
+		await saved(() => page.keyboard.press('2'))
 		await expect(toast).toContainText(`Rated ${uploadName(1)} ★★`)
 		await page.keyboard.press('ArrowRight')
-		await page.keyboard.press('x')
+		await saved(() => page.keyboard.press('x'))
 		await expect(toast).toContainText(`Rejected ${uploadName(2)}`)
 		await expect(loupe.getByRole('heading', { name: uploadName(3) })).toBeVisible()
 
-		await page.keyboard.press('Control+z')
+		await saved(() => page.keyboard.press('Control+z'))
 		await expect(toast).toContainText(`Undid: Rejected ${uploadName(2)}`)
 		await page.keyboard.press('Escape')
 		await expect(loupe).toBeHidden()
-		await page.keyboard.press('Control+z')
+		await saved(() => page.keyboard.press('Control+z'))
 		await expect(toast).toContainText(`Undid: Rated ${uploadName(1)} ★★`)
 
-		await expect.poll(() => answered).toBe(4)
+		expect(saves).toHaveLength(4)
 		const [rated, rejected, unrejected, unrated] = saves.map((rows) => rows.map(({ rating, flag }) => ({ rating, flag })))
 		expect(rated).toEqual([{ rating: 2, flag: expect.any(String) }])
 		expect(rejected).toEqual([{ rating: 0, flag: 'rejected' }])
