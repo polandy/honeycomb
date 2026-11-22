@@ -1,0 +1,515 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 honeycomb contributors -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>honeycomb mockup – folders</title>
+<link rel="icon" href="data:,">
+<style>
+*{box-sizing:border-box}
+:root{--honey:#F4A51C;--on-honey:#1b1b1b;--bg:#f7f7f7;--bg-nav:#f0f0f0;--card:#fff;--card-2:#f0f0f0;--text:#1b1b1b;--muted:#5e5e5e;--border:#dcdcdc;--honey-soft:#fdecc8;--honey-text:#7a4f00;--ok:#1f8a4c;--ok-soft:#dff3e6;--danger:#c62f2b;--danger-soft:#fbe3e2;--neutral:#b5b5b5;--focus:#1a62d6;--scrim:rgba(0,0,0,.45);--shadow:0 4px 18px rgba(0,0,0,.14);--tile-bg:#e6e6e6;--outer:#d9d9d9;--nc:#0082c9;--hit:44px;--mock-h:48px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161616;--bg-nav:#1d1d1d;--card:#222;--card-2:#2a2a2a;--text:#ececec;--muted:#a8a8a8;--border:#3a3a3a;--honey-soft:#3d2e0e;--honey-text:#f7c86a;--ok:#6fbf73;--ok-soft:#1f3a24;--danger:#e57373;--danger-soft:#4a1f1f;--neutral:#6a6a6a;--shadow:0 4px 18px rgba(0,0,0,.5);--tile-bg:#333;--outer:#0e0e0e;--nc:#0a5f8f}}
+:root[data-theme="dark"]{--bg:#161616;--bg-nav:#1d1d1d;--card:#222;--card-2:#2a2a2a;--text:#ececec;--muted:#a8a8a8;--border:#3a3a3a;--honey-soft:#3d2e0e;--honey-text:#f7c86a;--ok:#6fbf73;--ok-soft:#1f3a24;--danger:#e57373;--danger-soft:#4a1f1f;--neutral:#6a6a6a;--shadow:0 4px 18px rgba(0,0,0,.5);--tile-bg:#333;--outer:#0e0e0e;--nc:#0a5f8f}
+html,body{margin:0;background:var(--outer);color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+svg.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#mock{position:sticky;z-index:40;top:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 10px;background:var(--card);color:var(--text);border-bottom:2px dashed #b8860b;font-size:13px}
+#mock b{margin-right:4px}#mock span{color:var(--muted);margin-left:6px}
+#mock button{padding:4px 8px;border-radius:8px;border:1px solid var(--border);background:none}
+#mock button[aria-pressed=true]{background:var(--honey-soft);border-color:var(--honey)}
+#note{max-width:900px;margin:10px auto 0;padding:0 12px;font-size:13px;color:var(--text)}
+#note b{color:var(--honey-text)}
+.frame{position:relative;margin:12px auto 32px;background:var(--bg);border:1px solid #888;overflow:hidden;display:flex;flex-direction:column}
+.frame.phone{width:390px;height:780px;border-radius:28px;border:10px solid #1b1b1b}
+.frame.desk{width:min(1180px,calc(100% - 24px));height:760px;border-radius:8px}
+@media (max-width:520px){#note{display:none}.frame.phone{width:100%;height:calc(100vh - var(--mock-h));margin:0;border:0;border-radius:0}}
+.nc{flex:none;height:44px;background:var(--nc);color:#fff;display:flex;align-items:center;gap:10px;padding:0 10px;font-weight:600}
+.nc .burger{width:var(--hit);height:var(--hit);border:0;background:none;color:#fff;display:none;align-items:center;justify-content:center}
+.phone .nc .burger{display:inline-flex}
+.nc .hc{display:inline-flex;align-items:center;gap:8px}.nc .hc i{width:22px;height:22px;border-radius:6px;background:var(--honey);display:inline-block;clip-path:polygon(25% 5%,75% 5%,100% 50%,75% 95%,25% 95%,0 50%)}
+.body{flex:1;min-height:0;display:flex;position:relative}
+.nav{flex:none;width:250px;background:var(--bg-nav);border-right:1px solid var(--border);padding:8px;display:flex;flex-direction:column;gap:2px;overflow:auto}
+.phone .nav{position:absolute;inset:0 70px 0 0;z-index:6;box-shadow:var(--shadow);transform:translateX(-105%);transition:transform .2s}
+.phone .nav.open{transform:none}
+.scrim{position:absolute;inset:0;z-index:5;background:var(--scrim);border:0;display:none}
+.phone .scrim.on{display:block}
+.nav .it{min-height:var(--hit);display:flex;align-items:center;gap:10px;padding:0 12px;border-radius:22px;border:0;background:none;text-align:left;width:100%}
+.nav .it.on{background:var(--honey-soft);font-weight:600}
+.nav .cap{font-size:12px;color:var(--muted);padding:12px 12px 2px;text-transform:uppercase;letter-spacing:.5px}
+.nav .grow{flex:1}
+.nav .rc{display:flex;flex-direction:column;align-items:flex-start;gap:0;padding:6px 12px;min-height:var(--hit);border-radius:12px;border:0;background:none;text-align:left;width:100%}
+.nav .rc small{color:var(--muted);font-size:12px}
+.main{flex:1;min-width:0;min-height:0;overflow:auto;display:flex;flex-direction:column}
+.page{padding:14px 18px;display:flex;flex-direction:column;gap:12px}
+.phone .page{padding:10px 12px}
+h1{margin:0;font-size:20px}
+.tb{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:space-between}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+.prog{display:grid;gap:8px}
+.prog .hd{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.prog .hd b{font-size:15px}.prog .hd span{color:var(--muted);font-size:13px}
+.bar{height:12px;border-radius:6px;background:var(--card-2);overflow:hidden;position:relative}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--honey);border-radius:6px;transition:width .3s}
+.prog .big{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.prog .big small{font-size:13px;font-weight:400;color:var(--muted);margin-left:6px}
+.prog .ln{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px}
+.strip{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:var(--honey-soft);font-size:13px}
+.strip .bar{flex:1;height:6px;border-radius:3px}
+.fbar{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:thin}
+.chip{display:inline-flex;align-items:center;gap:5px;min-height:36px;padding:0 12px;border-radius:18px;border:1px solid var(--border);background:var(--card);font-size:14px;white-space:nowrap}
+.chip[aria-pressed=true]{background:var(--honey-soft);border-color:var(--honey);font-weight:600}
+.chip .n{color:var(--muted);font-size:12px;font-weight:400}
+.sortrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sortrow label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+select{min-height:36px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);padding:0 10px;font:inherit}
+.list{display:flex;flex-direction:column;gap:8px}
+.yh{position:sticky;top:0;z-index:2;background:var(--bg);padding:8px 2px 2px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.row{display:grid;grid-template-columns:36px 1fr auto;grid-template-areas:"ck head cnt" "ck meta meta" "ck act act";gap:4px 8px;align-items:start;padding:10px 12px}
+.desk .row{grid-template-columns:36px 1fr auto auto;grid-template-areas:"ck head cnt act" "ck meta meta act";align-items:center}
+.row.done{opacity:.72}
+.row .ck{grid-area:ck;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--card-2);color:var(--muted)}
+.row.done .ck{background:var(--ok-soft);color:var(--ok)}
+.row .head{grid-area:head;min-width:0}
+.row .head b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .head small{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .cnt{grid-area:cnt;font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;white-space:nowrap;text-align:right}
+.row .cnt b{color:var(--text)}
+.row .meta{grid-area:meta;display:grid;gap:5px;min-width:0}
+.split{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--card-2)}
+.split i{display:block;height:100%}.split .p{background:var(--ok)}.split .u{background:var(--neutral)}.split .r{background:var(--danger)}
+.why{font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 6px;align-items:center}
+.why .sep{opacity:.6}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:10px;background:var(--honey-soft);color:var(--honey-text);font-size:12px;font-weight:600}
+.badge.ro{background:var(--card-2);color:var(--muted)}
+.row .act{grid-area:act;display:flex;gap:6px;justify-content:flex-end;align-items:center}
+.btn{min-height:var(--hit);padding:0 14px;border-radius:22px;border:1px solid var(--border);background:var(--card);display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn.primary{background:var(--honey);border-color:var(--honey);color:var(--on-honey);font-weight:600}
+.btn.danger{background:var(--danger);border-color:var(--danger);color:#fff;font-weight:600}
+.btn.quiet{border-color:transparent;background:none}
+.ib{width:var(--hit);height:var(--hit);border:0;border-radius:50%;background:none;display:inline-flex;align-items:center;justify-content:center}
+.ib:hover{background:var(--card-2)}
+.empty{text-align:center;color:var(--muted);padding:40px 12px}
+.toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:6px;padding:4px 6px 4px 14px;border-radius:24px;background:#1b1b1b;color:#fff;box-shadow:var(--shadow);font-size:14px;max-width:calc(100% - 24px)}
+.toast .x{width:var(--hit);color:#fff;font-weight:400}
+.toast .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toast button{min-height:36px;padding:0 12px;border-radius:18px;border:0;background:none;color:var(--honey);font-weight:600}
+.dlgwrap{position:absolute;inset:0;z-index:20;background:var(--scrim);display:flex;align-items:center;justify-content:center;padding:20px}
+.phone .dlgwrap{align-items:flex-end;padding:0}
+.dlg{background:var(--card);border-radius:16px;box-shadow:var(--shadow);width:min(520px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column}
+.phone .dlg{border-radius:16px 16px 0 0;padding-bottom:10px}
+.dlg h2{margin:0;padding:16px 18px 6px;font-size:17px}
+.dlg .bd{padding:4px 18px 12px;display:grid;gap:10px}
+.dlg .ft{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;padding:6px 18px 14px}
+.dlg .ft .sp{flex:1}
+.dlg .mi{min-height:var(--hit);display:flex;align-items:center;gap:12px;padding:0 18px;border:0;background:none;width:100%;text-align:left}
+.dlg .mi:hover{background:var(--card-2)}
+.dlg .mi.dis{opacity:.45}
+.dlg .num{font-size:34px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.dlg .num small{font-size:14px;font-weight:400;color:var(--muted);display:block}
+.dlg .ln{font-size:13px;color:var(--muted)}
+.dlg label.cb{display:flex;align-items:flex-start;gap:10px;font-size:14px;min-height:var(--hit)}
+.dlg label.cb input{width:20px;height:20px;margin-top:2px;accent-color:var(--honey)}
+.gridtb{flex:none;display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--card);border-bottom:1px solid var(--border);min-height:56px;position:sticky;top:0;z-index:3}
+.gridtb .ttl{flex:1;min-width:0}.gridtb .ttl b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gridtb .ttl span{font-size:12px;color:var(--muted)}
+.gridfb{display:flex;gap:6px;padding:8px 12px;background:var(--card);border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center}
+.gridfb b{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-right:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--ts),1fr));gap:8px;padding:10px}
+.tile{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--tile-bg)}
+.ph{position:absolute;inset:0}.ph i{position:absolute;border-radius:50%}
+.tile .pair{position:absolute;left:6px;top:6px;font-size:11px;font-weight:700;border-radius:6px;padding:2px 6px;background:#fff;color:#1b1b1b}
+.tile .ser{position:absolute;right:6px;top:6px;font-size:11px;font-weight:700;border-radius:10px;padding:2px 7px;background:rgba(0,0,0,.66);color:#fff}
+.tile .nm{position:absolute;left:0;right:0;bottom:44px;padding:14px 6px 4px;background:linear-gradient(transparent,rgba(0,0,0,.6));color:#fff;font-size:12px}
+.tile .fl{position:absolute;left:0;right:0;bottom:0;display:flex}
+.tile .fl button{flex:1;height:var(--hit);border:0;color:#fff;font-weight:600;font-size:13px}
+.tile .fl .pk{background:rgba(31,138,76,.9)}.tile .fl .rj{background:rgba(198,47,43,.9)}
+.gridnote{padding:10px 14px;font-size:13px;color:var(--muted)}
+.alldone{display:grid;place-items:center;gap:10px;padding:40px 14px;color:var(--muted);text-align:center}
+.phone .chip,.phone select{min-height:var(--hit)}
+.roots{display:grid;gap:6px;margin-top:2px}
+.roots .rt{display:grid;grid-template-columns:minmax(80px,140px) 1fr auto;gap:10px;align-items:center;font-size:13px}
+.roots .rt b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.roots .rt .bar{height:8px}
+.roots .rt span{color:var(--muted);font-variant-numeric:tabular-nums}
+.rh{display:flex;align-items:baseline;gap:8px;padding:8px 2px 2px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.setup{max-width:560px;width:100%;margin:0 auto;display:grid;gap:12px}
+.setup p{margin:0;color:var(--muted);font-size:14px}
+.setup .rl{display:grid;gap:6px}
+.setup .rr{display:flex;align-items:center;gap:10px;padding:4px 4px 4px 12px;border:1px solid var(--border);border-radius:12px;background:var(--card)}
+.setup .rr b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.setup .err{color:var(--danger);font-size:13px}
+.setup .ft{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.statp{display:grid;gap:8px}
+.statp a{color:var(--honey-text);font-weight:600}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<nav id="mock" aria-label="Mockup controls"></nav>
+<p id="note"></p>
+<div id="root"></div>
+<script>
+'use strict'
+// ---------- data ----------
+const TODAY = '2026-11-22'
+const BURST_GAP_S = 3 // same constant as the series rule (ADR 0021)
+const ROOTS = ['Photos', 'Archive']
+const CANDIDATES = ['Photos', 'Archive', 'Photos/2019', 'Documents']
+const fresh = () => [
+	f('Photos/2019/2019-07 Dolomites', 1240, 180, 280, 320, 42, 2019, '2026-10-30'),
+	f('Photos/2019/2019-12 Christmas', 310, 0, 0, 40, 3.1, 2019, null),
+	f('Photos/2020/2020-08 Baltic Sea', 860, 120, 90, 210, 28, 2020, '2026-08-12'),
+	f('Photos/2021/2021-05 Birthday Mia', 96, 0, 0, 30, 0.9, 2021, null),
+	f('Photos/2022/2022-10 Hike Dachstein', 540, 210, 330, 180, 17, 2022, '2026-11-02', { by: 'Andy', at: '2026-11-02', photos: 540 }),
+	f('Photos/2023/2023-04 Easter', 220, 150, 70, 60, 6.5, 2023, '2026-11-18'),
+	f('Photos/2024/2024-07 Norway', 2180, 400, 600, 700, 65, 2024, '2026-11-15'),
+	f('Photos/2024/2024-12 Family', 150, 90, 48, 40, 4.2, 2024, '2026-10-14', { by: 'Lena', at: '2026-10-14', photos: 138 }),
+	f('Photos/2025/2025-02 Studio tests', 420, 60, 40, 160, 12, 2025, null),
+	f('Photos/2025/2025-09 Wedding Lena', 1860, 300, 700, 600, 55, 2025, '2026-11-20'),
+	f('Photos/2026/2026-03 Spring', 74, 0, 0, 10, 0.6, 2026, null),
+	f('Photos/2026/2026-10 Hike', 12, 2, 2, 6, 0.4, 2026, '2026-11-21'),
+	f('Photos/Phone uploads', 3400, 0, 0, 200, 9, 2024, null),
+	f('Photos/2018/2018-06 Scotland', 980, 310, 670, 300, 31, 2018, '2026-09-20', { by: 'Andy', at: '2026-09-20', photos: 980 }),
+	f('Photos/2018/2018-09 Vienna', 410, 140, 270, 90, 12, 2018, '2026-09-22', { by: 'Andy', at: '2026-09-22', photos: 410 }),
+	f('Archive/Scans', 260, 0, 0, 0, 1.8, 1998, null, null, true),
+	f('Archive/1990s Slides', 640, 120, 300, 0, 4.4, 1994, '2026-06-02'),
+	f('Archive/2009 Interrail', 380, 0, 0, 90, 2.9, 2009, null),
+]
+function f(path, photos, picked, rejected, bursts, gb, year, last, done = null, readOnly = false) {
+	return { path, photos, picked, rejected, bursts, gb, year, last, done, readOnly }
+}
+const name = (p) => p.path.slice(p.path.lastIndexOf('/') + 1)
+const parent = (p) => p.path.slice(0, p.path.lastIndexOf('/'))
+const rootOf = (p) => S.roots.find((r) => p.path === r || p.path.startsWith(r + '/'))
+const inLibrary = () => S.folders.filter((p) => rootOf(p) && (S.root === 'all' || rootOf(p) === S.root))
+const undecided = (p) => p.photos - p.picked - p.rejected
+const newPhotos = (p) => (p.done ? Math.max(0, p.photos - p.done.photos) : 0)
+const hasChildren = (p) => S.folders.some((o) => o !== p && o.path.startsWith(p.path + '/'))
+// the score: undecided × burst factor (up to ×3) × size factor (up to ×2); age is a sort, not a weight
+const score = (p) => {
+	const u = undecided(p)
+	if (!u || p.done) return 0
+	const burst = 1 + 2 * (p.bursts / p.photos)
+	const size = 1 + Math.min(1, (p.gb * 1024 / p.photos) / 25)
+	return Math.round(u * burst * size)
+}
+const nf = (n) => n.toLocaleString('en-GB')
+const pct = (a, b) => (b ? Math.round(100 * a / b) : 0)
+const gb = (g) => (g >= 1 ? `${g.toFixed(g >= 10 ? 0 : 1)} GB` : `${Math.round(g * 1024)} MB`)
+const why = (p) => {
+	const u = undecided(p)
+	const parts = [`${pct(u, p.photos)} % undecided`]
+	if (p.bursts) parts.push(`${nf(p.bursts)} in bursts`)
+	parts.push(gb(p.gb), String(p.year))
+	if (p.last) parts.push(`last ${p.last}`)
+	return parts
+}
+
+// ---------- state ----------
+const KEY = 'honeycomb-folders-mockup'
+let S = load()
+function load() {
+	const base = { screen: 'folders', roots: [...ROOTS], root: 'all', draft: null, draftError: null, filter: 'suggested', sort: 'suggested', folders: fresh(), nav: false, menu: null, dialog: null, toast: null, cull: null, scanning: false, device: innerWidth <= 520 ? 'phone' : 'desk', theme: 'auto' }
+	try {
+		const saved = JSON.parse(localStorage.getItem(KEY) || 'null')
+		if (saved && saved.folders) Object.assign(base, { folders: saved.folders, roots: saved.roots, root: saved.root || 'all', filter: saved.filter, sort: saved.sort, device: saved.device, theme: saved.theme })
+	} catch (e) { /* storage blocked: the page just forgets */ }
+	if (!base.roots) base.screen = 'setup'
+	return base
+}
+function save() {
+	try { localStorage.setItem(KEY, JSON.stringify({ folders: S.folders, roots: S.roots, root: S.root, filter: S.filter, sort: S.sort, device: S.device, theme: S.theme })) } catch (e) { /* ignore */ }
+}
+const TOAST_MS = 8000 // the undo window of the Mark done toast
+const SWIPE_PX = 60 // a sideways swipe this long dismisses the toast
+let toastTimer = null
+function toast(text, undo) {
+	S.toast = { text, undo }
+	clearTimeout(toastTimer)
+	toastTimer = setTimeout(() => { S.toast = null; render() }, TOAST_MS)
+}
+
+// ---------- icons ----------
+const ic = { back: 'M15 6l-6 6 6 6', more: 'M5 12h.01M12 12h.01M19 12h.01', check: 'M5 12l5 5L20 7', folder: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', folders: 'M3 9a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM7 7V5a2 2 0 0 1 2-2h3l2 2h5a2 2 0 0 1 2 2v8', compare: 'M4 5h7v14H4zM13 5h7v14h-7z', chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2', settings: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z', menu: 'M4 6h16M4 12h16M4 18h16', open: 'M14 4h6v6M20 4l-9 9M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5', redo: 'M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5', filter: 'M4 5h16l-6 8v6l-4-2v-4z', sub: 'M3 5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v3H3zM3 12h18v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' }
+const svg = (k, cls = 'ic') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ic[k]}"/></svg>`
+const P = (hue, x, y, k, blur = 0) => `<div class="ph" style="filter:blur(${blur}px);background:linear-gradient(${160 + k * 7}deg,hsl(${hue} 45% ${62 - k * 2}%),hsl(${hue + 30} 35% ${30 + k}%))"><i style="left:${x + k * 3}%;top:${y}%;width:34%;height:34%;background:hsl(${hue + 180} 30% 85% / .85)"></i><i style="left:${x - 10}%;top:${y + 30}%;width:60%;height:50%;background:hsl(${hue} 30% 22% / .7)"></i></div>`
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+
+// ---------- library numbers ----------
+function library(root = S.root) {
+	const all = S.folders.filter((p) => rootOf(p) && (root === 'all' || rootOf(p) === root))
+	const photos = all.reduce((n, p) => n + p.photos, 0)
+	const done = all.filter((p) => p.done)
+	const donePhotos = done.reduce((n, p) => n + p.photos, 0)
+	const decided = all.reduce((n, p) => n + p.picked + p.rejected, 0)
+	const month = done.filter((p) => p.done.at >= '2026-11-01').length
+	return { folders: all.length, photos, done: done.length, donePhotos, decided, month }
+}
+
+// ---------- filters and sort ----------
+const FILTERS = [['suggested', 'Suggested'], ['open', 'Open'], ['new', 'New photos'], ['done', 'Done'], ['all', 'All']]
+const SORTS = [['suggested', 'Suggested'], ['undecided', 'Most undecided'], ['largest', 'Largest'], ['oldest', 'Oldest'], ['newest', 'Newest'], ['name', 'Name']]
+const matches = (p, key) => ({
+	suggested: !p.done && !p.readOnly && (score(p) > 0 || undecided(p) === 0),
+	open: !p.done,
+	new: !!p.done && newPhotos(p) > 0,
+	done: !!p.done,
+	all: true,
+}[key])
+const count = (key) => inLibrary().filter((p) => matches(p, key)).length
+function sorted(list) {
+	const by = {
+		suggested: (a, b) => (undecided(a) === 0) - (undecided(b) === 0) ? (undecided(a) === 0 ? -1 : 1) : score(b) - score(a) || (undecided(b) - undecided(a)),
+		undecided: (a, b) => undecided(b) - undecided(a),
+		largest: (a, b) => b.gb - a.gb,
+		oldest: (a, b) => a.year - b.year || a.path.localeCompare(b.path),
+		newest: (a, b) => b.year - a.year || a.path.localeCompare(b.path),
+		name: (a, b) => a.path.localeCompare(b.path),
+	}[S.sort]
+	return [...list].sort(by)
+}
+
+// ---------- renderers ----------
+function progress() {
+	const L = library()
+	const share = pct(L.donePhotos, L.photos)
+	const perRoot = S.roots.length > 1 ? `<div class="roots">${S.roots.map((r) => { const R = library(r), v = pct(R.donePhotos, R.photos); return `<div class="rt"><b>${esc(r)}</b><div class="bar" role="progressbar" aria-label="${esc(r)}" aria-valuenow="${v}" aria-valuemin="0" aria-valuemax="100"><i style="width:${v}%"></i></div><span>${v} % · ${nf(R.done)} / ${nf(R.folders)}</span></div>` }).join('')}</div>` : ''
+	return `<section class="card prog" aria-label="Library progress">
+	<div class="hd"><b>${S.root === 'all' ? 'Library' : esc(S.root)}</b><span>${S.root === 'all' ? `${S.roots.length} ${S.roots.length === 1 ? 'root' : 'roots'} · ` : ''}${nf(L.folders)} folders · ${nf(L.photos)} photos</span></div>
+	<div class="big">${share} %<small>of photos in done folders</small></div>
+	<div class="bar" role="progressbar" aria-valuenow="${share}" aria-valuemin="0" aria-valuemax="100"><i style="width:${share}%"></i></div>
+	<div class="ln"><span>${nf(L.done)} of ${nf(L.folders)} folders done</span><span>${L.month} this month</span><span>${pct(L.decided, L.photos)} % of all photos decided</span></div>
+	${S.root === 'all' ? perRoot : ''}
+	</section>`
+}
+function splitBar(p) {
+	const u = undecided(p)
+	return `<div class="split" title="${p.picked} picked · ${u} unflagged · ${p.rejected} rejected"><i class="p" style="width:${pct(p.picked, p.photos)}%"></i><i class="u" style="width:${pct(u, p.photos)}%"></i><i class="r" style="width:${pct(p.rejected, p.photos)}%"></i></div>`
+}
+function row(p, i) {
+	const u = undecided(p), nw = newPhotos(p)
+	let meta, act
+	if (p.readOnly) {
+		meta = `<div class="why"><span class="badge ro">Read-only</span><span class="sep">·</span>${why(p).slice(0, 3).join('<span class="sep"> · </span>')}</div>`
+		act = ''
+	} else if (p.done) {
+		meta = `<div class="why">${nw ? `<span class="badge">${nw} new</span><span class="sep">·</span>` : ''}<span>Done ${p.done.at} · by ${esc(p.done.by)}</span></div>`
+		act = nw ? `<button class="btn primary" data-act="cullNew" data-i="${i}">Cull new</button>` : ''
+	} else if (u === 0) {
+		meta = `${splitBar(p)}<div class="why"><span class="badge">Complete</span><span class="sep">·</span><span>not marked done</span></div>`
+		act = `<button class="btn primary" data-act="markDone" data-i="${i}">Mark done</button>`
+	} else {
+		meta = `${splitBar(p)}<div class="why">${why(p).map(esc).join('<span class="sep">·</span>')}</div>`
+		act = `<button class="btn primary" data-act="cull" data-i="${i}">Cull</button>`
+	}
+	return `<article class="card row${p.done ? ' done' : ''}" aria-label="${esc(name(p))}">
+	<span class="ck" aria-hidden="true">${p.done ? svg('check') : svg('folder')}</span>
+	<div class="head"><b>${esc(name(p))}</b><small>${esc(parent(p))}</small></div>
+	<div class="cnt"><b>${nf(p.photos)}</b> photos${u && !p.done ? `<br>${nf(u)} undecided` : ''}</div>
+	<div class="meta">${meta}</div>
+	<div class="act">${act}<button class="ib" data-act="menu" data-i="${i}" aria-label="More for ${esc(name(p))}">${svg('more')}</button></div>
+	</article>`
+}
+function folders() {
+	const grouped = S.sort === 'oldest' || S.sort === 'newest'
+	const section = (list) => {
+		let last = null
+		return sorted(list).map((p) => {
+			const head = grouped && p.year !== last ? `<div class="yh">${p.year}</div>` : ''
+			last = p.year
+			return head + row(p, S.folders.indexOf(p))
+		}).join('')
+	}
+	const shown = inLibrary().filter((p) => matches(p, S.filter))
+	const byRoot = S.root === 'all' && S.roots.length > 1
+	const rows = (byRoot
+		? S.roots.map((r) => { const l = shown.filter((p) => rootOf(p) === r); return l.length ? `<div class="rh">${svg('folders')}<span>${esc(r)}</span><span>${l.length}</span></div>${section(l)}` : '' }).join('')
+		: section(shown)) || `<p class="empty">No folders here.</p>`
+	const rootChips = S.roots.length > 1 ? `<div class="fbar" role="group" aria-label="Library root">${[['all', 'All roots'], ...S.roots.map((r) => [r, r])].map(([k, l]) => `<button class="chip" data-act="root" data-k="${esc(k)}" aria-pressed="${S.root === k}">${esc(l)}</button>`).join('')}</div>` : ''
+	return `<div class="page">
+	<div class="tb"><h1>Folders</h1><span class="sr">Folders to cull, library progress</span></div>
+	${rootChips}
+	${progress()}
+	${S.scanning ? `<div class="strip">${svg('redo')}<span>Updating 12 folders</span><div class="bar"><i style="width:58%"></i></div><span>7 / 12</span></div>` : ''}
+	<div class="fbar" role="group" aria-label="Filter">${FILTERS.map(([k, l]) => `<button class="chip" data-act="filter" data-k="${k}" aria-pressed="${S.filter === k}">${l} <span class="n">${count(k)}</span></button>`).join('')}</div>
+	<div class="sortrow"><label for="sort">Sort</label><select id="sort" data-act="sort">${SORTS.map(([k, l]) => `<option value="${k}"${S.sort === k ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
+	<div class="list">${rows}</div>
+	</div>`
+}
+function cullScreen() {
+	const p = S.folders[S.cull.i]
+	const u = undecided(p)
+	const tiles = Math.min(S.cull.tiles, u)
+	const decided = p.picked + p.rejected
+	const grid = tiles ? `<div class="grid" style="--ts:${S.device === 'phone' ? 110 : 160}px">${Array.from({ length: tiles }, (_, k) => {
+		const n = S.cull.seq + k
+		return `<div class="tile">${P((n * 47) % 360, 30 + (k % 4) * 5, 20 + (k % 3) * 8, k % 4)}<span class="pair">RAW+JPG</span>${k % 3 === 1 ? '<span class="ser">series 3</span>' : ''}<span class="nm">IMG_${String(400 + n).padStart(4, '0')}</span><div class="fl"><button class="pk" data-act="pick" aria-label="Pick IMG_${400 + n}">Pick</button><button class="rj" data-act="reject" aria-label="Reject IMG_${400 + n}">Reject</button></div></div>`
+	}).join('')}</div>` : `<div class="alldone">${svg('check')}<b>No undecided photos left</b><span>The Cull finished card opens here in the app.</span></div>`
+	return `<div class="gridtb"><button class="ib" data-act="backToFolders" aria-label="Back to folders">${svg('back')}</button><div class="ttl"><b>${esc(name(p))}</b><span>${nf(decided)} of ${nf(p.photos)} decided${S.cull.newOnly ? ' · new photos' : ''}</span></div><button class="ib" aria-pressed="true" aria-label="Filter">${svg('filter')}</button><button class="ib" aria-label="More">${svg('more')}</button></div>
+	<div class="gridfb"><b>Flag</b><button class="chip" aria-pressed="${!S.cull.newOnly}">Picked</button><button class="chip" aria-pressed="true">Unflagged</button><button class="chip" aria-pressed="false">Rejected</button></div>
+	${grid}
+	<p class="gridnote">Mockup: each tile stands for a share of the ${nf(u)} undecided photos; the real grid is the one the app has today.</p>`
+}
+function nav() {
+	if (!S.roots) return ''
+	const recent = S.folders.filter((p) => p.last && !p.done).sort((a, b) => b.last.localeCompare(a.last)).slice(0, 3)
+	return `<nav class="nav${S.nav ? ' open' : ''}" aria-label="Navigation">
+	<button class="it${S.screen === 'folders' || S.screen === 'cull' ? ' on' : ''}" data-act="backToFolders">${svg('folders')}Folders</button>
+	<button class="it">${svg('folder')}Folder…</button>
+	<button class="it">${svg('compare')}Similarity</button>
+	<button class="it${S.screen === 'stats' ? ' on' : ''}" data-act="stats">${svg('chart')}Statistics</button>
+	<div class="cap">Recent</div>
+	${recent.map((p) => `<button class="rc" data-act="cull" data-i="${S.folders.indexOf(p)}">${esc(name(p))}<small>${nf(p.picked + p.rejected)} / ${nf(p.photos)} decided</small></button>`).join('')}
+	<div class="grow"></div>
+	<button class="it${S.screen === 'setup' ? ' on' : ''}" data-act="editRoots">${svg('settings')}Settings › Library roots</button>
+	</nav><button class="scrim${S.nav ? ' on' : ''}" data-act="closeNav" aria-label="Close navigation"></button>`
+}
+function dialog() {
+	const d = S.dialog
+	if (!d) return ''
+	const p = S.folders[d.i]
+	let inner = ''
+	if (d.kind === 'menu') {
+		inner = `<h2>${esc(name(p))}</h2>
+		<button class="mi" data-act="cull" data-i="${d.i}"${p.readOnly ? ' disabled' : ''}>${svg('folder')}Cull</button>
+		<button class="mi${hasChildren(p) ? '' : ' dis'}" data-act="cull" data-i="${d.i}"${hasChildren(p) ? '' : ' disabled'}>${svg('sub')}Cull with subfolders</button>
+		${p.readOnly ? '' : p.done ? `<button class="mi" data-act="reopen" data-i="${d.i}">${svg('redo')}Reopen</button>` : `<button class="mi" data-act="markDone" data-i="${d.i}">${svg('check')}Mark done</button>`}
+		<button class="mi">${svg('open')}Open in Files</button>
+		<div class="ft"><button class="btn" data-act="closeDialog">Cancel</button></div>`
+	} else if (d.kind === 'finished') {
+		const L = library(), after = pct(L.donePhotos + p.photos, L.photos)
+		inner = `<h2>Cull finished</h2><div class="bd">
+		<div class="num">${nf(d.decided)}<small>photos decided in this session</small></div>
+		${splitBar(p)}<p class="ln">${nf(p.picked)} picked · 0 unflagged · ${nf(p.rejected)} rejected</p>
+		<p class="ln">Library ${pct(L.donePhotos, L.photos)} % → <b>${after} %</b> when this folder is marked done (${nf(p.photos)} photos)</p>
+		</div><div class="ft"><button class="btn quiet" data-act="stats">Statistics</button><span class="sp"></span><button class="btn" data-act="closeFinished">Done</button><button class="btn primary" data-act="markDone" data-i="${d.i}">Mark folder done</button></div>`
+	}
+	return `<div class="dlgwrap" data-act="closeDialog"><div class="dlg" role="dialog" aria-modal="true">${inner}</div></div>`
+}
+function setup() {
+	const d = S.draft
+	const first = !S.roots
+	const free = CANDIDATES.filter((c) => !d.includes(c))
+	return `<div class="page"><div class="setup">
+	<div class="tb"><h1>${first ? 'Where is your library?' : 'Library roots'}</h1></div>
+	<p>Folders lists and counts the folders below your library roots, never the rest of your files. Choose one root or more; a root cannot lie inside another. You can change them later in Settings.</p>
+	<div class="rl" aria-label="Library roots">${d.map((r) => `<div class="rr">${svg('folder')}<b>${esc(r)}</b><button class="ib" data-act="dropRoot" data-k="${esc(r)}" aria-label="Remove ${esc(r)}">✕</button></div>`).join('') || '<p>No root chosen yet.</p>'}</div>
+	${S.draftError ? `<p class="err" role="alert">${esc(S.draftError)}</p>` : ''}
+	<div class="fbar" role="group" aria-label="Add a root (stands for the folder picker)">${free.map((c) => `<button class="chip" data-act="addRoot" data-k="${esc(c)}">+ ${esc(c)}</button>`).join('')}</div>
+	<div class="ft">${first ? '' : '<button class="btn" data-act="cancelSetup">Cancel</button>'}<button class="btn primary" data-act="saveRoots"${d.length ? '' : ' disabled'}>${first ? 'Show folders' : 'Save'}</button></div>
+	</div></div>`
+}
+function stats() {
+	const L = library('all')
+	return `<div class="page"><div class="tb"><h1>Statistics</h1></div>
+	<section class="card statp" aria-label="Folders"><b>Folders</b>
+	<div class="prog"><div class="big">${pct(L.donePhotos, L.photos)} %<small>of photos in done folders</small></div>
+	<div class="bar"><i style="width:${pct(L.donePhotos, L.photos)}%"></i></div>
+	<div class="ln"><span>${nf(L.done)} of ${nf(L.folders)} folders done</span><span>${L.month} this month</span></div></div>
+	<a href="#" data-act="backToFolders">All folders</a></section>
+	<p class="gridnote">Mockup: the rest of the statistics page stays as it is (mockup/statistics); this panel replaces Folder sets.</p></div>`
+}
+function screen() {
+	if (S.screen === 'setup') return setup()
+	if (S.screen === 'stats') return stats()
+	return S.screen === 'cull' ? cullScreen() : folders()
+}
+function render() {
+	document.documentElement.dataset.theme = S.theme === 'auto' ? '' : S.theme
+	document.documentElement.style.setProperty('--mock-h', document.getElementById('mock').offsetHeight + 'px')
+	const T = S.toast ? `<div class="toast" role="status"><span class="t">${esc(S.toast.text)}</span>${S.toast.undo ? `<button data-act="undo">Undo</button>` : ''}<button class="x" data-act="closeToast" aria-label="Dismiss">✕</button></div>` : ''
+	document.getElementById('root').innerHTML = `<div class="frame ${S.device}"><div class="nc"><button class="burger" data-act="toggleNav" aria-label="Menu">${svg('menu')}</button><span class="hc"><i></i>honeycomb</span></div><div class="body">${nav()}<main class="main">${screen()}</main>${dialog()}${T}</div></div>`
+	renderMock()
+	save()
+}
+function renderMock() {
+	const b = (act, k, label, on) => `<button data-act="${act}" data-k="${k}" aria-pressed="${on}">${label}</button>`
+	document.getElementById('mock').innerHTML = `<b>Mockup · Folders</b><span>Device</span>${b('device', 'phone', 'Phone', S.device === 'phone')}${b('device', 'desk', 'Desktop / iPad landscape', S.device === 'desk')}<span>Theme</span>${['light', 'dark', 'auto'].map((t) => b('theme', t, t[0].toUpperCase() + t.slice(1), S.theme === t)).join('')}<span>Simulate</span>${b('scan', '', 'Folder refresh', S.scanning)}${b('firstRun', '', 'First run', !S.roots)}${S.screen === 'cull' ? `<button data-act="finishCull">Finish this cull</button>` : ''}<button data-act="reset">Reset</button>`
+	document.getElementById('note').innerHTML = {
+		cull: '<b>Cull:</b> the grid of today, with <b>Back</b> at the left of the toolbar to the folder list (scroll, filter and sort stay). Pick or Reject on a tile decides a share of the undecided photos; when none is left, the existing <b>Cull finished</b> card opens with the new button <b>Mark folder done</b>.',
+		setup: '<b>Library roots</b> (ADR 0049): required, one or more, none inside another. Asked once on the first run, editable in Settings. The chips stand for the folder picker; <b>Photos/2019</b> shows the error for a nested root.',
+		stats: '<b>Statistics:</b> the Folder sets panel becomes this headline with a link to Folders.',
+	}[S.screen] || '<b>Folders</b> is the new start screen (ADR 0049). At the top the library progress (photos in done folders), in total and per root, then the suggestions per root: the score from undecided × bursts × bytes, shown as a reason line, never a number. The chips choose a root and filter (<b>New photos</b> = done, but new photos), <b>Oldest/Newest</b> groups by year. <b>Cull</b> opens the grid; <b>⋯</b> opens Mark done, Reopen and Cull with subfolders. <b>Mark done</b> asks nothing: a toast with <b>Undo</b> for 8 s that <b>✕</b> or a swipe dismisses; it never writes XMP. Read-only folders have no Mark done. The marks are kept in this browser; <b>Reset</b> restores the start.'
+}
+
+// ---------- actions ----------
+const actions = {
+	device: (k) => { S.device = k },
+	theme: (k) => { S.theme = k },
+	scan: () => { S.scanning = !S.scanning },
+	reset: () => { S = load(); S.folders = fresh(); S.roots = [...ROOTS]; S.root = 'all'; S.filter = 'suggested'; S.sort = 'suggested'; S.screen = 'folders'; S.toast = null },
+	firstRun: () => { S.roots = null; S.root = 'all'; S.draft = []; S.draftError = null; S.screen = 'setup' },
+	editRoots: () => { S.nav = false; if (S.roots) { S.draft = [...S.roots]; S.draftError = null; S.screen = 'setup' } },
+	addRoot: (k) => {
+		const clash = S.draft.find((r) => k.startsWith(r + '/') || r.startsWith(k + '/'))
+		S.draftError = clash ? `${k} and ${clash} overlap: a root cannot lie inside another.` : null
+		if (!clash) S.draft.push(k)
+	},
+	dropRoot: (k) => { S.draft = S.draft.filter((r) => r !== k); S.draftError = null },
+	saveRoots: () => { S.roots = [...S.draft]; if (!S.roots.includes(S.root)) S.root = 'all'; S.screen = 'folders' },
+	cancelSetup: () => { S.screen = 'folders' },
+	root: (k) => { S.root = k },
+	stats: () => { S.dialog = null; S.nav = false; S.screen = 'stats' },
+	filter: (k) => { S.filter = k },
+	toggleNav: () => { S.nav = !S.nav },
+	closeNav: () => { S.nav = false },
+	menu: (k, i) => { S.dialog = { kind: 'menu', i } },
+	closeDialog: () => { S.dialog = null },
+	closeFinished: () => { S.dialog = null; S.screen = 'folders' },
+	cull: (k, i) => { S.dialog = null; S.nav = false; S.cull = { i, tiles: 12, seq: 1, decided: 0, newOnly: false }; S.screen = 'cull' },
+	cullNew: (k, i) => { actions.cull(k, i); S.cull.newOnly = true },
+	backToFolders: () => { if (S.roots) { S.screen = 'folders'; S.dialog = null; S.nav = false } },
+	markDone: (k, i) => {
+		const p = S.folders[i]
+		p.done = { by: 'Andy', at: TODAY, photos: p.photos }
+		S.dialog = null
+		S.screen = 'folders'
+		toast(`Marked ${name(p)} done`, () => { p.done = null })
+	},
+	reopen: (k, i) => {
+		const p = S.folders[i]
+		p.done = null
+		S.dialog = null
+		toast(`Reopened ${name(p)}`, null)
+	},
+	closeToast: () => { S.toast = null; clearTimeout(toastTimer) },
+	undo: () => { if (S.toast && S.toast.undo) S.toast.undo(); S.toast = null; clearTimeout(toastTimer) },
+	pick: () => decide('picked'),
+	reject: () => decide('rejected'),
+	finishCull: () => { const p = S.folders[S.cull.i]; const u = undecided(p); p.picked += Math.round(u / 3); p.rejected += u - Math.round(u / 3); S.cull.decided += u; p.last = TODAY; finished() },
+}
+function decide(flag) {
+	const p = S.folders[S.cull.i]
+	const u = undecided(p)
+	const step = Math.max(1, Math.ceil(u / Math.min(S.cull.tiles, u)))
+	p[flag] += Math.min(step, u)
+	S.cull.decided += Math.min(step, u)
+	S.cull.seq += 1
+	p.last = TODAY
+	if (undecided(p) === 0) finished()
+}
+function finished() {
+	const p = S.folders[S.cull.i]
+	if (p.done) { S.screen = 'folders'; toast(`${name(p)}: no undecided photos left`, null); return }
+	S.dialog = { kind: 'finished', i: S.cull.i, decided: S.cull.decided }
+}
+document.addEventListener('click', (e) => {
+	const el = e.target.closest('[data-act]')
+	if (!el || el.disabled) return
+	if (el.tagName === 'A') e.preventDefault()
+	if (el.classList.contains('dlgwrap') && e.target !== el) return
+	const act = actions[el.dataset.act]
+	if (!act) return
+	act(el.dataset.k, el.dataset.i === undefined ? undefined : Number(el.dataset.i))
+	render()
+})
+let swipeX = null
+document.addEventListener('pointerdown', (e) => { swipeX = e.target.closest('.toast') ? e.clientX : null })
+document.addEventListener('pointerup', (e) => { if (swipeX !== null && Math.abs(e.clientX - swipeX) > SWIPE_PX) { actions.closeToast(); render() } swipeX = null })
+document.addEventListener('change', (e) => { if (e.target.dataset.act === 'sort') { S.sort = e.target.value; render() } })
+render()
+</script>
+</body>
+</html>

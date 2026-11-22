@@ -30,6 +30,11 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **Remove RAWs** | The bulk action that moves the RAW member and its own sidecar of every unmarked, not rejected pair in the view to the trash bin; the JPEG and the decisions stay. |
 | **cull** | Going through a folder set and rating, labelling, flagging and deleting pictures. |
 | **folder set** | The folders one cull covers: the ticked folders and, with *Include subfolders*, every folder below them but the *excluded* ones. Not a *selection*. |
+| **library root** | A folder of the user's home storage below which *Folders* lists and counts folders; one or more, none inside another, chosen on the first run (ADR 0049). The UI calls them together the *Library*. |
+| **folder summary** | The counts of one folder's own photos (photos, bytes, flags, undecided, bursts, capture times, last activity) the server caches per folder by etag and a dirty mark (ADR 0049). |
+| **burst** | A photo taken at most 3 s after its predecessor, by capture time; ranks folders, unlike a *series* it needs no visual hash (ADR 0049). |
+| **complete** | A folder with no undecided photo; derived, unlike *done*. |
+| **folder done** | The status a user gives a folder they have been through; shared per folder like the flags, with the user who marked it, and needs UPDATE. New photos leave it done and show as *n new* (ADR 0049). Not *series done*. |
 | **excluded folder** | A folder below a ticked one that *Include subfolders* leaves out, with everything inside it but ticked folders (ADR 0035). |
 | **resume position** | Where a user stands in a folder set (the current picture and how many are decided), stored on the server so a cull continues on another device. |
 | **undecided** | A picture whose flag is unflagged and that is not in a done series; picked and rejected pictures, and the unflagged pictures of a done series (SERIES-005.14), are *decided*. |
@@ -125,6 +130,11 @@ loupe, series compare, series viewer). The controls come from the shared compone
 - **Toasts.** One undoable change, one toast: the change in the past tense, the photo's name or
   "n photos", then *Undo* — "Rejected IMG_0001 · Undo", "Picked IMG_0001 · rejected 2 · Undo",
   "Rated 3 photos ★★★ · Undo". Undo and redo answer "Undid: …" and "Redid: …".
+- **Folders.** The UI says *Folders* for the start screen that lists the folders to cull,
+  *Library* for the library roots together and their progress, *Suggested* for the default
+  filter and sort, *New photos* for done folders with undecided photos, and *Mark done* and
+  *Reopen* for setting and clearing the done status; not *Clean up*, *Finish* or *Archive*.
+  Code and specs say *library root*, *folder summary* and *folder done*.
 - **Series edits.** *New series from n photos*, *Add n photos to series*, *Merge n series*,
   *Merge with the next series*, *Remove from this series*, *Dissolve this series* and *Series
   done* (SERIES-005); not *group*, *split* or *ungroup*.

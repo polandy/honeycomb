@@ -186,6 +186,18 @@ and series viewer; the series reduction over all series; the shake risk from EXI
 as feedback asks: clipping, a 2-up and 4-up compare (4-up on large screens only), duplicates
 across series and the filter by quality.
 
+### M12 – Folders to cull
+
+Asked by the owner on 2026-11-22: honeycomb suggests which folders are worth culling, lets the
+user mark a folder done and shows the library's progress. *Folders* becomes the start screen,
+listing the folders below the user's library roots per root, ranked by a score from undecided
+photos, bursts and bytes, with explicit sorts beside it. The done status is shared per folder,
+needs UPDATE, asks nothing and never writes XMP; the progress headline is the share of photos in
+done folders (ADR 0049, mockup `docs/dev/mockup/folders/index.html`). Seven pull requests: ADR
+and mockup; the folder summaries; the done status; the pure TypeScript ranking and texts; the
+list as the start screen; marking done in the UI; statistics and the library roots setting.
+Phase 2: shares and group folders, Immich albums.
+
 ### Release – first App Store release
 
 Before it: Transifex setup ([Translations](#translations)), the signing certificate and the
