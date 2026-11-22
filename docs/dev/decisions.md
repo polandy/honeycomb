@@ -1878,3 +1878,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   own `IUserConfig` keys with `PUT /api/v1/settings/lists/{name}`; the read still answers one
   object, legacy lists are carried over on the next object save without a repair step, and the
   client writes `version: 1` into the object. Switches keep last-write-wins (ADR 0051).
+- 2026-11-22: One user rule (ADR 0040, *Who shares what*): flags, *Keep RAW*, hashes, quality and
+  folder done are shared; series, XMP cache, positions, tag list, stats and Immich decisions are per
+  user. A deleted user's done statuses stay with `user_id` cleared, replacing the earlier removal
+  (FOLDERS-006.13, .14; #187).

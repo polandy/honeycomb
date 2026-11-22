@@ -107,11 +107,18 @@ The status is one per folder, shared like the flags, and changes no file.
 - **When** the daily clean-up runs
 - **Then** the first status is gone and the second stays (FOLDERS-005.17)
 
-### FOLDERS-006.13 – A deleted user leaves no done status
+### FOLDERS-006.13 – A deleted user's done statuses stay without the name
 
 - **Given** a user who marked folders done and another user who marked one
 - **When** Nextcloud deletes the first user
-- **Then** their statuses are gone, those folders are open again, and the other user's status stays
+- **Then** their statuses stay with the same time and photo count but no *done by*, those folders
+  stay done for the others, and the other user's status keeps its name (ADR 0040, *Who shares what*)
+
+### FOLDERS-006.14 – A status without a name reads without it
+
+- **Given** a done status whose user was deleted
+- **When** the list answers and the row shows its done line
+- **Then** `done.by` is `null` and the line reads *Done 2026-11-20* without *· by*
 
 ## Out of scope
 
@@ -123,4 +130,5 @@ The status is one per folder, shared like the flags, and changes no file.
 | Date | Change |
 |---|---|
 | 2026-11-22 | A deleted user's statuses are removed (FOLDERS-006.13). |
+| 2026-11-22 | Superseded: they stay without the name (FOLDERS-006.13, .14, ADR 0040). |
 | 2026-11-22 | Created with the done endpoints (M12 PR 3, ADR 0049). |

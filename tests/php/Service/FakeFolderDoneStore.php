@@ -34,7 +34,7 @@ final class FakeFolderDoneStore implements FolderDoneStore {
 
 	#[\Override]
 	public function forgetUser(string $userId): void {
-		$this->rows = array_filter($this->rows, static fn (FolderDone $row): bool => $row->userId !== $userId);
+		$this->rows = array_map(static fn (FolderDone $row): FolderDone => $row->userId === $userId ? new FolderDone($row->fileId, null, $row->doneAt, $row->photos) : $row, $this->rows);
 	}
 
 	/** The row moved to `$fileId`. */

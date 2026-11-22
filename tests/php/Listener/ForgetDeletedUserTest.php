@@ -102,7 +102,7 @@ final class ForgetDeletedUserTest extends TestCase {
 		$this->assertSame(['bob'], array_keys($this->stats->rows));
 		$this->assertSame(['bob'], array_values(array_unique(array_column($this->series->series, 'userId'))));
 		$this->assertSame(['bob'], array_column($this->immich->rows, 'user'));
-		$this->assertSame([12], array_keys($this->done->rows));
+		$this->assertEquals([11 => new FolderDone(11, null, 100, 5), 12 => new FolderDone(12, 'bob', 100, 5)], $this->done->rows);
 	}
 
 	public function testIgnoresAnotherEvent(): void {

@@ -64,6 +64,14 @@ describe('scanLibrary', () => {
 })
 
 describe('markFolderDone', () => {
+	// spec: FOLDERS-006.14
+	it('accepts a done status whose user was deleted', async () => {
+		const done = { by: null, at: 1_800_000_000, photos: 412 }
+		vi.mocked(axios.put).mockResolvedValue({ data: { fileId: 7, done } })
+
+		await expect(markFolderDone(7, 412)).resolves.toEqual(done)
+	})
+
 	// spec: FOLDERS-008.1
 	it('marks the folder done as of its photos and answers the done status', async () => {
 		const done = { by: 'andy', at: 1_800_000_000, photos: 412 }

@@ -134,6 +134,24 @@ H6: digiKam's pick fields are kept too); where that cannot be read or
 written, the pair is skipped. A
 failed request deletes nothing; the dialog *Fresh check not possible* of #274 goes.
 
+### Who shares what: one rule for every user of a folder
+
+Amended 2026-11-22, owner, #187 (architecture report A6). A shared file has the same file id for
+every user who reaches it, so each table of honeycomb is either *shared* or *per user*:
+
+| Shared: one row per file id, every user of the folder sees the same | Per user: one row set per user |
+|---|---|
+| flags and *Keep RAW* (this ADR), visual hashes and quality values (ADR 0046), the folder's *done* status (ADR 0049) | series, the XMP cache, positions and view state, the tag list, statistics, Immich decisions (ADR 0043) |
+
+- **Shared** is a fact about the picture, a decision on it that two users of one folder must not
+  see differently, or a measurement of its content. A shared row is a `FileRowStore`.
+- **Per user** is one person's work state or view. A per-user row is a `UserRowStore`.
+- **A shared row may name the user who wrote it** (*done by*). The name is information only:
+  deleting the user clears the name and keeps the row, because the others still see the
+  decision. A row that is no one's, like a flag, needs no clearing.
+- **A new table** is put on one side of this table in its ADR; `UserRowStores` lists the right
+  side plus the shared tables that name a user.
+
 ### What of the earlier ADRs holds
 
 - **0032:** *Truth* holds for rating, colour label and tags only; *Writability* 1, 2, 4, 6, 7, 8

@@ -93,9 +93,10 @@ defined. The sections below hold the amended text.
 
 - **A user's statement, not a derived value.** *Complete* (no undecided photo) is derived and
   shown; *done* is what the user marked.
-- **Shared per folder,** like the flags (ADR 0040): one status per folder, with the user who
-  marked it shown as *done by*. Not per user.
-- **Table `honeycomb_folder_done`:** `file_id` of the folder (unique), `user_id` (done by),
+- **Shared per folder,** like the flags (ADR 0040, *Who shares what*): one status per folder, with
+  the user who marked it shown as *done by*. Not per user. Deleting that user clears the name
+  (`user_id` is nullable) and keeps the status; the line then reads *Done <date>*.
+- **Table `honeycomb_folder_done`:** `file_id` of the folder (unique), `user_id` (done by, nullable),
   `done_at` from the injected clock, `photos` at that moment. A `FileRowStore`: a rename or move
   keeps the file id and the status, the daily sweep drops the rows of folders deleted for good.
 - **Rateable like a flag** (ADR 0040, `UserPhotos::rateable`): a folder whose permissions lack
