@@ -63,6 +63,11 @@ final class UserPhotos {
 		return $rateable;
 	}
 
+	/** Whether the user may mark the folder done: the flag's rule, update and create (FOLDERS-006). */
+	public function folderRateable(Folder $folder): bool {
+		return ($folder->getPermissions() & self::RATEABLE) === self::RATEABLE;
+	}
+
 	/**
 	 * The file ids the user reaches as an XMP sidecar, in the given order.
 	 * @param list<int> $fileIds

@@ -28,9 +28,10 @@ trait StatsFixture {
 		return $this->statsStore ??= new FakeStatsStore();
 	}
 
-	private function stats(): StatsService {
+	/** @param string $settings the user's settings blob, none by default */
+	private function stats(string $settings = ''): StatsService {
 		$config = $this->createStub(IUserConfig::class);
-		$config->method('getValueString')->willReturnArgument(3);
+		$config->method('getValueString')->willReturnCallback(static fn (string $user, string $app, string $key, string $default): string => $key === 'settings' && $settings !== '' ? $settings : $default);
 		$time = $this->createStub(ITimeFactory::class);
 		$time->method('getDateTime')->willReturnCallback(static fn (string $at = 'now', ?\DateTimeZone $zone = null): \DateTime => (new \DateTime('@' . self::$statsNow))->setTimezone($zone ?? new \DateTimeZone('UTC')));
 		$logger = $this->createStub(LoggerInterface::class);

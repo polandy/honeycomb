@@ -174,7 +174,7 @@ done status writes, the ranking and the screen follow in their own specs.
 
 ## Out of scope
 
-- Marking a folder done and reopening it (`PUT`/`DELETE …/done`), the counter `folders_done`.
+- Marking a folder done and reopening it (FOLDERS-006).
 - The score, the reason text, the filters and sorts (pure TypeScript, `src/logic/folder-score.ts`).
 - The library roots setting and its validation (client side, ADR 0049).
 - Shares, group folders and Immich albums as library folders (phase 2).
