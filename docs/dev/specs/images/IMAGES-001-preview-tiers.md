@@ -45,8 +45,10 @@ nothing.
 
 One request at a time renders a file's previews: the tile, the loupe, the warm-up and the
 background job wait for each other, since core rewrites a preview file in place when two
-requests render it at once, and a request reading it meanwhile would serve it empty. Without
-PHP's `sysvsem` extension the renders run unlocked, as core's own preview limits do.
+requests render it at once, and a request reading it meanwhile would serve it empty. The lock is
+core's file locking (ADR 0050): a request that meets it tries again once a second, and after 30 s
+renders without it and logs a warning. With core's file locking off the renders run unlocked, as
+core's own previews do.
 
 ## Acceptance criteria
 
@@ -172,6 +174,19 @@ PHP's `sysvsem` extension the renders run unlocked, as core's own preview limits
 - **Then** each renders while it holds the file's lock, and the tile gets the whole image, never
   an empty one
 
+### IMAGES-001.19 – A render waits for the file's lock
+
+- **Given** another request holds the file's lock
+- **When** a tile, the loupe or the warm-up renders the file
+- **Then** it tries again once a second and renders once the lock is free, under the lock; a
+  render that fails still frees the lock
+
+### IMAGES-001.20 – A lock held too long does not block the file
+
+- **Given** the file's lock stays held for 30 s, by a stuck or killed request
+- **When** a render waits for it
+- **Then** it renders without the lock, logs a warning and never frees the lock it did not take
+
 ## Out of scope
 
 - Which tier a tile or the loupe loads, and prefetch: GRID-001, LOUPE-001.
@@ -186,4 +201,5 @@ PHP's `sysvsem` extension the renders run unlocked, as core's own preview limits
 | 2026-11-20 | Written photos are rendered in the background; IMAGES-001.12 is gated in e2e by the renders an opening causes (#271, ADR 0045) |
 | 2026-11-11 | Tiers 256, 1024 and 4096, core's preview sizes, in place of 512 and 2048 (owner, nc-test analysis) |
 | 2026-11-20 | One request at a time renders a file's previews; Nextcloud 35.0.0 served an empty tile when the warm-up rendered it too (IMAGES-001.18) |
+| 2026-11-22 | The lock is core's file locking, not a System V semaphore, and waits at most 30 s (IMAGES-001.19, IMAGES-001.20, ADR 0050) |
 | 2026-11-14 | A new folder set stops the warm-up; warmed files are skipped by `fileId` and `mtime` (ADR 0010, amended 2026-11-14) |
