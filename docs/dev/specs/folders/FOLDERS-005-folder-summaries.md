@@ -30,11 +30,11 @@ done status writes, the ranking and the screen follow in their own specs.
     a photo.
   - It is **fresh** while it was taken from the folder's current etag. A stale summary is listed
     with its stored values until a scan replaces it.
-- `GET /apps/honeycomb/api/v1/library/folders?root=<path>&after=<fileId>&limit=<n>` answers
-  `{"folders": [...], "next": <fileId>|null, "scanning": {"done": d, "total": t}|null}`.
+- `GET /apps/honeycomb/api/v1/library/folders?root=<path>&cursor=<fileId>&limit=<n>` answers
+  `{"folders": [...], "nextCursor": <fileId>|null, "scanning": {"done": d, "total": t}|null}`.
   - `folders`: the library folders below `root` that have a summary with at least one photo, in
-    file id order, those with a file id above `after` (default 0), at most `limit` (1 to 200,
-    default 200). `next` is the last listed file id when more follow, else `null`.
+    file id order, those with a file id above `cursor` (default 0), at most `limit` (1 to 200,
+    default 200). `nextCursor` is the last listed file id when more follow, else `null`.
   - Each row: `fileId`, `root` and `path` (paths in the user's files, `/` first), `photos`,
     `bytes`, `rawBytes`, `bursts`, `oldest`, `newest`, `lastActivity`, `picked`, `rejected`,
     `undecided`, `permissions` (the folder's Nextcloud permission bits) and `done`:
@@ -52,7 +52,7 @@ done status writes, the ranking and the screen follow in their own specs.
   600 times a minute (ADR 0031).
 - `root` is a path in the user's files: `400` when it is no folder there, leaves the user's files
   or lies on a share, group folder or external storage (mount type other than the home
-  storage's); `403` when the user may not read it. `400` for an `after` that is no integer of at
+  storage's); `403` when the user may not read it. `400` for a `cursor` that is no integer of at
   least 0 or a `limit` that is no integer from 1 to 200. `401` without a user.
 - The daily clean-up removes the summaries and done statuses of folders deleted for good; a
   renamed or moved folder keeps its file id, its summary and its done status.
@@ -104,9 +104,9 @@ done status writes, the ranking and the screen follow in their own specs.
 ### FOLDERS-005.7 – The list pages by file id
 
 - **Given** summaries of three folders with photos and one with none
-- **When** the user lists with `limit=2`, then with `after` set to `next`
-- **Then** the first page has the first two folders by file id and `next` the second's file id,
-  the second page the third and `next` `null`; the folder without photos is not listed
+- **When** the user lists with `limit=2`, then with `cursor` set to `nextCursor`
+- **Then** the first page has the first two folders by file id and `nextCursor` the second's file id,
+  the second page the third and `nextCursor` `null`; the folder without photos is not listed
 
 ### FOLDERS-005.8 – Scanning is null once every folder is fresh
 
@@ -150,7 +150,7 @@ done status writes, the ranking and the screen follow in their own specs.
 
 ### FOLDERS-005.14 – A malformed page
 
-- **Given** an `after` below 0 or not an integer, or a `limit` of 0, above 200 or not an integer
+- **Given** a `cursor` below 0 or not an integer, or a `limit` of 0, above 200 or not an integer
 - **When** the user lists
 - **Then** the answer is `400`
 

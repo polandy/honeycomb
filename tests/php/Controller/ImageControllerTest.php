@@ -131,7 +131,10 @@ final class ImageControllerTest extends TestCase {
 	// spec: IMAGES-001.5
 	#[DataProvider('sizesThatAreNoTier')]
 	public function testASizeThatIsNoTierIsABadRequest(int $size): void {
-		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller([7 => $this->image()])->show(7, $size, self::MTIME)->getStatus());
+		$response = $this->controller([7 => $this->image()])->show(7, $size, self::MTIME);
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame(['error' => 'request'], json_decode($response->render(), true));
 	}
 
 	// spec: IMAGES-001.4

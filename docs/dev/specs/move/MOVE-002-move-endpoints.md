@@ -127,7 +127,7 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
   file of the request; more than 500 files; or a probe whose `folders` or `sources` is not a list
   of such paths or holds more than 60,000
 - **When** the client posts it
-- **Then** the answer is `400` with an empty body and nothing is touched
+- **Then** the answer is `400` with `{"error": "request"}` and nothing is touched
 
 ### MOVE-002.9 – Logged-in users only, with the CSRF check
 

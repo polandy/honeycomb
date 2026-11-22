@@ -9,10 +9,10 @@ export interface OrphanedSidecar {
 	readonly size: number
 }
 
-/** One page of the scan; `next` is the cursor of the following page, `null` after the last. */
+/** One page of the scan; `nextCursor` is the cursor of the following page, `null` after the last. */
 export interface OrphanedSidecarPage {
 	readonly sidecars: OrphanedSidecar[]
-	readonly next: string | null
+	readonly nextCursor: string | null
 }
 
 /** What the trash endpoint answered for one sidecar (DELETE-001's results plus `notOrphaned`). */

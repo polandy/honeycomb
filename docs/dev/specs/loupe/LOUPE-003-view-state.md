@@ -46,7 +46,7 @@ an older version left in browser storage is taken over once.
 - **Given** a view state that is not an object, is empty, has an unknown key, a value that is
   not a boolean, or a `year_review_hint_closed` that is not a whole year from 1970 to 9999
 - **When** the client writes it
-- **Then** the answer is `400` with an empty body and nothing is stored
+- **Then** the answer is `400` with `{"error": "request"}` and nothing is stored
 
 ### LOUPE-003.4 – Logged-in users only, with the CSRF check
 

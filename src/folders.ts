@@ -51,10 +51,10 @@ export function useFolders(api: LibraryApi, options: FoldersOptions) {
 	async function readRoot(root: string): Promise<{ rows: FolderRow[], scanning: LibraryScanning | null }> {
 		const first = await api.listLibraryFolders(root, 0)
 		const read = [...first.folders]
-		for (let next = first.next; next !== null;) {
+		for (let next = first.nextCursor; next !== null;) {
 			const page = await api.listLibraryFolders(root, next)
 			read.push(...page.folders)
-			next = page.next
+			next = page.nextCursor
 		}
 		return { rows: read, scanning: first.scanning }
 	}

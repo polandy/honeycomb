@@ -6,13 +6,13 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { API, ApiResponseError, isRecord } from './core.ts'
 
-/** One page of the orphaned sidecars below `path`, after the folder `after` names (XMP-009). */
-export async function listOrphanedSidecars(path: string, after: string): Promise<OrphanedSidecarPage> {
-	const { data } = await axios.get<unknown>(generateUrl(`${API}/sidecars/orphaned`), { params: { path, after } })
-	if (!isRecord(data) || !Array.isArray(data.sidecars) || !data.sidecars.every(isOrphanedSidecar) || !(data.next === null || typeof data.next === 'string')) {
-		throw new ApiResponseError('The orphaned sidecars came without a sidecars array and next cursor; check the server\'s version.')
+/** One page of the orphaned sidecars below `path`, after the folder `cursor` names (XMP-009). */
+export async function listOrphanedSidecars(path: string, cursor: string): Promise<OrphanedSidecarPage> {
+	const { data } = await axios.get<unknown>(generateUrl(`${API}/sidecars/orphaned`), { params: { path, cursor } })
+	if (!isRecord(data) || !Array.isArray(data.sidecars) || !data.sidecars.every(isOrphanedSidecar) || !(data.nextCursor === null || typeof data.nextCursor === 'string')) {
+		throw new ApiResponseError('The orphaned sidecars came without a sidecars array and nextCursor; check the server\'s version.')
 	}
-	return { sidecars: data.sidecars, next: data.next }
+	return { sidecars: data.sidecars, nextCursor: data.nextCursor }
 }
 
 /** Moves the confirmed sidecars to the trash bin and answers each one's result in the order sent (XMP-009). */

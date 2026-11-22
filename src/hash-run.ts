@@ -20,15 +20,15 @@ export interface MissingPicture {
 	readonly path: string
 }
 
-/** One page of missing hashes; `next` is the cursor of the following page, `null` after the last. */
+/** One page of missing hashes; `nextCursor` is the cursor of the following page, `null` after the last. */
 export interface MissingPage {
 	readonly pictures: MissingPicture[]
-	readonly next: string | null
+	readonly nextCursor: string | null
 }
 
 /** What a run needs from the server and the workers. */
 export interface HashRunSeams {
-	readonly listMissing: (path: string, after: string) => Promise<MissingPage>
+	readonly listMissing: (path: string, cursor: string) => Promise<MissingPage>
 	readonly hash: (picture: MissingPicture) => Promise<string>
 	readonly save: (hashes: readonly StoredVisualHash[]) => Promise<number[]>
 	/** Resolves after the given seconds; a save the server limits waits with it (ADR 0026). */
@@ -110,8 +110,8 @@ export function useHashRun(seams: HashRunSeams) {
 			page.pictures.forEach((picture) => states.value.set(picture.fileId, { picture, state: 'pending' }))
 			triggerRef(states)
 			queue.push(...page.pictures)
-			cursor = page.next ?? cursor
-			listed.value = page.next === null
+			cursor = page.nextCursor ?? cursor
+			listed.value = page.nextCursor === null
 		} catch (error) {
 			logger.warn('Could not load the photos without a visual hash', { error, cursor })
 			if (of === run) {

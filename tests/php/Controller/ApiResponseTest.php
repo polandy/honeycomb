@@ -47,46 +47,48 @@ final class ApiResponseTest extends TestCase {
 		$this->assertSame($answer, $this->api($user)->forUser(fn (IUser $given): Response => $given === $user ? $answer : new Response()));
 	}
 
+	// spec: APP-004.2
 	public function testWithoutAUserTheHandlerNeverRuns(): void {
 		$response = $this->api(null)->forUser(function (): Response {
 			$this->fail('The handler ran without a user.');
 		});
 
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
-		$this->assertSame([], json_decode($response->render(), true));
+		$this->assertSame(['error' => 'unauthorized'], json_decode($response->render(), true));
 	}
 
-	/** @return array<string, array{\Throwable, int}> */
+	/** @return array<string, array{\Throwable, int, string}> */
 	public static function failures(): array {
 		return [
-			'cursor' => [new InvalidCursorException(), Http::STATUS_BAD_REQUEST],
-			'flag' => [new InvalidFlagException(), Http::STATUS_BAD_REQUEST],
-			'move' => [new InvalidMoveRequestException(), Http::STATUS_BAD_REQUEST],
-			'position' => [new InvalidPositionException(), Http::STATUS_BAD_REQUEST],
-			'preview' => [new InvalidPreviewRequestException(), Http::STATUS_BAD_REQUEST],
-			'series' => [new InvalidSeriesException(), Http::STATUS_BAD_REQUEST],
-			'settings' => [new InvalidSettingsException(), Http::STATUS_BAD_REQUEST],
-			'sidecar' => [new InvalidSidecarRequestException(), Http::STATUS_BAD_REQUEST],
-			'tags' => [new InvalidTagsException(), Http::STATUS_BAD_REQUEST],
-			'trash' => [new InvalidTrashRequestException(), Http::STATUS_BAD_REQUEST],
-			'view state' => [new InvalidViewStateException(), Http::STATUS_BAD_REQUEST],
-			'visual hash' => [new InvalidVisualHashException(), Http::STATUS_BAD_REQUEST],
-			'folder not found' => [new FolderNotFoundException(), Http::STATUS_NOT_FOUND],
-			'image not found' => [new ImageNotFoundException(), Http::STATUS_NOT_FOUND],
-			'folder not readable' => [new FolderNotReadableException(), Http::STATUS_FORBIDDEN],
-			'image not readable' => [new ImageNotReadableException(), Http::STATUS_FORBIDDEN],
-			'trash bin disabled' => [new TrashBinDisabledException(), Http::STATUS_CONFLICT],
+			'cursor' => [new InvalidCursorException(), Http::STATUS_BAD_REQUEST, 'request'],
+			'flag' => [new InvalidFlagException(), Http::STATUS_BAD_REQUEST, 'request'],
+			'move' => [new InvalidMoveRequestException(), Http::STATUS_BAD_REQUEST, 'request'],
+			'position' => [new InvalidPositionException(), Http::STATUS_BAD_REQUEST, 'request'],
+			'preview' => [new InvalidPreviewRequestException(), Http::STATUS_BAD_REQUEST, 'request'],
+			'series' => [new InvalidSeriesException(), Http::STATUS_BAD_REQUEST, 'request'],
+			'settings' => [new InvalidSettingsException(), Http::STATUS_BAD_REQUEST, 'request'],
+			'sidecar' => [new InvalidSidecarRequestException(), Http::STATUS_BAD_REQUEST, 'request'],
+			'tags' => [new InvalidTagsException(), Http::STATUS_BAD_REQUEST, 'request'],
+			'trash' => [new InvalidTrashRequestException(), Http::STATUS_BAD_REQUEST, 'request'],
+			'view state' => [new InvalidViewStateException(), Http::STATUS_BAD_REQUEST, 'request'],
+			'visual hash' => [new InvalidVisualHashException(), Http::STATUS_BAD_REQUEST, 'request'],
+			'folder not found' => [new FolderNotFoundException(), Http::STATUS_NOT_FOUND, 'folder-not-found'],
+			'image not found' => [new ImageNotFoundException(), Http::STATUS_NOT_FOUND, 'image-not-found'],
+			'folder not readable' => [new FolderNotReadableException(), Http::STATUS_FORBIDDEN, 'folder-not-readable'],
+			'image not readable' => [new ImageNotReadableException(), Http::STATUS_FORBIDDEN, 'image-not-readable'],
+			'trash bin disabled' => [new TrashBinDisabledException(), Http::STATUS_CONFLICT, 'trash-bin-disabled'],
 		];
 	}
 
+	// spec: APP-004.1
 	#[DataProvider('failures')]
-	public function testEachKnownFailureIsItsStatusWithAnEmptyList(\Throwable $failure, int $status): void {
+	public function testEachKnownFailureIsItsStatusWithItsErrorCode(\Throwable $failure, int $status, string $code): void {
 		$response = $this->api($this->createStub(IUser::class))->forUser(function () use ($failure): Response {
 			throw $failure;
 		});
 
 		$this->assertSame($status, $response->getStatus());
-		$this->assertSame([], json_decode($response->render(), true));
+		$this->assertSame(['error' => $code], json_decode($response->render(), true));
 	}
 
 	public function testAnUnknownFailureIsNotCaught(): void {

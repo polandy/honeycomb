@@ -13,22 +13,20 @@ use OCA\Honeycomb\Service\ImageNotFoundException;
 use OCA\Honeycomb\Service\ImageNotReadableException;
 use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
-use OCP\AppFramework\Http;
-use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\IUser;
 use OCP\IUserSession;
 
 /** Runs a route for the logged-in user and answers each known service failure with its status. */
 final class ApiResponse {
-	/** The status of each service failure; any other exception is a server error. */
-	private const array STATUS = [
-		InvalidRequestException::class => Http::STATUS_BAD_REQUEST,
-		FolderNotFoundException::class => Http::STATUS_NOT_FOUND,
-		ImageNotFoundException::class => Http::STATUS_NOT_FOUND,
-		FolderNotReadableException::class => Http::STATUS_FORBIDDEN,
-		ImageNotReadableException::class => Http::STATUS_FORBIDDEN,
-		TrashBinDisabledException::class => Http::STATUS_CONFLICT,
+	/** The error of each service failure; any other exception is a server error. */
+	private const array ERRORS = [
+		InvalidRequestException::class => ApiError::Request,
+		FolderNotFoundException::class => ApiError::FolderNotFound,
+		ImageNotFoundException::class => ApiError::ImageNotFound,
+		FolderNotReadableException::class => ApiError::FolderNotReadable,
+		ImageNotReadableException::class => ApiError::ImageNotReadable,
+		TrashBinDisabledException::class => ApiError::TrashBinDisabled,
 	];
 
 	public function __construct(
@@ -37,26 +35,25 @@ final class ApiResponse {
 	}
 
 	/**
-	 * The handler's answer for the user; 401 without one, the status of a known failure with the body `[]`.
+	 * The handler's answer for the user; the status of a known failure, or 401 without a user, with the body `{"error": code}`.
 	 * @param \Closure(IUser): Response $handle
 	 */
 	public function forUser(\Closure $handle): Response {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
-			return new JSONResponse([], Http::STATUS_UNAUTHORIZED);
+			return ApiError::Unauthorized->response();
 		}
 		try {
 			return $handle($user);
 		} catch (\Exception $failure) {
-			return new JSONResponse([], $this->statusOf($failure));
+			return $this->errorOf($failure)->response();
 		}
 	}
 
-	/** @return 400|403|404|409 */
-	private function statusOf(\Exception $failure): int {
-		foreach (self::STATUS as $class => $status) {
+	private function errorOf(\Exception $failure): ApiError {
+		foreach (self::ERRORS as $class => $error) {
 			if ($failure instanceof $class) {
-				return $status;
+				return $error;
 			}
 		}
 		throw $failure;

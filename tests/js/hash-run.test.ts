@@ -29,7 +29,7 @@ describe('useHashRun', () => {
 
 	// spec: SERIES-004.5
 	it('saves in requests of at most one batch', async () => {
-		const fake = seams({ '': { pictures: pictures(1, 600), next: null } })
+		const fake = seams({ '': { pictures: pictures(1, 600), nextCursor: null } })
 		const run = useHashRun(fake)
 
 		run.start('/Photos')
@@ -43,7 +43,7 @@ describe('useHashRun', () => {
 
 	// spec: SERIES-004.5
 	it('hashes no more pictures at once than it has workers', async () => {
-		const fake = seams({ '': { pictures: pictures(1, 5), next: null } }, { hash: vi.fn(() => new Promise<string>(() => {})) })
+		const fake = seams({ '': { pictures: pictures(1, 5), nextCursor: null } }, { hash: vi.fn(() => new Promise<string>(() => {})) })
 		const run = useHashRun(fake)
 
 		run.start('/Photos')
@@ -57,7 +57,7 @@ describe('useHashRun', () => {
 	it('pauses after the hashes and the save in flight and goes on when resumed', async () => {
 		const hashes = new Map<number, ReturnType<typeof deferred<string>>>()
 		const saves: ReturnType<typeof deferred<number[]>>[] = []
-		const fake = seams({ '': { pictures: pictures(1, 3), next: null } }, {
+		const fake = seams({ '': { pictures: pictures(1, 3), nextCursor: null } }, {
 			workers: 1,
 			saveBatch: 1,
 			hash: vi.fn((each: MissingPicture) => {
@@ -148,7 +148,7 @@ describe('useHashRun', () => {
 
 	// spec: SERIES-004.11
 	it('knows when every page is listed', async () => {
-		const second = deferred<{ pictures: MissingPicture[], next: string | null }>()
+		const second = deferred<{ pictures: MissingPicture[], nextCursor: string | null }>()
 		const fake = seams(TWO_PAGES, { listMissing: vi.fn(async (_path: string, after: string) => (after === '' ? TWO_PAGES[''] : second.promise)) })
 		const run = useHashRun(fake)
 
@@ -182,7 +182,7 @@ describe('useHashRun', () => {
 	})
 
 	it('starts afresh with another folder', async () => {
-		const fake = seams({ ...TWO_PAGES, '': { pictures: pictures(1, 1), next: null } })
+		const fake = seams({ ...TWO_PAGES, '': { pictures: pictures(1, 1), nextCursor: null } })
 		const run = useHashRun(fake)
 		run.start('/Photos')
 		await flushPromises()

@@ -15,30 +15,30 @@ export interface LibraryScanning {
 /** One page of the folders below a root (FOLDERS-005); `scanning` is null once every folder is summarised. */
 export interface LibraryPage {
 	readonly folders: FolderRow[]
-	readonly next: number | null
+	readonly nextCursor: number | null
 	readonly scanning: LibraryScanning | null
 }
 
 const ROW_NUMBERS = ['fileId', 'photos', 'bytes', 'rawBytes', 'picked', 'rejected', 'undecided', 'bursts', 'permissions'] as const
 const ROW_TIMES = ['oldest', 'newest', 'lastActivity'] as const
 
-/** The page of the folders below `root` after the folder `after`, `limit` folders at most when given. */
-export async function listLibraryFolders(root: string, after = 0, limit?: number): Promise<LibraryPage> {
-	const params = limit === undefined ? { root, after } : { root, after, limit }
+/** The page of the folders below `root` after the folder `cursor` names, `limit` folders at most when given. */
+export async function listLibraryFolders(root: string, cursor = 0, limit?: number): Promise<LibraryPage> {
+	const params = limit === undefined ? { root, cursor } : { root, cursor, limit }
 	const { data } = await axios.get<unknown>(generateUrl(`${API}/library/folders`), { params })
-	if (!isRecord(data) || !Array.isArray(data.folders) || !data.folders.every(isFolderRow) || !(data.next === null || typeof data.next === 'number') || !(data.scanning === null || isScanning(data.scanning))) {
-		throw new ApiResponseError('The library folders came without a folders array, next cursor and scanning state; check the server\'s version.')
+	if (!isRecord(data) || !Array.isArray(data.folders) || !data.folders.every(isFolderRow) || !(data.nextCursor === null || typeof data.nextCursor === 'number') || !(data.scanning === null || isScanning(data.scanning))) {
+		throw new ApiResponseError('The library folders came without a folders array, nextCursor and scanning state; check the server\'s version.')
 	}
-	return { folders: data.folders, next: data.next, scanning: data.scanning }
+	return { folders: data.folders, nextCursor: data.nextCursor, scanning: data.scanning }
 }
 
 /** Every folder below `root`, read page by page; the statistics read what is summarised so far. */
 export async function listAllLibraryFolders(root: string): Promise<FolderRow[]> {
 	const rows: FolderRow[] = []
-	for (let after: number | null = 0; after !== null;) {
-		const page: LibraryPage = await listLibraryFolders(root, after)
+	for (let cursor: number | null = 0; cursor !== null;) {
+		const page: LibraryPage = await listLibraryFolders(root, cursor)
 		rows.push(...page.folders)
-		after = page.next
+		cursor = page.nextCursor
 	}
 	return rows
 }

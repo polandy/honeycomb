@@ -183,7 +183,7 @@ test('shows the hint from 1 December, closes it for good', async ({ page }, test
 test('shows the library progress from the library folders, and asks to choose a library without roots', async ({ page }, testInfo) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	await page.route('**/apps/honeycomb/api/v1/library/folders*', (route) => route.fulfill({
-		json: { folders: [libraryFolder('/Photos/Alps', 1_590_000_000), libraryFolder('/Photos/Beach', null), libraryFolder('/Photos/City', null), libraryFolder('/Photos/Desert', null)], next: null, scanning: null },
+		json: { folders: [libraryFolder('/Photos/Alps', 1_590_000_000), libraryFolder('/Photos/Beach', null), libraryFolder('/Photos/City', null), libraryFolder('/Photos/Desert', null)], nextCursor: null, scanning: null },
 	}))
 	await putSettings(page, { libraryRoots: ['/Photos'] })
 

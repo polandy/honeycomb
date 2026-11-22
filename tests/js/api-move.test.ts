@@ -50,15 +50,14 @@ describe('movePictures', () => {
 		await expect(movePictures(pictures)).rejects.toBeInstanceOf(ApiResponseError)
 	})
 
-	// spec: MOVE-002.7
+	// spec: MOVE-002.7, APP-004.4
 	it('turns a 409 into the trash bin error, since a replace needs it and nothing was touched', async () => {
-		vi.mocked(axios.post).mockRejectedValue(Object.assign(new Error('Conflict'), { response: { status: 409 } }))
+		vi.mocked(axios.post).mockRejectedValue(Object.assign(new Error('Conflict'), { response: { status: 409, data: { error: 'trash-bin-disabled' } } }))
 
 		await expect(movePictures(pictures)).rejects.toBeInstanceOf(TrashBinOffError)
 	})
 
-	it('passes any other error on', async () => {
-		const error = Object.assign(new Error('Bad'), { response: { status: 400 } })
+	it.each([Object.assign(new Error('Bad'), { response: { status: 400 } }), Object.assign(new Error('Conflict'), { response: { status: 409, data: { error: 'request' } } })])('passes any other error on', async (error) => {
 		vi.mocked(axios.post).mockRejectedValue(error)
 
 		await expect(movePictures(pictures)).rejects.toBe(error)

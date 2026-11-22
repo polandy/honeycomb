@@ -13,22 +13,22 @@ const ROW = row({ fileId: 7, root: '/Photos', path: '/Photos/2019' })
 describe('listLibraryFolders', () => {
 	// spec: FOLDERS-007.6
 	it('asks one page of a root after a folder and answers it', async () => {
-		vi.mocked(axios.get).mockResolvedValue({ data: { folders: [ROW], next: 7, scanning: { done: 1, total: 2 } } })
+		vi.mocked(axios.get).mockResolvedValue({ data: { folders: [ROW], nextCursor: 7, scanning: { done: 1, total: 2 } } })
 
-		await expect(listLibraryFolders('/Photos', 3)).resolves.toEqual({ folders: [ROW], next: 7, scanning: { done: 1, total: 2 } })
-		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/folders', { params: { root: '/Photos', after: 3 } })
+		await expect(listLibraryFolders('/Photos', 3)).resolves.toEqual({ folders: [ROW], nextCursor: 7, scanning: { done: 1, total: 2 } })
+		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/folders', { params: { root: '/Photos', cursor: 3 } })
 	})
 
 	// spec: FOLDERS-007.4
 	it('asks a page of the given size', async () => {
-		vi.mocked(axios.get).mockResolvedValue({ data: { folders: [], next: null, scanning: null } })
+		vi.mocked(axios.get).mockResolvedValue({ data: { folders: [], nextCursor: null, scanning: null } })
 
-		await expect(listLibraryFolders('/Photos', 0, 1)).resolves.toEqual({ folders: [], next: null, scanning: null })
-		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/folders', { params: { root: '/Photos', after: 0, limit: 1 } })
+		await expect(listLibraryFolders('/Photos', 0, 1)).resolves.toEqual({ folders: [], nextCursor: null, scanning: null })
+		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/folders', { params: { root: '/Photos', cursor: 0, limit: 1 } })
 	})
 
 	it('refuses a page of the wrong shape', async () => {
-		for (const data of [null, { folders: {}, next: null, scanning: null }, { folders: [{ fileId: '7' }], next: null, scanning: null }, { folders: [], next: '7', scanning: null }, { folders: [], next: null, scanning: { done: 1 } }]) {
+		for (const data of [null, { folders: {}, nextCursor: null, scanning: null }, { folders: [{ fileId: '7' }], nextCursor: null, scanning: null }, { folders: [], nextCursor: '7', scanning: null }, { folders: [], nextCursor: null, scanning: { done: 1 } }]) {
 			vi.mocked(axios.get).mockResolvedValue({ data })
 			await expect(listLibraryFolders('/Photos')).rejects.toThrow(ApiResponseError)
 		}
@@ -40,11 +40,11 @@ describe('listAllLibraryFolders', () => {
 	it('reads every page of a root', async () => {
 		const other = row({ fileId: 8, path: '/Photos/2020' })
 		vi.mocked(axios.get)
-			.mockResolvedValueOnce({ data: { folders: [ROW], next: 7, scanning: null } })
-			.mockResolvedValueOnce({ data: { folders: [other], next: null, scanning: null } })
+			.mockResolvedValueOnce({ data: { folders: [ROW], nextCursor: 7, scanning: null } })
+			.mockResolvedValueOnce({ data: { folders: [other], nextCursor: null, scanning: null } })
 
 		await expect(listAllLibraryFolders('/Photos')).resolves.toEqual([ROW, other])
-		expect(vi.mocked(axios.get).mock.calls.slice(-2).map(([, config]) => config)).toEqual([{ params: { root: '/Photos', after: 0 } }, { params: { root: '/Photos', after: 7 } }])
+		expect(vi.mocked(axios.get).mock.calls.slice(-2).map(([, config]) => config)).toEqual([{ params: { root: '/Photos', cursor: 0 } }, { params: { root: '/Photos', cursor: 7 } }])
 	})
 })
 

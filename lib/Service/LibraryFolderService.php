@@ -51,12 +51,12 @@ final class LibraryFolderService {
 
 	/**
 	 * One page, by file id, of the folders below `$root` that have a summary with photos.
-	 * @return array{folders: list<array<string, mixed>>, next: ?int, scanning: ?array{done: int, total: int}}
+	 * @return array{folders: list<array<string, mixed>>, nextCursor: ?int, scanning: ?array{done: int, total: int}}
 	 * @throws InvalidLibraryRequestException for a root outside the user's own storage or a malformed page
 	 * @throws FolderNotReadableException when the user may not read the root
 	 */
 	public function list(IUser $user, string $root, string $after, string $limit): array {
-		$afterId = self::number($after, 0, 'after');
+		$afterId = self::number($after, 0, 'cursor');
 		$pageSize = self::number($limit, self::MAX_LIMIT, 'limit');
 		if ($pageSize < 1 || $pageSize > self::MAX_LIMIT) {
 			throw new InvalidLibraryRequestException('limit must be from 1 to ' . self::MAX_LIMIT);
@@ -73,7 +73,7 @@ final class LibraryFolderService {
 		$decisions = $ids === [] ? [] : FolderDecisions::of($this->files->decisionRows($user->getUID(), $ids));
 		return [
 			'folders' => array_map(fn (LibraryFolder $folder): array => self::row($rootPath, $folder, $summaries[$folder->fileId], $decisions[$folder->fileId] ?? null, $done[$folder->fileId] ?? null), $page),
-			'next' => count($listed) > $pageSize ? $listed[$pageSize - 1]->fileId : null,
+			'nextCursor' => count($listed) > $pageSize ? $listed[$pageSize - 1]->fileId : null,
 			'scanning' => $fresh === count($folders) ? null : ['done' => $fresh, 'total' => count($folders)],
 		];
 	}

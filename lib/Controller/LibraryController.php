@@ -34,8 +34,8 @@ final class LibraryController extends Controller {
 	/** One page of the summarised folders below `$root`, with the user's live decisions (FOLDERS-005). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/library/folders')]
-	public function folders(string $root, string $after = '', string $limit = ''): Response {
-		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->library->list($user, $root, $after, $limit)));
+	public function folders(string $root, string $cursor = '', string $limit = ''): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->library->list($user, $root, $cursor, $limit)));
 	}
 
 	/** Summarises the next batch of folders below `$root` that changed since their last scan (FOLDERS-005.5). */
