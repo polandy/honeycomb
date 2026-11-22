@@ -227,9 +227,12 @@ export function useImmichCull(context: ImmichCullContext) {
 			return
 		}
 		logger.error('Could not save the Immich decisions', { error: result.error })
+		if (asked !== generation) {
+			return
+		}
 		const unsaved = new Set(result.unsaved.map((row) => row.assetId))
 		const back = changes.filter(({ id }) => unsaved.has(entries.get(id)!.assetId))
-		if (asked === generation && back.length > 0) {
+		if (back.length > 0) {
 			show(back.map(({ id, before }) => [id, before]), back.map(({ before, after }) => [after, before]))
 			context.toast.showError(t('honeycomb', 'Could not save the decision; it is back as it was'))
 		}
