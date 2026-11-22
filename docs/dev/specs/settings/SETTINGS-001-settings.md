@@ -39,9 +39,9 @@ list another tab changed (ADR 0051); the read still answers one object with ever
 
 *Settings* in the grid's ⋯ menu opens a dialog with the sections *File types*, *Folder layout*,
 *Library*, *Loupe gestures*, *Keyboard*, *Moving photos*, *Statistics* and *Cache*. Each change
-applies at once and saves the whole object, or the whole list it changed; there is no OK button. What a setting does elsewhere
-is specified where it acts (LISTING-002, LOUPE-001, LOUPE-002, KEYS-001, MOVE-004, XMP-003,
-STATS-001).
+applies at once and saves the whole object, or the whole list it changed; there is no OK button.
+What a setting does elsewhere is specified where it acts (LISTING-002, LOUPE-001, LOUPE-002,
+KEYS-001, MOVE-004, XMP-003, STATS-001).
 
 There is no setting *Write decisions to XMP sidecars* and no confirmation of shared folders
 (ADR 0040): a decision is written where the picture is rateable (XMP-008), and the stored fields

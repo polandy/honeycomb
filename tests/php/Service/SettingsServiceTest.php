@@ -33,6 +33,11 @@ final class SettingsServiceTest extends TestCase {
 		return new SettingsService($config);
 	}
 
+	/** The value stored under the key, decoded; a method so psalm does not narrow the property. */
+	private function storedValue(string $key): mixed {
+		return json_decode($this->stored["alice/honeycomb/$key"] ?? 'null', true);
+	}
+
 	private function user(): IUser {
 		$user = $this->createStub(IUser::class);
 		$user->method('getUID')->willReturn('alice');
@@ -128,8 +133,8 @@ final class SettingsServiceTest extends TestCase {
 		$service->saveList($this->user(), 'libraryRoots', ['/Photos']);
 
 		$this->assertSame(['/B', '/A'], $saved);
-		$this->assertSame('["/B","/A"]', $this->stored['alice/honeycomb/move_recent']);
-		$this->assertSame('{"viKeys":true,"moveRecent":["/B","/A"],"moveFavourites":[],"libraryRoots":["/Photos"]}', json_encode($service->get($this->user())));
+		$this->assertSame(['/B', '/A'], $this->storedValue('move_recent'));
+		$this->assertEquals((object)['viKeys' => true, 'moveRecent' => ['/B', '/A'], 'moveFavourites' => [], 'libraryRoots' => ['/Photos']], $service->get($this->user()));
 	}
 
 	// spec: SETTINGS-001.31
@@ -181,11 +186,11 @@ final class SettingsServiceTest extends TestCase {
 		$read = $service->get($this->user());
 		$service->save($this->user(), ['viKeys' => false]);
 
-		$this->assertSame('{"viKeys":true,"moveRecent":["/A"],"libraryRoots":["/Phone"]}', json_encode($read));
-		$this->assertSame('{"viKeys":false}', $this->stored['alice/honeycomb/settings']);
-		$this->assertSame('["/A"]', $this->stored['alice/honeycomb/move_recent']);
-		$this->assertSame('["/Phone"]', $this->stored['alice/honeycomb/library_roots']);
-		$this->assertArrayNotHasKey('alice/honeycomb/move_favourites', $this->stored);
+		$this->assertEquals((object)['viKeys' => true, 'moveRecent' => ['/A'], 'libraryRoots' => ['/Phone']], $read);
+		$this->assertSame(['viKeys' => false], $this->storedValue('settings'));
+		$this->assertSame(['/A'], $this->storedValue('move_recent'));
+		$this->assertSame(['/Phone'], $this->storedValue('library_roots'));
+		$this->assertNull($this->storedValue('move_favourites'));
 	}
 
 	// spec: SETTINGS-001.3

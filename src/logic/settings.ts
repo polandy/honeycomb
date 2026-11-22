@@ -32,6 +32,18 @@ export interface Settings extends PairingSettings {
 	readonly immichOnly: boolean
 }
 
+/** The settings lists stored and saved each on its own, so another tab's save of the rest keeps them (ADR 0051). */
+const SETTINGS_LISTS = ['moveRecent', 'moveFavourites', 'libraryRoots'] as const
+
+/** One of the settings lists stored on their own. */
+export type SettingsList = typeof SETTINGS_LISTS[number]
+
+/** The format of the stored settings object; one without a version is read as this one (SETTINGS-001.33). */
+export const SETTINGS_VERSION = 1
+
+/** The settings object as saved: versioned, without the lists. */
+export type StoredSettings = Omit<Settings, SettingsList> & { readonly version: typeof SETTINGS_VERSION }
+
 /** One of the two extension lists. */
 export type ExtensionList = 'rawExtensions' | 'renderedExtensions'
 
@@ -84,6 +96,21 @@ export function parseSettings(value: unknown): Settings {
 		keepStatistics: boolean('keepStatistics'),
 		libraryRoots: parseLibraryRoots(stored.libraryRoots),
 		immichOnly: boolean('immichOnly'),
+	}
+}
+
+/** The settings object to save: the version and every setting but the lists. */
+export function storedSettings(settings: Settings): StoredSettings {
+	const { moveRecent: _recent, moveFavourites: _favourites, libraryRoots: _roots, ...rest } = settings
+	return { version: SETTINGS_VERSION, ...rest }
+}
+
+/** Which lists a change touches, and whether it touches the settings object. */
+export function splitChange(patch: Partial<Settings>): { object: boolean, lists: SettingsList[] } {
+	const changed = Object.keys(patch)
+	return {
+		object: changed.some((key) => !(SETTINGS_LISTS as readonly string[]).includes(key)),
+		lists: SETTINGS_LISTS.filter((name) => changed.includes(name)),
 	}
 }
 

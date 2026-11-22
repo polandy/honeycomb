@@ -74,7 +74,7 @@ const props = withDefaults(defineProps<AppSeams>(), APP_SEAMS)
 
 const toast = useToast(props.schedule)
 const isAdmin = props.admin()
-const { settings, settled: settingsSettled, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, toast.showError)
+const { settings, settled: settingsSettled, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings, saveSettingsList: props.saveSettingsList }, toast.showError)
 const viewStateApi = readOnce(props.viewState)
 const viewState = useViewState(viewStateApi, props.storage)
 const yearReviewHint = useYearReviewHint(viewStateApi, props.today)

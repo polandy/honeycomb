@@ -1874,3 +1874,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   is one shared component (`LibraryRoots`) for the setup and Settings, and the last root may be
   removed (Folders then shows the setup). The statistics mockup keeps the old Folder sets panel as
   a record (PR 372).
+- 2026-11-22: The settings lists `moveRecent`, `moveFavourites` and `libraryRoots` move to their
+  own `IUserConfig` keys with `PUT /api/v1/settings/lists/{name}`; the read still answers one
+  object, legacy lists are carried over on the next object save without a repair step, and the
+  client writes `version: 1` into the object. Switches keep last-write-wins (ADR 0051).

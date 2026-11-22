@@ -43,6 +43,11 @@ final class SettingsControllerTest extends TestCase {
 		return new SettingsController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new SettingsService($config));
 	}
 
+	/** @return array<string, string> a method so psalm does not narrow the property */
+	private function storedNow(): array {
+		return $this->stored;
+	}
+
 	// spec: SETTINGS-001.1
 	public function testAnswersAnEmptyObjectWhenNothingIsStored(): void {
 		$response = $this->controller()->index();
@@ -101,7 +106,7 @@ final class SettingsControllerTest extends TestCase {
 		$saved = $this->controller()->save(['immichOnly' => true]);
 
 		$this->assertSame(Http::STATUS_OK, $saved->getStatus());
-		$this->assertSame(['alice/honeycomb/settings' => '{"immichOnly":true}'], $this->stored);
+		$this->assertSame(['alice/honeycomb/settings' => '{"immichOnly":true}'], $this->storedNow());
 	}
 
 	// spec: SETTINGS-001.31
@@ -111,8 +116,8 @@ final class SettingsControllerTest extends TestCase {
 		$saved = $controller->saveList('libraryRoots', ['/Photos']);
 
 		$this->assertSame(Http::STATUS_OK, $saved->getStatus());
-		$this->assertSame('{"items":["/Photos"]}', $saved->render());
-		$this->assertSame('{"settings":{"libraryRoots":["/Photos"]}}', $controller->index()->render());
+		$this->assertSame(['items' => ['/Photos']], json_decode($saved->render(), true));
+		$this->assertSame(['settings' => ['libraryRoots' => ['/Photos']]], json_decode($controller->index()->render(), true));
 	}
 
 	// spec: SETTINGS-001.31
