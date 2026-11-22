@@ -73,7 +73,7 @@ final class MissingVisualHashesTest extends TestCase {
 		$this->assertNull($page['nextCursor']);
 	}
 
-	// spec: SERIES-004.2
+	// spec: SERIES-004.2, APP-004.3
 	public function testAPageEndsWithTheCursorOfItsLastPhotoAndTheNextGoesOnAfterIt(): void {
 		$service = $this->service($this->rootWith(['/Photos' => $this->photos(5)]), 2);
 
@@ -90,7 +90,7 @@ final class MissingVisualHashesTest extends TestCase {
 		$this->assertSame(['/Photos', '/Photos/2024'], array_slice($this->listed, $listedBefore));
 	}
 
-	// spec: SERIES-004.2
+	// spec: SERIES-004.2, APP-004.3
 	public function testAPageOfHashedPhotosIsEmptyButGoesOn(): void {
 		$this->store->rows = [1 => new VisualHash(1, 'etag-1', self::HASH), 2 => new VisualHash(2, 'etag-2', self::HASH)];
 
@@ -100,14 +100,14 @@ final class MissingVisualHashesTest extends TestCase {
 		$this->assertSame('2023/IMG_0002.JPG', $page['nextCursor']);
 	}
 
-	// spec: SERIES-004.2
+	// spec: SERIES-004.2, APP-004.3
 	public function testACursorWhoseFileVanishedGoesOnAfterItsName(): void {
 		$page = $this->service($this->rootWith(['/Photos' => $this->photos(5)]))->page($this->user(), 'Photos', '2023/IMG_0002b.JPG');
 
 		$this->assertSame(['/Photos/2023/IMG_0003.JPG', '/Photos/2024/IMG_0004.JPG', '/Photos/2024/IMG_0005.JPG'], $this->paths($page));
 	}
 
-	// spec: SERIES-004.2
+	// spec: SERIES-004.2, APP-004.3
 	public function testLooksUpTheHashesOfAPageAtOnce(): void {
 		$this->service($this->rootWith(['/Photos' => $this->photos(3)]))->page($this->user(), 'Photos', '');
 

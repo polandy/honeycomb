@@ -113,7 +113,7 @@ final class LibraryFolderServiceTest extends TestCase {
 		$this->assertEquals($this->summary(10), $this->summaries->rows[10]);
 	}
 
-	// spec: FOLDERS-005.7
+	// spec: FOLDERS-005.7, APP-004.3
 	public function testTheListPagesByFileIdAndLeavesOutFoldersWithoutPhotos(): void {
 		$this->files->folders = [$this->libraryFolder(13, '/c'), $this->libraryFolder(10, ''), $this->libraryFolder(12, '/b'), $this->libraryFolder(11, '/a'), $this->libraryFolder(14, '/d')];
 		$this->summaries->rows = [10 => $this->summary(10), 11 => $this->summary(11, photos: 0), 12 => $this->summary(12), 13 => $this->summary(13)];
