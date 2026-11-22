@@ -1828,3 +1828,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   shares one (ADR 0049, FOLDERS-005).
 - 2026-11-22: The backend spec of the folder summaries is FOLDERS-005, not FOLDERS-001 as first
   written: the pure TypeScript PR took FOLDERS-001 to 004 on `main` first (ADR 0049).
+- 2026-11-22: *I only use Immich* is a tertiary button in the folder picker's footer, left of
+  *Choose*; it is hidden without an Immich connection and disabled with a one-line reason until
+  the connection that would open answers `ok` (IMMICH-001.21 to .25).
