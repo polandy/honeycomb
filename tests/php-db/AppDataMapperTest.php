@@ -12,6 +12,7 @@ use OCA\Honeycomb\Db\FlagMapper;
 use OCA\Honeycomb\Service\FileFlag;
 use OCA\Honeycomb\Service\Flag;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Server;
 
@@ -79,7 +80,9 @@ final class AppDataMapperTest extends DbTestCase {
 	// spec: DECISIONS-001.35
 	public function testEveryHoneycombTableInTheSchemaIsCountedAndEmptied(): void {
 		$schema = new \OC\DB\SchemaWrapper(Server::get(\OC\DB\Connection::class));
-		$tables = array_values(array_filter($schema->getTableNames(), static fn (string $name): bool => str_starts_with($name, 'honeycomb_')));
+		$prefix = Server::get(IConfig::class)->getSystemValueString('dbtableprefix', 'oc_');
+		$names = array_map(static fn (string $name): string => str_starts_with($name, $prefix) ? substr($name, strlen($prefix)) : $name, $schema->getTableNames());
+		$tables = array_values(array_filter($names, static fn (string $name): bool => str_starts_with($name, 'honeycomb_')));
 		$this->assertNotSame([], $tables);
 
 		$this->assertEqualsCanonicalizing($tables, array_values(array_diff(array_keys($this->data->count()), ['preferences'])));
