@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { ResumePosition } from '../logic/resume-position.ts'
+import type { FolderRow } from '../logic/folder-row.ts'
 import type { Period, StatsAnswer } from '../logic/statistics.ts'
 
 import { n, t } from '@nextcloud/l10n'
@@ -17,20 +17,20 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import AppIcon from './AppIcon.vue'
 import DeleteStats from './DeleteStats.vue'
 import StatisticsBars from './StatisticsBars.vue'
-import StatisticsFolderSets from './StatisticsFolderSets.vue'
+import StatisticsLibrary from './StatisticsLibrary.vue'
 import StatisticsRead from './StatisticsRead.vue'
 import YearReview from './YearReview.vue'
 import { formatDay, formatDuration, formatFileSize, formatNumber, formatPercent, PLAIN_TEXT } from '../l10n.ts'
 import { logger } from '../logger.ts'
-import { parsePositions } from '../logic/resume-position.ts'
+import { folderProgress } from '../logic/folder-progress.ts'
 import { parseSettings } from '../logic/settings.ts'
 import { periodNumbers, streak } from '../logic/statistics.ts'
 import { reviewYear, yearReview } from '../logic/year-review.ts'
 
-/** How the page reads the counters, the resume positions and the settings. */
+/** How the page reads the counters, the library's folders below a root and the settings. */
 export interface StatisticsSeams {
 	readonly loadStatistics: () => Promise<StatsAnswer>
-	readonly loadPositions: () => Promise<unknown[]>
+	readonly loadLibraryFolders: (root: string) => Promise<FolderRow[]>
 	readonly loadSettings: () => Promise<unknown>
 	/** Stores the year whose year in review was opened, which closes the navigation's hint (STATS-001.48). */
 	readonly saveViewState: (patch: { yearReviewHintClosed: number }) => Promise<void>
@@ -42,7 +42,8 @@ const props = defineProps<{ seams: StatisticsSeams }>()
 const RATE_STEPS = 10
 
 const answer = ref<StatsAnswer | null>(null)
-const positions = ref<ResumePosition[]>([])
+const libraryRows = ref<FolderRow[]>([])
+const libraryFailed = ref(false)
 const keepStatistics = ref(true)
 const failed = ref(false)
 const period = ref<Period>('month')
@@ -59,6 +60,9 @@ const review = computed(() => {
 	return year === null ? null : yearReview(answer.value!.counters, year, answer.value!.firstDay)
 })
 const numbers = computed(() => answer.value && periodNumbers(answer.value.counters, period.value, answer.value.today, answer.value.firstDay))
+const roots = ref<readonly string[]>([])
+/** The library's progress as of the user's today, whose month counts as this month (STATS-001.42). */
+const library = computed(() => answer.value === null ? null : folderProgress(libraryRows.value, roots.value, new Date(`${answer.value.today}T00:00:00Z`)))
 const cullUrl = generateUrl('/apps/honeycomb/')
 const stats = computed(() => {
 	const sums = numbers.value!
@@ -103,13 +107,25 @@ function closeHint() {
 	}
 }
 
+/** Reads the folders below every root; a failure only empties the library panel. */
+async function loadLibrary() {
+	try {
+		libraryRows.value = (await Promise.all(roots.value.map((root) => props.seams.loadLibraryFolders(root)))).flat()
+	} catch (error) {
+		libraryFailed.value = true
+		logger.error('Could not load the library progress', { error })
+	}
+}
+
 onMounted(async () => {
 	try {
-		const [statistics, stored, settings] = await Promise.all([props.seams.loadStatistics(), props.seams.loadPositions(), props.seams.loadSettings()])
+		const [statistics, settings] = await Promise.all([props.seams.loadStatistics(), props.seams.loadSettings()])
+		const parsed = parseSettings(settings)
+		keepStatistics.value = parsed.keepStatistics
+		roots.value = parsed.libraryRoots
 		answer.value = statistics
-		positions.value = parsePositions(stored)
-		keepStatistics.value = parseSettings(settings).keepStatistics
 		closeHint()
+		await loadLibrary()
 	} catch (error) {
 		failed.value = true
 		logger.error('Could not load the statistics', { error })
@@ -156,7 +172,7 @@ onMounted(async () => {
 					<p v-else>
 						{{ t('honeycomb', 'Nothing counted yet. Cull a folder and the numbers show here.') }}
 					</p>
-					<StatisticsFolderSets :positions="positions" />
+					<StatisticsLibrary :roots="roots" :progress="library" :failed="libraryFailed" />
 					<StatisticsRead :read="answer.read" />
 					<p v-if="counted && answer.firstDay" class="statistics-page__line">
 						{{ t('honeycomb', 'Counted since {day}.', { day: formatDay(answer.firstDay) }, undefined, PLAIN_TEXT) }}

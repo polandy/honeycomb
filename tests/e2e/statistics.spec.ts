@@ -18,8 +18,21 @@ test.afterEach(async ({ page }) => {
 /** A folder of the library as the server lists it, with 100 photos. */
 function libraryFolder(path: string, doneAt: number | null) {
 	return {
-		fileId: path.length, root: '/Photos', path, photos: 100, bytes: 500_000_000, rawBytes: 0, picked: doneAt === null ? 20 : 100, rejected: 0, undecided: doneAt === null ? 80 : 0, bursts: 0,
-		oldest: 1_590_000_000, newest: 1_590_100_000, lastActivity: null, permissions: 31, done: doneAt === null ? null : { by: 'e2e', at: doneAt, photos: 100 },
+		fileId: path.length,
+		root: '/Photos',
+		path,
+		photos: 100,
+		bytes: 500_000_000,
+		rawBytes: 0,
+		picked: doneAt === null ? 20 : 100,
+		rejected: 0,
+		undecided: doneAt === null ? 80 : 0,
+		bursts: 0,
+		oldest: 1_590_000_000,
+		newest: 1_590_100_000,
+		lastActivity: null,
+		permissions: 31,
+		done: doneAt === null ? null : { by: 'e2e', at: doneAt, photos: 100 },
 	}
 }
 
@@ -56,16 +69,16 @@ test('opens the statistics page from the navigation and says nothing is counted 
 	await expect(page).toHaveURL(/\/apps\/honeycomb\/$/)
 })
 
-// spec: STATS-001.21, STATS-001.24, STATS-001.42
-test('shows the counted numbers, the folder sets and since when it counts on the desktop', async ({ page }, testInfo) => {
+// spec: STATS-001.21, STATS-001.24, STATS-001.50
+test('shows the counted numbers, the library panel and since when it counts on the desktop', async ({ page }, testInfo) => {
 	await page.goto('/index.php/apps/honeycomb/')
-	const folder = await countActiveTime(page)
+	await countActiveTime(page)
 
 	await page.goto('/index.php/apps/honeycomb/statistics')
 
 	await expect(page.getByRole('button', { name: '30 days' })).toHaveAttribute('aria-pressed', 'true')
 	await expect(page.locator('.delete-stats__item', { hasText: 'Days in a row' })).toContainText('1')
-	await expect(page.locator('.statistics-folder-sets__row', { hasText: folder })).toContainText('Done')
+	await expect(page.locator('.statistics-library')).toContainText('Choose your library')
 	await expect(page.getByText(/^Counted since /)).toBeVisible()
 	await page.getByRole('button', { name: '7 days' }).click()
 	await expect(page.locator('.statistics-bars__bar')).toHaveCount(7)
@@ -170,7 +183,7 @@ test('shows the hint from 1 December, closes it for good', async ({ page }, test
 test('shows the library progress from the library folders, and asks to choose a library without roots', async ({ page }, testInfo) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	await page.route('**/apps/honeycomb/api/v1/library/folders*', (route) => route.fulfill({
-		json: { folders: [libraryFolder('/Photos/Alps', Math.floor(Date.now() / 1000)), libraryFolder('/Photos/Beach', null), libraryFolder('/Photos/City', null), libraryFolder('/Photos/Desert', null)], next: null, scanning: null },
+		json: { folders: [libraryFolder('/Photos/Alps', 1_590_000_000), libraryFolder('/Photos/Beach', null), libraryFolder('/Photos/City', null), libraryFolder('/Photos/Desert', null)], next: null, scanning: null },
 	}))
 	await putSettings(page, { libraryRoots: ['/Photos'] })
 
@@ -179,7 +192,7 @@ test('shows the library progress from the library folders, and asks to choose a 
 	const library = page.locator('.statistics-library')
 	await expect(library).toContainText('25 % of photos in done folders')
 	await expect(library).toContainText('1 of 4 folders done')
-	await expect(library).toContainText('1 this month')
+	await expect(library).toContainText('0 this month')
 	await expect(library).toContainText('40 % of all photos decided')
 	await page.screenshot({ path: testInfo.outputPath('statistics-library.png'), fullPage: true, animations: 'disabled' })
 	await library.getByRole('link', { name: 'Open Folders' }).click()

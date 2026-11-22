@@ -14,10 +14,11 @@ Add items with `/todo`.
 - [ ] Immich (M10, ADR 0041): PR 13 Phase 2: *Write to Immich* with the `updatedAt` conflict check, rejects as Immich trash bin by default, per-asset results, undo; Immich decisions enter the statistics (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 14 user docs: the connections file format and key scopes for the admin, an account without partner sharing in its timeline (ADR 0044), the guide for culling Immich uploads (2026-11-19)
 - [ ] Culling aids (M11, ADR 0046): the similarity page (SERIES-004) measures the sharpness of its series members too, once it shows series; the cull measures them since PR 2 (SERIES-006) (2026-11-20)
-- [ ] Folders (M12, ADR 0049): PR 7 statistics and settings: the *Folder sets* panel replaced by the progress headline with a link to *Folders*, the library roots in *Settings*, the user docs chapter "Cleaning up the library"; phase 2 items (shares and group folders, Immich albums) under Later (2026-11-22)
 
 ## Later
 
+- [ ] Folders phase 2 (M12, ADR 0049): shares, group folders and external storage as library roots, with a done status that survives the owner's permissions; the walker of ADR 0025 and the roots check of FOLDERS-005 list only the home storage today (2026-11-22)
+- [ ] Folders phase 2 (M12, ADR 0049): Immich albums as folders in the list, with their own summaries and done status (ADR 0041 keeps them out of phase 1) (2026-11-22)
 - [ ] Immich kinds *Screenshots* and *Messenger images* from the Phase 1 mockup: Immich cannot filter them, so the server cannot count them without paging the library (ADR 0044); needs a server-side classification first (2026-11-20)
 - [ ] Make the series tab on a filmstrip thumbnail a 44 × 44 px target that does not cover the thumbnail: it is a 20 px pill over the thumbnail's corner; `tests/e2e/touch-targets.ts` and `tests/e2e/a11y.ts` exempt it (GRID-001.19, APP-001.15) (2026-11-18)
 - [ ] Opt in to `viewport-fit=cover` and pad the page edges with `env(safe-area-inset-*)`, so photos run under the status bar and home indicator while controls stay clear (`docs/dev/plan.md` Reference devices rule 2) (2026-11-18)

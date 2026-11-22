@@ -71,13 +71,14 @@ days in a row (with the longest streak); a day counts toward days in a row when 
 counters is above zero. A line shows active time, pictures a minute (from one active minute on),
 series done and RAW files removed. Bars show pictures decided and moved to the trash bin per day
 (7 days), per 7 days ending today (30 days, the oldest bar shorter) or per calendar month (year,
-all time). The period ends today, the user's day the server answers; the current year starts on
-1 January, all time on the first counted day. *Library progress* shows how far the library roots have come (below); *Of the pictures read so far* shows the shares picked, rejected, unflagged and
+all time). The period ends today, the user's day the server answers; the current year starts on 1
+January, all time on the first counted day. *Library progress* shows how far the library roots
+have come (below); *Of the pictures read so far* shows the shares picked, rejected, unflagged and
 rated from the XMP cache, counting only the pictures whose XMP honeycomb has read, so a library
-not yet opened shows little. A footnote says *Counted since {date}.* and, when stored series
-were done before the counting began, *Before that: n series done (no date).* There is no start
-value for decided pictures: honeycomb is deployed nowhere with decisions of the old table, so the
-page counts from the first counter on.
+not yet opened shows little. A footnote says *Counted since {date}.* and, when stored series were
+done before the counting began, *Before that: n series done (no date).* There is no start value
+for decided pictures: honeycomb is deployed nowhere with decisions of the old table, so the page
+counts from the first counter on.
 
 **The year in review** opens the page from 1 December to 31 January, for the year that ends or
 just ended, above the period tiles: a headline with the pictures decided and the space freed, tiles

@@ -36,6 +36,7 @@ The words the app uses (Pick, Reject, Unflag, series and more) are in the
 |---|---|
 | [Your files and privacy](your-files-and-privacy.md) | What honeycomb changes in your files, backups, what it stores |
 | [Culling a shoot](culling.md) | One pass from start to end: folders, grid, loupe, series, deleting, moving |
+| [Cleaning up the library](cleaning-up-the-library.md) | Folders: library roots, Suggested, Mark done and Reopen, new photos, the library progress |
 | [Choosing folders](choosing-folders.md) | The folder tree: expanding, ticking several folders, subfolders |
 | [Keyboard shortcuts](keyboard-shortcuts.md) | Every key in the grid, the loupe and the series compare |
 | [Ratings, flags and colour labels](ratings-flags-colours.md) | How digiKam, darktable and Lightroom show honeycomb's decisions |

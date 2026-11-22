@@ -34,9 +34,10 @@ back to its default, so an unknown, missing or invalid field never breaks the ap
 | Library roots | None (FOLDERS-004) |
 
 *Settings* in the grid's ⋯ menu opens a dialog with the sections *File types*, *Folder layout*,
-*Library*, *Loupe gestures*, *Keyboard*, *Moving photos*, *Statistics* and *Cache*. Each change applies at
-once and saves the whole object; there is no OK button. What a setting does elsewhere is specified
-where it acts (LISTING-002, LOUPE-001, LOUPE-002, KEYS-001, MOVE-004, XMP-003, STATS-001).
+*Library*, *Loupe gestures*, *Keyboard*, *Moving photos*, *Statistics* and *Cache*. Each change
+applies at once and saves the whole object; there is no OK button. What a setting does elsewhere
+is specified where it acts (LISTING-002, LOUPE-001, LOUPE-002, KEYS-001, MOVE-004, XMP-003,
+STATS-001).
 
 There is no setting *Write decisions to XMP sidecars* and no confirmation of shared folders
 (ADR 0040): a decision is written where the picture is rateable (XMP-008), and the stored fields

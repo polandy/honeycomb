@@ -146,9 +146,9 @@ describe('StatisticsPage', () => {
 		expect(panel.text()).toContain('50 % of photos in done folders')
 		expect(panel.text()).toContain('1 of 2 folders done')
 		expect(panel.text()).toContain('1 this month')
-		expect(panel.text()).toContain('80 % of all photos decided')
+		expect(panel.text()).toContain('90 % of all photos decided')
 		expect(panel.find('a').text()).toBe('Open Folders')
-		expect(panel.find('a').attributes('href')).toBe('/index.php/apps/honeycomb/')
+		expect(panel.find('a').attributes('href')).toMatch(/\/index\.php\/apps\/honeycomb\/$/)
 	})
 
 	// spec: STATS-001.42

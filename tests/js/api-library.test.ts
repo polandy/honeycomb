@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, listLibraryFolders, markFolderDone, reopenFolder, scanLibrary } from '../../src/api.ts'
+import { ApiResponseError, listAllLibraryFolders, listLibraryFolders, markFolderDone, reopenFolder, scanLibrary } from '../../src/api.ts'
 import { row } from './logic/folder-fixtures.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
@@ -32,6 +32,19 @@ describe('listLibraryFolders', () => {
 			vi.mocked(axios.get).mockResolvedValue({ data })
 			await expect(listLibraryFolders('/Photos')).rejects.toThrow(ApiResponseError)
 		}
+	})
+})
+
+describe('listAllLibraryFolders', () => {
+	// spec: STATS-001.42
+	it('reads every page of a root', async () => {
+		const other = row({ fileId: 8, path: '/Photos/2020' })
+		vi.mocked(axios.get)
+			.mockResolvedValueOnce({ data: { folders: [ROW], next: 7, scanning: null } })
+			.mockResolvedValueOnce({ data: { folders: [other], next: null, scanning: null } })
+
+		await expect(listAllLibraryFolders('/Photos')).resolves.toEqual([ROW, other])
+		expect(vi.mocked(axios.get).mock.calls.slice(-2).map(([, config]) => config)).toEqual([{ params: { root: '/Photos', after: 0 } }, { params: { root: '/Photos', after: 7 } }])
 	})
 })
 

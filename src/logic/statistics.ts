@@ -15,6 +15,7 @@ export const METRIC = {
 	sidecarsUpdated: 'sidecars_updated',
 	sidecarsForeign: 'sidecars_foreign',
 	seriesDone: 'series_done',
+	foldersDone: 'folders_done',
 	activeSeconds: 'active_seconds',
 } as const
 
@@ -171,11 +172,6 @@ export function streak(counters: readonly Counter[], today: string): { current: 
 	})
 	const last = days.at(-1)
 	return { current: last === today || last === addDays(today, -1) ? run : 0, longest }
-}
-
-/** The whole percent of a folder set decided, rounded down, and whether every picture is (STATS-001.42). */
-export function folderSetShare(decided: number, total: number): { percent: number, done: boolean } {
-	return total === 0 ? { percent: 0, done: false } : { percent: Math.min(PERCENT, Math.floor((decided * PERCENT) / total)), done: decided >= total }
 }
 
 /** The well-formed counters of an answer, the rest dropped. */
