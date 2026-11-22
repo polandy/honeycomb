@@ -20,7 +20,7 @@ describe('listOrphanedSidecars', () => {
 
 		await expect(listOrphanedSidecars('/Photos', '/2023')).resolves.toEqual({ sidecars: [SIDECAR], nextCursor: '/2024' })
 
-		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/sidecars/orphaned', { params: { path: '/Photos', after: '/2023' } })
+		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/sidecars/orphaned', { params: { path: '/Photos', cursor: '/2023' } })
 	})
 
 	// spec: XMP-009.3, APP-004.3

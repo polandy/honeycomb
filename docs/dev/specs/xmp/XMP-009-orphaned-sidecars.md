@@ -24,8 +24,8 @@ without changing anything, and moves them to the trash bin only after the user c
   library*, which is the user's folder `/`.
 - `GET /apps/honeycomb/api/v1/sidecars/orphaned?path=/Photos&cursor=<cursor>` answers
   `{"sidecars": [{"fileId": 9, "etag": "…", "path": "/Photos/IMG_0001.CR2.xmp", "size": 4096}],
-  "nextCursor": "<cursor>"}`: the orphaned sidecars of the folder and every folder below it, folder by
-  folder in name order. A page ends after the folder in which it looked at its 1,000th file;
+  "nextCursor": "<cursor>"}`: the orphaned sidecars of the folder and every folder below it,
+  folder by folder in name order. A page ends after the folder in which it looked at its 1,000th file;
   `nextCursor` names that folder, `/` for the chosen folder itself, `null` when the walk is through.
   Hidden and unreadable folders, and folders of another mount (a share, a group folder, external
   storage), are skipped, as on the similarity page (SERIES-004). `404` for a path that is not the

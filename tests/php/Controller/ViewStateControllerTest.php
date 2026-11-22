@@ -76,11 +76,11 @@ final class ViewStateControllerTest extends TestCase {
 
 	// spec: LOUPE-003.3
 	#[DataProvider('malformed')]
-	public function testAMalformedViewStateIsABadRequestWithAnEmptyBody(mixed $viewState): void {
+	public function testAMalformedViewStateIsABadRequest(mixed $viewState): void {
 		$response = $this->controller()->save($viewState);
 
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
-		$this->assertSame('[]', $response->render());
+		$this->assertSame(['error' => 'request'], json_decode($response->render(), true));
 		$this->assertSame([], $this->stored);
 	}
 

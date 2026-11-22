@@ -121,8 +121,8 @@ starts from that folder set and *Cancel* returns to it.
 
 - **Given** a foreign, vanished or file path, an unreadable folder, or no user
 - **When** its folders are asked for
-- **Then** the answer is `404`, `403` or `401` with its `{"error": <code>}` body (APP-004); the route is a `GET` that
-  checks the CSRF token
+- **Then** the answer is `404`, `403` or `401` with its `{"error": <code>}` body
+  (APP-004); the route is a `GET` that checks the CSRF token
 
 ### LISTING-003.4 – Browse and tick
 
