@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// @vitest-environment happy-dom
 import type { FolderDoneApi } from '../../src/folder-done.ts'
 import type { FolderDone } from '../../src/logic/folder-row.ts'
 import type { ToastAction } from '../../src/toast.ts'

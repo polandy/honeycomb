@@ -3,7 +3,6 @@ import type { LibraryApi } from '../../src/folders.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { StoredDecision } from '../../src/logic/decision.ts'
 import type { FolderRow } from '../../src/logic/folder-row.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
 
@@ -13,14 +12,14 @@ import CullFinished from '../../src/components/CullFinished.vue'
 import FoldersHome from '../../src/components/FoldersHome.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
-import { ENTRIES, mountApp, openCull, shownNames, stored } from './app-cull.ts'
+import { ENTRIES, mountApp, openCull, shownNames } from './app-cull.ts'
 import { doneRow, row } from './logic/folder-fixtures.ts'
 
 const TRIP = row({ fileId: 7, path: '/Photos/Trip', photos: 3, undecided: 0, picked: 3, rejected: 0 })
 const DONE = { by: 'andy', at: 1_800_000_000, photos: 3 }
 
 /** The app with the root /Photos holding `rows`, and a library that records its done writes. */
-function openApp(rows: FolderRow[] = [TRIP], decisions: StoredDecision[] = []) {
+function openApp(rows: FolderRow[] = [TRIP]) {
 	const writes: string[] = []
 	let listed = rows
 	const library: LibraryApi & FolderDoneApi = {
@@ -39,7 +38,7 @@ function openApp(rows: FolderRow[] = [TRIP], decisions: StoredDecision[] = []) {
 		library,
 		loadSettings: async () => ({ libraryRoots: ['/Photos'] }),
 		listEntries: async () => ({ entries: ENTRIES, truncated: false, folders: [] }),
-	}, decisions)
+	})
 	return { ...mounted, writes }
 }
 
@@ -80,22 +79,25 @@ describe('App: the done status', () => {
 
 		expect(writes).toEqual(['PUT 7 3'])
 		expect(home(wrapper).shown.value).toBe(true)
-		expect(home(wrapper).rows.value[0].done).toEqual(DONE)
+		expect(home(wrapper).rows.value[0]?.done).toEqual(DONE)
 		expect(wrapper.findComponent(UndoToast).props('toast').message).toBe('Marked Trip done')
 	})
 
 	// spec: FOLDERS-008.8
 	it('offers Mark folder done on the card and closes the card when the user presses it', async () => {
-		const { wrapper, grid, writes } = openApp([TRIP], [stored(1, 'picked'), stored(2, 'picked'), stored(3, 'picked')])
+		const { wrapper, grid, writes } = openApp()
 		await flushPromises()
 		home(wrapper).cull({ paths: ['/Photos/Trip'], subfolders: false })
 		await flushPromises()
-		grid.focused = shownNames(wrapper).indexOf('IMG_9')
-		document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'p', bubbles: true, cancelable: true }))
-		await flushPromises()
+		for (const name of ['IMG_2', 'IMG_10', 'IMG_9']) {
+			grid.focused = shownNames(wrapper).indexOf(name)
+			document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'p', bubbles: true, cancelable: true }))
+			await flushPromises()
+		}
 		expect(wrapper.findComponent(CullFinished).props('markable')).toBe(true)
 
 		wrapper.findComponent(CullFinished).vm.$emit('markDone')
+		wrapper.findComponent(CullFinished).vm.$emit('close')
 		await flushPromises()
 
 		expect(writes).toEqual(['PUT 7 3'])

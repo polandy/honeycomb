@@ -73,7 +73,7 @@ describe('UndoToast', () => {
 		const wrapper = mountToast({ label: 'Undo' })
 
 		expect(wrapper.attributes('role')).toBe('status')
-		expect(wrapper.text()).toBe('Rejected IMG_1·Undo×')
+		expect(wrapper.text()).toBe('Rejected IMG_1·Undo')
 		await wrapper.find('button').trigger('click')
 		expect(wrapper.emitted('act')).toHaveLength(1)
 	})
@@ -99,7 +99,7 @@ describe('UndoToast', () => {
 		const wrapper = mount(UndoToast, { props: { toast: { message: 'Picked IMG_2', action: { label: 'Undo', run: () => undefined }, offer: { label: 'Reject the other 2', run: () => undefined } } } })
 		const offer = wrapper.find('.undo-toast__offer')
 
-		expect(wrapper.text()).toBe('Picked IMG_2·Reject the other 2Undo×')
+		expect(wrapper.text()).toBe('Picked IMG_2·Reject the other 2Undo')
 		expect(offer.attributes()).toMatchObject({ 'data-tip': 'Reject the other 2', 'data-tip-key': 'Shift+K' })
 		const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
 		offer.element.dispatchEvent(press)
@@ -112,7 +112,7 @@ describe('UndoToast', () => {
 	it('shows the message and its Close button alone without an action', () => {
 		const wrapper = mountToast(null)
 
-		expect(wrapper.text()).toBe('Rejected IMG_1×')
+		expect(wrapper.text()).toBe('Rejected IMG_1')
 		expect(wrapper.findAll('button').map((each) => each.classes())).toEqual([['undo-toast__action', 'undo-toast__close']])
 	})
 

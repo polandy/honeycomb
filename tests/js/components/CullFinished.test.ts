@@ -44,6 +44,7 @@ describe('CullFinished', () => {
 		await wrapper.vm.$nextTick()
 
 		expect(wrapper.emitted('markDone')).toHaveLength(1)
+		expect(wrapper.emitted('close')).toHaveLength(1)
 		wrapper.unmount()
 	})
 

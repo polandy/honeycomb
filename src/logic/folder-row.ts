@@ -49,3 +49,8 @@ export function newCount(row: FolderRow): number {
 export function percent(part: number, whole: number): number {
 	return whole > 0 ? Math.round(100 * part / whole) : 0
 }
+
+/** The folder's own name, the last segment of its path. */
+export function folderName(row: FolderRow): string {
+	return row.path.split('/').pop()!
+}

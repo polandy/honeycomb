@@ -64,7 +64,7 @@ describe('App: the undo toast', () => {
 		await flushPromises()
 
 		expect(decidedRows(wrapper).map((row) => [row.fileId, row.flag, row.rating])).toEqual([[2, 'picked', 0], [3, 'picked', 0]])
-		expect(wrapper.findComponent(UndoToast).find('button').exists()).toBe(false)
+		expect(wrapper.findComponent(UndoToast).findAll('button').map((button) => button.text())).not.toContain('Undo')
 	})
 
 	// spec: LOUPE-002.9

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
+import type { FolderDoneApi } from '../../src/folder-done.ts'
 import type { LibraryApi } from '../../src/folders.ts'
 
 import { flushPromises } from '@vue/test-utils'
@@ -21,12 +22,14 @@ const position = { folderSet: TRIP, fileId: 4, decided: 1, total: 3, updatedAt: 
 function openApp() {
 	const listed: string[] = []
 	const reads: string[] = []
-	const library: LibraryApi = {
+	const library: LibraryApi & FolderDoneApi = {
 		listLibraryFolders: async (root) => {
 			reads.push(root)
 			return { folders: [row({ path: '/Photos/Trip' })], next: null, scanning: null }
 		},
 		scanLibrary: async () => ({ done: 0, total: 0 }),
+		markFolderDone: async () => ({ by: '', at: 0, photos: 0 }),
+		reopenFolder: async () => undefined,
 	}
 	const mounted = mountApp({
 		library,

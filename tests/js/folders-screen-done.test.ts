@@ -31,7 +31,7 @@ describe('FoldersScreen: the done status', () => {
 		const wrapper = mountScreen(fakeList([OPEN, COMPLETE]))
 
 		const marks = wrapper.findAll('.folder-row__mark-done')
-		expect(marks.map((each) => each.attributes('aria-label'))).toEqual([`${MARK}Mark Done soon done`])
+		expect(marks.map((each) => each.attributes('aria-label'))).toEqual([`${MARK}Mark done: Done soon`])
 		expect(row_(wrapper, 'Done soon').find('.folder-row__cull').exists()).toBe(false)
 		await marks[0]!.trigger('click')
 

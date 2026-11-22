@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { SidecarWrites } from '../../src/cull-seams.ts'
 import type { FlagApi, FlagItem } from '../../src/flags-api.ts'
+import type { FolderDoneApi } from '../../src/folder-done.ts'
 import type { LibraryApi } from '../../src/folders.ts'
 import type { ImmichCullApi } from '../../src/immich-cull.ts'
 import type { ImmichApi } from '../../src/immich-source.ts'
@@ -165,7 +166,7 @@ const NOW_SECONDS = 1_795_176_000
 export const SILENT_IMMICH_CULL: ImmichCullApi = { assets: () => new Promise(() => undefined), counts: () => new Promise(() => undefined), saveDecisions: () => new Promise(() => undefined), imageUrl: (id, assetId, size) => `/${id}/${assetId}/${size}` }
 
 /** A library without folders, never scanning. */
-export const NO_LIBRARY: LibraryApi = { listLibraryFolders: async () => ({ folders: [], next: null, scanning: null }), scanLibrary: async () => ({ done: 0, total: 0 }) }
+export const NO_LIBRARY: LibraryApi & FolderDoneApi = { listLibraryFolders: async () => ({ folders: [], next: null, scanning: null }), scanLibrary: async () => ({ done: 0, total: 0 }), markFolderDone: async () => ({ by: '', at: 0, photos: 0 }), reopenFolder: async () => undefined }
 
 export function mountApp(props: Record<string, unknown> = {}, decisions: StoredDecision[] = [], stubs: Record<string, unknown> = {}) {
 	provideSkipActions()

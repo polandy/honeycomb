@@ -36,15 +36,22 @@ async function stubLibrary(page: Page): Promise<string[]> {
 	return writes
 }
 
-/** Opens the app on the stubbed list, its clock installed. */
+/** Opens the app on the stubbed list below `ROOT`, its clock installed. */
 async function openList(page: Page) {
 	await page.clock.install()
-	await putSettings(page, { libraryRoots: [ROOT] })
 	await page.goto('/index.php/apps/honeycomb/')
+	// The settings write needs the page's request token; the reload reads the roots.
+	await putSettings(page, { libraryRoots: [ROOT] })
+	await page.reload()
 	const list = page.locator('.folders-screen')
 	await expect(list.getByRole('article', { name: 'Complete' })).toBeVisible()
+	// *Suggested* hides done folders; *All* keeps every row in view.
+	await list.getByRole('group', { name: 'Filter' }).getByRole('button', { name: /^All/ }).click()
 	return list
 }
+
+// A phone has a coarse pointer, which gives the controls their touch size.
+test.use({ hasTouch: true })
 
 test.afterEach(async ({ page }) => {
 	await putSettings(page, E2E_SETTINGS)
@@ -59,7 +66,7 @@ test('marks a complete folder done with a toast that offers Undo for 8 s', async
 	await expect(grown.getByRole('button', { name: 'Cull new in Grown' })).toBeVisible()
 	await grown.screenshot({ path: testInfo.outputPath('folders-new-badge.png') })
 
-	await list.getByRole('button', { name: 'Mark Complete done' }).click()
+	await list.getByRole('button', { name: 'Mark done: Complete' }).click()
 	const toast = page.getByRole('status').filter({ hasText: 'Marked Complete done' })
 	await expect(toast).toBeVisible()
 	expect(writes).toEqual(['PUT 9001'])
@@ -70,7 +77,7 @@ test('marks a complete folder done with a toast that offers Undo for 8 s', async
 
 	await expect.poll(() => writes).toEqual(['PUT 9001', 'DELETE 9001'])
 	await expect(list.getByRole('button', { name: 'More for Complete' })).toBeFocused()
-	await list.getByRole('button', { name: 'Mark Complete done' }).click()
+	await list.getByRole('button', { name: 'Mark done: Complete' }).click()
 	await expect(toast).toBeVisible()
 	await page.clock.runFor(BEFORE_UNDO_MS + PAST_UNDO_MS)
 	await expect(toast).toBeHidden()
@@ -81,6 +88,7 @@ test('opens the row\'s menu with Mark done as an accessible, touch-sized bottom 
 	await stubLibrary(page)
 	await page.setViewportSize({ width: 390, height: 844 })
 	const list = await openList(page)
+	expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(true)
 
 	await list.getByRole('button', { name: 'More for Open' }).click()
 
