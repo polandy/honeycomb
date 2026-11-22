@@ -31,8 +31,8 @@ defined. The sections below hold the amended text.
 
 - **Required, one or more.** A user lists and counts folders only below their **library roots**,
   folders of their own home storage. There is no default to the whole home folder; at least one
-  root must exist, and no root may lie inside another (the server refuses a nested or duplicate
-  root with `400`).
+  root must exist, and no root may lie inside another (the client refuses a nested or duplicate
+  root, see *Stored and validated*).
 - **First run:** while a user has no root, *Folders* shows the root picker (*Where is your
   library?*) instead of the list. *Settings* edits the roots later.
 - **Stored and validated:** the user setting `libraryRoots`, paths relative to the home folder.
