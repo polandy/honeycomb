@@ -14,7 +14,6 @@ Add items with `/todo`.
 - [ ] Immich (M10, ADR 0041): PR 13 Phase 2: *Write to Immich* with the `updatedAt` conflict check, rejects as Immich trash bin by default, per-asset results, undo; Immich decisions enter the statistics (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 14 user docs: the connections file format and key scopes for the admin, an account without partner sharing in its timeline (ADR 0044), the guide for culling Immich uploads (2026-11-19)
 - [ ] Culling aids (M11, ADR 0046): the similarity page (SERIES-004) measures the sharpness of its series members too, once it shows series; the cull measures them since PR 2 (SERIES-006) (2026-11-20)
-- [ ] Folders (M12, ADR 0049): PR 3 backend done status (no migration): `PUT`/`DELETE /library/folders/{fileId}/done` with the UPDATE check and the rate limit (ADR 0031), the counter `folders_done` (ADR 0039); PHPUnit (2026-11-22)
 - [ ] Folders (M12, ADR 0049): PR 6 UI done: *Mark done* without a dialog, the toast with *Undo* (about 8 s, dismissable by its close button or a swipe), *Reopen*, the badge *n new* and *Cull new* with the flag filter, *Mark folder done* on the *Cull finished* card; Playwright (2026-11-22)
 - [ ] Folders (M12, ADR 0049): PR 7 statistics and settings: the *Folder sets* panel replaced by the progress headline with a link to *Folders*, the library roots in *Settings*, the user docs chapter "Cleaning up the library"; phase 2 items (shares and group folders, Immich albums) under Later (2026-11-22)
 

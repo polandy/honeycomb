@@ -97,6 +97,9 @@ trait FakeFiles {
 				return $nodes[$key];
 			},
 		);
+		$userFolder->method('getFirstNodeById')->willReturnCallback(
+			static fn (int $fileId): ?\OCP\Files\Node => array_values(array_filter($nodes, static fn ($node): bool => $node instanceof \OCP\Files\Node && $node->getId() === $fileId))[0] ?? null,
+		);
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
 		return $root;

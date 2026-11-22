@@ -22,6 +22,16 @@ final class FakeFolderDoneStore implements FolderDoneStore {
 		return array_intersect_key($this->rows, array_flip($fileIds));
 	}
 
+	#[\Override]
+	public function put(FolderDone $done): void {
+		$this->rows[$done->fileId] = $done;
+	}
+
+	#[\Override]
+	public function remove(int $fileId): void {
+		unset($this->rows[$fileId]);
+	}
+
 	/** The row moved to `$fileId`. */
 	private static function movedTo(FolderDone $row, int $fileId): FolderDone {
 		return new FolderDone($fileId, $row->userId, $row->doneAt, $row->photos);

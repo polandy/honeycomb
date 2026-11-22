@@ -15,4 +15,10 @@ interface FolderDoneStore extends FileRowStore {
 	 * @return array<int, FolderDone>
 	 */
 	public function find(array $fileIds): array;
+
+	/** Stores the folder's status, replacing the one it had. */
+	public function put(FolderDone $done): void;
+
+	/** Removes the folder's status; none is no error. */
+	public function remove(int $fileId): void;
 }

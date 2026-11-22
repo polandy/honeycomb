@@ -180,4 +180,55 @@ test.describe('the grid and the loupe of an Immich connection', () => {
 		expect(saves[2]![0]!.assetId).toBe(saves[1]![0]!.assetId)
 		expect(saves[3]![0]!.assetId).toBe(saves[0]![0]!.assetId)
 	})
+
+	// spec: IMMICH-002.28
+	test('takes a rejected picture out of the grid once the loupe closes, and undo brings it back', async ({ page }) => {
+		const main = await openFamily(page)
+		const rejected = main.getByRole('group', { name: 'Flag' }).getByRole('button', { name: 'Rejected' })
+		const before = Number((await rejected.textContent())!.replace(/\D/g, ''))
+		const loupe = await openLoupe(page)
+		const filmstrip = loupe.getByRole('navigation', { name: 'Filmstrip' })
+		await page.keyboard.press('ArrowRight')
+		await page.keyboard.press('ArrowRight')
+		await expect(loupe.getByRole('heading', { name: uploadName(3) })).toBeVisible()
+		const listings: string[] = []
+		page.on('request', (request) => {
+			if (request.url().endsWith('/api/v1/immich/family/assets')) {
+				listings.push(request.url())
+			}
+		})
+		const toast = page.getByRole('status').filter({ hasText: 'PXL_E2E_' })
+
+		const saved = page.waitForResponse((response) => response.url().endsWith('/api/v1/immich/family/decisions'))
+		await page.keyboard.press('x')
+		expect((await saved).status()).toBe(200)
+		await expect(loupe.getByRole('heading', { name: uploadName(4) })).toBeVisible()
+		await expect(filmstrip.getByRole('button', { name: uploadName(3) })).toBeVisible()
+		await page.keyboard.press('Escape')
+		await expect(loupe).toBeHidden()
+
+		await expect(tile(page, 3)).toBeHidden()
+		await expect(tile(page, 4)).toBeVisible()
+		await expect(rejected).toContainText(String(before + 1))
+		expect(listings).toEqual([])
+
+		const undone = page.waitForResponse((response) => response.url().endsWith('/api/v1/immich/family/decisions'))
+		await page.keyboard.press('Control+z')
+		await expect(toast).toContainText(`Undid: Rejected ${uploadName(3)}`)
+		await expect(tile(page, 3)).toBeVisible()
+		expect((await undone).status()).toBe(200)
+
+		const redone = page.waitForResponse((response) => response.url().endsWith('/api/v1/immich/family/decisions'))
+		await page.keyboard.press('Control+Shift+z')
+		await expect(tile(page, 3)).toBeHidden()
+		expect((await redone).status()).toBe(200)
+		await rejected.click()
+		await expect(rejected).toHaveAttribute('aria-pressed', 'true')
+		await expect(tile(page, 3)).toBeVisible()
+
+		const cleared = page.waitForResponse((response) => response.url().endsWith('/api/v1/immich/family/decisions'))
+		await page.keyboard.press('Control+z')
+		await expect(toast).toContainText(`Undid: Rejected ${uploadName(3)}`)
+		expect((await cleared).status()).toBe(200)
+	})
 })

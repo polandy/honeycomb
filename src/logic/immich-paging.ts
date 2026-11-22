@@ -1,7 +1,12 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Decision } from './decision.ts'
 import type { ImmichEntry } from './immich-asset.ts'
 import type { RequestFilters } from './immich-filters.ts'
+import type { DecisionFilters } from './picture-filter.ts'
+
+import { assetDecision } from './immich-asset.ts'
+import { matchesDecision } from './picture-filter.ts'
 
 /** What one page is asked with (ADR 0044); a `null` cursor asks the first page. */
 export interface AssetsRequest {
@@ -89,6 +94,11 @@ export function pageArrived(list: PagedList, end: PageEnd, page: Page): PagedLis
 /** The list with the entry of the same asset swapped, e.g. after a decision. */
 export function replaceEntry(list: PagedList, entry: ImmichEntry): PagedList {
 	return { ...list, entries: list.entries.map((held) => held.assetId === entry.assetId ? entry : held) }
+}
+
+/** The list without the entries whose decision, by asset id or else the entry's own, the filters refuse (IMMICH-002.28). */
+export function shownList(list: PagedList, decided: ReadonlyMap<string, Decision>, filters: DecisionFilters): PagedList {
+	return { ...list, entries: list.entries.filter((entry) => matchesDecision(decided.get(entry.assetId) ?? assetDecision(entry), filters)) }
 }
 
 /** The loupe's *k / N* for the loaded entry at `index`, against the server's total. */
