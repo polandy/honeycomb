@@ -9,7 +9,10 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { browserSchedule } from '../browser-schedule.ts'
 import { CHUNK_TIMEOUT_MS, LISTING_TIMEOUT_MS, withTimeout } from '../logic/timed-request.ts'
-import { API, ApiResponseError, isRecord } from './core.ts'
+import { API, ApiResponseError, errorCodeOf, isRecord } from './core.ts'
+
+/** The error code of an answer that says the trash bin is off. */
+const TRASH_BIN_DISABLED = 'trash-bin-disabled'
 
 /** Thrown when the trash bin app is off for the user; nothing was deleted (ADR 0013). */
 export class TrashBinOffError extends Error {}
@@ -18,7 +21,7 @@ export class TrashBinOffError extends Error {}
 export async function trashPictures(pictures: readonly (readonly TrashRequestFile[])[], expect: TrashExpectation | null = null, schedule: Schedule = browserSchedule): Promise<TrashResponseFile[][]> {
 	const body = expect === null ? { pictures } : { pictures, expect }
 	const data = await withTimeout((signal) => axios.post<unknown>(generateUrl(`${API}/trash`), body, { signal }), CHUNK_TIMEOUT_MS, schedule).then((response) => response.data, (error: unknown) => {
-		throw isRecord(error) && isRecord(error.response) && error.response.status === 409 ? new TrashBinOffError('The trash bin is off; nothing was deleted.') : error
+		throw errorCodeOf(error) === TRASH_BIN_DISABLED ? new TrashBinOffError('The trash bin is off; nothing was deleted.') : error
 	})
 	if (!isRecord(data) || !Array.isArray(data.pictures)) {
 		throw new ApiResponseError('The trash response came without a pictures array; check the server\'s version.')
@@ -38,7 +41,7 @@ export async function probeTargets(folders: readonly string[], sources: readonly
 /** Moves each picture's files to their new paths and returns the result of every file (ADR 0018). */
 export async function movePictures(pictures: readonly (readonly MoveRequestFile[])[], schedule: Schedule = browserSchedule): Promise<MoveResponseFile[][]> {
 	const data = await withTimeout((signal) => axios.post<unknown>(generateUrl(`${API}/move`), { pictures }, { signal }), CHUNK_TIMEOUT_MS, schedule).then((response) => response.data, (error: unknown) => {
-		throw isRecord(error) && isRecord(error.response) && error.response.status === 409 ? new TrashBinOffError('The trash bin is off; nothing was moved.') : error
+		throw errorCodeOf(error) === TRASH_BIN_DISABLED ? new TrashBinOffError('The trash bin is off; nothing was moved.') : error
 	})
 	if (!isRecord(data) || !Array.isArray(data.pictures)) {
 		throw new ApiResponseError('The move response came without a pictures array; check the server\'s version.')

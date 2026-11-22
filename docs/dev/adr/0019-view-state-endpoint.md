@@ -28,7 +28,7 @@ or device.
   `{"viewState": {"gesture_guide_seen": true}}`, stores only the keys given and answers the full
   object like the read. Changes, not whole objects: two writes of different keys never undo each
   other.
-- **Errors:** `400` with an empty body for a `viewState` that is not an object, has an unknown
+- **Errors:** `400` with `{"error": "request"}` (ADR 0052) for a `viewState` that is not an object, has an unknown
   key or a value that is not a boolean, or has no key at all; `401` without a user.
 - **Migration.** The client reads the view state once per visit. For a key the server has never
   stored, it takes a `true`/`false` left in browser storage (`honeycomb.infoOpen`,

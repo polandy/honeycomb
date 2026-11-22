@@ -14,13 +14,13 @@ any device finds them stored and links series at once.
 
 - The page *Similarity* (`/apps/honeycomb/similarity`) opens from the navigation. It shows the
   user's folders to choose one; its subfolders are always included.
-- `GET /apps/honeycomb/api/v1/visual-hashes/missing?path=/Photos&after=<cursor>` answers
+- `GET /apps/honeycomb/api/v1/visual-hashes/missing?path=/Photos&cursor=<cursor>` answers
   `{"pictures": [{"fileId": 9, "etag": "…", "mtime": 1700000000, "path": "/Photos/a.jpg"}],
-  "next": "<cursor>"}`: the user's own photos (ListingService::isPhoto) in the folder and every
+  "nextCursor": "<cursor>"}`: the user's own photos (ListingService::isPhoto) in the folder and every
   folder below it without a stored hash of their current etag. It walks the tree in name order
-  and stops after 500 photos; `next` is the path of the last photo looked at, relative to the
+  and stops after 500 photos; `nextCursor` is the path of the last photo looked at, relative to the
   folder, or `null` when the walk ended before 500. A page may hold fewer pictures, even none,
-  while `next` is not `null`. Hidden and unreadable folders, and folders of another mount (a
+  while `nextCursor` is not `null`. Hidden and unreadable folders, and folders of another mount (a
   share, a group folder, external storage), are skipped. `404` for a path that is not the user's folder,
   `403` when it is not readable, `400` for a cursor that is not a relative path.
 - *Start* asks for the pages one after another and hashes their pictures, each the way the grid
@@ -56,12 +56,12 @@ any device finds them stored and links series at once.
   etag, one with a hash of an older etag, a sidecar and a hidden folder
 - **When** the user asks for the missing hashes of the folder
 - **Then** the answer lists the photos without a current hash, in name order through the tree,
-  each with file id, etag, mtime and path, and `next` is `null`
+  each with file id, etag, mtime and path, and `nextCursor` is `null`
 
 ### SERIES-004.2 – A page ends with a cursor
 
 - **Given** more photos below a folder than one page holds
-- **When** the user asks for the missing hashes and then again after the answered `next`
+- **When** the user asks for the missing hashes and then again with the answered `nextCursor` as `cursor`
 - **Then** the second page goes on with the first photo after the cursor and lists no photo
   twice; folders before the cursor are not listed again
 

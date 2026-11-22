@@ -29,7 +29,7 @@ is not read.
 
 | Case | Answer |
 |---|---|
-| A malformed body, an id given twice, more than 1,000 ids | `400`, empty body, nothing read |
+| A malformed body, an id given twice, more than 1,000 ids | `400` `{"error": "request"}`, nothing read |
 | No logged-in user | `401` |
 
 ## Acceptance criteria
@@ -60,7 +60,7 @@ is not read.
 
 - **Given** ids that are not positive integers, an id twice, or 1,001 ids
 - **When** they are looked up
-- **Then** the answer is `400` with an empty body and no file is opened
+- **Then** the answer is `400` with `{"error": "request"}` and no file is opened
 
 ### XMP-005.5 – Logged in only
 

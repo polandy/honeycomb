@@ -40,7 +40,7 @@ final class ImageController extends Controller {
 	public function show(int $fileId, int $size = -1, int $v = 0): Response {
 		return $this->api->forUser(function (IUser $user) use ($fileId, $size, $v): Response {
 			if ($size !== ImageService::FULL && !in_array($size, ImageService::TIERS, true)) {
-				return new Response(Http::STATUS_BAD_REQUEST);
+				return ApiError::Request->response();
 			}
 			$file = $this->images->find($user, $fileId);
 			$etag = "$fileId-{$file->getMTime()}-$size";

@@ -33,8 +33,8 @@ final class OrphanedSidecarController extends Controller {
 	/** The next page of the orphaned sidecars below `$path`, changing nothing (XMP-009). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/sidecars/orphaned')]
-	public function orphaned(string $path = '', string $after = ''): Response {
-		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->scan->page($user, $path, $after)));
+	public function orphaned(string $path = '', string $cursor = ''): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->scan->page($user, $path, $cursor)));
 	}
 
 	/** Moves the confirmed sidecars that are still orphaned into the trash bin and reports each (XMP-009). */

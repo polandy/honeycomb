@@ -16,13 +16,13 @@ export async function saveVisualHashes(hashes: readonly StoredVisualHash[]): Pro
 	return putSavedRows('visual-hashes', { hashes }, 'visual hashes')
 }
 
-/** The next page of the user's photos below `path` without a hash of their current version, after the cursor `after` (ADR 0025). */
-export async function listMissingVisualHashes(path: string, after: string): Promise<MissingPage> {
-	const { data } = await axios.get<unknown>(generateUrl(`${API}/visual-hashes/missing`), { params: { path, after } })
-	if (!isRecord(data) || !Array.isArray(data.pictures) || !data.pictures.every(isMissingPicture) || !(data.next === null || typeof data.next === 'string')) {
-		throw new ApiResponseError('The missing visual hashes came without a pictures array and next cursor; check the server\'s version.')
+/** The next page of the user's photos below `path` without a hash of their current version, after the `cursor` (ADR 0025). */
+export async function listMissingVisualHashes(path: string, cursor: string): Promise<MissingPage> {
+	const { data } = await axios.get<unknown>(generateUrl(`${API}/visual-hashes/missing`), { params: { path, cursor } })
+	if (!isRecord(data) || !Array.isArray(data.pictures) || !data.pictures.every(isMissingPicture) || !(data.nextCursor === null || typeof data.nextCursor === 'string')) {
+		throw new ApiResponseError('The missing visual hashes came without a pictures array and nextCursor; check the server\'s version.')
 	}
-	return { pictures: data.pictures, next: data.next }
+	return { pictures: data.pictures, nextCursor: data.nextCursor }
 }
 
 /** Whether a value is one picture of a page of missing hashes. */

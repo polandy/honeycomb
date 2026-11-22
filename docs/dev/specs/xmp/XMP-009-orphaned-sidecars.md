@@ -22,11 +22,11 @@ without changing anything, and moves them to the trash bin only after the user c
 - The page *Orphaned sidecars* (`/apps/honeycomb/orphaned-sidecars`) opens from the navigation. It
   shows the user's folders to choose one, its subfolders always included, and offers *Whole
   library*, which is the user's folder `/`.
-- `GET /apps/honeycomb/api/v1/sidecars/orphaned?path=/Photos&after=<cursor>` answers
+- `GET /apps/honeycomb/api/v1/sidecars/orphaned?path=/Photos&cursor=<cursor>` answers
   `{"sidecars": [{"fileId": 9, "etag": "…", "path": "/Photos/IMG_0001.CR2.xmp", "size": 4096}],
-  "next": "<cursor>"}`: the orphaned sidecars of the folder and every folder below it, folder by
+  "nextCursor": "<cursor>"}`: the orphaned sidecars of the folder and every folder below it, folder by
   folder in name order. A page ends after the folder in which it looked at its 1,000th file;
-  `next` names that folder, `/` for the chosen folder itself, `null` when the walk is through.
+  `nextCursor` names that folder, `/` for the chosen folder itself, `null` when the walk is through.
   Hidden and unreadable folders, and folders of another mount (a share, a group folder, external
   storage), are skipped, as on the similarity page (SERIES-004). `404` for a path that is not the
   user's folder, `403` when it is not readable, `400` for a cursor that is not such a path. The
@@ -71,13 +71,13 @@ without changing anything, and moves them to the trash bin only after the user c
   and a shared folder
 - **When** the user scans the folder
 - **Then** the answer lists those of the folder and its readable, own, visible subfolders in name
-  order with file id, etag, user path and size, `next` is `null`, and no file was deleted
+  order with file id, etag, user path and size, `nextCursor` is `null`, and no file was deleted
 
 ### XMP-009.4 – A page ends after a folder and the next goes on after it
 
 - **Given** more files than a page looks at, spread over the folder and its subfolders
-- **When** the user asks for a page and then for the page after its `next`
-- **Then** each page ends after a whole folder, `next` is `/` for the chosen folder itself, and
+- **When** the user asks for a page and then for the page after its `nextCursor`
+- **Then** each page ends after a whole folder, `nextCursor` is `/` for the chosen folder itself, and
   the pages together list every orphaned sidecar once
 
 ### XMP-009.5 – The scan refuses a wrong folder or cursor

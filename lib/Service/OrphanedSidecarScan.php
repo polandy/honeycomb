@@ -25,7 +25,7 @@ final class OrphanedSidecarScan {
 
 	/**
 	 * The orphaned sidecars of the folders after `$after`, the path of the last folder of the page before relative to `$path` (`/` for the folder itself).
-	 * @return array{sidecars: list<array{fileId: int, etag: string, path: string, size: int}>, next: ?string}
+	 * @return array{sidecars: list<array{fileId: int, etag: string, path: string, size: int}>, nextCursor: ?string}
 	 * @throws FolderNotFoundException for a path that is not the user's folder
 	 * @throws FolderNotReadableException when the user may not read the folder
 	 * @throws InvalidCursorException for a cursor that is no folder path
@@ -34,7 +34,7 @@ final class OrphanedSidecarScan {
 		$cursor = self::cursorOf($after);
 		$folder = $this->folders->folder($user, $path);
 		if (!OrphanedSidecarRule::isOwnStorage($folder)) {
-			return ['sidecars' => [], 'next' => null];
+			return ['sidecars' => [], 'nextCursor' => null];
 		}
 		$base = rtrim((string)$this->folders->userFolder($user)->getRelativePath($folder->getPath()), '/');
 		$sidecars = [];
@@ -45,10 +45,10 @@ final class OrphanedSidecarScan {
 			}
 			$looked += $files;
 			if ($looked >= $this->pageSize) {
-				return ['sidecars' => $sidecars, 'next' => $relative === '' ? '/' : $relative];
+				return ['sidecars' => $sidecars, 'nextCursor' => $relative === '' ? '/' : $relative];
 			}
 		}
-		return ['sidecars' => $sidecars, 'next' => null];
+		return ['sidecars' => $sidecars, 'nextCursor' => null];
 	}
 
 	/**

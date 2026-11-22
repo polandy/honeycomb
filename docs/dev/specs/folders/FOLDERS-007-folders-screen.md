@@ -86,7 +86,7 @@ roots worth culling and the library's progress, and opens a folder's cull and re
 
 - **Given** a root whose folders come in two pages
 - **When** the list is read
-- **Then** the second page is asked with `after` set to the first page's `next`, and the rows of
+- **Then** the second page is asked with `cursor` set to the first page's `nextCursor`, and the rows of
   both show
 
 ### FOLDERS-007.7 – Updating folders
