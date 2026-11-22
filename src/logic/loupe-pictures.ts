@@ -22,3 +22,9 @@ export function firstAfter<P>(pictures: readonly P[], shown: readonly P[], serie
 export function landingTarget<P>(pictures: readonly P[], shown: readonly P[], landing: { readonly kind: 'on', readonly picture: P } | { readonly kind: 'after', readonly series: { readonly members: readonly P[] }, readonly picked: P }): P {
 	return landing.kind === 'on' ? landing.picture : firstAfter(pictures, shown, landing.series.members) ?? landing.picked
 }
+
+/** The index in `after` of the first picture of `before` from `index` on that `after` still holds, else its last one (IMMICH-002.28). */
+export function keptIndex<P>(before: readonly P[], after: readonly P[], index: number): number {
+	const kept = before.slice(index).find((picture) => after.includes(picture))
+	return kept === undefined ? after.length - 1 : after.indexOf(kept)
+}

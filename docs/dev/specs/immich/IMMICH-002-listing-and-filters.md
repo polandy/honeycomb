@@ -37,6 +37,10 @@ what is on screen is loaded, and every number comes from the server.
   leaves out the decided ones it refuses. When it admits decided assets only (*Picked* or
   *Rejected* alone, a rating above 0, a colour label), the listing pages the matching decisions by
   the capture time saved with them, newest first, and asks Immich for those assets by id.
+- **A decision the filter refuses** takes the picture out of the grid without a request: when the
+  loupe closes, or at once when the loupe is not open (an undo from the grid). While the loupe is
+  open the picture stays, so the filmstrip and *k / N* do not jump. Undo and redo bring it back
+  the same way; a page left short still loads the next one.
 - **Counts** (`POST …/counts`): the toolbar's *N of M pictures · K decided* (`matching`, `total`,
   `decided`), the flag chips'
   numbers, and each time, device and kind option's number, all from the server for the active
@@ -234,3 +238,12 @@ what is on screen is loaded, and every number comes from the server.
 - **Given** a loupe opened at the resume position, with newer entries not yet loaded
 - **When** the counter renders
 - **Then** it says *N pictures* with the server's total, and *k / N* once the newer pages are loaded
+
+### IMMICH-002.28 – A decision the filter refuses leaves the grid
+
+- **Given** the default flag filter (*Picked* and *Unflagged*) and the loupe on an unflagged
+  picture
+- **When** the user rejects it and closes the loupe
+- **Then** the grid no longer shows it, without a new listing request, and *Rejected* counts one
+  more; while the loupe was open the picture stayed in the filmstrip; an undo brings it back in
+  its place, and with *Rejected* pressed it shows
