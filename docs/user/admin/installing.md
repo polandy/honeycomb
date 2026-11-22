@@ -14,6 +14,14 @@ Both are optional, and honeycomb works without them.
   renders their new photos with a background job of its own, so Nextcloud's background jobs
   should run by cron; it also warms the previews of an opened folder.
 
+## RAW previews are global
+
+honeycomb registers a Nextcloud preview provider for RAW files (`image/x-dcraw`, and untyped
+`application/octet-stream` files named like RAW files). It is not limited to honeycomb:
+while the app is enabled, Files, Photos and every other app of every user get the embedded JPEG
+as the preview of a RAW file. Removing honeycomb ends that; what happens to the previews is in
+[removing](removing.md#raw-previews-after-removing).
+
 ## From the App Store
 
 As an admin, open *Apps*, search for honeycomb and click *Download and enable*, or run
