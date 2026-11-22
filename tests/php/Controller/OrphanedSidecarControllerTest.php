@@ -60,7 +60,7 @@ final class OrphanedSidecarControllerTest extends TestCase {
 		$response = $this->controller()->orphaned('/P', '');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame(['sidecars' => [['fileId' => 1, 'etag' => 'etag-1', 'path' => '/P/a.xmp', 'size' => 100]], 'next' => null], json_decode($response->render(), true));
+		$this->assertSame(['sidecars' => [['fileId' => 1, 'etag' => 'etag-1', 'path' => '/P/a.xmp', 'size' => 100]], 'nextCursor' => null], json_decode($response->render(), true));
 	}
 
 	// spec: XMP-009.5

@@ -169,13 +169,14 @@ describe('trashPictures', () => {
 		await expect(trashPictures(pictures)).rejects.toBeInstanceOf(ApiResponseError)
 	})
 
+	// spec: APP-004.4
 	it('turns a 409 into its own error, since the trash bin is off and nothing was touched', async () => {
-		vi.mocked(axios.post).mockRejectedValue(Object.assign(new Error('Conflict'), { response: { status: 409 } }))
+		vi.mocked(axios.post).mockRejectedValue(Object.assign(new Error('Conflict'), { response: { status: 409, data: { error: 'trash-bin-disabled' } } }))
 
 		await expect(trashPictures(pictures)).rejects.toBeInstanceOf(TrashBinOffError)
 	})
 
-	it.each([new Error('Network Error'), Object.assign(new Error('Bad'), { response: { status: 400 } })])('passes any other error on', async (error) => {
+	it.each([new Error('Network Error'), Object.assign(new Error('Bad'), { response: { status: 400 } }), Object.assign(new Error('Conflict'), { response: { status: 409, data: { error: 'request' } } })])('passes any other error on', async (error) => {
 		vi.mocked(axios.post).mockRejectedValue(error)
 
 		await expect(trashPictures(pictures)).rejects.toBe(error)

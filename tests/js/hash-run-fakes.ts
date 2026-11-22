@@ -24,9 +24,9 @@ export function deferred<T>() {
 }
 
 /** Seams answering pages by cursor, hashing at once, saving every hash and waiting no time. */
-export function seams(pages: Record<string, { pictures: MissingPicture[], next: string | null }>, overrides: Partial<HashRunSeams> = {}) {
+export function seams(pages: Record<string, { pictures: MissingPicture[], nextCursor: string | null }>, overrides: Partial<HashRunSeams> = {}) {
 	const base = {
-		listMissing: vi.fn(async (_path: string, after: string) => pages[after]!),
+		listMissing: vi.fn(async (_path: string, cursor: string) => pages[cursor]!),
 		hash: vi.fn(async (each: MissingPicture) => hashOf(each.fileId)),
 		save: vi.fn(async (hashes: readonly StoredVisualHash[]) => hashes.map((each) => each.fileId)),
 		wait: vi.fn(async (_seconds: number) => {}),
@@ -36,4 +36,4 @@ export function seams(pages: Record<string, { pictures: MissingPicture[], next: 
 }
 
 /** Two pages of missing hashes, by cursor. */
-export const TWO_PAGES = { '': { pictures: pictures(1, 3), next: '3.jpg' }, '3.jpg': { pictures: pictures(4, 5), next: null } }
+export const TWO_PAGES = { '': { pictures: pictures(1, 3), nextCursor: '3.jpg' }, '3.jpg': { pictures: pictures(4, 5), nextCursor: null } }

@@ -67,7 +67,7 @@ final class OrphanedSidecarScanTest extends TestCase {
 
 		$this->assertSame(['/Photos/a.xmp', '/Photos/b.xmp', '/Photos/2023/y.xmp', '/Photos/2024/x.xmp'], self::paths($page));
 		$this->assertSame(['fileId' => 7, 'etag' => 'etag-7', 'path' => '/Photos/a.xmp', 'size' => 700], $page['sidecars'][0]);
-		$this->assertNull($page['next']);
+		$this->assertNull($page['nextCursor']);
 		$this->assertSame([], $this->trashed);
 	}
 
@@ -82,12 +82,12 @@ final class OrphanedSidecarScanTest extends TestCase {
 		$scan = $this->scan(2);
 
 		$first = $scan->page($this->treeUser(), '/P', '');
-		$second = $scan->page($this->treeUser(), '/P', (string)$first['next']);
-		$third = $scan->page($this->treeUser(), '/P', (string)$second['next']);
+		$second = $scan->page($this->treeUser(), '/P', (string)$first['nextCursor']);
+		$third = $scan->page($this->treeUser(), '/P', (string)$second['nextCursor']);
 
-		$this->assertSame([['/P/a.xmp', '/P/b.xmp'], '/'], [self::paths($first), $first['next']]);
-		$this->assertSame([['/P/2023/c.xmp', '/P/2024/d.xmp'], '/2024'], [self::paths($second), $second['next']]);
-		$this->assertSame([['/P/2024/sub/f.xmp'], null], [self::paths($third), $third['next']]);
+		$this->assertSame([['/P/a.xmp', '/P/b.xmp'], '/'], [self::paths($first), $first['nextCursor']]);
+		$this->assertSame([['/P/2023/c.xmp', '/P/2024/d.xmp'], '/2024'], [self::paths($second), $second['nextCursor']]);
+		$this->assertSame([['/P/2024/sub/f.xmp'], null], [self::paths($third), $third['nextCursor']]);
 	}
 
 	// spec: XMP-009.3

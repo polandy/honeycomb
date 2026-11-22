@@ -14,18 +14,18 @@ beforeEach(() => {
 })
 
 describe('listOrphanedSidecars', () => {
-	// spec: XMP-009.3
+	// spec: XMP-009.3, APP-004.3
 	it('asks for a page of orphaned sidecars below a folder after a cursor', async () => {
-		vi.mocked(axios.get).mockResolvedValue({ data: { sidecars: [SIDECAR], next: '/2024' } })
+		vi.mocked(axios.get).mockResolvedValue({ data: { sidecars: [SIDECAR], nextCursor: '/2024' } })
 
-		await expect(listOrphanedSidecars('/Photos', '/2023')).resolves.toEqual({ sidecars: [SIDECAR], next: '/2024' })
+		await expect(listOrphanedSidecars('/Photos', '/2023')).resolves.toEqual({ sidecars: [SIDECAR], nextCursor: '/2024' })
 
 		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/sidecars/orphaned', { params: { path: '/Photos', after: '/2023' } })
 	})
 
-	// spec: XMP-009.3
+	// spec: XMP-009.3, APP-004.3
 	it('rejects a page without sidecars or cursor', async () => {
-		vi.mocked(axios.get).mockResolvedValue({ data: { sidecars: [{ fileId: 9 }], next: null } })
+		vi.mocked(axios.get).mockResolvedValue({ data: { sidecars: [{ fileId: 9 }], nextCursor: null } })
 
 		await expect(listOrphanedSidecars('/Photos', '')).rejects.toThrow(ApiResponseError)
 	})

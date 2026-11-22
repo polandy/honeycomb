@@ -70,7 +70,7 @@ final class MissingVisualHashesTest extends TestCase {
 
 		$this->assertSame(['/Photos/2024/a.JPG', '/Photos/2024/b.CR2', '/Photos/b.JPG', '/Photos/c.JPG'], $this->paths($page));
 		$this->assertSame(['fileId' => 2, 'etag' => 'etag-2', 'mtime' => 1_700_000_002, 'path' => '/Photos/2024/a.JPG'], $page['pictures'][0]);
-		$this->assertNull($page['next']);
+		$this->assertNull($page['nextCursor']);
 	}
 
 	// spec: SERIES-004.2
@@ -78,15 +78,15 @@ final class MissingVisualHashesTest extends TestCase {
 		$service = $this->service($this->rootWith(['/Photos' => $this->photos(5)]), 2);
 
 		$first = $service->page($this->user(), 'Photos', '');
-		$second = $service->page($this->user(), 'Photos', (string)$first['next']);
+		$second = $service->page($this->user(), 'Photos', (string)$first['nextCursor']);
 		$listedBefore = count($this->listed);
-		$third = $service->page($this->user(), 'Photos', (string)$second['next']);
+		$third = $service->page($this->user(), 'Photos', (string)$second['nextCursor']);
 
 		$this->assertSame(['/Photos/2023/IMG_0001.JPG', '/Photos/2023/IMG_0002.JPG'], $this->paths($first));
-		$this->assertSame('2023/IMG_0002.JPG', $first['next']);
+		$this->assertSame('2023/IMG_0002.JPG', $first['nextCursor']);
 		$this->assertSame(['/Photos/2023/IMG_0003.JPG', '/Photos/2024/IMG_0004.JPG'], $this->paths($second));
 		$this->assertSame(['/Photos/2024/IMG_0005.JPG'], $this->paths($third));
-		$this->assertNull($third['next']);
+		$this->assertNull($third['nextCursor']);
 		$this->assertSame(['/Photos', '/Photos/2024'], array_slice($this->listed, $listedBefore));
 	}
 
@@ -97,7 +97,7 @@ final class MissingVisualHashesTest extends TestCase {
 		$page = $this->service($this->rootWith(['/Photos' => $this->photos(3)]), 2)->page($this->user(), 'Photos', '');
 
 		$this->assertSame([], $page['pictures']);
-		$this->assertSame('2023/IMG_0002.JPG', $page['next']);
+		$this->assertSame('2023/IMG_0002.JPG', $page['nextCursor']);
 	}
 
 	// spec: SERIES-004.2
@@ -133,7 +133,7 @@ final class MissingVisualHashesTest extends TestCase {
 
 		$page = $this->service($this->rootWith(['/From Bob' => $shared]))->page($this->user(), 'From Bob', '');
 
-		$this->assertSame(['pictures' => [], 'next' => null], $page);
+		$this->assertSame(['pictures' => [], 'nextCursor' => null], $page);
 	}
 
 	// spec: SERIES-004.1

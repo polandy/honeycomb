@@ -27,7 +27,7 @@ const FOLDERS = [
 /** Stubs the list and the done endpoints; answers the done writes as `METHOD fileId`. */
 async function stubLibrary(page: Page): Promise<string[]> {
 	const writes: string[] = []
-	await page.route('**/apps/honeycomb/api/v1/library/folders?**', (route) => route.fulfill({ json: { folders: FOLDERS, next: null, scanning: null } }))
+	await page.route('**/apps/honeycomb/api/v1/library/folders?**', (route) => route.fulfill({ json: { folders: FOLDERS, nextCursor: null, scanning: null } }))
 	await page.route('**/apps/honeycomb/api/v1/library/folders/*/done', (route) => {
 		const fileId = Number(route.request().url().split('/').at(-2))
 		writes.push(`${route.request().method()} ${fileId}`)

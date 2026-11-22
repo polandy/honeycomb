@@ -25,7 +25,7 @@ function openApp() {
 	const library: LibraryApi & FolderDoneApi = {
 		listLibraryFolders: async (root) => {
 			reads.push(root)
-			return { folders: [row({ path: '/Photos/Trip' })], next: null, scanning: null }
+			return { folders: [row({ path: '/Photos/Trip' })], nextCursor: null, scanning: null }
 		},
 		scanLibrary: async () => ({ done: 0, total: 0 }),
 		markFolderDone: async () => ({ by: '', at: 0, photos: 0 }),

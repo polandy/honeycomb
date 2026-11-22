@@ -78,7 +78,7 @@ final class SidecarControllerTest extends TestCase {
 	public function testAMalformedRequestIsABadRequest(): void {
 		foreach ([$this->controller()->lookup([9, 9]), $this->controller()->save([['fileId' => 9]])] as $response) {
 			$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
-			$this->assertSame([], json_decode($response->render(), true));
+			$this->assertSame(['error' => 'request'], json_decode($response->render(), true));
 		}
 	}
 

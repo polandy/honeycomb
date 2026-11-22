@@ -16,8 +16,8 @@ const B = row({ fileId: 2, root: '/Photos', path: '/Photos/b' })
 const C = row({ fileId: 3, root: '/Phone', path: '/Phone/c' })
 
 /** A page of the folders with no further page and nothing to scan. */
-function page(folders: LibraryPage['folders'], next: number | null = null, scanning: LibraryScanning | null = null): LibraryPage {
-	return { folders, next, scanning }
+function page(folders: LibraryPage['folders'], nextCursor: number | null = null, scanning: LibraryScanning | null = null): LibraryPage {
+	return { folders, nextCursor, scanning }
 }
 
 /** A library API over the pages of each root by `after`, recording every call. */
