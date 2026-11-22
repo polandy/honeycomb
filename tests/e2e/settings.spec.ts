@@ -42,7 +42,7 @@ test('turns Show singles off in the settings and keeps it after a reload', async
 	await expect(grid.getByRole('gridcell')).toHaveCount(1)
 })
 
-// spec: SETTINGS-001.30
+// spec: SETTINGS-001.30, SETTINGS-001.31
 test('adds a library root in the settings, keeps it after a reload and removes it again', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Roots ${randomUUID().slice(0, 8)}`
@@ -55,7 +55,7 @@ test('adds a library root in the settings, keeps it after a reload and removes i
 	await expect(settings.getByRole('heading', { name: 'Library', exact: true })).toBeVisible()
 
 	await settings.getByRole('treeitem').filter({ has: page.locator('.folder-tree__name').getByText(folder, { exact: true }) }).click()
-	const saved = page.waitForResponse((response) => response.url().endsWith('/api/v1/settings') && response.request().method() === 'PUT')
+	const saved = page.waitForResponse((response) => response.url().endsWith('/api/v1/settings/lists/libraryRoots') && response.request().method() === 'PUT')
 	await settings.getByRole('button', { name: 'Add as root' }).click()
 	expect((await saved).status()).toBe(200)
 	const roots = settings.getByRole('list', { name: 'Library roots' })

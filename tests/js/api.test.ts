@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, imageUrl, listEntries, listFolders, loadSettings, lookupEmbeddedXmp, lookupSidecars, saveSettings, saveSidecars, TrashBinOffError, trashPictures } from '../../src/api.ts'
+import { ApiResponseError, imageUrl, listEntries, listFolders, loadSettings, lookupEmbeddedXmp, lookupSidecars, saveSettings, saveSettingsList, saveSidecars, TrashBinOffError, trashPictures } from '../../src/api.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({
@@ -122,6 +122,17 @@ describe('saveSettings', () => {
 		await saveSettings({ viKeys: true })
 
 		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/settings', { settings: { viKeys: true } })
+	})
+})
+
+describe('saveSettingsList', () => {
+	// spec: SETTINGS-001.31
+	it('stores the whole list under its own name', async () => {
+		vi.mocked(axios.put).mockResolvedValue({ data: {} })
+
+		await saveSettingsList('moveRecent', ['/B', '/A'])
+
+		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/settings/lists/moveRecent', { items: ['/B', '/A'] })
 	})
 })
 

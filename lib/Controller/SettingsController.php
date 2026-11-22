@@ -42,4 +42,12 @@ final class SettingsController extends Controller {
 	public function save(mixed $settings = null): Response {
 		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(['settings' => $this->settings->save($user, $settings)]));
 	}
+
+	/** Stores one of the user's settings lists whole under its own key (ADR 0051). */
+	#[NoAdminRequired]
+	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/settings/lists/{name}')]
+	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
+	public function saveList(string $name, mixed $items = null): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(['items' => $this->settings->saveList($user, $name, $items)]));
+	}
 }
