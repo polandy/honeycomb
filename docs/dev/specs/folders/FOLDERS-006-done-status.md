@@ -107,6 +107,12 @@ The status is one per folder, shared like the flags, and changes no file.
 - **When** the daily clean-up runs
 - **Then** the first status is gone and the second stays (FOLDERS-005.17)
 
+### FOLDERS-006.13 – A deleted user leaves no done status
+
+- **Given** a user who marked folders done and another user who marked one
+- **When** Nextcloud deletes the first user
+- **Then** their statuses are gone, those folders are open again, and the other user's status stays
+
 ## Out of scope
 
 - The *Folders* screen, its toast, *Undo* and the row menu (a later pull request, ADR 0049).
@@ -116,4 +122,5 @@ The status is one per folder, shared like the flags, and changes no file.
 
 | Date | Change |
 |---|---|
+| 2026-11-22 | A deleted user's statuses are removed (FOLDERS-006.13). |
 | 2026-11-22 | Created with the done endpoints (M12 PR 3, ADR 0049). |
