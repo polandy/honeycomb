@@ -1836,3 +1836,16 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-22: A folder that is not readable or not rateable answers `403` and a file id that is no
   folder of the user's own files `404`, for `PUT` and `DELETE` alike, so a reopen of a vanished
   folder is `404`, not `204` (FOLDERS-006.4, FOLDERS-006.5).
+- 2026-11-22: The *Folders* screen takes the spec ID FOLDERS-007, as the done status took
+  FOLDERS-006 on `main` first (ADR 0049).
+- 2026-11-22: The library setup accepts a root only when `GET /library/folders` with `limit=1`
+  accepts it, so a mount other than the home storage is refused before it is saved (FOLDERS-007.4).
+- 2026-11-22: The folder picker no longer opens at start; it opens from the navigation's *Folder*
+  (APP-001.3, FOLDERS-007.1).
+- 2026-11-22: *Back to folders* shows only for the folder set culled from the list: opening any
+  other folder set clears it, and the list stays mounted under the grid so its filter, sort and
+  scroll come back (FOLDERS-007.14).
+- 2026-11-22: A row's ⋯ menu is the shared confirm dialog, which is a bottom sheet on a phone, and
+  the sort is a native select (FOLDERS-007.10, FOLDERS-007.12).
+- 2026-11-22: A line of several parts on the *Folders* screen is translated part by part and joined
+  with ` · ` (FOLDERS-007.9).
