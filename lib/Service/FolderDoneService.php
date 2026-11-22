@@ -35,7 +35,7 @@ final class FolderDoneService {
 		if (!is_int($photos) || $photos < 0) {
 			throw new InvalidLibraryRequestException('photos must be a whole number from 0');
 		}
-		$this->rateableFolder($user, $fileId);
+		$this->checkRateable($user, $fileId);
 		$done = new FolderDone($fileId, $user->getUID(), $this->time->getTime(), $photos);
 		RetryOnConflict::run(fn () => $this->store->put($done));
 		$this->stats->count($user, new StatsCount(StatsMetric::FoldersDone, 1));
@@ -49,16 +49,16 @@ final class FolderDoneService {
 	 * @throws \OCP\DB\Exception
 	 */
 	public function reopen(IUser $user, int $fileId): void {
-		$this->rateableFolder($user, $fileId);
+		$this->checkRateable($user, $fileId);
 		$this->store->remove($fileId);
 	}
 
 	/**
-	 * The folder of the user's own storage with `$fileId`, rechecked.
+	 * Rechecks that `$fileId` is a folder of the user's own storage the user may rate.
 	 * @throws FolderNotFoundException
 	 * @throws FolderNotReadableException
 	 */
-	private function rateableFolder(IUser $user, int $fileId): Folder {
+	private function checkRateable(IUser $user, int $fileId): void {
 		$folder = $this->photos->userFolder($user)->getFirstNodeById($fileId);
 		if (!$folder instanceof Folder || $folder->getMountPoint()->getMountType() !== self::OWN_MOUNT) {
 			throw new FolderNotFoundException((string)$fileId);
@@ -66,6 +66,5 @@ final class FolderDoneService {
 		if (!$folder->isReadable() || !$this->photos->folderRateable($folder)) {
 			throw new FolderNotReadableException((string)$fileId);
 		}
-		return $folder;
 	}
 }

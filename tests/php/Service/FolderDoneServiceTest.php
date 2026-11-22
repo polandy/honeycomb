@@ -16,7 +16,6 @@ use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Constants;
-use OCP\IUser;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -81,14 +80,7 @@ final class FolderDoneServiceTest extends TestCase {
 			$this->store->rows[$fileId] = new FolderDone($fileId, 'bob', 5, 1);
 		}
 		foreach ([11, 12, 13] as $fileId) {
-			foreach ([fn () => $this->service()->mark($this->user(), $fileId, 3), fn () => $this->service()->reopen($this->user(), $fileId)] as $write) {
-				try {
-					$write();
-					$this->fail("Folder $fileId was written");
-				} catch (FolderNotReadableException) {
-					$this->addToAssertionCount(1);
-				}
-			}
+			$this->assertBothWritesThrow(FolderNotReadableException::class, $fileId);
 		}
 
 		$this->assertSame([11, 12], array_keys($this->store->rows));
@@ -100,14 +92,7 @@ final class FolderDoneServiceTest extends TestCase {
 	public function testAnIdThatIsNoFolderOfTheOwnFilesIsNotFound(int $fileId): void {
 		$this->store->rows[$fileId] = new FolderDone($fileId, 'bob', 5, 1);
 
-		foreach ([fn () => $this->service()->mark($this->user(), $fileId, 3), fn () => $this->service()->reopen($this->user(), $fileId)] as $write) {
-			try {
-				$write();
-				$this->fail("Id $fileId was written");
-			} catch (FolderNotFoundException) {
-				$this->addToAssertionCount(1);
-			}
-		}
+		$this->assertBothWritesThrow(FolderNotFoundException::class, $fileId);
 
 		$this->assertSame([$fileId], array_keys($this->store->rows));
 		$this->assertSame([], $this->counted());
@@ -116,6 +101,19 @@ final class FolderDoneServiceTest extends TestCase {
 	/** @return array<string, array{int}> */
 	public static function notOwnFolders(): array {
 		return ['missing' => [99], 'file' => [15], 'share' => [14]];
+	}
+
+	/** @param class-string<\Throwable> $exception */
+	private function assertBothWritesThrow(string $exception, int $fileId): void {
+		$thrown = [];
+		foreach (['mark', 'reopen'] as $write) {
+			try {
+				$write === 'mark' ? $this->service()->mark($this->user(), $fileId, 3) : $this->service()->reopen($this->user(), $fileId);
+			} catch (\Throwable $e) {
+				$thrown[$write] = $e::class;
+			}
+		}
+		$this->assertSame(['mark' => $exception, 'reopen' => $exception], $thrown);
 	}
 
 	// spec: FOLDERS-006.6

@@ -37,7 +37,6 @@ use ReflectionMethod;
 
 final class LibraryControllerTest extends TestCase {
 	use FakeFiles;
-
 	use StatsFixture;
 
 	private FakeFolderSummaryStore $summaries;
