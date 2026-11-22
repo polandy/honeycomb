@@ -257,7 +257,8 @@ Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5
 - **Given** the same rows
 - **When** an admin runs `occ honeycomb:cleanup --all`
 - **Then** every table and the preferences are empty and the command prints how many rows went from
-  each; the tables, the `oc_migrations` rows and the app's state stay
+  each; the tables, the `oc_migrations` rows and the app's state stay; this covers every
+  `honeycomb_*` table the migrations leave in the schema, which a test enumerates
 
 - **Given** the database fails while the tables are emptied
 - **When** an admin runs `occ honeycomb:cleanup --all`
