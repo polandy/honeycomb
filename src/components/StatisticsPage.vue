@@ -33,7 +33,7 @@ export interface StatisticsSeams {
 	readonly loadPositions: () => Promise<unknown[]>
 	readonly loadSettings: () => Promise<unknown>
 	/** Stores the year whose year in review was opened, which closes the navigation's hint (STATS-001.48). */
-	readonly saveViewState: (patch: { yearReviewHintClosed: number }) => Promise<void>
+	readonly saveViewState: (patch: { year_review_hint_closed: number }) => Promise<void>
 }
 
 const props = defineProps<{ seams: StatisticsSeams }>()
@@ -99,7 +99,7 @@ const line = computed(() => {
 /** Opening the year in review closes the hint for its year; a failed write is only logged. */
 function closeHint() {
 	if (review.value !== null) {
-		props.seams.saveViewState({ yearReviewHintClosed: review.value.year }).catch((error: unknown) => logger.error('Could not save the closed year-in-review hint.', { error }))
+		props.seams.saveViewState({ year_review_hint_closed: review.value.year }).catch((error: unknown) => logger.error('Could not save the closed year-in-review hint.', { error }))
 	}
 }
 

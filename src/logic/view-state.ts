@@ -3,24 +3,24 @@
 
 /** The loupe's per-user state that is not a setting, kept on the server (ADR 0019). */
 export interface ViewState {
-	infoPanelOpen: boolean
-	gestureGuideSeen: boolean
-	seriesHintSeen: boolean
+	info_panel_open: boolean
+	gesture_guide_seen: boolean
+	series_hint_seen: boolean
 }
 
 export type ViewStateKey = keyof ViewState
 
 /** What a write may carry: any boolean key, and the year whose year-in-review hint was closed (STATS-001.48). */
-export type ViewStatePatch = Partial<ViewState> & { yearReviewHintClosed?: number }
+export type ViewStatePatch = Partial<ViewState> & { year_review_hint_closed?: number }
 
 /** Each key's stored value, null while it was never stored. */
 export type StoredViewState = { [Key in ViewStateKey]: boolean | null }
 
-const VIEW_STATE_KEYS: readonly ViewStateKey[] = ['infoPanelOpen', 'gestureGuideSeen', 'seriesHintSeen']
+const VIEW_STATE_KEYS: readonly ViewStateKey[] = ['info_panel_open', 'gesture_guide_seen', 'series_hint_seen']
 
-export const DEFAULT_VIEW_STATE: ViewState = { infoPanelOpen: false, gestureGuideSeen: false, seriesHintSeen: false }
+export const DEFAULT_VIEW_STATE: ViewState = { info_panel_open: false, gesture_guide_seen: false, series_hint_seen: false }
 
-export const NOTHING_STORED: StoredViewState = { infoPanelOpen: null, gestureGuideSeen: null, seriesHintSeen: null }
+export const NOTHING_STORED: StoredViewState = { info_panel_open: null, gesture_guide_seen: null, series_hint_seen: null }
 
 /** What to apply, write and remove from browser storage once the stored view state is known. */
 export interface ViewStatePlan {

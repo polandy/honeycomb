@@ -42,7 +42,7 @@ async function mountScreen() {
 			cull,
 			settings: DEFAULT_SETTINGS,
 			storage: fakeStorage({}),
-			viewState: fakeViewState({ gestureGuideSeen: true, seriesHintSeen: true }, []),
+			viewState: fakeViewState({ gesture_guide_seen: true, series_hint_seen: true }, []),
 		},
 		global: { stubs: { teleport: true } },
 	})

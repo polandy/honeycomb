@@ -88,7 +88,7 @@ test('shows the first-series hint once, under a chip that does not pulse with re
 	await page.keyboard.press('ArrowLeft')
 	await expect(hint).toContainText('This photo is part of a series of 2.')
 	await expect(loupe.getByRole('button', { name: 'Series 2/2: compare' })).toHaveCSS('animation-name', 'none')
-	const saved = page.waitForResponse((response) => response.url().endsWith('/api/v1/view-state') && response.request().method() === 'PUT' && response.request().postDataJSON().viewState.seriesHintSeen === true && response.ok())
+	const saved = page.waitForResponse((response) => response.url().endsWith('/api/v1/view-state') && response.request().method() === 'PUT' && response.request().postDataJSON().viewState.series_hint_seen === true && response.ok())
 	await hint.getByRole('button', { name: 'Got it' }).click()
 
 	await expect(hint).toBeHidden()

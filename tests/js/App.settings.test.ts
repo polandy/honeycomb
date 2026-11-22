@@ -52,7 +52,7 @@ describe('App: the settings', () => {
 	// spec: SETTINGS-001.22
 	it('shows the gesture guide again from the dialog and writes only that key', async () => {
 		const saved: Partial<ViewState>[] = []
-		const { wrapper } = mountApp({ viewState: { loadViewState: async () => ({ infoPanelOpen: null, gestureGuideSeen: true }), saveViewState: async (patch: Partial<ViewState>) => void saved.push(patch) } })
+		const { wrapper } = mountApp({ viewState: { loadViewState: async () => ({ info_panel_open: null, gesture_guide_seen: true }), saveViewState: async (patch: Partial<ViewState>) => void saved.push(patch) } })
 		await openCull(wrapper)
 		expect(wrapper.findComponent(SettingsDialog).props('gestureGuideSeen')).toBe(true)
 
@@ -60,7 +60,7 @@ describe('App: the settings', () => {
 		await flushPromises()
 
 		expect(wrapper.findComponent(SettingsDialog).props('gestureGuideSeen')).toBe(false)
-		expect(saved).toEqual([{ gestureGuideSeen: false }])
+		expect(saved).toEqual([{ gesture_guide_seen: false }])
 	})
 
 	// spec: SETTINGS-001.13

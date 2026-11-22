@@ -40,10 +40,10 @@ describe('hintYear', () => {
 describe('parseClosedYear', () => {
 	// spec: STATS-001.48
 	it('reads a whole year and anything else as never closed', () => {
-		expect(parseClosedYear({ yearReviewHintClosed: 2026 })).toBe(2026)
-		expect(parseClosedYear({ yearReviewHintClosed: null })).toBeNull()
-		expect(parseClosedYear({ yearReviewHintClosed: '2026' })).toBeNull()
-		expect(parseClosedYear({ yearReviewHintClosed: 2026.5 })).toBeNull()
+		expect(parseClosedYear({ year_review_hint_closed: 2026 })).toBe(2026)
+		expect(parseClosedYear({ year_review_hint_closed: null })).toBeNull()
+		expect(parseClosedYear({ year_review_hint_closed: '2026' })).toBeNull()
+		expect(parseClosedYear({ year_review_hint_closed: 2026.5 })).toBeNull()
 		expect(parseClosedYear({})).toBeNull()
 		expect(parseClosedYear('2026')).toBeNull()
 		expect(parseClosedYear(null)).toBeNull()
