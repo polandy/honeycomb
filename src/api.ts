@@ -4,6 +4,7 @@
 export * from './api/core.ts'
 export * from './api/files.ts'
 export * from './api/immich.ts'
+export * from './api/library.ts'
 export * from './api/listing.ts'
 export * from './api/orphaned-sidecars.ts'
 export * from './api/quality-values.ts'
