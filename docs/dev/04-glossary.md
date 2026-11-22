@@ -31,7 +31,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **cull** | Going through a folder set and rating, labelling, flagging and deleting pictures. |
 | **folder set** | The folders one cull covers: the ticked folders and, with *Include subfolders*, every folder below them but the *excluded* ones. Not a *selection*. |
 | **library root** | A folder of the user's home storage below which *Folders* lists and counts folders; one or more, none inside another, chosen on the first run (ADR 0049). The UI calls them together the *Library*. |
-| **folder summary** | The counts of one folder's own photos (photos, bytes, flags, undecided, bursts, capture times, last activity) the server caches per folder by etag and a dirty mark (ADR 0049). |
+| **folder summary** | The counts of one folder's own photos (photos, bytes, bursts, capture times, last activity) the server caches per folder by etag; picked, rejected and undecided are counted live (ADR 0049). |
 | **burst** | A photo taken at most 3 s after its predecessor, by capture time; ranks folders, unlike a *series* it needs no visual hash (ADR 0049). |
 | **complete** | A folder with no undecided photo; derived, unlike *done*. |
 | **folder done** | The status a user gives a folder they have been through; shared per folder like the flags, with the user who marked it, and needs UPDATE. New photos leave it done and show as *n new* (ADR 0049). Not *series done*. |
