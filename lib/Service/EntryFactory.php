@@ -16,7 +16,6 @@ use OCP\FilesMetadata\Model\IFilesMetadata;
 /** Turns files into entries, reading their EXIF basics from Nextcloud's file metadata. */
 final class EntryFactory {
 	// Keys written by the Photos app's metadata providers.
-	private const CAPTURE_TIME = 'photos-original_date_time';
 	private const SIZE = 'photos-size';
 	private const IFD0 = 'photos-ifd0';
 	private const EXIF = 'photos-exif';
@@ -63,7 +62,7 @@ final class EntryFactory {
 			$file->getMTime(),
 			$file->getEtag(),
 			$file->getMimetype(),
-			$this->captureTime($metadata),
+			CaptureTimes::from($metadata),
 			self::intOrNull($ifd0['Orientation'] ?? null),
 			$complete ? $width : null,
 			$complete ? $height : null,
@@ -73,14 +72,6 @@ final class EntryFactory {
 			Exposure::fromExif($this->arrayOf($metadata, self::EXIF)),
 			$flag,
 		);
-	}
-
-	private function captureTime(?IFilesMetadata $metadata): ?int {
-		try {
-			return $metadata?->getInt(self::CAPTURE_TIME);
-		} catch (FilesMetadataException) {
-			return null;
-		}
 	}
 
 	/** @return array<array-key, mixed> */

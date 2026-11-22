@@ -41,7 +41,8 @@ during a task becomes an issue as above.
     and the real files inside the newest Nextcloud image e2e runs on (`tests/php-db/`,
     `scripts/php-db-tests.sh`). `HONEYCOMB_DB=mariadb|postgres`
     picks the engine locally (`scripts/database.sh`); `scripts/verify.sh` stays on SQLite, CI
-    runs the matrix.
+    runs the matrix. Arguments go to PHPUnit: `--group bench` runs the measurements the
+    default run leaves out.
   - **ExifTool and Exiv2** read the sidecars honeycomb writes back (`tests/interop/`,
     `scripts/xmp-interop.sh`, Docker), in CI on a TypeScript change and every night.
   - **Playwright** end to end against a real Nextcloud container, for the flows across both. An
