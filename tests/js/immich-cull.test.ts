@@ -160,12 +160,17 @@ describe('useImmichCull', () => {
 		counts[0]!.answer(COUNTS)
 		await flushPromises()
 		const [first, second] = cull.pictures.value
-		cull.decide({ kind: 'rating', rating: 3 }, [first!])
-		cull.decide({ kind: 'flag', flag: 'rejected' }, [second!])
+		const answered = async (step: () => void) => {
+			step()
+			saves.at(-1)!.answer()
+			await flushPromises()
+		}
+		await answered(() => cull.decide({ kind: 'rating', rating: 3 }, [first!]))
+		await answered(() => cull.decide({ kind: 'flag', flag: 'rejected' }, [second!]))
 
-		cull.undo()
-		cull.undo()
-		cull.redo()
+		await answered(cull.undo)
+		await answered(cull.undo)
+		await answered(cull.redo)
 
 		expect(saves.map(({ rows }) => rows.map(({ assetId, rating, flag }) => `${assetId} ${rating} ${flag}`))).toEqual([['a1 3 unflagged'], ['a2 0 rejected'], ['a2 0 unflagged'], ['a1 0 unflagged'], ['a1 3 unflagged']])
 		expect(toast.show.mock.calls.slice(2).map(([message]) => message)).toEqual(['Undid: Rejected a2', 'Undid: Rated a1 ★★★', 'Redid: Rated a1 ★★★'])
@@ -222,6 +227,7 @@ describe('useImmichCull', () => {
 		const [first] = cull.pictures.value
 		cull.decide({ kind: 'flag', flag: 'rejected' }, [first!])
 		saves[0]!.answer()
+		await flushPromises()
 
 		cull.undo()
 		saves[1]!.fail(new Error('database down'))
@@ -230,5 +236,48 @@ describe('useImmichCull', () => {
 		expect(cull.decisionOf(first!).flag).toBe('rejected')
 		expect(cull.counts.value!.flags.rejected).toBe(1)
 		expect(toast.showError).toHaveBeenCalled()
+	})
+
+	// spec: IMMICH-003.20
+	it('sends one save at a time and puts the decisions made meanwhile in the next save, the newest per asset', async () => {
+		const { cull, assets, counts, saves } = cullOn()
+		cull.open('andy-phone')
+		assets[0]!.answer(page(['a1', 'a2']))
+		counts[0]!.answer(COUNTS)
+		await flushPromises()
+		const [first, second] = cull.pictures.value
+		cull.decide({ kind: 'flag', flag: 'rejected' }, [first!])
+		cull.decide({ kind: 'rating', rating: 3 }, [second!])
+		cull.undo()
+		cull.undo()
+
+		expect(saves).toHaveLength(1)
+		saves[0]!.answer()
+		await flushPromises()
+
+		expect(saves.map(({ rows }) => rows.map(({ assetId, rating, flag }) => `${assetId} ${rating} ${flag}`))).toEqual([['a1 0 rejected'], ['a2 0 unflagged', 'a1 0 unflagged']])
+	})
+
+	// spec: IMMICH-003.21
+	it('puts back only the decisions of a failed save that no later save stored', async () => {
+		vi.spyOn(logger, 'error').mockReturnValue()
+		const { cull, assets, counts, saves, toast } = cullOn()
+		cull.open('andy-phone')
+		assets[0]!.answer(page(['a1', 'a2']))
+		counts[0]!.answer(COUNTS)
+		await flushPromises()
+		const [first, second] = cull.pictures.value
+		cull.decide({ kind: 'flag', flag: 'rejected' }, [first!, second!])
+		cull.decide({ kind: 'flag', flag: 'picked' }, [first!])
+
+		saves[0]!.fail(new Error('database down'))
+		await flushPromises()
+		saves[1]!.answer()
+		await flushPromises()
+
+		expect(cull.decisionOf(first!).flag).toBe('picked')
+		expect(cull.decisionOf(second!).flag).toBe('unflagged')
+		expect(cull.counts.value!.flags).toEqual({ ...COUNTS.flags, picked: 1, unflagged: COUNTS.flags.unflagged - 1 })
+		expect(toast.showError).toHaveBeenCalledTimes(1)
 	})
 })
