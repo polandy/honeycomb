@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { cullFolder, resetViewState } from './cull.ts'
+import { cullFolder, openFolderPicker, resetViewState } from './cull.ts'
 import { apiHeaders, createFolder, JPEG, upload } from './files.ts'
 
 // spec: DECISIONS-002.8
@@ -54,7 +54,7 @@ test('lists at most three recent folder sets under the folder tree on a phone an
 	}
 
 	await page.goto('/index.php/apps/honeycomb/')
-	const picker = page.getByRole('dialog', { name: 'Choose folders' })
+	const picker = await openFolderPicker(page)
 	const rows = picker.locator('.picker-recent-sets__row')
 	await expect(rows).toHaveCount(3)
 	const tree = (await picker.getByRole('treeitem').first().boundingBox())!

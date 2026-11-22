@@ -1,0 +1,109 @@
+<!--
+  - SPDX-FileCopyrightText: 2026 honeycomb contributors
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<script setup lang="ts">
+import type { FolderFilter, FolderSort } from '../logic/folder-list.ts'
+
+import { t } from '@nextcloud/l10n'
+import { filterLabel, sortLabel } from '../folders-text.ts'
+import { formatNumber } from '../l10n.ts'
+
+/** The chosen root, null for *All roots*. */
+const root = defineModel<string | null>('root', { required: true })
+
+const filter = defineModel<FolderFilter>('filter', { required: true })
+
+const sort = defineModel<FolderSort>('sort', { required: true })
+
+const props = defineProps<{
+	roots: readonly string[]
+	/** How many rows each filter keeps. */
+	counts: Record<FolderFilter, number>
+}>()
+
+const FILTERS: readonly FolderFilter[] = ['suggested', 'new', 'all']
+const SORTS: readonly FolderSort[] = ['suggested', 'undecided', 'largest', 'oldest', 'newest', 'name']
+</script>
+
+<template>
+	<div class="folder-filters">
+		<div
+			v-if="props.roots.length > 1"
+			class="filter-bar__group"
+			role="group"
+			:aria-label="t('honeycomb', 'Library root')">
+			<span class="filter-bar__label" aria-hidden="true">{{ t('honeycomb', 'Library root') }}</span>
+			<div class="filter-bar__chips">
+				<button
+					type="button"
+					class="filter-bar__chip"
+					:aria-pressed="root === null"
+					@click="root = null">
+					{{ t('honeycomb', 'All roots') }}
+				</button>
+				<button
+					v-for="each in props.roots"
+					:key="each"
+					type="button"
+					class="filter-bar__chip"
+					translate="no"
+					:aria-pressed="root === each"
+					@click="root = each">
+					{{ each }}
+				</button>
+			</div>
+		</div>
+		<div class="filter-bar__group" role="group" :aria-label="t('honeycomb', 'Filter')">
+			<span class="filter-bar__label" aria-hidden="true">{{ t('honeycomb', 'Filter') }}</span>
+			<div class="filter-bar__chips">
+				<button
+					v-for="each in FILTERS"
+					:key="each"
+					type="button"
+					class="filter-bar__chip"
+					:aria-pressed="filter === each"
+					@click="filter = each">
+					{{ filterLabel(each) }}
+					<span class="folder-filters__count" translate="no">{{ formatNumber(props.counts[each]) }}</span>
+				</button>
+			</div>
+		</div>
+		<label class="folder-filters__sort">
+			<span>{{ t('honeycomb', 'Sort') }}</span>
+			<select v-model="sort">
+				<option v-for="each in SORTS" :key="each" :value="each">{{ sortLabel(each) }}</option>
+			</select>
+		</label>
+	</div>
+</template>
+
+<style scoped src="./filter-bar.css" />
+
+<style scoped>
+.folder-filters {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: calc(2 * var(--default-grid-baseline)) calc(4 * var(--default-grid-baseline));
+}
+
+.folder-filters__count {
+	margin-inline-start: var(--default-grid-baseline);
+	color: var(--color-text-maxcontrast);
+	font-variant-numeric: tabular-nums;
+}
+
+.folder-filters__sort {
+	display: flex;
+	align-items: center;
+	gap: calc(2 * var(--default-grid-baseline));
+	margin-inline-start: auto;
+	color: var(--color-text-maxcontrast);
+}
+
+.folder-filters__sort select {
+	min-height: var(--default-clickable-area);
+	margin: 0;
+}
+</style>

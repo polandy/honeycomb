@@ -65,6 +65,17 @@ describe('AppNavigation', () => {
 		expect(wrapper.emitted('openSettings')).toEqual([[]])
 	})
 
+	// spec: FOLDERS-007.16
+	it('lists Folders first, before the folder picker, and shows the list from it', async () => {
+		const wrapper = mountNavigation()
+		const entries = wrapper.findAll('.app-navigation-entry__name').map((each) => each.text())
+
+		expect(entries.slice(0, 2)).toEqual([`${MARK}Folders`, `${MARK}Folder`])
+		await wrapper.findAll('a, button').find((each) => each.text() === `${MARK}Folders`)!.trigger('click')
+
+		expect(wrapper.emitted('openFolders')).toEqual([[]])
+	})
+
 	// spec: STATS-001.40, XMP-009.13
 	it('links the pages of their own from one list, Statistics after Similarity, Orphaned sidecars last', () => {
 		const links = mountNavigation().findAll('a[href]:not([href="#"])').map((link) => ({ name: link.text(), href: link.attributes('href') }))

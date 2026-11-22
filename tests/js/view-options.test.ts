@@ -14,6 +14,13 @@ function viewOptions(stored: Record<string, string> = {}) {
 	return { options: useViewOptions(fakeStorage(stored), () => folders.value), folders, stored }
 }
 
+describe('useViewOptions: start', () => {
+	// spec: FOLDERS-007.1, APP-001.3
+	it('starts with the folder picker closed', () => {
+		expect(viewOptions().options.pickerOpen.value).toBe(false)
+	})
+})
+
 describe('useViewOptions: setFlags', () => {
 	// spec: GRID-002.2
 	it('replaces the flag filter and keeps the other groups', () => {

@@ -13,8 +13,9 @@ starts from an empty state that leads to the folder picker.
 ## Behaviour
 
 The app installs on Nextcloud 35 with PHP 8.3 or later and adds a *honeycomb* entry to the
-navigation. The entry opens the app's page for the logged-in user. While no folder set is chosen
-the page shows an empty state, *No folder chosen*, with the folder picker open over it. Every
+navigation. The entry opens the app's page for the logged-in user. The page starts on *Folders*
+(FOLDERS-007), or on the library setup while the user has no library root; the folder picker
+opens only from the navigation. Every
 text the user reads comes from the translation catalogue (`t()`), except names taken from the
 user's files. On a phone, below 520 px, every confirm dialog is a bottom sheet: full width, at
 the bottom edge, rounded at the top only, its footer clear of the home indicator. When the
@@ -49,12 +50,12 @@ stays the same.
 - **When** Nextcloud checks its requirements
 - **Then** it accepts Nextcloud 35 only and PHP 8.3 or later
 
-### APP-001.3 – Empty state without a folder set
+### APP-001.3 – Start without library roots
 
-- **Given** a user who has not chosen a folder set
+- **Given** a user without a library root
 - **When** the app page opens
-- **Then** it shows *No folder chosen* with "Pick a folder to start culling." and opens the
-  folder picker
+- **Then** it shows the library setup, *Where is your library?* (FOLDERS-007.2), and the folder
+  picker stays closed
 
 ### APP-001.4 – Every text is translatable
 
@@ -178,3 +179,4 @@ stays the same.
 | 2026-11-19 | An axe-core scan of every screen, light and dark (APP-001.15, ADR 0042; review UX-5) |
 | 2026-11-20 | A dialog opens without motion under reduced motion (APP-001.17) |
 | 2026-11-20 | *Escape* closes a confirm dialog also from a switch or a checkbox, which `NcModal` leaves to the field (APP-001.16) |
+| 2026-11-22 | The page starts on *Folders* or the library setup, the picker no longer opens by itself (APP-001.3, M12 PR 5) |

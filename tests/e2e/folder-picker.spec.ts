@@ -5,6 +5,7 @@ import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { ADMIN_STATE } from './admin.ts'
+import { openFolderPicker } from './cull.ts'
 import { createFolder, JPEG, upload } from './files.ts'
 import { PORT } from './server.ts'
 
@@ -21,7 +22,7 @@ async function treeFixture(page: Page) {
 	await createFolder(page, `${root}/2026/Day 1`)
 	await upload(page, `${root}/2026/Day 1/IMG_0001.jpg`, JPEG)
 	await page.reload()
-	const tree = page.getByRole('dialog', { name: 'Choose folders' }).getByRole('tree', { name: 'Folders' })
+	const tree = (await openFolderPicker(page)).getByRole('tree', { name: 'Folders' })
 	// By the folder name alone: a badge adds to the treeitem's accessible name.
 	const item = (name: string) => tree.getByRole('treeitem').filter({ has: page.locator('.folder-tree__name').getByText(name, { exact: true }) })
 	return { root, tree, item }
@@ -36,7 +37,7 @@ test('keeps the status line quiet and every folder row one height', async ({ pag
 	await createFolder(page, `Rows ${id} leaf`)
 	await page.reload()
 
-	const picker = page.getByRole('dialog', { name: 'Choose folders' })
+	const picker = await openFolderPicker(page)
 	const status = picker.getByText('Tick one or more folders.')
 	const muted = await status.evaluate((element) => {
 		const probe = element.ownerDocument.createElement('span')

@@ -46,6 +46,9 @@ describe('App: the Immich source', () => {
 		const offered = mountApp({ immich: immichOn({ kind: 'connections', connections: [PHONE] }).immich }).wrapper
 		const none = mountApp({ immich: immichOn({ kind: 'none' }).immich }).wrapper
 		await flushPromises()
+		offered.findComponent(AppNavigation).vm.$emit('chooseFolders')
+		none.findComponent(AppNavigation).vm.$emit('chooseFolders')
+		await flushPromises()
 
 		expect(offered.findComponent(FolderPicker).props('closable')).toBe(true)
 		expect(none.findComponent(FolderPicker).props('closable')).toBe(false)
@@ -163,7 +166,6 @@ describe('App: the Immich source', () => {
 		const immichCull: ImmichCullApi = { ...SILENT_IMMICH_CULL, assets: async () => ({ entries: [immichEntry('a1')], nextCursor: null, previousCursor: null }), saveDecisions: async (_id, rows) => (saved.push([...rows]), rows.map(({ assetId }) => assetId)) }
 		const { wrapper } = mountApp({ immich: immichOn({ kind: 'connections', connections: [PHONE] }).immich, immichCull })
 		await flushPromises()
-		wrapper.findComponent(FolderPicker).vm.$emit('cancel')
 		wrapper.findComponent(AppNavigation).vm.$emit('chooseSource', 'immich')
 		await flushPromises()
 		const cull = wrapper.findComponent(ImmichScreen).props('cull')

@@ -75,6 +75,7 @@ export async function fakeCullContext(entries: readonly ListingEntry[] = ENTRIES
 			return true
 		} },
 		headerShown: ref(true),
+		home: { fromList: ref(false), back: record('backToFolders') },
 		openLoupe: record('openLoupe'),
 		openSettings: record('openSettings'),
 		loupe: opening,

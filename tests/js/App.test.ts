@@ -3,9 +3,10 @@
 // @vitest-environment happy-dom
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import AppNavigation from '../../src/components/AppNavigation.vue'
 import FolderPicker from '../../src/components/FolderPicker.vue'
+import FoldersHome from '../../src/components/FoldersHome.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
-import NoFolderState from '../../src/components/NoFolderState.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import { logger } from '../../src/logger.ts'
 import { ENTRIES, fakeStorage, mountApp, openCull, SET, shownNames, toolbarProps } from './app-cull.ts'
@@ -21,26 +22,33 @@ describe('App', () => {
 		vi.restoreAllMocks()
 	})
 
-	// spec: APP-001.3
-	it('shows that no folder is chosen and opens the folder picker', async () => {
+	// spec: APP-001.3, FOLDERS-007.2
+	it('starts on the library setup without a library root, with the folder picker closed', async () => {
 		const { wrapper } = mountApp()
 		await flushPromises()
 
-		expect(wrapper.text()).toContain(`${MARK}No folder chosen`)
-		expect(wrapper.text()).toContain(`${MARK}Choose a folder…`)
-		expect(wrapper.findComponent(FolderPicker).props('current')).toBeNull()
+		expect(wrapper.findComponent(FoldersHome).props('home').roots.value).toEqual([])
+		expect(wrapper.findComponent(FolderPicker).exists()).toBe(false)
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
 	})
 
-	// spec: APP-001.3
-	it('opens the folder picker again from the no-folder state', async () => {
+	// spec: FOLDERS-007.1
+	it('starts on Folders with the library roots', async () => {
+		const { wrapper } = mountApp({ loadSettings: async () => ({ libraryRoots: ['/Photos'] }) })
+		await flushPromises()
+
+		expect(wrapper.findComponent(FoldersHome).props('home').roots.value).toEqual(['/Photos'])
+		expect(wrapper.findComponent(FoldersHome).attributes('style') ?? '').not.toContain('display: none')
+		expect(wrapper.findComponent(FolderPicker).exists()).toBe(false)
+	})
+
+	// spec: FOLDERS-007.16
+	it('opens the folder picker from the navigation', async () => {
 		const { wrapper } = mountApp()
 		await flushPromises()
-		wrapper.findComponent(FolderPicker).vm.$emit('cancel')
-		await flushPromises()
-		expect(wrapper.findComponent(FolderPicker).exists()).toBe(false)
 
-		await wrapper.findComponent(NoFolderState).find('button').trigger('click')
+		wrapper.findComponent(AppNavigation).vm.$emit('chooseFolders')
+		await flushPromises()
 
 		expect(wrapper.findComponent(FolderPicker).props('current')).toBeNull()
 	})

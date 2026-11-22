@@ -201,7 +201,7 @@ never stores, shows or logs a key.
 
 - **Given** a user without a connection, with a broken file, or whose connection to open is
   asked, `unreachable`, `refused`, `key` or `version`
-- **When** the folder picker opens without a cull
+- **When** the folder picker opens from the navigation without a cull
 - **Then** without a connection the footer has no *I only use Immich*; otherwise it is disabled
   and the dialog names the reason; with that connection `ok` it can be chosen
 
@@ -212,19 +212,20 @@ never stores, shows or logs a key.
 - **Then** the picker closes, the Immich source opens, and the settings are saved with
   `immichOnly`
 
-### IMMICH-001.23 – A start without the folder picker
+### IMMICH-001.23 – A start straight into Immich
 
 - **Given** `immichOnly` stored and no folder set to open
 - **When** the user opens honeycomb and the connection to open answers `ok`
-- **Then** the Immich source opens and the folder picker is never shown
+- **Then** the Immich source opens, and neither the start screen (FOLDERS-007.1) nor the folder
+  picker is shown
 
 ### IMMICH-001.24 – Back to folders when Immich does not work
 
 - **Given** `immichOnly` stored and a broken file, no connection, or a connection to open that is
   not `ok`
 - **When** the user opens honeycomb
-- **Then** the page opens on Nextcloud with the folder picker and the reason, and `immichOnly`
-  stays stored
+- **Then** the page opens on Nextcloud's start screen (FOLDERS-007.1), the folder picker opened
+  from the navigation names the reason, and `immichOnly` stays stored
 
 ### IMMICH-001.25 – A folder set clears the choice
 

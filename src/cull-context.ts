@@ -43,6 +43,8 @@ export interface CullContext {
 	readonly tagEntry: Pick<ReturnType<typeof useTagEntryTargets>, 'open'>
 	/** Whether the toolbar and the filter bar show above the grid. */
 	readonly headerShown: Ref<boolean>
+	/** Whether the cull was opened from *Folders*, and going back to it (FOLDERS-007.14). */
+	readonly home: { readonly fromList: Readonly<Ref<boolean>>, back(): void }
 	openLoupe(index: number): void
 	openSettings(): void
 	/** The open loupe: what it shows, paging, landing a compare in it and closing it. */
