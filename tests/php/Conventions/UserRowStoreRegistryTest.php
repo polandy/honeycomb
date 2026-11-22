@@ -35,11 +35,16 @@ final class UserRowStoreRegistryTest extends TestCase {
 	/** @return array<class-string, string> the source of each mapper class by name */
 	private function mappers(): array {
 		$mappers = [];
-		foreach (glob(dirname(__DIR__, 3) . '/lib/{Db,Immich}/*Mapper.php', GLOB_BRACE) ?: [] as $file) {
-			$namespace = basename(dirname($file));
+		/** @var iterable<\SplFileInfo> $files */
+		$files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(dirname(__DIR__, 3) . '/lib', \FilesystemIterator::SKIP_DOTS));
+		foreach ($files as $file) {
+			if (!str_ends_with($file->getFilename(), 'Mapper.php')) {
+				continue;
+			}
+			$namespace = str_replace('/', '\\', substr($file->getPath(), strlen(dirname(__DIR__, 3) . '/lib/')));
 			/** @var class-string $class */
-			$class = "OCA\\Honeycomb\\$namespace\\" . basename($file, '.php');
-			$mappers[$class] = (string)file_get_contents($file);
+			$class = "OCA\\Honeycomb\\$namespace\\" . $file->getBasename('.php');
+			$mappers[$class] = (string)$file->openFile()->fread(max(1, (int)$file->getSize()));
 		}
 		return $mappers;
 	}

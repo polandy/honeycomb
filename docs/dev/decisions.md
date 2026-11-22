@@ -1839,3 +1839,4 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-22: *I only use Immich* is a tertiary button in the folder picker's footer, left of
   *Choose*; it is hidden without an Immich connection and disabled with a one-line reason until
   the connection that would open answers `ok` (IMMICH-001.21 to .25).
+- 2026-11-22: A deleted user's done statuses are removed, so those folders are open again for the others; the status is a user's statement, and anonymising it would need a schema change (FOLDERS-006.13).

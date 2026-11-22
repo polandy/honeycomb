@@ -32,6 +32,11 @@ final class FakeFolderDoneStore implements FolderDoneStore {
 		unset($this->rows[$fileId]);
 	}
 
+	#[\Override]
+	public function forgetUser(string $userId): void {
+		$this->rows = array_filter($this->rows, static fn (FolderDone $row): bool => $row->userId !== $userId);
+	}
+
 	/** The row moved to `$fileId`. */
 	private static function movedTo(FolderDone $row, int $fileId): FolderDone {
 		return new FolderDone($fileId, $row->userId, $row->doneAt, $row->photos);
