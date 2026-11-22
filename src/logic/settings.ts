@@ -28,6 +28,8 @@ export interface Settings extends PairingSettings {
 	readonly keepStatistics: boolean
 	/** The folders *Folders* lists and counts below, paths from the home folder (FOLDERS-004). */
 	readonly libraryRoots: readonly string[]
+	/** Whether a start without a folder set opens Immich instead of the folder picker (IMMICH-001.23). */
+	readonly immichOnly: boolean
 }
 
 /** One of the two extension lists. */
@@ -55,6 +57,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	moveTemplate: DEFAULT_NAME_TEMPLATE,
 	keepStatistics: true,
 	libraryRoots: [],
+	immichOnly: false,
 }
 
 const OTHER_LIST: Record<ExtensionList, ExtensionList> = { rawExtensions: 'renderedExtensions', renderedExtensions: 'rawExtensions' }
@@ -63,7 +66,7 @@ const SWIPE_FLAGS: readonly (Flag | null)[] = ['picked', 'rejected', null]
 /** The settings as stored, each missing or invalid field at its default; pairing never fails on them. */
 export function parseSettings(value: unknown): Settings {
 	const stored: Record<string, unknown> = isObject(value) ? value : {}
-	const boolean = (key: 'showSingles' | 'autoAdvance' | 'flagButtonsShown' | 'filmstripPinned' | 'ratingRowPinned' | 'viKeys' | 'showFileNames' | 'keepStatistics') => (typeof stored[key] === 'boolean' ? stored[key] : DEFAULT_SETTINGS[key])
+	const boolean = (key: 'showSingles' | 'autoAdvance' | 'flagButtonsShown' | 'filmstripPinned' | 'ratingRowPinned' | 'viKeys' | 'showFileNames' | 'keepStatistics' | 'immichOnly') => (typeof stored[key] === 'boolean' ? stored[key] : DEFAULT_SETTINGS[key])
 	return {
 		...extensionLists(stored.rawExtensions, stored.renderedExtensions),
 		folderMode: parseFolderMode(stored.folderMode),
@@ -80,6 +83,7 @@ export function parseSettings(value: unknown): Settings {
 		moveTemplate: typeof stored.moveTemplate === 'string' && parseNameTemplate(stored.moveTemplate).ok ? stored.moveTemplate : DEFAULT_NAME_TEMPLATE,
 		keepStatistics: boolean('keepStatistics'),
 		libraryRoots: parseLibraryRoots(stored.libraryRoots),
+		immichOnly: boolean('immichOnly'),
 	}
 }
 
