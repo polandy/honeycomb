@@ -84,7 +84,7 @@ final class FileCacheLibraryTest extends DbTestCase {
 		}
 	}
 
-	// spec: FOLDERS-001.1, FOLDERS-001.12
+	// spec: FOLDERS-005.1, FOLDERS-005.12
 	public function testListsTheRootAndItsFoldersWithoutHiddenOnesInPathOrder(): void {
 		$this->files(['Photos/a.jpg', 'Photos/2024/Trip/b.jpg', 'Photos/2023/c.jpg', 'Photos/.hidden/d.jpg', 'Photos/.hidden/Below/e.jpg', 'Other/f.jpg']);
 		$root = $this->folderAt('Photos');
@@ -96,7 +96,7 @@ final class FileCacheLibraryTest extends DbTestCase {
 		$this->assertSame($this->folderAt('Photos/2024/Trip')->getEtag(), $folders[3]->etag);
 	}
 
-	// spec: FOLDERS-001.1
+	// spec: FOLDERS-005.1
 	public function testAnswersTheOwnPhotoFilesOfTheFoldersGiven(): void {
 		$ids = $this->files(['Photos/a.jpg', 'Photos/a.CR3', 'Photos/notes.txt', 'Photos/.b.jpg', 'Photos/c.xmp', 'Photos/2024/d.png', 'Other/e.jpg']);
 		$photos = $this->folderAt('Photos');
@@ -108,7 +108,7 @@ final class FileCacheLibraryTest extends DbTestCase {
 		$this->assertSame(['fileId' => $ids['Photos/a.jpg'], 'parent' => $photos->getId(), 'name' => 'a.jpg', 'size' => strlen('Photos/a.jpg')], array_diff_key($files[0], ['mtime' => true]));
 	}
 
-	// spec: FOLDERS-001.9
+	// spec: FOLDERS-005.9
 	public function testAnswersTheFlagAndDoneSeriesRowsOfTheUser(): void {
 		$ids = $this->files(['Photos/a.jpg', 'Photos/a.nef', 'Photos/b.jpg', 'Photos/c.jpg', 'Photos/d.jpg', 'Photos/e.jpg', 'Photos/2024/f.jpg']);
 		(new FlagMapper($this->db))->save([

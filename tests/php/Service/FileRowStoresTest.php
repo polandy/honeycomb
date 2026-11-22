@@ -11,7 +11,7 @@ use OCA\Honeycomb\Service\FileRowStores;
 use PHPUnit\Framework\TestCase;
 
 final class FileRowStoresTest extends TestCase {
-	// spec: XMP-006.8, DECISIONS-001.31, SERIES-006.14, FOLDERS-001.17
+	// spec: XMP-006.8, DECISIONS-001.31, SERIES-006.14, FOLDERS-005.17
 	public function testListsEveryStoreWithItsKindAndItsSweepCursorKey(): void {
 		$flags = new FakeFlagStore();
 		$hashes = new FakeVisualHashStore();

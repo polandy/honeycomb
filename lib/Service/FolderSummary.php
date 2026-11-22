@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-/** What a scan found in one folder's own photo files, at the folder etag it read (FOLDERS-001). */
+/** What a scan found in one folder's own photo files, at the folder etag it read (FOLDERS-005). */
 final readonly class FolderSummary {
 	public function __construct(
 		public int $fileId,

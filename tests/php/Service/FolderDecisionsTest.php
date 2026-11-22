@@ -16,7 +16,7 @@ final class FolderDecisionsTest extends TestCase {
 		return ['parent' => $parent, 'name' => $name, 'flag' => $flag, 'updatedAt' => $flag === null ? null : $updatedAt, 'doneSeries' => $doneSeries];
 	}
 
-	// spec: FOLDERS-001.9
+	// spec: FOLDERS-005.9
 	public function testCountsEachPictureByItsLatestRowAndTheDoneSeries(): void {
 		$counts = FolderDecisions::of([
 			self::row(7, 'a.jpg', 'picked', 20),
@@ -32,14 +32,14 @@ final class FolderDecisionsTest extends TestCase {
 		$this->assertSame([7 => ['picked' => 2, 'rejected' => 1, 'doneUnflagged' => 2], 8 => ['picked' => 1, 'rejected' => 0, 'doneUnflagged' => 0]], $counts);
 	}
 
-	// spec: FOLDERS-001.9
+	// spec: FOLDERS-005.9
 	public function testAPictureIsInADoneSeriesWhenAnyMemberIs(): void {
 		$counts = FolderDecisions::of([self::row(7, 'a.jpg', null), self::row(7, 'a.nef', null, doneSeries: true)]);
 
 		$this->assertSame([7 => ['picked' => 0, 'rejected' => 0, 'doneUnflagged' => 1]], $counts);
 	}
 
-	// spec: FOLDERS-001.9
+	// spec: FOLDERS-005.9
 	public function testRowsOfTheSameSecondKeepTheFirstMembers(): void {
 		$counts = FolderDecisions::of([self::row(7, 'a.jpg', 'rejected', 5), self::row(7, 'a.nef', 'picked', 5)]);
 

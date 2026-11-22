@@ -9,7 +9,7 @@ namespace OCA\Honeycomb\Service;
 
 use OCP\Files\Folder;
 
-/** The folders of a library root, their photo files and the decisions on them, read from the file cache (FOLDERS-001). */
+/** The folders of a library root, their photo files and the decisions on them, read from the file cache (FOLDERS-005). */
 interface LibraryFiles {
 	/**
 	 * The root and every folder below it on its own storage, hidden ones left out, in path order.

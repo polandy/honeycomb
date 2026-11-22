@@ -51,7 +51,7 @@ final class LibraryControllerTest extends TestCase {
 		return new LibraryController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $service);
 	}
 
-	// spec: FOLDERS-001.5, FOLDERS-001.8
+	// spec: FOLDERS-005.5, FOLDERS-005.8
 	public function testScansAndListsTheRoot(): void {
 		$scan = $this->controller()->scan('/Photos');
 		$this->summaries->rows[10] = new FolderSummary(10, 'e-10', 3, 30, 0, 0, null, null, 9, 1);
@@ -64,7 +64,7 @@ final class LibraryControllerTest extends TestCase {
 		$this->assertSame(['fileId' => 10, 'path' => '/Photos', 'undecided' => 3, 'done' => null], array_intersect_key($body['folders'][0], array_flip(['fileId', 'path', 'undecided', 'done'])));
 	}
 
-	// spec: FOLDERS-001.13, FOLDERS-001.14
+	// spec: FOLDERS-005.13, FOLDERS-005.14
 	public function testAForeignRootOrAMalformedPageIsABadRequest(): void {
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->folders('/Shared')->getStatus());
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->scan('/Nope')->getStatus());
@@ -72,20 +72,20 @@ final class LibraryControllerTest extends TestCase {
 		$this->assertSame([], $this->summaries->rows);
 	}
 
-	// spec: FOLDERS-001.13
+	// spec: FOLDERS-005.13
 	public function testAnUnreadableRootIsForbidden(): void {
 		$this->assertSame(Http::STATUS_FORBIDDEN, $this->controller()->folders('/Locked')->getStatus());
 		$this->assertSame(Http::STATUS_FORBIDDEN, $this->controller()->scan('/Locked')->getStatus());
 	}
 
-	// spec: FOLDERS-001.15
+	// spec: FOLDERS-005.15
 	public function testAnswersUnauthorizedWithoutAUser(): void {
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(loggedIn: false)->folders('/Photos')->getStatus());
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(loggedIn: false)->scan('/Photos')->getStatus());
 		$this->assertSame([], $this->summaries->rows);
 	}
 
-	// spec: FOLDERS-001.16
+	// spec: FOLDERS-005.16
 	public function testRoutesTheListAndTheRateLimitedScan(): void {
 		$route = static fn (string $method): array => (new ReflectionMethod(LibraryController::class, $method))->getAttributes(FrontpageRoute::class)[0]->getArguments();
 		$limits = (new ReflectionMethod(LibraryController::class, 'scan'))->getAttributes(UserRateLimit::class);

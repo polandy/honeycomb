@@ -7,6 +7,6 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-/** A library request named a root outside the user's own storage, or a malformed page (FOLDERS-001.13, FOLDERS-001.14). */
+/** A library request named a root outside the user's own storage, or a malformed page (FOLDERS-005.13, FOLDERS-005.14). */
 final class InvalidLibraryRequestException extends InvalidRequestException {
 }

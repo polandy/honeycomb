@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-/** Where the folder summaries are kept, one per folder for every user; a scan computes them again (FOLDERS-001). */
+/** Where the folder summaries are kept, one per folder for every user; a scan computes them again (FOLDERS-005). */
 interface FolderSummaryStore extends FileRowStore, SharedCacheRows {
 	/**
 	 * The stored summaries among `$fileIds`, by folder file id.

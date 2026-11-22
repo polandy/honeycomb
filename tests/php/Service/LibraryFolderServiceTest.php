@@ -60,7 +60,7 @@ final class LibraryFolderServiceTest extends TestCase {
 		return new FolderSummary($fileId, "$etag-$fileId", $photos, 100, 60, 1, 1_600_000_000, 1_600_000_100, 1_700_000_000, self::NOW - 60);
 	}
 
-	// spec: FOLDERS-001.1, FOLDERS-001.2, FOLDERS-001.3, FOLDERS-001.4
+	// spec: FOLDERS-005.1, FOLDERS-005.2, FOLDERS-005.3, FOLDERS-005.4
 	public function testAScanStoresEachFoldersSummaryAtItsEtag(): void {
 		$this->files->folders = [$this->libraryFolder(10, ''), $this->libraryFolder(11, '/2024')];
 		$this->files->photos = [
@@ -78,7 +78,7 @@ final class LibraryFolderServiceTest extends TestCase {
 		], $this->summaries->rows);
 	}
 
-	// spec: FOLDERS-001.5
+	// spec: FOLDERS-005.5
 	public function testAScanTakesAFixedBatchOfFoldersInPathOrder(): void {
 		$paths = array_map(static fn (int $n): string => sprintf('/f%02d', $n), range(1, 60));
 		shuffle($paths);
@@ -96,7 +96,7 @@ final class LibraryFolderServiceTest extends TestCase {
 		$this->assertSame(array_slice(array_values($byPath), 50), $this->files->photoCalls[1]);
 	}
 
-	// spec: FOLDERS-001.6
+	// spec: FOLDERS-005.6
 	public function testOnlyAStaleSummaryIsScannedAgainAndListedUntilThen(): void {
 		$this->files->folders = [$this->libraryFolder(10, ''), $this->libraryFolder(11, '/2024', 'new')];
 		$this->summaries->rows = [10 => $this->summary(10), 11 => $this->summary(11, 'old')];
@@ -113,7 +113,7 @@ final class LibraryFolderServiceTest extends TestCase {
 		$this->assertEquals($this->summary(10), $this->summaries->rows[10]);
 	}
 
-	// spec: FOLDERS-001.7
+	// spec: FOLDERS-005.7
 	public function testTheListPagesByFileIdAndLeavesOutFoldersWithoutPhotos(): void {
 		$this->files->folders = [$this->libraryFolder(13, '/c'), $this->libraryFolder(10, ''), $this->libraryFolder(12, '/b'), $this->libraryFolder(11, '/a'), $this->libraryFolder(14, '/d')];
 		$this->summaries->rows = [10 => $this->summary(10), 11 => $this->summary(11, photos: 0), 12 => $this->summary(12), 13 => $this->summary(13)];
@@ -125,7 +125,7 @@ final class LibraryFolderServiceTest extends TestCase {
 		$this->assertSame([[13], null], [array_column($second['folders'], 'fileId'), $second['next']]);
 	}
 
-	// spec: FOLDERS-001.8, FOLDERS-001.10, FOLDERS-001.11
+	// spec: FOLDERS-005.8, FOLDERS-005.10, FOLDERS-005.11
 	public function testARowCarriesItsSummaryPermissionsAndDoneStatus(): void {
 		$this->files->folders = [$this->libraryFolder(10, ''), $this->libraryFolder(11, '/2024', permissions: Constants::PERMISSION_READ)];
 		$this->summaries->rows = [10 => $this->summary(10), 11 => $this->summary(11)];
@@ -140,7 +140,7 @@ final class LibraryFolderServiceTest extends TestCase {
 		], $list['folders']);
 	}
 
-	// spec: FOLDERS-001.9
+	// spec: FOLDERS-005.9
 	public function testCountsTheRequestingUsersDecisionsLive(): void {
 		$this->files->folders = [$this->libraryFolder(10, ''), $this->libraryFolder(11, '/2024')];
 		$this->summaries->rows = [10 => $this->summary(10, photos: 6), 11 => $this->summary(11, photos: 1)];
@@ -165,7 +165,7 @@ final class LibraryFolderServiceTest extends TestCase {
 		return ['missing' => ['/Nope'], 'a file' => ['/Photos/a.jpg'], 'parent segment' => ['/Photos/../x'], 'a share' => ['/Shared']];
 	}
 
-	// spec: FOLDERS-001.13
+	// spec: FOLDERS-005.13
 	#[DataProvider('foreignRoots')]
 	public function testARootOutsideTheHomeStorageIsRefused(string $root): void {
 		$nodes = ['/Photos/a.jpg' => $this->file(1, '/Photos/a.jpg'), '/Shared' => $this->folder('/Shared', mountType: 'shared', fileId: 20)];
@@ -179,7 +179,7 @@ final class LibraryFolderServiceTest extends TestCase {
 		$this->service($nodes)->list($this->user(), $root, '', '');
 	}
 
-	// spec: FOLDERS-001.13
+	// spec: FOLDERS-005.13
 	public function testAnUnreadableRootIsForbidden(): void {
 		$this->expectException(FolderNotReadableException::class);
 
@@ -191,7 +191,7 @@ final class LibraryFolderServiceTest extends TestCase {
 		return ['negative after' => ['-1', ''], 'text after' => ['x', ''], 'zero limit' => ['', '0'], 'limit above 200' => ['', '201'], 'fraction limit' => ['', '1.5']];
 	}
 
-	// spec: FOLDERS-001.14
+	// spec: FOLDERS-005.14
 	#[DataProvider('malformedPages')]
 	public function testAMalformedPageIsRefused(string $after, string $limit): void {
 		$this->expectException(InvalidLibraryRequestException::class);

@@ -31,7 +31,7 @@ final class FolderDoneMapperTest extends DbTestCase {
 		])->executeStatement();
 	}
 
-	// spec: FOLDERS-001.10
+	// spec: FOLDERS-005.10
 	public function testFindsTheDoneStatusOfTheFoldersGiven(): void {
 		$this->insert(new FolderDone(7, 'bob', 1_750_000_000, 412));
 		$this->insert(new FolderDone(8, 'alice', 1_760_000_000, 3));
@@ -46,7 +46,7 @@ final class FolderDoneMapperTest extends DbTestCase {
 		$this->assertEquals([20 => new FolderDone(20, 'bob', 1_750_000_000, 412)], $this->done->find([7, 20]));
 	}
 
-	// spec: FOLDERS-001.17
+	// spec: FOLDERS-005.17
 	public function testPagesAndDeletesTheRowsByRowId(): void {
 		foreach ([7, 8, 9] as $fileId) {
 			$this->insert(new FolderDone($fileId, 'bob', 1, 1));

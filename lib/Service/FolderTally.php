@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-/** Sums up the photo files of one folder: pictures by the pairing rules, bytes, bursts and ages (FOLDERS-001.1 to .4). */
+/** Sums up the photo files of one folder: pictures by the pairing rules, bytes, bursts and ages (FOLDERS-005.1 to .4). */
 final class FolderTally {
-	/** The longest gap between two shots of one burst: `SERIES_GAP_SECONDS` in `src/logic/series.ts`. */
+	/** The longest gap between two shots of one burst: `BURST_GAP_SECONDS` in `src/logic/folder-score.ts`. */
 	public const int BURST_GAP_SECONDS = 3;
 
 	/**

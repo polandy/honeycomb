@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-/** Folds the decision rows of the files into the picked, rejected and done-but-unflagged pictures per folder (FOLDERS-001.9). */
+/** Folds the decision rows of the files into the picked, rejected and done-but-unflagged pictures per folder (FOLDERS-005.9). */
 final class FolderDecisions {
 	/**
 	 * The members of a picture share a folder and a base name; the latest flag wins, the first member on a tie,

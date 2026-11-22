@@ -28,14 +28,14 @@ final class LibraryController extends Controller {
 		parent::__construct($appName, $request);
 	}
 
-	/** One page of the summarised folders below `$root`, with the user's live decisions (FOLDERS-001). */
+	/** One page of the summarised folders below `$root`, with the user's live decisions (FOLDERS-005). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/library/folders')]
 	public function folders(string $root, string $after = '', string $limit = ''): Response {
 		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->library->list($user, $root, $after, $limit)));
 	}
 
-	/** Summarises the next batch of folders below `$root` that changed since their last scan (FOLDERS-001.5). */
+	/** Summarises the next batch of folders below `$root` that changed since their last scan (FOLDERS-005.5). */
 	#[NoAdminRequired]
 	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
 	#[FrontpageRoute(verb: 'POST', url: '/api/v1/library/scan')]

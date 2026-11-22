@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-/** Where the done statuses of the folders are kept, one per folder (FOLDERS-001.10). */
+/** Where the done statuses of the folders are kept, one per folder (FOLDERS-005.10). */
 interface FolderDoneStore extends FileRowStore {
 	/**
 	 * The done statuses among `$fileIds`, by folder file id.

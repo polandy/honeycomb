@@ -11,7 +11,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Folder;
 use OCP\IUser;
 
-/** Scans the folders of a library root into summaries and lists them with the user's live decisions (FOLDERS-001). */
+/** Scans the folders of a library root into summaries and lists them with the user's live decisions (FOLDERS-005). */
 final class LibraryFolderService {
 	/** Folders a scan takes per call. */
 	public const int SCAN_BATCH = 50;

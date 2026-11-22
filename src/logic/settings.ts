@@ -4,6 +4,7 @@ import type { Flag } from './decision.ts'
 import type { SwipeSetting } from './loupe-gesture.ts'
 import type { FolderMode, PairingSettings } from './pairing.ts'
 
+import { addLibraryRoot } from './library-roots.ts'
 import { DEFAULT_SWIPES } from './loupe-gesture.ts'
 import { parseNameTemplate } from './name-template/parse.ts'
 import { DEFAULT_NAME_TEMPLATE } from './name-template/presets.ts'
@@ -25,6 +26,8 @@ export interface Settings extends PairingSettings {
 	readonly moveTemplate: string
 	/** Whether honeycomb counts the daily statistics (STATS-001.2). */
 	readonly keepStatistics: boolean
+	/** The folders *Folders* lists and counts below, paths from the home folder (FOLDERS-004). */
+	readonly libraryRoots: readonly string[]
 }
 
 /** One of the two extension lists. */
@@ -51,6 +54,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	moveRecent: [],
 	moveTemplate: DEFAULT_NAME_TEMPLATE,
 	keepStatistics: true,
+	libraryRoots: [],
 }
 
 const OTHER_LIST: Record<ExtensionList, ExtensionList> = { rawExtensions: 'renderedExtensions', renderedExtensions: 'rawExtensions' }
@@ -75,6 +79,7 @@ export function parseSettings(value: unknown): Settings {
 		moveRecent: parsePaths(stored.moveRecent),
 		moveTemplate: typeof stored.moveTemplate === 'string' && parseNameTemplate(stored.moveTemplate).ok ? stored.moveTemplate : DEFAULT_NAME_TEMPLATE,
 		keepStatistics: boolean('keepStatistics'),
+		libraryRoots: parseLibraryRoots(stored.libraryRoots),
 	}
 }
 
@@ -143,6 +148,18 @@ function parseSwipes(value: unknown): SwipeSetting {
 /** The stored folder paths in order without repeats; anything else is dropped. */
 function parsePaths(value: unknown): string[] {
 	return Array.isArray(value) ? [...new Set(value.filter((item): item is string => typeof item === 'string' && item.startsWith('/')))] : []
+}
+
+/** The stored roots in order; any that is not a string, is empty, repeats or lies inside another is dropped. */
+function parseLibraryRoots(value: unknown): string[] {
+	const roots: string[] = []
+	for (const item of Array.isArray(value) ? value : []) {
+		const added = typeof item === 'string' ? addLibraryRoot(roots, item) : null
+		if (added !== null && 'roots' in added) {
+			roots.splice(0, roots.length, ...added.roots)
+		}
+	}
+	return roots
 }
 
 /** As pairing reads an extension: trimmed, without a leading dot, in lower case. */

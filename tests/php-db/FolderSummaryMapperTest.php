@@ -27,7 +27,7 @@ final class FolderSummaryMapperTest extends DbTestCase {
 		return new FolderSummary($fileId, $etag === '' ? "etag-$fileId" : $etag, 600, 30_000_000_000, 25_000_000_000, 12, 1_600_000_000, 1_600_000_900, 1_700_000_000, 1_800_000_000);
 	}
 
-	// spec: FOLDERS-001.1, FOLDERS-001.2, FOLDERS-001.4
+	// spec: FOLDERS-005.1, FOLDERS-005.2, FOLDERS-005.4
 	public function testKeepsEveryFieldAndReplacesTheRowOfTheSameFolder(): void {
 		$empty = new FolderSummary(8, 'etag-8', 0, 0, 0, 0, null, null, null, 5);
 		$this->summaries->replace([self::row(7), $empty]);
@@ -53,7 +53,7 @@ final class FolderSummaryMapperTest extends DbTestCase {
 		$this->assertEquals([20 => new FolderSummary(20, 'etag-7', 600, 30_000_000_000, 25_000_000_000, 12, 1_600_000_000, 1_600_000_900, 1_700_000_000, 1_800_000_000)], $this->summaries->find([7, 20]));
 	}
 
-	// spec: FOLDERS-001.17
+	// spec: FOLDERS-005.17
 	public function testPagesAndDeletesTheRowsByRowId(): void {
 		$this->summaries->replace([self::row(7), self::row(8), self::row(9)]);
 		$all = $this->summaries->fileIdsAfter(0, 10);
