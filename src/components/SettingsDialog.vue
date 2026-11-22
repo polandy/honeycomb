@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import type { Folder } from '../api.ts'
 import type { FolderMode } from '../logic/pairing.ts'
-import type { ExtensionList, ExtensionRefusal, Settings } from '../logic/settings.ts'
+import type { ExtensionList, Settings } from '../logic/settings.ts'
 
 import { t } from '@nextcloud/l10n'
 import { reactive } from 'vue'
@@ -20,6 +20,7 @@ import LoupeGestureSettings from './LoupeGestureSettings.vue'
 import MoveSettings from './MoveSettings.vue'
 import StatisticsSettings from './StatisticsSettings.vue'
 import { addExtension, DEFAULT_SUBFOLDERS, folderMode, removeExtension } from '../logic/settings.ts'
+import { extensionRefusalText, shown } from '../settings-text.ts'
 import { tip } from '../tooltip.ts'
 
 const props = defineProps<{
@@ -60,26 +61,11 @@ const SWITCHES = {
 const drafts = reactive<Record<ExtensionList, string>>({ rawExtensions: '', renderedExtensions: '' })
 const errors = reactive<Record<ExtensionList, string | null>>({ rawExtensions: null, renderedExtensions: null })
 
-/** An extension as the chips show it. */
-const shown = (extension: string) => extension.toUpperCase()
-
-/** Why an extension was not added, in the user's words. */
-function refusalText(refusal: ExtensionRefusal, input: string): string {
-	const extension = `.${shown(input.trim().replace(/^\./, ''))}`
-	switch (refusal) {
-		case 'empty': return t('honeycomb', 'Type an extension.')
-		case 'sidecar': return t('honeycomb', 'Sidecars are paired with their photo, they cannot be a photo type.')
-		case 'invalid': return t('honeycomb', 'An extension has only letters and digits.')
-		case 'in-this-list': return t('honeycomb', '{extension} is already in this list.', { extension })
-		case 'in-other-list': return t('honeycomb', '{extension} is already in the other list.', { extension })
-	}
-}
-
 /** Adds the typed extension to the list, or says why it cannot. */
 function add(list: ExtensionList) {
 	const result = addExtension(props.settings, list, drafts[list])
 	if ('refused' in result) {
-		errors[list] = refusalText(result.refused, drafts[list])
+		errors[list] = extensionRefusalText(result.refused, drafts[list])
 		return
 	}
 	errors[list] = null
@@ -213,7 +199,11 @@ function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 			<p class="settings-dialog__hint settings-text">
 				{{ t('honeycomb', 'Folders lists the folders below these roots, in your own files only.') }}
 			</p>
-			<LibraryRoots :roots="settings.libraryRoots" :listFolders="listFolders" :check="check" @update="emit('update', { libraryRoots: $event })" />
+			<LibraryRoots
+				:roots="settings.libraryRoots"
+				:listFolders="listFolders"
+				:check="check"
+				@update="emit('update', { libraryRoots: $event })" />
 		</NcAppSettingsSection>
 		<NcAppSettingsSection id="loupe-gestures" :name="t('honeycomb', 'Loupe gestures')">
 			<LoupeGestureSettings
