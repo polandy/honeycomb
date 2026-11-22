@@ -25,6 +25,7 @@ use ReflectionMethod;
 
 final class SettingsControllerTest extends TestCase {
 	private string $stored = '';
+	private string $storedFor = '';
 
 	private function controller(bool $loggedIn = true): SettingsController {
 		$user = $this->createStub(IUser::class);
@@ -34,6 +35,7 @@ final class SettingsControllerTest extends TestCase {
 		$config = $this->createStub(IUserConfig::class);
 		$config->method('getValueString')->willReturnCallback(fn (): string => $this->stored);
 		$config->method('setValueString')->willReturnCallback(function (string $userId, string $app, string $key, string $value): bool {
+			$this->storedFor = $userId;
 			$this->stored = $value;
 			return true;
 		});
@@ -86,6 +88,18 @@ final class SettingsControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $controller->index()->getStatus());
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $controller->save(['viKeys' => true])->getStatus());
 		$this->assertSame('', $this->stored);
+	}
+
+	// spec: IMMICH-001.22
+	public function testImmichOnlyIsStoredForTheUserAndNotWithoutOne(): void {
+		$refused = $this->controller(loggedIn: false)->save(['immichOnly' => true]);
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $refused->getStatus());
+		$this->assertSame('', $this->stored);
+
+		$saved = $this->controller()->save(['immichOnly' => true]);
+
+		$this->assertSame(Http::STATUS_OK, $saved->getStatus());
+		$this->assertSame(['alice', '{"immichOnly":true}'], [$this->storedFor, $this->stored]);
 	}
 
 	/** @return array<string, array{string, string}> */

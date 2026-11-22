@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ConnectionState, ConnectionStatus, ImmichConnection } from './logic/immich-connections.ts'
+import type { ImmichOnlyOffer } from './logic/immich-only.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { formatNumber, PLAIN_TEXT } from './l10n.ts'
@@ -57,4 +58,25 @@ export function connectionLines(connections: readonly ImmichConnection[], status
 		const status = statusOf(connection.id)
 		return { id: connection.id, label: connection.label, line: connectionLine(connection, status), working: status === null ? null : status.state === 'ok' }
 	})
+}
+
+/** Why the folder picker's *I only use Immich* is disabled, null while it can be chosen (IMMICH-001.21). */
+export function immichOnlyReason(offer: ImmichOnlyOffer): string | null {
+	switch (offer) {
+		case 'none':
+		case 'ok':
+			return null
+		case 'asked':
+			return t('honeycomb', 'Checking the Immich connection…')
+		case 'broken':
+			return t('honeycomb', 'Immich is unavailable because of the server configuration.')
+		case 'unreachable':
+			return t('honeycomb', 'Immich is unreachable.')
+		case 'refused':
+			return t('honeycomb', 'Immich refuses the API key.')
+		case 'key':
+			return t('honeycomb', 'The Immich API key cannot be read.')
+		case 'version':
+			return t('honeycomb', 'This Immich version is not supported.')
+	}
 }

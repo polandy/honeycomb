@@ -48,6 +48,20 @@ describe('useSettings', () => {
 		expect(error).toHaveBeenCalledOnce()
 	})
 
+	// spec: IMMICH-001.23
+	it('settles once the stored settings are read or cannot be', async () => {
+		vi.spyOn(logger, 'error').mockImplementation(() => {})
+		const read = settingsOn(async () => ({}))
+		const failed = settingsOn(async () => {
+			throw new Error('offline')
+		})
+		expect([read.settled.value, failed.settled.value]).toEqual([false, false])
+
+		await flushPromises()
+
+		expect([read.settled.value, failed.settled.value]).toEqual([true, true])
+	})
+
 	// spec: SETTINGS-001.11
 	it('applies a change at once and saves the whole settings', async () => {
 		const { settings, update, saved, toasts } = settingsOn(async () => ({}))

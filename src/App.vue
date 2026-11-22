@@ -44,6 +44,7 @@ import { freshCheck } from './fresh-check.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
 import { useImmichApp } from './immich-app.ts'
+import { useImmichOnly } from './immich-only.ts'
 import { connectionLines } from './immich-text.ts'
 import { DECISIONS_ONLY } from './logic/opened-source.ts'
 import { positionFileId } from './logic/resume-position.ts'
@@ -71,7 +72,7 @@ const props = withDefaults(defineProps<AppSeams>(), APP_SEAMS)
 
 const toast = useToast(props.schedule)
 const isAdmin = props.admin()
-const { settings, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, toast.showError)
+const { settings, settled: settingsSettled, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, toast.showError)
 const viewStateApi = readOnce(props.viewState)
 const viewState = useViewState(viewStateApi, props.storage)
 const yearReviewHint = useYearReviewHint(viewStateApi, props.today)
@@ -133,7 +134,8 @@ function openRecent(position: ResumePosition) {
 recent.refresh()
 watch(pickerOpen, (open) => open && recent.refresh())
 
-const { immich, shown: immichShown, opened, openedStatus, cull: immichCull, openConnection, checkOpened } = useImmichApp({ source: props.immich, cull: props.immichCull, storage: props.storage, now: props.now, toast })
+const { immich, shown: immichShown, opened, openedStatus, onlyOffer, cull: immichCull, openConnection, checkOpened } = useImmichApp({ source: props.immich, cull: props.immichCull, storage: props.storage, now: props.now, toast })
+const immichOnly = useImmichOnly({ stored: () => (settingsSettled.value ? settings.value.immichOnly : null), offer: () => onlyOffer.value, store: (chosen) => updateSettings({ immichOnly: chosen }), chooseSource: immich.choose, folderSet: () => folderSet.value, idle: () => folderSet.value === null && !recent.listing.value, pickerOpen })
 const connectionDialogOpen = ref(false)
 const IMMICH_HIDDEN_KEYS = unofferedKeys(DECISIONS_ONLY)
 
@@ -219,15 +221,17 @@ useHotkeys(() => {
 			<GridScreen v-else-if="folderSet !== null" ref="gridScreen" />
 			<NoFolderState v-else @chooseFolder="pickerOpen = true" />
 			<FolderPicker
-				v-if="pickerOpen"
+				v-if="pickerOpen && immichOnly.started.value"
 				:current="folderSet"
 				:closable="immich.offered.value"
+				:immichOnly="onlyOffer ?? 'asked'"
 				:listFolders="listFolders"
 				:listEntries="props.listEntries"
 				:pairing="cull.pairing.value"
 				:recent="recent.items.value"
 				@confirm="openFolderSet"
 				@openRecent="openRecent"
+				@immichOnly="immichOnly.choose"
 				@cancel="pickerOpen = false" />
 			<CullDialogs
 				v-if="folderSet !== null"
