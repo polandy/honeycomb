@@ -12,10 +12,9 @@ const ALICE = { username: 'alice', password: 'honeycomb-e2e-alice-password' }
 const FAMILY = { id: 'family', label: 'Family phones', url: 'http://127.0.0.1:2283' }
 const ANNA = { id: 'anna', label: 'Anna\'s phone', url: 'http://127.0.0.1:2283' }
 
-/** Opens honeycomb as Alice, closes the folder picker and switches to the Immich source. */
+/** Opens honeycomb as Alice and switches to the Immich source. */
 async function openImmich(page: Page): Promise<void> {
 	await page.goto('/index.php/apps/honeycomb/')
-	await page.getByRole('dialog', { name: 'Choose folders' }).getByRole('button', { name: 'Cancel' }).click()
 	await page.getByRole('button', { name: 'Immich', exact: true }).click()
 }
 
@@ -78,7 +77,6 @@ test.describe('as a user with two Immich connections', () => {
 		await expect(page.getByRole('main')).toContainText('The API key is refused')
 
 		await page.reload()
-		await page.getByRole('dialog', { name: 'Choose folders' }).getByRole('button', { name: 'Cancel' }).click()
 		await page.getByRole('button', { name: 'Immich', exact: true }).click()
 
 		await expect(page.getByRole('main')).toContainText('The API key is refused')
@@ -110,14 +108,14 @@ test.describe('as a user with two Immich connections', () => {
 
 		await page.getByRole('button', { name: 'Nextcloud', exact: true }).click()
 
-		await expect(page.getByRole('note', { name: 'No folder chosen' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Where is your library?' })).toBeVisible()
 	})
 })
 
 test('a user without a connection sees no Immich source', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 
-	await expect(page.getByRole('dialog', { name: 'Choose folders' })).toBeVisible()
+	await expect(page.getByRole('heading', { name: 'Where is your library?' })).toBeVisible()
 	const response = await page.request.get(`${API}/connections`, { headers: await apiHeaders(page) })
 	expect(await response.json()).toEqual({ connections: [] })
 	await expect(page.getByRole('button', { name: 'Immich', exact: true })).toHaveCount(0)

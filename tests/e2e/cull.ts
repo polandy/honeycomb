@@ -25,10 +25,24 @@ export async function closeByEscape(page: Page, dialog: Locator): Promise<void> 
 	await expect(dialog).toBeHidden()
 }
 
+/** Opens the folder picker from the navigation's *Folder* on the loaded app, opening the navigation where it starts closed. */
+export async function openFolderPicker(page: Page): Promise<Locator> {
+	// The start screen shows once the settings are read, after the navigation took its start state.
+	await expect(page.locator('.folders-home')).toBeVisible()
+	const toggle = page.locator('.app-navigation-toggle')
+	if (await toggle.getAttribute('aria-expanded') !== 'true') {
+		await toggle.click()
+	}
+	await page.getByRole('navigation', { name: 'honeycomb navigation' }).getByRole('link', { name: 'Folder', exact: true }).click()
+	const picker = page.getByRole('dialog', { name: 'Choose folders' })
+	await expect(picker).toBeVisible()
+	return picker
+}
+
 /** Opens the app and culls `folder` from the folder picker. */
 export async function cullFolder(page: Page, folder: string): Promise<void> {
 	await page.goto('/index.php/apps/honeycomb/')
-	const picker = page.getByRole('dialog', { name: 'Choose folders' })
+	const picker = await openFolderPicker(page)
 	await picker.getByRole('treeitem', { name: folder }).click()
 	await picker.getByRole('button', { name: `Cull ${folder}` }).click()
 }

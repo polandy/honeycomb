@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { SidecarWrites } from '../../src/cull-seams.ts'
 import type { FlagApi, FlagItem } from '../../src/flags-api.ts'
+import type { LibraryApi } from '../../src/folders.ts'
 import type { ImmichCullApi } from '../../src/immich-cull.ts'
 import type { ImmichApi } from '../../src/immich-source.ts'
 import type { Decision, StoredDecision } from '../../src/logic/decision.ts'
@@ -17,6 +18,7 @@ import type { SidecarFlowApi } from '../../src/sidecar-flow.ts'
 import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
 import App from '../../src/App.vue'
+import AppNavigation from '../../src/components/AppNavigation.vue'
 import FolderPicker from '../../src/components/FolderPicker.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
@@ -162,6 +164,9 @@ const NOW_SECONDS = 1_795_176_000
 /** An Immich server that never answers the cull's requests. */
 export const SILENT_IMMICH_CULL: ImmichCullApi = { assets: () => new Promise(() => undefined), counts: () => new Promise(() => undefined), saveDecisions: () => new Promise(() => undefined), imageUrl: (id, assetId, size) => `/${id}/${assetId}/${size}` }
 
+/** A library without folders, never scanning. */
+export const NO_LIBRARY: LibraryApi = { listLibraryFolders: async () => ({ folders: [], next: null, scanning: null }), scanLibrary: async () => ({ done: 0, total: 0 }) }
+
 export function mountApp(props: Record<string, unknown> = {}, decisions: StoredDecision[] = [], stubs: Record<string, unknown> = {}) {
 	provideSkipActions()
 	const warmed: number[][] = []
@@ -191,9 +196,10 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			immich: NO_IMMICH_API,
 			immichCull: SILENT_IMMICH_CULL,
 			now: () => NOW_SECONDS,
+			library: NO_LIBRARY,
 			...props,
 		},
-		global: { stubs: { AppNavigation: true, FolderPicker: true, PhotoGrid: grid.component, GridToolbar: true, FilterBar: true, PhotoLoupe: true, SettingsDialog: true, ...stubs } },
+		global: { stubs: { AppNavigation: true, FoldersHome: true, FolderPicker: true, PhotoGrid: grid.component, GridToolbar: true, FilterBar: true, PhotoLoupe: true, SettingsDialog: true, ...stubs } },
 	})
 	flagTables.set(wrapper, flags)
 	return { wrapper, warmed, flagSaves: flags.saves, takenOver: flags.takenOver, savedSettings, sidecarSaves, grid: grid.calls }
@@ -218,10 +224,15 @@ export function shownNames(wrapper: AppWrapper): string[] {
 	return wrapper.findComponent(PhotoGrid).props('pictures').map((picture: { baseName: string }) => picture.baseName)
 }
 
-/** Confirms the folder set in the folder picker, reopened from the toolbar on an open cull; the entries carry the app's flag rows. */
+/** Confirms the folder set in the folder picker, opened from the toolbar on an open cull or else from the navigation; the entries carry the app's flag rows. */
 export async function openCull(wrapper: AppWrapper, set = SET, entries = ENTRIES, access: ListedAccess = NO_ACCESS) {
 	if (!wrapper.findComponent(FolderPicker).exists()) {
-		wrapper.findComponent(GridToolbar).vm.$emit('changeFolders')
+		const toolbar = wrapper.findComponent(GridToolbar)
+		if (toolbar.exists()) {
+			toolbar.vm.$emit('changeFolders')
+		} else {
+			wrapper.findComponent(AppNavigation).vm.$emit('chooseFolders')
+		}
 		await flushPromises()
 	}
 	wrapper.findComponent(FolderPicker).vm.$emit('confirm', set, flagTables.get(wrapper)?.listed(entries) ?? entries, access)

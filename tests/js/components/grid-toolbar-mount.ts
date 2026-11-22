@@ -29,12 +29,12 @@ const CULL: { flags: ReadonlySet<Flag>, decided: number, total: number, filtered
 	sortOrder: 'file-name',
 }
 
-/** Mounts the toolbar on the folder set with the cull changed by `cull`, the popover in place. */
-export function mountToolbar(folderSet: FolderSet, folders = 1, cull: Partial<typeof CULL> = {}) {
+/** Mounts the toolbar on the folder set with the cull changed by `cull`, the popover in place; `back` for a cull opened from *Folders*. */
+export function mountToolbar(folderSet: FolderSet, folders = 1, cull: Partial<typeof CULL> = {}, back = false) {
 	const { flags, decided, total, filtered, activeFilters, filtersOpen, sortOrder, selecting, selected, ...tasks } = { ...CULL, ...cull }
 	return mount(GridToolbar, {
 		props: {
-			folders: { set: folderSet, count: folders },
+			folders: { set: folderSet, count: folders, back },
 			view: { tileSize: 150.4, groupByFolder: false, fileNames: false, sortOrder, flags, filtersOpen, activeFilters },
 			progress: { decided, total, filtered },
 			selection: { selecting, selected },

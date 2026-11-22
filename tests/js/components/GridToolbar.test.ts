@@ -65,6 +65,17 @@ describe('GridToolbar', () => {
 		expect(wrapper.emitted('changeFolders')).toEqual([[], []])
 	})
 
+	// spec: FOLDERS-006.14
+	it('goes back to the folders from Home on a cull opened from the list', async () => {
+		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, {}, true)
+
+		await wrapper.find(`[aria-label="${MARK}Back to folders"]`).trigger('click')
+
+		expect(wrapper.find(`[aria-label="${MARK}Change folders"]`).exists()).toBe(false)
+		expect(wrapper.emitted('back')).toEqual([[]])
+		expect(wrapper.emitted('changeFolders')).toBeUndefined()
+	})
+
 	// spec: GRID-002.2
 	it('passes the flag filter on and forwards its changes', async () => {
 		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { flags: new Set(['rejected']) })

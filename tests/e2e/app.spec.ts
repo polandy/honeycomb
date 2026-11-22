@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { cullFolder } from './cull.ts'
+import { cullFolder, openFolderPicker } from './cull.ts'
 import { createFolder, JPEG, upload } from './files.ts'
 import { occ } from './server.ts'
 
@@ -12,20 +12,19 @@ test('runs background jobs only when a test asks for one, never inside a page re
 })
 
 // spec: APP-001.3
-test('opens on the empty state while no folder is chosen', async ({ page }) => {
+test('opens on the library setup while no library root is chosen, the folder picker closed', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 
-	const emptyState = page.getByRole('note', { name: 'No folder chosen' })
-	await expect(emptyState).toBeVisible()
-	await expect(emptyState.getByText('Pick a folder to start culling.')).toBeVisible()
+	await expect(page.getByRole('heading', { name: 'Where is your library?' })).toBeVisible()
+	await expect(page.getByRole('dialog', { name: 'Choose folders' })).toHaveCount(0)
 })
 
 // spec: APP-001.10
-test('loads its script by the hashed name of the build and opens on the folder tree', async ({ page }) => {
+test('loads its script by the hashed name of the build and opens the folder tree from the navigation', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 
 	await expect(page.locator('script[src*="/js/honeycomb-main-"]')).toHaveCount(1)
-	await expect(page.getByRole('dialog', { name: 'Choose folders' }).getByRole('tree', { name: 'Folders' })).toBeVisible()
+	await expect((await openFolderPicker(page)).getByRole('tree', { name: 'Folders' })).toBeVisible()
 })
 
 // spec: APP-001.6
@@ -34,7 +33,7 @@ test('shows a dialog as a bottom sheet on a phone', async ({ page }) => {
 	await page.setViewportSize(phone)
 	await page.goto('/index.php/apps/honeycomb/')
 
-	const sheet = page.getByRole('dialog', { name: 'Choose folders' }).locator('.modal-container')
+	const sheet = (await openFolderPicker(page)).locator('.modal-container')
 	await expect(sheet).toBeVisible()
 	const box = (await sheet.boundingBox())!
 	expect(box.x).toBe(0)
@@ -50,8 +49,7 @@ test('opens a dialog without a transition or an animation under reduced motion',
 	await page.emulateMedia({ reducedMotion: 'reduce' })
 	await page.goto('/index.php/apps/honeycomb/')
 
-	const dialog = page.getByRole('dialog', { name: 'Choose folders' })
-	await expect(dialog).toBeVisible()
+	const dialog = await openFolderPicker(page)
 	const moving = await page.evaluate(() => {
 		const parts = [...document.querySelectorAll('.modal-mask, .modal-mask *')]
 		const transitions = parts.filter((part) => getComputedStyle(part).transitionDuration.split(',').some((duration) => parseFloat(duration) > 0))
