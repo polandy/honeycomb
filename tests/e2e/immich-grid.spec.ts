@@ -154,6 +154,13 @@ test.describe('the grid and the loupe of an Immich connection', () => {
 				saves.push((request.postDataJSON() as { decisions: { assetId: string, rating: number, flag: string }[] }).decisions)
 			}
 		})
+		// The undos must reach the server before the page closes, or the next test sees their decisions.
+		let answered = 0
+		page.on('requestfinished', (request) => {
+			if (request.url().endsWith('/api/v1/immich/family/decisions')) {
+				answered++
+			}
+		})
 		await openFamily(page)
 		const loupe = await openLoupe(page)
 		const toast = page.getByRole('status').filter({ hasText: 'PXL_E2E_' })
@@ -171,7 +178,7 @@ test.describe('the grid and the loupe of an Immich connection', () => {
 		await page.keyboard.press('Control+z')
 		await expect(toast).toContainText(`Undid: Rated ${uploadName(1)} ★★`)
 
-		await expect.poll(() => saves.length).toBe(4)
+		await expect.poll(() => answered).toBe(4)
 		const [rated, rejected, unrejected, unrated] = saves.map((rows) => rows.map(({ rating, flag }) => ({ rating, flag })))
 		expect(rated).toEqual([{ rating: 2, flag: expect.any(String) }])
 		expect(rejected).toEqual([{ rating: 0, flag: 'rejected' }])
