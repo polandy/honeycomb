@@ -18,7 +18,7 @@ final class AppDataMapper implements AppData {
 
 	private const string APP = 'honeycomb';
 	private const string PREFERENCES = 'preferences';
-	private const array TABLES = ['honeycomb_flags', 'honeycomb_tag_list', 'honeycomb_series', 'honeycomb_series_files', 'honeycomb_xmp_cache', 'honeycomb_hashes', 'honeycomb_positions', 'honeycomb_stats', 'honeycomb_immich_assets', 'honeycomb_quality'];
+	private const array TABLES = ['honeycomb_flags', 'honeycomb_tag_list', 'honeycomb_series', 'honeycomb_series_files', 'honeycomb_xmp_cache', 'honeycomb_hashes', 'honeycomb_positions', 'honeycomb_stats', 'honeycomb_immich_assets', 'honeycomb_quality', 'honeycomb_folder_summary', 'honeycomb_folder_done'];
 
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it. */
 	public function __construct(

@@ -74,7 +74,7 @@ tables and delete the rows listed above, for example on MySQL or MariaDB:
 DROP TABLE IF EXISTS oc_honeycomb_flags, oc_honeycomb_decisions, oc_honeycomb_positions,
   oc_honeycomb_file_tags, oc_honeycomb_tag_list, oc_honeycomb_hashes, oc_honeycomb_series,
   oc_honeycomb_series_files, oc_honeycomb_xmp_cache, oc_honeycomb_quality, oc_honeycomb_stats,
-  oc_honeycomb_immich_assets;
+  oc_honeycomb_immich_assets, oc_honeycomb_folder_summary, oc_honeycomb_folder_done;
 DELETE FROM oc_migrations WHERE app = 'honeycomb';
 DELETE FROM oc_appconfig WHERE appid = 'honeycomb';
 DELETE FROM oc_preferences WHERE appid = 'honeycomb';

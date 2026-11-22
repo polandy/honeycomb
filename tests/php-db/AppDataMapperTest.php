@@ -12,7 +12,9 @@ use OCA\Honeycomb\Db\FlagMapper;
 use OCA\Honeycomb\Service\FileFlag;
 use OCA\Honeycomb\Service\Flag;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\IConfig;
 use OCP\IDBConnection;
+use OCP\Server;
 
 /** Counting and emptying everything the app stores, and nothing of other apps. */
 final class AppDataMapperTest extends DbTestCase {
@@ -60,7 +62,7 @@ final class AppDataMapperTest extends DbTestCase {
 		$this->preference(self::OTHER_APP);
 
 		$counts = $this->data->count();
-		$this->assertCount(11, $counts);
+		$this->assertCount(13, $counts);
 		$this->assertSame([], array_filter(array_diff_key($counts, ['honeycomb_flags' => 1, 'preferences' => 1])));
 		$this->assertSame(1, $counts['honeycomb_flags']);
 		$this->assertSame(1, $counts['preferences']);
@@ -73,6 +75,30 @@ final class AppDataMapperTest extends DbTestCase {
 		$this->assertSame(0, $this->data->count()['honeycomb_flags']);
 		$this->assertSame(0, $this->remainingPreferences('honeycomb'));
 		$this->assertSame(1, $this->remainingPreferences(self::OTHER_APP));
+	}
+
+	/**
+	 * @return list<string> the app's tables in the live schema, without schema and prefix
+	 * @psalm-suppress UndefinedClass, MixedAssignment, MixedArgument Doctrine's schema is not in the stubs.
+	 */
+	private function schemaTables(): array {
+		$prefix = Server::get(IConfig::class)->getSystemValueString('dbtableprefix', 'oc_');
+		$tables = [];
+		foreach ($this->db->createSchema()->getTableNames() as $name) {
+			if (preg_match('/(?:^|\.)' . preg_quote($prefix, '/') . '(honeycomb_\w+)$/', (string)$name, $match) === 1) {
+				$tables[] = $match[1];
+			}
+		}
+		return $tables;
+	}
+
+	// spec: DECISIONS-001.35
+	public function testEveryHoneycombTableInTheSchemaIsCountedAndEmptied(): void {
+		$tables = $this->schemaTables();
+		$this->assertNotSame([], $tables);
+
+		$this->assertEqualsCanonicalizing($tables, array_values(array_diff(array_keys($this->data->count()), ['preferences'])));
+		$this->assertEqualsCanonicalizing($tables, array_values(array_diff(array_keys($this->data->empty()), ['preferences'])));
 	}
 
 	// spec: DECISIONS-001.35
