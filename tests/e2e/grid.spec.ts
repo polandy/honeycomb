@@ -4,18 +4,17 @@ import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
+import { openFolderPicker } from './cull.ts'
 import { createFolder, JPEG, pickLabel, RAW, upload } from './files.ts'
 import { WEBKIT } from './webkit.ts'
 
 /** A folder name no earlier run left behind. */
 const uniqueFolder = (prefix: string) => `${prefix} ${randomUUID().slice(0, 8)}`
 
-/** The folder picker the app opens on start. */
+/** The folder picker, opened from the navigation on a fresh page. */
 async function openPicker(page: Page) {
 	await page.goto('/index.php/apps/honeycomb/')
-	const picker = page.getByRole('dialog', { name: 'Choose folders' })
-	await expect(picker).toBeVisible()
-	return picker
+	return openFolderPicker(page)
 }
 
 // spec: GRID-001.4, GRID-001.12, LISTING-003.12

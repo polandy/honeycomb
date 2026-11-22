@@ -5,6 +5,7 @@ import type { ViewState } from '../../src/logic/view-state.ts'
 
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import AppNavigation from '../../src/components/AppNavigation.vue'
 import CullDialogs from '../../src/components/CullDialogs.vue'
 import FolderPicker from '../../src/components/FolderPicker.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
@@ -84,6 +85,8 @@ describe('App: the settings', () => {
 	it('gives the folder picker the pairing settings', async () => {
 		const { wrapper } = mountApp({ loadSettings: async () => ({ rawExtensions: ['nef'] }) })
 		await flushPromises()
+		wrapper.findComponent(AppNavigation).vm.$emit('chooseFolders')
+		await flushPromises()
 
 		expect(wrapper.findComponent(FolderPicker).props('pairing')).toEqual({ rawExtensions: ['nef'], renderedExtensions: DEFAULT_SETTINGS.renderedExtensions, folderMode: DEFAULT_SETTINGS.folderMode })
 	})
@@ -94,6 +97,8 @@ describe('App: the settings', () => {
 		const { wrapper } = mountApp({ listFolders, loadSettings: async () => ({ rawExtensions: ['nef'], renderedExtensions: ['jpg', 'tif'] }) })
 		await flushPromises()
 		const extensions = { rawExtensions: ['nef'], renderedExtensions: ['jpg', 'tif'] }
+		wrapper.findComponent(AppNavigation).vm.$emit('chooseFolders')
+		await flushPromises()
 
 		await wrapper.findComponent(FolderPicker).props('listFolders')?.('/P')
 		expect(listFolders).toHaveBeenLastCalledWith('/P', extensions)

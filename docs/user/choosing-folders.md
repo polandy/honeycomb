@@ -1,7 +1,8 @@
 # Choosing folders
 
-honeycomb culls a *folder set*: one or more folders you tick in the folder picker. It opens on
-the first start and from *Change folders* in the grid's toolbar.
+honeycomb culls a *folder set*: one or more folders you tick in the folder picker. It opens from
+*Folder* in the navigation and from *Change folders* in the grid's toolbar; the start screen is
+*Folders* ([culling a shoot](culling.md)).
 
 ## The folder tree
 
@@ -41,12 +42,12 @@ see what you culled.
 
 ## Only Immich
 
-If you cull only in Immich, tap **I only use Immich** at the bottom of the picker on the first
-start. honeycomb opens your Immich photos and, on later starts, opens them straight away
-without the picker. The button shows only while no cull is open and an Immich connection is set
-up; it stays disabled, with the reason below the tree, until the connection that would open
-works. If Immich stops working, honeycomb starts with the picker again and keeps your choice for
-when it works again. Opening a folder set ends the choice.
+If you cull only in Immich, open the picker from **Folder** in the navigation and tap **I only use
+Immich** at its bottom. honeycomb opens your Immich photos and, on later starts, opens them
+straight away instead of *Folders*. The button shows only while no cull is open and an Immich
+connection is set up; it stays disabled, with the reason below the tree, until the connection
+that would open works. If Immich stops working, honeycomb starts on *Folders* again and keeps
+your choice for when it works again. Opening a folder set ends the choice.
 
 ## Keyboard
 

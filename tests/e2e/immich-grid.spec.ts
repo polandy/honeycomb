@@ -16,7 +16,6 @@ const PAGE_SIZE = 100
 /** Opens honeycomb as Alice on the Immich source, Family phones first, and waits for its first page. */
 async function openFamily(page: Page): Promise<Locator> {
 	await page.goto('/index.php/apps/honeycomb/')
-	await page.getByRole('dialog', { name: 'Choose folders' }).getByRole('button', { name: 'Cancel' }).click()
 	await page.getByRole('button', { name: 'Immich', exact: true }).click()
 	const main = page.getByRole('main')
 	await expect(main).toContainText('3,660 of 3,660 pictures')
@@ -142,7 +141,6 @@ test.describe('the grid and the loupe of an Immich connection', () => {
 		await expect(picked).toContainText('1')
 
 		await page.reload()
-		await page.getByRole('dialog', { name: 'Choose folders' }).getByRole('button', { name: 'Cancel' }).click()
 		await page.getByRole('button', { name: 'Immich', exact: true }).click()
 		await expect(picked).toContainText('1')
 		await expect(main).toContainText('1 decided')
@@ -154,6 +152,13 @@ test.describe('the grid and the loupe of an Immich connection', () => {
 		page.on('request', (request) => {
 			if (request.url().endsWith('/api/v1/immich/family/decisions')) {
 				saves.push((request.postDataJSON() as { decisions: { assetId: string, rating: number, flag: string }[] }).decisions)
+			}
+		})
+		// The undos must reach the server before the page closes, or the next test sees their decisions.
+		let answered = 0
+		page.on('requestfinished', (request) => {
+			if (request.url().endsWith('/api/v1/immich/family/decisions')) {
+				answered++
 			}
 		})
 		await openFamily(page)
@@ -173,7 +178,7 @@ test.describe('the grid and the loupe of an Immich connection', () => {
 		await page.keyboard.press('Control+z')
 		await expect(toast).toContainText(`Undid: Rated ${uploadName(1)} ★★`)
 
-		await expect.poll(() => saves.length).toBe(4)
+		await expect.poll(() => answered).toBe(4)
 		const [rated, rejected, unrejected, unrated] = saves.map((rows) => rows.map(({ rating, flag }) => ({ rating, flag })))
 		expect(rated).toEqual([{ rating: 2, flag: expect.any(String) }])
 		expect(rejected).toEqual([{ rating: 0, flag: 'rejected' }])

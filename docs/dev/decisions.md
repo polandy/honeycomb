@@ -1836,6 +1836,24 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-22: A folder that is not readable or not rateable answers `403` and a file id that is no
   folder of the user's own files `404`, for `PUT` and `DELETE` alike, so a reopen of a vanished
   folder is `404`, not `204` (FOLDERS-006.4, FOLDERS-006.5).
+- 2026-11-22: The *Folders* screen takes the spec ID FOLDERS-007, as the done status took
+  FOLDERS-006 on `main` first (ADR 0049).
+- 2026-11-22: The library setup accepts a root only when `GET /library/folders` with `limit=1`
+  accepts it, so a mount other than the home storage is refused before it is saved (FOLDERS-007.4).
+- 2026-11-22: The folder picker no longer opens at start; it opens from the navigation's *Folder*
+  (APP-001.3, FOLDERS-007.1).
+- 2026-11-22: *Back to folders* shows only for the folder set culled from the list: opening any
+  other folder set clears it, and the list stays mounted under the grid so its filter, sort and
+  scroll come back (FOLDERS-007.14).
+- 2026-11-22: A row's ⋯ menu is the shared confirm dialog, which is a bottom sheet on a phone, and
+  the sort is a native select (FOLDERS-007.10, FOLDERS-007.12).
+- 2026-11-22: A line of several parts on the *Folders* screen is translated part by part and joined
+  with ` · ` (FOLDERS-007.9).
 - 2026-11-22: *I only use Immich* is a tertiary button in the folder picker's footer, left of
   *Choose*; it is hidden without an Immich connection and disabled with a one-line reason until
   the connection that would open answers `ok` (IMMICH-001.21 to .25).
+- 2026-11-22: With the *Folders* start, *I only use Immich* is reached from the picker the
+  navigation opens; a stored choice skips *Folders* as it skipped the picker, and a broken
+  connection starts on *Folders* (IMMICH-001.21 to .24, FOLDERS-007.1).
+- 2026-11-22: App.vue loads its unscoped styles through one `app-global.css` that imports them,
+  to stay within 300 lines after the merge.

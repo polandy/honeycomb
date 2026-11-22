@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { expect, test } from '@playwright/test'
+import { openFolderPicker } from './cull.ts'
 import { logIn, occ } from './server.ts'
 
 /** The user the e2e connections file gives two connections to the stub Immich (`tests/fixtures/immich/e2e/`). */
@@ -24,10 +25,10 @@ test.describe('as a user who only uses Immich', () => {
 	// spec: IMMICH-001.22
 	// spec: IMMICH-001.23
 	// spec: IMMICH-001.24
-	test('opens Immich without the folder picker once chosen, and the picker again when the connection fails', async ({ page }) => {
+	test('opens Immich without the start screen once chosen, and Nextcloud again when the connection fails', async ({ page }) => {
 		await logIn(page, ALICE)
 		await page.goto('/index.php/apps/honeycomb/')
-		const picker = page.getByRole('dialog', { name: 'Choose folders' })
+		const picker = await openFolderPicker(page)
 		const main = page.getByRole('main')
 		const saved = page.waitForResponse((response) => response.url().endsWith('/api/v1/settings') && response.request().method() === 'PUT')
 		await picker.getByRole('button', { name: 'I only use Immich' }).click()
@@ -37,10 +38,12 @@ test.describe('as a user who only uses Immich', () => {
 		await page.reload()
 		await expect(main).toContainText(FAMILY_SHOWN)
 		await expect(picker).toBeHidden()
+		await expect(page.locator('.folders-home')).toBeHidden()
 
 		await page.getByRole('navigation').locator('.list-item__wrapper').filter({ hasText: ANNA_LABEL }).click()
 		await expect(main).toContainText('The API key is refused')
 		await page.reload()
+		await openFolderPicker(page)
 		await expect(picker.getByRole('button', { name: 'I only use Immich' })).toBeDisabled()
 		await expect(picker).toContainText('Immich refuses the API key.')
 	})

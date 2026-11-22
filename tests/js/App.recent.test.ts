@@ -53,6 +53,8 @@ describe('App: Recent', () => {
 	it('passes the recent folder sets to the folder picker and opens the one it picks', async () => {
 		const { wrapper } = openApp()
 		await flushPromises()
+		wrapper.findComponent(AppNavigation).vm.$emit('chooseFolders')
+		await flushPromises()
 		const picker = wrapper.findComponent(FolderPicker)
 		expect(picker.props('recent')!.map((item: { position: { fileId: number } }) => item.position.fileId)).toEqual([4, 7])
 

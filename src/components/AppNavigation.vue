@@ -49,6 +49,8 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
+	/** Shows the *Folders* list (FOLDERS-007.16). */
+	openFolders: []
 	chooseFolders: []
 	openRecent: [position: ResumePosition]
 	openSettings: []
@@ -83,11 +85,18 @@ function closeOnNarrowScreen() {
 				:connectionId="props.connectionId"
 				@open="closeOnNarrowScreen(); emit('openConnection', $event)"
 				@details="closeOnNarrowScreen(); emit('connectionDetails')" />
-			<NcAppNavigationItem v-else :name="t('honeycomb', 'Folder')" @click="closeOnNarrowScreen(); emit('chooseFolders')">
-				<template #icon>
-					<AppIcon name="folder" />
-				</template>
-			</NcAppNavigationItem>
+			<template v-else>
+				<NcAppNavigationItem :name="t('honeycomb', 'Folders')" @click="closeOnNarrowScreen(); emit('openFolders')">
+					<template #icon>
+						<AppIcon name="folders" />
+					</template>
+				</NcAppNavigationItem>
+				<NcAppNavigationItem :name="t('honeycomb', 'Folder')" @click="closeOnNarrowScreen(); emit('chooseFolders')">
+					<template #icon>
+						<AppIcon name="folder" />
+					</template>
+				</NcAppNavigationItem>
+			</template>
 			<NcAppNavigationItem
 				v-for="item in pageItems"
 				:key="item.page"

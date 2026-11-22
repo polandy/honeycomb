@@ -29,6 +29,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
 	changeFolders: []
+	/** Back to *Folders*, which opened the cull. */
+	back: []
 	'update:tileSize': [size: number]
 	'update:groupByFolder': [group: boolean]
 	'update:fileNames': [shown: boolean]
@@ -78,6 +80,17 @@ const setName = computed(() => {
 	<div class="grid-toolbar">
 		<nav class="grid-toolbar__crumbs" :aria-label="t('honeycomb', 'Breadcrumb')">
 			<NcButton
+				v-if="props.folders.back"
+				variant="tertiary"
+				:ariaLabel="t('honeycomb', 'Back to folders')"
+				v-bind="tip(t('honeycomb', 'Back to folders'))"
+				@click="emit('back')">
+				<template #icon>
+					<AppIcon name="back" />
+				</template>
+			</NcButton>
+			<NcButton
+				v-else
 				variant="tertiary"
 				:ariaLabel="t('honeycomb', 'Change folders')"
 				v-bind="tip(t('honeycomb', 'Change folders'))"

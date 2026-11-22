@@ -8,6 +8,7 @@ import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import AppNavigation from '../../src/components/AppNavigation.vue'
 import FolderPicker from '../../src/components/FolderPicker.vue'
+import FoldersHome from '../../src/components/FoldersHome.vue'
 import ImmichScreen from '../../src/components/ImmichScreen.vue'
 import { logger } from '../../src/logger.ts'
 import { mountApp, openCull } from './app-cull.ts'
@@ -34,6 +35,13 @@ async function start(stored: object, immich: ImmichApi) {
 	return app
 }
 
+/** The folder picker, opened from the navigation as the start no longer opens it (FOLDERS-007.16). */
+async function openPicker(wrapper: Awaited<ReturnType<typeof start>>['wrapper']) {
+	wrapper.findComponent(AppNavigation).vm.$emit('chooseFolders')
+	await flushPromises()
+	return wrapper.findComponent(FolderPicker)
+}
+
 describe('App: I only use Immich', () => {
 	// spec: IMMICH-001.21
 	it('offers the choice to the folder picker once the connection to open answers ok', async () => {
@@ -41,16 +49,17 @@ describe('App: I only use Immich', () => {
 		const refused = (await start({}, immichOn(CONNECTED, REFUSED))).wrapper
 		const none = (await start({}, immichOn({ kind: 'none' }))).wrapper
 
-		expect(ok.findComponent(FolderPicker).props('immichOnly')).toBe('ok')
-		expect(refused.findComponent(FolderPicker).props('immichOnly')).toBe('refused')
-		expect(none.findComponent(FolderPicker).props('immichOnly')).toBe('none')
+		expect((await openPicker(ok)).props('immichOnly')).toBe('ok')
+		expect((await openPicker(refused)).props('immichOnly')).toBe('refused')
+		expect((await openPicker(none)).props('immichOnly')).toBe('none')
 	})
 
 	// spec: IMMICH-001.22
 	it('closes the picker, opens Immich and stores the choice', async () => {
 		const { wrapper, savedSettings } = await start({}, immichOn(CONNECTED))
 
-		wrapper.findComponent(FolderPicker).vm.$emit('immichOnly')
+		const picker = await openPicker(wrapper)
+		picker.vm.$emit('immichOnly')
 		await flushPromises()
 
 		expect(wrapper.findComponent(FolderPicker).exists()).toBe(false)
@@ -65,6 +74,7 @@ describe('App: I only use Immich', () => {
 		const immich: ImmichApi = { listConnections: async () => CONNECTED, status: () => new Promise((resolve) => (answer = resolve)) }
 		const { wrapper } = await start({ immichOnly: true }, immich)
 		expect(wrapper.findComponent(FolderPicker).exists()).toBe(false)
+		expect(wrapper.findComponent(FoldersHome).attributes('style')).toContain('display: none')
 
 		answer(OK)
 		await flushPromises()
@@ -81,22 +91,23 @@ describe('App: I only use Immich', () => {
 		['refused', immichOn(CONNECTED, REFUSED), 'refused'],
 		['broken', immichOn({ kind: 'broken' }), 'broken'],
 		['gone', immichOn({ kind: 'connections', connections: [] }), 'none'],
-	] as const)('opens Nextcloud with the picker when the connection is %s and keeps the choice', async (_, immich, offer) => {
+	] as const)('opens Nextcloud when the connection is %s, its picker naming why, and keeps the choice', async (_, immich, offer) => {
 		const { wrapper, savedSettings } = await start({ immichOnly: true }, immich)
 
 		expect(wrapper.findComponent(AppNavigation).props('source')).toBe('nextcloud')
-		expect(wrapper.findComponent(FolderPicker).props('immichOnly')).toBe(offer)
+		expect(wrapper.findComponent(FoldersHome).attributes('style') ?? '').not.toContain('display: none')
+		expect((await openPicker(wrapper)).props('immichOnly')).toBe(offer)
 		expect(savedSettings).toEqual([])
 	})
 
 	// spec: IMMICH-001.24
-	it('opens the folder picker when the settings cannot be read', async () => {
+	it('opens Nextcloud when the settings cannot be read', async () => {
 		vi.spyOn(logger, 'error').mockImplementation(() => {})
 		const { wrapper } = mountApp({ immich: immichOn(CONNECTED), loadSettings: async () => Promise.reject(new Error('offline')) })
 		await flushPromises()
 
-		expect(wrapper.findComponent(FolderPicker).props('immichOnly')).toBe('ok')
 		expect(wrapper.findComponent(AppNavigation).props('source')).toBe('nextcloud')
+		expect((await openPicker(wrapper)).props('immichOnly')).toBe('ok')
 	})
 
 	// spec: IMMICH-001.25

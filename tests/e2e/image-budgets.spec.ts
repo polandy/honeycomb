@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto'
 import { GRID_TIERS, IMAGE_LOADS_IN_FLIGHT, LOUPE_TIER } from '../../src/logic/image-tiers.ts'
 import { budgetPhotos } from './budget-photos.ts'
 import { BUDGET_MS, withinBudget } from './budgets.ts'
-import { resetViewState } from './cull.ts'
+import { openFolderPicker, resetViewState } from './cull.ts'
 import { apiHeaders, createFolder, MTIME, upload } from './files.ts'
 import { occ, previewFiles } from './server.ts'
 
@@ -110,7 +110,7 @@ function runRenderJobs(fileIds: number[]): void {
 /** Opens `folder` from the picker on a fresh page; the times until the first small and sharp tile images showed, and the in-flight watch. */
 async function openFolder(page: Page, folder: string) {
 	await page.goto('/index.php/apps/honeycomb/')
-	const picker = page.getByRole('dialog', { name: 'Choose folders' })
+	const picker = await openFolderPicker(page)
 	await picker.getByRole('treeitem', { name: folder }).click()
 	const peak = await watchInFlight(page)
 	await startTiming(page, { small: '.photo-tile__image[src*="size=256"]', sharp: '.photo-tile__image[src*="size=1024"]' })

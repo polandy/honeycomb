@@ -27,7 +27,7 @@ describe('the tooltips of the icon-only controls', () => {
 	it('name the grid toolbar\'s controls and their keys', () => {
 		const wrapper = mount(GridToolbar, {
 			props: {
-				folders: { set: { paths: ['/Trip'], subfolders: false }, count: 1 },
+				folders: { set: { paths: ['/Trip'], subfolders: false }, count: 1, back: false },
 				view: { tileSize: 150, groupByFolder: false, fileNames: false, sortOrder: 'file-name', flags: new Set<Flag>(['picked', 'unflagged']), filtersOpen: false, activeFilters: 0 },
 				progress: { decided: 0, total: 1, filtered: false },
 				selection: { selecting: false, selected: 0 },

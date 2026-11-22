@@ -27,7 +27,7 @@ import { DEFAULT_FILTERS } from '../logic/picture-filter.ts'
 import { toggleGroup } from '../logic/selection.ts'
 import { seriesOffer } from '../logic/series-menu.ts'
 
-const { cull, selection, decide, clearFlags, reduceSeries, xmpExport, editSeries, deleting, moving, resume, seriesCompare, tagEntry, headerShown, openLoupe, openSettings, unsaved, settings, updateSettings, imageUrl } = useCullContext()
+const { cull, selection, decide, clearFlags, reduceSeries, xmpExport, editSeries, deleting, moving, resume, seriesCompare, tagEntry, headerShown, home, openLoupe, openSettings, unsaved, settings, updateSettings, imageUrl } = useCullContext()
 const { folderSet, pictures, folderPaths, folders, grouped, view, progress, shownProgress, filters, activeFilters, empty, sortOrder, filtersOpen, pickerOpen, groupByFolder, tileSize } = cull
 const { selecting, selected } = selection
 const { rejected, rawRemovable } = deleting
@@ -38,7 +38,7 @@ const common = computed(() => cull.common(selected.value))
 const offer = computed(() => seriesOffer(selected.value, cull.seriesOf.value))
 const movable = computed(() => (activeFilters.value > 0 ? view.value : pictures.value.filter((picture) => isPicked(cull.decisionOf(picture)))))
 
-const toolbarFolders = computed<ToolbarFolders | null>(() => folderSet.value && { set: folderSet.value, count: folders.value })
+const toolbarFolders = computed<ToolbarFolders | null>(() => folderSet.value && { set: folderSet.value, count: folders.value, back: home.fromList.value })
 const toolbarView = computed<ToolbarView>(() => ({ tileSize: tileSize.value, groupByFolder: groupByFolder.value, fileNames: settings.value.showFileNames, sortOrder: sortOrder.value, flags: filters.value.flags, filtersOpen: filtersOpen.value, activeFilters: activeFilters.value }))
 const toolbarProgress = computed<ToolbarProgress>(() => ({ decided: shownProgress.value.decided, total: shownProgress.value.total, filtered: shownProgress.value.total < progress.value.total }))
 const toolbarSelection = computed<ToolbarSelection>(() => ({ selecting: selecting.value, selected: selected.value.length }))
@@ -93,6 +93,7 @@ defineExpose({ grid, filterBar })
 			:selection="toolbarSelection"
 			:tasks="toolbarTasks"
 			@changeFolders="pickerOpen = true"
+			@back="home.back"
 			@update:tileSize="cull.setTileSize"
 			@update:groupByFolder="groupByFolder = $event"
 			@update:fileNames="updateSettings({ showFileNames: $event })"

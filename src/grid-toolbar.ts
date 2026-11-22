@@ -9,6 +9,8 @@ export interface ToolbarFolders {
 	readonly set: FolderSet
 	/** How many folders the cull's pictures are in. */
 	readonly count: number
+	/** The cull was opened from *Folders*: the toolbar goes back to it, not to the folder picker. */
+	readonly back: boolean
 }
 
 /** How the grid shows the cull. */
