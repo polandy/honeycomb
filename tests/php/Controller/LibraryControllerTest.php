@@ -46,7 +46,7 @@ final class LibraryControllerTest extends TestCase {
 		$session->method('getUser')->willReturn($loggedIn ? ($user ?? $this->user()) : null);
 		$files = new FakeLibraryFiles();
 		$files->folders = [new LibraryFolder(10, '', 'e-10', Constants::PERMISSION_ALL)];
-		$root = $this->rootWith(['/Photos' => $this->folder('/Photos', fileId: 10), '/Shared' => $this->folder('/Shared', mountType: 'shared')]);
+		$root = $this->rootWith(['/Photos' => $this->folder('/Photos', fileId: 10), '/Shared' => $this->folder('/Shared', mountType: 'shared'), '/Locked' => $this->folder('/Locked', readable: false)]);
 		$service = new LibraryFolderService(new UserFolderResolver($root), $files, $this->summaries, new FakeFolderDoneStore(), new CaptureTimes($this->createStub(IFilesMetadataManager::class)), $this->createStub(ITimeFactory::class));
 		return new LibraryController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $service);
 	}
@@ -70,6 +70,12 @@ final class LibraryControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->scan('/Nope')->getStatus());
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->folders('/Photos', '', '500')->getStatus());
 		$this->assertSame([], $this->summaries->rows);
+	}
+
+	// spec: FOLDERS-001.13
+	public function testAnUnreadableRootIsForbidden(): void {
+		$this->assertSame(Http::STATUS_FORBIDDEN, $this->controller()->folders('/Locked')->getStatus());
+		$this->assertSame(Http::STATUS_FORBIDDEN, $this->controller()->scan('/Locked')->getStatus());
 	}
 
 	// spec: FOLDERS-001.15
