@@ -14,7 +14,8 @@ roots worth culling and the library's progress, and opens a folder's cull and re
 
 - **Start.** Once the settings are read, the app shows *Folders*; the folder picker does not open
   by itself. While the user has no library root, *Folders* shows the library setup instead of the
-  list.
+  list. A stored *I only use Immich* with a working connection opens Immich instead
+  (IMMICH-001.23).
 - **Library setup** (*Where is your library?*): a folder tree that chooses one folder, *Add as
   root*, the chosen roots each with *Remove*, and *Show folders*, disabled without a root. A root is
   added only when FOLDERS-004 accepts it and `GET /library/folders` accepts it as `root` (the home

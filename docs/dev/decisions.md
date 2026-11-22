@@ -1849,3 +1849,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the sort is a native select (FOLDERS-007.10, FOLDERS-007.12).
 - 2026-11-22: A line of several parts on the *Folders* screen is translated part by part and joined
   with ` · ` (FOLDERS-007.9).
+- 2026-11-22: *I only use Immich* is a tertiary button in the folder picker's footer, left of
+  *Choose*; it is hidden without an Immich connection and disabled with a one-line reason until
+  the connection that would open answers `ok` (IMMICH-001.21 to .25).
+- 2026-11-22: With the *Folders* start, *I only use Immich* is reached from the picker the
+  navigation opens; a stored choice skips *Folders* as it skipped the picker, and a broken
+  connection starts on *Folders* (IMMICH-001.21 to .24, FOLDERS-007.1).
+- 2026-11-22: App.vue loads its unscoped styles through one `app-global.css` that imports them,
+  to stay within 300 lines after the merge.

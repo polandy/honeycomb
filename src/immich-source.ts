@@ -22,12 +22,12 @@ export interface ImmichApi {
 
 /** The source switcher's state: the user's connections, the opened one and their statuses (IMMICH-001). */
 export function useImmichSource(api: ImmichApi, storage: BrowserStorage) {
-	const availability = ref<ImmichAvailability>(NO_IMMICH)
+	const availability = ref<ImmichAvailability | null>(null)
 	const source = ref<SourceKind>('nextcloud')
 	const remembered = ref(readStored(storage, IMMICH_CONNECTION_KEY))
 	const statuses = ref<Readonly<Record<string, ConnectionStatus | null>>>({})
 	const asked = new Map<string, number>()
-	const connections = computed(() => (availability.value.kind === 'connections' ? availability.value.connections : []))
+	const connections = computed(() => (availability.value?.kind === 'connections' ? availability.value.connections : []))
 
 	/** Reads the user's connections; a failed request offers no Immich and the Nextcloud source works as before. */
 	async function load() {
@@ -35,6 +35,7 @@ export function useImmichSource(api: ImmichApi, storage: BrowserStorage) {
 			availability.value = await api.listConnections()
 		} catch (error) {
 			logger.error('The Immich connections could not be listed.', { error })
+			availability.value = NO_IMMICH
 		}
 	}
 
@@ -71,9 +72,11 @@ export function useImmichSource(api: ImmichApi, storage: BrowserStorage) {
 
 	return {
 		source,
+		/** The user's connections or why there are none, null until they are listed. */
+		availability: computed(() => availability.value),
 		connections,
 		connection: computed(() => openedConnection(connections.value, remembered.value)),
-		offered: computed(() => offersImmich(availability.value)),
+		offered: computed(() => availability.value !== null && offersImmich(availability.value)),
 		/** The connection's last status, null while it is asked. */
 		statusOf: (connectionId: string): ConnectionStatus | null => statuses.value[connectionId] ?? null,
 		load,

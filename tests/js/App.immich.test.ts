@@ -66,7 +66,7 @@ describe('App: the Immich source', () => {
 		await flushPromises()
 		expect(wrapper.findComponent(GridToolbar).exists()).toBe(false)
 		expect(wrapper.findComponent(ImmichScreen).exists()).toBe(true)
-		expect(asked).toEqual(['andy-phone'])
+		expect(asked).toEqual(['andy-phone', 'andy-phone'])
 
 		navigation().vm.$emit('chooseSource', 'nextcloud')
 		await flushPromises()
@@ -112,7 +112,7 @@ describe('App: the Immich source', () => {
 		expect(dialog.props()).toEqual({ connection: PHONE, status: OK })
 		dialog.vm.$emit('test')
 		await flushPromises()
-		expect(asked).toEqual(['andy-phone', 'andy-phone'])
+		expect(asked).toEqual(['andy-phone', 'andy-phone', 'andy-phone'])
 
 		dialog.vm.$emit('close')
 		await flushPromises()
@@ -131,7 +131,7 @@ describe('App: the Immich source', () => {
 		wrapper.findComponent(ImmichState).vm.$emit('details')
 		await flushPromises()
 
-		expect(asked).toEqual(['andy-phone', 'andy-phone'])
+		expect(asked).toEqual(['andy-phone', 'andy-phone', 'andy-phone'])
 		expect(wrapper.findComponent(ImmichConnectionDialog).exists()).toBe(true)
 	})
 

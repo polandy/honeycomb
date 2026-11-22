@@ -13,23 +13,24 @@ export interface SettingsApi {
 	saveSettings(settings: Settings): Promise<void>
 }
 
-/** The user's settings: the defaults until the stored ones arrive, each change applied at once and saved whole; `ready` once they were read or could not be. */
+/** The user's settings: the defaults until the stored ones arrive, each change applied at once and saved whole. */
 export function useSettings(api: SettingsApi, toast: (message: string) => void) {
 	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
 	let loaded: 'pending' | 'read' | 'failed' = 'pending'
-	const ready = ref(false)
+	/** Whether the stored settings were read or could not be. */
+	const settled = ref(false)
 	let early: Partial<Settings> = {}
 
 	api.loadSettings().then((stored) => {
 		loaded = 'read'
+		settled.value = true
 		settings.value = { ...parseSettings(stored), ...early }
-		ready.value = true
 		if (Object.keys(early).length > 0) {
 			save()
 		}
 	}).catch((error: unknown) => {
 		loaded = 'failed'
-		ready.value = true
+		settled.value = true
 		logger.error('Could not read the settings; the defaults apply.', { error })
 		if (Object.keys(early).length > 0) {
 			unsaved()
@@ -61,5 +62,5 @@ export function useSettings(api: SettingsApi, toast: (message: string) => void) 
 		}
 	}
 
-	return { settings, ready, update }
+	return { settings, settled, update }
 }

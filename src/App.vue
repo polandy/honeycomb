@@ -46,6 +46,7 @@ import { freshCheck } from './fresh-check.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
 import { useHotkeys } from './hotkeys.ts'
 import { useImmichApp } from './immich-app.ts'
+import { useImmichOnly } from './immich-only.ts'
 import { connectionLines } from './immich-text.ts'
 import { DECISIONS_ONLY } from './logic/opened-source.ts'
 import { positionFileId } from './logic/resume-position.ts'
@@ -73,7 +74,7 @@ const props = withDefaults(defineProps<AppSeams>(), APP_SEAMS)
 
 const toast = useToast(props.schedule)
 const isAdmin = props.admin()
-const { settings, ready, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, toast.showError)
+const { settings, settled: settingsSettled, update: updateSettings } = useSettings({ loadSettings: props.loadSettings, saveSettings: props.saveSettings }, toast.showError)
 const viewStateApi = readOnce(props.viewState)
 const viewState = useViewState(viewStateApi, props.storage)
 const yearReviewHint = useYearReviewHint(viewStateApi, props.today)
@@ -125,7 +126,7 @@ const moving = useMoveFlow({ view: () => view.value, settings: () => settings.va
 const recent = useRecent(props.positions, props.listEntries, { folderSet: () => folderSet.value, progress: () => progress.value, pairing: () => cull.pairing.value }, toast.showError)
 const activeTime = useActiveTime(props.clock)
 const resume = useResume(recent.positions, { folderSet: () => folderSet.value, pictures: () => pictures.value, view: () => view.value, progress: () => progress.value, decidedOf: cull.decidedOf, shown: shownInLoupe, openLoupe, takeActiveSeconds: activeTime.take }, toast.show)
-const home = useFoldersHome(props.library, { roots: () => (ready.value ? settings.value.libraryRoots : null), flush: flushWrites, toastError: toast.showError, folderSet: () => folderSet.value, listing: () => recent.listing.value, positionOf: recent.positionOf, openPosition: openRecent, openSet: (set) => openAt(set, null), saveRoots: (libraryRoots) => updateSettings({ libraryRoots }), now: props.now })
+const home = useFoldersHome(props.library, { roots: () => (settingsSettled.value ? settings.value.libraryRoots : null), flush: flushWrites, toastError: toast.showError, folderSet: () => folderSet.value, listing: () => recent.listing.value, positionOf: recent.positionOf, openPosition: openRecent, openSet: (set) => openAt(set, null), saveRoots: (libraryRoots) => updateSettings({ libraryRoots }), now: props.now })
 /** Opens a folder set from *Recent* at its position. */
 function openRecent(position: ResumePosition) {
 	void recent.open(position, { open: cull.open, resumeAt: resume.resumeAt, resumeOpen: () => {
@@ -137,7 +138,8 @@ function openRecent(position: ResumePosition) {
 recent.refresh()
 watch(pickerOpen, (open) => open && recent.refresh())
 
-const { immich, shown: immichShown, opened, openedStatus, cull: immichCull, openConnection, checkOpened } = useImmichApp({ source: props.immich, cull: props.immichCull, storage: props.storage, now: props.now, toast })
+const { immich, shown: immichShown, opened, openedStatus, onlyOffer, cull: immichCull, openConnection, checkOpened } = useImmichApp({ source: props.immich, cull: props.immichCull, storage: props.storage, now: props.now, toast })
+const immichOnly = useImmichOnly({ stored: () => (settingsSettled.value ? settings.value.immichOnly : null), offer: () => onlyOffer.value, store: (chosen) => updateSettings({ immichOnly: chosen }), chooseSource: immich.choose, folderSet: () => folderSet.value, idle: () => folderSet.value === null && !recent.listing.value, pickerOpen })
 const connectionDialogOpen = ref(false)
 const IMMICH_HIDDEN_KEYS = unofferedKeys(DECISIONS_ONLY)
 
@@ -203,7 +205,7 @@ useHotkeys(() => {
 			@openRecent="openRecent"
 			@openSettings="settingsOpen = true" />
 		<NcAppContent class="honeycomb">
-			<FoldersHome v-show="ready && home.shown.value && !immichShown" :home="home" :listFolders="listFolders" />
+			<FoldersHome v-show="immichOnly.started.value && home.shown.value && !immichShown" :home="home" :listFolders="listFolders" />
 			<ImmichScreen
 				v-if="immichShown && openedStatus?.state === 'ok'"
 				ref="immichScreen"
@@ -226,15 +228,17 @@ useHotkeys(() => {
 			<GridScreen v-else-if="folderSet !== null" ref="gridScreen" />
 			<NoFolderState v-else @chooseFolder="pickerOpen = true" />
 			<FolderPicker
-				v-if="pickerOpen"
+				v-if="pickerOpen && immichOnly.started.value"
 				:current="folderSet"
 				:closable="immich.offered.value"
+				:immichOnly="onlyOffer ?? 'asked'"
 				:listFolders="listFolders"
 				:listEntries="props.listEntries"
 				:pairing="cull.pairing.value"
 				:recent="recent.items.value"
 				@confirm="openFolderSet"
 				@openRecent="openRecent"
+				@immichOnly="immichOnly.choose"
 				@cancel="pickerOpen = false" />
 			<CullDialogs
 				v-if="folderSet !== null"
@@ -288,12 +292,6 @@ useHotkeys(() => {
 	</NcContent>
 </template>
 
-<style src="./flag-fills.css" />
-
-<style src="./coarse-controls.css" />
-
-<style src="./navigation-toggle.css" />
-
-<style src="./reduced-motion.css" />
+<style src="./app-global.css" />
 
 <style scoped src="./app.css" />

@@ -28,27 +28,38 @@ function settingsOn(load: () => Promise<unknown>, save: (settings: object) => Pr
 describe('useSettings', () => {
 	// spec: SETTINGS-001.6
 	it('starts with the defaults and takes the stored settings once they are read', async () => {
-		const { settings, ready } = settingsOn(async () => ({ viKeys: true, showSingles: 'no' }))
+		const { settings } = settingsOn(async () => ({ viKeys: true, showSingles: 'no' }))
 
 		expect(settings.value).toEqual(DEFAULT_SETTINGS)
-		expect(ready.value).toBe(false)
 		await flushPromises()
 		expect(settings.value).toEqual({ ...DEFAULT_SETTINGS, viKeys: true })
-		expect(ready.value).toBe(true)
 	})
 
 	// spec: SETTINGS-001.12
 	it('keeps the defaults when the settings cannot be read', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => {})
-		const { settings, ready } = settingsOn(async () => {
+		const { settings } = settingsOn(async () => {
 			throw new Error('offline')
 		})
 
 		await flushPromises()
 
 		expect(settings.value).toEqual(DEFAULT_SETTINGS)
-		expect(ready.value).toBe(true)
 		expect(error).toHaveBeenCalledOnce()
+	})
+
+	// spec: IMMICH-001.23
+	it('settles once the stored settings are read or cannot be', async () => {
+		vi.spyOn(logger, 'error').mockImplementation(() => {})
+		const read = settingsOn(async () => ({}))
+		const failed = settingsOn(async () => {
+			throw new Error('offline')
+		})
+		expect([read.settled.value, failed.settled.value]).toEqual([false, false])
+
+		await flushPromises()
+
+		expect([read.settled.value, failed.settled.value]).toEqual([true, true])
 	})
 
 	// spec: SETTINGS-001.11

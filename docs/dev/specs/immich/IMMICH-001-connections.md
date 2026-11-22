@@ -35,6 +35,14 @@ never stores, shows or logs a key.
   file shows the Immich source as unavailable because of the server configuration. The Nextcloud
   source keeps its cull while the Immich source is open, and the page opens on Nextcloud. While
   *Immich* shows, the folder picker can be closed before a first cull, so Immich needs no folder.
+- **Only Immich:** without an open cull the folder picker's footer offers *I only use Immich*
+  while the user has a connection (owner decision 2026-11-22). It works while the connection
+  that would open (IMMICH-001.14) answers `ok`; while that status is asked, or the file is
+  broken, or the state is not `ok`, it is disabled and the dialog says why. Choosing it stores
+  `immichOnly` in the user's settings (ADR 0014) and opens the Immich source. A later start
+  without a folder set opens the Immich source without the picker once that connection answers
+  `ok`; otherwise the page opens on Nextcloud with the picker as before and the choice stays
+  stored. Opening a folder set from the picker clears the choice.
 - **Immich navigation:** the Immich source replaces *Folder* and *Recent* in the navigation with
   its connections and *Connection details*; the pages of their own stay.
 - **Connection switcher:** with several connections the navigation lists them by label, each with
@@ -188,3 +196,39 @@ never stores, shows or logs a key.
 - **Given** a user with a connection and no folder culled yet
 - **When** the user opens honeycomb
 - **Then** the folder picker can be closed, and the source switcher opens Immich
+
+### IMMICH-001.21 – *I only use Immich* only with a working connection
+
+- **Given** a user without a connection, with a broken file, or whose connection to open is
+  asked, `unreachable`, `refused`, `key` or `version`
+- **When** the folder picker opens from the navigation without a cull
+- **Then** without a connection the footer has no *I only use Immich*; otherwise it is disabled
+  and the dialog names the reason; with that connection `ok` it can be chosen
+
+### IMMICH-001.22 – Choosing *I only use Immich*
+
+- **Given** the folder picker without a cull and a connection that answers `ok`
+- **When** the user chooses *I only use Immich*
+- **Then** the picker closes, the Immich source opens, and the settings are saved with
+  `immichOnly`
+
+### IMMICH-001.23 – A start straight into Immich
+
+- **Given** `immichOnly` stored and no folder set to open
+- **When** the user opens honeycomb and the connection to open answers `ok`
+- **Then** the Immich source opens, and neither the start screen (FOLDERS-007.1) nor the folder
+  picker is shown
+
+### IMMICH-001.24 – Back to folders when Immich does not work
+
+- **Given** `immichOnly` stored and a broken file, no connection, or a connection to open that is
+  not `ok`
+- **When** the user opens honeycomb
+- **Then** the page opens on Nextcloud's start screen (FOLDERS-007.1), the folder picker opened
+  from the navigation names the reason, and `immichOnly` stays stored
+
+### IMMICH-001.25 – A folder set clears the choice
+
+- **Given** `immichOnly` stored
+- **When** the user opens a folder set from the folder picker or its *Recent*
+- **Then** the cull opens and the settings are saved without `immichOnly`

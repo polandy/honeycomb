@@ -226,6 +226,8 @@ export function shownNames(wrapper: AppWrapper): string[] {
 
 /** Confirms the folder set in the folder picker, opened from the toolbar on an open cull or else from the navigation; the entries carry the app's flag rows. */
 export async function openCull(wrapper: AppWrapper, set = SET, entries = ENTRIES, access: ListedAccess = NO_ACCESS) {
+	// The picker shows once the start has read the settings (IMMICH-001.23).
+	await flushPromises()
 	if (!wrapper.findComponent(FolderPicker).exists()) {
 		const toolbar = wrapper.findComponent(GridToolbar)
 		if (toolbar.exists()) {

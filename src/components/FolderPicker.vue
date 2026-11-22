@@ -6,6 +6,7 @@
 import type { Folder } from '../api.ts'
 import type { ListEntries } from '../folder-count.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
+import type { ImmichOnlyOffer } from '../logic/immich-only.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { PairingSettings } from '../logic/pairing.ts'
 import type { RecentFolderSet } from '../logic/recent.ts'
@@ -14,6 +15,7 @@ import type { ListedAccess } from '../logic/writability.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
+import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import ConfirmDialog from './ConfirmDialog.vue'
@@ -21,6 +23,7 @@ import FolderTree from './FolderTree.vue'
 import PickerRecentSets from './PickerRecentSets.vue'
 import { listEntries as apiListEntries, listFolders as apiListFolders } from '../api.ts'
 import { useFolderCount } from '../folder-count.ts'
+import { immichOnlyReason } from '../immich-text.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { tapFolder } from '../logic/folder-set.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../logic/pairing.ts'
@@ -37,22 +40,28 @@ const props = withDefaults(defineProps<{
 	recent?: readonly RecentFolderSet[]
 	/** Whether it can be closed while no cull is open, so another source is reachable. */
 	closable?: boolean
+	/** Whether the footer offers *I only use Immich* while no cull is open (IMMICH-001.21). */
+	immichOnly?: ImmichOnlyOffer
 }>(), {
 	listFolders: apiListFolders,
 	listEntries: apiListEntries,
 	pairing: () => DEFAULT_PAIRING_SETTINGS,
 	recent: () => [],
+	immichOnly: 'none',
 })
 
 const emit = defineEmits<{
 	confirm: [set: FolderSet, entries: ListingEntry[], access: ListedAccess]
 	cancel: []
 	openRecent: [position: ResumePosition]
+	immichOnly: []
 }>()
 
 const set = ref<FolderSet>(props.current ?? { paths: [], subfolders: false })
 const { count, failed } = useFolderCount(set, props.listEntries, () => props.pairing)
 const canCull = computed(() => (count.value?.pictures ?? 0) > 0)
+const offersImmichOnly = computed(() => props.current === null && props.immichOnly !== 'none')
+const immichOnlyBlocked = computed(() => immichOnlyReason(props.immichOnly))
 
 const summary = computed(() => {
 	if (set.value.paths.length === 0) {
@@ -139,6 +148,19 @@ function onConfirm() {
 			</h3>
 			<PickerRecentSets :items="props.recent" @open="emit('openRecent', $event)" />
 		</section>
+		<p v-if="offersImmichOnly && immichOnlyBlocked !== null" class="folder-picker__immich-only-reason">
+			{{ immichOnlyBlocked }}
+		</p>
+		<template #actions>
+			<NcButton
+				v-if="offersImmichOnly"
+				class="folder-picker__immich-only"
+				variant="tertiary"
+				:disabled="immichOnlyBlocked !== null"
+				@click="emit('immichOnly')">
+				{{ t('honeycomb', 'I only use Immich') }}
+			</NcButton>
+		</template>
 	</ConfirmDialog>
 </template>
 
@@ -160,6 +182,15 @@ function onConfirm() {
 
 .folder-picker__subfolders {
 	margin-bottom: calc(2 * var(--default-grid-baseline));
+}
+
+.folder-picker__immich-only {
+	margin-inline-end: auto;
+}
+
+.folder-picker__immich-only-reason {
+	margin-top: calc(2 * var(--default-grid-baseline));
+	color: var(--color-text-maxcontrast);
 }
 
 .folder-picker__count {
