@@ -56,6 +56,8 @@ final class WriteRateLimitTest extends TestCase {
 			'FlagController::save' => [['limit' => 600, 'period' => 60]],
 			'FlagController::takeOver' => [['limit' => 600, 'period' => 60]],
 			'ImmichController::decisions' => [['limit' => 600, 'period' => 60]],
+			'LibraryController::markDone' => [['limit' => 600, 'period' => 60]],
+			'LibraryController::reopen' => [['limit' => 600, 'period' => 60]],
 			'LibraryController::scan' => [['limit' => 600, 'period' => 60]],
 			'MoveController::move' => [['limit' => 600, 'period' => 60]],
 			'OrphanedSidecarController::trash' => [['limit' => 600, 'period' => 60]],

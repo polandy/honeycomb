@@ -7,8 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
+use OCA\Honeycomb\Service\FolderDoneService;
 use OCA\Honeycomb\Service\LibraryFolderService;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\UserRateLimit;
@@ -24,6 +26,7 @@ final class LibraryController extends Controller {
 		IRequest $request,
 		private ApiResponse $api,
 		private LibraryFolderService $library,
+		private FolderDoneService $done,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -41,5 +44,27 @@ final class LibraryController extends Controller {
 	#[FrontpageRoute(verb: 'POST', url: '/api/v1/library/scan')]
 	public function scan(string $root): Response {
 		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->library->scan($user, $root)));
+	}
+
+	/** Marks the folder done by the user, as of `$photos` photos (FOLDERS-006.1). */
+	#[NoAdminRequired]
+	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
+	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/library/folders/{fileId}/done')]
+	public function markDone(int $fileId, mixed $photos = null): Response {
+		return $this->api->forUser(function (IUser $user) use ($fileId, $photos): Response {
+			$done = $this->done->mark($user, $fileId, $photos);
+			return new JSONResponse(['fileId' => $fileId, 'done' => ['by' => $done->userId, 'at' => $done->doneAt, 'photos' => $done->photos]]);
+		});
+	}
+
+	/** Reopens the folder, also when it is not done (FOLDERS-006.3). */
+	#[NoAdminRequired]
+	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
+	#[FrontpageRoute(verb: 'DELETE', url: '/api/v1/library/folders/{fileId}/done')]
+	public function reopen(int $fileId): Response {
+		return $this->api->forUser(function (IUser $user) use ($fileId): Response {
+			$this->done->reopen($user, $fileId);
+			return new Response(Http::STATUS_NO_CONTENT);
+		});
 	}
 }

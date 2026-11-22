@@ -1828,3 +1828,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   shares one (ADR 0049, FOLDERS-005).
 - 2026-11-22: The backend spec of the folder summaries is FOLDERS-005, not FOLDERS-001 as first
   written: the pure TypeScript PR took FOLDERS-001 to 004 on `main` first (ADR 0049).
+- 2026-11-22: `PUT …/done` answers `{fileId, done: {by, at, photos}}`, not the whole list row: the
+  summary and the live counts are the list's, and a client updates its row from `done`; more
+  fields can be added later without breaking it (ADR 0049, FOLDERS-006).
+- 2026-11-22: Each successful `PUT` counts `folders_done` once, also a mark of a folder that is
+  already done; a reopen subtracts nothing, as ADR 0049 says (STATS-001, FOLDERS-006.9).
+- 2026-11-22: A folder that is not readable or not rateable answers `403` and a file id that is no
+  folder of the user's own files `404`, for `PUT` and `DELETE` alike, so a reopen of a vanished
+  folder is `404`, not `204` (FOLDERS-006.4, FOLDERS-006.5).
