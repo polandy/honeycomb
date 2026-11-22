@@ -1,7 +1,8 @@
 # Choosing folders
 
-honeycomb culls a *folder set*: one or more folders you tick in the folder picker. It opens on
-the first start and from *Change folders* in the grid's toolbar.
+honeycomb culls a *folder set*: one or more folders you tick in the folder picker. It opens from *Folder* in the navigation and
+from *Change folders* in the grid's toolbar; the start screen is *Folders*
+([culling a shoot](culling.md)).
 
 ## The folder tree
 

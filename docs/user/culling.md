@@ -15,8 +15,11 @@ rate. What that changes in your files: [sidecars](sidecars.md).
 
 ## 2. Choose the folders
 
-Open **honeycomb** in Nextcloud's navigation. The first time, the folder picker opens: tick one or
-more folders, with or without their subfolders ([choosing folders](choosing-folders.md)). Later,
+Open **honeycomb** in Nextcloud's navigation. The first time, *Where is your library?* asks for
+the folders that hold your photos; add them as roots and press *Show folders*. Later, *Folders*
+lists the folders below your roots worth culling, and *Cull* opens one; *Back to folders* returns
+to the list. To cull any other folders, the navigation's *Folder* opens the folder picker: tick one
+or more folders, with or without their subfolders ([choosing folders](choosing-folders.md)).
 *Change folders* opens it again, and **Recent** in the navigation lists your last folder sets
 with how many photos are decided.
 
