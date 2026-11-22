@@ -20,7 +20,7 @@ use OCP\DB\Exception as DbException;
 use Psr\Log\LoggerInterface;
 
 /** Removes the flag, visual hash, series member and XMP cache rows of files deleted for good, then the series left empty and the Immich decisions of connections that left the file, once a day (ADR 0024, ADR 0027, ADR 0040, ADR 0043). */
-final class RemoveVanishedDecisions extends TimedJob {
+final class SweepVanishedRows extends TimedJob {
 	private const int DAY = 86_400;
 
 	private ?DbException $failure = null;
