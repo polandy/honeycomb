@@ -29,7 +29,7 @@ final class MoveServiceTest extends TestCase {
 	private function service(bool $trashBin = true, ?LoggerInterface $logger = null, string $trashBinSize = '-1'): MoveService {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturnCallback(static fn (string $app): bool => $app === 'files_trashbin' && $trashBin);
-		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore(), new FakeQualityStore()), $logger ?? $this->createStub(LoggerInterface::class), $this->stats(), $this->treeTrashBin($trashBinSize));
+		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore(), new FakeQualityStore(), new FakeFolderSummaryStore(), new FakeFolderDoneStore()), $logger ?? $this->createStub(LoggerInterface::class), $this->stats(), $this->treeTrashBin($trashBinSize));
 	}
 
 	/** A RAW, its JPEG and the RAW's sidecar in `/In`, and a single JPEG. */

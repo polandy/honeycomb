@@ -60,12 +60,15 @@ defined. The sections below hold the amended text.
   grouping query over `oc_filecache.parent` (the flags join, members of the requesting user's
   done series) counts picked, rejected and undecided per folder on every request, as
   `FileCachePictures` counts pictures (ADR 0011). `GET /library/folders` reads all rows in one
-  query; `POST /library/scan` rescans, by the path cursor of ADR 0025, a fixed number of folders
-  below a root whose etag differs per call, rate limited, and answers `scanning {done,total}`;
+  query; `POST /library/scan` rescans, in path order, 50 folders
+  below a root whose etag differs per call (one file cache query finds them, not the path
+  cursor of ADR 0025), rate limited, and answers `scanning {done,total}`;
   the list shows *Updating n folders*. The daily background job only removes rows of vanished
   folders; new folders appear on the next scan.
 - **Fallback:** if the live query exceeds 0.5 s for 60,000 photos, flag, series and delete writes
-  mark the parent folders dirty and the counts are cached again.
+  mark the parent folders dirty and the counts are cached again. Measured with the summaries
+  (`tests/php-db/LibraryFolderBenchTest.php`): one page of 200 folders takes 13 to 23 ms on
+  SQLite, MariaDB and PostgreSQL, so the fallback is not built.
 - Unrated photos, near duplicates and soft photos are not counted: they exist only where a folder
   was visited, so they cannot rank.
 

@@ -1822,3 +1822,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   Cancel leaves the photos (owner #187 F2, ADR 0048, MOVE-002.13, MOVE-003.8, MOVE-004.21–23).
 - 2026-11-22: The folders-to-cull decisions are ADR 0049, not 0047 as asked: 0047 and 0048 were
   taken on `main` by then (ADR 0049).
+- 2026-11-22: The folder summaries find a root's folders with one file cache query (storage, path
+  prefix, folder mimetype, no hidden path) and scan the stale ones 50 per call in path order, not by
+  the walker or path cursor of ADR 0025; summaries use the default pairing lists, since every user
+  shares one (ADR 0049, FOLDERS-005).
+- 2026-11-22: The backend spec of the folder summaries is FOLDERS-005, not FOLDERS-001 as first
+  written: the pure TypeScript PR took FOLDERS-001 to 004 on `main` first (ADR 0049).

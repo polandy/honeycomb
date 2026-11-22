@@ -22,4 +22,9 @@
 			<directory>tests/php-db</directory>
 		</testsuite>
 	</testsuites>
+	<groups>
+		<exclude>
+			<group>bench</group>
+		</exclude>
+	</groups>
 </phpunit>

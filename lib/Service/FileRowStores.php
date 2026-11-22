@@ -16,6 +16,8 @@ final readonly class FileRowStores {
 		private SeriesStore $series,
 		private XmpCacheStore $xmpCache,
 		private QualityStore $quality,
+		private FolderSummaryStore $folderSummaries,
+		private FolderDoneStore $foldersDone,
 	) {
 	}
 
@@ -27,6 +29,8 @@ final readonly class FileRowStores {
 			new FileRowStoreEntry('series member', 'vanished_after_series_files', $this->series),
 			new FileRowStoreEntry('xmp cache', 'vanished_after_xmp_cache', $this->xmpCache),
 			new FileRowStoreEntry('quality value', 'vanished_after_quality', $this->quality),
+			new FileRowStoreEntry('folder summary', 'vanished_after_folder_summaries', $this->folderSummaries),
+			new FileRowStoreEntry('folder done', 'vanished_after_folders_done', $this->foldersDone),
 		];
 	}
 
