@@ -33,6 +33,7 @@ describe('parseSettings', () => {
 			viKeys: true,
 			showFileNames: true,
 			keepStatistics: false,
+			libraryRoots: ['/Photos', '/Archive'],
 			moveFavourites: ['/Archive'],
 			moveRecent: ['/Archive', '/Best'],
 			moveTemplate: '{name:lower}.{ext}',
@@ -169,5 +170,22 @@ describe('name template', () => {
 	// spec: SETTINGS-001.16
 	it('keeps a valid template', () => {
 		expect(parseSettings({ moveTemplate: '{date:%Y}/{name}.{ext}' }).moveTemplate).toBe('{date:%Y}/{name}.{ext}')
+	})
+})
+
+describe('libraryRoots', () => {
+	// spec: SETTINGS-001.29
+	it('defaults to none, also for anything but a list', () => {
+		expect(DEFAULT_SETTINGS.libraryRoots).toEqual([])
+		for (const value of [undefined, null, 'Photos', { 0: '/a' }, 7]) {
+			expect(parseSettings({ libraryRoots: value }).libraryRoots).toEqual([])
+		}
+		expect(parseSettings(null).libraryRoots).toEqual([])
+	})
+
+	// spec: SETTINGS-001.29
+	it('reads valid roots in order, normalised, and drops repeated, nested, empty and non-string ones', () => {
+		const stored = ['Photos', '/Photos/2019', '/Archive/', '/Photos', '', 4, '/Archive/old', '/Docs']
+		expect(parseSettings({ libraryRoots: stored }).libraryRoots).toEqual(['/Photos', '/Archive', '/Docs'])
 	})
 })
