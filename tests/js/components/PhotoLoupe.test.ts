@@ -25,7 +25,7 @@ describe('PhotoLoupe', () => {
 
 		expect(guide().exists()).toBe(false)
 		expect(document.activeElement).toBe(root.element)
-		expect(savedViewState).toEqual([{ gestureGuideSeen: true }])
+		expect(savedViewState).toEqual([{ gesture_guide_seen: true }])
 		const viewState = wrapper.props('viewState')
 		wrapper.unmount()
 		const again = await mountLoupe(4, {}, true, { viewState })
@@ -185,7 +185,7 @@ describe('PhotoLoupe', () => {
 		expect(wrapper.find('.loupe-info').text()).not.toContain('neighbours loaded')
 		await wrapper.find('[role="separator"]').trigger('keydown', { key: 'Home' })
 		expect(stored).toEqual({ [INFO_WIDTH_KEY]: '220' })
-		expect(savedViewState).toEqual([{ infoPanelOpen: true }])
+		expect(savedViewState).toEqual([{ info_panel_open: true }])
 		await button(wrapper, 'Toggle info panel').trigger('click')
 		expect(wrapper.find('.loupe-info').exists()).toBe(false)
 	})

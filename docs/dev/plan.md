@@ -1063,7 +1063,7 @@ honeycomb/
 │   │                           values, and one typed `Invalid*Exception` per request kind
 │   ├── Db/                     entities, `QBMapper` classes and the `FileRowQueries` trait
 │   ├── Preview/                RAW preview provider and the embedded JPEG decoder
-│   ├── BackgroundJob/          `RemoveVanishedDecisions`, the sweep of rows of deleted files
+│   ├── BackgroundJob/          `SweepVanishedRows`, the sweep of rows of deleted files
 │   ├── Listener/               `ForgetDeletedUser`
 │   └── Migration/              one database migration per feature
 ├── src/

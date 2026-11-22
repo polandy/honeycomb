@@ -10,9 +10,9 @@ vi.mock('@nextcloud/router', () => ({ generateUrl: (url: string) => `/index.php$
 describe('loadViewState', () => {
 	// spec: LOUPE-003.1
 	it('answers the stored view state as it came', async () => {
-		vi.mocked(axios.get).mockResolvedValue({ data: { viewState: { infoPanelOpen: null, gestureGuideSeen: true } } })
+		vi.mocked(axios.get).mockResolvedValue({ data: { viewState: { info_panel_open: null, gesture_guide_seen: true } } })
 
-		await expect(loadViewState()).resolves.toEqual({ infoPanelOpen: null, gestureGuideSeen: true })
+		await expect(loadViewState()).resolves.toEqual({ info_panel_open: null, gesture_guide_seen: true })
 		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/view-state')
 	})
 
@@ -30,8 +30,8 @@ describe('saveViewState', () => {
 	it('writes only the keys given', async () => {
 		vi.mocked(axios.put).mockResolvedValue({ data: {} })
 
-		await saveViewState({ gestureGuideSeen: true })
+		await saveViewState({ gesture_guide_seen: true })
 
-		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/view-state', { viewState: { gestureGuideSeen: true } })
+		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/view-state', { viewState: { gesture_guide_seen: true } })
 	})
 })

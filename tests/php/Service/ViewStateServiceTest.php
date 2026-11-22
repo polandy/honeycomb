@@ -52,57 +52,57 @@ final class ViewStateServiceTest extends TestCase {
 
 	// spec: LOUPE-003.1
 	public function testAKeyNeverStoredIsNull(): void {
-		$this->assertSame(['infoPanelOpen' => null, 'gestureGuideSeen' => null, 'seriesHintSeen' => null, 'yearReviewHintClosed' => null], $this->service()->get($this->user()));
+		$this->assertSame(['info_panel_open' => null, 'gesture_guide_seen' => null, 'series_hint_seen' => null, 'year_review_hint_closed' => null], $this->service()->get($this->user()));
 	}
 
 	// spec: LOUPE-003.1
 	public function testReadsEachStoredBoolean(): void {
-		$this->stored['alice/honeycomb/infoPanelOpen'] = false;
-		$this->stored['alice/honeycomb/gestureGuideSeen'] = true;
+		$this->stored['alice/honeycomb/info_panel_open'] = false;
+		$this->stored['alice/honeycomb/gesture_guide_seen'] = true;
 
-		$this->assertSame(['infoPanelOpen' => false, 'gestureGuideSeen' => true, 'seriesHintSeen' => null, 'yearReviewHintClosed' => null], $this->service()->get($this->user()));
+		$this->assertSame(['info_panel_open' => false, 'gesture_guide_seen' => true, 'series_hint_seen' => null, 'year_review_hint_closed' => null], $this->service()->get($this->user()));
 	}
 
 	// spec: LOUPE-003.2
 	public function testStoresOnlyTheKeysGivenAndAnswersTheFullViewState(): void {
-		$this->stored['alice/honeycomb/infoPanelOpen'] = true;
+		$this->stored['alice/honeycomb/info_panel_open'] = true;
 
-		$answer = $this->service()->save($this->user(), ['gestureGuideSeen' => false]);
+		$answer = $this->service()->save($this->user(), ['gesture_guide_seen' => false]);
 
-		$this->assertSame(['infoPanelOpen' => true, 'gestureGuideSeen' => false, 'seriesHintSeen' => null, 'yearReviewHintClosed' => null], $answer);
-		$this->assertSame(['alice/honeycomb/infoPanelOpen' => true, 'alice/honeycomb/gestureGuideSeen' => false], $this->stored);
+		$this->assertSame(['info_panel_open' => true, 'gesture_guide_seen' => false, 'series_hint_seen' => null, 'year_review_hint_closed' => null], $answer);
+		$this->assertSame(['alice/honeycomb/info_panel_open' => true, 'alice/honeycomb/gesture_guide_seen' => false], $this->stored);
 	}
 
 	// spec: LOUPE-003.2
 	public function testStoresEveryKey(): void {
-		$answer = $this->service()->save($this->user(), ['infoPanelOpen' => true, 'gestureGuideSeen' => true, 'seriesHintSeen' => true, 'yearReviewHintClosed' => 2026]);
+		$answer = $this->service()->save($this->user(), ['info_panel_open' => true, 'gesture_guide_seen' => true, 'series_hint_seen' => true, 'year_review_hint_closed' => 2026]);
 
-		$this->assertSame(['infoPanelOpen' => true, 'gestureGuideSeen' => true, 'seriesHintSeen' => true, 'yearReviewHintClosed' => 2026], $answer);
+		$this->assertSame(['info_panel_open' => true, 'gesture_guide_seen' => true, 'series_hint_seen' => true, 'year_review_hint_closed' => 2026], $answer);
 	}
 
 	// spec: LOUPE-003.1
 	public function testReadsTheYearOfTheClosedHint(): void {
-		$this->stored['alice/honeycomb/yearReviewHintClosed'] = 2025;
+		$this->stored['alice/honeycomb/year_review_hint_closed'] = 2025;
 
-		$this->assertSame(2025, $this->service()->get($this->user())['yearReviewHintClosed']);
+		$this->assertSame(2025, $this->service()->get($this->user())['year_review_hint_closed']);
 	}
 
 	/** @return array<string, array{mixed}> */
 	public static function invalidViewStates(): array {
 		return [
 			'null' => [null],
-			'a string' => ['infoPanelOpen'],
+			'a string' => ['info_panel_open'],
 			'a list' => [[true]],
 			'an empty object' => [[]],
-			'an unknown key' => [['infoPanelOpen' => true, 'tileSize' => true]],
-			'a string value' => [['infoPanelOpen' => 'true']],
-			'a number value' => [['gestureGuideSeen' => 1]],
-			'a null value' => [['gestureGuideSeen' => null]],
-			'a boolean year' => [['yearReviewHintClosed' => true]],
-			'a year as text' => [['yearReviewHintClosed' => '2026']],
-			'a year before 1970' => [['yearReviewHintClosed' => 1969]],
-			'a year after 9999' => [['yearReviewHintClosed' => 10000]],
-			'a flag with a year' => [['infoPanelOpen' => 2026]],
+			'an unknown key' => [['info_panel_open' => true, 'tileSize' => true]],
+			'a string value' => [['info_panel_open' => 'true']],
+			'a number value' => [['gesture_guide_seen' => 1]],
+			'a null value' => [['gesture_guide_seen' => null]],
+			'a boolean year' => [['year_review_hint_closed' => true]],
+			'a year as text' => [['year_review_hint_closed' => '2026']],
+			'a year before 1970' => [['year_review_hint_closed' => 1969]],
+			'a year after 9999' => [['year_review_hint_closed' => 10000]],
+			'a flag with a year' => [['info_panel_open' => 2026]],
 		];
 	}
 

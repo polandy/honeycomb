@@ -1864,3 +1864,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (`CorePreviewLock`, ADR 0050), so nothing outlives the app in the kernel; a render waits for a
   held lock at most 30 s, once a second, then renders without it and logs a warning. Easy to redo:
   `WAIT_SECONDS`.
+- 2026-11-22: The view state's four keys (`info_panel_open`, `gesture_guide_seen`,
+  `series_hint_seen`, `year_review_hint_closed`) are snake_case in storage and on the wire, so
+  every key stored in the Nextcloud user config follows one convention (arch report A4);
+  browser-storage keys keep their names. The old names are not read: there is no production
+  install yet.

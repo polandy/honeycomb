@@ -129,7 +129,7 @@ async function stubYear(page: Page): Promise<void> {
 // spec: STATS-001.46, STATS-001.47, STATS-001.48, STATS-001.49
 test('shows the year in review above the periods on the desktop', async ({ page }, testInfo) => {
 	await page.goto('/index.php/apps/honeycomb/')
-	const reopened = await page.request.put(`${API}/view-state`, { data: { viewState: { yearReviewHintClosed: 2000 } }, headers: await apiHeaders(page) })
+	const reopened = await page.request.put(`${API}/view-state`, { data: { viewState: { year_review_hint_closed: 2000 } }, headers: await apiHeaders(page) })
 	expect(reopened.status(), await reopened.text()).toBe(200)
 	await stubYear(page)
 
@@ -143,7 +143,7 @@ test('shows the year in review above the periods on the desktop', async ({ page 
 	await expect(review.locator('.year-review__day')).toHaveCount(365)
 	await expect(review.locator('.year-review__day[data-shade="3"]')).toHaveCount(1)
 	await expect(review).toContainText('Counted since Jan 1, 2026')
-	await expect.poll(async () => (await (await page.request.get(`${API}/view-state`, { headers: await apiHeaders(page) })).json()).viewState.yearReviewHintClosed).toBe(2026)
+	await expect.poll(async () => (await (await page.request.get(`${API}/view-state`, { headers: await apiHeaders(page) })).json()).viewState.year_review_hint_closed).toBe(2026)
 	await page.screenshot({ path: testInfo.outputPath('year-review-desktop.png'), animations: 'disabled' })
 })
 
@@ -164,7 +164,7 @@ test('shows the hint from 1 December, closes it for good', async ({ page }, test
 	await page.clock.setFixedTime(new Date(2026, 11, 1, 12))
 	await page.goto('/index.php/apps/honeycomb/')
 	await resetViewState(page)
-	const closed = await page.request.put(`${API}/view-state`, { data: { viewState: { yearReviewHintClosed: 2000 } }, headers: await apiHeaders(page) })
+	const closed = await page.request.put(`${API}/view-state`, { data: { viewState: { year_review_hint_closed: 2000 } }, headers: await apiHeaders(page) })
 	expect(closed.status(), await closed.text()).toBe(200)
 	const folder = `Statistics ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
@@ -176,7 +176,7 @@ test('shows the hint from 1 December, closes it for good', async ({ page }, test
 	await page.screenshot({ path: testInfo.outputPath('year-review-hint.png'), animations: 'disabled' })
 	await hint.getByRole('button', { name: 'Close' }).click()
 	await expect(hint).toHaveCount(0)
-	await expect.poll(async () => (await (await page.request.get(`${API}/view-state`, { headers: await apiHeaders(page) })).json()).viewState.yearReviewHintClosed).toBe(2026)
+	await expect.poll(async () => (await (await page.request.get(`${API}/view-state`, { headers: await apiHeaders(page) })).json()).viewState.year_review_hint_closed).toBe(2026)
 })
 
 // spec: STATS-001.42, STATS-001.50

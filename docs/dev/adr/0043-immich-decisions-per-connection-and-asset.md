@@ -86,7 +86,7 @@ therefore carries Immich's `updatedAt` in every entry (the source's API ADR).
    alias in `Application.php` and one entry in `UserRowStores`. `forgetUser` removes every row
    with the user's id.
 2. **Not a `FileRowStore`:** no `carryOver`, no row-id cursor, no entry in `FileRowStores`; the
-   file sweep of `RemoveVanishedDecisions` never sees the table. `honeycomb_flags`, `FlagStore`
+   file sweep of `SweepVanishedRows` never sees the table. `honeycomb_flags`, `FlagStore`
    and the flags endpoints stay as ADR 0040 has them, and the comment on `UserRowStores` that the
    flags are no one's stays true.
 3. **No take-over.** There is no sidecar to read; an asset without a row is `UNDECIDED`.
@@ -138,7 +138,7 @@ returns rows as they are.
 ### Lifecycle: throw-away data, as ADR 0040
 
 - **A deleted user:** `forgetUser` through `UserRowStores`, like every user table.
-- **A connection that left the file:** the daily sweep in `RemoveVanishedDecisions` (ADR 0042),
+- **A connection that left the file:** the daily sweep in `SweepVanishedRows` (ADR 0042),
   as a step of its own beside the file sweep. It keeps a row only while the file names a
   connection with the row's `connection_id` for the row's `user_id`, and sweeps nothing while the
   file is not configured, missing or invalid.
@@ -168,7 +168,7 @@ The pull requests are those of ADR 0041's order; this ADR says what each adds fo
 | ADR 0041 PR | What this ADR adds to it |
 |---|---|
 | 3 `docs(specs)` | the spec *decisions per connection*: the fields, the save and its errors, the lifecycle, no statistics in Phase 1 |
-| 7 `feat(immich)` | the migration (its number is the one shared line), `ImmichDecisionStore` and its mapper with the grouped counts and the paged decision filter, the controller with the save endpoint and its validation, the entry in `UserRowStores`, the connection sweep as a step of `RemoveVanishedDecisions`; after PR 6, whose connection registry the access check needs, and after the sign-off |
+| 7 `feat(immich)` | the migration (its number is the one shared line), `ImmichDecisionStore` and its mapper with the grouped counts and the paged decision filter, the controller with the save endpoint and its validation, the entry in `UserRowStores`, the connection sweep as a step of `SweepVanishedRows`; after PR 6, whose connection registry the access check needs, and after the sign-off |
 | 8 `feat(immich)` | pure TypeScript: an entry's four fields to a `Decision`, `UNDECIDED` without a row; the save's facets from an entry |
 | 10 `feat(immich)` (b) | grid and loupe save through the endpoint, undo as a new save, every connection rateable |
 | 11 `test(e2e)` | against the stub: a decision survives a reload; the fixture's second connection sees none of the first's rows |

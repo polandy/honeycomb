@@ -13,9 +13,9 @@ hint were dismissed per user on the server, so both follow the user to every dev
 ## Behaviour
 
 The view state is three booleans and one year per user behind `GET` and
-`PUT /apps/honeycomb/api/v1/view-state`: `infoPanelOpen`, `gestureGuideSeen`, `seriesHintSeen` and
-`yearReviewHintClosed`, the year (1970 to 9999) whose year-in-review hint the user closed (STATS-001.26),
-each `null` while it was never stored. A write names only
+`PUT /apps/honeycomb/api/v1/view-state`: `info_panel_open`, `gesture_guide_seen`,
+`series_hint_seen` and `year_review_hint_closed`, the year (1970 to 9999) whose year-in-review hint
+the user closed (STATS-001.26), each `null` while it was never stored. A write names only
 the keys it changes. The info panel's width and the Nextcloud navigation toggle stay in browser
 storage (LOUPE-001), since they depend on the device's screen.
 
@@ -30,8 +30,8 @@ an older version left in browser storage is taken over once.
 
 - **Given** a user with some, all or none of the keys stored
 - **When** the client reads the view state
-- **Then** the answer is `{"viewState": {"infoPanelOpen": …, "gestureGuideSeen": …,
-  "seriesHintSeen": …, "yearReviewHintClosed": …}}` with each stored boolean or year, `null` for
+- **Then** the answer is `{"viewState": {"info_panel_open": …, "gesture_guide_seen": …,
+  "series_hint_seen": …, "year_review_hint_closed": …}}` with each stored boolean or year, `null` for
   a key never stored
 
 ### LOUPE-003.2 – Write only the keys given
@@ -44,7 +44,7 @@ an older version left in browser storage is taken over once.
 ### LOUPE-003.3 – Refused writes
 
 - **Given** a view state that is not an object, is empty, has an unknown key, a value that is
-  not a boolean, or a `yearReviewHintClosed` that is not a whole year from 1970 to 9999
+  not a boolean, or a `year_review_hint_closed` that is not a whole year from 1970 to 9999
 - **When** the client writes it
 - **Then** the answer is `400` with an empty body and nothing is stored
 
@@ -98,5 +98,6 @@ toggle themselves: LOUPE-001. The settings: SETTINGS-001.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Written and implemented from the owner review of 2026-11-10 (ADR 0019) |
-| 2026-11-14 | `seriesHintSeen` for the first-series hint (series concept step 11) |
-| 2026-11-20 | `yearReviewHintClosed` for the year-in-review hint (STATS-001.26, .48) |
+| 2026-11-14 | `series_hint_seen` for the first-series hint (series concept step 11) |
+| 2026-11-20 | `year_review_hint_closed` for the year-in-review hint (STATS-001.26, .48) |
+| 2026-11-22 | The four keys are snake_case, like every other stored key (no read of the old names: no production install yet) |

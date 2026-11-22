@@ -33,7 +33,7 @@ export function useYearReviewHint(api: ViewStateApi, today: () => string) {
 				return
 			}
 			closed.value = shown
-			api.saveViewState({ yearReviewHintClosed: shown }).catch((error: unknown) => logger.error('Could not save the closed year-in-review hint.', { error }))
+			api.saveViewState({ year_review_hint_closed: shown }).catch((error: unknown) => logger.error('Could not save the closed year-in-review hint.', { error }))
 		},
 	}
 }

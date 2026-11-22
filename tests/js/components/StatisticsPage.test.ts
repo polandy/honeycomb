@@ -30,7 +30,7 @@ function mountPage(answer: Partial<StatsAnswer> = {}, settings: unknown = ROOTS,
 		loadStatistics: vi.fn(async () => ({ counters: COUNTERS, firstDay: '2026-11-01', today: TODAY, seriesDoneBefore: 0, read: NOTHING_READ, ...answer })),
 		loadLibraryFolders: folders,
 		loadSettings: vi.fn(async () => settings),
-		saveViewState: vi.fn(async (_patch: { yearReviewHintClosed: number }) => undefined),
+		saveViewState: vi.fn(async (_patch: { year_review_hint_closed: number }) => undefined),
 	}
 	return mount(StatisticsPage, { props: { seams } })
 }
@@ -284,7 +284,7 @@ describe('StatisticsPage', () => {
 			const wrapper = mountPage({ counters: YEAR, today: DECEMBER, firstDay: '2026-01-01' })
 			await flushPromises()
 
-			expect((wrapper.vm.$.props.seams as { saveViewState: unknown }).saveViewState).toHaveBeenCalledExactlyOnceWith({ yearReviewHintClosed: 2026 })
+			expect((wrapper.vm.$.props.seams as { saveViewState: unknown }).saveViewState).toHaveBeenCalledExactlyOnceWith({ year_review_hint_closed: 2026 })
 		})
 
 		// spec: STATS-001.48
