@@ -280,4 +280,21 @@ describe('useImmichCull', () => {
 		expect(cull.counts.value!.flags).toEqual({ ...COUNTS.flags, picked: 1, unflagged: COUNTS.flags.unflagged - 1 })
 		expect(toast.showError).toHaveBeenCalledTimes(1)
 	})
+
+	it('leaves a reopened connection alone when an earlier save fails', async () => {
+		vi.spyOn(logger, 'error').mockReturnValue()
+		const { cull, assets, counts, saves, toast } = cullOn()
+		cull.open('andy-phone')
+		assets[0]!.answer(page(['a1']))
+		counts[0]!.answer(COUNTS)
+		await flushPromises()
+		cull.decide({ kind: 'rating', rating: 4 }, [cull.pictures.value[0]!])
+		cull.open('andy-phone')
+
+		saves[0]!.fail(new Error('database down'))
+		await flushPromises()
+
+		expect(logger.error).toHaveBeenCalled()
+		expect(toast.showError).not.toHaveBeenCalled()
+	})
 })
