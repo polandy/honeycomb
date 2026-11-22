@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Page } from '@playwright/test'
+import type { Page, Request } from '@playwright/test'
 
 import { execFileSync } from 'node:child_process'
 
@@ -35,4 +35,27 @@ export async function logIn(page: Page, user: { username: string, password: stri
 	await page.getByLabel('Password', { exact: true }).fill(user.password)
 	await page.getByRole('button', { name: 'Log in', exact: true }).click()
 	await page.waitForURL(/\/apps\//)
+}
+
+/** Tracks the page's requests; the returned function blocks new ones and resolves once every sent one is answered. */
+export function trackRequests(page: Page): () => Promise<void> {
+	const open = new Set<Request>()
+	let drained = (): void => {}
+	const settle = (request: Request): void => {
+		open.delete(request)
+		if (open.size === 0) {
+			drained()
+		}
+	}
+	page.on('request', (request) => open.add(request))
+	page.on('requestfinished', settle)
+	page.on('requestfailed', settle)
+	return async () => {
+		await page.route('**', (route) => route.abort())
+		if (open.size > 0) {
+			await new Promise<void>((resolve) => {
+				drained = resolve
+			})
+		}
+	}
 }

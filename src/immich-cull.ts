@@ -9,6 +9,7 @@ import type { AssetsRequest, Page } from './logic/immich-paging.ts'
 import type { SourceEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
 import type { PictureId } from './logic/picture-id.ts'
+import type { SaveResult } from './logic/save-queue.ts'
 import type { DecisionStep } from './logic/undo.ts'
 import type { useToast } from './toast.ts'
 
@@ -24,6 +25,7 @@ import { assetDecision, assetPicture, decisionRow } from './logic/immich-asset.t
 import { countsAfterDecision } from './logic/immich-counts.ts'
 import { countsRequest, defaultImmichFilters, requestFilters, timeOptions } from './logic/immich-filters.ts'
 import { EMPTY_LIST, pageArrived, pageAsked, pageFailed, shownList, wantsNext } from './logic/immich-paging.ts'
+import { saveQueue } from './logic/save-queue.ts'
 import { undoEntry } from './logic/undo.ts'
 import { useToastedUndo } from './toasted-decisions.ts'
 
@@ -74,6 +76,7 @@ export function useImmichCull(context: ImmichCullContext) {
 	const shown = new Map<PictureId, Picture<ImmichSourceEntry>>()
 	let request: RequestFilters = requestFilters(filters.value, now(), calendar)
 	let generation = 0
+	let save: ((rows: readonly DecisionRow[]) => Promise<SaveResult<DecisionRow>>) | null = null
 	// Undo saves the rows a step replaced, redo the rows it wrote (IMMICH-003.19).
 	const history = useCullHistory<DecisionStep>((step, back) => void apply(back ? changesBetween(step.after, step.before) : changesBetween(step.before, step.after)))
 	const { undo, redo } = useToastedUndo(history, context.toast.show)
@@ -91,9 +94,17 @@ export function useImmichCull(context: ImmichCullContext) {
 		return picture
 	}
 
+	/** Sends the connection's saves one at a time, the newest row per asset (IMMICH-003.20). */
+	function queueFor(id: string) {
+		return saveQueue<DecisionRow, string>(async (rows) => {
+			await api.saveDecisions(id, rows)
+		}, { key: (row) => row.assetId })
+	}
+
 	/** Opens the connection on its default filters. */
 	function open(id: string) {
 		connectionId.value = id
+		save = queueFor(id)
 		ids.clear()
 		entries.clear()
 		shown.clear()
@@ -207,18 +218,23 @@ export function useImmichCull(context: ImmichCullContext) {
 		return [...decisionsByFileId(to)].map(([id, after]) => ({ id, before: before.get(id)!, after }))
 	}
 
-	/** Shows the decisions at once, counts them and saves them; puts them back if the save fails. */
+	/** Shows the decisions at once, counts them and saves them; puts back what no later save stored (IMMICH-003.21). */
 	async function apply(changes: readonly Change[]) {
 		const asked = generation
 		show(changes.map(({ id, after }) => [id, after]), changes.map(({ before, after }) => [before, after]))
-		try {
-			await api.saveDecisions(connectionId.value!, changes.map(({ id, after }) => decisionRow(entries.get(id)!, after)))
-		} catch (error) {
-			logger.error('Could not save the Immich decisions', { error })
-			if (asked === generation) {
-				show(changes.map(({ id, before }) => [id, before]), changes.map(({ before, after }) => [after, before]))
-				context.toast.showError(t('honeycomb', 'Could not save the decision; it is back as it was'))
-			}
+		const result = await save!(changes.map(({ id, after }) => decisionRow(entries.get(id)!, after)))
+		if (result.ok) {
+			return
+		}
+		logger.error('Could not save the Immich decisions', { error: result.error })
+		if (asked !== generation) {
+			return
+		}
+		const unsaved = new Set(result.unsaved.map((row) => row.assetId))
+		const back = changes.filter(({ id }) => unsaved.has(entries.get(id)!.assetId))
+		if (back.length > 0) {
+			show(back.map(({ id, before }) => [id, before]), back.map(({ before, after }) => [after, before]))
+			context.toast.showError(t('honeycomb', 'Could not save the decision; it is back as it was'))
 		}
 	}
 
