@@ -1066,7 +1066,7 @@ honeycomb/
 │   ├── Preview/                RAW preview provider and the embedded JPEG decoder
 │   ├── BackgroundJob/          `SweepVanishedRows`, the sweep of rows of deleted files
 │   ├── Listener/               `ForgetDeletedUser`
-│   └── Migration/              one database migration per feature
+│   └── Migration/              the baseline (ADR 0055), then one migration per feature
 ├── src/
 │   ├── logic/                  pure TypeScript, no DOM or network (ADR 0006): pairing, series,
 │   │                           filter, sort, name templates, xmp, undo, gestures, hotkeys, ...
