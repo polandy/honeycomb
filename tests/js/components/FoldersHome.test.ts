@@ -25,7 +25,14 @@ function fakeHome(roots: readonly string[]) {
 		leave: vi.fn(),
 		check: vi.fn(async () => true),
 		cull: vi.fn(),
+		cullNew: vi.fn(),
 		hide: vi.fn(),
+		markDone: vi.fn(async () => undefined),
+		reopen: vi.fn(async () => undefined),
+		changed: shallowRef({ fileId: 1 }),
+		finishing: computed(() => null),
+		markFinished: vi.fn(async () => undefined),
+		setDone: vi.fn(),
 		back: vi.fn(),
 		saveRoots: vi.fn(),
 		now: () => 0,
@@ -58,5 +65,22 @@ describe('FoldersHome', () => {
 		wrapper.findComponent(FoldersScreen).vm.$emit('cull', { paths: ['/Photos/Trip'], subfolders: false })
 
 		expect(home.cull).toHaveBeenCalledWith({ paths: ['/Photos/Trip'], subfolders: false })
+	})
+
+	// spec: FOLDERS-008.2, FOLDERS-008.3, FOLDERS-008.4, FOLDERS-008.7
+	it('hands the screen the changed row and marks, reopens or culls the new photos it asks for', () => {
+		const home = fakeHome(['/Photos'])
+		const wrapper = mountHome(home)
+		const screen = wrapper.findComponent(FoldersScreen)
+		const trip = home.rows.value[0]
+
+		expect(screen.props('focusRow')).toEqual({ fileId: 1 })
+		screen.vm.$emit('markDone', trip)
+		screen.vm.$emit('reopen', trip)
+		screen.vm.$emit('cullNew', { paths: ['/Photos/Trip'], subfolders: false })
+
+		expect(home.markDone).toHaveBeenCalledWith(trip)
+		expect(home.reopen).toHaveBeenCalledWith(trip)
+		expect(home.cullNew).toHaveBeenCalledWith({ paths: ['/Photos/Trip'], subfolders: false })
 	})
 })

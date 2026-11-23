@@ -7,7 +7,9 @@ import type { Toast } from '../toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import { onBeforeUnmount } from 'vue'
+import AppIcon from './AppIcon.vue'
 import { keyCap } from '../hotkeys.ts'
+import { dismissesToast } from '../toast.ts'
 import { tip } from '../tooltip.ts'
 
 const props = defineProps<{
@@ -22,7 +24,7 @@ const emit = defineEmits<{
 	offer: []
 	/** The details button, for the dialog. */
 	details: []
-	/** The close button of an error toast. */
+	/** The close button, or a sideways swipe on a touch screen (APP-001.18). */
 	close: []
 	/** Whether the focus is inside it. */
 	focus: [inside: boolean]
@@ -37,26 +39,33 @@ function onFocusOut(event: FocusEvent) {
 	}
 }
 
+/** Where a touch or pen press began, for the swipe; null for a mouse, which has the close button. */
+let start: { x: number, y: number } | null = null
+
 /** The release can happen anywhere on the page. */
-function onPointerDown() {
+function onPointerDown(event: PointerEvent) {
+	start = event.pointerType === 'mouse' ? null : { x: event.clientX, y: event.clientY }
 	emit('press', true)
 	window.addEventListener('pointerup', release)
 	window.addEventListener('pointercancel', release)
 }
 
-/** Ends the press and stops listening. */
-function release() {
+/** Ends the press and stops listening; a release far enough sideways closes the toast. */
+function release(event: PointerEvent) {
 	window.removeEventListener('pointerup', release)
 	window.removeEventListener('pointercancel', release)
 	emit('press', false)
+	const from = start
+	start = null
+	if (from !== null && event.type === 'pointerup' && dismissesToast(event.clientX - from.x, event.clientY - from.y)) {
+		emit('close')
+	}
 }
 
 onBeforeUnmount(() => {
 	window.removeEventListener('pointerup', release)
 	window.removeEventListener('pointercancel', release)
 })
-
-const CLOSE_SIGN = '×'
 </script>
 
 <template>
@@ -97,13 +106,12 @@ const CLOSE_SIGN = '×'
 				{{ t('honeycomb', 'Details') }}
 			</button>
 			<button
-				v-if="props.toast.kind === 'error'"
 				type="button"
 				class="undo-toast__action undo-toast__close"
 				:aria-label="t('honeycomb', 'Close')"
 				@mousedown.prevent
 				@click="emit('close')">
-				{{ CLOSE_SIGN }}
+				<AppIcon name="close" />
 			</button>
 		</div>
 	</div>
@@ -127,6 +135,8 @@ const CLOSE_SIGN = '×'
 	background: var(--color-main-text);
 	color: var(--color-main-background);
 	box-shadow: 0 2px 12px var(--color-box-shadow);
+	/* A sideways move stays a pointer move for the swipe, not a pan that cancels it. */
+	touch-action: pan-y;
 }
 
 .undo-toast__row {

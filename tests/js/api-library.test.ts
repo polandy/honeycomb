@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, listLibraryFolders, scanLibrary } from '../../src/api.ts'
+import { ApiResponseError, listAllLibraryFolders, listLibraryFolders, markFolderDone, reopenFolder, scanLibrary } from '../../src/api.ts'
 import { row } from './logic/folder-fixtures.ts'
 
-vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))
+vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({ generateUrl: (url: string) => `/index.php${url}` }))
 
 const ROW = row({ fileId: 7, root: '/Photos', path: '/Photos/2019' })
@@ -13,25 +13,38 @@ const ROW = row({ fileId: 7, root: '/Photos', path: '/Photos/2019' })
 describe('listLibraryFolders', () => {
 	// spec: FOLDERS-007.6
 	it('asks one page of a root after a folder and answers it', async () => {
-		vi.mocked(axios.get).mockResolvedValue({ data: { folders: [ROW], next: 7, scanning: { done: 1, total: 2 } } })
+		vi.mocked(axios.get).mockResolvedValue({ data: { folders: [ROW], nextCursor: 7, scanning: { done: 1, total: 2 } } })
 
-		await expect(listLibraryFolders('/Photos', 3)).resolves.toEqual({ folders: [ROW], next: 7, scanning: { done: 1, total: 2 } })
-		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/folders', { params: { root: '/Photos', after: 3 } })
+		await expect(listLibraryFolders('/Photos', 3)).resolves.toEqual({ folders: [ROW], nextCursor: 7, scanning: { done: 1, total: 2 } })
+		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/folders', { params: { root: '/Photos', cursor: 3 } })
 	})
 
 	// spec: FOLDERS-007.4
 	it('asks a page of the given size', async () => {
-		vi.mocked(axios.get).mockResolvedValue({ data: { folders: [], next: null, scanning: null } })
+		vi.mocked(axios.get).mockResolvedValue({ data: { folders: [], nextCursor: null, scanning: null } })
 
-		await expect(listLibraryFolders('/Photos', 0, 1)).resolves.toEqual({ folders: [], next: null, scanning: null })
-		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/folders', { params: { root: '/Photos', after: 0, limit: 1 } })
+		await expect(listLibraryFolders('/Photos', 0, 1)).resolves.toEqual({ folders: [], nextCursor: null, scanning: null })
+		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/folders', { params: { root: '/Photos', cursor: 0, limit: 1 } })
 	})
 
 	it('refuses a page of the wrong shape', async () => {
-		for (const data of [null, { folders: {}, next: null, scanning: null }, { folders: [{ fileId: '7' }], next: null, scanning: null }, { folders: [], next: '7', scanning: null }, { folders: [], next: null, scanning: { done: 1 } }]) {
+		for (const data of [null, { folders: {}, nextCursor: null, scanning: null }, { folders: [{ fileId: '7' }], nextCursor: null, scanning: null }, { folders: [], nextCursor: '7', scanning: null }, { folders: [], nextCursor: null, scanning: { done: 1 } }]) {
 			vi.mocked(axios.get).mockResolvedValue({ data })
 			await expect(listLibraryFolders('/Photos')).rejects.toThrow(ApiResponseError)
 		}
+	})
+})
+
+describe('listAllLibraryFolders', () => {
+	// spec: STATS-001.42
+	it('reads every page of a root', async () => {
+		const other = row({ fileId: 8, path: '/Photos/2020' })
+		vi.mocked(axios.get)
+			.mockResolvedValueOnce({ data: { folders: [ROW], nextCursor: 7, scanning: null } })
+			.mockResolvedValueOnce({ data: { folders: [other], nextCursor: null, scanning: null } })
+
+		await expect(listAllLibraryFolders('/Photos')).resolves.toEqual([ROW, other])
+		expect(vi.mocked(axios.get).mock.calls.slice(-2).map(([, config]) => config)).toEqual([{ params: { root: '/Photos', cursor: 0 } }, { params: { root: '/Photos', cursor: 7 } }])
 	})
 })
 
@@ -47,5 +60,41 @@ describe('scanLibrary', () => {
 	it('refuses an answer without its progress', async () => {
 		vi.mocked(axios.post).mockResolvedValue({ data: { scanning: null } })
 		await expect(scanLibrary('/Photos')).rejects.toThrow(ApiResponseError)
+	})
+})
+
+describe('markFolderDone', () => {
+	// spec: FOLDERS-006.14
+	it('accepts a done status whose user was deleted', async () => {
+		const done = { by: null, at: 1_800_000_000, photos: 412 }
+		vi.mocked(axios.put).mockResolvedValue({ data: { fileId: 7, done } })
+
+		await expect(markFolderDone(7, 412)).resolves.toEqual(done)
+	})
+
+	// spec: FOLDERS-008.1
+	it('marks the folder done as of its photos and answers the done status', async () => {
+		const done = { by: 'andy', at: 1_800_000_000, photos: 412 }
+		vi.mocked(axios.put).mockResolvedValue({ data: { fileId: 7, done } })
+
+		await expect(markFolderDone(7, 412)).resolves.toEqual(done)
+		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/folders/7/done', { photos: 412 })
+	})
+
+	it('refuses an answer without its done status', async () => {
+		for (const data of [null, { fileId: 7, done: null }, { fileId: 7, done: { by: 'andy', at: '1', photos: 412 } }]) {
+			vi.mocked(axios.put).mockResolvedValue({ data })
+			await expect(markFolderDone(7, 412)).rejects.toThrow(ApiResponseError)
+		}
+	})
+})
+
+describe('reopenFolder', () => {
+	// spec: FOLDERS-008.4
+	it('removes the done status of the folder', async () => {
+		vi.mocked(axios.delete).mockResolvedValue({ data: '' })
+
+		await expect(reopenFolder(7)).resolves.toBeUndefined()
+		expect(axios.delete).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/folders/7/done')
 	})
 })

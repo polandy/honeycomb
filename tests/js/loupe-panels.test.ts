@@ -20,7 +20,7 @@ describe('useLoupePanels', () => {
 	it('keeps the width in the browser and the open state in the view state', async () => {
 		const stored: Record<string, string> = { [INFO_WIDTH_KEY]: '999' }
 		const saved: Partial<ViewState>[] = []
-		const panels = useLoupePanels(fakeStorage(stored), fakeViewState({ infoPanelOpen: true }, saved))
+		const panels = useLoupePanels(fakeStorage(stored), fakeViewState({ info_panel_open: true }, saved))
 		await flushPromises()
 		expect([panels.infoOpen.value, panels.infoWidth.value]).toEqual([true, 480])
 
@@ -28,7 +28,7 @@ describe('useLoupePanels', () => {
 		panels.setInfoWidth(256)
 
 		expect(stored).toEqual({ [INFO_WIDTH_KEY]: '256' })
-		expect(saved).toEqual([{ infoPanelOpen: false }])
+		expect(saved).toEqual([{ info_panel_open: false }])
 		expect([panels.infoOpen.value, panels.infoWidth.value]).toEqual([false, 256])
 	})
 
@@ -47,14 +47,14 @@ describe('useLoupePanels', () => {
 	// spec: LOUPE-001.15, LOUPE-003.6
 	it('shows the gesture guide until it is dismissed once', async () => {
 		const saved: Partial<ViewState>[] = []
-		const panels = useLoupePanels(fakeStorage(), fakeViewState({ gestureGuideSeen: null }, saved))
+		const panels = useLoupePanels(fakeStorage(), fakeViewState({ gesture_guide_seen: null }, saved))
 		await flushPromises()
 		expect(panels.gestureGuideSeen.value).toBe(false)
 
 		panels.dismissGestureGuide()
 
 		expect(panels.gestureGuideSeen.value).toBe(true)
-		expect(saved).toEqual([{ gestureGuideSeen: true }])
+		expect(saved).toEqual([{ gesture_guide_seen: true }])
 	})
 
 	// spec: LOUPE-001.16

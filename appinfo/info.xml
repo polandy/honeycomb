@@ -29,7 +29,7 @@
 		<nextcloud min-version="35" max-version="35"/>
 	</dependencies>
 	<background-jobs>
-		<job>OCA\Honeycomb\BackgroundJob\RemoveVanishedDecisions</job>
+		<job>OCA\Honeycomb\BackgroundJob\SweepVanishedRows</job>
 	</background-jobs>
 	<commands>
 		<command>OCA\Honeycomb\Command\ClearCache</command>

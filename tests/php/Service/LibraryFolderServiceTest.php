@@ -113,16 +113,16 @@ final class LibraryFolderServiceTest extends TestCase {
 		$this->assertEquals($this->summary(10), $this->summaries->rows[10]);
 	}
 
-	// spec: FOLDERS-005.7
+	// spec: FOLDERS-005.7, APP-004.3
 	public function testTheListPagesByFileIdAndLeavesOutFoldersWithoutPhotos(): void {
 		$this->files->folders = [$this->libraryFolder(13, '/c'), $this->libraryFolder(10, ''), $this->libraryFolder(12, '/b'), $this->libraryFolder(11, '/a'), $this->libraryFolder(14, '/d')];
 		$this->summaries->rows = [10 => $this->summary(10), 11 => $this->summary(11, photos: 0), 12 => $this->summary(12), 13 => $this->summary(13)];
 
 		$first = $this->service()->list($this->user(), '/Photos', '', '2');
-		$second = $this->service()->list($this->user(), '/Photos', (string)$first['next'], '2');
+		$second = $this->service()->list($this->user(), '/Photos', (string)$first['nextCursor'], '2');
 
-		$this->assertSame([[10, 12], 12], [array_column($first['folders'], 'fileId'), $first['next']]);
-		$this->assertSame([[13], null], [array_column($second['folders'], 'fileId'), $second['next']]);
+		$this->assertSame([[10, 12], 12], [array_column($first['folders'], 'fileId'), $first['nextCursor']]);
+		$this->assertSame([[13], null], [array_column($second['folders'], 'fileId'), $second['nextCursor']]);
 	}
 
 	// spec: FOLDERS-005.8, FOLDERS-005.10, FOLDERS-005.11

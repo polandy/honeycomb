@@ -4,7 +4,7 @@
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { logger } from '../../src/logger.ts'
-import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
+import { DEFAULT_SETTINGS, storedSettings } from '../../src/logic/settings.ts'
 import { useSettings } from '../../src/settings.ts'
 
 afterEach(() => {
@@ -12,17 +12,22 @@ afterEach(() => {
 })
 
 /** The settings composable over a fake server holding `stored`. */
-function settingsOn(load: () => Promise<unknown>, save: (settings: object) => Promise<void> = async () => undefined) {
+function settingsOn(load: () => Promise<unknown>, save: () => Promise<void> = async () => undefined) {
 	const saved: object[] = []
+	const savedLists: [string, readonly string[]][] = []
 	const toasts: string[] = []
 	const state = useSettings({
 		loadSettings: load,
 		saveSettings: (settings) => {
 			saved.push(settings)
-			return save(settings)
+			return save()
+		},
+		saveSettingsList: (name, items) => {
+			savedLists.push([name, items])
+			return save()
 		},
 	}, (message) => toasts.push(message))
-	return { ...state, saved, toasts }
+	return { ...state, saved, savedLists, toasts }
 }
 
 describe('useSettings', () => {
@@ -64,15 +69,45 @@ describe('useSettings', () => {
 
 	// spec: SETTINGS-001.11
 	it('applies a change at once and saves the whole settings', async () => {
-		const { settings, update, saved, toasts } = settingsOn(async () => ({}))
+		const { settings, update, saved, savedLists, toasts } = settingsOn(async () => ({}))
 		await flushPromises()
 
 		update({ autoAdvance: false })
 
 		expect(settings.value).toEqual({ ...DEFAULT_SETTINGS, autoAdvance: false })
-		expect(saved).toEqual([{ ...DEFAULT_SETTINGS, autoAdvance: false }])
+		expect(saved).toEqual([storedSettings({ ...DEFAULT_SETTINGS, autoAdvance: false })])
+		expect(savedLists).toEqual([])
 		await flushPromises()
 		expect(toasts).toEqual([])
+	})
+
+	// spec: SETTINGS-001.11, SETTINGS-001.31
+	it('saves a changed list on its own, not the settings object', async () => {
+		const { settings, update, saved, savedLists } = settingsOn(async () => ({ moveRecent: ['/A'] }))
+		await flushPromises()
+
+		update({ moveRecent: ['/B', '/A'] })
+		update({ libraryRoots: ['/Photos'], viKeys: true })
+
+		expect(settings.value).toMatchObject({ moveRecent: ['/B', '/A'], libraryRoots: ['/Photos'], viKeys: true })
+		expect(savedLists).toEqual([['moveRecent', ['/B', '/A']], ['libraryRoots', ['/Photos']]])
+		expect(saved).toEqual([storedSettings({ ...DEFAULT_SETTINGS, moveRecent: ['/B', '/A'], libraryRoots: ['/Photos'], viKeys: true })])
+	})
+
+	// spec: SETTINGS-001.12
+	it('says so when saving a list fails', async () => {
+		const error = vi.spyOn(logger, 'error').mockImplementation(() => {})
+		const { settings, update, toasts } = settingsOn(async () => ({}), async () => {
+			throw new Error('offline')
+		})
+		await flushPromises()
+
+		update({ moveFavourites: ['/A'] })
+		await flushPromises()
+
+		expect(settings.value.moveFavourites).toEqual(['/A'])
+		expect(toasts).toEqual(['Could not save the settings; they apply until you reload.'])
+		expect(error).toHaveBeenCalledOnce()
 	})
 
 	// spec: SETTINGS-001.12
@@ -94,18 +129,20 @@ describe('useSettings', () => {
 	// spec: SETTINGS-001.11
 	it('saves a change made before the stored settings arrive over them, keeping their other values', async () => {
 		let answer: (value: unknown) => void = () => undefined
-		const { settings, update, saved } = settingsOn(() => new Promise((resolve) => {
+		const { settings, update, saved, savedLists } = settingsOn(() => new Promise((resolve) => {
 			answer = resolve
 		}))
 
 		update({ viKeys: true })
+		update({ moveRecent: ['/B'] })
 		expect(settings.value.viKeys).toBe(true)
 		expect(saved).toEqual([])
-		answer({ viKeys: false, autoAdvance: false })
+		answer({ viKeys: false, autoAdvance: false, moveFavourites: ['/A'] })
 		await flushPromises()
 
-		expect(settings.value).toEqual({ ...DEFAULT_SETTINGS, autoAdvance: false, viKeys: true })
-		expect(saved).toEqual([{ ...DEFAULT_SETTINGS, autoAdvance: false, viKeys: true }])
+		expect(settings.value).toEqual({ ...DEFAULT_SETTINGS, autoAdvance: false, viKeys: true, moveFavourites: ['/A'], moveRecent: ['/B'] })
+		expect(saved).toEqual([storedSettings({ ...DEFAULT_SETTINGS, autoAdvance: false, viKeys: true })])
+		expect(savedLists).toEqual([['moveRecent', ['/B']]])
 	})
 
 	// spec: SETTINGS-001.12
@@ -124,5 +161,7 @@ describe('useSettings', () => {
 		expect(settings.value).toEqual({ ...DEFAULT_SETTINGS, viKeys: true, autoAdvance: false })
 		expect(saved).toEqual([])
 		expect(toasts).toEqual(['Could not save the settings; they apply until you reload.', 'Could not save the settings; they apply until you reload.'])
+		update({ moveRecent: ['/A'] })
+		expect(toasts).toHaveLength(3)
 	})
 })

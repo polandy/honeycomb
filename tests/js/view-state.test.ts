@@ -38,7 +38,7 @@ function viewStateOn(load: () => Promise<unknown>, local: Record<string, string>
 describe('useViewState', () => {
 	// spec: LOUPE-003.5
 	it('does not show the gesture guide before the answer, then takes the stored values', async () => {
-		const { infoPanelOpen, gestureGuideSeen, saved } = viewStateOn(async () => ({ infoPanelOpen: true, gestureGuideSeen: false }))
+		const { infoPanelOpen, gestureGuideSeen, saved } = viewStateOn(async () => ({ info_panel_open: true, gesture_guide_seen: false }))
 		expect([infoPanelOpen.value, gestureGuideSeen.value]).toEqual([false, true])
 
 		await flushPromises()
@@ -49,7 +49,7 @@ describe('useViewState', () => {
 
 	// spec: LOUPE-003.5
 	it('without stored or local values keeps the panel closed, shows the guide and writes nothing', async () => {
-		const { infoPanelOpen, gestureGuideSeen, saved } = viewStateOn(async () => ({ infoPanelOpen: null, gestureGuideSeen: null }))
+		const { infoPanelOpen, gestureGuideSeen, saved } = viewStateOn(async () => ({ info_panel_open: null, gesture_guide_seen: null }))
 		await flushPromises()
 
 		expect([infoPanelOpen.value, gestureGuideSeen.value]).toEqual([false, false])
@@ -58,31 +58,31 @@ describe('useViewState', () => {
 
 	// spec: LOUPE-003.6
 	it('applies a change at once and writes only its key', async () => {
-		const { infoPanelOpen, gestureGuideSeen, setInfoPanelOpen, dismissGestureGuide, saved } = viewStateOn(async () => ({ infoPanelOpen: null, gestureGuideSeen: null }))
+		const { infoPanelOpen, gestureGuideSeen, setInfoPanelOpen, dismissGestureGuide, saved } = viewStateOn(async () => ({ info_panel_open: null, gesture_guide_seen: null }))
 		await flushPromises()
 
 		setInfoPanelOpen(true)
 		dismissGestureGuide()
 
 		expect([infoPanelOpen.value, gestureGuideSeen.value]).toEqual([true, true])
-		expect(saved).toEqual([{ infoPanelOpen: true }, { gestureGuideSeen: true }])
+		expect(saved).toEqual([{ info_panel_open: true }, { gesture_guide_seen: true }])
 	})
 
 	// spec: LOUPE-003.6, SETTINGS-001.22
 	it('shows the gesture guide again and writes only that key', async () => {
-		const { gestureGuideSeen, showGestureGuide, saved } = viewStateOn(async () => ({ infoPanelOpen: null, gestureGuideSeen: true }))
+		const { gestureGuideSeen, showGestureGuide, saved } = viewStateOn(async () => ({ info_panel_open: null, gesture_guide_seen: true }))
 		await flushPromises()
 		expect(gestureGuideSeen.value).toBe(true)
 
 		showGestureGuide()
 
 		expect(gestureGuideSeen.value).toBe(false)
-		expect(saved).toEqual([{ gestureGuideSeen: false }])
+		expect(saved).toEqual([{ gesture_guide_seen: false }])
 	})
 
 	// spec: LOUPE-003.5, LOUPE-003.6
 	it('counts the first-series hint as seen until the answer, and dismissing it writes only its key', async () => {
-		const { seriesHintSeen, dismissSeriesHint, saved } = viewStateOn(async () => ({ infoPanelOpen: true, gestureGuideSeen: true, seriesHintSeen: null }))
+		const { seriesHintSeen, dismissSeriesHint, saved } = viewStateOn(async () => ({ info_panel_open: true, gesture_guide_seen: true, series_hint_seen: null }))
 		expect(seriesHintSeen.value).toBe(true)
 
 		await flushPromises()
@@ -90,28 +90,28 @@ describe('useViewState', () => {
 		dismissSeriesHint()
 
 		expect(seriesHintSeen.value).toBe(true)
-		expect(saved).toEqual([{ seriesHintSeen: true }])
+		expect(saved).toEqual([{ series_hint_seen: true }])
 	})
 
 	// spec: LOUPE-003.6
 	it('keeps a change made before the answer over the stored value', async () => {
-		const { infoPanelOpen, setInfoPanelOpen, saved } = viewStateOn(async () => ({ infoPanelOpen: false, gestureGuideSeen: true }))
+		const { infoPanelOpen, setInfoPanelOpen, saved } = viewStateOn(async () => ({ info_panel_open: false, gesture_guide_seen: true }))
 
 		setInfoPanelOpen(true)
 		await flushPromises()
 
 		expect(infoPanelOpen.value).toBe(true)
-		expect(saved).toEqual([{ infoPanelOpen: true }])
+		expect(saved).toEqual([{ info_panel_open: true }])
 	})
 
 	// spec: LOUPE-003.7
 	it('takes over the local values, writes them once and removes them only after the write succeeded', async () => {
 		const write = pending()
-		const { infoPanelOpen, gestureGuideSeen, saved, local } = viewStateOn(async () => ({ infoPanelOpen: null, gestureGuideSeen: null }), { [INFO_OPEN_KEY]: 'true', [GESTURE_GUIDE_SEEN_KEY]: 'true', 'honeycomb.infoWidth': '320' }, () => write.promise)
+		const { infoPanelOpen, gestureGuideSeen, saved, local } = viewStateOn(async () => ({ info_panel_open: null, gesture_guide_seen: null }), { [INFO_OPEN_KEY]: 'true', [GESTURE_GUIDE_SEEN_KEY]: 'true', 'honeycomb.infoWidth': '320' }, () => write.promise)
 		await flushPromises()
 
 		expect([infoPanelOpen.value, gestureGuideSeen.value]).toEqual([true, true])
-		expect(saved).toEqual([{ infoPanelOpen: true, gestureGuideSeen: true }])
+		expect(saved).toEqual([{ info_panel_open: true, gesture_guide_seen: true }])
 		expect(Object.keys(local)).toEqual([INFO_OPEN_KEY, GESTURE_GUIDE_SEEN_KEY, 'honeycomb.infoWidth'])
 
 		write.settle(false)
@@ -123,7 +123,7 @@ describe('useViewState', () => {
 	// spec: LOUPE-003.7, LOUPE-003.8
 	it('keeps the local values when taking them over fails', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => {})
-		const { infoPanelOpen, local } = viewStateOn(async () => ({ infoPanelOpen: null, gestureGuideSeen: true }), { [INFO_OPEN_KEY]: 'true' }, async () => {
+		const { infoPanelOpen, local } = viewStateOn(async () => ({ info_panel_open: null, gesture_guide_seen: true }), { [INFO_OPEN_KEY]: 'true' }, async () => {
 			throw new Error('offline')
 		})
 		await flushPromises()
@@ -135,7 +135,7 @@ describe('useViewState', () => {
 
 	// spec: LOUPE-003.7
 	it('removes a local value beside a stored one without writing', async () => {
-		const { infoPanelOpen, saved, local } = viewStateOn(async () => ({ infoPanelOpen: false, gestureGuideSeen: true }), { [INFO_OPEN_KEY]: 'true', [GESTURE_GUIDE_SEEN_KEY]: 'false' })
+		const { infoPanelOpen, saved, local } = viewStateOn(async () => ({ info_panel_open: false, gesture_guide_seen: true }), { [INFO_OPEN_KEY]: 'true', [GESTURE_GUIDE_SEEN_KEY]: 'false' })
 		await flushPromises()
 
 		expect(infoPanelOpen.value).toBe(false)
@@ -160,7 +160,7 @@ describe('useViewState', () => {
 	// spec: LOUPE-003.8
 	it('keeps a change whose write failed for this visit', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => {})
-		const { gestureGuideSeen, dismissGestureGuide } = viewStateOn(async () => ({ infoPanelOpen: null, gestureGuideSeen: null }), {}, async () => {
+		const { gestureGuideSeen, dismissGestureGuide } = viewStateOn(async () => ({ info_panel_open: null, gesture_guide_seen: null }), {}, async () => {
 			throw new Error('offline')
 		})
 		await flushPromises()
@@ -174,7 +174,7 @@ describe('useViewState', () => {
 
 	// spec: LOUPE-003.8
 	it('works where the browser blocks site data or refuses to remove a key', async () => {
-		const blocked = useViewState({ loadViewState: async () => ({ infoPanelOpen: true, gestureGuideSeen: true }), saveViewState: async () => undefined }, fakeStorage({}, true))
+		const blocked = useViewState({ loadViewState: async () => ({ info_panel_open: true, gesture_guide_seen: true }), saveViewState: async () => undefined }, fakeStorage({}, true))
 		const stuck = useViewState({ loadViewState: async () => ({}), saveViewState: async () => undefined }, () => ({
 			getItem: () => 'true',
 			setItem: () => undefined,

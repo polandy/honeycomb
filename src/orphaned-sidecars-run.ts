@@ -12,7 +12,7 @@ export const ORPHANED_SIDECARS_TRASH_BATCH = CHUNK_LIMITS.files
 
 /** What the page needs from the server. */
 export interface OrphanedSidecarSeams {
-	readonly scan: (path: string, after: string) => Promise<OrphanedSidecarPage>
+	readonly scan: (path: string, cursor: string) => Promise<OrphanedSidecarPage>
 	readonly trash: (sidecars: readonly Pick<OrphanedSidecar, 'fileId' | 'etag'>[]) => Promise<OrphanedSidecarAnswer[]>
 }
 
@@ -42,15 +42,15 @@ export function useOrphanedSidecars(seams: OrphanedSidecarSeams) {
 		const own = run
 		status.value = 'scanning'
 		const sidecars: OrphanedSidecar[] = []
-		let after: string | null = ''
+		let cursor: string | null = ''
 		try {
-			while (after !== null) {
-				const page: OrphanedSidecarPage = await seams.scan(path, after)
+			while (cursor !== null) {
+				const page: OrphanedSidecarPage = await seams.scan(path, cursor)
 				if (own !== run) {
 					return
 				}
 				sidecars.push(...page.sidecars)
-				after = page.next
+				cursor = page.nextCursor
 			}
 		} catch (error) {
 			if (own === run) {

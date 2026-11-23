@@ -25,11 +25,18 @@ const props = defineProps<{
 	roots: readonly string[]
 	/** The current time in Unix seconds; it sets the month of the progress card. */
 	now: () => number
+	/** The row whose done status changed last; its *More* takes the focus (FOLDERS-008.3). */
+	focusRow?: { fileId: number } | null
 }>()
 
 const emit = defineEmits<{
 	/** Cull one folder, with its subfolders or without (FOLDERS-007.13). */
 	cull: [set: { paths: string[], subfolders: boolean }]
+	/** Mark the folder done, or reopen it, without a dialog (FOLDERS-008). */
+	markDone: [row: FolderRow]
+	reopen: [row: FolderRow]
+	/** Cull a done folder's new photos (FOLDERS-008.7). */
+	cullNew: [set: { paths: string[], subfolders: boolean }]
 }>()
 
 const root = ref<string | null>(null)
@@ -67,6 +74,38 @@ watch(() => props.folders.shown.value, async (shown) => {
 	}
 })
 
+/** The shown rows by file id, to focus one. */
+const rowRefs = new Map<number, { focus(): void }>()
+
+/** Keeps the row's instance while it shows. */
+function rowRef(fileId: number) {
+	return (shown: unknown) => (shown === null ? rowRefs.delete(fileId) : rowRefs.set(fileId, shown as { focus(): void }))
+}
+
+/** Focuses the changed row's *More*, or the list when the filter hides the row now. */
+watch(() => props.focusRow, async (target) => {
+	if (target === null || target === undefined) {
+		return
+	}
+	await nextTick()
+	const shown = rowRefs.get(target.fileId)
+	if (shown === undefined) {
+		scroller.value?.focus()
+	} else {
+		shown.focus()
+	}
+})
+
+/** Closes the menu and asks for the row's done change. */
+function change(event: 'markDone' | 'reopen', row: FolderRow) {
+	menuRow.value = null
+	if (event === 'markDone') {
+		emit('markDone', row)
+	} else {
+		emit('reopen', row)
+	}
+}
+
 /** Close the menu and open the folder in the grid. */
 function cull(row: FolderRow, subfolders: boolean) {
 	menuRow.value = null
@@ -75,7 +114,7 @@ function cull(row: FolderRow, subfolders: boolean) {
 </script>
 
 <template>
-	<div ref="scroller" class="folders-screen">
+	<div ref="scroller" class="folders-screen" tabindex="-1">
 		<div class="folders-screen__body">
 			<FoldersProgress
 				:root="root"
@@ -121,8 +160,11 @@ function cull(row: FolderRow, subfolders: boolean) {
 						<FolderListRow
 							v-for="each in group.rows"
 							:key="each.fileId"
+							:ref="rowRef(each.fileId)"
 							:row="each"
 							@cull="cull(each, false)"
+							@markDone="change('markDone', each)"
+							@cullNew="emit('cullNew', { paths: [each.path], subfolders: false })"
 							@menu="menuRow = each" />
 					</template>
 				</section>
@@ -132,6 +174,8 @@ function cull(row: FolderRow, subfolders: boolean) {
 			v-if="menuRow !== null"
 			:row="menuRow"
 			@cull="cull(menuRow, $event)"
+			@markDone="change('markDone', menuRow)"
+			@reopen="change('reopen', menuRow)"
 			@close="menuRow = null" />
 	</div>
 </template>

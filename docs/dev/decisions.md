@@ -1713,7 +1713,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   semaphore per file (256 shared, `SemaphorePreviewLock`), since Nextcloud 35 rewrites a preview
   file in place when two requests render it at once and a tile read meanwhile came back empty
   (IMAGES-001.18). Without `sysvsem` it renders unlocked, as core does. Easy to redo: one alias
-  in `Application.php`.
+  in `Application.php`. Superseded on 2026-11-22 by core's file locking (ADR 0050).
 - 2026-11-20: The shell refactor (M10 PR 9) leaves `PictureId` a `number`; widening it to
   `number | string` breaks over a hundred call sites in the folder code, and only the Immich grid
   (PR 10) needs it, together with the Immich entry becoming a `SourceEntry`. Easy to redo.
@@ -1860,3 +1860,25 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-22: A deleted user's done statuses are removed, so those folders are open again for
   the others; the status is a user's statement, and anonymising it would need a schema change
   (FOLDERS-006.13).
+- 2026-11-22: The preview lock moves from System V semaphores to core's file locking
+  (`CorePreviewLock`, ADR 0050), so nothing outlives the app in the kernel; a render waits for a
+  held lock at most 30 s, once a second, then renders without it and logs a warning. Easy to redo:
+  `WAIT_SECONDS`.
+- 2026-11-22: The view state's four keys (`info_panel_open`, `gesture_guide_seen`,
+  `series_hint_seen`, `year_review_hint_closed`) are snake_case in storage and on the wire, so
+  every key stored in the Nextcloud user config follows one convention (arch report A4);
+  browser-storage keys keep their names. The old names are not read: there is no production
+  install yet.
+- 2026-11-22: The statistics page reads the library rows read-only (`listAllLibraryFolders`) and
+  never scans; "done this month" counts from the stats answer's `today`. The library roots editor
+  is one shared component (`LibraryRoots`) for the setup and Settings, and the last root may be
+  removed (Folders then shows the setup). The statistics mockup keeps the old Folder sets panel as
+  a record (PR 372).
+- 2026-11-22: The settings lists `moveRecent`, `moveFavourites` and `libraryRoots` move to their
+  own `IUserConfig` keys with `PUT /api/v1/settings/lists/{name}`; the read still answers one
+  object, legacy lists are carried over on the next object save without a repair step, and the
+  client writes `version: 1` into the object. Switches keep last-write-wins (ADR 0051).
+- 2026-11-22: One user rule (ADR 0040, *Who shares what*): flags, *Keep RAW*, hashes, quality and
+  folder done are shared; series, XMP cache, positions, tag list, stats and Immich decisions are per
+  user. A deleted user's done statuses stay with `user_id` cleared, replacing the earlier removal
+  (FOLDERS-006.13, .14; #187).

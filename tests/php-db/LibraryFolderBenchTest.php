@@ -73,8 +73,8 @@ final class LibraryFolderBenchTest extends DbTestCase {
 			do {
 				$page = $library->list($user, '/Photos', $after, '');
 				$listed = [$listed[0] + count($page['folders']), $listed[1] + 1];
-				$after = (string)$page['next'];
-			} while ($page['next'] !== null);
+				$after = (string)$page['nextCursor'];
+			} while ($page['nextCursor'] !== null);
 			return $listed;
 		});
 		$cache = new FileCacheLibrary($this->db, Server::get(IMimeTypeLoader::class));

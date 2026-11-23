@@ -59,7 +59,11 @@ export function progressTexts(progress: FolderProgress): { headline: string, fol
 
 /** The line of a done folder: when and by whom; null for a folder that is not done. */
 export function doneText(row: FolderRow): string | null {
-	return row.done === null ? null : `Done ${new Date(row.done.at * 1000).toISOString().slice(0, DATE_LENGTH)} · by ${row.done.by}`
+	if (row.done === null) {
+		return null
+	}
+	const date = new Date(row.done.at * 1000).toISOString().slice(0, DATE_LENGTH)
+	return row.done.by === null ? `Done ${date}` : `Done ${date} · by ${row.done.by}`
 }
 
 /** The strip while the server rescans folders. */

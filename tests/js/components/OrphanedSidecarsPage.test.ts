@@ -16,8 +16,8 @@ const sidecar = (fileId: number, path: string, size: number): OrphanedSidecar =>
 function seams() {
 	return {
 		scan: vi.fn(async (_path: string, after: string) => (after === ''
-			? { sidecars: [sidecar(1, '/Photos/a.xmp', 1024), sidecar(2, '/Photos/b.CR2.xmp', 1024)], next: '/' }
-			: { sidecars: [sidecar(3, '/Photos/2024/c.xmp', 2048)], next: null })),
+			? { sidecars: [sidecar(1, '/Photos/a.xmp', 1024), sidecar(2, '/Photos/b.CR2.xmp', 1024)], nextCursor: '/' }
+			: { sidecars: [sidecar(3, '/Photos/2024/c.xmp', 2048)], nextCursor: null })),
 		trash: vi.fn(async (sidecars: readonly { fileId: number }[]): Promise<OrphanedSidecarAnswer[]> => sidecars.map(({ fileId }) => ({ fileId, result: fileId === 2 ? 'notOrphaned' : 'trashed' }))),
 	}
 }
@@ -53,7 +53,7 @@ describe('OrphanedSidecarsPage', () => {
 	// spec: XMP-009.11
 	it('scans the whole library from the user\'s folder and says when none is found', async () => {
 		const fake = seams()
-		fake.scan.mockImplementation(async () => ({ sidecars: [], next: null }))
+		fake.scan.mockImplementation(async () => ({ sidecars: [], nextCursor: null }))
 		const wrapper = mountPage(fake)
 
 		await button(wrapper, 'Whole library')!.trigger('click')

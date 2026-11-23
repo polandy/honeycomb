@@ -11,17 +11,20 @@ import { computed } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
-import { isRateable } from '../logic/folder-row.ts'
+import { folderName, isRateable } from '../logic/folder-row.ts'
 
 const props = defineProps<{ row: FolderRow }>()
 
 const emit = defineEmits<{
 	/** Cull the folder, with its subfolders or without. */
 	cull: [subfolders: boolean]
+	/** Mark the open folder done, or reopen the done one, without a dialog (FOLDERS-008.2, .4). */
+	markDone: []
+	reopen: []
 	close: []
 }>()
 
-const name = computed(() => props.row.path.split('/').pop()!)
+const name = computed(() => folderName(props.row))
 const readOnly = computed(() => !isRateable(props.row))
 /** The folder in the Files app. */
 const filesHref = computed(() => `${generateUrl('/apps/files/')}?dir=${encodeURIComponent(props.row.path)}`)
@@ -46,6 +49,17 @@ const filesHref = computed(() => `${generateUrl('/apps/files/')}?dir=${encodeURI
 					<AppIcon name="subfolders" />
 				</template>
 				{{ t('honeycomb', 'Cull with subfolders') }}
+			</NcButton>
+			<NcButton
+				v-if="!readOnly"
+				variant="tertiary"
+				alignment="start"
+				wide
+				@click="props.row.done === null ? emit('markDone') : emit('reopen')">
+				<template #icon>
+					<AppIcon :name="props.row.done === null ? 'check' : 'undo'" />
+				</template>
+				{{ props.row.done === null ? t('honeycomb', 'Mark done') : t('honeycomb', 'Reopen') }}
 			</NcButton>
 			<NcButton
 				variant="tertiary"

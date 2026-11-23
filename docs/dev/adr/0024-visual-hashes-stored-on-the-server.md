@@ -51,7 +51,7 @@ The options for delivering the stored hashes:
 - **Browser:** hashes the entries without one and saves them in batches of 100 and once a drain
   ends. A failed save is logged; the hashes still count for this visit. Browser storage is no
   longer used; the old key `honeycomb.visualHashes` is removed once.
-- **Lifecycle:** the daily job removes rows of files deleted for good (`RemoveVanishedDecisions`);
+- **Lifecycle:** the daily job removes rows of files deleted for good (`SweepVanishedRows`);
   deleting a user removes their rows; a move that gives a file a new id carries its row over, like
   decisions and tags. The carried etag still has to match the file's for the hash to be delivered.
 

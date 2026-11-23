@@ -48,7 +48,7 @@ describe('App: the loupe', () => {
 		let reads = 0
 		const loadViewState = async () => {
 			reads += 1
-			return { infoPanelOpen: true, gestureGuideSeen: true }
+			return { info_panel_open: true, gesture_guide_seen: true }
 		}
 		const { wrapper } = mountApp({ viewState: { loadViewState, saveViewState: async () => undefined } })
 		await openCull(wrapper)

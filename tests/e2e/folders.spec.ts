@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto'
 import { expectAccessible, SCHEMES } from './a11y.ts'
 import { putSettings, resetViewState } from './cull.ts'
 import { createFolder, JPEG, upload } from './files.ts'
-import { logIn, occ } from './server.ts'
+import { logIn, occ, trackRequests } from './server.ts'
 import { emulateIpad, expectTouchTargets } from './touch-targets.ts'
 
 /** The folders below the library root, each with one photo; enough rows to scroll on a short screen. */
@@ -17,8 +17,10 @@ const ROOT = '/Library'
 test.use({ storageState: { cookies: [], origins: [] }, hasTouch: true })
 
 let user = { username: '', password: '' }
+let drainRequests = async (): Promise<void> => {}
 
 test.beforeEach(async ({ page }) => {
+	drainRequests = trackRequests(page)
 	user = { username: `folders-${randomUUID().slice(0, 8)}`, password: `e2e-${randomUUID()}` }
 	occ(['user:add', '--password-from-env', user.username], { OC_PASS: user.password })
 	await logIn(page, user)
@@ -31,7 +33,9 @@ test.beforeEach(async ({ page }) => {
 	}
 })
 
-test.afterEach(() => {
+// SQLite refuses the deletion while a request of the page still writes, such as a preview render.
+test.afterEach(async () => {
+	await drainRequests()
 	occ(['user:delete', user.username])
 })
 

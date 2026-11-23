@@ -170,8 +170,10 @@ describe('App: the Immich source', () => {
 		await flushPromises()
 		const cull = wrapper.findComponent(ImmichScreen).props('cull')
 		cull.decide({ kind: 'flag', flag: 'picked' }, cull.pictures.value)
+		await flushPromises()
 
 		document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true, cancelable: true }))
+		await flushPromises()
 		document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Z', ctrlKey: true, shiftKey: true, bubbles: true, cancelable: true }))
 		await flushPromises()
 

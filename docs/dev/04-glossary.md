@@ -34,7 +34,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **folder summary** | The counts of one folder's own photos (photos, bytes, bursts, capture times, last activity) the server caches per folder by etag; picked, rejected and undecided are counted live (ADR 0049). |
 | **burst** | A photo taken at most 3 s after its predecessor, by capture time; ranks folders, unlike a *series* it needs no visual hash (ADR 0049). |
 | **complete** | A folder with no undecided photo; derived, unlike *done*. |
-| **folder done** | The status a user gives a folder they have been through; shared per folder like the flags, with the user who marked it, and needs UPDATE. New photos leave it done and show as *n new* (ADR 0049). Not *series done*. |
+| **folder done** | The status a user gives a folder they have been through; shared per folder like the flags, with the user who marked it (cleared when that user is deleted), and needs UPDATE. New photos leave it done and show as *n new* (ADR 0049). Not *series done*. |
 | **excluded folder** | A folder below a ticked one that *Include subfolders* leaves out, with everything inside it but ticked folders (ADR 0035). |
 | **resume position** | Where a user stands in a folder set (the current picture and how many are decided), stored on the server so a cull continues on another device. |
 | **undecided** | A picture whose flag is unflagged and that is not in a done series; picked and rejected pictures, and the unflagged pictures of a done series (SERIES-005.14), are *decided*. |

@@ -21,7 +21,7 @@ const SERIES = PICTURES.slice(3, 6)
 const SERIES_OF = new Map(SERIES.map((picture) => [picture, { key: 4, members: SERIES }] as const))
 
 /** The loupe at `index` with the series above and the view state `stored`, by default the hint never dismissed. */
-async function mountWithHint(index = 4, stored: Partial<StoredViewState> = { gestureGuideSeen: true, seriesHintSeen: null }) {
+async function mountWithHint(index = 4, stored: Partial<StoredViewState> = { gesture_guide_seen: true, series_hint_seen: null }) {
 	const saved: Partial<ViewState>[] = []
 	const mounted = await mountLoupe(index, {}, false, { seriesOf: SERIES_OF, viewState: fakeViewState(stored, saved) })
 	await flushPromises()
@@ -76,7 +76,7 @@ describe('PhotoLoupe: the first-series hint', () => {
 		expect(wrapper.find(HINT).exists()).toBe(false)
 		expect(wrapper.find(CHIP).classes()).not.toContain(PULSE)
 		expect(document.activeElement).toBe(root.element)
-		expect(saved).toEqual([{ seriesHintSeen: true }])
+		expect(saved).toEqual([{ series_hint_seen: true }])
 		await wrapper.setProps({ index: 5 })
 		expect(wrapper.find(HINT).exists()).toBe(false)
 	})
@@ -88,7 +88,7 @@ describe('PhotoLoupe: the first-series hint', () => {
 		await root.trigger('keydown', { key: 'Escape' })
 		expect(wrapper.find(HINT).exists()).toBe(false)
 		expect(wrapper.emitted('close')).toBeUndefined()
-		expect(saved).toEqual([{ seriesHintSeen: true }])
+		expect(saved).toEqual([{ series_hint_seen: true }])
 
 		await root.trigger('keydown', { key: 'Escape' })
 		expect(wrapper.emitted('close')).toHaveLength(1)
@@ -107,12 +107,12 @@ describe('PhotoLoupe: the first-series hint', () => {
 
 		expect(mounted.wrapper.emitted(event)).toHaveLength(1)
 		expect(mounted.wrapper.find(HINT).exists()).toBe(false)
-		expect(mounted.saved).toEqual([{ seriesHintSeen: true }])
+		expect(mounted.saved).toEqual([{ series_hint_seen: true }])
 	})
 
 	// spec: LOUPE-001.26
 	it('waits for the gesture guide, then shows', async () => {
-		const { wrapper } = await mountWithHint(4, { gestureGuideSeen: null, seriesHintSeen: null })
+		const { wrapper } = await mountWithHint(4, { gesture_guide_seen: null, series_hint_seen: null })
 		expect(wrapper.find(HINT).exists()).toBe(false)
 
 		await wrapper.find('[aria-label="How to cull"]').find('button').trigger('click')
@@ -121,7 +121,7 @@ describe('PhotoLoupe: the first-series hint', () => {
 
 	// spec: LOUPE-001.26
 	it('never shows once dismissed', async () => {
-		const { wrapper } = await mountWithHint(4, { gestureGuideSeen: true, seriesHintSeen: true })
+		const { wrapper } = await mountWithHint(4, { gesture_guide_seen: true, series_hint_seen: true })
 
 		expect(wrapper.find(HINT).exists()).toBe(false)
 		expect(wrapper.find(CHIP).classes()).not.toContain(PULSE)

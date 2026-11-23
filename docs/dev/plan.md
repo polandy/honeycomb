@@ -108,7 +108,8 @@ Brand assets (proposal B, see `TODO.md`) are made alongside, because M1 needs th
 4. **Settings:** per user — RAW and rendered extensions, folder mode, show singles, gesture
    mapping, auto-advance, show flag buttons ([Flag buttons and vi keys](#flag-buttons-and-vi-keys))
    and vi keys. Stored as one JSON object per user behind `GET`/`PUT /api/v1/settings` (ADR 0014),
-   checked field by field in `src/logic/settings.ts`; the dialog opens from *Settings* in the
+   the lists that change on their own under their own keys (ADR 0051), checked field by field in
+   `src/logic/settings.ts`; the dialog opens from *Settings* in the
    grid's ⋯ menu and applies each change at once. A change of the extensions or the folder mode
    re-pairs the open cull and clears the selection.
 5. **README:** features, screenshot placeholders, the installation section brought up to date;
@@ -196,7 +197,7 @@ needs UPDATE, asks nothing and never writes XMP; the progress headline is the sh
 done folders (ADR 0049, mockup `docs/dev/mockup/folders/index.html`). Seven pull requests: ADR
 and mockup; the folder summaries; the done status; the pure TypeScript ranking and texts; the
 list as the start screen; marking done in the UI; statistics and the library roots setting.
-Phase 2: shares and group folders, Immich albums.
+Phase 2: shares and group folders, Immich albums. **Done 2026-11-22**, phase 2 aside (`TODO.md`).
 
 ### Release – first App Store release
 
@@ -1063,7 +1064,7 @@ honeycomb/
 │   │                           values, and one typed `Invalid*Exception` per request kind
 │   ├── Db/                     entities, `QBMapper` classes and the `FileRowQueries` trait
 │   ├── Preview/                RAW preview provider and the embedded JPEG decoder
-│   ├── BackgroundJob/          `RemoveVanishedDecisions`, the sweep of rows of deleted files
+│   ├── BackgroundJob/          `SweepVanishedRows`, the sweep of rows of deleted files
 │   ├── Listener/               `ForgetDeletedUser`
 │   └── Migration/              one database migration per feature
 ├── src/

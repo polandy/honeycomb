@@ -38,9 +38,9 @@ entries and then sets `truncated`.
 
 | Case | Answer |
 |---|---|
-| Path with `..`, a vanished folder, a file, a folder outside the user's files | `404`, empty body |
+| Path with `..`, a vanished folder, a file, a folder outside the user's files | `404`, `{"error": "folder-not-found"}` |
 | `excluded` not a list of paths, a path with `..`, more than 1,000 | `400` |
-| A folder the user may not read | `403`, empty body |
+| A folder the user may not read | `403`, `{"error": "folder-not-readable"}` |
 | No logged-in user | `401` |
 
 The client lists each ticked folder and merges the answers, so a file is listed once even when a
@@ -91,13 +91,13 @@ ticked parent with subfolders and a ticked child both hold it.
 
 - **Given** a path with `..`, a folder outside the user's files, a vanished folder or a file
 - **When** it is listed
-- **Then** the answer is `404` with an empty body
+- **Then** the answer is `404` with `{"error": "folder-not-found"}`
 
 ### LISTING-001.8 – An unreadable folder is forbidden
 
 - **Given** a folder the user may not read, open or search
 - **When** it is listed
-- **Then** the answer is `403` with an empty body
+- **Then** the answer is `403` with `{"error": "folder-not-readable"}`
 
 ### LISTING-001.9 – Logged in, with the CSRF token
 

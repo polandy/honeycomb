@@ -38,7 +38,7 @@ test('skips a listed sidecar whose RAW file arrived before the confirmation', as
 	await createFolder(page, folder)
 	const fileId = await upload(page, `${folder}/IMG_0003.CR2.xmp`, pickLabel(1))
 	const headers = await apiHeaders(page)
-	const scan = await page.request.get(`${API}/sidecars/orphaned`, { params: { path: `/${folder}`, after: '' }, headers })
+	const scan = await page.request.get(`${API}/sidecars/orphaned`, { params: { path: `/${folder}`, cursor: '' }, headers })
 	const listed = (await scan.json() as { sidecars: { fileId: number, etag: string }[] }).sidecars
 	expect(listed.map((sidecar) => sidecar.fileId)).toEqual([fileId])
 

@@ -32,7 +32,7 @@ export async function mountLoupe(index = 4, stored: Record<string, string> = {},
 			folderSet: { paths: ['/P'], subfolders: true },
 			decisionOf: () => UNDECIDED,
 			storage: fakeStorage(stored),
-			viewState: fakeViewState({ gestureGuideSeen: !firstOpening, seriesHintSeen: true }, savedViewState),
+			viewState: fakeViewState({ gesture_guide_seen: !firstOpening, series_hint_seen: true }, savedViewState),
 			imageUrl: (fileId: number, size: number) => `/img/${fileId}/${size}`,
 			decode: async (src: string) => {
 				decoded.push(src)

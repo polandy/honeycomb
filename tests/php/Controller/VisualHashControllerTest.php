@@ -107,7 +107,7 @@ final class VisualHashControllerTest extends TestCase {
 		$response = $this->controller(root: $root)->missing('Photos', '');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame(['pictures' => [['fileId' => 1, 'etag' => 'etag-1', 'mtime' => 1_700_000_001, 'path' => '/Photos/a.JPG']], 'next' => null], json_decode($response->render(), true));
+		$this->assertSame(['pictures' => [['fileId' => 1, 'etag' => 'etag-1', 'mtime' => 1_700_000_001, 'path' => '/Photos/a.JPG']], 'nextCursor' => null], json_decode($response->render(), true));
 	}
 
 	// spec: SERIES-004.4

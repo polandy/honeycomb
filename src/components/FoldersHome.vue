@@ -27,7 +27,11 @@ const props = defineProps<{
 			:folders="props.home"
 			:roots="props.home.roots.value"
 			:now="props.home.now"
-			@cull="props.home.cull" />
+			:focusRow="props.home.changed.value"
+			@cull="props.home.cull"
+			@markDone="props.home.markDone"
+			@reopen="props.home.reopen"
+			@cullNew="props.home.cullNew" />
 	</div>
 </template>
 

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { TOAST_MS, useToast } from '../../src/toast.ts'
+import { dismissesToast, SWIPE_PX, TOAST_MS, useToast } from '../../src/toast.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
 
 describe('useToast', () => {
@@ -214,6 +214,61 @@ describe('useToast', () => {
 
 			toast.show('third')
 			expect(live(scheduler)).toBe(1)
+		})
+	})
+
+	describe('its own duration', () => {
+		const UNDO_MS = 8000
+
+		// spec: APP-001.19
+		it('goes after the duration it was shown with, and others after TOAST_MS', () => {
+			const scheduler = fakeScheduler()
+			const toast = useToast(scheduler.schedule)
+			const action = { label: 'Undo', run: () => undefined }
+
+			toast.show('Marked Trip done', action, undefined, [], UNDO_MS)
+			toast.show('Rejected IMG_1', action)
+
+			expect(scheduler.timers.map((timer) => timer.ms)).toEqual([UNDO_MS, TOAST_MS])
+			expect(toast.current.value).toEqual({ message: 'Rejected IMG_1', action })
+		})
+
+		// spec: APP-001.19
+		it('runs its own full duration again after a hold', () => {
+			const scheduler = fakeScheduler()
+			const toast = useToast(scheduler.schedule)
+			toast.show('Marked Trip done', null, undefined, [], UNDO_MS)
+
+			toast.setPressed(true)
+			toast.setPressed(false)
+
+			expect(scheduler.timers.map((timer) => [timer.ms, timer.cancelled])).toEqual([[UNDO_MS, true], [UNDO_MS, false]])
+			scheduler.fire()
+			expect(toast.current.value).toBeNull()
+		})
+	})
+
+	describe('dismiss', () => {
+		// spec: APP-001.18
+		it('closes a success toast by its listeners, as an error toast', () => {
+			const scheduler = fakeScheduler()
+			const toast = useToast(scheduler.schedule)
+			toast.show('Rejected IMG_1', { label: 'Undo', run: () => undefined })
+
+			toast.listeners.onClose()
+
+			expect(toast.current.value).toBeNull()
+			expect(scheduler.timers[0]!.cancelled).toBe(true)
+		})
+
+		// spec: APP-001.18
+		it('takes a sideways move of at least SWIPE_PX as a swipe, not a short or mostly vertical one', () => {
+			expect(SWIPE_PX).toBe(60)
+			expect(dismissesToast(60, 0)).toBe(true)
+			expect(dismissesToast(-80, 30)).toBe(true)
+			expect(dismissesToast(59, 0)).toBe(false)
+			expect(dismissesToast(70, 90)).toBe(false)
+			expect(dismissesToast(70, -70)).toBe(false)
 		})
 	})
 })

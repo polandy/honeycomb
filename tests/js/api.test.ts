@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, imageUrl, listEntries, listFolders, loadSettings, lookupEmbeddedXmp, lookupSidecars, saveSettings, saveSidecars, TrashBinOffError, trashPictures } from '../../src/api.ts'
+import { ApiResponseError, imageUrl, listEntries, listFolders, loadSettings, lookupEmbeddedXmp, lookupSidecars, saveSettings, saveSettingsList, saveSidecars, TrashBinOffError, trashPictures } from '../../src/api.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({
@@ -125,6 +125,17 @@ describe('saveSettings', () => {
 	})
 })
 
+describe('saveSettingsList', () => {
+	// spec: SETTINGS-001.31
+	it('stores the whole list under its own name', async () => {
+		vi.mocked(axios.put).mockResolvedValue({ data: {} })
+
+		await saveSettingsList('moveRecent', ['/B', '/A'])
+
+		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/settings/lists/moveRecent', { items: ['/B', '/A'] })
+	})
+})
+
 describe('imageUrl', () => {
 	// spec: IMAGES-001.1
 	it('names the file, the tier and the modification time', () => {
@@ -158,13 +169,14 @@ describe('trashPictures', () => {
 		await expect(trashPictures(pictures)).rejects.toBeInstanceOf(ApiResponseError)
 	})
 
+	// spec: APP-004.4
 	it('turns a 409 into its own error, since the trash bin is off and nothing was touched', async () => {
-		vi.mocked(axios.post).mockRejectedValue(Object.assign(new Error('Conflict'), { response: { status: 409 } }))
+		vi.mocked(axios.post).mockRejectedValue(Object.assign(new Error('Conflict'), { response: { status: 409, data: { error: 'trash-bin-disabled' } } }))
 
 		await expect(trashPictures(pictures)).rejects.toBeInstanceOf(TrashBinOffError)
 	})
 
-	it.each([new Error('Network Error'), Object.assign(new Error('Bad'), { response: { status: 400 } })])('passes any other error on', async (error) => {
+	it.each([new Error('Network Error'), Object.assign(new Error('Bad'), { response: { status: 400 } }), Object.assign(new Error('Conflict'), { response: { status: 409, data: { error: 'request' } } })])('passes any other error on', async (error) => {
 		vi.mocked(axios.post).mockRejectedValue(error)
 
 		await expect(trashPictures(pictures)).rejects.toBe(error)

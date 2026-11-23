@@ -86,8 +86,8 @@ roots worth culling and the library's progress, and opens a folder's cull and re
 
 - **Given** a root whose folders come in two pages
 - **When** the list is read
-- **Then** the second page is asked with `after` set to the first page's `next`, and the rows of
-  both show
+- **Then** the second page is asked with `cursor` set to the first page's `nextCursor`, and the rows
+  of both show
 
 ### FOLDERS-007.7 – Updating folders
 
@@ -169,7 +169,7 @@ roots worth culling and the library's progress, and opens a folder's cull and re
 
 ## Out of scope
 
-*Mark done*, *Reopen*, *Cull new* and the toast with *Undo*: M12 PR 6. The roots in *Settings* and
+*Mark done*, *Reopen*, *Cull new* and the toast with *Undo*: FOLDERS-008. The roots in *Settings* and
 the statistics headline: M12 PR 7. Filters, sorts and texts: FOLDERS-002, FOLDERS-003.
 
 ## History
@@ -177,3 +177,4 @@ the statistics headline: M12 PR 7. Filters, sorts and texts: FOLDERS-002, FOLDER
 | Date | Change |
 |---|---|
 | 2026-11-22 | Written with M12 PR 5 |
+| 2026-11-22 | The row's menu and actions for the done status moved to FOLDERS-008 |

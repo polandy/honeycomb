@@ -6,29 +6,44 @@
 import type { FolderRow } from '../logic/folder-row.ts'
 
 import { t } from '@nextcloud/l10n'
-import { computed, useId } from 'vue'
+import { computed, useId, useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import { doneText, newBadgeText, photosText, reasonText, splitText, undecidedText } from '../folders-text.ts'
 import { PLAIN_TEXT } from '../l10n.ts'
-import { isComplete, isRateable, percent } from '../logic/folder-row.ts'
+import { folderName, isComplete, isRateable, newCount, percent } from '../logic/folder-row.ts'
 
 const props = defineProps<{ row: FolderRow }>()
 
 const emit = defineEmits<{
 	cull: []
 	menu: []
+	/** Mark the complete folder done without a dialog (FOLDERS-008.1). */
+	markDone: []
+	/** Cull the done folder's new photos (FOLDERS-008.7). */
+	cullNew: []
 }>()
 
-const name = computed(() => props.row.path.split('/').pop()!)
+const name = computed(() => folderName(props.row))
 const nameId = useId()
 const parent = computed(() => props.row.path.slice(0, -name.value.length - 1) || '/')
 const rateable = computed(() => isRateable(props.row))
 const open = computed(() => props.row.done === null)
 /** An open folder the user may rate with photos left to decide offers *Cull* (FOLDERS-007.11). */
 const cullable = computed(() => open.value && rateable.value && props.row.undecided > 0)
+/** A complete open folder offers *Mark done* in place of *Cull* (FOLDERS-008.1). */
+const markable = computed(() => open.value && rateable.value && isComplete(props.row))
+const cullableNew = computed(() => !open.value && rateable.value && newCount(props.row) > 0)
+const more = useTemplateRef<InstanceType<typeof NcButton>>('more')
 const split = computed(() => ([['picked', props.row.picked], ['undecided', props.row.undecided], ['rejected', props.row.rejected]] as const)
 	.map(([kind, count]) => ({ kind, width: `${percent(count, props.row.photos)}%` })))
+
+/** Focuses the row's *More*, where a done change leaves the focus (FOLDERS-008.3). */
+function focus() {
+	(more.value?.$el as HTMLElement | undefined)?.focus()
+}
+
+defineExpose({ focus })
 </script>
 
 <template>
@@ -73,7 +88,27 @@ const split = computed(() => ([['picked', props.row.picked], ['undecided', props
 				@click="emit('cull')">
 				{{ t('honeycomb', 'Cull') }}
 			</NcButton>
-			<NcButton variant="tertiary" :aria-label="t('honeycomb', 'More for {name}', { name }, undefined, PLAIN_TEXT)" @click="emit('menu')">
+			<NcButton
+				v-if="markable"
+				class="folder-row__mark-done"
+				variant="primary"
+				:aria-label="t('honeycomb', 'Mark done: {name}', { name }, undefined, PLAIN_TEXT)"
+				@click="emit('markDone')">
+				{{ t('honeycomb', 'Mark done') }}
+			</NcButton>
+			<NcButton
+				v-if="cullableNew"
+				class="folder-row__cull-new"
+				variant="primary"
+				:aria-label="t('honeycomb', 'Cull new in {name}', { name }, undefined, PLAIN_TEXT)"
+				@click="emit('cullNew')">
+				{{ t('honeycomb', 'Cull new') }}
+			</NcButton>
+			<NcButton
+				ref="more"
+				variant="tertiary"
+				:aria-label="t('honeycomb', 'More for {name}', { name }, undefined, PLAIN_TEXT)"
+				@click="emit('menu')">
 				<template #icon>
 					<AppIcon name="more" />
 				</template>

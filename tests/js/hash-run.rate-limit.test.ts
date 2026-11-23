@@ -38,7 +38,7 @@ describe('useHashRun when the server limits the saves', () => {
 	// spec: SERIES-004.14
 	it('keeps hashing while it waits and saves no other batch', async () => {
 		const wait = deferred<void>()
-		const fake = seams({ '': { pictures: pictures(1, 4), next: null } }, { workers: 1, saveBatch: 2, wait: vi.fn(() => wait.promise) })
+		const fake = seams({ '': { pictures: pictures(1, 4), nextCursor: null } }, { workers: 1, saveBatch: 2, wait: vi.fn(() => wait.promise) })
 		fake.save.mockRejectedValueOnce(new RateLimitedError(60))
 		const run = useHashRun(fake)
 
@@ -55,7 +55,7 @@ describe('useHashRun when the server limits the saves', () => {
 
 	// spec: SERIES-004.14
 	it('waits again when the server limits the batch once more', async () => {
-		const fake = seams({ '': { pictures: pictures(1, 2), next: null } })
+		const fake = seams({ '': { pictures: pictures(1, 2), nextCursor: null } })
 		fake.save.mockRejectedValueOnce(new RateLimitedError(60)).mockRejectedValueOnce(new RateLimitedError(5))
 		const run = useHashRun(fake)
 
@@ -70,7 +70,7 @@ describe('useHashRun when the server limits the saves', () => {
 	// spec: SERIES-004.8, SERIES-004.14
 	it('pauses once the waiting batch is saved', async () => {
 		const wait = deferred<void>()
-		const fake = seams({ '': { pictures: pictures(1, 2), next: null } }, { wait: vi.fn(() => wait.promise) })
+		const fake = seams({ '': { pictures: pictures(1, 2), nextCursor: null } }, { wait: vi.fn(() => wait.promise) })
 		fake.save.mockRejectedValueOnce(new RateLimitedError(60))
 		const run = useHashRun(fake)
 		run.start('/Photos')
@@ -89,7 +89,7 @@ describe('useHashRun when the server limits the saves', () => {
 	// spec: SERIES-004.14
 	it('drops the waiting batch of an earlier run', async () => {
 		const wait = deferred<void>()
-		const fake = seams({ '': { pictures: pictures(1, 1), next: null } }, { wait: vi.fn(() => wait.promise) })
+		const fake = seams({ '': { pictures: pictures(1, 1), nextCursor: null } }, { wait: vi.fn(() => wait.promise) })
 		fake.save.mockRejectedValueOnce(new RateLimitedError(60))
 		const run = useHashRun(fake)
 		run.start('/Photos')

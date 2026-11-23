@@ -44,7 +44,7 @@ changes only its own fields and keeps the rest of the sidecar (`06-xmp-interop.m
 
 | Case | Answer |
 |---|---|
-| A malformed body, an id or path given twice, a path with `..` or not ending in `.xmp`, content not base64 or over 1 MiB, more than 1,000 items | `400`, empty body, nothing read or written |
+| A malformed body, an id or path given twice, a path with `..` or not ending in `.xmp`, content not base64 or over 1 MiB, more than 1,000 items | `400` `{"error": "request"}`, nothing read or written |
 | No logged-in user | `401` |
 
 ## Acceptance criteria
@@ -101,7 +101,7 @@ changes only its own fields and keeps the rest of the sidecar (`06-xmp-interop.m
 - **Given** a body that is not a list, an id or path given twice, a path with `..` or not ending
   in `.xmp`, content that is not base64 or over 1 MiB, or more than 1,000 items
 - **When** the client sends it to either endpoint
-- **Then** the answer is `400` with an empty body and no file is read or written
+- **Then** the answer is `400` with `{"error": "request"}` and no file is read or written
 
 ### XMP-002.8 – Logged in, with the CSRF token
 

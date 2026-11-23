@@ -6,12 +6,13 @@ import type { LocationApi } from './cull-location.ts'
 import type { CullTagsApi } from './cull-tags.ts'
 import type { FlagApi } from './flags-api.ts'
 import type { ListEntries } from './folder-count.ts'
+import type { FolderDoneApi } from './folder-done.ts'
 import type { LibraryApi } from './folders.ts'
 import type { ImmichCullApi } from './immich-cull.ts'
 import type { ImmichApi } from './immich-source.ts'
 import type { ImageUrlFor } from './logic/image-tiers.ts'
 import type { Schedule } from './logic/long-press.ts'
-import type { Settings } from './logic/settings.ts'
+import type { SettingsList, StoredSettings } from './logic/settings.ts'
 import type { TrashExpectation, TrashRequestFile, TrashResponseFile } from './logic/trash-report.ts'
 import type { MoveApi } from './move-flow-context.ts'
 import type { OnPageHide } from './page-hide.ts'
@@ -23,7 +24,7 @@ import type { LookupSeries, SaveSeries } from './stored-series.ts'
 import type { ViewStateApi } from './view-state.ts'
 import type { HashImage, SaveVisualHashes } from './visual-hashes.ts'
 
-import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, cleanUpOrphanedData, imageUrl, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, listLibraryFolders, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, movePictures, probeTargets, resetStatistics, saveImmichDecisions, savePosition, saveQualityValues, saveSidecars, saveViewState, saveVisualHashes, scanLibrary } from './api.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, cleanUpOrphanedData, imageUrl, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, listLibraryFolders, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, markFolderDone, movePictures, probeTargets, reopenFolder, resetStatistics, saveImmichDecisions, savePosition, saveQualityValues, saveSettingsList, saveSidecars, saveViewState, saveVisualHashes, scanLibrary } from './api.ts'
 import { browserSchedule } from './browser-schedule.ts'
 import { browserLocation } from './cull-location.ts'
 import { saveFlags, takeOverFlags } from './flags-api.ts'
@@ -57,11 +58,12 @@ export interface AppSeams {
 	lookupSeries?: LookupSeries
 	saveSeries?: SaveSeries
 	loadSettings?: () => Promise<unknown>
-	saveSettings?: (settings: Settings) => Promise<void>
+	saveSettings?: (settings: StoredSettings) => Promise<void>
+	saveSettingsList?: (name: SettingsList, items: readonly string[]) => Promise<void>
 	viewState?: ViewStateApi
 	positions?: ResumeApi
 	/** The library roots' folder list (FOLDERS-005). */
-	library?: LibraryApi
+	library?: LibraryApi & FolderDoneApi
 	/** The page address, which keeps the folder and the picture across a browser reload. */
 	location?: LocationApi
 	storage?: BrowserStorage
@@ -108,9 +110,10 @@ export const APP_SEAMS = {
 	saveSeries,
 	loadSettings: apiLoadSettings,
 	saveSettings: apiSaveSettings,
+	saveSettingsList,
 	viewState: () => ({ loadViewState, saveViewState }),
 	positions: () => ({ loadPositions, savePosition }),
-	library: () => ({ listLibraryFolders, scanLibrary }),
+	library: () => ({ listLibraryFolders, scanLibrary, markFolderDone, reopenFolder }),
 	location: () => browserLocation,
 	storage: () => window.localStorage,
 	schedule: browserSchedule,

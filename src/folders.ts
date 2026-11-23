@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Ref, ShallowRef } from 'vue'
 import type { LibraryPage, LibraryScanning } from './api.ts'
-import type { FolderRow } from './logic/folder-row.ts'
+import type { FolderDone, FolderRow } from './logic/folder-row.ts'
 
 import { t } from '@nextcloud/l10n'
 import { ref, shallowRef, watch } from 'vue'
@@ -51,10 +51,10 @@ export function useFolders(api: LibraryApi, options: FoldersOptions) {
 	async function readRoot(root: string): Promise<{ rows: FolderRow[], scanning: LibraryScanning | null }> {
 		const first = await api.listLibraryFolders(root, 0)
 		const read = [...first.folders]
-		for (let next = first.next; next !== null;) {
+		for (let next = first.nextCursor; next !== null;) {
 			const page = await api.listLibraryFolders(root, next)
 			read.push(...page.folders)
-			next = page.next
+			next = page.nextCursor
 		}
 		return { rows: read, scanning: first.scanning }
 	}
@@ -147,6 +147,11 @@ export function useFolders(api: LibraryApi, options: FoldersOptions) {
 		fromList.value = opened
 	}
 
+	/** Shows the folder's new done status in its row (FOLDERS-008). */
+	function setDone(fileId: number, done: FolderDone | null) {
+		rows.value = rows.value.map((each) => (each.fileId === fileId ? { ...each, done } : each))
+	}
+
 	/** Whether the server takes `root` as a library root: a folder of the user's own storage. */
 	async function check(root: string): Promise<boolean> {
 		try {
@@ -162,5 +167,5 @@ export function useFolders(api: LibraryApi, options: FoldersOptions) {
 
 	watch(() => JSON.stringify(options.roots()), () => void refresh(), { immediate: true })
 
-	return { rows, state, updating, shown, fromList, refresh, show, leave, check }
+	return { rows, state, updating, shown, fromList, refresh, show, leave, check, setDone }
 }

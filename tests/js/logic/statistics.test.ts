@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { folderSetShare, METRIC, parseCounters, parseReadPictures, percentChange, periodBars, periodNumbers, periodRange, periodSums, rangeBefore, readShares, streak } from '../../../src/logic/statistics.ts'
+import { METRIC, parseCounters, parseReadPictures, percentChange, periodBars, periodNumbers, periodRange, periodSums, rangeBefore, readShares, streak } from '../../../src/logic/statistics.ts'
 
 const TODAY = '2026-11-20'
 
@@ -126,16 +126,6 @@ describe('streak', () => {
 
 	it('is 0 and 0 without counters', () => {
 		expect(streak([], TODAY)).toEqual({ current: 0, longest: 0 })
-	})
-})
-
-describe('folderSetShare', () => {
-	// spec: STATS-001.42
-	it('is the whole percent decided, rounded down, and done only when every picture is', () => {
-		expect(folderSetShare(79, 100)).toEqual({ percent: 79, done: false })
-		expect(folderSetShare(999, 1000)).toEqual({ percent: 99, done: false })
-		expect(folderSetShare(40, 40)).toEqual({ percent: 100, done: true })
-		expect(folderSetShare(0, 0)).toEqual({ percent: 0, done: false })
 	})
 })
 

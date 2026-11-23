@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { SidecarWrites } from '../../src/cull-seams.ts'
 import type { FlagApi, FlagItem } from '../../src/flags-api.ts'
+import type { FolderDoneApi } from '../../src/folder-done.ts'
 import type { LibraryApi } from '../../src/folders.ts'
 import type { ImmichCullApi } from '../../src/immich-cull.ts'
 import type { ImmichApi } from '../../src/immich-source.ts'
@@ -165,13 +166,14 @@ const NOW_SECONDS = 1_795_176_000
 export const SILENT_IMMICH_CULL: ImmichCullApi = { assets: () => new Promise(() => undefined), counts: () => new Promise(() => undefined), saveDecisions: () => new Promise(() => undefined), imageUrl: (id, assetId, size) => `/${id}/${assetId}/${size}` }
 
 /** A library without folders, never scanning. */
-export const NO_LIBRARY: LibraryApi = { listLibraryFolders: async () => ({ folders: [], next: null, scanning: null }), scanLibrary: async () => ({ done: 0, total: 0 }) }
+export const NO_LIBRARY: LibraryApi & FolderDoneApi = { listLibraryFolders: async () => ({ folders: [], nextCursor: null, scanning: null }), scanLibrary: async () => ({ done: 0, total: 0 }), markFolderDone: async () => ({ by: '', at: 0, photos: 0 }), reopenFolder: async () => undefined }
 
 export function mountApp(props: Record<string, unknown> = {}, decisions: StoredDecision[] = [], stubs: Record<string, unknown> = {}) {
 	provideSkipActions()
 	const warmed: number[][] = []
 	const flags = fakeFlags(decisions)
 	const savedSettings: object[] = []
+	const savedLists: [string, readonly string[]][] = []
 	const sidecarSaves: SidecarSaveItem[][] = []
 	const grid = gridStub()
 	const wrapper = mount(App, {
@@ -189,9 +191,10 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			saveFile: () => undefined,
 			loadSettings: async () => ({}),
 			saveSettings: async (settings: object) => { savedSettings.push(settings) },
+			saveSettingsList: async (name: string, items: readonly string[]) => { savedLists.push([name, items]) },
 			positions: { loadPositions: async () => [], savePosition: async () => undefined },
 			location: { read: () => '', write: () => undefined },
-			viewState: { loadViewState: async () => ({ infoPanelOpen: null, gestureGuideSeen: true, seriesHintSeen: true }), saveViewState: async () => undefined },
+			viewState: { loadViewState: async () => ({ info_panel_open: null, gesture_guide_seen: true, series_hint_seen: true }), saveViewState: async () => undefined },
 			sidecars: sidecarApi(sidecarSaves),
 			immich: NO_IMMICH_API,
 			immichCull: SILENT_IMMICH_CULL,
@@ -202,7 +205,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 		global: { stubs: { AppNavigation: true, FoldersHome: true, FolderPicker: true, PhotoGrid: grid.component, GridToolbar: true, FilterBar: true, PhotoLoupe: true, SettingsDialog: true, ...stubs } },
 	})
 	flagTables.set(wrapper, flags)
-	return { wrapper, warmed, flagSaves: flags.saves, takenOver: flags.takenOver, savedSettings, sidecarSaves, grid: grid.calls }
+	return { wrapper, warmed, flagSaves: flags.saves, takenOver: flags.takenOver, savedSettings, savedLists, sidecarSaves, grid: grid.calls }
 }
 
 /** Each member of a decided picture of the entries as `fileId flag`, by file id. */

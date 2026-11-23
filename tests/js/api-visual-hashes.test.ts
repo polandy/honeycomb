@@ -65,7 +65,7 @@ describe('saveVisualHashes', () => {
 })
 
 describe('listMissingVisualHashes', () => {
-	const PAGE = { pictures: [{ fileId: 3, etag: 'etag-3', mtime: 1700000000, path: '/Photos/a.jpg' }], next: 'a.jpg' }
+	const PAGE = { pictures: [{ fileId: 3, etag: 'etag-3', mtime: 1700000000, path: '/Photos/a.jpg' }], nextCursor: 'a.jpg' }
 
 	// spec: SERIES-004.1, SERIES-004.2
 	it('asks for the page of the folder after the cursor', async () => {
@@ -73,7 +73,7 @@ describe('listMissingVisualHashes', () => {
 
 		await expect(listMissingVisualHashes('/Photos', '2024/b.jpg')).resolves.toEqual(PAGE)
 
-		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/visual-hashes/missing', { params: { path: '/Photos', after: '2024/b.jpg' } })
+		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/visual-hashes/missing', { params: { path: '/Photos', cursor: '2024/b.jpg' } })
 	})
 
 	// spec: SERIES-004.12

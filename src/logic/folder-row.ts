@@ -6,7 +6,7 @@ export const PERMISSION_UPDATE = 2
 
 /** Who marked a folder done, when (Unix seconds) and how many photos it held then (ADR 0049). */
 export interface FolderDone {
-	readonly by: string
+	readonly by: string | null
 	readonly at: number
 	readonly photos: number
 }
@@ -48,4 +48,9 @@ export function newCount(row: FolderRow): number {
 /** `part` of `whole` in whole percent; 0 when there is no whole. */
 export function percent(part: number, whole: number): number {
 	return whole > 0 ? Math.round(100 * part / whole) : 0
+}
+
+/** The folder's own name, the last segment of its path. */
+export function folderName(row: FolderRow): string {
+	return row.path.split('/').pop()!
 }

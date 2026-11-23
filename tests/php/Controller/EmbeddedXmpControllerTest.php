@@ -64,7 +64,7 @@ final class EmbeddedXmpControllerTest extends TestCase {
 		$response = $this->controller()->lookup([7, 7]);
 
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
-		$this->assertSame([], json_decode($response->render(), true));
+		$this->assertSame(['error' => 'request'], json_decode($response->render(), true));
 	}
 
 	// spec: XMP-005.5

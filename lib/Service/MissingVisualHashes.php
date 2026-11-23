@@ -32,7 +32,7 @@ final class MissingVisualHashes {
 
 	/**
 	 * The next page of photos without a current hash after `$after`, a path relative to `$path`.
-	 * @return array{pictures: list<array{fileId: int, etag: string, mtime: int, path: string}>, next: ?string}
+	 * @return array{pictures: list<array{fileId: int, etag: string, mtime: int, path: string}>, nextCursor: ?string}
 	 * @throws FolderNotFoundException for a path that is not the user's folder
 	 * @throws FolderNotReadableException when the user may not read the folder
 	 * @throws InvalidCursorException for a cursor that is no relative path
@@ -41,7 +41,7 @@ final class MissingVisualHashes {
 		$cursor = self::cursorOf($after);
 		$folder = $this->folders->folder($user, $path);
 		if (!$this->isOwn($folder)) {
-			return ['pictures' => [], 'next' => null];
+			return ['pictures' => [], 'nextCursor' => null];
 		}
 		$base = rtrim((string)$this->folders->userFolder($user)->getRelativePath($folder->getPath()), '/');
 		$photos = [];
@@ -61,7 +61,7 @@ final class MissingVisualHashes {
 				$pictures[] = ['fileId' => $fileId, 'etag' => $photo->getEtag(), 'mtime' => $photo->getMTime(), 'path' => $base . '/' . $relative];
 			}
 		}
-		return ['pictures' => $pictures, 'next' => count($photos) === $this->pageSize ? $last : null];
+		return ['pictures' => $pictures, 'nextCursor' => count($photos) === $this->pageSize ? $last : null];
 	}
 
 	/**

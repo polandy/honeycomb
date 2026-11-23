@@ -159,6 +159,22 @@ stays the same.
 - **Then** neither the dialog nor anything in it plays a transition or an animation; it stands
   at its place from its first frame
 
+### APP-001.18 – Every toast can be dismissed
+
+- **Given** any toast, one that reports success or a failure
+- **When** the user presses its *Close* button, or swipes it sideways by at least 60 px on a touch
+  screen
+- **Then** the toast goes at once; a shorter or mostly vertical move keeps it, and a toast the
+  focus or a press holds keeps its timer stopped
+
+### APP-001.19 – A toast can stay longer
+
+- **Given** a toast shown with its own duration, such as the 8 s of *Marked ⟨folder⟩ done*
+  (FOLDERS-008.3)
+- **When** the user neither holds nor dismisses it
+- **Then** it goes after that duration; every other success toast goes after 5.2 s, and after a
+  hold it runs its own full duration again
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -178,5 +194,6 @@ stays the same.
 | 2026-11-18 | An error toast stays until closed and is announced as an alert; a toast's details open in a dialog (APP-001.13, .14; review UX-1, UX-2) |
 | 2026-11-19 | An axe-core scan of every screen, light and dark (APP-001.15, ADR 0042; review UX-5) |
 | 2026-11-20 | A dialog opens without motion under reduced motion (APP-001.17) |
+| 2026-11-22 | Every toast has *Close* and goes by a sideways swipe; a toast may stay longer (APP-001.18, .19; M12 PR 6) |
 | 2026-11-20 | *Escape* closes a confirm dialog also from a switch or a checkbox, which `NcModal` leaves to the field (APP-001.16) |
 | 2026-11-22 | The page starts on *Folders* or the library setup, the picker no longer opens by itself (APP-001.3, M12 PR 5) |

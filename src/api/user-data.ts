@@ -24,6 +24,11 @@ export async function saveSettings(settings: object): Promise<void> {
 	await axios.put(generateUrl(`${API}/settings`), { settings })
 }
 
+/** Stores one whole settings list under its own name (ADR 0051). */
+export async function saveSettingsList(name: string, items: readonly string[]): Promise<void> {
+	await axios.put(generateUrl(`${API}/settings/lists/${name}`), { items })
+}
+
 /** The stored view state of the user as it came, checked by `parseViewState` (ADR 0019). */
 export async function loadViewState(): Promise<unknown> {
 	const { data } = await axios.get<unknown>(generateUrl(`${API}/view-state`))

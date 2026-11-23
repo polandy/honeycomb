@@ -4,12 +4,37 @@ import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { cullFolder, resetViewState } from './cull.ts'
+import { cullFolder, E2E_SETTINGS, putSettings, resetViewState } from './cull.ts'
 import { apiHeaders, createFolder, JPEG, upload } from './files.ts'
 import { expectTouchTargets } from './touch-targets.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
 const PHONE = { width: 390, height: 844 }
+
+test.afterEach(async ({ page }) => {
+	await putSettings(page, E2E_SETTINGS)
+})
+
+/** A folder of the library as the server lists it, with 100 photos. */
+function libraryFolder(path: string, doneAt: number | null) {
+	return {
+		fileId: path.length,
+		root: '/Photos',
+		path,
+		photos: 100,
+		bytes: 500_000_000,
+		rawBytes: 0,
+		picked: doneAt === null ? 20 : 100,
+		rejected: 0,
+		undecided: doneAt === null ? 80 : 0,
+		bursts: 0,
+		oldest: 1_590_000_000,
+		newest: 1_590_100_000,
+		lastActivity: null,
+		permissions: 31,
+		done: doneAt === null ? null : { by: 'e2e', at: doneAt, photos: 100 },
+	}
+}
 
 /** Resets the statistics, then counts active time through the position save of a new folder set of one photo. */
 async function countActiveTime(page: Page): Promise<string> {
@@ -44,16 +69,16 @@ test('opens the statistics page from the navigation and says nothing is counted 
 	await expect(page).toHaveURL(/\/apps\/honeycomb\/$/)
 })
 
-// spec: STATS-001.21, STATS-001.24, STATS-001.42
-test('shows the counted numbers, the folder sets and since when it counts on the desktop', async ({ page }, testInfo) => {
+// spec: STATS-001.21, STATS-001.24, STATS-001.50
+test('shows the counted numbers, the library panel and since when it counts on the desktop', async ({ page }, testInfo) => {
 	await page.goto('/index.php/apps/honeycomb/')
-	const folder = await countActiveTime(page)
+	await countActiveTime(page)
 
 	await page.goto('/index.php/apps/honeycomb/statistics')
 
 	await expect(page.getByRole('button', { name: '30 days' })).toHaveAttribute('aria-pressed', 'true')
 	await expect(page.locator('.delete-stats__item', { hasText: 'Days in a row' })).toContainText('1')
-	await expect(page.locator('.statistics-folder-sets__row', { hasText: folder })).toContainText('Done')
+	await expect(page.locator('.statistics-library')).toContainText('Choose your library')
 	await expect(page.getByText(/^Counted since /)).toBeVisible()
 	await page.getByRole('button', { name: '7 days' }).click()
 	await expect(page.locator('.statistics-bars__bar')).toHaveCount(7)
@@ -104,7 +129,7 @@ async function stubYear(page: Page): Promise<void> {
 // spec: STATS-001.46, STATS-001.47, STATS-001.48, STATS-001.49
 test('shows the year in review above the periods on the desktop', async ({ page }, testInfo) => {
 	await page.goto('/index.php/apps/honeycomb/')
-	const reopened = await page.request.put(`${API}/view-state`, { data: { viewState: { yearReviewHintClosed: 2000 } }, headers: await apiHeaders(page) })
+	const reopened = await page.request.put(`${API}/view-state`, { data: { viewState: { year_review_hint_closed: 2000 } }, headers: await apiHeaders(page) })
 	expect(reopened.status(), await reopened.text()).toBe(200)
 	await stubYear(page)
 
@@ -118,7 +143,7 @@ test('shows the year in review above the periods on the desktop', async ({ page 
 	await expect(review.locator('.year-review__day')).toHaveCount(365)
 	await expect(review.locator('.year-review__day[data-shade="3"]')).toHaveCount(1)
 	await expect(review).toContainText('Counted since Jan 1, 2026')
-	await expect.poll(async () => (await (await page.request.get(`${API}/view-state`, { headers: await apiHeaders(page) })).json()).viewState.yearReviewHintClosed).toBe(2026)
+	await expect.poll(async () => (await (await page.request.get(`${API}/view-state`, { headers: await apiHeaders(page) })).json()).viewState.year_review_hint_closed).toBe(2026)
 	await page.screenshot({ path: testInfo.outputPath('year-review-desktop.png'), animations: 'disabled' })
 })
 
@@ -139,7 +164,7 @@ test('shows the hint from 1 December, closes it for good', async ({ page }, test
 	await page.clock.setFixedTime(new Date(2026, 11, 1, 12))
 	await page.goto('/index.php/apps/honeycomb/')
 	await resetViewState(page)
-	const closed = await page.request.put(`${API}/view-state`, { data: { viewState: { yearReviewHintClosed: 2000 } }, headers: await apiHeaders(page) })
+	const closed = await page.request.put(`${API}/view-state`, { data: { viewState: { year_review_hint_closed: 2000 } }, headers: await apiHeaders(page) })
 	expect(closed.status(), await closed.text()).toBe(200)
 	const folder = `Statistics ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
@@ -151,5 +176,29 @@ test('shows the hint from 1 December, closes it for good', async ({ page }, test
 	await page.screenshot({ path: testInfo.outputPath('year-review-hint.png'), animations: 'disabled' })
 	await hint.getByRole('button', { name: 'Close' }).click()
 	await expect(hint).toHaveCount(0)
-	await expect.poll(async () => (await (await page.request.get(`${API}/view-state`, { headers: await apiHeaders(page) })).json()).viewState.yearReviewHintClosed).toBe(2026)
+	await expect.poll(async () => (await (await page.request.get(`${API}/view-state`, { headers: await apiHeaders(page) })).json()).viewState.year_review_hint_closed).toBe(2026)
+})
+
+// spec: STATS-001.42, STATS-001.50
+test('shows the library progress from the library folders, and asks to choose a library without roots', async ({ page }, testInfo) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	await page.route('**/apps/honeycomb/api/v1/library/folders*', (route) => route.fulfill({
+		json: { folders: [libraryFolder('/Photos/Alps', 1_590_000_000), libraryFolder('/Photos/Beach', null), libraryFolder('/Photos/City', null), libraryFolder('/Photos/Desert', null)], nextCursor: null, scanning: null },
+	}))
+	await putSettings(page, { libraryRoots: ['/Photos'] })
+
+	await page.goto('/index.php/apps/honeycomb/statistics')
+
+	const library = page.locator('.statistics-library')
+	await expect(library).toContainText('25 % of photos in done folders')
+	await expect(library).toContainText('1 of 4 folders done')
+	await expect(library).toContainText('0 this month')
+	await expect(library).toContainText('40 % of all photos decided')
+	await page.screenshot({ path: testInfo.outputPath('statistics-library.png'), fullPage: true, animations: 'disabled' })
+	await library.getByRole('link', { name: 'Open Folders' }).click()
+	await expect(page).toHaveURL(/\/apps\/honeycomb\/$/)
+
+	await putSettings(page, {})
+	await page.goto('/index.php/apps/honeycomb/statistics')
+	await expect(page.locator('.statistics-library')).toContainText('Choose your library')
 })

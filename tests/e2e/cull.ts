@@ -62,7 +62,7 @@ export async function cullFolder(page: Page, folder: string): Promise<void> {
 /** Closes the info panel, brings the gesture guide back and sets the first-series hint as seen unless `seriesHintSeen` says otherwise; the view state is the admin's, shared by every test (LOUPE-003). */
 export async function resetViewState(page: Page, seriesHintSeen = true): Promise<void> {
 	const reset = await page.request.put('/index.php/apps/honeycomb/api/v1/view-state', {
-		data: { viewState: { infoPanelOpen: false, gestureGuideSeen: false, seriesHintSeen } },
+		data: { viewState: { info_panel_open: false, gesture_guide_seen: false, series_hint_seen: seriesHintSeen } },
 		headers: await apiHeaders(page),
 	})
 	expect(reset.status(), await reset.text()).toBe(200)
@@ -94,8 +94,18 @@ export async function openLoupe(page: Page): Promise<Locator> {
 /** The settings every test starts from: the defaults. */
 export const E2E_SETTINGS = {}
 
-/** Stores the settings for the user, `E2E_SETTINGS` putting back the ones every test starts from. */
+/** The settings stored under their own keys (ADR 0051). */
+const SETTINGS_LISTS = ['moveRecent', 'moveFavourites', 'libraryRoots']
+
+/** Stores the settings for the user whole, lists included, `E2E_SETTINGS` putting back the ones every test starts from. */
 export async function putSettings(page: Page, settings: Record<string, unknown>): Promise<void> {
-	const response = await page.request.put(SETTINGS_URL, { data: { settings }, headers: await apiHeaders(page) })
-	expect(response.status(), await response.text()).toBe(200)
+	const headers = await apiHeaders(page)
+	const object = Object.fromEntries(Object.entries(settings).filter(([field]) => !SETTINGS_LISTS.includes(field)))
+	const responses = [await page.request.put(SETTINGS_URL, { data: { settings: object }, headers })]
+	for (const name of SETTINGS_LISTS) {
+		responses.push(await page.request.put(`${SETTINGS_URL}/lists/${name}`, { data: { items: settings[name] ?? [] }, headers }))
+	}
+	for (const response of responses) {
+		expect(response.status(), await response.text()).toBe(200)
+	}
 }

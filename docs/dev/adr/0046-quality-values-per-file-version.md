@@ -41,6 +41,8 @@ The options for the quality values were:
 
 ### One rule for hashes and quality values
 
+Shared like the flags: see ADR 0040, *Who shares what*.
+
 - **Key:** one row per file id, with the etag the value was taken from; no user. The value is
   delivered only while that etag is the file's current etag. Both tables are `FileRowStore`s:
   the daily sweep removes the rows of files deleted for good, a move that gives a file a new id

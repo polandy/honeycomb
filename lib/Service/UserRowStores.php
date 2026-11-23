@@ -9,7 +9,7 @@ namespace OCA\Honeycomb\Service;
 
 use OCA\Honeycomb\Immich\ImmichDecisionStore;
 
-/** Every table of rows that go with a user; the flags, visual hashes and quality values are no one's and stay (ADR 0040, ADR 0046); a done status goes with its user (ADR 0049). */
+/** Every table of rows that go with a user, or name one; the shared rows stay (ADR 0040, *Who shares what*). */
 final readonly class UserRowStores {
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it. */
 	public function __construct(

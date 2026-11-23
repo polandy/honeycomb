@@ -16,8 +16,8 @@ const B = row({ fileId: 2, root: '/Photos', path: '/Photos/b' })
 const C = row({ fileId: 3, root: '/Phone', path: '/Phone/c' })
 
 /** A page of the folders with no further page and nothing to scan. */
-function page(folders: LibraryPage['folders'], next: number | null = null, scanning: LibraryScanning | null = null): LibraryPage {
-	return { folders, next, scanning }
+function page(folders: LibraryPage['folders'], nextCursor: number | null = null, scanning: LibraryScanning | null = null): LibraryPage {
+	return { folders, nextCursor, scanning }
 }
 
 /** A library API over the pages of each root by `after`, recording every call. */
@@ -77,6 +77,19 @@ describe('useFolders', () => {
 		expect(folders.rows.value).toEqual([A, B, C])
 		expect(folders.state.value).toBe('ready')
 		expect(folders.updating.value).toBeNull()
+	})
+
+	// spec: FOLDERS-008.1, FOLDERS-008.3
+	it('shows a folder\'s new done status in its row alone', async () => {
+		const { api } = fakeLibrary({ '/Photos': { 0: page([A, B]) } })
+		const { folders } = mountFolders(api)
+		await flushPromises()
+		const done = { by: 'andy', at: 9, photos: 100 }
+
+		folders.setDone(B.fileId, done)
+		expect(folders.rows.value).toEqual([A, { ...B, done }])
+		folders.setDone(B.fileId, null)
+		expect(folders.rows.value).toEqual([A, { ...B, done: null }])
 	})
 
 	// spec: FOLDERS-007.5

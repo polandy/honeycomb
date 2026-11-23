@@ -16,11 +16,11 @@ const picture = (fileId: number): MissingPicture => ({ fileId, etag: `etag-${fil
 
 /** Seams with a first page of three pictures; the second page waits for `nextPage`. */
 function seams() {
-	let nextPage!: (page: { pictures: MissingPicture[], next: string | null }) => void
+	let nextPage!: (page: { pictures: MissingPicture[], nextCursor: string | null }) => void
 	const fake = {
 		listMissing: vi.fn(async (_path: string, after: string) => (after === ''
-			? { pictures: [picture(1), picture(2), picture(3)], next: 'IMG_3.jpg' }
-			: new Promise<{ pictures: MissingPicture[], next: string | null }>((settle) => {
+			? { pictures: [picture(1), picture(2), picture(3)], nextCursor: 'IMG_3.jpg' }
+			: new Promise<{ pictures: MissingPicture[], nextCursor: string | null }>((settle) => {
 					nextPage = settle
 				}))),
 		hash: vi.fn(async (each: MissingPicture) => {
@@ -33,7 +33,7 @@ function seams() {
 		wait: vi.fn(() => new Promise<void>(() => {})),
 		workers: 1,
 	}
-	return { fake, finish: () => nextPage({ pictures: [picture(4)], next: null }) }
+	return { fake, finish: () => nextPage({ pictures: [picture(4)], nextCursor: null }) }
 }
 
 function mountPage(fake = seams().fake) {
@@ -101,7 +101,7 @@ describe('SimilarityPage', () => {
 	it('names a failed save and offers to resume', async () => {
 		const { fake } = seams()
 		fake.save.mockRejectedValue(new Error('offline'))
-		fake.listMissing.mockResolvedValue({ pictures: [picture(1)], next: null })
+		fake.listMissing.mockResolvedValue({ pictures: [picture(1)], nextCursor: null })
 		const wrapper = mountPage(fake)
 
 		await startIn(wrapper)
@@ -114,7 +114,7 @@ describe('SimilarityPage', () => {
 	it('says how long it waits when the server limits the saves', async () => {
 		const { fake } = seams()
 		fake.save.mockRejectedValueOnce(new RateLimitedError(60))
-		fake.listMissing.mockResolvedValue({ pictures: [picture(1)], next: null })
+		fake.listMissing.mockResolvedValue({ pictures: [picture(1)], nextCursor: null })
 		const wrapper = mountPage(fake)
 
 		await startIn(wrapper)
@@ -137,7 +137,7 @@ describe('SimilarityPage', () => {
 	// spec: SERIES-004.11
 	it('says when every photo is compared', async () => {
 		const { fake } = seams()
-		fake.listMissing.mockResolvedValue({ pictures: [picture(1)], next: null })
+		fake.listMissing.mockResolvedValue({ pictures: [picture(1)], nextCursor: null })
 		const wrapper = mountPage(fake)
 
 		await startIn(wrapper)
