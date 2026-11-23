@@ -32,6 +32,15 @@ final class TagMapperTest extends DbTestCase {
 		$this->assertSame(3, $this->rowCount());
 	}
 
+	// ADR 0022: the key must not fold case or accents, as the comparison is PHP's.
+	public function testTagsThatDifferOnlyInCaseOrAccentsAreTwoRows(): void {
+		$this->tags->addToTagList('alice', ['anna', 'cafe']);
+		$this->tags->addToTagList('alice', ['Anna']);
+		$this->tags->addToTagList('alice', ['café']);
+
+		$this->assertSame(['Anna', 'anna', 'cafe', 'café'], $this->tags->tagList('alice'));
+	}
+
 	public function testASecondInsertOfTheSameTagIsAUniqueConflict(): void {
 		$this->insertRow('alice', 'beach');
 
