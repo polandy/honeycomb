@@ -1894,3 +1894,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   table names stay, as each is a glossary word; every index is named `<table>_<columns>`; no
   `hasTable` guard, so an instance from before fails loud and reinstalls (`updating.md`);
   `DecidedPictures` goes with migration 5, as nothing read its preference (#187, autonomous).
+- 2026-11-23: `honeycomb_tag_list` keeps `UNIQUE(user_id, tag)` against ADR 0022's collation
+  concern, as Nextcloud creates MySQL tables as `utf8mb4_bin`; a folding `mysql.collation`
+  override is accepted as unsupported (#187, autonomous).

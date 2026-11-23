@@ -2,7 +2,7 @@
 
 - Status: accepted
 - Date: 2026-11-23
-- Amends: [0040](0040-flags-per-picture-in-the-database.md), [0054](0054-one-decision-table-for-files-and-immich-assets.md)
+- Amends: [0022](0022-tag-storage.md), [0040](0040-flags-per-picture-in-the-database.md), [0054](0054-one-decision-table-for-files-and-immich-assets.md)
 
 ## Context
 
@@ -27,7 +27,10 @@ can still be replaced (architecture report 2026-11-22, A1).
 - **`honeycomb_tag_list` is unique on `(user_id, tag)`**, which also serves every read of a user's
   list. `TagMapper::addToTagList` inserts only the tags missing from the list; when two saves add
   the same tag at once, the second hits the key and `RetryOnConflict`, which already wraps it,
-  repeats it without that tag.
+  repeats it without that tag. ADR 0022 kept the key off because MySQL's default collation folds
+  case and accents, but Nextcloud creates its MySQL tables as `utf8mb4_bin` (`utf8_bin`), so
+  `Anna`, `anna` and `café`, `cafe` stay four tags, which `TagMapperTest` proves on every database.
+  An instance that sets `mysql.collation` to a folding collation would reject such a second tag.
 - **`honeycomb_series_files` gains an index on `series_id`** for the sweep's `NOT EXISTS` lookup.
 - **The table names stay.** Each is `honeycomb_` and a glossary word (*tag list*, *XMP cache*,
   *folder summary*); renaming them would touch every mapper and the admin guides for no reader.
