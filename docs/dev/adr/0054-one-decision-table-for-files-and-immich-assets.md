@@ -20,7 +20,7 @@ owner chose it on 2026-11-22 while nothing is deployed, so the switch needs no d
   | Column | Type | Rule |
   |---|---|---|
   | `id` | bigint, autoincrement | primary key |
-  | `source` | string 16 | `file` or `immich`; every query of a source filters on it |
+  | `source` | string 16 | `file` or `immich`; a file query meets file rows through `file_id` |
   | `file_id` | bigint, nullable | the Nextcloud file id, set for `file` only |
   | `connection_id` | string 64, nullable | the connection's `id` (ADR 0042), set for `immich` only |
   | `asset_id` | string 36, nullable | the Immich asset id, set for `immich` only |
