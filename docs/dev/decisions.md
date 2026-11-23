@@ -1890,3 +1890,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `user_id` beside the key, so forgetting a user and the connection sweep delete from both tables
   without a join; migration 12 deletes the old Immich rows instead of copying them, as nothing is
   deployed (#187).
+- 2026-11-23: One baseline migration replaces migrations 0–12 (ADR 0055, arch report A1): the
+  table names stay, as each is a glossary word; every index is named `<table>_<columns>`; no
+  `hasTable` guard, so an instance from before fails loud and reinstalls (`updating.md`);
+  `DecidedPictures` goes with migration 5, as nothing read its preference (#187, autonomous).
