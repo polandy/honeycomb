@@ -1,7 +1,7 @@
-# 0050 – What happens to honeycomb's data when the app is removed
+# 0053 – What happens to honeycomb's data when the app is removed
 
 - Status: proposed, waiting for the owner (issue #187)
-- Date: 2026-11-22
+- Date: 2026-11-23
 - Amends: the 2026-11-14 entry in `docs/dev/decisions.md` ("no uninstall step that deletes user data")
 
 ## Context
@@ -11,8 +11,8 @@ The isolation check of 2026-11-22 (fix T4) asked for an uninstall repair step, s
 `oc_preferences` rows and its `oc_jobs` row, and `occ app:remove --keep-data honeycomb` keeps them.
 `docs/user/admin/removing.md` lists what stays today.
 
-Nextcloud 35.0.2 and 35.0.3 (the same code in both) run uninstall repair steps in
-`OC\App\AppManager::disableApp()`, not in the removal:
+Nextcloud 35.0.2 and 35.0.3 (the same code in both, checked again on 2026-11-23) run uninstall
+repair steps in `OC\App\AppManager::disableApp()`, not in the removal:
 
 - `occ app:remove honeycomb` calls `disableApp()`, which runs the uninstall steps, then deletes
   the app folder (`core/Command/App/Remove.php`).
@@ -33,16 +33,18 @@ honeycomb's `max-version` is raised.
 - **A, an uninstall step that drops everything:** what T4 asked for; `app:remove` cleans up and
   `--keep-data` keeps the data, but every disable and every upgrade that finds honeycomb
   incompatible deletes all users' data without a warning.
-- **B, an explicit purge command instead of an uninstall step:** a new
-  `occ honeycomb:purge --confirm` drops the tables and deletes the `oc_migrations`,
-  `oc_appconfig`, `oc_preferences` and `oc_jobs` rows; the admin runs it before
-  `occ app:remove`. No uninstall step: `enableApp()` adds no background job again, so even a step
-  that removed only the `oc_jobs` row would lose the clean-up job after a disable and enable.
-- **C, no uninstall step:** keep today's behaviour and the hand-written SQL in
-  `docs/user/admin/removing.md`.
+- **B, no uninstall step; `occ honeycomb:cleanup --all` removes the rest:** the owner's decision
+  E16 of 2026-11-19 already chose `honeycomb:cleanup --all` over an uninstall step. It empties
+  the tables and the `oc_preferences` rows today; B extends it to also drop the tables and delete
+  the `oc_migrations`, `oc_appconfig` and `oc_jobs` rows, and the admin runs it before
+  `occ app:remove`. No uninstall step at all: `enableApp()` adds no background job again, so even
+  a step that removed only the `oc_jobs` row would lose the clean-up job after a disable and
+  enable.
+- **C, no change:** keep today's `honeycomb:cleanup --all` (rows only) and the hand-written SQL
+  for the tables, `oc_migrations` and `oc_appconfig` in `docs/user/admin/removing.md`.
 
 Recommendation: B. No disable ever deletes data, and removing it for good is one command instead
-of hand-written SQL per database.
+of hand-written SQL per database, and it keeps E16.
 
 ## Decision
 
