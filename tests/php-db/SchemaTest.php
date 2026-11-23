@@ -10,7 +10,7 @@ namespace OCA\Honeycomb\DbTests;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Types\Type;
-use Doctrine\DBAL\Types\Types;
+use OCP\DB\Types;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Server;
@@ -22,7 +22,7 @@ final class SchemaTest extends TestCase {
 	private const string PRIMARY = 'primary';
 
 	public function testTheMigrationsCreateTheSchemaOfTheFixture(): void {
-		$expected = json_decode((string)file_get_contents(self::FIXTURE), true, 512, JSON_THROW_ON_ERROR);
+		$expected = json_decode($this->readFixture(), true, 512, JSON_THROW_ON_ERROR);
 
 		$this->assertSame(json_encode($expected, JSON_PRETTY_PRINT), json_encode($this->snapshot(), JSON_PRETTY_PRINT));
 	}
@@ -40,18 +40,21 @@ final class SchemaTest extends TestCase {
 	/** @return array<string, array{columns: array<string, string>, indexes: array<string, string>}> each app table, columns and indexes as one line each */
 	private function snapshot(): array {
 		$prefix = Server::get(IConfig::class)->getSystemValueString('dbtableprefix', 'oc_');
+		/** @var array<string, array{columns: array<string, string>, indexes: array<string, string>}> $snapshot */
 		$snapshot = [];
 		foreach (Server::get(IDBConnection::class)->createSchema()->getTables() as $table) {
 			if (preg_match('/(?:^|\.)' . preg_quote($prefix, '/') . '(honeycomb_\w+)$/', $table->getName(), $match) !== 1) {
 				continue;
 			}
+			/** @var array<string, string> $columns */
 			$columns = [];
 			foreach ($table->getColumns() as $column) {
-				$columns[$column->getName()] = $this->describeColumn($column);
+				$columns[(string)$column->getName()] = $this->describeColumn($column);
 			}
+			/** @var array<string, string> $indexes */
 			$indexes = [];
 			foreach ($table->getIndexes() as $index) {
-				$indexes[$index->isPrimary() ? self::PRIMARY : $index->getName()] = $this->describeIndex($index);
+				$indexes[$index->isPrimary() ? self::PRIMARY : (string)$index->getName()] = $this->describeIndex($index);
 			}
 			ksort($columns);
 			ksort($indexes);
@@ -61,8 +64,9 @@ final class SchemaTest extends TestCase {
 		return $snapshot;
 	}
 
+	/** @psalm-suppress UndefinedClass Doctrine's column is not in the stubs. */
 	private function describeColumn(Column $column): string {
-		$type = Type::lookupName($column->getType());
+		$type = (string)Type::lookupName($column->getType());
 		// SQLite keeps every autoincrement key as INTEGER.
 		if ($column->getAutoincrement() && $type === Types::INTEGER && Server::get(IDBConnection::class)->getDatabaseProvider() === IDBConnection::PLATFORM_SQLITE) {
 			$type = Types::BIGINT;
@@ -78,8 +82,14 @@ final class SchemaTest extends TestCase {
 		return implode(' ', $parts);
 	}
 
+	/** @psalm-suppress UndefinedClass Doctrine's index is not in the stubs. */
 	private function describeIndex(Index $index): string {
 		return ($index->isPrimary() ? self::PRIMARY : ($index->isUnique() ? 'unique' : 'index')) . '(' . implode(', ', $index->getColumns()) . ')';
+	}
+
+	/** @psalm-suppress ForbiddenCode Reads the schema fixture, not a user file. */
+	private function readFixture(): string {
+		return (string)file_get_contents(self::FIXTURE);
 	}
 
 	/** @return list<string> */

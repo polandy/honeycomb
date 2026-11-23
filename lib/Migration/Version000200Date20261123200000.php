@@ -151,9 +151,10 @@ final class Version000200Date20261123200000 extends SimpleMigrationStep {
 
 	/**
 	 * Creates the table with an autoincrement `id` key; each index is named after its table and columns.
-	 * @param array<string, array{string, array<string, mixed>}> $columns name => [type, options]
-	 * @param list<list<string>> $unique
-	 * @param list<list<string>> $index
+	 * @param non-empty-string $name
+	 * @param array<non-empty-string, array{Types::*, array{default?: scalar, length?: int, notnull?: bool}}> $columns name => [type, options]
+	 * @param list<list<non-empty-string>> $unique
+	 * @param list<list<non-empty-string>> $index
 	 */
 	private static function create(ISchemaWrapper $schema, string $name, array $columns, array $unique = [], array $index = []): void {
 		$table = $schema->createTable($name);
