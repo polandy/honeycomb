@@ -29,8 +29,12 @@ final class Version000011Date20261123120000 extends SimpleMigrationStep {
 	#[\Override]
 	public function changeSchema(IOutput $output, \Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		$schema = $schemaClosure();
+		$flags = $schema->hasTable(self::FLAGS);
+		if ($flags) {
+			$schema->dropTable(self::FLAGS);
+		}
 		if ($schema->hasTable(self::TABLE)) {
-			return null;
+			return $flags ? $schema : null;
 		}
 		$table = $schema->createTable(self::TABLE);
 		$table->addColumn('id', Types::BIGINT, ['autoincrement' => true, 'notnull' => true]);
@@ -47,9 +51,6 @@ final class Version000011Date20261123120000 extends SimpleMigrationStep {
 		$table->setPrimaryKey(['id']);
 		$table->addUniqueIndex(['file_id'], 'honeycomb_decisions_file_id');
 		$table->addUniqueIndex(['connection_id', 'asset_id'], 'honeycomb_decisions_asset');
-		if ($schema->hasTable(self::FLAGS)) {
-			$schema->dropTable(self::FLAGS);
-		}
 		return $schema;
 	}
 }
