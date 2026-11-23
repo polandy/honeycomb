@@ -45,8 +45,8 @@ describe('useCull: open series', () => {
 	// spec: SERIES-003.25
 	it('marks the series with a member still without a hash as open', () => {
 		const cull = openedCull([
-			listingEntry(1, '/Trip/A.JPG', { captureTime: 10, visualHash: '0000000000000000' }),
-			listingEntry(2, '/Trip/B.JPG', { captureTime: 11, visualHash: '0000000000000000' }),
+			listingEntry(1, '/Trip/A.JPG', { captureTime: 10, visualHash: { method: 1, hash: '0000000000000000' } }),
+			listingEntry(2, '/Trip/B.JPG', { captureTime: 11, visualHash: { method: 1, hash: '0000000000000000' } }),
 			listingEntry(3, '/Trip/C.JPG', { captureTime: 500 }),
 			listingEntry(4, '/Trip/D.JPG', { captureTime: 501 }),
 		])

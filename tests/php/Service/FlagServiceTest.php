@@ -103,18 +103,18 @@ final class FlagServiceTest extends TestCase {
 
 		$answer = $service->save($this->user(), [self::item(7, 'unflagged'), self::item(8, 'picked', true)]);
 
-		$this->assertEquals([7 => new FileFlag(7, Flag::Unflagged, false, self::NOW), 8 => new FileFlag(8, Flag::Picked, true, self::NOW)], $this->store->rows);
+		$this->assertEquals([7 => new FileFlag(7, Flag::Unflagged, false, self::NOW, 'alice'), 8 => new FileFlag(8, Flag::Picked, true, self::NOW, 'alice')], $this->store->rows);
 		$this->assertSame(['saved' => [7, 8], 'skipped' => []], $answer->jsonSerialize());
 	}
 
-	// spec: DECISIONS-001.22
+	// spec: DECISIONS-001.22, DECISIONS-001.37
 	public function testEveryUserSavesTheOneStateOfAFile(): void {
 		$service = $this->service([7 => ['/Shared', self::RATEABLE]]);
 
 		$service->save($this->userNamed('alice'), [self::item(7, 'picked')]);
 		$service->save($this->userNamed('bob'), [self::item(7, 'rejected', true)]);
 
-		$this->assertEquals([7 => new FileFlag(7, Flag::Rejected, true, self::NOW)], $this->store->rows);
+		$this->assertEquals([7 => new FileFlag(7, Flag::Rejected, true, self::NOW, 'bob')], $this->store->rows);
 	}
 
 	// spec: DECISIONS-001.24
@@ -200,7 +200,7 @@ final class FlagServiceTest extends TestCase {
 
 		$answer = $service->takeOver($this->user(), [self::item(7, 'picked', true), self::item(8, 'unflagged'), self::item(9)]);
 
-		$this->assertEquals([7 => new FileFlag(7, Flag::Rejected, false, 100), 8 => new FileFlag(8, Flag::Unflagged, false, self::NOW)], $this->store->rows);
+		$this->assertEquals([7 => new FileFlag(7, Flag::Rejected, false, 100), 8 => new FileFlag(8, Flag::Unflagged, false, self::NOW, 'alice')], $this->store->rows);
 		$this->assertSame(['saved' => [8], 'skipped' => [
 			['fileId' => 7, 'reason' => 'exists'],
 			['fileId' => 9, 'reason' => 'notFound'],
@@ -249,7 +249,7 @@ final class FlagServiceTest extends TestCase {
 		$this->service([7 => ['/Photos', self::RATEABLE]])->save($this->user(), [self::item(7)]);
 
 		$this->assertSame(3, $this->store->writeCalls);
-		$this->assertEquals([7 => new FileFlag(7, Flag::Picked, false, self::NOW)], $this->store->rows);
+		$this->assertEquals([7 => new FileFlag(7, Flag::Picked, false, self::NOW, 'alice')], $this->store->rows);
 	}
 
 	// spec: DECISIONS-001.30

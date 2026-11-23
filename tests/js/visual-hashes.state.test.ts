@@ -14,7 +14,7 @@ describe('useVisualHashes states and progress', () => {
 	// spec: SERIES-003.16
 	it('knows of each hashable picture whether it is hashed, pending or failed', async () => {
 		vi.spyOn(logger, 'warn').mockImplementation(() => {})
-		const { calls, hashes, byName } = setUp([{ ...BURST[0]!, visualHash: '00000000000000aa' }, ...BURST.slice(1), listingEntry(5, '/P/D.JPG', { captureTime: 12 })])
+		const { calls, hashes, byName } = setUp([{ ...BURST[0]!, visualHash: { method: 1, hash: '00000000000000aa' } }, ...BURST.slice(1), listingEntry(5, '/P/D.JPG', { captureTime: 12 })])
 		expect([hashes.stateOf(byName('A')), hashes.stateOf(byName('B')), hashes.stateOf(byName('D')), hashes.stateOf(byName('C'))]).toEqual(['hashed', 'pending', 'pending', null])
 
 		calls[0]!.reject(new Error('no preview'))
@@ -28,7 +28,7 @@ describe('useVisualHashes states and progress', () => {
 
 	// spec: SERIES-003.16
 	it('gives a picture that is not hashable no state, even with a listed hash', () => {
-		const { hashes, byName } = setUp([...BURST.slice(0, 3), { ...BURST[3]!, visualHash: '00000000000000cc' }])
+		const { hashes, byName } = setUp([...BURST.slice(0, 3), { ...BURST[3]!, visualHash: { method: 1, hash: '00000000000000cc' } }])
 
 		expect(hashes.stateOf(byName('C'))).toBeNull()
 	})
@@ -94,7 +94,7 @@ describe('useVisualHashes states and progress', () => {
 		calls[1]!.resolve('0000000000000003')
 		await flushPromises()
 
-		expect(saves).toEqual([[{ fileId: 1, etag: 'etag-1', hash: '0000000000000001' }, { fileId: 3, etag: 'etag-3', hash: '0000000000000003' }]])
+		expect(saves).toEqual([[{ fileId: 1, etag: 'etag-1', method: 1, hash: '0000000000000001' }, { fileId: 3, etag: 'etag-3', method: 1, hash: '0000000000000003' }]])
 	})
 
 	// spec: SERIES-003.12
@@ -127,13 +127,27 @@ describe('useVisualHashes states and progress', () => {
 
 	// spec: SERIES-001.17, SERIES-003.12
 	it('uses the hashes the listing delivered at once and hashes only the rest', async () => {
-		const { calls, saves, hashes, byName } = setUp([{ ...BURST[0]!, visualHash: '00000000000000aa' }, ...BURST.slice(1)])
+		const { calls, saves, hashes, byName } = setUp([{ ...BURST[0]!, visualHash: { method: 1, hash: '00000000000000aa' } }, ...BURST.slice(1)])
 
 		expect(hashes.hashOf(byName('A'))).toBe('00000000000000aa')
 		expect(calls.map((call) => call.member.fileId)).toEqual([3])
 		calls[0]!.resolve('0000000000000003')
 		await flushPromises()
-		expect(saves).toEqual([[{ fileId: 3, etag: 'etag-3', hash: '0000000000000003' }]])
+		expect(saves).toEqual([[{ fileId: 3, etag: 'etag-3', method: 1, hash: '0000000000000003' }]])
+	})
+
+	// spec: SERIES-003.30
+	it('hashes a picture again whose listed hash is of another method', async () => {
+		const { calls, saves, hashes, byName } = setUp([{ ...BURST[0]!, visualHash: { method: 2, hash: '00000000000000aa' } }, ...BURST.slice(1)])
+
+		expect(hashes.hashOf(byName('A'))).toBeNull()
+		calls[0]!.resolve('0000000000000001')
+		await flushPromises()
+		calls[1]!.resolve('0000000000000003')
+		await flushPromises()
+		expect(calls.map((call) => call.member.fileId)).toEqual([1, 3])
+		expect(hashes.hashOf(byName('A'))).toBe('0000000000000001')
+		expect(saves.flat()).toContainEqual({ fileId: 1, etag: 'etag-1', method: 1, hash: '0000000000000001' })
 	})
 
 	// spec: SERIES-001.17

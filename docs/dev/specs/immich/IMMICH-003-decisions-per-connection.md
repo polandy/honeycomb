@@ -21,7 +21,8 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
   connection is rateable.
 - **Read:** a listing entry carries its decision, `UNDECIDED` without a row (rating 0, no colour
   label, unflagged, no *Keep RAW*). No route returns the rows as they are.
-- **Storage:** the decision (flag, *Keep RAW*, rating, colour label, `updated_at`) is a row of
+- **Storage:** the decision (flag, *Keep RAW*, rating, colour label, `updated_at`, and the user
+  in `updated_by`) is a row of
   the source `immich` in `honeycomb_decisions` (ADR 0054), the facets copied from the listing
   (`takenAt`, `cameraModel`, `kind`, `assetUpdatedAt`) a row of `honeycomb_immich_assets`, both
   keyed by (connection, asset id) and the user. The decision filter and the counts join the two.
@@ -69,7 +70,8 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
 
 - **Given** a row with rating 4 and flag `picked`
 - **When** a save sends rating 0 and flag `unflagged` for it
-- **Then** the row holds exactly the second save, with `updated_at` from the clock
+- **Then** the row holds exactly the second save, with `updated_at` from the clock and the user
+  in `updated_by`
 
 ### IMMICH-003.4 – Undo is a new save
 

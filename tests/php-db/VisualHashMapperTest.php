@@ -23,9 +23,9 @@ final class VisualHashMapperTest extends DbTestCase {
 		$this->hashes = new VisualHashMapper($this->db);
 	}
 
-	private static function row(int $fileId, string $etag = ''): VisualHash {
+	private static function row(int $fileId, string $etag = '', int $method = 1): VisualHash {
 		$etag = $etag === '' ? "etag-$fileId" : $etag;
-		return new VisualHash($fileId, $etag, '00ff00ff00ff00ff');
+		return new VisualHash($fileId, $etag, $method, '00ff00ff00ff00ff');
 	}
 
 	/** @param list<int> $fileIds */
@@ -35,9 +35,9 @@ final class VisualHashMapperTest extends DbTestCase {
 
 	public function testKeepsEveryFieldAndReplacesTheRowOfTheSameFile(): void {
 		$this->save([7, 8]);
-		$this->hashes->replace([self::row(7, 'etag-new')]);
+		$this->hashes->replace([self::row(7, 'etag-new', 2)]);
 
-		$this->assertEquals([7 => self::row(7, 'etag-new'), 8 => self::row(8)], $this->hashes->find([7, 8, 9]));
+		$this->assertEquals([7 => self::row(7, 'etag-new', 2), 8 => self::row(8)], $this->hashes->find([7, 8, 9]));
 	}
 
 	public function testFindsAndReplacesMoreFileIdsThanOneInListTakes(): void {

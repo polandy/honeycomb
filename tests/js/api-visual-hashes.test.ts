@@ -8,7 +8,7 @@ import { RateLimitedError } from '../../src/logic/retry-after.ts'
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({ generateUrl: (url: string) => `/index.php${url}` }))
 
-const HASHED = { fileId: 3, etag: 'etag-3', hash: '00ff00ff00ff00ff' }
+const HASHED = { fileId: 3, etag: 'etag-3', method: 1, hash: '00ff00ff00ff00ff' }
 
 beforeEach(() => {
 	vi.clearAllMocks()
@@ -73,7 +73,7 @@ describe('listMissingVisualHashes', () => {
 
 		await expect(listMissingVisualHashes('/Photos', '2024/b.jpg')).resolves.toEqual(PAGE)
 
-		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/visual-hashes/missing', { params: { path: '/Photos', cursor: '2024/b.jpg' } })
+		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/visual-hashes/missing', { params: { path: '/Photos', cursor: '2024/b.jpg', method: 1 } })
 	})
 
 	// spec: SERIES-004.12

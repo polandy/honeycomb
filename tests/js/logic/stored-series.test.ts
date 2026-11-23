@@ -13,7 +13,7 @@ import { listingEntry, picturesOf } from './listing-entries.ts'
 
 /** Pictures `/P/<name>.JPG` with file ids from 1, shot at `time` by `camera`, with an optional visual hash. */
 function shots(...specs: [name: string, time: number | null, camera?: string, hash?: string][]) {
-	return picturesOf(specs.map(([name, time, camera = 'Canon EOS R5', visualHash = null], index) => listingEntry(index + 1, `/P/${name}.JPG`, { captureTime: time, camera, visualHash })))
+	return picturesOf(specs.map(([name, time, camera = 'Canon EOS R5', hash], index) => listingEntry(index + 1, `/P/${name}.JPG`, { captureTime: time, camera, visualHash: hash === undefined ? null : { method: 1, hash } })))
 }
 
 const ALIKE = '0000000000000000'
@@ -21,7 +21,7 @@ const ALIKE = '0000000000000000'
 /** The shown series of the pictures under the lookup's rows, as base names, with the flags by base name. */
 function shownSeries(pictures: readonly Picture<ListingEntry>[], answer: SeriesLookup, flags: Record<string, Flag> = {}) {
 	const decisionOf = (picture: Picture<ListingEntry>): Decision => ({ ...UNDECIDED, flag: flags[picture.baseName] ?? 'unflagged' })
-	const hashOf = (picture: Picture<ListingEntry>) => picture.rendered?.visualHash ?? null
+	const hashOf = (picture: Picture<ListingEntry>) => picture.rendered?.visualHash?.hash ?? null
 	const { stored, loose } = splitByStoredRows(pictures, withLookup(NO_STORED_ROWS, answer))
 	return findSeries(allSeries(seriesCandidates(loose, hashOf), decisionOf, hashOf, stored), decisionOf)
 }

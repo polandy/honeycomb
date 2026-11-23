@@ -44,20 +44,20 @@ final class VisualHashServiceTest extends TestCase {
 		return new VisualHashService($this->store, new UserPhotos(new UserFolderResolver($root)));
 	}
 
-	/** @return array{fileId: mixed, etag: mixed, hash: mixed} */
-	private static function item(mixed $fileId, mixed $etag = null, mixed $hash = self::HASH): array {
-		return ['fileId' => $fileId, 'etag' => $etag ?? "etag-$fileId", 'hash' => $hash];
+	/** @return array{fileId: mixed, etag: mixed, method: mixed, hash: mixed} */
+	private static function item(mixed $fileId, mixed $etag = null, mixed $hash = self::HASH, mixed $method = 1): array {
+		return ['fileId' => $fileId, 'etag' => $etag ?? "etag-$fileId", 'method' => $method, 'hash' => $hash];
 	}
 
 	// spec: SERIES-003.3
 	public function testStoresTheHashesOfTheCurrentVersionsAndAnswersTheirIds(): void {
-		$this->store->rows[8] = new VisualHash(8, 'etag-8', 'ffffffffffffffff');
+		$this->store->rows[8] = new VisualHash(8, 'etag-8', 1, 'ffffffffffffffff');
 		$service = $this->service($this->file(7, '/P/A.JPG'), $this->file(8, '/P/B.CR3', 'image/x-dcraw'));
 
-		$saved = $service->save($this->user(), [self::item(8), self::item(7)]);
+		$saved = $service->save($this->user(), [self::item(8), self::item(7, method: 2)]);
 
 		$this->assertSame([8, 7], $saved);
-		$this->assertEquals([8 => new VisualHash(8, 'etag-8', self::HASH), 7 => new VisualHash(7, 'etag-7', self::HASH)], $this->store->rows);
+		$this->assertEquals([8 => new VisualHash(8, 'etag-8', 1, self::HASH), 7 => new VisualHash(7, 'etag-7', 2, self::HASH)], $this->store->rows);
 	}
 
 	// spec: SERIES-003.4
@@ -88,7 +88,11 @@ final class VisualHashServiceTest extends TestCase {
 			'item not an object' => [[7]],
 			'file id a string' => [[self::item('7', 'etag-7')]],
 			'file id zero' => [[self::item(0, 'etag-0')]],
-			'etag missing' => [[['fileId' => 7, 'hash' => self::HASH]]],
+			'etag missing' => [[['fileId' => 7, 'method' => 1, 'hash' => self::HASH]]],
+			'method missing' => [[['fileId' => 7, 'etag' => 'etag-7', 'hash' => self::HASH]]],
+			'method zero' => [[self::item(7, method: 0)]],
+			'method beyond 255' => [[self::item(7, method: 256)]],
+			'method not an integer' => [[self::item(7, method: '1')]],
 			'etag empty' => [[self::item(7, '')]],
 			'etag too long' => [[self::item(7, str_repeat('a', 41))]],
 			'etag not text' => [[self::item(7, 7)]],

@@ -59,8 +59,8 @@ final class VisualHashControllerTest extends TestCase {
 	// spec: SERIES-003.3, SERIES-003.4
 	public function testAnswersTheSavedFileIds(): void {
 		$response = $this->controller()->save([
-			['fileId' => 7, 'etag' => 'etag-7', 'hash' => self::HASH],
-			['fileId' => 8, 'etag' => 'etag-8', 'hash' => self::HASH],
+			['fileId' => 7, 'etag' => 'etag-7', 'method' => 1, 'hash' => self::HASH],
+			['fileId' => 8, 'etag' => 'etag-8', 'method' => 1, 'hash' => self::HASH],
 		]);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
@@ -69,7 +69,7 @@ final class VisualHashControllerTest extends TestCase {
 
 	// spec: SERIES-003.6
 	public function testAMalformedSaveIsABadRequest(): void {
-		$response = $this->controller()->save([['fileId' => 7, 'etag' => 'etag-7', 'hash' => 'not a hash']]);
+		$response = $this->controller()->save([['fileId' => 7, 'etag' => 'etag-7', 'method' => 1, 'hash' => 'not a hash']]);
 
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
 		$this->assertSame([], $this->store->rows);
@@ -77,7 +77,7 @@ final class VisualHashControllerTest extends TestCase {
 
 	// spec: SERIES-003.7
 	public function testWithoutAUserNothingIsWritten(): void {
-		$response = $this->controller(false)->save([['fileId' => 7, 'etag' => 'etag-7', 'hash' => self::HASH]]);
+		$response = $this->controller(false)->save([['fileId' => 7, 'etag' => 'etag-7', 'method' => 1, 'hash' => self::HASH]]);
 
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
 		$this->assertSame([], $this->store->rows);
@@ -104,7 +104,7 @@ final class VisualHashControllerTest extends TestCase {
 	public function testAnswersThePageOfMissingHashes(): void {
 		$root = $this->rootWith(['/Photos' => $this->treeOf([$this->file(1, '/Photos/a.JPG')])]);
 
-		$response = $this->controller(root: $root)->missing('Photos', '');
+		$response = $this->controller(root: $root)->missing('Photos', '', 1);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame(['pictures' => [['fileId' => 1, 'etag' => 'etag-1', 'mtime' => 1_700_000_001, 'path' => '/Photos/a.JPG']], 'nextCursor' => null], json_decode($response->render(), true));
@@ -114,10 +114,11 @@ final class VisualHashControllerTest extends TestCase {
 	public function testMissingHashesOfAWrongPathOrCursorAreRefused(): void {
 		$root = $this->rootWith(['/Photos' => $this->treeOf([$this->file(1, '/Photos/a.JPG')]), '/Locked' => $this->folder('/Locked', false)]);
 
-		$this->assertSame(Http::STATUS_NOT_FOUND, $this->controller(root: $root)->missing('Nowhere', '')->getStatus());
-		$this->assertSame(Http::STATUS_FORBIDDEN, $this->controller(root: $root)->missing('Locked', '')->getStatus());
-		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller(root: $root)->missing('Photos', '../a.JPG')->getStatus());
-		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(false, $root)->missing('Photos', '')->getStatus());
+		$this->assertSame(Http::STATUS_NOT_FOUND, $this->controller(root: $root)->missing('Nowhere', '', 1)->getStatus());
+		$this->assertSame(Http::STATUS_FORBIDDEN, $this->controller(root: $root)->missing('Locked', '', 1)->getStatus());
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller(root: $root)->missing('Photos', '../a.JPG', 1)->getStatus());
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller(root: $root)->missing('Photos', '', 0)->getStatus());
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(false, $root)->missing('Photos', '', 1)->getStatus());
 	}
 
 	public function testTheMissingHashesAreRoutedForUsers(): void {

@@ -34,12 +34,38 @@ can still be replaced (architecture report 2026-11-22, A1).
 - **`honeycomb_series_files` gains an index on `series_id`** for the sweep's `NOT EXISTS` lookup.
 - **The table names stay.** Each is `honeycomb_` and a glossary word (*tag list*, *XMP cache*,
   *folder summary*); renaming them would touch every mapper and the admin guides for no reader.
-- **No `hasTable` guard.** An instance that ran the old chain fails the migration on its first
-  existing table instead of keeping a schema the code no longer expects; it reinstalls the app
-  ([updating](../../user/admin/updating.md)).
+- **No `hasTable` guard, but a check up front.** Before it creates a table, the migration stops
+  with one sentence that names the existing `honeycomb_*` tables and points to
+  [updating](../../user/admin/updating.md) when any exists, instead of failing on the first one
+  with a database error or keeping a schema the code no longer expects (amended 2026-11-24).
 - `tests/php-db/SchemaTest.php` compares the live schema on SQLite, MariaDB and PostgreSQL with
   `tests/fixtures/schema/honeycomb.json`, taken from the old chain and changed only as listed here,
   and checks the index name rule.
+
+## Amendment 2026-11-24: the baseline before 0.2.0
+
+The architecture and data model review of 2026-11-24 found gaps the baseline can still close
+before 0.2.0 is released; the owner approved them. Until that release the baseline may change;
+an instance that already ran it (a test server) reinstalls as above.
+
+- **`honeycomb_decisions.updated_by`** (`string(64)`, null) notes who saved or took a row over
+  last, for information like `honeycomb_folder_done.user_id`: nothing reads it to decide, and
+  deleting the user empties it and keeps the row.
+- **`honeycomb_decisions.sidecar_etag`** (`string(40)`, null): the sidecar's etag when the row
+  and the XMP sidecar last agreed, so a later sync can tell which side changed (digiKam first,
+  owner decision 2026-11-24). This change adds the column only; it stays null until the sync
+  writes it.
+- **`honeycomb_hashes.method`** (`smallint`, not null, default 1): the version of the visual
+  hash, as `honeycomb_quality.method` is of the sharpness (ADR 0046). The listing delivers it
+  with the hash, a save sends it, the missing-hash walk asks for one method, and the browser
+  treats a hash of another method as missing.
+- **`asset_id` is `string(255)`** in `honeycomb_decisions`, `honeycomb_immich_assets` and
+  `honeycomb_positions`: Immich's UUID today, room for a source whose ids are longer.
+- **Indexes** `honeycomb_decisions(user_id)` for forgetting a user, `honeycomb_decisions(source,
+  connection_id)` for the connection sweep, and `honeycomb_immich_assets(user_id)`.
+- **`honeycomb_positions` opens for Immich:** `file_id` becomes null, `asset_id` and `taken_at`
+  (`bigint`) are added, both null. A position of a folder set keeps `file_id`; the Immich
+  position (IMMICH-003, a later task) writes the other two.
 
 ## Options considered
 

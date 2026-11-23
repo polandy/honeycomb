@@ -144,7 +144,7 @@ final class ImmichDecisionMapperTest extends DbTestCase {
 		$this->assertSame(1, $this->decisions->keepOnly([]));
 	}
 
-	// spec: IMMICH-003.22
+	// spec: IMMICH-003.22, IMMICH-003.3
 	public function testKeepsTheDecisionInTheDecisionTableAndTheFacetsApart(): void {
 		$this->insertFileRow();
 		$this->decisions->save('alice', 'alice-phone', [self::decision(1, Flag::Rejected, 3, ColourLabel::Red), self::decision(2)], 100);
@@ -154,9 +154,9 @@ final class ImmichDecisionMapperTest extends DbTestCase {
 		$this->decisions->keepOnly([['alice-phone', 'alice']]);
 
 		$this->assertSame([
-			['file', '7', null, null, null, 'picked', null, null, '50'],
-			['immich', null, 'alice-phone', self::id(1), 'alice', 'rejected', '3', 'red', '100'],
-		], $this->rows('honeycomb_decisions', ['source', 'file_id', 'connection_id', 'asset_id', 'user_id', 'flag', 'rating', 'colour_label', 'updated_at']));
+			['file', '7', null, null, null, 'picked', null, null, '50', null],
+			['immich', null, 'alice-phone', self::id(1), 'alice', 'rejected', '3', 'red', '100', 'alice'],
+		], $this->rows('honeycomb_decisions', ['source', 'file_id', 'connection_id', 'asset_id', 'user_id', 'flag', 'rating', 'colour_label', 'updated_at', 'updated_by']));
 		$this->assertSame([
 			['alice-phone', self::id(1), 'alice', '1000', 'Pixel 9 Pro', 'photo', '2026-11-19T08:00:00.000Z'],
 		], $this->rows('honeycomb_immich_assets', ['connection_id', 'asset_id', 'user_id', 'taken_at', 'camera_model', 'kind', 'asset_updated_at']));

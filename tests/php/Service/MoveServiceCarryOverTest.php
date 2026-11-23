@@ -117,11 +117,11 @@ final class MoveServiceCarryOverTest extends TestCase {
 	public function testAVisualHashFollowsItsFileToANewFileId(): void {
 		$this->addFolder('/Out');
 		$this->newIds[2] = 20;
-		$this->hashes->rows = [2 => new VisualHash(2, 'etag-2', '00ff00ff00ff00ff')];
+		$this->hashes->rows = [2 => new VisualHash(2, 'etag-2', 1, '00ff00ff00ff00ff')];
 
 		$this->service()->move($this->treeUser(), self::request());
 
-		$this->assertEquals([20 => new VisualHash(20, 'etag-2', '00ff00ff00ff00ff')], $this->hashes->rows);
+		$this->assertEquals([20 => new VisualHash(20, 'etag-2', 1, '00ff00ff00ff00ff')], $this->hashes->rows);
 	}
 
 	// spec: SERIES-006.14

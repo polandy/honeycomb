@@ -69,8 +69,13 @@ final class FakeFlagStore implements FlagStore {
 		if (isset($this->rows[$fileId])) {
 			$row = $this->rows[$fileId];
 			unset($this->rows[$fileId]);
-			$this->rows[$newFileId] = new FileFlag($newFileId, $row->flag, $row->keepRaw, $row->updatedAt);
+			$this->rows[$newFileId] = new FileFlag($newFileId, $row->flag, $row->keepRaw, $row->updatedAt, $row->updatedBy);
 		}
+	}
+
+	#[\Override]
+	public function forgetUser(string $userId): void {
+		$this->rows = array_map(static fn (FileFlag $row): FileFlag => $row->updatedBy === $userId ? new FileFlag($row->fileId, $row->flag, $row->keepRaw, $row->updatedAt) : $row, $this->rows);
 	}
 
 	#[\Override]

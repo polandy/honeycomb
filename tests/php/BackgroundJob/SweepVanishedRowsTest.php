@@ -118,7 +118,7 @@ final class SweepVanishedRowsTest extends TestCase {
 	// spec: SERIES-003.10
 	public function testRemovesTheVisualHashesOfFilesDeletedForGood(): void {
 		$hashes = new FakeVisualHashStore();
-		$hashes->rows = [7 => new VisualHash(7, 'etag-7', '0000000000000007'), 8 => new VisualHash(8, 'etag-8', '0000000000000008')];
+		$hashes->rows = [7 => new VisualHash(7, 'etag-7', 1, '0000000000000007'), 8 => new VisualHash(8, 'etag-8', 1, '0000000000000008')];
 		$this->files->vanished = [7];
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('info')->with($this->stringContains('1 visual hash row'));
@@ -163,7 +163,7 @@ final class SweepVanishedRowsTest extends TestCase {
 		$flags = new FakeFlagStore();
 		$flags->readFails = true;
 		$hashes = new FakeVisualHashStore();
-		$hashes->rows = [7 => new VisualHash(7, 'etag-7', '0000000000000007')];
+		$hashes->rows = [7 => new VisualHash(7, 'etag-7', 1, '0000000000000007')];
 		$this->files->vanished = [7];
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('error')->with($this->stringContains('flag'), $this->callback(fn (array $context): bool => $context['exception'] instanceof FakeDbException));
@@ -207,7 +207,7 @@ final class SweepVanishedRowsTest extends TestCase {
 		$series = new FakeSeriesStore();
 		$series->seriesReadFails = true;
 		$hashes = new FakeVisualHashStore();
-		$hashes->rows = [7 => new VisualHash(7, 'etag-7', '0000000000000007')];
+		$hashes->rows = [7 => new VisualHash(7, 'etag-7', 1, '0000000000000007')];
 		$this->files->vanished = [7];
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('error')->with($this->stringContains('series without'), $this->callback(fn (array $context): bool => $context['exception'] instanceof FakeDbException));
@@ -258,7 +258,7 @@ final class SweepVanishedRowsTest extends TestCase {
 		$flags = new FakeFlagStore();
 		$flags->readFails = true;
 		$hashes = new FakeVisualHashStore();
-		$hashes->rows = [7 => new VisualHash(7, 'etag-7', '0000000000000007')];
+		$hashes->rows = [7 => new VisualHash(7, 'etag-7', 1, '0000000000000007')];
 		$this->files->vanished = [7];
 		$job = new SweepVanishedRows($this->createStub(ITimeFactory::class), new FileRowStores($flags, $hashes, new FakeSeriesStore(), new FakeXmpCacheStore(), new FakeQualityStore(), new FakeFolderSummaryStore(), new FakeFolderDoneStore()), $this->sweep(), $this->emptySeries(), $this->connectionSweep(), $this->createStub(LoggerInterface::class), $this->runs());
 

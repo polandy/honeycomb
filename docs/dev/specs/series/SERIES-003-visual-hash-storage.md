@@ -12,25 +12,27 @@ server keeps the hashes the browser computed and hands them out with the listing
 
 ## Behaviour
 
-- Each listing entry (LISTING-001) has `visualHash`: the stored hash of that file when it was
-  taken from the file's current etag, else `null`. A hash is stored per file, not per user: every
+- Each listing entry (LISTING-001) has `visualHash`: the stored hash of that file as
+  `{"method": 1, "hash": "…"}` when it was taken from the file's current etag, else `null`. The
+  method is the version of the hash (ADR 0046); the browser treats a hash of another method as
+  missing and hashes the file again, so a changed hash needs no migration. A hash is stored per file, not per user: every
   user who reaches the file gets it (ADR 0046). The upgrade to that key dropped the stored hashes,
   which the next visit computes again.
 - `PUT /apps/honeycomb/api/v1/visual-hashes` with `{"hashes": [{"fileId": 9, "etag": "…",
-  "hash": "…"}, ...]}`, at most 1,000 items, stores each item's hash and answers
+  "method": 1, "hash": "…"}, ...]}`, at most 1,000 items, stores each item's hash and answers
   `{"saved": [...]}` with the file ids stored, in request order. A stored hash of the same file is
   replaced, whoever saved it.
 - An item is skipped, and missing from `saved`, when the user cannot reach its file id as a photo
   (unknown, another user's file, a folder, a sidecar) or its etag is not the file's current one.
 - `400`, nothing written, for a body that is not a list of at most 1,000 items, an item without a
   positive integer `fileId`, with an `etag` that is not a string of 1 to 40 characters, with a
-  `hash` that is not 16 lower-case hex digits, or a file id given twice. `401` without a user.
+  `method` that is not an integer from 1 to 255, with a `hash` that is not 16 lower-case hex digits, or a file id given twice. `401` without a user.
 - A user may save at most 300 times a minute (`#[UserRateLimit]`, ADR 0026); a save beyond that
   is answered `429` by Nextcloud, without a `Retry-After` header, and writes nothing. The cull
   waits as long as the similarity page does (SERIES-004.14) and sends the same hashes again;
   hashing goes on meanwhile and no other save is sent (SERIES-003.27).
 - The browser hashes only the hashable pictures (SERIES-001.17) whose shown member has no
-  `visualHash`, and sends what it computed with `saveVisualHashes` in `src/api.ts`: every 100
+  `visualHash` of its current method, and sends what it computed with `saveVisualHashes` in `src/api.ts`: every 100
   hashes and when no picture is left to hash; it resolves to the `saved` file ids, which the
   grid does not use, and rejects an answer without them. A failed save is logged; the hashes
   still count for the series of this visit. Browser storage holds no hashes; the key
@@ -61,7 +63,7 @@ server keeps the hashes the browser computed and hands them out with the listing
 
 - **Given** a stored visual hash of a file, taken from its current etag
 - **When** the user lists the file's folder
-- **Then** the file's entry has that hash as `visualHash`; an entry without a stored hash has `null`
+- **Then** the file's entry has that hash and its method as `visualHash`; an entry without a stored hash has `null`
 
 ### SERIES-003.2 – A changed file loses its hash
 
@@ -247,6 +249,13 @@ server keeps the hashes the browser computed and hands them out with the listing
 - **When** the user is deleted
 - **Then** the hashes stay
 
+### SERIES-003.30 – A hash of another method counts as missing
+
+- **Given** a listed member whose `visualHash` has a method other than the browser's
+- **When** the cull opens
+- **Then** the member is hashed again and saved with the browser's method, and the listed hash
+  does not count for its series
+
 ## Out of scope
 
 - The hash, the link rule and when a picture is hashed: SERIES-001.
@@ -263,3 +272,4 @@ server keeps the hashes the browser computed and hands them out with the listing
 | 2026-11-14 | The similarity moves from the toolbar to a strip over the grid; a series that may still change has a dashed badge (owner decision #181) |
 | 2026-11-15 | The cull hashes in the similarity page's workers, and a limited save waits (review R12 b) |
 | 2026-11-20 | One hash per file for every user; .8 and .11 removed for .28 and .29 (ADR 0046) |
+| 2026-11-24 | A hash carries its method; another method counts as missing (.30, ADR 0055) |

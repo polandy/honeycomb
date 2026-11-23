@@ -24,7 +24,7 @@ final class CacheClearTest extends TestCase {
 		$this->xmpCache = new FakeXmpCacheStore();
 		$this->xmpCache->rows = ['alice' => [9 => $row, 10 => $row], 'bob' => [9 => $row]];
 		$this->visualHashes = new FakeVisualHashStore();
-		$this->visualHashes->rows = [7 => new VisualHash(7, 'etag-7', '00ff00ff00ff00ff')];
+		$this->visualHashes->rows = [7 => new VisualHash(7, 'etag-7', 1, '00ff00ff00ff00ff')];
 		$this->quality = new FakeQualityStore();
 		$this->quality->rows = [7 => new QualityValue(7, 'etag-7', 1, 3.0, 0), 8 => new QualityValue(8, 'etag-8', 1, 4.0, 1)];
 	}
