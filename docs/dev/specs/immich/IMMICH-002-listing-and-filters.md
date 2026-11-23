@@ -178,7 +178,8 @@ what is on screen is loaded, and every number comes from the server.
 
 - **Given** filters no upload passes
 - **When** the counts say 0
-- **Then** the grid says "No pictures match. Change the time, device or flag filter."
+- **Then** the grid says "No pictures match. Change the time, device or flag filter." and offers
+  *Clear filters*, which shows the default filters again from the listing's start
 
 ### IMMICH-002.19 – A failed page (gap)
 

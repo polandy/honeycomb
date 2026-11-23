@@ -120,6 +120,12 @@ export function useImmichCull(context: ImmichCullContext) {
 		restart()
 	}
 
+	/** Shows the listing under the default filters again, from its start (IMMICH-002.18). */
+	function resetFilters() {
+		filters.value = defaultImmichFilters(now(), calendar)
+		restart()
+	}
+
 	/** Drops what was loaded and asks the counts and the first page again; older answers are ignored. */
 	function restart() {
 		generation += 1
@@ -255,5 +261,5 @@ export function useImmichCull(context: ImmichCullContext) {
 		}
 	}
 
-	return { connectionId: readonly(connectionId), filters, list, counts, pictures, open, setFilters, loadNext, retry, hold, decisionOf, imageUrl, decide, undo, redo }
+	return { connectionId: readonly(connectionId), filters, list, counts, pictures, open, setFilters, resetFilters, loadNext, retry, hold, decisionOf, imageUrl, decide, undo, redo }
 }

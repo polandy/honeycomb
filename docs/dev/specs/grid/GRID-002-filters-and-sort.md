@@ -29,7 +29,8 @@ how far the cull is; the sort orders the pictures by file name or capture time.
   by capture time. A picture without a capture time sorts by modification time; ties by file
   name, compared numerically on the user's locale. Opening a folder set resets filters and sort.
 - **Empty view:** "No photos left to cull" (only the default flag filter) offers *Show all*; no
-  match offers *Clear filters*; empty folders say so.
+  match offers *Clear filters*; empty folders say so, offer *Change folders* and point at the
+  *File types* setting.
 
 ## Acceptance criteria
 
@@ -110,7 +111,8 @@ how far the cull is; the sort orders the pictures by file name or capture time.
 - **Given** a view that shows nothing
 - **When** the folders hold no photos, the default flag filter leaves nothing, or no picture matches
 - **Then** the grid says which, offers *Show all* (no flag pressed) for the flag filter and
-  *Clear filters* for filters
+  *Clear filters* for filters, and, when the folders hold no photos, *Change folders* opens the
+  folder picker and a hint names the *File types* setting
 
 ### GRID-002.12 – One icon per flag
 

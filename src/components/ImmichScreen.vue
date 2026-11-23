@@ -109,6 +109,11 @@ defineExpose({ loupe: photoLoupe })
 			<template #icon>
 				<AppIcon name="phone" />
 			</template>
+			<template #action>
+				<NcButton @click="props.cull.resetFilters">
+					{{ t('honeycomb', 'Clear filters') }}
+				</NcButton>
+			</template>
 		</NcEmptyContent>
 		<template v-else>
 			<PhotoGrid

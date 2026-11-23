@@ -1897,3 +1897,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-23: `honeycomb_tag_list` keeps `UNIQUE(user_id, tag)` against ADR 0022's collation
   concern, as Nextcloud creates MySQL tables as `utf8mb4_bin`; a folding `mysql.collation`
   override is accepted as unsupported (#187, autonomous).
+- 2026-11-24: The empty states get a way out (Fable review, owner-approved): the file grid's
+  empty folder state offers *Change folders* and hints at the *File types* setting, and the Immich
+  grid's no-match state offers *Clear filters* that shows the default filters again. The hint
+  reads "If your photos use other file types, add them in Settings › File types."; the settings
+  link is text, not a second button, so the state keeps one action.
