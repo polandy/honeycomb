@@ -110,8 +110,7 @@ export function useImmichCull(context: ImmichCullContext) {
 		shown.clear()
 		history.reset()
 		held = false
-		filters.value = defaultImmichFilters(now(), calendar)
-		restart()
+		resetFilters()
 	}
 
 	/** Shows the listing under new filters from its start (IMMICH-002.11). */
