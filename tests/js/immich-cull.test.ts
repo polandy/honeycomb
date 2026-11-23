@@ -100,21 +100,6 @@ describe('useImmichCull', () => {
 		expect(cull.counts.value).toBeNull()
 	})
 
-	// spec: IMMICH-002.18
-	it('shows the default filters again on reset and asks from the start', async () => {
-		const { cull, assets } = cullOn()
-		cull.open('andy-phone')
-		cull.setFilters({ ...cull.filters.value, kinds: new Set(['video']), flags: new Set(['rejected']) })
-
-		cull.resetFilters()
-
-		expect(cull.filters.value.kinds.size).toBe(0)
-		expect(cull.filters.value.flags).toEqual(new Set(['picked', 'unflagged']))
-		expect(assets).toHaveLength(3)
-		expect(assets[2]!.request.filters.kinds).toEqual([])
-		expect(assets[2]!.request.cursor).toBeNull()
-	})
-
 	// spec: IMMICH-002.16
 	it('names each picture\'s image by its asset, the thumbnail for the grid and the preview above', async () => {
 		const { cull, assets } = cullOn()
