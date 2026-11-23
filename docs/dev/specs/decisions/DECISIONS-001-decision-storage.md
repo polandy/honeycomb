@@ -9,8 +9,8 @@
 ## Purpose
 
 The flag and *Keep RAW* are kept per picture on the server, as the file rows of
-`honeycomb_decisions` (ADR 0054), the same for every user who reaches the photo, so a cull continues on any device and the users of a shared
-folder see one state (ADR 0040). Rating, colour label and tags live in the sidecars (XMP-003).
+`honeycomb_decisions` (ADR 0054), the same for every user who reaches the photo, so a cull
+continues on any device and the users of a shared folder see one state (ADR 0040). Rating, colour label and tags live in the sidecars (XMP-003).
 
 ## Behaviour
 
