@@ -3,24 +3,28 @@
 - Status: implemented
 - Area: decisions
 - Origin: `docs/dev/plan.md` M2.4, Keep RAW and Remove RAWs; Q2, Q20; ADR 0005, ADR 0012,
-  ADR 0040
+  ADR 0040, ADR 0054
 - Depends on: LISTING-001, LISTING-002
 
 ## Purpose
 
-The flag and *Keep RAW* are kept per picture on the server, in `honeycomb_flags`, the same for
-every user who reaches the photo, so a cull continues on any device and the users of a shared
-folder see one state (ADR 0040). Rating, colour label and tags live in the sidecars (XMP-003).
+The flag and *Keep RAW* are kept per picture on the server, as the file rows of
+`honeycomb_decisions` (ADR 0054), the same for every user who reaches the photo, so a cull
+continues on any device and the users of a shared folder see one state (ADR 0040).
+Rating, colour label and tags live in the sidecars (XMP-003).
 
 ## Behaviour
 
 ADR 0040 replaced the per-user rows of `honeycomb_decisions` by `honeycomb_flags` (M8 PR 5): the
 migration drops the old table and its endpoints, and the criteria withdrawn below are removed.
+ADR 0054 moved the rows into `honeycomb_decisions`, the decision table that the Immich decisions
+(IMMICH-003) share; the migration drops `honeycomb_flags` and its rows.
 
 **Flags:**
 
 - A row is `fileId`, `flag` (`picked`, `rejected`, `unflagged`), `keepRaw` and `updatedAt` from
-  the injected clock, one row per member file id, without a user. A row is never removed because
+  the injected clock, one row per member file id, without a user, of the source `file`. The flags
+  never read, change, carry or sweep a row of another source (.36). A row is never removed because
   it is back at the default: an *unflagged* row says the photo was taken over (XMP-003.1).
 - The listing carries each entry's `flag`, `keepRaw` and `flagUpdated`, `null` without a row
   (LISTING-001.18). There is no lookup of arbitrary file ids.
@@ -269,6 +273,13 @@ Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5
 - **When** an admin runs `occ honeycomb:cleanup --dry-run`
 - **Then** the command refuses, exits non-zero and removes nothing
 
+### DECISIONS-001.36 – Rows of another source stay apart
+
+- **Given** a row of the source `immich` in `honeycomb_decisions` beside file rows
+- **When** the flags are read, saved, taken over, removed or carried over, or the clean-up job runs
+- **Then** that row is never read, changed or removed, and every row the flags write is of the
+  source `file`
+
 ## Out of scope
 
 Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XMP sidecars (M5).
@@ -291,3 +302,4 @@ Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XM
 | 2026-11-19 | M8 PR 5: `honeycomb_flags` built (.21–.33), `honeycomb_decisions` dropped (.1–.10, .12, .19, .20 removed) |
 | 2026-11-19 | M8 PR 6: a take-over reads before its transaction, so SQLite does not fail it (.34) |
 | 2026-11-20 | `occ honeycomb:cleanup --all [--dry-run]` empties all honeycomb data (.35, E16/B17) |
+| 2026-11-23 | ADR 0054: the flags are the file rows of `honeycomb_decisions`; rows of another source stay apart (.36) |

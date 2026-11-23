@@ -3,7 +3,7 @@
 How honeycomb reads and writes ratings, flags and colour labels in the XMP sidecars that digiKam,
 darktable and Lightroom Classic use (Q2, Q3, milestone M5). Since ADR 0032 the sidecar is the source
 of truth and digiKam compatibility comes first; since ADR 0040 that holds for rating, colour label
-and tags, while the flag and *Keep RAW* live in the database (`honeycomb_flags`) and reach the
+and tags, while the flag and *Keep RAW* live in the database (`honeycomb_decisions`) and reach the
 sidecars only through *Write picks/rejects to XMP*. Where a rule below has not landed yet, it names
 the pull request of ADR 0032 or of M8 (ADR 0040) that brings it. The file rules are Framehive's
 (CORE-009, LIBRARY-001), so a sidecar means the same in both apps; what honeycomb adds is marked.
@@ -143,7 +143,7 @@ Same as Framehive (CORE-009 "Sidecar names", LIBRARY-001 "Metadata"):
 
 **When.** The sidecar is the source of truth for rating, colour label and tags (ADR 0032, ADR
 0040); the flag and *Keep RAW* it states are taken over once, for a picture without a row in
-`honeycomb_flags` (XMP-003.34, M8 PR 6). Every source file is read once per
+`honeycomb_decisions` (XMP-003.34, M8 PR 6). Every source file is read once per
 ETag: a per-user cache (`honeycomb_xmp_cache`, XMP-006) holds the values derived from each
 sidecar or embedded packet, and a file is read again when its listed ETag differs, so a change in
 digiKam shows at the next folder visit. A sidecar that is read hides the JPEG's embedded XMP

@@ -2,6 +2,8 @@
 
 - Status: accepted
 - Date: 2026-11-19
+- Amended by: [0054](0054-one-decision-table-for-files-and-immich-assets.md), the decision
+  columns move into `honeycomb_decisions`
 - Extends: [0041](0041-immich-as-an-external-picture-source.md),
   [0042](0042-declarative-immich-connections.md)
 - Leaves unchanged: [0040](0040-flags-per-picture-in-the-database.md),

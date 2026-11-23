@@ -28,7 +28,7 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
   `embedded`; any other id is skipped (ADR 0031). The ids are looked up 1,000 at a time
   (ADR 0038). Saves and the `DELETE` are rate limited per user (APP-001.9).
 - Under ADR 0040 the `flag` and `keepRaw` of a row no longer show in the cull: they serve the
-  take-over of a picture without a row in `honeycomb_flags` (XMP-003.34) and the count of
+  take-over of a picture without a row in `honeycomb_decisions` (XMP-003.34) and the count of
   *Write picks/rejects to XMP* (XMP-003.39). Rating, colour label and tags show as before.
 - A save adds the tags of the rows it stores to the user's tag list (TAGS-003.13).
 - A row is valid while its `etag` equals the ETag the listing gives the file and its `reader` is
@@ -124,7 +124,7 @@ cleared at any time and is rebuilt from the files; it is never the base of a wri
 
 ### XMP-006.12 – The flag fields serve the take-over and the count
 
-- **Given** a picture with a row in `honeycomb_flags` saying *rejected*, whose sidecar's cache row
+- **Given** a picture with a row in `honeycomb_decisions` saying *rejected*, whose sidecar's cache row
   states picked
 - **When** the cull opens
 - **Then** the picture shows *rejected* and no take-over is sent; *Write picks/rejects to XMP*

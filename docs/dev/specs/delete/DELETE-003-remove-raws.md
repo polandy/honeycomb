@@ -34,7 +34,7 @@ pick fields and face regions or darktable's history, but `honeycomb:KeepRaw`, wh
 rows (ADR 0040), and not the values the cull shows. A RAW sidecar with no other field gives
 none. Where the JPEG's sidecar cannot be seeded (the picture is read only, XMP-008, the RAW
 sidecar cannot be read, or the save fails) the pair is skipped. The JPEG keeps
-its row in `honeycomb_flags`, the RAW's goes with it (DELETE-001.15). When a folder's fresh
+its row in `honeycomb_decisions`, the RAW's goes with it (DELETE-001.15). When a folder's fresh
 listing or the request fails, nothing of it is removed.
 
 ## Acceptance criteria

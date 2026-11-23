@@ -50,7 +50,7 @@ sent. `result` is one of:
 **By decision (ADR 0040).** A request may carry `"expect": "rejected"` (from *Delete rejected*)
 or `"expect": "rawRemovable"` (from *Remove RAWs*: neither *Keep RAW* nor rejected) for all its
 pictures. Once every file of a picture passed step 1, the server reads the rows of its members
-(the files that are not sidecars) in `honeycomb_flags`, a member without a row counting as
+(the files that are not sidecars) in `honeycomb_decisions`, a member without a row counting as
 unflagged without *Keep RAW*. When any of them no longer says so, every file of the picture
 answers `decisionChanged` and none is touched; checking and trashing are one request. A request
 without `expect` is not checked so.
