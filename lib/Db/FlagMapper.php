@@ -14,13 +14,15 @@ use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
-/** Keeps the one flag of each file in `honeycomb_flags`, without a user (ADR 0040). */
+/** Keeps the one flag of each file as a file row of `honeycomb_decisions`, without a user (ADR 0040, 0054). */
 final class FlagMapper implements FlagStore {
 	use FileRowQueries;
 	use TTransactional;
 
-	private const string TABLE = 'honeycomb_flags';
+	private const string TABLE = 'honeycomb_decisions';
+	private const string SOURCE = 'file';
 	private const array COLUMNS = [
+		'source' => IQueryBuilder::PARAM_STR,
 		'file_id' => IQueryBuilder::PARAM_INT,
 		'flag' => IQueryBuilder::PARAM_STR,
 		'keep_raw' => IQueryBuilder::PARAM_BOOL,
@@ -80,6 +82,7 @@ final class FlagMapper implements FlagStore {
 	/** @param list<FileFlag> $flags */
 	private function insert(array $flags): void {
 		$this->insertRows(new InsertStatements(self::TABLE, self::COLUMNS), array_map(static fn (FileFlag $flag): array => [
+			'source' => self::SOURCE,
 			'file_id' => $flag->fileId,
 			'flag' => $flag->flag->value,
 			'keep_raw' => $flag->keepRaw,

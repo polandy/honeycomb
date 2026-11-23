@@ -1882,3 +1882,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   folder done are shared; series, XMP cache, positions, tag list, stats and Immich decisions are per
   user. A deleted user's done statuses stay with `user_id` cleared, replacing the earlier removal
   (FOLDERS-006.13, .14; #187).
+- 2026-11-23: One decision table (ADR 0054, architecture report A7): `honeycomb_decisions` with
+  typed keys per source (`file_id`; `connection_id` and `asset_id`) instead of the report's string
+  `source_key`, so a file id is never stored twice; the Immich facets stay in
+  `honeycomb_immich_assets`. The flags move first, the Immich decisions in a second PR (#187).
