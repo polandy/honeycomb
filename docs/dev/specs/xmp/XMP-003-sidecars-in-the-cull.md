@@ -22,7 +22,7 @@ or *Keep RAW* step, or an undo or redo of one, saves the whole state of every me
 picture it changed (DECISIONS-001.23) and looks up or saves no sidecar. A step writes only the
 rating, colour label and tags through, and leaves the sidecar's flag fields and
 `honeycomb:KeepRaw` as they are. **Taking over:** a picture whose members have no row in
-`honeycomb_flags` takes over the flag and *Keep RAW* its sources state, by the rules of *Reading*
+`honeycomb_decisions` takes over the flag and *Keep RAW* its sources state, by the rules of *Reading*
 below, and the client sends them for every member to the take-over endpoint (DECISIONS-001.27), in
 one request per read, as *unflagged* when no source states one, also for a read-only picture; a
 failed take-over is logged as a warning and the picture shows what its sources state. From then on

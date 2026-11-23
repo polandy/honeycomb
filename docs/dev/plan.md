@@ -145,7 +145,7 @@ compatibility comes first. Decided by the owner on 2026-11-15 (#187); the rules,
 model and the pull request order are in ADR 0032.
 
 **Concept D** (owner, 2026-11-18, ADR 0040) revises it: rating, colour label and tags stay in the
-sidecars, while the flag and *Keep RAW* live per picture in `honeycomb_flags`, the same for every
+sidecars, while the flag and *Keep RAW* live per picture in `honeycomb_decisions`, the same for every
 user, and reach the sidecars only through *Write picks/rejects to XMP*. A picture is rateable or
 read only, by the folder's UPDATE and CREATE; the switch, the shared-folder confirmation, the
 migration XMP-007 and the legacy tables go. Eight pull requests, ordered in ADR 0040 and
