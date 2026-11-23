@@ -15,6 +15,7 @@ import { logger } from '../../../src/logger.ts'
 import { DEFAULT_SETTINGS } from '../../../src/logic/settings.ts'
 import { fakeStorage, fakeViewState } from '../app-cull.ts'
 import { immichEntry, NOW, UTC_CALENDAR } from '../logic/immich-fixtures.ts'
+import { installMarkedCatalogue, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 
 afterEach(() => {
 	vi.restoreAllMocks()
@@ -47,7 +48,7 @@ async function mountScreen() {
 		global: { stubs: { teleport: true } },
 	})
 	await flushPromises()
-	return { wrapper, assets, counts }
+	return { wrapper, cull, assets, counts }
 }
 
 describe('ImmichScreen', () => {
@@ -64,14 +65,37 @@ describe('ImmichScreen', () => {
 	})
 
 	// spec: IMMICH-002.18
-	it('says no picture matches when the counts say 0', async () => {
-		const { wrapper, assets, counts } = await mountScreen()
-		assets[0]!.answer(page(1, 0, null))
-		counts[0]!({ ...COUNTS, matching: 0 })
+	it('says no picture matches when the counts say 0 and clears the filters on request', async () => {
+		const { wrapper, cull, assets, counts } = await mountScreen()
+		cull.setFilters({ ...cull.filters.value, kinds: new Set(['video']) })
+		assets[1]!.answer(page(1, 0, null))
+		counts[1]!({ ...COUNTS, matching: 0 })
 		await flushPromises()
 
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
 		expect(wrapper.text()).toContain('No pictures match. Change the time, device or flag filter.')
+		const clear = wrapper.findAll('button').find((each) => each.text() === 'Clear filters')
+		expect(clear).toBeDefined()
+
+		await clear!.trigger('click')
+
+		expect(cull.filters.value.kinds.size).toBe(0)
+		expect(cull.filters.value.flags).toEqual(new Set(['picked', 'unflagged']))
+	})
+
+	// spec: APP-001.4
+	it('renders no text that bypasses the catalogue', async () => {
+		installMarkedCatalogue()
+		try {
+			const { wrapper, assets, counts } = await mountScreen()
+			assets[0]!.answer(page(1, 0, null))
+			counts[0]!({ ...COUNTS, matching: 0 })
+			await flushPromises()
+
+			expect(untranslatedText(wrapper.element as Element)).toEqual([])
+		} finally {
+			uninstallMarkedCatalogue()
+		}
 	})
 
 	// spec: IMMICH-002.19

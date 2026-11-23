@@ -169,6 +169,17 @@ describe('GridScreen', () => {
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(true)
 	})
 
+	// spec: GRID-002.11
+	it('opens the folder picker from the empty state\'s Change folders', async () => {
+		const { wrapper, context } = await mountScreen(({ context }) => context.cull.setFlags(new Set(['rejected'])))
+
+		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
+		wrapper.findComponent(CullEmptyState).vm.$emit('changeFolders')
+		await flushPromises()
+
+		expect(context.cull.pickerOpen.value).toBe(true)
+	})
+
 	it('hides the toolbar and the filter bar while the header is hidden', async () => {
 		const { wrapper, context } = await mountScreen(({ context }) => {
 			context.cull.filtersOpen.value = true
