@@ -42,7 +42,9 @@ owner chose it on 2026-11-22 while nothing is deployed, so the switch needs no d
   `kind` and `asset_updated_at`; its decision columns move into `honeycomb_decisions`.
 - **In two steps.** The first PR adds the table, drops `honeycomb_flags` and moves `FlagMapper`
   onto it. The second moves the decision part of `honeycomb_immich_assets` and
-  `ImmichDecisionMapper`; until then the `immich` columns stay empty.
+  `ImmichDecisionMapper`: its migration drops the decision columns, their rows and the flag index,
+  and pages the facets by an index on `(connection_id, taken_at)`. Each Immich table keeps
+  `user_id`, so a deleted user's rows and the connection sweep reach both without a join.
 - The name `honeycomb_decisions` is the one migration 5 dropped. A fresh install and every
   instance past migration 5 create it anew; the baseline migration of the review's A1 folds the
   steps together.

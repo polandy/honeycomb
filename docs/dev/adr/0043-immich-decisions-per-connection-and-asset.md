@@ -69,6 +69,10 @@ A unique index on `(connection_id, asset_id)` and an index on `(connection_id, f
 for the counts and the decision filters below. The name is not `honeycomb_immich_decisions`
 because Nextcloud limits a table with an autoincrement key to 23 characters.
 
+Since ADR 0054, `rating`, `colour_label`, `flag`, `keep_raw` and `updated_at` are a row of the
+source `immich` in `honeycomb_decisions`; this table keeps the key, `user_id` and the facets, with
+an index on `(connection_id, taken_at)` instead of the flag index.
+
 `user_id` is in the row although the file maps a connection to its user: `forgetUser` must work
 while the file is missing or invalid, a deleted user's rows go at once, and a connection id the
 admin later gives to another user leaves the old rows to the sweep instead of handing them over.
