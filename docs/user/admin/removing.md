@@ -13,11 +13,11 @@ everything it stored stays in the database:
 
 | What | Where (default table prefix `oc_`) |
 |---|---|
-| Flags and *Keep RAW* | table `oc_honeycomb_decisions` |
+| Flags and *Keep RAW* of the files | table `oc_honeycomb_decisions` |
 | Resume positions | table `oc_honeycomb_positions` |
 | Tags | table `oc_honeycomb_tag_list` |
 | Daily statistics counters | table `oc_honeycomb_stats` |
-| Immich decisions | table `oc_honeycomb_immich_assets` |
+| Immich decisions | table `oc_honeycomb_decisions`, their capture time, device and kind in `oc_honeycomb_immich_assets` |
 | Visual hashes of the pictures | table `oc_honeycomb_hashes` |
 | Sharpness of the pictures in a series | table `oc_honeycomb_quality` |
 | Stored series and kept-out photos | tables `oc_honeycomb_series`, `oc_honeycomb_series_files` |

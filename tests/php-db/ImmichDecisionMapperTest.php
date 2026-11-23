@@ -13,8 +13,9 @@ use OCA\Honeycomb\Immich\AssetKind;
 use OCA\Honeycomb\Immich\ListingFilters;
 use OCA\Honeycomb\Service\ColourLabel;
 use OCA\Honeycomb\Service\Flag;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 
-/** The decision table of Immich assets (ADR 0043). */
+/** The Immich decisions in the decision table and their facets (ADR 0043, 0054). */
 final class ImmichDecisionMapperTest extends DbTestCase {
 	/** More rows than one `IN` list takes. */
 	private const int BEYOND_CHUNK = 2_500;
@@ -141,5 +142,59 @@ final class ImmichDecisionMapperTest extends DbTestCase {
 		$this->decisions->save('alice', 'alice-phone', [self::decision(1)], 100);
 
 		$this->assertSame(1, $this->decisions->keepOnly([]));
+	}
+
+	// spec: IMMICH-003.22
+	public function testKeepsTheDecisionInTheDecisionTableAndTheFacetsApart(): void {
+		$this->insertFileRow();
+		$this->decisions->save('alice', 'alice-phone', [self::decision(1, Flag::Rejected, 3, ColourLabel::Red), self::decision(2)], 100);
+		$this->decisions->save('bob', 'bob-phone', [self::decision(3)], 100);
+		$this->decisions->remove('alice', 'alice-phone', [self::id(2)]);
+		$this->decisions->forgetUser('bob');
+		$this->decisions->keepOnly([['alice-phone', 'alice']]);
+
+		$this->assertSame([
+			['file', '7', null, null, null, 'picked', null, null, '50'],
+			['immich', null, 'alice-phone', self::id(1), 'alice', 'rejected', '3', 'red', '100'],
+		], $this->rows('honeycomb_decisions', ['source', 'file_id', 'connection_id', 'asset_id', 'user_id', 'flag', 'rating', 'colour_label', 'updated_at']));
+		$this->assertSame([
+			['alice-phone', self::id(1), 'alice', '1000', 'Pixel 9 Pro', 'photo', '2026-11-19T08:00:00.000Z'],
+		], $this->rows('honeycomb_immich_assets', ['connection_id', 'asset_id', 'user_id', 'taken_at', 'camera_model', 'kind', 'asset_updated_at']));
+	}
+
+	public function testKeepingNoConnectionLeavesTheFileRows(): void {
+		$this->insertFileRow();
+		$this->decisions->save('alice', 'alice-phone', [self::decision(1)], 100);
+
+		$this->assertSame(1, $this->decisions->keepOnly([]));
+		$this->assertSame([['file']], $this->rows('honeycomb_decisions', ['source']));
+	}
+
+	/** A flag row of a file as ADR 0054 shapes it. */
+	private function insertFileRow(): void {
+		$query = $this->db->getQueryBuilder();
+		$query->insert('honeycomb_decisions')->values([
+			'source' => $query->createNamedParameter('file'),
+			'file_id' => $query->createNamedParameter(7, IQueryBuilder::PARAM_INT),
+			'flag' => $query->createNamedParameter('picked'),
+			'keep_raw' => $query->createNamedParameter(false, IQueryBuilder::PARAM_BOOL),
+			'updated_at' => $query->createNamedParameter(50, IQueryBuilder::PARAM_INT),
+		])->executeStatement();
+	}
+
+	/**
+	 * Every row of the table as strings, in row id order.
+	 * @param list<string> $columns
+	 * @return list<list<?string>>
+	 */
+	private function rows(string $table, array $columns): array {
+		$query = $this->db->getQueryBuilder();
+		$result = $query->select(...$columns)->from($table)->orderBy('id')->executeQuery();
+		$rows = [];
+		while (($row = $result->fetch()) !== false) {
+			$rows[] = array_map(static fn (mixed $value): ?string => $value === null ? null : (string)$value, array_values($row));
+		}
+		$result->closeCursor();
+		return $rows;
 	}
 }

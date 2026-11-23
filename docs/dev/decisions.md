@@ -1886,3 +1886,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   typed keys per source (`file_id`; `connection_id` and `asset_id`) instead of the report's string
   `source_key`, so a file id is never stored twice; the Immich facets stay in
   `honeycomb_immich_assets`. The flags move first, the Immich decisions in a second PR (#187).
+- 2026-11-23: Immich decisions in `honeycomb_decisions` (ADR 0054 step 2): the facet table keeps
+  `user_id` beside the key, so forgetting a user and the connection sweep delete from both tables
+  without a join; migration 12 deletes the old Immich rows instead of copying them, as nothing is
+  deployed (#187).
