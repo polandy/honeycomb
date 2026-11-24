@@ -66,8 +66,8 @@ final class DecisionFilter {
 			return in_array($value, $operand, true);
 		}
 		return match ($operator) {
-			'>=' => $value >= $operand,
-			'<=' => $value <= $operand,
+			self::RATING_OPERATORS['atLeast'] => $value >= $operand,
+			self::RATING_OPERATORS['atMost'] => $value <= $operand,
 			default => $value === $operand,
 		};
 	}
