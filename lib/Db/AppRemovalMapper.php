@@ -40,13 +40,19 @@ final class AppRemovalMapper implements AppRemoval {
 		foreach (self::JOBS as $job) {
 			$this->jobs->remove($job);
 		}
+		$dropped = $this->dropTables();
+		$this->config->deleteApp(self::APP);
+		return $dropped;
+	}
+
+	#[\Override]
+	public function dropTables(): array {
 		$dropped = $this->tables();
 		foreach ($dropped as $table) {
 			$this->db->dropTable($table);
 		}
 		$query = $this->db->getQueryBuilder();
 		$query->delete('migrations')->where($query->expr()->eq('app', $query->createNamedParameter(self::APP)))->executeStatement();
-		$this->config->deleteApp(self::APP);
 		return $dropped;
 	}
 }

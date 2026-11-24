@@ -13,7 +13,8 @@ final class ExistingTablesException extends \RuntimeException {
 	public function __construct(array $tables) {
 		parent::__construct(sprintf(
 			'honeycomb was installed before 0.2.0 and cannot update: the tables %s exist already. '
-			. 'Install honeycomb again as docs/user/admin/updating.md, section "Installed before 0.2.0", describes.',
+			. 'To install it again with empty tables, run occ config:app:set honeycomb reinstall --value=yes and update again; '
+			. 'docs/user/admin/updating.md, section "Installed before 0.2.0", describes it.',
 			implode(', ', $tables),
 		));
 	}

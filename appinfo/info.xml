@@ -31,6 +31,11 @@
 	<background-jobs>
 		<job>OCA\Honeycomb\BackgroundJob\SweepVanishedRows</job>
 	</background-jobs>
+	<repair-steps>
+		<pre-migration>
+			<step>OCA\Honeycomb\Migration\ReinstallBeforeBaseline</step>
+		</pre-migration>
+	</repair-steps>
 	<commands>
 		<command>OCA\Honeycomb\Command\ClearCache</command>
 		<command>OCA\Honeycomb\Command\Cleanup</command>

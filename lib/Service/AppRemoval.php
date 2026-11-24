@@ -22,4 +22,11 @@ interface AppRemoval {
 	 * @throws \OCP\DB\Exception
 	 */
 	public function remove(): array;
+
+	/**
+	 * Drops every honeycomb table and deletes the app's migrations, keeping its settings, jobs and config; returns the dropped tables.
+	 * @return list<string>
+	 * @throws \OCP\DB\Exception
+	 */
+	public function dropTables(): array;
 }
