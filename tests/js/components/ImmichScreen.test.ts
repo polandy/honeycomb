@@ -83,6 +83,17 @@ describe('ImmichScreen', () => {
 		expect(cull.filters.value.flags).toEqual(new Set(['picked', 'unflagged']))
 	})
 
+	// spec: IMMICH-002.18
+	it('offers no Clear filters when nothing matches the default filters', async () => {
+		const { wrapper, assets, counts } = await mountScreen()
+		assets[0]!.answer(page(1, 0, null))
+		counts[0]!({ ...COUNTS, matching: 0 })
+		await flushPromises()
+
+		expect(wrapper.text()).toContain('No pictures match. Change the time, device or flag filter.')
+		expect(wrapper.findAll('button').some((each) => each.text() === 'Clear filters')).toBe(false)
+	})
+
 	// spec: APP-001.4
 	it('renders no text that bypasses the catalogue', async () => {
 		installMarkedCatalogue()
