@@ -5,11 +5,6 @@ OK button. The settings are yours alone and are stored in your Nextcloud account
 you to every device and browser. If a change cannot be saved, honeycomb says so and keeps it
 until you reload the page.
 
-**Changing in the next release** ([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
-The *XMP sidecars* section and its *Off* and *On* go: honeycomb writes wherever you may change the
-folder. The section keeps one switch for flags instead. Admins get *Clean up orphaned data* in the
-*Cache* section.
-
 ## File types
 
 honeycomb pairs a RAW file and a rendered file (a JPEG, HEIC and so on) with the same name,
@@ -64,9 +59,10 @@ Changing a list pairs the open folders again at once; your decisions stay.
 
 - **Name template:** how a moved photo is named, relative to the folder you move it to. All files
   of a photo, sidecars included, get the same new name. Choose a preset (*By day*, *By day, full
-  date in the name*, *Keep names*) or type your own; the tokens are described in
-  [name templates](../dev/05-name-templates.md). A valid template is saved as you type. An invalid one
-  is marked where the problem is, and moving keeps using the last valid template.
+  date in the name*, *Keep names*) or type your own. A template is text and `{tokens}` such as
+  `{name}`, `{date:%Y-%m-%d}`, `{camera}` and `{ext}`, and `/` starts a new folder. A valid
+  template is saved as you type. An invalid one is marked where the problem is, and moving keeps
+  using the last valid template.
 - **Preview:** five sample photos show the names the template gives. Notes mark a name that
   collides and gets a `-2` suffix, a photo without an EXIF time (its file time is used) and one
   without a camera model (`unknown`).

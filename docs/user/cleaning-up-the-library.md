@@ -67,4 +67,4 @@ have no library roots it says *Choose your library*.
 Marking a folder done, reopening it and the library roots never write an XMP sidecar, never
 touch a photo and move nothing to the trash bin. They are stored in honeycomb's own tables
 ([your files and privacy](your-files-and-privacy.md)). Only *Pick*, *Reject*, ratings, colour
-labels and tags write to sidecars, as in the cull itself ([sidecars](sidecars.md)).
+labels, *Keep RAW* and tags write to sidecars, as in the cull itself ([sidecars](sidecars.md)).

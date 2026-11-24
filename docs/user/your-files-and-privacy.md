@@ -14,16 +14,17 @@ file versions and the trash bin apply.
   `trashbin_size`) is deleted for good only after a warning that names it; cancelled, its picture
   stays ([deleting photos](deleting.md)).
 - **Moving** renames and moves the files of a picture into the folder you choose, by a name
-  template ([name templates](../dev/05-name-templates.md)). A picture is moved whole or not at
+  template (see [settings](settings.md#moving-photos)). A picture is moved whole or not at
   all, and the move can be undone. A *Replace* goes to the trash bin; a file it would not keep is
   replaced for good only after a warning that names it. It stays on its storage: honeycomb does
   not move files out of or into a share, a group folder or external storage.
-- **XMP sidecars** (`<file>.xmp`) receive your decisions, so digiKam, darktable and Lightroom
-  see them. An existing sidecar is merged, so what other programs wrote stays, and it is only
-  replaced while Nextcloud's file versions are on. When and what honeycomb writes:
+- **XMP sidecars** (`<file>.xmp`) receive your stars, colour labels and tags, and by default the
+  flag and *Keep RAW* too, so digiKam, darktable and Lightroom see them. An existing sidecar is
+  merged, so what other programs wrote stays, and it is only replaced while Nextcloud's file
+  versions are on. When and what honeycomb writes:
   [sidecars and digiKam](sidecars.md). The photos themselves are never modified.
-- **Everything else** (decisions, tags, positions, similarity) lives in honeycomb's own tables,
-  not in your files.
+- **Everything else** (flags and *Keep RAW*, series, positions, similarity, statistics) lives in
+  honeycomb's own tables, not in your files.
 
 ## Back up first
 
@@ -34,13 +35,12 @@ photo is not safe there for ever. The [licence](../../LICENSE) excludes any warr
 
 ## Privacy
 
-honeycomb sends nothing out: no telemetry and no outgoing requests. It stores, per user, in
-the Nextcloud database:
+honeycomb sends nothing out: no telemetry and no outgoing requests. It stores in the Nextcloud
+database:
 
-- ratings, flags, colour labels and *Keep RAW* per picture, tags, and the position where you
-  stopped a cull;
-- series of your pictures (for similarity);
-- your settings and view state.
+- flags and *Keep RAW* per picture, one set for everyone who reaches it;
+- per user: your tag list, the position where you stopped a cull, your series, settings and view
+  state.
 
 For every user who reaches a picture it stores the picture's visual hash and, for a picture in a
 series, its sharpness; deleting a user leaves them while the picture exists.

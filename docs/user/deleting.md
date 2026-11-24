@@ -5,8 +5,7 @@ sidecars), where you can restore it until the trash bin empties itself. Keep a b
 honeycomb deletes a file for good only after you confirm a warning that names it (see
 [Files the trash bin would not keep](#files-the-trash-bin-would-not-keep)).
 
-A photo restored from the trash bin comes back without its pick or reject
-([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
+A photo restored from the trash bin comes back without its pick or reject.
 
 ## Delete every rejected photo
 
