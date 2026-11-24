@@ -289,6 +289,28 @@ Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5
 - **Then** the save notes the first user in `updated_by`, the take-over the other; after the
   deletion the first row keeps its flag with an empty `updated_by`, and the other row is unchanged
 
+### DECISIONS-001.38 – Removing all data and the schema
+
+- **Given** honeycomb's tables, also a table of an older release such as `honeycomb_flags`, and
+  its rows in `oc_migrations`, `oc_preferences`, `oc_jobs` and `oc_appconfig`
+- **When** an admin runs `occ honeycomb:cleanup --all --drop`
+- **Then** every one of them is gone, the rows of other apps stay, and the command names each
+  dropped table and says to enable or remove the app next; run again, it drops nothing and
+  succeeds; this covers every `honeycomb_*` table the migrations create, which a test enumerates
+
+- **Given** the same data
+- **When** an admin runs `occ honeycomb:cleanup --all --drop --dry-run`
+- **Then** it names the tables it would drop and removes nothing
+
+- **Given** the database fails during the drop
+- **When** an admin runs `occ honeycomb:cleanup --all --drop`
+- **Then** the command names the failure, exits non-zero and prints no success line; what it
+  removed before stays removed, and running it again removes the rest
+
+- **Given** `--drop` without `--all`
+- **When** an admin runs `occ honeycomb:cleanup --drop`
+- **Then** the command refuses, exits non-zero and removes nothing
+
 ## Out of scope
 
 Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XMP sidecars (M5).
@@ -313,3 +335,4 @@ Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XM
 | 2026-11-20 | `occ honeycomb:cleanup --all [--dry-run]` empties all honeycomb data (.35, E16/B17) |
 | 2026-11-23 | ADR 0054: the flags are the file rows of `honeycomb_decisions`; rows of another source stay apart (.36) |
 | 2026-11-24 | A row notes who decided last in `updated_by` (.37, ADR 0055) |
+| 2026-11-24 | `occ honeycomb:cleanup --all --drop` removes the tables and the app's rows (.38, ADR 0053) |

@@ -1,7 +1,7 @@
 # 0053 – What happens to honeycomb's data when the app is removed
 
-- Status: proposed, waiting for the owner (issue #187)
-- Date: 2026-11-23
+- Status: accepted (B, autonomous within the owner's go of 2026-11-24, issue #187)
+- Date: 2026-11-23, decided 2026-11-24
 - Amends: the 2026-11-14 entry in `docs/dev/decisions.md` ("no uninstall step that deletes user data")
 
 ## Context
@@ -48,4 +48,26 @@ of hand-written SQL per database, and it keeps E16.
 
 ## Decision
 
-Open; the owner decides (issue #187).
+B, with the drop behind its own option: `occ honeycomb:cleanup --all --drop` drops every honeycomb
+table that exists, also those of older releases, and deletes honeycomb's `oc_migrations`,
+`oc_preferences`, `oc_jobs` and `oc_appconfig` rows (DECISIONS-001.38). `--all` alone keeps
+emptying the rows and leaves a working, empty app.
+
+- **Own option, not a wider `--all`:** `--all` is documented as leaving honeycomb working; a
+  drop leaves it without tables, so it is asked for by name.
+- **`oc_appconfig` goes too,** the Immich `connections_file` path included: without
+  `installed_version` and `enabled`, Nextcloud treats honeycomb as not installed, so
+  `occ app:enable honeycomb` installs it fresh and `occ app:remove honeycomb` leaves nothing.
+- **Not one transaction:** tables cannot be dropped inside one on every database. Every part
+  skips what is gone already, so a failed run is finished by running it again.
+- **The reinstall before 0.2.0 uses it** (ADR 0055, `docs/user/admin/updating.md`). Nextcloud 35
+  loads the commands of an enabled app whose code is newer than its migrations
+  (`OC_Util::needUpgrade()` checks only the core version), so the 0.2.0 command runs before the
+  failed baseline: put 0.2.0 in place, drop, enable. No SQL and no debug mode.
+
+## Consequences
+
+- No disable, removal or Nextcloud upgrade deletes data on its own; only the admin's command does.
+- A drop cannot be undone; the guides ask for a database backup first.
+- Each table a later release adds is dropped only if it is in the command's list; a database test
+  compares the list with the schema.
