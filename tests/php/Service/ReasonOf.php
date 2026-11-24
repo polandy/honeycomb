@@ -12,6 +12,7 @@ use OCA\Honeycomb\Service\Reason;
 
 /** The reason a call refuses its request for, or null when it refuses nothing. */
 final class ReasonOf {
+	/** Runs the call and returns the reason of the refusal it throws. */
 	public static function call(\Closure $call): ?Reason {
 		try {
 			$call();

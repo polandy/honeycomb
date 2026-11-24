@@ -17,7 +17,7 @@ one per kind of request, that nothing told apart: the controller mapped the pare
   `InvalidRequestException::because(Reason, detail)`.
   `Reason` is an enum of twelve kebab-case codes: `not-an-object`, `not-a-list`, `too-many`,
   `bad-file-id`, `bad-etag`, `duplicate`, `conflict`, `bad-value`, `bad-path`, `bad-cursor`,
-  `too-large`, `unknown-name`. The detail is free text for the log and never reaches the browser.
+  `too-large`, `unknown-name`. The detail is free text kept on the exception, never sent to the browser.
 - **Body.** A `400` from a malformed request answers `{"error": "request", "reason": "<code>"}`.
   The `error` code is unchanged, so a client that ignores `reason` keeps working.
 - **Client.** The browser reads `reason` with `errorReasonOf` and names it only where the user can

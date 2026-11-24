@@ -51,7 +51,7 @@ final class InvalidRequestReasonTest extends TestCase {
 	}
 
 	// spec: APP-004.5
-	public function testBecauseKeepsTheDetailForTheLogAndThePreviousFailure(): void {
+	public function testBecauseKeepsTheDetailAndThePreviousFailure(): void {
 		$previous = new \RuntimeException('inner');
 
 		$refused = InvalidRequestException::because(Reason::BadValue, 'rating must be 0 to 5', $previous);
