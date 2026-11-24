@@ -1951,6 +1951,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-24: No index and no smaller transaction after measuring 60,000 `xmp_cache` rows and 50,000
   Immich decisions on SQLite, MariaDB and PostgreSQL; `xmp_cache` stays per user
   (`docs/dev/performance.md`, #187, autonomous).
+- 2026-11-24: The picture source adapter (ADR 0058) lands in three PRs; the owner chose it in this
+  pane over one PR and over TypeScript only (#187). Step 1 keeps `PAGE_SIZE` and `ImmichCullApi`
+  exported from `src/immich-cull.ts` too, so its importers stay as they are.
 - 2026-11-24: Coverage gate for glue and Vue files is 70 % lines and branches per file instead of
   80 % lines on the aggregate: the owner asked for a per-file branch gate, and a per-file floor
   catches an untested file the aggregate hid (#187, autonomous).
