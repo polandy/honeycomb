@@ -14,8 +14,8 @@ import { useImmichCull } from '../../../src/immich-cull.ts'
 import { logger } from '../../../src/logger.ts'
 import { DEFAULT_SETTINGS } from '../../../src/logic/settings.ts'
 import { fakeStorage, fakeViewState } from '../app-cull.ts'
-import { immichEntry, NOW, UTC_CALENDAR } from '../logic/immich-fixtures.ts'
 import { installMarkedCatalogue, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
+import { immichEntry, NOW, UTC_CALENDAR } from '../logic/immich-fixtures.ts'
 
 afterEach(() => {
 	vi.restoreAllMocks()
