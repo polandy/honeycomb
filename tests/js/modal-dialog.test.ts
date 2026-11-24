@@ -48,6 +48,19 @@ describe('useModalDialog', () => {
 	})
 
 	// spec: APP-001.20
+	it('leaves the focus alone when the caller already moved it out of the dialog', () => {
+		const wrapper = mountDialog()
+		wrapper.find<HTMLElement>('.first').element.focus()
+		const elsewhere = document.getElementById('text')!
+		elsewhere.tabIndex = -1
+		elsewhere.focus()
+
+		wrapper.unmount()
+
+		expect(document.activeElement?.id).toBe('text')
+	})
+
+	// spec: APP-001.20
 	it('gives the focus back to the control that opened it', () => {
 		const wrapper = mountDialog()
 		wrapper.find<HTMLElement>('.first').element.focus()
