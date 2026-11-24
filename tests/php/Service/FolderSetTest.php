@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\FolderSet;
-use OCA\Honeycomb\Service\InvalidPositionException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -69,7 +69,7 @@ final class FolderSetTest extends TestCase {
 	// spec: DECISIONS-002.16
 	#[DataProvider('malformedExclusions')]
 	public function testRejectsMalformedExclusions(mixed $excluded): void {
-		$this->expectException(InvalidPositionException::class);
+		$this->expectException(InvalidRequestException::class);
 
 		FolderSet::fromRequest(['paths' => ['/Trip'], 'subfolders' => true, 'excluded' => $excluded]);
 	}

@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\FileRowStores;
-use OCA\Honeycomb\Service\InvalidMoveRequestException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\MoveService;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
 use OCA\Honeycomb\Service\UserFolderResolver;
@@ -289,7 +289,7 @@ final class MoveServiceTest extends TestCase {
 	// spec: MOVE-002.8
 	public function testAMalformedRequestTouchesNothing(): void {
 		$this->pair();
-		$this->expectException(InvalidMoveRequestException::class);
+		$this->expectException(InvalidRequestException::class);
 
 		try {
 			$this->service()->move($this->treeUser(), [[self::to(1, '/Out/../X.RAF')]]);

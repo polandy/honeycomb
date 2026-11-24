@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidXmpCacheException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCA\Honeycomb\Service\XmpCacheRow;
@@ -64,13 +64,13 @@ final class XmpCacheServiceTest extends TestCase {
 
 	// spec: XMP-006.4
 	public function testRefusesALookupOfMoreThanTheLimit(): void {
-		$this->expectException(InvalidXmpCacheException::class);
+		$this->expectException(InvalidRequestException::class);
 		$this->service()->lookup($this->user(), range(1, XmpCacheService::LIMIT + 1));
 	}
 
 	// spec: XMP-006.4
 	public function testRefusesAMalformedLookup(): void {
-		$this->expectException(InvalidXmpCacheException::class);
+		$this->expectException(InvalidRequestException::class);
 		$this->service()->lookup($this->user(), ['9']);
 	}
 
@@ -118,20 +118,20 @@ final class XmpCacheServiceTest extends TestCase {
 		try {
 			$this->service()->save($this->user(), [XmpCacheRowTest::item(), XmpCacheRowTest::item(['fileId' => 7, 'kind' => 'embedded', 'rating' => 9])]);
 			$this->fail('A malformed row was accepted.');
-		} catch (InvalidXmpCacheException) {
+		} catch (InvalidRequestException) {
 			$this->assertSame([], $this->store->rows);
 		}
 	}
 
 	// spec: XMP-006.4
 	public function testRefusesAFileIdGivenTwice(): void {
-		$this->expectException(InvalidXmpCacheException::class);
+		$this->expectException(InvalidRequestException::class);
 		$this->service()->save($this->user(), [XmpCacheRowTest::item(), XmpCacheRowTest::item()]);
 	}
 
 	// spec: XMP-006.4
 	public function testRefusesASaveOfMoreThanTheLimit(): void {
-		$this->expectException(InvalidXmpCacheException::class);
+		$this->expectException(InvalidRequestException::class);
 		$this->service()->save($this->user(), array_fill(0, XmpCacheService::LIMIT + 1, XmpCacheRowTest::item()));
 	}
 

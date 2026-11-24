@@ -64,7 +64,7 @@ final class InsertStatementsTest extends TestCase {
 	}
 
 	public function testRejectsARowWithoutAColumn(): void {
-		$this->expectException(\InvalidArgumentException::class);
+		$this->expectException(\InvalidRequestException::class);
 
 		(new InsertStatements('honeycomb_decisions', self::COLUMNS))->of([['user_id' => 'alice']], IDBConnection::PLATFORM_MYSQL);
 	}

@@ -9,8 +9,8 @@ namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
-use OCA\Honeycomb\Service\InvalidCursorException;
-use OCA\Honeycomb\Service\InvalidVisualHashException;
+use OCA\Honeycomb\Service\InvalidRequestException;
+use OCA\Honeycomb\Service\Reason;
 use OCA\Honeycomb\Service\MissingVisualHashes;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\VisualHash;
@@ -171,7 +171,7 @@ final class MissingVisualHashesTest extends TestCase {
 	// spec: SERIES-004.4
 	#[DataProvider('badMethods')]
 	public function testAMethodOutsideOneTo255IsRefused(int $method): void {
-		$this->expectException(InvalidVisualHashException::class);
+		$this->expectException(InvalidRequestException::class);
 
 		$this->service($this->rootWith(['/Photos' => $this->photos(1)]))->page($this->user(), 'Photos', '', $method);
 	}
@@ -184,8 +184,6 @@ final class MissingVisualHashesTest extends TestCase {
 	// spec: SERIES-004.4
 	#[DataProvider('badCursors')]
 	public function testACursorThatIsNoRelativePathIsRefused(string $cursor): void {
-		$this->expectException(InvalidCursorException::class);
-
-		$this->service($this->rootWith(['/Photos' => $this->photos(1)]))->page($this->user(), 'Photos', $cursor, self::METHOD);
+		$this->assertSame(Reason::BadCursor, ReasonOf::call(fn () => $this->service($this->rootWith(['/Photos' => $this->photos(1)]))->page($this->user(), 'Photos', $cursor, self::METHOD)));
 	}
 }

@@ -20,6 +20,9 @@ and one paging loop.
 - A paginated route takes `cursor` and answers `nextCursor`, `null` after the last page. The
   client hands `nextCursor` back as `cursor` and never reads inside it. No `cursor` asks for the
   first page.
+- A `400` also names what was malformed: `{"error": "request", "reason": "<reason>"}`, the reason
+  one of `not-an-object`, `not-a-list`, `too-many`, `bad-file-id`, `bad-etag`, `duplicate`,
+  `conflict`, `bad-value`, `bad-path`, `bad-cursor`, `too-large`, `unknown-name` (ADR 0057).
 - The browser tells the trash bin is off by the code `trash-bin-disabled`, not by the status alone.
 
 ## Acceptance criteria
@@ -51,8 +54,24 @@ and one paging loop.
 - **When** the browser reads it
 - **Then** it raises the trash bin error; a `409` with another code is passed on unchanged
 
+### APP-004.5 – A malformed request names its reason
+
+- **Given** a request with a list too long, a file id given twice, a path with `..` or any other
+  malformed part
+- **When** the route answers
+- **Then** the body is `{"error": "request", "reason": "too-many"}`, `"duplicate"`, `"bad-path"` or
+  the reason of that part, with the status `400`
+
+### APP-004.6 – The browser reads the reason
+
+- **Given** a `400` answer with a `reason`
+- **When** the browser reads it
+- **Then** `errorReasonOf` gives the reason, `null` for an answer without one, and a move that fails
+  with `bad-path` or `conflict` says so instead of the general text
+
 ## History
 
 | Date | Change |
 |---|---|
 | 2026-11-22 | Created from ADR 0052. |
+| 2026-11-24 | A `400` names its reason (ADR 0057). |

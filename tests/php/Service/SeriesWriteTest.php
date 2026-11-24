@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidSeriesException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\SeriesStatus;
 use OCA\Honeycomb\Service\SeriesWrite;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -77,7 +77,7 @@ final class SeriesWriteTest extends TestCase {
 	// spec: SERIES-005.23
 	#[DataProvider('malformed')]
 	public function testRefusesAMalformedBody(array $series, array $keptOut, array $released): void {
-		$this->expectException(InvalidSeriesException::class);
+		$this->expectException(InvalidRequestException::class);
 		SeriesWrite::fromRequest($series, $keptOut, $released);
 	}
 

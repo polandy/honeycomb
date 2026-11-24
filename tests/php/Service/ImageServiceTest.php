@@ -10,7 +10,7 @@ namespace OCA\Honeycomb\Tests\Service;
 use OCA\Honeycomb\Service\ImageNotFoundException;
 use OCA\Honeycomb\Service\ImageNotReadableException;
 use OCA\Honeycomb\Service\ImageService;
-use OCA\Honeycomb\Service\InvalidPreviewRequestException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCP\Files\File;
@@ -137,7 +137,7 @@ final class ImageServiceTest extends TestCase {
 	public static function previewFailures(): array {
 		return [
 			'no provider' => [new NotFoundException()],
-			'an invalid image' => [new \InvalidArgumentException()],
+			'an invalid image' => [new \InvalidRequestException()],
 		];
 	}
 
@@ -224,7 +224,7 @@ final class ImageServiceTest extends TestCase {
 	public function testAMalformedWarmRequestRendersNothing(array $fileIds): void {
 		$preview = $this->createMock(IPreview::class);
 		$preview->expects($this->never())->method('generatePreviews');
-		$this->expectException(InvalidPreviewRequestException::class);
+		$this->expectException(InvalidRequestException::class);
 
 		$this->service([1 => $this->image(1)], $preview)->warm($this->user(), $fileIds);
 	}

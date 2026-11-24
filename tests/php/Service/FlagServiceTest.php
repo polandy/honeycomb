@@ -10,7 +10,7 @@ namespace OCA\Honeycomb\Tests\Service;
 use OCA\Honeycomb\Service\FileFlag;
 use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\FlagService;
-use OCA\Honeycomb\Service\InvalidFlagException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\ListingService;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
@@ -175,8 +175,8 @@ final class FlagServiceTest extends TestCase {
 		$service = $this->service([7 => ['/Photos', self::RATEABLE]]);
 		try {
 			$service->save($this->user(), $items);
-			$this->fail('Expected InvalidFlagException');
-		} catch (InvalidFlagException) {
+			$this->fail('Expected InvalidRequestException');
+		} catch (InvalidRequestException) {
 			$this->assertSame(0, $this->store->writeCalls);
 		}
 	}
@@ -187,8 +187,8 @@ final class FlagServiceTest extends TestCase {
 		$service = $this->service([7 => ['/Photos', self::RATEABLE]]);
 		try {
 			$service->takeOver($this->user(), $items);
-			$this->fail('Expected InvalidFlagException');
-		} catch (InvalidFlagException) {
+			$this->fail('Expected InvalidRequestException');
+		} catch (InvalidRequestException) {
 			$this->assertSame(0, $this->store->writeCalls);
 		}
 	}
