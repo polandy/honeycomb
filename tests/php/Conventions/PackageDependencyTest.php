@@ -21,6 +21,23 @@ final class PackageDependencyTest extends TestCase {
 		'Domain' => [],
 		'Db' => ['Domain', 'Immich', 'BackgroundJob'],
 		'Immich' => ['Domain', 'AppInfo'],
+		'Service\\App' => ['Domain'],
+		'Service\\Decision' => ['Domain', 'Service\\Files', 'Service\\Stats', 'Service\\Support'],
+		'Service\\Files' => ['Domain'],
+		'Service\\Folder' => ['Domain', 'Service\\Files', 'Service\\Listing', 'Service\\Stats', 'Service\\Support'],
+		'Service\\Hash' => ['Domain', 'Service\\Files', 'Service\\Support'],
+		'Service\\Image' => ['Domain', 'Service\\Files', 'Service\\Support'],
+		'Service\\Lifecycle' => ['Domain', 'Immich', 'Service\\Support'],
+		'Service\\Listing' => ['Domain', 'Service\\Files'],
+		'Service\\Move' => ['Domain', 'Service\\Files', 'Service\\Stats', 'Service\\Trash'],
+		'Service\\Quality' => ['Domain', 'Service\\Files', 'Service\\Support'],
+		'Service\\Series' => ['Domain', 'Service\\Files', 'Service\\Stats', 'Service\\Support'],
+		'Service\\Settings' => ['Domain'],
+		'Service\\Sidecar' => ['Domain', 'Service\\Files', 'Service\\Stats'],
+		'Service\\Stats' => ['Domain', 'Service\\Settings', 'Service\\Support'],
+		'Service\\Support' => [],
+		'Service\\Trash' => ['Domain', 'Service\\Files', 'Service\\Stats', 'Service\\Support'],
+		'Service\\Xmp' => ['Domain', 'Service\\Files', 'Service\\Sidecar', 'Service\\Support'],
 	];
 
 	public function testEveryPackageUsesOnlyItsAllowedPackages(): void {
@@ -34,6 +51,12 @@ final class PackageDependencyTest extends TestCase {
 		$this->assertSame([], $violations);
 	}
 
+	public function testEveryServiceLivesInAPackage(): void {
+		$loose = array_keys(array_filter($this->sources(), fn (string $code): bool => preg_match('/^namespace OCA\\\\Honeycomb\\\\Service;/m', $code) === 1));
+
+		$this->assertSame([], $loose);
+	}
+
 	/** @return array<string, array{string, list<string>}> */
 	public static function sourcesAndViolations(): array {
 		return [
@@ -43,6 +66,8 @@ final class PackageDependencyTest extends TestCase {
 			'the domain on the database' => ["namespace OCA\\Honeycomb\\Domain\\Store;\nuse OCA\\Honeycomb\\Db\\FlagMapper;", ['OCA\\Honeycomb\\Db\\FlagMapper']],
 			'a fully qualified name in code' => ["namespace OCA\\Honeycomb\\Immich;\n\$a = \\OCA\\Honeycomb\\Service\\Flag::Picked;", ['OCA\\Honeycomb\\Service\\Flag']],
 			'a package without rules' => ["namespace OCA\\Honeycomb\\Controller;\nuse OCA\\Honeycomb\\Db\\FlagMapper;", []],
+			'a service on a package it lists' => ["namespace OCA\\Honeycomb\\Service\\Move;\nuse OCA\\Honeycomb\\Service\\Trash\\TrashResult;", []],
+			'a service on a package it does not list' => ["namespace OCA\\Honeycomb\\Service\\Trash;\nuse OCA\\Honeycomb\\Service\\Move\\MoveResult;", ['OCA\\Honeycomb\\Service\\Move\\MoveResult']],
 			'a package named like an allowed one' => ["namespace OCA\\Honeycomb\\Db;\nuse OCA\\Honeycomb\\DomainX\\Flag;", ['OCA\\Honeycomb\\DomainX\\Flag']],
 		];
 	}
