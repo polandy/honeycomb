@@ -99,7 +99,7 @@ Binding: `docs/dev/conventions.md`. In short:
   path, multi-digit numbering (`2.10` vs `2.2`), ranges. Cover each that applies with a test.
 - **Every review suggestion is applied, or the reply says why not.** None is ignored.
 - **The first commit subject describes the whole branch**: it becomes the PR title.
-- **A review says Ready only with no open finding.** It checks that new tests could not pass for a
+- **A review says `ready` only with no open finding.** It checks that new tests could not pass for a
   wrong result, what the change does in degenerate states, and that the title matches the diff.
 
 ## Workflow
