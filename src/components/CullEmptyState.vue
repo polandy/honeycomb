@@ -17,13 +17,23 @@ const props = defineProps<{
 
 const emit = defineEmits<{
 	clearFilters: []
+	changeFolders: []
 	showAll: []
 	reviewRejects: []
 }>()
 </script>
 
 <template>
-	<NcEmptyContent v-if="props.reason === 'no-pictures'" :name="t('honeycomb', 'No photos in these folders')" />
+	<NcEmptyContent
+		v-if="props.reason === 'no-pictures'"
+		:name="t('honeycomb', 'No photos in these folders')"
+		:description="t('honeycomb', 'If your photos use other file types, add them in Settings › File types.')">
+		<template #action>
+			<NcButton @click="emit('changeFolders')">
+				{{ t('honeycomb', 'Change folders') }}
+			</NcButton>
+		</template>
+	</NcEmptyContent>
 	<NcEmptyContent v-else-if="props.reason === 'no-match'" :name="t('honeycomb', 'Nothing matches these filters')">
 		<template #action>
 			<NcButton @click="emit('clearFilters')">

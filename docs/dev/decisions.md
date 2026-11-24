@@ -1915,6 +1915,13 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   The current month is kept as `current`, so it follows the calendar; the stored keys are the
   connections file's ids (a numeric id included), and 4096 bytes per connection suffice, since a
   listing takes at most 20 devices.
+- 2026-11-24: The empty states get a way out (#380, Fable review, owner-approved): the file grid's
+  empty folder state offers *Change folders* and hints at the *File types* setting, and the Immich
+  grid's no-match state offers *Clear filters* that shows the default filters again. The hint
+  reads "If your photos use other file types, add them in Settings › File types."; the settings
+  link is text, not a second button, so the state keeps one action. On the default filters (this
+  month, *Picked* and *Unflagged*) the Immich *Clear filters* does not show, since it would change
+  nothing, like the filter bar's *Clear filters* (IMMICH-002.31).
 - 2026-11-24: The 17 empty `Invalid*Exception` classes are gone; `InvalidRequestException::because(Reason)`
   names the reason in the 400 body next to `error: "request"` (ADR 0057, #187, autonomous). Twelve coarse
   reasons, one per kind of malformed part, not one per field; the free-text detail stays on the exception.
