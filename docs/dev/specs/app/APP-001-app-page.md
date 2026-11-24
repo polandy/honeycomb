@@ -183,6 +183,14 @@ stays the same.
   focus stays inside it and wraps from its last control to its first and back; `Esc` closes it
   alone (the guide as *Got it*) and the page behind is live again once it is gone
 
+### APP-001.21 – The page opts in to the whole screen and keeps its controls clear of the cutouts
+
+- **Given** the app page on a device with a camera cutout, a status bar or a home indicator
+- **When** the page loads
+- **Then** its viewport says `viewport-fit=cover` (added to Nextcloud's, once, whatever it already
+  says), and the page and the loupe pad their edges with `env(safe-area-inset-*)`, so the
+  loupe's background runs under the bars while no control lies under them
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -205,4 +213,5 @@ stays the same.
 | 2026-11-22 | Every toast has *Close* and goes by a sideways swipe; a toast may stay longer (APP-001.18, .19; M12 PR 6) |
 | 2026-11-20 | *Escape* closes a confirm dialog also from a switch or a checkbox, which `NcModal` leaves to the field (APP-001.16) |
 | 2026-11-24 | The gesture guide and the tag entry are modal: inert page, focus trap, `Esc` (APP-001.20; Fable review) |
+| 2026-11-24 | The page opts in to `viewport-fit=cover` and pads its edges with the safe areas (APP-001.21; Fable review) |
 | 2026-11-22 | The page starts on *Folders* or the library setup, the picker no longer opens by itself (APP-001.3, M12 PR 5) |
