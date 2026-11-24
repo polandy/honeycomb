@@ -3,7 +3,7 @@
 import type { ImmichFilters, TimeOption } from '../../../src/logic/immich-filters.ts'
 
 import { describe, expect, it } from 'vitest'
-import { browserCalendar, countsRequest, defaultImmichFilters, isDefaultImmichFilters, requestFilters, shownTimeOptions, timeOptions, timeRange } from '../../../src/logic/immich-filters.ts'
+import { browserCalendar, countsRequest, defaultImmichFilters, requestFilters, shownTimeOptions, timeOptions, timeRange } from '../../../src/logic/immich-filters.ts'
 import { NOW, UTC_CALENDAR } from './immich-fixtures.ts'
 
 const DAY = 86400
@@ -20,34 +20,6 @@ describe('defaultImmichFilters', () => {
 		expect(filters.kinds.size).toBe(0)
 		expect([...filters.flags]).toEqual(['picked', 'unflagged'])
 		expect(filters.rating).toBeNull()
-	})
-})
-
-describe('isDefaultImmichFilters', () => {
-	const defaults = () => defaultImmichFilters(NOW, UTC_CALENDAR)
-
-	// spec: IMMICH-002.18
-	it('holds for the default filters, whichever rating comparison is set', () => {
-		expect(isDefaultImmichFilters(defaults(), NOW, UTC_CALENDAR)).toBe(true)
-		expect(isDefaultImmichFilters({ ...defaults(), comparison: 'exactly' }, NOW, UTC_CALENDAR)).toBe(true)
-	})
-
-	// spec: IMMICH-002.18
-	it('fails once the time, a device, a kind, a flag, the rating or a colour label differs', () => {
-		const changed: Partial<ImmichFilters>[] = [
-			{ time: month(2026, 10) },
-			{ time: { kind: 'all' } },
-			{ devices: new Set(['Pixel 8']) },
-			{ kinds: new Set(['video']) },
-			{ flags: new Set(['rejected']) },
-			{ flags: new Set(['picked']) },
-			{ rating: 3 },
-			{ colourLabels: new Set(['red']) },
-		]
-
-		for (const change of changed) {
-			expect(isDefaultImmichFilters({ ...defaults(), ...change } as ImmichFilters, NOW, UTC_CALENDAR)).toBe(false)
-		}
 	})
 })
 

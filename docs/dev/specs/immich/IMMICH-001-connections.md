@@ -48,8 +48,13 @@ never stores, shows or logs a key.
 - **Connection switcher:** with several connections the navigation lists them by label, each with
   its status line; the one opened last is opened again, remembered in the browser. With one
   connection there is no switcher. Opening the Immich source asks the status of every connection.
-- **A connection that does not work** shows its state in the content with *Try again*, which asks
-  the status again; a failed status request counts as *Immich unreachable*.
+- **A connection that does not work** shows its state in the content with one line on what to do
+  (written for the user and their admin) and *Try again*, which asks the status again; a failed
+  status request counts as *Immich unreachable*. *Try again* is the primary action only for
+  *Immich unreachable*, the one state that can pass by itself; in every other state *Connection
+  details* is primary. A link *Help for your admin* opens the admin page
+  `docs/user/admin/immich.md` at the state's section; the connection dialog and the *unavailable*
+  state link to the page too.
 - **Connection dialog** (*Immich connection*): read only, the label, the Immich server URL, the
   status, the account and Immich's version, the scopes Phase 1 needs (`asset.read`,
   `asset.view`, `asset.statistics`, optional `user.read`) and the note that the admin defines
@@ -232,3 +237,19 @@ never stores, shows or logs a key.
 - **Given** `immichOnly` stored
 - **When** the user opens a folder set from the folder picker or its *Recent*
 - **Then** the cull opens and the settings are saved without `immichOnly`
+
+### IMMICH-001.26 – What to do per state
+
+- **Given** a connection whose state is `unreachable`, `refused`, `key` or `version`, or a broken
+  connections file
+- **When** the user opens it
+- **Then** the content says what to do in one line for that state, and *Help for your admin*
+  links to the section of `docs/user/admin/immich.md` that explains it
+- **And** *Try again* is the primary button only for `unreachable`
+
+### IMMICH-001.27 – Help from the dialog
+
+- **Given** the connection dialog
+- **When** it opens
+- **Then** it links to `docs/user/admin/immich.md`, which names the connections file's format and
+  path, and the scopes the key needs

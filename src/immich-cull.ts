@@ -4,7 +4,8 @@ import type { DecisionIntent } from './logic/decision-change.ts'
 import type { Decision, StoredDecision } from './logic/decision.ts'
 import type { DecisionRow, ImmichEntry, ImmichImageSize, ImmichSourceEntry } from './logic/immich-asset.ts'
 import type { CountsRequest, ImmichCounts } from './logic/immich-counts.ts'
-import type { Calendar, ImmichFilters, RequestFilters } from './logic/immich-filters.ts'
+import type { StoredImmichFilters } from './logic/immich-filter-storage.ts'
+import type { Calendar, ImmichFilters, RequestFilters, TimeOption } from './logic/immich-filters.ts'
 import type { AssetsRequest, Page } from './logic/immich-paging.ts'
 import type { SourceEntry } from './logic/listing.ts'
 import type { Picture } from './logic/pairing.ts'
@@ -24,7 +25,9 @@ import { decisionsByFileId } from './logic/decision.ts'
 import { GRID_TIERS, imageMember } from './logic/image-tiers.ts'
 import { assetDecision, assetPicture, decisionRow } from './logic/immich-asset.ts'
 import { countsAfterDecision } from './logic/immich-counts.ts'
-import { countsRequest, defaultImmichFilters, isDefaultImmichFilters, requestFilters, timeOptions } from './logic/immich-filters.ts'
+import { filterChoices, isDefaultImmichFilters } from './logic/immich-filter-choices.ts'
+import { readImmichFilters, storedImmichFilters } from './logic/immich-filter-storage.ts'
+import { countsRequest, defaultImmichFilters, requestFilters, timeOptions } from './logic/immich-filters.ts'
 import { EMPTY_LIST, pageArrived, pageAsked, pageFailed, shownList, wantsNext } from './logic/immich-paging.ts'
 import { saveQueue } from './logic/save-queue.ts'
 import { undoEntry } from './logic/undo.ts'
@@ -43,7 +46,7 @@ export interface ImmichCullApi {
 	imageUrl: (connectionId: string, assetId: string, size: ImmichImageSize, version: string) => string
 }
 
-/** What the Immich cull is given: the server, the clock, the calendar and the toast. */
+/** What the Immich cull is given: the server, the clock, the calendar, the toast and where the filters are kept. */
 export interface ImmichCullContext {
 	readonly api: ImmichCullApi
 	readonly now: () => number
@@ -51,6 +54,8 @@ export interface ImmichCullContext {
 	/** The day group's header of a time in Unix seconds. */
 	readonly dayLabel: (seconds: number) => string
 	readonly toast: Pick<ReturnType<typeof useToast>, 'show' | 'showError'>
+	/** Keeps a connection's filters for its next open (IMMICH-002.32). */
+	readonly saveFilters: (connectionId: string, stored: StoredImmichFilters) => void
 }
 
 /** One asset's decision before and after a change. */
@@ -65,12 +70,14 @@ export function useImmichCull(context: ImmichCullContext) {
 	const { api, now, calendar } = context
 	const connectionId = ref<string | null>(null)
 	const filters = shallowRef<ImmichFilters>(defaultImmichFilters(now(), calendar))
-	const filtersAreDefault = computed(() => isDefaultImmichFilters(filters.value, now(), calendar))
 	// The loaded pages; `list` shows them without the pictures the decisions last settled let the filters refuse.
 	const loaded = shallowRef(EMPTY_LIST)
 	const counts = shallowRef<ImmichCounts | null>(null)
 	const decided = shallowRef<ReadonlyMap<PictureId, Decision>>(new Map())
 	const settled = shallowRef<ReadonlyMap<string, Decision>>(new Map())
+	// The time options the counts' periods line up with, and the device models of the last counts answer.
+	const periodOptions = shallowRef<readonly TimeOption[]>(timeOptions(now(), calendar))
+	const known = shallowRef<readonly (string | null)[]>([])
 	let held = false
 	// Grid ids and pictures stay the same for an asset while the connection is open, so tiles keep their place.
 	const ids = new Map<string, PictureId>()
@@ -85,6 +92,8 @@ export function useImmichCull(context: ImmichCullContext) {
 
 	const list = computed(() => shownList(loaded.value, settled.value, filters.value))
 	const pictures = computed(() => list.value.entries.map(pictureOf))
+	const filtersChanged = computed(() => !isDefaultImmichFilters(filters.value, now(), calendar))
+	const choices = computed(() => filterChoices(filters.value, counts.value, periodOptions.value, known.value, now(), calendar))
 
 	/** The picture of an entry, made once per asset. */
 	function pictureOf(entry: ImmichEntry): Picture<ImmichSourceEntry> {
@@ -103,19 +112,8 @@ export function useImmichCull(context: ImmichCullContext) {
 		}, { key: (row) => row.assetId })
 	}
 
-	/** Shows the listing under new filters from its start (IMMICH-002.11). */
-	function setFilters(next: ImmichFilters) {
-		filters.value = next
-		restart()
-	}
-
-	/** Shows the listing under the default filters again, from its start (IMMICH-002.18). */
-	function resetFilters() {
-		setFilters(defaultImmichFilters(now(), calendar))
-	}
-
-	/** Opens the connection on its default filters. */
-	function open(id: string) {
+	/** Opens the connection on its stored filters, the defaults for what is not stored (IMMICH-002.32). */
+	function open(id: string, stored: unknown = null) {
 		connectionId.value = id
 		save = queueFor(id)
 		ids.clear()
@@ -123,13 +121,28 @@ export function useImmichCull(context: ImmichCullContext) {
 		shown.clear()
 		history.reset()
 		held = false
-		resetFilters()
+		known.value = []
+		filters.value = readImmichFilters(stored, now(), calendar)
+		restart()
+	}
+
+	/** Shows the listing under new filters from its start and keeps them for the connection (IMMICH-002.11, IMMICH-002.32). */
+	function setFilters(next: ImmichFilters) {
+		filters.value = next
+		context.saveFilters(connectionId.value!, storedImmichFilters(next, now(), calendar))
+		restart()
+	}
+
+	/** Puts every filter back to its default (IMMICH-002.31). */
+	function clearFilters() {
+		setFilters(defaultImmichFilters(now(), calendar))
 	}
 
 	/** Drops what was loaded and asks the counts and the first page again; older answers are ignored. */
 	function restart() {
 		generation += 1
 		request = requestFilters(filters.value, now(), calendar)
+		periodOptions.value = timeOptions(now(), calendar)
 		loaded.value = EMPTY_LIST
 		counts.value = null
 		decided.value = new Map()
@@ -142,9 +155,10 @@ export function useImmichCull(context: ImmichCullContext) {
 	async function askCounts() {
 		const asked = generation
 		try {
-			const answer = await api.counts(connectionId.value!, countsRequest(filters.value, timeOptions(now(), calendar), now(), calendar))
+			const answer = await api.counts(connectionId.value!, countsRequest(filters.value, periodOptions.value, now(), calendar))
 			if (asked === generation) {
 				counts.value = answer
+				known.value = answer.devices.map(({ model }) => model)
 			}
 		} catch (error) {
 			logger.error('Could not count the Immich uploads', { error })
@@ -261,5 +275,5 @@ export function useImmichCull(context: ImmichCullContext) {
 		}
 	}
 
-	return { connectionId: readonly(connectionId), filters, filtersAreDefault, list, counts, pictures, open, setFilters, resetFilters, loadNext, retry, hold, decisionOf, imageUrl, decide, undo, redo }
+	return { connectionId: readonly(connectionId), filters, filtersChanged, choices, list, counts, pictures, open, setFilters, clearFilters, loadNext, retry, hold, decisionOf, imageUrl, decide, undo, redo }
 }

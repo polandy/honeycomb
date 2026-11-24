@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { StoredImmichFilters } from './immich-filter-storage.ts'
 
 /** The loupe's per-user state that is not a setting, kept on the server (ADR 0019). */
 export interface ViewState {
@@ -11,8 +12,8 @@ export interface ViewState {
 
 export type ViewStateKey = keyof ViewState
 
-/** What a write may carry: any boolean key, and the year whose year-in-review hint was closed (STATS-001.48). */
-export type ViewStatePatch = Partial<ViewState> & { year_review_hint_closed?: number }
+/** What a write may carry: any boolean key, the year whose year-in-review hint was closed (STATS-001.48) and Immich filters per connection (IMMICH-002.32). */
+export type ViewStatePatch = Partial<ViewState> & { year_review_hint_closed?: number, immich_filters?: Readonly<Record<string, StoredImmichFilters>> }
 
 /** Each key's stored value, null while it was never stored. */
 export type StoredViewState = { [Key in ViewStateKey]: boolean | null }

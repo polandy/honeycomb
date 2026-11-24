@@ -9,8 +9,11 @@ export const COLOUR_LABELS = ['red', 'orange', 'yellow', 'green', 'blue', 'magen
 /** One of the nine colour labels. */
 export type ColourLabel = typeof COLOUR_LABELS[number]
 
+/** Every flag a picture can carry. */
+export const FLAGS = ['picked', 'rejected', 'unflagged'] as const
+
 /** A picture's flag; picked and rejected are decided. */
-export type Flag = 'picked' | 'rejected' | 'unflagged'
+export type Flag = typeof FLAGS[number]
 
 /** Rating, colour label, flag and Keep RAW of one picture. */
 export interface Decision {
@@ -26,11 +29,22 @@ export type DecisionField = keyof Decision
 /** The fields a change sets, applied per sidecar to the decision it states (ADR 0032). */
 export type DecisionDelta = Partial<Decision>
 
-/** Every field of a decision, in its order. */
-export const DECISION_FIELDS: readonly DecisionField[] = ['rating', 'colourLabel', 'flag', 'keepRaw']
+/** Where a decision field is kept: the decision table or the picture's sidecars. */
+export type DecisionStore = 'database' | 'sidecar'
 
-/** The fields the database holds; the others live in the sidecars (ADR 0040). */
-export const FLAG_FIELDS: readonly DecisionField[] = ['flag', 'keepRaw']
+/** Every field of a decision, in its order, with where it is kept for a folder picture (ADR 0040) and an Immich asset (ADR 0054). */
+export const DECISION_FIELD_STORES: Readonly<Record<DecisionField, { readonly folders: DecisionStore, readonly immich: DecisionStore }>> = {
+	rating: { folders: 'sidecar', immich: 'database' },
+	colourLabel: { folders: 'sidecar', immich: 'database' },
+	flag: { folders: 'database', immich: 'database' },
+	keepRaw: { folders: 'database', immich: 'database' },
+}
+
+/** Every field of a decision, in its order. */
+export const DECISION_FIELDS = Object.keys(DECISION_FIELD_STORES) as readonly DecisionField[]
+
+/** The fields the database holds for a folder picture; the others live in the sidecars (ADR 0040). */
+export const FLAG_FIELDS: readonly DecisionField[] = DECISION_FIELDS.filter((field) => DECISION_FIELD_STORES[field].folders === 'database')
 
 /** A decision as the decision endpoint stores it per member file id (ADR 0012). */
 export interface StoredDecision extends Decision {

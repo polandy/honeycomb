@@ -4,7 +4,7 @@ import type { ColourLabel, Flag } from './decision.ts'
 import type { ImmichKind } from './immich-asset.ts'
 import type { DecisionFilters, RatingComparison } from './picture-filter.ts'
 
-import { DEFAULT_FILTERS, isDefaultFlags } from './picture-filter.ts'
+import { DEFAULT_FILTERS } from './picture-filter.ts'
 
 /** A choice of the time filter; `month` counts from 1. */
 export type TimeOption
@@ -32,12 +32,15 @@ export interface TimeRange {
 	readonly takenBefore: number | null
 }
 
+/** How a request compares a picture's stars with the chosen count. */
+export type RatingOp = 'atLeast' | 'atMost' | 'exactly'
+
 /** The `filters` of a listing or counts request (ADR 0044). */
 export interface RequestFilters extends TimeRange {
 	readonly devices: readonly (string | null)[]
 	readonly kinds: readonly ImmichKind[]
 	readonly flags: readonly Flag[]
-	readonly rating: { readonly op: 'atLeast' | 'atMost' | 'exactly', readonly value: number } | null
+	readonly rating: { readonly op: RatingOp, readonly value: number } | null
 	readonly colourLabels: readonly ColourLabel[]
 }
 
@@ -54,7 +57,8 @@ const MONTHS_PER_YEAR = 12
 /** The current month and the eleven before it: cheap to count on every change of filter (IMMICH-002.26). */
 const COUNTED_MONTHS = 12
 
-const RATING_OPS: Record<RatingComparison, 'atLeast' | 'atMost' | 'exactly'> = { 'at-least': 'atLeast', 'at-most': 'atMost', exactly: 'exactly' }
+/** The rating op a request sends for each comparison of the grid. */
+export const REQUEST_RATING_OPS: Readonly<Record<RatingComparison, RatingOp>> = { 'at-least': 'atLeast', 'at-most': 'atMost', exactly: 'exactly' }
 
 /** The browser's local calendar. */
 export const browserCalendar: Calendar = {
@@ -97,7 +101,7 @@ export function requestFilters(filters: ImmichFilters, now: number, calendar: Ca
 		devices: [...filters.devices],
 		kinds: [...filters.kinds],
 		flags: [...filters.flags],
-		rating: filters.rating === null ? null : { op: RATING_OPS[filters.comparison], value: filters.rating },
+		rating: filters.rating === null ? null : { op: REQUEST_RATING_OPS[filters.comparison], value: filters.rating },
 		colourLabels: [...filters.colourLabels],
 	}
 }
@@ -115,17 +119,8 @@ export function shownTimeOptions(options: readonly TimeOption[], counts: readonl
 		.filter(({ option, count }) => option.kind !== 'month' || count !== 0 || sameTimeOption(option, chosen) || sameTimeOption(option, current))
 }
 
-/** Whether the filters are the defaults, so *Clear filters* would change nothing; the comparison alone filters nothing. */
-export function isDefaultImmichFilters(filters: ImmichFilters, now: number, calendar: Calendar): boolean {
-	const sets = [filters.devices, filters.kinds, filters.colourLabels]
-	return sameTimeOption(filters.time, defaultImmichFilters(now, calendar).time)
-		&& sets.every((chips) => chips.size === 0)
-		&& filters.rating === DEFAULT_FILTERS.rating
-		&& isDefaultFlags(filters.flags)
-}
-
 /** Whether two time options are the same choice. */
-function sameTimeOption(a: TimeOption, b: TimeOption): boolean {
+export function sameTimeOption(a: TimeOption, b: TimeOption): boolean {
 	if (a.kind === 'month' && b.kind === 'month') {
 		return a.year === b.year && a.month === b.month
 	}

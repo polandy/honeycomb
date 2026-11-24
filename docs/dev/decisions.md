@@ -1908,10 +1908,17 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the setup page links the privacy page on GitHub, as `appinfo/info.xml` does (#187, autonomous).
 - 2026-11-24: `SidecarWriter` and `SidecarReader` catch only the `OCP\Files\*` types, so an unlisted
   exception fails the request loudly instead of one file quietly (#187, autonomous, PR #386).
+- 2026-11-24: Immich filter bar: time, device and kind as filter-bar chips in the Immich
+  toolbar, not in the navigation as the Phase 1 mockup drew them, since the owner asked for the
+  folder filter bar's style; they are kept per connection in the server view state
+  (`immich_filters`, ADR 0019 amendment), so they follow the user like the other view state.
+  The current month is kept as `current`, so it follows the calendar; the stored keys are the
+  connections file's ids (a numeric id included), and 4096 bytes per connection suffice, since a
+  listing takes at most 20 devices.
 - 2026-11-24: The empty states get a way out (#380, Fable review, owner-approved): the file grid's
   empty folder state offers *Change folders* and hints at the *File types* setting, and the Immich
   grid's no-match state offers *Clear filters* that shows the default filters again. The hint
   reads "If your photos use other file types, add them in Settings › File types."; the settings
   link is text, not a second button, so the state keeps one action. On the default filters (this
   month, *Picked* and *Unflagged*) the Immich *Clear filters* does not show, since it would change
-  nothing; the mockup disables it there too.
+  nothing, like the filter bar's *Clear filters* (IMMICH-002.31).

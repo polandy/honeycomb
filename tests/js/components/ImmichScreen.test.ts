@@ -7,6 +7,7 @@ import type { Page } from '../../../src/logic/immich-paging.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import ImmichFilterBar from '../../../src/components/ImmichFilterBar.vue'
 import ImmichScreen from '../../../src/components/ImmichScreen.vue'
 import PhotoGrid from '../../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../../src/components/PhotoLoupe.vue'
@@ -36,7 +37,7 @@ async function mountScreen() {
 		saveDecisions: async (_id, rows) => rows.map((row) => row.assetId),
 		imageUrl: (id, assetId, size) => `/${id}/${assetId}/${size}`,
 	}
-	const cull = useImmichCull({ api, now: () => NOW, calendar: UTC_CALENDAR, dayLabel: () => 'Friday, 20 November', toast: { show: vi.fn(), showError: vi.fn() } })
+	const cull = useImmichCull({ api, now: () => NOW, calendar: UTC_CALENDAR, dayLabel: () => 'Friday, 20 November', toast: { show: vi.fn(), showError: vi.fn() }, saveFilters: vi.fn() })
 	cull.open('andy-phone')
 	const wrapper = mount(ImmichScreen, {
 		props: {
@@ -48,7 +49,7 @@ async function mountScreen() {
 		global: { stubs: { teleport: true } },
 	})
 	await flushPromises()
-	return { wrapper, cull, assets, counts }
+	return { wrapper, assets, counts, cull }
 }
 
 describe('ImmichScreen', () => {
@@ -74,7 +75,7 @@ describe('ImmichScreen', () => {
 
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
 		expect(wrapper.text()).toContain('No pictures match. Change the time, device or flag filter.')
-		const clear = wrapper.findAll('button').find((each) => each.text() === 'Clear filters')
+		const clear = wrapper.find('.immich-screen__empty').findAll('button').find((each) => each.text() === 'Clear filters')
 		expect(clear).toBeDefined()
 
 		await clear!.trigger('click')
@@ -91,11 +92,11 @@ describe('ImmichScreen', () => {
 		await flushPromises()
 
 		expect(wrapper.text()).toContain('No pictures match. Change the time, device or flag filter.')
-		expect(wrapper.findAll('button').some((each) => each.text() === 'Clear filters')).toBe(false)
+		expect(wrapper.find('.immich-screen__empty').findAll('button')).toHaveLength(0)
 	})
 
 	// spec: APP-001.4
-	it('renders no text that bypasses the catalogue', async () => {
+	it('renders no empty-state text that bypasses the catalogue', async () => {
 		installMarkedCatalogue()
 		try {
 			const { wrapper, assets, counts } = await mountScreen()
@@ -103,7 +104,7 @@ describe('ImmichScreen', () => {
 			counts[0]!({ ...COUNTS, matching: 0 })
 			await flushPromises()
 
-			expect(untranslatedText(wrapper.element as Element)).toEqual([])
+			expect(untranslatedText(wrapper.find('.immich-screen__empty').element)).toEqual([])
 		} finally {
 			uninstallMarkedCatalogue()
 		}
@@ -145,5 +146,26 @@ describe('ImmichScreen', () => {
 		expect(assets).toHaveLength(2)
 		expect(assets[1]!.cursor).toBe('c2')
 		expect(wrapper.findComponent(PhotoLoupe).props('counter')).toEqual({ position: 91, total: 3412 })
+	})
+	// spec: IMMICH-002.30, IMMICH-002.31
+	it('wires the filter bar to the cull: a choice starts over, Clear filters brings back the defaults', async () => {
+		const { wrapper, assets, counts, cull } = await mountScreen()
+		assets[0]!.answer(page(1, 3, null))
+		counts[0]!({ ...COUNTS, devices: [{ model: 'Pixel 9 Pro', count: 3660 }] })
+		await flushPromises()
+		const bar = wrapper.findComponent(ImmichFilterBar)
+		expect(bar.props('changed')).toBe(false)
+		expect(bar.props('choices').devices).toEqual([{ value: 'Pixel 9 Pro', count: 3660 }])
+
+		bar.vm.$emit('update:filters', { ...cull.filters.value, kinds: new Set(['video']) })
+		await flushPromises()
+		expect(assets[1]!.cursor).toBeNull()
+		expect(wrapper.findComponent(ImmichFilterBar).props('changed')).toBe(true)
+
+		wrapper.findComponent(ImmichFilterBar).vm.$emit('clear')
+		await flushPromises()
+		expect(assets).toHaveLength(3)
+		expect(cull.filters.value.kinds.size).toBe(0)
+		expect(wrapper.findComponent(ImmichFilterBar).props('changed')).toBe(false)
 	})
 })
