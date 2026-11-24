@@ -24,7 +24,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **rateable** | A picture whose every member's folder grants the user UPDATE and CREATE, so it can be flagged, rated, labelled, marked *Keep RAW* and tagged (ADR 0040). |
 | **read only** | A picture that is not rateable: it is shown with a lock, and nothing of it can be changed (ADR 0040). |
 | **take-over** | Recording, once, the flag and *Keep RAW* a picture's sidecars state when honeycomb first sees it; from then on the database holds them (ADR 0040). |
-| **Write picks/rejects to XMP** | The ⋯ entry that writes the flag and *Keep RAW* of every rateable picture of the open folder set into its sidecars that differ (ADR 0040). |
+| **Write picks/rejects to XMP** | The ⋯ entry that writes the flag and *Keep RAW* of every rateable picture of the open folder set into its sidecars that differ (ADR 0040); with the setting on they are written with each step too (ADR 0056). |
 | **Clear picks/rejects** | The ⋯ entry that sets every rateable picture of the open folder set to *unflagged* without *Keep RAW*, as one undo step; the sidecars stay as they are (ADR 0040). |
 | **Keep RAW** | A marker on a pair, independent of rating, colour label and flag: its RAW member stays when *Remove RAWs* runs. |
 | **Remove RAWs** | The bulk action that moves the RAW member and its own sidecar of every unmarked, not rejected pair in the view to the trash bin; the JPEG and the decisions stay. |

@@ -36,15 +36,18 @@ list another tab changed (ADR 0051); the read still answers one object with ever
 | Favourite targets | None |
 | Keep statistics | On (STATS-001) |
 | Library roots | None (FOLDERS-004) |
+| Write picks, rejects and Keep RAW to XMP sidecars | On (XMP-003, ADR 0056) |
 
 *Settings* in the grid's ⋯ menu opens a dialog with the sections *File types*, *Folder layout*,
-*Library*, *Loupe gestures*, *Keyboard*, *Moving photos*, *Statistics* and *Cache*. Each change
-applies at once and saves the whole object, or the whole list it changed; there is no OK button.
-What a setting does elsewhere is specified where it acts (LISTING-002, LOUPE-001, LOUPE-002,
-KEYS-001, MOVE-004, XMP-003, STATS-001).
+*Library*, *Loupe gestures*, *Keyboard*, *Moving photos*, *XMP sidecars*, *Statistics* and
+*Cache*. Each change applies at once and saves the whole object, or the whole list it changed; there
+is no OK button. What a setting does elsewhere is specified where it acts (LISTING-002, LOUPE-001,
+LOUPE-002, KEYS-001, MOVE-004, XMP-003, STATS-001).
 
 There is no setting *Write decisions to XMP sidecars* and no confirmation of shared folders
-(ADR 0040): a decision is written where the picture is rateable (XMP-008), and the stored fields
+(ADR 0040): a rating, colour label or tag is written where the picture is rateable (XMP-008).
+The *XMP sidecars* section holds one switch, *Write picks, rejects and Keep RAW to XMP sidecars*
+(`writeFlagsToXmp`, ADR 0056), which decides whether the flags are written through too. The fields
 `sidecarWrite`, `sidecarExistingHint` and `confirmedSharedFolders` of earlier releases are ignored
 and dropped with the next save.
 
@@ -252,8 +255,8 @@ Withdrawn by ADR 0040 (M8 PR 3); there is no sidecar switch (.28).
 
 - **Given** a stored `sidecarWrite` *Off* and a stored `confirmedSharedFolders`
 - **When** the user opens the settings and decides a photo
-- **Then** there is no *XMP sidecars* section, no dialog asks first, and the photo is decided and
-  written where it is rateable (XMP-008.12)
+- **Then** no dialog asks first, and the photo is decided and written where it is rateable
+  (XMP-008.12); the *XMP sidecars* section shows only the switch of .34
 
 ### SETTINGS-001.29 – Library roots
 
@@ -293,6 +296,13 @@ Withdrawn by ADR 0040 (M8 PR 3); there is no sidecar switch (.28).
 - **When** the app reads them
 - **Then** each is read field by field as SETTINGS-001.6 says, and every save writes `version: 1`
 
+### SETTINGS-001.34 – Writing flags to the sidecars is on by default
+
+- **Given** stored settings without `writeFlagsToXmp`, and ones with it `false`
+- **When** the app reads them and the user opens the *XMP sidecars* section
+- **Then** the first reads as on, the second as off, the switch shows each, and turning it saves
+  `writeFlagsToXmp` with the object; a value that is not a boolean reads as on
+
 ## Out of scope
 
 What the swipes, auto-advance and flag buttons do in the loupe: LOUPE-002. The vi keys: KEYS-001.
@@ -320,3 +330,4 @@ Pairing itself: LISTING-002.
 | 2026-11-22 | .29 library roots (M12 PR 4) |
 | 2026-11-22 | .30 the library roots in the settings (ADR 0049, M12 PR 7) |
 | 2026-11-22 | .31–.33 the lists in their own keys, the object versioned (ADR 0051) |
+| 2026-11-24 | .34 the switch for writing flags to the sidecars, on by default; .28 changed (ADR 0056) |
