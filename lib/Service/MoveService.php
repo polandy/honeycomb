@@ -96,17 +96,32 @@ final class MoveService {
 				$outcomes[$index] = self::moved($move, $moved[$index], $replaced);
 			} catch (GenericFileException|InvalidPathException|StorageNotAvailableException|AlreadyExistsException|DbException|NotPermittedException|LockedException|NotFoundException $e) {
 				$outcomes[$index] = ['result' => $this->failure($e, $move->source), 'replaced' => $replaced];
-				foreach (array_reverse($moved, true) as $back => $node) {
-					$outcomes[$back] = $this->moveBack($userId, $node, $moves[$back]) ? ['result' => MoveResult::MovedBack, 'replaced' => $outcomes[$back]['replaced']] : $outcomes[$back];
-				}
+				$outcomes = $this->rollBack($userId, $moved, $moves, $outcomes);
 				break;
+			} catch (\Throwable $e) {
+				// A bug must not strand the moved files, so they go back before it escapes.
+				$this->rollBack($userId, $moved, $moves, $outcomes);
+				throw $e;
 			}
 		}
 		return array_values($outcomes);
 	}
 
 	/**
-	 * Creates the missing folders, trashes the file to replace, or deletes it for good logged without its path, and moves the file into its place.
+	 * @param array<int, Node> $moved
+	 * @param array<int, CheckedMove> $moves
+	 * @param array<int, array<string, mixed>> $outcomes
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function rollBack(string $userId, array $moved, array $moves, array $outcomes): array {
+		foreach (array_reverse($moved, true) as $back => $node) {
+			$outcomes[$back] = $this->moveBack($userId, $node, $moves[$back]) ? ['result' => MoveResult::MovedBack, 'replaced' => $outcomes[$back]['replaced']] : $outcomes[$back];
+		}
+		return $outcomes;
+	}
+
+	/**
+	 * Creates the missing the file to replace, or deletes it for good logged without its path, and moves the file into its place.
 	 * @param-out bool $replaced
 	 */
 	private function moveFile(string $userId, Folder $userFolder, CheckedMove $move, bool &$replaced): Node {
