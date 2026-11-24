@@ -198,6 +198,16 @@ it flags, moves, deletes and writes nothing.
 - **Then** it ranks the measured photos by sharpness with their focus tile, names the sharpest or
   none as the series compare would, and lists the photo not measured with its reason
 
+### SERIES-006.22 – Quality measures are registered
+
+- **Given** the registry of quality measures (`src/quality-measures.ts`), whose first entry
+  is the sharpness
+- **When** the cull, the worker or the info panel needs a measure
+- **Then** it finds it by `id` in the registry, which gives each entry its `id`, stored `method`,
+  `measure` (the function a worker runs on a photo's URL), `label` and display `slot`; the
+  sharpness is `sharpness`, method 1, shown in the `loupe-info` slot; a worker job names a measure
+  by its `id`, and an unknown `id` fails the job; behaviour is otherwise unchanged
+
 ## Out of scope
 
 - The *Sharpest* mark, the rank in the info panel and the zoom onto the focus tile: SERIES-007.
@@ -211,3 +221,4 @@ it flags, moves, deletes and writes nothing.
 |---|---|
 | 2026-11-20 | Written with the sharpness measure, its table and endpoint (owner decisions, ADR 0046) |
 | 2026-11-20 | Out of scope: the mark, the rank and the zoom moved to SERIES-007 (M11 PR 3) |
+| 2026-11-24 | Quality measures registered by id, method, measure, label and slot (SERIES-006.22) |
