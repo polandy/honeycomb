@@ -620,8 +620,8 @@ Rules for every screen on every reference device:
 
 1. **Fits:** nothing clipped and no horizontal scroll, in both orientations and after a rotation.
 2. **Safe areas:** no control lies under the camera, the status bar or the home indicator.
-   Nextcloud's layout sets no `viewport-fit=cover`, so the browser keeps the page inside the safe
-   areas; opting in (padding with `env(safe-area-inset-*)`) is an open item in `TODO.md`.
+   The page opts in to `viewport-fit=cover` (APP-001.21) and pads its edges and the loupe's with
+   `env(safe-area-inset-*)`; the loupe's background runs under the bars, its controls stay clear.
 3. **Thumbs:** *Pick* and *Reject* stay large and reachable without moving the grip
    ([Loupe layout](#loupe-layout)); every touch target is at least 44 × 44 px on a coarse
    pointer ([Control sizes](#control-sizes)).
