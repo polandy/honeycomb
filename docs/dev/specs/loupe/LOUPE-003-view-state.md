@@ -17,8 +17,8 @@ The view state is four booleans and one year per user behind `GET` and
 `PUT /apps/honeycomb/api/v1/view-state`: `info_panel_open`, `gesture_guide_seen`,
 `series_hint_seen`, `reject_hint_seen` and `year_review_hint_closed`, the year (1970 to 9999)
 whose year-in-review hint the user closed (STATS-001.26), each `null` while it was never
-stored. A write names only the keys it changes. The info panel's width and the Nextcloud navigation toggle stay in browser
-storage (LOUPE-001), since they depend on the device's screen.
+stored. A write names only the keys it changes. The info panel's width and the Nextcloud
+navigation toggle stay in browser storage (LOUPE-001), since they depend on the device's screen.
 
 The app reads the view state once when it starts. Until the answer arrives neither the gesture
 guide nor the first-series hint shows; without a stored value the info panel is closed and both
