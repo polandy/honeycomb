@@ -155,7 +155,7 @@ test.describe('the grid and the loupe of an Immich connection', () => {
 		await expect(all).toHaveAttribute('aria-pressed', 'false')
 		await expect(clear).toBeHidden()
 
-		const asked = page.waitForRequest((request) => request.url().includes('/api/v1/immich/family/assets') && request.postDataJSON().filters.takenAfter === null)
+		const asked = page.waitForRequest((request) => request.method() === 'POST' && request.url().endsWith('/api/v1/immich/family/assets') && request.postDataJSON().filters.takenAfter === null)
 		const saved = page.waitForResponse((response) => response.url().includes('/api/v1/view-state') && response.request().method() === 'PUT')
 		await all.click()
 		await asked

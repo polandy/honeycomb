@@ -120,6 +120,7 @@ toggle themselves: LOUPE-001. The settings: SETTINGS-001.
 - **Given** stored filters for connection `a`
 - **When** the client writes `{"immich_filters": {"b": {…}}}`
 - **Then** `b`'s filters are stored beside `a`'s and a read answers both; a write whose
-  `immich_filters` is not an object of connection ids (1 to 64 characters) with object values of
+  `immich_filters` is not an object of connection ids (as in the connections file: 1 to 64 lower-case
+  letters, digits and hyphens, so `0` is an id too) with object values of
   at most 4,096 bytes as JSON, or that would keep more than 50 connections, is refused with
   `400` `request`

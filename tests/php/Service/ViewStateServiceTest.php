@@ -15,7 +15,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class ViewStateServiceTest extends TestCase {
-	/** @var array<string, bool|int|array<mixed>> */
+	/** @var array<string, mixed> */
 	private array $stored = [];
 
 	private function service(): ViewStateService {
@@ -112,7 +112,7 @@ final class ViewStateServiceTest extends TestCase {
 			'a year before 1970' => [['year_review_hint_closed' => 1969]],
 			'a year after 9999' => [['year_review_hint_closed' => 10000]],
 			'a flag with a year' => [['info_panel_open' => 2026]],
-			'Immich filters as a list' => [['immich_filters' => [['time' => 'all']]]],
+			'Immich filters of a connection id outside the connections file\'s' => [['immich_filters' => ['Phone 1' => ['time' => 'all']]]],
 			'Immich filters without a connection' => [['immich_filters' => []]],
 			'Immich filters as text' => [['immich_filters' => 'all']],
 			'Immich filters of a list' => [['immich_filters' => ['phone' => ['all']]]],
@@ -142,8 +142,15 @@ final class ViewStateServiceTest extends TestCase {
 		$answer = $this->service()->save($this->user(), ['immich_filters' => ['tablet' => ['time' => 'current'], 'camera' => []]]);
 
 		$expected = ['phone' => ['time' => 'all'], 'tablet' => ['time' => 'current'], 'camera' => []];
-		$this->assertSame($expected, $answer['immich_filters']);
+		$this->assertEquals((object)$expected, $answer['immich_filters']);
 		$this->assertSame($expected, $this->stored['alice/honeycomb/immich_filters']);
+	}
+
+	// spec: LOUPE-003.10
+	public function testKeepsTheFiltersOfANumericConnectionIdAndAnswersThemAsAnObject(): void {
+		$answer = $this->service()->save($this->user(), ['immich_filters' => ['0' => ['time' => 'all']]]);
+
+		$this->assertSame('{"0":{"time":"all"}}', json_encode($answer['immich_filters']));
 	}
 
 	// spec: LOUPE-003.10
