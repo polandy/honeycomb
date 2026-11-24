@@ -3,7 +3,7 @@
 // @vitest-environment happy-dom
 import { enableAutoUnmount, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h, ref } from 'vue'
+import { defineComponent, h, nextTick, ref } from 'vue'
 import { useModalDialog } from '../../src/modal-dialog.ts'
 
 enableAutoUnmount(afterEach)
@@ -17,6 +17,9 @@ const Dialog = defineComponent({
 		return () => h('div', { ref: root, class: 'dialog', onKeydown }, [h('button', { class: 'first' }, 'one'), h('input', { class: 'middle' }), h('button', { class: 'last', disabled: false }, 'two')])
 	},
 })
+
+const shown = ref(true)
+const Host = defineComponent({ setup: () => () => (shown.value ? h(Dialog) : h('span')) })
 
 /** The dialog beside two page siblings, one already inert, attached so the focus works. */
 function mountDialog() {
@@ -35,7 +38,8 @@ function mountDialog() {
 	host.id = 'host'
 	document.body.replaceChildren(page, already, host)
 	opener.focus()
-	const wrapper = mount(Dialog, { attachTo: document.getElementById('host')! })
+	shown.value = true
+	const wrapper = mount(Host, { attachTo: document.getElementById('host')! })
 	return wrapper
 }
 
@@ -48,25 +52,27 @@ describe('useModalDialog', () => {
 	})
 
 	// spec: APP-001.20
-	it('leaves the focus alone when the caller already moved it out of the dialog', () => {
+	it('leaves the focus alone when the caller already moved it out of the dialog', async () => {
 		const wrapper = mountDialog()
 		wrapper.find<HTMLElement>('.first').element.focus()
-		const elsewhere = document.getElementById('text')!
+		const elsewhere = document.getElementById('host')!
 		elsewhere.tabIndex = -1
 		elsewhere.focus()
 
-		wrapper.unmount()
+		shown.value = false
+		await nextTick()
 
-		expect(document.activeElement?.id).toBe('text')
+		expect(document.activeElement?.id).toBe('host')
 	})
 
 	// spec: APP-001.20
-	it('gives the focus back to the control that opened it', () => {
+	it('gives the focus back to the control that opened it', async () => {
 		const wrapper = mountDialog()
 		wrapper.find<HTMLElement>('.first').element.focus()
 		expect(document.activeElement?.className).toBe('first')
 
-		wrapper.unmount()
+		shown.value = false
+		await nextTick()
 
 		expect(document.activeElement?.id).toBe('opener')
 	})

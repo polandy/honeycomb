@@ -29,8 +29,9 @@ export function useModalDialog(root: Readonly<Ref<HTMLElement | null>>, close: (
 		restore = inertBackground(root.value!)
 	})
 	onBeforeUnmount(() => {
+		const focusInside = root.value!.contains(document.activeElement)
 		restore()
-		opener?.focus()
+		if (focusInside) opener?.focus()
 	})
 
 	/** Wraps `Tab` at the ends of the dialog and closes on `Escape`. */
