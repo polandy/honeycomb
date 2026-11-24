@@ -1910,7 +1910,7 @@ function renderDlg(){
   if (d.refocus){ const i = root.querySelector(d.refocus); i && i.focus(); d.refocus = null; }
 }
 /* tag entry: one dialog for assigning to the targets (T, Tags) and for picking filter tags; the field keeps its focus while the lists redraw */
-const tagMsgs = () => ({unknown:t('Pick a known tag'), bad:t('A tag needs a name without "|"')});
+const tagMsgs = () => ({unknown:t('Pick a known tag'), bad:t('Separate the levels of a tag with "/". A name cannot be empty and cannot contain "|".')});
 function tagTargets(it){ const files = [it.jpg, it.raw].filter(Boolean).map(f => it.xmp && !it.xmp.shared ? it.xmp.name : f.name + '.xmp'); return [...new Set(files)].join(', '); }
 const tagNorm = text => text.split('/').map(x => x.trim()).filter(Boolean).join('/');
 function openTags(ids, mode = 'assign'){
