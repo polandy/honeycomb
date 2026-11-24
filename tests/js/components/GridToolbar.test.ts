@@ -39,7 +39,7 @@ describe('GridToolbar', () => {
 		expect(wrapper.emitted('reviewRejects')).toHaveLength(1)
 	})
 
-	it('opens the review from a check-list icon, the delete icon comes in the dialog', () => {
+	it('shows a check-list icon on Review rejects', () => {
 		const wrapper = mountToolbar({ paths: ['/Trip'], subfolders: false }, 1, { rejected: 2 })
 
 		expect(wrapper.find('[aria-label*="Review rejects"]').findComponent(AppIcon).props('name')).toBe('review')
