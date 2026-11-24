@@ -140,9 +140,9 @@ stays the same.
 - **Given** the real app in the light and in the dark theme
 - **When** the grid, folder tree, settings, selection, *Move…*, ⋯ menu, reject review, *Delete…*,
   loupe, gesture guide, series compare and series viewer are open
-- **Then** an axe-core scan (WCAG 2.2 A and AA rules, ADR 0042) finds no fault rated *serious* or
-  *critical*, contrast included; a known fault is excluded only by its rule and element, each with
-  a `TODO.md` item
+- **Then** an axe-core scan (WCAG 2.2 A and AA rules, ADR 0042) finds no fault rated *moderate*,
+  *serious* or *critical*, contrast included; a known fault is excluded only by its rule and
+  element, each with a `TODO.md` item; the same scan fails any visible text under 12 px
 
 ### APP-001.16 – Escape closes a dialog from a switch or a checkbox
 
@@ -175,6 +175,23 @@ stays the same.
 - **Then** it goes after that duration; every other success toast goes after 5.2 s, and after a
   hold it runs its own full duration again
 
+### APP-001.20 – The gesture guide and the tag entry are modal
+
+- **Given** the gesture guide or the tag entry open
+- **When** the user presses `Tab`, `Shift+Tab` or `Esc`, or a screen reader walks the page
+- **Then** the dialog is marked modal and the rest of the page is inert while it is open, so the
+  focus stays inside it and wraps from its last control to its first and back; `Esc` closes it
+  alone (the guide as *Got it*); once it is gone the page behind is live again and the focus is back
+  on the control that opened it
+
+### APP-001.21 – The page opts in to the whole screen and keeps its controls clear of the cutouts
+
+- **Given** the app page on a device with a camera cutout, a status bar or a home indicator
+- **When** the page loads
+- **Then** its viewport says `viewport-fit=cover` (added to Nextcloud's, once, whatever it already
+  says), and the page and the loupe pad their edges with `env(safe-area-inset-*)`, so the
+  loupe's background runs under the bars while no control lies under them
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -196,4 +213,6 @@ stays the same.
 | 2026-11-20 | A dialog opens without motion under reduced motion (APP-001.17) |
 | 2026-11-22 | Every toast has *Close* and goes by a sideways swipe; a toast may stay longer (APP-001.18, .19; M12 PR 6) |
 | 2026-11-20 | *Escape* closes a confirm dialog also from a switch or a checkbox, which `NcModal` leaves to the field (APP-001.16) |
+| 2026-11-24 | The gesture guide and the tag entry are modal: inert page, focus trap, `Esc` (APP-001.20; Fable review) |
+| 2026-11-24 | The page opts in to `viewport-fit=cover` and pads its edges with the safe areas (APP-001.21; Fable review) |
 | 2026-11-22 | The page starts on *Folders* or the library setup, the picker no longer opens by itself (APP-001.3, M12 PR 5) |

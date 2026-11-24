@@ -66,6 +66,17 @@ describe('AppNavigation: the sources', () => {
 		expect(wrapper.emitted('openConnection')).toEqual([['kids']])
 	})
 
+	// spec: IMMICH-001.28
+	it('marks a working, a failing and an asked connection by a tick, a cross and a dash', () => {
+		const asked = { id: 'new', label: 'New', line: 'Checking the connection…', working: null }
+		const wrapper = mountNavigation({ source: 'immich', connections: [...LINES, asked], connectionId: 'andy-phone' })
+
+		const marks = wrapper.findAll('.immich-connections__mark')
+
+		expect(marks.map((mark) => mark.attributes('data-state'))).toEqual(['working', 'failed', 'asked'])
+		expect(new Set(marks.map((mark) => mark.find('path').attributes('d'))).size).toBe(3)
+	})
+
 	// spec: IMMICH-001.14
 	it('lists no connections with only one', () => {
 		const wrapper = mountNavigation({ source: 'immich', connections: LINES.slice(0, 1), connectionId: 'andy-phone' })

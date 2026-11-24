@@ -21,6 +21,14 @@ const emit = defineEmits<{
 	open: [connectionId: string]
 	details: []
 }>()
+
+/** The icon of each state, so the colour is not the only sign. */
+const MARKS = { working: 'check', failed: 'close', asked: 'minus' } as const
+
+/** Whether the connection works, fails or is still asked. */
+function markState(working: boolean | null): keyof typeof MARKS {
+	return working === null ? 'asked' : working ? 'working' : 'failed'
+}
 </script>
 
 <template>
@@ -36,7 +44,9 @@ const emit = defineEmits<{
 					compact
 					@click="emit('open', connection.id)">
 					<template #icon>
-						<span class="immich-connections__dot" :class="{ 'immich-connections__dot--failed': connection.working === false, 'immich-connections__dot--asked': connection.working === null }" />
+						<span class="immich-connections__mark" :data-state="markState(connection.working)">
+							<AppIcon :name="MARKS[markState(connection.working)]" />
+						</span>
 					</template>
 					<template #subname>
 						{{ connection.line }}
@@ -53,20 +63,30 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
-.immich-connections__dot {
+.immich-connections__mark {
+	display: flex;
 	flex-shrink: 0;
-	width: 10px;
-	height: 10px;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
 	border-radius: 50%;
 	background: var(--color-success-text);
+	color: var(--color-main-background);
 }
 
-.immich-connections__dot--failed {
+.immich-connections__mark[data-state="failed"] {
 	background: var(--color-error-text);
 }
 
-.immich-connections__dot--asked {
+.immich-connections__mark[data-state="asked"] {
 	background: var(--color-text-maxcontrast);
+}
+
+.immich-connections__mark .app-icon {
+	width: 14px;
+	height: 14px;
+	stroke-width: 3;
 }
 
 .immich-connections {

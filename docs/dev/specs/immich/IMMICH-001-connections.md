@@ -253,3 +253,10 @@ never stores, shows or logs a key.
 - **When** it opens
 - **Then** it links to `docs/user/admin/immich.md`, which names the connections file's format and
   path, and the scopes the key needs
+
+### IMMICH-001.28 – A connection's state is not told by colour alone
+
+- **Given** the connection switcher with a working, a failing and a connection still asked
+- **When** the user looks at its entries
+- **Then** each entry's mark has its own shape beside the status line, a tick, a cross or a dash,
+  so a user who cannot tell the colours apart reads the state too

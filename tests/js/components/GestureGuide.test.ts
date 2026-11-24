@@ -80,4 +80,15 @@ describe('GestureGuide', () => {
 			expect(untranslatedText(wrapper.element as Element)).toEqual([])
 		})
 	})
+
+	// spec: APP-001.20
+	it('is a modal dialog that Escape dismisses as Got it', async () => {
+		const wrapper = mount(GestureGuide, { props: { finePointer: false }, attachTo: document.body })
+
+		expect(wrapper.find('[role="dialog"]').attributes('aria-modal')).toBe('true')
+
+		await wrapper.find('[role="dialog"]').trigger('keydown', { key: 'Escape' })
+
+		expect(wrapper.emitted('dismiss')).toHaveLength(1)
+	})
 })

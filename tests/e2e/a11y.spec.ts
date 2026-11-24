@@ -37,7 +37,7 @@ async function checkDialog(page: Page, dialog: Locator, screen: string, open: ()
 
 for (const scheme of SCHEMES) {
 	// spec: APP-001.15
-	test(`finds no serious accessibility fault on the grid, its dialogs and menus, in the ${scheme} theme`, async ({ page }) => {
+	test(`finds no accessibility fault on the grid, its dialogs and menus, in the ${scheme} theme`, async ({ page }) => {
 		await page.emulateMedia({ colorScheme: scheme })
 		await cullPhotos(page)
 		const at = (screen: string) => `${screen}, ${scheme}`
@@ -77,7 +77,7 @@ for (const scheme of SCHEMES) {
 	})
 
 	// spec: APP-001.15
-	test(`finds no serious accessibility fault in the loupe and the series screens, in the ${scheme} theme`, async ({ page }) => {
+	test(`finds no accessibility fault in the loupe and the series screens, in the ${scheme} theme`, async ({ page }) => {
 		await page.emulateMedia({ colorScheme: scheme })
 		await cullPhotos(page)
 		const at = (screen: string) => `${screen}, ${scheme}`

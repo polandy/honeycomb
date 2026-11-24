@@ -11,6 +11,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import { PLAIN_TEXT } from '../l10n.ts'
 import { cycleMatch, knownTag, tagChips, tagMatches, typedTag } from '../logic/tag-entry.ts'
+import { useModalDialog } from '../modal-dialog.ts'
 
 const props = withDefaults(defineProps<{
 	/** The tags of each picture the entry changes. */
@@ -26,6 +27,8 @@ const emit = defineEmits<{ change: [change: TagChange], close: [] }>()
 const LISTBOX_ID = 'honeycomb-tag-entry-matches'
 
 const input = useTemplateRef<HTMLInputElement>('input')
+const dialog = useTemplateRef<HTMLElement>('dialog')
+const { onKeydown: onDialogKeydown } = useModalDialog(dialog, () => emit('close'))
 const text = ref('')
 const typed = ref('')
 const at = ref(-1)
@@ -111,7 +114,13 @@ function onKeydown(event: KeyboardEvent) {
 </script>
 
 <template>
-	<div class="tag-entry" role="dialog" :aria-label="props.filter ? t('honeycomb', 'Tag filter') : t('honeycomb', 'Tag entry')">
+	<div
+		ref="dialog"
+		class="tag-entry"
+		role="dialog"
+		aria-modal="true"
+		:aria-label="props.filter ? t('honeycomb', 'Tag filter') : t('honeycomb', 'Tag entry')"
+		@keydown="onDialogKeydown">
 		<div class="tag-entry__chips">
 			<span
 				v-for="chip in chips"

@@ -22,7 +22,7 @@ import { imageUrl as apiImageUrl } from '../api.ts'
 import { browserSchedule } from '../browser-schedule.ts'
 import { toggleBrowserFullscreen } from '../fullscreen.ts'
 import { LOUPE_IDLE_MS, useIdle } from '../idle.ts'
-import { FILMSTRIP_THUMB } from '../logic/filmstrip.ts'
+import { FILMSTRIP_TAB_BAND, FILMSTRIP_THUMB } from '../logic/filmstrip.ts'
 import { imageMember, isEmbeddedPreview, loupeSources } from '../logic/image-tiers.ts'
 import { EVERYTHING } from '../logic/opened-source.ts'
 import { DIVIDER_WIDTH, FLAG_RAIL, INFO_PANEL } from '../logic/panel-width.ts'
@@ -135,8 +135,8 @@ onMounted(() => gestureGuideSeen.value && root.value!.focus())
 		ref="root"
 		class="photo-loupe"
 		:data-tips-off="overlays.idle.value || undefined"
-		:class="{ 'photo-loupe--idle': overlays.idle.value, 'photo-loupe--chrome-free': chromeFree, 'photo-loupe--below-header': navigationShown && !chromeFree }"
-		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px`, '--photo-loupe-rail': `${settings.flagButtonsShown ? FLAG_RAIL : 0}px`, '--photo-loupe-strip': `${stripPinned ? FILMSTRIP_THUMB : 0}px`, '--photo-loupe-filmstrip': `${filmstripOpen ? FILMSTRIP_THUMB : 0}px` }"
+		:class="{ 'photo-loupe--idle': overlays.idle.value, 'photo-loupe--chrome-free': chromeFree, 'photo-loupe--below-header': navigationShown && !chromeFree, 'photo-loupe--series-tabs': props.seriesOf.size > 0 }"
+		:style="{ '--photo-loupe-panel': `${infoOpen ? infoWidth + DIVIDER_WIDTH : 0}px`, '--photo-loupe-rail': `${settings.flagButtonsShown ? FLAG_RAIL : 0}px`, '--photo-loupe-strip': stripPinned ? 'var(--photo-loupe-filmstrip-height)' : '0px', '--photo-loupe-filmstrip': filmstripOpen ? 'var(--photo-loupe-filmstrip-height)' : '0px', '--photo-loupe-filmstrip-height': `calc(${FILMSTRIP_THUMB}px + var(--photo-loupe-tab-band, 0px))`, '--photo-loupe-tab-band-size': `${FILMSTRIP_TAB_BAND}px` }"
 		role="dialog"
 		:aria-modal="!navigationShown"
 		:aria-label="t('honeycomb', 'Loupe')"

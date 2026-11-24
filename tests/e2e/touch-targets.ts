@@ -13,9 +13,6 @@ const MIN_TARGET_PX = 44
 /** How far from a control's middle the hit test looks for the end of its hit area. */
 const PROBE_LIMIT_PX = 80
 
-/** Controls known to fall short, each with a TODO.md item (a series tab covers the top of its filmstrip thumbnail). */
-const EXEMPT = '.loupe-filmstrip__tab, .loupe-filmstrip__photo'
-
 const TARGETS = 'button, a[href], input, select, textarea, summary, [role=button], [role=menuitem], [role=menuitemradio], [role=menuitemcheckbox], [role=checkbox], [role=radio], [role=switch], [role=tab], [role=treeitem], [role=gridcell], [role=option], [role=slider], [tabindex="0"]'
 
 /** Sizes the page like an iPad with touch input, so `pointer: coarse` applies. */
@@ -26,7 +23,7 @@ export async function emulateIpad(page: Page, orientation: keyof typeof IPAD_MIN
 
 /** What is wrong with each control of `scope` that a finger could not use: too small, clipped or off screen. */
 export function touchTargetFaults(scope: Locator): Promise<string[]> {
-	return scope.evaluate((root, { targets, exempt, minimum, limit }) => {
+	return scope.evaluate((root, { targets, minimum, limit }) => {
 		const faults: string[] = []
 		const visible = (element: Element) => {
 			const style = getComputedStyle(element)
@@ -49,7 +46,7 @@ export function touchTargetFaults(scope: Locator): Promise<string[]> {
 		const tapped = (element: Element) => (element instanceof HTMLInputElement && /checkbox|radio/.test(element.type) && (element.closest('.checkbox-radio-switch') ?? element.labels?.[0])) || element
 		for (const control of [root, ...root.querySelectorAll(targets)]) {
 			const element = tapped(control)
-			if (!control.matches(targets) || control.matches(exempt) || !visible(element) || element.closest('[aria-hidden=true], [inert], [disabled]')) {
+			if (!control.matches(targets) || !visible(element) || element.closest('[aria-hidden=true], [inert], [disabled]')) {
 				continue
 			}
 			element.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' })
@@ -89,7 +86,7 @@ export function touchTargetFaults(scope: Locator): Promise<string[]> {
 			}
 		}
 		return faults
-	}, { targets: TARGETS, exempt: EXEMPT, minimum: MIN_TARGET_PX, limit: PROBE_LIMIT_PX })
+	}, { targets: TARGETS, minimum: MIN_TARGET_PX, limit: PROBE_LIMIT_PX })
 }
 
 /** Fails with the faults of `scope` on the screen `screen`. */
