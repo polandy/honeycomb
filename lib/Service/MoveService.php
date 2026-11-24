@@ -121,7 +121,7 @@ final class MoveService {
 	}
 
 	/**
-	 * Creates the missing the file to replace, or deletes it for good logged without its path, and moves the file into its place.
+	 * Creates the missing folders, trashes the file to replace, or deletes it for good logged without its path, and moves the file into its place.
 	 * @param-out bool $replaced
 	 */
 	private function moveFile(string $userId, Folder $userFolder, CheckedMove $move, bool &$replaced): Node {
