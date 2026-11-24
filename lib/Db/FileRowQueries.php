@@ -108,9 +108,10 @@ trait FileRowQueries {
 	private function updateFileRow(?string $userId, array $columns, array $row): int {
 		$query = $this->db->getQueryBuilder();
 		$query->update($this->getTableName());
+		/** @var array<string, int> $columns */
 		foreach ($columns as $name => $type) {
 			if ($name !== 'file_id' && $name !== 'user_id') {
-				$query->set($name, $query->createNamedParameter($row[$name], $row[$name] === null ? IQueryBuilder::PARAM_NULL : (int)$type));
+				$query->set($name, $query->createNamedParameter($row[$name], $row[$name] === null ? IQueryBuilder::PARAM_NULL : $type));
 			}
 		}
 		$query->where($query->expr()->eq('file_id', $query->createNamedParameter($row['file_id'], IQueryBuilder::PARAM_INT)));
