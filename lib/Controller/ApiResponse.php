@@ -23,7 +23,6 @@ use OCP\IUserSession;
 final class ApiResponse {
 	/** The error of each service failure; any other exception is a server error. */
 	private const array ERRORS = [
-		InvalidRequestException::class => ApiError::Request,
 		FolderNotFoundException::class => ApiError::FolderNotFound,
 		ImageNotFoundException::class => ApiError::ImageNotFound,
 		FolderNotReadableException::class => ApiError::FolderNotReadable,
@@ -49,6 +48,8 @@ final class ApiResponse {
 			return $handle($user);
 		} catch (ImmichException $failure) {
 			return $this->immichResponse($failure);
+		} catch (InvalidRequestException $refused) {
+			return ApiError::Request->response(['reason' => $refused->reason->value]);
 		} catch (\Exception $failure) {
 			return $this->errorOf($failure)->response();
 		}

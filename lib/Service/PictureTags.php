@@ -27,28 +27,28 @@ final readonly class PictureTags implements \JsonSerializable {
 
 	/**
 	 * The tags in a request item, both fields required, sorted.
-	 * @throws InvalidTagsException for a missing field, a malformed tag, a tag twice or too many tags
+	 * @throws InvalidRequestException for a missing field, a malformed tag, a tag twice or too many tags
 	 */
 	public static function fromRequest(mixed $item): self {
 		if (!is_array($item)) {
-			throw new InvalidTagsException('A tag item must be an object');
+			throw InvalidRequestException::because(Reason::NotAnObject, 'A tag item must be an object');
 		}
 		$fileId = $item['fileId'] ?? null;
 		$tags = $item['tags'] ?? null;
 		if (!is_int($fileId) || $fileId < 1) {
-			throw new InvalidTagsException('fileId must be a positive integer');
+			throw InvalidRequestException::because(Reason::BadFileId, 'fileId must be a positive integer');
 		}
 		if (!is_array($tags) || !array_is_list($tags) || count($tags) > self::MAX_TAGS) {
-			throw new InvalidTagsException("tags of file $fileId must be a list of at most " . self::MAX_TAGS);
+			throw InvalidRequestException::because(Reason::NotAList, "tags of file $fileId must be a list of at most " . self::MAX_TAGS);
 		}
 		foreach ($tags as $tag) {
 			if (!is_string($tag) || !self::isTag($tag)) {
-				throw new InvalidTagsException("tags of file $fileId must be names separated by /");
+				throw InvalidRequestException::because(Reason::BadValue, "tags of file $fileId must be names separated by /");
 			}
 		}
 		/** @var list<string> $tags */
 		if (count(array_unique($tags)) !== count($tags)) {
-			throw new InvalidTagsException("tags of file $fileId must each appear once");
+			throw InvalidRequestException::because(Reason::Duplicate, "tags of file $fileId must each appear once");
 		}
 		sort($tags, SORT_STRING);
 		return new self($fileId, $tags);

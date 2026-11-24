@@ -100,8 +100,8 @@ are the cull's own.
 
 - **Given** the field `Places//Rome` or `A|B`
 - **When** the user presses `Enter`
-- **Then** nothing is assigned or stored and the entry says that a tag needs names without `|`;
-  `Enter` in an empty field does nothing
+- **Then** nothing is assigned or stored and the entry says that `/` separates a tag's levels and
+  that a name cannot be empty or contain `|`; `Enter` in an empty field does nothing
 
 ### TAGS-003.9 – Removing a tag
 
@@ -150,3 +150,4 @@ The tag filter, the tile's tag icon and the info panel's tags
 | Date | Change |
 |---|---|
 | 2026-11-13 | Written with the tag entry (*Tags 2*) |
+| 2026-11-24 | The refusal says the rule in two sentences instead of showing its syntax (TAGS-003.8, Fable review) |

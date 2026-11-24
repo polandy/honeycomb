@@ -124,7 +124,7 @@ final class FlagMapperTest extends DbTestCase {
 	public function testCarriesTheRowOverWhoeverSetIt(): void {
 		$this->flags->save([self::flag(7)]);
 
-		$this->flags->carryOver('someone-else', 7, 20);
+		$this->flags->carryOver(7, 20);
 
 		$this->assertEquals([20 => self::flag(20)], $this->flags->find([7, 20]));
 	}
@@ -144,7 +144,7 @@ final class FlagMapperTest extends DbTestCase {
 		$this->flags->save([self::flag(7), self::flag(8)]);
 		$this->flags->takeOver([self::flag(9)]);
 		$this->flags->remove([8]);
-		$this->flags->carryOver(self::USER, 9, 10);
+		$this->flags->carryOver(9, 10);
 
 		$this->assertEquals([7 => self::flag(7), 10 => self::flag(10)], $this->flags->find([0, 7, 8, 9, 10]));
 		$this->assertSame([7, 10], array_values($this->flags->fileIdsAfter(0, 10)));

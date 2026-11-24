@@ -90,7 +90,7 @@ final class TrashControllerTest extends TestCase {
 		$response = $this->controller()->trash([[['fileId' => 7]]]);
 
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
-		$this->assertSame(['error' => 'request'], json_decode($response->render(), true));
+		$this->assertSame(['error' => 'request', 'reason' => 'bad-value'], json_decode($response->render(), true));
 	}
 
 	// spec: DELETE-001.16

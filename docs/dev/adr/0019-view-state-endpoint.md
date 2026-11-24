@@ -28,8 +28,9 @@ or device.
   `{"viewState": {"gesture_guide_seen": true}}`, stores only the keys given and answers the full
   object like the read. Changes, not whole objects: two writes of different keys never undo each
   other.
-- **Errors:** `400` with `{"error": "request"}` (ADR 0052) for a `viewState` that is not an object,
-  has an unknown key or a value that is not a boolean, or has no key at all; `401` without a user.
+- **Errors:** `400` with `{"error": "request"}` (ADR 0052, 0057) for a `viewState` that is not an
+  object, has an unknown key or a value that is not a boolean, or has no key at all; `401` without
+  a user.
 - **Migration.** The client reads the view state once per visit. For a key the server has never
   stored, it takes a `true`/`false` left in browser storage (`honeycomb.infoOpen`,
   `honeycomb.gestureGuideSeen`), writes it once and removes the local key after that write
@@ -51,3 +52,14 @@ or device.
 `series_hint_seen` keeps whether the user dismissed the loupe's first-series hint (LOUPE-001.26),
 like `gesture_guide_seen`. No older version kept it in browser storage, so it has nothing to take
 over.
+
+## Amendment 2026-11-24: the Immich filters per connection
+
+`immich_filters` keeps the Immich source's filters per connection (IMMICH-002.32), so they follow
+the user to every device like the rest of the view state. It is stored with `setValueArray` as
+an object of connection ids, and a write merges only the connections it names, so two tabs on
+different connections do not undo each other. The server checks the shape, not the filters: an
+object of connection ids of 1 to 64 characters, each value an object of at most 4,096 bytes as
+JSON, at most 50 connections kept. The client reads each value tolerantly and takes the default
+for what it cannot read (`src/logic/immich-filter-storage.ts`), so a filter added later needs no
+server change. Browser storage was rejected: the filters would not follow the user.

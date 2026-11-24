@@ -85,13 +85,13 @@ final readonly class StatsService {
 	/**
 	 * The user's counters of the days from `$from` to `$to`, both included, their first counted day and their today.
 	 * @return array{counters: list<StatsCounter>, firstDay: ?string, today: string}
-	 * @throws InvalidStatsRequestException for a malformed day or `$from` after `$to`
+	 * @throws InvalidRequestException for a malformed day or `$from` after `$to`
 	 */
 	public function read(IUser $user, ?string $from, ?string $to): array {
 		$this->checkDay($from);
 		$this->checkDay($to);
 		if ($from !== null && $to !== null && $from > $to) {
-			throw new InvalidStatsRequestException('from must not be after to');
+			throw InvalidRequestException::because(Reason::BadValue, 'from must not be after to');
 		}
 		return ['counters' => $this->store->between($user->getUID(), $from, $to), 'firstDay' => $this->store->firstDay($user->getUID()), 'today' => $this->day->today($user)];
 	}
@@ -112,7 +112,7 @@ final readonly class StatsService {
 		}
 		$parsed = \DateTimeImmutable::createFromFormat('!' . StatsDay::FORMAT, $day);
 		if ($parsed === false || $parsed->format(StatsDay::FORMAT) !== $day) {
-			throw new InvalidStatsRequestException('a day must be YYYY-MM-DD');
+			throw InvalidRequestException::because(Reason::BadValue, 'a day must be YYYY-MM-DD');
 		}
 	}
 }

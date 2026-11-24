@@ -29,20 +29,20 @@ final readonly class SeriesWrite {
 	 * @param array<array-key, mixed> $series
 	 * @param array<array-key, mixed> $keptOut
 	 * @param array<array-key, mixed> $released
-	 * @throws InvalidSeriesException for a malformed item, a file id or series id given twice, or a limit passed
+	 * @throws InvalidRequestException for a malformed item, a file id or series id given twice, or a limit passed
 	 */
 	public static function fromRequest(array $series, array $keptOut, array $released): self {
 		$write = new self(
-			array_map(SeriesItem::fromRequest(...), FileIds::items($series, self::SERIES_LIMIT, InvalidSeriesException::class)),
-			FileIds::parse($keptOut, ListingService::ENTRY_LIMIT, InvalidSeriesException::class),
-			FileIds::parse($released, ListingService::ENTRY_LIMIT, InvalidSeriesException::class),
+			array_map(SeriesItem::fromRequest(...), FileIds::items($series, self::SERIES_LIMIT)),
+			FileIds::parse($keptOut, ListingService::ENTRY_LIMIT),
+			FileIds::parse($released, ListingService::ENTRY_LIMIT),
 		);
-		if (count(FileIds::eachOnce($write->fileIds(), InvalidSeriesException::class)) > ListingService::ENTRY_LIMIT) {
-			throw new InvalidSeriesException('A write takes at most ' . ListingService::ENTRY_LIMIT . ' file ids');
+		if (count(FileIds::eachOnce($write->fileIds())) > ListingService::ENTRY_LIMIT) {
+			throw InvalidRequestException::because(Reason::TooMany, 'A write takes at most ' . ListingService::ENTRY_LIMIT . ' file ids');
 		}
 		$seriesIds = array_filter(array_map(static fn (SeriesItem $item): ?int => $item->id, $write->series), static fn (?int $id): bool => $id !== null);
 		if (count(array_unique($seriesIds)) !== count($seriesIds)) {
-			throw new InvalidSeriesException('Each series id may appear only once');
+			throw InvalidRequestException::because(Reason::Duplicate, 'Each series id may appear only once');
 		}
 		return $write;
 	}

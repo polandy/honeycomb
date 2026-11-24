@@ -25,11 +25,11 @@ final class QualityService {
 	 * (SERIES-006.13); returns their file ids in request order.
 	 * @param array<array-key, mixed> $items
 	 * @return list<int>
-	 * @throws InvalidQualityValueException for a malformed item, a file id given twice or too many items
+	 * @throws InvalidRequestException for a malformed item, a file id given twice or too many items
 	 */
 	public function save(IUser $user, array $items): array {
-		$values = array_map(QualityValue::fromRequest(...), FileIds::items($items, self::SAVE_LIMIT, InvalidQualityValueException::class));
-		FileIds::eachOnce(array_map(static fn (QualityValue $value): int => $value->fileId, $values), InvalidQualityValueException::class);
+		$values = array_map(QualityValue::fromRequest(...), FileIds::items($items, self::SAVE_LIMIT));
+		FileIds::eachOnce(array_map(static fn (QualityValue $value): int => $value->fileId, $values));
 		$current = CurrentRows::of($this->photos, $user, $values);
 		if ($current !== []) {
 			RetryOnConflict::run(fn () => $this->store->replace($current));

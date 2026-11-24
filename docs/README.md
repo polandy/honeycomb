@@ -16,6 +16,7 @@ users and Nextcloud admins, [`dev/`](dev/README.md) for everyone who builds hone
 | [`user/`](user/) | Documentation for users, e.g. [culling a shoot](user/culling.md), [sidecars](user/sidecars.md), [shared folders](user/shared-folders.md), [ratings, flags and colours in other programs](user/ratings-flags-colours.md), [tags](user/tags.md), [keyboard shortcuts](user/keyboard-shortcuts.md), [settings](user/settings.md), [similarity](user/similarity.md) |
 | [`user/admin/`](user/admin/) | Documentation for Nextcloud admins: [apps and commands](user/admin/apps-and-commands.md), [updating](user/admin/updating.md), the one-time reinstall for early installs, [release notes](user/admin/release-notes.md), file locking, [removing](user/admin/removing.md) |
 | [`dev/specs/`](dev/specs/) | What the merged code does, one spec per feature, coupled to the tests (ADR 0015) |
+| [`dev/performance.md`](dev/performance.md) | Database measurements of the XMP cache, the statistics and the Immich listing at 60,000 and 50,000 rows, on three engines, and what they decided |
 | [`dev/calibration.md`](dev/calibration.md) | Checking the sharpness measure on series copied out of the Photos library |
 | [`dev/releasing.md`](dev/releasing.md) | The release tarball, its signatures and the App Store upload, with the owner's one-time steps |
 | [`dev/plan.md`](dev/plan.md) | Milestones, project structure, target versions, open questions |

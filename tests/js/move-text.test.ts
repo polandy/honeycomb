@@ -63,6 +63,15 @@ describe('move texts', () => {
 		expect(moveFailedText(new Error('down'))).toBe('Could not move the photos; reload the folder to see what changed.')
 	})
 
+	// spec: APP-004.6
+	it('says what the server refused in the request', () => {
+		const refused = (reason: string) => Object.assign(new Error('Bad'), { response: { status: 400, data: { error: 'request', reason } } })
+
+		expect(moveFailedText(refused('bad-path'))).toBe('Could not move the photos: a target path is not valid. Nothing moved.')
+		expect(moveFailedText(refused('conflict'))).toBe('Could not move the photos: a file is both moved and replaced. Nothing moved.')
+		expect(moveFailedText(refused('too-many'))).toBe('Could not move the photos; reload the folder to see what changed.')
+	})
+
 	// spec: MOVE-004.20
 	it('says the server did not answer in time', () => {
 		expect(moveFailedText(new RequestTimeoutError(90_000))).toBe('The server did not answer within 90 s; reload the folder to see what moved.')

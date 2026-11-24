@@ -9,8 +9,11 @@ namespace OCA\Honeycomb\Service;
 
 /** Rows kept per file id, which follow a file and go with it. */
 interface FileRowStore {
-	/** Moves the user's row of `$fileId`, if there is one, to `$newFileId`; a store without users moves any row. */
-	public function carryOver(string $userId, int $fileId, int $newFileId): void;
+	/**
+	 * Moves every row of `$fileId`, whoever's it is, to `$newFileId`: a shared file has one file id for all its users.
+	 * @throws \OCP\DB\Exception
+	 */
+	public function carryOver(int $fileId, int $newFileId): void;
 
 	/**
 	 * The file ids of at most `$limit` rows, of every user, with a row id above `$afterId`, in row id order.

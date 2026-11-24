@@ -102,7 +102,7 @@ describe('TagEntry', () => {
 		await press(wrapper, 'Enter')
 
 		expect(wrapper.emitted('change')).toBeUndefined()
-		expect(wrapper.find('[role="alert"]').text()).toBe('A tag needs names, separated by "/", without "|"')
+		expect(wrapper.find('[role="alert"]').text()).toBe('Separate the levels of a tag with "/". A name cannot be empty and cannot contain "|".')
 	})
 
 	// spec: TAGS-003.8

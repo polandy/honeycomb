@@ -1919,3 +1919,28 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   12 px (#187, autonomous).
 - 2026-11-24: viewport-fit=cover is added by script to Nextcloud's viewport meta, and only the page
   root and the loupe pad their edges; photos do not yet run under the bars (#187, autonomous).
+- 2026-11-24: Immich filter bar: time, device and kind as filter-bar chips in the Immich
+  toolbar, not in the navigation as the Phase 1 mockup drew them, since the owner asked for the
+  folder filter bar's style; they are kept per connection in the server view state
+  (`immich_filters`, ADR 0019 amendment), so they follow the user like the other view state.
+  The current month is kept as `current`, so it follows the calendar; the stored keys are the
+  connections file's ids (a numeric id included), and 4096 bytes per connection suffice, since a
+  listing takes at most 20 devices.
+- 2026-11-24: The empty states get a way out (#380, Fable review, owner-approved): the file grid's
+  empty folder state offers *Change folders* and hints at the *File types* setting, and the Immich
+  grid's no-match state offers *Clear filters* that shows the default filters again. The hint
+  reads "If your photos use other file types, add them in Settings › File types."; the settings
+  link is text, not a second button, so the state keeps one action. On the default filters (this
+  month, *Picked* and *Unflagged*) the Immich *Clear filters* does not show, since it would change
+  nothing, like the filter bar's *Clear filters* (IMMICH-002.31).
+- 2026-11-24: Icons and labels (Fable review, owner-approved): the rating's first button reads
+  *Clear* instead of `0`, its aria-label unchanged; *Review rejects* takes a check-list icon
+  (the trash stays with the delete action); the Immich source takes a neutral server icon
+  instead of a phone; and the tag refusal reads two plain sentences ("Separate the levels of a
+  tag with \"/\". A name cannot be empty and cannot contain \"|\"."). Wording and icons only.
+- 2026-11-24: The 17 empty `Invalid*Exception` classes are gone; `InvalidRequestException::because(Reason)`
+  names the reason in the 400 body next to `error: "request"` (ADR 0057, #187, autonomous). Twelve coarse
+  reasons, one per kind of malformed part, not one per field; the free-text detail stays on the exception.
+- 2026-11-24: No index and no smaller transaction after measuring 60,000 `xmp_cache` rows and 50,000
+  Immich decisions on SQLite, MariaDB and PostgreSQL; `xmp_cache` stays per user
+  (`docs/dev/performance.md`, #187, autonomous).

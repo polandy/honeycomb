@@ -17,29 +17,29 @@ final readonly class SidecarEtag {
 
 	/**
 	 * The ETag in a request item, both fields required, the ETag null to forget it.
-	 * @throws InvalidFlagException for a missing or malformed field
+	 * @throws InvalidRequestException for a missing or malformed field
 	 */
 	public static function fromRequest(mixed $item): self {
 		if (!is_array($item)) {
-			throw new InvalidFlagException('A sidecar ETag must be an object');
+			throw InvalidRequestException::because(Reason::NotAnObject, 'A sidecar ETag must be an object');
 		}
 		$fileId = $item['fileId'] ?? null;
 		if (!is_int($fileId) || $fileId < 1) {
-			throw new InvalidFlagException('fileId must be a positive integer');
+			throw InvalidRequestException::because(Reason::BadFileId, 'fileId must be a positive integer');
 		}
 		if (!array_key_exists('sidecarEtag', $item)) {
-			throw new InvalidFlagException("sidecarEtag of file $fileId is missing");
+			throw InvalidRequestException::because(Reason::BadEtag, "sidecarEtag of file $fileId is missing");
 		}
 		return new self($fileId, self::parse($item['sidecarEtag'], $fileId));
 	}
 
 	/**
 	 * A sidecar ETag of a request, null kept as null.
-	 * @throws InvalidFlagException for anything but null or 1 to 40 characters
+	 * @throws InvalidRequestException for anything but null or 1 to 40 characters
 	 */
 	public static function parse(mixed $etag, int $fileId): ?string {
 		if ($etag !== null && (!is_string($etag) || $etag === '' || strlen($etag) > VisualHash::MAX_ETAG_LENGTH)) {
-			throw new InvalidFlagException("sidecarEtag of file $fileId must be null or 1 to " . VisualHash::MAX_ETAG_LENGTH . ' characters');
+			throw InvalidRequestException::because(Reason::BadEtag, "sidecarEtag of file $fileId must be null or 1 to " . VisualHash::MAX_ETAG_LENGTH . ' characters');
 		}
 		return $etag;
 	}
