@@ -7,6 +7,7 @@ import type { Page } from '../../../src/logic/immich-paging.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import AppIcon from '../../../src/components/AppIcon.vue'
 import ImmichFilterBar from '../../../src/components/ImmichFilterBar.vue'
 import ImmichScreen from '../../../src/components/ImmichScreen.vue'
 import PhotoGrid from '../../../src/components/PhotoGrid.vue'
@@ -74,6 +75,7 @@ describe('ImmichScreen', () => {
 		await flushPromises()
 
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
+		expect(wrapper.find('.immich-screen__empty').findComponent(AppIcon).props('name')).toBe('server')
 		expect(wrapper.text()).toContain('No pictures match. Change the time, device or flag filter.')
 		const clear = wrapper.find('.immich-screen__empty').findAll('button').find((each) => each.text() === 'Clear filters')
 		expect(clear).toBeDefined()
