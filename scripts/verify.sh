@@ -32,9 +32,11 @@ step "npm ci" npm ci
 step unused-exports scripts/unused-exports.sh
 parallel_step eslint npx eslint
 parallel_step vue-tsc npx vue-tsc
-parallel_step vitest npx vitest run --coverage
+parallel_step vitest npx vitest run --coverage --exclude tests/js/conventions/eslint.test.ts
 parallel_step "xmp interop" scripts/xmp-interop.sh
 parallel_wait
+# Alone, because its first lint builds the type-aware program, which starves beside eslint and vue-tsc.
+step "eslint conventions" npx vitest run tests/js/conventions/eslint.test.ts
 step build npx vite build
 # Each Nextcloud container has its own port and name (scripts/e2e-names.sh); one run per host at a time.
 # Orphans go first: an aborted run's leftovers would otherwise hold the slot or the ports.
